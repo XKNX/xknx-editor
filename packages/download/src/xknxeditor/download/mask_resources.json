@@ -1,0 +1,950 @@
+{
+ "MV-0010": {
+  "GroupAssociationTablePtr": [
+   "StandardMemory",
+   null,
+   null,
+   273
+  ],
+  "GroupObjectTablePtr": [
+   "StandardMemory",
+   null,
+   null,
+   274
+  ]
+ },
+ "MV-0011": {
+  "GroupAssociationTablePtr": [
+   "StandardMemory",
+   null,
+   null,
+   273
+  ],
+  "GroupObjectTablePtr": [
+   "StandardMemory",
+   null,
+   null,
+   274
+  ]
+ },
+ "MV-0012": {
+  "GroupAssociationTablePtr": [
+   "StandardMemory",
+   null,
+   null,
+   273
+  ],
+  "GroupObjectTablePtr": [
+   "StandardMemory",
+   null,
+   null,
+   274
+  ]
+ },
+ "MV-0013": {
+  "GroupAssociationTablePtr": [
+   "StandardMemory",
+   null,
+   null,
+   273
+  ],
+  "GroupObjectTablePtr": [
+   "StandardMemory",
+   null,
+   null,
+   274
+  ]
+ },
+ "MV-0020": {
+  "ApplicationLoadControl": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "ApplicationLoadStatus": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "ApplicationRunControl": [
+   "SystemProperty",
+   3,
+   6,
+   0
+  ],
+  "GroupAddressTableLoadControl": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTableLoadStatus": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTablePtr": [
+   "SystemProperty",
+   1,
+   7,
+   0
+  ],
+  "GroupAssociationTableLoadControl": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTableLoadStatus": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTablePtr": [
+   "SystemProperty",
+   2,
+   7,
+   0
+  ],
+  "GroupObjectTablePtr": [
+   "SystemProperty",
+   3,
+   7,
+   0
+  ]
+ },
+ "MV-0021": {
+  "ApplicationLoadControl": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "ApplicationLoadStatus": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "ApplicationRunControl": [
+   "SystemProperty",
+   3,
+   6,
+   0
+  ],
+  "GroupAddressTableLoadControl": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTableLoadStatus": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTablePtr": [
+   "SystemProperty",
+   1,
+   7,
+   0
+  ],
+  "GroupAssociationTableLoadControl": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTableLoadStatus": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTablePtr": [
+   "SystemProperty",
+   2,
+   7,
+   0
+  ],
+  "GroupObjectTablePtr": [
+   "SystemProperty",
+   3,
+   7,
+   0
+  ]
+ },
+ "MV-0025": {
+  "ApplicationLoadControl": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "ApplicationLoadStatus": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "ApplicationRunControl": [
+   "SystemProperty",
+   3,
+   6,
+   0
+  ],
+  "GroupAddressTableLoadControl": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTableLoadStatus": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTablePtr": [
+   "SystemProperty",
+   1,
+   7,
+   0
+  ],
+  "GroupAssociationTableLoadControl": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTableLoadStatus": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTablePtr": [
+   "SystemProperty",
+   2,
+   7,
+   0
+  ],
+  "GroupObjectTablePtr": [
+   "SystemProperty",
+   3,
+   7,
+   0
+  ]
+ },
+ "MV-0300-01000000000000000000": {
+  "ApplicationLoadControl": [
+   "SystemProperty",
+   7,
+   5,
+   0
+  ],
+  "ApplicationLoadStatus": [
+   "SystemProperty",
+   7,
+   5,
+   0
+  ],
+  "ApplicationRunControl": [
+   "SystemProperty",
+   7,
+   6,
+   0
+  ],
+  "GroupAddressTableLoadControl": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTableLoadStatus": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAssociationTableLoadControl": [
+   "SystemProperty",
+   6,
+   5,
+   0
+  ],
+  "GroupAssociationTableLoadStatus": [
+   "SystemProperty",
+   6,
+   5,
+   0
+  ]
+ },
+ "MV-0300-01000001000000000000": {
+  "ApplicationLoadControl": [
+   "Property",
+   3,
+   5,
+   0
+  ],
+  "ApplicationLoadStatus": [
+   "Property",
+   3,
+   5,
+   0
+  ],
+  "ApplicationRunControl": [
+   "Property",
+   3,
+   6,
+   0
+  ],
+  "GroupAddressTableLoadControl": [
+   "Property",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTableLoadStatus": [
+   "Property",
+   1,
+   5,
+   0
+  ],
+  "GroupAssociationTableLoadControl": [
+   "Property",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTableLoadStatus": [
+   "Property",
+   2,
+   5,
+   0
+  ],
+  "GroupObjectTableLoadStatus": [
+   "Property",
+   9,
+   5,
+   0
+  ]
+ },
+ "MV-0700": {
+  "ApplicationLoadControl": [
+   "StandardMemory",
+   null,
+   null,
+   260
+  ],
+  "ApplicationLoadStatus": [
+   "StandardMemory",
+   null,
+   null,
+   46828
+  ],
+  "ApplicationRunControl": [
+   "StandardMemory",
+   null,
+   null,
+   257
+  ],
+  "GroupAddressTableLoadControl": [
+   "StandardMemory",
+   null,
+   null,
+   260
+  ],
+  "GroupAddressTableLoadStatus": [
+   "StandardMemory",
+   null,
+   null,
+   46826
+  ],
+  "GroupAssociationTableLoadControl": [
+   "StandardMemory",
+   null,
+   null,
+   260
+  ],
+  "GroupAssociationTableLoadStatus": [
+   "StandardMemory",
+   null,
+   null,
+   46827
+  ],
+  "GroupAssociationTablePtr": [
+   "StandardMemory",
+   null,
+   null,
+   46840
+  ]
+ },
+ "MV-0701": {
+  "ApplicationLoadControl": [
+   "StandardMemory",
+   null,
+   null,
+   260
+  ],
+  "ApplicationLoadStatus": [
+   "StandardMemory",
+   null,
+   null,
+   46828
+  ],
+  "ApplicationRunControl": [
+   "SystemProperty",
+   3,
+   6,
+   0
+  ],
+  "GroupAddressTableLoadControl": [
+   "StandardMemory",
+   null,
+   null,
+   260
+  ],
+  "GroupAddressTableLoadStatus": [
+   "StandardMemory",
+   null,
+   null,
+   46826
+  ],
+  "GroupAssociationTableLoadControl": [
+   "StandardMemory",
+   null,
+   null,
+   260
+  ],
+  "GroupAssociationTableLoadStatus": [
+   "StandardMemory",
+   null,
+   null,
+   46827
+  ],
+  "GroupAssociationTablePtr": [
+   "SystemProperty",
+   2,
+   7,
+   0
+  ]
+ },
+ "MV-0705": {
+  "ApplicationLoadControl": [
+   "StandardMemory",
+   null,
+   null,
+   260
+  ],
+  "ApplicationLoadStatus": [
+   "StandardMemory",
+   null,
+   null,
+   46828
+  ],
+  "ApplicationRunControl": [
+   "SystemProperty",
+   3,
+   6,
+   0
+  ],
+  "GroupAddressTableLoadControl": [
+   "StandardMemory",
+   null,
+   null,
+   260
+  ],
+  "GroupAddressTableLoadStatus": [
+   "StandardMemory",
+   null,
+   null,
+   46826
+  ],
+  "GroupAssociationTableLoadControl": [
+   "StandardMemory",
+   null,
+   null,
+   260
+  ],
+  "GroupAssociationTableLoadStatus": [
+   "StandardMemory",
+   null,
+   null,
+   46827
+  ],
+  "GroupAssociationTablePtr": [
+   "SystemProperty",
+   2,
+   7,
+   0
+  ]
+ },
+ "MV-07B0": {
+  "ApplicationDataPtr": [
+   "SystemProperty",
+   4,
+   7,
+   0
+  ],
+  "ApplicationLoadControl": [
+   "SystemProperty",
+   4,
+   5,
+   0
+  ],
+  "ApplicationLoadStatus": [
+   "SystemProperty",
+   4,
+   5,
+   0
+  ],
+  "ApplicationRunControl": [
+   "SystemProperty",
+   4,
+   6,
+   0
+  ],
+  "GroupAddressTableLoadControl": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTableLoadStatus": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTablePtr": [
+   "SystemProperty",
+   1,
+   7,
+   0
+  ],
+  "GroupAssociationTableLoadControl": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTableLoadStatus": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTablePtr": [
+   "SystemProperty",
+   2,
+   7,
+   0
+  ],
+  "GroupObjectTableLoadControl": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "GroupObjectTableLoadStatus": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "GroupObjectTablePtr": [
+   "SystemProperty",
+   3,
+   7,
+   0
+  ]
+ },
+ "MV-1011": {
+  "GroupAssociationTablePtr": [
+   "StandardMemory",
+   null,
+   null,
+   273
+  ],
+  "GroupObjectTablePtr": [
+   "StandardMemory",
+   null,
+   null,
+   274
+  ]
+ },
+ "MV-1012": {
+  "GroupAssociationTablePtr": [
+   "StandardMemory",
+   null,
+   null,
+   273
+  ],
+  "GroupObjectTablePtr": [
+   "StandardMemory",
+   null,
+   null,
+   274
+  ]
+ },
+ "MV-1013": {
+  "GroupAssociationTablePtr": [
+   "StandardMemory",
+   null,
+   null,
+   273
+  ],
+  "GroupObjectTablePtr": [
+   "StandardMemory",
+   null,
+   null,
+   274
+  ]
+ },
+ "MV-17B0": {
+  "ApplicationDataPtr": [
+   "SystemProperty",
+   4,
+   7,
+   0
+  ],
+  "ApplicationLoadControl": [
+   "SystemProperty",
+   4,
+   5,
+   0
+  ],
+  "ApplicationLoadStatus": [
+   "SystemProperty",
+   4,
+   5,
+   0
+  ],
+  "ApplicationRunControl": [
+   "SystemProperty",
+   4,
+   6,
+   0
+  ],
+  "GroupAddressTableLoadControl": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTableLoadStatus": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTablePtr": [
+   "SystemProperty",
+   1,
+   7,
+   0
+  ],
+  "GroupAssociationTableLoadControl": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTableLoadStatus": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTablePtr": [
+   "SystemProperty",
+   2,
+   7,
+   0
+  ],
+  "GroupObjectTableLoadControl": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "GroupObjectTableLoadStatus": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "GroupObjectTablePtr": [
+   "SystemProperty",
+   3,
+   7,
+   0
+  ]
+ },
+ "MV-2705": {
+  "ApplicationLoadControl": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "ApplicationLoadStatus": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "ApplicationRunControl": [
+   "SystemProperty",
+   3,
+   6,
+   0
+  ],
+  "GroupAddressTableLoadControl": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTableLoadStatus": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAssociationTableLoadControl": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTableLoadStatus": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTablePtr": [
+   "SystemProperty",
+   2,
+   7,
+   0
+  ]
+ },
+ "MV-27B0": {
+  "ApplicationDataPtr": [
+   "SystemProperty",
+   4,
+   7,
+   0
+  ],
+  "ApplicationLoadControl": [
+   "SystemProperty",
+   4,
+   5,
+   0
+  ],
+  "ApplicationLoadStatus": [
+   "SystemProperty",
+   4,
+   5,
+   0
+  ],
+  "ApplicationRunControl": [
+   "SystemProperty",
+   4,
+   6,
+   0
+  ],
+  "GroupAddressTableLoadControl": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTableLoadStatus": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTablePtr": [
+   "SystemProperty",
+   1,
+   7,
+   0
+  ],
+  "GroupAssociationTableLoadControl": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTableLoadStatus": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTablePtr": [
+   "SystemProperty",
+   2,
+   7,
+   0
+  ],
+  "GroupObjectTableLoadControl": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "GroupObjectTableLoadStatus": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "GroupObjectTablePtr": [
+   "SystemProperty",
+   3,
+   7,
+   0
+  ]
+ },
+ "MV-5705": {
+  "ApplicationLoadControl": [
+   "StandardMemory",
+   null,
+   null,
+   260
+  ],
+  "ApplicationLoadStatus": [
+   "StandardMemory",
+   null,
+   null,
+   46828
+  ],
+  "ApplicationRunControl": [
+   "SystemProperty",
+   3,
+   6,
+   0
+  ],
+  "GroupAddressTableLoadControl": [
+   "StandardMemory",
+   null,
+   null,
+   260
+  ],
+  "GroupAddressTableLoadStatus": [
+   "StandardMemory",
+   null,
+   null,
+   46826
+  ],
+  "GroupAssociationTableLoadControl": [
+   "StandardMemory",
+   null,
+   null,
+   260
+  ],
+  "GroupAssociationTableLoadStatus": [
+   "StandardMemory",
+   null,
+   null,
+   46827
+  ],
+  "GroupAssociationTablePtr": [
+   "SystemProperty",
+   2,
+   7,
+   0
+  ]
+ },
+ "MV-57B0": {
+  "ApplicationDataPtr": [
+   "SystemProperty",
+   4,
+   7,
+   0
+  ],
+  "ApplicationLoadControl": [
+   "SystemProperty",
+   4,
+   5,
+   0
+  ],
+  "ApplicationLoadStatus": [
+   "SystemProperty",
+   4,
+   5,
+   0
+  ],
+  "ApplicationRunControl": [
+   "SystemProperty",
+   4,
+   6,
+   0
+  ],
+  "GroupAddressTableLoadControl": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTableLoadStatus": [
+   "SystemProperty",
+   1,
+   5,
+   0
+  ],
+  "GroupAddressTablePtr": [
+   "SystemProperty",
+   1,
+   7,
+   0
+  ],
+  "GroupAssociationTableLoadControl": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTableLoadStatus": [
+   "SystemProperty",
+   2,
+   5,
+   0
+  ],
+  "GroupAssociationTablePtr": [
+   "SystemProperty",
+   2,
+   7,
+   0
+  ],
+  "GroupObjectTableLoadControl": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "GroupObjectTableLoadStatus": [
+   "SystemProperty",
+   3,
+   5,
+   0
+  ],
+  "GroupObjectTablePtr": [
+   "SystemProperty",
+   3,
+   7,
+   0
+  ]
+ }
+}
