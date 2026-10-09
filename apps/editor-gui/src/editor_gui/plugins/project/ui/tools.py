@@ -27,6 +27,7 @@ from editor_gui.os_open import open_path
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import label_render
 from editor_gui.plugins.project.ui._filter import filter_box
+from editor_gui.widgets.dpi import px, px_vec2
 
 if TYPE_CHECKING:
     from editor_gui.device import ComObject, Device
@@ -232,7 +233,7 @@ class ToolsPanel:
         )
         current = devices[min(self._copy_device_idx, len(devices) - 1)]
         imgui.text_disabled(S.TOOLS_COPY_COUNT)
-        imgui.set_next_item_width(160.0)
+        imgui.set_next_item_width(px(160.0))
         _, self._copy_count = imgui.input_int("##copy_count", self._copy_count)
         self._copy_count = max(1, min(self._copy_count, 500))
         imgui.text_disabled(S.TOOLS_COPY_FIND)
@@ -292,7 +293,7 @@ class ToolsPanel:
         needle = self._repl_filters[key].strip().lower()
         shown = [d for d in devices if self._matches(d, needle)]
         chosen = current if current is not None else devices[0].node_id
-        if imgui.begin_child(f"##rl_{key}", imgui.ImVec2(0.0, 150.0), True):
+        if imgui.begin_child(f"##rl_{key}", px_vec2(0.0, 150.0), True):
             for d in shown:
                 if imgui.selectable(
                     f"{self._device_label(d)}##{key}{d.node_id}", d.node_id == chosen
@@ -323,7 +324,7 @@ class ToolsPanel:
             target.get_visible_com_objects(), template.get_visible_com_objects()
         )
         mapped = 0
-        if imgui.begin_child("##repl_prev", imgui.ImVec2(0.0, 220.0), True):
+        if imgui.begin_child("##repl_prev", px_vec2(0.0, 220.0), True):
             for old_co, new_co in pairs:
                 if new_co is None:
                     imgui.text_colored(_ERR_COLOR, f"{_co_label(old_co)}  ->  —")
@@ -352,13 +353,13 @@ class ToolsPanel:
         imgui.separator_text(S.TOOLS_TAB_SHIFT)
         imgui.text_disabled(S.TOOLS_SHIFT_OFFSET)
         _help_marker(S.TOOLS_SHIFT_HINT)
-        imgui.set_next_item_width(160.0)
+        imgui.set_next_item_width(px(160.0))
         _, self._shift_offset = imgui.input_int("##shift_offset", self._shift_offset)
         shown = self._filtered(devices, "shift")
         self._device_toolbar(devices, shown)
         # One list = multi-select + live preview: checked rows show -> new (red if invalid).
         valid = 0
-        if imgui.begin_child("##shift_list", imgui.ImVec2(0.0, 260.0), True):
+        if imgui.begin_child("##shift_list", px_vec2(0.0, 260.0), True):
             for d in shown:
                 selected = d.node_id in self._selected_nodes
                 changed, new_sel = imgui.checkbox(f"##sh{d.node_id}", selected)
@@ -452,7 +453,7 @@ class ToolsPanel:
         imgui.separator_text(S.TOOLS_TAB_LABELS)
         shown = self._filtered(devices, "labels")
         self._device_toolbar(devices, shown)
-        if imgui.begin_child("##label_list", imgui.ImVec2(0.0, 200.0), True):
+        if imgui.begin_child("##label_list", px_vec2(0.0, 200.0), True):
             for d in shown:
                 selected = d.node_id in self._selected_nodes
                 changed, new_sel = imgui.checkbox(f"##lb{d.node_id}", selected)
@@ -493,8 +494,8 @@ class ToolsPanel:
                     self._label_fields.add(fid)
                 else:
                     self._label_fields.discard(fid)
-            used += imgui.get_item_rect_size().x + 16.0
-            if used < avail - 120.0:
+            used += imgui.get_item_rect_size().x + px(16.0)
+            if used < avail - px(120.0):
                 imgui.same_line()
             else:
                 used = 0.0
@@ -522,9 +523,9 @@ class ToolsPanel:
             imgui.text_disabled(f"({label_render.SHEET_L7651.name})")
             return
         g = self._label_grid
-        imgui.set_next_item_width(120.0)
+        imgui.set_next_item_width(px(120.0))
         _, g.cols = imgui.input_int(S.TOOLS_LABELS_GRID_COLS, g.cols)
-        imgui.set_next_item_width(120.0)
+        imgui.set_next_item_width(px(120.0))
         _, g.rows = imgui.input_int(S.TOOLS_LABELS_GRID_ROWS, g.rows)
         _, wh = imgui.input_float2(
             S.TOOLS_LABELS_GRID_LABEL_MM, (g.label_w_mm, g.label_h_mm)

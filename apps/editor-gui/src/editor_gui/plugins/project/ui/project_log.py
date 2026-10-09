@@ -16,6 +16,7 @@ from imgui_bundle import portable_file_dialogs as pfd
 
 from editor_gui import trace_key
 from editor_gui.plugins.project.strings import S
+from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from xknxeditor.proj import (
     TRACE_DLL_NAME,
@@ -74,10 +75,10 @@ class ProjectLogPanel:
         if not imgui.begin_table("##project_log", 3, flags):
             return
         imgui.table_setup_column(
-            S.PROJECT_LOG_COL_DATE, imgui.TableColumnFlags_.width_fixed, 150.0
+            S.PROJECT_LOG_COL_DATE, imgui.TableColumnFlags_.width_fixed, px(150.0)
         )
         imgui.table_setup_column(
-            S.PROJECT_LOG_COL_USER, imgui.TableColumnFlags_.width_fixed, 120.0
+            S.PROJECT_LOG_COL_USER, imgui.TableColumnFlags_.width_fixed, px(120.0)
         )
         imgui.table_setup_column(
             S.PROJECT_LOG_COL_COMMENT, imgui.TableColumnFlags_.width_stretch, 1.0

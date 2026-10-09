@@ -48,6 +48,7 @@ from editor_gui.plugins.topology import TopologyPlugin
 from editor_gui.settings import config_dir, load_settings, save_settings
 from editor_gui.strings import S, get_locale, set_locale
 from editor_gui.update_check import UpdateInfo, check_for_update
+from editor_gui.widgets.dpi import px, px_vec2
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
     ExportResult,
@@ -796,7 +797,7 @@ class KnxGuiApp:
             self._myknx_login_error = ""
         # Fixed width so the wrapped text actually wraps and labels aren't pushed off-screen
         # (auto-resize + full-width inputs made this window span the whole screen before).
-        imgui.set_next_window_size(imgui.ImVec2(600.0, 0.0), imgui.Cond_.always)
+        imgui.set_next_window_size(px_vec2(600.0, 0.0), imgui.Cond_.always)
         if not imgui.begin_popup_modal(S.MYKNX_SIGN_TITLE, None)[0]:
             return
         dest = self._export_pending_dest
@@ -862,13 +863,13 @@ class KnxGuiApp:
         can_sign = bool(selected_pid) and not logging_in
         if not can_sign:
             imgui.begin_disabled()
-        sign = imgui.button(S.MYKNX_SIGN_CONFIRM, imgui.ImVec2(150, 0))
+        sign = imgui.button(S.MYKNX_SIGN_CONFIRM, px_vec2(150, 0))
         if not can_sign:
             imgui.end_disabled()
         imgui.same_line()
-        skip = imgui.button(S.MYKNX_SIGN_SKIP, imgui.ImVec2(200, 0))
+        skip = imgui.button(S.MYKNX_SIGN_SKIP, px_vec2(200, 0))
         imgui.same_line()
-        cancel = imgui.button(S.BTN_CANCEL, imgui.ImVec2(110, 0))
+        cancel = imgui.button(S.BTN_CANCEL, px_vec2(110, 0))
         if dest is not None and (sign and can_sign):
             self._do_export_knxproj(
                 dest,
@@ -896,7 +897,7 @@ class KnxGuiApp:
             can_login = bool(self._myknx_username and self._myknx_password)
             if not can_login:
                 imgui.begin_disabled()
-            if imgui.button(S.MYKNX_SIGN_LOGIN, imgui.ImVec2(150, 0)):
+            if imgui.button(S.MYKNX_SIGN_LOGIN, px_vec2(150, 0)):
                 self._start_myknx_login()
             if not can_login:
                 imgui.end_disabled()
@@ -1067,7 +1068,7 @@ class KnxGuiApp:
         # Keep auto-resize (height fits content) but enforce a comfortable minimum width so long
         # device names in the status line don't wrap into a cramped, tall popup.
         imgui.set_next_window_size_constraints(
-            imgui.ImVec2(560.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
+            px_vec2(560.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
         )
         if not imgui.begin_popup_modal(
             S.PROGRESS_TITLE, None, imgui.WindowFlags_.always_auto_resize
@@ -1077,7 +1078,7 @@ class KnxGuiApp:
         elapsed = time.time() - self._progress_started_at
         fraction = self._progress_fraction
         # Fixed width: a stretch (-1) bar inside an auto-resizing modal feeds back and shrinks it.
-        bar_size = imgui.ImVec2(520.0, 0.0)
+        bar_size = px_vec2(520.0, 0.0)
         if fraction is not None:
             fraction = max(0.0, min(1.0, fraction))
             imgui.progress_bar(fraction, bar_size, f"{fraction * 100:0.0f}%")
@@ -1137,7 +1138,7 @@ class KnxGuiApp:
         if self._password_prompt_requested:
             imgui.open_popup(S.IMPORT_PASSWORD_TITLE)
             self._password_prompt_requested = False
-        imgui.set_next_window_size(imgui.ImVec2(420.0, 0.0), imgui.Cond_.always)
+        imgui.set_next_window_size(px_vec2(420.0, 0.0), imgui.Cond_.always)
         if not imgui.begin_popup_modal(S.IMPORT_PASSWORD_TITLE, None)[0]:
             return
         imgui.text_wrapped(S.IMPORT_PASSWORD_PROMPT)
@@ -1152,7 +1153,7 @@ class KnxGuiApp:
                 imgui.ImVec4(0.9, 0.4, 0.4, 1.0), self._import_password_error
             )
         imgui.spacing()
-        btn_w = imgui.ImVec2(120, 0)
+        btn_w = px_vec2(120, 0)
         confirm = imgui.button(S.BTN_OK, btn_w) or submitted
         imgui.same_line()
         cancel = imgui.button(S.BTN_CANCEL, btn_w)
@@ -1219,7 +1220,7 @@ class KnxGuiApp:
                 return
             imgui.open_popup(S.OVERWRITE_TITLE)
             self._overwrite_popup_open = True
-        imgui.set_next_window_size(imgui.ImVec2(460.0, 0.0), imgui.Cond_.always)
+        imgui.set_next_window_size(px_vec2(460.0, 0.0), imgui.Cond_.always)
         if not imgui.begin_popup_modal(S.OVERWRITE_TITLE, None)[0]:
             return
         path, action = self._overwrite_queue[0]
@@ -1245,7 +1246,7 @@ class KnxGuiApp:
         if self._network_consent_requested:
             imgui.open_popup(S.NETWORK_CONSENT_TITLE)
             self._network_consent_requested = False
-        imgui.set_next_window_size(imgui.ImVec2(460.0, 0.0), imgui.Cond_.always)
+        imgui.set_next_window_size(px_vec2(460.0, 0.0), imgui.Cond_.always)
         if not imgui.begin_popup_modal(S.NETWORK_CONSENT_TITLE, None)[0]:
             return
         imgui.text_wrapped(
@@ -1271,7 +1272,7 @@ class KnxGuiApp:
         if self._url_prompt_requested:
             imgui.open_popup(S.URL_PROMPT_TITLE)
             self._url_prompt_requested = False
-        imgui.set_next_window_size(imgui.ImVec2(560.0, 0.0), imgui.Cond_.always)
+        imgui.set_next_window_size(px_vec2(560.0, 0.0), imgui.Cond_.always)
         if not imgui.begin_popup_modal(S.URL_PROMPT_TITLE, None)[0]:
             return
         imgui.text_wrapped(S.URL_PROMPT_HINT)
@@ -1281,7 +1282,7 @@ class KnxGuiApp:
             "##load-url", self._url_input, imgui.InputTextFlags_.enter_returns_true
         )
         imgui.spacing()
-        btn_w = imgui.ImVec2(120, 0)
+        btn_w = px_vec2(120, 0)
         url = self._url_input.strip()
         load = imgui.button(S.URL_PROMPT_LOAD, btn_w) or submitted
         imgui.same_line()
@@ -1877,12 +1878,12 @@ class KnxGuiApp:
             if imgui.is_popup_open("", imgui.PopupFlags_.any_popup):
                 return
             imgui.open_popup(S.KNXPROD_IMPORT_TITLE)
-        imgui.set_next_window_size(imgui.ImVec2(420.0, 0.0), imgui.Cond_.always)
+        imgui.set_next_window_size(px_vec2(420.0, 0.0), imgui.Cond_.always)
         if not imgui.begin_popup_modal(S.KNXPROD_IMPORT_TITLE, None)[0]:
             return
         imgui.text_wrapped(self._knxprod_msg)
         imgui.spacing()
-        if imgui.button(S.BTN_OK, imgui.ImVec2(120, 0)):
+        if imgui.button(S.BTN_OK, px_vec2(120, 0)):
             self._knxprod_msg = None
             imgui.close_current_popup()
         imgui.end_popup()
@@ -1891,7 +1892,7 @@ class KnxGuiApp:
         if self._about_requested:
             imgui.open_popup(S.ABOUT_TITLE)
             self._about_requested = False
-        imgui.set_next_window_size(imgui.ImVec2(420.0, 0.0), imgui.Cond_.always)
+        imgui.set_next_window_size(px_vec2(420.0, 0.0), imgui.Cond_.always)
         if not imgui.begin_popup_modal(S.ABOUT_TITLE, None)[0]:
             return
         imgui.text(S.APP_TITLE)
@@ -1906,10 +1907,10 @@ class KnxGuiApp:
         imgui.spacing()
         imgui.separator()
         imgui.spacing()
-        if imgui.button(S.MENU_CHECK_UPDATES, imgui.ImVec2(170, 0)):
+        if imgui.button(S.MENU_CHECK_UPDATES, px_vec2(170, 0)):
             self._start_update_check(manual=True)
         imgui.same_line()
-        if imgui.button(S.BTN_OK, imgui.ImVec2(120, 0)):
+        if imgui.button(S.BTN_OK, px_vec2(120, 0)):
             imgui.close_current_popup()
         imgui.end_popup()
 
@@ -1917,7 +1918,7 @@ class KnxGuiApp:
         if self._update_prompt_requested:
             imgui.open_popup(S.UPDATE_TITLE)
             self._update_prompt_requested = False
-        imgui.set_next_window_size(imgui.ImVec2(460.0, 0.0), imgui.Cond_.always)
+        imgui.set_next_window_size(px_vec2(460.0, 0.0), imgui.Cond_.always)
         if not imgui.begin_popup_modal(S.UPDATE_TITLE, None)[0]:
             return
         info = self._update_info
@@ -1931,11 +1932,11 @@ class KnxGuiApp:
             imgui.spacing()
             imgui.separator()
             imgui.text_disabled(S.UPDATE_NOTES_HEADER)
-            if imgui.begin_child("##update-notes", imgui.ImVec2(0.0, 220.0), True):
+            if imgui.begin_child("##update-notes", px_vec2(0.0, 220.0), True):
                 imgui.text_wrapped(info.notes)
             imgui.end_child()
         imgui.spacing()
-        if imgui.button(S.UPDATE_DOWNLOAD, imgui.ImVec2(140, 0)):
+        if imgui.button(S.UPDATE_DOWNLOAD, px_vec2(140, 0)):
             try:
                 webbrowser.open(info.url)
             except Exception as e:
@@ -1944,11 +1945,11 @@ class KnxGuiApp:
                 )
             imgui.close_current_popup()
         imgui.same_line()
-        if imgui.button(S.UPDATE_SKIP, imgui.ImVec2(140, 0)):
+        if imgui.button(S.UPDATE_SKIP, px_vec2(140, 0)):
             self._skip_update_version(info.version)
             imgui.close_current_popup()
         imgui.same_line()
-        if imgui.button(S.UPDATE_LATER, imgui.ImVec2(100, 0)):
+        if imgui.button(S.UPDATE_LATER, px_vec2(100, 0)):
             imgui.close_current_popup()
         imgui.end_popup()
 
@@ -1975,7 +1976,7 @@ class KnxGuiApp:
             imgui.open_popup(S.IMPORT_NOTES_TITLE)
             self._import_notes_requested = False
         imgui.set_next_window_size_constraints(
-            imgui.ImVec2(520.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
+            px_vec2(520.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
         )
         if not imgui.begin_popup_modal(
             S.IMPORT_NOTES_TITLE, None, imgui.WindowFlags_.always_auto_resize
@@ -1989,7 +1990,7 @@ class KnxGuiApp:
             imgui.text_wrapped(self._import_note_text(note))
         imgui.spacing()
         imgui.separator()
-        if imgui.button(S.IMPORT_NOTES_CLOSE, imgui.ImVec2(120, 0)):
+        if imgui.button(S.IMPORT_NOTES_CLOSE, px_vec2(120, 0)):
             imgui.close_current_popup()
         imgui.end_popup()
 
@@ -2001,7 +2002,7 @@ class KnxGuiApp:
             imgui.open_popup(S.EXPORT_SUMMARY_TITLE)
             self._export_summary_requested = False
         imgui.set_next_window_size_constraints(
-            imgui.ImVec2(420.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
+            px_vec2(420.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
         )
         if not imgui.begin_popup_modal(
             S.EXPORT_SUMMARY_TITLE, None, imgui.WindowFlags_.always_auto_resize
@@ -2049,10 +2050,10 @@ class KnxGuiApp:
             imgui.end_table()
         imgui.spacing()
         imgui.separator()
-        if imgui.button(S.EXPORT_SUMMARY_OPEN_FOLDER, imgui.ImVec2(140, 0)):
+        if imgui.button(S.EXPORT_SUMMARY_OPEN_FOLDER, px_vec2(140, 0)):
             self._open_folder(Path(self._export_summary_path).parent)
         imgui.same_line()
-        if imgui.button(S.EXPORT_SUMMARY_CLOSE, imgui.ImVec2(120, 0)):
+        if imgui.button(S.EXPORT_SUMMARY_CLOSE, px_vec2(120, 0)):
             imgui.close_current_popup()
         imgui.end_popup()
 
@@ -2123,7 +2124,7 @@ class KnxGuiApp:
         vp = imgui.get_main_viewport()
         pos = imgui.ImVec2(
             vp.work_pos.x + vp.work_size.x * 0.5,
-            vp.work_pos.y + vp.work_size.y - 12.0,
+            vp.work_pos.y + vp.work_size.y - px(12.0),
         )
         imgui.set_next_window_pos(pos, imgui.Cond_.always, imgui.ImVec2(0.5, 1.0))
         imgui.set_next_window_bg_alpha(0.9)
@@ -2169,7 +2170,7 @@ class KnxGuiApp:
         alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "
         char_w = (imgui.calc_text_size(alphabet).x / len(alphabet)) or 7.0
         cols = int(
-            max(20.0, (avail - 24.0) / char_w)
+            max(20.0, (avail - px(24.0)) / char_w)
         )  # leave room for the scrollbar/padding
         imgui.input_text_multiline(
             "##dongle_steps",
@@ -2229,11 +2230,11 @@ class KnxGuiApp:
             self._palette_open = False
         center = imgui.get_main_viewport().get_center()
         imgui.set_next_window_pos(
-            imgui.ImVec2(center.x, center.y - 180.0),
+            imgui.ImVec2(center.x, center.y - px(180.0)),
             imgui.Cond_.appearing,
             imgui.ImVec2(0.5, 0.0),
         )
-        imgui.set_next_window_size(imgui.ImVec2(520.0, 0.0), imgui.Cond_.appearing)
+        imgui.set_next_window_size(px_vec2(520.0, 0.0), imgui.Cond_.appearing)
         if not imgui.begin_popup("##cmd_palette"):
             return
         if self._palette_focus:
@@ -2258,7 +2259,7 @@ class KnxGuiApp:
                 imgui.Key.keypad_enter
             ):
                 chosen = self._palette_index
-            if imgui.begin_child("##cmd_list", imgui.ImVec2(0.0, 320.0)):
+            if imgui.begin_child("##cmd_list", px_vec2(0.0, 320.0)):
                 for i, (label, _action) in enumerate(matches):
                     if imgui.selectable(f"{label}##cmd{i}", i == self._palette_index)[
                         0
@@ -2303,8 +2304,8 @@ class KnxGuiApp:
             return
         vp = imgui.get_main_viewport()
         pos = imgui.ImVec2(
-            vp.work_pos.x + vp.work_size.x - 12.0,
-            vp.work_pos.y + vp.work_size.y - 12.0,
+            vp.work_pos.x + vp.work_size.x - px(12.0),
+            vp.work_pos.y + vp.work_size.y - px(12.0),
         )
         imgui.set_next_window_pos(pos, imgui.Cond_.always, imgui.ImVec2(1.0, 1.0))
         imgui.set_next_window_bg_alpha(0.9)
@@ -2386,11 +2387,11 @@ class KnxGuiApp:
             S.SETTINGS_MCP_RUNNING if running else S.SETTINGS_MCP_STOPPED,
         )
         imgui.separator()
-        imgui.set_next_item_width(180.0)
+        imgui.set_next_item_width(px(180.0))
         _, self._mcp_host = imgui.input_text(S.SETTINGS_MCP_HOST, self._mcp_host)
-        imgui.set_next_item_width(180.0)
+        imgui.set_next_item_width(px(180.0))
         _, self._mcp_port = imgui.input_text(S.SETTINGS_MCP_PORT, self._mcp_port)
-        imgui.set_next_item_width(180.0)
+        imgui.set_next_item_width(px(180.0))
         _, self._mcp_token = imgui.input_text(
             S.SETTINGS_MCP_TOKEN, self._mcp_token, imgui.InputTextFlags_.password
         )
@@ -2434,14 +2435,14 @@ class KnxGuiApp:
             else imgui.ImVec4(0.6, 0.6, 0.6, 1.0),
             S.SETTINGS_MCP_RUNNING if running else S.SETTINGS_MCP_STOPPED,
         )
-        imgui.set_next_item_width(240.0)
+        imgui.set_next_item_width(px(240.0))
         _, self._mcp_host = imgui.input_text(S.SETTINGS_MCP_HOST, self._mcp_host)
         imgui.push_text_wrap_pos(0.0)
         imgui.text_disabled(S.KI_HOST_HINT)
         imgui.pop_text_wrap_pos()
-        imgui.set_next_item_width(240.0)
+        imgui.set_next_item_width(px(240.0))
         _, self._mcp_port = imgui.input_text(S.SETTINGS_MCP_PORT, self._mcp_port)
-        imgui.set_next_item_width(240.0)
+        imgui.set_next_item_width(px(240.0))
         _, self._mcp_token = imgui.input_text(
             S.SETTINGS_MCP_TOKEN, self._mcp_token, imgui.InputTextFlags_.password
         )
@@ -2520,7 +2521,7 @@ class KnxGuiApp:
         imgui.set_next_window_pos(
             viewport.get_center(), imgui.Cond_.appearing, imgui.ImVec2(0.5, 0.5)
         )
-        imgui.set_next_window_size(imgui.ImVec2(580.0, 0.0), imgui.Cond_.appearing)
+        imgui.set_next_window_size(px_vec2(580.0, 0.0), imgui.Cond_.appearing)
         flags = imgui.WindowFlags_.no_collapse | imgui.WindowFlags_.no_saved_settings
         # p_open=True gives the window a close (X) button; when clicked it returns open=False.
         expanded, still_open = imgui.begin(S.WELCOME_TITLE, True, flags)

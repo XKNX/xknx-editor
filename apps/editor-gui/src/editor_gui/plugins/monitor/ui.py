@@ -8,6 +8,7 @@ from imgui_bundle import imgui
 
 from editor_gui.dpt import transcoder_for
 from editor_gui.plugins.monitor.strings import S
+from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
@@ -144,7 +145,7 @@ class MonitorPanel:
         imgui.same_line()
         imgui.text_disabled(S.MONITOR_VALUE_LABEL)
         imgui.same_line()
-        imgui.set_next_item_width(160.0)
+        imgui.set_next_item_width(px(160.0))
         submitted, self._write_value = imgui.input_text_with_hint(
             "##mon_value",
             S.MONITOR_VALUE_HINT,

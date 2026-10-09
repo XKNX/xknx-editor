@@ -12,6 +12,7 @@ from xknx.telegram.address import GroupAddress
 
 from editor_gui.device import address_order
 from editor_gui.plugins.keyring.strings import S
+from editor_gui.widgets.dpi import px_vec2
 
 if TYPE_CHECKING:
     from editor_gui.plugins.keyring.service import KeyringService
@@ -83,7 +84,7 @@ class KeyringPanel:
         if not self._prompt_open:
             imgui.open_popup(S.KEYRING_IMPORT)
             self._prompt_open = True
-        imgui.set_next_window_size(imgui.ImVec2(360.0, 0.0), imgui.Cond_.always)
+        imgui.set_next_window_size(px_vec2(360.0, 0.0), imgui.Cond_.always)
         if not imgui.begin_popup_modal(S.KEYRING_IMPORT, None)[0]:
             return
         imgui.text_disabled(Path(self._pending_path).name)
@@ -145,7 +146,7 @@ class KeyringPanel:
         if not self._export_prompt_open:
             imgui.open_popup(S.KEYRING_EXPORT)
             self._export_prompt_open = True
-        imgui.set_next_window_size(imgui.ImVec2(360.0, 0.0), imgui.Cond_.always)
+        imgui.set_next_window_size(px_vec2(360.0, 0.0), imgui.Cond_.always)
         if not imgui.begin_popup_modal(S.KEYRING_EXPORT, None)[0]:
             return
         imgui.text_disabled(Path(self._pending_export_path).name)

@@ -9,6 +9,7 @@ from imgui_bundle import imgui
 from editor_gui import doc_links
 from editor_gui.device import ComObject, Device
 from editor_gui.plugins.project.strings import S
+from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.app_id import parse_app_id
@@ -163,9 +164,34 @@ class ConfigurePanel:
         self._param_filter: str = ""
         self._module_filter: str = ""  # "Channels" tab (module-instance table) filter
         self._lv_seq: int = 0  # per-frame counter for unique _render_label_value ids
+        self._label_w = 0.0  # start of the value column next to field labels
 
     def render(self) -> None:
         self._lv_seq = 0  # reset per-frame id counter for _render_label_value
+        self._label_w = label_column_width(
+            S.CONFIGURE_NAME,
+            S.CONFIGURE_INDIVIDUAL_ADDRESS,
+            S.CONFIGURE_DOWNLOAD_SCOPE,
+            S.CONFIGURE_MANUFACTURER,
+            S.CONFIGURE_APPLICATION,
+            S.CONFIGURE_APP_VERSION,
+            S.CONFIGURE_SCHEMA_VERSION,
+            S.CONFIGURE_ORDER_NUMBER,
+            S.CONFIGURE_HARDWARE,
+            S.CONFIGURE_PRODUCT,
+            S.CONFIGURE_DESCRIPTION,
+            S.CONFIGURE_PRODUCT_REF,
+            S.CONFIGURE_PROGRAM_REF,
+            S.CONFIGURE_IP_ASSIGN,
+            S.CONFIGURE_IP_ADDRESS,
+            S.CONFIGURE_IP_SUBNET,
+            S.CONFIGURE_IP_GATEWAY,
+            S.CONFIGURE_IP_MAC,
+            S.READOUT_MASK,
+            S.READOUT_SERIAL,
+            S.READOUT_ORDER,
+            S.READOUT_HARDWARE,
+        )
         devices = self._get_devices()
         if not devices:
             imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
@@ -202,7 +228,7 @@ class ConfigurePanel:
 
         imgui.align_text_to_frame_padding()
         imgui.text_disabled(S.CONFIGURE_NAME)
-        imgui.same_line(120.0)
+        imgui.same_line(self._label_w)
         imgui.set_next_item_width(-1)
         _, self._name_buffer = imgui.input_text("##name", self._name_buffer)
         if imgui.is_item_deactivated_after_edit():
@@ -212,7 +238,7 @@ class ConfigurePanel:
 
         imgui.align_text_to_frame_padding()
         imgui.text_disabled(S.CONFIGURE_INDIVIDUAL_ADDRESS)
-        imgui.same_line(120.0)
+        imgui.same_line(self._label_w)
         imgui.set_next_item_width(-1)
         _, self._address_buffer = imgui.input_text(
             "##individual_address", self._address_buffer
@@ -553,11 +579,11 @@ class ConfigurePanel:
         if not imgui.begin_popup("##masterreset"):
             return
         imgui.text_disabled(S.RESET_POPUP_TITLE)
-        imgui.push_text_wrap_pos(360.0)
+        imgui.push_text_wrap_pos(px(360.0))
         imgui.text_colored(imgui.ImVec4(0.95, 0.55, 0.35, 1.0), S.RESET_WARNING)
         imgui.pop_text_wrap_pos()
         presets = _reset_presets()
-        imgui.set_next_item_width(320.0)
+        imgui.set_next_item_width(px(320.0))
         _, self._reset_erase_idx = imgui.combo(
             S.RESET_TYPE, self._reset_erase_idx, [label for label, _ in presets]
         )
@@ -597,7 +623,7 @@ class ConfigurePanel:
             return
         imgui.text_wrapped(S.UPDATE_CONFIRM_TEXT.format(version=version))
         imgui.spacing()
-        btn_w = imgui.ImVec2(180, 0)
+        btn_w = px_vec2(180, 0)
         if imgui.button(S.CONFIGURE_UPDATE_BUTTON.format(version=version), btn_w):
             ok = (
                 bool(self._on_update_application(device))
@@ -620,7 +646,7 @@ class ConfigurePanel:
             return
         imgui.text_wrapped(S.UPDATE_ALERT_TEXT.format(version=self._alert_version))
         imgui.spacing()
-        if imgui.button(S.BTN_OK, imgui.ImVec2(120, 0)):
+        if imgui.button(S.BTN_OK, px_vec2(120, 0)):
             imgui.close_current_popup()
         imgui.end_popup()
 
@@ -778,7 +804,7 @@ class ConfigurePanel:
         in sync with the live device while the field is not focused."""
         imgui.align_text_to_frame_padding()
         imgui.text_disabled(S.CONFIGURE_DESCRIPTION)
-        imgui.same_line(120.0)
+        imgui.same_line(self._label_w)
         imgui.set_next_item_width(-1)
         _, self._description_buffer = imgui.input_text(
             "##description", self._description_buffer
@@ -810,7 +836,7 @@ class ConfigurePanel:
 
     def _render_label_value(self, label: str, value: str) -> None:
         imgui.text_disabled(label)
-        imgui.same_line(120.0)
+        imgui.same_line(self._label_w)
         if not value:
             imgui.text_disabled("-")
             return
@@ -838,7 +864,7 @@ class ConfigurePanel:
             )
         )
         imgui.spacing()
-        btn_w = imgui.ImVec2(140, 0)
+        btn_w = px_vec2(140, 0)
         if imgui.button(S.BTN_PROGRAM_DEVICE, btn_w):
             if self._on_program_device is not None:
                 self._on_program_device(device, self._download_scope)
@@ -869,8 +895,8 @@ class ConfigurePanel:
         current = order.index(self._download_scope)
         imgui.align_text_to_frame_padding()
         imgui.text_disabled(S.CONFIGURE_DOWNLOAD_SCOPE)
-        imgui.same_line(120.0)
-        imgui.set_next_item_width(220.0)
+        imgui.same_line(self._label_w)
+        imgui.set_next_item_width(px(220.0))
         changed, new_idx = imgui.combo("##download_scope", current, labels)
         if changed:
             self._download_scope = order[new_idx]

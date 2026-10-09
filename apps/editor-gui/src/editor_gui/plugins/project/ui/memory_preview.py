@@ -7,6 +7,7 @@ from imgui_bundle import imgui
 from editor_gui.device import Device
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets import HexView
+from editor_gui.widgets.dpi import px, px_vec2
 from xknxeditor.prod.errors import EncodingError
 
 
@@ -58,11 +59,11 @@ class MemoryPreviewWindow:
         size = getattr(vp, "work_size", None) or getattr(vp, "size", None)
         if pos is not None and size is not None:
             imgui.set_next_window_pos(
-                imgui.ImVec2(pos.x + size.x - 16.0, pos.y + 48.0),
+                imgui.ImVec2(pos.x + size.x - px(16.0), pos.y + px(48.0)),
                 imgui.Cond_.appearing,
                 imgui.ImVec2(1.0, 0.0),
             )
-        imgui.set_next_window_size(imgui.ImVec2(760, 540), imgui.Cond_.first_use_ever)
+        imgui.set_next_window_size(px_vec2(760, 540), imgui.Cond_.first_use_ever)
         opened, p_open = imgui.begin(S.CONFIGURE_MEMORY_PREVIEW, self._show)
         if p_open is not None:
             self._show = p_open
@@ -129,7 +130,7 @@ class MemoryPreviewWindow:
                 imgui.open_popup("##loadref")
 
     def _render_load_ref_modal(self) -> None:
-        imgui.set_next_window_size(imgui.ImVec2(500, 0), imgui.Cond_.always)
+        imgui.set_next_window_size(px_vec2(500, 0), imgui.Cond_.always)
         if imgui.begin_popup_modal(
             "##loadref",
             None,
@@ -139,7 +140,7 @@ class MemoryPreviewWindow:
             imgui.set_next_item_width(-1)
             _, self._ref_path_buf = imgui.input_text("##rp", self._ref_path_buf)
             imgui.spacing()
-            btn_w = imgui.ImVec2(120, 0)
+            btn_w = px_vec2(120, 0)
             if imgui.button("Load", btn_w):
                 seg_id = self._ref_seg_id
                 if seg_id is not None:
@@ -152,7 +153,7 @@ class MemoryPreviewWindow:
             imgui.end_popup()
 
     def _render_save_modal(self) -> None:
-        imgui.set_next_window_size(imgui.ImVec2(500, 0), imgui.Cond_.always)
+        imgui.set_next_window_size(px_vec2(500, 0), imgui.Cond_.always)
         if imgui.begin_popup_modal(
             "##savedump",
             None,
@@ -162,7 +163,7 @@ class MemoryPreviewWindow:
             imgui.set_next_item_width(-1)
             _, self._save_path_buf = imgui.input_text("##sp", self._save_path_buf)
             imgui.spacing()
-            btn_w = imgui.ImVec2(120, 0)
+            btn_w = px_vec2(120, 0)
             if imgui.button("Save", btn_w):
                 seg_id = self._save_seg_id
                 if seg_id is not None and seg_id in self._segments:

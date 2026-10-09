@@ -7,6 +7,7 @@ from dataclasses import dataclass, replace
 from imgui_bundle import imgui
 
 from editor_gui.device import Device
+from editor_gui.widgets.dpi import px
 from editor_gui.widgets.strings import S
 from xknxeditor.namespaces.intermediate.access_t import Access
 from xknxeditor.namespaces.intermediate.parameter_block_layout_t import (
@@ -86,7 +87,7 @@ def _render_device_param(
     rejected = device.param_inputs.get(param.ref_id)
     shown = replace(param, value=rejected) if rejected is not None else param
     imgui.push_style_color(imgui.Col_.border, _ERROR_COLOR)
-    imgui.push_style_var(imgui.StyleVar_.frame_border_size, 2.0)
+    imgui.push_style_var(imgui.StyleVar_.frame_border_size, px(2.0))
     req = render_param_widget(
         shown, widget_id, on_change, deferred_enum=deferred_enum, differs=differs
     )
@@ -618,7 +619,7 @@ def _column_width(spec: str, avail: float) -> float | None:
     try:
         if spec.endswith("%"):
             return avail * float(spec[:-1]) / 100.0
-        return float(spec)
+        return px(float(spec))
     except ValueError:
         return None
 
@@ -845,7 +846,7 @@ def _render_param_table(
                 _render_button(device, param, prefix, buttons)
                 continue
             imgui.table_set_column_index(0)
-            indent = param.indent_level * 12.0
+            indent = param.indent_level * px(12.0)
             if indent > 0:
                 imgui.indent(indent)
             label = param.label + (f"  {param.suffix}" if param.suffix else "")
@@ -856,7 +857,7 @@ def _render_param_table(
             # state is not signalled by colour alone.
             if changed:
                 imgui.text_colored(_CHANGED_COLOR, "*")
-                imgui.same_line(0, 4)
+                imgui.same_line(0, px(4))
                 imgui.text_colored(_CHANGED_COLOR, label)
                 if imgui.is_item_hovered():
                     imgui.set_tooltip(

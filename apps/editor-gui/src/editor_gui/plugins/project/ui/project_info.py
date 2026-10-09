@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.widgets.dpi import px
 
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import _ProjectInfo
@@ -38,7 +39,7 @@ class ProjectInfoPanel:
         if not imgui.begin_table("##project_info", 2, flags):
             return
         # Fixed, compact label column so the value column gets the rest — wide enough for a GUID.
-        imgui.table_setup_column("", imgui.TableColumnFlags_.width_fixed, 130.0)
+        imgui.table_setup_column("", imgui.TableColumnFlags_.width_fixed, px(130.0))
         imgui.table_setup_column("", imgui.TableColumnFlags_.width_stretch, 1.0)
         for label, value in rows:
             imgui.table_next_row()

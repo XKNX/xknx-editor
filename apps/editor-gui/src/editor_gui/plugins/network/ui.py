@@ -8,6 +8,7 @@ from editor_gui.color import color_u32
 from editor_gui.net import TelegramSource
 from editor_gui.plugins.network.records import CemiRecord, TelegramRecord
 from editor_gui.plugins.network.strings import S
+from editor_gui.widgets.dpi import px, px_vec2
 
 
 class CaptureState(Enum):
@@ -85,7 +86,7 @@ class NetworkPanel:
             self._render_table()
 
     def _render_no_connection_hint(self) -> None:
-        imgui.dummy(imgui.ImVec2(0, 8))
+        imgui.dummy(px_vec2(0, 8))
         imgui.push_style_color(
             imgui.Col_.text, imgui.ImVec4(0.9, 0.7, 0.3, 1.0)
         )  # amber
@@ -98,7 +99,7 @@ class NetworkPanel:
         "Following" is measured against the PREVIOUS frame's scroll maximum (before new rows grew
         it), so a manual scroll-up is detected even while rows stream in every frame. Auto-scroll
         resumes automatically when the user scrolls back to the bottom."""
-        following = imgui.get_scroll_y() >= self._prev_scroll_max - 4.0
+        following = imgui.get_scroll_y() >= self._prev_scroll_max - px(4.0)
         # Scroll to the content bottom via the scroll maximum, NOT set_scroll_here_y: with
         # ListClipper the last row is not submitted when off-screen, so set_scroll_here_y would only
         # reach the last VISIBLE row. This also keeps working once the capture deque is full and the
@@ -113,16 +114,19 @@ class NetworkPanel:
         text_height = imgui.get_text_line_height()
         style = imgui.get_style()
 
-        dot_radius = 5
+        dot_radius = px(5)
+        dot_gap = px(6)
         dot_center = imgui.ImVec2(
             cursor.x + style.frame_padding.x + dot_radius,
             cursor.y + text_height / 2 + style.frame_padding.y,
         )
 
         max_text_width = imgui.calc_text_size(S.BTN_RECORDING).x
-        button_width = style.frame_padding.x * 2 + dot_radius * 2 + 6 + max_text_width
+        button_width = (
+            style.frame_padding.x * 2 + dot_radius * 2 + dot_gap + max_text_width
+        )
         text_pos = imgui.ImVec2(
-            cursor.x + style.frame_padding.x + dot_radius * 2 + 6,
+            cursor.x + style.frame_padding.x + dot_radius * 2 + dot_gap,
             cursor.y + style.frame_padding.y,
         )
 
@@ -134,7 +138,7 @@ class NetworkPanel:
             )
             draw_list.add_circle_filled(
                 dot_center,
-                dot_radius + pulse * 3,
+                dot_radius + px(pulse * 3),
                 color_u32(0.9, 0.2, 0.2, 0.15 * (1 - pulse)),
             )
 
@@ -170,7 +174,7 @@ class NetworkPanel:
         self._render_record_button(state)
 
         imgui.same_line()
-        imgui.set_next_item_width(150)
+        imgui.set_next_item_width(px(150))
         _, self._filter_text = imgui.input_text_with_hint(
             "##filter", "Filter...", self._filter_text
         )
@@ -232,18 +236,18 @@ class NetworkPanel:
             return
 
         imgui.table_setup_scroll_freeze(0, 1)
-        imgui.table_setup_column("Time", imgui.TableColumnFlags_.width_fixed, 70)
+        imgui.table_setup_column("Time", imgui.TableColumnFlags_.width_fixed, px(70))
         imgui.table_setup_column(
-            "", imgui.TableColumnFlags_.width_fixed, 12
+            "", imgui.TableColumnFlags_.width_fixed, px(12)
         )  # service-color dot
         imgui.table_setup_column(
-            "Via", imgui.TableColumnFlags_.width_fixed, 12
+            "Via", imgui.TableColumnFlags_.width_fixed, px(12)
         )  # source-color square
-        imgui.table_setup_column("Source", imgui.TableColumnFlags_.width_fixed, 60)
+        imgui.table_setup_column("Source", imgui.TableColumnFlags_.width_fixed, px(60))
         # Wider so the resolved group-address name (project loaded) fits next to the address.
-        imgui.table_setup_column("Dest", imgui.TableColumnFlags_.width_fixed, 160)
-        imgui.table_setup_column("TPCI", imgui.TableColumnFlags_.width_fixed, 50)
-        imgui.table_setup_column("APCI", imgui.TableColumnFlags_.width_fixed, 200)
+        imgui.table_setup_column("Dest", imgui.TableColumnFlags_.width_fixed, px(160))
+        imgui.table_setup_column("TPCI", imgui.TableColumnFlags_.width_fixed, px(50))
+        imgui.table_setup_column("APCI", imgui.TableColumnFlags_.width_fixed, px(200))
         imgui.table_setup_column("Value", imgui.TableColumnFlags_.width_stretch)
         imgui.table_headers_row()
 
@@ -282,25 +286,25 @@ class NetworkPanel:
         cursor = imgui.get_cursor_screen_pos()
         center_y = cursor.y + imgui.get_text_line_height() / 2
         draw_list.add_circle_filled(
-            imgui.ImVec2(cursor.x + 3, center_y),
-            3,
+            imgui.ImVec2(cursor.x + px(3), center_y),
+            px(3),
             color_u32(*color),
         )
-        imgui.dummy(imgui.ImVec2(8, 0))
+        imgui.dummy(px_vec2(8, 0))
 
         # Via: telegram source as colored square
         imgui.table_set_column_index(2)
         if source_color is not None:
             cursor2 = imgui.get_cursor_screen_pos()
             half = imgui.get_text_line_height() / 2
-            cx = cursor2.x + 3
+            cx = cursor2.x + px(3)
             cy = cursor2.y + half
             draw_list.add_rect_filled(
-                imgui.ImVec2(cx - 3, cy - 3),
-                imgui.ImVec2(cx + 3, cy + 3),
+                imgui.ImVec2(cx - px(3), cy - px(3)),
+                imgui.ImVec2(cx + px(3), cy + px(3)),
                 color_u32(*source_color),
             )
-        imgui.dummy(imgui.ImVec2(8, 0))
+        imgui.dummy(px_vec2(8, 0))
 
         imgui.table_set_column_index(3)
         if source_color is not None:
@@ -314,7 +318,7 @@ class NetworkPanel:
         imgui.text(telegram.destination)
         ga_name = self._ga_names.get(telegram.destination_raw)
         if ga_name:
-            imgui.same_line(0, 6)
+            imgui.same_line(0, px(6))
             imgui.text_disabled(ga_name)
             if imgui.is_item_hovered():
                 imgui.set_tooltip(ga_name)
@@ -333,7 +337,7 @@ class NetworkPanel:
         imgui.table_set_column_index(7)
         if telegram.dpt:
             imgui.text_disabled(f"[{telegram.dpt}]")
-            imgui.same_line(0, 4)
+            imgui.same_line(0, px(4))
         # Decode with the project group address' DPT when the frame itself carried none.
         value = telegram.value_with_dpt(self._ga_dpts.get(telegram.destination_raw))
         imgui.text(value if value else "-")
@@ -360,13 +364,13 @@ class NetworkPanel:
             return
 
         imgui.table_setup_scroll_freeze(0, 1)
-        imgui.table_setup_column("Time", imgui.TableColumnFlags_.width_fixed, 70)
-        imgui.table_setup_column("Via", imgui.TableColumnFlags_.width_fixed, 12)
-        imgui.table_setup_column("Code", imgui.TableColumnFlags_.width_fixed, 90)
-        imgui.table_setup_column("From", imgui.TableColumnFlags_.width_fixed, 55)
-        imgui.table_setup_column("To", imgui.TableColumnFlags_.width_fixed, 60)
-        imgui.table_setup_column("Flg", imgui.TableColumnFlags_.width_fixed, 50)
-        imgui.table_setup_column("Hops", imgui.TableColumnFlags_.width_fixed, 35)
+        imgui.table_setup_column("Time", imgui.TableColumnFlags_.width_fixed, px(70))
+        imgui.table_setup_column("Via", imgui.TableColumnFlags_.width_fixed, px(12))
+        imgui.table_setup_column("Code", imgui.TableColumnFlags_.width_fixed, px(90))
+        imgui.table_setup_column("From", imgui.TableColumnFlags_.width_fixed, px(55))
+        imgui.table_setup_column("To", imgui.TableColumnFlags_.width_fixed, px(60))
+        imgui.table_setup_column("Flg", imgui.TableColumnFlags_.width_fixed, px(50))
+        imgui.table_setup_column("Hops", imgui.TableColumnFlags_.width_fixed, px(35))
         imgui.table_setup_column("Raw", imgui.TableColumnFlags_.width_stretch)
         imgui.table_headers_row()
 
@@ -393,14 +397,14 @@ class NetworkPanel:
         cursor = imgui.get_cursor_screen_pos()
         if source_color is not None:
             half = imgui.get_text_line_height() / 2
-            cx = cursor.x + 3
+            cx = cursor.x + px(3)
             cy = cursor.y + half
             draw_list.add_rect_filled(
-                imgui.ImVec2(cx - 3, cy - 3),
-                imgui.ImVec2(cx + 3, cy + 3),
+                imgui.ImVec2(cx - px(3), cy - px(3)),
+                imgui.ImVec2(cx + px(3), cy + px(3)),
                 color_u32(*source_color),
             )
-        imgui.dummy(imgui.ImVec2(8, 0))
+        imgui.dummy(px_vec2(8, 0))
 
         imgui.table_set_column_index(2)
         imgui.text_disabled(rec.msg_code)

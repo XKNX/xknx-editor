@@ -15,6 +15,7 @@ from dataclasses import dataclass, field
 from imgui_bundle import imgui
 
 from editor_gui.device import Device
+from editor_gui.widgets.dpi import px
 from xknxeditor.dali import DaliBusState, MdtDaliCommissioner
 from xknxeditor.dali.model import GROUP_SINGLE, GROUP_UNASSIGNED
 
@@ -219,7 +220,7 @@ class DaliCommissioningPanel:
         )
         if not imgui.begin_table("##dali_ecgs", 6, flags):
             return
-        imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, 40.0)
+        imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(40.0))
         for col in ("Group", "Type", "Long address", "Alarm", ""):
             imgui.table_setup_column(col)
         imgui.table_headers_row()

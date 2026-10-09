@@ -14,6 +14,7 @@ from imgui_bundle import imgui
 
 from editor_gui.device import Device, address_order
 from editor_gui.plugins.topology.strings import S
+from editor_gui.widgets.dpi import px
 
 # Unscaled layout metrics (multiplied by the zoom factor at draw time).
 _ROW_H = 32.0
@@ -207,11 +208,11 @@ class TopologyPanel:
         return layout
 
     def _draw(self, layout: _Layout) -> None:
-        z = self._zoom
+        z = self._zoom * px(1.0)
         origin = imgui.get_cursor_screen_pos()
         dl = imgui.get_window_draw_list()
         font = imgui.get_font()
-        font_size = imgui.get_font_size() * z
+        font_size = imgui.get_font_size() * self._zoom
         line_col = imgui.get_color_u32(imgui.ImVec4(0.5, 0.5, 0.5, 0.6))
         group_col = imgui.get_color_u32(imgui.ImVec4(0.22, 0.34, 0.5, 1.0))
         sub_col = imgui.get_color_u32(imgui.ImVec4(0.28, 0.38, 0.3, 1.0))
@@ -222,8 +223,8 @@ class TopologyPanel:
         def box(x: float, y: float, w: float, fill: int, label: str) -> None:
             p0 = imgui.ImVec2(origin.x + x * z, origin.y + y * z)
             p1 = imgui.ImVec2(origin.x + (x + w) * z, origin.y + (y + _BOX_H) * z)
-            dl.add_rect_filled(p0, p1, fill, 4.0)
-            dl.add_rect(p0, p1, border_col, 4.0)
+            dl.add_rect_filled(p0, p1, fill, px(4.0))
+            dl.add_rect(p0, p1, border_col, px(4.0))
             dl.add_text(
                 font,
                 font_size,
@@ -237,7 +238,7 @@ class TopologyPanel:
                 imgui.ImVec2(origin.x + x0 * z, origin.y + y0 * z),
                 imgui.ImVec2(origin.x + x1 * z, origin.y + y1 * z),
                 line_col,
-                1.5,
+                px(1.5),
             )
         for label, y in layout.groups:
             box(_COL0_X, y, _COL0_W, group_col, label)

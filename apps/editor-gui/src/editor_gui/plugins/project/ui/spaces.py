@@ -9,6 +9,7 @@ from imgui_bundle import imgui
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
+from editor_gui.widgets.dpi import px, px_vec2
 
 if TYPE_CHECKING:
     from xknxeditor.proj.core.service import (
@@ -270,12 +271,12 @@ class SpacesPanel:
         if self._on_create_space is None or not imgui.begin_popup(popup_id):
             return
         imgui.text_disabled(S.SPACES_SPACE_NEW_TITLE)
-        imgui.set_next_item_width(220.0)
+        imgui.set_next_item_width(px(220.0))
         _, self._new_space_name = imgui.input_text(
             S.SPACES_SPACE_NAME, self._new_space_name
         )
         presets = _space_type_presets()
-        imgui.set_next_item_width(220.0)
+        imgui.set_next_item_width(px(220.0))
         _, self._new_space_type = imgui.combo(
             S.SPACES_SPACE_TYPE, self._new_space_type, [label for label, _ in presets]
         )
@@ -296,7 +297,7 @@ class SpacesPanel:
             f"##renspace{space_id}"
         ):
             return
-        imgui.set_next_item_width(240.0)
+        imgui.set_next_item_width(px(240.0))
         _, self._space_rename_buf = imgui.input_text(
             S.SPACES_SPACE_NAME, self._space_rename_buf
         )
@@ -333,7 +334,7 @@ class SpacesPanel:
         )
         needle = self._assign_filter.strip().lower()
         devices = self._get_unassigned_devices()
-        if imgui.begin_child("##assignlist", imgui.ImVec2(320.0, 260.0)):
+        if imgui.begin_child("##assignlist", px_vec2(320.0, 260.0)):
             if not devices:
                 imgui.text_disabled(S.SPACES_ASSIGN_EMPTY)
             for device in devices:
@@ -398,10 +399,10 @@ class SpacesPanel:
         if not imgui.begin_popup(f"##newfn{space_id}"):
             return
         imgui.text_disabled(S.SPACES_FN_NEW_TITLE)
-        imgui.set_next_item_width(220.0)
+        imgui.set_next_item_width(px(220.0))
         _, self._new_fn_name = imgui.input_text(S.SPACES_FN_NAME, self._new_fn_name)
         presets = _function_type_presets()
-        imgui.set_next_item_width(220.0)
+        imgui.set_next_item_width(px(220.0))
         _, self._new_fn_type = imgui.combo(
             S.SPACES_FN_TYPE, self._new_fn_type, [label for label, _ in presets]
         )
@@ -567,7 +568,7 @@ class SpacesPanel:
     def _render_rename_popup(self, function_id: int) -> None:
         if not imgui.begin_popup(f"##renfn{function_id}"):
             return
-        imgui.set_next_item_width(240.0)
+        imgui.set_next_item_width(px(240.0))
         _, self._rename_buf = imgui.input_text(S.SPACES_FN_NAME, self._rename_buf)
         if imgui.button(S.SPACES_FN_RENAME) and self._on_rename_function is not None:
             self._on_rename_function(function_id, self._rename_buf.strip())
@@ -580,14 +581,14 @@ class SpacesPanel:
     def _render_addga_popup(self, function_id: int) -> None:
         if not imgui.begin_popup(f"##addfnga{function_id}"):
             return
-        imgui.set_next_item_width(260.0)
+        imgui.set_next_item_width(px(260.0))
         _, self._addga_role = imgui.input_text(S.SPACES_FN_ROLE, self._addga_role)
         self._addga_filter = filter_box(
             f"##fngaflt{function_id}", S.SPACES_FILTER_HINT, self._addga_filter
         )
         needle = self._addga_filter.strip().lower()
         if (
-            imgui.begin_child("##fngalist", imgui.ImVec2(320.0, 260.0))
+            imgui.begin_child("##fngalist", px_vec2(320.0, 260.0))
             and self._get_ga_range_tree is not None
         ):
             for node in self._get_ga_range_tree():

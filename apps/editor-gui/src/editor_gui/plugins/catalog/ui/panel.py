@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.plugins.catalog.strings import S
+from editor_gui.widgets.dpi import label_column_width, px
 from editor_gui.widgets.filter_box import filter_box
 
 if TYPE_CHECKING:
@@ -211,7 +212,7 @@ class CatalogPanel:
             return
         imgui.separator()
         imgui.text_disabled(S.CATALOG_DETAIL_TITLE)
-        for label, value in (
+        rows = (
             (S.CATALOG_DETAIL_NAME, product.name or product.product_ref_id),
             (S.CATALOG_DETAIL_ORDER, product.order_number or "-"),
             (
@@ -226,9 +227,11 @@ class CatalogPanel:
                 else "-",
             ),
             (S.CATALOG_DETAIL_PRODUCT_REF, product.product_ref_id),
-        ):
+        )
+        label_w = label_column_width(*(label for label, _ in rows), minimum=150.0)
+        for label, value in rows:
             imgui.text_disabled(label)
-            imgui.same_line(150.0)
+            imgui.same_line(label_w)
             imgui.text_wrapped(value)
         self._render_space_picker()
         if imgui.button(S.CATALOG_DETAIL_ADD):
@@ -252,7 +255,7 @@ class CatalogPanel:
         current = next(
             (i for i, (sid, _) in enumerate(options) if sid == self._add_space_id), 0
         )
-        imgui.set_next_item_width(240.0)
+        imgui.set_next_item_width(px(240.0))
         changed, picked = imgui.combo(
             S.CATALOG_ADD_SPACE_LABEL, current, [label for _, label in options]
         )
@@ -269,7 +272,7 @@ class CatalogPanel:
             if (self._get_online_manufacturers is not None)
             else None
         )
-        imgui.set_next_item_width(160.0)
+        imgui.set_next_item_width(px(160.0))
         if imgui.button(S.BTN_ONLINE_CATALOG):
             self._start_online_refresh()
         if self._online_loading:
@@ -342,7 +345,7 @@ class CatalogPanel:
             (label for label, code in self._language_options if code == current),
             current,
         )
-        imgui.set_next_item_width(200.0)
+        imgui.set_next_item_width(px(200.0))
         if imgui.begin_combo(S.ONLINE_COUNTRY_LABEL, cur_label):
             for label, code in self._language_options:
                 selected = code == current

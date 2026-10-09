@@ -12,6 +12,7 @@ from imgui_bundle import imgui
 from editor_gui.device import com_object_display_name
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
+from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
 if TYPE_CHECKING:
@@ -305,11 +306,11 @@ class GroupAddressesPanel:
             if self._popup_range_parent is None
             else S.GA_FOLDER_MIDDLE_HINT
         )
-        imgui.set_next_item_width(220.0)
+        imgui.set_next_item_width(px(220.0))
         _, self._popup_range_name = imgui.input_text(
             "##gr_new_name", self._popup_range_name
         )
-        btn_w = imgui.ImVec2(120, 0)
+        btn_w = px_vec2(120, 0)
         if imgui.button(S.BTN_OK, btn_w):
             self._on_create_range(
                 self._popup_range_parent, self._popup_range_name.strip()
@@ -327,11 +328,11 @@ class GroupAddressesPanel:
             S.GA_FOLDER_RENAME, None, imgui.WindowFlags_.always_auto_resize
         )[0]:
             return
-        imgui.set_next_item_width(220.0)
+        imgui.set_next_item_width(px(220.0))
         _, self._popup_range_name = imgui.input_text(
             "##gr_rename", self._popup_range_name
         )
-        btn_w = imgui.ImVec2(120, 0)
+        btn_w = px_vec2(120, 0)
         if imgui.button(S.BTN_OK, btn_w):
             self._on_rename_range(self._popup_range_id, self._popup_range_name.strip())
             imgui.close_current_popup()
@@ -348,7 +349,7 @@ class GroupAddressesPanel:
         )[0]:
             return
         imgui.text_wrapped(S.GA_FOLDER_DELETE_CONFIRM)
-        btn_w = imgui.ImVec2(120, 0)
+        btn_w = px_vec2(120, 0)
         if imgui.button(S.CONTEXT_DELETE, btn_w):
             self._on_remove_range(self._popup_range_id)
             imgui.close_current_popup()
@@ -363,14 +364,14 @@ class GroupAddressesPanel:
         )[0]:
             return
         imgui.text_disabled(S.GA_ADDRESS)
-        imgui.set_next_item_width(220.0)
+        imgui.set_next_item_width(px(220.0))
         _, self._popup_address = imgui.input_text_with_hint(
             "##ga_addr", "1/2/3", self._popup_address
         )
         imgui.text_disabled(S.POPUP_NAME)
-        imgui.set_next_item_width(220.0)
+        imgui.set_next_item_width(px(220.0))
         _, self._popup_name = imgui.input_text("##ga_new_name", self._popup_name)
-        btn_w = imgui.ImVec2(120, 0)
+        btn_w = px_vec2(120, 0)
         if imgui.button(S.BTN_OK, btn_w) and self._popup_address.strip():
             self._on_create_ga(self._popup_address.strip(), self._popup_name)
             imgui.close_current_popup()
@@ -384,9 +385,9 @@ class GroupAddressesPanel:
             S.GA_RENAME, None, imgui.WindowFlags_.always_auto_resize
         )[0]:
             return
-        imgui.set_next_item_width(220.0)
+        imgui.set_next_item_width(px(220.0))
         _, self._popup_name = imgui.input_text("##ga_rename", self._popup_name)
-        btn_w = imgui.ImVec2(120, 0)
+        btn_w = px_vec2(120, 0)
         if imgui.button(S.BTN_OK, btn_w):
             self._on_rename_ga(self._popup_ga_id, self._popup_name)
             imgui.close_current_popup()
@@ -401,13 +402,13 @@ class GroupAddressesPanel:
         )[0]:
             return
         imgui.text_disabled(S.GA_DPT_HINT)
-        imgui.set_next_item_width(220.0)
+        imgui.set_next_item_width(px(220.0))
         _, self._popup_dpt = imgui.input_text_with_hint(
             "##ga_dpt", "DPST-1-1", self._popup_dpt
         )
         if self._popup_dpt_error:
             imgui.text_colored(imgui.ImVec4(0.9, 0.3, 0.3, 1.0), self._popup_dpt_error)
-        btn_w = imgui.ImVec2(120, 0)
+        btn_w = px_vec2(120, 0)
         if imgui.button(S.BTN_OK, btn_w):
             try:
                 self._on_set_ga_dpt(self._popup_ga_id, self._popup_dpt.strip())
@@ -450,7 +451,7 @@ class GroupAddressesPanel:
             S.GA_COL_OBJECT, imgui.TableColumnFlags_.width_stretch, 0.4
         )
         imgui.table_setup_column(
-            S.GA_COL_SENDING, imgui.TableColumnFlags_.width_fixed, 20.0
+            S.GA_COL_SENDING, imgui.TableColumnFlags_.width_fixed, px(20.0)
         )
         # Manual header row so the terse "S" column can carry an explanatory tooltip.
         imgui.table_next_row(imgui.TableRowFlags_.headers)

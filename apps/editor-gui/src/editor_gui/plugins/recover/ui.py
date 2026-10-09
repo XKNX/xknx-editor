@@ -9,6 +9,7 @@ from imgui_bundle import imgui
 from imgui_bundle import portable_file_dialogs as pfd
 
 from editor_gui.plugins.recover.strings import S
+from editor_gui.widgets.dpi import px
 from xknxeditor.recover.recover import STAGE_GROUP_COMMUNICATION, STAGE_PARAMETERS
 
 if TYPE_CHECKING:
@@ -61,10 +62,10 @@ class RecoverPanel:
     def _render_scan_controls(self) -> None:
         service = self._service
         busy = service.busy
-        imgui.set_next_item_width(120)
+        imgui.set_next_item_width(px(120))
         _, self._start = imgui.input_text(S.RANGE_START, self._start)
         imgui.same_line()
-        imgui.set_next_item_width(120)
+        imgui.set_next_item_width(px(120))
         _, self._end = imgui.input_text(S.RANGE_END, self._end)
         imgui.same_line()
         imgui.begin_disabled(busy)

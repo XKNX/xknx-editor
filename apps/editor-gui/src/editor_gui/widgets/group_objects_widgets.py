@@ -15,6 +15,7 @@ from editor_gui.device import (
     Device,
     com_object_display_name,
 )
+from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.strings import S
 from xknxeditor.proj.core.addressing import GroupAddressStyle
 
@@ -162,7 +163,7 @@ class GroupObjectsTable:
         if not imgui.begin_table(f"##group_objects_{device.node_id}", n_cols, flags):
             return
 
-        imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, 64.0)
+        imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(64.0))
         imgui.table_setup_column("Name", imgui.TableColumnFlags_.width_stretch, 0.28)
         imgui.table_setup_column("DPT", imgui.TableColumnFlags_.width_stretch, 0.1)
         imgui.table_setup_column("Length", imgui.TableColumnFlags_.width_stretch, 0.1)
@@ -171,7 +172,9 @@ class GroupObjectsTable:
             "Group Addresses", imgui.TableColumnFlags_.width_stretch, 0.44
         )
         for _attr, letter, _name in FLAG_LABELS:
-            imgui.table_setup_column(letter, imgui.TableColumnFlags_.width_fixed, 22.0)
+            imgui.table_setup_column(
+                letter, imgui.TableColumnFlags_.width_fixed, px(22.0)
+            )
         imgui.table_headers_row()
 
         for com_obj in com_objects:
@@ -258,7 +261,7 @@ class GroupObjectsTable:
         if self._batch_open:
             imgui.open_popup(S.GROUP_OBJECTS_BATCH_TITLE)
             self._batch_open = False
-        imgui.set_next_window_size(imgui.ImVec2(440.0, 0.0), imgui.Cond_.always)
+        imgui.set_next_window_size(px_vec2(440.0, 0.0), imgui.Cond_.always)
         if not imgui.begin_popup_modal(S.GROUP_OBJECTS_BATCH_TITLE, None)[0]:
             return
         imgui.text_wrapped(S.GROUP_OBJECTS_BATCH_HINT)
@@ -274,7 +277,7 @@ class GroupObjectsTable:
         imgui.spacing()
         if imgui.button(
             S.GROUP_OBJECTS_AUTO_CREATE.format(count=len(selected)),
-            imgui.ImVec2(200, 0),
+            px_vec2(200, 0),
         ):
             if self._on_auto_create_gas is not None:
                 self._on_auto_create_gas(
@@ -283,7 +286,7 @@ class GroupObjectsTable:
             self._selected.clear()
             imgui.close_current_popup()
         imgui.same_line()
-        if imgui.button(S.GROUP_OBJECTS_BATCH_CANCEL, imgui.ImVec2(120, 0)):
+        if imgui.button(S.GROUP_OBJECTS_BATCH_CANCEL, px_vec2(120, 0)):
             imgui.close_current_popup()
         imgui.end_popup()
 
@@ -400,15 +403,17 @@ class GroupObjectsTable:
             return
         imgui.text_disabled(S.GA_CREATE_NEW)
         address = self._render_address_inputs()
-        imgui.set_next_item_width(_PICKER_WIDTH)
+        imgui.set_next_item_width(px(_PICKER_WIDTH))
         _, self._create_name = imgui.input_text_with_hint(
             "##newname", S.GA_CREATE_NAME_HINT, self._create_name
         )
         # Share one row: Create fills the remaining width, Cancel keeps a fixed width so it stays
         # inside the window (a full-width Create button pushed Cancel off the right edge).
-        cancel_w = 90.0
+        cancel_w = px(90.0)
         spacing = imgui.get_style().item_spacing.x
-        create_w = max(120.0, imgui.get_content_region_avail().x - cancel_w - spacing)
+        create_w = max(
+            px(120.0), imgui.get_content_region_avail().x - cancel_w - spacing
+        )
         if imgui.button(S.GA_CREATE_BUTTON, imgui.ImVec2(create_w, 0)):
             self._on_create_and_link(device, com_object, address, self._create_name)
             self._add_open = False  # created + linked -> close the dialog
@@ -429,13 +434,13 @@ class GroupObjectsTable:
             and self._group_style() == GroupAddressStyle.THREE_LEVEL
         )
         if not three_level:
-            imgui.set_next_item_width(_PICKER_WIDTH)
+            imgui.set_next_item_width(px(_PICKER_WIDTH))
             _, self._create_addr = imgui.input_text_with_hint(
                 "##newaddr", S.GA_CREATE_ADDR_HINT, self._create_addr
             )
             return self._create_addr
 
-        w = _PICKER_WIDTH * 0.2
+        w = px(_PICKER_WIDTH * 0.2)
         digits = imgui.InputTextFlags_.chars_decimal
         imgui.set_next_item_width(w)
         ch_main, self._create_main = imgui.input_text(
@@ -521,23 +526,25 @@ class GroupObjectsTable:
         title = (
             f"{S.GA_LINK_TITLE}: {com_object_display_name(com_object)}##addga_window"
         )
-        win_w = _PICKER_WIDTH + 24.0
+        win_w = px(_PICKER_WIDTH + 24.0)
         vp = imgui.get_main_viewport()
         # Open near the right edge by default (Cond_.appearing -> only first time; user can move it).
         imgui.set_next_window_pos(
             imgui.ImVec2(
-                vp.work_pos.x + vp.work_size.x - win_w - 40.0,
-                vp.work_pos.y + 120.0,
+                vp.work_pos.x + vp.work_size.x - win_w - px(40.0),
+                vp.work_pos.y + px(120.0),
             ),
             imgui.Cond_.appearing,
         )
-        imgui.set_next_window_size(imgui.ImVec2(win_w, 420.0), imgui.Cond_.appearing)
+        imgui.set_next_window_size(
+            imgui.ImVec2(win_w, px(420.0)), imgui.Cond_.appearing
+        )
         imgui.set_next_window_bg_alpha(1.0)  # opaque, not see-through
         expanded, self._add_open = imgui.begin(title, self._add_open)
         if expanded:
             self._render_create_new(device, com_object)
             already = {ga_id for _aid, ga_id, _text, _sending in get_links(db_id)}
-            imgui.set_next_item_width(_PICKER_WIDTH)
+            imgui.set_next_item_width(px(_PICKER_WIDTH))
             _, self._picker_filter = imgui.input_text_with_hint(
                 "##ga_filter", S.SEARCH_HINT, self._picker_filter
             )

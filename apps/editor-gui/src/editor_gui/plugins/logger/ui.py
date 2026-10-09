@@ -6,6 +6,7 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.logger.service import LogRecord
 from editor_gui.plugins.logger.strings import S
+from editor_gui.widgets.dpi import px
 
 LEVEL_COLORS: dict[str, tuple[float, float, float]] = {
     "debug": (0.5, 0.5, 0.55),
@@ -71,12 +72,12 @@ class LogPanel:
         records = self._get_records()
         imgui.text_disabled(str(len(records)))
         imgui.same_line()
-        imgui.set_next_item_width(200)
+        imgui.set_next_item_width(px(200))
         _, self._filter_text = imgui.input_text_with_hint(
             "##logfilter", S.FILTER_PLACEHOLDER, self._filter_text
         )
         imgui.same_line()
-        imgui.set_next_item_width(100)
+        imgui.set_next_item_width(px(100))
         _, self._min_level_idx = imgui.combo(
             "##loglevel", self._min_level_idx, [label for label, _ in _LEVEL_OPTIONS]
         )
@@ -107,9 +108,15 @@ class LogPanel:
             return
 
         imgui.table_setup_scroll_freeze(0, 1)
-        imgui.table_setup_column(S.COL_TIME, imgui.TableColumnFlags_.width_fixed, 95)
-        imgui.table_setup_column(S.COL_LEVEL, imgui.TableColumnFlags_.width_fixed, 60)
-        imgui.table_setup_column(S.COL_PLUGIN, imgui.TableColumnFlags_.width_fixed, 90)
+        imgui.table_setup_column(
+            S.COL_TIME, imgui.TableColumnFlags_.width_fixed, px(95)
+        )
+        imgui.table_setup_column(
+            S.COL_LEVEL, imgui.TableColumnFlags_.width_fixed, px(60)
+        )
+        imgui.table_setup_column(
+            S.COL_PLUGIN, imgui.TableColumnFlags_.width_fixed, px(90)
+        )
         imgui.table_setup_column(S.COL_MESSAGE, imgui.TableColumnFlags_.width_stretch)
         imgui.table_headers_row()
 
@@ -120,7 +127,7 @@ class LogPanel:
         # "Following" is measured against the previous frame's scroll max (before new rows grew it),
         # so a manual scroll-up is detected even while records stream in.
         current_count = len(records)
-        following = imgui.get_scroll_y() >= self._prev_scroll_max - 4.0
+        following = imgui.get_scroll_y() >= self._prev_scroll_max - px(4.0)
         if current_count > self._last_count and following:
             imgui.set_scroll_here_y(1.0)
         self._prev_scroll_max = imgui.get_scroll_max_y()

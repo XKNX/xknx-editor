@@ -17,6 +17,7 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.widgets.dpi import px, px_vec2
 
 if TYPE_CHECKING:
     from xknxeditor.download.preflight import PreflightReport, SegmentDiff
@@ -103,7 +104,7 @@ class PreflightResultWindow:
                 self._show = True
         if not self._show:
             return
-        imgui.set_next_window_size(imgui.ImVec2(720, 520), imgui.Cond_.first_use_ever)
+        imgui.set_next_window_size(px_vec2(720, 520), imgui.Cond_.first_use_ever)
         opened, p_open = imgui.begin(S.PREFLIGHT_RESULT_TITLE, self._show)
         if p_open is not None:
             self._show = p_open
@@ -219,13 +220,13 @@ class PreflightResultWindow:
         imgui.table_setup_scroll_freeze(0, 1)
         imgui.table_setup_column(S.PREFLIGHT_COL_LOCATION)
         imgui.table_setup_column(
-            S.PREFLIGHT_COL_SIZE, imgui.TableColumnFlags_.width_fixed, 70
+            S.PREFLIGHT_COL_SIZE, imgui.TableColumnFlags_.width_fixed, px(70)
         )
         imgui.table_setup_column(
-            S.PREFLIGHT_COL_STATUS, imgui.TableColumnFlags_.width_fixed, 120
+            S.PREFLIGHT_COL_STATUS, imgui.TableColumnFlags_.width_fixed, px(120)
         )
         imgui.table_setup_column(
-            S.PREFLIGHT_COL_CHANGED, imgui.TableColumnFlags_.width_fixed, 90
+            S.PREFLIGHT_COL_CHANGED, imgui.TableColumnFlags_.width_fixed, px(90)
         )
         imgui.table_headers_row()
 
@@ -338,7 +339,7 @@ class PreflightResultWindow:
             imgui.set_tooltip(tooltip)
 
     def _render_export_modal(self, report: PreflightReport) -> None:
-        imgui.set_next_window_size(imgui.ImVec2(520, 0), imgui.Cond_.always)
+        imgui.set_next_window_size(px_vec2(520, 0), imgui.Cond_.always)
         if not imgui.begin_popup_modal(
             "##preflight_export",
             None,
@@ -349,7 +350,7 @@ class PreflightResultWindow:
         imgui.set_next_item_width(-1)
         _, self._save_path_buf = imgui.input_text("##pf_path", self._save_path_buf)
         imgui.spacing()
-        btn_w = imgui.ImVec2(120, 0)
+        btn_w = px_vec2(120, 0)
         if imgui.button(S.BTN_SAVE, btn_w):
             with contextlib.suppress(OSError):
                 Path(self._save_path_buf).write_text(

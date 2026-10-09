@@ -14,6 +14,7 @@ from imgui_bundle import imgui
 
 from editor_gui.dpt import transcoder_for
 from editor_gui.plugins.timeline.strings import S
+from editor_gui.widgets.dpi import px
 
 # (raw group-address value, display label, dpt string)
 GaInfo = tuple[int, str, str]
@@ -51,7 +52,7 @@ class TimelinePanel:
             raw: _PALETTE[i % len(_PALETTE)] for i, (raw, _l, _d) in enumerate(ga_info)
         }
         avail = imgui.get_content_region_avail()
-        if imgui.begin_child("##tl_list", imgui.ImVec2(240.0, avail.y), True):
+        if imgui.begin_child("##tl_list", imgui.ImVec2(px(240.0), avail.y), True):
             self._render_pin_list(ga_info, color_by_raw)
         imgui.end_child()
         imgui.same_line()
@@ -86,7 +87,7 @@ class TimelinePanel:
         labels = [S.TIMELINE_WINDOW_ALL, "60 s", "300 s"]
         values = [0.0, 60.0, 300.0]
         current = values.index(self._window_s) if self._window_s in values else 0
-        imgui.set_next_item_width(120.0)
+        imgui.set_next_item_width(px(120.0))
         if imgui.begin_combo(f"{S.TIMELINE_WINDOW}##tl_win", labels[current]):
             for i, lbl in enumerate(labels):
                 if imgui.selectable(lbl, i == current)[0]:
@@ -136,10 +137,12 @@ class TimelinePanel:
 
         origin = imgui.get_cursor_screen_pos()
         avail = imgui.get_content_region_avail()
-        pad = 8.0
+        pad = px(8.0)
         x0, y0 = origin.x + pad, origin.y + pad
-        w = max(avail.x - 2 * pad, 32.0)
-        h = max(avail.y - 2 * pad - 60.0, 60.0)  # leave room for the legend below
+        w = max(avail.x - 2 * pad, px(32.0))
+        h = max(
+            avail.y - 2 * pad - px(60.0), px(60.0)
+        )  # leave room for the legend below
         dl = imgui.get_window_draw_list()
         frame = imgui.get_color_u32(imgui.ImVec4(0.4, 0.4, 0.45, 1.0))
         dl.add_rect(imgui.ImVec2(x0, y0), imgui.ImVec2(x0 + w, y0 + h), frame)
@@ -160,13 +163,13 @@ class TimelinePanel:
                     imgui.ImVec2(sx(a[0]), sy(a[1])),
                     imgui.ImVec2(sx(b[0]), sy(b[1])),
                     col,
-                    1.8,
+                    px(1.8),
                 )
             last = s[-1]
-            dl.add_circle_filled(imgui.ImVec2(sx(last[0]), sy(last[1])), 3.0, col)
+            dl.add_circle_filled(imgui.ImVec2(sx(last[0]), sy(last[1])), px(3.0), col)
 
         # Reserve the chart area, then a compact legend + min/max readout below it.
-        imgui.dummy(imgui.ImVec2(w, h + 4.0))
+        imgui.dummy(imgui.ImVec2(w, h + px(4.0)))
         imgui.text_disabled(f"[{v_min:g} .. {v_max:g}]")
         for raw in series:
             if series[raw]:

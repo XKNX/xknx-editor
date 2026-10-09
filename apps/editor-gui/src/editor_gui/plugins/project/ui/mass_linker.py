@@ -25,6 +25,7 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
+from editor_gui.widgets.dpi import px, px_vec2
 
 if TYPE_CHECKING:
     from editor_gui.device import ComObject, Device
@@ -334,7 +335,7 @@ class MassLinkerPanel:
                 S.ML_SHOW_PROBLEMS, self._problems_only
             )
 
-        table_h = max(imgui.get_content_region_avail().y - 96.0, 120.0)
+        table_h = max(imgui.get_content_region_avail().y - px(96.0), px(120.0))
         if imgui.begin_child("##ml1_table", imgui.ImVec2(0.0, table_h)):
             self._render_ga_table(flat, by_id)
         imgui.end_child()
@@ -344,7 +345,7 @@ class MassLinkerPanel:
         if imgui.button(S.ML_MATCH_NAME):
             self._match_all(flat)
         imgui.same_line()
-        imgui.set_next_item_width(120.0)
+        imgui.set_next_item_width(px(120.0))
         _, self._seq_start = imgui.input_text(S.ML_SEQ_FROM, self._seq_start)
         imgui.same_line()
         if imgui.button(S.ML_ASSIGN_SEQ):
@@ -371,7 +372,7 @@ class MassLinkerPanel:
         )
         if not imgui.begin_table("##ml1", 6, flags):
             return
-        imgui.table_setup_column("##st", imgui.TableColumnFlags_.width_fixed, 22.0)
+        imgui.table_setup_column("##st", imgui.TableColumnFlags_.width_fixed, px(22.0))
         imgui.table_setup_column(
             S.ML_COL_DEVICE, imgui.TableColumnFlags_.width_stretch, 0.26
         )
@@ -379,12 +380,12 @@ class MassLinkerPanel:
             S.ML_COL_OBJECT, imgui.TableColumnFlags_.width_stretch, 0.26
         )
         imgui.table_setup_column(
-            S.ML_COL_DPT, imgui.TableColumnFlags_.width_fixed, 52.0
+            S.ML_COL_DPT, imgui.TableColumnFlags_.width_fixed, px(52.0)
         )
         imgui.table_setup_column(
             S.ML_COL_TARGET_GA, imgui.TableColumnFlags_.width_stretch, 0.36
         )
-        imgui.table_setup_column("##rm", imgui.TableColumnFlags_.width_fixed, 26.0)
+        imgui.table_setup_column("##rm", imgui.TableColumnFlags_.width_fixed, px(26.0))
         imgui.table_headers_row()
         for i, row in enumerate(self._rows1):
             if self._problems_only and row.status == "ready":
@@ -486,18 +487,18 @@ class MassLinkerPanel:
         _desc(S.ML_DESC_CO_CO)
         self._row_toolbar(self._rows2)
         suggestions = self._co_suggestions()
-        table_h = max(imgui.get_content_region_avail().y - 116.0, 120.0)
+        table_h = max(imgui.get_content_region_avail().y - px(116.0), px(120.0))
         if imgui.begin_child("##ml2_table", imgui.ImVec2(0.0, table_h)):
             self._render_co_table(suggestions)
         imgui.end_child()
         self._apply_pending_remove()
 
-        imgui.set_next_item_width(220.0)
+        imgui.set_next_item_width(px(220.0))
         _, self._name_template = imgui.input_text(
             S.ML_NAME_TEMPLATE, self._name_template
         )
         imgui.same_line()
-        imgui.set_next_item_width(140.0)
+        imgui.set_next_item_width(px(140.0))
         _, self._co_start = imgui.input_text(S.ML_START_ADDRESS, self._co_start)
         paired = [r for r in self._rows2 if r.target_co is not None]
         imgui.begin_disabled(not paired)
@@ -585,18 +586,18 @@ class MassLinkerPanel:
             S.ML_COL_OBJECT, imgui.TableColumnFlags_.width_stretch, 0.34
         )
         imgui.table_setup_column(
-            S.ML_COL_DPT, imgui.TableColumnFlags_.width_fixed, 52.0
+            S.ML_COL_DPT, imgui.TableColumnFlags_.width_fixed, px(52.0)
         )
         imgui.table_setup_column(
             S.ML_COL_TARGET_CO, imgui.TableColumnFlags_.width_stretch, 0.34
         )
         imgui.table_setup_column(
-            S.ML_COL_GA_ADDR, imgui.TableColumnFlags_.width_fixed, 96.0
+            S.ML_COL_GA_ADDR, imgui.TableColumnFlags_.width_fixed, px(96.0)
         )
         imgui.table_setup_column(
             S.ML_COL_GA_NAME, imgui.TableColumnFlags_.width_stretch, 0.32
         )
-        imgui.table_setup_column("##rm", imgui.TableColumnFlags_.width_fixed, 28.0)
+        imgui.table_setup_column("##rm", imgui.TableColumnFlags_.width_fixed, px(28.0))
         imgui.table_headers_row()
         candidates = self._all_objects()
         for i, row in enumerate(self._rows2):
@@ -748,7 +749,7 @@ class MassLinkerPanel:
         self._open_obj_pending = True
 
     def _render_object_picker(self) -> None:
-        imgui.set_next_window_size(imgui.ImVec2(520.0, 460.0), imgui.Cond_.appearing)
+        imgui.set_next_window_size(px_vec2(520.0, 460.0), imgui.Cond_.appearing)
         opened, _ = imgui.begin_popup_modal(S.ML_PICK_OBJECTS_TITLE, None)
         if not opened:
             return
@@ -756,7 +757,7 @@ class MassLinkerPanel:
             "##ml_pick_flt", S.ML_FILTER_HINT, self._pick_filter
         )
         flt = self._pick_filter.strip().lower()
-        if imgui.begin_child("##ml_pick_tree", imgui.ImVec2(0.0, 340.0)):
+        if imgui.begin_child("##ml_pick_tree", px_vec2(0.0, 340.0)):
             for device in self._get_devices():
                 cos = [
                     co
@@ -858,7 +859,7 @@ class MassLinkerPanel:
         imgui.end_child()
 
     def _render_result_popup(self) -> None:
-        imgui.set_next_window_size(imgui.ImVec2(420.0, 0.0), imgui.Cond_.appearing)
+        imgui.set_next_window_size(px_vec2(420.0, 0.0), imgui.Cond_.appearing)
         opened, _ = imgui.begin_popup_modal(S.ML_RESULT_TITLE, None)
         if not opened:
             return

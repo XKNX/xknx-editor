@@ -8,6 +8,7 @@ from collections.abc import Callable
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.widgets.dpi import px_vec2
 
 
 class DeviceConfigDialog:
@@ -75,7 +76,7 @@ class DeviceConfigDialog:
         imgui.begin_disabled(not (self._include_params or self._include_links))
         if imgui.button(
             S.CONFIG_PASTE_BTN if is_paste else S.CONFIG_DUPLICATE_BTN,
-            imgui.ImVec2(110, 0),
+            px_vec2(110, 0),
         ):
             if self._node_id is not None:
                 handler = self._on_paste if is_paste else self._on_duplicate
@@ -84,7 +85,7 @@ class DeviceConfigDialog:
             imgui.close_current_popup()
         imgui.end_disabled()
         imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, imgui.ImVec2(90, 0)):
+        if imgui.button(S.BTN_CANCEL, px_vec2(90, 0)):
             self._close()
             imgui.close_current_popup()
         imgui.end_popup()

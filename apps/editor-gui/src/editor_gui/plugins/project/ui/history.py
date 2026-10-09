@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.widgets.dpi import px
 
 
 @dataclass
@@ -55,7 +56,7 @@ class HistoryPanel:
                     cursor_pos.x + col_width / 2, cursor_pos.y + text_height / 2
                 )
                 draw_list.add_circle_filled(
-                    center, 4, imgui.get_color_u32(imgui.ImVec4(0.2, 0.8, 0.3, 1.0))
+                    center, px(4), imgui.get_color_u32(imgui.ImVec4(0.2, 0.8, 0.3, 1.0))
                 )
                 imgui.dummy(imgui.ImVec2(col_width, 0))
             else:
@@ -64,7 +65,7 @@ class HistoryPanel:
                 row_height = imgui.get_text_line_height_with_spacing()
                 row_hovered = (
                     row_min_y <= mouse_pos.y < row_min_y + row_height
-                    and window_pos.x <= mouse_pos.x < window_pos.x + col_width + 20
+                    and window_pos.x <= mouse_pos.x < window_pos.x + col_width + px(20)
                 )
                 if row_hovered:
                     if imgui.small_button(f"{S.HISTORY_REVERT}##{entry.id}"):

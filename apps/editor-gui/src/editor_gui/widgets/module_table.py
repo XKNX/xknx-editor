@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from imgui_bundle import imgui
 
 from editor_gui.device import Device
+from editor_gui.widgets.dpi import px
 from editor_gui.widgets.parameter_widgets import render_param_widget
 from xknxeditor.prod.parser_v2.ui import (
     UiNode,
@@ -196,7 +197,7 @@ def render_module_tables(
         imgui.table_setup_scroll_freeze(
             1, 0
         )  # keep the index column visible during x-scroll
-        imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, 44.0)
+        imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(44.0))
         for col in table.columns:
             imgui.table_setup_column(col.label or col.slot)
         imgui.table_headers_row()

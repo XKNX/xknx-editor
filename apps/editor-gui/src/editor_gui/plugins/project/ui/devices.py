@@ -7,6 +7,7 @@ from editor_gui.device import Device, UnloadedDevice, address_order
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
+from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 
 TreeDevice = Device | UnloadedDevice
 
@@ -323,13 +324,13 @@ class DevicesPanel:
             name = self._device_display_name(device) if device else ""
             imgui.text_wrapped(S.DEVICE_DELETE_CONFIRM.format(name=name))
             imgui.separator()
-            if imgui.button(S.CONTEXT_DELETE, imgui.ImVec2(90, 0)):
+            if imgui.button(S.CONTEXT_DELETE, px_vec2(90, 0)):
                 if device is not None:
                     self._on_delete_device(device)
                 self._delete_target_device = None
                 imgui.close_current_popup()
             imgui.same_line()
-            if imgui.button(S.BTN_CANCEL, imgui.ImVec2(90, 0)):
+            if imgui.button(S.BTN_CANCEL, px_vec2(90, 0)):
                 self._delete_target_device = None
                 imgui.close_current_popup()
             imgui.end_popup()
@@ -407,15 +408,19 @@ class DevicesPanel:
             S.POPUP_NEW_AREA, flags=imgui.WindowFlags_.always_auto_resize
         )[0]:
             imgui.text(S.POPUP_NAME)
-            imgui.same_line(80)
+            imgui.same_line(
+                label_column_width(S.POPUP_NAME, S.POPUP_NUMBER, minimum=80)
+            )
             if imgui.is_window_appearing():
                 imgui.set_keyboard_focus_here()
-            imgui.set_next_item_width(150)
+            imgui.set_next_item_width(px(150))
             _, self._popup_name = imgui.input_text("##area_name", self._popup_name)
 
             imgui.text(S.POPUP_NUMBER)
-            imgui.same_line(80)
-            imgui.set_next_item_width(150)
+            imgui.same_line(
+                label_column_width(S.POPUP_NAME, S.POPUP_NUMBER, minimum=80)
+            )
+            imgui.set_next_item_width(px(150))
             _, self._popup_area_number = imgui.input_int(
                 "##area_num", self._popup_area_number
             )
@@ -423,7 +428,7 @@ class DevicesPanel:
             imgui.separator()
             if self._popup_error:
                 imgui.text_colored(imgui.ImVec4(1.0, 0.4, 0.4, 1.0), self._popup_error)
-            if imgui.button(S.BTN_ADD, imgui.ImVec2(75, 0)):
+            if imgui.button(S.BTN_ADD, px_vec2(75, 0)):
                 try:
                     self._on_create_area(self._popup_area_number, self._popup_name)
                     self._popup_error = ""
@@ -431,7 +436,7 @@ class DevicesPanel:
                 except ValueError as exc:
                     self._popup_error = str(exc)
             imgui.same_line()
-            if imgui.button(S.BTN_CANCEL, imgui.ImVec2(75, 0)):
+            if imgui.button(S.BTN_CANCEL, px_vec2(75, 0)):
                 imgui.close_current_popup()
             imgui.end_popup()
 
@@ -440,15 +445,19 @@ class DevicesPanel:
             S.POPUP_NEW_LINE, flags=imgui.WindowFlags_.always_auto_resize
         )[0]:
             imgui.text(S.POPUP_NAME)
-            imgui.same_line(80)
+            imgui.same_line(
+                label_column_width(S.POPUP_NAME, S.POPUP_NUMBER, minimum=80)
+            )
             if imgui.is_window_appearing():
                 imgui.set_keyboard_focus_here()
-            imgui.set_next_item_width(150)
+            imgui.set_next_item_width(px(150))
             _, self._popup_name = imgui.input_text("##line_name", self._popup_name)
 
             imgui.text(S.POPUP_NUMBER)
-            imgui.same_line(80)
-            imgui.set_next_item_width(150)
+            imgui.same_line(
+                label_column_width(S.POPUP_NAME, S.POPUP_NUMBER, minimum=80)
+            )
+            imgui.set_next_item_width(px(150))
             _, self._popup_line_number = imgui.input_int(
                 "##line_num", self._popup_line_number
             )
@@ -456,7 +465,7 @@ class DevicesPanel:
             imgui.separator()
             if self._popup_error:
                 imgui.text_colored(imgui.ImVec4(1.0, 0.4, 0.4, 1.0), self._popup_error)
-            if imgui.button(S.BTN_ADD, imgui.ImVec2(75, 0)):
+            if imgui.button(S.BTN_ADD, px_vec2(75, 0)):
                 try:
                     if self._popup_target_area:
                         self._on_create_line(
@@ -469,7 +478,7 @@ class DevicesPanel:
                 except ValueError as exc:
                     self._popup_error = str(exc)
             imgui.same_line()
-            if imgui.button(S.BTN_CANCEL, imgui.ImVec2(75, 0)):
+            if imgui.button(S.BTN_CANCEL, px_vec2(75, 0)):
                 imgui.close_current_popup()
             imgui.end_popup()
 
@@ -478,14 +487,16 @@ class DevicesPanel:
             S.POPUP_RENAME, flags=imgui.WindowFlags_.always_auto_resize
         )[0]:
             imgui.text(S.POPUP_NAME)
-            imgui.same_line(80)
+            imgui.same_line(
+                label_column_width(S.POPUP_NAME, S.POPUP_NUMBER, minimum=80)
+            )
             if imgui.is_window_appearing():
                 imgui.set_keyboard_focus_here()
-            imgui.set_next_item_width(150)
+            imgui.set_next_item_width(px(150))
             _, self._popup_name = imgui.input_text("##rename_name", self._popup_name)
 
             imgui.separator()
-            if imgui.button(S.BTN_ADD, imgui.ImVec2(75, 0)):
+            if imgui.button(S.BTN_ADD, px_vec2(75, 0)):
                 if self._popup_target_area:
                     self._on_rename_area(self._popup_target_area, self._popup_name)
                     self._popup_target_area = None
@@ -494,7 +505,7 @@ class DevicesPanel:
                     self._popup_target_line = None
                 imgui.close_current_popup()
             imgui.same_line()
-            if imgui.button(S.BTN_CANCEL, imgui.ImVec2(75, 0)):
+            if imgui.button(S.BTN_CANCEL, px_vec2(75, 0)):
                 self._popup_target_area = None
                 self._popup_target_line = None
                 imgui.close_current_popup()

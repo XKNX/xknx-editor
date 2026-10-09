@@ -25,6 +25,7 @@ from editor_gui.programming import (
     ScannedDevice,
 )
 from editor_gui.settings import load_settings, save_settings
+from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from xknxeditor.prod.app_id import parse_app_id
 
 if TYPE_CHECKING:
@@ -34,6 +35,21 @@ _SETTINGS = "connection"
 
 # Delay before the one-shot autostart re-scan (macOS Local Network permission grant window).
 _AUTOSTART_RETRY_SECONDS = 30.0
+
+
+def _progmode_label_width() -> float:
+    return label_column_width(
+        S.PROGMODE_STATUS,
+        S.PROGMODE_MANUFACTURER,
+        S.PROGMODE_PRODUCT,
+        S.PROGMODE_APPLICATION,
+        S.PROGMODE_APP_VERSION,
+        S.PROGMODE_MASK,
+        S.PROGMODE_SERIAL,
+        S.PROGMODE_ORDER,
+        S.PROGMODE_HARDWARE,
+        minimum=160.0,
+    )
 
 
 class ConnectionState(Enum):
@@ -417,16 +433,16 @@ class ConnectionPlugin:
         draw_list = imgui.get_window_draw_list()
         cursor = imgui.get_cursor_screen_pos()
         text_height = imgui.get_text_line_height()
-        center = imgui.ImVec2(cursor.x + 5, cursor.y + text_height / 2)
+        center = imgui.ImVec2(cursor.x + px(5), cursor.y + text_height / 2)
 
         if self._state == ConnectionState.CONNECTED:
             pulse = 0.5 + 0.5 * math.sin(imgui.get_time() * 3.0)
             alpha = 0.4 + 0.6 * pulse
-            draw_list.add_circle_filled(center, 4, color_u32(0.2, 0.8, 0.3, alpha))
+            draw_list.add_circle_filled(center, px(4), color_u32(0.2, 0.8, 0.3, alpha))
             draw_list.add_circle_filled(
-                center, 4 + pulse * 3, color_u32(0.2, 0.8, 0.3, 0.15 * (1 - pulse))
+                center, px(4 + pulse * 3), color_u32(0.2, 0.8, 0.3, 0.15 * (1 - pulse))
             )
-            imgui.dummy(imgui.ImVec2(12, 0))
+            imgui.dummy(px_vec2(12, 0))
             imgui.same_line()
             target = self._connection_target
             if self._gateway_info and self._gateway_info.name:
@@ -439,14 +455,14 @@ class ConnectionPlugin:
         elif self._state == ConnectionState.CONNECTING:
             spin = (imgui.get_time() * 4) % 1.0
             draw_list.add_circle_filled(
-                center, 4, color_u32(0.8, 0.7, 0.2, 0.5 + 0.5 * spin)
+                center, px(4), color_u32(0.8, 0.7, 0.2, 0.5 + 0.5 * spin)
             )
-            imgui.dummy(imgui.ImVec2(12, 0))
+            imgui.dummy(px_vec2(12, 0))
             imgui.same_line()
             imgui.text_disabled("Connecting...")
         elif self._state == ConnectionState.ERROR:
-            draw_list.add_circle_filled(center, 4, color_u32(0.8, 0.2, 0.2, 1.0))
-            imgui.dummy(imgui.ImVec2(12, 0))
+            draw_list.add_circle_filled(center, px(4), color_u32(0.8, 0.2, 0.2, 1.0))
+            imgui.dummy(px_vec2(12, 0))
             imgui.same_line()
             error_short = (
                 self._error_message[:60] if self._error_message else "Unknown error"
@@ -457,8 +473,8 @@ class ConnectionPlugin:
             if self._error_message and imgui.is_item_hovered():
                 imgui.set_tooltip(self._error_message)
         else:
-            draw_list.add_circle_filled(center, 4, color_u32(0.5, 0.5, 0.5, 1.0))
-            imgui.dummy(imgui.ImVec2(12, 0))
+            draw_list.add_circle_filled(center, px(4), color_u32(0.5, 0.5, 0.5, 1.0))
+            imgui.dummy(px_vec2(12, 0))
             imgui.same_line()
             imgui.text_disabled(S.STATUS_DISCONNECTED)
 
@@ -521,8 +537,8 @@ class ConnectionPlugin:
             imgui.same_line()
             imspinner.spinner_ang(
                 "##progmode-spinner",
-                7,
-                2,
+                px(7),
+                px(2),
                 color=imgui.ImColor(
                     imgui.get_style_color_vec4(imgui.Col_.tab_selected)
                 ),
@@ -615,9 +631,10 @@ class ConnectionPlugin:
             (S.PROGMODE_ORDER, overview.order_info or ""),
             (S.PROGMODE_HARDWARE, overview.hardware_type or ""),
         ]
+        label_w = _progmode_label_width()
         for label, value in rows:
             imgui.text_disabled(label)
-            imgui.same_line(160.0)
+            imgui.same_line(label_w)
             imgui.text(value or "-")
         imgui.unindent()
 
@@ -660,7 +677,7 @@ class ConnectionPlugin:
     def _render_progmode_status(self, overview: DeviceOverview) -> None:
         """Programming-mode flag + device error class, coloured like the editor's diagnosis."""
         imgui.text_disabled(S.PROGMODE_STATUS)
-        imgui.same_line(160.0)
+        imgui.same_line(_progmode_label_width())
         if overview.error_code is None or overview.error_code == 0:
             imgui.text_colored(imgui.ImVec4(0.45, 0.8, 0.45, 1.0), S.PROGMODE_STATUS_OK)
         else:
@@ -725,8 +742,8 @@ class ConnectionPlugin:
             imgui.same_line()
             imspinner.spinner_ang(
                 "##scan-spinner",
-                6,
-                2,
+                px(6),
+                px(2),
                 color=imgui.ImColor(
                     imgui.get_style_color_vec4(imgui.Col_.tab_selected)
                 ),
@@ -757,7 +774,7 @@ class ConnectionPlugin:
 
         imgui.separator()
         imgui.text_disabled(S.SECTION_MANUAL)
-        imgui.set_next_item_width(180)
+        imgui.set_next_item_width(px(180))
         _, self._controller_ip = imgui.input_text("IP##manual", self._controller_ip)
         if imgui.menu_item(retry_label, "", False)[0]:
             self.connect()

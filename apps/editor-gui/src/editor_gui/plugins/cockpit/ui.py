@@ -8,6 +8,7 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.cockpit.service import CockpitRow, CockpitService, sort_rows
 from editor_gui.plugins.cockpit.strings import S
+from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
@@ -92,7 +93,7 @@ class CockpitPanel:
         imgui.table_setup_column(
             S.COCKPIT_COL_ADDRESS,
             imgui.TableColumnFlags_.width_fixed | imgui.TableColumnFlags_.default_sort,
-            70.0,
+            px(70.0),
         )
         imgui.table_setup_column(
             S.COCKPIT_COL_NAME, imgui.TableColumnFlags_.width_stretch, 0.4
@@ -101,7 +102,7 @@ class CockpitPanel:
             S.COCKPIT_COL_PRODUCT, imgui.TableColumnFlags_.width_stretch, 0.4
         )
         imgui.table_setup_column(
-            S.COCKPIT_COL_LOADED, imgui.TableColumnFlags_.width_fixed, 90.0
+            S.COCKPIT_COL_LOADED, imgui.TableColumnFlags_.width_fixed, px(90.0)
         )
         imgui.table_setup_column(
             S.COCKPIT_COL_STATUS, imgui.TableColumnFlags_.width_stretch, 0.2
