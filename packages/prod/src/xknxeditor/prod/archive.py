@@ -112,6 +112,20 @@ class Archive:
 
         return result
 
+    def get_application_xml(self, manufacturer_id: str, app_id: str) -> bytes | None:
+        """The XML of one application, or None if the archive has no such application.
+
+        Reads only that entry, unlike :meth:`get_application_xmls`.
+        """
+        self._validate_manufacturer_id(manufacturer_id)
+        filename = f"{app_id}.xml"
+        if not APPLICATION_PATTERN.match(filename) or "/" in app_id:
+            return None
+        entry = f"{manufacturer_id}/{filename}"
+        if entry not in self._entries:
+            return None
+        return self._zipfile.read(entry)
+
     def get_baggages(self, manufacturer_id: str) -> dict[str, bytes]:
         """Baggage file contents for a manufacturer, keyed by Baggage id."""
         self._validate_manufacturer_id(manufacturer_id)

@@ -18,6 +18,9 @@ from xknxeditor.catalog.models import (
 if TYPE_CHECKING:
     from pathlib import Path
 
+    from xknxeditor.namespaces.intermediate.application_program_t import (
+        ApplicationProgram,
+    )
     from xknxeditor.prod import Application as ProductApplication
 
 
@@ -70,8 +73,7 @@ def get_application_xml(db: Session, program_id: str) -> tuple[bytes, str] | Non
     manufacturer_id = program.hardware.manufacturer_id
     archive = Archive(program.knxprod_path)
     with archive:
-        app_xmls = archive.get_application_xmls(manufacturer_id)
-        xml_bytes = app_xmls.get(program.application_id)
+        xml_bytes = archive.get_application_xml(manufacturer_id, program.application_id)
         if xml_bytes is None:
             return None
         return xml_bytes, manufacturer_id
@@ -97,20 +99,49 @@ def get_application_detail(
     if not program or not program.application_id:
         return None
 
+    manufacturer_id = program.hardware.manufacturer_id
+    app = _load_application(
+        program.knxprod_path,
+        manufacturer_id,
+        program.application_id,
+        language,
+        cache_dir,
+    )
+    if app is not None:
+        knxprod_path, application_id = program.knxprod_path, program.application_id
+
+        def reload() -> ApplicationProgram:
+            again = _load_application(
+                knxprod_path, manufacturer_id, application_id, language, cache_dir
+            )
+            if again is None:
+                raise LookupError(
+                    f"application {application_id} is no longer available"
+                )
+            return again.program
+
+        app.set_reloader(reload)
+    return app
+
+
+def _load_application(
+    knxprod_path: str,
+    manufacturer_id: str,
+    application_id: str,
+    language: str | None,
+    cache_dir: Path | None,
+) -> ProductApplication | None:
     from xknxeditor.prod import parse_application_xml
     from xknxeditor.prod.archive import Archive
 
-    manufacturer_id = program.hardware.manufacturer_id
-    archive = Archive(program.knxprod_path)
-    with archive:
-        app_xmls = archive.get_application_xmls(manufacturer_id)
-        xml_bytes = app_xmls.get(program.application_id)
-        if xml_bytes is None:
-            return None
-        apps = parse_application_xml(
-            xml_bytes, manufacturer_id, language, cache_dir=cache_dir
-        )
-        return next((a for a in apps if a.id == program.application_id), None)
+    with Archive(knxprod_path) as archive:
+        xml_bytes = archive.get_application_xml(manufacturer_id, application_id)
+    if xml_bytes is None:
+        return None
+    apps = parse_application_xml(
+        xml_bytes, manufacturer_id, language, cache_dir=cache_dir
+    )
+    return next((a for a in apps if a.id == application_id), None)
 
 
 def get_application_detail_by_id(

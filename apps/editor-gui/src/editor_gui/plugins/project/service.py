@@ -23,6 +23,7 @@ from xknxeditor.namespaces.intermediate import (
 from xknxeditor.namespaces.intermediate.enable_t import Enable
 from xknxeditor.prod import Application
 from xknxeditor.prod.app_id import parse_app_id
+from xknxeditor.prod.gc_pause import gc_paused
 from xknxeditor.prod.parser_v2.calculation import VALIDATION_FAILED
 from xknxeditor.proj import ProjectService as _ProjectService
 from xknxeditor.proj import ProjectStorageError, ensure_sqlite_writable
@@ -117,6 +118,20 @@ def _parameter_instance_refs(
     return [
         ParameterInstanceRef(ref_id=ref_id, value=value) for ref_id, value in parameters
     ]
+
+
+def _row_values(obj: Any) -> tuple[Any, ...]:
+    return tuple(getattr(obj, column.key) for column in obj.__table__.columns)
+
+
+def _device_source_key(row: Any) -> tuple[Any, ...]:
+    """Everything a device is built from: its program, parameters, module instances, com objects."""
+    return (
+        row.hardware2program_ref_id,
+        tuple(_row_values(p) for p in row.parameters),
+        tuple(_row_values(mi) for mi in row.module_instances),
+        tuple(_row_values(co) for co in row.com_objects),
+    )
 
 
 def _qualified_com_object_ref(co_row: Any, app_program_id: str) -> str:
@@ -353,6 +368,8 @@ class ProjectService:
         self.build_progress: Callable[[int, int, str], None] | None = None
         self._devices_cache: list[Device] | None = None
         self._unloaded_devices: list[UnloadedDevice] = []
+        # Per device, the stored data it was last built from (see _device_source_key).
+        self._build_keys: dict[int, tuple[Any, ...]] = {}
         self._areas_cache: list[_Area] | None = None
         self._lines_cache: dict[int, list[_Line]] | None = None
         self._ga_cache: list[_GroupAddress] | None = None
@@ -708,25 +725,26 @@ class ProjectService:
                     working=str(working),
                 )
                 self._copy_atomic(path, working)
-            new_pid = self._svc.open(working)
-            self._pid = new_pid
-            self._generation += 1
-            self._path = path
-            self._working_path = working
-            self._reset()
-            self._history_baseline = self._history_key()
-            if self.mirroring_active:
+            with gc_paused():
+                new_pid = self._svc.open(working)
+                self._pid = new_pid
+                self._generation += 1
+                self._path = path
+                self._working_path = working
+                self._reset()
+                self._history_baseline = self._history_key()
+                if self.mirroring_active:
+                    self._log.info(
+                        "network location: working on a local copy",
+                        home=str(path),
+                        working=str(working),
+                    )
                 self._log.info(
-                    "network location: working on a local copy",
-                    home=str(path),
-                    working=str(working),
+                    "project opened",
+                    path=str(path),
+                    devices=len(self.devices),
+                    group_range_roots=len(self.get_group_range_tree()),
                 )
-            self._log.info(
-                "project opened",
-                path=str(path),
-                devices=len(self.devices),
-                group_range_roots=len(self.get_group_range_tree()),
-            )
 
     def import_knxproj(
         self, source: Path, dest: Path, *, password: str | None = None
@@ -850,6 +868,7 @@ class ProjectService:
 
     def _reset(self) -> None:
         self._devices_cache = None
+        self._build_keys.clear()
         self._areas_cache = None
         self._lines_cache = None
         self._ga_cache = None
@@ -989,6 +1008,7 @@ class ProjectService:
             # is inspected or edited. This keeps memory bounded to the active device.
             device.get_visible_com_objects()
             device.release_dynamic_ui()
+            self._build_keys[row.id] = _device_source_key(row)
             return device
         except Exception as e:
             # Building the device (evaluating its dynamic UI from the .knxprod) failed — log the
@@ -1002,10 +1022,32 @@ class ProjectService:
             )
             return None
 
+    def _reuse_device(self, row: Any, previous: dict[int, Device]) -> Device | None:
+        """The already built device for ``row`` if it was not changed in place and nothing it was
+        built from has changed since.
+
+        Only its name, description and individual address are refreshed then. Rebuilding every
+        device after e.g. an address change would load every application again."""
+        old = previous.get(row.id)
+        if (
+            old is None
+            or old.edited_in_place
+            or old.app is not self._app_cache.get(row.hardware2program_ref_id or "")
+            or self._build_keys.get(row.id) != _device_source_key(row)
+        ):
+            return None
+        assert self._pid is not None
+        old.name = row.name
+        old.product_name = row.product_name or ""
+        old.description = row.description
+        old.individual_address = self._svc.individual_address(self._pid, row.id) or ""
+        return old
+
     @property
     @io_guarded(list)
     def devices(self) -> list[Device]:
         if self._devices_cache is None or self._devices_cache_version != self._version:
+            previous = {d.node_id: d for d in self._devices_cache or []}
             devices: list[Device] = []
             unloaded: list[UnloadedDevice] = []
             if self._pid is not None:
@@ -1014,40 +1056,45 @@ class ProjectService:
                 report = self.build_progress
                 started = time.monotonic()
                 self._log.debug("building devices", total=total)
-                for i, row in enumerate(rows, start=1):
-                    device = self._build_device(row)
-                    if device is None:
-                        unloaded.append(
-                            UnloadedDevice(
-                                node_id=row.id,
-                                name=row.name or "",
-                                product_name=row.product_name or "",
-                                individual_address=self._svc.individual_address(
-                                    self._pid, row.id
+                # Building creates millions of long-lived objects; the cyclic garbage collector would
+                # rescan all of them over and over, which dominates the load time.
+                with gc_paused():
+                    for i, row in enumerate(rows, start=1):
+                        device = self._reuse_device(
+                            row, previous
+                        ) or self._build_device(row)
+                        if device is None:
+                            unloaded.append(
+                                UnloadedDevice(
+                                    node_id=row.id,
+                                    name=row.name or "",
+                                    product_name=row.product_name or "",
+                                    individual_address=self._svc.individual_address(
+                                        self._pid, row.id
+                                    )
+                                    or "",
+                                    program_ref=row.hardware2program_ref_id,
                                 )
-                                or "",
-                                program_ref=row.hardware2program_ref_id,
                             )
-                        )
-                    else:
-                        devices.append(device)
-                        # Verbose per-device trace: the build is otherwise a silent gap
-                        # between "opening project" and "project opened".
-                        self._log.debug(
-                            "built device",
-                            index=i,
-                            total=total,
-                            device_id=row.id,
-                            address=device.individual_address,
-                            name=device.name,
-                        )
-                    if report is not None:
-                        label = (
-                            f"{device.individual_address}  {device.name}".strip()
-                            if device is not None
-                            else (row.name or "")
-                        )
-                        report(i, total, label)
+                        else:
+                            devices.append(device)
+                            # Verbose per-device trace: the build is otherwise a silent gap
+                            # between "opening project" and "project opened".
+                            self._log.debug(
+                                "built device",
+                                index=i,
+                                total=total,
+                                device_id=row.id,
+                                address=device.individual_address,
+                                name=device.name,
+                            )
+                        if report is not None:
+                            label = (
+                                f"{device.individual_address}  {device.name}".strip()
+                                if device is not None
+                                else (row.name or "")
+                            )
+                            report(i, total, label)
                 self._log.info(
                     "devices built",
                     built=len(devices),
@@ -2302,6 +2349,7 @@ class ProjectService:
         # live dynamic UI — exactly what a rebuild reconstructs from the DB — then bump non-structurally
         # so revision-keyed panels (Health/Cockpit) refresh.
         setattr(co.flags, flag_name, value)
+        device.edited_in_place = True
         row = self._find_com_object_row(co.db_id)
         if row is not None:
             coir = _co_instance_ref_from_row(row, ref_id=co_id) or ComObjectInstanceRef(

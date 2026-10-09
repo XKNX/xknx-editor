@@ -233,6 +233,8 @@ class Device:
     _dynamic_ui_dirty: bool = field(
         default=False, repr=False, compare=False, init=False
     )
+    # Changed in place since it was built, so it no longer mirrors the data it was built from.
+    edited_in_place: bool = field(default=False, repr=False, compare=False, init=False)
     # UI frozen while a script changes this device's parameters on the script worker.
     _script_ui: list[UiNode] | None = field(
         default=None, repr=False, compare=False, init=False
@@ -263,12 +265,14 @@ class Device:
         if self._dynamic_ui is None and self.app.program.dynamic is not None:
             from xknxeditor.prod.parser_v2.dynamic import DynamicUI as _DynamicUI
 
+            # Program and tree as one pair: an unused application may have been reloaded.
+            program, tree_builder = self.app.resolved()
             self._dynamic_ui = _DynamicUI(
-                self.app.program,
+                program,
                 parameter_instance_refs=self.parameter_instance_refs or None,
                 module_instances=self.module_instances or None,
                 com_object_instance_refs=self.com_object_instance_refs or None,
-                tree_builder=self.app.tree_builder(),
+                tree_builder=tree_builder,
             )
         return self._dynamic_ui
 
@@ -351,6 +355,7 @@ class Device:
         self._script_ui = dyn.ui()
         self.get_visible_com_objects()
         self._dynamic_ui_dirty = True
+        self.edited_in_place = True
         return dyn
 
     def end_script(self) -> None:
@@ -438,6 +443,7 @@ class Device:
         self._dynamic_ui_dirty = (
             True  # live edit not in the stored refs -> keep resident
         )
+        self.edited_in_place = True
         self._cached_visible_cos = None
         self._cached_rows = None
 

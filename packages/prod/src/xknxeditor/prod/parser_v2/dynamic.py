@@ -146,6 +146,56 @@ class _AppNode(DynamicNode):
         return self._subtree.eval(ctx)
 
 
+class _UnionCompetitors:
+    """``parameter_ref_id -> competing parameter-ref ids``, computed when first asked for.
+
+    Only the parameters of Choose elements are ever looked up - a small fraction of all union
+    members - so the competitor sets are not built for every member up front.
+    """
+
+    __slots__ = ("_by_union", "_cache", "_member_of", "_member_refs", "_members")
+
+    def __init__(
+        self,
+        members: dict[str, tuple[int, int, int | None]],
+        member_refs: dict[str, set[str]],
+    ) -> None:
+        self._members = members
+        self._member_refs = member_refs
+        self._member_of = {r: mid for mid, refs in member_refs.items() for r in refs}
+        self._by_union: dict[int, list[str]] = {}
+        for mid, (key, _s, _z) in members.items():
+            self._by_union.setdefault(key, []).append(mid)
+        self._cache: dict[str, set[str] | None] = {}
+
+    def _overlap(self, a: str, b: str) -> bool:
+        _k1, s1, z1 = self._members[a]
+        _k2, s2, z2 = self._members[b]
+        # Unknown size (e.g. a value type whose width is implicit/encoding-derived, like a
+        # float): compete only when the start bit is identical. Conservative on purpose — this
+        # can miss a genuine overlap (two overlapping members both render = duplicate content),
+        # but it never over-suppresses (never hides an active member). Under-suppression is the
+        # safe failure mode; guessing an implicit width could wrongly hide content.
+        if z1 is None or z2 is None:
+            return s1 == s2
+        return s1 < s2 + z2 and s2 < s1 + z1
+
+    def get(self, ref_id: str | None) -> set[str] | None:
+        """The parameter-refs competing with ``ref_id``'s union member, or None if none do."""
+        mid = self._member_of.get(ref_id) if ref_id is not None else None
+        if mid is None:
+            return None
+        if mid not in self._cache:
+            competitors = {
+                r
+                for m2 in self._by_union[self._members[mid][0]]
+                if m2 != mid and m2 in self._member_refs and self._overlap(mid, m2)
+                for r in self._member_refs[m2]
+            }
+            self._cache[mid] = competitors or None
+        return self._cache[mid]
+
+
 class DynamicTreeBuilder:
     """Constructs an ApplicationProgram's eval tree, pre-resolving Module refs into
     subtrees so evaluation never re-reads the IR."""
@@ -164,9 +214,7 @@ class DynamicTreeBuilder:
         # Choose on an inactive union member renders nothing (see ChooseWhenNode). Without this we
         # render every union member's Choose branch, duplicating content (issue: MDT Glas push
         # button "Display mode" — two ViewMode union members both rendered).
-        self._union_sibling_refs: dict[str, set[str]] = self._build_union_sibling_refs(
-            app
-        )
+        self._union_sibling_refs = self._build_union_sibling_refs(app)
         # Some applications (e.g. simple power supplies / couplers) carry no <Dynamic> section, or
         # one that produces no tree. Such a device has no parameters/objects to show — build an
         # empty tree so it still appears in the project instead of failing to load.
@@ -178,7 +226,7 @@ class DynamicTreeBuilder:
         )
         self.tree: DynamicNode = _AppNode(node, global_param_ref_defaults)
 
-    def _build_union_sibling_refs(self, app: ApplicationProgram) -> dict[str, set[str]]:
+    def _build_union_sibling_refs(self, app: ApplicationProgram) -> _UnionCompetitors:
         """``parameter_ref_id -> the parameter-ref ids that compete with it for the same union memory``.
 
         Union members overlay shared memory; only the *active* overlay's Choose should render (else
@@ -227,45 +275,12 @@ class DynamicTreeBuilder:
                 for p in mparams.choice:
                     if isinstance(p, ModuleDefStaticParametersUnion):
                         _add_union(p, id(p))
-        if not members:
-            return {}
-
         # member id -> its parameter-ref ids
         member_refs: dict[str, set[str]] = {}
         for pr in self.idx.parameter_refs.values():
             if pr.ref_id in members:  # pr.ref_id is the underlying member id
                 member_refs.setdefault(pr.ref_id, set()).add(pr.id)
-        by_union: dict[int, list[str]] = {}
-        for mid, (key, _s, _z) in members.items():
-            by_union.setdefault(key, []).append(mid)
-
-        def _overlap(a: str, b: str) -> bool:
-            _k1, s1, z1 = members[a]
-            _k2, s2, z2 = members[b]
-            # Unknown size (e.g. a value type whose width is implicit/encoding-derived, like a
-            # float): compete only when the start bit is identical. Conservative on purpose — this
-            # can miss a genuine overlap (two overlapping members both render = duplicate content),
-            # but it never over-suppresses (never hides an active member). Under-suppression is the
-            # safe failure mode; guessing an implicit width could wrongly hide content.
-            if z1 is None or z2 is None:
-                return s1 == s2
-            return s1 < s2 + z2 and s2 < s1 + z1
-
-        result: dict[str, set[str]] = {}
-        for mids in by_union.values():
-            for m in mids:
-                if m not in member_refs:
-                    continue
-                competitors = {
-                    r
-                    for m2 in mids
-                    if m2 != m and m2 in member_refs and _overlap(m, m2)
-                    for r in member_refs[m2]
-                }
-                if competitors:
-                    for r in member_refs[m]:
-                        result[r] = competitors
-        return result
+        return _UnionCompetitors(members, member_refs)
 
     def _build(self, elem: object) -> DynamicNode | None:
         if isinstance(elem, ApplicationProgramDynamic):
