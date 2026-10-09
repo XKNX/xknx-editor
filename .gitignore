@@ -49,6 +49,7 @@ packages/*/src/**/*.json
 # Local runtime data (settings + imgui layout, catalog .knxprod store)
 config/
 knxprod/
+imgui.ini
 
 # Local databases (MCP default catalog, etc.)
 *.db
