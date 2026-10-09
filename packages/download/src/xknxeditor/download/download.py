@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 from xknx.exceptions import ManagementConnectionError
 from xknx.telegram import IndividualAddress
 
-from .errors import PartialDownloadError
+from .errors import DownloadError, PartialDownloadError
 from .group_communication import materialize_group_communication_controls
 from .image import build_image
 from .merge import mask_authorize_levels, resolve_download_controls
@@ -71,6 +71,42 @@ def _resolve_controls(
     return materialize_group_communication_controls(
         image, base, _object_types(application, master), scope
     )
+
+
+_TABLE_SCOPES = frozenset(
+    {
+        DownloadScope.FULL,
+        DownloadScope.GROUP_COMMUNICATION,
+        DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION,
+    }
+)
+
+
+async def _device_association_format(
+    xknx: XKNX,
+    address: IndividualAddress,
+    security: DeviceSecurity | None,
+    image: DownloadImage,
+    scope: DownloadScope,
+) -> DownloadImage:
+    """``image`` with its association table in the format the device reports."""
+    if scope not in _TABLE_SCOPES or not image.has_association_table:
+        return image
+    from .programmer import DeviceProgrammer
+
+    manager = _connection_manager(xknx, address, security)
+    try:
+        connection = await manager.open()
+        wide = await DeviceProgrammer(connection).read_association_table_wide()
+    except (ManagementConnectionError, DownloadError) as exc:
+        logger.debug("download: association table format not readable: %s", exc)
+        return image
+    finally:
+        await manager.close()
+    if wide is None:
+        return image
+    logger.debug("download: device association table format %d", 1 if wide else 0)
+    return image.with_association_table_format(wide)
 
 
 def _object_types(
@@ -204,6 +240,10 @@ async def download(
         from .commissioning import program_individual_address
 
         await program_individual_address(xknx, address)
+    adapted = await _device_association_format(xknx, address, security, image, scope)
+    if adapted is not image:
+        image = adapted
+        controls = _resolve_controls(application, master, image, scope)
     apdu_ceiling, negotiate_apdu = _apdu_settings(max_apdu_length)
     logger.debug(
         "download: %s -> %d load controls, apdu=%s secure=%s",
@@ -291,8 +331,9 @@ async def preflight(
             parameter_values=parameter_values,
             group_communication=group_communication,
         )
-    controls = _resolve_controls(application, master, image, scope)
     address = IndividualAddress(individual_address)
+    image = await _device_association_format(xknx, address, security, image, scope)
+    controls = _resolve_controls(application, master, image, scope)
     apdu_ceiling, negotiate_apdu = _apdu_settings(max_apdu_length)
 
     manager = _connection_manager(xknx, address, security)

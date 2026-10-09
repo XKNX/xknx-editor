@@ -11,6 +11,7 @@ import pytest
 from xknxeditor.download.errors import ImageError
 from xknxeditor.download.tables import Association
 from xknxeditor.download.tables_systemb import (
+    association_table_wide,
     build_association_table_b,
     build_group_address_table_b,
     build_group_object_table_b,
@@ -97,3 +98,9 @@ def test_octet_overflow_is_rejected() -> None:
         build_association_table_b(
             [Association(group_address_index=300, group_object_number=1)]
         )
+
+
+def test_association_table_wide_rule() -> None:
+    assert not association_table_wide(address_count=254, highest_object_number=255)
+    assert association_table_wide(address_count=255, highest_object_number=1)
+    assert association_table_wide(address_count=1, highest_object_number=256)

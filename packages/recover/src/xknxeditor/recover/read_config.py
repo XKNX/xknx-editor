@@ -20,6 +20,7 @@ from typing import TYPE_CHECKING
 from xknx.exceptions import XKNXException
 
 from xknxeditor.download.errors import LoadStateError, VerificationError
+from xknxeditor.download.tables_systemb import association_table_wide
 
 from .errors import RecoverError
 from .tables_decode import (
@@ -280,12 +281,13 @@ async def _read_system_b(
     assoc_base = await programmer.read_table_reference(
         await programmer.locate_object(_ASSOCIATION_TABLE_TYPE)
     )
-    # An association entry is [group address index + 1][group object number].
-    # It is wide (two octets per field) when either index cannot fit one octet -
-    # i.e. more than 255 addresses or a group object number above 255 - matching
-    # the encoder's rule; otherwise narrow (one octet per field).
-    highest_number = _highest_com_object_number(application)
-    wide = len(group_addresses) + 1 > 0xFF or highest_number > 0xFF
+    # An association entry is [group address index + 1][group object number], with
+    # one octet (format 0) or two octets (format 1) per field as the device reports.
+    wide = await programmer.read_association_table_wide()
+    if wide is None:
+        wide = association_table_wide(
+            len(group_addresses), _highest_com_object_number(application)
+        )
     assoc_bytes = await _read_count_table(
         programmer, assoc_base, count_width=2, entry_width=4 if wide else 2
     )

@@ -55,10 +55,14 @@ async def _run(
     def fake_resolve(*args: Any, **kwargs: Any) -> list[Any]:
         return []
 
+    async def same_image(*args: Any) -> Any:
+        return args[3]
+
     monkeypatch.setattr(dl, "_device_present", fake_present)
     monkeypatch.setattr(commissioning, "program_individual_address", fake_program)
     monkeypatch.setattr(commissioning, "reset_individual_address", fake_reset)
     monkeypatch.setattr(dl, "_resolve_controls", fake_resolve)
+    monkeypatch.setattr(dl, "_device_association_format", same_image)
     monkeypatch.setattr(dl, "LoadProcedureRunner", FakeRunner)
 
     await dl.download(

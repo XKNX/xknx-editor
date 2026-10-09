@@ -10,7 +10,7 @@ are part of the segment data as well; project specific values can be supplied vi
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
@@ -38,6 +38,7 @@ from .tables import (
     size_code,
 )
 from .tables_systemb import (
+    association_table_wide,
     build_association_table_b,
     build_group_address_table_b,
     build_group_object_table_b,
@@ -153,6 +154,8 @@ class RelativeSegment:
     object_type: int
     data: bytes
     mask: bytes | None = None
+    # The associations an association table segment encodes, to encode them in another format.
+    associations: tuple[Association, ...] | None = None
 
     def masked_runs(self) -> list[tuple[int, bytes]]:
         """Return ``(relative offset, data)`` for each contiguous written run."""
@@ -200,6 +203,29 @@ class DownloadImage:
             if segment.object_type == object_type:
                 return segment
         return None
+
+    @property
+    def has_association_table(self) -> bool:
+        """Whether the image carries a System B association table."""
+        segment = self.relative_segment(_ASSOCIATION_TABLE_TYPE)
+        return segment is not None and segment.associations is not None
+
+    def with_association_table_format(self, wide: bool) -> DownloadImage:
+        """This image with its System B association table in format 1 (``wide``, two
+        octets per field) or format 0 (one octet per field)."""
+        segment = self.relative_segment(_ASSOCIATION_TABLE_TYPE)
+        if segment is None or segment.associations is None:
+            return self
+        data = build_association_table_b(segment.associations, wide=wide)
+        if data == segment.data:
+            return self
+        table = replace(segment, data=data, mask=b"\xff" * len(data))
+        return replace(
+            self,
+            relative_segments=tuple(
+                table if s is segment else s for s in self.relative_segments
+            ),
+        )
 
     def read(self, address: int, size: int) -> bytes:
         """Return ``size`` octets from ``address`` within a single segment.
@@ -554,13 +580,19 @@ def _group_communication_relative_segments(
     highest_number = max((c.number for c in indexer.com_objects.values()), default=0)
 
     address_data = build_group_address_table_b(group_addresses)
-    association_data = build_association_table_b(associations)
+    association_data = build_association_table_b(
+        associations,
+        wide=association_table_wide(len(group_addresses), highest_number),
+    )
     group_object_data = build_group_object_table_b(descriptors, highest_number)
 
     return [
         RelativeSegment(_ADDRESS_TABLE_TYPE, address_data, b"\xff" * len(address_data)),
         RelativeSegment(
-            _ASSOCIATION_TABLE_TYPE, association_data, b"\xff" * len(association_data)
+            _ASSOCIATION_TABLE_TYPE,
+            association_data,
+            b"\xff" * len(association_data),
+            associations=tuple(associations),
         ),
         RelativeSegment(
             _GROUP_OBJECT_TABLE_TYPE,

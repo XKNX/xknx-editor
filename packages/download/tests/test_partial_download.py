@@ -31,11 +31,16 @@ class _FailingRunner:
         raise DownloadError("object 1 did not reach LOADING, last state LOADED")
 
 
+async def _same_image(*args: Any) -> Any:
+    return args[3]
+
+
 async def _run(
     monkeypatch: pytest.MonkeyPatch, *, scope: DownloadScope, state_mutated: bool
 ) -> None:
     runner = _FailingRunner(state_mutated=state_mutated)
     monkeypatch.setattr(dl, "_resolve_controls", lambda *a, **k: [])
+    monkeypatch.setattr(dl, "_device_association_format", _same_image)
     monkeypatch.setattr(dl, "LoadProcedureRunner", lambda *a, **k: runner)
 
     await dl.download(

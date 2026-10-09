@@ -19,6 +19,7 @@ import asyncio
 import logging
 from typing import TYPE_CHECKING, Protocol
 
+from xknx.exceptions import ManagementConnectionError
 from xknx.telegram.apci import (
     AuthorizeRequest,
     AuthorizeResponse,
@@ -83,6 +84,10 @@ PID_MAX_APDU_LENGTH = 56
 PID_OBJECT_TYPE = 1
 # Property id carrying a loadable part's table base address (PID_TABLE_REFERENCE).
 PID_TABLE_REFERENCE = 7
+# Property id carrying a table object's table (PID_TABLE).
+PID_TABLE = 23
+# Interface object type of the Group Object Association Table (Associationtable Object).
+ASSOCIATION_TABLE_OBJECT_TYPE = 2
 # Highest interface object index scanned when locating an object by type.
 _MAX_OBJECT_INDEX = 255
 # A_Memory_Read/Write carry a 16-bit address, so they only reach the first 64
@@ -441,6 +446,22 @@ class DeviceProgrammer:
                 f"invalid property description for object {object_index} property {property_id}"
             )
         return property_width(response.type_)
+
+    async def read_association_table_wide(self) -> bool | None:
+        """Whether the association table holds two octets per TSAP and ASAP.
+
+        A System B Group Object Association Table is format 0 (one octet each,
+        PDT_GENERIC_02) or format 1 (two octets each, PDT_GENERIC_04); the device
+        tells which through the description of its PID_TABLE (KNX 3/5/1 4.17.5.2.5).
+        ``None`` when the device does not tell.
+        """
+        try:
+            index = await self.locate_object(ASSOCIATION_TABLE_OBJECT_TYPE)
+            width = await self.read_property_element_size(index, PID_TABLE)
+        except (DownloadError, ManagementConnectionError) as exc:
+            logger.debug("association table format not readable: %s", exc)
+            return None
+        return {2: False, 4: True}.get(width)
 
     async def write_property(
         self,

@@ -11,8 +11,10 @@ memory with a 2-octet count layout (validated byte-exact against real hardware):
   count being the number of addresses. Unlike the memory-mapped variant it does
   *not* lead with the device's own individual address;
 - the association table is ``[count:2]`` followed by one entry per link, each
-  ``[group address index + 1 : 1][group object number : 1]`` (a wide variant uses
-  two octets per field);
+  ``[group address index + 1 : 1][group object number : 1]`` (format 0) or with
+  two octets per field (format 1, section 4.17.5.2.5). The device tells its format
+  through the PID_TABLE description; :func:`association_table_wide` is the rule
+  when it is not known;
 - the group object table is ``[count:2 = highest object number]`` followed by one
   ``[flags:1][size code:1]`` record per object number ``1..highest``. Only linked
   objects carry their flags and size; every other slot stays ``00 00``.
@@ -50,6 +52,12 @@ def build_group_address_table_b(group_addresses: Sequence[int]) -> bytes:
 def group_address_index_b(group_addresses: Sequence[int]) -> dict[int, int]:
     """Map each group address to its 1-based index in the System B address table."""
     return {address: i + 1 for i, address in enumerate(sorted(set(group_addresses)))}
+
+
+def association_table_wide(address_count: int, highest_object_number: int) -> bool:
+    """Whether the association table needs two octets per field (format 1) because a
+    group address index or a group object number does not fit in one octet."""
+    return address_count + 1 > 0xFF or highest_object_number > 0xFF
 
 
 def build_association_table_b(
