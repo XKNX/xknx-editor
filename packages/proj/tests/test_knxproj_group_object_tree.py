@@ -138,3 +138,19 @@ def test_group_object_tree_skipped_for_schema_14(tmp_path: Path) -> None:
     out = tmp_path / "out.knxproj"
     export_knxproj(xknx, out, schema="14")
     assert not _group_object_trees(out)
+
+
+def test_import_materialises_unlinked_tree_instances(tmp_path: Path) -> None:
+    """ETS writes a ComObjectInstanceRef only for linked/overridden objects; the GroupObjectTree is
+    the full active set. Instances only in the tree get a com_objects row (flags = app default),
+    so an active-but-unlinked channel keeps its objects and parameters."""
+    xknx = tmp_path / "p.xknx"
+    import_knxproj(_FIXTURE, xknx)
+    with Session(make_engine(url_for(xknx))) as s:
+        dev = next(d for d in s.query(Device).all() if d.address == 1)
+        by_inst = {co.instance_ref_id: co for co in dev.com_objects}
+    assert "O-10_R-485" in by_inst
+    co = by_inst["O-10_R-485"]
+    assert co.ref_id.endswith("_O-10_R-485") and co.ref_id != co.instance_ref_id
+    assert co.read_flag is None and co.text_override is None
+    assert co.channel_id is None  # root-level instance, no channel node

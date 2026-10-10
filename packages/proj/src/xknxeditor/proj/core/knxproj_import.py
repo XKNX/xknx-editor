@@ -1140,6 +1140,14 @@ def _build_device(xdevice: DeviceInstance, state: _ImportState) -> Device:
         row = _build_com_object(coir, override)
         com_objects.append(row)
         state.register_com_object(coir, row)
+    group_object_tree = state.extras.group_object_trees.get(xdevice.identifier, "")
+    com_objects.extend(
+        _unlinked_com_objects_from_tree(
+            group_object_tree,
+            {co.instance_ref_id for co in com_objects},
+            getattr(xdevice, "application_program_ref", None) or "",
+        )
+    )
     device = Device(
         address=xdevice.address,
         name=xdevice.name,
@@ -1184,7 +1192,7 @@ def _build_device(xdevice: DeviceInstance, state: _ImportState) -> Device:
         ],
         # The <GroupObjectTree> (channel/folder grouping), captured verbatim from the raw XML and
         # re-emitted on export; xknxproject does not surface it (issue #14).
-        group_object_tree=state.extras.group_object_trees.get(xdevice.identifier, ""),
+        group_object_tree=group_object_tree,
         # The <IPConfig> (IP interface/router config), captured verbatim from the raw XML and
         # re-emitted on export; xknxproject does not surface it. None when the device had none.
         ip_config=state.extras.ip_config.get(xdevice.identifier),
@@ -1218,6 +1226,37 @@ def _build_module_instance(mi: object, module_args: ModuleArgs) -> ModuleInstanc
         repeat_index=repeat_index,
         arguments=arguments,
     )
+
+
+def _unlinked_com_objects_from_tree(
+    tree_xml: str, known_instance_ref_ids: set[str], application_program_ref: str
+) -> list[ComObject]:
+    """Com-object rows for instances the device activated but ETS did not write out.
+
+    ETS only emits a ``<ComObjectInstanceRef>`` for objects carrying links or overrides; the
+    authoritative active set is ``<GroupObjectTree>/Node/@GroupObjectInstances``. Without these
+    rows an active-but-unlinked channel (a free rocker, a spare actuator channel) is pruned from
+    the UI together with its parameters. Flags/overrides stay ``None`` (= application default).
+    """
+    if not tree_xml:
+        return []
+    from xknxproject.util import strip_module_instance
+
+    rows: list[ComObject] = []
+    root = ET.fromstring(tree_xml)
+    # Root-level instances are channel-less; nodes carry theirs under their channel.
+    for node in [root, *root.iter("Node")]:
+        channel = node.get("RefId") if node.get("Type") == "Channel" else None
+        for inst in (node.get("GroupObjectInstances") or "").split():
+            if inst in known_instance_ref_ids:
+                continue
+            known_instance_ref_ids.add(inst)
+            if application_program_ref and not inst.startswith(application_program_ref):
+                ref_id = f"{application_program_ref}_{strip_module_instance(inst, 'O')}"
+            else:
+                ref_id = inst  # ETS4: already fully prefixed
+            rows.append(ComObject(ref_id=ref_id, instance_ref_id=inst, channel_id=channel))
+    return rows
 
 
 def _build_com_object(
