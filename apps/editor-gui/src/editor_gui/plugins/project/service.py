@@ -2534,7 +2534,7 @@ class ProjectService:
     def _dpt_to_derive_on_link(
         self, com_object_id: int, group_address_id: int
     ) -> str | None:
-        """DPT token to type the group address with on link, as ETS does, or ``None`` to leave it.
+        """DPT token to type the group address with on link, or ``None`` to leave it.
 
         Only an empty group-address DPT is filled; a differing existing one is kept (and logged),
         never overwritten.

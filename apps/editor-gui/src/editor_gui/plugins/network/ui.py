@@ -31,6 +31,12 @@ TPCI_ABBREV = {
     "TNak": "Nak",
 }
 DEFAULT_SERVICE_COLOR = (0.5, 0.5, 0.5)
+# Short APCI labels so the column stays narrow and does not crowd the Value column.
+SERVICE_ABBREV = {
+    "GroupValueWrite": "Write",
+    "GroupValueRead": "Read",
+    "GroupValueResponse": "Response",
+}
 SOURCE_COLORS = {
     TelegramSource.CONNECTION: (0.9, 0.7, 0.3),  # amber
     TelegramSource.PROXY: (0.7, 0.5, 0.9),  # violet
@@ -231,24 +237,19 @@ class NetworkPanel:
             | imgui.TableFlags_.borders_inner_h
         )
         if not imgui.begin_table(
-            "##telegrams", 8, flags, imgui.ImVec2(avail.x, avail.y)
+            "##telegrams", 6, flags, imgui.ImVec2(avail.x, avail.y)
         ):
             return
 
         imgui.table_setup_scroll_freeze(0, 1)
         imgui.table_setup_column("Time", imgui.TableColumnFlags_.width_fixed, px(70))
-        imgui.table_setup_column(
-            "", imgui.TableColumnFlags_.width_fixed, px(12)
-        )  # service-color dot
-        imgui.table_setup_column(
-            "Via", imgui.TableColumnFlags_.width_fixed, px(12)
-        )  # source-color square
         imgui.table_setup_column("Source", imgui.TableColumnFlags_.width_fixed, px(60))
         # Wider so the resolved group-address name (project loaded) fits next to the address.
         imgui.table_setup_column("Dest", imgui.TableColumnFlags_.width_fixed, px(160))
-        imgui.table_setup_column("TPCI", imgui.TableColumnFlags_.width_fixed, px(50))
-        imgui.table_setup_column("APCI", imgui.TableColumnFlags_.width_fixed, px(200))
         imgui.table_setup_column("Value", imgui.TableColumnFlags_.width_stretch)
+        # Technical columns last, after Value, so they never crowd it.
+        imgui.table_setup_column("TPCI", imgui.TableColumnFlags_.width_fixed, px(50))
+        imgui.table_setup_column("APCI", imgui.TableColumnFlags_.width_fixed, px(72))
         imgui.table_headers_row()
 
         # ListClipper renders only the visible rows, so a full 10k-row capture costs O(visible)
@@ -282,31 +283,6 @@ class NetworkPanel:
             self._handle_click(index, telegram)
 
         imgui.table_set_column_index(1)
-        draw_list = imgui.get_window_draw_list()
-        cursor = imgui.get_cursor_screen_pos()
-        center_y = cursor.y + imgui.get_text_line_height() / 2
-        draw_list.add_circle_filled(
-            imgui.ImVec2(cursor.x + px(3), center_y),
-            px(3),
-            color_u32(*color),
-        )
-        imgui.dummy(px_vec2(8, 0))
-
-        # Via: telegram source as colored square
-        imgui.table_set_column_index(2)
-        if source_color is not None:
-            cursor2 = imgui.get_cursor_screen_pos()
-            half = imgui.get_text_line_height() / 2
-            cx = cursor2.x + px(3)
-            cy = cursor2.y + half
-            draw_list.add_rect_filled(
-                imgui.ImVec2(cx - px(3), cy - px(3)),
-                imgui.ImVec2(cx + px(3), cy + px(3)),
-                color_u32(*source_color),
-            )
-        imgui.dummy(px_vec2(8, 0))
-
-        imgui.table_set_column_index(3)
         if source_color is not None:
             imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(*source_color, 1.0))
             imgui.text_disabled(telegram.source)
@@ -314,7 +290,7 @@ class NetworkPanel:
         else:
             imgui.text_disabled(telegram.source)
 
-        imgui.table_set_column_index(4)
+        imgui.table_set_column_index(2)
         imgui.text(telegram.destination)
         ga_name = self._ga_names.get(telegram.destination_raw)
         if ga_name:
@@ -323,24 +299,26 @@ class NetworkPanel:
             if imgui.is_item_hovered():
                 imgui.set_tooltip(ga_name)
 
-        imgui.table_set_column_index(5)
-        tpci_abbrev = TPCI_ABBREV.get(
-            telegram.tpci, telegram.tpci[:5] if telegram.tpci else ""
-        )
-        imgui.text_disabled(tpci_abbrev)
-
-        imgui.table_set_column_index(6)
-        imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(*color, 1.0))
-        imgui.text(telegram.service)
-        imgui.pop_style_color()
-
-        imgui.table_set_column_index(7)
+        imgui.table_set_column_index(3)
         if telegram.dpt:
             imgui.text_disabled(f"[{telegram.dpt}]")
             imgui.same_line(0, px(4))
         # Decode with the project group address' DPT when the frame itself carried none.
         value = telegram.value_with_dpt(self._ga_dpts.get(telegram.destination_raw))
         imgui.text(value if value else "-")
+
+        imgui.table_set_column_index(4)
+        tpci_abbrev = TPCI_ABBREV.get(
+            telegram.tpci, telegram.tpci[:5] if telegram.tpci else ""
+        )
+        imgui.text_disabled(tpci_abbrev)
+
+        imgui.table_set_column_index(5)
+        imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(*color, 1.0))
+        imgui.text(SERVICE_ABBREV.get(telegram.service, telegram.service))
+        imgui.pop_style_color()
+        if imgui.is_item_hovered():
+            imgui.set_tooltip(telegram.service)
 
     def _render_cemi_table(self) -> None:
         records = self._get_cemi_records()

@@ -145,7 +145,7 @@ def test_dll_signer_leaves_already_valid_signature(monkeypatch) -> None:
 
 
 def test_dll_signer_noop_without_assembly(monkeypatch) -> None:
-    """Without a usable assembly (non-Windows / no ETS) the map is left untouched."""
+    """Without a usable assembly (non-Windows / no signing DLL) the map is left untouched."""
     from xknxeditor.proj.core import _dll_signer as d
 
     monkeypatch.setattr(d, "_load_signer", lambda: None)

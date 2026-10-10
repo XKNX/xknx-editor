@@ -1,8 +1,8 @@
 """MDT DALI gateway (GC16/Hawk) bus commissioning over KNX.
 
 Reverse-engineered from the MDT DALI DCA. Layers on ``xknxeditor.download``'s property access to scan
-the DALI bus, identify ballasts, download group/ECG assignment and write scenes — the parts ETS does
-through its DCA plugin. Manufacturer-specific (MDT); verify against real hardware.
+the DALI bus, identify ballasts, download group/ECG assignment and write scenes — the commissioning
+parts normally handled by a separate DCA tool. Manufacturer-specific (MDT); verify against real hardware.
 """
 
 from xknxeditor.dali.commissioning import MdtDaliCommissioner

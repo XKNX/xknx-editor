@@ -103,9 +103,9 @@ CertificateSigner = Callable[[str, bytes, str], bytes | None]
 
 
 def _project_info(project_guid: str, project_name: str) -> bytes:
-    """Return the top-level ``{pid}.info`` member as ETS writes it.
+    """Return the top-level ``{pid}.info`` member.
 
-    Genuine archives store two-space-indented JSON with CRLF line endings and no trailing
+    Archives store two-space-indented JSON with CRLF line endings and no trailing
     newline, e.g.::
 
         {
@@ -126,12 +126,12 @@ def _project_info(project_guid: str, project_name: str) -> bytes:
 
 
 def validation_record(certificate: bytes, folder_signature: bytes) -> bytes:
-    """Return the top-level ``.validation`` member as ETS writes it.
+    """Return the top-level ``.validation`` member.
 
-    Layout verified byte-for-byte against a genuine ETS6 archive: the certificate inlined after
+    Layout verified byte-for-byte against a reference archive: the certificate inlined after
     ``certificate:``, a blank line, the folder signature after ``signature:``, then the two
     outcome lines. CRLF throughout; the certificate block already ends in one CRLF, so two more
-    produce the blank line ETS emits.
+    produce the required blank line.
     """
     cert = certificate.replace(b"\r\n", b"\n").replace(b"\r", b"\n").rstrip(b"\n")
     cert = cert.replace(b"\n", b"\r\n")
@@ -781,9 +781,9 @@ def _relidref(ref_id: str) -> str:
 
 
 def _has_override(co: ComObject) -> bool:
-    """Whether the com-object carries a per-instance override a genuine ETS export persists.
+    """Whether the com-object carries a per-instance override an export must persist.
 
-    Mirrors ETS's write condition (``!HasDefaultValues``): a text/function/description override or
+    Write condition (``!HasDefaultValues``): a text/function/description override or
     any non-inherited flag. A link is checked separately by the caller."""
     return any(
         value is not None
@@ -966,9 +966,9 @@ class _Writer:
         for name in ("Tags", "HistoryEntries", "ToDoItems"):
             if raw := info_subtrees.get(name):
                 self._graft(info, ET.fromstring(raw))
-        # Re-emit the ETS project log verbatim so a round-trip preserves the history. The Comment is
-        # written exactly as imported (ETS encrypts it); Date/UserName are plaintext. Skipped when the
-        # project carries no traces, keeping ProjectTraces (minOccurs=0) absent as ETS does.
+        # Re-emit the project log verbatim so a round-trip preserves the history. The Comment is
+        # written exactly as imported (stored encrypted); Date/UserName are plaintext. Skipped when the
+        # project carries no traces, keeping ProjectTraces (minOccurs=0) absent.
         if project.traces:
             traces_el = self._el(info, "ProjectTraces")
             for trace in project.traces:
@@ -1045,7 +1045,7 @@ class _Writer:
             f"{pid}/project.xml": project_xml,
             f"{pid}/0.xml": zero,
         }
-        # ETS writes a top-level {pid}.info alongside the signature; strict imports look for it.
+        # A top-level {pid}.info sits alongside the signature; strict imports look for it.
         members[f"{pid}.info"] = _project_info(project_guid, project.name)
         if certificate:
             members[f"{pid}.certificate"] = certificate
@@ -1066,6 +1066,14 @@ class _Writer:
         sign_member_map(members)
         audit = audit_and_sign_folders(members)
         missing_refs = _audit_installation_refs(members)
+
+        # An unsigned export carries no project certificate, so a licensed ETS refuses it with a
+        # "signature missing" error. An empty `{pid}_M-dummy` license marker in the archive root
+        # makes a dongle-licensed ETS import it directly - the documented manual workaround, applied
+        # here automatically. Added after signing/auditing (it is a root marker, not part of any
+        # signed folder); a certified export does not need it.
+        if certificate is None:
+            members[f"{pid}_M-dummy"] = b""
 
         dest.unlink(missing_ok=True)
         with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -1408,8 +1416,8 @@ class _Writer:
                     CustomizedText=param.customized_text or None,
                     GrantUseByCustomer=param.grant_use_by_customer or None,
                 )
-        # Emit a <ComObjectInstanceRef> only for objects a genuine ETS export writes: those with a
-        # link or a per-instance override (ETS's !HasDefaultValues condition). An active-but-unlinked
+        # Emit a <ComObjectInstanceRef> only for objects an export writes: those with a
+        # link or a per-instance override (the !HasDefaultValues condition). An active-but-unlinked
         # object is carried by <GroupObjectTree>/@GroupObjectInstances and re-materialised on import,
         # so writing a COIR for it too would diverge from genuine exports. Fallback: an object the
         # tree does NOT cover (a from-scratch device has no tree) is still emitted so its

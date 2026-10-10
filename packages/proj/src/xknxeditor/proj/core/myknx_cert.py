@@ -443,7 +443,7 @@ def _type_is_cloud_capable(product_type: dict[str, object] | None) -> bool:
     A type carries an ``encryptions`` list; it contains ``"cloud"`` exactly for the types the
     certificate endpoint accepts (ETS6 licenses and cloud-enabled add-ons). ETS5/older Professional
     or dongle-only types have no ``"cloud"`` entry and always fail add-product with HTTP 422. This
-    mirrors ETS's own CloudKit license filter (IsExpired + HasFeature)."""
+    mirrors the CloudKit license filter (IsExpired + HasFeature)."""
     if product_type is None:
         return False
     encryptions = product_type.get("encryptions")

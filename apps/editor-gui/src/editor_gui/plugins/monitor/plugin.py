@@ -32,7 +32,7 @@ class MonitorPlugin:
             PanelDefinition(
                 name="monitor",
                 label=S.PANEL_MONITOR,
-                dock="BottomSpace",
+                dock="LeftBottomSpace",
                 render=self._panel.render,
             )
         ]

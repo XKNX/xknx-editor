@@ -273,7 +273,7 @@ class MenuStrings:
 
     @property
     def PANEL_KI(self) -> str:
-        return _("AI")
+        return _("AI MCP")
 
     @property
     def KI_INFO(self) -> str:
@@ -612,36 +612,20 @@ class MenuStrings:
     @property
     def MYKNX_DONGLE_STEPS(self) -> str:
         return _(
-            "This .knxproj was exported without an online certificate, so a licensed ETS will not "
-            "import it directly - it reports a missing signature. Use one of the methods below to "
-            "bring the project into your own licensed ETS (with a dongle). Method 2 is the quick, "
-            "reliable route; do it exactly as described.\n"
+            "This .knxproj was exported without an online certificate. To import it, the export "
+            "already includes an empty dummy license marker ('P-XXXX_M-dummy') in the archive root, "
+            "so a licensed ETS (with a dongle) imports it directly - no manual steps needed.\n"
             "\n"
-            "Method 2 - add an empty dummy-license marker (recommended)\n"
+            "If your ETS still reports a missing signature, use the fallback below.\n"
             "\n"
-            "   1. A .knxproj is a ZIP archive. Open it with 7-Zip, or copy it and rename the "
-            "copy's extension from .knxproj to .zip.\n"
-            "   2. Find the 4-digit project id 'P-XXXX' - for example the file 'P-XXXX.signature' "
-            "in the archive root (such as P-016A.signature).\n"
-            "   3. Create an empty file named exactly 'P-XXXX_M-dummy': the same P-XXXX with "
-            "'_M-dummy' appended (for example P-016A_M-dummy). It must have no file extension - "
-            "not .txt.\n"
-            "   4. Drag that empty file into the open .knxproj, into the archive root next to "
-            "'P-XXXX.signature'. Keep the original 'P-XXXX.signature' - the dummy is added "
-            "alongside it, not instead of it.\n"
-            "   5. Import the .knxproj into ETS with your dongle. It now imports without the "
-            "'signature missing' error.\n"
+            "Fallback - clone in a licensed ETS 5\n"
             "\n"
-            "   Tip: in Windows Explorer, first turn off 'Hide extensions for known file types', "
-            "so the name stays 'P-XXXX_M-dummy' and does not silently become "
-            "'P-XXXX_M-dummy.txt'.\n"
-            "\n"
-            "Method 3 - clone in a licensed ETS 5 (fallback if Method 2 does not work)\n"
-            "\n"
-            "   1. Copy the whole 'P-XXXX' folder into C:\\ProgramData\\KNX\\ETS5\\ProjectStore on "
+            "   1. A .knxproj is a ZIP archive - open it with 7-Zip, or copy it and rename the "
+            "copy's extension from .knxproj to .zip, to get at the 'P-XXXX' folder inside.\n"
+            "   2. Copy the whole 'P-XXXX' folder into C:\\ProgramData\\KNX\\ETS5\\ProjectStore on "
             "the licensed ETS 5 PC (the file 'P' inside the folder holds the project name).\n"
-            "   2. Start ETS 5 - the project appears in the project list.\n"
-            "   3. Right-click it and choose Copy > As Clone. The clone is a licensed project that "
+            "   3. Start ETS 5 - the project appears in the project list.\n"
+            "   4. Right-click it and choose Copy > As Clone. The clone is a licensed project that "
             "you can export and then import into ETS 6."
         )
 

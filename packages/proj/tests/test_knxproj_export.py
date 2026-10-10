@@ -1679,3 +1679,35 @@ def test_project_user_files_round_trip_to_export(tmp_path: Path) -> None:
     user_file = next(e for e in project.iter() if _ln(e.tag) == "UserFile")
     assert user_file.get("Filename") == "test.txt"
     assert user_file.tag.startswith("{")
+
+
+def test_export_adds_dummy_license_marker_when_unsigned(tmp_path: Path) -> None:
+    """An unsigned export (no project certificate) carries an empty '{pid}_M-dummy' license marker
+    in the archive root so a dongle-licensed ETS imports it without a 'signature missing' error."""
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-DUMMY")
+    svc.close(pid)
+
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out)
+    with zipfile.ZipFile(out) as zf:
+        markers = [n for n in zf.namelist() if n.endswith("_M-dummy")]
+        assert len(markers) == 1, f"expected one dummy marker, got {markers}"
+        assert "/" not in markers[0]  # archive root, not inside a folder
+        assert zf.read(markers[0]) == b""  # empty
+
+
+def test_export_omits_dummy_marker_when_certificate_signed(tmp_path: Path) -> None:
+    """A certified export does not need the dummy marker, so it must not be added."""
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-CERT")
+    svc.close(pid)
+
+    out = tmp_path / "out.knxproj"
+    export_knxproj(
+        src, out, certificate_signer=lambda _pid, _sig, _name: b"dummy-certificate"
+    )
+    with zipfile.ZipFile(out) as zf:
+        assert not any(n.endswith("_M-dummy") for n in zf.namelist())

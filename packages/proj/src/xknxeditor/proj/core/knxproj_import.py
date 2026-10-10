@@ -871,7 +871,7 @@ def _read_unassigned_devices(root: ET.Element) -> list[str]:
     """The ``<Topology>/<UnassignedDevices>`` devices as namespace-stripped ``<DeviceInstance>`` XML
     strings, in document order (empty when there is no such container).
 
-    ETS keeps devices that are not yet placed on a line here. xknxproject does not expose them (they
+    Devices that are not yet placed on a line are kept here. xknxproject does not expose them (they
     are absent from ``parser.areas``), and they have no line/segment to attach to, so the whole
     subtree is captured verbatim for a lossless re-export as opaque provenance.
     """
@@ -899,7 +899,7 @@ class _CoirOverride:
     acknowledges: str | None = None
     # Raw per-instance flag OVERRIDES (``None`` = inherit the application default). Distinct from the
     # effective flags xknxproject resolves (those stay on ComObject for the device download); these
-    # drive a faithful, override-only export like a genuine ETS one.
+    # drive a faithful, override-only export.
     read_flag: bool | None = None
     write_flag: bool | None = None
     communication_flag: bool | None = None
@@ -968,7 +968,7 @@ def _read_project_meta(
     Returns ``(comment, traces, info_attributes, info_subtrees, project_subtrees)``. xknxproject
     surfaces none of these, so read them from the raw project metadata while the archive is open.
     Best-effort: any failure yields all-empty rather than aborting the import. The trace ``Comment``
-    is kept verbatim (ETS encrypts it); order follows the document.
+    is kept verbatim (stored encrypted); order follows the document.
     """
     empty: tuple[
         str, list[_TraceEntry], dict[str, str], dict[str, str], dict[str, str]

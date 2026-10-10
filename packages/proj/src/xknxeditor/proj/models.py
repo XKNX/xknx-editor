@@ -87,7 +87,7 @@ class Project(Base):
 
     # ETS project-log entries (ProjectInformation/ProjectTraces), carried over verbatim so a
     # round-trip export preserves the project history. The ``comment`` is stored exactly as it
-    # appears in the source (ETS encrypts it; we neither decrypt nor re-encrypt in this phase).
+    # appears in the source (stored encrypted; we neither decrypt nor re-encrypt in this phase).
     traces: Mapped[list["ProjectTrace"]] = relationship(
         back_populates="project",
         cascade="all, delete-orphan",
@@ -99,7 +99,7 @@ class ProjectTrace(Base):
     """One ETS project-log entry (``ProjectInformation/ProjectTraces/ProjectTrace``).
 
     ``date`` and ``user_name`` are plaintext; ``comment`` is stored verbatim as in the source
-    ``.knxproj`` (ETS encrypts it). We preserve it byte-for-byte for a lossless re-export and do
+    ``.knxproj`` (stored encrypted). We preserve it byte-for-byte for a lossless re-export and do
     not decrypt it here (that needs the ETS key material — a separate phase).
     """
 
@@ -145,7 +145,7 @@ class Installation(Base):
     trades: Mapped[list["Trade"]] = relationship(
         back_populates="installation", cascade="all, delete-orphan"
     )
-    # Devices ETS keeps under ``<Topology>/<UnassignedDevices>`` (not yet placed on a line), captured
+    # Devices under ``<Topology>/<UnassignedDevices>`` (not yet placed on a line), captured
     # verbatim from the raw ``.knxproj`` as namespace-stripped ``<DeviceInstance>`` XML strings (one
     # per device, document order) and re-emitted on export. They have no line/segment, so they are
     # not modelled as ``Device`` rows (which require a segment); kept here as opaque provenance the
@@ -456,7 +456,7 @@ class ComObject(Base):
     # The flags above are the EFFECTIVE values (xknxproject resolves inherit->default); the device
     # download programs them, so they must stay resolved. These ``*_override`` flags are the raw
     # per-instance overrides actually present in the source (``None`` = inherit); the export emits
-    # these so a round-trip stays override-only like a genuine ETS export (not all six resolved).
+    # these so a round-trip stays override-only (not all six resolved).
     read_flag_override: Mapped[bool | None] = mapped_column(Boolean)
     write_flag_override: Mapped[bool | None] = mapped_column(Boolean)
     communication_flag_override: Mapped[bool | None] = mapped_column(Boolean)

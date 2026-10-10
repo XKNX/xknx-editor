@@ -24,10 +24,6 @@ class LoggerStrings(BaseStrings):
         return _("Level")
 
     @property
-    def COL_PLUGIN(self) -> str:
-        return _("Plugin")
-
-    @property
     def COL_MESSAGE(self) -> str:
         return _("Message")
 

@@ -22,7 +22,7 @@ class HealthPlugin:
             PanelDefinition(
                 name="health",
                 label=S.PANEL_HEALTH,
-                dock="RightSpace",
+                dock="RightBottomSpace",
                 render=self._panel.render,
             ),
         ]

@@ -25,6 +25,9 @@ msgstr "Individueel Adres"
 msgid "Manufacturer"
 msgstr "Fabrikant"
 
+msgid "Manufacturer info"
+msgstr "Fabrikantinfo"
+
 msgid "Application"
 msgstr "Applicatie"
 

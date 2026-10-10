@@ -214,7 +214,7 @@ class GroupObjectsTable:
 
     def _apply(self, device: Device, target: ComObject, copied: _CopiedObject) -> None:
         """Paste one clipboard entry onto a target object: its links (replace or merge) and its
-        unlocked flag values, mirroring how ETS carries flags along with a copied object."""
+        unlocked flag values, so flags are carried along with a copied object."""
         db_id = target.db_id
         if db_id is None or self._on_paste_links is None:
             return

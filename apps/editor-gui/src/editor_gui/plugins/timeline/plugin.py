@@ -1,4 +1,4 @@
-"""Timeline plugin: plot decoded numeric group-value telegrams over time (BottomSpace)."""
+"""Timeline plugin: plot decoded numeric group-value telegrams over time (LeftBottomSpace)."""
 
 from typing import Any
 
@@ -21,7 +21,7 @@ class TimelinePlugin:
             PanelDefinition(
                 name="timeline",
                 label=S.PANEL_TIMELINE,
-                dock="BottomSpace",
+                dock="LeftBottomSpace",
                 render=self._panel.render,
             ),
         ]

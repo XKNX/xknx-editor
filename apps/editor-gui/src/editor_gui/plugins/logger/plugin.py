@@ -17,7 +17,7 @@ class LoggerPlugin:
             PanelDefinition(
                 name="logger",
                 label=S.PANEL_LOGGER,
-                dock="BottomSpace",
+                dock="LeftBottomSpace",
                 render=self._panel.render,
             )
         ]

@@ -719,7 +719,7 @@ def _instance_label(label: str, node_id: str | None) -> str:
     Some apps (e.g. the MDT DALI gateway) give every repeated instance the same text — 16 group tabs
     all "G,", 64 ECG blocks all "ECG ," — because the instance-number placeholder isn't substituted
     into the title; only the id differs (``…_MI-1`` … ``_MI-64``). Append that index so they read
-    "G, 1"…"G, 16" / "ECG, 1"…"ECG, 64" (matching how ETS shows "G1"/"ECG1"…). Skips labels that
+    "G, 1"…"G, 16" / "ECG, 1"…"ECG, 64" (matching the "G1"/"ECG1"… labelling). Skips labels that
     already carry the number.
     """
     match = re.search(r"_MI-(\d+)", node_id or "")

@@ -104,18 +104,15 @@ class LogPanel:
             | imgui.TableFlags_.scroll_y
             | imgui.TableFlags_.borders_inner_h
         )
-        if not imgui.begin_table("##logs", 4, flags, imgui.ImVec2(avail.x, avail.y)):
+        if not imgui.begin_table("##logs", 3, flags, imgui.ImVec2(avail.x, avail.y)):
             return
 
         imgui.table_setup_scroll_freeze(0, 1)
         imgui.table_setup_column(
-            S.COL_TIME, imgui.TableColumnFlags_.width_fixed, px(95)
+            S.COL_TIME, imgui.TableColumnFlags_.width_fixed, px(60)
         )
         imgui.table_setup_column(
-            S.COL_LEVEL, imgui.TableColumnFlags_.width_fixed, px(60)
-        )
-        imgui.table_setup_column(
-            S.COL_PLUGIN, imgui.TableColumnFlags_.width_fixed, px(90)
+            S.COL_LEVEL, imgui.TableColumnFlags_.width_fixed, px(55)
         )
         imgui.table_setup_column(S.COL_MESSAGE, imgui.TableColumnFlags_.width_stretch)
         imgui.table_headers_row()
@@ -148,9 +145,6 @@ class LogPanel:
         imgui.pop_style_color()
 
         imgui.table_set_column_index(2)
-        imgui.text_disabled(record.plugin)
-
-        imgui.table_set_column_index(3)
         imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(r, g, b, 1.0))
         imgui.text(record.event)
         imgui.pop_style_color()

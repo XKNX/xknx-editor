@@ -48,10 +48,6 @@ def _same_line_if_fits(label: str) -> None:
         imgui.same_line()
 
 
-def _device_title(device: Device) -> str:
-    return " ".join(p for p in (device.individual_address, device.name) if p)
-
-
 def _reset_presets() -> list[tuple[str, int]]:
     """(label, KNX A_Restart_Master_Reset erase code). Codes per the KNX Application Layer spec
     (verified: 2=FactoryReset, 7=FactoryResetWithoutIA, 3=ResetIA, 4=ResetAP, 5=ResetParam,
@@ -159,6 +155,9 @@ class ConfigurePanel:
         self._alert_update_open: bool = False
         self._alert_version: int = 0
         self._manual_busy: bool = False  # a manual lookup thread is running
+        # One-shot: expand the (default-collapsed) Hersteller block next frame, so a read-from-device
+        # triggered from the always-visible action row reveals its result.
+        self._expand_details_once: bool = False
         self._group_objects_table = GroupObjectsTable(
             set_flag,
             on_link_com_object,
@@ -224,12 +223,10 @@ class ConfigurePanel:
             S.READOUT_HARDWARE,
         )
 
-    def render_device(self) -> None:
-        """Device selection, address and programming."""
-        self._begin_details()
+    def _render_device_section(self) -> None:
+        """Device selection, address and programming (top of the Configure panel)."""
         device = self._current_device()
         if device is None:
-            imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
             return
         devices = self._get_devices()
 
@@ -257,30 +254,7 @@ class ConfigurePanel:
             self._description_buffer = device.description
             self._buffer_device_id = device.node_id
 
-        imgui.align_text_to_frame_padding()
-        imgui.text_disabled(S.CONFIGURE_NAME)
-        imgui.same_line(self._label_w)
-        imgui.set_next_item_width(-1)
-        _, self._name_buffer = imgui.input_text("##name", self._name_buffer)
-        if imgui.is_item_deactivated_after_edit():
-            self._on_name_change(device, self._name_buffer)
-        if not imgui.is_item_active() and self._name_buffer != device.name:
-            self._name_buffer = device.name
-
-        imgui.align_text_to_frame_padding()
-        imgui.text_disabled(S.CONFIGURE_INDIVIDUAL_ADDRESS)
-        imgui.same_line(self._label_w)
-        imgui.set_next_item_width(-1)
-        _, self._address_buffer = imgui.input_text(
-            "##individual_address", self._address_buffer
-        )
-        if imgui.is_item_deactivated_after_edit():
-            self._on_individual_address_change(device, self._address_buffer)
-        if (
-            not imgui.is_item_active()
-            and self._address_buffer != device.individual_address
-        ):
-            self._address_buffer = device.individual_address
+        self._render_header_fields(device)
 
         if self._on_program_device is not None or self._on_eval_device is not None:
             self._render_scope_selector()
@@ -313,65 +287,232 @@ class ConfigurePanel:
 
         self._render_ip_config(device)
 
-    def render_manufacturer(self) -> None:
-        """Manufacturer, product and application details of the selected device."""
-        self._begin_details()
-        device = self._current_device()
-        if device is None:
-            imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
+    def _render_header_fields(self, device: Device) -> None:
+        """Name, physical address and description, side by side when the panel is wide enough, else
+        stacked. Uses real table columns (``same_line`` is window-relative and would break inside a
+        cell)."""
+        fields: list[tuple[str, Callable[[], None]]] = [
+            (S.CONFIGURE_NAME, lambda: self._name_input(device)),
+            (S.CONFIGURE_INDIVIDUAL_ADDRESS, lambda: self._address_input(device)),
+            (S.CONFIGURE_DESCRIPTION, lambda: self._description_input(device)),
+        ]
+        avail = imgui.get_content_region_avail().x
+        group_w = self._label_w + px(120)
+        ncols = max(1, min(len(fields), int(avail // group_w) if group_w > 0 else 1))
+        # Size each label column to just the labels that land in it (not the global label width,
+        # which is sized for the much longer detail labels) so the inputs get the rest of the width.
+        pad = px(12)
+        col_label_w = [0.0] * ncols
+        for idx, (label, _render) in enumerate(fields):
+            col = idx % ncols
+            col_label_w[col] = max(
+                col_label_w[col], imgui.calc_text_size(label).x + pad
+            )
+        if ncols <= 1:
+            for label, render in fields:
+                imgui.align_text_to_frame_padding()
+                imgui.text_disabled(label)
+                imgui.same_line(col_label_w[0])
+                render()
             return
+        if not imgui.begin_table("##device_header", ncols * 2):
+            return
+        for i in range(ncols):
+            imgui.table_setup_column(
+                f"l{i}", imgui.TableColumnFlags_.width_fixed, col_label_w[i]
+            )
+            imgui.table_setup_column(f"v{i}", imgui.TableColumnFlags_.width_stretch)
+        for idx, (label, render) in enumerate(fields):
+            if idx % ncols == 0:
+                imgui.table_next_row()
+            col = (idx % ncols) * 2
+            imgui.table_set_column_index(col)
+            imgui.align_text_to_frame_padding()
+            imgui.text_disabled(label)
+            imgui.table_set_column_index(col + 1)
+            render()
+        imgui.end_table()
+
+    def _name_input(self, device: Device) -> None:
+        imgui.set_next_item_width(-1)
+        _, self._name_buffer = imgui.input_text("##name", self._name_buffer)
+        if imgui.is_item_deactivated_after_edit():
+            self._on_name_change(device, self._name_buffer)
+        if not imgui.is_item_active() and self._name_buffer != device.name:
+            self._name_buffer = device.name
+
+    def _description_input(self, device: Device) -> None:
+        imgui.set_next_item_width(-1)
+        _, self._description_buffer = imgui.input_text(
+            "##description", self._description_buffer
+        )
+        if imgui.is_item_deactivated_after_edit():
+            self._on_description_change(device, self._description_buffer)
+        if (
+            not imgui.is_item_active()
+            and self._description_buffer != device.description
+        ):
+            self._description_buffer = device.description
+
+    def _address_input(self, device: Device) -> None:
+        imgui.set_next_item_width(-1)
+        _, self._address_buffer = imgui.input_text(
+            "##individual_address", self._address_buffer
+        )
+        if imgui.is_item_deactivated_after_edit():
+            self._on_individual_address_change(device, self._address_buffer)
+        if (
+            not imgui.is_item_active()
+            and self._address_buffer != device.individual_address
+        ):
+            self._address_buffer = device.individual_address
+
+    def _render_action_row(self, device: Device) -> None:
+        """A compact, always-visible row of the device's occasional actions (manual, read-out,
+        restart, reset, application update). Flows onto one line and wraps when the panel is narrow,
+        so these stay reachable without expanding the detail block below."""
         info = self._get_device_info(device.node_id)
-        manufacturer = (
-            info.manufacturer_name if info and info.manufacturer_name else None
-        )
-        # Show every field we have, always (empty -> "-"), so device details are complete
-        # and every value can be copied.
-        self._render_label_value(
-            S.CONFIGURE_MANUFACTURER,
-            manufacturer or device.app.manufacturer_id,
-        )
-        self._render_label_value(S.CONFIGURE_APPLICATION, device.app.id)
+        enabled = bool(device.individual_address)
+        placed = False
+
+        imgui.spacing()
+        if self._render_manual_button(info):
+            placed = True
+        if self._on_read_device_info is not None:
+            if placed:
+                _same_line_if_fits(S.BTN_READ_DEVICE_INFO)
+            imgui.begin_disabled(not enabled)
+            if imgui.button(S.BTN_READ_DEVICE_INFO):
+                self._on_read_device_info(device)
+                self._expand_details_once = (
+                    True  # reveal the result in the detail block
+                )
+            imgui.end_disabled()
+            if not enabled and imgui.is_item_hovered(
+                imgui.HoveredFlags_.allow_when_disabled
+            ):
+                imgui.set_tooltip(S.READOUT_NEEDS_ADDRESS)
+            placed = True
+        if self._on_restart_device is not None:
+            if placed:
+                _same_line_if_fits(S.BTN_RESTART_DEVICE)
+            imgui.begin_disabled(not enabled)
+            if imgui.button(S.BTN_RESTART_DEVICE):
+                self._on_restart_device(device)
+            imgui.end_disabled()
+            placed = True
+        if self._on_master_reset_device is not None:
+            if placed:
+                _same_line_if_fits(S.BTN_RESET_DEVICE)
+            self._render_master_reset(device, enabled)
+            placed = True
+
+    def _render_basic_info(self, device: Device) -> None:
+        """Always-visible basics (product, application version) with the application-update button
+        beside them, so the common glance + action stay out of the collapsed detail block."""
+        info = self._get_device_info(device.node_id)
+        imgui.align_text_to_frame_padding()
+        imgui.text_disabled(S.CONFIGURE_PRODUCT)
+        imgui.same_line(self._label_w)
+        imgui.text(info.product_name if info and info.product_name else "-")
+        imgui.align_text_to_frame_padding()
+        imgui.text_disabled(S.CONFIGURE_APP_VERSION)
+        imgui.same_line(self._label_w)
         app_version = self._current_app_version(device)
-        self._render_label_value(
-            S.CONFIGURE_APP_VERSION,
-            f"V{app_version}" if app_version is not None else "-",
-        )
-        # device.app.version is the KNX XML schema version (e.g. "20" for the /20 schema),
-        # NOT the application program version above.
-        self._render_label_value(S.CONFIGURE_SCHEMA_VERSION, device.app.version)
-        self._render_label_value(
-            S.CONFIGURE_ORDER_NUMBER, info.order_number if info else ""
-        )
-        self._render_label_value(
-            S.CONFIGURE_HARDWARE, info.hardware_name if info else ""
-        )
-        self._render_label_value(S.CONFIGURE_PRODUCT, info.product_name if info else "")
-        self._render_description_field(device)
-        self._render_label_value(
-            S.CONFIGURE_PRODUCT_REF, info.product_ref_id if info else ""
-        )
-        self._render_label_value(
-            S.CONFIGURE_PROGRAM_REF,
-            (info.hardware2program_ref_id or "") if info else "",
-        )
-        self._render_manual_button(info)
-        self._render_online_versions(device, info)
-        self._render_device_readout(device)
-
-        self._render_load_procedures(device)
-
-        # Success alert after an application update, opened via a flag set in the update confirm.
+        imgui.text(f"V{app_version}" if app_version is not None else "-")
+        update = self._pending_update(device, info)
+        if update is not None:
+            versions, current, _label = update
+            imgui.same_line()
+            self._render_update_action(device, versions, current)
+        # The update-success alert is a flag-driven modal; render it here (always visible) so it is
+        # not swallowed by the collapsed detail block.
         if self._alert_update_open:
             imgui.open_popup(S.UPDATE_ALERT_TITLE)
             self._alert_update_open = False
         self._render_update_alert()
+
+    def _pending_update(
+        self, device: Device, info: "DeviceInfo | None"
+    ) -> "tuple[list[int], int, str] | None":
+        """``(versions, current, button_label)`` when a newer application version is available
+        online for this device, else ``None``."""
+        if self._on_update_application is None or self._get_online_versions is None:
+            return None
+        order = info.order_number if info else ""
+        versions = self._get_online_versions(order) if order else []
+        current = self._current_app_version(device)
+        if not versions or current is None or versions[0] <= current:
+            return None
+        return versions, current, S.CONFIGURE_UPDATE_BUTTON.format(version=versions[0])
+
+    def _render_manufacturer_section(self, device: Device) -> None:
+        """Manufacturer, product and application details of the selected device."""
+        info = self._get_device_info(device.node_id)
+        manufacturer = (
+            info.manufacturer_name if info and info.manufacturer_name else None
+        )
+        app_version = self._current_app_version(device)
+        # Show every field we have, always (empty -> "-"), so device details are complete and every
+        # value can be copied. The flat label/value pairs flow into side-by-side columns when the
+        # panel is wide; the richer widgets (description, manual, read-out) follow full width below.
+        # device.app.version is the KNX XML schema version (e.g. "20"), NOT the program version above.
+        self._render_detail_grid(
+            [
+                (S.CONFIGURE_MANUFACTURER, manufacturer or device.app.manufacturer_id),
+                (S.CONFIGURE_APPLICATION, device.app.id),
+                (
+                    S.CONFIGURE_APP_VERSION,
+                    f"V{app_version}" if app_version is not None else "-",
+                ),
+                (S.CONFIGURE_SCHEMA_VERSION, device.app.version),
+                (S.CONFIGURE_ORDER_NUMBER, info.order_number if info else ""),
+                (S.CONFIGURE_HARDWARE, info.hardware_name if info else ""),
+                (S.CONFIGURE_PRODUCT, info.product_name if info else ""),
+                (S.CONFIGURE_PRODUCT_REF, info.product_ref_id if info else ""),
+                (
+                    S.CONFIGURE_PROGRAM_REF,
+                    (info.hardware2program_ref_id or "") if info else "",
+                ),
+            ]
+        )
+        self._render_online_versions(device, info)
+        self._render_readout_result(device)
+        self._render_load_procedures(device)
 
     def render(self) -> None:
         device = self._current_device()
         if device is None:
             imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
             return
-        imgui.text(_device_title(device))
+        self._begin_details()
+        # Device header, programming and manufacturer details sit above the parameter tabs so the
+        # whole device - including the Program/Dry-run buttons and the manual (PDF) link - is visible
+        # in one place rather than tucked into separate panels. Tighten the row spacing here so this
+        # read-only detail block stays compact (the parameter tabs below keep the default spacing).
+        style = imgui.get_style()
+        spacing, cell = style.item_spacing, style.cell_padding
+        imgui.push_style_var(
+            imgui.StyleVar_.item_spacing, imgui.ImVec2(spacing.x, spacing.y * 0.5)
+        )
+        imgui.push_style_var(
+            imgui.StyleVar_.cell_padding, imgui.ImVec2(cell.x, cell.y * 0.4)
+        )
+        self._render_device_section()
+        device = (
+            self._current_device() or device
+        )  # the selector may have switched devices
+        self._render_basic_info(device)
+        self._render_action_row(device)
+        # The Herstellerinfos block carries the full read-only detail (all identifiers, read-out
+        # result, load procedures); it starts collapsed so the parameter tabs below get the height.
+        # A read-from-device opens it once so its result is seen.
+        if self._expand_details_once:
+            imgui.set_next_item_open(True)
+            self._expand_details_once = False
+        if imgui.collapsing_header(S.CONFIGURE_MANUFACTURER_INFO):
+            self._render_manufacturer_section(device)
+        imgui.pop_style_var(2)
         imgui.separator()
 
         if imgui.begin_tab_bar("##editor_tabs"):
@@ -467,17 +608,19 @@ class ConfigurePanel:
 
             imgui.end_tab_bar()
 
-    def _render_manual_button(self, info: "DeviceInfo | None") -> None:
+    def _render_manual_button(self, info: "DeviceInfo | None") -> bool:
         """Best-effort: find the device's manual and open it in the browser. Resolves via the KNX
         device database (parsed) and, failing that, a DuckDuckGo ``site:<manufacturer>`` search — see
         editor_gui.doc_links. The lookup does network I/O, so it runs on a daemon thread and the
-        browser is opened from there; the button shows a busy state meanwhile."""
+        browser is opened from there; the button shows a busy state meanwhile. Returns whether a
+        button was shown (so the action row can place the next one beside it)."""
         if info is None or not (info.order_number or info.manufacturer_name):
-            return
-        imgui.spacing()
+            return False
         if self._manual_busy:
-            imgui.text_disabled(S.CONFIGURE_OPEN_MANUAL_BUSY)
-            return
+            imgui.begin_disabled(True)
+            imgui.button(S.CONFIGURE_OPEN_MANUAL_BUSY)
+            imgui.end_disabled()
+            return True
         if imgui.button(S.CONFIGURE_OPEN_MANUAL):
             self._manual_busy = True
             threading.Thread(
@@ -487,6 +630,7 @@ class ConfigurePanel:
             ).start()
         if imgui.is_item_hovered():
             imgui.set_tooltip(S.CONFIGURE_OPEN_MANUAL_HINT)
+        return True
 
     def _open_manual(
         self, manufacturer: str, order_number: str, product_name: str
@@ -533,7 +677,6 @@ class ConfigurePanel:
             + ", ".join(parts)
         )
         imgui.pop_text_wrap_pos()
-        self._render_update_action(device, versions, current)
 
     def _current_app_version(self, device: Device) -> int | None:
         """The application program version parsed from the app id (``...-26-...`` -> 38). This is the
@@ -541,31 +684,10 @@ class ConfigurePanel:
         parsed = parse_app_id(device.app.id)
         return parsed.version if parsed is not None else None
 
-    def _render_device_readout(self, device: Device) -> None:
-        """Read-only "read from device" action: pull the actual programmed state off the bus (mask,
-        application version, serial/order/hardware) and show it next to the project's planned state."""
-        if self._on_read_device_info is None:
-            return
-        imgui.spacing()
-        enabled = bool(device.individual_address)
-        imgui.begin_disabled(not enabled)
-        if imgui.button(S.BTN_READ_DEVICE_INFO):
-            self._on_read_device_info(device)
-        imgui.end_disabled()
-        if not enabled and imgui.is_item_hovered(
-            imgui.HoveredFlags_.allow_when_disabled
-        ):
-            imgui.set_tooltip(S.READOUT_NEEDS_ADDRESS)
-        if self._on_restart_device is not None:
-            imgui.same_line()
-            imgui.begin_disabled(not enabled)
-            if imgui.button(S.BTN_RESTART_DEVICE):
-                self._on_restart_device(device)
-            imgui.end_disabled()
-        if self._on_master_reset_device is not None:
-            imgui.same_line()
-            self._render_master_reset(device, enabled)
-
+    def _render_readout_result(self, device: Device) -> None:
+        """Show the state read off the bus (mask, application version, serial/order/hardware) next to
+        the project's planned state. The read-out itself is triggered from the action row; this only
+        renders the result once it exists."""
         readout = (
             self._get_device_readout(device.node_id)
             if self._get_device_readout is not None
@@ -577,22 +699,28 @@ class ConfigurePanel:
         mask = (
             f"{readout.mask_version:#06x}" if readout.mask_version is not None else ""
         )
-        self._render_label_value(S.CONFIGURE_MANUFACTURER, readout.manufacturer or "")
         # Compare the version read off the device to the project's version. Only flag a mismatch
         # (device behind/ahead of the project -> programming needed); a match needs no marker.
         app_v = readout.application_version
         project_v = self._current_app_version(device)
         if app_v is None:
-            value = "-"
+            version_value = "-"
         elif project_v is None or app_v == project_v:
-            value = f"V{app_v}"
+            version_value = f"V{app_v}"
         else:
-            value = f"V{app_v}  {S.READOUT_VERSION_MISMATCH.format(version=project_v)}"
-        self._render_label_value(S.CONFIGURE_APP_VERSION, value)
-        self._render_label_value(S.READOUT_MASK, mask)
-        self._render_label_value(S.READOUT_SERIAL, readout.serial_number or "")
-        self._render_label_value(S.READOUT_ORDER, readout.order_info or "")
-        self._render_label_value(S.READOUT_HARDWARE, readout.hardware_type or "")
+            version_value = (
+                f"V{app_v}  {S.READOUT_VERSION_MISMATCH.format(version=project_v)}"
+            )
+        self._render_detail_grid(
+            [
+                (S.CONFIGURE_MANUFACTURER, readout.manufacturer or ""),
+                (S.CONFIGURE_APP_VERSION, version_value),
+                (S.READOUT_MASK, mask),
+                (S.READOUT_SERIAL, readout.serial_number or ""),
+                (S.READOUT_ORDER, readout.order_info or ""),
+                (S.READOUT_HARDWARE, readout.hardware_type or ""),
+            ]
+        )
         self._render_diagnosis(readout)
 
     def _render_diagnosis(self, readout: "DeviceOverview") -> None:
@@ -878,25 +1006,6 @@ class ConfigurePanel:
                     imgui.end_table()
                 imgui.tree_pop()
 
-    def _render_description_field(self, device: Device) -> None:
-        """Editable device description (ETS "Description"/comment). Follows the same commit-on-blur
-        pattern as the Name field: push through the callback when editing ends, and keep the buffer
-        in sync with the live device while the field is not focused."""
-        imgui.align_text_to_frame_padding()
-        imgui.text_disabled(S.CONFIGURE_DESCRIPTION)
-        imgui.same_line(self._label_w)
-        imgui.set_next_item_width(-1)
-        _, self._description_buffer = imgui.input_text(
-            "##description", self._description_buffer
-        )
-        if imgui.is_item_deactivated_after_edit():
-            self._on_description_change(device, self._description_buffer)
-        if (
-            not imgui.is_item_active()
-            and self._description_buffer != device.description
-        ):
-            self._description_buffer = device.description
-
     def _render_ip_config(self, device: Device) -> None:
         """Read-only IP configuration of an IP router/interface, carried verbatim from import. Only
         shown when the device has static values (IP/subnet/gateway/MAC); a plain ``Assign="Auto"``
@@ -908,22 +1017,30 @@ class ConfigurePanel:
             return
         if not imgui.collapsing_header(S.CONFIGURE_IP_CONFIG):
             return
-        self._render_label_value(S.CONFIGURE_IP_ASSIGN, cfg.get("Assign", ""))
-        self._render_label_value(S.CONFIGURE_IP_ADDRESS, cfg.get("IPAddress", ""))
-        self._render_label_value(S.CONFIGURE_IP_SUBNET, cfg.get("SubnetMask", ""))
-        self._render_label_value(S.CONFIGURE_IP_GATEWAY, cfg.get("DefaultGateway", ""))
-        self._render_label_value(S.CONFIGURE_IP_MAC, cfg.get("MACAddress", ""))
+        self._render_detail_grid(
+            [
+                (S.CONFIGURE_IP_ASSIGN, cfg.get("Assign", "")),
+                (S.CONFIGURE_IP_ADDRESS, cfg.get("IPAddress", "")),
+                (S.CONFIGURE_IP_SUBNET, cfg.get("SubnetMask", "")),
+                (S.CONFIGURE_IP_GATEWAY, cfg.get("DefaultGateway", "")),
+                (S.CONFIGURE_IP_MAC, cfg.get("MACAddress", "")),
+            ]
+        )
 
     def _render_label_value(self, label: str, value: str) -> None:
         imgui.text_disabled(label)
         imgui.same_line(self._label_w)
+        self._value_copy(value)
+
+    def _value_copy(self, value: str) -> None:
+        """Render a field value as a full-width click-to-copy target (or ``-`` when empty)."""
         if not value:
             imgui.text_disabled("-")
             return
-        # The value is a full-width click target: click anywhere on it to copy, with a short
-        # "Copied" toast. A per-frame sequence makes the id unique even when the same label+value
-        # appears in two blocks (e.g. "Applikationsversion V38" in the catalog and live sections),
-        # which would otherwise trigger imgui's conflicting-ID warning.
+        # The value is a click target: click anywhere on it to copy, with a short "Copied" toast. A
+        # per-frame sequence makes the id unique even when the same label+value appears twice (e.g.
+        # "Applikationsversion V38" in the catalog and live sections), which would otherwise trigger
+        # imgui's conflicting-ID warning.
         self._lv_seq += 1
         if imgui.selectable(f"{value}##copy_{self._lv_seq}", False)[0]:
             imgui.set_clipboard_text(value)
@@ -931,6 +1048,38 @@ class ConfigurePanel:
                 self._notify(S.CONFIGURE_COPIED)
         if imgui.is_item_hovered():
             imgui.set_tooltip(S.CONFIGURE_COPY_HINT)
+
+    def _render_detail_grid(self, pairs: list[tuple[str, str]]) -> None:
+        """Lay out label/value detail pairs in as many side-by-side columns as the panel width
+        allows (1-3), so a long list of fields stays compact instead of one tall stack. Falls back
+        to a single column on a narrow panel."""
+        if not pairs:
+            return
+        avail = imgui.get_content_region_avail().x
+        # Each column group needs the shared label width plus a readable value column.
+        group_w = self._label_w + px(160)
+        ncols = max(1, min(3, len(pairs), int(avail // group_w) if group_w > 0 else 1))
+        if ncols <= 1:
+            for label, value in pairs:
+                self._render_label_value(label, value)
+            return
+        if not imgui.begin_table("##detail_grid", ncols * 2):
+            return
+        for i in range(ncols):
+            imgui.table_setup_column(
+                f"l{i}", imgui.TableColumnFlags_.width_fixed, self._label_w
+            )
+            imgui.table_setup_column(f"v{i}", imgui.TableColumnFlags_.width_stretch)
+        for idx, (label, value) in enumerate(pairs):
+            if idx % ncols == 0:
+                imgui.table_next_row()
+            col = (idx % ncols) * 2
+            imgui.table_set_column_index(col)
+            imgui.align_text_to_frame_padding()
+            imgui.text_disabled(label)
+            imgui.table_set_column_index(col + 1)
+            self._value_copy(value)
+        imgui.end_table()
 
     def _render_program_confirm(self, device: Device) -> None:
         if not imgui.begin_popup_modal(

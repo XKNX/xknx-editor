@@ -277,11 +277,10 @@ class ConnectionService:
         if self.not_connected("assign_individual_address"):
             return None
         self._log.debug("Assigning individual address", address=address)
-        # Match ETS: write the address to the device in programming mode without
-        # restarting it. xknx's nm_individual_address_write restarts the device
-        # here, which leaves it briefly unreachable and races a following
-        # download; program_individual_address writes directly and leaves the
-        # device running (and in programming mode, as ETS does).
+        # Write the address to the device in programming mode without restarting it. xknx's
+        # nm_individual_address_write restarts the device here, which leaves it briefly unreachable
+        # and races a following download; program_individual_address writes directly and leaves the
+        # device running and in programming mode.
         from xknxeditor.download.commissioning import program_individual_address
 
         return self.run_async(program_individual_address(self._xknx, address))

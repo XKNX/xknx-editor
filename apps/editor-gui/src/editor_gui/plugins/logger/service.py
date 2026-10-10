@@ -74,8 +74,7 @@ class LogRecord:
     @property
     def timestamp_str(self) -> str:
         t = time.localtime(self.timestamp)
-        ms = int((self.timestamp % 1) * 1000)
-        return f"{t.tm_hour:02d}:{t.tm_min:02d}:{t.tm_sec:02d}.{ms:03d}"
+        return f"{t.tm_hour:02d}:{t.tm_min:02d}:{t.tm_sec:02d}"
 
 
 class LogService:

@@ -478,8 +478,8 @@ class ProjectService:
         :meth:`set_com_object_sending` to move the sender among a com-object's links.
 
         When ``derive_datapoint_type`` is given, the link and the resulting group-address
-        datapoint type are recorded as one undo step, mirroring how ETS types a group address
-        from the object it is linked to."""
+        datapoint type are recorded as one undo step, so typing a group address
+        from the object it is linked to stays one action."""
         state = self._state(project_id)
         event = LinkComObject(
             com_object_id=com_object_id,
