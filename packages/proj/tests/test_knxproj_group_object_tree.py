@@ -95,7 +95,15 @@ def test_export_reemits_nested_channel_and_folder_nodes(tmp_path: Path) -> None:
         address=5,
         name="Dev",
         hardware2program_ref_id="M-1_H-1_HP-1",
-        com_objects=[("M-1_A-1_O-1_R-1", None)],
+        # The device's com-objects back every instance the stored tree lists, as a real import
+        # produces (export prunes tree instances with no backing com-object, so an unbacked tree
+        # would be emptied).
+        com_objects=[
+            ("M-1_A-1_O-0_R-1", None),
+            ("M-1_A-1_O-1_R-2", None),
+            ("MD-1_M-3_MI-1_O-2-23_R-1", None),
+            ("M-1_A-1_O-25_R-72", None),
+        ],
     )
     svc.close(pid)
 
@@ -154,3 +162,67 @@ def test_import_materialises_unlinked_tree_instances(tmp_path: Path) -> None:
     assert co.ref_id.endswith("_O-10_R-485") and co.ref_id != co.instance_ref_id
     assert co.read_flag is None and co.text_override is None
     assert co.channel_id is None  # root-level instance, no channel node
+
+
+def test_export_omits_unlinked_tree_backed_com_objects(tmp_path: Path) -> None:
+    """Mirror ETS: a ComObjectInstanceRef is emitted only for linked/overridden objects. The
+    fixture device has 7 linked + 2 tree-only instances, so the export writes 7 COIRs (not 9) while
+    the GroupObjectTree still lists all 9 (so re-import re-materialises the unlinked ones)."""
+    xknx = tmp_path / "p.xknx"
+    import_knxproj(_FIXTURE, xknx)
+    out = tmp_path / "out.knxproj"
+    export_knxproj(xknx, out)
+    with zipfile.ZipFile(out) as zf:
+        name = next(n for n in zf.namelist() if n.endswith("/0.xml"))
+        root = ET.fromstring(zf.read(name))
+    device = next(d for d in root.iter() if _localname(d.tag) == "DeviceInstance")
+    coir_refs = {
+        c.get("RefId")
+        for c in device.iter()
+        if _localname(c.tag) == "ComObjectInstanceRef"
+    }
+    tree_tokens: set[str] = set()
+    for e in device.iter():
+        if _localname(e.tag) in ("GroupObjectTree", "Node"):
+            tree_tokens.update((e.get("GroupObjectInstances") or "").split())
+    assert "O-10_R-485" not in coir_refs and "O-11_R-486" not in coir_refs
+    assert {"O-10_R-485", "O-11_R-486"} <= tree_tokens
+    assert len(coir_refs) == 7
+
+
+def test_unlinked_com_objects_from_tree_channel_inheritance_and_guards() -> None:
+    """A folder nested under a channel inherits that channel; malformed XML is swallowed; and the
+    already-prefixed check is boundary-safe (a different app sharing the prefix is re-qualified)."""
+    from xknxeditor.proj.core.knxproj_import import _unlinked_com_objects_from_tree
+
+    tree = (
+        '<GroupObjectTree GroupObjectInstances="O-0_R-1">'
+        "<Nodes>"
+        '<Node Type="Channel" RefId="CH-1" GroupObjectInstances="O-1_R-1">'
+        '<Nodes><Node Type="Folder" RefId="F-1" GroupObjectInstances="O-2_R-1" /></Nodes>'
+        "</Node>"
+        "</Nodes></GroupObjectTree>"
+    )
+    by_inst = {
+        r.instance_ref_id: r
+        for r in _unlinked_com_objects_from_tree(tree, set(), "M-1_A-1")
+    }
+    assert by_inst["O-0_R-1"].channel_id is None  # root -> channel-less
+    assert by_inst["O-1_R-1"].channel_id == "CH-1"  # channel node
+    assert by_inst["O-2_R-1"].channel_id == "CH-1"  # folder under channel inherits it
+    assert by_inst["O-0_R-1"].ref_id == "M-1_A-1_O-0_R-1"
+
+    # Malformed tree is swallowed, not raised.
+    assert _unlinked_com_objects_from_tree("<GroupObjectTree", set(), "M-1_A-1") == []
+
+    # Same app, already prefixed -> unchanged.
+    same = _unlinked_com_objects_from_tree(
+        '<GroupObjectTree GroupObjectInstances="M-1_A-1_O-5_R-1" />', set(), "M-1_A-1"
+    )
+    assert same[0].ref_id == "M-1_A-1_O-5_R-1"
+    # Different app that merely shares the prefix -> re-qualified (boundary-safe).
+    other = _unlinked_com_objects_from_tree(
+        '<GroupObjectTree GroupObjectInstances="M-1_A-10_O-9_R-1" />', set(), "M-1_A-1"
+    )
+    assert other[0].ref_id.startswith("M-1_A-1_")
+    assert other[0].ref_id != "M-1_A-10_O-9_R-1"

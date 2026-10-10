@@ -1242,20 +1242,50 @@ def _unlinked_com_objects_from_tree(
         return []
     from xknxproject.util import strip_module_instance
 
+    try:
+        root = ET.fromstring(tree_xml)
+    except ET.ParseError:
+        logger.warning(
+            "skipping malformed GroupObjectTree while materialising unlinked com-objects"
+        )
+        return []
+
+    prefix = f"{application_program_ref}_" if application_program_ref else ""
     rows: list[ComObject] = []
-    root = ET.fromstring(tree_xml)
-    # Root-level instances are channel-less; nodes carry theirs under their channel.
-    for node in [root, *root.iter("Node")]:
-        channel = node.get("RefId") if node.get("Type") == "Channel" else None
+
+    def child_nodes(elem: ET.Element) -> list[ET.Element]:
+        # Direct ``<Node>`` children, descending through the optional ``<Nodes>`` wrapper.
+        out: list[ET.Element] = []
+        for child in elem:
+            tag = _localname(child.tag)
+            if tag == "Node":
+                out.append(child)
+            elif tag == "Nodes":
+                out.extend(child_nodes(child))
+        return out
+
+    def visit(node: ET.Element, channel: str | None) -> None:
         for inst in (node.get("GroupObjectInstances") or "").split():
             if inst in known_instance_ref_ids:
                 continue
             known_instance_ref_ids.add(inst)
-            if application_program_ref and not inst.startswith(application_program_ref):
-                ref_id = f"{application_program_ref}_{strip_module_instance(inst, 'O')}"
+            # ``prefix`` carries the trailing underscore so a different application id that merely
+            # shares the prefix is not mistaken for an already-qualified instance.
+            if prefix and not inst.startswith(prefix):
+                ref_id = f"{prefix}{strip_module_instance(inst, 'O')}"
             else:
                 ref_id = inst  # ETS4: already fully prefixed
-            rows.append(ComObject(ref_id=ref_id, instance_ref_id=inst, channel_id=channel))
+            rows.append(
+                ComObject(ref_id=ref_id, instance_ref_id=inst, channel_id=channel)
+            )
+        for child in child_nodes(node):
+            # A folder inherits its enclosing channel; a channel node sets it.
+            child_channel = (
+                child.get("RefId") if child.get("Type") == "Channel" else channel
+            )
+            visit(child, child_channel)
+
+    visit(root, None)
     return rows
 
 

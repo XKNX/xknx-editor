@@ -78,6 +78,7 @@ from xknxeditor.proj.core.knxproj_signing import (
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
     Area,
+    ComObject,
     ComObjectLink,
     Device,
     Function,
@@ -779,6 +780,42 @@ def _relidref(ref_id: str) -> str:
     return ref_id
 
 
+def _has_override(co: ComObject) -> bool:
+    """Whether the com-object carries a per-instance override a genuine ETS export persists.
+
+    Mirrors ETS's write condition (``!HasDefaultValues``): a text/function/description override or
+    any non-inherited flag. A link is checked separately by the caller."""
+    return any(
+        value is not None
+        for value in (
+            co.text_override,
+            co.function_text_override,
+            co.description_override,
+            co.read_flag,
+            co.write_flag,
+            co.communication_flag,
+            co.transmit_flag,
+            co.update_flag,
+            co.read_on_init_flag,
+        )
+    )
+
+
+def _group_object_tree_instances(raw: str) -> set[str]:
+    """Instance ref ids a stored ``<GroupObjectTree>`` lists (``@GroupObjectInstances`` on the root
+    and every node). Empty for an empty or malformed tree, so the COIR fallback still emits."""
+    if not raw:
+        return set()
+    try:
+        root = ET.fromstring(raw)
+    except ET.ParseError:
+        return set()
+    out: set[str] = set()
+    for el in root.iter():
+        out.update((el.get("GroupObjectInstances") or "").split())
+    return out
+
+
 def _assign_ids(
     pid: str, installation: Installation | None
 ) -> tuple[dict[int, str], dict[int, str]]:
@@ -1310,37 +1347,42 @@ class _Writer:
                     RefId=param.ref_id,
                     Value=param.value,
                 )
-        # Emit a ComObjectInstanceRef for EVERY instantiated com-object (not only linked ones): the
-        # device's object set — including objects a function/mode activated but that are not yet linked
-        # to a group address (e.g. an active but unwired Channel D) — must survive export/re-import.
-        # xknxproject keeps unlinked refs on read, and the importer resolves them fine. An empty
-        # violate the schema, so only emit it when the device has at least one com-object.
-        cos = list(device.com_objects)
-        if cos:
+        # Emit a <ComObjectInstanceRef> only for objects a genuine ETS export writes: those with a
+        # link or a per-instance override (ETS's !HasDefaultValues condition). An active-but-unlinked
+        # object is carried by <GroupObjectTree>/@GroupObjectInstances and re-materialised on import,
+        # so writing a COIR for it too would diverge from genuine exports. Fallback: an object the
+        # tree does NOT cover (a from-scratch device has no tree) is still emitted so its
+        # instantiation is not lost.
+        tree_instances = _group_object_tree_instances(device.group_object_tree)
+        pending: list[tuple[ComObject, str, str]] = []
+        for co in device.com_objects:
+            # Genuine exports order the sending link first; our ComObjectLink.is_sending marks it.
+            ordered = sorted(co.links, key=lambda link: not link.is_sending)
+            links = " ".join(
+                ga_link_id[link.group_address_id]
+                for link in ordered
+                if link.group_address_id in ga_link_id
+            )
+            # RefId is a RELIDREF (app-program parent stripped); the full id would make the importer
+            # unable to resolve the com-object and drop the whole device. Prefer the instance's own
+            # ref id: for a module-based application ``ref_id`` is the shared definition, so writing
+            # it collapses the instances onto one id that no longer resolves to a ModuleInstance.
+            ref = _relidref(co.instance_ref_id or co.ref_id)
+            if not (co.links or _has_override(co) or ref not in tree_instances):
+                continue
+            pending.append((co, ref, links))
+        # An empty <ComObjectInstanceRefs> violates the schema, so only open it when non-empty.
+        if pending:
             refs = self._el(di, "ComObjectInstanceRefs")
-            for co in cos:
-                # Genuine exports order the sending link first; our ComObjectLink.is_sending marks it.
-                ordered = sorted(co.links, key=lambda link: not link.is_sending)
-                links = " ".join(
-                    ga_link_id[link.group_address_id]
-                    for link in ordered
-                    if link.group_address_id in ga_link_id
-                )
-                # RefId is a RELIDREF (app-program parent stripped); the full id would make the
-                # importer unable to resolve the com-object and drop the whole device on import.
-                # ChannelId (``CH-n``, already relative) places the object in its application
-                # channel. Links is omitted when the object is not linked. Each flag is emitted only
-                # when set (non-None): our stored flags are the effective flags (import resolves
-                # inherit->default), so a user override survives export/re-import; a reconcile-added
-                # object with all-None (default) flags emits none and inherits the application
-                # default, matching genuine exports.
-                # Prefer the instance's own ref id: for a module-based application ``ref_id`` is the
-                # application-program definition, shared by every instance of the module, so writing
-                # it collapses the instances onto one id that no longer resolves to a ModuleInstance.
+            for co, ref, links in pending:
+                # ChannelId (``CH-n``, already relative) places the object in its application channel.
+                # Links is omitted when unlinked. Each flag is emitted only when set (non-None): our
+                # stored flags are the effective flags, so a user override survives export/re-import;
+                # a reconcile-added object with all-None flags emits none and inherits the app default.
                 self._el(
                     refs,
                     "ComObjectInstanceRef",
-                    RefId=_relidref(co.instance_ref_id or co.ref_id),
+                    RefId=ref,
                     ChannelId=co.channel_id,
                     Text=co.text_override or None,
                     FunctionText=co.function_text_override or None,
@@ -1435,7 +1477,36 @@ class _Writer:
                 "skipping malformed stored GroupObjectTree for device %s", device.id
             )
             return
-        self._graft(di, src)
+        # Prune @GroupObjectInstances to the device's current active com-object set so a channel
+        # removed since import is not resurrected on re-import (reconciliation deletes the row but
+        # the stored tree is verbatim). A no-op for a straight round-trip (active set == imported
+        # tree); a newly-activated object the tree lacks survives as a ComObjectInstanceRef above.
+        # With no com-objects there is no active-set information (import always materialises the
+        # tree's instances into com_objects), so re-emit verbatim rather than empty every node.
+        if not device.com_objects:
+            self._graft(di, src)
+            return
+        active = {
+            _relidref(co.instance_ref_id or co.ref_id) for co in device.com_objects
+        }
+        self._graft_group_object_tree(di, src, active)
+
+    def _graft_group_object_tree(
+        self, parent: ET.Element, src: ET.Element, active: set[str]
+    ) -> ET.Element:
+        """Like :meth:`_graft`, but drop ``@GroupObjectInstances`` tokens not in ``active``."""
+        el = ET.SubElement(parent, f"{{{self._ns}}}{_localname(src.tag)}")
+        for key, value in src.attrib.items():
+            name = _localname(key)
+            if name == "GroupObjectInstances":
+                kept = " ".join(tok for tok in value.split() if tok in active)
+                if not kept:
+                    continue
+                value = kept
+            el.set(name, value)
+        for child in src:
+            self._graft_group_object_tree(el, child, active)
+        return el
 
     def _graft(self, parent: ET.Element, src: ET.Element) -> ET.Element:
         """Append a namespaced deep copy of ``src`` (a namespace-stripped element) under ``parent``."""
