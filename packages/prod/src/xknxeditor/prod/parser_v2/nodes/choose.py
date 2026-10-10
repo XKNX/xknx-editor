@@ -11,7 +11,8 @@ def _token_matches(value: str, token: str) -> bool:
     """Match one Test token: a comparison (``>0``, ``<=5``, ``!=2``, ``=3``) or a bare literal.
 
     Operator operands are compared as integers, so ``=`` / ``!=`` are numeric equality. A token with
-    no operator prefix is matched as a plain literal.
+    no operator prefix matches numerically when both are numbers (``01`` matches ``1``), else as a
+    plain literal.
     """
     for op in _OPERATORS:
         if token.startswith(op):
@@ -30,7 +31,10 @@ def _token_matches(value: str, token: str) -> bool:
             if op == "!=":
                 return left != right
             return left == right
-    return value == token
+    try:
+        return float(value) == float(token)
+    except ValueError:
+        return value == token
 
 
 def _value_matches(value: str, test_values: list[str]) -> bool:
@@ -85,6 +89,10 @@ class ChooseWhenNode(DynamicNode):
             and not ctx.is_discovered_active(self._param_ref_id)
             and any(ctx.is_discovered_active(sib) for sib in self._union_sibling_refs)
         ):
+            return []
+        # A Choose on a parameter that is neither shown nor assigned selects no branch at all,
+        # not even its default.
+        if not ctx.is_gate_active(self._param_ref_id):
             return []
         value = ctx.get(self._param_ref_id) or ""
         result: list[UiNode] = []

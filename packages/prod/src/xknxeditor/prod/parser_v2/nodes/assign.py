@@ -14,6 +14,8 @@ class AssignNode(DynamicNode):
         self._elem = elem
 
     def eval(self, ctx: EvalContext) -> list[UiNode]:
+        # An assigned parameter is active like a shown one.
+        ctx.mark_active_param(self._elem.target_param_ref_ref)
         if self._elem.value is not None:
             ctx.set(self._elem.target_param_ref_ref, self._elem.value)
         elif self._elem.source_param_ref_ref is not None:

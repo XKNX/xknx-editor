@@ -101,6 +101,9 @@ class _Ctx:
     def qualify_local(self, ref_id: str) -> str:
         return ref_id  # global scope: identity
 
+    def is_gate_active(self, _ref_id: str) -> bool:
+        return True  # every parameter active
+
     def repeat_ctx(self, _i: int) -> "_Ctx":
         return self  # same scope (carries the capture) for the synthetic test
 

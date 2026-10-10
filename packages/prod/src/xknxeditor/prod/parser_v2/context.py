@@ -97,6 +97,9 @@ class EvalContext:
     def is_discovered_active(self, ref_id: str) -> bool:
         return self._scope.is_discovered_active(ref_id)
 
+    def is_gate_active(self, ref_id: str) -> bool:
+        return self._scope.is_gate_active(ref_id)
+
     def get(self, ref_id: str) -> str | None:
         return self._scope.get(ref_id)
 

@@ -31,6 +31,9 @@ class ComObjectParameterBlockNode(DynamicNode):
         self._heading_text = heading_text
 
     def eval(self, ctx: EvalContext) -> list[UiNode]:
+        # The block's heading parameter is active while the block is shown.
+        if self._elem.param_ref_id:
+            ctx.mark_active_param(self._elem.param_ref_id)
         items = [u for c in self._children if c for u in c.eval(ctx)]
         arg_defaults = ctx.get_arg_defaults()
         text_ref = self._elem.text_parameter_ref_id

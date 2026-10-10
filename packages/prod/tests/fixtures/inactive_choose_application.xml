@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData>
+    <Manufacturer RefId="M-00FA">
+      <ApplicationPrograms>
+        <ApplicationProgram Id="M-00FA_A-0002-01-0000" ApplicationNumber="2" ApplicationVersion="1"
+            ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Choose"
+            LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+            DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+          <Static>
+            <ParameterTypes>
+              <ParameterType Id="M-00FA_A-0002-01-0000_PT-N" Name="N">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" />
+              </ParameterType>
+            </ParameterTypes>
+            <Parameters>
+              <Parameter Id="M-00FA_A-0002-01-0000_P-1" Name="Mode" ParameterType="M-00FA_A-0002-01-0000_PT-N" Text="Mode" Value="0" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-2" Name="Hidden" ParameterType="M-00FA_A-0002-01-0000_PT-N" Text="Hidden" Value="1" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-3" Name="Assigned" ParameterType="M-00FA_A-0002-01-0000_PT-N" Text="Assigned" Value="0" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-4" Name="Late" ParameterType="M-00FA_A-0002-01-0000_PT-N" Text="Late" Value="0" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-5" Name="Heading" ParameterType="M-00FA_A-0002-01-0000_PT-N" Text="Heading" Value="0" />
+            </Parameters>
+            <ParameterRefs>
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-1_R-1" RefId="M-00FA_A-0002-01-0000_P-1" />
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-2_R-2" RefId="M-00FA_A-0002-01-0000_P-2" Access="None" />
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-3_R-3" RefId="M-00FA_A-0002-01-0000_P-3" Access="None" />
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-4_R-4" RefId="M-00FA_A-0002-01-0000_P-4" />
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-5_R-5" RefId="M-00FA_A-0002-01-0000_P-5" />
+            </ParameterRefs>
+          </Static>
+          <Dynamic>
+            <ChannelIndependentBlock>
+              <ParameterBlock Id="M-00FA_A-0002-01-0000_PB-1" Text="Main">
+                <choose ParamRefId="M-00FA_A-0002-01-0000_P-4_R-4">
+                  <when test="0">
+                    <ParameterSeparator Id="M-00FA_A-0002-01-0000_PS-1" Text="late-zero" />
+                  </when>
+                </choose>
+                <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-1_R-1" />
+                <choose ParamRefId="M-00FA_A-0002-01-0000_P-1_R-1">
+                  <when test="1">
+                    <Assign TargetParamRefRef="M-00FA_A-0002-01-0000_P-3_R-3" Value="1" />
+                  </when>
+                </choose>
+                <choose ParamRefId="M-00FA_A-0002-01-0000_P-2_R-2">
+                  <when test="1">
+                    <ParameterSeparator Id="M-00FA_A-0002-01-0000_PS-2" Text="hidden-one" />
+                  </when>
+                  <when default="true">
+                    <ParameterSeparator Id="M-00FA_A-0002-01-0000_PS-3" Text="hidden-default" />
+                  </when>
+                </choose>
+                <choose ParamRefId="M-00FA_A-0002-01-0000_P-3_R-3">
+                  <when test="1">
+                    <ParameterSeparator Id="M-00FA_A-0002-01-0000_PS-4" Text="assigned-one" />
+                  </when>
+                  <when default="true">
+                    <ParameterSeparator Id="M-00FA_A-0002-01-0000_PS-5" Text="assigned-default" />
+                  </when>
+                </choose>
+              </ParameterBlock>
+              <ParameterBlock Id="M-00FA_A-0002-01-0000_PB-2" Text="Later">
+                <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-4_R-4" />
+              </ParameterBlock>
+              <ParameterBlock Id="M-00FA_A-0002-01-0000_PB-3" ParamRefId="M-00FA_A-0002-01-0000_P-5_R-5">
+                <choose ParamRefId="M-00FA_A-0002-01-0000_P-5_R-5">
+                  <when default="true">
+                    <ParameterSeparator Id="M-00FA_A-0002-01-0000_PS-6" Text="heading-default" />
+                  </when>
+                </choose>
+              </ParameterBlock>
+            </ChannelIndependentBlock>
+          </Dynamic>
+        </ApplicationProgram>
+      </ApplicationPrograms>
+    </Manufacturer>
+  </ManufacturerData>
+</KNX>

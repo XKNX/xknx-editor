@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import TYPE_CHECKING
 
 from xknxeditor.namespaces.intermediate import (
@@ -94,6 +94,9 @@ from .ui import UiNode
 if TYPE_CHECKING:
     from ..script.compat.runtime import JScriptEnv
     from ..script.sandbox import AbortToken
+
+# Passes after which the active parameters are taken as settled.
+_MAX_GATE_PASSES = 5
 
 __all__ = [
     "AssignNode",
@@ -556,15 +559,37 @@ class DynamicUI:
         pass reads it (is_discovered_active) to pick each Union's active overlay order-independently —
         the reached member wins, not a sibling carrying a stale explicit value from an inactive
         branch (which would drop a freshly-activated member's content)."""
+        self._state.clear_gate()
         self._state.reset_active()
         self._tree.eval(EvalContext(self._state, idx=self._idx, union_suppress=False))
         self._state.snapshot_discovered_active()
+        self._state.update_gate_active()
+
+    def _eval_settled(
+        self, capture: Callable[[], EvalCapture] | None = None
+    ) -> tuple[list[UiNode], EvalCapture | None]:
+        """Evaluate until the active parameters no longer change.
+
+        Each pass gates Chooses by the params active in the pass before, so a Choose renders
+        nothing when its param is not active, regardless of where in the tree the param is
+        shown or assigned. ``capture`` makes a fresh capture for each pass.
+        """
+        self._discover_union_activity()
+        tree: list[UiNode] = []
+        result: EvalCapture | None = None
+        for _ in range(_MAX_GATE_PASSES):
+            self._state.reset_active()
+            result = capture() if capture is not None else None
+            tree = self._tree.eval(
+                EvalContext(self._state, idx=self._idx, capture=result)
+            )
+            if not self._state.update_gate_active():
+                break
+        return tree, result
 
     def ui(self) -> list[UiNode]:
         if self._ui is None:
-            self._discover_union_activity()
-            self._state.reset_active()
-            self._ui = self._tree.eval(EvalContext(self._state, idx=self._idx))
+            self._ui, _ = self._eval_settled()
             self._state.trim_to_active()
             self._prune_inactive_channels()
         return self._ui
@@ -607,9 +632,7 @@ class DynamicUI:
         com-object set — ``_prune_inactive_channels`` biases toward the stale saved instances, so it
         must be skipped here. Invalidates the cached ``ui()`` so the next call recomputes (and
         re-prunes) cleanly."""
-        self._discover_union_activity()
-        self._state.reset_active()
-        tree = self._tree.eval(EvalContext(self._state, idx=self._idx))
+        tree, _ = self._eval_settled()
         self._state.trim_to_active()
         self._ui = None
         return tree
@@ -618,13 +641,10 @@ class DynamicUI:
         """The (instance-qualified) com-object ref-ids that ``param_ref_id`` gates at the CURRENT
         parameter value: every com-object emitted under a Choose/Repeat driven by that parameter.
         Invalidates the cached ``ui()`` so the next call recomputes cleanly."""
-        capture = EvalCapture(param_ref_id)
-        self._discover_union_activity()
-        self._state.reset_active()
-        self._tree.eval(EvalContext(self._state, idx=self._idx, capture=capture))
+        _, capture = self._eval_settled(lambda: EvalCapture(param_ref_id))
         self._state.trim_to_active()
         self._ui = None
-        return capture.controlled_ref_ids()
+        return capture.controlled_ref_ids() if capture is not None else set()
 
     def active_parameter_driven_com_object_ref_ids(self) -> set[str]:
         """The com-object ref-ids the device should instantiate for its CURRENT parameter values —
@@ -637,14 +657,14 @@ class DynamicUI:
         always-present objects, while excluding the channel over-activation of the raw tree — e.g. an
         individual channel whose objects sit under an outer selector that is NOT active because its
         widget only lives in a different function branch. Invalidates the cached ``ui()``."""
-        capture = EvalCapture(None)  # record every emitted object's gate chain
-        self._discover_union_activity()
-        self._state.reset_active()
-        self._tree.eval(EvalContext(self._state, idx=self._idx, capture=capture))
+        # Record every emitted object's gate chain.
+        _, capture = self._eval_settled(lambda: EvalCapture(None))
         self._state.trim_to_active()
         self._ui = None
         active = self._state.active_param_refs() or set()
-        return capture.active_ref_ids(frozenset(active))
+        return (
+            capture.active_ref_ids(frozenset(active)) if capture is not None else set()
+        )
 
     def get_module_instances(self) -> list[tuple[str, str]]:
         """After eval, list ``(instance_id, ref_id)`` per top-level module instance."""

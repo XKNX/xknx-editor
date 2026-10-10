@@ -70,6 +70,7 @@ class ParameterState:
         "_children",
         "_com_obj_instance_refs",
         "_discovered_active_param_refs",
+        "_gate_param_refs",
         "_known_param_ref_values",
         "_param_ref_defaults",
         "_parent",
@@ -99,6 +100,9 @@ class ParameterState:
         # a Union-member Choose to decide the active overlay order-independently (the reached member
         # wins, not the one carrying a stale explicit value from an inactive branch).
         self._discovered_active_param_refs: set[str] = set()
+        # Params that were active in the previous pass; a Choose on any other param renders
+        # nothing. None while no pass has run (the first pass is not gated).
+        self._gate_param_refs: set[str] | None = None
         self._active_module_keys: set[str] = set()
         self._active_com_object_refs: set[str] = set()
         self._alloc_positions: dict[str, int] = {}
@@ -224,6 +228,29 @@ class ParameterState:
             self._parent.is_discovered_active(ref_id)
             if self._parent is not None
             else False
+        )
+
+    def clear_gate(self) -> None:
+        """Stop gating Chooses (this scope and its children) until the next update."""
+        self._gate_param_refs = None
+        for child in self._children.values():
+            child.clear_gate()
+
+    def update_gate_active(self) -> bool:
+        """Gate the next pass by the params active now; whether that differs from before."""
+        changed = self._gate_param_refs != self._active_param_refs
+        self._gate_param_refs = set(self._active_param_refs)
+        for child in self._children.values():
+            changed = child.update_gate_active() or changed
+        return changed
+
+    def is_gate_active(self, ref_id: str) -> bool:
+        """Whether a Choose on ``ref_id`` may select a branch: the param was active in the
+        previous pass, in this scope or a parent. True for a scope without a previous pass."""
+        if self._gate_param_refs is None or ref_id in self._gate_param_refs:
+            return True
+        return (
+            self._parent.is_gate_active(ref_id) if self._parent is not None else False
         )
 
     def discard_active_refs(
