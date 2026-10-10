@@ -14,6 +14,7 @@ class ChannelNode(DynamicNode):
         "_children",
         "_icon",
         "_id",
+        "_independent",
         "_name",
         "_number",
         "_text",
@@ -29,6 +30,7 @@ class ChannelNode(DynamicNode):
         number: str | None = None,
         icon: str | None = None,
         text_parameter_ref_id: str | None = None,
+        independent: bool = False,
     ) -> None:
         self._id = id
         self._name = name
@@ -37,6 +39,7 @@ class ChannelNode(DynamicNode):
         self._icon = icon
         self._text_param_ref_id = text_parameter_ref_id
         self._children = children
+        self._independent = independent
 
     def eval(self, ctx: EvalContext) -> list[UiNode]:
         items = [u for c in self._children if c for u in c.eval(ctx)]
@@ -55,5 +58,6 @@ class ChannelNode(DynamicNode):
                 text=text,
                 number=self._number,
                 icon=self._icon,
+                independent=self._independent,
             )
         ]

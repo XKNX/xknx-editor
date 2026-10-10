@@ -160,6 +160,11 @@ class WidgetStrings(BaseStrings):
         """Abbreviated weekday names, Monday first, separated by spaces."""
         return _("Mo Tu We Th Fr Sa Su")
 
+    @property
+    def PAGE_GENERAL(self) -> str:
+        """Page for parameters that belong to no channel or parameter page."""
+        return _("General")
+
     def time_unit(self, unit: str) -> str:
         """Name of a time parameter's unit shown next to its value."""
         names = {

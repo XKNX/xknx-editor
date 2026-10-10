@@ -31,10 +31,25 @@ from editor_gui.widgets.group_objects_widgets import (
     GroupAddressCatalog,
     GroupLinkResolver,
 )
+from editor_gui.widgets.icons import Icon, Picture
 from editor_gui.widgets.markdown import render_markdown
 from editor_gui.widgets.module_table import build_module_tables, render_module_tables
 
 _log = structlog.get_logger("configure")
+
+
+def _same_line_if_fits(label: str) -> None:
+    """Put the next button beside the previous item if it fits, else below it."""
+    style = imgui.get_style()
+    width = imgui.calc_text_size(label).x + style.frame_padding.x * 2
+    right = imgui.get_item_rect_max().x + style.item_spacing.x + width
+    limit = imgui.get_window_pos().x + imgui.get_window_width() - style.window_padding.x
+    if right <= limit:
+        imgui.same_line()
+
+
+def _device_title(device: Device) -> str:
+    return " ".join(p for p in (device.individual_address, device.name) if p)
 
 
 def _reset_presets() -> list[tuple[str, int]]:
@@ -93,6 +108,8 @@ class ConfigurePanel:
         | None = None,
         buttons: ButtonActions | None = None,
         get_help: Callable[[Device, str], str | None] | None = None,
+        get_icon: Callable[[Device, str], Icon | None] | None = None,
+        get_picture: Callable[[Device, str], Picture | None] | None = None,
     ) -> None:
         self._get_devices = get_devices
         self._get_selected_device = get_selected_device
@@ -100,6 +117,9 @@ class ConfigurePanel:
         self._on_param_change = on_param_change
         self._buttons = buttons
         self._get_help = get_help
+        self._get_icon = get_icon
+        self._get_picture = get_picture
+        self._help_pane_h = 0.0  # dragged height of the help pane
         self._help: tuple[int, str] | None = None
         # "Multi fill": when on, a parameter edit is applied to every device that runs
         # the same application program, not just the selected one.
@@ -166,7 +186,18 @@ class ConfigurePanel:
         self._lv_seq: int = 0  # per-frame counter for unique _render_label_value ids
         self._label_w = 0.0  # start of the value column next to field labels
 
-    def render(self) -> None:
+    def _current_device(self) -> Device | None:
+        """The selected device, defaulting to the first one."""
+        devices = self._get_devices()
+        if not devices:
+            return None
+        device = self._get_selected_device()
+        if device is None:
+            device = devices[0]
+            self._set_selected_device(device)
+        return device
+
+    def _begin_details(self) -> None:
         self._lv_seq = 0  # reset per-frame id counter for _render_label_value
         self._label_w = label_column_width(
             S.CONFIGURE_NAME,
@@ -192,15 +223,15 @@ class ConfigurePanel:
             S.READOUT_ORDER,
             S.READOUT_HARDWARE,
         )
-        devices = self._get_devices()
-        if not devices:
+
+    def render_device(self) -> None:
+        """Device selection, address and programming."""
+        self._begin_details()
+        device = self._current_device()
+        if device is None:
             imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
             return
-
-        device = self._get_selected_device()
-        if device is None:
-            device = devices[0]
-            self._set_selected_device(device)
+        devices = self._get_devices()
 
         current_idx = 0
         labels: list[str] = []
@@ -261,7 +292,7 @@ class ConfigurePanel:
             if imgui.button(S.BTN_EVAL_DEVICE):
                 self._on_eval_device(device, self._download_scope)
             imgui.end_disabled()
-            imgui.same_line()
+            _same_line_if_fits(S.BTN_PROGRAM_DEVICE)
 
         if self._on_program_device is not None:
             enabled = bool(device.individual_address)
@@ -275,62 +306,73 @@ class ConfigurePanel:
                 self._confirm_program_open = False
             self._render_program_confirm(device)
             if self._open_memory_preview is not None:
-                imgui.same_line()
+                _same_line_if_fits(S.BTN_PREVIEW_MEMORY)
 
         if self._open_memory_preview is not None and imgui.button(S.BTN_PREVIEW_MEMORY):
             self._open_memory_preview(device)
 
-        if imgui.collapsing_header(
-            S.CONFIGURE_MANUFACTURER, imgui.TreeNodeFlags_.default_open
-        ):
-            info = self._get_device_info(device.node_id)
-            manufacturer = (
-                info.manufacturer_name if info and info.manufacturer_name else None
-            )
-            # Show every field we have, always (empty -> "-"), so device details are complete
-            # and every value can be copied.
-            self._render_label_value(
-                S.CONFIGURE_MANUFACTURER,
-                manufacturer or device.app.manufacturer_id,
-            )
-            self._render_label_value(S.CONFIGURE_APPLICATION, device.app.id)
-            app_version = self._current_app_version(device)
-            self._render_label_value(
-                S.CONFIGURE_APP_VERSION,
-                f"V{app_version}" if app_version is not None else "-",
-            )
-            # device.app.version is the KNX XML schema version (e.g. "20" for the /20 schema),
-            # NOT the application program version above.
-            self._render_label_value(S.CONFIGURE_SCHEMA_VERSION, device.app.version)
-            self._render_label_value(
-                S.CONFIGURE_ORDER_NUMBER, info.order_number if info else ""
-            )
-            self._render_label_value(
-                S.CONFIGURE_HARDWARE, info.hardware_name if info else ""
-            )
-            self._render_label_value(
-                S.CONFIGURE_PRODUCT, info.product_name if info else ""
-            )
-            self._render_description_field(device)
-            self._render_label_value(
-                S.CONFIGURE_PRODUCT_REF, info.product_ref_id if info else ""
-            )
-            self._render_label_value(
-                S.CONFIGURE_PROGRAM_REF,
-                (info.hardware2program_ref_id or "") if info else "",
-            )
-            self._render_manual_button(info)
-            self._render_online_versions(device, info)
-            self._render_device_readout(device)
-
         self._render_ip_config(device)
 
-        # Success alert after an application update (top level so it shows regardless of the
-        # Manufacturer header state). Opened via a flag set in the update confirm.
+    def render_manufacturer(self) -> None:
+        """Manufacturer, product and application details of the selected device."""
+        self._begin_details()
+        device = self._current_device()
+        if device is None:
+            imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
+            return
+        info = self._get_device_info(device.node_id)
+        manufacturer = (
+            info.manufacturer_name if info and info.manufacturer_name else None
+        )
+        # Show every field we have, always (empty -> "-"), so device details are complete
+        # and every value can be copied.
+        self._render_label_value(
+            S.CONFIGURE_MANUFACTURER,
+            manufacturer or device.app.manufacturer_id,
+        )
+        self._render_label_value(S.CONFIGURE_APPLICATION, device.app.id)
+        app_version = self._current_app_version(device)
+        self._render_label_value(
+            S.CONFIGURE_APP_VERSION,
+            f"V{app_version}" if app_version is not None else "-",
+        )
+        # device.app.version is the KNX XML schema version (e.g. "20" for the /20 schema),
+        # NOT the application program version above.
+        self._render_label_value(S.CONFIGURE_SCHEMA_VERSION, device.app.version)
+        self._render_label_value(
+            S.CONFIGURE_ORDER_NUMBER, info.order_number if info else ""
+        )
+        self._render_label_value(
+            S.CONFIGURE_HARDWARE, info.hardware_name if info else ""
+        )
+        self._render_label_value(S.CONFIGURE_PRODUCT, info.product_name if info else "")
+        self._render_description_field(device)
+        self._render_label_value(
+            S.CONFIGURE_PRODUCT_REF, info.product_ref_id if info else ""
+        )
+        self._render_label_value(
+            S.CONFIGURE_PROGRAM_REF,
+            (info.hardware2program_ref_id or "") if info else "",
+        )
+        self._render_manual_button(info)
+        self._render_online_versions(device, info)
+        self._render_device_readout(device)
+
+        self._render_load_procedures(device)
+
+        # Success alert after an application update, opened via a flag set in the update confirm.
         if self._alert_update_open:
             imgui.open_popup(S.UPDATE_ALERT_TITLE)
             self._alert_update_open = False
         self._render_update_alert()
+
+    def render(self) -> None:
+        device = self._current_device()
+        if device is None:
+            imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
+            return
+        imgui.text(_device_title(device))
+        imgui.separator()
 
         if imgui.begin_tab_bar("##editor_tabs"):
             ui_nodes = device.get_ui()
@@ -361,6 +403,7 @@ class ConfigurePanel:
                         _, self._apply_all_channels = imgui.checkbox(
                             S.CONFIGURE_APPLY_ALL_CHANNELS, self._apply_all_channels
                         )
+                    help_text = self._help_text(device)
                     imgui.begin_disabled(device.script_running)
                     render_ui_tree(
                         device,
@@ -369,12 +412,16 @@ class ConfigurePanel:
                         filter_text=self._param_filter,
                         differing_refs=differing,
                         buttons=self._button_actions(multi=len(joint) > 1),
+                        get_icon=self._icon_getter(device),
+                        get_picture=self._picture_getter(device),
+                        footer=(lambda h: self._render_help(help_text, h))
+                        if help_text
+                        else None,
+                        footer_height=self._help_height() if help_text else 0.0,
                     )
                     imgui.end_disabled()
-                    self._render_help(device)
                 else:
                     imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
-                self._render_load_procedures(device)
                 imgui.end_tab_item()
 
             visible_cos = device.get_visible_com_objects()
@@ -716,24 +763,57 @@ class ConfigurePanel:
             error=buttons.error,
         )
 
-    def _render_help(self, device: Device) -> None:
+    def _icon_getter(self, device: Device) -> Callable[[str], Icon | None] | None:
+        get_icon = self._get_icon
+        if get_icon is None:
+            return None
+        return lambda name: get_icon(device, name)
+
+    def _picture_getter(self, device: Device) -> Callable[[str], Picture | None] | None:
+        get_picture = self._get_picture
+        if get_picture is None:
+            return None
+        return lambda ref_id: get_picture(device, ref_id)
+
+    def _help_text(self, device: Device) -> str | None:
         selected = take_selected_help()
         if selected is not None:
             self._help = (device.node_id, selected)
         if self._get_help is None or self._help is None:
-            return
+            return None
         node_id, context = self._help
         if node_id != device.node_id:
-            return
-        text = self._get_help(device, context)
-        if not text:
-            return
+            return None
+        return self._get_help(device, context) or None
+
+    def _help_height(self) -> float:
+        """Height of the heading and pane of the help below the parameters."""
+        return imgui.get_frame_height_with_spacing() + self._help_pane_height()
+
+    def _help_pane_height(self) -> float:
+        if self._help_pane_h <= 0:
+            self._help_pane_h = imgui.get_text_line_height_with_spacing() * 5
+        return self._help_pane_h
+
+    def _render_help_heading(self) -> None:
+        """The help heading, which resizes the help when dragged."""
         imgui.separator_text(S.CONFIGURE_HELP)
-        if imgui.begin_child(
-            "##param_help",
-            imgui.ImVec2(0, imgui.get_text_line_height_with_spacing() * 12),
-            True,
-        ):
+        top_left = imgui.get_item_rect_min()
+        size = imgui.get_item_rect_size()
+        imgui.set_cursor_screen_pos(top_left)
+        imgui.invisible_button("##help_splitter", size)
+        if imgui.is_item_hovered() or imgui.is_item_active():
+            imgui.set_mouse_cursor(imgui.MouseCursor_.resize_ns)
+        if imgui.is_item_active():
+            line = imgui.get_text_line_height_with_spacing()
+            height = self._help_pane_height() - imgui.get_io().mouse_delta.y
+            self._help_pane_h = min(max(height, line * 2), line * 40)
+
+    def _render_help(self, text: str, height: float) -> None:
+        top = imgui.get_cursor_screen_pos().y
+        self._render_help_heading()
+        pane = height - (imgui.get_cursor_screen_pos().y - top)
+        if imgui.begin_child("##param_help", imgui.ImVec2(0, max(pane, 1.0)), True):
             render_markdown(text)
         imgui.end_child()
 

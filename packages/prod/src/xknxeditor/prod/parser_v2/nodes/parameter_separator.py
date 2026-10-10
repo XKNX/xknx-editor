@@ -27,7 +27,9 @@ class ParameterSeparatorNode(DynamicNode):
                 if self._elem.text_parameter_ref_id
                 else None
             )
-            text: str | None = fill_name(template, name_value or "") or None
+            text: str | None = (
+                fill_name(template, name_value or "", keep_whitespace=True) or None
+            )
         else:
             text = None
         elem = self._elem

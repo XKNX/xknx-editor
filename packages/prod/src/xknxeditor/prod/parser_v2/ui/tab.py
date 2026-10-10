@@ -15,3 +15,5 @@ class UiTab:
     text: str | None = None
     number: str | None = None
     icon: str | None = None
+    # A ChannelIndependentBlock: its blocks belong to no channel.
+    independent: bool = False

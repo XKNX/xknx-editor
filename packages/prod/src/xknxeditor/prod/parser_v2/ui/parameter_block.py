@@ -28,3 +28,4 @@ class UiParameterBlock:
     column_widths: tuple[str, ...] = ()  # Column Width as declared, e.g. "45%"
     collapsed_rows: frozenset[int] = frozenset()  # 1-based rows with CollapseIfEmpty
     cell: str | None = None  # "row,col" inside a parent GRID/TABLE block
+    icon: str | None = None

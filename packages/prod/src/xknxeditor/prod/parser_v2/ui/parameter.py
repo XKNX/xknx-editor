@@ -47,6 +47,8 @@ class EnumWidget:
 
     choices: tuple[EnumChoice, ...]
     base: ParameterTypeTypeRestrictionBase
+    # Two choices without a drop-down hint are shown as radio buttons.
+    radio: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -230,6 +232,7 @@ def resolve_widget(param_type: ParameterType) -> Widget:
                     for e in ordered
                 ),
                 base=r.base,
+                radio=len(ordered) == 2 and r.uihint is None,
             )
         case ParameterTypeTypeRestriction() as r:
             return NumberWidget(min=0, max=2**r.size_in_bit - 1)

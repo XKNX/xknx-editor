@@ -53,7 +53,11 @@ class ComObjectParameterBlockNode(DynamicNode):
 
         def label(text: str | None, ref: str | None) -> str:
             value = ctx.get(ref) if ref else None
-            return fill_name(apply_text_args(text or "", arg_defaults), value or "")
+            return fill_name(
+                apply_text_args(text or "", arg_defaults),
+                value or "",
+                keep_whitespace=True,
+            )
 
         row_labels = tuple(label(r.text, r.text_parameter_ref_id) for r in rows)
         column_headers = tuple(label(c.text, c.text_parameter_ref_id) for c in cols)
@@ -75,5 +79,6 @@ class ComObjectParameterBlockNode(DynamicNode):
                     i for i, r in enumerate(rows, start=1) if r.collapse_if_empty
                 ),
                 cell=self._elem.cell,
+                icon=self._elem.icon,
             )
         ]

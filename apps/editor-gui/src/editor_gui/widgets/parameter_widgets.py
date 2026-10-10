@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import math
 import re
 from collections.abc import Callable
 from dataclasses import dataclass, replace
@@ -10,6 +11,7 @@ from editor_gui.device import Device
 from editor_gui.regional import regional_format
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import format_float, general_float, parse_float
+from editor_gui.widgets.icons import Icon, Picture, draw_icon
 from editor_gui.widgets.strings import S
 from editor_gui.widgets.time_format import (
     format_time,
@@ -23,6 +25,9 @@ from editor_gui.widgets.value_pickers import (
     render_date_param,
 )
 from xknxeditor.namespaces.intermediate.access_t import Access
+from xknxeditor.namespaces.intermediate.horizontal_alignment_t import (
+    HorizontalAlignment,
+)
 from xknxeditor.namespaces.intermediate.parameter_block_layout_t import (
     ParameterBlockLayout,
 )
@@ -151,7 +156,42 @@ def _value_display(param: UiParameter, value: str) -> str:
 
 def _shows_as_text(param: UiParameter) -> bool:
     """A read-only parameter is shown as its value; a checkbox keeps its (disabled) box."""
-    return param.access == Access.READ and not isinstance(param.widget, CheckBoxWidget)
+    return param.access == Access.READ and not isinstance(
+        param.widget, CheckBoxWidget | PictureWidget
+    )
+
+
+# Loads the picture of a TypePicture baggage while a parameter tree is drawn.
+_get_picture: Callable[[str], Picture | None] | None = None
+
+
+def _render_picture(widget: PictureWidget, width: float) -> None:
+    """The picture at its own size, placed in ``width`` by its alignment and clipped to it."""
+    picture = _get_picture(widget.ref_id) if _get_picture is not None else None
+    if picture is None:
+        imgui.text_disabled(S.NODE_IMAGE_PLACEHOLDER)
+        return
+    w, h = px(picture.width), px(picture.height)
+    alignment = widget.horizontal_alignment
+    if alignment == HorizontalAlignment.STRETCH:
+        w, h = width, h * width / w
+    start = imgui.get_cursor_screen_pos()
+    x = start.x
+    if alignment == HorizontalAlignment.RIGHT:
+        x += width - w
+    elif alignment == HorizontalAlignment.MIDDLE:
+        x += (width - w) / 2
+    draw_list = imgui.get_window_draw_list()
+    draw_list.push_clip_rect(start, imgui.ImVec2(start.x + width, start.y + h), True)
+    while True:
+        draw_list.add_image(
+            picture.texture, imgui.ImVec2(x, start.y), imgui.ImVec2(x + w, start.y + h)
+        )
+        x += w
+        if alignment != HorizontalAlignment.REPEAT or x >= start.x + width:
+            break
+    draw_list.pop_clip_rect()
+    imgui.dummy(imgui.ImVec2(width, h))
 
 
 @dataclass
@@ -183,6 +223,15 @@ def render_param_widget(
             if deferred_enum:
                 if imgui.button(f"{preview}##{widget_id}", imgui.ImVec2(-1, 0)):
                     return EnumPopupRequest(device=None, param=param)  # type: ignore[arg-type]
+            elif w.radio:
+                for i, choice in enumerate(w.choices):
+                    if i:
+                        imgui.same_line()
+                    selected = not differs and str(choice.value) == param.value
+                    if _small_radio(
+                        f"{choice.label}##{widget_id}_{i}", selected, first=i == 0
+                    ):
+                        on_change(str(choice.value))
             else:
                 if imgui.begin_combo(f"##{widget_id}", preview):
                     for choice in w.choices:
@@ -244,8 +293,8 @@ def render_param_widget(
                     on_change("1" if new_checked else "0")
         case RawDataWidget():
             pass
-        case PictureWidget():
-            imgui.text_disabled(S.NODE_IMAGE_PLACEHOLDER)
+        case PictureWidget() as w:
+            _render_picture(w, imgui.get_content_region_avail().x)
         case _:
             _render_text_param(widget_id, param.value, on_change, differs)
     return None
@@ -260,6 +309,19 @@ def _small_checkbox(label: str, checked: bool) -> tuple[bool, bool]:
     result = imgui.checkbox(label, checked)
     imgui.pop_style_var()
     return result
+
+
+def _small_radio(label: str, active: bool, *, first: bool) -> bool:
+    """A radio button about the size of the text, centred in a row of full-height fields;
+    the ones after the ``first`` follow on its line."""
+    padding = imgui.get_style().frame_padding
+    small = padding.y / 4
+    if first:
+        imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() + padding.y - small)
+    imgui.push_style_var(imgui.StyleVar_.frame_padding, imgui.ImVec2(padding.x, small))
+    pressed = imgui.radio_button(label, active)
+    imgui.pop_style_var()
+    return pressed
 
 
 def _render_text_param(
@@ -286,10 +348,6 @@ def _render_float_param(
     """A float with the regional decimal separator; an entry is stored when editing ends."""
     regional = regional_format()
     shown = "" if differs else format_float(value, decimal=regional.decimal)
-    chars = max(
-        len(general_float(widget.min)), len(general_float(widget.max)), len(shown)
-    )
-    _set_number_field_width(chars, spin=False)
     if differs:
         _, text = imgui.input_text_with_hint(f"##{widget_id}", S.PARAM_DIFFERS, "")
     else:
@@ -674,6 +732,167 @@ def _tab_label(tab: UiTab) -> str:
     return _instance_label(tab.text or tab.name or tab.id or "Tab", tab.id)
 
 
+@dataclass(frozen=True, slots=True)
+class ParameterPage:
+    """A channel or parameter page in the page tree."""
+
+    key: str
+    label: str
+    icon: str | None
+    content: tuple[UiNode, ...]  # shown when the page is selected
+    children: tuple[ParameterPage, ...] = ()
+    block: UiParameterBlock | None = None
+    selectable: bool = True
+
+
+def _is_page(node: UiNode) -> bool:
+    return isinstance(node, UiParameterBlock) and not node.inline and not node.hidden
+
+
+def _unique_key(key: str, seen: dict[str, int]) -> str:
+    count = seen.get(key, 0)
+    seen[key] = count + 1
+    return key if count == 0 else f"{key}#{count}"
+
+
+def _has_content(nodes: tuple[UiNode, ...]) -> bool:
+    return any(
+        isinstance(n, (UiParameter, UiButton, UiSeparator))
+        or (isinstance(n, UiParameterBlock) and not n.hidden)
+        for n in nodes
+    )
+
+
+def _split_pages(
+    children: tuple[UiNode, ...], prefix: str, seen: dict[str, int]
+) -> tuple[tuple[UiNode, ...], list[ParameterPage]]:
+    """Separate the content shown on a page from the sub-pages listed below it in the tree."""
+    content: list[UiNode] = []
+    pages: list[ParameterPage] = []
+    for node in children:
+        if isinstance(node, UiTab):
+            key = f"{prefix}_{node.id}"
+            if node.independent:
+                inner, sub = _split_pages(node.children, key, seen)
+                content.extend(inner)
+                pages.extend(sub)
+                continue
+            inner, sub = _split_pages(node.children, key, seen)
+            pages.append(
+                ParameterPage(
+                    key=_unique_key(key, seen),
+                    label=_tab_label(node),
+                    icon=node.icon,
+                    content=inner,
+                    children=tuple(sub),
+                    selectable=_has_content(inner),
+                )
+            )
+        elif _is_page(node):
+            assert isinstance(node, UiParameterBlock)
+            key = f"{prefix}_{node.id}"
+            if node.layout == ParameterBlockLayout.LIST:
+                inner, sub = _split_pages(node.children, key, seen)
+            else:
+                inner, sub = node.children, []
+            pages.append(
+                ParameterPage(
+                    key=_unique_key(key, seen),
+                    label=_instance_label(node.text or node.name or node.id, node.id),
+                    icon=node.icon,
+                    content=inner,
+                    children=tuple(sub),
+                    block=node,
+                )
+            )
+        elif (
+            isinstance(node, UiParameterBlock)
+            and node.inline
+            and not node.hidden
+            and node.layout == ParameterBlockLayout.LIST
+        ):
+            inner, sub = _split_pages(node.children, f"{prefix}_{node.id}", seen)
+            pages.extend(sub)
+            content.append(replace(node, children=inner) if sub else node)
+        else:
+            content.append(node)
+    return tuple(content), pages
+
+
+def build_pages(nodes: list[UiNode], prefix: str) -> tuple[ParameterPage, ...]:
+    """The page tree of a device: channels and parameter pages, as the dialog lists them."""
+    content, pages = _split_pages(tuple(nodes), prefix, {})
+    if _has_content(content):
+        pages.insert(
+            0,
+            ParameterPage(
+                key=f"{prefix}_root", label=S.PAGE_GENERAL, icon=None, content=content
+            ),
+        )
+    return tuple(pages)
+
+
+def filter_pages(
+    pages: tuple[ParameterPage, ...], needle: str
+) -> tuple[ParameterPage, ...]:
+    """Pages whose label or parameters match ``needle``, with the pages leading to them."""
+    result: list[ParameterPage] = []
+    for page in pages:
+        children = filter_pages(page.children, needle)
+        own = needle in page.label.lower() or any(
+            _node_matches(n, needle) for n in page.content
+        )
+        if own or children:
+            result.append(
+                replace(page, children=children, selectable=page.selectable and own)
+            )
+    return tuple(result)
+
+
+def _first_selectable(pages: tuple[ParameterPage, ...]) -> ParameterPage | None:
+    for page in pages:
+        if page.selectable:
+            return page
+        found = _first_selectable(page.children)
+        if found is not None:
+            return found
+    return None
+
+
+def _page_path(
+    pages: tuple[ParameterPage, ...], key: str
+) -> list[ParameterPage] | None:
+    """``key``'s page and the pages above it, top first."""
+    for page in pages:
+        if page.key == key:
+            return [page]
+        below = _page_path(page.children, key)
+        if below is not None:
+            return [page, *below]
+    return None
+
+
+# Device node id -> selected page key.
+_selected_pages: dict[int, str] = {}
+# Device node id -> (UI nodes, filter, pages) of the last page tree built.
+_page_cache: dict[int, tuple[list[UiNode], str, tuple[ParameterPage, ...]]] = {}
+
+_TREE_WIDTH = 240.0
+
+
+def _device_pages(
+    device: Device, nodes: list[UiNode], needle: str
+) -> tuple[ParameterPage, ...]:
+    cached = _page_cache.get(device.node_id)
+    if cached is not None and cached[0] is nodes and cached[1] == needle:
+        return cached[2]
+    pages = build_pages(nodes, str(device.node_id))
+    if needle:
+        pages = filter_pages(pages, needle)
+    _page_cache[device.node_id] = (nodes, needle, pages)
+    return pages
+
+
 def render_ui_tree(
     device: Device,
     nodes: list[UiNode],
@@ -682,51 +901,170 @@ def render_ui_tree(
     filter_text: str = "",
     differing_refs: frozenset[str] = frozenset(),
     buttons: ButtonActions | None = None,
+    *,
+    height: float = 0.0,
+    get_icon: Callable[[str], Icon | None] | None = None,
+    get_picture: Callable[[str], Picture | None] | None = None,
+    footer: Callable[[float], None] | None = None,
+    footer_height: float = 0.0,
 ) -> EnumPopupRequest | None:
-    """Tab-bar renderer with per-tab filter and multi-device diff markers."""
+    """The page tree beside the selected page, with filter and multi-device diff markers.
+
+    ``get_icon`` loads a page icon by name and ``get_picture`` a picture by baggage id.
+
+    ``footer`` is drawn below the page, about ``footer_height`` high, and is passed the
+    exact height left for it.
+    """
     if not nodes:
         return None
     needle = filter_text.lower().strip()
+    pages = _device_pages(device, nodes, needle)
+    path = _page_path(pages, _selected_pages.get(device.node_id, ""))
+    if path is None or not path[-1].selectable:
+        first = _first_selectable(pages)
+        path = _page_path(pages, first.key) if first is not None else None
+        if first is not None and not needle:
+            _selected_pages[device.node_id] = first.key
+    selected = path[-1] if path else None
+    opened = frozenset(p.key for p in (path or [])[:-1])
+
+    if height <= 0:
+        height = imgui.get_content_region_avail().y
+    height -= imgui.get_style().cell_padding.y * 2
     popup_request: EnumPopupRequest | None = None
-    tabs = [n for n in nodes if isinstance(n, UiTab)]
-    if tabs:
-        if imgui.begin_tab_bar(f"##tabs_{device.node_id}"):
-            for tab in tabs:
-                if needle and not _node_matches(tab, needle):
-                    continue
-                label = _tab_label(tab)
-                # Key the tab by the stable id suffix only (###), not the label: a param change can
-                # recompute the tab's text (parameter-driven names), and with ## the label folds into
-                # the imgui id, so a changed label loses the selection and jumps back to the first tab.
-                if imgui.begin_tab_item(f"{label}###{device.node_id}_{tab.id}")[0]:
-                    req = _render_children(
-                        device,
-                        tab.children,
-                        on_change,
-                        deferred_enum,
-                        f"{device.node_id}_{tab.id}",
-                        needle,
-                        differing_refs,
-                        buttons,
-                    )
-                    if req is not None:
-                        popup_request = req
-                    imgui.end_tab_item()
-            imgui.end_tab_bar()
+    flags = imgui.TableFlags_.resizable | imgui.TableFlags_.borders_inner_v
+    if imgui.begin_table(f"##pages_{device.node_id}", 2, flags):
+        imgui.table_setup_column(
+            "##tree", imgui.TableColumnFlags_.width_fixed, px(_TREE_WIDTH)
+        )
+        imgui.table_setup_column("##page", imgui.TableColumnFlags_.width_stretch)
+        imgui.table_next_row()
+        imgui.table_next_column()
+        scroll = imgui.WindowFlags_.horizontal_scrollbar
+        if imgui.begin_child("##page_tree", imgui.ImVec2(0, height), 0, scroll):
+            clicked = _render_page_tree(
+                pages,
+                selected.key if selected else None,
+                opened,
+                bool(needle),
+                get_icon,
+            )
+            if clicked is not None:
+                _selected_pages[device.node_id] = clicked
+        imgui.end_child()
+        imgui.table_next_column()
+        bottom = imgui.get_cursor_screen_pos().y + height
+        page_height = height
+        if footer is not None:
+            page_height = max(height - footer_height, imgui.get_frame_height() * 3)
+        if (
+            imgui.begin_child("##page_content", imgui.ImVec2(0, page_height), 0, scroll)
+            and selected is not None
+        ):
+            global _get_picture
+            _get_picture = get_picture
+            try:
+                popup_request = _render_page(
+                    device,
+                    selected,
+                    on_change,
+                    deferred_enum,
+                    needle,
+                    differing_refs,
+                    buttons,
+                )
+            finally:
+                _get_picture = None
+        imgui.end_child()
+        if footer is not None:
+            footer(bottom - imgui.get_cursor_screen_pos().y)
+        imgui.end_table()
+    return popup_request
+
+
+def _render_page_tree(
+    pages: tuple[ParameterPage, ...],
+    selected: str | None,
+    opened: frozenset[str],
+    open_all: bool,
+    get_icon: Callable[[str], Icon | None] | None,
+) -> str | None:
+    """Draw ``pages`` as tree nodes; returns the key of a page clicked this frame."""
+    clicked: str | None = None
+    icon_size = imgui.get_font_size()
+    space = imgui.calc_text_size(" ").x
+    for page in pages:
+        flags = imgui.TreeNodeFlags_.span_avail_width
+        if not page.children:
+            flags |= (
+                imgui.TreeNodeFlags_.leaf | imgui.TreeNodeFlags_.no_tree_push_on_open
+            )
+        if page.selectable:
+            flags |= (
+                imgui.TreeNodeFlags_.open_on_arrow
+                | imgui.TreeNodeFlags_.open_on_double_click
+            )
+        if page.key == selected:
+            flags |= imgui.TreeNodeFlags_.selected
+        if open_all:
+            imgui.set_next_item_open(True, imgui.Cond_.always)
+        elif page.key in opened:
+            imgui.set_next_item_open(True, imgui.Cond_.once)
+        icon = get_icon(page.icon) if get_icon is not None and page.icon else None
+        pad = " " * math.ceil((icon_size + space) / space) if icon is not None else ""
+        is_open = imgui.tree_node_ex(f"{pad}{page.label}###{page.key}", flags)
+        if icon is not None:
+            top = imgui.get_item_rect_min()
+            x = top.x + imgui.get_tree_node_to_label_spacing()
+            y = top.y + (imgui.get_item_rect_size().y - icon_size) / 2
+            draw_icon(icon, imgui.ImVec2(x, y), icon_size)
+        if (
+            page.selectable
+            and imgui.is_item_clicked()
+            and not imgui.is_item_toggled_open()
+        ):
+            clicked = page.key
+        if page.block is not None:
+            _track_help(page.block.help_context)
+        if is_open and page.children:
+            below = _render_page_tree(
+                page.children, selected, opened, open_all, get_icon
+            )
+            clicked = clicked or below
+            imgui.tree_pop()
+    return clicked
+
+
+def _render_page(
+    device: Device,
+    page: ParameterPage,
+    on_change: Callable[[Device, str, str], None],
+    deferred_enum: bool,
+    needle: str,
+    differing_refs: frozenset[str],
+    buttons: ButtonActions | None,
+) -> EnumPopupRequest | None:
+    block = page.block
+    if needle in page.label.lower():
+        needle = ""
+    imgui.begin_disabled(block is not None and block.read_only)
+    if block is not None and block.layout != ParameterBlockLayout.LIST:
+        req = _render_grid_block(
+            device, block, on_change, deferred_enum, page.key, differing_refs, buttons
+        )
     else:
         req = _render_children(
             device,
-            tuple(nodes),
+            page.content,
             on_change,
             deferred_enum,
-            str(device.node_id),
+            page.key,
             needle,
             differing_refs,
             buttons,
         )
-        if req is not None:
-            popup_request = req
-    return popup_request
+    imgui.end_disabled()
+    return req
 
 
 def _render_children(
@@ -762,7 +1100,13 @@ def _render_children(
         pending_params.clear()
 
     for node in children:
-        if isinstance(node, UiParameter):
+        if isinstance(node, UiParameter) and isinstance(node.widget, PictureWidget):
+            if needle:
+                continue
+            flush()
+            width = min(imgui.get_content_region_avail().x, px(_GRID_REFERENCE_WIDTH))
+            _render_picture(node.widget, width)
+        elif isinstance(node, UiParameter):
             if not needle or needle in node.label.lower():
                 pending_params.append(node)
         elif isinstance(node, UiParameterBlock):
@@ -1068,13 +1412,10 @@ def _render_grid_cells(
 
 
 def _render_cell_separator(sep: UiSeparator) -> None:
-    """A separator in a grid cell: a headline as plain text, a label dimmed, a ruler across."""
-    if sep.hint == "Headline" and sep.text:
+    """A separator in a grid cell: a headline or label as plain text, a ruler across."""
+    if sep.text and sep.hint in ("Headline", None):
         imgui.align_text_to_frame_padding()
         imgui.text(sep.text)
-    elif sep.hint is None and sep.text:
-        imgui.align_text_to_frame_padding()
-        imgui.text_disabled(sep.text)
     else:
         _render_separator(sep)
 
@@ -1135,14 +1476,25 @@ def _render_param_table(
     if not params:
         return None
     popup_request: EnumPopupRequest | None = None
-    table_flags = (
-        imgui.TableFlags_.no_saved_settings | imgui.TableFlags_.sizing_stretch_prop
+    table_flags = imgui.TableFlags_.no_saved_settings
+    # Labels and values sit at the same positions as the columns of grids on the page.
+    reference = min(imgui.get_content_region_avail().x, px(_GRID_REFERENCE_WIDTH))
+    label_width = reference * _LIST_LABEL_SHARE
+    padding = imgui.get_style().cell_padding
+    imgui.push_style_var(imgui.StyleVar_.cell_padding, imgui.ImVec2(0, padding.y))
+    opened = imgui.begin_table(
+        f"##params_{prefix}", 2, table_flags, imgui.ImVec2(reference, 0)
     )
-    if imgui.begin_table(f"##params_{prefix}", 2, table_flags):
-        # Split label/value proportionally so wide combos (long enum labels) get real room
-        # instead of being clipped in a narrow fixed column with a big gap to the left.
-        imgui.table_setup_column("Name", imgui.TableColumnFlags_.width_stretch, 1.0)
-        imgui.table_setup_column("Value", imgui.TableColumnFlags_.width_stretch, 1.0)
+    imgui.pop_style_var()
+    if opened:
+        imgui.table_setup_column(
+            "Name", imgui.TableColumnFlags_.width_fixed, label_width
+        )
+        # Values such as a row of radio buttons may reach past the column.
+        imgui.table_setup_column(
+            "Value",
+            imgui.TableColumnFlags_.width_stretch | imgui.TableColumnFlags_.no_clip,
+        )
         for param in params:
             imgui.table_next_row()
             if isinstance(param, UiButton):
@@ -1150,7 +1502,8 @@ def _render_param_table(
                 _render_button(device, param, prefix, buttons)
                 continue
             imgui.table_set_column_index(0)
-            indent = param.indent_level * px(12.0)
+            # Each level indents by two spaces, as grid row labels do with leading spaces.
+            indent = param.indent_level * imgui.calc_text_size("  ").x
             if indent > 0:
                 imgui.indent(indent)
             label = param.label
@@ -1162,15 +1515,22 @@ def _render_param_table(
             if changed:
                 imgui.text_colored(_CHANGED_COLOR, "*")
                 imgui.same_line(0, px(4))
-                imgui.text_colored(_CHANGED_COLOR, label)
+                imgui.push_style_color(imgui.Col_.text, _CHANGED_COLOR)
+                imgui.text_wrapped(label)
+                imgui.pop_style_color()
                 if imgui.is_item_hovered():
                     imgui.set_tooltip(
                         S.PARAM_CHANGED_TOOLTIP.format(default=_default_display(param))
                     )
             elif isinstance(param.widget, RawDataWidget):
-                imgui.text_disabled(label)
+                imgui.push_style_color(
+                    imgui.Col_.text,
+                    imgui.get_style_color_vec4(imgui.Col_.text_disabled),
+                )
+                imgui.text_wrapped(label)
+                imgui.pop_style_color()
             else:
-                imgui.text(label)
+                imgui.text_wrapped(label)
             _track_help(param.help_context)
             if indent > 0:
                 imgui.unindent(indent)
@@ -1215,6 +1575,8 @@ _INFO_COLOR = imgui.ImVec4(0.45, 0.72, 1.0, 1.0)
 _MIN_STRETCH_COLUMN = 80.0
 # Page width at 100 % scaling that percentage column widths of a grid refer to.
 _GRID_REFERENCE_WIDTH = 540.0
+# Share of that width the labels of a parameter list take.
+_LIST_LABEL_SHARE = 0.45
 # Gap at 100 % scaling a field in a grid cell leaves to the next column.
 _CELL_GAP = 6.0
 # Characters a number field has room for at least.
@@ -1222,19 +1584,67 @@ _MIN_NUMBER_CHARS = 3
 _SEPARATOR_ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 
 
-def _aligned_text(
-    text: str, alignment: str | None, color: imgui.ImVec4 | None = None
-) -> None:
+def _wrap_width() -> float:
+    """Width up to the visible right edge of the window or the current table column."""
+    style = imgui.get_style()
+    right = imgui.get_scroll_x() + imgui.get_window_width() - style.window_padding.x
+    if imgui.get_scroll_max_y() > 0:
+        right -= style.scrollbar_size
+    x = imgui.get_cursor_pos_x()
+    return max(min(right - x, imgui.get_content_region_avail().x), px(80))
+
+
+def _wrapped_text(text: str, width: float) -> None:
+    imgui.push_text_wrap_pos(imgui.get_cursor_pos_x() + width)
+    imgui.text_unformatted(text)
+    imgui.pop_text_wrap_pos()
+
+
+def _aligned_text(text: str, alignment: str | None) -> None:
+    avail = _wrap_width()
     width = imgui.calc_text_size(text).x
-    avail = imgui.get_content_region_avail().x
     if alignment in ("Center", "Right") and "\n" not in text and width < avail:
         offset = (avail - width) / 2 if alignment == "Center" else avail - width
         imgui.set_cursor_pos_x(imgui.get_cursor_pos_x() + offset)
-    if color is not None:
-        imgui.push_style_color(imgui.Col_.text, color)
-    imgui.text_wrapped(text)
-    if color is not None:
-        imgui.pop_style_color()
+        avail -= offset
+    _wrapped_text(text, avail)
+
+
+def _render_hint(text: str, color: imgui.ImVec4, glyph: str) -> None:
+    """An information or error text in a tinted box with a round icon."""
+    pad = px(8)
+    icon = imgui.get_font_size() * 1.25
+    width = _wrap_width()
+    text_width = width - pad * 3 - icon
+    text_height = imgui.calc_text_size(text, wrap_width=text_width).y
+    top = imgui.get_cursor_screen_pos()
+    box_max = imgui.ImVec2(top.x + width, top.y + max(text_height, icon) + pad * 2)
+    draw = imgui.get_window_draw_list()
+    rounding = imgui.get_style().frame_rounding
+    draw.add_rect_filled(
+        top,
+        box_max,
+        imgui.get_color_u32(imgui.ImVec4(color.x, color.y, color.z, 0.12)),
+        rounding,
+    )
+    draw.add_rect(
+        top,
+        box_max,
+        imgui.get_color_u32(imgui.ImVec4(color.x, color.y, color.z, 0.6)),
+        rounding,
+    )
+    centre = imgui.ImVec2(top.x + pad + icon / 2, top.y + pad + icon / 2)
+    draw.add_circle_filled(centre, icon / 2, imgui.get_color_u32(color))
+    size = imgui.calc_text_size(glyph)
+    draw.add_text(
+        imgui.ImVec2(centre.x - size.x / 2, centre.y - size.y / 2),
+        imgui.get_color_u32(imgui.ImVec4(1, 1, 1, 1)),
+        glyph,
+    )
+    imgui.set_cursor_screen_pos(imgui.ImVec2(top.x + pad * 2 + icon, top.y + pad))
+    _wrapped_text(text, text_width)
+    imgui.set_cursor_screen_pos(imgui.ImVec2(top.x, box_max.y))
+    imgui.dummy(imgui.ImVec2(width, 0))
 
 
 def _render_separator(sep: UiSeparator) -> None:
@@ -1248,9 +1658,9 @@ def _render_separator(sep: UiSeparator) -> None:
     elif sep.hint == "Headline":
         imgui.separator_text(sep.text)
     elif sep.hint == "Information":
-        _aligned_text(sep.text, sep.alignment, _INFO_COLOR)
+        _render_hint(sep.text, _INFO_COLOR, "i")
     elif sep.hint == "Error":
-        _aligned_text(sep.text, sep.alignment, _SEPARATOR_ERROR_COLOR)
+        _render_hint(sep.text, _SEPARATOR_ERROR_COLOR, "!")
     else:
         _aligned_text(sep.text, sep.alignment)
 

@@ -145,3 +145,6 @@ msgstr "x 10 ms"
 
 msgid "Milliseconds"
 msgstr "Millisekunden"
+
+msgid "General"
+msgstr "Allgemein"

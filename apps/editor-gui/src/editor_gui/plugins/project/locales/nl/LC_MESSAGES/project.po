@@ -690,3 +690,6 @@ msgstr "Help"
 
 msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
 msgstr "De productgegevens van dit apparaat ontbreken - het applicatieprogramma staat niet in de catalogus. Importeer het product om het apparaat te bewerken."
+
+msgid "Device"
+msgstr "Apparaat"

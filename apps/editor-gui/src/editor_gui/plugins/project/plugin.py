@@ -33,6 +33,14 @@ from editor_gui.plugins.project.ui.preflight_result import PreflightResultWindow
 from editor_gui.plugins.project.ui.program_queue import ProgramQueuePanel
 from editor_gui.plugins.project.ui.tools import apply_name_swap, shifted_ia
 from editor_gui.widgets import ButtonActions
+from editor_gui.widgets.icons import (
+    Icon,
+    Picture,
+    has_icon,
+    has_picture,
+    load_icon,
+    load_picture,
+)
 from xknxeditor.prod.baggage import Baggages
 from xknxeditor.prod.errors import ArchiveError
 
@@ -190,6 +198,8 @@ class ProjectPlugin:
                 error=lambda device, button: device.param_errors.get(button.id),
             ),
             get_help=self._help_text,
+            get_icon=self._icon,
+            get_picture=self._picture,
         )
         self._dali_panel = DaliCommissioningPanel(self._run_dali)
 
@@ -293,6 +303,18 @@ class ProjectPlugin:
                 label=S.PANEL_EDITOR,
                 dock="MainDockSpace",
                 render=self._render_configure,
+            ),
+            PanelDefinition(
+                name="device",
+                label=S.PANEL_DEVICE,
+                dock="DeviceSpace",
+                render=self._render_device,
+            ),
+            PanelDefinition(
+                name="manufacturer",
+                label=S.PANEL_MANUFACTURER,
+                dock="DeviceSpace",
+                render=self._render_manufacturer,
             ),
             PanelDefinition(
                 name="mass_linker",
@@ -1060,8 +1082,29 @@ class ProjectPlugin:
     def _help_text(self, device: "Device", context: str) -> str | None:
         """A help page from the ContextHelpFile baggage of the device's source .knxprod."""
         help_file = device.app.program.context_help_file
+        if not help_file:
+            return None
+        baggages = self._device_baggages(device)
+        return baggages.help_text(help_file, context) if baggages else None
+
+    def _icon(self, device: "Device", name: str) -> Icon | None:
+        """An icon from the IconFile baggage of the device's source .knxprod."""
+        icon_file = device.app.program.icon_file
+        if not icon_file:
+            return None
+        key = f"{device.app.id}|{name}"
+        baggages = self._device_baggages(device) if not has_icon(key) else None
+        return load_icon(key, baggages.icon(icon_file, name) if baggages else None)
+
+    def _picture(self, device: "Device", ref_id: str) -> Picture | None:
+        """A TypePicture image from the baggages of the device's source .knxprod."""
+        key = f"{device.app.id}|{ref_id}"
+        baggages = self._device_baggages(device) if not has_picture(key) else None
+        return load_picture(key, baggages.file(ref_id) if baggages else None)
+
+    def _device_baggages(self, device: "Device") -> Baggages | None:
         info = self._api.project.get_device_info(device.node_id)
-        if not help_file or info is None or info.hardware2program_ref_id is None:
+        if info is None or info.hardware2program_ref_id is None:
             return None
         source = self._api.catalog.get_program_source(info.hardware2program_ref_id)
         if source is None:
@@ -1079,7 +1122,7 @@ class ProjectPlugin:
                 )
                 baggages = Baggages({})
             self._baggages[source] = baggages
-        return baggages.help_text(help_file, context)
+        return baggages
 
     def _handle_param_change(
         self, device: "Device", param_id: str, new_value: str
@@ -1366,6 +1409,14 @@ class ProjectPlugin:
         # from a per-frame global callback, not from here).
         self._sync_selected_device_from_editor()
         self._configure_panel.render()
+
+    def _render_device(self) -> None:
+        self._sync_selected_device_from_editor()
+        self._configure_panel.render_device()
+
+    def _render_manufacturer(self) -> None:
+        self._sync_selected_device_from_editor()
+        self._configure_panel.render_manufacturer()
 
     def _sync_selected_device_from_editor(self) -> None:
         if not self._get_selected_node_ids:

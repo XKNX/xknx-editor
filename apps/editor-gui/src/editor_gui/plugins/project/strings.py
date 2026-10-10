@@ -24,6 +24,14 @@ class ProjectStrings:
         return _("Editor")
 
     @property
+    def PANEL_DEVICE(self) -> str:
+        return _("Device")
+
+    @property
+    def PANEL_MANUFACTURER(self) -> str:
+        return _("Manufacturer")
+
+    @property
     def PANEL_GROUP_ADDRESSES(self) -> str:
         return _("Group Addresses")
 

@@ -2584,14 +2584,22 @@ class KnxGuiApp:
         return panels
 
 
+# Bumped whenever the default docking layout changes, so a stored layout is replaced once.
+_LAYOUT_VERSION = 4
+
+
 def create_docking_splits() -> list[hello_imgui.DockingSplit]:
-    split_left = hello_imgui.DockingSplit()
-    split_left.initial_dock = "MainDockSpace"
-    split_left.new_dock = "LeftSpace"
-    split_left.direction = imgui.Dir.left
-    # Wide enough that the stacked navigation tabs (Buildings, Devices, Group Addresses, Catalog)
-    # all fit without the tab-bar overflow (">>") arrow.
-    split_left.ratio = 0.34
+    split_right = hello_imgui.DockingSplit()
+    split_right.initial_dock = "MainDockSpace"
+    split_right.new_dock = "RightSpace"
+    split_right.direction = imgui.Dir.right
+    split_right.ratio = 0.19
+
+    split_device = hello_imgui.DockingSplit()
+    split_device.initial_dock = "RightSpace"
+    split_device.new_dock = "DeviceSpace"
+    split_device.direction = imgui.Dir.up
+    split_device.ratio = 0.35
 
     split_bottom = hello_imgui.DockingSplit()
     split_bottom.initial_dock = "MainDockSpace"
@@ -2599,13 +2607,27 @@ def create_docking_splits() -> list[hello_imgui.DockingSplit]:
     split_bottom.direction = imgui.Dir.down
     split_bottom.ratio = 0.25
 
-    split_right = hello_imgui.DockingSplit()
-    split_right.initial_dock = "MainDockSpace"
-    split_right.new_dock = "RightSpace"
-    split_right.direction = imgui.Dir.right
-    split_right.ratio = 0.25
+    split_left = hello_imgui.DockingSplit()
+    split_left.initial_dock = "MainDockSpace"
+    split_left.new_dock = "LeftSpace"
+    split_left.direction = imgui.Dir.left
+    # Wide enough that the stacked navigation tabs (Buildings, Devices, Group Addresses, Catalog)
+    # all fit without the tab-bar overflow (">>") arrow.
+    split_left.ratio = 0.3
 
-    return [split_left, split_bottom, split_right]
+    return [split_right, split_device, split_bottom, split_left]
+
+
+def _apply_new_layout_once(docking_params: hello_imgui.DockingParams) -> None:
+    """Replace a stored layout from an older version with the current default layout."""
+    data = load_settings("app")
+    if data.get("layout_version") == _LAYOUT_VERSION:
+        return
+    docking_params.layout_condition = (
+        hello_imgui.DockingLayoutCondition.application_start
+    )
+    data["layout_version"] = _LAYOUT_VERSION
+    save_settings("app", data)
 
 
 # Stable dock id (the panel's ``name``) -> a getter for its translated title. Dockable windows are
@@ -2629,6 +2651,8 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
         "buildings": lambda: _proj.PANEL_BUILDINGS,
         "group_addresses": lambda: _proj.PANEL_GROUP_ADDRESSES,
         "editor": lambda: _proj.PANEL_EDITOR,
+        "device": lambda: _proj.PANEL_DEVICE,
+        "manufacturer": lambda: _proj.PANEL_MANUFACTURER,
         "mass_linker": lambda: _proj.PANEL_MASS_LINKER,
         "tools": lambda: _proj.PANEL_TOOLS,
         "history": lambda: _proj.PANEL_HISTORY,
@@ -2657,6 +2681,9 @@ _DOCK_TAB_ORDER = [
     "catalog",
     "editor",
     "cockpit",
+    "device",
+    "manufacturer",
+    "operations",
     "mass_linker",
     "tools",
     "ki",
@@ -2679,17 +2706,13 @@ def create_dockable_windows(app: KnxGuiApp) -> list[hello_imgui.DockableWindow]:
         window.label = f"{title}###{panel.name}"
         window.dock_space_name = panel.dock
         window.gui_function = panel.render
-        if panel.name == "editor":
-            # Parameter grids keep their declared column widths and may be wider than the panel.
-            window.imgui_window_flags = imgui.WindowFlags_.horizontal_scrollbar
         windows.append(window)
     rank = {name: i for i, name in enumerate(_DOCK_TAB_ORDER)}
     windows.sort(key=lambda w: rank.get(_dock_window_name(w), len(_DOCK_TAB_ORDER)))
-    # Buildings is the primary view: focus it on first frame.
+    # Buildings and Device are the primary views: focus them on first frame.
     for w in windows:
-        if _dock_window_name(w) == "buildings":
+        if _dock_window_name(w) in ("buildings", "device"):
             w.focus_window_at_next_frame = True
-            break
     return windows
 
 
@@ -2879,6 +2902,7 @@ def _main() -> None:
     runner_params.ini_filename = str(config_dir() / "XKNX_Editor.ini")
     runner_params.docking_params.docking_splits = create_docking_splits()
     runner_params.docking_params.dockable_windows = create_dockable_windows(app)
+    _apply_new_layout_once(runner_params.docking_params)
 
     runner_params.callbacks.post_init = app.setup
     runner_params.callbacks.before_exit = app.shutdown
