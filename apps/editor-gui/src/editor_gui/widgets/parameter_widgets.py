@@ -7,8 +7,21 @@ from dataclasses import dataclass, replace
 from imgui_bundle import imgui
 
 from editor_gui.device import Device
+from editor_gui.regional import regional_format
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.float_format import format_float, general_float, parse_float
 from editor_gui.widgets.strings import S
+from editor_gui.widgets.time_format import (
+    format_time,
+    parse_time,
+    time_pattern,
+    unit_ms,
+)
+from editor_gui.widgets.value_pickers import (
+    format_date,
+    render_color_param,
+    render_date_param,
+)
 from xknxeditor.namespaces.intermediate.access_t import Access
 from xknxeditor.namespaces.intermediate.parameter_block_layout_t import (
     ParameterBlockLayout,
@@ -24,18 +37,21 @@ from xknxeditor.prod.parser_v2.ui import (
 )
 from xknxeditor.prod.parser_v2.ui.parameter import (
     CheckBoxWidget,
+    ColorWidget,
+    DateWidget,
     EnumWidget,
+    FloatSliderWidget,
+    FloatWidget,
     NumberSliderWidget,
     NumberWidget,
     PictureWidget,
-    TextWidget,
+    ProgressBarWidget,
+    RawDataWidget,
+    TimeWidget,
 )
 
 # Parameters changed from their default are tinted to stand out.
 _CHANGED_COLOR = imgui.ImVec4(0.36, 0.71, 1.0, 1.0)
-# Text parameters longer than this many octets get a multi-line editor.
-_MULTILINE_TEXT_LENGTH = 255
-_MULTILINE_TEXT_ROWS = 6
 _ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 
 
@@ -113,11 +129,29 @@ def _track_help(help_context: str | None) -> None:
 
 def _default_display(param: UiParameter) -> str:
     """Human-readable default value (enum default resolved to its label)."""
-    if isinstance(param.widget, EnumWidget):
-        for choice in param.widget.choices:
-            if str(choice.value) == param.default_value:
+    return _value_display(param, param.default_value) or "-"
+
+
+def _value_display(param: UiParameter, value: str) -> str:
+    """``value`` as shown for ``param``: an enum value as its label, a float, date or time in
+    its format."""
+    widget = param.widget
+    if isinstance(widget, EnumWidget):
+        for choice in widget.choices:
+            if str(choice.value) == value:
                 return choice.label
-    return param.default_value or "-"
+    if isinstance(widget, FloatWidget | FloatSliderWidget) and value:
+        return format_float(value, decimal=regional_format().decimal)
+    if isinstance(widget, DateWidget):
+        return format_date(value, widget.display_the_year, regional_format())
+    if isinstance(widget, TimeWidget):
+        return format_time(value, widget.unit.value, _hint(widget))
+    return value
+
+
+def _shows_as_text(param: UiParameter) -> bool:
+    """A read-only parameter is shown as its value; a checkbox keeps its (disabled) box."""
+    return param.access == Access.READ and not isinstance(param.widget, CheckBoxWidget)
 
 
 @dataclass
@@ -156,7 +190,17 @@ def render_param_widget(
                         if imgui.selectable(choice.label, selected)[0]:
                             on_change(str(choice.value))
                     imgui.end_combo()
-        case NumberWidget() | NumberSliderWidget() as w:
+        case NumberWidget() as w:
+            _render_int_param(
+                widget_id,
+                "" if differs else param.value,
+                w.min,
+                w.max,
+                on_change,
+                differs,
+                w.increment,
+            )
+        case ProgressBarWidget() as w:
             _render_int_param(
                 widget_id,
                 "" if differs else param.value,
@@ -165,22 +209,41 @@ def render_param_widget(
                 on_change,
                 differs,
             )
+        case NumberSliderWidget() as w:
+            _render_slider(
+                widget_id, param.value, w.min, w.max, w.increment, on_change, differs
+            )
+        case FloatSliderWidget() as w:
+            _render_slider(
+                widget_id,
+                param.value,
+                w.min,
+                w.max,
+                w.increment,
+                on_change,
+                differs,
+                is_float=True,
+            )
+        case FloatWidget() as w:
+            _render_float_param(widget_id, w, param.value, on_change, differs)
+        case TimeWidget() as w:
+            _render_time_param(widget_id, w, param.value, on_change, differs)
+        case ColorWidget():
+            render_color_param(widget_id, param.value, on_change, differs)
+        case DateWidget() as w:
+            render_date_param(
+                widget_id, param.value, w.display_the_year, on_change, differs
+            )
         case CheckBoxWidget():
             if differs:
                 _render_differs_text(widget_id, on_change)
             else:
                 checked = param.value == "1"
-                changed, new_checked = imgui.checkbox(f"##{widget_id}", checked)
+                changed, new_checked = _small_checkbox(f"##{widget_id}", checked)
                 if changed:
                     on_change("1" if new_checked else "0")
-        case TextWidget() as w:
-            _render_text_param(
-                widget_id,
-                param.value,
-                on_change,
-                differs,
-                multiline=(w.max_length or 0) > _MULTILINE_TEXT_LENGTH,
-            )
+        case RawDataWidget():
+            pass
         case PictureWidget():
             imgui.text_disabled(S.NODE_IMAGE_PLACEHOLDER)
         case _:
@@ -188,26 +251,220 @@ def render_param_widget(
     return None
 
 
+def _small_checkbox(label: str, checked: bool) -> tuple[bool, bool]:
+    """A checkbox about the size of the text, centred in a row of full-height fields."""
+    padding = imgui.get_style().frame_padding
+    small = padding.y / 4
+    imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() + padding.y - small)
+    imgui.push_style_var(imgui.StyleVar_.frame_padding, imgui.ImVec2(padding.x, small))
+    result = imgui.checkbox(label, checked)
+    imgui.pop_style_var()
+    return result
+
+
 def _render_text_param(
     widget_id: str,
     value: str,
     on_change: Callable[[str], None],
     differs: bool,
-    *,
-    multiline: bool = False,
 ) -> None:
     if differs:
         _, new_value = imgui.input_text_with_hint(f"##{widget_id}", S.PARAM_DIFFERS, "")
-    elif multiline:
-        _, new_value = imgui.input_text_multiline(
-            f"##{widget_id}",
-            value,
-            imgui.ImVec2(-1, imgui.get_text_line_height() * _MULTILINE_TEXT_ROWS),
-        )
     else:
         _, new_value = imgui.input_text(f"##{widget_id}", value)
     if imgui.is_item_deactivated_after_edit() and (not differs or new_value):
         on_change(new_value)
+
+
+def _render_float_param(
+    widget_id: str,
+    widget: FloatWidget,
+    value: str,
+    on_change: Callable[[str], None],
+    differs: bool,
+) -> None:
+    """A float with the regional decimal separator; an entry is stored when editing ends."""
+    regional = regional_format()
+    shown = "" if differs else format_float(value, decimal=regional.decimal)
+    chars = max(
+        len(general_float(widget.min)), len(general_float(widget.max)), len(shown)
+    )
+    _set_number_field_width(chars, spin=False)
+    if differs:
+        _, text = imgui.input_text_with_hint(f"##{widget_id}", S.PARAM_DIFFERS, "")
+    else:
+        _, text = imgui.input_text(f"##{widget_id}", shown)
+    if not imgui.is_item_deactivated_after_edit() or text == shown:
+        return
+    stored = parse_float(
+        text, widget.min, widget.max, decimal=regional.decimal, group=regional.group
+    )
+    if stored is not None:
+        on_change(stored)
+
+
+# Value of a slider while it is dragged, stored when it is released.
+_slider_values: dict[str, float] = {}
+
+
+def _render_slider(
+    widget_id: str,
+    value: str,
+    minimum: float,
+    maximum: float,
+    increment: float | None,
+    on_change: Callable[[str], None],
+    differs: bool,
+    *,
+    is_float: bool = False,
+) -> None:
+    """A slider in steps of ``increment`` that shows its value; stored when released."""
+    try:
+        current = float(value)
+    except ValueError:
+        current = minimum
+    current = _slider_values.get(widget_id, current)
+    if differs and widget_id not in _slider_values:
+        shown = S.PARAM_DIFFERS
+    elif is_float:
+        shown = general_float(current).replace(".", regional_format().decimal)
+    else:
+        shown = str(round(current))
+    changed, moved = imgui.slider_float(
+        f"##{widget_id}", current, minimum, maximum, shown.replace("%", "%%")
+    )
+    if changed:
+        step = increment or (0 if is_float else 1)
+        if step:
+            moved = minimum + round((moved - minimum) / step) * step
+        _slider_values[widget_id] = min(maximum, max(minimum, moved))
+    if imgui.is_item_deactivated():
+        released = _slider_values.pop(widget_id, None)
+        if released is not None:
+            stored = general_float(released) if is_float else str(round(released))
+            if differs or stored != value:
+                on_change(stored)
+
+
+def _render_time_param(
+    widget_id: str,
+    widget: TimeWidget,
+    value: str,
+    on_change: Callable[[str], None],
+    differs: bool,
+) -> None:
+    """A time in the format of its hint with the format next to it, else a number of its unit
+    with the unit next to it."""
+    hint = _hint(widget)
+    pattern = time_pattern(hint) if unit_ms(widget.unit.value) is not None else None
+    if pattern is None:
+        _render_int_param(
+            widget_id,
+            "" if differs else value,
+            widget.min,
+            widget.max,
+            on_change,
+            differs,
+        )
+        _render_suffix(S.time_unit(widget.unit.value))
+        return
+    shown = "" if differs else format_time(value, widget.unit.value, hint)
+    _set_number_field_width(max(len(pattern), len(shown)), spin=False)
+    if differs:
+        _, text = imgui.input_text_with_hint(f"##{widget_id}", S.PARAM_DIFFERS, "")
+    else:
+        _, text = imgui.input_text(f"##{widget_id}", shown)
+    edited = imgui.is_item_deactivated_after_edit() and text != shown
+    _render_suffix(pattern)
+    if edited:
+        stored = parse_time(text, widget.unit.value, hint, widget.min, widget.max)
+        if stored is not None:
+            on_change(stored)
+
+
+def _suffix_width(suffix: str | None) -> float:
+    """Room a suffix shown after a field takes."""
+    if not suffix:
+        return 0.0
+    return imgui.calc_text_size(suffix).x + imgui.get_style().item_spacing.x
+
+
+def _render_suffix(suffix: str | None) -> None:
+    """``suffix`` (e.g. a unit) after the previous field, on the field's text line."""
+    if suffix:
+        imgui.same_line()
+        imgui.align_text_to_frame_padding()
+        imgui.text(suffix)
+
+
+def _hint(widget: TimeWidget) -> str | None:
+    return widget.hint.value if widget.hint is not None else None
+
+
+def _spin_width() -> float:
+    return imgui.get_frame_height() * 0.6
+
+
+def _set_number_field_width(chars: int, *, spin: bool = True) -> None:
+    """Size the next field to ``chars`` characters (plus its spin arrows, drawn inside its right
+    end), at most the requested width."""
+    style = imgui.get_style()
+    content = (
+        imgui.calc_text_size("0" * max(chars, _MIN_NUMBER_CHARS)).x
+        + 2 * style.frame_padding.x
+    )
+    if spin:
+        content += _spin_width()
+    imgui.set_next_item_width(min(imgui.calc_item_width(), content))
+    if spin:
+        imgui.set_next_item_allow_overlap()
+
+
+def _spin_buttons(widget_id: str, *, enabled: bool) -> int:
+    """Up/down arrows inside the right end of the previous field: +1 or -1 while pressed."""
+    rect_min = imgui.get_item_rect_min()
+    rect_max = imgui.get_item_rect_max()
+    size = imgui.ImVec2(_spin_width(), (rect_max.y - rect_min.y) / 2)
+    left = rect_max.x - size.x
+    draw = imgui.get_window_draw_list()
+    rounding = imgui.get_style().frame_rounding
+    steps = 0
+    imgui.set_cursor_screen_pos(imgui.ImVec2(left, rect_min.y))
+    imgui.begin_group()
+    imgui.begin_disabled(not enabled)
+    imgui.push_item_flag(imgui.ItemFlags_.button_repeat, True)
+    for row, step in enumerate((1, -1)):
+        top = imgui.ImVec2(left, rect_min.y + row * size.y)
+        imgui.set_cursor_screen_pos(top)
+        if imgui.invisible_button(f"##spin{row}_{widget_id}", size):
+            steps = step
+        if imgui.is_item_active() or imgui.is_item_hovered():
+            color = (
+                imgui.Col_.button_active
+                if imgui.is_item_active()
+                else imgui.Col_.button_hovered
+            )
+            draw.add_rect_filled(
+                top,
+                imgui.ImVec2(top.x + size.x, top.y + size.y),
+                imgui.get_color_u32(color),
+                rounding,
+            )
+        mid_x = top.x + size.x / 2
+        mid_y = top.y + size.y / 2
+        half = min(size.x, size.y) * 0.35
+        tip = mid_y - half * 0.6 * step
+        base = mid_y + half * 0.6 * step
+        draw.add_triangle_filled(
+            imgui.ImVec2(mid_x, tip),
+            imgui.ImVec2(mid_x - half, base),
+            imgui.ImVec2(mid_x + half, base),
+            imgui.get_color_u32(imgui.Col_.text),
+        )
+    imgui.pop_item_flag()
+    imgui.end_disabled()
+    imgui.end_group()
+    return steps
 
 
 def _render_differs_text(widget_id: str, on_change: Callable[[str], None]) -> None:
@@ -228,19 +485,28 @@ def _render_int_param(
     max_value: int | None,
     on_change: Callable[[str], None],
     differs: bool = False,
+    increment: int = 1,
 ) -> None:
+    chars = max(len(str(min_value or 0)), len(str(max_value or 0)), len(value))
+    _set_number_field_width(chars)
     if differs:
         _, new_text = imgui.input_text_with_hint(
             f"##{widget_id}", S.PARAM_DIFFERS, "", imgui.InputTextFlags_.chars_decimal
         )
-        if not (imgui.is_item_deactivated_after_edit() and new_text):
-            return
+        edited = imgui.is_item_deactivated_after_edit() and bool(new_text)
     else:
         _, new_text = imgui.input_text(
             f"##{widget_id}", value, imgui.InputTextFlags_.chars_decimal
         )
-        if not imgui.is_item_deactivated_after_edit():
+        edited = imgui.is_item_deactivated_after_edit()
+    steps = _spin_buttons(widget_id, enabled=not differs)
+    if steps:
+        try:
+            new_text = str(int(value) + steps * (increment or 1))
+        except ValueError:
             return
+    elif not edited:
+        return
     try:
         clamped = int(new_text)
     except ValueError:
@@ -721,18 +987,40 @@ def _render_grid_cells(
     declared_cols = max(max_col, len(block.column_headers), len(block.column_widths))
     total_cols = declared_cols + col_offset
     avail = imgui.get_content_region_avail().x
+    # Percentage widths refer to the same page width on every grid, so grids line up.
+    reference = min(avail, px(_GRID_REFERENCE_WIDTH))
+    widths = [
+        _column_width(block.column_widths[col], reference)
+        if col < len(block.column_widths)
+        else None
+        for col in range(declared_cols)
+    ]
+    # Columns keep their declared widths, so a grid whose widths add up to more than the
+    # page extends past its right edge instead of squeezing the last columns.
+    stretch_cols = sum(w is None for w in widths) + col_offset
+    outer_width = max(
+        avail,
+        sum(w for w in widths if w is not None)
+        + stretch_cols * px(_MIN_STRETCH_COLUMN),
+    )
 
-    if not imgui.begin_table(f"##grid_{prefix}", total_cols, table_flags):
+    # Grid columns are exactly their declared width (no padding between them), so the columns
+    # of grids above each other line up; fields leave a small gap to the next column instead.
+    padding = imgui.get_style().cell_padding
+    imgui.push_style_var(
+        imgui.StyleVar_.cell_padding,
+        imgui.ImVec2(padding.x if is_table else 0, padding.y / 4),
+    )
+    opened = imgui.begin_table(
+        f"##grid_{prefix}", total_cols, table_flags, imgui.ImVec2(outer_width, 0)
+    )
+    imgui.pop_style_var()
+    if not opened:
         return None
     if has_row_labels:
         imgui.table_setup_column("", imgui.TableColumnFlags_.width_stretch, 1.0)
-    for col in range(declared_cols):
+    for col, width in enumerate(widths):
         header = block.column_headers[col] if col < len(block.column_headers) else ""
-        width = (
-            _column_width(block.column_widths[col], avail)
-            if col < len(block.column_widths)
-            else None
-        )
         if width is not None:
             imgui.table_setup_column(header, imgui.TableColumnFlags_.width_fixed, width)
         else:
@@ -772,14 +1060,23 @@ def _render_grid_cells(
                     device, node, on_change, deferred_enum, differing_refs
                 )
             elif sep is not None:
-                if sep.hint is None and sep.text:
-                    imgui.text_disabled(sep.text)
-                else:
-                    _render_separator(sep)
+                _render_cell_separator(sep)
             if req is not None:
                 popup_request = req
     imgui.end_table()
     return popup_request
+
+
+def _render_cell_separator(sep: UiSeparator) -> None:
+    """A separator in a grid cell: a headline as plain text, a label dimmed, a ruler across."""
+    if sep.hint == "Headline" and sep.text:
+        imgui.align_text_to_frame_padding()
+        imgui.text(sep.text)
+    elif sep.hint is None and sep.text:
+        imgui.align_text_to_frame_padding()
+        imgui.text_disabled(sep.text)
+    else:
+        _render_separator(sep)
 
 
 def _render_grid_param(
@@ -789,7 +1086,13 @@ def _render_grid_param(
     deferred_enum: bool,
     differing_refs: frozenset[str],
 ) -> EnumPopupRequest | None:
-    imgui.set_next_item_width(-1)
+    if _shows_as_text(param):
+        imgui.align_text_to_frame_padding()
+        imgui.text(_value_display(param, param.value))
+        _render_suffix(param.suffix)
+        _track_help(param.help_context)
+        return None
+    imgui.set_next_item_width(-px(_CELL_GAP) - _suffix_width(param.suffix))
     widget_id = f"{device.node_id}_{param.ref_id}"
     # GRID/TABLE cells carry no label to tint, so mark a changed value by tinting
     # the widget's own text (combo preview / input), matching the table view.
@@ -808,6 +1111,7 @@ def _render_grid_param(
     )
     imgui.end_disabled()
     _track_help(param.help_context)
+    _render_suffix(param.suffix)
     if changed:
         imgui.pop_style_color()
         if not read_only and imgui.begin_popup_context_item(f"##reset_{widget_id}"):
@@ -849,7 +1153,7 @@ def _render_param_table(
             indent = param.indent_level * px(12.0)
             if indent > 0:
                 imgui.indent(indent)
-            label = param.label + (f"  {param.suffix}" if param.suffix else "")
+            label = param.label
             differs = param.ref_id in differing_refs
             # In multi-edit a diverging value has no single "changed vs default" state to show.
             changed = not differs and param.value != param.default_value
@@ -863,13 +1167,20 @@ def _render_param_table(
                     imgui.set_tooltip(
                         S.PARAM_CHANGED_TOOLTIP.format(default=_default_display(param))
                     )
+            elif isinstance(param.widget, RawDataWidget):
+                imgui.text_disabled(label)
             else:
                 imgui.text(label)
             _track_help(param.help_context)
             if indent > 0:
                 imgui.unindent(indent)
             imgui.table_set_column_index(1)
-            imgui.set_next_item_width(-1)
+            if _shows_as_text(param):
+                imgui.text(_value_display(param, param.value))
+                _render_suffix(param.suffix)
+                _track_help(param.help_context)
+                continue
+            imgui.set_next_item_width(-1 - _suffix_width(param.suffix))
             widget_id = f"{device.node_id}_{param.ref_id}"
             read_only = param.access == Access.READ
             imgui.begin_disabled(read_only)
@@ -892,6 +1203,7 @@ def _render_param_table(
                 if imgui.menu_item(S.PARAM_RESET_DEFAULT, "", False)[0]:
                     on_change(device, param.ref_id, param.default_value)
                 imgui.end_popup()
+            _render_suffix(param.suffix)
             if req is not None:
                 popup_request = EnumPopupRequest(device=device, param=req.param)
         imgui.end_table()
@@ -899,6 +1211,14 @@ def _render_param_table(
 
 
 _INFO_COLOR = imgui.ImVec4(0.45, 0.72, 1.0, 1.0)
+# Width at 100 % scaling a grid column without a declared width keeps when the grid is too wide.
+_MIN_STRETCH_COLUMN = 80.0
+# Page width at 100 % scaling that percentage column widths of a grid refer to.
+_GRID_REFERENCE_WIDTH = 540.0
+# Gap at 100 % scaling a field in a grid cell leaves to the next column.
+_CELL_GAP = 6.0
+# Characters a number field has room for at least.
+_MIN_NUMBER_CHARS = 3
 _SEPARATOR_ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 
 

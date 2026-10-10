@@ -215,6 +215,12 @@ def number_separators(locale: str | None) -> tuple[str, str]:
     return loc.decimal, loc.group
 
 
+def date_names(locale: str | None) -> tuple[str, list[str]]:
+    """Long date pattern and month names of ``locale`` (``None``: the system locale)."""
+    loc = _locale(locale or system_locale())
+    return loc.long_date, loc.months
+
+
 def _format_date(fmt: str, loc: _Locale, f: list[int]) -> str:
     y, mo, d, wd, h, mi, s = f
     tokens = {

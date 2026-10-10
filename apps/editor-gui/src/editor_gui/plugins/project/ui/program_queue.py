@@ -39,23 +39,32 @@ class ProgramQueuePanel:
         self._on_cancel = on_cancel
         self._on_cancel_all = on_cancel_all
         self._on_clear_history = on_clear_history
-        self._select_active = False
+        self._select: bool | None = (
+            None  # tab to bring to the front: True Active, False History
+        )
+        self._was_active = False
 
     def select_active(self) -> None:
         """Bring the Active tab to the front on the next frame."""
-        self._select_active = True
+        self._select = True
 
     def render(self) -> None:
+        # Active while operations run or wait, History once the last one has ended.
+        active = bool(self._get_active())
+        if active != self._was_active:
+            self._was_active = active
+            self._select = active
         if not imgui.begin_tab_bar("##operations_tabs"):
             return
-        flags = imgui.TabItemFlags_.none
-        if self._select_active:
-            flags = imgui.TabItemFlags_.set_selected
-            self._select_active = False
-        if imgui.begin_tab_item(f"{S.OPERATIONS_ACTIVE}###active", None, flags)[0]:
+        select, self._select = self._select, None
+        if imgui.begin_tab_item(
+            f"{S.OPERATIONS_ACTIVE}###active", None, _tab_flags(select is True)
+        )[0]:
             self._render_active()
             imgui.end_tab_item()
-        if imgui.begin_tab_item(f"{S.OPERATIONS_HISTORY}###history")[0]:
+        if imgui.begin_tab_item(
+            f"{S.OPERATIONS_HISTORY}###history", None, _tab_flags(select is False)
+        )[0]:
             self._render_history()
             imgui.end_tab_item()
         imgui.end_tab_bar()
@@ -187,6 +196,10 @@ def _warning_icon() -> None:
         "!",
     )
     imgui.dummy(imgui.ImVec2(size, size))
+
+
+def _tab_flags(selected: bool) -> int:
+    return imgui.TabItemFlags_.set_selected if selected else imgui.TabItemFlags_.none
 
 
 def _operation(item: QueueItem) -> str:

@@ -139,5 +139,38 @@ class WidgetStrings(BaseStrings):
     def PARAM_ON(self) -> str:
         return _("On")
 
+    @property
+    def COLOR_STANDARD(self) -> str:
+        return _("Standard")
+
+    @property
+    def COLOR_ADVANCED(self) -> str:
+        return _("Advanced")
+
+    @property
+    def COLOR_THEME_COLORS(self) -> str:
+        return _("Theme colors")
+
+    @property
+    def COLOR_STANDARD_COLORS(self) -> str:
+        return _("Standard colors")
+
+    @property
+    def CALENDAR_WEEKDAYS(self) -> str:
+        """Abbreviated weekday names, Monday first, separated by spaces."""
+        return _("Mo Tu We Th Fr Sa Su")
+
+    def time_unit(self, unit: str) -> str:
+        """Name of a time parameter's unit shown next to its value."""
+        names = {
+            "Hours": _("Hours"),
+            "Minutes": _("Minutes"),
+            "Seconds": _("Seconds"),
+            "HundredMilliseconds": _("x 100 ms"),
+            "TenMilliseconds": _("x 10 ms"),
+            "Milliseconds": _("Milliseconds"),
+        }
+        return names.get(unit, unit)
+
 
 S = WidgetStrings()

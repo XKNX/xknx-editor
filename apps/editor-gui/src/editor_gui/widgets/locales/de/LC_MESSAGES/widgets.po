@@ -112,3 +112,36 @@ msgstr "Aus"
 
 msgid "On"
 msgstr "Ein"
+
+msgid "Standard"
+msgstr "Standard"
+
+msgid "Advanced"
+msgstr "Erweitert"
+
+msgid "Theme colors"
+msgstr "Designfarben"
+
+msgid "Standard colors"
+msgstr "Standardfarben"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Mo Di Mi Do Fr Sa So"
+
+msgid "Hours"
+msgstr "Stunden"
+
+msgid "Minutes"
+msgstr "Minuten"
+
+msgid "Seconds"
+msgstr "Sekunden"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "Millisekunden"
