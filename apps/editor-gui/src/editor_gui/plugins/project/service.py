@@ -280,6 +280,9 @@ class _ProjectInfo:
     last_modified: str
     schema_version: str
     tool_version: str
+    # The installation's own name (an ETS project can hold several named installations); captured
+    # from the raw XML on import. Empty for a single, unnamed installation.
+    installation_name: str = ""
     # Protection artifacts carried over from the imported .knxproj (shown as presence/size,
     # not raw dumps): the source project id the certificate is bound to, the signed master data,
     # the ".validation" file and the "<pid>.certificate".
@@ -1434,6 +1437,7 @@ class ProjectService:
         if self._pid is None:
             return None
         p = self._svc.project(self._pid)
+        installations = self._svc.installations(self._pid)
         return _ProjectInfo(
             id=p.id,
             name=p.name,
@@ -1443,6 +1447,7 @@ class ProjectService:
             last_modified=p.last_modified,
             schema_version=p.schema_version,
             tool_version=p.tool_version,
+            installation_name=installations[0].name if installations else "",
             original_project_id=p.original_project_id,
             master_data_size=len(p.knx_master_xml) if p.knx_master_xml else 0,
             validation_size=len(p.knx_validation),

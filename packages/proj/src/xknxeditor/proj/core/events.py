@@ -590,9 +590,13 @@ class SyncDeviceComObjects(Event):
             "text_override": co.text_override,
             "function_text_override": co.function_text_override,
             "description_override": co.description_override,
+            "priority": co.priority,
+            "datapoint_type_override": co.datapoint_type_override,
+            "acknowledges": co.acknowledges,
         }
         for flag in COM_OBJECT_FLAGS:
             snap[flag] = getattr(co, flag)
+            snap[f"{flag}_override"] = getattr(co, f"{flag}_override")
         return snap
 
     def apply(self, session: Session) -> None:
@@ -651,10 +655,14 @@ class SyncDeviceComObjects(Event):
                 text_override=snap.get("text_override"),
                 function_text_override=snap.get("function_text_override"),
                 description_override=snap.get("description_override"),
+                priority=snap.get("priority"),
+                datapoint_type_override=snap.get("datapoint_type_override"),
+                acknowledges=snap.get("acknowledges"),
             )
             co.id = snap["id"]
             for flag in COM_OBJECT_FLAGS:
                 setattr(co, flag, snap[flag])
+                setattr(co, f"{flag}_override", snap.get(f"{flag}_override"))
             session.add(co)
             session.flush()
             for lid, ga_id, is_sending in snap["links"]:
@@ -943,18 +951,24 @@ class SetComObjectFlag(Event):
     value: bool | None
     captured: bool = False
     old: bool | None = None
+    old_override: bool | None = None
 
     def apply(self, session: Session) -> None:
         com_object = session.get(ComObject, self.com_object_id)
         if com_object is not None:
             self.old = getattr(com_object, self.flag)
+            self.old_override = getattr(com_object, f"{self.flag}_override")
             self.captured = True
+            # Forcing a flag is both the effective value the device download programs AND an explicit
+            # override the export must re-emit, so set the effective column and its ``_override`` twin.
             setattr(com_object, self.flag, self.value)
+            setattr(com_object, f"{self.flag}_override", self.value)
 
     def revert(self, session: Session) -> None:
         com_object = session.get(ComObject, self.com_object_id)
         if com_object is not None and self.captured:
             setattr(com_object, self.flag, self.old)
+            setattr(com_object, f"{self.flag}_override", self.old_override)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -963,6 +977,7 @@ class SetComObjectFlag(Event):
             "value": self.value,
             "captured": self.captured,
             "old": self.old,
+            "old_override": self.old_override,
         }
 
     @classmethod

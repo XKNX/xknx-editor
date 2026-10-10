@@ -23,6 +23,7 @@ class ProjectInfoPanel:
             return
         rows = [
             (S.PROJECT_INFO_NAME, info.name),
+            (S.PROJECT_INFO_INSTALLATION, info.installation_name),
             (S.PROJECT_INFO_GA_STYLE, info.group_address_style),
             (S.PROJECT_INFO_CREATED_BY, info.created_by),
             (S.PROJECT_INFO_TOOL_VERSION, info.tool_version),

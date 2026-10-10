@@ -76,12 +76,35 @@ def test_detect_losses_all_root_classes() -> None:
     }
 
     assert losses[MULTIPLE_INSTALLATIONS].count == 2
-    # UnassignedDevices, IPConfig and @Text/@FunctionText/@Description are all preserved through
-    # import/export now, so none of them is reported as a loss.
+    # IPConfig and @Text/@FunctionText/@Description are preserved through import/export, so they are
+    # not reported. UnassignedDevices are detected from extras.unassigned_devices (empty here), not
+    # from the root XML, so no note is raised for the <UnassignedDevices> block above.
     assert UNASSIGNED_DEVICES not in losses
     assert IP_CONFIG not in losses
     assert COM_OBJECT_TEXT_OVERRIDES not in losses
     assert MULTI_SEGMENT not in losses  # no multi-segment lines in extras
+
+
+def test_detect_unassigned_devices_from_extras() -> None:
+    """Unassigned devices round-trip verbatim but are not shown/editable, so their count is surfaced
+    as an informational note. Detection is keyed on the captured extras, not the root XML."""
+    root = ET.fromstring("<Project><Installation /></Project>")
+    extras = knxproj_import._RawExtras()
+    extras.unassigned_devices = [
+        '<DeviceInstance Id="P-1-0_DI-1" />',
+        '<DeviceInstance Id="P-1-0_DI-2" />',
+    ]
+    losses = {
+        loss.code: loss for loss in knxproj_import._detect_import_losses(root, extras)
+    }
+    assert losses[UNASSIGNED_DEVICES].count == 2
+    assert losses[UNASSIGNED_DEVICES].detail == ""
+
+    # None captured -> no note.
+    empty = knxproj_import._RawExtras()
+    assert UNASSIGNED_DEVICES not in {
+        loss.code for loss in knxproj_import._detect_import_losses(root, empty)
+    }
 
 
 def test_detect_multi_segment_from_extras() -> None:

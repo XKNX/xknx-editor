@@ -55,11 +55,13 @@ class _FakeContents:
 
 
 def test_read_project_traces_parses_entries_in_order() -> None:
-    _comment, traces = knxproj_import._read_project_meta(
-        _FakeContents(
-            _project_xml(
-                f'<ProjectTrace Date="2024-01-02T10:00:00" UserName="alice" Comment="{_CIPHER}"/>'
-                f'<ProjectTrace Date="2024-01-03T11:00:00" UserName="bob" Comment="{_PLAIN}"/>'
+    _comment, traces, _extra, _subtrees, _project_subtrees = (
+        knxproj_import._read_project_meta(
+            _FakeContents(
+                _project_xml(
+                    f'<ProjectTrace Date="2024-01-02T10:00:00" UserName="alice" Comment="{_CIPHER}"/>'
+                    f'<ProjectTrace Date="2024-01-03T11:00:00" UserName="bob" Comment="{_PLAIN}"/>'
+                )
             )
         )
     )
@@ -73,6 +75,9 @@ def test_read_project_traces_empty_when_absent() -> None:
     assert knxproj_import._read_project_meta(_FakeContents(_project_xml(""))) == (
         "",
         [],
+        {},
+        {},
+        {},
     )
 
 

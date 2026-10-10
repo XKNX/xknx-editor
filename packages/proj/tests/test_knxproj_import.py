@@ -446,31 +446,63 @@ def test_read_com_object_text_overrides() -> None:
         """
     )
     overrides = dict(knxproj_import._read_com_object_text_overrides(device))
+    ov = knxproj_import._CoirOverride
     assert overrides == {
-        "C-1": ("Kitchen", "Switch", None),
-        "C-2": (None, "Status", None),
-        "C-4": (None, None, "free-text note"),
+        "C-1": ov(text="Kitchen", function_text="Switch"),
+        "C-2": ov(function_text="Status"),
+        "C-4": ov(description="free-text note"),
     }  # C-3 has no override attributes and is skipped
+
+
+def test_read_com_object_non_text_overrides() -> None:
+    from xml.etree import ElementTree as ET
+
+    device = ET.fromstring(
+        """
+        <DeviceInstance Id="DI-1">
+          <ComObjectInstanceRefs>
+            <ComObjectInstanceRef Id="C-1" RefId="O-1_R-1" Priority="Alert"
+                DatapointType="DPST-1-1" Acknowledges="O-9_R-1" />
+          </ComObjectInstanceRefs>
+        </DeviceInstance>
+        """
+    )
+    overrides = dict(knxproj_import._read_com_object_text_overrides(device))
+    assert overrides["C-1"] == knxproj_import._CoirOverride(
+        priority="Alert", datapoint_type="DPST-1-1", acknowledges="O-9_R-1"
+    )
 
 
 def test_build_com_object_applies_text_override() -> None:
     coir = _coir(com_object_ref_id="M-1_A-1_O-1_R-1", ref_id="O-1_R-1")
-    row = knxproj_import._build_com_object(coir, ("Kitchen", "Switch", "note"))
+    row = knxproj_import._build_com_object(
+        coir,
+        knxproj_import._CoirOverride(
+            text="Kitchen",
+            function_text="Switch",
+            description="note",
+            priority="Alert",
+            datapoint_type="DPST-1-1",
+            acknowledges="O-9_R-1",
+        ),
+    )
     assert (
         row.text_override,
         row.function_text_override,
         row.description_override,
-    ) == (
-        "Kitchen",
-        "Switch",
-        "note",
-    )
+        row.priority,
+        row.datapoint_type_override,
+        row.acknowledges,
+    ) == ("Kitchen", "Switch", "note", "Alert", "DPST-1-1", "O-9_R-1")
     bare = knxproj_import._build_com_object(coir)
     assert (
         bare.text_override,
         bare.function_text_override,
         bare.description_override,
-    ) == (None, None, None)
+        bare.priority,
+        bare.datapoint_type_override,
+        bare.acknowledges,
+    ) == (None, None, None, None, None, None)
 
 
 def test_read_ip_config() -> None:
@@ -517,3 +549,109 @@ def test_read_unassigned_devices() -> None:
     assert first.get("Id") == "D-99"
     # No <UnassignedDevices> -> empty list.
     assert knxproj_import._read_unassigned_devices(ET.fromstring("<Project />")) == []
+
+
+def test_installation_name_is_captured(tmp_path: Path) -> None:
+    """The <Installation @Name> and the non-secret extra attributes are read from the raw XML
+    (xknxproject surfaces only the project name). Patch a fixture and confirm they round-trip."""
+    import zipfile
+
+    from xknxeditor.proj.models import Installation
+
+    fixture = (
+        Path(__file__).parent / "fixtures" / "xknx_test_project_no_password.knxproj"
+    )
+    patched = tmp_path / "named.knxproj"
+    with zipfile.ZipFile(fixture) as zin, zipfile.ZipFile(patched, "w") as zout:
+        for item in zin.infolist():
+            data = zin.read(item.filename)
+            if item.filename.endswith("/0.xml"):
+                data = data.replace(
+                    b'<Installation Name=""',
+                    b'<Installation Name="Villa Alpha" '
+                    b'IPRoutingMulticastAddress="224.0.23.12" MulticastTTL="16"',
+                    1,
+                )
+            zout.writestr(item, data)
+
+    xknx = tmp_path / "p.xknx"
+    import_knxproj(patched, xknx)
+    with Session(make_engine(url_for(xknx))) as s:
+        inst = s.query(Installation).one()
+        assert inst.name == "Villa Alpha"
+        assert inst.extra_attributes is not None
+        assert inst.extra_attributes["IPRoutingMulticastAddress"] == "224.0.23.12"
+        assert inst.extra_attributes["MulticastTTL"] == "16"
+
+
+def test_read_locations_extras_captures_scalars_and_ga_ref_names() -> None:
+    """Space/Function non-displayed scalars and the GroupAddressRef @Name/@Context (all dropped by
+    xknxproject) are captured so they round-trip (#7)."""
+    from xml.etree import ElementTree as ET
+
+    root = ET.fromstring(
+        """
+        <Installation>
+          <Locations>
+            <Space Id="P-1-0_S-1" Type="Room" DefaultLine="P-1-0_L-1" Context="ctx-s">
+              <Function Id="P-1-0_F-1" Implements="FT-6" Number="N1"
+                  DefaultGroupRange="P-1-0_GR-1" Context="ctx-f">
+                <GroupAddressRef Id="P-1-0_F-1_GF-1" RefId="P-1-0_GA-1"
+                    Name="Switch command" Context="ctx-g" />
+              </Function>
+            </Space>
+          </Locations>
+        </Installation>
+        """
+    )
+    extras = knxproj_import._RawExtras()
+    knxproj_import._read_locations_extras(root, extras)
+    assert extras.space_extra["P-1-0_S-1"] == {
+        "DefaultLine": "P-1-0_L-1",
+        "Context": "ctx-s",
+    }
+    assert extras.function_extra["F-1"] == {
+        "Implements": "FT-6",
+        "Number": "N1",
+        "DefaultGroupRange": "P-1-0_GR-1",
+        "Context": "ctx-f",
+    }
+    assert extras.function_ga_refs["F-1"]["P-1-0_GA-1"] == {
+        "Name": "Switch command",
+        "Context": "ctx-g",
+    }
+
+
+def test_project_information_extra_attributes_captured(tmp_path: Path) -> None:
+    """Non-secret ProjectInformation attributes xknxproject drops (e.g. ProjectStart) are captured
+    into Project.extra_attributes (#4)."""
+    from xknxeditor.proj.models import Project
+
+    fixture = (
+        Path(__file__).parent / "fixtures" / "xknx_test_project_no_password.knxproj"
+    )
+    xknx = tmp_path / "p.xknx"
+    import_knxproj(fixture, xknx)
+    with Session(make_engine(url_for(xknx))) as s:
+        project = s.query(Project).one()
+        assert project.extra_attributes is not None
+        assert "ProjectStart" in project.extra_attributes
+
+
+def test_group_address_security_captured() -> None:
+    """GroupAddress @Security/@Key/@Context (xknxproject reduces these to a bool) are captured for a
+    faithful round-trip (#1). @Key is persisted on explicit authorisation."""
+    from xml.etree import ElementTree as ET
+
+    root = ET.fromstring(
+        "<Installation><GroupAddresses><GroupRange>"
+        '<GroupAddress Address="2049" Name="x" Security="Auto" Key="0123abcd" Context="c"/>'
+        "</GroupRange></GroupAddresses></Installation>"
+    )
+    extras = knxproj_import._RawExtras()
+    knxproj_import._read_coupler_extras(root, extras)
+    assert extras.ga_security[2049] == {
+        "Security": "Auto",
+        "Key": "0123abcd",
+        "Context": "c",
+    }

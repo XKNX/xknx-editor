@@ -7,6 +7,7 @@ verbatim on import (namespace-stripped) and re-emitted on export.
 
 from __future__ import annotations
 
+import re
 import zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
@@ -226,3 +227,26 @@ def test_unlinked_com_objects_from_tree_channel_inheritance_and_guards() -> None
     )
     assert other[0].ref_id.startswith("M-1_A-1_")
     assert other[0].ref_id != "M-1_A-10_O-9_R-1"
+
+
+def test_export_does_not_add_resolved_flags_to_inherited_objects(
+    tmp_path: Path,
+) -> None:
+    """A COIR whose source carried no flag attributes (flags inherited) must re-export WITHOUT any
+    flag attribute — not with all six resolved values (#3). The effective flags stay on the row for
+    the device download; only the raw overrides are emitted."""
+    xknx = tmp_path / "p.xknx"
+    import_knxproj(_FIXTURE, xknx)
+    out = tmp_path / "out.knxproj"
+    export_knxproj(xknx, out)
+    with zipfile.ZipFile(out) as zf:
+        name = next(n for n in zf.namelist() if n.endswith("/0.xml"))
+        xml = zf.read(name).decode("utf-8")
+    refs = [
+        r
+        for r in re.findall(r"<(?:\w+:)?ComObjectInstanceRef\b[^>]*>", xml)
+        if "O-40_R-1433"
+        in r  # a linked object the fixture wrote with no flag attributes
+    ]
+    assert refs, "expected the linked O-40 object in the export"
+    assert "Flag=" not in refs[0], f"unexpected resolved flag emitted: {refs[0]}"

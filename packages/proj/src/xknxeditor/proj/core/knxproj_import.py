@@ -50,6 +50,7 @@ from xknxeditor.proj.core.import_notes import (
     DROPPED_DUPLICATE_LINES,
     MULTI_SEGMENT,
     MULTIPLE_INSTALLATIONS,
+    UNASSIGNED_DEVICES,
     ImportLoss,
     dumps,
 )
@@ -78,6 +79,37 @@ from xknxeditor.proj.models import (
 )
 
 logger = logging.getLogger(__name__)
+
+# DeviceInstance attributes xknxproject does not surface but that we round-trip verbatim. Restricted
+# to attributes defined in BOTH project/20 and project/23 so re-emitting them never invalidates an
+# export to the older schema.
+_DEVICE_EXTRA_ATTRS = ("UniqueId", "InstallationHints", "IsRFRetransmitter", "Context")
+
+# Installation attributes xknxproject does not surface, round-tripped verbatim. Restricted to
+# attributes defined in BOTH project/20 and /23, and NOT to secret key material (IPRoutingBackboneKey,
+# BCUKey are deliberately excluded — the project DB does not persist keys). DefaultLine/CompletionStatus
+# are omitted: the export recomputes the former and the latter is regenerated runtime state.
+_INSTALLATION_EXTRA_ATTRS = (
+    "InstallationId",
+    "IPRoutingMulticastAddress",
+    "MulticastTTL",
+    "IPRoutingLatencyTolerance",
+    "IPSyncLatencyFraction",
+    "SplitType",
+    "IPRoutingBackboneSecurity",
+)
+
+# ProjectInformation attributes xknxproject does not surface, round-tripped verbatim. Restricted to
+# attributes defined in BOTH project/20 and /23 (the schema-specific CodePage/BusAccessLegacyMode and
+# v23 ArchivedVersion/ProjectType are left out), and NOT to the passwords.
+_PROJECT_EXTRA_ATTRS = (
+    "ProjectStart",
+    "ProjectNumber",
+    "ContractNumber",
+    "ProjectEnd",
+    "ProjectId",
+    "CompletionStatus",
+)
 
 _INSTALLATION_INDEX = 0
 
@@ -267,6 +299,7 @@ class _SegmentDesc:
     medium_type_ref: str | None
     domain_address: int | None
     device_ids: tuple[str, ...]
+    additional_group_addresses: tuple[int, ...] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -315,13 +348,17 @@ class _RawExtras:
         # <Topology>/<UnassignedDevices> devices as namespace-stripped <DeviceInstance> XML strings,
         # in document order (empty when the source had no such container).
         self.unassigned_devices: list[str] = []
+        # The <Installation> @Name (xknxproject surfaces only the project name, not the installation's).
+        self.installation_name: str = ""
+        # Non-secret <Installation> attributes xknxproject drops (see _INSTALLATION_EXTRA_ATTRS).
+        self.installation_extra_attributes: dict[str, str] = {}
+        # The installation's <P2PLinks> subtree as a namespace-stripped XML string ("" if absent).
+        self.installation_p2p_links: str = ""
         # ComObjectInstanceRef @Id -> (raw @Text, raw @FunctionText, raw @Description) per-instance
         # overrides. Read from the raw XML because xknxproject backfills these from the app default
         # post-parse, so the parsed object can no longer tell an instance override from an inherited
         # default.
-        self.com_object_text_overrides: dict[
-            str, tuple[str | None, str | None, str | None]
-        ] = {}
+        self.com_object_text_overrides: dict[str, _CoirOverride] = {}
         # --- coupler data xknxproject does not surface (read straight from the raw XML) ---
         # (Area @Address, Line @Address) -> coupler pass-through group addresses
         # (``AdditionalGroupAddresses``; on the Segment in project/22+23, on the Line in 14+20).
@@ -337,9 +374,24 @@ class _RawExtras:
         self.unfiltered_ranges: set[tuple[int, int]] = set()
         # DeviceInstance @Id -> extra individual addresses (``AdditionalAddresses/Address``).
         self.additional_addresses: dict[str, list[_AddrEntry]] = {}
+        # DeviceInstance @Id -> {ParameterInstanceRef @RefId -> {CustomizedText, GrantUseByCustomer}}.
+        self.param_instance_overrides: dict[str, dict[str, dict[str, str]]] = {}
+        # DeviceInstance @Id -> {subtree localname -> namespace-stripped XML} for ChannelInstances,
+        # BusInterfaces, RfFastAckSlots (xknxproject drops them); re-emitted verbatim on export.
+        self.device_subtrees: dict[str, dict[str, str]] = {}
+        # DeviceInstance @Id -> DeviceInstance attributes xknxproject drops but that are valid in
+        # both project/20 and /23 (UniqueId, InstallationHints, IsRFRetransmitter, Context), captured
+        # verbatim and re-emitted on export.
+        self.device_extra_attributes: dict[str, dict[str, str]] = {}
         # --- descriptive metadata xknxproject does not surface (read from the raw XML) ---
         # The ProjectInformation @Comment (project.xml).
         self.project_comment: str = ""
+        # Non-secret ProjectInformation attributes xknxproject drops (see _PROJECT_EXTRA_ATTRS).
+        self.project_extra_attributes: dict[str, str] = {}
+        # ProjectInformation child collections xknxproject drops (see _PROJECT_INFO_SUBTREES).
+        self.project_info_subtrees: dict[str, str] = {}
+        # Project-level child collections xknxproject drops (see _PROJECT_SUBTREES).
+        self.project_subtrees: dict[str, str] = {}
         # Area @Address -> Area @Comment.
         self.area_comment: dict[int, str] = {}
         # (Area @Address, Line @Address) -> Line @Comment.
@@ -350,12 +402,21 @@ class _RawExtras:
         self.central_ga: set[int] = set()
         # Raw group-address values whose <GroupAddress> carries ``Global="true"``.
         self.global_ga: set[int] = set()
+        # GroupAddress raw address -> {Security, Key, Context} (xknxproject reduces these to a bool).
+        self.ga_security: dict[int, dict[str, str]] = {}
         # DeviceInstance @Id -> DeviceInstance @Comment.
         self.device_comment: dict[str, str] = {}
         # Space @Id -> Space @Comment.
         self.space_comment: dict[str, str] = {}
+        # Space @Id -> non-displayed Space attributes xknxproject drops (DefaultLine, Context).
+        self.space_extra: dict[str, dict[str, str]] = {}
         # Function @Id -> (Comment, Description).
         self.function_meta: dict[str, tuple[str, str]] = {}
+        # stripped Function id -> non-displayed Function attributes (Implements, Number,
+        # DefaultGroupRange, Context).
+        self.function_extra: dict[str, dict[str, str]] = {}
+        # stripped Function id -> {GroupAddressRef @RefId -> {Name, Context}} (xknxproject drops both).
+        self.function_ga_refs: dict[str, dict[str, dict[str, str]]] = {}
         # Installation <Trades> tree (Gewerke), captured verbatim.
         self.trades: list[_TradeEntry] = []
         # Import-loss notes detected from the raw XML (see core.import_notes). Build-time losses
@@ -376,8 +437,16 @@ def _parse(
         # re-emit module-based devices on export, so read both from the raw installation XML while the
         # archive is still open.
         extras = _read_device_extras(contents)
-        extras.project_comment, extras.traces = _best_effort(
-            "project metadata", lambda: _read_project_meta(contents), ("", [])
+        (
+            extras.project_comment,
+            extras.traces,
+            extras.project_extra_attributes,
+            extras.project_info_subtrees,
+            extras.project_subtrees,
+        ) = _best_effort(
+            "project metadata",
+            lambda: _read_project_meta(contents),
+            ("", [], {}, {}, {}),
         )
     logger.info(
         "parsed knxproj '%s': %d devices, %d group addresses, %d w/ binary data, %d w/ modules, %d traces",
@@ -431,6 +500,17 @@ def _read_device_extras(contents: _ProjectContents) -> _RawExtras:
     extras.unassigned_devices = _best_effort(
         "unassigned devices", lambda: _read_unassigned_devices(root), []
     )
+    installation = next(
+        (e for e in root.iter() if _localname(e.tag) == "Installation"), None
+    )
+    if installation is not None:
+        extras.installation_name = installation.get("Name") or ""
+        extras.installation_extra_attributes = {
+            name: value
+            for name in _INSTALLATION_EXTRA_ATTRS
+            if (value := installation.get(name)) is not None
+        }
+        extras.installation_p2p_links = _read_named_subtree(installation, "P2PLinks")
     _best_effort("coupler extras", lambda: _read_coupler_extras(root, extras), None)
     _best_effort("locations extras", lambda: _read_locations_extras(root, extras), None)
     extras.trades = _best_effort("trades", lambda: _read_trades(root), [])
@@ -467,8 +547,36 @@ def _read_one_device_extras(
     comment = device.get("Comment")
     if comment:
         extras.device_comment[device_id] = comment
+    extra = {
+        name: value
+        for name in _DEVICE_EXTRA_ATTRS
+        if (value := device.get(name)) is not None
+    }
+    if extra:
+        extras.device_extra_attributes[device_id] = extra
     for cid, override in _read_com_object_text_overrides(device):
         extras.com_object_text_overrides[cid] = override
+    param_overrides = {
+        rid: attrs
+        for pir in device.iter()
+        if _localname(pir.tag) == "ParameterInstanceRef" and (rid := pir.get("RefId"))
+        if (
+            attrs := {
+                k: v
+                for k in ("CustomizedText", "GrantUseByCustomer")
+                if (v := pir.get(k)) is not None
+            }
+        )
+    }
+    if param_overrides:
+        extras.param_instance_overrides[device_id] = param_overrides
+    subtrees = {
+        name: xml
+        for name in ("ChannelInstances", "BusInterfaces", "RfFastAckSlots")
+        if (xml := _read_named_subtree(device, name))
+    }
+    if subtrees:
+        extras.device_subtrees[device_id] = subtrees
 
 
 def _int_attr(elem: ET.Element, name: str) -> int | None:
@@ -561,7 +669,8 @@ def _read_coupler_extras(root: ET.Element, extras: _RawExtras) -> None:
             seg_descs: list[_SegmentDesc] = []
             for seg in line:
                 if _localname(seg.tag) == "Segment":
-                    addrs.extend(_read_aga_addresses(seg))
+                    seg_addrs = _read_aga_addresses(seg)
+                    addrs.extend(seg_addrs)  # per-line union for the download consumer
                     seg_domain = _int_attr(seg, "DomainAddress")
                     if seg_domain is not None:
                         domain = seg_domain
@@ -577,6 +686,7 @@ def _read_coupler_extras(root: ET.Element, extras: _RawExtras) -> None:
                             medium_type_ref=seg.get("MediumTypeRefId"),
                             domain_address=seg_domain,
                             device_ids=device_ids,
+                            additional_group_addresses=tuple(seg_addrs),
                         )
                     )
             if seg_descs and a_addr is not None and l_addr is not None:
@@ -603,6 +713,13 @@ def _read_coupler_extras(root: ET.Element, extras: _RawExtras) -> None:
                     extras.central_ga.add(addr)
                 if _is_true(elem.get("Global")):
                     extras.global_ga.add(addr)
+                security = {
+                    k: v
+                    for k in ("Security", "Key", "Context")
+                    if (v := elem.get(k)) is not None
+                }
+                if security:
+                    extras.ga_security[addr] = security
 
 
 def _detect_import_losses(root: ET.Element, extras: _RawExtras) -> list[ImportLoss]:
@@ -615,9 +732,14 @@ def _detect_import_losses(root: ET.Element, extras: _RawExtras) -> list[ImportLo
     if len(installations) > 1:
         losses.append(ImportLoss(MULTIPLE_INSTALLATIONS, len(installations), detail=""))
 
-    # <UnassignedDevices> (devices not placed on a line) and per-device <IPConfig> (IP interface/
-    # router config) are now preserved verbatim through import/export (see Installation
-    # .unassigned_devices_xml and Device.ip_config), so neither is reported as a loss here.
+    # <UnassignedDevices> (devices not placed on a line) are preserved verbatim through import/export
+    # (see Installation.unassigned_devices_xml), but the editor cannot yet show or edit them, so note
+    # their presence for the user. Per-device <IPConfig> round-trips verbatim (Device.ip_config) and
+    # is not reported.
+    if extras.unassigned_devices:
+        losses.append(
+            ImportLoss(UNASSIGNED_DEVICES, len(extras.unassigned_devices), detail="")
+        )
 
     # Per-instance com-object overrides (@Text/@FunctionText/@Description) are now preserved through
     # import/export (see _build_com_object), so they are no longer a loss and not reported here.
@@ -644,13 +766,37 @@ def _read_locations_extras(root: ET.Element, extras: _RawExtras) -> None:
             sid = elem.get("Id")
             if sid and (comment := elem.get("Comment")):
                 extras.space_comment[sid] = comment
+            scalars = {k: v for k in ("DefaultLine", "Context") if (v := elem.get(k))}
+            if sid and scalars:
+                extras.space_extra[sid] = scalars
         elif name == "Function":
             fid = elem.get("Id")
             comment = elem.get("Comment") or ""
             description = elem.get("Description") or ""
-            if fid and (comment or description):
-                key = fid.split("_", 1)[1] if "_" in fid else fid
+            if not fid:
+                continue
+            key = fid.split("_", 1)[1] if "_" in fid else fid
+            if comment or description:
                 extras.function_meta[key] = (comment, description)
+            scalars = {
+                k: v
+                for k in ("Implements", "Number", "DefaultGroupRange", "Context")
+                if (v := elem.get(k))
+            }
+            if scalars:
+                extras.function_extra[key] = scalars
+            refs = {
+                rid: {
+                    "Name": gar.get("Name") or "",
+                    "Context": gar.get("Context") or "",
+                }
+                for gar in elem.iter()
+                if _localname(gar.tag) == "GroupAddressRef"
+                and (rid := gar.get("RefId"))
+                if (gar.get("Name") or gar.get("Context"))
+            }
+            if refs:
+                extras.function_ga_refs[key] = refs
 
 
 def _read_trades(root: ET.Element) -> list[_TradeEntry]:
@@ -710,8 +856,13 @@ def _read_group_object_tree(device: ET.Element) -> str:
     referenced ids (com-object instance refs, channel ids, module-instance segments) round-trip
     unchanged, so the exporter can re-emit the tree as-is.
     """
+    return _read_named_subtree(device, "GroupObjectTree")
+
+
+def _read_named_subtree(device: ET.Element, localname: str) -> str:
+    """A device's first ``<localname>`` child as a namespace-stripped XML string, or ``""``."""
     for child in device:
-        if _localname(child.tag) == "GroupObjectTree":
+        if _localname(child.tag) == localname:
             return ET.tostring(_strip_ns(child), encoding="unicode")
     return ""
 
@@ -736,51 +887,129 @@ def _read_unassigned_devices(root: ET.Element) -> list[str]:
     ]
 
 
+@dataclass
+class _CoirOverride:
+    """Per-instance ComObjectInstanceRef overrides captured from the raw XML (``None`` = inherit)."""
+
+    text: str | None = None
+    function_text: str | None = None
+    description: str | None = None
+    priority: str | None = None
+    datapoint_type: str | None = None
+    acknowledges: str | None = None
+    # Raw per-instance flag OVERRIDES (``None`` = inherit the application default). Distinct from the
+    # effective flags xknxproject resolves (those stay on ComObject for the device download); these
+    # drive a faithful, override-only export like a genuine ETS one.
+    read_flag: bool | None = None
+    write_flag: bool | None = None
+    communication_flag: bool | None = None
+    transmit_flag: bool | None = None
+    update_flag: bool | None = None
+    read_on_init_flag: bool | None = None
+
+
 def _read_com_object_text_overrides(
     device: ET.Element,
-) -> list[tuple[str, tuple[str | None, str | None, str | None]]]:
-    """Per-instance ``@Text``/``@FunctionText``/``@Description`` overrides, keyed by
-    ``ComObjectInstanceRef @Id``.
+) -> list[tuple[str, _CoirOverride]]:
+    """Per-instance overrides from each ``<ComObjectInstanceRef>``, keyed by its ``@Id``.
 
-    xknxproject backfills the text/function-text from the application-program default after parsing, so
-    the raw XML is the only place the genuine user override survives. Yields only refs carrying at
-    least one of the three attributes; an absent attribute stays ``None`` (inherit the app default).
-    """
-    result: list[tuple[str, tuple[str | None, str | None, str | None]]] = []
+    xknxproject backfills ``@Text``/``@FunctionText`` (and resolves flags) from the application-program
+    default after parsing, so the raw XML is the only place the genuine user override survives. The
+    non-text instance attributes ``@Priority``/``@DatapointType``/``@Acknowledges`` are not surfaced at
+    all. Yields only refs carrying at least one of the captured attributes; an absent attribute stays
+    ``None`` (inherit the app default)."""
+    result: list[tuple[str, _CoirOverride]] = []
     for elem in device.iter():
         if _localname(elem.tag) != "ComObjectInstanceRef":
             continue
         cid = elem.get("Id")
         if not cid:
             continue
-        text = elem.get("Text")
-        function_text = elem.get("FunctionText")
-        description = elem.get("Description")
-        if text is not None or function_text is not None or description is not None:
-            result.append((cid, (text, function_text, description)))
+        override = _CoirOverride(
+            text=elem.get("Text"),
+            function_text=elem.get("FunctionText"),
+            description=elem.get("Description"),
+            priority=elem.get("Priority"),
+            datapoint_type=elem.get("DatapointType"),
+            acknowledges=elem.get("Acknowledges"),
+            read_flag=_enable_flag(elem.get("ReadFlag")),
+            write_flag=_enable_flag(elem.get("WriteFlag")),
+            communication_flag=_enable_flag(elem.get("CommunicationFlag")),
+            transmit_flag=_enable_flag(elem.get("TransmitFlag")),
+            update_flag=_enable_flag(elem.get("UpdateFlag")),
+            read_on_init_flag=_enable_flag(elem.get("ReadOnInitFlag")),
+        )
+        if override != _CoirOverride():
+            result.append((cid, override))
     return result
 
 
-def _read_project_meta(contents: _ProjectContents) -> tuple[str, list[_TraceEntry]]:
-    """The ``ProjectInformation`` ``@Comment`` and every ``ProjectTraces/ProjectTrace`` from the raw
-    ``project.xml``.
+def _enable_flag(value: str | None) -> bool | None:
+    """Parse a raw ``Enable_t`` attribute (``"Enabled"``/``"Disabled"``) to bool; ``None`` if absent."""
+    if value is None:
+        return None
+    return value == "Enabled"
 
-    xknxproject surfaces neither, so read them from the raw project metadata while the archive is
-    open. Best-effort: any failure yields ``("", [])`` rather than aborting the import. The trace
-    ``Comment`` is kept verbatim (ETS encrypts it); order follows the document.
+
+# ProjectInformation child collections xknxproject drops, round-tripped verbatim. ProjectTraces is
+# modelled separately.
+_PROJECT_INFO_SUBTREES = ("Tags", "HistoryEntries", "ToDoItems", "DeviceCertificates")
+# Project-level (not ProjectInformation) child collections xknxproject drops, round-tripped verbatim
+# from project.xml. ``UserFiles`` references attached files by name; the element is re-emitted as-is.
+_PROJECT_SUBTREES = ("UserFiles", "AddinData")
+
+
+def _read_project_meta(
+    contents: _ProjectContents,
+) -> tuple[str, list[_TraceEntry], dict[str, str], dict[str, str], dict[str, str]]:
+    """The ``ProjectInformation`` ``@Comment`` (+ non-secret extra attributes), every
+    ``ProjectTraces/ProjectTrace`` and the verbatim child collections from the raw ``project.xml``.
+
+    Returns ``(comment, traces, info_attributes, info_subtrees, project_subtrees)``. xknxproject
+    surfaces none of these, so read them from the raw project metadata while the archive is open.
+    Best-effort: any failure yields all-empty rather than aborting the import. The trace ``Comment``
+    is kept verbatim (ETS encrypts it); order follows the document.
     """
+    empty: tuple[
+        str, list[_TraceEntry], dict[str, str], dict[str, str], dict[str, str]
+    ] = (
+        "",
+        [],
+        {},
+        {},
+        {},
+    )
     raw = _read_project_file(contents, "project.xml")
     if raw is None:
-        return "", []
+        return empty
     try:
         root = ET.fromstring(raw)
     except ET.ParseError as e:
         logger.debug("could not parse project.xml for project metadata: %s", e)
-        return "", []
+        return empty
     comment = ""
+    extra: dict[str, str] = {}
+    subtrees: dict[str, str] = {}
     for elem in root.iter():
         if _localname(elem.tag) == "ProjectInformation":
             comment = elem.get("Comment") or ""
+            extra = {
+                k: v for k in _PROJECT_EXTRA_ATTRS if (v := elem.get(k)) is not None
+            }
+            subtrees = {
+                name: xml
+                for name in _PROJECT_INFO_SUBTREES
+                if (xml := _read_named_subtree(elem, name))
+            }
+            break
+    project_subtrees: dict[str, str] = {}
+    for elem in root.iter():
+        if _localname(elem.tag) == "Project":
+            project_subtrees = {
+                name: xml
+                for name in _PROJECT_SUBTREES
+                if (xml := _read_named_subtree(elem, name))
+            }
             break
     traces: list[_TraceEntry] = []
     for elem in root.iter():
@@ -793,7 +1022,7 @@ def _read_project_meta(contents: _ProjectContents) -> tuple[str, list[_TraceEntr
                 comment=elem.get("Comment") or "",
             )
         )
-    return comment, traces
+    return comment, traces, extra, subtrees, project_subtrees
 
 
 def _read_binary_data(
@@ -922,6 +1151,9 @@ def _build(
         schema_version=info.schema_version,
         tool_version=info.tool_version,
         comment=extras.project_comment,
+        extra_attributes=extras.project_extra_attributes or None,
+        info_subtrees=extras.project_info_subtrees or None,
+        extra_subtrees=extras.project_subtrees or None,
         knx_master_xml=knx_master_xml,
         imported_product_members=product_members,
         traces=[
@@ -944,7 +1176,11 @@ def _build(
         bool(extras.project_comment),
     )
 
-    installation = Installation(index=_INSTALLATION_INDEX, name="")
+    installation = Installation(
+        index=_INSTALLATION_INDEX, name=extras.installation_name
+    )
+    installation.extra_attributes = extras.installation_extra_attributes or None
+    installation.p2p_links_xml = extras.installation_p2p_links
     session.add(installation)
 
     state = _ImportState(extras)
@@ -1091,6 +1327,9 @@ def _build_line_segments(
                 if desc.domain_address is not None or len(descs) > 1
                 else default_domain
             ),
+            additional_group_addresses=",".join(
+                str(a) for a in desc.additional_group_addresses
+            ),
         )
         line.segments.append(segment)
         segments.append(segment)
@@ -1148,6 +1387,7 @@ def _build_device(xdevice: DeviceInstance, state: _ImportState) -> Device:
             getattr(xdevice, "application_program_ref", None) or "",
         )
     )
+    param_overrides = state.extras.param_instance_overrides.get(xdevice.identifier, {})
     device = Device(
         address=xdevice.address,
         name=xdevice.name,
@@ -1173,7 +1413,14 @@ def _build_device(xdevice: DeviceInstance, state: _ImportState) -> Device:
         parameters_loaded=getattr(xdevice, "parameters_loaded", False),
         com_objects=com_objects,
         parameters=[
-            Parameter(ref_id=ref, value=p.value or "")
+            Parameter(
+                ref_id=ref,
+                value=p.value or "",
+                customized_text=param_overrides.get(ref, {}).get("CustomizedText"),
+                grant_use_by_customer=param_overrides.get(ref, {}).get(
+                    "GrantUseByCustomer"
+                ),
+            )
             for ref, p in xdevice.parameter_instance_refs.items()
         ],
         module_instances=[
@@ -1196,6 +1443,11 @@ def _build_device(xdevice: DeviceInstance, state: _ImportState) -> Device:
         # The <IPConfig> (IP interface/router config), captured verbatim from the raw XML and
         # re-emitted on export; xknxproject does not surface it. None when the device had none.
         ip_config=state.extras.ip_config.get(xdevice.identifier),
+        # DeviceInstance attributes xknxproject drops (UniqueId/InstallationHints/IsRFRetransmitter/
+        # Context), captured verbatim and re-emitted. None when the device had none.
+        extra_attributes=state.extras.device_extra_attributes.get(xdevice.identifier)
+        or None,
+        extra_subtrees=state.extras.device_subtrees.get(xdevice.identifier) or None,
         # Extra individual addresses a coupler/interface reserves (<AdditionalAddresses>), read from
         # the raw XML (xknxproject drops them) and re-emitted verbatim on export.
         additional_addresses=[
@@ -1291,12 +1543,12 @@ def _unlinked_com_objects_from_tree(
 
 def _build_com_object(
     coir: ComObjectInstanceRef,
-    text_override: tuple[str | None, str | None, str | None] | None = None,
+    override: _CoirOverride | None = None,
 ) -> ComObject:
     # ``com_object_ref_id`` is xknxproject's resolved *definition* id: it runs the ref through
     # strip_module_instance(), so every instance of a module shares one value. Keep the instance's
     # own ``ref_id`` alongside it, or the export cannot tell the instances apart again.
-    text, function_text, description = text_override or (None, None, None)
+    ov = override or _CoirOverride()
     return ComObject(
         ref_id=coir.com_object_ref_id or coir.ref_id,
         instance_ref_id=coir.ref_id or "",
@@ -1307,9 +1559,18 @@ def _build_com_object(
         transmit_flag=coir.transmit_flag,
         update_flag=coir.update_flag,
         read_on_init_flag=coir.read_on_init_flag,
-        text_override=text,
-        function_text_override=function_text,
-        description_override=description,
+        read_flag_override=ov.read_flag,
+        write_flag_override=ov.write_flag,
+        communication_flag_override=ov.communication_flag,
+        transmit_flag_override=ov.transmit_flag,
+        update_flag_override=ov.update_flag,
+        read_on_init_flag_override=ov.read_on_init_flag,
+        text_override=ov.text,
+        function_text_override=ov.function_text,
+        description_override=ov.description,
+        priority=ov.priority,
+        datapoint_type_override=ov.datapoint_type,
+        acknowledges=ov.acknowledges,
     )
 
 
@@ -1340,6 +1601,11 @@ def _build_group_addresses(
             # ``Unfiltered`` (route through couplers unconditionally) read from the raw XML by
             # address, since xknxproject does not surface it.
             unfiltered=xga.raw_address in state.extras.unfiltered_ga,
+            security_mode=state.extras.ga_security.get(xga.raw_address, {}).get(
+                "Security"
+            ),
+            security_key=state.extras.ga_security.get(xga.raw_address, {}).get("Key"),
+            context=state.extras.ga_security.get(xga.raw_address, {}).get("Context"),
         )
         group_range.group_addresses.append(ga)
         state.register_group_address(xga.identifier, ga)
@@ -1409,19 +1675,31 @@ def _build_spaces(
         if space is None:
             continue  # function references a space that was not present
         comment, description = state.extras.function_meta.get(func.identifier, ("", ""))
+        extra = state.extras.function_extra.get(func.identifier, {})
+        ga_refs = state.extras.function_ga_refs.get(func.identifier, {})
         function = Function(
             function_type=func.function_type,
             name=func.name,
             usage_text=func.usage_text,
             comment=comment,
             description=description,
+            implements=extra.get("Implements", ""),
+            number=extra.get("Number", ""),
+            default_group_range=extra.get("DefaultGroupRange", ""),
+            context=extra.get("Context", ""),
             order=order,
         )
         for ref in func.group_addresses:
             ga = state.group_addresses.get(ref.ref_id)
             if ga is not None:
+                meta = ga_refs.get(ref.ref_id, {})
                 function.group_addresses.append(
-                    FunctionGroupAddress(group_address=ga, role=ref.role)
+                    FunctionGroupAddress(
+                        group_address=ga,
+                        role=ref.role,
+                        name=meta.get("Name", ""),
+                        context=meta.get("Context", ""),
+                    )
                 )
         space.functions.append(function)
 
@@ -1442,6 +1720,10 @@ def _build_space(
         usage_text=xspace.usage_text,
         description=getattr(xspace, "description", "") or "",
         comment=state.extras.space_comment.get(xspace.identifier, ""),
+        default_line=state.extras.space_extra.get(xspace.identifier, {}).get(
+            "DefaultLine", ""
+        ),
+        context=state.extras.space_extra.get(xspace.identifier, {}).get("Context", ""),
         order=order,
         parent=parent,
     )

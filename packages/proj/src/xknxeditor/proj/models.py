@@ -65,6 +65,20 @@ class Project(Base):
     original_project_id: Mapped[str] = mapped_column(String, nullable=False, default="")
     # The ProjectInformation free-text comment, carried over so a round-trip preserves it.
     comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # Non-secret ProjectInformation attributes xknxproject does not surface (ProjectStart,
+    # ProjectNumber, ContractNumber, ProjectEnd, ProjectId — all valid in project/20 and /23),
+    # captured verbatim and re-emitted. ``None`` when the source had none.
+    extra_attributes: Mapped[dict[str, str] | None] = mapped_column(JSON)
+    # ProjectInformation child collections xknxproject drops, captured verbatim (namespace-stripped
+    # XML) and re-emitted: ``{"Tags": ..., "HistoryEntries": ..., "ToDoItems": ...,
+    # "DeviceCertificates": ...}``. ``None`` when the source had none. (ProjectTraces are modelled
+    # separately; UserFiles are archive files, not carried here.)
+    info_subtrees: Mapped[dict[str, str] | None] = mapped_column(JSON)
+    # Project-level (not ProjectInformation) child collections xknxproject drops, captured verbatim
+    # from project.xml and re-emitted after ProjectInformation: ``{"UserFiles": ..., "AddinData":
+    # ...}``. ``None`` when the source had none. ``UserFiles`` carries file references only (the
+    # attached file bytes are not round-tripped).
+    extra_subtrees: Mapped[dict[str, str] | None] = mapped_column(JSON)
     # Import-loss notes (JSON list, see core.import_notes): data the source .knxproj carried that our
     # store cannot fully represent (merged installations, unassigned devices, per-instance com-object
     # texts, IP config, multi-segment lines). Echoed at export so the user is reminded. Empty for a
@@ -110,6 +124,14 @@ class Installation(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     index: Mapped[int] = mapped_column(Integer, nullable=False, unique=True)
     name: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # Installation attributes xknxproject does not surface (InstallationId, IP-routing multicast/TTL/
+    # latency/sync, SplitType, backbone-security mode — all valid in project/20 and /23), captured
+    # verbatim as an attribute dict and re-emitted on export. Secret key material (IPRoutingBackboneKey,
+    # BCUKey) is intentionally NOT persisted. ``None`` when the source had none.
+    extra_attributes: Mapped[dict[str, str] | None] = mapped_column(JSON)
+    # The installation's ``<P2PLinks>`` subtree (point-to-point links incl. their keys/endpoint
+    # security), captured verbatim (namespace-stripped XML) and re-emitted. Empty when absent.
+    p2p_links_xml: Mapped[str] = mapped_column(Text, nullable=False, default="")
 
     areas: Mapped[list["Area"]] = relationship(
         back_populates="installation", cascade="all, delete-orphan"
@@ -192,6 +214,12 @@ class Segment(Base):
     name: Mapped[str] = mapped_column(Text, nullable=False, default="")
     # RF/PL ``DomainAddress`` (project/22+23 Segment attr, project/14+20 Line attr). None for TP/IP.
     domain_address: Mapped[int | None] = mapped_column(Integer)
+    # This segment's own ``AdditionalGroupAddresses`` (project/22+23, where they sit on the Segment),
+    # comma-separated raw integer addresses. Empty when none. The Line keeps the per-line union for
+    # the download/filter-table consumer; this preserves the per-segment split for a faithful export.
+    additional_group_addresses: Mapped[str] = mapped_column(
+        Text, nullable=False, default=""
+    )
 
     line: Mapped["Line"] = relationship(back_populates="segments")
     devices: Mapped[list["Device"]] = relationship(
@@ -230,6 +258,15 @@ class Device(Base):
     # on export. xknxproject does not surface it, so it is preserved as opaque provenance (the editor
     # does not edit it). ``None`` when the source device had no ``<IPConfig>``.
     ip_config: Mapped[dict[str, str] | None] = mapped_column(JSON)
+    # DeviceInstance attributes xknxproject does not surface (UniqueId, InstallationHints,
+    # IsRFRetransmitter, Context — all valid in project/20 and /23), captured verbatim as an
+    # attribute dict and re-emitted on export. ``None`` when the source device had none.
+    extra_attributes: Mapped[dict[str, str] | None] = mapped_column(JSON)
+    # DeviceInstance subtrees xknxproject drops, captured verbatim (namespace-stripped XML) and
+    # re-emitted: ``{"ChannelInstances": ..., "BusInterfaces": ..., "RfFastAckSlots": ...}`` (channel
+    # instance names, bus-interface endpoints incl. their secure config, RF fast-ack slots). ``None``
+    # when the device had none.
+    extra_subtrees: Mapped[dict[str, str] | None] = mapped_column(JSON)
     # Descriptive metadata carried over from the imported .knxproj (for display without a catalog).
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
     comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
@@ -349,6 +386,10 @@ class Parameter(Base):
     )
     ref_id: Mapped[str] = mapped_column(String, nullable=False)
     value: Mapped[str] = mapped_column(String, nullable=False, default="")
+    # ParameterInstanceRef attributes xknxproject drops, round-tripped verbatim (``@CustomizedText``
+    # a user-set custom label, ``@GrantUseByCustomer`` an end-customer-edit flag). ``None`` when absent.
+    customized_text: Mapped[str | None] = mapped_column(String)
+    grant_use_by_customer: Mapped[str | None] = mapped_column(String)
 
     device: Mapped["Device"] = relationship(back_populates="parameters")
 
@@ -412,6 +453,16 @@ class ComObject(Base):
     transmit_flag: Mapped[bool | None] = mapped_column(Boolean)
     update_flag: Mapped[bool | None] = mapped_column(Boolean)
     read_on_init_flag: Mapped[bool | None] = mapped_column(Boolean)
+    # The flags above are the EFFECTIVE values (xknxproject resolves inherit->default); the device
+    # download programs them, so they must stay resolved. These ``*_override`` flags are the raw
+    # per-instance overrides actually present in the source (``None`` = inherit); the export emits
+    # these so a round-trip stays override-only like a genuine ETS export (not all six resolved).
+    read_flag_override: Mapped[bool | None] = mapped_column(Boolean)
+    write_flag_override: Mapped[bool | None] = mapped_column(Boolean)
+    communication_flag_override: Mapped[bool | None] = mapped_column(Boolean)
+    transmit_flag_override: Mapped[bool | None] = mapped_column(Boolean)
+    update_flag_override: Mapped[bool | None] = mapped_column(Boolean)
+    read_on_init_flag_override: Mapped[bool | None] = mapped_column(Boolean)
 
     # Per-instance text overrides (ETS ``@Text``/``@FunctionText``/``@Description`` on the
     # ComObjectInstanceRef). Like the flags, ``None`` inherits the application/product default; a value
@@ -420,6 +471,12 @@ class ComObject(Base):
     text_override: Mapped[str | None] = mapped_column(String)
     function_text_override: Mapped[str | None] = mapped_column(String)
     description_override: Mapped[str | None] = mapped_column(String)
+    # Further per-instance overrides from the ComObjectInstanceRef, captured from the raw XML and
+    # re-emitted verbatim (``None`` inherits the application/product default): ``@Priority`` (comms
+    # priority), ``@DatapointType`` (an instance DPT pin) and ``@Acknowledges`` (RELIDREFS).
+    priority: Mapped[str | None] = mapped_column(String)
+    datapoint_type_override: Mapped[str | None] = mapped_column(String)
+    acknowledges: Mapped[str | None] = mapped_column(String)
 
     device: Mapped["Device"] = relationship(back_populates="com_objects")
     links: Mapped[list["ComObjectLink"]] = relationship(
@@ -482,6 +539,13 @@ class GroupAddress(Base):
     unfiltered: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     # Marked as a global/broadcast group address (``Global``), carried over for round-trip.
     is_global: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # Group-address security that xknxproject reduces to the ``data_secure`` bool, captured verbatim
+    # for a faithful round-trip: ``@Security`` (mode), ``@Key`` (the AES key — persisted on explicit
+    # authorisation, overriding the usual "no key material in the project DB" rule) and ``@Context``.
+    # ``None`` when absent.
+    security_mode: Mapped[str | None] = mapped_column(String)
+    security_key: Mapped[str | None] = mapped_column(String)
+    context: Mapped[str | None] = mapped_column(String)
 
     group_range: Mapped["GroupRange"] = relationship(back_populates="group_addresses")
     links: Mapped[list["ComObjectLink"]] = relationship(
@@ -532,6 +596,10 @@ class Space(Base):
     usage_text: Mapped[str] = mapped_column(Text, nullable=False, default="")
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
     comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # Non-displayed Space attributes xknxproject drops, round-tripped verbatim (``@DefaultLine`` id,
+    # ``@Context``). Empty when the source had none.
+    default_line: Mapped[str] = mapped_column(String, nullable=False, default="")
+    context: Mapped[str] = mapped_column(String, nullable=False, default="")
     order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     installation: Mapped["Installation"] = relationship(back_populates="spaces")
@@ -563,6 +631,12 @@ class Function(Base):
     # Descriptive metadata carried over from the imported .knxproj.
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
     comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # Non-displayed Function attributes xknxproject drops, round-tripped verbatim (``@Implements``,
+    # ``@Number``, ``@DefaultGroupRange`` id, ``@Context``). Empty when the source had none.
+    implements: Mapped[str] = mapped_column(String, nullable=False, default="")
+    number: Mapped[str] = mapped_column(String, nullable=False, default="")
+    default_group_range: Mapped[str] = mapped_column(String, nullable=False, default="")
+    context: Mapped[str] = mapped_column(String, nullable=False, default="")
     order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
 
     space: Mapped["Space"] = relationship(back_populates="functions")
@@ -584,6 +658,10 @@ class FunctionGroupAddress(Base):
         ForeignKey("group_addresses.id"), nullable=False, index=True
     )
     role: Mapped[str] = mapped_column(String, nullable=False, default="")
+    # The GroupAddressRef's own ``@Name`` and ``@Context`` (xknxproject drops them), round-tripped
+    # verbatim. Empty when absent.
+    name: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    context: Mapped[str] = mapped_column(String, nullable=False, default="")
 
     function: Mapped["Function"] = relationship(back_populates="group_addresses")
     group_address: Mapped["GroupAddress"] = relationship(

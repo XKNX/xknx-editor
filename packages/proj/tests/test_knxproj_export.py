@@ -1317,3 +1317,365 @@ def test_import_provenance_does_not_downgrade_explicit_higher_schema(
     assert result.schema == "23"
     members = _archive_members(out)
     assert not any(n.split("/", 1)[0].startswith("M-") for n in members)
+
+
+def test_device_extra_attributes_round_trip_to_export(tmp_path: Path) -> None:
+    """DeviceInstance attributes xknxproject drops (UniqueId/InstallationHints/IsRFRetransmitter/
+    Context) are stored verbatim and re-emitted on export (all valid in project/20 and /23)."""
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-EA")
+    area_id = svc.create_area(pid, 0, 2, "A")
+    line_id = svc.create_line(pid, area_id, 1, "L")
+    segment_id = next(
+        line.segments[0].id
+        for area in svc.topology(pid, 0).areas
+        if area.id == area_id
+        for line in area.lines
+        if line.id == line_id
+    )
+    svc.add_device(
+        pid,
+        segment_id,
+        "M-1_H-1_P-1",
+        address=5,
+        name="Dev",
+        hardware2program_ref_id="M-1_H-1_HP-1",
+    )
+    svc.close(pid)
+
+    attrs = {
+        "UniqueId": "ABC-123",
+        "InstallationHints": "7",
+        "IsRFRetransmitter": "true",
+        "Context": "ctx",
+    }
+    engine = make_engine(url_for(src))
+    try:
+        with Session(engine) as session:
+            device = session.query(Device).one()
+            device.extra_attributes = dict(attrs)
+            session.commit()
+    finally:
+        engine.dispose()
+
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out)
+    with zipfile.ZipFile(out) as zf:
+        zero = next(n for n in zf.namelist() if n.endswith("/0.xml"))
+        root = ET.fromstring(zf.read(zero))
+    di = next(e for e in root.iter() if e.tag.rsplit("}", 1)[-1] == "DeviceInstance")
+    assert {k: di.get(k) for k in attrs} == attrs
+
+
+def test_parameter_instance_ref_overrides_round_trip_to_export(tmp_path: Path) -> None:
+    """ParameterInstanceRef @CustomizedText/@GrantUseByCustomer (dropped by xknxproject) are stored
+    and re-emitted on export (both valid in project/20 and /23)."""
+    from xknxeditor.proj.models import Parameter
+
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-PR")
+    area_id = svc.create_area(pid, 0, 2, "A")
+    line_id = svc.create_line(pid, area_id, 1, "L")
+    segment_id = next(
+        line.segments[0].id
+        for area in svc.topology(pid, 0).areas
+        if area.id == area_id
+        for line in area.lines
+        if line.id == line_id
+    )
+    device_id = svc.add_device(
+        pid,
+        segment_id,
+        "M-1_H-1_P-1",
+        address=5,
+        name="Dev",
+        hardware2program_ref_id="M-1_H-1_HP-1",
+    )
+    svc.close(pid)
+
+    engine = make_engine(url_for(src))
+    try:
+        with Session(engine) as session:
+            session.add(
+                Parameter(
+                    device_id=device_id,
+                    ref_id="M-1_A-1_P-1_R-1",
+                    value="5",
+                    customized_text="Custom label",
+                    grant_use_by_customer="true",
+                )
+            )
+            session.commit()
+    finally:
+        engine.dispose()
+
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out)
+    with zipfile.ZipFile(out) as zf:
+        zero = next(n for n in zf.namelist() if n.endswith("/0.xml"))
+        xml = zf.read(zero).decode("utf-8")
+    pir = next(
+        r
+        for r in re.findall(r"<(?:\w+:)?ParameterInstanceRef\b[^>]*>", xml)
+        if "M-1_A-1_P-1_R-1" in r
+    )
+    assert 'CustomizedText="Custom label"' in pir
+    assert 'GrantUseByCustomer="true"' in pir
+
+
+def test_additional_group_addresses_stay_per_segment(tmp_path: Path) -> None:
+    """A multi-segment line's AdditionalGroupAddresses must be emitted on their own segment, not all
+    collapsed onto the first (#6). Two segments carry different pass-through addresses."""
+    from xknxeditor.proj.models import Line, Segment
+
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-AGA")
+    area_id = svc.create_area(pid, 0, 2, "A")
+    line_id = svc.create_line(pid, area_id, 1, "L")
+    svc.close(pid)
+
+    engine = make_engine(url_for(src))
+    try:
+        with Session(engine) as session:
+            line = session.get(Line, line_id)
+            assert line is not None
+            line.segments[0].additional_group_addresses = "100"
+            session.add(
+                Segment(
+                    line_id=line_id,
+                    number=1,
+                    medium_type=line.segments[0].medium_type,
+                    additional_group_addresses="200",
+                )
+            )
+            session.commit()
+    finally:
+        engine.dispose()
+
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out, schema="23")
+    with zipfile.ZipFile(out) as zf:
+        zero = next(n for n in zf.namelist() if n.endswith("/0.xml"))
+        root = ET.fromstring(zf.read(zero))
+
+    def _ln(t: str) -> str:
+        return t.rsplit("}", 1)[-1]
+
+    segs = [e for e in root.iter() if _ln(e.tag) == "Segment"]
+    per_segment = []
+    for seg in segs:
+        addrs = [
+            ga.get("Address")
+            for container in seg
+            if _ln(container.tag) == "AdditionalGroupAddresses"
+            for ga in container
+            if _ln(ga.tag) == "GroupAddress"
+        ]
+        per_segment.append(set(addrs))
+    assert {"100"} in per_segment and {"200"} in per_segment
+    # No segment carries both (the misattribution bug would put 100+200 on the first).
+    assert all(a != {"100", "200"} for a in per_segment)
+
+
+def test_device_extra_subtrees_round_trip_to_export(tmp_path: Path) -> None:
+    """ChannelInstances/BusInterfaces/RfFastAckSlots (dropped by xknxproject) are stored verbatim and
+    re-emitted at their schema position in the DeviceInstance (ChannelInstances before ModuleInstances;
+    BusInterfaces/RfFastAckSlots at the end) (#9/#5)."""
+    from xknxeditor.proj.models import Device
+
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-ST")
+    area_id = svc.create_area(pid, 0, 2, "A")
+    line_id = svc.create_line(pid, area_id, 1, "L")
+    segment_id = next(
+        line.segments[0].id
+        for area in svc.topology(pid, 0).areas
+        if area.id == area_id
+        for line in area.lines
+        if line.id == line_id
+    )
+    device_id = svc.add_device(
+        pid,
+        segment_id,
+        "M-1_H-1_P-1",
+        address=5,
+        name="Dev",
+        hardware2program_ref_id="M-1_H-1_HP-1",
+    )
+    svc.close(pid)
+
+    engine = make_engine(url_for(src))
+    try:
+        with Session(engine) as session:
+            device = session.get(Device, device_id)
+            assert device is not None
+            device.extra_subtrees = {
+                "ChannelInstances": '<ChannelInstances><ChannelInstance RefId="CH-1" Name="Chan 1" /></ChannelInstances>',
+                "BusInterfaces": '<BusInterfaces><BusInterface Name="If 1" /></BusInterfaces>',
+            }
+            session.commit()
+    finally:
+        engine.dispose()
+
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out, schema="23")
+    with zipfile.ZipFile(out) as zf:
+        zero = next(n for n in zf.namelist() if n.endswith("/0.xml"))
+        root = ET.fromstring(zf.read(zero))
+
+    def _ln(t: str) -> str:
+        return t.rsplit("}", 1)[-1]
+
+    di = next(e for e in root.iter() if _ln(e.tag) == "DeviceInstance")
+    child_tags = [_ln(c.tag) for c in di]
+    assert "ChannelInstances" in child_tags and "BusInterfaces" in child_tags
+    assert child_tags.index("ChannelInstances") < child_tags.index("BusInterfaces")
+
+
+def test_p2p_links_round_trip_and_placement(tmp_path: Path) -> None:
+    """<P2PLinks> (dropped by xknxproject) is stored verbatim and re-emitted between GroupAddresses
+    and Trades in the Installation (#5)."""
+    from xknxeditor.proj.models import Installation
+
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-P2P")
+    svc.close(pid)
+    engine = make_engine(url_for(src))
+    try:
+        with Session(engine) as session:
+            session.query(
+                Installation
+            ).one().p2p_links_xml = '<P2PLinks><P2PLink Id="L1" /></P2PLinks>'
+            session.commit()
+    finally:
+        engine.dispose()
+
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out, schema="23")
+    with zipfile.ZipFile(out) as zf:
+        zero = next(n for n in zf.namelist() if n.endswith("/0.xml"))
+        root = ET.fromstring(zf.read(zero))
+
+    def _ln(t: str) -> str:
+        return t.rsplit("}", 1)[-1]
+
+    inst = next(e for e in root.iter() if _ln(e.tag) == "Installation")
+    tags = [_ln(c.tag) for c in inst]
+    assert "P2PLinks" in tags
+    # P2PLinks comes after GroupAddresses (Trades is omitted here as there are none).
+    assert tags.index("GroupAddresses") < tags.index("P2PLinks")
+
+
+def test_project_information_collections_round_trip_to_export(tmp_path: Path) -> None:
+    """ProjectInformation child collections xknxproject drops (Tags/HistoryEntries/ToDoItems/
+    DeviceCertificates) are stored verbatim and re-emitted in schema order. DeviceCertificates
+    follows ProjectTraces; Tags/HistoryEntries/ToDoItems precede it (all valid in project/20 and /23).
+    """
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-INFO")
+    svc.close(pid)
+
+    subtrees = {
+        "Tags": '<Tags><Tag Name="T1" /></Tags>',
+        "HistoryEntries": '<HistoryEntries><HistoryEntry Date="2024-01-01T00:00:00" '
+        'User="alice" Text="created" /></HistoryEntries>',
+        "ToDoItems": '<ToDoItems><ToDoItem Description="wire line 2" Status="Open" /></ToDoItems>',
+        "DeviceCertificates": '<DeviceCertificates><DeviceCertificate SerialNumber="00FA12345678" '
+        'FDSK="AAAAAA-BBBBBB-CCCCCC-DDDDDD-EEEEEE-FFFFFF" /></DeviceCertificates>',
+    }
+    engine = make_engine(url_for(src))
+    try:
+        with Session(engine) as session:
+            session.query(Project).one().info_subtrees = dict(subtrees)
+            session.commit()
+    finally:
+        engine.dispose()
+
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out)
+    with zipfile.ZipFile(out) as zf:
+        name = next(n for n in zf.namelist() if n.endswith("/project.xml"))
+        root = ET.fromstring(zf.read(name))
+
+    def _ln(t: str) -> str:
+        return t.rsplit("}", 1)[-1]
+
+    info = next(e for e in root.iter() if _ln(e.tag) == "ProjectInformation")
+    tags = [_ln(c.tag) for c in info]
+    for name in subtrees:
+        assert name in tags, f"{name} missing from ProjectInformation"
+    # Schema order: Tags, HistoryEntries, ToDoItems, (ProjectTraces,) DeviceCertificates.
+    assert tags.index("Tags") < tags.index("HistoryEntries") < tags.index("ToDoItems")
+    assert tags.index("ToDoItems") < tags.index("DeviceCertificates")
+    # Content survives verbatim and is namespaced by the exporter.
+    cert = next(e for e in info.iter() if _ln(e.tag) == "DeviceCertificate")
+    assert cert.get("SerialNumber") == "00FA12345678"
+    assert cert.tag.startswith("{")
+
+
+def test_project_information_collections_survive_full_round_trip(
+    tmp_path: Path,
+) -> None:
+    """Import -> export -> re-import keeps the stored ProjectInformation collections intact."""
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-RT")
+    svc.close(pid)
+    stored = {"Tags": '<Tags><Tag Name="only" /></Tags>'}
+    engine = make_engine(url_for(src))
+    try:
+        with Session(engine) as session:
+            session.query(Project).one().info_subtrees = dict(stored)
+            session.commit()
+    finally:
+        engine.dispose()
+
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out)
+    round_path = tmp_path / "round.xknx"
+    import_knxproj(out, round_path)
+    with Session(make_engine(url_for(round_path))) as session:
+        reimported = session.query(Project).one().info_subtrees or {}
+    assert "Tags" in reimported
+    tag = ET.fromstring(reimported["Tags"]).find("Tag")
+    assert tag is not None and tag.get("Name") == "only"
+
+
+def test_project_user_files_round_trip_to_export(tmp_path: Path) -> None:
+    """Project-level UserFiles (dropped by xknxproject) are stored verbatim and re-emitted directly
+    under Project after ProjectInformation (confirmed against a real ETS5 export)."""
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-UF")
+    svc.close(pid)
+    engine = make_engine(url_for(src))
+    try:
+        with Session(engine) as session:
+            session.query(Project).one().extra_subtrees = {
+                "UserFiles": '<UserFiles><UserFile Filename="test.txt" /></UserFiles>'
+            }
+            session.commit()
+    finally:
+        engine.dispose()
+
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out)
+    with zipfile.ZipFile(out) as zf:
+        name = next(n for n in zf.namelist() if n.endswith("/project.xml"))
+        root = ET.fromstring(zf.read(name))
+
+    def _ln(t: str) -> str:
+        return t.rsplit("}", 1)[-1]
+
+    project = next(e for e in root.iter() if _ln(e.tag) == "Project")
+    children = [_ln(c.tag) for c in project]
+    assert children.index("ProjectInformation") < children.index("UserFiles")
+    user_file = next(e for e in project.iter() if _ln(e.tag) == "UserFile")
+    assert user_file.get("Filename") == "test.txt"
+    assert user_file.tag.startswith("{")

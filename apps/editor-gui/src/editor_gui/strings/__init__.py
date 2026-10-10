@@ -479,7 +479,8 @@ class MenuStrings:
     @property
     def IMPORT_NOTE_UNASSIGNED_DEVICES(self) -> str:
         return _(
-            "{count} device(s) had no place in the original file, so they were left out."
+            "{count} device(s) aren't assigned to a line. They're kept in the project and "
+            "included on export, but can't be edited here yet."
         )
 
     @property

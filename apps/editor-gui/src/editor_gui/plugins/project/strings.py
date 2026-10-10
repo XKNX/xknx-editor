@@ -710,6 +710,10 @@ class ProjectStrings:
         return _("Name")
 
     @property
+    def PROJECT_INFO_INSTALLATION(self) -> str:
+        return _("Installation")
+
+    @property
     def PROJECT_INFO_GA_STYLE(self) -> str:
         return _("Group address style")
 

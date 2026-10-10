@@ -791,12 +791,15 @@ def _has_override(co: ComObject) -> bool:
             co.text_override,
             co.function_text_override,
             co.description_override,
-            co.read_flag,
-            co.write_flag,
-            co.communication_flag,
-            co.transmit_flag,
-            co.update_flag,
-            co.read_on_init_flag,
+            co.priority,
+            co.datapoint_type_override,
+            co.acknowledges,
+            co.read_flag_override,
+            co.write_flag_override,
+            co.communication_flag_override,
+            co.transmit_flag_override,
+            co.update_flag_override,
+            co.read_on_init_flag_override,
         )
     )
 
@@ -953,6 +956,16 @@ class _Writer:
             Guid=project_guid,
             LastModified=project.last_modified or now,
         )
+        # Non-secret ProjectInformation attributes captured on import (ProjectStart/ProjectNumber/
+        # ContractNumber/ProjectEnd/ProjectId); all valid in project/20 and /23.
+        for key, value in (project.extra_attributes or {}).items():
+            info.set(key, value)
+        # ProjectInformation child collections captured verbatim on import, re-emitted in schema
+        # order: Tags, HistoryEntries, ToDoItems, ProjectTraces, DeviceCertificates.
+        info_subtrees = project.info_subtrees or {}
+        for name in ("Tags", "HistoryEntries", "ToDoItems"):
+            if raw := info_subtrees.get(name):
+                self._graft(info, ET.fromstring(raw))
         # Re-emit the ETS project log verbatim so a round-trip preserves the history. The Comment is
         # written exactly as imported (ETS encrypts it); Date/UserName are plaintext. Skipped when the
         # project carries no traces, keeping ProjectTraces (minOccurs=0) absent as ETS does.
@@ -966,6 +979,14 @@ class _Writer:
                     UserName=trace.user_name,
                     Comment=trace.comment,
                 )
+        if raw := info_subtrees.get("DeviceCertificates"):
+            self._graft(info, ET.fromstring(raw))
+        # Project-level collections captured verbatim from project.xml, re-emitted after
+        # ProjectInformation in schema order (Installations live in 0.xml, not here).
+        project_subtrees = project.extra_subtrees or {}
+        for name in ("UserFiles", "AddinData"):
+            if raw := project_subtrees.get(name):
+                self._graft(p, ET.fromstring(raw))
 
         own_paths = {
             "knx_master.xml",
@@ -1078,6 +1099,10 @@ class _Writer:
             BCUKey="4294967295",
             IPRoutingLatencyTolerance="2000",
         )
+        # Non-secret Installation attributes captured on import (multicast/TTL/latency/sync/SplitType/
+        # backbone-security mode); stored values override the defaults set above.
+        for key, value in (installation.extra_attributes or {}).items():
+            inst.set(key, value)
 
         topo = self._el(inst, "Topology")
         l_seq = 0
@@ -1122,6 +1147,7 @@ class _Writer:
                     Puid=self._next_puid(),
                 )
                 first_segment_el: ET.Element | None = None
+                any_segment_aga = False
                 for segment in line.segments:
                     if self._uses_segments:
                         s_seq += 1
@@ -1145,22 +1171,34 @@ class _Writer:
                         self._build_device(
                             container, device, di_id[device.id], ga_link_id
                         )
-                # Coupler "route regardless" pass-through addresses. The schema places
-                # <AdditionalGroupAddresses> on the Segment (project/22+23) or on the Line
-                # (project/14+20); it is the last child in either. The model stores them on the Line
-                # (one segment per line), so emit on the first segment when the target uses segments,
-                # else on the line.
-                extra = [
+                    # Each segment's own "route regardless" pass-through addresses, as the last child
+                    # of the Segment (project/22+23). Keeping them per-segment avoids collapsing a
+                    # multi-segment line's addresses onto the first segment.
+                    if self._uses_segments:
+                        seg_extra = [
+                            a
+                            for a in segment.additional_group_addresses.split(",")
+                            if a.strip()
+                        ]
+                        if seg_extra:
+                            any_segment_aga = True
+                            agas = self._el(container, "AdditionalGroupAddresses")
+                            for addr in seg_extra:
+                                self._el(agas, "GroupAddress", Address=int(addr))
+                # Line-level union: on the Line for project/14+20; for project/22+23 only as a
+                # fallback when no segment carried its own (a 14/20 source or a from-scratch line),
+                # emitted on the first segment to avoid losing the addresses on a schema upgrade.
+                line_extra = [
                     a for a in line.additional_group_addresses.split(",") if a.strip()
                 ]
-                if extra:
+                if line_extra and not (self._uses_segments and any_segment_aga):
                     target = (
                         first_segment_el
                         if self._uses_segments and first_segment_el is not None
                         else line_el
                     )
                     agas = self._el(target, "AdditionalGroupAddresses")
-                    for addr in extra:
+                    for addr in line_extra:
                         self._el(agas, "GroupAddress", Address=int(addr))
 
         if self._default_line_id is not None:
@@ -1178,6 +1216,16 @@ class _Writer:
         roots = [gr for gr in installation.group_ranges if gr.parent_id is None]
         for group_range in sorted(roots, key=lambda x: x.range_start):
             gr_seq = self._build_range(ranges, group_range, pid, gr_seq, ga_link_id)
+
+        # <P2PLinks> (schema order: after GroupAddresses, before Trades). Point-to-point links incl.
+        # their keys/endpoint security, captured verbatim on import and re-emitted here. project/20+.
+        raw_p2p = installation.p2p_links_xml
+        schema = self._ns.rsplit("/", 1)[-1]
+        if raw_p2p and schema.isdigit() and int(schema) >= 20:
+            try:
+                self._graft(inst, ET.fromstring(raw_p2p))
+            except ET.ParseError:
+                logger.debug("skipping malformed stored P2PLinks")
 
         self._build_trades(inst, installation, di_id)
         return root
@@ -1257,6 +1305,8 @@ class _Writer:
             Usage=space.usage or None,
             Description=space.description or None,
             Comment=space.comment or None,
+            DefaultLine=space.default_line or None,
+            Context=space.context or None,
             Puid=self._next_puid(),
         )
         # The Space content model is a strict sequence: nested Space* first, then DeviceInstanceRef*,
@@ -1276,6 +1326,10 @@ class _Writer:
                 Type=fn.function_type or None,
                 Comment=fn.comment or None,
                 Description=fn.description or None,
+                Implements=fn.implements or None,
+                Number=fn.number or None,
+                DefaultGroupRange=fn.default_group_range or None,
+                Context=fn.context or None,
                 Puid=self._next_puid(),
             )
             gf = 0
@@ -1289,9 +1343,10 @@ class _Writer:
                     fn_el,
                     "GroupAddressRef",
                     Id=f"{pid}-0_F-{counters['f']}_GF-{gf}",
-                    Name="",
+                    Name=fga.name,
                     RefId=f"{pid}-0_{ga_link_id[fga.group_address_id]}",
                     Role=fga.role or None,
+                    Context=fga.context or None,
                     Puid=self._next_puid(),
                 )
                 gf += 1
@@ -1332,6 +1387,10 @@ class _Writer:
             ParametersLoaded="true" if device.parameters_loaded else None,
             Puid=self._next_puid(),
         )
+        # DeviceInstance attributes xknxproject drops, captured verbatim on import (UniqueId,
+        # InstallationHints, IsRFRetransmitter, Context — all valid in project/20 and /23).
+        for key, value in (device.extra_attributes or {}).items():
+            di.set(key, value)
         # Genuine exports order the device's children ParameterInstanceRefs, then
         # ComObjectInstanceRefs.
         # NOTE: unlike ComObjectInstanceRef (a RELIDREF), ParameterInstanceRef/@RefId is the FULL
@@ -1346,6 +1405,8 @@ class _Writer:
                     "ParameterInstanceRef",
                     RefId=param.ref_id,
                     Value=param.value,
+                    CustomizedText=param.customized_text or None,
+                    GrantUseByCustomer=param.grant_use_by_customer or None,
                 )
         # Emit a <ComObjectInstanceRef> only for objects a genuine ETS export writes: those with a
         # link or a per-instance override (ETS's !HasDefaultValues condition). An active-but-unlinked
@@ -1387,14 +1448,20 @@ class _Writer:
                     Text=co.text_override or None,
                     FunctionText=co.function_text_override or None,
                     Description=co.description_override or None,
+                    Priority=co.priority or None,
+                    DatapointType=co.datapoint_type_override or None,
+                    Acknowledges=co.acknowledges or None,
                     Links=links or None,
-                    ReadFlag=_enable(co.read_flag),
-                    WriteFlag=_enable(co.write_flag),
-                    CommunicationFlag=_enable(co.communication_flag),
-                    TransmitFlag=_enable(co.transmit_flag),
-                    UpdateFlag=_enable(co.update_flag),
-                    ReadOnInitFlag=_enable(co.read_on_init_flag),
+                    ReadFlag=_enable(co.read_flag_override),
+                    WriteFlag=_enable(co.write_flag_override),
+                    CommunicationFlag=_enable(co.communication_flag_override),
+                    TransmitFlag=_enable(co.transmit_flag_override),
+                    UpdateFlag=_enable(co.update_flag_override),
+                    ReadOnInitFlag=_enable(co.read_on_init_flag_override),
                 )
+        # <ChannelInstances> (schema order: after ComObjectInstanceRefs, before ModuleInstances).
+        # Channel-instance names/overrides, captured verbatim on import and re-emitted here.
+        self._build_device_subtree(di, device, "ChannelInstances")
         # <ModuleInstances> (schema order: after ComObjectInstanceRefs). Module-based devices
         # (e.g. the MDT DALI gateway: 16 group + 64 ECG repeating modules) carry their config in
         # module-scoped ParameterInstanceRefs, which reference these instances by their relative
@@ -1414,6 +1481,11 @@ class _Writer:
         # <IPConfig> (schema order: after BinaryData, before Security). IP interface/router config
         # (assign method, static IP/subnet/gateway/MAC), captured verbatim on import and re-emitted.
         self._build_ip_config(di, device)
+        # <BusInterfaces> then <RfFastAckSlots> (schema order: after Security, the last children of
+        # DeviceInstance). Bus-interface endpoints (incl. their secure config) and RF fast-ack slots,
+        # captured verbatim on import and re-emitted here.
+        self._build_device_subtree(di, device, "BusInterfaces")
+        self._build_device_subtree(di, device, "RfFastAckSlots")
 
     def _build_ip_config(self, di: ET.Element, device: Device) -> None:
         """Re-emit the device's captured ``<IPConfig>`` attributes. Skipped when the device has none.
@@ -1447,6 +1519,23 @@ class _Writer:
                 Description=addr.description or None,
                 Comment=addr.comment or None,
             )
+
+    def _build_device_subtree(self, di: ET.Element, device: Device, name: str) -> None:
+        """Re-emit a captured verbatim DeviceInstance subtree (ChannelInstances/BusInterfaces/
+        RfFastAckSlots) under ``di``. Only from project/20 onward (older schemas lack them); a
+        malformed stored subtree is skipped rather than aborting the export."""
+        raw = (device.extra_subtrees or {}).get(name)
+        if not raw:
+            return
+        schema = self._ns.rsplit("/", 1)[-1]
+        if not (schema.isdigit() and int(schema) >= 20):
+            return
+        try:
+            src = ET.fromstring(raw)
+        except ET.ParseError:
+            logger.debug("skipping malformed stored %s for device %s", name, device.id)
+            return
+        self._graft(di, src)
 
     def _build_group_object_tree(self, di: ET.Element, device: Device) -> None:
         """Re-emit the device's captured ``<GroupObjectTree>`` under ``di`` in the target namespace.
@@ -1637,6 +1726,9 @@ class _Writer:
                 Central="true" if ga.central else None,
                 Unfiltered="true" if ga.unfiltered else None,
                 Global="true" if ga.is_global else None,
+                Security=ga.security_mode or None,
+                Key=ga.security_key or None,
+                Context=ga.context or None,
                 Puid=self._next_puid(),
             )
         return seq
