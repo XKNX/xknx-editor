@@ -72,14 +72,34 @@ class ButtonActions:
 
 
 def _render_button(
-    device: Device, button: UiButton, prefix: str, buttons: ButtonActions | None
+    device: Device,
+    button: UiButton,
+    prefix: str,
+    buttons: ButtonActions | None,
+    *,
+    fill: bool = False,
 ) -> None:
+    """A Button; its icon is drawn in front of the text. In a grid cell (``fill``) it takes the
+    width of the cell, less a margin on both sides."""
     enabled, tooltip = (
         buttons.state(device, button) if buttons is not None else (False, None)
     )
     enabled = enabled and not button.read_only
+    icon = _get_icon(button.icon) if _get_icon is not None and button.icon else None
+    width = 0.0
+    if fill:
+        margin = px(_BUTTON_MARGIN)
+        cell = imgui.get_content_region_avail().x - 2 * margin
+        if cell >= imgui.get_frame_height():
+            width = cell
+            imgui.set_cursor_pos_x(imgui.get_cursor_pos_x() + margin)
     imgui.begin_disabled(not enabled)
-    clicked = imgui.button(f"{button.text}###btn_{prefix}_{button.id}")
+    if icon is None:
+        clicked = imgui.button(
+            f"{button.text}###btn_{prefix}_{button.id}", imgui.ImVec2(width, 0)
+        )
+    else:
+        clicked = _icon_button(icon, button.text, f"###btn_{prefix}_{button.id}", width)
     imgui.end_disabled()
     if tooltip and imgui.is_item_hovered(imgui.HoveredFlags_.allow_when_disabled):
         imgui.set_tooltip(tooltip)
@@ -90,6 +110,28 @@ def _render_button(
         imgui.push_style_color(imgui.Col_.text, _ERROR_COLOR)
         imgui.text_wrapped(error)
         imgui.pop_style_color()
+
+
+def _icon_button(icon: Icon, text: str, button_id: str, width: float) -> bool:
+    """A button showing ``icon`` before ``text``; ``width`` 0 sizes it to its content."""
+    style = imgui.get_style()
+    size = imgui.get_text_line_height()
+    gap = style.item_inner_spacing.x if text else 0.0
+    content = size + gap + (imgui.calc_text_size(text).x if text else 0.0)
+    clicked = imgui.button(
+        button_id, imgui.ImVec2(width or content + style.frame_padding.x * 2, 0)
+    )
+    low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
+    x = low.x + (high.x - low.x - content) / 2
+    y = low.y + (high.y - low.y - size) / 2
+    draw_icon(icon, imgui.ImVec2(x, y), size)
+    if text:
+        imgui.get_window_draw_list().add_text(
+            imgui.ImVec2(x + size + gap, low.y + style.frame_padding.y),
+            imgui.get_color_u32(imgui.Col_.text),
+            text,
+        )
+    return clicked
 
 
 def _render_device_param(
@@ -165,6 +207,8 @@ def _shows_as_text(param: UiParameter) -> bool:
 
 # Loads the picture of a TypePicture baggage while a parameter tree is drawn.
 _get_picture: Callable[[str], Picture | None] | None = None
+# Loads an icon of the product's IconFile baggage while a parameter tree is drawn.
+_get_icon: Callable[[str], Icon | None] | None = None
 
 
 def _render_picture(widget: PictureWidget, width: float) -> None:
@@ -952,8 +996,9 @@ def render_ui_tree(
             imgui.begin_child("##page_content", imgui.ImVec2(0, page_height), 0, scroll)
             and selected is not None
         ):
-            global _get_picture
+            global _get_picture, _get_icon
             _get_picture = get_picture
+            _get_icon = get_icon
             try:
                 popup_request = _render_page(
                     device,
@@ -966,6 +1011,7 @@ def render_ui_tree(
                 )
             finally:
                 _get_picture = None
+                _get_icon = None
         imgui.end_child()
         if footer is not None:
             footer(bottom - imgui.get_cursor_screen_pos().y)
@@ -1389,7 +1435,7 @@ def _render_grid_cells(
                 )
                 imgui.pop_id()
             elif isinstance(node, UiButton):
-                _render_button(device, node, prefix, buttons)
+                _render_button(device, node, prefix, buttons, fill=True)
             elif node is not None:
                 req = _render_grid_param(
                     device, node, on_change, deferred_enum, differing_refs
@@ -1574,6 +1620,8 @@ _GRID_REFERENCE_WIDTH = 540.0
 _LIST_LABEL_SHARE = 0.45
 # Gap at 100 % scaling a field in a grid cell leaves to the next column.
 _CELL_GAP = 6.0
+# Space left and right of a button in a grid cell.
+_BUTTON_MARGIN = 7.0
 # Characters a number field has room for at least.
 _MIN_NUMBER_CHARS = 3
 _SEPARATOR_ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
