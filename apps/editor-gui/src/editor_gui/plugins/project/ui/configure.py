@@ -8,15 +8,18 @@ from imgui_bundle import imgui
 
 from editor_gui import doc_links
 from editor_gui.device import ComObject, Device
+from editor_gui.device_info import firmware_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.app_id import parse_app_id
+from xknxeditor.recover.dossier import printable_text
 
 if TYPE_CHECKING:
-    from editor_gui.programming import DeviceOverview
+    from editor_gui.device_info import DeviceInfo as BusDeviceInfo
     from xknxeditor.proj.core.service import DeviceInfo
+from editor_gui.programming import error_class_text
 from editor_gui.programming_dali import is_mdt_dali_app
 from editor_gui.widgets import (
     ButtonActions,
@@ -88,7 +91,7 @@ class ConfigurePanel:
         get_online_versions: Callable[[str], list[int]] | None = None,
         on_update_application: Callable[[Device], bool] | None = None,
         on_read_device_info: Callable[[Device], None] | None = None,
-        get_device_readout: "Callable[[int], DeviceOverview | None] | None" = None,
+        get_device_readout: "Callable[[int], BusDeviceInfo | None] | None" = None,
         on_restart_device: Callable[[Device], None] | None = None,
         on_master_reset_device: Callable[[Device, int], None] | None = None,
         suggest_ga: Callable[[Device, ComObject], tuple[str, str]] | None = None,
@@ -702,7 +705,8 @@ class ConfigurePanel:
         )
         # Compare the version read off the device to the project's version. Only flag a mismatch
         # (device behind/ahead of the project -> programming needed); a match needs no marker.
-        app_v = readout.application_version
+        app = readout.application
+        app_v = app.application_version if app is not None else None
         project_v = self._current_app_version(device)
         if app_v is None:
             version_value = "-"
@@ -712,19 +716,29 @@ class ConfigurePanel:
             version_value = (
                 f"V{app_v}  {S.READOUT_VERSION_MISMATCH.format(version=project_v)}"
             )
+        if app is not None:
+            manufacturer = app.manufacturer_id
+        elif readout.manufacturer_id is not None:
+            manufacturer = f"M-{readout.manufacturer_id:04X}"
+        else:
+            manufacturer = ""
+        serial = readout.serial_number
+        order = printable_text(readout.order_number) if readout.order_number else None
+        hardware = readout.hardware_type
         self._render_detail_grid(
             [
-                (S.CONFIGURE_MANUFACTURER, readout.manufacturer or ""),
+                (S.CONFIGURE_MANUFACTURER, manufacturer),
                 (S.CONFIGURE_APP_VERSION, version_value),
                 (S.READOUT_MASK, mask),
-                (S.READOUT_SERIAL, readout.serial_number or ""),
-                (S.READOUT_ORDER, readout.order_info or ""),
-                (S.READOUT_HARDWARE, readout.hardware_type or ""),
+                (S.READOUT_SERIAL, serial.hex().upper() if serial else ""),
+                (S.READOUT_ORDER, order or ""),
+                (S.READOUT_HARDWARE, hardware.hex().upper() if hardware else ""),
+                (S.DEVICE_INFO_FIRMWARE, firmware_text(readout.firmware_version) or ""),
             ]
         )
         self._render_diagnosis(readout)
 
-    def _render_diagnosis(self, readout: "DeviceOverview") -> None:
+    def _render_diagnosis(self, readout: "BusDeviceInfo") -> None:
         """Light error diagnosis from the standard Device-Object properties: the error class
         (green when no fault, orange otherwise) and a programming-mode note when active."""
         if readout.error_code is not None:
@@ -736,7 +750,8 @@ class ConfigurePanel:
                 )
             else:
                 imgui.text_colored(
-                    imgui.ImVec4(0.95, 0.55, 0.35, 1.0), readout.error_text or ""
+                    imgui.ImVec4(0.95, 0.55, 0.35, 1.0),
+                    error_class_text(readout.error_code) or "",
                 )
         if readout.programming_mode:
             imgui.text_colored(imgui.ImVec4(0.95, 0.75, 0.35, 1.0), S.READOUT_PROG_MODE)

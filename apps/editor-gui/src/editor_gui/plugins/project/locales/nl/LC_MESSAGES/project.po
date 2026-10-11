@@ -692,3 +692,90 @@ msgstr "De productgegevens van dit apparaat ontbreken - het applicatieprogramma 
 
 msgid "Device"
 msgstr "Apparaat"
+
+msgid "Device Info"
+msgstr "Apparaatinfo"
+
+msgid "Device Info (With Group Communication)"
+msgstr "Apparaatinfo (met groepscommunicatie)"
+
+msgid "Reading"
+msgstr "Wordt gelezen"
+
+msgid "General"
+msgstr "Algemeen"
+
+msgid "Application Program"
+msgstr "Applicatieprogramma"
+
+msgid "Group Communication"
+msgstr "Groepscommunicatie"
+
+msgid "Mask Version"
+msgstr "Maskerversie"
+
+msgid "Device Manufacturer"
+msgstr "Fabrikant apparaat"
+
+msgid "Order Number"
+msgstr "Bestelnummer"
+
+msgid "Serial Number"
+msgstr "Serienummer"
+
+msgid "Hardware Type"
+msgstr "Hardwaretype"
+
+msgid "Firmware Version"
+msgstr "Firmwareversie"
+
+msgid "Programming Mode"
+msgstr "Programmeermodus"
+
+msgid "Load State"
+msgstr "Laadstatus"
+
+msgid "Address Table Load State"
+msgstr "Laadstatus adrestabel"
+
+msgid "Association Table Load State"
+msgstr "Laadstatus associatietabel"
+
+msgid "Group Object Table Load State"
+msgstr "Laadstatus groepsobjecttabel"
+
+msgid "Reading the tables failed: {error}"
+msgstr "Lezen van de tabellen mislukt: {error}"
+
+msgid "On"
+msgstr "Aan"
+
+msgid "Off"
+msgstr "Uit"
+
+msgid "Unloaded"
+msgstr "Ontladen"
+
+msgid "Loaded"
+msgstr "Geladen"
+
+msgid "Loading"
+msgstr "Wordt geladen"
+
+msgid "Error"
+msgstr "Fout"
+
+msgid "Unloading"
+msgstr "Wordt ontladen"
+
+msgid "Load Completing"
+msgstr "Laden wordt voltooid"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "Also read the group communication?"
+msgstr "Ook de groepscommunicatie lezen?"
+
+msgid "No"
+msgstr "Nee"

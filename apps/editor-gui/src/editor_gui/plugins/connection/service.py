@@ -582,60 +582,53 @@ class ConnectionService:
         for line in report.summary().splitlines():
             self._log.info(line.strip())
 
-    def read_device_info(self, device: Device) -> Future[Any] | None:
-        """Read a device's general info over the bus (read-only): mask version, application id and
-        the Device-Object dossier. The caller can attach its own done-callback to consume the
-        :class:`~editor_gui.programming.DeviceOverview` result."""
-        if self.not_connected("read_device_info"):
+    def device_info(
+        self, device: Device, *, group_communication: bool
+    ) -> Future[Any] | None:
+        """Read a device's identity, load states and, if asked, its group communication tables.
+        The future's result is an :class:`~editor_gui.device_info.DeviceInfo`."""
+        if self.not_connected("device_info"):
             return None
         if not device.individual_address:
             self._log.warning("Device has no individual address", device=device.name)
             return None
-        from editor_gui.programming import read_device_overview
+        from editor_gui.device_info import read_device_info
 
-        if not self.begin_operation("read_info", device.individual_address):
+        if not self.begin_operation("device_info", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
             return None
         self._log.info("Reading device info", device=device.name)
         future = self.run_async(
-            read_device_overview(self._xknx, device.individual_address)
-        )
-        if future is not None:
-            future.add_done_callback(
-                functools.partial(
-                    self._log_read_info_result, address=device.individual_address
-                )
+            read_device_info(
+                self._xknx,
+                device.individual_address,
+                device.app,
+                group_communication=group_communication,
+                interface_max_apdu=self.interface_max_apdu_length,
             )
-        else:
+        )
+        if future is None:
             self._clear_busy()
+            return None
+        future.add_done_callback(
+            functools.partial(self._end_device_info, address=device.individual_address)
+        )
         return future
 
-    def _log_read_info_result(
-        self, future: Future[Any], address: str | None = None
-    ) -> None:
+    def _end_device_info(self, future: Future[Any], address: str) -> None:
         self._clear_busy()
         if future.cancelled():
             return
         exc = future.exception()
-        if exc is not None:
-            self._log.error(
-                "Reading device info failed", address=address, error=str(exc)
-            )
-            if isinstance(exc, ManagementConnectionError):
-                self._log.error(
-                    "Device did not respond on the bus — check it is powered and "
-                    "reachable from this interface (line/coupler) at the address",
-                    address=address,
-                )
+        if exc is None:
             return
-        info = future.result()
-        self._log.info(
-            "Device info",
-            address=address,
-            mask=f"{info.mask_version:#06x}" if info.mask_version is not None else None,
-            application_version=info.application_version,
-            serial=info.serial_number,
-        )
+        self._log.error("Reading device info failed", address=address, error=str(exc))
+        if isinstance(exc, ManagementConnectionError):
+            self._log.error(
+                "Device did not respond on the bus — check it is powered and "
+                "reachable from this interface (line/coupler) at the address",
+                address=address,
+            )
 
     def run_dali(
         self,

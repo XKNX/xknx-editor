@@ -61,8 +61,10 @@ class DevicesPanel:
         can_paste_config: Callable[[int], bool] = lambda _n: False,
         count_paste_targets: Callable[[int], int] = lambda _n: 1,
         get_unloaded_devices: Callable[[], list[UnloadedDevice]] = lambda: [],
+        on_device_info: Callable[[int], None] | None = None,
     ) -> None:
         self._get_devices = get_devices
+        self._on_device_info = on_device_info
         self._get_unloaded_devices = get_unloaded_devices
         self._get_areas = get_areas
         self._get_lines = get_lines
@@ -310,6 +312,12 @@ class DevicesPanel:
                 and imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]
             ):
                 imgui.set_clipboard_text(device.individual_address)
+            if self._on_device_info is not None:
+                render_read_device_item(
+                    device.node_id,
+                    bool(device.individual_address),
+                    self._on_device_info,
+                )
             imgui.separator()
             if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
                 self._delete_target_device = device
@@ -583,3 +591,12 @@ class DevicesPanel:
                 self._on_move_device(self._dragging_device, area.number, line.number)
                 self._dragging_device = None
             imgui.end_drag_drop_target()
+
+
+def render_read_device_item(
+    node_id: int, enabled: bool, on_read: Callable[[int], None]
+) -> None:
+    """The "Read from device" entry of a device's context menu."""
+    imgui.separator()
+    if imgui.menu_item(S.BTN_READ_DEVICE_INFO, "", False, enabled)[0]:
+        on_read(node_id)

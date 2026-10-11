@@ -74,6 +74,10 @@ class QueueItem:
     connection: str | None = None
     started_at: datetime.datetime | None = None
     ended_at: datetime.datetime | None = None
+    # A device info readout instead of a download; True also reads the group communication.
+    device_info: bool | None = None
+    # Result rows shown in the details: (section, [(label, value), ...]).
+    details: list[tuple[str, list[tuple[str, str]]]] = field(default_factory=list)
 
 
 class ProgramQueue:
@@ -89,11 +93,13 @@ class ProgramQueue:
         start: Callable[[QueueItem], Future[Any] | None],
         submit: Callable[[Callable[[], None]], Any] | None = None,
         connection: Callable[[QueueItem], str | None] | None = None,
+        on_finished: Callable[[QueueItem, Any], None] | None = None,
     ) -> None:
         self._is_busy = is_busy
         self._start = start
         self._submit = submit
         self._connection = connection
+        self._on_finished = on_finished
         self._current: QueueItem | None = None
         self._queued: list[QueueItem] = []
         self._history: list[QueueItem] = []
@@ -131,6 +137,8 @@ class ProgramQueue:
                 queued.node_id == item.node_id
                 and queued.script is None
                 and item.script is None
+                and queued.device_info is None
+                and item.device_info is None
             ):
                 queued.scope = item.scope
                 self.tick()
@@ -203,6 +211,8 @@ class ProgramQueue:
         state, message = _outcome(item, future)
         if message is not None:
             item.message = message
+        if state is OperationState.FINISHED and self._on_finished is not None:
+            self._on_finished(item, future.result())
         self._end(item, state)
         self._current = None
         self.tick()

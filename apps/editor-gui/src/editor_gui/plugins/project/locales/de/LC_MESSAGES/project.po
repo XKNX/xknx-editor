@@ -1190,3 +1190,90 @@ msgstr "Hilfe"
 
 msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
 msgstr "Die Produktdaten dieses Geräts fehlen - sein Applikationsprogramm ist nicht im Katalog. Importieren Sie das Produkt, um das Gerät zu bearbeiten."
+
+msgid "Device Info"
+msgstr "Geräteinfo"
+
+msgid "Device Info (With Group Communication)"
+msgstr "Geräteinfo (mit Gruppenkommunikation)"
+
+msgid "Reading"
+msgstr "Wird gelesen"
+
+msgid "General"
+msgstr "Allgemein"
+
+msgid "Application Program"
+msgstr "Applikationsprogramm"
+
+msgid "Group Communication"
+msgstr "Gruppenkommunikation"
+
+msgid "Mask Version"
+msgstr "Maskenversion"
+
+msgid "Device Manufacturer"
+msgstr "Gerätehersteller"
+
+msgid "Order Number"
+msgstr "Bestellnummer"
+
+msgid "Serial Number"
+msgstr "Seriennummer"
+
+msgid "Hardware Type"
+msgstr "Hardware-Typ"
+
+msgid "Firmware Version"
+msgstr "Firmware-Version"
+
+msgid "Programming Mode"
+msgstr "Programmiermodus"
+
+msgid "Load State"
+msgstr "Ladezustand"
+
+msgid "Address Table Load State"
+msgstr "Ladezustand Adresstabelle"
+
+msgid "Association Table Load State"
+msgstr "Ladezustand Assoziationstabelle"
+
+msgid "Group Object Table Load State"
+msgstr "Ladezustand Gruppenobjekttabelle"
+
+msgid "Reading the tables failed: {error}"
+msgstr "Lesen der Tabellen fehlgeschlagen: {error}"
+
+msgid "On"
+msgstr "Ein"
+
+msgid "Off"
+msgstr "Aus"
+
+msgid "Unloaded"
+msgstr "Entladen"
+
+msgid "Loaded"
+msgstr "Geladen"
+
+msgid "Loading"
+msgstr "Wird geladen"
+
+msgid "Error"
+msgstr "Fehler"
+
+msgid "Unloading"
+msgstr "Wird entladen"
+
+msgid "Load Completing"
+msgstr "Laden wird abgeschlossen"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "Also read the group communication?"
+msgstr "Auch die Gruppenkommunikation lesen?"
+
+msgid "No"
+msgstr "Nein"

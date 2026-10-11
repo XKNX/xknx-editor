@@ -1739,6 +1739,126 @@ class ProjectStrings:
         return _("Download")
 
     @property
+    def DEVICE_INFO(self) -> str:
+        return _("Device Info")
+
+    @property
+    def DEVICE_INFO_GROUPS(self) -> str:
+        return _("Device Info (With Group Communication)")
+
+    @property
+    def OPERATION_READING(self) -> str:
+        return _("Reading")
+
+    @property
+    def DEVICE_INFO_GENERAL(self) -> str:
+        return _("General")
+
+    @property
+    def DEVICE_INFO_APPLICATION(self) -> str:
+        return _("Application Program")
+
+    @property
+    def DEVICE_INFO_GROUP_COMMUNICATION(self) -> str:
+        return _("Group Communication")
+
+    @property
+    def DEVICE_INFO_MASK(self) -> str:
+        return _("Mask Version")
+
+    @property
+    def DEVICE_INFO_ADDRESS(self) -> str:
+        return _("Individual Address")
+
+    @property
+    def DEVICE_INFO_MANUFACTURER(self) -> str:
+        return _("Device Manufacturer")
+
+    @property
+    def DEVICE_INFO_ORDER(self) -> str:
+        return _("Order Number")
+
+    @property
+    def DEVICE_INFO_SERIAL(self) -> str:
+        return _("Serial Number")
+
+    @property
+    def DEVICE_INFO_HARDWARE(self) -> str:
+        return _("Hardware Type")
+
+    @property
+    def DEVICE_INFO_FIRMWARE(self) -> str:
+        return _("Firmware Version")
+
+    @property
+    def DEVICE_INFO_PROGMODE(self) -> str:
+        return _("Programming Mode")
+
+    @property
+    def DEVICE_INFO_LOAD_STATE(self) -> str:
+        return _("Load State")
+
+    @property
+    def DEVICE_INFO_ADDRESS_TABLE(self) -> str:
+        return _("Address Table Load State")
+
+    @property
+    def DEVICE_INFO_ASSOCIATION_TABLE(self) -> str:
+        return _("Association Table Load State")
+
+    @property
+    def DEVICE_INFO_GROUP_OBJECT_TABLE(self) -> str:
+        return _("Group Object Table Load State")
+
+    @property
+    def DEVICE_INFO_TABLES_FAILED(self) -> str:
+        return _("Reading the tables failed: {error}")
+
+    @property
+    def DEVICE_INFO_ON(self) -> str:
+        return _("On")
+
+    @property
+    def DEVICE_INFO_OFF(self) -> str:
+        return _("Off")
+
+    @property
+    def LOAD_STATE_UNLOADED(self) -> str:
+        return _("Unloaded")
+
+    @property
+    def LOAD_STATE_LOADED(self) -> str:
+        return _("Loaded")
+
+    @property
+    def LOAD_STATE_LOADING(self) -> str:
+        return _("Loading")
+
+    @property
+    def LOAD_STATE_ERROR(self) -> str:
+        return _("Error")
+
+    @property
+    def LOAD_STATE_UNLOADING(self) -> str:
+        return _("Unloading")
+
+    @property
+    def LOAD_STATE_LOAD_COMPLETING(self) -> str:
+        return _("Load Completing")
+
+    @property
+    def BTN_YES(self) -> str:
+        return _("Yes")
+
+    @property
+    def BTN_NO(self) -> str:
+        return _("No")
+
+    @property
+    def READ_INCLUDE_GROUP_COMMUNICATION(self) -> str:
+        return _("Also read the group communication?")
+
+    @property
     def OPERATION_DOWNLOADING(self) -> str:
         return _("Downloading")
 

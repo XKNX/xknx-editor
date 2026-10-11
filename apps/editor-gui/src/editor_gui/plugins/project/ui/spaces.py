@@ -9,6 +9,7 @@ from imgui_bundle import imgui
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
+from editor_gui.plugins.project.ui.devices import render_read_device_item
 from editor_gui.widgets.dpi import px, px_vec2
 
 if TYPE_CHECKING:
@@ -86,6 +87,7 @@ class SpacesPanel:
         on_duplicate_config: Callable[[int, bool, bool], None] | None = None,
         can_paste_config: Callable[[int], bool] | None = None,
         count_paste_targets: Callable[[int], int] | None = None,
+        on_device_info: Callable[[int], None] | None = None,
     ) -> None:
         self._get_space_tree = get_space_tree
         self._on_select_device_id = on_select_device_id
@@ -105,6 +107,7 @@ class SpacesPanel:
         self._get_unassigned_devices = get_unassigned_devices
         self._on_copy_config = on_copy_config
         self._can_paste_config_cb = can_paste_config
+        self._on_device_info = on_device_info
         self._config_dialog = DeviceConfigDialog(
             "spaces",
             on_paste_config or (lambda _n, _p, _l: None),
@@ -514,6 +517,10 @@ class SpacesPanel:
                 and imgui.menu_item(S.SPACES_UNASSIGN, "", False)[0]
             ):
                 self._on_set_device_space(device.id, None)
+            if self._on_device_info is not None:
+                render_read_device_item(
+                    device.id, bool(device.individual_address), self._on_device_info
+                )
             imgui.end_popup()
         if hovered:
             parts = [

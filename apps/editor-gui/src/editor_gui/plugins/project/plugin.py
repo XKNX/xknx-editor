@@ -5,8 +5,10 @@ import zipfile
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from editor_gui.device_info import same_application
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.project.button_runner import ButtonRunner
+from editor_gui.plugins.project.device_info_view import device_info_sections
 from editor_gui.plugins.project.online_runner import OnlineButtonRunner
 from editor_gui.plugins.project.program_queue import (
     ProgramQueue,
@@ -31,6 +33,7 @@ from editor_gui.plugins.project.ui.devices import Area, Line
 from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
 from editor_gui.plugins.project.ui.preflight_result import PreflightResultWindow
 from editor_gui.plugins.project.ui.program_queue import ProgramQueuePanel
+from editor_gui.plugins.project.ui.read_device_dialog import ReadDeviceDialog
 from editor_gui.plugins.project.ui.tools import apply_name_swap, shifted_ia
 from editor_gui.widgets import ButtonActions
 from editor_gui.widgets.icons import (
@@ -48,7 +51,7 @@ if TYPE_CHECKING:
     from concurrent.futures import Future
 
     from editor_gui.device import Device, UnloadedDevice
-    from editor_gui.programming import DeviceOverview
+    from editor_gui.device_info import DeviceInfo
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.scope import DownloadScope
     from xknxeditor.prod.parser_v2.ui import UiButton
@@ -104,6 +107,7 @@ class ProjectPlugin:
             connection=lambda item: api.connection.connection_label(
                 with_address=item.script is None
             ),
+            on_finished=self._on_operation_finished,
         )
         self._program_queue_panel = ProgramQueuePanel(
             get_active=lambda: self._program_queue.active,
@@ -125,9 +129,10 @@ class ProjectPlugin:
             get_devices=lambda: api.project.devices
         )
         self._preflight_result = PreflightResultWindow()
+        self._read_device_dialog = ReadDeviceDialog(self._request_device_info)
         # Live device readouts (read-only "read from device" action), keyed by node id. Written on
         # the async loop thread's done-callback, read on the UI thread -> guarded by a lock.
-        self._device_readouts: dict[int, DeviceOverview] = {}
+        self._device_readouts: dict[int, DeviceInfo] = {}
         self._readout_lock = threading.Lock()
         # Copied device configuration (params + GA links) for "Paste configuration".
         self._device_config_clipboard: DeviceConfigClipboard | None = None
@@ -154,6 +159,7 @@ class ProjectPlugin:
             can_paste_config=self._can_paste_config,
             count_paste_targets=self._count_paste_targets,
             get_unloaded_devices=lambda: api.project.unloaded_devices,
+            on_device_info=self._open_read_dialog,
         )
 
         self._configure_panel = ConfigurePanel(
@@ -241,6 +247,7 @@ class ProjectPlugin:
             on_duplicate_config=self._on_duplicate_config,
             can_paste_config=self._can_paste_config,
             count_paste_targets=self._count_paste_targets,
+            on_device_info=self._open_read_dialog,
         )
 
         self._project_info_panel = ProjectInfoPanel(
@@ -664,23 +671,17 @@ class ProjectPlugin:
         return self._api.connection.run_dali(device, op) is not None
 
     def _read_device_info(self, device: "Device") -> None:
-        """Kick off a read-only read of the device's general info over the bus. The result is stored
-        (thread-safe) for the Configure panel to display when it arrives."""
-        future = self._api.connection.read_device_info(device)
-        if future is None:
-            return
-        future.add_done_callback(
-            functools.partial(self._on_device_info, node_id=device.node_id)
-        )
+        self._open_read_dialog(device.node_id)
 
-    def _on_device_info(self, future: "Future[Any]", node_id: int) -> None:
-        """Runs on the async loop thread; stash the readout for the UI thread to pick up."""
-        if future.cancelled() or future.exception() is not None:
+    def _open_read_dialog(self, node_id: int) -> None:
+        """Ask whether to include the group communication, then queue the read-only readout."""
+        device = self._api.project.find_device_by_node_id(node_id)
+        if device is None:
             return
-        with self._readout_lock:
-            self._device_readouts[node_id] = future.result()
+        label = f"{device.individual_address or ''} {device.name}".strip()
+        self._read_device_dialog.open(node_id, label)
 
-    def _device_readout(self, node_id: int) -> "DeviceOverview | None":
+    def _device_readout(self, node_id: int) -> "DeviceInfo | None":
         with self._readout_lock:
             return self._device_readouts.get(node_id)
 
@@ -1222,12 +1223,87 @@ class ProjectPlugin:
             )
         )
 
+    def _request_device_info(self, node_id: int, group_communication: bool) -> None:
+        """Queue a device info readout; its result shows in the Operations panel."""
+        device = self._api.project.find_device_by_node_id(node_id)
+        if device is None:
+            return
+        self._program_queue.enqueue(
+            QueueItem(
+                node_id=device.node_id,
+                address=device.individual_address or "",
+                name=device.name,
+                scope=None,
+                device_info=group_communication,
+            )
+        )
+
+    def _start_device_info(self, item: QueueItem) -> "Future[Any] | None":
+        device = self._api.project.find_device_by_node_id(item.node_id)
+        if device is None:
+            return None
+        future = self._api.connection.device_info(
+            device, group_communication=bool(item.device_info)
+        )
+        if future is None and self._api.connection.xknx is None:
+            item.message = S.SCRIPT_NOT_CONNECTED
+        return future
+
+    def _on_operation_finished(self, item: QueueItem, result: Any) -> None:
+        from editor_gui.device_info import DeviceInfo
+
+        if item.device_info is None or not isinstance(result, DeviceInfo):
+            return
+        from xknxeditor.proj.core.addressing import format_ga
+
+        with self._readout_lock:
+            self._device_readouts[item.node_id] = result
+        self._api.log.info(
+            "device info",
+            plugin="project",
+            address=result.individual_address,
+            mask=f"{result.mask_version:#06x}"
+            if result.mask_version is not None
+            else None,
+            application_version=result.application.application_version
+            if result.application is not None
+            else None,
+            serial=result.serial_number.hex().upper() if result.serial_number else None,
+            group_objects=len(result.group_objects),
+        )
+        device = self._api.project.find_device_by_node_id(item.node_id)
+        style = self._api.project.group_address_style
+        item.details = device_info_sections(
+            result,
+            manufacturers=self._manufacturer_names(),
+            application_name=self._application_name(device, result),
+            group_address=lambda value: format_ga(value, style),
+        )
+
+    def _manufacturer_names(self) -> dict[str, str]:
+        master = self._api.connection.master
+        return dict(master.manufacturers) if master is not None else {}
+
+    def _application_name(self, device: "Device | None", info: Any) -> str | None:
+        """The name of the application the device reports, from the project or the catalog."""
+        from xknxeditor.recover import match_application
+
+        app_id = info.application
+        if app_id is None:
+            return None
+        if device is not None and same_application(device.app.id, app_id):
+            return device.app.name
+        products = match_application(self._api.catalog, app_id)
+        return products[0].name if products else None
+
     def _start_program(self, item: QueueItem) -> "Future[Any] | None":
         """Start one queued programming via the normal single-device path (slot, progress, notice,
         commissioning all handled by ``program_device`` + the commissioning callback). Returns the
         Future, or None if it could not start (not connected / device gone)."""
         if item.script is not None:
             return self._online_runner.start(item)
+        if item.device_info is not None:
+            return self._start_device_info(item)
         if item.scope is None:
             return None
         device = self._api.project.find_device_by_node_id(item.node_id)
@@ -1427,6 +1503,7 @@ class ProjectPlugin:
         self._configure_panel.show_help = shown
 
     def render_overlays(self) -> None:
+        self._read_device_dialog.render()
         self._button_runner.render()
         self._memory_preview.render()
         self._preflight_result.render()
