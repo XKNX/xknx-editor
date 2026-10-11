@@ -129,7 +129,11 @@ class ProgramQueuePanel:
 
     def _render_cancel(self, item: QueueItem, right: float) -> None:
         run = item.script
-        running_download = item.state is OperationState.RUNNING and run is None
+        running_download = (
+            item.state is OperationState.RUNNING
+            and run is None
+            and not item.cancelable_while_running
+        )
         size = imgui.get_frame_height()
         imgui.same_line(max(right - size, 0.0))
         imgui.begin_disabled(running_download or (run is not None and run.canceled))
@@ -239,6 +243,8 @@ def _state(item: QueueItem) -> str:
             if item.device_info is not None:
                 return S.OPERATION_READING
             if item.script is None:
+                if item.waiting_for_button:
+                    return S.OPERATION_PRESS_PROGRAMMING_BUTTON
                 return S.OPERATION_DOWNLOADING
             return S.SCRIPT_CANCELING if item.script.canceled else S.SCRIPT_RUNNING
         case OperationState.FINISHED:
@@ -263,5 +269,9 @@ def _scope_label(scope: DownloadScope | None) -> str:
             return S.SCOPE_UNLOAD
         case DownloadScope.UNLOAD_ALL:
             return S.SCOPE_UNLOAD_ALL
+        case DownloadScope.INDIVIDUAL_ADDRESS:
+            return S.SCOPE_INDIVIDUAL_ADDRESS
+        case DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS:
+            return S.SCOPE_OVERWRITE_INDIVIDUAL_ADDRESS
         case _:
             return S.SCOPE_FULL

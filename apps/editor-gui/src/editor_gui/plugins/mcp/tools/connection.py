@@ -24,7 +24,14 @@ if TYPE_CHECKING:
 
 # Download scopes (schema enum); maps to xknxeditor.download.scope.DownloadScope in _resolve_scope.
 Scope = Literal[
-    "FULL", "PARAMETERS", "GROUP_COMMUNICATION", "APPLICATION", "UNLOAD", "UNLOAD_ALL"
+    "FULL",
+    "PARAMETERS",
+    "GROUP_COMMUNICATION",
+    "APPLICATION",
+    "UNLOAD",
+    "UNLOAD_ALL",
+    "INDIVIDUAL_ADDRESS",
+    "OVERWRITE_INDIVIDUAL_ADDRESS",
 ]
 
 
@@ -165,6 +172,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         scope: Scope | None = None,
         timeout: float = 300.0,
         without_plugin: bool = False,
+        current_address: str | None = None,
     ) -> dict[str, Any]:
         """Download the device's application/parameters/links onto the bus (``timeout`` seconds).
 
@@ -175,7 +183,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         device: run connection_evaluate_device ONCE to preview the diff, then program.
 
         ``scope`` — pick the one matching what you changed (all scopes run the same load procedure,
-        just filtered, and only changed bytes are written; no scope programs the individual address):
+        just filtered, and only changed bytes are written; only the two address scopes program the
+        individual address):
         - PARAMETERS: parameter values only.
         - GROUP_COMMUNICATION: group-address links only (address/association/group-object tables).
         - APPLICATION: parameters + com-object (group-object) table, but NOT the group-address links.
@@ -184,12 +193,25 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
           its objects) — no single partial scope covers both — or when unsure. Not heavier than the
           partials (same procedure, delta writes), it just does not re-flash firmware or the address.
         - UNLOAD: remove the application (reset the device to unloaded).
+        - INDIVIDUAL_ADDRESS: only the device's project address, to the single device in
+          programming mode; waits until someone presses its programming button (until ``timeout``).
+          Refused when another device already uses the address.
+        - OVERWRITE_INDIVIDUAL_ADDRESS: change the address of the device that currently answers at
+          ``current_address`` to the project address, without pressing its programming button (it
+          is switched to programming mode remotely).
 
         A device whose hardware is marked NoDownloadWithoutPlugin is refused unless
         ``without_plugin`` is set - only after the user explicitly confirmed programming it without
         the manufacturer's plugin, which may leave it misconfigured."""
         device, group_communication = _programmable_device(node_id)
-        if device.download_plugin_required and not without_plugin:
+        resolved = _resolve_scope(scope)
+        if resolved.name == "OVERWRITE_INDIVIDUAL_ADDRESS" and not current_address:
+            raise ToolError("OVERWRITE_INDIVIDUAL_ADDRESS needs current_address")
+        if (
+            device.download_plugin_required
+            and not without_plugin
+            and not resolved.individual_address_only
+        ):
             raise ToolError(
                 f"device {node_id} can only be programmed with the manufacturer's plugin "
                 "(its hardware is marked NoDownloadWithoutPlugin); pass without_plugin=true only "
@@ -197,13 +219,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         future = service.program_device(
             device,
-            _resolve_scope(scope),
+            resolved,
             group_communication,
             without_plugin=without_plugin,
+            current_address=current_address,
         )
         if future is None:
             raise ToolError("programming could not be scheduled (no connection)")
-        future.result(timeout=timeout)
+        try:
+            future.result(timeout=timeout)
+        except TimeoutError as exc:
+            future.cancel()
+            raise ToolError(f"programming did not finish within {timeout} s") from exc
         return {"status": "programmed", "node_id": node_id}
 
     @tool
@@ -217,9 +244,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         NEW/virgin device it fails (nothing responds), so skip it and program directly with scope
         FULL. Needs an open connection and the device's individual address."""
         device, group_communication = _programmable_device(node_id)
-        future = service.evaluate_device(
-            device, _resolve_scope(scope), group_communication
-        )
+        resolved = _resolve_scope(scope)
+        if resolved.individual_address_only:
+            raise ToolError("an individual address download cannot be evaluated")
+        future = service.evaluate_device(device, resolved, group_communication)
         if future is None:
             raise ToolError("evaluation could not be scheduled (no connection)")
         report = future.result(timeout=timeout)

@@ -70,3 +70,11 @@ class UnsupportedProcedureError(DownloadError):
 
 class ImageError(DownloadError):
     """The download image could not be assembled from the application data."""
+
+
+class ProgrammingModeError(DownloadError):
+    """No device, or more than one, is in programming mode for an address download."""
+
+
+class AddressInUseError(DownloadError):
+    """The individual address to download is already used by another device."""

@@ -69,7 +69,9 @@ INSTRUCTIONS = (
     "COMMISSIONING: a NEW device is programmed by connection_assign_individual_address (device in "
     "programming mode) then connection_program_device with scope FULL. connection_evaluate_device "
     "previews the diff only for an ALREADY-programmed device — it fails on a virgin device, so do "
-    "not run it before first programming.\n"
+    "not run it before first programming. To change the address of an already-programmed device, "
+    "set the new one in the project, then connection_program_device with scope "
+    "OVERWRITE_INDIVIDUAL_ADDRESS and its current_address.\n"
     "\n"
     "Prefer reading a value back to confirm: most mutations return the affected entity. Note "
     'monitor_send_* is fire-and-forget (status "queued") and monitor_latest may hold an older '

@@ -8,13 +8,19 @@ property services.
 
 from __future__ import annotations
 
-from .commissioning import program_individual_address
+from .commissioning import (
+    download_individual_address,
+    program_individual_address,
+    switch_programming_mode,
+)
 from .data_secure import DeviceSecurity, SecureProgrammingError
 from .download import download, preflight
 from .errors import (
+    AddressInUseError,
     DownloadError,
     ImageError,
     LoadStateError,
+    ProgrammingModeError,
     UnsupportedProcedureError,
     VerificationError,
 )
@@ -64,6 +70,7 @@ __version__ = "0.1.0"
 
 __all__ = [
     "FILTER_TABLE_SIZE",
+    "AddressInUseError",
     "Association",
     "ByteRange",
     "ConnectionManager",
@@ -81,6 +88,7 @@ __all__ = [
     "LoadStateError",
     "MemorySegment",
     "PreflightReport",
+    "ProgrammingModeError",
     "PropertyDiff",
     "PropertyValue",
     "SecureProgrammingError",
@@ -96,6 +104,7 @@ __all__ = [
     "compute_coupler_filter_table",
     "device_security_from_keyring",
     "download",
+    "download_individual_address",
     "group_address_table",
     "group_communication_from_device",
     "is_coupler_address",
@@ -107,4 +116,5 @@ __all__ = [
     "program_individual_address",
     "resolve_download_controls",
     "routed_group_addresses",
+    "switch_programming_mode",
 ]

@@ -80,6 +80,15 @@ class QueueItem:
     details: list[tuple[str, list[tuple[str, str]]]] = field(default_factory=list)
     # Confirmed to program a device whose hardware needs the manufacturer's plugin.
     without_plugin: bool = False
+    # The device's current address, for an individual address overwrite.
+    current_address: str | None = None
+    # An address download waits for the programming button.
+    waiting_for_button: bool = False
+    future: Future[Any] | None = field(default=None, repr=False)
+
+    @property
+    def cancelable_while_running(self) -> bool:
+        return self.scope is not None and self.scope.individual_address_only
 
 
 class ProgramQueue:
@@ -144,6 +153,7 @@ class ProgramQueue:
             ):
                 queued.scope = item.scope
                 queued.without_plugin = item.without_plugin
+                queued.current_address = item.current_address
                 self.tick()
                 return
         self._queued.append(item)
@@ -180,9 +190,15 @@ class ProgramQueue:
         self._history.clear()
 
     def cancel_current(self) -> None:
-        """Ask a running parameter script to stop; it decides itself when to return."""
-        if self._current is not None and self._current.script is not None:
-            self._current.script.cancel()
+        """Ask a running parameter script to stop; it decides itself when to return. An address
+        download is cancelled at once."""
+        current = self._current
+        if current is None:
+            return
+        if current.script is not None:
+            current.script.cancel()
+        elif current.cancelable_while_running and current.future is not None:
+            current.future.cancel()
 
     def tick(self) -> None:
         """Start the next queued device if the bus is free. Idempotent; safe to call every frame."""
@@ -201,6 +217,7 @@ class ProgramQueue:
             self._end(item, OperationState.FAILED)
             self.tick()
             return
+        item.future = future
         future.add_done_callback(lambda f: self._on_done(item, f))
 
     def _on_done(self, item: QueueItem, future: Future[Any]) -> None:
@@ -212,6 +229,7 @@ class ProgramQueue:
 
     def _advance(self, item: QueueItem, future: Future[Any]) -> None:
         state, message = _outcome(item, future)
+        item.future = None
         if message is not None:
             item.message = message
         if state is OperationState.FINISHED and self._on_finished is not None:

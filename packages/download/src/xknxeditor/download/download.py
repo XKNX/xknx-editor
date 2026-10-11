@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 from xknx.exceptions import ManagementConnectionError
 from xknx.telegram import IndividualAddress
 
-from .errors import DownloadError, PartialDownloadError
+from .errors import DownloadError, PartialDownloadError, UnsupportedProcedureError
 from .group_communication import materialize_group_communication_controls
 from .image import build_image
 from .merge import mask_authorize_levels, resolve_download_controls
@@ -142,6 +142,13 @@ def _authorize_levels(
     return mask_authorize_levels(master.raw, application.program.mask_version)
 
 
+def _reject_address_scope(scope: DownloadScope) -> None:
+    if scope.individual_address_only:
+        raise UnsupportedProcedureError(
+            f"scope {scope.name} is downloaded by download_individual_address"
+        )
+
+
 async def _device_present(
     xknx: XKNX, address: IndividualAddress, security: DeviceSecurity | None
 ) -> bool:
@@ -215,6 +222,7 @@ async def download(
     (15.15.255); the single device in programming mode is reset. ``master`` is
     required to resolve the Unload procedure.
     """
+    _reject_address_scope(scope)
     if image is None:
         logger.debug("download: assembling image (scope=%s)", scope.name)
         image = build_image(
@@ -324,6 +332,7 @@ async def preflight(
     procedure's compare controls). Pass a pre-built ``image`` to skip assembly.
     ``xknx`` has to be started.
     """
+    _reject_address_scope(scope)
     if image is None:
         image = build_image(
             application,

@@ -11,6 +11,7 @@ from editor_gui.plugins.project.program_queue import (
     QueueItem,
     ScriptRun,
 )
+from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.parser_v2.ui import UiButton
 from xknxeditor.prod.script import ScriptAborted, ScriptError
 
@@ -55,8 +56,11 @@ class _Harness:
 
 def _item(node_id: int, scope: str = "FULL") -> QueueItem:
     return QueueItem(
-        node_id=node_id, address=f"1.1.{node_id}", name=f"D{node_id}", scope=scope
-    )  # type: ignore[arg-type]
+        node_id=node_id,
+        address=f"1.1.{node_id}",
+        name=f"D{node_id}",
+        scope=DownloadScope[scope],
+    )
 
 
 def test_idle_enqueue_starts_immediately() -> None:
@@ -108,7 +112,7 @@ def test_dedupe_updates_scope_no_duplicate() -> None:
     h.queue.enqueue(_item(2, scope="FULL"))
     h.queue.enqueue(_item(2, scope="PARAMETERS"))  # same device -> update scope, no dup
     assert [q.node_id for q in h.queue.queued] == [2]
-    assert h.queue.queued[0].scope == "PARAMETERS"
+    assert h.queue.queued[0].scope is DownloadScope.PARAMETERS
 
 
 def test_continue_on_error_advances() -> None:
@@ -202,3 +206,43 @@ def test_script_outcomes() -> None:
     assert (failed.state, failed.message) == (OperationState.FAILED, "Script failed")
     assert (aborted.state, aborted.message) == (OperationState.CANCELED, None)
     assert (finished.state, finished.message) == (OperationState.FINISHED, None)
+
+
+def test_cancel_current_cancels_an_address_download() -> None:
+    h = _Harness()
+    h.queue.enqueue(
+        QueueItem(
+            node_id=1,
+            address="1.1.1",
+            name="D1",
+            scope=DownloadScope.INDIVIDUAL_ADDRESS,
+        )
+    )
+    current = h.queue.current
+    assert current is not None and current.cancelable_while_running
+    h.queue.cancel_current()
+    assert current.state is OperationState.CANCELED
+    assert current.future is None
+    assert h.queue.current is None
+
+
+def test_cancel_current_leaves_an_application_download_running() -> None:
+    h = _Harness()
+    h.queue.enqueue(
+        QueueItem(node_id=1, address="1.1.1", name="D1", scope=DownloadScope.FULL)
+    )
+    current = h.queue.current
+    assert current is not None and not current.cancelable_while_running
+    h.queue.cancel_current()
+    assert h.queue.current is current
+    assert current.state is OperationState.RUNNING
+
+
+def test_dedupe_keeps_the_latest_current_address() -> None:
+    h = _Harness()
+    h.queue.enqueue(_item(9))
+    scope = DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS
+    h.queue.enqueue(QueueItem(1, "1.1.1", "D1", scope, current_address="1.1.20"))
+    h.queue.enqueue(QueueItem(1, "1.1.1", "D1", scope, current_address="1.1.21"))
+    (queued,) = h.queue.queued
+    assert queued.current_address == "1.1.21"

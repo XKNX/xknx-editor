@@ -805,3 +805,24 @@ msgstr "De fabrikant staat het programmeren van dit apparaat alleen toe met zijn
 
 msgid "Program without the manufacturer's plugin anyway"
 msgstr "Toch programmeren zonder de plug-in van de fabrikant"
+
+msgid "Overwrite Individual Address"
+msgstr "Individueel adres overschrijven"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "Hiermee wordt het individuele adres {address} geschreven naar het apparaat waarvan de programmeerknop wordt ingedrukt. Doorgaan?"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "Hiermee wordt het individuele adres van het apparaat op zijn huidige adres overschreven met {address}. De programmeerknop hoeft niet te worden ingedrukt."
+
+msgid "Current Individual Address"
+msgstr "Huidig individueel adres"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "Voer het huidige individuele adres van het apparaat in, bijv. 1.1.5."
+
+msgid "The device already has the individual address {address}."
+msgstr "Het apparaat heeft al het individuele adres {address}."
+
+msgid "Please press the programming button"
+msgstr "Druk op de programmeerknop"

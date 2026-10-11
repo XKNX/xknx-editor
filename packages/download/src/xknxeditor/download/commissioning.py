@@ -8,6 +8,10 @@ management procedures:
   mode; its address is written by broadcast.
 - via serial number: the target device is addressed by its serial number, so no
   programming mode is required and several devices may be on the bus.
+
+:func:`download_individual_address` is the stand-alone address download; it can
+also switch a device to programming mode by its current address first, to
+overwrite that address without pressing the programming button.
 """
 
 from __future__ import annotations
@@ -20,6 +24,7 @@ from typing import TYPE_CHECKING
 from xknx.exceptions import ManagementConnectionError
 from xknx.management.procedures.device.dm_restart_r_co import dm_restart_r_co
 from xknx.management.procedures.network.nm_individual_address_check import (
+    nm_individual_address_check,
     nm_individual_address_check_conn,
 )
 from xknx.management.procedures.network.nm_individual_address_read import (
@@ -31,9 +36,19 @@ from xknx.management.procedures.network.nm_individual_address_serial_number_writ
 from xknx.telegram import apci
 from xknx.telegram.address import IndividualAddress
 
+from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
+
+from .errors import AddressInUseError, ProgrammingModeError, UnsupportedProcedureError
+
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from xknx import XKNX
     from xknx.telegram.address import IndividualAddressableType
+
+    from xknxeditor.prod import MasterData
+
+    from .data_secure import DeviceSecurity
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +57,13 @@ DEFAULT_INDIVIDUAL_ADDRESS = IndividualAddress("15.15.255")
 
 # Wait after writing the address before verifying it, so the device has adopted it.
 _ADDRESS_ADOPTION_DELAY_S = 1.0
+
+# Seconds each A_IndividualAddress_Read collects responses while waiting for programming mode.
+_PROGRAMMING_MODE_POLL_S = 1.0
+
+# Programming mode in memory: prog_mode is bit 0, p_parity bit 7 inverts with every change.
+_PROG_MODE_BIT = 0x01
+_PROG_MODE_PARITY = 0x80
 
 
 async def program_individual_address(
@@ -95,6 +117,159 @@ async def _write_address_via_programming_mode(
             raise ManagementConnectionError(
                 f"No device answered at {address} after the address write."
             )
+
+
+async def switch_programming_mode(
+    xknx: XKNX,
+    individual_address: IndividualAddressableType,
+    enable: bool,
+    *,
+    security: DeviceSecurity | None = None,
+    master: MasterData | None = None,
+) -> None:
+    """Switch the programming mode of the device at ``individual_address``.
+
+    The mask's ``ProgrammingMode`` resource selects the Device Object property
+    PID_PROGMODE or the memory octet at 60h (read, modify, write).
+    """
+    from .merge import mask_authorize_levels
+    from .programmer import DeviceProgrammer
+    from .resources import mask_resources
+    from .session import apdu_overhead, management_session
+
+    address = IndividualAddress(individual_address)
+    manager = management_session(xknx, address, security)
+    connection = await manager.open()
+    try:
+        programmer = DeviceProgrammer(connection, apdu_overhead=apdu_overhead(security))
+        mask_id = f"MV-{await programmer.read_device_descriptor():04X}"
+        resources = mask_resources(master, mask_id)
+        if resources is None:
+            raise UnsupportedProcedureError(f"no resources known for mask {mask_id}")
+        if security is None and mask_authorize_levels(
+            master.raw if master is not None else None, mask_id
+        ):
+            await programmer.authorize()
+        prop = resources.property_ref(ResourceName.PROGRAMMING_MODE)
+        memory = resources.memory_address(ResourceName.PROGRAMMING_MODE)
+        if prop is not None:
+            await programmer.write_property(*prop, bytes([int(enable)]))
+        elif memory is not None:
+            (current,) = await programmer.read_memory(memory, 1)
+            if bool(current & _PROG_MODE_BIT) != enable:
+                value = current ^ (_PROG_MODE_BIT | _PROG_MODE_PARITY)
+                await connection.send_data(
+                    apci.MemoryWrite(address=memory, data=bytes([value]))
+                )
+        else:
+            raise UnsupportedProcedureError(
+                f"mask {mask_id} has no programming mode resource"
+            )
+        logger.debug(
+            "Switched programming mode of %s %s.", address, "on" if enable else "off"
+        )
+    finally:
+        await manager.close()
+
+
+async def download_individual_address(
+    xknx: XKNX,
+    individual_address: IndividualAddressableType,
+    *,
+    current_address: IndividualAddressableType | None = None,
+    security: DeviceSecurity | None = None,
+    current_security: DeviceSecurity | None = None,
+    master: MasterData | None = None,
+    waiting: Callable[[], None] | None = None,
+) -> None:
+    """Download ``individual_address`` to the single device in programming mode.
+
+    Waits until exactly one device is in programming mode (``waiting`` is called
+    once while none is), refuses an address another device uses, writes the
+    address, verifies it and restarts the device to end programming mode.
+
+    With ``current_address`` the device at that address is switched to
+    programming mode first (secured with ``current_security``), so its address is
+    overwritten without pressing the programming button. ``security`` secures the
+    verification at the new address.
+    """
+    address = IndividualAddress(individual_address)
+    current = IndividualAddress(current_address) if current_address else None
+    if current == address:
+        raise ValueError(f"the device already has the address {address}")
+    occupied = await nm_individual_address_check(xknx, address)
+    if occupied and current is not None:
+        raise AddressInUseError(
+            f"The individual address {address} is already in use by another device."
+        )
+    if current is not None:
+        await switch_programming_mode(
+            xknx, current, True, security=current_security, master=master
+        )
+    devices = await _wait_for_programming_mode(
+        xknx, waiting if current is None else None
+    )
+    if current is not None and devices[0] != current:
+        with contextlib.suppress(ManagementConnectionError, asyncio.TimeoutError):
+            await switch_programming_mode(
+                xknx, current, False, security=current_security, master=master
+            )
+        raise ProgrammingModeError(
+            f"Device {devices[0]} is in programming mode instead of {current}."
+        )
+    if occupied and devices[0] != address:
+        raise AddressInUseError(
+            f"The individual address {address} is already in use by another device."
+        )
+    if devices[0] != address:
+        await xknx.management.send_broadcast(
+            payload=apci.IndividualAddressWrite(address=address),
+        )
+        logger.debug("Wrote address %s to device %s.", address, devices[0])
+        await asyncio.sleep(_ADDRESS_ADOPTION_DELAY_S)
+    await _verify_and_restart(xknx, address, security)
+
+
+async def _wait_for_programming_mode(
+    xknx: XKNX, waiting: Callable[[], None] | None
+) -> list[IndividualAddress]:
+    """Poll until exactly one device is in programming mode; without ``waiting``, poll once."""
+    notified = False
+    while True:
+        devices = await nm_individual_address_read(
+            xknx, timeout=_PROGRAMMING_MODE_POLL_S
+        )
+        if len(devices) > 1:
+            raise ProgrammingModeError("More than one device is in programming mode.")
+        if devices:
+            return devices
+        if waiting is None:
+            raise ProgrammingModeError("No device is in programming mode.")
+        if not notified:
+            waiting()
+            notified = True
+
+
+async def _verify_and_restart(
+    xknx: XKNX, address: IndividualAddress, security: DeviceSecurity | None
+) -> None:
+    """Read the device descriptor at ``address`` and restart the device."""
+    from .errors import DownloadError
+    from .programmer import DeviceProgrammer
+    from .session import apdu_overhead, management_session
+
+    manager = management_session(xknx, address, security)
+    try:
+        connection = await manager.open()
+        programmer = DeviceProgrammer(connection, apdu_overhead=apdu_overhead(security))
+        await programmer.read_device_descriptor()
+        await programmer.restart()
+    except (ManagementConnectionError, DownloadError) as exc:
+        raise ManagementConnectionError(
+            f"No device answered at {address} after the address write."
+        ) from exc
+    finally:
+        await manager.close()
 
 
 async def reset_individual_address(xknx: XKNX) -> None:

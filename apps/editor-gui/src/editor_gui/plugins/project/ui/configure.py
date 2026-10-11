@@ -5,6 +5,8 @@ from typing import TYPE_CHECKING
 
 import structlog
 from imgui_bundle import imgui
+from xknx.exceptions import CouldNotParseAddress
+from xknx.telegram import IndividualAddress
 
 from editor_gui import doc_links
 from editor_gui.device import ComObject, Device
@@ -41,6 +43,22 @@ from editor_gui.widgets.module_table import build_module_tables, render_module_t
 
 _log = structlog.get_logger("configure")
 _PLUGIN_NOTICE_COLOR = imgui.ImVec4(0.95, 0.75, 0.35, 1.0)
+
+
+def overwrite_current_address(
+    text: str, address: str | None
+) -> tuple[str | None, str | None]:
+    """The normalised current address entered for an overwrite, or why it cannot be used."""
+    text = text.strip()
+    try:
+        current = IndividualAddress(text)
+    except CouldNotParseAddress:
+        return None, S.OVERWRITE_ADDRESS_INVALID
+    if text.count(".") != 2:
+        return None, S.OVERWRITE_ADDRESS_INVALID
+    if address and str(current) == address:
+        return None, S.OVERWRITE_ADDRESS_SAME.format(address=address)
+    return str(current), None
 
 
 def _same_line_if_fits(label: str) -> None:
@@ -85,7 +103,8 @@ class ConfigurePanel:
         on_unlink_com_object: Callable[[int], None],
         on_auto_create_gas: Callable[[Device, list[ComObject], str, str], None],
         get_device_info: "Callable[[int], DeviceInfo | None]",
-        on_program_device: Callable[[Device, DownloadScope, bool], None] | None = None,
+        on_program_device: Callable[[Device, DownloadScope, bool, str | None], None]
+        | None = None,
         on_eval_device: Callable[[Device, DownloadScope], None] | None = None,
         open_memory_preview: Callable[[Device], None] | None = None,
         on_param_change_all: Callable[[Device, str, str], None] | None = None,
@@ -185,6 +204,7 @@ class ConfigurePanel:
         self._confirm_program_open: bool = False
         # Confirmed to program a device whose hardware needs the manufacturer's plugin.
         self._program_without_plugin: bool = False
+        self._overwrite_current_address = ""
         self._render_dali = (
             render_dali  # DALI commissioning tab body (MDT DALI devices only)
         )
@@ -270,7 +290,10 @@ class ConfigurePanel:
 
         # Workflow order: dry run (preview changes) → program → preview memory image.
         if self._on_eval_device is not None:
-            enabled = bool(device.individual_address)
+            enabled = (
+                bool(device.individual_address)
+                and not self._download_scope.individual_address_only
+            )
             imgui.begin_disabled(not enabled)
             if imgui.button(S.BTN_EVAL_DEVICE):
                 self._on_eval_device(device, self._download_scope)
@@ -288,6 +311,7 @@ class ConfigurePanel:
                 imgui.open_popup(S.PROGRAM_CONFIRM_TITLE)
                 self._confirm_program_open = False
                 self._program_without_plugin = False
+                self._overwrite_current_address = ""
             self._render_program_confirm(device)
             if self._open_memory_preview is not None:
                 _same_line_if_fits(S.BTN_PREVIEW_MEMORY)
@@ -1133,14 +1157,38 @@ class ConfigurePanel:
             S.PROGRAM_CONFIRM_TITLE, None, imgui.WindowFlags_.always_auto_resize
         )[0]:
             return
-        imgui.text_wrapped(
-            S.PROGRAM_CONFIRM_TEXT.format(
-                address=device.individual_address or "?",
-                scope=self._download_scope.name,
+        scope = self._download_scope
+        address = device.individual_address or "?"
+        if scope is DownloadScope.INDIVIDUAL_ADDRESS:
+            imgui.text_wrapped(S.PROGRAM_ADDRESS_TEXT.format(address=address))
+        elif scope is DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS:
+            imgui.text_wrapped(S.PROGRAM_OVERWRITE_TEXT.format(address=address))
+        else:
+            imgui.text_wrapped(
+                S.PROGRAM_CONFIRM_TEXT.format(address=address, scope=scope.name)
             )
-        )
         imgui.spacing()
-        plugin_required = device.download_plugin_required
+        address_error: str | None = None
+        current_address: str | None = None
+        if scope is DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS:
+            imgui.align_text_to_frame_padding()
+            imgui.text(S.OVERWRITE_CURRENT_ADDRESS)
+            imgui.same_line()
+            imgui.set_next_item_width(px(120.0))
+            if imgui.is_window_appearing():
+                imgui.set_keyboard_focus_here()
+            _, self._overwrite_current_address = imgui.input_text(
+                "##overwrite_current_address", self._overwrite_current_address
+            )
+            current_address, address_error = overwrite_current_address(
+                self._overwrite_current_address, device.individual_address
+            )
+            if address_error is not None and self._overwrite_current_address.strip():
+                imgui.text_colored(_PLUGIN_NOTICE_COLOR, address_error)
+            imgui.spacing()
+        plugin_required = (
+            device.download_plugin_required and not scope.individual_address_only
+        )
         if plugin_required:
             imgui.push_text_wrap_pos(px(420.0))
             imgui.text_colored(_PLUGIN_NOTICE_COLOR, S.PLUGIN_DOWNLOAD_WARNING)
@@ -1150,10 +1198,13 @@ class ConfigurePanel:
             )
             imgui.spacing()
         btn_w = px_vec2(140, 0)
-        imgui.begin_disabled(plugin_required and not self._program_without_plugin)
+        imgui.begin_disabled(
+            (plugin_required and not self._program_without_plugin)
+            or address_error is not None
+        )
         if imgui.button(S.BTN_PROGRAM_DEVICE, btn_w):
             if self._on_program_device is not None:
-                self._on_program_device(device, self._download_scope, plugin_required)
+                self._on_program_device(device, scope, plugin_required, current_address)
             imgui.close_current_popup()
         imgui.end_disabled()
         imgui.same_line()
@@ -1168,6 +1219,8 @@ class ConfigurePanel:
             DownloadScope.PARAMETERS,
             DownloadScope.GROUP_COMMUNICATION,
             DownloadScope.APPLICATION,
+            DownloadScope.INDIVIDUAL_ADDRESS,
+            DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS,
             DownloadScope.UNLOAD,
             DownloadScope.UNLOAD_ALL,
         ]
@@ -1176,6 +1229,8 @@ class ConfigurePanel:
             S.SCOPE_PARAMETERS,
             S.SCOPE_GROUP_COMMUNICATION,
             S.SCOPE_APPLICATION,
+            S.SCOPE_INDIVIDUAL_ADDRESS,
+            S.SCOPE_OVERWRITE_INDIVIDUAL_ADDRESS,
             S.SCOPE_UNLOAD,
             S.SCOPE_UNLOAD_ALL,
         ]
