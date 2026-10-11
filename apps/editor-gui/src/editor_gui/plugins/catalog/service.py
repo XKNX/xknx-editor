@@ -212,6 +212,13 @@ class CatalogService:
             mask_version=mask_version,
         )
 
+    @io_guarded(lambda: False)
+    def requires_download_plugin(self, hardware2program_id: str) -> bool:
+        """Whether a product's hardware may only be programmed with the manufacturer's plugin."""
+        hardware_id = hardware2program_id.split("_HP-", 1)[0]
+        hardware = self._service.get_hardware(hardware_id)
+        return bool(hardware is not None and hardware.no_download_without_plugin)
+
     @io_guarded(lambda: None)
     def get_program_source(self, program_id: str) -> tuple[str, str] | None:
         """Return ``(knxprod_path, manufacturer_id)`` for a hardware program id, or ``None``."""

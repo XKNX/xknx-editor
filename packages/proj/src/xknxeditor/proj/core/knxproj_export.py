@@ -1003,6 +1003,13 @@ class _Writer:
         # folder; ETS signs the folder recursively, so include them in the signed set (and the
         # certificate then binds to a signature that covers them).
         folder_files = {"project.xml": project_xml, "0.xml": zero, **self._binary_files}
+        # The source's other project folder files (user files, data of device configuration apps).
+        kept_files = {
+            rel: data
+            for rel, data in _unzip_members(project.imported_project_files).items()
+            if rel not in folder_files
+        }
+        folder_files.update(kept_files)
         # Sign the project folder so a strict import accepts it (see knxproj_signing).
         folder_signature = directory_signature(folder_files)
         logger.debug(
@@ -1054,7 +1061,7 @@ class _Writer:
             # `.validation` (and no separate `.certificate`); we emit both so either reader is
             # satisfied.
             members[".validation"] = validation_record(certificate, project_signature)
-        for rel, data in self._binary_files.items():
+        for rel, data in {**self._binary_files, **kept_files}.items():
             members[f"{pid}/{rel}"] = data
         for path, data in (extra_files or {}).items():
             if path not in own_paths:

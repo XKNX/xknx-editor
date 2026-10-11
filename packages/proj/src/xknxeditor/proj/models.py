@@ -58,6 +58,12 @@ class Project(Base):
     imported_product_members: Mapped[bytes | None] = mapped_column(
         LargeBinary, nullable=True
     )
+    # The other files of the imported archive's project folder (eg. attached user files or data of
+    # device configuration apps), stored as a ZIP blob and written back on export. Excludes what the
+    # export generates itself: project.xml, the installation files and BinaryData/*.
+    imported_project_files: Mapped[bytes | None] = mapped_column(
+        LargeBinary, nullable=True
+    )
     knx_validation: Mapped[str] = mapped_column(Text, nullable=False, default="")
     knx_certificate: Mapped[str] = mapped_column(Text, nullable=False, default="")
     # The project id (P-XXXX) in the source .knxproj. The certificate/.validation are bound to it,

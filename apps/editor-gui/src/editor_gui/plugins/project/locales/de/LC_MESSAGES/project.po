@@ -1280,3 +1280,17 @@ msgstr "Nein"
 
 msgid "The application on the device is not in the catalog, so its tables cannot be located"
 msgstr "Die Applikation des Geräts ist nicht im Katalog, daher können seine Tabellen nicht gefunden werden"
+msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
+msgstr "Dieses Gerät kann nur mit dem Plugin des Herstellers programmiert werden, das hier nicht verfügbar ist."
+
+msgid "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+msgstr "Der Hersteller konfiguriert dieses Gerät mit einem eigenen Plugin-Dialog; dort vorgenommene Einstellungen werden hier nicht angezeigt."
+
+msgid "The manufacturer programs this device with its own plugin; the standard download is used here."
+msgstr "Der Hersteller programmiert dieses Gerät mit einem eigenen Plugin; hier wird der Standard-Download verwendet."
+
+msgid "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+msgstr "Der Hersteller verwaltet einen Teil der Daten dieses Geräts mit einem eigenen Plugin, das hier nicht verfügbar ist."
+
+msgid "This device is also configured with separate software from the manufacturer."
+msgstr "Dieses Gerät wird zusätzlich mit separater Software des Herstellers konfiguriert."

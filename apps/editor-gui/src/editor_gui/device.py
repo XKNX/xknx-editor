@@ -235,6 +235,10 @@ class Device:
     )
     # Changed in place since it was built, so it no longer mirrors the data it was built from.
     edited_in_place: bool = field(default=False, repr=False, compare=False, init=False)
+    # The hardware must only be programmed with the manufacturer's plugin (NoDownloadWithoutPlugin).
+    download_plugin_required: bool = field(
+        default=False, repr=False, compare=False, init=False
+    )
     # UI frozen while a script changes this device's parameters on the script worker.
     _script_ui: list[UiNode] | None = field(
         default=None, repr=False, compare=False, init=False

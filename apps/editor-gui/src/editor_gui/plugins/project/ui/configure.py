@@ -9,6 +9,7 @@ from imgui_bundle import imgui
 from editor_gui import doc_links
 from editor_gui.device import ComObject, Device
 from editor_gui.device_info import firmware_text
+from editor_gui.device_plugins import device_plugins
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
@@ -39,6 +40,7 @@ from editor_gui.widgets.markdown import render_markdown
 from editor_gui.widgets.module_table import build_module_tables, render_module_tables
 
 _log = structlog.get_logger("configure")
+_PLUGIN_NOTICE_COLOR = imgui.ImVec4(0.95, 0.75, 0.35, 1.0)
 
 
 def _same_line_if_fits(label: str) -> None:
@@ -259,6 +261,7 @@ class ConfigurePanel:
             self._buffer_device_id = device.node_id
 
         self._render_header_fields(device)
+        self._render_plugin_notices(device)
 
         if self._on_program_device is not None or self._on_eval_device is not None:
             self._render_scope_selector()
@@ -273,12 +276,17 @@ class ConfigurePanel:
             _same_line_if_fits(S.BTN_PROGRAM_DEVICE)
 
         if self._on_program_device is not None:
-            enabled = bool(device.individual_address)
+            blocked = device.download_plugin_required
+            enabled = bool(device.individual_address) and not blocked
             imgui.begin_disabled(not enabled)
             if imgui.button(S.BTN_PROGRAM_DEVICE):
                 # Programming writes to the device; confirm first.
                 self._confirm_program_open = True
             imgui.end_disabled()
+            if blocked and imgui.is_item_hovered(
+                imgui.HoveredFlags_.allow_when_disabled
+            ):
+                imgui.set_tooltip(S.PLUGIN_DOWNLOAD_REQUIRED)
             if self._confirm_program_open:
                 imgui.open_popup(S.PROGRAM_CONFIRM_TITLE)
                 self._confirm_program_open = False
@@ -290,6 +298,27 @@ class ConfigurePanel:
             self._open_memory_preview(device)
 
         self._render_ip_config(device)
+
+    def _render_plugin_notices(self, device: Device) -> None:
+        """Notes on the manufacturer plugins the product data asks for, which are not available."""
+        plugins = device_plugins(device)
+        notices = [
+            text
+            for shown, text in (
+                (plugins.download_required, S.PLUGIN_DOWNLOAD_REQUIRED),
+                (plugins.user_interface, S.PLUGIN_USER_INTERFACE),
+                (plugins.download and not plugins.download_required, S.PLUGIN_DOWNLOAD),
+                (plugins.data_handler, S.PLUGIN_DATA_HANDLER),
+                (plugins.external_software, S.PLUGIN_EXTERNAL_SOFTWARE),
+            )
+            if shown
+        ]
+        if not notices:
+            return
+        imgui.push_style_color(imgui.Col_.text, _PLUGIN_NOTICE_COLOR)
+        for text in notices:
+            imgui.text_wrapped(text)
+        imgui.pop_style_color()
 
     def _render_header_fields(self, device: Device) -> None:
         """Name, physical address and description, side by side when the panel is wide enough, else

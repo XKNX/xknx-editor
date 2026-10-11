@@ -182,6 +182,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
           partials (same procedure, delta writes), it just does not re-flash firmware or the address.
         - UNLOAD: remove the application (reset the device to unloaded)."""
         device, group_communication = _programmable_device(node_id)
+        if device.download_plugin_required:
+            raise ToolError(
+                f"device {node_id} can only be programmed with the manufacturer's plugin "
+                "(its hardware is marked NoDownloadWithoutPlugin)"
+            )
         future = service.program_device(
             device, _resolve_scope(scope), group_communication
         )

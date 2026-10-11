@@ -22,6 +22,7 @@ from __future__ import annotations
 import base64
 import io
 import logging
+import re
 import zipfile
 import zlib
 from collections.abc import Callable
@@ -348,6 +349,8 @@ class _RawExtras:
         # <Topology>/<UnassignedDevices> devices as namespace-stripped <DeviceInstance> XML strings,
         # in document order (empty when the source had no such container).
         self.unassigned_devices: list[str] = []
+        # The project folder's other files as a ZIP blob (see _capture_project_files).
+        self.project_files: bytes | None = None
         # The <Installation> @Name (xknxproject surfaces only the project name, not the installation's).
         self.installation_name: str = ""
         # Non-secret <Installation> attributes xknxproject drops (see _INSTALLATION_EXTRA_ATTRS).
@@ -447,6 +450,9 @@ def _parse(
             "project metadata",
             lambda: _read_project_meta(contents),
             ("", [], {}, {}, {}),
+        )
+        extras.project_files = _best_effort(
+            "project files", lambda: _capture_project_files(contents), None
         )
     logger.info(
         "parsed knxproj '%s': %d devices, %d group addresses, %d w/ binary data, %d w/ modules, %d traces",
@@ -1075,6 +1081,35 @@ def _binary_payload(
     return b""  # a RefId-only entry (content borrowed from the application program) has no file
 
 
+# Project folder files the export writes itself.
+_GENERATED_PROJECT_FILE = re.compile(r"(?i)(project|\d+)\.xml|BinaryData/.*")
+
+
+def _capture_project_files(contents: _ProjectContents) -> bytes | None:
+    """The project folder's files the export does not generate, as a ZIP blob; None if none."""
+    archive: Any = getattr(contents, "_project_archive", None)
+    base: str = getattr(contents, "_project_relative_path", "") or ""
+    if archive is None:
+        return None
+    files: list[tuple[str, bytes]] = []
+    for info in archive.infolist():
+        name: str = info.filename
+        if name.endswith("/") or not name.startswith(base):
+            continue
+        rel = name[len(base) :]
+        if not rel or _GENERATED_PROJECT_FILE.fullmatch(rel):
+            continue
+        with archive.open(name) as handle:
+            files.append((rel, handle.read()))
+    if not files:
+        return None
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as out:
+        for rel, data in files:
+            out.writestr(rel, data)
+    return buffer.getvalue()
+
+
 def _read_project_file(contents: _ProjectContents, relpath: str) -> bytes | None:
     """Read a file from the project folder of the (possibly encrypted) archive; None if absent.
 
@@ -1156,6 +1191,7 @@ def _build(
         extra_subtrees=extras.project_subtrees or None,
         knx_master_xml=knx_master_xml,
         imported_product_members=product_members,
+        imported_project_files=extras.project_files,
         traces=[
             ProjectTrace(
                 project_id=pid,

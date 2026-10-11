@@ -1339,7 +1339,9 @@ class ProjectPlugin:
             device, item.scope, self._group_communication_for(device)
         )
         if future is None:
-            if self._api.connection.xknx is None:
+            if device.download_plugin_required:
+                item.message = S.PLUGIN_DOWNLOAD_REQUIRED
+            elif self._api.connection.xknx is None:
                 item.message = S.SCRIPT_NOT_CONNECTED
             self._api.log.debug(
                 "program: cannot start, not connected",

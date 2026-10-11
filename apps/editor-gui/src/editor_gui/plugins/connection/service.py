@@ -430,6 +430,12 @@ class ConnectionService:
         if not device.individual_address:
             self._log.warning("Device has no individual address", device=device.name)
             return None
+        if device.download_plugin_required:
+            self._log.error(
+                "Device can only be programmed with the manufacturer's plugin",
+                device=device.name,
+            )
+            return None
         from editor_gui.programming import download_device
         from xknxeditor.download.scope import DownloadScope
 
