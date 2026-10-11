@@ -108,6 +108,64 @@ jobs:
           cp tools/install.sh tools/uninstall.sh dist/XKNX-Editor/
           chmod +x dist/XKNX-Editor/install.sh dist/XKNX-Editor/uninstall.sh
 
+      # Also package the Linux build as a single-file AppImage (run-anywhere, no install step),
+      # alongside the tar.gz. Built from the same PyInstaller onedir output. appimagetool is itself
+      # an AppImage; run it with APPIMAGE_EXTRACT_AND_RUN so it needs no FUSE on the runner.
+      - name: Build AppImage (Linux)
+        if: runner.os == 'Linux'
+        working-directory: apps/editor-gui
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+          ARCH: x86_64
+        run: |
+          set -eu
+          rm -rf AppDir
+          mkdir -p AppDir/usr/bin
+          # The onedir payload (binary + _internal). Installer scripts make no sense inside an
+          # AppImage, so drop them.
+          cp -a dist/XKNX-Editor/. AppDir/usr/bin/
+          rm -f AppDir/usr/bin/install.sh AppDir/usr/bin/uninstall.sh
+          # Top-level icon (required by appimagetool) plus a themed copy; the name matches the
+          # desktop file's Icon= key.
+          icon=AppDir/usr/bin/_internal/editor_gui/assets/app_settings/icon.png
+          install -D "$icon" AppDir/usr/share/icons/hicolor/512x512/apps/xknx-editor.png
+          cp "$icon" AppDir/xknx-editor.png
+          cat > AppDir/xknx-editor.desktop <<'DESKTOP'
+          [Desktop Entry]
+          Type=Application
+          Name=XKNX Editor
+          Comment=KNX project editor
+          Exec=XKNX-Editor
+          Icon=xknx-editor
+          Terminal=false
+          Categories=Utility;Development;
+          StartupWMClass=XKNX-Editor
+          DESKTOP
+          cat > AppDir/AppRun <<'APPRUN'
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "$0")")"
+          exec "$HERE/usr/bin/XKNX-Editor" "$@"
+          APPRUN
+          chmod +x AppDir/AppRun
+          curl -fL -o appimagetool "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
+          chmod +x appimagetool
+          ./appimagetool AppDir XKNX-Editor-x86_64.AppImage
+
+      - uses: actions/upload-artifact@v7
+        if: runner.os == 'Linux'
+        with:
+          name: XKNX-Editor-x86_64.AppImage
+          path: apps/editor-gui/XKNX-Editor-x86_64.AppImage
+          if-no-files-found: error
+
+      - name: Attach AppImage to release (Linux)
+        if: runner.os == 'Linux' && github.event_name == 'release'
+        shell: bash
+        working-directory: apps/editor-gui
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" "XKNX-Editor-x86_64.AppImage" --clobber
+
       # Bundle the build output into a single archive (the macOS .app, or the onedir folder).
       - name: Archive (macOS)
         if: runner.os == 'macOS'
