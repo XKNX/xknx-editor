@@ -14,6 +14,8 @@ from dataclasses import dataclass, replace
 from types import MappingProxyType
 from typing import TYPE_CHECKING
 
+from xknx.profile.const import ResourceObjectType
+
 from xknxeditor.namespaces.intermediate.application_program_static_t_code_relative_segment import (
     ApplicationProgramStaticCodeRelativeSegment,
 )
@@ -45,16 +47,9 @@ from .tables_systemb import (
     group_address_index_b,
 )
 
-# Interface object types of the three group communication tables (KNX Standard
-# v3.0.0, Chapter 3/5/1 "Resources": the Address Table Object, the Association
-# Table Object, and the Group Object Table Object, Object Type 9, section 4.8).
-_ADDRESS_TABLE_TYPE = 1
-_ASSOCIATION_TABLE_TYPE = 2
-_GROUP_OBJECT_TABLE_TYPE = 9
-# The Router (line coupler) interface object (KNX Standard v3.0.0, 3/5/1). A coupler's group
-# address filter table lives in this object's relative memory (PID_TABLE_REFERENCE), so it is
-# written by an ``LdCtrlWriteRelMem ObjType=6`` keyed on this object type.
-_ROUTER_OBJECT_TYPE = 6
+# A coupler's group address filter table lives in the Router object's relative memory
+# (PID_TABLE_REFERENCE), so it is written by an ``LdCtrlWriteRelMem ObjType=6``.
+_ROUTER_OBJECT_TYPE = ResourceObjectType.OBJECT_ROUTER
 
 if TYPE_CHECKING:
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
@@ -207,13 +202,13 @@ class DownloadImage:
     @property
     def has_association_table(self) -> bool:
         """Whether the image carries a System B association table."""
-        segment = self.relative_segment(_ASSOCIATION_TABLE_TYPE)
+        segment = self.relative_segment(ResourceObjectType.OBJECT_ASSOCIATION_TABLE)
         return segment is not None and segment.associations is not None
 
     def with_association_table_format(self, wide: bool) -> DownloadImage:
         """This image with its System B association table in format 1 (``wide``, two
         octets per field) or format 0 (one octet per field)."""
-        segment = self.relative_segment(_ASSOCIATION_TABLE_TYPE)
+        segment = self.relative_segment(ResourceObjectType.OBJECT_ASSOCIATION_TABLE)
         if segment is None or segment.associations is None:
             return self
         data = build_association_table_b(segment.associations, wide=wide)
@@ -587,15 +582,19 @@ def _group_communication_relative_segments(
     group_object_data = build_group_object_table_b(descriptors, highest_number)
 
     return [
-        RelativeSegment(_ADDRESS_TABLE_TYPE, address_data, b"\xff" * len(address_data)),
         RelativeSegment(
-            _ASSOCIATION_TABLE_TYPE,
+            ResourceObjectType.OBJECT_ADDRESS_TABLE,
+            address_data,
+            b"\xff" * len(address_data),
+        ),
+        RelativeSegment(
+            ResourceObjectType.OBJECT_ASSOCIATION_TABLE,
             association_data,
             b"\xff" * len(association_data),
             associations=tuple(associations),
         ),
         RelativeSegment(
-            _GROUP_OBJECT_TABLE_TYPE,
+            ResourceObjectType.OBJECT_GROUP_OBJECT_TABLE,
             group_object_data,
             b"\xff" * len(group_object_data),
         ),

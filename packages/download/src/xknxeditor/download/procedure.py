@@ -29,6 +29,8 @@ import time
 from collections.abc import Callable, Mapping, Sequence
 from typing import TYPE_CHECKING
 
+from xknx.profile.const import ResourceGenericPropertyId, ResourceObjectType
+
 from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import LdCtrlAbsSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_base_t import LdCtrlBase
 from xknxeditor.namespaces.intermediate.ld_ctrl_clear_lcfilter_table_t import (
@@ -127,12 +129,12 @@ DEFAULT_RESTART_COOLDOWN = 3.0
 # Standard v3.0.0, Chapter 3/5/1 "Resources", section 4.2.27 "PID_MCB_TABLE"):
 # an 8 octet entry per segment, CRC-protected when bit 0 of octet 4 is clear, with
 # the segment CRC in octets 6..7 (big-endian).
-_PID_MCB_TABLE = 27
+_PID_MCB_TABLE = ResourceGenericPropertyId.PID_MCB_TABLE
 _MCB_ENTRY_SIZE = 8
 
-# The Router interface object (a line/backbone coupler): its relative memory holds the group-address
-# filter table (System B), carried as the image's dedicated filter-table field.
-_ROUTER_OBJECT_TYPE = 6
+# The Router object's relative memory holds the group-address filter table (System B), carried
+# as the image's dedicated filter-table field.
+_ROUTER_OBJECT_TYPE = ResourceObjectType.OBJECT_ROUTER
 
 # Top bit of a load-procedure error value (the Original/Mapped fields of
 # LdCtrlMapError): set means failure, clear means success. Mapping an error to a

@@ -14,17 +14,17 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from xknx.exceptions import XKNXException
+from xknx.profile.const import ResourceDevicePropertyId, ResourceGenericPropertyId
 
 from xknxeditor.download.errors import DownloadError
 
 if TYPE_CHECKING:
     from xknxeditor.download import DeviceProgrammer
 
-# Standard Device Object (interface object 0) property ids (KNX 3/7/3).
-PID_SERIAL_NUMBER = 11
-PID_MANUFACTURER_ID = 12
-PID_ORDER_INFO = 15
-PID_HARDWARE_TYPE = 78
+PID_SERIAL_NUMBER = ResourceGenericPropertyId.PID_SERIAL_NUMBER
+PID_MANUFACTURER_ID = ResourceGenericPropertyId.PID_MANUFACTURER_ID
+PID_ORDER_INFO = ResourceGenericPropertyId.PID_ORDER_INFO
+PID_HARDWARE_TYPE = ResourceDevicePropertyId.PID_HARDWARE_TYPE
 
 
 @dataclass(frozen=True, slots=True)
