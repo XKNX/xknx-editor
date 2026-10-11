@@ -9,6 +9,7 @@ from imgui_bundle import imgui
 from editor_gui import doc_links
 from editor_gui.device import ComObject, Device
 from editor_gui.device_info import firmware_text
+from editor_gui.device_plugins import device_plugins
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
@@ -39,6 +40,7 @@ from editor_gui.widgets.markdown import render_markdown
 from editor_gui.widgets.module_table import build_module_tables, render_module_tables
 
 _log = structlog.get_logger("configure")
+_PLUGIN_NOTICE_COLOR = imgui.ImVec4(0.95, 0.75, 0.35, 1.0)
 
 
 def _same_line_if_fits(label: str) -> None:
@@ -83,7 +85,7 @@ class ConfigurePanel:
         on_unlink_com_object: Callable[[int], None],
         on_auto_create_gas: Callable[[Device, list[ComObject], str, str], None],
         get_device_info: "Callable[[int], DeviceInfo | None]",
-        on_program_device: Callable[[Device, DownloadScope], None] | None = None,
+        on_program_device: Callable[[Device, DownloadScope, bool], None] | None = None,
         on_eval_device: Callable[[Device, DownloadScope], None] | None = None,
         open_memory_preview: Callable[[Device], None] | None = None,
         on_param_change_all: Callable[[Device, str, str], None] | None = None,
@@ -181,6 +183,8 @@ class ConfigurePanel:
         self._buffer_device_id: int | None = None
         self._download_scope: DownloadScope = DownloadScope.PARAMETERS
         self._confirm_program_open: bool = False
+        # Confirmed to program a device whose hardware needs the manufacturer's plugin.
+        self._program_without_plugin: bool = False
         self._render_dali = (
             render_dali  # DALI commissioning tab body (MDT DALI devices only)
         )
@@ -259,6 +263,7 @@ class ConfigurePanel:
             self._buffer_device_id = device.node_id
 
         self._render_header_fields(device)
+        self._render_plugin_notices(device)
 
         if self._on_program_device is not None or self._on_eval_device is not None:
             self._render_scope_selector()
@@ -282,6 +287,7 @@ class ConfigurePanel:
             if self._confirm_program_open:
                 imgui.open_popup(S.PROGRAM_CONFIRM_TITLE)
                 self._confirm_program_open = False
+                self._program_without_plugin = False
             self._render_program_confirm(device)
             if self._open_memory_preview is not None:
                 _same_line_if_fits(S.BTN_PREVIEW_MEMORY)
@@ -290,6 +296,31 @@ class ConfigurePanel:
             self._open_memory_preview(device)
 
         self._render_ip_config(device)
+
+    def _render_plugin_notices(self, device: Device) -> None:
+        """Notes on the manufacturer plugins the product data asks for, which are not available."""
+        plugins = device_plugins(device)
+        notices = [
+            text
+            for shown, text in (
+                (plugins.download_required, S.PLUGIN_DOWNLOAD_REQUIRED),
+                (plugins.user_interface, S.PLUGIN_USER_INTERFACE),
+                (plugins.download and not plugins.download_required, S.PLUGIN_DOWNLOAD),
+                (plugins.data_handler, S.PLUGIN_DATA_HANDLER),
+                (plugins.external_software, S.PLUGIN_EXTERNAL_SOFTWARE),
+            )
+            if shown
+        ]
+        if plugins.configuration_app is not None:
+            notices.append(
+                S.PLUGIN_CONFIGURATION_APP.format(name=plugins.configuration_app)
+            )
+        if not notices:
+            return
+        imgui.push_style_color(imgui.Col_.text, _PLUGIN_NOTICE_COLOR)
+        for text in notices:
+            imgui.text_wrapped(text)
+        imgui.pop_style_color()
 
     def _render_header_fields(self, device: Device) -> None:
         """Name, physical address and description, side by side when the panel is wide enough, else
@@ -1109,11 +1140,22 @@ class ConfigurePanel:
             )
         )
         imgui.spacing()
+        plugin_required = device.download_plugin_required
+        if plugin_required:
+            imgui.push_text_wrap_pos(px(420.0))
+            imgui.text_colored(_PLUGIN_NOTICE_COLOR, S.PLUGIN_DOWNLOAD_WARNING)
+            imgui.pop_text_wrap_pos()
+            _, self._program_without_plugin = imgui.checkbox(
+                S.PLUGIN_DOWNLOAD_CONFIRM, self._program_without_plugin
+            )
+            imgui.spacing()
         btn_w = px_vec2(140, 0)
+        imgui.begin_disabled(plugin_required and not self._program_without_plugin)
         if imgui.button(S.BTN_PROGRAM_DEVICE, btn_w):
             if self._on_program_device is not None:
-                self._on_program_device(device, self._download_scope)
+                self._on_program_device(device, self._download_scope, plugin_required)
             imgui.close_current_popup()
+        imgui.end_disabled()
         imgui.same_line()
         if imgui.button(S.BTN_CANCEL, btn_w):
             imgui.close_current_popup()

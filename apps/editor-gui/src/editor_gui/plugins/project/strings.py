@@ -1865,6 +1865,52 @@ class ProjectStrings:
         )
 
     @property
+    def PLUGIN_DOWNLOAD_REQUIRED(self) -> str:
+        return _(
+            "This device can only be programmed with the manufacturer's plugin, which is not available here."
+        )
+
+    @property
+    def PLUGIN_USER_INTERFACE(self) -> str:
+        return _(
+            "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+        )
+
+    @property
+    def PLUGIN_DOWNLOAD(self) -> str:
+        return _(
+            "The manufacturer programs this device with its own plugin; the standard download is used here."
+        )
+
+    @property
+    def PLUGIN_DATA_HANDLER(self) -> str:
+        return _(
+            "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+        )
+
+    @property
+    def PLUGIN_EXTERNAL_SOFTWARE(self) -> str:
+        return _(
+            "This device is also configured with separate software from the manufacturer."
+        )
+
+    @property
+    def PLUGIN_CONFIGURATION_APP(self) -> str:
+        return _(
+            "The project contains the device configuration app “{name}” for this device; it cannot be run here."
+        )
+
+    @property
+    def PLUGIN_DOWNLOAD_WARNING(self) -> str:
+        return _(
+            "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+        )
+
+    @property
+    def PLUGIN_DOWNLOAD_CONFIRM(self) -> str:
+        return _("Program without the manufacturer's plugin anyway")
+
+    @property
     def OPERATION_DOWNLOADING(self) -> str:
         return _("Downloading")
 

@@ -23,7 +23,7 @@ from xknxeditor.proj.core import knxproj_import
 from xknxeditor.proj.core.knxproj_export import _encode_binary_name
 from xknxeditor.proj.core.knxproj_signing import verify_directory_signature
 from xknxeditor.proj.db import make_engine, url_for
-from xknxeditor.proj.models import Device, DeviceBinaryData, ModuleInstance
+from xknxeditor.proj.models import Device, DeviceBinaryData, ModuleInstance, Project
 
 _NS = "http://knx.org/xml/project/23"
 _BLOB = b"<device/>\x00\xff"  # arbitrary bytes incl. a NUL and a high byte, to prove byte fidelity
@@ -201,3 +201,48 @@ def test_binary_data_and_modules_survive_full_roundtrip(tmp_path: Path) -> None:
             {"ref_id": "MD-1_A-1", "value": "46"},
             {"ref_id": "MD-1_A-2", "value": "71"},
         ]
+
+
+_KEPT_FILES = {
+    "UserFiles/plan.pdf": b"%PDF-1.4 plan",
+    "AddinData/0B5C/settings.bin": b"\x01\x02\x03",
+}
+
+
+def test_capture_project_files_skips_generated_files() -> None:
+    files = {
+        **_KEPT_FILES,
+        "project.xml": b"<KNX/>",
+        "1.xml": b"<KNX/>",
+        "BinaryData/P-01-0_DI-1_X.dat": _BLOB,
+    }
+    blob = knxproj_import._capture_project_files(  # pyright: ignore[reportPrivateUsage]
+        _FakeContents(_zero_xml("").encode(), files)
+    )
+    assert blob is not None
+    with zipfile.ZipFile(io.BytesIO(blob)) as zf:
+        assert {name: zf.read(name) for name in zf.namelist()} == _KEPT_FILES
+
+
+def test_export_writes_kept_project_files_and_signs_them(tmp_path: Path) -> None:
+    src = _project_with_module_and_binary(tmp_path)
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as zf:
+        for rel, data in _KEPT_FILES.items():
+            zf.writestr(rel, data)
+    with Session(make_engine(url_for(src))) as session:
+        project = session.query(Project).one()
+        project.imported_project_files = buffer.getvalue()
+        session.commit()
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out)
+
+    with zipfile.ZipFile(out) as zf:
+        names = zf.namelist()
+        pid = next(n for n in names if n.endswith("/0.xml")).split("/")[0]
+        for rel, data in _KEPT_FILES.items():
+            assert zf.read(f"{pid}/{rel}") == data
+        folder = {
+            n[len(pid) + 1 :]: zf.read(n) for n in names if n.startswith(pid + "/")
+        }
+        assert verify_directory_signature(folder, zf.read(f"{pid}.signature"))

@@ -1,11 +1,13 @@
 """GUI project facade: lazy device view over ProjectService with selection and pub/sub."""
 
 import hashlib
+import io
 import os
 import platform
 import shutil
 import subprocess
 import time
+import zipfile
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,6 +15,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 
 from editor_gui.concurrency import io_guarded, revision_cached
 from editor_gui.device import Device, UnloadedDevice, address_order
+from editor_gui.device_plugins import ConfigurationApp, configuration_apps
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.history import HistoryEntry
 from editor_gui.settings import config_dir
@@ -363,6 +366,8 @@ class ProjectService:
         self._log: Logger
         self._listeners: dict[str, list[Callable[..., Any]]] = {}
         self._app_cache: dict[str, Application] = {}
+        self._plugin_cache: dict[str, bool] = {}
+        self._configuration_app_cache: tuple[str, list[ConfigurationApp]] | None = None
         # Signature of the non-reverted events at open — the baseline the read-only pre-flight
         # compares against, so opening a previously-edited project is not itself "modified".
         self._history_baseline: frozenset[tuple[int, str, str]] = frozenset()
@@ -965,6 +970,35 @@ class ProjectService:
                 return app
         return None
 
+    def _configuration_apps(self) -> list[ConfigurationApp]:
+        """The device configuration apps among the open project's kept files."""
+        if self._pid is None:
+            return []
+        if (
+            self._configuration_app_cache is None
+            or self._configuration_app_cache[0] != self._pid
+        ):
+            blob = self._svc.project(self._pid).imported_project_files
+            files: dict[str, bytes] = {}
+            if blob:
+                with zipfile.ZipFile(io.BytesIO(blob)) as archive:
+                    files = {
+                        name: archive.read(name)
+                        for name in archive.namelist()
+                        if name.lower().endswith(".etsapp")
+                    }
+            self._configuration_app_cache = (self._pid, configuration_apps(files))
+        return self._configuration_app_cache[1]
+
+    def _requires_download_plugin(self, program_ref: str | None) -> bool:
+        if program_ref is None:
+            return False
+        cached = self._plugin_cache.get(program_ref)
+        if cached is None:
+            cached = self._catalog.requires_download_plugin(program_ref)
+            self._plugin_cache[program_ref] = cached
+        return cached
+
     def _build_device(self, row: Any) -> Device | None:
         try:
             app = self._resolve_app(
@@ -1033,6 +1067,17 @@ class ProjectService:
                 parameter_instance_refs=pirs,
                 module_instances=mis,
                 com_object_instance_refs=coirs,
+            )
+            device.download_plugin_required = self._requires_download_plugin(
+                row.hardware2program_ref_id
+            )
+            device.configuration_app = next(
+                (
+                    a.name
+                    for a in self._configuration_apps()
+                    if a.applies_to(app.program.id)
+                ),
+                None,
             )
             for co_row in row.com_objects:
                 co = device.find_com_object(
