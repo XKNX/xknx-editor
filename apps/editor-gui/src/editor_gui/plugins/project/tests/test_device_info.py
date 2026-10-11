@@ -12,6 +12,7 @@ from editor_gui.device_info import (
     flags_text,
     group_objects,
     hex_value,
+    is_system_b,
     same_application,
     serial_text,
     size_text,
@@ -149,3 +150,19 @@ def test_device_info_items_are_not_merged_with_downloads() -> None:
     futures[0].set_result("info")
     assert finished == [(started[0], "info")]
     assert started[0].state is OperationState.FINISHED
+
+
+def test_system_b_masks() -> None:
+    assert is_system_b(0x07B0)
+    assert is_system_b(0x57B0)
+    assert not is_system_b(0x0705)
+    assert not is_system_b(None)
+
+
+def test_unknown_application_is_reported_in_group_communication() -> None:
+    info = DeviceInfo(individual_address="1.1.5", application_unknown=True)
+    sections = device_info_sections(
+        info, manufacturers={}, application_name=None, group_address=str
+    )
+    assert sections[-1][0] == "Group Communication"
+    assert "not in the catalog" in sections[-1][1][-1][1]

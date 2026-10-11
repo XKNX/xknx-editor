@@ -54,7 +54,9 @@ if TYPE_CHECKING:
     from editor_gui.device_info import DeviceInfo
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.scope import DownloadScope
+    from xknxeditor.prod import Application
     from xknxeditor.prod.parser_v2.ui import UiButton
+    from xknxeditor.recover import AppId
 
 
 def _run_now(fn: Callable[[], None]) -> None:
@@ -1243,7 +1245,9 @@ class ProjectPlugin:
         if device is None:
             return None
         future = self._api.connection.device_info(
-            device, group_communication=bool(item.device_info)
+            device,
+            group_communication=bool(item.device_info),
+            resolve_application=functools.partial(self._resolve_application, device),
         )
         if future is None and self._api.connection.xknx is None:
             item.message = S.SCRIPT_NOT_CONNECTED
@@ -1279,6 +1283,23 @@ class ProjectPlugin:
             application_name=self._application_name(device, result),
             group_address=lambda value: format_ga(value, style),
         )
+
+    def _resolve_application(
+        self, device: "Device", app_id: "AppId"
+    ) -> "Application | None":
+        """The application a device reports: the project's when it is the same, else the catalog's."""
+        if same_application(device.app.id, app_id):
+            return device.app
+        for product in self._api.catalog.find_products_for_application(
+            manufacturer_id=app_id.manufacturer_id,
+            application_number=app_id.application_number,
+            application_version=app_id.application_version,
+        ):
+            if product.application_id is not None:
+                application = self._api.catalog.get_application(product.application_id)
+                if application is not None:
+                    return application
+        return None
 
     def _manufacturer_names(self) -> dict[str, str]:
         master = self._api.connection.master

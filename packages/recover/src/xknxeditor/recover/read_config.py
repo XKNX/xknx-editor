@@ -97,16 +97,17 @@ def _highest_com_object_number(application: Application) -> int:
 
 async def read_group_communication(
     programmer: DeviceProgrammer,
-    application: Application,
+    application: Application | None,
     *,
     linked_objects_only: bool = False,
 ) -> RawGroupCommunication:
     """Read and decode the three group communication tables from a device.
 
-    With ``linked_objects_only``, a System B group object table is read only where the
-    association table links an object, instead of for every object number.
+    Without ``application`` the device must be System B, which reports where its tables
+    are. With ``linked_objects_only``, a System B group object table is read only where
+    the association table links an object, instead of for every object number.
     """
-    if _is_memory_mapped(application):
+    if application is not None and _is_memory_mapped(application):
         return await _read_memory_mapped(programmer, application)
     return await _read_system_b(
         programmer, application, linked_objects_only=linked_objects_only
@@ -291,7 +292,7 @@ def _record_ranges(numbers: list[int], max_records: int) -> list[tuple[int, int]
 
 async def _read_system_b(
     programmer: DeviceProgrammer,
-    application: Application,
+    application: Application | None,
     *,
     linked_objects_only: bool = False,
 ) -> RawGroupCommunication:
@@ -308,19 +309,23 @@ async def _read_system_b(
     )
     # An association entry is [group address index + 1][group object number], with
     # one octet (format 0) or two octets (format 1) per field as the device reports.
+    go_base = await programmer.read_table_reference(
+        await programmer.locate_object(_GROUP_OBJECT_TABLE_TYPE)
+    )
     wide = await programmer.read_association_table_wide()
     if wide is None:
-        wide = association_table_wide(
-            len(group_addresses), _highest_com_object_number(application)
-        )
+        if application is not None:
+            highest_number = _highest_com_object_number(application)
+        else:
+            highest_number = int.from_bytes(
+                await programmer.read_memory(go_base, 2), "big"
+            )
+        wide = association_table_wide(len(group_addresses), highest_number)
     assoc_bytes = await _read_count_table(
         programmer, assoc_base, count_width=2, entry_width=4 if wide else 2
     )
     links = decode_association_table_b(assoc_bytes, group_addresses)
 
-    go_base = await programmer.read_table_reference(
-        await programmer.locate_object(_GROUP_OBJECT_TABLE_TYPE)
-    )
     # The group object table's count is the highest object number; every number
     # 1..highest has a two-octet record.
     if linked_objects_only:

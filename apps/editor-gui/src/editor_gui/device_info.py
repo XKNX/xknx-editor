@@ -18,9 +18,12 @@ from xknxeditor.download.errors import DownloadError
 from xknxeditor.download.load_state import LoadState
 
 if TYPE_CHECKING:
+    from collections.abc import Callable
+
     from xknx import XKNX
 
     from xknxeditor.download import DeviceProgrammer
+    from xknxeditor.download.data_secure import DeviceSecurity
     from xknxeditor.prod import Application
     from xknxeditor.recover import AppId, RawGroupCommunication
     from xknxeditor.recover.tables_decode import DecodedGroupObject
@@ -69,6 +72,8 @@ class DeviceInfo:
     group_object_table_load_state: LoadState | None = None
     group_objects: list[GroupObjectInfo] = field(default_factory=list)
     group_communication_error: str | None = None
+    # The tables were not read: the device's application is unknown and it is not System B.
+    application_unknown: bool = False
 
 
 def same_application(application_id: str, app_id: AppId) -> bool:
@@ -168,17 +173,25 @@ def group_objects(tables: RawGroupCommunication) -> list[GroupObjectInfo]:
     return result
 
 
+def is_system_b(mask_version: int | None) -> bool:
+    """Whether a mask version is a System B profile (``x7B0``), which keeps table locations."""
+    return mask_version is not None and mask_version & 0x0FFF == 0x07B0
+
+
 async def read_device_info(
     xknx: XKNX,
     address: str,
-    application: Application,
+    resolve_application: Callable[[AppId], Application | None],
     *,
     group_communication: bool,
+    security: DeviceSecurity | None = None,
     interface_max_apdu: int | None = None,
 ) -> DeviceInfo:
     """Read what a device reports about itself; with ``group_communication`` also its tables.
 
-    The tables are located through ``application`` (the one the project assigns to the device).
+    The tables are located through the application the device reports, as resolved by
+    ``resolve_application``. System B devices are read without one when it cannot be resolved.
+    With ``security`` (the device's tool key) every request is sent secured.
     """
     from xknx.telegram import IndividualAddress
 
@@ -187,13 +200,14 @@ async def read_device_info(
         DEFAULT_MAX_APDU_LENGTH,
         MAX_COMMUNICATION_APDU_LENGTH,
     )
+    from xknxeditor.download.session import apdu_overhead, management_session
     from xknxeditor.recover import read_application_id, read_group_communication
 
     info = DeviceInfo(individual_address=address)
-    target = IndividualAddress(address)
-    connection = await xknx.management.connect(target)
+    manager = management_session(xknx, IndividualAddress(address), security)
+    connection = await manager.open()
     try:
-        programmer = DeviceProgrammer(connection)
+        programmer = DeviceProgrammer(connection, apdu_overhead=apdu_overhead(security))
         info.mask_version = await programmer.read_device_descriptor()
         manufacturer = await _property(programmer, 0, _PID_MANUFACTURER_ID)
         info.manufacturer_id = (
@@ -220,6 +234,14 @@ async def read_device_info(
             programmer, _GROUP_OBJECT_TABLE
         )
         if group_communication:
+            application = (
+                resolve_application(info.application)
+                if info.application is not None
+                else None
+            )
+            if application is None and not is_system_b(info.mask_version):
+                info.application_unknown = True
+                return info
             # Larger frames only pay off for the table reads.
             limit = MAX_COMMUNICATION_APDU_LENGTH
             if interface_max_apdu is not None:
@@ -239,5 +261,5 @@ async def read_device_info(
                 info.group_objects = group_objects(tables)
     finally:
         with contextlib.suppress(Exception):
-            await xknx.management.disconnect(target)
+            await manager.close()
     return info

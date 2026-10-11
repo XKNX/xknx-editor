@@ -26,7 +26,8 @@ if TYPE_CHECKING:
     from xknxeditor.download.data_secure import DeviceSecurity
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.scope import DownloadScope
-    from xknxeditor.prod import MasterData
+    from xknxeditor.prod import Application, MasterData
+    from xknxeditor.recover import AppId
 
 
 class ConnectionService:
@@ -583,10 +584,15 @@ class ConnectionService:
             self._log.info(line.strip())
 
     def device_info(
-        self, device: Device, *, group_communication: bool
+        self,
+        device: Device,
+        *,
+        group_communication: bool,
+        resolve_application: Callable[[AppId], Application | None],
     ) -> Future[Any] | None:
-        """Read a device's identity, load states and, if asked, its group communication tables.
-        The future's result is an :class:`~editor_gui.device_info.DeviceInfo`."""
+        """Read a device's identity, load states and, if asked, its group communication tables,
+        secured with the device's tool key when the loaded keyring has one. The future's result is
+        an :class:`~editor_gui.device_info.DeviceInfo`."""
         if self.not_connected("device_info"):
             return None
         if not device.individual_address:
@@ -602,8 +608,11 @@ class ConnectionService:
             read_device_info(
                 self._xknx,
                 device.individual_address,
-                device.app,
+                resolve_application,
                 group_communication=group_communication,
+                security=self.keyring.device_security(device.individual_address)
+                if self.keyring is not None
+                else None,
                 interface_max_apdu=self.interface_max_apdu_length,
             )
         )

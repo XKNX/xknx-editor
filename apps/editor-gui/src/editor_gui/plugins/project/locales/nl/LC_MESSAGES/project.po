@@ -779,3 +779,6 @@ msgstr "Ook de groepscommunicatie lezen?"
 
 msgid "No"
 msgstr "Nee"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "De applicatie van het apparaat staat niet in de catalogus, daarom kunnen de tabellen niet worden gevonden"

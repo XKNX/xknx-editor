@@ -1277,3 +1277,6 @@ msgstr "Auch die Gruppenkommunikation lesen?"
 
 msgid "No"
 msgstr "Nein"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "Die Applikation des Geräts ist nicht im Katalog, daher können seine Tabellen nicht gefunden werden"

@@ -1859,6 +1859,12 @@ class ProjectStrings:
         return _("Also read the group communication?")
 
     @property
+    def DEVICE_INFO_APPLICATION_UNKNOWN(self) -> str:
+        return _(
+            "The application on the device is not in the catalog, so its tables cannot be located"
+        )
+
+    @property
     def OPERATION_DOWNLOADING(self) -> str:
         return _("Downloading")
 

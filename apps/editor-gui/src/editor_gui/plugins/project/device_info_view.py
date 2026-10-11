@@ -95,6 +95,10 @@ def device_info_sections(
         group.append(
             (label, " ".join(group_address(ga) for ga in group_object.group_addresses))
         )
+    if info.application_unknown:
+        group.append(
+            (S.DEVICE_INFO_GROUP_COMMUNICATION, S.DEVICE_INFO_APPLICATION_UNKNOWN)
+        )
     if info.group_communication_error:
         group.append(
             (
