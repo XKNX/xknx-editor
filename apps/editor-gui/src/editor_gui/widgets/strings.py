@@ -23,7 +23,7 @@ class WidgetStrings(BaseStrings):
 
     @property
     def GROUP_OBJECTS_AUTO_CREATE(self) -> str:
-        return _("Create group addresses ({count})")
+        return _("Create Group Addresses ({count})")
 
     @property
     def GROUP_OBJECTS_SELECT_ALL(self) -> str:
@@ -35,11 +35,11 @@ class WidgetStrings(BaseStrings):
 
     @property
     def GROUP_OBJECTS_COPY_LINKS(self) -> str:
-        return _("Copy links ({count})")
+        return _("Copy Links ({count})")
 
     @property
     def GROUP_OBJECTS_PASTE_LINKS(self) -> str:
-        return _("Paste links ({count})")
+        return _("Paste Links ({count})")
 
     @property
     def GROUP_OBJECTS_PASTE_LINKS_HINT(self) -> str:
@@ -58,19 +58,19 @@ class WidgetStrings(BaseStrings):
 
     @property
     def GROUP_OBJECTS_CTX_COPY(self) -> str:
-        return _("Copy links")
+        return _("Copy Links")
 
     @property
     def GROUP_OBJECTS_CTX_PASTE(self) -> str:
-        return _("Paste links")
+        return _("Paste Links")
 
     @property
     def GROUP_OBJECTS_CTX_COPY_TEXT(self) -> str:
-        return _("Copy addresses as text")
+        return _("Copy Addresses as Text")
 
     @property
     def GROUP_OBJECTS_BATCH_TITLE(self) -> str:
-        return _("Create group addresses")
+        return _("Create Group Addresses")
 
     @property
     def GROUP_OBJECTS_BATCH_HINT(self) -> str:
@@ -81,11 +81,11 @@ class WidgetStrings(BaseStrings):
 
     @property
     def GROUP_OBJECTS_BATCH_NAME(self) -> str:
-        return _("Name template")
+        return _("Name Template")
 
     @property
     def GROUP_OBJECTS_BATCH_START(self) -> str:
-        return _("Start address")
+        return _("Start Address")
 
     @property
     def GROUP_OBJECTS_BATCH_CANCEL(self) -> str:
@@ -93,19 +93,19 @@ class WidgetStrings(BaseStrings):
 
     @property
     def GA_SENDING(self) -> str:
-        return _("Sending group address")
+        return _("Sending Group Address")
 
     @property
     def GA_RECEIVING(self) -> str:
-        return _("Receiving group address")
+        return _("Receiving Group Address")
 
     @property
     def GA_LINK_TITLE(self) -> str:
-        return _("Link group address")
+        return _("Link Group Address")
 
     @property
     def GA_CREATE_NEW(self) -> str:
-        return _("New group address")
+        return _("New Group Address")
 
     @property
     def GA_CREATE_ADDR_HINT(self) -> str:
@@ -117,7 +117,7 @@ class WidgetStrings(BaseStrings):
 
     @property
     def GA_CREATE_BUTTON(self) -> str:
-        return _("Create & link")
+        return _("Create & Link")
 
     @property
     def PARAM_CHANGED_TOOLTIP(self) -> str:
@@ -125,7 +125,7 @@ class WidgetStrings(BaseStrings):
 
     @property
     def PARAM_RESET_DEFAULT(self) -> str:
-        return _("Reset to default")
+        return _("Reset to Default")
 
     @property
     def PARAM_DIFFERS(self) -> str:
@@ -149,11 +149,11 @@ class WidgetStrings(BaseStrings):
 
     @property
     def COLOR_THEME_COLORS(self) -> str:
-        return _("Theme colors")
+        return _("Theme Colors")
 
     @property
     def COLOR_STANDARD_COLORS(self) -> str:
-        return _("Standard colors")
+        return _("Standard Colors")
 
     @property
     def CALENDAR_WEEKDAYS(self) -> str:

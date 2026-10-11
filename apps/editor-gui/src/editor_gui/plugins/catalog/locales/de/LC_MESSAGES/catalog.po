@@ -22,7 +22,7 @@ msgstr "{count} Applikation(en) gefunden"
 msgid "({count} com objects)"
 msgstr "({count} Kommunikationsobjekte)"
 
-msgid "Fetch online catalog"
+msgid "Fetch Online Catalog"
 msgstr "Online-Katalog abrufen"
 
 msgid "Loading manufacturer list..."
@@ -52,13 +52,13 @@ msgstr "Hersteller suchen..."
 msgid "Country"
 msgstr "Land"
 
-msgid "Product details"
+msgid "Product Details"
 msgstr "Produktdetails"
 
 msgid "Name"
 msgstr "Name"
 
-msgid "Order number"
+msgid "Order Number"
 msgstr "Bestellnummer"
 
 msgid "Manufacturer"
@@ -67,10 +67,10 @@ msgstr "Hersteller"
 msgid "Application"
 msgstr "Applikation"
 
-msgid "Product ref"
+msgid "Product Ref"
 msgstr "Produktreferenz"
 
-msgid "Add device"
+msgid "Add Device"
 msgstr "Gerät hinzufügen"
 
 msgid "Room"
@@ -79,7 +79,7 @@ msgstr "Raum"
 msgid "(no room)"
 msgstr "(kein Raum)"
 
-msgid "Fetch {count} missing application(s) online"
+msgid "Fetch {count} Missing Application(s) Online"
 msgstr "{count} fehlende Applikation(en) online abrufen"
 
 msgid "Fetching missing applications…"
@@ -96,7 +96,7 @@ msgstr ""
 "Noch keine Produkte importiert — importieren Sie eine .knxprod oder nutzen "
 "Sie den Online-Tab."
 
-msgid "Program version"
+msgid "Program Version"
 msgstr "Programmversion"
 
 msgid "Search products, order number..."

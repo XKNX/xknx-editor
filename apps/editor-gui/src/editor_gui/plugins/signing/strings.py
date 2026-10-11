@@ -15,11 +15,11 @@ class SigningStrings:
 
     @property
     def MENU_SHOW_WINDOW(self) -> str:
-        return _("Signing key…")
+        return _("Signing Key…")
 
     @property
     def WINDOW_TITLE(self) -> str:
-        return _("Signing key")
+        return _("Signing Key")
 
     @property
     def STATUS_GENUINE(self) -> str:
@@ -35,11 +35,11 @@ class SigningStrings:
 
     @property
     def PRIVATE_EXPONENT(self) -> str:
-        return _("Private exponent (hex)")
+        return _("Private Exponent (hex)")
 
     @property
     def PUBLIC_EXPONENT(self) -> str:
-        return _("Public exponent (hex)")
+        return _("Public Exponent (hex)")
 
     @property
     def EXTRACT(self) -> str:
@@ -51,7 +51,7 @@ class SigningStrings:
 
     @property
     def RESET(self) -> str:
-        return _("Reset to placeholder")
+        return _("Reset to Placeholder")
 
     @property
     def DLL_FILTER(self) -> str:
@@ -59,7 +59,7 @@ class SigningStrings:
 
     @property
     def ALL_FILES(self) -> str:
-        return _("All files")
+        return _("All Files")
 
     @property
     def PICK_HINT(self) -> str:

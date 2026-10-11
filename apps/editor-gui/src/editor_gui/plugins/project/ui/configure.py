@@ -117,6 +117,7 @@ class ConfigurePanel:
         self._get_picture = get_picture
         self._help_pane_h = 0.0  # dragged height of the help pane
         self._help: tuple[int, str] | None = None
+        self.show_help = True
         # "Multi fill": when on, a parameter edit is applied to every device that runs
         # the same application program, not just the selected one.
         self._on_param_change_all = on_param_change_all
@@ -544,7 +545,7 @@ class ConfigurePanel:
                         _, self._apply_all_channels = imgui.checkbox(
                             S.CONFIGURE_APPLY_ALL_CHANNELS, self._apply_all_channels
                         )
-                    help_text = self._help_text(device)
+                    help_text = self._help_text(device) if self.show_help else None
                     imgui.begin_disabled(device.script_running)
                     render_ui_tree(
                         device,

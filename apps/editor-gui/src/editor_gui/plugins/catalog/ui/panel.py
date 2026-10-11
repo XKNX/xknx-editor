@@ -146,8 +146,10 @@ class CatalogPanel:
             by_manufacturer[product.manufacturer_id].append(product)
 
         sorted_mfrs = sorted(
-            by_manufacturer.keys(), key=lambda m: manufacturer_labels[m]
+            by_manufacturer.keys(), key=lambda m: manufacturer_labels[m].lower()
         )
+        for mfr_products in by_manufacturer.values():
+            mfr_products.sort(key=lambda p: _label(p).lower())
 
         # Every tree node carries a unique ##id (product ref / manufacturer id) so duplicate display
         # labels never collide into the same imgui ID (which triggers a "conflicting ID" error).

@@ -49,6 +49,7 @@ from editor_gui.settings import config_dir, load_settings, save_settings
 from editor_gui.strings import S, get_locale, set_locale
 from editor_gui.update_check import UpdateInfo, check_for_update
 from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.fonts import load_fonts
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
     ExportResult,
@@ -269,6 +270,7 @@ class KnxGuiApp:
         # frame path, not post_init, so the GL context is guaranteed current (a context-less
         # glGetString segfaults at the C level and would be uncatchable).
         self._gl_logged = False
+        self._show_theme_tweaks = False
         # Overwrite guard: the portable file dialog does not confirm replacing an existing file on
         # macOS (it wraps AppleScript's "choose file name"), so we ask here. Requests queue as
         # (target, action) pairs so a second dialog resolving mid-confirmation cannot drop the first.
@@ -409,6 +411,9 @@ class KnxGuiApp:
         self._project_plugin = ProjectPlugin(
             self._plugin_api,
             get_selected_node_ids=lambda: [],
+        )
+        self._project_plugin.show_context_help = bool(
+            load_settings("app").get("show_context_help", True)
         )
 
         self._log = Logger(self._log_service, "app")
@@ -1806,7 +1811,7 @@ class KnxGuiApp:
                 self._redo()
             imgui.end_menu()
 
-        hello_imgui.show_view_menu(hello_imgui.get_runner_params())
+        self._render_view_menu()
 
         self._connection_plugin.render_menu()
         self._render_mcp_menu()
@@ -2069,6 +2074,10 @@ class KnxGuiApp:
         if not self._gl_logged:
             self._gl_logged = True
             _log_gl_renderer(self._log)
+        if self._show_theme_tweaks:
+            self._show_theme_tweaks = bool(
+                hello_imgui.show_theme_tweak_gui_window(self._show_theme_tweaks)
+            )
         # Bring the Editor tab to the front when another view (Device Overview, Topology, Health)
         # selected a device. Consumed here (a per-frame global callback) rather than in the Editor
         # panel itself, because a background dock tab is not rendered and would never see the flag.
@@ -2362,6 +2371,75 @@ class KnxGuiApp:
 
                     self._run_bg(S.PROGRESS_LANGUAGE, _reresolve)
             imgui.end_menu()
+
+    def _render_view_menu(self) -> None:
+        """View menu: the default layout, which panels are shown, and the status bar."""
+        if not imgui.begin_menu(S.MENU_VIEW):
+            return
+        params = hello_imgui.get_runner_params()
+        if imgui.menu_item(S.MENU_RESTORE_LAYOUT, "", False)[0]:
+            params.docking_params.layout_reset = True
+        imgui.separator()
+        windows = [
+            w for w in params.docking_params.dockable_windows if w.include_in_view_menu
+        ]
+        if imgui.menu_item(S.MENU_SHOW_ALL, "", False)[0]:
+            for w in windows:
+                w.is_visible = True
+        if imgui.menu_item(S.MENU_HIDE_ALL, "", False)[0]:
+            for w in windows:
+                if w.can_be_closed:
+                    w.is_visible = False
+        for w in windows:
+            changed, visible = imgui.menu_item(
+                w.label, "", w.is_visible, w.can_be_closed
+            )
+            if changed:
+                w.is_visible = visible
+        imgui.separator()
+        changed, shown = imgui.menu_item(
+            S.MENU_CONTEXT_HELP, "", self._project_plugin.show_context_help
+        )
+        if changed:
+            self._project_plugin.show_context_help = shown
+            data = load_settings("app")
+            data["show_context_help"] = shown
+            save_settings("app", data)
+        window_params = params.imgui_window_params
+        changed, shown = imgui.menu_item(
+            S.MENU_STATUS_BAR, "", window_params.show_status_bar
+        )
+        if changed:
+            window_params.show_status_bar = shown
+        changed, shown = imgui.menu_item(
+            S.MENU_STATUS_FPS, "", window_params.show_status_fps
+        )
+        if changed:
+            window_params.show_status_fps = shown
+        changed, enabled = imgui.menu_item(
+            S.MENU_ENABLE_IDLING, "", params.fps_idling.enable_idling
+        )
+        if changed:
+            params.fps_idling.enable_idling = enabled
+        self._render_theme_menu(window_params.tweaked_theme)
+        imgui.end_menu()
+
+    def _render_theme_menu(self, tweaked_theme: hello_imgui.ImGuiTweakedTheme) -> None:
+        if not imgui.begin_menu(S.MENU_THEME):
+            return
+        changed, shown = imgui.menu_item(
+            S.MENU_THEME_TWEAKS, "", self._show_theme_tweaks
+        )
+        if changed:
+            self._show_theme_tweaks = shown
+        imgui.separator()
+        for i in range(int(hello_imgui.ImGuiTheme_.count)):
+            theme = hello_imgui.ImGuiTheme_(i)
+            selected = tweaked_theme.theme == theme
+            if imgui.menu_item(hello_imgui.imgui_theme_name(theme), "", selected)[0]:
+                tweaked_theme.theme = theme
+                hello_imgui.apply_tweaked_theme(tweaked_theme)
+        imgui.end_menu()
 
     def _refresh_dock_titles(self) -> None:
         """Update docked panel/tab titles to the current language without recreating windows.
@@ -2890,6 +2968,7 @@ def _main() -> None:
         hello_imgui.ImGuiTheme_.darcula_darker
     )
     runner_params.callbacks.setup_imgui_style = _apply_style
+    runner_params.callbacks.load_additional_fonts = load_fonts
 
     runner_params.imgui_window_params.show_menu_bar = True
     runner_params.imgui_window_params.show_menu_app = False

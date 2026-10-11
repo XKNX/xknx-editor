@@ -16,7 +16,7 @@ msgstr "Suche…"
 msgid "{name} (locked)"
 msgstr "{name} (gesperrt)"
 
-msgid "Create group addresses ({count})"
+msgid "Create Group Addresses ({count})"
 msgstr "Gruppenadressen erstellen ({count})"
 
 msgid "All"
@@ -25,10 +25,10 @@ msgstr "Alle"
 msgid "None"
 msgstr "Keine"
 
-msgid "Copy links ({count})"
+msgid "Copy Links ({count})"
 msgstr "Verknüpfungen kopieren ({count})"
 
-msgid "Paste links ({count})"
+msgid "Paste Links ({count})"
 msgstr "Verknüpfungen einfügen ({count})"
 
 msgid ""
@@ -45,16 +45,16 @@ msgid "Keep each target's existing links and only add the copied ones."
 msgstr ""
 "Bestehende Verknüpfungen der Ziele behalten und nur die kopierten hinzufügen."
 
-msgid "Copy links"
+msgid "Copy Links"
 msgstr "Verknüpfungen kopieren"
 
-msgid "Paste links"
+msgid "Paste Links"
 msgstr "Verknüpfungen einfügen"
 
-msgid "Copy addresses as text"
+msgid "Copy Addresses as Text"
 msgstr "Adressen als Text kopieren"
 
-msgid "Create group addresses"
+msgid "Create Group Addresses"
 msgstr "Gruppenadressen erstellen"
 
 msgid ""
@@ -64,19 +64,19 @@ msgstr ""
 "Platzhalter für Namensvorlage: {object}, {device}, {room}, {function}, "
 "{number}, {dpt}, {n} (Index; {n:02} mit Nullen)"
 
-msgid "Name template"
+msgid "Name Template"
 msgstr "Namensvorlage"
 
-msgid "Start address"
+msgid "Start Address"
 msgstr "Startadresse"
 
 msgid "Cancel"
 msgstr "Abbrechen"
 
-msgid "Sending group address"
+msgid "Sending Group Address"
 msgstr "Sendende Gruppenadresse"
 
-msgid "Receiving group address"
+msgid "Receiving Group Address"
 msgstr "Empfangende Gruppenadresse"
 
 msgid "Changed from default ({default})"
@@ -86,10 +86,10 @@ msgid "Changed from default ({default}) — right-click to reset"
 msgstr ""
 "Geändert gegenüber Standardwert ({default}) — Rechtsklick zum Zurücksetzen"
 
-msgid "Reset to default"
+msgid "Reset to Default"
 msgstr "Auf Standardwert zurücksetzen"
 
-msgid "New group address"
+msgid "New Group Address"
 msgstr "Neue Gruppenadresse"
 
 msgid "Address"
@@ -98,10 +98,10 @@ msgstr "Adresse"
 msgid "Name"
 msgstr "Name"
 
-msgid "Create & link"
+msgid "Create & Link"
 msgstr "Erstellen & verknüpfen"
 
-msgid "Link group address"
+msgid "Link Group Address"
 msgstr "Gruppenadresse verknüpfen"
 
 msgid "<differs>"
@@ -119,10 +119,10 @@ msgstr "Standard"
 msgid "Advanced"
 msgstr "Erweitert"
 
-msgid "Theme colors"
+msgid "Theme Colors"
 msgstr "Designfarben"
 
-msgid "Standard colors"
+msgid "Standard Colors"
 msgstr "Standardfarben"
 
 msgid "Mo Tu We Th Fr Sa Su"

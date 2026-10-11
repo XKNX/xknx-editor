@@ -10,10 +10,10 @@ msgstr ""
 msgid "Signing"
 msgstr "Signieren"
 
-msgid "Signing key…"
+msgid "Signing Key…"
 msgstr "Signaturschlüssel…"
 
-msgid "Signing key"
+msgid "Signing Key"
 msgstr "Signaturschlüssel"
 
 msgid "A signing key is set (exports are signed)."
@@ -25,10 +25,10 @@ msgstr "Platzhalterschlüssel aktiv, Signaturen sind nicht ETS-gültig."
 msgid "Modulus (hex)"
 msgstr "Modulus (hex)"
 
-msgid "Private exponent (hex)"
+msgid "Private Exponent (hex)"
 msgstr "Privater Exponent (hex)"
 
-msgid "Public exponent (hex)"
+msgid "Public Exponent (hex)"
 msgstr "Öffentlicher Exponent (hex)"
 
 msgid "Extract from Knx.Ets.XmlSigning.dll…"
@@ -37,13 +37,13 @@ msgstr "Aus Knx.Ets.XmlSigning.dll extrahieren…"
 msgid "Save"
 msgstr "Speichern"
 
-msgid "Reset to placeholder"
+msgid "Reset to Placeholder"
 msgstr "Auf Platzhalter zurücksetzen"
 
 msgid "All DLLs"
 msgstr "Alle DLLs"
 
-msgid "All files"
+msgid "All Files"
 msgstr "Alle Dateien"
 
 msgid "Select \"Knx.Ets.XmlSigning.dll\" from your ETS installation (e.g. C:\\Program Files (x86)\\ETS6)."

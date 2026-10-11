@@ -246,7 +246,7 @@ class KeyringPanel:
         secure = {g.address for g in self._get_group_addresses() if g.data_secure}
         flags = imgui.TableFlags_.borders_inner | imgui.TableFlags_.sizing_stretch_prop
         if imgui.begin_table("##kr_gas", 3, flags):
-            for header in ("Address", "Key", "In project"):
+            for header in ("Address", "Key", "In Project"):
                 imgui.table_setup_column(header)
             imgui.table_headers_row()
             for raw_address, key in sorted(group_keys.items()):
@@ -271,7 +271,7 @@ class KeyringPanel:
             return
         flags = imgui.TableFlags_.borders_inner | imgui.TableFlags_.sizing_stretch_prop
         if imgui.begin_table("##kr_devices", 2, flags):
-            for header in ("Address", "Tool key"):
+            for header in ("Address", "Tool Key"):
                 imgui.table_setup_column(header)
             imgui.table_headers_row()
             for dev in devices:

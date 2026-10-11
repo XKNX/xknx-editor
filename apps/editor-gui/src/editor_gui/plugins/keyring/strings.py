@@ -15,7 +15,7 @@ class KeyringStrings:
 
     @property
     def MENU_SHOW_WINDOW(self) -> str:
-        return _("Show window")
+        return _("Show Window")
 
     @property
     def KEYRING_EMPTY(self) -> str:
@@ -23,11 +23,11 @@ class KeyringStrings:
 
     @property
     def KEYRING_IMPORT(self) -> str:
-        return _("Import keyring…")
+        return _("Import Keyring…")
 
     @property
     def KEYRING_EXPORT(self) -> str:
-        return _("Export keyring…")
+        return _("Export Keyring…")
 
     @property
     def KEYRING_EXPORT_SAVE(self) -> str:
@@ -39,11 +39,11 @@ class KeyringStrings:
 
     @property
     def KEYRING_FILTER(self) -> str:
-        return _("KNX keyring (*.knxkeys)")
+        return _("KNX Keyring (*.knxkeys)")
 
     @property
     def ALL_FILES(self) -> str:
-        return _("All files")
+        return _("All Files")
 
     @property
     def KEYRING_LOAD(self) -> str:
@@ -71,7 +71,7 @@ class KeyringStrings:
 
     @property
     def KEYRING_GROUP_ADDRESSES(self) -> str:
-        return _("Group address keys ({count})")
+        return _("Group Address Keys ({count})")
 
     @property
     def KEYRING_DEVICES(self) -> str:
