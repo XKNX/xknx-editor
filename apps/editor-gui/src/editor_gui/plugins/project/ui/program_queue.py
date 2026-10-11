@@ -232,6 +232,8 @@ def _operation(item: QueueItem) -> str:
         return S.SCRIPT_OPERATION
     if item.device_info is not None:
         return S.DEVICE_INFO_GROUPS if item.device_info else S.DEVICE_INFO
+    if item.scope is DownloadScope.INDIVIDUAL_ADDRESS and item.serial_number:
+        return f"{S.OPERATION_DOWNLOAD}({S.SCOPE_INDIVIDUAL_ADDRESS_SERIAL})"
     return f"{S.OPERATION_DOWNLOAD}({_scope_label(item.scope)})"
 
 

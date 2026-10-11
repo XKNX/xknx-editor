@@ -21,6 +21,7 @@ from .errors import (
     ImageError,
     LoadStateError,
     ProgrammingModeError,
+    SerialNumberNotFoundError,
     UnsupportedProcedureError,
     VerificationError,
 )
@@ -94,6 +95,7 @@ __all__ = [
     "SecureProgrammingError",
     "SeedDevice",
     "SegmentDiff",
+    "SerialNumberNotFoundError",
     "UnsupportedProcedureError",
     "VerificationError",
     "addresses_in_filter_table",

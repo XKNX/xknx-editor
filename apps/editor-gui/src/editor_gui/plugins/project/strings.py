@@ -983,6 +983,33 @@ class ProjectStrings:
         return _("The device already has the individual address {address}.")
 
     @property
+    def SCOPE_INDIVIDUAL_ADDRESS_SERIAL(self) -> str:
+        return _("Individual Address via Serial Number")
+
+    @property
+    def PROGRAM_ADDRESS_SERIAL_TEXT(self) -> str:
+        return _(
+            "This writes the individual address {address} to the device with the serial "
+            "number {serial}. Its programming button does not need to be pressed."
+        )
+
+    @property
+    def PROGRAM_USE_SERIAL_NUMBER(self) -> str:
+        return _("Use Serial Number")
+
+    @property
+    def SERIAL_NUMBER_ALREADY_USED(self) -> str:
+        return _("The serial number is already associated with device {device}.")
+
+    @property
+    def CONFIGURE_SERIAL_NUMBER(self) -> str:
+        return _("Serial Number")
+
+    @property
+    def SERIAL_NUMBER_INVALID(self) -> str:
+        return _("Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C.")
+
+    @property
     def CONFIGURE_MANUFACTURER(self) -> str:
         return _("Manufacturer")
 

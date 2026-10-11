@@ -47,6 +47,8 @@ class ConnectionService:
         # Keyring service (KNX Data Secure), injected at startup. Used to look up a device's tool
         # key so a point-to-point download/test is secured when the device was commissioned secure.
         self.keyring: KeyringService | None = None
+        # Download individual addresses by serial number when the device's is known.
+        self.use_serial_number = False
         # Current point-to-point bus operation, so the UI can show a
         # "programming/testing in progress" indicator. Set/cleared from worker threads.
         self._busy_lock = threading.Lock()
@@ -423,6 +425,7 @@ class ConnectionService:
         without_plugin: bool = False,
         current_address: str | None = None,
         waiting: Callable[[], None] | None = None,
+        serial_number: bytes | None = None,
     ) -> Future[Any] | None:
         """Download the device's configured application/parameters onto the bus.
 
@@ -431,8 +434,9 @@ class ConnectionService:
         A device whose hardware needs the manufacturer's plugin is only programmed with
         ``without_plugin`` (the user confirmed it).
         An individual address scope downloads only the address: to the device in programming mode
-        (``waiting`` is called while none is), or for an overwrite to the device at
-        ``current_address``.
+        (``waiting`` is called while none is), to the device with ``serial_number``, or for an
+        overwrite to the device at ``current_address``. A full download of a device that does not
+        answer yet gets its address by ``serial_number`` when given.
         """
         if self.not_connected("program_device"):
             return None
@@ -444,7 +448,11 @@ class ConnectionService:
 
             overwrite = scope is DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS
             return self._download_individual_address(
-                device, current_address if overwrite else None, overwrite, waiting
+                device,
+                current_address if overwrite else None,
+                overwrite,
+                waiting,
+                None if overwrite else serial_number,
             )
         if device.download_plugin_required:
             if not without_plugin:
@@ -481,6 +489,7 @@ class ConnectionService:
                 master=self.master,
                 progress=self._on_program_progress,
                 security=security,
+                serial_number=serial_number,
             )
         )
         if future is not None:
@@ -495,6 +504,7 @@ class ConnectionService:
         current_address: str | None,
         overwrite: bool,
         waiting: Callable[[], None] | None,
+        serial_number: bytes | None,
     ) -> Future[Any] | None:
         from xknxeditor.download.commissioning import download_individual_address
 
@@ -517,6 +527,7 @@ class ConnectionService:
             device=device.name,
             address=device.individual_address,
             current=current_address,
+            serial=serial_number.hex().upper() if serial_number else None,
             secure=(current_security or security) is not None,
         )
         future = self.run_async(
@@ -528,6 +539,7 @@ class ConnectionService:
                 current_security=current_security,
                 master=self.master,
                 waiting=waiting,
+                serial_number=serial_number,
             )
         )
         if future is not None:

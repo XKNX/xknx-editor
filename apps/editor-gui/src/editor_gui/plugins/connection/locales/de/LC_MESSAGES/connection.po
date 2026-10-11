@@ -63,3 +63,6 @@ msgstr "Multicast-Gruppe"
 
 msgid "Apply"
 msgstr "Übernehmen"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Seriennummer für Downloads verwenden"

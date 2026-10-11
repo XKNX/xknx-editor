@@ -294,6 +294,7 @@ async def download_device(
     master: MasterData | None = None,
     progress: Callable[[int, int], None] | None = None,
     security: DeviceSecurity | None = None,
+    serial_number: bytes | None = None,
 ) -> None:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -306,7 +307,8 @@ async def download_device(
     Secure tool key) secures every management APDU when set; ``None`` programs in the clear.
 
     A full download commissions a virgin device: if nothing answers at the device's
-    address, the address is first written to the single device in programming mode.
+    address, the address is first written to the single device in programming mode, or
+    with ``serial_number`` to the device with that serial number.
     """
     await download(
         xknx,
@@ -316,6 +318,7 @@ async def download_device(
         image=_image_for(device, group_communication),
         scope=scope,
         commission=True,
+        commission_serial_number=serial_number,
         progress=progress,
         security=security,
     )

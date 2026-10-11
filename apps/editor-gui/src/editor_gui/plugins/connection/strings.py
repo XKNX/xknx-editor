@@ -20,6 +20,10 @@ class ConnectionStrings:
         return _("Disconnect")
 
     @property
+    def MENU_USE_SERIAL_NUMBER(self) -> str:
+        return _("Use Serial Number for Downloads")
+
+    @property
     def SECTION_DISCOVERED(self) -> str:
         return _("Discovered Gateways")
 

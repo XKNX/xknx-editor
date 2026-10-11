@@ -30,6 +30,9 @@ from xknx.management.procedures.network.nm_individual_address_check import (
 from xknx.management.procedures.network.nm_individual_address_read import (
     nm_individual_address_read,
 )
+from xknx.management.procedures.network.nm_individual_address_serial_number_read import (
+    nm_individual_address_serial_number_read,
+)
 from xknx.management.procedures.network.nm_individual_address_serial_number_write import (
     nm_individual_address_serial_number_write,
 )
@@ -38,7 +41,12 @@ from xknx.telegram.address import IndividualAddress
 
 from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
 
-from .errors import AddressInUseError, ProgrammingModeError, UnsupportedProcedureError
+from .errors import (
+    AddressInUseError,
+    ProgrammingModeError,
+    SerialNumberNotFoundError,
+    UnsupportedProcedureError,
+)
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -60,6 +68,11 @@ _ADDRESS_ADOPTION_DELAY_S = 1.0
 
 # Seconds each A_IndividualAddress_Read collects responses while waiting for programming mode.
 _PROGRAMMING_MODE_POLL_S = 1.0
+
+# Device Object PID_SERIAL_NUMBER, read after an address download to record the device.
+_PID_SERIAL_NUMBER = 11
+# BCU 1 masks (001xh) have no interface objects to read the serial number from.
+_BCU1_MASK = 0x0010
 
 # Programming mode in memory: prog_mode is bit 0, p_parity bit 7 inverts with every change.
 _PROG_MODE_BIT = 0x01
@@ -181,7 +194,8 @@ async def download_individual_address(
     current_security: DeviceSecurity | None = None,
     master: MasterData | None = None,
     waiting: Callable[[], None] | None = None,
-) -> None:
+    serial_number: bytes | None = None,
+) -> bytes | None:
     """Download ``individual_address`` to the single device in programming mode.
 
     Waits until exactly one device is in programming mode (``waiting`` is called
@@ -192,11 +206,21 @@ async def download_individual_address(
     programming mode first (secured with ``current_security``), so its address is
     overwritten without pressing the programming button. ``security`` secures the
     verification at the new address.
+
+    With ``serial_number`` the device is addressed by its KNX serial number
+    instead, without programming mode and without a restart.
+
+    Returns the device's serial number when it could be read, else ``None``.
     """
     address = IndividualAddress(individual_address)
     current = IndividualAddress(current_address) if current_address else None
     if current == address:
         raise ValueError(f"the device already has the address {address}")
+    if serial_number is not None:
+        if current is not None:
+            raise ValueError("an overwrite addresses the device by its current address")
+        await _write_by_serial_number(xknx, address, serial_number)
+        return serial_number
     occupied = await nm_individual_address_check(xknx, address)
     if occupied and current is not None:
         raise AddressInUseError(
@@ -227,7 +251,29 @@ async def download_individual_address(
         )
         logger.debug("Wrote address %s to device %s.", address, devices[0])
         await asyncio.sleep(_ADDRESS_ADOPTION_DELAY_S)
-    await _verify_and_restart(xknx, address, security)
+    return await _verify_and_restart(xknx, address, security)
+
+
+async def _write_by_serial_number(
+    xknx: XKNX, address: IndividualAddress, serial_number: bytes
+) -> None:
+    """Write ``address`` to the device with ``serial_number`` and verify it."""
+    found = await nm_individual_address_serial_number_read(xknx, serial_number)
+    if found is None:
+        raise SerialNumberNotFoundError(
+            f"The device with the serial number {serial_number.hex().upper()} "
+            "could not be found."
+        )
+    if found == address:
+        logger.debug(
+            "Device %s already has the address %s.", serial_number.hex(), address
+        )
+        return
+    if await nm_individual_address_check(xknx, address):
+        raise AddressInUseError(
+            f"The individual address {address} is already in use by another device."
+        )
+    await nm_individual_address_serial_number_write(xknx, serial_number, address)
 
 
 async def _wait_for_programming_mode(
@@ -252,8 +298,8 @@ async def _wait_for_programming_mode(
 
 async def _verify_and_restart(
     xknx: XKNX, address: IndividualAddress, security: DeviceSecurity | None
-) -> None:
-    """Read the device descriptor at ``address`` and restart the device."""
+) -> bytes | None:
+    """Read the device descriptor at ``address``, then its serial number, and restart it."""
     from .errors import DownloadError
     from .programmer import DeviceProgrammer
     from .session import apdu_overhead, management_session
@@ -262,8 +308,13 @@ async def _verify_and_restart(
     try:
         connection = await manager.open()
         programmer = DeviceProgrammer(connection, apdu_overhead=apdu_overhead(security))
-        await programmer.read_device_descriptor()
+        mask = await programmer.read_device_descriptor()
+        serial: bytes | None = None
+        if mask & 0xFFF0 != _BCU1_MASK:
+            with contextlib.suppress(ManagementConnectionError, DownloadError):
+                serial = await programmer.read_property(0, _PID_SERIAL_NUMBER) or None
         await programmer.restart()
+        return serial
     except (ManagementConnectionError, DownloadError) as exc:
         raise ManagementConnectionError(
             f"No device answered at {address} after the address write."

@@ -5,7 +5,11 @@ import zipfile
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
-from editor_gui.device_info import same_application
+from editor_gui.device_info import (
+    same_application,
+    serial_from_project,
+    serial_to_project,
+)
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.project.button_runner import ButtonRunner
 from editor_gui.plugins.project.device_info_view import device_info_sections
@@ -52,6 +56,7 @@ if TYPE_CHECKING:
 
     from editor_gui.device import Device, UnloadedDevice
     from editor_gui.device_info import DeviceInfo
+    from editor_gui.plugins.project.ui.configure import ProgramRequest
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.scope import DownloadScope
     from xknxeditor.prod import Application
@@ -210,6 +215,9 @@ class ProjectPlugin:
             get_help=self._help_text,
             get_icon=self._icon,
             get_picture=self._picture,
+            on_serial_number_change=self._set_serial_number,
+            use_serial_number_default=lambda: api.connection.use_serial_number,
+            find_serial_owner=self._serial_owner,
         )
         self._dali_panel = DaliCommissioningPanel(self._run_dali)
 
@@ -1209,15 +1217,18 @@ class ProjectPlugin:
     ) -> None:
         self._api.project.set_flag(device, co_id, flag_name, new_value)
 
-    def _program_device(
-        self,
-        device: "Device",
-        scope: "DownloadScope",
-        without_plugin: bool = False,
-        current_address: str | None = None,
-    ) -> None:
+    def _program_device(self, device: "Device", request: "ProgramRequest") -> None:
         """Program button: enqueue the device. Runs immediately if the bus is free, otherwise it is
         appended to the programming queue (dedupe per device) and drained one at a time."""
+        from xknxeditor.download.scope import DownloadScope
+
+        scope = request.scope
+        serial = (
+            self._project_serial(device.node_id)
+            if request.use_serial_number
+            or (scope is DownloadScope.FULL and self._api.connection.use_serial_number)
+            else None
+        )
         self._api.log.debug(
             "program: enqueue device",
             plugin="project",
@@ -1230,10 +1241,30 @@ class ProjectPlugin:
                 address=device.individual_address or "",
                 name=device.name,
                 scope=scope,
-                without_plugin=without_plugin,
-                current_address=current_address,
+                without_plugin=request.without_plugin,
+                current_address=request.current_address,
+                serial_number=serial,
             )
         )
+
+    def _project_serial(self, node_id: int) -> bytes | None:
+        info = self._api.project.get_device_info(node_id)
+        return serial_from_project(info.serial_number) if info is not None else None
+
+    def _set_serial_number(self, device: "Device", serial: bytes | None) -> None:
+        self._api.project.set_device_commissioning(
+            device.node_id, serial_number=serial_to_project(serial) if serial else ""
+        )
+
+    def _serial_owner(self, device: "Device", serial: bytes) -> str | None:
+        """Another project device that already has ``serial``, as ``address name``."""
+        for other in self._api.project.devices:
+            if (
+                other.node_id != device.node_id
+                and self._project_serial(other.node_id) == serial
+            ):
+                return f"{other.individual_address or '-'} {other.name}".strip()
+        return None
 
     def _request_device_info(self, node_id: int, group_communication: bool) -> None:
         """Queue a device info readout; its result shows in the Operations panel."""
@@ -1352,6 +1383,7 @@ class ProjectPlugin:
             without_plugin=item.without_plugin,
             current_address=item.current_address,
             waiting=functools.partial(setattr, item, "waiting_for_button", True),
+            serial_number=item.serial_number,
         )
         if future is None:
             if device.download_plugin_required and not item.without_plugin:
@@ -1389,7 +1421,10 @@ class ProjectPlugin:
             self._api.log.debug(
                 "program: succeeded", plugin="project", device=item.address or item.name
             )
-            self._record_commissioning(node_id, scope_value)
+            result = f.result()
+            self._record_commissioning(
+                node_id, scope_value, result if isinstance(result, bytes) else None
+            )
 
         future.add_done_callback(_on_done)
         return future
@@ -1405,7 +1440,9 @@ class ProjectPlugin:
         self._program_queue_panel.select_active()
         return True
 
-    def _record_commissioning(self, node_id: int, scope_value: str) -> None:
+    def _record_commissioning(
+        self, node_id: int, scope_value: str, serial: bytes | None = None
+    ) -> None:
         flags = _COMMISSIONING_BY_SCOPE.get(scope_value)
         if flags is None:
             return
@@ -1417,7 +1454,10 @@ class ProjectPlugin:
 
         def _apply() -> None:
             self._api.project.set_device_commissioning(
-                node_id, last_download=now, **flags
+                node_id,
+                serial_number=serial_to_project(serial) if serial else None,
+                last_download=now,
+                **flags,
             )
 
         if self._api.main_thread is not None:

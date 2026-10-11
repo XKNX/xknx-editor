@@ -12,6 +12,11 @@ from unittest.mock import MagicMock
 import pytest
 
 import xknxeditor.download.commissioning as commissioning
+from editor_gui.device_info import (
+    parse_serial_text,
+    serial_from_project,
+    serial_to_project,
+)
 from editor_gui.plugins.connection.service import ConnectionService
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.configure import overwrite_current_address
@@ -110,3 +115,68 @@ def test_an_address_download_cannot_be_tested(monkeypatch: pytest.MonkeyPatch) -
 
     assert service.evaluate_device(_device(), DownloadScope.INDIVIDUAL_ADDRESS) is None
     assert service.busy_operation is None
+
+
+_SERIAL = bytes.fromhex("00837AA2039C")
+
+
+@pytest.mark.parametrize("text", ["0083:7AA2039C", "00837aa2039c", " 0083 7AA2 039C "])
+def test_serial_number_entry(text: str) -> None:
+    assert parse_serial_text(text) == _SERIAL
+
+
+@pytest.mark.parametrize("text", ["", "0083:7AA2039", "0083:7AA2039CX", "G0837AA2039C"])
+def test_invalid_serial_number_entry(text: str) -> None:
+    assert parse_serial_text(text) is None
+
+
+def test_serial_number_in_the_project_file_form() -> None:
+    assert serial_to_project(_SERIAL) == "AIN6ogOc"
+    assert serial_from_project("AIN6ogOc") == _SERIAL
+    assert serial_from_project("") is None
+    assert serial_from_project("not base64!") is None
+    assert serial_from_project("AAEC") is None
+
+
+def test_address_download_by_serial_number(monkeypatch: pytest.MonkeyPatch) -> None:
+    service, calls = _service(monkeypatch)
+
+    service.program_device(
+        _device(), DownloadScope.INDIVIDUAL_ADDRESS, serial_number=_SERIAL
+    )
+
+    ((_, kwargs),) = calls
+    assert kwargs["serial_number"] == _SERIAL
+
+
+def test_overwrite_ignores_a_serial_number(monkeypatch: pytest.MonkeyPatch) -> None:
+    service, calls = _service(monkeypatch)
+
+    service.program_device(
+        _device(),
+        DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS,
+        current_address="1.1.20",
+        serial_number=_SERIAL,
+    )
+
+    ((_, kwargs),) = calls
+    assert kwargs["serial_number"] is None
+
+
+def test_full_download_commissions_by_serial_number(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import editor_gui.programming as programming
+
+    service, _ = _service(monkeypatch)
+    downloads: list[dict[str, Any]] = []
+
+    async def fake_download_device(*args: Any, **kwargs: Any) -> None:
+        downloads.append(kwargs)
+
+    monkeypatch.setattr(programming, "download_device", fake_download_device)
+
+    service.program_device(_device(), DownloadScope.FULL, serial_number=_SERIAL)
+
+    (kwargs,) = downloads
+    assert kwargs["serial_number"] == _SERIAL

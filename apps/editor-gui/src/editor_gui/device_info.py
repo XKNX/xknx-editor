@@ -7,6 +7,8 @@ fails) leaves its field ``None`` instead of failing the whole readout.
 from __future__ import annotations
 
 import asyncio
+import base64
+import binascii
 import contextlib
 import re
 from dataclasses import dataclass, field
@@ -90,6 +92,30 @@ def serial_text(data: bytes | None) -> str | None:
         return None
     text = data.hex().upper()
     return f"{text[:4]}:{text[4:]}" if len(data) == 6 else text
+
+
+def parse_serial_text(text: str) -> bytes | None:
+    """A serial number typed as 12 hex digits, optionally ``MMMM:SSSSSSSS``; ``None`` if invalid."""
+    digits = re.sub(r"[\s:]", "", text)
+    if not re.fullmatch(r"[0-9A-Fa-f]{12}", digits):
+        return None
+    return bytes.fromhex(digits)
+
+
+def serial_from_project(value: str) -> bytes | None:
+    """A project's serial number (base64, as in the project file) as its six octets."""
+    if not value:
+        return None
+    try:
+        data = base64.b64decode(value, validate=True)
+    except (binascii.Error, ValueError):
+        return None
+    return data if len(data) == 6 else None
+
+
+def serial_to_project(data: bytes) -> str:
+    """Six serial number octets in the project file's base64 form."""
+    return base64.b64encode(data).decode("ascii")
 
 
 def firmware_text(version: int | None) -> str | None:

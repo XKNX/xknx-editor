@@ -82,6 +82,8 @@ class QueueItem:
     without_plugin: bool = False
     # The device's current address, for an individual address overwrite.
     current_address: str | None = None
+    # Address the device by its serial number instead of programming mode.
+    serial_number: bytes | None = None
     # An address download waits for the programming button.
     waiting_for_button: bool = False
     future: Future[Any] | None = field(default=None, repr=False)
@@ -154,6 +156,7 @@ class ProgramQueue:
                 queued.scope = item.scope
                 queued.without_plugin = item.without_plugin
                 queued.current_address = item.current_address
+                queued.serial_number = item.serial_number
                 self.tick()
                 return
         self._queued.append(item)

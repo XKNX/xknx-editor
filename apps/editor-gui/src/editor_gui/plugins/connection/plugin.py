@@ -195,6 +195,7 @@ class ConnectionPlugin:
         pref = data.get("preferred_gateway_ip")
         if isinstance(pref, str) and pref:
             self._preferred_gateway_ip = pref
+        self._api.connection.use_serial_number = bool(data.get("use_serial_number"))
 
     def _save_current_settings(self) -> None:
         save_settings(
@@ -204,6 +205,7 @@ class ConnectionPlugin:
                 "multicast_group": self._multicast_group,
                 "connection_type": self._connection_type.value,
                 "preferred_gateway_ip": self._preferred_gateway_ip,
+                "use_serial_number": self._api.connection.use_serial_number,
             },
         )
 
@@ -731,6 +733,13 @@ class ConnectionPlugin:
                 self._render_gateway_picker(retry_label="Retry")
             else:
                 self._render_gateway_picker(retry_label=S.MENU_CONNECT)
+            imgui.separator()
+            changed, use_serial = imgui.menu_item(
+                S.MENU_USE_SERIAL_NUMBER, "", self._api.connection.use_serial_number
+            )
+            if changed:
+                self._api.connection.use_serial_number = use_serial
+                self._save_current_settings()
             imgui.end_menu()
 
     def _render_gateway_picker(self, retry_label: str) -> None:
