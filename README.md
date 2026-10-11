@@ -34,6 +34,13 @@ terminal:
 xattr -dr com.apple.quarantine "/Applications/XKNX Editor.app"
 ```
 
+On Linux, make the AppImage executable first (a double-click without this may open it in a
+disk-image tool instead of launching):
+
+```bash
+chmod +x XKNX-Editor-x86_64.AppImage && ./XKNX-Editor-x86_64.AppImage
+```
+
 ## Features
 
 <!-- Images are placeholders — replace the files in docs/images/ with real screenshots. -->
