@@ -464,9 +464,9 @@ class ComObject(Base):
     update_flag_override: Mapped[bool | None] = mapped_column(Boolean)
     read_on_init_flag_override: Mapped[bool | None] = mapped_column(Boolean)
 
-    # Per-instance text overrides (ETS ``@Text``/``@FunctionText``/``@Description`` on the
+    # Per-instance text overrides (``@Text``/``@FunctionText``/``@Description`` on the
     # ComObjectInstanceRef). Like the flags, ``None`` inherits the application/product default; a value
-    # pins the custom text the user set in ETS. Preserved through import/display/export so a renamed
+    # pins the custom text the user set. Preserved through import/display/export so a renamed
     # group object (and its free-text description) survives.
     text_override: Mapped[str | None] = mapped_column(String)
     function_text_override: Mapped[str | None] = mapped_column(String)

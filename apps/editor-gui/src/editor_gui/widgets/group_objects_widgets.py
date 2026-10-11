@@ -314,7 +314,7 @@ class GroupObjectsTable:
 
         imgui.table_set_column_index(1)
         imgui.text(com_object_display_name(com_object))
-        # The per-instance ETS @Description (free-text note) has no column of its own; show it on hover.
+        # The per-instance @Description (free-text note) has no column of its own; show it on hover.
         if com_object.description and imgui.is_item_hovered():
             imgui.set_tooltip(com_object.description)
         if self._on_paste_links is not None:

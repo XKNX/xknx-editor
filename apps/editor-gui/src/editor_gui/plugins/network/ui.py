@@ -235,6 +235,8 @@ class NetworkPanel:
             imgui.TableFlags_.row_bg
             | imgui.TableFlags_.scroll_y
             | imgui.TableFlags_.borders_inner_h
+            | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.borders_inner_v
         )
         if not imgui.begin_table(
             "##telegrams", 6, flags, imgui.ImVec2(avail.x, avail.y)
@@ -337,6 +339,8 @@ class NetworkPanel:
             imgui.TableFlags_.row_bg
             | imgui.TableFlags_.scroll_y
             | imgui.TableFlags_.borders_inner_h
+            | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.borders_inner_v
         )
         if not imgui.begin_table("##cemi", 8, flags, imgui.ImVec2(avail.x, avail.y)):
             return

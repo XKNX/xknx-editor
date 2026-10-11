@@ -21,7 +21,7 @@ from typing import Any
 
 from xknxeditor.proj.core.knxproj_signing import verify_directory_signature
 
-# Candidate ETS install roots, mirroring OpenKNXproducer's gPathETS.
+# Candidate install directories for the signing assembly, mirroring OpenKNXproducer's gPathETS.
 ETS_ROOTS: tuple[str, ...] = (
     r"C:\Program Files (x86)\ETS6",
     r"C:\Program Files (x86)\ETS5",
