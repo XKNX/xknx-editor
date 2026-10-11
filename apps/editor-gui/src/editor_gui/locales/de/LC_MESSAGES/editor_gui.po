@@ -573,3 +573,6 @@ msgstr "Design"
 
 msgid "Theme Tweaks"
 msgstr "Design anpassen"
+
+msgid "Reading {address}..."
+msgstr "Lese {address}..."

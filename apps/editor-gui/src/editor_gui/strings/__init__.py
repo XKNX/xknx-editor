@@ -135,6 +135,10 @@ class BaseStrings:
         return _("Programming {address}...")
 
     @property
+    def STATUS_READING(self) -> str:
+        return _("Reading {address}...")
+
+    @property
     def STATUS_TESTING(self) -> str:
         return _("Testing {address}...")
 

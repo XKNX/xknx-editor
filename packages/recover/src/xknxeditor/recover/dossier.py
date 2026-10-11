@@ -58,7 +58,7 @@ async def _read(
     return b""
 
 
-def _ascii(data: bytes) -> str | None:
+def printable_text(data: bytes) -> str | None:
     """Extract a text-ish property's meaningful string, else a hex dump.
 
     Some devices wrap the order number in structural bytes (e.g. a Hager actuator
@@ -94,6 +94,6 @@ async def read_dossier(programmer: DeviceProgrammer) -> DeviceDossier:
     return DeviceDossier(
         serial_number=serial.hex().upper() if serial else None,
         manufacturer_id=int.from_bytes(manufacturer, "big") if manufacturer else None,
-        order_info=_ascii(order),
+        order_info=printable_text(order),
         hardware_type=hardware.hex().upper() if hardware else None,
     )

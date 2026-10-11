@@ -82,7 +82,7 @@ _ERROR_CLASS: dict[int, str] = {
 }
 
 
-def _error_text(code: int | None) -> str | None:
+def error_class_text(code: int | None) -> str | None:
     """Human-readable label for a DPT_ErrorClass_System code, or the raw code if unknown."""
     if code is None:
         return None
@@ -108,7 +108,7 @@ class DeviceOverview:
 
     @property
     def error_text(self) -> str | None:
-        return _error_text(self.error_code)
+        return error_class_text(self.error_code)
 
 
 async def read_device_overview(xknx: XKNX, address: str) -> DeviceOverview:

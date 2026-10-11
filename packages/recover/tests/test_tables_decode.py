@@ -24,6 +24,7 @@ from xknxeditor.recover.tables_decode import (
     decode_flag_byte,
     decode_group_address_table,
     decode_group_address_table_b,
+    decode_group_object_records_b,
     decode_group_object_table_b,
 )
 
@@ -173,6 +174,38 @@ def test_group_object_table_b_round_trip() -> None:
     assert decoded[3].size_code == 8
 
 
+def test_group_object_records_b_from_a_slice() -> None:
+    flags = com_object_flag_byte(
+        priority="Low",
+        communication=True,
+        read=False,
+        write=True,
+        transmit=False,
+        update=False,
+        read_on_init=False,
+    )
+    data = build_group_object_table_b(
+        {20: (flags, 0), 22: (flags, 10)}, highest_number=30
+    )
+    # Records 20..22 start after the two-octet count at 2 + (20 - 1) * 2.
+    decoded = decode_group_object_records_b(20, data[40:46])
+    assert set(decoded) == {20, 22}
+    assert decoded[22].size_code == 10
+    assert decoded[20].write is True
+
+
 def test_decode_rejects_truncated_table() -> None:
     with pytest.raises(TableDecodeError):
         decode_group_address_table(bytes([0x05, 0x11]))
+
+
+def test_record_ranges_merge_nearby_numbers() -> None:
+    from xknxeditor.recover.read_config import (
+        _record_ranges,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    assert _record_ranges([22, 20, 21, 290, 299, 310], 10) == [
+        (20, 3),
+        (290, 10),
+        (310, 1),
+    ]

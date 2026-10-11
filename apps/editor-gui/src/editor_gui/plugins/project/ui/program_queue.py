@@ -168,6 +168,8 @@ def _render_details(item: QueueItem) -> None:
         imgui.push_style_color(imgui.Col_.text, _RED)
         imgui.text_wrapped(item.message)
         imgui.pop_style_color()
+    elif item.details:
+        _render_result(item.details)
     else:
         imgui.text_disabled(S.OPERATION_NO_DETAILS)
     if item.connection:
@@ -176,6 +178,25 @@ def _render_details(item: QueueItem) -> None:
         imgui.text(S.OPERATION_START.format(time=item.started_at.strftime("%H:%M:%S")))
     if item.ended_at is not None:
         imgui.text(S.OPERATION_END.format(time=item.ended_at.strftime("%H:%M:%S")))
+
+
+def _render_result(sections: list[tuple[str, list[tuple[str, str]]]]) -> None:
+    """Result sections, each a heading over ``- label: value`` rows."""
+    flags = imgui.TableFlags_.sizing_fixed_fit | imgui.TableFlags_.no_saved_settings
+    if not imgui.begin_table("##result", 2, flags):
+        return
+    for title, rows in sections:
+        imgui.table_next_row()
+        imgui.table_next_column()
+        imgui.text(title)
+        for label, value in rows:
+            imgui.table_next_row()
+            imgui.table_next_column()
+            imgui.text(f"- {label}:")
+            imgui.table_next_column()
+            imgui.text(value)
+    imgui.end_table()
+    imgui.spacing()
 
 
 def _warning_icon() -> None:
@@ -205,6 +226,8 @@ def _tab_flags(selected: bool) -> int:
 def _operation(item: QueueItem) -> str:
     if item.script is not None:
         return S.SCRIPT_OPERATION
+    if item.device_info is not None:
+        return S.DEVICE_INFO_GROUPS if item.device_info else S.DEVICE_INFO
     return f"{S.OPERATION_DOWNLOAD}({_scope_label(item.scope)})"
 
 
@@ -213,6 +236,8 @@ def _state(item: QueueItem) -> str:
         case OperationState.WAITING:
             return S.OPERATION_WAITING
         case OperationState.RUNNING:
+            if item.device_info is not None:
+                return S.OPERATION_READING
             if item.script is None:
                 return S.OPERATION_DOWNLOADING
             return S.SCRIPT_CANCELING if item.script.canceled else S.SCRIPT_RUNNING

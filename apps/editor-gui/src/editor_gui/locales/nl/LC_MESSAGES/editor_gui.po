@@ -169,3 +169,6 @@ msgstr "Thema"
 
 msgid "Theme Tweaks"
 msgstr "Thema aanpassen"
+
+msgid "Reading {address}..."
+msgstr "{address} wordt gelezen..."

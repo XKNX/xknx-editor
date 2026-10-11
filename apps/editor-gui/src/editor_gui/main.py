@@ -1676,6 +1676,8 @@ class KnxGuiApp:
                 prog = self._connection_service.busy_progress
                 if prog is not None:
                     text += f" ({prog[0]}/{prog[1]})"
+            elif kind == "device_info":
+                text = S.STATUS_READING.format(address=address)
             else:
                 text = S.STATUS_TESTING.format(address=address)
             imgui.same_line()
@@ -2127,7 +2129,7 @@ class KnxGuiApp:
         if busy is None:
             return
         kind, address = busy
-        if kind in ("script", "program"):
+        if kind in ("script", "program", "device_info"):
             return  # the Operations panel shows this op's progress instead
         label = S.STATUS_TESTING.format(address=address)
         vp = imgui.get_main_viewport()
