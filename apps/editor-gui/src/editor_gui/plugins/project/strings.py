@@ -1931,7 +1931,17 @@ class ProjectStrings:
     @property
     def PLUGIN_CONFIGURATION_APP(self) -> str:
         return _(
-            "The project contains the device configuration app “{name}” for this device; it cannot be run here."
+            "This device includes a manufacturer configuration app (“{name}”) that XKNX "
+            "Editor can't run. The device's standard parameters can still be programmed, "
+            "but not the extra functionality that app provides."
+        )
+
+    @property
+    def PLUGIN_CONFIGURATION_APP_PORTED(self) -> str:
+        return _(
+            "This device includes a manufacturer configuration app (“{name}”) that can't "
+            "be run directly in XKNX Editor — but it has been ported, so its most important "
+            "functions are usable here (see the DALI tab)."
         )
 
     @property

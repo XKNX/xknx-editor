@@ -8,12 +8,20 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.cockpit.service import CockpitRow, CockpitService, sort_rows
 from editor_gui.plugins.cockpit.strings import S
+from editor_gui.plugins.health.service import Severity
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
 _ATTENTION_COLOR = imgui.ImVec4(1.0, 0.75, 0.3, 1.0)
 _OK_COLOR = imgui.ImVec4(0.45, 0.8, 0.5, 1.0)
+_ERROR_COLOR = imgui.ImVec4(0.95, 0.4, 0.4, 1.0)
+_INFO_COLOR = imgui.ImVec4(0.6, 0.6, 0.65, 1.0)
+_SEVERITY_COLOR = {
+    Severity.ERROR: _ERROR_COLOR,
+    Severity.WARNING: _ATTENTION_COLOR,
+    Severity.INFO: _INFO_COLOR,
+}
 
 
 class CockpitPanel:
@@ -128,9 +136,13 @@ class CockpitPanel:
                 imgui.set_tooltip(r.commissioning_tooltip)
             imgui.table_set_column_index(4)
             if r.needs_attention:
-                imgui.text_colored(_ATTENTION_COLOR, f"! {len(r.issues)}")
+                sev = r.top_severity
+                color = _SEVERITY_COLOR[sev] if sev is not None else _ATTENTION_COLOR
+                imgui.push_style_color(imgui.Col_.text, color)
+                text_clipped_tooltip(r.issue_summary)
+                imgui.pop_style_color()
                 if imgui.is_item_hovered():
-                    imgui.set_tooltip("\n".join(r.issues))
+                    imgui.set_tooltip(r.issue_tooltip)
             else:
                 imgui.text_colored(_OK_COLOR, S.COCKPIT_OK)
         imgui.end_table()

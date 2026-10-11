@@ -797,8 +797,12 @@ msgstr "De fabrikant beheert een deel van de gegevens van dit apparaat met een e
 msgid "This device is also configured with separate software from the manufacturer."
 msgstr "Dit apparaat wordt ook geconfigureerd met afzonderlijke software van de fabrikant."
 
-msgid "The project contains the device configuration app “{name}” for this device; it cannot be run here."
-msgstr "Het project bevat de apparaatconfiguratie-app “{name}” voor dit apparaat; deze kan hier niet worden uitgevoerd."
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "Dit apparaat bevat een configuratie-app van de fabrikant (“{name}”) die XKNX Editor niet kan uitvoeren. De standaardparameters van het apparaat kunnen nog steeds worden geprogrammeerd, maar niet de extra functionaliteit van die app."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "Dit apparaat bevat een configuratie-app van de fabrikant (“{name}”) die niet rechtstreeks in XKNX Editor kan worden uitgevoerd — maar deze is geport, zodat de belangrijkste functies hier bruikbaar zijn (zie het DALI-tabblad)."
+
 
 msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
 msgstr "De fabrikant staat het programmeren van dit apparaat alleen toe met zijn plug-in, die hier niet beschikbaar is. Zonder de plug-in kan het apparaat verkeerd geconfigureerd of in een foutstatus achterblijven."

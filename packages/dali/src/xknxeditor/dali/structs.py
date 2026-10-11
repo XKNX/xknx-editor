@@ -219,3 +219,48 @@ class SceneKnxMap:
 
     def encode(self) -> bytes:
         return bytes((self.knx_scene & 0xFF,))
+
+
+@dataclass(frozen=True, slots=True)
+class TemplateProp:
+    """COLOUR_C_EVENT (225), 10 B: one timed template command.
+
+    Layout: template id, function, 4-byte colour value, fade time, weekday mask, then two packed
+    bytes HM/MM carrying hour (5 bits), minute (6 bits, split across both), mode (2 bits) and the
+    overwritable flag (bit 5 of MM).
+    """
+
+    tpl_index: int
+    func: int
+    value: bytes = b"\x00\x00\x00\x00"
+    fade_time: int = 0
+    weekdays: int = 0
+    hour: int = 0
+    minute: int = 0
+    mode: int = 0
+    overwritable: bool = False
+
+    def encode(self) -> bytes:
+        hm = (self.hour & 0x1F) | ((self.minute << 2) & 0xE0)
+        mm = (self.minute & 0x07) | ((self.mode & 0x03) << 6)
+        if self.overwritable:
+            mm |= 0x20
+        return (
+            bytes((self.tpl_index & 0xFF, self.func & 0xFF))
+            + self.value[:4].ljust(4, b"\x00")
+            + bytes((self.fade_time & 0xFF, self.weekdays & 0xFF, hm, mm))
+        )
+
+
+# The Colour_C_Event table is terminated by an all-0xFF 10-byte record.
+TEMPLATE_TERMINATOR = b"\xff" * 10
+
+
+def encode_template_members(groups: Sequence[int], ecgs: Sequence[int]) -> bytes:
+    """COLOUR_C_ASSIGN (226), 10 B: member bitmap — bytes 0-1 groups (0-15), bytes 2-9 ECGs (0-63)."""
+    out = bytearray(10)
+    for g in groups:
+        out[g >> 3] |= 1 << (g & 7)
+    for e in ecgs:
+        out[(e >> 3) + 2] |= 1 << (e & 7)
+    return bytes(out)

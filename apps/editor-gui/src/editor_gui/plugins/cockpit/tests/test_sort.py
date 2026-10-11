@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from editor_gui.plugins.cockpit.service import CockpitRow, sort_rows
+from editor_gui.plugins.health.service import Severity
 
 
 def _row(
@@ -19,7 +20,7 @@ def _row(
         product_name=product,
         order_number="",
         loaded_count=loaded,
-        issues=["x"] * issues,
+        issues=[(Severity.INFO, "x")] * issues,
     )
 
 

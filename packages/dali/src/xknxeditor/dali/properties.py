@@ -11,13 +11,14 @@ from __future__ import annotations
 from enum import IntEnum
 
 # Interface object holding the DALI commissioning properties for channel 0; +1 per further channel.
-_BASE_OBJECT_INDEX = 6
+# The base is vendor-specific (MDT = 6, Theben = 7); see :mod:`xknxeditor.dali.profiles`.
+DEFAULT_OBJECT_INDEX_BASE = 6
 FIRMWARE_OBJECT_INDEX = 0
 
 
-def object_index(dali_channel: int = 0) -> int:
+def object_index(dali_channel: int = 0, base: int = DEFAULT_OBJECT_INDEX_BASE) -> int:
     """KNX interface-object index for a DALI channel's commissioning properties."""
-    return _BASE_OBJECT_INDEX + dali_channel
+    return base + dali_channel
 
 
 class PropertyType(IntEnum):

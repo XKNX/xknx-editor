@@ -1,9 +1,10 @@
-"""DALI commissioning tab for MDT gateways (bus scan / identify / new+post installation).
+"""DALI commissioning tab for MDT gateways (bus scan / identify / group + scene programming).
 
 Renders on the GUI thread; runs the async protocol through ``ConnectionService.run_dali`` and stashes
 results under a lock that ``render`` polls (done-callbacks fire on the asyncio thread). Only shown for
-MDT DALI devices (gated in configure.py). Write/installation actions renumber the bus, so they sit
-behind a confirm and every session should start with a read-only scan.
+MDT DALI devices (gated in configure.py). Write/installation actions change the bus, so they sit
+behind a confirm and every session should start with a read-only scan. The programmed payload (group
+assignment, scenes) is built from the scan plus the user's edits held in :class:`_DeviceUi`.
 """
 
 from __future__ import annotations
@@ -17,20 +18,69 @@ from imgui_bundle import imgui
 from editor_gui.device import Device
 from editor_gui.widgets.dpi import px
 from xknxeditor.dali import DaliBusState, MdtDaliCommissioner
-from xknxeditor.dali.model import GROUP_SINGLE, GROUP_UNASSIGNED
+from xknxeditor.dali.model import (
+    GROUP_SINGLE,
+    GROUP_UNASSIGNED,
+    MAX_GROUP,
+    MAX_SCENES,
+    EcgAssignment,
+    Scene,
+    SceneValue,
+)
 
 # Type of the injected runner: (device, op) -> started?  (op gets a commissioner, returns a coro.)
 DaliRunner = Callable[
     [Device, Callable[[MdtDaliCommissioner], Awaitable[object]]], bool
 ]
 
+# Group combo entries: real groups 0-15, then "single" and "unassigned".
+_GROUP_ITEMS = [str(i) for i in range(MAX_GROUP)] + ["single", "unassigned"]
+_MAX_LEVEL = 255
 
-def _group_label(group_index: int) -> str:
+
+def _group_to_combo(group_index: int) -> int:
+    if 0 <= group_index < MAX_GROUP:
+        return group_index
     if group_index == GROUP_SINGLE:
-        return "single"
-    if group_index == GROUP_UNASSIGNED:
-        return "unassigned"
-    return str(group_index)
+        return MAX_GROUP
+    return MAX_GROUP + 1  # unassigned / missing
+
+
+def _combo_to_group(combo_index: int) -> int:
+    if combo_index < MAX_GROUP:
+        return combo_index
+    if combo_index == MAX_GROUP:
+        return GROUP_SINGLE
+    return GROUP_UNASSIGNED
+
+
+def _assignments_from(
+    scan: DaliBusState, group_edits: dict[int, int]
+) -> list[EcgAssignment]:
+    """Build the commission plan: every present ECG keeps its ETS number, group from the edits."""
+    return [
+        EcgAssignment(
+            slot=e.slot,
+            ets_index=e.ets_ecg_index,
+            group_index=group_edits.get(e.slot, e.group_index),
+        )
+        for e in scan.present_ecgs
+    ]
+
+
+def _scenes_from(scene_edits: dict[int, dict[int, int]]) -> list[Scene]:
+    """Build the scene list from the editor state (one SceneValue per group level set)."""
+    out: list[Scene] = []
+    for index in sorted(scene_edits):
+        levels = scene_edits[index]
+        if not levels:
+            continue
+        values = [
+            SceneValue(scene=index, target_index=group, level=level)
+            for group, level in sorted(levels.items())
+        ]
+        out.append(Scene(index=index, knx_scene=index + 1, values=values))
+    return out
 
 
 @dataclass
@@ -41,6 +91,11 @@ class _DeviceUi:
     busy: str = ""  # non-empty = an operation label is running
     error: str = ""
     progress: str = ""
+    group_edits: dict[int, int] = field(default_factory=dict[int, int])  # slot -> group
+    scene_sel: int = 0  # scene currently being edited
+    scene_edits: dict[int, dict[int, int]] = field(
+        default_factory=dict[int, "dict[int, int]"]
+    )  # scene index -> {group -> level}
 
 
 @dataclass
@@ -50,7 +105,9 @@ class DaliCommissioningPanel:
     _run: DaliRunner
     _ui: dict[str, _DeviceUi] = field(default_factory=dict[str, "_DeviceUi"])
     _lock: threading.Lock = field(default_factory=threading.Lock)
-    _pending_install: str = ""  # "" | "new" | "post" — install awaiting confirmation
+    _pending: str = (
+        ""  # "" | "new" | "post" | "groups" | "scenes" — awaiting confirmation
+    )
 
     def _state(self, ia: str) -> _DeviceUi:
         return self._ui.setdefault(ia, _DeviceUi())
@@ -99,6 +156,7 @@ class DaliCommissioningPanel:
                 st = self._state(ia)
                 if store_scan and isinstance(result, DaliBusState):
                     st.scan = result
+                    st.group_edits.clear()  # fresh bus state -> drop stale group edits
                 st.busy = ""
             return result
 
@@ -134,10 +192,10 @@ class DaliCommissioningPanel:
             self._start(device, "broadcast", lambda c: c.broadcast(False))
         imgui.same_line()
         if imgui.button("New Installation..."):
-            self._pending_install = "new"
+            self._pending = "new"
         imgui.same_line()
         if imgui.button("Post Installation..."):
-            self._pending_install = "post"
+            self._pending = "post"
         imgui.end_disabled()
 
         if busy:
@@ -154,7 +212,8 @@ class DaliCommissioningPanel:
             return
         if scan.firmware is not None:
             imgui.text_disabled(f"Firmware {'.'.join(str(x) for x in scan.firmware)}")
-        self._render_ecg_table(device, scan, busy=bool(busy))
+        self._render_ecg_table(device, scan, state, busy=bool(busy))
+        self._render_scenes(scan, state, busy=bool(busy))
 
     def _install_progress(self, ia: str) -> Callable[[object], None]:
         def cb(readback: object) -> None:
@@ -165,30 +224,29 @@ class DaliCommissioningPanel:
         return cb
 
     def _render_confirm(self, device: Device, ia: str) -> None:
-        title = "Confirm DALI Installation"
-        if self._pending_install:
+        title = "Confirm DALI Programming"
+        if self._pending:
             imgui.open_popup(title)
         if imgui.begin_popup_modal(title)[0]:
-            if self._pending_install == "new":
-                imgui.text(
-                    "New installation re-scans the DALI bus and REASSIGNS every ballast's\n"
-                    "short address. Destructive and cannot be undone. Continue?"
-                )
-            else:
-                imgui.text(
-                    "Post installation scans the bus for new ballasts and updates addressing.\n"
-                    "This changes the device. Continue?"
-                )
+            imgui.text(_CONFIRM_TEXT.get(self._pending, ""))
             if imgui.button("Continue"):
-                kind = self._pending_install
-                self._pending_install = ""
-                self._start_install(device, ia, kind)
+                kind = self._pending
+                self._pending = ""
+                self._dispatch(device, ia, kind)
                 imgui.close_current_popup()
             imgui.same_line()
             if imgui.button("Cancel"):
-                self._pending_install = ""
+                self._pending = ""
                 imgui.close_current_popup()
             imgui.end_popup()
+
+    def _dispatch(self, device: Device, ia: str, kind: str) -> None:
+        if kind in ("new", "post"):
+            self._start_install(device, ia, kind)
+        elif kind == "groups":
+            self._start_program_groups(device, ia)
+        elif kind == "scenes":
+            self._start_program_scenes(device, ia)
 
     def _start_install(self, device: Device, ia: str, kind: str) -> None:
         progress = self._install_progress(ia)
@@ -207,8 +265,23 @@ class DaliCommissioningPanel:
                 store_scan=True,
             )
 
+    def _start_program_groups(self, device: Device, ia: str) -> None:
+        st = self._state(ia)
+        if st.scan is None:
+            return
+        assignments = _assignments_from(st.scan, st.group_edits)
+        if not assignments:
+            return
+        self._start(device, "program-groups", lambda c: c.commission(assignments))
+
+    def _start_program_scenes(self, device: Device, ia: str) -> None:
+        scenes = _scenes_from(self._state(ia).scene_edits)
+        if not scenes:
+            return
+        self._start(device, "program-scenes", lambda c: c.write_scenes(scenes))
+
     def _render_ecg_table(
-        self, device: Device, scan: DaliBusState, *, busy: bool
+        self, device: Device, scan: DaliBusState, state: _DeviceUi, *, busy: bool
     ) -> None:
         present = scan.present_ecgs
         imgui.text_disabled(f"{len(present)} ECG(s) present")
@@ -229,7 +302,13 @@ class DaliCommissioningPanel:
             imgui.table_next_column()
             imgui.text(str(ecg.slot))
             imgui.table_next_column()
-            imgui.text(_group_label(ecg.group_index))
+            effective = state.group_edits.get(ecg.slot, ecg.group_index)
+            imgui.set_next_item_width(px(110.0))
+            changed, combo = imgui.combo(
+                f"##grp{ecg.slot}", _group_to_combo(effective), _GROUP_ITEMS
+            )
+            if changed:
+                state.group_edits[ecg.slot] = _combo_to_group(combo)
             imgui.table_next_column()
             imgui.text(str(ecg.ecg_type))
             imgui.table_next_column()
@@ -247,3 +326,61 @@ class DaliCommissioningPanel:
                 )
             imgui.end_disabled()
         imgui.end_table()
+
+        imgui.begin_disabled(busy or not present)
+        if imgui.button("Program Groups..."):
+            self._pending = "groups"
+        imgui.end_disabled()
+
+    def _render_scenes(
+        self, scan: DaliBusState, state: _DeviceUi, *, busy: bool
+    ) -> None:
+        groups_in_use = sorted(
+            {
+                state.group_edits.get(e.slot, e.group_index)
+                for e in scan.present_ecgs
+                if 0 <= state.group_edits.get(e.slot, e.group_index) < MAX_GROUP
+            }
+        )
+        imgui.separator()
+        imgui.text("Scenes")
+        if not groups_in_use:
+            imgui.text_disabled("Assign ECGs to groups above to define scenes.")
+            return
+        imgui.set_next_item_width(px(160.0))
+        _, state.scene_sel = imgui.combo(
+            "Scene##dali_scene_sel",
+            state.scene_sel,
+            [f"Scene {i + 1}" for i in range(MAX_SCENES)],
+        )
+        levels = state.scene_edits.setdefault(state.scene_sel, {})
+        for group in groups_in_use:
+            imgui.set_next_item_width(px(120.0))
+            changed, value = imgui.input_int(
+                f"Group {group}##scn{group}", levels.get(group, 0)
+            )
+            if changed:
+                levels[group] = max(0, min(_MAX_LEVEL, value))
+
+        has_values = any(lv for lv in state.scene_edits.values())
+        imgui.begin_disabled(busy or not has_values)
+        if imgui.button("Program Scenes..."):
+            self._pending = "scenes"
+        imgui.end_disabled()
+
+
+_CONFIRM_TEXT = {
+    "new": (
+        "New installation re-scans the DALI bus and REASSIGNS every ballast's\n"
+        "short address. Destructive and cannot be undone. Continue?"
+    ),
+    "post": (
+        "Post installation scans the bus for new ballasts and updates addressing.\n"
+        "This changes the device. Continue?"
+    ),
+    "groups": (
+        "Write the group assignment to the DALI bus. This applies the groups to the\n"
+        "gateway and its ballasts. Continue?"
+    ),
+    "scenes": ("Write the scene values to the DALI bus. Continue?"),
+}

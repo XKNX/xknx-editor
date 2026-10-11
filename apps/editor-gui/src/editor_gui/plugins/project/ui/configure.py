@@ -23,7 +23,7 @@ if TYPE_CHECKING:
     from editor_gui.device_info import DeviceInfo as BusDeviceInfo
     from xknxeditor.proj.core.service import DeviceInfo
 from editor_gui.programming import error_class_text
-from editor_gui.programming_dali import is_mdt_dali_app
+from editor_gui.programming_dali import is_dali_dca_app
 from editor_gui.widgets import (
     ButtonActions,
     GroupObjectsTable,
@@ -336,9 +336,15 @@ class ConfigurePanel:
             if shown
         ]
         if plugins.configuration_app is not None:
-            notices.append(
-                S.PLUGIN_CONFIGURATION_APP.format(name=plugins.configuration_app)
+            # When the app's functionality is ported (device in the DALI whitelist) say so;
+            # otherwise state that only the standard parameters are programmable.
+            ported = device.app is not None and is_dali_dca_app(device.app.id)
+            template = (
+                S.PLUGIN_CONFIGURATION_APP_PORTED
+                if ported
+                else S.PLUGIN_CONFIGURATION_APP
             )
+            notices.append(template.format(name=plugins.configuration_app))
         if not notices:
             return
         imgui.push_style_color(imgui.Col_.text, _PLUGIN_NOTICE_COLOR)
@@ -659,7 +665,7 @@ class ConfigurePanel:
             if (
                 self._render_dali is not None
                 and device.app is not None
-                and is_mdt_dali_app(device.app.id)
+                and is_dali_dca_app(device.app.id)
                 and imgui.begin_tab_item(f"{S.EDITOR_TAB_DALI}###editor_tab_dali")[0]
             ):
                 self._render_dali(device)

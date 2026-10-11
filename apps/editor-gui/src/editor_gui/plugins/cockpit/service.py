@@ -11,7 +11,9 @@ from typing import TYPE_CHECKING, Any
 
 from editor_gui.device import address_order
 from editor_gui.plugins.cockpit.strings import S
-from editor_gui.plugins.health.service import HealthService
+from editor_gui.plugins.health.service import HealthService, Severity
+
+_SEVERITY_RANK = {Severity.ERROR: 0, Severity.WARNING: 1, Severity.INFO: 2}
 
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ProjectService
@@ -28,7 +30,9 @@ class CockpitRow:
     commissioning: str = ""  # short "loaded" label for the Loaded column
     commissioning_tooltip: str = ""  # per-flag detail + serial / last download
     loaded_count: int = -1  # loaded commissioning flags, -1 without device info
-    issues: list[str] = field(default_factory=list[str])
+    issues: list[tuple[Severity, str]] = field(
+        default_factory=list[tuple[Severity, str]]
+    )
 
     @property
     def needs_attention(self) -> bool:
@@ -37,6 +41,30 @@ class CockpitRow:
     @property
     def product(self) -> str:
         return self.product_name or self.order_number
+
+    @property
+    def top_severity(self) -> Severity | None:
+        """Most severe finding on this device, or None when there are no findings."""
+        if not self.issues:
+            return None
+        return min((sev for sev, _ in self.issues), key=lambda s: _SEVERITY_RANK[s])
+
+    @property
+    def issue_summary(self) -> str:
+        """Short inline text for the status column: the most severe finding's message with the
+        redundant device-name prefix removed, plus ``(+N)`` when further findings exist."""
+        if not self.issues:
+            return ""
+        _, message = min(self.issues, key=lambda i: _SEVERITY_RANK[i[0]])
+        prefix = f"{self.name}: "
+        if message.startswith(prefix):
+            message = message[len(prefix) :]
+        extra = len(self.issues) - 1
+        return f"{message}  (+{extra})" if extra else message
+
+    @property
+    def issue_tooltip(self) -> str:
+        return "\n".join(message for _, message in self.issues)
 
 
 _SORT_KEYS: tuple[Callable[[CockpitRow], Any], ...] = (
@@ -109,10 +137,12 @@ class CockpitService:
     def _build(self) -> list[CockpitRow]:
         if not self._project.is_open:
             return []
-        by_device: dict[int, list[str]] = {}
+        by_device: dict[int, list[tuple[Severity, str]]] = {}
         for f in self._health.findings():
             if f.device_node_id is not None:
-                by_device.setdefault(f.device_node_id, []).append(f.message)
+                by_device.setdefault(f.device_node_id, []).append(
+                    (f.severity, f.message)
+                )
         rows: list[CockpitRow] = []
         for d in self._project.devices:
             info = self._project.get_device_info(d.node_id)

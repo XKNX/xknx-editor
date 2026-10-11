@@ -14,6 +14,8 @@ from dataclasses import dataclass, field
 MAX_ECG = 64
 MAX_GROUP = 16
 MAX_SCENES = 16
+MAX_TEMPLATES = 16
+MAX_TPL_COMMANDS = 300
 
 GROUP_SINGLE = 16
 GROUP_UNASSIGNED = 32
@@ -103,3 +105,32 @@ class Scene:
     fade_time: int = 0
     knx_scene: int = 0  # DALI/KNX scene number 1-64 (0 = unmapped)
     values: list[SceneValue] = field(default_factory=list["SceneValue"])
+
+
+@dataclass(slots=True)
+class TemplateCommand:
+    """One timed command of a colour-control template (an EVG effect step).
+
+    ``value`` is the 4-byte ColorProp payload whose meaning follows ``func`` (a scalar level, a
+    little-endian colour temperature, XY, RGBW or HSVW); the caller encodes it. ``weekdays`` is a
+    7-bit mask (bit 0 = Monday).
+    """
+
+    func: int  # TplFunc (0-3 level, 4+ colour, CallScene, SetMaxOnValue, ...)
+    hour: int
+    minute: int
+    value: bytes = b"\x00\x00\x00\x00"  # 4-byte ColorProp, func-dependent
+    fade_time: int = 0
+    weekdays: int = 0
+
+
+@dataclass(slots=True)
+class Template:
+    """A colour-control template: its members (groups/ECGs) and its timed commands."""
+
+    index: int  # 0-15
+    mode: int = 0  # TplMode
+    overwritable: bool = False
+    groups: tuple[int, ...] = ()  # member group indices 0-15
+    ecgs: tuple[int, ...] = ()  # member ECG indices 0-63
+    commands: list[TemplateCommand] = field(default_factory=list["TemplateCommand"])

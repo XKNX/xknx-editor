@@ -13,6 +13,7 @@ from collections.abc import Callable
 from typing import Protocol
 
 from xknxeditor.dali.properties import (
+    DEFAULT_OBJECT_INDEX_BASE,
     ELEMENT_SIZE,
     FIRMWARE_OBJECT_INDEX,
     POLL_DONE,
@@ -55,12 +56,21 @@ class Programmer(Protocol):
 
 
 class MdtDaliConnection:
-    """Property-level access to one DALI channel of an MDT gateway."""
+    """Property-level access to one DALI channel of a Type-A gateway (MDT / Theben).
 
-    def __init__(self, programmer: Programmer, channel: int = 0) -> None:
+    ``object_index_base`` is the KNX object index of channel 0 (vendor-specific: MDT = 6, Theben = 7);
+    see :mod:`xknxeditor.dali.profiles`.
+    """
+
+    def __init__(
+        self,
+        programmer: Programmer,
+        channel: int = 0,
+        object_index_base: int = DEFAULT_OBJECT_INDEX_BASE,
+    ) -> None:
         self._prog = programmer
         self.channel = channel
-        self.object_index = object_index(channel)
+        self.object_index = object_index(channel, object_index_base)
 
     async def read_firmware(self) -> tuple[int, int, int] | None:
         """Read the 3-byte Hawk firmware version (object 0, property 25); None if unavailable."""

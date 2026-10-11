@@ -1,8 +1,10 @@
 """High-level MDT DALI commissioning flows over an :class:`MdtDaliConnection`.
 
 Implements: read-only bus scan (P1), identify/blink (P2), group/ECG assignment download (P3), scene
-write (P4), and new/post installation (P5, DALI bus scan + short-address assignment). Every write /
-installation flow should be preceded by a scan and gated behind a user confirm in the GUI.
+write (P4), new/post installation (P5, DALI bus scan + short-address assignment), colour-control
+templates/effects, and full-config restore (EVG_STATIC + EVG_PROP + commission + scenes + templates).
+Every write / installation flow should be preceded by a scan and gated behind a user confirm in
+the GUI.
 """
 
 from __future__ import annotations
@@ -16,11 +18,15 @@ from xknxeditor.dali.model import (
     MAX_ECG,
     MAX_GROUP,
     MAX_SCENES,
+    MAX_TEMPLATES,
+    MAX_TPL_COMMANDS,
     DaliBusState,
     EcgAssignment,
     EcgState,
     GroupState,
     Scene,
+    Template,
+    TemplateCommand,
     group_present,
 )
 from xknxeditor.dali.properties import (
@@ -31,6 +37,7 @@ from xknxeditor.dali.properties import (
 )
 from xknxeditor.dali.structs import (
     SCENE_TERMINATOR,
+    TEMPLATE_TERMINATOR,
     Command,
     CommissionSync,
     EcgProp,
@@ -42,8 +49,10 @@ from xknxeditor.dali.structs import (
     SceneAssign,
     SceneItemValue,
     SceneKnxMap,
+    TemplateProp,
     decode_table,
     encode_table,
+    encode_template_members,
 )
 
 
@@ -234,6 +243,107 @@ class MdtDaliCommissioner:
         if size == 0:
             await self._c.write_table_size(PropertyType.SCENE_KNX_MAP, MAX_SCENES)
         await self._c.write_table(PropertyType.SCENE_KNX_MAP, knx_map, MAX_SCENES)
+
+    # --- colour-control templates / effects --------------------------------
+
+    async def write_templates(self, templates: Sequence[Template]) -> None:
+        """Write the template tables: COLOUR_C_EVENT (timed commands) + COLOUR_C_ASSIGN (members).
+
+        Commands across all templates are flattened, ordered by (hour, minute, func), capped at
+        MAX_TPL_COMMANDS and terminated by an all-0xFF record. Members are a per-template bitmap over
+        the full 16-template table. Empty ``templates`` clears both tables.
+        """
+        commands: list[tuple[Template, TemplateCommand]] = [
+            (t, c) for t in templates for c in t.commands
+        ]
+        commands.sort(key=lambda tc: (tc[1].hour, tc[1].minute, tc[1].func))
+        del commands[MAX_TPL_COMMANDS:]
+        events = [
+            TemplateProp(
+                t.index,
+                c.func,
+                c.value,
+                c.fade_time,
+                c.weekdays,
+                c.hour,
+                c.minute,
+                t.mode,
+                t.overwritable,
+            ).encode()
+            for t, c in commands
+        ]
+        # One trailing slot: 0xFF terminator, unless the list is maxed out (then zeroed, as the DCA).
+        events.append(
+            TEMPLATE_TERMINATOR if len(commands) < MAX_TPL_COMMANDS else b"\x00" * 10
+        )
+        await self._c.write_table(
+            PropertyType.COLOUR_C_EVENT, encode_table(events), len(events)
+        )
+        await asyncio.sleep(0.5)
+        by_index = {t.index: t for t in templates}
+        members = [
+            encode_template_members(by_index[i].groups, by_index[i].ecgs)
+            if i in by_index
+            else b"\x00" * 10
+            for i in range(MAX_TEMPLATES)
+        ]
+        await self._c.write_table(
+            PropertyType.COLOUR_C_ASSIGN, encode_table(members), MAX_TEMPLATES
+        )
+
+    # --- config table writes / full-config restore ------------------------
+
+    async def write_ecg_static(self, entries: Sequence[EcgStatic]) -> None:
+        """Write the per-slot EVG_STATIC table (long address, min value, colour-temp bounds).
+
+        ``entries`` is indexed by physical slot; shorter lists are padded to the full slot count
+        with zeroed records (the DCA always writes the complete table).
+        """
+        elements = [
+            (entries[slot] if slot < len(entries) else EcgStatic(0, 0, 0, 0)).encode()
+            for slot in range(MAX_ECG)
+        ]
+        await self._c.write_table(
+            PropertyType.EVG_STATIC, encode_table(elements), MAX_ECG
+        )
+
+    async def write_ecg_props(self, entries: Sequence[EcgProp]) -> None:
+        """Write the per-slot EVG_PROP table (type, subtype, group index, ETS ECG number).
+
+        Shorter lists are padded to the full slot count with unassigned records.
+        """
+        elements = [
+            (
+                entries[slot]
+                if slot < len(entries)
+                else EcgProp(0, 0, GROUP_UNASSIGNED, slot)
+            ).encode()
+            for slot in range(MAX_ECG)
+        ]
+        await self._c.write_table(
+            PropertyType.EVG_PROP, encode_table(elements), MAX_ECG
+        )
+
+    async def restore(
+        self,
+        *,
+        static: Sequence[EcgStatic],
+        props: Sequence[EcgProp],
+        assignments: Sequence[EcgAssignment],
+        scenes: Sequence[Scene],
+        templates: Sequence[Template] = (),
+    ) -> bool:
+        """Write a full channel configuration to the device, mirroring the DCA restore order:
+        EVG_STATIC, EVG_PROP, group/ECG commissioning (apply + verify), scenes, then templates.
+
+        Returns the commissioning verify result. Empty ``templates`` clears the template tables.
+        """
+        await self.write_ecg_static(static)
+        await self.write_ecg_props(props)
+        ok = await self.commission(assignments)
+        await self.write_scenes(scenes)
+        await self.write_templates(templates)
+        return ok
 
     # --- P5: new / post installation (bus renumbering — gate behind a confirm) ---
 

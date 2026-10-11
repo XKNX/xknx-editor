@@ -14,21 +14,23 @@ from collections.abc import Awaitable, Callable
 from xknx import XKNX
 from xknx.telegram import IndividualAddress
 
-from xknxeditor.dali import MdtDaliCommissioner, MdtDaliConnection
+from xknxeditor.dali import MdtDaliCommissioner, MdtDaliConnection, profile_for
 from xknxeditor.download import DeviceProgrammer, DeviceSecurity
 
 # Reuse the download package's own connection builders (plain or Tool-Key secured) so a DALI session
 # gets the same secure handling as a normal download. Repo-internal; intentional cross-module use.
 from xknxeditor.download.session import apdu_overhead, management_session
 
-# MDT DALI Control gateway application-id prefixes (manufacturer M-0083; 1x64 / 2x64 + presence
-# variants). Matched as a prefix of the full ``Application.id`` (e.g. "M-0083_A-0154-40-0F69-O00EF").
-_MDT_DALI_PREFIXES = tuple(f"M-0083_A-{n}" for n in ("0153", "0154", "0155", "0158"))
+
+def is_dali_dca_app(app_id: str | None) -> bool:
+    """Whether ``app_id`` is a Type-A DALI gateway (MDT / Theben) — gates the commissioning tab."""
+    return profile_for(app_id) is not None
 
 
-def is_mdt_dali_app(app_id: str | None) -> bool:
-    """Whether ``app_id`` is an MDT DALI Control gateway application (gates the commissioning tab)."""
-    return bool(app_id) and app_id.upper().startswith(_MDT_DALI_PREFIXES)
+def dali_object_index_base(app_id: str | None) -> int:
+    """The KNX object-index base for ``app_id``'s DALI channel 0 (vendor-specific); 6 if unknown."""
+    profile = profile_for(app_id)
+    return profile.object_index_base if profile is not None else 6
 
 
 async def run_dali_operation[T](
@@ -37,10 +39,13 @@ async def run_dali_operation[T](
     security: DeviceSecurity | None,
     channel: int,
     op: Callable[[MdtDaliCommissioner], Awaitable[T]],
+    *,
+    object_index_base: int = 6,
 ) -> T:
     """Open a connection to ``address``, run ``op`` against an ``MdtDaliCommissioner``, then close.
 
     ``security`` (from the keyring) enables a Tool-Key secured session, matching the download flows.
+    ``object_index_base`` is the vendor's DALI object index for channel 0 (see dali profiles).
     """
     target = IndividualAddress(address)
     manager = management_session(xknx, target, security)
@@ -50,7 +55,9 @@ async def run_dali_operation[T](
         # Negotiate the device's real APDU length (defaults to the mandatory 15). Multi-byte DALI
         # property writes (and a secure session's overhead) would not fit the 15-octet default.
         programmer.max_apdu_length = await programmer.read_max_apdu_length()
-        commissioner = MdtDaliCommissioner(MdtDaliConnection(programmer, channel))
+        commissioner = MdtDaliCommissioner(
+            MdtDaliConnection(programmer, channel, object_index_base)
+        )
         return await op(commissioner)
     finally:
         with contextlib.suppress(Exception):

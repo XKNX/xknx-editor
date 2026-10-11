@@ -19,6 +19,7 @@ from xknxeditor.dali.model import (
     Scene,
     SceneValue,
 )
+from xknxeditor.dali.profiles import PROFILES, DaliProfile, profile_for
 from xknxeditor.dali.properties import (
     DeviceCommand,
     DeviceExtCommand,
@@ -26,9 +27,18 @@ from xknxeditor.dali.properties import (
     object_index,
 )
 
+# Neutral aliases: the implementation classes are named Mdt* for history, but serve every Type-A
+# gateway family (MDT, Theben). Prefer these names in new code.
+DaliCommissioner = MdtDaliCommissioner
+DaliConnection = MdtDaliConnection
+
 __all__ = [
+    "PROFILES",
     "DaliBusState",
+    "DaliCommissioner",
     "DaliCommissioningError",
+    "DaliConnection",
+    "DaliProfile",
     "DeviceCommand",
     "DeviceExtCommand",
     "EcgAssignment",
@@ -41,4 +51,5 @@ __all__ = [
     "Scene",
     "SceneValue",
     "object_index",
+    "profile_for",
 ]

@@ -6,13 +6,17 @@ from xknxeditor.dali.commissioning import MdtDaliCommissioner
 from xknxeditor.dali.connection import MdtDaliConnection
 from xknxeditor.dali.model import (
     GROUP_MISSING,
+    GROUP_UNASSIGNED,
     MAX_ECG,
+    MAX_TEMPLATES,
     EcgAssignment,
     Scene,
     SceneValue,
+    Template,
+    TemplateCommand,
 )
 from xknxeditor.dali.properties import DeviceCommand, PropertyType
-from xknxeditor.dali.structs import EcgProp, decode_table
+from xknxeditor.dali.structs import EcgProp, EcgStatic, decode_table
 
 
 def _evg_prop_table(entries: dict[int, EcgProp]) -> bytes:
@@ -139,3 +143,100 @@ async def test_write_scenes_builds_tables_and_syncs() -> None:
     assert bytes((DeviceCommand.SCENE_SYNC, 0, 0)) in [
         w["data"] for w in prog.writes_for(PropertyType.COMMAND)
     ]
+
+
+async def test_write_ecg_props_writes_full_padded_table() -> None:
+    comm, prog = _setup()
+    await comm.write_ecg_props([EcgProp(8, 2, 5, 0), EcgProp(6, 0, 16, 1)])
+    (w,) = prog.writes_for(PropertyType.EVG_PROP)
+    data = bytes(w["data"])  # type: ignore[arg-type]
+    assert w["count"] == MAX_ECG and len(data) == MAX_ECG * 4
+    table = decode_table(data, 4)
+    assert EcgProp.decode(table[0]) == EcgProp(8, 2, 5, 0)
+    assert EcgProp.decode(table[1]) == EcgProp(6, 0, 16, 1)
+    assert EcgProp.decode(table[2]) == EcgProp(0, 0, GROUP_UNASSIGNED, 2)  # padded slot
+
+
+async def test_write_ecg_static_writes_full_padded_table() -> None:
+    comm, prog = _setup()
+    await comm.write_ecg_static([EcgStatic(0x2A, 10, 2700, 6500)])
+    (w,) = prog.writes_for(PropertyType.EVG_STATIC)
+    data = bytes(w["data"])  # type: ignore[arg-type]
+    assert w["count"] == MAX_ECG and len(data) == MAX_ECG * 8
+    table = decode_table(data, 8)
+    assert EcgStatic.decode(table[0]) == EcgStatic(0x2A, 10, 2700, 6500)
+    assert EcgStatic.decode(table[1]) == EcgStatic(0, 0, 0, 0)  # padded slot
+
+
+async def test_restore_follows_dca_order_and_returns_verify() -> None:
+    comm, prog = _setup()
+    assignment = EcgAssignment(slot=0, ets_index=9, group_index=5)
+    # EVG_PROP readback (seeding + verify): slot 0 matches the requested assignment.
+    prog.set_read(PropertyType.EVG_PROP, _evg_prop_table({0: EcgProp(6, 0, 5, 9)}))
+    prog.set_read(PropertyType.SCENE_KNX_MAP, bytes((0, 0)))
+    # PLUGIN_SYNC and SCENE_SYNC each poll COMMAND once for a "done" readback.
+    prog.queue_read(PropertyType.COMMAND, bytes((0, 0, 0)), bytes((0, 0, 0)))
+
+    ok = await comm.restore(
+        static=[EcgStatic(0x2A, 10, 2700, 6500)],
+        props=[EcgProp(6, 0, 5, 9)],
+        assignments=[assignment],
+        scenes=[
+            Scene(index=0, fade_time=3, knx_scene=7, values=[SceneValue(0, 16, 254)])
+        ],
+    )
+    assert ok is True
+    order = [w["property_id"] for w in prog.writes]
+    assert (
+        order.index(PropertyType.EVG_STATIC)
+        < order.index(PropertyType.EVG_PROP)
+        < order.index(PropertyType.COMMISSION_SYNC)
+    )
+
+
+async def test_write_templates_builds_event_and_member_tables() -> None:
+    comm, prog = _setup()
+    tpl = Template(
+        index=0,
+        mode=1,
+        overwritable=True,
+        groups=(0, 3),
+        ecgs=(5,),
+        commands=[
+            TemplateCommand(
+                func=4,
+                hour=6,
+                minute=30,
+                value=b"\x11\x22\x33\x44",
+                fade_time=2,
+                weekdays=0x7F,
+            )
+        ],
+    )
+    await comm.write_templates([tpl])
+
+    (ev,) = prog.writes_for(PropertyType.COLOUR_C_EVENT)
+    data = bytes(ev["data"])  # type: ignore[arg-type]
+    assert ev["count"] == 2 and len(data) == 20  # 1 command + terminator
+    # hour=6 -> HM low5; minute=30 split; mode=1 bits6-7; overwritable bit5
+    hm = (6 & 0x1F) | ((30 << 2) & 0xE0)
+    mm = (30 & 0x07) | (1 << 6) | 0x20
+    assert data[:10] == bytes((0, 4, 0x11, 0x22, 0x33, 0x44, 2, 0x7F, hm, mm))
+    assert data[10:20] == b"\xff" * 10  # terminator
+
+    (members,) = prog.writes_for(PropertyType.COLOUR_C_ASSIGN)
+    mdata = bytes(members["data"])  # type: ignore[arg-type]
+    assert members["count"] == MAX_TEMPLATES and len(mdata) == MAX_TEMPLATES * 10
+    table = decode_table(mdata, 10)
+    # template 0: groups 0,3 -> byte0 bits; ecg 5 -> byte2 bit5
+    assert table[0] == bytes((0b00001001, 0, 0x20, 0, 0, 0, 0, 0, 0, 0))
+    assert table[1] == b"\x00" * 10  # no template at index 1
+
+
+async def test_write_templates_empty_clears_tables() -> None:
+    comm, prog = _setup()
+    await comm.write_templates([])
+    (ev,) = prog.writes_for(PropertyType.COLOUR_C_EVENT)
+    assert ev["count"] == 1 and bytes(ev["data"]) == b"\xff" * 10  # type: ignore[arg-type]
+    (members,) = prog.writes_for(PropertyType.COLOUR_C_ASSIGN)
+    assert bytes(members["data"]) == b"\x00" * (MAX_TEMPLATES * 10)  # type: ignore[arg-type]

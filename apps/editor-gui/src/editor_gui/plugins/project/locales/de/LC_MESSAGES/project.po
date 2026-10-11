@@ -1203,26 +1203,11 @@ msgstr "Wird gelesen"
 msgid "General"
 msgstr "Allgemein"
 
-msgid "Application Program"
-msgstr "Applikationsprogramm"
-
 msgid "Group Communication"
 msgstr "Gruppenkommunikation"
 
-msgid "Mask Version"
-msgstr "Maskenversion"
-
 msgid "Device Manufacturer"
 msgstr "Gerätehersteller"
-
-msgid "Order Number"
-msgstr "Bestellnummer"
-
-msgid "Serial Number"
-msgstr "Seriennummer"
-
-msgid "Hardware Type"
-msgstr "Hardware-Typ"
 
 msgid "Firmware Version"
 msgstr "Firmware-Version"
@@ -1295,8 +1280,12 @@ msgstr "Der Hersteller verwaltet einen Teil der Daten dieses Geräts mit einem e
 msgid "This device is also configured with separate software from the manufacturer."
 msgstr "Dieses Gerät wird zusätzlich mit separater Software des Herstellers konfiguriert."
 
-msgid "The project contains the device configuration app “{name}” for this device; it cannot be run here."
-msgstr "Das Projekt enthält die Gerätekonfigurations-App “{name}” für dieses Gerät; sie kann hier nicht ausgeführt werden."
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "Dieses Gerät enthält eine Hersteller-Konfigurations-App (“{name}”), die XKNX Editor nicht ausführen kann. Die Standard-Parameter des Geräts lassen sich weiterhin programmieren, nicht aber die Zusatzfunktionen dieser App."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "Dieses Gerät enthält eine Hersteller-Konfigurations-App (“{name}”), die sich in XKNX Editor nicht direkt ausführen lässt — sie wurde aber portiert, sodass ihre wichtigsten Funktionen hier nutzbar sind (siehe DALI-Reiter)."
+
 
 msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
 msgstr "Der Hersteller erlaubt das Programmieren dieses Geräts nur mit seinem Plugin, das hier nicht verfügbar ist. Ohne das Plugin kann das Gerät falsch konfiguriert oder in einem Fehlerzustand zurückbleiben."

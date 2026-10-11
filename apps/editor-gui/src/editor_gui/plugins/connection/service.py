@@ -753,15 +753,26 @@ class ConnectionService:
         if not device.individual_address:
             self._log.warning("Device has no individual address", device=device.name)
             return None
-        from editor_gui.programming_dali import run_dali_operation
+        from editor_gui.programming_dali import (
+            dali_object_index_base,
+            run_dali_operation,
+        )
 
         if not self.begin_operation("dali", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
             return None
         security = self._security_for(device)
+        object_index_base = dali_object_index_base(
+            device.app.id if device.app is not None else None
+        )
         future = self.run_async(
             run_dali_operation(
-                self._xknx, device.individual_address, security, channel, op
+                self._xknx,
+                device.individual_address,
+                security,
+                channel,
+                op,
+                object_index_base=object_index_base,
             )
         )
         if future is not None:
