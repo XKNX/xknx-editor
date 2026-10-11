@@ -9,6 +9,7 @@ from imgui_bundle import imgui
 from editor_gui.plugins.cockpit.service import CockpitRow, CockpitService, sort_rows
 from editor_gui.plugins.cockpit.strings import S
 from editor_gui.plugins.health.service import Severity
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.text_util import text_clipped_tooltip
@@ -49,7 +50,7 @@ class CockpitPanel:
             imgui.text_colored(
                 _ATTENTION_COLOR, S.COCKPIT_SKIPPED.format(count=skipped)
             )
-        _, self._attention_only = imgui.checkbox(
+        _, self._attention_only = checkbox(
             S.COCKPIT_ATTENTION_ONLY, self._attention_only
         )
         self._filter = filter_box("##cockpit_filter", S.COCKPIT_SEARCH, self._filter)

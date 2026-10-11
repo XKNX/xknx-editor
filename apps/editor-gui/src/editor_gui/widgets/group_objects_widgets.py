@@ -15,6 +15,7 @@ from editor_gui.device import (
     Device,
     com_object_display_name,
 )
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.strings import S
 from xknxeditor.proj.core.addressing import GroupAddressStyle
@@ -146,8 +147,8 @@ class GroupObjectsTable:
                 if imgui.is_item_hovered(imgui.HoveredFlags_.allow_when_disabled):
                     imgui.set_tooltip(S.GROUP_OBJECTS_PASTE_LINKS_HINT)
                 imgui.same_line()
-                _, self._paste_merge = imgui.checkbox(
-                    S.GROUP_OBJECTS_PASTE_MERGE, self._paste_merge
+                _, self._paste_merge = checkbox(
+                    S.GROUP_OBJECTS_PASTE_MERGE, self._paste_merge, centred=True
                 )
                 if imgui.is_item_hovered():
                     imgui.set_tooltip(S.GROUP_OBJECTS_PASTE_MERGE_HINT)
@@ -303,7 +304,7 @@ class GroupObjectsTable:
         imgui.table_set_column_index(0)
         if self._on_auto_create_gas is not None:
             sel = com_object.id in self._selected
-            changed, new_sel = imgui.checkbox(f"##sel_{row_id}", sel)
+            changed, new_sel = checkbox(f"##sel_{row_id}", sel)
             if changed:
                 if new_sel:
                     self._selected.add(com_object.id)
@@ -362,7 +363,7 @@ class GroupObjectsTable:
             )
             if is_locked:
                 imgui.begin_disabled()
-            changed, new_value = imgui.checkbox(f"##{row_id}_{attr}", current)
+            changed, new_value = checkbox(f"##{row_id}_{attr}", current)
             if changed and not is_locked:
                 self._set_flag(device, com_object.id, attr, new_value)
             if is_locked:

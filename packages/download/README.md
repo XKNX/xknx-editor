@@ -111,7 +111,7 @@ before any real download to confirm the change set. The System B group
 communication path is implemented end-to-end, but preflight still lets you
 review any device before writing.
 
-The GUI builds a **Test Before Programming** action directly on top of `preflight`:
+The GUI builds a **Test Programming** action directly on top of `preflight`:
 it reports per memory segment and property whether the image this library would
 generate matches what is already programmed on the device (so a programming run
 cannot be made to write a wrongly generated image), and can export the current

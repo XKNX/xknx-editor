@@ -4,6 +4,8 @@ import struct
 
 from imgui_bundle import imgui
 
+from editor_gui.widgets.checkbox import checkbox
+
 
 class HexView:
     """Hex viewer with selection, goto, param overlay, and reference diff."""
@@ -204,9 +206,9 @@ class HexView:
             changed, col_idx = imgui.combo("Columns", col_idx, ["8", "16", "32"])
             if changed:
                 self.cols = col_options[col_idx]
-            _, self.grey_zeros = imgui.checkbox("Grey out zeros", self.grey_zeros)
-            _, self.uppercase = imgui.checkbox("Uppercase hex", self.uppercase)
-            _, self.show_ascii = imgui.checkbox("Show ASCII", self.show_ascii)
+            _, self.grey_zeros = checkbox("Grey out zeros", self.grey_zeros)
+            _, self.uppercase = checkbox("Uppercase hex", self.uppercase)
+            _, self.show_ascii = checkbox("Show ASCII", self.show_ascii)
             imgui.end_popup()
 
         imgui.same_line()

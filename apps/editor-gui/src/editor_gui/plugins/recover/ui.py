@@ -9,6 +9,7 @@ from imgui_bundle import imgui
 from imgui_bundle import portable_file_dialogs as pfd
 
 from editor_gui.plugins.recover.strings import S
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px
 from xknxeditor.recover.recover import STAGE_GROUP_COMMUNICATION, STAGE_PARAMETERS
 
@@ -78,7 +79,7 @@ class RecoverPanel:
             if imgui.button(S.BTN_STOP):
                 service.stop()
         imgui.same_line()
-        _, service.auto_apply = imgui.checkbox(S.AUTO_APPLY, service.auto_apply)
+        _, service.auto_apply = checkbox(S.AUTO_APPLY, service.auto_apply, centred=True)
 
     def _render_status(self) -> None:
         service = self._service
@@ -149,7 +150,7 @@ class RecoverPanel:
             imgui.table_next_row()
             imgui.table_set_column_index(0)
             imgui.begin_disabled(not entry.recoverable or service.busy)
-            _, entry.selected = imgui.checkbox(f"##sel{index}", entry.selected)
+            _, entry.selected = checkbox(f"##sel{index}", entry.selected)
             imgui.end_disabled()
             imgui.table_set_column_index(1)
             imgui.text(entry.address)

@@ -27,6 +27,7 @@ from editor_gui.os_open import open_path
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import label_render
 from editor_gui.plugins.project.ui._filter import filter_box
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px, px_vec2
 
 if TYPE_CHECKING:
@@ -242,7 +243,7 @@ class ToolsPanel:
         imgui.text_disabled(S.TOOLS_COPY_REPLACE)
         imgui.set_next_item_width(-1)
         _, self._copy_replace = imgui.input_text("##copy_replace", self._copy_replace)
-        _, self._copy_create_gas = imgui.checkbox(
+        _, self._copy_create_gas = checkbox(
             S.TOOLS_COPY_CREATE_GAS, self._copy_create_gas
         )
         imgui.text_disabled(
@@ -362,7 +363,7 @@ class ToolsPanel:
         if imgui.begin_child("##shift_list", px_vec2(0.0, 260.0), True):
             for d in shown:
                 selected = d.node_id in self._selected_nodes
-                changed, new_sel = imgui.checkbox(f"##sh{d.node_id}", selected)
+                changed, new_sel = checkbox(f"##sh{d.node_id}", selected)
                 if changed:
                     self._toggle(d.node_id, new_sel)
                     selected = new_sel
@@ -456,7 +457,7 @@ class ToolsPanel:
         if imgui.begin_child("##label_list", px_vec2(0.0, 200.0), True):
             for d in shown:
                 selected = d.node_id in self._selected_nodes
-                changed, new_sel = imgui.checkbox(f"##lb{d.node_id}", selected)
+                changed, new_sel = checkbox(f"##lb{d.node_id}", selected)
                 if changed:
                     self._toggle(d.node_id, new_sel)
                 self._device_row_label(d)
@@ -486,9 +487,7 @@ class ToolsPanel:
         used = 0.0
         for fid in label_render.FIELD_IDS:
             selected = fid in self._label_fields
-            changed, now = imgui.checkbox(
-                f"{labels.get(fid, fid)}##fld_{fid}", selected
-            )
+            changed, now = checkbox(f"{labels.get(fid, fid)}##fld_{fid}", selected)
             if changed:
                 if now:
                     self._label_fields.add(fid)
@@ -515,7 +514,7 @@ class ToolsPanel:
             self._render_sheet_controls()
 
     def _render_sheet_controls(self) -> None:
-        _, self._label_use_custom = imgui.checkbox(
+        _, self._label_use_custom = checkbox(
             S.TOOLS_LABELS_SHEET_CUSTOM, self._label_use_custom
         )
         if not self._label_use_custom:

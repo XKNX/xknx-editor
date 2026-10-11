@@ -9,6 +9,7 @@ from imgui_bundle import imgui
 
 from editor_gui.device import Device
 from editor_gui.regional import regional_format
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import format_float, general_float, parse_float
 from editor_gui.widgets.fonts import bold
@@ -289,7 +290,7 @@ def render_param_widget(
                 _render_differs_text(widget_id, on_change)
             else:
                 checked = param.value == "1"
-                changed, new_checked = _small_checkbox(f"##{widget_id}", checked)
+                changed, new_checked = checkbox(f"##{widget_id}", checked, centred=True)
                 if changed:
                     on_change("1" if new_checked else "0")
         case RawDataWidget():
@@ -299,17 +300,6 @@ def render_param_widget(
         case _:
             _render_text_param(widget_id, param.value, on_change, differs)
     return None
-
-
-def _small_checkbox(label: str, checked: bool) -> tuple[bool, bool]:
-    """A checkbox about the size of the text, centred in a row of full-height fields."""
-    padding = imgui.get_style().frame_padding
-    small = padding.y / 4
-    imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() + padding.y - small)
-    imgui.push_style_var(imgui.StyleVar_.frame_padding, imgui.ImVec2(padding.x, small))
-    result = imgui.checkbox(label, checked)
-    imgui.pop_style_var()
-    return result
 
 
 def _small_radio(label: str, active: bool, *, first: bool) -> bool:
@@ -878,7 +868,7 @@ _selected_pages: dict[int, str] = {}
 # Device node id -> (UI nodes, filter, pages) of the last page tree built.
 _page_cache: dict[int, tuple[list[UiNode], str, tuple[ParameterPage, ...]]] = {}
 
-_TREE_WIDTH = 240.0
+_TREE_WIDTH = 210.0
 
 
 def _device_pages(

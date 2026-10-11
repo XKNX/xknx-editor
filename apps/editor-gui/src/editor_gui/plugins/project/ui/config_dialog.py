@@ -8,6 +8,7 @@ from collections.abc import Callable
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px_vec2
 
 
@@ -66,12 +67,10 @@ class DeviceConfigDialog:
             header = S.CONFIG_PASTE_INTO if is_paste else S.CONFIG_DUPLICATE_OF
             imgui.text_wrapped(header.format(name=self._label))
         imgui.separator()
-        _, self._include_params = imgui.checkbox(
+        _, self._include_params = checkbox(
             S.CONFIG_INCLUDE_PARAMS, self._include_params
         )
-        _, self._include_links = imgui.checkbox(
-            S.CONFIG_INCLUDE_LINKS, self._include_links
-        )
+        _, self._include_links = checkbox(S.CONFIG_INCLUDE_LINKS, self._include_links)
         imgui.separator()
         imgui.begin_disabled(not (self._include_params or self._include_links))
         if imgui.button(
