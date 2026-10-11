@@ -954,7 +954,7 @@ class ProjectStrings:
 
     @property
     def CONFIGURE_MANUFACTURER_INFO(self) -> str:
-        return _("Manufacturer info")
+        return _("Manufacturer Info")
 
     @property
     def CONFIGURE_APPLICATION(self) -> str:

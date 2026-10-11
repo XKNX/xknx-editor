@@ -140,7 +140,7 @@ msgstr "Partiell: Gruppenkommunikation"
 msgid "Manufacturer"
 msgstr "Hersteller"
 
-msgid "Manufacturer info"
+msgid "Manufacturer Info"
 msgstr "Herstellerinfos"
 
 msgid "Application"
