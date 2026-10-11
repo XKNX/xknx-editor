@@ -160,3 +160,12 @@ msgstr "FPS in statusbalk"
 
 msgid "Context Help"
 msgstr "Contexthulp"
+
+msgid "Enable Idling"
+msgstr "Inactiviteitsmodus inschakelen"
+
+msgid "Theme"
+msgstr "Thema"
+
+msgid "Theme Tweaks"
+msgstr "Thema aanpassen"

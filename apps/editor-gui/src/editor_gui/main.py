@@ -270,6 +270,7 @@ class KnxGuiApp:
         # frame path, not post_init, so the GL context is guaranteed current (a context-less
         # glGetString segfaults at the C level and would be uncatchable).
         self._gl_logged = False
+        self._show_theme_tweaks = False
         # Overwrite guard: the portable file dialog does not confirm replacing an existing file on
         # macOS (it wraps AppleScript's "choose file name"), so we ask here. Requests queue as
         # (target, action) pairs so a second dialog resolving mid-confirmation cannot drop the first.
@@ -2073,6 +2074,10 @@ class KnxGuiApp:
         if not self._gl_logged:
             self._gl_logged = True
             _log_gl_renderer(self._log)
+        if self._show_theme_tweaks:
+            self._show_theme_tweaks = bool(
+                hello_imgui.show_theme_tweak_gui_window(self._show_theme_tweaks)
+            )
         # Bring the Editor tab to the front when another view (Device Overview, Topology, Health)
         # selected a device. Consumed here (a per-frame global callback) rather than in the Editor
         # panel itself, because a background dock tab is not rendered and would never see the flag.
@@ -2411,6 +2416,29 @@ class KnxGuiApp:
         )
         if changed:
             window_params.show_status_fps = shown
+        changed, enabled = imgui.menu_item(
+            S.MENU_ENABLE_IDLING, "", params.fps_idling.enable_idling
+        )
+        if changed:
+            params.fps_idling.enable_idling = enabled
+        self._render_theme_menu(window_params.tweaked_theme)
+        imgui.end_menu()
+
+    def _render_theme_menu(self, tweaked_theme: hello_imgui.ImGuiTweakedTheme) -> None:
+        if not imgui.begin_menu(S.MENU_THEME):
+            return
+        changed, shown = imgui.menu_item(
+            S.MENU_THEME_TWEAKS, "", self._show_theme_tweaks
+        )
+        if changed:
+            self._show_theme_tweaks = shown
+        imgui.separator()
+        for i in range(int(hello_imgui.ImGuiTheme_.count)):
+            theme = hello_imgui.ImGuiTheme_(i)
+            selected = tweaked_theme.theme == theme
+            if imgui.menu_item(hello_imgui.imgui_theme_name(theme), "", selected)[0]:
+                tweaked_theme.theme = theme
+                hello_imgui.apply_tweaked_theme(tweaked_theme)
         imgui.end_menu()
 
     def _refresh_dock_titles(self) -> None:

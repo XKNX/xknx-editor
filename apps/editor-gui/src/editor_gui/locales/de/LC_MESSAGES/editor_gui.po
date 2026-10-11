@@ -564,3 +564,12 @@ msgstr "FPS in der Statusleiste"
 
 msgid "Context Help"
 msgstr "Kontexthilfe"
+
+msgid "Enable Idling"
+msgstr "Leerlaufmodus aktivieren"
+
+msgid "Theme"
+msgstr "Design"
+
+msgid "Theme Tweaks"
+msgstr "Design anpassen"

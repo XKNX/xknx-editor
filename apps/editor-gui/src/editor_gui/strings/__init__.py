@@ -724,6 +724,18 @@ class MenuStrings:
         return _("FPS in Status Bar")
 
     @property
+    def MENU_ENABLE_IDLING(self) -> str:
+        return _("Enable Idling")
+
+    @property
+    def MENU_THEME(self) -> str:
+        return _("Theme")
+
+    @property
+    def MENU_THEME_TWEAKS(self) -> str:
+        return _("Theme Tweaks")
+
+    @property
     def MENU_UNDO(self) -> str:
         return _("Undo")
 
