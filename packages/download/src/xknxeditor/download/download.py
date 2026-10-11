@@ -187,6 +187,7 @@ async def download(
     expected_descriptor: int | None = None,
     security: DeviceSecurity | None = None,
     commission: bool = False,
+    commission_serial_number: bytes | None = None,
     progress: Callable[[int, int], None] | None = None,
 ) -> None:
     """Download ``application`` into the device at ``individual_address``.
@@ -213,9 +214,10 @@ async def download(
     ``commission`` enables full-download commissioning of a virgin device: for a
     :data:`~.scope.DownloadScope.FULL` download, if no device answers at
     ``individual_address``, the address is written to the single device currently
-    in programming mode before the application is downloaded. Without it, the
-    device must already carry ``individual_address`` (a partial download always
-    requires that). ``xknx`` has to be started.
+    in programming mode before the application is downloaded - or, with
+    ``commission_serial_number``, to the device with that KNX serial number.
+    Without it, the device must already carry ``individual_address`` (a partial
+    download always requires that). ``xknx`` has to be started.
 
     A :data:`~.scope.DownloadScope.UNLOAD_ALL` download runs the Unload procedure
     over the device address and then resets the individual address to the default
@@ -242,12 +244,17 @@ async def download(
     ):
         logger.info(
             "download: no device answered at %s; assigning the address to the "
-            "device in programming mode",
+            "device %s",
             address,
+            "by serial number"
+            if commission_serial_number is not None
+            else "in programming mode",
         )
         from .commissioning import program_individual_address
 
-        await program_individual_address(xknx, address)
+        await program_individual_address(
+            xknx, address, serial_number=commission_serial_number
+        )
     adapted = await _device_association_format(xknx, address, security, image, scope)
     if adapted is not image:
         image = adapted

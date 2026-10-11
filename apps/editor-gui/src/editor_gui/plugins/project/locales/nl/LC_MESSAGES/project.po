@@ -830,3 +830,18 @@ msgstr "Het apparaat heeft al het individuele adres {address}."
 
 msgid "Please press the programming button"
 msgstr "Druk op de programmeerknop"
+
+msgid "Individual Address via Serial Number"
+msgstr "Individueel adres via serienummer"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "Hiermee wordt het individuele adres {address} geschreven naar het apparaat met het serienummer {serial}. De programmeerknop hoeft niet te worden ingedrukt."
+
+msgid "Use Serial Number"
+msgstr "Serienummer gebruiken"
+
+msgid "The serial number is already associated with device {device}."
+msgstr "Het serienummer is al gekoppeld aan apparaat {device}."
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "Voer het serienummer in als 12 hexadecimale cijfers, bijv. 0083:7AA2039C."

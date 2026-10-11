@@ -21,3 +21,6 @@ msgstr "Verbonden met {ip}"
 
 msgid "Disconnected"
 msgstr "Niet verbonden"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Serienummer gebruiken voor downloads"

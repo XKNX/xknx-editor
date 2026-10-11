@@ -1,6 +1,7 @@
 import threading
 import webbrowser
 from collections.abc import Callable
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import structlog
@@ -10,7 +11,12 @@ from xknx.telegram import IndividualAddress
 
 from editor_gui import doc_links
 from editor_gui.device import ComObject, Device
-from editor_gui.device_info import firmware_text
+from editor_gui.device_info import (
+    firmware_text,
+    parse_serial_text,
+    serial_from_project,
+    serial_text,
+)
 from editor_gui.device_plugins import device_plugins
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
@@ -86,6 +92,16 @@ def _reset_presets() -> list[tuple[str, int]]:
     ]
 
 
+@dataclass(frozen=True, slots=True)
+class ProgramRequest:
+    """A confirmed Program press: the scope and the choices made in its confirmation."""
+
+    scope: DownloadScope
+    without_plugin: bool = False
+    current_address: str | None = None
+    use_serial_number: bool = False
+
+
 class ConfigurePanel:
     def __init__(
         self,
@@ -103,8 +119,7 @@ class ConfigurePanel:
         on_unlink_com_object: Callable[[int], None],
         on_auto_create_gas: Callable[[Device, list[ComObject], str, str], None],
         get_device_info: "Callable[[int], DeviceInfo | None]",
-        on_program_device: Callable[[Device, DownloadScope, bool, str | None], None]
-        | None = None,
+        on_program_device: Callable[[Device, ProgramRequest], None] | None = None,
         on_eval_device: Callable[[Device, DownloadScope], None] | None = None,
         open_memory_preview: Callable[[Device], None] | None = None,
         on_param_change_all: Callable[[Device, str, str], None] | None = None,
@@ -130,6 +145,9 @@ class ConfigurePanel:
         get_help: Callable[[Device, str], str | None] | None = None,
         get_icon: Callable[[Device, str], Icon | None] | None = None,
         get_picture: Callable[[Device, str], Picture | None] | None = None,
+        on_serial_number_change: Callable[[Device, bytes | None], None] | None = None,
+        use_serial_number_default: Callable[[], bool] | None = None,
+        find_serial_owner: Callable[[Device, bytes], str | None] | None = None,
     ) -> None:
         self._get_devices = get_devices
         self._get_selected_device = get_selected_device
@@ -205,6 +223,11 @@ class ConfigurePanel:
         # Confirmed to program a device whose hardware needs the manufacturer's plugin.
         self._program_without_plugin: bool = False
         self._overwrite_current_address = ""
+        self._program_use_serial = False
+        self._serial_buffer = ""
+        self._on_serial_number_change = on_serial_number_change
+        self._use_serial_number_default = use_serial_number_default
+        self._find_serial_owner = find_serial_owner
         self._render_dali = (
             render_dali  # DALI commissioning tab body (MDT DALI devices only)
         )
@@ -312,6 +335,10 @@ class ConfigurePanel:
                 self._confirm_program_open = False
                 self._program_without_plugin = False
                 self._overwrite_current_address = ""
+                self._program_use_serial = bool(
+                    self._use_serial_number_default
+                    and self._use_serial_number_default()
+                )
             self._render_program_confirm(device)
             if self._open_memory_preview is not None:
                 _same_line_if_fits(S.BTN_PREVIEW_MEMORY)
@@ -361,6 +388,10 @@ class ConfigurePanel:
             (S.CONFIGURE_INDIVIDUAL_ADDRESS, lambda: self._address_input(device)),
             (S.CONFIGURE_DESCRIPTION, lambda: self._description_input(device)),
         ]
+        if self._on_serial_number_change is not None:
+            fields.append(
+                (S.CONFIGURE_SERIAL_NUMBER, lambda: self._serial_input(device))
+            )
         avail = imgui.get_content_region_avail().x
         group_w = self._label_w + px(120)
         ncols = max(1, min(len(fields), int(avail // group_w) if group_w > 0 else 1))
@@ -431,6 +462,27 @@ class ConfigurePanel:
             and self._address_buffer != device.individual_address
         ):
             self._address_buffer = device.individual_address
+
+    def _project_serial(self, device: Device) -> bytes | None:
+        info = self._get_device_info(device.node_id)
+        return serial_from_project(info.serial_number) if info is not None else None
+
+    def _serial_input(self, device: Device) -> None:
+        stored = serial_text(self._project_serial(device)) or ""
+        imgui.set_next_item_width(-1)
+        _, self._serial_buffer = imgui.input_text_with_hint(
+            "##serial_number", "0000:00000000", self._serial_buffer
+        )
+        if imgui.is_item_deactivated_after_edit():
+            text = self._serial_buffer.strip()
+            serial = parse_serial_text(text) if text else None
+            if text and serial is None:
+                if self._notify is not None:
+                    self._notify(S.SERIAL_NUMBER_INVALID)
+            elif self._on_serial_number_change is not None:
+                self._on_serial_number_change(device, serial)
+        if not imgui.is_item_active() and self._serial_buffer != stored:
+            self._serial_buffer = stored
 
     def _render_action_row(self, device: Device) -> None:
         """A compact, always-visible row of the device's occasional actions (manual, read-out,
@@ -1165,7 +1217,19 @@ class ConfigurePanel:
             return
         scope = self._download_scope
         address = device.individual_address or "?"
-        if scope is DownloadScope.INDIVIDUAL_ADDRESS:
+        serial = (
+            self._project_serial(device)
+            if scope is DownloadScope.INDIVIDUAL_ADDRESS
+            else None
+        )
+        use_serial = serial is not None and self._program_use_serial
+        if use_serial:
+            imgui.text_wrapped(
+                S.PROGRAM_ADDRESS_SERIAL_TEXT.format(
+                    address=address, serial=serial_text(serial)
+                )
+            )
+        elif scope is DownloadScope.INDIVIDUAL_ADDRESS:
             imgui.text_wrapped(S.PROGRAM_ADDRESS_TEXT.format(address=address))
         elif scope is DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS:
             imgui.text_wrapped(S.PROGRAM_OVERWRITE_TEXT.format(address=address))
@@ -1174,6 +1238,21 @@ class ConfigurePanel:
                 S.PROGRAM_CONFIRM_TEXT.format(address=address, scope=scope.name)
             )
         imgui.spacing()
+        if serial is not None:
+            _, self._program_use_serial = imgui.checkbox(
+                S.PROGRAM_USE_SERIAL_NUMBER, self._program_use_serial
+            )
+            owner = (
+                self._find_serial_owner(device, serial)
+                if use_serial and self._find_serial_owner is not None
+                else None
+            )
+            if owner is not None:
+                imgui.text_colored(
+                    _PLUGIN_NOTICE_COLOR,
+                    S.SERIAL_NUMBER_ALREADY_USED.format(device=owner),
+                )
+            imgui.spacing()
         address_error: str | None = None
         current_address: str | None = None
         if scope is DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS:
@@ -1210,7 +1289,15 @@ class ConfigurePanel:
         )
         if imgui.button(S.BTN_PROGRAM_DEVICE, btn_w):
             if self._on_program_device is not None:
-                self._on_program_device(device, scope, plugin_required, current_address)
+                self._on_program_device(
+                    device,
+                    ProgramRequest(
+                        scope=scope,
+                        without_plugin=plugin_required,
+                        current_address=current_address,
+                        use_serial_number=use_serial,
+                    ),
+                )
             imgui.close_current_popup()
         imgui.end_disabled()
         imgui.same_line()

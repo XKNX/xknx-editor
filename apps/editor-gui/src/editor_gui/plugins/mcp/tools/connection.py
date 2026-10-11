@@ -85,6 +85,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
         return device, group_communication
 
+    def _project_serial(node_id: int) -> bytes | None:
+        from editor_gui.device_info import serial_from_project
+
+        info = ctx.run_locked(lambda: ctx.api.project.get_device_info(node_id))
+        return serial_from_project(info.serial_number) if info is not None else None
+
     @tool
     def connection_status() -> dict[str, Any]:
         """Current connection state and target."""
@@ -173,6 +179,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         timeout: float = 300.0,
         without_plugin: bool = False,
         current_address: str | None = None,
+        use_serial_number: bool = False,
     ) -> dict[str, Any]:
         """Download the device's application/parameters/links onto the bus (``timeout`` seconds).
 
@@ -200,6 +207,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
           ``current_address`` to the project address, without pressing its programming button (it
           is switched to programming mode remotely).
 
+        ``use_serial_number`` addresses the device by the serial number stored in the project
+        (project_set_serial_number) instead of programming mode: for INDIVIDUAL_ADDRESS, and for a
+        FULL download of a device that does not answer at its address yet.
+
         A device whose hardware is marked NoDownloadWithoutPlugin is refused unless
         ``without_plugin`` is set - only after the user explicitly confirmed programming it without
         the manufacturer's plugin, which may leave it misconfigured."""
@@ -207,6 +218,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         resolved = _resolve_scope(scope)
         if resolved.name == "OVERWRITE_INDIVIDUAL_ADDRESS" and not current_address:
             raise ToolError("OVERWRITE_INDIVIDUAL_ADDRESS needs current_address")
+        serial = None
+        if use_serial_number:
+            if resolved.name not in ("INDIVIDUAL_ADDRESS", "FULL"):
+                raise ToolError(
+                    "use_serial_number applies to INDIVIDUAL_ADDRESS and FULL only"
+                )
+            serial = _project_serial(node_id)
+            if serial is None:
+                raise ToolError(
+                    f"device {node_id} has no serial number; set one with "
+                    "project_set_serial_number"
+                )
         if (
             device.download_plugin_required
             and not without_plugin
@@ -223,6 +246,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             group_communication,
             without_plugin=without_plugin,
             current_address=current_address,
+            serial_number=serial,
         )
         if future is None:
             raise ToolError("programming could not be scheduled (no connection)")

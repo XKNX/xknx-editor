@@ -12,6 +12,11 @@ from unittest.mock import MagicMock
 import pytest
 
 import xknxeditor.download.commissioning as commissioning
+from editor_gui.device_info import (
+    parse_serial_text,
+    serial_from_project,
+    serial_to_project,
+)
 from editor_gui.plugins.connection.service import ConnectionService
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.configure import overwrite_current_address
@@ -110,3 +115,112 @@ def test_an_address_download_cannot_be_tested(monkeypatch: pytest.MonkeyPatch) -
 
     assert service.evaluate_device(_device(), DownloadScope.INDIVIDUAL_ADDRESS) is None
     assert service.busy_operation is None
+
+
+_SERIAL = bytes.fromhex("00837AA2039C")
+
+
+@pytest.mark.parametrize("text", ["0083:7AA2039C", "00837aa2039c", " 0083 7AA2 039C "])
+def test_serial_number_entry(text: str) -> None:
+    assert parse_serial_text(text) == _SERIAL
+
+
+@pytest.mark.parametrize("text", ["", "0083:7AA2039", "0083:7AA2039CX", "G0837AA2039C"])
+def test_invalid_serial_number_entry(text: str) -> None:
+    assert parse_serial_text(text) is None
+
+
+def test_serial_number_in_the_project_file_form() -> None:
+    assert serial_to_project(_SERIAL) == "AIN6ogOc"
+    assert serial_from_project("AIN6ogOc") == _SERIAL
+    assert serial_from_project("") is None
+    assert serial_from_project("not base64!") is None
+    assert serial_from_project("AAEC") is None
+
+
+def test_address_download_by_serial_number(monkeypatch: pytest.MonkeyPatch) -> None:
+    service, calls = _service(monkeypatch)
+
+    service.program_device(
+        _device(), DownloadScope.INDIVIDUAL_ADDRESS, serial_number=_SERIAL
+    )
+
+    ((_, kwargs),) = calls
+    assert kwargs["serial_number"] == _SERIAL
+
+
+def test_overwrite_ignores_a_serial_number(monkeypatch: pytest.MonkeyPatch) -> None:
+    service, calls = _service(monkeypatch)
+
+    service.program_device(
+        _device(),
+        DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS,
+        current_address="1.1.20",
+        serial_number=_SERIAL,
+    )
+
+    ((_, kwargs),) = calls
+    assert kwargs["serial_number"] is None
+
+
+def test_full_download_commissions_by_serial_number(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import editor_gui.programming as programming
+
+    service, _ = _service(monkeypatch)
+    downloads: list[dict[str, Any]] = []
+
+    async def fake_download_device(*args: Any, **kwargs: Any) -> None:
+        downloads.append(kwargs)
+
+    monkeypatch.setattr(programming, "download_device", fake_download_device)
+
+    service.program_device(_device(), DownloadScope.FULL, serial_number=_SERIAL)
+
+    (kwargs,) = downloads
+    assert kwargs["serial_number"] == _SERIAL
+
+
+def test_serial_number_downloads_are_on_by_default() -> None:
+    assert ConnectionService().use_serial_number
+
+
+def _read_serial(application: str, stored: bytes | None) -> MagicMock:
+    from editor_gui.device_info import DeviceInfo
+    from editor_gui.plugins.project.plugin import ProjectPlugin
+    from xknxeditor.recover import AppId
+
+    project = MagicMock()
+    plugin = SimpleNamespace(
+        _api=SimpleNamespace(project=project), _project_serial=lambda node_id: stored
+    )
+    device = SimpleNamespace(node_id=7, app=SimpleNamespace(id=application))
+    result = DeviceInfo(
+        individual_address="1.1.5",
+        serial_number=_SERIAL,
+        application=AppId(
+            manufacturer_id="M-00FA",
+            application_number=0xA012,
+            application_version=0x51,
+        ),
+    )
+    ProjectPlugin._store_read_serial(plugin, device, result)  # type: ignore[arg-type]  # pyright: ignore[reportPrivateUsage, reportArgumentType]
+    return project
+
+
+def test_read_from_device_stores_the_serial_number() -> None:
+    project = _read_serial("M-00FA_A-A012-51-9712", None)
+    project.set_device_commissioning.assert_called_once_with(
+        7, serial_number="AIN6ogOc"
+    )
+
+
+def test_read_from_device_keeps_an_unchanged_serial_number() -> None:
+    project = _read_serial("M-00FA_A-A012-51-9712", _SERIAL)
+    project.set_device_commissioning.assert_not_called()
+
+
+def test_read_from_device_ignores_another_product() -> None:
+    project = _read_serial("M-00FA_A-A099-10-0000", None)
+    project.set_device_commissioning.assert_not_called()

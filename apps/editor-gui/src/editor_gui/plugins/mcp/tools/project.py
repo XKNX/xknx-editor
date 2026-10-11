@@ -669,6 +669,31 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_set)
 
     @tool
+    def project_set_serial_number(node_id: int, serial_number: str) -> dict[str, Any]:
+        """Set a device's KNX serial number (12 hex digits, e.g. ``"0083:7AA2039C"``; ``""`` clears
+        it). Used to download its individual address by serial number."""
+        from editor_gui.device_info import (
+            parse_serial_text,
+            serial_text,
+            serial_to_project,
+        )
+
+        serial = parse_serial_text(serial_number) if serial_number.strip() else None
+        if serial_number.strip() and serial is None:
+            raise ToolError(
+                f"invalid serial number {serial_number!r}; expected 12 hex digits"
+            )
+
+        def _set() -> dict[str, Any]:
+            _require_device(node_id)
+            project.set_device_commissioning(
+                node_id, serial_number=serial_to_project(serial) if serial else ""
+            )
+            return {"node_id": node_id, "serial_number": serial_text(serial)}
+
+        return ctx.run_locked(_set)
+
+    @tool
     def project_set_com_object_flag(
         node_id: int, com_object_ref_id: str, flag: Flag, value: bool
     ) -> dict[str, Any]:

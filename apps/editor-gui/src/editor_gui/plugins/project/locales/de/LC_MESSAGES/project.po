@@ -1313,3 +1313,18 @@ msgstr "Das Gerät hat bereits die physikalische Adresse {address}."
 
 msgid "Please press the programming button"
 msgstr "Bitte die Programmiertaste drücken"
+
+msgid "Individual Address via Serial Number"
+msgstr "Physikalische Adresse über Seriennummer"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "Dies schreibt die physikalische Adresse {address} in das Gerät mit der Seriennummer {serial}. Seine Programmiertaste muss nicht gedrückt werden."
+
+msgid "Use Serial Number"
+msgstr "Seriennummer verwenden"
+
+msgid "The serial number is already associated with device {device}."
+msgstr "Die Seriennummer ist bereits dem Gerät {device} zugeordnet."
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "Die Seriennummer als 12 Hexadezimalziffern eingeben, z. B. 0083:7AA2039C."

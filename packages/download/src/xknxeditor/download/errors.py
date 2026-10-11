@@ -78,3 +78,7 @@ class ProgrammingModeError(DownloadError):
 
 class AddressInUseError(DownloadError):
     """The individual address to download is already used by another device."""
+
+
+class SerialNumberNotFoundError(DownloadError):
+    """No device answers to the serial number an address download is addressed to."""

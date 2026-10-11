@@ -11,7 +11,11 @@ from xknx.telegram.address import IndividualAddress
 
 import xknxeditor.download.commissioning as commissioning
 import xknxeditor.download.session as session
-from xknxeditor.download.errors import AddressInUseError, ProgrammingModeError
+from xknxeditor.download.errors import (
+    AddressInUseError,
+    ProgrammingModeError,
+    SerialNumberNotFoundError,
+)
 
 from .conftest import FakeDevice
 
@@ -276,4 +280,133 @@ async def test_verify_reads_the_descriptor_and_restarts(
 
     assert opened == [_NEW]
     assert any(isinstance(p, apci.DeviceDescriptorRead) for p in device.sent)
+    assert device.restarted
+
+
+_SERIAL = bytes.fromhex("00837AA2039C")
+
+
+def _fake_serial_bus(
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    found: IndividualAddress | None,
+    occupied: bool = False,
+) -> list[tuple[str, object]]:
+    calls: list[tuple[str, object]] = []
+
+    async def fake_serial_read(
+        xknx: XKNX, serial: bytes, timeout: float = 3
+    ) -> IndividualAddress | None:
+        calls.append(("serial_read", serial))
+        return found
+
+    async def fake_serial_write(
+        xknx: XKNX, serial: bytes, individual_address: IndividualAddress
+    ) -> None:
+        calls.append(("serial_write", (serial, individual_address)))
+
+    async def fake_check(xknx: XKNX, address: IndividualAddress) -> bool:
+        calls.append(("check", address))
+        return occupied
+
+    async def fake_read(*args: object, **kwargs: object) -> list[IndividualAddress]:
+        raise AssertionError("programming mode must not be used")
+
+    monkeypatch.setattr(
+        commissioning, "nm_individual_address_serial_number_read", fake_serial_read
+    )
+    monkeypatch.setattr(
+        commissioning, "nm_individual_address_serial_number_write", fake_serial_write
+    )
+    monkeypatch.setattr(commissioning, "nm_individual_address_check", fake_check)
+    monkeypatch.setattr(commissioning, "nm_individual_address_read", fake_read)
+    return calls
+
+
+async def test_download_by_serial_number(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = _fake_serial_bus(monkeypatch, found=IndividualAddress("15.15.255"))
+
+    serial = await commissioning.download_individual_address(
+        cast("XKNX", _XKNX()), _NEW, serial_number=_SERIAL
+    )
+
+    assert serial == _SERIAL
+    assert calls == [
+        ("serial_read", _SERIAL),
+        ("check", _NEW),
+        ("serial_write", (_SERIAL, _NEW)),
+    ]
+
+
+async def test_download_by_serial_number_device_not_found(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = _fake_serial_bus(monkeypatch, found=None)
+
+    with pytest.raises(SerialNumberNotFoundError, match="00837AA2039C"):
+        await commissioning.download_individual_address(
+            cast("XKNX", _XKNX()), _NEW, serial_number=_SERIAL
+        )
+    assert [c[0] for c in calls] == ["serial_read"]
+
+
+async def test_download_by_serial_number_refuses_an_address_in_use(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = _fake_serial_bus(
+        monkeypatch, found=IndividualAddress("15.15.255"), occupied=True
+    )
+
+    with pytest.raises(AddressInUseError):
+        await commissioning.download_individual_address(
+            cast("XKNX", _XKNX()), _NEW, serial_number=_SERIAL
+        )
+    assert all(c[0] != "serial_write" for c in calls)
+
+
+async def test_download_by_serial_number_already_has_the_address(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls = _fake_serial_bus(monkeypatch, found=_NEW, occupied=True)
+
+    await commissioning.download_individual_address(
+        cast("XKNX", _XKNX()), _NEW, serial_number=_SERIAL
+    )
+    assert [c[0] for c in calls] == ["serial_read"]
+
+
+async def test_overwrite_cannot_use_a_serial_number() -> None:
+    with pytest.raises(ValueError, match="current address"):
+        await commissioning.download_individual_address(
+            cast("XKNX", _XKNX()), _NEW, current_address=_CURRENT, serial_number=_SERIAL
+        )
+
+
+async def test_verify_returns_the_serial_number(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    device = FakeDevice(descriptor=0x07B0)
+    device.properties[(0, 11)] = _SERIAL
+    _use_device(monkeypatch, device)
+
+    serial = await commissioning._verify_and_restart(  # pyright: ignore[reportPrivateUsage]
+        cast("XKNX", _XKNX()), _NEW, None
+    )
+
+    assert serial == _SERIAL
+    assert device.restarted
+
+
+async def test_verify_does_not_read_a_serial_number_from_bcu1(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    device = FakeDevice(descriptor=0x0012)
+    _use_device(monkeypatch, device)
+
+    serial = await commissioning._verify_and_restart(  # pyright: ignore[reportPrivateUsage]
+        cast("XKNX", _XKNX()), _NEW, None
+    )
+
+    assert serial is None
+    assert not any(isinstance(p, apci.PropertyValueRead) for p in device.sent)
     assert device.restarted
