@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from xknx.exceptions import XKNXException
+from xknx.profile.const import ResourceObjectType
 
 from xknxeditor.download.errors import LoadStateError, VerificationError
 from xknxeditor.download.tables_systemb import association_table_wide
@@ -40,10 +41,6 @@ if TYPE_CHECKING:
     from xknxeditor.prod import Application
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 
-# Interface object types of the three group communication tables (KNX 3/5/1).
-_ADDRESS_TABLE_TYPE = 1
-_ASSOCIATION_TABLE_TYPE = 2
-_GROUP_OBJECT_TABLE_TYPE = 9
 # Memory-mapped com object table record layout (see download.image).
 _COM_OBJECT_HEADER = 5
 _COM_OBJECT_RECORD = 4
@@ -297,7 +294,7 @@ async def _read_system_b(
     linked_objects_only: bool = False,
 ) -> RawGroupCommunication:
     addr_base = await programmer.read_table_reference(
-        await programmer.locate_object(_ADDRESS_TABLE_TYPE)
+        await programmer.locate_object(ResourceObjectType.OBJECT_ADDRESS_TABLE)
     )
     addr_bytes = await _read_count_table(
         programmer, addr_base, count_width=2, entry_width=2
@@ -305,12 +302,12 @@ async def _read_system_b(
     group_addresses = decode_group_address_table_b(addr_bytes)
 
     assoc_base = await programmer.read_table_reference(
-        await programmer.locate_object(_ASSOCIATION_TABLE_TYPE)
+        await programmer.locate_object(ResourceObjectType.OBJECT_ASSOCIATION_TABLE)
     )
     # An association entry is [group address index + 1][group object number], with
     # one octet (format 0) or two octets (format 1) per field as the device reports.
     go_base = await programmer.read_table_reference(
-        await programmer.locate_object(_GROUP_OBJECT_TABLE_TYPE)
+        await programmer.locate_object(ResourceObjectType.OBJECT_GROUP_OBJECT_TABLE)
     )
     wide = await programmer.read_association_table_wide()
     if wide is None:

@@ -12,6 +12,8 @@ import contextlib
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+from xknx.profile.const import ResourceDevicePropertyId, ResourceGenericPropertyId
+
 from editor_gui.device import address_order
 
 # Import from the concrete modules: the package also has a ``preflight`` submodule,
@@ -51,12 +53,11 @@ def _address(device: Device) -> str:
     return device.individual_address
 
 
-# Standard Device Object (interface object 0) property ids used for the diagnosis readout.
-# PID_ERROR_CODE / PID_PROGMODE are the two the KNX standard makes universally readable without
-# any application knowledge (KNX 3/5/1, 3/7/3). PID_ERROR_CODE carries a DPT_ErrorClass_System
-# (DPT 20.011) value; PID_PROGMODE bit 0 is the programming-mode LED state.
-_PID_ERROR_CODE = 28
-_PID_PROGMODE = 54
+# PID_ERROR_CODE / PID_PROGMODE are the two Device Object properties the KNX standard makes
+# universally readable without any application knowledge. PID_ERROR_CODE carries a
+# DPT_ErrorClass_System (DPT 20.011) value; PID_PROGMODE bit 0 is the programming-mode LED state.
+_PID_ERROR_CODE = ResourceGenericPropertyId.PID_ERROR_CODE
+_PID_PROGMODE = ResourceDevicePropertyId.PID_PROGMODE
 
 # DPT_ErrorClass_System (20.011), values 0-18 per the KNX standard (03_07_02 Datapoint Types).
 _ERROR_CLASS: dict[int, str] = {

@@ -20,6 +20,11 @@ import logging
 from typing import TYPE_CHECKING, Protocol
 
 from xknx.exceptions import ManagementConnectionError
+from xknx.profile.const import (
+    ResourceDevicePropertyId,
+    ResourceGenericPropertyId,
+    ResourceObjectType,
+)
 from xknx.telegram.apci import (
     AuthorizeRequest,
     AuthorizeResponse,
@@ -78,16 +83,11 @@ FREE_ACCESS_KEY = 0xFFFFFFFF
 MAX_NEGOTIATED_APDU_LENGTH = 254
 # Upper bound for device communication through an interface.
 MAX_COMMUNICATION_APDU_LENGTH = 239
-# Device Object property carrying the device's maximum APDU length (2 octets).
-PID_MAX_APDU_LENGTH = 56
-# Property id carrying an interface object's type (PID_OBJECT_TYPE).
-PID_OBJECT_TYPE = 1
-# Property id carrying a loadable part's table base address (PID_TABLE_REFERENCE).
-PID_TABLE_REFERENCE = 7
-# Property id carrying a table object's table (PID_TABLE).
-PID_TABLE = 23
-# Interface object type of the Group Object Association Table (Associationtable Object).
-ASSOCIATION_TABLE_OBJECT_TYPE = 2
+PID_MAX_APDU_LENGTH = ResourceDevicePropertyId.PID_MAX_APDU_LENGTH
+PID_OBJECT_TYPE = ResourceGenericPropertyId.PID_OBJECT_TYPE
+PID_TABLE_REFERENCE = ResourceGenericPropertyId.PID_TABLE_REFERENCE
+PID_TABLE = ResourceGenericPropertyId.PID_TABLE
+ASSOCIATION_TABLE_OBJECT_TYPE = ResourceObjectType.OBJECT_ASSOCIATION_TABLE
 # Highest interface object index scanned when locating an object by type.
 _MAX_OBJECT_INDEX = 255
 # A_Memory_Read/Write carry a 16-bit address, so they only reach the first 64

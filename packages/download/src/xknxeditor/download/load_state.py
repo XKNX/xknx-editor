@@ -17,9 +17,10 @@ from __future__ import annotations
 
 from enum import IntEnum
 
-# Property id of the load state control property (PDT_CONTROL) and the number of
-# octets one control element occupies.
-PID_LOAD_STATE_CONTROL = 5
+from xknx.profile.const import ResourceGenericPropertyId
+
+PID_LOAD_STATE_CONTROL = ResourceGenericPropertyId.PID_LOAD_STATE_CONTROL
+# Number of octets one control element occupies.
 LOAD_STATE_CONTROL_SIZE = 10
 
 

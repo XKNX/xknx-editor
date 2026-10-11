@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Protocol
 
 from xknx.exceptions import XKNXException
+from xknx.profile.const import ResourceGenericPropertyId, ResourceObjectType
 
 from xknxeditor.download.errors import DownloadError, LoadStateError
 
@@ -22,10 +23,9 @@ if TYPE_CHECKING:
     from xknxeditor.catalog import ProductSummary
     from xknxeditor.download import DeviceProgrammer
 
-# Interface object type of the Application Program object (KNX 3/5/1 4.6).
-OBJECT_TYPE_APPLICATION_PROGRAM = 3
-# PID_PROGRAM_VERSION: 5 octets [manufacturer:2][app number:2][version:1].
-PID_PROGRAM_VERSION = 13
+OBJECT_TYPE_APPLICATION_PROGRAM = ResourceObjectType.OBJECT_APPLICATION_PROGRAM
+# 5 octets [manufacturer:2][app number:2][version:1].
+PID_PROGRAM_VERSION = ResourceGenericPropertyId.PID_PROGRAM_VERSION
 
 
 @dataclass(frozen=True, slots=True)
