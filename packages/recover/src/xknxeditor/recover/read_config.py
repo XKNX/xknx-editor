@@ -31,6 +31,7 @@ from .tables_decode import (
     decode_com_object_table,
     decode_group_address_table,
     decode_group_address_table_b,
+    decode_group_object_records_b,
     decode_group_object_table_b,
 )
 
@@ -95,12 +96,21 @@ def _highest_com_object_number(application: Application) -> int:
 
 
 async def read_group_communication(
-    programmer: DeviceProgrammer, application: Application
+    programmer: DeviceProgrammer,
+    application: Application,
+    *,
+    linked_objects_only: bool = False,
 ) -> RawGroupCommunication:
-    """Read and decode the three group communication tables from a device."""
+    """Read and decode the three group communication tables from a device.
+
+    With ``linked_objects_only``, a System B group object table is read only where the
+    association table links an object, instead of for every object number.
+    """
     if _is_memory_mapped(application):
         return await _read_memory_mapped(programmer, application)
-    return await _read_system_b(programmer, application)
+    return await _read_system_b(
+        programmer, application, linked_objects_only=linked_objects_only
+    )
 
 
 async def read_property_values(
@@ -267,8 +277,23 @@ async def _read_memory_mapped(
     )
 
 
+def _record_ranges(numbers: list[int], max_records: int) -> list[tuple[int, int]]:
+    """``(first, count)`` runs covering ``numbers``; nearby numbers share one run."""
+    ranges: list[tuple[int, int]] = []
+    for number in sorted(set(numbers)):
+        if ranges and number - ranges[-1][0] < max_records:
+            first, _ = ranges[-1]
+            ranges[-1] = (first, number - first + 1)
+        else:
+            ranges.append((number, 1))
+    return ranges
+
+
 async def _read_system_b(
-    programmer: DeviceProgrammer, application: Application
+    programmer: DeviceProgrammer,
+    application: Application,
+    *,
+    linked_objects_only: bool = False,
 ) -> RawGroupCommunication:
     addr_base = await programmer.read_table_reference(
         await programmer.locate_object(_ADDRESS_TABLE_TYPE)
@@ -298,10 +323,24 @@ async def _read_system_b(
     )
     # The group object table's count is the highest object number; every number
     # 1..highest has a two-octet record.
-    go_bytes = await _read_count_table(
-        programmer, go_base, count_width=2, entry_width=2
-    )
-    group_objects = decode_group_object_table_b(go_bytes)
+    if linked_objects_only:
+        highest = int.from_bytes(await programmer.read_memory(go_base, 2), "big")
+        linked = [
+            link.group_object_number
+            for link in links
+            if 1 <= link.group_object_number <= highest
+        ]
+        group_objects: dict[int, DecodedGroupObject] = {}
+        for first, count in _record_ranges(
+            linked, max(programmer.memory_chunk_size // 2, 1)
+        ):
+            data = await programmer.read_memory(go_base + first * 2, count * 2)
+            group_objects.update(decode_group_object_records_b(first, data))
+    else:
+        go_bytes = await _read_count_table(
+            programmer, go_base, count_width=2, entry_width=2
+        )
+        group_objects = decode_group_object_table_b(go_bytes)
 
     return RawGroupCommunication(
         device_address=None,

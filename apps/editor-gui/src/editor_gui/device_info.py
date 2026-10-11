@@ -195,14 +195,6 @@ async def read_device_info(
     try:
         programmer = DeviceProgrammer(connection)
         info.mask_version = await programmer.read_device_descriptor()
-        limit = MAX_COMMUNICATION_APDU_LENGTH
-        if interface_max_apdu is not None:
-            limit = min(limit, interface_max_apdu)
-        with contextlib.suppress(DownloadError, XKNXException):
-            device_max = await programmer.read_max_apdu_length()
-            programmer.max_apdu_length = max(
-                DEFAULT_MAX_APDU_LENGTH, min(device_max, limit)
-            )
         manufacturer = await _property(programmer, 0, _PID_MANUFACTURER_ID)
         info.manufacturer_id = (
             int.from_bytes(manufacturer, "big") if manufacturer else None
@@ -228,8 +220,19 @@ async def read_device_info(
             programmer, _GROUP_OBJECT_TABLE
         )
         if group_communication:
+            # Larger frames only pay off for the table reads.
+            limit = MAX_COMMUNICATION_APDU_LENGTH
+            if interface_max_apdu is not None:
+                limit = min(limit, interface_max_apdu)
+            with contextlib.suppress(DownloadError, XKNXException):
+                device_max = await programmer.read_max_apdu_length()
+                programmer.max_apdu_length = max(
+                    DEFAULT_MAX_APDU_LENGTH, min(device_max, limit)
+                )
             try:
-                tables = await read_group_communication(programmer, application)
+                tables = await read_group_communication(
+                    programmer, application, linked_objects_only=True
+                )
             except Exception as exc:
                 info.group_communication_error = str(exc) or type(exc).__name__
             else:

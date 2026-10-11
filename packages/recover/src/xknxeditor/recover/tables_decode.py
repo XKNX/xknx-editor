@@ -246,14 +246,22 @@ def decode_group_object_table_b(data: bytes) -> dict[int, DecodedGroupObject]:
     if len(data) < 2:
         raise TableDecodeError("empty System B group object table")
     highest = _u16(data, 0)
+    return decode_group_object_records_b(1, data[2 : 2 + highest * 2])
+
+
+def decode_group_object_records_b(
+    first_number: int, data: bytes
+) -> dict[int, DecodedGroupObject]:
+    """Decode consecutive System B ``[flags:1][size code:1]`` records from ``first_number`` on.
+
+    ``00 00`` slots (unlinked) are omitted.
+    """
     result: dict[int, DecodedGroupObject] = {}
-    for number in range(1, highest + 1):
-        offset = 2 + (number - 1) * 2
-        if offset + 2 > len(data):
-            break
-        flags = data[offset]
-        size = data[offset + 1]
+    for position in range(len(data) // 2):
+        flags = data[position * 2]
+        size = data[position * 2 + 1]
         if flags == 0 and size == 0:
             continue
+        number = first_number + position
         result[number] = _group_object(number, flags, size)
     return result

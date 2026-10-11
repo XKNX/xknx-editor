@@ -417,3 +417,13 @@ async def test_state_is_decoded_from_first_octet() -> None:
         await DeviceProgrammer(ResponseDevice()).send_load_event(
             1, start_loading(), LoadState.LOADING, retries=0
         )
+
+
+async def test_locate_object_reads_each_object_type_once() -> None:
+    device = FakeDevice(object_types={0: 0x0000, 1: 0x0001, 2: 0x0002, 3: 0x0009})
+    programmer = DeviceProgrammer(device)
+    assert await programmer.locate_object(0x0009) == 3
+    reads_before = len(device.sent)
+    assert await programmer.locate_object(0x0001) == 1
+    assert await programmer.locate_object(0x0002) == 2
+    assert len(device.sent) == reads_before

@@ -150,6 +150,8 @@ class DeviceProgrammer:
         self.max_apdu_length = max_apdu_length
         self.apdu_overhead = apdu_overhead
         self._object_index_cache: dict[tuple[int, int], int] = {}
+        # Object type per interface object index as read so far; None past the last object.
+        self._object_types: dict[int, int | None] = {}
         # Some devices cap an A_Memory_Read reply below the negotiated APDU. Once a
         # short reply reveals that cap, later reads request no more than it, so a
         # read never stalls re-asking oversized blocks.
@@ -781,13 +783,17 @@ class DeviceProgrammer:
             return cached
         ordinal = 0
         for index in range(_MAX_OBJECT_INDEX + 1):
-            try:
-                data = await self.read_property(index, PID_OBJECT_TYPE)
-            except (VerificationError, DownloadError):
+            if index in self._object_types:
+                found_type = self._object_types[index]
+            else:
+                try:
+                    data = await self.read_property(index, PID_OBJECT_TYPE)
+                except (VerificationError, DownloadError):
+                    break
+                found_type = int.from_bytes(data[:2], "big") if len(data) >= 2 else None
+                self._object_types[index] = found_type
+            if found_type is None:
                 break
-            if len(data) < 2:
-                break
-            found_type = int.from_bytes(data[:2], "big")
             if found_type == object_type:
                 if ordinal == occurrence:
                     self._object_index_cache[(object_type, occurrence)] = index
