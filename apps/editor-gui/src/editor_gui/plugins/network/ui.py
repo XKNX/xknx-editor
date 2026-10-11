@@ -244,14 +244,14 @@ class NetworkPanel:
             return
 
         imgui.table_setup_scroll_freeze(0, 1)
-        imgui.table_setup_column("Time", imgui.TableColumnFlags_.width_fixed, px(70))
-        imgui.table_setup_column("Source", imgui.TableColumnFlags_.width_fixed, px(60))
+        imgui.table_setup_column("Time", imgui.TableColumnFlags_.width_fixed, px(54))
+        imgui.table_setup_column("Source", imgui.TableColumnFlags_.width_fixed, px(63))
         # Wider so the resolved group-address name (project loaded) fits next to the address.
-        imgui.table_setup_column("Dest", imgui.TableColumnFlags_.width_fixed, px(160))
+        imgui.table_setup_column("Dest", imgui.TableColumnFlags_.width_fixed, px(234))
         imgui.table_setup_column("Value", imgui.TableColumnFlags_.width_stretch)
         # Technical columns last, after Value, so they never crowd it.
-        imgui.table_setup_column("TPCI", imgui.TableColumnFlags_.width_fixed, px(50))
-        imgui.table_setup_column("APCI", imgui.TableColumnFlags_.width_fixed, px(72))
+        imgui.table_setup_column("TPCI", imgui.TableColumnFlags_.width_fixed, px(36))
+        imgui.table_setup_column("APCI", imgui.TableColumnFlags_.width_fixed, px(40))
         imgui.table_headers_row()
 
         # ListClipper renders only the visible rows, so a full 10k-row capture costs O(visible)
