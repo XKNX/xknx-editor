@@ -796,3 +796,6 @@ msgstr "De fabrikant beheert een deel van de gegevens van dit apparaat met een e
 
 msgid "This device is also configured with separate software from the manufacturer."
 msgstr "Dit apparaat wordt ook geconfigureerd met afzonderlijke software van de fabrikant."
+
+msgid "The project contains the device configuration app “{name}” for this device; it cannot be run here."
+msgstr "Het project bevat de apparaatconfiguratie-app “{name}” voor dit apparaat; deze kan hier niet worden uitgevoerd."

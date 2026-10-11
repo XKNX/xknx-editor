@@ -239,6 +239,10 @@ class Device:
     download_plugin_required: bool = field(
         default=False, repr=False, compare=False, init=False
     )
+    # Name of a device configuration app the project carries for this device's application.
+    configuration_app: str | None = field(
+        default=None, repr=False, compare=False, init=False
+    )
     # UI frozen while a script changes this device's parameters on the script worker.
     _script_ui: list[UiNode] | None = field(
         default=None, repr=False, compare=False, init=False

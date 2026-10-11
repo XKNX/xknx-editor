@@ -313,6 +313,10 @@ class ConfigurePanel:
             )
             if shown
         ]
+        if plugins.configuration_app is not None:
+            notices.append(
+                S.PLUGIN_CONFIGURATION_APP.format(name=plugins.configuration_app)
+            )
         if not notices:
             return
         imgui.push_style_color(imgui.Col_.text, _PLUGIN_NOTICE_COLOR)

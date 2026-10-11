@@ -1895,6 +1895,12 @@ class ProjectStrings:
         )
 
     @property
+    def PLUGIN_CONFIGURATION_APP(self) -> str:
+        return _(
+            "The project contains the device configuration app “{name}” for this device; it cannot be run here."
+        )
+
+    @property
     def OPERATION_DOWNLOADING(self) -> str:
         return _("Downloading")
 
