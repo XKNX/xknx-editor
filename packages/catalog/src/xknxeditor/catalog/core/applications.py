@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -22,6 +23,8 @@ if TYPE_CHECKING:
         ApplicationProgram,
     )
     from xknxeditor.prod import Application as ProductApplication
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)
@@ -71,10 +74,18 @@ def get_application_xml(db: Session, program_id: str) -> tuple[bytes, str] | Non
     from xknxeditor.prod.archive import Archive
 
     manufacturer_id = program.hardware.manufacturer_id
-    archive = Archive(program.knxprod_path)
+    # Reads only the application XML, never Catalog.xml, so tolerate archives that omit it
+    # (product data embedded in a .knxproj — see upload_knxprod require_catalog).
+    archive = Archive(program.knxprod_path, require_catalog=False)
     with archive:
         xml_bytes = archive.get_application_xml(manufacturer_id, program.application_id)
         if xml_bytes is None:
+            logger.debug(
+                "application XML not in archive: program=%s app=%s archive=%s",
+                program_id,
+                program.application_id,
+                program.knxprod_path,
+            )
             return None
         return xml_bytes, manufacturer_id
 
@@ -134,9 +145,16 @@ def _load_application(
     from xknxeditor.prod import parse_application_xml
     from xknxeditor.prod.archive import Archive
 
-    with Archive(knxprod_path) as archive:
+    # Only the application XML is read (not Catalog.xml), so tolerate project-embedded archives.
+    with Archive(knxprod_path, require_catalog=False) as archive:
         xml_bytes = archive.get_application_xml(manufacturer_id, application_id)
     if xml_bytes is None:
+        logger.debug(
+            "application XML not in archive: app=%s manufacturer=%s archive=%s",
+            application_id,
+            manufacturer_id,
+            knxprod_path,
+        )
         return None
     apps = parse_application_xml(
         xml_bytes, manufacturer_id, language, cache_dir=cache_dir

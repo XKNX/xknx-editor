@@ -254,3 +254,58 @@ class TestPanelOnlineState:
         panel._fetch_online()  # error path keeps the list hidden, clears loading
         assert panel._online_error
         assert panel._online_shown  # a previous successful list stays visible
+
+
+class TestHttpErrorDetail:
+    """A 4xx response body (where the server explains the failure, e.g. a DownloadProduct 400)
+    must survive into the raised error instead of being reduced to a bare 'Bad Request' (#51)."""
+
+    def test_http_post_includes_status_and_server_body(self, monkeypatch) -> None:
+        import io
+        import urllib.error
+        import urllib.request
+
+        def _raise(request, timeout=None):
+            raise urllib.error.HTTPError(
+                request.full_url,
+                400,
+                "Bad Request",
+                {},
+                io.BytesIO(b"product requires an external plugin"),
+            )
+
+        monkeypatch.setattr(urllib.request, "urlopen", _raise)
+        with pytest.raises(OnlineCatalogError) as excinfo:
+            oc._http_post("https://example.test/Download/DownloadProduct", b"{}")
+        message = str(excinfo.value)
+        assert "400" in message
+        assert "Bad Request" in message
+        assert "product requires an external plugin" in message
+
+
+class TestDownloadProductUnwrap:
+    """The DownloadProduct response is a ZIP wrapping the real archive as 'products.knxprod' (plus
+    id-mapping.xml) - verified against the decompiled ETS downloader. The inner .knxprod must be
+    extracted before import (#51)."""
+
+    def _zip(self, entries: dict[str, bytes]) -> bytes:
+        import io
+        import zipfile
+
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, "w") as zf:
+            for name, data in entries.items():
+                zf.writestr(name, data)
+        return buf.getvalue()
+
+    def test_wrapper_zip_yields_inner_knxprod(self) -> None:
+        inner = self._zip({"knx_master.xml": b"<KNX/>", "M-0001/Hardware.xml": b"<x/>"})
+        wrapper = self._zip({"products.knxprod": inner, "id-mapping.xml": b"<m/>"})
+        assert oc._unwrap_products_knxprod(wrapper) == inner
+
+    def test_bare_knxprod_passed_through(self) -> None:
+        bare = self._zip({"knx_master.xml": b"<KNX/>", "M-0001/Hardware.xml": b"<x/>"})
+        assert oc._unwrap_products_knxprod(bare) == bare
+
+    def test_non_zip_passed_through(self) -> None:
+        assert oc._unwrap_products_knxprod(b"not a zip") == b"not a zip"

@@ -34,6 +34,7 @@ def _device_with_config(svc: ProjectService, pid: str) -> int:
         address=1,
         name="D",
         hardware2program_ref_id=OLD_H2P,
+        application_program_ref_id=OLD,
         parameters=[
             (f"{OLD}_P-1_R-1", "42"),  # carried
             (f"{OLD}_P-9_R-9", "7"),  # dropped (not in new app)
@@ -64,6 +65,8 @@ def test_update_keeps_params_links_and_drops_incompatible(tmp_path: Path):
     svc, pid = _new(tmp_path)
     device_id = _device_with_config(svc, pid)
 
+    assert svc.devices(pid)[0].application_program_ref_id == OLD  # captured on add
+
     ga = svc.create_group_address(pid, 0, 1, "GA")
     ga2 = svc.create_group_address(pid, 0, 2, "GA2")
     device = svc.devices(pid)[0]
@@ -78,6 +81,7 @@ def test_update_keeps_params_links_and_drops_incompatible(tmp_path: Path):
     device = svc.devices(pid)[0]
     assert device.product_ref_id == NEW_PRODUCT
     assert device.hardware2program_ref_id == NEW_H2P
+    assert device.application_program_ref_id == NEW  # fallback ref follows the repoint
     assert device.order_number == "ORD2"
 
     params = {p.ref_id: p.value for p in device.parameters}
@@ -104,6 +108,7 @@ def test_update_undo_restores_everything(tmp_path: Path):
     device = svc.devices(pid)[0]
     assert device.product_ref_id == OLD_PRODUCT
     assert device.hardware2program_ref_id == OLD_H2P
+    assert device.application_program_ref_id == OLD  # fallback ref restored on undo
     assert device.order_number == ""  # display restored
     assert {p.ref_id for p in device.parameters} == {
         f"{OLD}_P-1_R-1",
@@ -128,6 +133,7 @@ def test_module_refs_carried_unchanged(tmp_path: Path):
         address=1,
         name="D",
         hardware2program_ref_id=OLD_H2P,
+        application_program_ref_id=OLD,
         parameters=[("M-100_MI-1_P-2_R-2", "9")],  # module-scoped, not app-prefixed
     )
     assert device_id is not None

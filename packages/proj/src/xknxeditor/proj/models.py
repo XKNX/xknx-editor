@@ -245,6 +245,10 @@ class Device(Base):
     name: Mapped[str] = mapped_column(Text, nullable=False, default="")
     product_ref_id: Mapped[str] = mapped_column(String, nullable=False)
     hardware2program_ref_id: Mapped[str | None] = mapped_column(String)
+    # The device's application-program ref (``M-XXXX_A-...``), captured from the .knxproj. Used as a
+    # fallback to resolve the application when the hardware-program id is not in the catalog (old /
+    # reissued product ids): the application itself may still be present under its own id.
+    application_program_ref_id: Mapped[str | None] = mapped_column(String)
     # The building/room (Space) the device is placed in, if any.
     space_id: Mapped[int | None] = mapped_column(ForeignKey("spaces.id"), index=True)
     # The DeviceInstance ``<GroupObjectTree>`` (channel/folder grouping of the device's group

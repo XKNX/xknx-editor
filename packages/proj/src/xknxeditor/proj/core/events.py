@@ -259,6 +259,9 @@ class AddDevice(Event):
     name: str
     product_ref_id: str
     hardware2program_ref_id: str | None
+    # The application-program ref (``M-XXXX_A-...``), used as a resolution fallback when the hardware
+    # program is not in the catalog (see ProjectService._resolve_app). ``None`` = unknown.
+    application_program_ref_id: str | None = None
     parameters: list[list[str]] = field(default_factory=list[list[str]])
     # [ref_id, channel_id] per row (channel_id optional)
     com_objects: list[list[str | None]] = field(default_factory=list[list[str | None]])
@@ -281,6 +284,7 @@ class AddDevice(Event):
             name=self.name,
             product_ref_id=self.product_ref_id,
             hardware2program_ref_id=self.hardware2program_ref_id,
+            application_program_ref_id=self.application_program_ref_id,
             product_name=self.product_name,
             hardware_name=self.hardware_name,
             order_number=self.order_number,
@@ -323,6 +327,7 @@ class AddDevice(Event):
             "name": self.name,
             "product_ref_id": self.product_ref_id,
             "hardware2program_ref_id": self.hardware2program_ref_id,
+            "application_program_ref_id": self.application_program_ref_id,
             "parameters": self.parameters,
             "com_objects": self.com_objects,
             "module_instances": self.module_instances,
@@ -429,6 +434,9 @@ class UpdateDeviceApplication(Event):
         self.old_hardware2program_ref_id = device.hardware2program_ref_id
         device.product_ref_id = self.new_product_ref_id
         device.hardware2program_ref_id = self.new_hardware2program_ref_id
+        # Keep the application-ref fallback in step with the repoint, else a later failed
+        # hardware-program lookup would resolve the OLD application against new parameter refs.
+        device.application_program_ref_id = self.new_app_id
 
         self.old_display = {col: getattr(device, col) for col in self._DISPLAY_COLS}
         new_display = {
@@ -482,6 +490,7 @@ class UpdateDeviceApplication(Event):
         if self.old_product_ref_id is not None:
             device.product_ref_id = self.old_product_ref_id
         device.hardware2program_ref_id = self.old_hardware2program_ref_id
+        device.application_program_ref_id = self.old_app_id
         if self.old_display is not None:
             for col, value in self.old_display.items():
                 setattr(device, col, value)

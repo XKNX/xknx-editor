@@ -15,11 +15,13 @@ are also anonymous, so the GUI can browse and download products without a MyKnx 
 
 from __future__ import annotations
 
+import io
 import json
 import threading
 import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
+import zipfile
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
@@ -71,6 +73,9 @@ class OnlineCatalogItem:
     manufacturer_name: str = ""
     application_version: int | None = None  # application program version, e.g. 40
     application_program_name: str = ""  # e.g. "Dimmen 4fach, HSV/RGBW LED, REG"
+    download_block_reason: str = (
+        ""  # why the online download is refused (empty = downloadable)
+    )
 
 
 @dataclass(frozen=True)
@@ -122,11 +127,48 @@ def parse_manufacturer_names(xml_bytes: bytes) -> dict[int, str]:
 _USER_AGENT = "xknx-editor/0.1"
 
 
+def _unwrap_products_knxprod(response: bytes) -> bytes:
+    """The DownloadProduct response is a ZIP wrapping the real archive as ``products.knxprod`` (plus
+    an ``id-mapping.xml``). Return the inner ``.knxprod`` bytes. If the response is already a bare
+    ``.knxprod`` (a ZIP with ``knx_master.xml`` at the root and no wrapper entry), return it
+    unchanged, so this stays safe whatever shape the server sends."""
+    try:
+        with zipfile.ZipFile(io.BytesIO(response)) as zf:
+            inner = next(
+                (
+                    n
+                    for n in zf.namelist()
+                    if n.rsplit("/", 1)[-1] == "products.knxprod"
+                ),
+                None,
+            )
+            if inner is not None:
+                return zf.read(inner)
+    except zipfile.BadZipFile:
+        pass  # not a ZIP at all -> let the caller's import surface a clear error
+    return response
+
+
+def _http_error_detail(exc: urllib.error.HTTPError) -> str:
+    """The server's error-response body (truncated), where a 4xx explains itself. ``urllib`` would
+    otherwise reduce it to a bare ``reason`` like 'Bad Request', hiding the actual cause."""
+    try:
+        body = exc.read(2048).decode("utf-8", "replace").strip()
+    except Exception:
+        return ""
+    body = " ".join(body.split())  # collapse whitespace/newlines for a one-line log
+    return f" - {body}" if body else ""
+
+
 def _http_get(url: str) -> bytes:
     request = urllib.request.Request(url, headers={"User-Agent": _USER_AGENT})
     try:
         with urllib.request.urlopen(request, timeout=_TIMEOUT_SECONDS) as response:
             return response.read()
+    except urllib.error.HTTPError as exc:
+        raise OnlineCatalogError(
+            f"{url}: {exc.code} {exc.reason}{_http_error_detail(exc)}"
+        ) from exc
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         reason = getattr(exc, "reason", None) or exc
         raise OnlineCatalogError(f"{url}: {reason}") from exc
@@ -142,6 +184,10 @@ def _http_post(url: str, body: bytes, content_type: str = "application/json") ->
     try:
         with urllib.request.urlopen(request, timeout=_TIMEOUT_SECONDS) as response:
             return response.read()
+    except urllib.error.HTTPError as exc:
+        raise OnlineCatalogError(
+            f"{url}: {exc.code} {exc.reason}{_http_error_detail(exc)}"
+        ) from exc
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
         reason = getattr(exc, "reason", None) or exc
         raise OnlineCatalogError(f"{url}: {reason}") from exc
@@ -172,6 +218,24 @@ def _app_version(app_ident: object) -> int | None:
             except ValueError:
                 return None
     return None
+
+
+def _download_block_reason(entry: dict[str, object]) -> str:
+    """Why the online catalog refuses to serve this product's ``.knxprod`` (empty = downloadable).
+
+    The index entry carries download-gating flags; the server additionally rejects end-of-life /
+    not-in-any-market products at download time (DownloadNotAllowedException in the decompiled ETS),
+    so flag those up front too when the index exposes them."""
+    if bool(_ci_get(entry, "NoDownloadWithoutPlugin")):
+        return "requires an ETS plugin"
+    if bool(_ci_get(entry, "RequiresExternalSoftware")):
+        return "requires external software"
+    if bool(_ci_get(entry, "DownloadInfoIncomplete")):
+        return "download information is incomplete"
+    life = _ci_get(entry, "CatalogLifeType")
+    if life == 2 or str(life or "").casefold() == "endoflife":
+        return "product is end-of-life"
+    return ""
 
 
 def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
@@ -213,17 +277,13 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
                 or cid
             )
             order = _ci_get(entry, "OrderNumber") or ""
-            downloadable = not (
-                bool(_ci_get(entry, "NoDownloadWithoutPlugin"))
-                or bool(_ci_get(entry, "DownloadInfoIncomplete"))
-                or bool(_ci_get(entry, "RequiresExternalSoftware"))
-            )
+            block_reason = _download_block_reason(entry)
             items.append(
                 OnlineCatalogItem(
                     id=cid,
                     name=str(name),
                     order_number=str(order),
-                    downloadable=downloadable,
+                    downloadable=not block_reason,
                     manufacturer_id=mfr_id,
                     manufacturer_name=mfr_name,
                     application_version=_app_version(
@@ -232,6 +292,7 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
                     application_program_name=str(
                         _ci_get(entry, "ApplicationProgramName") or ""
                     ),
+                    download_block_reason=block_reason,
                 )
             )
     items.sort(key=lambda i: i.name.lower())
@@ -249,6 +310,7 @@ def _item_to_dict(item: OnlineCatalogItem) -> dict[str, object]:
         "mname": item.manufacturer_name,
         "ver": item.application_version,
         "appname": item.application_program_name,
+        "dl_reason": item.download_block_reason,
     }
 
 
@@ -263,6 +325,7 @@ def _item_from_dict(d: dict[str, object]) -> OnlineCatalogItem:
         manufacturer_name=str(d.get("mname") or ""),
         application_version=ver if isinstance(ver, int) else None,
         application_program_name=str(d.get("appname") or ""),
+        download_block_reason=str(d.get("dl_reason") or ""),
     )
 
 
@@ -366,14 +429,19 @@ class OnlineCatalogClient:
         """Download a ``.knxprod`` bundle for the given catalog items.
 
         Mirrors the ``POST Download/DownloadProduct`` endpoint with a JSON body
-        ``{"CatalogIds": [...], "LanguageIds": [...]}``; the response is the ``.knxprod`` archive.
+        ``{"CatalogIds": [...], "LanguageIds": [...]}``. The response is a ZIP that WRAPS the actual
+        ``.knxprod`` as an entry named ``products.knxprod`` (alongside an ``id-mapping.xml``), so the
+        inner archive is extracted before returning (verified against the decompiled ETS downloader).
         """
         if not catalog_item_ids:
             raise OnlineCatalogError("no catalog item ids given")
         body = json.dumps(
             {"CatalogIds": catalog_item_ids, "LanguageIds": language_ids or ["en-US"]}
         ).encode("utf-8")
-        return _http_post(f"{self._base_url}/Download/DownloadProduct", body)
+        response = _http_post(
+            f"{self._base_url}/Download/DownloadProduct", body, content_type="text/json"
+        )
+        return _unwrap_products_knxprod(response)
 
     def _fetch_locked(self) -> list[OnlineManufacturer]:
         ids = parse_manufacturer_ids(

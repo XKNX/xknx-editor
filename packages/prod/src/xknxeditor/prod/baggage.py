@@ -39,7 +39,9 @@ class Baggages:
 
     @classmethod
     def from_archive(cls, path: str | Path, manufacturer_id: str) -> Baggages:
-        with Archive(Path(path)) as archive:
+        # Baggages (help/icons/pictures) do not need Catalog.xml, so tolerate archives that omit it
+        # (product data embedded in a .knxproj - see Archive require_catalog).
+        with Archive(Path(path), require_catalog=False) as archive:
             return cls(archive.get_baggages(manufacturer_id))
 
     def file(self, baggage_id: str) -> bytes | None:

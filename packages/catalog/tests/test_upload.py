@@ -52,3 +52,58 @@ def test_reimport_rewrites_missing_store_file(tmp_path: Path) -> None:
         f.unlink()
     path = svc.import_knxprod(content)
     assert path.exists()
+
+
+def _project_shaped(content: bytes) -> bytes:
+    """Re-zip a .knxprod the way ETS embeds product data in a .knxproj: drop every ``Catalog.xml``
+    AND the application XMLs, keeping ``Hardware.xml`` (whose programs still reference an application
+    that is now absent). Exercises the missing-application-FK path."""
+    import io
+    import zipfile
+
+    buffer = io.BytesIO()
+    with (
+        zipfile.ZipFile(io.BytesIO(content)) as src,
+        zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as out,
+    ):
+        for name in src.namelist():
+            if name.endswith("/Catalog.xml"):
+                continue
+            if "_A-" in name and name.endswith(".xml"):  # an application program XML
+                continue
+            out.writestr(name, src.read(name))
+    return buffer.getvalue()
+
+
+def test_project_mode_ingest_tolerates_missing_application_xml(tmp_path: Path) -> None:
+    """A .knxproj's Hardware.xml lists programs whose application XML is not embedded. Ingesting with
+    require_catalog=False must still succeed: writing a HardwareProgram.application_id pointing at an
+    absent application would violate the FK and roll back the whole ingest (every device unresolved).
+    """
+    svc = CatalogService(tmp_path / "cat.xknxcatalog")
+    svc.import_knxprod(_project_shaped(_FIXTURE.read_bytes()), require_catalog=False)
+    present, programs = svc.manufacturer_catalog_status("M-0008")
+    assert present and programs > 0  # hardware programs ingested, no IntegrityError
+
+
+def test_project_mode_does_not_downgrade_existing_full_product(tmp_path: Path) -> None:
+    """A full .knxprod (with Catalog.xml + baggages) imported first must NOT be downgraded when a
+    leaner project archive (same program id, require_catalog=False) is imported afterwards: the
+    program keeps pointing at the full archive so help/icons and the application stay resolvable."""
+    svc = CatalogService(tmp_path / "cat.xknxcatalog")
+    full = _FIXTURE.read_bytes()
+    svc.import_knxprod(full)
+    products = svc.list_products()
+    assert products, "full import should list catalog products"
+    program_id = products[0].hardware2program_ref_id
+    full_source = svc.get_program_source(program_id)
+    full_app = svc.get_program_application_id(program_id)
+    assert full_source is not None and full_app is not None
+
+    # Now import the same product in project-mode shape (no Catalog.xml / no app XMLs).
+    svc.import_knxprod(_project_shaped(full), require_catalog=False)
+
+    assert svc.get_program_source(program_id) == full_source  # source NOT downgraded
+    assert (
+        svc.get_program_application_id(program_id) == full_app
+    )  # application NOT nulled

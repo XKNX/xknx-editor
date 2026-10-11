@@ -1393,6 +1393,8 @@ def _build_device(xdevice: DeviceInstance, state: _ImportState) -> Device:
         name=xdevice.name,
         product_ref_id=xdevice.product_ref,
         hardware2program_ref_id=xdevice.hardware_program_ref,
+        application_program_ref_id=getattr(xdevice, "application_program_ref", None)
+        or None,
         description=xdevice.description,
         comment=state.extras.device_comment.get(xdevice.identifier, ""),
         last_modified=getattr(xdevice, "last_modified", None),

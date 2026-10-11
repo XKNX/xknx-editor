@@ -45,7 +45,10 @@ def _ingest_applications(session: Session, reg: Registry) -> None:
         )
 
 
-def _ingest_hardware(session: Session, reg: Registry, knxprod_path: str) -> None:
+def _ingest_hardware(
+    session: Session, reg: Registry, knxprod_path: str, project_mode: bool
+) -> None:
+    known_app_ids = set(reg.applications)
     for mfr_id, hardware_ids in reg.manufacturer_to_hardware.items():
         for hardware_id in hardware_ids:
             hw = reg.hardware[hardware_id]
@@ -73,13 +76,30 @@ def _ingest_hardware(session: Session, reg: Registry, knxprod_path: str) -> None
                 )
             )
             for program in reg.programs_for_hardware(hardware_id).values():
-                _ingest_program(session, hw.id, program, knxprod_path)
+                _ingest_program(
+                    session, hw.id, program, knxprod_path, known_app_ids, project_mode
+                )
 
 
 def _ingest_program(
-    session: Session, hardware_id: str, program: DeviceProgram, knxprod_path: str
+    session: Session,
+    hardware_id: str,
+    program: DeviceProgram,
+    knxprod_path: str,
+    known_app_ids: set[str],
+    project_mode: bool,
 ) -> None:
-    app_id = program.application_ref_ids[0] if program.application_ref_ids else None
+    # Only reference an application that was actually ingested. Project-embedded product data
+    # (.knxproj) ships Hardware.xml listing every program but only the application XMLs the project
+    # uses, so a program may name an absent app; writing that id would violate the FK
+    # (applications.id) and roll back the whole ingest.
+    app_id = next((a for a in program.application_ref_ids if a in known_app_ids), None)
+
+    if project_mode and session.get(HardwareProgram, program.id) is not None:
+        # Already ingested (e.g. from a full .knxprod carrying Catalog.xml + baggages). A leaner
+        # project archive must not overwrite it: that would downgrade the source path and could null
+        # a resolved application_id. Project-mode ingest only ADDS programs that are missing.
+        return
 
     reg_status = reg_number = reg_date = None
     info = program.raw.registration_info
@@ -133,8 +153,14 @@ def _ingest_catalog(session: Session, reg: Registry) -> None:
                     )
 
 
-def upload_knxprod(content: bytes, dest_dir: Path, engine: Engine) -> Path:
+def upload_knxprod(
+    content: bytes, dest_dir: Path, engine: Engine, *, require_catalog: bool = True
+) -> Path:
     """Ingest .knxprod bytes into the database behind ``engine``. Returns the path where the file was saved.
+
+    ``require_catalog=False`` ingests product data embedded in a ``.knxproj`` (which omits
+    ``Catalog.xml``): hardware and applications are stored so devices resolve, only the catalog
+    browse index is absent for those manufacturers.
 
     Idempotent: skips the ingest only when this content is already IN THE DATABASE (a hardware
     program referencing its stored path exists), not merely when the stored file is present. This
@@ -149,7 +175,7 @@ def upload_knxprod(content: bytes, dest_dir: Path, engine: Engine) -> Path:
             is not None
         )
         if not in_db:
-            registry = load(content)
+            registry = load(content, require_catalog=require_catalog)
             logger.debug(
                 "catalog import: %d bytes, %d manufacturers, %d hardware",
                 len(content),
@@ -158,7 +184,9 @@ def upload_knxprod(content: bytes, dest_dir: Path, engine: Engine) -> Path:
             )
             _ingest_manufacturers(session, registry)
             _ingest_applications(session, registry)
-            _ingest_hardware(session, registry, str(path))
+            _ingest_hardware(
+                session, registry, str(path), project_mode=not require_catalog
+            )
             _ingest_catalog(session, registry)
             # Write the file BEFORE committing so a committed row never references a missing
             # archive (resolution reads it by path). A stray file from a failed commit is

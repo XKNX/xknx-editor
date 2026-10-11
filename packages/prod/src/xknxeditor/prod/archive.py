@@ -19,16 +19,31 @@ APPLICATION_PATTERN = re.compile(r"^M-[0-9A-Fa-f]{4}_A-.+\.xml$")
 class Archive:
     """Reads .knxprod archives holding KNX device definitions."""
 
-    __slots__ = ("_entries", "_manufacturer_ids", "_source_holder", "_zipfile")
+    __slots__ = (
+        "_entries",
+        "_manufacturer_ids",
+        "_require_catalog",
+        "_source_holder",
+        "_zipfile",
+    )
 
     _zipfile: zipfile.ZipFile
     _source_holder: io.BytesIO | None
     _entries: set[str]  # every path in the archive
     _manufacturer_ids: set[str]
+    _require_catalog: bool
 
-    def __init__(self, source: str | Path | bytes) -> None:
-        """Open an archive from a path or raw bytes."""
+    def __init__(
+        self, source: str | Path | bytes, *, require_catalog: bool = True
+    ) -> None:
+        """Open an archive from a path or raw bytes.
+
+        ``require_catalog`` enforces a ``Catalog.xml`` per manufacturer (true for a genuine
+        ``.knxprod``). Product data embedded in a ``.knxproj`` omits ``Catalog.xml`` (only
+        ``Hardware.xml`` + the used application XMLs), so pass ``False`` to ingest that.
+        """
         self._source_holder = None
+        self._require_catalog = require_catalog
 
         if isinstance(source, bytes):
             self._source_holder = io.BytesIO(source)
@@ -69,13 +84,19 @@ class Archive:
             raise ArchiveError("Missing required file: knx_master.xml")
 
         for manufacturer_id in self._manufacturer_ids:
-            catalog_path = f"{manufacturer_id}/Catalog.xml"
-            if catalog_path not in self._entries:
-                raise ArchiveError(f"Missing required file: {catalog_path}")
+            if self._require_catalog:
+                catalog_path = f"{manufacturer_id}/Catalog.xml"
+                if catalog_path not in self._entries:
+                    raise ArchiveError(f"Missing required file: {catalog_path}")
 
             hardware_path = f"{manufacturer_id}/Hardware.xml"
             if hardware_path not in self._entries:
                 raise ArchiveError(f"Missing required file: {hardware_path}")
+
+    def has_catalog(self, manufacturer_id: str) -> bool:
+        """Whether this manufacturer ships a ``Catalog.xml`` (project-embedded data omits it)."""
+        self._validate_manufacturer_id(manufacturer_id)
+        return f"{manufacturer_id}/Catalog.xml" in self._entries
 
     @property
     def manufacturer_ids(self) -> set[str]:

@@ -786,18 +786,6 @@ class ProjectService:
                 dest=str(dest),
                 encrypted=password is not None,
             )
-            try:
-                added = self._catalog.import_knxprod(source)
-                self._log.info("catalog updated from knxproj", added=len(added))
-            except Exception as e:
-                # Best effort: catalog ingest is optional enrichment (it lets the device view resolve
-                # applications). Any failure here — including product-parser bugs on odd archives —
-                # must not block the project import; topology and group addresses still load.
-                self._log.warning(
-                    "could not populate catalog from knxproj",
-                    source=str(source),
-                    error=f"{type(e).__name__}: {e}",
-                )
             tmp = working.with_name(f"{working.name}.import-{os.getpid()}.tmp")
             try:
                 # Parse + write into a sibling temp of the WORKING file (never next to a network
@@ -809,6 +797,19 @@ class ProjectService:
                     source=str(source),
                     temp=str(tmp),
                 )
+                # Enrich the catalog from the embedded product data only AFTER a successful parse
+                # (the password is validated above), so a wrong password / failed import never
+                # mutates the catalog. Best effort: topology and group addresses load regardless, and
+                # any parser bug on odd product data must not block the project import.
+                try:
+                    added = self._catalog.import_project_products(source)
+                    self._log.info("catalog updated from knxproj", added=len(added))
+                except Exception as e:
+                    self._log.warning(
+                        "could not populate catalog from knxproj",
+                        source=str(source),
+                        error=f"{type(e).__name__}: {e}",
+                    )
                 # If we are overwriting the working file the live service currently has open, tear it
                 # down first so no engine holds its inode when we replace it (old-inode/new-file +
                 # pooled-connection hazard). A different working file needs no early close — open()
@@ -918,23 +919,58 @@ class ProjectService:
         """Monotonic counter bumped on every edit/undo/redo — for cheap change detection."""
         return self._version
 
-    def _resolve_app(self, program_ref: str | None) -> Application | None:
-        if program_ref is None:
-            return None
-        cached = self._app_cache.get(program_ref)
-        if cached is not None:
-            return cached
-        # Through the hardware program itself: a program loads its application whether or not a
-        # catalog item lists it.
-        app_id = self._catalog.get_program_application_id(program_ref)
-        app = self._catalog.get_application(app_id) if app_id else None
-        if app is not None:
-            self._app_cache[program_ref] = app
-        return app
+    def _resolve_app(
+        self, program_ref: str | None, application_ref: str | None = None
+    ) -> Application | None:
+        if program_ref is not None:
+            cached = self._app_cache.get(program_ref)
+            if cached is not None:
+                return cached
+            # Through the hardware program itself: a program loads its application whether or not a
+            # catalog item lists it.
+            app_id = self._catalog.get_program_application_id(program_ref)
+            if app_id is not None:
+                app = self._catalog.get_application(app_id)
+                if app is not None:
+                    self._app_cache[program_ref] = app
+                    return app
+                # The program is known but its application could not be loaded (app XML missing from
+                # the stored archive, or a parser failure) - see the catalog logs for the cause.
+                self._log.debug(
+                    "resolve app: application not loadable",
+                    program=program_ref,
+                    app=app_id,
+                )
+            else:
+                self._log.debug(
+                    "resolve app: hardware program not in catalog",
+                    program=program_ref,
+                    hint=self._catalog.program_resolution_hint(program_ref),
+                )
+        # Fallback: resolve by the device's exact application-program ref. ETS resolves a device via
+        # Hardware2ProgramRef -> ApplicationProgramRef; when the hardware program is not in the
+        # catalog (old / reissued ids), the application itself may still be present under its own id.
+        if application_ref is not None:
+            cached = self._app_cache.get(application_ref)
+            if cached is not None:
+                return cached
+            app = self._catalog.get_application(application_ref)
+            if app is not None:
+                self._app_cache[application_ref] = app
+                self._log.debug(
+                    "resolve app: resolved via application ref fallback",
+                    program=program_ref,
+                    application=application_ref,
+                )
+                return app
+        return None
 
     def _build_device(self, row: Any) -> Device | None:
         try:
-            app = self._resolve_app(row.hardware2program_ref_id)
+            app = self._resolve_app(
+                row.hardware2program_ref_id,
+                getattr(row, "application_program_ref_id", None),
+            )
         except Exception as e:
             # A broken/unsupported .knxprod (bad application XML) must not abort loading the whole
             # project — report it in the log and skip just this device.
@@ -954,6 +990,14 @@ class ProjectService:
             )
             return None
         assert self._pid is not None
+        # A legacy/static application (no <Dynamic> section) resolves fine but has no editable
+        # parameter UI - the device shows up, just with an empty parameter tree (issue #51).
+        if getattr(app.program, "dynamic", None) is None:
+            self._log.debug(
+                "device application has no dynamic parameter UI (legacy/static application)",
+                device_id=row.id,
+                app=app.id,
+            )
         from xknxeditor.namespaces.intermediate import ParameterInstanceRef as _PIR
         from xknxeditor.namespaces.intermediate.module_instance_t import (
             ModuleInstance as _MI,
@@ -1576,7 +1620,11 @@ class ProjectService:
         missing: list[str] = []
         for row in self._svc.devices(self._pid):
             ref = row.hardware2program_ref_id
-            if ref and self._resolve_app(ref) is None and ref not in missing:
+            if (
+                ref
+                and self._resolve_app(ref, row.application_program_ref_id) is None
+                and ref not in missing
+            ):
                 missing.append(ref)
         return missing
 
@@ -1615,6 +1663,7 @@ class ProjectService:
             for item in self._catalog.online_products_for_order(info.order_number)
             if item.application_version is not None
             and item.application_version > parsed.version
+            and item.downloadable  # a gated version cannot be fetched (would 400), so do not offer it
         ]
         return max(newer) if newer else None
 
@@ -1637,6 +1686,7 @@ class ProjectService:
             for item in self._catalog.online_products_for_order(info.order_number)
             if item.application_version is not None
             and item.application_version > parsed.version
+            and item.downloadable  # skip gated versions: the online download would be rejected (400)
         ]
         if not candidates:
             return None
@@ -1827,6 +1877,7 @@ class ProjectService:
             name=name,
             address=address,
             hardware2program_ref_id=hardware2program_ref_id,
+            application_program_ref_id=app.id,
             parameters=parameters or None,
             com_objects=com_objects,
             module_instances=module_instances if module_instances else None,
@@ -2175,7 +2226,9 @@ class ProjectService:
         row = next((r for r in self._svc.devices(self._pid) if r.id == node_id), None)
         if row is None:
             return []
-        app = self._resolve_app(row.hardware2program_ref_id)
+        app = self._resolve_app(
+            row.hardware2program_ref_id, row.application_program_ref_id
+        )
         if app is None:
             self._log.warning("cannot clone: application not resolved", device=node_id)
             return []

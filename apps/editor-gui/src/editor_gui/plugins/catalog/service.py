@@ -85,6 +85,11 @@ class CatalogService:
         """Import a .knxprod file; returns newly added product refs."""
         return self._import_knxprod_bytes(path.read_bytes())
 
+    def import_project_products(self, path: Path) -> list[str]:
+        """Ingest the product data embedded in a ``.knxproj`` (which omits ``Catalog.xml``), so the
+        imported project's devices resolve their applications. Returns newly added product refs."""
+        return self._import_knxprod_bytes(path.read_bytes(), require_catalog=False)
+
     def import_product_source(self, data: bytes, master_xml: bytes) -> list[str]:
         """Ingest product data from any supported source: a ``.knxprod``, an OpenKNX release ZIP, or
         a raw monolithic KNX product XML (OpenKNXproducer output). ``master_xml`` supplies the
@@ -93,9 +98,11 @@ class CatalogService:
 
         return self._import_knxprod_bytes(knxprod_from_source(data, master_xml))
 
-    def _import_knxprod_bytes(self, data: bytes) -> list[str]:
+    def _import_knxprod_bytes(
+        self, data: bytes, *, require_catalog: bool = True
+    ) -> list[str]:
         before = {p.product_ref_id for p in self.get_products()}
-        self._service.import_knxprod(data)
+        self._service.import_knxprod(data, require_catalog=require_catalog)
         self._products = None
         after = {p.product_ref_id for p in self.get_products()}
         return sorted(after - before)
@@ -165,6 +172,20 @@ class CatalogService:
     def get_program_application_id(self, program_id: str) -> str | None:
         """The application id a hardware program loads, whether or not a catalog item lists it."""
         return self._service.get_program_application_id(program_id)
+
+    @io_guarded(lambda: "")
+    def program_resolution_hint(self, program_ref: str) -> str:
+        """A one-line diagnostic (for logs) on why a device program did not resolve: whether its
+        manufacturer's product data is in the catalog and how many programs it holds - telling
+        'not ingested' apart from an id mismatch."""
+        mid = program_ref.split("_", 1)[0]
+        present, count = self._service.manufacturer_catalog_status(mid)
+        if not present:
+            return f"manufacturer {mid} not in catalog (product data not ingested)"
+        return (
+            f"manufacturer {mid} present with {count} hardware program(s), "
+            "none matching this ref (id mismatch)"
+        )
 
     @io_guarded(lambda: None)
     def get_application(self, application_id: str) -> Application | None:

@@ -250,3 +250,14 @@ def test_export_does_not_add_resolved_flags_to_inherited_objects(
     ]
     assert refs, "expected the linked O-40 object in the export"
     assert "Flag=" not in refs[0], f"unexpected resolved flag emitted: {refs[0]}"
+
+
+def test_import_captures_application_program_ref(tmp_path: Path) -> None:
+    """The import persists each device's application-program ref (``M-XXXX_A-...``) so the editor can
+    fall back to resolving the application by that ref when the hardware-program id is not in the
+    catalog (old / reissued ids, issue #51)."""
+    xknx = tmp_path / "p.xknx"
+    import_knxproj(_FIXTURE, xknx)
+    with Session(make_engine(url_for(xknx))) as s:
+        refs = [d.application_program_ref_id for d in s.query(Device).all()]
+    assert refs and all(r and "_A-" in r for r in refs)

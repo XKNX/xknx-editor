@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from xknxeditor.catalog.core.applications import (
@@ -58,9 +59,14 @@ class CatalogService:
 
     # --- ingest -----------------------------------------------------------
 
-    def import_knxprod(self, content: bytes) -> Path:
-        """Store and ingest .knxprod bytes (content-hash dedup). Returns the stored path."""
-        return upload_knxprod(content, self._knxprod_dir, self._engine)
+    def import_knxprod(self, content: bytes, *, require_catalog: bool = True) -> Path:
+        """Store and ingest .knxprod bytes (content-hash dedup). Returns the stored path.
+
+        ``require_catalog=False`` ingests ``.knxproj``-embedded product data that omits
+        ``Catalog.xml`` (hardware/applications still resolve devices)."""
+        return upload_knxprod(
+            content, self._knxprod_dir, self._engine, require_catalog=require_catalog
+        )
 
     # --- manufacturers ----------------------------------------------------
 
@@ -71,6 +77,23 @@ class CatalogService:
     def get_manufacturer(self, manufacturer_id: str) -> Manufacturer | None:
         with Session(self._engine) as db:
             return get_manufacturer(db, manufacturer_id)
+
+    def manufacturer_catalog_status(self, manufacturer_id: str) -> tuple[bool, int]:
+        """Diagnostics for a failed device resolution: ``(manufacturer present, hardware-program
+        count)`` for ``manufacturer_id`` (e.g. ``M-0001``). Distinguishes 'product data never
+        ingested' from 'ingested, but no program id matches the device'."""
+        with Session(self._engine) as db:
+            present = get_manufacturer(db, manufacturer_id) is not None
+            count = (
+                db.scalar(
+                    select(func.count())
+                    .select_from(HardwareProgram)
+                    .join(Hardware, HardwareProgram.hardware_id == Hardware.id)
+                    .where(Hardware.manufacturer_id == manufacturer_id)
+                )
+                or 0
+            )
+        return present, count
 
     # --- hardware ---------------------------------------------------------
 

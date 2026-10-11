@@ -634,7 +634,7 @@ class ProjectPlugin:
         versions = {
             item.application_version
             for item in items
-            if item.application_version is not None
+            if item.application_version is not None and item.downloadable
         }
         return sorted(versions, reverse=True)
 

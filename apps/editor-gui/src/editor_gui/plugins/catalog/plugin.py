@@ -183,6 +183,11 @@ class CatalogPlugin:
             except ValueError:
                 continue
             by_mfr.setdefault(mid, []).append(ref)
+        self._log.debug(
+            "fetch missing apps: resolving refs online",
+            refs=len(refs),
+            manufacturers=len(by_mfr),
+        )
         item_ids: list[str] = []
         for mid, mrefs in by_mfr.items():
             try:
@@ -191,9 +196,27 @@ class CatalogPlugin:
                 self._log.error("online index failed", manufacturer=mid, error=str(exc))
                 continue
             for ref in mrefs:
-                match = next((it for it in items if it.id.startswith(ref)), None)
-                if match is not None:
-                    item_ids.append(match.id)
+                matches = [it for it in items if it.id.startswith(ref)]
+                downloadable = next((it for it in matches if it.downloadable), None)
+                if downloadable is not None:
+                    item_ids.append(downloadable.id)
+                elif matches:
+                    # Found online but download-gated (plugin / external software / incomplete /
+                    # end-of-life). Attempting the download anyway returns HTTP 400 (issue #51), so
+                    # skip it and report the specific reason the index gave.
+                    reason = next(
+                        (
+                            it.download_block_reason
+                            for it in matches
+                            if it.download_block_reason
+                        ),
+                        "server policy",
+                    )
+                    self._log.warning(
+                        "online product is not downloadable",
+                        ref=ref,
+                        reason=reason,
+                    )
                 else:
                     self._log.warning("no online product for application", ref=ref)
         if item_ids:
