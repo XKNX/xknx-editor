@@ -11,6 +11,12 @@
    null,
    null,
    274
+  ],
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
   ]
  },
  "MV-0011": {
@@ -25,6 +31,12 @@
    null,
    null,
    274
+  ],
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
   ]
  },
  "MV-0012": {
@@ -39,6 +51,12 @@
    null,
    null,
    274
+  ],
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
   ]
  },
  "MV-0013": {
@@ -53,6 +71,12 @@
    null,
    null,
    274
+  ],
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
   ]
  },
  "MV-0020": {
@@ -115,6 +139,12 @@
    3,
    7,
    0
+  ],
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
   ]
  },
  "MV-0021": {
@@ -177,6 +207,12 @@
    3,
    7,
    0
+  ],
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
   ]
  },
  "MV-0025": {
@@ -239,6 +275,12 @@
    3,
    7,
    0
+  ],
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
   ]
  },
  "MV-0300-01000000000000000000": {
@@ -282,6 +324,12 @@
    "SystemProperty",
    6,
    5,
+   0
+  ],
+  "ProgrammingMode": [
+   "SystemProperty",
+   0,
+   54,
    0
   ]
  },
@@ -333,6 +381,12 @@
    9,
    5,
    0
+  ],
+  "ProgrammingMode": [
+   "SystemProperty",
+   0,
+   54,
+   0
   ]
  },
  "MV-0700": {
@@ -383,6 +437,12 @@
    null,
    null,
    46840
+  ],
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
   ]
  },
  "MV-0701": {
@@ -433,6 +493,12 @@
    2,
    7,
    0
+  ],
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
   ]
  },
  "MV-0705": {
@@ -483,6 +549,12 @@
    2,
    7,
    0
+  ],
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
   ]
  },
  "MV-07B0": {
@@ -563,6 +635,52 @@
    3,
    7,
    0
+  ],
+  "ProgrammingMode": [
+   "SystemProperty",
+   0,
+   54,
+   0
+  ]
+ },
+ "MV-0900": {
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
+  ]
+ },
+ "MV-0910": {
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
+  ]
+ },
+ "MV-0911": {
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
+  ]
+ },
+ "MV-0912": {
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
+  ]
+ },
+ "MV-091A": {
+  "ProgrammingMode": [
+   "SystemProperty",
+   0,
+   54,
+   0
   ]
  },
  "MV-1011": {
@@ -577,6 +695,12 @@
    null,
    null,
    274
+  ],
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
   ]
  },
  "MV-1012": {
@@ -591,6 +715,12 @@
    null,
    null,
    274
+  ],
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
   ]
  },
  "MV-1013": {
@@ -605,6 +735,12 @@
    null,
    null,
    274
+  ],
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
   ]
  },
  "MV-17B0": {
@@ -685,6 +821,20 @@
    3,
    7,
    0
+  ],
+  "ProgrammingMode": [
+   "SystemProperty",
+   0,
+   54,
+   0
+  ]
+ },
+ "MV-1900": {
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
   ]
  },
  "MV-2705": {
@@ -734,6 +884,12 @@
    "SystemProperty",
    2,
    7,
+   0
+  ],
+  "ProgrammingMode": [
+   "SystemProperty",
+   0,
+   54,
    0
   ]
  },
@@ -815,6 +971,20 @@
    3,
    7,
    0
+  ],
+  "ProgrammingMode": [
+   "SystemProperty",
+   0,
+   54,
+   0
+  ]
+ },
+ "MV-2920": {
+  "ProgrammingMode": [
+   "SystemProperty",
+   0,
+   54,
+   0
   ]
  },
  "MV-5705": {
@@ -865,6 +1035,12 @@
    2,
    7,
    0
+  ],
+  "ProgrammingMode": [
+   "StandardMemory",
+   null,
+   null,
+   96
   ]
  },
  "MV-57B0": {
@@ -944,6 +1120,12 @@
    "SystemProperty",
    3,
    7,
+   0
+  ],
+  "ProgrammingMode": [
+   "SystemProperty",
+   0,
+   54,
    0
   ]
  }

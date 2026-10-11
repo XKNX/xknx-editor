@@ -421,6 +421,8 @@ class ConnectionService:
         group_communication: GroupCommunication | None = None,
         *,
         without_plugin: bool = False,
+        current_address: str | None = None,
+        waiting: Callable[[], None] | None = None,
     ) -> Future[Any] | None:
         """Download the device's configured application/parameters onto the bus.
 
@@ -428,12 +430,22 @@ class ConnectionService:
         ``group_communication`` supplies the address/association tables.
         A device whose hardware needs the manufacturer's plugin is only programmed with
         ``without_plugin`` (the user confirmed it).
+        An individual address scope downloads only the address: to the device in programming mode
+        (``waiting`` is called while none is), or for an overwrite to the device at
+        ``current_address``.
         """
         if self.not_connected("program_device"):
             return None
         if not device.individual_address:
             self._log.warning("Device has no individual address", device=device.name)
             return None
+        if scope is not None and scope.individual_address_only:
+            from xknxeditor.download.scope import DownloadScope
+
+            overwrite = scope is DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS
+            return self._download_individual_address(
+                device, current_address if overwrite else None, overwrite, waiting
+            )
         if device.download_plugin_required:
             if not without_plugin:
                 self._log.error(
@@ -476,6 +488,69 @@ class ConnectionService:
         else:
             self._clear_busy()
         return future
+
+    def _download_individual_address(
+        self,
+        device: Device,
+        current_address: str | None,
+        overwrite: bool,
+        waiting: Callable[[], None] | None,
+    ) -> Future[Any] | None:
+        from xknxeditor.download.commissioning import download_individual_address
+
+        if overwrite and not current_address:
+            self._log.error(
+                "The current individual address is missing", device=device.name
+            )
+            return None
+        if not self.begin_operation("program", device.individual_address):
+            self._log.warning("A bus operation is already running", device=device.name)
+            return None
+        security = self._security_for(device)
+        current_security = (
+            self._current_address_security(current_address, security)
+            if current_address
+            else None
+        )
+        self._log.info(
+            "Downloading individual address",
+            device=device.name,
+            address=device.individual_address,
+            current=current_address,
+            secure=(current_security or security) is not None,
+        )
+        future = self.run_async(
+            download_individual_address(
+                self._xknx,
+                device.individual_address,
+                current_address=current_address,
+                security=security,
+                current_security=current_security,
+                master=self.master,
+                waiting=waiting,
+            )
+        )
+        if future is not None:
+            future.add_done_callback(self._log_program_result)
+        else:
+            self._clear_busy()
+        return future
+
+    def _current_address_security(
+        self, current_address: str, security: DeviceSecurity | None
+    ) -> DeviceSecurity | None:
+        """Tool key for the device at its current address: from the keyring, else the project's."""
+        if self.keyring is not None:
+            found = self.keyring.device_security(current_address)
+            if found is not None:
+                return found
+        if security is None:
+            return None
+        from xknx.telegram import IndividualAddress
+
+        from xknxeditor.download.data_secure import DeviceSecurity
+
+        return DeviceSecurity(IndividualAddress(current_address), security.tool_key)
 
     def _log_program_result(self, future: Future[Any]) -> None:
         self._clear_busy()
@@ -540,6 +615,11 @@ class ConnectionService:
         from xknxeditor.download.scope import DownloadScope
 
         scope = scope or DownloadScope.FULL
+        if scope.individual_address_only:
+            self._log.warning(
+                "An address download cannot be tested", device=device.name
+            )
+            return None
         if not self.begin_operation("test", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
             return None

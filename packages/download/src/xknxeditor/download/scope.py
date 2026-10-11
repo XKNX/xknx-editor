@@ -38,6 +38,16 @@ class DownloadScope(Enum):
     APPLICATION = "ap1"
     UNLOAD = "unload"
     UNLOAD_ALL = "unload_all"
+    INDIVIDUAL_ADDRESS = "ia"
+    OVERWRITE_INDIVIDUAL_ADDRESS = "ia_overwrite"
+
+    @property
+    def individual_address_only(self) -> bool:
+        """Only the individual address is downloaded (see ``download_individual_address``)."""
+        return self in (
+            DownloadScope.INDIVIDUAL_ADDRESS,
+            DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS,
+        )
 
 
 def mask_configuration(

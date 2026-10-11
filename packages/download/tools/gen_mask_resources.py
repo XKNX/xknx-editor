@@ -2,7 +2,7 @@
 
 Usage: uv run python packages/download/tools/gen_mask_resources.py <knx_master.xml> <out.json>
 Extracts the download-relevant resource locations (Load State Machine control,
-table pointers, load status, run control) per device mask version from the KNX
+table pointers, load status, run control, programming mode) per device mask version from the KNX
 master data. Only these few resources are extracted - not the manufacturer data.
 """
 
@@ -27,6 +27,7 @@ RELEVANT = {
     N.GROUP_OBJECT_TABLE_LOAD_CONTROL,
     N.GROUP_OBJECT_TABLE_PTR,
     N.GROUP_OBJECT_TABLE_LOAD_STATUS,
+    N.PROGRAMMING_MODE,
 }
 
 

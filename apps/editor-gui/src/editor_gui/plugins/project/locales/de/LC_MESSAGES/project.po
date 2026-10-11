@@ -1303,3 +1303,24 @@ msgstr "Der Hersteller erlaubt das Programmieren dieses Geräts nur mit seinem P
 
 msgid "Program without the manufacturer's plugin anyway"
 msgstr "Trotzdem ohne das Plugin des Herstellers programmieren"
+
+msgid "Overwrite Individual Address"
+msgstr "Physikalische Adresse überschreiben"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "Dies schreibt die physikalische Adresse {address} in das Gerät, dessen Programmiertaste gedrückt wird. Fortfahren?"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "Dies überschreibt die physikalische Adresse des Geräts unter seiner aktuellen Adresse mit {address}. Seine Programmiertaste muss nicht gedrückt werden."
+
+msgid "Current Individual Address"
+msgstr "Aktuelle physikalische Adresse"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "Die aktuelle physikalische Adresse des Geräts eingeben, z. B. 1.1.5."
+
+msgid "The device already has the individual address {address}."
+msgstr "Das Gerät hat bereits die physikalische Adresse {address}."
+
+msgid "Please press the programming button"
+msgstr "Bitte die Programmiertaste drücken"

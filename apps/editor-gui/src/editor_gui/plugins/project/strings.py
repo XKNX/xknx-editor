@@ -949,6 +949,40 @@ class ProjectStrings:
         return _("Partial: Group Communication")
 
     @property
+    def SCOPE_INDIVIDUAL_ADDRESS(self) -> str:
+        return _("Individual Address")
+
+    @property
+    def SCOPE_OVERWRITE_INDIVIDUAL_ADDRESS(self) -> str:
+        return _("Overwrite Individual Address")
+
+    @property
+    def PROGRAM_ADDRESS_TEXT(self) -> str:
+        return _(
+            "This writes the individual address {address} to the device whose programming "
+            "button is pressed. Continue?"
+        )
+
+    @property
+    def PROGRAM_OVERWRITE_TEXT(self) -> str:
+        return _(
+            "This overwrites the individual address of the device at its current address "
+            "with {address}. Its programming button does not need to be pressed."
+        )
+
+    @property
+    def OVERWRITE_CURRENT_ADDRESS(self) -> str:
+        return _("Current Individual Address")
+
+    @property
+    def OVERWRITE_ADDRESS_INVALID(self) -> str:
+        return _("Enter the device's current individual address, e.g. 1.1.5.")
+
+    @property
+    def OVERWRITE_ADDRESS_SAME(self) -> str:
+        return _("The device already has the individual address {address}.")
+
+    @property
     def CONFIGURE_MANUFACTURER(self) -> str:
         return _("Manufacturer")
 
@@ -1913,6 +1947,10 @@ class ProjectStrings:
     @property
     def OPERATION_DOWNLOADING(self) -> str:
         return _("Downloading")
+
+    @property
+    def OPERATION_PRESS_PROGRAMMING_BUTTON(self) -> str:
+        return _("Please press the programming button")
 
     @property
     def OPERATION_WAITING(self) -> str:

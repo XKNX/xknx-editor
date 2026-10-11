@@ -84,6 +84,8 @@ _COMMISSIONING_BY_SCOPE: dict[str, dict[str, bool]] = {
     },
     "par": {"parameters_loaded": True},  # PARAMETERS
     "grp": {"communication_part_loaded": True},  # GROUP_COMMUNICATION
+    "ia": {"individual_address_loaded": True},  # INDIVIDUAL_ADDRESS
+    "ia_overwrite": {"individual_address_loaded": True},  # OVERWRITE_INDIVIDUAL_ADDRESS
 }
 
 
@@ -1208,7 +1210,11 @@ class ProjectPlugin:
         self._api.project.set_flag(device, co_id, flag_name, new_value)
 
     def _program_device(
-        self, device: "Device", scope: "DownloadScope", without_plugin: bool = False
+        self,
+        device: "Device",
+        scope: "DownloadScope",
+        without_plugin: bool = False,
+        current_address: str | None = None,
     ) -> None:
         """Program button: enqueue the device. Runs immediately if the bus is free, otherwise it is
         appended to the programming queue (dedupe per device) and drained one at a time."""
@@ -1225,6 +1231,7 @@ class ProjectPlugin:
                 name=device.name,
                 scope=scope,
                 without_plugin=without_plugin,
+                current_address=current_address,
             )
         )
 
@@ -1343,6 +1350,8 @@ class ProjectPlugin:
             item.scope,
             self._group_communication_for(device),
             without_plugin=item.without_plugin,
+            current_address=item.current_address,
+            waiting=functools.partial(setattr, item, "waiting_for_button", True),
         )
         if future is None:
             if device.download_plugin_required and not item.without_plugin:
