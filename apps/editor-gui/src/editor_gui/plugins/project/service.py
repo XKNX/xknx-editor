@@ -1419,6 +1419,31 @@ class ProjectService:
             for link in self._svc.com_object_links(self._pid, com_object_db_id)
         ]
 
+    def group_address_names(self) -> dict[int, str]:
+        """Map of group-address value (16-bit int) -> name, for labelling read-out addresses."""
+        out: dict[int, str] = {}
+        for ga in self.group_addresses:
+            address = _parse_group_address(ga.address)
+            if address is not None and ga.name:
+                out[address] = ga.name
+        return out
+
+    def expected_group_addresses(self, device: Device) -> dict[int, set[int]]:
+        """The project's planned group-address values (16-bit ints) per group-object number, for the
+        read-out comparison in the device-info view. Mirrors the links used for programming."""
+        out: dict[int, set[int]] = {}
+        for com_object in device.com_objects:
+            if com_object.db_id is None:
+                continue
+            for assignment in self.get_links_for_com_object(com_object.db_id):
+                ga = self.get_group_address(assignment.group_address_id)
+                if ga is None:
+                    continue
+                address = _parse_group_address(ga.address)
+                if address is not None:
+                    out.setdefault(com_object.number, set()).add(address)
+        return out
+
     def group_communication_for(self, device: Device) -> "GroupCommunication | None":
         """Collect a device's group-address links into a :class:`GroupCommunication` for programming.
 

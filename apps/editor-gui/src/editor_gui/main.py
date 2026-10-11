@@ -2696,7 +2696,7 @@ class KnxGuiApp:
 
 
 # Bumped whenever the default docking layout changes, so a stored layout is replaced once.
-_LAYOUT_VERSION = 9
+_LAYOUT_VERSION = 10
 
 
 def create_docking_splits() -> list[hello_imgui.DockingSplit]:
@@ -2704,30 +2704,33 @@ def create_docking_splits() -> list[hello_imgui.DockingSplit]:
     split_right.initial_dock = "MainDockSpace"
     split_right.new_dock = "RightSpace"
     split_right.direction = imgui.Dir.right
-    # Wide enough for the Device panel's Test / Program / Preview buttons in one row.
-    split_right.ratio = 0.2
+    split_right.ratio = 0.22
 
-    split_device = hello_imgui.DockingSplit()
-    split_device.initial_dock = "RightSpace"
-    split_device.new_dock = "DeviceSpace"
-    split_device.direction = imgui.Dir.up
-    split_device.ratio = 0.35
-
-    split_bottom = hello_imgui.DockingSplit()
-    split_bottom.initial_dock = "MainDockSpace"
-    split_bottom.new_dock = "BottomSpace"
-    split_bottom.direction = imgui.Dir.down
-    split_bottom.ratio = 0.25
+    # Right column is split in two: project info / log on top, operations / history / health below.
+    # Must come after split_right since it subdivides RightSpace.
+    split_right_bottom = hello_imgui.DockingSplit()
+    split_right_bottom.initial_dock = "RightSpace"
+    split_right_bottom.new_dock = "RightBottomSpace"
+    split_right_bottom.direction = imgui.Dir.down
+    split_right_bottom.ratio = 0.6
 
     split_left = hello_imgui.DockingSplit()
     split_left.initial_dock = "MainDockSpace"
     split_left.new_dock = "LeftSpace"
     split_left.direction = imgui.Dir.left
     # Wide enough that the stacked navigation tabs (Buildings, Devices, Group Addresses, Catalog)
-    # all fit without the tab-bar overflow (">>") arrow.
-    split_left.ratio = 0.29
+    # all fit, and the bus/log tables underneath have room for their columns.
+    split_left.ratio = 0.4
 
-    return [split_right, split_device, split_bottom, split_left]
+    # Bus/telegram and log views sit directly under the Buildings/Devices navigation (left column),
+    # not in a full-width bottom strip. Must come after split_left since it subdivides LeftSpace.
+    split_left_bottom = hello_imgui.DockingSplit()
+    split_left_bottom.initial_dock = "LeftSpace"
+    split_left_bottom.new_dock = "LeftBottomSpace"
+    split_left_bottom.direction = imgui.Dir.down
+    split_left_bottom.ratio = 0.38
+
+    return [split_right, split_right_bottom, split_left, split_left_bottom]
 
 
 def _apply_new_layout_once(docking_params: hello_imgui.DockingParams) -> None:
@@ -2763,8 +2766,6 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
         "buildings": lambda: _proj.PANEL_BUILDINGS,
         "group_addresses": lambda: _proj.PANEL_GROUP_ADDRESSES,
         "editor": lambda: _proj.PANEL_EDITOR,
-        "device": lambda: _proj.PANEL_DEVICE,
-        "manufacturer": lambda: _proj.PANEL_MANUFACTURER,
         "mass_linker": lambda: _proj.PANEL_MASS_LINKER,
         "tools": lambda: _proj.PANEL_TOOLS,
         "history": lambda: _proj.PANEL_HISTORY,
@@ -2793,23 +2794,17 @@ _DOCK_TAB_ORDER = [
     "catalog",
     "editor",
     "cockpit",
-    "device",
-    "manufacturer",
     "operations",
-    "history",
-    "health",
     "mass_linker",
     "tools",
     "ki",
     "topology",
     "recover",
-    # Bottom bus/log group, then the project info and log.
+    # Left-bottom bus/log group, in tab order (logger stays last).
     "network",
     "monitor",
     "timeline",
     "logger",
-    "project_info",
-    "project_log",
 ]
 
 
@@ -2830,10 +2825,11 @@ def create_dockable_windows(app: KnxGuiApp) -> list[hello_imgui.DockableWindow]:
         windows.append(window)
     rank = {name: i for i, name in enumerate(_DOCK_TAB_ORDER)}
     windows.sort(key=lambda w: rank.get(_dock_window_name(w), len(_DOCK_TAB_ORDER)))
-    # Buildings and Device are the primary views: focus them on first frame.
+    # Buildings is the primary view: focus it on first frame.
     for w in windows:
-        if _dock_window_name(w) in ("buildings", "device"):
+        if _dock_window_name(w) == "buildings":
             w.focus_window_at_next_frame = True
+            break
     return windows
 
 

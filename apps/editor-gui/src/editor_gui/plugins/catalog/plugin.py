@@ -39,6 +39,8 @@ class CatalogPlugin:
             build_online_index=self._build_online_index,
             get_online_index_status=api.catalog.online_index_status,
             search_online_products=api.catalog.search_online_products,
+            add_online_item=self._add_online_item_to_project,
+            can_add_to_project=lambda: api.project.is_open,
         )
         self._panels = [
             PanelDefinition(
@@ -144,6 +146,28 @@ class CatalogPlugin:
             )
             raise
         self._log.info("online product imported", item=item_id, added=len(added))
+
+    def _add_online_item_to_project(self, item_id: str) -> None:
+        """Add a just-imported online product to the open project (confirmed via the panel alert).
+
+        The online item id carries the product's ``hardware2program_ref_id`` as a prefix, so the
+        matching freshly-imported local product is the longest such prefix match. Reuses the normal
+        local add path (``_on_select``) so catalog resolution/export behave identically."""
+        if not self._api.project.is_open:
+            self._notify(S.CATALOG_ADD_NEEDS_PROJECT)
+            return
+        matches = [
+            p
+            for p in self._api.catalog.get_products()
+            if p.hardware2program_ref_id
+            and item_id.startswith(p.hardware2program_ref_id)
+        ]
+        if not matches:
+            self._log.warning("imported product not found for online add", item=item_id)
+            self._notify(S.CATALOG_ADD_NO_APP)
+            return
+        product = max(matches, key=lambda p: len(p.hardware2program_ref_id))
+        self._on_select(product)
 
     def _build_online_index(
         self,

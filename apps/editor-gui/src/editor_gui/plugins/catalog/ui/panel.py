@@ -51,6 +51,8 @@ class CatalogPanel:
             [str, int], tuple[list[OnlineCatalogItem], int]
         ]
         | None = None,
+        add_online_item: Callable[[str], None] | None = None,
+        can_add_to_project: Callable[[], bool] | None = None,
     ) -> None:
         self._get_products = get_products
         self._on_select = on_select
@@ -100,6 +102,12 @@ class CatalogPanel:
         self._flat_query: str | None = None
         self._flat_results: list[OnlineCatalogItem] = []
         self._flat_total = 0
+        # After an online download+import, offer to add the product to the project (confirmed in a
+        # modal rendered on the GUI thread; set from the download worker thread under _online_lock).
+        self._add_online_item = add_online_item
+        self._can_add_to_project = can_add_to_project
+        self._pending_add_item: str | None = None
+        self._pending_add_name: str = ""
 
     def render(self) -> None:
         self._render_missing_apps_banner()
@@ -115,6 +123,7 @@ class CatalogPanel:
                 self._render_online_catalog()
                 imgui.end_tab_item()
             imgui.end_tab_bar()
+        self._render_add_to_project_modal()
 
     def _render_local_catalog(self) -> None:
         self._search = filter_box("##catalog_search", "Search...", self._search)
@@ -432,13 +441,74 @@ class CatalogPanel:
 
     def _download_item(self, item_id: str) -> None:
         assert self._download_online_item is not None
+        ok = False
         try:
             self._download_online_item(item_id)
+            ok = True
         except Exception:
             pass  # error already logged by the plugin
         finally:
             with self._online_lock:
                 self._online_downloading.discard(item_id)
+        # Offer to add it to the project, but only on a successful import and with a project open.
+        if (
+            ok
+            and self._add_online_item is not None
+            and (self._can_add_to_project is None or self._can_add_to_project())
+        ):
+            name = self._online_item_name(item_id)
+            with self._online_lock:
+                self._pending_add_item = item_id
+                self._pending_add_name = name
+
+    def _online_item_name(self, item_id: str) -> str:
+        with self._online_lock:
+            pools = [*self._online_items.values(), self._flat_results]
+        for items in pools:
+            for it in items:
+                if it.id == item_id:
+                    return it.name or item_id
+        return item_id
+
+    def _render_add_to_project_modal(self) -> None:
+        with self._online_lock:
+            item_id = self._pending_add_item
+            name = self._pending_add_name
+        if item_id is None:
+            return
+        title = S.CATALOG_ADD_ONLINE_TITLE
+        imgui.open_popup(title)
+        # Center on the viewport and give it a comfortable width so the prompt doesn't wrap narrow.
+        center = imgui.get_main_viewport().get_center()
+        imgui.set_next_window_pos(center, imgui.Cond_.appearing, imgui.ImVec2(0.5, 0.5))
+        imgui.set_next_window_size_constraints(
+            imgui.ImVec2(px(460.0), px(140.0)), imgui.ImVec2(px(680.0), 1.0e9)
+        )
+        if imgui.begin_popup_modal(title, None, imgui.WindowFlags_.always_auto_resize)[
+            0
+        ]:
+            imgui.dummy(
+                imgui.ImVec2(px(440.0), 0.0)
+            )  # anchor the minimum content width
+            imgui.text_wrapped(S.CATALOG_ADD_ONLINE_PROMPT.format(name=name))
+            imgui.spacing()
+            if imgui.button(
+                S.CATALOG_ADD_ONLINE_YES, imgui.ImVec2(px(150.0), px(32.0))
+            ):
+                if self._add_online_item is not None:
+                    self._add_online_item(item_id)
+                self._clear_pending_add()
+                imgui.close_current_popup()
+            imgui.same_line()
+            if imgui.button(S.CATALOG_ADD_ONLINE_NO, imgui.ImVec2(px(110.0), px(32.0))):
+                self._clear_pending_add()
+                imgui.close_current_popup()
+            imgui.end_popup()
+
+    def _clear_pending_add(self) -> None:
+        with self._online_lock:
+            self._pending_add_item = None
+            self._pending_add_name = ""
 
     # --- full product index: build + flat cross-manufacturer search ------
 

@@ -199,6 +199,9 @@ class ProjectPlugin:
             on_restart_device=self._restart_device,
             on_master_reset_device=self._master_reset_device,
             get_device_readout=self._device_readout,
+            get_expected_group_addresses=api.project.expected_group_addresses,
+            get_group_address_names=api.project.group_address_names,
+            format_group_address=self._format_group_address,
             suggest_ga=self._suggest_ga_for_object,
             on_create_and_link=self._create_and_link_ga,
             group_style=lambda: api.project.group_address_style,
@@ -324,18 +327,6 @@ class ProjectPlugin:
                 render=self._render_configure,
             ),
             PanelDefinition(
-                name="device",
-                label=S.PANEL_DEVICE,
-                dock="DeviceSpace",
-                render=self._render_device,
-            ),
-            PanelDefinition(
-                name="manufacturer",
-                label=S.PANEL_MANUFACTURER,
-                dock="DeviceSpace",
-                render=self._render_manufacturer,
-            ),
-            PanelDefinition(
                 name="mass_linker",
                 label=S.PANEL_MASS_LINKER,
                 dock="MainDockSpace",
@@ -350,25 +341,25 @@ class ProjectPlugin:
             PanelDefinition(
                 name="history",
                 label=S.PANEL_HISTORY,
-                dock="RightSpace",
+                dock="RightBottomSpace",
                 render=self._history_panel.render,
             ),
             PanelDefinition(
                 name="project_info",
                 label=S.PANEL_PROJECT_INFO,
-                dock="BottomSpace",
+                dock="RightSpace",
                 render=self._project_info_panel.render,
             ),
             PanelDefinition(
                 name="project_log",
                 label=S.PANEL_PROJECT_LOG,
-                dock="BottomSpace",
+                dock="RightSpace",
                 render=self._project_log_panel.render,
             ),
             PanelDefinition(
                 name="operations",
                 label=S.PANEL_OPERATIONS,
-                dock="RightSpace",
+                dock="RightBottomSpace",
                 render=self._program_queue_panel.render,
             ),
         ]
@@ -708,6 +699,11 @@ class ProjectPlugin:
     def _device_readout(self, node_id: int) -> "DeviceInfo | None":
         with self._readout_lock:
             return self._device_readouts.get(node_id)
+
+    def _format_group_address(self, address: int) -> str:
+        from xknxeditor.proj.core.addressing import format_ga
+
+        return format_ga(address, self._api.project.group_address_style)
 
     def _on_create_ga(self, address: str, name: str) -> None:
         ga_id = self._api.project.create_group_address(address, name)
@@ -1581,14 +1577,6 @@ class ProjectPlugin:
         # from a per-frame global callback, not from here).
         self._sync_selected_device_from_editor()
         self._configure_panel.render()
-
-    def _render_device(self) -> None:
-        self._sync_selected_device_from_editor()
-        self._configure_panel.render_device()
-
-    def _render_manufacturer(self) -> None:
-        self._sync_selected_device_from_editor()
-        self._configure_panel.render_manufacturer()
 
     def _sync_selected_device_from_editor(self) -> None:
         if not self._get_selected_node_ids:

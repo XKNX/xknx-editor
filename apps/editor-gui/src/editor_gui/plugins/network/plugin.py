@@ -30,7 +30,7 @@ class NetworkPlugin:
             PanelDefinition(
                 name="network",
                 label=S.PANEL_NETWORK,
-                dock="BottomSpace",
+                dock="LeftBottomSpace",
                 render=self._panel.render,
             ),
         ]

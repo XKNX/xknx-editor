@@ -1107,6 +1107,18 @@ class ProjectStrings:
         return _("From Device (Live)")
 
     @property
+    def DEVICE_INFO_SECTION(self) -> str:
+        return _("Device Info (read from device)")
+
+    @property
+    def READOUT_GROUP_OBJECTS(self) -> str:
+        return _("Group objects read from the device")
+
+    @property
+    def READOUT_GROUP_ADDRESSES(self) -> str:
+        return _("Group Addresses")
+
+    @property
     def READOUT_MASK(self) -> str:
         return _("Mask Version")
 

@@ -152,6 +152,22 @@ class CatalogStrings:
         return _("Added device: {name}")
 
     @property
+    def CATALOG_ADD_ONLINE_TITLE(self) -> str:
+        return _("Add to project?")
+
+    @property
+    def CATALOG_ADD_ONLINE_PROMPT(self) -> str:
+        return _("“{name}” was added to the local catalog. Add it to the project now?")
+
+    @property
+    def CATALOG_ADD_ONLINE_YES(self) -> str:
+        return _("Add to project")
+
+    @property
+    def CATALOG_ADD_ONLINE_NO(self) -> str:
+        return _("Not now")
+
+    @property
     def TAB_LOCAL(self) -> str:
         return _("Local")
 

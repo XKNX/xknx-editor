@@ -11,7 +11,7 @@ from xknx.exceptions import CouldNotParseAddress
 from xknx.telegram import IndividualAddress
 
 from editor_gui import doc_links
-from editor_gui.device import ComObject, Device, device_label
+from editor_gui.device import ComObject, Device
 from editor_gui.device_info import (
     firmware_text,
     parse_serial_text,
@@ -146,6 +146,9 @@ class ConfigurePanel:
         on_update_application: Callable[[Device], bool] | None = None,
         on_read_device_info: Callable[[Device], None] | None = None,
         get_device_readout: "Callable[[int], BusDeviceInfo | None] | None" = None,
+        get_expected_group_addresses: "Callable[[Device], dict[int, set[int]]] | None" = None,
+        get_group_address_names: "Callable[[], dict[int, str]] | None" = None,
+        format_group_address: Callable[[int], str] | None = None,
         on_restart_device: Callable[[Device], None] | None = None,
         on_master_reset_device: Callable[[Device, int], None] | None = None,
         suggest_ga: Callable[[Device, ComObject], tuple[str, str]] | None = None,
@@ -212,6 +215,16 @@ class ConfigurePanel:
         self._reset_armed = False  # confirm checkbox in the master-reset popup
         self._reset_erase_idx = 0
         self._get_device_readout = get_device_readout
+        self._get_expected_group_addresses = get_expected_group_addresses
+        self._get_group_address_names = get_group_address_names
+        self._format_group_address = format_group_address
+        # Device-info read-out: auto-open the section once per fresh read, and cache the (DB-backed)
+        # expected group-address map + GA names so scrolling the table doesn't recompute every frame.
+        self._readout_expanded_for: dict[int, int] = {}
+        self._expected_cache_key: tuple[int, int] | None = None
+        self._expected_cache: dict[int, set[int]] = {}
+        self._ga_names_cache_key: int | None = None
+        self._ga_names_cache: dict[int, str] = {}
         self._confirm_update_open: bool = False
         self._alert_update_open: bool = False
         self._alert_version: int = 0
@@ -292,23 +305,6 @@ class ConfigurePanel:
             S.READOUT_ORDER,
             S.READOUT_HARDWARE,
         )
-
-    def render_device(self) -> None:
-        """Device panel: device selection, address and programming."""
-        self._begin_details()
-        if self._current_device() is None:
-            imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
-            return
-        self._render_device_section()
-
-    def render_manufacturer(self) -> None:
-        """Manufacturer panel: product and application details of the selected device."""
-        self._begin_details()
-        device = self._current_device()
-        if device is None:
-            imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
-            return
-        self._render_manufacturer_section(device)
 
     def _render_device_section(self) -> None:
         """Name, address and programming of the selected device."""
@@ -413,6 +409,10 @@ class ConfigurePanel:
         avail = imgui.get_content_region_avail().x
         group_w = self._label_w + px(120)
         ncols = max(1, min(len(fields), int(avail // group_w) if group_w > 0 else 1))
+        # Rebalance so the last row isn't a single lonely field (4 fields in a 3-wide panel become
+        # 2x2, not 3+1): keep the minimal row count, then spread fields over the fewest columns.
+        rows = -(-len(fields) // ncols)
+        ncols = -(-len(fields) // rows)
         # Size each label column to just the labels that land in it (not the global label width,
         # which is sized for the much longer detail labels) so the inputs get the rest of the width.
         pad = px(12)
@@ -585,6 +585,24 @@ class ConfigurePanel:
             return None
         return versions, current, S.CONFIGURE_UPDATE_BUTTON.format(version=versions[0])
 
+    def _render_basic_info(self, device: Device) -> None:
+        """Always-visible basics (product, application version), side by side when the panel is wide
+        enough, else stacked. The application-update button lives in the action row above."""
+        info = self._get_device_info(device.node_id)
+        app_version = self._current_app_version(device)
+        self._render_detail_grid(
+            [
+                (
+                    S.CONFIGURE_PRODUCT,
+                    info.product_name if info and info.product_name else "-",
+                ),
+                (
+                    S.CONFIGURE_APP_VERSION,
+                    f"V{app_version}" if app_version is not None else "-",
+                ),
+            ]
+        )
+
     def _render_manufacturer_section(self, device: Device) -> None:
         """Manufacturer, product and application details of the selected device."""
         info = self._get_device_info(device.node_id)
@@ -618,7 +636,6 @@ class ConfigurePanel:
         imgui.spacing()
         self._render_manual_button(info)
         self._render_online_versions(device, info)
-        self._render_readout_result(device)
         self._render_load_procedures(device)
 
     def render(self) -> None:
@@ -627,7 +644,37 @@ class ConfigurePanel:
             imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
             return
         self._begin_details()
-        imgui.text(device_label(device))
+        # Device header + programming above the parameter tabs; the full manufacturer detail sits
+        # behind a collapsed "Herstellerinfos" header so the parameter tabs below keep the height.
+        # Tighten row spacing for this read-only block (the parameter tabs keep default spacing).
+        style = imgui.get_style()
+        spacing, cell = style.item_spacing, style.cell_padding
+        imgui.push_style_var(
+            imgui.StyleVar_.item_spacing, imgui.ImVec2(spacing.x, spacing.y * 0.5)
+        )
+        imgui.push_style_var(
+            imgui.StyleVar_.cell_padding, imgui.ImVec2(cell.x, cell.y * 0.4)
+        )
+        self._render_device_section()
+        device = (
+            self._current_device() or device
+        )  # the selector may have switched devices
+        self._render_basic_info(device)
+        if imgui.collapsing_header(S.CONFIGURE_MANUFACTURER_INFO):
+            self._render_manufacturer_section(device)
+        # Read-out from the bus (its own section; auto-opens once each time a fresh read arrives).
+        readout = (
+            self._get_device_readout(device.node_id)
+            if self._get_device_readout is not None
+            else None
+        )
+        if readout is not None:
+            if self._readout_expanded_for.get(device.node_id) != id(readout):
+                imgui.set_next_item_open(True)
+                self._readout_expanded_for[device.node_id] = id(readout)
+            if imgui.collapsing_header(S.DEVICE_INFO_SECTION):
+                self._render_readout_result(device)
+        imgui.pop_style_var(2)
         imgui.separator()
 
         if imgui.begin_tab_bar("##editor_tabs"):
@@ -849,6 +896,7 @@ class ConfigurePanel:
             ]
         )
         self._render_diagnosis(readout)
+        self._render_readout_group_objects(device, readout)
 
     def _render_diagnosis(self, readout: "BusDeviceInfo") -> None:
         """Light error diagnosis from the standard Device-Object properties: the error class
@@ -867,6 +915,82 @@ class ConfigurePanel:
                 )
         if readout.programming_mode:
             imgui.text_colored(imgui.ImVec4(0.95, 0.75, 0.35, 1.0), S.READOUT_PROG_MODE)
+
+    def _render_readout_group_objects(
+        self, device: Device, readout: "BusDeviceInfo"
+    ) -> None:
+        """Group objects read off the device: one row per object with its number and the group
+        addresses found on it. Addresses are green when they match the project's planned links for
+        that object number, orange when they differ."""
+        if not readout.group_objects:
+            return
+        expected = self._expected_group_addresses(device, readout)
+        names = self._ga_names(readout)
+        imgui.spacing()
+        imgui.text_disabled(S.READOUT_GROUP_OBJECTS)
+        flags = (
+            imgui.TableFlags_.row_bg
+            | imgui.TableFlags_.borders_inner_h
+            | imgui.TableFlags_.scroll_y
+        )
+        if not imgui.begin_table(
+            "##readout_gos", 2, flags, imgui.ImVec2(0.0, px(200.0))
+        ):
+            return
+        imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(44.0))
+        imgui.table_setup_column(S.READOUT_GROUP_ADDRESSES)
+        imgui.table_headers_row()
+        ok = imgui.ImVec4(0.45, 0.8, 0.45, 1.0)
+        differ = imgui.ImVec4(0.95, 0.55, 0.35, 1.0)
+        for go in sorted(readout.group_objects, key=lambda g: g.number):
+            imgui.table_next_row()
+            imgui.table_next_column()
+            imgui.text(str(go.number))
+            imgui.table_next_column()
+            match = set(go.group_addresses) == expected.get(go.number, set())
+            text = (
+                ", ".join(self._format_ga(a, names) for a in go.group_addresses)
+                if go.group_addresses
+                else "-"
+            )
+            imgui.text_colored(ok if match else differ, text)
+        imgui.end_table()
+
+    def _format_ga(self, address: int, names: dict[int, str]) -> str:
+        formatted = (
+            self._format_group_address(address)
+            if self._format_group_address is not None
+            else str(address)
+        )
+        name = names.get(address)
+        return f"{formatted}  {name}" if name else formatted
+
+    def _ga_names(self, readout: "BusDeviceInfo") -> dict[int, str]:
+        """Group-address value -> name, cached per read-out so the table render stays cheap."""
+        key = id(readout)
+        if self._ga_names_cache_key != key:
+            self._ga_names_cache = (
+                self._get_group_address_names()
+                if self._get_group_address_names is not None
+                else {}
+            )
+            self._ga_names_cache_key = key
+        return self._ga_names_cache
+
+    def _expected_group_addresses(
+        self, device: Device, readout: "BusDeviceInfo"
+    ) -> dict[int, set[int]]:
+        """Project's planned group addresses per object, computed once per read-out and cached (the
+        lookup hits the DB, so it must not run every frame while the table scrolls)."""
+        key = (device.node_id, id(readout))
+        if self._expected_cache_key != key:
+            self._expected_cache = (
+                self._get_expected_group_addresses(device)
+                if self._get_expected_group_addresses is not None
+                else {}
+            )
+            self._expected_cache_key = key
+        return self._expected_cache
 
     def _render_master_reset(self, device: Device, enabled: bool) -> None:
         """Destructive master-reset action: a button opening a confirm popup with an erase-type
