@@ -71,7 +71,7 @@ online catalog, cached locally for offline use.
 
 **Programming real devices** — commission a device end-to-end over a live connection (tunneling or
 routing, with gateway discovery), including setting a new device's address. A read-only **preflight**
-and **Test Before Programming** read the device back and show the exact changes before anything is
+and **Test Programming** read the device back and show the exact changes before anything is
 written. Vendor-independent by design.
 
 ![Programming and preflight](docs/images/programming.png)

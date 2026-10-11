@@ -27,6 +27,7 @@ from editor_gui import signing_key as signing_key_store
 from editor_gui import trace_key as trace_key_store
 from editor_gui.certs import ensure_ca_bundle
 from editor_gui.concurrency import MainThreadExecutor
+from editor_gui.dock_menus import render_section_menus
 from editor_gui.master_data import MasterDataInfo, load_master, master_xml_bytes
 from editor_gui.plugins.base import API_VERSION, Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.catalog import CatalogPlugin, CatalogService
@@ -48,6 +49,7 @@ from editor_gui.plugins.topology import TopologyPlugin
 from editor_gui.settings import config_dir, load_settings, save_settings
 from editor_gui.strings import S, get_locale, set_locale
 from editor_gui.update_check import UpdateInfo, check_for_update
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.fonts import load_fonts
 from xknxeditor.prod.errors import ArchiveError
@@ -271,6 +273,8 @@ class KnxGuiApp:
         # glGetString segfaults at the C level and would be uncatchable).
         self._gl_logged = False
         self._show_theme_tweaks = False
+        # FPS and the idling toggle at the end of the status bar.
+        self._show_status_fps = False
         # Overwrite guard: the portable file dialog does not confirm replacing an existing file on
         # macOS (it wraps AppleScript's "choose file name"), so we ask here. Requests queue as
         # (target, action) pairs so a second dialog resolving mid-confirmation cannot drop the first.
@@ -1751,6 +1755,34 @@ class KnxGuiApp:
                 )
             )
 
+        if self._show_status_fps:
+            self._render_status_fps()
+
+    def _render_status_fps(self) -> None:
+        """FPS and the idling toggle, right-aligned in the status bar."""
+        idling = hello_imgui.get_runner_params().fps_idling
+        fps = S.STATUS_FPS.format(
+            fps=hello_imgui.frame_rate(),
+            idling=S.STATUS_IDLING if idling.is_idling else "",
+        )
+        style = imgui.get_style()
+        width = (
+            imgui.get_text_line_height()
+            + style.frame_padding.y / 2
+            + style.item_inner_spacing.x
+            + imgui.calc_text_size(S.MENU_ENABLE_IDLING).x
+            + style.item_spacing.x
+            + imgui.calc_text_size(
+                S.STATUS_FPS.format(fps=999.9, idling=S.STATUS_IDLING)
+            ).x
+        )
+        imgui.same_line(
+            max(imgui.get_window_width() - width - style.window_padding.x, 0.0)
+        )
+        _, idling.enable_idling = checkbox(S.MENU_ENABLE_IDLING, idling.enable_idling)
+        imgui.same_line()
+        imgui.text_disabled(fps)
+
     def gui_menu(self) -> None:
         if imgui.begin_menu(S.MENU_FILE):
             if imgui.menu_item(S.MENU_NEW_PROJECT, S.SHORTCUT_NEW, False)[0]:
@@ -2072,6 +2104,7 @@ class KnxGuiApp:
             self._log.warning(msg)
 
     def render_overlays(self) -> None:
+        render_section_menus()
         # Log the active OpenGL renderer once, from the frame path (context guaranteed current).
         if not self._gl_logged:
             self._gl_logged = True
@@ -2413,11 +2446,9 @@ class KnxGuiApp:
         )
         if changed:
             window_params.show_status_bar = shown
-        changed, shown = imgui.menu_item(
-            S.MENU_STATUS_FPS, "", window_params.show_status_fps
-        )
+        changed, shown = imgui.menu_item(S.MENU_STATUS_FPS, "", self._show_status_fps)
         if changed:
-            window_params.show_status_fps = shown
+            self._show_status_fps = shown
         changed, enabled = imgui.menu_item(
             S.MENU_ENABLE_IDLING, "", params.fps_idling.enable_idling
         )
@@ -2665,7 +2696,7 @@ class KnxGuiApp:
 
 
 # Bumped whenever the default docking layout changes, so a stored layout is replaced once.
-_LAYOUT_VERSION = 8
+_LAYOUT_VERSION = 9
 
 
 def create_docking_splits() -> list[hello_imgui.DockingSplit]:
@@ -2673,33 +2704,30 @@ def create_docking_splits() -> list[hello_imgui.DockingSplit]:
     split_right.initial_dock = "MainDockSpace"
     split_right.new_dock = "RightSpace"
     split_right.direction = imgui.Dir.right
-    split_right.ratio = 0.22
+    # Wide enough for the Device panel's Test / Program / Preview buttons in one row.
+    split_right.ratio = 0.2
 
-    # Right column is split in two: project info / log on top, operations / history / health below.
-    # Must come after split_right since it subdivides RightSpace.
-    split_right_bottom = hello_imgui.DockingSplit()
-    split_right_bottom.initial_dock = "RightSpace"
-    split_right_bottom.new_dock = "RightBottomSpace"
-    split_right_bottom.direction = imgui.Dir.down
-    split_right_bottom.ratio = 0.6
+    split_device = hello_imgui.DockingSplit()
+    split_device.initial_dock = "RightSpace"
+    split_device.new_dock = "DeviceSpace"
+    split_device.direction = imgui.Dir.up
+    split_device.ratio = 0.35
+
+    split_bottom = hello_imgui.DockingSplit()
+    split_bottom.initial_dock = "MainDockSpace"
+    split_bottom.new_dock = "BottomSpace"
+    split_bottom.direction = imgui.Dir.down
+    split_bottom.ratio = 0.25
 
     split_left = hello_imgui.DockingSplit()
     split_left.initial_dock = "MainDockSpace"
     split_left.new_dock = "LeftSpace"
     split_left.direction = imgui.Dir.left
     # Wide enough that the stacked navigation tabs (Buildings, Devices, Group Addresses, Catalog)
-    # all fit, and the bus/log tables underneath have room for their columns.
-    split_left.ratio = 0.4
+    # all fit without the tab-bar overflow (">>") arrow.
+    split_left.ratio = 0.29
 
-    # Bus/telegram and log views sit directly under the Buildings/Devices navigation (left column),
-    # not in a full-width bottom strip. Must come after split_left since it subdivides LeftSpace.
-    split_left_bottom = hello_imgui.DockingSplit()
-    split_left_bottom.initial_dock = "LeftSpace"
-    split_left_bottom.new_dock = "LeftBottomSpace"
-    split_left_bottom.direction = imgui.Dir.down
-    split_left_bottom.ratio = 0.38
-
-    return [split_right, split_right_bottom, split_left, split_left_bottom]
+    return [split_right, split_device, split_bottom, split_left]
 
 
 def _apply_new_layout_once(docking_params: hello_imgui.DockingParams) -> None:
@@ -2735,6 +2763,8 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
         "buildings": lambda: _proj.PANEL_BUILDINGS,
         "group_addresses": lambda: _proj.PANEL_GROUP_ADDRESSES,
         "editor": lambda: _proj.PANEL_EDITOR,
+        "device": lambda: _proj.PANEL_DEVICE,
+        "manufacturer": lambda: _proj.PANEL_MANUFACTURER,
         "mass_linker": lambda: _proj.PANEL_MASS_LINKER,
         "tools": lambda: _proj.PANEL_TOOLS,
         "history": lambda: _proj.PANEL_HISTORY,
@@ -2763,17 +2793,23 @@ _DOCK_TAB_ORDER = [
     "catalog",
     "editor",
     "cockpit",
+    "device",
+    "manufacturer",
     "operations",
+    "history",
+    "health",
     "mass_linker",
     "tools",
     "ki",
     "topology",
     "recover",
-    # Left-bottom bus/log group, in tab order (logger stays last).
+    # Bottom bus/log group, then the project info and log.
     "network",
     "monitor",
     "timeline",
     "logger",
+    "project_info",
+    "project_log",
 ]
 
 
@@ -2794,11 +2830,10 @@ def create_dockable_windows(app: KnxGuiApp) -> list[hello_imgui.DockableWindow]:
         windows.append(window)
     rank = {name: i for i, name in enumerate(_DOCK_TAB_ORDER)}
     windows.sort(key=lambda w: rank.get(_dock_window_name(w), len(_DOCK_TAB_ORDER)))
-    # Buildings is the primary view: focus it on first frame.
+    # Buildings and Device are the primary views: focus them on first frame.
     for w in windows:
-        if _dock_window_name(w) == "buildings":
+        if _dock_window_name(w) in ("buildings", "device"):
             w.focus_window_at_next_frame = True
-            break
     return windows
 
 

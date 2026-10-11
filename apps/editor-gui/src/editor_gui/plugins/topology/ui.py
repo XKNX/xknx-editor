@@ -14,6 +14,7 @@ from imgui_bundle import imgui
 
 from editor_gui.device import Device, address_order
 from editor_gui.plugins.topology.strings import S
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px
 
 # Unscaled layout metrics (multiplied by the zoom factor at draw time).
@@ -65,9 +66,7 @@ class TopologyPanel:
         if not self._is_open():
             imgui.text_disabled(S.TOPOLOGY_EMPTY)
             return
-        _, self._building_mode = imgui.checkbox(
-            S.TOPOLOGY_BUILDING_MODE, self._building_mode
-        )
+        _, self._building_mode = checkbox(S.TOPOLOGY_BUILDING_MODE, self._building_mode)
         imgui.same_line()
         imgui.text_disabled(S.TOPOLOGY_HINT)
         layout = (

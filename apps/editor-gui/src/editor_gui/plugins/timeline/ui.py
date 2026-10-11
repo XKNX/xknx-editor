@@ -14,6 +14,7 @@ from imgui_bundle import imgui
 
 from editor_gui.dpt import transcoder_for
 from editor_gui.plugins.timeline.strings import S
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px
 
 # (raw group-address value, display label, dpt string)
@@ -71,7 +72,7 @@ class TimelinePanel:
             if needle and needle not in label.lower():
                 continue
             checked = raw in self._pinned
-            changed, new = imgui.checkbox(f"##pin{raw}", checked)
+            changed, new = checkbox(f"##pin{raw}", checked)
             if changed:
                 if new:
                     self._pinned.add(raw)

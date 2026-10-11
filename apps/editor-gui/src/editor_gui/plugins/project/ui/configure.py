@@ -1,6 +1,7 @@
 import threading
 import webbrowser
 from collections.abc import Callable
+from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
@@ -10,7 +11,7 @@ from xknx.exceptions import CouldNotParseAddress
 from xknx.telegram import IndividualAddress
 
 from editor_gui import doc_links
-from editor_gui.device import ComObject, Device
+from editor_gui.device import ComObject, Device, device_label
 from editor_gui.device_info import (
     firmware_text,
     parse_serial_text,
@@ -21,6 +22,7 @@ from editor_gui.device_plugins import device_plugins
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.fonts import italic
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.app_id import parse_app_id
 from xknxeditor.recover.dossier import printable_text
@@ -39,6 +41,7 @@ from editor_gui.widgets import (
     render_ui_tree,
     take_selected_help,
 )
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.group_objects_widgets import (
     GroupAddressCatalog,
     GroupLinkResolver,
@@ -75,6 +78,21 @@ def _same_line_if_fits(label: str) -> None:
     limit = imgui.get_window_pos().x + imgui.get_window_width() - style.window_padding.x
     if right <= limit:
         imgui.same_line()
+
+
+def _same_line_if_fits_checkbox(label: str) -> None:
+    """Put the next checkbox beside the previous item if it fits, else below it."""
+    style = imgui.get_style()
+    width = (
+        imgui.get_text_line_height()
+        + style.frame_padding.y / 2
+        + style.item_inner_spacing.x
+        + imgui.calc_text_size(label).x
+    )
+    right = imgui.get_item_rect_max().x + style.item_spacing.x * 2 + width
+    limit = imgui.get_window_pos().x + imgui.get_window_width() - style.window_padding.x
+    if right <= limit:
+        imgui.same_line(0.0, style.item_spacing.x * 2)
 
 
 def _reset_presets() -> list[tuple[str, int]]:
@@ -198,9 +216,6 @@ class ConfigurePanel:
         self._alert_update_open: bool = False
         self._alert_version: int = 0
         self._manual_busy: bool = False  # a manual lookup thread is running
-        # One-shot: expand the (default-collapsed) Hersteller block next frame, so a read-from-device
-        # triggered from the always-visible action row reveals its result.
-        self._expand_details_once: bool = False
         self._group_objects_table = GroupObjectsTable(
             set_flag,
             on_link_com_object,
@@ -215,6 +230,8 @@ class ConfigurePanel:
             on_paste_links=on_paste_links,
         )
         self._name_buffer: str = ""
+        # The name field was pre-filled with the default name when it was activated.
+        self._name_prefilled = False
         self._address_buffer: str = ""
         self._description_buffer: str = ""
         self._buffer_device_id: int | None = None
@@ -235,6 +252,8 @@ class ConfigurePanel:
         self._module_filter: str = ""  # "Channels" tab (module-instance table) filter
         self._lv_seq: int = 0  # per-frame counter for unique _render_label_value ids
         self._label_w = 0.0  # start of the value column next to field labels
+        # Value column of the stacked header fields, which the download scope lines up with.
+        self._header_label_w: float | None = None
 
     def _current_device(self) -> Device | None:
         """The selected device, defaulting to the first one."""
@@ -274,30 +293,28 @@ class ConfigurePanel:
             S.READOUT_HARDWARE,
         )
 
+    def render_device(self) -> None:
+        """Device panel: device selection, address and programming."""
+        self._begin_details()
+        if self._current_device() is None:
+            imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
+            return
+        self._render_device_section()
+
+    def render_manufacturer(self) -> None:
+        """Manufacturer panel: product and application details of the selected device."""
+        self._begin_details()
+        device = self._current_device()
+        if device is None:
+            imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
+            return
+        self._render_manufacturer_section(device)
+
     def _render_device_section(self) -> None:
-        """Device selection, address and programming (top of the Configure panel)."""
+        """Name, address and programming of the selected device."""
         device = self._current_device()
         if device is None:
             return
-        devices = self._get_devices()
-
-        current_idx = 0
-        labels: list[str] = []
-        for i, d in enumerate(devices):
-            label = (
-                f"{d.name} ({d.individual_address})" if d.individual_address else d.name
-            )
-            labels.append(label)
-            if d.node_id == device.node_id:
-                current_idx = i
-
-        imgui.set_next_item_width(-1)
-        changed, new_idx = imgui.combo("##device_select", current_idx, labels)
-        if changed:
-            self._set_selected_device(devices[new_idx])
-            device = devices[new_idx]
-
-        imgui.separator()
 
         if self._buffer_device_id != device.node_id:
             self._name_buffer = device.name
@@ -346,6 +363,7 @@ class ConfigurePanel:
         if self._open_memory_preview is not None and imgui.button(S.BTN_PREVIEW_MEMORY):
             self._open_memory_preview(device)
 
+        self._render_device_actions(device)
         self._render_ip_config(device)
 
     def _render_plugin_notices(self, device: Device) -> None:
@@ -405,12 +423,17 @@ class ConfigurePanel:
                 col_label_w[col], imgui.calc_text_size(label).x + pad
             )
         if ncols <= 1:
+            col_label_w[0] = max(
+                col_label_w[0], imgui.calc_text_size(S.CONFIGURE_DOWNLOAD_SCOPE).x + pad
+            )
+            self._header_label_w = col_label_w[0]
             for label, render in fields:
                 imgui.align_text_to_frame_padding()
                 imgui.text_disabled(label)
                 imgui.same_line(col_label_w[0])
                 render()
             return
+        self._header_label_w = None
         if not imgui.begin_table("##device_header", ncols * 2):
             return
         for i in range(ncols):
@@ -430,17 +453,38 @@ class ConfigurePanel:
         imgui.end_table()
 
     def _name_input(self, device: Device) -> None:
+        """The device name. Without a custom name the default one is shown in grey italics and
+        filled in when the field is entered; leaving it with the default name keeps no custom
+        name."""
+        default = device.product_name or device.app.name
+        placeholder = not device.name and not self._name_prefilled
         imgui.set_next_item_width(-1)
-        _, self._name_buffer = imgui.input_text("##name", self._name_buffer)
-        if imgui.is_item_deactivated_after_edit():
-            self._on_name_change(device, self._name_buffer)
+        with italic() if placeholder else nullcontext():
+            _, self._name_buffer = imgui.input_text_with_hint(
+                "##name", default if placeholder else "", self._name_buffer
+            )
+        if imgui.is_item_activated() and not device.name:
+            self._name_buffer = default
+            self._name_prefilled = True
+            state = imgui.internal.get_input_text_state(imgui.get_item_id())
+            if state is not None:
+                state.reload_user_buf_and_move_to_end()
+        if imgui.is_item_deactivated():
+            # The default name itself is not stored as a custom name.
+            name = "" if self._name_buffer.strip() == default else self._name_buffer
+            if name != device.name:
+                self._on_name_change(device, name)
+            self._name_prefilled = False
         if not imgui.is_item_active() and self._name_buffer != device.name:
             self._name_buffer = device.name
 
     def _description_input(self, device: Device) -> None:
-        imgui.set_next_item_width(-1)
-        _, self._description_buffer = imgui.input_text(
-            "##description", self._description_buffer
+        """The device description, two lines high."""
+        height = (
+            imgui.get_text_line_height() * 2 + imgui.get_style().frame_padding.y * 2
+        )
+        _, self._description_buffer = imgui.input_text_multiline(
+            "##description", self._description_buffer, imgui.ImVec2(-1, height)
         )
         if imgui.is_item_deactivated_after_edit():
             self._on_description_change(device, self._description_buffer)
@@ -484,26 +528,18 @@ class ConfigurePanel:
         if not imgui.is_item_active() and self._serial_buffer != stored:
             self._serial_buffer = stored
 
-    def _render_action_row(self, device: Device) -> None:
-        """A compact, always-visible row of the device's occasional actions (manual, read-out,
-        restart, reset, application update). Flows onto one line and wraps when the panel is narrow,
-        so these stay reachable without expanding the detail block below."""
+    def _render_device_actions(self, device: Device) -> None:
+        """The device's occasional actions (read-out, restart, reset, application update) in one
+        row that wraps when the panel is narrow."""
         info = self._get_device_info(device.node_id)
         enabled = bool(device.individual_address)
         placed = False
 
-        imgui.spacing()
-        if self._render_manual_button(info):
-            placed = True
+        imgui.separator()
         if self._on_read_device_info is not None:
-            if placed:
-                _same_line_if_fits(S.BTN_READ_DEVICE_INFO)
             imgui.begin_disabled(not enabled)
             if imgui.button(S.BTN_READ_DEVICE_INFO):
                 self._on_read_device_info(device)
-                self._expand_details_once = (
-                    True  # reveal the result in the detail block
-                )
             imgui.end_disabled()
             if not enabled and imgui.is_item_hovered(
                 imgui.HoveredFlags_.allow_when_disabled
@@ -523,27 +559,13 @@ class ConfigurePanel:
                 _same_line_if_fits(S.BTN_RESET_DEVICE)
             self._render_master_reset(device, enabled)
             placed = True
-
-    def _render_basic_info(self, device: Device) -> None:
-        """Always-visible basics (product, application version) with the application-update button
-        beside them, so the common glance + action stay out of the collapsed detail block."""
-        info = self._get_device_info(device.node_id)
-        imgui.align_text_to_frame_padding()
-        imgui.text_disabled(S.CONFIGURE_PRODUCT)
-        imgui.same_line(self._label_w)
-        imgui.text(info.product_name if info and info.product_name else "-")
-        imgui.align_text_to_frame_padding()
-        imgui.text_disabled(S.CONFIGURE_APP_VERSION)
-        imgui.same_line(self._label_w)
-        app_version = self._current_app_version(device)
-        imgui.text(f"V{app_version}" if app_version is not None else "-")
         update = self._pending_update(device, info)
         if update is not None:
-            versions, current, _label = update
-            imgui.same_line()
+            versions, current, label = update
+            if placed:
+                _same_line_if_fits(label)
             self._render_update_action(device, versions, current)
-        # The update-success alert is a flag-driven modal; render it here (always visible) so it is
-        # not swallowed by the collapsed detail block.
+        # The update-success alert is a flag-driven modal, opened after an application update.
         if self._alert_update_open:
             imgui.open_popup(S.UPDATE_ALERT_TITLE)
             self._alert_update_open = False
@@ -572,7 +594,7 @@ class ConfigurePanel:
         app_version = self._current_app_version(device)
         # Show every field we have, always (empty -> "-"), so device details are complete and every
         # value can be copied. The flat label/value pairs flow into side-by-side columns when the
-        # panel is wide; the richer widgets (description, manual, read-out) follow full width below.
+        # panel is wide; the manual, online versions and read-out follow full width below.
         # device.app.version is the KNX XML schema version (e.g. "20"), NOT the program version above.
         self._render_detail_grid(
             [
@@ -593,6 +615,8 @@ class ConfigurePanel:
                 ),
             ]
         )
+        imgui.spacing()
+        self._render_manual_button(info)
         self._render_online_versions(device, info)
         self._render_readout_result(device)
         self._render_load_procedures(device)
@@ -603,33 +627,7 @@ class ConfigurePanel:
             imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
             return
         self._begin_details()
-        # Device header, programming and manufacturer details sit above the parameter tabs so the
-        # whole device - including the Program/Dry-run buttons and the manual (PDF) link - is visible
-        # in one place rather than tucked into separate panels. Tighten the row spacing here so this
-        # read-only detail block stays compact (the parameter tabs below keep the default spacing).
-        style = imgui.get_style()
-        spacing, cell = style.item_spacing, style.cell_padding
-        imgui.push_style_var(
-            imgui.StyleVar_.item_spacing, imgui.ImVec2(spacing.x, spacing.y * 0.5)
-        )
-        imgui.push_style_var(
-            imgui.StyleVar_.cell_padding, imgui.ImVec2(cell.x, cell.y * 0.4)
-        )
-        self._render_device_section()
-        device = (
-            self._current_device() or device
-        )  # the selector may have switched devices
-        self._render_basic_info(device)
-        self._render_action_row(device)
-        # The Herstellerinfos block carries the full read-only detail (all identifiers, read-out
-        # result, load procedures); it starts collapsed so the parameter tabs below get the height.
-        # A read-from-device opens it once so its result is seen.
-        if self._expand_details_once:
-            imgui.set_next_item_open(True)
-            self._expand_details_once = False
-        if imgui.collapsing_header(S.CONFIGURE_MANUFACTURER_INFO):
-            self._render_manufacturer_section(device)
-        imgui.pop_style_var(2)
+        imgui.text(device_label(device))
         imgui.separator()
 
         if imgui.begin_tab_bar("##editor_tabs"):
@@ -657,8 +655,9 @@ class ConfigurePanel:
                         )
                     else:
                         self._multi_targets = []
-                        self._render_multi_fill_toggle(device)
-                        _, self._apply_all_channels = imgui.checkbox(
+                        if self._render_multi_fill_toggle(device):
+                            _same_line_if_fits_checkbox(S.CONFIGURE_APPLY_ALL_CHANNELS)
+                        _, self._apply_all_channels = checkbox(
                             S.CONFIGURE_APPLY_ALL_CHANNELS, self._apply_all_channels
                         )
                     help_text = self._help_text(device) if self.show_help else None
@@ -891,7 +890,7 @@ class ConfigurePanel:
         _, self._reset_erase_idx = imgui.combo(
             S.RESET_TYPE, self._reset_erase_idx, [label for label, _ in presets]
         )
-        _, self._reset_armed = imgui.checkbox(S.RESET_CONFIRM, self._reset_armed)
+        _, self._reset_armed = checkbox(S.RESET_CONFIRM, self._reset_armed)
         imgui.begin_disabled(not self._reset_armed)
         if imgui.button(S.RESET_EXECUTE):
             _, code = presets[self._reset_erase_idx]
@@ -963,17 +962,19 @@ class ConfigurePanel:
             1 for d in self._get_devices() if getattr(d.app, "id", None) == app_id
         )
 
-    def _render_multi_fill_toggle(self, device: Device) -> None:
-        """Multi-fill toggle: apply parameter edits to all identical devices at once."""
+    def _render_multi_fill_toggle(self, device: Device) -> bool:
+        """Multi-fill toggle: apply parameter edits to all identical devices at once. Returns
+        whether it is shown."""
         if self._on_param_change_all is None:
-            return
+            return False
         count = self._matching_count(device)
         if count <= 1:
             self._apply_all = False
-            return  # nothing to fill into
-        _, self._apply_all = imgui.checkbox(
+            return False  # nothing to fill into
+        _, self._apply_all = checkbox(
             S.CONFIGURE_APPLY_ALL.format(count=count), self._apply_all
         )
+        return True
 
     def _joint_devices(self, primary: Device) -> list[Device]:
         """Selected devices (incl. the primary) that share the primary's application, in the order
@@ -1239,7 +1240,7 @@ class ConfigurePanel:
             )
         imgui.spacing()
         if serial is not None:
-            _, self._program_use_serial = imgui.checkbox(
+            _, self._program_use_serial = checkbox(
                 S.PROGRAM_USE_SERIAL_NUMBER, self._program_use_serial
             )
             owner = (
@@ -1278,7 +1279,7 @@ class ConfigurePanel:
             imgui.push_text_wrap_pos(px(420.0))
             imgui.text_colored(_PLUGIN_NOTICE_COLOR, S.PLUGIN_DOWNLOAD_WARNING)
             imgui.pop_text_wrap_pos()
-            _, self._program_without_plugin = imgui.checkbox(
+            _, self._program_without_plugin = checkbox(
                 S.PLUGIN_DOWNLOAD_CONFIRM, self._program_without_plugin
             )
             imgui.spacing()
@@ -1330,8 +1331,12 @@ class ConfigurePanel:
         current = order.index(self._download_scope)
         imgui.align_text_to_frame_padding()
         imgui.text_disabled(S.CONFIGURE_DOWNLOAD_SCOPE)
-        imgui.same_line(self._label_w)
-        imgui.set_next_item_width(px(220.0))
+        if self._header_label_w is not None:
+            imgui.same_line(self._header_label_w)
+            imgui.set_next_item_width(-1)
+        else:
+            imgui.same_line(self._label_w)
+            imgui.set_next_item_width(px(220.0))
         changed, new_idx = imgui.combo("##download_scope", current, labels)
         if changed:
             self._download_scope = order[new_idx]

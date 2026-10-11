@@ -78,6 +78,15 @@ class ComObject:
     description: str = ""
 
 
+def device_label(device: Device | UnloadedDevice) -> str:
+    """``address  name`` as the device lists show it; an unnamed device shows its product (or
+    application) name."""
+    primary = device.display_name or "?"
+    if device.individual_address:
+        return f"{device.individual_address}  {primary}"
+    return primary
+
+
 def com_object_display_name(co: ComObject) -> str:
     """The object's name, plus its function when that adds information.
 

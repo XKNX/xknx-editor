@@ -845,3 +845,6 @@ msgstr "Het serienummer is al gekoppeld aan apparaat {device}."
 
 msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
 msgstr "Voer het serienummer in als 12 hexadecimale cijfers, bijv. 0083:7AA2039C."
+
+msgid "Test Programming"
+msgstr "Programmering testen"

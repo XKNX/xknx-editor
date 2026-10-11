@@ -576,3 +576,9 @@ msgstr "Design anpassen"
 
 msgid "Reading {address}..."
 msgstr "Lese {address}..."
+
+msgid "FPS: {fps:.1f}{idling}"
+msgstr "FPS: {fps:.1f}{idling}"
+
+msgid " (Idling)"
+msgstr " (Leerlauf)"

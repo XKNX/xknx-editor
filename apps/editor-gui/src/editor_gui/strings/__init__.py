@@ -732,6 +732,14 @@ class MenuStrings:
         return _("Enable Idling")
 
     @property
+    def STATUS_FPS(self) -> str:
+        return _("FPS: {fps:.1f}{idling}")
+
+    @property
+    def STATUS_IDLING(self) -> str:
+        return _(" (Idling)")
+
+    @property
     def MENU_THEME(self) -> str:
         return _("Theme")
 

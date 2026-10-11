@@ -103,8 +103,8 @@ msgstr "Physikalische Adresse"
 msgid "Program Device"
 msgstr "Gerät programmieren"
 
-msgid "Test Before Programming"
-msgstr "Test vor Programmierung"
+msgid "Test Programming"
+msgstr "Programmierung testen"
 
 msgid "Program device?"
 msgstr "Gerät programmieren?"

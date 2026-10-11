@@ -25,6 +25,7 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px, px_vec2
 
 if TYPE_CHECKING:
@@ -331,9 +332,7 @@ class MassLinkerPanel:
                 )
             )
             imgui.same_line()
-            _, self._problems_only = imgui.checkbox(
-                S.ML_SHOW_PROBLEMS, self._problems_only
-            )
+            _, self._problems_only = checkbox(S.ML_SHOW_PROBLEMS, self._problems_only)
 
         table_h = max(imgui.get_content_region_avail().y - px(96.0), px(120.0))
         if imgui.begin_child("##ml1_table", imgui.ImVec2(0.0, table_h)):
@@ -780,7 +779,7 @@ class MassLinkerPanel:
                     for co in cos:
                         assert co.db_id is not None
                         checked = co.db_id in self._pick_obj_selected
-                        changed, new = imgui.checkbox(
+                        changed, new = checkbox(
                             f"{_co_text(co)}##co{co.db_id}", checked
                         )
                         if changed:

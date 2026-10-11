@@ -3,7 +3,7 @@ from dataclasses import dataclass
 
 from imgui_bundle import imgui
 
-from editor_gui.device import Device, UnloadedDevice, address_order
+from editor_gui.device import Device, UnloadedDevice, address_order, device_label
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
@@ -365,12 +365,7 @@ class DevicesPanel:
 
     def _device_label(self, device: TreeDevice) -> str:
         # Imported devices are often unnamed; fall back to the product/application name.
-        primary = device.display_name or "?"
-        version = "" if isinstance(device, UnloadedDevice) else device.app.version or ""
-        ver = f"  V{version}" if version else ""  # app program version, e.g. "V20"
-        if device.individual_address:
-            return f"{device.individual_address}  {primary}{ver}##dev{device.node_id}"
-        return f"{primary}{ver}##dev{device.node_id}"
+        return f"{device_label(device)}##dev{device.node_id}"
 
     def _format_area_label(self, area: Area) -> str:
         if area.name:

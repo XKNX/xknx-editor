@@ -8,6 +8,14 @@ _ = create_translator("project", _locale_dir)
 
 class ProjectStrings:
     @property
+    def PANEL_DEVICE(self) -> str:
+        return _("Device")
+
+    @property
+    def PANEL_MANUFACTURER(self) -> str:
+        return _("Manufacturer")
+
+    @property
     def PANEL_DEVICES(self) -> str:
         return _("Devices")
 
@@ -907,7 +915,7 @@ class ProjectStrings:
 
     @property
     def BTN_EVAL_DEVICE(self) -> str:
-        return _("Test Before Programming")
+        return _("Test Programming")
 
     @property
     def PROGRAM_CONFIRM_TITLE(self) -> str:
