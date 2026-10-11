@@ -419,11 +419,15 @@ class ConnectionService:
         device: Device,
         scope: DownloadScope | None = None,
         group_communication: GroupCommunication | None = None,
+        *,
+        without_plugin: bool = False,
     ) -> Future[Any] | None:
         """Download the device's configured application/parameters onto the bus.
 
         ``scope`` selects a full or partial download (defaults to full).
         ``group_communication`` supplies the address/association tables.
+        A device whose hardware needs the manufacturer's plugin is only programmed with
+        ``without_plugin`` (the user confirmed it).
         """
         if self.not_connected("program_device"):
             return None
@@ -431,11 +435,16 @@ class ConnectionService:
             self._log.warning("Device has no individual address", device=device.name)
             return None
         if device.download_plugin_required:
-            self._log.error(
-                "Device can only be programmed with the manufacturer's plugin",
+            if not without_plugin:
+                self._log.error(
+                    "Device can only be programmed with the manufacturer's plugin",
+                    device=device.name,
+                )
+                return None
+            self._log.warning(
+                "Programming without the manufacturer's plugin, as confirmed",
                 device=device.name,
             )
-            return None
         from editor_gui.programming import download_device
         from xknxeditor.download.scope import DownloadScope
 

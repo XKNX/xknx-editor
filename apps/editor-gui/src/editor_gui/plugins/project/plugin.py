@@ -1207,7 +1207,9 @@ class ProjectPlugin:
     ) -> None:
         self._api.project.set_flag(device, co_id, flag_name, new_value)
 
-    def _program_device(self, device: "Device", scope: "DownloadScope") -> None:
+    def _program_device(
+        self, device: "Device", scope: "DownloadScope", without_plugin: bool = False
+    ) -> None:
         """Program button: enqueue the device. Runs immediately if the bus is free, otherwise it is
         appended to the programming queue (dedupe per device) and drained one at a time."""
         self._api.log.debug(
@@ -1222,6 +1224,7 @@ class ProjectPlugin:
                 address=device.individual_address or "",
                 name=device.name,
                 scope=scope,
+                without_plugin=without_plugin,
             )
         )
 
@@ -1336,10 +1339,13 @@ class ProjectPlugin:
             )
             return None
         future = self._api.connection.program_device(
-            device, item.scope, self._group_communication_for(device)
+            device,
+            item.scope,
+            self._group_communication_for(device),
+            without_plugin=item.without_plugin,
         )
         if future is None:
-            if device.download_plugin_required:
+            if device.download_plugin_required and not item.without_plugin:
                 item.message = S.PLUGIN_DOWNLOAD_REQUIRED
             elif self._api.connection.xknx is None:
                 item.message = S.SCRIPT_NOT_CONNECTED

@@ -799,3 +799,9 @@ msgstr "Dit apparaat wordt ook geconfigureerd met afzonderlijke software van de 
 
 msgid "The project contains the device configuration app “{name}” for this device; it cannot be run here."
 msgstr "Het project bevat de apparaatconfiguratie-app “{name}” voor dit apparaat; deze kan hier niet worden uitgevoerd."
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "De fabrikant staat het programmeren van dit apparaat alleen toe met zijn plug-in, die hier niet beschikbaar is. Zonder de plug-in kan het apparaat verkeerd geconfigureerd of in een foutstatus achterblijven."
+
+msgid "Program without the manufacturer's plugin anyway"
+msgstr "Toch programmeren zonder de plug-in van de fabrikant"

@@ -161,7 +161,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def connection_program_device(
-        node_id: int, scope: Scope | None = None, timeout: float = 300.0
+        node_id: int,
+        scope: Scope | None = None,
+        timeout: float = 300.0,
+        without_plugin: bool = False,
     ) -> dict[str, Any]:
         """Download the device's application/parameters/links onto the bus (``timeout`` seconds).
 
@@ -180,15 +183,23 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
           BOTH the application AND the links (e.g. changing a push-button function type AND relinking
           its objects) — no single partial scope covers both — or when unsure. Not heavier than the
           partials (same procedure, delta writes), it just does not re-flash firmware or the address.
-        - UNLOAD: remove the application (reset the device to unloaded)."""
+        - UNLOAD: remove the application (reset the device to unloaded).
+
+        A device whose hardware is marked NoDownloadWithoutPlugin is refused unless
+        ``without_plugin`` is set - only after the user explicitly confirmed programming it without
+        the manufacturer's plugin, which may leave it misconfigured."""
         device, group_communication = _programmable_device(node_id)
-        if device.download_plugin_required:
+        if device.download_plugin_required and not without_plugin:
             raise ToolError(
                 f"device {node_id} can only be programmed with the manufacturer's plugin "
-                "(its hardware is marked NoDownloadWithoutPlugin)"
+                "(its hardware is marked NoDownloadWithoutPlugin); pass without_plugin=true only "
+                "if the user explicitly confirmed programming it anyway"
             )
         future = service.program_device(
-            device, _resolve_scope(scope), group_communication
+            device,
+            _resolve_scope(scope),
+            group_communication,
+            without_plugin=without_plugin,
         )
         if future is None:
             raise ToolError("programming could not be scheduled (no connection)")

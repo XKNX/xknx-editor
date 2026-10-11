@@ -85,7 +85,7 @@ class ConfigurePanel:
         on_unlink_com_object: Callable[[int], None],
         on_auto_create_gas: Callable[[Device, list[ComObject], str, str], None],
         get_device_info: "Callable[[int], DeviceInfo | None]",
-        on_program_device: Callable[[Device, DownloadScope], None] | None = None,
+        on_program_device: Callable[[Device, DownloadScope, bool], None] | None = None,
         on_eval_device: Callable[[Device, DownloadScope], None] | None = None,
         open_memory_preview: Callable[[Device], None] | None = None,
         on_param_change_all: Callable[[Device, str, str], None] | None = None,
@@ -183,6 +183,8 @@ class ConfigurePanel:
         self._buffer_device_id: int | None = None
         self._download_scope: DownloadScope = DownloadScope.PARAMETERS
         self._confirm_program_open: bool = False
+        # Confirmed to program a device whose hardware needs the manufacturer's plugin.
+        self._program_without_plugin: bool = False
         self._render_dali = (
             render_dali  # DALI commissioning tab body (MDT DALI devices only)
         )
@@ -276,20 +278,16 @@ class ConfigurePanel:
             _same_line_if_fits(S.BTN_PROGRAM_DEVICE)
 
         if self._on_program_device is not None:
-            blocked = device.download_plugin_required
-            enabled = bool(device.individual_address) and not blocked
+            enabled = bool(device.individual_address)
             imgui.begin_disabled(not enabled)
             if imgui.button(S.BTN_PROGRAM_DEVICE):
                 # Programming writes to the device; confirm first.
                 self._confirm_program_open = True
             imgui.end_disabled()
-            if blocked and imgui.is_item_hovered(
-                imgui.HoveredFlags_.allow_when_disabled
-            ):
-                imgui.set_tooltip(S.PLUGIN_DOWNLOAD_REQUIRED)
             if self._confirm_program_open:
                 imgui.open_popup(S.PROGRAM_CONFIRM_TITLE)
                 self._confirm_program_open = False
+                self._program_without_plugin = False
             self._render_program_confirm(device)
             if self._open_memory_preview is not None:
                 _same_line_if_fits(S.BTN_PREVIEW_MEMORY)
@@ -1142,11 +1140,22 @@ class ConfigurePanel:
             )
         )
         imgui.spacing()
+        plugin_required = device.download_plugin_required
+        if plugin_required:
+            imgui.push_text_wrap_pos(px(420.0))
+            imgui.text_colored(_PLUGIN_NOTICE_COLOR, S.PLUGIN_DOWNLOAD_WARNING)
+            imgui.pop_text_wrap_pos()
+            _, self._program_without_plugin = imgui.checkbox(
+                S.PLUGIN_DOWNLOAD_CONFIRM, self._program_without_plugin
+            )
+            imgui.spacing()
         btn_w = px_vec2(140, 0)
+        imgui.begin_disabled(plugin_required and not self._program_without_plugin)
         if imgui.button(S.BTN_PROGRAM_DEVICE, btn_w):
             if self._on_program_device is not None:
-                self._on_program_device(device, self._download_scope)
+                self._on_program_device(device, self._download_scope, plugin_required)
             imgui.close_current_popup()
+        imgui.end_disabled()
         imgui.same_line()
         if imgui.button(S.BTN_CANCEL, btn_w):
             imgui.close_current_popup()

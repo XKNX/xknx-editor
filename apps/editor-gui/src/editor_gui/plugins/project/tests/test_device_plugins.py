@@ -57,6 +57,21 @@ def test_program_device_refuses_a_device_that_needs_its_plugin() -> None:
     assert service.busy_operation is None
 
 
+def test_program_device_without_plugin_after_confirmation() -> None:
+    service = ConnectionService()
+    service._xknx = MagicMock()  # pyright: ignore[reportPrivateUsage]
+    log = MagicMock()
+    service.set_logger(log)
+    device = _device(None, required=True)
+    device.app.program.id = "M-0083_A-0154-40-0F69"
+    # No event loop runs here, so the download itself is not started.
+    service.program_device(device, without_plugin=True)
+    log.warning.assert_any_call(
+        "Programming without the manufacturer's plugin, as confirmed", device="Dev"
+    )
+    log.error.assert_not_called()
+
+
 def test_catalog_reads_the_hardware_flag() -> None:
     catalog = cast(Any, object.__new__(CatalogService))
     catalog._io_lock = threading.RLock()

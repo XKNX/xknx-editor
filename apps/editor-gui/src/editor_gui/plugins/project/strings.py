@@ -1901,6 +1901,16 @@ class ProjectStrings:
         )
 
     @property
+    def PLUGIN_DOWNLOAD_WARNING(self) -> str:
+        return _(
+            "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+        )
+
+    @property
+    def PLUGIN_DOWNLOAD_CONFIRM(self) -> str:
+        return _("Program without the manufacturer's plugin anyway")
+
+    @property
     def OPERATION_DOWNLOADING(self) -> str:
         return _("Downloading")
 

@@ -1297,3 +1297,9 @@ msgstr "Dieses Gerät wird zusätzlich mit separater Software des Herstellers ko
 
 msgid "The project contains the device configuration app “{name}” for this device; it cannot be run here."
 msgstr "Das Projekt enthält die Gerätekonfigurations-App “{name}” für dieses Gerät; sie kann hier nicht ausgeführt werden."
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "Der Hersteller erlaubt das Programmieren dieses Geräts nur mit seinem Plugin, das hier nicht verfügbar ist. Ohne das Plugin kann das Gerät falsch konfiguriert oder in einem Fehlerzustand zurückbleiben."
+
+msgid "Program without the manufacturer's plugin anyway"
+msgstr "Trotzdem ohne das Plugin des Herstellers programmieren"
