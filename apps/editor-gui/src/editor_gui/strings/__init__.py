@@ -712,6 +712,10 @@ class MenuStrings:
         return _("Hide All")
 
     @property
+    def MENU_CONTEXT_HELP(self) -> str:
+        return _("Context Help")
+
+    @property
     def MENU_STATUS_BAR(self) -> str:
         return _("Status Bar")
 

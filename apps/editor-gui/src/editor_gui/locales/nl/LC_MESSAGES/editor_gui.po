@@ -157,3 +157,6 @@ msgstr "Statusbalk"
 
 msgid "FPS in Status Bar"
 msgstr "FPS in statusbalk"
+
+msgid "Context Help"
+msgstr "Contexthulp"

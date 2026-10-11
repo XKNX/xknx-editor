@@ -561,3 +561,6 @@ msgstr "Statusleiste"
 
 msgid "FPS in Status Bar"
 msgstr "FPS in der Statusleiste"
+
+msgid "Context Help"
+msgstr "Kontexthilfe"

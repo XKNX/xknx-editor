@@ -411,6 +411,9 @@ class KnxGuiApp:
             self._plugin_api,
             get_selected_node_ids=lambda: [],
         )
+        self._project_plugin.show_context_help = bool(
+            load_settings("app").get("show_context_help", True)
+        )
 
         self._log = Logger(self._log_service, "app")
         self._logger_plugin = LoggerPlugin(self._log_service)
@@ -2389,6 +2392,14 @@ class KnxGuiApp:
             if changed:
                 w.is_visible = visible
         imgui.separator()
+        changed, shown = imgui.menu_item(
+            S.MENU_CONTEXT_HELP, "", self._project_plugin.show_context_help
+        )
+        if changed:
+            self._project_plugin.show_context_help = shown
+            data = load_settings("app")
+            data["show_context_help"] = shown
+            save_settings("app", data)
         window_params = params.imgui_window_params
         changed, shown = imgui.menu_item(
             S.MENU_STATUS_BAR, "", window_params.show_status_bar

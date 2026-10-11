@@ -1418,6 +1418,14 @@ class ProjectPlugin:
     def panels(self) -> list[PanelDefinition]:
         return self._panels
 
+    @property
+    def show_context_help(self) -> bool:
+        return self._configure_panel.show_help
+
+    @show_context_help.setter
+    def show_context_help(self, shown: bool) -> None:
+        self._configure_panel.show_help = shown
+
     def render_overlays(self) -> None:
         self._button_runner.render()
         self._memory_preview.render()
