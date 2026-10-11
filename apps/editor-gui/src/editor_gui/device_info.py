@@ -13,6 +13,11 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from xknx.exceptions import XKNXException
+from xknx.profile.const import (
+    ResourceDevicePropertyId,
+    ResourceGenericPropertyId,
+    ResourceObjectType,
+)
 
 from xknxeditor.download.errors import DownloadError
 from xknxeditor.download.load_state import LoadState
@@ -28,19 +33,6 @@ if TYPE_CHECKING:
     from xknxeditor.recover import AppId, RawGroupCommunication
     from xknxeditor.recover.tables_decode import DecodedGroupObject
 
-# Device Object (interface object 0) properties (KNX 3/7/3).
-_PID_SERIAL_NUMBER = 11
-_PID_MANUFACTURER_ID = 12
-_PID_ORDER_INFO = 15
-_PID_VERSION = 25
-_PID_ERROR_CODE = 28
-_PID_PROGMODE = 54
-_PID_HARDWARE_TYPE = 78
-# Interface object types (KNX 3/5/1).
-_ADDRESS_TABLE = 1
-_ASSOCIATION_TABLE = 2
-_APPLICATION_PROGRAM = 3
-_GROUP_OBJECT_TABLE = 9
 _APPLICATION_ID = re.compile(r"(M-[0-9A-F]{4})_A-([0-9A-F]{4})-([0-9A-F]{2})")
 # Group object flags in display order: read, write, communication, transmit, update, init.
 _FLAG_LETTERS = "RWCTUI"
@@ -209,29 +201,39 @@ async def read_device_info(
     try:
         programmer = DeviceProgrammer(connection, apdu_overhead=apdu_overhead(security))
         info.mask_version = await programmer.read_device_descriptor()
-        manufacturer = await _property(programmer, 0, _PID_MANUFACTURER_ID)
+        manufacturer = await _property(
+            programmer, 0, ResourceGenericPropertyId.PID_MANUFACTURER_ID
+        )
         info.manufacturer_id = (
             int.from_bytes(manufacturer, "big") if manufacturer else None
         )
-        info.order_number = await _property(programmer, 0, _PID_ORDER_INFO)
-        info.serial_number = await _property(programmer, 0, _PID_SERIAL_NUMBER)
-        info.hardware_type = await _property(programmer, 0, _PID_HARDWARE_TYPE)
-        version = await _property(programmer, 0, _PID_VERSION)
+        info.order_number = await _property(
+            programmer, 0, ResourceGenericPropertyId.PID_ORDER_INFO
+        )
+        info.serial_number = await _property(
+            programmer, 0, ResourceGenericPropertyId.PID_SERIAL_NUMBER
+        )
+        info.hardware_type = await _property(
+            programmer, 0, ResourceDevicePropertyId.PID_HARDWARE_TYPE
+        )
+        version = await _property(programmer, 0, ResourceGenericPropertyId.PID_VERSION)
         info.firmware_version = int.from_bytes(version[:2], "big") if version else None
-        progmode = await _property(programmer, 0, _PID_PROGMODE)
+        progmode = await _property(programmer, 0, ResourceDevicePropertyId.PID_PROGMODE)
         info.programming_mode = bool(progmode[0] & 0x01) if progmode else None
-        error = await _property(programmer, 0, _PID_ERROR_CODE)
+        error = await _property(programmer, 0, ResourceGenericPropertyId.PID_ERROR_CODE)
         info.error_code = error[0] if error else None
         info.application = await read_application_id(programmer)
         info.application_load_state = await _load_state(
-            programmer, _APPLICATION_PROGRAM
+            programmer, ResourceObjectType.OBJECT_APPLICATION_PROGRAM
         )
-        info.address_table_load_state = await _load_state(programmer, _ADDRESS_TABLE)
+        info.address_table_load_state = await _load_state(
+            programmer, ResourceObjectType.OBJECT_ADDRESS_TABLE
+        )
         info.association_table_load_state = await _load_state(
-            programmer, _ASSOCIATION_TABLE
+            programmer, ResourceObjectType.OBJECT_ASSOCIATION_TABLE
         )
         info.group_object_table_load_state = await _load_state(
-            programmer, _GROUP_OBJECT_TABLE
+            programmer, ResourceObjectType.OBJECT_GROUP_OBJECT_TABLE
         )
         if group_communication:
             application = (
