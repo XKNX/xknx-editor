@@ -1317,12 +1317,30 @@ class ProjectPlugin:
             group_objects=len(result.group_objects),
         )
         device = self._api.project.find_device_by_node_id(item.node_id)
+        if device is not None:
+            self._store_read_serial(device, result)
         style = self._api.project.group_address_style
         item.details = device_info_sections(
             result,
             manufacturers=self._manufacturer_names(),
             application_name=self._application_name(device, result),
             group_address=lambda value: format_ga(value, style),
+        )
+
+    def _store_read_serial(self, device: "Device", result: "DeviceInfo") -> None:
+        """Save the serial number read from the device, when it runs the project device's
+        application (so another product at that address is not taken for it)."""
+        serial = result.serial_number
+        if (
+            serial is None
+            or len(serial) != 6
+            or result.application is None
+            or not same_application(device.app.id, result.application)
+            or self._project_serial(device.node_id) == serial
+        ):
+            return
+        self._api.project.set_device_commissioning(
+            device.node_id, serial_number=serial_to_project(serial)
         )
 
     def _resolve_application(

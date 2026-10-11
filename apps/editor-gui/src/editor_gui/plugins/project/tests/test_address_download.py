@@ -180,3 +180,47 @@ def test_full_download_commissions_by_serial_number(
 
     (kwargs,) = downloads
     assert kwargs["serial_number"] == _SERIAL
+
+
+def test_serial_number_downloads_are_on_by_default() -> None:
+    assert ConnectionService().use_serial_number
+
+
+def _read_serial(application: str, stored: bytes | None) -> MagicMock:
+    from editor_gui.device_info import DeviceInfo
+    from editor_gui.plugins.project.plugin import ProjectPlugin
+    from xknxeditor.recover import AppId
+
+    project = MagicMock()
+    plugin = SimpleNamespace(
+        _api=SimpleNamespace(project=project), _project_serial=lambda node_id: stored
+    )
+    device = SimpleNamespace(node_id=7, app=SimpleNamespace(id=application))
+    result = DeviceInfo(
+        individual_address="1.1.5",
+        serial_number=_SERIAL,
+        application=AppId(
+            manufacturer_id="M-00FA",
+            application_number=0xA012,
+            application_version=0x51,
+        ),
+    )
+    ProjectPlugin._store_read_serial(plugin, device, result)  # type: ignore[arg-type]  # pyright: ignore[reportPrivateUsage, reportArgumentType]
+    return project
+
+
+def test_read_from_device_stores_the_serial_number() -> None:
+    project = _read_serial("M-00FA_A-A012-51-9712", None)
+    project.set_device_commissioning.assert_called_once_with(
+        7, serial_number="AIN6ogOc"
+    )
+
+
+def test_read_from_device_keeps_an_unchanged_serial_number() -> None:
+    project = _read_serial("M-00FA_A-A012-51-9712", _SERIAL)
+    project.set_device_commissioning.assert_not_called()
+
+
+def test_read_from_device_ignores_another_product() -> None:
+    project = _read_serial("M-00FA_A-A099-10-0000", None)
+    project.set_device_commissioning.assert_not_called()

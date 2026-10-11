@@ -1007,7 +1007,9 @@ class ProjectStrings:
 
     @property
     def SERIAL_NUMBER_INVALID(self) -> str:
-        return _("Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C.")
+        return _(
+            "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+        )
 
     @property
     def CONFIGURE_MANUFACTURER(self) -> str:

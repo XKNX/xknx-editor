@@ -48,7 +48,7 @@ class ConnectionService:
         # key so a point-to-point download/test is secured when the device was commissioned secure.
         self.keyring: KeyringService | None = None
         # Download individual addresses by serial number when the device's is known.
-        self.use_serial_number = False
+        self.use_serial_number = True
         # Current point-to-point bus operation, so the UI can show a
         # "programming/testing in progress" indicator. Set/cleared from worker threads.
         self._busy_lock = threading.Lock()

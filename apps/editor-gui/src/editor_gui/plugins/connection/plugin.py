@@ -195,7 +195,9 @@ class ConnectionPlugin:
         pref = data.get("preferred_gateway_ip")
         if isinstance(pref, str) and pref:
             self._preferred_gateway_ip = pref
-        self._api.connection.use_serial_number = bool(data.get("use_serial_number"))
+        self._api.connection.use_serial_number = bool(
+            data.get("serial_number_downloads", True)
+        )
 
     def _save_current_settings(self) -> None:
         save_settings(
@@ -205,7 +207,7 @@ class ConnectionPlugin:
                 "multicast_group": self._multicast_group,
                 "connection_type": self._connection_type.value,
                 "preferred_gateway_ip": self._preferred_gateway_ip,
-                "use_serial_number": self._api.connection.use_serial_number,
+                "serial_number_downloads": self._api.connection.use_serial_number,
             },
         )
 
