@@ -24,7 +24,7 @@ workflows which can auto download pdf manuals from the manufacturers.
 ## Download
 
 Prebuilt apps for **Windows, Linux, and macOS** are attached to every release — grab the latest from
-the [Releases page](https://github.com/knx-ai/xknx-editor/releases/latest) and start it directly.
+the [Releases page](https://github.com/xknx/xknx-editor/releases/latest) and start it directly.
 
 On macOS the app is not signed by Apple yet, so the first launch is blocked:
 

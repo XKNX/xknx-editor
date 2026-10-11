@@ -63,7 +63,7 @@ from xknxeditor.proj.core import import_notes
 from xknxeditor.proj.core.import_notes import ImportLoss
 from xknxeditor.proj.db import frame_db_profiler
 
-_REPO_URL = "https://github.com/knx-ai/xknx-editor"
+_REPO_URL = "https://github.com/xknx/xknx-editor"
 # Direct download of the Windows "compat" build (bundled Mesa software OpenGL, pure CPU) — the one that
 # runs in VMs (UTM/QEMU) and on hosts without a working OpenGL driver. Pick the architecture-matching
 # asset (native ARM64 vs x64). /releases/latest/download always points at the newest release's asset.
@@ -1842,7 +1842,7 @@ class KnxGuiApp:
 
     def _open_feedback(self) -> None:
         """Open the project's GitHub issues page in the default browser."""
-        url = "https://github.com/knx-ai/xknx-editor/issues"
+        url = "https://github.com/xknx/xknx-editor/issues"
         try:
             webbrowser.open(url)
         except Exception as e:

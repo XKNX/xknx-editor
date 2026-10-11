@@ -15,9 +15,9 @@ import urllib.request
 from dataclasses import dataclass
 from typing import Any, cast
 
-_RELEASES_API = "https://api.github.com/repos/knx-ai/xknx-editor/releases"
+_RELEASES_API = "https://api.github.com/repos/xknx/xknx-editor/releases"
 _TAG_PREFIX = "xknx-editor-v"
-_RELEASE_PAGE = "https://github.com/knx-ai/xknx-editor/releases/tag/{tag}"
+_RELEASE_PAGE = "https://github.com/xknx/xknx-editor/releases/tag/{tag}"
 
 
 @dataclass(frozen=True)
