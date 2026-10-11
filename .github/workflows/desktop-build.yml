@@ -131,9 +131,10 @@ jobs:
           install -D "$icon" AppDir/usr/share/icons/hicolor/512x512/apps/xknx-editor.png
           cp "$icon" AppDir/xknx-editor.png
           # AppStream metainfo: lets software centres list the app and clears appimagetool's
-          # "AppStream metadata is missing" warning. The id links to the desktop file above.
-          install -D packaging/org.xknx.editor.appdata.xml \
-            AppDir/usr/share/metainfo/org.xknx.editor.appdata.xml
+          # "AppStream metadata is missing" warning. appimagetool expects the file named after the
+          # desktop file (xknx-editor.desktop -> xknx-editor.appdata.xml).
+          install -D packaging/xknx-editor.appdata.xml \
+            AppDir/usr/share/metainfo/xknx-editor.appdata.xml
           cat > AppDir/xknx-editor.desktop <<'DESKTOP'
           [Desktop Entry]
           Type=Application
