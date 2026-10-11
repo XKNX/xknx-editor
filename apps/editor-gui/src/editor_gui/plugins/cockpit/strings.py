@@ -67,19 +67,19 @@ class CockpitStrings:
 
     @property
     def COCKPIT_LOADED_TOOLTIP_IA(self) -> str:
-        return _("Individual address")
+        return _("Individual Address")
 
     @property
     def COCKPIT_LOADED_TOOLTIP_APP(self) -> str:
-        return _("Application program")
+        return _("Application Program")
 
     @property
     def COCKPIT_LOADED_TOOLTIP_COMM(self) -> str:
-        return _("Communication part")
+        return _("Communication Part")
 
     @property
     def COCKPIT_LOADED_TOOLTIP_MEDIUM(self) -> str:
-        return _("Medium config")
+        return _("Medium Config")
 
     @property
     def COCKPIT_LOADED_TOOLTIP_PARAMS(self) -> str:
@@ -91,7 +91,7 @@ class CockpitStrings:
 
     @property
     def COCKPIT_LOADED_TOOLTIP_LAST_DOWNLOAD(self) -> str:
-        return _("Last download: {when}")
+        return _("Last Download: {when}")
 
 
 S = CockpitStrings()

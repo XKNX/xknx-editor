@@ -16,19 +16,19 @@ msgstr "Verbinden"
 msgid "Disconnect"
 msgstr "Trennen"
 
-msgid "Discovered gateways"
+msgid "Discovered Gateways"
 msgstr "Erkannte Gateways"
 
 msgid "Diagnostics"
 msgstr "Diagnose"
 
-msgid "Check for devices in programming mode"
+msgid "Check for Devices in Programming Mode"
 msgstr "Geräte im Programmiermodus suchen"
 
 msgid "No gateways found"
 msgstr "Keine Gateways gefunden"
 
-msgid "Manual connection"
+msgid "Manual Connection"
 msgstr "Manuelle Verbindung"
 
 msgid "Connected: {ip}"
@@ -58,7 +58,7 @@ msgstr "Multicast-Routing verwenden (statt Tunneling)"
 msgid "Gateway IP"
 msgstr "Gateway-IP"
 
-msgid "Multicast group"
+msgid "Multicast Group"
 msgstr "Multicast-Gruppe"
 
 msgid "Apply"

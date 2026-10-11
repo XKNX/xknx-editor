@@ -10,10 +10,10 @@ msgstr ""
 msgid "Signing"
 msgstr "Ondertekenen"
 
-msgid "Signing key…"
+msgid "Signing Key…"
 msgstr "Ondertekeningssleutel…"
 
-msgid "Signing key"
+msgid "Signing Key"
 msgstr "Ondertekeningssleutel"
 
 msgid "A signing key is set (exports are signed)."
@@ -25,10 +25,10 @@ msgstr "Plaatshoudersleutel in gebruik, handtekeningen zijn niet ETS-geldig."
 msgid "Modulus (hex)"
 msgstr "Modulus (hex)"
 
-msgid "Private exponent (hex)"
+msgid "Private Exponent (hex)"
 msgstr "Privé-exponent (hex)"
 
-msgid "Public exponent (hex)"
+msgid "Public Exponent (hex)"
 msgstr "Openbare exponent (hex)"
 
 msgid "Extract from Knx.Ets.XmlSigning.dll…"
@@ -37,13 +37,13 @@ msgstr "Uit Knx.Ets.XmlSigning.dll halen…"
 msgid "Save"
 msgstr "Opslaan"
 
-msgid "Reset to placeholder"
+msgid "Reset to Placeholder"
 msgstr "Terugzetten naar plaatshouder"
 
 msgid "All DLLs"
 msgstr "Alle DLL's"
 
-msgid "All files"
+msgid "All Files"
 msgstr "Alle bestanden"
 
 msgid "Select \"Knx.Ets.XmlSigning.dll\" from your ETS installation (e.g. C:\\Program Files (x86)\\ETS6)."

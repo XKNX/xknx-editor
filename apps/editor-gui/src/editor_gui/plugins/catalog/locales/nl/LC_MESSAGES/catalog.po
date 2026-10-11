@@ -31,7 +31,7 @@ msgstr "Onlinecatalogus niet bereikbaar"
 msgid "{count} manufacturers"
 msgstr "{count} fabrikanten"
 
-msgid "Program version"
+msgid "Program Version"
 msgstr "Programmaversie"
 
 msgid "Search products, order number..."

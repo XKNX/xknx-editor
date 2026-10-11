@@ -47,7 +47,7 @@ msgstr "Löschen"
 msgid "Stop"
 msgstr "Stoppen"
 
-msgid "All files"
+msgid "All Files"
 msgstr "Alle Dateien"
 
 msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
@@ -107,7 +107,7 @@ msgstr "Multicast-Routing verwenden (statt Tunneling)"
 msgid "Gateway IP"
 msgstr "Gateway-IP"
 
-msgid "Multicast group"
+msgid "Multicast Group"
 msgstr "Multicast-Gruppe"
 
 msgid ""
@@ -117,10 +117,10 @@ msgstr ""
 "MCP-Server starten, damit ein LLM das Toolkit über Streamable HTTP steuern "
 "kann. Der Server nutzt die Katalogdatenbank dieser App."
 
-msgid "MCP host"
+msgid "MCP Host"
 msgstr "MCP-Host"
 
-msgid "MCP port"
+msgid "MCP Port"
 msgstr "MCP-Port"
 
 msgid "Server: running"
@@ -129,13 +129,13 @@ msgstr "Server: läuft"
 msgid "Server: stopped"
 msgstr "Server: gestoppt"
 
-msgid "Start server"
+msgid "Start Server"
 msgstr "Server starten"
 
-msgid "Stop server"
+msgid "Stop Server"
 msgstr "Server stoppen"
 
-msgid "Download language"
+msgid "Download Language"
 msgstr "Downloadsprache"
 
 msgid "MCP running"
@@ -149,13 +149,13 @@ msgstr ""
 "Erstellen Sie ein neues Projekt oder öffnen Sie ein vorhandenes, um zu "
 "beginnen."
 
-msgid "Recent projects"
+msgid "Recent Projects"
 msgstr "Letzte Projekte"
 
 msgid "Export .knxproj..."
 msgstr ".knxproj exportieren..."
 
-msgid "Sign export"
+msgid "Sign Export"
 msgstr "Export signieren"
 
 msgid ""
@@ -166,10 +166,10 @@ msgstr ""
 "geöffnet werden kann. Melden Sie sich an, um zu signieren, oder speichern "
 "Sie die .knxproj ohne Lizenz."
 
-msgid "MyKnx username"
+msgid "MyKnx Username"
 msgstr "MyKnx-Benutzername"
 
-msgid "MyKnx password"
+msgid "MyKnx Password"
 msgstr "MyKnx-Passwort"
 
 msgid "Log in"
@@ -187,13 +187,13 @@ msgstr "Keine Lizenzen für dieses Konto gefunden"
 msgid "Login failed: {error}"
 msgstr "Anmeldung fehlgeschlagen: {error}"
 
-msgid "Sign & export"
+msgid "Sign & Export"
 msgstr "Signieren & exportieren"
 
-msgid "Export without certificate"
+msgid "Export without Certificate"
 msgstr "Ohne Zertifikat exportieren"
 
-msgid "Export ETS project"
+msgid "Export ETS Project"
 msgstr "ETS-Projekt exportieren"
 
 msgid "Load .knxprod..."
@@ -211,22 +211,22 @@ msgstr "Rückgängig"
 msgid "Redo"
 msgstr "Wiederholen"
 
-msgid "Open KNX product archive"
+msgid "Open KNX Product Archive"
 msgstr "KNX-Produktarchiv öffnen"
 
-msgid "KNX product (*.knxprod)"
+msgid "KNX Product (*.knxprod)"
 msgstr "KNX-Produkt (*.knxprod)"
 
-msgid "ETS project (*.knxproj)"
+msgid "ETS Project (*.knxproj)"
 msgstr "ETS-Projekt (*.knxproj)"
 
-msgid "Open XKNX project"
+msgid "Open XKNX Project"
 msgstr "XKNX-Projekt öffnen"
 
-msgid "Save XKNX project"
+msgid "Save XKNX Project"
 msgstr "XKNX-Projekt speichern"
 
-msgid "XKNX project (*.xknx)"
+msgid "XKNX Project (*.xknx)"
 msgstr "XKNX-Projekt (*.xknx)"
 
 msgid "Projects (*.xknx, *.knxproj)"
@@ -245,7 +245,7 @@ msgstr "Produktkatalog wird geladen…"
 msgid "Opening project…"
 msgstr "Projekt wird geöffnet…"
 
-msgid "Project password"
+msgid "Project Password"
 msgstr "Projektkennwort"
 
 msgid "This ETS project is password protected. Enter its password:"
@@ -260,19 +260,19 @@ msgstr "OK"
 msgid "{done}/{total} devices"
 msgstr "{done}/{total} Geräte"
 
-msgid "Recover from bus…"
+msgid "Recover from Bus…"
 msgstr "Vom Bus wiederherstellen…"
 
 msgid "No matches"
 msgstr "Keine Treffer"
 
-msgid "Bearer token (optional)"
+msgid "Bearer Token (Optional)"
 msgstr "Bearer-Token (optional)"
 
-msgid "License with a dongle…"
+msgid "License with a Dongle…"
 msgstr "Mit Dongle lizenzieren…"
 
-msgid "License with an ETS dongle"
+msgid "License with an ETS Dongle"
 msgstr "Mit ETS-Dongle lizenzieren"
 
 msgid ""
@@ -322,7 +322,7 @@ msgstr ""
 "\n"
 "Hinweis: Die Geräte-Limits der Lizenz gelten weiterhin für die Inbetriebnahme - ETS Demo bis 5 Geräte, Lite bis 20, Professional unbegrenzt."
 
-msgid "Export format"
+msgid "Export Format"
 msgstr "Exportformat"
 
 msgid "ETS 6 (schema 20)"
@@ -378,7 +378,7 @@ msgstr "KI MCP"
 msgid "This editor is controllable by an AI assistant (Claude, Codex, ...) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Dieser Editor ist von einer KI (Claude, Codex, ...) über den eingebauten MCP-Server steuerbar: er stellt Katalog und Projekt als Tools über Streamable HTTP bereit. Starte unten den Server und trage seinen Endpunkt in deinem KI-Tool ein."
 
-msgid "MCP endpoint"
+msgid "MCP Endpoint"
 msgstr "MCP-Endpunkt"
 
 msgid "Example: register the MCP server in your AI tool (adjust host/port):"
@@ -427,16 +427,16 @@ msgstr "OpenKNX-GitHub-Release-URL einfügen (die Release-Seite funktioniert —
 msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\nExamples:\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/tag/3.6.2-Release\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/latest"
 msgstr "OpenKNX-GitHub-Release-URL einfügen (die Release-Seite funktioniert — das .zip-Asset wird automatisch gefunden). Ein direkter .knxprod- oder KNX-Produkt-XML-Link geht auch.\nBeispiele:\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/tag/3.6.2-Release\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/latest"
 
-msgid "Save as..."
+msgid "Save As..."
 msgstr "Speichern unter..."
 
 msgid "Saved as {name}"
 msgstr "Gespeichert als {name}"
 
-msgid "Save project as"
+msgid "Save Project As"
 msgstr "Projekt speichern unter"
 
-msgid "Good to know"
+msgid "Good to Know"
 msgstr "Gut zu wissen"
 
 msgid "Your project opened fine and everything you need to work with is here. A few extra details from the original file are shown a bit more simply:"
@@ -472,16 +472,16 @@ msgstr "Produktkatalog importiert: {count} neue Produkte aus {name}"
 msgid "{name} was already in the catalog, nothing new imported"
 msgstr "{name} war bereits im Katalog, nichts Neues importiert"
 
-msgid "Product catalog import"
+msgid "Product Catalog Import"
 msgstr "Produktkatalog-Import"
 
-msgid "Export complete"
+msgid "Export Complete"
 msgstr "Export abgeschlossen"
 
 msgid "Successfully created {name}"
 msgstr "{name} erfolgreich erstellt"
 
-msgid "File size"
+msgid "File Size"
 msgstr "Dateigröße"
 
 msgid "Project"
@@ -496,28 +496,28 @@ msgstr "Geräte"
 msgid "Buildings"
 msgstr "Gebäude"
 
-msgid "Group addresses"
+msgid "Group Addresses"
 msgstr "Gruppenadressen"
 
-msgid "Group-object links"
+msgid "Group-Object Links"
 msgstr "Gruppenobjekt-Verknüpfungen"
 
-msgid "Areas / lines"
+msgid "Areas / Lines"
 msgstr "Bereiche / Linien"
 
-msgid "Floors / rooms"
+msgid "Floors / Rooms"
 msgstr "Etagen / Räume"
 
 msgid "Functions"
 msgstr "Funktionen"
 
-msgid "KNX master version"
+msgid "KNX Master Version"
 msgstr "KNX-Master-Version"
 
 msgid "Exported at"
 msgstr "Exportiert am"
 
-msgid "Manufacturer data (M folders)"
+msgid "Manufacturer Data (M Folders)"
 msgstr "Herstellerdaten (M-Ordner)"
 
 msgid "Signed"
@@ -532,14 +532,32 @@ msgstr "ja"
 msgid "no"
 msgstr "nein"
 
-msgid "Open folder"
+msgid "Open Folder"
 msgstr "Ordner öffnen"
 
-msgid "Signing key…"
+msgid "Signing Key…"
 msgstr "Signierschlüssel…"
 
-msgid "Signing key"
+msgid "Signing Key"
 msgstr "Signierschlüssel"
 
 msgid "Folder signature uses a placeholder key (not ETS-valid)."
 msgstr "Ordner-Signatur nutzt einen Platzhalter-Schlüssel (nicht ETS-gültig)."
+
+msgid "View"
+msgstr "Ansicht"
+
+msgid "Restore Default Layout"
+msgstr "Standardlayout wiederherstellen"
+
+msgid "Show All"
+msgstr "Alle anzeigen"
+
+msgid "Hide All"
+msgstr "Alle ausblenden"
+
+msgid "Status Bar"
+msgstr "Statusleiste"
+
+msgid "FPS in Status Bar"
+msgstr "FPS in der Statusleiste"

@@ -49,6 +49,7 @@ from editor_gui.settings import config_dir, load_settings, save_settings
 from editor_gui.strings import S, get_locale, set_locale
 from editor_gui.update_check import UpdateInfo, check_for_update
 from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.fonts import load_fonts
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
     ExportResult,
@@ -1806,7 +1807,7 @@ class KnxGuiApp:
                 self._redo()
             imgui.end_menu()
 
-        hello_imgui.show_view_menu(hello_imgui.get_runner_params())
+        self._render_view_menu()
 
         self._connection_plugin.render_menu()
         self._render_mcp_menu()
@@ -2363,6 +2364,44 @@ class KnxGuiApp:
                     self._run_bg(S.PROGRESS_LANGUAGE, _reresolve)
             imgui.end_menu()
 
+    def _render_view_menu(self) -> None:
+        """View menu: the default layout, which panels are shown, and the status bar."""
+        if not imgui.begin_menu(S.MENU_VIEW):
+            return
+        params = hello_imgui.get_runner_params()
+        if imgui.menu_item(S.MENU_RESTORE_LAYOUT, "", False)[0]:
+            params.docking_params.layout_reset = True
+        imgui.separator()
+        windows = [
+            w for w in params.docking_params.dockable_windows if w.include_in_view_menu
+        ]
+        if imgui.menu_item(S.MENU_SHOW_ALL, "", False)[0]:
+            for w in windows:
+                w.is_visible = True
+        if imgui.menu_item(S.MENU_HIDE_ALL, "", False)[0]:
+            for w in windows:
+                if w.can_be_closed:
+                    w.is_visible = False
+        for w in windows:
+            changed, visible = imgui.menu_item(
+                w.label, "", w.is_visible, w.can_be_closed
+            )
+            if changed:
+                w.is_visible = visible
+        imgui.separator()
+        window_params = params.imgui_window_params
+        changed, shown = imgui.menu_item(
+            S.MENU_STATUS_BAR, "", window_params.show_status_bar
+        )
+        if changed:
+            window_params.show_status_bar = shown
+        changed, shown = imgui.menu_item(
+            S.MENU_STATUS_FPS, "", window_params.show_status_fps
+        )
+        if changed:
+            window_params.show_status_fps = shown
+        imgui.end_menu()
+
     def _refresh_dock_titles(self) -> None:
         """Update docked panel/tab titles to the current language without recreating windows.
 
@@ -2890,6 +2929,7 @@ def _main() -> None:
         hello_imgui.ImGuiTheme_.darcula_darker
     )
     runner_params.callbacks.setup_imgui_style = _apply_style
+    runner_params.callbacks.load_additional_fonts = load_fonts
 
     runner_params.imgui_window_params.show_menu_bar = True
     runner_params.imgui_window_params.show_menu_app = False

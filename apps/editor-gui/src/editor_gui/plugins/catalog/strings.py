@@ -29,7 +29,7 @@ class CatalogStrings:
 
     @property
     def BTN_ONLINE_CATALOG(self) -> str:
-        return _("Fetch online catalog")
+        return _("Fetch Online Catalog")
 
     @property
     def ONLINE_LOADING(self) -> str:
@@ -101,7 +101,7 @@ class CatalogStrings:
 
     @property
     def CATALOG_DETAIL_TITLE(self) -> str:
-        return _("Product details")
+        return _("Product Details")
 
     @property
     def CATALOG_DETAIL_NAME(self) -> str:
@@ -109,7 +109,7 @@ class CatalogStrings:
 
     @property
     def CATALOG_DETAIL_ORDER(self) -> str:
-        return _("Order number")
+        return _("Order Number")
 
     @property
     def CATALOG_DETAIL_MANUFACTURER(self) -> str:
@@ -121,15 +121,15 @@ class CatalogStrings:
 
     @property
     def CATALOG_DETAIL_VERSION(self) -> str:
-        return _("Program version")
+        return _("Program Version")
 
     @property
     def CATALOG_DETAIL_PRODUCT_REF(self) -> str:
-        return _("Product ref")
+        return _("Product Ref")
 
     @property
     def CATALOG_DETAIL_ADD(self) -> str:
-        return _("Add device")
+        return _("Add Device")
 
     @property
     def CATALOG_ADD_SPACE_LABEL(self) -> str:
@@ -165,7 +165,7 @@ class CatalogStrings:
 
     @property
     def MISSING_APPS_FETCH(self) -> str:
-        return _("Fetch {count} missing application(s) online")
+        return _("Fetch {count} Missing Application(s) Online")
 
     @property
     def MISSING_APPS_FETCHING(self) -> str:

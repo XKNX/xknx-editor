@@ -19,19 +19,19 @@ class RecoverStrings:
 
     @property
     def MENU_OPEN_WINDOW(self) -> str:
-        return _("Recover from bus...")
+        return _("Recover from Bus...")
 
     @property
     def WINDOW_TITLE(self) -> str:
-        return _("Recover project from bus")
+        return _("Recover Project from Bus")
 
     @property
     def RANGE_START(self) -> str:
-        return _("From address")
+        return _("From Address")
 
     @property
     def RANGE_END(self) -> str:
-        return _("To address")
+        return _("To Address")
 
     @property
     def BTN_SCAN(self) -> str:
@@ -47,15 +47,15 @@ class RecoverStrings:
 
     @property
     def BTN_RECOVER_SELECTED(self) -> str:
-        return _("Recover selected")
+        return _("Recover Selected")
 
     @property
     def BTN_ADD_NEW(self) -> str:
-        return _("Create new project")
+        return _("Create New Project")
 
     @property
     def BTN_ADD_MERGE(self) -> str:
-        return _("Add to open project")
+        return _("Add to Open Project")
 
     @property
     def BTN_VERIFY(self) -> str:
@@ -63,7 +63,7 @@ class RecoverStrings:
 
     @property
     def BTN_EXPORT_SNAPSHOT(self) -> str:
-        return _("Export snapshot")
+        return _("Export Snapshot")
 
     @property
     def STATUS_VERIFYING(self) -> str:
@@ -83,7 +83,7 @@ class RecoverStrings:
 
     @property
     def COL_PRODUCT(self) -> str:
-        return _("Product / application")
+        return _("Product / Application")
 
     @property
     def COL_STATUS(self) -> str:

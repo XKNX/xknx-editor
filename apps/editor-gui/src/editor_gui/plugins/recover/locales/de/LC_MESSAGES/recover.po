@@ -10,16 +10,16 @@ msgstr ""
 msgid "Recover"
 msgstr "Wiederherstellen"
 
-msgid "Recover from bus..."
+msgid "Recover from Bus..."
 msgstr "Vom Bus wiederherstellen..."
 
-msgid "Recover project from bus"
+msgid "Recover Project from Bus"
 msgstr "Projekt vom Bus wiederherstellen"
 
-msgid "From address"
+msgid "From Address"
 msgstr "Von Adresse"
 
-msgid "To address"
+msgid "To Address"
 msgstr "Bis Adresse"
 
 msgid "Scan"
@@ -31,19 +31,19 @@ msgstr "Stoppen"
 msgid "Add to open project as read"
 msgstr "Zum geöffneten Projekt hinzufügen (gelesen)"
 
-msgid "Recover selected"
+msgid "Recover Selected"
 msgstr "Ausgewählte wiederherstellen"
 
-msgid "Create new project"
+msgid "Create New Project"
 msgstr "Neues Projekt erstellen"
 
-msgid "Add to open project"
+msgid "Add to Open Project"
 msgstr "Zum geöffneten Projekt hinzufügen"
 
 msgid "Verify (read-only)"
 msgstr "Verifizieren (nur lesen)"
 
-msgid "Export snapshot"
+msgid "Export Snapshot"
 msgstr "Schnappschuss exportieren"
 
 msgid "Verifying (re-reading and comparing)..."
@@ -58,7 +58,7 @@ msgstr "Adresse"
 msgid "Mask"
 msgstr "Maske"
 
-msgid "Product / application"
+msgid "Product / Application"
 msgstr "Produkt / Applikation"
 
 msgid "Status"

@@ -37,19 +37,19 @@ msgstr "Kein Projekt"
 msgid "Name"
 msgstr "Name"
 
-msgid "Group address style"
+msgid "Group Address Style"
 msgstr "Gruppenadress-Darstellung"
 
 msgid "Created by"
 msgstr "Erstellt von"
 
-msgid "Tool version"
+msgid "Tool Version"
 msgstr "Toolversion"
 
-msgid "Schema version"
+msgid "Schema Version"
 msgstr "Schemaversion"
 
-msgid "Last modified"
+msgid "Last Modified"
 msgstr "Zuletzt geändert"
 
 msgid "GUID"
@@ -58,16 +58,16 @@ msgstr "GUID"
 msgid "Project ID"
 msgstr "Projekt-ID"
 
-msgid "Original project ID"
+msgid "Original Project ID"
 msgstr "Originale Projekt-ID"
 
-msgid "Master data (signed)"
+msgid "Master Data (Signed)"
 msgstr "Masterdaten (signiert)"
 
-msgid "Validation file"
+msgid "Validation File"
 msgstr "Validierungsdatei"
 
-msgid "Project certificate"
+msgid "Project Certificate"
 msgstr "Projektzertifikat"
 
 msgid "none"
@@ -76,7 +76,7 @@ msgstr "keine"
 msgid "present ({size} bytes)"
 msgstr "vorhanden ({size} Bytes)"
 
-msgid "Order number"
+msgid "Order Number"
 msgstr "Bestellnummer"
 
 msgid "Description"
@@ -91,7 +91,7 @@ msgstr "Parameter ({count})"
 msgid "Group Objects ({count})"
 msgstr "Gruppenobjekte ({count})"
 
-msgid "Assigned objects"
+msgid "Assigned Objects"
 msgstr "Zugewiesene Objekte"
 
 msgid "No devices"
@@ -122,13 +122,13 @@ msgstr "Programmieren"
 msgid "Full"
 msgstr "Vollständig"
 
-msgid "Application program"
+msgid "Application Program"
 msgstr "Applikationsprogramm"
 
 msgid "Unload"
 msgstr "Entladen"
 
-msgid "Unload application and address"
+msgid "Unload Application and Address"
 msgstr "Applikation und Adresse entladen"
 
 msgid "Partial: Parameters"
@@ -149,28 +149,28 @@ msgstr "Applikation"
 msgid "Program Version"
 msgstr "Programmversion"
 
-msgid "Application version"
+msgid "Application Version"
 msgstr "Applikationsversion"
 
-msgid "Read from device"
+msgid "Read from Device"
 msgstr "Vom Gerät lesen"
 
 msgid "Set an individual address and connect to the bus first"
 msgstr "Zuerst eine physikalische Adresse setzen und mit dem Bus verbinden"
 
-msgid "From device (live)"
+msgid "From Device (Live)"
 msgstr "Vom Gerät (live)"
 
-msgid "Mask version"
+msgid "Mask Version"
 msgstr "Maskenversion"
 
-msgid "Serial number"
+msgid "Serial Number"
 msgstr "Seriennummer"
 
-msgid "Order info"
+msgid "Order Info"
 msgstr "Bestellinfo"
 
-msgid "Hardware type"
+msgid "Hardware Type"
 msgstr "Hardware-Typ"
 
 msgid "differs from project V{version} — program to apply"
@@ -197,7 +197,7 @@ msgstr "Speichervorschau"
 msgid "Memory Preview"
 msgstr "Speichervorschau"
 
-msgid "Programming test result"
+msgid "Programming Test Result"
 msgstr "Ergebnis des Programmiertests"
 
 msgid "Evaluation failed"
@@ -301,7 +301,7 @@ msgstr ""
 msgid "Export Ist/Soll..."
 msgstr "Export Ist/Soll..."
 
-msgid "Export path:"
+msgid "Export Path:"
 msgstr "Exportpfad:"
 
 msgid "memory {address}"
@@ -353,7 +353,7 @@ msgstr "Umbenennen"
 msgid "Delete"
 msgstr "Löschen"
 
-msgid "Copy address"
+msgid "Copy Address"
 msgstr "Adresse kopieren"
 
 msgid "New Area"
@@ -380,13 +380,13 @@ msgstr "Log kopieren"
 msgid "Cancel"
 msgstr "Abbrechen"
 
-msgid "New group address"
+msgid "New Group Address"
 msgstr "Neue Gruppenadresse"
 
-msgid "Rename group address"
+msgid "Rename Group Address"
 msgstr "Gruppenadresse umbenennen"
 
-msgid "Set datapoint type"
+msgid "Set Datapoint Type"
 msgstr "Datenpunkttyp festlegen"
 
 msgid "Address"
@@ -510,22 +510,22 @@ msgstr ""
 msgid "Source (objects)"
 msgstr "Quelle (Objekte)"
 
-msgid "Target (group addresses)"
+msgid "Target (Group Addresses)"
 msgstr "Ziel (Gruppenadressen)"
 
 msgid "Target (objects)"
 msgstr "Ziel (Objekte)"
 
-msgid "Preview & link"
+msgid "Preview & Link"
 msgstr "Vorschau & Verknüpfen"
 
-msgid "Add objects..."
+msgid "Add Objects..."
 msgstr "Objekte hinzufügen..."
 
-msgid "Add group addresses..."
+msgid "Add Group Addresses..."
 msgstr "Gruppenadressen hinzufügen..."
 
-msgid "Add selected"
+msgid "Add Selected"
 msgstr "Auswahl hinzufügen"
 
 msgid "Clear"
@@ -537,7 +537,7 @@ msgstr "Entfernen"
 msgid "Move up"
 msgstr "Nach oben"
 
-msgid "Move down"
+msgid "Move Down"
 msgstr "Nach unten"
 
 msgid "{count} items"
@@ -552,19 +552,19 @@ msgstr "{count} ohne Paar (ignoriert)"
 msgid "Link"
 msgstr "Verknüpfen"
 
-msgid "GA name ({source}, {target}, {n})"
+msgid "GA Name ({source}, {target}, {n})"
 msgstr "GA-Name ({source}, {target}, {n})"
 
-msgid "Start address"
+msgid "Start Address"
 msgstr "Startadresse"
 
 msgid "Filter..."
 msgstr "Filter..."
 
-msgid "Add communication objects"
+msgid "Add Communication Objects"
 msgstr "Kommunikationsobjekte hinzufügen"
 
-msgid "Add group addresses"
+msgid "Add Group Addresses"
 msgstr "Gruppenadressen hinzufügen"
 
 msgid "Linked {count} object(s) to group addresses"
@@ -576,13 +576,13 @@ msgstr "{count} Objektpaar(e) über neue Gruppenadressen verknüpft"
 msgid "{count} error(s)"
 msgstr "{count} Fehler"
 
-msgid "Clear all"
+msgid "Clear All"
 msgstr "Alles löschen"
 
 msgid "No operations yet."
 msgstr "Noch keine Operationen."
 
-msgid "Mass Linker result"
+msgid "Mass Linker Result"
 msgstr "Ergebnis der Massenverknüpfung"
 
 msgid "Tools"
@@ -606,13 +606,13 @@ msgstr "Etiketten"
 msgid "Topology Check"
 msgstr "Topologie-Prüfung"
 
-msgid "Source device"
+msgid "Source Device"
 msgstr "Quellgerät"
 
 msgid "Copies"
 msgstr "Kopien"
 
-msgid "Find in name"
+msgid "Find in Name"
 msgstr "Im Namen suchen"
 
 msgid "Replace with"
@@ -646,8 +646,6 @@ msgstr "Nur ausgewähltes Quellgerät (aus Erweitertes Kopieren)"
 msgid "(out of range)"
 msgstr "(außerhalb des Bereichs)"
 
-msgid "Shift addresses"
-msgstr "Adressen verschieben"
 
 msgid "Shifted {count} address(es)"
 msgstr "{count} Adresse(n) verschoben"
@@ -760,20 +758,18 @@ msgstr ""
 "nach Nummer und Größe zugeordnet; nicht zuordenbare werden gemeldet. "
 "Parameter werden nicht übernommen."
 
-msgid "Device to replace"
+msgid "Device to Replace"
 msgstr "Zu ersetzendes Gerät"
 
 msgid "Replace with (template)"
 msgstr "Ersetzen durch (Vorlage)"
 
-msgid "Group object mapping (by number)"
+msgid "Group Object Mapping (by Number)"
 msgstr "Gruppenobjekt-Zuordnung (nach Nummer)"
 
 msgid "{count} object(s) will be re-mapped"
 msgstr "{count} Objekt(e) werden neu zugeordnet"
 
-msgid "Replace device"
-msgstr "Gerät ersetzen"
 
 msgid "Replaced; re-mapped {count} group object(s)"
 msgstr "Ersetzt; {count} Gruppenobjekt(e) neu zugeordnet"
@@ -787,25 +783,25 @@ msgstr "Objekt"
 msgid "DPT"
 msgstr "DPT"
 
-msgid "Target group address"
+msgid "Target Group Address"
 msgstr "Ziel-Gruppenadresse"
 
-msgid "Target object"
+msgid "Target Object"
 msgstr "Zielobjekt"
 
-msgid "Group address"
+msgid "Group Address"
 msgstr "Gruppenadresse"
 
-msgid "Group address name"
+msgid "Group Address Name"
 msgstr "Gruppenadressen-Name"
 
 msgid "(none)"
 msgstr "(keine)"
 
-msgid "+ Selected device"
+msgid "+ Selected Device"
 msgstr "+ Ausgewähltes Gerät"
 
-msgid "Select all"
+msgid "Select All"
 msgstr "Alle auswählen"
 
 msgid "No objects yet — add the selected device or pick objects."
@@ -815,13 +811,13 @@ msgstr ""
 msgid "From"
 msgstr "Ab"
 
-msgid "Assign sequential"
+msgid "Assign Sequential"
 msgstr "Sequentiell zuweisen"
 
-msgid "Match by name"
+msgid "Match by Name"
 msgstr "Nach Name zuordnen"
 
-msgid "Link all ({count})"
+msgid "Link All ({count})"
 msgstr "Alle verknüpfen ({count})"
 
 msgid ""
@@ -865,10 +861,10 @@ msgstr ""
 msgid "Product"
 msgstr "Produkt"
 
-msgid "Product ref"
+msgid "Product Ref"
 msgstr "Produkt-Ref"
 
-msgid "Program ref"
+msgid "Program Ref"
 msgstr "Programm-Ref"
 
 msgid "Copied"
@@ -877,7 +873,7 @@ msgstr "Kopiert"
 msgid "Click to copy"
 msgstr "Klicken zum Kopieren"
 
-msgid "Available online ({count})"
+msgid "Available Online ({count})"
 msgstr "Online verfügbar ({count})"
 
 msgid "(current)"
@@ -886,7 +882,7 @@ msgstr "(aktuell)"
 msgid "Update to V{version}"
 msgstr "Auf V{version} aktualisieren"
 
-msgid "Update application program"
+msgid "Update Application Program"
 msgstr "Applikationsprogramm aktualisieren"
 
 msgid ""
@@ -902,7 +898,7 @@ msgstr ""
 msgid "Updated to V{version}: {kept} settings kept, {dropped} dropped"
 msgstr "Auf V{version} aktualisiert: {kept} Einstellungen übernommen, {dropped} verworfen"
 
-msgid "Application updated"
+msgid "Application Updated"
 msgstr "Applikation aktualisiert"
 
 msgid ""
@@ -918,7 +914,7 @@ msgstr "Aktualisierung fehlgeschlagen: keine neuere Version gefunden"
 msgid "+ Function"
 msgstr "+ Funktion"
 
-msgid "New function"
+msgid "New Function"
 msgstr "Neue Funktion"
 
 msgid "Type"
@@ -927,7 +923,7 @@ msgstr "Typ"
 msgid "Create"
 msgstr "Erstellen"
 
-msgid "Assign group address"
+msgid "Assign Group Address"
 msgstr "Gruppenadresse zuordnen"
 
 msgid "Role (optional)"
@@ -942,43 +938,43 @@ msgstr "Schalten (Licht)"
 msgid "Dimming (light)"
 msgstr "Dimmen (Licht)"
 
-msgid "Blinds / sun protection"
+msgid "Blinds / Sun Protection"
 msgstr "Jalousie / Sonnenschutz"
 
-msgid "Switchable socket"
+msgid "Switchable Socket"
 msgstr "Schaltbare Steckdose"
 
-msgid "Confirmed restart"
+msgid "Confirmed Restart"
 msgstr "Bestätigter Neustart"
 
-msgid "Delete application program"
+msgid "Delete Application Program"
 msgstr "Applikationsprogramm löschen"
 
-msgid "Factory reset"
+msgid "Factory Reset"
 msgstr "Werksreset"
 
-msgid "Factory reset (keep address)"
+msgid "Factory Reset (Keep Address)"
 msgstr "Werksreset (Adresse behalten)"
 
 msgid "I understand this resets the device"
 msgstr "Mir ist bewusst, dass dies das Gerät zurücksetzt"
 
-msgid "Master reset"
+msgid "Master Reset"
 msgstr "Master-Reset"
 
-msgid "Reset device"
+msgid "Reset Device"
 msgstr "Gerät zurücksetzen"
 
-msgid "Reset group address links"
+msgid "Reset Group Address Links"
 msgstr "Gruppenadress-Verknüpfungen zurücksetzen"
 
-msgid "Reset individual address"
+msgid "Reset Individual Address"
 msgstr "Physikalische Adresse zurücksetzen"
 
-msgid "Reset parameters"
+msgid "Reset Parameters"
 msgstr "Parameter zurücksetzen"
 
-msgid "Reset type"
+msgid "Reset Type"
 msgstr "Reset-Typ"
 
 msgid "Reset..."
@@ -993,7 +989,7 @@ msgstr "kein Fehler gemeldet"
 msgid "programming mode active"
 msgstr "Programmiermodus aktiv"
 
-msgid "(top level)"
+msgid "(Top Level)"
 msgstr "(oberste Ebene)"
 
 msgid "+ Space"
@@ -1002,16 +998,16 @@ msgstr "+ Bereich"
 msgid "+ Sub-space"
 msgstr "+ Unterbereich"
 
-msgid "Assign a device to this space"
+msgid "Assign a Device to This Space"
 msgstr "Ein Gerät diesem Bereich zuordnen"
 
-msgid "Assign device"
+msgid "Assign Device"
 msgstr "Gerät zuordnen"
 
 msgid "Building"
 msgstr "Gebäude"
 
-msgid "Building part"
+msgid "Building Part"
 msgstr "Gebäudeteil"
 
 msgid "Corridor"
@@ -1020,7 +1016,7 @@ msgstr "Flur"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Diesen Bereich und seinen gesamten Inhalt löschen? Geräte werden nur entfernt, nicht gelöscht."
 
-msgid "Distribution board"
+msgid "Distribution Board"
 msgstr "Verteiler"
 
 msgid "Floor"
@@ -1029,13 +1025,13 @@ msgstr "Stockwerk"
 msgid "Move to"
 msgstr "Verschieben nach"
 
-msgid "New space"
+msgid "New Space"
 msgstr "Neuer Bereich"
 
 msgid "No unassigned devices"
 msgstr "Keine nicht zugeordneten Geräte"
 
-msgid "Remove from space"
+msgid "Remove from Space"
 msgstr "Aus Bereich entfernen"
 
 msgid "Room"
@@ -1044,22 +1040,22 @@ msgstr "Raum"
 msgid "Stairway"
 msgstr "Treppenhaus"
 
-msgid "Without space"
+msgid "Without Space"
 msgstr "Ohne Bereich"
 
-msgid "New main group"
+msgid "New Main Group"
 msgstr "Neue Hauptgruppe"
 
-msgid "New middle group"
+msgid "New Middle Group"
 msgstr "Neue Mittelgruppe"
 
-msgid "New folder"
+msgid "New Folder"
 msgstr "Neuer Ordner"
 
-msgid "Rename folder"
+msgid "Rename Folder"
 msgstr "Ordner umbenennen"
 
-msgid "Delete folder"
+msgid "Delete Folder"
 msgstr "Ordner löschen"
 
 msgid "Main group name (the next free number is assigned automatically)"
@@ -1087,10 +1083,10 @@ msgstr ""
 msgid "Click to open this device in the editor"
 msgstr "Klicken, um dieses Gerät im Editor zu öffnen"
 
-msgid "Copy configuration"
+msgid "Copy Configuration"
 msgstr "Konfiguration kopieren"
 
-msgid "Paste configuration"
+msgid "Paste Configuration"
 msgstr "Konfiguration einfügen"
 
 msgid "Paste configuration onto '{name}':"
@@ -1132,7 +1128,7 @@ msgstr "Ausführendes Skript"
 msgid "Script not responding"
 msgstr "Skript reagiert nicht"
 
-msgid "Force stop"
+msgid "Force Stop"
 msgstr "Beenden erzwingen"
 
 msgid "The script was stopped."
@@ -1153,7 +1149,7 @@ msgstr "Vorgänge"
 msgid "Active"
 msgstr "Aktiv"
 
-msgid "Cancel all"
+msgid "Cancel All"
 msgstr "Alle abbrechen"
 
 msgid "Clear History"

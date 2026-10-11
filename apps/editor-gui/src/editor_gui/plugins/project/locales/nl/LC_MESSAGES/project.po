@@ -166,22 +166,22 @@ msgstr "Paren worden gekoppeld op lijstvolgorde (1e met 1e, ...). Overtollige it
 msgid "Source (objects)"
 msgstr "Bron (objecten)"
 
-msgid "Target (group addresses)"
+msgid "Target (Group Addresses)"
 msgstr "Doel (groepsadressen)"
 
 msgid "Target (objects)"
 msgstr "Doel (objecten)"
 
-msgid "Preview & link"
+msgid "Preview & Link"
 msgstr "Voorbeeld & koppelen"
 
-msgid "Add objects..."
+msgid "Add Objects..."
 msgstr "Objecten toevoegen..."
 
-msgid "Add group addresses..."
+msgid "Add Group Addresses..."
 msgstr "Groepsadressen toevoegen..."
 
-msgid "Add selected"
+msgid "Add Selected"
 msgstr "Selectie toevoegen"
 
 msgid "Clear"
@@ -193,7 +193,7 @@ msgstr "Verwijderen"
 msgid "Move up"
 msgstr "Omhoog"
 
-msgid "Move down"
+msgid "Move Down"
 msgstr "Omlaag"
 
 msgid "{count} items"
@@ -208,19 +208,19 @@ msgstr "{count} zonder paar (genegeerd)"
 msgid "Link"
 msgstr "Koppelen"
 
-msgid "GA name ({source}, {target}, {n})"
+msgid "GA Name ({source}, {target}, {n})"
 msgstr "GA-naam ({source}, {target}, {n})"
 
-msgid "Start address"
+msgid "Start Address"
 msgstr "Startadres"
 
 msgid "Filter..."
 msgstr "Filter..."
 
-msgid "Add communication objects"
+msgid "Add Communication Objects"
 msgstr "Communicatieobjecten toevoegen"
 
-msgid "Add group addresses"
+msgid "Add Group Addresses"
 msgstr "Groepsadressen toevoegen"
 
 msgid "Linked {count} object(s) to group addresses"
@@ -232,7 +232,7 @@ msgstr "{count} objectpaar/paren gekoppeld via nieuwe groepsadressen"
 msgid "{count} error(s)"
 msgstr "{count} fout(en)"
 
-msgid "Clear all"
+msgid "Clear All"
 msgstr "Alles wissen"
 
 msgid "No operations yet."
@@ -244,7 +244,7 @@ msgstr "OK"
 msgid "Cancel"
 msgstr "Annuleren"
 
-msgid "Mass Linker result"
+msgid "Mass Linker Result"
 msgstr "Resultaat massakoppeling"
 
 msgid "Tools"
@@ -268,13 +268,13 @@ msgstr "Labels"
 msgid "Topology Check"
 msgstr "Topologiecontrole"
 
-msgid "Source device"
+msgid "Source Device"
 msgstr "Bronapparaat"
 
 msgid "Copies"
 msgstr "Kopieën"
 
-msgid "Find in name"
+msgid "Find in Name"
 msgstr "Zoeken in naam"
 
 msgid "Replace with"
@@ -304,8 +304,6 @@ msgstr "Alleen geselecteerd bronapparaat (uit Uitgebreid kopiëren)"
 msgid "(out of range)"
 msgstr "(buiten bereik)"
 
-msgid "Shift addresses"
-msgstr "Adressen verschuiven"
 
 msgid "Shifted {count} address(es)"
 msgstr "{count} adres(sen) verschoven"
@@ -370,20 +368,18 @@ msgstr "Apparaat vervangen"
 msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
 msgstr "Vervang een apparaat door een ander model (een sjabloonapparaat in het project) met behoud van de groepsadreskoppelingen. Groepsobjecten worden gematcht op nummer en grootte; niet-gematchte worden gemeld. Parameters worden niet overgenomen."
 
-msgid "Device to replace"
+msgid "Device to Replace"
 msgstr "Te vervangen apparaat"
 
 msgid "Replace with (template)"
 msgstr "Vervangen door (sjabloon)"
 
-msgid "Group object mapping (by number)"
+msgid "Group Object Mapping (by Number)"
 msgstr "Groepsobject-toewijzing (op nummer)"
 
 msgid "{count} object(s) will be re-mapped"
 msgstr "{count} object(en) worden opnieuw toegewezen"
 
-msgid "Replace device"
-msgstr "Apparaat vervangen"
 
 msgid "Replaced; re-mapped {count} group object(s)"
 msgstr "Vervangen; {count} groepsobject(en) opnieuw toegewezen"
@@ -391,10 +387,10 @@ msgstr "Vervangen; {count} groepsobject(en) opnieuw toegewezen"
 msgid "Product"
 msgstr "Product"
 
-msgid "Product ref"
+msgid "Product Ref"
 msgstr "Productref"
 
-msgid "Program ref"
+msgid "Program Ref"
 msgstr "Programmaref"
 
 msgid "Copied"
@@ -403,7 +399,7 @@ msgstr "Gekopieerd"
 msgid "Click to copy"
 msgstr "Klik om te kopieren"
 
-msgid "Available online ({count})"
+msgid "Available Online ({count})"
 msgstr "Online beschikbaar ({count})"
 
 msgid "(current)"
@@ -412,7 +408,7 @@ msgstr "(huidig)"
 msgid "+ Function"
 msgstr "+ Functie"
 
-msgid "New function"
+msgid "New Function"
 msgstr "Nieuwe functie"
 
 msgid "Type"
@@ -421,7 +417,7 @@ msgstr "Type"
 msgid "Create"
 msgstr "Aanmaken"
 
-msgid "Assign group address"
+msgid "Assign Group Address"
 msgstr "Groepsadres toewijzen"
 
 msgid "Role (optional)"
@@ -436,46 +432,46 @@ msgstr "Schakelen (licht)"
 msgid "Dimming (light)"
 msgstr "Dimmen (licht)"
 
-msgid "Blinds / sun protection"
+msgid "Blinds / Sun Protection"
 msgstr "Jaloezie / zonwering"
 
-msgid "Switchable socket"
+msgid "Switchable Socket"
 msgstr "Schakelbaar stopcontact"
 
-msgid "Confirmed restart"
+msgid "Confirmed Restart"
 msgstr "Bevestigde herstart"
 
-msgid "Delete application program"
+msgid "Delete Application Program"
 msgstr "Applicatieprogramma verwijderen"
 
-msgid "Factory reset"
+msgid "Factory Reset"
 msgstr "Fabrieksreset"
 
-msgid "Factory reset (keep address)"
+msgid "Factory Reset (Keep Address)"
 msgstr "Fabrieksreset (adres behouden)"
 
 msgid "I understand this resets the device"
 msgstr "Ik begrijp dat dit het apparaat terugzet"
 
-msgid "Master reset"
+msgid "Master Reset"
 msgstr "Master-reset"
 
 msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
 msgstr "Afwijking: {bytes} byte(s) verschillen van het apparaat op {locations} locatie(s)"
 
-msgid "Reset device"
+msgid "Reset Device"
 msgstr "Apparaat terugzetten"
 
-msgid "Reset group address links"
+msgid "Reset Group Address Links"
 msgstr "Groepsadreskoppelingen terugzetten"
 
-msgid "Reset individual address"
+msgid "Reset Individual Address"
 msgstr "Fysiek adres terugzetten"
 
-msgid "Reset parameters"
+msgid "Reset Parameters"
 msgstr "Parameters terugzetten"
 
-msgid "Reset type"
+msgid "Reset Type"
 msgstr "Reset-type"
 
 msgid "Reset..."
@@ -493,7 +489,7 @@ msgstr "programmeermodus actief"
 msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
 msgstr "{ready} gereed · {amb} dubbelzinnig · {bad} incompatibel · {none} geen overeenkomst"
 
-msgid "(top level)"
+msgid "(Top Level)"
 msgstr "(bovenste niveau)"
 
 msgid "+ Space"
@@ -502,16 +498,16 @@ msgstr "+ Ruimte"
 msgid "+ Sub-space"
 msgstr "+ Subruimte"
 
-msgid "Assign a device to this space"
+msgid "Assign a Device to This Space"
 msgstr "Een apparaat aan deze ruimte toewijzen"
 
-msgid "Assign device"
+msgid "Assign Device"
 msgstr "Apparaat toewijzen"
 
 msgid "Building"
 msgstr "Gebouw"
 
-msgid "Building part"
+msgid "Building Part"
 msgstr "Gebouwdeel"
 
 msgid "Corridor"
@@ -520,7 +516,7 @@ msgstr "Gang"
 msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
 msgstr "Deze ruimte en alles erin verwijderen? Apparaten worden alleen ontkoppeld, niet verwijderd."
 
-msgid "Distribution board"
+msgid "Distribution Board"
 msgstr "Verdeelkast"
 
 msgid "Floor"
@@ -529,13 +525,13 @@ msgstr "Verdieping"
 msgid "Move to"
 msgstr "Verplaatsen naar"
 
-msgid "New space"
+msgid "New Space"
 msgstr "Nieuwe ruimte"
 
 msgid "No unassigned devices"
 msgstr "Geen niet-toegewezen apparaten"
 
-msgid "Remove from space"
+msgid "Remove from Space"
 msgstr "Uit ruimte verwijderen"
 
 msgid "Room"
@@ -544,22 +540,22 @@ msgstr "Kamer"
 msgid "Stairway"
 msgstr "Trappenhuis"
 
-msgid "Without space"
+msgid "Without Space"
 msgstr "Zonder ruimte"
 
-msgid "New main group"
+msgid "New Main Group"
 msgstr "Nieuwe hoofdgroep"
 
-msgid "New middle group"
+msgid "New Middle Group"
 msgstr "Nieuwe middengroep"
 
-msgid "New folder"
+msgid "New Folder"
 msgstr "Nieuwe map"
 
-msgid "Rename folder"
+msgid "Rename Folder"
 msgstr "Map hernoemen"
 
-msgid "Delete folder"
+msgid "Delete Folder"
 msgstr "Map verwijderen"
 
 msgid "Main group name (the next free number is assigned automatically)"
@@ -583,10 +579,10 @@ msgstr "Wijzigingen op alle kanalen toepassen"
 msgid "Duplicate"
 msgstr "Dupliceren"
 
-msgid "Copy configuration"
+msgid "Copy Configuration"
 msgstr "Configuratie kopiëren"
 
-msgid "Paste configuration"
+msgid "Paste Configuration"
 msgstr "Configuratie plakken"
 
 msgid "Paste configuration onto '{name}':"
@@ -628,7 +624,7 @@ msgstr "Script wordt uitgevoerd"
 msgid "Script not responding"
 msgstr "Script reageert niet"
 
-msgid "Force stop"
+msgid "Force Stop"
 msgstr "Geforceerd stoppen"
 
 msgid "The script was stopped."
@@ -649,7 +645,7 @@ msgstr "Bewerkingen"
 msgid "Active"
 msgstr "Actief"
 
-msgid "Cancel all"
+msgid "Cancel All"
 msgstr "Alles annuleren"
 
 msgid "Clear History"

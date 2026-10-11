@@ -95,7 +95,7 @@ class ProjectStrings:
 
     @property
     def ML_TARGET_GA(self) -> str:
-        return _("Target (group addresses)")
+        return _("Target (Group Addresses)")
 
     @property
     def ML_TARGET_CO(self) -> str:
@@ -103,19 +103,19 @@ class ProjectStrings:
 
     @property
     def ML_PREVIEW(self) -> str:
-        return _("Preview & link")
+        return _("Preview & Link")
 
     @property
     def ML_ADD_OBJECTS(self) -> str:
-        return _("Add objects...")
+        return _("Add Objects...")
 
     @property
     def ML_ADD_GAS(self) -> str:
-        return _("Add group addresses...")
+        return _("Add Group Addresses...")
 
     @property
     def ML_ADD_SELECTED(self) -> str:
-        return _("Add selected")
+        return _("Add Selected")
 
     @property
     def ML_CLEAR_ALL(self) -> str:
@@ -131,7 +131,7 @@ class ProjectStrings:
 
     @property
     def ML_MOVE_DOWN(self) -> str:
-        return _("Move down")
+        return _("Move Down")
 
     @property
     def ML_COUNT(self) -> str:
@@ -151,11 +151,11 @@ class ProjectStrings:
 
     @property
     def ML_NAME_TEMPLATE(self) -> str:
-        return _("GA name ({source}, {target}, {n})")
+        return _("GA Name ({source}, {target}, {n})")
 
     @property
     def ML_START_ADDRESS(self) -> str:
-        return _("Start address")
+        return _("Start Address")
 
     @property
     def ML_FILTER_HINT(self) -> str:
@@ -163,15 +163,15 @@ class ProjectStrings:
 
     @property
     def ML_PICK_OBJECTS_TITLE(self) -> str:
-        return _("Add communication objects")
+        return _("Add Communication Objects")
 
     @property
     def ML_PICK_GAS_TITLE(self) -> str:
-        return _("Add group addresses")
+        return _("Add Group Addresses")
 
     @property
     def ML_RESULT_TITLE(self) -> str:
-        return _("Mass Linker result")
+        return _("Mass Linker Result")
 
     @property
     def ML_LINK_GA_CO_DONE(self) -> str:
@@ -187,7 +187,7 @@ class ProjectStrings:
 
     @property
     def ML_LOG_CLEAR(self) -> str:
-        return _("Clear all")
+        return _("Clear All")
 
     @property
     def ML_LOG_EMPTY(self) -> str:
@@ -207,19 +207,19 @@ class ProjectStrings:
 
     @property
     def ML_COL_TARGET_GA(self) -> str:
-        return _("Target group address")
+        return _("Target Group Address")
 
     @property
     def ML_COL_TARGET_CO(self) -> str:
-        return _("Target object")
+        return _("Target Object")
 
     @property
     def ML_COL_GA_ADDR(self) -> str:
-        return _("Group address")
+        return _("Group Address")
 
     @property
     def ML_COL_GA_NAME(self) -> str:
-        return _("Group address name")
+        return _("Group Address Name")
 
     @property
     def ML_TARGET_NONE(self) -> str:
@@ -227,11 +227,11 @@ class ProjectStrings:
 
     @property
     def ML_ADD_DEVICE(self) -> str:
-        return _("+ Selected device")
+        return _("+ Selected Device")
 
     @property
     def ML_SELECT_ALL(self) -> str:
-        return _("Select all")
+        return _("Select All")
 
     @property
     def ML_TABLE_EMPTY(self) -> str:
@@ -243,15 +243,15 @@ class ProjectStrings:
 
     @property
     def ML_ASSIGN_SEQ(self) -> str:
-        return _("Assign sequential")
+        return _("Assign Sequential")
 
     @property
     def ML_MATCH_NAME(self) -> str:
-        return _("Match by name")
+        return _("Match by Name")
 
     @property
     def ML_LINK_ALL(self) -> str:
-        return _("Link all ({count})")
+        return _("Link All ({count})")
 
     @property
     def ML_SUMMARY(self) -> str:
@@ -301,7 +301,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_REPLACE_TARGET(self) -> str:
-        return _("Device to replace")
+        return _("Device to Replace")
 
     @property
     def TOOLS_REPLACE_WITH(self) -> str:
@@ -309,7 +309,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_REPLACE_PREVIEW(self) -> str:
-        return _("Group object mapping (by number)")
+        return _("Group Object Mapping (by Number)")
 
     @property
     def TOOLS_REPLACE_COUNT(self) -> str:
@@ -317,7 +317,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_REPLACE_RUN(self) -> str:
-        return _("Replace device")
+        return _("Replace Device")
 
     @property
     def TOOLS_REPLACE_DONE(self) -> str:
@@ -365,7 +365,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_COPY_SOURCE(self) -> str:
-        return _("Source device")
+        return _("Source Device")
 
     @property
     def TOOLS_COPY_COUNT(self) -> str:
@@ -373,7 +373,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_COPY_FIND(self) -> str:
-        return _("Find in name")
+        return _("Find in Name")
 
     @property
     def TOOLS_COPY_REPLACE(self) -> str:
@@ -432,7 +432,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_SHIFT_RUN(self) -> str:
-        return _("Shift addresses")
+        return _("Shift Addresses")
 
     @property
     def TOOLS_SHIFT_DONE(self) -> str:
@@ -454,13 +454,13 @@ class ProjectStrings:
             "name": _("Name"),
             "location": _("Location"),
             "description": _("Description"),
-            "order": _("Order number"),
+            "order": _("Order Number"),
             "manufacturer": _("Manufacturer"),
             "product": _("Product"),
             "hardware": _("Hardware"),
-            "serial": _("Serial number"),
+            "serial": _("Serial Number"),
             "application": _("Application"),
-            "gas": _("Group addresses"),
+            "gas": _("Group Addresses"),
         }
 
     @property
@@ -477,11 +477,11 @@ class ProjectStrings:
 
     @property
     def TOOLS_LABELS_MODE_SHEET(self) -> str:
-        return _("Label sheet")
+        return _("Label Sheet")
 
     @property
     def TOOLS_LABELS_MODE_LEGEND(self) -> str:
-        return _("Legend (full page)")
+        return _("Legend (Full Page)")
 
     @property
     def TOOLS_LABELS_SHEET(self) -> str:
@@ -489,7 +489,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_LABELS_SHEET_CUSTOM(self) -> str:
-        return _("Custom grid")
+        return _("Custom Grid")
 
     @property
     def TOOLS_LABELS_GRID_COLS(self) -> str:
@@ -501,15 +501,15 @@ class ProjectStrings:
 
     @property
     def TOOLS_LABELS_GRID_LABEL_MM(self) -> str:
-        return _("Label w x h (mm)")
+        return _("Label W x H (mm)")
 
     @property
     def TOOLS_LABELS_GRID_MARGIN_MM(self) -> str:
-        return _("Margin top / left (mm)")
+        return _("Margin Top / Left (mm)")
 
     @property
     def TOOLS_LABELS_GRID_GAP_MM(self) -> str:
-        return _("Gap x / y (mm)")
+        return _("Gap X / Y (mm)")
 
     @property
     def TOOLS_LABELS_EXPORT_HTML(self) -> str:
@@ -553,7 +553,7 @@ class ProjectStrings:
 
     @property
     def SPACES_SPACE_NEW_TITLE(self) -> str:
-        return _("New space")
+        return _("New Space")
 
     @property
     def SPACES_SPACE_NAME(self) -> str:
@@ -585,7 +585,7 @@ class ProjectStrings:
 
     @property
     def SPACES_MOVE_ROOT(self) -> str:
-        return _("(top level)")
+        return _("(Top Level)")
 
     @property
     def SPACES_DELETE_CONFIRM(self) -> str:
@@ -595,11 +595,11 @@ class ProjectStrings:
 
     @property
     def SPACES_ASSIGN_DEVICE(self) -> str:
-        return _("Assign device")
+        return _("Assign Device")
 
     @property
     def SPACES_ASSIGN_TITLE(self) -> str:
-        return _("Assign a device to this space")
+        return _("Assign a Device to This Space")
 
     @property
     def SPACES_ASSIGN_EMPTY(self) -> str:
@@ -607,11 +607,11 @@ class ProjectStrings:
 
     @property
     def SPACES_UNASSIGN(self) -> str:
-        return _("Remove from space")
+        return _("Remove from Space")
 
     @property
     def SPACES_UNASSIGNED_TITLE(self) -> str:
-        return _("Without space")
+        return _("Without Space")
 
     @property
     def SPACES_TYPE_BUILDING(self) -> str:
@@ -619,7 +619,7 @@ class ProjectStrings:
 
     @property
     def SPACES_TYPE_BUILDINGPART(self) -> str:
-        return _("Building part")
+        return _("Building Part")
 
     @property
     def SPACES_TYPE_FLOOR(self) -> str:
@@ -639,11 +639,11 @@ class ProjectStrings:
 
     @property
     def SPACES_TYPE_DISTRIBUTION(self) -> str:
-        return _("Distribution board")
+        return _("Distribution Board")
 
     @property
     def SPACES_FN_NEW_TITLE(self) -> str:
-        return _("New function")
+        return _("New Function")
 
     @property
     def SPACES_FN_NAME(self) -> str:
@@ -667,7 +667,7 @@ class ProjectStrings:
 
     @property
     def SPACES_FN_ADD_GA(self) -> str:
-        return _("Assign group address")
+        return _("Assign Group Address")
 
     @property
     def SPACES_FN_ROLE(self) -> str:
@@ -687,11 +687,11 @@ class ProjectStrings:
 
     @property
     def SPACES_FN_TYPE_BLIND(self) -> str:
-        return _("Blinds / sun protection")
+        return _("Blinds / Sun Protection")
 
     @property
     def SPACES_FN_TYPE_SOCKET(self) -> str:
-        return _("Switchable socket")
+        return _("Switchable Socket")
 
     @property
     def PROJECT_INFO_EMPTY(self) -> str:
@@ -707,7 +707,7 @@ class ProjectStrings:
 
     @property
     def PROJECT_INFO_GA_STYLE(self) -> str:
-        return _("Group address style")
+        return _("Group Address Style")
 
     @property
     def PROJECT_INFO_CREATED_BY(self) -> str:
@@ -715,15 +715,15 @@ class ProjectStrings:
 
     @property
     def PROJECT_INFO_TOOL_VERSION(self) -> str:
-        return _("Tool version")
+        return _("Tool Version")
 
     @property
     def PROJECT_INFO_SCHEMA_VERSION(self) -> str:
-        return _("Schema version")
+        return _("Schema Version")
 
     @property
     def PROJECT_INFO_LAST_MODIFIED(self) -> str:
-        return _("Last modified")
+        return _("Last Modified")
 
     @property
     def PROJECT_INFO_GUID(self) -> str:
@@ -735,19 +735,19 @@ class ProjectStrings:
 
     @property
     def PROJECT_INFO_ORIGINAL_ID(self) -> str:
-        return _("Original project ID")
+        return _("Original Project ID")
 
     @property
     def PROJECT_INFO_MASTER_DATA(self) -> str:
-        return _("Master data (signed)")
+        return _("Master Data (Signed)")
 
     @property
     def PROJECT_INFO_VALIDATION(self) -> str:
-        return _("Validation file")
+        return _("Validation File")
 
     @property
     def PROJECT_INFO_CERTIFICATE(self) -> str:
-        return _("Project certificate")
+        return _("Project Certificate")
 
     @property
     def PROJECT_INFO_ARTIFACT_NONE(self) -> str:
@@ -779,7 +779,7 @@ class ProjectStrings:
 
     @property
     def PROJECT_LOG_DECRYPT(self) -> str:
-        return _("Decrypt comments")
+        return _("Decrypt Comments")
 
     @property
     def PROJECT_LOG_EXTRACT(self) -> str:
@@ -816,11 +816,11 @@ class ProjectStrings:
 
     @property
     def PROJECT_LOG_DLL_FILTER(self) -> str:
-        return _("KNX common assembly")
+        return _("KNX Common Assembly")
 
     @property
     def PROJECT_LOG_ALL_FILES(self) -> str:
-        return _("All files")
+        return _("All Files")
 
     @property
     def PROJECT_LOG_CREDIT(self) -> str:
@@ -828,7 +828,7 @@ class ProjectStrings:
 
     @property
     def CONFIGURE_ORDER_NUMBER(self) -> str:
-        return _("Order number")
+        return _("Order Number")
 
     @property
     def CONFIGURE_DESCRIPTION(self) -> str:
@@ -864,7 +864,7 @@ class ProjectStrings:
 
     @property
     def GA_ASSIGNED_OBJECTS(self) -> str:
-        return _("Assigned objects")
+        return _("Assigned Objects")
 
     @property
     def GA_COL_DEVICE(self) -> str:
@@ -930,7 +930,7 @@ class ProjectStrings:
 
     @property
     def SCOPE_APPLICATION(self) -> str:
-        return _("Application program")
+        return _("Application Program")
 
     @property
     def SCOPE_UNLOAD(self) -> str:
@@ -938,7 +938,7 @@ class ProjectStrings:
 
     @property
     def SCOPE_UNLOAD_ALL(self) -> str:
-        return _("Unload application and address")
+        return _("Unload Application and Address")
 
     @property
     def SCOPE_PARAMETERS(self) -> str:
@@ -962,11 +962,11 @@ class ProjectStrings:
 
     @property
     def CONFIGURE_APP_VERSION(self) -> str:
-        return _("Application version")
+        return _("Application Version")
 
     @property
     def BTN_READ_DEVICE_INFO(self) -> str:
-        return _("Read from device")
+        return _("Read from Device")
 
     @property
     def BTN_RESTART_DEVICE(self) -> str:
@@ -978,7 +978,7 @@ class ProjectStrings:
 
     @property
     def RESET_POPUP_TITLE(self) -> str:
-        return _("Master reset")
+        return _("Master Reset")
 
     @property
     def RESET_WARNING(self) -> str:
@@ -989,7 +989,7 @@ class ProjectStrings:
 
     @property
     def RESET_TYPE(self) -> str:
-        return _("Reset type")
+        return _("Reset Type")
 
     @property
     def RESET_CONFIRM(self) -> str:
@@ -997,35 +997,35 @@ class ProjectStrings:
 
     @property
     def RESET_EXECUTE(self) -> str:
-        return _("Reset device")
+        return _("Reset Device")
 
     @property
     def RESET_FACTORY(self) -> str:
-        return _("Factory reset")
+        return _("Factory Reset")
 
     @property
     def RESET_FACTORY_KEEP_IA(self) -> str:
-        return _("Factory reset (keep address)")
+        return _("Factory Reset (Keep Address)")
 
     @property
     def RESET_IA(self) -> str:
-        return _("Reset individual address")
+        return _("Reset Individual Address")
 
     @property
     def RESET_AP(self) -> str:
-        return _("Delete application program")
+        return _("Delete Application Program")
 
     @property
     def RESET_PARAM(self) -> str:
-        return _("Reset parameters")
+        return _("Reset Parameters")
 
     @property
     def RESET_LINKS(self) -> str:
-        return _("Reset group address links")
+        return _("Reset Group Address Links")
 
     @property
     def RESET_CONFIRMED_RESTART(self) -> str:
-        return _("Confirmed restart")
+        return _("Confirmed Restart")
 
     @property
     def READOUT_NEEDS_ADDRESS(self) -> str:
@@ -1033,23 +1033,23 @@ class ProjectStrings:
 
     @property
     def READOUT_TITLE(self) -> str:
-        return _("From device (live)")
+        return _("From Device (Live)")
 
     @property
     def READOUT_MASK(self) -> str:
-        return _("Mask version")
+        return _("Mask Version")
 
     @property
     def READOUT_SERIAL(self) -> str:
-        return _("Serial number")
+        return _("Serial Number")
 
     @property
     def READOUT_ORDER(self) -> str:
-        return _("Order info")
+        return _("Order Info")
 
     @property
     def READOUT_HARDWARE(self) -> str:
-        return _("Hardware type")
+        return _("Hardware Type")
 
     @property
     def READOUT_STATUS(self) -> str:
@@ -1069,7 +1069,7 @@ class ProjectStrings:
 
     @property
     def CONFIGURE_SCHEMA_VERSION(self) -> str:
-        return _("Schema version")
+        return _("Schema Version")
 
     @property
     def CONFIGURE_PRODUCT(self) -> str:
@@ -1077,15 +1077,15 @@ class ProjectStrings:
 
     @property
     def CONFIGURE_PRODUCT_REF(self) -> str:
-        return _("Product ref")
+        return _("Product Ref")
 
     @property
     def CONFIGURE_PROGRAM_REF(self) -> str:
-        return _("Program ref")
+        return _("Program Ref")
 
     @property
     def CONFIGURE_IP_CONFIG(self) -> str:
-        return _("IP configuration")
+        return _("IP Configuration")
 
     @property
     def CONFIGURE_IP_ASSIGN(self) -> str:
@@ -1093,23 +1093,23 @@ class ProjectStrings:
 
     @property
     def CONFIGURE_IP_ADDRESS(self) -> str:
-        return _("IP address")
+        return _("IP Address")
 
     @property
     def CONFIGURE_IP_SUBNET(self) -> str:
-        return _("Subnet mask")
+        return _("Subnet Mask")
 
     @property
     def CONFIGURE_IP_GATEWAY(self) -> str:
-        return _("Default gateway")
+        return _("Default Gateway")
 
     @property
     def CONFIGURE_IP_MAC(self) -> str:
-        return _("MAC address")
+        return _("MAC Address")
 
     @property
     def CONFIGURE_OPEN_MANUAL(self) -> str:
-        return _("Download PDF manual")
+        return _("Download PDF Manual")
 
     @property
     def CONFIGURE_OPEN_MANUAL_BUSY(self) -> str:
@@ -1125,7 +1125,7 @@ class ProjectStrings:
 
     @property
     def CONFIGURE_ONLINE_AVAILABLE(self) -> str:
-        return _("Available online ({count})")
+        return _("Available Online ({count})")
 
     @property
     def CONFIGURE_ONLINE_CURRENT(self) -> str:
@@ -1137,7 +1137,7 @@ class ProjectStrings:
 
     @property
     def UPDATE_CONFIRM_TITLE(self) -> str:
-        return _("Update application program")
+        return _("Update Application Program")
 
     @property
     def UPDATE_CONFIRM_TEXT(self) -> str:
@@ -1153,7 +1153,7 @@ class ProjectStrings:
 
     @property
     def UPDATE_ALERT_TITLE(self) -> str:
-        return _("Application updated")
+        return _("Application Updated")
 
     @property
     def UPDATE_ALERT_TEXT(self) -> str:
@@ -1222,7 +1222,7 @@ class ProjectStrings:
 
     @property
     def PREFLIGHT_RESULT_TITLE(self) -> str:
-        return _("Programming test result")
+        return _("Programming Test Result")
 
     @property
     def PREFLIGHT_FAILED(self) -> str:
@@ -1354,7 +1354,7 @@ class ProjectStrings:
 
     @property
     def PREFLIGHT_EXPORT_PATH(self) -> str:
-        return _("Export path:")
+        return _("Export Path:")
 
     @property
     def PREFLIGHT_MEM_LABEL(self) -> str:
@@ -1421,7 +1421,7 @@ class ProjectStrings:
 
     @property
     def CONTEXT_COPY_ADDRESS(self) -> str:
-        return _("Copy address")
+        return _("Copy Address")
 
     @property
     def CONTEXT_DUPLICATE(self) -> str:
@@ -1429,15 +1429,15 @@ class ProjectStrings:
 
     @property
     def CONTEXT_COPY_CONFIG(self) -> str:
-        return _("Copy configuration")
+        return _("Copy Configuration")
 
     @property
     def CONTEXT_PASTE_CONFIG(self) -> str:
-        return _("Paste configuration")
+        return _("Paste Configuration")
 
     @property
     def CONFIG_DIALOG_TITLE(self) -> str:
-        return _("Copy configuration")
+        return _("Copy Configuration")
 
     @property
     def CONFIG_PASTE_INTO(self) -> str:
@@ -1469,7 +1469,7 @@ class ProjectStrings:
 
     @property
     def DEVICE_DELETE_TITLE(self) -> str:
-        return _("Delete device")
+        return _("Delete Device")
 
     @property
     def DEVICE_DELETE_CONFIRM(self) -> str:
@@ -1520,27 +1520,27 @@ class ProjectStrings:
 
     @property
     def GA_NEW(self) -> str:
-        return _("New group address")
+        return _("New Group Address")
 
     @property
     def GA_NEW_MAIN(self) -> str:
-        return _("New main group")
+        return _("New Main Group")
 
     @property
     def GA_NEW_MIDDLE(self) -> str:
-        return _("New middle group")
+        return _("New Middle Group")
 
     @property
     def GA_FOLDER_NEW(self) -> str:
-        return _("New folder")
+        return _("New Folder")
 
     @property
     def GA_FOLDER_RENAME(self) -> str:
-        return _("Rename folder")
+        return _("Rename Folder")
 
     @property
     def GA_FOLDER_DELETE(self) -> str:
-        return _("Delete folder")
+        return _("Delete Folder")
 
     @property
     def GA_FOLDER_MAIN_HINT(self) -> str:
@@ -1558,11 +1558,11 @@ class ProjectStrings:
 
     @property
     def GA_RENAME(self) -> str:
-        return _("Rename group address")
+        return _("Rename Group Address")
 
     @property
     def GA_SET_DPT(self) -> str:
-        return _("Set datapoint type")
+        return _("Set Datapoint Type")
 
     @property
     def GA_ADDRESS(self) -> str:
@@ -1692,7 +1692,7 @@ class ProjectStrings:
 
     @property
     def SCRIPT_FORCE_STOP(self) -> str:
-        return _("Force stop")
+        return _("Force Stop")
 
     @property
     def SCRIPT_ABORTED(self) -> str:
@@ -1724,7 +1724,7 @@ class ProjectStrings:
 
     @property
     def OPERATIONS_CANCEL_ALL(self) -> str:
-        return _("Cancel all")
+        return _("Cancel All")
 
     @property
     def OPERATIONS_CLEAR_HISTORY(self) -> str:

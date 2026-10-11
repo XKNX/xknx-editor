@@ -11,6 +11,7 @@ from editor_gui.device import Device
 from editor_gui.regional import regional_format
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import format_float, general_float, parse_float
+from editor_gui.widgets.fonts import HEADLINE_SCALE, bold
 from editor_gui.widgets.icons import Icon, Picture, draw_icon
 from editor_gui.widgets.strings import S
 from editor_gui.widgets.time_format import (
@@ -1412,8 +1413,12 @@ def _render_grid_cells(
 
 
 def _render_cell_separator(sep: UiSeparator) -> None:
-    """A separator in a grid cell: a headline or label as plain text, a ruler across."""
-    if sep.text and sep.hint in ("Headline", None):
+    """A separator in a grid cell: a headline in bold, a label as plain text, a ruler across."""
+    if sep.text and sep.hint == "Headline":
+        with bold(HEADLINE_SCALE):
+            imgui.align_text_to_frame_padding()
+            imgui.text(sep.text)
+    elif sep.text and sep.hint is None:
         imgui.align_text_to_frame_padding()
         imgui.text(sep.text)
     else:
@@ -1656,7 +1661,9 @@ def _render_separator(sep: UiSeparator) -> None:
     elif not sep.text:
         imgui.spacing()
     elif sep.hint == "Headline":
-        imgui.separator_text(sep.text)
+        with bold(HEADLINE_SCALE):
+            imgui.align_text_to_frame_padding()
+            _aligned_text(sep.text, sep.alignment)
     elif sep.hint == "Information":
         _render_hint(sep.text, _INFO_COLOR, "i")
     elif sep.hint == "Error":

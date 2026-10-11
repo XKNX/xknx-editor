@@ -136,7 +136,7 @@ class MemoryPreviewWindow:
             None,
             imgui.WindowFlags_.no_title_bar | imgui.WindowFlags_.always_auto_resize,
         )[0]:
-            imgui.text("Reference file path:")
+            imgui.text("Reference File Path:")
             imgui.set_next_item_width(-1)
             _, self._ref_path_buf = imgui.input_text("##rp", self._ref_path_buf)
             imgui.spacing()
@@ -159,7 +159,7 @@ class MemoryPreviewWindow:
             None,
             imgui.WindowFlags_.no_title_bar | imgui.WindowFlags_.always_auto_resize,
         )[0]:
-            imgui.text("Save path:")
+            imgui.text("Save Path:")
             imgui.set_next_item_width(-1)
             _, self._save_path_buf = imgui.input_text("##sp", self._save_path_buf)
             imgui.spacing()

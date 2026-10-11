@@ -21,7 +21,7 @@ class ConnectionStrings:
 
     @property
     def SECTION_DISCOVERED(self) -> str:
-        return _("Discovered gateways")
+        return _("Discovered Gateways")
 
     @property
     def SECTION_DIAGNOSTICS(self) -> str:
@@ -29,11 +29,11 @@ class ConnectionStrings:
 
     @property
     def MENU_READ_PROGMODE(self) -> str:
-        return _("Check for devices in programming mode")
+        return _("Check for Devices in Programming Mode")
 
     @property
     def PROGMODE_TITLE(self) -> str:
-        return _("Devices in programming mode")
+        return _("Devices in Programming Mode")
 
     @property
     def PROGMODE_RESCAN(self) -> str:
@@ -86,7 +86,7 @@ class ConnectionStrings:
 
     @property
     def PROGMODE_SELECT(self) -> str:
-        return _("Select in project")
+        return _("Select in Project")
 
     @property
     def PROGMODE_MANUFACTURER(self) -> str:
@@ -102,23 +102,23 @@ class ConnectionStrings:
 
     @property
     def PROGMODE_APP_VERSION(self) -> str:
-        return _("Application version")
+        return _("Application Version")
 
     @property
     def PROGMODE_MASK(self) -> str:
-        return _("Mask version")
+        return _("Mask Version")
 
     @property
     def PROGMODE_SERIAL(self) -> str:
-        return _("Serial number")
+        return _("Serial Number")
 
     @property
     def PROGMODE_ORDER(self) -> str:
-        return _("Order number")
+        return _("Order Number")
 
     @property
     def PROGMODE_HARDWARE(self) -> str:
-        return _("Hardware type")
+        return _("Hardware Type")
 
     @property
     def PROGMODE_STATUS(self) -> str:
@@ -138,7 +138,7 @@ class ConnectionStrings:
 
     @property
     def SECTION_MANUAL(self) -> str:
-        return _("Manual connection")
+        return _("Manual Connection")
 
     @property
     def STATUS_CONNECTED(self) -> str:
@@ -182,7 +182,7 @@ class ConnectionStrings:
 
     @property
     def GW_MULTICAST(self) -> str:
-        return _("Multicast group")
+        return _("Multicast Group")
 
     @property
     def GW_APPLY(self) -> str:

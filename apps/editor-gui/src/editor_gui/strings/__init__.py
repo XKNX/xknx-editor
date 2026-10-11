@@ -73,7 +73,7 @@ class BaseStrings:
 
     @property
     def NETWORK_CONSENT_TITLE(self) -> str:
-        return _("Network location")
+        return _("Network Location")
 
     @property
     def NETWORK_CONSENT_PROMPT(self) -> str:
@@ -86,7 +86,7 @@ class BaseStrings:
 
     @property
     def NETWORK_CONSENT_USE_LOCAL(self) -> str:
-        return _("Use a local copy")
+        return _("Use a Local Copy")
 
     @property
     def MIRROR_NOTICE(self) -> str:
@@ -120,7 +120,7 @@ class BaseStrings:
 
     @property
     def FILE_DIALOG_ALL_FILES(self) -> str:
-        return _("All files")
+        return _("All Files")
 
     @property
     def STATUS_PROJECT(self) -> str:
@@ -190,7 +190,7 @@ class MenuStrings:
 
     @property
     def MENU_SAVE_AS(self) -> str:
-        return _("Save as...")
+        return _("Save As...")
 
     @property
     def SAVE_AS_OK(self) -> str:
@@ -234,7 +234,7 @@ class MenuStrings:
 
     @property
     def SETTINGS_MULTICAST(self) -> str:
-        return _("Multicast group")
+        return _("Multicast Group")
 
     @property
     def SETTINGS_MCP_HINT(self) -> str:
@@ -245,15 +245,15 @@ class MenuStrings:
 
     @property
     def SETTINGS_MCP_HOST(self) -> str:
-        return _("MCP host")
+        return _("MCP Host")
 
     @property
     def SETTINGS_MCP_PORT(self) -> str:
-        return _("MCP port")
+        return _("MCP Port")
 
     @property
     def SETTINGS_MCP_TOKEN(self) -> str:
-        return _("Bearer token (optional)")
+        return _("Bearer Token (Optional)")
 
     @property
     def SETTINGS_MCP_RUNNING(self) -> str:
@@ -265,11 +265,11 @@ class MenuStrings:
 
     @property
     def SETTINGS_MCP_START(self) -> str:
-        return _("Start server")
+        return _("Start Server")
 
     @property
     def SETTINGS_MCP_STOP(self) -> str:
-        return _("Stop server")
+        return _("Stop Server")
 
     @property
     def PANEL_KI(self) -> str:
@@ -285,7 +285,7 @@ class MenuStrings:
 
     @property
     def KI_ENDPOINT(self) -> str:
-        return _("MCP endpoint")
+        return _("MCP Endpoint")
 
     @property
     def KI_COMMANDS_HINT(self) -> str:
@@ -330,7 +330,7 @@ class MenuStrings:
 
     @property
     def SETTINGS_CATALOG_LANGUAGE(self) -> str:
-        return _("Download language")
+        return _("Download Language")
 
     @property
     def STATUS_MCP_RUNNING(self) -> str:
@@ -346,11 +346,11 @@ class MenuStrings:
 
     @property
     def WELCOME_RECENT(self) -> str:
-        return _("Recent projects")
+        return _("Recent Projects")
 
     @property
     def WELCOME_RECOVER(self) -> str:
-        return _("Recover from bus…")
+        return _("Recover from Bus…")
 
     @property
     def WELCOME_CLOSE(self) -> str:
@@ -366,7 +366,7 @@ class MenuStrings:
 
     @property
     def EXPORT_SUMMARY_TITLE(self) -> str:
-        return _("Export complete")
+        return _("Export Complete")
 
     @property
     def EXPORT_SUMMARY_INTRO(self) -> str:
@@ -374,7 +374,7 @@ class MenuStrings:
 
     @property
     def EXPORT_SUMMARY_FILE_SIZE(self) -> str:
-        return _("File size")
+        return _("File Size")
 
     @property
     def EXPORT_SUMMARY_PROJECT(self) -> str:
@@ -394,19 +394,19 @@ class MenuStrings:
 
     @property
     def EXPORT_SUMMARY_GROUP_ADDRESSES(self) -> str:
-        return _("Group addresses")
+        return _("Group Addresses")
 
     @property
     def EXPORT_SUMMARY_GROUP_OBJECT_LINKS(self) -> str:
-        return _("Group-object links")
+        return _("Group-Object Links")
 
     @property
     def EXPORT_SUMMARY_TOPOLOGY(self) -> str:
-        return _("Areas / lines")
+        return _("Areas / Lines")
 
     @property
     def EXPORT_SUMMARY_FLOORS_ROOMS(self) -> str:
-        return _("Floors / rooms")
+        return _("Floors / Rooms")
 
     @property
     def EXPORT_SUMMARY_FUNCTIONS(self) -> str:
@@ -414,7 +414,7 @@ class MenuStrings:
 
     @property
     def EXPORT_SUMMARY_MASTER_VERSION(self) -> str:
-        return _("KNX master version")
+        return _("KNX Master Version")
 
     @property
     def EXPORT_SUMMARY_EXPORTED_AT(self) -> str:
@@ -422,7 +422,7 @@ class MenuStrings:
 
     @property
     def EXPORT_SUMMARY_MANUFACTURERS(self) -> str:
-        return _("Manufacturer data (M folders)")
+        return _("Manufacturer Data (M Folders)")
 
     @property
     def EXPORT_SUMMARY_SIGNED(self) -> str:
@@ -442,7 +442,7 @@ class MenuStrings:
 
     @property
     def EXPORT_SUMMARY_OPEN_FOLDER(self) -> str:
-        return _("Open folder")
+        return _("Open Folder")
 
     @property
     def EXPORT_SUMMARY_CLOSE(self) -> str:
@@ -450,7 +450,7 @@ class MenuStrings:
 
     @property
     def IMPORT_NOTES_TITLE(self) -> str:
-        return _("Good to know")
+        return _("Good to Know")
 
     @property
     def IMPORT_NOTES_INTRO_IMPORT(self) -> str:
@@ -516,7 +516,7 @@ class MenuStrings:
 
     @property
     def MYKNX_SIGN_TITLE(self) -> str:
-        return _("Sign export")
+        return _("Sign Export")
 
     @property
     def MYKNX_SIGN_PROMPT(self) -> str:
@@ -527,11 +527,11 @@ class MenuStrings:
 
     @property
     def MYKNX_SIGN_USERNAME(self) -> str:
-        return _("MyKnx username")
+        return _("MyKnx Username")
 
     @property
     def MYKNX_SIGN_PASSWORD(self) -> str:
-        return _("MyKnx password")
+        return _("MyKnx Password")
 
     @property
     def MYKNX_SIGN_LOGIN(self) -> str:
@@ -571,7 +571,7 @@ class MenuStrings:
 
     @property
     def EXPORT_FORMAT(self) -> str:
-        return _("Export format")
+        return _("Export Format")
 
     @property
     def EXPORT_FORMAT_ETS6(self) -> str:
@@ -583,15 +583,15 @@ class MenuStrings:
 
     @property
     def MYKNX_DONGLE_BUTTON(self) -> str:
-        return _("License with a dongle…")
+        return _("License with a Dongle…")
 
     @property
     def SIGNING_KEY_BUTTON(self) -> str:
-        return _("Signing key…")
+        return _("Signing Key…")
 
     @property
     def SIGNING_KEY_TITLE(self) -> str:
-        return _("Signing key")
+        return _("Signing Key")
 
     @property
     def SIGNING_KEY_CLOSE(self) -> str:
@@ -607,7 +607,7 @@ class MenuStrings:
 
     @property
     def MYKNX_DONGLE_TITLE(self) -> str:
-        return _("License with an ETS dongle")
+        return _("License with an ETS Dongle")
 
     @property
     def MYKNX_DONGLE_STEPS(self) -> str:
@@ -631,15 +631,15 @@ class MenuStrings:
 
     @property
     def MYKNX_SIGN_CONFIRM(self) -> str:
-        return _("Sign & export")
+        return _("Sign & Export")
 
     @property
     def MYKNX_SIGN_SKIP(self) -> str:
-        return _("Export without certificate")
+        return _("Export without Certificate")
 
     @property
     def FILE_DIALOG_KNXPROJ_SAVE_TITLE(self) -> str:
-        return _("Export ETS project")
+        return _("Export ETS Project")
 
     @property
     def MENU_LOAD_KNXPROD(self) -> str:
@@ -696,6 +696,30 @@ class MenuStrings:
         return _("Edit")
 
     @property
+    def MENU_VIEW(self) -> str:
+        return _("View")
+
+    @property
+    def MENU_RESTORE_LAYOUT(self) -> str:
+        return _("Restore Default Layout")
+
+    @property
+    def MENU_SHOW_ALL(self) -> str:
+        return _("Show All")
+
+    @property
+    def MENU_HIDE_ALL(self) -> str:
+        return _("Hide All")
+
+    @property
+    def MENU_STATUS_BAR(self) -> str:
+        return _("Status Bar")
+
+    @property
+    def MENU_STATUS_FPS(self) -> str:
+        return _("FPS in Status Bar")
+
+    @property
     def MENU_UNDO(self) -> str:
         return _("Undo")
 
@@ -705,31 +729,31 @@ class MenuStrings:
 
     @property
     def FILE_DIALOG_KNXPROD_TITLE(self) -> str:
-        return _("Open KNX product archive")
+        return _("Open KNX Product Archive")
 
     @property
     def FILE_DIALOG_KNXPROD_FILTER(self) -> str:
-        return _("KNX product (*.knxprod)")
+        return _("KNX Product (*.knxprod)")
 
     @property
     def FILE_DIALOG_KNXPROJ_FILTER(self) -> str:
-        return _("ETS project (*.knxproj)")
+        return _("ETS Project (*.knxproj)")
 
     @property
     def FILE_DIALOG_GA_EXPORT_FILTER(self) -> str:
-        return _("ETS group-address export (*.xml)")
+        return _("ETS Group-Address Export (*.xml)")
 
     @property
     def FILE_DIALOG_PROJECT_TITLE(self) -> str:
-        return _("Open XKNX project")
+        return _("Open XKNX Project")
 
     @property
     def FILE_DIALOG_PROJECT_SAVE_TITLE(self) -> str:
-        return _("Save XKNX project")
+        return _("Save XKNX Project")
 
     @property
     def FILE_DIALOG_SAVE_AS_TITLE(self) -> str:
-        return _("Save project as")
+        return _("Save Project As")
 
     @property
     def OVERWRITE_TITLE(self) -> str:
@@ -748,7 +772,7 @@ class MenuStrings:
 
     @property
     def FILE_DIALOG_PROJECT_FILTER(self) -> str:
-        return _("XKNX project (*.xknx)")
+        return _("XKNX Project (*.xknx)")
 
     @property
     def FILE_DIALOG_OPEN_FILTER(self) -> str:
@@ -780,7 +804,7 @@ class MenuStrings:
 
     @property
     def KNXPROD_IMPORT_TITLE(self) -> str:
-        return _("Product catalog import")
+        return _("Product Catalog Import")
 
     @property
     def PROGRESS_OPEN_PROJECT(self) -> str:
@@ -796,7 +820,7 @@ class MenuStrings:
 
     @property
     def IMPORT_PASSWORD_TITLE(self) -> str:
-        return _("Project password")
+        return _("Project Password")
 
     @property
     def IMPORT_PASSWORD_PROMPT(self) -> str:
@@ -817,15 +841,15 @@ class MenuStrings:
     # --- update check ---------------------------------------------------
     @property
     def MENU_CHECK_UPDATES(self) -> str:
-        return _("Check for updates")
+        return _("Check for Updates")
 
     @property
     def MENU_UPDATE_ON_STARTUP(self) -> str:
-        return _("Check for updates on startup")
+        return _("Check for Updates on Startup")
 
     @property
     def UPDATE_TITLE(self) -> str:
-        return _("Update available")
+        return _("Update Available")
 
     @property
     def UPDATE_AVAILABLE(self) -> str:
@@ -841,7 +865,7 @@ class MenuStrings:
 
     @property
     def UPDATE_SKIP(self) -> str:
-        return _("Skip this version")
+        return _("Skip This Version")
 
     @property
     def UPDATE_LATER(self) -> str:
@@ -849,7 +873,7 @@ class MenuStrings:
 
     @property
     def UPDATE_NOTES_HEADER(self) -> str:
-        return _("Release notes:")
+        return _("Release Notes:")
 
     @property
     def ABOUT_LICENSE(self) -> str:
@@ -861,11 +885,11 @@ class MenuStrings:
 
     @property
     def MENU_OPEN_CONFIG_DIR(self) -> str:
-        return _("Open config folder")
+        return _("Open Config Folder")
 
     @property
     def MENU_OPEN_CACHE_DIR(self) -> str:
-        return _("Open cache folder")
+        return _("Open Cache Folder")
 
 
 class _CombinedStrings(BaseStrings, MenuStrings):

@@ -10,7 +10,7 @@ msgstr "AI MCP"
 msgid "This editor is controllable by an AI assistant (Claude, Codex, ...) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
 msgstr "Deze editor is bestuurbaar door een AI (Claude, Codex, ...) via de ingebouwde MCP-server: hij stelt de catalogus en het project beschikbaar als tools via Streamable HTTP. Start de server hieronder en registreer het eindpunt in je AI-tool."
 
-msgid "MCP endpoint"
+msgid "MCP Endpoint"
 msgstr "MCP-eindpunt"
 
 msgid "Example: register the MCP server in your AI tool (adjust host/port):"
@@ -56,13 +56,13 @@ msgstr "Plak een OpenKNX-GitHub-release-URL (de release-pagina werkt — het .zi
 msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\nExamples:\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/tag/3.6.2-Release\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/latest"
 msgstr "Plak een OpenKNX-GitHub-release-URL (de release-pagina werkt — het .zip-asset wordt automatisch gevonden). Een directe .knxprod- of KNX-product-XML-link werkt ook.\nVoorbeelden:\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/tag/3.6.2-Release\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/latest"
 
-msgid "Save as..."
+msgid "Save As..."
 msgstr "Opslaan als..."
 
 msgid "Saved as {name}"
 msgstr "Opgeslagen als {name}"
 
-msgid "Save project as"
+msgid "Save Project As"
 msgstr "Project opslaan als"
 
 msgid "Product catalog imported: {count} new products from {name}"
@@ -71,19 +71,19 @@ msgstr "Productcatalogus geïmporteerd: {count} nieuwe producten uit {name}"
 msgid "{name} was already in the catalog, nothing new imported"
 msgstr "{name} stond al in de catalogus, niets nieuws geïmporteerd"
 
-msgid "Product catalog import"
+msgid "Product Catalog Import"
 msgstr "Productcatalogus importeren"
 
 msgid "Open Project (.knxproj/.xknx)"
 msgstr "Project openen (.knxproj/.xknx)"
 
-msgid "Export complete"
+msgid "Export Complete"
 msgstr "Export voltooid"
 
 msgid "Successfully created {name}"
 msgstr "{name} succesvol aangemaakt"
 
-msgid "File size"
+msgid "File Size"
 msgstr "Bestandsgrootte"
 
 msgid "Project"
@@ -98,28 +98,28 @@ msgstr "Apparaten"
 msgid "Buildings"
 msgstr "Gebouwen"
 
-msgid "Group addresses"
+msgid "Group Addresses"
 msgstr "Groepsadressen"
 
-msgid "Group-object links"
+msgid "Group-Object Links"
 msgstr "Groepsobject-koppelingen"
 
-msgid "Areas / lines"
+msgid "Areas / Lines"
 msgstr "Bereiken / lijnen"
 
-msgid "Floors / rooms"
+msgid "Floors / Rooms"
 msgstr "Verdiepingen / ruimtes"
 
 msgid "Functions"
 msgstr "Functies"
 
-msgid "KNX master version"
+msgid "KNX Master Version"
 msgstr "KNX-masterversie"
 
 msgid "Exported at"
 msgstr "Geëxporteerd op"
 
-msgid "Manufacturer data (M folders)"
+msgid "Manufacturer Data (M Folders)"
 msgstr "Fabrikantgegevens (M-mappen)"
 
 msgid "Signed"
@@ -134,8 +134,26 @@ msgstr "ja"
 msgid "no"
 msgstr "nee"
 
-msgid "Open folder"
+msgid "Open Folder"
 msgstr "Map openen"
 
 msgid "Close"
 msgstr "Sluiten"
+
+msgid "View"
+msgstr "Beeld"
+
+msgid "Restore Default Layout"
+msgstr "Standaardindeling herstellen"
+
+msgid "Show All"
+msgstr "Alles tonen"
+
+msgid "Hide All"
+msgstr "Alles verbergen"
+
+msgid "Status Bar"
+msgstr "Statusbalk"
+
+msgid "FPS in Status Bar"
+msgstr "FPS in statusbalk"

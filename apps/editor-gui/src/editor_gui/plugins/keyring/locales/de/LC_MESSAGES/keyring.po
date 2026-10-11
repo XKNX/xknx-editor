@@ -10,19 +10,19 @@ msgstr ""
 msgid "XKNX Secure"
 msgstr "XKNX Secure"
 
-msgid "Show window"
+msgid "Show Window"
 msgstr "Fenster anzeigen"
 
 msgid "No keyring loaded"
 msgstr "Kein Schlüsselbund geladen"
 
-msgid "Import keyring…"
+msgid "Import Keyring…"
 msgstr "Schlüsselbund importieren…"
 
-msgid "KNX keyring (*.knxkeys)"
+msgid "KNX Keyring (*.knxkeys)"
 msgstr "KNX-Schlüsselbund (*.knxkeys)"
 
-msgid "All files"
+msgid "All Files"
 msgstr "Alle Dateien"
 
 msgid "Load"
@@ -43,7 +43,7 @@ msgstr "Backbone"
 msgid "Interfaces ({count})"
 msgstr "Schnittstellen ({count})"
 
-msgid "Group address keys ({count})"
+msgid "Group Address Keys ({count})"
 msgstr "Gruppenadress-Schlüssel ({count})"
 
 msgid "Devices ({count})"

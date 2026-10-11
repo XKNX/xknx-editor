@@ -124,19 +124,19 @@ class DaliCommissioningPanel:
             return
 
         imgui.begin_disabled(bool(busy))
-        if imgui.button("Scan bus"):
+        if imgui.button("Scan Bus"):
             self._start(device, "scan", lambda c: c.scan(), store_scan=True)
         imgui.same_line()
-        if imgui.button("All ECGs on"):
+        if imgui.button("All ECGs On"):
             self._start(device, "broadcast", lambda c: c.broadcast(True))
         imgui.same_line()
-        if imgui.button("All off"):
+        if imgui.button("All Off"):
             self._start(device, "broadcast", lambda c: c.broadcast(False))
         imgui.same_line()
-        if imgui.button("New installation..."):
+        if imgui.button("New Installation..."):
             self._pending_install = "new"
         imgui.same_line()
-        if imgui.button("Post installation..."):
+        if imgui.button("Post Installation..."):
             self._pending_install = "post"
         imgui.end_disabled()
 
@@ -165,7 +165,7 @@ class DaliCommissioningPanel:
         return cb
 
     def _render_confirm(self, device: Device, ia: str) -> None:
-        title = "Confirm DALI installation"
+        title = "Confirm DALI Installation"
         if self._pending_install:
             imgui.open_popup(title)
         if imgui.begin_popup_modal(title)[0]:
@@ -221,7 +221,7 @@ class DaliCommissioningPanel:
         if not imgui.begin_table("##dali_ecgs", 6, flags):
             return
         imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(40.0))
-        for col in ("Group", "Type", "Long address", "Alarm", ""):
+        for col in ("Group", "Type", "Long Address", "Alarm", ""):
             imgui.table_setup_column(col)
         imgui.table_headers_row()
         for ecg in present:

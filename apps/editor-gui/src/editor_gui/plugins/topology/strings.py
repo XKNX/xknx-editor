@@ -27,7 +27,7 @@ class TopologyStrings:
 
     @property
     def TOPOLOGY_BUILDING_MODE(self) -> str:
-        return _("Building view")
+        return _("Building View")
 
 
 S = TopologyStrings()
