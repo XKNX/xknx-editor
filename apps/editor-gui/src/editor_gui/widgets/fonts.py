@@ -10,8 +10,6 @@ from imgui_bundle import hello_imgui, imgui
 _DEFAULT_FONT = "fonts/DroidSans.ttf"
 # ImGuiFreeTypeLoaderFlags_Bold: emboldened glyphs of the same face.
 _FREETYPE_BOLD = 1 << 5
-# Size of a headline relative to the normal text.
-HEADLINE_SCALE = 1.1
 
 _bold: imgui.ImFont | None = None
 
@@ -29,9 +27,9 @@ def load_fonts() -> None:
 
 
 @contextmanager
-def bold(scale: float = 1.0) -> Iterator[None]:
-    """Draw in the bold font, ``scale`` times the normal text size."""
-    imgui.push_font(_bold, imgui.get_style().font_size_base * scale)
+def bold() -> Iterator[None]:
+    """Draw in the bold font at the normal text size."""
+    imgui.push_font(_bold, imgui.get_style().font_size_base)
     try:
         yield
     finally:
