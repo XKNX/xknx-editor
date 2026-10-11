@@ -3,23 +3,19 @@
 
 XKNX Editor is a **multi-platform** desktop app (Windows, Linux, macOS) with native AI support for KNX building-automation projects based on KNX Standard Vol. 3, built on the open-source [xknx](https://github.com/XKNX/xknx)
 library. Import and export `.knxproj` projects natively by [XKNXProject](https://github.com/XKNX/xknxproject) and [OpenKNXProducer](https://github.com/OpenKNX/OpenKNXproducer), browse product catalogs, **program KNX
-devices** over a real bus based completely on the alpha version of [XKNX Project XKNXToolkit](https://github.com/XKNX/xknxtoolkit), and drive it all through an **integrated MCP server for AI-assisted**
-workflows which can auto download pdf manuals from the manufacturers.
+devices** over a real bus based on [XKNX Project XKNXToolkit](https://github.com/XKNX/xknxtoolkit), and drive it all through an **integrated MCP server for AI-assisted**
+workflows which can auto-download PDF manuals from the manufacturers.
 
 
 > [!WARNING]
-> **Not affiliated with the KNX Association.**
+> **Not affiliated with the KNX Association.** See
+> [Disclaimer](#disclaimer) and [Purpose](#purpose-and-interoperability)
 >
-> XKNX Editor comes with no  guarantees. It is tested with real devices but still a download can leave a device unavailable until it
-> is reprogrammed. Do not use it on a professional installation you cannot access directly and
+>XKNX Editor comes with no  guarantees. It is tested with real devices but still a download can leave a device unavailable until it
+> is reprogrammed. Do not use it on a installation you cannot access directly and
 > keep a ETS backup of any project before opening it here.
 >
-> Verified device coverage for downloading is good but not complete. Please report what works and what does not.
->
-> **"KNX" and "ETS" are trademarks of the KNX Association.** This is an independent project, not
-> affiliated with, endorsed by, or connected to the KNX Association or its ETS software — including
-> the `knx-ai` account name, which denotes KNX + AI and implies no official status. See
-> [Disclaimer](#disclaimer) and [Purpose](#purpose-and-interoperability).
+> Verified device coverage for downloading is good but not complete. Please report if you have issues with a device.
 
 ## Download
 
@@ -50,7 +46,7 @@ compatibility checks, and every change has full undo/redo.
 
 **Import and export both work.** Open an existing project file and edit it, or export one that opens
 in ETS. Exports bundle the required product data so the project is self-contained, are signed so ETS
-accepts them. Based on [XKNXPRoject](https://github.com/XKNX/xknxproject) and [OpenKNXProducer](https://github.com/OpenKNX/OpenKNXproducer)
+accepts them. Based on [XKNXProject](https://github.com/XKNX/xknxproject) and [OpenKNXproducer](https://github.com/OpenKNX/OpenKNXproducer)
 
 The **Open Project** dialog accepts three formats and routes each automatically: an XKNX project
 (`.xknx`), an ETS project archive (`.knxproj`, imported into a new project), and an ETS group-address
@@ -69,8 +65,7 @@ online catalog, cached locally for offline use.
 **Programming real devices** — commission a device end-to-end over a live connection (tunneling or
 routing, with gateway discovery), including setting a new device's address. A read-only **preflight**
 and **Test Before Programming** read the device back and show the exact changes before anything is
-written. Vendor-independent by design; see [Status and scope](#status-and-scope) for which devices
-have actually been exercised on a bus.
+written. Vendor-independent by design.
 
 ![Programming and preflight](docs/images/programming.png)
 
@@ -125,10 +120,6 @@ Standalone, typed Python libraries (the `xknxeditor` namespace), usable independ
 | `xknxeditor-download` | `xknxeditor.download` | Programs applications and individual addresses into real devices |
 | `xknxeditor-recover` | `xknxeditor.recover` | Reconstructs a project by reading devices back from the bus |
 
-```bash
-pip install xknxeditor-namespaces xknxeditor-prod xknxeditor-catalog xknxeditor-proj xknxeditor-datasecure xknxeditor-download xknxeditor-recover
-```
-
 ## Development
 
 ```bash
@@ -170,17 +161,10 @@ affiliated with, endorsed by, or connected to** the KNX Association or its ETS s
 "ETS" are trademarks of the KNX Association, used here only to state this non-affiliation and to
 describe interoperability with the published standard and file formats.
 
-## Acknowledgements
-
-Thanks to [Federico Zivolo (@FezVrasta)](https://github.com/FezVrasta) for a series of security and
-correctness fixes: redacting MyKnx credentials in logs, hardening the embedded MCP server (Host/Origin
-guard, per-redirect allowlist re-check), writing settings files owner-only, safer device-programming
-preflight checks, and `.knxproj` export/certificate corrections.
-
 ## License
 
 XKNX Editor is licensed under the **GNU General Public License v2.0 only** (`GPL-2.0-only`) — see
-[LICENSE](LICENSE). Copyright (C) 2026 knx-ai.
+[LICENSE](LICENSE). Copyright (C) 2026 xknx
 
 Based on [xknxtoolkit](https://github.com/XKNX/xknxtoolkit) by kewde.
 
