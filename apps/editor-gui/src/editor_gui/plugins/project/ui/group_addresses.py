@@ -36,6 +36,7 @@ class GroupAddressesPanel:
         on_rename_ga: Callable[[int, str], None],
         on_set_ga_dpt: Callable[[int, str], None],
         on_remove_ga: Callable[[int], None],
+        on_set_ga_address: Callable[[int, str], bool] | None = None,
         take_requested_ga: Callable[[], int | None] | None = None,
         on_create_range: Callable[[int | None, str], None] | None = None,
         on_rename_range: Callable[[int, str], None] | None = None,
@@ -50,6 +51,7 @@ class GroupAddressesPanel:
         self._on_rename_ga = on_rename_ga
         self._on_set_ga_dpt = on_set_ga_dpt
         self._on_remove_ga = on_remove_ga
+        self._on_set_ga_address = on_set_ga_address
         self._on_create_range = on_create_range
         self._on_rename_range = on_rename_range
         self._on_remove_range = on_remove_range
@@ -73,6 +75,8 @@ class GroupAddressesPanel:
         self._popup_dpt_error: str = ""
         self._open_new_ga = False
         self._open_rename_ga = False
+        self._open_renumber_ga = False
+        self._renumber_error = ""
         self._open_set_dpt = False
         # Group-range (folder) modal state.
         self._popup_range_id: int = 0
@@ -116,6 +120,9 @@ class GroupAddressesPanel:
         if self._open_rename_ga:
             imgui.open_popup(S.GA_RENAME)
             self._open_rename_ga = False
+        if self._open_renumber_ga:
+            imgui.open_popup(S.GA_RENUMBER)
+            self._open_renumber_ga = False
         if self._open_set_dpt:
             imgui.open_popup(S.GA_SET_DPT)
             self._open_set_dpt = False
@@ -130,6 +137,7 @@ class GroupAddressesPanel:
             self._open_delete_range = False
         self._render_new_ga_popup()
         self._render_rename_popup()
+        self._render_renumber_popup()
         self._render_dpt_popup()
         self._render_new_range_popup()
         self._render_rename_range_popup()
@@ -235,6 +243,14 @@ class GroupAddressesPanel:
             self._popup_ga_id = ga.id  # type: ignore[attr-defined]
             self._popup_name = ga.name  # type: ignore[attr-defined]
             self._open_rename_ga = True
+        if (
+            self._on_set_ga_address is not None
+            and imgui.menu_item(S.GA_RENUMBER, "", False)[0]
+        ):
+            self._popup_ga_id = ga.id  # type: ignore[attr-defined]
+            self._popup_address = getattr(ga, "text", "") or ""
+            self._renumber_error = ""
+            self._open_renumber_ga = True
         if imgui.menu_item(S.GA_SET_DPT, "", False)[0]:
             self._popup_ga_id = ga.id  # type: ignore[attr-defined]
             self._popup_dpt = ga.datapoint_type or ""  # type: ignore[attr-defined]
@@ -393,6 +409,44 @@ class GroupAddressesPanel:
             imgui.close_current_popup()
         imgui.same_line()
         if imgui.button(S.BTN_CANCEL, btn_w):
+            imgui.close_current_popup()
+        imgui.end_popup()
+
+    def _render_renumber_popup(self) -> None:
+        if not imgui.begin_popup_modal(
+            S.GA_RENUMBER, None, imgui.WindowFlags_.always_auto_resize
+        )[0]:
+            return
+        imgui.text(S.GA_RENUMBER_PROMPT)
+        imgui.set_next_item_width(px(220.0))
+        submitted, self._popup_address = imgui.input_text(
+            "##ga_renumber",
+            self._popup_address,
+            imgui.InputTextFlags_.enter_returns_true,
+        )
+        if self._renumber_error:
+            imgui.text_colored(imgui.ImVec4(0.9, 0.4, 0.4, 1.0), self._renumber_error)
+        btn_w = px_vec2(120, 0)
+        if (
+            imgui.button(S.BTN_OK, btn_w) or submitted
+        ) and self._on_set_ga_address is not None:
+            if self._on_set_ga_address(self._popup_ga_id, self._popup_address.strip()):
+                self._renumber_error = ""
+                # Refresh the cached selection heading so it shows the new address, not the old one,
+                # until the next (re)selection re-derives it from the rebuilt tree.
+                if self._selected_ga_id == self._popup_ga_id:
+                    name = (
+                        self._selected_ga_text.split("  ", 1)[1]
+                        if "  " in self._selected_ga_text
+                        else ""
+                    )
+                    self._selected_ga_text = f"{self._popup_address.strip()}  {name}"
+                imgui.close_current_popup()
+            else:
+                self._renumber_error = S.GA_RENUMBER_FAILED
+        imgui.same_line()
+        if imgui.button(S.BTN_CANCEL, btn_w):
+            self._renumber_error = ""
             imgui.close_current_popup()
         imgui.end_popup()
 

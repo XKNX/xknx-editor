@@ -1802,10 +1802,16 @@ def _build_trade(
         parent=parent,
     )
     installation.trades.append(trade)
+    unresolved: list[str] = []
     for dev_order, device_id in enumerate(entry.device_ids):
         device = state.device_by_identifier.get(device_id)
         if device is not None:
             trade.devices.append(TradeDevice(device=device, order=dev_order))
+        else:
+            # A ref to an unassigned device (kept only as verbatim XML, so not resolvable here):
+            # preserve the raw @RefId so the trade's membership is not silently dropped on export.
+            unresolved.append(device_id)
+    trade.unresolved_device_refs = unresolved or None
     for child_order, child in enumerate(entry.children):
         _build_trade(installation, child, trade, child_order, state)
 

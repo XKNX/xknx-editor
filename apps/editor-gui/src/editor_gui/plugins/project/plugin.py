@@ -232,6 +232,7 @@ class ProjectPlugin:
             on_rename_ga=api.project.rename_group_address,
             on_set_ga_dpt=api.project.set_group_address_dpt,
             on_remove_ga=api.project.remove_group_address,
+            on_set_ga_address=api.project.set_group_address_address,
             take_requested_ga=api.project.take_requested_group_address,
             on_create_range=api.project.create_group_range,
             on_rename_range=api.project.rename_group_range,

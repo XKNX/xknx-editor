@@ -30,17 +30,11 @@ class MonitorPanel:
         self._selected: str | None = None
         self._write_value = ""
         self._filter = ""
-        self._bus_filter = ""
 
     def render(self) -> None:
-        if imgui.begin_tab_bar("##monitor_tabs"):
-            if imgui.begin_tab_item(S.MONITOR_TAB_GROUP_OBJECTS)[0]:
-                self._render_group_objects()
-                imgui.end_tab_item()
-            if imgui.begin_tab_item(S.MONITOR_TAB_BUS)[0]:
-                self._render_bus_monitor()
-                imgui.end_tab_item()
-            imgui.end_tab_bar()
+        # The live bus-telegram log lives in the Network panel (same group telegrams, plus the
+        # point-to-point / TPCI/APCI detail), so this panel is just the group-object value table.
+        self._render_group_objects()
 
     def _render_group_objects(self) -> None:
         gas = self._get_group_addresses()
@@ -58,82 +52,6 @@ class MonitorPanel:
         ]
         imgui.separator()
         self._render_table(shown)
-
-    def _render_bus_monitor(self) -> None:
-        """Live scrolling log of every group telegram on the bus (incl. addresses not in the
-        project), similar to a Group/Bus Monitor."""
-        by_addr = {ga.address: ga for ga in self._get_group_addresses()}
-        if not self._is_connected():
-            imgui.text_disabled(S.MONITOR_DISCONNECTED)
-        if imgui.button(S.MONITOR_CLEAR):
-            self._service.clear()
-        imgui.same_line()
-        imgui.text_disabled(
-            S.MONITOR_BUS_LOAD.format(rate=f"{self._service.bus_load():.1f}")
-        )
-        records = self._service.telegrams()
-        self._bus_filter = filter_box(
-            "##bus_filter", S.MONITOR_FILTER_HINT, self._bus_filter
-        )
-        needle = self._bus_filter.lower().strip()
-        if needle:
-            records = [
-                r
-                for r in records
-                if needle in r.source.lower()
-                or needle in r.destination.lower()
-                or needle in r.service.lower()
-                or needle
-                in (
-                    by_addr[r.destination].name.lower()
-                    if r.destination in by_addr
-                    else ""
-                )
-            ]
-        imgui.text_disabled(S.MONITOR_TELEGRAM_COUNT.format(count=len(records)))
-        flags = (
-            imgui.TableFlags_.borders_inner
-            | imgui.TableFlags_.sizing_stretch_prop
-            | imgui.TableFlags_.resizable
-            | imgui.TableFlags_.scroll_y
-        )
-        if not imgui.begin_table("##busmon", 6, flags):
-            return
-        imgui.table_setup_column("Time", imgui.TableColumnFlags_.width_stretch, 0.12)
-        imgui.table_setup_column("Source", imgui.TableColumnFlags_.width_stretch, 0.12)
-        imgui.table_setup_column(
-            "Destination", imgui.TableColumnFlags_.width_stretch, 0.14
-        )
-        imgui.table_setup_column("Name", imgui.TableColumnFlags_.width_stretch, 0.3)
-        imgui.table_setup_column("Service", imgui.TableColumnFlags_.width_stretch, 0.12)
-        imgui.table_setup_column("Value", imgui.TableColumnFlags_.width_stretch, 0.2)
-        imgui.table_headers_row()
-        # Only build/format the rows imgui actually shows: ListClipper skips off-screen rows so the
-        # per-frame cost is O(visible), not O(2000). (Row timestamps are cached on the record.)
-        rows = list(reversed(records))  # newest first
-        clipper = imgui.ListClipper()
-        clipper.begin(len(rows))
-        while clipper.step():
-            for i in range(clipper.display_start, clipper.display_end):
-                rec = rows[i]
-                ga = by_addr.get(rec.destination)
-                dpt = ga.datapoint_type if ga else None
-                imgui.table_next_row()
-                imgui.table_set_column_index(0)
-                imgui.text(rec.time_str)
-                imgui.table_set_column_index(1)
-                imgui.text_disabled(rec.source)
-                imgui.table_set_column_index(2)
-                imgui.text(rec.destination)
-                imgui.table_set_column_index(3)
-                text_clipped_tooltip(ga.name if ga else "", disabled=True)
-                imgui.table_set_column_index(4)
-                imgui.text(rec.service)
-                imgui.table_set_column_index(5)
-                text_clipped_tooltip(
-                    _decode(rec.payload, dpt) if rec.payload is not None else ""
-                )
-        imgui.end_table()
 
     def _render_command_bar(self) -> None:
         connected = self._is_connected()

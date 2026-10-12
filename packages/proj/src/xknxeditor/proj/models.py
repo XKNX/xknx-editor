@@ -701,6 +701,9 @@ class Trade(Base):
     completion_status: Mapped[str] = mapped_column(String, nullable=False, default="")
     context: Mapped[str] = mapped_column(Text, nullable=False, default="")
     order: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # Trade/DeviceInstanceRef @RefIds pointing to devices not placed on any line (unassigned), which
+    # resolve to no TradeDevice row; kept verbatim so the trade's membership round-trips on export.
+    unresolved_device_refs: Mapped[list[str] | None] = mapped_column(JSON)
 
     installation: Mapped["Installation"] = relationship(back_populates="trades")
     parent: Mapped["Trade | None"] = relationship(

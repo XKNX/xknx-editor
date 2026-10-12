@@ -1063,6 +1063,117 @@ class RenameGroupAddress(Event):
 
 @_register
 @dataclass
+class SetGroupAddressAddress(Event):
+    """Renumber a group address: change its numeric address and re-home it under the range chain
+    for the new address, creating any missing main/middle ranges. The ``GroupAddress`` row (and
+    its id) is kept, so com-object links -- which reference the group address by id -- stay valid.
+    This mirrors ETS's "change the address of a group address": the links move with it, nothing is
+    re-wired. One undoable step; ``levels`` is the ``[range_start, range_end, name]`` chain for the
+    new address (see :func:`ranges_for`), like :class:`CreateGroupAddress`.
+    """
+
+    event_type: ClassVar[str] = "SetGroupAddressAddress"
+
+    group_address_id: int
+    installation_id: int
+    address: int
+    levels: list[list[Any]] = field(default_factory=list[list[Any]])
+    range_ids: list[int] = field(default_factory=list[int])
+    created: list[bool] = field(default_factory=list[bool])
+    old_address: int | None = None
+    old_group_range_id: int | None = None
+
+    def apply(self, session: Session) -> None:
+        ga = session.get(GroupAddress, self.group_address_id)
+        if ga is None:
+            return
+        self.old_address = ga.address
+        self.old_group_range_id = ga.group_range_id
+
+        # Ensure the target range chain exists (same walk as CreateGroupAddress), tracking which
+        # ranges this event created so revert drops exactly those and redo rebuilds identical ids.
+        parent_range: GroupRange | None = None
+        range_ids: list[int] = []
+        created: list[bool] = []
+        for i, (start, end, range_name) in enumerate(self.levels):
+            parent_id = parent_range.id if parent_range is not None else None
+            existing = (
+                session.query(GroupRange)
+                .filter_by(
+                    installation_id=self.installation_id,
+                    parent_id=parent_id,
+                    range_start=start,
+                )
+                .first()
+            )
+            if existing is None:
+                group_range = GroupRange(
+                    installation_id=self.installation_id,
+                    parent_id=parent_id,
+                    range_start=start,
+                    range_end=end,
+                    name=range_name,
+                )
+                if i < len(self.range_ids):
+                    group_range.id = self.range_ids[i]
+                session.add(group_range)
+                session.flush()
+                created.append(True)
+            else:
+                group_range = existing
+                created.append(False)
+            range_ids.append(group_range.id)
+            parent_range = group_range
+        self.range_ids = range_ids
+        self.created = created
+
+        # Move the existing group address: new address + new containing range. Its links are not
+        # touched (they hang off group_address_id, which does not change). Assign the relationship
+        # (not the raw FK) so the ORM collections stay in sync -- otherwise reverting could leave
+        # the GA in a to-be-deleted range's loaded collection and cascade-delete it. Empty levels
+        # (Free style) keep the GA under its current range: Free folders are not address-derived.
+        ga.address = self.address
+        if parent_range is not None:
+            ga.group_range = parent_range
+
+    def revert(self, session: Session) -> None:
+        ga = session.get(GroupAddress, self.group_address_id)
+        if ga is not None and self.old_address is not None:
+            ga.address = self.old_address
+            if self.old_group_range_id is not None:
+                # Set the relationship (not the FK) so ``ga`` leaves the created range's loaded
+                # collection; deleting that empty range below then cannot cascade the GA away.
+                old_range = session.get(GroupRange, self.old_group_range_id)
+                if old_range is not None:
+                    ga.group_range = old_range
+        session.flush()
+        # Drop the topmost range this event created (cascade removes the deeper ones); the moved GA
+        # is already back under its old range, so a created range is empty and safe to delete.
+        first_created = next((i for i, made in enumerate(self.created) if made), None)
+        if first_created is not None:
+            target = session.get(GroupRange, self.range_ids[first_created])
+            if target is not None:
+                session.delete(target)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "group_address_id": self.group_address_id,
+            "installation_id": self.installation_id,
+            "address": self.address,
+            "levels": self.levels,
+            "range_ids": self.range_ids,
+            "created": self.created,
+            "old_address": self.old_address,
+            "old_group_range_id": self.old_group_range_id,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetGroupAddressAddress:
+        return cls(**data)
+
+
+@_register
+@dataclass
 class SetComObjectSending(Event):
     """Mark one link as sending and clear the bit on the com-object's other links (at most one
     sends). ``previous`` stores each sibling's earlier bit for revert."""
@@ -1573,6 +1684,68 @@ class AddFunctionGroupAddress(Event):
 class RemoveFunctionGroupAddress(_SubtreeDelete):
     event_type: ClassVar[str] = "RemoveFunctionGroupAddress"
     _model: ClassVar[type[Base]] = FunctionGroupAddress
+
+
+@_register
+@dataclass
+class CreateFunctionWithGroupAddresses(Event):
+    """Create a function and assign group addresses to it as one undoable step.
+
+    The group-address links depend on the function id, which only exists after the function is
+    created, so this cannot be a :class:`CompositeEvent` of the two separate events. Reverting
+    deletes the function; its ``group_addresses`` cascade removes the links."""
+
+    event_type: ClassVar[str] = "CreateFunctionWithGroupAddresses"
+
+    space_id: int
+    function_type: str
+    name: str
+    group_address_ids: list[int] = field(default_factory=list[int])
+    order: int = 0
+    function_id: int | None = None
+    link_ids: list[int] | None = None
+
+    def apply(self, session: Session) -> None:
+        fn = Function(
+            space_id=self.space_id,
+            function_type=self.function_type,
+            name=self.name,
+            order=self.order,
+        )
+        if self.function_id is not None:
+            fn.id = self.function_id
+        session.add(fn)
+        session.flush()
+        self.function_id = fn.id
+        new_link_ids: list[int] = []
+        for i, ga_id in enumerate(self.group_address_ids):
+            link = FunctionGroupAddress(function_id=fn.id, group_address_id=ga_id)
+            if self.link_ids is not None and i < len(self.link_ids):
+                link.id = self.link_ids[i]
+            session.add(link)
+            session.flush()
+            new_link_ids.append(link.id)
+        self.link_ids = new_link_ids
+
+    def revert(self, session: Session) -> None:
+        fn = session.get(Function, self.function_id)
+        if fn is not None:
+            session.delete(fn)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "space_id": self.space_id,
+            "function_type": self.function_type,
+            "name": self.name,
+            "group_address_ids": self.group_address_ids,
+            "order": self.order,
+            "function_id": self.function_id,
+            "link_ids": self.link_ids,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> CreateFunctionWithGroupAddresses:
+        return cls(**data)
 
 
 # --- building spaces (location tree: building / floor / room / …) -------------
