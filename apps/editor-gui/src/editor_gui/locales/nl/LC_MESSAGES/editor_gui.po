@@ -178,3 +178,109 @@ msgstr "FPS: {fps:.1f}{idling}"
 
 msgid " (Idling)"
 msgstr " (inactief)"
+
+msgid "Compact Project…"
+msgstr "Project comprimeren…"
+
+msgid "Compact Project"
+msgstr "Project comprimeren"
+
+msgid "Analysing project…"
+msgstr "Project wordt geanalyseerd…"
+
+msgid "Compacting project…"
+msgstr "Project wordt gecomprimeerd…"
+
+msgid "Analysing devices"
+msgstr "Apparaten worden geanalyseerd"
+
+msgid "Analysing product data ({manufacturer})"
+msgstr "Productgegevens worden geanalyseerd ({manufacturer})"
+
+msgid "Removing unused product data ({manufacturer})"
+msgstr "Ongebruikte productgegevens worden verwijderd ({manufacturer})"
+
+msgid "Saving product data"
+msgstr "Productgegevens worden opgeslagen"
+
+msgid "Compacting project file"
+msgstr "Projectbestand wordt gecomprimeerd"
+
+msgid ""
+"The following product data is not used by any device in this project and "
+"will be removed:"
+msgstr ""
+"De volgende productgegevens worden door geen enkel apparaat in dit project "
+"gebruikt en worden verwijderd:"
+
+msgid ""
+"All product data in this project is used by its devices, nothing to remove. "
+"The project file can still be compacted to free unused space."
+msgstr ""
+"Alle productgegevens in dit project worden door de apparaten gebruikt, er is"
+" niets te verwijderen. Het projectbestand kan toch worden gecomprimeerd om "
+"ongebruikte ruimte vrij te maken."
+
+msgid "Application programs"
+msgstr "Applicatieprogramma's"
+
+msgid "Device types (products)"
+msgstr "Apparaattypen (producten)"
+
+msgid "Hardware"
+msgstr "Hardware"
+
+msgid "Manufacturers"
+msgstr "Fabrikanten"
+
+msgid "Catalog entries"
+msgstr "Catalogusitems"
+
+msgid "Help and plug-in files"
+msgstr "Help- en plug-inbestanden"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Current file size"
+msgstr "Huidige bestandsgrootte"
+
+msgid "Estimated size afterwards"
+msgstr "Geschatte grootte achteraf"
+
+msgid ""
+"This cannot be undone. Removed product data has to be imported again if "
+"these products are added to the project later."
+msgstr ""
+"Dit kan niet ongedaan worden gemaakt. Verwijderde productgegevens moeten "
+"opnieuw worden geïmporteerd als deze producten later weer aan het project "
+"worden toegevoegd."
+
+msgid "Compact"
+msgstr "Comprimeren"
+
+msgid "Project Compacted"
+msgstr "Project gecomprimeerd"
+
+msgid "The project file was compacted."
+msgstr "Het projectbestand is gecomprimeerd."
+
+msgid "Size before"
+msgstr "Grootte vooraf"
+
+msgid "Size after"
+msgstr "Grootte achteraf"
+
+msgid "Compacting cancelled, the project was not changed"
+msgstr "Comprimeren geannuleerd, het project is niet gewijzigd"
+
+msgid "Remove unused product data"
+msgstr "Ongebruikte productgegevens verwijderen"
+
+msgid ""
+"Removes product data no device uses from the exported project to reduce its "
+"size. The project itself is not changed."
+msgstr ""
+"Verwijdert productgegevens die geen enkel apparaat gebruikt uit het "
+"geëxporteerde project om de grootte te verkleinen. Het project zelf wordt "
+"niet gewijzigd."

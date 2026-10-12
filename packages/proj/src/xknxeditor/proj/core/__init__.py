@@ -1,5 +1,6 @@
 """Core project domain: a SQLite-backed store mutated via a command/event log."""
 
+from xknxeditor.proj.core.compact import CompactCancelled, CompactResult
 from xknxeditor.proj.core.event_store import EventStore
 from xknxeditor.proj.core.ga_export import (
     GaExport,
@@ -36,6 +37,11 @@ from xknxeditor.proj.core.myknx_cert import (
     myknx_certificate_signer,
     sign_exported_knxproj,
 )
+from xknxeditor.proj.core.product_prune import (
+    ProductPruneReport,
+    prune_product_blob,
+    prune_product_members,
+)
 from xknxeditor.proj.core.service import ProjectService
 from xknxeditor.proj.core.trace_crypto import (
     current_marker,
@@ -50,11 +56,14 @@ from xknxeditor.proj.core.trace_crypto import (
 __all__ = [
     "DLL_NAME",
     "TRACE_DLL_NAME",
+    "CompactCancelled",
+    "CompactResult",
     "EventStore",
     "ExportResult",
     "GaExport",
     "KeyExtractionError",
     "MyKnxError",
+    "ProductPruneReport",
     "ProjectService",
     "current_marker",
     "current_signing_key",
@@ -73,6 +82,8 @@ __all__ = [
     "is_encrypted",
     "is_ga_export",
     "myknx_certificate_signer",
+    "prune_product_blob",
+    "prune_product_members",
     "read_ga_export",
     "read_master_xml",
     "reset_signing_key",

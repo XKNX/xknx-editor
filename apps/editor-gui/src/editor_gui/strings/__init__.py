@@ -956,6 +956,139 @@ class MenuStrings:
     def MENU_OPEN_CACHE_DIR(self) -> str:
         return _("Open Cache Folder")
 
+    # --- compact project ------------------------------------------------
+    @property
+    def MENU_COMPACT_PROJECT(self) -> str:
+        return _("Compact Project…")
+
+    @property
+    def COMPACT_TITLE(self) -> str:
+        return _("Compact Project")
+
+    @property
+    def PROGRESS_COMPACT_ANALYSE(self) -> str:
+        return _("Analysing project…")
+
+    @property
+    def PROGRESS_COMPACT(self) -> str:
+        return _("Compacting project…")
+
+    @property
+    def COMPACT_STEP_DEVICES(self) -> str:
+        return _("Analysing devices")
+
+    @property
+    def COMPACT_STEP_ANALYSE(self) -> str:
+        return _("Analysing product data ({manufacturer})")
+
+    @property
+    def COMPACT_STEP_REMOVE(self) -> str:
+        return _("Removing unused product data ({manufacturer})")
+
+    @property
+    def COMPACT_STEP_STORE(self) -> str:
+        return _("Saving product data")
+
+    @property
+    def COMPACT_STEP_VACUUM(self) -> str:
+        return _("Compacting project file")
+
+    @property
+    def COMPACT_INTRO(self) -> str:
+        return _(
+            "The following product data is not used by any device in this project and will be "
+            "removed:"
+        )
+
+    @property
+    def COMPACT_NOTHING_UNUSED(self) -> str:
+        return _(
+            "All product data in this project is used by its devices, nothing to remove. The "
+            "project file can still be compacted to free unused space."
+        )
+
+    @property
+    def COMPACT_APPLICATIONS(self) -> str:
+        return _("Application programs")
+
+    @property
+    def COMPACT_PRODUCTS(self) -> str:
+        return _("Device types (products)")
+
+    @property
+    def COMPACT_HARDWARE(self) -> str:
+        return _("Hardware")
+
+    @property
+    def COMPACT_MANUFACTURERS(self) -> str:
+        return _("Manufacturers")
+
+    @property
+    def COMPACT_CATALOG_ITEMS(self) -> str:
+        return _("Catalog entries")
+
+    @property
+    def COMPACT_BAGGAGES(self) -> str:
+        return _("Help and plug-in files")
+
+    @property
+    def COMPACT_DETAILS(self) -> str:
+        return _("Details")
+
+    @property
+    def COMPACT_SIZE_NOW(self) -> str:
+        return _("Current file size")
+
+    @property
+    def COMPACT_SIZE_ESTIMATE(self) -> str:
+        return _("Estimated size afterwards")
+
+    @property
+    def COMPACT_WARNING(self) -> str:
+        return _(
+            "This cannot be undone. Removed product data has to be imported again if these "
+            "products are added to the project later."
+        )
+
+    @property
+    def COMPACT_CONFIRM(self) -> str:
+        return _("Compact")
+
+    @property
+    def COMPACT_RESULT_TITLE(self) -> str:
+        return _("Project Compacted")
+
+    @property
+    def COMPACT_RESULT_TEXT(self) -> str:
+        return _("The project file was compacted.")
+
+    @property
+    def COMPACT_SIZE_BEFORE(self) -> str:
+        return _("Size before")
+
+    @property
+    def COMPACT_SIZE_AFTER(self) -> str:
+        return _("Size after")
+
+    @property
+    def COMPACT_CANCELLED(self) -> str:
+        return _("Compacting cancelled, the project was not changed")
+
+    @property
+    def COMPACT_CLOSE(self) -> str:
+        return _("Close")
+
+    @property
+    def EXPORT_REMOVE_UNUSED(self) -> str:
+        return _("Remove unused product data")
+
+    @property
+    def EXPORT_REMOVE_UNUSED_HELP(self) -> str:
+        return _(
+            "Removes product data no device uses from the exported project to reduce its size. "
+            "The project itself is not changed."
+        )
+
 
 class _CombinedStrings(BaseStrings, MenuStrings):
     pass

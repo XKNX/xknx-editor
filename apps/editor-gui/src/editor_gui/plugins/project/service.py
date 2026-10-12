@@ -43,7 +43,9 @@ if TYPE_CHECKING:
     from xknxeditor.catalog import ProductDeletion, ProductSummary
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.prod.parser_v2.calculation import ChangeSet
+    from xknxeditor.proj.core.compact import CompactResult
     from xknxeditor.proj.core.import_notes import ImportLoss
+    from xknxeditor.proj.core.product_prune import ProgressCallback
     from xknxeditor.proj.core.service import (
         DeviceInfo,
         GroupRangeInfo,
@@ -1782,6 +1784,41 @@ class ProjectService:
                 continue
             count += 1
         return count
+
+    # --- compact project ---------------------------------------------------
+
+    def analyse_compaction(
+        self, progress: "ProgressCallback | None" = None
+    ) -> "CompactResult | None":
+        """What "Compact Project" would remove and the estimated file size (no changes)."""
+        if self._pid is None:
+            return None
+        with self._io_lock:
+            return self._svc.analyse_compaction(self._pid, progress)
+
+    def compact(
+        self,
+        progress: "ProgressCallback | None" = None,
+        cancelled: Callable[[], bool] | None = None,
+    ) -> "CompactResult | None":
+        """Remove stored product data no device uses and compact the project file.
+
+        Not undoable. Holds the shared lock for the whole operation; raises
+        :class:`~xknxeditor.proj.CompactCancelled` when ``cancelled`` is set before the write."""
+        if self._pid is None:
+            return None
+        with self._io_lock:
+            result = self._svc.compact(self._pid, progress, cancelled)
+            self._revision_cache.clear()
+            self._bump(structural=False)
+        self._log.info(
+            "project compacted",
+            removed_applications=len(result.report.application_programs),
+            removed_manufacturers=len(result.report.manufacturers),
+            size_before=result.file_size_before,
+            size_after=result.file_size_after,
+        )
+        return result
 
     # --- application update ("Update Application Program") -------------
 

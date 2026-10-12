@@ -54,6 +54,8 @@ from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.fonts import load_fonts
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
+    CompactCancelled,
+    CompactResult,
     ExportResult,
     MyKnxError,
     ProjectStorageError,
@@ -65,6 +67,12 @@ from xknxeditor.proj import (
 from xknxeditor.proj.core import import_notes
 from xknxeditor.proj.core.addressing import GroupAddressStyle
 from xknxeditor.proj.core.import_notes import ImportLoss
+from xknxeditor.proj.core.product_prune import (
+    STEP_DEVICES,
+    STEP_MANUFACTURER,
+    STEP_STORE,
+    STEP_VACUUM,
+)
 from xknxeditor.proj.db import frame_db_profiler
 
 _REPO_URL = "https://github.com/xknx/xknx-editor"
@@ -326,6 +334,19 @@ class KnxGuiApp:
         # sub-step label. Assigned from worker threads (float/str assignment is atomic under the GIL).
         self._progress_fraction: float | None = None
         self._progress_stage = ""
+        # Optional cancel action for the running background task (a Cancel button in the modal).
+        self._progress_cancel: Callable[[], None] | None = None
+        # Compact Project: the analysis shown for confirmation, the result shown at the end, and the
+        # cancel request the worker polls before writing (worker->render handoff via the flags).
+        self._compact_analysis: CompactResult | None = None
+        self._compact_confirm_requested = False
+        self._compact_result: CompactResult | None = None
+        self._compact_result_requested = False
+        self._compact_cancel = False
+        # Export option: leave out product data no device uses (persisted).
+        self._export_remove_unused = bool(
+            load_settings("app").get("export_remove_unused_products", False)
+        )
         # MCP tab state (host/port for the embedded MCP server), loaded from the local config.
         _mcp_cfg = load_settings("mcp")
         self._mcp_host = str(_mcp_cfg.get("host") or "127.0.0.1")
@@ -637,6 +658,7 @@ class KnxGuiApp:
         # Snapshot the program refs now (UI thread) together with `source`, so switching projects
         # mid-export can't pair project A's file with project B's manufacturer bundle.
         program_refs = self._project_service.program_refs()
+        remove_unused = self._export_remove_unused
 
         def _run() -> None:
             self._log.debug(
@@ -644,6 +666,7 @@ class KnxGuiApp:
                 dest=dest,
                 schema=self._export_schema,
                 signed=signer is not None,
+                remove_unused_products=remove_unused,
             )
             extra_files: dict[str, bytes] = {}
             master_xml: bytes | None = None
@@ -678,6 +701,7 @@ class KnxGuiApp:
                     # Name the exported project after the chosen file (the in-app project has no
                     # editable name yet), so the importer shows a meaningful name instead of "New project".
                     project_name=Path(dest).stem or None,
+                    remove_unused_products=remove_unused,
                 )
                 used_schema = result.schema
                 self._last_export_path = dest
@@ -710,6 +734,14 @@ class KnxGuiApp:
                 self._log.info(
                     "project exported", path=dest, certificate=signer is not None
                 )
+                if result.product_prune is not None:
+                    self._log.info(
+                        "export: unused product data left out",
+                        applications=len(result.product_prune.application_programs),
+                        manufacturers=len(result.product_prune.manufacturers),
+                        size_before=result.product_prune.size_before,
+                        size_after=result.product_prune.size_after,
+                    )
                 if result.unverifiable_folders:
                     # The export succeeded, but one or more nested/baggage folders had no signature
                     # and got a best-effort one we cannot verify offline (the folder signature uses
@@ -834,6 +866,18 @@ class KnxGuiApp:
                 if imgui.selectable(lbl, code == self._export_schema)[0]:
                     self._export_schema = code
             imgui.end_combo()
+        changed, self._export_remove_unused = checkbox(
+            S.EXPORT_REMOVE_UNUSED, self._export_remove_unused
+        )
+        if changed:
+            data = load_settings("app")
+            data["export_remove_unused_products"] = self._export_remove_unused
+            save_settings("app", data)
+        imgui.push_style_color(
+            imgui.Col_.text, imgui.get_style_color_vec4(imgui.Col_.text_disabled)
+        )
+        imgui.text_wrapped(S.EXPORT_REMOVE_UNUSED_HELP)
+        imgui.pop_style_color()
         imgui.spacing()
         # Lock the credential fields while a login is in flight so an in-flight response for old
         # credentials can't populate licenses after the fields changed (which would sign with new
@@ -1031,6 +1075,7 @@ class KnxGuiApp:
         self._progress_started_at = time.time()
         self._progress_fraction = None
         self._progress_stage = ""
+        self._progress_cancel = None
 
     def set_progress(self, fraction: float | None, stage: str = "") -> None:
         """Update the progress modal from a worker: ``fraction`` in [0,1] for a determinate bar,
@@ -1080,6 +1125,7 @@ class KnxGuiApp:
             )
             self._bg_thread = None
             self._progress_running = False
+            self._progress_cancel = None
 
     def _render_progress_modal(self) -> None:
         if self._progress_requested:
@@ -1108,6 +1154,10 @@ class KnxGuiApp:
         if self._progress_stage:
             imgui.text_disabled(self._progress_stage)
         imgui.text_disabled(f"{elapsed:0.0f}s")
+        cancel = self._progress_cancel
+        if cancel is not None and imgui.button(S.BTN_CANCEL, px_vec2(110, 0)):
+            self._progress_cancel = None
+            cancel()
         if not self._progress_running:
             imgui.close_current_popup()
         imgui.end_popup()
@@ -1878,6 +1928,10 @@ class KnxGuiApp:
                 self._project_service.is_open,
             )[0]:
                 self._export_knxproj()
+            if imgui.menu_item(S.MENU_COMPACT_PROJECT, "", False, self._can_compact())[
+                0
+            ]:
+                self._start_compact_analysis()
             imgui.separator()
             if (
                 imgui.menu_item(S.MENU_LOAD_KNXPROD, "", False)[0]
@@ -2163,6 +2217,214 @@ class KnxGuiApp:
             imgui.close_current_popup()
         imgui.end_popup()
 
+    # --- compact project ---------------------------------------------------
+
+    def _can_compact(self) -> bool:
+        """Compact needs an open project and no other background task (it rewrites the file)."""
+        return (
+            self._project_service.is_open
+            and self._bg_thread is None
+            and self._import_thread is None
+            and not (self._myknx_thread is not None and self._myknx_thread.is_alive())
+        )
+
+    def _compact_progress(
+        self, step: str, done: int, total: int, *, applying: bool
+    ) -> None:
+        """Map a compaction step to the progress modal: the product data analysis fills the bar (up
+        to 80 percent when applying), storing follows, compacting the file runs indeterminate."""
+        if step == STEP_DEVICES:
+            self.set_progress(0.0, S.COMPACT_STEP_DEVICES)
+        elif step.startswith(f"{STEP_MANUFACTURER}:"):
+            mid = step.split(":", 1)[1]
+            text = S.COMPACT_STEP_REMOVE if applying else S.COMPACT_STEP_ANALYSE
+            share = 0.8 if applying else 1.0
+            self.set_progress(
+                share * done / total if total else None,
+                text.format(manufacturer=mid),
+            )
+        elif step == STEP_STORE:
+            self._progress_cancel = None
+            self.set_progress(0.85, S.COMPACT_STEP_STORE)
+        elif step == STEP_VACUUM:
+            self.set_progress(1.0 if done else None, S.COMPACT_STEP_VACUUM)
+
+    def _start_compact_analysis(self) -> None:
+        """Analyse in the background what Compact Project would remove, then ask to confirm."""
+        if not self._can_compact():
+            return
+
+        def worker() -> None:
+            result = self._project_service.analyse_compaction(
+                lambda step, done, total: self._compact_progress(
+                    step, done, total, applying=False
+                )
+            )
+            if result is not None:
+                self._compact_analysis = result
+                self._compact_confirm_requested = True
+
+        self._run_bg(S.PROGRESS_COMPACT_ANALYSE, worker)
+
+    def _start_compact(self) -> None:
+        """Compact the project in the background; cancellable until it starts writing."""
+        if not self._can_compact():
+            return
+        self._compact_cancel = False
+
+        def worker() -> None:
+            try:
+                result = self._project_service.compact(
+                    lambda step, done, total: self._compact_progress(
+                        step, done, total, applying=True
+                    ),
+                    cancelled=lambda: self._compact_cancel,
+                )
+            except CompactCancelled:
+                self._log.info("compact project cancelled")
+                self._flash_toast(S.COMPACT_CANCELLED)
+                return
+            if result is not None:
+                self._compact_result = result
+                self._compact_result_requested = True
+
+        self._run_bg(S.PROGRESS_COMPACT, worker)
+        self._progress_cancel = self._request_compact_cancel
+
+    def _request_compact_cancel(self) -> None:
+        self._compact_cancel = True
+
+    def _render_compact_modal(self) -> None:
+        """Confirm Compact Project: what will be removed, the file sizes and the warning."""
+        if self._compact_confirm_requested:
+            imgui.open_popup(S.COMPACT_TITLE)
+            self._compact_confirm_requested = False
+        imgui.set_next_window_size(px_vec2(600.0, 0.0), imgui.Cond_.always)
+        if not imgui.begin_popup_modal(S.COMPACT_TITLE, None)[0]:
+            return
+        analysis = self._compact_analysis
+        if analysis is None:
+            imgui.close_current_popup()
+            imgui.end_popup()
+            return
+        report = analysis.report
+        if report.nothing_removed:
+            imgui.text_wrapped(S.COMPACT_NOTHING_UNUSED)
+        else:
+            imgui.text_wrapped(S.COMPACT_INTRO)
+            imgui.spacing()
+            counts = [
+                (S.COMPACT_APPLICATIONS, report.application_programs),
+                (S.COMPACT_PRODUCTS, report.products),
+                (S.COMPACT_MANUFACTURERS, report.manufacturers),
+            ]
+            if imgui.begin_table(
+                "##compact_counts", 2, imgui.TableFlags_.sizing_fixed_fit
+            ):
+                for label, items in counts:
+                    imgui.table_next_row()
+                    imgui.table_next_column()
+                    imgui.text_disabled(label)
+                    imgui.table_next_column()
+                    imgui.text(str(len(items)))
+                imgui.end_table()
+            if imgui.collapsing_header(S.COMPACT_DETAILS):
+                details = [
+                    *counts,
+                    (S.COMPACT_HARDWARE, report.hardware),
+                    (S.COMPACT_CATALOG_ITEMS, report.catalog_items),
+                    (S.COMPACT_BAGGAGES, report.baggages),
+                ]
+                master = self._connection_service.master
+                names = {
+                    **(dict(master.manufacturers) if master is not None else {}),
+                    **report.names,
+                }
+                imgui.begin_child("##compact_details", px_vec2(0.0, 220.0))
+                for label, items in details:
+                    if not items:
+                        continue
+                    imgui.text_disabled(f"{label} ({len(items)})")
+                    for item in items:
+                        name = names.get(item)
+                        if name:
+                            imgui.bullet_text(name)
+                            imgui.same_line()
+                            imgui.text_disabled(item)
+                        else:
+                            imgui.bullet_text(item)
+                imgui.end_child()
+        imgui.spacing()
+        if imgui.begin_table("##compact_sizes", 2, imgui.TableFlags_.sizing_fixed_fit):
+            for label, size in (
+                (S.COMPACT_SIZE_NOW, analysis.file_size_before),
+                (S.COMPACT_SIZE_ESTIMATE, analysis.file_size_after),
+            ):
+                imgui.table_next_row()
+                imgui.table_next_column()
+                imgui.text_disabled(label)
+                imgui.table_next_column()
+                imgui.text(_human_size(size))
+            imgui.end_table()
+        if not report.nothing_removed:
+            imgui.spacing()
+            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
+            imgui.text_wrapped(S.COMPACT_WARNING)
+            imgui.pop_style_color()
+        imgui.spacing()
+        imgui.separator()
+        if imgui.button(S.COMPACT_CONFIRM, px_vec2(140, 0)):
+            self._compact_analysis = None
+            imgui.close_current_popup()
+            self._start_compact()
+        imgui.same_line()
+        if imgui.button(S.BTN_CANCEL, px_vec2(110, 0)):
+            self._compact_analysis = None
+            imgui.close_current_popup()
+        imgui.end_popup()
+
+    def _render_compact_result_modal(self) -> None:
+        """Show the file size before and after Compact Project."""
+        if self._compact_result_requested:
+            imgui.open_popup(S.COMPACT_RESULT_TITLE)
+            self._compact_result_requested = False
+        imgui.set_next_window_size_constraints(
+            px_vec2(420.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
+        )
+        if not imgui.begin_popup_modal(
+            S.COMPACT_RESULT_TITLE, None, imgui.WindowFlags_.always_auto_resize
+        )[0]:
+            return
+        result = self._compact_result
+        if result is None:
+            imgui.close_current_popup()
+            imgui.end_popup()
+            return
+        imgui.text_wrapped(S.COMPACT_RESULT_TEXT)
+        imgui.spacing()
+        report = result.report
+        rows = [
+            (S.COMPACT_SIZE_BEFORE, _human_size(result.file_size_before)),
+            (S.COMPACT_SIZE_AFTER, _human_size(result.file_size_after)),
+            (S.COMPACT_APPLICATIONS, str(len(report.application_programs))),
+            (S.COMPACT_PRODUCTS, str(len(report.products))),
+            (S.COMPACT_MANUFACTURERS, str(len(report.manufacturers))),
+        ]
+        if imgui.begin_table("##compact_result", 2, imgui.TableFlags_.sizing_fixed_fit):
+            for label, value in rows:
+                imgui.table_next_row()
+                imgui.table_next_column()
+                imgui.text_disabled(label)
+                imgui.table_next_column()
+                imgui.text(value)
+            imgui.end_table()
+        imgui.spacing()
+        imgui.separator()
+        if imgui.button(S.COMPACT_CLOSE, px_vec2(120, 0)):
+            self._compact_result = None
+            imgui.close_current_popup()
+        imgui.end_popup()
+
     def watch_db_frame(self) -> None:
         """Dev watchdog (XKNX_DEBUG_DB_FRAMES=1): log when the render thread keeps issuing DB queries
         across frames in which the project did not change — an uncached per-frame read in a panel."""
@@ -2225,6 +2487,8 @@ class KnxGuiApp:
         self._render_update_modal()
         self._render_import_notes_modal()
         self._render_export_summary_modal()
+        self._render_compact_modal()
+        self._render_compact_result_modal()
         self._render_knxprod_result_modal()
         self._keyring_plugin.render_window()
         self._signing_plugin.render_window()

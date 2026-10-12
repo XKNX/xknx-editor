@@ -582,3 +582,109 @@ msgstr "FPS: {fps:.1f}{idling}"
 
 msgid " (Idling)"
 msgstr " (Leerlauf)"
+
+msgid "Compact Project…"
+msgstr "Projekt komprimieren…"
+
+msgid "Compact Project"
+msgstr "Projekt komprimieren"
+
+msgid "Analysing project…"
+msgstr "Projekt wird analysiert…"
+
+msgid "Compacting project…"
+msgstr "Projekt wird komprimiert…"
+
+msgid "Analysing devices"
+msgstr "Geräte werden analysiert"
+
+msgid "Analysing product data ({manufacturer})"
+msgstr "Produktdaten werden analysiert ({manufacturer})"
+
+msgid "Removing unused product data ({manufacturer})"
+msgstr "Nicht verwendete Produktdaten werden entfernt ({manufacturer})"
+
+msgid "Saving product data"
+msgstr "Produktdaten werden gespeichert"
+
+msgid "Compacting project file"
+msgstr "Projektdatei wird komprimiert"
+
+msgid ""
+"The following product data is not used by any device in this project and "
+"will be removed:"
+msgstr ""
+"Die folgenden Produktdaten werden von keinem Gerät in diesem Projekt "
+"verwendet und werden entfernt:"
+
+msgid ""
+"All product data in this project is used by its devices, nothing to remove. "
+"The project file can still be compacted to free unused space."
+msgstr ""
+"Alle Produktdaten in diesem Projekt werden von seinen Geräten verwendet, es "
+"gibt nichts zu entfernen. Die Projektdatei kann trotzdem komprimiert werden,"
+" um ungenutzten Speicherplatz freizugeben."
+
+msgid "Application programs"
+msgstr "Applikationsprogramme"
+
+msgid "Device types (products)"
+msgstr "Gerätetypen (Produkte)"
+
+msgid "Hardware"
+msgstr "Hardware"
+
+msgid "Manufacturers"
+msgstr "Hersteller"
+
+msgid "Catalog entries"
+msgstr "Katalogeinträge"
+
+msgid "Help and plug-in files"
+msgstr "Hilfe- und Plug-in-Dateien"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Current file size"
+msgstr "Aktuelle Dateigröße"
+
+msgid "Estimated size afterwards"
+msgstr "Geschätzte Größe danach"
+
+msgid ""
+"This cannot be undone. Removed product data has to be imported again if "
+"these products are added to the project later."
+msgstr ""
+"Dies kann nicht rückgängig gemacht werden. Entfernte Produktdaten müssen "
+"erneut importiert werden, wenn diese Produkte später wieder zum Projekt "
+"hinzugefügt werden."
+
+msgid "Compact"
+msgstr "Komprimieren"
+
+msgid "Project Compacted"
+msgstr "Projekt komprimiert"
+
+msgid "The project file was compacted."
+msgstr "Die Projektdatei wurde komprimiert."
+
+msgid "Size before"
+msgstr "Größe vorher"
+
+msgid "Size after"
+msgstr "Größe nachher"
+
+msgid "Compacting cancelled, the project was not changed"
+msgstr "Komprimieren abgebrochen, das Projekt wurde nicht geändert"
+
+msgid "Remove unused product data"
+msgstr "Nicht verwendete Produktdaten entfernen"
+
+msgid ""
+"Removes product data no device uses from the exported project to reduce its "
+"size. The project itself is not changed."
+msgstr ""
+"Entfernt Produktdaten, die kein Gerät verwendet, aus dem exportierten "
+"Projekt, um seine Größe zu verringern. Das Projekt selbst wird nicht "
+"geändert."

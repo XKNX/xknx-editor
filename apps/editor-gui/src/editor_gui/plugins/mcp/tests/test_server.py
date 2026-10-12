@@ -604,3 +604,58 @@ async def test_network_tools_read_the_monitor_logs(tmp_path: Path) -> None:
         cleared = await _data(client, "network_state")
         assert cleared["cemi_records"] == 0
         assert cleared["state"] == "capturing"
+
+
+_KNXPROJ = (
+    Path(__file__).parents[7]
+    / "packages/proj/tests/fixtures/xknx_test_project_no_password.knxproj"
+)
+
+
+@pytest.mark.skipif(not _KNXPROJ.exists(), reason="knxproj fixture missing")
+async def test_project_compact(tmp_path: Path) -> None:
+    """project_compact reports unused product data on a dry run and removes it otherwise."""
+    import sqlite3
+    import zipfile
+
+    from xknxeditor.proj import import_knxproj
+
+    path = tmp_path / "p.xknx"
+    import_knxproj(_KNXPROJ, path)
+    with sqlite3.connect(path) as db:
+        (blob,) = db.execute("SELECT imported_product_members FROM projects").fetchone()
+        buffer = io.BytesIO()
+        with (
+            zipfile.ZipFile(io.BytesIO(blob)) as src,
+            zipfile.ZipFile(buffer, "w") as out,
+        ):
+            for name in src.namelist():
+                out.writestr(name, src.read(name))
+            out.writestr(
+                "M-0003/Hardware.xml",
+                '<KNX xmlns="http://knx.org/xml/project/20"><ManufacturerData>'
+                '<Manufacturer RefId="M-0003"><Hardware><Hardware Id="M-0003_H-1">'
+                '<Products><Product Id="M-0003_H-1_P-1" /></Products>'
+                "</Hardware></Hardware></Manufacturer></ManufacturerData></KNX>",
+            )
+            out.writestr("M-0003/M-0003_A-0001.xml", "<KNX />")
+        db.execute(
+            "UPDATE projects SET imported_product_members = ?", (buffer.getvalue(),)
+        )
+    db.close()
+
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_open", path=str(path))
+        dry = await _data(client, "project_compact")
+        assert dry["status"] == "analysed"
+        assert dry["removed"]["manufacturers"] == ["M-0003"]
+        assert dry["removed"]["application_programs"] == ["M-0003_A-0001"]
+
+        done = await _data(client, "project_compact", dry_run=False)
+        assert done["status"] == "compacted"
+        assert done["removed"]["manufacturers"] == ["M-0003"]
+        assert done["file_size_after"] == path.stat().st_size
+
+        again = await _data(client, "project_compact")
+        assert again["nothing_unused"] is True
