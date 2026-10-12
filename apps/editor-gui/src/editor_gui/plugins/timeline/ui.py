@@ -1,7 +1,7 @@
 """Value timeline: plot decoded numeric group-value telegrams over time (custom draw-list chart).
 
-Dependency-free (no ImPlot/numpy): pin group addresses on the left, and their captured numeric
-values are decoded with the project DPT and drawn as lines on the right."""
+Dependency-free (no ImPlot/numpy): pin group addresses on the left, and their numeric values
+recorded by the Group Monitor are decoded with the project DPT and drawn as lines on the right."""
 
 from __future__ import annotations
 
@@ -13,6 +13,7 @@ from typing import Any
 from imgui_bundle import imgui
 
 from editor_gui.dpt import transcoder_for
+from editor_gui.plugins.monitor.service import TelegramRecord
 from editor_gui.plugins.timeline.strings import S
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px
@@ -33,7 +34,7 @@ _PALETTE = [
 class TimelinePanel:
     def __init__(
         self,
-        get_telegrams: Callable[[], list[Any]],
+        get_telegrams: Callable[[], list[TelegramRecord]],
         get_ga_info: Callable[[], list[GaInfo]],
         is_open: Callable[[], bool],
     ) -> None:
@@ -117,7 +118,7 @@ class TimelinePanel:
             ts = t.timestamp.timestamp()
             if cutoff is not None and ts < cutoff:
                 continue
-            value = _decode_numeric(t.telegram.payload, dpt_by_raw.get(raw))
+            value = _decode_numeric(t.payload, dpt_by_raw.get(raw))
             if value is not None:
                 series[raw].append((ts, value))
         return series
@@ -179,14 +180,12 @@ class TimelinePanel:
 
 
 def _decode_numeric(payload: Any, dpt: str | None) -> float | None:
+    """``payload`` is the DPTArray/DPTBinary of a write or response (``None`` for a read)."""
     transcoder = transcoder_for(dpt)
     if transcoder is None or payload is None:
         return None
-    raw = getattr(payload, "value", None)
-    if raw is None:
-        return None
     try:
-        value = transcoder.from_knx(raw)
+        value = transcoder.from_knx(payload)
     except Exception:
         return None
     if isinstance(value, bool):

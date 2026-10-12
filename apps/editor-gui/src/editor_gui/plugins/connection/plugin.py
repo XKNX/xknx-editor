@@ -2,13 +2,14 @@ import asyncio
 import contextlib
 import math
 import threading
-from collections.abc import Coroutine
+from collections.abc import Callable, Coroutine
 from concurrent.futures import Future
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 from imgui_bundle import hello_imgui, imgui, imspinner
 from xknx import XKNX
+from xknx.core import XknxConnectionState
 from xknx.exceptions import ConfirmationError
 from xknx.io.connection import ConnectionConfig, ConnectionType
 from xknx.io.const import DEFAULT_MCAST_GRP
@@ -17,7 +18,14 @@ from xknx.io.self_description import request_description
 
 from editor_gui.color import color_u32
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
+from editor_gui.plugins.connection.busmonitor import (
+    DEFAULT_GATEWAY_PORT,
+    BusmonitorConnection,
+    RequestResponseError,
+    rejection_reason,
+)
 from editor_gui.plugins.connection.interface import ObservableKNXIPInterfaceThreaded
+from editor_gui.plugins.connection.service import BusmonitorState, LinkInfo
 from editor_gui.plugins.connection.strings import S
 from editor_gui.programming import (
     DEFAULT_INDIVIDUAL_ADDRESS,
@@ -83,6 +91,15 @@ class ConnectionPlugin:
         self._gateway_info: GatewayDescriptor | None = None
         self._async_loop: asyncio.AbstractEventLoop | None = None
         self._async_thread: threading.Thread | None = None
+        # Unregisters the lost/re-established callback of the open connection.
+        self._unregister_link_state: Callable[[], None] | None = None
+        # The bus monitor connection while it runs (the normal connection is closed then).
+        self._busmonitor: BusmonitorConnection | None = None
+        api.connection.set_busmonitor_controller(
+            start=self.start_busmonitor,
+            stop=self.stop_busmonitor,
+            supported=lambda: not self.is_routing,
+        )
 
         self._gateways: list[GatewayDescriptor] = []
         self._scanning = False
@@ -215,6 +232,8 @@ class ConnectionPlugin:
         """Manual IP connect (tunneling)."""
         if self._state in (ConnectionState.CONNECTING, ConnectionState.CONNECTED):
             return
+        if self._busmonitor_blocks("connect"):
+            return
         self._connection_type = ConnectionType.TUNNELING
         self._selected_gateway = None
         self._state = ConnectionState.CONNECTING
@@ -225,6 +244,8 @@ class ConnectionPlugin:
     def connect_to_gateway(self, gateway: GatewayDescriptor) -> None:
         """Connect to a scanned gateway (tunneling preferred, routing fallback)."""
         if self._state in (ConnectionState.CONNECTING, ConnectionState.CONNECTED):
+            return
+        if self._busmonitor_blocks("connect"):
             return
         if gateway.supports_tunnelling:
             self._connection_type = ConnectionType.TUNNELING
@@ -269,6 +290,7 @@ class ConnectionPlugin:
                 xknx=self._xknx,
                 connection_config=config,
                 raw_cemi_callback=self._api.connection.dispatch_raw_cemi,
+                sent_cemi_callback=self._api.connection.dispatch_sent_cemi,
             )
             # Replace the inert default interface so all internal send paths use ours.
             self._xknx.knxip_interface = self._interface
@@ -303,6 +325,13 @@ class ConnectionPlugin:
                 else self._connection_target
             )
             self._api.connection.set_connection(self._xknx, asyncio.get_running_loop())
+            self._api.connection.link_info = self._link_info()
+            # Lost/re-established events of the open connection (xknx reconnects by itself).
+            self._unregister_link_state = (
+                self._xknx.connection_manager.register_connection_state_changed_cb(
+                    self._on_link_state
+                )
+            )
             self._api.connection.dispatch_connected()
             self._log.info("connected", target=self._connection_target)
             if self._gateway_info:
@@ -337,12 +366,19 @@ class ConnectionPlugin:
             )
 
     def disconnect(self) -> None:
+        if self._api.connection.busmonitor_state is BusmonitorState.RUNNING:
+            self.stop_busmonitor(restore=False)
+            return
         if self._state in (ConnectionState.DISCONNECTED, ConnectionState.DISCONNECTING):
             return
         self._state = ConnectionState.DISCONNECTING
         self._run_async(self._disconnect_async())
 
     async def _disconnect_async(self) -> None:
+        if self._unregister_link_state is not None:
+            self._unregister_link_state()
+            self._unregister_link_state = None
+        was_connected = self._xknx is not None
         try:
             if self._interface is not None:
                 await self._interface.stop()
@@ -352,7 +388,130 @@ class ConnectionPlugin:
             self._xknx = None
             self._state = ConnectionState.DISCONNECTED
             self._api.connection.set_connection(None, None)
+            if was_connected:
+                self._api.connection.dispatch_disconnected()
             self._log.info("disconnected")
+
+    def _on_link_state(self, state: XknxConnectionState) -> None:
+        if state is XknxConnectionState.CONNECTED:
+            self._api.connection.dispatch_link_state(True)
+        elif state is XknxConnectionState.DISCONNECTED:
+            self._api.connection.dispatch_link_state(False)
+
+    def _link_info(self) -> LinkInfo:
+        """How the open connection is described in recordings."""
+        name = ""
+        if self._gateway_info is not None and self._gateway_info.name:
+            name = "".join(
+                c for c in self._gateway_info.name if c.isprintable()
+            ).strip()
+        if self._connection_type == ConnectionType.ROUTING:
+            return LinkInfo(
+                name=name or "IP Routing",
+                host=self._multicast_group,
+                port=DEFAULT_GATEWAY_PORT,
+                connector="IpRouting",
+            )
+        return LinkInfo(
+            name=name or "IP Tunneling",
+            host=self._controller_ip,
+            port=self._gateway_port(),
+            connector="IpTunneling",
+            protocol="Udp",
+        )
+
+    def _gateway_port(self) -> int:
+        gateway = self._selected_gateway
+        if gateway is not None and gateway.ip_addr == self._controller_ip:
+            return gateway.port
+        return DEFAULT_GATEWAY_PORT
+
+    # --- bus monitor mode -----------------------------------------------------
+
+    @property
+    def busmonitor_active(self) -> bool:
+        return self._api.connection.busmonitor_active
+
+    def _busmonitor_blocks(self, op: str) -> bool:
+        """Refuse ``op`` while the bus monitor connection runs."""
+        if not self.busmonitor_active:
+            return False
+        self._log.warning(f"{op} refused: the bus monitor is running")
+        return True
+
+    def start_busmonitor(self) -> None:
+        """Close the normal connection and connect the gateway in bus monitor mode."""
+        service = self._api.connection
+        if service.busmonitor_active:
+            return
+        if self.is_routing:
+            service.set_busmonitor_state(BusmonitorState.OFF, error="routing")
+            return
+        service.set_busmonitor_state(BusmonitorState.STARTING)
+        self._run_async(self._start_busmonitor_async())
+
+    async def _start_busmonitor_async(self) -> None:
+        service = self._api.connection
+        gateway_ip = self._controller_ip
+        port = self._gateway_port()
+        link = self._link_info()
+        self._log.info("starting bus monitor", target=gateway_ip, port=port)
+        if self._interface is not None or self._xknx is not None:
+            await self._disconnect_async()
+        monitor = BusmonitorConnection(
+            gateway_ip,
+            port,
+            on_frame=service.dispatch_busmonitor_cemi,
+            on_state=service.dispatch_link_state,
+        )
+        try:
+            await monitor.connect()
+        except Exception as err:
+            status = err.error_code if isinstance(err, RequestResponseError) else None
+            reason = rejection_reason(status) or "failed"
+            service.busmonitor_error_detail = str(err)
+            self._log.error(
+                "bus monitor connection rejected",
+                target=gateway_ip,
+                error=f"{type(err).__name__}: {err}",
+            )
+            service.set_busmonitor_state(BusmonitorState.OFF, error=reason)
+            await self._restore_connection()
+            return
+        self._busmonitor = monitor
+        service.busmonitor_link = link
+        service.set_busmonitor_state(BusmonitorState.RUNNING)
+        self._log.info("bus monitor running", target=gateway_ip)
+
+    def stop_busmonitor(self, restore: bool = True) -> None:
+        """Close the bus monitor connection; ``restore`` reconnects the normal connection."""
+        service = self._api.connection
+        if service.busmonitor_state is not BusmonitorState.RUNNING:
+            return
+        service.set_busmonitor_state(BusmonitorState.STOPPING)
+        self._run_async(self._stop_busmonitor_async(restore))
+
+    async def _stop_busmonitor_async(self, restore: bool) -> None:
+        service = self._api.connection
+        monitor, self._busmonitor = self._busmonitor, None
+        if monitor is not None:
+            try:
+                await monitor.disconnect()
+            except Exception as err:
+                self._log.warning("bus monitor disconnect failed", error=str(err))
+        service.busmonitor_link = None
+        service.set_busmonitor_state(BusmonitorState.OFF)
+        self._log.info("bus monitor stopped")
+        if restore:
+            await self._restore_connection()
+
+    async def _restore_connection(self) -> None:
+        """Reconnect the normal connection to the same gateway."""
+        if self._state in (ConnectionState.CONNECTING, ConnectionState.CONNECTED):
+            return
+        self._state = ConnectionState.CONNECTING
+        self._error_message = None
+        await self._connect_async()
 
     def scan(self, auto_connect: bool = False) -> None:
         if self._scanning:
@@ -362,7 +521,7 @@ class ConnectionPlugin:
 
     def autostart(self) -> None:
         """Discover gateways at startup and connect to the preferred (last-used) or first one."""
-        if self._state != ConnectionState.DISCONNECTED:
+        if self._state != ConnectionState.DISCONNECTED or self.busmonitor_active:
             return
         self._log.info("auto-discovering gateways")
         self.scan(auto_connect=True)
@@ -395,6 +554,7 @@ class ConnectionPlugin:
                 auto_connect
                 and self._gateways
                 and self._state == ConnectionState.DISCONNECTED
+                and not self.busmonitor_active
             ):
                 target = next(
                     (
@@ -428,6 +588,8 @@ class ConnectionPlugin:
         await self._scan_async(auto_connect=True)
 
     def shutdown(self) -> None:
+        if self._busmonitor is not None:
+            self._run_async(self._stop_busmonitor_async(restore=False))
         if self._interface is not None:
             self._run_async(self._disconnect_async())
         if self._async_loop is not None:
@@ -439,7 +601,17 @@ class ConnectionPlugin:
         text_height = imgui.get_text_line_height()
         center = imgui.ImVec2(cursor.x + px(5), cursor.y + text_height / 2)
 
-        if self._state == ConnectionState.CONNECTED:
+        if self.busmonitor_active:
+            draw_list.add_circle_filled(center, px(4), color_u32(0.95, 0.6, 0.15, 1.0))
+            imgui.dummy(px_vec2(12, 0))
+            imgui.same_line()
+            imgui.text_colored(
+                imgui.ImVec4(0.95, 0.6, 0.15, 1.0),
+                S.STATUS_BUSMONITOR.format(ip=self._controller_ip),
+            )
+            if imgui.is_item_hovered():
+                imgui.set_tooltip(S.STATUS_BUSMONITOR_HINT)
+        elif self._state == ConnectionState.CONNECTED:
             pulse = 0.5 + 0.5 * math.sin(imgui.get_time() * 3.0)
             alpha = 0.4 + 0.6 * pulse
             draw_list.add_circle_filled(center, px(4), color_u32(0.2, 0.8, 0.3, alpha))
@@ -694,7 +866,16 @@ class ConnectionPlugin:
 
     def render_menu(self) -> None:
         if imgui.begin_menu(S.MENU_CONNECTION):
-            if self._state == ConnectionState.CONNECTED:
+            if self.busmonitor_active:
+                imgui.text(S.STATUS_BUSMONITOR.format(ip=self._controller_ip))
+                imgui.text_disabled(S.STATUS_BUSMONITOR_HINT)
+                imgui.separator()
+                running = (
+                    self._api.connection.busmonitor_state is BusmonitorState.RUNNING
+                )
+                if imgui.menu_item(S.MENU_STOP_BUSMONITOR, "", False, running)[0]:
+                    self.stop_busmonitor()
+            elif self._state == ConnectionState.CONNECTED:
                 imgui.text(S.STATUS_CONNECTED_TO.format(ip=self._connection_target))
                 if self._gateway_info:
                     imgui.separator()

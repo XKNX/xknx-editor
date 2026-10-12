@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CommunicationLog xmlns="http://knx.org/xml/telegrams/01">
+  <RecordStart Timestamp="2026-10-12T17:41:18.8244181Z" ConnectionName="IP Tunneling" Mode="LinkLayer" Host="KNX-PC" ConnectionOptions="Type=IpTunneling;HostAddress=192.168.1.10;ProtocolType=Tcp;Name=&quot;IP Tunneling&quot;;AutoReconnect=True" ConnectorType="IpTunneling" MediumType="Tp" />
+  <Telegram Timestamp="2026-10-12T17:41:24.0242492Z" ConnectionName="IP Tunneling (192.168.1.10:3671 Tcp)" Service="L_Data.ind" FrameFormat="CommonEmi" RawData="2900BCE0102F1820010081" />
+  <Telegram Timestamp="2026-10-12T17:41:24.0700441Z" ConnectionName="IP Tunneling (192.168.1.10:3671 Tcp)" Service="L_Data.ind" FrameFormat="CommonEmi" RawData="2900BCE0101B0B02010081" />
+  <Telegram Timestamp="2026-10-12T17:41:24.116684Z" ConnectionName="IP Tunneling (192.168.1.10:3671 Tcp)" Service="L_Data.ind" FrameFormat="CommonEmi" RawData="2900BCE0101D0B03010081" />
+  <Telegram Timestamp="2026-10-12T17:41:24.4295049Z" ConnectionName="IP Tunneling (192.168.1.10:3671 Tcp)" Service="L_Data.ind" FrameFormat="CommonEmi" RawData="2900BCE0101B0127050080420F7932" />
+  <Telegram Timestamp="2026-10-12T17:41:24.4773809Z" ConnectionName="IP Tunneling (192.168.1.10:3671 Tcp)" Service="L_Data.ind" FrameFormat="CommonEmi" RawData="2900BCE0101D002005008041A352FA" />
+  <Telegram Timestamp="2026-10-12T17:41:25.0754925Z" ConnectionName="IP Tunneling (192.168.1.10:3671 Tcp)" Service="L_Data.ind" FrameFormat="CommonEmi" RawData="2900BCE0101B0C03020080FF" />
+  <Telegram Timestamp="2026-10-12T17:41:26.4820245Z" ConnectionName="IP Tunneling (192.168.1.10:3671 Tcp)" Service="L_Data.ind" FrameFormat="CommonEmi" RawData="2900BCE0101D00230500803E2C2082" />
+</CommunicationLog>

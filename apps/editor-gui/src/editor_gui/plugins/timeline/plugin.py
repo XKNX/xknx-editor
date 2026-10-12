@@ -1,8 +1,10 @@
 """Timeline plugin: plot decoded numeric group-value telegrams over time (LeftBottomSpace)."""
 
+from collections.abc import Callable
 from typing import Any
 
 from editor_gui.plugins.base import PanelDefinition, PluginAPI
+from editor_gui.plugins.monitor.service import TelegramRecord
 from editor_gui.plugins.timeline.strings import S
 from editor_gui.plugins.timeline.ui import GaInfo, TimelinePanel
 
@@ -10,7 +12,9 @@ from editor_gui.plugins.timeline.ui import GaInfo, TimelinePanel
 class TimelinePlugin:
     name = "timeline"
 
-    def __init__(self, api: PluginAPI, get_telegrams: Any) -> None:
+    def __init__(
+        self, api: PluginAPI, get_telegrams: Callable[[], list[TelegramRecord]]
+    ) -> None:
         self._api = api
         self._panel = TimelinePanel(
             get_telegrams=get_telegrams,

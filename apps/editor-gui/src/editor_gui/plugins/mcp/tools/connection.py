@@ -100,6 +100,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "controller_ip": conn.controller_ip,
             "multicast_group": conn.multicast_group,
             "routing": conn.is_routing,
+            "busmonitor": ctx.api.connection.busmonitor_state.value,
         }
 
     @tool

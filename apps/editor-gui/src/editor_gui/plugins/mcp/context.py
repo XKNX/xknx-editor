@@ -27,7 +27,6 @@ if TYPE_CHECKING:
     from editor_gui.plugins.connection.plugin import ConnectionPlugin
     from editor_gui.plugins.keyring.service import KeyringService
     from editor_gui.plugins.monitor.service import MonitorService
-    from editor_gui.plugins.network.service import NetworkService
 
 T = TypeVar("T")
 
@@ -65,7 +64,6 @@ class McpContext:
     ]  # run_on_ui(fn: Callable[[], T], *, timeout: float = ...) -> T
     connection_plugin: ConnectionPlugin
     monitor: MonitorService
-    network: NetworkService
     keyring: KeyringService
     log: Logger
 

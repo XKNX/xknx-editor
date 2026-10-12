@@ -192,5 +192,24 @@ class ConnectionStrings:
     def GW_APPLY(self) -> str:
         return _("Apply")
 
+    @property
+    def STATUS_BUSMONITOR(self) -> str:
+        return _("Bus monitor: {ip}")
+
+    @property
+    def STATUS_BUSMONITOR_HINT(self) -> str:
+        return _(
+            "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded "
+            "until the bus monitor is stopped."
+        )
+
+    @property
+    def STATUS_BUSMONITOR_BLOCKED(self) -> str:
+        return _("Not possible while the bus monitor is running")
+
+    @property
+    def MENU_STOP_BUSMONITOR(self) -> str:
+        return _("Stop Bus Monitor")
+
 
 S = ConnectionStrings()

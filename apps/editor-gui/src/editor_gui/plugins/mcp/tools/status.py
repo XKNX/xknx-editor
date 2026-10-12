@@ -2,7 +2,7 @@
 # pyright: reportUnusedFunction=false
 """A single aggregate status/capability tool — a reliable first call for an LLM.
 
-Combines project/connection/keyring/network state and the enums (download scopes, com-object flags,
+Combines project/connection/keyring/capture state and the enums (download scopes, com-object flags,
 group-address style) an agent needs to form valid calls, instead of scattering them across many
 tools and runtime validation.
 """
@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from editor_gui.plugins.mcp.context import McpContext, make_tool
+from editor_gui.plugins.mcp.tools.network import capture_state
 
 if TYPE_CHECKING:
     from fastmcp import FastMCP
@@ -48,10 +49,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "routing": ctx.connection_plugin.is_routing,
             },
             "keyring": {"loaded": ctx.keyring.keyring is not None},
-            "capture": {
-                "state": ctx.network.state.value,
-                "telegrams": len(ctx.network.telegrams),
-            },
+            "capture": capture_state(ctx.monitor),
             "online_catalog_language": ctx.api.catalog.online_language,
             "capabilities": {
                 "download_scopes": [s.name for s in DownloadScope],

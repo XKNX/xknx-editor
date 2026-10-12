@@ -1,0 +1,372 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor monitor 1.0\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Cancel"
+msgstr "Annuleren"
+
+msgid "No"
+msgstr "Nee"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "The interface rejected bus monitor mode: another client holds a connection to it."
+msgstr "De interface heeft de busmonitormodus geweigerd: een andere client heeft een verbinding met de interface."
+
+msgid "The bus monitor connects the interface in bus monitor mode. The normal connection is closed while the bus monitor runs: nothing can be sent or downloaded in that time. Stopping the bus monitor restores the normal connection.\n\nStart the bus monitor?"
+msgstr "De busmonitor verbindt de interface in busmonitormodus. De normale verbinding wordt gesloten zolang de busmonitor loopt: in die tijd kan niets worden verzonden of geprogrammeerd. Bij het stoppen van de busmonitor wordt de normale verbinding hersteld.\n\nBusmonitor starten?"
+
+msgid "Start Bus Monitor"
+msgstr "Busmonitor starten"
+
+msgid "The bus monitor connection could not be established."
+msgstr "De busmonitorverbinding kon niet tot stand worden gebracht."
+
+msgid "The normal connection is restored."
+msgstr "De normale verbinding is hersteld."
+
+msgid "The interface does not support bus monitor mode."
+msgstr "De interface ondersteunt de busmonitormodus niet."
+
+msgid "The bus monitor is not supported for this connection type. It needs a tunnelling connection."
+msgstr "De busmonitor wordt voor dit verbindingstype niet ondersteund. Hij heeft een tunnelingverbinding nodig."
+
+msgid "Building Function"
+msgstr "Gebouwfunctie"
+
+msgid "Building Part"
+msgstr "Gebouwdeel"
+
+
+msgid "Destination Address"
+msgstr "Doeladres"
+
+msgid "Destination Name"
+msgstr "Doelnaam"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Flags"
+msgstr "Flags"
+
+msgid "Frame Format"
+msgstr "Frameformaat"
+
+msgid "Hop Count"
+msgstr "Hopteller"
+
+msgid "Iack"
+msgstr "Iack"
+
+msgid "Info"
+msgstr "Info"
+
+msgid "Message Code"
+msgstr "Message code"
+
+msgid "#"
+msgstr "#"
+
+msgid "Prio"
+msgstr "Prio"
+
+msgid "Raw Data"
+msgstr "Ruwe data"
+
+msgid "Raw Value"
+msgstr "Ruwe waarde"
+
+msgid "Repeated"
+msgstr "Herhaald"
+
+msgid "Service"
+msgstr "Dienst"
+
+msgid "Source Address"
+msgstr "Bronadres"
+
+msgid "Source Name"
+msgstr "Bronnaam"
+
+msgid "System Broadcast"
+msgstr "Systeembroadcast"
+
+msgid "Time"
+msgstr "Tijd"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "{count} telegrams exported to {path}"
+msgstr "{count} telegrammen geëxporteerd naar {path}"
+
+msgid "Export failed: {error}"
+msgstr "Exporteren mislukt: {error}"
+
+msgid "All files"
+msgstr "Alle bestanden"
+
+msgid "Telegram recordings"
+msgstr "Telegramopnamen"
+
+msgid "Extended"
+msgstr "Uitgebreid"
+
+msgid "Standard"
+msgstr "Standaard"
+
+msgid "{count} entries loaded from {path}"
+msgstr "{count} items geladen uit {path}"
+
+msgid "Loading failed: {error}"
+msgstr "Laden mislukt: {error}"
+
+msgid "{count} telegrams in another frame format were skipped"
+msgstr "{count} telegrammen in een ander frameformaat zijn overgeslagen"
+
+msgid "Connection was established"
+msgstr "Verbinding is tot stand gebracht"
+
+msgid "Connection was lost"
+msgstr "Verbinding is verbroken"
+
+msgid "Recording was started, Host={host}, Connection={connection}, Mode={mode}"
+msgstr "Opname is gestart, Host={host}, Verbinding={connection}, Modus={mode}"
+
+msgid "Recording was stopped"
+msgstr "Opname is gestopt"
+
+msgid "e.g. 1/2/3"
+msgstr "bijv. 1/2/3"
+
+msgid "Group address:"
+msgstr "Groepsadres:"
+
+msgid "Bus Load: {rate} telegrams/s"
+msgstr "Busbelasting: {rate} telegrammen/s"
+
+msgid "Clear"
+msgstr "Wissen"
+
+msgid "Not connected"
+msgstr "Niet verbonden"
+
+msgid "Filter by address or name…"
+msgstr "Filteren op adres of naam…"
+
+msgid "No group addresses (open or import a project)"
+msgstr "Geen groepsadressen (open of importeer een project)"
+
+msgid "Read"
+msgstr "Lezen"
+
+msgid "Bus Activity"
+msgstr "Busactiviteit"
+
+msgid "Bus Monitor"
+msgstr "Busmonitor"
+
+msgid "Group Monitor"
+msgstr "Groepsmonitor"
+
+msgid "Group Objects"
+msgstr "Groepsobjecten"
+
+msgid "{count} telegrams"
+msgstr "{count} telegrammen"
+
+msgid "Enter a group address of the project to send to it."
+msgstr "Voer een groepsadres van het project in om ernaar te verzenden."
+
+msgid "value (e.g. on / 21.5 / 50)"
+msgstr "waarde (bijv. on / 21.5 / 50)"
+
+msgid "Value:"
+msgstr "Waarde:"
+
+msgid "Write"
+msgstr "Schrijven"
+
+msgid "Monitor"
+msgstr "Monitor"
+
+msgid "Printing failed: {error}"
+msgstr "Afdrukken mislukt: {error}"
+
+msgid "Page {page}"
+msgstr "Pagina {page}"
+
+msgid "Low"
+msgstr "Laag"
+
+msgid "Normal"
+msgstr "Normaal"
+
+msgid "System"
+msgstr "Systeem"
+
+msgid "Urgent"
+msgstr "Dringend"
+
+msgid "The telegrams have not been exported. Clear them anyway?"
+msgstr "De telegrammen zijn niet geëxporteerd. Toch wissen?"
+
+msgid "Loading a recording replaces the telegrams and stops the recording. Continue?"
+msgstr "Het laden van een opname vervangt de telegrammen en stopt de opname. Doorgaan?"
+
+msgid "The telegrams have not been exported. Loading a recording replaces them and stops the recording. Continue?"
+msgstr "De telegrammen zijn niet geëxporteerd. Het laden van een opname vervangt ze en stopt de opname. Doorgaan?"
+
+msgid "Unsaved Telegrams"
+msgstr "Niet-opgeslagen telegrammen"
+
+msgid "Replay cancelled: {count} telegrams sent"
+msgstr "Afspelen geannuleerd: {count} telegrammen verzonden"
+
+msgid "Replay finished: {count} telegrams sent"
+msgstr "Afspelen voltooid: {count} telegrammen verzonden"
+
+msgid "There are no group telegrams to replay"
+msgstr "Er zijn geen groepstelegrammen om af te spelen"
+
+msgid "{count} Data Secure telegrams are not replayed"
+msgstr "{count} Data Secure-telegrammen worden niet afgespeeld"
+
+msgid "Comment"
+msgstr "Opmerking"
+
+msgid "Connection event"
+msgstr "Verbindingsgebeurtenis"
+
+msgid "from bus"
+msgstr "van bus"
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Stop"
+msgstr "Stop"
+
+msgid "to bus"
+msgstr "naar bus"
+
+msgid "All telegrams ({count})"
+msgstr "Alle telegrammen ({count})"
+
+msgid "Export Telegrams"
+msgstr "Telegrammen exporteren"
+
+msgid "Filtered telegrams ({count})"
+msgstr "Gefilterde telegrammen ({count})"
+
+msgid "Which telegrams?"
+msgstr "Welke telegrammen?"
+
+msgid "Print Telegrams"
+msgstr "Telegrammen afdrukken"
+
+msgid "Selected telegrams ({count})"
+msgstr "Geselecteerde telegrammen ({count})"
+
+msgid "Bus monitor mode: the normal connection is closed. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Busmonitormodus: de normale verbinding is gesloten. Totdat de busmonitor is gestopt, kan niets worden verzonden of geprogrammeerd."
+
+msgid "Connecting in bus monitor mode…"
+msgstr "Verbinden in busmonitormodus…"
+
+msgid "Closing the bus monitor connection…"
+msgstr "Busmonitorverbinding wordt gesloten…"
+
+msgid "Recording"
+msgstr "Opname loopt"
+
+msgid "Replaying {done}/{total}"
+msgstr "Afspelen {done}/{total}"
+
+msgid "Stopped"
+msgstr "Gestopt"
+
+msgid "Waiting for a connection"
+msgstr "Wachten op een verbinding"
+
+msgid "Remove all telegrams"
+msgstr "Alle telegrammen verwijderen"
+
+msgid "Export"
+msgstr "Exporteren"
+
+msgid "Save the telegrams to a file"
+msgstr "De telegrammen in een bestand opslaan"
+
+msgid "Import"
+msgstr "Importeren"
+
+msgid "Load a recording"
+msgstr "Een opname laden"
+
+msgid "Print"
+msgstr "Afdrukken"
+
+msgid "Print the telegrams as a PDF document"
+msgstr "De telegrammen als PDF-document afdrukken"
+
+msgid "Replay Telegrams"
+msgstr "Telegrammen afspelen"
+
+msgid "Send the selected group telegrams (all if none is selected) again with their original timing"
+msgstr "De geselecteerde groepstelegrammen (alle als er geen is geselecteerd) opnieuw verzenden met hun oorspronkelijke timing"
+
+msgid "Start recording the connection's communication other than group telegrams, including every frame this app sends"
+msgstr "Opname van de communicatie van de verbinding behalve groepstelegrammen starten, inclusief alle frames die deze applicatie verstuurt"
+
+msgid "Connect the interface in bus monitor mode and record every frame"
+msgstr "De interface in busmonitormodus verbinden en elk frame opnemen"
+
+msgid "Start recording the group telegrams"
+msgstr "Opname van de groepstelegrammen starten"
+
+msgid "Close the bus monitor connection and restore the normal connection"
+msgstr "De busmonitorverbinding sluiten en de normale verbinding herstellen"
+
+msgid "Stop recording"
+msgstr "Opname stoppen"
+
+msgid "Stop Replay"
+msgstr "Afspelen stoppen"
+
+msgid "Cancel the replay"
+msgstr "Het afspelen annuleren"
+
+msgid "Copy"
+msgstr "Kopiëren"
+
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
+msgstr "De geselecteerde telegrammen (alle getoonde als er geen is geselecteerd) naar het klembord kopiëren (Ctrl+C). Dubbelklik op een telegram om het bronapparaat te selecteren."
+
+msgid "Invalid frame"
+msgstr "Ongeldig frame"
+
+msgid "Security"
+msgstr "Beveiliging"
+
+msgid "Interface"
+msgstr "Interface"
+
+msgid "MediumInfo"
+msgstr "MediumInfo"
+
+msgid "Source Description"
+msgstr "Bronbeschrijving"
+
+msgid "Destination Description"
+msgstr "Doelbeschrijving"

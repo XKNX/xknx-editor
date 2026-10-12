@@ -66,3 +66,15 @@ msgstr "Übernehmen"
 
 msgid "Use Serial Number for Downloads"
 msgstr "Seriennummer für Downloads verwenden"
+
+msgid "Bus monitor: {ip}"
+msgstr "Busmonitor: {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Die Schnittstelle ist im Busmonitor-Modus verbunden. Bis der Busmonitor beendet ist, kann nichts gesendet oder programmiert werden."
+
+msgid "Stop Bus Monitor"
+msgstr "Busmonitor beenden"
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Nicht möglich, solange der Busmonitor läuft"

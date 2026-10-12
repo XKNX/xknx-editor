@@ -15,6 +15,10 @@ from typing import Any, TypeVar
 
 import pytest
 from fastmcp import Client
+from xknx.cemi import CEMIFrame, CEMILData, CEMIMessageCode
+from xknx.dpt import DPTBinary
+from xknx.telegram import GroupAddress, IndividualAddress, Telegram
+from xknx.telegram.apci import DeviceDescriptorRead, GroupValueWrite
 
 from editor_gui.plugins.base import API_VERSION, Logger, PluginAPI
 from editor_gui.plugins.catalog.service import CatalogService
@@ -24,7 +28,6 @@ from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.mcp.context import McpContext
 from editor_gui.plugins.mcp.server import build_server
 from editor_gui.plugins.monitor.service import MonitorService
-from editor_gui.plugins.network.service import NetworkService
 from editor_gui.plugins.project.service import ProjectService
 
 T = TypeVar("T")
@@ -61,8 +64,6 @@ def _build_ctx(tmp_path: Path) -> McpContext:
             svc.set_logger(Logger(log, name))
     monitor = MonitorService(connection)
     monitor.set_logger(Logger(log, "monitor"))
-    network = NetworkService()
-    network.set_logger(Logger(log, "network"))
     keyring = KeyringService()
     keyring.set_logger(Logger(log, "keyring"))
 
@@ -82,7 +83,6 @@ def _build_ctx(tmp_path: Path) -> McpContext:
         run_on_ui=run_on_ui,
         connection_plugin=_StubConnectionPlugin(),  # type: ignore[arg-type]
         monitor=monitor,
-        network=network,
         keyring=keyring,
         log=Logger(log, "mcp"),
     )
@@ -487,3 +487,94 @@ async def test_mutation_rejected_while_project_locked(tmp_path: Path) -> None:
         finally:
             release.set()
             worker.join(5.0)
+
+
+def _cemi(code: CEMIMessageCode, destination: Any, payload: Any, src: str) -> bytes:
+    telegram = Telegram(destination_address=destination, payload=payload)
+    data = CEMILData.init_from_telegram(telegram, src_addr=IndividualAddress(src))
+    return CEMIFrame(code=code, data=data).to_knx()
+
+
+async def test_network_tools_read_the_monitor_logs(tmp_path: Path) -> None:
+    """The network_* tools drive and read the Group Monitor and Bus Activity together."""
+    ctx = _build_ctx(tmp_path)
+    mcp = build_server(ctx)
+    monitor = ctx.monitor
+    group = _cemi(
+        CEMIMessageCode.L_DATA_IND,
+        GroupAddress("1/2/3"),
+        GroupValueWrite(DPTBinary(1)),
+        "1.1.1",
+    )
+    request = _cemi(
+        CEMIMessageCode.L_DATA_REQ,
+        IndividualAddress("1.1.5"),
+        DeviceDescriptorRead(),
+        "1.1.250",
+    )
+    other = _cemi(
+        CEMIMessageCode.L_DATA_IND,
+        IndividualAddress("1.1.7"),
+        DeviceDescriptorRead(),
+        "1.1.5",
+    )
+    monitor.on_raw_cemi(group)
+    monitor.on_sent_cemi(request)
+    monitor.on_raw_cemi(other)
+    async with Client(mcp) as client:
+        state = await _data(client, "network_state")
+        assert state["state"] == "capturing"
+        assert state["recording"] == {"group_monitor": True, "bus_activity": True}
+        assert state["telegrams"] == 3
+        assert state["cemi_records"] == 3
+
+        telegrams = await _data(client, "network_telegrams", limit=0)
+        assert telegrams["count"] == 3
+        items = telegrams["items"]
+        assert [i["monitor"] for i in items] == [
+            "group_monitor",
+            "bus_activity",
+            "bus_activity",
+        ]
+        assert all(i["source_type"] == "connection" for i in items)
+        assert "GroupValueWrite" in items[0]["telegram"]
+        assert 'direction="Outgoing"' in items[1]["telegram"]
+        assert 'direction="Incoming"' in items[2]["telegram"]
+        assert items[0]["timestamp"] <= items[2]["timestamp"]
+        newest = await _data(client, "network_telegrams", limit=1)
+        assert newest["count"] == 1
+        assert "1.1.7" in newest["items"][0]["telegram"]
+
+        cemi = await _data(client, "network_cemi_records")
+        assert cemi["count"] == 3
+        first = cemi["items"][0]
+        assert first["msg_code"] == "L_DATA_IND"
+        assert first["src_addr"] == "1.1.1"
+        assert first["dst_addr"] == "1/2/3"
+        assert isinstance(first["hops"], int)
+        assert first["raw"] == group.hex(" ")
+        assert [i["msg_code"] for i in cemi["items"]] == [
+            "L_DATA_IND",
+            "L_DATA_REQ",
+            "L_DATA_IND",
+        ]
+        assert cemi["items"][2]["dst_addr"] == "1.1.7"
+
+        assert (await _data(client, "status"))["capture"]["telegrams"] == 3
+
+        assert (await _data(client, "network_stop"))["status"] == "stopped"
+        state = await _data(client, "network_state")
+        assert state["state"] == "stopped"
+        monitor.on_raw_cemi(other)
+        assert state["cemi_records"] == 3
+        assert (await _data(client, "network_state"))["cemi_records"] == 3
+
+        assert (await _data(client, "network_start"))["status"] == "capturing"
+        assert (await _data(client, "network_state"))["recording"] == {
+            "group_monitor": True,
+            "bus_activity": True,
+        }
+        assert (await _data(client, "network_clear"))["status"] == "cleared"
+        cleared = await _data(client, "network_state")
+        assert cleared["cemi_records"] == 0
+        assert cleared["state"] == "capturing"
