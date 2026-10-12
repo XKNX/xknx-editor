@@ -82,7 +82,8 @@ group addresses without a type or sender); click a finding to jump to the device
 
 
 
-**Network monitor and logs** — record and inspect bus traffic alongside a filterable application log;
+**Bus monitors and logs** — record and inspect bus traffic in the Group Monitor, Bus Monitor and Bus
+Activity alongside a filterable application log;
 with a project open, values are shown with the group address' name and decoded type.
 
 

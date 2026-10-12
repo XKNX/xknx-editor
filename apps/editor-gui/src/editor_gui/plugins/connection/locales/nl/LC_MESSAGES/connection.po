@@ -24,3 +24,15 @@ msgstr "Niet verbonden"
 
 msgid "Use Serial Number for Downloads"
 msgstr "Serienummer gebruiken voor downloads"
+
+msgid "Bus monitor: {ip}"
+msgstr "Busmonitor: {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "De interface is in busmonitormodus verbonden. Totdat de busmonitor is gestopt, kan niets worden verzonden of geprogrammeerd."
+
+msgid "Stop Bus Monitor"
+msgstr "Busmonitor stoppen"
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Niet mogelijk zolang de busmonitor loopt"

@@ -1,5 +1,8 @@
-"""Group monitor panel: a table of the project's group addresses with their latest bus value,
-plus a command bar to write/read the selected group address (values decoded via the GA's DPT)."""
+"""Monitor panel: Group Monitor, Bus Monitor and Bus Activity recordings, and a table of the
+project's group addresses with their latest bus value. The Group Monitor and the group objects
+have a command bar to write/read a group address (values decoded via the GA's DPT)."""
+
+from __future__ import annotations
 
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
@@ -7,12 +10,17 @@ from typing import TYPE_CHECKING, Any
 from imgui_bundle import imgui
 
 from editor_gui.dpt import transcoder_for
+from editor_gui.plugins.monitor.formatting import ProjectIndex, dpt_text
+from editor_gui.plugins.monitor.service import MonitorKind
 from editor_gui.plugins.monitor.strings import S
+from editor_gui.plugins.monitor.table import TelegramView, selected_payload_text
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
 if TYPE_CHECKING:
+    from editor_gui.plugins.connection.service import ConnectionService
+    from editor_gui.plugins.monitor.records import MonitorRecord
     from editor_gui.plugins.monitor.service import MonitorService
     from editor_gui.plugins.project.service import _GroupAddress
 
@@ -20,27 +28,128 @@ if TYPE_CHECKING:
 class MonitorPanel:
     def __init__(
         self,
-        service: "MonitorService",
-        get_group_addresses: "Callable[[], list[_GroupAddress]]",
-        is_connected: Callable[[], bool],
+        service: MonitorService,
+        connection: ConnectionService,
+        get_group_addresses: Callable[[], list[_GroupAddress]],
+        get_index: Callable[[], ProjectIndex],
+        notify: Callable[[str], None] | None = None,
+        on_select_device: Callable[[int], None] | None = None,
     ) -> None:
         self._service = service
+        self._connection = connection
         self._get_group_addresses = get_group_addresses
-        self._is_connected = is_connected
+        self._get_index = get_index
+        self._views = {
+            kind: TelegramView(kind, service, connection, notify, on_select_device)
+            for kind in MonitorKind
+        }
+        # Group Objects tab.
         self._selected: str | None = None
         self._write_value = ""
         self._filter = ""
-        self._bus_filter = ""
+        # Group Monitor command bar.
+        self._cmd_address = ""
+        self._cmd_value = ""
+        self._cmd_focused: MonitorRecord | None = None
+
+    def _is_connected(self) -> bool:
+        return self._connection.xknx is not None
 
     def render(self) -> None:
-        if imgui.begin_tab_bar("##monitor_tabs"):
-            if imgui.begin_tab_item(S.MONITOR_TAB_GROUP_OBJECTS)[0]:
-                self._render_group_objects()
+        if not imgui.begin_tab_bar("##monitor_tabs"):
+            return
+        index = self._get_index()
+        tabs = (
+            (S.MONITOR_TAB_GROUP, MonitorKind.GROUP, "group"),
+            (S.MONITOR_TAB_BUS, MonitorKind.BUS, "bus"),
+            (S.MONITOR_TAB_ACTIVITY, MonitorKind.ACTIVITY, "activity"),
+        )
+        for label, kind, tab_id in tabs:
+            if imgui.begin_tab_item(f"{label}###mon_tab_{tab_id}")[0]:
+                bar = (
+                    (lambda: self._render_group_command_bar(index))
+                    if kind is MonitorKind.GROUP
+                    else None
+                )
+                self._views[kind].render(index, bar)
                 imgui.end_tab_item()
-            if imgui.begin_tab_item(S.MONITOR_TAB_BUS)[0]:
-                self._render_bus_monitor()
-                imgui.end_tab_item()
-            imgui.end_tab_bar()
+        if imgui.begin_tab_item(f"{S.MONITOR_TAB_GROUP_OBJECTS}###mon_tab_objects")[0]:
+            self._render_group_objects()
+            imgui.end_tab_item()
+        imgui.end_tab_bar()
+
+    # --- Group Monitor command bar -----------------------------------------
+
+    def _render_group_command_bar(self, index: ProjectIndex) -> None:
+        self._prefill_from_selection(index)
+        connected = self._is_connected()
+        raw = index.group_address_raw(self._cmd_address) if self._cmd_address else None
+        entry = index.group_addresses.get(raw) if raw is not None else None
+        imgui.text_disabled(S.MONITOR_ADDRESS_LABEL)
+        imgui.same_line()
+        imgui.set_next_item_width(px(90.0))
+        _, self._cmd_address = imgui.input_text_with_hint(
+            "##mon_cmd_address", S.MONITOR_ADDRESS_HINT, self._cmd_address
+        )
+        if entry is not None:
+            imgui.same_line()
+            imgui.text_disabled(dpt_text(entry.dpt) or entry.name)
+            if imgui.is_item_hovered():
+                imgui.set_tooltip(entry.name)
+        imgui.same_line()
+        imgui.text_disabled(S.MONITOR_VALUE_LABEL)
+        imgui.same_line()
+        imgui.set_next_item_width(px(140.0))
+        submitted, self._cmd_value = imgui.input_text_with_hint(
+            "##mon_cmd_value",
+            S.MONITOR_VALUE_HINT,
+            self._cmd_value,
+            imgui.InputTextFlags_.enter_returns_true,
+        )
+        imgui.same_line()
+        can_write = connected and entry is not None and bool(entry.dpt)
+        imgui.begin_disabled(not can_write)
+        write = imgui.button(f"{S.MONITOR_WRITE}##mon_cmd_write") or (
+            submitted and can_write
+        )
+        imgui.end_disabled()
+        if not can_write and connected:
+            imgui.set_item_tooltip(S.MONITOR_UNKNOWN_ADDRESS)
+        imgui.same_line()
+        imgui.begin_disabled(not connected or raw is None)
+        read = imgui.button(f"{S.MONITOR_READ}##mon_cmd_read")
+        imgui.end_disabled()
+        if not connected:
+            imgui.same_line()
+            imgui.text_disabled(S.MONITOR_DISCONNECTED)
+        if raw is None or not connected:
+            return
+        address = entry.address if entry is not None else self._cmd_address.strip()
+        if write and entry is not None:
+            self._service.send_write(address, entry.dpt, self._cmd_value)
+        if read:
+            self._service.send_read(address)
+
+    def _prefill_from_selection(self, index: ProjectIndex) -> None:
+        focused = self._views[MonitorKind.GROUP].focused
+        if focused is None or focused is self._cmd_focused:
+            return
+        self._cmd_focused = focused
+        frame = focused.frame
+        if frame is None or not frame.group_value or frame.destination is None:
+            return
+        self._cmd_address = index.group_address_text(frame.destination)
+        payload = frame.value_payload
+        entry = index.group_addresses.get(frame.destination)
+        transcoder = transcoder_for(entry.dpt if entry is not None else None)
+        if payload is None or transcoder is None:
+            return
+        try:
+            self._cmd_value = selected_payload_text(transcoder.from_knx(payload))
+        except Exception:
+            return
+
+    # --- Group Objects tab --------------------------------------------------
 
     def _render_group_objects(self) -> None:
         gas = self._get_group_addresses()
@@ -58,82 +167,6 @@ class MonitorPanel:
         ]
         imgui.separator()
         self._render_table(shown)
-
-    def _render_bus_monitor(self) -> None:
-        """Live scrolling log of every group telegram on the bus (incl. addresses not in the
-        project), similar to a Group/Bus Monitor."""
-        by_addr = {ga.address: ga for ga in self._get_group_addresses()}
-        if not self._is_connected():
-            imgui.text_disabled(S.MONITOR_DISCONNECTED)
-        if imgui.button(S.MONITOR_CLEAR):
-            self._service.clear()
-        imgui.same_line()
-        imgui.text_disabled(
-            S.MONITOR_BUS_LOAD.format(rate=f"{self._service.bus_load():.1f}")
-        )
-        records = self._service.telegrams()
-        self._bus_filter = filter_box(
-            "##bus_filter", S.MONITOR_FILTER_HINT, self._bus_filter
-        )
-        needle = self._bus_filter.lower().strip()
-        if needle:
-            records = [
-                r
-                for r in records
-                if needle in r.source.lower()
-                or needle in r.destination.lower()
-                or needle in r.service.lower()
-                or needle
-                in (
-                    by_addr[r.destination].name.lower()
-                    if r.destination in by_addr
-                    else ""
-                )
-            ]
-        imgui.text_disabled(S.MONITOR_TELEGRAM_COUNT.format(count=len(records)))
-        flags = (
-            imgui.TableFlags_.borders_inner
-            | imgui.TableFlags_.sizing_stretch_prop
-            | imgui.TableFlags_.resizable
-            | imgui.TableFlags_.scroll_y
-        )
-        if not imgui.begin_table("##busmon", 6, flags):
-            return
-        imgui.table_setup_column("Time", imgui.TableColumnFlags_.width_stretch, 0.12)
-        imgui.table_setup_column("Source", imgui.TableColumnFlags_.width_stretch, 0.12)
-        imgui.table_setup_column(
-            "Destination", imgui.TableColumnFlags_.width_stretch, 0.14
-        )
-        imgui.table_setup_column("Name", imgui.TableColumnFlags_.width_stretch, 0.3)
-        imgui.table_setup_column("Service", imgui.TableColumnFlags_.width_stretch, 0.12)
-        imgui.table_setup_column("Value", imgui.TableColumnFlags_.width_stretch, 0.2)
-        imgui.table_headers_row()
-        # Only build/format the rows imgui actually shows: ListClipper skips off-screen rows so the
-        # per-frame cost is O(visible), not O(2000). (Row timestamps are cached on the record.)
-        rows = list(reversed(records))  # newest first
-        clipper = imgui.ListClipper()
-        clipper.begin(len(rows))
-        while clipper.step():
-            for i in range(clipper.display_start, clipper.display_end):
-                rec = rows[i]
-                ga = by_addr.get(rec.destination)
-                dpt = ga.datapoint_type if ga else None
-                imgui.table_next_row()
-                imgui.table_set_column_index(0)
-                imgui.text(rec.time_str)
-                imgui.table_set_column_index(1)
-                imgui.text_disabled(rec.source)
-                imgui.table_set_column_index(2)
-                imgui.text(rec.destination)
-                imgui.table_set_column_index(3)
-                text_clipped_tooltip(ga.name if ga else "", disabled=True)
-                imgui.table_set_column_index(4)
-                imgui.text(rec.service)
-                imgui.table_set_column_index(5)
-                text_clipped_tooltip(
-                    _decode(rec.payload, dpt) if rec.payload is not None else ""
-                )
-        imgui.end_table()
 
     def _render_command_bar(self) -> None:
         connected = self._is_connected()
@@ -166,7 +199,7 @@ class MonitorPanel:
         if read:
             self._service.send_read(self._selected)
 
-    def _render_table(self, gas: "list[_GroupAddress]") -> None:
+    def _render_table(self, gas: list[_GroupAddress]) -> None:
         flags = (
             imgui.TableFlags_.borders_inner
             | imgui.TableFlags_.sizing_stretch_prop
@@ -182,26 +215,30 @@ class MonitorPanel:
         imgui.table_setup_column("Time", imgui.TableColumnFlags_.width_stretch, 0.1)
         imgui.table_headers_row()
 
-        for ga in gas:
-            imgui.table_next_row()
-            imgui.table_set_column_index(0)
-            if imgui.selectable(
-                f"{ga.address}##mon{ga.id}",
-                self._selected == ga.address,
-                imgui.SelectableFlags_.span_all_columns,
-            )[0]:
-                self._selected = ga.address
-            imgui.table_set_column_index(1)
-            text_clipped_tooltip(ga.name)
-            imgui.table_set_column_index(2)
-            imgui.text_disabled(ga.datapoint_type or "")
-            latest = self._service.latest(ga.address)
-            imgui.table_set_column_index(3)
-            text_clipped_tooltip(
-                _decode(latest.payload, ga.datapoint_type) if latest else ""
-            )
-            imgui.table_set_column_index(4)
-            imgui.text_disabled(latest.time_str if latest else "")
+        clipper = imgui.ListClipper()
+        clipper.begin(len(gas))
+        while clipper.step():
+            for i in range(clipper.display_start, clipper.display_end):
+                ga = gas[i]
+                imgui.table_next_row()
+                imgui.table_set_column_index(0)
+                if imgui.selectable(
+                    f"{ga.address}##mon{ga.id}",
+                    self._selected == ga.address,
+                    imgui.SelectableFlags_.span_all_columns,
+                )[0]:
+                    self._selected = ga.address
+                imgui.table_set_column_index(1)
+                text_clipped_tooltip(ga.name)
+                imgui.table_set_column_index(2)
+                imgui.text_disabled(ga.datapoint_type or "")
+                latest = self._service.latest(ga.address)
+                imgui.table_set_column_index(3)
+                text_clipped_tooltip(
+                    _decode(latest.payload, ga.datapoint_type) if latest else ""
+                )
+                imgui.table_set_column_index(4)
+                imgui.text_disabled(latest.time_str if latest else "")
 
         imgui.end_table()
 

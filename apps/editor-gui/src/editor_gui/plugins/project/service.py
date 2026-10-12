@@ -428,6 +428,14 @@ class ProjectService:
             handler(*args)
 
     @property
+    def loading(self) -> bool:
+        """A background open or import holds the project; reads return placeholders meanwhile."""
+        if not self._io_lock.acquire(blocking=False):
+            return True
+        self._io_lock.release()
+        return False
+
+    @property
     def is_open(self) -> bool:
         return self._pid is not None
 

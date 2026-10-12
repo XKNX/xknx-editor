@@ -23,7 +23,6 @@ if TYPE_CHECKING:
     from editor_gui.plugins.connection.plugin import ConnectionPlugin
     from editor_gui.plugins.keyring.service import KeyringService
     from editor_gui.plugins.monitor.service import MonitorService
-    from editor_gui.plugins.network.service import NetworkService
 
 
 def _build_auth(token: str = "") -> Any:
@@ -67,7 +66,6 @@ class McpServerPlugin:
         run_on_ui: Callable[..., Any],
         connection_plugin: ConnectionPlugin,
         monitor: MonitorService,
-        network: NetworkService,
         keyring: KeyringService,
     ) -> None:
         self._log = Logger(api.log, "mcp")
@@ -76,7 +74,6 @@ class McpServerPlugin:
             run_on_ui=run_on_ui,
             connection_plugin=connection_plugin,
             monitor=monitor,
-            network=network,
             keyring=keyring,
             log=self._log,
         )

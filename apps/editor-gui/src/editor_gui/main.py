@@ -34,12 +34,12 @@ from editor_gui.plugins.catalog import CatalogPlugin, CatalogService
 from editor_gui.plugins.cockpit import CockpitPlugin
 from editor_gui.plugins.connection import ConnectionPlugin
 from editor_gui.plugins.connection.service import ConnectionService
+from editor_gui.plugins.connection.strings import S as _connection_strings
 from editor_gui.plugins.health import HealthPlugin
 from editor_gui.plugins.keyring import KeyringPlugin
 from editor_gui.plugins.logger import LoggerPlugin, LogService
 from editor_gui.plugins.mcp import McpServerPlugin
 from editor_gui.plugins.monitor import MonitorPlugin
-from editor_gui.plugins.network import NetworkPlugin
 from editor_gui.plugins.project import ProjectPlugin, ProjectService
 from editor_gui.plugins.project.knxproj_manufacturer import collect_manufacturer_bundle
 from editor_gui.plugins.recover import RecoverPlugin
@@ -398,7 +398,6 @@ class KnxGuiApp:
 
         self._catalog_plugin = CatalogPlugin(self._plugin_api)
         self._connection_plugin = ConnectionPlugin(self._plugin_api)
-        self._network_plugin = NetworkPlugin(self._plugin_api)
         self._monitor_plugin = MonitorPlugin(self._plugin_api)
         self._keyring_plugin = KeyringPlugin(self._plugin_api)
         # Data Secure: let programming/testing look up a device's tool key from the loaded keyring.
@@ -410,7 +409,7 @@ class KnxGuiApp:
         self._topology_plugin = TopologyPlugin(self._plugin_api)
         self._timeline_plugin = TimelinePlugin(
             self._plugin_api,
-            get_telegrams=lambda: self._network_plugin.service.telegrams,
+            get_telegrams=lambda: self._monitor_plugin.service.telegrams(limit=4000),
         )
         self._project_plugin = ProjectPlugin(
             self._plugin_api,
@@ -429,14 +428,12 @@ class KnxGuiApp:
             self._ui_executor.run,
             self._connection_plugin,
             self._monitor_plugin.service,
-            self._network_plugin.service,
             self._keyring_plugin.service,
         )
 
         self._plugins: list[Any] = [
             self._catalog_plugin,
             self._connection_plugin,
-            self._network_plugin,
             self._monitor_plugin,
             self._keyring_plugin,
             self._signing_plugin,
@@ -1697,7 +1694,11 @@ class KnxGuiApp:
             imgui.text_disabled(" | ")
             imgui.same_line()
             imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.9, 0.35, 0.35, 1.0))
-            imgui.text(S.STATUS_NO_CONNECTION)
+            imgui.text(
+                _connection_strings.STATUS_BUSMONITOR_BLOCKED
+                if self._connection_service.busmonitor_active
+                else S.STATUS_NO_CONNECTION
+            )
             imgui.pop_style_color()
         else:
             # Briefly show the last programming outcome after the busy indicator clears.
@@ -2755,7 +2756,6 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
     from editor_gui.plugins.health.strings import S as _health
     from editor_gui.plugins.logger.strings import S as _logger
     from editor_gui.plugins.monitor.strings import S as _monitor
-    from editor_gui.plugins.network.strings import S as _network
     from editor_gui.plugins.project.strings import S as _proj
     from editor_gui.plugins.recover.strings import S as _recover
     from editor_gui.plugins.timeline.strings import S as _timeline
@@ -2776,7 +2776,6 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
         "monitor": lambda: _monitor.PANEL_MONITOR,
         "logger": lambda: _logger.PANEL_LOGGER,
         "health": lambda: _health.PANEL_HEALTH,
-        "network": lambda: _network.PANEL_NETWORK,
         "cockpit": lambda: _cockpit.PANEL_COCKPIT,
         "timeline": lambda: _timeline.PANEL_TIMELINE,
         "recover": lambda: _recover.WINDOW_TITLE,
@@ -2801,7 +2800,6 @@ _DOCK_TAB_ORDER = [
     "topology",
     "recover",
     # Left-bottom bus/log group, in tab order (logger stays last).
-    "network",
     "monitor",
     "timeline",
     "logger",

@@ -6,6 +6,8 @@ import threading
 import time
 from collections.abc import Callable, Coroutine
 from concurrent.futures import Future
+from dataclasses import dataclass
+from enum import Enum
 from typing import TYPE_CHECKING, Any
 
 from xknx.cemi import CEMIFrame
@@ -30,11 +32,68 @@ if TYPE_CHECKING:
     from xknxeditor.recover import AppId
 
 
+@dataclass(frozen=True, slots=True)
+class LinkInfo:
+    """The connection the bus is reached through, as recordings describe it."""
+
+    name: str
+    host: str
+    port: int
+    # "IpTunneling" or "IpRouting".
+    connector: str
+    # "Udp" or "Tcp"; empty for routing.
+    protocol: str = ""
+    medium: str = "Tp"
+
+    @property
+    def options(self) -> str:
+        """The connection's option string, e.g. for a recording's start entry."""
+        if self.connector == "IpRouting":
+            return (
+                f"Type=IpRouting;MulticastAddress={self.host};"
+                f'Name="{self.name}";AutoReconnect=True'
+            )
+        return (
+            f"Type={self.connector};HostAddress={self.host};ProtocolType={self.protocol};"
+            f'Name="{self.name}";AutoReconnect=True'
+        )
+
+    @property
+    def endpoint_name(self) -> str:
+        """The name with the endpoint, e.g. ``IP Tunneling (192.168.1.10:3671 Udp)``."""
+        suffix = f" {self.protocol}" if self.protocol else ""
+        return f"{self.name} ({self.host}:{self.port}{suffix})"
+
+
+class BusmonitorState(Enum):
+    OFF = "off"
+    STARTING = "starting"
+    RUNNING = "running"
+    STOPPING = "stopping"
+
+
 class ConnectionService:
     def __init__(self) -> None:
         self._log: Logger
         self._raw_cemi_listeners: list[Callable[[bytes, TelegramSource], None]] = []
         self._connected_listeners: list[Callable[[], None]] = []
+        self._disconnected_listeners: list[Callable[[], None]] = []
+        self._sent_cemi_listeners: list[Callable[[bytes], None]] = []
+        self._link_state_listeners: list[Callable[[bool], None]] = []
+        self._busmonitor_listeners: list[Callable[[bytes], None]] = []
+        self._busmonitor_state_listeners: list[Callable[[BusmonitorState], None]] = []
+        # The connection the bus is reached through, set by the connection plugin.
+        self.link_info: LinkInfo | None = None
+        # Bus monitor mode, driven by the connection plugin through these callbacks.
+        self._busmonitor_start: Callable[[], None] | None = None
+        self._busmonitor_stop: Callable[[], None] | None = None
+        self._busmonitor_supported: Callable[[], bool] | None = None
+        self._busmonitor_state = BusmonitorState.OFF
+        self.busmonitor_error: str | None = None
+        # Details of the last failed start, for the log and tooltips.
+        self.busmonitor_error_detail: str | None = None
+        # Link info of the running bus monitor connection.
+        self.busmonitor_link: LinkInfo | None = None
         self._xknx: XKNX | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
         # Global KNX master data (mask-version default procedures), injected at
@@ -112,7 +171,13 @@ class ConnectionService:
         Returns ``True`` when there is no connection (the caller must abort)."""
         if self._xknx is not None:
             return False
-        self._log.error(f"{op} failed: no KNX connection")
+        if self.busmonitor_active:
+            self._log.error(
+                f"{op} failed: the bus monitor is running, nothing can be sent until it is "
+                "stopped"
+            )
+        else:
+            self._log.error(f"{op} failed: no KNX connection")
         with self._busy_lock:
             self._not_connected_notice = time.monotonic()
         return True
@@ -134,6 +199,88 @@ class ConnectionService:
 
     def add_connected_listener(self, callback: Callable[[], None]) -> None:
         self._connected_listeners.append(callback)
+
+    def add_disconnected_listener(self, callback: Callable[[], None]) -> None:
+        """Called when the connection is closed on purpose (not when it is lost)."""
+        self._disconnected_listeners.append(callback)
+
+    def add_sent_cemi_listener(self, callback: Callable[[bytes], None]) -> None:
+        """Called with every cEMI frame sent through the connection (L_Data.req)."""
+        self._sent_cemi_listeners.append(callback)
+
+    def add_link_state_listener(self, callback: Callable[[bool], None]) -> None:
+        """Called when an open connection is lost (``False``) or re-established (``True``)."""
+        self._link_state_listeners.append(callback)
+
+    def add_busmonitor_listener(self, callback: Callable[[bytes], None]) -> None:
+        """Called with every cEMI frame (L_Busmon.ind) of the bus monitor connection."""
+        self._busmonitor_listeners.append(callback)
+
+    def add_busmonitor_state_listener(
+        self, callback: Callable[[BusmonitorState], None]
+    ) -> None:
+        self._busmonitor_state_listeners.append(callback)
+
+    def dispatch_disconnected(self) -> None:
+        for cb in self._disconnected_listeners:
+            cb()
+
+    def dispatch_sent_cemi(self, raw_cemi: bytes) -> None:
+        for cb in self._sent_cemi_listeners:
+            cb(raw_cemi)
+
+    def dispatch_link_state(self, established: bool) -> None:
+        for cb in self._link_state_listeners:
+            cb(established)
+
+    def dispatch_busmonitor_cemi(self, raw_cemi: bytes) -> None:
+        for cb in self._busmonitor_listeners:
+            cb(raw_cemi)
+
+    # --- bus monitor mode -----------------------------------------------------
+
+    def set_busmonitor_controller(
+        self,
+        start: Callable[[], None],
+        stop: Callable[[], None],
+        supported: Callable[[], bool],
+    ) -> None:
+        self._busmonitor_start = start
+        self._busmonitor_stop = stop
+        self._busmonitor_supported = supported
+
+    @property
+    def busmonitor_state(self) -> BusmonitorState:
+        return self._busmonitor_state
+
+    @property
+    def busmonitor_active(self) -> bool:
+        """Whether the bus monitor connection is running, being set up or being closed."""
+        return self._busmonitor_state is not BusmonitorState.OFF
+
+    def busmonitor_supported(self) -> bool:
+        """Whether the configured connection type can run a bus monitor (tunnelling)."""
+        return self._busmonitor_supported is not None and self._busmonitor_supported()
+
+    def set_busmonitor_state(
+        self, state: BusmonitorState, error: str | None = None
+    ) -> None:
+        """Set by the connection plugin; ``error`` is the reason a start failed."""
+        self._busmonitor_state = state
+        if error is not None or state is BusmonitorState.STARTING:
+            self.busmonitor_error = error
+        for cb in self._busmonitor_state_listeners:
+            cb(state)
+
+    def start_busmonitor(self) -> None:
+        """Close the normal connection and connect in bus monitor mode."""
+        if self._busmonitor_start is not None and not self.busmonitor_active:
+            self._busmonitor_start()
+
+    def stop_busmonitor(self) -> None:
+        """Close the bus monitor connection and restore the normal connection."""
+        if self._busmonitor_stop is not None and self.busmonitor_active:
+            self._busmonitor_stop()
 
     def dispatch_raw_cemi(self, raw_cemi: bytes) -> None:
         from editor_gui.net import TelegramSource
@@ -168,6 +315,7 @@ class ConnectionService:
         if xknx is None:
             self.interface_max_apdu_length = None
             self.interface_name = None
+            self.link_info = None
 
     @property
     def xknx(self) -> XKNX | None:

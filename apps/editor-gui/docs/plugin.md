@@ -67,7 +67,7 @@ class PanelDefinition:
 - `MainDockSpace` — central area (project editor)
 - `LeftSpace` (ratio 0.2, left of main) — catalog, devices
 - `RightSpace` (ratio 0.25, right of main) — configure, history, virtual
-- `BottomSpace` (ratio 0.25, below main) — network, logs
+- `BottomSpace` (ratio 0.25, below main) — monitor, logs
 
 A plugin with no panels (e.g. `ConnectionPlugin`, `ProxyPlugin`, `CatPlugin`) returns `[]` and
 instead renders into the menu bar or a status area via its own methods, called directly from
@@ -82,7 +82,7 @@ instead renders into the menu bar or a status area via its own methods, called d
 | `ConnectionPlugin` | *(none)* | Real KNX connection (tunneling/routing), gateway discovery, status indicator + menu |
 | `ProxyPlugin` | *(none)* | KNXnet/IP tunnelling server for testing without hardware; menu only |
 | `VirtualPlugin` | `virtual` (RightSpace) | Virtual router + virtual devices |
-| `NetworkPlugin` | `network` (BottomSpace) | KNX telegram monitoring/recording |
+| `MonitorPlugin` | `monitor` (BottomSpace) | Group Monitor, Bus Monitor, Bus Activity recordings and group object values |
 | `LoggerPlugin` | `logger` (BottomSpace) | Structured, filterable application log viewer |
 | `CatPlugin` | *(none)* | Cosmetic desktop cat follower; no panels, `on_load` only |
 

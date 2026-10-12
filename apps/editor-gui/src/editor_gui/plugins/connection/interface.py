@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
+from xknx.cemi import CEMIFrame
 from xknx.exceptions import XKNXException
 from xknx.io.data_connection import SequenceVerdict
 from xknx.io.interface import Interface
@@ -28,40 +30,62 @@ if TYPE_CHECKING:
     from xknx.io.connection import ConnectionConfig
 
 
+def _notify_sent(callback: Callable[[bytes], None], cemi: CEMIFrame) -> None:
+    """Pass a sent frame to ``callback``; a failing observer never stops the send."""
+    with contextlib.suppress(Exception):
+        callback(cemi.to_knx())
+
+
 class ObservableKNXIPInterface(KNXIPInterface):
-    __slots__ = ("_raw_cemi_callback",)
+    __slots__ = ("_raw_cemi_callback", "_sent_cemi_callback")
 
     def __init__(
         self,
         xknx: XKNX,
         connection_config: ConnectionConfig | None = None,
         raw_cemi_callback: Callable[[bytes], None] | None = None,
+        sent_cemi_callback: Callable[[bytes], None] | None = None,
     ) -> None:
         super().__init__(xknx, connection_config)
         self._raw_cemi_callback = raw_cemi_callback
+        self._sent_cemi_callback = sent_cemi_callback
 
     def cemi_received(self, raw_cemi: bytes) -> None:
         if self._raw_cemi_callback:
             self._raw_cemi_callback(raw_cemi)
         super().cemi_received(raw_cemi)
+
+    async def send_cemi(self, cemi: CEMIFrame) -> None:
+        # Every frame the app sends passes here, whichever code path built it.
+        if self._sent_cemi_callback:
+            _notify_sent(self._sent_cemi_callback, cemi)
+        await super().send_cemi(cemi)
 
 
 class ObservableKNXIPInterfaceThreaded(KNXIPInterfaceThreaded):
-    __slots__ = ("_raw_cemi_callback",)
+    __slots__ = ("_raw_cemi_callback", "_sent_cemi_callback")
 
     def __init__(
         self,
         xknx: XKNX,
         connection_config: ConnectionConfig | None = None,
         raw_cemi_callback: Callable[[bytes], None] | None = None,
+        sent_cemi_callback: Callable[[bytes], None] | None = None,
     ) -> None:
         super().__init__(xknx, connection_config)
         self._raw_cemi_callback = raw_cemi_callback
+        self._sent_cemi_callback = sent_cemi_callback
 
     def cemi_received(self, raw_cemi: bytes) -> None:
         if self._raw_cemi_callback:
             self._raw_cemi_callback(raw_cemi)
         super().cemi_received(raw_cemi)
+
+    async def send_cemi(self, cemi: CEMIFrame) -> None:
+        # Every frame the app sends passes here, whichever code path built it.
+        if self._sent_cemi_callback:
+            _notify_sent(self._sent_cemi_callback, cemi)
+        await super().send_cemi(cemi)
 
     async def read_max_apdu_length(self) -> int | None:
         """The maximum APDU length a tunnelling server reports, or ``None``."""
