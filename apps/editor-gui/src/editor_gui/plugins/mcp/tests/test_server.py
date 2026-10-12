@@ -221,6 +221,32 @@ async def test_project_tools_require_open_project(tmp_path: Path) -> None:
 
 
 @pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_delete_product(tmp_path: Path) -> None:
+    """Deleting a product empties the catalog and leaves the device using it unloaded."""
+    mcp, project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        await _data(client, "project_add_device", product_ref_id=ref)
+        assert len(project.devices) == 1
+
+        result = await _data(client, "catalog_delete_product", product_ref_id=ref)
+        assert result["product_ref_id"] == ref
+        assert result["affected_devices"] == 1
+        assert len(result["removed_programs"]) == 1
+        assert len(result["removed_files"]) == 1
+        assert (await _data(client, "catalog_list_products"))["count"] == 0
+        assert project.devices == []
+        assert len(project.unloaded_devices) == 1
+
+        with pytest.raises(Exception, match="not in the local catalog"):
+            await client.call_tool("catalog_delete_product", {"product_ref_id": ref})
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
 async def test_import_knxprod_bytes(tmp_path: Path) -> None:
     """A .knxprod imports inline as base64 (remote client), then is readable via catalog tools."""
     import base64 as _b64

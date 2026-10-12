@@ -187,5 +187,38 @@ class CatalogStrings:
     def MISSING_APPS_FETCHING(self) -> str:
         return _("Fetching missing applications…")
 
+    @property
+    def CONTEXT_DELETE(self) -> str:
+        return _("Delete")
+
+    @property
+    def DELETE_TITLE(self) -> str:
+        return _("Delete from Local Catalog")
+
+    @property
+    def DELETE_CONFIRM(self) -> str:
+        return _(
+            "Are you sure you want to delete the selected device? This cannot be undone."
+        )
+
+    @property
+    def DELETE_AFFECTED(self) -> str:
+        return _(
+            "{count} device(s) in the open project use this product. They can't be "
+            "loaded until the product is imported again."
+        )
+
+    @property
+    def BTN_CANCEL(self) -> str:
+        return _("Cancel")
+
+    @property
+    def DELETING(self) -> str:
+        return _("Deleting {name}…")
+
+    @property
+    def DELETE_OK(self) -> str:
+        return _("Deleted from the local catalog: {name}")
+
 
 S = CatalogStrings()

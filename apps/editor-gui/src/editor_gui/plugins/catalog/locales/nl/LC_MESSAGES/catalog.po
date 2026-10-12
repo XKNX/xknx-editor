@@ -69,3 +69,21 @@ msgstr "Dit product heeft geen bruikbaar applicatieprogramma."
 
 msgid "Added device: {name}"
 msgstr "Apparaat toegevoegd: {name}"
+
+msgid "Delete"
+msgstr "Verwijderen"
+
+msgid "Delete from Local Catalog"
+msgstr "Uit lokale catalogus verwijderen"
+
+msgid "Are you sure you want to delete the selected device? This cannot be undone."
+msgstr "Weet u zeker dat u het geselecteerde apparaat wilt verwijderen? Dit kan niet ongedaan worden gemaakt."
+
+msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
+msgstr "{count} apparaat/apparaten in het geopende project gebruiken dit product. Ze kunnen pas weer worden geladen als het product opnieuw is geïmporteerd."
+
+msgid "Deleting {name}…"
+msgstr "{name} wordt verwijderd…"
+
+msgid "Deleted from the local catalog: {name}"
+msgstr "Verwijderd uit de lokale catalogus: {name}"

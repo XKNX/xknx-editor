@@ -588,6 +588,41 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 tmp_dir.rmdir()
         return {"added_refs": added, "filename": safe, "size_bytes": len(raw)}
 
+    @tool
+    def catalog_delete_product(product_ref_id: str) -> dict[str, Any]:
+        """Delete a product from the local catalog. Cannot be undone.
+
+        Also removes what only this product used: hardware programs, hardware, applications, empty
+        catalog sections, manufacturers and the stored .knxprod archives. ``affected_devices`` counts
+        the open project's devices that can't be loaded until the product is imported again."""
+        project = ctx.api.project
+
+        def _delete() -> dict[str, Any]:
+            plan = catalog.plan_delete_product(product_ref_id)
+            if plan is None:
+                raise ToolError(
+                    f"product {product_ref_id!r} is not in the local catalog"
+                )
+            affected = project.count_devices_losing_product(plan)
+            deletion = catalog.delete_product(product_ref_id)
+            if deletion is None:
+                raise ToolError(
+                    f"product {product_ref_id!r} is not in the local catalog"
+                )
+            project.forget_deleted_product(deletion)
+            return {
+                "product_ref_id": product_ref_id,
+                "removed_programs": deletion.removed_programs,
+                "removed_applications": deletion.removed_applications,
+                "removed_hardware": deletion.removed_hardware,
+                "removed_sections": deletion.removed_sections,
+                "removed_manufacturers": deletion.removed_manufacturers,
+                "removed_files": [Path(f).name for f in deletion.removed_files],
+                "affected_devices": affected,
+            }
+
+        return ctx.run_locked(_delete, timeout=_SLOW)
+
     # --- online catalog ---------------------------------------------------
 
     @tool

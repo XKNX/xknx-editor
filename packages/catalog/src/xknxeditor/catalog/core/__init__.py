@@ -22,6 +22,9 @@ _LAZY: dict[str, tuple[str, str]] = {
     "list_manufacturers": (".manufacturers", "list_manufacturers"),
     "ProductSummary": (".products", "ProductSummary"),
     "list_products": (".products", "list_products"),
+    "delete_product": (".delete", "delete_product"),
+    "plan_product_deletion": (".delete", "plan_product_deletion"),
+    "ProductDeletion": (".delete", "ProductDeletion"),
     "CatalogService": (".service", "CatalogService"),
     "upload_knxprod": (".upload", "upload_knxprod"),
 }
@@ -31,9 +34,11 @@ __all__ = [
     "CatalogSectionNode",
     "CatalogService",
     "HardwareFilters",
+    "ProductDeletion",
     "ProductSummary",
     "build_catalog_tree",
     "collect_section_ids",
+    "delete_product",
     "get_application_detail",
     "get_application_detail_by_id",
     "get_application_xml",
@@ -45,6 +50,7 @@ __all__ = [
     "list_hardware",
     "list_manufacturers",
     "list_products",
+    "plan_product_deletion",
     "upload_knxprod",
 ]
 
@@ -62,6 +68,7 @@ if TYPE_CHECKING:
         collect_section_ids,
         list_catalog_sections,
     )
+    from .delete import ProductDeletion, delete_product, plan_product_deletion
     from .hardware import (
         HardwareFilters,
         get_hardware,

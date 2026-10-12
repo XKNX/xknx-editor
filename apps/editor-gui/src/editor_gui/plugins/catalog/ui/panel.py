@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.plugins.catalog.strings import S
-from editor_gui.widgets.dpi import label_column_width, px
+from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 
 if TYPE_CHECKING:
@@ -53,6 +53,8 @@ class CatalogPanel:
         | None = None,
         add_online_item: Callable[[str], None] | None = None,
         can_add_to_project: Callable[[], bool] | None = None,
+        plan_delete_product: Callable[[ProductSummary], int | None] | None = None,
+        delete_product: Callable[[ProductSummary], None] | None = None,
     ) -> None:
         self._get_products = get_products
         self._on_select = on_select
@@ -108,6 +110,14 @@ class CatalogPanel:
         self._can_add_to_project = can_add_to_project
         self._pending_add_item: str | None = None
         self._pending_add_name: str = ""
+        # Delete a local product: the planner returns the number of project devices that would
+        # lose their product data (None when the product is gone); the delete runs on a worker.
+        self._plan_delete_product = plan_delete_product
+        self._delete_product = delete_product
+        self._delete_target: ProductSummary | None = None
+        self._delete_affected = 0
+        self._open_delete_popup = False
+        self._deleting: str | None = None
 
     def render(self) -> None:
         self._render_missing_apps_banner()
@@ -124,9 +134,13 @@ class CatalogPanel:
                 imgui.end_tab_item()
             imgui.end_tab_bar()
         self._render_add_to_project_modal()
+        self._render_delete_modal()
 
     def _render_local_catalog(self) -> None:
         self._search = filter_box("##catalog_search", "Search...", self._search)
+        deleting = self._deleting
+        if deleting is not None:
+            imgui.text_disabled(S.DELETING.format(name=deleting))
 
         search = self._search.lower().strip()
         leaf_flags = (
@@ -173,6 +187,7 @@ class CatalogPanel:
                             leaf_flags,
                         )
                         self._handle_product_click(product)
+                        self._render_product_context_menu(product)
         else:
             for mfr_id in sorted_mfrs:
                 mfr_label = manufacturer_labels[mfr_id]
@@ -182,6 +197,7 @@ class CatalogPanel:
                             f"{_label(product)}##{product.product_ref_id}", leaf_flags
                         )
                         self._handle_product_click(product)
+                        self._render_product_context_menu(product)
                     imgui.tree_pop()
 
         self._render_product_detail()
@@ -216,6 +232,93 @@ class CatalogPanel:
                 self._on_select(
                     product, self._add_space_id
                 )  # double click adds to the project
+
+    def _render_product_context_menu(self, product: ProductSummary) -> None:
+        if self._delete_product is None:
+            return
+        if imgui.begin_popup_context_item(f"##catalog_ctx_{product.product_ref_id}"):
+            if imgui.menu_item(S.CONTEXT_DELETE, "", False, self._deleting is None)[0]:
+                self._request_delete(product)
+            imgui.end_popup()
+
+    def _request_delete(self, product: ProductSummary) -> None:
+        """Open the delete confirmation, with the number of project devices it affects."""
+        affected = (
+            self._plan_delete_product(product)
+            if self._plan_delete_product is not None
+            else 0
+        )
+        if affected is None:
+            return
+        self._delete_target = product
+        self._delete_affected = affected
+        self._open_delete_popup = True
+
+    def _render_delete_modal(self) -> None:
+        title = S.DELETE_TITLE
+        if self._open_delete_popup:
+            imgui.open_popup(title)
+            self._open_delete_popup = False
+        if not imgui.begin_popup_modal(
+            title, None, imgui.WindowFlags_.always_auto_resize
+        )[0]:
+            return
+        product = self._delete_target
+        imgui.dummy(px_vec2(440, 0))  # anchor the minimum content width
+        imgui.text_wrapped(S.DELETE_CONFIRM)
+        if product is not None:
+            imgui.spacing()
+            rows = (
+                (S.CATALOG_DETAIL_NAME, product.name or product.product_ref_id),
+                (S.CATALOG_DETAIL_ORDER, product.order_number or "-"),
+            )
+            label_w = label_column_width(*(label for label, _ in rows), minimum=150.0)
+            for label, value in rows:
+                imgui.text_disabled(label)
+                imgui.same_line(label_w)
+                imgui.text_wrapped(value)
+        if self._delete_affected > 0:
+            imgui.spacing()
+            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.95, 0.6, 0.25, 1.0))
+            imgui.text_wrapped(S.DELETE_AFFECTED.format(count=self._delete_affected))
+            imgui.pop_style_color()
+        imgui.separator()
+        if imgui.button(S.CONTEXT_DELETE, px_vec2(90, 0)):
+            if product is not None:
+                self._start_delete(product)
+            self._delete_target = None
+            imgui.close_current_popup()
+        imgui.same_line()
+        if imgui.button(S.BTN_CANCEL, px_vec2(90, 0)):
+            self._delete_target = None
+            imgui.close_current_popup()
+        imgui.end_popup()
+
+    def _start_delete(self, product: ProductSummary) -> None:
+        if self._delete_product is None or self._deleting is not None:
+            return
+        self._deleting = product.name or product.product_ref_id
+        if (
+            self._selected_product is not None
+            and self._selected_product.product_ref_id == product.product_ref_id
+        ):
+            self._selected_product = None
+        threading.Thread(target=self._run_delete, args=(product,), daemon=True).start()
+
+    def _run_delete(self, product: ProductSummary) -> None:
+        assert self._delete_product is not None
+        try:
+            self._delete_product(product)
+        except Exception:
+            pass  # error already logged by the plugin
+        finally:
+            selected = self._selected_product
+            if (
+                selected is not None
+                and selected.product_ref_id == product.product_ref_id
+            ):
+                self._selected_product = None
+            self._deleting = None
 
     def _render_product_detail(self) -> None:
         product = self._selected_product

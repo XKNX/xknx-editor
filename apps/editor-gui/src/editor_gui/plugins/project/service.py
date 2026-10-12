@@ -40,7 +40,7 @@ from xknxeditor.proj.core.skeleton import MEDIUM_TP
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger
     from editor_gui.plugins.catalog.service import CatalogService
-    from xknxeditor.catalog import ProductSummary
+    from xknxeditor.catalog import ProductDeletion, ProductSummary
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.prod.parser_v2.calculation import ChangeSet
     from xknxeditor.proj.core.import_notes import ImportLoss
@@ -1735,6 +1735,53 @@ class ProjectService:
                 _ = (
                     self.devices
                 )  # rebuild under the held lock instead of lazily on the UI thread
+
+    def forget_deleted_product(
+        self, deletion: "ProductDeletion", *, rebuild: bool = False
+    ) -> None:
+        """Drop the cached catalog lookups that went through the hardware programs or applications
+        of a product deleted from the catalog, and invalidate the device view. Only devices built
+        from a dropped lookup are rebuilt; ``rebuild`` as in :meth:`refresh_catalog_resolution`."""
+        programs = set(deletion.removed_programs)
+        apps = {a for a in deletion.program_applications.values() if a is not None}
+        with self._io_lock:
+            for key, app in list(self._app_cache.items()):
+                if key in programs or key in apps or app.id in apps:
+                    del self._app_cache[key]
+            for ref in programs:
+                self._plugin_cache.pop(ref, None)
+            self._bump()
+            if rebuild:
+                _ = self.devices
+
+    @io_guarded(int)
+    def count_devices_losing_product(self, deletion: "ProductDeletion") -> int:
+        """How many devices of the open project could no longer be loaded once ``deletion`` is
+        applied: they use a removed hardware program or application and nothing else resolves."""
+        if self._pid is None:
+            return 0
+        programs = set(deletion.removed_programs)
+        apps = set(deletion.removed_applications)
+        count = 0
+        for row in self._svc.devices(self._pid):
+            program = row.hardware2program_ref_id
+            app_ref = row.application_program_ref_id
+            if program not in programs and app_ref not in apps:
+                continue
+            if (
+                program is not None
+                and program not in programs
+                and self._catalog.get_program_application_id(program) is not None
+            ):
+                continue
+            if (
+                app_ref is not None
+                and app_ref not in apps
+                and self._catalog.has_application(app_ref)
+            ):
+                continue
+            count += 1
+        return count
 
     # --- application update ("Update Application Program") -------------
 
