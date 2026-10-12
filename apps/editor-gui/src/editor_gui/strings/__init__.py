@@ -107,6 +107,34 @@ class BaseStrings:
         return _("Cancel")
 
     @property
+    def NEW_PROJECT_TITLE(self) -> str:
+        return _("New Project")
+
+    @property
+    def NEW_PROJECT_NAME_LABEL(self) -> str:
+        return _("Project name")
+
+    @property
+    def NEW_PROJECT_STYLE_LABEL(self) -> str:
+        return _("Group address style")
+
+    @property
+    def NEW_PROJECT_STYLE_FREE(self) -> str:
+        return _("Free")
+
+    @property
+    def NEW_PROJECT_STYLE_TWO_LEVEL(self) -> str:
+        return _("Two-level")
+
+    @property
+    def NEW_PROJECT_STYLE_THREE_LEVEL(self) -> str:
+        return _("Three-level")
+
+    @property
+    def NEW_PROJECT_CREATE(self) -> str:
+        return _("Create...")
+
+    @property
     def BTN_COPY(self) -> str:
         return _("Copy")
 
@@ -761,7 +789,16 @@ class MenuStrings:
 
     @property
     def FILE_DIALOG_KNXPROD_FILTER(self) -> str:
-        return _("KNX Product (*.knxprod)")
+        return _("KNX Product (*.knxprod, *.vd1-*.vd5)")
+
+    @property
+    def LEGACY_VD_HINT(self) -> str:
+        return _(
+            "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\n"
+            "Convert the file to .knxprod first with the conversion tools that ship with "
+            "ETS5/ETS6 - open the product file in ETS, or use its command-line converter - "
+            "then import the resulting .knxprod here."
+        )
 
     @property
     def FILE_DIALOG_KNXPROJ_FILTER(self) -> str:

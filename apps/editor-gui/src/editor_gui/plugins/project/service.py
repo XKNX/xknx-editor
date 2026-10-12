@@ -33,7 +33,7 @@ from xknxeditor.proj import ProjectStorageError, ensure_sqlite_writable
 from xknxeditor.proj import import_ga_export as _import_ga_export
 from xknxeditor.proj import import_knxproj as _import_knxproj
 from xknxeditor.proj import is_ga_export as _is_ga_export
-from xknxeditor.proj.core.addressing import GroupAddressStyle, parse_ga
+from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga, parse_ga
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.skeleton import MEDIUM_TP
 
@@ -663,7 +663,14 @@ class ProjectService:
         path.unlink(missing_ok=True)
         Path(f"{path}-journal").unlink(missing_ok=True)
 
-    def new(self, path: Path) -> None:
+    def new(
+        self,
+        path: Path,
+        *,
+        name: str = "New project",
+        group_address_style: GroupAddressStyle = GroupAddressStyle.THREE_LEVEL,
+        building_name: str | None = None,
+    ) -> None:
         if not path.suffix:
             path = path.with_suffix(".xknx")
         with self._io_lock:
@@ -673,7 +680,12 @@ class ProjectService:
             # overwrite; without clearing the WORKING db, create()'s seed collides with the old
             # project's rows ("UNIQUE constraint failed: installations.index").
             self._remove_project_file(working)
-            self._pid = self._svc.create(working)
+            self._pid = self._svc.create(
+                working,
+                name=name,
+                group_address_style=group_address_style,
+                building_name=building_name,
+            )
             self._generation += 1
             self._path = path
             self._working_path = working
@@ -2602,6 +2614,31 @@ class ProjectService:
             return
         self._svc.rename_group_address(self._pid, ga_id, name)
         self._bump(structural=False)
+
+    def set_group_address_address(self, ga_id: int, address: str) -> bool:
+        """Renumber a group address (ETS-style change-address): its com-object links move with it.
+        ``address`` is a style-formatted string (e.g. ``"1/2/3"``). Returns False on an invalid
+        address or when another group address already uses it."""
+        if self._pid is None:
+            return False
+        style = GroupAddressStyle(self._svc.project(self._pid).group_address_style)
+        try:
+            value = parse_ga(address, style)
+        except (ValueError, IndexError):
+            self._log.warning("invalid group address", address=address)
+            return False
+        # parse_ga composes bits leniently (e.g. "1/8/1" silently becomes "1/0/1", "32/0/1"
+        # overflows). Reject anything that does not round-trip back to the typed string, so a
+        # malformed address is refused rather than quietly stored as a different one.
+        if format_ga(value, style) != address.strip():
+            self._log.warning("malformed group address", address=address)
+            return False
+        try:
+            self._svc.set_group_address_address(self._pid, ga_id, value)
+        except ValueError:
+            return False
+        self._bump(structural=True)
+        return True
 
     def set_group_address_dpt(self, ga_id: int, dpt: str | None) -> None:
         if self._pid is None:

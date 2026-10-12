@@ -35,6 +35,7 @@ from xknxeditor.proj.core.events import (
     CompositeEvent,
     CreateArea,
     CreateFunction,
+    CreateFunctionWithGroupAddresses,
     CreateGroupAddress,
     CreateGroupRange,
     CreateLine,
@@ -66,6 +67,7 @@ from xknxeditor.proj.core.events import (
     SetDeviceName,
     SetDeviceSpace,
     SetFunctionType,
+    SetGroupAddressAddress,
     SetGroupAddressDatapointType,
     SetParameter,
     SetSpaceType,
@@ -73,13 +75,16 @@ from xknxeditor.proj.core.events import (
     UnlinkComObject,
     UpdateDeviceApplication,
 )
+from xknxeditor.proj.core.function_detect import classify_function
 from xknxeditor.proj.core.skeleton import MEDIUM_TP, seed_new_project
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
     Area,
+    ComObject,
     ComObjectLink,
     Device,
     Function,
+    FunctionGroupAddress,
     GroupAddress,
     GroupRange,
     Installation,
@@ -88,6 +93,11 @@ from xknxeditor.proj.models import (
     Segment,
     Space,
 )
+
+# A group address linked across at least this many devices is treated as a central/shared function
+# (time, date, day/night, weather) rather than part of a single load, and is excluded from function
+# suggestions. Real loads are linked by only a handful of devices (actuator + a sensor or two).
+_CENTRAL_GA_MIN_DEVICES = 4
 
 
 @dataclass
@@ -156,6 +166,25 @@ class FunctionInfo:
     function_type: str
     usage_text: str
     group_addresses: list[FunctionGroupAddressInfo]
+
+
+@dataclass(frozen=True)
+class FunctionCandidate:
+    """A suggested building function inferred from how a device channel's group addresses are wired.
+
+    Produced by :meth:`ProjectService.function_candidates` and consumed by
+    :meth:`ProjectService.accept_function_candidate`. ``space_id`` is the room the device is placed
+    in; candidates are only produced for placed devices, so a function can always be created."""
+
+    device_id: int
+    channel_id: str | None
+    name: str
+    function_type: str
+    space_id: int
+    space_name: str
+    device_name: str
+    group_address_ids: list[int]
+    group_address_texts: list[str]
 
 
 @dataclass(frozen=True)
@@ -230,15 +259,21 @@ class ProjectService:
         path: Path | str,
         project_id: str | None = None,
         *,
+        name: str = "New project",
         group_address_style: GroupAddressStyle = GroupAddressStyle.THREE_LEVEL,
+        building_name: str | None = None,
     ) -> str:
         # Project IDs are "P-" + 4 hex digits (spec Project Scheme §4.2.3, e.g. "P-02D7").
         pid = project_id or f"P-{uuid4().hex[:4].upper()}"
         engine = make_engine(url_for(Path(path)))
         session = Session(engine)
-        # The default building is named after the project file (matching a fresh project).
+        # The default building is named after the project file when none is given.
         seed_new_project(
-            session, pid, "New project", group_address_style, Path(path).stem
+            session,
+            pid,
+            name,
+            group_address_style,
+            building_name if building_name is not None else Path(path).stem,
         )
         self._register(pid, engine, session)
         return pid
@@ -584,6 +619,132 @@ class ProjectService:
             RemoveFunctionGroupAddress(target_id=link_id)
         )
 
+    def function_candidates(
+        self, project_id: str, installation: int
+    ) -> list[FunctionCandidate]:
+        """Suggest building functions inferred from device-channel group-address wiring.
+
+        Each actuator output channel of a device placed in a room becomes a candidate when its
+        linked group addresses match a known shape (switchable/dimmable light or blind). To keep the
+        suggestions clean on real projects:
+
+        - Channel-independent objects are ignored. A load lives on a named channel; the
+          channel-independent block holds device-wide and central objects (time, day/night, …),
+          and sensors dump many unrelated functions there.
+        - Central/shared group addresses (linked across many devices, e.g. time/date/day-night/
+          weather) are dropped before classifying and naming, so they neither pollute a load's
+          address set nor end up as its name.
+        - The name comes from the channel's sending object.
+
+        Channels whose remaining group addresses already belong to a function, and devices not
+        placed in a room, are skipped; identical group-address sets are suggested only once."""
+        state = self._state(project_id)
+        inst = self._installation(state, installation)
+        style = self._style(state)
+
+        assigned = {
+            gid
+            for (gid,) in state.session.query(FunctionGroupAddress.group_address_id)
+            .join(Function, FunctionGroupAddress.function_id == Function.id)
+            .join(Space, Function.space_id == Space.id)
+            .filter(Space.installation_id == inst.id)
+            .all()
+        }
+
+        rows = (
+            state.session.query(ComObjectLink, ComObject, GroupAddress)
+            .join(ComObject, ComObjectLink.com_object_id == ComObject.id)
+            .join(GroupAddress, ComObjectLink.group_address_id == GroupAddress.id)
+            .join(Device, ComObject.device_id == Device.id)
+            .join(Segment, Device.segment_id == Segment.id)
+            .join(Line, Segment.line_id == Line.id)
+            .join(Area, Line.area_id == Area.id)
+            .filter(Area.installation_id == inst.id, Device.space_id.isnot(None))
+            .all()
+        )
+
+        # A GA linked across many devices is a central/shared function (time, date, day/night,
+        # weather), not part of a single load; drop it from every candidate.
+        devices_per_ga: dict[int, set[int]] = {}
+        for _link, com_object, ga in rows:
+            devices_per_ga.setdefault(ga.id, set()).add(com_object.device_id)
+
+        # Group the wired GAs by actuator channel, preserving first-seen order per GA, and remember
+        # which GAs the channel sends on (for naming). Channel-independent objects are skipped.
+        groups: dict[tuple[int, str], dict[int, GroupAddress]] = {}
+        sending: dict[tuple[int, str], set[int]] = {}
+        for link, com_object, ga in rows:
+            if com_object.channel_id is None:
+                continue
+            key = (com_object.device_id, com_object.channel_id)
+            groups.setdefault(key, {})[ga.id] = ga
+            if link.is_sending:
+                sending.setdefault(key, set()).add(ga.id)
+
+        candidates: list[FunctionCandidate] = []
+        seen_sets: set[frozenset[int]] = set()
+        for (device_id, channel_id), gas in groups.items():
+            members = [
+                ga
+                for gid, ga in gas.items()
+                if len(devices_per_ga.get(gid, ())) < _CENTRAL_GA_MIN_DEVICES
+            ]
+            ga_ids = [ga.id for ga in members]
+            if not ga_ids or any(gid in assigned for gid in ga_ids):
+                continue
+            key = frozenset(ga_ids)
+            if key in seen_sets:
+                continue
+            function_type = classify_function([ga.datapoint_type for ga in members])
+            if function_type is None:
+                continue
+            seen_sets.add(key)
+            device = state.session.get(Device, device_id)
+            if device is None or device.space_id is None:
+                continue
+            texts = [
+                f"{ga.name} ({format_ga(ga.address, style)})"
+                if ga.name
+                else format_ga(ga.address, style)
+                for ga in members
+            ]
+            send_ids = sending.get((device_id, channel_id), set())
+            name = (
+                next((ga.name for ga in members if ga.id in send_ids and ga.name), "")
+                or next((ga.name for ga in members if ga.name), "")
+                or device.name
+            )
+            candidates.append(
+                FunctionCandidate(
+                    device_id=device_id,
+                    channel_id=channel_id,
+                    name=name,
+                    function_type=function_type,
+                    space_id=device.space_id,
+                    space_name=device.space.name if device.space is not None else "",
+                    device_name=device.name,
+                    group_address_ids=ga_ids,
+                    group_address_texts=texts,
+                )
+            )
+        candidates.sort(key=lambda c: (c.device_name, c.channel_id or "", c.name))
+        return candidates
+
+    def accept_function_candidate(
+        self, project_id: str, candidate: FunctionCandidate
+    ) -> int:
+        """Create the suggested function and link its group addresses as one undoable step."""
+        state = self._state(project_id)
+        event = CreateFunctionWithGroupAddresses(
+            space_id=candidate.space_id,
+            function_type=candidate.function_type,
+            name=candidate.name,
+            group_address_ids=list(candidate.group_address_ids),
+        )
+        state.store.append(event)
+        assert event.function_id is not None
+        return event.function_id
+
     # --- building spaces (location tree) ----------------------------------
 
     def create_space(
@@ -717,6 +878,54 @@ class ProjectService:
     ) -> None:
         self._state(project_id).store.append(
             RenameGroupAddress(group_address_id=group_address_id, name=name)
+        )
+
+    def set_group_address_address(
+        self, project_id: str, group_address_id: int, new_address: int
+    ) -> None:
+        """Renumber a group address to ``new_address``, moving it (and its com-object links) under
+        the range chain for the new address. Mirrors ETS's "change address": links are preserved
+        because they reference the group address by id. Raises ``ValueError`` if the group address
+        is unknown, ``new_address`` is outside the valid 1..65535 range, or another group address in
+        the same installation already uses it.
+        """
+        state = self._state(project_id)
+        ga = state.session.get(GroupAddress, group_address_id)
+        if ga is None:
+            raise ValueError(f"unknown group address {group_address_id}")
+        if new_address == ga.address:
+            return  # no-op: changing nothing must not append an event (would drop the redo branch)
+        if not (1 <= new_address <= 0xFFFF):
+            raise ValueError(
+                f"address {new_address} is outside the valid range 1..65535"
+            )
+        installation_id = ga.group_range.installation_id
+        clash = (
+            state.session.query(GroupAddress.id)
+            .join(GroupRange, GroupAddress.group_range_id == GroupRange.id)
+            .filter(
+                GroupRange.installation_id == installation_id,
+                GroupAddress.address == new_address,
+                GroupAddress.id != group_address_id,
+            )
+            .first()
+        )
+        if clash is not None:
+            raise ValueError(f"address {new_address} is already in use")
+        # Free style has no address-derived folder hierarchy: keep the group address under its
+        # current range (empty levels) rather than forcing it into the catch-all range, which the
+        # range-start match cannot place correctly against imported non-canonical Free ranges.
+        style = self._style(state)
+        levels = (
+            [] if style is GroupAddressStyle.FREE else ranges_for(new_address, style)
+        )
+        state.store.append(
+            SetGroupAddressAddress(
+                group_address_id=group_address_id,
+                installation_id=installation_id,
+                address=new_address,
+                levels=[[start, end, name] for start, end, name in levels],
+            )
         )
 
     def set_device_name(self, project_id: str, device_id: int, name: str) -> None:

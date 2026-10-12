@@ -1644,6 +1644,18 @@ class ProjectStrings:
         return _("Rename Group Address")
 
     @property
+    def GA_RENUMBER(self) -> str:
+        return _("Change Address…")
+
+    @property
+    def GA_RENUMBER_PROMPT(self) -> str:
+        return _("New group address (links are kept):")
+
+    @property
+    def GA_RENUMBER_FAILED(self) -> str:
+        return _("Invalid address or already in use.")
+
+    @property
     def GA_SET_DPT(self) -> str:
         return _("Set Datapoint Type")
 

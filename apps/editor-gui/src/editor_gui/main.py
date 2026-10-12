@@ -63,6 +63,7 @@ from xknxeditor.proj import (
     signing_key_is_placeholder,
 )
 from xknxeditor.proj.core import import_notes
+from xknxeditor.proj.core.addressing import GroupAddressStyle
 from xknxeditor.proj.core.import_notes import ImportLoss
 from xknxeditor.proj.db import frame_db_profiler
 
@@ -261,6 +262,10 @@ class KnxGuiApp:
         self._save_file_dialog: pfd.save_file | None = None
         self._open_project_dialog: pfd.open_file | None = None
         self._save_project_dialog: pfd.save_file | None = None
+        # New-project wizard: collected before the save dialog opens, then applied to the fresh file.
+        self._new_project_requested = False
+        self._new_project_name = "New project"
+        self._new_project_style = GroupAddressStyle.THREE_LEVEL
         self._save_as_dialog: pfd.save_file | None = None
         self._import_knxproj_save_dialog: pfd.save_file | None = None
         self._import_ga_export_save_dialog: pfd.save_file | None = None
@@ -534,11 +539,17 @@ class KnxGuiApp:
         save_settings("app", data)
 
     def _new_project(self) -> None:
+        # Open the wizard first; it collects name + GA style, then opens the save dialog on confirm.
+        self._new_project_name = "New project"
+        self._new_project_style = GroupAddressStyle.THREE_LEVEL
+        self._new_project_requested = True
+
+    def _open_new_project_save_dialog(self) -> None:
         if not self._can_launch_file_dialog():
             return
         self._save_project_dialog = pfd.save_file(
             S.FILE_DIALOG_PROJECT_SAVE_TITLE,
-            "",
+            f"{self._new_project_name.strip() or 'New project'}.xknx",
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
         )
 
@@ -1300,6 +1311,46 @@ class KnxGuiApp:
             imgui.close_current_popup()
         imgui.end_popup()
 
+    def _render_new_project_modal(self) -> None:
+        if self._new_project_requested:
+            imgui.open_popup(S.NEW_PROJECT_TITLE)
+            self._new_project_requested = False
+        imgui.set_next_window_size(px_vec2(420.0, 0.0), imgui.Cond_.always)
+        if not imgui.begin_popup_modal(S.NEW_PROJECT_TITLE, None)[0]:
+            return
+        styles = (
+            (GroupAddressStyle.FREE, S.NEW_PROJECT_STYLE_FREE),
+            (GroupAddressStyle.TWO_LEVEL, S.NEW_PROJECT_STYLE_TWO_LEVEL),
+            (GroupAddressStyle.THREE_LEVEL, S.NEW_PROJECT_STYLE_THREE_LEVEL),
+        )
+        imgui.text_disabled(S.NEW_PROJECT_NAME_LABEL)
+        imgui.set_next_item_width(-1)
+        _, self._new_project_name = imgui.input_text(
+            "##new_project_name", self._new_project_name
+        )
+        imgui.spacing()
+        imgui.text_disabled(S.NEW_PROJECT_STYLE_LABEL)
+        imgui.set_next_item_width(-1)
+        current = next(
+            label for style, label in styles if style is self._new_project_style
+        )
+        if imgui.begin_combo("##new_project_style", current):
+            for style, label in styles:
+                if imgui.selectable(label, style is self._new_project_style)[0]:
+                    self._new_project_style = style
+            imgui.end_combo()
+        imgui.spacing()
+        btn_w = px_vec2(120, 0)
+        create = imgui.button(S.NEW_PROJECT_CREATE, btn_w)
+        imgui.same_line()
+        cancel = imgui.button(S.BTN_CANCEL, btn_w)
+        if create:
+            imgui.close_current_popup()
+            self._open_new_project_save_dialog()
+        elif cancel:
+            imgui.close_current_popup()
+        imgui.end_popup()
+
     def _start_url_import(self, url: str) -> None:
         """Download ``url`` on a worker thread and import it as a product source (behind the progress
         modal). Handles a .knxprod, an OpenKNX release ZIP, or a raw KNX product XML."""
@@ -1342,7 +1393,13 @@ class KnxGuiApp:
         self._import_password_error = None
 
     def _do_new_project(self, path: str) -> None:
-        self._project_service.new(Path(path))
+        name = self._new_project_name.strip() or "New project"
+        self._project_service.new(
+            Path(path),
+            name=name,
+            group_address_style=self._new_project_style,
+            building_name=name,
+        )
         self._add_recent(path)
         self._log.info("project created", path=path)
 
@@ -1625,6 +1682,12 @@ class KnxGuiApp:
             self._prompt_import_dest(path)
             return
 
+        # Legacy ETS3-era product databases (.vd1-.vd5) are not read directly; point the user at
+        # ETS's own conversion tools, which turn them into the .knxprod this importer accepts.
+        if path.lower().endswith((".vd1", ".vd2", ".vd3", ".vd4", ".vd5", ".vdx")):
+            self._knxprod_result = S.LEGACY_VD_HINT
+            return
+
         def worker() -> None:
             # Hold the catalog lock so per-frame catalog reads bail while it writes (see io_guarded).
             with self._catalog_service.io_lock:
@@ -1822,7 +1885,7 @@ class KnxGuiApp:
                     "",
                     [
                         S.FILE_DIALOG_KNXPROD_FILTER,
-                        "*.knxprod",
+                        "*.knxprod *.vd1 *.vd2 *.vd3 *.vd4 *.vd5 *.vdx",
                         S.FILE_DIALOG_ALL_FILES,
                         "*",
                     ],
@@ -2135,6 +2198,7 @@ class KnxGuiApp:
         self._render_network_consent_modal()
         self._render_overwrite_modal()
         self._render_url_prompt_modal()
+        self._render_new_project_modal()
         self._render_myknx_sign_modal()
         self._render_about_modal()
         self._render_update_modal()

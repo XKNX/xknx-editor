@@ -1283,6 +1283,10 @@ class _Writer:
             ref = di_id.get(link.device_id)
             if ref is not None:
                 self._el(trade_el, "DeviceInstanceRef", RefId=ref)
+        # Refs to unassigned devices did not resolve to a TradeDevice row; re-emit them verbatim so
+        # the trade's membership round-trips (they carry their original project-prefixed @RefId).
+        for ref in trade.unresolved_device_refs or []:
+            self._el(trade_el, "DeviceInstanceRef", RefId=ref)
 
     def _build_locations(
         self,

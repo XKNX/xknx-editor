@@ -124,3 +124,28 @@ def test_undo_remove_device_restores_binary_data(tmp_path: Path) -> None:
     with Session(make_engine(url_for(src))) as s:
         rows = s.query(DeviceBinaryData).all()
         assert [(r.name, r.data) for r in rows] == [("DaliGC16-Backup", blob)]
+
+
+def test_trade_ref_to_unassigned_device_survives_roundtrip(tmp_path: Path) -> None:
+    """A Trade/DeviceInstanceRef to an unassigned device (resolving to no TradeDevice row) is kept
+    verbatim and re-emitted on export, not silently dropped (#10)."""
+    src, device_id = _project_with_device(tmp_path)
+    with Session(make_engine(url_for(src))) as s:
+        device = s.get(Device, device_id)
+        assert device is not None
+        installation = device.segment.line.area.installation
+        trade = Trade(name="Electrical", number="1", order=0)
+        trade.devices.append(TradeDevice(device=device, order=0))
+        trade.unresolved_device_refs = ["P-GAP-0_DI-99"]
+        installation.trades.append(trade)
+        s.commit()
+
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out, schema="23")
+    round_path = tmp_path / "round.xknx"
+    import_knxproj(out, round_path)
+
+    with Session(make_engine(url_for(round_path))) as s:
+        trades = s.query(Trade).all()
+        assert len(trades) == 1
+        assert trades[0].unresolved_device_refs == ["P-GAP-0_DI-99"]
