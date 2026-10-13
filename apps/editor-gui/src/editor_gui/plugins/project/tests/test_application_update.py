@@ -26,7 +26,11 @@ class _Indexer:
 def test_parameters_are_matched_by_ref_number() -> None:
     indexer = _Indexer(
         {
-            None: {43: f"{NEW}_P-950_R-43", 7: f"{NEW}_P-7_R-7"},
+            None: {
+                43: f"{NEW}_P-950_R-43",
+                7: f"{NEW}_P-7_R-7",
+                100002901: f"{NEW}_UP-1000030_R-100002901",
+            },
             f"{NEW}_MD-1": {26: f"{NEW}_MD-1_P-21_R-26"},
         },
         none={f"{NEW}_P-7_R-7"},
@@ -34,6 +38,7 @@ def test_parameters_are_matched_by_ref_number() -> None:
     carried = carry_parameters(
         [
             (f"{OLD}_P-943_R-43", "0"),
+            (f"{OLD}_UP-1000029_R-100002901", "4"),
             (f"{OLD}_MD-1_M-1_MI-1_P-20_R-26", "1"),
             (f"{OLD}_P-7_R-7", "5"),
             (f"{OLD}_P-1_R-99", "2"),
@@ -45,6 +50,7 @@ def test_parameters_are_matched_by_ref_number() -> None:
     )
     assert carried.values == [
         (f"{NEW}_P-950_R-43", "0"),
+        (f"{NEW}_UP-1000030_R-100002901", "4"),
         (f"{NEW}_MD-1_M-1_MI-1_P-21_R-26", "1"),
     ]
     assert carried.dropped == 3
