@@ -49,4 +49,4 @@ xknxeditor-dali = { workspace = true }
 xknxeditor-recover = { workspace = true }
 # Keep-link-less-com-objects (PR #634) is merged on upstream main but not yet in a
 # PyPI release; pin to the merge commit until a release >= 3.11 ships, then drop this.
-xknxproject = { git = "https://github.com/XKNX/xknxproject", rev = "b16ba8b70ac23082a847c386fbd85862b8a12661" }
+xknxproject = { git = "https://github.com/XKNX/xknxproject", rev = "f97db068884eca2b460abb1fb4db2262345f7f47" }
