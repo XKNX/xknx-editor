@@ -15,7 +15,13 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 from editor_gui.concurrency import io_guarded, revision_cached
-from editor_gui.device import ComObject, Device, UnloadedDevice, address_order
+from editor_gui.device import (
+    ComObject,
+    Device,
+    UnloadedDevice,
+    address_order,
+    device_label,
+)
 from editor_gui.device_info import serial_to_project
 from editor_gui.device_plugins import ConfigurationApp, configuration_apps
 from editor_gui.plugins.project.strings import S
@@ -1247,7 +1253,7 @@ class ProjectService:
                             )
                         if report is not None:
                             label = (
-                                f"{device.individual_address}  {device.name}".strip()
+                                device_label(device)
                                 if device is not None
                                 else (row.name or "")
                             )

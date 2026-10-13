@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING, Protocol
 from imgui_bundle import imgui
 from imgui_bundle import portable_file_dialogs as pfd
 
+from editor_gui.device import device_label
 from editor_gui.os_open import open_path
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import label_render
@@ -314,9 +315,9 @@ class ToolsPanel:
 
     def _device_label(self, device: Device) -> str:
         """'<ia>  <name>  ·  <description>' for combos; names are often empty on import."""
-        label = f"{device.individual_address}  {device.name}".rstrip()
+        label = device_label(device)
         desc = self._describe(device.node_id)
-        return f"{label}  ·  {desc}" if desc else label
+        return f"{label}  ·  {desc}" if desc and desc not in label else label
 
     def _device_combo(self, combo_id: str, idx: int, devices: list[Device]) -> int:
         """A full-width device dropdown; returns the (possibly changed) selected index."""
@@ -536,7 +537,7 @@ class ToolsPanel:
     def _matches(self, device: Device, flt: str) -> bool:
         if not flt:
             return True
-        hay = f"{device.individual_address} {device.name} {self._describe(device.node_id)}"
+        hay = f"{device_label(device)} {self._describe(device.node_id)}"
         return flt in hay.lower()
 
     def _filtered(self, devices: list[Device], key: str) -> list[Device]:
@@ -550,9 +551,10 @@ class ToolsPanel:
     def _device_row_label(self, device: Device) -> None:
         """Render '<ia>  <name>  ·  <description>' after a row's checkbox."""
         imgui.same_line()
-        imgui.text(f"{device.individual_address}  {device.name}")
+        label = device_label(device)
+        imgui.text(label)
         desc = self._describe(device.node_id)
-        if desc:
+        if desc and desc not in label:
             imgui.same_line()
             imgui.text_disabled(f" · {desc}")
 

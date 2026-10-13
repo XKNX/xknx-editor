@@ -345,10 +345,7 @@ class DevicesPanel:
 
     def _device_display_name(self, device: TreeDevice) -> str:
         """Human label for dialogs: name, else product/app name, prefixed with the address."""
-        primary = device.display_name or "?"
-        if device.individual_address:
-            return f"{device.individual_address} {primary}"
-        return primary
+        return device_label(device)
 
     def _device_matches(self, device: TreeDevice, flt: str) -> bool:
         """Case-insensitive match of a device against the filter (name, product, address, app)."""

@@ -493,11 +493,7 @@ class SpacesPanel:
             ):
                 imgui.set_clipboard_text(device.individual_address)
             if self._on_copy_config is not None:
-                config_label = (
-                    f"{device.individual_address} {primary}"
-                    if device.individual_address
-                    else primary
-                )
+                config_label = self._device_label(device)
                 if imgui.menu_item(S.CONTEXT_DUPLICATE, "", False)[0]:
                     self._config_dialog.open(device.id, config_label, "duplicate")
                 if imgui.menu_item(S.CONTEXT_COPY_CONFIG, "", False)[0]:

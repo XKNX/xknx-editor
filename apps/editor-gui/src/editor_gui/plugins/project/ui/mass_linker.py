@@ -23,6 +23,7 @@ from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
+from editor_gui.device import device_label
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.widgets.checkbox import checkbox
@@ -763,14 +764,14 @@ class MassLinkerPanel:
                     for co in device.get_visible_com_objects()
                     if co.db_id is not None
                     and (
-                        not flt or flt in co.name.lower() or flt in device.name.lower()
+                        not flt
+                        or flt in co.name.lower()
+                        or flt in device_label(device).lower()
                     )
                 ]
                 if not cos:
                     continue
-                header = (
-                    f"{device.individual_address}  {device.name}##dev{device.node_id}"
-                )
+                header = f"{device_label(device)}##dev{device.node_id}"
                 if imgui.tree_node_ex(header, imgui.TreeNodeFlags_.default_open):
                     # One click grabs every object of the device (the "drop a device" speed-up).
                     if imgui.small_button(f"{S.ML_SELECT_ALL}##all{device.node_id}"):

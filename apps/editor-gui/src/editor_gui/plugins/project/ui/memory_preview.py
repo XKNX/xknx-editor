@@ -4,7 +4,7 @@ from pathlib import Path
 
 from imgui_bundle import imgui
 
-from editor_gui.device import Device
+from editor_gui.device import Device, device_label
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets import HexView
 from editor_gui.widgets.dpi import px, px_vec2
@@ -98,10 +98,7 @@ class MemoryPreviewWindow:
         current_idx = 0
         labels: list[str] = []
         for i, d in enumerate(devices):
-            label = (
-                f"{d.name} ({d.individual_address})" if d.individual_address else d.name
-            )
-            labels.append(label)
+            labels.append(device_label(d))
             if self._device is not None and d.node_id == self._device.node_id:
                 current_idx = i
         imgui.set_next_item_width(-1)
