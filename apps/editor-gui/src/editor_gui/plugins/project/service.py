@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 from editor_gui.concurrency import io_guarded, revision_cached
-from editor_gui.device import Device, UnloadedDevice, address_order
+from editor_gui.device import ComObject, Device, UnloadedDevice, address_order
 from editor_gui.device_info import serial_to_project
 from editor_gui.device_plugins import ConfigurationApp, configuration_apps
 from editor_gui.plugins.project.strings import S
@@ -27,7 +27,6 @@ from xknxeditor.namespaces.intermediate import (
 )
 from xknxeditor.namespaces.intermediate.enable_t import Enable
 from xknxeditor.prod import Application
-from xknxeditor.prod.app_id import parse_app_id
 from xknxeditor.prod.gc_pause import gc_paused
 from xknxeditor.prod.parser_v2.calculation import VALIDATION_FAILED
 from xknxeditor.proj import ProjectService as _ProjectService
@@ -42,7 +41,6 @@ from xknxeditor.proj.core.skeleton import MEDIUM_TP
 
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger
-    from editor_gui.plugins.catalog.online_catalog import OnlineCatalogItem
     from editor_gui.plugins.catalog.service import CatalogService
     from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
     from xknxeditor.download.image import GroupCommunication
@@ -1926,105 +1924,63 @@ class ProjectService:
             default=None,
         )
 
-    def _online_update_candidates(self, device: Device) -> "list[OnlineCatalogItem]":
-        if self._pid is None:
-            return []
-        parsed = parse_app_id(device.app.id)
-        if parsed is None:
-            return []
-        info = self._svc.device(self._pid, device.node_id)
-        return [
-            item
-            for item in self._catalog.online_products_for_order(info.order_number)
-            if item.application_version is not None
-            and item.application_version > parsed.version
-            and item.downloadable  # skip gated versions: the online download would be rejected (400)
-        ]
-
     def newer_application_version(self, device: Device) -> int | None:
-        """The application version "Update" switches the device to, or ``None``: the local update
-        target or, when the online catalog has a newer downloadable version, that one."""
-        versions = [
-            item.application_version
-            for item in self._online_update_candidates(device)
-            if item.application_version is not None
-        ]
-        local = self.local_update_target(device)
-        if local is not None and local.application_version is not None:
-            versions.append(local.application_version)
-        return max(versions) if versions else None
+        """The application version "Update" switches the device to, or ``None``."""
+        target = self.local_update_target(device)
+        return target.application_version if target is not None else None
 
     def update_application(self, device: Device) -> UpdateApplicationResult | None:
-        """Update ``device`` to the newest available version of the *same* application program,
-        keeping parameter values and group-address links. Imports the newer ``.knxprod`` from the
-        online catalog when it is not already local, then repoints the device and re-maps its refs
-        (see :class:`~xknxeditor.proj.core.events.UpdateDeviceApplication`). Returns the outcome, or
-        ``None`` when no newer version is available or it cannot be resolved."""
+        """Update ``device`` to the local application version that replaces its own ("Update
+        Application Program Version"). Parameter values are carried over by ParameterRef number,
+        group objects of the same size by ComObjectRef number with their flags, priority,
+        datapoint type and links. Returns the outcome, or ``None`` when there is no such version
+        or it cannot be resolved."""
+        from editor_gui.plugins.project.application_update import (
+            carry_com_objects,
+            carry_parameters,
+        )
         from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 
         if self._pid is None:
             return None
-        parsed = parse_app_id(device.app.id)
-        info = self._svc.device(self._pid, device.node_id)
-        candidates = self._online_update_candidates(device)
-        target = max(
-            candidates, key=lambda item: item.application_version or 0, default=None
-        )
-        local = self.local_update_target(device)
+        target = self.local_update_target(device)
         if (
-            local is not None
-            and local.application_id is not None
-            and (
-                target is None
-                or (local.application_version or 0) >= (target.application_version or 0)
-            )
+            target is None
+            or target.application_id is None
+            or target.application_version is None
         ):
-            target_version = local.application_version
-            product_ref_id = info.product_ref_id
-            hardware2program_ref_id = local.id
-            new_app_id = local.application_id
-            display: dict[str, str | None] = {}
-        elif target is not None and parsed is not None:
-            target_version = target.application_version
-            product = self._resolve_product_for_version(
-                parsed.manufacturer_id,
-                parsed.application_number,
-                target.application_version or 0,
-                target.id,
-            )
-            if product is None or product.application_id is None:
-                self._log.warning(
-                    "update application: target product not resolvable",
-                    device=device.node_id,
-                    order=info.order_number,
-                    version=target_version,
-                )
-                return None
-            product_ref_id = product.product_ref_id
-            hardware2program_ref_id = product.hardware2program_ref_id
-            new_app_id = product.application_id
-            display = {
-                "order_number": product.order_number,
-                "product_name": product.name,
-                "manufacturer_name": product.manufacturer_name,
-            }
-        else:
             return None
-        assert target_version is not None
-        new_app = self._catalog.get_application(new_app_id)
-        if new_app is None:
+        new_app = self._catalog.get_application(target.application_id)
+        row = next(
+            (r for r in self._svc.devices(self._pid) if r.id == device.node_id), None
+        )
+        if new_app is None or row is None:
             return None
-        indexer = ApplicationIndexer(new_app.program)
-        valid = list(set(indexer.parameter_refs) | set(indexer.com_object_refs))
-        kept, dropped = self._svc.update_device_application(
+        parameters = carry_parameters(
+            [(p.ref_id, p.value) for p in row.parameters],
+            device.app.id,
+            new_app.id,
+            ApplicationIndexer(new_app.program),
+        )
+        module_instances, new_objects = self._initial_rows(
+            device.name, new_app, parameters.values
+        )
+        objects = carry_com_objects(
+            row.com_objects,
+            {co.id: co.object_size for co in device.com_objects},
+            device.app.id,
+            [(co.id, co.object_size) for co in new_objects],
+            new_app.id,
+        )
+        self._svc.change_device_application(
             self._pid,
             device.node_id,
-            product_ref_id=product_ref_id,
-            hardware2program_ref_id=hardware2program_ref_id,
-            old_app_id=device.app.id,
-            new_app_id=new_app_id,
-            valid_ref_ids=valid,
-            **display,
+            hardware2program_ref_id=target.id,
+            new_app_id=new_app.id,
+            com_objects=[(co.id, None) for co in new_objects],
+            module_instances=module_instances or None,
+            parameters=parameters.values,
+            com_object_data=objects.data,
         )
         self._app_cache.clear()
         self._bump()
@@ -2033,15 +1989,17 @@ class ProjectService:
             self.recalculate_params(
                 updated.node_id, [p.ref_id for p in updated.parameter_instance_refs]
             )
+        kept = len(parameters.values) + objects.kept
+        dropped = parameters.dropped + objects.dropped
         self._log.info(
             "application updated",
             device=device.node_id,
-            to_version=target_version,
+            to_version=target.application_version,
             kept=kept,
             dropped=dropped,
         )
         return UpdateApplicationResult(
-            new_version=target_version, kept=kept, dropped=dropped
+            new_version=target.application_version, kept=kept, dropped=dropped
         )
 
     def change_application(self, device: Device, program: "ProgramSummary") -> bool:
@@ -2057,18 +2015,13 @@ class ProjectService:
                 application=program.application_id,
             )
             return False
-        probe = Device(node_id=0, name=device.name, app=new_app, individual_address="")
-        module_instances = probe.get_module_instances()
-        com_objects: list[tuple[str, str | None]] = [
-            (co.id, None) for co in probe.com_objects
-        ]
-        probe.release_dynamic_ui()
+        module_instances, com_objects = self._initial_rows(device.name, new_app, [])
         self._svc.change_device_application(
             self._pid,
             device.node_id,
             hardware2program_ref_id=program.id,
             new_app_id=new_app.id,
-            com_objects=com_objects,
+            com_objects=[(co.id, None) for co in com_objects],
             module_instances=module_instances or None,
         )
         self._app_cache.clear()
@@ -2080,30 +2033,6 @@ class ProjectService:
             new=new_app.id,
         )
         return True
-
-    def _resolve_product_for_version(
-        self,
-        manufacturer_id: str,
-        application_number: int,
-        version: int,
-        catalog_item_id: str,
-    ) -> "ProductSummary | None":
-        """The catalog product for an exact application version, downloading+importing the online
-        ``.knxprod`` first when it is not present locally."""
-        products = self._catalog.find_products_for_application(
-            manufacturer_id=manufacturer_id,
-            application_number=application_number,
-            application_version=version,
-        )
-        if not products:
-            self._catalog.download_online_products([catalog_item_id])
-            self._app_cache.clear()
-            products = self._catalog.find_products_for_application(
-                manufacturer_id=manufacturer_id,
-                application_number=application_number,
-                application_version=version,
-            )
-        return products[0] if products else None
 
     def find_or_create_segment_for_address(self, individual_address: str) -> int | None:
         """Return the segment id for an address' area/line, creating them if absent.
@@ -2143,33 +2072,11 @@ class ProjectService:
         self._bump()
         return line.segments[0].id
 
-    def add_device(
-        self,
-        product_ref_id: str,
-        hardware2program_ref_id: str | None,
-        name: str,
-        app: Application,
-        *,
-        segment_id: int | None = None,
-        address: int | None = None,
-        parameters: list[tuple[str, str]] | None = None,
-        product: DeviceProduct | None = None,
-    ) -> int | None:
-        if self._pid is None:
-            return None
-        product = product or DeviceProduct()
-        if segment_id is None:
-            segment_id = self._default_device_segment_id()
-        if address is None:
-            # Assign the next free individual address on the target line (standard behaviour), instead of
-            # leaving the device address-less. Editable afterwards in Configure. If the line is full,
-            # fall back to no address rather than failing the add.
-            try:
-                address = self._svc.next_free_individual_address_for_segment(
-                    self._pid, segment_id
-                )
-            except ValueError:
-                address = None
+    def _initial_rows(
+        self, name: str, app: Application, parameters: list[tuple[str, str]] | None
+    ) -> tuple[list[tuple[str, str]], list[ComObject]]:
+        """The module instances and active group objects of a new device of ``app`` with
+        ``parameters``."""
         pirs = _parameter_instance_refs(parameters)
         # A module-scoped parameter override (…_M-100_MI-1_P-…) only routes into its module scope
         # once that scope has been materialized — building with parameter_instance_refs alone leaves
@@ -2208,8 +2115,40 @@ class ProjectService:
             module_instances = init_device.get_module_instances()
         else:
             init_device = probe
+        com_objects = list(init_device.com_objects)
+        init_device.release_dynamic_ui()
+        return module_instances, com_objects
+
+    def add_device(
+        self,
+        product_ref_id: str,
+        hardware2program_ref_id: str | None,
+        name: str,
+        app: Application,
+        *,
+        segment_id: int | None = None,
+        address: int | None = None,
+        parameters: list[tuple[str, str]] | None = None,
+        product: DeviceProduct | None = None,
+    ) -> int | None:
+        if self._pid is None:
+            return None
+        product = product or DeviceProduct()
+        if segment_id is None:
+            segment_id = self._default_device_segment_id()
+        if address is None:
+            # Assign the next free individual address on the target line (standard behaviour), instead of
+            # leaving the device address-less. Editable afterwards in Configure. If the line is full,
+            # fall back to no address rather than failing the add.
+            try:
+                address = self._svc.next_free_individual_address_for_segment(
+                    self._pid, segment_id
+                )
+            except ValueError:
+                address = None
+        module_instances, init_objects = self._initial_rows(name, app, parameters)
         com_objects: list[tuple[str, str | None]] = [
-            (co.id, None) for co in init_device.com_objects
+            (co.id, None) for co in init_objects
         ]
         device_id = self._svc.add_device(
             self._pid,

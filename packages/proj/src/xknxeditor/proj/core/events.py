@@ -593,14 +593,16 @@ def _restore_application_loaded(device: Device, values: list[bool]) -> None:
 @_register
 @dataclass
 class ChangeDeviceApplication(Event):
-    """Switch a device to another application program of its hardware ("Change Application
-    Program"), starting from that application's defaults.
+    """Switch a device to another application program of its hardware, starting from that
+    application's defaults ("Change Application Program") or with values carried over from the
+    old one ("Update Application Program Version").
 
     Parameters, module instances, com objects with their group-address links, binary data, the
     group-object tree and the channel instances are removed; the new application's module
-    instances and com objects are added. The application, parameter and communication loaded
-    flags are cleared. The individual address, name, serial number, security and IP settings,
-    additional addresses and bus interfaces stay.
+    instances, ``parameters`` and com objects are added. ``com_object_data`` holds, per entry of
+    ``com_objects``, the flags, priority, datapoint type and links to set, or ``None``. The
+    application, parameter and communication loaded flags are cleared. The individual address,
+    name, serial number, security and IP settings, additional addresses and bus interfaces stay.
     """
 
     event_type: ClassVar[str] = "ChangeDeviceApplication"
@@ -612,8 +614,15 @@ class ChangeDeviceApplication(Event):
     com_objects: list[list[str | None]] = field(default_factory=list[list[str | None]])
     # [instance_id, ref_id] per row
     module_instances: list[list[str]] = field(default_factory=list[list[str]])
+    # [ref_id, value] per row
+    parameters: list[list[str]] = field(default_factory=list[list[str]])
+    com_object_data: list[dict[str, Any] | None] = field(
+        default_factory=list[dict[str, Any] | None]
+    )
     com_object_ids: list[int] = field(default_factory=list[int])
     module_instance_ids: list[int] = field(default_factory=list[int])
+    parameter_ids: list[int] = field(default_factory=list[int])
+    link_ids: list[int] = field(default_factory=list[int])
     # Captured on apply for revert.
     old_hardware2program_ref_id: str | None = None
     old_app_id: str | None = None
@@ -667,19 +676,44 @@ class ChangeDeviceApplication(Event):
                 instance.id = self.module_instance_ids[i]
             session.add(instance)
             added_instances.append(instance)
+        added_parameters: list[Parameter] = []
+        for i, (ref_id, value) in enumerate(self.parameters):
+            parameter = Parameter(device_id=self.device_id, ref_id=ref_id, value=value)
+            if i < len(self.parameter_ids):
+                parameter.id = self.parameter_ids[i]
+            session.add(parameter)
+            added_parameters.append(parameter)
         added_objects: list[ComObject] = []
         for i, (ref_id, channel_id) in enumerate(self.com_objects):
             assert ref_id is not None
             com_object = ComObject(
                 device_id=self.device_id, ref_id=ref_id, channel_id=channel_id
             )
+            data = self.com_object_data[i] if i < len(self.com_object_data) else None
+            for name, value in (data or {}).get("fields", {}).items():
+                setattr(com_object, name, value)
             if i < len(self.com_object_ids):
                 com_object.id = self.com_object_ids[i]
             session.add(com_object)
             added_objects.append(com_object)
         session.flush()
+        added_links: list[ComObjectLink] = []
+        for com_object, data in zip(added_objects, self.com_object_data, strict=False):
+            for group_address_id, is_sending in (data or {}).get("links", []):
+                link = ComObjectLink(
+                    com_object_id=com_object.id,
+                    group_address_id=group_address_id,
+                    is_sending=is_sending,
+                )
+                if len(added_links) < len(self.link_ids):
+                    link.id = self.link_ids[len(added_links)]
+                session.add(link)
+                added_links.append(link)
+        session.flush()
         self.module_instance_ids = [row.id for row in added_instances]
+        self.parameter_ids = [row.id for row in added_parameters]
         self.com_object_ids = [row.id for row in added_objects]
+        self.link_ids = [row.id for row in added_links]
 
     def revert(self, session: Session) -> None:
         device = session.get(Device, self.device_id)
@@ -687,6 +721,7 @@ class ChangeDeviceApplication(Event):
             return
         for model, ids in (
             (ComObject, self.com_object_ids),
+            (Parameter, self.parameter_ids),
             (ModuleInstance, self.module_instance_ids),
         ):
             for row_id in ids:
@@ -710,8 +745,12 @@ class ChangeDeviceApplication(Event):
             "new_app_id": self.new_app_id,
             "com_objects": self.com_objects,
             "module_instances": self.module_instances,
+            "parameters": self.parameters,
+            "com_object_data": self.com_object_data,
             "com_object_ids": self.com_object_ids,
             "module_instance_ids": self.module_instance_ids,
+            "parameter_ids": self.parameter_ids,
+            "link_ids": self.link_ids,
             "old_hardware2program_ref_id": self.old_hardware2program_ref_id,
             "old_app_id": self.old_app_id,
             "old_fields": self.old_fields,

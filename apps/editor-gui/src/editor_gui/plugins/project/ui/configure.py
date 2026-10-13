@@ -259,9 +259,6 @@ class ConfigurePanel:
         self._expected_cache: dict[int, set[int]] = {}
         self._ga_names_cache_key: int | None = None
         self._ga_names_cache: dict[int, str] = {}
-        self._confirm_update_open: bool = False
-        self._alert_update_open: bool = False
-        self._alert_version: int = 0
         self._manual_busy: bool = False  # a manual lookup thread is running
         self._group_objects_table = GroupObjectsTable(
             set_flag,
@@ -676,25 +673,15 @@ class ConfigurePanel:
                 else None
             )
             imgui.begin_disabled(version is None)
-            if imgui.button(
-                S.CONFIGURE_UPDATE_BUTTON.format(
-                    version=application_version_text(version)
-                )
-                if version is not None
-                else S.BTN_UPDATE
-            ):
-                self._confirm_update_open = True
+            if imgui.button(S.BTN_UPDATE):
+                self._on_update_application(device)
             imgui.end_disabled()
-            if version is not None:
-                if self._confirm_update_open:
-                    imgui.open_popup(S.UPDATE_CONFIRM_TITLE)
-                    self._confirm_update_open = False
-                self._render_update_confirm(device, version)
-        # The update-success alert is a flag-driven modal, opened after an application update.
-        if self._alert_update_open:
-            imgui.open_popup(S.UPDATE_ALERT_TITLE)
-            self._alert_update_open = False
-        self._render_update_alert()
+            if version is not None and imgui.is_item_hovered():
+                imgui.set_tooltip(
+                    S.CONFIGURE_UPDATE_BUTTON.format(
+                        version=application_version_text(version)
+                    )
+                )
 
     def _render_manufacturer_section(self, device: Device) -> None:
         """Manufacturer, product and application details of the selected device."""
@@ -1098,45 +1085,6 @@ class ConfigurePanel:
         imgui.end_disabled()
         imgui.same_line()
         if imgui.button(f"{S.ML_CANCEL}##reset_cancel"):
-            imgui.close_current_popup()
-        imgui.end_popup()
-
-    def _render_update_confirm(self, device: Device, version: int) -> None:
-        if not imgui.begin_popup_modal(
-            S.UPDATE_CONFIRM_TITLE, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
-            return
-        text = application_version_text(version)
-        imgui.text_wrapped(S.UPDATE_CONFIRM_TEXT.format(version=text))
-        imgui.spacing()
-        btn_w = px_vec2(180, 0)
-        if imgui.button(S.CONFIGURE_UPDATE_BUTTON.format(version=text), btn_w):
-            ok = (
-                bool(self._on_update_application(device))
-                if self._on_update_application is not None
-                else False
-            )
-            if ok:
-                self._alert_version = version
-                self._alert_update_open = True
-            imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, btn_w):
-            imgui.close_current_popup()
-        imgui.end_popup()
-
-    def _render_update_alert(self) -> None:
-        if not imgui.begin_popup_modal(
-            S.UPDATE_ALERT_TITLE, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
-            return
-        imgui.text_wrapped(
-            S.UPDATE_ALERT_TEXT.format(
-                version=application_version_text(self._alert_version)
-            )
-        )
-        imgui.spacing()
-        if imgui.button(S.BTN_OK, px_vec2(120, 0)):
             imgui.close_current_popup()
         imgui.end_popup()
 

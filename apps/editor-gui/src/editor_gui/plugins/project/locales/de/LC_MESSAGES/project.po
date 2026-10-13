@@ -882,35 +882,6 @@ msgstr "(aktuell)"
 msgid "Update to V{version}"
 msgstr "Auf V{version} aktualisieren"
 
-msgid "Update Application Program"
-msgstr "Applikationsprogramm aktualisieren"
-
-msgid ""
-"Update this device to application version V{version}? Parameter values and "
-"group-address links are kept; settings that no longer exist in the new version "
-"are dropped. The newer product is downloaded from the online catalog if needed."
-msgstr ""
-"Dieses Gerät auf Applikationsversion V{version} aktualisieren? Parameterwerte und "
-"Gruppenadress-Verknüpfungen bleiben erhalten; Einstellungen, die es in der neuen "
-"Version nicht mehr gibt, werden verworfen. Das neuere Produkt wird bei Bedarf aus "
-"dem Online-Katalog geladen."
-
-msgid "Updated to V{version}: {kept} settings kept, {dropped} dropped"
-msgstr "Auf V{version} aktualisiert: {kept} Einstellungen übernommen, {dropped} verworfen"
-
-msgid "Application Updated"
-msgstr "Applikation aktualisiert"
-
-msgid ""
-"Update to V{version} successful. You can now program the application onto "
-"the device so the change takes effect."
-msgstr ""
-"Aktualisierung auf V{version} erfolgreich. Sie können jetzt die Applikation "
-"aufs Gerät programmieren, damit die Änderung wirksam wird."
-
-msgid "Update failed: no newer version could be resolved"
-msgstr "Aktualisierung fehlgeschlagen: keine neuere Version gefunden"
-
 msgid "+ Function"
 msgstr "+ Funktion"
 
@@ -1356,8 +1327,8 @@ msgstr "Applikationsprogramm-Version aktualisieren"
 msgid "Update"
 msgstr "Aktualisieren"
 
-msgid "Application program changed to {name}"
-msgstr "Applikationsprogramm geändert in {name}"
-
 msgid "Changing the application program failed"
 msgstr "Ändern des Applikationsprogramms fehlgeschlagen"
+
+msgid "Updating the application program failed"
+msgstr "Aktualisieren des Applikationsprogramms fehlgeschlagen"

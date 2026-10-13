@@ -1322,43 +1322,12 @@ class ProjectStrings:
         return _("Update")
 
     @property
-    def CHANGE_APP_DONE(self) -> str:
-        return _("Application program changed to {name}")
-
-    @property
     def CHANGE_APP_FAILED(self) -> str:
         return _("Changing the application program failed")
 
     @property
-    def UPDATE_CONFIRM_TITLE(self) -> str:
-        return _("Update Application Program")
-
-    @property
-    def UPDATE_CONFIRM_TEXT(self) -> str:
-        return _(
-            "Update this device to application version V{version}? Parameter values and "
-            "group-address links are kept; settings that no longer exist in the new version "
-            "are dropped. The newer product is downloaded from the online catalog if needed."
-        )
-
-    @property
-    def UPDATE_APP_DONE(self) -> str:
-        return _("Updated to V{version}: {kept} settings kept, {dropped} dropped")
-
-    @property
-    def UPDATE_ALERT_TITLE(self) -> str:
-        return _("Application Updated")
-
-    @property
-    def UPDATE_ALERT_TEXT(self) -> str:
-        return _(
-            "Update to V{version} successful. You can now program the application onto "
-            "the device so the change takes effect."
-        )
-
-    @property
     def UPDATE_APP_FAILED(self) -> str:
-        return _("Update failed: no newer version could be resolved")
+        return _("Updating the application program failed")
 
     @property
     def CONFIGURE_COPIED(self) -> str:

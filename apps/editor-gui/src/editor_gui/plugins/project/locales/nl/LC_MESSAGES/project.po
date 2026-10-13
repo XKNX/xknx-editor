@@ -876,8 +876,8 @@ msgstr "Versie van applicatieprogramma bijwerken"
 msgid "Update"
 msgstr "Bijwerken"
 
-msgid "Application program changed to {name}"
-msgstr "Applicatieprogramma gewijzigd in {name}"
-
 msgid "Changing the application program failed"
 msgstr "Wijzigen van het applicatieprogramma mislukt"
+
+msgid "Updating the application program failed"
+msgstr "Bijwerken van het applicatieprogramma mislukt"

@@ -110,3 +110,35 @@ def test_change_undo_restores_the_device(tmp_path: Path) -> None:
         f"{NEW}_O-2_R-2",
     ]
     assert not device.application_program_loaded
+
+
+def test_update_carries_values_settings_and_links(tmp_path: Path) -> None:
+    svc, pid, device_id, ga = _project(tmp_path)
+    svc.change_device_application(
+        pid,
+        device_id,
+        hardware2program_ref_id=NEW_H2P,
+        new_app_id=NEW,
+        com_objects=[(f"{NEW}_O-1_R-1", None), (f"{NEW}_O-2_R-2", None)],
+        parameters=[(f"{NEW}_P-1_R-1", "42")],
+        com_object_data=[
+            {"fields": {"priority": "High"}, "links": [[ga, True]]},
+            None,
+        ],
+    )
+    device = svc.devices(pid)[0]
+    assert {p.ref_id: p.value for p in device.parameters} == {f"{NEW}_P-1_R-1": "42"}
+    first, second = device.com_objects
+    assert first.priority == "High"
+    assert [(link.group_address_id, link.is_sending) for link in first.links] == [
+        (ga, True)
+    ]
+    assert second.links == []
+
+    assert svc.undo(pid)
+    device = svc.devices(pid)[0]
+    assert [c.ref_id for c in device.com_objects] == [f"{OLD}_O-1_R-1"]
+    assert {p.ref_id for p in device.parameters} == {f"{OLD}_P-1_R-1"}
+    assert svc.redo(pid)
+    device = svc.devices(pid)[0]
+    assert [len(c.links) for c in device.com_objects] == [1, 0]

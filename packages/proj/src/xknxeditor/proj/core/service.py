@@ -1070,9 +1070,12 @@ class ProjectService:
         new_app_id: str,
         com_objects: list[tuple[str, str | None]],
         module_instances: list[tuple[str, str]] | None = None,
+        parameters: list[tuple[str, str]] | None = None,
+        com_object_data: list[dict[str, Any] | None] | None = None,
     ) -> None:
         """Switch a device to another application program of its hardware, starting from that
-        application's defaults (see :class:`ChangeDeviceApplication`)."""
+        application's defaults plus ``parameters`` and ``com_object_data`` (see
+        :class:`ChangeDeviceApplication`)."""
         self._state(project_id).store.append(
             ChangeDeviceApplication(
                 device_id=device_id,
@@ -1080,6 +1083,8 @@ class ProjectService:
                 new_app_id=new_app_id,
                 com_objects=[[ref, channel] for ref, channel in com_objects],
                 module_instances=[list(row) for row in module_instances or []],
+                parameters=[list(row) for row in parameters or []],
+                com_object_data=list(com_object_data or []),
             )
         )
 

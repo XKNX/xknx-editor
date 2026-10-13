@@ -183,9 +183,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_devices_with_update() -> dict[str, Any]:
-        """List devices for which a newer version of the same application program is available:
-        a local catalog version whose ReplacesVersions names the current one, or a newer version
-        online (from the cached online catalog index; build it in the Catalog panel if empty).
+        """List devices that project_update_application can update: the local catalog has a
+        version of the same application program whose ReplacesVersions names the current one.
 
         Read-only. Each item: node_id, individual_address, name, application_id, current_version,
         available_version. Use project_update_application(node_id) to apply an update."""
@@ -216,10 +215,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_update_application(node_id: int) -> dict[str, Any]:
-        """Update a device to the newest available version of the SAME application program, keeping
-        its parameter values and group-address links ("Update Application Program"). Uses the local
-        catalog version that replaces the current one, or imports a newer .knxprod from the online
-        catalog.
+        """Update a device to the local catalog version of the SAME application program that
+        replaces the current one ("Update Application Program Version"). Parameter values carry over
+        by ParameterRef number, group objects of the same size by ComObjectRef number with their
+        flags, priority, datapoint type and group-address links.
 
         This changes the PROJECT only. To apply it on the bus, program the device afterwards
         (connection_program_device with scope "ap1"/application). Returns new_version, kept, dropped."""

@@ -8,8 +8,6 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from editor_gui.device_info import (
-    application_program_label,
-    application_version_text,
     same_application,
     serial_from_project,
     serial_to_project,
@@ -661,40 +659,19 @@ class ProjectPlugin:
         return sorted(versions, reverse=True)
 
     def _update_application(self, device: "Device") -> bool:
-        """Update the device to the newest available version of its application, keeping parameters
-        and links ("Update Application Program"). Imports the newer .knxprod if needed. Returns
-        whether an update was applied (the panel shows a success alert on ``True``)."""
+        """Update the device to the local application version that replaces its own ("Update
+        Application Program Version"). Returns whether it was updated."""
         result = self._api.project.update_application(device)
-        if self._api.notify is not None:
-            if result is None:
-                self._api.notify(S.UPDATE_APP_FAILED)
-            else:
-                self._api.notify(
-                    S.UPDATE_APP_DONE.format(
-                        version=application_version_text(result.new_version),
-                        kept=result.kept,
-                        dropped=result.dropped,
-                    )
-                )
+        if result is None and self._api.notify is not None:
+            self._api.notify(S.UPDATE_APP_FAILED)
         return result is not None
 
     def _change_application(self, device: "Device", program: "ProgramSummary") -> bool:
         """Switch the device to another application program of its hardware, from that
         application's defaults ("Change Application Program")."""
         changed = self._api.project.change_application(device, program)
-        if self._api.notify is not None:
-            if changed:
-                assert program.application_version is not None
-                self._api.notify(
-                    S.CHANGE_APP_DONE.format(
-                        name=application_program_label(
-                            program.application_name or program.id,
-                            program.application_version,
-                        )
-                    )
-                )
-            else:
-                self._api.notify(S.CHANGE_APP_FAILED)
+        if not changed and self._api.notify is not None:
+            self._api.notify(S.CHANGE_APP_FAILED)
         return changed
 
     def _restart_device(self, device: "Device") -> None:
