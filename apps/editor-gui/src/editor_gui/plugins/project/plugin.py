@@ -1,8 +1,10 @@
 import datetime
 import functools
+import tempfile
 import threading
 import zipfile
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from editor_gui.device_info import (
@@ -37,6 +39,13 @@ from editor_gui.plugins.project.ui.devices import Area, Line
 from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
 from editor_gui.plugins.project.ui.preflight_result import PreflightResultWindow
 from editor_gui.plugins.project.ui.program_queue import ProgramQueuePanel
+from editor_gui.plugins.project.ui.project_diff import (
+    DeviceSnap,
+    DiffResult,
+    GaSnap,
+    ProjectSnapshot,
+    diff_projects,
+)
 from editor_gui.plugins.project.ui.read_device_dialog import ReadDeviceDialog
 from editor_gui.plugins.project.ui.tools import apply_name_swap, shifted_ia
 from editor_gui.widgets import ButtonActions
@@ -300,6 +309,10 @@ class ProjectPlugin:
             on_replace_device=self._tools_replace_device,
             get_space_path=self._device_space_path,
             get_device_gas=self._device_gas,
+            get_group_addresses=lambda: api.project.group_addresses,
+            get_group_address_style=lambda: api.project.group_address_style,
+            on_shift_group_addresses=self._tools_shift_group_addresses,
+            on_diff_projects=self._tools_diff_projects,
         )
 
         self._panels = [
@@ -1100,6 +1113,144 @@ class ProjectPlugin:
             "shift addresses", plugin="project", offset=offset, changed=changed
         )
         return changed, errors
+
+    def _tools_shift_group_addresses(
+        self, ga_ids: list[int], offset: int
+    ) -> tuple[int, list[str]]:
+        """Shift the raw value of each selected group address by ``offset``.
+
+        Mirrors the individual-address shift: the full destination state is preflighted for
+        out-of-range values and collisions (against moving and stationary addresses alike), and
+        nothing is written if any conflict is found. Com-object links are preserved because the
+        project renumbers via its change-address command. Moves are applied in the order that
+        frees each target before it is used, so no intermediate write clashes."""
+        from xknxeditor.proj.core.addressing import format_ga
+
+        gas = self._api.project.group_addresses
+        by_id = {g.id: g for g in gas}
+        selected_ids = [g for g in ga_ids if g in by_id]
+        style = self._api.project.group_address_style
+        errors: list[str] = []
+
+        targets: dict[int, int] = {}
+        for gid in selected_ids:
+            ga = by_id[gid]
+            new = ga.raw + offset
+            if not 1 <= new <= 0xFFFF:
+                errors.append(f"{ga.address} {ga.name}: offset leaves the valid range")
+            else:
+                targets[gid] = new
+
+        # Full final state: movers take their target raw value, everyone else keeps theirs.
+        final: dict[int, list[str]] = {}
+        for g in gas:
+            raw = targets.get(g.id, g.raw)
+            final.setdefault(raw, []).append(g.name or str(g.id))
+        for raw, who in final.items():
+            if len(who) > 1:
+                errors.append(
+                    f"{format_ga(raw, style)}: would collide ({', '.join(who)})"
+                )
+
+        if errors:
+            return 0, errors  # abort; write nothing
+
+        # Apply in the direction that frees each target before it is written to.
+        movers = sorted(
+            (by_id[g] for g in targets), key=lambda g: g.raw, reverse=offset > 0
+        )
+        changed = 0
+        for ga in movers:
+            if self._api.project.set_group_address_address(
+                ga.id, format_ga(targets[ga.id], style)
+            ):
+                changed += 1
+        self._api.log.info(
+            "shift group addresses", plugin="project", offset=offset, changed=changed
+        )
+        return changed, errors
+
+    def _tools_diff_projects(self, other_path: str) -> tuple[DiffResult | None, str]:
+        """Compare the open project against the project at ``other_path`` (.xknx or .knxproj).
+
+        Returns ``(result, error)``: on failure ``result`` is ``None`` and ``error`` is a
+        message to show. The other project is opened read-only on its own engine, so the open
+        project is untouched."""
+        try:
+            base = self._project_snapshot_current()
+            other = self._load_project_snapshot(other_path)
+        except Exception as e:
+            self._api.log.warning(
+                "project diff failed",
+                plugin="project",
+                error=f"{type(e).__name__}: {e}",
+            )
+            return None, str(e)
+        return diff_projects(base, other), ""
+
+    def _project_snapshot_current(self) -> ProjectSnapshot:
+        """Snapshot the open project from the GUI service (already loaded and cached)."""
+        devices: dict[str, DeviceSnap] = {}
+        for d in self._api.project.devices:
+            ia = d.individual_address or ""
+            if not ia:
+                continue
+            info = self._api.project.get_device_info(d.node_id)
+            devices[ia] = DeviceSnap(
+                ia=ia,
+                name=d.name,
+                product=info.product_name if info else "",
+                order=info.order_number if info else "",
+            )
+        gas = {
+            g.address: GaSnap(
+                address=g.address, name=g.name, dpt=g.datapoint_type or ""
+            )
+            for g in self._api.project.group_addresses
+        }
+        return ProjectSnapshot(name="current", devices=devices, group_addresses=gas)
+
+    def _load_project_snapshot(self, path: str) -> ProjectSnapshot:
+        """Open a project file read-only and snapshot it (a .knxproj is converted first)."""
+        from xknxeditor.proj import ProjectService as CoreProjectService
+        from xknxeditor.proj import import_knxproj
+
+        src = Path(path)
+        tmpdir: tempfile.TemporaryDirectory[str] | None = None
+        try:
+            if src.suffix.lower() == ".xknx":
+                xknx_path = src
+            else:
+                tmpdir = tempfile.TemporaryDirectory(prefix="xknx-diff-")
+                xknx_path = Path(tmpdir.name) / "other.xknx"
+                import_knxproj(src, xknx_path)
+            svc = CoreProjectService()
+            pid = svc.open(xknx_path)
+            try:
+                devices: dict[str, DeviceSnap] = {}
+                for d in svc.devices(pid):
+                    info = svc.device(pid, d.id)
+                    ia = info.individual_address or ""
+                    if not ia:
+                        continue
+                    devices[ia] = DeviceSnap(
+                        ia=ia,
+                        name=info.name,
+                        product=info.product_name,
+                        order=info.order_number,
+                    )
+                gas = {
+                    g.text: GaSnap(
+                        address=g.text, name=g.name, dpt=g.datapoint_type or ""
+                    )
+                    for g in svc.group_addresses(pid)
+                }
+            finally:
+                svc.close(pid)
+            return ProjectSnapshot(name=src.stem, devices=devices, group_addresses=gas)
+        finally:
+            if tmpdir is not None:
+                tmpdir.cleanup()
 
     def _help_text(self, device: "Device", context: str) -> str | None:
         """A help page from the ContextHelpFile baggage of the device's source .knxprod."""

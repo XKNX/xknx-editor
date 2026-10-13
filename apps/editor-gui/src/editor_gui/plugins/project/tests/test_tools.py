@@ -8,9 +8,11 @@ from editor_gui.plugins.project.plugin import ProjectPlugin
 from editor_gui.plugins.project.ui.tools import (
     apply_name_swap,
     match_by_number,
+    shifted_ga,
     shifted_ia,
     topology_findings,
 )
+from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
 
 
 def _co(db_id, number, size="1 Bit", name="co"):
@@ -34,6 +36,16 @@ def test_shifted_ia():
     assert shifted_ia("a.b.c", 1) is None
     assert shifted_ia("16.1.5", 1) is None  # area out of range
     assert shifted_ia("1.16.5", 1) is None  # line out of range
+
+
+def test_shifted_ga():
+    three = GroupAddressStyle.THREE_LEVEL
+    assert shifted_ga((1 << 11) | 1, 2, three) == "1/0/3"
+    assert shifted_ga(1, -1, three) is None  # would hit 0 (reserved)
+    assert shifted_ga(0xFFFF, 1, three) is None  # out of range
+    # The offset is on the raw value, so it can cross a sub/middle-group boundary.
+    assert shifted_ga((1 << 11) | 255, 1, three) == "1/1/0"
+    assert shifted_ga(5, 3, GroupAddressStyle.FREE) == "8"
 
 
 def test_topology_findings():
@@ -115,6 +127,59 @@ def test_shift_aborts_on_collision_with_unselected_device():
     assert changed == 0
     assert any("collide" in e for e in errors)
     assert proj.applied == []  # nothing written (all-or-nothing)
+
+
+class FakeShiftGaProject:
+    def __init__(self, gas, style=GroupAddressStyle.THREE_LEVEL):
+        self._gas = gas
+        self.group_address_style = style
+        self.applied: list[tuple[int, str]] = []
+
+    @property
+    def group_addresses(self):
+        return self._gas
+
+    def set_group_address_address(self, ga_id, address):
+        self.applied.append((ga_id, address))
+        return True
+
+
+def _ga(gid, raw):
+    three = GroupAddressStyle.THREE_LEVEL
+    return SimpleNamespace(
+        id=gid, raw=raw, address=format_ga(raw, three), name=f"g{gid}"
+    )
+
+
+def test_shift_ga_orders_descending_for_positive_offset():
+    # 1/0/1 .. 1/0/3 shifted +1 must be applied high->low so no transient collision.
+    base = 1 << 11
+    gas = [_ga(1, base + 1), _ga(2, base + 2), _ga(3, base + 3)]
+    proj = FakeShiftGaProject(gas)
+    changed, errors = _plugin(proj)._tools_shift_group_addresses([1, 2, 3], 1)
+    assert changed == 3
+    assert errors == []
+    assert [gid for gid, _a in proj.applied] == [3, 2, 1]
+    assert [a for _g, a in proj.applied] == ["1/0/4", "1/0/3", "1/0/2"]
+
+
+def test_shift_ga_reports_out_of_range():
+    gas = [_ga(1, 0xFFFF)]
+    proj = FakeShiftGaProject(gas)
+    changed, errors = _plugin(proj)._tools_shift_group_addresses([1], 1)
+    assert changed == 0
+    assert len(errors) == 1
+    assert proj.applied == []
+
+
+def test_shift_ga_aborts_on_collision_with_unselected():
+    base = 1 << 11
+    gas = [_ga(1, base + 1), _ga(2, base + 2)]  # only ga 1 is selected
+    proj = FakeShiftGaProject(gas)
+    changed, errors = _plugin(proj)._tools_shift_group_addresses([1], 1)
+    assert changed == 0
+    assert any("collide" in e for e in errors)
+    assert proj.applied == []
 
 
 class FakeCopyProject:

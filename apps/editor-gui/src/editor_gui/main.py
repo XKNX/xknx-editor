@@ -279,6 +279,7 @@ class KnxGuiApp:
         self._import_ga_export_save_dialog: pfd.save_file | None = None
         self._import_ga_export_source: str | None = None
         self._export_knxproj_dialog: pfd.save_file | None = None
+        self._export_ga_export_dialog: pfd.save_file | None = None
         self._last_export_path: str | None = None
         self._file_dialogs_available: bool | None = None
         # One-shot guard for the startup OpenGL renderer log (see _log_gl_renderer). Done from the
@@ -636,6 +637,28 @@ class KnxGuiApp:
             default,
             [S.FILE_DIALOG_KNXPROJ_FILTER, "*.knxproj", S.FILE_DIALOG_ALL_FILES, "*"],
         )
+
+    def _export_ga_export(self) -> None:
+        if not self._project_service.is_open or not self._can_launch_file_dialog():
+            return
+        default = "group-addresses.xml"
+        if self._project_service.path is not None:
+            default = f"{self._project_service.path.stem}-ga.xml"
+        self._export_ga_export_dialog = pfd.save_file(
+            S.FILE_DIALOG_GA_EXPORT_SAVE_TITLE,
+            default,
+            [S.FILE_DIALOG_GA_EXPORT_FILTER, "*.xml", S.FILE_DIALOG_ALL_FILES, "*"],
+        )
+
+    def _do_export_ga_export(self, dest: str) -> None:
+        """Write the open project's group-address tree to ``dest`` (ETS ga-export .xml)."""
+        try:
+            count = self._project_service.export_ga_export(Path(dest))
+        except Exception as e:  # surfaced as an error toast via the log
+            self._log.error("ga export failed", dest=dest, error=str(e))
+            return
+        self._last_export_path = dest
+        self._flash_toast(S.GA_EXPORT_OK.format(count=count))
 
     def _begin_export_sign_prompt(self, dest: str) -> None:
         """Ask about MyKnx certificate signing before running the export to ``dest``."""
@@ -1668,6 +1691,19 @@ class KnxGuiApp:
                 )
 
         if (
+            self._export_ga_export_dialog is not None
+            and self._export_ga_export_dialog.ready()
+        ):
+            result = self._export_ga_export_dialog.result()
+            self._export_ga_export_dialog = None
+            if result:
+                self._maybe_overwrite_then(
+                    result,
+                    lambda r=result: self._do_export_ga_export(r),
+                    default_suffix=".xml",
+                )
+
+        if (
             self._import_knxproj_save_dialog is not None
             and self._import_knxproj_save_dialog.ready()
         ):
@@ -1932,6 +1968,13 @@ class KnxGuiApp:
                 0
             ]:
                 self._start_compact_analysis()
+            if imgui.menu_item(
+                S.MENU_EXPORT_GA_EXPORT,
+                "",
+                False,
+                self._project_service.is_open,
+            )[0]:
+                self._export_ga_export()
             imgui.separator()
             if (
                 imgui.menu_item(S.MENU_LOAD_KNXPROD, "", False)[0]

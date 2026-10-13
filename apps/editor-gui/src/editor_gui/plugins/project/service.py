@@ -33,6 +33,7 @@ from xknxeditor.proj import ProjectStorageError, ensure_sqlite_writable
 from xknxeditor.proj import import_ga_export as _import_ga_export
 from xknxeditor.proj import import_knxproj as _import_knxproj
 from xknxeditor.proj import is_ga_export as _is_ga_export
+from xknxeditor.proj import write_ga_export as _write_ga_export
 from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga, parse_ga
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.skeleton import MEDIUM_TP
@@ -888,6 +889,21 @@ class ProjectService:
                 Path(tmp).unlink(missing_ok=True)
             self.open(dest)
         self._log.info("ga export imported", source=str(source), path=str(dest))
+
+    def export_ga_export(self, dest: Path) -> int:
+        """Write the open project's group-address tree to ``dest`` as a ga-export .xml.
+
+        Reads the working copy (current on disk thanks to the per-change commits), so no
+        save step is needed first. Returns the number of addresses written."""
+        if not dest.suffix:
+            dest = dest.with_suffix(".xml")
+        source = self._working_path
+        if source is None:
+            raise RuntimeError("no project open")
+        with self._io_lock:
+            count = _write_ga_export(source, dest)
+        self._log.info("ga export written", path=str(dest), addresses=count)
+        return count
 
     def close(self) -> None:
         if self._pid is not None:

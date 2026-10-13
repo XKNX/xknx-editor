@@ -344,6 +344,58 @@ class ProjectStrings:
         return _("Topology Check")
 
     @property
+    def TOOLS_TAB_DIFF(self) -> str:
+        return _("Project Diff")
+
+    @property
+    def TOOLS_DIFF_DESC(self) -> str:
+        return _(
+            "Compare the open project with another project file (.knxproj or .xknx): "
+            "which devices and group addresses were added, removed or changed. The other "
+            "project is read-only; nothing is modified."
+        )
+
+    @property
+    def TOOLS_DIFF_PICK(self) -> str:
+        return _("Choose project to compare...")
+
+    @property
+    def TOOLS_DIFF_PICK_TITLE(self) -> str:
+        return _("Choose project to compare")
+
+    @property
+    def TOOLS_DIFF_FILTER(self) -> str:
+        return _("KNX project (*.knxproj *.xknx)")
+
+    @property
+    def TOOLS_DIFF_COMPARED_WITH(self) -> str:
+        return _("compared with {name}")
+
+    @property
+    def TOOLS_DIFF_IDENTICAL(self) -> str:
+        return _("No differences in devices or group addresses.")
+
+    @property
+    def TOOLS_DIFF_COUNT(self) -> str:
+        return _("{count} difference(s)")
+
+    @property
+    def TOOLS_DIFF_DEVICES(self) -> str:
+        return _("Devices")
+
+    @property
+    def TOOLS_DIFF_GAS(self) -> str:
+        return _("Group addresses")
+
+    @property
+    def TOOLS_DIFF_KIND(self) -> dict[str, str]:
+        return {
+            "added": _("added"),
+            "removed": _("removed"),
+            "changed": _("changed"),
+        }
+
+    @property
     def TOOLS_COPY_DESC(self) -> str:
         return _(
             "Duplicate a device several times. Optionally rewrite the copy name "
@@ -445,6 +497,45 @@ class ProjectStrings:
     @property
     def TOOLS_SHIFT_DONE(self) -> str:
         return _("Shifted {count} address(es)")
+
+    @property
+    def TOOLS_SHIFT_MODE_IA(self) -> str:
+        return _("Individual addresses")
+
+    @property
+    def TOOLS_SHIFT_MODE_GA(self) -> str:
+        return _("Group addresses")
+
+    @property
+    def TOOLS_SHIFT_NO_GAS(self) -> str:
+        return _("This project has no group addresses.")
+
+    @property
+    def TOOLS_SHIFT_GA_TITLE(self) -> str:
+        return _("Shift Group Addresses")
+
+    @property
+    def TOOLS_SHIFT_GA_DESC(self) -> str:
+        return _(
+            "Renumber group addresses by adding an offset to their raw value, e.g. to open "
+            "gaps. Com-object links move with each address. Nothing is written if any move "
+            "would collide or leave the valid range."
+        )
+
+    @property
+    def TOOLS_SHIFT_GA_HINT(self) -> str:
+        return _(
+            "The offset is added to the raw 16-bit value, so it may change the main/middle "
+            "group as addresses cross a boundary."
+        )
+
+    @property
+    def TOOLS_SHIFT_GA_RUN(self) -> str:
+        return _("Shift Group Addresses")
+
+    @property
+    def TOOLS_SHIFT_GA_DONE(self) -> str:
+        return _("Shifted {count} group address(es)")
 
     @property
     def TOOLS_LABELS_EXPORT(self) -> str:

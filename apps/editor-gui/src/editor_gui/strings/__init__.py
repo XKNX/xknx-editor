@@ -393,6 +393,14 @@ class MenuStrings:
         return _("Export .knxproj...")
 
     @property
+    def MENU_EXPORT_GA_EXPORT(self) -> str:
+        return _("Export Group Addresses...")
+
+    @property
+    def GA_EXPORT_OK(self) -> str:
+        return _("Exported {count} group address(es)")
+
+    @property
     def EXPORT_DONE(self) -> str:
         return _("Exported to {path} ({size}) as {schema}")
 
@@ -672,6 +680,10 @@ class MenuStrings:
     @property
     def FILE_DIALOG_KNXPROJ_SAVE_TITLE(self) -> str:
         return _("Export ETS Project")
+
+    @property
+    def FILE_DIALOG_GA_EXPORT_SAVE_TITLE(self) -> str:
+        return _("Export Group Addresses")
 
     @property
     def MENU_LOAD_KNXPROD(self) -> str:

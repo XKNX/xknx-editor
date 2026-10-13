@@ -7,6 +7,7 @@ from xknxeditor.proj.core.ga_export import (
     import_ga_export,
     is_ga_export,
     read_ga_export,
+    write_ga_export,
 )
 from xknxeditor.proj.core.key_extract import (
     DLL_NAME,
@@ -93,4 +94,5 @@ __all__ = [
     "sign_exported_knxproj",
     "signing_key_is_placeholder",
     "trace_key_available",
+    "write_ga_export",
 ]

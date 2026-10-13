@@ -1,10 +1,11 @@
-"""Importer for an ETS group-address export (``ga-export/01``).
+"""Import and export of an ETS group-address export (``ga-export/01``).
 
 An ETS GA export is only the group-address tree - main/middle group folders and the
 group addresses under them, with their names and datapoint types. It carries no
-devices, topology, parameters or product data. This reads one and writes it as a new
-project whose group-address tree mirrors the export; the rest of the project is the
-default skeleton (:func:`seed_new_project`).
+devices, topology, parameters or product data. :func:`import_ga_export` reads one and
+writes it as a new project whose group-address tree mirrors the export; the rest of the
+project is the default skeleton (:func:`seed_new_project`). :func:`write_ga_export` is
+the inverse: it reads a project and emits its group-address tree as such an .xml.
 
 The export's own ``<GroupRange>`` nesting is reproduced verbatim (folder names and
 address windows), so the imported tree looks like it did in ETS. Group addresses are
@@ -23,7 +24,7 @@ from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga, parse_
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.skeleton import DEFAULT_INSTALLATION, seed_new_project
 from xknxeditor.proj.db import make_engine, url_for
-from xknxeditor.proj.models import GroupAddress, GroupRange, Installation
+from xknxeditor.proj.models import GroupAddress, GroupRange, Installation, Project
 
 logger = logging.getLogger(__name__)
 
@@ -148,6 +149,70 @@ def import_ga_export(
         dest,
     )
     return pid
+
+
+def write_ga_export(source: Path | str, dest: Path | str) -> int:
+    """Read the project at ``source`` (``.xknx``) and write its group-address tree to ``dest``.
+
+    The inverse of :func:`import_ga_export`: only the group-address tree is written - the
+    ``<GroupRange>`` folders with their address windows and the group addresses under them,
+    each with name, datapoint type and description. No devices, topology or product data,
+    matching what an ETS GA export carries. The range nesting is reproduced verbatim so the
+    file re-imports to the same tree. Returns the number of addresses written. An existing
+    ``dest`` is overwritten.
+    """
+    engine = make_engine(url_for(Path(source)))
+    try:
+        with Session(engine) as session:
+            project = session.query(Project).one()
+            style = GroupAddressStyle(project.group_address_style)
+            roots = (
+                session.query(GroupRange)
+                .filter(GroupRange.parent_id.is_(None))
+                .order_by(GroupRange.range_start)
+                .all()
+            )
+            ET.register_namespace("", _NS)
+            root_el = ET.Element(_ROOT_TAG)
+            count = sum(_write_range(gr, root_el, style) for gr in roots)
+    finally:
+        engine.dispose()
+
+    tree = ET.ElementTree(root_el)
+    ET.indent(tree, space="  ")
+    tree.write(Path(dest), encoding="utf-8", xml_declaration=True)
+    logger.info("ga-export write done: addresses=%d -> %s", count, dest)
+    return count
+
+
+def _write_range(
+    gr: GroupRange, parent_el: ET.Element, style: GroupAddressStyle
+) -> int:
+    """Emit ``gr`` (and its subtree) under ``parent_el``; return addresses written below it."""
+    el = ET.SubElement(parent_el, _RANGE_TAG)
+    el.set("Name", gr.name)
+    el.set("RangeStart", str(gr.range_start))
+    el.set("RangeEnd", str(gr.range_end))
+    count = sum(
+        _write_range(child, el, style)
+        for child in sorted(gr.children, key=lambda c: c.range_start)
+    )
+    for ga in sorted(gr.group_addresses, key=lambda a: a.address):
+        _write_address(ga, el, style)
+        count += 1
+    return count
+
+
+def _write_address(
+    ga: GroupAddress, parent_el: ET.Element, style: GroupAddressStyle
+) -> None:
+    el = ET.SubElement(parent_el, _ADDRESS_TAG)
+    el.set("Name", ga.name)
+    el.set("Address", format_ga(ga.address, style))
+    if ga.datapoint_type:
+        el.set("DPTs", ga.datapoint_type)
+    if ga.description:
+        el.set("Description", ga.description)
 
 
 def _detect_style(root: ET.Element) -> GroupAddressStyle:

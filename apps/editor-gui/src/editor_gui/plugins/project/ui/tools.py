@@ -4,21 +4,22 @@ Four tabs, each a thin wrapper over existing project services:
 
 - **Extended Copy**: clone a device N times, optionally rewrite its name (find/replace) and
   auto-create a group address for every com-object of each copy.
-- **Shift Addresses**: shift the device octet of many individual addresses by an offset (to open
-  gaps or renumber). Group-address shifting is intentionally out of scope (no re-address event
-  exists that would preserve links).
+- **Shift Addresses**: shift many addresses by an offset to open gaps or renumber. Two modes:
+  device individual addresses (the device octet), or group addresses (the raw value, with
+  com-object links preserved via the project's change-address command).
 - **Labels**: pick fields and export the devices as CSV, printable Avery label sheets, or a
   full-page legend (HTML). Rendering lives in :mod:`label_render` (pure, unit-tested).
 - **Topology Check**: read-only scan for missing / duplicate / malformed individual addresses.
 
-The pure helpers (:func:`apply_name_swap`, :func:`shifted_ia`, :func:`topology_findings`) hold all
-the logic and are unit-tested without imgui.
+The pure helpers (:func:`apply_name_swap`, :func:`shifted_ia`, :func:`shifted_ga`,
+:func:`topology_findings`) hold all the logic and are unit-tested without imgui.
 """
 
 from __future__ import annotations
 
-from collections.abc import Callable
-from typing import TYPE_CHECKING
+from collections.abc import Callable, Sequence
+from pathlib import Path
+from typing import TYPE_CHECKING, Protocol
 
 from imgui_bundle import imgui
 from imgui_bundle import portable_file_dialogs as pfd
@@ -27,14 +28,26 @@ from editor_gui.os_open import open_path
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import label_render
 from editor_gui.plugins.project.ui._filter import filter_box
+from editor_gui.plugins.project.ui.project_diff import DiffEntry, DiffResult
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px, px_vec2
+from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
 
 if TYPE_CHECKING:
     from editor_gui.device import ComObject, Device
     from xknxeditor.proj.core.service import DeviceInfo
 
 LinkResult = tuple[int, list[str]]  # (changed count, error messages)
+
+
+class GroupAddressRow(Protocol):
+    """The subset of a project group address the Shift tab needs (id, formatted text, name, raw)."""
+
+    id: int
+    address: str  # style-formatted, e.g. "1/2/3"
+    name: str
+    raw: int  # raw 16-bit value, style-independent
+
 
 # Labels output modes (index into the radio group).
 _MODE_CSV, _MODE_SHEET, _MODE_LEGEND = 0, 1, 2
@@ -62,6 +75,18 @@ def _desc(text: str) -> None:
 def apply_name_swap(name: str, find: str, replace: str) -> str:
     """Return ``name`` with ``find`` replaced by ``replace``; unchanged when ``find`` is empty."""
     return name.replace(find, replace) if find else name
+
+
+def shifted_ga(raw: int, offset: int, style: GroupAddressStyle) -> str | None:
+    """Shift a raw 16-bit group-address value by ``offset``, formatted for ``style``.
+
+    Returns the new address string, or ``None`` when the result leaves the valid 1..65535
+    range (0 is reserved). The operation is on the raw value, so it is independent of how the
+    address splits into main/middle/sub."""
+    new = raw + offset
+    if not 1 <= new <= 0xFFFF:
+        return None
+    return format_ga(new, style)
 
 
 def shifted_ia(ia: str, offset: int) -> str | None:
@@ -156,6 +181,10 @@ class ToolsPanel:
         on_replace_device: Callable[[int, int], LinkResult],
         get_space_path: Callable[[int], str],
         get_device_gas: Callable[[Device], list[str]],
+        get_group_addresses: Callable[[], Sequence[GroupAddressRow]],
+        get_group_address_style: Callable[[], GroupAddressStyle],
+        on_shift_group_addresses: Callable[[list[int], int], LinkResult],
+        on_diff_projects: Callable[[str], tuple[DiffResult | None, str]],
     ) -> None:
         self._get_devices = get_devices
         self._get_device_info = get_device_info
@@ -166,6 +195,10 @@ class ToolsPanel:
         self._on_replace_device = on_replace_device
         self._get_space_path = get_space_path
         self._get_device_gas = get_device_gas
+        self._get_group_addresses = get_group_addresses
+        self._get_group_address_style = get_group_address_style
+        self._on_shift_group_addresses = on_shift_group_addresses
+        self._on_diff_projects = on_diff_projects
 
         # Replace Device state (selection by node id, with per-list filters).
         self._repl_target_node: int | None = None
@@ -179,6 +212,11 @@ class ToolsPanel:
         self._copy_create_gas = False
         # Shift state.
         self._shift_offset = 1
+        # Shift sub-mode: individual addresses (devices) or group addresses.
+        self._shift_mode = "ia"
+        # Group-address multi-selection (ga ids) + its own filter.
+        self._selected_gas: set[int] = set()
+        self._ga_filter = ""
         # Shared device multi-selection (node ids) used by Shift + Labels.
         self._selected_nodes: set[int] = set()
         self._device_filter = ""
@@ -196,12 +234,18 @@ class ToolsPanel:
         )
         # Last result line (shown under the active tab).
         self._status = ""
+        # Project Diff state: file picker handle, last result, the other project's name, error.
+        self._diff_dialog: pfd.open_file | None = None
+        self._diff_result: DiffResult | None = None
+        self._diff_other_name = ""
+        self._diff_error = ""
 
     def render(self) -> None:
         if not self._is_open():
             imgui.text_disabled(S.TOOLS_NO_PROJECT)
             return
         self._poll_label_dialog()
+        self._poll_diff_dialog()
         if imgui.begin_tab_bar("##tools_tabs"):
             if imgui.begin_tab_item(S.TOOLS_TAB_COPY)[0]:
                 self._render_copy_tab()
@@ -214,6 +258,9 @@ class ToolsPanel:
                 imgui.end_tab_item()
             if imgui.begin_tab_item(S.TOOLS_TAB_LABELS)[0]:
                 self._render_labels_tab()
+                imgui.end_tab_item()
+            if imgui.begin_tab_item(S.TOOLS_TAB_DIFF)[0]:
+                self._render_diff_tab()
                 imgui.end_tab_item()
             if imgui.begin_tab_item(S.TOOLS_TAB_TOPOLOGY)[0]:
                 self._render_topology_tab()
@@ -346,6 +393,19 @@ class ToolsPanel:
     # -- Shift Addresses ---------------------------------------------------
 
     def _render_shift_tab(self) -> None:
+        # Pick what to shift: device individual addresses, or group addresses.
+        if imgui.radio_button(S.TOOLS_SHIFT_MODE_IA, self._shift_mode == "ia"):
+            self._shift_mode = "ia"
+        imgui.same_line()
+        if imgui.radio_button(S.TOOLS_SHIFT_MODE_GA, self._shift_mode == "ga"):
+            self._shift_mode = "ga"
+        imgui.separator()
+        if self._shift_mode == "ga":
+            self._render_shift_ga_tab()
+        else:
+            self._render_shift_ia_tab()
+
+    def _render_shift_ia_tab(self) -> None:
         devices = self._get_devices()
         if not devices:
             imgui.text_disabled(S.TOOLS_NO_DEVICES)
@@ -385,6 +445,68 @@ class ToolsPanel:
                 [d.node_id for d in selected], self._shift_offset
             )
             self._status = self._summary(S.TOOLS_SHIFT_DONE.format(count=count), errors)
+        imgui.end_disabled()
+        self._render_status()
+
+    def _render_shift_ga_tab(self) -> None:
+        gas = self._get_group_addresses()
+        if not gas:
+            imgui.text_disabled(S.TOOLS_SHIFT_NO_GAS)
+            return
+        style = self._get_group_address_style()
+        _desc(S.TOOLS_SHIFT_GA_DESC)
+        imgui.separator_text(S.TOOLS_SHIFT_GA_TITLE)
+        imgui.text_disabled(S.TOOLS_SHIFT_OFFSET)
+        _help_marker(S.TOOLS_SHIFT_GA_HINT)
+        imgui.set_next_item_width(px(160.0))
+        _, self._shift_offset = imgui.input_int("##shift_ga_offset", self._shift_offset)
+
+        self._ga_filter = filter_box(
+            "##flt_shift_ga", S.TOOLS_FILTER_HINT, self._ga_filter
+        )
+        flt = self._ga_filter.strip().lower()
+        shown = [g for g in gas if not flt or flt in f"{g.address} {g.name}".lower()]
+        if imgui.button(S.TOOLS_SELECT_ALL):
+            self._selected_gas |= {g.id for g in shown}
+        imgui.same_line()
+        if imgui.button(S.TOOLS_SELECT_NONE):
+            self._selected_gas -= {g.id for g in shown}
+        imgui.same_line()
+        sel = sum(1 for g in gas if g.id in self._selected_gas)
+        imgui.text_disabled(S.TOOLS_SELECTED_COUNT.format(sel=sel, total=len(gas)))
+
+        valid = 0
+        if imgui.begin_child("##shift_ga_list", px_vec2(0.0, 260.0), True):
+            for g in shown:
+                selected = g.id in self._selected_gas
+                changed, new_sel = checkbox(f"##shga{g.id}", selected)
+                if changed:
+                    if new_sel:
+                        self._selected_gas.add(g.id)
+                    else:
+                        self._selected_gas.discard(g.id)
+                    selected = new_sel
+                imgui.same_line()
+                imgui.text(f"{g.address}  {g.name}")
+                new = shifted_ga(g.raw, self._shift_offset, style)
+                if selected and new is None:
+                    imgui.same_line()
+                    imgui.text_colored(_ERR_COLOR, f"  ->  {S.TOOLS_SHIFT_INVALID}")
+                elif selected:
+                    valid += 1
+                    imgui.same_line()
+                    imgui.text(f"  ->  {new}")
+        imgui.end_child()
+        imgui.text_disabled(S.TOOLS_SHIFT_COUNT.format(count=valid))
+        selected_ids = [g.id for g in gas if g.id in self._selected_gas]
+        imgui.begin_disabled(valid == 0 or self._shift_offset == 0)
+        if imgui.button(S.TOOLS_SHIFT_GA_RUN, imgui.ImVec2(-1, 0)):
+            count, errors = self._on_shift_group_addresses(
+                selected_ids, self._shift_offset
+            )
+            self._status = self._summary(
+                S.TOOLS_SHIFT_GA_DONE.format(count=count), errors
+            )
         imgui.end_disabled()
         self._render_status()
 
@@ -611,6 +733,63 @@ class ToolsPanel:
                 open_path(path)
         except OSError as exc:
             self._status = f"{exc}"
+
+    # -- Project Diff ------------------------------------------------------
+
+    def _render_diff_tab(self) -> None:
+        _desc(S.TOOLS_DIFF_DESC)
+        imgui.separator_text(S.TOOLS_TAB_DIFF)
+        if imgui.button(S.TOOLS_DIFF_PICK):
+            self._diff_dialog = pfd.open_file(
+                S.TOOLS_DIFF_PICK_TITLE,
+                "",
+                [S.TOOLS_DIFF_FILTER, "*.knxproj *.xknx", S.TOOLS_SELECT_ALL, "*"],
+            )
+        if self._diff_other_name:
+            imgui.same_line()
+            imgui.text_disabled(
+                S.TOOLS_DIFF_COMPARED_WITH.format(name=self._diff_other_name)
+            )
+        if self._diff_error:
+            imgui.text_colored(_ERR_COLOR, self._diff_error)
+            return
+        result = self._diff_result
+        if result is None:
+            return
+        if result.total == 0:
+            imgui.text_colored(imgui.ImVec4(0.5, 0.8, 0.5, 1.0), S.TOOLS_DIFF_IDENTICAL)
+            return
+        imgui.text_disabled(S.TOOLS_DIFF_COUNT.format(count=result.total))
+        if imgui.begin_child("##diff_result"):
+            self._render_diff_section(S.TOOLS_DIFF_DEVICES, result.devices)
+            self._render_diff_section(S.TOOLS_DIFF_GAS, result.group_addresses)
+        imgui.end_child()
+
+    def _render_diff_section(self, title: str, entries: list[DiffEntry]) -> None:
+        if not entries:
+            return
+        imgui.separator_text(f"{title} ({len(entries)})")
+        for e in entries:
+            color = {
+                "added": imgui.ImVec4(0.5, 0.8, 0.5, 1.0),
+                "removed": _ERR_COLOR,
+                "changed": _WARN_COLOR,
+            }[e.kind]
+            tag = S.TOOLS_DIFF_KIND[e.kind]
+            imgui.text_colored(color, f"[{tag}]")
+            imgui.same_line()
+            imgui.text(f"{e.key}  {e.detail}")
+
+    def _poll_diff_dialog(self) -> None:
+        if self._diff_dialog is None or not self._diff_dialog.ready():
+            return
+        files = self._diff_dialog.result()
+        self._diff_dialog = None
+        if not files:
+            return
+        path = files[0]
+        self._diff_other_name = Path(path).name
+        self._diff_result, self._diff_error = self._on_diff_projects(path)
 
     # -- Topology Check ----------------------------------------------------
 

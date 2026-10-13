@@ -49,6 +49,7 @@ from xknxeditor.proj.core import (
     sign_exported_knxproj,
     signing_key_is_placeholder,
     trace_key_available,
+    write_ga_export,
 )
 from xknxeditor.proj.db import ProjectStorageError, ensure_sqlite_writable
 
@@ -91,4 +92,5 @@ __all__ = [
     "sign_exported_knxproj",
     "signing_key_is_placeholder",
     "trace_key_available",
+    "write_ga_export",
 ]

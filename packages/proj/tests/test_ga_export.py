@@ -13,6 +13,7 @@ from xknxeditor.proj.core.ga_export import (
     import_ga_export,
     is_ga_export,
     read_ga_export,
+    write_ga_export,
 )
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import GroupAddress, GroupRange, Project
@@ -227,3 +228,51 @@ def test_import_falls_back_to_dest_stem_without_project_name(tmp_path: Path) -> 
 
 def parse_three(main: int, middle: int, sub: int) -> int:
     return (main << 11) | (middle << 8) | sub
+
+
+def test_write_round_trips_the_tree(tmp_path: Path) -> None:
+    # Import an export into a project, write it back out, and re-read: same style, same
+    # range names and the same addresses with their names/DPTs/descriptions.
+    source = _write(tmp_path, "e.xml", _EXPORT)
+    project = tmp_path / "p.xknx"
+    import_ga_export(source, project)
+
+    out = tmp_path / "out.xml"
+    count = write_ga_export(project, out)
+    assert count == 5
+    assert is_ga_export(out) is True
+
+    export = read_ga_export(out)
+    assert export.style is GroupAddressStyle.THREE_LEVEL
+    assert {r.name for r in export.ranges} == {"Beleuchtung", "Jalousie"}
+    nested = {c.name for r in export.ranges for c in r.children}
+    assert nested == {"Schalten", "Dimmen", "Fahren"}
+
+    by_addr = {a.address: a for a in export.addresses}
+    licht = by_addr[parse_three(1, 0, 1)]
+    assert licht.name == "Licht Buero"
+    assert licht.datapoint_type == "DPST-1-1"
+    assert licht.description == "EG"
+    # An address that had no DPT stays without one on the way out (no DPTs attribute).
+    assert by_addr[parse_three(1, 0, 3)].datapoint_type is None
+
+
+def test_write_preserves_free_style(tmp_path: Path) -> None:
+    source = _write(tmp_path, "free.xml", _FREE_EXPORT)
+    project = tmp_path / "p.xknx"
+    import_ga_export(source, project)
+    out = tmp_path / "out.xml"
+    assert write_ga_export(project, out) == 1
+    export = read_ga_export(out)
+    assert export.style is GroupAddressStyle.FREE
+    assert export.addresses[0].address == 5
+
+
+def test_write_overwrites_existing_dest(tmp_path: Path) -> None:
+    source = _write(tmp_path, "e.xml", _EXPORT)
+    project = tmp_path / "p.xknx"
+    import_ga_export(source, project)
+    out = tmp_path / "out.xml"
+    out.write_text("stale", encoding="utf-8")
+    write_ga_export(project, out)
+    assert is_ga_export(out) is True
