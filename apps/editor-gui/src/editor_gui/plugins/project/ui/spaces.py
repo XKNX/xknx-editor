@@ -10,6 +10,7 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.devices import render_read_device_item
+from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
 
 if TYPE_CHECKING:
@@ -61,6 +62,36 @@ def _default_child_type_index(parent_type: str | None) -> int:
         parent_type or "", "Room"
     )
     return codes.index(target) if target in codes else codes.index("Room")
+
+
+# Dialog ids: the translated title plus a stable per-target id (open_popup and begin_dialog
+# must be passed the same string).
+def _new_space_dialog(key: str) -> str:
+    return f"{S.SPACES_SPACE_NEW_TITLE}###newspace_{key}"
+
+
+def _rename_space_dialog(space_id: int) -> str:
+    return f"{S.SPACES_RENAME_TITLE}###renspace{space_id}"
+
+
+def _delete_space_dialog(space_id: int) -> str:
+    return f"{S.SPACES_DELETE_TITLE}###delspace{space_id}"
+
+
+def _assign_device_dialog(space_id: int) -> str:
+    return f"{S.SPACES_ASSIGN_TITLE}###assigndev{space_id}"
+
+
+def _new_function_dialog(space_id: int) -> str:
+    return f"{S.SPACES_FN_NEW_TITLE}###newfn{space_id}"
+
+
+def _rename_function_dialog(function_id: int) -> str:
+    return f"{S.SPACES_FN_RENAME_TITLE}###renfn{function_id}"
+
+
+def _add_function_ga_dialog(function_id: int) -> str:
+    return f"{S.SPACES_FN_ADD_GA}###addfnga{function_id}"
 
 
 class SpacesPanel:
@@ -133,7 +164,7 @@ class SpacesPanel:
         # A popup requested from inside a context menu must be opened one scope up, not inside the
         # context-menu popup: imgui.open_popup() and begin_popup() only match when called in the
         # same window/id scope. Opening from within the context menu (a different popup window)
-        # registers the popup under a mismatched id, so begin_popup() at the tree scope never sees
+        # registers the popup under a mismatched id, so begin_dialog() at the tree scope never sees
         # it. The context menu stores its id here; the tree scope opens it (see _open_if_pending).
         self._pending_popup_id: str | None = None
 
@@ -143,8 +174,8 @@ class SpacesPanel:
             if imgui.small_button(S.SPACES_ADD_SPACE):
                 self._new_space_name = ""
                 self._new_space_type = 0  # top-level default: Building
-                imgui.open_popup("##newspace_root")
-            self._render_new_space_popup(None, "##newspace_root")
+                imgui.open_popup(_new_space_dialog("root"))
+            self._render_new_space_popup(None, _new_space_dialog("root"))
         if not tree:
             imgui.text_disabled(S.SPACES_EMPTY)
             self._render_unassigned_section()
@@ -177,11 +208,11 @@ class SpacesPanel:
         # The context menu and the space's own popups must run whether the node is expanded or not
         # (a collapsed node can still be renamed/moved/deleted), so render them before the return.
         self._render_space_context_menu(space)
-        self._open_if_pending(f"##newsub{space.id}")
-        self._render_new_space_popup(space.id, f"##newsub{space.id}")
-        self._open_if_pending(f"##renspace{space.id}")
+        self._open_if_pending(_new_space_dialog(str(space.id)))
+        self._render_new_space_popup(space.id, _new_space_dialog(str(space.id)))
+        self._open_if_pending(_rename_space_dialog(space.id))
         self._render_space_rename_popup(space.id)
-        self._open_if_pending(f"##delspace{space.id}")
+        self._open_if_pending(_delete_space_dialog(space.id))
         self._render_space_delete_confirm(space.id)
         self._render_assign_device_popup(space.id)
         if not open_node:
@@ -200,20 +231,20 @@ class SpacesPanel:
             f"{S.SPACES_ASSIGN_DEVICE}##assign{space.id}"
         ):
             self._assign_filter = ""
-            imgui.open_popup(f"##assigndev{space.id}")
+            imgui.open_popup(_assign_device_dialog(space.id))
         if self._on_create_function is not None:
             imgui.same_line()
             if imgui.small_button(f"{S.SPACES_ADD_FUNCTION}##addfn{space.id}"):
                 self._new_fn_space = space.id
                 self._new_fn_name = ""
                 self._new_fn_type = 0
-                imgui.open_popup(f"##newfn{space.id}")
+                imgui.open_popup(_new_function_dialog(space.id))
             self._render_new_function_popup(space.id)
         imgui.tree_pop()
 
     def _open_if_pending(self, popup_id: str) -> None:
         """Open ``popup_id`` here if a context menu requested it. Called at the tree scope, the
-        same scope as the matching begin_popup(), so the ids line up (see _pending_popup_id)."""
+        same scope as the matching begin_dialog(), so the ids line up (see _pending_popup_id)."""
         if self._pending_popup_id == popup_id:
             self._pending_popup_id = None
             imgui.open_popup(popup_id)
@@ -229,10 +260,10 @@ class SpacesPanel:
         ):
             self._new_space_name = ""
             self._new_space_type = _default_child_type_index(space.space_type)
-            self._pending_popup_id = f"##newsub{space.id}"
+            self._pending_popup_id = _new_space_dialog(str(space.id))
         if imgui.menu_item(S.SPACES_RENAME, "", False)[0]:
             self._space_rename_buf = space.name
-            self._pending_popup_id = f"##renspace{space.id}"
+            self._pending_popup_id = _rename_space_dialog(space.id)
         if self._on_set_space_type is not None and imgui.begin_menu(S.SPACES_TYPE):
             for label, code in _space_type_presets():
                 if imgui.menu_item(label, "", space.space_type == code)[0]:
@@ -252,7 +283,7 @@ class SpacesPanel:
             self._on_remove_space is not None
             and imgui.menu_item(S.SPACES_DELETE, "", False)[0]
         ):
-            self._pending_popup_id = f"##delspace{space.id}"
+            self._pending_popup_id = _delete_space_dialog(space.id)
         imgui.end_popup()
 
     def _move_targets(self, moving_id: int) -> "list[tuple[SpaceInfo, int]]":
@@ -271,9 +302,8 @@ class SpacesPanel:
         return out
 
     def _render_new_space_popup(self, parent_id: int | None, popup_id: str) -> None:
-        if self._on_create_space is None or not imgui.begin_popup(popup_id):
+        if self._on_create_space is None or not begin_dialog(popup_id):
             return
-        imgui.text_disabled(S.SPACES_SPACE_NEW_TITLE)
         imgui.set_next_item_width(px(220.0))
         _, self._new_space_name = imgui.input_text(
             S.SPACES_SPACE_NAME, self._new_space_name
@@ -284,54 +314,53 @@ class SpacesPanel:
             S.SPACES_SPACE_TYPE, self._new_space_type, [label for label, _ in presets]
         )
         can_create = bool(self._new_space_name.strip())
-        imgui.begin_disabled(not can_create)
-        if imgui.button(S.SPACES_SPACE_CREATE):
+        clicked = dialog_buttons(
+            S.SPACES_SPACE_CREATE, S.ML_CANCEL, enabled=[can_create, True]
+        )
+        if clicked == 0:
             _, code = presets[self._new_space_type]
             self._on_create_space(parent_id, code, self._new_space_name.strip())
             imgui.close_current_popup()
-        imgui.end_disabled()
-        imgui.same_line()
-        if imgui.button(f"{S.ML_CANCEL}##newspace_cancel{popup_id}"):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_space_rename_popup(self, space_id: int) -> None:
-        if self._on_rename_space is None or not imgui.begin_popup(
-            f"##renspace{space_id}"
+        if self._on_rename_space is None or not begin_dialog(
+            _rename_space_dialog(space_id)
         ):
             return
         imgui.set_next_item_width(px(240.0))
         _, self._space_rename_buf = imgui.input_text(
             S.SPACES_SPACE_NAME, self._space_rename_buf
         )
-        if imgui.button(S.SPACES_RENAME):
+        clicked = dialog_buttons(S.SPACES_RENAME, S.ML_CANCEL)
+        if clicked == 0:
             self._on_rename_space(space_id, self._space_rename_buf.strip())
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(f"{S.ML_CANCEL}##renspace_cancel{space_id}"):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_space_delete_confirm(self, space_id: int) -> None:
-        if self._on_remove_space is None or not imgui.begin_popup(
-            f"##delspace{space_id}"
+        if self._on_remove_space is None or not begin_dialog(
+            _delete_space_dialog(space_id)
         ):
             return
         imgui.text_wrapped(S.SPACES_DELETE_CONFIRM)
-        if imgui.button(S.SPACES_DELETE):
+        clicked = dialog_buttons(S.SPACES_DELETE, S.ML_CANCEL)
+        if clicked == 0:
             self._on_remove_space(space_id)
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(f"{S.ML_CANCEL}##delspace_cancel{space_id}"):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_assign_device_popup(self, space_id: int) -> None:
         if self._on_set_device_space is None or self._get_unassigned_devices is None:
             return
-        if not imgui.begin_popup(f"##assigndev{space_id}"):
+        if not begin_dialog(_assign_device_dialog(space_id)):
             return
-        imgui.text_disabled(S.SPACES_ASSIGN_TITLE)
         self._assign_filter = filter_box(
             f"##assignflt{space_id}", S.SPACES_FILTER_HINT, self._assign_filter
         )
@@ -350,7 +379,9 @@ class SpacesPanel:
                     self._on_set_device_space(device.id, space_id)
                     imgui.close_current_popup()
         imgui.end_child()
-        imgui.end_popup()
+        if dialog_buttons(S.ML_CANCEL) == 0:
+            imgui.close_current_popup()
+        end_dialog()
 
     def _render_unassigned_section(self) -> None:
         if self._on_set_device_space is None or self._get_unassigned_devices is None:
@@ -399,9 +430,8 @@ class SpacesPanel:
         return f"{ia}{primary}".strip()
 
     def _render_new_function_popup(self, space_id: int) -> None:
-        if not imgui.begin_popup(f"##newfn{space_id}"):
+        if not begin_dialog(_new_function_dialog(space_id)):
             return
-        imgui.text_disabled(S.SPACES_FN_NEW_TITLE)
         imgui.set_next_item_width(px(220.0))
         _, self._new_fn_name = imgui.input_text(S.SPACES_FN_NAME, self._new_fn_name)
         presets = _function_type_presets()
@@ -410,16 +440,16 @@ class SpacesPanel:
             S.SPACES_FN_TYPE, self._new_fn_type, [label for label, _ in presets]
         )
         can_create = bool(self._new_fn_name.strip())
-        imgui.begin_disabled(not can_create)
-        if imgui.button(S.SPACES_FN_CREATE) and self._on_create_function is not None:
+        clicked = dialog_buttons(
+            S.SPACES_FN_CREATE, S.ML_CANCEL, enabled=[can_create, True]
+        )
+        if clicked == 0 and self._on_create_function is not None:
             _, code = presets[self._new_fn_type]
             self._on_create_function(space_id, code, self._new_fn_name.strip())
             imgui.close_current_popup()
-        imgui.end_disabled()
-        imgui.same_line()
-        if imgui.button(f"{S.ML_CANCEL}##newfn_cancel{space_id}"):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     @staticmethod
     def _space_matches_self(space: "SpaceInfo", flt: str) -> bool:
@@ -541,14 +571,14 @@ class SpacesPanel:
             if imgui.menu_item(S.SPACES_FN_RENAME, "", False)[0]:
                 self._rename_fn = function.id
                 self._rename_buf = function.name
-                self._pending_popup_id = f"##renfn{function.id}"
+                self._pending_popup_id = _rename_function_dialog(function.id)
             if (
                 self._on_remove_function is not None
                 and imgui.menu_item(S.SPACES_FN_DELETE, "", False)[0]
             ):
                 self._on_remove_function(function.id)
             imgui.end_popup()
-        self._open_if_pending(f"##renfn{function.id}")
+        self._open_if_pending(_rename_function_dialog(function.id))
         self._render_rename_popup(function.id)
         if not open_node:
             return
@@ -564,25 +594,25 @@ class SpacesPanel:
                 self._addga_fn = function.id
                 self._addga_role = ""
                 self._addga_filter = ""
-                imgui.open_popup(f"##addfnga{function.id}")
+                imgui.open_popup(_add_function_ga_dialog(function.id))
             self._render_addga_popup(function.id)
         imgui.tree_pop()
 
     def _render_rename_popup(self, function_id: int) -> None:
-        if not imgui.begin_popup(f"##renfn{function_id}"):
+        if not begin_dialog(_rename_function_dialog(function_id)):
             return
         imgui.set_next_item_width(px(240.0))
         _, self._rename_buf = imgui.input_text(S.SPACES_FN_NAME, self._rename_buf)
-        if imgui.button(S.SPACES_FN_RENAME) and self._on_rename_function is not None:
+        clicked = dialog_buttons(S.SPACES_FN_RENAME, S.ML_CANCEL)
+        if clicked == 0 and self._on_rename_function is not None:
             self._on_rename_function(function_id, self._rename_buf.strip())
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(f"{S.ML_CANCEL}##renfn_cancel{function_id}"):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_addga_popup(self, function_id: int) -> None:
-        if not imgui.begin_popup(f"##addfnga{function_id}"):
+        if not begin_dialog(_add_function_ga_dialog(function_id)):
             return
         imgui.set_next_item_width(px(260.0))
         _, self._addga_role = imgui.input_text(S.SPACES_FN_ROLE, self._addga_role)
@@ -597,7 +627,9 @@ class SpacesPanel:
             for node in self._get_ga_range_tree():
                 self._render_ga_pick_range(function_id, node, needle)
         imgui.end_child()
-        imgui.end_popup()
+        if dialog_buttons(S.ML_CANCEL) == 0:
+            imgui.close_current_popup()
+        end_dialog()
 
     def _render_ga_pick_range(self, function_id: int, node: Any, needle: str) -> None:
         if needle and not self._range_has_ga(node, needle):

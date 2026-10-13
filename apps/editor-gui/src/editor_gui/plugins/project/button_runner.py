@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.widgets.dialog import begin_dialog, end_dialog
 from xknxeditor.prod.script import AbortToken, ScriptAborted, ScriptError
 from xknxeditor.prod.script.button import run_offline_button
 from xknxeditor.prod.script.worker import default_worker
@@ -22,7 +23,7 @@ if TYPE_CHECKING:
     from xknxeditor.prod.parser_v2.calculation import ChangeSet
     from xknxeditor.prod.parser_v2.ui import UiButton
 
-_POPUP = "##button_script_running"
+_POPUP_ID = "###button_script_running"
 
 
 @dataclass
@@ -109,22 +110,18 @@ class ButtonRunner:
         run = self._run
         if run is None:
             return
-        if not imgui.is_popup_open(_POPUP):
-            imgui.open_popup(_POPUP)
-        flags = (
-            imgui.WindowFlags_.always_auto_resize
-            | imgui.WindowFlags_.no_title_bar
-            | imgui.WindowFlags_.no_move
-        )
-        if imgui.begin_popup_modal(_POPUP, None, flags)[0]:
+        title = f"{S.SCRIPT_OPERATION}{_POPUP_ID}"
+        if not imgui.is_popup_open(title):
+            imgui.open_popup(title)
+        if begin_dialog(title, flags=imgui.WindowFlags_.no_move):
             imgui.text(S.SCRIPT_RUNNING)
             if time.monotonic() - run.started >= self.FORCE_STOP_AFTER:
                 imgui.text_disabled(S.SCRIPT_NOT_RESPONDING)
                 if imgui.button(S.SCRIPT_FORCE_STOP):
                     run.abort.request()
             if not run.future.done():
-                imgui.end_popup()
+                end_dialog()
                 return
             imgui.close_current_popup()
-            imgui.end_popup()
+            end_dialog()
         self.poll()

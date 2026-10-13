@@ -7,7 +7,12 @@ from imgui_bundle import imgui
 from editor_gui.device import Device, device_label
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets import HexView
-from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.dialog import (
+    begin_dialog,
+    begin_tool_window,
+    dialog_buttons,
+    end_dialog,
+)
 from xknxeditor.prod.errors import EncodingError
 
 
@@ -26,6 +31,10 @@ class MemoryPreviewWindow:
         self._ref_path_buf: str = ""
         self._ref_seg_id: str | None = None
         self._encode_error: str | None = None
+        # The segment toolbar sits inside a tab item (its own id scope); the dialogs are opened
+        # at window scope, where they are begun.
+        self._open_save_pending = False
+        self._open_ref_pending = False
 
     def open(self, device: Device) -> None:
         self._device = device
@@ -53,23 +62,20 @@ class MemoryPreviewWindow:
         self._base_addrs = device.get_segment_base_addrs()
         self._param_maps = device.get_memory_param_map()
 
-        # Dock the preview to the right edge of the work area on first open (anchor its top-right).
-        vp = imgui.get_main_viewport()
-        pos = getattr(vp, "work_pos", None) or getattr(vp, "pos", None)
-        size = getattr(vp, "work_size", None) or getattr(vp, "size", None)
-        if pos is not None and size is not None:
-            imgui.set_next_window_pos(
-                imgui.ImVec2(pos.x + size.x - px(16.0), pos.y + px(48.0)),
-                imgui.Cond_.appearing,
-                imgui.ImVec2(1.0, 0.0),
-            )
-        imgui.set_next_window_size(px_vec2(760, 540), imgui.Cond_.first_use_ever)
-        opened, p_open = imgui.begin(S.CONFIGURE_MEMORY_PREVIEW, self._show)
+        opened, p_open = begin_tool_window(
+            S.CONFIGURE_MEMORY_PREVIEW, self._show, width=760, height=540
+        )
         if p_open is not None:
             self._show = p_open
         if opened:
             self._render_device_selector(devices)
             imgui.separator()
+            if self._open_save_pending:
+                imgui.open_popup(S.MEMORY_SAVE_DUMP_TITLE)
+                self._open_save_pending = False
+            if self._open_ref_pending:
+                imgui.open_popup(S.MEMORY_LOAD_REF_TITLE)
+                self._open_ref_pending = False
             self._render_save_modal()
             self._render_load_ref_modal()
             segments = list(self._segments.items())
@@ -114,7 +120,7 @@ class MemoryPreviewWindow:
         imgui.same_line()
         if imgui.small_button(f"Save...##sv{idx}"):
             self._save_seg_id = seg_id
-            imgui.open_popup("##savedump")
+            self._open_save_pending = True
         imgui.same_line()
         has_ref = seg_id in self._ref_data
         diff_label = f"Diff (clear)##df{idx}" if has_ref else f"Diff...##df{idx}"
@@ -124,50 +130,36 @@ class MemoryPreviewWindow:
             else:
                 self._ref_seg_id = seg_id
                 self._ref_path_buf = ""
-                imgui.open_popup("##loadref")
+                self._open_ref_pending = True
 
     def _render_load_ref_modal(self) -> None:
-        imgui.set_next_window_size(px_vec2(500, 0), imgui.Cond_.always)
-        if imgui.begin_popup_modal(
-            "##loadref",
-            None,
-            imgui.WindowFlags_.no_title_bar | imgui.WindowFlags_.always_auto_resize,
-        )[0]:
-            imgui.text("Reference File Path:")
+        if begin_dialog(S.MEMORY_LOAD_REF_TITLE, width=500):
+            imgui.text(S.MEMORY_REF_PATH)
             imgui.set_next_item_width(-1)
             _, self._ref_path_buf = imgui.input_text("##rp", self._ref_path_buf)
-            imgui.spacing()
-            btn_w = px_vec2(120, 0)
-            if imgui.button("Load", btn_w):
+            clicked = dialog_buttons(S.BTN_LOAD, S.BTN_CANCEL)
+            if clicked == 0:
                 seg_id = self._ref_seg_id
                 if seg_id is not None:
                     with contextlib.suppress(OSError):
                         self._ref_data[seg_id] = Path(self._ref_path_buf).read_bytes()
                 imgui.close_current_popup()
-            imgui.same_line()
-            if imgui.button("Cancel", btn_w):
+            elif clicked == 1:
                 imgui.close_current_popup()
-            imgui.end_popup()
+            end_dialog()
 
     def _render_save_modal(self) -> None:
-        imgui.set_next_window_size(px_vec2(500, 0), imgui.Cond_.always)
-        if imgui.begin_popup_modal(
-            "##savedump",
-            None,
-            imgui.WindowFlags_.no_title_bar | imgui.WindowFlags_.always_auto_resize,
-        )[0]:
-            imgui.text("Save Path:")
+        if begin_dialog(S.MEMORY_SAVE_DUMP_TITLE, width=500):
+            imgui.text(S.MEMORY_SAVE_PATH)
             imgui.set_next_item_width(-1)
             _, self._save_path_buf = imgui.input_text("##sp", self._save_path_buf)
-            imgui.spacing()
-            btn_w = px_vec2(120, 0)
-            if imgui.button("Save", btn_w):
+            clicked = dialog_buttons(S.BTN_SAVE, S.BTN_CANCEL)
+            if clicked == 0:
                 seg_id = self._save_seg_id
                 if seg_id is not None and seg_id in self._segments:
                     with contextlib.suppress(OSError):
                         Path(self._save_path_buf).write_bytes(self._segments[seg_id])
                 imgui.close_current_popup()
-            imgui.same_line()
-            if imgui.button("Cancel", btn_w):
+            elif clicked == 1:
                 imgui.close_current_popup()
-            imgui.end_popup()
+            end_dialog()

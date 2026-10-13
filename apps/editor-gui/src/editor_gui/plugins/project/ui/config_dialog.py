@@ -9,7 +9,7 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.checkbox import checkbox
-from editor_gui.widgets.dpi import px_vec2
+from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 
 
 class DeviceConfigDialog:
@@ -51,9 +51,7 @@ class DeviceConfigDialog:
         if self._open:
             imgui.open_popup(self._popup_id)
             self._open = False
-        if not imgui.begin_popup_modal(
-            self._popup_id, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if not begin_dialog(self._popup_id):
             return
         is_paste = self._mode == "paste"
         count = (
@@ -71,23 +69,21 @@ class DeviceConfigDialog:
             S.CONFIG_INCLUDE_PARAMS, self._include_params
         )
         _, self._include_links = checkbox(S.CONFIG_INCLUDE_LINKS, self._include_links)
-        imgui.separator()
-        imgui.begin_disabled(not (self._include_params or self._include_links))
-        if imgui.button(
+        clicked = dialog_buttons(
             S.CONFIG_PASTE_BTN if is_paste else S.CONFIG_DUPLICATE_BTN,
-            px_vec2(110, 0),
-        ):
+            S.BTN_CANCEL,
+            enabled=[self._include_params or self._include_links, True],
+        )
+        if clicked == 0:
             if self._node_id is not None:
                 handler = self._on_paste if is_paste else self._on_duplicate
                 handler(self._node_id, self._include_params, self._include_links)
             self._close()
             imgui.close_current_popup()
-        imgui.end_disabled()
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, px_vec2(90, 0)):
+        elif clicked == 1:
             self._close()
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _close(self) -> None:
         self._node_id = None

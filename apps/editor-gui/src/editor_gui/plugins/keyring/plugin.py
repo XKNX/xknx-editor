@@ -4,12 +4,13 @@ KNX Secure is used only occasionally, so it is not a docked tab: it lives as a m
 that opens a separate window on demand (the window carries the import + the interface/GA/device
 tables)."""
 
-from imgui_bundle import hello_imgui, imgui
+from imgui_bundle import imgui
 
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.keyring.service import KeyringService
 from editor_gui.plugins.keyring.strings import S
 from editor_gui.plugins.keyring.ui import KeyringPanel
+from editor_gui.widgets.dialog import begin_tool_window
 
 
 class KeyringPlugin:
@@ -60,10 +61,9 @@ class KeyringPlugin:
         self._was_loaded = loaded
         if not (loaded and self._window_open):
             return
-        imgui.set_next_window_size(
-            hello_imgui.em_to_vec2(34.0, 26.0), imgui.Cond_.first_use_ever
+        expanded, open_state = begin_tool_window(
+            S.PANEL_KEYRING, True, width=34 * 16, height=26 * 16
         )
-        expanded, open_state = imgui.begin(S.PANEL_KEYRING, True)
         self._window_open = bool(open_state)
         if expanded:
             self._panel.render_contents()

@@ -8,6 +8,7 @@ from imgui_bundle import imgui
 
 from editor_gui.device_info import application_version_text
 from editor_gui.plugins.catalog.strings import S
+from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 
@@ -283,9 +284,7 @@ class CatalogPanel:
         if self._open_delete_popup:
             imgui.open_popup(title)
             self._open_delete_popup = False
-        if not imgui.begin_popup_modal(
-            title, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if not begin_dialog(title):
             return
         product = self._delete_target
         imgui.dummy(px_vec2(440, 0))  # anchor the minimum content width
@@ -307,17 +306,16 @@ class CatalogPanel:
             imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.95, 0.6, 0.25, 1.0))
             imgui.text_wrapped(S.DELETE_AFFECTED.format(count=self._delete_affected))
             imgui.pop_style_color()
-        imgui.separator()
-        if imgui.button(S.CONTEXT_DELETE, px_vec2(90, 0)):
+        clicked = dialog_buttons(S.CONTEXT_DELETE, S.BTN_CANCEL)
+        if clicked == 0:
             if product is not None:
                 self._start_delete(product)
             self._delete_target = None
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, px_vec2(90, 0)):
+        elif clicked == 1:
             self._delete_target = None
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _start_delete(self, product: ProductSummary) -> None:
         if self._delete_product is None or self._deleting is not None:
@@ -598,32 +596,25 @@ class CatalogPanel:
             return
         title = S.CATALOG_ADD_ONLINE_TITLE
         imgui.open_popup(title)
-        # Center on the viewport and give it a comfortable width so the prompt doesn't wrap narrow.
-        center = imgui.get_main_viewport().get_center()
-        imgui.set_next_window_pos(center, imgui.Cond_.appearing, imgui.ImVec2(0.5, 0.5))
+        # A comfortable width so the prompt doesn't wrap narrow.
         imgui.set_next_window_size_constraints(
             imgui.ImVec2(px(460.0), px(140.0)), imgui.ImVec2(px(680.0), 1.0e9)
         )
-        if imgui.begin_popup_modal(title, None, imgui.WindowFlags_.always_auto_resize)[
-            0
-        ]:
+        if begin_dialog(title):
             imgui.dummy(
                 imgui.ImVec2(px(440.0), 0.0)
             )  # anchor the minimum content width
             imgui.text_wrapped(S.CATALOG_ADD_ONLINE_PROMPT.format(name=name))
-            imgui.spacing()
-            if imgui.button(
-                S.CATALOG_ADD_ONLINE_YES, imgui.ImVec2(px(150.0), px(32.0))
-            ):
+            clicked = dialog_buttons(S.CATALOG_ADD_ONLINE_YES, S.CATALOG_ADD_ONLINE_NO)
+            if clicked == 0:
                 if self._add_online_item is not None:
                     self._add_online_item(item_id)
                 self._clear_pending_add()
                 imgui.close_current_popup()
-            imgui.same_line()
-            if imgui.button(S.CATALOG_ADD_ONLINE_NO, imgui.ImVec2(px(110.0), px(32.0))):
+            elif clicked == 1:
                 self._clear_pending_add()
                 imgui.close_current_popup()
-            imgui.end_popup()
+            end_dialog()
 
     def _clear_pending_add(self) -> None:
         with self._online_lock:

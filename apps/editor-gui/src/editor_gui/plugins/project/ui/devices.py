@@ -7,7 +7,8 @@ from editor_gui.device import Device, UnloadedDevice, address_order, device_labe
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
-from editor_gui.widgets.dpi import label_column_width, px, px_vec2
+from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
+from editor_gui.widgets.dpi import label_column_width, px
 
 TreeDevice = Device | UnloadedDevice
 
@@ -325,23 +326,20 @@ class DevicesPanel:
             imgui.end_popup()
 
     def _render_delete_device_popup(self) -> None:
-        if imgui.begin_popup_modal(
-            S.DEVICE_DELETE_TITLE, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if begin_dialog(S.DEVICE_DELETE_TITLE):
             device = self._delete_target_device
             name = self._device_display_name(device) if device else ""
             imgui.text_wrapped(S.DEVICE_DELETE_CONFIRM.format(name=name))
-            imgui.separator()
-            if imgui.button(S.CONTEXT_DELETE, px_vec2(90, 0)):
+            clicked = dialog_buttons(S.CONTEXT_DELETE, S.BTN_CANCEL)
+            if clicked == 0:
                 if device is not None:
                     self._on_delete_device(device)
                 self._delete_target_device = None
                 imgui.close_current_popup()
-            imgui.same_line()
-            if imgui.button(S.BTN_CANCEL, px_vec2(90, 0)):
+            elif clicked == 1:
                 self._delete_target_device = None
                 imgui.close_current_popup()
-            imgui.end_popup()
+            end_dialog()
 
     def _device_display_name(self, device: TreeDevice) -> str:
         """Human label for dialogs: name, else product/app name, prefixed with the address."""
@@ -404,9 +402,7 @@ class DevicesPanel:
             imgui.end_popup()
 
     def _render_new_area_popup(self) -> None:
-        if imgui.begin_popup_modal(
-            S.POPUP_NEW_AREA, flags=imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if begin_dialog(S.POPUP_NEW_AREA):
             imgui.text(S.POPUP_NAME)
             imgui.same_line(
                 label_column_width(S.POPUP_NAME, S.POPUP_NUMBER, minimum=80)
@@ -425,25 +421,22 @@ class DevicesPanel:
                 "##area_num", self._popup_area_number
             )
 
-            imgui.separator()
             if self._popup_error:
                 imgui.text_colored(imgui.ImVec4(1.0, 0.4, 0.4, 1.0), self._popup_error)
-            if imgui.button(S.BTN_ADD, px_vec2(75, 0)):
+            clicked = dialog_buttons(S.BTN_ADD, S.BTN_CANCEL)
+            if clicked == 0:
                 try:
                     self._on_create_area(self._popup_area_number, self._popup_name)
                     self._popup_error = ""
                     imgui.close_current_popup()
                 except ValueError as exc:
                     self._popup_error = str(exc)
-            imgui.same_line()
-            if imgui.button(S.BTN_CANCEL, px_vec2(75, 0)):
+            elif clicked == 1:
                 imgui.close_current_popup()
-            imgui.end_popup()
+            end_dialog()
 
     def _render_new_line_popup(self) -> None:
-        if imgui.begin_popup_modal(
-            S.POPUP_NEW_LINE, flags=imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if begin_dialog(S.POPUP_NEW_LINE):
             imgui.text(S.POPUP_NAME)
             imgui.same_line(
                 label_column_width(S.POPUP_NAME, S.POPUP_NUMBER, minimum=80)
@@ -462,10 +455,10 @@ class DevicesPanel:
                 "##line_num", self._popup_line_number
             )
 
-            imgui.separator()
             if self._popup_error:
                 imgui.text_colored(imgui.ImVec4(1.0, 0.4, 0.4, 1.0), self._popup_error)
-            if imgui.button(S.BTN_ADD, px_vec2(75, 0)):
+            clicked = dialog_buttons(S.BTN_ADD, S.BTN_CANCEL)
+            if clicked == 0:
                 try:
                     if self._popup_target_area:
                         self._on_create_line(
@@ -477,15 +470,12 @@ class DevicesPanel:
                     imgui.close_current_popup()
                 except ValueError as exc:
                     self._popup_error = str(exc)
-            imgui.same_line()
-            if imgui.button(S.BTN_CANCEL, px_vec2(75, 0)):
+            elif clicked == 1:
                 imgui.close_current_popup()
-            imgui.end_popup()
+            end_dialog()
 
     def _render_rename_popup(self) -> None:
-        if imgui.begin_popup_modal(
-            S.POPUP_RENAME, flags=imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if begin_dialog(S.POPUP_RENAME):
             imgui.text(S.POPUP_NAME)
             imgui.same_line(
                 label_column_width(S.POPUP_NAME, S.POPUP_NUMBER, minimum=80)
@@ -495,8 +485,8 @@ class DevicesPanel:
             imgui.set_next_item_width(px(150))
             _, self._popup_name = imgui.input_text("##rename_name", self._popup_name)
 
-            imgui.separator()
-            if imgui.button(S.BTN_ADD, px_vec2(75, 0)):
+            clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
+            if clicked == 0:
                 if self._popup_target_area:
                     self._on_rename_area(self._popup_target_area, self._popup_name)
                     self._popup_target_area = None
@@ -504,12 +494,11 @@ class DevicesPanel:
                     self._on_rename_line(self._popup_target_line, self._popup_name)
                     self._popup_target_line = None
                 imgui.close_current_popup()
-            imgui.same_line()
-            if imgui.button(S.BTN_CANCEL, px_vec2(75, 0)):
+            elif clicked == 1:
                 self._popup_target_area = None
                 self._popup_target_line = None
                 imgui.close_current_popup()
-            imgui.end_popup()
+            end_dialog()
 
     def _next_area_number(self, areas: list[Area]) -> int:
         if not areas:

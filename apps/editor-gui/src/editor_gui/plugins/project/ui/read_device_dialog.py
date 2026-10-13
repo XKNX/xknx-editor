@@ -7,7 +7,7 @@ from collections.abc import Callable
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
-from editor_gui.widgets.dpi import px_vec2
+from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 
 
 class ReadDeviceDialog:
@@ -27,21 +27,16 @@ class ReadDeviceDialog:
         if self._open_requested:
             self._open_requested = False
             imgui.open_popup(popup)
-        if not imgui.begin_popup_modal(
-            popup, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if not begin_dialog(popup):
             return
         imgui.text(self._device_label)
         imgui.spacing()
         imgui.text(S.READ_INCLUDE_GROUP_COMMUNICATION)
-        imgui.separator()
-        size = px_vec2(90, 0)
-        for label, group_communication in ((S.BTN_YES, True), (S.BTN_NO, False)):
-            if imgui.button(label, size):
-                if self._node_id is not None:
-                    self._on_read(self._node_id, group_communication)
-                imgui.close_current_popup()
-            imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, size):
+        clicked = dialog_buttons(S.BTN_YES, S.BTN_NO, S.BTN_CANCEL)
+        if clicked in (0, 1):
+            if self._node_id is not None:
+                self._on_read(self._node_id, clicked == 0)
             imgui.close_current_popup()
-        imgui.end_popup()
+        elif clicked == 2:
+            imgui.close_current_popup()
+        end_dialog()

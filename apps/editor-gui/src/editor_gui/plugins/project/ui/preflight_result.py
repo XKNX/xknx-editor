@@ -17,7 +17,13 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
-from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.dialog import (
+    begin_dialog,
+    begin_tool_window,
+    dialog_buttons,
+    end_dialog,
+)
+from editor_gui.widgets.dpi import px
 
 if TYPE_CHECKING:
     from xknxeditor.download.preflight import PreflightReport, SegmentDiff
@@ -104,8 +110,9 @@ class PreflightResultWindow:
                 self._show = True
         if not self._show:
             return
-        imgui.set_next_window_size(px_vec2(720, 520), imgui.Cond_.first_use_ever)
-        opened, p_open = imgui.begin(S.PREFLIGHT_RESULT_TITLE, self._show)
+        opened, p_open = begin_tool_window(
+            S.PREFLIGHT_RESULT_TITLE, self._show, width=720, height=520
+        )
         if p_open is not None:
             self._show = p_open
         if opened:
@@ -201,7 +208,7 @@ class PreflightResultWindow:
         )
 
         if imgui.button(S.PREFLIGHT_EXPORT):
-            imgui.open_popup("##preflight_export")
+            imgui.open_popup(S.PREFLIGHT_EXPORT_TITLE)
         self._render_export_modal(report)
         imgui.separator()
         self._render_table(report)
@@ -339,28 +346,21 @@ class PreflightResultWindow:
             imgui.set_tooltip(tooltip)
 
     def _render_export_modal(self, report: PreflightReport) -> None:
-        imgui.set_next_window_size(px_vec2(520, 0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(
-            "##preflight_export",
-            None,
-            imgui.WindowFlags_.no_title_bar | imgui.WindowFlags_.always_auto_resize,
-        )[0]:
+        if not begin_dialog(S.PREFLIGHT_EXPORT_TITLE, width=520):
             return
         imgui.text(S.PREFLIGHT_EXPORT_PATH)
         imgui.set_next_item_width(-1)
         _, self._save_path_buf = imgui.input_text("##pf_path", self._save_path_buf)
-        imgui.spacing()
-        btn_w = px_vec2(120, 0)
-        if imgui.button(S.BTN_SAVE, btn_w):
+        clicked = dialog_buttons(S.BTN_SAVE, S.BTN_CANCEL)
+        if clicked == 0:
             with contextlib.suppress(OSError):
                 Path(self._save_path_buf).write_text(
                     self._export_text(report), encoding="utf-8"
                 )
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, btn_w):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _clipboard_text(self) -> str:
         header = f"{self._label} scope={self._scope}"

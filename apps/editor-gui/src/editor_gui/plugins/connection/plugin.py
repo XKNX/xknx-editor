@@ -7,7 +7,7 @@ from concurrent.futures import Future
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
-from imgui_bundle import hello_imgui, imgui, imspinner
+from imgui_bundle import imgui, imspinner
 from xknx import XKNX
 from xknx.core import XknxConnectionState
 from xknx.exceptions import ConfirmationError
@@ -34,6 +34,7 @@ from editor_gui.programming import (
     ScannedDevice,
 )
 from editor_gui.settings import load_settings, save_settings
+from editor_gui.widgets.dialog import begin_tool_window
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from xknxeditor.prod.app_id import parse_app_id
 
@@ -694,11 +695,8 @@ class ConnectionPlugin:
         """The 'Devices in programming mode' window; called from the overlay pass."""
         if not self._progmode_open:
             return
-        imgui.set_next_window_size(
-            hello_imgui.em_to_vec2(30.0, 24.0), imgui.Cond_.first_use_ever
-        )
-        expanded, open_state = imgui.begin(
-            f"{S.PROGMODE_TITLE}###progmode_window", True
+        expanded, open_state = begin_tool_window(
+            f"{S.PROGMODE_TITLE}###progmode_window", True, width=30 * 16, height=24 * 16
         )
         self._progmode_open = bool(open_state)
         if expanded:

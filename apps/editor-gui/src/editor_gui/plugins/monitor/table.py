@@ -32,7 +32,8 @@ from editor_gui.plugins.monitor.service import MonitorKind
 from editor_gui.plugins.monitor.strings import S
 from editor_gui.plugins.monitor.xmlio import export_xml, import_xml
 from editor_gui.strings import get_locale
-from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
+from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 
 if TYPE_CHECKING:
@@ -689,23 +690,21 @@ class TelegramView:
         if not question.opened:
             imgui.open_popup(popup)
             question.opened = True
-        imgui.set_next_window_size(px_vec2(460.0, 0.0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(popup, None)[0]:
+        if not begin_dialog(popup, width=460.0):
             self._question = None
             return
         imgui.push_text_wrap_pos(0.0)
         imgui.text_unformatted(question.text)
         imgui.pop_text_wrap_pos()
-        imgui.spacing()
-        yes = imgui.button(S.BTN_YES, px_vec2(80.0, 0.0))
-        imgui.same_line()
-        no = imgui.button(S.BTN_NO, px_vec2(80.0, 0.0))
+        clicked = dialog_buttons(S.BTN_YES, S.BTN_NO)
+        yes = clicked == 0
+        no = clicked == 1
         if yes or no or imgui.is_key_pressed(imgui.Key.escape):
             self._question = None
             imgui.close_current_popup()
             if yes:
                 question.on_yes()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_scope(self) -> None:
         action = self._scope_action
@@ -716,8 +715,7 @@ class TelegramView:
         if not self._scope_opened:
             imgui.open_popup(popup)
             self._scope_opened = True
-        imgui.set_next_window_size(px_vec2(360.0, 0.0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(popup, None)[0]:
+        if not begin_dialog(popup, width=360.0):
             self._scope_action = None
             return
         imgui.text_unformatted(S.SCOPE_LABEL)
@@ -736,10 +734,9 @@ class TelegramView:
             S.SCOPE_FILTERED.format(count=len(self._view)), self._scope_choice == 2
         ):
             self._scope_choice = 2
-        imgui.spacing()
-        ok = imgui.button(S.BTN_OK, px_vec2(80.0, 0.0))
-        imgui.same_line()
-        cancel = imgui.button(S.BTN_CANCEL, px_vec2(80.0, 0.0))
+        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
+        ok = clicked == 0
+        cancel = clicked == 1
         if ok or cancel or imgui.is_key_pressed(imgui.Key.escape):
             self._scope_action = None
             imgui.close_current_popup()
@@ -749,7 +746,7 @@ class TelegramView:
                     self._export(records, self._scope_choice == 0)
                 else:
                     self._print(records, self._last_index)
-        imgui.end_popup()
+        end_dialog()
 
     def _poll_dialogs(self) -> None:
         if self._save_dialog is not None and self._save_dialog.ready():

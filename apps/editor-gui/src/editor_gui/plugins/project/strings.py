@@ -675,6 +675,14 @@ class ProjectStrings:
         return _("Delete")
 
     @property
+    def SPACES_RENAME_TITLE(self) -> str:
+        return _("Rename Space")
+
+    @property
+    def SPACES_DELETE_TITLE(self) -> str:
+        return _("Delete Space")
+
+    @property
     def SPACES_TYPE(self) -> str:
         return _("Type")
 
@@ -759,6 +767,10 @@ class ProjectStrings:
     @property
     def SPACES_FN_RENAME(self) -> str:
         return _("Rename")
+
+    @property
+    def SPACES_FN_RENAME_TITLE(self) -> str:
+        return _("Rename Function")
 
     @property
     def SPACES_FN_DELETE(self) -> str:
@@ -1384,6 +1396,22 @@ class ProjectStrings:
         return _("Memory Preview")
 
     @property
+    def MEMORY_LOAD_REF_TITLE(self) -> str:
+        return _("Load Reference File")
+
+    @property
+    def MEMORY_REF_PATH(self) -> str:
+        return _("Reference File Path:")
+
+    @property
+    def MEMORY_SAVE_DUMP_TITLE(self) -> str:
+        return _("Save Memory Dump")
+
+    @property
+    def MEMORY_SAVE_PATH(self) -> str:
+        return _("Save Path:")
+
+    @property
     def PREFLIGHT_RESULT_TITLE(self) -> str:
         return _("Programming Test Result")
 
@@ -1518,6 +1546,10 @@ class ProjectStrings:
     @property
     def PREFLIGHT_EXPORT_PATH(self) -> str:
         return _("Export Path:")
+
+    @property
+    def PREFLIGHT_EXPORT_TITLE(self) -> str:
+        return _("Export Programming Test Result")
 
     @property
     def PREFLIGHT_MEM_LABEL(self) -> str:
@@ -1672,6 +1704,10 @@ class ProjectStrings:
     @property
     def BTN_SAVE(self) -> str:
         return _("Save")
+
+    @property
+    def BTN_LOAD(self) -> str:
+        return _("Load")
 
     @property
     def COPY_LOG(self) -> str:
