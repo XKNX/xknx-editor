@@ -16,12 +16,20 @@ def get_locale() -> str:
 
 
 def create_translator(domain: str, locale_dir: Path):
+    # Cache the translation object per locale. gettext.translation() runs gettext.find(), which stats
+    # the filesystem for .mo files on every call; a panel's render() reads dozens of S.* strings each
+    # frame, so without this cache the UI spends most of its time stat-ing locale dirs. gettext itself
+    # caches the parsed catalog, but only after find() has already walked the filesystem.
+    cache: dict[str, gettext.NullTranslations] = {}
+
     def translate(text: str) -> str:
-        try:
-            trans = gettext.translation(domain, locale_dir, languages=[_current_locale])
-            return trans.gettext(text)
-        except FileNotFoundError:
-            return text
+        trans = cache.get(_current_locale)
+        if trans is None:
+            trans = gettext.translation(
+                domain, locale_dir, languages=[_current_locale], fallback=True
+            )
+            cache[_current_locale] = trans
+        return trans.gettext(text)
 
     return translate
 

@@ -65,6 +65,11 @@ class TopologyPanel:
         self._building_mode = False
         # (label, width in unscaled pixels) -> the label cut to fit that width
         self._fitted: dict[tuple[str, float], str] = {}
+        # Built layout cached by (mode, source-list identity): both source reads are revision-cached
+        # (a fresh object on the next edit), and the layout geometry is zoom-independent (zoom is
+        # applied in _draw), so it need not be regrouped/re-sorted every frame.
+        self._layout_key: tuple[bool, int] | None = None
+        self._layout_cache: _Layout | None = None
 
     def render(self) -> None:
         if not self._is_open():
@@ -73,11 +78,20 @@ class TopologyPanel:
         _, self._building_mode = checkbox(S.TOPOLOGY_BUILDING_MODE, self._building_mode)
         imgui.same_line()
         imgui.text_disabled(S.TOPOLOGY_HINT)
-        layout = (
-            self._build_building_layout(self._get_space_tree())
-            if self._building_mode
-            else self._build_physical_layout(self._get_devices())
-        )
+        if self._building_mode:
+            source = self._get_space_tree()
+            key = (True, id(source))
+        else:
+            source = self._get_devices()
+            key = (False, id(source))
+        if self._layout_key != key or self._layout_cache is None:
+            self._layout_cache = (
+                self._build_building_layout(source)
+                if self._building_mode
+                else self._build_physical_layout(source)
+            )
+            self._layout_key = key
+        layout = self._layout_cache
         if imgui.begin_child("##topo_canvas", imgui.ImVec2(0.0, 0.0), True):
             self._handle_zoom()
             self._draw(layout)

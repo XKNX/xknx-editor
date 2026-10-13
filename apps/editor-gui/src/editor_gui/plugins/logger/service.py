@@ -80,8 +80,16 @@ class LogRecord:
 class LogService:
     def __init__(self) -> None:
         self._records: deque[LogRecord] = deque(maxlen=_MAX_RECORDS)
+        # Monotonic version bumped on every append/clear. get_records() hands out a fresh list each
+        # call, so its id/length are not a safe change signal (a bounded deque keeps a constant length
+        # while its contents roll over); the UI caches its filtered view against this instead.
+        self._version = 0
         self._configure_structlog()
         self._install_stdlib_bridge()
+
+    def _store(self, record: LogRecord) -> None:
+        self._records.append(record)
+        self._version += 1
 
     def _wrap_payload(
         self, logger: Any, method: str, event_dict: MutableMapping[str, Any]
@@ -98,7 +106,7 @@ class LogService:
         self, logger: Any, method: str, event_dict: MutableMapping[str, Any]
     ) -> MutableMapping[str, Any]:
         payload = event_dict.get("payload", {})
-        self._records.append(
+        self._store(
             LogRecord(
                 timestamp=time.time(),
                 level=str(event_dict.get("level", method)),
@@ -161,7 +169,7 @@ class LogService:
             for k, v in record.__dict__.items()
             if k not in _STDLIB_RECORD_ATTRS
         }
-        self._records.append(
+        self._store(
             LogRecord(
                 timestamp=record.created,
                 level=record.levelname.lower(),
@@ -186,5 +194,9 @@ class LogService:
     def get_records(self) -> list[LogRecord]:
         return list(self._records)
 
+    def records_version(self) -> int:
+        return self._version
+
     def clear(self) -> None:
         self._records.clear()
+        self._version += 1

@@ -3383,7 +3383,7 @@ _SECTIONS = ("RightSpace", "DeviceSpace", "LeftSpace", "BottomSpace")
 _DEFAULT_RATIOS = {
     # Wide enough for the Device panel's action buttons in one row.
     "right": 0.2,
-    "device": 0.35,
+    "device": 0.5,
     # Wide enough that the stacked navigation tabs (Buildings, Devices, Group Addresses, Catalog)
     # all fit without the tab-bar overflow (">>") arrow.
     "left": 0.39,

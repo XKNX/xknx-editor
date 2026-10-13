@@ -14,7 +14,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 
-from editor_gui.concurrency import io_guarded, revision_cached
+from editor_gui.concurrency import (
+    io_guarded,
+    revision_cached,
+    revision_cached_by_args,
+)
 from editor_gui.device import (
     ComObject,
     Device,
@@ -1442,6 +1446,7 @@ class ProjectService:
         return self._ga_cache
 
     @io_guarded(lambda: None)
+    @revision_cached_by_args
     def get_group_address(self, ga_id: int) -> _GroupAddress | None:
         if self._pid is None:
             return None
@@ -1461,6 +1466,7 @@ class ProjectService:
         )
 
     @io_guarded(list)
+    @revision_cached_by_args
     def get_assignments_for_ga(self, ga_id: int) -> list[_Assignment]:
         if self._pid is None:
             return []
@@ -1475,6 +1481,7 @@ class ProjectService:
         ]
 
     @io_guarded(list)
+    @revision_cached_by_args
     def get_links_for_com_object(self, com_object_db_id: int) -> list[_Assignment]:
         """A device com-object's group-address links (the per-com-object direction, for the editor's
         Group Objects view). ``com_object_db_id`` is ``ComObject.db_id``."""
@@ -1617,6 +1624,7 @@ class ProjectService:
         return self._svc.space_tree(self._pid, _INSTALLATION)
 
     @io_guarded(lambda: None)
+    @revision_cached
     def get_project_metadata(self) -> _ProjectInfo | None:
         """Project-level metadata (name, author, tool/schema version, …) from the imported project."""
         if self._pid is None:
