@@ -128,6 +128,22 @@ class CatalogStrings:
         return _("Application ID")
 
     @property
+    def CATALOG_DETAIL_RAIL(self) -> str:
+        return _("DIN Rail Mounting")
+
+    @property
+    def CATALOG_DETAIL_BUS_CURRENT(self) -> str:
+        return _("Bus Current")
+
+    @property
+    def CATALOG_YES(self) -> str:
+        return _("Yes")
+
+    @property
+    def CATALOG_NO(self) -> str:
+        return _("No")
+
+    @property
     def CATALOG_DETAIL_PRODUCT_REF(self) -> str:
         return _("Product Ref")
 

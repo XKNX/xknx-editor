@@ -155,3 +155,15 @@ msgstr "Aus dem lokalen Katalog gelöscht: {name}"
 
 msgid "Application ID"
 msgstr "Applikations-ID"
+
+msgid "DIN Rail Mounting"
+msgstr "Hutschienenmontage"
+
+msgid "Bus Current"
+msgstr "Busstrom"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "No"
+msgstr "Nein"

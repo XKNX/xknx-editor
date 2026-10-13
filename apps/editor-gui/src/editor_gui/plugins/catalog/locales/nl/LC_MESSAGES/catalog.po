@@ -90,3 +90,15 @@ msgstr "Verwijderd uit de lokale catalogus: {name}"
 
 msgid "Application ID"
 msgstr "Applicatie-ID"
+
+msgid "DIN Rail Mounting"
+msgstr "DIN-railmontage"
+
+msgid "Bus Current"
+msgstr "Busstroom"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "No"
+msgstr "Nee"
