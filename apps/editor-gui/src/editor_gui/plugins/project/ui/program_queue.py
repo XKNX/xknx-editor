@@ -110,6 +110,7 @@ class ProgramQueuePanel:
             self._render_cancel(item, right)
             if item.state is OperationState.RUNNING:
                 self._render_progress(item)
+            _render_full_download_question(item)
         if item.script is not None and item.script.text:
             imgui.text_wrapped(item.script.text)
         failed = item.state is OperationState.FAILED
@@ -165,6 +166,19 @@ class ProgramQueuePanel:
             )
         else:
             imgui.progress_bar(-1.0 * float(imgui.get_time()), bar, "")
+
+
+def _render_full_download_question(item: QueueItem) -> None:
+    question = item.full_download_question
+    if question is None or question.done():
+        return
+    imgui.text_wrapped(S.FULL_DOWNLOAD_DIFFERENT)
+    imgui.text_wrapped(S.FULL_DOWNLOAD_QUESTION)
+    if imgui.button(f"{S.BTN_YES}##full_download_yes"):
+        question.set_result(True)
+    imgui.same_line()
+    if imgui.button(f"{S.BTN_NO}##full_download_no"):
+        question.set_result(False)
 
 
 def _render_details(item: QueueItem) -> None:
@@ -247,6 +261,8 @@ def _state(item: QueueItem) -> str:
             if item.script is None:
                 if item.waiting_for_button:
                     return S.OPERATION_PRESS_PROGRAMMING_BUTTON
+                if item.full_download_question is not None:
+                    return S.OPERATION_CONFIRM
                 return S.OPERATION_DOWNLOADING
             return S.SCRIPT_CANCELING if item.script.canceled else S.SCRIPT_RUNNING
         case OperationState.FINISHED:

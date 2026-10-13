@@ -4,7 +4,7 @@ import asyncio
 import functools
 import threading
 import time
-from collections.abc import Callable, Coroutine
+from collections.abc import Awaitable, Callable, Coroutine
 from concurrent.futures import Future
 from dataclasses import dataclass
 from enum import Enum
@@ -574,6 +574,7 @@ class ConnectionService:
         current_address: str | None = None,
         waiting: Callable[[], None] | None = None,
         serial_number: bytes | None = None,
+        confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
     ) -> Future[Any] | None:
         """Download the device's configured application/parameters onto the bus.
 
@@ -638,6 +639,7 @@ class ConnectionService:
                 progress=self._on_program_progress,
                 security=security,
                 serial_number=serial_number,
+                confirm_full_download=confirm_full_download,
             )
         )
         if future is not None:

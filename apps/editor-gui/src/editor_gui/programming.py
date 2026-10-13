@@ -23,7 +23,7 @@ from xknxeditor.download.image import build_image
 from xknxeditor.download.scope import DownloadScope
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Awaitable, Callable
 
     from xknx import XKNX
 
@@ -295,6 +295,7 @@ async def download_device(
     progress: Callable[[int, int], None] | None = None,
     security: DeviceSecurity | None = None,
     serial_number: bytes | None = None,
+    confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
 ) -> None:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -321,4 +322,5 @@ async def download_device(
         commission_serial_number=serial_number,
         progress=progress,
         security=security,
+        confirm_full_download=confirm_full_download,
     )

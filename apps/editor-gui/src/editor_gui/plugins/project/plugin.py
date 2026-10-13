@@ -1,3 +1,4 @@
+import asyncio
 import functools
 import tempfile
 import threading
@@ -101,6 +102,7 @@ class ProjectPlugin:
             ),
             on_finished=self._on_operation_finished,
             describe_error=self._describe_program_error,
+            error_text=self._program_error_text,
         )
         self._program_queue_panel = ProgramQueuePanel(
             get_active=lambda: self._program_queue.active,
@@ -1441,6 +1443,35 @@ class ProjectPlugin:
             item.message = S.SCRIPT_NOT_CONNECTED
         return future
 
+    async def _confirm_full_download(self, item: QueueItem, reason: str) -> bool:
+        """Ask in the Operations panel whether to overwrite the device's application."""
+        self._api.log.info(
+            "full download needs confirmation", plugin="project", reason=reason
+        )
+        from concurrent.futures import Future
+
+        answer: Future[bool] = Future()
+        item.full_download_question = answer
+        try:
+            return await asyncio.wrap_future(answer)
+        finally:
+            item.full_download_question = None
+
+    def _program_error_text(self, error: BaseException) -> str | None:
+        """Translated text of the download errors the editor explains itself."""
+        from xknxeditor.download.partial import (
+            DifferentProgramLoaded,
+            IncompatibleMaskVersion,
+        )
+
+        if isinstance(error, DifferentProgramLoaded):
+            return S.DIFFERENT_PROGRAM_LOADED
+        if isinstance(error, IncompatibleMaskVersion):
+            return S.INCOMPATIBLE_MASK_VERSION.format(
+                found=error.found, expected=error.expected
+            )
+        return None
+
     def _describe_program_error(
         self, item: QueueItem, error: BaseException
     ) -> str | None:
@@ -1566,6 +1597,7 @@ class ProjectPlugin:
             current_address=item.current_address,
             waiting=functools.partial(setattr, item, "waiting_for_button", True),
             serial_number=item.serial_number,
+            confirm_full_download=functools.partial(self._confirm_full_download, item),
         )
         if future is None:
             if device.download_plugin_required and not item.without_plugin:

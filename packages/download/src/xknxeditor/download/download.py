@@ -9,7 +9,7 @@ the partial download procedure (section 3.5.3).
 from __future__ import annotations
 
 import logging
-from collections.abc import Callable, Mapping
+from collections.abc import Awaitable, Callable, Mapping
 from typing import TYPE_CHECKING
 
 from xknx.exceptions import ManagementConnectionError
@@ -71,6 +71,76 @@ def _resolve_controls(
     return materialize_group_communication_controls(
         image, base, _object_types(application, master), scope
     )
+
+
+_PARTIAL_SCOPES = frozenset(
+    {
+        DownloadScope.PARAMETERS,
+        DownloadScope.GROUP_COMMUNICATION,
+        DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION,
+    }
+)
+
+
+async def _partial_scope(
+    xknx: XKNX,
+    address: IndividualAddress,
+    security: DeviceSecurity | None,
+    application: Application,
+    master: MasterData | None,
+    scope: DownloadScope,
+    confirm_full_download: Callable[[str], Awaitable[bool]] | None,
+) -> DownloadScope:
+    """The scope to download after checking the device's application."""
+    from .partial import (
+        DifferentProgramLoaded,
+        FullDownloadDeclined,
+        partial_download_mismatch,
+    )
+    from .programmer import DeviceProgrammer
+    from .resources import mask_resources
+
+    options = application.program.static.options
+    prefer = (
+        scope in (DownloadScope.FULL, DownloadScope.APPLICATION)
+        and options is not None
+        and options.prefer_partial_download_if_application_loaded
+    )
+    if scope not in _PARTIAL_SCOPES and not prefer:
+        return scope
+    resources = mask_resources(master, application.program.mask_version)
+    manager = _connection_manager(xknx, address, security)
+    try:
+        programmer = DeviceProgrammer(await manager.open())
+        reason = await partial_download_mismatch(programmer, application, resources)
+    except ManagementConnectionError as exc:
+        if not prefer:
+            raise
+        reason = f"device not reachable for a partial download: {exc}"
+    finally:
+        await manager.close()
+    if scope in _PARTIAL_SCOPES:
+        if reason is not None:
+            logger.warning("download: %s", reason)
+            raise DifferentProgramLoaded(reason)
+        return scope
+    if reason is None:
+        logger.info(
+            "download: trying a partial download because of "
+            "PreferPartialDownloadIfApplicationLoaded"
+        )
+        return DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION
+    logger.info("download: %s", reason)
+    if (
+        options is not None
+        and options.prompt_before_full_download
+        and confirm_full_download is not None
+        and not await confirm_full_download(reason)
+    ):
+        raise FullDownloadDeclined(
+            "Aborting on user request (PromptBeforeFullDownload)"
+        )
+    return scope
 
 
 _TABLE_SCOPES = frozenset(
@@ -189,6 +259,7 @@ async def download(
     commission: bool = False,
     commission_serial_number: bytes | None = None,
     progress: Callable[[int, int], None] | None = None,
+    confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
 ) -> None:
     """Download ``application`` into the device at ``individual_address``.
 
@@ -223,6 +294,13 @@ async def download(
     over the device address and then resets the individual address to the default
     (15.15.255); the single device in programming mode is reset. ``master`` is
     required to resolve the Unload procedure.
+
+    A partial download first checks that the device runs the application and fails with
+    :class:`~.partial.DifferentProgramLoaded` otherwise. An application that prefers a
+    partial download (``PreferPartialDownloadIfApplicationLoaded``) gets one on a full
+    download when that check passes; when it does not, the full download asks
+    ``confirm_full_download`` with the reason first if the application wants that
+    (``PromptBeforeFullDownload``).
     """
     _reject_address_scope(scope)
     if image is None:
@@ -255,6 +333,12 @@ async def download(
         await program_individual_address(
             xknx, address, serial_number=commission_serial_number
         )
+    checked = await _partial_scope(
+        xknx, address, security, application, master, scope, confirm_full_download
+    )
+    if checked is not scope:
+        scope = checked
+        controls = _resolve_controls(application, master, image, scope)
     adapted = await _device_association_format(xknx, address, security, image, scope)
     if adapted is not image:
         image = adapted
