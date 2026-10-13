@@ -1890,6 +1890,7 @@ class ProjectService:
             return None
         return self._svc.device(self._pid, device.node_id).hardware2program_ref_id
 
+    @io_guarded(list)
     def application_change_targets(self, device: Device) -> "list[ProgramSummary]":
         """The other application programs of the device's hardware in the local catalog, for
         "Change Application Program": every program that loads an application and is not
@@ -1907,6 +1908,7 @@ class ProjectService:
             and program.registration_status != "Unregistered"
         ]
 
+    @io_guarded(lambda: None)
     def local_update_target(self, device: Device) -> "ProgramSummary | None":
         """The local program "Update Application Program Version" switches to: the highest
         version of the same application whose ``ReplacesVersions`` names the current version."""
@@ -1924,12 +1926,18 @@ class ProjectService:
             default=None,
         )
 
+    @io_guarded(lambda: None)
     def newer_application_version(self, device: Device) -> int | None:
         """The application version "Update" switches the device to, or ``None``."""
         target = self.local_update_target(device)
         return target.application_version if target is not None else None
 
     def update_application(self, device: Device) -> UpdateApplicationResult | None:
+        """See :meth:`_update_application`; holds the IO lock so it can run on a worker."""
+        with self._io_lock:
+            return self._update_application(device)
+
+    def _update_application(self, device: Device) -> UpdateApplicationResult | None:
         """Update ``device`` to the local application version that replaces its own ("Update
         Application Program Version"). Parameter values are carried over by ParameterRef number,
         group objects of the same size by ComObjectRef number with their flags, priority,
@@ -2003,6 +2011,11 @@ class ProjectService:
         )
 
     def change_application(self, device: Device, program: "ProgramSummary") -> bool:
+        """See :meth:`_change_application`; holds the IO lock so it can run on a worker."""
+        with self._io_lock:
+            return self._change_application(device, program)
+
+    def _change_application(self, device: Device, program: "ProgramSummary") -> bool:
         """Switch ``device`` to another application program of its hardware, starting from that
         application's defaults ("Change Application Program"). Returns whether it changed."""
         if self._pid is None or program.application_id is None:

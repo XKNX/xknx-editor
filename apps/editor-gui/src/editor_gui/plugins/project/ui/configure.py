@@ -171,11 +171,10 @@ class ConfigurePanel:
         open_memory_preview: Callable[[Device], None] | None = None,
         on_param_change_all: Callable[[Device, str, str], None] | None = None,
         notify: Callable[[str], None] | None = None,
-        get_online_versions: Callable[[str], list[int]] | None = None,
-        on_update_application: Callable[[Device], bool] | None = None,
+        on_update_application: Callable[[Device], None] | None = None,
         get_update_version: Callable[[Device], int | None] | None = None,
         get_change_targets: "Callable[[Device], list[ProgramSummary]] | None" = None,
-        on_change_application: "Callable[[Device, ProgramSummary], bool] | None" = None,
+        on_change_application: "Callable[[Device, ProgramSummary], None] | None" = None,
         on_read_device_info: Callable[[Device], None] | None = None,
         get_device_readout: "Callable[[int], BusDeviceInfo | None] | None" = None,
         get_expected_group_addresses: "Callable[[Device], dict[int, set[int]]] | None" = None,
@@ -239,7 +238,6 @@ class ConfigurePanel:
         self._get_all_gas = get_all_group_addresses
         self._get_device_info = get_device_info
         self._notify = notify
-        self._get_online_versions = get_online_versions
         self._on_update_application = on_update_application
         self._get_update_version = get_update_version
         self._get_change_targets = get_change_targets
@@ -719,7 +717,6 @@ class ConfigurePanel:
         self._render_application_program(device)
         imgui.spacing()
         self._render_manual_button(info)
-        self._render_online_versions(device, info)
         self._render_readout_result(device)
         self._render_load_procedures(device)
 
@@ -866,37 +863,6 @@ class ConfigurePanel:
             _log.warning("manual lookup failed", order=order_number, error=str(exc))
         finally:
             self._manual_busy = False
-
-    def _render_online_versions(
-        self, device: Device, info: "DeviceInfo | None"
-    ) -> None:
-        """Show which application versions exist online for this device's order number, so the user
-        can see whether a newer one is available. Read-only from the cached index; empty until the
-        online catalog has been fetched. One wrapped line of version numbers (newest first), with
-        the device's current version marked when it can be determined."""
-        if self._get_online_versions is None:
-            return
-        order = info.order_number if info else ""
-        if not order:
-            return
-        versions = self._get_online_versions(order)
-        if not versions:
-            return
-        current = self._current_app_version(device)
-        parts = [
-            f"{application_version_text(v)} {S.CONFIGURE_ONLINE_CURRENT}"
-            if v == current
-            else application_version_text(v)
-            for v in versions
-        ]
-        imgui.spacing()
-        imgui.push_text_wrap_pos(0.0)
-        imgui.text_disabled(
-            S.CONFIGURE_ONLINE_AVAILABLE.format(count=len(versions))
-            + ": "
-            + ", ".join(parts)
-        )
-        imgui.pop_text_wrap_pos()
 
     def _current_app_version(self, device: Device) -> int | None:
         """The application program version parsed from the app id (``...-26-...`` -> 38), else the

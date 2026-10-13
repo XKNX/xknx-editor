@@ -180,7 +180,6 @@ class ProjectPlugin:
             open_memory_preview=self._memory_preview.open,
             on_param_change_all=self._handle_param_change_all,
             notify=api.notify,
-            get_online_versions=self._online_versions_for_order,
             on_update_application=self._update_application,
             get_update_version=self._api.project.newer_application_version,
             get_change_targets=self._api.project.application_change_targets,
@@ -647,32 +646,34 @@ class ProjectPlugin:
             ga=ga_id,
         )
 
-    def _online_versions_for_order(self, order_number: str) -> list[int]:
-        """Distinct application program versions available online for an order number (descending),
-        from the cached catalog index. Empty until the online catalog has been fetched."""
-        items = self._api.catalog.online_products_for_order(order_number)
-        versions = {
-            item.application_version
-            for item in items
-            if item.application_version is not None and item.downloadable
-        }
-        return sorted(versions, reverse=True)
+    def _in_background(self, text: str, work: Callable[[], None]) -> None:
+        """Run ``work`` behind the progress modal, or directly without one."""
+        if self._api.run_background is not None:
+            self._api.run_background(text, work)
+        else:
+            work()
 
-    def _update_application(self, device: "Device") -> bool:
+    def _update_application(self, device: "Device") -> None:
         """Update the device to the local application version that replaces its own ("Update
-        Application Program Version"). Returns whether it was updated."""
-        result = self._api.project.update_application(device)
-        if result is None and self._api.notify is not None:
-            self._api.notify(S.UPDATE_APP_FAILED)
-        return result is not None
+        Application Program Version")."""
 
-    def _change_application(self, device: "Device", program: "ProgramSummary") -> bool:
+        def work() -> None:
+            result = self._api.project.update_application(device)
+            if result is None and self._api.notify is not None:
+                self._api.notify(S.UPDATE_APP_FAILED)
+
+        self._in_background(S.UPDATING_APPLICATION, work)
+
+    def _change_application(self, device: "Device", program: "ProgramSummary") -> None:
         """Switch the device to another application program of its hardware, from that
         application's defaults ("Change Application Program")."""
-        changed = self._api.project.change_application(device, program)
-        if not changed and self._api.notify is not None:
-            self._api.notify(S.CHANGE_APP_FAILED)
-        return changed
+
+        def work() -> None:
+            changed = self._api.project.change_application(device, program)
+            if not changed and self._api.notify is not None:
+                self._api.notify(S.CHANGE_APP_FAILED)
+
+        self._in_background(S.CHANGING_APPLICATION, work)
 
     def _restart_device(self, device: "Device") -> None:
         """Restart (reboot) the device over the bus (non-destructive)."""

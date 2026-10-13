@@ -461,6 +461,7 @@ class KnxGuiApp:
             log=self._log_service,
             notify=self._flash_toast,
             main_thread=self._ui_executor,
+            run_background=self._run_bg,
         )
 
         self._catalog_plugin = CatalogPlugin(self._plugin_api)

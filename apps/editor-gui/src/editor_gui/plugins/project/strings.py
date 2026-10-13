@@ -1298,14 +1298,6 @@ class ProjectStrings:
         )
 
     @property
-    def CONFIGURE_ONLINE_AVAILABLE(self) -> str:
-        return _("Available Online ({count})")
-
-    @property
-    def CONFIGURE_ONLINE_CURRENT(self) -> str:
-        return _("(current)")
-
-    @property
     def CONFIGURE_UPDATE_BUTTON(self) -> str:
         return _("Update to V{version}")
 
@@ -1320,6 +1312,14 @@ class ProjectStrings:
     @property
     def BTN_UPDATE(self) -> str:
         return _("Update")
+
+    @property
+    def UPDATING_APPLICATION(self) -> str:
+        return _("Updating the application program...")
+
+    @property
+    def CHANGING_APPLICATION(self) -> str:
+        return _("Changing the application program...")
 
     @property
     def CHANGE_APP_FAILED(self) -> str:

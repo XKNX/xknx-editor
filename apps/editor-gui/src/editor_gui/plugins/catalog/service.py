@@ -171,20 +171,6 @@ class CatalogService:
             return [], 0
         return search_index(index, query, limit)
 
-    def online_products_for_order(self, order_number: str) -> list[OnlineCatalogItem]:
-        """Cached online catalog entries whose order number matches ``order_number`` (case/space
-        insensitive). Used by the editor to show which products/versions exist online. No network."""
-        index = self._online_client.cached_index()
-        if not index or not order_number.strip():
-            return []
-        key = order_number.strip().lower()
-        return [
-            item
-            for items in index.values()
-            for item in items
-            if item.order_number.strip().lower() == key
-        ]
-
     def download_online_products(
         self, catalog_item_ids: list[str], language_ids: list[str] | None = None
     ) -> list[ProductSummary]:
