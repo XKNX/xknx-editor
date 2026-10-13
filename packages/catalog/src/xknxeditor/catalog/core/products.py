@@ -28,6 +28,9 @@ class ProductSummary:
     application_version: int | None = None
     hardware_name: str | None = None
     application_name: str | None = None
+    is_rail_mounted: bool | None = None
+    width_mm: float | None = None
+    bus_current: float | None = None
 
 
 def list_products(db: Session) -> list[ProductSummary]:
@@ -44,6 +47,9 @@ def list_products(db: Session) -> list[ProductSummary]:
             Application.application_version,
             Hardware.name,
             Application.name,
+            Hardware.is_rail_mounted,
+            Hardware.width_mm,
+            Hardware.bus_current,
         )
         .join(
             HardwareProgram,
@@ -69,6 +75,9 @@ def list_products(db: Session) -> list[ProductSummary]:
             application_version=application_version,
             hardware_name=hardware_name,
             application_name=application_name,
+            is_rail_mounted=is_rail_mounted,
+            width_mm=width_mm,
+            bus_current=bus_current,
         )
         for (
             product_ref_id,
@@ -81,6 +90,9 @@ def list_products(db: Session) -> list[ProductSummary]:
             application_version,
             hardware_name,
             application_name,
+            is_rail_mounted,
+            width_mm,
+            bus_current,
         ) in rows
         if product_ref_id is not None
     ]

@@ -8,6 +8,7 @@ from imgui_bundle import imgui
 
 from editor_gui.device_info import application_version_text
 from editor_gui.plugins.catalog.strings import S
+from editor_gui.regional import regional_format
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
@@ -37,6 +38,35 @@ def _key(product: ProductSummary) -> str:
 
 def _same(a: ProductSummary | None, b: ProductSummary) -> bool:
     return a is not None and _key(a) == _key(b)
+
+
+# Width of one DIN rail module in millimetres.
+_MODULE_WIDTH_MM = 18.0
+
+
+def _number_text(value: float) -> str:
+    """``value`` with at most one decimal, in the regional decimal format."""
+    text = f"{value:.1f}".rstrip("0").rstrip(".")
+    return text.replace(".", regional_format().decimal)
+
+
+def _rail_text(product: ProductSummary) -> str:
+    """``142.3 mm (8M)`` for a DIN rail device with a known width."""
+    if product.is_rail_mounted is None:
+        return "-"
+    if not product.is_rail_mounted:
+        return S.CATALOG_NO
+    width = product.width_mm
+    if not width:
+        return S.CATALOG_YES
+    modules = max(1, round(width / _MODULE_WIDTH_MM))
+    return f"{_number_text(width)} mm ({modules}M)"
+
+
+def _bus_current_text(product: ProductSummary) -> str:
+    if product.bus_current is None:
+        return "-"
+    return f"{_number_text(product.bus_current)} mA"
 
 
 def _version_text(product: ProductSummary) -> str:
@@ -349,6 +379,8 @@ class CatalogPanel:
                 S.CATALOG_DETAIL_MANUFACTURER,
                 product.manufacturer_name or product.manufacturer_id,
             ),
+            (S.CATALOG_DETAIL_RAIL, _rail_text(product)),
+            (S.CATALOG_DETAIL_BUS_CURRENT, _bus_current_text(product)),
             (
                 S.CATALOG_DETAIL_APPLICATION,
                 product.application_name or product.application_id or "-",
@@ -362,19 +394,21 @@ class CatalogPanel:
             imgui.text_disabled(label)
             imgui.same_line(label_w)
             imgui.text_wrapped(value)
-        self._render_space_picker()
+        if self._render_space_picker():
+            imgui.same_line()
         if imgui.button(S.CATALOG_DETAIL_ADD):
             self._on_select(product, self._add_space_id)
 
-    def _render_space_picker(self) -> None:
-        """Room combo above the Add button: pick a space to place the new device in (or none).
-        Hidden when no space getter is wired or the project has no spaces yet."""
+    def _render_space_picker(self) -> bool:
+        """Room label and combo before the Add button: pick a space to place the new device in
+        (or none). Hidden when no space getter is wired or the project has no spaces yet; returns
+        whether it was shown."""
         if self._get_spaces is None:
-            return
+            return False
         spaces = self._get_spaces()
         if not spaces:
             self._add_space_id = None
-            return
+            return False
         options = [(None, S.CATALOG_ADD_SPACE_NONE), *spaces]
         # Drop a stale selection (e.g. the chosen space was deleted) so Add never targets a gone id.
         if self._add_space_id is not None and all(
@@ -384,12 +418,16 @@ class CatalogPanel:
         current = next(
             (i for i, (sid, _) in enumerate(options) if sid == self._add_space_id), 0
         )
+        imgui.align_text_to_frame_padding()
+        imgui.text(S.CATALOG_ADD_SPACE_LABEL)
+        imgui.same_line()
         imgui.set_next_item_width(px(240.0))
         changed, picked = imgui.combo(
-            S.CATALOG_ADD_SPACE_LABEL, current, [label for _, label in options]
+            "##catalog_add_space", current, [label for _, label in options]
         )
         if changed:
             self._add_space_id = options[picked][0]
+        return True
 
     def _render_online_catalog(self) -> None:
         """Online manufacturer list from the KNX catalog service (button + tree).

@@ -193,9 +193,10 @@ class DevicesPanel:
             )
             if flt:
                 imgui.set_next_item_open(True, imgui.Cond_.always)
-            if imgui.tree_node_ex(f"{area_label}##area_{area.id}", area_flags):
-                self._render_area_context_menu(area, lines)
-
+            # The context menu belongs to the node whether it is open or closed.
+            area_open = imgui.tree_node_ex(f"{area_label}##area_{area.id}", area_flags)
+            self._render_area_context_menu(area, lines)
+            if area_open:
                 for line in lines:
                     line_devices = device_tree.get(area.number, {}).get(line.number, [])
                     if flt:
@@ -211,10 +212,12 @@ class DevicesPanel:
                     )
                     if flt:
                         imgui.set_next_item_open(True, imgui.Cond_.always)
-                    if imgui.tree_node_ex(f"{line_label}##line_{line.id}", line_flags):
-                        self._render_line_context_menu(line)
-                        self._render_line_drop_target(area, line)
-
+                    line_open = imgui.tree_node_ex(
+                        f"{line_label}##line_{line.id}", line_flags
+                    )
+                    self._render_line_context_menu(line)
+                    self._render_line_drop_target(area, line)
+                    if line_open:
                         for device in line_devices:
                             self._render_device_node(device, _leaf, ordered_ids)
                         imgui.tree_pop()
