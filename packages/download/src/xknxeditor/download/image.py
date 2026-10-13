@@ -51,6 +51,63 @@ from .tables_systemb import (
 # (PID_TABLE_REFERENCE), so it is written by an ``LdCtrlWriteRelMem ObjType=6``.
 _ROUTER_OBJECT_TYPE = ResourceObjectType.OBJECT_ROUTER
 
+
+# Fixed bytes a TP1 line coupler (mask version 091x) gets with the application's
+# segment data, when the segment covers 0x010D-0x011C.
+_COUPLER_BYTES = {
+    0x010D: 0xFF,
+    0x0112: 0xC3,
+    0x0113: 0xC3,
+    0x0114: 0xC3,
+    0x0115: 0xC3,
+    0x0116: 0x01,
+    0x011A: 0xFF,
+    0x011B: 0xCC,
+    0x011C: 0xFF,
+}
+
+
+def _mask_number(mask_version: str) -> int | None:
+    try:
+        return int(mask_version.removeprefix("MV-"), 16)
+    except ValueError:
+        return None
+
+
+def _coupler_bytes(
+    mask_version: str, base: int, data: bytes, mask: bytes, initialized: bytes
+) -> tuple[bytes, bytes]:
+    """``data`` and ``initialized`` with the fixed line coupler bytes, for a segment
+    that covers them; bytes a parameter writes (``mask``) keep its value."""
+    version = _mask_number(mask_version)
+    if (
+        version is None
+        or version & 0xFFE0 != 0x0900
+        or base > 0x010D
+        or base + len(data) <= 0x011C
+    ):
+        return data, initialized
+    patched, valid = bytearray(data), bytearray(initialized)
+    for address, value in _COUPLER_BYTES.items():
+        if not mask[address - base]:
+            patched[address - base] = value
+        valid[address - base] = 0xFF
+    return bytes(patched), bytes(valid)
+
+
+def _reserved_memory(mask_version: str) -> range | None:
+    """Standard memory a mask version keeps out of the application's segment data:
+    0x0117-0x0118 for the BCU1/BCU2 families, 0x4001-0x4002 for the 07xx family."""
+    version = _mask_number(mask_version)
+    if version is None:
+        return None
+    if version & 0x0FF0 in (0x0010, 0x0020):
+        return range(0x0117, 0x0119)
+    if version & 0x0FF0 == 0x0700:
+        return range(0x4001, 0x4003)
+    return None
+
+
 if TYPE_CHECKING:
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 
@@ -166,6 +223,8 @@ class PropertyValue:
     occurrence: int
     data: bytes
     element_size: int | None = None
+    # The object type of an object addressed by type rather than by index.
+    object_type: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -345,6 +404,7 @@ def build_image(
         )
         if table is not None
     }
+    reserved = _reserved_memory(application.program.mask_version)
     segments: list[MemorySegment] = []
     application_segments: list[ObjectMemorySegment] = []
     for segment_id, (data, mask) in encoded.items():
@@ -364,6 +424,18 @@ def build_image(
             # Table builders supply initialized table bytes. Retain any parameters
             # sharing this code segment, as the earlier image builder did.
             initialized = bytes(len(data))
+        elif not isinstance(
+            declaration, ApplicationProgramStaticCodeRelativeSegment
+        ) and not (declaration is not None and declaration.user_memory):
+            base = base_addresses[segment_id]
+            if reserved is not None:
+                initialized = bytes(
+                    0 if base + offset in reserved else value
+                    for offset, value in enumerate(initialized)
+                )
+            data, initialized = _coupler_bytes(
+                application.program.mask_version, base, data, mask, initialized
+            )
         if not any(mask) and not any(initialized):
             continue
         memory = MemorySegment(base_addresses[segment_id], data, mask, initialized)
@@ -401,14 +473,15 @@ def build_image(
     )
 
     try:
-        encoded_properties = ui.encode_to_properties()
+        encoded_properties = ui.encode_to_typed_properties()
     except EncodingError as exc:
         raise ImageError(f"cannot encode property image: {exc}") from exc
     properties = tuple(
         PropertyValue(
             object_index=key[0],
-            property_id=key[1],
-            occurrence=key[2],
+            object_type=key[1],
+            property_id=key[2],
+            occurrence=key[3],
             data=data,
         )
         for key, data in encoded_properties.items()

@@ -51,6 +51,7 @@ from .encode import (
     MemWrite,
     PropertyKey,
     PropWrite,
+    TypedPropertyKey,
     Writes,
     build_memory_param_map,
     build_property_param_map,
@@ -58,9 +59,11 @@ from .encode import (
     decode_memory_parameters,
     decode_module_parameters,
     decode_property_parameters,
+    download_param_values,
     encode_to_memory,
     encode_to_memory_masked,
     encode_to_properties,
+    encode_to_typed_properties,
     resolve_param_values,
     type_size_in_bit,
     validate_parameter_value,
@@ -117,6 +120,7 @@ __all__ = [
     "PropertyKey",
     "RenameNode",
     "RepeatNode",
+    "TypedPropertyKey",
     "Writes",
     "build_memory_param_map",
     "build_property_param_map",
@@ -124,9 +128,11 @@ __all__ = [
     "decode_memory_parameters",
     "decode_module_parameters",
     "decode_property_parameters",
+    "download_param_values",
     "encode_to_memory",
     "encode_to_memory_masked",
     "encode_to_properties",
+    "encode_to_typed_properties",
     "resolve_param_values",
     "written_bit_mask",
 ]
@@ -710,7 +716,7 @@ class DynamicUI:
         return encode_to_memory(
             self._app,
             self._idx,
-            resolve_param_values(self._idx, self._state),
+            download_param_values(self._app, self._idx, self._state),
             self._state,
         )
 
@@ -721,7 +727,7 @@ class DynamicUI:
         return encode_to_memory_masked(
             self._app,
             self._idx,
-            resolve_param_values(self._idx, self._state),
+            download_param_values(self._app, self._idx, self._state),
             self._state,
         )
 
@@ -774,7 +780,7 @@ class DynamicUI:
         return build_memory_param_map(
             self._app,
             self._idx,
-            resolve_param_values(self._idx, self._state),
+            download_param_values(self._app, self._idx, self._state),
             self._state,
         )
 
@@ -789,7 +795,7 @@ class DynamicUI:
         return written_bit_mask(
             self._app,
             self._idx,
-            resolve_param_values(self._idx, self._state),
+            download_param_values(self._app, self._idx, self._state),
             self._state,
         )
 
@@ -800,7 +806,18 @@ class DynamicUI:
         return encode_to_properties(
             self._app,
             self._idx,
-            resolve_param_values(self._idx, self._state),
+            download_param_values(self._app, self._idx, self._state),
+            self._state,
+        )
+
+    def encode_to_typed_properties(self) -> dict[TypedPropertyKey, bytes]:
+        """:meth:`encode_to_properties` keyed with the object type of objects addressed by type."""
+        self.ui()
+        self.validate_parameter_values()
+        return encode_to_typed_properties(
+            self._app,
+            self._idx,
+            download_param_values(self._app, self._idx, self._state),
             self._state,
         )
 
@@ -810,7 +827,7 @@ class DynamicUI:
         return build_property_param_map(
             self._app,
             self._idx,
-            resolve_param_values(self._idx, self._state),
+            download_param_values(self._app, self._idx, self._state),
             self._state,
         )
 

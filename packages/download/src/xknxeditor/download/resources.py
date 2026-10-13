@@ -21,6 +21,7 @@ import json
 from dataclasses import dataclass
 from functools import cache
 from importlib.resources import files
+from types import MappingProxyType
 from typing import TYPE_CHECKING
 
 from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
@@ -50,10 +51,16 @@ class MaskResources:
     """The resolved resource locations of a single device mask version."""
 
     _by_name: Mapping[ResourceName, ResourceLocation]
+    # Octet length per resource, where the master data gives it.
+    _lengths: Mapping[ResourceName, int] = MappingProxyType({})
 
     def location(self, name: ResourceName) -> ResourceLocation | None:
         """The raw location of a named resource, or ``None`` if the mask lacks it."""
         return self._by_name.get(name)
+
+    def length(self, name: ResourceName) -> int | None:
+        """The octet length of a named resource, if known."""
+        return self._lengths.get(name)
 
     def property_ref(self, name: ResourceName) -> tuple[int, int] | None:
         """Return ``(interface object ref, property id)`` for a property resource."""
@@ -109,14 +116,16 @@ def _from_master(
         if mask_version.id != mask_version_id:
             continue
         by_name: dict[ResourceName, ResourceLocation] = {}
+        lengths: dict[ResourceName, int] = {}
         for configuration in mask_version.hawk_configuration_data:
             if configuration.resources is None:
                 continue
             for resource in configuration.resources.resource:
                 if resource.location is not None:
                     by_name.setdefault(resource.name, resource.location)
+                    lengths.setdefault(resource.name, resource.resource_type.length)
         if by_name:
-            return MaskResources(_by_name=by_name)
+            return MaskResources(_by_name=by_name, _lengths=lengths)
     return None
 
 

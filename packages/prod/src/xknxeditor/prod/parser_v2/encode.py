@@ -4,8 +4,9 @@ import base64
 import binascii
 import ipaddress
 import math
+import re
 import struct
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import NamedTuple
 
 from xknxeditor.namespaces.intermediate import ApplicationProgram
@@ -15,6 +16,7 @@ from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_
 from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_union import (
     ApplicationProgramStaticParametersUnion,
 )
+from xknxeditor.namespaces.intermediate.download_behavior_t import DownloadBehavior
 from xknxeditor.namespaces.intermediate.memory_parameter_t import MemoryParameter
 from xknxeditor.namespaces.intermediate.memory_union_t import MemoryUnion
 from xknxeditor.namespaces.intermediate.module_def_static_t_parameters_parameter import (
@@ -88,6 +90,9 @@ class MemWrite(NamedTuple):
     param_id: str
     parameter_type: str
     value: str
+    # Marks the range as written while keeping its current bytes (an inactive parameter
+    # under ``DownloadInvisibleParameters="Background"``).
+    keep: bool = False
 
 
 class PropWrite(NamedTuple):
@@ -99,6 +104,9 @@ class PropWrite(NamedTuple):
     param_id: str
     parameter_type: str
     value: str
+    # The object type of an object addressed by type (``ObjectType``) instead of index.
+    object_type: int | None = None
+    keep: bool = False
 
 
 class Writes:
@@ -110,6 +118,8 @@ class Writes:
 
 
 PropertyKey = tuple[int | None, int, int]  # keys: object_index, property_id, occurrence
+# keys: object_index, object_type, property_id, occurrence
+TypedPropertyKey = tuple[int | None, int | None, int, int]
 
 
 def _program_little_endian(app: ApplicationProgram) -> bool:
@@ -552,6 +562,54 @@ def resolve_param_values(idx: ApplicationIndexer, state: GlobalState) -> dict[st
     return overrides
 
 
+def download_behavior(app: ApplicationProgram) -> DownloadBehavior:
+    """How a download treats parameters without an active ParameterRef.
+
+    ``DownloadInvisibleParameters`` applies from MinEtsVersion 5.0 with an Options element;
+    older applications and applications without Options use ``Background``.
+    """
+    options = app.static.options
+    # Parsed newer schemas keep the attribute as a plain string.
+    version = str(getattr(app.min_ets_version, "value", app.min_ets_version) or "")
+    match = re.match(r"(\d+)\.(\d+)", version)
+    if options is None or match is None or (int(match[1]), int(match[2])) < (5, 0):
+        return DownloadBehavior.BACKGROUND
+    return options.download_invisible_parameters
+
+
+def download_param_values(
+    app: ApplicationProgram, idx: ApplicationIndexer, state: GlobalState
+) -> dict[str, str]:
+    """The parameter values a download writes.
+
+    Those of the active ParameterRefs (:func:`resolve_param_values`) and, with
+    ``DownloadInvisibleParameters="DefaultValue"``, the product default of every referenced
+    parameter that has no active ParameterRef, and of the default alternative of every union
+    none of whose alternatives is active.
+    """
+    values = resolve_param_values(idx, state)
+    if (
+        download_behavior(app) is not DownloadBehavior.DEFAULT_VALUE
+        or app.static.parameters is None
+    ):
+        return values
+    referenced = {ref.ref_id for ref in idx.parameter_refs.values()}
+    for item in app.static.parameters.choice:
+        if isinstance(item, ApplicationProgramStaticParametersParameter):
+            if item.id in referenced and item.id not in values:
+                values[item.id] = item.value
+            continue
+        members = item.parameter
+        if any(up.id in values for up in members) or not any(
+            up.id in referenced for up in members
+        ):
+            continue
+        default = next((up for up in members if up.default_union_parameter), None)
+        if default is not None:
+            values[default.id] = default.value
+    return values
+
+
 def _resolve_base(base_id: str | None, ms: ModuleState) -> int | None:
     if base_id is None:
         return 0
@@ -664,6 +722,7 @@ def _collect_param(
                     item.id,
                     item.parameter_type,
                     value,
+                    choice.object_type,
                 )
             )
     elif isinstance(choice, PropertyParameter):
@@ -677,6 +736,7 @@ def _collect_param(
                 item.id,
                 item.parameter_type,
                 value,
+                choice.object_type,
             )
         )
     # skip IoPointParameter and None
@@ -739,6 +799,7 @@ def _collect_union(
                         up.id,
                         up.parameter_type,
                         value,
+                        choice.object_type,
                     )
                 )
     else:
@@ -754,35 +815,108 @@ def _collect_union(
                     up.id,
                     up.parameter_type,
                     value,
+                    choice.object_type,
                 )
             )
 
 
 def _collect_scope_writes(
-    ms: ModuleState, idx: ApplicationIndexer, out: Writes
+    ms: ModuleState,
+    idx: ApplicationIndexer,
+    out: Writes,
+    behavior: DownloadBehavior | None = None,
+    keep: bool = False,
 ) -> None:
     """Collect one module instance scope's writes (not its children), resolved to
-    that instance's offsets."""
+    that instance's offsets.
+
+    Without ``behavior`` every parameter is collected with its instance value or default.
+    With it, the instance's active ParameterRefs give the values, and inactive parameters
+    are handled as the application's ``DownloadInvisibleParameters`` asks; ``keep`` adds
+    the ranges of inactive parameters under ``Background``.
+    """
     if ms.ref_id is None:
         return
     md = idx.module_defs.get(ms.ref_id)
     if md is None or md.static.parameters is None:
         return
-    instance_overrides = _build_instance_overrides(ms, idx)
-    for item in md.static.parameters.choice:
+    if behavior is None:
+        instance_overrides = _build_instance_overrides(ms, idx)
+        for item in md.static.parameters.choice:
+            if isinstance(item, ModuleDefStaticParametersParameter):
+                _collect_param(item, instance_overrides, ms, out)
+            else:
+                assert isinstance(item, ModuleDefStaticParametersUnion)
+                _collect_union(item, instance_overrides, ms, out)
+        return
+    refs = md.static.parameter_refs.parameter_ref if md.static.parameter_refs else []
+    referenced = {ref.ref_id for ref in refs}
+    active = ms.local_active_param_refs()
+    values: dict[str, str] = {}
+    for ref in refs:
+        if ref.id in active and ref.ref_id not in values:
+            value = ms.get(ref.id)
+            if value is not None:
+                values[ref.ref_id] = value
+    active_params = set(values)
+    items = sorted(
+        md.static.parameters.choice,
+        key=lambda item: not _has_active_param(item, active_params),
+    )
+    defaults = behavior is DownloadBehavior.DEFAULT_VALUE
+    for item in items:
         if isinstance(item, ModuleDefStaticParametersParameter):
-            _collect_param(item, instance_overrides, ms, out)
-        else:
-            assert isinstance(item, ModuleDefStaticParametersUnion)
-            _collect_union(item, instance_overrides, ms, out)
+            if item.id in values:
+                _collect_param(item, values, ms, out)
+            elif item.id in referenced and defaults:
+                _collect_param(item, {}, ms, out)
+            elif item.id in referenced and keep:
+                _collect_kept(item, ms, out)
+            continue
+        assert isinstance(item, ModuleDefStaticParametersUnion)
+        members = [up for up in item.parameter if up.id in referenced]
+        if any(up.id in values for up in item.parameter):
+            _collect_union(item, values, ms, out, gated=True)
+        elif members and defaults:
+            _collect_union(item, {}, ms, out)
+        elif members and keep:
+            _collect_kept(item, ms, out, members)
+
+
+def _collect_kept(
+    item: ApplicationProgramStaticParametersParameter
+    | ModuleDefStaticParametersParameter
+    | ApplicationProgramStaticParametersUnion
+    | ModuleDefStaticParametersUnion,
+    ms: ModuleState | None,
+    out: Writes,
+    members: list[UnionParameter] | None = None,
+) -> None:
+    """Collect the range of an inactive parameter (or of union ``members``), to be written
+    with its current bytes."""
+    kept = Writes()
+    if isinstance(
+        item,
+        ApplicationProgramStaticParametersParameter
+        | ModuleDefStaticParametersParameter,
+    ):
+        _collect_param(item, {}, ms, kept)
+    else:
+        _collect_union(item, {up.id: up.value for up in members or []}, ms, kept)
+    out.mem.extend(w._replace(keep=True) for w in kept.mem)
+    out.prop.extend(w._replace(keep=True) for w in kept.prop)
 
 
 def _collect_module_writes(
-    ms: ModuleState, idx: ApplicationIndexer, out: Writes
+    ms: ModuleState,
+    idx: ApplicationIndexer,
+    out: Writes,
+    behavior: DownloadBehavior | None = None,
+    keep: bool = False,
 ) -> None:
-    _collect_scope_writes(ms, idx, out)
+    _collect_scope_writes(ms, idx, out, behavior, keep)
     for child in ms.module_children():
-        _collect_module_writes(child, idx, out)
+        _collect_module_writes(child, idx, out, behavior, keep)
 
 
 def collect_writes(
@@ -790,10 +924,19 @@ def collect_writes(
     idx: ApplicationIndexer,
     overrides: dict[str, str],
     state: GlobalState | None = None,
+    *,
+    inactive_ranges: bool = False,
 ) -> Writes:
-    """Gather every parameter write into a Writes bundle, split into mem and prop."""
+    """Gather every parameter write into a Writes bundle, split into mem and prop.
+
+    With ``inactive_ranges``, an application downloading invisible parameters as
+    ``Background`` also yields the ranges of inactive parameters, marked ``keep``.
+    """
     out = Writes()
     s = app.static
+    behavior = download_behavior(app)
+    keep = inactive_ranges and behavior is DownloadBehavior.BACKGROUND
+    referenced = {ref.ref_id for ref in idx.parameter_refs.values()}
     # With a resolved state, gate top-level parameters to the active set (regular
     # parameters present in overrides); inactive cells stay at the segment seed.
     # Without a state (direct callers), no gating: every static parameter encodes
@@ -804,16 +947,55 @@ def collect_writes(
         else None
     )
     if s.parameters is not None:
-        for item in s.parameters.choice:
+        items = list(s.parameters.choice)
+        if state is not None:
+            # Values of active ParameterRefs come first and the defaults of inactive
+            # parameters after them, so a default wins where the two share bits.
+            active_params = {
+                idx.parameter_refs[ref].ref_id
+                for ref in state.active_param_refs()
+                if ref in idx.parameter_refs
+            }
+            items.sort(key=lambda item: not _has_active_param(item, active_params))
+        for item in items:
             if isinstance(item, ApplicationProgramStaticParametersParameter):
-                _collect_param(item, overrides, None, out, active_ids)
-            else:
-                assert isinstance(item, ApplicationProgramStaticParametersUnion)
-                _collect_union(item, overrides, None, out, gated=active_ids is not None)
+                if active_ids is not None and item.id not in active_ids:
+                    if keep and item.id in referenced:
+                        _collect_kept(item, None, out)
+                    continue
+                _collect_param(item, overrides, None, out)
+                continue
+            assert isinstance(item, ApplicationProgramStaticParametersUnion)
+            members = [up for up in item.parameter if up.id in referenced]
+            if (
+                keep
+                and active_ids is not None
+                and members
+                and not any(up.id in overrides for up in item.parameter)
+            ):
+                _collect_kept(item, None, out, members)
+                continue
+            _collect_union(item, overrides, None, out, gated=active_ids is not None)
     if state is not None:
         for ms in state.module_children():
-            _collect_module_writes(ms, idx, out)
+            _collect_module_writes(ms, idx, out, behavior, keep)
     return out
+
+
+def _has_active_param(
+    item: ApplicationProgramStaticParametersParameter
+    | ApplicationProgramStaticParametersUnion
+    | ModuleDefStaticParametersParameter
+    | ModuleDefStaticParametersUnion,
+    active_params: set[str],
+) -> bool:
+    if isinstance(
+        item,
+        ApplicationProgramStaticParametersParameter
+        | ModuleDefStaticParametersParameter,
+    ):
+        return item.id in active_params
+    return any(up.id in active_params for up in item.parameter)
 
 
 def _written_width_in_bit(tc: object, value: str) -> int | None:
@@ -917,7 +1099,7 @@ def encode_to_memory_masked(
     table or RAM) - as the KNX standard does, loading only touched
     bytes on a partial download.
     """
-    writes = collect_writes(app, idx, overrides, state)
+    writes = collect_writes(app, idx, overrides, state, inactive_ranges=True)
     little_endian = _program_little_endian(app)
     bufs: dict[str, bytearray] = {
         seg_id: bytearray(seg.data) if seg.data else bytearray(seg.size)
@@ -932,6 +1114,16 @@ def encode_to_memory_masked(
             continue
         pt = idx.parameter_types.get(w.parameter_type)
         if pt is None:
+            continue
+        if w.keep:
+            # Written with the bytes the segment already holds.
+            size_in_bit = type_size_in_bit(pt.choice)
+            if size_in_bit:
+                start_bit = w.offset * 8 + w.bit_offset
+                mask = masks[w.seg_id]
+                for b in range(start_bit // 8, (start_bit + size_in_bit - 1) // 8 + 1):
+                    if b < len(mask):
+                        mask[b] = 0xFF
             continue
         plan = _plan_memory_write(
             pt.choice,
@@ -1350,9 +1542,42 @@ def encode_to_properties(
     Yields {(object_index, property_id, occurrence): bytes}.
     Layout: bit_offset 0 is a byte's MSB; values are big-endian. Buffers grow to fit.
     """
-    writes = collect_writes(app, idx, overrides, state)
+    return _encode_properties(
+        app,
+        idx,
+        overrides,
+        state,
+        lambda w: (w.object_index, w.property_id, w.occurrence),
+    )
+
+
+def encode_to_typed_properties(
+    app: ApplicationProgram,
+    idx: ApplicationIndexer,
+    overrides: dict[str, str],
+    state: GlobalState | None = None,
+) -> dict[TypedPropertyKey, bytes]:
+    """:func:`encode_to_properties` keyed by ``(object_index, object_type, property_id,
+    occurrence)``, so properties of objects addressed by type stay apart per type."""
+    return _encode_properties(
+        app,
+        idx,
+        overrides,
+        state,
+        lambda w: (w.object_index, w.object_type, w.property_id, w.occurrence),
+    )
+
+
+def _encode_properties[K](
+    app: ApplicationProgram,
+    idx: ApplicationIndexer,
+    overrides: dict[str, str],
+    state: GlobalState | None,
+    key_of: Callable[[PropWrite], K],
+) -> dict[K, bytes]:
+    writes = collect_writes(app, idx, overrides, state, inactive_ranges=True)
     little_endian = _program_little_endian(app)
-    bufs: dict[PropertyKey, bytearray] = {}
+    bufs: dict[K, bytearray] = {}
     for w in writes.prop:
         pt = idx.parameter_types.get(w.parameter_type)
         if pt is None:
@@ -1360,6 +1585,12 @@ def encode_to_properties(
         tc = pt.choice
         size_in_bit = type_size_in_bit(tc, for_property=True)
         if not size_in_bit:
+            continue
+        if w.keep:
+            # A kept range is part of the property value; its bytes stay zero.
+            needed = w.offset + (w.bit_offset + size_in_bit + 7) // 8
+            buf = bufs.setdefault(key_of(w), bytearray())
+            buf.extend(bytearray(max(0, needed - len(buf))))
             continue
         encoded = _encode_value(
             w.value, size_in_bit, tc, little_endian=little_endian, for_property=True
@@ -1369,7 +1600,7 @@ def encode_to_properties(
                 f"cannot encode parameter {w.param_id} value {w.value!r} "
                 f"as {w.parameter_type}"
             )
-        key: PropertyKey = (w.object_index, w.property_id, w.occurrence)
+        key = key_of(w)
         needed = w.offset + (w.bit_offset + size_in_bit + 7) // 8
         buf = bufs.get(key)
         if buf is None:

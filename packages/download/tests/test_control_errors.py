@@ -183,7 +183,33 @@ async def test_message_ref_replaces_message_preserving_failure(message_exists):
         await runner.run()
     assert error.value.error_code == 0xC0042B09
     if message_exists:
-        assert str(error.value) == "Application is incompatible"
+        assert str(error.value) == (
+            "Application is incompatible The device reports application version 79, "
+            "the application expects 78."
+        )
         assert isinstance(error.value.__cause__, CompareMismatch)
     else:
         assert "property compare failed" in str(error.value)
+    assert error.value.read == b"y"
+    assert error.value.expected == b"x"
+
+
+async def test_compare_mismatch_reports_the_masked_hardware_type():
+    app, _ = seeded_application()
+    device = FakeDevice()
+    device.properties[0, 78] = bytes.fromhex("000000140001")
+    control = LdCtrlCompareProp(
+        obj_idx=0,
+        prop_id=78,
+        inline_data=bytes.fromhex("000000250000"),
+        mask=bytes.fromhex("FFFFFFFF0000"),
+    )
+    runner = LoadProcedureRunner(
+        app, DownloadImage((), ()), DeviceProgrammer(device), controls=[control]
+    )
+    with pytest.raises(CompareMismatch) as error:
+        await runner.run()
+    assert error.value.details == (
+        "The device reports hardware type 00 00 00 14 00 01, "
+        "the application expects 00 00 00 25 xx xx."
+    )

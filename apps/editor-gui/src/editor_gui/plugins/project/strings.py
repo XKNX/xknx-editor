@@ -1194,6 +1194,10 @@ class ProjectStrings:
         return _("Set an individual address and connect to the bus first")
 
     @property
+    def PROGRAM_COMPARE_MATCHES(self) -> str:
+        return _("The reported value matches {devices} in this project.")
+
+    @property
     def READOUT_TITLE(self) -> str:
         return _("From Device (Live)")
 
@@ -2109,6 +2113,36 @@ class ProjectStrings:
     @property
     def OPERATION_PRESS_PROGRAMMING_BUTTON(self) -> str:
         return _("Please press the programming button")
+
+    @property
+    def OPERATION_CONFIRM(self) -> str:
+        return _("Waiting for confirmation")
+
+    @property
+    def FULL_DOWNLOAD_DIFFERENT(self) -> str:
+        return _(
+            "The application program currently loaded in the device is different from "
+            "the projected application program"
+        )
+
+    @property
+    def FULL_DOWNLOAD_QUESTION(self) -> str:
+        return _(
+            "Do you want to overwrite the application program (this may take several "
+            "minutes)?"
+        )
+
+    @property
+    def DIFFERENT_PROGRAM_LOADED(self) -> str:
+        return _(
+            "The application program currently loaded in the device does not comply "
+            "with the projected application program. You may try a full instead of a "
+            "partial download."
+        )
+
+    @property
+    def INCOMPATIBLE_MASK_VERSION(self) -> str:
+        return _("Incompatible mask version: {found} instead of {expected}")
 
     @property
     def OPERATION_WAITING(self) -> str:

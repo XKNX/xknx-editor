@@ -288,6 +288,10 @@ class ParameterState:
             result.update(child.active_param_refs())
         return result
 
+    def local_active_param_refs(self) -> set[str]:
+        """The active ParameterRefs of this scope alone, by their local id."""
+        return set(self._active_param_refs)
+
     def active_com_object_refs(self) -> set[str]:
         result = set(self._active_com_object_refs)
         for child in self._children.values():

@@ -85,6 +85,7 @@ MAX_NEGOTIATED_APDU_LENGTH = 254
 MAX_COMMUNICATION_APDU_LENGTH = 239
 PID_MAX_APDU_LENGTH = ResourceDevicePropertyId.PID_MAX_APDU_LENGTH
 PID_OBJECT_TYPE = ResourceGenericPropertyId.PID_OBJECT_TYPE
+PID_IO_LIST = ResourceDevicePropertyId.PID_IO_LIST
 PID_TABLE_REFERENCE = ResourceGenericPropertyId.PID_TABLE_REFERENCE
 PID_TABLE = ResourceGenericPropertyId.PID_TABLE
 ASSOCIATION_TABLE_OBJECT_TYPE = ResourceObjectType.OBJECT_ASSOCIATION_TABLE
@@ -152,6 +153,7 @@ class DeviceProgrammer:
         self._object_index_cache: dict[tuple[int, int], int] = {}
         # Object type per interface object index as read so far; None past the last object.
         self._object_types: dict[int, int | None] = {}
+        self._io_list_read = False
         # Some devices cap an A_Memory_Read reply below the negotiated APDU. Once a
         # short reply reveals that cap, later reads request no more than it, so a
         # read never stalls re-asking oversized blocks.
@@ -781,6 +783,7 @@ class DeviceProgrammer:
         cached = self._object_index_cache.get((object_type, occurrence))
         if cached is not None:
             return cached
+        await self._read_io_list()
         ordinal = 0
         for index in range(_MAX_OBJECT_INDEX + 1):
             if index in self._object_types:
@@ -802,6 +805,43 @@ class DeviceProgrammer:
         raise LoadStateError(
             f"interface object type {object_type} occurrence {occurrence} not found"
         )
+
+    async def _read_io_list(self) -> None:
+        """Take the object types from the device object's PID_IO_LIST, when it has one.
+
+        The list names the type of every interface object in index order, including
+        objects whose PID_OBJECT_TYPE cannot be read, which would end the scan early.
+        """
+        if self._io_list_read:
+            return
+        self._io_list_read = True
+        try:
+            data = await self.read_property(0, PID_IO_LIST, start_index=0)
+            if len(data) != 2:
+                return
+            total = int.from_bytes(data, "big")
+            # Two octets per element after the six octet property response header.
+            chunk = max(
+                1, min(15, (self.max_apdu_length - self.apdu_overhead - 6) // 2)
+            )
+            types: list[int] = []
+            for start in range(1, total + 1, chunk):
+                count = min(chunk, total - start + 1)
+                elements = await self.read_property(
+                    0, PID_IO_LIST, count=count, start_index=start
+                )
+                if len(elements) != 2 * count:
+                    return
+                types.extend(
+                    int.from_bytes(elements[i : i + 2], "big")
+                    for i in range(0, len(elements), 2)
+                )
+        except (DownloadError, ManagementConnectionError) as exc:
+            logger.debug("io list not readable: %s", exc)
+            return
+        logger.debug("io list: %s", [f"{t:#06x}" for t in types])
+        self._object_types.update(enumerate(types))
+        self._object_types[len(types)] = None
 
     async def read_load_state(self, object_index: int) -> load_state.LoadState:
         """Read the current state of an object's Load State Machine."""

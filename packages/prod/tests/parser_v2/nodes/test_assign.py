@@ -78,3 +78,11 @@ class TestAssignNode:
         state = GlobalState()
         node.eval(EvalContext(state))
         assert state.parameter_instance_refs() == {}
+
+    def test_assign_activates_target_and_source(self):
+        node = AssignNode(
+            Assign(target_param_ref_ref=_REF_TARGET, source_param_ref_ref=_REF_SOURCE)
+        )
+        state = GlobalState({_REF_SOURCE: "7"})
+        node.eval(EvalContext(state))
+        assert state.active_param_refs() == {_REF_TARGET, _REF_SOURCE}

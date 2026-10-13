@@ -81,6 +81,8 @@ def seeded_application(
     program.static.code.relative_segment = declarations
     program.application_number = 0x200
     program.application_version = 0x10
+    if program.static.options is not None:
+        program.static.options.prefer_partial_download_if_application_loaded = False
     app = cast(Application, SimpleNamespace(program=program, manufacturer_id="M-00FA"))
     ui = cast(
         DynamicUI,
@@ -89,7 +91,7 @@ def seeded_application(
             encode_to_memory_masked=lambda: {
                 s.id: (s.data, b"\x00" * s.size) for s in declarations
             },
-            encode_to_properties=lambda: {},
+            encode_to_typed_properties=lambda: {},
         ),
     )
     return app, ui

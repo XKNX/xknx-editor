@@ -50,6 +50,7 @@ from xknxeditor.prod.parser_v2.encode import (
     collect_writes,
     encode_to_memory,
     encode_to_properties,
+    encode_to_typed_properties,
     written_bit_mask,
 )
 
@@ -324,6 +325,35 @@ def test_encode_to_properties_default_value() -> None:
     app, idx = _app([p])
     props = encode_to_properties(app, idx, {})
     assert props[(0, 10, 0)][0] == 99
+
+
+def test_encode_to_typed_properties_keeps_object_types_apart() -> None:
+    app, idx = _app(
+        [
+            _param(
+                "P1",
+                PropertyParameter(
+                    object_type=11,
+                    property_id=205,
+                    occurrence=0,
+                    offset=0,
+                    bit_offset=0,
+                ),
+            ),
+            _param(
+                "P2",
+                PropertyParameter(
+                    object_type=50001,
+                    property_id=205,
+                    occurrence=0,
+                    offset=0,
+                    bit_offset=0,
+                ),
+            ),
+        ]
+    )
+    props = encode_to_typed_properties(app, idx, {"P1": "7", "P2": "9"})
+    assert props == {(None, 11, 205, 0): b"", (None, 50001, 205, 0): b"	"}
 
 
 def test_encode_to_properties_empty_when_no_prop_params() -> None:

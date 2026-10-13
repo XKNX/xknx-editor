@@ -1,4 +1,4 @@
-import datetime
+import asyncio
 import functools
 import tempfile
 import threading
@@ -14,6 +14,7 @@ from editor_gui.device_info import (
 )
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.project.button_runner import ButtonRunner
+from editor_gui.plugins.project.compare_match import compare_mismatch, matching_devices
 from editor_gui.plugins.project.device_info_view import device_info_sections
 from editor_gui.plugins.project.online_runner import OnlineButtonRunner
 from editor_gui.plugins.project.program_queue import (
@@ -77,32 +78,6 @@ def _run_now(fn: Callable[[], None]) -> None:
     fn()
 
 
-# Which commissioning "loaded" flags a successful download of each scope sets (keyed by
-# DownloadScope.value). FULL/UNLOAD set all true/false; partial scopes set only their part. Flags
-# not listed are left unchanged.
-_ALL_LOADED = (
-    "individual_address_loaded",
-    "application_program_loaded",
-    "communication_part_loaded",
-    "medium_config_loaded",
-    "parameters_loaded",
-)
-_COMMISSIONING_BY_SCOPE: dict[str, dict[str, bool]] = {
-    "full": dict.fromkeys(_ALL_LOADED, True),
-    "unload": dict.fromkeys(_ALL_LOADED, False),
-    "ap1": {  # APPLICATION: parameters + application + group communication (not the address)
-        "application_program_loaded": True,
-        "communication_part_loaded": True,
-        "medium_config_loaded": True,
-        "parameters_loaded": True,
-    },
-    "par": {"parameters_loaded": True},  # PARAMETERS
-    "grp": {"communication_part_loaded": True},  # GROUP_COMMUNICATION
-    "ia": {"individual_address_loaded": True},  # INDIVIDUAL_ADDRESS
-    "ia_overwrite": {"individual_address_loaded": True},  # OVERWRITE_INDIVIDUAL_ADDRESS
-}
-
-
 class ProjectPlugin:
     name = "project"
 
@@ -126,6 +101,8 @@ class ProjectPlugin:
                 with_address=item.script is None
             ),
             on_finished=self._on_operation_finished,
+            describe_error=self._describe_program_error,
+            error_text=self._program_error_text,
         )
         self._program_queue_panel = ProgramQueuePanel(
             get_active=lambda: self._program_queue.active,
@@ -1466,6 +1443,52 @@ class ProjectPlugin:
             item.message = S.SCRIPT_NOT_CONNECTED
         return future
 
+    async def _confirm_full_download(self, item: QueueItem, reason: str) -> bool:
+        """Ask in the Operations panel whether to overwrite the device's application."""
+        self._api.log.info(
+            "full download needs confirmation", plugin="project", reason=reason
+        )
+        from concurrent.futures import Future
+
+        answer: Future[bool] = Future()
+        item.full_download_question = answer
+        try:
+            return await asyncio.wrap_future(answer)
+        finally:
+            item.full_download_question = None
+
+    def _program_error_text(self, error: BaseException) -> str | None:
+        """Translated text of the download errors the editor explains itself."""
+        from xknxeditor.download.partial import (
+            DifferentProgramLoaded,
+            IncompatibleMaskVersion,
+        )
+
+        if isinstance(error, DifferentProgramLoaded):
+            return S.DIFFERENT_PROGRAM_LOADED
+        if isinstance(error, IncompatibleMaskVersion):
+            return S.INCOMPATIBLE_MASK_VERSION.format(
+                found=error.found, expected=error.expected
+            )
+        return None
+
+    def _describe_program_error(
+        self, item: QueueItem, error: BaseException
+    ) -> str | None:
+        """For a failed device check, the project devices the reported value belongs to."""
+        mismatch = compare_mismatch(error)
+        if mismatch is None:
+            return None
+        devices = [d for d in self._api.project.devices if d.node_id != item.node_id]
+        matches = matching_devices(mismatch, devices)
+        if not matches:
+            return None
+        names = ", ".join(
+            f"{d.product_name or d.app.name} ({d.individual_address or '-'})"
+            for d in matches
+        )
+        return S.PROGRAM_COMPARE_MATCHES.format(devices=names)
+
     def _on_operation_finished(self, item: QueueItem, result: Any) -> None:
         from editor_gui.device_info import DeviceInfo
 
@@ -1574,6 +1597,7 @@ class ProjectPlugin:
             current_address=item.current_address,
             waiting=functools.partial(setattr, item, "waiting_for_button", True),
             serial_number=item.serial_number,
+            confirm_full_download=functools.partial(self._confirm_full_download, item),
         )
         if future is None:
             if device.download_plugin_required and not item.without_plugin:
@@ -1633,22 +1657,8 @@ class ProjectPlugin:
     def _record_commissioning(
         self, node_id: int, scope_value: str, serial: bytes | None = None
     ) -> None:
-        flags = _COMMISSIONING_BY_SCOPE.get(scope_value)
-        if flags is None:
-            return
-        now = (
-            None
-            if scope_value == "unload"
-            else datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%S.%f0Z")
-        )
-
         def _apply() -> None:
-            self._api.project.set_device_commissioning(
-                node_id,
-                serial_number=serial_to_project(serial) if serial else None,
-                last_download=now,
-                **flags,
-            )
+            self._api.project.record_download(node_id, scope_value, serial)
 
         if self._api.main_thread is not None:
             self._api.main_thread.submit(_apply)
