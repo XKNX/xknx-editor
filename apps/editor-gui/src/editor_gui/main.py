@@ -1,5 +1,6 @@
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -7,6 +8,7 @@ import tempfile
 import threading
 import time
 import webbrowser
+import zipfile
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
@@ -295,6 +297,8 @@ class KnxGuiApp:
         self._import_ga_export_source: str | None = None
         self._export_knxproj_dialog: pfd.save_file | None = None
         self._export_ga_export_dialog: pfd.save_file | None = None
+        # Folder picker for the ETS 6 ProjectStore export when the default path is not found.
+        self._projectstore_dialog: pfd.select_folder | None = None
         self._last_export_path: str | None = None
         self._file_dialogs_available: bool | None = None
         # One-shot guard for the startup OpenGL renderer log (see _log_gl_renderer). Done from the
@@ -839,6 +843,89 @@ class KnxGuiApp:
             ) as e:  # OSError/ValueError from export, or other HTTP errors
                 self._log.error(
                     "export failed", path=dest, error=f"{type(e).__name__}: {e}"
+                )
+
+        self._myknx_thread = threading.Thread(target=_run, daemon=True)
+        self._myknx_thread.start()
+
+    def _ets6_projectstore_dir(self) -> Path:
+        """Default ETS 6 project store: %ProgramData%\\KNX\\ETS6\\ProjectStore."""
+        base = os.environ.get("PROGRAMDATA") or r"C:\ProgramData"
+        return Path(base) / "KNX" / "ETS6" / "ProjectStore"
+
+    def _begin_projectstore_export(self) -> None:
+        """Export into the ETS 6 ProjectStore; if the default path is missing, let the user pick one."""
+        store = self._ets6_projectstore_dir()
+        if store.parent.exists():
+            self._export_to_ets6_projectstore(store)
+        else:
+            # ETS 6 not at the default location (or non-Windows): ask the user for the store folder.
+            self._projectstore_dialog = pfd.select_folder(S.MYKNX_DONGLE_PICK_STORE, "")
+
+    def _export_to_ets6_projectstore(self, store: Path) -> None:
+        """Export the project's P-XXXX folder straight into ``store`` (the ETS 6 ProjectStore).
+
+        ETS 6 loads projects from this folder without an import signature/certificate check; the
+        user then copies/clones it in ETS, which re-signs and re-licenses it with their dongle.
+        """
+        source = self._project_service.working_path
+        if source is None or (self._myknx_thread and self._myknx_thread.is_alive()):
+            return
+        program_refs = self._project_service.program_refs()
+        remove_unused = self._export_remove_unused
+        schema = self._export_schema
+
+        def _run() -> None:
+            try:
+                store.mkdir(parents=True, exist_ok=True)
+                extra_files: dict[str, bytes] = {}
+                master_xml: bytes | None = None
+                try:
+                    bundle = collect_manufacturer_bundle(
+                        program_refs, self._catalog_service
+                    )
+                    extra_files, master_xml = bundle.extra_files, bundle.master_xml
+                except Exception as e:
+                    self._log.warning(
+                        "manufacturer bundle failed", error=f"{type(e).__name__}: {e}"
+                    )
+                with tempfile.TemporaryDirectory() as td:
+                    tmp = Path(td) / "project.knxproj"
+                    export_knxproj(
+                        source,
+                        tmp,
+                        schema=schema,
+                        extra_files=extra_files,
+                        master_xml=master_xml,
+                        fetch_master=True,
+                        remove_unused_products=remove_unused,
+                    )
+                    with zipfile.ZipFile(tmp) as zf:
+                        names = zf.namelist()
+                        pids = sorted(
+                            {
+                                n.split("/")[0]
+                                for n in names
+                                if "/" in n
+                                and re.fullmatch(r"P-[0-9A-Fa-f]+", n.split("/")[0])
+                            }
+                        )
+                        if not pids:
+                            self._log.error("export produced no P-XXXX project folder")
+                            return
+                        pid = pids[0]
+                        target = store / pid
+                        for member in names:
+                            if member.startswith(f"{pid}/") and not member.endswith(
+                                "/"
+                            ):
+                                out = target / member[len(pid) + 1 :]
+                                out.parent.mkdir(parents=True, exist_ok=True)
+                                out.write_bytes(zf.read(member))
+                self._log.info("exported to ETS 6 ProjectStore", path=str(target))
+            except Exception as e:
+                self._log.error(
+                    "ProjectStore export failed", error=f"{type(e).__name__}: {e}"
                 )
 
         self._myknx_thread = threading.Thread(target=_run, daemon=True)
@@ -1864,6 +1951,12 @@ class KnxGuiApp:
                     default_suffix=".xml",
                 )
 
+        if self._projectstore_dialog is not None and self._projectstore_dialog.ready():
+            folder = self._projectstore_dialog.result()
+            self._projectstore_dialog = None
+            if folder:
+                self._export_to_ets6_projectstore(Path(folder))
+
         if (
             self._import_knxproj_save_dialog is not None
             and self._import_knxproj_save_dialog.ready()
@@ -2782,8 +2875,16 @@ class KnxGuiApp:
         # Save the project as a .zip right here so the P-XXXX folder can be dropped into the
         # ProjectStore without renaming. Runs the export (unsigned) and dismisses the prompt.
         dest = self._export_pending_dest
-        if dest is not None and imgui.button(S.MYKNX_DONGLE_SAVE_ZIP, imgui.ImVec2(-1, 0)):
+        if dest is not None and imgui.button(
+            S.MYKNX_DONGLE_SAVE_ZIP, imgui.ImVec2(-1, 0)
+        ):
             self._do_export_knxproj(str(Path(dest).with_suffix(".zip")))
+            self._export_pending_dest = None
+            self._myknx_force_close = True
+            imgui.close_current_popup()
+        # Export the P-XXXX folder straight into the ETS 6 ProjectStore (no manual copy).
+        if imgui.button(S.MYKNX_DONGLE_EXPORT_STORE, imgui.ImVec2(-1, 0)):
+            self._begin_projectstore_export()
             self._export_pending_dest = None
             self._myknx_force_close = True
             imgui.close_current_popup()

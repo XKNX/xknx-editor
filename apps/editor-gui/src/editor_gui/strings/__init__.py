@@ -717,6 +717,14 @@ class MenuStrings:
         return _("Save as .zip")
 
     @property
+    def MYKNX_DONGLE_EXPORT_STORE(self) -> str:
+        return _("Export to ETS 6 ProjectStore")
+
+    @property
+    def MYKNX_DONGLE_PICK_STORE(self) -> str:
+        return _("Select the ETS 6 ProjectStore folder")
+
+    @property
     def MYKNX_DONGLE_STEPS(self) -> str:
         return _(
             "Re-license the project through your own licensed ETS via its local project store, "
