@@ -62,6 +62,11 @@ class GroupAddressesPanel:
         self._take_requested_ga = take_requested_ga
         self._filter_text: str = ""
         self._selected_ga_id: int | None = None
+        # Com-object name/label map for the assignments table, cached by the identity of the
+        # revision-cached device list (a fresh list object is handed out on the next edit), so it is
+        # not rebuilt over every device + com-object each frame while a GA is selected.
+        self._com_names_key: int | None = None
+        self._com_names_cache: dict[int, tuple[str, str, int, tuple[int, int]]] = {}
         # When set (from an external navigation request), the tree force-opens the ancestor folders
         # of this GA and scrolls to it for one frame, then clears it.
         self._reveal_ga_id: int | None = None
@@ -524,9 +529,12 @@ class GroupAddressesPanel:
 
     def _com_object_names(self) -> dict[int, tuple[str, str, int, tuple[int, int]]]:
         """Per com-object db id: device label, object name, device node id and the row's sort
-        key (device order, object number)."""
+        key (device order, object number). Cached by device-list identity (revision-stable)."""
+        devices = self._get_devices()
+        if self._com_names_key == id(devices):
+            return self._com_names_cache
         names: dict[int, tuple[str, str, int, tuple[int, int]]] = {}
-        for index, device in enumerate(self._get_devices()):
+        for index, device in enumerate(devices):
             # Imported devices are often unnamed; fall back to the product name (as the
             # Devices tree does), and prefix the individual address for context.
             primary = device.display_name or "?"
@@ -540,4 +548,6 @@ class GroupAddressesPanel:
                         device.node_id,
                         (index, co.number),
                     )
+        self._com_names_cache = names
+        self._com_names_key = id(devices)
         return names

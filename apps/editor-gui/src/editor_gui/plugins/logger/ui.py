@@ -27,9 +27,11 @@ class LogPanel:
     def __init__(
         self,
         get_records: Callable[[], list[LogRecord]],
+        get_records_version: Callable[[], int],
         on_clear: Callable[[], None],
     ) -> None:
         self._get_records = get_records
+        self._get_records_version = get_records_version
         self._on_clear = on_clear
         self._filter_text = ""
         self._prev_scroll_max = 0.0
@@ -37,13 +39,29 @@ class LogPanel:
         # Default to Info: the many DEBUG traces (programming/download/myknx/export) are captured but
         # hidden until the user selects "Debug", keeping normal operation readable.
         self._min_level_idx = 1  # index into _LEVEL_OPTIONS ("Info")
+        # Filtered view cached so the per-frame render does not re-scan every record (substring match
+        # across all payload values) while the always-visible log panel idles. Keyed by the service's
+        # monotonic record version (get_records() returns a fresh list each call, so its id/length is
+        # not a safe signal) plus the filter text and level.
+        self._filtered_key: tuple[int, str, int] | None = None
+        self._filtered_cache: list[LogRecord] = []
 
     def render(self) -> None:
         self._render_toolbar()
         self._render_table()
 
     def _filtered_records(self) -> list[LogRecord]:
-        records = self._get_records()
+        key = (
+            self._get_records_version(),
+            self._filter_text.lower(),
+            self._min_level_idx,
+        )
+        if self._filtered_key != key:
+            self._filtered_cache = self._compute_filtered(self._get_records())
+            self._filtered_key = key
+        return self._filtered_cache
+
+    def _compute_filtered(self, records: list[LogRecord]) -> list[LogRecord]:
         min_rank = _LEVEL_OPTIONS[self._min_level_idx][1]
         if min_rank:
             records = [r for r in records if _LEVEL_RANK.get(r.level, 1) >= min_rank]
@@ -119,8 +137,11 @@ class LogPanel:
         imgui.table_setup_column(S.COL_MESSAGE, imgui.TableColumnFlags_.width_stretch)
         imgui.table_headers_row()
 
-        for record in records:
-            self._render_row(record)
+        clipper = imgui.ListClipper()
+        clipper.begin(len(records))
+        while clipper.step():
+            for i in range(clipper.display_start, clipper.display_end):
+                self._render_row(records[i])
 
         # Stick to the newest row, but stop once the user scrolls up (resume at the bottom).
         # "Following" is measured against the previous frame's scroll max (before new rows grew it),

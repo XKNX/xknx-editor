@@ -117,3 +117,29 @@ def revision_cached[T](fn: Callable[[Any], T]) -> Callable[[Any], T]:
         return value
 
     return wrapper
+
+
+def revision_cached_by_args[T](fn: Callable[..., T]) -> Callable[..., T]:
+    """Like :func:`revision_cached` but for a read that takes hashable positional args (e.g. an id).
+
+    A panel's per-row ``render`` often calls such a read once per row per frame (the group-objects
+    table resolving each com-object's links, each link's group address). Caching per ``args`` by
+    ``self.revision`` turns that back into a dict lookup; the whole per-method bucket is dropped when
+    the revision moves, so a later edit is picked up. Same instance contract as ``revision_cached``
+    (an ``int`` ``revision`` and a ``self._revision_cache`` dict); stack ``@io_guarded`` above it."""
+    key = fn.__name__
+
+    @wraps(fn)
+    def wrapper(self: Any, *args: Any) -> T:
+        cache: dict[str, tuple[int, dict[tuple[Any, ...], Any]]] = self._revision_cache
+        hit = cache.get(key)
+        if hit is None or hit[0] != self.revision:
+            bucket: dict[tuple[Any, ...], Any] = {}
+            cache[key] = (self.revision, bucket)
+        else:
+            bucket = hit[1]
+        if args not in bucket:
+            bucket[args] = fn(self, *args)
+        return cast(T, bucket[args])
+
+    return wrapper

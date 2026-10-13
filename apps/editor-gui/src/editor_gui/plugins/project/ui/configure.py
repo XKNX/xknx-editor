@@ -27,6 +27,7 @@ from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.fonts import italic
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.app_id import parse_app_id
+from xknxeditor.prod.parser_v2.ui import UiNode
 from xknxeditor.recover.dossier import printable_text
 
 if TYPE_CHECKING:
@@ -52,7 +53,11 @@ from editor_gui.widgets.group_objects_widgets import (
 )
 from editor_gui.widgets.icons import Icon, Picture
 from editor_gui.widgets.markdown import render_markdown
-from editor_gui.widgets.module_table import build_module_tables, render_module_tables
+from editor_gui.widgets.module_table import (
+    ModuleTable,
+    build_module_tables,
+    render_module_tables,
+)
 
 _log = structlog.get_logger("configure")
 _PLUGIN_NOTICE_COLOR = imgui.ImVec4(0.95, 0.75, 0.35, 1.0)
@@ -262,6 +267,12 @@ class ConfigurePanel:
         # read-out so scrolling the table does not re-sort, re-compare and re-format every frame.
         self._readout_rows_cache_key: tuple[int, int] | None = None
         self._readout_rows_cache: list[tuple[str, bool, str]] = []
+        # Parameter count + module ("Channels") tables, derived from the device UI tree every frame
+        # otherwise (count_parameters + build_module_tables walk the whole tree with regex). Keyed by
+        # id(ui_nodes): device.get_ui() returns a fresh list when a parameter edit rebuilds the UI, so
+        # the id changes exactly when the derived data must be recomputed.
+        self._ui_derived_key: int | None = None
+        self._ui_derived: tuple[int, list[ModuleTable]] | None = None
         self._manual_busy: bool = False  # a manual lookup thread is running
         self._group_objects_table = GroupObjectsTable(
             set_flag,
@@ -369,6 +380,13 @@ class ConfigurePanel:
         self._render_header_fields(device)
         self._render_plugin_notices(device)
         self._render_device_actions(device)
+        # Application program (change/update), the manual, and the from-device read-out follow
+        # directly below the "Read from Device" action.
+        imgui.spacing()
+        self._render_application_program(device)
+        imgui.spacing()
+        self._render_manual_button(self._get_device_info(device.node_id))
+        self._render_readout_result(device)
         self._render_ip_config(device)
 
     def _programming_labels(self) -> list[str]:
@@ -718,11 +736,6 @@ class ConfigurePanel:
                 ),
             ]
         )
-        imgui.spacing()
-        self._render_application_program(device)
-        imgui.spacing()
-        self._render_manual_button(info)
-        self._render_readout_result(device)
         self._render_load_procedures(device)
 
     def render(self) -> None:
@@ -736,7 +749,7 @@ class ConfigurePanel:
 
         if imgui.begin_tab_bar("##editor_tabs"):
             ui_nodes = device.get_ui()
-            param_count = count_parameters(ui_nodes)
+            param_count, module_tables = self._ui_derived_tables(ui_nodes)
             # Stable "###" ids keep the selected tab (and each panel's expansion state) put when a
             # parameter edit changes a tab's count-bearing label; a bare label folds the count into
             # the ImGui id, so the tab would lose identity and the bar would jump on every change.
@@ -796,7 +809,6 @@ class ConfigurePanel:
 
             # "Channels" tab: repeating module instances (e.g. a DALI gateway's ECGs/groups) pivoted
             # into an editable table. Manufacturer-agnostic; only shown when the device has any.
-            module_tables = build_module_tables(ui_nodes)
             if module_tables:
                 total = sum(len(t.rows) for t in module_tables)
                 if imgui.begin_tab_item(
@@ -985,6 +997,23 @@ class ConfigurePanel:
                 imgui.table_next_column()
                 imgui.text_colored(ok if match else differ, text)
         imgui.end_table()
+
+    def _ui_derived_tables(
+        self, ui_nodes: list[UiNode]
+    ) -> tuple[int, list[ModuleTable]]:
+        """Parameter count and module ("Channels") tables for the device UI tree, cached by
+        id(ui_nodes). Both walk the whole tree (count_parameters, build_module_tables with regex) and
+        ran every frame of the Configure panel — build_module_tables even when its tab is inactive,
+        only to decide tab visibility. device.get_ui() returns a fresh list after a parameter edit, so
+        the id key recomputes exactly then."""
+        key = id(ui_nodes)
+        if self._ui_derived_key != key or self._ui_derived is None:
+            self._ui_derived = (
+                count_parameters(ui_nodes),
+                build_module_tables(ui_nodes),
+            )
+            self._ui_derived_key = key
+        return self._ui_derived
 
     def _readout_rows(
         self, device: Device, readout: "BusDeviceInfo"

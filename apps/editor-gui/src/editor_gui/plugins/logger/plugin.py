@@ -11,6 +11,7 @@ class LoggerPlugin:
         self._service = service
         self._panel = LogPanel(
             get_records=service.get_records,
+            get_records_version=service.records_version,
             on_clear=service.clear,
         )
         self._panels = [
