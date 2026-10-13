@@ -2095,7 +2095,7 @@ requires-dist = [
     { name = "cryptography", marker = "platform_machine == 'ARM64' and sys_platform == 'win32'", specifier = "==46.0.3" },
     { name = "sqlalchemy", specifier = ">=2.0.0" },
     { name = "xknxeditor-namespaces", editable = "packages/namespaces" },
-    { name = "xknxproject", git = "https://github.com/XKNX/xknxproject?rev=b16ba8b70ac23082a847c386fbd85862b8a12661" },
+    { name = "xknxproject", git = "https://github.com/XKNX/xknxproject?rev=f97db068884eca2b460abb1fb4db2262345f7f47" },
 ]
 
 [[package]]
@@ -2124,7 +2124,7 @@ requires-dist = [
 [[package]]
 name = "xknxproject"
 version = "3.10.0"
-source = { git = "https://github.com/XKNX/xknxproject?rev=b16ba8b70ac23082a847c386fbd85862b8a12661#b16ba8b70ac23082a847c386fbd85862b8a12661" }
+source = { git = "https://github.com/XKNX/xknxproject?rev=f97db068884eca2b460abb1fb4db2262345f7f47#f97db068884eca2b460abb1fb4db2262345f7f47" }
 dependencies = [
     { name = "pyzipper" },
     { name = "striprtf" },
