@@ -417,8 +417,8 @@ msgstr "Laden"
 msgid "Downloading and importing..."
 msgstr "Herunterladen und importieren..."
 
-msgid "Imported {count} product(s) from URL"
-msgstr "{count} Produkt(e) von URL importiert"
+msgid "Imported {count} new product version(s) from URL"
+msgstr "{count} neue Produktversion(en) von URL importiert"
 
 msgid "Nothing new imported (already in the catalog)"
 msgstr "Nichts Neues importiert (bereits im Katalog)"
@@ -471,8 +471,8 @@ msgstr "{count} Linie(n) hatten in verschiedenen Anlagen dieselbe Adresse. Beim 
 msgid "For example: {examples}"
 msgstr "Zum Beispiel: {examples}"
 
-msgid "Product catalog imported: {count} new products from {name}"
-msgstr "Produktkatalog importiert: {count} neue Produkte aus {name}"
+msgid "Product catalog imported: {count} new product version(s) from {name}"
+msgstr "Produktkatalog importiert: {count} neue Produktversion(en) aus {name}"
 
 msgid "{name} was already in the catalog, nothing new imported"
 msgstr "{name} war bereits im Katalog, nichts Neues importiert"

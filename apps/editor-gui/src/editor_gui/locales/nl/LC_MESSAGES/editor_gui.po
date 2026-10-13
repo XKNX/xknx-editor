@@ -41,8 +41,8 @@ msgstr "Annuleren"
 msgid "Downloading and importing..."
 msgstr "Downloaden en importeren..."
 
-msgid "Imported {count} product(s) from URL"
-msgstr "{count} product(en) geïmporteerd van URL"
+msgid "Imported {count} new product version(s) from URL"
+msgstr "{count} nieuwe productversie(s) geïmporteerd van URL"
 
 msgid "Nothing new imported (already in the catalog)"
 msgstr "Niets nieuws geïmporteerd (al in de catalogus)"
@@ -65,8 +65,8 @@ msgstr "Opgeslagen als {name}"
 msgid "Save Project As"
 msgstr "Project opslaan als"
 
-msgid "Product catalog imported: {count} new products from {name}"
-msgstr "Productcatalogus geïmporteerd: {count} nieuwe producten uit {name}"
+msgid "Product catalog imported: {count} new product version(s) from {name}"
+msgstr "Productcatalogus geïmporteerd: {count} nieuwe productversie(s) uit {name}"
 
 msgid "{name} was already in the catalog, nothing new imported"
 msgstr "{name} stond al in de catalogus, niets nieuws geïmporteerd"

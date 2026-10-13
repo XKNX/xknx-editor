@@ -627,21 +627,27 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_add_device(
-        product_ref_id: str, name: str | None = None
+        product_ref_id: str,
+        name: str | None = None,
+        hardware2program_ref_id: str | None = None,
     ) -> dict[str, Any]:
         """Add a device from the catalog by its product_ref_id (from catalog_list_products).
 
-        Returns the created device (node_id, name, individual_address)."""
+        ``hardware2program_ref_id`` selects one application version of the product; without it the
+        newest version in the catalog is used. Returns the created device (node_id, name,
+        individual_address)."""
         require_project(ctx)
 
         def _add() -> dict[str, Any]:
-            product = next(
+            product = max(
                 (
                     p
                     for p in ctx.api.catalog.get_products()
                     if p.product_ref_id == product_ref_id
+                    and hardware2program_ref_id in (None, p.hardware2program_ref_id)
                 ),
-                None,
+                key=lambda p: p.application_version or 0,
+                default=None,
             )
             if product is None:
                 raise ToolError(

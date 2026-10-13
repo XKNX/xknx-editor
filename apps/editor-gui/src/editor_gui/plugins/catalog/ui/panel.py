@@ -6,6 +6,7 @@ from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
+from editor_gui.device_info import application_version_text
 from editor_gui.plugins.catalog.strings import S
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
@@ -22,8 +23,25 @@ if TYPE_CHECKING:
 def _label(product: ProductSummary) -> str:
     name = product.name or product.product_ref_id
     if product.order_number and product.name:
-        return f"{name}  ({product.order_number})"
+        name = f"{name}  ({product.order_number})"
+    if product.application_version is not None:
+        name = f"{name}  V{application_version_text(product.application_version)}"
     return name
+
+
+def _key(product: ProductSummary) -> str:
+    """Identifies one version of a product in the list."""
+    return f"{product.product_ref_id}|{product.hardware2program_ref_id}"
+
+
+def _same(a: ProductSummary | None, b: ProductSummary) -> bool:
+    return a is not None and _key(a) == _key(b)
+
+
+def _version_text(product: ProductSummary) -> str:
+    if product.application_version is None:
+        return "-"
+    return application_version_text(product.application_version)
 
 
 class CatalogPanel:
@@ -156,11 +174,11 @@ class CatalogPanel:
 
         by_manufacturer: dict[str, list[ProductSummary]] = {}
         manufacturer_labels: dict[str, str] = {}
-        seen_refs: set[str] = set()
+        seen: set[str] = set()
         for product in products:
-            if product.product_ref_id in seen_refs:
-                continue  # a product may be present from several imports — show it once
-            seen_refs.add(product.product_ref_id)
+            if _key(product) in seen:
+                continue  # a product version may be listed in several catalog sections
+            seen.add(_key(product))
             if product.manufacturer_id not in by_manufacturer:
                 by_manufacturer[product.manufacturer_id] = []
                 manufacturer_labels[product.manufacturer_id] = (
@@ -172,7 +190,14 @@ class CatalogPanel:
             by_manufacturer.keys(), key=lambda m: manufacturer_labels[m].lower()
         )
         for mfr_products in by_manufacturer.values():
-            mfr_products.sort(key=lambda p: _label(p).lower())
+            # Newest version first within a product.
+            mfr_products.sort(
+                key=lambda p: (
+                    (p.name or p.product_ref_id).lower(),
+                    (p.order_number or "").lower(),
+                    -(p.application_version or 0),
+                )
+            )
 
         # Every tree node carries a unique ##id (product ref / manufacturer id) so duplicate display
         # labels never collide into the same imgui ID (which triggers a "conflicting ID" error).
@@ -183,8 +208,7 @@ class CatalogPanel:
                     name = _label(product)
                     if search in name.lower() or search in mfr_label.lower():
                         imgui.tree_node_ex(
-                            f"{mfr_label} - {name}##{product.product_ref_id}",
-                            leaf_flags,
+                            f"{mfr_label} - {name}##{_key(product)}", leaf_flags
                         )
                         self._handle_product_click(product)
                         self._render_product_context_menu(product)
@@ -194,7 +218,7 @@ class CatalogPanel:
                 if imgui.tree_node(f"{mfr_label}##{mfr_id}"):
                     for product in by_manufacturer[mfr_id]:
                         imgui.tree_node_ex(
-                            f"{_label(product)}##{product.product_ref_id}", leaf_flags
+                            f"{_label(product)}##{_key(product)}", leaf_flags
                         )
                         self._handle_product_click(product)
                         self._render_product_context_menu(product)
@@ -236,7 +260,7 @@ class CatalogPanel:
     def _render_product_context_menu(self, product: ProductSummary) -> None:
         if self._delete_product is None:
             return
-        if imgui.begin_popup_context_item(f"##catalog_ctx_{product.product_ref_id}"):
+        if imgui.begin_popup_context_item(f"##catalog_ctx_{_key(product)}"):
             if imgui.menu_item(S.CONTEXT_DELETE, "", False, self._deleting is None)[0]:
                 self._request_delete(product)
             imgui.end_popup()
@@ -271,6 +295,7 @@ class CatalogPanel:
             rows = (
                 (S.CATALOG_DETAIL_NAME, product.name or product.product_ref_id),
                 (S.CATALOG_DETAIL_ORDER, product.order_number or "-"),
+                (S.CATALOG_DETAIL_VERSION, _version_text(product)),
             )
             label_w = label_column_width(*(label for label, _ in rows), minimum=150.0)
             for label, value in rows:
@@ -298,10 +323,7 @@ class CatalogPanel:
         if self._delete_product is None or self._deleting is not None:
             return
         self._deleting = product.name or product.product_ref_id
-        if (
-            self._selected_product is not None
-            and self._selected_product.product_ref_id == product.product_ref_id
-        ):
+        if _same(self._selected_product, product):
             self._selected_product = None
         threading.Thread(target=self._run_delete, args=(product,), daemon=True).start()
 
@@ -312,11 +334,7 @@ class CatalogPanel:
         except Exception:
             pass  # error already logged by the plugin
         finally:
-            selected = self._selected_product
-            if (
-                selected is not None
-                and selected.product_ref_id == product.product_ref_id
-            ):
+            if _same(self._selected_product, product):
                 self._selected_product = None
             self._deleting = None
 
@@ -333,13 +351,12 @@ class CatalogPanel:
                 S.CATALOG_DETAIL_MANUFACTURER,
                 product.manufacturer_name or product.manufacturer_id,
             ),
-            (S.CATALOG_DETAIL_APPLICATION, product.application_id or "-"),
             (
-                S.CATALOG_DETAIL_VERSION,
-                f"V{product.application_version}"
-                if product.application_version is not None
-                else "-",
+                S.CATALOG_DETAIL_APPLICATION,
+                product.application_name or product.application_id or "-",
             ),
+            (S.CATALOG_DETAIL_VERSION, _version_text(product)),
+            (S.CATALOG_DETAIL_APPLICATION_ID, product.application_id or "-"),
             (S.CATALOG_DETAIL_PRODUCT_REF, product.product_ref_id),
         )
         label_w = label_column_width(*(label for label, _ in rows), minimum=150.0)
@@ -671,7 +688,7 @@ class CatalogPanel:
         for item in self._flat_results:
             order = f"  ({item.order_number})" if item.order_number else ""
             ver = (
-                f"  V{item.application_version}"
+                f"  V{application_version_text(item.application_version)}"
                 if item.application_version is not None
                 else ""
             )

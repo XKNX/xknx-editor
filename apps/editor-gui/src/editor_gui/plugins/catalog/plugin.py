@@ -98,7 +98,9 @@ class CatalogPlugin:
     def _plan_delete_product(self, product: ProductSummary) -> int | None:
         """Number of open-project devices that deleting ``product`` leaves unloadable, or ``None``
         when the product is not in the local catalog."""
-        deletion = self._api.catalog.plan_delete_product(product.product_ref_id)
+        deletion = self._api.catalog.plan_delete_product(
+            product.product_ref_id, product.hardware2program_ref_id
+        )
         if deletion is None:
             return None
         return self._api.project.count_devices_losing_product(deletion)
@@ -110,7 +112,9 @@ class CatalogPlugin:
             # Hold the shared lock across the catalog delete and the device rebuild, so per-frame
             # reads bail instead of seeing the catalog and the project out of step.
             with self._api.catalog.io_lock:
-                deletion = self._api.catalog.delete_product(ref)
+                deletion = self._api.catalog.delete_product(
+                    ref, product.hardware2program_ref_id
+                )
                 if deletion is not None:
                     self._api.project.forget_deleted_product(deletion, rebuild=True)
         except Exception as exc:

@@ -124,6 +124,10 @@ class CatalogStrings:
         return _("Program Version")
 
     @property
+    def CATALOG_DETAIL_APPLICATION_ID(self) -> str:
+        return _("Application ID")
+
+    @property
     def CATALOG_DETAIL_PRODUCT_REF(self) -> str:
         return _("Product Ref")
 

@@ -81,41 +81,55 @@ class CatalogService:
             self._products = self._service.list_products()
         return self._products
 
-    def import_knxprod(self, path: Path) -> list[str]:
-        """Import a .knxprod file; returns newly added product refs."""
+    def import_knxprod(self, path: Path) -> list[ProductSummary]:
+        """Import a .knxprod file; returns the newly added product versions."""
         return self._import_knxprod_bytes(path.read_bytes())
 
-    def import_project_products(self, path: Path) -> list[str]:
+    def import_project_products(self, path: Path) -> list[ProductSummary]:
         """Ingest the product data embedded in a ``.knxproj`` (which omits ``Catalog.xml``), so the
-        imported project's devices resolve their applications. Returns newly added product refs."""
+        imported project's devices resolve their applications. Returns the newly added product
+        versions."""
         return self._import_knxprod_bytes(path.read_bytes(), require_catalog=False)
 
-    def import_product_source(self, data: bytes, master_xml: bytes) -> list[str]:
+    def import_product_source(
+        self, data: bytes, master_xml: bytes
+    ) -> list[ProductSummary]:
         """Ingest product data from any supported source: a ``.knxprod``, an OpenKNX release ZIP, or
         a raw monolithic KNX product XML (OpenKNXproducer output). ``master_xml`` supplies the
-        ``knx_master.xml`` the latter two do not embed. Returns the product refs newly added."""
+        ``knx_master.xml`` the latter two do not embed. Returns the newly added product versions."""
         from xknxeditor.prod import knxprod_from_source
 
         return self._import_knxprod_bytes(knxprod_from_source(data, master_xml))
 
     def _import_knxprod_bytes(
         self, data: bytes, *, require_catalog: bool = True
-    ) -> list[str]:
-        before = {p.product_ref_id for p in self.get_products()}
+    ) -> list[ProductSummary]:
+        """Each product version (product and hardware program) new in the catalog."""
+        before = {
+            (p.product_ref_id, p.hardware2program_ref_id) for p in self.get_products()
+        }
         self._service.import_knxprod(data, require_catalog=require_catalog)
         self._products = None
-        after = {p.product_ref_id for p in self.get_products()}
-        return sorted(after - before)
+        added: dict[tuple[str, str], ProductSummary] = {}
+        for product in self.get_products():
+            key = (product.product_ref_id, product.hardware2program_ref_id)
+            if key not in before:
+                added.setdefault(key, product)
+        return [added[key] for key in sorted(added)]
 
     @io_guarded(lambda: None)
-    def plan_delete_product(self, product_ref_id: str) -> ProductDeletion | None:
+    def plan_delete_product(
+        self, product_ref_id: str, hardware_program_id: str | None = None
+    ) -> ProductDeletion | None:
         """What deleting ``product_ref_id`` would remove, without changing anything."""
-        return self._service.plan_product_deletion(product_ref_id)
+        return self._service.plan_product_deletion(product_ref_id, hardware_program_id)
 
-    def delete_product(self, product_ref_id: str) -> ProductDeletion | None:
+    def delete_product(
+        self, product_ref_id: str, hardware_program_id: str | None = None
+    ) -> ProductDeletion | None:
         """Delete a product from the local catalog, holding :attr:`io_lock` while it writes."""
         with self._io_lock:
-            deletion = self._service.delete_product(product_ref_id)
+            deletion = self._service.delete_product(product_ref_id, hardware_program_id)
             self._products = None
         return deletion
 
@@ -171,8 +185,9 @@ class CatalogService:
 
     def download_online_products(
         self, catalog_item_ids: list[str], language_ids: list[str] | None = None
-    ) -> list[str]:
-        """Download a ``.knxprod`` for the given catalog items and import it; returns new refs.
+    ) -> list[ProductSummary]:
+        """Download a ``.knxprod`` for the given catalog items and import it; returns the new
+        product versions.
 
         Defaults to the selected country/language (:attr:`online_language`)."""
         data = self._online_client.download_product(

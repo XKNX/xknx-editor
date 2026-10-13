@@ -183,6 +183,31 @@ def test_shared_program_is_kept(tmp_path: Path) -> None:
     assert not stored.exists()
 
 
+def test_one_version_of_a_product_is_deleted(tmp_path: Path) -> None:
+    svc, db, stored = _setup(tmp_path)
+    program = f"{_HW}_HP-7072-22-AAAA-O000A"
+    app = "M-0008_A-7072-22-AAAA-O000A"
+    _add_product(
+        db, product_ref=_PRODUCT, program=program, hardware=_HW, application=app
+    )
+    assert {p.hardware2program_ref_id for p in svc.list_products()} == {
+        _PROGRAM,
+        program,
+    }
+
+    plan = svc.plan_product_deletion(_PRODUCT, program)
+    deletion = svc.delete_product(_PRODUCT, program)
+
+    assert deletion is not None and deletion == plan
+    assert deletion.removed_programs == [program]
+    assert deletion.removed_applications == [app]
+    assert deletion.removed_hardware == []
+    assert deletion.removed_sections == []
+    assert [p.hardware2program_ref_id for p in svc.list_products()] == [_PROGRAM]
+    assert stored.exists()
+    assert svc.delete_product(_PRODUCT, program) is None
+
+
 def test_empty_sections_are_pruned_up_to_a_non_empty_parent(tmp_path: Path) -> None:
     svc, db, _stored = _setup(tmp_path)
     sibling = "M-0008_CS-IN-B4"

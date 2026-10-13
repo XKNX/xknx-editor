@@ -73,16 +73,24 @@ class CatalogService:
             content, self._knxprod_dir, self._engine, require_catalog=require_catalog
         )
 
-    def delete_product(self, product_ref_id: str) -> ProductDeletion | None:
-        """Delete a product and garbage-collect what it leaves unreferenced, including its
-        ``.knxprod`` archives and parse-cache entries. ``None`` when the product is unknown."""
+    def delete_product(
+        self, product_ref_id: str, hardware_program_id: str | None = None
+    ) -> ProductDeletion | None:
+        """Delete a product, or only its ``hardware_program_id`` version, and garbage-collect
+        what it leaves unreferenced, including its ``.knxprod`` archives and parse-cache entries.
+        ``None`` when the product is unknown."""
         return delete_product(
-            self._engine, product_ref_id, cache_dir=self._parse_cache_dir
+            self._engine,
+            product_ref_id,
+            hardware_program_id,
+            cache_dir=self._parse_cache_dir,
         )
 
-    def plan_product_deletion(self, product_ref_id: str) -> ProductDeletion | None:
+    def plan_product_deletion(
+        self, product_ref_id: str, hardware_program_id: str | None = None
+    ) -> ProductDeletion | None:
         """What :meth:`delete_product` would remove, without changing anything."""
-        return plan_product_deletion(self._engine, product_ref_id)
+        return plan_product_deletion(self._engine, product_ref_id, hardware_program_id)
 
     # --- manufacturers ----------------------------------------------------
 

@@ -31,6 +31,8 @@ from editor_gui.plugins.mcp.context import McpContext, make_tool
 if TYPE_CHECKING:
     from fastmcp import FastMCP
 
+    from xknxeditor.catalog import ProductSummary
+
 _SLOW = 300.0
 _MAX_DOC_BYTES = (
     40 * 1024 * 1024
@@ -45,6 +47,22 @@ _TEXT_EXTS = (".md", ".markdown", ".txt")
 # _MANUFACTURER_DOMAINS and _domain_for live in editor_gui.doc_links (single source of truth, also
 # used by the project "Download PDF manual" button); imported above. _DOC_HOSTS (below) is built from
 # the map values plus the extra hosts catalog_docs_fetch is allowed to download from.
+
+
+def _added(products: list[ProductSummary]) -> dict[str, Any]:
+    """The import result: product refs and each new product version."""
+    return {
+        "added_refs": sorted({p.product_ref_id for p in products}),
+        "added_versions": [
+            {
+                "product_ref_id": p.product_ref_id,
+                "hardware2program_ref_id": p.hardware2program_ref_id,
+                "application_id": p.application_id,
+                "application_version": p.application_version,
+            }
+            for p in products
+        ],
+    }
 
 
 def _search_url(terms: str, *, site: str | None = None) -> str:
@@ -312,6 +330,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "name": p.name,
                     "order_number": p.order_number,
                     "application_id": p.application_id,
+                    "application_version": p.application_version,
                     "manufacturer_id": p.manufacturer_id,
                     "manufacturer_name": p.manufacturer_name,
                 }
@@ -543,7 +562,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def catalog_import_knxprod(path: str) -> dict[str, Any]:
-        """Import a local .knxprod file into the catalog. Returns the newly added product refs.
+        """Import a local .knxprod file into the catalog. Returns the newly added product versions.
+
+        A new application version of a product already in the catalog is added next to the existing
+        versions; ``added_versions`` lists each one, ``added_refs`` their product refs.
 
         The path is on the EDITOR's machine. If your MCP client runs on a different machine, use
         catalog_import_knxprod_bytes instead, or catalog_download_online_products for online-catalog
@@ -551,7 +573,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         added = ctx.run_locked(
             lambda: catalog.import_knxprod(Path(path)), timeout=_SLOW
         )
-        return {"added_refs": added}
+        return _added(added)
 
     @tool
     def catalog_import_knxprod_bytes(filename: str, data_base64: str) -> dict[str, Any]:
@@ -586,7 +608,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             tmp.unlink(missing_ok=True)
             with contextlib.suppress(OSError):
                 tmp_dir.rmdir()
-        return {"added_refs": added, "filename": safe, "size_bytes": len(raw)}
+        return {**_added(added), "filename": safe, "size_bytes": len(raw)}
 
     @tool
     def catalog_delete_product(product_ref_id: str) -> dict[str, Any]:
@@ -669,4 +691,4 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             lambda: catalog.download_online_products(catalog_item_ids, language_ids),
             timeout=_SLOW,
         )
-        return {"added_refs": added}
+        return _added(added)

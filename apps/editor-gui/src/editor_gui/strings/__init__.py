@@ -796,7 +796,7 @@ class MenuStrings:
 
     @property
     def URL_IMPORT_OK(self) -> str:
-        return _("Imported {count} product(s) from URL")
+        return _("Imported {count} new product version(s) from URL")
 
     @property
     def URL_IMPORT_EMPTY(self) -> str:
@@ -948,7 +948,7 @@ class MenuStrings:
 
     @property
     def KNXPROD_IMPORT_DONE(self) -> str:
-        return _("Product catalog imported: {count} new products from {name}")
+        return _("Product catalog imported: {count} new product version(s) from {name}")
 
     @property
     def KNXPROD_IMPORT_NOTHING_NEW(self) -> str:
