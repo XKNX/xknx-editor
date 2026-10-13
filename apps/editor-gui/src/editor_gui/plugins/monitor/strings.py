@@ -62,12 +62,20 @@ class MonitorStrings:
         return _("Clear")
 
     @property
+    def MONITOR_SHOW_EXTENDED(self) -> str:
+        return _("Show extended information")
+
+    @property
+    def MONITOR_HIDE_EXTENDED(self) -> str:
+        return _("Hide extended information")
+
+    @property
     def MONITOR_TELEGRAM_COUNT(self) -> str:
-        return _("{count} telegrams")
+        return _("{count} teleg.")
 
     @property
     def MONITOR_BUS_LOAD(self) -> str:
-        return _("Bus Load: {rate} telegrams/s")
+        return _("Load: {rate} t/s")
 
     # --- command bar ---------------------------------------------------------
 
@@ -176,7 +184,7 @@ class MonitorStrings:
 
     @property
     def STATUS_RECORDING(self) -> str:
-        return _("Recording")
+        return _("Rec.")
 
     @property
     def STATUS_STOPPED(self) -> str:
@@ -443,6 +451,10 @@ class MonitorStrings:
         return _("#")
 
     @property
+    def COL_DATE(self) -> str:
+        return _("Date")
+
+    @property
     def COL_TIME(self) -> str:
         return _("Time")
 
@@ -491,12 +503,16 @@ class MonitorStrings:
         return _("Type")
 
     @property
+    def COL_TYPE_SHORT(self) -> str:
+        return _("Type")
+
+    @property
     def COL_DPT(self) -> str:
         return _("DPT")
 
     @property
     def COL_INFO(self) -> str:
-        return _("Info")
+        return _("Value")
 
     @property
     def COL_IACK(self) -> str:
