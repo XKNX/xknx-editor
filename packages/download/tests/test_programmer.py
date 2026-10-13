@@ -21,7 +21,11 @@ from xknxeditor.download.load_state import (
     LoadState,
     start_loading,
 )
-from xknxeditor.download.programmer import PID_OBJECT_TYPE, DeviceProgrammer
+from xknxeditor.download.programmer import (
+    PID_IO_LIST,
+    PID_OBJECT_TYPE,
+    DeviceProgrammer,
+)
 
 from .conftest import FakeDevice
 
@@ -417,6 +421,47 @@ async def test_state_is_decoded_from_first_octet() -> None:
         await DeviceProgrammer(ResponseDevice()).send_load_event(
             1, start_loading(), LoadState.LOADING, retries=0
         )
+
+
+class _IoListDevice(FakeDevice):
+    """Answers PID_IO_LIST; the association table's PID_OBJECT_TYPE is not readable."""
+
+    io_list = (0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0011, 0x0008, 0x000B, 0xC351)
+
+    def _handle_property_read(
+        self, payload: PropertyValueRead
+    ) -> PropertyValueResponse:
+        if (payload.object_index, payload.property_id) != (0, PID_IO_LIST):
+            return super()._handle_property_read(payload)
+        if payload.start_index == 0:
+            data = len(self.io_list).to_bytes(2, "big")
+        else:
+            start = payload.start_index - 1
+            data = b"".join(
+                t.to_bytes(2, "big")
+                for t in self.io_list[start : start + payload.count]
+            )
+        return PropertyValueResponse(
+            object_index=0,
+            property_id=PID_IO_LIST,
+            data=data,
+            count=payload.count,
+            start_index=payload.start_index,
+        )
+
+
+async def test_locate_object_uses_the_io_list_past_an_unreadable_object() -> None:
+    types = dict(enumerate(_IoListDevice.io_list))
+    del types[2]
+    device = _IoListDevice(object_types=types)
+    programmer = DeviceProgrammer(device)
+    assert await programmer.locate_object(0x000B) == 7
+    assert await programmer.locate_object(0xC351) == 8
+    assert not any(
+        getattr(p, "property_id", None) == PID_OBJECT_TYPE for p in device.sent
+    )
+    with pytest.raises(LoadStateError, match="not found"):
+        await programmer.locate_object(0x0006)
 
 
 async def test_locate_object_reads_each_object_type_once() -> None:
