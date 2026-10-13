@@ -103,6 +103,7 @@ from .errors import (
     VerificationError,
 )
 from .group_communication import materialize_group_communication_controls
+from .ip_config import IP_PARAMETER_OBJECT, IP_PROPERTY_WIDTHS
 from .merge import resolve_download_controls
 from .preflight import PreflightReport, PropertyDiff, SegmentDiff
 from .programmer import DEFAULT_MAX_APDU_LENGTH, PID_TABLE_REFERENCE, DeviceProgrammer
@@ -374,6 +375,8 @@ class LoadProcedureRunner:
         # mapped here to (object type, instance).
         self._extended_properties = _supports_extended_properties(application)
         self._extended_targets: dict[int, tuple[int, int]] = {}
+        # Object type of each object a control addressed by type.
+        self._index_types: dict[int, int] = {}
         self.restarted = False
         # Set once a state-changing control has run, so a caller can tell a
         # failure that touched nothing from one that may have left the device
@@ -877,9 +880,12 @@ class LoadProcedureRunner:
             if extended and self._extended_properties:
                 key = -1 - ((obj_type << 12) | (occurrence + 1))
                 self._extended_targets[key] = (obj_type, occurrence + 1)
+                self._index_types[key] = obj_type
                 return key
             programmer = await self._bus()
-            return await programmer.locate_object(obj_type, occurrence)
+            index = await programmer.locate_object(obj_type, occurrence)
+            self._index_types[index] = obj_type
+            return index
         lsm_idx = getattr(control, "lsm_idx", None)
         if lsm_idx is not None:
             return lsm_idx
@@ -1377,6 +1383,18 @@ class LoadProcedureRunner:
         )
         return object_type is None or object_type == prop.object_type
 
+    def captured_property(self, object_type: int, property_id: int) -> bytes | None:
+        """The first element a LoadImageProp captured from ``property_id`` of an object of
+        ``object_type``, or ``None``."""
+        for (index, pid, element), data in self._property_captures.items():
+            if (
+                pid == property_id
+                and element == 1
+                and self._index_types.get(index) == object_type
+            ):
+                return data
+        return None
+
     async def _object_index(self, index: int) -> int:
         """The device's object index for ``index``, locating an extended target."""
         target = self._extended_targets.get(index)
@@ -1432,6 +1450,13 @@ class LoadProcedureRunner:
     ) -> None:
         key = (index, control.prop_id)
         if key in self._property_widths or control.prop_id in STANDARD_WRITE_WIDTHS:
+            return
+        if (
+            control.obj_idx is None
+            and control.obj_type == IP_PARAMETER_OBJECT
+            and control.prop_id in IP_PROPERTY_WIDTHS
+        ):
+            self._property_widths[key] = IP_PROPERTY_WIDTHS[control.prop_id]
             return
         for prop in self.image.properties:
             if (

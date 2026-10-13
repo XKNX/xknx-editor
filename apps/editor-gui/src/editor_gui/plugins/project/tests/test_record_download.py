@@ -36,6 +36,7 @@ def test_partial_scopes_set_only_their_part() -> None:
     assert kwargs == {
         "serial_number": None,
         "last_download": kwargs["last_download"],
+        "mac_address": None,
         "parameters_loaded": True,
     }
     ((_, kwargs),) = _record("ia").call_args_list

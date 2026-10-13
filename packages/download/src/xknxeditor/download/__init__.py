@@ -14,7 +14,7 @@ from .commissioning import (
     switch_programming_mode,
 )
 from .data_secure import DeviceSecurity, SecureProgrammingError
-from .download import download, preflight
+from .download import DownloadResult, download, preflight
 from .errors import (
     AddressInUseError,
     DownloadError,
@@ -40,6 +40,7 @@ from .image import (
     PropertyValue,
     build_image,
 )
+from .ip_config import IpDeviceConfig
 from .load_state import LoadEvent, LoadState
 from .merge import resolve_download_controls
 from .preflight import (
@@ -79,10 +80,12 @@ __all__ = [
     "DeviceSecurity",
     "DownloadError",
     "DownloadImage",
+    "DownloadResult",
     "DownloadScope",
     "GroupCommunication",
     "GroupObjectLink",
     "ImageError",
+    "IpDeviceConfig",
     "LoadEvent",
     "LoadProcedureRunner",
     "LoadState",

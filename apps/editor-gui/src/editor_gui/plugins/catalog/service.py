@@ -253,6 +253,13 @@ class CatalogService:
         return bool(hardware is not None and hardware.no_download_without_plugin)
 
     @io_guarded(lambda: False)
+    def hardware_is_ip_enabled(self, hardware2program_id: str) -> bool:
+        """Whether a product's hardware is an IP device (``IsIPEnabled``)."""
+        hardware_id = hardware2program_id.split("_HP-", 1)[0]
+        hardware = self._service.get_hardware(hardware_id)
+        return bool(hardware is not None and hardware.is_ip_enabled)
+
+    @io_guarded(lambda: False)
     def has_application(self, application_id: str) -> bool:
         """Whether a hardware program in the catalog loads ``application_id``."""
         return self._service.has_application(application_id)

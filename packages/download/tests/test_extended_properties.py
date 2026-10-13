@@ -97,7 +97,7 @@ class ExtendedDevice(FakeDevice):
                     property_id=payload.property_id,
                     nr_of_elem=payload.nr_of_elem,
                     start_index=payload.start_index,
-                    data=self.ext_values.get(key, bytes(16))[: payload.nr_of_elem],
+                    data=self.ext_values.get(key, bytes(16)),
                 )
             )
         return await super().request(payload, expected)

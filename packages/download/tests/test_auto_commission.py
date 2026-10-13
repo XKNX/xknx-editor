@@ -52,6 +52,9 @@ async def _run(
         async def run(self, progress: Any = None) -> None:
             trace.append("run")
 
+        def captured_property(self, object_type: int, property_id: int) -> None:
+            return None
+
     def fake_resolve(*args: Any, **kwargs: Any) -> list[Any]:
         return []
 

@@ -703,6 +703,6 @@ async def test_programming_tools_record_the_download(
         await _data(client, "connection_program_device", node_id=node_id)
         await _data(client, "connection_assign_individual_address", node_id=node_id)
     assert recorded == [
-        (node_id, "full", b"\x00\xfa\x01\x02\x03\x04"),
+        (node_id, "full", b"\x00\xfa\x01\x02\x03\x04", None),
         (node_id, "ia"),
     ]
