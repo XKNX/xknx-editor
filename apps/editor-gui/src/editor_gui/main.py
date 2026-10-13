@@ -423,6 +423,7 @@ class KnxGuiApp:
         self._project_plugin.show_context_help = bool(
             load_settings("app").get("show_context_help", True)
         )
+        self.bottom_expanded = bool(load_settings("app").get("bottom_expanded", False))
 
         self._log = Logger(self._log_service, "app")
         self._logger_plugin = LoggerPlugin(self._log_service)
@@ -2167,8 +2168,70 @@ class KnxGuiApp:
         if msg:
             self._log.warning(msg)
 
+    def _rebuild_layout(self, expanded: bool, ratios: dict[str, float]) -> None:
+        params = hello_imgui.get_runner_params().docking_params
+        params.docking_splits = create_docking_splits(expanded, ratios)
+        params.layout_reset = True
+        if expanded != self.bottom_expanded:
+            self.bottom_expanded = expanded
+            data = load_settings("app")
+            data["bottom_expanded"] = expanded
+            save_settings("app", data)
+
+    def _render_section_buttons(self, node: imgui.internal.DockNode) -> None:
+        """The expand / collapse button at the end of the bottom section's tab bar."""
+        params = hello_imgui.get_runner_params().docking_params
+        if node.id_ != params.dock_space_id_from_name("BottomSpace"):
+            return
+        # Right end of the tab bar, next to the close button.
+        size = imgui.internal.tab_item_calc_size("##expand_space", False)
+        bar = node.tab_bar.bar_rect
+        low = imgui.ImVec2(bar.max.x - size.x, bar.min.y)
+        high = imgui.ImVec2(bar.max.x, bar.max.y)
+        cursor = imgui.get_cursor_screen_pos()
+        imgui.set_cursor_screen_pos(low)
+        if imgui.invisible_button("##expand_bottom", high - low):
+            _keep_window_sections(params)
+            self._rebuild_layout(not self.bottom_expanded, _current_ratios(params))
+        draw = imgui.get_window_draw_list()
+        if imgui.is_item_hovered():
+            draw.add_rect_filled(
+                low,
+                high,
+                imgui.get_color_u32(
+                    imgui.Col_.button_active
+                    if imgui.is_item_active()
+                    else imgui.Col_.button_hovered
+                ),
+                imgui.get_style().frame_rounding,
+            )
+            imgui.set_tooltip(
+                S.SECTION_COLLAPSE if self.bottom_expanded else S.SECTION_EXPAND
+            )
+        arrow = imgui.get_font_size() * 0.7
+        imgui.internal.render_arrow(
+            draw,
+            imgui.ImVec2(
+                low.x + (high.x - low.x - arrow) / 2,
+                low.y + (high.y - low.y - arrow) / 2,
+            ),
+            imgui.get_color_u32(imgui.Col_.text),
+            imgui.Dir.left if self.bottom_expanded else imgui.Dir.right,
+            0.7,
+        )
+        imgui.set_cursor_screen_pos(cursor)
+        # An invisible trailing tab of the same width keeps the tabs and their scroll buttons
+        # clear of the button when they overflow.
+        for col in (imgui.Col_.tab, imgui.Col_.tab_hovered, imgui.Col_.tab_dimmed):
+            imgui.push_style_color(col, imgui.ImVec4(0, 0, 0, 0))
+        imgui.tab_item_button(
+            "##expand_space",
+            imgui.TabItemFlags_.trailing | imgui.TabItemFlags_.no_tooltip,
+        )
+        imgui.pop_style_color(3)
+
     def render_overlays(self) -> None:
-        render_section_menus()
+        render_section_menus(self._render_section_buttons)
         # Log the active OpenGL renderer once, from the frame path (context guaranteed current).
         if not self._gl_logged:
             self._gl_logged = True
@@ -2478,7 +2541,10 @@ class KnxGuiApp:
             return
         params = hello_imgui.get_runner_params()
         if imgui.menu_item(S.MENU_RESTORE_LAYOUT, "", False)[0]:
-            params.docking_params.layout_reset = True
+            docks = {panel.name: panel.dock for panel in self.get_all_panels()}
+            for w in params.docking_params.dockable_windows:
+                w.dock_space_name = docks.get(_dock_window_name(w), w.dock_space_name)
+            self._rebuild_layout(expanded=False, ratios={})
         imgui.separator()
         windows = [
             w for w in params.docking_params.dockable_windows if w.include_in_view_menu
@@ -2761,38 +2827,95 @@ class KnxGuiApp:
 
 
 # Bumped whenever the default docking layout changes, so a stored layout is replaced once.
-_LAYOUT_VERSION = 11
+_LAYOUT_VERSION = 12
 
 
-def create_docking_splits() -> list[hello_imgui.DockingSplit]:
-    split_right = hello_imgui.DockingSplit()
-    split_right.initial_dock = "MainDockSpace"
-    split_right.new_dock = "RightSpace"
-    split_right.direction = imgui.Dir.right
-    # Wide enough for the Device panel's Test / Program / Preview buttons in one row.
-    split_right.ratio = 0.2
-
-    split_device = hello_imgui.DockingSplit()
-    split_device.initial_dock = "RightSpace"
-    split_device.new_dock = "DeviceSpace"
-    split_device.direction = imgui.Dir.up
-    split_device.ratio = 0.35
-
-    split_bottom = hello_imgui.DockingSplit()
-    split_bottom.initial_dock = "MainDockSpace"
-    split_bottom.new_dock = "BottomSpace"
-    split_bottom.direction = imgui.Dir.down
-    split_bottom.ratio = 0.31
-
-    split_left = hello_imgui.DockingSplit()
-    split_left.initial_dock = "MainDockSpace"
-    split_left.new_dock = "LeftSpace"
-    split_left.direction = imgui.Dir.left
+_SECTIONS = ("RightSpace", "DeviceSpace", "LeftSpace", "BottomSpace")
+_DEFAULT_RATIOS = {
+    # Wide enough for the Device panel's action buttons in one row.
+    "right": 0.2,
+    "device": 0.35,
     # Wide enough that the stacked navigation tabs (Buildings, Devices, Group Addresses, Catalog)
     # all fit without the tab-bar overflow (">>") arrow.
-    split_left.ratio = 0.29
+    "left": 0.39,
+    "bottom": 0.345,
+}
 
-    return [split_right, split_device, split_bottom, split_left]
+
+def _split(
+    initial: str, new: str, direction: imgui.Dir, ratio: float
+) -> hello_imgui.DockingSplit:
+    split = hello_imgui.DockingSplit()
+    split.initial_dock = initial
+    split.new_dock = new
+    split.direction = direction
+    split.ratio = ratio
+    return split
+
+
+def create_docking_splits(
+    bottom_expanded: bool = False, ratios: dict[str, float] | None = None
+) -> list[hello_imgui.DockingSplit]:
+    """The sections of the layout. The bottom section sits under the left column, or with
+    ``bottom_expanded`` under the left column and the editor."""
+    r = {**_DEFAULT_RATIOS, **(ratios or {})}
+    right = _split("MainDockSpace", "RightSpace", imgui.Dir.right, r["right"])
+    device = _split("RightSpace", "DeviceSpace", imgui.Dir.up, r["device"])
+    left = _split("MainDockSpace", "LeftSpace", imgui.Dir.left, r["left"])
+    if bottom_expanded:
+        bottom = _split("MainDockSpace", "BottomSpace", imgui.Dir.down, r["bottom"])
+        return [right, device, bottom, left]
+    bottom = _split("LeftSpace", "BottomSpace", imgui.Dir.down, r["bottom"])
+    return [right, device, left, bottom]
+
+
+def _current_ratios(params: hello_imgui.DockingParams) -> dict[str, float]:
+    """Split ratios that reproduce the current section sizes, or none if a section is missing."""
+    nodes: dict[str, imgui.internal.DockNode] = {}
+    for name in _SECTIONS:
+        node_id = params.dock_space_id_from_name(name)
+        node = imgui.internal.dock_builder_get_node(node_id) if node_id else None
+        if node is None:
+            return {}
+        nodes[name] = node
+    root = nodes["RightSpace"]
+    while root.parent_node is not None:
+        root = root.parent_node
+    # A split shares its parent's size minus the separator between the two parts.
+    gap = imgui.get_style().docking_separator_size
+    width, height = root.size.x - gap, root.size.y - gap
+    right = nodes["RightSpace"].size.x
+    if width - right - gap <= 0 or height <= 0:
+        return {}
+    ratios = {
+        "right": right / width,
+        "device": nodes["DeviceSpace"].size.y / height,
+        "left": nodes["LeftSpace"].size.x / (width - right - gap),
+        "bottom": nodes["BottomSpace"].size.y / height,
+    }
+    return {key: min(max(value, 0.05), 0.95) for key, value in ratios.items()}
+
+
+def _keep_window_sections(params: hello_imgui.DockingParams) -> None:
+    """Make a layout rebuild keep each window in the section it is in now, and the selected tabs."""
+    sections = {
+        params.dock_space_id_from_name(name): name
+        for name in (*_SECTIONS, "MainDockSpace")
+    }
+    for window in params.dockable_windows:
+        imgui_window = imgui.internal.find_window_by_name(window.label)
+        if imgui_window is None:
+            continue
+        name = sections.get(imgui_window.dock_id)
+        if name is not None:
+            window.dock_space_name = name
+        node = imgui_window.dock_node
+        if (
+            window.is_visible
+            and node is not None
+            and node.selected_tab_id == imgui_window.tab_id
+        ):
+            window.focus_window_at_next_frame = True
 
 
 def _apply_new_layout_once(docking_params: hello_imgui.DockingParams) -> None:
@@ -3084,7 +3207,9 @@ def _main() -> None:
     # Keep the imgui layout .ini in the central data dir (with the JSON settings and catalog).
     runner_params.ini_folder_type = hello_imgui.IniFolderType.absolute_path
     runner_params.ini_filename = str(config_dir() / "XKNX_Editor.ini")
-    runner_params.docking_params.docking_splits = create_docking_splits()
+    runner_params.docking_params.docking_splits = create_docking_splits(
+        app.bottom_expanded
+    )
     runner_params.docking_params.dockable_windows = create_dockable_windows(app)
     _apply_new_layout_once(runner_params.docking_params)
 

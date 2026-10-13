@@ -146,6 +146,12 @@ msgstr "Beeld"
 msgid "Restore Default Layout"
 msgstr "Standaardindeling herstellen"
 
+msgid "Expand Below the Editor"
+msgstr "Uitvouwen onder de editor"
+
+msgid "Collapse to the Left Column"
+msgstr "Samenvouwen tot de linkerkolom"
+
 msgid "Show All"
 msgstr "Alles tonen"
 

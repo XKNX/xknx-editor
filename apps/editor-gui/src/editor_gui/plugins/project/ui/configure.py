@@ -70,6 +70,32 @@ def overwrite_current_address(
     return str(current), None
 
 
+_SCOPE_ORDER = [
+    DownloadScope.FULL,
+    DownloadScope.PARAMETERS,
+    DownloadScope.GROUP_COMMUNICATION,
+    DownloadScope.APPLICATION,
+    DownloadScope.INDIVIDUAL_ADDRESS,
+    DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS,
+    DownloadScope.UNLOAD,
+    DownloadScope.UNLOAD_ALL,
+]
+
+
+def _scope_labels() -> list[str]:
+    """Labels of ``_SCOPE_ORDER``."""
+    return [
+        S.SCOPE_FULL,
+        S.SCOPE_PARAMETERS,
+        S.SCOPE_GROUP_COMMUNICATION,
+        S.SCOPE_APPLICATION,
+        S.SCOPE_INDIVIDUAL_ADDRESS,
+        S.SCOPE_OVERWRITE_INDIVIDUAL_ADDRESS,
+        S.SCOPE_UNLOAD,
+        S.SCOPE_UNLOAD_ALL,
+    ]
+
+
 def _same_line_if_fits(label: str) -> None:
     """Put the next button beside the previous item if it fits, else below it."""
     style = imgui.get_style()
@@ -264,8 +290,6 @@ class ConfigurePanel:
         self._module_filter: str = ""  # "Channels" tab (module-instance table) filter
         self._lv_seq: int = 0  # per-frame counter for unique _render_label_value ids
         self._label_w = 0.0  # start of the value column next to field labels
-        # Value column of the stacked header fields, which the download scope lines up with.
-        self._header_label_w: float | None = None
 
     def _current_device(self) -> Device | None:
         """The selected device, defaulting to the first one."""
@@ -283,7 +307,6 @@ class ConfigurePanel:
         self._label_w = label_column_width(
             S.CONFIGURE_NAME,
             S.CONFIGURE_INDIVIDUAL_ADDRESS,
-            S.CONFIGURE_DOWNLOAD_SCOPE,
             S.CONFIGURE_MANUFACTURER,
             S.CONFIGURE_APPLICATION,
             S.CONFIGURE_APP_VERSION,
@@ -306,7 +329,7 @@ class ConfigurePanel:
         )
 
     def render_device(self) -> None:
-        """Device panel: device selection, address and programming."""
+        """Device panel: name, address, description and the device actions."""
         self._begin_details()
         if self._current_device() is None:
             imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
@@ -323,7 +346,7 @@ class ConfigurePanel:
         self._render_manufacturer_section(device)
 
     def _render_device_section(self) -> None:
-        """Name, address and programming of the selected device."""
+        """Name, address, description and actions of the selected device."""
         device = self._current_device()
         if device is None:
             return
@@ -336,12 +359,52 @@ class ConfigurePanel:
 
         self._render_header_fields(device)
         self._render_plugin_notices(device)
+        self._render_device_actions(device)
+        self._render_ip_config(device)
 
-        if self._on_program_device is not None or self._on_eval_device is not None:
-            self._render_scope_selector()
+    def _programming_labels(self) -> list[str]:
+        labels: list[str] = []
+        if self._on_eval_device is not None:
+            labels.append(S.BTN_EVAL_DEVICE)
+        if self._on_program_device is not None:
+            labels.append(S.BTN_PROGRAM_DEVICE)
+        if self._open_memory_preview is not None:
+            labels.append(S.BTN_PREVIEW_MEMORY)
+        return labels
 
+    def _render_title_row(self, device: Device) -> None:
+        """The device label, with the download scope and the programming buttons right-aligned
+        beside it, or below it when the panel is too narrow."""
+        imgui.align_text_to_frame_padding()
+        imgui.text(device_label(device))
+        buttons = self._programming_labels()
+        if not buttons:
+            return
+        style = imgui.get_style()
+        width = (
+            imgui.calc_text_size(S.CONFIGURE_DOWNLOAD_SCOPE).x
+            + style.item_spacing.x
+            + self._scope_combo_width()
+            + sum(
+                style.item_spacing.x
+                + imgui.calc_text_size(label).x
+                + style.frame_padding.x * 2
+                for label in buttons
+            )
+        )
+        imgui.same_line()
+        free = imgui.get_content_region_avail().x - width
+        if free >= style.item_spacing.x * 2:
+            imgui.set_cursor_pos_x(imgui.get_cursor_pos_x() + free)
+        else:
+            imgui.new_line()
+        self._render_programming(device)
+
+    def _render_programming(self, device: Device) -> None:
+        self._render_scope_selector()
         # Workflow order: dry run (preview changes) → program → preview memory image.
         if self._on_eval_device is not None:
+            _same_line_if_fits(S.BTN_EVAL_DEVICE)
             enabled = (
                 bool(device.individual_address)
                 and not self._download_scope.individual_address_only
@@ -350,9 +413,9 @@ class ConfigurePanel:
             if imgui.button(S.BTN_EVAL_DEVICE):
                 self._on_eval_device(device, self._download_scope)
             imgui.end_disabled()
-            _same_line_if_fits(S.BTN_PROGRAM_DEVICE)
 
         if self._on_program_device is not None:
+            _same_line_if_fits(S.BTN_PROGRAM_DEVICE)
             enabled = bool(device.individual_address)
             imgui.begin_disabled(not enabled)
             if imgui.button(S.BTN_PROGRAM_DEVICE):
@@ -368,15 +431,14 @@ class ConfigurePanel:
                     self._use_serial_number_default
                     and self._use_serial_number_default()
                 )
+
+        if self._open_memory_preview is not None:
+            _same_line_if_fits(S.BTN_PREVIEW_MEMORY)
+            if imgui.button(S.BTN_PREVIEW_MEMORY):
+                self._open_memory_preview(device)
+
+        if self._on_program_device is not None:
             self._render_program_confirm(device)
-            if self._open_memory_preview is not None:
-                _same_line_if_fits(S.BTN_PREVIEW_MEMORY)
-
-        if self._open_memory_preview is not None and imgui.button(S.BTN_PREVIEW_MEMORY):
-            self._open_memory_preview(device)
-
-        self._render_device_actions(device)
-        self._render_ip_config(device)
 
     def _render_plugin_notices(self, device: Device) -> None:
         """Notes on the manufacturer plugins the product data asks for, which are not available."""
@@ -439,17 +501,12 @@ class ConfigurePanel:
                 col_label_w[col], imgui.calc_text_size(label).x + pad
             )
         if ncols <= 1:
-            col_label_w[0] = max(
-                col_label_w[0], imgui.calc_text_size(S.CONFIGURE_DOWNLOAD_SCOPE).x + pad
-            )
-            self._header_label_w = col_label_w[0]
             for label, render in fields:
                 imgui.align_text_to_frame_padding()
                 imgui.text_disabled(label)
                 imgui.same_line(col_label_w[0])
                 render()
             return
-        self._header_label_w = None
         if not imgui.begin_table("##device_header", ncols * 2):
             return
         for i in range(ncols):
@@ -643,7 +700,7 @@ class ConfigurePanel:
             imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
             return
         self._begin_details()
-        imgui.text(device_label(device))
+        self._render_title_row(device)
         imgui.separator()
 
         if imgui.begin_tab_bar("##editor_tabs"):
@@ -1399,37 +1456,21 @@ class ConfigurePanel:
             imgui.close_current_popup()
         imgui.end_popup()
 
+    def _scope_combo_width(self) -> float:
+        style = imgui.get_style()
+        return (
+            max(imgui.calc_text_size(label).x for label in _scope_labels())
+            + style.frame_padding.x * 2
+            + imgui.get_frame_height()
+        )
+
     def _render_scope_selector(self) -> None:
         """Select what a download/eval covers: full, parameters, or group comm."""
-        order = [
-            DownloadScope.FULL,
-            DownloadScope.PARAMETERS,
-            DownloadScope.GROUP_COMMUNICATION,
-            DownloadScope.APPLICATION,
-            DownloadScope.INDIVIDUAL_ADDRESS,
-            DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS,
-            DownloadScope.UNLOAD,
-            DownloadScope.UNLOAD_ALL,
-        ]
-        labels = [
-            S.SCOPE_FULL,
-            S.SCOPE_PARAMETERS,
-            S.SCOPE_GROUP_COMMUNICATION,
-            S.SCOPE_APPLICATION,
-            S.SCOPE_INDIVIDUAL_ADDRESS,
-            S.SCOPE_OVERWRITE_INDIVIDUAL_ADDRESS,
-            S.SCOPE_UNLOAD,
-            S.SCOPE_UNLOAD_ALL,
-        ]
-        current = order.index(self._download_scope)
+        current = _SCOPE_ORDER.index(self._download_scope)
         imgui.align_text_to_frame_padding()
         imgui.text_disabled(S.CONFIGURE_DOWNLOAD_SCOPE)
-        if self._header_label_w is not None:
-            imgui.same_line(self._header_label_w)
-            imgui.set_next_item_width(-1)
-        else:
-            imgui.same_line(self._label_w)
-            imgui.set_next_item_width(px(220.0))
-        changed, new_idx = imgui.combo("##download_scope", current, labels)
+        imgui.same_line()
+        imgui.set_next_item_width(self._scope_combo_width())
+        changed, new_idx = imgui.combo("##download_scope", current, _scope_labels())
         if changed:
-            self._download_scope = order[new_idx]
+            self._download_scope = _SCOPE_ORDER[new_idx]
