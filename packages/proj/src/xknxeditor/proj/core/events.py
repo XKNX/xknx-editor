@@ -2153,7 +2153,8 @@ _COMMISSIONING_FIELDS = (
 @_register
 @dataclass
 class SetDeviceCommissioning(Event):
-    """Update a device's commissioning state ("loaded" ticks + serial / last download).
+    """Update a device's commissioning state ("loaded" ticks + serial / last download, and
+    the MAC address read from an IP device, kept in its IP configuration).
 
     Each field is optional; ``None`` leaves it unchanged (so e.g. programming can set only the
     flags for its scope). The previous values of the changed fields are captured for undo.
@@ -2169,6 +2170,7 @@ class SetDeviceCommissioning(Event):
     communication_part_loaded: bool | None = None
     medium_config_loaded: bool | None = None
     parameters_loaded: bool | None = None
+    mac_address: str | None = None
     _old: dict[str, Any] = field(default_factory=dict[str, Any])
 
     def apply(self, session: Session) -> None:
@@ -2181,6 +2183,12 @@ class SetDeviceCommissioning(Event):
             if new is not None:
                 self._old[name] = getattr(device, name)
                 setattr(device, name, new)
+        if self.mac_address is not None:
+            self._old["ip_config"] = device.ip_config
+            device.ip_config = {
+                **(device.ip_config or {}),
+                "MACAddress": self.mac_address,
+            }
 
     def revert(self, session: Session) -> None:
         device = session.get(Device, self.device_id)
@@ -2193,6 +2201,7 @@ class SetDeviceCommissioning(Event):
         return {
             "device_id": self.device_id,
             **{name: getattr(self, name) for name in _COMMISSIONING_FIELDS},
+            "mac_address": self.mac_address,
             "_old": self._old,
         }
 

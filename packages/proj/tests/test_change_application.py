@@ -142,3 +142,11 @@ def test_update_carries_values_settings_and_links(tmp_path: Path) -> None:
     assert svc.redo(pid)
     device = svc.devices(pid)[0]
     assert [len(c.links) for c in device.com_objects] == [1, 0]
+
+
+def test_commissioning_records_the_mac_address(tmp_path: Path) -> None:
+    svc, pid, device_id, _ = _project(tmp_path)
+    svc.set_device_commissioning(pid, device_id, mac_address="E8:F6:0A:E0:62:3D")
+    assert svc.devices(pid)[0].ip_config == {"MACAddress": "E8:F6:0A:E0:62:3D"}
+    assert svc.undo(pid)
+    assert svc.devices(pid)[0].ip_config is None

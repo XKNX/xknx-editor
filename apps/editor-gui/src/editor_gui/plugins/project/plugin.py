@@ -1601,6 +1601,7 @@ class ProjectPlugin:
             waiting=functools.partial(setattr, item, "waiting_for_button", True),
             serial_number=item.serial_number,
             confirm_full_download=functools.partial(self._confirm_full_download, item),
+            ip_config=self._api.project.ip_download_config(device),
         )
         if future is None:
             if device.download_plugin_required and not item.without_plugin:
@@ -1640,7 +1641,10 @@ class ProjectPlugin:
             )
             result = f.result()
             self._record_commissioning(
-                node_id, scope_value, result if isinstance(result, bytes) else None
+                node_id,
+                scope_value,
+                result if isinstance(result, bytes) else None,
+                getattr(result, "mac_address", None),
             )
 
         future.add_done_callback(_on_done)
@@ -1658,10 +1662,14 @@ class ProjectPlugin:
         return True
 
     def _record_commissioning(
-        self, node_id: int, scope_value: str, serial: bytes | None = None
+        self,
+        node_id: int,
+        scope_value: str,
+        serial: bytes | None = None,
+        mac_address: bytes | None = None,
     ) -> None:
         def _apply() -> None:
-            self._api.project.record_download(node_id, scope_value, serial)
+            self._api.project.record_download(node_id, scope_value, serial, mac_address)
 
         if self._api.main_thread is not None:
             self._api.main_thread.submit(_apply)
@@ -1688,7 +1696,10 @@ class ProjectPlugin:
         runtime = self._runtime_managed_addresses(device)
         driven = self._parameter_driven_bits(device)
         future = self._api.connection.evaluate_device(
-            device, scope, self._group_communication_for(device)
+            device,
+            scope,
+            self._group_communication_for(device),
+            self._api.project.ip_download_config(device),
         )
         if future is not None:
             future.add_done_callback(

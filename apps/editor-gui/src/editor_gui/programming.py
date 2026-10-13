@@ -29,7 +29,9 @@ if TYPE_CHECKING:
 
     from editor_gui.device import Device
     from xknxeditor.download.data_secure import DeviceSecurity
+    from xknxeditor.download.download import DownloadResult
     from xknxeditor.download.image import DownloadImage, GroupCommunication
+    from xknxeditor.download.ip_config import IpDeviceConfig
     from xknxeditor.download.preflight import PreflightReport
     from xknxeditor.prod import MasterData
 
@@ -267,6 +269,7 @@ async def eval_device(
     group_communication: GroupCommunication | None = None,
     master: MasterData | None = None,
     security: DeviceSecurity | None = None,
+    ip_config: IpDeviceConfig | None = None,
 ) -> PreflightReport:
     """Dry run: report what programming ``device`` would change, writing nothing.
 
@@ -283,6 +286,7 @@ async def eval_device(
         image=_image_for(device, group_communication),
         scope=scope,
         security=security,
+        ip_config=ip_config,
     )
 
 
@@ -296,7 +300,8 @@ async def download_device(
     security: DeviceSecurity | None = None,
     serial_number: bytes | None = None,
     confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
-) -> None:
+    ip_config: IpDeviceConfig | None = None,
+) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 
     ``scope`` selects a full download or a partial one (parameters only, or group
@@ -310,8 +315,11 @@ async def download_device(
     A full download commissions a virgin device: if nothing answers at the device's
     address, the address is first written to the single device in programming mode, or
     with ``serial_number`` to the device with that serial number.
+
+    ``ip_config`` holds the project's IP settings of an IP device; a full download writes them
+    and returns the MAC address it read.
     """
-    await download(
+    return await download(
         xknx,
         _address(device),
         device.app,
@@ -323,4 +331,5 @@ async def download_device(
         progress=progress,
         security=security,
         confirm_full_download=confirm_full_download,
+        ip_config=ip_config,
     )

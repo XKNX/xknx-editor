@@ -54,6 +54,7 @@ if TYPE_CHECKING:
     from editor_gui.plugins.catalog.service import CatalogService
     from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
     from xknxeditor.download.image import GroupCommunication
+    from xknxeditor.download.ip_config import IpDeviceConfig
     from xknxeditor.prod.parser_v2.calculation import ChangeSet
     from xknxeditor.proj.core.compact import CompactResult
     from xknxeditor.proj.core.import_notes import ImportLoss
@@ -1711,11 +1712,53 @@ class ProjectService:
         self._revision_cache[cache_key] = (self.revision, info)
         return info
 
+    @io_guarded(lambda: None)
+    def ip_download_config(self, device: Device) -> "IpDeviceConfig | None":
+        """The project's IP settings a full download writes to ``device``, or ``None`` when its
+        hardware is not an IP device."""
+        from xknx.telegram import IndividualAddress
+
+        from xknxeditor.download.ip_config import (
+            DEFAULT_ROUTING_MULTICAST_ADDRESS,
+            IpDeviceConfig,
+        )
+
+        if self._pid is None or not device.individual_address:
+            return None
+        row = next(
+            (r for r in self._svc.devices(self._pid) if r.id == device.node_id), None
+        )
+        if (
+            row is None
+            or not row.hardware2program_ref_id
+            or not self._catalog.hardware_is_ip_enabled(row.hardware2program_ref_id)
+        ):
+            return None
+        ip = row.ip_config or {}
+        installation = row.segment.line.area.installation.extra_attributes or {}
+        return IpDeviceConfig(
+            individual_address=IndividualAddress(device.individual_address).raw,
+            friendly_name=row.name,
+            routing_multicast_address=installation.get("IPRoutingMulticastAddress")
+            or DEFAULT_ROUTING_MULTICAST_ADDRESS,
+            fixed_address=ip.get("Assign") == "Fixed",
+            ip_address=ip.get("IPAddress"),
+            subnet_mask=ip.get("SubnetMask"),
+            default_gateway=ip.get("DefaultGateway"),
+            additional_addresses=tuple(
+                a.address for a in row.additional_addresses if a.address is not None
+            ),
+        )
+
     def record_download(
-        self, node_id: int, scope_value: str, serial: bytes | None = None
+        self,
+        node_id: int,
+        scope_value: str,
+        serial: bytes | None = None,
+        mac_address: bytes | None = None,
     ) -> None:
         """Record a successful download of ``scope_value`` (a DownloadScope value): its loaded
-        flags, the serial number read and, except for an unload, the time."""
+        flags, the serial number and MAC address read and, except for an unload, the time."""
         flags = _COMMISSIONING_BY_SCOPE.get(scope_value)
         if flags is None:
             return
@@ -1728,6 +1771,9 @@ class ProjectService:
             node_id,
             serial_number=serial_to_project(serial) if serial else None,
             last_download=now,
+            mac_address=":".join(f"{b:02X}" for b in mac_address)
+            if mac_address
+            else None,
             **flags,
         )
 
@@ -1742,8 +1788,10 @@ class ProjectService:
         communication_part_loaded: bool | None = None,
         medium_config_loaded: bool | None = None,
         parameters_loaded: bool | None = None,
+        mac_address: str | None = None,
     ) -> None:
-        """Record a device's commissioning state (loaded ticks / serial / last download).
+        """Record a device's commissioning state (loaded ticks / serial / last download / MAC
+        address).
 
         Called after programming a device. Non-structural: the device's parameter/com-object UI is
         unchanged, so the expensive device cache is preserved (only the revision bumps)."""
@@ -1759,6 +1807,7 @@ class ProjectService:
             communication_part_loaded=communication_part_loaded,
             medium_config_loaded=medium_config_loaded,
             parameters_loaded=parameters_loaded,
+            mac_address=mac_address,
         )
         self._bump(structural=False)
 

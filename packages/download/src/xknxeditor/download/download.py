@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Awaitable, Callable, Mapping
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 from xknx.exceptions import ManagementConnectionError
@@ -18,6 +19,13 @@ from xknx.telegram import IndividualAddress
 from .errors import DownloadError, PartialDownloadError, UnsupportedProcedureError
 from .group_communication import materialize_group_communication_controls
 from .image import build_image
+from .ip_config import (
+    IP_PARAMETER_OBJECT,
+    PID_MAC_ADDRESS,
+    IpDeviceConfig,
+    with_ip_config_controls,
+)
+from .ip_config import applies as ip_config_applies
 from .merge import mask_authorize_levels, resolve_download_controls
 from .procedure import LoadProcedureRunner
 from .programmer import MAX_COMMUNICATION_APDU_LENGTH
@@ -53,13 +61,42 @@ def _connection_manager(
     return management_session(xknx, address, security)
 
 
+@dataclass(frozen=True)
+class DownloadResult:
+    """What a download read from the device."""
+
+    # MAC address of an IP device whose IP settings were written.
+    mac_address: bytes | None = None
+
+
+_IP_CONFIG_SCOPES = frozenset({DownloadScope.FULL, DownloadScope.APPLICATION})
+_MAC_ADDRESS_LENGTH = 6
+
+
 def _resolve_controls(
     application: Application,
     master: MasterData | None,
     image: DownloadImage,
     scope: DownloadScope,
+    ip_config: IpDeviceConfig | None = None,
 ) -> list[object]:
     """Select and materialize the scoped procedure before any device mutation."""
+    controls = _resolve_procedure(application, master, image, scope)
+    if (
+        ip_config is not None
+        and scope in _IP_CONFIG_SCOPES
+        and ip_config_applies(application)
+    ):
+        controls = with_ip_config_controls(application, controls, ip_config)
+    return controls
+
+
+def _resolve_procedure(
+    application: Application,
+    master: MasterData | None,
+    image: DownloadImage,
+    scope: DownloadScope,
+) -> list[object]:
     master_raw = master.raw if master is not None else None
     if scope in (DownloadScope.UNLOAD, DownloadScope.UNLOAD_ALL):
         from xknxeditor.namespaces.intermediate.procedure_type_t import ProcedureType
@@ -260,7 +297,8 @@ async def download(
     commission_serial_number: bytes | None = None,
     progress: Callable[[int, int], None] | None = None,
     confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
-) -> None:
+    ip_config: IpDeviceConfig | None = None,
+) -> DownloadResult:
     """Download ``application`` into the device at ``individual_address``.
 
     Assembles the download image (applying ``parameter_values`` on top of the
@@ -313,7 +351,7 @@ async def download(
         )
     else:
         logger.debug("download: using pre-built image (scope=%s)", scope.name)
-    controls = _resolve_controls(application, master, image, scope)
+    controls = _resolve_controls(application, master, image, scope, ip_config)
     address = IndividualAddress(individual_address)
     if (
         commission
@@ -338,11 +376,11 @@ async def download(
     )
     if checked is not scope:
         scope = checked
-        controls = _resolve_controls(application, master, image, scope)
+        controls = _resolve_controls(application, master, image, scope, ip_config)
     adapted = await _device_association_format(xknx, address, security, image, scope)
     if adapted is not image:
         image = adapted
-        controls = _resolve_controls(application, master, image, scope)
+        controls = _resolve_controls(application, master, image, scope, ip_config)
     apdu_ceiling, negotiate_apdu = _apdu_settings(max_apdu_length)
     logger.debug(
         "download: %s -> %d load controls, apdu=%s secure=%s",
@@ -396,6 +434,10 @@ async def download(
         from .commissioning import reset_individual_address
 
         await reset_individual_address(xknx)
+    mac = runner.captured_property(IP_PARAMETER_OBJECT, PID_MAC_ADDRESS)
+    return DownloadResult(
+        mac_address=mac if mac is not None and len(mac) == _MAC_ADDRESS_LENGTH else None
+    )
 
 
 async def preflight(
@@ -412,6 +454,7 @@ async def preflight(
     max_apdu_length: int | None = None,
     expected_descriptor: int | None = None,
     security: DeviceSecurity | None = None,
+    ip_config: IpDeviceConfig | None = None,
 ) -> PreflightReport:
     """Report what :func:`download` would change on the device, changing nothing.
 
@@ -433,7 +476,7 @@ async def preflight(
         )
     address = IndividualAddress(individual_address)
     image = await _device_association_format(xknx, address, security, image, scope)
-    controls = _resolve_controls(application, master, image, scope)
+    controls = _resolve_controls(application, master, image, scope, ip_config)
     apdu_ceiling, negotiate_apdu = _apdu_settings(max_apdu_length)
 
     manager = _connection_manager(xknx, address, security)

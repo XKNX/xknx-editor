@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from editor_gui.plugins.keyring.service import KeyringService
     from xknxeditor.download.data_secure import DeviceSecurity
     from xknxeditor.download.image import GroupCommunication
+    from xknxeditor.download.ip_config import IpDeviceConfig
     from xknxeditor.download.scope import DownloadScope
     from xknxeditor.prod import Application, MasterData
     from xknxeditor.recover import AppId
@@ -575,6 +576,7 @@ class ConnectionService:
         waiting: Callable[[], None] | None = None,
         serial_number: bytes | None = None,
         confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
+        ip_config: IpDeviceConfig | None = None,
     ) -> Future[Any] | None:
         """Download the device's configured application/parameters onto the bus.
 
@@ -640,6 +642,7 @@ class ConnectionService:
                 security=security,
                 serial_number=serial_number,
                 confirm_full_download=confirm_full_download,
+                ip_config=ip_config,
             )
         )
         if future is not None:
@@ -766,6 +769,7 @@ class ConnectionService:
         device: Device,
         scope: DownloadScope | None = None,
         group_communication: GroupCommunication | None = None,
+        ip_config: IpDeviceConfig | None = None,
     ) -> Future[Any] | None:
         """Dry run: read the device and log what programming it would change."""
         if self.not_connected("evaluate_device"):
@@ -800,6 +804,7 @@ class ConnectionService:
                 group_communication,
                 self.master,
                 security=security,
+                ip_config=ip_config,
             )
         )
         if future is not None:

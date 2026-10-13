@@ -834,8 +834,10 @@ class ProjectService:
         communication_part_loaded: bool | None = None,
         medium_config_loaded: bool | None = None,
         parameters_loaded: bool | None = None,
+        mac_address: str | None = None,
     ) -> None:
-        """Update a device's commissioning state (loaded ticks, serial, last download).
+        """Update a device's commissioning state (loaded ticks, serial, last download, the MAC
+        address read from an IP device).
 
         Each field is optional; ``None`` leaves it unchanged. Typically called after programming to
         record what was loaded, and by the importer's round-trip (the ``.knxproj`` carries it)."""
@@ -849,6 +851,7 @@ class ProjectService:
                 communication_part_loaded=communication_part_loaded,
                 medium_config_loaded=medium_config_loaded,
                 parameters_loaded=parameters_loaded,
+                mac_address=mac_address,
             )
         )
 

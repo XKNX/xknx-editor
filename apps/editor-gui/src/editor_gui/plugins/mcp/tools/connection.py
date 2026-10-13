@@ -248,6 +248,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             without_plugin=without_plugin,
             current_address=current_address,
             serial_number=serial,
+            ip_config=ctx.run_locked(
+                lambda: ctx.api.project.ip_download_config(device)
+            ),
         )
         if future is None:
             raise ToolError("programming could not be scheduled (no connection)")
@@ -257,8 +260,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             future.cancel()
             raise ToolError(f"programming did not finish within {timeout} s") from exc
         serial = result if isinstance(result, bytes) else None
+        mac = getattr(result, "mac_address", None)
         ctx.run_locked(
-            lambda: ctx.api.project.record_download(node_id, resolved.value, serial)
+            lambda: ctx.api.project.record_download(
+                node_id, resolved.value, serial, mac
+            )
         )
         return {"status": "programmed", "node_id": node_id}
 
@@ -276,7 +282,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         resolved = _resolve_scope(scope)
         if resolved.individual_address_only:
             raise ToolError("an individual address download cannot be evaluated")
-        future = service.evaluate_device(device, resolved, group_communication)
+        future = service.evaluate_device(
+            device,
+            resolved,
+            group_communication,
+            ctx.run_locked(lambda: ctx.api.project.ip_download_config(device)),
+        )
         if future is None:
             raise ToolError("evaluation could not be scheduled (no connection)")
         report = future.result(timeout=timeout)
