@@ -51,6 +51,21 @@ from .tables_systemb import (
 # (PID_TABLE_REFERENCE), so it is written by an ``LdCtrlWriteRelMem ObjType=6``.
 _ROUTER_OBJECT_TYPE = ResourceObjectType.OBJECT_ROUTER
 
+
+def _reserved_memory(mask_version: str) -> range | None:
+    """Standard memory a mask version keeps out of the application's segment data:
+    0x0117-0x0118 for the BCU1/BCU2 families, 0x4001-0x4002 for the 07xx family."""
+    try:
+        version = int(mask_version.removeprefix("MV-"), 16)
+    except ValueError:
+        return None
+    if version & 0x0FF0 in (0x0010, 0x0020):
+        return range(0x0117, 0x0119)
+    if version & 0x0FF0 == 0x0700:
+        return range(0x4001, 0x4003)
+    return None
+
+
 if TYPE_CHECKING:
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 
@@ -347,6 +362,7 @@ def build_image(
         )
         if table is not None
     }
+    reserved = _reserved_memory(application.program.mask_version)
     segments: list[MemorySegment] = []
     application_segments: list[ObjectMemorySegment] = []
     for segment_id, (data, mask) in encoded.items():
@@ -366,6 +382,14 @@ def build_image(
             # Table builders supply initialized table bytes. Retain any parameters
             # sharing this code segment, as the earlier image builder did.
             initialized = bytes(len(data))
+        elif reserved is not None and not isinstance(
+            declaration, ApplicationProgramStaticCodeRelativeSegment
+        ):
+            base = base_addresses[segment_id]
+            initialized = bytes(
+                0 if base + offset in reserved else value
+                for offset, value in enumerate(initialized)
+            )
         if not any(mask) and not any(initialized):
             continue
         memory = MemorySegment(base_addresses[segment_id], data, mask, initialized)
