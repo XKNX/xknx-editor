@@ -16,7 +16,13 @@ from editor_gui.device import (
     com_object_display_name,
 )
 from editor_gui.widgets.checkbox import checkbox
-from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.dialog import (
+    begin_dialog,
+    begin_tool_window,
+    dialog_buttons,
+    end_dialog,
+)
+from editor_gui.widgets.dpi import px
 from editor_gui.widgets.strings import S
 from xknxeditor.proj.core.addressing import GroupAddressStyle
 
@@ -262,8 +268,7 @@ class GroupObjectsTable:
         if self._batch_open:
             imgui.open_popup(S.GROUP_OBJECTS_BATCH_TITLE)
             self._batch_open = False
-        imgui.set_next_window_size(px_vec2(440.0, 0.0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(S.GROUP_OBJECTS_BATCH_TITLE, None)[0]:
+        if not begin_dialog(S.GROUP_OBJECTS_BATCH_TITLE, width=440.0):
             return
         imgui.text_wrapped(S.GROUP_OBJECTS_BATCH_HINT)
         imgui.spacing()
@@ -275,21 +280,20 @@ class GroupObjectsTable:
         _, self._batch_start = imgui.input_text_with_hint(
             "##batch_start", "auto", self._batch_start
         )
-        imgui.spacing()
-        if imgui.button(
+        clicked = dialog_buttons(
             S.GROUP_OBJECTS_AUTO_CREATE.format(count=len(selected)),
-            px_vec2(200, 0),
-        ):
+            S.GROUP_OBJECTS_BATCH_CANCEL,
+        )
+        if clicked == 0:
             if self._on_auto_create_gas is not None:
                 self._on_auto_create_gas(
                     device, selected, self._batch_start.strip(), self._batch_template
                 )
             self._selected.clear()
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.GROUP_OBJECTS_BATCH_CANCEL, px_vec2(120, 0)):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_row(
         self,
@@ -527,21 +531,10 @@ class GroupObjectsTable:
         title = (
             f"{S.GA_LINK_TITLE}: {com_object_display_name(com_object)}##addga_window"
         )
-        win_w = px(_PICKER_WIDTH + 24.0)
-        vp = imgui.get_main_viewport()
-        # Open near the right edge by default (Cond_.appearing -> only first time; user can move it).
-        imgui.set_next_window_pos(
-            imgui.ImVec2(
-                vp.work_pos.x + vp.work_size.x - win_w - px(40.0),
-                vp.work_pos.y + px(120.0),
-            ),
-            imgui.Cond_.appearing,
+        expanded, add_open = begin_tool_window(
+            title, self._add_open, width=_PICKER_WIDTH + 24.0, height=420.0
         )
-        imgui.set_next_window_size(
-            imgui.ImVec2(win_w, px(420.0)), imgui.Cond_.appearing
-        )
-        imgui.set_next_window_bg_alpha(1.0)  # opaque, not see-through
-        expanded, self._add_open = imgui.begin(title, self._add_open)
+        self._add_open = bool(add_open)
         if expanded:
             self._render_create_new(device, com_object)
             already = {ga_id for _aid, ga_id, _text, _sending in get_links(db_id)}

@@ -61,6 +61,7 @@ from editor_gui.settings import config_dir, load_settings, save_settings
 from editor_gui.strings import S, get_locale, set_locale
 from editor_gui.update_check import UpdateInfo, check_for_update
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.fonts import heading, load_fonts
 from xknxeditor.prod.errors import ArchiveError
@@ -1069,14 +1070,13 @@ class KnxGuiApp:
             self._myknx_login_error = ""
         # Fixed width so the wrapped text actually wraps and labels aren't pushed off-screen
         # (auto-resize + full-width inputs made this window span the whole screen before).
-        imgui.set_next_window_size(px_vec2(780.0, 0.0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(S.MYKNX_SIGN_TITLE, None)[0]:
+        if not begin_dialog(S.MYKNX_SIGN_TITLE, width=780.0):
             return
         if self._myknx_force_close:
             # The dongle modal's "Save as .zip" already ran the export; dismiss the whole prompt.
             self._myknx_force_close = False
             imgui.close_current_popup()
-            imgui.end_popup()
+            end_dialog()
             return
         dest = self._export_pending_dest
         with heading():
@@ -1158,18 +1158,15 @@ class KnxGuiApp:
             imgui.open_popup(S.MYKNX_OAUTH_TITLE)
             self._myknx_open_oauth_config = False
         self._render_myknx_oauth_modal()
-        imgui.spacing()
 
         can_sign = bool(selected_pid) and not logging_in
-        if not can_sign:
-            imgui.begin_disabled()
-        sign = imgui.button(S.MYKNX_SIGN_CONFIRM, px_vec2(150, 0))
-        if not can_sign:
-            imgui.end_disabled()
-        imgui.same_line()
-        skip = imgui.button(S.MYKNX_SIGN_SKIP, px_vec2(200, 0))
-        imgui.same_line()
-        cancel = imgui.button(S.BTN_CANCEL, px_vec2(110, 0))
+        clicked = dialog_buttons(
+            S.MYKNX_SIGN_CONFIRM,
+            S.MYKNX_SIGN_SKIP,
+            S.BTN_CANCEL,
+            enabled=[can_sign, True, True],
+        )
+        sign, skip, cancel = clicked == 0, clicked == 1, clicked == 2
         if dest is not None and (sign and can_sign):
             # An OAuth (2FA) session is already authenticated; otherwise sign with username/password.
             if self._myknx_oauth_session is not None:
@@ -1190,7 +1187,7 @@ class KnxGuiApp:
         elif cancel:
             self._export_pending_dest = None
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_myknx_license_section(self, logging_in: bool) -> str:
         """Login button / license dropdown. Returns the selected product id ("" if none)."""
@@ -1408,9 +1405,7 @@ class KnxGuiApp:
         imgui.set_next_window_size_constraints(
             px_vec2(560.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
         )
-        if not imgui.begin_popup_modal(
-            S.PROGRESS_TITLE, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if not begin_dialog(S.PROGRESS_TITLE):
             return
         imgui.text_wrapped(self._progress_text)
         elapsed = time.time() - self._progress_started_at
@@ -1432,7 +1427,7 @@ class KnxGuiApp:
             cancel()
         if not self._progress_running:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _try_import_knxproj(self, source: str, dest: str, password: str | None) -> bool:
         """Attempt the import. Returns ``True`` if a password is required (or wrong) and the caller
@@ -1480,8 +1475,7 @@ class KnxGuiApp:
         if self._password_prompt_requested:
             imgui.open_popup(S.IMPORT_PASSWORD_TITLE)
             self._password_prompt_requested = False
-        imgui.set_next_window_size(px_vec2(420.0, 0.0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(S.IMPORT_PASSWORD_TITLE, None)[0]:
+        if not begin_dialog(S.IMPORT_PASSWORD_TITLE, width=420.0):
             return
         imgui.text_wrapped(S.IMPORT_PASSWORD_PROMPT)
         imgui.set_next_item_width(-1)
@@ -1494,11 +1488,9 @@ class KnxGuiApp:
             imgui.text_colored(
                 imgui.ImVec4(0.9, 0.4, 0.4, 1.0), self._import_password_error
             )
-        imgui.spacing()
-        btn_w = px_vec2(120, 0)
-        confirm = imgui.button(S.BTN_OK, btn_w) or submitted
-        imgui.same_line()
-        cancel = imgui.button(S.BTN_CANCEL, btn_w)
+        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
+        confirm = clicked == 0 or submitted
+        cancel = clicked == 1
         source, dest = self._import_knxproj_source, self._import_knxproj_dest
         if confirm and source is not None and dest is not None:
             # Retry on a worker thread; _poll_import re-opens this modal if the password was wrong.
@@ -1507,7 +1499,7 @@ class KnxGuiApp:
         elif cancel:
             self._clear_import_prompt()
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _maybe_consent_then(self, home: str, action: Callable[[], None]) -> None:
         """Run ``action`` now, or — if ``home`` is a location SQLite can't use (network share) —
@@ -1562,18 +1554,15 @@ class KnxGuiApp:
                 return
             imgui.open_popup(S.OVERWRITE_TITLE)
             self._overwrite_popup_open = True
-        imgui.set_next_window_size(px_vec2(460.0, 0.0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(S.OVERWRITE_TITLE, None)[0]:
+        if not begin_dialog(S.OVERWRITE_TITLE, width=460.0):
             return
         path, action = self._overwrite_queue[0]
         target = Path(path)
         imgui.text_wrapped(
             S.OVERWRITE_PROMPT.format(name=target.name, dir=str(target.parent))
         )
-        imgui.spacing()
-        replace = imgui.button(S.BTN_OVERWRITE)
-        imgui.same_line()
-        cancel = imgui.button(S.BTN_CANCEL)
+        clicked = dialog_buttons(S.BTN_OVERWRITE, S.BTN_CANCEL)
+        replace, cancel = clicked == 0, clicked == 1
         if replace or cancel:
             # Pop and close before running the action: the action may open its own modal (e.g. the
             # export sign prompt), and a queued request re-opens this popup on the next frame.
@@ -1582,22 +1571,19 @@ class KnxGuiApp:
             imgui.close_current_popup()
             if replace:
                 action()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_network_consent_modal(self) -> None:
         if self._network_consent_requested:
             imgui.open_popup(S.NETWORK_CONSENT_TITLE)
             self._network_consent_requested = False
-        imgui.set_next_window_size(px_vec2(460.0, 0.0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(S.NETWORK_CONSENT_TITLE, None)[0]:
+        if not begin_dialog(S.NETWORK_CONSENT_TITLE, width=460.0):
             return
         imgui.text_wrapped(
             S.NETWORK_CONSENT_PROMPT.format(home=self._network_consent_home or "")
         )
-        imgui.spacing()
-        use_local = imgui.button(S.NETWORK_CONSENT_USE_LOCAL)
-        imgui.same_line()
-        cancel = imgui.button(S.BTN_CANCEL)
+        clicked = dialog_buttons(S.NETWORK_CONSENT_USE_LOCAL, S.BTN_CANCEL)
+        use_local, cancel = clicked == 0, clicked == 1
         if use_local:
             action = self._network_consent_action
             self._network_consent_action = None
@@ -1608,14 +1594,13 @@ class KnxGuiApp:
             self._network_consent_action = None
             self._clear_import_prompt()  # harmless when opening (import fields are None)
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_url_prompt_modal(self) -> None:
         if self._url_prompt_requested:
             imgui.open_popup(S.URL_PROMPT_TITLE)
             self._url_prompt_requested = False
-        imgui.set_next_window_size(px_vec2(560.0, 0.0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(S.URL_PROMPT_TITLE, None)[0]:
+        if not begin_dialog(S.URL_PROMPT_TITLE, width=560.0):
             return
         imgui.text_wrapped(S.URL_PROMPT_HINT)
         imgui.spacing()
@@ -1623,25 +1608,22 @@ class KnxGuiApp:
         submitted, self._url_input = imgui.input_text(
             "##load-url", self._url_input, imgui.InputTextFlags_.enter_returns_true
         )
-        imgui.spacing()
-        btn_w = px_vec2(120, 0)
         url = self._url_input.strip()
-        load = imgui.button(S.URL_PROMPT_LOAD, btn_w) or submitted
-        imgui.same_line()
-        cancel = imgui.button(S.URL_PROMPT_CANCEL, btn_w)
+        clicked = dialog_buttons(S.URL_PROMPT_LOAD, S.URL_PROMPT_CANCEL)
+        load = clicked == 0 or submitted
+        cancel = clicked == 1
         if load and url:
             imgui.close_current_popup()
             self._start_url_import(url)
         elif cancel:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_new_project_modal(self) -> None:
         if self._new_project_requested:
             imgui.open_popup(S.NEW_PROJECT_TITLE)
             self._new_project_requested = False
-        imgui.set_next_window_size(px_vec2(420.0, 0.0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(S.NEW_PROJECT_TITLE, None)[0]:
+        if not begin_dialog(S.NEW_PROJECT_TITLE, width=420.0):
             return
         styles = (
             (GroupAddressStyle.FREE, S.NEW_PROJECT_STYLE_FREE),
@@ -1664,17 +1646,13 @@ class KnxGuiApp:
                 if imgui.selectable(label, style is self._new_project_style)[0]:
                     self._new_project_style = style
             imgui.end_combo()
-        imgui.spacing()
-        btn_w = px_vec2(120, 0)
-        create = imgui.button(S.NEW_PROJECT_CREATE, btn_w)
-        imgui.same_line()
-        cancel = imgui.button(S.BTN_CANCEL, btn_w)
-        if create:
+        clicked = dialog_buttons(S.NEW_PROJECT_CREATE, S.BTN_CANCEL)
+        if clicked == 0:
             imgui.close_current_popup()
             self._open_new_project_save_dialog()
-        elif cancel:
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _start_url_import(self, url: str) -> None:
         """Download ``url`` on a worker thread and import it as a product source (behind the progress
@@ -2336,22 +2314,19 @@ class KnxGuiApp:
             if imgui.is_popup_open("", imgui.PopupFlags_.any_popup):
                 return
             imgui.open_popup(S.KNXPROD_IMPORT_TITLE)
-        imgui.set_next_window_size(px_vec2(420.0, 0.0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(S.KNXPROD_IMPORT_TITLE, None)[0]:
+        if not begin_dialog(S.KNXPROD_IMPORT_TITLE, width=420.0):
             return
         imgui.text_wrapped(self._knxprod_msg)
-        imgui.spacing()
-        if imgui.button(S.BTN_OK, px_vec2(120, 0)):
+        if dialog_buttons(S.BTN_OK) == 0:
             self._knxprod_msg = None
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_about_modal(self) -> None:
         if self._about_requested:
             imgui.open_popup(S.ABOUT_TITLE)
             self._about_requested = False
-        imgui.set_next_window_size(px_vec2(420.0, 0.0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(S.ABOUT_TITLE, None)[0]:
+        if not begin_dialog(S.ABOUT_TITLE, width=420.0):
             return
         imgui.text(S.APP_TITLE)
         imgui.text_disabled(S.ABOUT_VERSION.format(version=__version__))
@@ -2362,26 +2337,22 @@ class KnxGuiApp:
         imgui.text(S.ABOUT_WEBSITE)
         imgui.same_line()
         imgui.text_link_open_url(_REPO_URL, _REPO_URL)
-        imgui.spacing()
-        imgui.separator()
-        imgui.spacing()
-        if imgui.button(S.MENU_CHECK_UPDATES, px_vec2(170, 0)):
+        clicked = dialog_buttons(S.MENU_CHECK_UPDATES, S.BTN_OK)
+        if clicked == 0:
             self._start_update_check(manual=True)
-        imgui.same_line()
-        if imgui.button(S.BTN_OK, px_vec2(120, 0)):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_update_modal(self) -> None:
         if self._update_prompt_requested:
             imgui.open_popup(S.UPDATE_TITLE)
             self._update_prompt_requested = False
-        imgui.set_next_window_size(px_vec2(460.0, 0.0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(S.UPDATE_TITLE, None)[0]:
+        if not begin_dialog(S.UPDATE_TITLE, width=460.0):
             return
         info = self._update_info
         if info is None:
-            imgui.end_popup()
+            end_dialog()
             return
         imgui.text_wrapped(
             S.UPDATE_AVAILABLE.format(latest=info.version, current=__version__)
@@ -2393,8 +2364,8 @@ class KnxGuiApp:
             if imgui.begin_child("##update-notes", px_vec2(0.0, 220.0), True):
                 imgui.text_wrapped(info.notes)
             imgui.end_child()
-        imgui.spacing()
-        if imgui.button(S.UPDATE_DOWNLOAD, px_vec2(140, 0)):
+        clicked = dialog_buttons(S.UPDATE_DOWNLOAD, S.UPDATE_SKIP, S.UPDATE_LATER)
+        if clicked == 0:
             try:
                 webbrowser.open(info.url)
             except Exception as e:
@@ -2402,14 +2373,12 @@ class KnxGuiApp:
                     "could not open release page", url=info.url, error=str(e)
                 )
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.UPDATE_SKIP, px_vec2(140, 0)):
+        elif clicked == 1:
             self._skip_update_version(info.version)
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.UPDATE_LATER, px_vec2(100, 0)):
+        elif clicked == 2:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _import_note_text(self, note: ImportLoss) -> str:
         """Localized, human-readable line for one import-loss note (code -> message)."""
@@ -2436,9 +2405,7 @@ class KnxGuiApp:
         imgui.set_next_window_size_constraints(
             px_vec2(520.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
         )
-        if not imgui.begin_popup_modal(
-            S.IMPORT_NOTES_TITLE, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if not begin_dialog(S.IMPORT_NOTES_TITLE):
             return
         if self._import_notes_intro:
             imgui.text_wrapped(self._import_notes_intro)
@@ -2446,11 +2413,9 @@ class KnxGuiApp:
         for note in self._import_notes:
             imgui.bullet()
             imgui.text_wrapped(self._import_note_text(note))
-        imgui.spacing()
-        imgui.separator()
-        if imgui.button(S.IMPORT_NOTES_CLOSE, px_vec2(120, 0)):
+        if dialog_buttons(S.IMPORT_NOTES_CLOSE) == 0:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_export_summary_modal(self) -> None:
         """A success window shown after a completed .knxproj export, listing the archive's details:
@@ -2462,13 +2427,11 @@ class KnxGuiApp:
         imgui.set_next_window_size_constraints(
             px_vec2(420.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
         )
-        if not imgui.begin_popup_modal(
-            S.EXPORT_SUMMARY_TITLE, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if not begin_dialog(S.EXPORT_SUMMARY_TITLE):
             return
         summary = self._export_summary
         if summary is None:
-            imgui.end_popup()
+            end_dialog()
             return
         imgui.text_wrapped(
             S.EXPORT_SUMMARY_INTRO.format(name=Path(self._export_summary_path).name)
@@ -2506,14 +2469,12 @@ class KnxGuiApp:
                 imgui.table_next_column()
                 imgui.text(value)
             imgui.end_table()
-        imgui.spacing()
-        imgui.separator()
-        if imgui.button(S.EXPORT_SUMMARY_OPEN_FOLDER, px_vec2(140, 0)):
+        clicked = dialog_buttons(S.EXPORT_SUMMARY_OPEN_FOLDER, S.EXPORT_SUMMARY_CLOSE)
+        if clicked == 0:
             self._open_folder(Path(self._export_summary_path).parent)
-        imgui.same_line()
-        if imgui.button(S.EXPORT_SUMMARY_CLOSE, px_vec2(120, 0)):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     # --- compact project ---------------------------------------------------
 
@@ -2597,13 +2558,12 @@ class KnxGuiApp:
         if self._compact_confirm_requested:
             imgui.open_popup(S.COMPACT_TITLE)
             self._compact_confirm_requested = False
-        imgui.set_next_window_size(px_vec2(600.0, 0.0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(S.COMPACT_TITLE, None)[0]:
+        if not begin_dialog(S.COMPACT_TITLE, width=600.0):
             return
         analysis = self._compact_analysis
         if analysis is None:
             imgui.close_current_popup()
-            imgui.end_popup()
+            end_dialog()
             return
         report = analysis.report
         if report.nothing_removed:
@@ -2669,17 +2629,15 @@ class KnxGuiApp:
             imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
             imgui.text_wrapped(S.COMPACT_WARNING)
             imgui.pop_style_color()
-        imgui.spacing()
-        imgui.separator()
-        if imgui.button(S.COMPACT_CONFIRM, px_vec2(140, 0)):
+        clicked = dialog_buttons(S.COMPACT_CONFIRM, S.BTN_CANCEL)
+        if clicked == 0:
             self._compact_analysis = None
             imgui.close_current_popup()
             self._start_compact()
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, px_vec2(110, 0)):
+        elif clicked == 1:
             self._compact_analysis = None
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_compact_result_modal(self) -> None:
         """Show the file size before and after Compact Project."""
@@ -2689,14 +2647,12 @@ class KnxGuiApp:
         imgui.set_next_window_size_constraints(
             px_vec2(420.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
         )
-        if not imgui.begin_popup_modal(
-            S.COMPACT_RESULT_TITLE, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if not begin_dialog(S.COMPACT_RESULT_TITLE):
             return
         result = self._compact_result
         if result is None:
             imgui.close_current_popup()
-            imgui.end_popup()
+            end_dialog()
             return
         imgui.text_wrapped(S.COMPACT_RESULT_TEXT)
         imgui.spacing()
@@ -2716,12 +2672,10 @@ class KnxGuiApp:
                 imgui.table_next_column()
                 imgui.text(value)
             imgui.end_table()
-        imgui.spacing()
-        imgui.separator()
-        if imgui.button(S.COMPACT_CLOSE, px_vec2(120, 0)):
+        if dialog_buttons(S.COMPACT_CLOSE) == 0:
             self._compact_result = None
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def watch_db_frame(self) -> None:
         """Dev watchdog (XKNX_DEBUG_DB_FRAMES=1): log when the render thread keeps issuing DB queries
@@ -2846,12 +2800,7 @@ class KnxGuiApp:
 
         Rendered inside the export modal's scope so it stacks on top; closing it returns to the
         export dialog. Each step is on its own wrapped line with spacing for readability."""
-        center = imgui.get_main_viewport().get_center()
-        imgui.set_next_window_pos(center, imgui.Cond_.appearing, imgui.ImVec2(0.5, 0.5))
-        imgui.set_next_window_size(
-            hello_imgui.em_to_vec2(66.0, 0.0), imgui.Cond_.appearing
-        )
-        if not imgui.begin_popup_modal(S.MYKNX_DONGLE_TITLE, None)[0]:
+        if not begin_dialog(S.MYKNX_DONGLE_TITLE, width=66.0 * 16.0):
             return
         # Read-only multiline input so the text stays selectable/copyable inline (mouse-drag +
         # Ctrl/Cmd+C). It does NOT word-wrap, so hard-wrap to the box width first (long paths and
@@ -2871,8 +2820,6 @@ class KnxGuiApp:
             imgui.InputTextFlags_.read_only,
         )
         imgui.spacing()
-        imgui.separator()
-        imgui.spacing()
         # Save the project as a .zip right here so the P-XXXX folder can be dropped into the
         # ProjectStore without renaming. Runs the export (unsigned) and dismisses the prompt.
         dest = self._export_pending_dest
@@ -2889,43 +2836,31 @@ class KnxGuiApp:
             self._export_pending_dest = None
             self._myknx_force_close = True
             imgui.close_current_popup()
-        half = imgui.get_content_region_avail().x / 2 - imgui.get_style().item_spacing.x
-        if imgui.button(S.BTN_COPY, imgui.ImVec2(half, 0)):
+        clicked = dialog_buttons(S.BTN_COPY, S.MYKNX_DONGLE_BACK)
+        if clicked == 0:
             imgui.set_clipboard_text(S.MYKNX_DONGLE_STEPS)
-        imgui.same_line()
-        if imgui.button(S.MYKNX_DONGLE_BACK, imgui.ImVec2(-1, 0)):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_signing_key_modal(self) -> None:
         """Signing-key manager as a child modal of the export dialog (view/edit/save/extract).
 
         Rendered inside the export modal's scope so it stacks on top; closing it returns to the
         export dialog without cancelling the export."""
-        center = imgui.get_main_viewport().get_center()
-        imgui.set_next_window_pos(center, imgui.Cond_.appearing, imgui.ImVec2(0.5, 0.5))
-        imgui.set_next_window_size(
-            hello_imgui.em_to_vec2(40.0, 0.0), imgui.Cond_.appearing
-        )
-        if not imgui.begin_popup_modal(S.SIGNING_KEY_TITLE, None)[0]:
+        if not begin_dialog(S.SIGNING_KEY_TITLE, width=40.0 * 16.0):
             return
         self._signing_plugin.render_contents()
-        imgui.spacing()
-        if imgui.button(S.SIGNING_KEY_CLOSE, imgui.ImVec2(-1, 0)):
+        if dialog_buttons(S.SIGNING_KEY_CLOSE) == 0:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_myknx_oauth_modal(self) -> None:
         """Configure the OAuth client credentials for the 2FA sign-in.
 
         Child modal of the export dialog: enter the client id/secret by hand, or extract them from
         the user's own ``Knx.Ets.MyKnx.dll``. Cached per-user so this is a one-time setup."""
-        center = imgui.get_main_viewport().get_center()
-        imgui.set_next_window_pos(center, imgui.Cond_.appearing, imgui.ImVec2(0.5, 0.5))
-        imgui.set_next_window_size(
-            hello_imgui.em_to_vec2(40.0, 0.0), imgui.Cond_.appearing
-        )
-        if not imgui.begin_popup_modal(S.MYKNX_OAUTH_TITLE, None)[0]:
+        if not begin_dialog(S.MYKNX_OAUTH_TITLE, width=40.0 * 16.0):
             return
         imgui.text_wrapped(S.MYKNX_OAUTH_HELP)
         imgui.spacing()
@@ -2959,8 +2894,8 @@ class KnxGuiApp:
             imgui.text_colored(
                 imgui.ImVec4(1.0, 0.4, 0.4, 1.0), self._myknx_oauth_extract_error
             )
-        imgui.spacing()
-        if imgui.button(S.MYKNX_OAUTH_SAVE, px_vec2(150, 0)):
+        clicked = dialog_buttons(S.MYKNX_OAUTH_SAVE, S.SIGNING_KEY_CLOSE)
+        if clicked == 0:
             client_id = self._myknx_client_id.strip()
             client_secret = self._myknx_client_secret.strip()
             save_myknx_oauth_credentials(client_id, client_secret)
@@ -2968,10 +2903,9 @@ class KnxGuiApp:
             # Continue straight into the browser sign-in once credentials are set.
             if client_id and client_secret:
                 self._start_myknx_oauth_login()
-        imgui.same_line()
-        if imgui.button(S.SIGNING_KEY_CLOSE, imgui.ImVec2(-1, 0)):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _poll_myknx_oauth_dialog(self) -> None:
         if (
@@ -3222,6 +3156,7 @@ class KnxGuiApp:
             if imgui.menu_item(hello_imgui.imgui_theme_name(theme), "", selected)[0]:
                 tweaked_theme.theme = theme
                 hello_imgui.apply_tweaked_theme(tweaked_theme)
+                _apply_window_colors()
         imgui.end_menu()
 
     def _refresh_dock_titles(self) -> None:
@@ -3659,10 +3594,32 @@ def _apply_style() -> None:
     style.item_inner_spacing = imgui.ImVec2(6.0, 4.0)
     style.scrollbar_size = 12.0
     style.cell_padding = imgui.ImVec2(6.0, 4.0)
-    # The theme ships a translucent popup background, so combo/menu dropdowns show the content
-    # behind them (distracting). Force the popup background fully opaque, keeping its RGB.
-    popup = style.color_(imgui.Col_.popup_bg)
-    style.set_color_(imgui.Col_.popup_bg, imgui.ImVec4(popup.x, popup.y, popup.z, 1.0))
+    _apply_window_colors()
+
+
+def _apply_window_colors() -> None:
+    """Opaque windows, popups and title bars, and a dark dim behind modal dialogs.
+
+    The theme ships translucent backgrounds and a translucent active title bar, which lets the
+    content behind dialogs and tool windows show through."""
+    style = imgui.get_style()
+    for col in (imgui.Col_.window_bg, imgui.Col_.popup_bg):
+        color = style.color_(col)
+        style.set_color_(col, imgui.ImVec4(color.x, color.y, color.z, 1.0))
+    # The active title bar keeps the shade it had over the window background, now opaque.
+    title = style.color_(imgui.Col_.title_bg_active)
+    window = style.color_(imgui.Col_.window_bg)
+    alpha = title.w
+    style.set_color_(
+        imgui.Col_.title_bg_active,
+        imgui.ImVec4(
+            title.x * alpha + window.x * (1.0 - alpha),
+            title.y * alpha + window.y * (1.0 - alpha),
+            title.z * alpha + window.z * (1.0 - alpha),
+            1.0,
+        ),
+    )
+    style.set_color_(imgui.Col_.modal_window_dim_bg, imgui.ImVec4(0.0, 0.0, 0.0, 0.45))
 
 
 # UI languages offered in the Language menu (locale code, native label). Catalogs live under each

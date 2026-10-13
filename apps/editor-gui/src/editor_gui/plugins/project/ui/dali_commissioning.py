@@ -16,6 +16,7 @@ from dataclasses import dataclass, field
 from imgui_bundle import imgui
 
 from editor_gui.device import Device
+from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from xknxeditor.dali import DaliBusState, MdtDaliCommissioner
 from xknxeditor.dali.model import (
@@ -227,18 +228,18 @@ class DaliCommissioningPanel:
         title = "Confirm DALI Programming"
         if self._pending:
             imgui.open_popup(title)
-        if imgui.begin_popup_modal(title)[0]:
+        if begin_dialog(title):
             imgui.text(_CONFIRM_TEXT.get(self._pending, ""))
-            if imgui.button("Continue"):
+            clicked = dialog_buttons("Continue", "Cancel")
+            if clicked == 0:
                 kind = self._pending
                 self._pending = ""
                 self._dispatch(device, ia, kind)
                 imgui.close_current_popup()
-            imgui.same_line()
-            if imgui.button("Cancel"):
+            elif clicked == 1:
                 self._pending = ""
                 imgui.close_current_popup()
-            imgui.end_popup()
+            end_dialog()
 
     def _dispatch(self, device: Device, ia: str, kind: str) -> None:
         if kind in ("new", "post"):

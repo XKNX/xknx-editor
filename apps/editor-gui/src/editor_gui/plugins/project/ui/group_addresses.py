@@ -12,7 +12,8 @@ from imgui_bundle import imgui
 from editor_gui.device import com_object_display_name
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
-from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
+from editor_gui.widgets.dpi import px
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
 if TYPE_CHECKING:
@@ -313,9 +314,7 @@ class GroupAddressesPanel:
     def _render_new_range_popup(self) -> None:
         if self._on_create_range is None:
             return
-        if not imgui.begin_popup_modal(
-            S.GA_FOLDER_NEW, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if not begin_dialog(S.GA_FOLDER_NEW):
             return
         imgui.text_disabled(
             S.GA_FOLDER_MAIN_HINT
@@ -326,58 +325,49 @@ class GroupAddressesPanel:
         _, self._popup_range_name = imgui.input_text(
             "##gr_new_name", self._popup_range_name
         )
-        btn_w = px_vec2(120, 0)
-        if imgui.button(S.BTN_OK, btn_w):
+        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
+        if clicked == 0:
             self._on_create_range(
                 self._popup_range_parent, self._popup_range_name.strip()
             )
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, btn_w):
+        if clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_rename_range_popup(self) -> None:
         if self._on_rename_range is None:
             return
-        if not imgui.begin_popup_modal(
-            S.GA_FOLDER_RENAME, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if not begin_dialog(S.GA_FOLDER_RENAME):
             return
         imgui.set_next_item_width(px(220.0))
         _, self._popup_range_name = imgui.input_text(
             "##gr_rename", self._popup_range_name
         )
-        btn_w = px_vec2(120, 0)
-        if imgui.button(S.BTN_OK, btn_w):
+        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
+        if clicked == 0:
             self._on_rename_range(self._popup_range_id, self._popup_range_name.strip())
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, btn_w):
+        if clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_delete_range_popup(self) -> None:
         if self._on_remove_range is None:
             return
-        if not imgui.begin_popup_modal(
-            S.GA_FOLDER_DELETE, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if not begin_dialog(S.GA_FOLDER_DELETE):
             return
         imgui.text_wrapped(S.GA_FOLDER_DELETE_CONFIRM)
-        btn_w = px_vec2(120, 0)
-        if imgui.button(S.CONTEXT_DELETE, btn_w):
+        clicked = dialog_buttons(S.CONTEXT_DELETE, S.BTN_CANCEL)
+        if clicked == 0:
             self._on_remove_range(self._popup_range_id)
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, btn_w):
+        if clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_new_ga_popup(self) -> None:
-        if not imgui.begin_popup_modal(
-            S.GA_NEW, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if not begin_dialog(S.GA_NEW):
             return
         imgui.text_disabled(S.GA_ADDRESS)
         imgui.set_next_item_width(px(220.0))
@@ -387,35 +377,29 @@ class GroupAddressesPanel:
         imgui.text_disabled(S.POPUP_NAME)
         imgui.set_next_item_width(px(220.0))
         _, self._popup_name = imgui.input_text("##ga_new_name", self._popup_name)
-        btn_w = px_vec2(120, 0)
-        if imgui.button(S.BTN_OK, btn_w) and self._popup_address.strip():
+        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
+        if clicked == 0 and self._popup_address.strip():
             self._on_create_ga(self._popup_address.strip(), self._popup_name)
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, btn_w):
+        if clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_rename_popup(self) -> None:
-        if not imgui.begin_popup_modal(
-            S.GA_RENAME, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if not begin_dialog(S.GA_RENAME):
             return
         imgui.set_next_item_width(px(220.0))
         _, self._popup_name = imgui.input_text("##ga_rename", self._popup_name)
-        btn_w = px_vec2(120, 0)
-        if imgui.button(S.BTN_OK, btn_w):
+        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
+        if clicked == 0:
             self._on_rename_ga(self._popup_ga_id, self._popup_name)
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, btn_w):
+        if clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_renumber_popup(self) -> None:
-        if not imgui.begin_popup_modal(
-            S.GA_RENUMBER, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if not begin_dialog(S.GA_RENUMBER):
             return
         imgui.text(S.GA_RENUMBER_PROMPT)
         imgui.set_next_item_width(px(220.0))
@@ -426,10 +410,8 @@ class GroupAddressesPanel:
         )
         if self._renumber_error:
             imgui.text_colored(imgui.ImVec4(0.9, 0.4, 0.4, 1.0), self._renumber_error)
-        btn_w = px_vec2(120, 0)
-        if (
-            imgui.button(S.BTN_OK, btn_w) or submitted
-        ) and self._on_set_ga_address is not None:
+        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
+        if (clicked == 0 or submitted) and self._on_set_ga_address is not None:
             if self._on_set_ga_address(self._popup_ga_id, self._popup_address.strip()):
                 self._renumber_error = ""
                 # Refresh the cached selection heading so it shows the new address, not the old one,
@@ -444,16 +426,13 @@ class GroupAddressesPanel:
                 imgui.close_current_popup()
             else:
                 self._renumber_error = S.GA_RENUMBER_FAILED
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, btn_w):
+        if clicked == 1:
             self._renumber_error = ""
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_dpt_popup(self) -> None:
-        if not imgui.begin_popup_modal(
-            S.GA_SET_DPT, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if not begin_dialog(S.GA_SET_DPT):
             return
         imgui.text_disabled(S.GA_DPT_HINT)
         imgui.set_next_item_width(px(220.0))
@@ -462,8 +441,8 @@ class GroupAddressesPanel:
         )
         if self._popup_dpt_error:
             imgui.text_colored(imgui.ImVec4(0.9, 0.3, 0.3, 1.0), self._popup_dpt_error)
-        btn_w = px_vec2(120, 0)
-        if imgui.button(S.BTN_OK, btn_w):
+        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
+        if clicked == 0:
             try:
                 self._on_set_ga_dpt(self._popup_ga_id, self._popup_dpt.strip())
             except ValueError as e:
@@ -471,11 +450,10 @@ class GroupAddressesPanel:
             else:
                 self._popup_dpt_error = ""
                 imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, btn_w):
+        if clicked == 1:
             self._popup_dpt_error = ""
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_assignments(self) -> None:
         if self._selected_ga_id is None:

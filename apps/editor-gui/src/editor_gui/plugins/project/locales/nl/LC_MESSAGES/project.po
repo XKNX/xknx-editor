@@ -881,3 +881,30 @@ msgstr "Applicatieprogramma wordt bijgewerkt..."
 
 msgid "Changing the application program..."
 msgstr "Applicatieprogramma wordt gewijzigd..."
+
+msgid "Rename Space"
+msgstr "Ruimte hernoemen"
+
+msgid "Delete Space"
+msgstr "Ruimte verwijderen"
+
+msgid "Rename Function"
+msgstr "Functie hernoemen"
+
+msgid "Load Reference File"
+msgstr "Referentiebestand laden"
+
+msgid "Reference File Path:"
+msgstr "Pad van referentiebestand:"
+
+msgid "Save Memory Dump"
+msgstr "Geheugendump opslaan"
+
+msgid "Save Path:"
+msgstr "Opslagpad:"
+
+msgid "Export Programming Test Result"
+msgstr "Resultaat van programmeertest exporteren"
+
+msgid "Load"
+msgstr "Laden"

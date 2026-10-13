@@ -3,11 +3,12 @@
 Like the keyring, this is not a docked tab: a menu-bar entry opens a window on demand, and the
 export flow can open the same window via :meth:`open_window`."""
 
-from imgui_bundle import hello_imgui, imgui
+from imgui_bundle import imgui
 
 from editor_gui.plugins.base import PanelDefinition, PluginAPI
 from editor_gui.plugins.signing.strings import S
 from editor_gui.plugins.signing.ui import SigningPanel
+from editor_gui.widgets.dialog import begin_tool_window
 
 
 class SigningPlugin:
@@ -41,10 +42,9 @@ class SigningPlugin:
         """The signing window; called every frame from the overlay pass."""
         if not self._window_open:
             return
-        imgui.set_next_window_size(
-            hello_imgui.em_to_vec2(40.0, 24.0), imgui.Cond_.first_use_ever
+        expanded, open_state = begin_tool_window(
+            S.WINDOW_TITLE, True, width=40 * 16, height=24 * 16
         )
-        expanded, open_state = imgui.begin(S.WINDOW_TITLE, True)
         self._window_open = bool(open_state)
         if expanded:
             self._panel.render_contents()

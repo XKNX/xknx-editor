@@ -22,7 +22,7 @@ from editor_gui.device_info import (
 )
 from editor_gui.device_plugins import device_plugins
 from editor_gui.plugins.project.strings import S
-from editor_gui.widgets.dpi import label_column_width, px, px_vec2
+from editor_gui.widgets.dpi import label_column_width, px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.fonts import italic
 from xknxeditor.download.scope import DownloadScope
@@ -45,6 +45,7 @@ from editor_gui.widgets import (
     take_selected_help,
 )
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.group_objects_widgets import (
     GroupAddressCatalog,
     GroupLinkResolver,
@@ -1029,11 +1030,10 @@ class ConfigurePanel:
         if imgui.button(S.BTN_RESET_DEVICE):
             self._reset_armed = False
             self._reset_erase_idx = 0
-            imgui.open_popup("##masterreset")
+            imgui.open_popup(S.RESET_POPUP_TITLE)
         imgui.end_disabled()
-        if not imgui.begin_popup("##masterreset"):
+        if not begin_dialog(S.RESET_POPUP_TITLE):
             return
-        imgui.text_disabled(S.RESET_POPUP_TITLE)
         imgui.push_text_wrap_pos(px(360.0))
         imgui.text_colored(imgui.ImVec4(0.95, 0.55, 0.35, 1.0), S.RESET_WARNING)
         imgui.pop_text_wrap_pos()
@@ -1043,16 +1043,16 @@ class ConfigurePanel:
             S.RESET_TYPE, self._reset_erase_idx, [label for label, _ in presets]
         )
         _, self._reset_armed = checkbox(S.RESET_CONFIRM, self._reset_armed)
-        imgui.begin_disabled(not self._reset_armed)
-        if imgui.button(S.RESET_EXECUTE):
+        clicked = dialog_buttons(
+            S.RESET_EXECUTE, S.BTN_CANCEL, enabled=[self._reset_armed, True]
+        )
+        if clicked == 0:
             _, code = presets[self._reset_erase_idx]
             self._on_master_reset_device(device, code)
             imgui.close_current_popup()
-        imgui.end_disabled()
-        imgui.same_line()
-        if imgui.button(f"{S.ML_CANCEL}##reset_cancel"):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _matching_count(self, device: Device) -> int:
         """Number of devices (incl. this one) running the same application program."""
@@ -1313,9 +1313,7 @@ class ConfigurePanel:
         imgui.end_table()
 
     def _render_program_confirm(self, device: Device) -> None:
-        if not imgui.begin_popup_modal(
-            S.PROGRAM_CONFIRM_TITLE, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
+        if not begin_dialog(S.PROGRAM_CONFIRM_TITLE):
             return
         scope = self._download_scope
         address = device.individual_address or "?"
@@ -1384,12 +1382,13 @@ class ConfigurePanel:
                 S.PLUGIN_DOWNLOAD_CONFIRM, self._program_without_plugin
             )
             imgui.spacing()
-        btn_w = px_vec2(140, 0)
-        imgui.begin_disabled(
-            (plugin_required and not self._program_without_plugin)
-            or address_error is not None
+        can_program = (
+            not plugin_required or self._program_without_plugin
+        ) and address_error is None
+        clicked = dialog_buttons(
+            S.BTN_PROGRAM_DEVICE, S.BTN_CANCEL, enabled=[can_program, True]
         )
-        if imgui.button(S.BTN_PROGRAM_DEVICE, btn_w):
+        if clicked == 0:
             if self._on_program_device is not None:
                 self._on_program_device(
                     device,
@@ -1401,11 +1400,9 @@ class ConfigurePanel:
                     ),
                 )
             imgui.close_current_popup()
-        imgui.end_disabled()
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, btn_w):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _scope_combo_width(self) -> float:
         style = imgui.get_style()

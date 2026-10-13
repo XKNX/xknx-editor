@@ -12,7 +12,7 @@ from xknx.telegram.address import GroupAddress
 
 from editor_gui.device import address_order
 from editor_gui.plugins.keyring.strings import S
-from editor_gui.widgets.dpi import px_vec2
+from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 
 if TYPE_CHECKING:
     from editor_gui.plugins.keyring.service import KeyringService
@@ -84,8 +84,7 @@ class KeyringPanel:
         if not self._prompt_open:
             imgui.open_popup(S.KEYRING_IMPORT)
             self._prompt_open = True
-        imgui.set_next_window_size(px_vec2(360.0, 0.0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(S.KEYRING_IMPORT, None)[0]:
+        if not begin_dialog(S.KEYRING_IMPORT, width=360.0):
             return
         imgui.text_disabled(Path(self._pending_path).name)
         imgui.set_next_item_width(-1)
@@ -96,7 +95,8 @@ class KeyringPanel:
         )
         if self._error:
             imgui.text_colored(imgui.ImVec4(0.9, 0.4, 0.4, 1.0), self._error)
-        if (imgui.button(S.KEYRING_LOAD) or submitted) and self._pending_path:
+        clicked = dialog_buttons(S.KEYRING_LOAD, S.BTN_CANCEL)
+        if (clicked == 0 or submitted) and self._pending_path:
             try:
                 self._service.load(Path(self._pending_path), self._password)
                 self._pending_path = None
@@ -108,14 +108,13 @@ class KeyringPanel:
                 Exception
             ) as e:  # KeyringSignatureError on a bad password / invalid file
                 self._error = f"{type(e).__name__}: {e}"
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL):
+        if clicked == 1:
             self._pending_path = None
             self._password = ""
             self._error = None
             self._prompt_open = False
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     # --- export (button in the window: save dialog + new-password modal) ---------------
 
@@ -146,8 +145,7 @@ class KeyringPanel:
         if not self._export_prompt_open:
             imgui.open_popup(S.KEYRING_EXPORT)
             self._export_prompt_open = True
-        imgui.set_next_window_size(px_vec2(360.0, 0.0), imgui.Cond_.always)
-        if not imgui.begin_popup_modal(S.KEYRING_EXPORT, None)[0]:
+        if not begin_dialog(S.KEYRING_EXPORT, width=360.0):
             return
         imgui.text_disabled(Path(self._pending_export_path).name)
         imgui.text_disabled(S.KEYRING_EXPORT_HINT)
@@ -160,7 +158,8 @@ class KeyringPanel:
         if self._export_error:
             imgui.text_colored(imgui.ImVec4(0.9, 0.4, 0.4, 1.0), self._export_error)
         can_export = bool(self._export_password)
-        if (imgui.button(S.KEYRING_EXPORT_SAVE) or submitted) and can_export:
+        clicked = dialog_buttons(S.KEYRING_EXPORT_SAVE, S.BTN_CANCEL)
+        if (clicked == 0 or submitted) and can_export:
             try:
                 self._service.export(
                     Path(self._pending_export_path), self._export_password
@@ -172,14 +171,13 @@ class KeyringPanel:
                 imgui.close_current_popup()
             except Exception as e:
                 self._export_error = f"{type(e).__name__}: {e}"
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL):
+        if clicked == 1:
             self._pending_export_path = None
             self._export_password = ""
             self._export_error = None
             self._export_prompt_open = False
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     # --- contents (shown in the window after a keyring is loaded) ----------
 

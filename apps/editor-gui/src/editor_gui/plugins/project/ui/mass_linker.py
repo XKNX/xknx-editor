@@ -23,9 +23,11 @@ from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
+from editor_gui.device import device_label
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
 
 if TYPE_CHECKING:
@@ -748,9 +750,7 @@ class MassLinkerPanel:
         self._open_obj_pending = True
 
     def _render_object_picker(self) -> None:
-        imgui.set_next_window_size(px_vec2(520.0, 460.0), imgui.Cond_.appearing)
-        opened, _ = imgui.begin_popup_modal(S.ML_PICK_OBJECTS_TITLE, None)
-        if not opened:
+        if not begin_dialog(S.ML_PICK_OBJECTS_TITLE, width=520.0, height=460.0):
             return
         self._pick_filter = filter_box(
             "##ml_pick_flt", S.ML_FILTER_HINT, self._pick_filter
@@ -763,14 +763,14 @@ class MassLinkerPanel:
                     for co in device.get_visible_com_objects()
                     if co.db_id is not None
                     and (
-                        not flt or flt in co.name.lower() or flt in device.name.lower()
+                        not flt
+                        or flt in co.name.lower()
+                        or flt in device_label(device).lower()
                     )
                 ]
                 if not cos:
                     continue
-                header = (
-                    f"{device.individual_address}  {device.name}##dev{device.node_id}"
-                )
+                header = f"{device_label(device)}##dev{device.node_id}"
                 if imgui.tree_node_ex(header, imgui.TreeNodeFlags_.default_open):
                     # One click grabs every object of the device (the "drop a device" speed-up).
                     if imgui.small_button(f"{S.ML_SELECT_ALL}##all{device.node_id}"):
@@ -786,14 +786,13 @@ class MassLinkerPanel:
                             self._toggle(self._pick_obj_selected, co.db_id, new)
                     imgui.tree_pop()
         imgui.end_child()
-        imgui.separator()
-        if imgui.button(S.ML_ADD_SELECTED):
+        clicked = dialog_buttons(S.ML_ADD_SELECTED, S.ML_CANCEL)
+        if clicked == 0:
             self._add_selected_objects()
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.ML_CANCEL):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _add_selected_objects(self) -> None:
         if self._pick_into is None:
@@ -858,18 +857,15 @@ class MassLinkerPanel:
         imgui.end_child()
 
     def _render_result_popup(self) -> None:
-        imgui.set_next_window_size(px_vec2(420.0, 0.0), imgui.Cond_.appearing)
-        opened, _ = imgui.begin_popup_modal(S.ML_RESULT_TITLE, None)
-        if not opened:
+        if not begin_dialog(S.ML_RESULT_TITLE, width=420.0):
             return
         if self._result is not None:
             imgui.text_wrapped(self._result.text)
         for err in self._result_errors:
             imgui.text_wrapped(err)
-        imgui.separator()
-        if imgui.button(S.ML_OK, imgui.ImVec2(-1, 0)):
+        if dialog_buttons(S.ML_OK) == 0:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
 
 def _desc(text: str) -> None:
