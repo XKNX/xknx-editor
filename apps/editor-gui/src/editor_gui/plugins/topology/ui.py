@@ -12,7 +12,7 @@ from typing import Any
 
 from imgui_bundle import imgui
 
-from editor_gui.device import Device, address_order
+from editor_gui.device import Device, address_order, device_label
 from editor_gui.plugins.topology.strings import S
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px
@@ -20,12 +20,13 @@ from editor_gui.widgets.dpi import px
 # Unscaled layout metrics (multiplied by the zoom factor at draw time).
 _ROW_H = 32.0
 _BOX_H = 24.0
-_COL0_X = 10.0
-_COL1_X = 150.0
-_COL2_X = 320.0
-_COL0_W = 120.0
-_COL1_W = 150.0
-_COL2_W = 260.0
+_LEFT = 10.0
+_COL_GAP = 20.0
+_TEXT_PAD = 5.0
+# Each column is as wide as its longest label, within these bounds; longer labels end in "...".
+_COL_MIN_W = (120.0, 150.0, 260.0)
+_COL_MAX_W = (240.0, 260.0, 480.0)
+_ELLIPSIS = "..."
 
 
 @dataclass
@@ -41,8 +42,9 @@ class _Layout:
     groups: list[tuple[str, float]] = field(default_factory=list[tuple[str, float]])
     subs: list[tuple[str, float]] = field(default_factory=list[tuple[str, float]])
     devices: list[_DevBox] = field(default_factory=list[_DevBox])
-    links: list[tuple[float, float, float, float]] = field(
-        default_factory=list[tuple[float, float, float, float]]
+    # (left column 0 or 1, y in the left column, y in the column right of it)
+    links: list[tuple[int, float, float]] = field(
+        default_factory=list[tuple[int, float, float]]
     )
     rows: int = 0
 
@@ -61,6 +63,8 @@ class TopologyPanel:
         self._is_open = is_open
         self._zoom = 1.0
         self._building_mode = False
+        # (label, width in unscaled pixels) -> the label cut to fit that width
+        self._fitted: dict[tuple[str, float], str] = {}
 
     def render(self) -> None:
         if not self._is_open():
@@ -130,21 +134,12 @@ class TopologyPanel:
                 layout.subs.append((sub_label, sub_y))
                 area_rows.append(sub_y)
                 for dy in dev_rows:
-                    layout.links.append(
-                        (
-                            _COL1_X + _COL1_W,
-                            sub_y + _BOX_H / 2,
-                            _COL2_X,
-                            dy + _BOX_H / 2,
-                        )
-                    )
+                    layout.links.append((1, sub_y, dy))
             group_y = sum(area_rows) / len(area_rows) if area_rows else 0.0
             group_label = area if area == S.TOPOLOGY_UNASSIGNED else f"Area {area}"
             layout.groups.append((group_label, group_y))
             for sy in area_rows:
-                layout.links.append(
-                    (_COL0_X + _COL0_W, group_y + _BOX_H / 2, _COL1_X, sy + _BOX_H / 2)
-                )
+                layout.links.append((0, group_y, sy))
         layout.rows = row
         return layout
 
@@ -189,24 +184,58 @@ class TopologyPanel:
                 layout.subs.append((room_label, sub_y))
                 root_rows.append(sub_y)
                 for dy in dev_rows:
-                    layout.links.append(
-                        (
-                            _COL1_X + _COL1_W,
-                            sub_y + _BOX_H / 2,
-                            _COL2_X,
-                            dy + _BOX_H / 2,
-                        )
-                    )
+                    layout.links.append((1, sub_y, dy))
             group_y = sum(root_rows) / len(root_rows) if root_rows else 0.0
             layout.groups.append((root_label, group_y))
             for sy in root_rows:
-                layout.links.append(
-                    (_COL0_X + _COL0_W, group_y + _BOX_H / 2, _COL1_X, sy + _BOX_H / 2)
-                )
+                layout.links.append((0, group_y, sy))
         layout.rows = row
         return layout
 
+    def _text_width(self, text: str) -> float:
+        """Width of ``text`` in unscaled pixels."""
+        return imgui.calc_text_size(text).x / px(1.0)
+
+    def _column_widths(self, layout: _Layout) -> list[float]:
+        columns = (
+            [label for label, _ in layout.groups],
+            [label for label, _ in layout.subs],
+            [d.label for d in layout.devices],
+        )
+        return [
+            max(
+                low,
+                min(
+                    high,
+                    max((self._text_width(t) for t in texts), default=0.0)
+                    + 2 * _TEXT_PAD,
+                ),
+            )
+            for texts, low, high in zip(columns, _COL_MIN_W, _COL_MAX_W, strict=True)
+        ]
+
+    def _fit(self, label: str, width: float) -> str:
+        """``label`` cut and ending in "..." when it is wider than a box of ``width``."""
+        key = (label, width)
+        fitted = self._fitted.get(key)
+        if fitted is None:
+            room = width - 2 * _TEXT_PAD
+            fitted = label
+            if self._text_width(label) > room:
+                end = len(label)
+                while end > 0 and self._text_width(label[:end] + _ELLIPSIS) > room:
+                    end -= 1
+                fitted = label[:end].rstrip() + _ELLIPSIS
+            if len(self._fitted) > 2000:
+                self._fitted.clear()
+            self._fitted[key] = fitted
+        return fitted
+
     def _draw(self, layout: _Layout) -> None:
+        widths = self._column_widths(layout)
+        xs = [_LEFT]
+        for w in widths[:-1]:
+            xs.append(xs[-1] + w + _COL_GAP)
         z = self._zoom * px(1.0)
         origin = imgui.get_cursor_screen_pos()
         dl = imgui.get_window_draw_list()
@@ -232,47 +261,47 @@ class TopologyPanel:
                 label,
             )
 
-        for x0, y0, x1, y1 in layout.links:
+        for column, y0, y1 in layout.links:
+            x0 = xs[column] + widths[column]
+            x1 = xs[column + 1]
             dl.add_line(
-                imgui.ImVec2(origin.x + x0 * z, origin.y + y0 * z),
-                imgui.ImVec2(origin.x + x1 * z, origin.y + y1 * z),
+                imgui.ImVec2(origin.x + x0 * z, origin.y + (y0 + _BOX_H / 2) * z),
+                imgui.ImVec2(origin.x + x1 * z, origin.y + (y1 + _BOX_H / 2) * z),
                 line_col,
                 px(1.5),
             )
         for label, y in layout.groups:
-            box(_COL0_X, y, _COL0_W, group_col, label)
+            box(xs[0], y, widths[0], group_col, self._fit(label, widths[0]))
         for label, y in layout.subs:
-            box(_COL1_X, y, _COL1_W, sub_col, label)
+            box(xs[1], y, widths[1], sub_col, self._fit(label, widths[1]))
         hovered = imgui.is_window_hovered()
         mouse = imgui.get_mouse_pos()
         clicked = imgui.is_mouse_clicked(0)
         for d in layout.devices:
-            box(_COL2_X, d.y, _COL2_W, dev_col, d.label)
-            bx = origin.x + _COL2_X * z
+            box(xs[2], d.y, widths[2], dev_col, self._fit(d.label, widths[2]))
+            bx = origin.x + xs[2] * z
             by = origin.y + d.y * z
             if (
                 hovered
-                and bx <= mouse.x <= bx + _COL2_W * z
+                and bx <= mouse.x <= bx + widths[2] * z
                 and by <= mouse.y <= by + _BOX_H * z
             ):
                 imgui.set_tooltip(d.tooltip)
                 if clicked:
                     self._on_select(d.node_id)
-        total_w = (_COL2_X + _COL2_W + 20.0) * z
+        total_w = (xs[2] + widths[2] + _COL_GAP) * z
         total_h = (layout.rows * _ROW_H + _ROW_H) * z
         imgui.dummy(imgui.ImVec2(total_w, total_h))
 
 
 def _device_label(d: Device) -> str:
-    ia = d.individual_address or "-"
-    name = d.name or getattr(d.app, "name", "") or "?"
-    return f"{ia}  {name}"
+    return device_label(d)
 
 
 def _device_tooltip(d: Device) -> str:
     ia = d.individual_address or "-"
     app = getattr(d.app, "name", "") or ""
-    lines = [d.name or "(unnamed)", f"Address: {ia}"]
+    lines = [d.display_name or "(unnamed)", f"Address: {ia}"]
     if app:
         lines.append(f"Application: {app}")
     return "\n".join(lines)
