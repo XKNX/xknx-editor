@@ -424,6 +424,8 @@ class KnxGuiApp:
             load_settings("app").get("show_context_help", True)
         )
         self.bottom_expanded = bool(load_settings("app").get("bottom_expanded", False))
+        self._monitor_plugin.set_monitor_extended(self.bottom_expanded)
+        self._monitor_plugin.set_layout_toggler(self._toggle_bottom_expanded)
 
         self._log = Logger(self._log_service, "app")
         self._logger_plugin = LoggerPlugin(self._log_service)
@@ -2168,70 +2170,26 @@ class KnxGuiApp:
         if msg:
             self._log.warning(msg)
 
+    def _toggle_bottom_expanded(self) -> None:
+        params = hello_imgui.get_runner_params().docking_params
+        _keep_window_sections(params)
+        expanded = not self.bottom_expanded
+        self._rebuild_layout(expanded, _current_ratios(params, expanded))
+
     def _rebuild_layout(self, expanded: bool, ratios: dict[str, float]) -> None:
+        """Rebuild the layout; the expanded bottom section shows every Group Monitor column."""
         params = hello_imgui.get_runner_params().docking_params
         params.docking_splits = create_docking_splits(expanded, ratios)
         params.layout_reset = True
+        self._monitor_plugin.set_monitor_extended(expanded)
         if expanded != self.bottom_expanded:
             self.bottom_expanded = expanded
             data = load_settings("app")
             data["bottom_expanded"] = expanded
             save_settings("app", data)
 
-    def _render_section_buttons(self, node: imgui.internal.DockNode) -> None:
-        """The expand / collapse button at the end of the bottom section's tab bar."""
-        params = hello_imgui.get_runner_params().docking_params
-        if node.id_ != params.dock_space_id_from_name("BottomSpace"):
-            return
-        # Right end of the tab bar, next to the close button.
-        size = imgui.internal.tab_item_calc_size("##expand_space", False)
-        bar = node.tab_bar.bar_rect
-        low = imgui.ImVec2(bar.max.x - size.x, bar.min.y)
-        high = imgui.ImVec2(bar.max.x, bar.max.y)
-        cursor = imgui.get_cursor_screen_pos()
-        imgui.set_cursor_screen_pos(low)
-        if imgui.invisible_button("##expand_bottom", high - low):
-            _keep_window_sections(params)
-            self._rebuild_layout(not self.bottom_expanded, _current_ratios(params))
-        draw = imgui.get_window_draw_list()
-        if imgui.is_item_hovered():
-            draw.add_rect_filled(
-                low,
-                high,
-                imgui.get_color_u32(
-                    imgui.Col_.button_active
-                    if imgui.is_item_active()
-                    else imgui.Col_.button_hovered
-                ),
-                imgui.get_style().frame_rounding,
-            )
-            imgui.set_tooltip(
-                S.SECTION_COLLAPSE if self.bottom_expanded else S.SECTION_EXPAND
-            )
-        arrow = imgui.get_font_size() * 0.7
-        imgui.internal.render_arrow(
-            draw,
-            imgui.ImVec2(
-                low.x + (high.x - low.x - arrow) / 2,
-                low.y + (high.y - low.y - arrow) / 2,
-            ),
-            imgui.get_color_u32(imgui.Col_.text),
-            imgui.Dir.left if self.bottom_expanded else imgui.Dir.right,
-            0.7,
-        )
-        imgui.set_cursor_screen_pos(cursor)
-        # An invisible trailing tab of the same width keeps the tabs and their scroll buttons
-        # clear of the button when they overflow.
-        for col in (imgui.Col_.tab, imgui.Col_.tab_hovered, imgui.Col_.tab_dimmed):
-            imgui.push_style_color(col, imgui.ImVec4(0, 0, 0, 0))
-        imgui.tab_item_button(
-            "##expand_space",
-            imgui.TabItemFlags_.trailing | imgui.TabItemFlags_.no_tooltip,
-        )
-        imgui.pop_style_color(3)
-
     def render_overlays(self) -> None:
-        render_section_menus(self._render_section_buttons)
+        render_section_menus()
         # Log the active OpenGL renderer once, from the frame path (context guaranteed current).
         if not self._gl_logged:
             self._gl_logged = True
@@ -2827,7 +2785,7 @@ class KnxGuiApp:
 
 
 # Bumped whenever the default docking layout changes, so a stored layout is replaced once.
-_LAYOUT_VERSION = 12
+_LAYOUT_VERSION = 16
 
 
 _SECTIONS = ("RightSpace", "DeviceSpace", "LeftSpace", "BottomSpace")
@@ -2857,20 +2815,23 @@ def create_docking_splits(
     bottom_expanded: bool = False, ratios: dict[str, float] | None = None
 ) -> list[hello_imgui.DockingSplit]:
     """The sections of the layout. The bottom section sits under the left column, or with
-    ``bottom_expanded`` under the left column and the editor."""
+    ``bottom_expanded`` across the full width."""
     r = {**_DEFAULT_RATIOS, **(ratios or {})}
     right = _split("MainDockSpace", "RightSpace", imgui.Dir.right, r["right"])
     device = _split("RightSpace", "DeviceSpace", imgui.Dir.up, r["device"])
     left = _split("MainDockSpace", "LeftSpace", imgui.Dir.left, r["left"])
     if bottom_expanded:
         bottom = _split("MainDockSpace", "BottomSpace", imgui.Dir.down, r["bottom"])
-        return [right, device, bottom, left]
+        return [bottom, right, device, left]
     bottom = _split("LeftSpace", "BottomSpace", imgui.Dir.down, r["bottom"])
     return [right, device, left, bottom]
 
 
-def _current_ratios(params: hello_imgui.DockingParams) -> dict[str, float]:
-    """Split ratios that reproduce the current section sizes, or none if a section is missing."""
+def _current_ratios(
+    params: hello_imgui.DockingParams, bottom_expanded: bool
+) -> dict[str, float]:
+    """Split ratios that give the layout for ``bottom_expanded`` the current section sizes, or
+    none if a section is missing."""
     nodes: dict[str, imgui.internal.DockNode] = {}
     for name in _SECTIONS:
         node_id = params.dock_space_id_from_name(name)
@@ -2885,13 +2846,16 @@ def _current_ratios(params: hello_imgui.DockingParams) -> dict[str, float]:
     gap = imgui.get_style().docking_separator_size
     width, height = root.size.x - gap, root.size.y - gap
     right = nodes["RightSpace"].size.x
-    if width - right - gap <= 0 or height <= 0:
+    bottom = nodes["BottomSpace"].size.y
+    # The right column is above the expanded bottom section.
+    column = height - bottom - gap if bottom_expanded else height
+    if width - right - gap <= 0 or column <= 0 or height <= 0:
         return {}
     ratios = {
         "right": right / width,
-        "device": nodes["DeviceSpace"].size.y / height,
+        "device": nodes["DeviceSpace"].size.y / column,
         "left": nodes["LeftSpace"].size.x / (width - right - gap),
-        "bottom": nodes["BottomSpace"].size.y / height,
+        "bottom": bottom / height,
     }
     return {key: min(max(value, 0.05), 0.95) for key, value in ratios.items()}
 

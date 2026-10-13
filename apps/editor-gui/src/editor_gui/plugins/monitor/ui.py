@@ -55,6 +55,22 @@ class MonitorPanel:
     def _is_connected(self) -> bool:
         return self._connection.xknx is not None
 
+    @property
+    def monitor_extended(self) -> bool:
+        return self._views[MonitorKind.GROUP].extended
+
+    def set_monitor_extended(self, value: bool) -> None:
+        for view in self._views.values():
+            view.extended = value
+
+    def set_layout_toggler(self, toggle: Callable[[], None]) -> None:
+        """Wire the monitors' Compact/Extend toggle button (next to the filter)."""
+        for view in self._views.values():
+            view.set_layout_toggler(toggle)
+
+    def toggle_monitor_extended(self) -> None:
+        self.set_monitor_extended(not self.monitor_extended)
+
     def render(self) -> None:
         if not imgui.begin_tab_bar("##monitor_tabs"):
             return
@@ -85,6 +101,7 @@ class MonitorPanel:
         connected = self._is_connected()
         raw = index.group_address_raw(self._cmd_address) if self._cmd_address else None
         entry = index.group_addresses.get(raw) if raw is not None else None
+        imgui.align_text_to_frame_padding()
         imgui.text_disabled(S.MONITOR_ADDRESS_LABEL)
         imgui.same_line()
         imgui.set_next_item_width(px(90.0))

@@ -3,8 +3,6 @@ to show or hide it, so a closed tab can be reopened where it belongs."""
 
 from __future__ import annotations
 
-from collections.abc import Callable
-
 from imgui_bundle import hello_imgui, imgui
 
 from editor_gui.widgets.checkbox import checkbox
@@ -12,11 +10,9 @@ from editor_gui.widgets.checkbox import checkbox
 _POPUP = "##section_menu"
 
 
-def render_section_menus(
-    trailing: Callable[[imgui.internal.DockNode], None] | None = None,
-) -> None:
-    """Replace the window menu of every dock section that has a tab bar, and let ``trailing`` add
-    buttons at its end. Call once per frame, after the dockable windows are drawn."""
+def render_section_menus() -> None:
+    """Replace the window menu of every dock section that has a tab bar. Call once per frame,
+    after the dockable windows are drawn."""
     params = hello_imgui.get_runner_params().docking_params
     sections: dict[int, list[hello_imgui.DockableWindow]] = {}
     for window in params.dockable_windows:
@@ -45,8 +41,6 @@ def render_section_menus(
             node.set_local_flags(node.local_flags | flag)
         if imgui.internal.dock_node_begin_amend_tab_bar(node):
             _render_menu(node, windows)
-            if trailing is not None:
-                trailing(node)
             imgui.internal.dock_node_end_amend_tab_bar()
 
 

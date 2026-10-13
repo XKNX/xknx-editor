@@ -736,14 +736,6 @@ class MenuStrings:
         return _("Restore Default Layout")
 
     @property
-    def SECTION_EXPAND(self) -> str:
-        return _("Expand Below the Editor")
-
-    @property
-    def SECTION_COLLAPSE(self) -> str:
-        return _("Collapse to the Left Column")
-
-    @property
     def MENU_SHOW_ALL(self) -> str:
         return _("Show All")
 

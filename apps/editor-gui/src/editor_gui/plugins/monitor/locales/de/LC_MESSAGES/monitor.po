@@ -107,6 +107,18 @@ msgstr "Zeit"
 msgid "Type"
 msgstr "Typ"
 
+msgid "Date"
+msgstr "Datum"
+
+msgid "Value"
+msgstr "Wert"
+
+msgid "Show Extended Information"
+msgstr "Erweiterte Informationen anzeigen"
+
+msgid "Hide Extended Information"
+msgstr "Erweiterte Informationen ausblenden"
+
 msgid "{count} telegrams exported to {path}"
 msgstr "{count} Telegramme nach {path} exportiert"
 
@@ -152,8 +164,8 @@ msgstr "z. B. 1/2/3"
 msgid "Group address:"
 msgstr "Gruppenadresse:"
 
-msgid "Bus Load: {rate} telegrams/s"
-msgstr "Buslast: {rate} Telegramme/s"
+msgid "Load: {rate} t/s"
+msgstr "Last: {rate} T/s"
 
 msgid "Clear"
 msgstr "Löschen"
@@ -184,6 +196,9 @@ msgstr "Gruppenobjekte"
 
 msgid "{count} telegrams"
 msgstr "{count} Telegramme"
+
+msgid "{count} telegram"
+msgstr "{count} Telegramm"
 
 msgid "Enter a group address of the project to send to it."
 msgstr "Geben Sie eine Gruppenadresse des Projekts ein, um an sie zu senden."
@@ -287,8 +302,8 @@ msgstr "Verbindung im Busmonitor-Modus wird aufgebaut…"
 msgid "Closing the bus monitor connection…"
 msgstr "Busmonitor-Verbindung wird geschlossen…"
 
-msgid "Recording"
-msgstr "Aufzeichnung läuft"
+msgid "Rec."
+msgstr "Aufz."
 
 msgid "Replaying {done}/{total}"
 msgstr "Wiedergabe {done}/{total}"

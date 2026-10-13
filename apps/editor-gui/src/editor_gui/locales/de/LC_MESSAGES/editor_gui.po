@@ -550,12 +550,6 @@ msgstr "Ansicht"
 msgid "Restore Default Layout"
 msgstr "Standardlayout wiederherstellen"
 
-msgid "Expand Below the Editor"
-msgstr "Unter den Editor erweitern"
-
-msgid "Collapse to the Left Column"
-msgstr "Auf die linke Spalte verkleinern"
-
 msgid "Show All"
 msgstr "Alle anzeigen"
 

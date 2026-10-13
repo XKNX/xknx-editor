@@ -69,6 +69,47 @@ _WRAPPED_COLUMNS = {
     COLUMN_INDEX["building_function"],
 }
 
+# The compact column set of each monitor. "Show extended information" reveals every column
+# (including date, the full type, the raw hex value and all the optional columns).
+_SIMPLE_COLUMNS = {
+    kind: frozenset(COLUMN_INDEX[key] for key in keys)
+    for kind, keys in (
+        (
+            MonitorKind.GROUP,
+            (
+                "time",
+                "type_short",
+                "source_address",
+                "destination_address",
+                "destination_name",
+                "info",
+            ),
+        ),
+        (
+            MonitorKind.BUS,
+            (
+                "time",
+                "type_short",
+                "flags",
+                "source_address",
+                "destination_address",
+                "info",
+            ),
+        ),
+        (
+            MonitorKind.ACTIVITY,
+            (
+                "time",
+                "service",
+                "type_short",
+                "source_address",
+                "destination_address",
+                "info",
+            ),
+        ),
+    )
+}
+
 
 @dataclass
 class _Question:
@@ -118,6 +159,23 @@ class TelegramView:
         self._last_index = ProjectIndex()
         # Columns the user has not hidden, as of the last frame.
         self._enabled_columns: list[int] = list(PRINT_COLUMNS)
+        # Start in the compact column set; the "Show extended information" toggle next to the
+        # filter reveals the full detail table.
+        self._extended = False
+        # Set by the panel: flips the Compact/Extend bottom-bar layout and the column set together.
+        self._toggle_layout: Callable[[], None] | None = None
+
+    @property
+    def extended(self) -> bool:
+        return self._extended
+
+    @extended.setter
+    def extended(self, value: bool) -> None:
+        self._extended = value
+
+    def set_layout_toggler(self, toggle: Callable[[], None]) -> None:
+        """Wire the Compact/Extend toggle button shown next to the filter."""
+        self._toggle_layout = toggle
 
     # --- view ------------------------------------------------------------
 
@@ -183,14 +241,37 @@ class TelegramView:
         self._render_status()
         if command_bar is not None:
             command_bar()
-        self.filter = filter_box(
-            f"##mon_filter_{self.kind.value}", S.MONITOR_FILTER_HINT, self.filter
-        )
+        self._render_filter_row()
         self._render_table(index)
         self._handle_copy_shortcut()
         self._render_question()
         self._render_scope()
         self._poll_dialogs()
+
+    def _render_filter_row(self) -> None:
+        """The filter box, with the Compact/Extend toggle to the right of it."""
+        toggle = self._toggle_layout
+        reserve = 0.0
+        label = ""
+        if toggle is not None:
+            label = (
+                S.MONITOR_HIDE_EXTENDED if self._extended else S.MONITOR_SHOW_EXTENDED
+            )
+            reserve = (
+                imgui.calc_text_size(label).x
+                + imgui.get_style().frame_padding.x * 2.0
+                + px(4.0)
+            )
+        self.filter = filter_box(
+            f"##mon_filter_{self.kind.value}",
+            S.MONITOR_FILTER_HINT,
+            self.filter,
+            reserve,
+        )
+        if toggle is not None:
+            imgui.same_line(0.0, px(4.0))
+            if imgui.button(f"{label}###mon_extend_toggle"):
+                toggle()
 
     def _icon_button(self, icon: str, name: str, hint: str, enabled: bool) -> bool:
         imgui.begin_disabled(not enabled)
@@ -259,7 +340,9 @@ class TelegramView:
             S.MONITOR_BUS_LOAD.format(rate=f"{self._service.bus_load():.1f}")
         )
         imgui.same_line()
-        imgui.text_disabled(S.MONITOR_TELEGRAM_COUNT.format(count=len(self._view)))
+        count = len(self._view)
+        text = S.MONITOR_TELEGRAM_COUNT_ONE if count == 1 else S.MONITOR_TELEGRAM_COUNT
+        imgui.text_disabled(text.format(count=count))
         if self.filtering:
             imgui.same_line()
             done = self._pos * 100 // max(len(self._source), 1)
@@ -330,6 +413,7 @@ class TelegramView:
     # --- table -----------------------------------------------------------
 
     def _render_table(self, index: ProjectIndex) -> None:
+        extended = self._extended
         flags = (
             imgui.TableFlags_.resizable
             | imgui.TableFlags_.reorderable
@@ -340,12 +424,18 @@ class TelegramView:
             | imgui.TableFlags_.borders_inner_v
             | imgui.TableFlags_.sizing_fixed_fit
         )
-        if not imgui.begin_table(f"##monitor_{self.kind.value}", len(COLUMNS), flags):
+        # Separate table id per mode so simple/extended keep their own column layout and switching
+        # resets cleanly to the mode's defaults. Column settings are stored by index, so the id
+        # changes whenever columns are inserted.
+        table_id = f"##monitor_{self.kind.value}_{'full' if extended else 'simple'}"
+        if not imgui.begin_table(table_id, len(COLUMNS), flags):
             return
         imgui.table_setup_scroll_freeze(0, 1)
-        for column in COLUMNS:
+        for i, column in enumerate(COLUMNS):
             column_flags = imgui.TableColumnFlags_.width_fixed
-            if column.optional:
+            # Extended shows every column; compact shows only the simple set.
+            hide = not extended and i not in _SIMPLE_COLUMNS[self.kind]
+            if hide:
                 column_flags |= imgui.TableColumnFlags_.default_hide
             imgui.table_setup_column(column.label, column_flags, px(column.width))
         imgui.table_headers_row()
