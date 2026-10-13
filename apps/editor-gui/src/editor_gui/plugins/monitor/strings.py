@@ -63,15 +63,19 @@ class MonitorStrings:
 
     @property
     def MONITOR_SHOW_EXTENDED(self) -> str:
-        return _("Show extended information")
+        return _("Show Extended Information")
 
     @property
     def MONITOR_HIDE_EXTENDED(self) -> str:
-        return _("Hide extended information")
+        return _("Hide Extended Information")
 
     @property
     def MONITOR_TELEGRAM_COUNT(self) -> str:
-        return _("{count} teleg.")
+        return _("{count} telegrams")
+
+    @property
+    def MONITOR_TELEGRAM_COUNT_ONE(self) -> str:
+        return _("{count} telegram")
 
     @property
     def MONITOR_BUS_LOAD(self) -> str:
