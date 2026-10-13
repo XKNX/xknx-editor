@@ -8,7 +8,7 @@ from typing import cast
 
 import pytest
 
-from xknxeditor.download.image import build_image
+from xknxeditor.download.image import MemorySegment, build_image
 from xknxeditor.namespaces.intermediate.application_program_static_t_code_absolute_segment import (
     ApplicationProgramStaticCodeAbsoluteSegment,
 )
@@ -18,7 +18,7 @@ from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 from .test_wire_audit import _FIXTURE
 
 
-def _image_masks(mask_version: str, address: int, size: int) -> tuple[bytes, bytes]:
+def _memory(mask_version: str, address: int, size: int) -> MemorySegment:
     original = next(iter(load(_FIXTURE).applications.values()))
     program = deepcopy(original.program)
     assert program.static.code is not None
@@ -41,8 +41,7 @@ def _image_masks(mask_version: str, address: int, size: int) -> tuple[bytes, byt
         ),
     )
     (memory,) = build_image(app, ui=ui).segments
-    assert memory.initialized_mask is not None and memory.mask is not None
-    return memory.initialized_mask, memory.mask
+    return memory
 
 
 @pytest.mark.parametrize(
@@ -58,7 +57,26 @@ def _image_masks(mask_version: str, address: int, size: int) -> tuple[bytes, byt
 def test_reserved_bytes_are_left_out_of_the_segment_data(
     mask_version: str, address: int, kept_out: tuple[int, ...]
 ) -> None:
-    initialized, parameters = _image_masks(mask_version, address, 10)
+    memory = _memory(mask_version, address, 10)
+    initialized, parameters = memory.initialized_mask, memory.mask
+    assert initialized is not None and parameters is not None
     assert [n for n, value in enumerate(initialized) if not value] == list(kept_out)
     # Parameter bytes are written regardless.
     assert parameters[-1] == 0xFF
+
+
+@pytest.mark.parametrize("mask_version", ["MV-0910", "MV-091A"])
+def test_line_coupler_bytes_come_with_the_segment_data(mask_version: str) -> None:
+    memory = _memory(mask_version, 0x0100, 0x1D)
+    assert memory.initialized_mask is not None
+    expected = {0x10D: 0xFF, 0x112: 0xC3, 0x116: 0x01, 0x11A: 0xFF, 0x11B: 0xCC}
+    for address, value in expected.items():
+        assert memory.data[address - 0x100] == value
+        assert memory.initialized_mask[address - 0x100] == 0xFF
+    # 0x11C holds a parameter, which keeps its value.
+    assert memory.data[0x1C] == 0x1C
+
+
+def test_other_masks_and_short_segments_keep_their_data() -> None:
+    assert _memory("MV-0705", 0x0100, 0x20).data[0x0D] == 0x0D
+    assert _memory("MV-091A", 0x0110, 0x10).data[0x0B] == 0x0B
