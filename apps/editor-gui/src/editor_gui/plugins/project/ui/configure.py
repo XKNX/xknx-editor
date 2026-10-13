@@ -258,6 +258,10 @@ class ConfigurePanel:
         self._expected_cache: dict[int, set[int]] = {}
         self._ga_names_cache_key: int | None = None
         self._ga_names_cache: dict[int, str] = {}
+        # Fully formatted group-object rows (number, matches-project, address text), built once per
+        # read-out so scrolling the table does not re-sort, re-compare and re-format every frame.
+        self._readout_rows_cache_key: tuple[int, int] | None = None
+        self._readout_rows_cache: list[tuple[str, bool, str]] = []
         self._manual_busy: bool = False  # a manual lookup thread is running
         self._group_objects_table = GroupObjectsTable(
             set_flag,
@@ -953,8 +957,7 @@ class ConfigurePanel:
         that object number, orange when they differ."""
         if not readout.group_objects:
             return
-        expected = self._expected_group_addresses(device, readout)
-        names = self._ga_names(readout)
+        rows = self._readout_rows(device, readout)
         imgui.spacing()
         imgui.text_disabled(S.READOUT_GROUP_OBJECTS)
         flags = (
@@ -971,19 +974,40 @@ class ConfigurePanel:
         imgui.table_headers_row()
         ok = imgui.ImVec4(0.45, 0.8, 0.45, 1.0)
         differ = imgui.ImVec4(0.95, 0.55, 0.35, 1.0)
-        for go in sorted(readout.group_objects, key=lambda g: g.number):
-            imgui.table_next_row()
-            imgui.table_next_column()
-            imgui.text(str(go.number))
-            imgui.table_next_column()
-            match = set(go.group_addresses) == expected.get(go.number, set())
-            text = (
-                ", ".join(self._format_ga(a, names) for a in go.group_addresses)
-                if go.group_addresses
-                else "-"
-            )
-            imgui.text_colored(ok if match else differ, text)
+        clipper = imgui.ListClipper()
+        clipper.begin(len(rows))
+        while clipper.step():
+            for i in range(clipper.display_start, clipper.display_end):
+                number, match, text = rows[i]
+                imgui.table_next_row()
+                imgui.table_next_column()
+                imgui.text(number)
+                imgui.table_next_column()
+                imgui.text_colored(ok if match else differ, text)
         imgui.end_table()
+
+    def _readout_rows(
+        self, device: Device, readout: "BusDeviceInfo"
+    ) -> list[tuple[str, bool, str]]:
+        """Group-object rows (number, matches-project, address text) built once per read-out. The
+        formatting resolves the GA style and compares against the project's planned links, so it must
+        not run every frame while the table scrolls."""
+        key = (device.node_id, id(readout))
+        if self._readout_rows_cache_key != key:
+            expected = self._expected_group_addresses(device, readout)
+            names = self._ga_names(readout)
+            self._readout_rows_cache = [
+                (
+                    str(go.number),
+                    set(go.group_addresses) == expected.get(go.number, set()),
+                    ", ".join(self._format_ga(a, names) for a in go.group_addresses)
+                    if go.group_addresses
+                    else "-",
+                )
+                for go in sorted(readout.group_objects, key=lambda g: g.number)
+            ]
+            self._readout_rows_cache_key = key
+        return self._readout_rows_cache
 
     def _format_ga(self, address: int, names: dict[int, str]) -> str:
         formatted = (

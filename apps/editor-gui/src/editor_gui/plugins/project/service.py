@@ -1617,6 +1617,7 @@ class ProjectService:
         return self._svc.space_tree(self._pid, _INSTALLATION)
 
     @io_guarded(lambda: None)
+    @revision_cached
     def get_project_metadata(self) -> _ProjectInfo | None:
         """Project-level metadata (name, author, tool/schema version, …) from the imported project."""
         if self._pid is None:
