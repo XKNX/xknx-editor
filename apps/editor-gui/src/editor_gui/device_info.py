@@ -118,6 +118,11 @@ def serial_to_project(data: bytes) -> str:
     return base64.b64encode(data).decode("ascii")
 
 
+def application_version_text(version: int) -> str:
+    """An application program version as ``major.minor`` (``0x75`` -> ``7.5``)."""
+    return f"{version >> 4}.{version & 0x0F}"
+
+
 def firmware_text(version: int | None) -> str | None:
     """A PID_VERSION value as ``[magic] version.revision``."""
     if version is None:

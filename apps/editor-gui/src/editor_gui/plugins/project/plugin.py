@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from editor_gui.device_info import (
+    application_version_text,
     same_application,
     serial_from_project,
     serial_to_project,
@@ -665,7 +666,7 @@ class ProjectPlugin:
             else:
                 self._api.notify(
                     S.UPDATE_APP_DONE.format(
-                        version=result.new_version,
+                        version=application_version_text(result.new_version),
                         kept=result.kept,
                         dropped=result.dropped,
                     )

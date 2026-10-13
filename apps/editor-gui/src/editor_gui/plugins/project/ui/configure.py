@@ -13,6 +13,7 @@ from xknx.telegram import IndividualAddress
 from editor_gui import doc_links
 from editor_gui.device import ComObject, Device, device_label
 from editor_gui.device_info import (
+    application_version_text,
     firmware_text,
     parse_serial_text,
     serial_from_project,
@@ -656,7 +657,13 @@ class ConfigurePanel:
         current = self._current_app_version(device)
         if not versions or current is None or versions[0] <= current:
             return None
-        return versions, current, S.CONFIGURE_UPDATE_BUTTON.format(version=versions[0])
+        return (
+            versions,
+            current,
+            S.CONFIGURE_UPDATE_BUTTON.format(
+                version=application_version_text(versions[0])
+            ),
+        )
 
     def _render_manufacturer_section(self, device: Device) -> None:
         """Manufacturer, product and application details of the selected device."""
@@ -675,7 +682,9 @@ class ConfigurePanel:
                 (S.CONFIGURE_APPLICATION, device.app.id),
                 (
                     S.CONFIGURE_APP_VERSION,
-                    f"V{app_version}" if app_version is not None else "-",
+                    application_version_text(app_version)
+                    if app_version is not None
+                    else "-",
                 ),
                 (S.CONFIGURE_SCHEMA_VERSION, device.app.version),
                 (S.CONFIGURE_ORDER_NUMBER, info.order_number if info else ""),
@@ -855,7 +864,9 @@ class ConfigurePanel:
             return
         current = self._current_app_version(device)
         parts = [
-            f"V{v} {S.CONFIGURE_ONLINE_CURRENT}" if v == current else f"V{v}"
+            f"{application_version_text(v)} {S.CONFIGURE_ONLINE_CURRENT}"
+            if v == current
+            else application_version_text(v)
             for v in versions
         ]
         imgui.spacing()
@@ -896,11 +907,12 @@ class ConfigurePanel:
         if app_v is None:
             version_value = "-"
         elif project_v is None or app_v == project_v:
-            version_value = f"V{app_v}"
+            version_value = application_version_text(app_v)
         else:
-            version_value = (
-                f"V{app_v}  {S.READOUT_VERSION_MISMATCH.format(version=project_v)}"
+            mismatch = S.READOUT_VERSION_MISMATCH.format(
+                version=application_version_text(project_v)
             )
+            version_value = f"{application_version_text(app_v)}  {mismatch}"
         if app is not None:
             manufacturer = app.manufacturer_id
         elif readout.manufacturer_id is not None:
@@ -1062,7 +1074,9 @@ class ConfigurePanel:
         newest = versions[0]  # get_online_versions is sorted descending
         if newest <= current:
             return
-        if imgui.button(S.CONFIGURE_UPDATE_BUTTON.format(version=newest)):
+        if imgui.button(
+            S.CONFIGURE_UPDATE_BUTTON.format(version=application_version_text(newest))
+        ):
             self._confirm_update_open = True
         if self._confirm_update_open:
             imgui.open_popup(S.UPDATE_CONFIRM_TITLE)
@@ -1074,10 +1088,11 @@ class ConfigurePanel:
             S.UPDATE_CONFIRM_TITLE, None, imgui.WindowFlags_.always_auto_resize
         )[0]:
             return
-        imgui.text_wrapped(S.UPDATE_CONFIRM_TEXT.format(version=version))
+        text = application_version_text(version)
+        imgui.text_wrapped(S.UPDATE_CONFIRM_TEXT.format(version=text))
         imgui.spacing()
         btn_w = px_vec2(180, 0)
-        if imgui.button(S.CONFIGURE_UPDATE_BUTTON.format(version=version), btn_w):
+        if imgui.button(S.CONFIGURE_UPDATE_BUTTON.format(version=text), btn_w):
             ok = (
                 bool(self._on_update_application(device))
                 if self._on_update_application is not None
@@ -1097,7 +1112,11 @@ class ConfigurePanel:
             S.UPDATE_ALERT_TITLE, None, imgui.WindowFlags_.always_auto_resize
         )[0]:
             return
-        imgui.text_wrapped(S.UPDATE_ALERT_TEXT.format(version=self._alert_version))
+        imgui.text_wrapped(
+            S.UPDATE_ALERT_TEXT.format(
+                version=application_version_text(self._alert_version)
+            )
+        )
         imgui.spacing()
         if imgui.button(S.BTN_OK, px_vec2(120, 0)):
             imgui.close_current_popup()
