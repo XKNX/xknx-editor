@@ -1990,7 +1990,7 @@ class ProjectService:
             parameters=parameters.values,
             com_object_data=objects.data,
         )
-        self._app_cache.clear()
+        self._app_cache[target.id] = new_app
         self._bump()
         updated = self.find_device_by_node_id(device.node_id)
         if updated is not None:
@@ -2037,7 +2037,7 @@ class ProjectService:
             com_objects=[(co.id, None) for co in com_objects],
             module_instances=module_instances or None,
         )
-        self._app_cache.clear()
+        self._app_cache[program.id] = new_app
         self._bump()
         self._log.info(
             "application changed",
