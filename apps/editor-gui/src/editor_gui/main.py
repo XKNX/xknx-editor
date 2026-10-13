@@ -404,7 +404,6 @@ class KnxGuiApp:
         self._catalog_plugin = CatalogPlugin(self._plugin_api)
         self._connection_plugin = ConnectionPlugin(self._plugin_api)
         self._monitor_plugin = MonitorPlugin(self._plugin_api)
-        self._monitor_plugin.set_layout_toggler(self._toggle_monitor_layout)
         self._keyring_plugin = KeyringPlugin(self._plugin_api)
         # Data Secure: let programming/testing look up a device's tool key from the loaded keyring.
         self._connection_service.keyring = self._keyring_plugin.service
@@ -1729,14 +1728,6 @@ class KnxGuiApp:
 
         self._run_bg(S.PROGRESS_LOAD_KNXPROD, worker)
 
-    def _toggle_monitor_layout(self) -> None:
-        """Flip the Compact/Extend Monitor layout: Extend makes the bottom bar span the full width
-        AND shows the Group Monitor's full column set; Compact keeps it under the left column with
-        the compact columns. Driven by the toggle button next to the Group Monitor filter."""
-        extended = hello_imgui.current_layout_name() == "Extend"
-        hello_imgui.switch_layout("Compact" if extended else "Extend")
-        self._monitor_plugin.set_monitor_extended(not extended)
-
     def gui_status_bar(self) -> None:
         self._connection_plugin.render_status_indicator()
 
@@ -2770,48 +2761,38 @@ class KnxGuiApp:
 
 
 # Bumped whenever the default docking layout changes, so a stored layout is replaced once.
-_LAYOUT_VERSION = 15
+_LAYOUT_VERSION = 11
 
 
-def create_docking_splits(*, full_width_bottom: bool) -> list[hello_imgui.DockingSplit]:
-    # The Monitor/Timeline/Logs bottom bar. "Extend" (full_width_bottom) carves it off the root
-    # FIRST so it spans the whole width (incl. under the right column); "Compact" docks it as the
-    # lower part of the left column, so it sits directly under the navigation (Buildings/Devices)
-    # and is only as wide as it, leaving the editor and right column full height.
+def create_docking_splits() -> list[hello_imgui.DockingSplit]:
     split_right = hello_imgui.DockingSplit()
     split_right.initial_dock = "MainDockSpace"
     split_right.new_dock = "RightSpace"
     split_right.direction = imgui.Dir.right
-    split_right.ratio = 0.22
+    # Wide enough for the Device panel's Test / Program / Preview buttons in one row.
+    split_right.ratio = 0.2
 
-    # Right column is split in two: project info / log on top, operations / history / health below.
-    # Must come after split_right since it subdivides RightSpace.
-    split_right_bottom = hello_imgui.DockingSplit()
-    split_right_bottom.initial_dock = "RightSpace"
-    split_right_bottom.new_dock = "RightBottomSpace"
-    split_right_bottom.direction = imgui.Dir.down
-    split_right_bottom.ratio = 0.6
+    split_device = hello_imgui.DockingSplit()
+    split_device.initial_dock = "RightSpace"
+    split_device.new_dock = "DeviceSpace"
+    split_device.direction = imgui.Dir.up
+    split_device.ratio = 0.35
+
+    split_bottom = hello_imgui.DockingSplit()
+    split_bottom.initial_dock = "MainDockSpace"
+    split_bottom.new_dock = "BottomSpace"
+    split_bottom.direction = imgui.Dir.down
+    split_bottom.ratio = 0.31
 
     split_left = hello_imgui.DockingSplit()
     split_left.initial_dock = "MainDockSpace"
     split_left.new_dock = "LeftSpace"
     split_left.direction = imgui.Dir.left
     # Wide enough that the stacked navigation tabs (Buildings, Devices, Group Addresses, Catalog)
-    # all fit without the tab-bar overflow arrow.
-    split_left.ratio = 0.295
+    # all fit without the tab-bar overflow (">>") arrow.
+    split_left.ratio = 0.29
 
-    split_bottom = hello_imgui.DockingSplit()
-    split_bottom.new_dock = "BottomSpace"
-    split_bottom.direction = imgui.Dir.down
-    if full_width_bottom:
-        # Extend: carve the bottom bar off the root first so it spans the whole width.
-        split_bottom.initial_dock = "MainDockSpace"
-        split_bottom.ratio = 0.34
-        return [split_bottom, split_right, split_right_bottom, split_left]
-    # Compact: the bottom bar is the lower part of the left column (as wide as the navigation).
-    split_bottom.initial_dock = "LeftSpace"
-    split_bottom.ratio = 0.42
-    return [split_left, split_bottom, split_right, split_right_bottom]
+    return [split_right, split_device, split_bottom, split_left]
 
 
 def _apply_new_layout_once(docking_params: hello_imgui.DockingParams) -> None:
@@ -2846,6 +2827,8 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
         "buildings": lambda: _proj.PANEL_BUILDINGS,
         "group_addresses": lambda: _proj.PANEL_GROUP_ADDRESSES,
         "editor": lambda: _proj.PANEL_EDITOR,
+        "device": lambda: _proj.PANEL_DEVICE,
+        "manufacturer": lambda: _proj.PANEL_MANUFACTURER,
         "mass_linker": lambda: _proj.PANEL_MASS_LINKER,
         "tools": lambda: _proj.PANEL_TOOLS,
         "history": lambda: _proj.PANEL_HISTORY,
@@ -2873,16 +2856,22 @@ _DOCK_TAB_ORDER = [
     "catalog",
     "editor",
     "cockpit",
+    "device",
+    "manufacturer",
     "operations",
+    "history",
+    "health",
     "mass_linker",
     "tools",
     "ki",
     "topology",
     "recover",
-    # Left-bottom bus/log group, in tab order (logger stays last).
+    # Bottom bus/log group, then the project info and log.
     "monitor",
     "timeline",
     "logger",
+    "project_info",
+    "project_log",
 ]
 
 
@@ -2900,18 +2889,13 @@ def create_dockable_windows(app: KnxGuiApp) -> list[hello_imgui.DockableWindow]:
         window.label = f"{title}###{panel.name}"
         window.dock_space_name = panel.dock
         window.gui_function = panel.render
-        if panel.name == "monitor":
-            # The Monitor is the full-width bottom bar; keep it visible by default and closeable so
-            # the status-bar toggle (and the View menu) can retract/extend it.
-            window.can_be_closed = True
         windows.append(window)
     rank = {name: i for i, name in enumerate(_DOCK_TAB_ORDER)}
     windows.sort(key=lambda w: rank.get(_dock_window_name(w), len(_DOCK_TAB_ORDER)))
-    # Buildings is the primary view: focus it on first frame.
+    # Buildings and Device are the primary views: focus them on first frame.
     for w in windows:
-        if _dock_window_name(w) == "buildings":
+        if _dock_window_name(w) in ("buildings", "device"):
             w.focus_window_at_next_frame = True
-            break
     return windows
 
 
@@ -3100,22 +3084,9 @@ def _main() -> None:
     # Keep the imgui layout .ini in the central data dir (with the JSON settings and catalog).
     runner_params.ini_folder_type = hello_imgui.IniFolderType.absolute_path
     runner_params.ini_filename = str(config_dir() / "XKNX_Editor.ini")
-    # Two layouts the status-bar toggle switches between: "Compact" (bottom bar under left+editor)
-    # and "Extend" (full-width bottom bar). Same windows, different split order.
-    runner_params.docking_params.layout_name = "Compact"
-    runner_params.docking_params.docking_splits = create_docking_splits(
-        full_width_bottom=False
-    )
+    runner_params.docking_params.docking_splits = create_docking_splits()
     runner_params.docking_params.dockable_windows = create_dockable_windows(app)
     _apply_new_layout_once(runner_params.docking_params)
-
-    extend_layout = hello_imgui.DockingParams()
-    extend_layout.layout_name = "Extend"
-    extend_layout.docking_splits = create_docking_splits(full_width_bottom=True)
-    extend_layout.dockable_windows = create_dockable_windows(app)
-    extend_layout.layout_condition = runner_params.docking_params.layout_condition
-    runner_params.alternative_docking_layouts = [extend_layout]
-    runner_params.remember_selected_alternative_layout = True
 
     runner_params.callbacks.post_init = app.setup
     runner_params.callbacks.before_exit = app.shutdown

@@ -11,7 +11,7 @@ from xknx.exceptions import CouldNotParseAddress
 from xknx.telegram import IndividualAddress
 
 from editor_gui import doc_links
-from editor_gui.device import ComObject, Device
+from editor_gui.device import ComObject, Device, device_label
 from editor_gui.device_info import (
     firmware_text,
     parse_serial_text,
@@ -218,9 +218,8 @@ class ConfigurePanel:
         self._get_expected_group_addresses = get_expected_group_addresses
         self._get_group_address_names = get_group_address_names
         self._format_group_address = format_group_address
-        # Device-info read-out: auto-open the section once per fresh read, and cache the (DB-backed)
-        # expected group-address map + GA names so scrolling the table doesn't recompute every frame.
-        self._readout_expanded_for: dict[int, int] = {}
+        # Cache the (DB-backed) expected group-address map and GA names of the read-out so scrolling
+        # its table doesn't recompute every frame.
         self._expected_cache_key: tuple[int, int] | None = None
         self._expected_cache: dict[int, set[int]] = {}
         self._ga_names_cache_key: int | None = None
@@ -305,6 +304,23 @@ class ConfigurePanel:
             S.READOUT_ORDER,
             S.READOUT_HARDWARE,
         )
+
+    def render_device(self) -> None:
+        """Device panel: device selection, address and programming."""
+        self._begin_details()
+        if self._current_device() is None:
+            imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
+            return
+        self._render_device_section()
+
+    def render_manufacturer(self) -> None:
+        """Manufacturer panel: product and application details of the selected device."""
+        self._begin_details()
+        device = self._current_device()
+        if device is None:
+            imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
+            return
+        self._render_manufacturer_section(device)
 
     def _render_device_section(self) -> None:
         """Name, address and programming of the selected device."""
@@ -585,24 +601,6 @@ class ConfigurePanel:
             return None
         return versions, current, S.CONFIGURE_UPDATE_BUTTON.format(version=versions[0])
 
-    def _render_basic_info(self, device: Device) -> None:
-        """Always-visible basics (product, application version), side by side when the panel is wide
-        enough, else stacked. The application-update button lives in the action row above."""
-        info = self._get_device_info(device.node_id)
-        app_version = self._current_app_version(device)
-        self._render_detail_grid(
-            [
-                (
-                    S.CONFIGURE_PRODUCT,
-                    info.product_name if info and info.product_name else "-",
-                ),
-                (
-                    S.CONFIGURE_APP_VERSION,
-                    f"V{app_version}" if app_version is not None else "-",
-                ),
-            ]
-        )
-
     def _render_manufacturer_section(self, device: Device) -> None:
         """Manufacturer, product and application details of the selected device."""
         info = self._get_device_info(device.node_id)
@@ -636,6 +634,7 @@ class ConfigurePanel:
         imgui.spacing()
         self._render_manual_button(info)
         self._render_online_versions(device, info)
+        self._render_readout_result(device)
         self._render_load_procedures(device)
 
     def render(self) -> None:
@@ -644,37 +643,7 @@ class ConfigurePanel:
             imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
             return
         self._begin_details()
-        # Device header + programming above the parameter tabs; the full manufacturer detail sits
-        # behind a collapsed "Herstellerinfos" header so the parameter tabs below keep the height.
-        # Tighten row spacing for this read-only block (the parameter tabs keep default spacing).
-        style = imgui.get_style()
-        spacing, cell = style.item_spacing, style.cell_padding
-        imgui.push_style_var(
-            imgui.StyleVar_.item_spacing, imgui.ImVec2(spacing.x, spacing.y * 0.5)
-        )
-        imgui.push_style_var(
-            imgui.StyleVar_.cell_padding, imgui.ImVec2(cell.x, cell.y * 0.4)
-        )
-        self._render_device_section()
-        device = (
-            self._current_device() or device
-        )  # the selector may have switched devices
-        self._render_basic_info(device)
-        if imgui.collapsing_header(S.CONFIGURE_MANUFACTURER_INFO):
-            self._render_manufacturer_section(device)
-        # Read-out from the bus (its own section; auto-opens once each time a fresh read arrives).
-        readout = (
-            self._get_device_readout(device.node_id)
-            if self._get_device_readout is not None
-            else None
-        )
-        if readout is not None:
-            if self._readout_expanded_for.get(device.node_id) != id(readout):
-                imgui.set_next_item_open(True)
-                self._readout_expanded_for[device.node_id] = id(readout)
-            if imgui.collapsing_header(S.DEVICE_INFO_SECTION):
-                self._render_readout_result(device)
-        imgui.pop_style_var(2)
+        imgui.text(device_label(device))
         imgui.separator()
 
         if imgui.begin_tab_bar("##editor_tabs"):

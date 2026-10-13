@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from collections.abc import Callable
 from typing import Any
 
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
@@ -49,19 +48,6 @@ class MonitorPlugin:
     def service(self) -> MonitorService:
         """The live monitor service (shared with the embedded MCP server)."""
         return self._service
-
-    @property
-    def monitor_extended(self) -> bool:
-        return self._panel.monitor_extended
-
-    def set_monitor_extended(self, value: bool) -> None:
-        self._panel.set_monitor_extended(value)
-
-    def set_layout_toggler(self, toggle: Callable[[], None]) -> None:
-        self._panel.set_layout_toggler(toggle)
-
-    def toggle_monitor_extended(self) -> None:
-        self._panel.toggle_monitor_extended()
 
     def _select_device(self, address: int) -> None:
         """Select the project device with individual address ``address``, if there is one."""

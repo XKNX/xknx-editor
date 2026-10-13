@@ -44,22 +44,20 @@ class Column:
 
 COLUMNS: tuple[Column, ...] = (
     Column("number", False, 48),
-    Column("time", False, 54),
-    Column("date", False, 84),
+    Column("time", False, 150),
     Column("service", False, 60),
-    Column("type_short", True, 46),
     Column("flags", False, 36),
     Column("prio", False, 48),
-    Column("source_address", False, 56),
+    Column("source_address", False, 70),
     Column("source_name", False, 160),
-    Column("destination_address", False, 63),
-    Column("destination_name", False, 181),
-    Column("building_function", False, 80),
-    Column("building_part", False, 80),
+    Column("destination_address", False, 70),
+    Column("destination_name", False, 160),
+    Column("building_function", False, 15),
+    Column("building_part", False, 16),
     Column("hop_count", False, 30),
     Column("type", False, 127),
     Column("dpt", False, 130),
-    Column("info", False, 103),
+    Column("info", False, 190),
     Column("iack", True, 40),
     Column("raw_data", True, 220),
     Column("raw_value", True, 90),
@@ -80,8 +78,7 @@ PRINT_COLUMNS = tuple(
 )
 PRINT_WEIGHTS = (
     3.2,
-    6.0,
-    5.5,
+    10.5,
     4.5,
     2.8,
     3.4,
@@ -459,12 +456,13 @@ def _payload_int(raw: Any) -> int | None:
 
 
 def info_text(frame: FrameInfo, dpt: str | None, index: ProjectIndex) -> str:
-    """Decoded value of a group telegram, e.g. ``On``, falling back to the raw hex value when it
-    can't be decoded; the APDU data of other services."""
+    """Raw value and decoded value of a group telegram, e.g. ``$01 | On``; the APDU data of
+    other services."""
     payload = frame.value_payload
     if payload is not None:
+        raw = raw_value_text(payload)
         decoded = decoded_value_text(payload, dpt, index.formats, index.decimal)
-        return decoded or raw_value_text(payload)
+        return f"{raw} | {decoded}" if decoded else raw
     data = frame.apdu_data
     if data and not frame.is_group_value_service:
         return hex_text(data)
@@ -475,16 +473,10 @@ def info_text(frame: FrameInfo, dpt: str | None, index: ProjectIndex) -> str:
 
 
 def time_text(ticks: int) -> str:
-    """Local time of day with milliseconds, e.g. ``19:41:18.824``."""
+    """Local time with milliseconds, e.g. ``2026-10-12 19:41:18.824``."""
     seconds, fraction = divmod(ticks, TICKS_PER_SECOND)
     moment = datetime.fromtimestamp(seconds)
-    return f"{moment:%H:%M:%S}.{fraction // 10_000:03d}"
-
-
-def date_text(ticks: int) -> str:
-    """Local date, e.g. ``2026-10-12``."""
-    seconds = ticks // TICKS_PER_SECOND
-    return f"{datetime.fromtimestamp(seconds):%Y-%m-%d}"
+    return f"{moment:%Y-%m-%d %H:%M:%S}.{fraction // 10_000:03d}"
 
 
 def medium_info_text(raw: bytes) -> str:
@@ -508,102 +500,90 @@ def priority_text(priority: int | None) -> str:
     return (S.PRIO_SYSTEM, S.PRIO_NORMAL, S.PRIO_URGENT, S.PRIO_LOW)[priority]
 
 
-def short_type_name(name: str) -> str:
-    """A compact service name, e.g. ``GroupValueWrite`` -> ``Write``."""
-    return name[len("GroupValue") :] if name.startswith("GroupValue") else name
-
-
 def format_cells(record: MonitorRecord, index: ProjectIndex) -> tuple[str, ...]:
     """The texts of all columns for ``record``, in :data:`COLUMNS` order."""
-    idx = COLUMN_INDEX
     cells = [""] * len(COLUMNS)
-    cells[idx["number"]] = str(record.number)
-    cells[idx["time"]] = time_text(record.ticks)
-    cells[idx["date"]] = date_text(record.ticks)
+    cells[0] = str(record.number)
+    cells[1] = time_text(record.ticks)
     kind = record.kind
     if kind is RecordKind.START:
-        cells[idx["service"]] = S.ROW_START
+        cells[2] = S.ROW_START
         connection = record.connection_name or _option(
             record.connection_options, "Name"
         )
-        cells[idx["info"]] = S.INFO_STARTED.format(
+        cells[14] = S.INFO_STARTED.format(
             host=record.host, connection=connection, mode=record.mode.value
         )
         return tuple(cells)
     if kind is RecordKind.STOP:
-        cells[idx["service"]] = S.ROW_STOP
-        cells[idx["info"]] = S.INFO_STOPPED
+        cells[2] = S.ROW_STOP
+        cells[14] = S.INFO_STOPPED
         return tuple(cells)
     if kind is RecordKind.CONNECTION_ESTABLISHED:
-        cells[idx["service"]] = S.ROW_CONNECTION
-        cells[idx["info"]] = S.INFO_ESTABLISHED
+        cells[2] = S.ROW_CONNECTION
+        cells[14] = S.INFO_ESTABLISHED
         return tuple(cells)
     if kind is RecordKind.CONNECTION_LOST:
-        cells[idx["service"]] = S.ROW_CONNECTION
-        cells[idx["info"]] = S.INFO_LOST
+        cells[2] = S.ROW_CONNECTION
+        cells[14] = S.INFO_LOST
         return tuple(cells)
     if kind is RecordKind.COMMENT:
-        cells[idx["service"]] = S.ROW_COMMENT
-        cells[idx["info"]] = record.text
+        cells[2] = S.ROW_COMMENT
+        cells[14] = record.text
         return tuple(cells)
-    cells[idx["service"]] = S.ROW_FROM_BUS if record.from_bus else S.ROW_TO_BUS
-    cells[idx["interface"]] = record.connection_name
-    cells[idx["medium_info"]] = medium_info_text(record.raw)
-    cells[idx["raw_data"]] = record.raw.hex(" ").upper()
-    cells[idx["message_code"]] = MESSAGE_CODE_NAMES.get(
-        record.raw[0], f"${record.raw[0]:02X}"
-    )
+    cells[2] = S.ROW_FROM_BUS if record.from_bus else S.ROW_TO_BUS
+    cells[23] = record.connection_name
+    cells[24] = medium_info_text(record.raw)
+    cells[16] = record.raw.hex(" ").upper()
+    cells[18] = MESSAGE_CODE_NAMES.get(record.raw[0], f"${record.raw[0]:02X}")
     if record.iack is not None:
-        cells[idx["iack"]] = ack_name(record.iack)
+        cells[15] = ack_name(record.iack)
     frame = record.frame
     if frame is None:
         return tuple(cells)
     if frame.malformed or frame.checksum_error:
-        cells[idx["service"]] = S.ROW_INVALID_FRAME
-    cells[idx["flags"]] = frame.link_flags
-    cells[idx["type"]] = frame.type_name
-    cells[idx["type_short"]] = short_type_name(frame.type_name)
+        cells[2] = S.ROW_INVALID_FRAME
+    cells[3] = frame.link_flags
+    cells[12] = frame.type_name
     if not frame.is_data:
         return tuple(cells)
-    cells[idx["prio"]] = priority_text(frame.priority)
+    cells[4] = priority_text(frame.priority)
     source = frame.source or 0
-    cells[idx["source_address"]] = individual_address_text(source)
+    cells[5] = individual_address_text(source)
     device = index.devices.get(source)
     if device is not None:
-        cells[idx["source_name"]] = device.name
-        cells[idx["source_description"]] = device.description
+        cells[6] = device.name
+        cells[25] = device.description
     destination = frame.destination or 0
     dpt: str | None = None
     if frame.group:
-        cells[idx["destination_address"]] = index.group_address_text(destination)
+        cells[7] = index.group_address_text(destination)
         entry = index.group_addresses.get(destination)
         if entry is not None:
-            cells[idx["destination_name"]] = entry.name
-            cells[idx["building_function"]] = entry.building_function
-            cells[idx["building_part"]] = entry.building_part
-            cells[idx["destination_description"]] = entry.description
+            cells[8] = entry.name
+            cells[9] = entry.building_function
+            cells[10] = entry.building_part
+            cells[26] = entry.description
             dpt = entry.dpt
     else:
-        cells[idx["destination_address"]] = individual_address_text(destination)
+        cells[7] = individual_address_text(destination)
         target = index.devices.get(destination)
         if target is not None:
-            cells[idx["destination_name"]] = target.name
-            cells[idx["building_part"]] = target.building_part
-            cells[idx["destination_description"]] = target.description
-    cells[idx["hop_count"]] = str(frame.hop_count)
+            cells[8] = target.name
+            cells[10] = target.building_part
+            cells[26] = target.description
+    cells[11] = str(frame.hop_count)
     if frame.value_payload is not None:
-        cells[idx["dpt"]] = dpt_text(dpt)
-        cells[idx["raw_value"]] = raw_value_text(frame.value_payload)
-    cells[idx["info"]] = info_text(frame, dpt, index)
+        cells[13] = dpt_text(dpt)
+        cells[17] = raw_value_text(frame.value_payload)
+    cells[14] = info_text(frame, dpt, index)
     if frame.repeated:
-        cells[idx["repeated"]] = S.YES
+        cells[19] = S.YES
     if frame.data_secure:
-        cells[idx["security"]] = S.YES
-    cells[idx["frame_format"]] = (
-        S.FRAME_STANDARD if frame.standard_frame else S.FRAME_EXTENDED
-    )
+        cells[20] = S.YES
+    cells[21] = S.FRAME_STANDARD if frame.standard_frame else S.FRAME_EXTENDED
     if frame.system_broadcast:
-        cells[idx["system_broadcast"]] = S.YES
+        cells[22] = S.YES
     return tuple(cells)
 
 

@@ -328,6 +328,18 @@ class ProjectPlugin:
                 render=self._render_configure,
             ),
             PanelDefinition(
+                name="device",
+                label=S.PANEL_DEVICE,
+                dock="DeviceSpace",
+                render=self._render_device,
+            ),
+            PanelDefinition(
+                name="manufacturer",
+                label=S.PANEL_MANUFACTURER,
+                dock="DeviceSpace",
+                render=self._render_manufacturer,
+            ),
+            PanelDefinition(
                 name="mass_linker",
                 label=S.PANEL_MASS_LINKER,
                 dock="MainDockSpace",
@@ -342,25 +354,25 @@ class ProjectPlugin:
             PanelDefinition(
                 name="history",
                 label=S.PANEL_HISTORY,
-                dock="RightBottomSpace",
+                dock="RightSpace",
                 render=self._history_panel.render,
             ),
             PanelDefinition(
                 name="project_info",
                 label=S.PANEL_PROJECT_INFO,
-                dock="RightSpace",
+                dock="BottomSpace",
                 render=self._project_info_panel.render,
             ),
             PanelDefinition(
                 name="project_log",
                 label=S.PANEL_PROJECT_LOG,
-                dock="RightSpace",
+                dock="BottomSpace",
                 render=self._project_log_panel.render,
             ),
             PanelDefinition(
                 name="operations",
                 label=S.PANEL_OPERATIONS,
-                dock="RightBottomSpace",
+                dock="RightSpace",
                 render=self._program_queue_panel.render,
             ),
         ]
@@ -1578,6 +1590,14 @@ class ProjectPlugin:
         # from a per-frame global callback, not from here).
         self._sync_selected_device_from_editor()
         self._configure_panel.render()
+
+    def _render_device(self) -> None:
+        self._sync_selected_device_from_editor()
+        self._configure_panel.render_device()
+
+    def _render_manufacturer(self) -> None:
+        self._sync_selected_device_from_editor()
+        self._configure_panel.render_manufacturer()
 
     def _sync_selected_device_from_editor(self) -> None:
         if not self._get_selected_node_ids:

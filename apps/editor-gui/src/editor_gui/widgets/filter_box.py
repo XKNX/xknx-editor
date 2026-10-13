@@ -11,14 +11,11 @@ from imgui_bundle import imgui
 from editor_gui.widgets.dpi import px
 
 
-def filter_box(widget_id: str, hint: str, text: str, reserve: float = 0.0) -> str:
-    """Draw a filter input with a clear button; return the current text.
-
-    ``reserve`` leaves that many pixels free at the right for a caller-drawn widget.
-    """
+def filter_box(widget_id: str, hint: str, text: str) -> str:
+    """Draw a filter input with a clear button; return the current text."""
     btn = imgui.get_frame_height()
     avail = imgui.get_content_region_avail().x
-    imgui.set_next_item_width(max(avail - btn - px(4.0) - reserve, 1.0))
+    imgui.set_next_item_width(max(avail - btn - px(4.0), 1.0))
     _, text = imgui.input_text_with_hint(widget_id, hint, text)
     imgui.same_line(0.0, px(4.0))
     imgui.begin_disabled(not text)

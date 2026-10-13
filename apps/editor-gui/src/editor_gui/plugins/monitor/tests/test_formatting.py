@@ -207,26 +207,27 @@ def test_cells_of_a_group_telegram() -> None:
     assert cells[col["hop_count"]] == "6"
     assert cells[col["type"]] == "GroupValueWrite"
     assert cells[col["dpt"]] == "1.001 Switch"
-    assert cells[col["info"]] == "On"
+    assert cells[col["info"]] == "$01 | On"
     assert cells[col["raw_value"]] == "$01"
     assert cells[col["message_code"]] == "L_Data.ind"
     assert cells[col["frame_format"]] == "Standard"
 
 
 def test_building_function_precedes_building_part() -> None:
-    assert COLUMN_INDEX["building_function"] < COLUMN_INDEX["building_part"]
+    assert COLUMN_INDEX["building_function"] == 9
+    assert COLUMN_INDEX["building_part"] == 10
     record = MonitorRecord(
         kind=RecordKind.TELEGRAM, ticks=0, raw=bytes.fromhex("2900BCE0102F1820010081")
     )
     cells = format_cells(record, _index())
-    assert cells[COLUMN_INDEX["building_function"]] == "Ceiling light"
-    assert cells[COLUMN_INDEX["building_part"]] == "Living room"
+    assert cells[9] == "Ceiling light"
+    assert cells[10] == "Living room"
     sent = MonitorRecord(
         kind=RecordKind.TELEGRAM, ticks=0, raw=bytes.fromhex("1100B0600000102F010300")
     )
     cells = format_cells(sent, _index())
-    assert cells[COLUMN_INDEX["building_function"]] == ""
-    assert cells[COLUMN_INDEX["building_part"]] == "Living room"
+    assert cells[9] == ""
+    assert cells[10] == "Living room"
 
 
 def test_cells_of_an_individual_telegram_and_events() -> None:
