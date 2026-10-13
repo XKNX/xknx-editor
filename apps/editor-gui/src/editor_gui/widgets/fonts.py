@@ -46,6 +46,16 @@ def bold() -> Iterator[None]:
 
 
 @contextmanager
+def heading() -> Iterator[None]:
+    """Draw in the bold font at a larger headline size (for prominent intro text)."""
+    imgui.push_font(_bold, imgui.get_style().font_size_base * 1.35)
+    try:
+        yield
+    finally:
+        imgui.pop_font()
+
+
+@contextmanager
 def italic() -> Iterator[None]:
     """Draw in the italic font at the normal text size."""
     imgui.push_font(_italic, imgui.get_style().font_size_base)

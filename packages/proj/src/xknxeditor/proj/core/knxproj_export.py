@@ -1094,11 +1094,11 @@ class _Writer:
         audit = audit_and_sign_folders(members)
         missing_refs = _audit_installation_refs(members)
 
-        # An unsigned export carries no project certificate, so a licensed ETS refuses it with a
-        # "signature missing" error. An empty `{pid}_M-dummy` license marker in the archive root
-        # makes a dongle-licensed ETS import it directly - the documented manual workaround, applied
-        # here automatically. Added after signing/auditing (it is a root marker, not part of any
-        # signed folder); a certified export does not need it.
+        # An unsigned export carries no project certificate. An empty `{pid}_M-dummy` license marker
+        # in the archive root lets a licensed ETS 5 import it (ETS 5 treats any `{pid}_M-*` entry as
+        # a manufacturer-signed project by name alone). ETS 6 ignores it - it requires a real
+        # certificate - so this only helps ETS 5. Added after signing/auditing (root marker, not part
+        # of any signed folder); a certified export does not need it.
         if certificate is None:
             members[f"{pid}_M-dummy"] = b""
 

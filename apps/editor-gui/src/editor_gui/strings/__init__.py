@@ -561,8 +561,9 @@ class MenuStrings:
     @property
     def MYKNX_SIGN_PROMPT(self) -> str:
         return _(
-            "You can sign the .knxproj with your license so it can be opened in ETS. "
-            "Log in to sign it, or save the .knxproj without a license."
+            "ETS 6 needs a signed and licensed .knxproj: log in to license it and set a "
+            "signing key - or use the 'License with a Dongle' way below.\n"
+            "ETS 5: just use 'Export without Certificate'."
         )
 
     @property
@@ -606,7 +607,10 @@ class MenuStrings:
             "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in "
             "your browser automatically when a normal login is rejected. Enter the OAuth client "
             "id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the "
-            "ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll)."
+            "ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n"
+            "\n"
+            "Alternatively, if you have any licensed ETS installed, skip online signing entirely "
+            "and use the local project store instead - see 'License with an ETS Dongle'."
         )
 
     @property
@@ -695,7 +699,10 @@ class MenuStrings:
 
     @property
     def SIGNING_KEY_PLACEHOLDER_HINT(self) -> str:
-        return _("Folder signature uses a placeholder key (not ETS-valid).")
+        return _(
+            "Folder signature uses a placeholder key. Enter a valid signature under 'Signing "
+            "Key…' or use the 'License with a Dongle' way."
+        )
 
     @property
     def MYKNX_DONGLE_BACK(self) -> str:
@@ -706,23 +713,27 @@ class MenuStrings:
         return _("License with an ETS Dongle")
 
     @property
+    def MYKNX_DONGLE_SAVE_ZIP(self) -> str:
+        return _("Save as .zip")
+
+    @property
     def MYKNX_DONGLE_STEPS(self) -> str:
         return _(
-            "This .knxproj was exported without an online certificate. To import it, the export "
-            "already includes an empty dummy license marker ('P-XXXX_M-dummy') in the archive root, "
-            "so a licensed ETS (with a dongle) imports it directly - no manual steps needed.\n"
+            "Re-license the project through your own licensed ETS via its local project store, "
+            "which re-signs the copy with your dongle license:\n"
             "\n"
-            "If your ETS still reports a missing signature, use the fallback below.\n"
+            "   1. Click 'Save as .zip' below and open the .zip (or open the .knxproj with 7-Zip) "
+            "to get at the 'P-XXXX' folder inside.\n"
+            "   2. Copy the whole 'P-XXXX' folder into the ProjectStore of your installed ETS:\n"
+            "        ETS 6:  C:\\ProgramData\\KNX\\ETS6\\ProjectStore\n"
+            "        ETS 5:  C:\\ProgramData\\KNX\\ETS5\\ProjectStore\n"
+            "      (the file 'P' inside the folder holds the project name).\n"
+            "   3. Restart ETS - the project appears in the project overview.\n"
+            "   4. Make a copy of it there (ETS 5: right-click > Copy > As Clone; ETS 6: Copy in "
+            "the overview). The copy is re-signed with your license - open it, then use/export it "
+            "normally.\n"
             "\n"
-            "Fallback - clone in a licensed ETS 5\n"
-            "\n"
-            "   1. A .knxproj is a ZIP archive - open it with 7-Zip, or copy it and rename the "
-            "copy's extension from .knxproj to .zip, to get at the 'P-XXXX' folder inside.\n"
-            "   2. Copy the whole 'P-XXXX' folder into C:\\ProgramData\\KNX\\ETS5\\ProjectStore on "
-            "the licensed ETS 5 PC (the file 'P' inside the folder holds the project name).\n"
-            "   3. Start ETS 5 - the project appears in the project list.\n"
-            "   4. Right-click it and choose Copy > As Clone. The clone is a licensed project that "
-            "you can export and then import into ETS 6."
+            "This is bounded by the device-per-project limit of your license."
         )
 
     @property
@@ -1152,10 +1163,7 @@ class MenuStrings:
 
     @property
     def EXPORT_REMOVE_UNUSED_HELP(self) -> str:
-        return _(
-            "Removes product data no device uses from the exported project to reduce its size. "
-            "The project itself is not changed."
-        )
+        return _("Removes product data no device uses; the project stays unchanged.")
 
 
 class _CombinedStrings(BaseStrings, MenuStrings):

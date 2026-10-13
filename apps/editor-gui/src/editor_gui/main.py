@@ -60,7 +60,7 @@ from editor_gui.strings import S, get_locale, set_locale
 from editor_gui.update_check import UpdateInfo, check_for_update
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px, px_vec2
-from editor_gui.widgets.fonts import load_fonts
+from editor_gui.widgets.fonts import heading, load_fonts
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
     MYKNX_DLL_NAME,
@@ -333,6 +333,8 @@ class KnxGuiApp:
         self._myknx_2fa_prompt = False
         # Request to open the OAuth-credentials config modal next frame (set from a button handler).
         self._myknx_open_oauth_config = False
+        # Set by the dongle modal's "Save as .zip" action to close the whole export prompt next frame.
+        self._myknx_force_close = False
         # OAuth client credentials (client id/secret) for the device-code flow: entered by hand or
         # extracted from the user's Knx.Ets.MyKnx.dll, cached per-user.
         _oauth_creds = load_myknx_oauth_credentials()
@@ -979,11 +981,18 @@ class KnxGuiApp:
             self._myknx_login_error = ""
         # Fixed width so the wrapped text actually wraps and labels aren't pushed off-screen
         # (auto-resize + full-width inputs made this window span the whole screen before).
-        imgui.set_next_window_size(px_vec2(600.0, 0.0), imgui.Cond_.always)
+        imgui.set_next_window_size(px_vec2(780.0, 0.0), imgui.Cond_.always)
         if not imgui.begin_popup_modal(S.MYKNX_SIGN_TITLE, None)[0]:
             return
+        if self._myknx_force_close:
+            # The dongle modal's "Save as .zip" already ran the export; dismiss the whole prompt.
+            self._myknx_force_close = False
+            imgui.close_current_popup()
+            imgui.end_popup()
+            return
         dest = self._export_pending_dest
-        imgui.text_wrapped(S.MYKNX_SIGN_PROMPT)
+        with heading():
+            imgui.text_wrapped(S.MYKNX_SIGN_PROMPT)
         imgui.spacing()
         # Target format: schema 20 (default) or schema 23 -- matches what those
         # schema versions actually write (CreatedBy/ToolVersion + namespace).
@@ -1003,6 +1012,7 @@ class KnxGuiApp:
             data = load_settings("app")
             data["export_remove_unused_products"] = self._export_remove_unused
             save_settings("app", data)
+        # Help text below the checkbox, wrapped (the German text is too long for one line).
         imgui.push_style_color(
             imgui.Col_.text, imgui.get_style_color_vec4(imgui.Col_.text_disabled)
         )
@@ -1048,9 +1058,9 @@ class KnxGuiApp:
         self._render_dongle_modal()
         # Folder-signing key: open a child modal (stacks on top; closing returns to the export dialog).
         if signing_key_is_placeholder():
-            imgui.text_colored(
-                imgui.ImVec4(0.85, 0.7, 0.3, 1.0), S.SIGNING_KEY_PLACEHOLDER_HINT
-            )
+            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
+            imgui.text_wrapped(S.SIGNING_KEY_PLACEHOLDER_HINT)
+            imgui.pop_style_color()
         if imgui.button(S.SIGNING_KEY_BUTTON, imgui.ImVec2(-1, 0)):
             imgui.open_popup(S.SIGNING_KEY_TITLE)
         self._render_signing_key_modal()
@@ -2769,6 +2779,14 @@ class KnxGuiApp:
         imgui.spacing()
         imgui.separator()
         imgui.spacing()
+        # Save the project as a .zip right here so the P-XXXX folder can be dropped into the
+        # ProjectStore without renaming. Runs the export (unsigned) and dismisses the prompt.
+        dest = self._export_pending_dest
+        if dest is not None and imgui.button(S.MYKNX_DONGLE_SAVE_ZIP, imgui.ImVec2(-1, 0)):
+            self._do_export_knxproj(str(Path(dest).with_suffix(".zip")))
+            self._export_pending_dest = None
+            self._myknx_force_close = True
+            imgui.close_current_popup()
         half = imgui.get_content_region_avail().x / 2 - imgui.get_style().item_spacing.x
         if imgui.button(S.BTN_COPY, imgui.ImVec2(half, 0)):
             imgui.set_clipboard_text(S.MYKNX_DONGLE_STEPS)
