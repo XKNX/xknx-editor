@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, cast
 
 import pytest
@@ -20,7 +21,9 @@ from xknxeditor.namespaces.intermediate.memory_parameter_t import MemoryParamete
 from xknxeditor.namespaces.intermediate.memory_union_t import MemoryUnion
 from xknxeditor.namespaces.intermediate.parameter_ref_t import ParameterRef
 from xknxeditor.namespaces.intermediate.property_parameter_t import PropertyParameter
+from xknxeditor.prod.application import parse_application_xml
 from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
+from xknxeditor.prod.parser_v2.dynamic import DynamicTreeBuilder, DynamicUI
 from xknxeditor.prod.parser_v2.encode import (
     download_behavior,
     download_param_values,
@@ -154,3 +157,51 @@ def test_inactive_defaults_are_written_after_active_values() -> None:
     values = download_param_values(app, idx, state)
     assert values == {"P1": "1", "P2": "2"}
     assert encode_to_memory(app, idx, values, state)[_SEG_ID][0] == 1
+
+
+_INVISIBLE = (
+    Path(__file__).parents[1] / "fixtures" / "download_invisible_application.xml"
+).read_text(encoding="utf-8")
+
+
+def _invisible_ui(behavior: str) -> DynamicUI:
+    xml = _INVISIBLE.replace(
+        'DownloadInvisibleParameters="DefaultValue"',
+        f'DownloadInvisibleParameters="{behavior}"',
+    )
+    app = parse_application_xml(xml.encode(), "M-00FA")[0]
+    ui = DynamicUI(app.program, tree_builder=DynamicTreeBuilder(app.program))
+    ui.ui()
+    return ui
+
+
+@pytest.mark.parametrize(
+    ("behavior", "data", "mask", "properties"),
+    [
+        # Active values first, then the defaults of inactive parameters, in the
+        # application and in the module instance (base offset 4).
+        (
+            "DefaultValue",
+            "01 02 13 14 05 06 17 18",
+            "ff ff 00 00 ff ff 00 00",
+            {(None, 11, 204, 0): b"\x07"},
+        ),
+        # Inactive ranges are written with the bytes the segment holds.
+        (
+            "Background",
+            "01 12 13 14 05 16 17 18",
+            "ff ff 00 00 ff ff 00 00",
+            {(None, 11, 204, 0): b"\x00"},
+        ),
+        # Inactive ranges are not written.
+        ("None", "01 12 13 14 05 16 17 18", "ff 00 00 00 ff 00 00 00", {}),
+    ],
+)
+def test_inactive_parameters_follow_the_download_behavior(
+    behavior: str, data: str, mask: str, properties: dict[Any, bytes]
+) -> None:
+    ui = _invisible_ui(behavior)
+    ((encoded, written),) = ui.encode_to_memory_masked().values()
+    assert encoded.hex(" ") == data
+    assert written.hex(" ") == mask
+    assert ui.encode_to_typed_properties() == properties
