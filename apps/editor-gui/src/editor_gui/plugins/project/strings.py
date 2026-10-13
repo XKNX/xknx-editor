@@ -1310,6 +1310,26 @@ class ProjectStrings:
         return _("Update to V{version}")
 
     @property
+    def CHANGE_APPLICATION(self) -> str:
+        return _("Change Application Program")
+
+    @property
+    def UPDATE_APPLICATION_VERSION(self) -> str:
+        return _("Update Application Program Version")
+
+    @property
+    def BTN_UPDATE(self) -> str:
+        return _("Update")
+
+    @property
+    def CHANGE_APP_DONE(self) -> str:
+        return _("Application program changed to {name}")
+
+    @property
+    def CHANGE_APP_FAILED(self) -> str:
+        return _("Changing the application program failed")
+
+    @property
     def UPDATE_CONFIRM_TITLE(self) -> str:
         return _("Update Application Program")
 

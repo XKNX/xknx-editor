@@ -13,6 +13,7 @@ from xknxeditor.catalog.core.applications import (
     get_application_detail,
     get_application_detail_by_id,
     get_application_xml,
+    get_replaces_versions,
     list_applications,
 )
 from xknxeditor.catalog.core.catalog_sections import (
@@ -28,11 +29,13 @@ from xknxeditor.catalog.core.delete import (
 )
 from xknxeditor.catalog.core.hardware import (
     HardwareFilters,
+    ProgramSummary,
     get_hardware,
     get_hardware_program,
     get_program_application_id,
     get_program_source,
     list_hardware,
+    list_hardware_programs,
 )
 from xknxeditor.catalog.core.manufacturers import get_manufacturer, list_manufacturers
 from xknxeditor.catalog.core.products import (
@@ -140,6 +143,16 @@ class CatalogService:
     def get_application_xml(self, program_id: str) -> tuple[bytes, str] | None:
         with Session(self._engine) as db:
             return get_application_xml(db, program_id)
+
+    def list_hardware_programs(self, hardware_id: str) -> list[ProgramSummary]:
+        """Every program of a hardware with the application it loads."""
+        with Session(self._engine) as db:
+            return list_hardware_programs(db, hardware_id)
+
+    def get_replaces_versions(self, program_id: str) -> list[int]:
+        """The application versions the program's application can update."""
+        with Session(self._engine) as db:
+            return get_replaces_versions(db, program_id)
 
     def get_program_application_id(self, program_id: str) -> str | None:
         """The application id a hardware program loads, or ``None``."""

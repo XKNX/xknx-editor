@@ -90,6 +90,20 @@ def get_application_xml(db: Session, program_id: str) -> tuple[bytes, str] | Non
         return xml_bytes, manufacturer_id
 
 
+def get_replaces_versions(db: Session, program_id: str) -> list[int]:
+    """The ``ReplacesVersions`` of the application a program loads (empty when unknown)."""
+    source = get_application_xml(db, program_id)
+    if source is None:
+        return []
+    from io import BytesIO
+    from xml.etree.ElementTree import iterparse
+
+    for _, element in iterparse(BytesIO(source[0]), events=("start",)):
+        if element.tag.rsplit("}", 1)[-1] == "ApplicationProgram":
+            return [int(v) for v in (element.get("ReplacesVersions") or "").split()]
+    return []
+
+
 def get_application_detail(
     db: Session,
     program_id: str,

@@ -2,6 +2,7 @@
 
 import datetime
 from collections.abc import Sequence
+from dataclasses import dataclass
 
 from pydantic import BaseModel, Field
 from sqlalchemy import select
@@ -146,6 +147,40 @@ def get_hardware_program(
             HardwareProgram.hardware_id == hardware_id,
         )
     ).first()
+
+
+@dataclass(frozen=True)
+class ProgramSummary:
+    """A hardware program with the application it loads."""
+
+    id: str
+    hardware_id: str
+    application_id: str | None
+    application_name: str | None
+    application_number: int | None
+    application_version: int | None
+    registration_status: str | None
+
+
+def list_hardware_programs(db: Session, hardware_id: str) -> list[ProgramSummary]:
+    """Every program of a hardware, with or without a catalog item."""
+    rows = db.execute(
+        select(
+            HardwareProgram.id,
+            HardwareProgram.hardware_id,
+            HardwareProgram.application_id,
+            Application.name,
+            Application.application_number,
+            Application.application_version,
+            HardwareProgram.registration_status,
+        )
+        .join(
+            Application, Application.id == HardwareProgram.application_id, isouter=True
+        )
+        .where(HardwareProgram.hardware_id == hardware_id)
+        .order_by(HardwareProgram.id)
+    ).all()
+    return [ProgramSummary(*row) for row in rows]
 
 
 def get_program_application_id(db: Session, program_id: str) -> str | None:

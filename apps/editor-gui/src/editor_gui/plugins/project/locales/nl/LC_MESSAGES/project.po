@@ -866,3 +866,18 @@ msgstr "Het applicatieprogramma dat in het apparaat geladen is, komt niet overee
 
 msgid "Incompatible mask version: {found} instead of {expected}"
 msgstr "Incompatibele maskerversie: {found} in plaats van {expected}"
+
+msgid "Change Application Program"
+msgstr "Applicatieprogramma wijzigen"
+
+msgid "Update Application Program Version"
+msgstr "Versie van applicatieprogramma bijwerken"
+
+msgid "Update"
+msgstr "Bijwerken"
+
+msgid "Application program changed to {name}"
+msgstr "Applicatieprogramma gewijzigd in {name}"
+
+msgid "Changing the application program failed"
+msgstr "Wijzigen van het applicatieprogramma mislukt"

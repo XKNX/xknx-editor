@@ -18,7 +18,7 @@ if TYPE_CHECKING:
         OnlineIndexStatus,
         OnlineManufacturer,
     )
-    from xknxeditor.catalog import ProductDeletion, ProductSummary
+    from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
     from xknxeditor.prod import Application
 
 
@@ -35,6 +35,8 @@ class CatalogService:
 
         self._service = _CatalogService(catalog_path)
         self._products: list[ProductSummary] | None = None
+        self._programs: dict[str, list[ProgramSummary]] = {}
+        self._replaces: dict[str, list[int]] = {}
         # Shared with the project service so a background import can hold both while it writes.
         self._io_lock = io_lock or threading.RLock()
         # Manufacturer list from the KNX online catalog service (cached next to the db).
@@ -109,7 +111,7 @@ class CatalogService:
             (p.product_ref_id, p.hardware2program_ref_id) for p in self.get_products()
         }
         self._service.import_knxprod(data, require_catalog=require_catalog)
-        self._products = None
+        self._forget_products()
         added: dict[tuple[str, str], ProductSummary] = {}
         for product in self.get_products():
             key = (product.product_ref_id, product.hardware2program_ref_id)
@@ -130,7 +132,7 @@ class CatalogService:
         """Delete a product from the local catalog, holding :attr:`io_lock` while it writes."""
         with self._io_lock:
             deletion = self._service.delete_product(product_ref_id, hardware_program_id)
-            self._products = None
+            self._forget_products()
         return deletion
 
     def online_catalog_items(self, manufacturer_id: int) -> list[OnlineCatalogItem]:
@@ -195,6 +197,24 @@ class CatalogService:
         )
         return self._import_knxprod_bytes(data)
 
+    @io_guarded(list)
+    def hardware_programs(self, hardware_id: str) -> list[ProgramSummary]:
+        """Every program of a hardware with the application it loads (cached)."""
+        programs = self._programs.get(hardware_id)
+        if programs is None:
+            programs = self._service.list_hardware_programs(hardware_id)
+            self._programs[hardware_id] = programs
+        return programs
+
+    @io_guarded(list)
+    def replaces_versions(self, program_id: str) -> list[int]:
+        """The application versions the program's application can update (cached)."""
+        versions = self._replaces.get(program_id)
+        if versions is None:
+            versions = self._service.get_replaces_versions(program_id)
+            self._replaces[program_id] = versions
+        return versions
+
     @io_guarded(lambda: None)
     def get_program_application_id(self, program_id: str) -> str | None:
         """The application id a hardware program loads, whether or not a catalog item lists it."""
@@ -257,4 +277,9 @@ class CatalogService:
         return self._service.get_program_source(program_id)
 
     def refresh(self) -> None:
+        self._forget_products()
+
+    def _forget_products(self) -> None:
         self._products = None
+        self._programs = {}
+        self._replaces = {}

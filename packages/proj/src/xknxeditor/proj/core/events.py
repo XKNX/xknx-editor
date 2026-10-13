@@ -383,6 +383,7 @@ class UpdateDeviceApplication(Event):
     deleted_com_objects: list[dict[str, Any]] = field(
         default_factory=list[dict[str, Any]]
     )
+    old_loaded: list[bool] | None = None
 
     _CO_FLAGS: ClassVar[tuple[str, ...]] = (
         "read_flag",
@@ -449,6 +450,7 @@ class UpdateDeviceApplication(Event):
         for col, value in new_display.items():
             if value:
                 setattr(device, col, value)
+        self.old_loaded = _clear_application_loaded(device)
 
         self.renamed = []
         self.deleted_params = []
@@ -494,6 +496,8 @@ class UpdateDeviceApplication(Event):
         if self.old_display is not None:
             for col, value in self.old_display.items():
                 setattr(device, col, value)
+        if self.old_loaded is not None:
+            _restore_application_loaded(device, self.old_loaded)
 
         for kind, row_id, old_ref, _new_ref in self.renamed:
             if kind == "P":
@@ -558,10 +562,164 @@ class UpdateDeviceApplication(Event):
             "renamed": self.renamed,
             "deleted_params": self.deleted_params,
             "deleted_com_objects": self.deleted_com_objects,
+            "old_loaded": self.old_loaded,
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> UpdateDeviceApplication:
+        return cls(**data)
+
+
+_APPLICATION_LOADED = (
+    "application_program_loaded",
+    "parameters_loaded",
+    "communication_part_loaded",
+)
+
+
+def _clear_application_loaded(device: Device) -> list[bool]:
+    """Clear the flags of the application parts loaded into the device; returns the old ones."""
+    old = [getattr(device, name) for name in _APPLICATION_LOADED]
+    for name in _APPLICATION_LOADED:
+        setattr(device, name, False)
+    return old
+
+
+def _restore_application_loaded(device: Device, values: list[bool]) -> None:
+    for name, value in zip(_APPLICATION_LOADED, values, strict=True):
+        setattr(device, name, value)
+
+
+@_register
+@dataclass
+class ChangeDeviceApplication(Event):
+    """Switch a device to another application program of its hardware ("Change Application
+    Program"), starting from that application's defaults.
+
+    Parameters, module instances, com objects with their group-address links, binary data, the
+    group-object tree and the channel instances are removed; the new application's module
+    instances and com objects are added. The application, parameter and communication loaded
+    flags are cleared. The individual address, name, serial number, security and IP settings,
+    additional addresses and bus interfaces stay.
+    """
+
+    event_type: ClassVar[str] = "ChangeDeviceApplication"
+
+    device_id: int
+    new_hardware2program_ref_id: str
+    new_app_id: str
+    # [ref_id, channel_id] per row
+    com_objects: list[list[str | None]] = field(default_factory=list[list[str | None]])
+    # [instance_id, ref_id] per row
+    module_instances: list[list[str]] = field(default_factory=list[list[str]])
+    com_object_ids: list[int] = field(default_factory=list[int])
+    module_instance_ids: list[int] = field(default_factory=list[int])
+    # Captured on apply for revert.
+    old_hardware2program_ref_id: str | None = None
+    old_app_id: str | None = None
+    old_fields: dict[str, Any] = field(default_factory=dict[str, Any])
+    removed: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
+
+    _SUBTREE_KEY: ClassVar[str] = "ChannelInstances"
+
+    def apply(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is None:
+            return
+        self.old_hardware2program_ref_id = device.hardware2program_ref_id
+        self.old_app_id = device.application_program_ref_id
+        self.old_fields = {
+            "loaded": _clear_application_loaded(device),
+            "group_object_tree": device.group_object_tree,
+            "extra_subtrees": device.extra_subtrees,
+        }
+        self.removed = []
+        for rows in (
+            device.parameters,
+            device.module_instances,
+            device.com_objects,
+            device.binary_data,
+        ):
+            for row in list(rows):
+                self.removed.extend(_snapshot_subtree(row))
+                session.delete(row)
+        session.flush()
+        session.expire(
+            device, ["parameters", "module_instances", "com_objects", "binary_data"]
+        )
+
+        device.hardware2program_ref_id = self.new_hardware2program_ref_id
+        device.application_program_ref_id = self.new_app_id
+        device.group_object_tree = ""
+        if device.extra_subtrees and self._SUBTREE_KEY in device.extra_subtrees:
+            device.extra_subtrees = {
+                key: value
+                for key, value in device.extra_subtrees.items()
+                if key != self._SUBTREE_KEY
+            } or None
+
+        added_instances: list[ModuleInstance] = []
+        for i, (instance_id, ref_id) in enumerate(self.module_instances):
+            instance = ModuleInstance(
+                device_id=self.device_id, instance_id=instance_id, ref_id=ref_id
+            )
+            if i < len(self.module_instance_ids):
+                instance.id = self.module_instance_ids[i]
+            session.add(instance)
+            added_instances.append(instance)
+        added_objects: list[ComObject] = []
+        for i, (ref_id, channel_id) in enumerate(self.com_objects):
+            assert ref_id is not None
+            com_object = ComObject(
+                device_id=self.device_id, ref_id=ref_id, channel_id=channel_id
+            )
+            if i < len(self.com_object_ids):
+                com_object.id = self.com_object_ids[i]
+            session.add(com_object)
+            added_objects.append(com_object)
+        session.flush()
+        self.module_instance_ids = [row.id for row in added_instances]
+        self.com_object_ids = [row.id for row in added_objects]
+
+    def revert(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is None:
+            return
+        for model, ids in (
+            (ComObject, self.com_object_ids),
+            (ModuleInstance, self.module_instance_ids),
+        ):
+            for row_id in ids:
+                row = session.get(model, row_id)
+                if row is not None:
+                    session.delete(row)
+        session.flush()
+        device.hardware2program_ref_id = self.old_hardware2program_ref_id
+        device.application_program_ref_id = self.old_app_id
+        if self.old_fields:
+            _restore_application_loaded(device, self.old_fields["loaded"])
+            device.group_object_tree = self.old_fields["group_object_tree"]
+            device.extra_subtrees = self.old_fields["extra_subtrees"]
+        _restore_rows(session, self.removed)
+        session.expire(device)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "device_id": self.device_id,
+            "new_hardware2program_ref_id": self.new_hardware2program_ref_id,
+            "new_app_id": self.new_app_id,
+            "com_objects": self.com_objects,
+            "module_instances": self.module_instances,
+            "com_object_ids": self.com_object_ids,
+            "module_instance_ids": self.module_instance_ids,
+            "old_hardware2program_ref_id": self.old_hardware2program_ref_id,
+            "old_app_id": self.old_app_id,
+            "old_fields": self.old_fields,
+            "removed": self.removed,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> ChangeDeviceApplication:
         return cls(**data)
 
 

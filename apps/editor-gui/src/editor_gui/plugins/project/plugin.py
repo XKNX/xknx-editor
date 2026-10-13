@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from editor_gui.device_info import (
+    application_program_label,
     application_version_text,
     same_application,
     serial_from_project,
@@ -68,6 +69,7 @@ if TYPE_CHECKING:
     from editor_gui.device import Device, UnloadedDevice
     from editor_gui.device_info import DeviceInfo
     from editor_gui.plugins.project.ui.configure import ProgramRequest
+    from xknxeditor.catalog import ProgramSummary
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.scope import DownloadScope
     from xknxeditor.prod import Application
@@ -182,6 +184,9 @@ class ProjectPlugin:
             notify=api.notify,
             get_online_versions=self._online_versions_for_order,
             on_update_application=self._update_application,
+            get_update_version=self._api.project.newer_application_version,
+            get_change_targets=self._api.project.application_change_targets,
+            on_change_application=self._change_application,
             on_read_device_info=self._read_device_info,
             on_restart_device=self._restart_device,
             on_master_reset_device=self._master_reset_device,
@@ -672,6 +677,25 @@ class ProjectPlugin:
                     )
                 )
         return result is not None
+
+    def _change_application(self, device: "Device", program: "ProgramSummary") -> bool:
+        """Switch the device to another application program of its hardware, from that
+        application's defaults ("Change Application Program")."""
+        changed = self._api.project.change_application(device, program)
+        if self._api.notify is not None:
+            if changed:
+                assert program.application_version is not None
+                self._api.notify(
+                    S.CHANGE_APP_DONE.format(
+                        name=application_program_label(
+                            program.application_name or program.id,
+                            program.application_version,
+                        )
+                    )
+                )
+            else:
+                self._api.notify(S.CHANGE_APP_FAILED)
+        return changed
 
     def _restart_device(self, device: "Device") -> None:
         """Restart (reboot) the device over the bus (non-destructive)."""

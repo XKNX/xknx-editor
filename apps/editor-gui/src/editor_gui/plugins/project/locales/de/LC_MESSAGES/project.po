@@ -1346,3 +1346,18 @@ msgstr "Das im Gerät geladene Applikationsprogramm stimmt nicht mit dem projekt
 
 msgid "Incompatible mask version: {found} instead of {expected}"
 msgstr "Inkompatible Maskenversion: {found} statt {expected}"
+
+msgid "Change Application Program"
+msgstr "Applikationsprogramm ändern"
+
+msgid "Update Application Program Version"
+msgstr "Applikationsprogramm-Version aktualisieren"
+
+msgid "Update"
+msgstr "Aktualisieren"
+
+msgid "Application program changed to {name}"
+msgstr "Applikationsprogramm geändert in {name}"
+
+msgid "Changing the application program failed"
+msgstr "Ändern des Applikationsprogramms fehlgeschlagen"

@@ -123,6 +123,13 @@ def application_version_text(version: int) -> str:
     return f"{version >> 4}.{version & 0x0F}"
 
 
+def application_program_label(name: str, version: int) -> str:
+    """An application program as ``name Vmajor.minor``; the name alone when it shows the
+    version already."""
+    text = application_version_text(version)
+    return name if text in name else f"{name} V{text}"
+
+
 def firmware_text(version: int | None) -> str | None:
     """A PID_VERSION value as ``[magic] version.revision``."""
     if version is None:

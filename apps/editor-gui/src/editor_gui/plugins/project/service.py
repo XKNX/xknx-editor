@@ -42,8 +42,9 @@ from xknxeditor.proj.core.skeleton import MEDIUM_TP
 
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger
+    from editor_gui.plugins.catalog.online_catalog import OnlineCatalogItem
     from editor_gui.plugins.catalog.service import CatalogService
-    from xknxeditor.catalog import ProductDeletion, ProductSummary
+    from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.prod.parser_v2.calculation import ChangeSet
     from xknxeditor.proj.core.compact import CompactResult
@@ -1886,24 +1887,72 @@ class ProjectService:
 
     # --- application update ("Update Application Program") -------------
 
-    def newer_application_version(self, device: Device) -> int | None:
-        """The newest application version available online for this device that is newer than the
-        one it currently runs, or ``None``. Read-only, from the cached online index (empty until the
-        online catalog has been fetched)."""
+    def _device_program(self, device: Device) -> str | None:
         if self._pid is None:
             return None
+        return self._svc.device(self._pid, device.node_id).hardware2program_ref_id
+
+    def application_change_targets(self, device: Device) -> "list[ProgramSummary]":
+        """The other application programs of the device's hardware in the local catalog, for
+        "Change Application Program": every program that loads an application and is not
+        unregistered, older or newer."""
+        current = self._device_program(device)
+        if current is None or "_HP-" not in current:
+            return []
+        hardware_id = current.split("_HP-", 1)[0]
+        return [
+            program
+            for program in self._catalog.hardware_programs(hardware_id)
+            if program.id != current
+            and program.application_id is not None
+            and program.application_version is not None
+            and program.registration_status != "Unregistered"
+        ]
+
+    def local_update_target(self, device: Device) -> "ProgramSummary | None":
+        """The local program "Update Application Program Version" switches to: the highest
+        version of the same application whose ``ReplacesVersions`` names the current version."""
+        current = device.app.program
+        candidates = [
+            program
+            for program in self.application_change_targets(device)
+            if program.application_number == current.application_number
+            and current.application_version
+            in self._catalog.replaces_versions(program.id)
+        ]
+        return max(
+            candidates,
+            key=lambda program: program.application_version or 0,
+            default=None,
+        )
+
+    def _online_update_candidates(self, device: Device) -> "list[OnlineCatalogItem]":
+        if self._pid is None:
+            return []
         parsed = parse_app_id(device.app.id)
         if parsed is None:
-            return None
+            return []
         info = self._svc.device(self._pid, device.node_id)
-        newer = [
-            item.application_version
+        return [
+            item
             for item in self._catalog.online_products_for_order(info.order_number)
             if item.application_version is not None
             and item.application_version > parsed.version
-            and item.downloadable  # a gated version cannot be fetched (would 400), so do not offer it
+            and item.downloadable  # skip gated versions: the online download would be rejected (400)
         ]
-        return max(newer) if newer else None
+
+    def newer_application_version(self, device: Device) -> int | None:
+        """The application version "Update" switches the device to, or ``None``: the local update
+        target or, when the online catalog has a newer downloadable version, that one."""
+        versions = [
+            item.application_version
+            for item in self._online_update_candidates(device)
+            if item.application_version is not None
+        ]
+        local = self.local_update_target(device)
+        if local is not None and local.application_version is not None:
+            versions.append(local.application_version)
+        return max(versions) if versions else None
 
     def update_application(self, device: Device) -> UpdateApplicationResult | None:
         """Update ``device`` to the newest available version of the *same* application program,
@@ -1916,34 +1965,53 @@ class ProjectService:
         if self._pid is None:
             return None
         parsed = parse_app_id(device.app.id)
-        if parsed is None:
-            return None
         info = self._svc.device(self._pid, device.node_id)
-        candidates = [
-            item
-            for item in self._catalog.online_products_for_order(info.order_number)
-            if item.application_version is not None
-            and item.application_version > parsed.version
-            and item.downloadable  # skip gated versions: the online download would be rejected (400)
-        ]
-        if not candidates:
-            return None
-        target = max(candidates, key=lambda item: item.application_version or 0)
-        target_version = target.application_version
-        assert target_version is not None
-
-        product = self._resolve_product_for_version(
-            parsed.manufacturer_id, parsed.application_number, target_version, target.id
+        candidates = self._online_update_candidates(device)
+        target = max(
+            candidates, key=lambda item: item.application_version or 0, default=None
         )
-        if product is None or product.application_id is None:
-            self._log.warning(
-                "update application: target product not resolvable",
-                device=device.node_id,
-                order=info.order_number,
-                version=target_version,
+        local = self.local_update_target(device)
+        if (
+            local is not None
+            and local.application_id is not None
+            and (
+                target is None
+                or (local.application_version or 0) >= (target.application_version or 0)
             )
+        ):
+            target_version = local.application_version
+            product_ref_id = info.product_ref_id
+            hardware2program_ref_id = local.id
+            new_app_id = local.application_id
+            display: dict[str, str | None] = {}
+        elif target is not None and parsed is not None:
+            target_version = target.application_version
+            product = self._resolve_product_for_version(
+                parsed.manufacturer_id,
+                parsed.application_number,
+                target.application_version or 0,
+                target.id,
+            )
+            if product is None or product.application_id is None:
+                self._log.warning(
+                    "update application: target product not resolvable",
+                    device=device.node_id,
+                    order=info.order_number,
+                    version=target_version,
+                )
+                return None
+            product_ref_id = product.product_ref_id
+            hardware2program_ref_id = product.hardware2program_ref_id
+            new_app_id = product.application_id
+            display = {
+                "order_number": product.order_number,
+                "product_name": product.name,
+                "manufacturer_name": product.manufacturer_name,
+            }
+        else:
             return None
-        new_app = self._catalog.get_application(product.application_id)
+        assert target_version is not None
+        new_app = self._catalog.get_application(new_app_id)
         if new_app is None:
             return None
         indexer = ApplicationIndexer(new_app.program)
@@ -1951,14 +2019,12 @@ class ProjectService:
         kept, dropped = self._svc.update_device_application(
             self._pid,
             device.node_id,
-            product_ref_id=product.product_ref_id,
-            hardware2program_ref_id=product.hardware2program_ref_id,
+            product_ref_id=product_ref_id,
+            hardware2program_ref_id=hardware2program_ref_id,
             old_app_id=device.app.id,
-            new_app_id=product.application_id,
+            new_app_id=new_app_id,
             valid_ref_ids=valid,
-            order_number=product.order_number,
-            product_name=product.name,
-            manufacturer_name=product.manufacturer_name,
+            **display,
         )
         self._app_cache.clear()
         self._bump()
@@ -1977,6 +2043,43 @@ class ProjectService:
         return UpdateApplicationResult(
             new_version=target_version, kept=kept, dropped=dropped
         )
+
+    def change_application(self, device: Device, program: "ProgramSummary") -> bool:
+        """Switch ``device`` to another application program of its hardware, starting from that
+        application's defaults ("Change Application Program"). Returns whether it changed."""
+        if self._pid is None or program.application_id is None:
+            return False
+        new_app = self._catalog.get_application(program.application_id)
+        if new_app is None:
+            self._log.warning(
+                "change application: application not resolvable",
+                device=device.node_id,
+                application=program.application_id,
+            )
+            return False
+        probe = Device(node_id=0, name=device.name, app=new_app, individual_address="")
+        module_instances = probe.get_module_instances()
+        com_objects: list[tuple[str, str | None]] = [
+            (co.id, None) for co in probe.com_objects
+        ]
+        probe.release_dynamic_ui()
+        self._svc.change_device_application(
+            self._pid,
+            device.node_id,
+            hardware2program_ref_id=program.id,
+            new_app_id=new_app.id,
+            com_objects=com_objects,
+            module_instances=module_instances or None,
+        )
+        self._app_cache.clear()
+        self._bump()
+        self._log.info(
+            "application changed",
+            device=device.node_id,
+            old=device.app.id,
+            new=new_app.id,
+        )
+        return True
 
     def _resolve_product_for_version(
         self,

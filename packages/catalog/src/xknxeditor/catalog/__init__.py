@@ -15,6 +15,7 @@ _LAZY: dict[str, tuple[str, str]] = {
     "CatalogService": (".core.service", "CatalogService"),
     "HardwareFilters": (".core.hardware", "HardwareFilters"),
     "ProductSummary": (".core.products", "ProductSummary"),
+    "ProgramSummary": (".core.hardware", "ProgramSummary"),
     "build_catalog_tree": (".core.catalog_sections", "build_catalog_tree"),
     "collect_section_ids": (".core.catalog_sections", "collect_section_ids"),
     "get_application_detail": (".core.applications", "get_application_detail"),
@@ -50,6 +51,7 @@ __all__ = [
     "HardwareFilters",
     "ProductDeletion",
     "ProductSummary",
+    "ProgramSummary",
     "build_catalog_tree",
     "collect_section_ids",
     "default_db_url",
@@ -89,6 +91,7 @@ if TYPE_CHECKING:
     from .core.delete import ProductDeletion, delete_product, plan_product_deletion
     from .core.hardware import (
         HardwareFilters,
+        ProgramSummary,
         get_hardware,
         get_hardware_program,
         list_hardware,

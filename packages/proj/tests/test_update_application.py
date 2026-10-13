@@ -140,3 +140,27 @@ def test_module_refs_carried_unchanged(tmp_path: Path):
     _update(svc, pid, device_id)
     params = {p.ref_id: p.value for p in svc.devices(pid)[0].parameters}
     assert params == {"M-100_MI-1_P-2_R-2": "9"}  # untouched
+
+
+def test_update_clears_the_application_loaded_flags(tmp_path: Path):
+    svc, pid = _new(tmp_path)
+    device_id = _device_with_config(svc, pid)
+    svc.set_device_commissioning(
+        pid,
+        device_id,
+        individual_address_loaded=True,
+        application_program_loaded=True,
+        parameters_loaded=True,
+        communication_part_loaded=True,
+    )
+    _update(svc, pid, device_id)
+    device = svc.devices(pid)[0]
+    assert device.individual_address_loaded
+    assert not device.application_program_loaded
+    assert not device.parameters_loaded
+    assert not device.communication_part_loaded
+
+    assert svc.undo(pid)
+    device = svc.devices(pid)[0]
+    assert device.application_program_loaded and device.parameters_loaded
+    assert device.communication_part_loaded
