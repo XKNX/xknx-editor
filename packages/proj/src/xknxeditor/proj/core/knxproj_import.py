@@ -84,7 +84,31 @@ logger = logging.getLogger(__name__)
 # DeviceInstance attributes xknxproject does not surface but that we round-trip verbatim. Restricted
 # to attributes defined in BOTH project/20 and project/23 so re-emitting them never invalidates an
 # export to the older schema.
-_DEVICE_EXTRA_ATTRS = ("UniqueId", "InstallationHints", "IsRFRetransmitter", "Context")
+# DeviceInstance attributes the export emits from dedicated columns. Everything else on the element
+# is captured verbatim into Device.extra_attributes and re-emitted, so attributes we don't model
+# (CheckSums, LoadedImage, IsActivityCalculated, LastUsedAPDULength, and any future additions)
+# survive a round-trip instead of being dropped. Keep in sync with the DeviceInstance attributes
+# written in knxproj_export (_build_device_instance).
+_DEVICE_MANAGED_ATTRS = frozenset(
+    {
+        "Id",
+        "Address",
+        "Name",
+        "ProductRefId",
+        "Hardware2ProgramRefId",
+        "Description",
+        "Comment",
+        "LastModified",
+        "SerialNumber",
+        "LastDownload",
+        "IndividualAddressLoaded",
+        "ApplicationProgramLoaded",
+        "CommunicationPartLoaded",
+        "MediumConfigLoaded",
+        "ParametersLoaded",
+        "Puid",
+    }
+)
 
 # Installation attributes xknxproject does not surface, round-tripped verbatim. Restricted to
 # attributes defined in BOTH project/20 and /23, and NOT to secret key material (IPRoutingBackboneKey,
@@ -415,11 +439,14 @@ class _RawExtras:
         self.installation_extra_attributes: dict[str, str] = {}
         # The installation's <P2PLinks> subtree as a namespace-stripped XML string ("" if absent).
         self.installation_p2p_links: str = ""
-        # ComObjectInstanceRef @Id -> (raw @Text, raw @FunctionText, raw @Description) per-instance
-        # overrides. Read from the raw XML because xknxproject backfills these from the app default
-        # post-parse, so the parsed object can no longer tell an instance override from an inherited
-        # default.
-        self.com_object_text_overrides: dict[str, _CoirOverride] = {}
+        # Per-instance ComObjectInstanceRef overrides (flags/DPT/texts), per device: device id ->
+        # {(RefId, ChannelId): override}. Read from the raw XML because xknxproject backfills texts
+        # and resolves flags from the app default post-parse, so the parsed object can no longer tell
+        # an instance override from an inherited default. Keyed by (RefId, ChannelId) because ETS 6
+        # omits the optional @Id, and a channel object repeats the same RefId once per ChannelId.
+        self.com_object_text_overrides: dict[
+            str, dict[tuple[str, str | None], _CoirOverride]
+        ] = {}
         # --- coupler data xknxproject does not surface (read straight from the raw XML) ---
         # (Area @Address, Line @Address) -> coupler pass-through group addresses
         # (``AdditionalGroupAddresses``; on the Segment in project/22+23, on the Line in 14+20).
@@ -622,6 +649,14 @@ def _read_device_extras(contents: _ProjectContents) -> _RawExtras:
     return extras
 
 
+def _device_extra_attributes(device: ET.Element) -> dict[str, str]:
+    """Every ``<DeviceInstance>`` attribute the export does not emit from a dedicated column,
+    captured verbatim. Keeping the unmodelled attributes (e.g. ``CheckSums``, ``LoadedImage``,
+    ``IsActivityCalculated``, ``LastUsedAPDULength``) lets them survive a round-trip instead of
+    being dropped. ``@Comment`` is excluded here (captured separately as the device comment)."""
+    return {k: v for k, v in device.attrib.items() if k not in _DEVICE_MANAGED_ATTRS}
+
+
 def _read_one_device_extras(
     device: ET.Element, device_id: str, contents: _ProjectContents, extras: _RawExtras
 ) -> None:
@@ -648,15 +683,21 @@ def _read_one_device_extras(
     comment = device.get("Comment")
     if comment:
         extras.device_comment[device_id] = comment
-    extra = {
-        name: value
-        for name in _DEVICE_EXTRA_ATTRS
-        if (value := device.get(name)) is not None
-    }
+    extra = _device_extra_attributes(device)
     if extra:
         extras.device_extra_attributes[device_id] = extra
-    for cid, override in _read_com_object_text_overrides(device):
-        extras.com_object_text_overrides[cid] = override
+    coir_overrides = _read_com_object_text_overrides(device)
+    if coir_overrides:
+        by_key: dict[tuple[str, str | None], _CoirOverride] = {}
+        for key, override in coir_overrides:
+            if key in by_key:
+                logger.warning(
+                    "duplicate ComObjectInstanceRef %s on device %s; keeping the last override",
+                    key,
+                    device_id,
+                )
+            by_key[key] = override
+        extras.com_object_text_overrides[device_id] = by_key
     param_overrides = {
         rid: attrs
         for pir in device.iter()
@@ -1019,20 +1060,23 @@ class _CoirOverride:
 
 def _read_com_object_text_overrides(
     device: ET.Element,
-) -> list[tuple[str, _CoirOverride]]:
-    """Per-instance overrides from each ``<ComObjectInstanceRef>``, keyed by its ``@Id``.
+) -> list[tuple[tuple[str, str | None], _CoirOverride]]:
+    """Per-instance overrides from each ``<ComObjectInstanceRef>``, keyed by ``(RefId, ChannelId)``.
 
     xknxproject backfills ``@Text``/``@FunctionText`` (and resolves flags) from the application-program
     default after parsing, so the raw XML is the only place the genuine user override survives. The
     non-text instance attributes ``@Priority``/``@DatapointType``/``@Acknowledges`` are not surfaced at
     all. Yields only refs carrying at least one of the captured attributes; an absent attribute stays
-    ``None`` (inherit the app default)."""
-    result: list[tuple[str, _CoirOverride]] = []
+    ``None`` (inherit the app default).
+
+    Keyed by ``(@RefId, @ChannelId)``, not the optional ``@Id``: ETS 6 omits ``@Id`` entirely, and a
+    channel-replicated object carries the same ``@RefId`` once per ``@ChannelId``."""
+    result: list[tuple[tuple[str, str | None], _CoirOverride]] = []
     for elem in device.iter():
         if _localname(elem.tag) != "ComObjectInstanceRef":
             continue
-        cid = elem.get("Id")
-        if not cid:
+        ref_id = elem.get("RefId")
+        if not ref_id:
             continue
         override = _CoirOverride(
             text=elem.get("Text"),
@@ -1049,7 +1093,7 @@ def _read_com_object_text_overrides(
             read_on_init_flag=_enable_flag(elem.get("ReadOnInitFlag")),
         )
         if override != _CoirOverride():
-            result.append((cid, override))
+            result.append(((ref_id, elem.get("ChannelId")), override))
     return result
 
 
@@ -1517,10 +1561,14 @@ def _build_device(
     xdevice: DeviceInstance | _AddresslessDevice, state: _ImportState
 ) -> Device:
     module_args = state.extras.module_args.get(xdevice.identifier, {})
+    coir_overrides = state.extras.com_object_text_overrides.get(xdevice.identifier, {})
     com_objects: list[ComObject] = []
     for coir in xdevice.com_object_instance_refs:
-        override = state.extras.com_object_text_overrides.get(
-            getattr(coir, "identifier", None) or ""
+        ref_id = getattr(coir, "ref_id", None)
+        override = (
+            coir_overrides.get((ref_id, getattr(coir, "channel", None)))
+            if ref_id
+            else None
         )
         row = _build_com_object(coir, override)
         com_objects.append(row)

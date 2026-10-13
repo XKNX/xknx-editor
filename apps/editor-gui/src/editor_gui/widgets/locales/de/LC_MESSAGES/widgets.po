@@ -148,3 +148,15 @@ msgstr "Millisekunden"
 
 msgid "General"
 msgstr "Allgemein"
+
+msgid "Default (inherit)"
+msgstr "Standard (vererbt)"
+
+msgid "Edit description…"
+msgstr "Beschreibung bearbeiten…"
+
+msgid "Edit Description"
+msgstr "Beschreibung bearbeiten"
+
+msgid "OK"
+msgstr "OK"

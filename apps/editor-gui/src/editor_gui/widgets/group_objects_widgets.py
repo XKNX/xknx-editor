@@ -48,6 +48,8 @@ class _CopiedObject:
 _SENDING_COLOR = imgui.ImVec4(0.45, 0.8, 0.5, 1.0)
 # Width of the group-address link picker: wide enough for "address + full name" without clipping.
 _PICKER_WIDTH = 460.0
+# Valid per-instance ComObjectInstanceRef @Priority values (ComObjectPriority_t).
+_PRIORITIES = ("Low", "High", "Alert")
 
 
 def _clamp_int(text: str, lo: int, hi: int) -> int:
@@ -73,6 +75,9 @@ class GroupObjectsTable:
         get_ga_range_tree: Callable[[], list[Any]] | None = None,
         on_navigate_ga: Callable[[int], None] | None = None,
         on_paste_links: PasteLinks | None = None,
+        on_set_dpt: Callable[[Device, str, str | None], None] | None = None,
+        on_set_priority: Callable[[Device, str, str | None], None] | None = None,
+        on_set_description: Callable[[Device, str, str | None], None] | None = None,
     ) -> None:
         self._set_flag = set_flag
         self._on_link = on_link
@@ -85,6 +90,17 @@ class GroupObjectsTable:
         self._get_ga_range_tree = get_ga_range_tree
         self._on_navigate_ga = on_navigate_ga
         self._on_paste_links = on_paste_links
+        # Edit the per-instance DatapointType ("Data Type") / Priority via a dropdown of the valid
+        # values; ``None`` clears the override (inherit the application default).
+        self._on_set_dpt = on_set_dpt
+        self._on_set_priority = on_set_priority
+        # Edit the per-instance Description (free-text note) via a small popup opened from the row
+        # context menu. State: the object being edited, its buffer, and a one-shot open flag.
+        self._on_set_description = on_set_description
+        self._desc_popup_device: Device | None = None
+        self._desc_popup_co_id: str | None = None
+        self._desc_buffer = ""
+        self._open_desc_popup = False
         # Copied com-object configs (one per source object, in table order). Paste maps them onto
         # the checked target objects positionally.
         self._link_clipboard: list[_CopiedObject] = []
@@ -191,6 +207,7 @@ class GroupObjectsTable:
         # The link/create dialog is drawn here (not as a per-row popup) so it survives clicks on
         # other left-hand tabs and can be docked.
         self._render_add_window(get_links, get_all_group_addresses)
+        self._render_description_popup()
 
     def _checked_targets(self, com_objects: list[ComObject]) -> list[ComObject]:
         """Checked com-objects that have a DB row (the copy/paste source and target set)."""
@@ -322,17 +339,23 @@ class GroupObjectsTable:
         # The per-instance @Description (free-text note) has no column of its own; show it on hover.
         if com_object.description and imgui.is_item_hovered():
             imgui.set_tooltip(com_object.description)
-        if self._on_paste_links is not None:
+        if self._on_paste_links is not None or self._on_set_description is not None:
             self._render_row_context_menu(device, com_object, get_links)
 
         imgui.table_set_column_index(2)
-        imgui.text_disabled(getattr(com_object.dpt, "name", "") or "")
+        if self._on_set_dpt is not None and com_object.supported_dpts:
+            self._render_dpt_combo(device, com_object)
+        else:
+            imgui.text_disabled(getattr(com_object.dpt, "name", "") or "")
 
         imgui.table_set_column_index(3)
         imgui.text_disabled(com_object.object_size)
 
         imgui.table_set_column_index(4)
-        imgui.text_disabled(com_object.priority)
+        if self._on_set_priority is not None:
+            self._render_priority_combo(device, com_object)
+        else:
+            imgui.text_disabled(com_object.priority)
 
         imgui.table_set_column_index(5)
         db_id = com_object.db_id
@@ -377,6 +400,78 @@ class GroupObjectsTable:
                     S.TOOLTIP_LOCKED.format(name=full_name) if is_locked else full_name
                 )
 
+    def _render_dpt_combo(self, device: Device, com_object: ComObject) -> None:
+        """Dropdown to pin the group object's per-instance DatapointType: the object's supported
+        types, plus a "Default" entry that clears the override (inherit the application default)."""
+        assert self._on_set_dpt is not None
+        current = com_object.dpt
+        preview = (
+            f"{current.code} {current.name}"
+            if current is not None and current.major
+            else S.GROUP_OBJECTS_DPT_DEFAULT
+        )
+        imgui.set_next_item_width(-1.0)
+        if not imgui.begin_combo(f"##dpt_{com_object.id}", preview):
+            return
+        if imgui.selectable(
+            S.GROUP_OBJECTS_DPT_DEFAULT, com_object.datapoint_type_override is None
+        )[0]:
+            self._on_set_dpt(device, com_object.id, None)
+        for dpt in com_object.supported_dpts:
+            selected = current is not None and dpt.code == current.code
+            if imgui.selectable(f"{dpt.code}  {dpt.name}", selected)[0]:
+                self._on_set_dpt(device, com_object.id, dpt.code)
+        imgui.end_combo()
+
+    def _render_priority_combo(self, device: Device, com_object: ComObject) -> None:
+        """Dropdown for the group object's per-instance Priority (Low/High/Alert), plus a "Default"
+        entry that clears the override (inherit the application default)."""
+        assert self._on_set_priority is not None
+        current = com_object.priority
+        imgui.set_next_item_width(-1.0)
+        if not imgui.begin_combo(
+            f"##prio_{com_object.id}", current or S.GROUP_OBJECTS_DPT_DEFAULT
+        ):
+            return
+        if imgui.selectable(S.GROUP_OBJECTS_DPT_DEFAULT, not current)[0]:
+            self._on_set_priority(device, com_object.id, None)
+        for priority in _PRIORITIES:
+            if imgui.selectable(priority, priority == current)[0]:
+                self._on_set_priority(device, com_object.id, priority)
+        imgui.end_combo()
+
+    def _render_description_popup(self) -> None:
+        """A small modal to edit the per-instance Description, opened from the row context menu."""
+        if self._on_set_description is None:
+            return
+        if self._open_desc_popup:
+            imgui.open_popup(S.GROUP_OBJECTS_EDIT_DESCRIPTION)
+            self._open_desc_popup = False
+        if not imgui.begin_popup_modal(
+            S.GROUP_OBJECTS_EDIT_DESCRIPTION,
+            None,
+            imgui.WindowFlags_.always_auto_resize,
+        )[0]:
+            return
+        device, co_id = self._desc_popup_device, self._desc_popup_co_id
+        if device is None or co_id is None:
+            imgui.close_current_popup()
+            imgui.end_popup()
+            return
+        imgui.set_next_item_width(px(_PICKER_WIDTH))
+        entered, self._desc_buffer = imgui.input_text(
+            "##desc_edit",
+            self._desc_buffer,
+            imgui.InputTextFlags_.enter_returns_true,
+        )
+        if imgui.button(S.OK) or entered:
+            self._on_set_description(device, co_id, self._desc_buffer or None)
+            imgui.close_current_popup()
+        imgui.same_line()
+        if imgui.button(S.CANCEL):
+            imgui.close_current_popup()
+        imgui.end_popup()
+
     def _render_row_context_menu(
         self, device: Device, com_object: ComObject, get_links: GroupLinkResolver
     ) -> None:
@@ -386,6 +481,13 @@ class GroupObjectsTable:
             f"##ctx_{device.node_id}_{com_object.id}"
         ):
             return
+        if self._on_set_description is not None:
+            if imgui.menu_item(S.GROUP_OBJECTS_CTX_EDIT_DESCRIPTION, "", False)[0]:
+                self._desc_popup_device = device
+                self._desc_popup_co_id = com_object.id
+                self._desc_buffer = com_object.description
+                self._open_desc_popup = True
+            imgui.separator()
         if imgui.menu_item(S.GROUP_OBJECTS_CTX_COPY, "", False)[0]:
             self._link_clipboard = [self._capture(com_object, get_links)]
         if imgui.menu_item(

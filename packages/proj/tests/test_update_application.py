@@ -164,3 +164,40 @@ def test_update_clears_the_application_loaded_flags(tmp_path: Path):
     device = svc.devices(pid)[0]
     assert device.application_program_loaded and device.parameters_loaded
     assert device.communication_part_loaded
+
+
+def test_application_change_clears_and_restores_loaded_image_attrs() -> None:
+    """An application change invalidates the loaded-image blobs (CheckSums/LoadedImage) captured
+    from the source: they must be dropped so a later export doesn't attach the old program's image
+    to the new one, and restored on undo. Other captured attributes are kept."""
+    from xknxeditor.proj.core.events import (
+        _clear_application_loaded,
+        _restore_application_loaded,
+    )
+    from xknxeditor.proj.models import Device
+
+    device = Device(
+        segment_id=1,
+        address=1,
+        name="D",
+        product_ref_id="P",
+        hardware2program_ref_id="H2P",
+    )
+    device.application_program_loaded = True
+    device.extra_attributes = {
+        "CheckSums": "sum",
+        "LoadedImage": "img",
+        "IsActivityCalculated": "true",
+    }
+
+    saved = _clear_application_loaded(device)
+    assert device.extra_attributes == {"IsActivityCalculated": "true"}
+    assert device.application_program_loaded is False
+
+    _restore_application_loaded(device, saved)
+    assert device.extra_attributes == {
+        "CheckSums": "sum",
+        "LoadedImage": "img",
+        "IsActivityCalculated": "true",
+    }
+    assert device.application_program_loaded is True

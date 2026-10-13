@@ -177,6 +177,9 @@ class ConfigurePanel:
         open_memory_preview: Callable[[Device], None] | None = None,
         on_param_change_all: Callable[[Device, str, str], None] | None = None,
         notify: Callable[[str], None] | None = None,
+        set_dpt: Callable[[Device, str, str | None], None] | None = None,
+        set_priority: Callable[[Device, str, str | None], None] | None = None,
+        set_description: Callable[[Device, str, str | None], None] | None = None,
         on_update_application: Callable[[Device], None] | None = None,
         get_update_version: Callable[[Device], int | None] | None = None,
         get_change_targets: "Callable[[Device], list[ProgramSummary]] | None" = None,
@@ -286,6 +289,9 @@ class ConfigurePanel:
             get_ga_range_tree=get_ga_range_tree,
             on_navigate_ga=on_navigate_ga,
             on_paste_links=on_paste_links,
+            on_set_dpt=set_dpt,
+            on_set_priority=set_priority,
+            on_set_description=set_description,
         )
         self._name_buffer: str = ""
         # The name field was pre-filled with the default name when it was activated.

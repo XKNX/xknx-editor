@@ -879,6 +879,10 @@ class _Writer:
         # importer reject the topology and import no devices.
         schema = ns.rsplit("/", 1)[-1]
         self._schema = schema
+        # Source schema of the project being written; set from the project in write_archive. When it
+        # differs from the written schema (a cross-schema export), captured verbatim attributes are
+        # suppressed because they may be source-schema-only. Defaults to the written schema (emit).
+        self._source_schema = schema
         self._uses_segments = schema in {"22", "23"}
         # Trade@Context only exists from project/20 onward; the v10-v14 Trade_t binding has no such
         # attribute, so emitting it produces XML that fails schema-14 validation on re-read.
@@ -941,6 +945,7 @@ class _Writer:
         certificate_signer: CertificateSigner | None = None,
     ) -> tuple[SignatureAudit, list[str], bool, bool]:
         pid = project.id
+        self._source_schema = project.schema_version or self._schema
         ga_link_id, di_id = _assign_ids(pid, installation)
 
         if master_xml is None:
@@ -1426,10 +1431,13 @@ class _Writer:
             ParametersLoaded="true" if device.parameters_loaded else None,
             Puid=self._next_puid(),
         )
-        # DeviceInstance attributes xknxproject drops, captured verbatim on import (UniqueId,
-        # InstallationHints, IsRFRetransmitter, Context — all valid in project/20 and /23).
-        for key, value in (device.extra_attributes or {}).items():
-            di.set(key, value)
+        # DeviceInstance attributes captured verbatim on import (everything the columns above don't
+        # cover). They came from the source schema, so re-emit them only when writing that same
+        # schema; a cross-schema export (e.g. v23 -> v20) could otherwise emit a source-schema-only
+        # attribute and produce invalid XML.
+        if self._schema == self._source_schema:
+            for key, value in (device.extra_attributes or {}).items():
+                di.set(key, value)
         # Genuine exports order the device's children ParameterInstanceRefs, then
         # ComObjectInstanceRefs.
         # NOTE: unlike ComObjectInstanceRef (a RELIDREF), ParameterInstanceRef/@RefId is the FULL

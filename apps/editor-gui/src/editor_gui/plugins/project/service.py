@@ -28,6 +28,7 @@ from editor_gui.device import (
 )
 from editor_gui.device_info import serial_to_project
 from editor_gui.device_plugins import ConfigurationApp, configuration_apps
+from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.history import HistoryEntry
 from editor_gui.settings import config_dir
@@ -46,6 +47,7 @@ from xknxeditor.proj import import_knxproj as _import_knxproj
 from xknxeditor.proj import is_ga_export as _is_ga_export
 from xknxeditor.proj import write_ga_export as _write_ga_export
 from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga, parse_ga
+from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.skeleton import MEDIUM_TP
 
@@ -276,6 +278,12 @@ def _history_label(event_type: str, data: dict[str, Any]) -> str:
         return "Move device"
     if event_type == "SetComObjectFlag":
         return "Set flag"
+    if event_type == "SetComObjectDatapointType":
+        return "Set data type"
+    if event_type == "SetComObjectPriority":
+        return "Set priority"
+    if event_type == "SetComObjectDescription":
+        return "Set description"
     if event_type == "SetComObjectSending":
         return "Set sending"
     if event_type == "SetGroupAddressDatapointType":
@@ -1167,10 +1175,15 @@ class ProjectService:
                     co.text_override = co_row.text_override
                     co.function_text_override = co_row.function_text_override
                     co.description = co_row.description_override or ""
+                    co.datapoint_type_override = co_row.datapoint_type_override
                     if co_row.text_override:
                         co.name = co_row.text_override
                     if co_row.function_text_override:
                         co.function_text = co_row.function_text_override
+                    if co_row.datapoint_type_override:
+                        co.dpt = dpt_from_token(co_row.datapoint_type_override)
+                    if co_row.priority:
+                        co.priority = co_row.priority
             # Warm the lightweight views the panels read for every device, then drop the heavy
             # per-device DynamicUI evaluator (~15 MB each) — it is rebuilt lazily only when a device
             # is inspected or edited. This keeps memory bounded to the active device.
@@ -2770,6 +2783,62 @@ class ProjectService:
                 ref_id=co_id
             )
             device.set_com_obj_instance_ref(co_id, coir)
+        self._bump(structural=False)
+
+    def set_com_object_datapoint_type(
+        self, device: Device, co_id: str, value: str | None
+    ) -> None:
+        """Pin (or clear with an empty/``None`` ``value``) the per-instance DatapointType of a group
+        object. ``value`` is a dotted code (``5.001``) or ETS token (``DPST-5-1``); clearing inherits
+        the application/product default again."""
+        if self._pid is None:
+            return
+        co = device.find_com_object(co_id)
+        if co is None or co.db_id is None:
+            return
+        token = normalize_datapoint_type(value) if value else None
+        self._svc.set_com_object_datapoint_type(self._pid, co.db_id, token)
+        # Reflect on the live com-object. With a value, update the override and the resolved display
+        # DPT in place (non-structural bump keeps the Configure tree/edit state). On a clear, the
+        # default DPT is only known after a rebuild, so bump structurally to pull it from the catalog.
+        co.datapoint_type_override = token
+        if value:
+            co.dpt = lookup_or_make_dpt(value)
+        device.edited_in_place = True
+        self._bump(structural=token is None)
+
+    def set_com_object_priority(
+        self, device: Device, co_id: str, value: str | None
+    ) -> None:
+        """Set (or clear with ``None``, inherit the default) the per-instance Priority of a group
+        object."""
+        if self._pid is None:
+            return
+        co = device.find_com_object(co_id)
+        if co is None or co.db_id is None:
+            return
+        self._svc.set_com_object_priority(self._pid, co.db_id, value)
+        # Set: reflect in place (non-structural). Clear: the default is only known after a rebuild.
+        if value:
+            co.priority = value
+        device.edited_in_place = True
+        self._bump(structural=value is None)
+
+    def set_com_object_description(
+        self, device: Device, co_id: str, value: str | None
+    ) -> None:
+        """Set (or clear with an empty/``None`` value) the per-instance Description of a group
+        object. The description is shown as a tooltip; it has no application default to fall back to,
+        so a clear just empties it."""
+        if self._pid is None:
+            return
+        co = device.find_com_object(co_id)
+        if co is None or co.db_id is None:
+            return
+        normalized = value or None
+        self._svc.set_com_object_description(self._pid, co.db_id, normalized)
+        co.description = normalized or ""
+        device.edited_in_place = True
         self._bump(structural=False)
 
     def _find_com_object_row(self, co_db_id: int) -> Any | None:

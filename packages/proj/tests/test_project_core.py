@@ -735,6 +735,65 @@ def test_set_com_object_flag_override(tmp_path: Path):
         svc.set_com_object_flag(pid, co.id, "bogus_flag", True)
 
 
+def test_set_com_object_datapoint_type(tmp_path: Path):
+    svc, pid = _new(tmp_path)
+    seg = _backbone_segment(svc, pid)
+    svc.add_device(
+        pid, seg, PRODUCT, address=1, name="D", com_objects=[("O-1_R-1", None)]
+    )
+    co = svc.devices(pid)[0].com_objects[0]
+    assert co.datapoint_type_override is None  # inherit the application/product default
+
+    # Dotted code is normalized to ETS token form.
+    svc.set_com_object_datapoint_type(pid, co.id, "5.001")
+    assert svc.devices(pid)[0].com_objects[0].datapoint_type_override == "DPST-5-1"
+
+    svc.set_com_object_datapoint_type(pid, co.id, None)  # clear -> inherit
+    assert svc.devices(pid)[0].com_objects[0].datapoint_type_override is None
+
+    svc.undo(pid)
+    assert svc.devices(pid)[0].com_objects[0].datapoint_type_override == "DPST-5-1"
+    svc.undo(pid)
+    assert svc.devices(pid)[0].com_objects[0].datapoint_type_override is None
+
+
+def test_set_com_object_priority(tmp_path: Path):
+    svc, pid = _new(tmp_path)
+    seg = _backbone_segment(svc, pid)
+    svc.add_device(
+        pid, seg, PRODUCT, address=1, name="D", com_objects=[("O-1_R-1", None)]
+    )
+    co = svc.devices(pid)[0].com_objects[0]
+    assert co.priority is None
+
+    svc.set_com_object_priority(pid, co.id, "Alert")
+    assert svc.devices(pid)[0].com_objects[0].priority == "Alert"
+    svc.set_com_object_priority(pid, co.id, None)
+    assert svc.devices(pid)[0].com_objects[0].priority is None
+    svc.undo(pid)
+    assert svc.devices(pid)[0].com_objects[0].priority == "Alert"
+
+    with pytest.raises(ValueError, match="Unknown com-object priority"):
+        svc.set_com_object_priority(pid, co.id, "Bogus")
+
+
+def test_set_com_object_description(tmp_path: Path):
+    svc, pid = _new(tmp_path)
+    seg = _backbone_segment(svc, pid)
+    svc.add_device(
+        pid, seg, PRODUCT, address=1, name="D", com_objects=[("O-1_R-1", None)]
+    )
+    co = svc.devices(pid)[0].com_objects[0]
+    assert co.description_override is None
+
+    svc.set_com_object_description(pid, co.id, "free-text note")
+    assert svc.devices(pid)[0].com_objects[0].description_override == "free-text note"
+    svc.set_com_object_description(pid, co.id, "")  # empty clears
+    assert svc.devices(pid)[0].com_objects[0].description_override is None
+    svc.undo(pid)
+    assert svc.devices(pid)[0].com_objects[0].description_override == "free-text note"
+
+
 def test_group_address_datapoint_type(tmp_path: Path):
     svc, pid = _new(tmp_path)
     gid = svc.create_group_address(pid, 0, 1, "Switch")

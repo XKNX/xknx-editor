@@ -35,6 +35,19 @@ class DPT:
 DPT_UNKNOWN = DPT(0, 0, "Unknown", "?", has_subtype=False)
 
 
+def dpt_from_token(token: str | None) -> DPT:
+    """Resolve a :class:`DPT` from an ETS token (``DPST-5-1`` / ``DPT-5``) or a dotted code
+    (``5.001`` / ``5``). Returns :data:`DPT_UNKNOWN` for an empty or unparseable value."""
+    if not token:
+        return DPT_UNKNOWN
+    parts = token.split("-")
+    if parts[0] == "DPST" and len(parts) == 3:
+        return lookup_or_make_dpt(f"{parts[1]}.{parts[2]}")
+    if parts[0] == "DPT" and len(parts) == 2:
+        return lookup_or_make_dpt(parts[1])
+    return lookup_or_make_dpt(token)
+
+
 @lru_cache(maxsize=512)
 def lookup_or_make_dpt(code: str | None) -> DPT:
     if not code:

@@ -61,6 +61,26 @@ class WidgetStrings(BaseStrings):
         return _("Copy Links")
 
     @property
+    def GROUP_OBJECTS_DPT_DEFAULT(self) -> str:
+        return _("Default (inherit)")
+
+    @property
+    def GROUP_OBJECTS_CTX_EDIT_DESCRIPTION(self) -> str:
+        return _("Edit description…")
+
+    @property
+    def GROUP_OBJECTS_EDIT_DESCRIPTION(self) -> str:
+        return _("Edit Description")
+
+    @property
+    def OK(self) -> str:
+        return _("OK")
+
+    @property
+    def CANCEL(self) -> str:
+        return _("Cancel")
+
+    @property
     def GROUP_OBJECTS_CTX_PASTE(self) -> str:
         return _("Paste Links")
 

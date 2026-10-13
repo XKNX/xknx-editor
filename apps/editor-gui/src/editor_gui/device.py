@@ -76,6 +76,9 @@ class ComObject:
     text_override: str | None = None
     function_text_override: str | None = None
     description: str = ""
+    # Per-instance DatapointType override (``@DatapointType``). ``None`` inherits the application
+    # default; a value pins a specific type and is preferred for ``dpt``.
+    datapoint_type_override: str | None = None
 
 
 def device_label(device: Device | UnloadedDevice) -> str:

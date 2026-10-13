@@ -169,6 +169,9 @@ class ProjectPlugin:
             on_name_change=self._handle_name_change,
             on_description_change=self._handle_description_change,
             set_flag=self._handle_flag_change,
+            set_dpt=self._handle_com_object_datapoint_type,
+            set_priority=self._handle_com_object_priority,
+            set_description=self._handle_com_object_description,
             get_links_for_com_object=self._links_for_com_object,
             get_all_group_addresses=self._all_group_addresses,
             on_link_com_object=self._link_com_object,
@@ -1368,6 +1371,21 @@ class ProjectPlugin:
         self, device: "Device", co_id: str, flag_name: str, new_value: bool
     ) -> None:
         self._api.project.set_flag(device, co_id, flag_name, new_value)
+
+    def _handle_com_object_datapoint_type(
+        self, device: "Device", co_id: str, value: str | None
+    ) -> None:
+        self._api.project.set_com_object_datapoint_type(device, co_id, value)
+
+    def _handle_com_object_priority(
+        self, device: "Device", co_id: str, value: str | None
+    ) -> None:
+        self._api.project.set_com_object_priority(device, co_id, value)
+
+    def _handle_com_object_description(
+        self, device: "Device", co_id: str, value: str | None
+    ) -> None:
+        self._api.project.set_com_object_description(device, co_id, value)
 
     def _program_device(self, device: "Device", request: "ProgramRequest") -> None:
         """Program button: enqueue the device. Runs immediately if the bus is free, otherwise it is

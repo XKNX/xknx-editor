@@ -22,7 +22,7 @@ from xknxeditor.proj import ProjectService, import_knxproj
 from xknxeditor.proj.core import knxproj_import
 from xknxeditor.proj.core.addressing import GroupAddressStyle
 from xknxeditor.proj.db import make_engine, url_for
-from xknxeditor.proj.models import ComObjectLink, GroupRange
+from xknxeditor.proj.models import ComObject, ComObjectLink, GroupRange
 
 
 def _coir(**kw: Any) -> SimpleNamespace:
@@ -306,6 +306,85 @@ def test_links_sending_flag(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> 
     engine.dispose()
 
 
+def test_com_object_overrides_captured_by_refid_without_id() -> None:
+    """ETS 6 writes ``<ComObjectInstanceRef>`` with ``@RefId`` only (no ``@Id``). The per-instance
+    overrides must still be captured, keyed by ``(RefId, ChannelId)`` so a channel object that
+    repeats the same ``RefId`` once per ``ChannelId`` keeps its own override. Objects with no
+    override attribute are skipped."""
+    device = ET.fromstring(
+        "<DeviceInstance>"
+        '<ComObjectInstanceRef RefId="O-28_R-2284" UpdateFlag="Enabled"'
+        ' DatapointType="DPST-5-1" Links="GA-143" />'
+        '<ComObjectInstanceRef RefId="O-32_R-1" Text="Dimmkanal 1 - Ausgang"'
+        ' ChannelId="CH-1" Links="GA-95" />'
+        '<ComObjectInstanceRef RefId="O-32_R-1" Text="Dimmkanal 2 - Ausgang"'
+        ' ChannelId="CH-2" Links="GA-96" />'
+        '<ComObjectInstanceRef RefId="O-9_R-9" Links="GA-1" />'  # no override -> skipped
+        "</DeviceInstance>"
+    )
+    overrides = dict(knxproj_import._read_com_object_text_overrides(device))
+    assert overrides[("O-28_R-2284", None)].update_flag is True
+    assert overrides[("O-28_R-2284", None)].datapoint_type == "DPST-5-1"
+    assert overrides[("O-32_R-1", "CH-1")].text == "Dimmkanal 1 - Ausgang"
+    assert overrides[("O-32_R-1", "CH-2")].text == "Dimmkanal 2 - Ausgang"
+    assert ("O-9_R-9", None) not in overrides
+
+
+def test_import_applies_com_object_overrides(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A captured override is matched to its parsed com-object by ``(ref_id, channel)`` and stored
+    as the ``*_override`` fields, so a plain import -> export keeps flags, DatapointType and texts
+    that ETS wrote on the ComObjectInstanceRef (previously lost because the match used the absent
+    ``@Id``)."""
+    extras = knxproj_import._RawExtras()
+    extras.com_object_text_overrides["P-TEST-0_DI-1"] = {
+        ("O-1_R-1", "CH-1"): knxproj_import._CoirOverride(
+            text="Kitchen light",
+            datapoint_type="DPST-5-1",
+            read_flag=True,
+            update_flag=True,
+        )
+    }
+
+    def _fake(
+        *_a: object, **_k: object
+    ) -> tuple[SimpleNamespace, knxproj_import._RawExtras]:
+        return _fake_parser(), extras
+
+    monkeypatch.setattr(knxproj_import, "_parse", _fake)
+    dest = tmp_path / "imported.xknx"
+    import_knxproj("unused.knxproj", dest, project_id="P-TEST")
+
+    engine = make_engine(url_for(dest))
+    with Session(engine) as session:
+        co = session.query(ComObject).filter_by(instance_ref_id="O-1_R-1").one()
+        assert co.text_override == "Kitchen light"
+        assert co.datapoint_type_override == "DPST-5-1"
+        assert co.read_flag_override is True
+        assert co.update_flag_override is True
+    engine.dispose()
+
+
+def test_device_extra_attributes_captures_unmodelled_only() -> None:
+    """Generic DeviceInstance passthrough: every attribute except the ones the export writes from a
+    dedicated column is captured verbatim, so unmodelled attributes (CheckSums, LoadedImage,
+    IsActivityCalculated, LastUsedAPDULength) survive a round-trip and managed ones aren't
+    duplicated (which would clobber the structural value on export)."""
+    device = ET.fromstring(
+        '<DeviceInstance Id="DI-1" Address="5" Name="Dev" ProductRefId="M-1_H-1_P-1"'
+        ' Hardware2ProgramRefId="M-1_H-1_HP-1" Comment="c" Puid="7"'
+        ' CheckSums="aGVsbG8=" LoadedImage="00FF" IsActivityCalculated="true"'
+        ' LastUsedAPDULength="55" />'
+    )
+    assert knxproj_import._device_extra_attributes(device) == {
+        "CheckSums": "aGVsbG8=",
+        "LoadedImage": "00FF",
+        "IsActivityCalculated": "true",
+        "LastUsedAPDULength": "55",
+    }
+
+
 @pytest.mark.parametrize(
     "raised",
     [zlib.error("bad"), BadZipFile("bad"), RuntimeError("Bad password for file")],
@@ -449,10 +528,10 @@ def test_read_com_object_text_overrides() -> None:
     overrides = dict(knxproj_import._read_com_object_text_overrides(device))
     ov = knxproj_import._CoirOverride
     assert overrides == {
-        "C-1": ov(text="Kitchen", function_text="Switch"),
-        "C-2": ov(function_text="Status"),
-        "C-4": ov(description="free-text note"),
-    }  # C-3 has no override attributes and is skipped
+        ("O-1_R-1", None): ov(text="Kitchen", function_text="Switch"),
+        ("O-2_R-1", None): ov(function_text="Status"),
+        ("O-4_R-1", None): ov(description="free-text note"),
+    }  # C-3 has no override attributes and is skipped; @Id is ignored (ETS 6 omits it)
 
 
 def test_read_com_object_non_text_overrides() -> None:
@@ -469,7 +548,7 @@ def test_read_com_object_non_text_overrides() -> None:
         """
     )
     overrides = dict(knxproj_import._read_com_object_text_overrides(device))
-    assert overrides["C-1"] == knxproj_import._CoirOverride(
+    assert overrides[("O-1_R-1", None)] == knxproj_import._CoirOverride(
         priority="Alert", datapoint_type="DPST-1-1", acknowledges="O-9_R-1"
     )
 

@@ -34,6 +34,7 @@ from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.event_store import EventStore, HistoryEntry
 from xknxeditor.proj.core.events import (
     COM_OBJECT_FLAGS,
+    COM_OBJECT_PRIORITIES,
     AddDevice,
     AddFunctionGroupAddress,
     AddInstallation,
@@ -66,7 +67,10 @@ from xknxeditor.proj.core.events import (
     RenameGroupRange,
     RenameLine,
     RenameSpace,
+    SetComObjectDatapointType,
+    SetComObjectDescription,
     SetComObjectFlag,
+    SetComObjectPriority,
     SetComObjectSending,
     SetDeviceCommissioning,
     SetDeviceDescription,
@@ -563,6 +567,42 @@ class ProjectService:
             raise ValueError(f"Unknown com-object flag {flag!r}")
         self._state(project_id).store.append(
             SetComObjectFlag(com_object_id=com_object_id, flag=flag, value=value)
+        )
+
+    def set_com_object_datapoint_type(
+        self, project_id: str, com_object_id: int, datapoint_type: str | None
+    ) -> None:
+        """Pin (or clear with ``None``) the per-instance DatapointType of a group object. The value
+        is normalized to ETS token form (``DPST-5-1`` / ``DPT-5``); an unparseable value raises
+        ``ValueError`` rather than being stored."""
+        self._state(project_id).store.append(
+            SetComObjectDatapointType(
+                com_object_id=com_object_id,
+                datapoint_type=normalize_datapoint_type(datapoint_type),
+            )
+        )
+
+    def set_com_object_priority(
+        self, project_id: str, com_object_id: int, priority: str | None
+    ) -> None:
+        """Set (or clear with ``None``, inherit the default) the per-instance Priority of a group
+        object. ``priority`` must be one of
+        :data:`~xknxeditor.proj.core.events.COM_OBJECT_PRIORITIES`."""
+        if priority is not None and priority not in COM_OBJECT_PRIORITIES:
+            raise ValueError(f"Unknown com-object priority {priority!r}")
+        self._state(project_id).store.append(
+            SetComObjectPriority(com_object_id=com_object_id, priority=priority)
+        )
+
+    def set_com_object_description(
+        self, project_id: str, com_object_id: int, description: str | None
+    ) -> None:
+        """Set (or clear with an empty/``None`` value, inherit the default) the per-instance
+        Description of a group object."""
+        self._state(project_id).store.append(
+            SetComObjectDescription(
+                com_object_id=com_object_id, description=description or None
+            )
         )
 
     def set_group_address_datapoint_type(

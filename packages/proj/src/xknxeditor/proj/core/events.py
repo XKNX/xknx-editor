@@ -383,7 +383,7 @@ class UpdateDeviceApplication(Event):
     deleted_com_objects: list[dict[str, Any]] = field(
         default_factory=list[dict[str, Any]]
     )
-    old_loaded: list[bool] | None = None
+    old_loaded: tuple[list[bool], dict[str, str]] | None = None
 
     _CO_FLAGS: ClassVar[tuple[str, ...]] = (
         "read_flag",
@@ -576,18 +576,36 @@ _APPLICATION_LOADED = (
     "communication_part_loaded",
 )
 
+# DeviceInstance commissioning blobs that identify the loaded image (captured verbatim into
+# extra_attributes on import). An application change invalidates them — they belong to the OLD
+# program — so clear them alongside the loaded flags; leaving them would attach the old program's
+# image/checksums to the new one on export.
+_LOADED_IMAGE_ATTRS = ("CheckSums", "LoadedImage")
 
-def _clear_application_loaded(device: Device) -> list[bool]:
-    """Clear the flags of the application parts loaded into the device; returns the old ones."""
+
+def _clear_application_loaded(device: Device) -> tuple[list[bool], dict[str, str]]:
+    """Clear the loaded-application flags and the now-stale loaded-image attributes; return the old
+    values ``(flags, removed_attributes)`` for undo."""
     old = [getattr(device, name) for name in _APPLICATION_LOADED]
     for name in _APPLICATION_LOADED:
         setattr(device, name, False)
-    return old
+    attrs = dict(device.extra_attributes or {})
+    removed = {k: attrs.pop(k) for k in _LOADED_IMAGE_ATTRS if k in attrs}
+    if removed:
+        device.extra_attributes = (
+            attrs  # reassign: the JSON column is not mutation-tracked
+        )
+    return old, removed
 
 
-def _restore_application_loaded(device: Device, values: list[bool]) -> None:
+def _restore_application_loaded(
+    device: Device, saved: tuple[list[bool], dict[str, str]]
+) -> None:
+    values, removed = saved
     for name, value in zip(_APPLICATION_LOADED, values, strict=True):
         setattr(device, name, value)
+    if removed:
+        device.extra_attributes = {**(device.extra_attributes or {}), **removed}
 
 
 @_register
@@ -1143,6 +1161,10 @@ COM_OBJECT_FLAGS = frozenset(
     }
 )
 
+# Valid per-instance ComObjectInstanceRef @Priority values (ComObjectPriority_t). ``None`` clears
+# the override so the application/product default is inherited.
+COM_OBJECT_PRIORITIES = ("Low", "High", "Alert")
+
 
 @_register
 @dataclass
@@ -1188,6 +1210,120 @@ class SetComObjectFlag(Event):
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> SetComObjectFlag:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetComObjectDatapointType(Event):
+    """Pin (or clear with ``None``) the per-instance DatapointType of a group object
+    (``ComObjectInstanceRef/@DatapointType``). ``None`` inherits the application/product default."""
+
+    event_type: ClassVar[str] = "SetComObjectDatapointType"
+
+    com_object_id: int
+    datapoint_type: str | None
+    captured: bool = False
+    old: str | None = None
+
+    def apply(self, session: Session) -> None:
+        com_object = session.get(ComObject, self.com_object_id)
+        if com_object is not None:
+            self.old = com_object.datapoint_type_override
+            self.captured = True
+            com_object.datapoint_type_override = self.datapoint_type
+
+    def revert(self, session: Session) -> None:
+        com_object = session.get(ComObject, self.com_object_id)
+        if com_object is not None and self.captured:
+            com_object.datapoint_type_override = self.old
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "com_object_id": self.com_object_id,
+            "datapoint_type": self.datapoint_type,
+            "captured": self.captured,
+            "old": self.old,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetComObjectDatapointType:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetComObjectPriority(Event):
+    """Set (or clear with ``None``) the per-instance Priority of a group object
+    (``ComObjectInstanceRef/@Priority``). ``None`` inherits the application/product default."""
+
+    event_type: ClassVar[str] = "SetComObjectPriority"
+
+    com_object_id: int
+    priority: str | None
+    captured: bool = False
+    old: str | None = None
+
+    def apply(self, session: Session) -> None:
+        com_object = session.get(ComObject, self.com_object_id)
+        if com_object is not None:
+            self.old = com_object.priority
+            self.captured = True
+            com_object.priority = self.priority
+
+    def revert(self, session: Session) -> None:
+        com_object = session.get(ComObject, self.com_object_id)
+        if com_object is not None and self.captured:
+            com_object.priority = self.old
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "com_object_id": self.com_object_id,
+            "priority": self.priority,
+            "captured": self.captured,
+            "old": self.old,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetComObjectPriority:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetComObjectDescription(Event):
+    """Set (or clear with ``None``) the per-instance Description of a group object
+    (``ComObjectInstanceRef/@Description``). ``None`` inherits the application/product default."""
+
+    event_type: ClassVar[str] = "SetComObjectDescription"
+
+    com_object_id: int
+    description: str | None
+    captured: bool = False
+    old: str | None = None
+
+    def apply(self, session: Session) -> None:
+        com_object = session.get(ComObject, self.com_object_id)
+        if com_object is not None:
+            self.old = com_object.description_override
+            self.captured = True
+            com_object.description_override = self.description
+
+    def revert(self, session: Session) -> None:
+        com_object = session.get(ComObject, self.com_object_id)
+        if com_object is not None and self.captured:
+            com_object.description_override = self.old
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "com_object_id": self.com_object_id,
+            "description": self.description,
+            "captured": self.captured,
+            "old": self.old,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetComObjectDescription:
         return cls(**data)
 
 
