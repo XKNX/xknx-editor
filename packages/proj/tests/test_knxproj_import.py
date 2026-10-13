@@ -11,6 +11,7 @@ import zlib
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
+from xml.etree import ElementTree as ET
 from zipfile import BadZipFile
 
 import pytest
@@ -655,3 +656,64 @@ def test_group_address_security_captured() -> None:
         "Key": "0123abcd",
         "Context": "c",
     }
+
+
+_ADDRESSLESS_XML = """
+<Project><Installations><Installation><Topology>
+  <Area Address="1"><Line Address="1">
+    <DeviceInstance Id="P-1_DI-1" Address="5" ProductRefId="M-1_H-1_P-1" />
+    <DeviceInstance Id="P-1_DI-2" Name="Power supply" ProductRefId="M-1_H-2_P-2"
+      Hardware2ProgramRefId="M-1_H-2_HP-2" SerialNumber="AAECAwQF"
+      IndividualAddressLoaded="true" Comment="Cabinet A" />
+  </Line></Area>
+</Topology></Installation></Installations></Project>
+"""
+
+
+def test_read_addressless_devices() -> None:
+    extras = knxproj_import._RawExtras()
+    knxproj_import._read_coupler_extras(ET.fromstring(_ADDRESSLESS_XML), extras)
+    (device,) = extras.addressless_devices[(1, 1)]
+    assert device.identifier == "P-1_DI-2"
+    assert device.address is None
+    assert (device.name, device.product_ref, device.hardware_program_ref) == (
+        "Power supply",
+        "M-1_H-2_P-2",
+        "M-1_H-2_HP-2",
+    )
+    assert device.serial_number == "AAECAwQF"
+    assert device.individual_address_loaded
+    assert not device.parameters_loaded
+
+
+def test_device_without_address_is_imported(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    extras = knxproj_import._RawExtras()
+    knxproj_import._read_coupler_extras(ET.fromstring(_ADDRESSLESS_XML), extras)
+    (supply,) = extras.addressless_devices[(1, 1)]
+    supply.product_name = "Power Supply 640 mA"
+    extras.device_comment[supply.identifier] = "Cabinet A"
+
+    def _fake(*_a: object, **_k: object) -> tuple[SimpleNamespace, Any]:
+        return _fake_parser(), extras
+
+    monkeypatch.setattr(knxproj_import, "_parse", _fake)
+    dest = tmp_path / "imported.xknx"
+    pid = import_knxproj("unused.knxproj", dest, project_id="P-TEST")
+    svc = ProjectService()
+    svc.open(dest)
+    by_product = {d.product_ref_id: d for d in svc.devices(pid)}
+    assert set(by_product) == {"M-1_H-1_P-1", "M-1_H-2_P-2"}
+    device = by_product["M-1_H-2_P-2"]
+    assert device.address is None
+    assert svc.individual_address(pid, device.id) in (None, "")
+    assert (device.name, device.product_name, device.comment) == (
+        "Power supply",
+        "Power Supply 640 mA",
+        "Cabinet A",
+    )
+    assert device.serial_number == "AAECAwQF"
+    assert device.individual_address_loaded
+    assert device.parameters == [] and device.com_objects == []
+    svc.close(pid)

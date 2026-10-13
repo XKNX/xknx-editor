@@ -26,7 +26,7 @@ import re
 import zipfile
 import zlib
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import IO, Any, Protocol
 from uuid import uuid4
@@ -303,6 +303,64 @@ class _SegmentDesc:
     additional_group_addresses: tuple[int, ...] = ()
 
 
+@dataclass(slots=True)
+class _AddresslessDevice:
+    """A ``DeviceInstance`` on a line without an individual address (power supply, choke, ...).
+
+    xknxproject skips these, so they are read from the raw XML. The fields mirror the parts of
+    xknxproject's ``DeviceInstance`` that ``_build_device`` reads; such a device has no
+    application, parameters or group objects.
+    """
+
+    identifier: str
+    name: str
+    product_ref: str
+    hardware_program_ref: str
+    description: str
+    last_modified: str | None
+    serial_number: str
+    last_download: str | None
+    individual_address_loaded: bool
+    application_program_loaded: bool
+    communication_part_loaded: bool
+    medium_config_loaded: bool
+    parameters_loaded: bool
+    address: None = None
+    individual_address: str = ""
+    application_program_ref: None = None
+    order_number: str = ""
+    hardware_name: str = ""
+    product_name: str = ""
+    manufacturer_name: str = ""
+    com_object_instance_refs: tuple[()] = ()
+    parameter_instance_refs: dict[str, Any] = field(default_factory=dict[str, Any])
+    module_instances: tuple[()] = ()
+
+
+def _addressless_device(element: ET.Element) -> _AddresslessDevice | None:
+    if element.get("Address") is not None or not (identifier := element.get("Id")):
+        return None
+
+    def loaded(name: str) -> bool:
+        return element.get(name) == "true"
+
+    return _AddresslessDevice(
+        identifier=identifier,
+        name=element.get("Name", ""),
+        product_ref=element.get("ProductRefId", ""),
+        hardware_program_ref=element.get("Hardware2ProgramRefId", ""),
+        description=element.get("Description", ""),
+        last_modified=element.get("LastModified"),
+        serial_number=element.get("SerialNumber", ""),
+        last_download=element.get("LastDownload"),
+        individual_address_loaded=loaded("IndividualAddressLoaded"),
+        application_program_loaded=loaded("ApplicationProgramLoaded"),
+        communication_part_loaded=loaded("CommunicationPartLoaded"),
+        medium_config_loaded=loaded("MediumConfigLoaded"),
+        parameters_loaded=loaded("ParametersLoaded"),
+    )
+
+
 @dataclass(frozen=True, slots=True)
 class _TradeEntry:
     """A ``Trades/Trade`` node (Gewerke), captured verbatim. ``device_ids`` are the referenced
@@ -371,6 +429,9 @@ class _RawExtras:
         # (Area @Address, Line @Address) -> the line's raw ``<Segment>`` descriptors (project/22+23),
         # in document order. Empty for project/14+20 (devices sit directly under the Line).
         self.segments: dict[tuple[int, int], list[_SegmentDesc]] = {}
+        # (Area @Address, Line @Address) -> the line's devices without an individual address, in
+        # document order (xknxproject skips them).
+        self.addressless_devices: dict[tuple[int, int], list[_AddresslessDevice]] = {}
         # Raw group-address values whose <GroupAddress> carries ``Unfiltered="true"``.
         self.unfiltered_ga: set[int] = set()
         # (RangeStart, RangeEnd) of every <GroupRange> carrying ``Unfiltered="true"``.
@@ -454,6 +515,12 @@ def _parse(
         extras.project_files = _best_effort(
             "project files", lambda: _capture_project_files(contents), None
         )
+        if extras.addressless_devices:
+            _best_effort(
+                "products of devices without address",
+                lambda: _name_addressless_devices(contents, parser, extras),
+                None,
+            )
     logger.info(
         "parsed knxproj '%s': %d devices, %d group addresses, %d w/ binary data, %d w/ modules, %d traces",
         parser.project_info.name,
@@ -464,6 +531,34 @@ def _parse(
         len(extras.traces),
     )
     return parser, extras
+
+
+def _name_addressless_devices(
+    contents: Any, parser: XMLParser, extras: _RawExtras
+) -> None:
+    """Fill the product and manufacturer names of the devices without an individual address
+    from the project's hardware data, as xknxproject does for the other devices."""
+    from xknxproject.loader.hardware_loader import HardwareLoader
+
+    products: dict[str, Any] = {}
+    for hardware_file in HardwareLoader.get_hardware_files(project_contents=contents):
+        found, _programs = HardwareLoader.load(
+            hardware_file=hardware_file, language_code=parser.language_code
+        )
+        products.update(found)
+    manufacturers = {
+        d.manufacturer: d.manufacturer_name for d in parser.devices if d.manufacturer
+    }
+    for devices in extras.addressless_devices.values():
+        for device in devices:
+            device.manufacturer_name = manufacturers.get(
+                device.product_ref.split("_", 1)[0], ""
+            )
+            product = products.get(device.product_ref)
+            if product is not None:
+                device.product_name = product.text
+                device.hardware_name = product.hardware_name
+                device.order_number = product.order_number
 
 
 def _read_device_extras(contents: _ProjectContents) -> _RawExtras:
@@ -697,6 +792,14 @@ def _read_coupler_extras(root: ET.Element, extras: _RawExtras) -> None:
                     )
             if seg_descs and a_addr is not None and l_addr is not None:
                 extras.segments[(a_addr, l_addr)] = seg_descs
+            addressless = [
+                device
+                for d in line.iter()
+                if _localname(d.tag) == "DeviceInstance"
+                and (device := _addressless_device(d)) is not None
+            ]
+            if addressless and a_addr is not None and l_addr is not None:
+                extras.addressless_devices[(a_addr, l_addr)] = addressless
             if domain is not None and a_addr is not None and l_addr is not None:
                 extras.domain_address[(a_addr, l_addr)] = domain
             if addrs and a_addr is not None and l_addr is not None:
@@ -1342,16 +1445,19 @@ def _build_line_segments(
     key = (area_address, xline.address)
     descs = state.extras.segments.get(key, [])
     default_domain = state.extras.domain_address.get(key)
+    addressless = state.extras.addressless_devices.get(key, [])
     if not descs:
         segment = Segment(
             number=0, medium_type=xline.medium_type, domain_address=default_domain
         )
         line.segments.append(segment)
-        for xdevice in xline.devices:
+        for xdevice in [*xline.devices, *addressless]:
             _append_device(segment, xdevice, state)
         return
 
-    device_by_id = {xd.identifier: xd for xd in xline.devices}
+    device_by_id: dict[str, DeviceInstance | _AddresslessDevice] = {
+        xd.identifier: xd for xd in [*xline.devices, *addressless]
+    }
     placed: set[str] = set()
     segments: list[Segment] = []
     for desc in descs:
@@ -1374,15 +1480,17 @@ def _build_line_segments(
             if xdevice is not None:
                 _append_device(segment, xdevice, state)
                 placed.add(did)
-    # Devices xknxproject listed on the line but not matched to any raw segment fall back to the
-    # first segment rather than being dropped.
-    for xdevice in xline.devices:
+    # Devices of the line not matched to any raw segment fall back to the first segment rather
+    # than being dropped.
+    for xdevice in [*xline.devices, *addressless]:
         if xdevice.identifier not in placed:
             _append_device(segments[0], xdevice, state)
 
 
 def _append_device(
-    segment: Segment, xdevice: DeviceInstance, state: _ImportState
+    segment: Segment,
+    xdevice: DeviceInstance | _AddresslessDevice,
+    state: _ImportState,
 ) -> None:
     try:
         segment.devices.append(_build_device(xdevice, state))
@@ -1405,7 +1513,9 @@ def _append_device(
         logger.debug("device import error detail", exc_info=e)
 
 
-def _build_device(xdevice: DeviceInstance, state: _ImportState) -> Device:
+def _build_device(
+    xdevice: DeviceInstance | _AddresslessDevice, state: _ImportState
+) -> Device:
     module_args = state.extras.module_args.get(xdevice.identifier, {})
     com_objects: list[ComObject] = []
     for coir in xdevice.com_object_instance_refs:
@@ -1847,5 +1957,6 @@ class _ImportState:
     def register_device(
         self, individual_address: str, identifier: str, row: Device
     ) -> None:
-        self.device_by_ia[individual_address] = row
+        if individual_address:
+            self.device_by_ia[individual_address] = row
         self.device_by_identifier[identifier] = row
