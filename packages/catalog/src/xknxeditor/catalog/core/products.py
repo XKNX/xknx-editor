@@ -27,6 +27,7 @@ class ProductSummary:
     manufacturer_name: str | None
     application_version: int | None = None
     hardware_name: str | None = None
+    application_name: str | None = None
 
 
 def list_products(db: Session) -> list[ProductSummary]:
@@ -42,6 +43,7 @@ def list_products(db: Session) -> list[ProductSummary]:
             Manufacturer.name,
             Application.application_version,
             Hardware.name,
+            Application.name,
         )
         .join(
             HardwareProgram,
@@ -66,6 +68,7 @@ def list_products(db: Session) -> list[ProductSummary]:
             manufacturer_name=manufacturer_name,
             application_version=application_version,
             hardware_name=hardware_name,
+            application_name=application_name,
         )
         for (
             product_ref_id,
@@ -77,6 +80,7 @@ def list_products(db: Session) -> list[ProductSummary]:
             manufacturer_name,
             application_version,
             hardware_name,
+            application_name,
         ) in rows
         if product_ref_id is not None
     ]
@@ -111,6 +115,8 @@ def find_products_for_application(
             Manufacturer.id,
             Manufacturer.name,
             Hardware.name,
+            Application.application_version,
+            Application.name,
         )
         .join(
             HardwareProgram,
@@ -141,6 +147,8 @@ def find_products_for_application(
             manufacturer_id=row_manufacturer_id,
             manufacturer_name=manufacturer_name,
             hardware_name=hardware_name,
+            application_version=version,
+            application_name=application_name,
         )
         for (
             product_ref_id,
@@ -151,6 +159,8 @@ def find_products_for_application(
             row_manufacturer_id,
             manufacturer_name,
             hardware_name,
+            version,
+            application_name,
         ) in rows
         if product_ref_id is not None
     ]

@@ -183,8 +183,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_devices_with_update() -> dict[str, Any]:
-        """List devices for which a newer version of the same application program is available
-        online (from the cached online catalog index; build it in the Catalog panel if empty).
+        """List devices that project_update_application can update: the local catalog has a
+        version of the same application program whose ReplacesVersions names the current one.
 
         Read-only. Each item: node_id, individual_address, name, application_id, current_version,
         available_version. Use project_update_application(node_id) to apply an update."""
@@ -215,9 +215,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_update_application(node_id: int) -> dict[str, Any]:
-        """Update a device to the newest available version of the SAME application program, keeping
-        its parameter values and group-address links ("Update Application Program"). Imports the
-        newer .knxprod from the online catalog if it is not already local.
+        """Update a device to the local catalog version of the SAME application program that
+        replaces the current one ("Update Application Program Version"). Parameter values carry over
+        by ParameterRef number, group objects of the same size by ComObjectRef number with their
+        flags, priority, datapoint type and group-address links.
 
         This changes the PROJECT only. To apply it on the bus, program the device afterwards
         (connection_program_device with scope "ap1"/application). Returns new_version, kept, dropped."""
@@ -237,6 +238,67 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "dropped": result.dropped,
                 "note": "project updated; program the device (connection_program_device, "
                 "scope application) to apply the change on the bus",
+            }
+
+        return ctx.run_locked(_do, timeout=_SLOW)
+
+    @tool
+    def project_list_application_programs(node_id: int) -> dict[str, Any]:
+        """The application programs a device can be changed to with project_change_application:
+        the other programs of its hardware in the local catalog, older and newer.
+
+        Read-only. Each item: hardware2program_ref_id, application_id, name, version."""
+        require_project(ctx)
+
+        def _read() -> list[dict[str, Any]]:
+            device = _require_device(node_id)
+            return [
+                {
+                    "hardware2program_ref_id": program.id,
+                    "application_id": program.application_id,
+                    "name": program.application_name,
+                    "version": program.application_version,
+                }
+                for program in project.application_change_targets(device)
+            ]
+
+        return _items(ctx.run_locked(_read, timeout=_SLOW))
+
+    @tool
+    def project_change_application(
+        node_id: int, hardware2program_ref_id: str
+    ) -> dict[str, Any]:
+        """Change a device to another application program of its hardware ("Change Application
+        Program"), from project_list_application_programs. Parameters, group-object links and
+        flags start from the new application's defaults; address, name and serial number stay.
+
+        This changes the PROJECT only; program the device afterwards (full download)."""
+        require_project(ctx)
+
+        def _do() -> dict[str, Any]:
+            device = _require_device(node_id)
+            program = next(
+                (
+                    p
+                    for p in project.application_change_targets(device)
+                    if p.id == hardware2program_ref_id
+                ),
+                None,
+            )
+            if program is None:
+                raise ToolError(
+                    f"{hardware2program_ref_id!r} is not an application program device "
+                    f"{node_id} can be changed to; see project_list_application_programs"
+                )
+            if not project.change_application(device, program):
+                raise ToolError(
+                    f"application {program.application_id!r} not resolvable"
+                )
+            return {
+                "node_id": node_id,
+                "application_id": program.application_id,
+                "version": program.application_version,
+                "note": "project changed; program the device to apply it on the bus",
             }
 
         return ctx.run_locked(_do, timeout=_SLOW)
@@ -627,21 +689,27 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_add_device(
-        product_ref_id: str, name: str | None = None
+        product_ref_id: str,
+        name: str | None = None,
+        hardware2program_ref_id: str | None = None,
     ) -> dict[str, Any]:
         """Add a device from the catalog by its product_ref_id (from catalog_list_products).
 
-        Returns the created device (node_id, name, individual_address)."""
+        ``hardware2program_ref_id`` selects one application version of the product; without it the
+        newest version in the catalog is used. Returns the created device (node_id, name,
+        individual_address)."""
         require_project(ctx)
 
         def _add() -> dict[str, Any]:
-            product = next(
+            product = max(
                 (
                     p
                     for p in ctx.api.catalog.get_products()
                     if p.product_ref_id == product_ref_id
+                    and hardware2program_ref_id in (None, p.hardware2program_ref_id)
                 ),
-                None,
+                key=lambda p: p.application_version or 0,
+                default=None,
             )
             if product is None:
                 raise ToolError(

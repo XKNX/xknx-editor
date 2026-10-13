@@ -50,20 +50,21 @@ class _Program:
 
 
 def _delete_rows(
-    session: Session, product_ref_id: str
+    session: Session, product_ref_id: str, hardware_program_id: str | None = None
 ) -> tuple[ProductDeletion, list[_Program]] | None:
     """Delete the product's rows and everything left unreferenced, without committing."""
     csp = CatalogSectionProduct
+    selected = csp.product_ref_id == product_ref_id
+    if hardware_program_id is not None:
+        selected &= csp.hardware_program_id == hardware_program_id
     rows = session.execute(
-        select(csp.section_id, csp.hardware_program_id).where(
-            csp.product_ref_id == product_ref_id
-        )
+        select(csp.section_id, csp.hardware_program_id).where(selected)
     ).all()
     if not rows:
         return None
     section_ids = {section_id for section_id, _ in rows}
     program_ids = {program_id for _, program_id in rows}
-    session.execute(delete(csp).where(csp.product_ref_id == product_ref_id))
+    session.execute(delete(csp).where(selected))
 
     # Hardware programs no longer bound to any catalog item.
     still_bound = set(
@@ -192,14 +193,14 @@ def _delete_rows(
 
 
 def plan_product_deletion(
-    engine: Engine, product_ref_id: str
+    engine: Engine, product_ref_id: str, hardware_program_id: str | None = None
 ) -> ProductDeletion | None:
     """What :func:`delete_product` would remove, without changing anything.
 
     Returns ``None`` when no catalog item has ``product_ref_id``."""
     with Session(engine) as session:
         try:
-            result = _delete_rows(session, product_ref_id)
+            result = _delete_rows(session, product_ref_id, hardware_program_id)
         finally:
             session.rollback()
     return None if result is None else result[0]
@@ -226,9 +227,16 @@ def _application_digests(
 
 
 def delete_product(
-    engine: Engine, product_ref_id: str, *, cache_dir: Path | None = None
+    engine: Engine,
+    product_ref_id: str,
+    hardware_program_id: str | None = None,
+    *,
+    cache_dir: Path | None = None,
 ) -> ProductDeletion | None:
     """Delete one product (every catalog item with ``product_ref_id``) in a single transaction.
+
+    With ``hardware_program_id`` only the catalog items of that hardware program, i.e. one
+    application version of the product, are deleted.
 
     Removes what is left unreferenced: hardware programs bound to no catalog item (with their medium
     types), hardware without programs, applications without programs, empty catalog sections up the
@@ -239,7 +247,7 @@ def delete_product(
 
     Returns ``None`` (and changes nothing) when no catalog item has ``product_ref_id``."""
     with Session(engine) as session:
-        result = _delete_rows(session, product_ref_id)
+        result = _delete_rows(session, product_ref_id, hardware_program_id)
         if result is None:
             return None
         deletion, programs = result

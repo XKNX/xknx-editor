@@ -1298,47 +1298,36 @@ class ProjectStrings:
         )
 
     @property
-    def CONFIGURE_ONLINE_AVAILABLE(self) -> str:
-        return _("Available Online ({count})")
-
-    @property
-    def CONFIGURE_ONLINE_CURRENT(self) -> str:
-        return _("(current)")
-
-    @property
     def CONFIGURE_UPDATE_BUTTON(self) -> str:
         return _("Update to V{version}")
 
     @property
-    def UPDATE_CONFIRM_TITLE(self) -> str:
-        return _("Update Application Program")
+    def CHANGE_APPLICATION(self) -> str:
+        return _("Change Application Program")
 
     @property
-    def UPDATE_CONFIRM_TEXT(self) -> str:
-        return _(
-            "Update this device to application version V{version}? Parameter values and "
-            "group-address links are kept; settings that no longer exist in the new version "
-            "are dropped. The newer product is downloaded from the online catalog if needed."
-        )
+    def UPDATE_APPLICATION_VERSION(self) -> str:
+        return _("Update Application Program Version")
 
     @property
-    def UPDATE_APP_DONE(self) -> str:
-        return _("Updated to V{version}: {kept} settings kept, {dropped} dropped")
+    def BTN_UPDATE(self) -> str:
+        return _("Update")
 
     @property
-    def UPDATE_ALERT_TITLE(self) -> str:
-        return _("Application Updated")
+    def UPDATING_APPLICATION(self) -> str:
+        return _("Updating the application program...")
 
     @property
-    def UPDATE_ALERT_TEXT(self) -> str:
-        return _(
-            "Update to V{version} successful. You can now program the application onto "
-            "the device so the change takes effect."
-        )
+    def CHANGING_APPLICATION(self) -> str:
+        return _("Changing the application program...")
+
+    @property
+    def CHANGE_APP_FAILED(self) -> str:
+        return _("Changing the application program failed")
 
     @property
     def UPDATE_APP_FAILED(self) -> str:
-        return _("Update failed: no newer version could be resolved")
+        return _("Updating the application program failed")
 
     @property
     def CONFIGURE_COPIED(self) -> str:

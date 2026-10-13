@@ -67,6 +67,7 @@ if TYPE_CHECKING:
     from editor_gui.device import Device, UnloadedDevice
     from editor_gui.device_info import DeviceInfo
     from editor_gui.plugins.project.ui.configure import ProgramRequest
+    from xknxeditor.catalog import ProgramSummary
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.scope import DownloadScope
     from xknxeditor.prod import Application
@@ -179,8 +180,10 @@ class ProjectPlugin:
             open_memory_preview=self._memory_preview.open,
             on_param_change_all=self._handle_param_change_all,
             notify=api.notify,
-            get_online_versions=self._online_versions_for_order,
             on_update_application=self._update_application,
+            get_update_version=self._api.project.newer_application_version,
+            get_change_targets=self._api.project.application_change_targets,
+            on_change_application=self._change_application,
             on_read_device_info=self._read_device_info,
             on_restart_device=self._restart_device,
             on_master_reset_device=self._master_reset_device,
@@ -643,34 +646,34 @@ class ProjectPlugin:
             ga=ga_id,
         )
 
-    def _online_versions_for_order(self, order_number: str) -> list[int]:
-        """Distinct application program versions available online for an order number (descending),
-        from the cached catalog index. Empty until the online catalog has been fetched."""
-        items = self._api.catalog.online_products_for_order(order_number)
-        versions = {
-            item.application_version
-            for item in items
-            if item.application_version is not None and item.downloadable
-        }
-        return sorted(versions, reverse=True)
+    def _in_background(self, text: str, work: Callable[[], None]) -> None:
+        """Run ``work`` behind the progress modal, or directly without one."""
+        if self._api.run_background is not None:
+            self._api.run_background(text, work)
+        else:
+            work()
 
-    def _update_application(self, device: "Device") -> bool:
-        """Update the device to the newest available version of its application, keeping parameters
-        and links ("Update Application Program"). Imports the newer .knxprod if needed. Returns
-        whether an update was applied (the panel shows a success alert on ``True``)."""
-        result = self._api.project.update_application(device)
-        if self._api.notify is not None:
-            if result is None:
+    def _update_application(self, device: "Device") -> None:
+        """Update the device to the local application version that replaces its own ("Update
+        Application Program Version")."""
+
+        def work() -> None:
+            result = self._api.project.update_application(device)
+            if result is None and self._api.notify is not None:
                 self._api.notify(S.UPDATE_APP_FAILED)
-            else:
-                self._api.notify(
-                    S.UPDATE_APP_DONE.format(
-                        version=result.new_version,
-                        kept=result.kept,
-                        dropped=result.dropped,
-                    )
-                )
-        return result is not None
+
+        self._in_background(S.UPDATING_APPLICATION, work)
+
+    def _change_application(self, device: "Device", program: "ProgramSummary") -> None:
+        """Switch the device to another application program of its hardware, from that
+        application's defaults ("Change Application Program")."""
+
+        def work() -> None:
+            changed = self._api.project.change_application(device, program)
+            if not changed and self._api.notify is not None:
+                self._api.notify(S.CHANGE_APP_FAILED)
+
+        self._in_background(S.CHANGING_APPLICATION, work)
 
     def _restart_device(self, device: "Device") -> None:
         """Restart (reboot) the device over the bus (non-destructive)."""

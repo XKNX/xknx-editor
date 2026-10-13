@@ -18,7 +18,7 @@ if TYPE_CHECKING:
         OnlineIndexStatus,
         OnlineManufacturer,
     )
-    from xknxeditor.catalog import ProductDeletion, ProductSummary
+    from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
     from xknxeditor.prod import Application
 
 
@@ -35,6 +35,8 @@ class CatalogService:
 
         self._service = _CatalogService(catalog_path)
         self._products: list[ProductSummary] | None = None
+        self._programs: dict[str, list[ProgramSummary]] = {}
+        self._replaces: dict[str, list[int]] = {}
         # Shared with the project service so a background import can hold both while it writes.
         self._io_lock = io_lock or threading.RLock()
         # Manufacturer list from the KNX online catalog service (cached next to the db).
@@ -81,42 +83,56 @@ class CatalogService:
             self._products = self._service.list_products()
         return self._products
 
-    def import_knxprod(self, path: Path) -> list[str]:
-        """Import a .knxprod file; returns newly added product refs."""
+    def import_knxprod(self, path: Path) -> list[ProductSummary]:
+        """Import a .knxprod file; returns the newly added product versions."""
         return self._import_knxprod_bytes(path.read_bytes())
 
-    def import_project_products(self, path: Path) -> list[str]:
+    def import_project_products(self, path: Path) -> list[ProductSummary]:
         """Ingest the product data embedded in a ``.knxproj`` (which omits ``Catalog.xml``), so the
-        imported project's devices resolve their applications. Returns newly added product refs."""
+        imported project's devices resolve their applications. Returns the newly added product
+        versions."""
         return self._import_knxprod_bytes(path.read_bytes(), require_catalog=False)
 
-    def import_product_source(self, data: bytes, master_xml: bytes) -> list[str]:
+    def import_product_source(
+        self, data: bytes, master_xml: bytes
+    ) -> list[ProductSummary]:
         """Ingest product data from any supported source: a ``.knxprod``, an OpenKNX release ZIP, or
         a raw monolithic KNX product XML (OpenKNXproducer output). ``master_xml`` supplies the
-        ``knx_master.xml`` the latter two do not embed. Returns the product refs newly added."""
+        ``knx_master.xml`` the latter two do not embed. Returns the newly added product versions."""
         from xknxeditor.prod import knxprod_from_source
 
         return self._import_knxprod_bytes(knxprod_from_source(data, master_xml))
 
     def _import_knxprod_bytes(
         self, data: bytes, *, require_catalog: bool = True
-    ) -> list[str]:
-        before = {p.product_ref_id for p in self.get_products()}
+    ) -> list[ProductSummary]:
+        """Each product version (product and hardware program) new in the catalog."""
+        before = {
+            (p.product_ref_id, p.hardware2program_ref_id) for p in self.get_products()
+        }
         self._service.import_knxprod(data, require_catalog=require_catalog)
-        self._products = None
-        after = {p.product_ref_id for p in self.get_products()}
-        return sorted(after - before)
+        self._forget_products()
+        added: dict[tuple[str, str], ProductSummary] = {}
+        for product in self.get_products():
+            key = (product.product_ref_id, product.hardware2program_ref_id)
+            if key not in before:
+                added.setdefault(key, product)
+        return [added[key] for key in sorted(added)]
 
     @io_guarded(lambda: None)
-    def plan_delete_product(self, product_ref_id: str) -> ProductDeletion | None:
+    def plan_delete_product(
+        self, product_ref_id: str, hardware_program_id: str | None = None
+    ) -> ProductDeletion | None:
         """What deleting ``product_ref_id`` would remove, without changing anything."""
-        return self._service.plan_product_deletion(product_ref_id)
+        return self._service.plan_product_deletion(product_ref_id, hardware_program_id)
 
-    def delete_product(self, product_ref_id: str) -> ProductDeletion | None:
+    def delete_product(
+        self, product_ref_id: str, hardware_program_id: str | None = None
+    ) -> ProductDeletion | None:
         """Delete a product from the local catalog, holding :attr:`io_lock` while it writes."""
         with self._io_lock:
-            deletion = self._service.delete_product(product_ref_id)
-            self._products = None
+            deletion = self._service.delete_product(product_ref_id, hardware_program_id)
+            self._forget_products()
         return deletion
 
     def online_catalog_items(self, manufacturer_id: int) -> list[OnlineCatalogItem]:
@@ -155,30 +171,35 @@ class CatalogService:
             return [], 0
         return search_index(index, query, limit)
 
-    def online_products_for_order(self, order_number: str) -> list[OnlineCatalogItem]:
-        """Cached online catalog entries whose order number matches ``order_number`` (case/space
-        insensitive). Used by the editor to show which products/versions exist online. No network."""
-        index = self._online_client.cached_index()
-        if not index or not order_number.strip():
-            return []
-        key = order_number.strip().lower()
-        return [
-            item
-            for items in index.values()
-            for item in items
-            if item.order_number.strip().lower() == key
-        ]
-
     def download_online_products(
         self, catalog_item_ids: list[str], language_ids: list[str] | None = None
-    ) -> list[str]:
-        """Download a ``.knxprod`` for the given catalog items and import it; returns new refs.
+    ) -> list[ProductSummary]:
+        """Download a ``.knxprod`` for the given catalog items and import it; returns the new
+        product versions.
 
         Defaults to the selected country/language (:attr:`online_language`)."""
         data = self._online_client.download_product(
             catalog_item_ids, language_ids or [self._language]
         )
         return self._import_knxprod_bytes(data)
+
+    @io_guarded(list)
+    def hardware_programs(self, hardware_id: str) -> list[ProgramSummary]:
+        """Every program of a hardware with the application it loads (cached)."""
+        programs = self._programs.get(hardware_id)
+        if programs is None:
+            programs = self._service.list_hardware_programs(hardware_id)
+            self._programs[hardware_id] = programs
+        return programs
+
+    @io_guarded(list)
+    def replaces_versions(self, program_id: str) -> list[int]:
+        """The application versions the program's application can update (cached)."""
+        versions = self._replaces.get(program_id)
+        if versions is None:
+            versions = self._service.get_replaces_versions(program_id)
+            self._replaces[program_id] = versions
+        return versions
 
     @io_guarded(lambda: None)
     def get_program_application_id(self, program_id: str) -> str | None:
@@ -242,4 +263,9 @@ class CatalogService:
         return self._service.get_program_source(program_id)
 
     def refresh(self) -> None:
+        self._forget_products()
+
+    def _forget_products(self) -> None:
         self._products = None
+        self._programs = {}
+        self._replaces = {}

@@ -13,6 +13,8 @@ from xknx.telegram import IndividualAddress
 from editor_gui import doc_links
 from editor_gui.device import ComObject, Device, device_label
 from editor_gui.device_info import (
+    application_program_label,
+    application_version_text,
     firmware_text,
     parse_serial_text,
     serial_from_project,
@@ -29,6 +31,7 @@ from xknxeditor.recover.dossier import printable_text
 
 if TYPE_CHECKING:
     from editor_gui.device_info import DeviceInfo as BusDeviceInfo
+    from xknxeditor.catalog import ProgramSummary
     from xknxeditor.proj.core.service import DeviceInfo
 from editor_gui.programming import error_class_text
 from editor_gui.programming_dali import is_dali_dca_app
@@ -168,8 +171,10 @@ class ConfigurePanel:
         open_memory_preview: Callable[[Device], None] | None = None,
         on_param_change_all: Callable[[Device, str, str], None] | None = None,
         notify: Callable[[str], None] | None = None,
-        get_online_versions: Callable[[str], list[int]] | None = None,
-        on_update_application: Callable[[Device], bool] | None = None,
+        on_update_application: Callable[[Device], None] | None = None,
+        get_update_version: Callable[[Device], int | None] | None = None,
+        get_change_targets: "Callable[[Device], list[ProgramSummary]] | None" = None,
+        on_change_application: "Callable[[Device, ProgramSummary], None] | None" = None,
         on_read_device_info: Callable[[Device], None] | None = None,
         get_device_readout: "Callable[[int], BusDeviceInfo | None] | None" = None,
         get_expected_group_addresses: "Callable[[Device], dict[int, set[int]]] | None" = None,
@@ -233,8 +238,10 @@ class ConfigurePanel:
         self._get_all_gas = get_all_group_addresses
         self._get_device_info = get_device_info
         self._notify = notify
-        self._get_online_versions = get_online_versions
         self._on_update_application = on_update_application
+        self._get_update_version = get_update_version
+        self._get_change_targets = get_change_targets
+        self._on_change_application = on_change_application
         self._on_read_device_info = on_read_device_info
         self._on_restart_device = on_restart_device
         self._on_master_reset_device = on_master_reset_device
@@ -250,9 +257,6 @@ class ConfigurePanel:
         self._expected_cache: dict[int, set[int]] = {}
         self._ga_names_cache_key: int | None = None
         self._ga_names_cache: dict[int, str] = {}
-        self._confirm_update_open: bool = False
-        self._alert_update_open: bool = False
-        self._alert_version: int = 0
         self._manual_busy: bool = False  # a manual lookup thread is running
         self._group_objects_table = GroupObjectsTable(
             set_flag,
@@ -602,9 +606,8 @@ class ConfigurePanel:
             self._serial_buffer = stored
 
     def _render_device_actions(self, device: Device) -> None:
-        """The device's occasional actions (read-out, restart, reset, application update) in one
-        row that wraps when the panel is narrow."""
-        info = self._get_device_info(device.node_id)
+        """The device's occasional actions (read-out, restart, reset) in one row that wraps when
+        the panel is narrow."""
         enabled = bool(device.individual_address)
         placed = False
 
@@ -631,32 +634,52 @@ class ConfigurePanel:
             if placed:
                 _same_line_if_fits(S.BTN_RESET_DEVICE)
             self._render_master_reset(device, enabled)
-            placed = True
-        update = self._pending_update(device, info)
-        if update is not None:
-            versions, current, label = update
-            if placed:
-                _same_line_if_fits(label)
-            self._render_update_action(device, versions, current)
-        # The update-success alert is a flag-driven modal, opened after an application update.
-        if self._alert_update_open:
-            imgui.open_popup(S.UPDATE_ALERT_TITLE)
-            self._alert_update_open = False
-        self._render_update_alert()
 
-    def _pending_update(
-        self, device: Device, info: "DeviceInfo | None"
-    ) -> "tuple[list[int], int, str] | None":
-        """``(versions, current, button_label)`` when a newer application version is available
-        online for this device, else ``None``."""
-        if self._on_update_application is None or self._get_online_versions is None:
-            return None
-        order = info.order_number if info else ""
-        versions = self._get_online_versions(order) if order else []
-        current = self._current_app_version(device)
-        if not versions or current is None or versions[0] <= current:
-            return None
-        return versions, current, S.CONFIGURE_UPDATE_BUTTON.format(version=versions[0])
+    def _render_application_program(self, device: Device) -> None:
+        """Change the application program, or update it to the version that replaces it."""
+        if (
+            self._get_change_targets is not None
+            and self._on_change_application is not None
+        ):
+            imgui.text_disabled(S.CHANGE_APPLICATION)
+            targets = self._get_change_targets(device)
+            current = self._current_app_version(device)
+            label = (
+                application_program_label(device.app.name, current)
+                if current is not None
+                else device.app.name
+            )
+            imgui.set_next_item_width(-1)
+            imgui.begin_disabled(not targets)
+            if imgui.begin_combo("##change_application", label):
+                imgui.selectable(f"{label}##current_application", True)
+                for program in targets:
+                    assert program.application_version is not None
+                    text = application_program_label(
+                        program.application_name or program.id,
+                        program.application_version,
+                    )
+                    if imgui.selectable(f"{text}##{program.id}", False)[0]:
+                        self._on_change_application(device, program)
+                imgui.end_combo()
+            imgui.end_disabled()
+        if self._on_update_application is not None:
+            imgui.text_disabled(S.UPDATE_APPLICATION_VERSION)
+            version = (
+                self._get_update_version(device)
+                if self._get_update_version is not None
+                else None
+            )
+            imgui.begin_disabled(version is None)
+            if imgui.button(S.BTN_UPDATE):
+                self._on_update_application(device)
+            imgui.end_disabled()
+            if version is not None and imgui.is_item_hovered():
+                imgui.set_tooltip(
+                    S.CONFIGURE_UPDATE_BUTTON.format(
+                        version=application_version_text(version)
+                    )
+                )
 
     def _render_manufacturer_section(self, device: Device) -> None:
         """Manufacturer, product and application details of the selected device."""
@@ -675,7 +698,9 @@ class ConfigurePanel:
                 (S.CONFIGURE_APPLICATION, device.app.id),
                 (
                     S.CONFIGURE_APP_VERSION,
-                    f"V{app_version}" if app_version is not None else "-",
+                    application_version_text(app_version)
+                    if app_version is not None
+                    else "-",
                 ),
                 (S.CONFIGURE_SCHEMA_VERSION, device.app.version),
                 (S.CONFIGURE_ORDER_NUMBER, info.order_number if info else ""),
@@ -689,8 +714,9 @@ class ConfigurePanel:
             ]
         )
         imgui.spacing()
+        self._render_application_program(device)
+        imgui.spacing()
         self._render_manual_button(info)
-        self._render_online_versions(device, info)
         self._render_readout_result(device)
         self._render_load_procedures(device)
 
@@ -838,40 +864,15 @@ class ConfigurePanel:
         finally:
             self._manual_busy = False
 
-    def _render_online_versions(
-        self, device: Device, info: "DeviceInfo | None"
-    ) -> None:
-        """Show which application versions exist online for this device's order number, so the user
-        can see whether a newer one is available. Read-only from the cached index; empty until the
-        online catalog has been fetched. One wrapped line of version numbers (newest first), with
-        the device's current version marked when it can be determined."""
-        if self._get_online_versions is None:
-            return
-        order = info.order_number if info else ""
-        if not order:
-            return
-        versions = self._get_online_versions(order)
-        if not versions:
-            return
-        current = self._current_app_version(device)
-        parts = [
-            f"V{v} {S.CONFIGURE_ONLINE_CURRENT}" if v == current else f"V{v}"
-            for v in versions
-        ]
-        imgui.spacing()
-        imgui.push_text_wrap_pos(0.0)
-        imgui.text_disabled(
-            S.CONFIGURE_ONLINE_AVAILABLE.format(count=len(versions))
-            + ": "
-            + ", ".join(parts)
-        )
-        imgui.pop_text_wrap_pos()
-
     def _current_app_version(self, device: Device) -> int | None:
-        """The application program version parsed from the app id (``...-26-...`` -> 38). This is the
-        real application version; ``device.app.version`` is the KNX XML schema version instead."""
+        """The application program version parsed from the app id (``...-26-...`` -> 38), else the
+        application's own version. ``device.app.version`` is the KNX XML schema version instead."""
         parsed = parse_app_id(device.app.id)
-        return parsed.version if parsed is not None else None
+        return (
+            parsed.version
+            if parsed is not None
+            else device.app.program.application_version
+        )
 
     def _render_readout_result(self, device: Device) -> None:
         """Show the state read off the bus (mask, application version, serial/order/hardware) next to
@@ -896,11 +897,12 @@ class ConfigurePanel:
         if app_v is None:
             version_value = "-"
         elif project_v is None or app_v == project_v:
-            version_value = f"V{app_v}"
+            version_value = application_version_text(app_v)
         else:
-            version_value = (
-                f"V{app_v}  {S.READOUT_VERSION_MISMATCH.format(version=project_v)}"
+            mismatch = S.READOUT_VERSION_MISMATCH.format(
+                version=application_version_text(project_v)
             )
+            version_value = f"{application_version_text(app_v)}  {mismatch}"
         if app is not None:
             manufacturer = app.manufacturer_id
         elif readout.manufacturer_id is not None:
@@ -1049,57 +1051,6 @@ class ConfigurePanel:
         imgui.end_disabled()
         imgui.same_line()
         if imgui.button(f"{S.ML_CANCEL}##reset_cancel"):
-            imgui.close_current_popup()
-        imgui.end_popup()
-
-    def _render_update_action(
-        self, device: Device, versions: list[int], current: int | None
-    ) -> None:
-        """When a newer application version is available online, offer an update that keeps
-        parameters and links. Confirmed first, because it repoints the device's application."""
-        if self._on_update_application is None or current is None or not versions:
-            return
-        newest = versions[0]  # get_online_versions is sorted descending
-        if newest <= current:
-            return
-        if imgui.button(S.CONFIGURE_UPDATE_BUTTON.format(version=newest)):
-            self._confirm_update_open = True
-        if self._confirm_update_open:
-            imgui.open_popup(S.UPDATE_CONFIRM_TITLE)
-            self._confirm_update_open = False
-        self._render_update_confirm(device, newest)
-
-    def _render_update_confirm(self, device: Device, version: int) -> None:
-        if not imgui.begin_popup_modal(
-            S.UPDATE_CONFIRM_TITLE, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
-            return
-        imgui.text_wrapped(S.UPDATE_CONFIRM_TEXT.format(version=version))
-        imgui.spacing()
-        btn_w = px_vec2(180, 0)
-        if imgui.button(S.CONFIGURE_UPDATE_BUTTON.format(version=version), btn_w):
-            ok = (
-                bool(self._on_update_application(device))
-                if self._on_update_application is not None
-                else False
-            )
-            if ok:
-                self._alert_version = version
-                self._alert_update_open = True
-            imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.BTN_CANCEL, btn_w):
-            imgui.close_current_popup()
-        imgui.end_popup()
-
-    def _render_update_alert(self) -> None:
-        if not imgui.begin_popup_modal(
-            S.UPDATE_ALERT_TITLE, None, imgui.WindowFlags_.always_auto_resize
-        )[0]:
-            return
-        imgui.text_wrapped(S.UPDATE_ALERT_TEXT.format(version=self._alert_version))
-        imgui.spacing()
-        if imgui.button(S.BTN_OK, px_vec2(120, 0)):
             imgui.close_current_popup()
         imgui.end_popup()
 

@@ -37,6 +37,7 @@ from xknxeditor.proj.core.events import (
     AddDevice,
     AddFunctionGroupAddress,
     AddInstallation,
+    ChangeDeviceApplication,
     CompositeEvent,
     CreateArea,
     CreateFunction,
@@ -1059,6 +1060,33 @@ class ProjectService:
         device = state.session.get(Device, device_id)
         kept = (len(device.parameters) + len(device.com_objects)) if device else 0
         return kept, dropped
+
+    def change_device_application(
+        self,
+        project_id: str,
+        device_id: int,
+        *,
+        hardware2program_ref_id: str,
+        new_app_id: str,
+        com_objects: list[tuple[str, str | None]],
+        module_instances: list[tuple[str, str]] | None = None,
+        parameters: list[tuple[str, str]] | None = None,
+        com_object_data: list[dict[str, Any] | None] | None = None,
+    ) -> None:
+        """Switch a device to another application program of its hardware, starting from that
+        application's defaults plus ``parameters`` and ``com_object_data`` (see
+        :class:`ChangeDeviceApplication`)."""
+        self._state(project_id).store.append(
+            ChangeDeviceApplication(
+                device_id=device_id,
+                new_hardware2program_ref_id=hardware2program_ref_id,
+                new_app_id=new_app_id,
+                com_objects=[[ref, channel] for ref, channel in com_objects],
+                module_instances=[list(row) for row in module_instances or []],
+                parameters=[list(row) for row in parameters or []],
+                com_object_data=list(com_object_data or []),
+            )
+        )
 
     def move_device(
         self, project_id: str, device_id: int, segment_id: int, address: int | None

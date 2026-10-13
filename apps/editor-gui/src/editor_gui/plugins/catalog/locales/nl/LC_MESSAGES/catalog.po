@@ -87,3 +87,6 @@ msgstr "{name} wordt verwijderd…"
 
 msgid "Deleted from the local catalog: {name}"
 msgstr "Verwijderd uit de lokale catalogus: {name}"
+
+msgid "Application ID"
+msgstr "Applicatie-ID"

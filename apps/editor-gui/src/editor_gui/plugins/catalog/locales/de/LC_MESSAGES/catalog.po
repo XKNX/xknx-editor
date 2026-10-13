@@ -152,3 +152,6 @@ msgstr "{name} wird gelöscht…"
 
 msgid "Deleted from the local catalog: {name}"
 msgstr "Aus dem lokalen Katalog gelöscht: {name}"
+
+msgid "Application ID"
+msgstr "Applikations-ID"

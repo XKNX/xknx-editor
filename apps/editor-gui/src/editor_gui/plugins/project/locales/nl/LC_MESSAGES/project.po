@@ -399,12 +399,6 @@ msgstr "Gekopieerd"
 msgid "Click to copy"
 msgstr "Klik om te kopieren"
 
-msgid "Available Online ({count})"
-msgstr "Online beschikbaar ({count})"
-
-msgid "(current)"
-msgstr "(huidig)"
-
 msgid "+ Function"
 msgstr "+ Functie"
 
@@ -866,3 +860,24 @@ msgstr "Het applicatieprogramma dat in het apparaat geladen is, komt niet overee
 
 msgid "Incompatible mask version: {found} instead of {expected}"
 msgstr "Incompatibele maskerversie: {found} in plaats van {expected}"
+
+msgid "Change Application Program"
+msgstr "Applicatieprogramma wijzigen"
+
+msgid "Update Application Program Version"
+msgstr "Versie van applicatieprogramma bijwerken"
+
+msgid "Update"
+msgstr "Bijwerken"
+
+msgid "Changing the application program failed"
+msgstr "Wijzigen van het applicatieprogramma mislukt"
+
+msgid "Updating the application program failed"
+msgstr "Bijwerken van het applicatieprogramma mislukt"
+
+msgid "Updating the application program..."
+msgstr "Applicatieprogramma wordt bijgewerkt..."
+
+msgid "Changing the application program..."
+msgstr "Applicatieprogramma wordt gewijzigd..."

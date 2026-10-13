@@ -17,6 +17,7 @@ from xknx.io.gateway_scanner import GatewayDescriptor, GatewayScanner
 from xknx.io.self_description import request_description
 
 from editor_gui.color import color_u32
+from editor_gui.device_info import application_version_text
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.connection.busmonitor import (
     DEFAULT_GATEWAY_PORT,
@@ -786,7 +787,9 @@ class ConnectionPlugin:
             f"{overview.mask_version:#06x}" if overview.mask_version is not None else ""
         )
         app_v = (
-            f"V{overview.application_version}" if overview.application_version else ""
+            application_version_text(overview.application_version)
+            if overview.application_version is not None
+            else ""
         )
         app_no = (
             f"{overview.application_number:#06x}"

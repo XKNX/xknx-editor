@@ -25,3 +25,5 @@ class PluginAPI:
     # Marshals a callable onto the imgui/UI thread (drained each frame). Used to apply project edits
     # from background threads (e.g. async programming callbacks). Optional so tests can omit a UI.
     main_thread: "MainThreadExecutor | None" = None
+    # Runs a callable on a worker thread behind the app's progress modal, labelled with the text.
+    run_background: Callable[[str, Callable[[], None]], None] | None = None
