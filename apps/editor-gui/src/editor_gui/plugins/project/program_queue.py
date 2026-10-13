@@ -107,12 +107,14 @@ class ProgramQueue:
         submit: Callable[[Callable[[], None]], Any] | None = None,
         connection: Callable[[QueueItem], str | None] | None = None,
         on_finished: Callable[[QueueItem, Any], None] | None = None,
+        describe_error: Callable[[QueueItem, BaseException], str | None] | None = None,
     ) -> None:
         self._is_busy = is_busy
         self._start = start
         self._submit = submit
         self._connection = connection
         self._on_finished = on_finished
+        self._describe_error = describe_error
         self._current: QueueItem | None = None
         self._queued: list[QueueItem] = []
         self._history: list[QueueItem] = []
@@ -231,7 +233,7 @@ class ProgramQueue:
             self._advance(item, future)
 
     def _advance(self, item: QueueItem, future: Future[Any]) -> None:
-        state, message = _outcome(item, future)
+        state, message = _outcome(item, future, self._describe_error)
         item.future = None
         if message is not None:
             item.message = message
@@ -242,7 +244,11 @@ class ProgramQueue:
         self.tick()
 
 
-def _outcome(item: QueueItem, future: Future[Any]) -> tuple[OperationState, str | None]:
+def _outcome(
+    item: QueueItem,
+    future: Future[Any],
+    describe: Callable[[QueueItem, BaseException], str | None] | None = None,
+) -> tuple[OperationState, str | None]:
     if future.cancelled():
         return OperationState.CANCELED, None
     error = future.exception()
@@ -250,7 +256,9 @@ def _outcome(item: QueueItem, future: Future[Any]) -> tuple[OperationState, str 
         return OperationState.CANCELED, None
     if error is not None:
         message = getattr(error, "message", None)
-        return OperationState.FAILED, str(message or error) or type(error).__name__
+        text = str(message or error) or type(error).__name__
+        extra = describe(item, error) if describe is not None else None
+        return OperationState.FAILED, f"{text} {extra}" if extra else text
     if item.script is not None and item.script.canceled:
         return OperationState.CANCELED, None
     return OperationState.FINISHED, None

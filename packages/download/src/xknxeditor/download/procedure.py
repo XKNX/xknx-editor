@@ -471,7 +471,10 @@ class LoadProcedureRunner:
                         raise PropertyAccessRejected(
                             message, error_code=error.error_code
                         ) from error
-                    raise CompareMismatch(message) from error
+                    details = error.details
+                    raise error.with_message(
+                        f"{message} {details}" if details else message
+                    ) from error
                 return False
             logger.info(
                 "continuing after OnError Ignore=true: %s cause=%s error=%s",
@@ -1622,7 +1625,12 @@ class LoadProcedureRunner:
             raise CompareMismatch(
                 f"property compare failed for object {index} property "
                 f"{control.prop_id}: expected {expected.hex()} "
-                f"read {read_back.hex()}"
+                f"read {read_back.hex()}",
+                object_index=index,
+                property_id=control.prop_id,
+                expected=expected,
+                read=read_back,
+                mask=mask,
             )
 
     async def _abs_segment(self, control: LdCtrlAbsSegment) -> None:

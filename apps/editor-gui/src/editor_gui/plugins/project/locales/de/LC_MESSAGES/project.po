@@ -1328,3 +1328,6 @@ msgstr "Die Seriennummer ist bereits dem Gerät {device} zugeordnet."
 
 msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
 msgstr "Die Seriennummer als 12 Hexadezimalziffern eingeben, z. B. 0083:7AA2039C."
+
+msgid "The reported value matches {devices} in this project."
+msgstr "Der gemeldete Wert passt zu {devices} in diesem Projekt."

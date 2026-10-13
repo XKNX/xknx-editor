@@ -36,6 +36,60 @@ class CompareMismatch(VerificationError):
 
     error_code = 0xC0042B09
 
+    def __init__(
+        self,
+        message: str,
+        *,
+        object_index: int | None = None,
+        property_id: int | None = None,
+        expected: bytes | None = None,
+        read: bytes | None = None,
+        mask: bytes | None = None,
+    ) -> None:
+        super().__init__(message)
+        self.object_index = object_index
+        self.property_id = property_id
+        self.expected = expected
+        self.read = read
+        self.mask = mask
+
+    def with_message(self, message: str) -> CompareMismatch:
+        """The same mismatch with another message."""
+        return CompareMismatch(
+            message,
+            object_index=self.object_index,
+            property_id=self.property_id,
+            expected=self.expected,
+            read=self.read,
+            mask=self.mask,
+        )
+
+    @property
+    def details(self) -> str | None:
+        """What the device reported against what the application expects, for a property
+        compare; octets the mask excludes are shown as ``xx``."""
+        if self.property_id is None or self.expected is None or self.read is None:
+            return None
+        name = _PROPERTY_NAMES.get(self.property_id) if self.object_index == 0 else None
+        if self.property_id == _PID_PROGRAM_VERSION:
+            name = "application version"
+        what = name or f"property {self.property_id} of object {self.object_index}"
+        mask = self.mask or b""
+        mask += b"\xff" * max(0, len(self.expected) - len(mask))
+        expected = " ".join(
+            "xx" if m == 0 else f"{b:02X}"
+            for b, m in zip(self.expected, mask, strict=False)
+        )
+        return (
+            f"The device reports {what} {self.read.hex(' ').upper()}, "
+            f"the application expects {expected}."
+        )
+
+
+_PID_PROGRAM_VERSION = 13
+# Device object (index 0) properties a load procedure compares to identify a device.
+_PROPERTY_NAMES = {11: "serial number", 12: "manufacturer ID", 78: "hardware type"}
+
 
 # Error reported for a rejected write to a protected or non-existing resource.
 # A device answers such a write with a

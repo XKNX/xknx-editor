@@ -14,6 +14,7 @@ from editor_gui.device_info import (
 )
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.project.button_runner import ButtonRunner
+from editor_gui.plugins.project.compare_match import compare_mismatch, matching_devices
 from editor_gui.plugins.project.device_info_view import device_info_sections
 from editor_gui.plugins.project.online_runner import OnlineButtonRunner
 from editor_gui.plugins.project.program_queue import (
@@ -126,6 +127,7 @@ class ProjectPlugin:
                 with_address=item.script is None
             ),
             on_finished=self._on_operation_finished,
+            describe_error=self._describe_program_error,
         )
         self._program_queue_panel = ProgramQueuePanel(
             get_active=lambda: self._program_queue.active,
@@ -1465,6 +1467,23 @@ class ProjectPlugin:
         if future is None and self._api.connection.xknx is None:
             item.message = S.SCRIPT_NOT_CONNECTED
         return future
+
+    def _describe_program_error(
+        self, item: QueueItem, error: BaseException
+    ) -> str | None:
+        """For a failed device check, the project devices the reported value belongs to."""
+        mismatch = compare_mismatch(error)
+        if mismatch is None:
+            return None
+        devices = [d for d in self._api.project.devices if d.node_id != item.node_id]
+        matches = matching_devices(mismatch, devices)
+        if not matches:
+            return None
+        names = ", ".join(
+            f"{d.product_name or d.app.name} ({d.individual_address or '-'})"
+            for d in matches
+        )
+        return S.PROGRAM_COMPARE_MATCHES.format(devices=names)
 
     def _on_operation_finished(self, item: QueueItem, result: Any) -> None:
         from editor_gui.device_info import DeviceInfo

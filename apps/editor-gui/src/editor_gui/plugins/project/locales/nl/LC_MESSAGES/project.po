@@ -848,3 +848,6 @@ msgstr "Voer het serienummer in als 12 hexadecimale cijfers, bijv. 0083:7AA2039C
 
 msgid "Test Programming"
 msgstr "Programmering testen"
+
+msgid "The reported value matches {devices} in this project."
+msgstr "De gemelde waarde past bij {devices} in dit project."

@@ -1194,6 +1194,10 @@ class ProjectStrings:
         return _("Set an individual address and connect to the bus first")
 
     @property
+    def PROGRAM_COMPARE_MATCHES(self) -> str:
+        return _("The reported value matches {devices} in this project.")
+
+    @property
     def READOUT_TITLE(self) -> str:
         return _("From Device (Live)")
 
