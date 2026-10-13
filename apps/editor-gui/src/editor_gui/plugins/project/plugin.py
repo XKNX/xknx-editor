@@ -1,4 +1,3 @@
-import datetime
 import functools
 import tempfile
 import threading
@@ -76,32 +75,6 @@ if TYPE_CHECKING:
 
 def _run_now(fn: Callable[[], None]) -> None:
     fn()
-
-
-# Which commissioning "loaded" flags a successful download of each scope sets (keyed by
-# DownloadScope.value). FULL/UNLOAD set all true/false; partial scopes set only their part. Flags
-# not listed are left unchanged.
-_ALL_LOADED = (
-    "individual_address_loaded",
-    "application_program_loaded",
-    "communication_part_loaded",
-    "medium_config_loaded",
-    "parameters_loaded",
-)
-_COMMISSIONING_BY_SCOPE: dict[str, dict[str, bool]] = {
-    "full": dict.fromkeys(_ALL_LOADED, True),
-    "unload": dict.fromkeys(_ALL_LOADED, False),
-    "ap1": {  # APPLICATION: parameters + application + group communication (not the address)
-        "application_program_loaded": True,
-        "communication_part_loaded": True,
-        "medium_config_loaded": True,
-        "parameters_loaded": True,
-    },
-    "par": {"parameters_loaded": True},  # PARAMETERS
-    "grp": {"communication_part_loaded": True},  # GROUP_COMMUNICATION
-    "ia": {"individual_address_loaded": True},  # INDIVIDUAL_ADDRESS
-    "ia_overwrite": {"individual_address_loaded": True},  # OVERWRITE_INDIVIDUAL_ADDRESS
-}
 
 
 class ProjectPlugin:
@@ -1652,22 +1625,8 @@ class ProjectPlugin:
     def _record_commissioning(
         self, node_id: int, scope_value: str, serial: bytes | None = None
     ) -> None:
-        flags = _COMMISSIONING_BY_SCOPE.get(scope_value)
-        if flags is None:
-            return
-        now = (
-            None
-            if scope_value == "unload"
-            else datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%S.%f0Z")
-        )
-
         def _apply() -> None:
-            self._api.project.set_device_commissioning(
-                node_id,
-                serial_number=serial_to_project(serial) if serial else None,
-                last_download=now,
-                **flags,
-            )
+            self._api.project.record_download(node_id, scope_value, serial)
 
         if self._api.main_thread is not None:
             self._api.main_thread.submit(_apply)

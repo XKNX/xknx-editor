@@ -1,5 +1,6 @@
 """GUI project facade: lazy device view over ProjectService with selection and pub/sub."""
 
+import datetime
 import hashlib
 import io
 import os
@@ -15,6 +16,7 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 
 from editor_gui.concurrency import io_guarded, revision_cached
 from editor_gui.device import Device, UnloadedDevice, address_order
+from editor_gui.device_info import serial_to_project
 from editor_gui.device_plugins import ConfigurationApp, configuration_apps
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.history import HistoryEntry
@@ -69,6 +71,32 @@ class UpdateApplicationResult:
     new_version: int
     kept: int
     dropped: int
+
+
+# Which commissioning "loaded" flags a successful download of each scope sets (keyed by
+# DownloadScope.value). FULL/UNLOAD set all true/false; partial scopes set only their part. Flags
+# not listed are left unchanged.
+_ALL_LOADED = (
+    "individual_address_loaded",
+    "application_program_loaded",
+    "communication_part_loaded",
+    "medium_config_loaded",
+    "parameters_loaded",
+)
+_COMMISSIONING_BY_SCOPE: dict[str, dict[str, bool]] = {
+    "full": dict.fromkeys(_ALL_LOADED, True),
+    "unload": dict.fromkeys(_ALL_LOADED, False),
+    "ap1": {  # APPLICATION: parameters + application + group communication (not the address)
+        "application_program_loaded": True,
+        "communication_part_loaded": True,
+        "medium_config_loaded": True,
+        "parameters_loaded": True,
+    },
+    "par": {"parameters_loaded": True},  # PARAMETERS
+    "grp": {"communication_part_loaded": True},  # GROUP_COMMUNICATION
+    "ia": {"individual_address_loaded": True},  # INDIVIDUAL_ADDRESS
+    "ia_overwrite": {"individual_address_loaded": True},  # OVERWRITE_INDIVIDUAL_ADDRESS
+}
 
 
 _FLAG_COLUMNS: dict[str, str] = {
@@ -1669,6 +1697,26 @@ class ProjectService:
             info = None
         self._revision_cache[cache_key] = (self.revision, info)
         return info
+
+    def record_download(
+        self, node_id: int, scope_value: str, serial: bytes | None = None
+    ) -> None:
+        """Record a successful download of ``scope_value`` (a DownloadScope value): its loaded
+        flags, the serial number read and, except for an unload, the time."""
+        flags = _COMMISSIONING_BY_SCOPE.get(scope_value)
+        if flags is None:
+            return
+        now = (
+            None
+            if scope_value == "unload"
+            else datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%S.%f0Z")
+        )
+        self.set_device_commissioning(
+            node_id,
+            serial_number=serial_to_project(serial) if serial else None,
+            last_download=now,
+            **flags,
+        )
 
     def set_device_commissioning(
         self,

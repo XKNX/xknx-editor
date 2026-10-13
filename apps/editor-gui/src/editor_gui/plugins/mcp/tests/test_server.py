@@ -659,3 +659,50 @@ async def test_project_compact(tmp_path: Path) -> None:
 
         again = await _data(client, "project_compact")
         assert again["nothing_unused"] is True
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_programming_tools_record_the_download(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from concurrent.futures import Future
+
+    ctx = _build_ctx(tmp_path)
+    connection = ctx.api.connection
+    recorded: list[tuple[Any, ...]] = []
+
+    def done(result: Any = None) -> Future[Any]:
+        future: Future[Any] = Future()
+        future.set_result(result)
+        return future
+
+    monkeypatch.setattr(ConnectionService, "xknx", property(lambda self: object()))
+    monkeypatch.setattr(
+        connection, "program_device", lambda *a, **k: done(b"\x00\xfa\x01\x02\x03\x04")
+    )
+    monkeypatch.setattr(
+        connection, "assign_individual_address_for_device", lambda device: done()
+    )
+    monkeypatch.setattr(
+        ctx.api.project,
+        "record_download",
+        lambda *args: recorded.append(args),
+    )
+    async with Client(build_server(ctx)) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product = (await _data(client, "catalog_list_products"))["items"][0]
+        node_id = (
+            await _data(
+                client, "project_add_device", product_ref_id=product["product_ref_id"]
+            )
+        )["node_id"]
+        await _data(
+            client, "project_set_individual_address", node_id=node_id, address="1.1.5"
+        )
+        await _data(client, "connection_program_device", node_id=node_id)
+        await _data(client, "connection_assign_individual_address", node_id=node_id)
+    assert recorded == [
+        (node_id, "full", b"\x00\xfa\x01\x02\x03\x04"),
+        (node_id, "ia"),
+    ]

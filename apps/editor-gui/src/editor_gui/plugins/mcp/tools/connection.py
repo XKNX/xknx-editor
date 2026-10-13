@@ -252,10 +252,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         if future is None:
             raise ToolError("programming could not be scheduled (no connection)")
         try:
-            future.result(timeout=timeout)
+            result = future.result(timeout=timeout)
         except TimeoutError as exc:
             future.cancel()
             raise ToolError(f"programming did not finish within {timeout} s") from exc
+        serial = result if isinstance(result, bytes) else None
+        ctx.run_locked(
+            lambda: ctx.api.project.record_download(node_id, resolved.value, serial)
+        )
         return {"status": "programmed", "node_id": node_id}
 
     @tool
@@ -302,6 +306,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         if future is None:
             raise ToolError("assignment could not be scheduled (no connection)")
         future.result(timeout=timeout)
+        ctx.run_locked(lambda: ctx.api.project.record_download(node_id, "ia"))
         return {
             "status": "assigned",
             "node_id": node_id,
