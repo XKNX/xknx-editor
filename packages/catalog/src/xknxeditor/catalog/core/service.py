@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from pathlib import Path
 
-from sqlalchemy import func, select
+from sqlalchemy import exists, func, select
 from sqlalchemy.orm import Session
 
 from xknxeditor.catalog.core.applications import (
@@ -20,6 +20,11 @@ from xknxeditor.catalog.core.catalog_sections import (
     build_catalog_tree,
     collect_section_ids,
     list_catalog_sections,
+)
+from xknxeditor.catalog.core.delete import (
+    ProductDeletion,
+    delete_product,
+    plan_product_deletion,
 )
 from xknxeditor.catalog.core.hardware import (
     HardwareFilters,
@@ -67,6 +72,17 @@ class CatalogService:
         return upload_knxprod(
             content, self._knxprod_dir, self._engine, require_catalog=require_catalog
         )
+
+    def delete_product(self, product_ref_id: str) -> ProductDeletion | None:
+        """Delete a product and garbage-collect what it leaves unreferenced, including its
+        ``.knxprod`` archives and parse-cache entries. ``None`` when the product is unknown."""
+        return delete_product(
+            self._engine, product_ref_id, cache_dir=self._parse_cache_dir
+        )
+
+    def plan_product_deletion(self, product_ref_id: str) -> ProductDeletion | None:
+        """What :meth:`delete_product` would remove, without changing anything."""
+        return plan_product_deletion(self._engine, product_ref_id)
 
     # --- manufacturers ----------------------------------------------------
 
@@ -121,6 +137,17 @@ class CatalogService:
         """The application id a hardware program loads, or ``None``."""
         with Session(self._engine) as db:
             return get_program_application_id(db, program_id)
+
+    def has_application(self, application_id: str) -> bool:
+        """Whether a hardware program loads ``application_id`` (so it can be resolved)."""
+        with Session(self._engine) as db:
+            return bool(
+                db.scalar(
+                    select(
+                        exists().where(HardwareProgram.application_id == application_id)
+                    )
+                )
+            )
 
     def get_program_source(self, program_id: str) -> tuple[str, str] | None:
         """Return ``(knxprod_path, manufacturer_id)`` for a program id, or ``None``."""

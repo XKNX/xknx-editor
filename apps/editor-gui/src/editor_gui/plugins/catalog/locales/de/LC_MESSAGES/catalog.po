@@ -134,3 +134,21 @@ msgstr "Dieses Produkt hat kein verwendbares Applikationsprogramm."
 
 msgid "Added device: {name}"
 msgstr "Gerät hinzugefügt: {name}"
+
+msgid "Delete"
+msgstr "Löschen"
+
+msgid "Delete from Local Catalog"
+msgstr "Aus lokalem Katalog löschen"
+
+msgid "Are you sure you want to delete the selected device? This cannot be undone."
+msgstr "Soll das ausgewählte Gerät wirklich gelöscht werden? Dies kann nicht rückgängig gemacht werden."
+
+msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
+msgstr "{count} Gerät(e) im geöffneten Projekt verwenden dieses Produkt. Sie können erst wieder geladen werden, wenn das Produkt erneut importiert wurde."
+
+msgid "Deleting {name}…"
+msgstr "{name} wird gelöscht…"
+
+msgid "Deleted from the local catalog: {name}"
+msgstr "Aus dem lokalen Katalog gelöscht: {name}"

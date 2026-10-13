@@ -41,6 +41,8 @@ class CatalogPlugin:
             search_online_products=api.catalog.search_online_products,
             add_online_item=self._add_online_item_to_project,
             can_add_to_project=lambda: api.project.is_open,
+            plan_delete_product=self._plan_delete_product,
+            delete_product=self._delete_product,
         )
         self._panels = [
             PanelDefinition(
@@ -92,6 +94,43 @@ class CatalogPlugin:
             label = product.name or app.name
             self._log.info("device added", name=label, id=device_id)
             self._notify(S.CATALOG_ADD_OK.format(name=label))
+
+    def _plan_delete_product(self, product: ProductSummary) -> int | None:
+        """Number of open-project devices that deleting ``product`` leaves unloadable, or ``None``
+        when the product is not in the local catalog."""
+        deletion = self._api.catalog.plan_delete_product(product.product_ref_id)
+        if deletion is None:
+            return None
+        return self._api.project.count_devices_losing_product(deletion)
+
+    def _delete_product(self, product: ProductSummary) -> None:
+        """Delete a product from the local catalog (called on a worker thread)."""
+        ref = product.product_ref_id
+        try:
+            # Hold the shared lock across the catalog delete and the device rebuild, so per-frame
+            # reads bail instead of seeing the catalog and the project out of step.
+            with self._api.catalog.io_lock:
+                deletion = self._api.catalog.delete_product(ref)
+                if deletion is not None:
+                    self._api.project.forget_deleted_product(deletion, rebuild=True)
+        except Exception as exc:
+            self._log.error(
+                "catalog delete failed",
+                product=ref,
+                error=f"{type(exc).__name__}: {exc}",
+            )
+            return
+        if deletion is None:
+            self._log.warning("product not in local catalog", product=ref)
+            return
+        self._log.info(
+            "product deleted from local catalog",
+            product=ref,
+            programs=len(deletion.removed_programs),
+            applications=len(deletion.removed_applications),
+            files=len(deletion.removed_files),
+        )
+        self._notify(S.DELETE_OK.format(name=product.name or ref))
 
     def _space_options(self) -> list[tuple[int, str]]:
         """Flattened (space_id, "Building / Floor / Room") pairs for the Add-device room picker,

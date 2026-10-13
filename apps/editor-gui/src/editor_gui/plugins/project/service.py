@@ -40,10 +40,12 @@ from xknxeditor.proj.core.skeleton import MEDIUM_TP
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger
     from editor_gui.plugins.catalog.service import CatalogService
-    from xknxeditor.catalog import ProductSummary
+    from xknxeditor.catalog import ProductDeletion, ProductSummary
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.prod.parser_v2.calculation import ChangeSet
+    from xknxeditor.proj.core.compact import CompactResult
     from xknxeditor.proj.core.import_notes import ImportLoss
+    from xknxeditor.proj.core.product_prune import ProgressCallback
     from xknxeditor.proj.core.service import (
         DeviceInfo,
         GroupRangeInfo,
@@ -1735,6 +1737,88 @@ class ProjectService:
                 _ = (
                     self.devices
                 )  # rebuild under the held lock instead of lazily on the UI thread
+
+    def forget_deleted_product(
+        self, deletion: "ProductDeletion", *, rebuild: bool = False
+    ) -> None:
+        """Drop the cached catalog lookups that went through the hardware programs or applications
+        of a product deleted from the catalog, and invalidate the device view. Only devices built
+        from a dropped lookup are rebuilt; ``rebuild`` as in :meth:`refresh_catalog_resolution`."""
+        programs = set(deletion.removed_programs)
+        apps = {a for a in deletion.program_applications.values() if a is not None}
+        with self._io_lock:
+            for key, app in list(self._app_cache.items()):
+                if key in programs or key in apps or app.id in apps:
+                    del self._app_cache[key]
+            for ref in programs:
+                self._plugin_cache.pop(ref, None)
+            self._bump()
+            if rebuild:
+                _ = self.devices
+
+    @io_guarded(int)
+    def count_devices_losing_product(self, deletion: "ProductDeletion") -> int:
+        """How many devices of the open project could no longer be loaded once ``deletion`` is
+        applied: they use a removed hardware program or application and nothing else resolves."""
+        if self._pid is None:
+            return 0
+        programs = set(deletion.removed_programs)
+        apps = set(deletion.removed_applications)
+        count = 0
+        for row in self._svc.devices(self._pid):
+            program = row.hardware2program_ref_id
+            app_ref = row.application_program_ref_id
+            if program not in programs and app_ref not in apps:
+                continue
+            if (
+                program is not None
+                and program not in programs
+                and self._catalog.get_program_application_id(program) is not None
+            ):
+                continue
+            if (
+                app_ref is not None
+                and app_ref not in apps
+                and self._catalog.has_application(app_ref)
+            ):
+                continue
+            count += 1
+        return count
+
+    # --- compact project ---------------------------------------------------
+
+    def analyse_compaction(
+        self, progress: "ProgressCallback | None" = None
+    ) -> "CompactResult | None":
+        """What "Compact Project" would remove and the estimated file size (no changes)."""
+        if self._pid is None:
+            return None
+        with self._io_lock:
+            return self._svc.analyse_compaction(self._pid, progress)
+
+    def compact(
+        self,
+        progress: "ProgressCallback | None" = None,
+        cancelled: Callable[[], bool] | None = None,
+    ) -> "CompactResult | None":
+        """Remove stored product data no device uses and compact the project file.
+
+        Not undoable. Holds the shared lock for the whole operation; raises
+        :class:`~xknxeditor.proj.CompactCancelled` when ``cancelled`` is set before the write."""
+        if self._pid is None:
+            return None
+        with self._io_lock:
+            result = self._svc.compact(self._pid, progress, cancelled)
+            self._revision_cache.clear()
+            self._bump(structural=False)
+        self._log.info(
+            "project compacted",
+            removed_applications=len(result.report.application_programs),
+            removed_manufacturers=len(result.report.manufacturers),
+            size_before=result.file_size_before,
+            size_after=result.file_size_after,
+        )
+        return result
 
     # --- application update ("Update Application Program") -------------
 

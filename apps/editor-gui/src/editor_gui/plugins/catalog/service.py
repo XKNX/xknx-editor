@@ -18,7 +18,7 @@ if TYPE_CHECKING:
         OnlineIndexStatus,
         OnlineManufacturer,
     )
-    from xknxeditor.catalog import ProductSummary
+    from xknxeditor.catalog import ProductDeletion, ProductSummary
     from xknxeditor.prod import Application
 
 
@@ -106,6 +106,18 @@ class CatalogService:
         self._products = None
         after = {p.product_ref_id for p in self.get_products()}
         return sorted(after - before)
+
+    @io_guarded(lambda: None)
+    def plan_delete_product(self, product_ref_id: str) -> ProductDeletion | None:
+        """What deleting ``product_ref_id`` would remove, without changing anything."""
+        return self._service.plan_product_deletion(product_ref_id)
+
+    def delete_product(self, product_ref_id: str) -> ProductDeletion | None:
+        """Delete a product from the local catalog, holding :attr:`io_lock` while it writes."""
+        with self._io_lock:
+            deletion = self._service.delete_product(product_ref_id)
+            self._products = None
+        return deletion
 
     def online_catalog_items(self, manufacturer_id: int) -> list[OnlineCatalogItem]:
         """Downloadable products a manufacturer offers in the online catalog (hits the network)."""
@@ -218,6 +230,11 @@ class CatalogService:
         hardware_id = hardware2program_id.split("_HP-", 1)[0]
         hardware = self._service.get_hardware(hardware_id)
         return bool(hardware is not None and hardware.no_download_without_plugin)
+
+    @io_guarded(lambda: False)
+    def has_application(self, application_id: str) -> bool:
+        """Whether a hardware program in the catalog loads ``application_id``."""
+        return self._service.has_application(application_id)
 
     @io_guarded(lambda: None)
     def get_program_source(self, program_id: str) -> tuple[str, str] | None:

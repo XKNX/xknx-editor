@@ -221,6 +221,32 @@ async def test_project_tools_require_open_project(tmp_path: Path) -> None:
 
 
 @pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_delete_product(tmp_path: Path) -> None:
+    """Deleting a product empties the catalog and leaves the device using it unloaded."""
+    mcp, project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        await _data(client, "project_add_device", product_ref_id=ref)
+        assert len(project.devices) == 1
+
+        result = await _data(client, "catalog_delete_product", product_ref_id=ref)
+        assert result["product_ref_id"] == ref
+        assert result["affected_devices"] == 1
+        assert len(result["removed_programs"]) == 1
+        assert len(result["removed_files"]) == 1
+        assert (await _data(client, "catalog_list_products"))["count"] == 0
+        assert project.devices == []
+        assert len(project.unloaded_devices) == 1
+
+        with pytest.raises(Exception, match="not in the local catalog"):
+            await client.call_tool("catalog_delete_product", {"product_ref_id": ref})
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
 async def test_import_knxprod_bytes(tmp_path: Path) -> None:
     """A .knxprod imports inline as base64 (remote client), then is readable via catalog tools."""
     import base64 as _b64
@@ -578,3 +604,58 @@ async def test_network_tools_read_the_monitor_logs(tmp_path: Path) -> None:
         cleared = await _data(client, "network_state")
         assert cleared["cemi_records"] == 0
         assert cleared["state"] == "capturing"
+
+
+_KNXPROJ = (
+    Path(__file__).parents[7]
+    / "packages/proj/tests/fixtures/xknx_test_project_no_password.knxproj"
+)
+
+
+@pytest.mark.skipif(not _KNXPROJ.exists(), reason="knxproj fixture missing")
+async def test_project_compact(tmp_path: Path) -> None:
+    """project_compact reports unused product data on a dry run and removes it otherwise."""
+    import sqlite3
+    import zipfile
+
+    from xknxeditor.proj import import_knxproj
+
+    path = tmp_path / "p.xknx"
+    import_knxproj(_KNXPROJ, path)
+    with sqlite3.connect(path) as db:
+        (blob,) = db.execute("SELECT imported_product_members FROM projects").fetchone()
+        buffer = io.BytesIO()
+        with (
+            zipfile.ZipFile(io.BytesIO(blob)) as src,
+            zipfile.ZipFile(buffer, "w") as out,
+        ):
+            for name in src.namelist():
+                out.writestr(name, src.read(name))
+            out.writestr(
+                "M-0003/Hardware.xml",
+                '<KNX xmlns="http://knx.org/xml/project/20"><ManufacturerData>'
+                '<Manufacturer RefId="M-0003"><Hardware><Hardware Id="M-0003_H-1">'
+                '<Products><Product Id="M-0003_H-1_P-1" /></Products>'
+                "</Hardware></Hardware></Manufacturer></ManufacturerData></KNX>",
+            )
+            out.writestr("M-0003/M-0003_A-0001.xml", "<KNX />")
+        db.execute(
+            "UPDATE projects SET imported_product_members = ?", (buffer.getvalue(),)
+        )
+    db.close()
+
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_open", path=str(path))
+        dry = await _data(client, "project_compact")
+        assert dry["status"] == "analysed"
+        assert dry["removed"]["manufacturers"] == ["M-0003"]
+        assert dry["removed"]["application_programs"] == ["M-0003_A-0001"]
+
+        done = await _data(client, "project_compact", dry_run=False)
+        assert done["status"] == "compacted"
+        assert done["removed"]["manufacturers"] == ["M-0003"]
+        assert done["file_size_after"] == path.stat().st_size
+
+        again = await _data(client, "project_compact")
+        assert again["nothing_unused"] is True

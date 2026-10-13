@@ -8,7 +8,7 @@ relational tables and reads hand back ORM rows. Installation-scoped calls pass t
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -24,6 +24,11 @@ from xknxeditor.proj.core.addressing import (
     format_ia,
     parse_ia,
     ranges_for,
+)
+from xknxeditor.proj.core.compact import (
+    CompactResult,
+    analyse_compaction,
+    compact_project,
 )
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.event_store import EventStore, HistoryEntry
@@ -76,6 +81,7 @@ from xknxeditor.proj.core.events import (
     UpdateDeviceApplication,
 )
 from xknxeditor.proj.core.function_detect import classify_function
+from xknxeditor.proj.core.product_prune import ProgressCallback
 from xknxeditor.proj.core.skeleton import MEDIUM_TP, seed_new_project
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
@@ -1095,6 +1101,27 @@ class ProjectService:
     def history(self, project_id: str) -> list[HistoryEntry]:
         return self._state(project_id).store.history()
 
+    # --- maintenance --------------------------------------------------------
+
+    def analyse_compaction(
+        self, project_id: str, progress: ProgressCallback | None = None
+    ) -> CompactResult:
+        """Dry run of :meth:`compact`: what would be removed and the estimated file size."""
+        state = self._state(project_id)
+        return analyse_compaction(state.session, self._path(state), progress)
+
+    def compact(
+        self,
+        project_id: str,
+        progress: ProgressCallback | None = None,
+        cancelled: Callable[[], bool] | None = None,
+    ) -> CompactResult:
+        """Remove stored product data no device uses and ``VACUUM`` the file (not undoable)."""
+        state = self._state(project_id)
+        return compact_project(
+            state.session, state.engine, self._path(state), progress, cancelled
+        )
+
     # --- reads ------------------------------------------------------------
 
     def project(self, project_id: str) -> Project:
@@ -1480,6 +1507,12 @@ class ProjectService:
 
     def _register(self, project_id: str, engine: Engine, session: Session) -> None:
         self._projects[project_id] = _Open(engine, session, EventStore(session))
+
+    @staticmethod
+    def _path(state: _Open) -> Path:
+        database = state.engine.url.database
+        assert database is not None
+        return Path(database)
 
     def _state(self, project_id: str) -> _Open:
         return self._projects[project_id]

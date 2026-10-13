@@ -68,12 +68,17 @@ from sqlalchemy.orm import Session
 
 from xknxeditor.proj.core import import_notes
 from xknxeditor.proj.core._dll_signer import sign_member_map
+from xknxeditor.proj.core.compact import used_product_ids
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.import_notes import ImportLoss
 from xknxeditor.proj.core.knxproj_signing import (
     SignatureAudit,
     audit_and_sign_folders,
     directory_signature,
+)
+from xknxeditor.proj.core.product_prune import (
+    ProductPruneReport,
+    prune_product_members,
 )
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
@@ -169,6 +174,7 @@ class ExportResult:
     the KNX master-data version written. ``area_count``/``line_count`` describe the topology,
     ``com_object_link_count`` the group-object links written, ``floor_count``/``room_count`` the
     location spaces below buildings, and ``function_count`` the building functions.
+    ``product_prune`` reports the product data left out by ``remove_unused_products``.
     """
 
     schema: str
@@ -190,6 +196,7 @@ class ExportResult:
     floor_count: int = 0
     room_count: int = 0
     function_count: int = 0
+    product_prune: ProductPruneReport | None = None
 
     def __str__(
         self,
@@ -572,6 +579,7 @@ def export_knxproj(
     master_version: int = 1,
     certificate_signer: CertificateSigner | None = None,
     project_name: str | None = None,
+    remove_unused_products: bool = False,
 ) -> ExportResult:
     """Read the project at ``source`` (a ``.xknx``) and write a ``.knxproj`` archive to ``dest``.
 
@@ -608,6 +616,8 @@ def export_knxproj(
       project_name: Optional name for the exported ProjectInformation (shown in the
         project list). When ``None`` the project's stored name is used. Does not persist to
         the source ``.xknx``.
+      remove_unused_products: Leave out the bundled product data no device uses (see
+        :mod:`product_prune`). The source ``.xknx`` is not changed.
     """
     ns = _ns_for(schema)  # validate the requested schema early
     logger.debug(
@@ -621,6 +631,7 @@ def export_knxproj(
     engine = make_engine(url_for(Path(source)))
     import_notes_raw = ""
     effective_extra: dict[str, bytes] = {}
+    prune_report: ProductPruneReport | None = None
     try:
         # autoflush=False keeps this read of the LIVE working-copy file strictly read-only. The
         # project_name override below marks the ORM row dirty; with autoflush on, the next query
@@ -647,6 +658,14 @@ def export_knxproj(
             schema, ns, effective_extra, master_xml = _resolve_export_sources(
                 project, schema, extra_files, master_xml, master_source, fetch_master
             )
+            if remove_unused_products and effective_extra:
+                used = used_product_ids(session)
+                effective_extra, prune_report = prune_product_members(
+                    effective_extra,
+                    used.products,
+                    used.hardware2programs,
+                    used.applications,
+                )
             # Counts for the caller's success summary, read while the session is open (one DB round
             # trip each; no extra engine). Buildings are the top-level location spaces.
             device_count = session.query(Device).count()
@@ -731,6 +750,7 @@ def export_knxproj(
         floor_count=floor_count,
         room_count=room_count,
         function_count=function_count,
+        product_prune=prune_report,
     )
 
 

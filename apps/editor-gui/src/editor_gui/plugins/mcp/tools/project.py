@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from fastmcp import FastMCP
 
     from editor_gui.device import ComObject, Device
+    from xknxeditor.proj import CompactResult
 
 # Slow, file/parse-heavy operations get a generous main-thread budget (they briefly hold the frame).
 _SLOW = 300.0
@@ -331,6 +332,41 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         if warnings:
             out["warning"] = "ETS may reject the import — " + "; ".join(warnings)
         return out
+
+    @tool
+    def project_compact(dry_run: bool = True) -> dict[str, Any]:
+        """Remove product data no device uses from the open project and compact its file.
+
+        With ``dry_run`` (the default) only reports what would be removed and the estimated file
+        size. Otherwise removes it and compacts the file; this cannot be undone, and removed product
+        data has to be imported again when such a product is added later."""
+        require_project(ctx)
+
+        def _compact() -> CompactResult | None:
+            if dry_run:
+                return project.analyse_compaction()
+            return project.compact()
+
+        result = ctx.run_locked(_compact, timeout=_SLOW)
+        if result is None:
+            raise ToolError("no project is open")
+        report = result.report
+        return {
+            "status": "analysed" if dry_run else "compacted",
+            "nothing_unused": report.nothing_removed,
+            "file_size_before": result.file_size_before,
+            "file_size_after": result.file_size_after,
+            "removed": {
+                "application_programs": report.application_programs,
+                "products": report.products,
+                "hardware": report.hardware,
+                "catalog_items": report.catalog_items,
+                "baggages": report.baggages,
+                "manufacturers": report.manufacturers,
+            },
+            "product_data_size_before": report.size_before,
+            "product_data_size_after": report.size_after,
+        }
 
     @tool
     def project_info() -> dict[str, Any]:
