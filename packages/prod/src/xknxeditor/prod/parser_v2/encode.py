@@ -4,6 +4,7 @@ import base64
 import binascii
 import ipaddress
 import math
+import re
 import struct
 from collections.abc import Callable, Mapping
 from typing import NamedTuple
@@ -15,6 +16,7 @@ from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_
 from xknxeditor.namespaces.intermediate.application_program_static_t_parameters_union import (
     ApplicationProgramStaticParametersUnion,
 )
+from xknxeditor.namespaces.intermediate.download_behavior_t import DownloadBehavior
 from xknxeditor.namespaces.intermediate.memory_parameter_t import MemoryParameter
 from xknxeditor.namespaces.intermediate.memory_union_t import MemoryUnion
 from xknxeditor.namespaces.intermediate.module_def_static_t_parameters_parameter import (
@@ -556,6 +558,54 @@ def resolve_param_values(idx: ApplicationIndexer, state: GlobalState) -> dict[st
     return overrides
 
 
+def download_behavior(app: ApplicationProgram) -> DownloadBehavior:
+    """How a download treats parameters without an active ParameterRef.
+
+    ``DownloadInvisibleParameters`` applies from MinEtsVersion 5.0 with an Options element;
+    older applications and applications without Options use ``Background``.
+    """
+    options = app.static.options
+    # Parsed newer schemas keep the attribute as a plain string.
+    version = str(getattr(app.min_ets_version, "value", app.min_ets_version) or "")
+    match = re.match(r"(\d+)\.(\d+)", version)
+    if options is None or match is None or (int(match[1]), int(match[2])) < (5, 0):
+        return DownloadBehavior.BACKGROUND
+    return options.download_invisible_parameters
+
+
+def download_param_values(
+    app: ApplicationProgram, idx: ApplicationIndexer, state: GlobalState
+) -> dict[str, str]:
+    """The parameter values a download writes.
+
+    Those of the active ParameterRefs (:func:`resolve_param_values`) and, with
+    ``DownloadInvisibleParameters="DefaultValue"``, the product default of every referenced
+    parameter that has no active ParameterRef, and of the default alternative of every union
+    none of whose alternatives is active.
+    """
+    values = resolve_param_values(idx, state)
+    if (
+        download_behavior(app) is not DownloadBehavior.DEFAULT_VALUE
+        or app.static.parameters is None
+    ):
+        return values
+    referenced = {ref.ref_id for ref in idx.parameter_refs.values()}
+    for item in app.static.parameters.choice:
+        if isinstance(item, ApplicationProgramStaticParametersParameter):
+            if item.id in referenced and item.id not in values:
+                values[item.id] = item.value
+            continue
+        members = item.parameter
+        if any(up.id in values for up in members) or not any(
+            up.id in referenced for up in members
+        ):
+            continue
+        default = next((up for up in members if up.default_union_parameter), None)
+        if default is not None:
+            values[default.id] = default.value
+    return values
+
+
 def _resolve_base(base_id: str | None, ms: ModuleState) -> int | None:
     if base_id is None:
         return 0
@@ -812,7 +862,17 @@ def collect_writes(
         else None
     )
     if s.parameters is not None:
-        for item in s.parameters.choice:
+        items = list(s.parameters.choice)
+        if state is not None:
+            # Values of active ParameterRefs come first and the defaults of inactive
+            # parameters after them, so a default wins where the two share bits.
+            active_params = {
+                idx.parameter_refs[ref].ref_id
+                for ref in state.active_param_refs()
+                if ref in idx.parameter_refs
+            }
+            items.sort(key=lambda item: not _has_active_param(item, active_params))
+        for item in items:
             if isinstance(item, ApplicationProgramStaticParametersParameter):
                 _collect_param(item, overrides, None, out, active_ids)
             else:
@@ -822,6 +882,16 @@ def collect_writes(
         for ms in state.module_children():
             _collect_module_writes(ms, idx, out)
     return out
+
+
+def _has_active_param(
+    item: ApplicationProgramStaticParametersParameter
+    | ApplicationProgramStaticParametersUnion,
+    active_params: set[str],
+) -> bool:
+    if isinstance(item, ApplicationProgramStaticParametersParameter):
+        return item.id in active_params
+    return any(up.id in active_params for up in item.parameter)
 
 
 def _written_width_in_bit(tc: object, value: str) -> int | None:
