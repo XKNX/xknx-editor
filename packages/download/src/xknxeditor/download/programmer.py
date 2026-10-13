@@ -38,12 +38,20 @@ from xknx.telegram.apci import (
     MemoryWrite,
     PropertyDescriptionRead,
     PropertyDescriptionResponse,
+    PropertyExtDescriptionRead,
+    PropertyExtDescriptionResponse,
+    PropertyExtValueRead,
+    PropertyExtValueResponse,
+    PropertyExtValueWriteCon,
+    PropertyExtValueWriteConRes,
+    PropertyExtValueWriteUnCon,
     PropertyValueRead,
     PropertyValueResponse,
     PropertyValueWrite,
     Restart,
     RestartMasterReset,
     RestartMasterResetResponse,
+    ReturnCode,
     UserMemoryRead,
     UserMemoryResponse,
     UserMemoryWrite,
@@ -72,6 +80,9 @@ _MEMORY_OVERHEAD = 3
 _MAX_MEMORY_CHUNK = 0x3F
 # Octets consumed by APCI/object/property/count/index in A_PropertyValue_Write.
 _PROPERTY_OVERHEAD = 5
+# A_PropertyExtValue_* frames: object type, 12 bit instance and PID, 8 bit count, 16 bit start.
+_EXT_PROPERTY_OVERHEAD = 9
+_MAX_EXT_PROPERTY_ELEMENTS = 0xFF
 # A_PropertyValue_Write encodes the element count in 4 bits.
 _MAX_PROPERTY_ELEMENTS = 0xF
 # Default APDU length every KNX device has to support.
@@ -194,6 +205,175 @@ class DeviceProgrammer:
             if element_size
             else _MAX_PROPERTY_ELEMENTS
         )
+
+    def extended_property_chunk_size(self, element_size: int) -> int:
+        """Elements that fit an extended property value frame."""
+        max_bytes = self._payload_budget(_EXT_PROPERTY_OVERHEAD, 250)
+        if element_size < 0 or element_size > max_bytes:
+            raise VerificationError(
+                f"a single property element ({element_size} octets) does not fit "
+                f"the APDU ({max_bytes} octets)"
+            )
+        return (
+            min(_MAX_EXT_PROPERTY_ELEMENTS, max_bytes // element_size)
+            if element_size
+            else _MAX_EXT_PROPERTY_ELEMENTS
+        )
+
+    def fits_extended_property(self, element_size: int) -> bool:
+        """Whether one element fits an extended property value frame."""
+        return self._plain_apdu_length > element_size + _EXT_PROPERTY_OVERHEAD
+
+    async def read_property_ext_element_size(
+        self, object_type: int, instance: int, property_id: int
+    ) -> int:
+        """Element size of a property addressed by object type and instance
+        (A_PropertyExtDescription_Read)."""
+        from .property_layout import property_width
+
+        telegram = await self.connection.request(
+            PropertyExtDescriptionRead(
+                interface_object_type=object_type,
+                object_instance=instance,
+                property_id=property_id,
+            ),
+            PropertyExtDescriptionResponse,
+        )
+        response = telegram.payload
+        if (
+            not isinstance(response, PropertyExtDescriptionResponse)
+            or response.interface_object_type != object_type
+            or response.object_instance != instance
+            or response.property_id != property_id
+            or response.max_nr_of_elem == 0
+        ):
+            raise VerificationError(
+                f"invalid property description for object type {object_type} "
+                f"instance {instance} property {property_id}"
+            )
+        return property_width(response.pdt)
+
+    async def read_property_ext(
+        self,
+        object_type: int,
+        instance: int,
+        property_id: int,
+        *,
+        count: int = 1,
+        start_index: int = 1,
+        require_nonzero: bool = False,
+    ) -> bytes:
+        """Read a property addressed by object type and instance
+        (A_PropertyExtValue_Read)."""
+        telegram = await self.connection.request(
+            PropertyExtValueRead(
+                interface_object_type=object_type,
+                object_instance=instance,
+                property_id=property_id,
+                nr_of_elem=count,
+                start_index=start_index,
+            ),
+            PropertyExtValueResponse,
+        )
+        response = telegram.payload
+        target = f"object type {object_type} instance {instance} property {property_id}"
+        if (
+            not isinstance(response, PropertyExtValueResponse)
+            or response.interface_object_type != object_type
+            or response.object_instance != instance
+            or response.property_id != property_id
+            or response.start_index != start_index
+        ):
+            raise VerificationError(f"unexpected property read response for {target}")
+        if response.nr_of_elem == 0:
+            if require_nonzero:
+                raise PropertyAccessRejected(f"property read rejected for {target}")
+            return b""
+        if response.nr_of_elem != count:
+            raise VerificationError(
+                f"property read for {target} returned {response.nr_of_elem} of "
+                f"{count} elements"
+            )
+        return response.data
+
+    async def write_property_ext(
+        self,
+        object_type: int,
+        instance: int,
+        property_id: int,
+        data: bytes,
+        *,
+        count: int = 1,
+        start_index: int = 1,
+        verify: bool = True,
+    ) -> None:
+        """Write a property addressed by object type and instance.
+
+        With ``verify`` each frame is A_PropertyExtValue_WriteCon and its result must be
+        E_SUCCESS; otherwise A_PropertyExtValue_WriteUnCon is sent unconfirmed. A value that does
+        not fit one frame is written in successive element ranges.
+        """
+        target = f"object type {object_type} instance {instance} property {property_id}"
+        if count <= 0 or (count > 1 and len(data) % count):
+            raise VerificationError(
+                f"property data ({len(data)} octets) does not split into {count} "
+                f"elements for {target}"
+            )
+        element_size = len(data) // count
+        per_frame = self.extended_property_chunk_size(element_size)
+        element = 0
+        while element < count:
+            frame_count = min(per_frame, count - element)
+            frame = data[
+                element * element_size : (element + frame_count) * element_size
+            ]
+            logger.debug(
+                "property ext write: %s %s count=%d start-index=%d data=%s",
+                self.diagnostic_context,
+                target,
+                frame_count,
+                start_index + element,
+                frame.hex(),
+            )
+            if not verify:
+                await self.connection.send_data(
+                    PropertyExtValueWriteUnCon(
+                        interface_object_type=object_type,
+                        object_instance=instance,
+                        property_id=property_id,
+                        nr_of_elem=frame_count,
+                        start_index=start_index + element,
+                        data=frame,
+                    )
+                )
+            else:
+                telegram = await self.connection.request(
+                    PropertyExtValueWriteCon(
+                        interface_object_type=object_type,
+                        object_instance=instance,
+                        property_id=property_id,
+                        nr_of_elem=frame_count,
+                        start_index=start_index + element,
+                        data=frame,
+                    ),
+                    PropertyExtValueWriteConRes,
+                )
+                response = telegram.payload
+                if (
+                    not isinstance(response, PropertyExtValueWriteConRes)
+                    or response.interface_object_type != object_type
+                    or response.object_instance != instance
+                    or response.property_id != property_id
+                ):
+                    raise VerificationError(
+                        f"unexpected property write response for {target}"
+                    )
+                if response.return_code != ReturnCode.E_SUCCESS:
+                    raise PropertyAccessRejected(
+                        f"property write rejected for {target}: "
+                        f"{response.return_code.name}"
+                    )
+            element += frame_count
 
     async def read_device_descriptor(self) -> int:
         """Read device descriptor type 0 (the mask version)."""

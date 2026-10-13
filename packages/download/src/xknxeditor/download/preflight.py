@@ -81,6 +81,15 @@ class PropertyDiff:
     property_id: int
     current: bytes
     planned: bytes
+    # Set for a property addressed by object type over the extended property services.
+    object_type: int | None = None
+
+    @property
+    def object_label(self) -> str:
+        """The object as shown: its index, or ``type N`` when addressed by type."""
+        if self.object_type is not None:
+            return f"type {self.object_type}"
+        return str(self.object_index)
 
     @property
     def changed_ranges(self) -> tuple[ByteRange, ...]:
@@ -142,7 +151,7 @@ class PreflightReport:
             state = f"{prop.changed_bytes}/{len(prop.planned)} changed"
             marker = " " if prop.changed else " (no change)"
             lines.append(
-                f"  object {prop.object_index} property {prop.property_id}: "
+                f"  object {prop.object_label} property {prop.property_id}: "
                 f"{state}{marker}"
             )
         return "\n".join(lines)

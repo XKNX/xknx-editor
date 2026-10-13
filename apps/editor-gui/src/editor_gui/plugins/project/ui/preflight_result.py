@@ -248,7 +248,7 @@ class PreflightResultWindow:
         for prop in report.properties:
             self._render_row(
                 S.PREFLIGHT_PROP_LABEL.format(
-                    object=prop.object_index, property=prop.property_id
+                    object=prop.object_label, property=prop.property_id
                 ),
                 len(prop.planned),
                 prop.changed,
@@ -386,7 +386,7 @@ class PreflightResultWindow:
             lines.append(f"soll: {segment.planned.hex()}")
         for prop in report.properties:
             lines.append(
-                f"## object {prop.object_index} property {prop.property_id} "
+                f"## object {prop.object_label} property {prop.property_id} "
                 f"changed={prop.changed_bytes}"
             )
             lines.append(f"ist : {prop.current.hex()}")

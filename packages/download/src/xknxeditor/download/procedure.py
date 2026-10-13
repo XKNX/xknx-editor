@@ -290,6 +290,17 @@ _STATE_MUTATING_CONTROLS = frozenset(
 )
 
 
+def _supports_extended_properties(application: Application) -> bool:
+    """Whether the device takes the extended property services: the application says so,
+    or it is a secure application."""
+    program = getattr(application, "program", None)
+    options = getattr(getattr(program, "static", None), "options", None)
+    return bool(
+        getattr(options, "supports_extended_property_services", False)
+        or getattr(program, "is_secure_enabled", False)
+    )
+
+
 def _application_id(application: Application) -> bytes:
     """Assemble the 5 octet application id (manufacturer, type, version)."""
     manufacturer = application.manufacturer_id.split("-")[-1]
@@ -358,6 +369,11 @@ class LoadProcedureRunner:
         ] = {}
         self._enable_segment_write = True
         self._property_widths: dict[tuple[int, int], int] = {}
+        # Property controls addressed by object type use the extended property services when
+        # the application supports them; they get a negative key in place of an object index,
+        # mapped here to (object type, instance).
+        self._extended_properties = _supports_extended_properties(application)
+        self._extended_targets: dict[int, tuple[int, int]] = {}
         self.restarted = False
         # Set once a state-changing control has run, so a caller can tell a
         # failure that touched nothing from one that may have left the device
@@ -842,12 +858,15 @@ class LoadProcedureRunner:
         self._restart_at = None
         self._pending_cooldown = None
 
-    async def _resolve_index(self, control: object) -> int:
+    async def _resolve_index(self, control: object, *, extended: bool = False) -> int:
         """Resolve the interface object index a control addresses.
 
         A control identifies its object by explicit ``obj_idx``, by
         ``obj_type`` + zero-based ``occurrence`` (resolved on the device), or by
         ``lsm_idx`` which, for property based management, is the object index.
+        With ``extended``, an object addressed by type gets a key for the extended
+        property services instead (instance = occurrence + 1) when the application
+        supports them; the device's object list is not read then.
         """
         obj_idx = getattr(control, "obj_idx", None)
         if obj_idx is not None:
@@ -855,6 +874,10 @@ class LoadProcedureRunner:
         obj_type = getattr(control, "obj_type", None)
         if obj_type is not None:
             occurrence = getattr(control, "occurrence", 0)
+            if extended and self._extended_properties:
+                key = -1 - ((obj_type << 12) | (occurrence + 1))
+                self._extended_targets[key] = (obj_type, occurrence + 1)
+                return key
             programmer = await self._bus()
             return await programmer.locate_object(obj_type, occurrence)
         lsm_idx = getattr(control, "lsm_idx", None)
@@ -1334,7 +1357,7 @@ class LoadProcedureRunner:
         self,
         prop: PropertyValue,
         index: int,
-        control: LdCtrlWriteProp | LdCtrlCompareProp,
+        control: LdCtrlWriteProp | LdCtrlCompareProp | LdCtrlLoadImageProp,
     ) -> bool:
         """Whether an image property belongs to the object ``control`` addresses at ``index``.
 
@@ -1354,8 +1377,58 @@ class LoadProcedureRunner:
         )
         return object_type is None or object_type == prop.object_type
 
+    async def _object_index(self, index: int) -> int:
+        """The device's object index for ``index``, locating an extended target."""
+        target = self._extended_targets.get(index)
+        if target is None:
+            return index
+        programmer = await self._bus()
+        return await programmer.locate_object(target[0], target[1] - 1)
+
+    def _property_width(self, index: int, property_id: int) -> int | None:
+        return self._property_widths.get(
+            (index, property_id), STANDARD_WRITE_WIDTHS.get(property_id)
+        )
+
+    async def _extended_fits(self, index: int, property_id: int) -> bool:
+        """Whether ``index`` is an extended target whose elements fit an extended frame;
+        otherwise the standard services are used with the located object index."""
+        if index not in self._extended_targets:
+            return False
+        width = self._property_width(index, property_id)
+        programmer = await self._bus()
+        return programmer.fits_extended_property(width or 0)
+
+    async def _read_property(
+        self,
+        index: int,
+        control: LdCtrlCompareProp | LdCtrlLoadImageProp,
+    ) -> bytes:
+        programmer = await self._bus()
+        if index in self._extended_targets:
+            await self._ensure_property_width(index, control)
+        if await self._extended_fits(index, control.prop_id):
+            object_type, instance = self._extended_targets[index]
+            return await programmer.read_property_ext(
+                object_type,
+                instance,
+                control.prop_id,
+                count=control.count,
+                start_index=control.start_element,
+                require_nonzero=True,
+            )
+        return await programmer.read_property(
+            await self._object_index(index),
+            control.prop_id,
+            count=control.count,
+            start_index=control.start_element,
+            require_nonzero=True,
+        )
+
     async def _ensure_property_width(
-        self, index: int, control: LdCtrlWriteProp
+        self,
+        index: int,
+        control: LdCtrlWriteProp | LdCtrlCompareProp | LdCtrlLoadImageProp,
     ) -> None:
         key = (index, control.prop_id)
         if key in self._property_widths or control.prop_id in STANDARD_WRITE_WIDTHS:
@@ -1369,18 +1442,38 @@ class LoadProcedureRunner:
                 self._property_widths[key] = prop.element_size
                 return
         programmer = await self._bus()
+        target = self._extended_targets.get(index)
+        if target is not None and programmer.max_apdu_length > DEFAULT_MAX_APDU_LENGTH:
+            self._property_widths[
+                key
+            ] = await programmer.read_property_ext_element_size(
+                target[0], target[1], control.prop_id
+            )
+            return
         self._property_widths[key] = await programmer.read_property_element_size(
-            index, control.prop_id
+            await self._object_index(index), control.prop_id
         )
 
     async def _write_prop(self, control: LdCtrlWriteProp) -> None:
         """Write addressed image elements and verify each property response."""
-        index = await self._resolve_index(control)
+        index = await self._resolve_index(control, extended=True)
         await self._ensure_property_width(index, control)
         data = self._property_write_data(index, control)
         programmer = await self._bus()
+        if await self._extended_fits(index, control.prop_id):
+            object_type, instance = self._extended_targets[index]
+            await programmer.write_property_ext(
+                object_type,
+                instance,
+                control.prop_id,
+                data,
+                count=control.count,
+                start_index=control.start_element,
+                verify=control.verify,
+            )
+            return
         await programmer.write_property(
-            index,
+            await self._object_index(index),
             control.prop_id,
             data,
             count=control.count,
@@ -1396,15 +1489,8 @@ class LoadProcedureRunner:
         baseline: the par procedure uses it to detect a moved table reference.
         """
         # see .references/ets_map.md
-        index = await self._resolve_index(control)
-        programmer = await self._bus()
-        data = await programmer.read_property(
-            index,
-            control.prop_id,
-            count=control.count,
-            start_index=control.start_element,
-            require_nonzero=True,
-        )
+        index = await self._resolve_index(control, extended=True)
+        data = await self._read_property(index, control)
         logger.debug(
             "property capture: %s object-index=%d pid=%d count=%d start-index=%d "
             "octets=%d data=%s",
@@ -1541,16 +1627,9 @@ class LoadProcedureRunner:
         response that cuts off octets the compare was meant to check is a failure, not a shorter
         property: otherwise a truncated reply would pass this gate on a prefix.
         """
-        index = await self._resolve_index(control)
+        index = await self._resolve_index(control, extended=True)
         expected, captured_width, source = self._property_compare_data(index, control)
-        programmer = await self._bus()
-        read_back = await programmer.read_property(
-            index,
-            control.prop_id,
-            count=control.count,
-            start_index=control.start_element,
-            require_nonzero=True,
-        )
+        read_back = await self._read_property(index, control)
         logger.debug(
             "property compare: %s object-index=%d pid=%d count=%d start-index=%d "
             "source=%s captured-element-width=%s inline=%s expected=%s read=%s mask=%s",
@@ -1755,7 +1834,7 @@ class LoadProcedureRunner:
                 )
             return
         if isinstance(control, LdCtrlWriteProp):
-            index = await self._resolve_index(control)
+            index = await self._resolve_index(control, extended=True)
             await self._ensure_property_width(index, control)
             planned = self._property_write_data(index, control)
             await self._diff_property(
@@ -1900,23 +1979,47 @@ class LoadProcedureRunner:
         """Read the current property value and record a diff against ``planned``."""
         programmer = await self._bus()
         width = len(planned) // count
-        per_frame = programmer.property_chunk_size(width)
         current = bytearray()
+        target = (
+            self._extended_targets.get(object_index)
+            if await self._extended_fits(object_index, property_id)
+            else None
+        )
+        per_frame = (
+            programmer.extended_property_chunk_size(width)
+            if target is not None
+            else programmer.property_chunk_size(width)
+        )
+        device_index = (
+            object_index
+            if target is not None
+            else await self._object_index(object_index)
+        )
         for offset in range(0, count, per_frame):
+            frame_count = min(per_frame, count - offset)
             current.extend(
-                await programmer.read_property(
-                    object_index,
+                await programmer.read_property_ext(
+                    target[0],
+                    target[1],
                     property_id,
-                    count=min(per_frame, count - offset),
+                    count=frame_count,
+                    start_index=start_element + offset,
+                )
+                if target is not None
+                else await programmer.read_property(
+                    device_index,
+                    property_id,
+                    count=frame_count,
                     start_index=start_element + offset,
                 )
             )
         properties.append(
             PropertyDiff(
-                object_index=object_index,
+                object_index=device_index,
                 property_id=property_id,
                 current=bytes(current),
                 planned=bytes(planned),
+                object_type=target[0] if target is not None else None,
             )
         )
 
