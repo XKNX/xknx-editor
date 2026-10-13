@@ -29,6 +29,15 @@ from editor_gui.certs import ensure_ca_bundle
 from editor_gui.concurrency import MainThreadExecutor
 from editor_gui.dock_menus import render_section_menus
 from editor_gui.master_data import MasterDataInfo, load_master, master_xml_bytes
+from editor_gui.myknx_oauth import (
+    load_cached_credentials as load_myknx_oauth_credentials,
+)
+from editor_gui.myknx_oauth import (
+    resolve_credentials as resolve_oauth_credentials,
+)
+from editor_gui.myknx_oauth import (
+    save_credentials as save_myknx_oauth_credentials,
+)
 from editor_gui.plugins.base import API_VERSION, Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.catalog import CatalogPlugin, CatalogService
 from editor_gui.plugins.cockpit import CockpitPlugin
@@ -54,14 +63,20 @@ from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.fonts import load_fonts
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
+    MYKNX_DLL_NAME,
     CompactCancelled,
     CompactResult,
     ExportResult,
     MyKnxError,
+    MyKnxSession,
     ProjectStorageError,
+    default_myknx_dll_path,
     export_knxproj,
+    extract_oauth_credentials,
     fetch_myknx_products,
     myknx_certificate_signer,
+    session_certificate_signer,
+    session_products,
     signing_key_is_placeholder,
 )
 from xknxeditor.proj.core import import_notes
@@ -299,7 +314,9 @@ class KnxGuiApp:
         # project certificate. Credentials are prefilled from the environment for convenience.
         self._export_pending_dest: str | None = None
         self._myknx_prompt_requested = False
-        self._myknx_username = os.environ.get("MYKNX_USERNAME", "")
+        self._myknx_username = os.environ.get("MYKNX_USERNAME", "") or str(
+            load_settings("app").get("myknx_username", "")
+        )
         self._myknx_password = os.environ.get("MYKNX_PASSWORD", "")
         # After login we fetch the account's licenses so the user picks one instead of typing an
         # opaque product id. None = not logged in yet; [] = logged in but no licenses.
@@ -307,6 +324,23 @@ class KnxGuiApp:
         self._myknx_selected_pid = os.environ.get("MYKNX_PRODUCT_ID", "")
         self._myknx_login_thread: threading.Thread | None = None
         self._myknx_login_error = ""
+        # OAuth device-code login for 2FA accounts: an established session (used instead of
+        # username/password for the signer) and the user code to display while the browser is open.
+        self._myknx_oauth_session: MyKnxSession | None = None
+        self._myknx_oauth_user_code = ""
+        self._myknx_oauth_url = ""
+        # Shown after a 401: ask whether the password was wrong or the account uses 2FA.
+        self._myknx_2fa_prompt = False
+        # Request to open the OAuth-credentials config modal next frame (set from a button handler).
+        self._myknx_open_oauth_config = False
+        # OAuth client credentials (client id/secret) for the device-code flow: entered by hand or
+        # extracted from the user's Knx.Ets.MyKnx.dll, cached per-user.
+        _oauth_creds = load_myknx_oauth_credentials()
+        self._myknx_client_id = _oauth_creds[0] if _oauth_creds else ""
+        self._myknx_client_secret = _oauth_creds[1] if _oauth_creds else ""
+        self._myknx_oauth_dll_dialog: pfd.open_file | None = None
+        self._myknx_oauth_extract_thread: threading.Thread | None = None
+        self._myknx_oauth_extract_error = ""
         self._import_knxproj_source: str | None = None
         self._import_knxproj_dest: str | None = None
         self._password_prompt_requested = False
@@ -811,8 +845,24 @@ class KnxGuiApp:
             return
         self._myknx_login_error = ""
         self._myknx_products = None
+        self._myknx_oauth_session = None
+        self._myknx_2fa_prompt = False
         self._myknx_login_thread = threading.Thread(
             target=self._run_myknx_login, daemon=True
+        )
+        self._myknx_login_thread.start()
+
+    def _start_myknx_oauth_login(self) -> None:
+        """Run the OAuth device-code (2FA) sign-in on a worker thread (opens the browser)."""
+        if self._myknx_login_thread and self._myknx_login_thread.is_alive():
+            return
+        self._myknx_login_error = ""
+        self._myknx_products = None
+        self._myknx_oauth_session = None
+        self._myknx_oauth_user_code = ""
+        self._myknx_oauth_url = ""
+        self._myknx_login_thread = threading.Thread(
+            target=self._run_myknx_oauth_fallback, daemon=True
         )
         self._myknx_login_thread.start()
 
@@ -820,10 +870,64 @@ class KnxGuiApp:
         # Worker thread: network only, never imgui. Result is read on the UI thread next frame.
         try:
             products = fetch_myknx_products(self._myknx_username, self._myknx_password)
-        except Exception as e:  # network/HTTP/login errors
+        except MyKnxError as e:
+            # HTTP 401 is ambiguous: the server returns the same generic message for a wrong
+            # password and for a 2FA account (which cannot use the username/password login). Ask the
+            # user which it is instead of guessing.
+            if e.status == 401:
+                self._myknx_2fa_prompt = True
+                self._myknx_products = []
+                return
+            self._myknx_login_error = str(e)
+            self._myknx_products = []
+        except Exception as e:  # network/other errors
+            self._myknx_login_error = str(e)
+            self._myknx_products = []
+        else:
+            self._set_myknx_products(products)
+
+    def _run_myknx_oauth_fallback(self) -> None:
+        # Worker thread: run the device-code flow (opens the browser via on_verification), then fetch
+        # the licenses from the session.
+        self._myknx_oauth_user_code = ""
+        try:
+            client_id, client_secret = resolve_oauth_credentials()
+        except Exception as e:
+            # No credentials configured and none extractable: point the user at the config modal.
             self._myknx_login_error = str(e)
             self._myknx_products = []
             return
+        try:
+            session = MyKnxSession(access_token="")
+            session.oauth_login(client_id, client_secret, self._on_oauth_verification)
+            products = session_products(session)
+        except Exception as e:
+            self._myknx_login_error = str(e)
+            self._myknx_products = []
+            return
+        self._myknx_oauth_session = session
+        self._set_myknx_products(products)
+
+    def _on_oauth_verification(self, url: str, user_code: str) -> None:
+        # Called from the login worker: open the sign-in page and surface the code for the modal.
+        self._myknx_oauth_user_code = user_code
+        self._myknx_oauth_url = url
+        try:
+            opened = webbrowser.open(url)
+        except Exception as e:
+            opened = False
+            self._log.warning("myknx 2fa browser open failed", url=url, error=str(e))
+        self._log.info(
+            "myknx 2fa verification url", url=url, user_code=user_code, opened=opened
+        )
+
+    def _set_myknx_products(self, products: list[dict[str, object]]) -> None:
+        # Login succeeded: remember the username (not the password) for next time.
+        if self._myknx_username:
+            data = load_settings("app")
+            if data.get("myknx_username") != self._myknx_username:
+                data["myknx_username"] = self._myknx_username
+                save_settings("app", data)
         items: list[tuple[str, str, bool]] = []
         if products:
             # The label falls back to the raw id when no name field is recognized; log the actual
@@ -927,6 +1031,8 @@ class KnxGuiApp:
         if (user_changed or pw_changed) and self._myknx_products is not None:
             self._myknx_products = None  # credentials changed -> require re-login
             self._myknx_login_error = ""
+            self._myknx_oauth_session = None
+            self._myknx_2fa_prompt = False
 
         selected_pid = self._render_myknx_license_section(logging_in)
         imgui.spacing()
@@ -945,6 +1051,12 @@ class KnxGuiApp:
         if imgui.button(S.SIGNING_KEY_BUTTON, imgui.ImVec2(-1, 0)):
             imgui.open_popup(S.SIGNING_KEY_TITLE)
         self._render_signing_key_modal()
+        # OAuth-credentials config modal: opened automatically from "Start 2FA sign-in" when no
+        # credentials are available yet (no manual button).
+        if self._myknx_open_oauth_config:
+            imgui.open_popup(S.MYKNX_OAUTH_TITLE)
+            self._myknx_open_oauth_config = False
+        self._render_myknx_oauth_modal()
         imgui.spacing()
 
         can_sign = bool(selected_pid) and not logging_in
@@ -958,12 +1070,16 @@ class KnxGuiApp:
         imgui.same_line()
         cancel = imgui.button(S.BTN_CANCEL, px_vec2(110, 0))
         if dest is not None and (sign and can_sign):
-            self._do_export_knxproj(
-                dest,
-                myknx_certificate_signer(
+            # An OAuth (2FA) session is already authenticated; otherwise sign with username/password.
+            if self._myknx_oauth_session is not None:
+                signer = session_certificate_signer(
+                    self._myknx_oauth_session, selected_pid
+                )
+            else:
+                signer = myknx_certificate_signer(
                     self._myknx_username, self._myknx_password, selected_pid
-                ),
-            )
+                )
+            self._do_export_knxproj(dest, signer)
             self._export_pending_dest = None
             imgui.close_current_popup()
         elif dest is not None and skip:
@@ -979,6 +1095,38 @@ class KnxGuiApp:
         """Login button / license dropdown. Returns the selected product id ("" if none)."""
         if logging_in:
             imgui.text_disabled(S.MYKNX_SIGN_LOGGING_IN)
+            if self._myknx_oauth_user_code:
+                # Device-code flow: the browser is open; show the code the user must confirm.
+                imgui.text_wrapped(
+                    S.MYKNX_SIGN_2FA_WAITING.format(code=self._myknx_oauth_user_code)
+                )
+                if self._myknx_oauth_url:
+                    # Show the URL too (selectable), in case the browser did not open.
+                    imgui.set_next_item_width(-1)
+                    imgui.input_text(
+                        "##oauth_url",
+                        self._myknx_oauth_url,
+                        imgui.InputTextFlags_.read_only,
+                    )
+            return ""
+        if self._myknx_2fa_prompt:
+            # 401 is ambiguous (wrong password vs. 2FA account); let the user decide.
+            imgui.text_colored(imgui.ImVec4(0.85, 0.7, 0.3, 1.0), S.MYKNX_2FA_PROMPT)
+            if imgui.button(S.MYKNX_2FA_REENTER, px_vec2(240, 0)):
+                self._myknx_2fa_prompt = False
+                self._myknx_products = None  # back to the credential fields
+            imgui.same_line()
+            if imgui.button(S.MYKNX_2FA_START, px_vec2(200, 0)):
+                self._myknx_2fa_prompt = False
+                # Need the OAuth client credentials first; if none are cached and ETS is not in a
+                # standard path, open the config modal so the user can enter/extract them.
+                if (
+                    load_myknx_oauth_credentials() is None
+                    and not default_myknx_dll_path()
+                ):
+                    self._myknx_open_oauth_config = True
+                else:
+                    self._start_myknx_oauth_login()
             return ""
         if self._myknx_products is None:
             can_login = bool(self._myknx_username and self._myknx_password)
@@ -2643,6 +2791,89 @@ class KnxGuiApp:
         if imgui.button(S.SIGNING_KEY_CLOSE, imgui.ImVec2(-1, 0)):
             imgui.close_current_popup()
         imgui.end_popup()
+
+    def _render_myknx_oauth_modal(self) -> None:
+        """Configure the OAuth client credentials for the 2FA sign-in.
+
+        Child modal of the export dialog: enter the client id/secret by hand, or extract them from
+        the user's own ``Knx.Ets.MyKnx.dll``. Cached per-user so this is a one-time setup."""
+        center = imgui.get_main_viewport().get_center()
+        imgui.set_next_window_pos(center, imgui.Cond_.appearing, imgui.ImVec2(0.5, 0.5))
+        imgui.set_next_window_size(
+            hello_imgui.em_to_vec2(40.0, 0.0), imgui.Cond_.appearing
+        )
+        if not imgui.begin_popup_modal(S.MYKNX_OAUTH_TITLE, None)[0]:
+            return
+        imgui.text_wrapped(S.MYKNX_OAUTH_HELP)
+        imgui.spacing()
+        extracting = bool(
+            self._myknx_oauth_extract_thread
+            and self._myknx_oauth_extract_thread.is_alive()
+        )
+        if extracting:
+            imgui.begin_disabled()
+        imgui.text_disabled(S.MYKNX_OAUTH_CLIENT_ID)
+        imgui.set_next_item_width(-1)
+        _, self._myknx_client_id = imgui.input_text(
+            "##oauth_cid", self._myknx_client_id
+        )
+        imgui.text_disabled(S.MYKNX_OAUTH_CLIENT_SECRET)
+        imgui.set_next_item_width(-1)
+        _, self._myknx_client_secret = imgui.input_text(
+            "##oauth_secret", self._myknx_client_secret, imgui.InputTextFlags_.password
+        )
+        if extracting:
+            imgui.end_disabled()
+            imgui.text_disabled(S.MYKNX_OAUTH_EXTRACTING)
+        elif imgui.button(S.MYKNX_OAUTH_EXTRACT, imgui.ImVec2(-1, 0)):
+            self._myknx_oauth_dll_dialog = pfd.open_file(
+                S.MYKNX_OAUTH_EXTRACT,
+                default_myknx_dll_path(),
+                [MYKNX_DLL_NAME, "*.dll", S.MYKNX_OAUTH_ALL_FILES, "*"],
+            )
+        self._poll_myknx_oauth_dialog()
+        if self._myknx_oauth_extract_error:
+            imgui.text_colored(
+                imgui.ImVec4(1.0, 0.4, 0.4, 1.0), self._myknx_oauth_extract_error
+            )
+        imgui.spacing()
+        if imgui.button(S.MYKNX_OAUTH_SAVE, px_vec2(150, 0)):
+            client_id = self._myknx_client_id.strip()
+            client_secret = self._myknx_client_secret.strip()
+            save_myknx_oauth_credentials(client_id, client_secret)
+            imgui.close_current_popup()
+            # Continue straight into the browser sign-in once credentials are set.
+            if client_id and client_secret:
+                self._start_myknx_oauth_login()
+        imgui.same_line()
+        if imgui.button(S.SIGNING_KEY_CLOSE, imgui.ImVec2(-1, 0)):
+            imgui.close_current_popup()
+        imgui.end_popup()
+
+    def _poll_myknx_oauth_dialog(self) -> None:
+        if (
+            self._myknx_oauth_dll_dialog is not None
+            and self._myknx_oauth_dll_dialog.ready()
+        ):
+            result = self._myknx_oauth_dll_dialog.result()
+            self._myknx_oauth_dll_dialog = None
+            if result:
+                self._start_myknx_oauth_extract(result[0])
+
+    def _start_myknx_oauth_extract(self, dll_path: str) -> None:
+        self._myknx_oauth_extract_error = ""
+
+        def _work() -> None:
+            try:
+                client_id, client_secret = extract_oauth_credentials(dll_path)
+                self._myknx_client_id = client_id
+                self._myknx_client_secret = client_secret
+                save_myknx_oauth_credentials(client_id, client_secret)
+            except Exception as e:
+                self._myknx_oauth_extract_error = f"{type(e).__name__}: {e}"
+
+        self._myknx_oauth_extract_thread = threading.Thread(target=_work, daemon=True)
+        self._myknx_oauth_extract_thread.start()
 
     def _palette_items(self) -> list[tuple[str, Callable[[], None]]]:
         """(label, action) pairs the command palette can jump to: global actions + devices."""

@@ -34,6 +34,7 @@ from typing import Any
 
 _EXTRACT_CS = Path(__file__).with_name("_extract.cs")
 _EXTRACT_TRACE_CS = Path(__file__).with_name("_extract_trace.cs")
+_EXTRACT_OAUTH_CS = Path(__file__).with_name("_extract_oauth.cs")
 _TIMEOUT = 120.0
 
 #: The assembly file that carries the signing key.
@@ -41,6 +42,9 @@ DLL_NAME = "Knx.Ets.XmlSigning.dll"
 
 #: The assembly file that carries the project-trace encryptor (project-log comments).
 TRACE_DLL_NAME = "Knx.Ets.Common.dll"
+
+#: The assembly file that carries the MyKnx OAuth client id/secret.
+MYKNX_DLL_NAME = "Knx.Ets.MyKnx.dll"
 
 
 class KeyExtractionError(RuntimeError):
@@ -68,6 +72,11 @@ def default_dll_path() -> str:
 def default_trace_dll_path() -> str:
     """Return the ``Knx.Ets.Common.dll`` in the first detected install, or ``""``."""
     return _default_dll_path(TRACE_DLL_NAME)
+
+
+def default_myknx_dll_path() -> str:
+    """Return the ``Knx.Ets.MyKnx.dll`` in the first detected install, or ``""``."""
+    return _default_dll_path(MYKNX_DLL_NAME)
 
 
 def dotnet_available() -> bool:
@@ -268,7 +277,92 @@ def extract_converter_key(dll_path: str | Path) -> tuple[int, int, int]:
     )
 
 
-# --- project-trace key extraction --------------------------------------------------------------
+# --- MyKnx OAuth client credentials ------------------------------------------------------------
+#
+# The client id/secret for the OAuth device-code flow (2FA logins) are `const` fields in
+# Knx.Ets.MyKnx.dll. See ``_extract_oauth.cs``; they are read from metadata, no cctor needed.
+
+
+def _parse_oauth_output(text: str) -> tuple[str, str]:
+    """Parse ``CID=``/``SECRET=`` base64 lines into ``(client_id, client_secret)``."""
+    fields: dict[str, str] = {}
+    for key in ("CID", "SECRET"):
+        m = re.search(rf"^{key}=(\S+)$", text, re.MULTILINE)
+        if not m:
+            raise KeyExtractionError(f"extractor output missing {key}:\n{text}")
+        fields[key] = base64.b64decode(m.group(1)).decode("utf-8")
+    return fields["CID"], fields["SECRET"]
+
+
+def _extract_oauth_via_dotnet(dll: Path) -> tuple[str, str]:
+    app = _build_dotnet_exe(_EXTRACT_OAUTH_CS, "xknx_oauthextract_dotnet")
+    proc = _run(["dotnet", str(app), str(dll)], cwd=str(dll.parent))
+    if proc.returncode != 0:
+        raise KeyExtractionError(f"extractor failed:\n{proc.stderr or proc.stdout}")
+    return _parse_oauth_output(proc.stdout)
+
+
+def _extract_oauth_via_mono(dll: Path) -> tuple[str, str]:
+    exe = Path(tempfile.gettempdir()) / "xknx_oauthextract.exe"
+    build = _run(["mcs", f"-out:{exe}", str(_EXTRACT_OAUTH_CS)])
+    if build.returncode != 0:
+        raise KeyExtractionError(
+            f"mcs failed to compile the extractor:\n{build.stderr}"
+        )
+    proc = _run(["mono", str(exe), str(dll)], cwd=str(dll.parent))
+    if proc.returncode != 0:
+        detail = "\n".join((proc.stderr or proc.stdout or "").strip().splitlines()[:3])
+        raise KeyExtractionError(
+            "Mono could not load this assembly (obfuscated builds need the .NET SDK — "
+            f"install `dotnet`).\n{detail}"
+        )
+    return _parse_oauth_output(proc.stdout)
+
+
+def _extract_oauth_via_pythonnet(dll: Path) -> tuple[str, str]:
+    import clr as _clr_mod  # type: ignore[import-not-found]
+    import System.Reflection as _reflection  # type: ignore[import-not-found]
+
+    clr: Any = _clr_mod
+    reflection: Any = _reflection
+
+    clr.AddReference(str(dll))
+    asm: Any = reflection.Assembly.LoadFrom(str(dll))
+    t: Any = asm.GetType("Knx.Ets.MyKnx.OAuth.OAuthDefines")
+    if t is None:
+        raise KeyExtractionError("type Knx.Ets.MyKnx.OAuth.OAuthDefines not found")
+    bf: Any = reflection.BindingFlags
+    flags = bf.NonPublic | bf.Public | bf.Static
+    cid: Any = t.GetField("ClientId", flags)
+    secret: Any = t.GetField("ClientSecret", flags)
+    if cid is None or secret is None:
+        raise KeyExtractionError("OAuth client fields not found")
+    return str(cid.GetRawConstantValue()), str(secret.GetRawConstantValue())
+
+
+def extract_oauth_credentials(dll_path: str | Path) -> tuple[str, str]:
+    """Extract ``(client_id, client_secret)`` for the OAuth device-code flow from ``Knx.Ets.MyKnx.dll``.
+
+    Uses .NET (``dotnet``) if available, else Mono, else in-process pythonnet on Windows. Raises
+    :class:`KeyExtractionError` if the file is missing or no .NET runtime is available.
+    """
+    dll = Path(dll_path)
+    if not dll.is_file():
+        raise KeyExtractionError(f"assembly not found: {dll}")
+    backend = extraction_backend()
+    if backend == "dotnet":
+        return _extract_oauth_via_dotnet(dll)
+    if backend == "mono":
+        return _extract_oauth_via_mono(dll)
+    if backend == "pythonnet":
+        return _extract_oauth_via_pythonnet(dll)
+    raise KeyExtractionError(
+        "no .NET runtime available to read the assembly. Install the .NET SDK "
+        "(`brew install dotnet-sdk` on macOS, your package manager on Linux) or run on Windows "
+        "with pythonnet installed."
+    )
+
+
 #
 # The trace encryptor lives in Knx.Ets.Common.dll and needs its sibling assemblies (log4net,
 # Autofac, ...) to load, so extraction requires a COMPLETE install directory. See ``_extract_trace.cs``.

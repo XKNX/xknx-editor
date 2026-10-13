@@ -11,11 +11,14 @@ from xknxeditor.proj.core.ga_export import (
 )
 from xknxeditor.proj.core.key_extract import (
     DLL_NAME,
+    MYKNX_DLL_NAME,
     TRACE_DLL_NAME,
     KeyExtractionError,
     default_dll_path,
+    default_myknx_dll_path,
     default_trace_dll_path,
     extract_converter_key,
+    extract_oauth_credentials,
     extract_trace_key,
     extraction_backend,
 )
@@ -34,8 +37,11 @@ from xknxeditor.proj.core.knxproj_signing import (
 )
 from xknxeditor.proj.core.myknx_cert import (
     MyKnxError,
+    MyKnxSession,
     fetch_myknx_products,
     myknx_certificate_signer,
+    session_certificate_signer,
+    session_products,
     sign_exported_knxproj,
 )
 from xknxeditor.proj.core.product_prune import (
@@ -56,6 +62,7 @@ from xknxeditor.proj.core.trace_crypto import (
 
 __all__ = [
     "DLL_NAME",
+    "MYKNX_DLL_NAME",
     "TRACE_DLL_NAME",
     "CompactCancelled",
     "CompactResult",
@@ -64,16 +71,19 @@ __all__ = [
     "GaExport",
     "KeyExtractionError",
     "MyKnxError",
+    "MyKnxSession",
     "ProductPruneReport",
     "ProjectService",
     "current_marker",
     "current_signing_key",
     "decrypt_comment",
     "default_dll_path",
+    "default_myknx_dll_path",
     "default_trace_dll_path",
     "encrypt_comment",
     "export_knxproj",
     "extract_converter_key",
+    "extract_oauth_credentials",
     "extract_trace_key",
     "extraction_backend",
     "fetch_master_xml",
@@ -89,6 +99,8 @@ __all__ = [
     "read_master_xml",
     "reset_signing_key",
     "reset_trace_key",
+    "session_certificate_signer",
+    "session_products",
     "set_signing_key",
     "set_trace_key",
     "sign_exported_knxproj",

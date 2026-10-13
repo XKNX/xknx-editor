@@ -18,7 +18,9 @@ import email.message
 import io
 import json
 import logging
+import time
 import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
 from collections.abc import Callable
@@ -29,6 +31,8 @@ from typing import cast
 logger = logging.getLogger(__name__)
 
 API_BASE = "https://openapi.knx.org/v1"
+# OAuth device-code login for accounts with 2FA (user+password login is rejected there).
+ID_BASE = "https://id.knx.org"
 
 
 class MyKnxError(RuntimeError):
@@ -233,18 +237,15 @@ class MyKnxSession:
             self.session_id = resp_headers["x-session-id"]
 
     def login(self, username: str, password: str) -> None:
-        """Establish a session (verified live): ``POST /user/login?username=&password=``.
+        """Establish a session: ``POST /user/login?username=&password=``.
 
-        Returns 200 "Login successful" with ``x-session-id`` + ``x-next-ot-token`` headers, which
-        this stores for subsequent requests. Note: openapi.knx.org uses this username/password
-        login directly (the OAuth device-code flow at id.knx.org is for my.knx.org, not this API).
+        Returns 200 with ``x-session-id`` + ``x-next-ot-token`` headers, stored for later requests.
+        Accounts with 2FA are rejected here -- use :meth:`oauth_login` for those.
 
         The credentials travel as query parameters because that is what the API accepts. That keeps
-        them out of our logs only because :func:`_redact_url` strips the query before logging — they
+        them out of our logs only because :func:`_redact_url` strips the query before logging -- they
         are still visible to anything that records request lines server-side.
         """
-        import urllib.parse
-
         qs = urllib.parse.urlencode({"username": username, "password": password})
         status, headers, body = _post(
             f"{API_BASE}/user/login?{qs}",
@@ -268,6 +269,86 @@ class MyKnxSession:
         self._absorb(headers)
         if not self.session_id:
             raise MyKnxError("login returned no x-session-id")
+
+    def oauth_login(
+        self,
+        client_id: str,
+        client_secret: str,
+        on_verification: Callable[[str, str], None],
+        *,
+        poll_interval: float = 5.0,
+        overall_timeout: float = 600.0,
+    ) -> None:
+        """Establish a session via the OAuth device-code flow (for 2FA accounts).
+
+        Posts a device code to id.knx.org, calls ``on_verification(url, user_code)`` so the UI can
+        open the browser, polls for the access token, then swaps it for an openapi session at
+        ``/user/oauthLogin?token=``. Blocking; run from a worker thread.
+        """
+        form = {
+            "content-type": "application/x-www-form-urlencoded",
+            "accept": "application/json",
+        }
+        cred = (
+            f"client_id={client_id}&client_secret={urllib.parse.quote(client_secret)}"
+        )
+        status, _h, body = _post(
+            f"{ID_BASE}/oauth/devicecode", cred.encode(), form, self.timeout
+        )
+        if status // 100 != 2:
+            raise MyKnxError(
+                f"device code request failed: HTTP {status}", status=status
+            )
+        dc = json.loads(body)
+        verification_url = dc.get("verification_uri_complete") or dc["verification_uri"]
+        logger.info(
+            "myknx oauth device code: url=%s user_code=%s expires_in=%s",
+            verification_url,
+            dc.get("user_code"),
+            dc.get("expires_in"),
+        )
+        on_verification(verification_url, dc["user_code"])
+
+        token_body = (
+            "grant_type=urn:ietf:params:oauth:grant-type:device_code"
+            f"&device_code={dc['device_code']}&client_id={client_id}"
+            f"&client_secret={urllib.parse.quote(client_secret)}"
+        ).encode()
+        deadline = time.monotonic() + overall_timeout
+        access_token = ""
+        while time.monotonic() < deadline:
+            status, _h, body = _post(
+                f"{ID_BASE}/oauth/accesstoken", token_body, form, self.timeout
+            )
+            if status // 100 == 2:
+                access_token = json.loads(body)["access_token"]
+                break
+            text = body.decode("utf-8", "replace")
+            if status == 428 or "authorization_pending" in text or "slow_down" in text:
+                logger.debug("myknx oauth token poll: HTTP %s (waiting)", status)
+                time.sleep(poll_interval)
+                continue
+            raise MyKnxError(
+                f"token request failed: HTTP {status}", status=status, detail=text
+            )
+        if not access_token:
+            raise MyKnxError("timed out waiting for browser sign-in")
+        logger.info("myknx oauth: access token received, exchanging for session")
+
+        url = f"{API_BASE}/user/oauthLogin?token={urllib.parse.quote(access_token)}"
+        status, headers, body = _post(
+            url, b"", self._headers(json_body=False), self.timeout
+        )
+        if status // 100 != 2:
+            raise MyKnxError(
+                f"oauthLogin failed: HTTP {status}",
+                status=status,
+                detail=_server_detail(body),
+                user_message="MyKnx sign-in failed.",
+            )
+        self._absorb(headers)
+        if not self.session_id:
+            raise MyKnxError("oauthLogin returned no x-session-id")
 
     def _req(
         self, method: str, path: str, body: bytes | None = None
@@ -452,6 +533,20 @@ def _type_is_cloud_capable(product_type: dict[str, object] | None) -> bool:
     return "cloud" in encryptions
 
 
+def session_products(session: MyKnxSession) -> list[dict[str, object]]:
+    """Return the account's products for an already-authenticated session (OAuth 2FA path).
+
+    Enriches each product with ``name`` + ``cloud_capable`` like :func:`fetch_myknx_products`.
+    """
+    products = session.products()
+    types = session.product_types()
+    for p in products:
+        product_type = types.get(str(p.get("productTypeId") or ""))
+        p["name"] = str(product_type.get("name") or "") if product_type else ""
+        p["cloud_capable"] = _type_is_cloud_capable(product_type)
+    return products
+
+
 def fetch_myknx_products(
     username: str, password: str, *, timeout: float = 30.0
 ) -> list[dict[str, object]]:
@@ -464,13 +559,7 @@ def fetch_myknx_products(
     can actually produce an online certificate. Blocking (network I/O); call from a worker thread."""
     session = MyKnxSession(access_token="", timeout=timeout)
     session.login(username, password)
-    products = session.products()
-    types = session.product_types()
-    for p in products:
-        product_type = types.get(str(p.get("productTypeId") or ""))
-        p["name"] = str(product_type.get("name") or "") if product_type else ""
-        p["cloud_capable"] = _type_is_cloud_capable(product_type)
-    return products
+    return session_products(session)
 
 
 def myknx_certificate_signer(
@@ -503,6 +592,23 @@ def myknx_certificate_signer(
         )
         logger.debug("myknx signer done: certificate %d bytes", len(cert))
         return cert
+
+    return _sign
+
+
+def session_certificate_signer(
+    session: MyKnxSession, product_id: str
+) -> Callable[[str, bytes, str], bytes]:
+    """Return a ``CertificateSigner`` that uses an already-authenticated :class:`MyKnxSession`.
+
+    For the OAuth 2FA flow: the interactive browser sign-in runs before export, then this signer
+    only mints the certificate on the export worker thread.
+    """
+
+    def _sign(_pid: str, folder_signature: bytes, project_name: str) -> bytes:
+        return session.project_certificate(
+            product_id, project_hash(folder_signature), project_name
+        )
 
     return _sign
 

@@ -578,6 +578,62 @@ class MenuStrings:
         return _("Log in")
 
     @property
+    def MYKNX_SIGN_2FA_WAITING(self) -> str:
+        return _("Complete sign-in in your browser. Code: {code}")
+
+    @property
+    def MYKNX_2FA_PROMPT(self) -> str:
+        return _(
+            "Login failed (HTTP 401). Either the password is wrong, or this account uses "
+            "two-factor authentication - the server does not say which."
+        )
+
+    @property
+    def MYKNX_2FA_REENTER(self) -> str:
+        return _("Re-enter credentials")
+
+    @property
+    def MYKNX_2FA_START(self) -> str:
+        return _("Start 2FA sign-in")
+
+    @property
+    def MYKNX_OAUTH_TITLE(self) -> str:
+        return _("MyKnx OAuth credentials (2FA)")
+
+    @property
+    def MYKNX_OAUTH_HELP(self) -> str:
+        return _(
+            "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in "
+            "your browser automatically when a normal login is rejected. Enter the OAuth client "
+            "id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the "
+            "ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll)."
+        )
+
+    @property
+    def MYKNX_OAUTH_CLIENT_ID(self) -> str:
+        return _("Client ID")
+
+    @property
+    def MYKNX_OAUTH_CLIENT_SECRET(self) -> str:
+        return _("Client secret")
+
+    @property
+    def MYKNX_OAUTH_EXTRACT(self) -> str:
+        return _("Extract from ETS…")
+
+    @property
+    def MYKNX_OAUTH_EXTRACTING(self) -> str:
+        return _("Extracting…")
+
+    @property
+    def MYKNX_OAUTH_SAVE(self) -> str:
+        return _("Save")
+
+    @property
+    def MYKNX_OAUTH_ALL_FILES(self) -> str:
+        return _("All files")
+
+    @property
     def MYKNX_SIGN_LOGGING_IN(self) -> str:
         return _("Logging in…")
 
