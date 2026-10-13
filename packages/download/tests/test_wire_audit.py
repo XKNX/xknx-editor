@@ -89,7 +89,7 @@ def seeded_application(
             encode_to_memory_masked=lambda: {
                 s.id: (s.data, b"\x00" * s.size) for s in declarations
             },
-            encode_to_properties=lambda: {},
+            encode_to_typed_properties=lambda: {},
         ),
     )
     return app, ui

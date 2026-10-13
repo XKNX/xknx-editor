@@ -117,7 +117,7 @@ from .scope import (
 if TYPE_CHECKING:
     from xknxeditor.prod import Application
 
-    from .image import DownloadImage
+    from .image import DownloadImage, PropertyValue
     from .programmer import ConnectionManager
 
 logger = logging.getLogger(__name__)
@@ -1308,11 +1308,7 @@ class LoadProcedureRunner:
         for prop in self.image.properties:
             if (
                 prop.property_id == control.prop_id
-                and prop.object_index in (index, None)
-                and (
-                    prop.object_index is not None
-                    or prop.occurrence == control.occurrence
-                )
+                and self._image_property_applies(prop, index, control)
                 and control.start_element > 0
             ):
                 start = (control.start_element - 1) * width
@@ -1334,6 +1330,30 @@ class LoadProcedureRunner:
             data = bytes(entries)
         return bytes(data)
 
+    def _image_property_applies(
+        self,
+        prop: PropertyValue,
+        index: int,
+        control: LdCtrlWriteProp | LdCtrlCompareProp,
+    ) -> bool:
+        """Whether an image property belongs to the object ``control`` addresses at ``index``.
+
+        A property of an object addressed by type matches the same occurrence of that type; an
+        object whose type is not known is not excluded.
+        """
+        if prop.object_index is not None:
+            return prop.object_index == index
+        if prop.occurrence != control.occurrence:
+            return False
+        if prop.object_type is None:
+            return True
+        object_type = (
+            control.obj_type
+            if control.obj_idx is None and control.obj_type is not None
+            else self._object_types.get(index)
+        )
+        return object_type is None or object_type == prop.object_type
+
     async def _ensure_property_width(
         self, index: int, control: LdCtrlWriteProp
     ) -> None:
@@ -1342,12 +1362,8 @@ class LoadProcedureRunner:
             return
         for prop in self.image.properties:
             if (
-                prop.object_index in (index, None)
-                and prop.property_id == control.prop_id
-                and (
-                    prop.object_index is not None
-                    or prop.occurrence == control.occurrence
-                )
+                prop.property_id == control.prop_id
+                and self._image_property_applies(prop, index, control)
                 and prop.element_size is not None
             ):
                 self._property_widths[key] = prop.element_size
@@ -1466,9 +1482,8 @@ class LoadProcedureRunner:
             and control.prop_id != PID_TABLE_REFERENCE
         ):
             for prop in self.image.properties:
-                if prop.property_id == control.prop_id and prop.object_index in (
-                    index,
-                    None,
+                if prop.property_id == control.prop_id and self._image_property_applies(
+                    prop, index, control
                 ):
                     start = (control.start_element - 1) * width
                     data = prop.data[

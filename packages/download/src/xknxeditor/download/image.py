@@ -166,6 +166,8 @@ class PropertyValue:
     occurrence: int
     data: bytes
     element_size: int | None = None
+    # The object type of an object addressed by type rather than by index.
+    object_type: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -401,14 +403,15 @@ def build_image(
     )
 
     try:
-        encoded_properties = ui.encode_to_properties()
+        encoded_properties = ui.encode_to_typed_properties()
     except EncodingError as exc:
         raise ImageError(f"cannot encode property image: {exc}") from exc
     properties = tuple(
         PropertyValue(
             object_index=key[0],
-            property_id=key[1],
-            occurrence=key[2],
+            object_type=key[1],
+            property_id=key[2],
+            occurrence=key[3],
             data=data,
         )
         for key, data in encoded_properties.items()

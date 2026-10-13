@@ -5,7 +5,7 @@ import binascii
 import ipaddress
 import math
 import struct
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from typing import NamedTuple
 
 from xknxeditor.namespaces.intermediate import ApplicationProgram
@@ -99,6 +99,8 @@ class PropWrite(NamedTuple):
     param_id: str
     parameter_type: str
     value: str
+    # The object type of an object addressed by type (``ObjectType``) instead of index.
+    object_type: int | None = None
 
 
 class Writes:
@@ -110,6 +112,8 @@ class Writes:
 
 
 PropertyKey = tuple[int | None, int, int]  # keys: object_index, property_id, occurrence
+# keys: object_index, object_type, property_id, occurrence
+TypedPropertyKey = tuple[int | None, int | None, int, int]
 
 
 def _program_little_endian(app: ApplicationProgram) -> bool:
@@ -664,6 +668,7 @@ def _collect_param(
                     item.id,
                     item.parameter_type,
                     value,
+                    choice.object_type,
                 )
             )
     elif isinstance(choice, PropertyParameter):
@@ -677,6 +682,7 @@ def _collect_param(
                 item.id,
                 item.parameter_type,
                 value,
+                choice.object_type,
             )
         )
     # skip IoPointParameter and None
@@ -739,6 +745,7 @@ def _collect_union(
                         up.id,
                         up.parameter_type,
                         value,
+                        choice.object_type,
                     )
                 )
     else:
@@ -754,6 +761,7 @@ def _collect_union(
                     up.id,
                     up.parameter_type,
                     value,
+                    choice.object_type,
                 )
             )
 
@@ -1350,9 +1358,42 @@ def encode_to_properties(
     Yields {(object_index, property_id, occurrence): bytes}.
     Layout: bit_offset 0 is a byte's MSB; values are big-endian. Buffers grow to fit.
     """
+    return _encode_properties(
+        app,
+        idx,
+        overrides,
+        state,
+        lambda w: (w.object_index, w.property_id, w.occurrence),
+    )
+
+
+def encode_to_typed_properties(
+    app: ApplicationProgram,
+    idx: ApplicationIndexer,
+    overrides: dict[str, str],
+    state: GlobalState | None = None,
+) -> dict[TypedPropertyKey, bytes]:
+    """:func:`encode_to_properties` keyed by ``(object_index, object_type, property_id,
+    occurrence)``, so properties of objects addressed by type stay apart per type."""
+    return _encode_properties(
+        app,
+        idx,
+        overrides,
+        state,
+        lambda w: (w.object_index, w.object_type, w.property_id, w.occurrence),
+    )
+
+
+def _encode_properties[K](
+    app: ApplicationProgram,
+    idx: ApplicationIndexer,
+    overrides: dict[str, str],
+    state: GlobalState | None,
+    key_of: Callable[[PropWrite], K],
+) -> dict[K, bytes]:
     writes = collect_writes(app, idx, overrides, state)
     little_endian = _program_little_endian(app)
-    bufs: dict[PropertyKey, bytearray] = {}
+    bufs: dict[K, bytearray] = {}
     for w in writes.prop:
         pt = idx.parameter_types.get(w.parameter_type)
         if pt is None:
@@ -1369,7 +1410,7 @@ def encode_to_properties(
                 f"cannot encode parameter {w.param_id} value {w.value!r} "
                 f"as {w.parameter_type}"
             )
-        key: PropertyKey = (w.object_index, w.property_id, w.occurrence)
+        key = key_of(w)
         needed = w.offset + (w.bit_offset + size_in_bit + 7) // 8
         buf = bufs.get(key)
         if buf is None:
