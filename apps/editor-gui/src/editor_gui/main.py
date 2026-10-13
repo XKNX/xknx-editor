@@ -521,6 +521,9 @@ class KnxGuiApp:
             self._log.info("trace key loaded")
         # Discover KNX gateways at startup and auto-connect to the last-used (or first) one.
         self._connection_plugin.autostart()
+        # Restart the MCP server when it was running at the last exit.
+        if load_settings("mcp").get("running"):
+            self._start_mcp(save=False)
         # Best-effort check for a newer release on GitHub (unless the user disabled it).
         if self._update_check_enabled():
             self._start_update_check(manual=False)
@@ -3113,6 +3116,33 @@ class KnxGuiApp:
             if getter is not None:
                 w.label = f"{getter()}###{name}"
 
+    def _save_mcp_settings(self, running: bool) -> None:
+        """Host, port, token and whether the server runs, restored on the next start."""
+        save_settings(
+            "mcp",
+            {
+                "host": self._mcp_host,
+                "port": self._mcp_port,
+                "token": self._mcp_token,
+                "running": running,
+            },
+        )
+
+    def _start_mcp(self, *, save: bool = True) -> None:
+        if save:
+            self._save_mcp_settings(running=True)
+        try:
+            self._mcp_plugin.start(
+                self._mcp_host, int(self._mcp_port or "8765"), self._mcp_token
+            )
+        except Exception as e:
+            self._log.error("MCP server start failed", error=f"{type(e).__name__}: {e}")
+
+    def _stop_mcp(self) -> None:
+        self._mcp_plugin.stop()
+        self._save_mcp_settings(running=False)
+        self._log.info("MCP server stopped")
+
     def _render_mcp_menu(self) -> None:
         """MCP menu: shows whether the embedded server runs, toggles it on/off, and its host/port."""
         if not imgui.begin_menu(S.PANEL_MCP):
@@ -3137,25 +3167,9 @@ class KnxGuiApp:
         if running:
             imgui.text_disabled(f"http://{self._mcp_host}:{self._mcp_port}/mcp")
             if imgui.menu_item(S.SETTINGS_MCP_STOP, "", False)[0]:
-                self._mcp_plugin.stop()
-                self._log.info("MCP server stopped")
+                self._stop_mcp()
         elif imgui.menu_item(S.SETTINGS_MCP_START, "", False)[0]:
-            save_settings(
-                "mcp",
-                {
-                    "host": self._mcp_host,
-                    "port": self._mcp_port,
-                    "token": self._mcp_token,
-                },
-            )
-            try:
-                self._mcp_plugin.start(
-                    self._mcp_host, int(self._mcp_port or "8765"), self._mcp_token
-                )
-            except Exception as e:
-                self._log.error(
-                    "MCP server start failed", error=f"{type(e).__name__}: {e}"
-                )
+            self._start_mcp()
         imgui.end_menu()
 
     def _render_ki_panel(self) -> None:
@@ -3190,25 +3204,9 @@ class KnxGuiApp:
             imgui.same_line()
             self._ki_copy_row(url, "endpoint")
             if imgui.button(S.SETTINGS_MCP_STOP):
-                self._mcp_plugin.stop()
-                self._log.info("MCP server stopped")
+                self._stop_mcp()
         elif imgui.button(S.SETTINGS_MCP_START):
-            save_settings(
-                "mcp",
-                {
-                    "host": self._mcp_host,
-                    "port": self._mcp_port,
-                    "token": self._mcp_token,
-                },
-            )
-            try:
-                self._mcp_plugin.start(
-                    self._mcp_host, int(self._mcp_port or "8765"), self._mcp_token
-                )
-            except Exception as e:
-                self._log.error(
-                    "MCP server start failed", error=f"{type(e).__name__}: {e}"
-                )
+            self._start_mcp()
 
         imgui.separator()
         imgui.push_text_wrap_pos(0.0)
