@@ -871,6 +871,10 @@ class MenuStrings:
         return _("Hide All")
 
     @property
+    def MENU_HIGHLIGHT_CHANGES(self) -> str:
+        return _("Highlight Changes")
+
+    @property
     def MENU_CONTEXT_HELP(self) -> str:
         return _("Context Help")
 

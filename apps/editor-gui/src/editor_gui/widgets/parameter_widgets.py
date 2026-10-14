@@ -57,8 +57,17 @@ from xknxeditor.prod.parser_v2.ui.parameter import (
     TimeWidget,
 )
 
-# Parameters changed from their default are tinted to stand out.
+# Parameters changed from their default are tinted to stand out (View > Highlight Changes).
 _CHANGED_COLOR = imgui.ImVec4(0.36, 0.71, 1.0, 1.0)
+_highlight_changes = True
+
+
+def set_highlight_changes(on: bool) -> None:
+    """Mark parameters changed from their default (colour, ``*`` and tooltip) or not."""
+    global _highlight_changes
+    _highlight_changes = on
+
+
 _ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 
 
@@ -1479,7 +1488,8 @@ def _render_grid_param(
     # GRID/TABLE cells carry no label to tint, so mark a changed value by tinting
     # the widget's own text (combo preview / input), matching the table view.
     changed = param.value != param.default_value
-    if changed:
+    tinted = changed and _highlight_changes
+    if tinted:
         imgui.push_style_color(imgui.Col_.text, _CHANGED_COLOR)
     read_only = param.access == Access.READ
     imgui.begin_disabled(read_only)
@@ -1494,12 +1504,16 @@ def _render_grid_param(
     imgui.end_disabled()
     _track_help(param.help_context)
     _render_suffix(param.suffix)
-    if changed:
+    if tinted:
         imgui.pop_style_color()
-        if not read_only and imgui.begin_popup_context_item(f"##reset_{widget_id}"):
-            if imgui.menu_item(S.PARAM_RESET_DEFAULT, "", False)[0]:
-                on_change(device, param.ref_id, param.default_value)
-            imgui.end_popup()
+    if (
+        changed
+        and not read_only
+        and imgui.begin_popup_context_item(f"##reset_{widget_id}")
+    ):
+        if imgui.menu_item(S.PARAM_RESET_DEFAULT, "", False)[0]:
+            on_change(device, param.ref_id, param.default_value)
+        imgui.end_popup()
     if req is not None:
         return EnumPopupRequest(device=device, param=req.param)
     return None
@@ -1553,7 +1567,7 @@ def _render_param_table(
             changed = not differs and param.value != param.default_value
             # Changed parameters stand out. A leading marker plus the colour means the
             # state is not signalled by colour alone.
-            if changed:
+            if changed and _highlight_changes:
                 imgui.text_colored(_CHANGED_COLOR, "*")
                 imgui.same_line(0, px(4))
                 imgui.push_style_color(imgui.Col_.text, _CHANGED_COLOR)

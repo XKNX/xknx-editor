@@ -64,6 +64,7 @@ from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.fonts import heading, load_fonts
+from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.window_title import set_window_title
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
@@ -504,6 +505,10 @@ class KnxGuiApp:
         self._project_plugin.show_context_help = bool(
             load_settings("app").get("show_context_help", True)
         )
+        self._highlight_changes = bool(
+            load_settings("app").get("highlight_changes", True)
+        )
+        set_highlight_changes(self._highlight_changes)
         self.bottom_expanded = bool(load_settings("app").get("bottom_expanded", False))
         self._monitor_plugin.set_monitor_extended(self.bottom_expanded)
         self._monitor_plugin.set_layout_toggler(self._toggle_bottom_expanded)
@@ -3235,6 +3240,15 @@ class KnxGuiApp:
             if changed:
                 w.is_visible = visible
         imgui.separator()
+        changed, shown = imgui.menu_item(
+            S.MENU_HIGHLIGHT_CHANGES, "", self._highlight_changes
+        )
+        if changed:
+            self._highlight_changes = shown
+            set_highlight_changes(shown)
+            data = load_settings("app")
+            data["highlight_changes"] = shown
+            save_settings("app", data)
         changed, shown = imgui.menu_item(
             S.MENU_CONTEXT_HELP, "", self._project_plugin.show_context_help
         )

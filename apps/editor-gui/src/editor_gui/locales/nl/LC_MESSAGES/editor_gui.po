@@ -287,3 +287,5 @@ msgstr ""
 
 msgid "{project} - {app}"
 msgstr "{project} - {app}"
+msgid "Highlight Changes"
+msgstr "Wijzigingen markeren"

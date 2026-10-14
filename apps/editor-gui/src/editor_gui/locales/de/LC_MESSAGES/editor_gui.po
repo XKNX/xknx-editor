@@ -751,3 +751,5 @@ msgstr "ETS-6-ProjectStore-Ordner auswählen"
 
 msgid "{project} - {app}"
 msgstr "{project} - {app}"
+msgid "Highlight Changes"
+msgstr "Änderungen hervorheben"
