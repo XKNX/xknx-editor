@@ -187,3 +187,6 @@ msgstr "Bearbeiten…"
 
 msgid "The text may take at most {count} bytes."
 msgstr "Der Text darf höchstens {count} Byte lang sein."
+
+msgid "Value {number}"
+msgstr "Wert {number}"

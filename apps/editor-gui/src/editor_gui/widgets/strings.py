@@ -233,5 +233,9 @@ class WidgetStrings(BaseStrings):
     def DPT_VALUE_TOO_LONG_BYTES(self) -> str:
         return _("The text may take at most {count} bytes.")
 
+    @property
+    def DPT_VALUE_NUMBERED(self) -> str:
+        return _("Value {number}")
+
 
 S = WidgetStrings()

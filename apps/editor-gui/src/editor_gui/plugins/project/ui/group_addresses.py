@@ -314,7 +314,7 @@ class GroupAddressesPanel:
         imgui.text(f"{self._write_address}  {self._write_name}".strip())
         imgui.text_disabled(S.GA_WRITE_DPT)
         imgui.same_line(label_w)
-        imgui.text(dpt_label(self._write_dpt) or "-")
+        imgui.text(dpt_label(self._write_dpt, bus.names()) or "-")
         imgui.spacing()
         imgui.align_text_to_frame_padding()
         imgui.text_disabled(S.GA_WRITE_VALUE_LABEL)

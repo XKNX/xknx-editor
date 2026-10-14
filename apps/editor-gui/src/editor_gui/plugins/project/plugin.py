@@ -14,7 +14,7 @@ from editor_gui.device_info import (
     serial_from_project,
     serial_to_project,
 )
-from editor_gui.dpt_formats import cached_master_formats
+from editor_gui.dpt_formats import cached_master_formats, cached_master_names
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.project.button_runner import ButtonRunner
 from editor_gui.plugins.project.compare_match import compare_mismatch, matching_devices
@@ -245,6 +245,7 @@ class ProjectPlugin:
                     address, GroupValueWrite(payload)
                 ),
                 formats=lambda: cached_master_formats(api.connection.master),
+                names=lambda: cached_master_names(api.connection.master),
             ),
         )
 

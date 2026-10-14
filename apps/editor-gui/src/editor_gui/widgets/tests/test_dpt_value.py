@@ -162,7 +162,7 @@ def test_master_layout_packs_fields_most_significant_first() -> None:
     scene.text = "5"
     assert editor.payload() == DPTArray((0x45,))
     scene.text = "64"
-    with pytest.raises(ValueError, match="SceneNumber"):
+    with pytest.raises(ValueError, match="Scene Number"):
         editor.payload()
     scene.text = ""
     flag.selected = 0
@@ -180,3 +180,39 @@ def test_master_layout_scales_and_encodes_floats() -> None:
     saturation.text = "100"
     temperature.text = "21,5"
     assert editor.payload() == DPTArray((0xFF, 0x0C, 0x33))
+
+
+@pytest.mark.parametrize(
+    ("text", "title"),
+    [
+        ("index of access identification code", "Index of Access Identification Code"),
+        ("SceneNumber", "Scene Number"),
+        ("DHW mode", "DHW Mode"),
+        ("step code", "Step Code"),
+    ],
+)
+def test_title_case(text: str, title: str) -> None:
+    assert dpt_value.title_case(text) == title
+
+
+def test_unnamed_values_are_numbered() -> None:
+    digit = FieldFormat("unsigned", 4, minimum=0, maximum=9)
+    layout = _layout(
+        digit,
+        digit,
+        FieldFormat("bit", 1, name="read direction", cleared="l", set="r"),
+        FieldFormat("reserved", 3),
+    )
+    editor = _editor("DPST-99-1", layout)
+    assert [f.label for f in editor.fields] == [
+        "Value 1",
+        "Value 2",
+        "Read Direction",
+        "",
+    ]
+
+
+def test_dpt_label_prefers_the_master_data_name() -> None:
+    names = {"DPST-15-0": "entrance access", "DPT-21": "8-bit set"}
+    assert dpt_label("DPST-15-0", names) == "15.000 Entrance Access"
+    assert dpt_label("DPT-21", names) == "21.xxx 8-bit Set"

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import enum
 import math
+import re
 import struct
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
@@ -47,18 +48,68 @@ class GroupValueBus:
     read: Callable[[str], object]
     write: Callable[[str, Payload], object]
     formats: Callable[[], Mapping[str, DptFormat]]
+    names: Callable[[], Mapping[str, str]] = dict
 
 
-def dpt_label(token: str | None) -> str:
-    """Number and name of a DPT, e.g. ``1.001 Switch``; empty without one."""
+def dpt_label(token: str | None, names: Mapping[str, str] | None = None) -> str:
+    """Number and name of a DPT, e.g. ``1.001 Switch``; empty without one. ``names`` are the
+    names of the KNX master data by ``DPST-x-y`` / ``DPT-x``, used when present."""
     dpt = dpt_from_token(token)
     if not dpt.major:
         return ""
     code = dpt.code if dpt.has_subtype else f"{dpt.major}.xxx"
-    return f"{code} {dpt.name}".strip()
+    key = f"DPST-{dpt.major}-{dpt.minor}" if dpt.has_subtype else f"DPT-{dpt.major}"
+    name = (names or {}).get(key)
+    return f"{code} {title_case(name) if name else dpt.name}".strip()
+
+
+_MINOR_WORDS = frozenset(
+    [
+        "a",
+        "an",
+        "and",
+        "as",
+        "at",
+        "but",
+        "by",
+        "for",
+        "from",
+        "in",
+        "into",
+        "nor",
+        "of",
+        "on",
+        "or",
+        "per",
+        "the",
+        "to",
+        "via",
+        "vs",
+        "with",
+    ]
+)
+
+
+def title_case(text: str) -> str:
+    """``text`` as a title: major words capitalized, short minor words lower case except
+    first; ``SceneNumber`` is split into words, abbreviations (``DHW``) are kept."""
+    words = re.sub(r"(?<=[a-z])(?=[A-Z])", " ", text).split()
+    result: list[str] = []
+    for index, word in enumerate(words):
+        if any(c.isupper() for c in word) or (index and word.lower() in _MINOR_WORDS):
+            result.append(word)
+        else:
+            result.append(word[:1].upper() + word[1:])
+    return " ".join(result)
 
 
 def _title(name: str) -> str:
+    """A field name of xknx (``step_code``) as a label (``Step Code``)."""
+    return title_case(name.replace("_", " ").strip())
+
+
+def _option_text(name: str) -> str:
+    """An option value of xknx (``no_day``) as shown (``No day``)."""
     return name.replace("_", " ").strip().capitalize()
 
 
@@ -293,10 +344,10 @@ class _Fields(_Editor):
             if item.kind == "enum":
                 options = item.options if item.required else ["-", *item.options]
                 imgui.set_next_item_width(px(110.0 if inline else 180.0))
-                if imgui.begin_combo(item_id, _title(options[item.selected])):
+                if imgui.begin_combo(item_id, _option_text(options[item.selected])):
                     for option_index, option in enumerate(options):
                         if imgui.selectable(
-                            _title(option), item.selected == option_index
+                            _option_text(option), item.selected == option_index
                         )[0]:
                             item.selected = option_index
                     imgui.end_combo()
@@ -393,12 +444,9 @@ def _bits_float(value: int, width: int) -> float:
 @dataclass
 class _MasterField:
     fmt: FieldFormat
+    label: str = ""
     text: str = ""
     selected: int = 0
-
-    @property
-    def label(self) -> str:
-        return self.fmt.name
 
     @property
     def whole(self) -> bool:
@@ -538,6 +586,24 @@ class _MasterField:
         )
 
 
+def _master_fields(fmt: CompositeFormat) -> list[_MasterField]:
+    """The fields with their labels; several unnamed values are numbered ``Value 1`` ..."""
+    unnamed = [
+        f
+        for f in fmt.fields
+        if not f.name and f.kind not in ("reserved", "bit", "enum")
+    ]
+    fields: list[_MasterField] = []
+    number = 0
+    for item in fmt.fields:
+        label = title_case(item.name)
+        if not label and len(unnamed) > 1 and item in unnamed:
+            number += 1
+            label = S.DPT_VALUE_NUMBERED.format(number=number)
+        fields.append(_MasterField(item, label))
+    return fields
+
+
 @dataclass
 class _Master(_Editor):
     """A subtype laid out by the KNX master data, one input per field."""
@@ -653,7 +719,7 @@ def _editor_for(token: str | None, formats: Mapping[str, DptFormat]) -> _Editor 
         )
     if transcoder is None:
         if isinstance(fmt, CompositeFormat):
-            return _Master([_MasterField(f) for f in fmt.fields])
+            return _Master(_master_fields(fmt))
         return None
     if issubclass(transcoder, DPTEnum):
         enum_transcoder = cast("type[DPTEnum[Any]]", transcoder)
@@ -675,7 +741,7 @@ def _editor_for(token: str | None, formats: Mapping[str, DptFormat]) -> _Editor 
         if fields:
             return _Fields(complex_transcoder, fields)
     if isinstance(fmt, CompositeFormat):
-        return _Master([_MasterField(f) for f in fmt.fields])
+        return _Master(_master_fields(fmt))
     return _Free(cast("type[DPTBase]", transcoder))
 
 

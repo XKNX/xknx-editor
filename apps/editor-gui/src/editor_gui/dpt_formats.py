@@ -168,3 +168,35 @@ def cached_master_formats(master: Any) -> dict[str, DptFormat]:
     if _cached[0] != id(master):
         _cached = (id(master), master_formats(master))
     return _cached[1]
+
+
+def master_names(master: Any) -> dict[str, str]:
+    """Names of the data point types (``DPT-21``) and subtypes (``DPST-15-0``)."""
+    raw = getattr(master, "raw", None)
+    holder = getattr(raw, "datapoint_types", None)
+    names: dict[str, str] = {}
+    if holder is None:
+        return names
+    for dpt in cast("list[Any]", holder.datapoint_type):
+        if getattr(dpt, "number", None) is not None and getattr(dpt, "text", None):
+            names[f"DPT-{dpt.number}"] = str(dpt.text)
+        subtypes = getattr(dpt, "datapoint_subtypes", None)
+        for subtype in (
+            cast("list[Any]", subtypes.datapoint_subtype) if subtypes else []
+        ):
+            if getattr(subtype, "text", None):
+                names[subtype.id] = str(subtype.text)
+    return names
+
+
+_cached_names: tuple[int, dict[str, str]] = (0, {})
+
+
+def cached_master_names(master: Any) -> dict[str, str]:
+    """:func:`master_names` of ``master``, computed once per master data object."""
+    global _cached_names
+    if master is None:
+        return {}
+    if _cached_names[0] != id(master):
+        _cached_names = (id(master), master_names(master))
+    return _cached_names[1]
