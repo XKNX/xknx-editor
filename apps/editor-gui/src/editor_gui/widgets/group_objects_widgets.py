@@ -506,7 +506,7 @@ class GroupObjectsTable:
             return
         imgui.text_disabled(S.GA_CREATE_NEW)
         address = self._render_address_inputs()
-        imgui.set_next_item_width(px(_PICKER_WIDTH))
+        imgui.set_next_item_width(-1.0)
         _, self._create_name = imgui.input_text_with_hint(
             "##newname", S.GA_CREATE_NAME_HINT, self._create_name
         )
@@ -636,7 +636,7 @@ class GroupObjectsTable:
         if expanded:
             self._render_create_new(device, com_object)
             already = {ga_id for _aid, ga_id, _text, _sending in get_links(db_id)}
-            imgui.set_next_item_width(px(_PICKER_WIDTH))
+            imgui.set_next_item_width(-1.0)
             _, self._picker_filter = imgui.input_text_with_hint(
                 "##ga_filter", S.SEARCH_HINT, self._picker_filter
             )
