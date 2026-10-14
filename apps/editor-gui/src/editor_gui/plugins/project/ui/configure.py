@@ -62,6 +62,8 @@ from editor_gui.widgets.module_table import (
 
 _log = structlog.get_logger("configure")
 _PLUGIN_NOTICE_COLOR = imgui.ImVec4(0.95, 0.75, 0.35, 1.0)
+# Product ids of OpenKNX devices (manufacturer KNX Association, 0x00FA).
+_OPENKNX_PRODUCT_PREFIX = "M-00FA_"
 
 
 def overwrite_current_address(
@@ -867,6 +869,9 @@ class ConfigurePanel:
         browser is opened from there; the button shows a busy state meanwhile. Returns whether a
         button was shown (so the action row can place the next one beside it)."""
         if info is None or not (info.order_number or info.manufacturer_name):
+            return False
+        # OpenKNX devices (manufacturer KNX Association) have no manufacturer manual to find.
+        if info.product_ref_id.startswith(_OPENKNX_PRODUCT_PREFIX):
             return False
         if self._manual_busy:
             imgui.begin_disabled(True)
