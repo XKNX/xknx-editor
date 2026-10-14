@@ -545,6 +545,10 @@ def _write_address(
     el = ET.SubElement(parent_el, _ADDRESS_TAG)
     el.set("Name", ga.name)
     el.set("Address", format_ga(ga.address, style))
+    if ga.central:
+        el.set("Central", "true")
+    if ga.unfiltered:
+        el.set("Unfiltered", "true")
     if ga.datapoint_type:
         el.set("DPTs", ga.datapoint_type)
     if ga.description:

@@ -274,3 +274,16 @@ def test_csv_central_and_unfiltered(tmp_path: Path) -> None:
     out = tmp_path / "out.csv"
     write_ga_csv(_project_from(tmp_path, source), out, layout="1/1", header=True)
     assert out.read_bytes() == source.read_bytes()
+
+
+def test_xml_central_and_unfiltered(tmp_path: Path) -> None:
+    xml = _XML.replace(
+        'Address="0/0/1" DPTs', 'Address="0/0/1" Central="true" Unfiltered="true" DPTs'
+    )
+    source = _file(tmp_path, "in.xml", xml)
+    assert [
+        (a.central, a.unfiltered) for a in read_group_address_file(source).addresses
+    ] == [(True, True), (None, None), (None, None)]
+    out = tmp_path / "out.xml"
+    write_ga_export(_project_from(tmp_path, source), out)
+    assert out.read_bytes() == xml.replace("\n", "\r\n").encode("utf-8")
