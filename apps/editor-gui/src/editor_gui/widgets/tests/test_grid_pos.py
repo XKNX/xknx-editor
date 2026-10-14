@@ -1,6 +1,6 @@
 """Cell positions in a grid block: beyond the declared rows/columns they land in the last one."""
 
-from editor_gui.widgets.parameter_widgets import _grid_pos
+from editor_gui.widgets.parameter_widgets import _grid_pos, _keep_column_starts
 
 
 def test_cell_is_parsed() -> None:
@@ -22,3 +22,17 @@ def test_cell_beyond_the_declared_columns_lands_in_the_last_column() -> None:
 
 def test_without_declared_rows_and_columns_the_cell_is_kept() -> None:
     assert _grid_pos("7,9") == (7, 9)
+
+
+def test_narrow_column_keeps_the_next_columns_at_their_start() -> None:
+    # 1 % and 44 % of 540 px: the first column is widened to the minimum, the second gives it back.
+    assert _keep_column_starts([5.4, 237.6, 81.0], 8.0) == [8.0, 235.0, 81.0]
+
+
+def test_wide_columns_are_kept() -> None:
+    assert _keep_column_starts([10.8, 232.2, None, 81.0], 8.0) == [
+        10.8,
+        232.2,
+        None,
+        81.0,
+    ]

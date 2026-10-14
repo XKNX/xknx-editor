@@ -1284,6 +1284,44 @@ def _render_block(
     return popup_request
 
 
+def _indented_cell_text(text: str, origin: float) -> str:
+    """``text`` without the leading spaces of its lines, the cursor moved to the indent level
+    they stand for. Authors indent grid labels with spaces to line them up with the indented
+    parameters of the list; a space is narrower here than in the reference, so the text goes to
+    the nearest indent level (counted from the grid's left edge ``origin``) instead."""
+    spaces = len(text) - len(text.lstrip(" "))
+    if not spaces:
+        return text
+    x = imgui.get_cursor_screen_pos().x
+    natural = x - origin + spaces * imgui.calc_text_size(" ").x
+    step = px(_INDENT_STEP)
+    imgui.set_cursor_screen_pos(
+        imgui.ImVec2(
+            origin + round(natural / step) * step, imgui.get_cursor_screen_pos().y
+        )
+    )
+    return "\n".join(line.lstrip(" ") for line in text.split("\n"))
+
+
+def _keep_column_starts(
+    widths: list[float | None], min_width: float
+) -> list[float | None]:
+    """Widths that keep every column at its declared start. A table column is at least
+    ``min_width`` wide (the frame padding), so a narrower one (e.g. 1 %) would push the
+    following columns right; the next column gives the difference back."""
+    kept: list[float | None] = []
+    excess = 0.0
+    for width in widths:
+        if width is None:
+            kept.append(None)
+            excess = 0.0
+            continue
+        width -= excess
+        excess = max(0.0, min_width - width)
+        kept.append(width + excess)
+    return kept
+
+
 def _grid_pos(
     cell: str | None, rows: int = 0, columns: int = 0
 ) -> tuple[int, int] | None:
@@ -1420,6 +1458,7 @@ def _render_grid_cells(
         else None
         for col in range(declared_cols)
     ]
+    widths = _keep_column_starts(widths, _MIN_GRID_COLUMN)
     # Columns keep their declared widths, so a grid whose widths add up to more than the
     # page extends past its right edge instead of squeezing the last columns.
     stretch_cols = sum(w is None for w in widths) + col_offset
@@ -1432,16 +1471,26 @@ def _render_grid_cells(
     # Grid columns are exactly their declared width (no padding between them), so the columns
     # of grids above each other line up; fields leave a small gap to the next column instead.
     padding = imgui.get_style().cell_padding
+    # A table column is at least the frame padding wide; a narrow first column (e.g. 1 %) must
+    # keep its declared width so the next column starts where declared. The padding only
+    # applies while the table lays out its columns, before anything in a cell is drawn.
+    frame_padding = imgui.get_style().frame_padding
+    imgui.push_style_var(
+        imgui.StyleVar_.frame_padding, imgui.ImVec2(_MIN_GRID_COLUMN, frame_padding.y)
+    )
     imgui.push_style_var(
         imgui.StyleVar_.cell_padding,
         imgui.ImVec2(padding.x if is_table else 0, padding.y / 4),
     )
+    origin = imgui.get_cursor_screen_pos().x
     opened = imgui.begin_table(
         f"##grid_{prefix}", total_cols, table_flags, imgui.ImVec2(outer_width, 0)
     )
     imgui.pop_style_var()
     if not opened:
+        imgui.pop_style_var()
         return None
+    layout_padding = True
     if has_row_labels:
         imgui.table_setup_column("", imgui.TableColumnFlags_.width_stretch, 1.0)
     for col, width in enumerate(widths):
@@ -1452,19 +1501,43 @@ def _render_grid_cells(
             imgui.table_setup_column(header, imgui.TableColumnFlags_.width_stretch, 1.0)
     if has_col_headers:
         imgui.table_headers_row()
+        imgui.pop_style_var()
+        layout_padding = False
     for row in range(1, max_row + 1):
         if row in block.collapsed_rows and not any(r == row for r, _ in occupied):
             continue
         imgui.table_next_row()
+        if layout_padding:
+            imgui.pop_style_var()
+            layout_padding = False
         if has_row_labels:
             imgui.table_set_column_index(0)
             label = block.row_labels[row - 1] if row - 1 < len(block.row_labels) else ""
             imgui.text_disabled(label)
+        # The cells of a row are centred on its tallest one (e.g. a label of two lines), as
+        # in the reference. A label's height is known once it is drawn at its cell's width,
+        # so the row uses the heights its labels had in the previous frame.
+        frame_height = imgui.get_frame_height()
+        row_key = f"{prefix}:{row}"
+        estimate = max(
+            [0.0]
+            + [
+                _cell_text_height(sep, widths[col - 1] if col <= len(widths) else None)
+                for (sep_row, col), sep in labels_by_pos.items()
+                if sep_row == row
+            ]
+        )
+        row_height = max(frame_height, _label_heights.get(row_key, estimate))
+        drawn_height = 0.0
         for col in range(1, max_col + 1):
             imgui.table_set_column_index(col - 1 + col_offset)
             node = cells_by_pos.get((row, col))
             sep = labels_by_pos.get((row, col))
             req = None
+            if row_height > frame_height and isinstance(node, UiParameter | UiButton):
+                imgui.set_cursor_pos_y(
+                    imgui.get_cursor_pos_y() + (row_height - frame_height) / 2
+                )
             if isinstance(node, UiParameterBlock):
                 imgui.push_id(f"{row},{col}")
                 req = _render_block(
@@ -1485,25 +1558,52 @@ def _render_grid_cells(
                     device, node, on_change, deferred_enum, differing_refs
                 )
             elif sep is not None:
-                _render_cell_separator(sep)
+                cell_key = f"{row_key}:{col}"
+                own = _label_heights.get(
+                    cell_key, _cell_text_height(sep, imgui.get_content_region_avail().x)
+                )
+                _label_heights[cell_key] = _render_cell_separator(
+                    sep, origin, row_height, own
+                )
+                drawn_height = max(drawn_height, _label_heights[cell_key])
             if req is not None:
                 popup_request = req
+        _label_heights[row_key] = drawn_height
+    if layout_padding:
+        imgui.pop_style_var()
     imgui.end_table()
     return popup_request
 
 
-def _render_cell_separator(sep: UiSeparator) -> None:
-    """A separator in a grid cell: a headline in bold, a label as plain text, a ruler across.
-    Text wraps at the cell's right edge, as in the reference."""
-    if sep.text and sep.hint == "Headline":
+def _cell_text_height(sep: UiSeparator, width: float | None) -> float:
+    """Height of a label separator's text in a cell ``width`` wide (0 for other separators)."""
+    if not sep.text or sep.hint not in ("Headline", None):
+        return 0.0
+    text = "\n".join(line.lstrip(" ") for line in sep.text.split("\n"))
+    if sep.hint == "Headline":
         with bold():
-            imgui.align_text_to_frame_padding()
-            imgui.text_wrapped(sep.text)
-    elif sep.text and sep.hint is None:
-        imgui.align_text_to_frame_padding()
-        imgui.text_wrapped(sep.text)
-    else:
-        _render_separator(sep)
+            return imgui.calc_text_size(text, wrap_width=width if width else -1.0).y
+    return imgui.calc_text_size(text, wrap_width=width if width else -1.0).y
+
+
+def _render_cell_separator(
+    sep: UiSeparator, origin: float, row_height: float, height: float
+) -> float:
+    """A separator in a grid cell: a headline in bold, a label as plain text, a ruler across.
+    Text wraps at the cell's right edge, as in the reference; a label ``height`` high is
+    centred in a row ``row_height`` high. Returns the height of the text as drawn."""
+    if sep.text and sep.hint in ("Headline", None):
+        imgui.set_cursor_pos_y(
+            imgui.get_cursor_pos_y() + max(0.0, (row_height - height) / 2)
+        )
+        if sep.hint == "Headline":
+            with bold():
+                imgui.text_wrapped(_indented_cell_text(sep.text, origin))
+        else:
+            imgui.text_wrapped(_indented_cell_text(sep.text, origin))
+        return imgui.get_item_rect_size().y
+    _render_separator(sep)
+    return 0.0
 
 
 def _render_grid_param(
@@ -1672,6 +1772,10 @@ _INFO_COLOR = imgui.ImVec4(0.45, 0.72, 1.0, 1.0)
 _MIN_STRETCH_COLUMN = 80.0
 # Page width at 100 % scaling that percentage column widths of a grid refer to.
 _GRID_REFERENCE_WIDTH = 540.0
+# Heights of grid labels as last drawn, per row and per cell (see _render_grid_cells).
+_label_heights: dict[str, float] = {}
+# Narrowest a grid column may get (a declared width of 1 % is about 5 px).
+_MIN_GRID_COLUMN = 1.0
 # Indent of a parameter label per IndentLevel.
 _INDENT_STEP = 8.0
 # Share of that width the labels of a parameter list take.
