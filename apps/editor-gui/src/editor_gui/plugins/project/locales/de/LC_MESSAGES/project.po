@@ -1230,6 +1230,7 @@ msgstr "Nein"
 
 msgid "The application on the device is not in the catalog, so its tables cannot be located"
 msgstr "Die Applikation des Geräts ist nicht im Katalog, daher können seine Tabellen nicht gefunden werden"
+
 msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
 msgstr "Dieses Gerät kann nur mit dem Plugin des Herstellers programmiert werden, das hier nicht verfügbar ist."
 
@@ -1389,3 +1390,45 @@ msgstr "Schreiben"
 
 msgid "Not connected to the bus."
 msgstr "Keine Verbindung zum Bus."
+
+msgid "Export Group Addresses…"
+msgstr "Gruppenadressen exportieren…"
+
+msgid "Import Group Addresses…"
+msgstr "Gruppenadressen importieren…"
+
+msgid "Import Group Addresses"
+msgstr "Gruppenadressen importieren"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "Gruppenadressen-Dateien (XML, CSV)"
+
+msgid "All Files"
+msgstr "Alle Dateien"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "{added} Gruppenadressen hinzugefügt, {updated} aktualisiert."
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "{count} Gruppenadressen konnten keiner Gruppe zugeordnet werden."
+
+msgid "The file could not be imported: {error}"
+msgstr "Die Datei konnte nicht importiert werden: {error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "Die Datei verwendet {file} Gruppenadressen, das Projekt jedoch {project} Gruppenadressen."
+
+msgid "3-level"
+msgstr "3-stufige"
+
+msgid "2-level"
+msgstr "2-stufige"
+
+msgid "free"
+msgstr "freie"
+
+msgid "Export"
+msgstr "Exportieren"
+
+msgid "Import"
+msgstr "Importieren"

@@ -409,8 +409,70 @@ class MenuStrings:
         return _("Export Group Addresses...")
 
     @property
+    def MENU_IMPORT_GA(self) -> str:
+        return _("Import Group Addresses...")
+
+    @property
     def GA_EXPORT_OK(self) -> str:
         return _("Exported {count} group address(es)")
+
+    @property
+    def GA_EXPORT_OPTIONS_TITLE(self) -> str:
+        return _("Export Group Addresses")
+
+    @property
+    def GA_EXPORT_OUTPUT_FORMAT(self) -> str:
+        return _("Output Format")
+
+    @property
+    def GA_EXPORT_CSV_FORMAT(self) -> str:
+        return _("CSV Format")
+
+    @property
+    def GA_EXPORT_CSV_3_1(self) -> str:
+        return _("3/1 - three columns, Main/Middle/Sub group separated")
+
+    @property
+    def GA_EXPORT_CSV_1_3(self) -> str:
+        return _("1/3 - Group address name/Main - Middle - Sub group")
+
+    @property
+    def GA_EXPORT_CSV_1_1(self) -> str:
+        return _("1/1 - Name/Address")
+
+    @property
+    def GA_EXPORT_CSV_3_3(self) -> str:
+        return _(
+            "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
+        )
+
+    @property
+    def GA_EXPORT_CSV_HEADER(self) -> str:
+        return _("Export with header line")
+
+    @property
+    def GA_EXPORT_CSV_SEPARATOR(self) -> str:
+        return _("CSV Separator")
+
+    @property
+    def GA_EXPORT_SEPARATOR_TAB(self) -> str:
+        return _("Tabulator")
+
+    @property
+    def GA_EXPORT_SEPARATOR_COMMA(self) -> str:
+        return _("Comma")
+
+    @property
+    def GA_EXPORT_SEPARATOR_SEMICOLON(self) -> str:
+        return _("Semicolon")
+
+    @property
+    def BTN_EXPORT(self) -> str:
+        return _("Export")
+
+    @property
+    def FILE_DIALOG_GA_EXPORT_CSV_FILTER(self) -> str:
+        return _("Group Address Export (*.csv)")
 
     @property
     def EXPORT_DONE(self) -> str:
@@ -936,8 +998,12 @@ class MenuStrings:
         return _("ETS Project (*.knxproj)")
 
     @property
+    def FILE_DIALOG_GA_IMPORT_FILTER(self) -> str:
+        return _("Group Address Exports (*.xml, *.csv)")
+
+    @property
     def FILE_DIALOG_GA_EXPORT_FILTER(self) -> str:
-        return _("ETS Group-Address Export (*.xml)")
+        return _("Group Address Export (*.xml)")
 
     @property
     def FILE_DIALOG_PROJECT_TITLE(self) -> str:
@@ -972,7 +1038,7 @@ class MenuStrings:
 
     @property
     def FILE_DIALOG_OPEN_FILTER(self) -> str:
-        return _("Projects (*.xknx, *.knxproj, *.xml)")
+        return _("Projects (*.xknx, *.knxproj, *.xml, *.csv)")
 
     @property
     def PROGRESS_TITLE(self) -> str:

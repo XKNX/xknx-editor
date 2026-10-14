@@ -49,6 +49,7 @@ from xknxeditor.proj.core.events import (
     CreateSegment,
     CreateSpace,
     Event,
+    ImportGroupAddresses,
     LinkComObject,
     MoveDevice,
     MoveSpace,
@@ -86,6 +87,11 @@ from xknxeditor.proj.core.events import (
     UpdateDeviceApplication,
 )
 from xknxeditor.proj.core.function_detect import classify_function
+from xknxeditor.proj.core.ga_export import (
+    GaExport,
+    GaRange,
+    GroupAddressStyleMismatch,
+)
 from xknxeditor.proj.core.product_prune import ProgressCallback
 from xknxeditor.proj.core.skeleton import MEDIUM_TP, seed_new_project
 from xknxeditor.proj.db import make_engine, url_for
@@ -512,6 +518,68 @@ class ProjectService:
 
     def remove_group_range(self, project_id: str, range_id: int) -> None:
         self._state(project_id).store.append(RemoveGroupRange(target_id=range_id))
+
+    def import_group_addresses(
+        self,
+        project_id: str,
+        installation: int,
+        export: GaExport,
+        label: str | None = None,
+    ) -> ImportGroupAddresses:
+        """Import ``export`` (a parsed group address file) into the project as one undo step.
+
+        Folders and addresses are added; existing ones get the file's names and values (empty
+        values keep what is there). An address outside every folder gets the default folders a new
+        address would get. Raises ``ValueError`` when the file uses another address style."""
+        state = self._state(project_id)
+        style = self._style(state)
+        if export.style is not style:
+            raise GroupAddressStyleMismatch(export.style, style)
+        inst = self._installation(state, installation)
+        ranges: list[list[Any]] = []
+
+        def add_range(gr: GaRange, parent_start: int | None) -> None:
+            ranges.append([gr.range_start, gr.range_end, gr.name, parent_start])
+            for child in gr.children:
+                add_range(child, gr.range_start)
+
+        for gr in export.ranges:
+            add_range(gr, None)
+        windows = [(start, end) for start, end, _name, _parent in ranges] + [
+            (start, end)
+            for start, end in state.session.query(
+                GroupRange.range_start, GroupRange.range_end
+            ).filter(GroupRange.installation_id == inst.id)
+        ]
+        for addr in export.addresses:
+            if any(start <= addr.address <= end for start, end in windows):
+                continue
+            parent_start: int | None = None
+            for start, end, name in ranges_for(addr.address, style):
+                if (start, end) not in windows:
+                    ranges.append([start, end, name, parent_start])
+                    windows.append((start, end))
+                parent_start = start
+
+        event = ImportGroupAddresses(
+            installation_id=inst.id,
+            ranges=ranges,
+            addresses=[
+                {
+                    "address": addr.address,
+                    "name": addr.name or None,
+                    "datapoint_type": addr.datapoint_type,
+                    "description": addr.description or None,
+                    "security_mode": addr.security,
+                    "central": addr.central,
+                    "unfiltered": addr.unfiltered,
+                }
+                for addr in export.addresses
+            ],
+            label=label,
+        )
+        state.store.append(event)
+        return event
 
     def link_com_object(
         self,

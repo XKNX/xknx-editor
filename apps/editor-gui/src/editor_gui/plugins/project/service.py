@@ -8,6 +8,7 @@ import platform
 import shutil
 import subprocess
 import time
+import xml.etree.ElementTree as ET
 import zipfile
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -48,6 +49,7 @@ from xknxeditor.proj import is_ga_export as _is_ga_export
 from xknxeditor.proj import write_ga_export as _write_ga_export
 from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga, parse_ga
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
+from xknxeditor.proj.core.ga_export import write_ga_csv as _write_ga_csv
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.skeleton import MEDIUM_TP
 
@@ -264,6 +266,8 @@ def _history_label(event_type: str, data: dict[str, Any]) -> str:
         return "Add segment"
     if event_type == "CreateGroupAddress":
         return f"Create group address {data.get('address')}"
+    if event_type == "ImportGroupAddresses":
+        return str(data.get("label") or "Import group addresses")
     if event_type == "LinkComObject":
         return "Link com-object"
     if event_type == "UnlinkComObject":
@@ -954,6 +958,23 @@ class ProjectService:
         with self._io_lock:
             count = _write_ga_export(source, dest)
         self._log.info("ga export written", path=str(dest), addresses=count)
+        return count
+
+    def export_ga_csv(
+        self, dest: Path, *, layout: str, separator: str, header: bool
+    ) -> int:
+        """Write the open project's group-address tree to ``dest`` as CSV (see
+        :func:`write_ga_csv`). Returns the number of addresses written."""
+        if not dest.suffix:
+            dest = dest.with_suffix(".csv")
+        source = self._working_path
+        if source is None:
+            raise RuntimeError("no project open")
+        with self._io_lock:
+            count = _write_ga_csv(
+                source, dest, layout=layout, separator=separator, header=header
+            )
+        self._log.info("ga csv written", path=str(dest), addresses=count)
         return count
 
     def close(self) -> None:
@@ -3008,6 +3029,28 @@ class ProjectService:
             return
         self._svc.rename_group_range(self._pid, range_id, name)
         self._bump(structural=False)
+
+    def import_group_addresses(self, path: Path) -> tuple[int, int, int]:
+        """Import a group address export (XML or CSV) into the open project as one undo step.
+
+        Returns ``(added, updated, skipped)``. Raises ``ValueError`` for a file that cannot be read
+        or uses another address style than the project."""
+        from xknxeditor.proj.core.ga_export import read_group_address_file
+
+        if self._pid is None:
+            raise ValueError("No project is open.")
+        try:
+            export = read_group_address_file(path)
+        except (OSError, ET.ParseError) as exc:
+            raise ValueError(str(exc)) from exc
+        event = self._svc.import_group_addresses(
+            self._pid,
+            _INSTALLATION,
+            export,
+            label=f"Import group addresses from {path.name}",
+        )
+        self._bump(structural=False)
+        return event.added, event.updated, event.skipped
 
     def remove_group_range(self, range_id: int) -> None:
         if self._pid is None:
