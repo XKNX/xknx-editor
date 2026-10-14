@@ -48,3 +48,12 @@ msgstr "Gruppenadress-Schlüssel ({count})"
 
 msgid "Devices ({count})"
 msgstr "Geräte ({count})"
+
+msgid "Export"
+msgstr "Exportieren"
+
+msgid "Export Keyring…"
+msgstr "Schlüsselbund exportieren…"
+
+msgid "Set the password for the exported keyring:"
+msgstr "Passwort für den exportierten Schlüsselbund festlegen:"

@@ -28,11 +28,14 @@ def test_reimport_repopulates_after_db_reset(tmp_path: Path) -> None:
     # First import fills the DB and writes the file cache.
     content = _FIXTURE.read_bytes()
     db = tmp_path / "cat.xknxcatalog"
-    CatalogService(db).import_knxprod(content)
+    first = CatalogService(db)
+    first.import_knxprod(content)
     stored = list(knxprod_dir_for(db).glob("*.knxprod"))
     assert stored, "the .knxprod should have been cached to the store"
 
-    # Simulate the user deleting only the catalog DB (the file cache survives).
+    # Simulate the user deleting only the catalog DB (the file cache survives). On Windows the
+    # file can only be deleted once the service released it.
+    first.close()
     db.unlink()
     svc = CatalogService(db)  # fresh, empty DB — same store dir, file still present
     assert svc.list_products() == []

@@ -102,3 +102,75 @@ msgstr "Ja"
 
 msgid "No"
 msgstr "Nee"
+
+msgid "(no room)"
+msgstr "(geen kamer)"
+
+msgid "(plugin required)"
+msgstr "(plug-in vereist)"
+
+msgid "Add Device"
+msgstr "Apparaat toevoegen"
+
+msgid "Add to project"
+msgstr "Aan project toevoegen"
+
+msgid "Add to project?"
+msgstr "Aan project toevoegen?"
+
+msgid "Application"
+msgstr "Applicatie"
+
+msgid "Country"
+msgstr "Land"
+
+msgid "Downloading {name}..."
+msgstr "{name} wordt gedownload..."
+
+msgid "Fetch Online Catalog"
+msgstr "Onlinecatalogus ophalen"
+
+msgid "Fetch {count} Missing Application(s) Online"
+msgstr "{count} ontbrekende applicatie(s) online ophalen"
+
+msgid "Fetching missing applications…"
+msgstr "Ontbrekende applicaties worden opgehaald…"
+
+msgid "Loading products..."
+msgstr "Producten laden..."
+
+msgid "Local"
+msgstr "Lokaal"
+
+msgid "Manufacturer"
+msgstr "Fabrikant"
+
+msgid "Name"
+msgstr "Naam"
+
+msgid "No downloadable products"
+msgstr "Geen downloadbare producten"
+
+msgid "No products imported yet — import a .knxprod or use the Online tab."
+msgstr "Nog geen producten geïmporteerd — importeer een .knxprod of gebruik het tabblad Online."
+
+msgid "Not now"
+msgstr "Niet nu"
+
+msgid "Online"
+msgstr "Online"
+
+msgid "Order Number"
+msgstr "Bestelnummer"
+
+msgid "Product Details"
+msgstr "Productdetails"
+
+msgid "Product Ref"
+msgstr "Productref"
+
+msgid "Room"
+msgstr "Kamer"
+
+msgid "“{name}” was added to the local catalog. Add it to the project now?"
+msgstr "“{name}” is aan de lokale catalogus toegevoegd. Nu aan het project toevoegen?"

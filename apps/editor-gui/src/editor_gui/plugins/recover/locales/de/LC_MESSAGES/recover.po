@@ -132,3 +132,6 @@ msgstr "Fehler"
 
 msgid "%d parameters could not be recovered"
 msgstr "%d Parameter konnten nicht wiederhergestellt werden"
+
+msgid "already in project - skipped"
+msgstr "bereits im Projekt - übersprungen"
