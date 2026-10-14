@@ -216,3 +216,9 @@ def test_dpt_label_prefers_the_master_data_name() -> None:
     names = {"DPST-15-0": "entrance access", "DPT-21": "8-bit set"}
     assert dpt_label("DPST-15-0", names) == "15.000 Entrance Access"
     assert dpt_label("DPT-21", names) == "21.xxx 8-bit Set"
+
+
+def test_value_texts_start_upper_case() -> None:
+    editor = _editor("DPST-1-2", {"DPST-1-2": BitFormat("not accepted", "accepted")})
+    assert [label for label, _ in editor.options] == ["Not accepted", "Accepted"]
+    assert dpt_value.value_text("DHW mode") == "DHW mode"

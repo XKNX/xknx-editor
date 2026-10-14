@@ -8,6 +8,7 @@ dimming step, ...) one input per field.
 
 from __future__ import annotations
 
+import copy
 import enum
 import math
 import re
@@ -33,6 +34,7 @@ from editor_gui.dpt_formats import (
     NumberFormat,
 )
 from editor_gui.regional import regional_format
+from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import general_float
 from editor_gui.widgets.strings import S
@@ -108,9 +110,16 @@ def _title(name: str) -> str:
     return title_case(name.replace("_", " ").strip())
 
 
+def value_text(text: str) -> str:
+    """A value or option text starting upper case (``not accepted`` -> ``Not accepted``);
+    the rest is kept as it is."""
+    text = text.strip()
+    return text[:1].upper() + text[1:]
+
+
 def _option_text(name: str) -> str:
     """An option value of xknx (``no_day``) as shown (``No day``)."""
-    return name.replace("_", " ").strip().capitalize()
+    return value_text(name.replace("_", " "))
 
 
 def _number_text(value: float) -> str:
@@ -325,8 +334,8 @@ class _Fields(_Editor):
 
     def render(self, widget_id: str, *, inline: bool) -> bool:
         if inline and len(self.fields) > 3:
-            return _edit_in_popup(
-                widget_id, lambda: self.render(widget_id, inline=False)
+            return _edit_in_dialog(
+                widget_id, self.fields, lambda: self.render(widget_id, inline=False)
             )
         submitted = False
         label_w = (
@@ -416,16 +425,30 @@ class _Fields(_Editor):
                 )
 
 
-def _edit_in_popup(widget_id: str, render: Callable[[], bool]) -> bool:
-    """A button that opens ``render`` in a popup, for compound values in a one-line bar."""
-    popup = f"##{widget_id}_popup"
+# Field values when an "Edit Value" dialog opened, by widget id, restored on Cancel.
+_saved_fields: dict[str, list[Any]] = {}
+
+
+def _edit_in_dialog(
+    widget_id: str, fields: list[Any], render: Callable[[], bool]
+) -> bool:
+    """A button that opens the fields of a compound value in a modal dialog, for a one-line
+    bar. OK (or Enter) keeps the entered values, Cancel (or Escape) restores the previous."""
+    title = f"{S.DPT_VALUE_EDIT_TITLE}###{widget_id}_edit"
     if imgui.button(f"{S.DPT_VALUE_EDIT}##{widget_id}"):
-        imgui.open_popup(popup)
-    submitted = False
-    if imgui.begin_popup(popup):
-        submitted = render()
-        imgui.end_popup()
-    return submitted
+        _saved_fields[widget_id] = copy.deepcopy(fields)
+        imgui.open_popup(title)
+    if not begin_dialog(title):
+        return False
+    submitted = render()
+    clicked = dialog_buttons(S.OK, S.CANCEL)
+    if clicked == 1:
+        fields[:] = _saved_fields.get(widget_id, fields)
+    if clicked is not None or submitted:
+        _saved_fields.pop(widget_id, None)
+        imgui.close_current_popup()
+    end_dialog()
+    return False
 
 
 def _float_bits(value: float, width: int) -> int:
@@ -480,7 +503,9 @@ class _MasterField:
     def render(self, widget_id: str, *, inline: bool) -> bool:
         kind = self.fmt.kind
         if kind == "bit":
-            for index, label in enumerate((self.fmt.cleared, self.fmt.set)):
+            for index, label in enumerate(
+                (value_text(self.fmt.cleared), value_text(self.fmt.set))
+            ):
                 if index:
                     imgui.same_line()
                 text = label or str(index)
@@ -491,11 +516,13 @@ class _MasterField:
             return False
         if kind == "enum":
             texts = self.fmt.texts
-            current = texts[self.selected][1] if texts else ""
+            current = value_text(texts[self.selected][1]) if texts else ""
             imgui.set_next_item_width(px(170.0 if inline else 260.0))
             if imgui.begin_combo(f"##{widget_id}", current):
                 for index, (_, text) in enumerate(texts):
-                    if imgui.selectable(f"{text}##{index}", self.selected == index)[0]:
+                    if imgui.selectable(
+                        f"{value_text(text)}##{index}", self.selected == index
+                    )[0]:
                         self.selected = index
                 imgui.end_combo()
             return False
@@ -632,7 +659,9 @@ class _Master(_Editor):
         if len(shown) == 1:
             return shown[0].render(widget_id, inline=inline)
         if inline:
-            return _edit_in_popup(widget_id, lambda: self._render_fields(widget_id))
+            return _edit_in_dialog(
+                widget_id, self.fields, lambda: self._render_fields(widget_id)
+            )
         return self._render_fields(widget_id)
 
     def payload(self) -> Payload:
@@ -706,14 +735,14 @@ def _editor_for(token: str | None, formats: Mapping[str, DptFormat]) -> _Editor 
     if isinstance(fmt, BitFormat):
         return _Choice(
             [
-                (fmt.cleared, _raw_payload(transcoder, dpt.major, 0)),
-                (fmt.set, _raw_payload(transcoder, dpt.major, 1)),
+                (value_text(fmt.cleared), _raw_payload(transcoder, dpt.major, 0)),
+                (value_text(fmt.set), _raw_payload(transcoder, dpt.major, 1)),
             ]
         )
     if isinstance(fmt, EnumFormat) and fmt.texts:
         return _Choice(
             [
-                (text, _raw_payload(transcoder, dpt.major, raw))
+                (value_text(text), _raw_payload(transcoder, dpt.major, raw))
                 for raw, text in sorted(fmt.texts.items())
             ]
         )

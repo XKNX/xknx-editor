@@ -237,5 +237,9 @@ class WidgetStrings(BaseStrings):
     def DPT_VALUE_NUMBERED(self) -> str:
         return _("Value {number}")
 
+    @property
+    def DPT_VALUE_EDIT_TITLE(self) -> str:
+        return _("Edit Value")
+
 
 S = WidgetStrings()
