@@ -424,7 +424,7 @@ def write_ga_export(source: Path | str, dest: Path | str) -> int:
 
 CSV_SEPARATORS = {"tab": "\t", "comma": ",", "semicolon": ";"}
 # Value of the central/unfiltered columns for a set flag.
-_CSV_YES = "Yes"
+_CSV_YES = "true"
 
 
 def write_ga_csv(

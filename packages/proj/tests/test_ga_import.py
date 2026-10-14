@@ -254,3 +254,23 @@ def test_csv_export_reads_back(
     ] == [
         (a.address, a.name, a.datapoint_type, a.security) for a in reference.addresses
     ]
+
+
+def test_csv_central_and_unfiltered(tmp_path: Path) -> None:
+    lines = [
+        '"Group name"\t"Address"\t"Central"\t"Unfiltered"\t"Description"\t'
+        '"DatapointType"\t"Security"',
+        '"Licht"\t"1/-/-"\t""\t""\t""\t""\t"Auto"',
+        '"EG"\t"1/0/-"\t""\t""\t""\t""\t"Auto"',
+        '"Alles aus"\t"1/0/1"\t"true"\t""\t""\t"DPST-1-1"\t"Auto"',
+        '"Wohnen"\t"1/0/2"\t""\t"true"\t""\t"DPST-1-1"\t"Auto"',
+    ]
+    source = _file(tmp_path, "in.csv", "".join(f"{line}\r\n" for line in lines))
+    export = read_group_address_file(source)
+    assert [(a.central, a.unfiltered) for a in export.addresses] == [
+        (True, None),
+        (None, True),
+    ]
+    out = tmp_path / "out.csv"
+    write_ga_csv(_project_from(tmp_path, source), out, layout="1/1", header=True)
+    assert out.read_bytes() == source.read_bytes()
