@@ -287,8 +287,10 @@ msgstr ""
 
 msgid "{project} - {app}"
 msgstr "{project} - {app}"
+
 msgid "Highlight Changes"
 msgstr "Wijzigingen markeren"
+
 msgid "Group Address Export (*.xml)"
 msgstr "Groepsadres-export (*.xml)"
 

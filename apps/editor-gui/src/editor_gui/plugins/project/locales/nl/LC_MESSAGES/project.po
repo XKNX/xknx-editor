@@ -776,6 +776,7 @@ msgstr "Nee"
 
 msgid "The application on the device is not in the catalog, so its tables cannot be located"
 msgstr "De applicatie van het apparaat staat niet in de catalogus, daarom kunnen de tabellen niet worden gevonden"
+
 msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
 msgstr "Dit apparaat kan alleen worden geprogrammeerd met de plug-in van de fabrikant, die hier niet beschikbaar is."
 
@@ -941,8 +942,7 @@ msgstr "Schrijven"
 
 msgid "Not connected to the bus."
 msgstr "Geen verbinding met de bus."
-msgid "Import…"
-msgstr "Importeren…"
+
 msgid "Export Group Addresses…"
 msgstr "Groepsadressen exporteren…"
 
