@@ -65,6 +65,10 @@ class CatalogService:
         # .knxprod store so it lives with the catalog it belongs to.
         self._parse_cache_dir = self._knxprod_dir.parent / "ir_cache"
 
+    def close(self) -> None:
+        """Release the database file (its pooled connections); later calls reconnect."""
+        self._engine.dispose()
+
     # --- ingest -----------------------------------------------------------
 
     def import_knxprod(self, content: bytes, *, require_catalog: bool = True) -> Path:
