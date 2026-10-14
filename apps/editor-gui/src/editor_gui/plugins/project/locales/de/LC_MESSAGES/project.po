@@ -1432,3 +1432,206 @@ msgstr "Exportieren"
 
 msgid "Import"
 msgstr "Importieren"
+msgid "All Files"
+msgstr "Alle Dateien"
+
+msgid "Assignment"
+msgstr "Zuweisung"
+
+msgid "Based on OpenKNXproducer"
+msgstr "Basiert auf OpenKNXproducer"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Change Address…"
+msgstr "Adresse ändern…"
+
+msgid "Channels ({count})"
+msgstr "Kanäle ({count})"
+
+msgid "Choose project to compare"
+msgstr "Zu vergleichendes Projekt wählen"
+
+msgid "Choose project to compare..."
+msgstr "Zu vergleichendes Projekt wählen..."
+
+msgid "Columns"
+msgstr "Spalten"
+
+msgid "Comments are encrypted"
+msgstr "Kommentare sind verschlüsselt"
+
+msgid "Comments decrypted"
+msgstr "Kommentare entschlüsselt"
+
+msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Das geöffnete Projekt mit einer anderen Projektdatei (.knxproj oder .xknx) vergleichen: welche Geräte und Gruppenadressen hinzugefügt, entfernt oder geändert wurden. Das andere Projekt wird nur gelesen; es wird nichts verändert."
+
+msgid "Custom Grid"
+msgstr "Eigenes Raster"
+
+msgid "DALI (Bus)"
+msgstr "DALI (Bus)"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Decrypt Comments"
+msgstr "Kommentare entschlüsseln"
+
+msgid "Default Gateway"
+msgstr "Standard-Gateway"
+
+msgid "Delete '{name}'? Its com-objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "'{name}' löschen? Seine Kommunikationsobjekte und Gruppenadress-Verknüpfungen werden entfernt und seine physikalische Adresse wird freigegeben. Dies kann rückgängig gemacht werden."
+
+msgid "Delete Device"
+msgstr "Gerät löschen"
+
+msgid "Destructive: the device is reset over the bus and must be re-commissioned with ETS. In KNX Secure mode this deactivates device security."
+msgstr "Destruktiv: Das Gerät wird über den Bus zurückgesetzt und muss mit ETS neu in Betrieb genommen werden. Im KNX-Secure-Modus wird dabei die Gerätesicherheit deaktiviert."
+
+msgid "Download PDF Manual"
+msgstr "PDF-Handbuch herunterladen"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "ETS verschlüsselt die Kommentare im Protokoll. Extrahieren Sie den Entschlüsselungsschlüssel aus der Knx.Ets.Common.dll Ihrer eigenen ETS-Installation, um sie zu lesen; es wird nichts übertragen."
+
+msgid "Export HTML..."
+msgstr "HTML exportieren..."
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "Aus Knx.Ets.Common.dll extrahieren…"
+
+msgid "Extracting key…"
+msgstr "Schlüssel wird extrahiert…"
+
+msgid "Fields"
+msgstr "Felder"
+
+msgid "Filter log"
+msgstr "Protokoll filtern"
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "Das Handbuch dieses Geräts suchen (über die KNX-Gerätedatenbank, sonst per Herstellersuche) und im Browser öffnen. Ohne Gewähr - öffnet die KNX-Gerätesuche, wenn kein direktes Dokument gefunden wird."
+
+msgid "Gap X / Y (mm)"
+msgstr "Abstand X / Y (mm)"
+
+msgid "Group addresses"
+msgstr "Gruppenadressen"
+
+msgid "Group objects read from the device"
+msgstr "Vom Gerät gelesene Gruppenobjekte"
+
+msgid "IP Address"
+msgstr "IP-Adresse"
+
+msgid "IP Configuration"
+msgstr "IP-Konfiguration"
+
+msgid "Individual addresses"
+msgstr "Physikalische Adressen"
+
+msgid "Installation"
+msgstr "Installation"
+
+msgid "Invalid address or already in use."
+msgstr "Ungültige Adresse oder bereits vergeben."
+
+msgid "KNX Common Assembly"
+msgstr "KNX-Common-Assembly"
+
+msgid "KNX project (*.knxproj *.xknx)"
+msgstr "KNX-Projekt (*.knxproj *.xknx)"
+
+msgid "Key extracted; comments decrypted"
+msgstr "Schlüssel extrahiert; Kommentare entschlüsselt"
+
+msgid "Label Sheet"
+msgstr "Etikettenbogen"
+
+msgid "Label W x H (mm)"
+msgstr "Etikett B x H (mm)"
+
+msgid "Legend (Full Page)"
+msgstr "Legende (ganze Seite)"
+
+msgid "MAC Address"
+msgstr "MAC-Adresse"
+
+msgid "Margin Top / Left (mm)"
+msgstr "Rand oben / links (mm)"
+
+msgid "New group address (links are kept):"
+msgstr "Neue Gruppenadresse (Verknüpfungen bleiben erhalten):"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr "Keine .NET-Laufzeitumgebung gefunden (installieren Sie das .NET SDK oder starten Sie unter Windows mit ETS)."
+
+msgid "No differences in devices or group addresses."
+msgstr "Keine Unterschiede bei Geräten oder Gruppenadressen."
+
+msgid "No project log entries"
+msgstr "Keine Einträge im Projektprotokoll"
+
+msgid "Output"
+msgstr "Ausgabe"
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "Felder und eine Ausgabe wählen: eine CSV, druckbare Etikettenbögen (Avery) oder eine ganzseitige Legende. HTML-Ausgaben öffnen sich im Browser zum Drucken oder Speichern als PDF."
+
+msgid "Project Diff"
+msgstr "Projektvergleich"
+
+msgid "Project Log"
+msgstr "Projektprotokoll"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Com-object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Gruppenadressen umnummerieren, indem ein Versatz auf ihren Rohwert addiert wird, z. B. um Lücken zu schaffen. Die Verknüpfungen der Kommunikationsobjekte wandern mit jeder Adresse mit. Es wird nichts geschrieben, wenn eine Verschiebung kollidieren oder den gültigen Bereich verlassen würde."
+
+msgid "Rows"
+msgstr "Zeilen"
+
+msgid "Searching manual..."
+msgstr "Handbuch wird gesucht..."
+
+msgid "Select at least one field."
+msgstr "Mindestens ein Feld auswählen."
+
+msgid "Sheet"
+msgstr "Bogen"
+
+msgid "Shift Group Addresses"
+msgstr "Gruppenadressen verschieben"
+
+msgid "Shifted {count} group address(es)"
+msgstr "{count} Gruppenadresse(n) verschoben"
+
+msgid "Subnet Mask"
+msgstr "Subnetzmaske"
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "Der Versatz wird auf den 16-Bit-Rohwert addiert, daher kann sich die Haupt-/Mittelgruppe ändern, wenn Adressen eine Grenze überschreiten."
+
+msgid "This project has no group addresses."
+msgstr "Dieses Projekt hat keine Gruppenadressen."
+
+msgid "User"
+msgstr "Benutzer"
+
+msgid "added"
+msgstr "hinzugefügt"
+
+msgid "changed"
+msgstr "geändert"
+
+msgid "compared with {name}"
+msgstr "verglichen mit {name}"
+
+msgid "removed"
+msgstr "entfernt"
+
+msgid "{count} difference(s)"
+msgstr "{count} Unterschied(e)"

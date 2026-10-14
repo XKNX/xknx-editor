@@ -36,3 +36,117 @@ msgstr "Busmonitor stoppen"
 
 msgid "Not possible while the bus monitor is running"
 msgstr "Niet mogelijk zolang de busmonitor loopt"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "Heeft op de zoekopdracht geantwoord, maar het lezen van de details is mislukt: {error}"
+
+msgid "Application"
+msgstr "Applicatie"
+
+msgid "Application Version"
+msgstr "Applicatieversie"
+
+msgid "Apply"
+msgstr "Toepassen"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "Apparaten in programmeermodus zoeken"
+
+msgid "Connecting…"
+msgstr "Verbinden…"
+
+msgid "Connection failed"
+msgstr "Verbinding mislukt"
+
+msgid "Devices in Programming Mode"
+msgstr "Apparaten in programmeermodus"
+
+msgid "Diagnostics"
+msgstr "Diagnose"
+
+msgid "Discovered Gateways"
+msgstr "Gevonden gateways"
+
+msgid "Gateway"
+msgstr "Gateway"
+
+msgid "Gateway IP"
+msgstr "Gateway-IP"
+
+msgid "Hardware Type"
+msgstr "Hardwaretype"
+
+msgid "In this project: {name}"
+msgstr "In dit project: {name}"
+
+msgid "Manual Connection"
+msgstr "Handmatige verbinding"
+
+msgid "Manufacturer"
+msgstr "Fabrikant"
+
+msgid "Mask Version"
+msgstr "Maskerversie"
+
+msgid "Multicast Group"
+msgstr "Multicastgroep"
+
+msgid "No device is in programming mode."
+msgstr "Geen apparaat in programmeermodus."
+
+msgid "No fault"
+msgstr "Geen fout"
+
+msgid "No gateways found"
+msgstr "Geen gateways gevonden"
+
+msgid "Not in this project"
+msgstr "Niet in dit project"
+
+msgid "Order Number"
+msgstr "Bestelnummer"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Druk op de programmeerknop van een apparaat om het in programmeermodus te zetten en zoek daarna opnieuw."
+
+msgid "Product (catalog)"
+msgstr "Product (catalogus)"
+
+msgid "Programming mode active"
+msgstr "Programmeermodus actief"
+
+msgid "Rescan"
+msgstr "Opnieuw zoeken"
+
+msgid "Scan"
+msgstr "Zoeken"
+
+msgid "Searching the bus…"
+msgstr "Bus wordt doorzocht…"
+
+msgid "Select in Project"
+msgstr "In project selecteren"
+
+msgid "Serial Number"
+msgstr "Serienummer"
+
+msgid "Settings"
+msgstr "Instellingen"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "De interface heeft de zoekopdracht niet bevestigd (bus bezet of interface overbelast). Probeer het opnieuw."
+
+msgid "The scan could not be completed: {error}"
+msgstr "De zoekopdracht kon niet worden voltooid: {error}"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Niet-geprogrammeerd apparaat (fabrieksadres 15.15.255)"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Multicast-routing gebruiken (in plaats van tunneling)"
+
+msgid "{count} device(s) in programming mode"
+msgstr "{count} apparaat/apparaten in programmeermodus"

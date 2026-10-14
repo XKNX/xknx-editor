@@ -39,3 +39,36 @@ msgstr "OK"
 
 msgid "Device Overview"
 msgstr "Geräteübersicht"
+
+msgid "Application Program"
+msgstr "Applikationsprogramm"
+
+msgid "Communication Part"
+msgstr "Kommunikationsteil"
+
+msgid "Individual Address"
+msgstr "Physikalische Adresse"
+
+msgid "Last Download: {when}"
+msgstr "Letzter Download: {when}"
+
+msgid "Loaded"
+msgstr "Geladen"
+
+msgid "Medium Config"
+msgstr "Medium-Konfiguration"
+
+msgid "Parameters"
+msgstr "Parameter"
+
+msgid "Serial: {serial}"
+msgstr "Seriennummer: {serial}"
+
+msgid "loaded"
+msgstr "geladen"
+
+msgid "not loaded"
+msgstr "nicht geladen"
+
+msgid "partial ({done}/{total})"
+msgstr "teilweise ({done}/{total})"

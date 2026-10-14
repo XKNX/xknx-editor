@@ -1,0 +1,165 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: nl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "(afbeelding)"
+
+msgid "Search…"
+msgstr "Zoeken…"
+
+msgid "{name} (locked)"
+msgstr "{name} (vergrendeld)"
+
+msgid "Create Group Addresses ({count})"
+msgstr "Groepsadressen aanmaken ({count})"
+
+msgid "All"
+msgstr "Alles"
+
+msgid "None"
+msgstr "Geen"
+
+msgid "Copy Links ({count})"
+msgstr "Koppelingen kopiëren ({count})"
+
+msgid "Paste Links ({count})"
+msgstr "Koppelingen plakken ({count})"
+
+msgid ""
+"Assigns the copied links and flags to the checked objects in order (1st to "
+"1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr ""
+"Wijst de gekopieerde koppelingen en flags in volgorde toe aan de aangevinkte "
+"objecten (1e aan 1e, 2e aan 2e, …) en vervangt de huidige koppelingen van elk "
+"doel."
+
+msgid "Merge"
+msgstr "Samenvoegen"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr ""
+"Bestaande koppelingen van elk doel behouden en alleen de gekopieerde "
+"toevoegen."
+
+msgid "Copy Links"
+msgstr "Koppelingen kopiëren"
+
+msgid "Paste Links"
+msgstr "Koppelingen plakken"
+
+msgid "Copy Addresses as Text"
+msgstr "Adressen als tekst kopiëren"
+
+msgid "Create Group Addresses"
+msgstr "Groepsadressen aanmaken"
+
+msgid ""
+"Name template placeholders: {object}, {device}, {room}, {function}, {number}, "
+"{dpt}, {n} (index; {n:02} zero-pads)"
+msgstr ""
+"Plaatshouders voor het naamsjabloon: {object}, {device}, {room}, {function}, "
+"{number}, {dpt}, {n} (index; {n:02} vult aan met nullen)"
+
+msgid "Name Template"
+msgstr "Naamsjabloon"
+
+msgid "Start Address"
+msgstr "Startadres"
+
+msgid "Cancel"
+msgstr "Annuleren"
+
+msgid "Sending Group Address"
+msgstr "Zendend groepsadres"
+
+msgid "Receiving Group Address"
+msgstr "Ontvangend groepsadres"
+
+msgid "Changed from default ({default})"
+msgstr "Gewijzigd ten opzichte van de standaardwaarde ({default})"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr ""
+"Gewijzigd ten opzichte van de standaardwaarde ({default}) — rechtsklikken om "
+"terug te zetten"
+
+msgid "Reset to Default"
+msgstr "Terugzetten naar standaardwaarde"
+
+msgid "New Group Address"
+msgstr "Nieuw groepsadres"
+
+msgid "Address"
+msgstr "Adres"
+
+msgid "Name"
+msgstr "Naam"
+
+msgid "Create & Link"
+msgstr "Aanmaken & koppelen"
+
+msgid "Link Group Address"
+msgstr "Groepsadres koppelen"
+
+msgid "<differs>"
+msgstr "<verschillend>"
+
+msgid "Off"
+msgstr "Uit"
+
+msgid "On"
+msgstr "Aan"
+
+msgid "Standard"
+msgstr "Standaard"
+
+msgid "Advanced"
+msgstr "Geavanceerd"
+
+msgid "Theme Colors"
+msgstr "Themakleuren"
+
+msgid "Standard Colors"
+msgstr "Standaardkleuren"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "ma di wo do vr za zo"
+
+msgid "Hours"
+msgstr "Uren"
+
+msgid "Minutes"
+msgstr "Minuten"
+
+msgid "Seconds"
+msgstr "Seconden"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "Milliseconden"
+
+msgid "General"
+msgstr "Algemeen"
+
+msgid "Default (inherit)"
+msgstr "Standaard (overgeërfd)"
+
+msgid "Edit description…"
+msgstr "Beschrijving bewerken…"
+
+msgid "Edit Description"
+msgstr "Beschrijving bewerken"
+
+msgid "OK"
+msgstr "OK"

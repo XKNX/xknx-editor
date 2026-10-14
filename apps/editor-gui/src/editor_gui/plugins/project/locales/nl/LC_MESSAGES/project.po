@@ -924,6 +924,188 @@ msgstr "Waarde schrijven…"
 
 msgid "Write Value"
 msgstr "Waarde schrijven"
+msgid "(none)"
+msgstr "(geen)"
+
+msgid "+ Selected Device"
+msgstr "+ Geselecteerd apparaat"
+
+msgid "Add"
+msgstr "Toevoegen"
+
+msgid "Address"
+msgstr "Adres"
+
+msgid "All Files"
+msgstr "Alle bestanden"
+
+msgid "Application Version"
+msgstr "Applicatieversie"
+
+msgid "Apply changes to all {count} identical devices"
+msgstr "Wijzigingen op alle {count} identieke apparaten toepassen"
+
+msgid "Assign Sequential"
+msgstr "Opeenvolgend toewijzen"
+
+msgid "Assigned Objects"
+msgstr "Toegewezen objecten"
+
+msgid "Assignment"
+msgstr "Toewijzing"
+
+msgid "Based on OpenKNXproducer"
+msgstr "Gebaseerd op OpenKNXproducer"
+
+msgid "Buildings"
+msgstr "Gebouwen"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
+msgstr "Kan niet worden uitgevoerd: geen KNX-verbinding. Maak verbinding met een gateway (menu Verbinding) en zorg dat het apparaat bereikbaar is op zijn individuele adres."
+
+msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
+msgstr "Kan niet worden uitgevoerd: het project is gewijzigd sinds het werd geopend. Deze test vergelijkt het gegenereerde geheugenbeeld met de geprogrammeerde toestand van het apparaat, die alleen overeenkomt met het project zoals het werd geopend. Maak je wijzigingen in deze sessie ongedaan om te testen."
+
+msgid "Change Address…"
+msgstr "Adres wijzigen…"
+
+msgid "Changed"
+msgstr "Gewijzigd"
+
+msgid "Channels ({count})"
+msgstr "Kanalen ({count})"
+
+msgid "Choose project to compare"
+msgstr "Te vergelijken project kiezen"
+
+msgid "Choose project to compare..."
+msgstr "Te vergelijken project kiezen..."
+
+msgid "Click to open this device in the editor"
+msgstr "Klik om dit apparaat in de editor te openen"
+
+msgid "Columns"
+msgstr "Kolommen"
+
+msgid "Comment"
+msgstr "Opmerking"
+
+msgid "Comments are encrypted"
+msgstr "Opmerkingen zijn versleuteld"
+
+msgid "Comments decrypted"
+msgstr "Opmerkingen ontsleuteld"
+
+msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Het geopende project vergelijken met een ander projectbestand (.knxproj of .xknx): welke apparaten en groepsadressen zijn toegevoegd, verwijderd of gewijzigd. Het andere project wordt alleen gelezen; er wordt niets gewijzigd."
+
+msgid "Copy Address"
+msgstr "Adres kopiëren"
+
+msgid "Copy Log"
+msgstr "Logboek kopiëren"
+
+msgid "Created by"
+msgstr "Gemaakt door"
+
+msgid "Custom Grid"
+msgstr "Aangepast raster"
+
+msgid "DALI (Bus)"
+msgstr "DALI (bus)"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
+msgstr "Datapunttype (bijv. DPST-1-1); leeg om te wissen"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Decrypt Comments"
+msgstr "Opmerkingen ontsleutelen"
+
+msgid "Default Gateway"
+msgstr "Standaardgateway"
+
+msgid "Delete '{name}'? Its com-objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "'{name}' verwijderen? De communicatieobjecten en groepsadreskoppelingen ervan worden verwijderd en het fysieke adres wordt vrijgegeven. Dit kan ongedaan worden gemaakt."
+
+msgid "Delete Device"
+msgstr "Apparaat verwijderen"
+
+msgid "Description"
+msgstr "Beschrijving"
+
+msgid "Destructive: the device is reset over the bus and must be re-commissioned with ETS. In KNX Secure mode this deactivates device security."
+msgstr "Destructief: het apparaat wordt via de bus teruggezet en moet met ETS opnieuw in bedrijf worden gesteld. In KNX Secure-modus wordt hierdoor de apparaatbeveiliging uitgeschakeld."
+
+msgid "Download PDF Manual"
+msgstr "PDF-handleiding downloaden"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "ETS versleutelt de opmerkingen in het logboek. Extraheer de ontsleutelingssleutel uit Knx.Ets.Common.dll van je eigen ETS-installatie om ze te lezen; er wordt niets verzonden."
+
+msgid "Editor"
+msgstr "Editor"
+
+msgid "Evaluation failed"
+msgstr "Evaluatie mislukt"
+
+msgid "Export HTML..."
+msgstr "HTML exporteren..."
+
+msgid "Export Ist/Soll..."
+msgstr "Werkelijk/gewenst exporteren..."
+
+msgid "Export Path:"
+msgstr "Exportpad:"
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "Extraheren uit Knx.Ets.Common.dll…"
+
+msgid "Extracting key…"
+msgstr "Sleutel wordt geëxtraheerd…"
+
+msgid "Fields"
+msgstr "Velden"
+
+msgid "Filter devices (name, address)..."
+msgstr "Apparaten filteren (naam, adres)..."
+
+msgid "Filter group addresses (address, name)..."
+msgstr "Groepsadressen filteren (adres, naam)..."
+
+msgid "Filter log"
+msgstr "Logboek filteren"
+
+msgid "Filter parameters..."
+msgstr "Parameters filteren..."
+
+msgid "Filter rooms, devices, functions..."
+msgstr "Ruimtes, apparaten, functies filteren..."
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "De handleiding van dit apparaat zoeken (via de KNX-apparatendatabase, anders via een zoekopdracht bij de fabrikant) en in de browser openen. Zonder garantie - opent de KNX-apparatenzoekfunctie als er geen direct document wordt gevonden."
+
+msgid "From"
+msgstr "Vanaf"
+
+msgid "From Device (Live)"
+msgstr "Van apparaat (live)"
+
+msgid "Full"
+msgstr "Volledig"
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "Gap X / Y (mm)"
+msgstr "Tussenruimte X / Y (mm)"
 
 msgid "Group Address"
 msgstr "Groepsadres"
@@ -955,9 +1137,6 @@ msgstr "Groepsadressen importeren"
 msgid "Group Address Files (XML, CSV)"
 msgstr "Groepsadresbestanden (XML, CSV)"
 
-msgid "All Files"
-msgstr "Alle bestanden"
-
 msgid "{added} group addresses added, {updated} updated."
 msgstr "{added} groepsadressen toegevoegd, {updated} bijgewerkt."
 
@@ -984,3 +1163,326 @@ msgstr "Exporteren"
 
 msgid "Import"
 msgstr "Importeren"
+msgid "Group Address Name"
+msgstr "Groepsadresnaam"
+
+msgid "Group Address Style"
+msgstr "Groepsadresweergave"
+
+msgid "Group Addresses"
+msgstr "Groepsadressen"
+
+msgid "Group Objects ({count})"
+msgstr "Groepsobjecten ({count})"
+
+msgid "Group addresses"
+msgstr "Groepsadressen"
+
+msgid "Group objects read from the device"
+msgstr "Van het apparaat gelezen groepsobjecten"
+
+msgid "IP Address"
+msgstr "IP-adres"
+
+msgid "IP Configuration"
+msgstr "IP-configuratie"
+
+msgid "Individual addresses"
+msgstr "Fysieke adressen"
+
+msgid "Installation"
+msgstr "Installatie"
+
+msgid "Invalid address or already in use."
+msgstr "Ongeldig adres of al in gebruik."
+
+msgid "KNX Common Assembly"
+msgstr "KNX Common-assembly"
+
+msgid "KNX project (*.knxproj *.xknx)"
+msgstr "KNX-project (*.knxproj *.xknx)"
+
+msgid "Key extracted; comments decrypted"
+msgstr "Sleutel geëxtraheerd; opmerkingen ontsleuteld"
+
+msgid "Label Sheet"
+msgstr "Labelvel"
+
+msgid "Label W x H (mm)"
+msgstr "Label B x H (mm)"
+
+msgid "Last Modified"
+msgstr "Laatst gewijzigd"
+
+msgid "Legend (Full Page)"
+msgstr "Legenda (volledige pagina)"
+
+msgid "Link All ({count})"
+msgstr "Alles koppelen ({count})"
+
+msgid "Link communication objects to each other. 1) Add the source objects. 2) Pick a partner object per row. Each pair gets a NEW group address (source sends, target receives): the address and name are suggested (first free address, name template below) but can be edited per row. 3) 'Link all' creates and links them."
+msgstr "Communicatieobjecten aan elkaar koppelen. 1) Voeg de bronobjecten toe. 2) Kies per rij een partnerobject. Elk paar krijgt een NIEUW groepsadres (bron zendt, doel ontvangt): adres en naam worden voorgesteld (eerste vrije adres, naamsjabloon hieronder), maar zijn per rij te bewerken. 3) 'Alles koppelen' maakt ze aan en koppelt ze."
+
+msgid "Link many communication objects to existing group addresses at once. 1) Add objects: '+ Selected device' (all objects of the device selected in the tree) or 'Add objects…'. 2) Set each row's target address in its dropdown — or fill them fast with 'Assign sequential' (next free addresses from the given start) or 'Match by name'. 3) 'Link all' links every row that has a target."
+msgstr "Veel communicatieobjecten in één keer aan bestaande groepsadressen koppelen. 1) Objecten toevoegen: '+ Geselecteerd apparaat' (alle objecten van het in de boom geselecteerde apparaat) of 'Objecten toevoegen…'. 2) Stel per rij het doeladres in via de keuzelijst — of vul ze snel met 'Opeenvolgend toewijzen' (volgende vrije adressen vanaf het opgegeven begin) of 'Op naam toewijzen'. 3) 'Alles koppelen' koppelt elke rij die een doel heeft."
+
+msgid "Load Procedures ({count})"
+msgstr "Laadprocedures ({count})"
+
+msgid "Location"
+msgstr "Locatie"
+
+msgid "MAC Address"
+msgstr "MAC-adres"
+
+msgid "Margin Top / Left (mm)"
+msgstr "Marge boven / links (mm)"
+
+msgid "Master Data (Signed)"
+msgstr "Masterdata (ondertekend)"
+
+msgid "Match by Name"
+msgstr "Op naam toewijzen"
+
+msgid "Match: the generated image is identical to what is on the device"
+msgstr "Overeenkomst: het gegenereerde geheugenbeeld is identiek aan wat op het apparaat staat"
+
+msgid "Memory Preview"
+msgstr "Geheugenvoorbeeld"
+
+msgid "New Group Address"
+msgstr "Nieuw groepsadres"
+
+msgid "New group address (links are kept):"
+msgstr "Nieuw groepsadres (koppelingen blijven behouden):"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr "Geen .NET-runtime gevonden (installeer de .NET SDK, of voer het uit op Windows met ETS)."
+
+msgid "No buildings/rooms in this project"
+msgstr "Geen gebouwen/ruimtes in dit project"
+
+msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
+msgstr "Geen geconfigureerde verschillen: het apparaat heeft deze configuratie al. De verschillen hieronder zijn onschuldig (zie toelichting)."
+
+msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
+msgstr "Geen apparaten. Open of importeer een project (menu Bestand), of klik hier met de rechtermuisknop om een gebied toe te voegen."
+
+msgid "No differences in devices or group addresses."
+msgstr "Geen verschillen in apparaten of groepsadressen."
+
+msgid "No objects yet — add the selected device or pick objects."
+msgstr "Nog geen objecten — voeg het geselecteerde apparaat toe of kies objecten."
+
+msgid "No project"
+msgstr "Geen project"
+
+msgid "No project log entries"
+msgstr "Geen items in het projectlogboek"
+
+msgid "Object"
+msgstr "Object"
+
+msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
+msgstr "Alleen voor ETS 6-apparaten: deze test vergelijkt het apparaat met een geheugenbeeld dat op de manier van ETS 6 is gegenereerd. Een apparaat dat het laatst met ETS 5 is geprogrammeerd, gebruikt een andere byte-indeling en toont grote onterechte verschillen - het resultaat is alleen zinvol voor een apparaat dat het laatst met ETS 6 is geprogrammeerd."
+
+msgid "Only problems"
+msgstr "Alleen problemen"
+
+msgid "Order Info"
+msgstr "Bestelinfo"
+
+msgid "Original Project ID"
+msgstr "Oorspronkelijke project-ID"
+
+msgid "Output"
+msgstr "Uitvoer"
+
+msgid "Partial: Group Communication"
+msgstr "Gedeeltelijk: groepscommunicatie"
+
+msgid "Partial: Parameters"
+msgstr "Gedeeltelijk: parameters"
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "Kies de velden en een uitvoer: een CSV, afdrukbare labelvellen (Avery) of een legenda op een volledige pagina. HTML-uitvoer wordt in de browser geopend om af te drukken of als PDF op te slaan."
+
+msgid "Preview Memory"
+msgstr "Geheugenvoorbeeld tonen"
+
+msgid "Program Device"
+msgstr "Apparaat programmeren"
+
+msgid "Program device?"
+msgstr "Apparaat programmeren?"
+
+msgid "Programming Test Result"
+msgstr "Resultaat van programmeertest"
+
+msgid "Project"
+msgstr "Project"
+
+msgid "Project Certificate"
+msgstr "Projectcertificaat"
+
+msgid "Project Diff"
+msgstr "Projectvergelijking"
+
+msgid "Project ID"
+msgstr "Project-ID"
+
+msgid "Project Log"
+msgstr "Projectlogboek"
+
+msgid "Read from Device"
+msgstr "Van apparaat lezen"
+
+msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
+msgstr "Alleen-lezen test: controleert of de downloadfunctie hetzelfde geheugenbeeld genereert als wat al op het apparaat is geprogrammeerd. Er wordt niets naar het apparaat geschreven."
+
+msgid "Rename Group Address"
+msgstr "Groepsadres hernoemen"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Com-object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Groepsadressen hernummeren door een verschuiving op te tellen bij hun ruwe waarde, bijv. om ruimte te maken. Koppelingen van communicatieobjecten gaan met elk adres mee. Er wordt niets geschreven als een verschuiving zou botsen of buiten het geldige bereik zou vallen."
+
+msgid "Rows"
+msgstr "Rijen"
+
+msgid "S"
+msgstr "S"
+
+msgid "S = Sending. This object sends its value to the group address; the others only receive it."
+msgstr "S = Sending (zendend). Dit object zendt zijn waarde naar het groepsadres; de andere ontvangen die alleen."
+
+msgid "Save"
+msgstr "Opslaan"
+
+msgid "Schema Version"
+msgstr "Schemaversie"
+
+msgid "Searching manual..."
+msgstr "Handleiding wordt gezocht..."
+
+msgid "Select All"
+msgstr "Alles selecteren"
+
+msgid "Select at least one field."
+msgstr "Selecteer minstens één veld."
+
+msgid "Set Datapoint Type"
+msgstr "Datapunttype instellen"
+
+msgid "Set an individual address and connect to the bus first"
+msgstr "Stel eerst een individueel adres in en maak verbinding met de bus"
+
+msgid "Sheet"
+msgstr "Vel"
+
+msgid "Shift Group Addresses"
+msgstr "Groepsadressen verschuiven"
+
+msgid "Shifted {count} group address(es)"
+msgstr "{count} groepsadres(sen) verschoven"
+
+msgid "Size"
+msgstr "Grootte"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
+msgstr "Structurele verschillen (hele tabellen wijken af) kunnen betekenen dat het apparaat het laatst met ETS 5 is geprogrammeerd, waarvan de byte-indeling afwijkt. Verschillen in alleen waarden betekenen meestal dat het apparaat een andere configuratie bevat."
+
+msgid "Subnet Mask"
+msgstr "Subnetmasker"
+
+msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
+msgstr "Systeembyte die het apparaat tijdens runtime zelf instelt (bijv. een downloaddetectiebyte die de applicatie na een download terugzet). Een verschil hier is te verwachten en wijst niet op een mislukte download."
+
+msgid "Target Group Address"
+msgstr "Doelgroepsadres"
+
+msgid "Target Object"
+msgstr "Doelobject"
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "De verschuiving wordt opgeteld bij de ruwe 16-bitwaarde, waardoor de hoofd-/middengroep kan veranderen wanneer adressen een grens overschrijden."
+
+msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
+msgstr "Deze byte wordt geschreven voor een naburige parameter; de afwijkende bit wordt door geen enkele actieve parameter aangestuurd en alleen teruggezet naar de standaardwaarde van de applicatie. Het apparaat bevat een oudere waarde (bijv. van een eerdere configuratie of modus) die door het programmeren wordt genormaliseerd. Onschuldig."
+
+msgid "This project has no group addresses."
+msgstr "Dit project heeft geen groepsadressen."
+
+msgid "This writes to the device at {address} (scope: {scope}) and changes its configuration. Continue?"
+msgstr "Hiermee wordt naar het apparaat op {address} geschreven (omvang: {scope}) en wordt de configuratie ervan gewijzigd. Doorgaan?"
+
+msgid "Tool Version"
+msgstr "Toolversie"
+
+msgid "Unload"
+msgstr "Ontladen"
+
+msgid "Unload Application and Address"
+msgstr "Applicatie en adres ontladen"
+
+msgid "Update to V{version}"
+msgstr "Bijwerken naar V{version}"
+
+msgid "User"
+msgstr "Gebruiker"
+
+msgid "Validation File"
+msgstr "Validatiebestand"
+
+msgid "added"
+msgstr "toegevoegd"
+
+msgid "changed"
+msgstr "gewijzigd"
+
+msgid "compared with {name}"
+msgstr "vergeleken met {name}"
+
+msgid "device-managed"
+msgstr "door apparaat beheerd"
+
+msgid "differs from project V{version} — program to apply"
+msgstr "wijkt af van project V{version} — programmeer om toe te passen"
+
+msgid "match"
+msgstr "overeenkomst"
+
+msgid "memory {address}"
+msgstr "geheugen {address}"
+
+msgid "none"
+msgstr "geen"
+
+msgid "object {object} property {property}"
+msgstr "object {object} eigenschap {property}"
+
+msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr "plus {bytes} byte(s) teruggezet naar de standaardwaarde van de applicatie (het apparaat bevat een oudere waarde; onschuldig, wordt bij het programmeren genormaliseerd)"
+
+msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
+msgstr "plus {bytes} door het apparaat beheerde runtimebyte(s) (verwacht, onschuldig)"
+
+msgid "present ({size} bytes)"
+msgstr "aanwezig ({size} bytes)"
+
+msgid "removed"
+msgstr "verwijderd"
+
+msgid "sets default"
+msgstr "zet standaardwaarde"
+
+msgid "would change"
+msgstr "zou wijzigen"
+
+msgid "{count} difference(s)"
+msgstr "{count} verschil(len)"
+
+msgid "{matched} matched, {changed} would change"
+msgstr "{matched} overeenkomend, {changed} zouden wijzigen"

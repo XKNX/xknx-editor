@@ -302,6 +302,191 @@ msgstr "Projecten (*.xknx, *.knxproj, *.xml, *.csv)"
 
 msgid "Import Group Addresses..."
 msgstr "Groepsadressen importeren..."
+msgid "XKNX Editor"
+msgstr "XKNX Editor"
+
+msgid "Help"
+msgstr "Help"
+
+msgid "Feedback"
+msgstr "Feedback"
+
+msgid "About"
+msgstr "Over"
+
+msgid "Language"
+msgstr "Taal"
+
+msgid "No matches"
+msgstr "Geen resultaten"
+
+msgid "Version {version}"
+msgstr "Versie {version}"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
+msgstr "Een desktopeditor voor installatieprojecten in de gebouwautomatisering, gebouwd op de opensource-bibliotheek xknx en gebaseerd op xknxtoolkit van kewde. Niet verbonden aan of goedgekeurd door de KNX Association."
+
+msgid "Network Location"
+msgstr "Netwerklocatie"
+
+msgid "This location is on a network drive:\n{home}\n\nKNX project files use a database that cannot run reliably on network shares. The editor can work on a local copy instead and write it back to the network location when you close the project."
+msgstr "Deze locatie staat op een netwerkstation:\n{home}\n\nKNX-projectbestanden gebruiken een database die op netwerkshares niet betrouwbaar werkt. De editor kan in plaats daarvan met een lokale kopie werken en die bij het sluiten van het project terugschrijven naar de netwerklocatie."
+
+msgid "Use a Local Copy"
+msgstr "Lokale kopie gebruiken"
+
+msgid "Working on a local copy; written back to {home} when you close the project."
+msgstr "Er wordt met een lokale kopie gewerkt; die wordt bij het sluiten van het project teruggeschreven naar {home}."
+
+msgid "Add"
+msgstr "Toevoegen"
+
+msgid "New Project"
+msgstr "Nieuw project"
+
+msgid "Project name"
+msgstr "Projectnaam"
+
+msgid "Group address style"
+msgstr "Groepsadresstijl"
+
+msgid "Free"
+msgstr "Vrij"
+
+msgid "Two-level"
+msgstr "Twee niveaus"
+
+msgid "Three-level"
+msgstr "Drie niveaus"
+
+msgid "Create..."
+msgstr "Aanmaken..."
+
+msgid "Clear"
+msgstr "Wissen"
+
+msgid "Stop"
+msgstr "Stoppen"
+
+msgid "All Files"
+msgstr "Alle bestanden"
+
+msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
+msgstr "Project: {name}  ·  {devices} apparaten  ·  {gas} GA's"
+
+msgid "No project open"
+msgstr "Geen project geopend"
+
+msgid "Programming {address}..."
+msgstr "{address} wordt geprogrammeerd..."
+
+msgid "Testing {address}..."
+msgstr "{address} wordt getest..."
+
+msgid "Programming complete"
+msgstr "Programmeren voltooid"
+
+msgid "Programming failed"
+msgstr "Programmeren mislukt"
+
+msgid "No KNX connection"
+msgstr "Geen KNX-verbinding"
+
+msgid "KNX Master v{version} ({date})"
+msgstr "KNX Master v{version} ({date})"
+
+msgid "File"
+msgstr "Bestand"
+
+msgid "Open Recent"
+msgstr "Recent geopend"
+
+msgid "Settings..."
+msgstr "Instellingen..."
+
+msgid "MCP Server"
+msgstr "MCP-server"
+
+msgid "Settings"
+msgstr "Instellingen"
+
+msgid "Gateway"
+msgstr "Gateway"
+
+msgid "MCP"
+msgstr "MCP"
+
+msgid "Catalog"
+msgstr "Catalogus"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Multicast-routing gebruiken (in plaats van tunneling)"
+
+msgid "Gateway IP"
+msgstr "Gateway-IP"
+
+msgid "Multicast Group"
+msgstr "Multicastgroep"
+
+msgid "Run the MCP server so an LLM can drive the editor over Streamable HTTP. It shares this app's catalog database."
+msgstr "Start de MCP-server zodat een LLM de editor via Streamable HTTP kan bedienen. Hij gebruikt de catalogusdatabase van deze app."
+
+msgid "MCP Host"
+msgstr "MCP-host"
+
+msgid "MCP Port"
+msgstr "MCP-poort"
+
+msgid "Bearer Token (Optional)"
+msgstr "Bearer-token (optioneel)"
+
+msgid "Server: running"
+msgstr "Server: actief"
+
+msgid "Server: stopped"
+msgstr "Server: gestopt"
+
+msgid "Start Server"
+msgstr "Server starten"
+
+msgid "Stop Server"
+msgstr "Server stoppen"
+
+msgid "Use host 0.0.0.0 to make the server reachable from other devices on the network; 127.0.0.1/localhost only allows this machine."
+msgstr "Gebruik host 0.0.0.0 om de server bereikbaar te maken vanaf andere apparaten in het netwerk; 127.0.0.1/localhost staat alleen deze computer toe."
+
+msgid "claude mcp add --transport http xknx-editor {url}"
+msgstr "claude mcp add --transport http xknx-editor {url}"
+
+msgid "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+msgstr "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+
+msgid "codex mcp add xknx-editor --url {url}"
+msgstr "codex mcp add xknx-editor --url {url}"
+
+msgid "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+msgstr "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+
+msgid "Download Language"
+msgstr "Downloadtaal"
+
+msgid "MCP running"
+msgstr "MCP actief"
+
+msgid "Welcome"
+msgstr "Welkom"
+
+msgid "Create a new project or open an existing one to get started."
+msgstr "Maak een nieuw project aan of open een bestaand project om te beginnen."
+
+msgid "Recent Projects"
+msgstr "Recente projecten"
+
+msgid "Recover from Bus…"
+msgstr "Herstellen vanaf de bus…"
+
+msgid "Export .knxproj..."
+msgstr ".knxproj exporteren..."
 
 msgid "Export Group Addresses..."
 msgstr "Groepsadressen exporteren..."
@@ -347,3 +532,302 @@ msgstr "Exporteren"
 
 msgid "Group Address Export (*.csv)"
 msgstr "Groepsadres-export (*.csv)"
+msgid "Exported {count} group address(es)"
+msgstr "{count} groepsadres(sen) geëxporteerd"
+
+msgid "Exported to {path} ({size}) as {schema}"
+msgstr "Geëxporteerd naar {path} ({size}) als {schema}"
+
+msgid "Good to Know"
+msgstr "Goed om te weten"
+
+msgid "Your project opened fine and everything you need to work with is here. A few extra details from the original file are shown a bit more simply:"
+msgstr "Je project is zonder problemen geopend en alles wat je nodig hebt om te werken is aanwezig. Enkele extra details uit het originele bestand worden wat eenvoudiger weergegeven:"
+
+msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
+msgstr "Dit project komt uit een bestand met enkele extra details die deze editor niet gebruikt. Bij de export worden deze weggelaten:"
+
+msgid "The original file had {count} installations. They were combined into one."
+msgstr "Het originele bestand bevatte {count} installaties. Deze zijn samengevoegd tot één."
+
+msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr "{count} apparaat(en) zijn niet aan een lijn toegewezen. Ze blijven in het project en worden bij de export meegenomen, maar kunnen hier nog niet worden bewerkt."
+
+msgid "{count} com-object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr "{count} communicatieobject(en) hadden in het originele bestand een extra beschrijving. De eigen naam en functie blijven behouden; alleen die beschrijving wordt hier niet getoond."
+
+msgid "For example: {examples}"
+msgstr "Bijvoorbeeld: {examples}"
+
+msgid "{count} IP or function setting(s) from the original file are not used here."
+msgstr "{count} IP- of functie-instelling(en) uit het originele bestand worden hier niet gebruikt."
+
+msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr "{count} lijn(en) gebruiken meerdere segmenten. In een export met schema 14/20 worden ze alleen op lijnniveau weergegeven."
+
+msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
+msgstr "{count} lijn(en) hadden in verschillende installaties hetzelfde adres. Bij het samenvoegen is er van elk één behouden."
+
+msgid "Sign Export"
+msgstr "Export ondertekenen"
+
+msgid "ETS 6 needs a signed and licensed .knxproj: log in to license it and set a signing key - or use the 'License with a Dongle' way below.\nETS 5: just use 'Export without Certificate'."
+msgstr "ETS 6 heeft een ondertekend en gelicentieerd .knxproj nodig: log in om het te licentiëren en stel een ondertekeningssleutel in - of gebruik hieronder de manier 'Licentiëren met een dongle'.\nETS 5: gebruik gewoon 'Zonder certificaat exporteren'."
+
+msgid "MyKnx Username"
+msgstr "MyKnx-gebruikersnaam"
+
+msgid "MyKnx Password"
+msgstr "MyKnx-wachtwoord"
+
+msgid "Log in"
+msgstr "Inloggen"
+
+msgid "Complete sign-in in your browser. Code: {code}"
+msgstr "Voltooi het inloggen in je browser. Code: {code}"
+
+msgid "Login failed (HTTP 401). Either the password is wrong, or this account uses two-factor authentication - the server does not say which."
+msgstr "Inloggen mislukt (HTTP 401). Ofwel is het wachtwoord onjuist, ofwel gebruikt dit account tweestapsverificatie - de server zegt niet welke van de twee."
+
+msgid "Re-enter credentials"
+msgstr "Inloggegevens opnieuw invoeren"
+
+msgid "Start 2FA sign-in"
+msgstr "2FA-inloggen starten"
+
+msgid "MyKnx OAuth credentials (2FA)"
+msgstr "MyKnx-OAuth-inloggegevens (2FA)"
+
+msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see 'License with an ETS Dongle'."
+msgstr "Alleen nodig voor accounts met tweestapsverificatie. Het 2FA-inloggen opent automatisch in je browser wanneer een normale login wordt geweigerd. Voer de OAuth-client-id/-secret in, of haal ze uit je geïnstalleerde ETS: kies 'Knx.Ets.MyKnx.dll' in de ETS-programmamap (bijv. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAls je een gelicentieerde ETS geïnstalleerd hebt, kun je het online ondertekenen ook helemaal overslaan en in plaats daarvan de lokale ProjectStore gebruiken - zie 'Licentiëren met een ETS-dongle'."
+
+msgid "Client ID"
+msgstr "Client-ID"
+
+msgid "Client secret"
+msgstr "Client-secret"
+
+msgid "Extract from ETS…"
+msgstr "Uit ETS halen…"
+
+msgid "Extracting…"
+msgstr "Bezig met ophalen…"
+
+msgid "Save"
+msgstr "Opslaan"
+
+msgid "All files"
+msgstr "Alle bestanden"
+
+msgid "Logging in…"
+msgstr "Inloggen…"
+
+msgid "License"
+msgstr "Licentie"
+
+msgid "No licenses found on this account"
+msgstr "Geen licenties gevonden voor dit account"
+
+msgid "no online certificate"
+msgstr "geen online certificaat"
+
+msgid "expired"
+msgstr "verlopen"
+
+msgid "None of these licenses can sign online. Only ETS6 (or a cloud-enabled ETS app) licenses produce a certificate; ETS5/older licenses cannot. Use 'License with a dongle' instead."
+msgstr "Geen van deze licenties kan online ondertekenen. Alleen ETS6-licenties (of licenties van een cloudgeschikte ETS-app) leveren een certificaat; ETS5-/oudere licenties niet. Gebruik in plaats daarvan 'Licentiëren met een dongle'."
+
+msgid "Login failed: {error}"
+msgstr "Inloggen mislukt: {error}"
+
+msgid "Export Format"
+msgstr "Exportformaat"
+
+msgid "ETS 6 (schema 23)"
+msgstr "ETS 6 (schema 23)"
+
+msgid "ETS 5 (schema 20)"
+msgstr "ETS 5 (schema 20)"
+
+msgid "License with a Dongle…"
+msgstr "Licentiëren met een dongle…"
+
+msgid "Signing Key…"
+msgstr "Ondertekeningssleutel…"
+
+msgid "Signing Key"
+msgstr "Ondertekeningssleutel"
+
+msgid "Folder signature uses a placeholder key. Enter a valid signature under 'Signing Key…' or use the 'License with a Dongle' way."
+msgstr "De mapondertekening gebruikt een placeholdersleutel. Voer onder 'Ondertekeningssleutel…' een geldige ondertekening in of gebruik de manier 'Licentiëren met een dongle'."
+
+msgid "Back"
+msgstr "Terug"
+
+msgid "License with an ETS Dongle"
+msgstr "Licentiëren met een ETS-dongle"
+
+msgid "Export to ETS 6 ProjectStore"
+msgstr "Exporteren naar ETS 6-ProjectStore"
+
+msgid "Select the ETS 6 ProjectStore folder"
+msgstr "Selecteer de map van de ETS 6-ProjectStore"
+
+msgid "Select the ETS installer.guid file"
+msgstr "Selecteer het ETS-bestand installer.guid"
+
+msgid "ETS installer id"
+msgstr "ETS-installatie-id"
+
+msgid "Project already in the store"
+msgstr "Project staat al in de ProjectStore"
+
+msgid "A project folder '{pid}' already exists in this ETS ProjectStore. Overwrite it, or add it as a separate copy?"
+msgstr "Er bestaat al een projectmap '{pid}' in deze ETS-ProjectStore. Overschrijven, of als aparte kopie toevoegen?"
+
+msgid "Overwrite"
+msgstr "Overschrijven"
+
+msgid "Add copy"
+msgstr "Kopie toevoegen"
+
+msgid "XKNX Export"
+msgstr "XKNX Export"
+
+msgid "Re-license the project through your own licensed ETS via its local project store, which re-signs the copy with your dongle license:\n\n   1. Click 'Export to ETS 6 ProjectStore' below. It writes the project's 'P-XXXX' folder straight into your ETS project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n   2. The export needs your 'installer.guid' file from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n   3. Restart ETS - the project appears in the project overview.\n   4. Make a copy of it there (ETS 6: Copy in the overview; ETS 5: right-click > Copy > As Clone). The copy is re-signed with your license - open it, then use or export it normally.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Licentieer het project opnieuw via je eigen gelicentieerde ETS en de lokale ProjectStore daarvan, die de kopie opnieuw ondertekent met je donglelicentie:\n\n   1. Klik hieronder op 'Exporteren naar ETS 6-ProjectStore'. De map 'P-XXXX' van het project wordt direct in je ETS-ProjectStore geschreven. Als ETS niet op deze computer is geïnstalleerd, wordt je gevraagd naar de store-map (of een willekeurige map die je daarna handmatig overzet).\n   2. De export heeft je bestand 'installer.guid' uit C:\\ProgramData\\KNX\\ETS6\\Installer nodig. Als het niet automatisch kan worden gevonden, wordt je gevraagd het te selecteren.\n   3. Start ETS opnieuw - het project verschijnt in het projectoverzicht.\n   4. Maak daar een kopie ervan (ETS 6: Kopiëren in het overzicht; ETS 5: rechtsklik > Kopiëren > Als kloon). De kopie wordt opnieuw ondertekend met je licentie - open de kopie en gebruik of exporteer die daarna zoals gewoonlijk.\n\nDit wordt begrensd door het maximale aantal apparaten per project van je licentie."
+
+msgid "Sign & Export"
+msgstr "Ondertekenen & exporteren"
+
+msgid "Export without Certificate"
+msgstr "Zonder certificaat exporteren"
+
+msgid "Export ETS Project"
+msgstr "ETS-project exporteren"
+
+msgid "Load .knxprod..."
+msgstr ".knxprod laden..."
+
+msgid "Exit"
+msgstr "Afsluiten"
+
+msgid "Edit"
+msgstr "Bewerken"
+
+msgid "Undo"
+msgstr "Ongedaan maken"
+
+msgid "Redo"
+msgstr "Opnieuw"
+
+msgid "Open KNX Product Archive"
+msgstr "KNX-productarchief openen"
+
+msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
+msgstr "KNX-product (*.knxprod, *.vd1-*.vd5)"
+
+msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
+msgstr "Oudere ETS-productdatabases (.vd1-.vd5) worden niet direct geïmporteerd.\n\nConverteer het bestand eerst naar .knxprod met de conversietools die bij ETS5/ETS6 worden geleverd - open het productbestand in ETS, of gebruik de opdrachtregelconverter daarvan - en importeer daarna de resulterende .knxprod hier."
+
+msgid "ETS Project (*.knxproj)"
+msgstr "ETS-project (*.knxproj)"
+
+msgid "ETS Group-Address Export (*.xml)"
+msgstr "ETS-groepsadressenexport (*.xml)"
+
+msgid "Open XKNX Project"
+msgstr "XKNX-project openen"
+
+msgid "Save XKNX Project"
+msgstr "XKNX-project opslaan"
+
+msgid "Replace existing file?"
+msgstr "Bestaand bestand vervangen?"
+
+msgid "A file named {name} already exists in:\n{dir}\n\nSaving here replaces its current contents. This cannot be undone."
+msgstr "Er bestaat al een bestand met de naam {name} in:\n{dir}\n\nOpslaan vervangt de huidige inhoud ervan. Dit kan niet ongedaan worden gemaakt."
+
+msgid "Replace"
+msgstr "Vervangen"
+
+msgid "XKNX Project (*.xknx)"
+msgstr "XKNX-project (*.xknx)"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml)"
+msgstr "Projecten (*.xknx, *.knxproj, *.xml)"
+
+msgid "Working…"
+msgstr "Bezig…"
+
+msgid "Importing project — this can take a while for large projects."
+msgstr "Project wordt geïmporteerd — dit kan bij grote projecten even duren."
+
+msgid "{done}/{total} devices"
+msgstr "{done}/{total} apparaten"
+
+msgid "Loading product catalog…"
+msgstr "Productcatalogus wordt geladen…"
+
+msgid "Opening project…"
+msgstr "Project wordt geopend…"
+
+msgid "Importing group addresses…"
+msgstr "Groepsadressen worden geïmporteerd…"
+
+msgid "Switching language…"
+msgstr "Taal wordt gewijzigd…"
+
+msgid "Project Password"
+msgstr "Projectwachtwoord"
+
+msgid "This ETS project is password protected. Enter its password:"
+msgstr "Dit ETS-project is met een wachtwoord beveiligd. Voer het wachtwoord in:"
+
+msgid "Wrong password, please try again."
+msgstr "Onjuist wachtwoord, probeer het opnieuw."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Check for Updates"
+msgstr "Controleren op updates"
+
+msgid "Check for Updates on Startup"
+msgstr "Bij opstarten controleren op updates"
+
+msgid "Update Available"
+msgstr "Update beschikbaar"
+
+msgid "Version {latest} is available. You have {current}."
+msgstr "Versie {latest} is beschikbaar. Je hebt {current}."
+
+msgid "You are up to date (version {version})."
+msgstr "Je bent up-to-date (versie {version})."
+
+msgid "Download"
+msgstr "Downloaden"
+
+msgid "Skip This Version"
+msgstr "Deze versie overslaan"
+
+msgid "Later"
+msgstr "Later"
+
+msgid "Release Notes:"
+msgstr "Releasenotes:"
+
+msgid "License: GPL-2.0-only"
+msgstr "Licentie: GPL-2.0-only"
+
+msgid "Website:"
+msgstr "Website:"
+
+msgid "Open Config Folder"
+msgstr "Configuratiemap openen"
+
+msgid "Open Cache Folder"
+msgstr "Cachemap openen"
+
+msgid "Removes product data no device uses; the project stays unchanged."
+msgstr "Verwijdert productgegevens die geen enkel apparaat gebruikt; het project zelf blijft ongewijzigd."

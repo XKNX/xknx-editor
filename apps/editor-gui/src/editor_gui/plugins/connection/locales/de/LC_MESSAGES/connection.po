@@ -78,3 +78,75 @@ msgstr "Busmonitor beenden"
 
 msgid "Not possible while the bus monitor is running"
 msgstr "Nicht möglich, solange der Busmonitor läuft"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "Hat auf die Suche geantwortet, aber das Lesen der Details ist fehlgeschlagen: {error}"
+
+msgid "Application"
+msgstr "Applikation"
+
+msgid "Application Version"
+msgstr "Applikationsversion"
+
+msgid "Devices in Programming Mode"
+msgstr "Geräte im Programmiermodus"
+
+msgid "Hardware Type"
+msgstr "Hardware-Typ"
+
+msgid "In this project: {name}"
+msgstr "In diesem Projekt: {name}"
+
+msgid "Manufacturer"
+msgstr "Hersteller"
+
+msgid "Mask Version"
+msgstr "Maskenversion"
+
+msgid "No device is in programming mode."
+msgstr "Kein Gerät ist im Programmiermodus."
+
+msgid "No fault"
+msgstr "Kein Fehler"
+
+msgid "Not in this project"
+msgstr "Nicht in diesem Projekt"
+
+msgid "Order Number"
+msgstr "Bestellnummer"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Drücken Sie die Programmiertaste eines Geräts, um es in den Programmiermodus zu versetzen, und suchen Sie dann erneut."
+
+msgid "Product (catalog)"
+msgstr "Produkt (Katalog)"
+
+msgid "Programming mode active"
+msgstr "Programmiermodus aktiv"
+
+msgid "Rescan"
+msgstr "Erneut suchen"
+
+msgid "Searching the bus…"
+msgstr "Bus wird durchsucht…"
+
+msgid "Select in Project"
+msgstr "Im Projekt auswählen"
+
+msgid "Serial Number"
+msgstr "Seriennummer"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "Die Schnittstelle hat die Suchanfrage nicht bestätigt (Bus belegt oder Schnittstelle überlastet). Bitte erneut versuchen."
+
+msgid "The scan could not be completed: {error}"
+msgstr "Die Suche konnte nicht abgeschlossen werden: {error}"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Unprogrammiertes Gerät (Werkseinstellungsadresse 15.15.255)"
+
+msgid "{count} device(s) in programming mode"
+msgstr "{count} Gerät(e) im Programmiermodus"

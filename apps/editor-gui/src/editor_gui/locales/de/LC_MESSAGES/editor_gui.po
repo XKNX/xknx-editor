@@ -766,6 +766,53 @@ msgstr "Projekte (*.xknx, *.knxproj, *.xml, *.csv)"
 
 msgid "Import Group Addresses..."
 msgstr "Gruppenadressen importieren..."
+msgid "Feedback"
+msgstr "Feedback"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
+msgstr "Ein Desktop-Editor für Gebäudeautomations-Installationsprojekte, basierend auf der Open-Source-Bibliothek xknx und auf xknxtoolkit von kewde. Nicht mit der KNX Association verbunden und nicht von ihr unterstützt."
+
+msgid "Network Location"
+msgstr "Netzwerkspeicherort"
+
+msgid "This location is on a network drive:\n{home}\n\nKNX project files use a database that cannot run reliably on network shares. The editor can work on a local copy instead and write it back to the network location when you close the project."
+msgstr "Dieser Speicherort liegt auf einem Netzlaufwerk:\n{home}\n\nKNX-Projektdateien verwenden eine Datenbank, die auf Netzwerkfreigaben nicht zuverlässig funktioniert. Der Editor kann stattdessen mit einer lokalen Kopie arbeiten und diese beim Schließen des Projekts an den Netzwerkspeicherort zurückschreiben."
+
+msgid "Use a Local Copy"
+msgstr "Lokale Kopie verwenden"
+
+msgid "Working on a local copy; written back to {home} when you close the project."
+msgstr "Es wird mit einer lokalen Kopie gearbeitet; sie wird beim Schließen des Projekts nach {home} zurückgeschrieben."
+
+msgid "Project name"
+msgstr "Projektname"
+
+msgid "Group address style"
+msgstr "Gruppenadress-Darstellung"
+
+msgid "Free"
+msgstr "Frei"
+
+msgid "Two-level"
+msgstr "Zweistufig"
+
+msgid "Three-level"
+msgstr "Dreistufig"
+
+msgid "Create..."
+msgstr "Erstellen..."
+
+msgid "claude mcp add --transport http xknx-editor {url}"
+msgstr "claude mcp add --transport http xknx-editor {url}"
+
+msgid "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+msgstr "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+
+msgid "codex mcp add xknx-editor --url {url}"
+msgstr "codex mcp add xknx-editor --url {url}"
+
+msgid "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+msgstr "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
 
 msgid "Export Group Addresses..."
 msgstr "Gruppenadressen exportieren..."
@@ -811,3 +858,83 @@ msgstr "Exportieren"
 
 msgid "Group Address Export (*.csv)"
 msgstr "Gruppenadressen-Export (*.csv)"
+msgid "Exported {count} group address(es)"
+msgstr "{count} Gruppenadresse(n) exportiert"
+
+msgid "Exported to {path} ({size}) as {schema}"
+msgstr "Exportiert nach {path} ({size}) als {schema}"
+
+msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr "{count} Gerät(e) sind keiner Linie zugeordnet. Sie bleiben im Projekt und werden beim Export berücksichtigt, können hier aber noch nicht bearbeitet werden."
+
+msgid "no online certificate"
+msgstr "kein Online-Zertifikat"
+
+msgid "expired"
+msgstr "abgelaufen"
+
+msgid "None of these licenses can sign online. Only ETS6 (or a cloud-enabled ETS app) licenses produce a certificate; ETS5/older licenses cannot. Use 'License with a dongle' instead."
+msgstr "Keine dieser Lizenzen kann online signieren. Nur ETS6-Lizenzen (oder Lizenzen einer cloudfähigen ETS-App) erzeugen ein Zertifikat; ETS5-/ältere Lizenzen nicht. Nutze stattdessen 'Mit Dongle lizenzieren'."
+
+msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
+msgstr "KNX-Produkt (*.knxprod, *.vd1-*.vd5)"
+
+msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
+msgstr "Ältere ETS-Produktdatenbanken (.vd1-.vd5) werden nicht direkt importiert.\n\nKonvertieren Sie die Datei zuerst mit den Konvertierungswerkzeugen von ETS5/ETS6 in eine .knxprod - öffnen Sie die Produktdatei in ETS oder verwenden Sie dessen Kommandozeilen-Konverter - und importieren Sie dann die erzeugte .knxprod hier."
+
+msgid "ETS Group-Address Export (*.xml)"
+msgstr "ETS-Gruppenadressen-Export (*.xml)"
+
+msgid "Replace existing file?"
+msgstr "Vorhandene Datei ersetzen?"
+
+msgid "A file named {name} already exists in:\n{dir}\n\nSaving here replaces its current contents. This cannot be undone."
+msgstr "Eine Datei namens {name} existiert bereits in:\n{dir}\n\nBeim Speichern wird ihr aktueller Inhalt ersetzt. Dies kann nicht rückgängig gemacht werden."
+
+msgid "Replace"
+msgstr "Ersetzen"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml)"
+msgstr "Projekte (*.xknx, *.knxproj, *.xml)"
+
+msgid "Importing group addresses…"
+msgstr "Gruppenadressen werden importiert…"
+
+msgid "Check for Updates"
+msgstr "Nach Updates suchen"
+
+msgid "Check for Updates on Startup"
+msgstr "Beim Start nach Updates suchen"
+
+msgid "Update Available"
+msgstr "Update verfügbar"
+
+msgid "Version {latest} is available. You have {current}."
+msgstr "Version {latest} ist verfügbar. Sie haben {current}."
+
+msgid "You are up to date (version {version})."
+msgstr "Sie sind auf dem neuesten Stand (Version {version})."
+
+msgid "Download"
+msgstr "Herunterladen"
+
+msgid "Skip This Version"
+msgstr "Diese Version überspringen"
+
+msgid "Later"
+msgstr "Später"
+
+msgid "Release Notes:"
+msgstr "Versionshinweise:"
+
+msgid "License: GPL-2.0-only"
+msgstr "Lizenz: GPL-2.0-only"
+
+msgid "Website:"
+msgstr "Website:"
+
+msgid "Open Config Folder"
+msgstr "Konfigurationsordner öffnen"
+
+msgid "Open Cache Folder"
+msgstr "Cache-Ordner öffnen"
