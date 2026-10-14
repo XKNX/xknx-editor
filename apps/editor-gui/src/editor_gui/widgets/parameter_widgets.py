@@ -1138,11 +1138,15 @@ def _render_children(
     popup_request: EnumPopupRequest | None = None
     pending_params: list[UiParameter | UiButton] = []
     table_idx = 0
+    # Whether the last thing drawn was a grid: the next grid then joins it row against row,
+    # as the reference lays out a page built from one-row grids.
+    after_grid = False
 
     def flush() -> None:
-        nonlocal popup_request, table_idx
+        nonlocal popup_request, table_idx, after_grid
         if not pending_params:
             return
+        after_grid = False
         req = _render_param_table(
             device,
             pending_params,
@@ -1164,6 +1168,7 @@ def _render_children(
             flush()
             width = min(imgui.get_content_region_avail().x, px(_GRID_REFERENCE_WIDTH))
             _render_picture(node.widget, width)
+            after_grid = False
         elif isinstance(node, UiParameter):
             if not needle or needle in node.label.lower():
                 pending_params.append(node)
@@ -1171,6 +1176,16 @@ def _render_children(
             if needle and not _node_matches(node, needle):
                 continue
             flush()
+            if node.hidden:
+                continue
+            is_grid = node.layout in (
+                ParameterBlockLayout.GRID,
+                ParameterBlockLayout.TABLE,
+            )
+            if is_grid and after_grid:
+                imgui.set_cursor_pos_y(
+                    imgui.get_cursor_pos_y() - imgui.get_style().item_spacing.y
+                )
             req = _render_block(
                 device,
                 node,
@@ -1181,6 +1196,7 @@ def _render_children(
                 differing_refs,
                 buttons,
             )
+            after_grid = is_grid
             if req is not None:
                 popup_request = req
         elif isinstance(node, UiSeparator):
@@ -1188,6 +1204,7 @@ def _render_children(
                 continue  # separators are noise while filtering
             flush()
             _render_separator(node)
+            after_grid = False
         elif isinstance(node, UiButton):
             if not needle or needle in node.text.lower():
                 pending_params.append(node)
