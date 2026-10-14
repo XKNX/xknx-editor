@@ -127,19 +127,14 @@ def read_group_address_file(path: Path | str) -> GaExport:
 
 
 def read_ga_csv(path: Path | str) -> GaExport:
-    """Parse a CSV group address export.
+    """Parse a CSV group address export in any of its layouts (see :data:`CSV_LAYOUTS`).
 
-    Each row is ``main name, middle name, address name, address`` followed optionally by
-    ``central, unfiltered, description, datapoint type, security``. A row whose address
-    ends in ``/-`` is a main (``1/-/-``) or middle group (``1/2/-``); the others are group
-    addresses. A header row is skipped. Raises ``ValueError`` for a file without any.
+    A row whose address ends in ``-`` is a main (``1/-/-``) or middle group (``1/2/-``);
+    the others are group addresses. A header line is skipped. Raises ``ValueError`` for a
+    file without any group address.
     """
-    rows = _csv_rows(Path(path).read_bytes())
-    addresses_text = [
-        row[3].strip()
-        for row in rows
-        if len(row) >= 4 and _CSV_ADDRESS.match(row[3].strip())
-    ]
+    rows = _csv_canonical_rows(_csv_rows(Path(path).read_bytes()))
+    addresses_text = [row[3] for row in rows if not row[3].endswith("-")]
     if not addresses_text:
         raise ValueError(f"{path} contains no group addresses")
     slashes = max(text.count("/") for text in addresses_text)
@@ -153,13 +148,8 @@ def read_ga_csv(path: Path | str) -> GaExport:
 
     mains: dict[int, tuple[str, dict[int, str]]] = {}
     addresses: list[GaAddress] = []
-    for row in rows:
-        if len(row) < 4:
-            continue
-        cells = [cell.strip() for cell in row] + [""] * (9 - len(row))
+    for cells in rows:
         text = cells[3]
-        if not _CSV_ADDRESS.match(text):
-            continue
         parts = text.split("/")
         if parts[-1] == "-":
             main = int(parts[0])
@@ -184,8 +174,8 @@ def read_ga_csv(path: Path | str) -> GaExport:
                 datapoint_type=_normalize_dpt(cells[7] or None),
                 description=cells[6],
                 security=_security(cells[8]),
-                central=_flag(cells[4]) if len(row) > 4 else None,
-                unfiltered=_flag(cells[5]) if len(row) > 5 else None,
+                central=_flag(cells[4]),
+                unfiltered=_flag(cells[5]),
             )
         )
 
@@ -216,6 +206,94 @@ def read_ga_csv(path: Path | str) -> GaExport:
 
 
 _CSV_ADDRESS = re.compile(r"^\d+(/(\d+|-)){0,2}$")
+_CSV_NUMBER = re.compile(r"^\d*$")
+
+# Column layouts of the CSV exports: names in one column (1/x) or one per level (3/x), the
+# address as text (x/1) or one number per level (x/3). The columns after them are central,
+# unfiltered, description, datapoint type and security.
+CSV_LAYOUTS = ("3/1", "1/3", "1/1", "3/3")
+_CSV_HEADERS = {
+    "3/1": ["Main", "Middle", "Sub", "Address"],
+    "1/3": ["Group name", "Main", "Middle", "Sub"],
+    "1/1": ["Group name", "Address"],
+    "3/3": ["Main", "Middle", "Sub", "Main", "Middle", "Sub"],
+}
+_CSV_TAIL = ["Central", "Unfiltered", "Description", "DatapointType", "Security"]
+
+
+def _csv_layout_of(row: list[str]) -> str | None:
+    """The layout a data row is written in, or ``None`` for a header or other row."""
+    cells = [cell.strip() for cell in row]
+    if len(cells) >= 4 and _CSV_ADDRESS.match(cells[3]) and "/" in cells[3]:
+        return "3/1"
+    if (
+        len(cells) >= 10
+        and cells[3].isdigit()
+        and all(_CSV_NUMBER.match(c) for c in cells[4:6])
+    ):
+        return "3/3"
+    if (
+        len(cells) >= 4
+        and cells[1].isdigit()
+        and all(_CSV_NUMBER.match(c) for c in cells[2:4])
+    ):
+        return "1/3"
+    if len(cells) >= 2 and _CSV_ADDRESS.match(cells[1]):
+        return "1/1"
+    if len(cells) >= 4 and _CSV_ADDRESS.match(cells[3]):
+        return "3/1"
+    return None
+
+
+def _csv_canonical_rows(rows: list[list[str]]) -> list[list[str]]:
+    """The data rows as ``main name, middle name, address name, address text, central,
+    unfiltered, description, datapoint type, security`` whatever the file's layout."""
+    layouts = [_csv_layout_of(row) for row in rows]
+    found = [layout for layout in layouts if layout is not None]
+    if not found:
+        return []
+    layout = max(CSV_LAYOUTS, key=found.count)
+    width = {"3/1": 4, "1/3": 4, "1/1": 2, "3/3": 6}[layout]
+    data = [
+        [cell.strip() for cell in row]
+        for row, row_layout in zip(rows, layouts, strict=True)
+        if row_layout == layout
+    ]
+    # x/3: one number per level, empty for the levels a group range does not have.
+    numbers = [
+        _csv_numbers(cells[width - 3 : width]) if layout.endswith("/3") else []
+        for cells in data
+    ]
+    levels = max((len(parts) for parts in numbers), default=0)
+    canonical: list[list[str]] = []
+    for cells, parts in zip(data, numbers, strict=True):
+        if layout.endswith("/1"):
+            text = cells[width - 1]
+        elif levels == 1:
+            text = parts[0]
+        else:
+            text = "/".join(parts + ["-"] * (levels - len(parts)))
+        if layout.startswith("3/"):
+            names = cells[:3]
+        else:
+            levels_of = text.split("/")
+            names = ["", "", ""]
+            if levels_of[-1] != "-":
+                names[2] = cells[0]
+            elif levels_of[1] == "-":
+                names[0] = cells[0]
+            else:
+                names[1] = cells[0]
+        canonical.append([*names, text, *(cells[width:] + [""] * 5)[:5]])
+    return canonical
+
+
+def _csv_numbers(cells: list[str]) -> list[str]:
+    """The address numbers of an x/3 row, without the empty trailing levels."""
+    parts = list(cells)
+    while parts and not parts[-1]:
+        parts.pop()
+    return parts
 
 
 def _csv_rows(data: bytes) -> list[list[str]]:
@@ -341,6 +419,105 @@ def write_ga_export(source: Path | str, dest: Path | str) -> int:
     text = f"{declaration}\n{body}".replace("\n", "\r\n")
     Path(dest).write_bytes(b"\xef\xbb\xbf" + text.encode())
     logger.info("ga-export write done: addresses=%d -> %s", count, dest)
+    return count
+
+
+CSV_SEPARATORS = {"tab": "\t", "comma": ",", "semicolon": ";"}
+# Value of the central/unfiltered columns for a set flag.
+_CSV_YES = "Yes"
+
+
+def write_ga_csv(
+    source: Path | str,
+    dest: Path | str,
+    *,
+    layout: str = "3/1",
+    separator: str = "\t",
+    header: bool = False,
+) -> int:
+    """Write the group-address tree of the project at ``source`` to ``dest`` as CSV.
+
+    ``layout`` is one of :data:`CSV_LAYOUTS`; ``header`` adds a line with the column names.
+    In layout 3/1 there is one row per main group (``1/-/-``), middle group (``1/2/-``) and group
+    address, with the main, middle and address name in three columns, followed by address,
+    central, unfiltered, description, datapoint type and security. Names are trimmed, every
+    field is quoted, lines end with CRLF and the text is Windows-1252, like the exports this
+    format comes from. Returns the number of addresses written."""
+    rows: list[list[str]] = []
+    engine = make_engine(url_for(Path(source)))
+    try:
+        with Session(engine) as session:
+            project = session.query(Project).one()
+            style = GroupAddressStyle(project.group_address_style)
+            roots = (
+                session.query(GroupRange)
+                .filter(GroupRange.parent_id.is_(None))
+                .order_by(GroupRange.range_start)
+                .all()
+            )
+            count = sum(_csv_range(gr, rows, style, 0) for gr in roots)
+    finally:
+        engine.dispose()
+    out = [_csv_layout_row(row, layout) for row in rows]
+    if header:
+        out.insert(0, _CSV_HEADERS[layout] + _CSV_TAIL)
+    lines = [
+        separator.join('"' + cell.replace('"', '""') + '"' for cell in row)
+        for row in out
+    ]
+    text = "".join(line + "\r\n" for line in lines)
+    Path(dest).write_bytes(text.encode("cp1252", errors="replace"))
+    logger.info("ga csv write done: addresses=%d -> %s", count, dest)
+    return count
+
+
+def _csv_layout_row(row: list[str], layout: str) -> list[str]:
+    """A 3/1 row (three names, address text, tail) in ``layout``."""
+    names, text, tail = row[:3], row[3], row[4:]
+    if layout == "3/1":
+        return row
+    numbers = [part if part != "-" else "" for part in text.split("/")]
+    numbers += [""] * (3 - len(numbers))
+    name = next((n for n in reversed(names) if n), "")
+    if layout == "1/1":
+        return [name, text, *tail]
+    if layout == "1/3":
+        return [name, *numbers, *tail]
+    return [*names, *numbers, *tail]
+
+
+def _csv_range(
+    gr: GroupRange, rows: list[list[str]], style: GroupAddressStyle, depth: int
+) -> int:
+    if style is not GroupAddressStyle.FREE:
+        main = gr.range_start >> 11
+        if depth == 0:
+            text = (
+                f"{main}/-/-" if style is GroupAddressStyle.THREE_LEVEL else f"{main}/-"
+            )
+        else:
+            text = f"{main}/{(gr.range_start >> 8) & 0x7}/-"
+        names = ["", "", ""]
+        names[min(depth, 2)] = gr.name.strip()
+        rows.append([*names, text, "", "", "", "", "Auto"])
+    count = 0
+    for child in sorted(gr.children, key=lambda c: c.range_start):
+        count += _csv_range(child, rows, style, depth + 1)
+    for ga in sorted(gr.group_addresses, key=lambda a: a.address):
+        rows.append(
+            [
+                "",
+                "",
+                ga.name.strip(),
+                format_ga(ga.address, style),
+                _CSV_YES if ga.central else "",
+                _CSV_YES if ga.unfiltered else "",
+                ga.description,
+                ga.datapoint_type or "",
+                ga.security_mode or "Auto",
+            ]
+        )
+        count += 1
     return count
 
 

@@ -767,3 +767,45 @@ msgstr "Gruppenadressen importieren..."
 
 msgid "Export Group Addresses..."
 msgstr "Gruppenadressen exportieren..."
+
+msgid "Export Group Addresses"
+msgstr "Gruppenadressen exportieren"
+
+msgid "Output Format"
+msgstr "Ausgabeformat"
+
+msgid "CSV Format"
+msgstr "CSV-Format"
+
+msgid "3/1 - three columns, Main/Middle/Sub group separated"
+msgstr "3/1 - drei Spalten, Haupt-/Mittel-/Untergruppe getrennt"
+
+msgid "1/3 - Group address name/Main - Middle - Sub group"
+msgstr "1/3 - Gruppenadressname/Haupt - Mittel - Untergruppe"
+
+msgid "1/1 - Name/Address"
+msgstr "1/1 - Name/Adresse"
+
+msgid "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
+msgstr "3/3 - Haupt - Mittel - Untergruppenname/Haupt - Mittel - Untergruppenadresse"
+
+msgid "Export with header line"
+msgstr "Mit Kopfzeile exportieren"
+
+msgid "CSV Separator"
+msgstr "CSV-Trennzeichen"
+
+msgid "Tabulator"
+msgstr "Tabulator"
+
+msgid "Comma"
+msgstr "Komma"
+
+msgid "Semicolon"
+msgstr "Semikolon"
+
+msgid "Export"
+msgstr "Exportieren"
+
+msgid "Group Address Export (*.csv)"
+msgstr "Gruppenadressen-Export (*.csv)"

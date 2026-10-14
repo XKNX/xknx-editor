@@ -8,7 +8,12 @@ import pytest
 
 from xknxeditor.proj import ProjectService
 from xknxeditor.proj.core.addressing import GroupAddressStyle
-from xknxeditor.proj.core.ga_export import read_group_address_file, write_ga_export
+from xknxeditor.proj.core.ga_export import (
+    CSV_LAYOUTS,
+    read_group_address_file,
+    write_ga_csv,
+    write_ga_export,
+)
 
 _XML = """﻿<?xml version="1.0" encoding="utf-8" standalone="yes"?>
 <GroupAddress-Export xmlns="http://knx.org/xml/ga-export/01">
@@ -186,3 +191,66 @@ def test_import_then_export_reproduces_the_file(
     write_ga_export(project, out)
     expected = _XML.replace("\n", "\r\n").encode("utf-8")
     assert out.read_bytes() == expected
+
+
+def _project_from(tmp_path: Path, source: Path) -> Path:
+    svc, pid = _new(tmp_path)
+    svc.import_group_addresses(pid, 0, read_group_address_file(source))
+    svc.close(pid)
+    return tmp_path / "p.xknx"
+
+
+def test_csv_export_3_1_reproduces_the_file(
+    tmp_path: Path, files: dict[str, Path]
+) -> None:
+    out = tmp_path / "out.csv"
+    write_ga_csv(_project_from(tmp_path, files["xml"]), out)
+    assert out.read_bytes() == files["csv"].read_bytes()
+
+
+def test_csv_export_layouts(tmp_path: Path, files: dict[str, Path]) -> None:
+    project = _project_from(tmp_path, files["xml"])
+    out = tmp_path / "out.csv"
+    write_ga_csv(project, out, layout="3/3", separator=";", header=True)
+    lines = out.read_bytes().decode("cp1252").split("\r\n")
+    assert lines[0] == (
+        '"Main";"Middle";"Sub";"Main";"Middle";"Sub";"Central";"Unfiltered";'
+        '"Description";"DatapointType";"Security"'
+    )
+    assert lines[1:4] == [
+        '"Zentral";"";"";"0";"";"";"";"";"";"";"Auto"',
+        '"";"Szenen";"";"0";"0";"";"";"";"";"";"Auto"',
+        '"";"";"Diagnose";"0";"0";"1";"";"";"";"DPST-5-5";"Auto"',
+    ]
+    write_ga_csv(project, out, layout="1/1", separator=",")
+    lines = out.read_bytes().decode("cp1252").split("\r\n")
+    assert lines[:3] == [
+        '"Zentral","0/-/-","","","","","Auto"',
+        '"Szenen","0/0/-","","","","","Auto"',
+        '"Diagnose","0/0/1","","","","DPST-5-5","Auto"',
+    ]
+
+
+@pytest.mark.parametrize("header", [False, True])
+@pytest.mark.parametrize("separator", ["\t", ",", ";"])
+@pytest.mark.parametrize("layout", CSV_LAYOUTS)
+def test_csv_export_reads_back(
+    tmp_path: Path, files: dict[str, Path], layout: str, separator: str, header: bool
+) -> None:
+    out = tmp_path / "out.csv"
+    write_ga_csv(
+        _project_from(tmp_path, files["xml"]),
+        out,
+        layout=layout,
+        separator=separator,
+        header=header,
+    )
+    export = read_group_address_file(out)
+    reference = read_group_address_file(files["xml"])
+    assert export.style is GroupAddressStyle.THREE_LEVEL
+    assert _tree(export) == _tree(reference)
+    assert [
+        (a.address, a.name, a.datapoint_type, a.security) for a in export.addresses
+    ] == [
+        (a.address, a.name, a.datapoint_type, a.security) for a in reference.addresses
+    ]

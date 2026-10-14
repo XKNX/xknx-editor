@@ -303,3 +303,45 @@ msgstr "Groepsadressen importeren..."
 
 msgid "Export Group Addresses..."
 msgstr "Groepsadressen exporteren..."
+
+msgid "Export Group Addresses"
+msgstr "Groepsadressen exporteren"
+
+msgid "Output Format"
+msgstr "Uitvoerformaat"
+
+msgid "CSV Format"
+msgstr "CSV-formaat"
+
+msgid "3/1 - three columns, Main/Middle/Sub group separated"
+msgstr "3/1 - drie kolommen, hoofd-/midden-/subgroep gescheiden"
+
+msgid "1/3 - Group address name/Main - Middle - Sub group"
+msgstr "1/3 - Groepsadresnaam/Hoofd - midden - subgroep"
+
+msgid "1/1 - Name/Address"
+msgstr "1/1 - Naam/Adres"
+
+msgid "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
+msgstr "3/3 - Hoofd - midden - subgroepnaam/Hoofd - midden - subgroepadres"
+
+msgid "Export with header line"
+msgstr "Exporteren met kopregel"
+
+msgid "CSV Separator"
+msgstr "CSV-scheidingsteken"
+
+msgid "Tabulator"
+msgstr "Tab"
+
+msgid "Comma"
+msgstr "Komma"
+
+msgid "Semicolon"
+msgstr "Puntkomma"
+
+msgid "Export"
+msgstr "Exporteren"
+
+msgid "Group Address Export (*.csv)"
+msgstr "Groepsadres-export (*.csv)"

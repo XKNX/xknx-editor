@@ -92,6 +92,7 @@ from xknxeditor.proj.core.ets_store_serialize import (
     unzip_members,
     write_project_store,
 )
+from xknxeditor.proj.core.ga_export import CSV_LAYOUTS, CSV_SEPARATORS
 from xknxeditor.proj.core.import_notes import ImportLoss
 from xknxeditor.proj.core.product_prune import (
     STEP_DEVICES,
@@ -306,6 +307,8 @@ class KnxGuiApp:
         self._import_ga_export_source: str | None = None
         self._export_knxproj_dialog: pfd.save_file | None = None
         self._export_ga_export_dialog: pfd.save_file | None = None
+        self._ga_export_options_requested = False
+        self._ga_export_options: dict[str, Any] = {}
         # Folder picker for the ETS 6 ProjectStore export when the default path is not found.
         self._projectstore_dialog: pfd.select_folder | None = None
         # File picker for the ETS installer.guid when it is not found locally (e.g. exporting on a
@@ -709,19 +712,119 @@ class KnxGuiApp:
     def _export_ga_export(self) -> None:
         if not self._project_service.is_open or not self._can_launch_file_dialog():
             return
-        default = "group-addresses.xml"
+        saved = load_settings("app").get("ga_export", {})
+        options = {
+            "format": "xml",
+            "csv_layout": CSV_LAYOUTS[0],
+            "csv_header": False,
+            "csv_separator": "tab",
+        }
+        if isinstance(saved, dict):
+            options.update(
+                (key, value)
+                for key, value in saved.items()  # type: ignore[reportUnknownVariableType]
+                if key in options
+            )
+        if options["format"] not in ("xml", "csv"):
+            options["format"] = "xml"
+        if options["csv_layout"] not in CSV_LAYOUTS:
+            options["csv_layout"] = CSV_LAYOUTS[0]
+        if options["csv_separator"] not in CSV_SEPARATORS:
+            options["csv_separator"] = "tab"
+        options["csv_header"] = bool(options["csv_header"])
+        self._ga_export_options = options
+        self._ga_export_options_requested = True
+
+    def _render_ga_export_options_modal(self) -> None:
+        if self._ga_export_options_requested:
+            imgui.open_popup(S.GA_EXPORT_OPTIONS_TITLE)
+            self._ga_export_options_requested = False
+        if not begin_dialog(S.GA_EXPORT_OPTIONS_TITLE, width=520.0):
+            return
+        options = self._ga_export_options
+        imgui.text_disabled(S.GA_EXPORT_OUTPUT_FORMAT)
+        for index, (value, label) in enumerate((("xml", "XML"), ("csv", "CSV"))):
+            if index:
+                imgui.same_line()
+            if imgui.radio_button(label, options["format"] == value):
+                options["format"] = value
+        imgui.spacing()
+        imgui.begin_disabled(options["format"] != "csv")
+        imgui.text_disabled(S.GA_EXPORT_CSV_FORMAT)
+        layouts = dict(
+            zip(
+                CSV_LAYOUTS,
+                (
+                    S.GA_EXPORT_CSV_3_1,
+                    S.GA_EXPORT_CSV_1_3,
+                    S.GA_EXPORT_CSV_1_1,
+                    S.GA_EXPORT_CSV_3_3,
+                ),
+                strict=True,
+            )
+        )
+        for layout, label in layouts.items():
+            if imgui.radio_button(label, options["csv_layout"] == layout):
+                options["csv_layout"] = layout
+        imgui.spacing()
+        _, options["csv_header"] = checkbox(
+            S.GA_EXPORT_CSV_HEADER, options["csv_header"]
+        )
+        imgui.spacing()
+        imgui.text_disabled(S.GA_EXPORT_CSV_SEPARATOR)
+        separators = (
+            ("tab", S.GA_EXPORT_SEPARATOR_TAB),
+            ("comma", S.GA_EXPORT_SEPARATOR_COMMA),
+            ("semicolon", S.GA_EXPORT_SEPARATOR_SEMICOLON),
+        )
+        for index, (key, label) in enumerate(separators):
+            if index:
+                imgui.same_line()
+            if imgui.radio_button(f"{label}##ga_sep", options["csv_separator"] == key):
+                options["csv_separator"] = key
+        imgui.end_disabled()
+        clicked = dialog_buttons(S.BTN_EXPORT, S.BTN_CANCEL)
+        if clicked == 0:
+            imgui.close_current_popup()
+            data = load_settings("app")
+            data["ga_export"] = dict(options)
+            save_settings("app", data)
+            self._open_ga_export_save_dialog()
+        elif clicked == 1:
+            imgui.close_current_popup()
+        end_dialog()
+
+    def _open_ga_export_save_dialog(self) -> None:
+        if not self._project_service.is_open or not self._can_launch_file_dialog():
+            return
+        suffix = ".csv" if self._ga_export_options.get("format") == "csv" else ".xml"
+        default = f"group-addresses{suffix}"
         if self._project_service.path is not None:
-            default = f"{self._project_service.path.stem}-ga.xml"
+            default = f"{self._project_service.path.stem}-ga{suffix}"
+        name = (
+            S.FILE_DIALOG_GA_EXPORT_CSV_FILTER
+            if suffix == ".csv"
+            else S.FILE_DIALOG_GA_EXPORT_FILTER
+        )
         self._export_ga_export_dialog = pfd.save_file(
             S.FILE_DIALOG_GA_EXPORT_SAVE_TITLE,
             default,
-            [S.FILE_DIALOG_GA_EXPORT_FILTER, "*.xml", S.FILE_DIALOG_ALL_FILES, "*"],
+            [name, f"*{suffix}", S.FILE_DIALOG_ALL_FILES, "*"],
         )
 
     def _do_export_ga_export(self, dest: str) -> None:
-        """Write the open project's group-address tree to ``dest`` (ETS ga-export .xml)."""
+        """Write the open project's group-address tree to ``dest`` (.xml or .csv)."""
+        options = self._ga_export_options
         try:
-            count = self._project_service.export_ga_export(Path(dest))
+            if options.get("format") == "csv":
+                count = self._project_service.export_ga_csv(
+                    Path(dest),
+                    layout=str(options["csv_layout"]),
+                    separator=CSV_SEPARATORS[str(options["csv_separator"])],
+                    header=bool(options["csv_header"]),
+                )
+            else:
+                count = self._project_service.export_ga_export(Path(dest))
         except Exception as e:  # surfaced as an error toast via the log
             self._log.error("ga export failed", dest=dest, error=str(e))
             return
@@ -1993,7 +2096,9 @@ class KnxGuiApp:
                 self._maybe_overwrite_then(
                     result,
                     lambda r=result: self._do_export_ga_export(r),
-                    default_suffix=".xml",
+                    default_suffix=".csv"
+                    if self._ga_export_options.get("format") == "csv"
+                    else ".xml",
                 )
 
         if self._projectstore_dialog is not None and self._projectstore_dialog.ready():
@@ -2824,6 +2929,7 @@ class KnxGuiApp:
         self._render_import_password_modal()
         self._render_network_consent_modal()
         self._render_overwrite_modal()
+        self._render_ga_export_options_modal()
         self._render_projectstore_confirm_modal()
         self._render_url_prompt_modal()
         self._render_new_project_modal()

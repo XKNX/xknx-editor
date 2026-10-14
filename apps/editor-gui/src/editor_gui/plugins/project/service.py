@@ -49,6 +49,7 @@ from xknxeditor.proj import is_ga_export as _is_ga_export
 from xknxeditor.proj import write_ga_export as _write_ga_export
 from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga, parse_ga
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
+from xknxeditor.proj.core.ga_export import write_ga_csv as _write_ga_csv
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.skeleton import MEDIUM_TP
 
@@ -957,6 +958,23 @@ class ProjectService:
         with self._io_lock:
             count = _write_ga_export(source, dest)
         self._log.info("ga export written", path=str(dest), addresses=count)
+        return count
+
+    def export_ga_csv(
+        self, dest: Path, *, layout: str, separator: str, header: bool
+    ) -> int:
+        """Write the open project's group-address tree to ``dest`` as CSV (see
+        :func:`write_ga_csv`). Returns the number of addresses written."""
+        if not dest.suffix:
+            dest = dest.with_suffix(".csv")
+        source = self._working_path
+        if source is None:
+            raise RuntimeError("no project open")
+        with self._io_lock:
+            count = _write_ga_csv(
+                source, dest, layout=layout, separator=separator, header=header
+            )
+        self._log.info("ga csv written", path=str(dest), addresses=count)
         return count
 
     def close(self) -> None:
