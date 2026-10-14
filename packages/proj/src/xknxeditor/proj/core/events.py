@@ -2500,3 +2500,199 @@ class RemoveGroupRange(_SubtreeDelete):
 
     event_type: ClassVar[str] = "RemoveGroupRange"
     _model: ClassVar[type[Base]] = GroupRange
+
+
+# Group address fields an import sets.
+_IMPORT_FIELDS = (
+    "name",
+    "datapoint_type",
+    "description",
+    "security_mode",
+    "central",
+    "unfiltered",
+)
+
+
+@_register
+@dataclass
+class ImportGroupAddresses(Event):
+    """Import group address folders and group addresses as one undoable step.
+
+    ``ranges`` are ``[range_start, range_end, name, parent_start]`` in parent-first order
+    (``parent_start`` ``None`` for a top level folder); an existing folder with the same window
+    under the same parent is renamed when the import has a name for it, else a new one is made.
+    ``addresses`` are dicts with ``address`` and the fields of :data:`_IMPORT_FIELDS` that the
+    import sets (missing or ``None`` = keep). A new address goes into the smallest folder that
+    contains it; an existing one keeps its folder and gets the given fields.
+
+    Filled on apply so revert/redo restore exactly: ``range_ids`` (id per entry of ``ranges``,
+    ``created_ranges`` marks the new ones), ``renamed`` (``[range_id, old_name]``), ``ga_ids`` (id per
+    address, ``created_gas`` marks the new ones) and ``old_values`` (previous values of updated
+    addresses)."""
+
+    event_type: ClassVar[str] = "ImportGroupAddresses"
+
+    installation_id: int
+    ranges: list[list[Any]] = field(default_factory=list[list[Any]])
+    addresses: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
+    range_ids: list[int] = field(default_factory=list[int])
+    created_ranges: list[bool] = field(default_factory=list[bool])
+    renamed: list[list[Any]] = field(default_factory=list[list[Any]])
+    ga_ids: list[int] = field(default_factory=list[int])
+    created_gas: list[bool] = field(default_factory=list[bool])
+    old_values: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
+    label: str | None = None
+
+    def apply(self, session: Session) -> None:
+        reuse_ranges = list(self.range_ids)
+        reuse_gas = list(self.ga_ids)
+        self.range_ids, self.created_ranges, self.renamed = [], [], []
+        self.ga_ids, self.created_gas, self.old_values = [], [], []
+
+        by_start: dict[tuple[int | None, int], GroupRange] = {
+            (gr.parent_id, gr.range_start): gr
+            for gr in session.query(GroupRange).filter_by(
+                installation_id=self.installation_id
+            )
+        }
+        ids_by_start: dict[int, int] = {}
+        for index, (start, end, name, parent_start) in enumerate(self.ranges):
+            parent_id = None if parent_start is None else ids_by_start.get(parent_start)
+            existing = by_start.get((parent_id, start))
+            if existing is not None and existing.range_end == end:
+                if name and existing.name != name:
+                    self.renamed.append([existing.id, existing.name])
+                    existing.name = name
+                group_range, created = existing, False
+            else:
+                group_range = GroupRange(
+                    installation_id=self.installation_id,
+                    parent_id=parent_id,
+                    range_start=start,
+                    range_end=end,
+                    name=name,
+                )
+                if index < len(reuse_ranges):
+                    group_range.id = reuse_ranges[index]
+                session.add(group_range)
+                session.flush()
+                by_start[(parent_id, start)] = group_range
+                created = True
+            ids_by_start[start] = group_range.id
+            self.range_ids.append(group_range.id)
+            self.created_ranges.append(created)
+
+        all_ranges = (
+            session.query(GroupRange)
+            .filter_by(installation_id=self.installation_id)
+            .all()
+        )
+        existing_gas = {
+            ga.address: ga
+            for ga in session.query(GroupAddress)
+            .join(GroupRange)
+            .filter(GroupRange.installation_id == self.installation_id)
+        }
+        for index, item in enumerate(self.addresses):
+            values = {k: item[k] for k in _IMPORT_FIELDS if item.get(k) is not None}
+            ga = existing_gas.get(item["address"])
+            if ga is not None:
+                old: dict[str, Any] = {}
+                for key, value in values.items():
+                    if getattr(ga, key) != value:
+                        old[key] = getattr(ga, key)
+                        setattr(ga, key, value)
+                self.ga_ids.append(ga.id)
+                self.created_gas.append(False)
+                self.old_values.append(old)
+                continue
+            container = _smallest_range(all_ranges, item["address"])
+            if container is None:
+                self.ga_ids.append(0)
+                self.created_gas.append(False)
+                self.old_values.append({})
+                continue
+            ga = GroupAddress(group_range_id=container.id, address=item["address"])
+            for key, value in values.items():
+                setattr(ga, key, value)
+            if index < len(reuse_gas) and reuse_gas[index]:
+                ga.id = reuse_gas[index]
+            session.add(ga)
+            session.flush()
+            existing_gas[ga.address] = ga
+            self.ga_ids.append(ga.id)
+            self.created_gas.append(True)
+            self.old_values.append({})
+
+    def revert(self, session: Session) -> None:
+        for ga_id, created, old in zip(
+            reversed(self.ga_ids),
+            reversed(self.created_gas),
+            reversed(self.old_values),
+            strict=True,
+        ):
+            ga = session.get(GroupAddress, ga_id) if ga_id else None
+            if ga is None:
+                continue
+            if created:
+                session.delete(ga)
+            else:
+                for key, value in old.items():
+                    setattr(ga, key, value)
+        session.flush()
+        for range_id, created in zip(
+            reversed(self.range_ids), reversed(self.created_ranges), strict=True
+        ):
+            if (
+                created
+                and (group_range := session.get(GroupRange, range_id)) is not None
+            ):
+                session.delete(group_range)
+                session.flush()
+        for range_id, old_name in reversed(self.renamed):
+            if (group_range := session.get(GroupRange, range_id)) is not None:
+                group_range.name = old_name
+
+    @property
+    def added(self) -> int:
+        return sum(self.created_gas)
+
+    @property
+    def updated(self) -> int:
+        return sum(1 for old in self.old_values if old)
+
+    @property
+    def skipped(self) -> int:
+        return sum(1 for ga_id in self.ga_ids if not ga_id)
+
+    def to_dict(self) -> dict[str, Any]:
+        data: dict[str, Any] = {
+            "installation_id": self.installation_id,
+            "ranges": self.ranges,
+            "addresses": self.addresses,
+            "range_ids": self.range_ids,
+            "created_ranges": self.created_ranges,
+            "renamed": self.renamed,
+            "ga_ids": self.ga_ids,
+            "created_gas": self.created_gas,
+            "old_values": self.old_values,
+        }
+        if self.label is not None:
+            data["label"] = self.label
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> ImportGroupAddresses:
+        return cls(**data)
+
+
+def _smallest_range(ranges: list[GroupRange], address: int) -> GroupRange | None:
+    """The narrowest folder whose window contains ``address``."""
+    best: GroupRange | None = None
+    for gr in ranges:
+        if gr.range_start <= address <= gr.range_end and (
+            best is None
+            or gr.range_end - gr.range_start < best.range_end - best.range_start
+        ):
+            best = gr
+    return best

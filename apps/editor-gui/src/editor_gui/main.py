@@ -665,13 +665,13 @@ class KnxGuiApp:
             "",
             [
                 S.FILE_DIALOG_OPEN_FILTER,
-                "*.xknx *.knxproj *.xml",
+                "*.xknx *.knxproj *.xml *.csv",
                 S.FILE_DIALOG_PROJECT_FILTER,
                 "*.xknx",
                 S.FILE_DIALOG_KNXPROJ_FILTER,
                 "*.knxproj",
-                S.FILE_DIALOG_GA_EXPORT_FILTER,
-                "*.xml",
+                S.FILE_DIALOG_GA_IMPORT_FILTER,
+                "*.xml *.csv",
                 S.FILE_DIALOG_ALL_FILES,
                 "*",
             ],
@@ -1800,6 +1800,12 @@ class KnxGuiApp:
 
         # An ETS group-address export is a plain .xml holding only the GA tree. Detect it and route
         # it through its own importer (builds a new project whose GA tree mirrors the export).
+        if suffix == ".csv":
+            self._log.info(
+                "open project route selected", path=path, route="ga csv import"
+            )
+            self._prompt_ga_export_dest(path)
+            return
         if suffix == ".xml":
             is_ga_export = self._project_service.is_ga_export(Path(path))
             self._log.debug(

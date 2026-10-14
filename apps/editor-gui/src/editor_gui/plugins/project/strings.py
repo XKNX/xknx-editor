@@ -2255,5 +2255,55 @@ class ProjectStrings:
     def GA_NOT_CONNECTED(self) -> str:
         return _("Not connected to the bus.")
 
+    @property
+    def GA_IMPORT_BUTTON(self) -> str:
+        return _("Import…")
+
+    @property
+    def GA_IMPORT_MENU(self) -> str:
+        return _("Import Group Addresses…")
+
+    @property
+    def GA_IMPORT_TITLE(self) -> str:
+        return _("Import Group Addresses")
+
+    @property
+    def GA_IMPORT_FILTER(self) -> str:
+        return _("Group Address Files (XML, CSV)")
+
+    @property
+    def GA_IMPORT_ALL_FILES(self) -> str:
+        return _("All Files")
+
+    @property
+    def GA_IMPORT_DONE(self) -> str:
+        return _("{added} group addresses added, {updated} updated.")
+
+    @property
+    def GA_IMPORT_SKIPPED(self) -> str:
+        return _("{count} group addresses could not be placed in a group.")
+
+    @property
+    def GA_IMPORT_FAILED(self) -> str:
+        return _("The file could not be imported: {error}")
+
+    @property
+    def GA_IMPORT_STYLE_MISMATCH(self) -> str:
+        return _(
+            "The file uses {file} group addresses, but the project uses {project} group addresses."
+        )
+
+    @property
+    def GA_STYLE_THREE_LEVEL(self) -> str:
+        return _("3-level")
+
+    @property
+    def GA_STYLE_TWO_LEVEL(self) -> str:
+        return _("2-level")
+
+    @property
+    def GA_STYLE_FREE(self) -> str:
+        return _("free")
+
 
 S = ProjectStrings()

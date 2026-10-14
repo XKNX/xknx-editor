@@ -5,9 +5,11 @@ create / rename / delete group addresses and set their datapoint type (context m
 mirroring the Devices panel)."""
 
 from collections.abc import Callable
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
+from imgui_bundle import portable_file_dialogs as pfd
 
 from editor_gui.device import com_object_display_name
 from editor_gui.plugins.project.strings import S
@@ -47,6 +49,7 @@ class GroupAddressesPanel:
         group_style: "Callable[[], GroupAddressStyle] | None" = None,
         on_select_device_id: Callable[[int], None] | None = None,
         bus: GroupValueBus | None = None,
+        on_import: Callable[[Path], tuple[int, int, int]] | None = None,
     ) -> None:
         self._get_range_tree = get_range_tree
         self._get_assignments_for_ga = get_assignments_for_ga
@@ -62,6 +65,10 @@ class GroupAddressesPanel:
         self._group_style = group_style
         self._on_select_device_id = on_select_device_id
         self._bus = bus
+        self._on_import = on_import
+        self._import_dialog: pfd.open_file | None = None
+        self._import_message = ""
+        self._open_import_result = False
         # External "select this GA" requests (e.g. clicking a Health finding).
         self._take_requested_ga = take_requested_ga
         self._filter_text: str = ""
@@ -126,6 +133,11 @@ class GroupAddressesPanel:
                 self._popup_range_parent = None
                 self._popup_range_name = ""
                 self._open_new_range = True
+        if self._on_import is not None:
+            imgui.same_line()
+            if imgui.small_button(S.GA_IMPORT_BUTTON):
+                self._start_import()
+        self._poll_import()
 
         if self._open_new_ga:
             imgui.open_popup(S.GA_NEW)
@@ -148,6 +160,9 @@ class GroupAddressesPanel:
         if self._open_delete_range:
             imgui.open_popup(S.GA_FOLDER_DELETE)
             self._open_delete_range = False
+        if self._open_import_result:
+            imgui.open_popup(S.GA_IMPORT_TITLE)
+            self._open_import_result = False
         self._render_new_ga_popup()
         self._render_rename_popup()
         self._render_renumber_popup()
@@ -157,6 +172,7 @@ class GroupAddressesPanel:
         self._render_new_range_popup()
         self._render_rename_range_popup()
         self._render_delete_range_popup()
+        self._render_import_result()
 
         if not tree:
             imgui.text_disabled(S.GA_NO_PROJECT)
@@ -196,6 +212,51 @@ class GroupAddressesPanel:
             self._popup_range_parent = None
             self._popup_range_name = ""
             self._open_new_range = True
+        if self._on_import is not None:
+            imgui.separator()
+            if imgui.menu_item(S.GA_IMPORT_MENU, "", False)[0]:
+                self._start_import()
+
+    def _start_import(self) -> None:
+        if self._import_dialog is None:
+            self._import_dialog = pfd.open_file(
+                S.GA_IMPORT_TITLE,
+                "",
+                [S.GA_IMPORT_FILTER, "*.xml *.csv", S.GA_IMPORT_ALL_FILES, "*"],
+            )
+
+    def _poll_import(self) -> None:
+        dialog = self._import_dialog
+        if dialog is None or not dialog.ready() or self._on_import is None:
+            return
+        self._import_dialog = None
+        paths = dialog.result()
+        if not paths:
+            return
+        from xknxeditor.proj.core.ga_export import GroupAddressStyleMismatch
+
+        try:
+            added, updated, skipped = self._on_import(Path(paths[0]))
+        except GroupAddressStyleMismatch as exc:
+            self._import_message = S.GA_IMPORT_STYLE_MISMATCH.format(
+                file=_style_text(exc.file_style),
+                project=_style_text(exc.project_style),
+            )
+        except ValueError as exc:
+            self._import_message = S.GA_IMPORT_FAILED.format(error=exc)
+        else:
+            self._import_message = S.GA_IMPORT_DONE.format(added=added, updated=updated)
+            if skipped:
+                self._import_message += "\n" + S.GA_IMPORT_SKIPPED.format(count=skipped)
+        self._open_import_result = True
+
+    def _render_import_result(self) -> None:
+        if not begin_dialog(S.GA_IMPORT_TITLE, width=420.0):
+            return
+        imgui.text_wrapped(self._import_message)
+        if dialog_buttons(S.BTN_OK) == 0:
+            imgui.close_current_popup()
+        end_dialog()
 
     def _render_range(
         self, node: "GroupRangeInfo", flt: str = "", is_root: bool = False
@@ -307,11 +368,34 @@ class GroupAddressesPanel:
             and self._group_style() is GroupAddressStyle.THREE_LEVEL
         )
 
+    def _next_free_text(self, node: "GroupRangeInfo") -> str:
+        """The lowest unused address in ``node``'s window, formatted; empty when it is full."""
+        from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
+
+        used = {ga.address for ga in node.group_addresses}
+        style = (
+            self._group_style()
+            if self._group_style is not None
+            else GroupAddressStyle.THREE_LEVEL
+        )
+        for address in range(max(1, node.range_start), node.range_end + 1):
+            if address not in used:
+                return format_ga(address, style)
+        return ""
+
     def _render_range_context_menu(self, node: "GroupRangeInfo", is_root: bool) -> None:
         if self._on_rename_range is None:  # folder editing disabled
             return
         if not imgui.begin_popup_context_item(f"##gr_ctx_{node.id}"):
             return
+        # Group addresses live in middle groups (ThreeLevel) or main groups (TwoLevel).
+        if (
+            not (is_root and self._middle_enabled())
+            and imgui.menu_item(S.GA_NEW, "", False)[0]
+        ):
+            self._popup_address = self._next_free_text(node)
+            self._popup_name = ""
+            self._open_new_ga = True
         # A middle group can only be added under a top-level (main) group, ThreeLevel only.
         if (
             is_root
@@ -567,3 +651,13 @@ class GroupAddressesPanel:
         self._com_names_cache = names
         self._com_names_key = id(devices)
         return names
+
+
+def _style_text(style: "GroupAddressStyle") -> str:
+    from xknxeditor.proj.core.addressing import GroupAddressStyle
+
+    return {
+        GroupAddressStyle.THREE_LEVEL: S.GA_STYLE_THREE_LEVEL,
+        GroupAddressStyle.TWO_LEVEL: S.GA_STYLE_TWO_LEVEL,
+        GroupAddressStyle.FREE: S.GA_STYLE_FREE,
+    }[style]

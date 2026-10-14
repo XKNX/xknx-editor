@@ -8,6 +8,7 @@ import platform
 import shutil
 import subprocess
 import time
+import xml.etree.ElementTree as ET
 import zipfile
 from collections.abc import Callable
 from dataclasses import dataclass
@@ -264,6 +265,8 @@ def _history_label(event_type: str, data: dict[str, Any]) -> str:
         return "Add segment"
     if event_type == "CreateGroupAddress":
         return f"Create group address {data.get('address')}"
+    if event_type == "ImportGroupAddresses":
+        return str(data.get("label") or "Import group addresses")
     if event_type == "LinkComObject":
         return "Link com-object"
     if event_type == "UnlinkComObject":
@@ -3008,6 +3011,28 @@ class ProjectService:
             return
         self._svc.rename_group_range(self._pid, range_id, name)
         self._bump(structural=False)
+
+    def import_group_addresses(self, path: Path) -> tuple[int, int, int]:
+        """Import a group address export (XML or CSV) into the open project as one undo step.
+
+        Returns ``(added, updated, skipped)``. Raises ``ValueError`` for a file that cannot be read
+        or uses another address style than the project."""
+        from xknxeditor.proj.core.ga_export import read_group_address_file
+
+        if self._pid is None:
+            raise ValueError("No project is open.")
+        try:
+            export = read_group_address_file(path)
+        except (OSError, ET.ParseError) as exc:
+            raise ValueError(str(exc)) from exc
+        event = self._svc.import_group_addresses(
+            self._pid,
+            _INSTALLATION,
+            export,
+            label=f"Import group addresses from {path.name}",
+        )
+        self._bump(structural=False)
+        return event.added, event.updated, event.skipped
 
     def remove_group_range(self, range_id: int) -> None:
         if self._pid is None:

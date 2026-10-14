@@ -1389,3 +1389,38 @@ msgstr "Schreiben"
 
 msgid "Not connected to the bus."
 msgstr "Keine Verbindung zum Bus."
+msgid "Import…"
+msgstr "Importieren…"
+
+msgid "Import Group Addresses…"
+msgstr "Gruppenadressen importieren…"
+
+msgid "Import Group Addresses"
+msgstr "Gruppenadressen importieren"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "Gruppenadressen-Dateien (XML, CSV)"
+
+msgid "All Files"
+msgstr "Alle Dateien"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "{added} Gruppenadressen hinzugefügt, {updated} aktualisiert."
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "{count} Gruppenadressen konnten keiner Gruppe zugeordnet werden."
+
+msgid "The file could not be imported: {error}"
+msgstr "Die Datei konnte nicht importiert werden: {error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "Die Datei verwendet {file} Gruppenadressen, das Projekt jedoch {project} Gruppenadressen."
+
+msgid "3-level"
+msgstr "3-stufige"
+
+msgid "2-level"
+msgstr "2-stufige"
+
+msgid "free"
+msgstr "freie"

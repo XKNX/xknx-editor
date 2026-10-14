@@ -936,8 +936,12 @@ class MenuStrings:
         return _("ETS Project (*.knxproj)")
 
     @property
+    def FILE_DIALOG_GA_IMPORT_FILTER(self) -> str:
+        return _("Group Address Exports (*.xml, *.csv)")
+
+    @property
     def FILE_DIALOG_GA_EXPORT_FILTER(self) -> str:
-        return _("ETS Group-Address Export (*.xml)")
+        return _("Group Address Export (*.xml)")
 
     @property
     def FILE_DIALOG_PROJECT_TITLE(self) -> str:
@@ -972,7 +976,7 @@ class MenuStrings:
 
     @property
     def FILE_DIALOG_OPEN_FILTER(self) -> str:
-        return _("Projects (*.xknx, *.knxproj, *.xml)")
+        return _("Projects (*.xknx, *.knxproj, *.xml, *.csv)")
 
     @property
     def PROGRESS_TITLE(self) -> str:

@@ -753,3 +753,11 @@ msgid "{project} - {app}"
 msgstr "{project} - {app}"
 msgid "Highlight Changes"
 msgstr "Änderungen hervorheben"
+msgid "Group Address Export (*.xml)"
+msgstr "Gruppenadressen-Export (*.xml)"
+
+msgid "Group Address Exports (*.xml, *.csv)"
+msgstr "Gruppenadressen-Exporte (*.xml, *.csv)"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml, *.csv)"
+msgstr "Projekte (*.xknx, *.knxproj, *.xml, *.csv)"

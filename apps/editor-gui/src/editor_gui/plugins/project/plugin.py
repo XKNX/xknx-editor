@@ -252,6 +252,7 @@ class ProjectPlugin:
             group_style=lambda: api.project.group_address_style,
             on_select_device_id=self._select_device_by_id,
             bus=group_bus,
+            on_import=api.project.import_group_addresses,
         )
 
         self._spaces_panel = SpacesPanel(

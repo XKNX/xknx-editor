@@ -941,3 +941,38 @@ msgstr "Schrijven"
 
 msgid "Not connected to the bus."
 msgstr "Geen verbinding met de bus."
+msgid "Import…"
+msgstr "Importeren…"
+
+msgid "Import Group Addresses…"
+msgstr "Groepsadressen importeren…"
+
+msgid "Import Group Addresses"
+msgstr "Groepsadressen importeren"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "Groepsadresbestanden (XML, CSV)"
+
+msgid "All Files"
+msgstr "Alle bestanden"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "{added} groepsadressen toegevoegd, {updated} bijgewerkt."
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "{count} groepsadressen konden niet in een groep worden geplaatst."
+
+msgid "The file could not be imported: {error}"
+msgstr "Het bestand kon niet worden geïmporteerd: {error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "Het bestand gebruikt {file} groepsadressen, maar het project {project} groepsadressen."
+
+msgid "3-level"
+msgstr "3-niveau"
+
+msgid "2-level"
+msgstr "2-niveau"
+
+msgid "free"
+msgstr "vrije"
