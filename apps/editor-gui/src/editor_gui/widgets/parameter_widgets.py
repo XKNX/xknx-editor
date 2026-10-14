@@ -185,6 +185,18 @@ def _track_help(help_context: str | None) -> None:
         _selected_help[:] = [help_context]
 
 
+def _reset_menu(widget_id: str, hovered: bool, reset: Callable[[], None]) -> None:
+    """Right-click menu restoring the default; ``hovered`` covers every item the value is
+    drawn with (e.g. all radio buttons) and its label."""
+    popup = f"##reset_{widget_id}"
+    if hovered and imgui.is_mouse_released(imgui.MouseButton_.right):
+        imgui.open_popup(popup)
+    if imgui.begin_popup(popup):
+        if imgui.menu_item(S.PARAM_RESET_DEFAULT, "", False)[0]:
+            reset()
+        imgui.end_popup()
+
+
 def _default_display(param: UiParameter) -> str:
     """Human-readable default value (enum default resolved to its label)."""
     return _value_display(param, param.default_value) or "-"
@@ -1483,7 +1495,6 @@ def _render_grid_param(
         _render_suffix(param.suffix)
         _track_help(param.help_context)
         return None
-    imgui.set_next_item_width(-px(_CELL_GAP) - _suffix_width(param.suffix))
     widget_id = f"{device.node_id}_{param.ref_id}"
     # GRID/TABLE cells carry no label to tint, so mark a changed value by tinting
     # the widget's own text (combo preview / input), matching the table view.
@@ -1492,6 +1503,8 @@ def _render_grid_param(
     if tinted:
         imgui.push_style_color(imgui.Col_.text, _CHANGED_COLOR)
     read_only = param.access == Access.READ
+    imgui.begin_group()
+    imgui.set_next_item_width(-px(_CELL_GAP) - _suffix_width(param.suffix))
     imgui.begin_disabled(read_only)
     req = _render_device_param(
         device,
@@ -1504,16 +1517,15 @@ def _render_grid_param(
     imgui.end_disabled()
     _track_help(param.help_context)
     _render_suffix(param.suffix)
+    imgui.end_group()
     if tinted:
         imgui.pop_style_color()
-    if (
-        changed
-        and not read_only
-        and imgui.begin_popup_context_item(f"##reset_{widget_id}")
-    ):
-        if imgui.menu_item(S.PARAM_RESET_DEFAULT, "", False)[0]:
-            on_change(device, param.ref_id, param.default_value)
-        imgui.end_popup()
+    if changed and not read_only:
+        _reset_menu(
+            widget_id,
+            imgui.is_item_hovered(),
+            lambda: on_change(device, param.ref_id, param.default_value),
+        )
     if req is not None:
         return EnumPopupRequest(device=device, param=req.param)
     return None
@@ -1586,6 +1598,7 @@ def _render_param_table(
                 imgui.pop_style_color()
             else:
                 imgui.text_wrapped(label)
+            label_hovered = imgui.is_item_hovered()
             _track_help(param.help_context)
             if indent > 0:
                 imgui.unindent(indent)
@@ -1595,9 +1608,10 @@ def _render_param_table(
                 _render_suffix(param.suffix)
                 _track_help(param.help_context)
                 continue
-            imgui.set_next_item_width(-1 - _suffix_width(param.suffix))
             widget_id = f"{device.node_id}_{param.ref_id}"
             read_only = param.access == Access.READ
+            imgui.begin_group()
+            imgui.set_next_item_width(-1 - _suffix_width(param.suffix))
             imgui.begin_disabled(read_only)
             req = _render_device_param(
                 device,
@@ -1609,16 +1623,15 @@ def _render_param_table(
             )
             imgui.end_disabled()
             _track_help(param.help_context)
-            # Right-click a changed value to restore the application default.
-            if (
-                changed
-                and not read_only
-                and imgui.begin_popup_context_item(f"##reset_{widget_id}")
-            ):
-                if imgui.menu_item(S.PARAM_RESET_DEFAULT, "", False)[0]:
-                    on_change(device, param.ref_id, param.default_value)
-                imgui.end_popup()
             _render_suffix(param.suffix)
+            imgui.end_group()
+            # Right-click a changed value or its label to restore the application default.
+            if changed and not read_only:
+                _reset_menu(
+                    widget_id,
+                    label_hovered or imgui.is_item_hovered(),
+                    lambda d=device, p=param: on_change(d, p.ref_id, p.default_value),
+                )
             if req is not None:
                 popup_request = EnumPopupRequest(device=device, param=req.param)
         imgui.end_table()
