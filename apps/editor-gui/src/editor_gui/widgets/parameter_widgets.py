@@ -519,6 +519,10 @@ def _spin_width() -> float:
     return imgui.get_frame_height() * 0.6
 
 
+# In a grid cell a number field fills the cell, as in the reference; elsewhere it fits its digits.
+_number_fills_cell = False
+
+
 def _set_number_field_width(chars: int, *, spin: bool = True) -> None:
     """Size the next field to ``chars`` characters (plus its spin arrows, drawn inside its right
     end), at most the requested width."""
@@ -529,7 +533,8 @@ def _set_number_field_width(chars: int, *, spin: bool = True) -> None:
     )
     if spin:
         content += _spin_width()
-    imgui.set_next_item_width(min(imgui.calc_item_width(), content))
+    width = imgui.calc_item_width()
+    imgui.set_next_item_width(width if _number_fills_cell else min(width, content))
     if spin:
         imgui.set_next_item_allow_overlap()
 
@@ -1288,14 +1293,23 @@ def _render_block(
     return popup_request
 
 
-def _grid_pos(cell: str | None) -> tuple[int, int] | None:
+def _grid_pos(
+    cell: str | None, rows: int = 0, columns: int = 0
+) -> tuple[int, int] | None:
+    """The 1-based ``(row, column)`` of a ``Cell`` attribute. With declared ``rows`` and
+    ``columns``, a cell beyond them lands in the last one, as the reference's grid places it
+    (e.g. a one-row grid whose cells name the channel number as their row)."""
     if not cell:
         return None
     try:
-        row, col = cell.split(",")
-        return int(row), int(col)
+        row, col = (int(part) for part in cell.split(","))
     except ValueError:
         return None
+    if rows:
+        row = min(row, rows)
+    if columns:
+        col = min(col, columns)
+    return row, col
 
 
 def _column_width(spec: str, avail: float) -> float | None:
@@ -1324,10 +1338,11 @@ def _render_grid_block(
     labels_by_pos: dict[tuple[int, int], UiSeparator] = {}
     uncelled: list[UiParameter | UiButton] = []
     uncelled_blocks: list[UiParameterBlock] = []
+    rows, columns = len(block.row_labels), len(block.column_widths)
 
     for node in block.children:
         if isinstance(node, UiParameter | UiButton | UiParameterBlock):
-            pos = _grid_pos(node.cell)
+            pos = _grid_pos(node.cell, rows, columns)
             if pos is not None:
                 cells_by_pos[pos] = node
             elif isinstance(node, UiParameterBlock):
@@ -1335,7 +1350,7 @@ def _render_grid_block(
             else:
                 uncelled.append(node)
         elif isinstance(node, UiSeparator):
-            pos = _grid_pos(node.cell)
+            pos = _grid_pos(node.cell, rows, columns)
             if pos is not None:
                 labels_by_pos[pos] = node
 
@@ -1487,14 +1502,15 @@ def _render_grid_cells(
 
 
 def _render_cell_separator(sep: UiSeparator) -> None:
-    """A separator in a grid cell: a headline in bold, a label as plain text, a ruler across."""
+    """A separator in a grid cell: a headline in bold, a label as plain text, a ruler across.
+    Text wraps at the cell's right edge, as in the reference."""
     if sep.text and sep.hint == "Headline":
         with bold():
             imgui.align_text_to_frame_padding()
-            imgui.text(sep.text)
+            imgui.text_wrapped(sep.text)
     elif sep.text and sep.hint is None:
         imgui.align_text_to_frame_padding()
-        imgui.text(sep.text)
+        imgui.text_wrapped(sep.text)
     else:
         _render_separator(sep)
 
@@ -1523,14 +1539,19 @@ def _render_grid_param(
     imgui.begin_group()
     imgui.set_next_item_width(-px(_CELL_GAP) - _suffix_width(param.suffix))
     imgui.begin_disabled(read_only)
-    req = _render_device_param(
-        device,
-        param,
-        widget_id,
-        lambda v, d=device, p=param.ref_id: on_change(d, p, v),
-        deferred_enum=deferred_enum,
-        differs=param.ref_id in differing_refs,
-    )
+    global _number_fills_cell
+    _number_fills_cell = True
+    try:
+        req = _render_device_param(
+            device,
+            param,
+            widget_id,
+            lambda v, d=device, p=param.ref_id: on_change(d, p, v),
+            deferred_enum=deferred_enum,
+            differs=param.ref_id in differing_refs,
+        )
+    finally:
+        _number_fills_cell = False
     imgui.end_disabled()
     _track_help(param.help_context)
     _render_suffix(param.suffix)
