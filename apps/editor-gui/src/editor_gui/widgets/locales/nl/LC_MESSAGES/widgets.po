@@ -163,3 +163,36 @@ msgstr "Beschrijving bewerken"
 
 msgid "OK"
 msgstr "OK"
+
+msgid "Edit Value"
+msgstr "Waarde bewerken"
+
+msgid "Edit…"
+msgstr "Bewerken…"
+
+msgid "Enter a number."
+msgstr "Voer een getal in."
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "Voer een waarde van {minimum} tot {maximum} in."
+
+msgid "Enter a value."
+msgstr "Voer een waarde in."
+
+msgid "Enter a whole number."
+msgstr "Voer een geheel getal in."
+
+msgid "Enter at most {count} characters."
+msgstr "Voer maximaal {count} tekens in."
+
+msgid "No value can be entered for this data type."
+msgstr "Voor dit datatype kan geen waarde worden ingevoerd."
+
+msgid "The text may take at most {count} bytes."
+msgstr "De tekst mag maximaal {count} bytes beslaan."
+
+msgid "This value cannot be sent with this data type."
+msgstr "Deze waarde kan niet met dit datatype worden verzonden."
+
+msgid "Value {number}"
+msgstr "Waarde {number}"
