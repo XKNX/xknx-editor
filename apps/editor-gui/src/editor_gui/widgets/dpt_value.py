@@ -9,6 +9,7 @@ dimming step, ...) one input per field.
 from __future__ import annotations
 
 import enum
+import math
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any, cast
@@ -57,6 +58,15 @@ def _number_text(value: float) -> str:
     return general_float(value).replace(".", regional_format().decimal)
 
 
+def _range_hint(minimum: float | None, maximum: float | None) -> str:
+    """``min … max`` as an input hint; empty for a type without finite limits."""
+    if minimum is None or maximum is None:
+        return ""
+    if not (math.isfinite(minimum) and math.isfinite(maximum)):
+        return ""
+    return f"{_number_text(minimum)} … {_number_text(maximum)}"
+
+
 def _parse_number(text: str) -> int | float | None:
     regional = regional_format()
     cleaned = text.strip().replace(" ", "").replace("\xa0", "")
@@ -71,9 +81,10 @@ def _parse_number(text: str) -> int | float | None:
     except ValueError:
         pass
     try:
-        return float(cleaned)
+        value = float(cleaned)
     except ValueError:
         return None
+    return value if math.isfinite(value) else None
 
 
 def _raw_payload(transcoder: type[DPTBase] | None, main: int, raw: int) -> Payload:
@@ -139,13 +150,10 @@ class _Number(_Editor):
     text: str = ""
 
     def render(self, widget_id: str, *, inline: bool) -> bool:
-        minimum, maximum = self.transcoder.value_min, self.transcoder.value_max
+        hint = _range_hint(self.transcoder.value_min, self.transcoder.value_max)
         imgui.set_next_item_width(px(140.0 if inline else 200.0))
         submitted, self.text = imgui.input_text_with_hint(
-            f"##{widget_id}",
-            f"{_number_text(minimum)} … {_number_text(maximum)}",
-            self.text,
-            imgui.InputTextFlags_.enter_returns_true,
+            f"##{widget_id}", hint, self.text, imgui.InputTextFlags_.enter_returns_true
         )
         if self.unit:
             imgui.same_line()
@@ -283,11 +291,7 @@ class _Fields(_Editor):
             elif item.kind == "boolean":
                 item.checked = imgui.checkbox(item_id, item.checked)[1]
             else:
-                hint = ""
-                if item.minimum is not None and item.maximum is not None:
-                    hint = (
-                        f"{_number_text(item.minimum)} … {_number_text(item.maximum)}"
-                    )
+                hint = _range_hint(item.minimum, item.maximum)
                 imgui.set_next_item_width(px(60.0 if inline else 180.0))
                 done, item.text = imgui.input_text_with_hint(
                     item_id, hint, item.text, imgui.InputTextFlags_.enter_returns_true

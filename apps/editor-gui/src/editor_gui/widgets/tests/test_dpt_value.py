@@ -107,3 +107,17 @@ def test_unknown_type_cannot_be_written() -> None:
 def test_dpt_label() -> None:
     assert dpt_label("DPST-1-1") == "1.001 Switch"
     assert dpt_label(None) == ""
+
+
+def test_type_without_limits_has_no_range_hint() -> None:
+    editor = _editor("DPST-14-56")
+    assert (
+        dpt_value._range_hint(editor.transcoder.value_min, editor.transcoder.value_max)
+        == ""
+    )
+    assert dpt_value._range_hint(-273.0, 670760.0) == "-273 … 670760"
+    editor.text = "inf"
+    with pytest.raises(ValueError):
+        editor.payload()
+    editor.text = "1,5"
+    assert editor.payload() == DPTArray((0x3F, 0xC0, 0x00, 0x00))
