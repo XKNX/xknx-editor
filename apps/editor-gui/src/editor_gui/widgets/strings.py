@@ -197,5 +197,33 @@ class WidgetStrings(BaseStrings):
         }
         return names.get(unit, unit)
 
+    @property
+    def DPT_VALUE_NOT_A_NUMBER(self) -> str:
+        return _("Enter a number.")
+
+    @property
+    def DPT_VALUE_WHOLE_NUMBER(self) -> str:
+        return _("Enter a whole number.")
+
+    @property
+    def DPT_VALUE_RANGE(self) -> str:
+        return _("Enter a value from {minimum} to {maximum}.")
+
+    @property
+    def DPT_VALUE_TOO_LONG(self) -> str:
+        return _("Enter at most {count} characters.")
+
+    @property
+    def DPT_VALUE_REQUIRED(self) -> str:
+        return _("Enter a value.")
+
+    @property
+    def DPT_VALUE_INVALID(self) -> str:
+        return _("This value cannot be sent with this data type.")
+
+    @property
+    def DPT_VALUE_UNSUPPORTED(self) -> str:
+        return _("No value can be entered for this data type.")
+
 
 S = WidgetStrings()

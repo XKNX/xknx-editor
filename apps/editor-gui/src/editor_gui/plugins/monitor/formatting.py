@@ -11,6 +11,11 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any, Protocol, cast
 
 from editor_gui.dpt import lookup_or_make_dpt, transcoder_for
+from editor_gui.dpt_formats import BitFormat as BitFormat
+from editor_gui.dpt_formats import DptFormat as DptFormat
+from editor_gui.dpt_formats import EnumFormat as EnumFormat
+from editor_gui.dpt_formats import NumberFormat as NumberFormat
+from editor_gui.dpt_formats import master_formats as master_formats
 from editor_gui.plugins.monitor.frames import (
     MESSAGE_CODE_NAMES,
     FrameInfo,
@@ -117,25 +122,6 @@ class DeviceEntry:
     building_part: str = ""
     description: str = ""
 
-
-@dataclass(frozen=True, slots=True)
-class BitFormat:
-    cleared: str
-    set: str
-
-
-@dataclass(frozen=True, slots=True)
-class EnumFormat:
-    texts: dict[int, str]
-
-
-@dataclass(frozen=True, slots=True)
-class NumberFormat:
-    unit: str = ""
-    coefficient: float | None = None
-
-
-DptFormat = BitFormat | EnumFormat | NumberFormat
 
 # Value texts of common 1-bit types when the master data is not available.
 _BIT_TEXTS = {
@@ -290,39 +276,6 @@ def parse_individual_address(text: str | None) -> int | None:
     except ValueError:
         return None
     return (area & 0x0F) << 12 | (line & 0x0F) << 8 | number & 0xFF
-
-
-def master_formats(master: Any) -> dict[str, DptFormat]:
-    """Value formats of the data point subtypes in the KNX master data, by ``DPST-x-y`` id."""
-    raw = getattr(master, "raw", None)
-    holder = getattr(raw, "datapoint_types", None)
-    formats: dict[str, DptFormat] = {}
-    if holder is None:
-        return formats
-    for dpt in cast("list[Any]", holder.datapoint_type):
-        subtypes = getattr(dpt, "datapoint_subtypes", None)
-        if subtypes is None:
-            continue
-        for subtype in cast("list[Any]", subtypes.datapoint_subtype):
-            fmt = getattr(subtype, "format", None)
-            choices = cast("list[Any]", fmt.choice) if fmt is not None else []
-            if len(choices) != 1:
-                continue
-            item = choices[0]
-            kind = type(item).__name__
-            if kind.endswith("FormatBit"):
-                formats[subtype.id] = BitFormat(item.cleared, item.set)
-            elif kind.endswith("FormatEnumeration"):
-                formats[subtype.id] = EnumFormat(
-                    {value.value: value.text for value in item.enum_value}
-                )
-            elif kind.endswith(("FormatUnsignedInteger", "FormatSignedInteger")):
-                formats[subtype.id] = NumberFormat(
-                    item.unit or "", getattr(item, "coefficient", None)
-                )
-            elif kind.endswith("FormatFloat"):
-                formats[subtype.id] = NumberFormat(item.unit or "")
-    return formats
 
 
 # --- DPT and values --------------------------------------------------------------------------

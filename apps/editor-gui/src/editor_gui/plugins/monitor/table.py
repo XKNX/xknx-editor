@@ -10,7 +10,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 from imgui_bundle import portable_file_dialogs as pfd
@@ -788,12 +788,3 @@ class TelegramView:
         if result.skipped:
             text += ". " + S.IMPORT_SKIPPED.format(count=result.skipped)
         self._message = (text, False)
-
-
-def selected_payload_text(value: Any) -> str:
-    """A decoded value as the value field accepts it (``on``/``off``, point decimals)."""
-    if isinstance(value, bool):
-        return "on" if value else "off"
-    if isinstance(value, float):
-        return format(value, ".15g")
-    return str(value)

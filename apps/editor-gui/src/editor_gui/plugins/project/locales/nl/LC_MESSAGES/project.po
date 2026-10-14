@@ -914,3 +914,30 @@ msgstr "DIN-railmontage"
 
 msgid "Bus Current"
 msgstr "Busstroom"
+
+msgid "Read Value"
+msgstr "Waarde lezen"
+
+msgid "Write Value…"
+msgstr "Waarde schrijven…"
+
+msgid "Write Value"
+msgstr "Waarde schrijven"
+
+msgid "Group Address"
+msgstr "Groepsadres"
+
+msgid "Data Type"
+msgstr "Datatype"
+
+msgid "Value"
+msgstr "Waarde"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "Stel het datatype van het groepsadres in om een waarde te schrijven."
+
+msgid "Write"
+msgstr "Schrijven"
+
+msgid "Not connected to the bus."
+msgstr "Geen verbinding met de bus."

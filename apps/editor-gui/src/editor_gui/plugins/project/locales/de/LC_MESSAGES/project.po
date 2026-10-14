@@ -1365,3 +1365,27 @@ msgstr "Hutschienenmontage"
 
 msgid "Bus Current"
 msgstr "Busstrom"
+
+msgid "Read Value"
+msgstr "Wert lesen"
+
+msgid "Write Value…"
+msgstr "Wert schreiben…"
+
+msgid "Write Value"
+msgstr "Wert schreiben"
+
+msgid "Data Type"
+msgstr "Datentyp"
+
+msgid "Value"
+msgstr "Wert"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "Legen Sie den Datentyp der Gruppenadresse fest, um einen Wert zu schreiben."
+
+msgid "Write"
+msgstr "Schreiben"
+
+msgid "Not connected to the bus."
+msgstr "Keine Verbindung zum Bus."

@@ -160,3 +160,24 @@ msgstr "Beschreibung bearbeiten"
 
 msgid "OK"
 msgstr "OK"
+
+msgid "Enter a number."
+msgstr "Geben Sie eine Zahl ein."
+
+msgid "Enter a whole number."
+msgstr "Geben Sie eine ganze Zahl ein."
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "Geben Sie einen Wert von {minimum} bis {maximum} ein."
+
+msgid "Enter at most {count} characters."
+msgstr "Geben Sie höchstens {count} Zeichen ein."
+
+msgid "Enter a value."
+msgstr "Geben Sie einen Wert ein."
+
+msgid "This value cannot be sent with this data type."
+msgstr "Dieser Wert kann mit diesem Datentyp nicht gesendet werden."
+
+msgid "No value can be entered for this data type."
+msgstr "Für diesen Datentyp kann kein Wert eingegeben werden."

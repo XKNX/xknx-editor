@@ -7,11 +7,14 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from xknx.telegram.apci import GroupValueRead, GroupValueWrite
+
 from editor_gui.device_info import (
     same_application,
     serial_from_project,
     serial_to_project,
 )
+from editor_gui.dpt_formats import cached_master_formats
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.project.button_runner import ButtonRunner
 from editor_gui.plugins.project.compare_match import compare_mismatch, matching_devices
@@ -50,6 +53,7 @@ from editor_gui.plugins.project.ui.project_diff import (
 from editor_gui.plugins.project.ui.read_device_dialog import ReadDeviceDialog
 from editor_gui.plugins.project.ui.tools import apply_name_swap, shifted_ia
 from editor_gui.widgets import ButtonActions
+from editor_gui.widgets.dpt_value import GroupValueBus
 from editor_gui.widgets.icons import (
     Icon,
     Picture,
@@ -232,6 +236,16 @@ class ProjectPlugin:
             on_remove_range=api.project.remove_group_range,
             group_style=lambda: api.project.group_address_style,
             on_select_device_id=self._select_device_by_id,
+            bus=GroupValueBus(
+                connected=lambda: api.connection.xknx is not None,
+                read=lambda address: api.connection.send_group_telegram(
+                    address, GroupValueRead()
+                ),
+                write=lambda address, payload: api.connection.send_group_telegram(
+                    address, GroupValueWrite(payload)
+                ),
+                formats=lambda: cached_master_formats(api.connection.master),
+            ),
         )
 
         self._spaces_panel = SpacesPanel(
