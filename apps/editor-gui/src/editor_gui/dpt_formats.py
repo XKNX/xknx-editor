@@ -213,9 +213,10 @@ def master_formats(master: Any) -> dict[str, DptFormat]:
         if simple is not None:
             formats[subtype.id] = simple
     for dpt in cast("list[Any]", holder.datapoint_type):
-        main = _main_format(dpt, by_id)
+        number = getattr(dpt, "number", None)
+        main = _main_format(dpt, by_id) if number is not None else None
         if main is not None:
-            formats[f"DPT-{dpt.number}"] = main
+            formats[f"DPT-{number}"] = main
     return formats
 
 
