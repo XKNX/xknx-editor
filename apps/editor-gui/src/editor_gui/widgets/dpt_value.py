@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import enum
 import math
+import struct
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any, cast
@@ -22,7 +23,14 @@ from xknx.dpt.dpt_16 import DPTString
 from xknx.dpt.payload import DPTArray, DPTBinary
 
 from editor_gui.dpt import dpt_from_token, transcoder_for
-from editor_gui.dpt_formats import BitFormat, DptFormat, EnumFormat, NumberFormat
+from editor_gui.dpt_formats import (
+    BitFormat,
+    CompositeFormat,
+    DptFormat,
+    EnumFormat,
+    FieldFormat,
+    NumberFormat,
+)
 from editor_gui.regional import regional_format
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import general_float
@@ -265,6 +273,10 @@ class _Fields(_Editor):
     fields: list[_Field]
 
     def render(self, widget_id: str, *, inline: bool) -> bool:
+        if inline and len(self.fields) > 3:
+            return _edit_in_popup(
+                widget_id, lambda: self.render(widget_id, inline=False)
+            )
         submitted = False
         label_w = (
             0.0
@@ -353,6 +365,243 @@ class _Fields(_Editor):
                 )
 
 
+def _edit_in_popup(widget_id: str, render: Callable[[], bool]) -> bool:
+    """A button that opens ``render`` in a popup, for compound values in a one-line bar."""
+    popup = f"##{widget_id}_popup"
+    if imgui.button(f"{S.DPT_VALUE_EDIT}##{widget_id}"):
+        imgui.open_popup(popup)
+    submitted = False
+    if imgui.begin_popup(popup):
+        submitted = render()
+        imgui.end_popup()
+    return submitted
+
+
+def _float_bits(value: float, width: int) -> int:
+    if width == 16:
+        return int.from_bytes(bytes(DPT2ByteFloat.to_knx(value).value), "big")
+    return int.from_bytes(struct.pack(">f" if width == 32 else ">d", value), "big")
+
+
+def _bits_float(value: int, width: int) -> float:
+    data = value.to_bytes(width // 8, "big")
+    if width == 16:
+        return float(DPT2ByteFloat.from_knx(DPTArray(data)))
+    return float(struct.unpack(">f" if width == 32 else ">d", data)[0])
+
+
+@dataclass
+class _MasterField:
+    fmt: FieldFormat
+    text: str = ""
+    selected: int = 0
+
+    @property
+    def label(self) -> str:
+        return self.fmt.name
+
+    @property
+    def whole(self) -> bool:
+        return self.fmt.kind in ("unsigned", "signed") and self.fmt.coefficient in (
+            None,
+            1.0,
+        )
+
+    def raw_range(self) -> tuple[int, int]:
+        width = self.fmt.width
+        if self.fmt.kind == "signed":
+            return -(1 << (width - 1)), (1 << (width - 1)) - 1
+        return 0, (1 << width) - 1
+
+    def shown(self, raw: float) -> float:
+        return raw * (self.fmt.coefficient or 1.0) + (self.fmt.offset or 0.0)
+
+    def limits(self) -> tuple[float | None, float | None]:
+        if self.fmt.kind == "float":
+            return self.fmt.minimum, self.fmt.maximum
+        low, high = self.raw_range()
+        # Scaled limits are rounded: 255 * 0.3921566 is shown as 100, not 99.99993.
+        minimum = self.fmt.minimum
+        if minimum is None:
+            minimum = round(self.shown(low), 2)
+        maximum = self.fmt.maximum
+        if maximum is None:
+            maximum = round(self.shown(high), 2)
+        return minimum, maximum
+
+    def render(self, widget_id: str, *, inline: bool) -> bool:
+        kind = self.fmt.kind
+        if kind == "bit":
+            for index, label in enumerate((self.fmt.cleared, self.fmt.set)):
+                if index:
+                    imgui.same_line()
+                text = label or str(index)
+                if imgui.radio_button(
+                    f"{text}##{widget_id}_{index}", self.selected == index
+                ):
+                    self.selected = index
+            return False
+        if kind == "enum":
+            texts = self.fmt.texts
+            current = texts[self.selected][1] if texts else ""
+            imgui.set_next_item_width(px(170.0 if inline else 260.0))
+            if imgui.begin_combo(f"##{widget_id}", current):
+                for index, (_, text) in enumerate(texts):
+                    if imgui.selectable(f"{text}##{index}", self.selected == index)[0]:
+                        self.selected = index
+                imgui.end_combo()
+            return False
+        if kind == "string":
+            imgui.set_next_item_width(px(180.0 if inline else 260.0))
+            submitted, self.text = imgui.input_text(
+                f"##{widget_id}", self.text, imgui.InputTextFlags_.enter_returns_true
+            )
+            return submitted
+        imgui.set_next_item_width(px(140.0 if inline else 200.0))
+        submitted, self.text = imgui.input_text_with_hint(
+            f"##{widget_id}",
+            _range_hint(*self.limits()),
+            self.text,
+            imgui.InputTextFlags_.enter_returns_true,
+        )
+        if self.fmt.unit:
+            imgui.same_line()
+            imgui.text_disabled(self.fmt.unit)
+        return submitted
+
+    def bits(self) -> int:
+        """The field's value as ``width`` bits (strings are encoded by :meth:`octets`)."""
+        kind = self.fmt.kind
+        if kind == "reserved":
+            return 0
+        if kind == "bit":
+            return self.selected
+        if kind == "enum":
+            return self.fmt.texts[self.selected][0] if self.fmt.texts else 0
+        prefix = f"{self.label}: " if self.label else ""
+        value = _parse_number(self.text)
+        if value is None:
+            raise ValueError(prefix + S.DPT_VALUE_NOT_A_NUMBER)
+        if self.whole and isinstance(value, float) and not value.is_integer():
+            raise ValueError(prefix + S.DPT_VALUE_WHOLE_NUMBER)
+        minimum, maximum = self.limits()
+        if (minimum is not None and value < minimum) or (
+            maximum is not None and value > maximum
+        ):
+            raise ValueError(
+                prefix
+                + S.DPT_VALUE_RANGE.format(
+                    minimum=_number_text(minimum if minimum is not None else value),
+                    maximum=_number_text(maximum if maximum is not None else value),
+                )
+            )
+        plain = (value - (self.fmt.offset or 0.0)) / (self.fmt.coefficient or 1.0)
+        if kind == "float":
+            return _float_bits(plain, self.fmt.width)
+        low, high = self.raw_range()
+        raw = max(low, min(high, round(plain)))
+        return raw & ((1 << self.fmt.width) - 1)
+
+    def octets(self) -> bytes:
+        size = self.fmt.width // 8
+        try:
+            data = self.text.encode(self.fmt.encoding or "us-ascii")
+        except (UnicodeEncodeError, LookupError) as exc:
+            raise ValueError(S.DPT_VALUE_INVALID) from exc
+        if self.fmt.null_terminated:
+            data += b"\x00"
+        if len(data) > size:
+            raise ValueError(S.DPT_VALUE_TOO_LONG_BYTES.format(count=size))
+        return data if self.fmt.variable_length else data.ljust(size, b"\x00")
+
+    def show_bits(self, value: int) -> None:
+        kind = self.fmt.kind
+        if kind == "bit":
+            self.selected = value & 1
+        elif kind == "enum":
+            for index, (raw, _) in enumerate(self.fmt.texts):
+                if raw == value:
+                    self.selected = index
+        elif kind == "float":
+            self.text = _number_text(self.shown(_bits_float(value, self.fmt.width)))
+        elif kind in ("unsigned", "signed"):
+            if kind == "signed" and value >= 1 << (self.fmt.width - 1):
+                value -= 1 << self.fmt.width
+            shown = self.shown(value)
+            self.text = str(round(shown)) if self.whole else _number_text(shown)
+
+    def show_octets(self, data: bytes) -> None:
+        if self.fmt.null_terminated and b"\x00" in data:
+            data = data[: data.index(b"\x00")]
+        self.text = data.rstrip(b"\x00").decode(
+            self.fmt.encoding or "us-ascii", errors="replace"
+        )
+
+
+@dataclass
+class _Master(_Editor):
+    """A subtype laid out by the KNX master data, one input per field."""
+
+    fields: list[_MasterField]
+
+    @property
+    def shown_fields(self) -> list[_MasterField]:
+        return [f for f in self.fields if f.fmt.kind != "reserved"]
+
+    def _render_fields(self, widget_id: str) -> bool:
+        shown = self.shown_fields
+        labels = [f.label for f in shown if f.label]
+        label_w = max((imgui.calc_text_size(text).x for text in labels), default=0.0)
+        submitted = False
+        for index, item in enumerate(shown):
+            if labels:
+                imgui.align_text_to_frame_padding()
+                imgui.text_disabled(item.label)
+                imgui.same_line(label_w + px(16.0))
+            submitted = item.render(f"{widget_id}_{index}", inline=False) or submitted
+        return submitted
+
+    def render(self, widget_id: str, *, inline: bool) -> bool:
+        shown = self.shown_fields
+        if len(shown) == 1:
+            return shown[0].render(widget_id, inline=inline)
+        if inline:
+            return _edit_in_popup(widget_id, lambda: self._render_fields(widget_id))
+        return self._render_fields(widget_id)
+
+    def payload(self) -> Payload:
+        value = 0
+        width = 0
+        tail = b""
+        for item in self.fields:
+            if item.fmt.kind == "string":
+                tail += item.octets()
+                continue
+            value = (value << item.fmt.width) | item.bits()
+            width += item.fmt.width
+        if not tail and width <= 6:
+            return DPTBinary(value)
+        if width % 8:
+            raise ValueError(S.DPT_VALUE_INVALID)
+        head = value.to_bytes(width // 8, "big") if width else b""
+        return DPTArray(head + tail)
+
+    def set_payload(self, payload: Payload) -> None:
+        if isinstance(payload, DPTBinary):
+            raw_bits, total = int(payload.value), sum(f.fmt.width for f in self.fields)
+        else:
+            data = bytes(payload.value)
+            raw_bits, total = int.from_bytes(data, "big"), len(data) * 8
+        position = 0
+        for item in self.fields:
+            if item.fmt.kind == "string":
+                item.show_octets(raw_bits.to_bytes(total // 8, "big")[position // 8 :])
+                return
+            end = position + item.fmt.width
+            item.show_bits((raw_bits >> (total - end)) & ((1 << item.fmt.width) - 1))
+            position = end
+
+
 def _complex_fields(transcoder: type[DPTComplex[Any]]) -> list[_Field] | None:
     fields: list[_Field] = []
     for spec in cast("list[dict[str, Any]]", transcoder.get_dict_schema()):
@@ -403,6 +652,8 @@ def _editor_for(token: str | None, formats: Mapping[str, DptFormat]) -> _Editor 
             ]
         )
     if transcoder is None:
+        if isinstance(fmt, CompositeFormat):
+            return _Master([_MasterField(f) for f in fmt.fields])
         return None
     if issubclass(transcoder, DPTEnum):
         enum_transcoder = cast("type[DPTEnum[Any]]", transcoder)
@@ -423,6 +674,8 @@ def _editor_for(token: str | None, formats: Mapping[str, DptFormat]) -> _Editor 
         fields = _complex_fields(complex_transcoder)
         if fields:
             return _Fields(complex_transcoder, fields)
+    if isinstance(fmt, CompositeFormat):
+        return _Master([_MasterField(f) for f in fmt.fields])
     return _Free(cast("type[DPTBase]", transcoder))
 
 

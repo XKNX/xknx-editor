@@ -23,7 +23,108 @@ class NumberFormat:
     coefficient: float | None = None
 
 
-DptFormat = BitFormat | EnumFormat | NumberFormat
+@dataclass(frozen=True, slots=True)
+class FieldFormat:
+    """One field of a data point subtype, most significant bits first.
+
+    ``kind`` is ``bit``, ``reserved``, ``unsigned``, ``signed``, ``float``, ``enum`` or
+    ``string``. A number is shown as ``raw * coefficient + offset``; ``minimum`` and ``maximum``
+    are in shown units."""
+
+    kind: str
+    width: int
+    name: str = ""
+    unit: str = ""
+    coefficient: float | None = None
+    offset: float | None = None
+    minimum: float | None = None
+    maximum: float | None = None
+    cleared: str = ""
+    set: str = ""
+    texts: tuple[tuple[int, str], ...] = ()
+    encoding: str = ""
+    variable_length: bool = False
+    null_terminated: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class CompositeFormat:
+    """The field layout of a subtype that is not a single bit, enumeration or number."""
+
+    fields: tuple[FieldFormat, ...]
+
+
+DptFormat = BitFormat | EnumFormat | NumberFormat | CompositeFormat
+
+_KINDS = {
+    "FormatBit": "bit",
+    "FormatReserved": "reserved",
+    "FormatUnsignedInteger": "unsigned",
+    "FormatSignedInteger": "signed",
+    "FormatFloat": "float",
+    "FormatEnumeration": "enum",
+    "FormatString": "string",
+}
+
+
+def _field(item: Any) -> FieldFormat | None:
+    kind = next(
+        (k for name, k in _KINDS.items() if type(item).__name__.endswith(name)), None
+    )
+    if kind is None:
+        return None
+    width = 1 if kind == "bit" else int(getattr(item, "width", 0) or 0)
+    encoding = getattr(item, "encoding", None)
+
+    def number(attr: str) -> float | None:
+        value = getattr(item, attr, None)
+        return None if value is None else float(value)
+
+    return FieldFormat(
+        kind=kind,
+        width=width,
+        name=getattr(item, "name", None) or "",
+        unit=getattr(item, "unit", None) or "",
+        coefficient=number("coefficient"),
+        offset=number("offset"),
+        minimum=number("min_inclusive") if kind != "float" else number("min_value"),
+        maximum=number("max_inclusive") if kind != "float" else number("max_value"),
+        cleared=getattr(item, "cleared", None) or "",
+        set=getattr(item, "set", None) or "",
+        texts=tuple(
+            (int(value.value), str(value.text))
+            for value in cast("list[Any]", getattr(item, "enum_value", None) or [])
+        ),
+        encoding=str(getattr(encoding, "value", encoding) or ""),
+        variable_length=bool(getattr(item, "variable_length", False)),
+        null_terminated=bool(getattr(item, "null_terminated", False)),
+    )
+
+
+def _composite(choices: list[Any], by_id: dict[str, Any]) -> CompositeFormat | None:
+    fields: list[FieldFormat] = []
+    for item in choices:
+        ref = getattr(item, "ref_id", None)
+        if ref is not None:
+            item = by_id.get(ref)
+        field = _field(item) if item is not None else None
+        if field is None:
+            return None
+        fields.append(field)
+    return CompositeFormat(tuple(fields)) if fields else None
+
+
+def _simple(item: Any) -> DptFormat | None:
+    kind = type(item).__name__
+    if kind.endswith("FormatBit"):
+        return BitFormat(item.cleared, item.set)
+    if kind.endswith("FormatEnumeration"):
+        return EnumFormat({value.value: value.text for value in item.enum_value})
+    if kind.endswith(("FormatUnsignedInteger", "FormatSignedInteger")):
+        return NumberFormat(item.unit or "", getattr(item, "coefficient", None))
+    if kind.endswith("FormatFloat"):
+        return NumberFormat(item.unit or "")
+    return None
 
 
 def master_formats(master: Any) -> dict[str, DptFormat]:
@@ -33,29 +134,26 @@ def master_formats(master: Any) -> dict[str, DptFormat]:
     formats: dict[str, DptFormat] = {}
     if holder is None:
         return formats
+    subtypes_all: list[Any] = []
+    by_id: dict[str, Any] = {}
     for dpt in cast("list[Any]", holder.datapoint_type):
         subtypes = getattr(dpt, "datapoint_subtypes", None)
         if subtypes is None:
             continue
         for subtype in cast("list[Any]", subtypes.datapoint_subtype):
+            subtypes_all.append(subtype)
             fmt = getattr(subtype, "format", None)
-            choices = cast("list[Any]", fmt.choice) if fmt is not None else []
-            if len(choices) != 1:
-                continue
-            item = choices[0]
-            kind = type(item).__name__
-            if kind.endswith("FormatBit"):
-                formats[subtype.id] = BitFormat(item.cleared, item.set)
-            elif kind.endswith("FormatEnumeration"):
-                formats[subtype.id] = EnumFormat(
-                    {value.value: value.text for value in item.enum_value}
-                )
-            elif kind.endswith(("FormatUnsignedInteger", "FormatSignedInteger")):
-                formats[subtype.id] = NumberFormat(
-                    item.unit or "", getattr(item, "coefficient", None)
-                )
-            elif kind.endswith("FormatFloat"):
-                formats[subtype.id] = NumberFormat(item.unit or "")
+            for item in cast("list[Any]", fmt.choice) if fmt is not None else []:
+                if getattr(item, "id", None):
+                    by_id[item.id] = item
+    for subtype in subtypes_all:
+        fmt = getattr(subtype, "format", None)
+        choices = cast("list[Any]", fmt.choice) if fmt is not None else []
+        simple = _simple(choices[0]) if len(choices) == 1 else None
+        if simple is None:
+            simple = _composite(choices, by_id)
+        if simple is not None:
+            formats[subtype.id] = simple
     return formats
 
 

@@ -181,3 +181,9 @@ msgstr "Dieser Wert kann mit diesem Datentyp nicht gesendet werden."
 
 msgid "No value can be entered for this data type."
 msgstr "Für diesen Datentyp kann kein Wert eingegeben werden."
+
+msgid "Edit…"
+msgstr "Bearbeiten…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "Der Text darf höchstens {count} Byte lang sein."

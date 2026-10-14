@@ -225,5 +225,13 @@ class WidgetStrings(BaseStrings):
     def DPT_VALUE_UNSUPPORTED(self) -> str:
         return _("No value can be entered for this data type.")
 
+    @property
+    def DPT_VALUE_EDIT(self) -> str:
+        return _("Edit…")
+
+    @property
+    def DPT_VALUE_TOO_LONG_BYTES(self) -> str:
+        return _("The text may take at most {count} bytes.")
+
 
 S = WidgetStrings()

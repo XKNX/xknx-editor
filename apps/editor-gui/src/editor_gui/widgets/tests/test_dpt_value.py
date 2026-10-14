@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 from xknx.dpt.payload import DPTArray, DPTBinary
 
-from editor_gui.dpt_formats import BitFormat, EnumFormat
+from editor_gui.dpt_formats import BitFormat, CompositeFormat, EnumFormat, FieldFormat
 from editor_gui.widgets import dpt_value
 from editor_gui.widgets.dpt_value import DptValueInput, dpt_label
 
@@ -121,3 +121,62 @@ def test_type_without_limits_has_no_range_hint() -> None:
         editor.payload()
     editor.text = "1,5"
     assert editor.payload() == DPTArray((0x3F, 0xC0, 0x00, 0x00))
+
+
+def _layout(*fields: FieldFormat) -> dict[str, CompositeFormat]:
+    return {"DPST-99-1": CompositeFormat(fields)}
+
+
+def test_utf8_string_without_xknx_class_is_text() -> None:
+    layout = {
+        "DPST-28-1": CompositeFormat(
+            (
+                FieldFormat(
+                    "string",
+                    312,
+                    encoding="utf-8",
+                    variable_length=True,
+                    null_terminated=True,
+                ),
+            )
+        )
+    }
+    editor = _editor("DPST-28-1", layout)
+    editor.fields[0].text = "Grüße"
+    assert editor.payload() == DPTArray("Grüße".encode() + b"\x00")
+    editor.fields[0].text = "x" * 39
+    with pytest.raises(ValueError, match="39"):
+        editor.payload()
+
+
+def test_master_layout_packs_fields_most_significant_first() -> None:
+    # DPT 26.001 scene information: reserved bit, active flag, 6-bit scene number.
+    layout = _layout(
+        FieldFormat("reserved", 1),
+        FieldFormat("bit", 1, cleared="scene is active", set="scene is inactive"),
+        FieldFormat("unsigned", 6, name="SceneNumber", minimum=0, maximum=63),
+    )
+    editor = _editor("DPST-99-1", layout)
+    _, flag, scene = editor.fields
+    flag.selected = 1
+    scene.text = "5"
+    assert editor.payload() == DPTArray((0x45,))
+    scene.text = "64"
+    with pytest.raises(ValueError, match="SceneNumber"):
+        editor.payload()
+    scene.text = ""
+    flag.selected = 0
+    editor.set_payload(DPTArray((0x45,)))
+    assert (flag.selected, scene.text) == (1, "5")
+
+
+def test_master_layout_scales_and_encodes_floats() -> None:
+    layout = _layout(
+        FieldFormat("unsigned", 8, name="S", unit="%", coefficient=0.3921566),
+        FieldFormat("float", 16, name="Temp", unit="°C"),
+    )
+    editor = _editor("DPST-99-1", layout)
+    saturation, temperature = editor.fields
+    saturation.text = "100"
+    temperature.text = "21,5"
+    assert editor.payload() == DPTArray((0xFF, 0x0C, 0x33))
