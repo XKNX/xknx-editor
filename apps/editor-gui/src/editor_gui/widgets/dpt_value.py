@@ -333,7 +333,13 @@ class _Fields(_Editor):
     transcoder: type[DPTComplex[Any]]
     fields: list[_Field]
 
-    def render(self, widget_id: str, *, inline: bool) -> bool:
+    @property
+    def labels(self) -> list[str]:
+        return [_title(f.name) for f in self.fields]
+
+    def render(
+        self, widget_id: str, *, inline: bool, column: float | None = None
+    ) -> bool:
         if inline and len(self.fields) > 3:
             return _edit_in_dialog(
                 widget_id, self.fields, lambda: self.render(widget_id, inline=False)
@@ -342,14 +348,16 @@ class _Fields(_Editor):
         label_w = (
             0.0
             if inline
-            else max(imgui.calc_text_size(_title(f.name)).x for f in self.fields)
+            else max(imgui.calc_text_size(label).x for label in self.labels)
         )
         for index, item in enumerate(self.fields):
             if inline and index:
                 imgui.same_line()
             imgui.align_text_to_frame_padding()
             imgui.text_disabled(_title(item.name))
-            imgui.same_line(0.0 if inline else label_w + px(16.0))
+            imgui.same_line(
+                0.0 if inline else column if column is not None else label_w + px(16.0)
+            )
             item_id = f"##{widget_id}_{item.name}"
             if item.kind == "enum":
                 options = item.options if item.required else ["-", *item.options]
@@ -642,7 +650,12 @@ class _Master(_Editor):
     def shown_fields(self) -> list[_MasterField]:
         return [f for f in self.fields if f.fmt.kind != "reserved"]
 
-    def _render_fields(self, widget_id: str) -> bool:
+    @property
+    def labels(self) -> list[str]:
+        shown = self.shown_fields
+        return [f.label for f in shown if f.label] if len(shown) > 1 else []
+
+    def _render_fields(self, widget_id: str, column: float | None = None) -> bool:
         shown = self.shown_fields
         labels = [f.label for f in shown if f.label]
         label_w = max((imgui.calc_text_size(text).x for text in labels), default=0.0)
@@ -651,11 +664,13 @@ class _Master(_Editor):
             if labels:
                 imgui.align_text_to_frame_padding()
                 imgui.text_disabled(item.label)
-                imgui.same_line(label_w + px(16.0))
+                imgui.same_line(column if column is not None else label_w + px(16.0))
             submitted = item.render(f"{widget_id}_{index}", inline=False) or submitted
         return submitted
 
-    def render(self, widget_id: str, *, inline: bool) -> bool:
+    def render(
+        self, widget_id: str, *, inline: bool, column: float | None = None
+    ) -> bool:
         shown = self.shown_fields
         if len(shown) == 1:
             return shown[0].render(widget_id, inline=inline)
@@ -663,7 +678,7 @@ class _Master(_Editor):
             return _edit_in_dialog(
                 widget_id, self.fields, lambda: self._render_fields(widget_id)
             )
-        return self._render_fields(widget_id)
+        return self._render_fields(widget_id, column)
 
     def payload(self) -> Payload:
         value = 0
@@ -808,18 +823,33 @@ class DptValueInput:
         self._sync(token, formats)
         return self._editor is not None
 
+    def field_labels(
+        self, token: str | None, formats: Mapping[str, DptFormat]
+    ) -> list[str]:
+        """The labels of a value entered in several labelled fields; empty otherwise."""
+        self._sync(token, formats)
+        if isinstance(self._editor, (_Fields, _Master)):
+            return self._editor.labels
+        return []
+
     def render(
         self,
         token: str | None,
         formats: Mapping[str, DptFormat],
         *,
         inline: bool = False,
+        column: float | None = None,
     ) -> bool:
-        """Draw the input; ``True`` when Enter was pressed in one of its text fields."""
+        """Draw the input; ``True`` when Enter was pressed in one of its text fields.
+
+        With ``column``, the fields of a compound value are drawn below each other with their
+        labels at the line start and the inputs at ``column`` (see :meth:`field_labels`)."""
         self._sync(token, formats)
         if self._editor is None:
             imgui.text_disabled(S.DPT_VALUE_UNSUPPORTED)
             return False
+        if column is not None and isinstance(self._editor, (_Fields, _Master)):
+            return self._editor.render(self.widget_id, inline=False, column=column)
         return self._editor.render(self.widget_id, inline=inline)
 
     def payload(self) -> Payload | None:

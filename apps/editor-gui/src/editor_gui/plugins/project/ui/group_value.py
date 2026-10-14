@@ -5,7 +5,7 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
-from editor_gui.widgets.dpi import px
+from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.dpt_value import DptValueInput, GroupValueBus, dpt_label
 
 
@@ -40,10 +40,15 @@ class GroupValueActions:
             imgui.open_popup(S.GA_WRITE_VALUE_TITLE)
             self._open = False
         bus = self._bus
-        if not begin_dialog(S.GA_WRITE_VALUE_TITLE, width=480.0):
+        # At least the usual width; wider when a value field needs the room.
+        imgui.set_next_window_size_constraints(
+            px_vec2(480.0, 0.0), imgui.ImVec2(1e9, 1e9)
+        )
+        if not begin_dialog(S.GA_WRITE_VALUE_TITLE):
             return
         formats = bus.formats()
-        labels = (S.GA_WRITE_ADDRESS, S.GA_WRITE_DPT, S.GA_WRITE_VALUE_LABEL)
+        fields = self._value.field_labels(self._dpt, formats) if self._dpt else []
+        labels = [S.GA_WRITE_ADDRESS, S.GA_WRITE_DPT, S.GA_WRITE_VALUE_LABEL, *fields]
         label_w = max(imgui.calc_text_size(label).x for label in labels) + px(16.0)
         imgui.text_disabled(S.GA_WRITE_ADDRESS)
         imgui.same_line(label_w)
@@ -52,16 +57,22 @@ class GroupValueActions:
         imgui.same_line(label_w)
         imgui.text(dpt_label(self._dpt, bus.names()) or "-")
         imgui.spacing()
-        imgui.align_text_to_frame_padding()
-        imgui.text_disabled(S.GA_WRITE_VALUE_LABEL)
-        imgui.same_line(label_w)
         submitted = False
-        if self._dpt:
-            imgui.begin_group()
-            submitted = self._value.render(self._dpt, formats)
-            imgui.end_group()
+        if self._dpt and fields:
+            # A compound value: its fields share the label column of the dialog.
+            submitted = self._value.render(self._dpt, formats, column=label_w)
         else:
-            imgui.text_wrapped(S.GA_WRITE_NO_DPT)
+            imgui.align_text_to_frame_padding()
+            imgui.text_disabled(S.GA_WRITE_VALUE_LABEL)
+            imgui.same_line(label_w)
+            if self._dpt:
+                imgui.begin_group()
+                submitted = self._value.render(self._dpt, formats)
+                imgui.end_group()
+            else:
+                imgui.push_text_wrap_pos(imgui.get_cursor_pos_x() + px(300.0))
+                imgui.text_wrapped(S.GA_WRITE_NO_DPT)
+                imgui.pop_text_wrap_pos()
         if self._value.error:
             imgui.text_colored(imgui.ImVec4(0.9, 0.3, 0.3, 1.0), self._value.error)
         connected = bus.connected()
