@@ -1400,16 +1400,44 @@ class ProjectStrings:
         return _("Load Reference File")
 
     @property
-    def MEMORY_REF_PATH(self) -> str:
-        return _("Reference File Path:")
-
-    @property
     def MEMORY_SAVE_DUMP_TITLE(self) -> str:
         return _("Save Memory Dump")
 
     @property
-    def MEMORY_SAVE_PATH(self) -> str:
-        return _("Save Path:")
+    def MEMORY_SAVE(self) -> str:
+        return _("Save")
+
+    @property
+    def MEMORY_DIFF(self) -> str:
+        return _("Diff")
+
+    @property
+    def MEMORY_CLEAR_DIFF(self) -> str:
+        return _("Clear Diff")
+
+    @property
+    def MEMORY_FILE_FILTER(self) -> str:
+        return _("Memory Dumps (*.bin)")
+
+    @property
+    def MEMORY_ALL_FILES(self) -> str:
+        return _("All Files")
+
+    @property
+    def MEMORY_BYTES(self) -> str:
+        return _("{count} bytes")
+
+    @property
+    def MEMORY_NO_SEGMENTS(self) -> str:
+        return _("No memory segments.")
+
+    @property
+    def MEMORY_ENCODE_FAILED(self) -> str:
+        return _("Cannot encode memory image: {error}")
+
+    @property
+    def MEMORY_FILE_FAILED(self) -> str:
+        return _("The file could not be read or written: {error}")
 
     @property
     def PREFLIGHT_RESULT_TITLE(self) -> str:

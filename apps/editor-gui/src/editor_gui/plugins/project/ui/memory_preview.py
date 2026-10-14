@@ -1,19 +1,17 @@
-import contextlib
+import re
 from collections.abc import Callable
 from pathlib import Path
 
 from imgui_bundle import imgui
+from imgui_bundle import portable_file_dialogs as pfd
 
 from editor_gui.device import Device, device_label
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets import HexView
-from editor_gui.widgets.dialog import (
-    begin_dialog,
-    begin_tool_window,
-    dialog_buttons,
-    end_dialog,
-)
+from editor_gui.widgets.dialog import begin_tool_window
 from xknxeditor.prod.errors import EncodingError
+
+_ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 
 
 class MemoryPreviewWindow:
@@ -25,22 +23,21 @@ class MemoryPreviewWindow:
         self._base_addrs: dict[str, int] = {}
         self._param_maps: dict[str, dict[int, tuple[str, str]]] = {}
         self._hex_views: dict[str, HexView] = {}
-        self._save_path_buf: str = "dump.bin"
-        self._save_seg_id: str | None = None
         self._ref_data: dict[str, bytes] = {}
-        self._ref_path_buf: str = ""
-        self._ref_seg_id: str | None = None
         self._encode_error: str | None = None
-        # The segment toolbar sits inside a tab item (its own id scope); the dialogs are opened
-        # at window scope, where they are begun.
-        self._open_save_pending = False
-        self._open_ref_pending = False
+        # Native file dialogs (non-blocking) and the segment each one is for.
+        self._save_dialog: pfd.save_file | None = None
+        self._save_seg_id: str | None = None
+        self._ref_dialog: pfd.open_file | None = None
+        self._ref_seg_id: str | None = None
+        self._file_error: str | None = None
 
     def open(self, device: Device) -> None:
         self._device = device
         self._show = True
 
     def render(self) -> None:
+        self._poll_dialogs()
         if not self._show:
             return
         devices = self._get_devices()
@@ -70,19 +67,15 @@ class MemoryPreviewWindow:
         if opened:
             self._render_device_selector(devices)
             imgui.separator()
-            if self._open_save_pending:
-                imgui.open_popup(S.MEMORY_SAVE_DUMP_TITLE)
-                self._open_save_pending = False
-            if self._open_ref_pending:
-                imgui.open_popup(S.MEMORY_LOAD_REF_TITLE)
-                self._open_ref_pending = False
-            self._render_save_modal()
-            self._render_load_ref_modal()
+            if self._file_error is not None:
+                imgui.text_colored(_ERROR_COLOR, self._file_error)
             segments = list(self._segments.items())
             if self._encode_error is not None:
-                imgui.text_disabled(f"Cannot encode memory image: {self._encode_error}")
+                imgui.text_disabled(
+                    S.MEMORY_ENCODE_FAILED.format(error=self._encode_error)
+                )
             elif not segments:
-                imgui.text_disabled("No memory segments.")
+                imgui.text_disabled(S.MEMORY_NO_SEGMENTS)
             elif imgui.begin_tab_bar("##segs"):
                 for i, (seg_id, data) in enumerate(segments):
                     label = f"{seg_id} ({len(data)}B)##seg{i}"
@@ -116,50 +109,57 @@ class MemoryPreviewWindow:
             self._ref_data = {}
 
     def _render_seg_toolbar(self, seg_id: str, data: bytes, idx: int) -> None:
-        imgui.text_disabled(f"{len(data)} bytes")
+        imgui.text_disabled(S.MEMORY_BYTES.format(count=len(data)))
         imgui.same_line()
-        if imgui.small_button(f"Save...##sv{idx}"):
+        idle = self._save_dialog is None and self._ref_dialog is None
+        imgui.begin_disabled(not idle)
+        if imgui.small_button(f"{S.MEMORY_SAVE}##sv{idx}"):
             self._save_seg_id = seg_id
-            self._open_save_pending = True
+            self._file_error = None
+            self._save_dialog = pfd.save_file(
+                S.MEMORY_SAVE_DUMP_TITLE,
+                self._dump_name(seg_id),
+                [S.MEMORY_FILE_FILTER, "*.bin", S.MEMORY_ALL_FILES, "*"],
+            )
         imgui.same_line()
-        has_ref = seg_id in self._ref_data
-        diff_label = f"Diff (clear)##df{idx}" if has_ref else f"Diff...##df{idx}"
-        if imgui.small_button(diff_label):
-            if has_ref:
+        if seg_id in self._ref_data:
+            if imgui.small_button(f"{S.MEMORY_CLEAR_DIFF}##df{idx}"):
                 del self._ref_data[seg_id]
-            else:
-                self._ref_seg_id = seg_id
-                self._ref_path_buf = ""
-                self._open_ref_pending = True
+        elif imgui.small_button(f"{S.MEMORY_DIFF}##df{idx}"):
+            self._ref_seg_id = seg_id
+            self._file_error = None
+            self._ref_dialog = pfd.open_file(
+                S.MEMORY_LOAD_REF_TITLE,
+                "",
+                [S.MEMORY_FILE_FILTER, "*.bin", S.MEMORY_ALL_FILES, "*"],
+            )
+        imgui.end_disabled()
 
-    def _render_load_ref_modal(self) -> None:
-        if begin_dialog(S.MEMORY_LOAD_REF_TITLE, width=500):
-            imgui.text(S.MEMORY_REF_PATH)
-            imgui.set_next_item_width(-1)
-            _, self._ref_path_buf = imgui.input_text("##rp", self._ref_path_buf)
-            clicked = dialog_buttons(S.BTN_LOAD, S.BTN_CANCEL)
-            if clicked == 0:
-                seg_id = self._ref_seg_id
-                if seg_id is not None:
-                    with contextlib.suppress(OSError):
-                        self._ref_data[seg_id] = Path(self._ref_path_buf).read_bytes()
-                imgui.close_current_popup()
-            elif clicked == 1:
-                imgui.close_current_popup()
-            end_dialog()
+    def _dump_name(self, seg_id: str) -> str:
+        """Default file name from device address and segment, e.g. ``1.1.5-RS-04-00000.bin``."""
+        address = self._device.individual_address if self._device is not None else ""
+        name = "-".join(part for part in (address, seg_id) if part) or "memory"
+        return re.sub(r'[<>:"/\\|?*\s]+', "_", name) + ".bin"
 
-    def _render_save_modal(self) -> None:
-        if begin_dialog(S.MEMORY_SAVE_DUMP_TITLE, width=500):
-            imgui.text(S.MEMORY_SAVE_PATH)
-            imgui.set_next_item_width(-1)
-            _, self._save_path_buf = imgui.input_text("##sp", self._save_path_buf)
-            clicked = dialog_buttons(S.BTN_SAVE, S.BTN_CANCEL)
-            if clicked == 0:
-                seg_id = self._save_seg_id
-                if seg_id is not None and seg_id in self._segments:
-                    with contextlib.suppress(OSError):
-                        Path(self._save_path_buf).write_bytes(self._segments[seg_id])
-                imgui.close_current_popup()
-            elif clicked == 1:
-                imgui.close_current_popup()
-            end_dialog()
+    def _poll_dialogs(self) -> None:
+        if self._save_dialog is not None and self._save_dialog.ready():
+            result = self._save_dialog.result()
+            self._save_dialog = None
+            seg_id = self._save_seg_id
+            if result and seg_id is not None and seg_id in self._segments:
+                path = Path(result)
+                if not path.suffix:
+                    path = path.with_suffix(".bin")
+                try:
+                    path.write_bytes(self._segments[seg_id])
+                except OSError as exc:
+                    self._file_error = S.MEMORY_FILE_FAILED.format(error=exc)
+        if self._ref_dialog is not None and self._ref_dialog.ready():
+            result = self._ref_dialog.result()
+            self._ref_dialog = None
+            seg_id = self._ref_seg_id
+            if result and seg_id is not None:
+                try:
+                    self._ref_data[seg_id] = Path(result[0]).read_bytes()
+                except OSError as exc:
+                    self._file_error = S.MEMORY_FILE_FAILED.format(error=exc)
