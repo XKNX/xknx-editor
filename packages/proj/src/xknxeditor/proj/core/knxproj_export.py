@@ -365,44 +365,26 @@ def _fill_empty_parameter_types(data: bytes) -> bytes:
 
 
 def _heal_manufacturer_member(data: bytes, schema: str) -> bytes:
-    """Heal one manufacturer XML member for the target schema: convert a legacy namespace up,
-    restamp an unreleased tool identity, and fill childless parameter types. A strict no-op on a
-    clean member already at the target schema."""
+    """Heal one manufacturer XML member for the archive.
+
+    A member whose modern schema differs from the project's (e.g. a project/20 product inside a
+    project/23 archive) is kept verbatim at its OWN namespace and tool identity — exactly what ETS
+    writes (the kept member keeps its original ``CreatedBy="ETS5"``). A legacy (project/<=14) member
+    is converted up to the project schema (namespace + released tool identity). A member already at
+    the project schema has an unreleased tool identity restamped. Childless parameter types are
+    always filled (ETS aborts the import with a NullReferenceException otherwise)."""
     detected = _schema_from_knx_xml(data)
-    if (
-        detected is not None
-        and detected != schema
-        and int(detected) <= _LEGACY_SCHEMA_MAX
-    ):
-        data = data.replace(
-            f'xmlns="http://knx.org/xml/project/{detected}"'.encode(),
-            f'xmlns="http://knx.org/xml/project/{schema}"'.encode(),
-        )
+    if detected is not None and detected != schema:
+        if int(detected) <= _LEGACY_SCHEMA_MAX:
+            data = data.replace(
+                f'xmlns="http://knx.org/xml/project/{detected}"'.encode(),
+                f'xmlns="http://knx.org/xml/project/{schema}"'.encode(),
+            )
+            data = _restamp_tool_identity(data, schema)
+        # Modern mismatch: keep the namespace and the original tool identity verbatim.
+        return _fill_empty_parameter_types(data)
     data = _restamp_tool_identity(data, schema)
     return _fill_empty_parameter_types(data)
-
-
-def _check_extra_schema(extra_files: Mapping[str, bytes], schema: str) -> None:
-    """Reject a modern-family schema mismatch in the bundled manufacturer data.
-
-    Legacy (project/10..14) members are converted up on export; a modern mismatch (e.g. project/20
-    data in a project/23 export) is a hard error — the importer rejects the whole archive as
-    'Invalid import data' when its XMLs disagree on schema."""
-    for name, data in extra_files.items():
-        if not name.endswith("/Hardware.xml"):
-            continue
-        detected = _schema_from_knx_xml(data)
-        if (
-            detected is None
-            or detected == schema
-            or int(detected) <= _LEGACY_SCHEMA_MAX
-        ):
-            continue
-        raise ValueError(
-            f"cannot export as project/{schema}: bundled manufacturer data uses "
-            f"project/{detected}. All device product data must match the project schema — "
-            "import ETS6-era .knxprod for a native project/23 export."
-        )
 
 
 def _heal_extra_files(
@@ -461,10 +443,12 @@ def _resolve_export_sources(
     """Resolve the schema, namespace, manufacturer members and master XML the archive is built from.
 
     Caller-supplied ``extra_files`` win; without them the project's stored import provenance is
-    re-emitted (:func:`_stored_provenance_sources`). The whole ``.knxproj`` must use ONE schema, so
-    the project files are aligned to the resolved master's schema, an unusable supplied master is
-    substituted by the fetched one when ``fetch_master`` is set, and legacy manufacturer members are
-    converted up while a modern-family mismatch stays a hard error."""
+    re-emitted (:func:`_stored_provenance_sources`). The project files (project.xml / 0.xml) and
+    knx_master.xml share ONE schema, but each ``M-xxxx/`` manufacturer folder keeps its OWN original
+    schema — as ETS writes it. So the master is obtained at the project schema, an unusable supplied
+    master is substituted by the fetched one when ``fetch_master`` is set, legacy (project/<=14)
+    manufacturer members are converted up, and modern members at a different schema pass through
+    verbatim (no mismatch error)."""
     if extra_files:
         effective_extra: dict[str, bytes] = dict(extra_files)
         effective_master = master_xml
@@ -486,24 +470,11 @@ def _resolve_export_sources(
                 exc,
             )
 
-    # Align the export schema UP to the resolved master's schema first (the whole archive must use
-    # one schema). Only after that do we judge whether the master is usable for that schema.
-    if effective_master is not None:
-        detected = _schema_from_knx_xml(effective_master)
-        if detected is not None and detected != schema:
-            if detected in _SCHEMA_TOOLS:
-                logger.warning(
-                    "aligning export schema %s -> %s to match master data",
-                    schema,
-                    detected,
-                )
-                schema = detected
-            else:
-                logger.warning(
-                    "master uses unsupported schema %s; keeping %s (import may fail)",
-                    detected,
-                    schema,
-                )
+    # The project files (project.xml / 0.xml) and knx_master.xml use ONE schema (``schema``), but the
+    # manufacturer data under each ``M-xxxx/`` keeps its OWN original schema — exactly what ETS writes
+    # (e.g. an ETS6 project/23 archive carrying a device whose product data stays project/20). So the
+    # master is obtained AT the project schema and the manufacturer members are emitted as-is; the
+    # project schema is NOT bumped to match the master or the product data.
 
     # A supplied/merged master that does not verify for the (aligned) schema — wrong namespace that
     # cannot be aligned, or a blanked signature — would make the import fail; replace it with the
@@ -524,7 +495,6 @@ def _resolve_export_sources(
                     fetch_exc,
                 )
 
-    _check_extra_schema(effective_extra, schema)
     effective_extra = _heal_extra_files(effective_extra, schema)
     return schema, _ns_for(schema), effective_extra, effective_master
 
@@ -1779,3 +1749,13 @@ class _Writer:
                 Puid=self._next_puid(),
             )
         return seq
+
+
+# Object-model id/ref helpers shared with the ETS project-store serializer
+# (:mod:`ets_store_serialize`), which emits the same model in a different stream shape.
+assign_ids = _assign_ids
+enable = _enable
+group_object_tree_instances = _group_object_tree_instances
+has_override = _has_override
+localname = _localname
+relidref = _relidref

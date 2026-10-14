@@ -721,10 +721,6 @@ class MenuStrings:
         return _("License with an ETS Dongle")
 
     @property
-    def MYKNX_DONGLE_SAVE_ZIP(self) -> str:
-        return _("Save as .zip")
-
-    @property
     def MYKNX_DONGLE_EXPORT_STORE(self) -> str:
         return _("Export to ETS 6 ProjectStore")
 
@@ -733,21 +729,53 @@ class MenuStrings:
         return _("Select the ETS 6 ProjectStore folder")
 
     @property
+    def MYKNX_DONGLE_PICK_INSTALLER(self) -> str:
+        return _("Select the ETS installer.guid file")
+
+    @property
+    def MYKNX_DONGLE_INSTALLER_FILTER(self) -> str:
+        return _("ETS installer id")
+
+    @property
+    def MYKNX_DONGLE_EXISTS_TITLE(self) -> str:
+        return _("Project already in the store")
+
+    @property
+    def MYKNX_DONGLE_EXISTS_PROMPT(self) -> str:
+        return _(
+            "A project folder '{pid}' already exists in this ETS ProjectStore. Overwrite it, "
+            "or add it as a separate copy?"
+        )
+
+    @property
+    def MYKNX_DONGLE_OVERWRITE(self) -> str:
+        return _("Overwrite")
+
+    @property
+    def MYKNX_DONGLE_NEW_COPY(self) -> str:
+        return _("Add copy")
+
+    @property
+    def MYKNX_DONGLE_COPY_SUFFIX(self) -> str:
+        return _("XKNX Export")
+
+    @property
     def MYKNX_DONGLE_STEPS(self) -> str:
         return _(
             "Re-license the project through your own licensed ETS via its local project store, "
             "which re-signs the copy with your dongle license:\n"
             "\n"
-            "   1. Click 'Save as .zip' below and open the .zip (or open the .knxproj with 7-Zip) "
-            "to get at the 'P-XXXX' folder inside.\n"
-            "   2. Copy the whole 'P-XXXX' folder into the ProjectStore of your installed ETS:\n"
-            "        ETS 6:  C:\\ProgramData\\KNX\\ETS6\\ProjectStore\n"
-            "        ETS 5:  C:\\ProgramData\\KNX\\ETS5\\ProjectStore\n"
-            "      (the file 'P' inside the folder holds the project name).\n"
+            "   1. Click 'Export to ETS 6 ProjectStore' below. It writes the project's 'P-XXXX' "
+            "folder straight into your ETS project store. If ETS is not installed on this "
+            "computer, you are asked for the store folder (or any folder you then copy over "
+            "manually).\n"
+            "   2. The export needs your 'installer.guid' file from "
+            "C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are "
+            "asked to select it.\n"
             "   3. Restart ETS - the project appears in the project overview.\n"
-            "   4. Make a copy of it there (ETS 5: right-click > Copy > As Clone; ETS 6: Copy in "
-            "the overview). The copy is re-signed with your license - open it, then use/export it "
-            "normally.\n"
+            "   4. Make a copy of it there (ETS 6: Copy in the overview; ETS 5: right-click > "
+            "Copy > As Clone). The copy is re-signed with your license - open it, then use or "
+            "export it normally.\n"
             "\n"
             "This is bounded by the device-per-project limit of your license."
         )

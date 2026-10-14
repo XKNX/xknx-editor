@@ -489,6 +489,11 @@ class ProjectService:
         return self._pid is not None
 
     @property
+    def pid(self) -> str | None:
+        """The open project's id (``P-XXXX``), or ``None`` when no project is open."""
+        return self._pid
+
+    @property
     def generation(self) -> int:
         """Identity of the currently open project. Changes on every new/open/close; capture it when
         starting a deferred/background operation and pass it back so a stale write is dropped."""

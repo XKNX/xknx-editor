@@ -8,7 +8,6 @@ import tempfile
 import threading
 import time
 import webbrowser
-import zipfile
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
@@ -22,6 +21,7 @@ _screenshot_patch._get_caller_filename = lambda depth: ""  # type: ignore[assign
 from imgui_bundle import hello_imgui, imgui
 from imgui_bundle import portable_file_dialogs as pfd
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import Session
 from xknxproject.exceptions import InvalidPasswordException, XknxProjectException
 
 from editor_gui import __version__
@@ -82,8 +82,14 @@ from xknxeditor.proj import (
     session_products,
     signing_key_is_placeholder,
 )
-from xknxeditor.proj.core import import_notes
+from xknxeditor.proj.core import ets_store, import_notes
 from xknxeditor.proj.core.addressing import GroupAddressStyle
+from xknxeditor.proj.core.ets_store_serialize import (
+    next_free_pid,
+    store_pid_exists,
+    unzip_members,
+    write_project_store,
+)
 from xknxeditor.proj.core.import_notes import ImportLoss
 from xknxeditor.proj.core.product_prune import (
     STEP_DEVICES,
@@ -91,7 +97,8 @@ from xknxeditor.proj.core.product_prune import (
     STEP_STORE,
     STEP_VACUUM,
 )
-from xknxeditor.proj.db import frame_db_profiler
+from xknxeditor.proj.db import frame_db_profiler, make_engine, url_for
+from xknxeditor.proj.models import Installation, Project
 
 _REPO_URL = "https://github.com/xknx/xknx-editor"
 # Direct download of the Windows "compat" build (bundled Mesa software OpenGL, pure CPU) — the one that
@@ -153,7 +160,6 @@ def _github_release_api_url(url: str) -> str | None:
     URL is not a GitHub release page (a direct asset URL / non-GitHub URL is returned unchanged by
     the caller). Handles ``/releases/tag/<tag>``, ``/releases/latest``, ``/releases`` and a bare
     ``owner/repo`` URL (both resolve to the latest release)."""
-    import re
 
     m = re.match(r"^https?://github\.com/([^/]+)/([^/]+)/releases/tag/([^/?#]+)", url)
     if m:
@@ -300,6 +306,14 @@ class KnxGuiApp:
         self._export_ga_export_dialog: pfd.save_file | None = None
         # Folder picker for the ETS 6 ProjectStore export when the default path is not found.
         self._projectstore_dialog: pfd.select_folder | None = None
+        # File picker for the ETS installer.guid when it is not found locally (e.g. exporting on a
+        # Mac for a Windows ETS), plus the store folder resolved in the step before it.
+        self._installer_guid_dialog: pfd.open_file | None = None
+        self._pending_store_path: Path | None = None
+        # Set when a P-XXXX folder already exists in the store: (store_root, installer_guid) held
+        # until the user picks overwrite vs. new copy in the confirmation modal.
+        self._projectstore_confirm: tuple[Path, str] | None = None
+        self._projectstore_confirm_open = False
         self._last_export_path: str | None = None
         self._file_dialogs_available: bool | None = None
         # One-shot guard for the startup OpenGL renderer log (see _log_gl_renderer). Done from the
@@ -856,75 +870,112 @@ class KnxGuiApp:
         return Path(base) / "KNX" / "ETS6" / "ProjectStore"
 
     def _begin_projectstore_export(self) -> None:
-        """Export into the ETS 6 ProjectStore; if the default path is missing, let the user pick one."""
+        """Resolve the ProjectStore folder (default, else ask the user), then export."""
         store = self._ets6_projectstore_dir()
         if store.parent.exists():
-            self._export_to_ets6_projectstore(store)
+            self._resolve_installer_guid_then_export(store)
         else:
             # ETS 6 not at the default location (or non-Windows): ask the user for the store folder.
             self._projectstore_dialog = pfd.select_folder(S.MYKNX_DONGLE_PICK_STORE, "")
 
-    def _export_to_ets6_projectstore(self, store: Path) -> None:
-        """Export the project's P-XXXX folder straight into ``store`` (the ETS 6 ProjectStore).
+    def _resolve_installer_guid_then_export(self, store: Path) -> None:
+        """Resolve the target ETS installation GUID (read it locally, else let the user pick it)."""
+        guid = ets_store.read_installer_guid()
+        if guid:
+            self._prepare_projectstore_export(store, guid)
+        else:
+            # The .store descriptor binds the project to the target ETS installation; on a machine
+            # without ETS (e.g. a Mac exporting for a Windows ETS), ask for the installer.guid file
+            # copied from the ETS machine's %ProgramData%/KNX/ETS6/Installer.
+            self._pending_store_path = store
+            self._installer_guid_dialog = pfd.open_file(
+                S.MYKNX_DONGLE_PICK_INSTALLER,
+                "",
+                [
+                    S.MYKNX_DONGLE_INSTALLER_FILTER,
+                    "installer.guid *.guid",
+                    S.FILE_DIALOG_ALL_FILES,
+                    "*",
+                ],
+            )
 
-        ETS 6 loads projects from this folder without an import signature/certificate check; the
-        user then copies/clones it in ETS, which re-signs and re-licenses it with their dongle.
+    def _prepare_projectstore_export(self, store: Path, installer_guid: str) -> None:
+        """Export now, or ask the user when a folder for this project id already exists."""
+        pid = self._project_service.pid
+        if pid is not None and store_pid_exists(store, pid):
+            # Let the user decide: replace that folder or write a separate, renamed copy.
+            self._projectstore_confirm = (store, installer_guid)
+        else:
+            self._export_to_ets6_projectstore(store, installer_guid, create_copy=False)
+
+    def _export_to_ets6_projectstore(
+        self, store: Path, installer_guid: str, *, create_copy: bool
+    ) -> None:
+        """Write the project's ``P-XXXX`` store folder into ``store`` (the ETS 6 ProjectStore).
+
+        ETS loads a project from its store without an import signature/certificate check; the user
+        then copies/clones it in ETS, which re-signs and re-licenses it with their dongle. The
+        folder uses ETS' internal stream format (not a ``.knxproj``), bound to ``installer_guid``.
+
+        ``create_copy`` writes to a fresh id with a tagged name instead of replacing the existing
+        folder, so an export can sit next to the original in the store.
         """
         source = self._project_service.working_path
         if source is None or (self._myknx_thread and self._myknx_thread.is_alive()):
             return
         program_refs = self._project_service.program_refs()
-        remove_unused = self._export_remove_unused
-        schema = self._export_schema
 
         def _run() -> None:
             try:
-                store.mkdir(parents=True, exist_ok=True)
-                extra_files: dict[str, bytes] = {}
-                master_xml: bytes | None = None
+                catalog_members: dict[str, bytes] = {}
                 try:
                     bundle = collect_manufacturer_bundle(
                         program_refs, self._catalog_service
                     )
-                    extra_files, master_xml = bundle.extra_files, bundle.master_xml
+                    catalog_members = {
+                        name: data
+                        for name, data in bundle.extra_files.items()
+                        if "/" in name and name.split("/", 1)[0].startswith("M-")
+                    }
                 except Exception as e:
                     self._log.warning(
                         "manufacturer bundle failed", error=f"{type(e).__name__}: {e}"
                     )
-                with tempfile.TemporaryDirectory() as td:
-                    tmp = Path(td) / "project.knxproj"
-                    export_knxproj(
-                        source,
-                        tmp,
-                        schema=schema,
-                        extra_files=extra_files,
-                        master_xml=master_xml,
-                        fetch_master=True,
-                        remove_unused_products=remove_unused,
+                engine = make_engine(url_for(Path(source)))
+                with Session(engine, autoflush=False) as session:
+                    project = session.query(Project).first()
+                    if project is None:
+                        self._log.error("ProjectStore export: no project row")
+                        return
+                    installation = (
+                        session.query(Installation).order_by(Installation.index).first()
                     )
-                    with zipfile.ZipFile(tmp) as zf:
-                        names = zf.namelist()
-                        pids = sorted(
-                            {
-                                n.split("/")[0]
-                                for n in names
-                                if "/" in n
-                                and re.fullmatch(r"P-[0-9A-Fa-f]+", n.split("/")[0])
-                            }
-                        )
-                        if not pids:
-                            self._log.error("export produced no P-XXXX project folder")
-                            return
-                        pid = pids[0]
-                        target = store / pid
-                        for member in names:
-                            if member.startswith(f"{pid}/") and not member.endswith(
-                                "/"
-                            ):
-                                out = target / member[len(pid) + 1 :]
-                                out.parent.mkdir(parents=True, exist_ok=True)
-                                out.write_bytes(zf.read(member))
-                self._log.info("exported to ETS 6 ProjectStore", path=str(target))
+                    # Imported manufacturer data (ETS-reissued ids) wins; catalog members fill gaps
+                    # for devices added from the catalog rather than imported.
+                    members = unzip_members(project.imported_product_members)
+                    for name, data in catalog_members.items():
+                        members.setdefault(name, data)
+                    if create_copy:
+                        # A separate copy: free id, name tagged so it is distinguishable in ETS.
+                        pid = next_free_pid(store)
+                        project_name = f"{project.name} ({S.MYKNX_DONGLE_COPY_SUFFIX})"
+                    else:
+                        pid, project_name = project.id, None
+                    built = write_project_store(
+                        store / pid,
+                        project,
+                        installation,
+                        installer_guid,
+                        pid=pid,
+                        project_name=project_name,
+                        product_members=members,
+                        overwrite=not create_copy,
+                    )
+                self._log.info(
+                    "exported to ETS 6 ProjectStore",
+                    path=str(store / built.pid),
+                    pid=built.pid,
+                )
             except Exception as e:
                 self._log.error(
                     "ProjectStore export failed", error=f"{type(e).__name__}: {e}"
@@ -1934,7 +1985,24 @@ class KnxGuiApp:
             folder = self._projectstore_dialog.result()
             self._projectstore_dialog = None
             if folder:
-                self._export_to_ets6_projectstore(Path(folder))
+                self._resolve_installer_guid_then_export(Path(folder))
+
+        if (
+            self._installer_guid_dialog is not None
+            and self._installer_guid_dialog.ready()
+        ):
+            picked = self._installer_guid_dialog.result()
+            self._installer_guid_dialog = None
+            store = self._pending_store_path
+            self._pending_store_path = None
+            if picked and store is not None:
+                try:
+                    guid = Path(picked[0]).read_text(encoding="utf-8-sig").strip()
+                except OSError as e:
+                    self._log.error("could not read installer.guid", error=str(e))
+                    guid = ""
+                if guid:
+                    self._prepare_projectstore_export(store, guid)
 
         if (
             self._import_knxproj_save_dialog is not None
@@ -2732,6 +2800,7 @@ class KnxGuiApp:
         self._render_import_password_modal()
         self._render_network_consent_modal()
         self._render_overwrite_modal()
+        self._render_projectstore_confirm_modal()
         self._render_url_prompt_modal()
         self._render_new_project_modal()
         self._render_myknx_sign_modal()
@@ -2795,6 +2864,41 @@ class KnxGuiApp:
                 imgui.progress_bar(-1.0 * float(imgui.get_time()), bar, "")
         imgui.end()
 
+    def _render_projectstore_confirm_modal(self) -> None:
+        """Ask whether to overwrite an existing store folder or add a separate, renamed copy."""
+        pending = self._projectstore_confirm
+        if pending is None:
+            return
+        if not self._projectstore_confirm_open:
+            # Wait for any prior modal to close before raising ours (same guard as the overwrite
+            # prompt), so we don't steal the stage from the export dialog that triggered us.
+            if imgui.is_popup_open("", imgui.PopupFlags_.any_popup):
+                return
+            imgui.open_popup(S.MYKNX_DONGLE_EXISTS_TITLE)
+            self._projectstore_confirm_open = True
+        if not begin_dialog(S.MYKNX_DONGLE_EXISTS_TITLE, width=480.0):
+            return
+        store, installer_guid = pending
+        imgui.text_wrapped(
+            S.MYKNX_DONGLE_EXISTS_PROMPT.format(pid=self._project_service.pid or "")
+        )
+        clicked = dialog_buttons(
+            S.MYKNX_DONGLE_OVERWRITE, S.MYKNX_DONGLE_NEW_COPY, S.BTN_CANCEL
+        )
+        if clicked is not None:
+            self._projectstore_confirm = None
+            self._projectstore_confirm_open = False
+            imgui.close_current_popup()
+            if clicked == 0:
+                self._export_to_ets6_projectstore(
+                    store, installer_guid, create_copy=False
+                )
+            elif clicked == 1:
+                self._export_to_ets6_projectstore(
+                    store, installer_guid, create_copy=True
+                )
+        end_dialog()
+
     def _render_dongle_modal(self) -> None:
         """Step-by-step 'license with a dongle' -- a child modal of the export dialog.
 
@@ -2820,17 +2924,7 @@ class KnxGuiApp:
             imgui.InputTextFlags_.read_only,
         )
         imgui.spacing()
-        # Save the project as a .zip right here so the P-XXXX folder can be dropped into the
-        # ProjectStore without renaming. Runs the export (unsigned) and dismisses the prompt.
-        dest = self._export_pending_dest
-        if dest is not None and imgui.button(
-            S.MYKNX_DONGLE_SAVE_ZIP, imgui.ImVec2(-1, 0)
-        ):
-            self._do_export_knxproj(str(Path(dest).with_suffix(".zip")))
-            self._export_pending_dest = None
-            self._myknx_force_close = True
-            imgui.close_current_popup()
-        # Export the P-XXXX folder straight into the ETS 6 ProjectStore (no manual copy).
+        # Write the project's P-XXXX folder straight into the ETS 6 ProjectStore (internal format).
         if imgui.button(S.MYKNX_DONGLE_EXPORT_STORE, imgui.ImVec2(-1, 0)):
             self._begin_projectstore_export()
             self._export_pending_dest = None

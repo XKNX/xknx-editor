@@ -625,9 +625,10 @@ def test_export_converts_legacy_manufacturer_schema(tmp_path: Path) -> None:
     assert b"4.1.1207.40711" not in rewritten
 
 
-def test_export_still_rejects_modern_schema_mismatch(tmp_path: Path) -> None:
-    """Only legacy (project/10..14) members are auto-converted; a modern-family mismatch
-    (project/20 data in a project/23 export) stays a hard error."""
+def test_export_keeps_manufacturer_at_its_own_schema(tmp_path: Path) -> None:
+    """A project/23 export carrying a device whose product data is project/20 keeps that
+    manufacturer data at /20 while the project files stay /23 — exactly what ETS writes (verified
+    against a real ETS6.3 export). No conversion, no 'schema mismatch' error."""
     src = tmp_path / "src.xknx"
     svc = ProjectService()
     pid = svc.create(src, "P-MOD")
@@ -637,13 +638,48 @@ def test_export_still_rejects_modern_schema_mismatch(tmp_path: Path) -> None:
         b'<?xml version="1.0" encoding="utf-8"?>\n'
         b'<KNX xmlns="http://knx.org/xml/project/20"><ManufacturerData/></KNX>'
     )
-    with pytest.raises(ValueError, match="project/20"):
-        export_knxproj(
-            src,
-            out,
-            schema="23",
-            extra_files={"M-0001/Hardware.xml": v20_hardware},
-        )
+    result = export_knxproj(
+        src,
+        out,
+        schema="23",
+        extra_files={"M-0001/Hardware.xml": v20_hardware},
+    )
+    assert result.schema == "23"  # project files follow the requested schema
+    members = _archive_members(out)
+    # manufacturer data kept at its own /20 (not converted up, not rejected)
+    assert b"http://knx.org/xml/project/20" in members["M-0001/Hardware.xml"]
+
+
+def test_export_allows_mixed_manufacturer_schemas(tmp_path: Path) -> None:
+    """Manufacturer data from different eras (project/20 and project/23) coexists in one project/23
+    archive, each folder keeping its own schema — ETS reads each M-folder by its own namespace, so
+    this is NOT an error."""
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-MIX")
+    svc.close(pid)
+    out = tmp_path / "out.knxproj"
+    v20_hardware = (
+        b'<?xml version="1.0" encoding="utf-8"?>\n'
+        b'<KNX xmlns="http://knx.org/xml/project/20"><ManufacturerData/></KNX>'
+    )
+    v23_hardware = (
+        b'<?xml version="1.0" encoding="utf-8"?>\n'
+        b'<KNX xmlns="http://knx.org/xml/project/23"><ManufacturerData/></KNX>'
+    )
+    result = export_knxproj(
+        src,
+        out,
+        schema="23",
+        extra_files={
+            "M-0001/Hardware.xml": v20_hardware,
+            "M-0002/Hardware.xml": v23_hardware,
+        },
+    )
+    assert result.schema == "23"
+    members = _archive_members(out)
+    assert b"http://knx.org/xml/project/20" in members["M-0001/Hardware.xml"]
+    assert b"http://knx.org/xml/project/23" in members["M-0002/Hardware.xml"]
 
 
 def test_export_substitutes_unusable_master(tmp_path: Path, monkeypatch) -> None:  # type: ignore[no-untyped-def]
@@ -977,27 +1013,6 @@ def test_relidref_strips_application_parent() -> None:
     assert _relidref("O-7_R-9") == "O-7_R-9"  # already relative -> unchanged
 
 
-def test_export_rejects_mismatched_manufacturer_schema(tmp_path: Path) -> None:
-    """A project/23 export with project/20 manufacturer data (or mixed data) is rejected up front,
-    instead of writing an archive ETS refuses with 'Invalid import data'."""
-    src = tmp_path / "src.xknx"
-    svc = ProjectService()
-    pid = svc.create(src, "P-MIX")
-    svc.close(pid)
-    out = tmp_path / "out.knxproj"
-    v20_hardware = (
-        b'<?xml version="1.0" encoding="utf-8"?>\n'
-        b'<KNX xmlns="http://knx.org/xml/project/20"><ManufacturerData/></KNX>'
-    )
-    with pytest.raises(ValueError, match="project/20"):
-        export_knxproj(
-            src,
-            out,
-            schema="23",  # force native /23, no master to align down
-            extra_files={"M-0001/Hardware.xml": v20_hardware},
-        )
-
-
 def test_export_project_name_override(tmp_path: Path) -> None:
     """``project_name`` sets the exported ProjectInformation Name without touching the source."""
     src = tmp_path / "src.xknx"
@@ -1261,6 +1276,42 @@ def test_export_without_import_provenance_has_no_members(tmp_path: Path) -> None
     export_knxproj(src, out)
     members = _archive_members(out)
     assert not any(n.split("/", 1)[0].startswith("M-") for n in members)
+
+
+def test_master_schema_does_not_bump_project_schema(tmp_path: Path) -> None:
+    """The project schema is the requested/provenance one; a differently-versioned master does NOT
+    bump it (the earlier logic aligned the project up to a project/23 master, which then broke an
+    export of project/20 devices). The master is obtained at the project schema instead."""
+    from xknxeditor.proj.core.knxproj_export import _resolve_export_sources
+
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-OLD")
+    svc.close(pid)
+
+    hardware20 = (
+        b'<?xml version="1.0" encoding="utf-8"?>\n'
+        b'<KNX xmlns="http://knx.org/xml/project/20"><ManufacturerData/></KNX>'
+    )
+    master23 = (
+        b'<?xml version="1.0" encoding="utf-8"?>\n'
+        b'<KNX xmlns="http://knx.org/xml/project/23">'
+        b'<MasterData Signature="AA=="/></KNX>'
+    )
+    with Session(make_engine(url_for(src))) as session:
+        project = session.query(Project).filter(Project.id == pid).one()
+        schema, ns, _extra, _master = _resolve_export_sources(
+            project,
+            "20",
+            {"M-0001/Hardware.xml": hardware20},
+            master23,
+            None,
+            False,
+        )
+    assert (
+        schema == "20"
+    )  # stays at the requested schema; the 23 master does not bump it
+    assert ns.endswith("/20")
 
 
 def test_import_provenance_realigns_modern_schema(tmp_path: Path) -> None:
