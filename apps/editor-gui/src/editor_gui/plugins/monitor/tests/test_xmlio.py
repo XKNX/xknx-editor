@@ -25,7 +25,7 @@ def _text(data: bytes) -> str:
 def test_timestamps_keep_seven_digits() -> None:
     ticks = parse_timestamp("2026-10-12T17:41:18.8244181Z")
     assert format_timestamp(ticks) == "2026-10-12T17:41:18.8244181Z"
-    # Trailing zeros are dropped, like the reference writes them.
+    # Trailing zeros are dropped.
     assert format_timestamp(parse_timestamp("2026-10-12T17:41:24.116684Z")) == (
         "2026-10-12T17:41:24.116684Z"
     )

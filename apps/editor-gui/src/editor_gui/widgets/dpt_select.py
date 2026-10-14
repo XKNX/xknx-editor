@@ -1,5 +1,5 @@
-"""Selection of a data point type from the KNX master data, laid out like the reference: a "-"
-entry for none, each main type as ``1.* 1-bit`` and its subtypes indented as ``1.001 switch``."""
+"""Selection of a data point type from the KNX master data: a "-" entry for none, each main
+type as ``1.* 1-bit`` and its subtypes indented as ``1.001 switch``."""
 
 from __future__ import annotations
 

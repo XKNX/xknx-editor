@@ -520,8 +520,8 @@ def _spin_width() -> float:
 
 
 def _set_number_field_width(*, spin: bool = True) -> None:
-    """A number field fills its column like the other fields, as in the reference; its spin
-    arrows are drawn inside its right end."""
+    """A number field fills its column like the other fields; its spin arrows are drawn inside
+    its right end."""
     if spin:
         imgui.set_next_item_allow_overlap()
 
@@ -1130,7 +1130,7 @@ def _render_children(
     pending_params: list[UiParameter | UiButton] = []
     table_idx = 0
     # Whether the last thing drawn was a table (a grid or a list of parameters): the next one
-    # then joins it row against row, as the reference lays out consecutive rows.
+    # then joins it row against row.
     after_grid = False
 
     def join_rows() -> None:
@@ -1287,8 +1287,8 @@ def _render_block(
 def _indented_cell_text(text: str, origin: float) -> str:
     """``text`` without the leading spaces of its lines, the cursor moved to the indent level
     they stand for. Authors indent grid labels with spaces to line them up with the indented
-    parameters of the list; a space is narrower here than in the reference, so the text goes to
-    the nearest indent level (counted from the grid's left edge ``origin``) instead."""
+    parameters of the list; how far spaces reach depends on the font, so the text goes to the
+    nearest indent level (counted from the grid's left edge ``origin``) instead."""
     spaces = len(text) - len(text.lstrip(" "))
     if not spaces:
         return text
@@ -1326,8 +1326,8 @@ def _grid_pos(
     cell: str | None, rows: int = 0, columns: int = 0
 ) -> tuple[int, int] | None:
     """The 1-based ``(row, column)`` of a ``Cell`` attribute. With declared ``rows`` and
-    ``columns``, a cell beyond them lands in the last one, as the reference's grid places it
-    (e.g. a one-row grid whose cells name the channel number as their row)."""
+    ``columns``, a cell beyond them lands in the last one (e.g. a one-row grid whose cells name
+    the channel number as their row)."""
     if not cell:
         return None
     try:
@@ -1514,9 +1514,9 @@ def _render_grid_cells(
             imgui.table_set_column_index(0)
             label = block.row_labels[row - 1] if row - 1 < len(block.row_labels) else ""
             imgui.text_disabled(label)
-        # The cells of a row are centred on its tallest one (e.g. a label of two lines), as
-        # in the reference. A label's height is known once it is drawn at its cell's width,
-        # so the row uses the heights its labels had in the previous frame.
+        # The cells of a row are centred on its tallest one (e.g. a label of two lines). A
+        # label's height is known once it is drawn at its cell's width, so the row uses the
+        # heights its labels had in the previous frame.
         frame_height = imgui.get_frame_height()
         row_key = f"{prefix}:{row}"
         estimate = max(
@@ -1590,8 +1590,8 @@ def _render_cell_separator(
     sep: UiSeparator, origin: float, row_height: float, height: float
 ) -> float:
     """A separator in a grid cell: a headline in bold, a label as plain text, a ruler across.
-    Text wraps at the cell's right edge, as in the reference; a label ``height`` high is
-    centred in a row ``row_height`` high. Returns the height of the text as drawn."""
+    Text wraps at the cell's right edge; a label ``height`` high is centred in a row
+    ``row_height`` high. Returns the height of the text as drawn."""
     if sep.text and sep.hint in ("Headline", None):
         imgui.set_cursor_pos_y(
             imgui.get_cursor_pos_y() + max(0.0, (row_height - height) / 2)
@@ -1686,7 +1686,7 @@ def _render_param_table(
             "Value",
             imgui.TableColumnFlags_.width_stretch | imgui.TableColumnFlags_.no_clip,
         )
-        # Every row is as high as one with an input field, as in the reference.
+        # Every row is as high as one with an input field.
         row_height = imgui.get_frame_height() + 2 * padding.y
         for param in params:
             imgui.table_next_row(imgui.TableRowFlags_.none, row_height)
@@ -1695,8 +1695,8 @@ def _render_param_table(
                 _render_button(device, param, prefix, buttons)
                 continue
             imgui.table_set_column_index(0)
-            # Each level indents as far as in the reference, where a grid label with two leading
-            # spaces in a 2 % first column lines up with the second level.
+            # Each level indents by one step, the levels space-indented grid labels are placed on
+            # (see _indented_cell_text).
             indent = param.indent_level * px(_INDENT_STEP)
             if indent > 0:
                 imgui.indent(indent)

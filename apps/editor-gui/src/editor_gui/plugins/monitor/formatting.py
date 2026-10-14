@@ -79,7 +79,7 @@ COLUMNS: tuple[Column, ...] = (
     Column("destination_description", True, 160),
 )
 COLUMN_INDEX = {column.key: index for index, column in enumerate(COLUMNS)}
-# The columns of a printout, in the reference order.
+# The columns of a printout, in this order.
 PRINT_COLUMNS = tuple(
     index for index, column in enumerate(COLUMNS) if not column.optional
 )
