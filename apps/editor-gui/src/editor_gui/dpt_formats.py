@@ -54,7 +54,14 @@ class CompositeFormat:
     fields: tuple[FieldFormat, ...]
 
 
-DptFormat = BitFormat | EnumFormat | NumberFormat | CompositeFormat
+@dataclass(frozen=True, slots=True)
+class SubtypeFormat:
+    """A main type (``DPT-16``) that is written like one of its subtypes (``DPST-16-1``)."""
+
+    subtype: str
+
+
+DptFormat = BitFormat | EnumFormat | NumberFormat | CompositeFormat | SubtypeFormat
 
 _KINDS = {
     "FormatBit": "bit",
@@ -127,6 +134,57 @@ def _simple(item: Any) -> DptFormat | None:
     return None
 
 
+def _generic(fmt: CompositeFormat) -> CompositeFormat:
+    """The layout without what only one subtype means: no names, texts, units or scaling."""
+    fields: list[FieldFormat] = []
+    for f in fmt.fields:
+        if f.kind == "bit":
+            fields.append(FieldFormat("bit", 1, cleared="0", set="1"))
+        elif f.kind in ("enum", "unsigned"):
+            fields.append(FieldFormat("unsigned", f.width))
+        elif f.kind in ("signed", "float", "reserved"):
+            fields.append(FieldFormat(f.kind, f.width))
+        else:
+            fields.append(
+                FieldFormat(
+                    f.kind,
+                    f.width,
+                    # ISO 8859-1 holds ASCII, so the ASCII and Latin-1 subtypes share it.
+                    encoding="iso-8859-1" if f.encoding == "us-ascii" else f.encoding,
+                    variable_length=f.variable_length,
+                    null_terminated=f.null_terminated,
+                )
+            )
+    return CompositeFormat(tuple(fields))
+
+
+def _main_format(dpt: Any, by_id: dict[str, Any]) -> DptFormat | None:
+    """How a group address with only the main type (``DPT-16``) is written: like the subtype
+    the master data marks as default, like its only subtype, like the layout all subtypes
+    share, or else as a plain number of the main type's size."""
+    holder = getattr(dpt, "datapoint_subtypes", None)
+    subtypes = cast("list[Any]", holder.datapoint_subtype) if holder else []
+    defaults = [s for s in subtypes if getattr(s, "default", False)]
+    if len(defaults) == 1:
+        return SubtypeFormat(defaults[0].id)
+    if len(subtypes) == 1:
+        return SubtypeFormat(subtypes[0].id)
+    layouts: set[CompositeFormat] = set()
+    for subtype in subtypes:
+        fmt = getattr(subtype, "format", None)
+        composite = _composite(cast("list[Any]", fmt.choice) if fmt else [], by_id)
+        if composite is None:
+            layouts = set()
+            break
+        layouts.add(_generic(composite))
+    if len(layouts) == 1:
+        return layouts.pop()
+    size = int(getattr(dpt, "size_in_bit", 0) or 0)
+    if 0 < size <= 64:
+        return CompositeFormat((FieldFormat("unsigned", size),))
+    return None
+
+
 def master_formats(master: Any) -> dict[str, DptFormat]:
     """Value formats of the data point subtypes in the KNX master data, by ``DPST-x-y`` id."""
     raw = getattr(master, "raw", None)
@@ -154,6 +212,10 @@ def master_formats(master: Any) -> dict[str, DptFormat]:
             simple = _composite(choices, by_id)
         if simple is not None:
             formats[subtype.id] = simple
+    for dpt in cast("list[Any]", holder.datapoint_type):
+        main = _main_format(dpt, by_id)
+        if main is not None:
+            formats[f"DPT-{dpt.number}"] = main
     return formats
 
 

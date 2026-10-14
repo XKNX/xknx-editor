@@ -5,7 +5,13 @@ from __future__ import annotations
 import pytest
 from xknx.dpt.payload import DPTArray, DPTBinary
 
-from editor_gui.dpt_formats import BitFormat, CompositeFormat, EnumFormat, FieldFormat
+from editor_gui.dpt_formats import (
+    BitFormat,
+    CompositeFormat,
+    EnumFormat,
+    FieldFormat,
+    SubtypeFormat,
+)
 from editor_gui.widgets import dpt_value
 from editor_gui.widgets.dpt_value import DptValueInput, dpt_label
 
@@ -222,3 +228,80 @@ def test_value_texts_start_upper_case() -> None:
     editor = _editor("DPST-1-2", {"DPST-1-2": BitFormat("not accepted", "accepted")})
     assert [label for label, _ in editor.options] == ["Not accepted", "Accepted"]
     assert dpt_value.value_text("DHW mode") == "DHW mode"
+
+
+def test_main_type_is_written_like_its_default_subtype() -> None:
+    editor = _editor("DPT-16", {"DPT-16": SubtypeFormat("DPST-16-1")})
+    editor.text = "Grüße"
+    assert editor.payload().value[:5] == tuple("Grüße".encode("latin-1"))
+
+
+def _master_type(number: int, size: int, *subtypes: tuple[str, bool, list]) -> object:  # type: ignore[type-arg]
+    from types import SimpleNamespace
+
+    return SimpleNamespace(
+        number=number,
+        size_in_bit=size,
+        datapoint_subtypes=SimpleNamespace(
+            datapoint_subtype=[
+                SimpleNamespace(
+                    id=sid, default=default, format=SimpleNamespace(choice=choice)
+                )
+                for sid, default, choice in subtypes
+            ]
+        ),
+    )
+
+
+class FormatUnsignedInteger:
+    def __init__(self, width: int, name: str = "", unit: str = "") -> None:
+        self.width, self.name, self.unit = width, name, unit
+
+
+class FormatBit:
+    def __init__(self, name: str = "") -> None:
+        self.name, self.cleared, self.set = name, "off", "on"
+
+
+class FormatReserved:
+    def __init__(self, width: int) -> None:
+        self.width = width
+
+
+def test_main_type_without_default_subtype() -> None:
+    from editor_gui import dpt_formats
+
+    marked = _master_type(
+        9, 8, ("DPST-9-1", False, [FormatBit()]), ("DPST-9-2", True, [FormatBit()])
+    )
+    assert dpt_formats._main_format(marked, {}) == SubtypeFormat("DPST-9-2")
+    only = _master_type(9, 8, ("DPST-9-5", False, [FormatBit()]))
+    assert dpt_formats._main_format(only, {}) == SubtypeFormat("DPST-9-5")
+    # Same layout in every subtype: kept, without the subtype's names and units.
+    shared = _master_type(
+        9,
+        16,
+        (
+            "DPST-9-1",
+            False,
+            [FormatUnsignedInteger(8, "H", "°"), FormatUnsignedInteger(8, "S")],
+        ),
+        (
+            "DPST-9-2",
+            False,
+            [FormatUnsignedInteger(8, "R"), FormatUnsignedInteger(8, "G")],
+        ),
+    )
+    assert dpt_formats._main_format(shared, {}) == CompositeFormat(
+        (FieldFormat("unsigned", 8), FieldFormat("unsigned", 8))
+    )
+    # Different layouts: a plain number of the main type's size.
+    mixed = _master_type(
+        9,
+        8,
+        ("DPST-9-1", False, [FormatReserved(7), FormatBit()]),
+        ("DPST-9-2", False, [FormatBit()] * 8),
+    )
+    assert dpt_formats._main_format(mixed, {}) == CompositeFormat(
+        (FieldFormat("unsigned", 8),)
+    )

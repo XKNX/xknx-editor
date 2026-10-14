@@ -32,6 +32,7 @@ from editor_gui.dpt_formats import (
     EnumFormat,
     FieldFormat,
     NumberFormat,
+    SubtypeFormat,
 )
 from editor_gui.regional import regional_format
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -731,7 +732,14 @@ def _editor_for(token: str | None, formats: Mapping[str, DptFormat]) -> _Editor 
     if not dpt.major:
         return None
     transcoder = transcoder_for(token)
-    fmt = formats.get(f"DPST-{dpt.major}-{dpt.minor}") if dpt.has_subtype else None
+    if dpt.has_subtype:
+        fmt = formats.get(f"DPST-{dpt.major}-{dpt.minor}")
+    else:
+        fmt = formats.get(f"DPT-{dpt.major}")
+        if isinstance(fmt, SubtypeFormat):
+            return _editor_for(fmt.subtype, formats)
+        if transcoder is None and isinstance(fmt, CompositeFormat):
+            return _Master(_master_fields(fmt))
     if isinstance(fmt, BitFormat):
         return _Choice(
             [
