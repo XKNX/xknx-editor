@@ -1143,15 +1143,22 @@ def _render_children(
     popup_request: EnumPopupRequest | None = None
     pending_params: list[UiParameter | UiButton] = []
     table_idx = 0
-    # Whether the last thing drawn was a grid: the next grid then joins it row against row,
-    # as the reference lays out a page built from one-row grids.
+    # Whether the last thing drawn was a table (a grid or a list of parameters): the next one
+    # then joins it row against row, as the reference lays out consecutive rows.
     after_grid = False
+
+    def join_rows() -> None:
+        if after_grid:
+            imgui.set_cursor_pos_y(
+                imgui.get_cursor_pos_y() - imgui.get_style().item_spacing.y
+            )
 
     def flush() -> None:
         nonlocal popup_request, table_idx, after_grid
         if not pending_params:
             return
-        after_grid = False
+        join_rows()
+        after_grid = True
         req = _render_param_table(
             device,
             pending_params,
@@ -1187,10 +1194,8 @@ def _render_children(
                 ParameterBlockLayout.GRID,
                 ParameterBlockLayout.TABLE,
             )
-            if is_grid and after_grid:
-                imgui.set_cursor_pos_y(
-                    imgui.get_cursor_pos_y() - imgui.get_style().item_spacing.y
-                )
+            if is_grid:
+                join_rows()
             req = _render_block(
                 device,
                 node,
@@ -1607,8 +1612,9 @@ def _render_param_table(
                 _render_button(device, param, prefix, buttons)
                 continue
             imgui.table_set_column_index(0)
-            # Each level indents by two spaces, as grid row labels do with leading spaces.
-            indent = param.indent_level * imgui.calc_text_size("  ").x
+            # Each level indents as far as in the reference, where a grid label with two leading
+            # spaces in a 2 % first column lines up with the second level.
+            indent = param.indent_level * px(_INDENT_STEP)
             if indent > 0:
                 imgui.indent(indent)
             label = param.label
@@ -1681,6 +1687,8 @@ _INFO_COLOR = imgui.ImVec4(0.45, 0.72, 1.0, 1.0)
 _MIN_STRETCH_COLUMN = 80.0
 # Page width at 100 % scaling that percentage column widths of a grid refer to.
 _GRID_REFERENCE_WIDTH = 540.0
+# Indent of a parameter label per IndentLevel.
+_INDENT_STEP = 8.0
 # Share of that width the labels of a parameter list take.
 _LIST_LABEL_SHARE = 0.45
 # Gap at 100 % scaling a field in a grid cell leaves to the next column.
