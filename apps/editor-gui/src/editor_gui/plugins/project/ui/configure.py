@@ -21,6 +21,7 @@ from editor_gui.device_info import (
     serial_text,
 )
 from editor_gui.device_plugins import device_plugins
+from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import label_column_width, px
 from editor_gui.widgets.filter_box import filter_box
@@ -32,7 +33,7 @@ from xknxeditor.recover.dossier import printable_text
 
 if TYPE_CHECKING:
     from editor_gui.device_info import DeviceInfo as BusDeviceInfo
-    from xknxeditor.catalog import ProgramSummary
+    from xknxeditor.catalog import ProductSummary, ProgramSummary
     from xknxeditor.proj.core.service import DeviceInfo
 from editor_gui.programming import error_class_text
 from editor_gui.programming_dali import is_dali_dca_app
@@ -61,6 +62,8 @@ from editor_gui.widgets.module_table import (
 
 _log = structlog.get_logger("configure")
 _PLUGIN_NOTICE_COLOR = imgui.ImVec4(0.95, 0.75, 0.35, 1.0)
+# Product ids of OpenKNX devices (manufacturer KNX Association, 0x00FA).
+_OPENKNX_PRODUCT_PREFIX = "M-00FA_"
 
 
 def overwrite_current_address(
@@ -202,6 +205,7 @@ class ConfigurePanel:
         on_navigate_ga: Callable[[int], None] | None = None,
         on_paste_links: Callable[[int, list[tuple[int, bool]], bool], None]
         | None = None,
+        ga_menu: Callable[[int, ComObject], None] | None = None,
         buttons: ButtonActions | None = None,
         get_help: Callable[[Device, str], str | None] | None = None,
         get_icon: Callable[[Device, str], Icon | None] | None = None,
@@ -209,6 +213,7 @@ class ConfigurePanel:
         on_serial_number_change: Callable[[Device, bytes | None], None] | None = None,
         use_serial_number_default: Callable[[], bool] | None = None,
         find_serial_owner: Callable[[Device, bytes], str | None] | None = None,
+        find_product: "Callable[[str], ProductSummary | None] | None" = None,
     ) -> None:
         self._get_devices = get_devices
         self._get_selected_device = get_selected_device
@@ -246,6 +251,7 @@ class ConfigurePanel:
         self._get_links = get_links_for_com_object
         self._get_all_gas = get_all_group_addresses
         self._get_device_info = get_device_info
+        self._find_product = find_product
         self._notify = notify
         self._on_update_application = on_update_application
         self._get_update_version = get_update_version
@@ -292,6 +298,7 @@ class ConfigurePanel:
             on_set_dpt=set_dpt,
             on_set_priority=set_priority,
             on_set_description=set_description,
+            ga_menu=ga_menu,
         )
         self._name_buffer: str = ""
         # The name field was pre-filled with the default name when it was activated.
@@ -343,6 +350,8 @@ class ConfigurePanel:
             S.CONFIGURE_DESCRIPTION,
             S.CONFIGURE_PRODUCT_REF,
             S.CONFIGURE_PROGRAM_REF,
+            S.CONFIGURE_RAIL,
+            S.CONFIGURE_BUS_CURRENT,
             S.CONFIGURE_IP_ASSIGN,
             S.CONFIGURE_IP_ADDRESS,
             S.CONFIGURE_IP_SUBNET,
@@ -717,6 +726,11 @@ class ConfigurePanel:
             info.manufacturer_name if info and info.manufacturer_name else None
         )
         app_version = self._current_app_version(device)
+        product = (
+            self._find_product(info.product_ref_id)
+            if info is not None and self._find_product is not None
+            else None
+        )
         # Show every field we have, always (empty -> "-"), so device details are complete and every
         # value can be copied. The flat label/value pairs flow into side-by-side columns when the
         # panel is wide; the manual, online versions and read-out follow full width below.
@@ -734,6 +748,8 @@ class ConfigurePanel:
                 (S.CONFIGURE_SCHEMA_VERSION, device.app.version),
                 (S.CONFIGURE_ORDER_NUMBER, info.order_number if info else ""),
                 (S.CONFIGURE_HARDWARE, info.hardware_name if info else ""),
+                (S.CONFIGURE_RAIL, rail_text(product, S.BTN_YES, S.BTN_NO)),
+                (S.CONFIGURE_BUS_CURRENT, bus_current_text(product)),
                 (S.CONFIGURE_PRODUCT, info.product_name if info else ""),
                 (S.CONFIGURE_PRODUCT_REF, info.product_ref_id if info else ""),
                 (
@@ -853,6 +869,9 @@ class ConfigurePanel:
         browser is opened from there; the button shows a busy state meanwhile. Returns whether a
         button was shown (so the action row can place the next one beside it)."""
         if info is None or not (info.order_number or info.manufacturer_name):
+            return False
+        # OpenKNX devices (manufacturer KNX Association) have no manufacturer manual to find.
+        if info.product_ref_id.startswith(_OPENKNX_PRODUCT_PREFIX):
             return False
         if self._manual_busy:
             imgui.begin_disabled(True)
@@ -1305,6 +1324,7 @@ class ConfigurePanel:
         # Nothing, or only the Assign method with no static address -> not worth a section.
         if not cfg or not (cfg.keys() - {"Assign"}):
             return
+        imgui.spacing()
         if not imgui.collapsing_header(S.CONFIGURE_IP_CONFIG):
             return
         self._render_detail_grid(

@@ -78,8 +78,11 @@ class GroupObjectsTable:
         on_set_dpt: Callable[[Device, str, str | None], None] | None = None,
         on_set_priority: Callable[[Device, str, str | None], None] | None = None,
         on_set_description: Callable[[Device, str, str | None], None] | None = None,
+        ga_menu: Callable[[int, ComObject], None] | None = None,
     ) -> None:
         self._set_flag = set_flag
+        # Renders the context menu items of an assigned group address: (group_address_id, object).
+        self._ga_menu = ga_menu
         self._on_link = on_link
         self._on_unlink = on_unlink
         self._on_auto_create_gas = on_auto_create_gas
@@ -377,6 +380,11 @@ class GroupObjectsTable:
                 imgui.set_tooltip(S.GA_SENDING if is_sending else S.GA_RECEIVING)
             if self._on_navigate_ga is not None and imgui.is_item_clicked():
                 self._on_navigate_ga(ga_id)
+            if self._ga_menu is not None and imgui.begin_popup_context_item(
+                f"##ga_ctx{assignment_id}"
+            ):
+                self._ga_menu(ga_id, com_object)
+                imgui.end_popup()
         if db_id is not None:
             self._render_add(device, com_object, db_id, links, get_all_group_addresses)
 
@@ -447,16 +455,12 @@ class GroupObjectsTable:
         if self._open_desc_popup:
             imgui.open_popup(S.GROUP_OBJECTS_EDIT_DESCRIPTION)
             self._open_desc_popup = False
-        if not imgui.begin_popup_modal(
-            S.GROUP_OBJECTS_EDIT_DESCRIPTION,
-            None,
-            imgui.WindowFlags_.always_auto_resize,
-        )[0]:
+        if not begin_dialog(S.GROUP_OBJECTS_EDIT_DESCRIPTION):
             return
         device, co_id = self._desc_popup_device, self._desc_popup_co_id
         if device is None or co_id is None:
             imgui.close_current_popup()
-            imgui.end_popup()
+            end_dialog()
             return
         imgui.set_next_item_width(px(_PICKER_WIDTH))
         entered, self._desc_buffer = imgui.input_text(
@@ -464,13 +468,13 @@ class GroupObjectsTable:
             self._desc_buffer,
             imgui.InputTextFlags_.enter_returns_true,
         )
-        if imgui.button(S.OK) or entered:
+        clicked = dialog_buttons(S.OK, S.CANCEL)
+        if clicked == 0 or entered:
             self._on_set_description(device, co_id, self._desc_buffer or None)
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.CANCEL):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_row_context_menu(
         self, device: Device, com_object: ComObject, get_links: GroupLinkResolver
@@ -510,7 +514,7 @@ class GroupObjectsTable:
             return
         imgui.text_disabled(S.GA_CREATE_NEW)
         address = self._render_address_inputs()
-        imgui.set_next_item_width(px(_PICKER_WIDTH))
+        imgui.set_next_item_width(-1.0)
         _, self._create_name = imgui.input_text_with_hint(
             "##newname", S.GA_CREATE_NAME_HINT, self._create_name
         )
@@ -640,7 +644,7 @@ class GroupObjectsTable:
         if expanded:
             self._render_create_new(device, com_object)
             already = {ga_id for _aid, ga_id, _text, _sending in get_links(db_id)}
-            imgui.set_next_item_width(px(_PICKER_WIDTH))
+            imgui.set_next_item_width(-1.0)
             _, self._picker_filter = imgui.input_text_with_hint(
                 "##ga_filter", S.SEARCH_HINT, self._picker_filter
             )

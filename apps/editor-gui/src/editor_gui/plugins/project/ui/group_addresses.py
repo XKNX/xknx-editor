@@ -12,8 +12,10 @@ from imgui_bundle import imgui
 from editor_gui.device import com_object_display_name
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
+from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.dpt_value import GroupValueBus
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
 if TYPE_CHECKING:
@@ -44,6 +46,7 @@ class GroupAddressesPanel:
         on_remove_range: Callable[[int], None] | None = None,
         group_style: "Callable[[], GroupAddressStyle] | None" = None,
         on_select_device_id: Callable[[int], None] | None = None,
+        bus: GroupValueBus | None = None,
     ) -> None:
         self._get_range_tree = get_range_tree
         self._get_assignments_for_ga = get_assignments_for_ga
@@ -58,6 +61,7 @@ class GroupAddressesPanel:
         self._on_remove_range = on_remove_range
         self._group_style = group_style
         self._on_select_device_id = on_select_device_id
+        self._bus = bus
         # External "select this GA" requests (e.g. clicking a Health finding).
         self._take_requested_ga = take_requested_ga
         self._filter_text: str = ""
@@ -84,6 +88,9 @@ class GroupAddressesPanel:
         self._open_renumber_ga = False
         self._renumber_error = ""
         self._open_set_dpt = False
+        self._group_value = (
+            GroupValueActions(bus, "ga_write_value") if bus is not None else None
+        )
         # Group-range (folder) modal state.
         self._popup_range_id: int = 0
         self._popup_range_parent: int | None = None
@@ -145,6 +152,8 @@ class GroupAddressesPanel:
         self._render_rename_popup()
         self._render_renumber_popup()
         self._render_dpt_popup()
+        if self._group_value is not None:
+            self._group_value.render()
         self._render_new_range_popup()
         self._render_rename_range_popup()
         self._render_delete_range_popup()
@@ -264,6 +273,13 @@ class GroupAddressesPanel:
             self._open_set_dpt = True
         if imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]:
             imgui.set_clipboard_text(getattr(ga, "text", "") or "")
+        if self._group_value is not None:
+            imgui.separator()
+            self._group_value.render_menu_items(
+                getattr(ga, "text", "") or "",
+                getattr(ga, "name", "") or "",
+                getattr(ga, "datapoint_type", None),
+            )
         imgui.separator()
         if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
             self._on_remove_ga(ga.id)  # type: ignore[attr-defined]

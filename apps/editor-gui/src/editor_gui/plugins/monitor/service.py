@@ -20,9 +20,8 @@ from enum import Enum
 from functools import cached_property
 from typing import TYPE_CHECKING, Any
 
-from xknx.cemi import CEMIFrame, CEMILData, CEMIMessageCode
+from xknx.dpt.payload import DPTArray, DPTBinary
 from xknx.telegram import GroupAddress as XGroupAddress
-from xknx.telegram import Telegram
 from xknx.telegram.apci import GroupValueRead, GroupValueResponse, GroupValueWrite
 
 from editor_gui.dpt import transcoder_for
@@ -412,16 +411,15 @@ class MonitorService:
         self._send(address, GroupValueWrite(knx_value))
         return True
 
+    def send_payload(self, address: str, payload: DPTBinary | DPTArray) -> None:
+        """Send an already encoded value as a GroupValueWrite."""
+        self._send(address, GroupValueWrite(payload))
+
     def send_read(self, address: str) -> None:
         self._send(address, GroupValueRead())
 
     def _send(self, address: str, payload: GroupValueWrite | GroupValueRead) -> None:
-        telegram = Telegram(destination_address=XGroupAddress(address), payload=payload)
-        frame = CEMIFrame(
-            code=CEMIMessageCode.L_DATA_REQ,
-            data=CEMILData.init_from_telegram(telegram),
-        )
-        self._connection.send_cemi(frame.to_knx())
+        self._connection.send_group_telegram(address, payload)
 
     def _warn(self, event: str, **kwargs: Any) -> None:
         if self._log is not None:

@@ -2211,5 +2211,49 @@ class ProjectStrings:
             "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
         )
 
+    @property
+    def CONFIGURE_RAIL(self) -> str:
+        return _("DIN Rail Mounting")
+
+    @property
+    def CONFIGURE_BUS_CURRENT(self) -> str:
+        return _("Bus Current")
+
+    @property
+    def GA_READ_VALUE(self) -> str:
+        return _("Read Value")
+
+    @property
+    def GA_WRITE_VALUE(self) -> str:
+        return _("Write Value…")
+
+    @property
+    def GA_WRITE_VALUE_TITLE(self) -> str:
+        return _("Write Value")
+
+    @property
+    def GA_WRITE_ADDRESS(self) -> str:
+        return _("Group Address")
+
+    @property
+    def GA_WRITE_DPT(self) -> str:
+        return _("Data Type")
+
+    @property
+    def GA_WRITE_VALUE_LABEL(self) -> str:
+        return _("Value")
+
+    @property
+    def GA_WRITE_NO_DPT(self) -> str:
+        return _("Set the data type of the group address to write a value.")
+
+    @property
+    def GA_WRITE_BUTTON(self) -> str:
+        return _("Write")
+
+    @property
+    def GA_NOT_CONNECTED(self) -> str:
+        return _("Not connected to the bus.")
+
 
 S = ProjectStrings()

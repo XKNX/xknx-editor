@@ -10,13 +10,15 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
-from xknx.cemi import CEMIFrame
+from xknx.cemi import CEMIFrame, CEMILData, CEMIMessageCode
 from xknx.exceptions import ManagementConnectionError
 from xknx.management.procedures import (
     dm_restart,
     nm_individual_address_read,
     nm_individual_address_serial_number_write,
 )
+from xknx.telegram import GroupAddress, Telegram
+from xknx.telegram.apci import GroupValueRead, GroupValueWrite
 
 if TYPE_CHECKING:
     from xknx import XKNX
@@ -357,6 +359,17 @@ class ConnectionService:
         if future is not None:
             future.add_done_callback(self._log_send_cemi_result)
         return future
+
+    def send_group_telegram(
+        self, address: str, payload: GroupValueRead | GroupValueWrite
+    ) -> Future[Any] | None:
+        """Send a group read or write to ``address`` (e.g. ``1/2/3``)."""
+        telegram = Telegram(destination_address=GroupAddress(address), payload=payload)
+        frame = CEMIFrame(
+            code=CEMIMessageCode.L_DATA_REQ,
+            data=CEMILData.init_from_telegram(telegram),
+        )
+        return self.send_cemi(frame.to_knx())
 
     def _log_send_cemi_result(self, future: Future[Any]) -> None:
         if future.cancelled():

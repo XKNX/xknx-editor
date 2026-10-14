@@ -64,6 +64,8 @@ from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.fonts import heading, load_fonts
+from editor_gui.widgets.parameter_widgets import set_highlight_changes
+from editor_gui.window_title import set_window_title
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
     MYKNX_DLL_NAME,
@@ -320,6 +322,8 @@ class KnxGuiApp:
         # frame path, not post_init, so the GL context is guaranteed current (a context-less
         # glGetString segfaults at the C level and would be uncatchable).
         self._gl_logged = False
+        self._title_key: tuple[int, int] | None = None
+        self._title_name = ""
         self._show_theme_tweaks = False
         # FPS and the idling toggle at the end of the status bar.
         self._show_status_fps = False
@@ -501,6 +505,10 @@ class KnxGuiApp:
         self._project_plugin.show_context_help = bool(
             load_settings("app").get("show_context_help", True)
         )
+        self._highlight_changes = bool(
+            load_settings("app").get("highlight_changes", True)
+        )
+        set_highlight_changes(self._highlight_changes)
         self.bottom_expanded = bool(load_settings("app").get("bottom_expanded", False))
         self._monitor_plugin.set_monitor_extended(self.bottom_expanded)
         self._monitor_plugin.set_layout_toggler(self._toggle_bottom_expanded)
@@ -1473,7 +1481,7 @@ class KnxGuiApp:
             imgui.text_disabled(self._progress_stage)
         imgui.text_disabled(f"{elapsed:0.0f}s")
         cancel = self._progress_cancel
-        if cancel is not None and imgui.button(S.BTN_CANCEL, px_vec2(110, 0)):
+        if cancel is not None and dialog_buttons(S.BTN_CANCEL) == 0:
             self._progress_cancel = None
             cancel()
         if not self._progress_running:
@@ -2772,6 +2780,7 @@ class KnxGuiApp:
 
     def render_overlays(self) -> None:
         render_section_menus()
+        set_window_title(self._window_title())
         # Log the active OpenGL renderer once, from the frame path (context guaranteed current).
         if not self._gl_logged:
             self._gl_logged = True
@@ -3094,6 +3103,27 @@ class KnxGuiApp:
             imgui.close_current_popup()
         imgui.end_popup()
 
+    def _window_title(self) -> str:
+        """The app name, preceded by the open project's name."""
+        service = self._project_service
+        if not service.is_open:
+            return S.APP_TITLE
+        key = (service.generation, service.revision)
+        if key != self._title_key and not service.loading:
+            info = service.get_project_metadata()
+            self._title_key = key
+            self._title_name = info.name.strip() if info is not None else ""
+        name = (
+            self._title_name if self._title_key and self._title_key[0] == key[0] else ""
+        )
+        if not name and service.path is not None:
+            name = service.path.stem
+        return (
+            S.WINDOW_TITLE.format(project=name, app=S.APP_TITLE)
+            if name
+            else S.APP_TITLE
+        )
+
     def _flash_toast(self, text: str) -> None:
         """Show a short green feedback toast (e.g. 'Copied'). Called from panels via PluginAPI."""
         self._toasts.append((text, "success", time.time() + 2.0))
@@ -3210,6 +3240,15 @@ class KnxGuiApp:
             if changed:
                 w.is_visible = visible
         imgui.separator()
+        changed, shown = imgui.menu_item(
+            S.MENU_HIGHLIGHT_CHANGES, "", self._highlight_changes
+        )
+        if changed:
+            self._highlight_changes = shown
+            set_highlight_changes(shown)
+            data = load_settings("app")
+            data["highlight_changes"] = shown
+            save_settings("app", data)
         changed, shown = imgui.menu_item(
             S.MENU_CONTEXT_HELP, "", self._project_plugin.show_context_help
         )

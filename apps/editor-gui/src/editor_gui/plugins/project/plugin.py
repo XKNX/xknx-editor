@@ -7,11 +7,14 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from xknx.telegram.apci import GroupValueRead, GroupValueWrite
+
 from editor_gui.device_info import (
     same_application,
     serial_from_project,
     serial_to_project,
 )
+from editor_gui.dpt_formats import cached_master_formats, cached_master_names
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.project.button_runner import ButtonRunner
 from editor_gui.plugins.project.compare_match import compare_mismatch, matching_devices
@@ -37,6 +40,7 @@ from editor_gui.plugins.project.ui import (
 )
 from editor_gui.plugins.project.ui.dali_commissioning import DaliCommissioningPanel
 from editor_gui.plugins.project.ui.devices import Area, Line
+from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
 from editor_gui.plugins.project.ui.preflight_result import PreflightResultWindow
 from editor_gui.plugins.project.ui.program_queue import ProgramQueuePanel
@@ -50,6 +54,7 @@ from editor_gui.plugins.project.ui.project_diff import (
 from editor_gui.plugins.project.ui.read_device_dialog import ReadDeviceDialog
 from editor_gui.plugins.project.ui.tools import apply_name_swap, shifted_ia
 from editor_gui.widgets import ButtonActions
+from editor_gui.widgets.dpt_value import GroupValueBus
 from editor_gui.widgets.icons import (
     Icon,
     Picture,
@@ -64,7 +69,7 @@ from xknxeditor.prod.errors import ArchiveError
 if TYPE_CHECKING:
     from concurrent.futures import Future
 
-    from editor_gui.device import Device, UnloadedDevice
+    from editor_gui.device import ComObject, Device, UnloadedDevice
     from editor_gui.device_info import DeviceInfo
     from editor_gui.plugins.project.ui.configure import ProgramRequest
     from xknxeditor.catalog import ProgramSummary
@@ -158,6 +163,19 @@ class ProjectPlugin:
             on_device_info=self._open_read_dialog,
         )
 
+        group_bus = GroupValueBus(
+            connected=lambda: api.connection.xknx is not None,
+            read=lambda address: api.connection.send_group_telegram(
+                address, GroupValueRead()
+            ),
+            write=lambda address, payload: api.connection.send_group_telegram(
+                address, GroupValueWrite(payload)
+            ),
+            formats=lambda: cached_master_formats(api.connection.master),
+            names=lambda: cached_master_names(api.connection.master),
+        )
+        self._object_group_value = GroupValueActions(group_bus, "object_write_value")
+
         self._configure_panel = ConfigurePanel(
             get_devices=lambda: api.project.devices,
             get_selected_device=lambda: api.project.selected_device,
@@ -202,6 +220,7 @@ class ProjectPlugin:
             render_dali=self._render_dali_tab,
             on_navigate_ga=self._navigate_to_group_address,
             on_paste_links=self._paste_com_object_links,
+            ga_menu=self._group_object_ga_menu,
             buttons=ButtonActions(
                 on_click=self._handle_button,
                 state=self._button_state,
@@ -213,6 +232,7 @@ class ProjectPlugin:
             on_serial_number_change=self._set_serial_number,
             use_serial_number_default=lambda: api.connection.use_serial_number,
             find_serial_owner=self._serial_owner,
+            find_product=api.catalog.find_product,
         )
         self._dali_panel = DaliCommissioningPanel(self._run_dali)
 
@@ -231,6 +251,7 @@ class ProjectPlugin:
             on_remove_range=api.project.remove_group_range,
             group_style=lambda: api.project.group_address_style,
             on_select_device_id=self._select_device_by_id,
+            bus=group_bus,
         )
 
         self._spaces_panel = SpacesPanel(
@@ -734,6 +755,16 @@ class ProjectPlugin:
                 text = f"{ga.address}  {ga.name}" if ga.name else ga.address
                 result.append((link.id, link.group_address_id, text, link.is_sending))
         return result
+
+    def _group_object_ga_menu(self, ga_id: int, com_object: "ComObject") -> None:
+        """Read/Write Value on a group address of a group object; a group address without a data
+        type is written as the object's type."""
+        ga = self._api.project.get_group_address(ga_id)
+        if ga is None:
+            return
+        self._object_group_value.render_menu_items(
+            ga.address, ga.name, ga.datapoint_type or com_object.dpt.token
+        )
 
     def _navigate_to_group_address(self, ga_id: int) -> None:
         # Select the clicked link's group address in the Group Addresses tree and bring it to front.
@@ -1822,6 +1853,7 @@ class ProjectPlugin:
 
     def render_overlays(self) -> None:
         self._read_device_dialog.render()
+        self._object_group_value.render()
         self._button_runner.render()
         self._memory_preview.render()
         self._preflight_result.render()

@@ -44,6 +44,10 @@ class BaseStrings:
         return _("XKNX Editor")
 
     @property
+    def WINDOW_TITLE(self) -> str:
+        return _("{project} - {app}")
+
+    @property
     def MENU_HELP(self) -> str:
         return _("Help")
 
@@ -865,6 +869,10 @@ class MenuStrings:
     @property
     def MENU_HIDE_ALL(self) -> str:
         return _("Hide All")
+
+    @property
+    def MENU_HIGHLIGHT_CHANGES(self) -> str:
+        return _("Highlight Changes")
 
     @property
     def MENU_CONTEXT_HELP(self) -> str:

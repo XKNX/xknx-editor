@@ -13,8 +13,9 @@ from editor_gui.dpt import transcoder_for
 from editor_gui.plugins.monitor.formatting import ProjectIndex, dpt_text
 from editor_gui.plugins.monitor.service import MonitorKind
 from editor_gui.plugins.monitor.strings import S
-from editor_gui.plugins.monitor.table import TelegramView, selected_payload_text
+from editor_gui.plugins.monitor.table import TelegramView
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.dpt_value import DptValueInput
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
@@ -23,6 +24,9 @@ if TYPE_CHECKING:
     from editor_gui.plugins.monitor.records import MonitorRecord
     from editor_gui.plugins.monitor.service import MonitorService
     from editor_gui.plugins.project.service import _GroupAddress
+
+
+_ERROR_COLOR = imgui.ImVec4(0.95, 0.45, 0.4, 1.0)
 
 
 class MonitorPanel:
@@ -45,11 +49,11 @@ class MonitorPanel:
         }
         # Group Objects tab.
         self._selected: str | None = None
-        self._write_value = ""
+        self._write_value = DptValueInput("mon_value")
         self._filter = ""
         # Group Monitor command bar.
         self._cmd_address = ""
-        self._cmd_value = ""
+        self._cmd_value = DptValueInput("mon_cmd_value")
         self._cmd_focused: MonitorRecord | None = None
 
     def _is_connected(self) -> bool:
@@ -116,15 +120,18 @@ class MonitorPanel:
         imgui.same_line()
         imgui.text_disabled(S.MONITOR_VALUE_LABEL)
         imgui.same_line()
-        imgui.set_next_item_width(px(140.0))
-        submitted, self._cmd_value = imgui.input_text_with_hint(
-            "##mon_cmd_value",
-            S.MONITOR_VALUE_HINT,
-            self._cmd_value,
-            imgui.InputTextFlags_.enter_returns_true,
-        )
+        token = entry.dpt if entry is not None else None
+        submitted = False
+        if token:
+            submitted = self._cmd_value.render(token, index.formats, inline=True)
+        else:
+            imgui.text_disabled("-")
         imgui.same_line()
-        can_write = connected and entry is not None and bool(entry.dpt)
+        can_write = (
+            connected
+            and entry is not None
+            and self._cmd_value.can_write(token, index.formats)
+        )
         imgui.begin_disabled(not can_write)
         write = imgui.button(f"{S.MONITOR_WRITE}##mon_cmd_write") or (
             submitted and can_write
@@ -139,11 +146,15 @@ class MonitorPanel:
         if not connected:
             imgui.same_line()
             imgui.text_disabled(S.MONITOR_DISCONNECTED)
+        if self._cmd_value.error:
+            imgui.text_colored(_ERROR_COLOR, self._cmd_value.error)
         if raw is None or not connected:
             return
         address = entry.address if entry is not None else self._cmd_address.strip()
         if write and entry is not None:
-            self._service.send_write(address, entry.dpt, self._cmd_value)
+            payload = self._cmd_value.payload()
+            if payload is not None:
+                self._service.send_payload(address, payload)
         if read:
             self._service.send_read(address)
 
@@ -158,13 +169,9 @@ class MonitorPanel:
         self._cmd_address = index.group_address_text(frame.destination)
         payload = frame.value_payload
         entry = index.group_addresses.get(frame.destination)
-        transcoder = transcoder_for(entry.dpt if entry is not None else None)
-        if payload is None or transcoder is None:
+        if payload is None or entry is None or not entry.dpt:
             return
-        try:
-            self._cmd_value = selected_payload_text(transcoder.from_knx(payload))
-        except Exception:
-            return
+        self._cmd_value.set_payload(entry.dpt, index.formats, payload)
 
     # --- Group Objects tab --------------------------------------------------
 
@@ -189,30 +196,36 @@ class MonitorPanel:
         connected = self._is_connected()
         if not connected:
             imgui.text_disabled(S.MONITOR_DISCONNECTED)
+        formats = self._get_index().formats
+        token = self._dpt_for(self._selected) if self._selected is not None else None
         imgui.begin_disabled(not connected or self._selected is None)
         # The selected group address (set by clicking a table row), then the value to send.
+        imgui.align_text_to_frame_padding()
         imgui.text(self._selected or "-")
         imgui.same_line()
         imgui.text_disabled(S.MONITOR_VALUE_LABEL)
         imgui.same_line()
-        imgui.set_next_item_width(px(160.0))
-        submitted, self._write_value = imgui.input_text_with_hint(
-            "##mon_value",
-            S.MONITOR_VALUE_HINT,
-            self._write_value,
-            imgui.InputTextFlags_.enter_returns_true,
-        )
+        submitted = False
+        if token:
+            submitted = self._write_value.render(token, formats, inline=True)
+        else:
+            imgui.text_disabled("-")
         imgui.same_line()
+        imgui.begin_disabled(not self._write_value.can_write(token, formats))
         write = imgui.button(S.MONITOR_WRITE) or submitted
+        imgui.end_disabled()
         imgui.same_line()
         read = imgui.button(S.MONITOR_READ)
         imgui.end_disabled()
+        if self._write_value.error:
+            imgui.text_colored(_ERROR_COLOR, self._write_value.error)
 
         if self._selected is None or not connected:
             return
-        dpt = self._dpt_for(self._selected)
         if write:
-            self._service.send_write(self._selected, dpt, self._write_value)
+            payload = self._write_value.payload()
+            if payload is not None:
+                self._service.send_payload(self._selected, payload)
         if read:
             self._service.send_read(self._selected)
 

@@ -35,6 +35,7 @@ class CatalogService:
 
         self._service = _CatalogService(catalog_path)
         self._products: list[ProductSummary] | None = None
+        self._product_index: dict[str, ProductSummary] | None = None
         self._programs: dict[str, list[ProgramSummary]] = {}
         self._replaces: dict[str, list[int]] = {}
         # Shared with the project service so a background import can hold both while it writes.
@@ -82,6 +83,18 @@ class CatalogService:
         if self._products is None:
             self._products = self._service.list_products()
         return self._products
+
+    def find_product(self, product_ref_id: str) -> ProductSummary | None:
+        """The catalog product ``product_ref_id`` (any of its versions), or ``None``."""
+        if self._product_index is None:
+            products = self.get_products()
+            if self._products is None:
+                return None  # the catalog is busy; try again next time
+            index: dict[str, ProductSummary] = {}
+            for product in products:
+                index.setdefault(product.product_ref_id, product)
+            self._product_index = index
+        return self._product_index.get(product_ref_id)
 
     def import_knxprod(self, path: Path) -> list[ProductSummary]:
         """Import a .knxprod file; returns the newly added product versions."""
@@ -274,5 +287,6 @@ class CatalogService:
 
     def _forget_products(self) -> None:
         self._products = None
+        self._product_index = None
         self._programs = {}
         self._replaces = {}
