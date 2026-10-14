@@ -264,7 +264,7 @@ def test_cells_are_cached_per_key() -> None:
     assert record_cells(record, ProjectIndex(), "b") is not first
 
 
-def test_reference_optional_columns() -> None:
+def test_optional_columns() -> None:
     index = build_index(
         revision=1,
         group_addresses=[

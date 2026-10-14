@@ -895,14 +895,8 @@ msgstr "Functie hernoemen"
 msgid "Load Reference File"
 msgstr "Referentiebestand laden"
 
-msgid "Reference File Path:"
-msgstr "Pad van referentiebestand:"
-
 msgid "Save Memory Dump"
 msgstr "Geheugendump opslaan"
-
-msgid "Save Path:"
-msgstr "Opslagpad:"
 
 msgid "Export Programming Test Result"
 msgstr "Resultaat van programmeertest exporteren"
@@ -1488,3 +1482,27 @@ msgstr "{count} verschil(len)"
 
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} overeenkomend, {changed} zouden wijzigen"
+
+msgid "Save"
+msgstr "Opslaan"
+
+msgid "Diff"
+msgstr "Vergelijken"
+
+msgid "Clear Diff"
+msgstr "Vergelijking wissen"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "Geheugendumps (*.bin)"
+
+msgid "{count} bytes"
+msgstr "{count} bytes"
+
+msgid "No memory segments."
+msgstr "Geen geheugensegmenten."
+
+msgid "Cannot encode memory image: {error}"
+msgstr "Geheugenbeeld kan niet worden aangemaakt: {error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "Het bestand kon niet worden gelezen of geschreven: {error}"

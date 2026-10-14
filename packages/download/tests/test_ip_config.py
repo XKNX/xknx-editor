@@ -33,7 +33,7 @@ _RECORDED = IpDeviceConfig(
     friendly_name="OpenKNX: IP-Interface (Dev)",
     additional_addresses=tuple(range(239, 223, -1)),
 )
-# (property, element count, data) as the reference download wrote them.
+# (property, element count, data) as a recorded download of this configuration wrote them.
 _RECORDED_WRITES = [
     (51, 1, "0000"),
     (66, 1, "e000170c"),

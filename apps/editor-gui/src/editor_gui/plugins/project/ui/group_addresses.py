@@ -4,7 +4,7 @@ Shows, for the selected group address, the device com-objects assigned to it, an
 create / rename / delete group addresses and set their datapoint type (context menus + modals,
 mirroring the Devices panel)."""
 
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -17,6 +17,7 @@ from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.dpt_select import dpt_combo
 from editor_gui.widgets.dpt_value import GroupValueBus
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
@@ -555,13 +556,22 @@ class GroupAddressesPanel:
         end_dialog()
 
     def _render_dpt_popup(self) -> None:
-        if not begin_dialog(S.GA_SET_DPT):
+        names: Mapping[str, str] = self._bus.names() if self._bus is not None else {}
+        if not begin_dialog(S.GA_SET_DPT, width=420.0 if names else None):
             return
-        imgui.text_disabled(S.GA_DPT_HINT)
-        imgui.set_next_item_width(px(220.0))
-        _, self._popup_dpt = imgui.input_text_with_hint(
-            "##ga_dpt", "DPST-1-1", self._popup_dpt
-        )
+        if names:
+            imgui.text_disabled(S.GA_WRITE_DPT)
+            imgui.set_next_item_width(-1)
+            _, self._popup_dpt = dpt_combo(
+                "ga_dpt", self._popup_dpt, names, S.ML_FILTER_HINT
+            )
+        else:
+            # Without master data there is nothing to choose from; enter the token.
+            imgui.text_disabled(S.GA_DPT_HINT)
+            imgui.set_next_item_width(px(220.0))
+            _, self._popup_dpt = imgui.input_text_with_hint(
+                "##ga_dpt", "DPST-1-1", self._popup_dpt
+            )
         if self._popup_dpt_error:
             imgui.text_colored(imgui.ImVec4(0.9, 0.3, 0.3, 1.0), self._popup_dpt_error)
         clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)

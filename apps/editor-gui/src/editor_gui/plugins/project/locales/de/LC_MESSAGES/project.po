@@ -1346,14 +1346,8 @@ msgstr "Funktion umbenennen"
 msgid "Load Reference File"
 msgstr "Referenzdatei laden"
 
-msgid "Reference File Path:"
-msgstr "Pfad der Referenzdatei:"
-
 msgid "Save Memory Dump"
 msgstr "Speicherabbild speichern"
-
-msgid "Save Path:"
-msgstr "Speicherpfad:"
 
 msgid "Export Programming Test Result"
 msgstr "Ergebnis des Programmiertests exportieren"
@@ -1432,9 +1426,6 @@ msgstr "Exportieren"
 
 msgid "Import"
 msgstr "Importieren"
-
-msgid "All Files"
-msgstr "Alle Dateien"
 
 msgid "Assignment"
 msgstr "Zuweisung"
@@ -1636,3 +1627,24 @@ msgstr "entfernt"
 
 msgid "{count} difference(s)"
 msgstr "{count} Unterschied(e)"
+
+msgid "Diff"
+msgstr "Vergleichen"
+
+msgid "Clear Diff"
+msgstr "Vergleich aufheben"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "Speicherabbilder (*.bin)"
+
+msgid "{count} bytes"
+msgstr "{count} Bytes"
+
+msgid "No memory segments."
+msgstr "Keine Speichersegmente."
+
+msgid "Cannot encode memory image: {error}"
+msgstr "Speicherabbild kann nicht erzeugt werden: {error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "Die Datei konnte nicht gelesen oder geschrieben werden: {error}"
