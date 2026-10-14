@@ -2256,8 +2256,8 @@ class ProjectStrings:
         return _("Not connected to the bus.")
 
     @property
-    def GA_IMPORT_BUTTON(self) -> str:
-        return _("Import…")
+    def GA_EXPORT_MENU(self) -> str:
+        return _("Export Group Addresses…")
 
     @property
     def GA_IMPORT_MENU(self) -> str:
@@ -2304,6 +2304,14 @@ class ProjectStrings:
     @property
     def GA_STYLE_FREE(self) -> str:
         return _("free")
+
+    @property
+    def GA_EXPORT_BUTTON(self) -> str:
+        return _("Export")
+
+    @property
+    def GA_IMPORT_BUTTON(self) -> str:
+        return _("Import")
 
 
 S = ProjectStrings()

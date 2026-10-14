@@ -297,3 +297,9 @@ msgstr "Groepsadres-exports (*.xml, *.csv)"
 
 msgid "Projects (*.xknx, *.knxproj, *.xml, *.csv)"
 msgstr "Projecten (*.xknx, *.knxproj, *.xml, *.csv)"
+
+msgid "Import Group Addresses..."
+msgstr "Groepsadressen importeren..."
+
+msgid "Export Group Addresses..."
+msgstr "Groepsadressen exporteren..."

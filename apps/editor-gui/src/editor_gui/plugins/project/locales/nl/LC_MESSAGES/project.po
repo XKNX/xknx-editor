@@ -943,6 +943,8 @@ msgid "Not connected to the bus."
 msgstr "Geen verbinding met de bus."
 msgid "Import…"
 msgstr "Importeren…"
+msgid "Export Group Addresses…"
+msgstr "Groepsadressen exporteren…"
 
 msgid "Import Group Addresses…"
 msgstr "Groepsadressen importeren…"
@@ -976,3 +978,9 @@ msgstr "2-niveau"
 
 msgid "free"
 msgstr "vrije"
+
+msgid "Export"
+msgstr "Exporteren"
+
+msgid "Import"
+msgstr "Importeren"

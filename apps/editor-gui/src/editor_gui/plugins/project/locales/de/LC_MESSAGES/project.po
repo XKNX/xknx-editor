@@ -1391,6 +1391,8 @@ msgid "Not connected to the bus."
 msgstr "Keine Verbindung zum Bus."
 msgid "Import…"
 msgstr "Importieren…"
+msgid "Export Group Addresses…"
+msgstr "Gruppenadressen exportieren…"
 
 msgid "Import Group Addresses…"
 msgstr "Gruppenadressen importieren…"
@@ -1424,3 +1426,9 @@ msgstr "2-stufige"
 
 msgid "free"
 msgstr "freie"
+
+msgid "Export"
+msgstr "Exportieren"
+
+msgid "Import"
+msgstr "Importieren"

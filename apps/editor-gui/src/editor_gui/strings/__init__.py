@@ -409,6 +409,10 @@ class MenuStrings:
         return _("Export Group Addresses...")
 
     @property
+    def MENU_IMPORT_GA(self) -> str:
+        return _("Import Group Addresses...")
+
+    @property
     def GA_EXPORT_OK(self) -> str:
         return _("Exported {count} group address(es)")
 

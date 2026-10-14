@@ -50,6 +50,7 @@ class GroupAddressesPanel:
         on_select_device_id: Callable[[int], None] | None = None,
         bus: GroupValueBus | None = None,
         on_import: Callable[[Path], tuple[int, int, int]] | None = None,
+        on_export: Callable[[], None] | None = None,
     ) -> None:
         self._get_range_tree = get_range_tree
         self._get_assignments_for_ga = get_assignments_for_ga
@@ -66,6 +67,7 @@ class GroupAddressesPanel:
         self._on_select_device_id = on_select_device_id
         self._bus = bus
         self._on_import = on_import
+        self._on_export = on_export
         self._import_dialog: pfd.open_file | None = None
         self._import_message = ""
         self._open_import_result = False
@@ -133,11 +135,14 @@ class GroupAddressesPanel:
                 self._popup_range_parent = None
                 self._popup_range_name = ""
                 self._open_new_range = True
+        if self._on_export is not None:
+            imgui.same_line()
+            if imgui.small_button(S.GA_EXPORT_BUTTON):
+                self._on_export()
         if self._on_import is not None:
             imgui.same_line()
             if imgui.small_button(S.GA_IMPORT_BUTTON):
-                self._start_import()
-        self._poll_import()
+                self.start_import()
 
         if self._open_new_ga:
             imgui.open_popup(S.GA_NEW)
@@ -160,9 +165,6 @@ class GroupAddressesPanel:
         if self._open_delete_range:
             imgui.open_popup(S.GA_FOLDER_DELETE)
             self._open_delete_range = False
-        if self._open_import_result:
-            imgui.open_popup(S.GA_IMPORT_TITLE)
-            self._open_import_result = False
         self._render_new_ga_popup()
         self._render_rename_popup()
         self._render_renumber_popup()
@@ -172,7 +174,6 @@ class GroupAddressesPanel:
         self._render_new_range_popup()
         self._render_rename_range_popup()
         self._render_delete_range_popup()
-        self._render_import_result()
 
         if not tree:
             imgui.text_disabled(S.GA_NO_PROJECT)
@@ -212,18 +213,35 @@ class GroupAddressesPanel:
             self._popup_range_parent = None
             self._popup_range_name = ""
             self._open_new_range = True
-        if self._on_import is not None:
+        if self._on_export is not None or self._on_import is not None:
             imgui.separator()
-            if imgui.menu_item(S.GA_IMPORT_MENU, "", False)[0]:
-                self._start_import()
+        if (
+            self._on_export is not None
+            and imgui.menu_item(S.GA_EXPORT_MENU, "", False)[0]
+        ):
+            self._on_export()
+        if (
+            self._on_import is not None
+            and imgui.menu_item(S.GA_IMPORT_MENU, "", False)[0]
+        ):
+            self.start_import()
 
-    def _start_import(self) -> None:
+    def start_import(self) -> None:
+        """Ask for a group address file and import it into the open project."""
         if self._import_dialog is None:
             self._import_dialog = pfd.open_file(
                 S.GA_IMPORT_TITLE,
                 "",
                 [S.GA_IMPORT_FILTER, "*.xml *.csv", S.GA_IMPORT_ALL_FILES, "*"],
             )
+
+    def render_import(self) -> None:
+        """The import's file dialog and result; drawn every frame, also while the panel is hidden."""
+        self._poll_import()
+        if self._open_import_result:
+            imgui.open_popup(S.GA_IMPORT_TITLE)
+            self._open_import_result = False
+        self._render_import_result()
 
     def _poll_import(self) -> None:
         dialog = self._import_dialog

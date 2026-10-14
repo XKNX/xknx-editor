@@ -91,6 +91,7 @@ class ProjectPlugin:
         self,
         api: PluginAPI,
         get_selected_node_ids: Callable[[], list[int]] | None = None,
+        export_group_addresses: Callable[[], None] | None = None,
     ) -> None:
         self._api = api
         self._get_selected_node_ids = get_selected_node_ids
@@ -253,6 +254,7 @@ class ProjectPlugin:
             on_select_device_id=self._select_device_by_id,
             bus=group_bus,
             on_import=api.project.import_group_addresses,
+            on_export=export_group_addresses,
         )
 
         self._spaces_panel = SpacesPanel(
@@ -1852,7 +1854,12 @@ class ProjectPlugin:
     def show_context_help(self, shown: bool) -> None:
         self._configure_panel.show_help = shown
 
+    def import_group_addresses(self) -> None:
+        """Ask for a group address file and import it into the open project."""
+        self._group_addresses_panel.start_import()
+
     def render_overlays(self) -> None:
+        self._group_addresses_panel.render_import()
         self._read_device_dialog.render()
         self._object_group_value.render()
         self._button_runner.render()

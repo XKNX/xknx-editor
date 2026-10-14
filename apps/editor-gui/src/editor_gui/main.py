@@ -501,6 +501,7 @@ class KnxGuiApp:
         self._project_plugin = ProjectPlugin(
             self._plugin_api,
             get_selected_node_ids=lambda: [],
+            export_group_addresses=self._export_ga_export,
         )
         self._project_plugin.show_context_help = bool(
             load_settings("app").get("show_context_help", True)
@@ -2283,6 +2284,7 @@ class KnxGuiApp:
                 0
             ]:
                 self._start_compact_analysis()
+            imgui.separator()
             if imgui.menu_item(
                 S.MENU_EXPORT_GA_EXPORT,
                 "",
@@ -2290,6 +2292,13 @@ class KnxGuiApp:
                 self._project_service.is_open,
             )[0]:
                 self._export_ga_export()
+            if imgui.menu_item(
+                S.MENU_IMPORT_GA,
+                "",
+                False,
+                self._project_service.is_open and self._can_launch_file_dialog(),
+            )[0]:
+                self._project_plugin.import_group_addresses()
             imgui.separator()
             if (
                 imgui.menu_item(S.MENU_LOAD_KNXPROD, "", False)[0]
