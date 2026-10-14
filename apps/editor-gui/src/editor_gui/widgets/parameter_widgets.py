@@ -483,7 +483,7 @@ def _render_time_param(
         _render_suffix(S.time_unit(widget.unit.value))
         return
     shown = "" if differs else format_time(value, widget.unit.value, hint)
-    _set_number_field_width(max(len(pattern), len(shown)), spin=False)
+    _set_number_field_width(spin=False)
     if differs:
         _, text = imgui.input_text_with_hint(f"##{widget_id}", S.PARAM_DIFFERS, "")
     else:
@@ -519,22 +519,9 @@ def _spin_width() -> float:
     return imgui.get_frame_height() * 0.6
 
 
-# In a grid cell a number field fills the cell, as in the reference; elsewhere it fits its digits.
-_number_fills_cell = False
-
-
-def _set_number_field_width(chars: int, *, spin: bool = True) -> None:
-    """Size the next field to ``chars`` characters (plus its spin arrows, drawn inside its right
-    end), at most the requested width."""
-    style = imgui.get_style()
-    content = (
-        imgui.calc_text_size("0" * max(chars, _MIN_NUMBER_CHARS)).x
-        + 2 * style.frame_padding.x
-    )
-    if spin:
-        content += _spin_width()
-    width = imgui.calc_item_width()
-    imgui.set_next_item_width(width if _number_fills_cell else min(width, content))
+def _set_number_field_width(*, spin: bool = True) -> None:
+    """A number field fills its column like the other fields, as in the reference; its spin
+    arrows are drawn inside its right end."""
     if spin:
         imgui.set_next_item_allow_overlap()
 
@@ -606,8 +593,7 @@ def _render_int_param(
     differs: bool = False,
     increment: int = 1,
 ) -> None:
-    chars = max(len(str(min_value or 0)), len(str(max_value or 0)), len(value))
-    _set_number_field_width(chars)
+    _set_number_field_width()
     if differs:
         _, new_text = imgui.input_text_with_hint(
             f"##{widget_id}", S.PARAM_DIFFERS, "", imgui.InputTextFlags_.chars_decimal
@@ -1544,19 +1530,14 @@ def _render_grid_param(
     imgui.begin_group()
     imgui.set_next_item_width(-px(_CELL_GAP) - _suffix_width(param.suffix))
     imgui.begin_disabled(read_only)
-    global _number_fills_cell
-    _number_fills_cell = True
-    try:
-        req = _render_device_param(
-            device,
-            param,
-            widget_id,
-            lambda v, d=device, p=param.ref_id: on_change(d, p, v),
-            deferred_enum=deferred_enum,
-            differs=param.ref_id in differing_refs,
-        )
-    finally:
-        _number_fills_cell = False
+    req = _render_device_param(
+        device,
+        param,
+        widget_id,
+        lambda v, d=device, p=param.ref_id: on_change(d, p, v),
+        deferred_enum=deferred_enum,
+        differs=param.ref_id in differing_refs,
+    )
     imgui.end_disabled()
     _track_help(param.help_context)
     _render_suffix(param.suffix)
@@ -1605,8 +1586,10 @@ def _render_param_table(
             "Value",
             imgui.TableColumnFlags_.width_stretch | imgui.TableColumnFlags_.no_clip,
         )
+        # Every row is as high as one with an input field, as in the reference.
+        row_height = imgui.get_frame_height() + 2 * padding.y
         for param in params:
-            imgui.table_next_row()
+            imgui.table_next_row(imgui.TableRowFlags_.none, row_height)
             if isinstance(param, UiButton):
                 imgui.table_set_column_index(1)
                 _render_button(device, param, prefix, buttons)
@@ -1619,6 +1602,7 @@ def _render_param_table(
                 imgui.indent(indent)
             label = param.label
             differs = param.ref_id in differing_refs
+            imgui.align_text_to_frame_padding()
             # In multi-edit a diverging value has no single "changed vs default" state to show.
             changed = not differs and param.value != param.default_value
             # Changed parameters stand out. A leading marker plus the colour means the
@@ -1648,6 +1632,7 @@ def _render_param_table(
                 imgui.unindent(indent)
             imgui.table_set_column_index(1)
             if _shows_as_text(param):
+                imgui.align_text_to_frame_padding()
                 imgui.text(_value_display(param, param.value))
                 _render_suffix(param.suffix)
                 _track_help(param.help_context)
@@ -1695,8 +1680,6 @@ _LIST_LABEL_SHARE = 0.45
 _CELL_GAP = 6.0
 # Space left and right of a button in a grid cell.
 _BUTTON_MARGIN = 7.0
-# Characters a number field has room for at least.
-_MIN_NUMBER_CHARS = 3
 _SEPARATOR_ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 
 
