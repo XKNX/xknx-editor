@@ -203,6 +203,7 @@ class ConfigurePanel:
         on_navigate_ga: Callable[[int], None] | None = None,
         on_paste_links: Callable[[int, list[tuple[int, bool]], bool], None]
         | None = None,
+        ga_menu: Callable[[int, ComObject], None] | None = None,
         buttons: ButtonActions | None = None,
         get_help: Callable[[Device, str], str | None] | None = None,
         get_icon: Callable[[Device, str], Icon | None] | None = None,
@@ -295,6 +296,7 @@ class ConfigurePanel:
             on_set_dpt=set_dpt,
             on_set_priority=set_priority,
             on_set_description=set_description,
+            ga_menu=ga_menu,
         )
         self._name_buffer: str = ""
         # The name field was pre-filled with the default name when it was activated.

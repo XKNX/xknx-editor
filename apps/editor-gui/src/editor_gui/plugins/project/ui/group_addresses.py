@@ -12,9 +12,10 @@ from imgui_bundle import imgui
 from editor_gui.device import com_object_display_name
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
+from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
-from editor_gui.widgets.dpt_value import DptValueInput, GroupValueBus, dpt_label
+from editor_gui.widgets.dpt_value import GroupValueBus
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
 if TYPE_CHECKING:
@@ -87,11 +88,9 @@ class GroupAddressesPanel:
         self._open_renumber_ga = False
         self._renumber_error = ""
         self._open_set_dpt = False
-        self._open_write_value = False
-        self._write_address = ""
-        self._write_name = ""
-        self._write_dpt: str | None = None
-        self._write_value = DptValueInput("ga_write_value")
+        self._group_value = (
+            GroupValueActions(bus, "ga_write_value") if bus is not None else None
+        )
         # Group-range (folder) modal state.
         self._popup_range_id: int = 0
         self._popup_range_parent: int | None = None
@@ -140,9 +139,6 @@ class GroupAddressesPanel:
         if self._open_set_dpt:
             imgui.open_popup(S.GA_SET_DPT)
             self._open_set_dpt = False
-        if self._open_write_value:
-            imgui.open_popup(S.GA_WRITE_VALUE_TITLE)
-            self._open_write_value = False
         if self._open_new_range:
             imgui.open_popup(S.GA_FOLDER_NEW)
             self._open_new_range = False
@@ -156,7 +152,8 @@ class GroupAddressesPanel:
         self._render_rename_popup()
         self._render_renumber_popup()
         self._render_dpt_popup()
-        self._render_write_value_popup()
+        if self._group_value is not None:
+            self._group_value.render()
         self._render_new_range_popup()
         self._render_rename_range_popup()
         self._render_delete_range_popup()
@@ -276,75 +273,19 @@ class GroupAddressesPanel:
             self._open_set_dpt = True
         if imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]:
             imgui.set_clipboard_text(getattr(ga, "text", "") or "")
-        if self._bus is not None:
+        if self._group_value is not None:
             imgui.separator()
-            self._render_bus_items(ga, self._bus)
+            self._group_value.render_menu_items(
+                getattr(ga, "text", "") or "",
+                getattr(ga, "name", "") or "",
+                getattr(ga, "datapoint_type", None),
+            )
         imgui.separator()
         if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
             self._on_remove_ga(ga.id)  # type: ignore[attr-defined]
             if self._selected_ga_id == ga.id:  # type: ignore[attr-defined]
                 self._selected_ga_id = None
         imgui.end_popup()
-
-    def _render_bus_items(self, ga: object, bus: GroupValueBus) -> None:
-        address = getattr(ga, "text", "") or ""
-        connected = bus.connected()
-        if imgui.menu_item(S.GA_READ_VALUE, "", False, connected)[0]:
-            bus.read(address)
-        if not connected:
-            imgui.set_item_tooltip(S.GA_NOT_CONNECTED)
-        if imgui.menu_item(S.GA_WRITE_VALUE, "", False, connected)[0]:
-            self._write_address = address
-            self._write_name = getattr(ga, "name", "") or ""
-            self._write_dpt = getattr(ga, "datapoint_type", None) or None
-            self._write_value.reset()
-            self._open_write_value = True
-        if not connected:
-            imgui.set_item_tooltip(S.GA_NOT_CONNECTED)
-
-    def _render_write_value_popup(self) -> None:
-        bus = self._bus
-        if bus is None or not begin_dialog(S.GA_WRITE_VALUE_TITLE, width=480.0):
-            return
-        formats = bus.formats()
-        labels = (S.GA_WRITE_ADDRESS, S.GA_WRITE_DPT, S.GA_WRITE_VALUE_LABEL)
-        label_w = max(imgui.calc_text_size(label).x for label in labels) + px(16.0)
-        imgui.text_disabled(S.GA_WRITE_ADDRESS)
-        imgui.same_line(label_w)
-        imgui.text(f"{self._write_address}  {self._write_name}".strip())
-        imgui.text_disabled(S.GA_WRITE_DPT)
-        imgui.same_line(label_w)
-        imgui.text(dpt_label(self._write_dpt, bus.names()) or "-")
-        imgui.spacing()
-        imgui.align_text_to_frame_padding()
-        imgui.text_disabled(S.GA_WRITE_VALUE_LABEL)
-        imgui.same_line(label_w)
-        submitted = False
-        if self._write_dpt:
-            imgui.begin_group()
-            submitted = self._write_value.render(self._write_dpt, formats)
-            imgui.end_group()
-        else:
-            imgui.text_wrapped(S.GA_WRITE_NO_DPT)
-        if self._write_value.error:
-            imgui.text_colored(
-                imgui.ImVec4(0.9, 0.3, 0.3, 1.0), self._write_value.error
-            )
-        connected = bus.connected()
-        can_write = connected and self._write_value.can_write(self._write_dpt, formats)
-        if not connected:
-            imgui.text_disabled(S.GA_NOT_CONNECTED)
-        clicked = dialog_buttons(
-            S.GA_WRITE_BUTTON, S.BTN_CANCEL, enabled=[can_write, True]
-        )
-        if (clicked == 0 or (submitted and can_write)) and can_write:
-            payload = self._write_value.payload()
-            if payload is not None:
-                bus.write(self._write_address, payload)
-                imgui.close_current_popup()
-        elif clicked == 1:
-            imgui.close_current_popup()
-        end_dialog()
 
     def _folders_enabled(self) -> bool:
         """Folders (group ranges) only exist in the level-based styles, not Free."""

@@ -78,8 +78,11 @@ class GroupObjectsTable:
         on_set_dpt: Callable[[Device, str, str | None], None] | None = None,
         on_set_priority: Callable[[Device, str, str | None], None] | None = None,
         on_set_description: Callable[[Device, str, str | None], None] | None = None,
+        ga_menu: Callable[[int, ComObject], None] | None = None,
     ) -> None:
         self._set_flag = set_flag
+        # Renders the context menu items of an assigned group address: (group_address_id, object).
+        self._ga_menu = ga_menu
         self._on_link = on_link
         self._on_unlink = on_unlink
         self._on_auto_create_gas = on_auto_create_gas
@@ -377,6 +380,11 @@ class GroupObjectsTable:
                 imgui.set_tooltip(S.GA_SENDING if is_sending else S.GA_RECEIVING)
             if self._on_navigate_ga is not None and imgui.is_item_clicked():
                 self._on_navigate_ga(ga_id)
+            if self._ga_menu is not None and imgui.begin_popup_context_item(
+                f"##ga_ctx{assignment_id}"
+            ):
+                self._ga_menu(ga_id, com_object)
+                imgui.end_popup()
         if db_id is not None:
             self._render_add(device, com_object, db_id, links, get_all_group_addresses)
 
