@@ -766,6 +766,7 @@ msgstr "Projekte (*.xknx, *.knxproj, *.xml, *.csv)"
 
 msgid "Import Group Addresses..."
 msgstr "Gruppenadressen importieren..."
+
 msgid "Feedback"
 msgstr "Feedback"
 
@@ -858,6 +859,7 @@ msgstr "Exportieren"
 
 msgid "Group Address Export (*.csv)"
 msgstr "Gruppenadressen-Export (*.csv)"
+
 msgid "Exported {count} group address(es)"
 msgstr "{count} Gruppenadresse(n) exportiert"
 

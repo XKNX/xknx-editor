@@ -924,6 +924,7 @@ msgstr "Waarde schrijven…"
 
 msgid "Write Value"
 msgstr "Waarde schrijven"
+
 msgid "(none)"
 msgstr "(geen)"
 
@@ -1163,6 +1164,7 @@ msgstr "Exporteren"
 
 msgid "Import"
 msgstr "Importeren"
+
 msgid "Group Address Name"
 msgstr "Groepsadresnaam"
 

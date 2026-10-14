@@ -302,6 +302,7 @@ msgstr "Projecten (*.xknx, *.knxproj, *.xml, *.csv)"
 
 msgid "Import Group Addresses..."
 msgstr "Groepsadressen importeren..."
+
 msgid "XKNX Editor"
 msgstr "XKNX Editor"
 
@@ -532,6 +533,7 @@ msgstr "Exporteren"
 
 msgid "Group Address Export (*.csv)"
 msgstr "Groepsadres-export (*.csv)"
+
 msgid "Exported {count} group address(es)"
 msgstr "{count} groepsadres(sen) geëxporteerd"
 
