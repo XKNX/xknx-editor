@@ -44,6 +44,10 @@ class BaseStrings:
         return _("XKNX Editor")
 
     @property
+    def WINDOW_TITLE(self) -> str:
+        return _("{project} - {app}")
+
+    @property
     def MENU_HELP(self) -> str:
         return _("Help")
 

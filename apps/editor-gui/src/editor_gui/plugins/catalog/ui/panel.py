@@ -7,8 +7,8 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.device_info import application_version_text
+from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.plugins.catalog.strings import S
-from editor_gui.regional import regional_format
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
@@ -38,35 +38,6 @@ def _key(product: ProductSummary) -> str:
 
 def _same(a: ProductSummary | None, b: ProductSummary) -> bool:
     return a is not None and _key(a) == _key(b)
-
-
-# Width of one DIN rail module in millimetres.
-_MODULE_WIDTH_MM = 18.0
-
-
-def _number_text(value: float) -> str:
-    """``value`` with at most one decimal, in the regional decimal format."""
-    text = f"{value:.1f}".rstrip("0").rstrip(".")
-    return text.replace(".", regional_format().decimal)
-
-
-def _rail_text(product: ProductSummary) -> str:
-    """``142.3 mm (8M)`` for a DIN rail device with a known width."""
-    if product.is_rail_mounted is None:
-        return "-"
-    if not product.is_rail_mounted:
-        return S.CATALOG_NO
-    width = product.width_mm
-    if not width:
-        return S.CATALOG_YES
-    modules = max(1, round(width / _MODULE_WIDTH_MM))
-    return f"{_number_text(width)} mm ({modules}M)"
-
-
-def _bus_current_text(product: ProductSummary) -> str:
-    if product.bus_current is None:
-        return "-"
-    return f"{_number_text(product.bus_current)} mA"
 
 
 def _version_text(product: ProductSummary) -> str:
@@ -379,8 +350,8 @@ class CatalogPanel:
                 S.CATALOG_DETAIL_MANUFACTURER,
                 product.manufacturer_name or product.manufacturer_id,
             ),
-            (S.CATALOG_DETAIL_RAIL, _rail_text(product)),
-            (S.CATALOG_DETAIL_BUS_CURRENT, _bus_current_text(product)),
+            (S.CATALOG_DETAIL_RAIL, rail_text(product, S.CATALOG_YES, S.CATALOG_NO)),
+            (S.CATALOG_DETAIL_BUS_CURRENT, bus_current_text(product)),
             (
                 S.CATALOG_DETAIL_APPLICATION,
                 product.application_name or product.application_id or "-",

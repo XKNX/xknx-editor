@@ -284,3 +284,6 @@ msgstr ""
 "Verwijdert productgegevens die geen enkel apparaat gebruikt uit het "
 "geëxporteerde project om de grootte te verkleinen. Het project zelf wordt "
 "niet gewijzigd."
+
+msgid "{project} - {app}"
+msgstr "{project} - {app}"

@@ -1359,3 +1359,9 @@ msgstr "Ergebnis des Programmiertests exportieren"
 
 msgid "Load"
 msgstr "Laden"
+
+msgid "DIN Rail Mounting"
+msgstr "Hutschienenmontage"
+
+msgid "Bus Current"
+msgstr "Busstrom"

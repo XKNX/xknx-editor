@@ -699,7 +699,7 @@ class TelegramView:
         clicked = dialog_buttons(S.BTN_YES, S.BTN_NO)
         yes = clicked == 0
         no = clicked == 1
-        if yes or no or imgui.is_key_pressed(imgui.Key.escape):
+        if yes or no:
             self._question = None
             imgui.close_current_popup()
             if yes:
@@ -737,7 +737,7 @@ class TelegramView:
         clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
         ok = clicked == 0
         cancel = clicked == 1
-        if ok or cancel or imgui.is_key_pressed(imgui.Key.escape):
+        if ok or cancel:
             self._scope_action = None
             imgui.close_current_popup()
             if ok:

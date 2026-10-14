@@ -908,3 +908,9 @@ msgstr "Resultaat van programmeertest exporteren"
 
 msgid "Load"
 msgstr "Laden"
+
+msgid "DIN Rail Mounting"
+msgstr "DIN-railmontage"
+
+msgid "Bus Current"
+msgstr "Busstroom"

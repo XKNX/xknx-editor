@@ -1,8 +1,10 @@
 """Modal dialogs and tool windows with one look.
 
 Every dialog opens centred on the main window, has a title bar and does not remember a position it
-was moved to. Confirm/cancel buttons sit right-aligned in one row of equal-width buttons. Tool
-windows open centred too while they float; they can be docked and keep their dock place and size.
+was moved to. Its buttons sit in one row of equal-width buttons: the actions left-aligned, the
+button that dismisses the dialog (Cancel, Close, No, ...) right-aligned and triggered by Escape.
+Tool windows open centred too while they float; they can be docked and keep their dock place and
+size.
 """
 
 from __future__ import annotations
@@ -53,9 +55,11 @@ def end_dialog() -> None:
 
 
 def dialog_buttons(*labels: str, enabled: Sequence[bool] | None = None) -> int | None:
-    """A right-aligned row of equal-width buttons below a separator, the primary one first.
+    """A row of equal-width buttons below a separator, the primary one first.
 
-    Returns the index of the clicked button, or ``None``.
+    The last label is the button that dismisses the dialog: it sits at the right edge and Escape
+    triggers it while the dialog has focus. The others sit left-aligned. Returns the index of the
+    clicked button, or ``None``.
     """
     style = imgui.get_style()
     width = max(
@@ -66,22 +70,31 @@ def dialog_buttons(*labels: str, enabled: Sequence[bool] | None = None) -> int |
             for label in labels
         ),
     )
-    total = width * len(labels) + style.item_spacing.x * (len(labels) - 1)
     imgui.spacing()
     imgui.separator()
     imgui.spacing()
-    imgui.set_cursor_pos_x(
-        imgui.get_cursor_pos_x() + max(0.0, imgui.get_content_region_avail().x - total)
-    )
+    row_x = imgui.get_cursor_pos_x()
+    dismiss_x = row_x + max(0.0, imgui.get_content_region_avail().x - width)
+    dismiss = len(labels) - 1
     clicked: int | None = None
     for index, label in enumerate(labels):
         if index:
             imgui.same_line()
+        if index == dismiss:
+            imgui.set_cursor_pos_x(max(dismiss_x, imgui.get_cursor_pos_x()))
         disabled = enabled is not None and not enabled[index]
         imgui.begin_disabled(disabled)
         if imgui.button(label, imgui.ImVec2(width, 0.0)):
             clicked = index
         imgui.end_disabled()
+        if (
+            index == dismiss
+            and clicked is None
+            and not disabled
+            and imgui.is_window_focused(imgui.FocusedFlags_.root_and_child_windows)
+            and imgui.is_key_pressed(imgui.Key.escape, repeat=False)
+        ):
+            clicked = index
     return clicked
 
 

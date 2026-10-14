@@ -748,3 +748,6 @@ msgstr "In ETS-6-ProjectStore exportieren"
 
 msgid "Select the ETS 6 ProjectStore folder"
 msgstr "ETS-6-ProjectStore-Ordner auswählen"
+
+msgid "{project} - {app}"
+msgstr "{project} - {app}"

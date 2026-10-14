@@ -447,16 +447,12 @@ class GroupObjectsTable:
         if self._open_desc_popup:
             imgui.open_popup(S.GROUP_OBJECTS_EDIT_DESCRIPTION)
             self._open_desc_popup = False
-        if not imgui.begin_popup_modal(
-            S.GROUP_OBJECTS_EDIT_DESCRIPTION,
-            None,
-            imgui.WindowFlags_.always_auto_resize,
-        )[0]:
+        if not begin_dialog(S.GROUP_OBJECTS_EDIT_DESCRIPTION):
             return
         device, co_id = self._desc_popup_device, self._desc_popup_co_id
         if device is None or co_id is None:
             imgui.close_current_popup()
-            imgui.end_popup()
+            end_dialog()
             return
         imgui.set_next_item_width(px(_PICKER_WIDTH))
         entered, self._desc_buffer = imgui.input_text(
@@ -464,13 +460,13 @@ class GroupObjectsTable:
             self._desc_buffer,
             imgui.InputTextFlags_.enter_returns_true,
         )
-        if imgui.button(S.OK) or entered:
+        clicked = dialog_buttons(S.OK, S.CANCEL)
+        if clicked == 0 or entered:
             self._on_set_description(device, co_id, self._desc_buffer or None)
             imgui.close_current_popup()
-        imgui.same_line()
-        if imgui.button(S.CANCEL):
+        elif clicked == 1:
             imgui.close_current_popup()
-        imgui.end_popup()
+        end_dialog()
 
     def _render_row_context_menu(
         self, device: Device, com_object: ComObject, get_links: GroupLinkResolver

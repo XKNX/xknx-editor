@@ -2211,5 +2211,13 @@ class ProjectStrings:
             "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
         )
 
+    @property
+    def CONFIGURE_RAIL(self) -> str:
+        return _("DIN Rail Mounting")
+
+    @property
+    def CONFIGURE_BUS_CURRENT(self) -> str:
+        return _("Bus Current")
+
 
 S = ProjectStrings()

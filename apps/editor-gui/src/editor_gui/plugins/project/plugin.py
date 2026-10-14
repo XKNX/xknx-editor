@@ -213,6 +213,7 @@ class ProjectPlugin:
             on_serial_number_change=self._set_serial_number,
             use_serial_number_default=lambda: api.connection.use_serial_number,
             find_serial_owner=self._serial_owner,
+            find_product=api.catalog.find_product,
         )
         self._dali_panel = DaliCommissioningPanel(self._run_dali)
 
