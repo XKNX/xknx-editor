@@ -447,22 +447,52 @@ def _extract_trace_via_pythonnet(dll: Path) -> tuple[bytes, bytes, str]:
 
     clr.AddReference(str(dll))
     asm: Any = reflection.Assembly.LoadFrom(str(dll))
+    bf: Any = reflection.BindingFlags
+    flags = bf.NonPublic | bf.Public | bf.Instance
+
+    def string_methods(tt: Any) -> list[Any]:
+        return [
+            m
+            for m in tt.GetMethods(bf.Public | bf.Instance | bf.DeclaredOnly)
+            if str(m.ReturnType.FullName) == "System.String"
+            and m.GetParameters().Length == 1
+            and str(m.GetParameters()[0].ParameterType.FullName) == "System.String"
+        ]
+
+    def is_cipher(ft: Any) -> bool:
+        while ft is not None:
+            if str(ft.FullName) == "System.Security.Cryptography.SymmetricAlgorithm":
+                return True
+            ft = ft.BaseType
+        return False
+
+    # Since 6.4 the encryptor has a name; 6.3 obfuscates class and method names, so fall back to
+    # its shape: a class with a SymmetricAlgorithm field and public string(string) methods.
     t: Any = asm.GetType("Knx.Ets.Common.Security.ProjectTraceEncryptor")
     if t is None:
-        for tt in asm.GetTypes():
+        try:
+            types: Any = asm.GetTypes()
+        except (
+            Exception
+        ) as exc:  # ReflectionTypeLoadException: keep the types that loaded
+            types = getattr(exc, "Types", None) or []
+        for tt in types:
             try:
-                st = system.Array[system.Type]([system.String])
-                if tt.GetMethod("Encrypt", st) is not None and (
-                    tt.GetMethod("Decrypt", st) is not None
+                if (
+                    tt is not None
+                    and tt.IsClass
+                    and not tt.IsAbstract
+                    and len(string_methods(tt)) >= 2
+                    and any(is_cipher(f.FieldType) for f in tt.GetFields(flags))
                 ):
                     t = tt
                     break
             except Exception:
                 continue
     if t is None:
-        raise KeyExtractionError("project-trace encryptor type not found")
-    bf: Any = reflection.BindingFlags
-    flags = bf.NonPublic | bf.Public | bf.Instance
+        raise KeyExtractionError(
+            f"project-trace encryptor type not found in {asm.GetName()}"
+        )
     inst: Any = None
     for ctor in t.GetConstructors(flags):
         ps = ctor.GetParameters()
@@ -471,14 +501,43 @@ def _extract_trace_via_pythonnet(dll: Path) -> tuple[bytes, bytes, str]:
                 inst = ctor.Invoke(None)
                 break
             if ps.Length == 1 and str(ps[0].ParameterType.Name) == "Int32":
-                inst = ctor.Invoke(system.Array[system.Object]([1]))
+                inst = ctor.Invoke(system.Array[system.Object]([system.Int32(1)]))
                 break
         except Exception:
             continue
     if inst is None:
-        raise KeyExtractionError("could not instantiate the encryptor")
-    enc: Any = t.GetMethod("Encrypt", system.Array[system.Type]([system.String]))
-    output = str(enc.Invoke(inst, system.Array[system.Object]([TRACE_SENTINEL])))
+        raise KeyExtractionError(f"could not instantiate the encryptor {t.FullName}")
+
+    def call(method: Any, text: str) -> str | None:
+        try:
+            result = method.Invoke(inst, system.Array[system.Object]([text]))
+        except Exception:
+            return None
+        return None if result is None else str(result)
+
+    # Without the method name, Encrypt is the method whose output another one turns back into
+    # the sentinel.
+    output: str | None = None
+    named: Any = t.GetMethod("Encrypt", system.Array[system.Type]([system.String]))
+    if named is not None:
+        output = call(named, TRACE_SENTINEL)
+    else:
+        methods = string_methods(t)
+        for enc in methods:
+            candidate = call(enc, TRACE_SENTINEL)
+            if candidate is None or candidate == TRACE_SENTINEL:
+                continue
+            if any(
+                call(dec, candidate) == TRACE_SENTINEL
+                for dec in methods
+                if not dec.Equals(enc)
+            ):
+                output = candidate
+                break
+    if output is None:
+        raise KeyExtractionError(
+            f"no encrypt method found on the encryptor {t.FullName}"
+        )
     key = iv = None
     for f in t.GetFields(flags):
         v = f.GetValue(inst)
