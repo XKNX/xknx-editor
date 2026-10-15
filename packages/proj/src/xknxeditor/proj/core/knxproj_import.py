@@ -55,6 +55,7 @@ from xknxeditor.proj.core.import_notes import (
     ImportLoss,
     dumps,
 )
+from xknxeditor.proj.core.knxproj_protect import is_password_protected
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
     Area,
@@ -216,6 +217,9 @@ def import_knxproj(
                 extras,
                 knx_master_xml=master_xml,
                 product_members=product_members,
+                password=password
+                if password and is_password_protected(source)
+                else None,
             )
             session.commit()
     finally:
@@ -1306,6 +1310,7 @@ def _build(
     *,
     knx_master_xml: bytes | None = None,
     product_members: bytes | None = None,
+    password: str | None = None,
 ) -> None:
     # Raw parser inventory at INFO (not DEBUG) so a default remote log shows what xknxproject
     # handed us. parser.devices is the flat concatenation of every line's devices across all areas
@@ -1339,6 +1344,7 @@ def _build(
         knx_master_xml=knx_master_xml,
         imported_product_members=product_members,
         imported_project_files=extras.project_files,
+        password=password,
         traces=[
             ProjectTrace(
                 project_id=pid,

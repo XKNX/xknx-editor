@@ -284,6 +284,9 @@ class ProjectPlugin:
 
         self._project_info_panel = ProjectInfoPanel(
             get_project_info=api.project.get_project_metadata,
+            on_rename=api.project.set_project_name,
+            on_set_password=api.project.set_project_password,
+            needs_password=api.project.project_needs_password,
         )
         self._project_log_panel = ProjectLogPanel(
             get_traces=api.project.get_project_traces,

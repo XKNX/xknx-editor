@@ -869,6 +869,55 @@ class ProjectStrings:
         return _("present ({size} bytes)")
 
     @property
+    def PROJECT_INFO_PASSWORD(self) -> str:
+        return _("Password")
+
+    @property
+    def PROJECT_INFO_PROTECTED(self) -> str:
+        return _("Protected")
+
+    @property
+    def PROJECT_INFO_NOT_PROTECTED(self) -> str:
+        return _("Not protected")
+
+    @property
+    def PROJECT_SET_PASSWORD(self) -> str:
+        return _("Set Password")
+
+    @property
+    def PROJECT_CHANGE_PASSWORD(self) -> str:
+        return _("Change Password")
+
+    @property
+    def PROJECT_REMOVE_PASSWORD(self) -> str:
+        return _("Remove Password")
+
+    @property
+    def PROJECT_PASSWORD_TITLE(self) -> str:
+        return _("Project Password")
+
+    @property
+    def PROJECT_PASSWORD_PROMPT(self) -> str:
+        return _(
+            "Exported projects are protected with this password; importing them asks for it."
+        )
+
+    @property
+    def PROJECT_PASSWORD_REPEAT(self) -> str:
+        return _("Repeat Password")
+
+    @property
+    def PROJECT_PASSWORD_MISMATCH(self) -> str:
+        return _("The passwords do not match.")
+
+    @property
+    def PROJECT_PASSWORD_REQUIRED(self) -> str:
+        return _(
+            "A project with KNX Secure devices needs a password: it protects their keys in "
+            "exported projects."
+        )
+
+    @property
     def PROJECT_LOG_EMPTY(self) -> str:
         return _("No project log entries")
 

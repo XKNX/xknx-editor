@@ -71,6 +71,7 @@ from xknxeditor.proj.core._dll_signer import sign_member_map
 from xknxeditor.proj.core.compact import used_product_ids
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.import_notes import ImportLoss
+from xknxeditor.proj.core.knxproj_protect import protect_project_folder
 from xknxeditor.proj.core.knxproj_signing import (
     SignatureAudit,
     audit_and_sign_folders,
@@ -107,7 +108,9 @@ logger = logging.getLogger(__name__)
 CertificateSigner = Callable[[str, bytes, str], bytes | None]
 
 
-def _project_info(project_guid: str, project_name: str) -> bytes:
+def _project_info(
+    project_guid: str, project_name: str, password_protected: bool = False
+) -> bytes:
     """Return the top-level ``{pid}.info`` member.
 
     Archives store two-space-indented JSON with CRLF line endings and no trailing
@@ -123,7 +126,7 @@ def _project_info(project_guid: str, project_name: str) -> bytes:
         {
             "ProjectGuid": project_guid,
             "ProjectName": project_name,
-            "IsPasswordProtected": False,
+            "IsPasswordProtected": password_protected,
         },
         indent=2,
     )
@@ -1048,7 +1051,9 @@ class _Writer:
             f"{pid}/0.xml": zero,
         }
         # A top-level {pid}.info sits alongside the signature; strict imports look for it.
-        members[f"{pid}.info"] = _project_info(project_guid, project.name)
+        members[f"{pid}.info"] = _project_info(
+            project_guid, project.name, bool(project.password)
+        )
         if certificate:
             members[f"{pid}.certificate"] = certificate
             # ETS also records the validation outcome in a top-level `.validation`, with the
@@ -1076,11 +1081,18 @@ class _Writer:
         # of any signed folder); a certified export does not need it.
         if certificate is None:
             members[f"{pid}_M-dummy"] = b""
+        # A password-protected project carries its (signed) folder as an encrypted zip.
+        if project.password:
+            protect_project_folder(members, pid, project.password)
 
         dest.unlink(missing_ok=True)
         with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as zf:
             for path, data in members.items():
-                zf.writestr(path, data)
+                # The encrypted folder is stored as it is, like in genuine archives.
+                stored = path == f"{pid}.zip" and bool(project.password)
+                zf.writestr(
+                    path, data, zipfile.ZIP_STORED if stored else zipfile.ZIP_DEFLATED
+                )
         return (
             audit,
             missing_refs,

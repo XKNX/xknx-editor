@@ -81,6 +81,8 @@ from xknxeditor.proj.core.events import (
     SetGroupAddressAddress,
     SetGroupAddressDatapointType,
     SetParameter,
+    SetProjectName,
+    SetProjectPassword,
     SetSpaceType,
     SyncDeviceComObjects,
     UnlinkComObject,
@@ -987,6 +989,32 @@ class ProjectService:
 
     def rename_area(self, project_id: str, area_id: int, name: str) -> None:
         self._state(project_id).store.append(RenameArea(area_id=area_id, name=name))
+
+    def set_project_name(self, project_id: str, name: str) -> None:
+        self._state(project_id).store.append(
+            SetProjectName(project_id=project_id, name=name)
+        )
+
+    def set_project_password(self, project_id: str, password: str | None) -> None:
+        """Set the project password, or remove it with ``None``."""
+        self._state(project_id).store.append(
+            SetProjectPassword(project_id=project_id, password=password or None)
+        )
+
+    def has_secure_data(self, project_id: str) -> bool:
+        """Whether the project holds KNX Secure data: secured group addresses or their keys, or
+        device security settings."""
+        session = self._state(project_id).session
+        secure_group_address = session.query(GroupAddress.id).filter(
+            (GroupAddress.data_secure.is_(True))
+            | (GroupAddress.security_key.is_not(None))
+        )
+        if session.query(secure_group_address.exists()).scalar():
+            return True
+        return any(
+            "Security" in (subtrees or {})
+            for (subtrees,) in session.query(Device.extra_subtrees)
+        )
 
     def rename_line(self, project_id: str, line_id: int, name: str) -> None:
         self._state(project_id).store.append(RenameLine(line_id=line_id, name=name))

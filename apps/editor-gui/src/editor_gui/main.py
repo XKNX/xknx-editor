@@ -230,6 +230,12 @@ def _download_bytes(
     return data
 
 
+def _file_name(name: str) -> str:
+    """``name`` usable as a file name on every operating system."""
+    cleaned = "".join("_" if ch in '<>:"/\\|?*' or ord(ch) < 32 else ch for ch in name)
+    return cleaned.strip().rstrip(". ")
+
+
 def _myknx_product_name(product: dict[str, object], pid: str) -> str:
     """Best-effort human-readable name for a MyKnx product/license, else the id.
 
@@ -700,9 +706,10 @@ class KnxGuiApp:
     def _export_knxproj(self) -> None:
         if not self._project_service.is_open or not self._can_launch_file_dialog():
             return
-        default = "project.knxproj"
-        if self._project_service.path is not None:
-            default = self._project_service.path.with_suffix(".knxproj").name
+        # The project's name, as a file name.
+        info = self._project_service.get_project_metadata()
+        name = _file_name(info.name) if info is not None else ""
+        default = f"{name or 'project'}.knxproj"
         self._export_knxproj_dialog = pfd.save_file(
             S.FILE_DIALOG_KNXPROJ_SAVE_TITLE,
             default,
@@ -892,9 +899,6 @@ class KnxGuiApp:
                     # a merged, unsigned master from a legacy multi-source project).
                     fetch_master=True,
                     certificate_signer=signer,
-                    # Name the exported project after the chosen file (the in-app project has no
-                    # editable name yet), so the importer shows a meaningful name instead of "New project".
-                    project_name=Path(dest).stem or None,
                     remove_unused_products=remove_unused,
                 )
                 used_schema = result.schema

@@ -274,6 +274,14 @@ def _history_label(event_type: str, data: dict[str, Any]) -> str:
         return "Unlink com-object"
     if event_type == "RenameArea":
         return f"Rename area to {data.get('name', '')!r}"
+    if event_type == "SetProjectName":
+        return f"Rename project to {data.get('name', '')!r}"
+    if event_type == "SetProjectPassword":
+        return (
+            "Set project password"
+            if data.get("password")
+            else "Remove project password"
+        )
     if event_type == "RenameLine":
         return f"Rename line to {data.get('name', '')!r}"
     if event_type == "SetDeviceName":
@@ -346,6 +354,8 @@ class _ProjectInfo:
     master_data_size: int = 0
     validation_size: int = 0
     certificate_size: int = 0
+    # The project is password protected: its exports carry the project folder encrypted.
+    password_protected: bool = False
 
 
 @dataclass
@@ -1708,7 +1718,33 @@ class ProjectService:
             master_data_size=len(p.knx_master_xml) if p.knx_master_xml else 0,
             validation_size=len(p.knx_validation),
             certificate_size=len(p.knx_certificate),
+            password_protected=bool(p.password),
         )
+
+    def set_project_name(self, name: str) -> None:
+        """Rename the project (one undo step); an empty name keeps the current one."""
+        name = name.strip()
+        if self._pid is None or not name or name == self._svc.project(self._pid).name:
+            return
+        self._svc.set_project_name(self._pid, name)
+        self._bump(structural=False)
+
+    def set_project_password(self, password: str | None) -> None:
+        """Set the project password, or remove it with ``None`` (one undo step). A project with
+        KNX Secure data keeps its password (see :meth:`project_needs_password`)."""
+        if self._pid is None:
+            return
+        if not password and self.project_needs_password():
+            raise ValueError("a project with KNX Secure data needs a password")
+        self._svc.set_project_password(self._pid, password or None)
+        self._bump(structural=False)
+
+    @io_guarded(lambda: False)
+    @revision_cached
+    def project_needs_password(self) -> bool:
+        """Whether the project holds KNX Secure data, whose keys an export protects only with the
+        project password."""
+        return self._pid is not None and self._svc.has_secure_data(self._pid)
 
     def get_project_traces(self) -> list[_ProjectTrace]:
         """The project log (ProjectInformation/ProjectTraces), in document order.
