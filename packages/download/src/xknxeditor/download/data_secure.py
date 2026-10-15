@@ -322,6 +322,14 @@ class SecureManagement:
         """The key this session secures its frames with."""
         return self._key
 
+    @property
+    def device_sequence_number(self) -> int | None:
+        """The Sequence Number the device sends its next secured frame with, as far as this
+        session saw (``None`` before the S-A_Sync)."""
+        if self._last_valid_remote is None:
+            return None
+        return self._last_valid_remote + 1
+
     def use_key(self, key: bytes) -> None:
         """Secure the session with ``key`` from the next S-A_Sync on."""
         self._key = key
@@ -673,6 +681,12 @@ def _is_tool_scheme(scf: SecurityControlField, service: SecurityALService) -> bo
         and scf.algorithm is SecurityAlgorithmIdentifier.CCM_ENCRYPTION
         and scf.tool_access
     )
+
+
+def sequence_number_timestamp() -> int:
+    """The current timestamp of the KNX Data Security specifications: milliseconds since their
+    publication on 2018-01-05 (3/5/3 1.5.4.1)."""
+    return _initial_sequence_number()
 
 
 def _initial_sequence_number() -> int:

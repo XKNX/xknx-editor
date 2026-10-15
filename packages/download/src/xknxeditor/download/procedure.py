@@ -114,7 +114,12 @@ from .scope import (
     control_in_scope,
     target_object_type,
 )
-from .secure_config import PID_TOOL_KEY, SECURITY_OBJECT, SECURITY_PROPERTY_WIDTHS
+from .secure_config import (
+    PID_TOOL_KEY,
+    SECURITY_OBJECT,
+    SECURITY_PROPERTY_WIDTHS,
+    sequence_number_control,
+)
 
 if TYPE_CHECKING:
     from xknxeditor.prod import Application
@@ -313,6 +318,10 @@ def _application_id(application: Application) -> bytes:
         + program.application_number.to_bytes(2, "big")
         + bytes([program.application_version & 0xFF])
     )
+
+
+#: A Sequence Number Sending above this is close to the end of its 48 bits (3/5/3 1.5.4.1).
+SEQUENCE_NUMBER_WARNING = 0xFF0000000000
 
 
 class LoadProcedureRunner:
@@ -1542,9 +1551,31 @@ class LoadProcedureRunner:
             raise DownloadError(
                 "the Tool Key can only be written over a secured connection"
             )
+        await self._initialize_sequence_number()
         change(key)
         logger.info("download: writing the Tool Key of %s", self._target())
         return True
+
+    async def _initialize_sequence_number(self) -> None:
+        """On the initial secure configuration (the device does not use its Tool Key yet), set a
+        Sequence Number Sending below the current timestamp to it, and warn about one close to
+        its end (3/5/3 1.5.4.1)."""
+        from .data_secure import sequence_number_timestamp
+
+        current = getattr(self._manager, "device_sequence_number", None)
+        if not isinstance(current, int):
+            return
+        if current > SEQUENCE_NUMBER_WARNING:
+            logger.warning(
+                "download: the Sequence Number of %s is close to its end (%#014x)",
+                self._target(),
+                current,
+            )
+        now = sequence_number_timestamp()
+        if current >= now:
+            return
+        logger.info("download: initialising the Sequence Number of %s", self._target())
+        await self._write_prop(sequence_number_control(now))
 
     async def _load_image_prop(self, control: LdCtrlLoadImageProp) -> None:
         """Capture property elements for subsequent image-backed comparisons.

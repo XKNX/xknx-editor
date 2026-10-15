@@ -122,6 +122,11 @@ class SecureConnectionManager:
         """The key the device answered with (the Tool Key or one of its alternatives)."""
         return self._management.active_key
 
+    @property
+    def device_sequence_number(self) -> int | None:
+        """The device's next Sequence Number Sending; see :class:`SecureManagement`."""
+        return self._management.device_sequence_number
+
     def change_tool_key(self, key: bytes) -> None:
         """The next request writes the Tool Key ``key``; see :meth:`SecureManagement.change_tool_key`."""
         self._management.change_tool_key(key)

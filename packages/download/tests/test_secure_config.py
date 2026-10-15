@@ -18,6 +18,7 @@ from xknxeditor.download.procedure import LoadProcedureRunner
 from xknxeditor.download.secure_config import (
     GroupSecurity,
     commissioning_controls,
+    plain_controls,
     security_tables,
     table_controls,
 )
@@ -130,9 +131,15 @@ class _SecurityDevice(ExtendedDevice):
 class _Manager:
     """A secured connection manager: tells which key the device uses and takes the change."""
 
-    def __init__(self, device: _SecurityDevice, active_key: bytes) -> None:
+    def __init__(
+        self,
+        device: _SecurityDevice,
+        active_key: bytes,
+        device_sequence_number: int | None = None,
+    ) -> None:
         self.device = device
         self.active_key = active_key
+        self.device_sequence_number = device_sequence_number
         self.changes: list[bytes] = []
 
     async def open(self) -> _SecurityDevice:
@@ -165,9 +172,11 @@ def _application() -> Application:
     )
 
 
-async def _run(active_key: bytes) -> tuple[_SecurityDevice, _Manager]:
+async def _run(
+    active_key: bytes, device_sequence_number: int | None = None
+) -> tuple[_SecurityDevice, _Manager]:
     device = _SecurityDevice()
-    manager = _Manager(device, active_key)
+    manager = _Manager(device, active_key, device_sequence_number)
     controls = [
         *commissioning_controls(_TOOL_KEY),
         *table_controls(_tables()),
@@ -269,3 +278,50 @@ def test_security_tables_must_fit_the_device() -> None:
     _validate_security_capacity(application(0), tables)  # not declared: not checked
     with pytest.raises(ImageError, match="Group Key Table has 2 entries"):
         _validate_security_capacity(application(1), tables)
+
+
+async def test_initial_configuration_sets_the_sequence_number() -> None:
+    from xknxeditor.download.data_secure import sequence_number_timestamp
+
+    # A factory-fresh device counts from a small value: the first configuration sets it to the
+    # current timestamp, before the Tool Key (3/5/3 1.5.4.1).
+    before = sequence_number_timestamp()
+    device, _manager = await _run(_FDSK, device_sequence_number=5)
+    sequence = [w for w in device.writes if w[1] == 59]
+    assert len(sequence) == 1
+    assert int.from_bytes(sequence[0][4], "big") >= before
+    assert device.writes.index(sequence[0]) < next(
+        i for i, w in enumerate(device.writes) if w[1] == 56
+    )
+
+
+async def test_a_current_sequence_number_is_kept() -> None:
+    from xknxeditor.download.data_secure import sequence_number_timestamp
+
+    device, _manager = await _run(
+        _FDSK, device_sequence_number=sequence_number_timestamp() + 10_000
+    )
+    assert all(w[1] != 59 for w in device.writes)
+    # Not on a device that already uses its Tool Key either.
+    device, _manager = await _run(_TOOL_KEY, device_sequence_number=5)
+    assert all(w[1] != 59 for w in device.writes)
+
+
+async def test_switching_to_plain_empties_the_tables_and_ends_the_security_mode() -> None:
+    device = _SecurityDevice()
+    runner = LoadProcedureRunner(
+        _application(),
+        DownloadImage(segments=(), properties=()),
+        connection_manager=_Manager(device, _TOOL_KEY),
+        max_apdu_length=50,
+        controls=[*plain_controls(p2p=True), LdCtrlRestart()],
+        object_types=device.object_types,
+    )
+    await runner.run()
+    cleared = {w[1] for w in device.writes if w[2] == 0 and w[4] == bytes(2)}
+    assert cleared == {52, 53, 54, 61}
+    assert device.commands == [(51, bytes(3))]
+    # Without a Point-to-point Key Table, that one is left alone.
+    assert all(
+        getattr(c, "prop_id", None) != 52 for c in plain_controls(p2p=False)
+    )

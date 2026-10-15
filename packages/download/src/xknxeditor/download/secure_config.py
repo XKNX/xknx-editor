@@ -33,6 +33,7 @@ PID_P2P_KEY_TABLE: Final = 52
 PID_GRP_KEY_TABLE: Final = 53
 PID_SECURITY_INDIVIDUAL_ADDRESS_TABLE: Final = 54
 PID_TOOL_KEY: Final = 56
+PID_SEQUENCE_NUMBER_SENDING: Final = 59
 PID_GO_SECURITY_FLAGS: Final = 61
 #: Element width of the security object's writable array properties (3/5/1 Table 99).
 SECURITY_PROPERTY_WIDTHS: Final = {
@@ -40,6 +41,7 @@ SECURITY_PROPERTY_WIDTHS: Final = {
     PID_GRP_KEY_TABLE: 18,
     PID_SECURITY_INDIVIDUAL_ADDRESS_TABLE: 8,
     PID_TOOL_KEY: 16,
+    PID_SEQUENCE_NUMBER_SENDING: 6,
     PID_GO_SECURITY_FLAGS: 1,
 }
 #: Group Object Security Flags of an object linked to a secured group address: authentication and
@@ -48,9 +50,10 @@ SECURITY_PROPERTY_WIDTHS: Final = {
 #: the security its flags require (3/5/1 6.3.15), and a group address's ``@Security`` has no
 #: authentication-only level, so all its senders use both.
 GO_AUTHENTICATION_AND_CONFIDENTIALITY: Final = 0x03
-# A_FunctionPropertyCommand data enabling the Security Mode: reserved, service "write", on
-# (3/5/1 6.3.5.2).
+# A_FunctionPropertyCommand data enabling / disabling the Security Mode: reserved, service
+# "write", on / off (3/5/1 6.3.5.1).
 _SECURITY_MODE_ON: Final = b"\x00\x00\x01"
+_SECURITY_MODE_OFF: Final = b"\x00\x00\x00"
 # Flags per write: a few elements stay within the shortest APDU a secure device negotiates.
 _FLAGS_PER_WRITE: Final = 8
 _TABLES: Final = LdCtrlProcType.FULL_GRP
@@ -132,6 +135,17 @@ def security_tables(
     )
 
 
+def sequence_number_control(value: int) -> LdCtrlWriteProp:
+    """Write the device's Sequence Number Sending (3/5/1 6.3.13); the device secures its answer
+    with the new value already."""
+    return _write(
+        PID_SEQUENCE_NUMBER_SENDING,
+        1,
+        value.to_bytes(6, "big"),
+        applies_to=LdCtrlProcType.ALL,
+    )
+
+
 def _write(
     prop_id: int,
     start: int,
@@ -152,8 +166,8 @@ def _write(
     )
 
 
-def _clear(prop_id: int) -> LdCtrlWriteProp:
-    return _write(prop_id, 0, b"\x00\x00")
+def _clear(prop_id: int, applies_to: LdCtrlProcType = _TABLES) -> LdCtrlWriteProp:
+    return _write(prop_id, 0, b"\x00\x00", applies_to=applies_to)
 
 
 def commissioning_controls(tool_key: bytes) -> list[object]:
@@ -168,6 +182,33 @@ def commissioning_controls(tool_key: bytes) -> list[object]:
         ),
         _write(PID_TOOL_KEY, 1, tool_key, applies_to=LdCtrlProcType.ALL),
     ]
+
+
+def plain_controls(*, p2p: bool) -> list[object]:
+    """Switch a device that was commissioned securely to plain communication, over the secured
+    connection with its Tool Key: its security tables are emptied (the Point-to-point Key Table
+    only with ``p2p``, a device that has one), its group objects lose their security flags and the
+    Security Mode is switched off (3/5/1 6.3.5) - the last step, so the rest of the download is
+    still secured."""
+    controls: list[object] = [
+        LdCtrlUnload(obj_type=SECURITY_OBJECT, applies_to=LdCtrlProcType.ALL),
+        LdCtrlLoad(obj_type=SECURITY_OBJECT, applies_to=LdCtrlProcType.ALL),
+        _clear(PID_SECURITY_INDIVIDUAL_ADDRESS_TABLE, LdCtrlProcType.ALL),
+        _clear(PID_GRP_KEY_TABLE, LdCtrlProcType.ALL),
+    ]
+    if p2p:
+        controls.append(_clear(PID_P2P_KEY_TABLE, LdCtrlProcType.ALL))
+    controls += [
+        LdCtrlLoadCompleted(obj_type=SECURITY_OBJECT, applies_to=LdCtrlProcType.ALL),
+        _clear(PID_GO_SECURITY_FLAGS, LdCtrlProcType.ALL),
+        LdCtrlInvokeFunctionProp(
+            obj_type=SECURITY_OBJECT,
+            prop_id=PID_SECURITY_MODE,
+            inline_data=_SECURITY_MODE_OFF,
+            applies_to=LdCtrlProcType.ALL,
+        ),
+    ]
+    return controls
 
 
 def table_controls(tables: SecurityTables) -> list[object]:
