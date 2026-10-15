@@ -78,7 +78,11 @@ class CatalogService:
         ``require_catalog=False`` ingests ``.knxproj``-embedded product data that omits
         ``Catalog.xml`` (hardware/applications still resolve devices)."""
         return upload_knxprod(
-            content, self._knxprod_dir, self._engine, require_catalog=require_catalog
+            content,
+            self._knxprod_dir,
+            self._engine,
+            require_catalog=require_catalog,
+            cache_dir=self._parse_cache_dir,
         )
 
     def delete_product(

@@ -9,8 +9,11 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from xknxeditor.catalog import CatalogService
 from xknxeditor.catalog.db import knxprod_dir_for
+from xknxeditor.prod import parse_cache
 
 _FIXTURE = (
     Path(__file__).parents[3]
@@ -22,6 +25,23 @@ def test_import_populates_catalog(tmp_path: Path) -> None:
     svc = CatalogService(tmp_path / "cat.xknxcatalog")
     svc.import_knxprod(_FIXTURE.read_bytes())
     assert len(svc.list_products()) > 0
+
+
+def test_import_fills_the_parse_cache(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    svc = CatalogService(tmp_path / "cat.xknxcatalog")
+    svc.import_knxprod(_FIXTURE.read_bytes())
+    application_id = svc.list_products()[0].application_id
+    assert application_id is not None
+
+    def no_parse(*_args: object) -> None:
+        raise AssertionError("the application was parsed again")
+
+    # Loading the application afterwards reads the parse the import cached.
+    monkeypatch.setattr(parse_cache, "to_ir", no_parse)
+    app = svc.get_application(application_id)
+    assert app is not None and app.id == application_id
 
 
 def test_reimport_repopulates_after_db_reset(tmp_path: Path) -> None:
