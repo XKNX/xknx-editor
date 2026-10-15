@@ -285,8 +285,8 @@ class Device(Base):
     # when the device had none.
     extra_subtrees: Mapped[dict[str, str] | None] = mapped_column(JSON)
     # The DeviceInstance @Id from the imported .knxproj (e.g. ``P-04BB-0_DI-7``), kept so
-    # point-to-point links (stored by that id on the installation) resolve to this device. Empty
-    # for a device created in the editor.
+    # point-to-point links (stored by that id on the installation) resolve to this device, also on
+    # export. Empty for a device created in the editor.
     source_id: Mapped[str] = mapped_column(String, nullable=False, default="")
     # Descriptive metadata carried over from the imported .knxproj (for display without a catalog).
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
@@ -566,6 +566,10 @@ class GroupAddress(Base):
     security_mode: Mapped[str | None] = mapped_column(String)
     security_key: Mapped[str | None] = mapped_column(String)
     context: Mapped[str | None] = mapped_column(String)
+    # The GroupAddress @Id from the imported .knxproj (e.g. ``P-04BB-0_GA-7``), kept so stored
+    # references to it (a bus interface's ``Connector``) resolve on export. Empty for a group
+    # address created in the editor.
+    source_id: Mapped[str] = mapped_column(String, nullable=False, default="")
 
     group_range: Mapped["GroupRange"] = relationship(back_populates="group_addresses")
     links: Mapped[list["ComObjectLink"]] = relationship(

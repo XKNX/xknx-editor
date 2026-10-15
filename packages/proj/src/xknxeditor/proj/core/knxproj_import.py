@@ -1845,6 +1845,7 @@ def _build_group_addresses(
             ),
             security_key=state.extras.ga_security.get(xga.raw_address, {}).get("Key"),
             context=state.extras.ga_security.get(xga.raw_address, {}).get("Context"),
+            source_id=xga.identifier,
         )
         group_range.group_addresses.append(ga)
         state.register_group_address(xga.identifier, ga)

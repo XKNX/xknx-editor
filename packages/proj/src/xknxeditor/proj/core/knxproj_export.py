@@ -843,14 +843,115 @@ def _assign_ids(
         for ga in group_range.group_addresses:
             ga_seq += 1
             ga_link_id[ga.id] = f"GA-{ga_seq}"
+    # Unassigned devices are re-emitted with their original ids; the numbering skips those.
+    taken = _unassigned_device_ids(installation)
     di_seq = 0
     for area in installation.areas:
         for line in area.lines:
             for segment in line.segments:
                 for device in segment.devices:
                     di_seq += 1
+                    while f"{pid}-0_DI-{di_seq}" in taken:
+                        di_seq += 1
                     di_id[device.id] = f"{pid}-0_DI-{di_seq}"
     return ga_link_id, di_id
+
+
+def _unassigned_device_ids(installation: Installation) -> set[str]:
+    """The ``@Id`` of every stored unassigned ``<DeviceInstance>``."""
+    ids: set[str] = set()
+    for raw in installation.unassigned_devices_xml or []:
+        try:
+            ids.add(ET.fromstring(raw).get("Id", ""))
+        except ET.ParseError:
+            continue
+    ids.discard("")
+    return ids
+
+
+def _id_suffix(ref: str) -> str:
+    """The id without its project prefix (``P-04BB-0_GA-7`` -> ``GA-7``)."""
+    return ref.rsplit("_", 1)[-1]
+
+
+@dataclass
+class _SourceRefs:
+    """Imported element ids mapped to the ids this export gives them, for references kept
+    verbatim in stored subtrees. ``group_address`` is keyed by the id without its project prefix
+    and maps to the export's ``GA-n``; ``device`` maps a full ``DeviceInstance`` id."""
+
+    group_address: dict[str, str] = field(default_factory=dict[str, str])
+    device: dict[str, str] = field(default_factory=dict[str, str])
+
+    @classmethod
+    def build(
+        cls,
+        installation: Installation,
+        ga_link_id: dict[int, str],
+        di_id: dict[int, str],
+    ) -> _SourceRefs:
+        refs = cls()
+        for group_range in installation.group_ranges:
+            for ga in group_range.group_addresses:
+                if ga.source_id and ga.id in ga_link_id:
+                    refs.group_address[_id_suffix(ga.source_id)] = ga_link_id[ga.id]
+        for area in installation.areas:
+            for line in area.lines:
+                for segment in line.segments:
+                    for device in segment.devices:
+                        if device.source_id and device.id in di_id:
+                            refs.device[device.source_id] = di_id[device.id]
+        for unassigned in _unassigned_device_ids(installation):
+            refs.device.setdefault(unassigned, unassigned)
+        return refs
+
+    def remap(self, src: ET.Element, pid: str) -> None:
+        """Rewrite the group-address and device references in ``src`` in place: ``Links`` tokens
+        and ``GroupAddressRefId`` to the exported group addresses (a ``<Connector>`` whose group
+        address is gone is dropped), ``DeviceRefId`` to the exported devices."""
+        for el in src.iter():
+            links = el.get("Links")
+            if links is not None:
+                kept = [
+                    f"{pid}-0_{new}" if "_" in token else new
+                    for token in links.split()
+                    if (new := self.group_address.get(_id_suffix(token)))
+                ]
+                if kept:
+                    el.set("Links", " ".join(kept))
+                else:
+                    del el.attrib["Links"]
+            device = el.get("DeviceRefId")
+            if device is not None and device in self.device:
+                el.set("DeviceRefId", self.device[device])
+        for parent in list(src.iter()):
+            for child in list(parent):
+                ref = child.get("GroupAddressRefId")
+                if ref is None:
+                    continue
+                new = self.group_address.get(_id_suffix(ref))
+                if new is None:
+                    parent.remove(child)
+                else:
+                    child.set("GroupAddressRefId", f"{pid}-0_{new}")
+
+    def remap_p2p_links(self, src: ET.Element, pid: str) -> None:
+        """Rewrite each ``<P2PLink>``'s endpoints to the exported devices in place; a link with an
+        endpoint whose device is gone is dropped."""
+        for link in list(src):
+            endpoints = list(link)
+            if not endpoints or any(
+                e.get("DeviceRefId") not in self.device for e in endpoints
+            ):
+                src.remove(link)
+                continue
+            for endpoint in endpoints:
+                endpoint.set(
+                    "DeviceRefId", self.device[endpoint.get("DeviceRefId", "")]
+                )
+            link_id = link.get("Id")
+            if link_id:
+                link.set("Id", f"{pid}-0_{_id_suffix(link_id)}")
 
 
 class _Writer:
@@ -861,6 +962,9 @@ class _Writer:
         self._created_by = created_by
         self._tool_version = tool_version
         self._puid = 0  # per-document unique element id stamped on topology/GA nodes
+        # Imported ids -> this export's ids, for references inside verbatim stored subtrees.
+        self._refs = _SourceRefs()
+        self._pid = ""
         self._default_line_id: str | None = (
             None  # Installation DefaultLine (line holding devices)
         )
@@ -1139,6 +1243,8 @@ class _Writer:
         insts = self._el(p, "Installations")
         if installation is None:
             return root
+        self._refs = _SourceRefs.build(installation, ga_link_id, di_id)
+        self._pid = pid
         # A genuine installation carries these; the importer expects them on import.
         inst = self._el(
             insts,
@@ -1275,9 +1381,14 @@ class _Writer:
         schema = self._ns.rsplit("/", 1)[-1]
         if raw_p2p and schema.isdigit() and int(schema) >= 20:
             try:
-                self._graft(inst, ET.fromstring(raw_p2p))
+                p2p = ET.fromstring(raw_p2p)
             except ET.ParseError:
                 logger.debug("skipping malformed stored P2PLinks")
+            else:
+                # The links name their devices by id, and the export renumbers the devices.
+                self._refs.remap_p2p_links(p2p, pid)
+                if len(p2p):
+                    self._graft(inst, p2p)
 
         self._build_trades(inst, installation, di_id)
         return root
@@ -1629,6 +1740,8 @@ class _Writer:
         except ET.ParseError:
             logger.debug("skipping malformed stored %s for device %s", name, device.id)
             return
+        # A bus interface's Connectors name group addresses by id, which the export renumbers.
+        self._refs.remap(src, self._pid)
         self._graft(di, src)
 
     def _build_group_object_tree(self, di: ET.Element, device: Device) -> None:
@@ -1724,6 +1837,8 @@ class _Writer:
             except ET.ParseError:
                 logger.debug("skipping malformed stored UnassignedDevices entry")
                 continue
+            # Kept with their own id, but their links name renumbered group addresses.
+            self._refs.remap(src, self._pid)
             self._graft(container, src)
 
     def _build_module_instances(self, di: ET.Element, device: Device) -> None:
