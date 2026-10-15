@@ -2199,6 +2199,7 @@ source = { editable = "packages/proj" }
 dependencies = [
     { name = "cryptography", version = "46.0.3", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine == 'ARM64' and sys_platform == 'win32'" },
     { name = "cryptography", version = "50.0.1", source = { registry = "https://pypi.org/simple" }, marker = "platform_machine != 'ARM64' or sys_platform != 'win32'" },
+    { name = "pyzipper" },
     { name = "sqlalchemy" },
     { name = "xknxeditor-namespaces" },
     { name = "xknxproject" },
@@ -2208,6 +2209,7 @@ dependencies = [
 requires-dist = [
     { name = "cryptography", marker = "platform_machine != 'ARM64' or sys_platform != 'win32'", specifier = ">=42.0" },
     { name = "cryptography", marker = "platform_machine == 'ARM64' and sys_platform == 'win32'", specifier = "==46.0.3" },
+    { name = "pyzipper", specifier = ">=0.3.6" },
     { name = "sqlalchemy", specifier = ">=2.0.0" },
     { name = "xknxeditor-namespaces", editable = "packages/namespaces" },
     { name = "xknxproject", git = "https://github.com/XKNX/xknxproject?rev=f97db068884eca2b460abb1fb4db2262345f7f47" },

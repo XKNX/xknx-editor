@@ -380,6 +380,18 @@ class ProjectStrings:
         return _("{count} difference(s)")
 
     @property
+    def TOOLS_DIFF_PASSWORD_PROMPT(self) -> str:
+        return _("The other project is protected with a password. Enter it to compare:")
+
+    @property
+    def TOOLS_DIFF_COMPARE(self) -> str:
+        return _("Compare")
+
+    @property
+    def TOOLS_DIFF_WRONG_PASSWORD(self) -> str:
+        return _("Wrong password, please try again.")
+
+    @property
     def TOOLS_DIFF_DEVICES(self) -> str:
         return _("Devices")
 
@@ -867,6 +879,56 @@ class ProjectStrings:
     @property
     def PROJECT_INFO_ARTIFACT_PRESENT(self) -> str:
         return _("present ({size} bytes)")
+
+    @property
+    def PROJECT_INFO_PASSWORD(self) -> str:
+        return _("Password")
+
+    @property
+    def PROJECT_INFO_PROTECTED(self) -> str:
+        return _("Protected")
+
+    @property
+    def PROJECT_INFO_NOT_PROTECTED(self) -> str:
+        return _("Not protected")
+
+    @property
+    def PROJECT_SET_PASSWORD(self) -> str:
+        return _("Set Password")
+
+    @property
+    def PROJECT_CHANGE_PASSWORD(self) -> str:
+        return _("Change Password")
+
+    @property
+    def PROJECT_REMOVE_PASSWORD(self) -> str:
+        return _("Remove Password")
+
+    @property
+    def PROJECT_PASSWORD_TITLE(self) -> str:
+        return _("Project Password")
+
+    @property
+    def PROJECT_PASSWORD_PROMPT(self) -> str:
+        return _(
+            "The project and its exports are protected with this password; opening or importing "
+            "them asks for it. A password change cannot be undone."
+        )
+
+    @property
+    def PROJECT_PASSWORD_REPEAT(self) -> str:
+        return _("Repeat Password")
+
+    @property
+    def PROJECT_PASSWORD_MISMATCH(self) -> str:
+        return _("The passwords do not match.")
+
+    @property
+    def PROJECT_PASSWORD_REQUIRED(self) -> str:
+        return _(
+            "A project with KNX Secure devices needs a password: it protects their keys in the "
+            "project and in its exports."
+        )
 
     @property
     def PROJECT_LOG_EMPTY(self) -> str:

@@ -55,6 +55,14 @@ from xknxeditor.proj.core.import_notes import (
     ImportLoss,
     dumps,
 )
+from xknxeditor.proj.core.knxproj_protect import is_password_protected
+from xknxeditor.proj.core.project_secrets import (
+    ProjectCipher,
+    ProjectPasswordRequired,
+    has_secure_data,
+    new_salt,
+    recrypt,
+)
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
     Area,
@@ -111,9 +119,10 @@ _DEVICE_MANAGED_ATTRS = frozenset(
 )
 
 # Installation attributes xknxproject does not surface, round-tripped verbatim. Restricted to
-# attributes defined in BOTH project/20 and /23, and NOT to secret key material (IPRoutingBackboneKey,
-# BCUKey are deliberately excluded — the project DB does not persist keys). DefaultLine/CompletionStatus
-# are omitted: the export recomputes the former and the latter is regenerated runtime state.
+# attributes defined in project/14, /20 and /23. The keys (BCUKey, IPRoutingBackboneKey) are kept like
+# the group-address and device keys, so a re-imported project can still reach its secured devices.
+# DefaultLine/CompletionStatus are omitted: the export recomputes the former and the latter is
+# regenerated runtime state.
 _INSTALLATION_EXTRA_ATTRS = (
     "InstallationId",
     "IPRoutingMulticastAddress",
@@ -122,11 +131,13 @@ _INSTALLATION_EXTRA_ATTRS = (
     "IPSyncLatencyFraction",
     "SplitType",
     "IPRoutingBackboneSecurity",
+    "IPRoutingBackboneKey",
+    "BCUKey",
 )
 
 # ProjectInformation attributes xknxproject does not surface, round-tripped verbatim. Restricted to
-# attributes defined in BOTH project/20 and /23 (the schema-specific CodePage/BusAccessLegacyMode and
-# v23 ArchivedVersion/ProjectType are left out), and NOT to the passwords.
+# attributes defined in project/14, /20 and /23 (the schema-specific CodePage/BusAccessLegacyMode and
+# v23 ArchivedVersion/ProjectType are left out).
 _PROJECT_EXTRA_ATTRS = (
     "ProjectStart",
     "ProjectNumber",
@@ -134,6 +145,7 @@ _PROJECT_EXTRA_ATTRS = (
     "ProjectEnd",
     "ProjectId",
     "CompletionStatus",
+    "ProjectTracingPassword",
 )
 
 _INSTALLATION_INDEX = 0
@@ -164,6 +176,7 @@ def import_knxproj(
     dest: Path | str,
     *,
     password: str | None = None,
+    project_password: str | None = None,
     language: str | None = None,
     project_id: str | None = None,
 ) -> str:
@@ -171,6 +184,11 @@ def import_knxproj(
 
     ``password`` is the project password (for encrypted archives); ``language`` picks the
     translation (e.g. ``"de-DE"``), falling back to the project default. Returns the project id.
+
+    A protected archive's password protects the new project, else ``project_password`` (if any):
+    the project's secrets are stored encrypted with it (see :mod:`project_secrets`). An archive with
+    KNX Secure data but neither password raises :class:`ProjectPasswordRequired`, before ``dest``
+    is written.
 
     Raises :class:`~xknxproject.exceptions.InvalidPasswordException` when the archive is protected
     and no/a wrong password was given (standard-zip encryption reports a wrong password only as a
@@ -204,6 +222,9 @@ def import_knxproj(
     # An import always produces a new project; start from a clean file so re-importing over an
     # existing target does not clash with its rows. Done only after a successful parse, so a failed
     # import (e.g. wrong password) never destroys an existing project.
+    protecting = (
+        password if password and is_password_protected(source) else project_password
+    )
     dest_path = Path(dest)
     dest_path.unlink(missing_ok=True)
     engine = make_engine(url_for(dest_path))
@@ -217,7 +238,24 @@ def import_knxproj(
                 knx_master_xml=master_xml,
                 product_members=product_members,
             )
+            if protecting:
+                # Encrypt the secrets in the same transaction, so none reaches the file in the clear.
+                salt = new_salt()
+                cipher = ProjectCipher.derive(protecting, salt)
+                recrypt(session, None, cipher)
+                project = session.query(Project).one()
+                project.password_salt = salt
+                project.password_check = cipher.check_value()
+            elif has_secure_data(session):
+                session.rollback()
+                raise ProjectPasswordRequired(
+                    "a project with KNX Secure data needs a password"
+                )
             session.commit()
+    except ProjectPasswordRequired:
+        engine.dispose()
+        dest_path.unlink(missing_ok=True)
+        raise
     finally:
         engine.dispose()
     logger.debug("import_knxproj done: pid=%s -> %s", pid, dest)
@@ -325,6 +363,7 @@ class _SegmentDesc:
     domain_address: int | None
     device_ids: tuple[str, ...]
     additional_group_addresses: tuple[int, ...] = ()
+    master_salt: str | None = None
 
 
 @dataclass(slots=True)
@@ -435,7 +474,7 @@ class _RawExtras:
         self.project_files: bytes | None = None
         # The <Installation> @Name (xknxproject surfaces only the project name, not the installation's).
         self.installation_name: str = ""
-        # Non-secret <Installation> attributes xknxproject drops (see _INSTALLATION_EXTRA_ATTRS).
+        # <Installation> attributes xknxproject drops (see _INSTALLATION_EXTRA_ATTRS).
         self.installation_extra_attributes: dict[str, str] = {}
         # The installation's <P2PLinks> subtree as a namespace-stripped XML string ("" if absent).
         self.installation_p2p_links: str = ""
@@ -468,7 +507,8 @@ class _RawExtras:
         # DeviceInstance @Id -> {ParameterInstanceRef @RefId -> {CustomizedText, GrantUseByCustomer}}.
         self.param_instance_overrides: dict[str, dict[str, dict[str, str]]] = {}
         # DeviceInstance @Id -> {subtree localname -> namespace-stripped XML} for ChannelInstances,
-        # BusInterfaces, RfFastAckSlots (xknxproject drops them); re-emitted verbatim on export.
+        # Security (the device's tool key, authentication code, sequence number), BusInterfaces and
+        # RfFastAckSlots (xknxproject drops them); re-emitted verbatim on export.
         self.device_subtrees: dict[str, dict[str, str]] = {}
         # DeviceInstance @Id -> DeviceInstance attributes xknxproject drops but that are valid in
         # both project/20 and /23 (UniqueId, InstallationHints, IsRFRetransmitter, Context), captured
@@ -477,7 +517,7 @@ class _RawExtras:
         # --- descriptive metadata xknxproject does not surface (read from the raw XML) ---
         # The ProjectInformation @Comment (project.xml).
         self.project_comment: str = ""
-        # Non-secret ProjectInformation attributes xknxproject drops (see _PROJECT_EXTRA_ATTRS).
+        # ProjectInformation attributes xknxproject drops (see _PROJECT_EXTRA_ATTRS).
         self.project_extra_attributes: dict[str, str] = {}
         # ProjectInformation child collections xknxproject drops (see _PROJECT_INFO_SUBTREES).
         self.project_info_subtrees: dict[str, str] = {}
@@ -714,7 +754,7 @@ def _read_one_device_extras(
         extras.param_instance_overrides[device_id] = param_overrides
     subtrees = {
         name: xml
-        for name in ("ChannelInstances", "BusInterfaces", "RfFastAckSlots")
+        for name in ("ChannelInstances", "Security", "BusInterfaces", "RfFastAckSlots")
         if (xml := _read_named_subtree(device, name))
     }
     if subtrees:
@@ -829,6 +869,7 @@ def _read_coupler_extras(root: ET.Element, extras: _RawExtras) -> None:
                             domain_address=seg_domain,
                             device_ids=device_ids,
                             additional_group_addresses=tuple(seg_addrs),
+                            master_salt=seg.get("MasterSalt"),
                         )
                     )
             if seg_descs and a_addr is not None and l_addr is not None:
@@ -1115,7 +1156,7 @@ _PROJECT_SUBTREES = ("UserFiles", "AddinData")
 def _read_project_meta(
     contents: _ProjectContents,
 ) -> tuple[str, list[_TraceEntry], dict[str, str], dict[str, str], dict[str, str]]:
-    """The ``ProjectInformation`` ``@Comment`` (+ non-secret extra attributes), every
+    """The ``ProjectInformation`` ``@Comment`` (+ extra attributes), every
     ``ProjectTraces/ProjectTrace`` and the verbatim child collections from the raw ``project.xml``.
 
     Returns ``(comment, traces, info_attributes, info_subtrees, project_subtrees)``. xknxproject
@@ -1516,6 +1557,7 @@ def _build_line_segments(
             additional_group_addresses=",".join(
                 str(a) for a in desc.additional_group_addresses
             ),
+            master_salt=desc.master_salt,
         )
         line.segments.append(segment)
         segments.append(segment)

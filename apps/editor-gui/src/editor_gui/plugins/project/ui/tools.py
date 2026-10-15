@@ -29,7 +29,11 @@ from editor_gui.os_open import open_path
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import label_render
 from editor_gui.plugins.project.ui._filter import filter_box
-from editor_gui.plugins.project.ui.project_diff import DiffEntry, DiffResult
+from editor_gui.plugins.project.ui.project_diff import (
+    DiffEntry,
+    DiffOutcome,
+    DiffResult,
+)
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px, px_vec2
 from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
@@ -185,7 +189,7 @@ class ToolsPanel:
         get_group_addresses: Callable[[], Sequence[GroupAddressRow]],
         get_group_address_style: Callable[[], GroupAddressStyle],
         on_shift_group_addresses: Callable[[list[int], int], LinkResult],
-        on_diff_projects: Callable[[str], tuple[DiffResult | None, str]],
+        on_diff_projects: Callable[[str, str | None], DiffOutcome],
     ) -> None:
         self._get_devices = get_devices
         self._get_device_info = get_device_info
@@ -240,6 +244,9 @@ class ToolsPanel:
         self._diff_result: DiffResult | None = None
         self._diff_other_name = ""
         self._diff_error = ""
+        # The other project when it needs a password, and the password entered for it.
+        self._diff_password_path: str | None = None
+        self._diff_password = ""
 
     def render(self) -> None:
         if not self._is_open():
@@ -752,6 +759,8 @@ class ToolsPanel:
             imgui.text_disabled(
                 S.TOOLS_DIFF_COMPARED_WITH.format(name=self._diff_other_name)
             )
+        if self._diff_password_path is not None:
+            self._render_diff_password(self._diff_password_path)
         if self._diff_error:
             imgui.text_colored(_ERR_COLOR, self._diff_error)
             return
@@ -791,7 +800,30 @@ class ToolsPanel:
             return
         path = files[0]
         self._diff_other_name = Path(path).name
-        self._diff_result, self._diff_error = self._on_diff_projects(path)
+        self._diff_password = ""
+        self._run_diff(path, None)
+
+    def _run_diff(self, path: str, password: str | None) -> None:
+        outcome = self._on_diff_projects(path, password)
+        self._diff_result, self._diff_error = outcome.result, outcome.error
+        self._diff_password_path = path if outcome.needs_password else None
+
+    def _render_diff_password(self, path: str) -> None:
+        """Ask for the password of the other, password-protected project."""
+        imgui.text_wrapped(S.TOOLS_DIFF_PASSWORD_PROMPT)
+        imgui.set_next_item_width(px(260.0))
+        submitted, self._diff_password = imgui.input_text(
+            "##diff_password",
+            self._diff_password,
+            imgui.InputTextFlags_.password | imgui.InputTextFlags_.enter_returns_true,
+        )
+        imgui.same_line()
+        imgui.begin_disabled(not self._diff_password)
+        clicked = imgui.button(S.TOOLS_DIFF_COMPARE)
+        imgui.end_disabled()
+        if (clicked or submitted) and self._diff_password:
+            password, self._diff_password = self._diff_password, ""
+            self._run_diff(path, password)
 
     # -- Topology Check ----------------------------------------------------
 

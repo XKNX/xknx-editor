@@ -51,6 +51,7 @@ from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga, parse_
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.ga_export import write_ga_csv as _write_ga_csv
 from xknxeditor.proj.core.identity import qualified_com_object_ref
+from xknxeditor.proj.core.project_secrets import check_project_password
 from xknxeditor.proj.core.skeleton import MEDIUM_TP
 
 if TYPE_CHECKING:
@@ -65,6 +66,7 @@ if TYPE_CHECKING:
     from xknxeditor.proj.core.product_prune import ProgressCallback
     from xknxeditor.proj.core.service import (
         DeviceInfo,
+        DeviceKeys,
         GroupRangeInfo,
         SpaceDeviceInfo,
         SpaceInfo,
@@ -274,6 +276,8 @@ def _history_label(event_type: str, data: dict[str, Any]) -> str:
         return "Unlink com-object"
     if event_type == "RenameArea":
         return f"Rename area to {data.get('name', '')!r}"
+    if event_type == "SetProjectName":
+        return f"Rename project to {data.get('name', '')!r}"
     if event_type == "RenameLine":
         return f"Rename line to {data.get('name', '')!r}"
     if event_type == "SetDeviceName":
@@ -346,6 +350,8 @@ class _ProjectInfo:
     master_data_size: int = 0
     validation_size: int = 0
     certificate_size: int = 0
+    # The project is password protected: its exports carry the project folder encrypted.
+    password_protected: bool = False
 
 
 @dataclass
@@ -767,6 +773,7 @@ class ProjectService:
             return None
         if not new_path.suffix:
             new_path = new_path.with_suffix(".xknx")
+        password = self.project_password
         with self._io_lock:
             # Snapshot the live (working) file BEFORE teardown; teardown closes the engine (releases
             # the file/journal) and writes the OLD home back. The live data is in the working file,
@@ -782,11 +789,13 @@ class ProjectService:
             # this home must not shadow the just-saved data).
             self._remove_project_file(working)
             shutil.copyfile(src, working)
-        self.open(new_path)
+        self.open(new_path, password)
         self._log.info("project saved as", path=str(new_path))
         return new_path
 
-    def open(self, path: Path) -> None:
+    def open(self, path: Path, password: str | None = None) -> None:
+        """Open the project at ``path``; a password-protected one needs its ``password`` (raises
+        ``ProjectPasswordRequired``/``InvalidProjectPassword``, with the open project kept)."""
         # Hold the shared lock for the whole open (incl. the device-view build) so per-frame UI reads
         # on other threads bail to empty placeholders instead of racing it — lets a background open
         # run behind a progress spinner. Re-entrant, so our own nested reads still work.
@@ -799,8 +808,11 @@ class ProjectService:
             # different files can carry the same project-id (P-XXXX); the core keys engines by id,
             # so opening-before-closing could collide and then close the just-opened project. The
             # trade-off — a corrupt target leaves nothing open — is acceptable for this fallback.
-            self._teardown_current()
             working = self._mirror_path(path) if self._needs_mirror(path) else path
+            if working.is_file():
+                # Check the password before closing the current project, so a wrong one keeps it.
+                check_project_password(working, password)
+            self._teardown_current()
             # First open of a network home: seed the local mirror from it. If the home is missing
             # but a mirror exists (crash before write-back), reuse the mirror as-is (never lose the
             # unsynced local edits) — that is why we only seed when the mirror is absent.
@@ -812,7 +824,7 @@ class ProjectService:
                 )
                 self._copy_atomic(path, working)
             with gc_paused():
-                new_pid = self._svc.open(working)
+                new_pid = self._svc.open(working, password)
                 self._pid = new_pid
                 self._generation += 1
                 self._path = path
@@ -833,7 +845,12 @@ class ProjectService:
                 )
 
     def import_knxproj(
-        self, source: Path, dest: Path, *, password: str | None = None
+        self,
+        source: Path,
+        dest: Path,
+        *,
+        password: str | None = None,
+        project_password: str | None = None,
     ) -> None:
         """Import a ``.knxproj`` into a new project at ``dest`` and open it.
 
@@ -874,7 +891,9 @@ class ProjectService:
                 # Parse + write into a sibling temp of the WORKING file (never next to a network
                 # dest). On a wrong password this raises before writing, so the currently-open
                 # project is left untouched.
-                _import_knxproj(source, tmp, password=password)
+                _import_knxproj(
+                    source, tmp, password=password, project_password=project_password
+                )
                 self._log.debug(
                     "knxproj parsed",
                     source=str(source),
@@ -907,7 +926,8 @@ class ProjectService:
             finally:
                 # Clean up the temp file if it survived a failure (a successful replace consumed it).
                 Path(tmp).unlink(missing_ok=True)
-            self.open(dest)
+            # The new project is protected with the archive's password, else the one given for it.
+            self.open(dest, project_password or password)
         self._log.info("project imported", source=str(source), path=str(dest))
 
     @staticmethod
@@ -1708,7 +1728,57 @@ class ProjectService:
             master_data_size=len(p.knx_master_xml) if p.knx_master_xml else 0,
             validation_size=len(p.knx_validation),
             certificate_size=len(p.knx_certificate),
+            password_protected=self._svc.is_password_protected(self._pid),
         )
+
+    def set_project_name(self, name: str) -> None:
+        """Rename the project (one undo step); an empty name keeps the current one."""
+        name = name.strip()
+        if self._pid is None or not name or name == self._svc.project(self._pid).name:
+            return
+        self._svc.set_project_name(self._pid, name)
+        self._bump(structural=False)
+
+    def set_project_password(self, password: str | None) -> None:
+        """Set or change the project password, or remove it with ``None``. The project's secrets
+        are encrypted again with it, so this is not an undo step. A project with KNX Secure data
+        keeps its password (see :meth:`project_needs_password`)."""
+        if self._pid is None:
+            return
+        if not password and self.project_needs_password():
+            raise ValueError("a project with KNX Secure data needs a password")
+        with self._io_lock:
+            self._svc.set_project_password(self._pid, password or None)
+        self._bump(structural=False)
+        self._log.info(
+            "project password set" if password else "project password removed"
+        )
+
+    @property
+    def project_password(self) -> str | None:
+        """The password of the open project, ``None`` when it is not protected."""
+        return self._svc.project_password(self._pid) if self._pid is not None else None
+
+    def needs_password_setup(self) -> bool:
+        """Whether the open project holds KNX Secure data but no password protects it yet."""
+        return self._pid is not None and self._svc.needs_password(self._pid)
+
+    def reveal(self, data: bytes) -> bytes:
+        """Serialized project XML with the project's encrypted secrets in the clear."""
+        return self._svc.reveal(self._pid, data) if self._pid is not None else data
+
+    @io_guarded(lambda: False)
+    @revision_cached
+    def project_needs_password(self) -> bool:
+        """Whether the project holds KNX Secure data, whose keys an export protects only with the
+        project password."""
+        return self._pid is not None and self._svc.has_secure_data(self._pid)
+
+    def device_keys(self, device: Device) -> "DeviceKeys | None":
+        """The device's KNX Data Secure tool keys from the project, or ``None`` when it has none."""
+        if self._pid is None:
+            return None
+        return self._svc.device_keys(self._pid, device.node_id)
 
     def get_project_traces(self) -> list[_ProjectTrace]:
         """The project log (ProjectInformation/ProjectTraces), in document order.

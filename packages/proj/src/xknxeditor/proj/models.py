@@ -71,8 +71,8 @@ class Project(Base):
     original_project_id: Mapped[str] = mapped_column(String, nullable=False, default="")
     # The ProjectInformation free-text comment, carried over so a round-trip preserves it.
     comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    # Non-secret ProjectInformation attributes xknxproject does not surface (ProjectStart,
-    # ProjectNumber, ContractNumber, ProjectEnd, ProjectId — all valid in project/20 and /23),
+    # ProjectInformation attributes xknxproject does not surface (ProjectStart, ProjectNumber,
+    # ContractNumber, ProjectEnd, ProjectId, ProjectTracingPassword — valid in project/14, /20, /23),
     # captured verbatim and re-emitted. ``None`` when the source had none.
     extra_attributes: Mapped[dict[str, str] | None] = mapped_column(JSON)
     # ProjectInformation child collections xknxproject drops, captured verbatim (namespace-stripped
@@ -90,6 +90,11 @@ class Project(Base):
     # texts, IP config, multi-segment lines). Echoed at export so the user is reminded. Empty for a
     # freshly created project or a lossless import.
     import_notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # Password protection (see core.project_secrets): the salt of the key derived from the project
+    # password and a value encrypted with that key, to detect a wrong password. The password itself
+    # is not stored. ``None`` when the project is not protected.
+    password_salt: Mapped[str | None] = mapped_column(String)
+    password_check: Mapped[str | None] = mapped_column(String)
 
     # ETS project-log entries (ProjectInformation/ProjectTraces), carried over verbatim so a
     # round-trip export preserves the project history. The ``comment`` is stored exactly as it
@@ -226,6 +231,8 @@ class Segment(Base):
     additional_group_addresses: Mapped[str] = mapped_column(
         Text, nullable=False, default=""
     )
+    # The segment's security ``MasterSalt`` (project/23 Segment attr), kept verbatim. None if absent.
+    master_salt: Mapped[str | None] = mapped_column(String)
 
     line: Mapped["Line"] = relationship(back_populates="segments")
     devices: Mapped[list["Device"]] = relationship(
@@ -550,8 +557,7 @@ class GroupAddress(Base):
     # Marked as a global/broadcast group address (``Global``), carried over for round-trip.
     is_global: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     # Group-address security that xknxproject reduces to the ``data_secure`` bool, captured verbatim
-    # for a faithful round-trip: ``@Security`` (mode), ``@Key`` (the AES key — persisted on explicit
-    # authorisation, overriding the usual "no key material in the project DB" rule) and ``@Context``.
+    # for a faithful round-trip: ``@Security`` (mode), ``@Key`` (the AES key) and ``@Context``.
     # ``None`` when absent.
     security_mode: Mapped[str | None] = mapped_column(String)
     security_key: Mapped[str | None] = mapped_column(String)

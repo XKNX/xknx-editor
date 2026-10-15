@@ -259,6 +259,9 @@ def make_engine(url: str) -> Engine:
         cursor = dbapi_conn.cursor()
         cursor.execute("PRAGMA journal_mode=DELETE")
         cursor.execute("PRAGMA foreign_keys=ON")
+        # Overwrite deleted content with zeros, so a secret replaced by its encrypted form (see
+        # core.project_secrets) leaves no readable copy in the file's free pages.
+        cursor.execute("PRAGMA secure_delete=ON")
         cursor.close()
 
     if frame_db_profiler.enabled:

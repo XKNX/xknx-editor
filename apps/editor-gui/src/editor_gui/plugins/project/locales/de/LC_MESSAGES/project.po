@@ -1651,3 +1651,45 @@ msgstr "Speicherabbild kann nicht erzeugt werden: {error}"
 
 msgid "The file could not be read or written: {error}"
 msgstr "Die Datei konnte nicht gelesen oder geschrieben werden: {error}"
+
+msgid "Password"
+msgstr "Passwort"
+
+msgid "Protected"
+msgstr "Geschützt"
+
+msgid "Not protected"
+msgstr "Nicht geschützt"
+
+msgid "Set Password"
+msgstr "Passwort festlegen"
+
+msgid "Change Password"
+msgstr "Passwort ändern"
+
+msgid "Remove Password"
+msgstr "Passwort entfernen"
+
+msgid "Project Password"
+msgstr "Projektpasswort"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "Das Projekt und seine Exporte werden mit diesem Passwort geschützt; beim Öffnen oder Importieren wird es abgefragt. Eine Passwortänderung kann nicht rückgängig gemacht werden."
+
+msgid "Repeat Password"
+msgstr "Passwort wiederholen"
+
+msgid "The passwords do not match."
+msgstr "Die Passwörter stimmen nicht überein."
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "Ein Projekt mit KNX Secure Geräten braucht ein Passwort: Es schützt deren Schlüssel im Projekt und in seinen Exporten."
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "Das andere Projekt ist mit einem Passwort geschützt. Geben Sie es zum Vergleichen ein:"
+
+msgid "Compare"
+msgstr "Vergleichen"
+
+msgid "Wrong password, please try again."
+msgstr "Falsches Passwort, bitte erneut versuchen."

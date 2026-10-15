@@ -71,6 +71,7 @@ from xknxeditor.proj.core._dll_signer import sign_member_map
 from xknxeditor.proj.core.compact import used_product_ids
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.import_notes import ImportLoss
+from xknxeditor.proj.core.knxproj_protect import protect_project_folder
 from xknxeditor.proj.core.knxproj_signing import (
     SignatureAudit,
     audit_and_sign_folders,
@@ -79,6 +80,11 @@ from xknxeditor.proj.core.knxproj_signing import (
 from xknxeditor.proj.core.product_prune import (
     ProductPruneReport,
     prune_product_members,
+)
+from xknxeditor.proj.core.project_secrets import (
+    InvalidProjectPassword,
+    ProjectCipher,
+    ProjectPasswordRequired,
 )
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
@@ -107,7 +113,9 @@ logger = logging.getLogger(__name__)
 CertificateSigner = Callable[[str, bytes, str], bytes | None]
 
 
-def _project_info(project_guid: str, project_name: str) -> bytes:
+def _project_info(
+    project_guid: str, project_name: str, password_protected: bool = False
+) -> bytes:
     """Return the top-level ``{pid}.info`` member.
 
     Archives store two-space-indented JSON with CRLF line endings and no trailing
@@ -123,7 +131,7 @@ def _project_info(project_guid: str, project_name: str) -> bytes:
         {
             "ProjectGuid": project_guid,
             "ProjectName": project_name,
-            "IsPasswordProtected": False,
+            "IsPasswordProtected": password_protected,
         },
         indent=2,
     )
@@ -550,6 +558,7 @@ def export_knxproj(
     certificate_signer: CertificateSigner | None = None,
     project_name: str | None = None,
     remove_unused_products: bool = False,
+    password: str | None = None,
 ) -> ExportResult:
     """Read the project at ``source`` (a ``.xknx``) and write a ``.knxproj`` archive to ``dest``.
 
@@ -588,6 +597,9 @@ def export_knxproj(
         the source ``.xknx``.
       remove_unused_products: Leave out the bundled product data no device uses (see
         :mod:`product_prune`). The source ``.xknx`` is not changed.
+      password: The password of a password-protected project: it decrypts the project's secrets
+        and protects the exported project folder. Raises :class:`ProjectPasswordRequired` when
+        missing and :class:`InvalidProjectPassword` when wrong.
     """
     ns = _ns_for(schema)  # validate the requested schema early
     logger.debug(
@@ -615,6 +627,13 @@ def export_knxproj(
             if project is None:
                 raise ValueError(f"{source} is not a project (no project row)")
             import_notes_raw = project.import_notes
+            cipher: ProjectCipher | None = None
+            if project.password_salt:
+                if not password:
+                    raise ProjectPasswordRequired("the project is password-protected")
+                cipher = ProjectCipher.derive(password, project.password_salt)
+                if not cipher.verify(project.password_check or ""):
+                    raise InvalidProjectPassword("wrong project password")
             if project_name:
                 # Override the exported ProjectInformation Name (transient: this session is never
                 # committed, so the source .xknx is untouched).
@@ -663,6 +682,8 @@ def export_knxproj(
                 master_xml,
                 master_version,
                 certificate_signer,
+                cipher=cipher,
+                password=password if cipher is not None else None,
             )
     finally:
         engine.dispose()
@@ -913,6 +934,9 @@ class _Writer:
         master_xml: bytes | None,
         master_version: int,
         certificate_signer: CertificateSigner | None = None,
+        *,
+        cipher: ProjectCipher | None = None,
+        password: str | None = None,
     ) -> tuple[SignatureAudit, list[str], bool, bool]:
         pid = project.id
         self._source_schema = project.schema_version or self._schema
@@ -951,8 +975,8 @@ class _Writer:
             Guid=project_guid,
             LastModified=project.last_modified or now,
         )
-        # Non-secret ProjectInformation attributes captured on import (ProjectStart/ProjectNumber/
-        # ContractNumber/ProjectEnd/ProjectId); all valid in project/20 and /23.
+        # ProjectInformation attributes captured on import (ProjectStart/ProjectNumber/ContractNumber/
+        # ProjectEnd/ProjectId/ProjectTracingPassword); all valid in project/14, /20 and /23.
         for key, value in (project.extra_attributes or {}).items():
             info.set(key, value)
         # ProjectInformation child collections captured verbatim on import, re-emitted in schema
@@ -994,6 +1018,11 @@ class _Writer:
         }
         project_xml = self._serialize(proj_xml)
         zero = self._serialize(zero_xml)
+        if cipher is not None:
+            # The secrets are stored encrypted with the project password; the archive carries them
+            # in the clear inside its (password-protected) project folder.
+            project_xml = cipher.reveal(project_xml)
+            zero = cipher.reveal(zero)
         # Per-device BinaryData payloads (populated while building 0.xml) are files under the project
         # folder; ETS signs the folder recursively, so include them in the signed set (and the
         # certificate then binds to a signature that covers them).
@@ -1048,7 +1077,9 @@ class _Writer:
             f"{pid}/0.xml": zero,
         }
         # A top-level {pid}.info sits alongside the signature; strict imports look for it.
-        members[f"{pid}.info"] = _project_info(project_guid, project.name)
+        members[f"{pid}.info"] = _project_info(
+            project_guid, project.name, bool(password)
+        )
         if certificate:
             members[f"{pid}.certificate"] = certificate
             # ETS also records the validation outcome in a top-level `.validation`, with the
@@ -1076,11 +1107,18 @@ class _Writer:
         # of any signed folder); a certified export does not need it.
         if certificate is None:
             members[f"{pid}_M-dummy"] = b""
+        # A password-protected project carries its (signed) folder as an encrypted zip.
+        if password:
+            protect_project_folder(members, pid, password)
 
         dest.unlink(missing_ok=True)
         with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as zf:
             for path, data in members.items():
-                zf.writestr(path, data)
+                # The encrypted folder is stored as it is, like in genuine archives.
+                stored = path == f"{pid}.zip" and bool(password)
+                zf.writestr(
+                    path, data, zipfile.ZIP_STORED if stored else zipfile.ZIP_DEFLATED
+                )
         return (
             audit,
             missing_refs,
@@ -1109,8 +1147,8 @@ class _Writer:
             BCUKey="4294967295",
             IPRoutingLatencyTolerance="2000",
         )
-        # Non-secret Installation attributes captured on import (multicast/TTL/latency/sync/SplitType/
-        # backbone-security mode); stored values override the defaults set above.
+        # Installation attributes captured on import (multicast/TTL/latency/sync/SplitType/backbone
+        # security and keys); stored values override the defaults set above.
         for key, value in (installation.extra_attributes or {}).items():
             inst.set(key, value)
 
@@ -1168,6 +1206,10 @@ class _Writer:
                             Number=segment.number,
                             MediumTypeRefId=segment.medium_type,
                             DomainAddress=segment.domain_address,
+                            # MasterSalt only exists on the project/23 Segment.
+                            MasterSalt=segment.master_salt
+                            if self._schema == "23"
+                            else None,
                             Puid=self._next_puid(),
                         )
                         if first_segment_el is None:
@@ -1498,6 +1540,10 @@ class _Writer:
         # <IPConfig> (schema order: after BinaryData, before Security). IP interface/router config
         # (assign method, static IP/subnet/gateway/MAC), captured verbatim on import and re-emitted.
         self._build_ip_config(di, device)
+        # <Security> (schema order: after IPConfig, before BusInterfaces). The device's tool key,
+        # authentication code, management password and sequence number, captured on import; without
+        # them a secure device can no longer be programmed after the project is imported back.
+        self._build_device_security(di, device)
         # <BusInterfaces> then <RfFastAckSlots> (schema order: after Security, the last children of
         # DeviceInstance). Bus-interface endpoints (incl. their secure config) and RF fast-ack slots,
         # captured verbatim on import and re-emitted here.
@@ -1511,6 +1557,37 @@ class _Writer:
         them verbatim is a lossless round-trip. ``_el`` writes each as a string attribute."""
         if device.ip_config:
             self._el(di, "IPConfig", **device.ip_config)
+
+    def _build_device_security(self, di: ET.Element, device: Device) -> None:
+        """Re-emit the device's captured ``<Security>`` under ``di``, keeping what the target schema
+        defines: ``@UnicastBroadcastBlocking`` exists from project/20 on and ``@LoadedMasterSalt``
+        from project/21 on, while the ``<Role>`` children only exist in project/14. A malformed
+        stored element is skipped rather than aborting the export."""
+        raw = (device.extra_subtrees or {}).get("Security")
+        if not raw:
+            return
+        try:
+            src = ET.fromstring(raw)
+        except ET.ParseError:
+            logger.debug("skipping malformed stored Security for device %s", device.id)
+            return
+        schema = self._ns.rsplit("/", 1)[-1]
+        version = int(schema) if schema.isdigit() else 0
+        dropped = {
+            name
+            for name, since in (
+                ("UnicastBroadcastBlocking", 20),
+                ("LoadedMasterSalt", 21),
+            )
+            if version < since
+        }
+        el = self._el(di, "Security")
+        for key, value in src.attrib.items():
+            if _localname(key) not in dropped:
+                el.set(_localname(key), value)
+        if version < 20:
+            for child in src:
+                self._graft(el, child)
 
     def _build_additional_addresses(self, di: ET.Element, device: Device) -> None:
         """Re-emit the device's extra individual addresses (``<AdditionalAddresses>``), e.g. the

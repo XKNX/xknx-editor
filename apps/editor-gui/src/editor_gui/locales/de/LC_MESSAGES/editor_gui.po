@@ -940,3 +940,21 @@ msgstr "Konfigurationsordner öffnen"
 
 msgid "Open Cache Folder"
 msgstr "Cache-Ordner öffnen"
+
+msgid "This project is protected with a password. Enter it to open the project:"
+msgstr "Dieses Projekt ist mit einem Passwort geschützt. Geben Sie es ein, um das Projekt zu öffnen:"
+
+msgid "This project contains KNX Secure keys. Set a project password to protect them; the project can then only be opened with it."
+msgstr "Dieses Projekt enthält KNX Secure Schlüssel. Legen Sie ein Projektpasswort fest, um sie zu schützen; das Projekt lässt sich dann nur noch damit öffnen."
+
+msgid "Password"
+msgstr "Passwort"
+
+msgid "Repeat Password"
+msgstr "Passwort wiederholen"
+
+msgid "The passwords do not match."
+msgstr "Die Passwörter stimmen nicht überein."
+
+msgid "Protecting the project with the password…"
+msgstr "Projekt wird mit dem Passwort geschützt…"

@@ -32,6 +32,7 @@ from xknxeditor.proj.models import (
     Line,
     ModuleInstance,
     Parameter,
+    Project,
     Segment,
     Space,
 )
@@ -1651,6 +1652,38 @@ class RenameArea(Event):
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> RenameArea:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetProjectName(Event):
+    event_type: ClassVar[str] = "SetProjectName"
+
+    project_id: str
+    name: str
+    old_name: str | None = None
+
+    def apply(self, session: Session) -> None:
+        project = session.get(Project, self.project_id)
+        if project is not None:
+            self.old_name = project.name
+            project.name = self.name
+
+    def revert(self, session: Session) -> None:
+        project = session.get(Project, self.project_id)
+        if project is not None and self.old_name is not None:
+            project.name = self.old_name
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "project_id": self.project_id,
+            "name": self.name,
+            "old_name": self.old_name,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetProjectName:
         return cls(**data)
 
 

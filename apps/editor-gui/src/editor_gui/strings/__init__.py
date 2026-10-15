@@ -1093,6 +1093,35 @@ class MenuStrings:
         return _("Wrong password, please try again.")
 
     @property
+    def OPEN_PASSWORD_PROMPT(self) -> str:
+        return _(
+            "This project is protected with a password. Enter it to open the project:"
+        )
+
+    @property
+    def NEW_PASSWORD_PROMPT(self) -> str:
+        return _(
+            "This project contains KNX Secure keys. Set a project password to protect them; the "
+            "project can then only be opened with it."
+        )
+
+    @property
+    def PASSWORD_LABEL(self) -> str:
+        return _("Password")
+
+    @property
+    def PASSWORD_REPEAT_LABEL(self) -> str:
+        return _("Repeat Password")
+
+    @property
+    def PASSWORD_MISMATCH(self) -> str:
+        return _("The passwords do not match.")
+
+    @property
+    def PROGRESS_PROTECT_PROJECT(self) -> str:
+        return _("Protecting the project with the password…")
+
+    @property
     def BTN_OK(self) -> str:
         return _("OK")
 

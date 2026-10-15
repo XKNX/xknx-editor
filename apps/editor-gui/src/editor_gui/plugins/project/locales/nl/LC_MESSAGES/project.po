@@ -1509,3 +1509,45 @@ msgstr "Geheugenbeeld kan niet worden aangemaakt: {error}"
 
 msgid "The file could not be read or written: {error}"
 msgstr "Het bestand kon niet worden gelezen of geschreven: {error}"
+
+msgid "Password"
+msgstr "Wachtwoord"
+
+msgid "Protected"
+msgstr "Beveiligd"
+
+msgid "Not protected"
+msgstr "Niet beveiligd"
+
+msgid "Set Password"
+msgstr "Wachtwoord instellen"
+
+msgid "Change Password"
+msgstr "Wachtwoord wijzigen"
+
+msgid "Remove Password"
+msgstr "Wachtwoord verwijderen"
+
+msgid "Project Password"
+msgstr "Projectwachtwoord"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "Het project en zijn exports worden met dit wachtwoord beveiligd; bij het openen of importeren wordt erom gevraagd. Een wachtwoordwijziging kan niet ongedaan worden gemaakt."
+
+msgid "Repeat Password"
+msgstr "Wachtwoord herhalen"
+
+msgid "The passwords do not match."
+msgstr "De wachtwoorden komen niet overeen."
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "Een project met KNX Secure apparaten heeft een wachtwoord nodig: het beveiligt hun sleutels in het project en in de exports ervan."
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "Het andere project is met een wachtwoord beveiligd. Voer het in om te vergelijken:"
+
+msgid "Compare"
+msgstr "Vergelijken"
+
+msgid "Wrong password, please try again."
+msgstr "Verkeerd wachtwoord, probeer het opnieuw."
