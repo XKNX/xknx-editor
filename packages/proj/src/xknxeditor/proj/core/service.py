@@ -13,6 +13,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
+from xml.etree import ElementTree as ET
 
 from sqlalchemy import func
 from sqlalchemy.engine import Engine
@@ -265,6 +266,32 @@ def _address_order(device: Device) -> tuple[int, int, int, int, int]:
         return (1, 0, 0, 0, device.id)
     line = device.segment.line
     return (0, line.area.address, line.address, device.address, device.id)
+
+
+# The secret attributes of the stored device subtrees, by subtree name.
+_DEVICE_SECRETS: dict[str, frozenset[str]] = {
+    "Security": frozenset(
+        {
+            "ToolKey",
+            "LoadedToolKey",
+            "LoadedIPRoutingBackboneKey",
+            "DeviceAuthenticationCode",
+            "DeviceManagementPassword",
+        }
+    ),
+    "BusInterfaces": frozenset({"Password"}),
+}
+
+
+def _has_secret(xml: str, secrets: frozenset[str]) -> bool:
+    """Whether any element of the stored subtree ``xml`` carries one of the ``secrets`` attributes."""
+    if not xml:
+        return False
+    try:
+        root = ET.fromstring(xml)
+    except ET.ParseError:
+        return False
+    return any(secrets.intersection(el.attrib) for el in root.iter())
 
 
 class ProjectService:
@@ -1002,8 +1029,9 @@ class ProjectService:
         )
 
     def has_secure_data(self, project_id: str) -> bool:
-        """Whether the project holds KNX Secure data: secured group addresses or their keys, or
-        device security settings."""
+        """Whether the project holds KNX Secure data: secured group addresses or their keys, a
+        device's keys, authentication code or management password, a bus interface password, or the
+        IP backbone key."""
         session = self._state(project_id).session
         secure_group_address = session.query(GroupAddress.id).filter(
             (GroupAddress.data_secure.is_(True))
@@ -1011,9 +1039,16 @@ class ProjectService:
         )
         if session.query(secure_group_address.exists()).scalar():
             return True
+        if any(
+            "IPRoutingBackboneKey" in (attrs or {})
+            for (attrs,) in session.query(Installation.extra_attributes)
+        ):
+            return True
         return any(
-            "Security" in (subtrees or {})
+            _has_secret(subtrees.get(name, ""), secrets)
             for (subtrees,) in session.query(Device.extra_subtrees)
+            if subtrees
+            for name, secrets in _DEVICE_SECRETS.items()
         )
 
     def rename_line(self, project_id: str, line_id: int, name: str) -> None:

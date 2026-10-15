@@ -112,9 +112,10 @@ _DEVICE_MANAGED_ATTRS = frozenset(
 )
 
 # Installation attributes xknxproject does not surface, round-tripped verbatim. Restricted to
-# attributes defined in BOTH project/20 and /23, and NOT to secret key material (IPRoutingBackboneKey,
-# BCUKey are deliberately excluded — the project DB does not persist keys). DefaultLine/CompletionStatus
-# are omitted: the export recomputes the former and the latter is regenerated runtime state.
+# attributes defined in project/14, /20 and /23. The keys (BCUKey, IPRoutingBackboneKey) are kept like
+# the group-address and device keys, so a re-imported project can still reach its secured devices.
+# DefaultLine/CompletionStatus are omitted: the export recomputes the former and the latter is
+# regenerated runtime state.
 _INSTALLATION_EXTRA_ATTRS = (
     "InstallationId",
     "IPRoutingMulticastAddress",
@@ -123,6 +124,8 @@ _INSTALLATION_EXTRA_ATTRS = (
     "IPSyncLatencyFraction",
     "SplitType",
     "IPRoutingBackboneSecurity",
+    "IPRoutingBackboneKey",
+    "BCUKey",
 )
 
 # ProjectInformation attributes xknxproject does not surface, round-tripped verbatim. Restricted to
@@ -439,7 +442,7 @@ class _RawExtras:
         self.project_files: bytes | None = None
         # The <Installation> @Name (xknxproject surfaces only the project name, not the installation's).
         self.installation_name: str = ""
-        # Non-secret <Installation> attributes xknxproject drops (see _INSTALLATION_EXTRA_ATTRS).
+        # <Installation> attributes xknxproject drops (see _INSTALLATION_EXTRA_ATTRS).
         self.installation_extra_attributes: dict[str, str] = {}
         # The installation's <P2PLinks> subtree as a namespace-stripped XML string ("" if absent).
         self.installation_p2p_links: str = ""
@@ -472,7 +475,8 @@ class _RawExtras:
         # DeviceInstance @Id -> {ParameterInstanceRef @RefId -> {CustomizedText, GrantUseByCustomer}}.
         self.param_instance_overrides: dict[str, dict[str, dict[str, str]]] = {}
         # DeviceInstance @Id -> {subtree localname -> namespace-stripped XML} for ChannelInstances,
-        # BusInterfaces, RfFastAckSlots (xknxproject drops them); re-emitted verbatim on export.
+        # Security (the device's tool key, authentication code, sequence number), BusInterfaces and
+        # RfFastAckSlots (xknxproject drops them); re-emitted verbatim on export.
         self.device_subtrees: dict[str, dict[str, str]] = {}
         # DeviceInstance @Id -> DeviceInstance attributes xknxproject drops but that are valid in
         # both project/20 and /23 (UniqueId, InstallationHints, IsRFRetransmitter, Context), captured
@@ -718,7 +722,7 @@ def _read_one_device_extras(
         extras.param_instance_overrides[device_id] = param_overrides
     subtrees = {
         name: xml
-        for name in ("ChannelInstances", "BusInterfaces", "RfFastAckSlots")
+        for name in ("ChannelInstances", "Security", "BusInterfaces", "RfFastAckSlots")
         if (xml := _read_named_subtree(device, name))
     }
     if subtrees:

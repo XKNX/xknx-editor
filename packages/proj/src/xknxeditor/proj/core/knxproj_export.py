@@ -1121,8 +1121,8 @@ class _Writer:
             BCUKey="4294967295",
             IPRoutingLatencyTolerance="2000",
         )
-        # Non-secret Installation attributes captured on import (multicast/TTL/latency/sync/SplitType/
-        # backbone-security mode); stored values override the defaults set above.
+        # Installation attributes captured on import (multicast/TTL/latency/sync/SplitType/backbone
+        # security and keys); stored values override the defaults set above.
         for key, value in (installation.extra_attributes or {}).items():
             inst.set(key, value)
 
@@ -1510,6 +1510,10 @@ class _Writer:
         # <IPConfig> (schema order: after BinaryData, before Security). IP interface/router config
         # (assign method, static IP/subnet/gateway/MAC), captured verbatim on import and re-emitted.
         self._build_ip_config(di, device)
+        # <Security> (schema order: after IPConfig, before BusInterfaces). The device's tool key,
+        # authentication code, management password and sequence number, captured on import; without
+        # them a secure device can no longer be programmed after the project is imported back.
+        self._build_device_security(di, device)
         # <BusInterfaces> then <RfFastAckSlots> (schema order: after Security, the last children of
         # DeviceInstance). Bus-interface endpoints (incl. their secure config) and RF fast-ack slots,
         # captured verbatim on import and re-emitted here.
@@ -1523,6 +1527,37 @@ class _Writer:
         them verbatim is a lossless round-trip. ``_el`` writes each as a string attribute."""
         if device.ip_config:
             self._el(di, "IPConfig", **device.ip_config)
+
+    def _build_device_security(self, di: ET.Element, device: Device) -> None:
+        """Re-emit the device's captured ``<Security>`` under ``di``, keeping what the target schema
+        defines: ``@UnicastBroadcastBlocking`` exists from project/20 on and ``@LoadedMasterSalt``
+        from project/21 on, while the ``<Role>`` children only exist in project/14. A malformed
+        stored element is skipped rather than aborting the export."""
+        raw = (device.extra_subtrees or {}).get("Security")
+        if not raw:
+            return
+        try:
+            src = ET.fromstring(raw)
+        except ET.ParseError:
+            logger.debug("skipping malformed stored Security for device %s", device.id)
+            return
+        schema = self._ns.rsplit("/", 1)[-1]
+        version = int(schema) if schema.isdigit() else 0
+        dropped = {
+            name
+            for name, since in (
+                ("UnicastBroadcastBlocking", 20),
+                ("LoadedMasterSalt", 21),
+            )
+            if version < since
+        }
+        el = self._el(di, "Security")
+        for key, value in src.attrib.items():
+            if _localname(key) not in dropped:
+                el.set(_localname(key), value)
+        if version < 20:
+            for child in src:
+                self._graft(el, child)
 
     def _build_additional_addresses(self, di: ET.Element, device: Device) -> None:
         """Re-emit the device's extra individual addresses (``<AdditionalAddresses>``), e.g. the
