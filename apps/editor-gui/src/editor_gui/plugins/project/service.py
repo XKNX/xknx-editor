@@ -409,6 +409,16 @@ class DeviceProduct:
         )
 
 
+def _security_role_masks(device: Device) -> dict[str, int]:
+    """The device application's security roles: ``SecurityRole @Id`` -> ``@Mask``."""
+    if device.app is None:
+        return {}
+    roles = device.app.program.static.security_roles
+    if roles is None:
+        return {}
+    return {role.id: role.mask for role in roles.security_role}
+
+
 def _int_or(value: str | None, default: int) -> int:
     try:
         return int(value) if value is not None else default
@@ -1689,7 +1699,9 @@ class ProjectService:
         if not device.app.program.is_secure_enabled:
             return None
         keys, senders = self._svc.group_security(self._pid, device.node_id)
-        p2p = self._svc.p2p_security(self._pid, device.node_id)
+        p2p = self._svc.p2p_security(
+            self._pid, device.node_id, _security_role_masks(device)
+        )
         if not keys and not p2p:
             return None
         return GroupSecurity(keys=keys, senders=senders, p2p=p2p)

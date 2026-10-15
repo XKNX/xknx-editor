@@ -11,7 +11,7 @@ from __future__ import annotations
 import base64
 import binascii
 import secrets
-from collections.abc import Callable, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -313,34 +313,25 @@ def _take_legacy_password(session: Session) -> str | None:
     return str(password) or None
 
 
-def _bus_interface_ids(device: Device) -> list[str]:
-    """The ``@Id`` of every ``<BusInterface>`` the device owns (from its stored BusInterfaces)."""
-    raw = (device.extra_subtrees or {}).get("BusInterfaces")
-    if not raw:
-        return []
-    try:
-        root = ET.fromstring(raw)
-    except ET.ParseError:
-        return []
-    return [bi.get("Id", "") for bi in root.iter("BusInterface") if bi.get("Id")]
-
-
-def _p2p_links(xml: str) -> list[tuple[str | None, list[str]]]:
-    """Each ``<P2PLink>`` as ``(key, [endpoint ref ids])`` from a stored ``<P2PLinks>`` string."""
+def _p2p_links(xml: str) -> list[tuple[str | None, list[tuple[str, list[str]]]]]:
+    """Each ``<P2PLink>`` as ``(key, [(device id, security role ids)])`` from a stored
+    ``<P2PLinks>`` string. Both endpoint kinds (``DeviceEndpoint``, ``BusInterfaceEndpoint``) name
+    their device by ``@DeviceRefId``; a device endpoint lists the roles its device is given on the
+    other end (``@SecurityRoles``)."""
     if not xml:
         return []
     try:
         root = ET.fromstring(xml)
     except ET.ParseError:
         return []
-    links: list[tuple[str | None, list[str]]] = []
+    links: list[tuple[str | None, list[tuple[str, list[str]]]]] = []
     for link in root.iter("P2PLink"):
-        refs = [
-            ref
+        endpoints = [
+            (ref, (endpoint.get("SecurityRoles") or "").split())
             for endpoint in link
-            if (ref := endpoint.get("DeviceRefId") or endpoint.get("BusInterfaceRefId"))
+            if (ref := endpoint.get("DeviceRefId"))
         ]
-        links.append((link.get("Key"), refs))
+        links.append((link.get("Key"), endpoints))
     return links
 
 
@@ -1347,31 +1338,42 @@ class ProjectService:
         return keys, sorted(senders.items())
 
     def p2p_security(
-        self, project_id: str, device_id: int
+        self,
+        project_id: str,
+        device_id: int,
+        role_masks: Mapping[str, int] | None = None,
     ) -> list[tuple[int, bytes, int]]:
         """The device's secure point-to-point / broadcast partners as ``(partner individual
-        address (raw), 16-octet key, roles)``, read from the installation's ``<P2PLinks>``. Roles
-        are ``0`` (no role assignment, 3/5/1 6.3.6.3). Endpoints resolve by the device's source
-        ``@Id`` (DeviceEndpoint) or a bus interface it owns (BusInterfaceEndpoint); a link whose
-        partner cannot be resolved is skipped."""
+        address (raw), 16-octet key, roles)``, read from the installation's ``<P2PLinks>``.
+        ``roles`` are the roles the partner has on this device (3/5/1 6.3.6.1): the masks
+        (``role_masks``, this device's application ``SecurityRole @Id`` -> ``@Mask``) of the roles
+        the partner's endpoint lists, ORed; roles of other applications are not this device's.
+        Endpoints resolve by the device's source ``@Id``; a link whose partner cannot be resolved
+        is skipped."""
         state = self._state(project_id)
         device = state.session.get(Device, device_id)
         if device is None or not device.source_id:
             return []
-        owner_of: dict[str, Device] = {}
-        for other in state.session.query(Device):
-            if other.source_id:
-                owner_of[other.source_id] = other
-                for bus_id in _bus_interface_ids(other):
-                    owner_of[bus_id] = other
+        owner_of = {
+            other.source_id: other
+            for other in state.session.query(Device)
+            if other.source_id
+        }
+        masks = role_masks or {}
         result: list[tuple[int, bytes, int]] = []
         for installation in state.session.query(Installation):
             for link_key, endpoints in _p2p_links(installation.p2p_links_xml):
-                refs = [owner_of.get(ref) for ref in endpoints]
-                if device not in refs:
+                resolved = [(owner_of.get(ref), roles) for ref, roles in endpoints]
+                if not any(d is device for d, _ in resolved):
                     continue
-                partner = next(
-                    (d for d in refs if d is not None and d.id != device_id), None
+                no_partner: tuple[Device | None, list[str]] = (None, [])
+                partner, partner_roles = next(
+                    (
+                        (d, roles)
+                        for d, roles in resolved
+                        if d is not None and d.id != device_id
+                    ),
+                    no_partner,
                 )
                 if partner is None or partner.address is None:
                     continue
@@ -1385,7 +1387,10 @@ class ProjectService:
                 address = (
                     (line.area.address << 12) | (line.address << 8) | partner.address
                 )
-                result.append((address, key, 0))
+                roles = 0
+                for role in partner_roles:
+                    roles |= masks.get(role, 0)
+                result.append((address, key, roles & 0xFFFF))
         return result
 
     def device_keys(self, project_id: str, device_id: int) -> DeviceKeys | None:

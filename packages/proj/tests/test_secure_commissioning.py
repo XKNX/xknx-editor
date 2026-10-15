@@ -242,7 +242,8 @@ def test_p2p_security_resolves_partners(tmp_path: Path) -> None:
             installation.p2p_links_xml = (
                 f'<P2PLinks><P2PLink Id="L-1" Key="{key_b64}">'
                 '<DeviceEndpoint DeviceRefId="DI-1" />'
-                '<DeviceEndpoint DeviceRefId="DI-2" />'
+                '<BusInterfaceEndpoint DeviceRefId="DI-2" BusInterfaceRefId="M-1_A-1_BI-1"'
+                ' SecurityRoles="M-1_A-1_SR-2 M-2_A-1_SR-1" />'
                 "</P2PLink></P2PLinks>"
             )
             session.commit()
@@ -251,10 +252,14 @@ def test_p2p_security_resolves_partners(tmp_path: Path) -> None:
 
     pid = svc.open(path, _PASSWORD)
     partners = svc.p2p_security(pid, first)
-    # device "first" (2.1.5) links to "second" (2.1.6 = 0x2106), key resolved, roles 0.
+    # device "first" (2.1.5) links to "second" (2.1.6 = 0x2106), key resolved, no roles known.
     assert partners == [(0x2106, bytes(range(16)), 0)]
     # The partner side resolves back to "first" (2.1.5 = 0x2105).
     assert svc.p2p_security(pid, second) == [(0x2105, bytes(range(16)), 0)]
+    # The roles the partner's endpoint lists that are this device's application's (3/5/1 6.3.6.1).
+    masks = {"M-1_A-1_SR-1": 0x0001, "M-1_A-1_SR-2": 0x0004}
+    assert svc.p2p_security(pid, first, masks) == [(0x2106, bytes(range(16)), 0x0004)]
+    assert svc.p2p_security(pid, second, masks) == [(0x2105, bytes(range(16)), 0)]
     svc.close(pid)
 
 
