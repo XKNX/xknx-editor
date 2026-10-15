@@ -21,6 +21,8 @@ class DeviceCertificateDialog:
         self._error = ""
         self._then: Callable[[], None] | None = None
         self._plain: Callable[[], None] | None = None
+        self._on_dont_ask: Callable[[bool], None] | None = None
+        self._dont_ask = False
         self._open_requested = False
 
     def open(
@@ -28,14 +30,19 @@ class DeviceCertificateDialog:
         device_label: str,
         then: Callable[[], None] | None = None,
         plain: Callable[[], None] | None = None,
+        on_dont_ask: Callable[[bool], None] | None = None,
     ) -> None:
         """Ask for the certificate of ``device_label``; ``then`` runs once it is added. With
-        ``plain``, a third button commissions the device in the clear instead."""
+        ``plain``, a third button commissions the device in the clear instead. With
+        ``on_dont_ask`` (a device just added) the dialog can be postponed ("Later") and offers not
+        to ask again; ``on_dont_ask`` gets that choice when it closes."""
         self._device_label = device_label
         self._code = ""
         self._error = ""
         self._then = then
         self._plain = plain
+        self._on_dont_ask = on_dont_ask
+        self._dont_ask = False
         self._open_requested = True
 
     def render(self) -> None:
@@ -54,6 +61,11 @@ class DeviceCertificateDialog:
         )
         if self._error:
             imgui.text_colored(_ERROR_COLOR, self._error)
+        if self._on_dont_ask is not None:
+            imgui.spacing()
+            _, self._dont_ask = imgui.checkbox(
+                S.DEVICE_CERTIFICATE_DONT_ASK, self._dont_ask
+            )
         if self._plain is not None:
             clicked = dialog_buttons(
                 S.BTN_OK,
@@ -71,12 +83,17 @@ class DeviceCertificateDialog:
                 clicked = 1
         else:
             clicked = dialog_buttons(
-                S.BTN_OK, S.BTN_CANCEL, enabled=[bool(self._code.strip()), True]
+                S.BTN_OK,
+                S.DEVICE_CERTIFICATE_LATER
+                if self._on_dont_ask is not None
+                else S.BTN_CANCEL,
+                enabled=[bool(self._code.strip()), True],
             )
         if (clicked == 0 or submitted) and self._code.strip():
             error = self._on_add(self._code)
             if error is None:
                 then, self._then = self._then, None
+                self._closed()
                 imgui.close_current_popup()
                 if then is not None:
                     then()
@@ -84,5 +101,11 @@ class DeviceCertificateDialog:
                 self._error = error
         elif clicked == 1:
             self._then = self._plain = None
+            self._closed()
             imgui.close_current_popup()
         end_dialog()
+
+    def _closed(self) -> None:
+        on_dont_ask, self._on_dont_ask = self._on_dont_ask, None
+        if on_dont_ask is not None:
+            on_dont_ask(self._dont_ask)

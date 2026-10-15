@@ -117,6 +117,9 @@ class CatalogPlugin:
         if device_id:
             if space_id is not None:
                 self._api.project.set_device_space(device_id, space_id)
+            ask = self._api.ask_device_certificate
+            if ask is not None and self._api.project.secure_commissioning_of(device_id):
+                ask(device_id)
             label = product.name or app.name
             self._log.info("device added", name=label, id=device_id)
             self._notify(S.CATALOG_ADD_OK.format(name=label))

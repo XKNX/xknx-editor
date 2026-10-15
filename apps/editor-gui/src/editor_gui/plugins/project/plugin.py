@@ -85,6 +85,10 @@ if TYPE_CHECKING:
     from xknxeditor.recover import AppId
 
 
+# App settings of KNX Secure (whether adding a secure device asks for its certificate).
+_SECURITY_SETTINGS = "security"
+
+
 def _run_now(fn: Callable[[], None]) -> None:
     fn()
 
@@ -140,6 +144,7 @@ class ProjectPlugin:
         # The device a certificate is asked for, while the dialog is open.
         self._certificate_device: Device | None = None
         self._certificate_dialog = DeviceCertificateDialog(self._add_certificate)
+        api.ask_device_certificate = self._ask_certificate_on_add
         self._secure_commissioning_dialog = SecureCommissioningDialog()
         # Live device readouts (read-only "read from device" action), keyed by node id. Written on
         # the async loop thread's done-callback, read on the UI thread -> guarded by a lock.
@@ -1523,6 +1528,28 @@ class ProjectPlugin:
             )
         else:
             self._certificate_dialog.open(label, again, plain)
+
+    def _ask_certificate_on_add(self, node_id: int) -> None:
+        """A device was added with secure commissioning: ask for its certificate right away,
+        unless the user chose not to be asked ("Later" postpones it to the download)."""
+        from editor_gui.settings import load_settings
+
+        if not load_settings(_SECURITY_SETTINGS).get("ask_certificate_on_add", True):
+            return
+        device = self._api.project.find_device_by_node_id(node_id)
+        if device is None:
+            return
+        self._certificate_device = device
+        label = f"{device.individual_address or '-'} {device.display_name}".strip()
+        self._certificate_dialog.open(label, on_dont_ask=self._dont_ask_certificate)
+
+    @staticmethod
+    def _dont_ask_certificate(dont_ask: bool) -> None:
+        from editor_gui.settings import load_settings, save_settings
+
+        data = load_settings(_SECURITY_SETTINGS)
+        data["ask_certificate_on_add"] = not dont_ask
+        save_settings(_SECURITY_SETTINGS, data)
 
     def _ask_certificate_for(self, device: "Device") -> None:
         """ "Add Device Certificate" from the device settings."""

@@ -2509,5 +2509,13 @@ class ProjectStrings:
             " address in the clear."
         )
 
+    @property
+    def DEVICE_CERTIFICATE_LATER(self) -> str:
+        return _("Later")
+
+    @property
+    def DEVICE_CERTIFICATE_DONT_ASK(self) -> str:
+        return _("Don't ask when adding devices")
+
 
 S = ProjectStrings()

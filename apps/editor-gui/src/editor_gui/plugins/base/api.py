@@ -32,3 +32,6 @@ class PluginAPI:
     request_project_password: (
         Callable[[str, Callable[[], None], Callable[[], None]], None] | None
     ) = None
+    # Asks for the device certificate of a device just added with secure commissioning (by node
+    # id), unless the user turned that off. Set by the project plugin.
+    ask_device_certificate: Callable[[int], None] | None = None

@@ -1759,3 +1759,9 @@ msgstr "Nicht alle mit dieser Gruppenadresse verknüpften Geräte werden sicher 
 
 msgid "A group object that requires secure communication would end up on a group address in the clear."
 msgstr "Ein Gruppenobjekt, das sichere Kommunikation erfordert, käme auf eine unverschlüsselte Gruppenadresse."
+
+msgid "Later"
+msgstr "Später"
+
+msgid "Don't ask when adding devices"
+msgstr "Beim Hinzufügen von Geräten nicht fragen"

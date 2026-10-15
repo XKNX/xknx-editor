@@ -1872,6 +1872,12 @@ class ProjectService:
             return None
         return self._svc.secure_commissioning(self._pid, device.node_id)
 
+    def secure_commissioning_of(self, node_id: int) -> bool:
+        """Whether the device with ``node_id`` is commissioned securely."""
+        return self._pid is not None and self._svc.secure_commissioning(
+            self._pid, node_id
+        )
+
     def secure_commissioning_impact(
         self, device: Device
     ) -> "SecureCommissioningImpact | None":

@@ -1617,3 +1617,9 @@ msgstr "Niet alle apparaten die aan dit groepsadres zijn gekoppeld worden beveil
 
 msgid "A group object that requires secure communication would end up on a group address in the clear."
 msgstr "Een groepsobject dat beveiligde communicatie vereist, zou op een onversleuteld groepsadres terechtkomen."
+
+msgid "Later"
+msgstr "Later"
+
+msgid "Don't ask when adding devices"
+msgstr "Niet vragen bij het toevoegen van apparaten"
