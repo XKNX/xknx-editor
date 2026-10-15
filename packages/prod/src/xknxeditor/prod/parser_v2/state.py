@@ -54,6 +54,13 @@ def compute_param_ref_defaults(
     return result
 
 
+def _qualified(element_id: str, app_id: str | None) -> str:
+    """``element_id`` qualified with the application id, when it is relative to it."""
+    if not app_id or element_id.startswith(f"{app_id}_"):
+        return element_id
+    return f"{app_id}_{element_id}"
+
+
 class ParameterState:
     """Base of GlobalState/ModuleState; nodes form a root/module/submodule tree.
 
@@ -422,28 +429,34 @@ class GlobalState(ParameterState):
         parameter_instance_refs: list[ParameterInstanceRef] | None = None,
         module_instances: list[ModuleInstance] | None = None,
         com_object_instance_refs: list[ComObjectInstanceRef] | None = None,
+        app_id: str | None = None,
     ) -> GlobalState:
-        """Rebuild a GlobalState tree from saved project data."""
+        """Rebuild a GlobalState tree from saved project data.
+
+        A module instance id is either qualified with the application id ``app_id`` or relative to
+        it (``MD-1_M-1_MI-1``, as a ``.knxproj`` stores it); its state is keyed by the qualified id,
+        the key the evaluated Module looks it up by (see :meth:`module_child`)."""
         root = cls()
-        mid_to_mdid: dict[str, str] = {}
+        stored: dict[str, tuple[ModuleState, str]] = {}
         for mi in module_instances or []:
             if mi.id is None or mi.ref_id is None:
                 continue
-            ms = ModuleState(mi.id, ref_id=mi.ref_id)
+            key = _qualified(mi.id, app_id)
+            ms = ModuleState(key, ref_id=_qualified(mi.ref_id, app_id))
             ms._parent = root
-            root._children[mi.id] = ms
-            mid_to_mdid[mi.id] = mi.ref_id
+            root._children[key] = ms
+            stored[mi.id] = (ms, mi.ref_id)
         for pir in parameter_instance_refs or []:
             if pir.value is None:
                 continue
             ref_id, value = pir.ref_id, pir.value
-            for mid, ms in root._children.items():
+            for mid, (ms, mdid) in stored.items():
                 p = f"_{ref_id}_".find(f"_{mid}_")
                 if p != -1:
                     app_prefix = ref_id[:p]
                     suffix = ref_id[p + len(mid) :]
                     ms.module_instance_id = app_prefix + mid
-                    ms.set(app_prefix + mid_to_mdid[mid] + suffix, value)
+                    ms.set(app_prefix + mdid + suffix, value)
                     break
             else:
                 root.set(ref_id, value)

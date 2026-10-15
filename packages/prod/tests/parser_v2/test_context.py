@@ -135,6 +135,21 @@ class TestEvalContext:
         mctx.set(_LOCAL_REF, "new")
         assert mctx.get(_LOCAL_REF) == "new"
 
+    def test_module_ctx_reads_value_of_relative_instance_id(self):
+        # A .knxproj stores module instances relative to the application: MD-1_M-C8_MI-1.
+        state = GlobalState.from_project(
+            [ParameterInstanceRef(ref_id=_QUALIFIED_REF, value="7")],
+            [ModuleInstance(id="MD-1_M-C8_MI-1", ref_id="MD-1")],
+            app_id=_BASE,
+        )
+        state.reset_active()
+        assert EvalContext(state).module_ctx(_MODULE_ID).get(_LOCAL_REF) == "7"
+        state.trim_to_active()
+        assert [m.module_instance_id for m in state.module_children()] == [
+            _MODULE_INSTANCE_ID
+        ]
+        assert EvalContext(state).module_ctx(_MODULE_ID).get(_LOCAL_REF) == "7"
+
 
 class TestTrimToActive:
     def test_hidden_param_is_evicted_after_trim(self):
