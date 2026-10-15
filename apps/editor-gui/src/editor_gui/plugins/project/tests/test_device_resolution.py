@@ -66,6 +66,7 @@ def test_program_without_catalog_item_loads(tmp_path: Path) -> None:
     proj = _open(cat, path)
     device = proj.find_device_by_node_id(device_id)
     assert device is not None
+    assert device.app is not None
     assert device.app.id == _APP_ID
     assert proj.unloaded_devices == []
     proj.close()
@@ -89,6 +90,26 @@ def test_device_without_application_stays_listed(tmp_path: Path) -> None:
 
     proj.remove_device(device_id)
     assert proj.unloaded_devices == []
+    proj.close()
+
+
+def test_product_without_application_is_a_device(tmp_path: Path) -> None:
+    path, device_id, program = _project_with_device(tmp_path)
+    # A product whose Hardware2Program loads no application, as a power supply's.
+    with sqlite3.connect(tmp_path / "c.xknxcatalog") as db:
+        db.execute(
+            "UPDATE hardware_programs SET application_id = NULL WHERE id = ?",
+            (program,),
+        )
+
+    proj = _open(CatalogService(tmp_path / "c.xknxcatalog"), path)
+    (device,) = proj.devices
+    assert (device.node_id, device.name, device.app) == (device_id, "Button", None)
+    assert not device.has_application
+    assert device.get_ui() == []
+    assert device.get_visible_com_objects() == []
+    assert proj.unloaded_devices == []
+    assert proj.missing_program_refs() == []
     proj.close()
 
 

@@ -31,7 +31,7 @@ _DISPOSE_TIMEOUT = 10.0
 
 
 def _mask_version(device: Device) -> int | None:
-    text = device.app.program.mask_version or ""
+    text = (device.app.program.mask_version if device.app else None) or ""
     try:
         return int(text.removeprefix("MV-"), 16)
     except ValueError:
@@ -40,7 +40,7 @@ def _mask_version(device: Device) -> int | None:
 
 def _object_types(conn: ConnectionService, device: Device) -> dict[int, int]:
     """Interface objects the device's mask declares, by index."""
-    if conn.master is None:
+    if conn.master is None or device.app is None:
         return {}
     try:
         return mask_object_types(conn.master.raw, device.app.program.mask_version)

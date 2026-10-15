@@ -88,7 +88,8 @@ class DevicePlugins:
 
 def device_plugins(device: Device) -> DevicePlugins:
     """The manufacturer plugins `device`'s product data names."""
-    static = getattr(device.app.program, "static", None)
+    program = device.app.program if device.app is not None else None
+    static = getattr(program, "static", None)
     extension = getattr(static, "extension", None)
     return DevicePlugins(
         user_interface=bool(getattr(extension, "ets_ui_plugin", None)),

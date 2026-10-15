@@ -216,7 +216,8 @@ class UnloadedDevice:
 class Device:
     node_id: int
     name: str
-    app: Application
+    # ``None`` for a product without an application program (e.g. a power supply).
+    app: Application | None
     individual_address: str
     description: str = ""
     product_name: str = ""
@@ -271,7 +272,12 @@ class Device:
     @property
     def display_name(self) -> str:
         """The device's name, else its product's name, else its application's name."""
-        return self.name or self.product_name or self.app.name
+        return self.name or self.product_name or (self.app.name if self.app else "")
+
+    @property
+    def has_application(self) -> bool:
+        """Whether the product has an application program (with parameters and objects)."""
+        return self.app is not None
 
     def __post_init__(self) -> None:
         self._ensure_dynamic_ui()
@@ -282,7 +288,11 @@ class Device:
         """Build the (heavy) DynamicUI evaluator on demand; ``None`` if the app has no dynamic
         section. It is released for inactive devices to save memory (see :meth:`release_dynamic_ui`),
         so it may need rebuilding when a device is inspected or edited again."""
-        if self._dynamic_ui is None and self.app.program.dynamic is not None:
+        if (
+            self._dynamic_ui is None
+            and self.app is not None
+            and self.app.program.dynamic is not None
+        ):
             from xknxeditor.prod.parser_v2.dynamic import DynamicUI as _DynamicUI
 
             # Program and tree as one pair: an unused application may have been reloaded.

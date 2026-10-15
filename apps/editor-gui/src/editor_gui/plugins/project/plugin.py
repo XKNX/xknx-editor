@@ -1271,6 +1271,8 @@ class ProjectPlugin:
 
     def _help_text(self, device: "Device", context: str) -> str | None:
         """A help page from the ContextHelpFile baggage of the device's source .knxprod."""
+        if device.app is None:
+            return None
         help_file = device.app.program.context_help_file
         if not help_file:
             return None
@@ -1279,6 +1281,8 @@ class ProjectPlugin:
 
     def _icon(self, device: "Device", name: str) -> Icon | None:
         """An icon from the IconFile baggage of the device's source .knxprod."""
+        if device.app is None:
+            return None
         icon_file = device.app.program.icon_file
         if not icon_file:
             return None
@@ -1288,6 +1292,8 @@ class ProjectPlugin:
 
     def _picture(self, device: "Device", ref_id: str) -> Picture | None:
         """A TypePicture image from the baggages of the device's source .knxprod."""
+        if device.app is None:
+            return None
         key = f"{device.app.id}|{ref_id}"
         baggages = self._device_baggages(device) if not has_picture(key) else None
         return load_picture(key, baggages.file(ref_id) if baggages else None)
@@ -1539,8 +1545,7 @@ class ProjectPlugin:
         if not matches:
             return None
         names = ", ".join(
-            f"{d.product_name or d.app.name} ({d.individual_address or '-'})"
-            for d in matches
+            f"{d.display_name} ({d.individual_address or '-'})" for d in matches
         )
         return S.PROGRAM_COMPARE_MATCHES.format(devices=names)
 
@@ -1585,6 +1590,7 @@ class ProjectPlugin:
             serial is None
             or len(serial) != 6
             or result.application is None
+            or device.app is None
             or not same_application(device.app.id, result.application)
             or self._project_serial(device.node_id) == serial
         ):
@@ -1597,7 +1603,7 @@ class ProjectPlugin:
         self, device: "Device", app_id: "AppId"
     ) -> "Application | None":
         """The application a device reports: the project's when it is the same, else the catalog's."""
-        if same_application(device.app.id, app_id):
+        if device.app is not None and same_application(device.app.id, app_id):
             return device.app
         for product in self._api.catalog.find_products_for_application(
             manufacturer_id=app_id.manufacturer_id,
@@ -1621,7 +1627,11 @@ class ProjectPlugin:
         app_id = info.application
         if app_id is None:
             return None
-        if device is not None and same_application(device.app.id, app_id):
+        if (
+            device is not None
+            and device.app is not None
+            and same_application(device.app.id, app_id)
+        ):
             return device.app.name
         products = match_application(self._api.catalog, app_id)
         return products[0].name if products else None

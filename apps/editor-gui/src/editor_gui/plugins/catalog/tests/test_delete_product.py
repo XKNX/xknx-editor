@@ -82,6 +82,7 @@ def test_shared_program_keeps_project_device(tmp_path: Path) -> None:
     proj.forget_deleted_product(deletion, rebuild=True)
     assert [p.product_ref_id for p in cat.get_products()] == [f"{ref}-2"]
     (device,) = proj.devices
+    assert device.app is not None
     assert device.app.id == product.application_id
     assert proj.unloaded_devices == []
     proj.close()

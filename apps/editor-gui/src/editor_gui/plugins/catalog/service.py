@@ -219,6 +219,11 @@ class CatalogService:
         """The application id a hardware program loads, whether or not a catalog item lists it."""
         return self._service.get_program_application_id(program_id)
 
+    @io_guarded(lambda: False)
+    def is_program_without_application(self, program_id: str) -> bool:
+        """Whether a known hardware program loads no application (e.g. a power supply's)."""
+        return self._service.is_program_without_application(program_id)
+
     @io_guarded(lambda: "")
     def program_resolution_hint(self, program_ref: str) -> str:
         """A one-line diagnostic (for logs) on why a device program did not resolve: whether its

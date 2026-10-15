@@ -118,6 +118,14 @@ def _same_line_if_fits(label: str) -> None:
         imgui.same_line()
 
 
+def _no_application_tooltip(device: Device) -> None:
+    """Why the last (disabled) programming button does nothing for this device."""
+    if not device.has_application and imgui.is_item_hovered(
+        imgui.HoveredFlags_.allow_when_disabled
+    ):
+        imgui.set_tooltip(S.CONFIGURE_NO_APPLICATION)
+
+
 def _same_line_if_fits_checkbox(label: str) -> None:
     """Put the next checkbox beside the previous item if it fits, else below it."""
     style = imgui.get_style()
@@ -449,21 +457,24 @@ class ConfigurePanel:
             _same_line_if_fits(S.BTN_EVAL_DEVICE)
             enabled = (
                 bool(device.individual_address)
+                and device.has_application
                 and not self._download_scope.individual_address_only
             )
             imgui.begin_disabled(not enabled)
             if imgui.button(S.BTN_EVAL_DEVICE):
                 self._on_eval_device(device, self._download_scope)
             imgui.end_disabled()
+            _no_application_tooltip(device)
 
         if self._on_program_device is not None:
             _same_line_if_fits(S.BTN_PROGRAM_DEVICE)
-            enabled = bool(device.individual_address)
+            enabled = bool(device.individual_address) and device.has_application
             imgui.begin_disabled(not enabled)
             if imgui.button(S.BTN_PROGRAM_DEVICE):
                 # Programming writes to the device; confirm first.
                 self._confirm_program_open = True
             imgui.end_disabled()
+            _no_application_tooltip(device)
             if self._confirm_program_open:
                 imgui.open_popup(S.PROGRAM_CONFIRM_TITLE)
                 self._confirm_program_open = False
@@ -476,8 +487,11 @@ class ConfigurePanel:
 
         if self._open_memory_preview is not None:
             _same_line_if_fits(S.BTN_PREVIEW_MEMORY)
+            imgui.begin_disabled(not device.has_application)
             if imgui.button(S.BTN_PREVIEW_MEMORY):
                 self._open_memory_preview(device)
+            imgui.end_disabled()
+            _no_application_tooltip(device)
 
         if self._on_program_device is not None:
             self._render_program_confirm(device)
@@ -571,7 +585,7 @@ class ConfigurePanel:
         """The device name. Without a custom name the default one is shown in grey italics and
         filled in when the field is entered; leaving it with the default name keeps no custom
         name."""
-        default = device.product_name or device.app.name
+        default = device.display_name
         placeholder = not device.name and not self._name_prefilled
         imgui.set_next_item_width(-1)
         with italic() if placeholder else nullcontext():
@@ -675,6 +689,9 @@ class ConfigurePanel:
 
     def _render_application_program(self, device: Device) -> None:
         """Change the application program, or update it to the version that replaces it."""
+        if device.app is None:
+            imgui.text_disabled(S.CONFIGURE_NO_APPLICATION)
+            return
         if (
             self._get_change_targets is not None
             and self._on_change_application is not None
@@ -737,15 +754,18 @@ class ConfigurePanel:
         # device.app.version is the KNX XML schema version (e.g. "20"), NOT the program version above.
         self._render_detail_grid(
             [
-                (S.CONFIGURE_MANUFACTURER, manufacturer or device.app.manufacturer_id),
-                (S.CONFIGURE_APPLICATION, device.app.id),
+                (
+                    S.CONFIGURE_MANUFACTURER,
+                    manufacturer or (device.app.manufacturer_id if device.app else ""),
+                ),
+                (S.CONFIGURE_APPLICATION, device.app.id if device.app else ""),
                 (
                     S.CONFIGURE_APP_VERSION,
                     application_version_text(app_version)
                     if app_version is not None
                     else "-",
                 ),
-                (S.CONFIGURE_SCHEMA_VERSION, device.app.version),
+                (S.CONFIGURE_SCHEMA_VERSION, device.app.version if device.app else ""),
                 (S.CONFIGURE_ORDER_NUMBER, info.order_number if info else ""),
                 (S.CONFIGURE_HARDWARE, info.hardware_name if info else ""),
                 (S.CONFIGURE_RAIL, rail_text(product, S.BTN_YES, S.BTN_NO)),
@@ -816,6 +836,8 @@ class ConfigurePanel:
                         footer_height=self._help_height() if help_text else 0.0,
                     )
                     imgui.end_disabled()
+                elif not device.has_application:
+                    imgui.text_disabled(S.CONFIGURE_NO_APPLICATION)
                 else:
                     imgui.text_disabled(S.CONFIGURE_NO_DEVICES)
                 imgui.end_tab_item()
@@ -909,6 +931,8 @@ class ConfigurePanel:
     def _current_app_version(self, device: Device) -> int | None:
         """The application program version parsed from the app id (``...-26-...`` -> 38), else the
         application's own version. ``device.app.version`` is the KNX XML schema version instead."""
+        if device.app is None:
+            return None
         parsed = parse_app_id(device.app.id)
         return (
             parsed.version
@@ -1275,6 +1299,8 @@ class ConfigurePanel:
             self._on_param_change(device, ref_id, value)
 
     def _render_load_procedures(self, device: Device) -> None:
+        if device.app is None:
+            return
         lp = device.app.load_procedures
         procedures = getattr(lp, "procedures", None)
         if not procedures:

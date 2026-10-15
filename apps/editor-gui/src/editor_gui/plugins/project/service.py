@@ -1127,6 +1127,8 @@ class ProjectService:
             )
             return None
         if app is None:
+            if self._without_application(row.hardware2program_ref_id):
+                return self._build_device_without_application(row)
             self._log.warning(
                 "skipping device: application not found",
                 device_id=row.id,
@@ -1228,6 +1230,27 @@ class ProjectService:
                 error=f"{type(e).__name__}: {e}",
             )
             return None
+
+    def _without_application(self, program_ref: str | None) -> bool:
+        """Whether the product of ``program_ref`` has no application program at all."""
+        return program_ref is not None and self._catalog.is_program_without_application(
+            program_ref
+        )
+
+    def _build_device_without_application(self, row: Any) -> Device:
+        """A device of a product without an application program (e.g. a power supply): no
+        parameters and no group objects, only its name, address and description."""
+        assert self._pid is not None
+        device = Device(
+            node_id=row.id,
+            name=row.name,
+            product_name=row.product_name or "",
+            app=None,
+            individual_address=self._svc.individual_address(self._pid, row.id) or "",
+            description=row.description,
+        )
+        self._build_keys[row.id] = _device_source_key(row)
+        return device
 
     def _reuse_device(self, row: Any, previous: dict[int, Device]) -> Device | None:
         """The already built device for ``row`` if it was not changed in place and nothing it was
@@ -1879,8 +1902,9 @@ class ProjectService:
             ref = row.hardware2program_ref_id
             if (
                 ref
-                and self._resolve_app(ref, row.application_program_ref_id) is None
                 and ref not in missing
+                and self._resolve_app(ref, row.application_program_ref_id) is None
+                and not self._without_application(ref)
             ):
                 missing.append(ref)
         return missing
@@ -2014,6 +2038,8 @@ class ProjectService:
     def local_update_target(self, device: Device) -> "ProgramSummary | None":
         """The local program "Update Application Program Version" switches to: the highest
         version of the same application whose ``ReplacesVersions`` names the current version."""
+        if device.app is None:
+            return None
         current = device.app.program
         candidates = [
             program
@@ -2051,7 +2077,7 @@ class ProjectService:
         )
         from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 
-        if self._pid is None:
+        if self._pid is None or device.app is None:
             return None
         target = self.local_update_target(device)
         if (
@@ -2120,7 +2146,7 @@ class ProjectService:
     def _change_application(self, device: Device, program: "ProgramSummary") -> bool:
         """Switch ``device`` to another application program of its hardware, starting from that
         application's defaults ("Change Application Program"). Returns whether it changed."""
-        if self._pid is None or program.application_id is None:
+        if self._pid is None or device.app is None or program.application_id is None:
             return False
         new_app = self._catalog.get_application(program.application_id)
         if new_app is None:
@@ -2407,7 +2433,7 @@ class ProjectService:
         if generation is not None and generation != self._generation:
             return
         device = self.find_device_by_node_id(node_id)
-        if self._pid is None or device is None:
+        if self._pid is None or device is None or device.app is None:
             return
         target = self._com_object_target(device, old_active)
         if target is not None:
@@ -2441,7 +2467,7 @@ class ProjectService:
         label: str | None = None,
     ) -> None:
         values = [(ref, new) for ref, (_, new) in changes.items() if new is not None]
-        if self._pid is None or not values:
+        if self._pid is None or not values or device.app is None:
             return
         target = self._com_object_target(device, old_active)
         self._svc.set_parameters(

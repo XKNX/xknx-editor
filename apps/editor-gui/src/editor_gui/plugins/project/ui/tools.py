@@ -693,7 +693,7 @@ class ToolsPanel:
         rec: dict[str, str] = {
             "ia": device.individual_address,
             "name": device.name,
-            "application": device.app.name,
+            "application": device.app.name if device.app else "",
         }
         if info is not None:
             rec.update(
