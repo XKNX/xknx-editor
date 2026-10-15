@@ -1689,6 +1689,90 @@ class SetProjectName(Event):
 
 @_register
 @dataclass
+class SetDeviceSecurity(Event):
+    """Replace a device's stored ``<Security>`` (its Tool Keys, kept encrypted as they are)."""
+
+    event_type: ClassVar[str] = "SetDeviceSecurity"
+
+    device_id: int
+    security: str | None
+    old_security: str | None = None
+
+    def apply(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is not None:
+            self.old_security = (device.extra_subtrees or {}).get("Security")
+            _set_device_subtree(device, "Security", self.security)
+
+    def revert(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is not None:
+            _set_device_subtree(device, "Security", self.old_security)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "device_id": self.device_id,
+            "security": self.security,
+            "old_security": self.old_security,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetDeviceSecurity:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetDeviceCertificates(Event):
+    """Replace the project's ``<DeviceCertificates>`` (the FDSKs, kept encrypted as they are)."""
+
+    event_type: ClassVar[str] = "SetDeviceCertificates"
+
+    project_id: str
+    certificates: str | None
+    old_certificates: str | None = None
+
+    def apply(self, session: Session) -> None:
+        project = session.get(Project, self.project_id)
+        if project is not None:
+            self.old_certificates = (project.info_subtrees or {}).get(
+                "DeviceCertificates"
+            )
+            _set_info_subtree(project, "DeviceCertificates", self.certificates)
+
+    def revert(self, session: Session) -> None:
+        project = session.get(Project, self.project_id)
+        if project is not None:
+            _set_info_subtree(project, "DeviceCertificates", self.old_certificates)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "project_id": self.project_id,
+            "certificates": self.certificates,
+            "old_certificates": self.old_certificates,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetDeviceCertificates:
+        return cls(**data)
+
+
+def _set_device_subtree(device: Device, name: str, xml: str | None) -> None:
+    subtrees = {k: v for k, v in (device.extra_subtrees or {}).items() if k != name}
+    if xml:
+        subtrees[name] = xml
+    device.extra_subtrees = subtrees or None
+
+
+def _set_info_subtree(project: Project, name: str, xml: str | None) -> None:
+    subtrees = {k: v for k, v in (project.info_subtrees or {}).items() if k != name}
+    if xml:
+        subtrees[name] = xml
+    project.info_subtrees = subtrees or None
+
+
+@_register
+@dataclass
 class RenameLine(Event):
     event_type: ClassVar[str] = "RenameLine"
 

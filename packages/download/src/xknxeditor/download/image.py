@@ -30,6 +30,7 @@ from .project_data import (
     module_instances_from_device,
     parameter_instance_refs_from_device,
 )
+from .secure_config import GroupSecurity, SecurityTables, security_tables
 from .tables import (
     Association,
     ComObjectDescriptor,
@@ -129,6 +130,9 @@ class GroupCommunication:
     # :mod:`xknxeditor.download.filter_table`). When set, the image writes it into the Router
     # object's relative memory so the coupler's own ``LdCtrlWriteRelMem ObjType=6`` programs it.
     filter_table: bytes | None = None
+    # The KNX Data Secure keys and accepted senders of a securely commissioned device; the download
+    # writes the security tables (see :mod:`xknxeditor.download.secure_config`) from them.
+    security: GroupSecurity | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -250,6 +254,8 @@ class DownloadImage:
     # address space. A single source of truth for both write paths.
     filter_table: bytes | None = None
     application_segments: tuple[ObjectMemorySegment, ...] = ()
+    # The security tables, for a device with secured group addresses.
+    security_tables: SecurityTables | None = None
 
     def relative_segment(self, object_type: int) -> RelativeSegment | None:
         """Return the relative segment for an interface object type, if any."""
@@ -471,6 +477,11 @@ def build_image(
     filter_table = (
         group_communication.filter_table if group_communication is not None else None
     )
+    security = (
+        _security_tables(application, ui, group_communication)
+        if group_communication is not None and group_communication.security is not None
+        else None
+    )
 
     try:
         encoded_properties = ui.encode_to_typed_properties()
@@ -514,6 +525,30 @@ def build_image(
         object_segments=MappingProxyType(object_segments),
         filter_table=filter_table,
         application_segments=tuple(application_segments),
+        security_tables=security,
+    )
+
+
+def _security_tables(
+    application: Application, ui: DynamicUI, gc: GroupCommunication
+) -> SecurityTables | None:
+    """The security tables for the address table the download writes: the same active links,
+    so a group key refers to the index its group address gets there."""
+    from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
+
+    assert gc.security is not None
+    indexer = ApplicationIndexer(application.program)
+    number_of: dict[str, int] = {}
+    for ref_id, ref in indexer.com_object_refs.items():
+        com_object = indexer.com_objects.get(ref.ref_id)
+        if com_object is not None:
+            number_of[ref_id] = com_object.number
+    links = _active_links(ui, gc, number_of)
+    group_addresses = sorted({link.group_address for link in links})
+    return security_tables(
+        group_addresses,
+        [(link.group_address, number_of[link.com_object_ref_id]) for link in links],
+        gc.security,
     )
 
 

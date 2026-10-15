@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import secrets
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -76,9 +77,11 @@ from xknxeditor.proj.core.events import (
     SetComObjectFlag,
     SetComObjectPriority,
     SetComObjectSending,
+    SetDeviceCertificates,
     SetDeviceCommissioning,
     SetDeviceDescription,
     SetDeviceName,
+    SetDeviceSecurity,
     SetDeviceSpace,
     SetFunctionType,
     SetGroupAddressAddress,
@@ -90,6 +93,7 @@ from xknxeditor.proj.core.events import (
     UnlinkComObject,
     UpdateDeviceApplication,
 )
+from xknxeditor.proj.core.fdsk import Fdsk, InvalidFdskError, parse_fdsk
 from xknxeditor.proj.core.function_detect import classify_function
 from xknxeditor.proj.core.ga_export import (
     GaExport,
@@ -238,10 +242,12 @@ class SpaceInfo:
 @dataclass(frozen=True)
 class DeviceKeys:
     """A device's KNX Data Secure tool keys from the project. ``loaded_tool_key`` is the key the
-    device holds; ``tool_key`` the one it is given on secure commissioning. ``None`` when absent."""
+    device holds; ``tool_key`` the one it is given on secure commissioning; ``fdsk`` its factory
+    key from the device certificates. ``None`` when absent."""
 
     tool_key: bytes | None
     loaded_tool_key: bytes | None
+    fdsk: bytes | None = None
 
 
 @dataclass(frozen=True)
@@ -303,6 +309,18 @@ def _take_legacy_password(session: Session) -> str | None:
     session.execute(text("DELETE FROM events WHERE type = 'SetProjectPassword'"))
     session.commit()
     return str(password) or None
+
+
+def _sequence_number(device: Device) -> int:
+    """The last Sequence Number known of a device (its ``<Security @SequenceNumber>``), else 0."""
+    raw = (device.extra_subtrees or {}).get("Security")
+    if not raw:
+        return 0
+    try:
+        value = ET.fromstring(raw).get("SequenceNumber")
+        return int(value) if value else 0
+    except (ET.ParseError, ValueError):
+        return 0
 
 
 def _key(value: str | None) -> bytes | None:
@@ -1108,17 +1126,161 @@ class ProjectService:
         """Whether the project holds KNX Secure data (see :func:`project_secrets.has_secure_data`)."""
         return has_secure_data(self._state(project_id).session)
 
+    def device_certificates(self, project_id: str) -> dict[str, Fdsk]:
+        """The project's device certificates by serial number (base64, as on the devices)."""
+        state = self._state(project_id)
+        project = state.session.query(Project).one()
+        raw = (project.info_subtrees or {}).get("DeviceCertificates")
+        if not raw:
+            return {}
+        result: dict[str, Fdsk] = {}
+        for element in ET.fromstring(raw).iter("DeviceCertificate"):
+            serial, code = element.get("SerialNumber"), element.get("FDSK")
+            if not serial or not code:
+                continue
+            if state.cipher is not None:
+                code = state.cipher.value(code) or ""
+            try:
+                result[serial] = parse_fdsk(code)
+            except InvalidFdskError:
+                continue
+        return result
+
+    def add_device_certificate(self, project_id: str, code: str) -> Fdsk:
+        """Add (or replace) the certificate of the device with the serial number in the FDSK label
+        ``code``; the FDSK is stored encrypted, so the project needs a password
+        (:class:`ProjectPasswordRequired` otherwise). Raises ``InvalidFdskError`` for a bad code."""
+        state = self._state(project_id)
+        fdsk = parse_fdsk(code)
+        if state.cipher is None:
+            raise ProjectPasswordRequired("an FDSK is stored with the project password")
+        project = state.session.query(Project).one()
+        raw = (project.info_subtrees or {}).get("DeviceCertificates")
+        root = ET.fromstring(raw) if raw else ET.Element("DeviceCertificates")
+        serial = base64.b64encode(fdsk.serial_number).decode("ascii")
+        for element in list(root):
+            if element.get("SerialNumber") == serial:
+                root.remove(element)
+        ET.SubElement(
+            root,
+            "DeviceCertificate",
+            SerialNumber=serial,
+            FDSK=state.cipher.seal(fdsk.label),
+        )
+        state.store.append(
+            SetDeviceCertificates(
+                project_id=project.id,
+                certificates=ET.tostring(root, encoding="unicode"),
+            )
+        )
+        return fdsk
+
+    def ensure_tool_key(self, project_id: str, device_id: int) -> bytes:
+        """The device's Tool Key; a random one is generated and stored (encrypted, so the project
+        needs a password) when the project has none for it yet."""
+        keys = self.device_keys(project_id, device_id)
+        if keys is not None and keys.tool_key is not None:
+            return keys.tool_key
+        state = self._state(project_id)
+        if state.cipher is None:
+            raise ProjectPasswordRequired(
+                "a Tool Key is stored with the project password"
+            )
+        key = secrets.token_bytes(16)
+        security = self._security_element(state, device_id)
+        security.set(
+            "ToolKey", state.cipher.seal(base64.b64encode(key).decode("ascii"))
+        )
+        state.store.append(
+            SetDeviceSecurity(
+                device_id=device_id,
+                security=ET.tostring(security, encoding="unicode"),
+            )
+        )
+        return key
+
+    def set_tool_key_loaded(self, project_id: str, device_id: int) -> None:
+        """Record that the device uses its Tool Key now (``LoadedToolKey`` = ``ToolKey``)."""
+        state = self._state(project_id)
+        security = self._security_element(state, device_id)
+        tool_key = security.get("ToolKey")
+        if not tool_key or security.get("LoadedToolKey") == tool_key:
+            return
+        security.set("LoadedToolKey", tool_key)
+        state.store.append(
+            SetDeviceSecurity(
+                device_id=device_id,
+                security=ET.tostring(security, encoding="unicode"),
+            )
+        )
+
+    @staticmethod
+    def _security_element(state: _Open, device_id: int) -> ET.Element:
+        device = state.session.get(Device, device_id)
+        if device is None:
+            raise KeyError(f"No device with id {device_id}")
+        raw = (device.extra_subtrees or {}).get("Security")
+        return ET.fromstring(raw) if raw else ET.Element("Security")
+
+    def group_security(
+        self, project_id: str, device_id: int
+    ) -> tuple[dict[int, bytes], list[tuple[int, int]]]:
+        """The keys of the secured group addresses the device is linked to (raw address -> key)
+        and the devices that may send on them: ``(individual address (raw), last known sequence
+        number)`` of every other addressed device linked to one of them."""
+        state = self._state(project_id)
+        session = state.session
+        linked = (
+            session.query(GroupAddress)
+            .join(ComObjectLink, ComObjectLink.group_address_id == GroupAddress.id)
+            .join(ComObject, ComObject.id == ComObjectLink.com_object_id)
+            .filter(ComObject.device_id == device_id)
+            .distinct()
+            .all()
+        )
+        keys: dict[int, bytes] = {}
+        for ga in linked:
+            value = ga.security_key
+            if value and state.cipher is not None:
+                value = state.cipher.value(value)
+            key = _key(value)
+            if key is not None:
+                keys[ga.address] = key
+        senders: dict[int, int] = {}
+        if keys:
+            others = (
+                session.query(Device)
+                .join(ComObject, ComObject.device_id == Device.id)
+                .join(ComObjectLink, ComObjectLink.com_object_id == ComObject.id)
+                .join(GroupAddress, GroupAddress.id == ComObjectLink.group_address_id)
+                .filter(GroupAddress.address.in_(keys), Device.id != device_id)
+                .distinct()
+                .all()
+            )
+            for other in others:
+                if other.address is None:
+                    continue
+                line = other.segment.line
+                address = (
+                    (line.area.address << 12) | (line.address << 8) | other.address
+                )
+                senders[address] = _sequence_number(other)
+        return keys, sorted(senders.items())
+
     def device_keys(self, project_id: str, device_id: int) -> DeviceKeys | None:
-        """The device's tool keys from its ``<Security>``, or ``None`` when it has neither."""
+        """The device's tool keys from its ``<Security>`` and its FDSK from the device certificate
+        of its serial number, or ``None`` when it has none of them."""
         state = self._state(project_id)
         device = state.session.get(Device, device_id)
-        raw = (device.extra_subtrees or {}).get("Security") if device else None
-        if not raw:
+        if device is None:
             return None
+        certificate = self.device_certificates(project_id).get(device.serial_number)
+        fdsk = certificate.key if certificate is not None else None
+        raw = (device.extra_subtrees or {}).get("Security")
         try:
-            security = ET.fromstring(raw)
+            security = ET.fromstring(raw) if raw else ET.Element("Security")
         except ET.ParseError:
-            return None
+            security = ET.Element("Security")
 
         def key(name: str) -> bytes | None:
             value = security.get(name)
@@ -1126,8 +1288,10 @@ class ProjectService:
                 value = state.cipher.value(value)
             return _key(value)
 
-        keys = DeviceKeys(tool_key=key("ToolKey"), loaded_tool_key=key("LoadedToolKey"))
-        return keys if keys.tool_key or keys.loaded_tool_key else None
+        keys = DeviceKeys(
+            tool_key=key("ToolKey"), loaded_tool_key=key("LoadedToolKey"), fdsk=fdsk
+        )
+        return keys if keys.tool_key or keys.loaded_tool_key or keys.fdsk else None
 
     def rename_line(self, project_id: str, line_id: int, name: str) -> None:
         self._state(project_id).store.append(RenameLine(line_id=line_id, name=name))

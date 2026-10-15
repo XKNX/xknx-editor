@@ -353,6 +353,23 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return {"open": True, "path": str(project.path) if project.path else None}
 
     @tool
+    def project_add_device_certificate(code: str) -> dict[str, Any]:
+        """Add a KNX Data Secure device certificate: ``code`` is the FDSK from the device label
+        (36 characters, groups separated by "-"). A device with the certificate's serial number is
+        then commissioned securely with it. Needs a password-protected project."""
+        from xknxeditor.proj import ProjectPasswordRequired
+        from xknxeditor.proj.core.fdsk import InvalidFdskError
+
+        require_project(ctx)
+        try:
+            fdsk = ctx.run_locked(lambda: project.add_device_certificate(code))
+        except InvalidFdskError as exc:
+            raise ToolError(f"not a valid FDSK: {exc}") from exc
+        except ProjectPasswordRequired as exc:
+            raise ToolError("set a project password first") from exc
+        return {"serial_number": fdsk.serial_number.hex().upper()}
+
+    @tool
     def project_close() -> dict[str, str]:
         """Close the open project."""
         ctx.run_locked(project.close)

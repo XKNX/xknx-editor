@@ -33,6 +33,7 @@ from __future__ import annotations
 import logging
 import secrets
 import time
+from collections.abc import Sequence
 from copy import copy
 from datetime import datetime
 from typing import Final, Protocol
@@ -129,15 +130,34 @@ class DeviceSecurity:
 
     ``tool_key`` is the device's Tool Key (the FDSK for a device in factory
     state), as 16 raw octets or 32 hex digits (the form the keyring stores it
-    in).
+    in). ``alternative_keys`` are tried in order when the device does not answer
+    the S-A_Sync with ``tool_key``: the FDSK is active again after a reset to
+    default, and a Tool Key write may have reached the device without its
+    response reaching the tool (3/5/2 4.1, Note 18).
     """
 
-    __slots__ = ("address", "tool_key")
+    __slots__ = ("address", "alternative_keys", "tool_key")
 
-    def __init__(self, address: IndividualAddress, tool_key: bytes | str) -> None:
+    def __init__(
+        self,
+        address: IndividualAddress,
+        tool_key: bytes | str,
+        alternative_keys: Sequence[bytes | str] = (),
+    ) -> None:
         """Initialize with the target address and the Tool Key."""
         self.address = address
         self.tool_key = self._normalize_key(tool_key)
+        keys = [self._normalize_key(key) for key in alternative_keys]
+        self.alternative_keys = tuple(
+            key
+            for i, key in enumerate(keys)
+            if key != self.tool_key and key not in keys[:i]
+        )
+
+    @property
+    def keys(self) -> tuple[bytes, ...]:
+        """The Tool Key followed by its alternatives."""
+        return (self.tool_key, *self.alternative_keys)
 
     @staticmethod
     def _normalize_key(tool_key: bytes | str) -> bytes:
@@ -282,6 +302,10 @@ class SecureManagement:
         carry.
         """
         self._device = device
+        self._key = device.tool_key
+        # The new Tool Key while its write is on its way: the device answers that write
+        # already with it (3/5/1 6.3.10.4), and every later frame uses it (6.3.10.5).
+        self._pending_key: bytes | None = None
         self._tool_address = tool_address
         self._next_sequence_number: int | None = None
         self._last_valid_remote: int | None = None
@@ -292,6 +316,24 @@ class SecureManagement:
         # retransmission of the trigger frame replays identical bytes instead of
         # being turned into an S-A_Data frame (3/3/7 5.3.2, Note 38).
         self._sync_request: SecureAPDU | None = None
+
+    @property
+    def active_key(self) -> bytes:
+        """The key this session secures its frames with."""
+        return self._key
+
+    def use_key(self, key: bytes) -> None:
+        """Secure the session with ``key`` from the next S-A_Sync on."""
+        self._key = key
+        self._pending_key = None
+
+    def change_tool_key(self, key: bytes) -> None:
+        """Expect the device to switch to the Tool Key ``key`` with the next request.
+
+        That request (the Tool Key write) is still secured with the current key;
+        the device's response and all later frames use ``key``.
+        """
+        self._pending_key = key
 
     @property
     def synchronized(self) -> bool:
@@ -343,7 +385,7 @@ class SecureManagement:
         serial_number = b"\x00" * 6
         nonce = self._sync_sequence.to_bytes(6, "big")
         cipher, mac = _encrypt(
-            key=self._device.tool_key,
+            key=self._key,
             fields=_BlockFields(secured),
             nonce=nonce,
             additional_data=SYNC_REQ_SCF.to_knx() + serial_number,
@@ -383,7 +425,7 @@ class SecureManagement:
         )
         try:
             plain = _decrypt(
-                key=self._device.tool_key,
+                key=self._key,
                 fields=_BlockFields(cemi),
                 nonce=random,
                 additional_data=payload.scf.to_knx(),
@@ -447,7 +489,7 @@ class SecureManagement:
         secured = copy(cemi)
         nonce = sequence_number.to_bytes(6, "big")
         cipher, mac = _encrypt(
-            key=self._device.tool_key,
+            key=self._key,
             fields=_BlockFields(secured),
             nonce=nonce,
             additional_data=DATA_SCF.to_knx(),
@@ -495,14 +537,7 @@ class SecureManagement:
                 f"device sequence number too low: {sequence_number:#014x} "
                 f"(last valid {self._last_valid_remote:#014x})"
             )
-        plain = _decrypt(
-            key=self._device.tool_key,
-            fields=_BlockFields(cemi),
-            nonce=payload.secured_data.sequence_number_bytes,
-            additional_data=payload.scf.to_knx(),
-            cipher=payload.secured_data.secured_apdu,
-            mac=payload.secured_data.message_authentication_code,
-        )
+        plain = self._decrypt_data(cemi, payload)
         # The plain APDU starts with the 000000b prefix before the 10-bit APCI
         # (3/3/7 Figure 103); its top 6 bits must be zero. APCI.from_knx masks
         # them off, so check here to reject an authenticated but malformed APDU.
@@ -520,6 +555,32 @@ class SecureManagement:
         plain_cemi = copy(cemi)
         plain_cemi.payload = decoded
         return plain_cemi
+
+    def _decrypt_data(self, cemi: CEMILData, payload: SecureAPDU) -> bytes:
+        """Decrypt an S-A_Data frame with the session key, or with the pending new Tool Key,
+        which then becomes the session key."""
+
+        def decrypt(key: bytes) -> bytes:
+            return _decrypt(
+                key=key,
+                fields=_BlockFields(cemi),
+                nonce=payload.secured_data.sequence_number_bytes,
+                additional_data=payload.scf.to_knx(),
+                cipher=payload.secured_data.secured_apdu,
+                mac=payload.secured_data.message_authentication_code,
+            )
+
+        pending = self._pending_key
+        if pending is not None:
+            try:
+                plain = decrypt(pending)
+            except SecureProgrammingError:
+                pass
+            else:
+                logger.info("data secure: the device uses the new Tool Key")
+                self.use_key(pending)
+                return plain
+        return decrypt(self._key)
 
 
 class ToolKeyCemiSecure:

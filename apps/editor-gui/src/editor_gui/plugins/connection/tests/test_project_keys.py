@@ -8,13 +8,17 @@ from typing import Any, cast
 import pytest
 from xknx.telegram import IndividualAddress
 
-from editor_gui.plugins.connection.service import ConnectionService
+from editor_gui.plugins.connection.service import (
+    ConnectionService,
+    DeviceCertificateRequired,
+)
 from xknxeditor.download.data_secure import DeviceSecurity
 from xknxeditor.proj.core.service import DeviceKeys
 
 _LOADED = bytes(range(16))
 _PLANNED = bytes(range(16, 32))
 _KEYRING = bytes(range(32, 48))
+_FDSK = bytes(range(48, 64))
 
 
 class _Log:
@@ -73,3 +77,36 @@ def test_without_project_keys_the_keyring_is_used(project: bool) -> None:
         service.project_keys = None
     security = service.security_for(_DEVICE)
     assert security is not None and security.tool_key == _KEYRING
+
+
+def test_commissioning_starts_with_the_factory_key() -> None:
+    service, _ = _service(
+        DeviceKeys(tool_key=_PLANNED, loaded_tool_key=None, fdsk=_FDSK)
+    )
+    security = service._download_security(_DEVICE, _PLANNED)  # pyright: ignore[reportPrivateUsage]
+    assert security is not None
+    assert security.keys == (_FDSK, _PLANNED)
+
+
+def test_a_commissioned_device_starts_with_its_tool_key() -> None:
+    service, _ = _service(
+        DeviceKeys(tool_key=_PLANNED, loaded_tool_key=_LOADED, fdsk=_FDSK)
+    )
+    security = service._download_security(_DEVICE, _PLANNED)  # pyright: ignore[reportPrivateUsage]
+    assert security is not None
+    assert security.keys == (_LOADED, _PLANNED, _FDSK)
+
+
+def test_commissioning_needs_the_device_certificate() -> None:
+    service, _ = _service(DeviceKeys(tool_key=_PLANNED, loaded_tool_key=None))
+    with pytest.raises(DeviceCertificateRequired):
+        service._download_security(_DEVICE, _PLANNED)  # pyright: ignore[reportPrivateUsage]
+
+
+def test_a_known_factory_key_reaches_an_uncommissioned_device() -> None:
+    service, log = _service(
+        DeviceKeys(tool_key=_PLANNED, loaded_tool_key=None, fdsk=_FDSK)
+    )
+    security = service.security_for(_DEVICE)
+    assert security is not None and security.tool_key == _FDSK
+    assert log.warnings == []

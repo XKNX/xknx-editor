@@ -241,17 +241,34 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "(its hardware is marked NoDownloadWithoutPlugin); pass without_plugin=true only "
                 "if the user explicitly confirmed programming it anyway"
             )
-        future = service.program_device(
-            device,
-            resolved,
-            group_communication,
-            without_plugin=without_plugin,
-            current_address=current_address,
-            serial_number=serial,
-            ip_config=ctx.run_locked(
-                lambda: ctx.api.project.ip_download_config(device)
-            ),
-        )
+        from editor_gui.plugins.connection.service import DeviceCertificateRequired
+        from xknxeditor.proj import ProjectPasswordRequired
+
+        try:
+            tool_key = ctx.run_locked(lambda: ctx.api.project.download_tool_key(device))
+        except ProjectPasswordRequired as exc:
+            raise ToolError(
+                "the device is commissioned securely: set a project password first"
+            ) from exc
+        try:
+            future = service.program_device(
+                device,
+                resolved,
+                group_communication,
+                without_plugin=without_plugin,
+                current_address=current_address,
+                serial_number=serial,
+                ip_config=ctx.run_locked(
+                    lambda: ctx.api.project.ip_download_config(device)
+                ),
+                tool_key=tool_key,
+            )
+        except DeviceCertificateRequired as exc:
+            raise ToolError(
+                f"device {node_id} is commissioned securely for the first time: add its "
+                "device certificate (the FDSK from its label) with "
+                "project_add_device_certificate first"
+            ) from exc
         if future is None:
             raise ToolError("programming could not be scheduled (no connection)")
         try:
@@ -266,6 +283,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 node_id, resolved.value, serial, mac
             )
         )
+        if getattr(result, "tool_key_loaded", False):
+            ctx.run_locked(lambda: ctx.api.project.set_tool_key_loaded(device))
         return {"status": "programmed", "node_id": node_id}
 
     @tool

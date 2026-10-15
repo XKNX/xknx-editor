@@ -380,6 +380,33 @@ class ProjectStrings:
         return _("{count} difference(s)")
 
     @property
+    def DEVICE_CERTIFICATE_TITLE(self) -> str:
+        return _("Add Device Certificate")
+
+    @property
+    def DEVICE_CERTIFICATE_PROMPT(self) -> str:
+        return _(
+            "This device is commissioned securely for the first time. Enter the FDSK from its "
+            "label or certificate (36 characters):"
+        )
+
+    @property
+    def DEVICE_CERTIFICATE_REQUIRED(self) -> str:
+        return _("The device certificate (FDSK) is missing.")
+
+    @property
+    def DEVICE_CERTIFICATE_INVALID(self) -> str:
+        return _("This is not a valid FDSK; please check it.")
+
+    @property
+    def DEVICE_CERTIFICATE_OTHER_DEVICE(self) -> str:
+        return _("This certificate belongs to the device with serial number {serial}.")
+
+    @property
+    def SECURE_DOWNLOAD_PASSWORD_REQUIRED(self) -> str:
+        return _("Set a project password first: it protects the device keys.")
+
+    @property
     def TOOLS_DIFF_PASSWORD_PROMPT(self) -> str:
         return _("The other project is protected with a password. Enter it to compare:")
 

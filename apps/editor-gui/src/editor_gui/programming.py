@@ -308,6 +308,7 @@ async def download_device(
     serial_number: bytes | None = None,
     confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
     ip_config: IpDeviceConfig | None = None,
+    tool_key: bytes | None = None,
 ) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -325,6 +326,9 @@ async def download_device(
 
     ``ip_config`` holds the project's IP settings of an IP device; a full download writes them
     and returns the MAC address it read.
+
+    ``tool_key`` is the device's Tool Key for a secured download: a device still using its FDSK
+    gets it written (secure commissioning); see :func:`xknxeditor.download.download`.
     """
     return await download(
         xknx,
@@ -337,6 +341,7 @@ async def download_device(
         commission_serial_number=serial_number,
         progress=progress,
         security=security,
+        tool_key=tool_key,
         confirm_full_download=confirm_full_download,
         ip_config=ip_config,
     )

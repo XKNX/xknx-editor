@@ -60,8 +60,10 @@ if TYPE_CHECKING:
     from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
+    from xknxeditor.download.secure_config import GroupSecurity
     from xknxeditor.prod.parser_v2.calculation import ChangeSet
     from xknxeditor.proj.core.compact import CompactResult
+    from xknxeditor.proj.core.fdsk import Fdsk
     from xknxeditor.proj.core.import_notes import ImportLoss
     from xknxeditor.proj.core.product_prune import ProgressCallback
     from xknxeditor.proj.core.service import (
@@ -1656,8 +1658,66 @@ class ProjectService:
                 additional=additional,
             )
         return GroupCommunication(
-            device_address=device_address, links=links, filter_table=filter_table
+            device_address=device_address,
+            links=links,
+            filter_table=filter_table,
+            security=self._group_security(device),
         )
+
+    def _group_security(self, device: Device) -> "GroupSecurity | None":
+        """The keys of the device's secured group addresses and their senders, for a device whose
+        application supports KNX Data Secure; ``None`` when none of its group addresses is secured."""
+        from xknxeditor.download.secure_config import GroupSecurity
+
+        if self._pid is None or device.app is None:
+            return None
+        if not device.app.program.is_secure_enabled:
+            return None
+        keys, senders = self._svc.group_security(self._pid, device.node_id)
+        return GroupSecurity(keys, senders) if keys else None
+
+    def download_tool_key(self, device: Device) -> bytes | None:
+        """The Tool Key a download gives the device, or ``None`` for a download in the clear (or
+        with a keyring's key). A device whose application supports KNX Data Secure is commissioned
+        securely when the project has a Tool Key for it or one of its group addresses is secured; a
+        Tool Key is generated for it then if needed."""
+        if self._pid is None or device.app is None:
+            return None
+        if not device.app.program.is_secure_enabled:
+            return None
+        keys = self.device_keys(device)
+        if (keys is None or keys.tool_key is None) and self._group_security(
+            device
+        ) is None:
+            return None
+        return self.ensure_tool_key(device)
+
+    def ensure_tool_key(self, device: Device) -> bytes:
+        """The device's Tool Key, generated and stored first when the project has none."""
+        if self._pid is None:
+            raise ValueError("no project is open")
+        with self._io_lock:
+            key = self._svc.ensure_tool_key(self._pid, device.node_id)
+        self._bump(structural=False)
+        return key
+
+    def set_tool_key_loaded(self, device: Device) -> None:
+        """Record that the device uses its Tool Key after a secure download."""
+        if self._pid is None:
+            return
+        with self._io_lock:
+            self._svc.set_tool_key_loaded(self._pid, device.node_id)
+        self._bump(structural=False)
+
+    def add_device_certificate(self, code: str) -> "Fdsk":
+        """Add the device certificate (FDSK label code) to the project; see the core method."""
+        if self._pid is None:
+            raise ValueError("no project is open")
+        with self._io_lock:
+            fdsk = self._svc.add_device_certificate(self._pid, code)
+        self._bump(structural=False)
+        self._log.info("device certificate added")
+        return fdsk
 
     def _coupler_pass_through(
         self, coupler_address: int

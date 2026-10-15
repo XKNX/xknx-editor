@@ -13,6 +13,7 @@ from xknx.telegram.apci import GroupValueRead, GroupValueWrite
 from editor_gui.device_info import (
     same_application,
     serial_from_project,
+    serial_text,
     serial_to_project,
 )
 from editor_gui.dpt_formats import cached_master_formats, cached_master_names
@@ -40,6 +41,7 @@ from editor_gui.plugins.project.ui import (
     ToolsPanel,
 )
 from editor_gui.plugins.project.ui.dali_commissioning import DaliCommissioningPanel
+from editor_gui.plugins.project.ui.device_certificate import DeviceCertificateDialog
 from editor_gui.plugins.project.ui.devices import Area, Line
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
@@ -133,6 +135,9 @@ class ProjectPlugin:
         )
         self._preflight_result = PreflightResultWindow()
         self._read_device_dialog = ReadDeviceDialog(self._request_device_info)
+        # The device a certificate is asked for, while the dialog is open.
+        self._certificate_device: Device | None = None
+        self._certificate_dialog = DeviceCertificateDialog(self._add_certificate)
         # Live device readouts (read-only "read from device" action), keyed by node id. Written on
         # the async loop thread's done-callback, read on the UI thread -> guarded by a lock.
         self._device_readouts: dict[int, DeviceInfo] = {}
@@ -1483,6 +1488,58 @@ class ProjectPlugin:
             )
         )
 
+    def _ask_certificate(self, device: "Device", item: QueueItem) -> None:
+        """Ask for the device's FDSK; once added, the same download is queued again."""
+
+        def again() -> None:
+            self._program_queue.enqueue(
+                QueueItem(
+                    node_id=item.node_id,
+                    address=item.address,
+                    name=item.name,
+                    scope=item.scope,
+                    without_plugin=item.without_plugin,
+                    current_address=item.current_address,
+                    serial_number=item.serial_number,
+                )
+            )
+
+        self._certificate_device = device
+        label = f"{device.individual_address or '-'} {device.display_name}".strip()
+        if self._api.main_thread is not None:
+            self._api.main_thread.submit(
+                functools.partial(self._certificate_dialog.open, label, again)
+            )
+        else:
+            self._certificate_dialog.open(label, again)
+
+    def _add_certificate(self, code: str) -> str | None:
+        """Store the entered FDSK for the device it was asked for; an error message otherwise.
+        A device without a serial number takes the one of the certificate."""
+        from xknxeditor.proj import ProjectPasswordRequired
+        from xknxeditor.proj.core.fdsk import InvalidFdskError, parse_fdsk
+
+        device = self._certificate_device
+        if device is None:
+            return None
+        try:
+            fdsk = parse_fdsk(code)
+        except InvalidFdskError:
+            return S.DEVICE_CERTIFICATE_INVALID
+        serial = self._project_serial(device.node_id)
+        if serial is not None and serial != fdsk.serial_number:
+            return S.DEVICE_CERTIFICATE_OTHER_DEVICE.format(
+                serial=serial_text(fdsk.serial_number) or ""
+            )
+        try:
+            self._api.project.add_device_certificate(code)
+        except ProjectPasswordRequired:
+            return S.SECURE_DOWNLOAD_PASSWORD_REQUIRED
+        if serial is None:
+            self._set_serial_number(device, fdsk.serial_number)
+        self._certificate_device = None
+        return None
+
     def _project_serial(self, node_id: int) -> bytes | None:
         info = self._api.project.get_device_info(node_id)
         return serial_from_project(info.serial_number) if info is not None else None
@@ -1680,17 +1737,33 @@ class ProjectPlugin:
                 node_id=item.node_id,
             )
             return None
-        future = self._api.connection.program_device(
-            device,
-            item.scope,
-            self._group_communication_for(device),
-            without_plugin=item.without_plugin,
-            current_address=item.current_address,
-            waiting=functools.partial(setattr, item, "waiting_for_button", True),
-            serial_number=item.serial_number,
-            confirm_full_download=functools.partial(self._confirm_full_download, item),
-            ip_config=self._api.project.ip_download_config(device),
-        )
+        from editor_gui.plugins.connection.service import DeviceCertificateRequired
+        from xknxeditor.proj import ProjectPasswordRequired
+
+        try:
+            tool_key = self._api.project.download_tool_key(device)
+        except ProjectPasswordRequired:
+            item.message = S.SECURE_DOWNLOAD_PASSWORD_REQUIRED
+            return None
+        try:
+            future = self._api.connection.program_device(
+                device,
+                item.scope,
+                self._group_communication_for(device),
+                without_plugin=item.without_plugin,
+                current_address=item.current_address,
+                waiting=functools.partial(setattr, item, "waiting_for_button", True),
+                serial_number=item.serial_number,
+                confirm_full_download=functools.partial(
+                    self._confirm_full_download, item
+                ),
+                ip_config=self._api.project.ip_download_config(device),
+                tool_key=tool_key,
+            )
+        except DeviceCertificateRequired:
+            item.message = S.DEVICE_CERTIFICATE_REQUIRED
+            self._ask_certificate(device, item)
+            return None
         if future is None:
             if device.download_plugin_required and not item.without_plugin:
                 item.message = S.PLUGIN_DOWNLOAD_REQUIRED
@@ -1733,6 +1806,7 @@ class ProjectPlugin:
                 scope_value,
                 result if isinstance(result, bytes) else None,
                 getattr(result, "mac_address", None),
+                tool_key_loaded=bool(getattr(result, "tool_key_loaded", False)),
             )
 
         future.add_done_callback(_on_done)
@@ -1755,9 +1829,14 @@ class ProjectPlugin:
         scope_value: str,
         serial: bytes | None = None,
         mac_address: bytes | None = None,
+        *,
+        tool_key_loaded: bool = False,
     ) -> None:
         def _apply() -> None:
             self._api.project.record_download(node_id, scope_value, serial, mac_address)
+            device = self._api.project.find_device_by_node_id(node_id)
+            if tool_key_loaded and device is not None:
+                self._api.project.set_tool_key_loaded(device)
 
         if self._api.main_thread is not None:
             self._api.main_thread.submit(_apply)
@@ -1897,6 +1976,7 @@ class ProjectPlugin:
     def render_overlays(self) -> None:
         self._group_addresses_panel.render_import()
         self._read_device_dialog.render()
+        self._certificate_dialog.render()
         self._object_group_value.render()
         self._button_runner.render()
         self._memory_preview.render()

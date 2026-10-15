@@ -1693,3 +1693,21 @@ msgstr "Vergleichen"
 
 msgid "Wrong password, please try again."
 msgstr "Falsches Passwort, bitte erneut versuchen."
+
+msgid "Add Device Certificate"
+msgstr "Gerätezertifikat hinzufügen"
+
+msgid "This device is commissioned securely for the first time. Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Dieses Gerät wird zum ersten Mal sicher in Betrieb genommen. Geben Sie den FDSK von seinem Etikett oder Zertifikat ein (36 Zeichen):"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "Das Gerätezertifikat (FDSK) fehlt."
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "Das ist kein gültiger FDSK; bitte prüfen Sie ihn."
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "Dieses Zertifikat gehört zum Gerät mit der Seriennummer {serial}."
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "Legen Sie zuerst ein Projektpasswort fest: Es schützt die Geräteschlüssel."

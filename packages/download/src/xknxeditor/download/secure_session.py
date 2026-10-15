@@ -69,6 +69,7 @@ class SecureConnectionManager:
         self._xknx = xknx
         self._transport = transport
         self._address = address
+        self._security = security
         self._management = SecureManagement(
             device=security, tool_address=xknx.current_address
         )
@@ -116,8 +117,33 @@ class SecureConnectionManager:
             self._xknx.cemi_handler.data_secure = self._previous_secure  # type: ignore[assignment]
             self._installed = False
 
+    @property
+    def active_key(self) -> bytes:
+        """The key the device answered with (the Tool Key or one of its alternatives)."""
+        return self._management.active_key
+
+    def change_tool_key(self, key: bytes) -> None:
+        """The next request writes the Tool Key ``key``; see :meth:`SecureManagement.change_tool_key`."""
+        self._management.change_tool_key(key)
+
     async def _synchronize(self, connection: BusConnection) -> None:
-        """Run the S-A_Sync exchange, retrying within the device's answer rules."""
+        """Run the S-A_Sync exchange, retrying within the device's answer rules. The key that
+        worked last is tried first, then the Tool Key and its alternatives (3/5/2 4.1, Note 18)."""
+        keys = [self._management.active_key]
+        keys += [key for key in self._security.keys if key not in keys]
+        for number, key in enumerate(keys):
+            if number:
+                logger.info("S-A_Sync: trying the next key for %s", self._address)
+            self._management.use_key(key)
+            if await self._synchronize_with(connection):
+                return
+        raise SecureProgrammingError(
+            "no S-A_Sync response received - the device did not answer with the "
+            "Tool Key; check the device address and that the Tool Key is current "
+            "(a Master Reset replaces it with the FDSK)"
+        )
+
+    async def _synchronize_with(self, connection: BusConnection) -> bool:
         for attempt in range(_SYNC_ATTEMPTS):
             self._management.arm_sync()
             try:
@@ -131,10 +157,6 @@ class SecureConnectionManager:
                 await asyncio.sleep(_SYNC_RETRY_DELAY)
                 continue
             if self._management.synchronized:
-                return
+                return True
             await asyncio.sleep(_SYNC_RETRY_DELAY)
-        raise SecureProgrammingError(
-            "no S-A_Sync response received - the device did not answer with the "
-            "Tool Key; check the device address and that the Tool Key is current "
-            "(a Master Reset replaces it with the FDSK)"
-        )
+        return False

@@ -69,6 +69,11 @@ class LinkInfo:
         return f"{self.name} ({self.host}:{self.port}{suffix})"
 
 
+class DeviceCertificateRequired(Exception):
+    """A secure download needs the device's FDSK: it still uses its factory key, which the
+    project does not know (no device certificate for its serial number)."""
+
+
 class BusmonitorState(Enum):
     OFF = "off"
     STARTING = "starting"
@@ -601,6 +606,7 @@ class ConnectionService:
         serial_number: bytes | None = None,
         confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
         ip_config: IpDeviceConfig | None = None,
+        tool_key: bytes | None = None,
     ) -> Future[Any] | None:
         """Download the device's configured application/parameters onto the bus.
 
@@ -644,10 +650,11 @@ class ConnectionService:
         from xknxeditor.download.scope import DownloadScope
 
         scope = scope or DownloadScope.FULL
+        # Before the bus slot is taken: a missing device certificate is reported to the caller.
+        security = self._download_security(device, tool_key)
         if not self.begin_operation("program", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
             return None
-        security = self._security_for(device)
         self._log.info(
             "Programming device",
             device=device.name,
@@ -667,6 +674,7 @@ class ConnectionService:
                 serial_number=serial_number,
                 confirm_full_download=confirm_full_download,
                 ip_config=ip_config,
+                tool_key=tool_key if security is not None else None,
             )
         )
         if future is not None:
@@ -725,14 +733,41 @@ class ConnectionService:
             self._clear_busy()
         return future
 
+    def _download_security(
+        self, device: Device, tool_key: bytes | None
+    ) -> DeviceSecurity | None:
+        """The security of a download that gives the device its Tool Key ``tool_key``: the
+        session starts with the key the device uses (its loaded Tool Key, else its FDSK) and
+        falls back to the others. Raises :class:`DeviceCertificateRequired` when the project
+        knows neither."""
+        if tool_key is None:
+            return self._security_for(device)
+        if not device.individual_address:
+            return None
+        keys = self.project_keys(device) if self.project_keys is not None else None
+        loaded = keys.loaded_tool_key if keys is not None else None
+        fdsk = keys.fdsk if keys is not None else None
+        current = loaded or fdsk
+        if current is None:
+            raise DeviceCertificateRequired(device.individual_address)
+        from xknx.telegram import IndividualAddress
+
+        from xknxeditor.download.data_secure import DeviceSecurity
+
+        alternatives = [key for key in (tool_key, fdsk, loaded) if key is not None]
+        return DeviceSecurity(
+            IndividualAddress(device.individual_address), current, alternatives
+        )
+
     def _project_security(
         self, device: Device, address: str, keys: DeviceKeys
     ) -> DeviceSecurity | None:
         """The project's tool key of ``device`` for a connection to ``address``."""
-        if keys.loaded_tool_key is None:
+        key = keys.loaded_tool_key or keys.fdsk
+        if key is None:
             self._log.warning(
-                "programming in the clear: the device's tool key was never loaded into it, and "
-                "secure commissioning is not supported",
+                "the device's tool key was never loaded into it and its FDSK is unknown; "
+                "reaching it in the clear",
                 device=device.name,
                 address=address,
             )
@@ -745,7 +780,7 @@ class ConnectionService:
         from xknxeditor.download.data_secure import DeviceSecurity
 
         try:
-            return DeviceSecurity(IndividualAddress(address), keys.loaded_tool_key)
+            return DeviceSecurity(IndividualAddress(address), key)
         except CouldNotParseAddress:
             return None
 
