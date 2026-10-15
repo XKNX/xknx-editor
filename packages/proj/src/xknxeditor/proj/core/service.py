@@ -86,6 +86,7 @@ from xknxeditor.proj.core.events import (
     SetFunctionType,
     SetGroupAddressAddress,
     SetGroupAddressDatapointType,
+    SetGroupAddressSecurity,
     SetParameter,
     SetProjectName,
     SetSpaceType,
@@ -157,6 +158,8 @@ class GroupAddressInfo:
     description: str
     comment: str
     data_secure: bool
+    # The ``@Security`` mode: "Auto"/"On"/"Off" (None = default, treated as Auto).
+    security_mode: str | None = None
 
 
 @dataclass(frozen=True)
@@ -775,6 +778,34 @@ class ProjectService:
             SetGroupAddressDatapointType(
                 group_address_id=group_address_id,
                 datapoint_type=normalize_datapoint_type(datapoint_type),
+            )
+        )
+
+    def set_group_address_security(
+        self, project_id: str, group_address_id: int, mode: str | None, *, secured: bool
+    ) -> None:
+        """Set a group address's ``@Security`` mode (``"Auto"``/``"On"``/``"Off"``, ``None`` =
+        default) and whether it is secured. Securing one for the first time generates a random
+        AES key, stored encrypted, so the project needs a password
+        (:class:`ProjectPasswordRequired` otherwise); the key is kept once made, so toggling the
+        mode does not change it across the installation."""
+        state = self._state(project_id)
+        ga = state.session.get(GroupAddress, group_address_id)
+        if ga is None:
+            raise KeyError(f"No group address with id {group_address_id}")
+        key = ga.security_key
+        if secured and key is None:
+            if state.cipher is None:
+                raise ProjectPasswordRequired(
+                    "a group address key is stored with the project password"
+                )
+            key = state.cipher.seal(base64.b64encode(secrets.token_bytes(16)).decode())
+        state.store.append(
+            SetGroupAddressSecurity(
+                group_address_id=group_address_id,
+                security_mode=mode,
+                data_secure=secured,
+                security_key=key,
             )
         )
 
@@ -1877,6 +1908,7 @@ class ProjectService:
             description=ga.description,
             comment=ga.comment,
             data_secure=ga.data_secure,
+            security_mode=ga.security_mode,
         )
 
     def _range_info(

@@ -250,6 +250,7 @@ class ProjectPlugin:
             on_create_ga=self._on_create_ga,
             on_rename_ga=api.project.rename_group_address,
             on_set_ga_dpt=api.project.set_group_address_dpt,
+            on_set_ga_security=self._set_ga_security,
             on_remove_ga=api.project.remove_group_address,
             on_set_ga_address=api.project.set_group_address_address,
             take_requested_ga=api.project.take_requested_group_address,
@@ -1539,6 +1540,19 @@ class ProjectPlugin:
             self._set_serial_number(device, fdsk.serial_number)
         self._certificate_device = None
         return None
+
+    def _set_ga_security(self, ga_id: int, mode: str) -> bool:
+        """Set a group address's Security mode; ``False`` (and a toast) when a password is needed."""
+        from xknxeditor.proj import ProjectPasswordRequired
+
+        try:
+            self._api.project.set_group_address_security(ga_id, mode)
+        except ProjectPasswordRequired:
+            self._api.log.error(
+                "Set a project password first: it protects the group address keys."
+            )
+            return False
+        return True
 
     def _project_serial(self, node_id: int) -> bytes | None:
         info = self._api.project.get_device_info(node_id)

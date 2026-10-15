@@ -3163,6 +3163,55 @@ class ProjectService:
         self._svc.set_group_address_datapoint_type(self._pid, ga_id, dpt or None)
         self._bump(structural=False)
 
+    def set_group_address_security(self, ga_id: int, mode: str) -> None:
+        """Set a group address's Security mode (``"Auto"``/``"On"``/``"Off"``). ``"On"`` secures it
+        (a key is generated, so the project needs a password), ``"Off"`` does not, and ``"Auto"``
+        follows the linked group objects (secure when any requires KNX Data Secure)."""
+        if self._pid is None:
+            return
+        if mode == "On":
+            secured = True
+        elif mode == "Off":
+            secured = False
+        else:
+            secured = self._ga_auto_secure(ga_id)
+        with self._io_lock:
+            self._svc.set_group_address_security(
+                self._pid, ga_id, mode, secured=secured
+            )
+        self._bump(structural=False)
+
+    def _ga_auto_secure(self, ga_id: int) -> bool:
+        """Whether a group address in ``Auto`` mode is secured: any linked group object requires
+        KNX Data Secure (ComObject/ComObjectRef ``SecurityRequired``)."""
+        from xknxeditor.prod.parser_v2.application_indexer import (
+            ApplicationIndexer,
+            com_object_security_required,
+        )
+
+        by_db_id: dict[int, tuple[Device, str]] = {
+            com_object.db_id: (device, com_object.id)
+            for device in self.devices
+            if device.app is not None
+            for com_object in device.com_objects
+            if com_object.db_id is not None
+        }
+        indexers: dict[str, ApplicationIndexer] = {}
+        for assignment in self.get_assignments_for_ga(ga_id):
+            found = by_db_id.get(assignment.com_object_id)
+            if found is None:
+                continue
+            device, ref_id = found
+            assert device.app is not None
+            indexer = indexers.get(device.app.id)
+            if indexer is None:
+                indexer = indexers[device.app.id] = ApplicationIndexer(
+                    device.app.program
+                )
+            if com_object_security_required(indexer, ref_id) != "None":
+                return True
+        return False
+
     def remove_group_address(
         self, ga_id: int, address: str = "", name: str = ""
     ) -> None:

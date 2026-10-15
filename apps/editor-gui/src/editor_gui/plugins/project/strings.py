@@ -1893,6 +1893,22 @@ class ProjectStrings:
         return _("Invalid address or already in use.")
 
     @property
+    def GA_SECURITY(self) -> str:
+        return _("Security")
+
+    @property
+    def GA_SECURITY_AUTO(self) -> str:
+        return _("Automatic")
+
+    @property
+    def GA_SECURITY_ON(self) -> str:
+        return _("Secured")
+
+    @property
+    def GA_SECURITY_OFF(self) -> str:
+        return _("Not secured")
+
+    @property
     def GA_SET_DPT(self) -> str:
         return _("Set Datapoint Type")
 

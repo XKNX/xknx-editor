@@ -1423,6 +1423,67 @@ class SetGroupAddressDatapointType(Event):
 
 @_register
 @dataclass
+class SetGroupAddressSecurity(Event):
+    """Set a group address's KNX Data Secure state: its ``@Security`` mode (``"Auto"``/``"On"``/
+    ``"Off"``, ``None`` = default), whether it is secured (``data_secure``) and its key (an
+    ``enc1:`` token, kept once generated). Devices linked to it then need a group download, so
+    their group-communication loaded flag is cleared (restored on revert)."""
+
+    event_type: ClassVar[str] = "SetGroupAddressSecurity"
+
+    group_address_id: int
+    security_mode: str | None
+    data_secure: bool
+    security_key: str | None
+    captured: bool = False
+    old_mode: str | None = None
+    old_data_secure: bool = False
+    old_key: str | None = None
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+
+    def apply(self, session: Session) -> None:
+        ga = session.get(GroupAddress, self.group_address_id)
+        if ga is None:
+            return
+        self.old_mode = ga.security_mode
+        self.old_data_secure = ga.data_secure
+        self.old_key = ga.security_key
+        self.captured = True
+        self.cleared = _clear_communication_loaded(
+            session, _devices_on(session, self.group_address_id)
+        )
+        ga.security_mode = self.security_mode
+        ga.data_secure = self.data_secure
+        ga.security_key = self.security_key
+
+    def revert(self, session: Session) -> None:
+        ga = session.get(GroupAddress, self.group_address_id)
+        if ga is not None and self.captured:
+            ga.security_mode = self.old_mode
+            ga.data_secure = self.old_data_secure
+            ga.security_key = self.old_key
+        _restore_communication_loaded(session, self.cleared)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "group_address_id": self.group_address_id,
+            "security_mode": self.security_mode,
+            "data_secure": self.data_secure,
+            "security_key": self.security_key,
+            "captured": self.captured,
+            "old_mode": self.old_mode,
+            "old_data_secure": self.old_data_secure,
+            "old_key": self.old_key,
+            "cleared": self.cleared,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetGroupAddressSecurity:
+        return cls(**data)
+
+
+@_register
+@dataclass
 class RenameGroupAddress(Event):
     event_type: ClassVar[str] = "RenameGroupAddress"
 

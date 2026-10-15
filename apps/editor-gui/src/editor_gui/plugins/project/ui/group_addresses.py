@@ -43,6 +43,7 @@ class GroupAddressesPanel:
         on_set_ga_dpt: Callable[[int, str], None],
         on_remove_ga: Callable[[int], None],
         on_set_ga_address: Callable[[int, str], bool] | None = None,
+        on_set_ga_security: Callable[[int, str], bool] | None = None,
         take_requested_ga: Callable[[], int | None] | None = None,
         on_create_range: Callable[[int | None, str], None] | None = None,
         on_rename_range: Callable[[int, str], None] | None = None,
@@ -59,6 +60,7 @@ class GroupAddressesPanel:
         self._on_create_ga = on_create_ga
         self._on_rename_ga = on_rename_ga
         self._on_set_ga_dpt = on_set_ga_dpt
+        self._on_set_ga_security = on_set_ga_security
         self._on_remove_ga = on_remove_ga
         self._on_set_ga_address = on_set_ga_address
         self._on_create_range = on_create_range
@@ -351,6 +353,16 @@ class GroupAddressesPanel:
             self._popup_dpt = ga.datapoint_type or ""  # type: ignore[attr-defined]
             self._popup_dpt_error = ""
             self._open_set_dpt = True
+        if self._on_set_ga_security is not None and imgui.begin_menu(S.GA_SECURITY):
+            current = getattr(ga, "security_mode", None) or "Auto"  # type: ignore[attr-defined]
+            for mode, label in (
+                ("Auto", S.GA_SECURITY_AUTO),
+                ("On", S.GA_SECURITY_ON),
+                ("Off", S.GA_SECURITY_OFF),
+            ):
+                if imgui.menu_item(label, "", current == mode)[0]:
+                    self._on_set_ga_security(ga.id, mode)  # type: ignore[attr-defined]
+            imgui.end_menu()
         if imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]:
             imgui.set_clipboard_text(getattr(ga, "text", "") or "")
         if self._group_value is not None:

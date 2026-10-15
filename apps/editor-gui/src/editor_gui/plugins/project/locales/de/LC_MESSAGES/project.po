@@ -1711,3 +1711,15 @@ msgstr "Dieses Zertifikat gehört zum Gerät mit der Seriennummer {serial}."
 
 msgid "Set a project password first: it protects the device keys."
 msgstr "Legen Sie zuerst ein Projektpasswort fest: Es schützt die Geräteschlüssel."
+
+msgid "Security"
+msgstr "Sicherheit"
+
+msgid "Automatic"
+msgstr "Automatisch"
+
+msgid "Secured"
+msgstr "Gesichert"
+
+msgid "Not secured"
+msgstr "Nicht gesichert"

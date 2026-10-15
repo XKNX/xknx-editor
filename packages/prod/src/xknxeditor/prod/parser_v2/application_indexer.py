@@ -344,3 +344,30 @@ class ApplicationIndexer:
         if md.sub_module_defs is not None:
             for sub in md.sub_module_defs.module_def:
                 self._index_module_def(sub)
+
+
+def com_object_security_required(indexer: ApplicationIndexer, ref_id: str) -> str:
+    """The KNX Data Secure requirement of a com-object ref: ``"Auth"`` or ``"AuthAndConf"`` when
+    the object must be secured, else ``"None"``. The ComObjectRef override wins over the base
+    ComObject (3/5/1). ``ref_id`` is matched directly and, for a module instance, by its trailing
+    ``O-…_R-…`` segment; an unknown ref is ``"None"``."""
+    ref = indexer.com_object_refs.get(ref_id)
+    if ref is None:
+        match = re.search(r"(O-[^_]+_R-[^_]+)$", ref_id)
+        if match is not None:
+            ref = next(
+                (
+                    r
+                    for cid, r in indexer.com_object_refs.items()
+                    if cid.endswith(match.group(1))
+                ),
+                None,
+            )
+    if ref is None:
+        return "None"
+    if ref.security_required is not None:
+        return ref.security_required.value
+    com_object = indexer.com_objects.get(ref.ref_id)
+    if com_object is not None:
+        return com_object.security_required.value
+    return "None"

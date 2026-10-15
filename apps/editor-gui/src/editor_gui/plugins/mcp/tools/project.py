@@ -995,6 +995,30 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_set)
 
     @tool
+    def project_set_group_address_security(
+        group_address_id: int, mode: str
+    ) -> dict[str, Any]:
+        """Set a group address' KNX Data Secure mode: "On" (secured, generates a key),
+        "Off" (not secured), or "Auto" (secured when a linked group object requires it). A
+        password-protected project is needed to store a generated key."""
+        from xknxeditor.proj import ProjectPasswordRequired
+
+        if mode not in ("Auto", "On", "Off"):
+            raise ToolError('mode must be "Auto", "On" or "Off"')
+
+        def _set() -> dict[str, Any]:
+            try:
+                project.set_group_address_security(group_address_id, mode)
+            except ProjectPasswordRequired as e:
+                raise ToolError("set a project password first") from e
+            g = project.get_group_address(group_address_id)
+            if g is None:
+                raise ToolError(f"no group address with id {group_address_id}")
+            return {"id": g.id, "address": g.address, "secured": g.data_secure}
+
+        return ctx.run_locked(_set)
+
+    @tool
     def project_remove_group_address(group_address_id: int) -> dict[str, str]:
         """Remove a group address (and its links). Destructive; undo with project_undo."""
         ctx.run_locked(lambda: project.remove_group_address(group_address_id))

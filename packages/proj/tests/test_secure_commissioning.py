@@ -177,3 +177,44 @@ def test_link_changes_need_a_group_download(tmp_path: Path) -> None:
     assert svc.undo(pid)
     assert _loaded(svc, pid) == {first: True, second: True}
     svc.close(pid)
+
+
+def test_set_group_address_security(tmp_path: Path) -> None:
+    svc, pid, first, _second, path = _project(tmp_path)
+    for device_id in (first,):
+        svc.set_device_commissioning(pid, device_id, communication_part_loaded=True)
+    plain = next(g.id for g in svc.group_addresses(pid) if g.address == 0x0802)
+
+    svc.set_group_address_security(pid, plain, "On", secured=True)
+    ga = next(g for g in svc.group_addresses(pid) if g.id == plain)
+    assert ga.data_secure and ga.security_mode == "On"
+    keys, _ = svc.group_security(pid, first)
+    assert 0x0802 in keys  # the generated key is used for the download
+    first_key = keys[0x0802]
+
+    # Turning it off keeps data_secure false but the key is kept (stable across the installation).
+    svc.set_group_address_security(pid, plain, "Off", secured=False)
+    ga = next(g for g in svc.group_addresses(pid) if g.id == plain)
+    assert not ga.data_secure and ga.security_mode == "Off"
+    svc.set_group_address_security(pid, plain, "On", secured=True)
+    assert svc.group_security(pid, first)[0][0x0802] == first_key
+
+    # The key is stored encrypted.
+    svc.close(pid)
+    assert base64.b64encode(first_key) not in path.read_bytes()
+    pid = svc.open(path, _PASSWORD)
+    # Undo (On -> Off) brings data_secure back; the flags of linked devices are restored.
+    assert svc.undo(pid)
+    ga = next(g for g in svc.group_addresses(pid) if g.id == plain)
+    assert not ga.data_secure
+    svc.close(pid)
+
+
+def test_group_address_security_needs_a_password(tmp_path: Path) -> None:
+    path = tmp_path / "p.xknx"
+    svc = ProjectService()
+    pid = svc.create(path, "P-GA")
+    ga = svc.create_group_address(pid, 0, 0x0801, "GA")
+    with pytest.raises(ProjectPasswordRequired):
+        svc.set_group_address_security(pid, ga, "On", secured=True)
+    svc.close(pid)

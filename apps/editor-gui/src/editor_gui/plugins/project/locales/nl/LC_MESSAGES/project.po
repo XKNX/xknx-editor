@@ -1569,3 +1569,15 @@ msgstr "Dit certificaat hoort bij het apparaat met serienummer {serial}."
 
 msgid "Set a project password first: it protects the device keys."
 msgstr "Stel eerst een projectwachtwoord in: het beveiligt de apparaatsleutels."
+
+msgid "Security"
+msgstr "Beveiliging"
+
+msgid "Automatic"
+msgstr "Automatisch"
+
+msgid "Secured"
+msgstr "Beveiligd"
+
+msgid "Not secured"
+msgstr "Niet beveiligd"
