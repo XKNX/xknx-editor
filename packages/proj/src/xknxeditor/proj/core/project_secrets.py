@@ -61,7 +61,12 @@ SECURE_ATTRIBUTES = SECRET_ATTRIBUTES - {"BCUKey", "ProjectTracingPassword"}
 # Columns holding a secret value on its own.
 _SECRET_COLUMNS = frozenset({("group_addresses", "security_key")})
 # Keys of a JSON map (or of an undo-history snapshot) whose value is a secret.
-_SECRET_FIELDS = SECRET_ATTRIBUTES | {"security_key", "old_security_key"}
+_SECRET_FIELDS = SECRET_ATTRIBUTES | {
+    "security_key",
+    "old_security_key",
+    "tool_key",
+    "old_tool_key",
+}
 
 _PREFIX = "enc1:"
 _TOKEN = re.compile(r"enc1:[A-Za-z0-9+/]+={0,2}")

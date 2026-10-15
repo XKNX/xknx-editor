@@ -609,6 +609,7 @@ class ConnectionService:
         ip_config: IpDeviceConfig | None = None,
         tool_key: bytes | None = None,
         ip_secure: IpSecureConfig | None = None,
+        disable_security: bool = False,
     ) -> Future[Any] | None:
         """Download the device's configured application/parameters onto the bus.
 
@@ -619,7 +620,9 @@ class ConnectionService:
         An individual address scope downloads only the address: to the device in programming mode
         (``waiting`` is called while none is), to the device with ``serial_number``, or for an
         overwrite to the device at ``current_address``. A full download of a device that does not
-        answer yet gets its address by ``serial_number`` when given.
+        answer yet gets its address by ``serial_number`` when given. ``tool_key`` commissions the
+        device securely; ``disable_security`` switches it to plain communication with the key it
+        holds.
         """
         if self.not_connected("program_device"):
             return None
@@ -678,6 +681,7 @@ class ConnectionService:
                 ip_config=ip_config,
                 tool_key=tool_key if security is not None else None,
                 ip_secure=ip_secure if security is not None else None,
+                disable_security=disable_security and security is not None,
             )
         )
         if future is not None:
@@ -773,25 +777,20 @@ class ConnectionService:
     def _project_security(
         self, device: Device, address: str, keys: DeviceKeys
     ) -> DeviceSecurity | None:
-        """The project's tool key of ``device`` for a connection to ``address``."""
-        key = keys.loaded_tool_key or keys.fdsk
-        if key is None:
-            self._log.warning(
-                "the device's tool key was never loaded into it and its FDSK is unknown; "
-                "reaching it in the clear",
-                device=device.name,
-                address=address,
-            )
-            return None
-        if not address:
+        """The project's tool key of ``device`` for a connection to ``address``: the key the
+        device holds (``LoadedToolKey``), with its FDSK as the alternative (after a master reset).
+        A device that never got a Tool Key is reached in the clear."""
+        key = keys.loaded_tool_key
+        if key is None or not address:
             return None
         from xknx.exceptions import CouldNotParseAddress
         from xknx.telegram import IndividualAddress
 
         from xknxeditor.download.data_secure import DeviceSecurity
 
+        alternatives = [keys.fdsk] if keys.fdsk is not None else []
         try:
-            return DeviceSecurity(IndividualAddress(address), key)
+            return DeviceSecurity(IndividualAddress(address), key, alternatives)
         except CouldNotParseAddress:
             return None
 

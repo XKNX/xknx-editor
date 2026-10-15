@@ -65,9 +65,11 @@ def test_the_loaded_project_key_wins_over_the_keyring() -> None:
 
 
 def test_a_never_loaded_tool_key_programs_in_the_clear() -> None:
+    # Secure commissioning gives the device its Tool Key (see _download_security); any other
+    # access reaches a device that holds none in the clear.
     service, log = _service(DeviceKeys(tool_key=_PLANNED, loaded_tool_key=None))
     assert service.security_for(_DEVICE) is None
-    assert len(log.warnings) == 1
+    assert log.warnings == []
 
 
 @pytest.mark.parametrize("project", [True, False])
@@ -111,10 +113,18 @@ def test_commissioning_needs_the_device_certificate() -> None:
         service._download_security(_DEVICE, _PLANNED)  # pyright: ignore[reportPrivateUsage]
 
 
-def test_a_known_factory_key_reaches_an_uncommissioned_device() -> None:
+def test_a_device_without_a_tool_key_is_reached_in_the_clear() -> None:
+    # Its factory key is only used to give it its Tool Key: a device commissioned in the clear
+    # (or not yet) is reached without security.
     service, log = _service(
         DeviceKeys(tool_key=_PLANNED, loaded_tool_key=None, fdsk=_FDSK)
     )
-    security = service.security_for(_DEVICE)
-    assert security is not None and security.tool_key == _FDSK
+    assert service.security_for(_DEVICE) is None
     assert log.warnings == []
+
+
+def test_the_factory_key_is_the_alternative_after_a_master_reset() -> None:
+    service, _ = _service(DeviceKeys(tool_key=None, loaded_tool_key=_LOADED, fdsk=_FDSK))
+    security = service.security_for(_DEVICE)
+    assert security is not None and security.tool_key == _LOADED
+    assert security.alternative_keys == (_FDSK,)

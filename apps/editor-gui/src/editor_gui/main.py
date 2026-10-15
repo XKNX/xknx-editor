@@ -394,6 +394,7 @@ class KnxGuiApp:
         self._new_password_requested = False
         self._new_password_action: Callable[[str], None] | None = None
         self._new_password_cancel: Callable[[], None] | None = None
+        self._new_password_prompt: str | None = None
         self._new_password_form = NewPasswordForm()
         # Network-drive consent: when opening/importing to a location SQLite can't use (SMB/NFS), we
         # ask before working on a local copy. `_action` runs on "Use local copy"; `_home` is shown.
@@ -506,6 +507,7 @@ class KnxGuiApp:
             notify=self._flash_toast,
             main_thread=self._ui_executor,
             run_background=self._run_bg,
+            request_project_password=self._ask_project_password,
         )
 
         self._catalog_plugin = CatalogPlugin(self._plugin_api)
@@ -2110,12 +2112,31 @@ class KnxGuiApp:
         self._request_new_password(protect, give_up)
 
     def _request_new_password(
-        self, action: Callable[[str], None], cancel: Callable[[], None]
+        self,
+        action: Callable[[str], None],
+        cancel: Callable[[], None],
+        prompt: str | None = None,
     ) -> None:
         self._new_password_action = action
         self._new_password_cancel = cancel
+        self._new_password_prompt = prompt
         self._new_password_form.reset()
         self._new_password_requested = True
+
+    def _ask_project_password(
+        self, prompt: str, then: Callable[[], None], cancel: Callable[[], None]
+    ) -> None:
+        """Ask for a new password of the open project (see ``PluginAPI``): it is set behind the
+        progress modal, then ``then`` runs on the UI thread."""
+
+        def protect(password: str) -> None:
+            def work() -> None:
+                self._project_service.set_project_password(password)
+                self._ui_executor.submit(then)
+
+            self._run_bg(S.PROGRESS_PROTECT_PROJECT, work)
+
+        self._request_new_password(protect, cancel, prompt)
 
     def _render_new_password_modal(self) -> None:
         title = f"{S.IMPORT_PASSWORD_TITLE}###new-password"
@@ -2129,7 +2150,7 @@ class KnxGuiApp:
             self._new_password_requested = False
         if not begin_dialog(title, width=460.0):
             return
-        imgui.text_wrapped(S.NEW_PASSWORD_PROMPT)
+        imgui.text_wrapped(self._new_password_prompt or S.NEW_PASSWORD_PROMPT)
         imgui.spacing()
         form = self._new_password_form
         submitted = form.render(

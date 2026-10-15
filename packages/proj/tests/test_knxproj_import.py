@@ -275,7 +275,10 @@ def test_group_address_metadata(
     gas = {g.address: g for g in svc.group_addresses(pid)}
     assert gas[1].description == "GA desc"
     assert gas[1].comment == "GA comment"
-    assert gas[1].data_secure is True
+    # The key is kept, but the group address is linked to a device without a Tool Key, so in the
+    # default Auto mode it communicates in the clear.
+    assert svc.has_secure_data(pid)
+    assert gas[1].data_secure is False
     assert gas[2].data_secure is False
 
 

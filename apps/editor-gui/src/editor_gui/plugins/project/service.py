@@ -71,6 +71,7 @@ if TYPE_CHECKING:
         DeviceInfo,
         DeviceKeys,
         GroupRangeInfo,
+        SecureCommissioningImpact,
         SpaceDeviceInfo,
         SpaceInfo,
     )
@@ -1698,7 +1699,9 @@ class ProjectService:
             return None
         if not device.app.program.is_secure_enabled:
             return None
-        keys, senders = self._svc.group_security(self._pid, device.node_id)
+        keys, senders = self._svc.group_security(
+            self._pid, device.node_id, self._com_object_can_send
+        )
         p2p = self._svc.p2p_security(
             self._pid, device.node_id, _security_role_masks(device)
         )
@@ -1706,21 +1709,84 @@ class ProjectService:
             return None
         return GroupSecurity(keys=keys, senders=senders, p2p=p2p)
 
+    def _com_object_can_send(self, com_object_id: int) -> bool:
+        """Whether a group object can send on its group addresses: it communicates and transmits,
+        answers read requests or requests a read on init. An object not in the cached view-models
+        counts as one that can."""
+        for device in self.devices:
+            for co in device.com_objects:
+                if co.db_id == com_object_id:
+                    flags = co.flags
+                    return flags.communication and (
+                        flags.transmit or flags.read or flags.read_on_init
+                    )
+        return True
+
     def download_tool_key(self, device: Device) -> bytes | None:
-        """The Tool Key a download gives the device, or ``None`` for a download in the clear (or
-        with a keyring's key). A device whose application supports KNX Data Secure is commissioned
-        securely when the project has a Tool Key for it or one of its group addresses is secured; a
-        Tool Key is generated for it then if needed."""
+        """The Tool Key a download gives the device: its own when its secure commissioning is
+        activated, else ``None`` (a download in the clear, or with a keyring's key)."""
         if self._pid is None or device.app is None:
             return None
         if not device.app.program.is_secure_enabled:
             return None
         keys = self.device_keys(device)
-        if (keys is None or keys.tool_key is None) and self._group_security(
-            device
-        ) is None:
+        return keys.tool_key if keys is not None else None
+
+    def download_disables_security(self, device: Device) -> bool:
+        """Whether a download switches the device to plain communication: its secure
+        commissioning is deactivated, but it still holds a Tool Key from an earlier secure
+        download, so it is reached with that key once more."""
+        if self._pid is None or device.app is None:
+            return False
+        if not device.app.program.is_secure_enabled:
+            return False
+        keys = self.device_keys(device)
+        return (
+            keys is not None
+            and keys.tool_key is None
+            and keys.loaded_tool_key is not None
+        )
+
+    def secure_commissioning(self, device: Device) -> bool | None:
+        """Whether the device is commissioned securely; ``None`` when its application does not
+        support KNX Data Secure."""
+        if self._pid is None or device.app is None:
             return None
-        return self.ensure_tool_key(device)
+        if not device.app.program.is_secure_enabled:
+            return None
+        return self._svc.secure_commissioning(self._pid, device.node_id)
+
+    def secure_commissioning_impact(
+        self, device: Device
+    ) -> "SecureCommissioningImpact | None":
+        """What deactivating the device's secure commissioning would change."""
+        if self._pid is None:
+            return None
+        return self._svc.secure_commissioning_impact(self._pid, device.node_id)
+
+    def set_secure_commissioning(self, device: Device, activated: bool) -> None:
+        """Activate or deactivate the device's secure commissioning (one undo step); activating
+        needs a project password (``ProjectPasswordRequired``)."""
+        if self._pid is None:
+            return
+        with self._io_lock:
+            self._svc.set_secure_commissioning(self._pid, device.node_id, activated)
+        self._bump(structural=True)
+
+    def record_secure_download(self, device: Device, result: object) -> None:
+        """Record what a secured download left in the device (its ``DownloadResult``): the Tool
+        Key it uses now and its next Sequence Number Sending."""
+        if self._pid is None:
+            return
+        if getattr(result, "tool_key_loaded", False):
+            self.set_tool_key_loaded(device)
+        sequence = getattr(result, "sequence_number", None)
+        if isinstance(sequence, int):
+            with self._io_lock:
+                self._svc.set_device_sequence_number(
+                    self._pid, device.node_id, sequence
+                )
+            self._bump(structural=False)
 
     def ensure_tool_key(self, device: Device) -> bytes:
         """The device's Tool Key, generated and stored first when the project has none."""
@@ -2467,9 +2533,18 @@ class ProjectService:
         address: int | None = None,
         parameters: list[tuple[str, str]] | None = None,
         product: DeviceProduct | None = None,
+        secure_commissioning: bool | None = None,
     ) -> int | None:
+        """Add a device. A device that supports KNX Data Secure is commissioned securely by
+        default when the project has a password (``secure_commissioning`` ``None``); ``True``
+        activates it (the project needs a password, ``ProjectPasswordRequired`` otherwise),
+        ``False`` adds it commissioned in the clear."""
         if self._pid is None:
             return None
+        if not app.program.is_secure_enabled:
+            secure_commissioning = False
+        elif secure_commissioning is None:
+            secure_commissioning = self.project_password is not None
         product = product or DeviceProduct()
         if segment_id is None:
             segment_id = self._default_device_segment_id()
@@ -2502,6 +2577,7 @@ class ProjectService:
             hardware_name=product.hardware_name,
             order_number=product.order_number,
             manufacturer_name=product.manufacturer_name,
+            secure_commissioning=secure_commissioning,
         )
         if hardware2program_ref_id is not None:
             self._app_cache[hardware2program_ref_id] = app
@@ -2854,6 +2930,7 @@ class ProjectService:
         )
         source = self.find_device_by_node_id(node_id) if include_links else None
         source_links = self._capture_links(source) if source is not None else []
+        secure = self._svc.secure_commissioning(self._pid, node_id)
         created: list[int] = []
         for i in range(max(1, count)):
             suffix = " (copy)" if count == 1 else f" (copy {i + 1})"
@@ -2869,6 +2946,7 @@ class ProjectService:
                     order_number=row.order_number,
                     manufacturer_name=row.manufacturer_name,
                 ),
+                secure_commissioning=secure,
             )
             if new_id is not None:
                 if source_links:
@@ -3232,45 +3310,14 @@ class ProjectService:
     def set_group_address_security(self, ga_id: int, mode: str) -> None:
         """Set a group address's Security mode (``"Auto"``/``"On"``/``"Off"``). ``"On"`` secures it
         (a key is generated, so the project needs a password), ``"Off"`` does not, and ``"Auto"``
-        secures it when every linked device is commissioned securely."""
+        secures it while every linked device is commissioned securely (see the core
+        ``ga_security``). Raises ``GroupAddressSecurityError`` for ``"On"`` while a linked device
+        is not commissioned securely."""
         if self._pid is None:
             return
-        if mode == "On":
-            secured = True
-        elif mode == "Off":
-            secured = False
-        else:
-            secured = self._ga_auto_secure(ga_id)
         with self._io_lock:
-            self._svc.set_group_address_security(
-                self._pid, ga_id, mode, secured=secured
-            )
+            self._svc.set_group_address_security(self._pid, ga_id, mode)
         self._bump(structural=False)
-
-    def _ga_auto_secure(self, ga_id: int) -> bool:
-        """Whether a group address in ``Auto`` mode is secured: it is linked, and every linked
-        device supports KNX Data Secure and is commissioned securely (has a Tool Key). A device in
-        the clear could not take part in its secured group communication."""
-        owner = {
-            com_object.db_id: device
-            for device in self.devices
-            for com_object in device.com_objects
-            if com_object.db_id is not None
-        }
-        devices = {
-            id(device): device
-            for assignment in self.get_assignments_for_ga(ga_id)
-            if (device := owner.get(assignment.com_object_id)) is not None
-        }
-        if not devices:
-            return False
-        for device in devices.values():
-            if device.app is None or not device.app.program.is_secure_enabled:
-                return False
-            keys = self.device_keys(device)
-            if keys is None or (keys.tool_key is None and keys.loaded_tool_key is None):
-                return False
-        return True
 
     def remove_group_address(
         self, ga_id: int, address: str = "", name: str = ""
@@ -3328,14 +3375,20 @@ class ProjectService:
     ) -> int | None:
         if self._pid is None:
             return None
+        from xknxeditor.proj import GroupAddressSecurityError
+
         derive = self._dpt_to_derive_on_link(com_object_id, group_address_id)
-        link_id = self._svc.link_com_object(
-            self._pid,
-            com_object_id,
-            group_address_id,
-            sending=is_sending,
-            derive_datapoint_type=derive,
-        )
+        try:
+            link_id = self._svc.link_com_object(
+                self._pid,
+                com_object_id,
+                group_address_id,
+                sending=is_sending,
+                derive_datapoint_type=derive,
+            )
+        except GroupAddressSecurityError:
+            self._log.error(S.GA_SECURE_LINK_REFUSED)
+            return None
         self._bump(structural=False)
         return link_id
 

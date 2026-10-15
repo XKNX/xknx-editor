@@ -1581,3 +1581,36 @@ msgstr "Beveiligd"
 
 msgid "Not secured"
 msgstr "Niet beveiligd"
+
+msgid "Plain"
+msgstr "Onversleuteld"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "Beveiligde inbedrijfstelling deactiveren"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "Deze groepsadressen communiceren dan onversleuteld:"
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "De groepsobjecten van het apparaat worden van deze beveiligde groepsadressen verwijderd:"
+
+msgid "Deactivate"
+msgstr "Deactiveren"
+
+msgid "Secure Commissioning"
+msgstr "Beveiligde Inbedrijfstelling"
+
+msgid "Add Device Certificate…"
+msgstr "Apparaatcertificaat toevoegen…"
+
+msgid "Activated"
+msgstr "Geactiveerd"
+
+msgid "Deactivated"
+msgstr "Gedeactiveerd"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "Een beveiligd groepsadres kan alleen worden gekoppeld aan apparaten die beveiligd in bedrijf worden gesteld."
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "Niet alle apparaten die aan dit groepsadres zijn gekoppeld worden beveiligd in bedrijf gesteld, daarom kan het niet worden beveiligd."

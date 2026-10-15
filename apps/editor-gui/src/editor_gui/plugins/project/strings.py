@@ -1909,6 +1909,20 @@ class ProjectStrings:
         return _("Not secured")
 
     @property
+    def GA_SECURE_LINK_REFUSED(self) -> str:
+        return _(
+            "A secured group address can only be linked to devices that are commissioned"
+            " securely."
+        )
+
+    @property
+    def GA_SECURE_ON_REFUSED(self) -> str:
+        return _(
+            "Not every device linked to this group address is commissioned securely, so it"
+            " cannot be secured."
+        )
+
+    @property
     def GA_SET_DPT(self) -> str:
         return _("Set Datapoint Type")
 
@@ -2449,6 +2463,44 @@ class ProjectStrings:
     @property
     def GA_IMPORT_BUTTON(self) -> str:
         return _("Import")
+
+    @property
+    def DEVICE_CERTIFICATE_PLAIN(self) -> str:
+        return _("Plain")
+
+    @property
+    def SECURE_COMMISSIONING_OFF_TITLE(self) -> str:
+        return _("Deactivate Secure Commissioning")
+
+    @property
+    def SECURE_COMMISSIONING_OFF_UNSECURED(self) -> str:
+        return _("These group addresses will then communicate in the clear:")
+
+    @property
+    def SECURE_COMMISSIONING_OFF_REMOVED(self) -> str:
+        return _(
+            "The device's group objects will be removed from these secured group addresses:"
+        )
+
+    @property
+    def SECURE_COMMISSIONING_OFF_CONFIRM(self) -> str:
+        return _("Deactivate")
+
+    @property
+    def CONFIGURE_SECURE_COMMISSIONING(self) -> str:
+        return _("Secure Commissioning")
+
+    @property
+    def CONFIGURE_ADD_CERTIFICATE(self) -> str:
+        return _("Add Device Certificate…")
+
+    @property
+    def SECURE_COMMISSIONING_ON(self) -> str:
+        return _("Activated")
+
+    @property
+    def SECURE_COMMISSIONING_OFF(self) -> str:
+        return _("Deactivated")
 
 
 S = ProjectStrings()

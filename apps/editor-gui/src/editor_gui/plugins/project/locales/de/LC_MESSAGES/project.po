@@ -1723,3 +1723,36 @@ msgstr "Gesichert"
 
 msgid "Not secured"
 msgstr "Nicht gesichert"
+
+msgid "Plain"
+msgstr "Unverschlüsselt"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "Sichere Inbetriebnahme deaktivieren"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "Diese Gruppenadressen kommunizieren dann unverschlüsselt:"
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "Die Gruppenobjekte des Geräts werden von diesen gesicherten Gruppenadressen entfernt:"
+
+msgid "Deactivate"
+msgstr "Deaktivieren"
+
+msgid "Secure Commissioning"
+msgstr "Sichere Inbetriebnahme"
+
+msgid "Add Device Certificate…"
+msgstr "Gerätezertifikat hinzufügen…"
+
+msgid "Activated"
+msgstr "Aktiviert"
+
+msgid "Deactivated"
+msgstr "Deaktiviert"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "Eine gesicherte Gruppenadresse kann nur mit Geräten verknüpft werden, die sicher in Betrieb genommen werden."
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "Nicht alle mit dieser Gruppenadresse verknüpften Geräte werden sicher in Betrieb genommen, daher kann sie nicht gesichert werden."

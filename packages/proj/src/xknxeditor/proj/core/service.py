@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import datetime
 import secrets
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
@@ -81,6 +82,7 @@ from xknxeditor.proj.core.events import (
     SetDeviceCommissioning,
     SetDeviceDescription,
     SetDeviceName,
+    SetDeviceSecureCommissioning,
     SetDeviceSpace,
     SetFunctionType,
     SetGroupAddressAddress,
@@ -99,6 +101,15 @@ from xknxeditor.proj.core.ga_export import (
     GaExport,
     GaRange,
     GroupAddressStyleMismatch,
+)
+from xknxeditor.proj.core.ga_security import (
+    AUTO_MODES,
+    commissioned_devices,
+    is_secured,
+    linked_devices,
+    secure_commissioned,
+    secured_group_addresses,
+    security_attributes,
 )
 from xknxeditor.proj.core.product_prune import ProgressCallback
 from xknxeditor.proj.core.project_secrets import (
@@ -156,6 +167,7 @@ class GroupAddressInfo:
     links: list[int]
     description: str
     comment: str
+    # Whether it is secured now (see :mod:`.ga_security`).
     data_secure: bool
     # The ``@Security`` mode: "Auto"/"On"/"Off" (None = default, treated as Auto).
     security_mode: str | None = None
@@ -253,6 +265,18 @@ class DeviceKeys:
 
 
 @dataclass(frozen=True)
+class SecureCommissioningImpact:
+    """What deactivating a device's secure commissioning changes: the group addresses that then
+    communicate in the clear (``Auto`` ones it is secured with now) and the links that are
+    removed (to group addresses with Security ``On``, which only take devices commissioned
+    securely) with those group addresses."""
+
+    unsecured: list[int]
+    removed_links: list[int]
+    removed_from: list[int]
+
+
+@dataclass(frozen=True)
 class DeviceInfo:
     """A display-ready device. The refs point at the catalog product and loaded program; the caller
     resolves the application from them, since this package is ref-only."""
@@ -335,16 +359,21 @@ def _p2p_links(xml: str) -> list[tuple[str | None, list[tuple[str, list[str]]]]]
     return links
 
 
-def _sequence_number(device: Device) -> int:
-    """The last Sequence Number known of a device (its ``<Security @SequenceNumber>``), else 0."""
-    raw = (device.extra_subtrees or {}).get("Security")
-    if not raw:
-        return 0
+def _last_valid_sequence_number(device: Device) -> int:
+    """The last valid Sequence Number of a sender for a receiver's Security Individual Address
+    Table: one below the device's ``<Security @SequenceNumber>`` (its next Sequence Number
+    Sending, as last read), else 0 (unknown, 3/5/1 6.3.8.5)."""
+    value = security_attributes(device).get("SequenceNumber")
     try:
-        value = ET.fromstring(raw).get("SequenceNumber")
-        return int(value) if value else 0
-    except (ET.ParseError, ValueError):
+        return max(int(value) - 1, 0) if value else 0
+    except ValueError:
         return 0
+
+
+def _sequence_timestamp() -> str:
+    """The current UTC time in the form of ``<Security @SequenceNumberTimestamp>``."""
+    now = datetime.datetime.now(datetime.UTC)
+    return f"{now:%Y-%m-%dT%H:%M:%S}.{now.microsecond:06d}0Z"
 
 
 def _key(value: str | None) -> bytes | None:
@@ -356,6 +385,11 @@ def _key(value: str | None) -> bytes | None:
     except (binascii.Error, ValueError):
         return None
     return key if len(key) == 16 else None
+
+
+class GroupAddressSecurityError(ValueError):
+    """A link or Security mode would put a device that is not commissioned securely on a
+    secured group address."""
 
 
 class ProjectService:
@@ -518,15 +552,27 @@ class ProjectService:
         hardware_name: str = "",
         order_number: str = "",
         manufacturer_name: str = "",
+        secure_commissioning: bool = False,
     ) -> int:
         """Add a device. ``product_ref_id`` names the catalog product; ``hardware2program_ref_id`` is
         the loaded program the application resolves through. Being ref-only, this package never
         reads the catalog, so the caller expands the application and supplies ``parameters``
         (``(ref_id, value)``), ``com_objects`` (``(ref_id, channel_id)``), ``module_instances``
-        (``(instance_id, ref_id)``) and the product's display fields."""
+        (``(instance_id, ref_id)``) and the product's display fields. ``secure_commissioning``
+        activates it for a device that supports KNX Data Secure, in the same undo step (see
+        :meth:`set_secure_commissioning`)."""
         state = self._state(project_id)
         if address is not None:
             self._check_unique_address(state, segment_id, address)
+        tool_key: str | None = None
+        if secure_commissioning:
+            if state.cipher is None:
+                raise ProjectPasswordRequired(
+                    "a Tool Key is stored with the project password"
+                )
+            tool_key = state.cipher.seal(
+                base64.b64encode(secrets.token_bytes(16)).decode("ascii")
+            )
         event = AddDevice(
             segment_id=segment_id,
             address=address,
@@ -541,6 +587,7 @@ class ProjectService:
             hardware_name=hardware_name,
             order_number=order_number,
             manufacturer_name=manufacturer_name,
+            tool_key=tool_key,
         )
         state.store.append(event)
         assert event.device_id is not None
@@ -711,6 +758,7 @@ class ProjectService:
         datapoint type are recorded as one undo step, so typing a group address
         from the object it is linked to stays one action."""
         state = self._state(project_id)
+        self._check_secure_link(state, com_object_id, group_address_id)
         event = LinkComObject(
             com_object_id=com_object_id,
             group_address_id=group_address_id,
@@ -734,6 +782,22 @@ class ProjectService:
             state.store.append(event)
         assert event.link_id is not None
         return event.link_id
+
+    @staticmethod
+    def _check_secure_link(
+        state: _Open, com_object_id: int, group_address_id: int
+    ) -> None:
+        """Refuse linking a device that is not commissioned securely to a group address with
+        Security ``On`` (``GroupAddressSecurityError``)."""
+        ga = state.session.get(GroupAddress, group_address_id)
+        com_object = state.session.get(ComObject, com_object_id)
+        if ga is None or com_object is None or ga.security_mode != "On":
+            return
+        device = state.session.get(Device, com_object.device_id)
+        if device is not None and not secure_commissioned(device):
+            raise GroupAddressSecurityError(
+                "a secured group address can only be linked to devices commissioned securely"
+            )
 
     def set_com_object_sending(self, project_id: str, link_id: int) -> None:
         """Set this link as the com-object's sender, clearing the bit on its siblings."""
@@ -803,24 +867,30 @@ class ProjectService:
         )
 
     def set_group_address_security(
-        self, project_id: str, group_address_id: int, mode: str | None, *, secured: bool
+        self, project_id: str, group_address_id: int, mode: str | None
     ) -> None:
         """Set a group address's ``@Security`` mode (``"Auto"``/``"On"``/``"Off"``, ``None`` =
-        default) and whether it is secured. Securing one for the first time generates a random
-        AES key, stored encrypted, so the project needs a password
-        (:class:`ProjectPasswordRequired` otherwise); the key is kept once made, so toggling the
-        mode does not change it across the installation."""
+        default; see :mod:`.ga_security`). Securing one for the first time generates a random AES
+        key, stored encrypted, so the project needs a password (:class:`ProjectPasswordRequired`
+        otherwise); the key is kept once made, so toggling the mode does not change it across the
+        installation. ``On`` is refused (``GroupAddressSecurityError``) while a linked device is
+        not commissioned securely."""
+        if mode not in AUTO_MODES and mode not in ("On", "Off"):
+            raise ValueError(f"Unknown group address security mode {mode!r}")
         state = self._state(project_id)
         ga = state.session.get(GroupAddress, group_address_id)
         if ga is None:
             raise KeyError(f"No group address with id {group_address_id}")
+        devices = linked_devices(state.session).get(ga.id, set())
+        commissioned = commissioned_devices(state.session)
+        if mode == "On" and not devices <= commissioned:
+            raise GroupAddressSecurityError(
+                "a secured group address can only be linked to devices commissioned securely"
+            )
+        secured = is_secured(mode, devices, commissioned)
         key = ga.security_key
         if secured and key is None:
-            if state.cipher is None:
-                raise ProjectPasswordRequired(
-                    "a group address key is stored with the project password"
-                )
-            key = state.cipher.seal(base64.b64encode(secrets.token_bytes(16)).decode())
+            key = self._new_group_key(state)
         state.store.append(
             SetGroupAddressSecurity(
                 group_address_id=group_address_id,
@@ -829,6 +899,15 @@ class ProjectService:
                 security_key=key,
             )
         )
+
+    @staticmethod
+    def _new_group_key(state: _Open) -> str:
+        """A new random group address key, sealed with the project password."""
+        if state.cipher is None:
+            raise ProjectPasswordRequired(
+                "a group address key is stored with the project password"
+            )
+        return state.cipher.seal(base64.b64encode(secrets.token_bytes(16)).decode())
 
     # --- building functions -----------------------------------------------
 
@@ -1258,6 +1337,74 @@ class ProjectService:
         self._store_security(state, device_id, security)
         return key
 
+    def secure_commissioning(self, project_id: str, device_id: int) -> bool:
+        """Whether the device is commissioned securely (the project holds a Tool Key for it)."""
+        device = self._state(project_id).session.get(Device, device_id)
+        return device is not None and secure_commissioned(device)
+
+    def secure_commissioning_impact(
+        self, project_id: str, device_id: int
+    ) -> SecureCommissioningImpact:
+        """What :meth:`set_secure_commissioning` with ``False`` would change for the device."""
+        session = self._state(project_id).session
+        secured = secured_group_addresses(session)
+        rows = (
+            session.query(ComObjectLink.id, GroupAddress)
+            .join(GroupAddress, GroupAddress.id == ComObjectLink.group_address_id)
+            .join(ComObject, ComObject.id == ComObjectLink.com_object_id)
+            .filter(ComObject.device_id == device_id)
+            .order_by(GroupAddress.address, ComObjectLink.id)
+            .all()
+        )
+        unsecured: list[int] = []
+        removed: list[int] = []
+        removed_from: list[int] = []
+        for link_id, ga in rows:
+            if ga.security_mode == "On":
+                removed.append(link_id)
+                if ga.id not in removed_from:
+                    removed_from.append(ga.id)
+            elif ga.id in secured and ga.id not in unsecured:
+                unsecured.append(ga.id)
+        return SecureCommissioningImpact(
+            unsecured=unsecured, removed_links=removed, removed_from=removed_from
+        )
+
+    def set_secure_commissioning(
+        self, project_id: str, device_id: int, activated: bool
+    ) -> None:
+        """Activate or deactivate the device's secure commissioning, as one undo step.
+
+        Activating gives the device a new random Tool Key, stored encrypted, so the project needs
+        a password (:class:`ProjectPasswordRequired` otherwise). Deactivating removes it; the
+        device's links to group addresses with Security ``On`` are removed with it (see
+        :meth:`secure_commissioning_impact`), and its ``Auto`` group addresses communicate in the
+        clear. The key the device holds is kept: the next download switches the device to plain
+        communication with it."""
+        state = self._state(project_id)
+        if self.secure_commissioning(project_id, device_id) == activated:
+            return
+        if activated:
+            if state.cipher is None:
+                raise ProjectPasswordRequired(
+                    "a Tool Key is stored with the project password"
+                )
+            key = state.cipher.seal(
+                base64.b64encode(secrets.token_bytes(16)).decode("ascii")
+            )
+            state.store.append(
+                SetDeviceSecureCommissioning(device_id=device_id, tool_key=key)
+            )
+            return
+        impact = self.secure_commissioning_impact(project_id, device_id)
+        events: list[Event] = [
+            UnlinkComObject(target_id=link_id) for link_id in impact.removed_links
+        ]
+        events.append(SetDeviceSecureCommissioning(device_id=device_id, tool_key=None))
+        state.store.append(
+            events[0] if len(events) == 1 else CompositeEvent(events=events)
+        )
+
     def set_tool_key_loaded(self, project_id: str, device_id: int) -> None:
         """Record that the device uses its Tool Key now (``LoadedToolKey`` = ``ToolKey``)."""
         state = self._state(project_id)
@@ -1291,11 +1438,17 @@ class ProjectService:
         return ET.fromstring(raw) if raw else ET.Element("Security")
 
     def group_security(
-        self, project_id: str, device_id: int
+        self,
+        project_id: str,
+        device_id: int,
+        can_send: Callable[[int], bool] | None = None,
     ) -> tuple[dict[int, bytes], list[tuple[int, int]]]:
         """The keys of the secured group addresses the device is linked to (raw address -> key)
-        and the devices that may send on them: ``(individual address (raw), last known sequence
-        number)`` of every other addressed device linked to one of them."""
+        and the devices that may send on them: ``(individual address (raw), last valid sequence
+        number)`` of every other addressed device with a group object on one of them that can send
+        (``can_send(com object id)``: its flags let it transmit, answer read requests or request
+        a read; every linked object without it). A secured group address without a key yet gets
+        one, stored directly: devices may hold it from now on, so it is not an undo step."""
         state = self._state(project_id)
         session = state.session
         linked = (
@@ -1306,36 +1459,57 @@ class ProjectService:
             .distinct()
             .all()
         )
+        secured = secured_group_addresses(session)
         keys: dict[int, bytes] = {}
+        created = False
         for ga in linked:
-            if not ga.data_secure:
-                continue  # switched off: its key is kept, but it is not used
+            if ga.id not in secured:
+                continue
+            if ga.security_key is None:
+                ga.security_key = self._new_group_key(state)
+                ga.data_secure = True
+                created = True
             value = ga.security_key
-            if value and state.cipher is not None:
+            if state.cipher is not None:
                 value = state.cipher.value(value)
             key = _key(value)
             if key is not None:
                 keys[ga.address] = key
+        if created:
+            session.commit()
         senders: dict[int, int] = {}
         if keys:
-            others = (
-                session.query(Device)
+            rows = (
+                session.query(Device, ComObject.id)
                 .join(ComObject, ComObject.device_id == Device.id)
                 .join(ComObjectLink, ComObjectLink.com_object_id == ComObject.id)
                 .join(GroupAddress, GroupAddress.id == ComObjectLink.group_address_id)
                 .filter(GroupAddress.address.in_(keys), Device.id != device_id)
-                .distinct()
                 .all()
             )
-            for other in others:
+            for other, com_object_id in rows:
                 if other.address is None:
+                    continue
+                if can_send is not None and not can_send(com_object_id):
                     continue
                 line = other.segment.line
                 address = (
                     (line.area.address << 12) | (line.address << 8) | other.address
                 )
-                senders[address] = _sequence_number(other)
+                senders[address] = _last_valid_sequence_number(other)
         return keys, sorted(senders.items())
+
+    def set_device_sequence_number(
+        self, project_id: str, device_id: int, sequence_number: int
+    ) -> None:
+        """Record the device's next Sequence Number Sending, read at the end of a secured
+        download (``<Security @SequenceNumber>`` with its timestamp). Stored directly, like the
+        Tool Keys: it describes the device, not an edit."""
+        state = self._state(project_id)
+        security = self._security_element(state, device_id)
+        security.set("SequenceNumber", str(sequence_number))
+        security.set("SequenceNumberTimestamp", _sequence_timestamp())
+        self._store_security(state, device_id, security)
 
     def p2p_security(
         self,
@@ -1766,7 +1940,8 @@ class ProjectService:
         state = self._state(project_id)
         style = self._style(state)
         rows = state.session.query(GroupAddress).order_by(GroupAddress.id).all()
-        return [self._ga_info(row, style) for row in rows]
+        secured = secured_group_addresses(state.session)
+        return [self._ga_info(row, style, secured) for row in rows]
 
     def group_ranges(self, project_id: str, installation: int) -> list[GroupRangeInfo]:
         """The installation's group-address range tree (roots → children), resolved for display."""
@@ -1782,7 +1957,8 @@ class ProjectService:
             .order_by(GroupRange.range_start)
             .all()
         )
-        return [self._range_info(r, style) for r in roots]
+        secured = secured_group_addresses(state.session)
+        return [self._range_info(r, style, secured) for r in roots]
 
     def space_tree(self, project_id: str, installation: int) -> list[SpaceInfo]:
         """The installation's building/location tree (roots → children), with devices and functions
@@ -1890,7 +2066,9 @@ class ProjectService:
         ga = state.session.get(GroupAddress, group_address_id)
         if ga is None:
             raise KeyError(f"No group address with id {group_address_id}")
-        return self._ga_info(ga, self._style(state))
+        return self._ga_info(
+            ga, self._style(state), secured_group_addresses(state.session)
+        )
 
     def next_free_group_address(
         self, project_id: str, installation: int, *, start: int = 1
@@ -1992,7 +2170,9 @@ class ProjectService:
             for r in rows
         ]
 
-    def _ga_info(self, ga: GroupAddress, style: GroupAddressStyle) -> GroupAddressInfo:
+    def _ga_info(
+        self, ga: GroupAddress, style: GroupAddressStyle, secured: set[int]
+    ) -> GroupAddressInfo:
         return GroupAddressInfo(
             id=ga.id,
             address=ga.address,
@@ -2002,12 +2182,12 @@ class ProjectService:
             links=[link.com_object_id for link in ga.links],
             description=ga.description,
             comment=ga.comment,
-            data_secure=ga.data_secure,
+            data_secure=ga.id in secured,
             security_mode=ga.security_mode,
         )
 
     def _range_info(
-        self, group_range: GroupRange, style: GroupAddressStyle
+        self, group_range: GroupRange, style: GroupAddressStyle, secured: set[int]
     ) -> GroupRangeInfo:
         return GroupRangeInfo(
             id=group_range.id,
@@ -2015,11 +2195,11 @@ class ProjectService:
             range_start=group_range.range_start,
             range_end=group_range.range_end,
             children=[
-                self._range_info(child, style)
+                self._range_info(child, style, secured)
                 for child in sorted(group_range.children, key=lambda c: c.range_start)
             ],
             group_addresses=[
-                self._ga_info(ga, style)
+                self._ga_info(ga, style, secured)
                 for ga in sorted(group_range.group_addresses, key=lambda g: g.address)
             ],
         )

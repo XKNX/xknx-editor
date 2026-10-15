@@ -219,6 +219,9 @@ class ConfigurePanel:
         get_icon: Callable[[Device, str], Icon | None] | None = None,
         get_picture: Callable[[Device, str], Picture | None] | None = None,
         on_serial_number_change: Callable[[Device, bytes | None], None] | None = None,
+        get_secure_commissioning: Callable[[Device], bool | None] | None = None,
+        on_secure_commissioning_change: Callable[[Device, bool], None] | None = None,
+        on_add_certificate: Callable[[Device], None] | None = None,
         use_serial_number_default: Callable[[], bool] | None = None,
         find_serial_owner: Callable[[Device, bytes], str | None] | None = None,
         find_product: "Callable[[str], ProductSummary | None] | None" = None,
@@ -322,6 +325,9 @@ class ConfigurePanel:
         self._program_use_serial = False
         self._serial_buffer = ""
         self._on_serial_number_change = on_serial_number_change
+        self._get_secure_commissioning = get_secure_commissioning
+        self._on_secure_commissioning_change = on_secure_commissioning_change
+        self._on_add_certificate = on_add_certificate
         self._use_serial_number_default = use_serial_number_default
         self._find_serial_owner = find_serial_owner
         self._render_dali = (
@@ -540,6 +546,18 @@ class ConfigurePanel:
             fields.append(
                 (S.CONFIGURE_SERIAL_NUMBER, lambda: self._serial_input(device))
             )
+        secure = (
+            self._get_secure_commissioning(device)
+            if self._get_secure_commissioning is not None
+            else None
+        )
+        if secure is not None:
+            fields.append(
+                (
+                    S.CONFIGURE_SECURE_COMMISSIONING,
+                    lambda: self._secure_commissioning_input(device, secure),
+                )
+            )
         avail = imgui.get_content_region_avail().x
         group_w = self._label_w + px(120)
         ncols = max(1, min(len(fields), int(avail // group_w) if group_w > 0 else 1))
@@ -656,6 +674,37 @@ class ConfigurePanel:
                 self._on_serial_number_change(device, serial)
         if not imgui.is_item_active() and self._serial_buffer != stored:
             self._serial_buffer = stored
+
+    def _secure_commissioning_input(self, device: Device, activated: bool) -> None:
+        """The device setting "Secure Commissioning" (Activated/Deactivated) and the button that
+        adds the device certificate it is commissioned with."""
+        button = S.CONFIGURE_ADD_CERTIFICATE
+        button_w = (
+            imgui.calc_text_size(button).x + imgui.get_style().frame_padding.x * 2
+            if self._on_add_certificate is not None
+            else 0.0
+        )
+        spacing = imgui.get_style().item_spacing.x if button_w else 0.0
+        imgui.set_next_item_width(
+            max(px(80), imgui.get_content_region_avail().x - button_w - spacing)
+        )
+        current = S.SECURE_COMMISSIONING_ON if activated else S.SECURE_COMMISSIONING_OFF
+        if imgui.begin_combo("##secure_commissioning", current):
+            for value, text in (
+                (True, S.SECURE_COMMISSIONING_ON),
+                (False, S.SECURE_COMMISSIONING_OFF),
+            ):
+                if (
+                    imgui.selectable(text, value == activated)[0]
+                    and value != activated
+                    and self._on_secure_commissioning_change is not None
+                ):
+                    self._on_secure_commissioning_change(device, value)
+            imgui.end_combo()
+        if self._on_add_certificate is not None:
+            imgui.same_line()
+            if imgui.button(button):
+                self._on_add_certificate(device)
 
     def _render_device_actions(self, device: Device) -> None:
         """The device's occasional actions (read-out, restart, reset) in one row that wraps when

@@ -9,6 +9,7 @@ and any pre-change values ``revert`` needs — through the ``events`` JSON colum
 from __future__ import annotations
 
 import base64
+import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, ClassVar, cast
@@ -16,6 +17,7 @@ from typing import Any, ClassVar, cast
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
 
+from xknxeditor.proj.core.ga_security import secure_commissioned
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.skeleton import MEDIUM_IP
 from xknxeditor.proj.models import (
@@ -273,6 +275,8 @@ class AddDevice(Event):
     hardware_name: str = ""
     order_number: str = ""
     manufacturer_name: str = ""
+    # The Tool Key (an ``enc1:`` token) of a device added with secure commissioning activated.
+    tool_key: str | None = None
     device_id: int | None = None
     parameter_ids: list[int] = field(default_factory=list[int])
     com_object_ids: list[int] = field(default_factory=list[int])
@@ -291,6 +295,8 @@ class AddDevice(Event):
             order_number=self.order_number,
             manufacturer_name=self.manufacturer_name,
         )
+        if self.tool_key is not None:
+            _set_tool_key(device, self.tool_key)
         if self.device_id is not None:
             device.id = self.device_id
         for i, (instance_id, ref_id) in enumerate(self.module_instances):
@@ -336,6 +342,7 @@ class AddDevice(Event):
             "hardware_name": self.hardware_name,
             "order_number": self.order_number,
             "manufacturer_name": self.manufacturer_name,
+            "tool_key": self.tool_key,
             "device_id": self.device_id,
             "parameter_ids": self.parameter_ids,
             "com_object_ids": self.com_object_ids,
@@ -1117,8 +1124,24 @@ class CreateGroupAddress(Event):
         return cls(**data)
 
 
-def _secured(group_address: GroupAddress) -> bool:
-    return bool(group_address.data_secure or group_address.security_key)
+def _may_be_secured(
+    session: Session, group_address: GroupAddress, device_id: int | None = None
+) -> bool:
+    """Whether the group address is or may become secured by a change of its links (with
+    ``device_id`` joining): never with Security ``Off``; with ``On``, a key or a securely
+    commissioned device on it (``Auto``, see :mod:`.ga_security`) it may."""
+    if group_address.security_mode == "Off":
+        return False
+    if group_address.security_mode == "On" or group_address.security_key:
+        return True
+    devices = _devices_on(session, group_address.id)
+    if device_id is not None:
+        devices.add(device_id)
+    return any(
+        (device := session.get(Device, other)) is not None
+        and secure_commissioned(device)
+        for other in devices
+    )
 
 
 def _devices_on(session: Session, group_address_id: int) -> set[int]:
@@ -1142,7 +1165,9 @@ def _link_affects(
     if com_object is not None:
         affected.add(com_object.device_id)
     group_address = session.get(GroupAddress, group_address_id)
-    if group_address is not None and _secured(group_address):
+    if group_address is not None and _may_be_secured(
+        session, group_address, com_object.device_id if com_object else None
+    ):
         affected |= _devices_on(session, group_address_id)
     return affected
 
@@ -1490,6 +1515,84 @@ class SetGroupAddressSecurity(Event):
         if "old_key" in data:  # the field name of earlier builds
             data["old_security_key"] = data.pop("old_key")
         return cls(**data)
+
+
+@_register
+@dataclass
+class SetDeviceSecureCommissioning(Event):
+    """Activate or deactivate a device's secure commissioning: set its Tool Key (an ``enc1:``
+    token) or, with ``None``, remove it. Only ``<Security @ToolKey>`` changes: the key the device
+    holds (``@LoadedToolKey``) stays, as the device keeps using it until it is switched to plain
+    communication or reset. The device and the devices sharing a group address with it that may be
+    secured need a group download, so their loaded flags are cleared (restored on revert).
+    ``tool_key``/``old_tool_key`` are encrypted like the column (see :mod:`project_secrets`)."""
+
+    event_type: ClassVar[str] = "SetDeviceSecureCommissioning"
+
+    device_id: int
+    tool_key: str | None
+    captured: bool = False
+    old_tool_key: str | None = None
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+
+    def apply(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is None:
+            return
+        affected = {self.device_id}
+        group_addresses = (
+            session.query(GroupAddress)
+            .join(ComObjectLink, ComObjectLink.group_address_id == GroupAddress.id)
+            .join(ComObject, ComObject.id == ComObjectLink.com_object_id)
+            .filter(ComObject.device_id == self.device_id)
+            .distinct()
+        )
+        for ga in group_addresses:
+            if _may_be_secured(session, ga, self.device_id) or self.tool_key:
+                affected |= _devices_on(session, ga.id)
+        self.cleared = _clear_communication_loaded(session, affected)
+        self.old_tool_key = _set_tool_key(device, self.tool_key)
+        self.captured = True
+
+    def revert(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is not None and self.captured:
+            _set_tool_key(device, self.old_tool_key)
+        _restore_communication_loaded(session, self.cleared)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "device_id": self.device_id,
+            "tool_key": self.tool_key,
+            "captured": self.captured,
+            "old_tool_key": self.old_tool_key,
+            "cleared": self.cleared,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetDeviceSecureCommissioning:
+        return cls(**data)
+
+
+def _set_tool_key(device: Device, tool_key: str | None) -> str | None:
+    """Set (or with ``None`` remove) the device's ``<Security @ToolKey>``; the previous value."""
+    subtrees = dict(device.extra_subtrees or {})
+    raw = subtrees.get("Security")
+    try:
+        security = ET.fromstring(raw) if raw else ET.Element("Security")
+    except ET.ParseError:
+        security = ET.Element("Security")
+    previous = security.get("ToolKey")
+    if tool_key is None:
+        security.attrib.pop("ToolKey", None)
+    else:
+        security.set("ToolKey", tool_key)
+    if security.attrib or len(security):
+        subtrees["Security"] = ET.tostring(security, encoding="unicode")
+    else:
+        subtrees.pop("Security", None)
+    device.extra_subtrees = subtrees or None
+    return previous
 
 
 @_register

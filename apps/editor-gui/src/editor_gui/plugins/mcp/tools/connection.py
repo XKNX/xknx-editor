@@ -265,12 +265,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 ip_secure=ctx.run_locked(
                     lambda: ctx.api.project.ip_secure_config(device)
                 ),
+                disable_security=ctx.run_locked(
+                    lambda: ctx.api.project.download_disables_security(device)
+                ),
             )
         except DeviceCertificateRequired as exc:
             raise ToolError(
                 f"device {node_id} is commissioned securely for the first time: add its "
                 "device certificate (the FDSK from its label) with "
-                "project_add_device_certificate first"
+                "project_add_device_certificate first, or deactivate its secure commissioning "
+                "with project_set_secure_commissioning to program it in the clear"
             ) from exc
         if future is None:
             raise ToolError("programming could not be scheduled (no connection)")
@@ -286,8 +290,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 node_id, resolved.value, serial, mac
             )
         )
-        if getattr(result, "tool_key_loaded", False):
-            ctx.run_locked(lambda: ctx.api.project.set_tool_key_loaded(device))
+        ctx.run_locked(lambda: ctx.api.project.record_secure_download(device, result))
         return {"status": "programmed", "node_id": node_id}
 
     @tool

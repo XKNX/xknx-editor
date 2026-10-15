@@ -240,5 +240,11 @@ class CatalogStrings:
     def DELETE_OK(self) -> str:
         return _("Deleted from the local catalog: {name}")
 
+    @property
+    def CATALOG_ADD_SECURE_PASSWORD(self) -> str:
+        return _(
+            "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
+        )
+
 
 S = CatalogStrings()

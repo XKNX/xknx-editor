@@ -311,6 +311,7 @@ async def download_device(
     ip_config: IpDeviceConfig | None = None,
     tool_key: bytes | None = None,
     ip_secure: IpSecureConfig | None = None,
+    disable_security: bool = False,
 ) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -331,6 +332,8 @@ async def download_device(
 
     ``tool_key`` is the device's Tool Key for a secured download: a device still using its FDSK
     gets it written (secure commissioning); see :func:`xknxeditor.download.download`.
+    ``disable_security`` switches a device whose secure commissioning was deactivated to plain
+    communication.
     """
     return await download(
         xknx,
@@ -345,6 +348,7 @@ async def download_device(
         security=security,
         tool_key=tool_key,
         ip_secure=ip_secure,
+        disable_security=disable_security,
         confirm_full_download=confirm_full_download,
         ip_config=ip_config,
     )

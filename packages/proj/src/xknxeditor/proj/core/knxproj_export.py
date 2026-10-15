@@ -64,12 +64,13 @@ from pathlib import Path
 from urllib.request import Request, urlopen
 from uuid import uuid4
 
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, object_session
 
 from xknxeditor.proj.core import import_notes
 from xknxeditor.proj.core._dll_signer import sign_member_map
 from xknxeditor.proj.core.compact import used_product_ids
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
+from xknxeditor.proj.core.ga_security import exports_key, secured_group_addresses
 from xknxeditor.proj.core.import_notes import ImportLoss
 from xknxeditor.proj.core.knxproj_protect import protect_project_folder
 from xknxeditor.proj.core.knxproj_signing import (
@@ -965,6 +966,7 @@ class _Writer:
         # Imported ids -> this export's ids, for references inside verbatim stored subtrees.
         self._refs = _SourceRefs()
         self._pid = ""
+        self._secured: set[int] = set()
         self._default_line_id: str | None = (
             None  # Installation DefaultLine (line holding devices)
         )
@@ -1245,6 +1247,10 @@ class _Writer:
             return root
         self._refs = _SourceRefs.build(installation, ga_link_id, di_id)
         self._pid = pid
+        session = object_session(installation)
+        self._secured = (
+            secured_group_addresses(session) if session is not None else set[int]()
+        )
         # A genuine installation carries these; the importer expects them on import.
         inst = self._el(
             insts,
@@ -1936,7 +1942,9 @@ class _Writer:
                 Unfiltered="true" if ga.unfiltered else None,
                 Global="true" if ga.is_global else None,
                 Security=ga.security_mode or None,
-                Key=ga.security_key or None,
+                Key=ga.security_key
+                if exports_key(ga, ga.id in self._secured)
+                else None,
                 Context=ga.context or None,
                 Puid=self._next_puid(),
             )

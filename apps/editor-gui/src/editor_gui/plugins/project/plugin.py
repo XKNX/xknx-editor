@@ -55,6 +55,7 @@ from editor_gui.plugins.project.ui.project_diff import (
     diff_projects,
 )
 from editor_gui.plugins.project.ui.read_device_dialog import ReadDeviceDialog
+from editor_gui.plugins.project.ui.secure_commissioning import SecureCommissioningDialog
 from editor_gui.plugins.project.ui.tools import apply_name_swap, shifted_ia
 from editor_gui.widgets import ButtonActions
 from editor_gui.widgets.dpt_value import GroupValueBus
@@ -138,6 +139,7 @@ class ProjectPlugin:
         # The device a certificate is asked for, while the dialog is open.
         self._certificate_device: Device | None = None
         self._certificate_dialog = DeviceCertificateDialog(self._add_certificate)
+        self._secure_commissioning_dialog = SecureCommissioningDialog()
         # Live device readouts (read-only "read from device" action), keyed by node id. Written on
         # the async loop thread's done-callback, read on the UI thread -> guarded by a lock.
         self._device_readouts: dict[int, DeviceInfo] = {}
@@ -237,6 +239,9 @@ class ProjectPlugin:
             get_icon=self._icon,
             get_picture=self._picture,
             on_serial_number_change=self._set_serial_number,
+            get_secure_commissioning=api.project.secure_commissioning,
+            on_secure_commissioning_change=self._change_secure_commissioning,
+            on_add_certificate=self._ask_certificate_for,
             use_serial_number_default=lambda: api.connection.use_serial_number,
             find_serial_owner=self._serial_owner,
             find_product=api.catalog.find_product,
@@ -1490,7 +1495,11 @@ class ProjectPlugin:
         )
 
     def _ask_certificate(self, device: "Device", item: QueueItem) -> None:
-        """Ask for the device's FDSK; once added, the same download is queued again."""
+        """Ask for the device's FDSK; once added, the same download is queued again. "Plain"
+        deactivates its secure commissioning and downloads it in the clear."""
+
+        def plain() -> None:
+            self._deactivate_secure_commissioning(device, then=again)
 
         def again() -> None:
             self._program_queue.enqueue(
@@ -1509,10 +1518,57 @@ class ProjectPlugin:
         label = f"{device.individual_address or '-'} {device.display_name}".strip()
         if self._api.main_thread is not None:
             self._api.main_thread.submit(
-                functools.partial(self._certificate_dialog.open, label, again)
+                functools.partial(self._certificate_dialog.open, label, again, plain)
             )
         else:
-            self._certificate_dialog.open(label, again)
+            self._certificate_dialog.open(label, again, plain)
+
+    def _ask_certificate_for(self, device: "Device") -> None:
+        """ "Add Device Certificate" from the device settings."""
+        self._certificate_device = device
+        label = f"{device.individual_address or '-'} {device.display_name}".strip()
+        self._certificate_dialog.open(label)
+
+    def _change_secure_commissioning(self, device: "Device", activated: bool) -> None:
+        """The device setting "Secure Commissioning"; activating needs a project password."""
+        from xknxeditor.proj import ProjectPasswordRequired
+
+        if not activated:
+            self._deactivate_secure_commissioning(device)
+            return
+        try:
+            self._api.project.set_secure_commissioning(device, True)
+        except ProjectPasswordRequired:
+            self._api.log.error(S.SECURE_DOWNLOAD_PASSWORD_REQUIRED, plugin="project")
+
+    def _deactivate_secure_commissioning(
+        self, device: "Device", then: Callable[[], None] | None = None
+    ) -> None:
+        """Deactivate the device's secure commissioning, after confirming what it changes when its
+        group addresses are affected; ``then`` runs once it is done."""
+        impact = self._api.project.secure_commissioning_impact(device)
+
+        def deactivate() -> None:
+            self._api.project.set_secure_commissioning(device, False)
+            if then is not None:
+                then()
+
+        if impact is None or not (impact.unsecured or impact.removed_from):
+            deactivate()
+            return
+
+        def names(ids: list[int]) -> list[str]:
+            labels: list[str] = []
+            for ga_id in ids:
+                ga = self._api.project.get_group_address(ga_id)
+                if ga is not None:
+                    labels.append(f"{ga.text} {ga.name}".strip())
+            return labels
+
+        label = f"{device.individual_address or '-'} {device.display_name}".strip()
+        self._secure_commissioning_dialog.open(
+            label, names(impact.unsecured), names(impact.removed_from), deactivate
+        )
 
     def _add_certificate(self, code: str) -> str | None:
         """Store the entered FDSK for the device it was asked for; an error message otherwise.
@@ -1542,13 +1598,17 @@ class ProjectPlugin:
         return None
 
     def _set_ga_security(self, ga_id: int, mode: str) -> bool:
-        """Set a group address's Security mode; ``False`` (and a toast) when a password is needed."""
-        from xknxeditor.proj import ProjectPasswordRequired
+        """Set a group address's Security mode; ``False`` (and a toast) when a password is needed
+        or a linked device is not commissioned securely."""
+        from xknxeditor.proj import GroupAddressSecurityError, ProjectPasswordRequired
 
         try:
             self._api.project.set_group_address_security(ga_id, mode)
         except ProjectPasswordRequired:
-            self._api.log.error(S.SECURE_DOWNLOAD_PASSWORD_REQUIRED)
+            self._api.log.error(S.SECURE_DOWNLOAD_PASSWORD_REQUIRED, plugin="project")
+            return False
+        except GroupAddressSecurityError:
+            self._api.log.error(S.GA_SECURE_ON_REFUSED, plugin="project")
             return False
         return True
 
@@ -1772,6 +1832,7 @@ class ProjectPlugin:
                 ip_config=self._api.project.ip_download_config(device),
                 tool_key=tool_key,
                 ip_secure=self._api.project.ip_secure_config(device),
+                disable_security=self._api.project.download_disables_security(device),
             )
         except DeviceCertificateRequired:
             item.message = S.DEVICE_CERTIFICATE_REQUIRED
@@ -1819,7 +1880,7 @@ class ProjectPlugin:
                 scope_value,
                 result if isinstance(result, bytes) else None,
                 getattr(result, "mac_address", None),
-                tool_key_loaded=bool(getattr(result, "tool_key_loaded", False)),
+                result=result,
             )
 
         future.add_done_callback(_on_done)
@@ -1843,13 +1904,13 @@ class ProjectPlugin:
         serial: bytes | None = None,
         mac_address: bytes | None = None,
         *,
-        tool_key_loaded: bool = False,
+        result: object = None,
     ) -> None:
         def _apply() -> None:
             self._api.project.record_download(node_id, scope_value, serial, mac_address)
             device = self._api.project.find_device_by_node_id(node_id)
-            if tool_key_loaded and device is not None:
-                self._api.project.set_tool_key_loaded(device)
+            if result is not None and device is not None:
+                self._api.project.record_secure_download(device, result)
 
         if self._api.main_thread is not None:
             self._api.main_thread.submit(_apply)
@@ -1990,6 +2051,7 @@ class ProjectPlugin:
         self._group_addresses_panel.render_import()
         self._read_device_dialog.render()
         self._certificate_dialog.render()
+        self._secure_commissioning_dialog.render()
         self._object_group_value.render()
         self._button_runner.render()
         self._memory_preview.render()

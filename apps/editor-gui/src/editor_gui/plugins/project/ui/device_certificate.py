@@ -20,14 +20,22 @@ class DeviceCertificateDialog:
         self._code = ""
         self._error = ""
         self._then: Callable[[], None] | None = None
+        self._plain: Callable[[], None] | None = None
         self._open_requested = False
 
-    def open(self, device_label: str, then: Callable[[], None] | None = None) -> None:
-        """Ask for the certificate of ``device_label``; ``then`` runs once it is added."""
+    def open(
+        self,
+        device_label: str,
+        then: Callable[[], None] | None = None,
+        plain: Callable[[], None] | None = None,
+    ) -> None:
+        """Ask for the certificate of ``device_label``; ``then`` runs once it is added. With
+        ``plain``, a third button commissions the device in the clear instead."""
         self._device_label = device_label
         self._code = ""
         self._error = ""
         self._then = then
+        self._plain = plain
         self._open_requested = True
 
     def render(self) -> None:
@@ -46,9 +54,25 @@ class DeviceCertificateDialog:
         )
         if self._error:
             imgui.text_colored(_ERROR_COLOR, self._error)
-        clicked = dialog_buttons(
-            S.BTN_OK, S.BTN_CANCEL, enabled=[bool(self._code.strip()), True]
-        )
+        if self._plain is not None:
+            clicked = dialog_buttons(
+                S.BTN_OK,
+                S.DEVICE_CERTIFICATE_PLAIN,
+                S.BTN_CANCEL,
+                enabled=[bool(self._code.strip()), True, True],
+            )
+            if clicked == 1:
+                plain, self._plain, self._then = self._plain, None, None
+                imgui.close_current_popup()
+                plain()
+                end_dialog()
+                return
+            if clicked == 2:
+                clicked = 1
+        else:
+            clicked = dialog_buttons(
+                S.BTN_OK, S.BTN_CANCEL, enabled=[bool(self._code.strip()), True]
+            )
         if (clicked == 0 or submitted) and self._code.strip():
             error = self._on_add(self._code)
             if error is None:
@@ -59,6 +83,6 @@ class DeviceCertificateDialog:
             else:
                 self._error = error
         elif clicked == 1:
-            self._then = None
+            self._then = self._plain = None
             imgui.close_current_popup()
         end_dialog()

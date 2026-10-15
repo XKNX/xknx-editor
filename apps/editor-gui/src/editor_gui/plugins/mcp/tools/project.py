@@ -370,6 +370,37 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return {"serial_number": fdsk.serial_number.hex().upper()}
 
     @tool
+    def project_set_secure_commissioning(
+        node_id: int, activated: bool
+    ) -> dict[str, Any]:
+        """Activate or deactivate a KNX Data Secure device's secure commissioning (one undo step).
+        Activated, the device gets a Tool Key (needs a password-protected project) and is
+        commissioned with its device certificate. Deactivated, it is programmed in the clear: its
+        "Auto" group addresses communicate in the clear and its links to group addresses with
+        Security "On" are removed (the result lists both)."""
+        from xknxeditor.proj import ProjectPasswordRequired
+
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            device = _require_device(node_id)
+            if project.secure_commissioning(device) is None:
+                raise ToolError(f"device {node_id} does not support KNX Data Secure")
+            impact = None if activated else project.secure_commissioning_impact(device)
+            try:
+                project.set_secure_commissioning(device, activated)
+            except ProjectPasswordRequired as exc:
+                raise ToolError("set a project password first") from exc
+            return {
+                "node_id": node_id,
+                "secure_commissioning": activated,
+                "unsecured_group_address_ids": impact.unsecured if impact else [],
+                "removed_link_ids": impact.removed_links if impact else [],
+            }
+
+        return ctx.run_locked(_set)
+
+    @tool
     def project_close() -> dict[str, str]:
         """Close the open project."""
         ctx.run_locked(project.close)
@@ -998,10 +1029,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_set_group_address_security(
         group_address_id: int, mode: str
     ) -> dict[str, Any]:
-        """Set a group address' KNX Data Secure mode: "On" (secured, generates a key),
-        "Off" (not secured), or "Auto" (secured when a linked group object requires it). A
-        password-protected project is needed to store a generated key."""
-        from xknxeditor.proj import ProjectPasswordRequired
+        """Set a group address' KNX Data Secure mode: "On" (secured, generates a key; every
+        linked device must be commissioned securely), "Off" (not secured), or "Auto" (secured
+        while every linked device is commissioned securely). A password-protected project is
+        needed to store a generated key."""
+        from xknxeditor.proj import GroupAddressSecurityError, ProjectPasswordRequired
 
         if mode not in ("Auto", "On", "Off"):
             raise ToolError('mode must be "Auto", "On" or "Off"')
@@ -1011,6 +1043,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 project.set_group_address_security(group_address_id, mode)
             except ProjectPasswordRequired as e:
                 raise ToolError("set a project password first") from e
+            except GroupAddressSecurityError as e:
+                raise ToolError(str(e)) from e
             g = project.get_group_address(group_address_id)
             if g is None:
                 raise ToolError(f"no group address with id {group_address_id}")
@@ -1059,7 +1093,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             if link_id is None:
                 raise ToolError(
                     f"could not link com-object to group address {group_address_id} "
-                    "(check the group address id exists)"
+                    "(check the group address id exists; a group address with Security On "
+                    "only takes devices commissioned securely)"
                 )
             return {
                 "link_id": link_id,

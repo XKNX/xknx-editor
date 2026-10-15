@@ -2,18 +2,24 @@
 senders of a device's secured group addresses."""
 
 import base64
+import json
 import sqlite3
 from contextlib import closing
 from pathlib import Path
 
 import pytest
 
-from xknxeditor.proj import ProjectPasswordRequired, ProjectService
+from xknxeditor.proj import (
+    GroupAddressSecurityError,
+    ProjectPasswordRequired,
+    ProjectService,
+)
 from xknxeditor.proj.core.fdsk import Fdsk, InvalidFdskError, parse_fdsk
 
 _SERIAL = bytes.fromhex("00FA12345678")
 _FDSK = Fdsk(_SERIAL, bytes(range(16)))
 _GA_KEY = bytes(range(16, 32))
+_TOOL_KEY = base64.b64encode(bytes(range(32, 48))).decode("ascii")
 _PASSWORD = "Projekt-Passwort-9"
 
 
@@ -41,8 +47,11 @@ def test_fdsk_label_checksum() -> None:
         parse_fdsk(label[:-1] + last)
 
 
-def _project(tmp_path: Path) -> tuple[ProjectService, str, int, int, Path]:
-    """Two devices linked to a secured group address; the second one has a Sequence Number."""
+def _project(
+    tmp_path: Path, *, commissioned: bool = True
+) -> tuple[ProjectService, str, int, int, Path]:
+    """Two devices linked to a secured group address (both commissioned securely unless
+    ``commissioned`` is false); the second one has a Sequence Number."""
     path = tmp_path / "p.xknx"
     svc = ProjectService()
     pid = svc.create(path, "P-SEC")
@@ -84,10 +93,18 @@ def _project(tmp_path: Path) -> tuple[ProjectService, str, int, int, Path]:
             "UPDATE group_addresses SET data_secure = 1, security_key = ? WHERE address = ?",
             (base64.b64encode(_GA_KEY).decode("ascii"), 0x0801),
         )
-        db.execute(
-            "UPDATE devices SET extra_subtrees = ? WHERE id = ?",
-            ('{"Security": "<Security SequenceNumber=\\"4711\\" />"}', devices[1]),
-        )
+        tool_key = f' ToolKey="{_TOOL_KEY}"' if commissioned else ""
+        for device_id, sequence in (
+            (devices[0], ""),
+            (devices[1], ' SequenceNumber="4711"'),
+        ):
+            db.execute(
+                "UPDATE devices SET extra_subtrees = ? WHERE id = ?",
+                (
+                    json.dumps({"Security": f"<Security{sequence}{tool_key} />"}),
+                    device_id,
+                ),
+            )
     pid = svc.open(path)
     svc.set_project_password(pid, _PASSWORD)
     return svc, pid, devices[0], devices[1], path
@@ -96,15 +113,19 @@ def _project(tmp_path: Path) -> tuple[ProjectService, str, int, int, Path]:
 def test_group_security(tmp_path: Path) -> None:
     svc, pid, first, second, _ = _project(tmp_path)
     keys, senders = svc.group_security(pid, first)
-    assert keys == {0x0801: _GA_KEY}
-    assert senders == [(0x2106, 4711)]
+    assert keys[0x0801] == _GA_KEY
+    # The second group address is Auto as well, between two secure devices: it is secured too,
+    # with a key made for it.
+    assert set(keys) == {0x0801, 0x0802}
+    # The stored number is the sender's next one; the table holds the last valid one.
+    assert senders == [(0x2106, 4710)]
     keys, senders = svc.group_security(pid, second)
     assert senders == [(0x2105, 0)]
     svc.close(pid)
 
 
 def test_certificate_and_tool_key(tmp_path: Path) -> None:
-    svc, pid, first, second, path = _project(tmp_path)
+    svc, pid, first, second, path = _project(tmp_path, commissioned=False)
     assert svc.device_keys(pid, first) is None
     svc.add_device_certificate(pid, _FDSK.label.lower())
     keys = svc.device_keys(pid, first)
@@ -187,7 +208,7 @@ def test_set_group_address_security(tmp_path: Path) -> None:
         svc.set_device_commissioning(pid, device_id, communication_part_loaded=True)
     plain = next(g.id for g in svc.group_addresses(pid) if g.address == 0x0802)
 
-    svc.set_group_address_security(pid, plain, "On", secured=True)
+    svc.set_group_address_security(pid, plain, "On")
     ga = next(g for g in svc.group_addresses(pid) if g.id == plain)
     assert ga.data_secure and ga.security_mode == "On"
     keys, _ = svc.group_security(pid, first)
@@ -195,10 +216,10 @@ def test_set_group_address_security(tmp_path: Path) -> None:
     first_key = keys[0x0802]
 
     # Turning it off keeps data_secure false but the key is kept (stable across the installation).
-    svc.set_group_address_security(pid, plain, "Off", secured=False)
+    svc.set_group_address_security(pid, plain, "Off")
     ga = next(g for g in svc.group_addresses(pid) if g.id == plain)
     assert not ga.data_secure and ga.security_mode == "Off"
-    svc.set_group_address_security(pid, plain, "On", secured=True)
+    svc.set_group_address_security(pid, plain, "On")
     assert svc.group_security(pid, first)[0][0x0802] == first_key
 
     # The key is stored encrypted.
@@ -218,7 +239,7 @@ def test_group_address_security_needs_a_password(tmp_path: Path) -> None:
     pid = svc.create(path, "P-GA")
     ga = svc.create_group_address(pid, 0, 0x0801, "GA")
     with pytest.raises(ProjectPasswordRequired):
-        svc.set_group_address_security(pid, ga, "On", secured=True)
+        svc.set_group_address_security(pid, ga, "On")
     svc.close(pid)
 
 
@@ -289,7 +310,7 @@ def test_ip_backbone_key(tmp_path: Path) -> None:
 def test_a_switched_off_group_address_keeps_its_key_unused(tmp_path: Path) -> None:
     svc, pid, first, _second, path = _project(tmp_path)
     secured = next(g.id for g in svc.group_addresses(pid) if g.address == 0x0801)
-    svc.set_group_address_security(pid, secured, "Off", secured=False)
+    svc.set_group_address_security(pid, secured, "Off")
     assert 0x0801 not in svc.group_security(pid, first)[0]
     # A password change encrypts the kept key in the undo history too.
     svc.set_project_password(pid, "Anderes-Passwort")
@@ -298,4 +319,118 @@ def test_a_switched_off_group_address_keeps_its_key_unused(tmp_path: Path) -> No
     pid = svc.open(path, "Anderes-Passwort")
     assert svc.undo(pid)  # back to secured, with the same key
     assert svc.group_security(pid, first)[0][0x0801] == _GA_KEY
+    svc.close(pid)
+
+
+def _co(svc: ProjectService, pid: str, device_id: int) -> int:
+    return next(
+        co.id for d in svc.devices(pid) if d.id == device_id for co in d.com_objects
+    )
+
+
+def test_auto_follows_the_linked_devices(tmp_path: Path) -> None:
+    """Auto: secured while every linked device is commissioned securely (however the links or
+    the devices change), plain otherwise; an unlinked one is plain."""
+    svc, pid, first, second, _ = _project(tmp_path)
+    gas = {g.address: g for g in svc.group_addresses(pid)}
+    assert gas[0x0801].data_secure and gas[0x0802].data_secure
+    # A new group address linked to the two secure devices is secured, with a key made for it.
+    third = svc.create_group_address(pid, 0, 0x0803, "Third")
+    assert not next(g for g in svc.group_addresses(pid) if g.id == third).data_secure
+    svc.link_com_object(pid, _co(svc, pid, first), third)
+    svc.link_com_object(pid, _co(svc, pid, second), third)
+    keys, _ = svc.group_security(pid, first)
+    assert 0x0803 in keys and len(keys[0x0803]) == 16
+    assert svc.group_security(pid, second)[0][0x0803] == keys[0x0803]
+    # Deactivating one device's secure commissioning makes its Auto group addresses plain.
+    impact = svc.secure_commissioning_impact(pid, second)
+    assert impact.removed_links == [] and len(impact.unsecured) == 3
+    svc.set_secure_commissioning(pid, second, False)
+    assert not svc.secure_commissioning(pid, second)
+    assert not any(g.data_secure for g in svc.group_addresses(pid))
+    assert svc.group_security(pid, first)[0] == {}
+    # One undo step brings it back.
+    assert svc.undo(pid)
+    assert svc.secure_commissioning(pid, second)
+    assert svc.group_security(pid, first)[0][0x0803] == keys[0x0803]
+    svc.close(pid)
+
+
+def test_secured_group_addresses_take_secure_devices_only(tmp_path: Path) -> None:
+    svc, pid, _first, second, _ = _project(tmp_path)
+    plain = next(g.id for g in svc.group_addresses(pid) if g.address == 0x0802)
+    svc.set_group_address_security(pid, plain, "On")
+    # Deactivating a device removes its links to "On" group addresses, in the same undo step.
+    impact = svc.secure_commissioning_impact(pid, second)
+    assert len(impact.removed_links) == 1
+    svc.set_secure_commissioning(pid, second, False)
+    assert all(
+        link.group_address_id != plain
+        for link in svc.com_object_links(pid, _co(svc, pid, second))
+    )
+    # A device that is not commissioned securely cannot be linked to it ...
+    with pytest.raises(GroupAddressSecurityError):
+        svc.link_com_object(pid, _co(svc, pid, second), plain)
+    # ... nor can a group address it is linked to be switched on.
+    secured = next(g.id for g in svc.group_addresses(pid) if g.address == 0x0801)
+    with pytest.raises(GroupAddressSecurityError):
+        svc.set_group_address_security(pid, secured, "On")
+    assert svc.undo(pid)
+    assert any(
+        link.group_address_id == plain
+        for link in svc.com_object_links(pid, _co(svc, pid, second))
+    )
+    svc.close(pid)
+
+
+def test_activating_secure_commissioning_makes_a_tool_key(tmp_path: Path) -> None:
+    svc, pid, first, _second, path = _project(tmp_path, commissioned=False)
+    assert not svc.secure_commissioning(pid, first)
+    svc.set_secure_commissioning(pid, first, True)
+    keys = svc.device_keys(pid, first)
+    assert (
+        keys is not None and keys.tool_key is not None and keys.loaded_tool_key is None
+    )
+    tool_key = keys.tool_key
+    svc.set_tool_key_loaded(pid, first)
+    # Deactivating keeps the key the device holds: the next download switches it to plain.
+    svc.set_secure_commissioning(pid, first, False)
+    keys = svc.device_keys(pid, first)
+    assert (
+        keys is not None and keys.tool_key is None and keys.loaded_tool_key == tool_key
+    )
+    svc.set_project_password(pid, "Anderes-Passwort")
+    svc.close(pid)
+    assert base64.b64encode(tool_key) not in path.read_bytes()
+    pid = svc.open(path, "Anderes-Passwort")
+    assert svc.undo(pid)
+    keys = svc.device_keys(pid, first)
+    assert keys is not None and keys.tool_key == tool_key
+    svc.close(pid)
+
+
+def test_secure_commissioning_needs_a_password(tmp_path: Path) -> None:
+    path = tmp_path / "p.xknx"
+    svc = ProjectService()
+    pid = svc.create(path, "P-SC")
+    segment = svc.topology(pid, 0).areas[0].lines[0].segments[0].id
+    device = svc.add_device(pid, segment, "M-1_H-1_P-1", address=1, name="D")
+    with pytest.raises(ProjectPasswordRequired):
+        svc.set_secure_commissioning(pid, device, True)
+    svc.close(pid)
+
+
+def test_only_senders_join_the_address_table(tmp_path: Path) -> None:
+    svc, pid, first, second, _ = _project(tmp_path)
+    second_co = _co(svc, pid, second)
+    _keys, senders = svc.group_security(pid, first, lambda co: co != second_co)
+    assert senders == []
+    svc.close(pid)
+
+
+def test_sequence_number_is_recorded(tmp_path: Path) -> None:
+    svc, pid, first, second, _ = _project(tmp_path)
+    svc.set_device_sequence_number(pid, first, 1_000_000)
+    _keys, senders = svc.group_security(pid, second)
+    assert senders == [(0x2105, 999_999)]
     svc.close(pid)
