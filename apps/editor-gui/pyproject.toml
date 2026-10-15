@@ -6,7 +6,8 @@ license = "GPL-2.0-only"
 requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.18.4",
-    "fastmcp>=3.4.7",
+    "fastmcp>=4.1.0",
+    "httpx>=0.28",
     "imgui-bundle>=1.92.0",
     "platformdirs>=4.0",
     "pypdf>=4.0",

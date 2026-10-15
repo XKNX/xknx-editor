@@ -30,10 +30,14 @@ _hiddenimports = []
 # them by name at runtime. NOTE: the earlier "FastMCP server support is not installed" failure was a
 # symptom of the Windows OpenSSL load failure (fastmcp's server import chain imports ssl), not of
 # missing modules — it is fixed by shipping python.org's OpenSSL, not by over-collecting here.
+# FastMCP 4 (on MCP SDK v2) splits the protocol types into the standalone `mcp_types` distribution
+# (re-exported as `mcp.types`); `collect_all("mcp")` does not reach it, so collect it alongside `mcp`.
+# (httpx2/httpcore2/truststore, which FastMCP 4 pulls in, are plain top-level imports with no data —
+# PyInstaller's static analysis finds them; add them here only if a CI freeze proves otherwise.)
 # `dukpy` (JS interpreter used by parser_v2's calculation path) loads .js runtime files from its
 # jsruntime/ data dir at runtime; without collect_all the frozen app reports "process_runtime.js
 # file is missing".
-for _pkg in ("imgui_bundle", "fastmcp", "mcp", "uvicorn", "xknx", "xknxproject", "dukpy", "tzdata", "mpmath"):
+for _pkg in ("imgui_bundle", "fastmcp", "mcp", "mcp_types", "uvicorn", "xknx", "xknxproject", "dukpy", "tzdata", "mpmath"):
     d, b, h = collect_all(_pkg)
     _datas += d
     _binaries += b
