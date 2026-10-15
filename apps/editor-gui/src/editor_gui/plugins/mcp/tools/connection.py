@@ -262,6 +262,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     lambda: ctx.api.project.ip_download_config(device)
                 ),
                 tool_key=tool_key,
+                ip_secure=ctx.run_locked(
+                    lambda: ctx.api.project.ip_secure_config(device)
+                ),
             )
         except DeviceCertificateRequired as exc:
             raise ToolError(

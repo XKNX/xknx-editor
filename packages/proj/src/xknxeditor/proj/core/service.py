@@ -314,6 +314,37 @@ def _take_legacy_password(session: Session) -> str | None:
     return str(password) or None
 
 
+def _bus_interface_ids(device: Device) -> list[str]:
+    """The ``@Id`` of every ``<BusInterface>`` the device owns (from its stored BusInterfaces)."""
+    raw = (device.extra_subtrees or {}).get("BusInterfaces")
+    if not raw:
+        return []
+    try:
+        root = ET.fromstring(raw)
+    except ET.ParseError:
+        return []
+    return [bi.get("Id", "") for bi in root.iter("BusInterface") if bi.get("Id")]
+
+
+def _p2p_links(xml: str) -> list[tuple[str | None, list[str]]]:
+    """Each ``<P2PLink>`` as ``(key, [endpoint ref ids])`` from a stored ``<P2PLinks>`` string."""
+    if not xml:
+        return []
+    try:
+        root = ET.fromstring(xml)
+    except ET.ParseError:
+        return []
+    links: list[tuple[str | None, list[str]]] = []
+    for link in root.iter("P2PLink"):
+        refs = [
+            ref
+            for endpoint in link
+            if (ref := endpoint.get("DeviceRefId") or endpoint.get("BusInterfaceRefId"))
+        ]
+        links.append((link.get("Key"), refs))
+    return links
+
+
 def _sequence_number(device: Device) -> int:
     """The last Sequence Number known of a device (its ``<Security @SequenceNumber>``), else 0."""
     raw = (device.extra_subtrees or {}).get("Security")
@@ -1206,6 +1237,17 @@ class ProjectService:
         )
         return fdsk
 
+    def ip_backbone_key(self, project_id: str) -> bytes | None:
+        """The installation's KNX IP Secure routing backbone key (16 octets), decrypted, or
+        ``None`` when the project has none."""
+        state = self._state(project_id)
+        installation = state.session.query(Installation).first()
+        attrs = installation.extra_attributes if installation is not None else None
+        value = (attrs or {}).get("IPRoutingBackboneKey")
+        if value and state.cipher is not None:
+            value = state.cipher.value(value)
+        return _key(value)
+
     def ensure_tool_key(self, project_id: str, device_id: int) -> bytes:
         """The device's Tool Key; a random one is generated and stored (encrypted, so the project
         needs a password) when the project has none for it yet."""
@@ -1297,6 +1339,48 @@ class ProjectService:
                 )
                 senders[address] = _sequence_number(other)
         return keys, sorted(senders.items())
+
+    def p2p_security(
+        self, project_id: str, device_id: int
+    ) -> list[tuple[int, bytes, int]]:
+        """The device's secure point-to-point / broadcast partners as ``(partner individual
+        address (raw), 16-octet key, roles)``, read from the installation's ``<P2PLinks>``. Roles
+        are ``0`` (no role assignment, 3/5/1 6.3.6.3). Endpoints resolve by the device's source
+        ``@Id`` (DeviceEndpoint) or a bus interface it owns (BusInterfaceEndpoint); a link whose
+        partner cannot be resolved is skipped."""
+        state = self._state(project_id)
+        device = state.session.get(Device, device_id)
+        if device is None or not device.source_id:
+            return []
+        owner_of: dict[str, Device] = {}
+        for other in state.session.query(Device):
+            if other.source_id:
+                owner_of[other.source_id] = other
+                for bus_id in _bus_interface_ids(other):
+                    owner_of[bus_id] = other
+        result: list[tuple[int, bytes, int]] = []
+        for installation in state.session.query(Installation):
+            for link_key, endpoints in _p2p_links(installation.p2p_links_xml):
+                refs = [owner_of.get(ref) for ref in endpoints]
+                if device not in refs:
+                    continue
+                partner = next(
+                    (d for d in refs if d is not None and d.id != device_id), None
+                )
+                if partner is None or partner.address is None:
+                    continue
+                value = link_key
+                if value and state.cipher is not None:
+                    value = state.cipher.value(value)
+                key = _key(value)
+                if key is None:
+                    continue
+                line = partner.segment.line
+                address = (
+                    (line.area.address << 12) | (line.address << 8) | partner.address
+                )
+                result.append((address, key, 0))
+        return result
 
     def device_keys(self, project_id: str, device_id: int) -> DeviceKeys | None:
         """The device's tool keys from its ``<Security>`` and its FDSK from the device certificate

@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from xknxeditor.download.data_secure import DeviceSecurity
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
+    from xknxeditor.download.ip_secure import IpSecureConfig
     from xknxeditor.download.scope import DownloadScope
     from xknxeditor.prod import Application, MasterData
     from xknxeditor.proj.core.service import DeviceKeys
@@ -607,6 +608,7 @@ class ConnectionService:
         confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
         ip_config: IpDeviceConfig | None = None,
         tool_key: bytes | None = None,
+        ip_secure: IpSecureConfig | None = None,
     ) -> Future[Any] | None:
         """Download the device's configured application/parameters onto the bus.
 
@@ -675,6 +677,7 @@ class ConnectionService:
                 confirm_full_download=confirm_full_download,
                 ip_config=ip_config,
                 tool_key=tool_key if security is not None else None,
+                ip_secure=ip_secure if security is not None else None,
             )
         )
         if future is not None:

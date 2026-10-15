@@ -27,6 +27,7 @@ from .ip_config import (
     with_ip_config_controls,
 )
 from .ip_config import applies as ip_config_applies
+from .ip_secure import IpSecureConfig, ip_secure_controls
 from .merge import mask_authorize_levels, resolve_download_controls
 from .procedure import LoadProcedureRunner
 from .programmer import MAX_COMMUNICATION_APDU_LENGTH
@@ -86,6 +87,7 @@ def _resolve_controls(
     ip_config: IpDeviceConfig | None = None,
     security: DeviceSecurity | None = None,
     tool_key: bytes | None = None,
+    ip_secure: IpSecureConfig | None = None,
 ) -> list[object]:
     """Select and materialize the scoped procedure before any device mutation.
 
@@ -108,6 +110,11 @@ def _resolve_controls(
             *table_controls(image.security_tables),
             *controls[position:],
         ]
+    if ip_secure is not None:
+        extra = ip_secure_controls(ip_secure)
+        if extra:
+            position = insert_position(application, controls)
+            controls = [*controls[:position], *extra, *controls[position:]]
     if tool_key is not None:
         controls = [*commissioning_controls(tool_key), *controls]
     return controls
@@ -321,6 +328,7 @@ async def download(
     confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
     ip_config: IpDeviceConfig | None = None,
     tool_key: bytes | None = None,
+    ip_secure: IpSecureConfig | None = None,
 ) -> DownloadResult:
     """Download ``application`` into the device at ``individual_address``.
 
@@ -371,6 +379,8 @@ async def download(
     """
     if tool_key is not None and security is None:
         raise DownloadError("writing the Tool Key needs a secured download")
+    if ip_secure is not None and security is None:
+        raise DownloadError("writing IP Secure settings needs a secured download")
     _reject_address_scope(scope)
     if image is None:
         logger.debug("download: assembling image (scope=%s)", scope.name)
@@ -383,7 +393,7 @@ async def download(
     else:
         logger.debug("download: using pre-built image (scope=%s)", scope.name)
     controls = _resolve_controls(
-        application, master, image, scope, ip_config, security, tool_key
+        application, master, image, scope, ip_config, security, tool_key, ip_secure
     )
     address = IndividualAddress(individual_address)
     if (
@@ -410,13 +420,13 @@ async def download(
     if checked is not scope:
         scope = checked
         controls = _resolve_controls(
-            application, master, image, scope, ip_config, security, tool_key
+            application, master, image, scope, ip_config, security, tool_key, ip_secure
         )
     adapted = await _device_association_format(xknx, address, security, image, scope)
     if adapted is not image:
         image = adapted
         controls = _resolve_controls(
-            application, master, image, scope, ip_config, security, tool_key
+            application, master, image, scope, ip_config, security, tool_key, ip_secure
         )
     apdu_ceiling, negotiate_apdu = _apdu_settings(max_apdu_length)
     logger.debug(

@@ -41,6 +41,7 @@ from .image import (
     build_image,
 )
 from .ip_config import IpDeviceConfig
+from .ip_secure import IpSecureConfig
 from .load_state import LoadEvent, LoadState
 from .merge import resolve_download_controls
 from .preflight import (
@@ -86,6 +87,7 @@ __all__ = [
     "GroupObjectLink",
     "ImageError",
     "IpDeviceConfig",
+    "IpSecureConfig",
     "LoadEvent",
     "LoadProcedureRunner",
     "LoadState",

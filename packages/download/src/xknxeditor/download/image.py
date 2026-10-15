@@ -534,7 +534,12 @@ def _security_tables(
 ) -> SecurityTables | None:
     """The security tables for the address table the download writes: the same active links,
     so a group key refers to the index its group address gets there."""
-    from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
+    from dataclasses import replace
+
+    from xknxeditor.prod.parser_v2.application_indexer import (
+        ApplicationIndexer,
+        com_object_security_required,
+    )
 
     assert gc.security is not None
     indexer = ApplicationIndexer(application.program)
@@ -545,10 +550,19 @@ def _security_tables(
             number_of[ref_id] = com_object.number
     links = _active_links(ui, gc, number_of)
     group_addresses = sorted({link.group_address for link in links})
+    # Each group object's security flag follows what its application declares; a secured object
+    # that declares nothing keeps the default authentication + confidentiality (3/5/1 6.3.15).
+    object_flags: dict[int, int] = {}
+    for link in links:
+        requirement = com_object_security_required(indexer, link.com_object_ref_id)
+        if requirement == "Auth":
+            object_flags[number_of[link.com_object_ref_id]] = 0x01
+        elif requirement == "AuthAndConf":
+            object_flags[number_of[link.com_object_ref_id]] = 0x03
     return security_tables(
         group_addresses,
         [(link.group_address, number_of[link.com_object_ref_id]) for link in links],
-        gc.security,
+        replace(gc.security, object_flags=object_flags),
     )
 
 

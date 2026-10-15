@@ -15,7 +15,7 @@ A secure device keeps them in its Security Interface Object (object type 17, KNX
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Final
 
 from xknxeditor.namespaces.intermediate import (
@@ -29,12 +29,14 @@ from xknxeditor.namespaces.intermediate.ld_ctrl_proc_type_t import LdCtrlProcTyp
 
 SECURITY_OBJECT: Final = 17
 PID_SECURITY_MODE: Final = 51
+PID_P2P_KEY_TABLE: Final = 52
 PID_GRP_KEY_TABLE: Final = 53
 PID_SECURITY_INDIVIDUAL_ADDRESS_TABLE: Final = 54
 PID_TOOL_KEY: Final = 56
 PID_GO_SECURITY_FLAGS: Final = 61
 #: Element width of the security object's writable array properties (3/5/1 Table 99).
 SECURITY_PROPERTY_WIDTHS: Final = {
+    PID_P2P_KEY_TABLE: 20,
     PID_GRP_KEY_TABLE: 18,
     PID_SECURITY_INDIVIDUAL_ADDRESS_TABLE: 8,
     PID_TOOL_KEY: 16,
@@ -53,14 +55,20 @@ _TABLES: Final = LdCtrlProcType.FULL_GRP
 
 @dataclass(frozen=True, slots=True)
 class GroupSecurity:
-    """The project's KNX Data Secure data for one device's group communication.
+    """The project's KNX Data Secure data for one device's communication.
 
     ``keys`` maps each secured group address (raw) to its 16-octet key. ``senders`` are the
     individual addresses (raw) that send secured telegrams this device must accept, with the last
-    valid Sequence Number known for each (0 if unknown, 3/5/1 6.3.8.5)."""
+    valid Sequence Number known for each (0 if unknown, 3/5/1 6.3.8.5). ``object_flags`` is the
+    Group Object Security Flags byte per group object number that differs from the default
+    authentication + confidentiality (3/5/1 6.3.15). ``p2p`` are the device's secure
+    point-to-point / broadcast partners as ``(partner individual address, 16-octet key, roles)``
+    (3/5/1 6.3.6)."""
 
     keys: Mapping[int, bytes]
     senders: Sequence[tuple[int, int]] = ()
+    object_flags: Mapping[int, int] = field(default_factory=dict[int, int])
+    p2p: Sequence[tuple[int, bytes, int]] = ()
 
 
 @dataclass(frozen=True, slots=True)
@@ -68,12 +76,14 @@ class SecurityTables:
     """The security tables of a device, derived from the group addresses its address table holds.
 
     ``group_keys`` are ``(address table index, key)`` in index order, ``individual_addresses``
-    ``(individual address, last valid sequence number)`` in address order, and ``go_flags`` one
-    octet per group object number from 0."""
+    ``(individual address, last valid sequence number)`` in address order, ``go_flags`` one octet
+    per group object number from 0, and ``p2p_keys`` ``(individual-address-table index, key,
+    roles)`` in index order (3/5/1 6.3.6)."""
 
     group_keys: tuple[tuple[int, bytes], ...]
     individual_addresses: tuple[tuple[int, int], ...]
     go_flags: bytes
+    p2p_keys: tuple[tuple[int, bytes, int], ...] = ()
 
 
 def security_tables(
@@ -82,8 +92,12 @@ def security_tables(
     security: GroupSecurity,
 ) -> SecurityTables | None:
     """The security tables for an address table of ``group_addresses`` (in table order) and the
-    active ``(group address, group object number)`` links, or ``None`` when no group address of
-    the device is secured."""
+    active ``(group address, group object number)`` links, or ``None`` when the device has no
+    secured group address and no secure point-to-point partner.
+
+    The Security Individual Address Table holds every secured sender and every point-to-point
+    partner; a point-to-point key references the partner by its 1-based index in that table
+    (3/5/1 6.3.6.2, 6.3.8)."""
     index_of = {address: i + 1 for i, address in enumerate(group_addresses)}
     group_keys = tuple(
         sorted(
@@ -92,20 +106,30 @@ def security_tables(
             if address in index_of
         )
     )
-    if not group_keys:
+    if not group_keys and not security.p2p:
         return None
     secured = {address for address in security.keys if address in index_of}
     numbers = {number for address, number in links if address in secured}
     flags = bytearray(max(numbers) + 1 if numbers else 0)
     for number in numbers:
-        flags[number] = GO_AUTHENTICATION_AND_CONFIDENTIALITY
-    senders: dict[int, int] = {}
+        flags[number] = security.object_flags.get(
+            number, GO_AUTHENTICATION_AND_CONFIDENTIALITY
+        )
+    sequence_of: dict[int, int] = {}
     for address, sequence in security.senders:
-        senders[address] = max(sequence, senders.get(address, 0))
+        sequence_of[address] = max(sequence, sequence_of.get(address, 0))
+    for address, _key, _roles in security.p2p:
+        sequence_of.setdefault(address, 0)
+    individual_addresses = tuple(sorted(sequence_of.items()))
+    ia_index = {address: i + 1 for i, (address, _) in enumerate(individual_addresses)}
+    p2p_keys = tuple(
+        sorted((ia_index[address], key, roles) for address, key, roles in security.p2p)
+    )
     return SecurityTables(
         group_keys=group_keys,
-        individual_addresses=tuple(sorted(senders.items())),
+        individual_addresses=individual_addresses,
         go_flags=bytes(flags),
+        p2p_keys=p2p_keys,
     )
 
 
@@ -162,6 +186,11 @@ def table_controls(tables: SecurityTables) -> list[object]:
         controls.append(
             _write(PID_GRP_KEY_TABLE, index, table_index.to_bytes(2, "big") + key)
         )
+    if tables.p2p_keys:
+        controls.append(_clear(PID_P2P_KEY_TABLE))
+        for index, (ia_index, key, roles) in enumerate(tables.p2p_keys, start=1):
+            element = ia_index.to_bytes(2, "big") + key + roles.to_bytes(2, "big")
+            controls.append(_write(PID_P2P_KEY_TABLE, index, element))
     controls.append(LdCtrlLoadCompleted(obj_type=SECURITY_OBJECT, applies_to=_TABLES))
     controls.append(_clear(PID_GO_SECURITY_FLAGS))
     for start in range(0, len(tables.go_flags), _FLAGS_PER_WRITE):

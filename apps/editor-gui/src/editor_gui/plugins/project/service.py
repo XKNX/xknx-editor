@@ -60,6 +60,7 @@ if TYPE_CHECKING:
     from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
+    from xknxeditor.download.ip_secure import IpSecureConfig
     from xknxeditor.download.secure_config import GroupSecurity
     from xknxeditor.prod.parser_v2.calculation import ChangeSet
     from xknxeditor.proj.core.compact import CompactResult
@@ -1674,7 +1675,10 @@ class ProjectService:
         if not device.app.program.is_secure_enabled:
             return None
         keys, senders = self._svc.group_security(self._pid, device.node_id)
-        return GroupSecurity(keys, senders) if keys else None
+        p2p = self._svc.p2p_security(self._pid, device.node_id)
+        if not keys and not p2p:
+            return None
+        return GroupSecurity(keys=keys, senders=senders, p2p=p2p)
 
     def download_tool_key(self, device: Device) -> bytes | None:
         """The Tool Key a download gives the device, or ``None`` for a download in the clear (or
@@ -1941,6 +1945,34 @@ class ProjectService:
                 a.address for a in row.additional_addresses if a.address is not None
             ),
         )
+
+    def ip_secure_config(self, device: Device) -> "IpSecureConfig | None":
+        """The KNX IP Secure settings a secured download writes to ``device``: the installation's
+        routing backbone key, for a secure-enabled IP device. ``None`` when the device is not an IP
+        device, its application is not KNX Data Secure, or the project has no backbone key. Tunnelling
+        user passwords and the device authentication code live in the keyring, not the project, so
+        they are not written from here."""
+        from xknxeditor.download.ip_secure import IpSecureConfig
+
+        if (
+            self._pid is None
+            or device.app is None
+            or not device.app.program.is_secure_enabled
+        ):
+            return None
+        row = next(
+            (r for r in self._svc.devices(self._pid) if r.id == device.node_id), None
+        )
+        if (
+            row is None
+            or not row.hardware2program_ref_id
+            or not self._catalog.hardware_is_ip_enabled(row.hardware2program_ref_id)
+        ):
+            return None
+        backbone = self._svc.ip_backbone_key(self._pid)
+        if backbone is None:
+            return None
+        return IpSecureConfig(backbone_key=backbone)
 
     def record_download(
         self,

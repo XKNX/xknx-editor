@@ -218,3 +218,62 @@ def test_group_address_security_needs_a_password(tmp_path: Path) -> None:
     with pytest.raises(ProjectPasswordRequired):
         svc.set_group_address_security(pid, ga, "On", secured=True)
     svc.close(pid)
+
+
+def test_p2p_security_resolves_partners(tmp_path: Path) -> None:
+    from sqlalchemy.orm import Session as _Session
+
+    from xknxeditor.proj.db import make_engine, url_for
+    from xknxeditor.proj.models import Device as _Device
+    from xknxeditor.proj.models import Installation as _Installation
+
+    svc, pid, first, second, path = _project(tmp_path)
+    key_b64 = base64.b64encode(bytes(range(16))).decode()
+    svc.close(pid)
+    engine = make_engine(url_for(path))
+    try:
+        with _Session(engine) as session:
+            devices = {d.id: d for d in session.query(_Device)}
+            devices[first].source_id = "DI-1"
+            devices[second].source_id = "DI-2"
+            installation = session.query(_Installation).one()
+            installation.p2p_links_xml = (
+                f'<P2PLinks><P2PLink Id="L-1" Key="{key_b64}">'
+                '<DeviceEndpoint DeviceRefId="DI-1" />'
+                '<DeviceEndpoint DeviceRefId="DI-2" />'
+                "</P2PLink></P2PLinks>"
+            )
+            session.commit()
+    finally:
+        engine.dispose()
+
+    pid = svc.open(path, _PASSWORD)
+    partners = svc.p2p_security(pid, first)
+    # device "first" (2.1.5) links to "second" (2.1.6 = 0x2106), key resolved, roles 0.
+    assert partners == [(0x2106, bytes(range(16)), 0)]
+    # The partner side resolves back to "first" (2.1.5 = 0x2105).
+    assert svc.p2p_security(pid, second) == [(0x2105, bytes(range(16)), 0)]
+    svc.close(pid)
+
+
+def test_ip_backbone_key(tmp_path: Path) -> None:
+    from sqlalchemy.orm import Session as _Session
+
+    from xknxeditor.proj.db import make_engine, url_for
+    from xknxeditor.proj.models import Installation as _Installation
+
+    svc, pid, _first, _second, path = _project(tmp_path)
+    assert svc.ip_backbone_key(pid) is None
+    key_b64 = base64.b64encode(bytes(range(16, 32))).decode()
+    svc.close(pid)
+    engine = make_engine(url_for(path))
+    try:
+        with _Session(engine) as session:
+            installation = session.query(_Installation).one()
+            installation.extra_attributes = {"IPRoutingBackboneKey": key_b64}
+            session.commit()
+    finally:
+        engine.dispose()
+    pid = svc.open(path, _PASSWORD)
+    assert svc.ip_backbone_key(pid) == bytes(range(16, 32))
+    svc.close(pid)

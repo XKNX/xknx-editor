@@ -1634,6 +1634,7 @@ def _build_device(
         description=xdevice.description,
         comment=state.extras.device_comment.get(xdevice.identifier, ""),
         last_modified=getattr(xdevice, "last_modified", None),
+        source_id=xdevice.identifier,
         order_number=xdevice.order_number,
         hardware_name=xdevice.hardware_name,
         product_name=xdevice.product_name,
