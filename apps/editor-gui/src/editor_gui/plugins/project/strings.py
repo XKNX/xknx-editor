@@ -380,6 +380,18 @@ class ProjectStrings:
         return _("{count} difference(s)")
 
     @property
+    def TOOLS_DIFF_PASSWORD_PROMPT(self) -> str:
+        return _("The other project is protected with a password. Enter it to compare:")
+
+    @property
+    def TOOLS_DIFF_COMPARE(self) -> str:
+        return _("Compare")
+
+    @property
+    def TOOLS_DIFF_WRONG_PASSWORD(self) -> str:
+        return _("Wrong password, please try again.")
+
+    @property
     def TOOLS_DIFF_DEVICES(self) -> str:
         return _("Devices")
 

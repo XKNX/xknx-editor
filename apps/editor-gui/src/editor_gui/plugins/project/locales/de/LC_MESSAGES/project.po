@@ -1684,3 +1684,12 @@ msgstr "Die Passwörter stimmen nicht überein."
 
 msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
 msgstr "Ein Projekt mit KNX Secure Geräten braucht ein Passwort: Es schützt deren Schlüssel im Projekt und in seinen Exporten."
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "Das andere Projekt ist mit einem Passwort geschützt. Geben Sie es zum Vergleichen ein:"
+
+msgid "Compare"
+msgstr "Vergleichen"
+
+msgid "Wrong password, please try again."
+msgstr "Falsches Passwort, bitte erneut versuchen."

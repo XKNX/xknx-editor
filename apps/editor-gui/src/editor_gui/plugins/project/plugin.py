@@ -1,5 +1,6 @@
 import asyncio
 import functools
+import secrets
 import tempfile
 import threading
 import zipfile
@@ -46,7 +47,7 @@ from editor_gui.plugins.project.ui.preflight_result import PreflightResultWindow
 from editor_gui.plugins.project.ui.program_queue import ProgramQueuePanel
 from editor_gui.plugins.project.ui.project_diff import (
     DeviceSnap,
-    DiffResult,
+    DiffOutcome,
     GaSnap,
     ProjectSnapshot,
     diff_projects,
@@ -1190,23 +1191,37 @@ class ProjectPlugin:
         )
         return changed, errors
 
-    def _tools_diff_projects(self, other_path: str) -> tuple[DiffResult | None, str]:
-        """Compare the open project against the project at ``other_path`` (.xknx or .knxproj).
+    def _tools_diff_projects(
+        self, other_path: str, password: str | None = None
+    ) -> DiffOutcome:
+        """Compare the open project against the project at ``other_path`` (.xknx or .knxproj),
+        opened with ``password`` when it is protected.
 
-        Returns ``(result, error)``: on failure ``result`` is ``None`` and ``error`` is a
-        message to show. The other project is opened read-only on its own engine, so the open
-        project is untouched."""
+        On failure the outcome has no result but the message to show, and ``needs_password`` when
+        the other project needs a (different) password. The other project is opened read-only on
+        its own engine, so the open project is untouched."""
+        from xknxproject.exceptions import InvalidPasswordException
+
+        from xknxeditor.proj import InvalidProjectPassword, ProjectPasswordRequired
+
         try:
             base = self._project_snapshot_current()
-            other = self._load_project_snapshot(other_path)
+            other = self._load_project_snapshot(other_path, password)
+        except (
+            InvalidPasswordException,
+            InvalidProjectPassword,
+            ProjectPasswordRequired,
+        ):
+            error = S.TOOLS_DIFF_WRONG_PASSWORD if password else ""
+            return DiffOutcome(None, error, needs_password=True)
         except Exception as e:
             self._api.log.warning(
                 "project diff failed",
                 plugin="project",
                 error=f"{type(e).__name__}: {e}",
             )
-            return None, str(e)
-        return diff_projects(base, other), ""
+            return DiffOutcome(None, str(e))
+        return DiffOutcome(diff_projects(base, other))
 
     def _project_snapshot_current(self) -> ProjectSnapshot:
         """Snapshot the open project from the GUI service (already loaded and cached)."""
@@ -1230,8 +1245,11 @@ class ProjectPlugin:
         }
         return ProjectSnapshot(name="current", devices=devices, group_addresses=gas)
 
-    def _load_project_snapshot(self, path: str) -> ProjectSnapshot:
-        """Open a project file read-only and snapshot it (a .knxproj is converted first)."""
+    def _load_project_snapshot(
+        self, path: str, password: str | None = None
+    ) -> ProjectSnapshot:
+        """Open a project file read-only and snapshot it (a .knxproj is converted first).
+        ``password`` opens a password-protected project or archive."""
         from xknxeditor.proj import ProjectService as CoreProjectService
         from xknxeditor.proj import import_knxproj
 
@@ -1243,9 +1261,14 @@ class ProjectPlugin:
             else:
                 tmpdir = tempfile.TemporaryDirectory(prefix="xknx-diff-")
                 xknx_path = Path(tmpdir.name) / "other.xknx"
-                import_knxproj(src, xknx_path)
+                # The temporary conversion is protected like any project: with the archive's
+                # password, else (KNX Secure data in an unprotected archive) a throwaway one.
+                password = password or secrets.token_urlsafe(16)
+                import_knxproj(
+                    src, xknx_path, password=password, project_password=password
+                )
             svc = CoreProjectService()
-            pid = svc.open(xknx_path)
+            pid = svc.open(xknx_path, password)
             try:
                 devices: dict[str, DeviceSnap] = {}
                 for d in svc.devices(pid):

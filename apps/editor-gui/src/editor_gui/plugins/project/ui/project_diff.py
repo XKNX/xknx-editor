@@ -56,6 +56,16 @@ class DiffResult:
         return len(self.devices) + len(self.group_addresses)
 
 
+@dataclass(frozen=True)
+class DiffOutcome:
+    """A comparison's ``result``, or the ``error`` to show; ``needs_password`` when the other
+    project is password-protected and the (given) password did not open it."""
+
+    result: DiffResult | None
+    error: str = ""
+    needs_password: bool = False
+
+
 def diff_projects(base: ProjectSnapshot, other: ProjectSnapshot) -> DiffResult:
     """Report how ``other`` differs from ``base`` for devices and group addresses."""
     return DiffResult(
