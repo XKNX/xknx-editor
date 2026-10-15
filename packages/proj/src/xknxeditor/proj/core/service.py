@@ -81,7 +81,6 @@ from xknxeditor.proj.core.events import (
     SetDeviceCommissioning,
     SetDeviceDescription,
     SetDeviceName,
-    SetDeviceSecurity,
     SetDeviceSpace,
     SetFunctionType,
     SetGroupAddressAddress,
@@ -1250,7 +1249,8 @@ class ProjectService:
 
     def ensure_tool_key(self, project_id: str, device_id: int) -> bytes:
         """The device's Tool Key; a random one is generated and stored (encrypted, so the project
-        needs a password) when the project has none for it yet."""
+        needs a password) when the project has none for it yet. Not an undo step (see
+        :meth:`_store_security`)."""
         keys = self.device_keys(project_id, device_id)
         if keys is not None and keys.tool_key is not None:
             return keys.tool_key
@@ -1264,12 +1264,7 @@ class ProjectService:
         security.set(
             "ToolKey", state.cipher.seal(base64.b64encode(key).decode("ascii"))
         )
-        state.store.append(
-            SetDeviceSecurity(
-                device_id=device_id,
-                security=ET.tostring(security, encoding="unicode"),
-            )
-        )
+        self._store_security(state, device_id, security)
         return key
 
     def set_tool_key_loaded(self, project_id: str, device_id: int) -> None:
@@ -1280,12 +1275,21 @@ class ProjectService:
         if not tool_key or security.get("LoadedToolKey") == tool_key:
             return
         security.set("LoadedToolKey", tool_key)
-        state.store.append(
-            SetDeviceSecurity(
-                device_id=device_id,
-                security=ET.tostring(security, encoding="unicode"),
-            )
-        )
+        self._store_security(state, device_id, security)
+
+    @staticmethod
+    def _store_security(state: _Open, device_id: int, security: ET.Element) -> None:
+        """Store the device's ``<Security>`` directly, not as an undo step: an undo that dropped
+        a Tool Key the device already uses would lock the project out of the device."""
+        device = state.session.get(Device, device_id)
+        if device is None:
+            raise KeyError(f"No device with id {device_id}")
+        subtrees = {
+            k: v for k, v in (device.extra_subtrees or {}).items() if k != "Security"
+        }
+        subtrees["Security"] = ET.tostring(security, encoding="unicode")
+        device.extra_subtrees = subtrees
+        state.session.commit()
 
     @staticmethod
     def _security_element(state: _Open, device_id: int) -> ET.Element:
@@ -1313,6 +1317,8 @@ class ProjectService:
         )
         keys: dict[int, bytes] = {}
         for ga in linked:
+            if not ga.data_secure:
+                continue  # switched off: its key is kept, but it is not used
             value = ga.security_key
             if value and state.cipher is not None:
                 value = state.cipher.value(value)

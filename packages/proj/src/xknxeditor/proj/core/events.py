@@ -753,7 +753,13 @@ class ChangeDeviceApplication(Event):
         if self.old_fields:
             _restore_application_loaded(device, self.old_fields["loaded"])
             device.group_object_tree = self.old_fields["group_object_tree"]
-            device.extra_subtrees = self.old_fields["extra_subtrees"]
+            # The device's Tool Keys may have changed since (a download); they stay.
+            restored = dict(self.old_fields["extra_subtrees"] or {})
+            security = (device.extra_subtrees or {}).get("Security")
+            restored.pop("Security", None)
+            if security:
+                restored["Security"] = security
+            device.extra_subtrees = restored or None
         _restore_rows(session, self.removed)
         session.expire(device)
 
@@ -1426,7 +1432,8 @@ class SetGroupAddressDatapointType(Event):
 class SetGroupAddressSecurity(Event):
     """Set a group address's KNX Data Secure state: its ``@Security`` mode (``"Auto"``/``"On"``/
     ``"Off"``, ``None`` = default), whether it is secured (``data_secure``) and its key (an
-    ``enc1:`` token, kept once generated). Devices linked to it then need a group download, so
+    ``enc1:`` token, kept once generated; ``security_key``/``old_security_key`` are encrypted
+    like the column, see :mod:`project_secrets`). Devices linked to it then need a group download, so
     their group-communication loaded flag is cleared (restored on revert)."""
 
     event_type: ClassVar[str] = "SetGroupAddressSecurity"
@@ -1438,7 +1445,7 @@ class SetGroupAddressSecurity(Event):
     captured: bool = False
     old_mode: str | None = None
     old_data_secure: bool = False
-    old_key: str | None = None
+    old_security_key: str | None = None
     cleared: dict[str, bool] = field(default_factory=dict[str, bool])
 
     def apply(self, session: Session) -> None:
@@ -1447,7 +1454,7 @@ class SetGroupAddressSecurity(Event):
             return
         self.old_mode = ga.security_mode
         self.old_data_secure = ga.data_secure
-        self.old_key = ga.security_key
+        self.old_security_key = ga.security_key
         self.captured = True
         self.cleared = _clear_communication_loaded(
             session, _devices_on(session, self.group_address_id)
@@ -1461,7 +1468,7 @@ class SetGroupAddressSecurity(Event):
         if ga is not None and self.captured:
             ga.security_mode = self.old_mode
             ga.data_secure = self.old_data_secure
-            ga.security_key = self.old_key
+            ga.security_key = self.old_security_key
         _restore_communication_loaded(session, self.cleared)
 
     def to_dict(self) -> dict[str, Any]:
@@ -1473,12 +1480,15 @@ class SetGroupAddressSecurity(Event):
             "captured": self.captured,
             "old_mode": self.old_mode,
             "old_data_secure": self.old_data_secure,
-            "old_key": self.old_key,
+            "old_security_key": self.old_security_key,
             "cleared": self.cleared,
         }
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> SetGroupAddressSecurity:
+        data = dict(data)
+        if "old_key" in data:  # the field name of earlier builds
+            data["old_security_key"] = data.pop("old_key")
         return cls(**data)
 
 
@@ -1852,40 +1862,6 @@ class SetProjectName(Event):
 
 @_register
 @dataclass
-class SetDeviceSecurity(Event):
-    """Replace a device's stored ``<Security>`` (its Tool Keys, kept encrypted as they are)."""
-
-    event_type: ClassVar[str] = "SetDeviceSecurity"
-
-    device_id: int
-    security: str | None
-    old_security: str | None = None
-
-    def apply(self, session: Session) -> None:
-        device = session.get(Device, self.device_id)
-        if device is not None:
-            self.old_security = (device.extra_subtrees or {}).get("Security")
-            _set_device_subtree(device, "Security", self.security)
-
-    def revert(self, session: Session) -> None:
-        device = session.get(Device, self.device_id)
-        if device is not None:
-            _set_device_subtree(device, "Security", self.old_security)
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "device_id": self.device_id,
-            "security": self.security,
-            "old_security": self.old_security,
-        }
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> SetDeviceSecurity:
-        return cls(**data)
-
-
-@_register
-@dataclass
 class SetDeviceCertificates(Event):
     """Replace the project's ``<DeviceCertificates>`` (the FDSKs, kept encrypted as they are)."""
 
@@ -1918,13 +1894,6 @@ class SetDeviceCertificates(Event):
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> SetDeviceCertificates:
         return cls(**data)
-
-
-def _set_device_subtree(device: Device, name: str, xml: str | None) -> None:
-    subtrees = {k: v for k, v in (device.extra_subtrees or {}).items() if k != name}
-    if xml:
-        subtrees[name] = xml
-    device.extra_subtrees = subtrees or None
 
 
 def _set_info_subtree(project: Project, name: str, xml: str | None) -> None:

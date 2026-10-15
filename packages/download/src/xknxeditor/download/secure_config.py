@@ -15,7 +15,7 @@ A secure device keeps them in its Security Interface Object (object type 17, KNX
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Final
 
 from xknxeditor.namespaces.intermediate import (
@@ -43,7 +43,10 @@ SECURITY_PROPERTY_WIDTHS: Final = {
     PID_GO_SECURITY_FLAGS: 1,
 }
 #: Group Object Security Flags of an object linked to a secured group address: authentication and
-#: confidentiality (3/5/1 6.3.15.2, b0 = authentication, b1 = confidentiality).
+#: confidentiality (3/5/1 6.3.15.2, b0 = authentication, b1 = confidentiality). Every object on a
+#: secured group address gets the same flags: a device accepts a group telegram only with exactly
+#: the security its flags require (3/5/1 6.3.15), and a group address's ``@Security`` has no
+#: authentication-only level, so all its senders use both.
 GO_AUTHENTICATION_AND_CONFIDENTIALITY: Final = 0x03
 # A_FunctionPropertyCommand data enabling the Security Mode: reserved, service "write", on
 # (3/5/1 6.3.5.2).
@@ -59,15 +62,13 @@ class GroupSecurity:
 
     ``keys`` maps each secured group address (raw) to its 16-octet key. ``senders`` are the
     individual addresses (raw) that send secured telegrams this device must accept, with the last
-    valid Sequence Number known for each (0 if unknown, 3/5/1 6.3.8.5). ``object_flags`` is the
-    Group Object Security Flags byte per group object number that differs from the default
-    authentication + confidentiality (3/5/1 6.3.15). ``p2p`` are the device's secure
+    valid Sequence Number known for each (0 if unknown, 3/5/1 6.3.8.5). ``p2p`` are the device's
+    secure
     point-to-point / broadcast partners as ``(partner individual address, 16-octet key, roles)``
     (3/5/1 6.3.6)."""
 
     keys: Mapping[int, bytes]
     senders: Sequence[tuple[int, int]] = ()
-    object_flags: Mapping[int, int] = field(default_factory=dict[int, int])
     p2p: Sequence[tuple[int, bytes, int]] = ()
 
 
@@ -112,9 +113,7 @@ def security_tables(
     numbers = {number for address, number in links if address in secured}
     flags = bytearray(max(numbers) + 1 if numbers else 0)
     for number in numbers:
-        flags[number] = security.object_flags.get(
-            number, GO_AUTHENTICATION_AND_CONFIDENTIALITY
-        )
+        flags[number] = GO_AUTHENTICATION_AND_CONFIDENTIALITY
     sequence_of: dict[int, int] = {}
     for address, sequence in security.senders:
         sequence_of[address] = max(sequence, sequence_of.get(address, 0))

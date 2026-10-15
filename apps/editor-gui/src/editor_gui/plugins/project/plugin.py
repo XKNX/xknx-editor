@@ -1548,9 +1548,7 @@ class ProjectPlugin:
         try:
             self._api.project.set_group_address_security(ga_id, mode)
         except ProjectPasswordRequired:
-            self._api.log.error(
-                "Set a project password first: it protects the group address keys."
-            )
+            self._api.log.error(S.SECURE_DOWNLOAD_PASSWORD_REQUIRED)
             return False
         return True
 
@@ -1773,6 +1771,7 @@ class ProjectPlugin:
                 ),
                 ip_config=self._api.project.ip_download_config(device),
                 tool_key=tool_key,
+                ip_secure=self._api.project.ip_secure_config(device),
             )
         except DeviceCertificateRequired:
             item.message = S.DEVICE_CERTIFICATE_REQUIRED

@@ -138,9 +138,8 @@ class SecureConnectionManager:
             if await self._synchronize_with(connection):
                 return
         raise SecureProgrammingError(
-            "no S-A_Sync response received - the device did not answer with the "
-            "Tool Key; check the device address and that the Tool Key is current "
-            "(a Master Reset replaces it with the FDSK)"
+            "no S-A_Sync response received - the device answered none of the known keys "
+            "(Tool Key, FDSK); check the device address and the device certificate"
         )
 
     async def _synchronize_with(self, connection: BusConnection) -> bool:

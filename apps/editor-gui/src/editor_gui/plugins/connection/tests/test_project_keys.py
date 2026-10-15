@@ -85,7 +85,7 @@ def test_commissioning_starts_with_the_factory_key() -> None:
     )
     security = service._download_security(_DEVICE, _PLANNED)  # pyright: ignore[reportPrivateUsage]
     assert security is not None
-    assert security.keys == (_FDSK, _PLANNED)
+    assert security.keys == (_FDSK, _PLANNED, _KEYRING)
 
 
 def test_a_commissioned_device_starts_with_its_tool_key() -> None:
@@ -94,11 +94,19 @@ def test_a_commissioned_device_starts_with_its_tool_key() -> None:
     )
     security = service._download_security(_DEVICE, _PLANNED)  # pyright: ignore[reportPrivateUsage]
     assert security is not None
-    assert security.keys == (_LOADED, _PLANNED, _FDSK)
+    assert security.keys == (_LOADED, _PLANNED, _FDSK, _KEYRING)
+
+
+def test_commissioning_uses_a_keyring_key_the_project_lacks() -> None:
+    service, _ = _service(DeviceKeys(tool_key=_PLANNED, loaded_tool_key=None))
+    security = service._download_security(_DEVICE, _PLANNED)  # pyright: ignore[reportPrivateUsage]
+    assert security is not None
+    assert security.keys == (_KEYRING, _PLANNED)
 
 
 def test_commissioning_needs_the_device_certificate() -> None:
     service, _ = _service(DeviceKeys(tool_key=_PLANNED, loaded_tool_key=None))
+    service.keyring = None
     with pytest.raises(DeviceCertificateRequired):
         service._download_security(_DEVICE, _PLANNED)  # pyright: ignore[reportPrivateUsage]
 

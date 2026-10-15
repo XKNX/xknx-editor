@@ -132,10 +132,12 @@ def test_certificate_and_tool_key(tmp_path: Path) -> None:
         assert secret not in data
 
     pid = svc.open(path, _PASSWORD)
-    assert svc.undo(pid)  # the Tool Key is no longer recorded as loaded
+    # The Tool Keys are no undo steps (an undo must never drop a key the device uses); undo takes
+    # back the certificate.
+    assert svc.undo(pid)
     keys = svc.device_keys(pid, first)
-    assert keys is not None and keys.loaded_tool_key is None
-    assert keys.tool_key == tool_key
+    assert keys is not None and keys.fdsk is None
+    assert (keys.tool_key, keys.loaded_tool_key) == (tool_key, tool_key)
     svc.close(pid)
 
 
@@ -276,4 +278,19 @@ def test_ip_backbone_key(tmp_path: Path) -> None:
         engine.dispose()
     pid = svc.open(path, _PASSWORD)
     assert svc.ip_backbone_key(pid) == bytes(range(16, 32))
+    svc.close(pid)
+
+
+def test_a_switched_off_group_address_keeps_its_key_unused(tmp_path: Path) -> None:
+    svc, pid, first, _second, path = _project(tmp_path)
+    secured = next(g.id for g in svc.group_addresses(pid) if g.address == 0x0801)
+    svc.set_group_address_security(pid, secured, "Off", secured=False)
+    assert 0x0801 not in svc.group_security(pid, first)[0]
+    # A password change encrypts the kept key in the undo history too.
+    svc.set_project_password(pid, "Anderes-Passwort")
+    svc.close(pid)
+    assert base64.b64encode(_GA_KEY) not in path.read_bytes()
+    pid = svc.open(path, "Anderes-Passwort")
+    assert svc.undo(pid)  # back to secured, with the same key
+    assert svc.group_security(pid, first)[0][0x0801] == _GA_KEY
     svc.close(pid)

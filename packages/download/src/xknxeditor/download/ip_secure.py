@@ -5,16 +5,21 @@ the tunnelling-user table live in the KNXnet/IP Parameter Object (object type 11
 v3.0.0, 3/8/9 §2.3.1. They are written over the Tool-Key secured connection as ordinary property
 writes (no load-state machine) before the final restart.
 
-The device authentication code and the password hashes are PBKDF2-HMAC-SHA256 derivations of the
-passphrase, 65536 iterations, 16-octet output, with the fixed salts of §2.3.1.3.1 / §2.3.1.4.1.
+The device authentication code and the password hashes are the PBKDF2-HMAC-SHA256 derivations of
+§2.3.1.3.1 / §2.3.1.4.1, as xknx computes them for its secure tunnelling connections.
 """
 
 from __future__ import annotations
 
-import hashlib
+import secrets
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from typing import Final
+
+from xknx.secure.security_primitives import (
+    derive_device_authentication_password,
+    derive_user_password,
+)
 
 from xknxeditor.namespaces.intermediate import LdCtrlWriteProp
 from xknxeditor.namespaces.intermediate.ld_ctrl_proc_type_t import LdCtrlProcType
@@ -27,12 +32,7 @@ PID_MULTICAST_LATENCY_TOLERANCE: Final = 95
 PID_SYNC_LATENCY_FRACTION: Final = 96
 PID_TUNNELLING_USERS: Final = 97
 
-_PBKDF2_ITERATIONS: Final = 65536
-_PBKDF2_LENGTH: Final = 16
-_DEVICE_AUTHENTICATION_SALT: Final = b"device-authentication-code.1.secure.ip.knx.org"
-_USER_PASSWORD_SALT: Final = b"user-password.1.secure.ip.knx.org"
-#: The password hash of an empty passphrase (3/8/9 §2.3.1.4.3); a device still carrying it is
-#: unconfigured, so the tool warns rather than leaves it.
+#: The password hash of an empty passphrase (3/8/9 §2.3.1.4.3), the value of an unconfigured user.
 EMPTY_PASSWORD_HASH: Final = bytes.fromhex("E9C304B914A35175FD7D1C673AB52FE1")
 #: User ID 1 is the management client (full access); limited users are 2..127.
 MANAGEMENT_USER_ID: Final = 1
@@ -41,20 +41,14 @@ MAX_USER_ID: Final = 127
 _APPLIES: Final = LdCtrlProcType.FULL
 
 
-def _pbkdf2(passphrase: str, salt: bytes) -> bytes:
-    return hashlib.pbkdf2_hmac(
-        "sha256", passphrase.encode("utf-8"), salt, _PBKDF2_ITERATIONS, _PBKDF2_LENGTH
-    )
-
-
 def device_authentication_code(passphrase: str) -> bytes:
     """The 16-octet device authentication code derived from ``passphrase`` (3/8/9 §2.3.1.3.1)."""
-    return _pbkdf2(passphrase, _DEVICE_AUTHENTICATION_SALT)
+    return derive_device_authentication_password(passphrase)
 
 
 def password_hash(passphrase: str) -> bytes:
     """The 16-octet tunnelling-user password hash of ``passphrase`` (3/8/9 §2.3.1.4.1)."""
-    return _pbkdf2(passphrase, _USER_PASSWORD_SALT)
+    return derive_user_password(passphrase)
 
 
 @dataclass(frozen=True, slots=True)
@@ -64,8 +58,8 @@ class IpSecureConfig:
     ``backbone_key`` is the 16-octet routing/multicast key. ``device_authentication_passphrase`` and
     the ``user_passwords`` (by user id, 1 = management) are passphrases; their PBKDF2 hashes are
     written, never the passphrase. ``tunnelling_users`` maps a user id to its tunnelling-address
-    index (3/8/9 §2.3.1.8); user id 1 is implicit and must not appear. The latencies have ETS's
-    defaults.
+    index (3/8/9 §2.3.1.8); user id 1 is implicit and must not appear. The latencies default to
+    the standard's values (2000 ms, 10.2 %, 3/8/9 §2.3.1.6, §2.3.1.7).
     """
 
     backbone_key: bytes | None = None
@@ -110,9 +104,9 @@ def ip_secure_controls(config: IpSecureConfig) -> list[object]:
         highest = max(config.user_passwords)
         if highest > MAX_USER_ID or min(config.user_passwords) < MANAGEMENT_USER_ID:
             raise ValueError("user ids run from 1 (management) to 127")
-        # The array is written whole from index 1: the management hash, then each user's hash,
-        # with the empty-password hash for the gaps.
-        table = bytearray(EMPTY_PASSWORD_HASH * highest)
+        # The array is written whole from index 1. A user id without a password gets a random hash
+        # no passphrase matches, never the well-known empty-password one.
+        table = bytearray(secrets.token_bytes(16 * highest))
         for user_id, passphrase in config.user_passwords.items():
             table[(user_id - 1) * 16 : user_id * 16] = password_hash(passphrase)
         controls.append(_write(PID_PASSWORD_HASHES, bytes(table), count=highest))

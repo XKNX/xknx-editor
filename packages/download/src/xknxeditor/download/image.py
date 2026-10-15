@@ -534,12 +534,7 @@ def _security_tables(
 ) -> SecurityTables | None:
     """The security tables for the address table the download writes: the same active links,
     so a group key refers to the index its group address gets there."""
-    from dataclasses import replace
-
-    from xknxeditor.prod.parser_v2.application_indexer import (
-        ApplicationIndexer,
-        com_object_security_required,
-    )
+    from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 
     assert gc.security is not None
     indexer = ApplicationIndexer(application.program)
@@ -550,20 +545,41 @@ def _security_tables(
             number_of[ref_id] = com_object.number
     links = _active_links(ui, gc, number_of)
     group_addresses = sorted({link.group_address for link in links})
-    # Each group object's security flag follows what its application declares; a secured object
-    # that declares nothing keeps the default authentication + confidentiality (3/5/1 6.3.15).
-    object_flags: dict[int, int] = {}
-    for link in links:
-        requirement = com_object_security_required(indexer, link.com_object_ref_id)
-        if requirement == "Auth":
-            object_flags[number_of[link.com_object_ref_id]] = 0x01
-        elif requirement == "AuthAndConf":
-            object_flags[number_of[link.com_object_ref_id]] = 0x03
-    return security_tables(
+    tables = security_tables(
         group_addresses,
         [(link.group_address, number_of[link.com_object_ref_id]) for link in links],
-        replace(gc.security, object_flags=object_flags),
+        gc.security,
     )
+    if tables is not None:
+        _validate_security_capacity(application, tables)
+    return tables
+
+
+def _validate_security_capacity(
+    application: Application, tables: SecurityTables
+) -> None:
+    """Reject security tables the device cannot hold, before any write (the application declares
+    the sizes; 0 = not declared)."""
+    program = application.program
+    for name, limit, count in (
+        (
+            "Group Key Table",
+            program.max_security_group_key_table_entries,
+            len(tables.group_keys),
+        ),
+        (
+            "Security Individual Address Table",
+            program.max_security_individual_address_entries,
+            len(tables.individual_addresses),
+        ),
+        (
+            "Point-to-point Key Table",
+            program.max_security_p2_pkey_table_entries,
+            len(tables.p2p_keys),
+        ),
+    ):
+        if limit and count > limit:
+            raise ImageError(f"{name} has {count} entries; the device holds {limit}")
 
 
 def _group_communication_segments(

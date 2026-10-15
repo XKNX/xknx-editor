@@ -210,14 +210,13 @@ async def test_a_device_with_its_tool_key_gets_only_the_tables() -> None:
     assert any(w[1] == 53 for w in device.writes)
 
 
-def test_per_object_flags_and_p2p() -> None:
+def test_p2p_partners_join_the_address_table() -> None:
     tables = security_tables(
         [0x0801, 0x0900],
         [(0x0801, 0), (0x0900, 2)],
         GroupSecurity(
             keys={0x0801: _KEY_A, 0x0900: _KEY_B},
             senders=[(0x1101, 5)],
-            object_flags={0: 0x01},  # group object 0 requires authentication only
             p2p=[(0x1109, _TOOL_KEY, 0)],
         ),
     )
@@ -226,8 +225,8 @@ def test_per_object_flags_and_p2p() -> None:
     assert tables.individual_addresses == ((0x1101, 5), (0x1109, 0))
     # The P2P key points at the partner's index in that table (1-based) with roles 0.
     assert tables.p2p_keys == ((2, _TOOL_KEY, 0),)
-    # Group object 0 keeps its declared auth-only flag; object 2 gets the default auth+conf.
-    assert tables.go_flags == bytes([0x01, 0x00, 0x03])
+    # Every object on a secured group address gets authentication + confidentiality.
+    assert tables.go_flags == bytes([0x03, 0x00, 0x03])
 
 
 def test_p2p_only_device_has_tables() -> None:
@@ -243,3 +242,30 @@ def test_p2p_only_device_has_tables() -> None:
         b"\x00\x00",
         b"\x00\x01" + _KEY_A + b"\x00\x00",
     ]
+
+
+def test_security_tables_must_fit_the_device() -> None:
+    import pytest
+
+    from xknxeditor.download.errors import ImageError
+    from xknxeditor.download.image import (
+        _validate_security_capacity,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    def application(group_keys: int) -> Application:
+        return cast(
+            "Application",
+            SimpleNamespace(
+                program=SimpleNamespace(
+                    max_security_group_key_table_entries=group_keys,
+                    max_security_individual_address_entries=0,
+                    max_security_p2_pkey_table_entries=0,
+                )
+            ),
+        )
+
+    tables = _tables()  # two group keys
+    _validate_security_capacity(application(2), tables)
+    _validate_security_capacity(application(0), tables)  # not declared: not checked
+    with pytest.raises(ImageError, match="Group Key Table has 2 entries"):
+        _validate_security_capacity(application(1), tables)

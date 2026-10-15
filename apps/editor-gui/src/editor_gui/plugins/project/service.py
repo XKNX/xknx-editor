@@ -409,6 +409,20 @@ class DeviceProduct:
         )
 
 
+def _int_or(value: str | None, default: int) -> int:
+    try:
+        return int(value) if value is not None else default
+    except ValueError:
+        return default
+
+
+def _float_or(value: str | None, default: float) -> float:
+    try:
+        return float(value) if value is not None else default
+    except ValueError:
+        return default
+
+
 class ProjectService:
     def __init__(self, catalog: "CatalogService") -> None:
         self._catalog = catalog
@@ -1972,7 +1986,15 @@ class ProjectService:
         backbone = self._svc.ip_backbone_key(self._pid)
         if backbone is None:
             return None
-        return IpSecureConfig(backbone_key=backbone)
+        installation = row.segment.line.area.installation.extra_attributes or {}
+        tolerance = _int_or(installation.get("IPRoutingLatencyTolerance"), 2000)
+        fraction = _float_or(installation.get("IPSyncLatencyFraction"), 0.1)
+        return IpSecureConfig(
+            backbone_key=backbone,
+            multicast_latency_tolerance_ms=tolerance,
+            # PID_SYNC_LATENCY_FRACTION is a DPT 5.001 scaling: 0..255 for 0..100 %.
+            sync_latency_fraction=max(0, min(255, round(fraction * 255))),
+        )
 
     def record_download(
         self,
@@ -3198,7 +3220,7 @@ class ProjectService:
     def set_group_address_security(self, ga_id: int, mode: str) -> None:
         """Set a group address's Security mode (``"Auto"``/``"On"``/``"Off"``). ``"On"`` secures it
         (a key is generated, so the project needs a password), ``"Off"`` does not, and ``"Auto"``
-        follows the linked group objects (secure when any requires KNX Data Secure)."""
+        secures it when every linked device is commissioned securely."""
         if self._pid is None:
             return
         if mode == "On":
@@ -3214,35 +3236,29 @@ class ProjectService:
         self._bump(structural=False)
 
     def _ga_auto_secure(self, ga_id: int) -> bool:
-        """Whether a group address in ``Auto`` mode is secured: any linked group object requires
-        KNX Data Secure (ComObject/ComObjectRef ``SecurityRequired``)."""
-        from xknxeditor.prod.parser_v2.application_indexer import (
-            ApplicationIndexer,
-            com_object_security_required,
-        )
-
-        by_db_id: dict[int, tuple[Device, str]] = {
-            com_object.db_id: (device, com_object.id)
+        """Whether a group address in ``Auto`` mode is secured: it is linked, and every linked
+        device supports KNX Data Secure and is commissioned securely (has a Tool Key). A device in
+        the clear could not take part in its secured group communication."""
+        owner = {
+            com_object.db_id: device
             for device in self.devices
-            if device.app is not None
             for com_object in device.com_objects
             if com_object.db_id is not None
         }
-        indexers: dict[str, ApplicationIndexer] = {}
-        for assignment in self.get_assignments_for_ga(ga_id):
-            found = by_db_id.get(assignment.com_object_id)
-            if found is None:
-                continue
-            device, ref_id = found
-            assert device.app is not None
-            indexer = indexers.get(device.app.id)
-            if indexer is None:
-                indexer = indexers[device.app.id] = ApplicationIndexer(
-                    device.app.program
-                )
-            if com_object_security_required(indexer, ref_id) != "None":
-                return True
-        return False
+        devices = {
+            id(device): device
+            for assignment in self.get_assignments_for_ga(ga_id)
+            if (device := owner.get(assignment.com_object_id)) is not None
+        }
+        if not devices:
+            return False
+        for device in devices.values():
+            if device.app is None or not device.app.program.is_secure_enabled:
+                return False
+            keys = self.device_keys(device)
+            if keys is None or (keys.tool_key is None and keys.loaded_tool_key is None):
+                return False
+        return True
 
     def remove_group_address(
         self, ga_id: int, address: str = "", name: str = ""

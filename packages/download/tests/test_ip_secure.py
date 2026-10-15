@@ -50,7 +50,7 @@ def test_password_hashes_and_tunnelling_users() -> None:
     count, table = writes[93]
     assert count == 3 and len(table) == 48
     assert table[0:16] == password_hash("mgmt")
-    assert table[16:32] == EMPTY_PASSWORD_HASH  # user 2 unset
+    assert table[16:32] != EMPTY_PASSWORD_HASH  # user 2 unset: no usable password
     assert table[32:48] == password_hash("user3")
     assert writes[97] == (1, bytes([3, 2]))
 

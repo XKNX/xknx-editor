@@ -740,9 +740,9 @@ class ConnectionService:
         self, device: Device, tool_key: bytes | None
     ) -> DeviceSecurity | None:
         """The security of a download that gives the device its Tool Key ``tool_key``: the
-        session starts with the key the device uses (its loaded Tool Key, else its FDSK) and
-        falls back to the others. Raises :class:`DeviceCertificateRequired` when the project
-        knows neither."""
+        session starts with the key the device uses (its loaded Tool Key, else its FDSK, else a
+        loaded keyring's key for it) and falls back to the others. Raises
+        :class:`DeviceCertificateRequired` when none is known."""
         if tool_key is None:
             return self._security_for(device)
         if not device.individual_address:
@@ -750,14 +750,22 @@ class ConnectionService:
         keys = self.project_keys(device) if self.project_keys is not None else None
         loaded = keys.loaded_tool_key if keys is not None else None
         fdsk = keys.fdsk if keys is not None else None
-        current = loaded or fdsk
+        ring = (
+            self.keyring.device_security(device.individual_address)
+            if self.keyring is not None
+            else None
+        )
+        keyring_key = ring.tool_key if ring is not None else None
+        current = loaded or fdsk or keyring_key
         if current is None:
             raise DeviceCertificateRequired(device.individual_address)
         from xknx.telegram import IndividualAddress
 
         from xknxeditor.download.data_secure import DeviceSecurity
 
-        alternatives = [key for key in (tool_key, fdsk, loaded) if key is not None]
+        alternatives = [
+            key for key in (tool_key, fdsk, loaded, keyring_key) if key is not None
+        ]
         return DeviceSecurity(
             IndividualAddress(device.individual_address), current, alternatives
         )
