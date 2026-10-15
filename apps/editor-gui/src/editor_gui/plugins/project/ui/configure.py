@@ -678,16 +678,23 @@ class ConfigurePanel:
     def _secure_commissioning_input(self, device: Device, activated: bool) -> None:
         """The device setting "Secure Commissioning" (Activated/Deactivated) and the button that
         adds the device certificate it is commissioned with."""
+        style = imgui.get_style()
+        # The combo is as wide as its longest choice; the certificate button follows on the same
+        # line when it fits, else below.
+        combo_w = (
+            max(
+                imgui.calc_text_size(S.SECURE_COMMISSIONING_ON).x,
+                imgui.calc_text_size(S.SECURE_COMMISSIONING_OFF).x,
+            )
+            + style.frame_padding.x * 2
+            + imgui.get_frame_height()
+            + style.item_inner_spacing.x
+        )
+        avail = imgui.get_content_region_avail().x
         button = S.CONFIGURE_ADD_CERTIFICATE
-        button_w = (
-            imgui.calc_text_size(button).x + imgui.get_style().frame_padding.x * 2
-            if self._on_add_certificate is not None
-            else 0.0
-        )
-        spacing = imgui.get_style().item_spacing.x if button_w else 0.0
-        imgui.set_next_item_width(
-            max(px(80), imgui.get_content_region_avail().x - button_w - spacing)
-        )
+        button_w = imgui.calc_text_size(button).x + style.frame_padding.x * 2
+        start_x = imgui.get_cursor_pos_x()
+        imgui.set_next_item_width(min(combo_w, avail))
         current = S.SECURE_COMMISSIONING_ON if activated else S.SECURE_COMMISSIONING_OFF
         if imgui.begin_combo("##secure_commissioning", current):
             for value, text in (
@@ -702,7 +709,10 @@ class ConfigurePanel:
                     self._on_secure_commissioning_change(device, value)
             imgui.end_combo()
         if self._on_add_certificate is not None:
-            imgui.same_line()
+            if combo_w + style.item_spacing.x + button_w <= avail:
+                imgui.same_line()
+            else:
+                imgui.set_cursor_pos_x(start_x)
             if imgui.button(button):
                 self._on_add_certificate(device)
 
