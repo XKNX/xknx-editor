@@ -150,6 +150,10 @@ def _fake_parser() -> SimpleNamespace:
     )
 
 
+# The fake project has a secured group address, so it is protected with a password.
+_PASSWORD = "test-password"
+
+
 def _import_fake(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> tuple[ProjectService, str, Path]:
@@ -162,9 +166,11 @@ def _import_fake(
 
     monkeypatch.setattr(knxproj_import, "_parse", _fake)
     dest = tmp_path / "imported.xknx"
-    pid = import_knxproj("unused.knxproj", dest, project_id="P-TEST")
+    pid = import_knxproj(
+        "unused.knxproj", dest, project_id="P-TEST", project_password=_PASSWORD
+    )
     svc = ProjectService()
-    svc.open(dest)
+    svc.open(dest, _PASSWORD)
     return svc, pid, dest
 
 
@@ -354,7 +360,9 @@ def test_import_applies_com_object_overrides(
 
     monkeypatch.setattr(knxproj_import, "_parse", _fake)
     dest = tmp_path / "imported.xknx"
-    import_knxproj("unused.knxproj", dest, project_id="P-TEST")
+    import_knxproj(
+        "unused.knxproj", dest, project_id="P-TEST", project_password=_PASSWORD
+    )
 
     engine = make_engine(url_for(dest))
     with Session(engine) as session:
@@ -432,11 +440,11 @@ def test_reimport_overwrites_existing_dest(
 
     monkeypatch.setattr(knxproj_import, "_parse", _fake)
     dest = tmp_path / "reimport.xknx"
-    import_knxproj("x.knxproj", dest, project_id="P-1")
+    import_knxproj("x.knxproj", dest, project_id="P-1", project_password=_PASSWORD)
     # A second import to the same file must overwrite, not clash on unique rows (installation index).
-    import_knxproj("x.knxproj", dest, project_id="P-2")
+    import_knxproj("x.knxproj", dest, project_id="P-2", project_password=_PASSWORD)
     svc = ProjectService()
-    assert svc.open(dest) == "P-2"
+    assert svc.open(dest, _PASSWORD) == "P-2"
 
 
 def test_failed_parse_preserves_existing_dest(
@@ -449,7 +457,7 @@ def test_failed_parse_preserves_existing_dest(
 
     monkeypatch.setattr(knxproj_import, "_parse", _fake)
     dest = tmp_path / "keep.xknx"
-    import_knxproj("x.knxproj", dest, project_id="P-KEEP")
+    import_knxproj("x.knxproj", dest, project_id="P-KEEP", project_password=_PASSWORD)
     before = dest.read_bytes()
 
     def _boom(*_a: object, **_k: object) -> SimpleNamespace:
@@ -779,9 +787,11 @@ def test_device_without_address_is_imported(
 
     monkeypatch.setattr(knxproj_import, "_parse", _fake)
     dest = tmp_path / "imported.xknx"
-    pid = import_knxproj("unused.knxproj", dest, project_id="P-TEST")
+    pid = import_knxproj(
+        "unused.knxproj", dest, project_id="P-TEST", project_password=_PASSWORD
+    )
     svc = ProjectService()
-    svc.open(dest)
+    svc.open(dest, _PASSWORD)
     by_product = {d.product_ref_id: d for d in svc.devices(pid)}
     assert set(by_product) == {"M-1_H-1_P-1", "M-1_H-2_P-2"}
     device = by_product["M-1_H-2_P-2"]
