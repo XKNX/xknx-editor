@@ -146,3 +146,34 @@ def test_secrets_need_a_password(tmp_path: Path) -> None:
     with pytest.raises(ProjectPasswordRequired):
         svc.add_device_certificate(pid, _FDSK.label)
     svc.close(pid)
+
+
+def _loaded(svc: ProjectService, pid: str) -> dict[int, bool]:
+    return {d.id: d.communication_part_loaded for d in svc.devices(pid)}
+
+
+def test_link_changes_need_a_group_download(tmp_path: Path) -> None:
+    svc, pid, first, second, _ = _project(tmp_path)
+    for device_id in (first, second):
+        svc.set_device_commissioning(pid, device_id, communication_part_loaded=True)
+    gas = {g.address: g for g in svc.group_addresses(pid)}
+    com_object = next(
+        co.id for d in svc.devices(pid) if d.id == first for co in d.com_objects
+    )
+    # A plain group address: only the device of the group object.
+    third = svc.create_group_address(pid, 0, 0x0803, "Plain 2")
+    svc.link_com_object(pid, com_object, third, sending=False)
+    assert _loaded(svc, pid) == {first: False, second: True}
+    assert svc.undo(pid)
+    assert _loaded(svc, pid) == {first: True, second: True}
+    # The secured group address: every device linked to it (its sender table changes).
+    link = next(
+        link.id
+        for link in svc.com_object_links(pid, com_object)
+        if link.group_address_id == gas[0x0801].id
+    )
+    svc.unlink_com_object(pid, link)
+    assert _loaded(svc, pid) == {first: False, second: False}
+    assert svc.undo(pid)
+    assert _loaded(svc, pid) == {first: True, second: True}
+    svc.close(pid)

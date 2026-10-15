@@ -1111,6 +1111,57 @@ class CreateGroupAddress(Event):
         return cls(**data)
 
 
+def _secured(group_address: GroupAddress) -> bool:
+    return bool(group_address.data_secure or group_address.security_key)
+
+
+def _devices_on(session: Session, group_address_id: int) -> set[int]:
+    """The devices with a group object linked to the group address."""
+    return {
+        device_id
+        for (device_id,) in session.query(ComObject.device_id)
+        .join(ComObjectLink, ComObjectLink.com_object_id == ComObject.id)
+        .filter(ComObjectLink.group_address_id == group_address_id)
+    }
+
+
+def _link_affects(
+    session: Session, com_object_id: int, group_address_id: int
+) -> set[int]:
+    """The devices whose group communication a change of this link changes: the group object's
+    own device and, for a secured group address, every device linked to it (their Security
+    Individual Address Tables list each other)."""
+    affected: set[int] = set()
+    com_object = session.get(ComObject, com_object_id)
+    if com_object is not None:
+        affected.add(com_object.device_id)
+    group_address = session.get(GroupAddress, group_address_id)
+    if group_address is not None and _secured(group_address):
+        affected |= _devices_on(session, group_address_id)
+    return affected
+
+
+def _clear_communication_loaded(
+    session: Session, device_ids: set[int]
+) -> dict[str, bool]:
+    """Mark the group communication of ``device_ids`` as not loaded; the previous values (only of
+    those that were loaded) for revert."""
+    cleared: dict[str, bool] = {}
+    for device_id in sorted(device_ids):
+        device = session.get(Device, device_id)
+        if device is not None and device.communication_part_loaded:
+            cleared[str(device_id)] = True
+            device.communication_part_loaded = False
+    return cleared
+
+
+def _restore_communication_loaded(session: Session, cleared: dict[str, bool]) -> None:
+    for device_id, loaded in cleared.items():
+        device = session.get(Device, int(device_id))
+        if device is not None:
+            device.communication_part_loaded = loaded
+
+
 @_register
 @dataclass
 class LinkComObject(Event):
@@ -1120,8 +1171,13 @@ class LinkComObject(Event):
     group_address_id: int
     is_sending: bool = False
     link_id: int | None = None
+    # Devices whose group communication was loaded before (see _clear_communication_loaded).
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
 
     def apply(self, session: Session) -> None:
+        self.cleared = _clear_communication_loaded(
+            session, _link_affects(session, self.com_object_id, self.group_address_id)
+        )
         link = ComObjectLink(
             com_object_id=self.com_object_id,
             group_address_id=self.group_address_id,
@@ -1137,6 +1193,7 @@ class LinkComObject(Event):
         link = session.get(ComObjectLink, self.link_id)
         if link is not None:
             session.delete(link)
+        _restore_communication_loaded(session, self.cleared)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -1144,6 +1201,7 @@ class LinkComObject(Event):
             "group_address_id": self.group_address_id,
             "is_sending": self.is_sending,
             "link_id": self.link_id,
+            "cleared": self.cleared,
         }
 
     @classmethod
@@ -1416,6 +1474,8 @@ class SetGroupAddressAddress(Event):
     created: list[bool] = field(default_factory=list[bool])
     old_address: int | None = None
     old_group_range_id: int | None = None
+    # Devices whose group communication was loaded before (the address is in their tables).
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
 
     def apply(self, session: Session) -> None:
         ga = session.get(GroupAddress, self.group_address_id)
@@ -1423,6 +1483,9 @@ class SetGroupAddressAddress(Event):
             return
         self.old_address = ga.address
         self.old_group_range_id = ga.group_range_id
+        self.cleared = _clear_communication_loaded(
+            session, _devices_on(session, self.group_address_id)
+        )
 
         # Ensure the target range chain exists (same walk as CreateGroupAddress), tracking which
         # ranges this event created so revert drops exactly those and redo rebuilds identical ids.
@@ -1488,6 +1551,7 @@ class SetGroupAddressAddress(Event):
             target = session.get(GroupRange, self.range_ids[first_created])
             if target is not None:
                 session.delete(target)
+        _restore_communication_loaded(session, self.cleared)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -1499,6 +1563,7 @@ class SetGroupAddressAddress(Event):
             "created": self.created,
             "old_address": self.old_address,
             "old_group_range_id": self.old_group_range_id,
+            "cleared": self.cleared,
         }
 
     @classmethod
@@ -1517,11 +1582,16 @@ class SetComObjectSending(Event):
     link_id: int
     captured: bool = False
     previous: dict[str, bool] = field(default_factory=dict[str, bool])
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
 
     def apply(self, session: Session) -> None:
         link = session.get(ComObjectLink, self.link_id)
         if link is None:
             return
+        com_object = session.get(ComObject, link.com_object_id)
+        self.cleared = _clear_communication_loaded(
+            session, {com_object.device_id} if com_object is not None else set()
+        )
         siblings = (
             session.query(ComObjectLink)
             .filter_by(com_object_id=link.com_object_id)
@@ -1539,12 +1609,14 @@ class SetComObjectSending(Event):
             sibling = session.get(ComObjectLink, int(sibling_id))
             if sibling is not None:
                 sibling.is_sending = was_sending
+        _restore_communication_loaded(session, self.cleared)
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "link_id": self.link_id,
             "captured": self.captured,
             "previous": self.previous,
+            "cleared": self.cleared,
         }
 
     @classmethod
@@ -1610,18 +1682,48 @@ class RemoveSegment(_SubtreeDelete):
     _model: ClassVar[type[Base]] = Segment
 
 
+@dataclass
+class _LoadedSubtreeDelete(_SubtreeDelete):
+    """A delete that also changes the group communication of devices (see ``_affected``)."""
+
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+
+    def _affected(self, session: Session) -> set[int]:
+        raise NotImplementedError
+
+    def apply(self, session: Session) -> None:
+        self.cleared = _clear_communication_loaded(session, self._affected(session))
+        super().apply(session)
+
+    def revert(self, session: Session) -> None:
+        super().revert(session)
+        _restore_communication_loaded(session, self.cleared)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {**super().to_dict(), "cleared": self.cleared}
+
+
 @_register
 @dataclass
-class RemoveGroupAddress(_SubtreeDelete):
+class RemoveGroupAddress(_LoadedSubtreeDelete):
     event_type: ClassVar[str] = "RemoveGroupAddress"
     _model: ClassVar[type[Base]] = GroupAddress
 
+    def _affected(self, session: Session) -> set[int]:
+        return _devices_on(session, self.target_id)
+
 
 @_register
 @dataclass
-class UnlinkComObject(_SubtreeDelete):
+class UnlinkComObject(_LoadedSubtreeDelete):
     event_type: ClassVar[str] = "UnlinkComObject"
     _model: ClassVar[type[Base]] = ComObjectLink
+
+    def _affected(self, session: Session) -> set[int]:
+        link = session.get(ComObjectLink, self.target_id)
+        if link is None:
+            return set()
+        return _link_affects(session, link.com_object_id, link.group_address_id)
 
 
 # --- field changes (stash the prior value, put it back on revert) --------------
