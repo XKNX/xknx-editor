@@ -12,6 +12,7 @@ from editor_gui.plugins.base import Logger
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.service import ProjectService
+from xknxeditor.proj import InvalidProjectPassword, ProjectPasswordRequired
 
 
 def _service(tmp_path: Path) -> ProjectService:
@@ -33,11 +34,9 @@ def test_rename_and_password(tmp_path: Path) -> None:
     service.set_project_password(None)
     info = service.get_project_metadata()
     assert info is not None and not info.password_protected
-    # Newest first.
-    assert [entry.display_text for entry in service.history()][:3] == [
-        "Remove project password",
-        "Set project password",
-        "Rename project to 'Wohnung'",
+    # A password change is no undo step.
+    assert [entry.display_text for entry in service.history()][:1] == [
+        "Rename project to 'Wohnung'"
     ]
     service.close()
 
@@ -53,11 +52,31 @@ def test_secure_project_keeps_its_password(tmp_path: Path) -> None:
         db.execute("UPDATE group_addresses SET data_secure = 1")
 
     service = _service(tmp_path)
-    service.open(path)
+    with pytest.raises(ProjectPasswordRequired):
+        service.open(path)
+    service.open(path, "geheim")
     assert service.project_needs_password()
+    assert service.project_password == "geheim"
     with pytest.raises(ValueError):
         service.set_project_password(None)
     service.set_project_password("anders")  # changing it is fine
     info = service.get_project_metadata()
     assert info is not None and info.password_protected
+    service.close()
+    service.open(path, "anders")
+    assert service.project_password == "anders"
+    service.close()
+
+
+def test_a_wrong_password_keeps_the_open_project(tmp_path: Path) -> None:
+    protected = tmp_path / "protected.xknx"
+    service = _service(tmp_path)
+    service.new(protected)
+    service.set_project_password("geheim")
+    service.close()
+    service.new(tmp_path / "other.xknx", name="Other")
+    with pytest.raises(InvalidProjectPassword):
+        service.open(protected, "falsch")
+    info = service.get_project_metadata()
+    assert info is not None and info.name == "Other"
     service.close()

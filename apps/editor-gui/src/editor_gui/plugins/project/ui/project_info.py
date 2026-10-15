@@ -9,11 +9,10 @@ from imgui_bundle import imgui
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.password_form import NewPasswordForm
 
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import _ProjectInfo
-
-_ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 
 
 class ProjectInfoPanel:
@@ -31,8 +30,7 @@ class ProjectInfoPanel:
         self._name_buffer = ""
         self._name_editing = False
         self._password_dialog_open = False
-        self._password = ""
-        self._password_repeat = ""
+        self._password_form = NewPasswordForm()
 
     def render(self) -> None:
         info = self._get_project_info()
@@ -110,7 +108,7 @@ class ProjectInfoPanel:
             else S.PROJECT_SET_PASSWORD
         )
         if imgui.button(label):
-            self._password = self._password_repeat = ""
+            self._password_form.reset()
             self._password_dialog_open = True
         if info.password_protected:
             imgui.same_line()
@@ -133,27 +131,19 @@ class ProjectInfoPanel:
             return
         imgui.text_wrapped(S.PROJECT_PASSWORD_PROMPT)
         imgui.spacing()
-        flags = imgui.InputTextFlags_.password
-        imgui.text_disabled(S.PROJECT_INFO_PASSWORD)
-        imgui.set_next_item_width(-1)
-        _, self._password = imgui.input_text("##password", self._password, flags)
-        imgui.text_disabled(S.PROJECT_PASSWORD_REPEAT)
-        imgui.set_next_item_width(-1)
-        submitted, self._password_repeat = imgui.input_text(
-            "##password_repeat",
-            self._password_repeat,
-            flags | imgui.InputTextFlags_.enter_returns_true,
+        form = self._password_form
+        submitted = form.render(
+            S.PROJECT_INFO_PASSWORD,
+            S.PROJECT_PASSWORD_REPEAT,
+            S.PROJECT_PASSWORD_MISMATCH,
         )
-        valid = bool(self._password) and self._password == self._password_repeat
-        if self._password_repeat and self._password != self._password_repeat:
-            imgui.text_colored(_ERROR_COLOR, S.PROJECT_PASSWORD_MISMATCH)
-        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL, enabled=[valid, True])
-        if (clicked == 0 or (submitted and valid)) and self._on_set_password:
-            self._on_set_password(self._password)
-            self._password = self._password_repeat = ""
+        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL, enabled=[form.valid, True])
+        if (clicked == 0 or (submitted and form.valid)) and self._on_set_password:
+            self._on_set_password(form.password)
+            form.reset()
             imgui.close_current_popup()
         elif clicked == 1:
-            self._password = self._password_repeat = ""
+            form.reset()
             imgui.close_current_popup()
         end_dialog()
 

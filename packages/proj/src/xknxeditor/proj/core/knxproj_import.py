@@ -56,6 +56,13 @@ from xknxeditor.proj.core.import_notes import (
     dumps,
 )
 from xknxeditor.proj.core.knxproj_protect import is_password_protected
+from xknxeditor.proj.core.project_secrets import (
+    ProjectCipher,
+    ProjectPasswordRequired,
+    has_secure_data,
+    new_salt,
+    recrypt,
+)
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
     Area,
@@ -169,6 +176,7 @@ def import_knxproj(
     dest: Path | str,
     *,
     password: str | None = None,
+    project_password: str | None = None,
     language: str | None = None,
     project_id: str | None = None,
 ) -> str:
@@ -176,6 +184,11 @@ def import_knxproj(
 
     ``password`` is the project password (for encrypted archives); ``language`` picks the
     translation (e.g. ``"de-DE"``), falling back to the project default. Returns the project id.
+
+    A protected archive's password protects the new project, else ``project_password`` (if any):
+    the project's secrets are stored encrypted with it (see :mod:`project_secrets`). An archive with
+    KNX Secure data but neither password raises :class:`ProjectPasswordRequired`, before ``dest``
+    is written.
 
     Raises :class:`~xknxproject.exceptions.InvalidPasswordException` when the archive is protected
     and no/a wrong password was given (standard-zip encryption reports a wrong password only as a
@@ -209,6 +222,9 @@ def import_knxproj(
     # An import always produces a new project; start from a clean file so re-importing over an
     # existing target does not clash with its rows. Done only after a successful parse, so a failed
     # import (e.g. wrong password) never destroys an existing project.
+    protecting = (
+        password if password and is_password_protected(source) else project_password
+    )
     dest_path = Path(dest)
     dest_path.unlink(missing_ok=True)
     engine = make_engine(url_for(dest_path))
@@ -221,11 +237,25 @@ def import_knxproj(
                 extras,
                 knx_master_xml=master_xml,
                 product_members=product_members,
-                password=password
-                if password and is_password_protected(source)
-                else None,
             )
+            if protecting:
+                # Encrypt the secrets in the same transaction, so none reaches the file in the clear.
+                salt = new_salt()
+                cipher = ProjectCipher.derive(protecting, salt)
+                recrypt(session, None, cipher)
+                project = session.query(Project).one()
+                project.password_salt = salt
+                project.password_check = cipher.check_value()
+            elif has_secure_data(session):
+                session.rollback()
+                raise ProjectPasswordRequired(
+                    "a project with KNX Secure data needs a password"
+                )
             session.commit()
+    except ProjectPasswordRequired:
+        engine.dispose()
+        dest_path.unlink(missing_ok=True)
+        raise
     finally:
         engine.dispose()
     logger.debug("import_knxproj done: pid=%s -> %s", pid, dest)
@@ -1317,7 +1347,6 @@ def _build(
     *,
     knx_master_xml: bytes | None = None,
     product_members: bytes | None = None,
-    password: str | None = None,
 ) -> None:
     # Raw parser inventory at INFO (not DEBUG) so a default remote log shows what xknxproject
     # handed us. parser.devices is the flat concatenation of every line's devices across all areas
@@ -1351,7 +1380,6 @@ def _build(
         knx_master_xml=knx_master_xml,
         imported_product_members=product_members,
         imported_project_files=extras.project_files,
-        password=password,
         traces=[
             ProjectTrace(
                 project_id=pid,

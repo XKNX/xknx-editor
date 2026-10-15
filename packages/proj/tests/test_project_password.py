@@ -1,5 +1,5 @@
-"""Project name and password: undoable edits, and the password-protected project folder of an
-export."""
+"""Project name and password: the name is an undoable edit, the password protects the project and
+the project folder of an export."""
 
 import io
 import json
@@ -12,7 +12,13 @@ import pytest
 import pyzipper
 from xknxproject.exceptions import InvalidPasswordException
 
-from xknxeditor.proj import ProjectService, export_knxproj, import_knxproj
+from xknxeditor.proj import (
+    InvalidProjectPassword,
+    ProjectPasswordRequired,
+    ProjectService,
+    export_knxproj,
+    import_knxproj,
+)
 from xknxeditor.proj.core.knxproj_protect import (
     ets6_zip_password,
     is_password_protected,
@@ -59,7 +65,7 @@ def test_aes_folder() -> None:
 @pytest.mark.parametrize("schema", ["20", "23"])
 def test_protected_export_round_trip(tmp_path: Path, schema: str) -> None:
     out = tmp_path / "out.knxproj"
-    export_knxproj(_project(tmp_path, "geheim"), out, schema=schema)
+    export_knxproj(_project(tmp_path, "geheim"), out, schema=schema, password="geheim")
 
     assert is_password_protected(out)
     with zipfile.ZipFile(out) as archive:
@@ -87,9 +93,11 @@ def test_protected_export_round_trip(tmp_path: Path, schema: str) -> None:
     again = tmp_path / "again.xknx"
     pid = import_knxproj(out, again, password="geheim")
     svc = ProjectService()
-    svc.open(again)
+    with pytest.raises(ProjectPasswordRequired):
+        svc.open(again)
     # The import keeps the password, so the next export is protected again.
-    assert svc.project(pid).password == "geheim"
+    svc.open(again, "geheim")
+    assert svc.project_password(pid) == "geheim"
     assert svc.project(pid).name == "Haus"
     svc.close(pid)
 
@@ -105,27 +113,62 @@ def test_unprotected_export(tmp_path: Path) -> None:
     pid = import_knxproj(out, tmp_path / "again.xknx")
     svc = ProjectService()
     svc.open(tmp_path / "again.xknx")
-    assert svc.project(pid).password is None
+    assert not svc.is_password_protected(pid)
     svc.close(pid)
 
 
-def test_name_and_password_are_undoable(tmp_path: Path) -> None:
+def test_name_is_undoable_and_password_is_not(tmp_path: Path) -> None:
     svc = ProjectService()
     pid = svc.create(tmp_path / "p.xknx", "P-1234", name="Haus")
     svc.set_project_name(pid, "Wohnung")
     svc.set_project_password(pid, "geheim")
-    assert (svc.project(pid).name, svc.project(pid).password) == ("Wohnung", "geheim")
-    svc.set_project_password(pid, None)
-    assert svc.project(pid).password is None
+    assert (svc.project(pid).name, svc.project_password(pid)) == ("Wohnung", "geheim")
 
     assert svc.undo(pid)
-    assert svc.project(pid).password == "geheim"
-    assert svc.undo(pid)
-    assert svc.project(pid).password is None
-    assert svc.undo(pid)
     assert svc.project(pid).name == "Haus"
+    assert svc.project_password(pid) == "geheim"
+    assert not svc.undo(pid)
     assert svc.redo(pid)
     assert svc.project(pid).name == "Wohnung"
+    svc.set_project_password(pid, None)
+    assert not svc.is_password_protected(pid)
+    svc.close(pid)
+
+
+def test_open_needs_the_password(tmp_path: Path) -> None:
+    path = _project(tmp_path, "geheim")
+    svc = ProjectService()
+    with pytest.raises(ProjectPasswordRequired):
+        svc.open(path)
+    with pytest.raises(InvalidProjectPassword):
+        svc.open(path, "falsch")
+    pid = svc.open(path, "geheim")
+    svc.set_project_password(pid, "anders")
+    svc.close(pid)
+    with pytest.raises(InvalidProjectPassword):
+        svc.open(path, "geheim")
+    pid = svc.open(path, "anders")
+    assert svc.project_password(pid) == "anders"
+    svc.close(pid)
+    with pytest.raises(InvalidProjectPassword):
+        export_knxproj(path, tmp_path / "out.knxproj", password="geheim")
+
+
+def test_a_password_kept_in_the_clear_is_taken_over(tmp_path: Path) -> None:
+    path = _project(tmp_path, None)
+    with closing(sqlite3.connect(path)) as db, db:
+        db.execute("ALTER TABLE projects ADD COLUMN password TEXT")
+        db.execute("UPDATE projects SET password = 'geheim'")
+        db.execute(
+            "INSERT INTO events (type, data, timestamp, reverted) VALUES "
+            "('SetProjectPassword', '{\"password\": \"geheim\"}', '2026-01-01', 0)"
+        )
+    svc = ProjectService()
+    pid = svc.open(path)
+    assert svc.project_password(pid) == "geheim"
+    svc.close(pid)
+    assert b"geheim" not in path.read_bytes()
+    pid = svc.open(path, "geheim")
     svc.close(pid)
 
 

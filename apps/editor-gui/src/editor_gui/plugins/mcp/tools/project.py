@@ -322,20 +322,32 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return {"open": True, "path": str(project.path) if project.path else None}
 
     @tool
-    def project_open(path: str) -> dict[str, Any]:
-        """Open an existing KNX project (.xknx path on the editor host)."""
-        ctx.run_locked(lambda: project.open(Path(path)), timeout=_SLOW)
+    def project_open(path: str, password: str | None = None) -> dict[str, Any]:
+        """Open an existing KNX project (.xknx path on the editor host).
+
+        ``password`` is required for a password-protected project."""
+        ctx.run_locked(lambda: project.open(Path(path), password), timeout=_SLOW)
         return {"open": True, "path": str(project.path) if project.path else None}
 
     @tool
     def project_import_knxproj(
-        source: str, dest: str, password: str | None = None
+        source: str,
+        dest: str,
+        password: str | None = None,
+        project_password: str | None = None,
     ) -> dict[str, Any]:
         """Import a .knxproj (``source``) into a new .xknx project at ``dest`` and open it.
 
-        Both paths are on the editor host. ``password`` is required for encrypted projects."""
+        Both paths are on the editor host. ``password`` is required for encrypted projects; it
+        then protects the new project too. An archive with KNX Secure data but without a password
+        needs ``project_password`` to protect the new project."""
         ctx.run_locked(
-            lambda: project.import_knxproj(Path(source), Path(dest), password=password),
+            lambda: project.import_knxproj(
+                Path(source),
+                Path(dest),
+                password=password,
+                project_password=project_password,
+            ),
             timeout=_SLOW,
         )
         return {"open": True, "path": str(project.path) if project.path else None}
@@ -370,6 +382,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             result = export_knxproj(
                 source,
                 Path(dest),
+                password=project.project_password,
                 extra_files=bundle.extra_files,
                 master_xml=bundle.master_xml,
                 # Substitute the canonical signed master when the bundled one is unusable.

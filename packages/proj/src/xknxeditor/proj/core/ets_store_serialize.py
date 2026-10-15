@@ -22,7 +22,7 @@ import re
 import shutil
 import xml.etree.ElementTree as ET
 import zipfile
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from io import BytesIO
 from pathlib import Path, PurePosixPath
@@ -571,6 +571,7 @@ def write_project_store(
     project_name: str | None = None,
     product_members: Mapping[str, bytes] | None = None,
     overwrite: bool = True,
+    reveal: Callable[[bytes], bytes] | None = None,
 ) -> StoreStreams:
     """Write a complete ``P-XXXX`` store directory ETS 6 can open.
 
@@ -587,8 +588,14 @@ def write_project_store(
     occupied between picking the id and writing is never clobbered.
 
     ``project_name`` overrides the stored project name (e.g. to tag a new copy); ``None`` keeps it.
+    ``reveal`` turns a stream with the project's encrypted secrets into one with them in the clear
+    (see :meth:`ProjectService.reveal`).
     """
     built = build_store_streams(project, installation, pid=pid, name=project_name)
+    if reveal is not None:
+        built.streams.update(
+            {name: reveal(data) for name, data in built.streams.items()}
+        )
     # Guard every path derived from the id: a project id from an imported archive is untrusted and
     # a traversal value (e.g. "../victim") would otherwise escape the store and misdirect rmtree.
     if not _PID_RE.fullmatch(built.pid):

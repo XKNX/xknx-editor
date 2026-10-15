@@ -57,6 +57,10 @@ from xknxeditor.proj.core import (
     trace_key_available,
     write_ga_export,
 )
+from xknxeditor.proj.core.project_secrets import (
+    InvalidProjectPassword,
+    ProjectPasswordRequired,
+)
 from xknxeditor.proj.db import ProjectStorageError, ensure_sqlite_writable
 
 __all__ = [
@@ -66,10 +70,12 @@ __all__ = [
     "CompactCancelled",
     "CompactResult",
     "ExportResult",
+    "InvalidProjectPassword",
     "KeyExtractionError",
     "MyKnxError",
     "MyKnxSession",
     "ProductPruneReport",
+    "ProjectPasswordRequired",
     "ProjectService",
     "ProjectStorageError",
     "current_marker",

@@ -899,7 +899,8 @@ class ProjectStrings:
     @property
     def PROJECT_PASSWORD_PROMPT(self) -> str:
         return _(
-            "Exported projects are protected with this password; importing them asks for it."
+            "The project and its exports are protected with this password; opening or importing "
+            "them asks for it. A password change cannot be undone."
         )
 
     @property
@@ -913,8 +914,8 @@ class ProjectStrings:
     @property
     def PROJECT_PASSWORD_REQUIRED(self) -> str:
         return _(
-            "A project with KNX Secure devices needs a password: it protects their keys in "
-            "exported projects."
+            "A project with KNX Secure devices needs a password: it protects their keys in the "
+            "project and in its exports."
         )
 
     @property

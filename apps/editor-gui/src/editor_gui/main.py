@@ -65,6 +65,7 @@ from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.fonts import heading, load_fonts
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
+from editor_gui.widgets.password_form import NewPasswordForm
 from editor_gui.window_title import set_window_title
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
@@ -72,8 +73,10 @@ from xknxeditor.proj import (
     CompactCancelled,
     CompactResult,
     ExportResult,
+    InvalidProjectPassword,
     MyKnxError,
     MyKnxSession,
+    ProjectPasswordRequired,
     ProjectStorageError,
     default_myknx_dll_path,
     export_knxproj,
@@ -380,6 +383,18 @@ class KnxGuiApp:
         self._password_prompt_requested = False
         self._import_password = ""
         self._import_password_error: str | None = None
+        # The password for an import of an archive with KNX Secure data but without a password.
+        self._import_project_password: str | None = None
+        # Opening a password-protected project: the file, the entered password and the last error.
+        self._open_password_path: str | None = None
+        self._open_password_requested = False
+        self._open_password = ""
+        self._open_password_error: str | None = None
+        # The password a project with KNX Secure data needs: set it (``_action``) or give up.
+        self._new_password_requested = False
+        self._new_password_action: Callable[[str], None] | None = None
+        self._new_password_cancel: Callable[[], None] | None = None
+        self._new_password_form = NewPasswordForm()
         # Network-drive consent: when opening/importing to a location SQLite can't use (SMB/NFS), we
         # ask before working on a local copy. `_action` runs on "Use local copy"; `_home` is shown.
         self._network_consent_requested = False
@@ -392,6 +407,7 @@ class KnxGuiApp:
         self._import_thread: threading.Thread | None = None
         self._import_pw: str | None = None
         self._import_needs_password = False
+        self._import_needs_project_password = False
         # Generic background worker (catalog load, project open) sharing the progress modal.
         self._bg_thread: threading.Thread | None = None
         # Shared progress-modal state, driven by both the importer and generic background ops.
@@ -862,6 +878,7 @@ class KnxGuiApp:
         # mid-export can't pair project A's file with project B's manufacturer bundle.
         program_refs = self._project_service.program_refs()
         remove_unused = self._export_remove_unused
+        password = self._project_service.project_password
 
         def _run() -> None:
             self._log.debug(
@@ -894,6 +911,7 @@ class KnxGuiApp:
                 result = export_knxproj(
                     source,
                     Path(dest),
+                    password=password,
                     schema=self._export_schema,
                     extra_files=extra_files,
                     master_xml=master_xml,
@@ -1042,6 +1060,7 @@ class KnxGuiApp:
         if source is None or (self._myknx_thread and self._myknx_thread.is_alive()):
             return
         program_refs = self._project_service.program_refs()
+        reveal = self._project_service.reveal
 
         def _run() -> None:
             try:
@@ -1088,6 +1107,7 @@ class KnxGuiApp:
                         project_name=project_name,
                         product_members=members,
                         overwrite=not create_copy,
+                        reveal=reveal,
                     )
                 self._log.info(
                     "exported to ETS 6 ProjectStore",
@@ -1447,7 +1467,9 @@ class KnxGuiApp:
         # A network destination asks for consent (work on a local copy) before the import runs.
         self._maybe_consent_then(dest, lambda: self._start_import(None))
 
-    def _start_import(self, password: str | None) -> None:
+    def _start_import(
+        self, password: str | None, project_password: str | None = None
+    ) -> None:
         """Run the import on a worker thread so the UI stays responsive (the facade holds the shared
         lock, so per-frame reads bail to empty placeholders while it runs)."""
         source, dest = self._import_knxproj_source, self._import_knxproj_dest
@@ -1470,21 +1492,31 @@ class KnxGuiApp:
             return
         self._log.info("importing knxproj", source=source, dest=dest)
         self._import_pw = password
+        self._import_project_password = project_password
         self._import_needs_password = False
+        self._import_needs_project_password = False
         self._begin_progress(S.IMPORT_PROGRESS_TEXT)
         self._import_thread = threading.Thread(
             target=self._run_import,
-            args=(source, dest, password),
+            args=(source, dest, password, project_password),
             daemon=True,
             name="knxproj-import",
         )
         self._import_thread.start()
         self._log.debug("knxproj import dispatched", thread=self._import_thread.name)
 
-    def _run_import(self, source: str, dest: str, password: str | None) -> None:
+    def _run_import(
+        self,
+        source: str,
+        dest: str,
+        password: str | None,
+        project_password: str | None,
+    ) -> None:
         # Worker thread: only touches services + logging (never imgui). Outcome is read in
         # _poll_import on the UI thread once the thread has finished.
-        self._import_needs_password = self._try_import_knxproj(source, dest, password)
+        self._import_needs_password = self._try_import_knxproj(
+            source, dest, password, project_password
+        )
 
     def _poll_import(self) -> None:
         thread = self._import_thread
@@ -1493,7 +1525,14 @@ class KnxGuiApp:
         self._log.debug("knxproj import worker finished", thread=thread.name)
         self._import_thread = None
         self._progress_running = False
-        if self._import_needs_password:
+        if self._import_needs_project_password:
+            # An archive with KNX Secure data but no password: the new project needs one.
+            password = self._import_pw
+            self._request_new_password(
+                lambda chosen: self._start_import(password, chosen),
+                self._clear_import_prompt,
+            )
+        elif self._import_needs_password:
             # Wrong password on retry (a password was supplied); otherwise the first prompt.
             self._import_password_error = (
                 S.IMPORT_PASSWORD_WRONG if self._import_pw is not None else None
@@ -1598,7 +1637,13 @@ class KnxGuiApp:
             imgui.close_current_popup()
         end_dialog()
 
-    def _try_import_knxproj(self, source: str, dest: str, password: str | None) -> bool:
+    def _try_import_knxproj(
+        self,
+        source: str,
+        dest: str,
+        password: str | None,
+        project_password: str | None = None,
+    ) -> bool:
         """Attempt the import. Returns ``True`` if a password is required (or wrong) and the caller
         should prompt; ``False`` on success or on any other failure (which is logged)."""
 
@@ -1613,7 +1658,10 @@ class KnxGuiApp:
         self._import_notes = []
         try:
             self._project_service.import_knxproj(
-                Path(source), Path(dest), password=password
+                Path(source),
+                Path(dest),
+                password=password,
+                project_password=project_password,
             )
             # Import opens the freshly built .xknx; record it in Open Recent like a normal open.
             self._add_recent(dest)
@@ -1624,6 +1672,8 @@ class KnxGuiApp:
                 self._mirror_notice = str(self._project_service.mirror_home)
         except InvalidPasswordException:
             return True
+        except ProjectPasswordRequired:
+            self._import_needs_project_password = True
         except ProjectStorageError as e:
             # A location that can't host the SQLite project (network share, read-only). The toast
             # system surfaces this error record; keep the text short and actionable.
@@ -1863,6 +1913,7 @@ class KnxGuiApp:
         self._import_knxproj_dest = None
         self._import_password = ""
         self._import_password_error = None
+        self._import_project_password = None
 
     def _do_new_project(self, path: str) -> None:
         name = self._new_project_name.strip() or "New project"
@@ -1950,13 +2001,29 @@ class KnxGuiApp:
                 f"{text} — {label}" if label else text,
             )
 
+        self._open_xknx(path, report)
+
+    def _open_xknx(
+        self,
+        path: str,
+        report: Callable[[int, int, str], None],
+        password: str | None = None,
+    ) -> None:
+        """Open the ``.xknx`` at ``path`` behind the progress modal. A protected project asks for
+        its password; one with KNX Secure data but no password asks to set one."""
+
         def worker() -> None:
             self._project_service.build_progress = report
             try:
-                self._project_service.open(Path(path))
+                self._project_service.open(Path(path), password)
                 self._add_recent(path)
                 if self._project_service.mirroring_active:
                     self._mirror_notice = str(self._project_service.mirror_home)
+                self._require_password_if_secure()
+            except ProjectPasswordRequired:
+                self._request_open_password(path, None)
+            except InvalidProjectPassword:
+                self._request_open_password(path, S.IMPORT_PASSWORD_WRONG)
             except ProjectStorageError as e:
                 # The file lives somewhere SQLite can't operate (network share, read-only dir).
                 self._log.error("Cannot open the project here", path=path, error=str(e))
@@ -1969,9 +2036,121 @@ class KnxGuiApp:
 
         # Open on a worker thread behind the spinner: building a large project's device view is slow.
         # A network location asks for consent first (work on a local copy), then runs the worker.
+        if password is not None:
+            self._run_bg(S.PROGRESS_OPEN_PROJECT, worker)
+            return
         self._maybe_consent_then(
             path, lambda: self._run_bg(S.PROGRESS_OPEN_PROJECT, worker)
         )
+
+    def _request_open_password(self, path: str, error: str | None) -> None:
+        # Worker thread: only flags; the modal opens on the UI thread.
+        self._open_password_path = path
+        self._open_password = ""
+        self._open_password_error = error
+        self._open_password_requested = True
+
+    def _render_open_password_modal(self) -> None:
+        title = f"{S.IMPORT_PASSWORD_TITLE}###open-password"
+        # Opened once the open's worker (and its progress modal) is gone.
+        if self._open_password_requested and self._bg_thread is None:
+            imgui.open_popup(title)
+            self._open_password_requested = False
+        if not begin_dialog(title, width=420.0):
+            return
+        imgui.text_wrapped(S.OPEN_PASSWORD_PROMPT)
+        imgui.set_next_item_width(-1)
+        submitted, self._open_password = imgui.input_text(
+            "##open-password",
+            self._open_password,
+            imgui.InputTextFlags_.password | imgui.InputTextFlags_.enter_returns_true,
+        )
+        if self._open_password_error:
+            imgui.text_colored(
+                imgui.ImVec4(0.9, 0.4, 0.4, 1.0), self._open_password_error
+            )
+        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
+        path = self._open_password_path
+        if (clicked == 0 or submitted) and path is not None and self._open_password:
+            imgui.close_current_popup()
+            password, self._open_password = self._open_password, ""
+
+            def report(done: int, total: int, label: str = "") -> None:
+                text = S.PROGRESS_DEVICES.format(done=done, total=total)
+                self.set_progress(
+                    done / total if total else None,
+                    f"{text} — {label}" if label else text,
+                )
+
+            self._open_xknx(path, report, password)
+        elif clicked == 1:
+            self._open_password_path = None
+            self._open_password = ""
+            imgui.close_current_popup()
+        end_dialog()
+
+    def _require_password_if_secure(self) -> None:
+        """Ask for a password when the open project holds KNX Secure data without one (from an
+        earlier version); without it the project is closed again."""
+        if not self._project_service.needs_password_setup():
+            return
+
+        def protect(password: str) -> None:
+            self._run_bg(
+                S.PROGRESS_PROTECT_PROJECT,
+                lambda: self._project_service.set_project_password(password),
+            )
+
+        def give_up() -> None:
+            self._log.warning(
+                "project closed: a project with KNX Secure data needs a password"
+            )
+            self._project_service.close()
+
+        self._request_new_password(protect, give_up)
+
+    def _request_new_password(
+        self, action: Callable[[str], None], cancel: Callable[[], None]
+    ) -> None:
+        self._new_password_action = action
+        self._new_password_cancel = cancel
+        self._new_password_form.reset()
+        self._new_password_requested = True
+
+    def _render_new_password_modal(self) -> None:
+        title = f"{S.IMPORT_PASSWORD_TITLE}###new-password"
+        # Opened once the worker that asked for it (and its progress modal) is gone.
+        if (
+            self._new_password_requested
+            and self._bg_thread is None
+            and self._import_thread is None
+        ):
+            imgui.open_popup(title)
+            self._new_password_requested = False
+        if not begin_dialog(title, width=460.0):
+            return
+        imgui.text_wrapped(S.NEW_PASSWORD_PROMPT)
+        imgui.spacing()
+        form = self._new_password_form
+        submitted = form.render(
+            S.PASSWORD_LABEL, S.PASSWORD_REPEAT_LABEL, S.PASSWORD_MISMATCH
+        )
+        clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL, enabled=[form.valid, True])
+        if clicked == 0 or (submitted and form.valid):
+            action, password = self._new_password_action, form.password
+            self._new_password_action = self._new_password_cancel = None
+            form.reset()
+            imgui.close_current_popup()
+            if action is not None:
+                action(password)
+        elif clicked == 1:
+            cancel = self._new_password_cancel
+            self._new_password_action = self._new_password_cancel = None
+            form.reset()
+            imgui.close_current_popup()
+            if cancel is not None:
+                cancel()
+        end_dialog()
 
     def _prompt_import_dest(self, source: str) -> None:
         """Remember the .knxproj source and ask where to save the imported .xknx project."""
@@ -2933,6 +3112,8 @@ class KnxGuiApp:
         self._project_plugin.render_overlays()
         self._render_progress_modal()
         self._render_import_password_modal()
+        self._render_open_password_modal()
+        self._render_new_password_modal()
         self._render_network_consent_modal()
         self._render_overwrite_modal()
         self._render_ga_export_options_modal()

@@ -1,4 +1,5 @@
-"""The KNX Secure keys of devices and the installation survive an export and the import back."""
+"""The KNX Secure keys of devices and the installation survive an export and the import back, and
+the project file keeps them encrypted with the project password."""
 
 import zipfile
 from pathlib import Path
@@ -7,7 +8,12 @@ from xml.etree import ElementTree as ET
 import pytest
 from sqlalchemy.orm import Session
 
-from xknxeditor.proj import ProjectService, export_knxproj, import_knxproj
+from xknxeditor.proj import (
+    ProjectPasswordRequired,
+    ProjectService,
+    export_knxproj,
+    import_knxproj,
+)
 from xknxeditor.proj.core.service import DeviceKeys
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import Device, Installation, Project
@@ -16,7 +22,7 @@ _KEY = "AAECAwQFBgcICQoLDA0ODw=="
 _SECURITY = {
     "ToolKey": _KEY,
     "LoadedToolKey": _KEY,
-    "DeviceAuthenticationCode": "auth-code",
+    "DeviceAuthenticationCode": "Auth-Code-7",
     "SequenceNumber": "4711",
     "SequenceNumberTimestamp": "2024-01-02T03:04:05Z",
     "UnicastBroadcastBlocking": "On",
@@ -24,7 +30,8 @@ _SECURITY = {
 }
 _INSTALLATION_KEYS = {"BCUKey": "305419896", "IPRoutingBackboneKey": _KEY}
 _SALT = "c2FsdA=="
-_TRACING_PASSWORD = "trace"
+_TRACING_PASSWORD = "Trace-Secret-42"
+_PASSWORD = "Projekt-Passwort-9"
 
 
 def _ln(tag: str) -> str:
@@ -116,24 +123,37 @@ def test_export_keeps_what_the_schema_defines(
     assert (_SALT in salts) is (schema == "23")
 
 
-def test_import_keeps_the_keys(tmp_path: Path) -> None:
+def _secrets_in(path: Path) -> list[str]:
+    """The test's secrets (and the password) found in the clear in the file at ``path``."""
+    data = path.read_bytes()
+    clear = [_KEY, "Auth-Code-7", "305419896", _TRACING_PASSWORD, _PASSWORD]
+    return [value for value in clear if value.encode() in data]
+
+
+def test_import_keeps_the_keys_encrypted(tmp_path: Path) -> None:
     src, _ = _project(tmp_path, _SECURITY)
     out = tmp_path / "out.knxproj"
     export_knxproj(src, out, schema="23")
     again = tmp_path / "again.xknx"
-    pid = import_knxproj(out, again)
+    # An archive with KNX Secure data but no password needs one for the new project.
+    with pytest.raises(ProjectPasswordRequired):
+        import_knxproj(out, again)
+    assert not again.exists()
+    pid = import_knxproj(out, again, project_password=_PASSWORD)
+    assert _secrets_in(again) == []
 
     svc = ProjectService()
-    svc.open(again)
+    with pytest.raises(ProjectPasswordRequired):
+        svc.open(again)
+    svc.open(again, _PASSWORD)
     device = next(d for d in svc.devices(pid) if d.product_ref_id == "M-1_H-1_P-1")
     stored = ET.fromstring((device.extra_subtrees or {})["Security"])
-    assert dict(stored.attrib) == _SECURITY
-    installation = svc.installations(pid)[0]
-    attributes = installation.extra_attributes or {}
-    assert {k: attributes.get(k) for k in _INSTALLATION_KEYS} == _INSTALLATION_KEYS
-    assert svc.project(pid).extra_attributes == {
-        "ProjectTracingPassword": _TRACING_PASSWORD
+    secret = {"ToolKey", "LoadedToolKey", "DeviceAuthenticationCode"}
+    assert {k: v for k, v in stored.attrib.items() if k not in secret} == {
+        k: v for k, v in _SECURITY.items() if k not in secret
     }
+    assert all(stored.get(k, "").startswith("enc1:") for k in secret)
+    installation = svc.installations(pid)[0]
     salts = {
         s.master_salt
         for a in installation.areas
@@ -146,7 +166,63 @@ def test_import_keeps_the_keys(tmp_path: Path) -> None:
     assert svc.device_keys(pid, device.id) == DeviceKeys(
         tool_key=key, loaded_tool_key=key
     )
+    # The undo history keeps a removed device's keys encrypted too.
+    svc.remove_device(pid, device.id)
+    with pytest.raises(ValueError):
+        svc.set_project_password(pid, None)
+    svc.set_project_password(pid, "Anderes-Passwort")
     svc.close(pid)
+    assert _secrets_in(again) == []
+
+    pid = svc.open(again, "Anderes-Passwort")
+    assert svc.undo(pid)
+    device = next(d for d in svc.devices(pid) if d.product_ref_id == "M-1_H-1_P-1")
+    assert svc.device_keys(pid, device.id) == DeviceKeys(
+        tool_key=key, loaded_tool_key=key
+    )
+    svc.close(pid)
+
+    # The export carries every secret in the clear inside its protected project folder.
+    exported = tmp_path / "exported.knxproj"
+    export_knxproj(again, exported, schema="23", password="Anderes-Passwort")
+    back = tmp_path / "back.xknx"
+    pid = import_knxproj(exported, back, password="Anderes-Passwort")
+    svc.open(back, "Anderes-Passwort")
+    installation = svc.installations(pid)[0]
+    attributes = installation.extra_attributes or {}
+    assert {
+        k: svc.reveal(pid, attributes[k].encode()).decode() for k in _INSTALLATION_KEYS
+    } == _INSTALLATION_KEYS
+    tracing = (svc.project(pid).extra_attributes or {})["ProjectTracingPassword"]
+    assert svc.reveal(pid, tracing.encode()).decode() == _TRACING_PASSWORD
+    device = next(d for d in svc.devices(pid) if d.product_ref_id == "M-1_H-1_P-1")
+    assert svc.device_keys(pid, device.id) == DeviceKeys(
+        tool_key=key, loaded_tool_key=key
+    )
+    svc.close(pid)
+
+
+def test_an_unprotected_project_with_secure_data_gets_a_password(
+    tmp_path: Path,
+) -> None:
+    src, device_id = _project(tmp_path, _SECURITY)
+    svc = ProjectService()
+    pid = svc.open(src)
+    assert svc.needs_password(pid)
+    svc.set_project_password(pid, _PASSWORD)
+    assert not svc.needs_password(pid)
+    svc.close(pid)
+    assert _secrets_in(src) == []
+    pid = svc.open(src, _PASSWORD)
+    key = bytes(range(16))
+    assert svc.device_keys(pid, device_id) == DeviceKeys(
+        tool_key=key, loaded_tool_key=key
+    )
+    svc.close(pid)
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out, schema="23", password=_PASSWORD)
+    with zipfile.ZipFile(out) as archive:
+        assert "P-SEC.zip" in archive.namelist()
 
 
 def test_device_keys(tmp_path: Path) -> None:

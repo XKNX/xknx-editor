@@ -90,10 +90,11 @@ class Project(Base):
     # texts, IP config, multi-segment lines). Echoed at export so the user is reminded. Empty for a
     # freshly created project or a lossless import.
     import_notes: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    # The project password: an export writes the project folder password-protected with it. Kept
-    # with the project (like the Secure keys it protects in the exported archive); ``None`` when the
-    # project is not protected. Taken over from a protected ``.knxproj`` on import.
-    password: Mapped[str | None] = mapped_column(Text)
+    # Password protection (see core.project_secrets): the salt of the key derived from the project
+    # password and a value encrypted with that key, to detect a wrong password. The password itself
+    # is not stored. ``None`` when the project is not protected.
+    password_salt: Mapped[str | None] = mapped_column(String)
+    password_check: Mapped[str | None] = mapped_column(String)
 
     # ETS project-log entries (ProjectInformation/ProjectTraces), carried over verbatim so a
     # round-trip export preserves the project history. The ``comment`` is stored exactly as it

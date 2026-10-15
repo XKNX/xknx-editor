@@ -1531,8 +1531,8 @@ msgstr "Wachtwoord verwijderen"
 msgid "Project Password"
 msgstr "Projectwachtwoord"
 
-msgid "Exported projects are protected with this password; importing them asks for it."
-msgstr "Geëxporteerde projecten worden met dit wachtwoord beveiligd; bij het importeren wordt erom gevraagd."
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "Het project en zijn exports worden met dit wachtwoord beveiligd; bij het openen of importeren wordt erom gevraagd. Een wachtwoordwijziging kan niet ongedaan worden gemaakt."
 
 msgid "Repeat Password"
 msgstr "Wachtwoord herhalen"
@@ -1540,5 +1540,5 @@ msgstr "Wachtwoord herhalen"
 msgid "The passwords do not match."
 msgstr "De wachtwoorden komen niet overeen."
 
-msgid "A project with KNX Secure devices needs a password: it protects their keys in exported projects."
-msgstr "Een project met KNX Secure apparaten heeft een wachtwoord nodig: het beveiligt hun sleutels in geëxporteerde projecten."
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "Een project met KNX Secure apparaten heeft een wachtwoord nodig: het beveiligt hun sleutels in het project en in de exports ervan."

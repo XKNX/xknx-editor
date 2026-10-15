@@ -1689,40 +1689,6 @@ class SetProjectName(Event):
 
 @_register
 @dataclass
-class SetProjectPassword(Event):
-    """Set (``password``) or remove (``None``) the project password."""
-
-    event_type: ClassVar[str] = "SetProjectPassword"
-
-    project_id: str
-    password: str | None
-    old_password: str | None = None
-
-    def apply(self, session: Session) -> None:
-        project = session.get(Project, self.project_id)
-        if project is not None:
-            self.old_password = project.password
-            project.password = self.password
-
-    def revert(self, session: Session) -> None:
-        project = session.get(Project, self.project_id)
-        if project is not None:
-            project.password = self.old_password
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "project_id": self.project_id,
-            "password": self.password,
-            "old_password": self.old_password,
-        }
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> SetProjectPassword:
-        return cls(**data)
-
-
-@_register
-@dataclass
 class RenameLine(Event):
     event_type: ClassVar[str] = "RenameLine"
 

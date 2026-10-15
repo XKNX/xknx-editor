@@ -17,7 +17,7 @@ from typing import Any
 from uuid import uuid4
 from xml.etree import ElementTree as ET
 
-from sqlalchemy import func
+from sqlalchemy import func, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
@@ -85,7 +85,6 @@ from xknxeditor.proj.core.events import (
     SetGroupAddressDatapointType,
     SetParameter,
     SetProjectName,
-    SetProjectPassword,
     SetSpaceType,
     SyncDeviceComObjects,
     UnlinkComObject,
@@ -98,6 +97,14 @@ from xknxeditor.proj.core.ga_export import (
     GroupAddressStyleMismatch,
 )
 from xknxeditor.proj.core.product_prune import ProgressCallback
+from xknxeditor.proj.core.project_secrets import (
+    InvalidProjectPassword,
+    ProjectCipher,
+    ProjectPasswordRequired,
+    has_secure_data,
+    new_salt,
+    recrypt,
+)
 from xknxeditor.proj.core.skeleton import MEDIUM_TP, seed_new_project
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
@@ -127,6 +134,10 @@ class _Open:
     engine: Engine
     session: Session
     store: EventStore
+    # The key of a password-protected project and its password (needed by the export), held only
+    # while the project is open; ``None`` for an unprotected project.
+    cipher: ProjectCipher | None = None
+    password: str | None = None
 
 
 @dataclass(frozen=True)
@@ -279,21 +290,19 @@ def _address_order(device: Device) -> tuple[int, int, int, int, int]:
     return (0, line.area.address, line.address, device.address, device.id)
 
 
-# The secret attributes of the stored device subtrees, by subtree name.
-_DEVICE_SECRETS: dict[str, frozenset[str]] = {
-    "Security": frozenset(
-        {
-            "ToolKey",
-            "LoadedToolKey",
-            "LoadedIPRoutingBackboneKey",
-            "DeviceAuthenticationCode",
-            "DeviceManagementPassword",
-        }
-    ),
-    "BusInterfaces": frozenset({"Password"}),
-}
-# The secret attribute of the stored point-to-point links.
-_P2P_SECRETS = frozenset({"Key"})
+def _take_legacy_password(session: Session) -> str | None:
+    """The password an earlier build kept in the clear in ``projects.password``, removed from the
+    file together with the history steps that recorded it."""
+    columns = {row[1] for row in session.execute(text("PRAGMA table_info(projects)"))}
+    if "password" not in columns:
+        return None
+    password = session.execute(text("SELECT password FROM projects")).scalar()
+    if password is None:
+        return None
+    session.execute(text("UPDATE projects SET password = NULL"))
+    session.execute(text("DELETE FROM events WHERE type = 'SetProjectPassword'"))
+    session.commit()
+    return str(password) or None
 
 
 def _key(value: str | None) -> bytes | None:
@@ -305,17 +314,6 @@ def _key(value: str | None) -> bytes | None:
     except (binascii.Error, ValueError):
         return None
     return key if len(key) == 16 else None
-
-
-def _has_secret(xml: str, secrets: frozenset[str]) -> bool:
-    """Whether any element of the stored subtree ``xml`` carries one of the ``secrets`` attributes."""
-    if not xml:
-        return False
-    try:
-        root = ET.fromstring(xml)
-    except ET.ParseError:
-        return False
-    return any(secrets.intersection(el.attrib) for el in root.iter())
 
 
 class ProjectService:
@@ -348,13 +346,34 @@ class ProjectService:
         self._register(pid, engine, session)
         return pid
 
-    def open(self, path: Path | str) -> str:
+    def open(self, path: Path | str, password: str | None = None) -> str:
+        """Open the project at ``path``. A password-protected project needs its ``password``:
+        :class:`ProjectPasswordRequired` without one, :class:`InvalidProjectPassword` for a wrong
+        one. The password is ignored for an unprotected project."""
         engine = make_engine(url_for(Path(path)))
         session = Session(engine)
-        project = session.query(Project).first()
-        if project is None:
-            raise ValueError(f"{path} is not a project (no project row)")
-        self._register(project.id, engine, session)
+        try:
+            legacy = _take_legacy_password(session)
+            project = session.query(Project).first()
+            if project is None:
+                raise ValueError(f"{path} is not a project (no project row)")
+            cipher: ProjectCipher | None = None
+            if project.password_salt:
+                if not password:
+                    raise ProjectPasswordRequired("the project is password-protected")
+                cipher = ProjectCipher.derive(password, project.password_salt)
+                if not cipher.verify(project.password_check or ""):
+                    raise InvalidProjectPassword("wrong project password")
+        except Exception:
+            session.close()
+            engine.dispose()
+            raise
+        self._register(
+            project.id, engine, session, cipher, password if cipher else None
+        )
+        if legacy and cipher is None:
+            # A project of an earlier build kept its password in the clear: protect it with it.
+            self.set_project_password(project.id, legacy)
         return project.id
 
     def close(self, project_id: str) -> None:
@@ -1047,39 +1066,52 @@ class ProjectService:
         )
 
     def set_project_password(self, project_id: str, password: str | None) -> None:
-        """Set the project password, or remove it with ``None``."""
-        self._state(project_id).store.append(
-            SetProjectPassword(project_id=project_id, password=password or None)
-        )
+        """Set or change the project password, or remove it with ``None``. Every secret of the
+        project, the undo history included, is encrypted again with the new password (or stored in
+        the clear without one), so this is not an undoable step. A project with KNX Secure data
+        keeps a password: removing it raises :class:`ValueError`."""
+        state = self._state(project_id)
+        if not password and has_secure_data(state.session):
+            raise ValueError("a project with KNX Secure data needs a password")
+        salt = new_salt() if password else None
+        cipher = ProjectCipher.derive(password, salt) if password and salt else None
+        try:
+            recrypt(state.session, state.cipher, cipher)
+            project = state.session.query(Project).one()
+            project.password_salt = salt
+            project.password_check = cipher.check_value() if cipher else None
+            state.session.commit()
+        except Exception:
+            state.session.rollback()
+            raise
+        state.cipher = cipher
+        state.password = password or None
+
+    def is_password_protected(self, project_id: str) -> bool:
+        return self._state(project_id).cipher is not None
+
+    def project_password(self, project_id: str) -> str | None:
+        """The password of the open project, ``None`` when it is not protected."""
+        return self._state(project_id).password
+
+    def needs_password(self, project_id: str) -> bool:
+        """Whether the project holds KNX Secure data but no password protects it yet."""
+        state = self._state(project_id)
+        return state.cipher is None and has_secure_data(state.session)
+
+    def reveal(self, project_id: str, data: bytes) -> bytes:
+        """Serialized XML of the project with its encrypted secrets in the clear."""
+        cipher = self._state(project_id).cipher
+        return cipher.reveal(data) if cipher is not None else data
 
     def has_secure_data(self, project_id: str) -> bool:
-        """Whether the project holds KNX Secure data: secured group addresses or their keys, a
-        device's keys, authentication code or management password, a bus interface password, a
-        point-to-point link key, or the IP backbone key."""
-        session = self._state(project_id).session
-        secure_group_address = session.query(GroupAddress.id).filter(
-            (GroupAddress.data_secure.is_(True))
-            | (GroupAddress.security_key.is_not(None))
-        )
-        if session.query(secure_group_address.exists()).scalar():
-            return True
-        if any(
-            "IPRoutingBackboneKey" in (attrs or {}) or _has_secret(p2p, _P2P_SECRETS)
-            for attrs, p2p in session.query(
-                Installation.extra_attributes, Installation.p2p_links_xml
-            )
-        ):
-            return True
-        return any(
-            _has_secret(subtrees.get(name, ""), secrets)
-            for (subtrees,) in session.query(Device.extra_subtrees)
-            if subtrees
-            for name, secrets in _DEVICE_SECRETS.items()
-        )
+        """Whether the project holds KNX Secure data (see :func:`project_secrets.has_secure_data`)."""
+        return has_secure_data(self._state(project_id).session)
 
     def device_keys(self, project_id: str, device_id: int) -> DeviceKeys | None:
         """The device's tool keys from its ``<Security>``, or ``None`` when it has neither."""
-        device = self._state(project_id).session.get(Device, device_id)
+        state = self._state(project_id)
+        device = state.session.get(Device, device_id)
         raw = (device.extra_subtrees or {}).get("Security") if device else None
         if not raw:
             return None
@@ -1087,10 +1119,14 @@ class ProjectService:
             security = ET.fromstring(raw)
         except ET.ParseError:
             return None
-        keys = DeviceKeys(
-            tool_key=_key(security.get("ToolKey")),
-            loaded_tool_key=_key(security.get("LoadedToolKey")),
-        )
+
+        def key(name: str) -> bytes | None:
+            value = security.get(name)
+            if value and state.cipher is not None:
+                value = state.cipher.value(value)
+            return _key(value)
+
+        keys = DeviceKeys(tool_key=key("ToolKey"), loaded_tool_key=key("LoadedToolKey"))
         return keys if keys.tool_key or keys.loaded_tool_key else None
 
     def rename_line(self, project_id: str, line_id: int, name: str) -> None:
@@ -1749,8 +1785,17 @@ class ProjectService:
             ],
         )
 
-    def _register(self, project_id: str, engine: Engine, session: Session) -> None:
-        self._projects[project_id] = _Open(engine, session, EventStore(session))
+    def _register(
+        self,
+        project_id: str,
+        engine: Engine,
+        session: Session,
+        cipher: ProjectCipher | None = None,
+        password: str | None = None,
+    ) -> None:
+        self._projects[project_id] = _Open(
+            engine, session, EventStore(session), cipher, password
+        )
 
     @staticmethod
     def _path(state: _Open) -> Path:

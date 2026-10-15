@@ -81,6 +81,11 @@ from xknxeditor.proj.core.product_prune import (
     ProductPruneReport,
     prune_product_members,
 )
+from xknxeditor.proj.core.project_secrets import (
+    InvalidProjectPassword,
+    ProjectCipher,
+    ProjectPasswordRequired,
+)
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
     Area,
@@ -553,6 +558,7 @@ def export_knxproj(
     certificate_signer: CertificateSigner | None = None,
     project_name: str | None = None,
     remove_unused_products: bool = False,
+    password: str | None = None,
 ) -> ExportResult:
     """Read the project at ``source`` (a ``.xknx``) and write a ``.knxproj`` archive to ``dest``.
 
@@ -591,6 +597,9 @@ def export_knxproj(
         the source ``.xknx``.
       remove_unused_products: Leave out the bundled product data no device uses (see
         :mod:`product_prune`). The source ``.xknx`` is not changed.
+      password: The password of a password-protected project: it decrypts the project's secrets
+        and protects the exported project folder. Raises :class:`ProjectPasswordRequired` when
+        missing and :class:`InvalidProjectPassword` when wrong.
     """
     ns = _ns_for(schema)  # validate the requested schema early
     logger.debug(
@@ -618,6 +627,13 @@ def export_knxproj(
             if project is None:
                 raise ValueError(f"{source} is not a project (no project row)")
             import_notes_raw = project.import_notes
+            cipher: ProjectCipher | None = None
+            if project.password_salt:
+                if not password:
+                    raise ProjectPasswordRequired("the project is password-protected")
+                cipher = ProjectCipher.derive(password, project.password_salt)
+                if not cipher.verify(project.password_check or ""):
+                    raise InvalidProjectPassword("wrong project password")
             if project_name:
                 # Override the exported ProjectInformation Name (transient: this session is never
                 # committed, so the source .xknx is untouched).
@@ -666,6 +682,8 @@ def export_knxproj(
                 master_xml,
                 master_version,
                 certificate_signer,
+                cipher=cipher,
+                password=password if cipher is not None else None,
             )
     finally:
         engine.dispose()
@@ -916,6 +934,9 @@ class _Writer:
         master_xml: bytes | None,
         master_version: int,
         certificate_signer: CertificateSigner | None = None,
+        *,
+        cipher: ProjectCipher | None = None,
+        password: str | None = None,
     ) -> tuple[SignatureAudit, list[str], bool, bool]:
         pid = project.id
         self._source_schema = project.schema_version or self._schema
@@ -997,6 +1018,11 @@ class _Writer:
         }
         project_xml = self._serialize(proj_xml)
         zero = self._serialize(zero_xml)
+        if cipher is not None:
+            # The secrets are stored encrypted with the project password; the archive carries them
+            # in the clear inside its (password-protected) project folder.
+            project_xml = cipher.reveal(project_xml)
+            zero = cipher.reveal(zero)
         # Per-device BinaryData payloads (populated while building 0.xml) are files under the project
         # folder; ETS signs the folder recursively, so include them in the signed set (and the
         # certificate then binds to a signature that covers them).
@@ -1052,7 +1078,7 @@ class _Writer:
         }
         # A top-level {pid}.info sits alongside the signature; strict imports look for it.
         members[f"{pid}.info"] = _project_info(
-            project_guid, project.name, bool(project.password)
+            project_guid, project.name, bool(password)
         )
         if certificate:
             members[f"{pid}.certificate"] = certificate
@@ -1082,14 +1108,14 @@ class _Writer:
         if certificate is None:
             members[f"{pid}_M-dummy"] = b""
         # A password-protected project carries its (signed) folder as an encrypted zip.
-        if project.password:
-            protect_project_folder(members, pid, project.password)
+        if password:
+            protect_project_folder(members, pid, password)
 
         dest.unlink(missing_ok=True)
         with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as zf:
             for path, data in members.items():
                 # The encrypted folder is stored as it is, like in genuine archives.
-                stored = path == f"{pid}.zip" and bool(project.password)
+                stored = path == f"{pid}.zip" and bool(password)
                 zf.writestr(
                     path, data, zipfile.ZIP_STORED if stored else zipfile.ZIP_DEFLATED
                 )

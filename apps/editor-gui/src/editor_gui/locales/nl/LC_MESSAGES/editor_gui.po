@@ -833,3 +833,21 @@ msgstr "Cachemap openen"
 
 msgid "Removes product data no device uses; the project stays unchanged."
 msgstr "Verwijdert productgegevens die geen enkel apparaat gebruikt; het project zelf blijft ongewijzigd."
+
+msgid "This project is protected with a password. Enter it to open the project:"
+msgstr "Dit project is met een wachtwoord beveiligd. Voer het in om het project te openen:"
+
+msgid "This project contains KNX Secure keys. Set a project password to protect them; the project can then only be opened with it."
+msgstr "Dit project bevat KNX Secure sleutels. Stel een projectwachtwoord in om ze te beveiligen; het project kan dan alleen nog daarmee worden geopend."
+
+msgid "Password"
+msgstr "Wachtwoord"
+
+msgid "Repeat Password"
+msgstr "Wachtwoord herhalen"
+
+msgid "The passwords do not match."
+msgstr "De wachtwoorden komen niet overeen."
+
+msgid "Protecting the project with the password…"
+msgstr "Project wordt met het wachtwoord beveiligd…"
