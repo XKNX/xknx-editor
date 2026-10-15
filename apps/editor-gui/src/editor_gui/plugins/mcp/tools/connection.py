@@ -250,6 +250,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(
                 "the device is commissioned securely: set a project password first"
             ) from exc
+        ip_secure = ctx.run_locked(
+            lambda: ctx.api.project.ip_secure_config(device, service.keyring)
+        )
         try:
             future = service.program_device(
                 device,
@@ -262,9 +265,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     lambda: ctx.api.project.ip_download_config(device)
                 ),
                 tool_key=tool_key,
-                ip_secure=ctx.run_locked(
-                    lambda: ctx.api.project.ip_secure_config(device)
-                ),
+                ip_secure=ip_secure,
                 disable_security=ctx.run_locked(
                     lambda: ctx.api.project.download_disables_security(device)
                 ),
@@ -291,6 +292,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         )
         ctx.run_locked(lambda: ctx.api.project.record_secure_download(device, result))
+        if ip_secure is not None and getattr(result, "secured", False):
+            ctx.run_locked(
+                lambda: ctx.api.project.record_ip_secure_download(device, ip_secure)
+            )
         return {"status": "programmed", "node_id": node_id}
 
     @tool

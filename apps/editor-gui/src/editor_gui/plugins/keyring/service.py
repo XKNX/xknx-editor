@@ -7,6 +7,7 @@ re-encrypt and re-sign — rather than xknx's read-only loader. The keyring is r
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -21,11 +22,22 @@ from xknxeditor.datasecure import (
     reencrypt_keyring,
     serialize_keyring,
 )
-from xknxeditor.datasecure.files.knx_keyring import Keyring
+from xknxeditor.datasecure.files.knx_keyring import InterfaceType, Keyring
 
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger
     from xknxeditor.download.data_secure import DeviceSecurity
+
+
+@dataclass(frozen=True)
+class KeyringIpSecrets:
+    """The KNX IP Secure passwords a keyring holds for an IP device: its device authentication
+    code, its management password and its tunnels as ``(user id, tunnelling address, password)``.
+    """
+
+    device_authentication_code: str | None
+    management_password: str | None
+    tunnels: list[tuple[int, str, str]]
 
 
 class KeyringService:
@@ -122,6 +134,43 @@ class KeyringService:
             except CouldNotParseAddress:
                 continue
         return None
+
+    def ip_secrets(self, individual_address: str) -> KeyringIpSecrets | None:
+        """The KNX IP Secure passwords of the IP device at ``individual_address`` from the loaded
+        keyring, or ``None`` when it holds none."""
+        decrypted = self._decrypted
+        if decrypted is None or not individual_address:
+            return None
+        try:
+            target = IndividualAddress(individual_address)
+        except CouldNotParseAddress:
+            return None
+
+        def same(address: str | None) -> bool:
+            try:
+                return address is not None and IndividualAddress(address) == target
+            except CouldNotParseAddress:
+                return False
+
+        device = next(
+            (d for d in decrypted.devices if same(d.individual_address)), None
+        )
+        tunnels = [
+            (interface.user_id, interface.individual_address, interface.password)
+            for interface in decrypted.interfaces
+            if interface.type is InterfaceType.TUNNELING
+            and same(interface.host)
+            and interface.user_id is not None
+            and interface.individual_address
+            and interface.password
+        ]
+        if device is None and not tunnels:
+            return None
+        return KeyringIpSecrets(
+            device_authentication_code=device.authentication if device else None,
+            management_password=device.management_password if device else None,
+            tunnels=tunnels,
+        )
 
     def is_loaded(self) -> bool:
         """Whether a keyring is currently loaded (a single snapshot read)."""

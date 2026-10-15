@@ -1614,3 +1614,6 @@ msgstr "Een beveiligd groepsadres kan alleen worden gekoppeld aan apparaten die 
 
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Niet alle apparaten die aan dit groepsadres zijn gekoppeld worden beveiligd in bedrijf gesteld, daarom kan het niet worden beveiligd."
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "Een groepsobject dat beveiligde communicatie vereist, zou op een onversleuteld groepsadres terechtkomen."

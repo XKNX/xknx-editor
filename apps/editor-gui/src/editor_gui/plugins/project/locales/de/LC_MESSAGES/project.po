@@ -1756,3 +1756,6 @@ msgstr "Eine gesicherte Gruppenadresse kann nur mit Geräten verknüpft werden, 
 
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
 msgstr "Nicht alle mit dieser Gruppenadresse verknüpften Geräte werden sicher in Betrieb genommen, daher kann sie nicht gesichert werden."
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "Ein Gruppenobjekt, das sichere Kommunikation erfordert, käme auf eine unverschlüsselte Gruppenadresse."

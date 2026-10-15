@@ -47,6 +47,12 @@ SECRET_ATTRIBUTES = frozenset(
         "LoadedIPRoutingBackboneKey",
         "DeviceAuthenticationCode",
         "DeviceManagementPassword",
+        # The KNX IP Secure hashes are the keys a client authenticates with (3/8/9 2.3.1.3/4).
+        "DeviceAuthenticationCodeHash",
+        "LoadedDeviceAuthenticationCodeHash",
+        "DeviceManagementPasswordHash",
+        "LoadedDeviceManagementPasswordHash",
+        "PasswordHash",
         "Key",
         "Password",
         "FDSK",
@@ -77,7 +83,15 @@ _SECURE_ATTRIBUTE = re.compile(
     rf'(?<=\s)({"|".join(sorted(SECURE_ATTRIBUTES))})="[^"]+"'
 )
 # A cheap filter for the rows that can hold a secret or a token at all.
-_CANDIDATES = ("%Key%", "%Password%", "%FDSK%", "%enc1:%", "%security_key%")
+_CANDIDATES = (
+    "%Key%",
+    "%Password%",
+    "%Authentication%",
+    "%FDSK%",
+    "%enc1:%",
+    "%security_key%",
+    "%tool_key%",
+)
 
 _KDF = "pbkdf2-sha256"
 _ITERATIONS = 600_000

@@ -78,6 +78,7 @@ if TYPE_CHECKING:
     from editor_gui.plugins.project.ui.configure import ProgramRequest
     from xknxeditor.catalog import ProgramSummary
     from xknxeditor.download.image import GroupCommunication
+    from xknxeditor.download.ip_secure import IpSecureConfig
     from xknxeditor.download.scope import DownloadScope
     from xknxeditor.prod import Application
     from xknxeditor.prod.parser_v2.ui import UiButton
@@ -1562,7 +1563,7 @@ class ProjectPlugin:
             for ga_id in ids:
                 ga = self._api.project.get_group_address(ga_id)
                 if ga is not None:
-                    labels.append(f"{ga.text} {ga.name}".strip())
+                    labels.append(f"{ga.address} {ga.name}".strip())
             return labels
 
         label = f"{device.individual_address or '-'} {device.display_name}".strip()
@@ -1608,7 +1609,10 @@ class ProjectPlugin:
             self._api.log.error(S.SECURE_DOWNLOAD_PASSWORD_REQUIRED, plugin="project")
             return False
         except GroupAddressSecurityError:
-            self._api.log.error(S.GA_SECURE_ON_REFUSED, plugin="project")
+            self._api.log.error(
+                S.GA_SECURE_ON_REFUSED if mode == "On" else S.GA_SECURE_REQUIRED,
+                plugin="project",
+            )
             return False
         return True
 
@@ -1817,6 +1821,9 @@ class ProjectPlugin:
         except ProjectPasswordRequired:
             item.message = S.SECURE_DOWNLOAD_PASSWORD_REQUIRED
             return None
+        ip_secure = self._api.project.ip_secure_config(
+            device, self._api.connection.keyring
+        )
         try:
             future = self._api.connection.program_device(
                 device,
@@ -1831,7 +1838,7 @@ class ProjectPlugin:
                 ),
                 ip_config=self._api.project.ip_download_config(device),
                 tool_key=tool_key,
-                ip_secure=self._api.project.ip_secure_config(device),
+                ip_secure=ip_secure,
                 disable_security=self._api.project.download_disables_security(device),
             )
         except DeviceCertificateRequired:
@@ -1881,6 +1888,7 @@ class ProjectPlugin:
                 result if isinstance(result, bytes) else None,
                 getattr(result, "mac_address", None),
                 result=result,
+                ip_secure=ip_secure,
             )
 
         future.add_done_callback(_on_done)
@@ -1905,12 +1913,16 @@ class ProjectPlugin:
         mac_address: bytes | None = None,
         *,
         result: object = None,
+        ip_secure: "IpSecureConfig | None" = None,
     ) -> None:
         def _apply() -> None:
             self._api.project.record_download(node_id, scope_value, serial, mac_address)
             device = self._api.project.find_device_by_node_id(node_id)
             if result is not None and device is not None:
                 self._api.project.record_secure_download(device, result)
+                # IP Secure settings are only written over a secured connection.
+                if ip_secure is not None and getattr(result, "secured", False):
+                    self._api.project.record_ip_secure_download(device, ip_secure)
 
         if self._api.main_thread is not None:
             self._api.main_thread.submit(_apply)

@@ -133,12 +133,12 @@ def test_certificate_and_tool_key(tmp_path: Path) -> None:
     # The other device has no certificate (no matching serial number).
     assert svc.device_keys(pid, second) is None
 
-    tool_key = svc.ensure_tool_key(pid, first)
-    assert svc.ensure_tool_key(pid, first) == tool_key
+    svc.set_secure_commissioning(pid, first, True)
     keys = svc.device_keys(pid, first)
     assert (
-        keys is not None and keys.tool_key == tool_key and keys.loaded_tool_key is None
+        keys is not None and keys.tool_key is not None and keys.loaded_tool_key is None
     )
+    tool_key = keys.tool_key
     svc.set_tool_key_loaded(pid, first)
     keys = svc.device_keys(pid, first)
     assert keys is not None and keys.loaded_tool_key == tool_key
@@ -153,12 +153,17 @@ def test_certificate_and_tool_key(tmp_path: Path) -> None:
         assert secret not in data
 
     pid = svc.open(path, _PASSWORD)
-    # The Tool Keys are no undo steps (an undo must never drop a key the device uses); undo takes
-    # back the certificate.
+    # The loaded Tool Key is no undo step (an undo must never drop a key the device uses): undoing
+    # the activation leaves it, then the certificate goes.
     assert svc.undo(pid)
     keys = svc.device_keys(pid, first)
-    assert keys is not None and keys.fdsk is None
-    assert (keys.tool_key, keys.loaded_tool_key) == (tool_key, tool_key)
+    assert keys is not None and (keys.tool_key, keys.loaded_tool_key) == (
+        None,
+        tool_key,
+    )
+    assert svc.undo(pid)
+    keys = svc.device_keys(pid, first)
+    assert keys is not None and keys.fdsk is None and keys.loaded_tool_key == tool_key
     svc.close(pid)
 
 
@@ -433,4 +438,64 @@ def test_sequence_number_is_recorded(tmp_path: Path) -> None:
     svc.set_device_sequence_number(pid, first, 1_000_000)
     _keys, senders = svc.group_security(pid, second)
     assert senders == [(0x2105, 999_999)]
+    svc.close(pid)
+
+
+def test_ip_secrets_and_what_was_loaded(tmp_path: Path) -> None:
+    from sqlalchemy.orm import Session as _Session
+
+    from xknxeditor.proj.db import make_engine, url_for
+    from xknxeditor.proj.models import Device as _Device
+
+    svc, pid, first, _second, path = _project(tmp_path)
+    assert svc.ip_secrets(pid, first).management_password is None
+    svc.close(pid)
+    engine = make_engine(url_for(path))
+    try:
+        with _Session(engine) as session:
+            device = session.get(_Device, first)
+            assert device is not None
+            device.extra_subtrees = {
+                "Security": '<Security DeviceAuthenticationCode="auth"'
+                ' DeviceManagementPassword="mgmt" />',
+                "BusInterfaces": '<BusInterfaces><BusInterface RefId="M-1_A-1_BI-1"'
+                ' Password="tunnel" /><BusInterface RefId="M-1_A-1_BI-2" />'
+                "</BusInterfaces>",
+            }
+            session.commit()
+    finally:
+        engine.dispose()
+    pid = svc.open(path, _PASSWORD)
+    secrets = svc.ip_secrets(pid, first)
+    assert (secrets.device_authentication_code, secrets.management_password) == (
+        "auth",
+        "mgmt",
+    )
+    assert secrets.tunnel_passwords == {"M-1_A-1_BI-1": "tunnel"}
+    svc.set_ip_secure_loaded(
+        pid,
+        first,
+        backbone_key=bytes(range(16)),
+        authentication_code_hash=bytes(range(48, 64)),
+        management_password_hash=bytes([1] * 16),
+    )
+    svc.close(pid)
+    # The backbone key and the hashes (the keys a client authenticates with) are encrypted.
+    data = path.read_bytes()
+    for secret in (bytes(range(16)), bytes(range(48, 64)), bytes([1] * 16)):
+        assert base64.b64encode(secret) not in data
+
+
+def test_objects_that_require_security_keep_off_plain_group_addresses(
+    tmp_path: Path,
+) -> None:
+    svc, pid, first, second, _ = _project(tmp_path)
+    required = {_co(svc, pid, first)}
+    # The first device's object requires security: deactivating the second device would leave
+    # both (Auto) group addresses in the clear, so the second device's links to them go.
+    impact = svc.secure_commissioning_impact(pid, second, required.__contains__)
+    assert impact.unsecured == [] and len(impact.removed_links) == 2
+    svc.set_secure_commissioning(pid, second, False, required.__contains__)
+    assert svc.com_object_links(pid, _co(svc, pid, second)) == []
+    assert all(g.data_secure for g in svc.group_addresses(pid))
     svc.close(pid)

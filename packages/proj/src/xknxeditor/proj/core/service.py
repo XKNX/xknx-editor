@@ -13,7 +13,7 @@ import binascii
 import datetime
 import secrets
 from collections.abc import Callable, Mapping, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -265,11 +265,22 @@ class DeviceKeys:
 
 
 @dataclass(frozen=True)
+class IpSecrets:
+    """The KNX IP Secure passwords the project holds for an IP device, decrypted: its device
+    authentication code, its management (user 1) password and the password of each of its
+    tunnelling bus interfaces (by the bus interface's ``@RefId``). ``None``/missing when unknown."""
+
+    device_authentication_code: str | None = None
+    management_password: str | None = None
+    tunnel_passwords: dict[str, str] = field(default_factory=dict[str, str])
+
+
+@dataclass(frozen=True)
 class SecureCommissioningImpact:
     """What deactivating a device's secure commissioning changes: the group addresses that then
     communicate in the clear (``Auto`` ones it is secured with now) and the links that are
-    removed (to group addresses with Security ``On``, which only take devices commissioned
-    securely) with those group addresses."""
+    removed, as they may not communicate in the clear (see
+    :meth:`ProjectService.secure_commissioning_impact`), with those group addresses."""
 
     unsecured: list[int]
     removed_links: list[int]
@@ -1317,25 +1328,70 @@ class ProjectService:
             value = state.cipher.value(value)
         return _key(value)
 
-    def ensure_tool_key(self, project_id: str, device_id: int) -> bytes:
-        """The device's Tool Key; a random one is generated and stored (encrypted, so the project
-        needs a password) when the project has none for it yet. Not an undo step (see
-        :meth:`_store_security`)."""
-        keys = self.device_keys(project_id, device_id)
-        if keys is not None and keys.tool_key is not None:
-            return keys.tool_key
+    def ip_secrets(self, project_id: str, device_id: int) -> IpSecrets:
+        """The device's KNX IP Secure passwords from its ``<Security>`` and ``<BusInterfaces>``."""
+        state = self._state(project_id)
+        device = state.session.get(Device, device_id)
+        if device is None:
+            return IpSecrets()
+
+        def clear(value: str | None) -> str | None:
+            if value and state.cipher is not None:
+                value = state.cipher.value(value)
+            return value or None
+
+        attributes = security_attributes(device)
+        tunnels: dict[str, str] = {}
+        raw = (device.extra_subtrees or {}).get("BusInterfaces")
+        if raw:
+            try:
+                root = ET.fromstring(raw)
+            except ET.ParseError:
+                root = ET.Element("BusInterfaces")
+            for bus_interface in root.iter("BusInterface"):
+                ref, password = (
+                    bus_interface.get("RefId"),
+                    clear(bus_interface.get("Password")),
+                )
+                if ref and password:
+                    tunnels[ref] = password
+        return IpSecrets(
+            device_authentication_code=clear(
+                attributes.get("DeviceAuthenticationCode")
+            ),
+            management_password=clear(attributes.get("DeviceManagementPassword")),
+            tunnel_passwords=tunnels,
+        )
+
+    def set_ip_secure_loaded(
+        self,
+        project_id: str,
+        device_id: int,
+        *,
+        backbone_key: bytes | None = None,
+        authentication_code_hash: bytes | None = None,
+        management_password_hash: bytes | None = None,
+    ) -> None:
+        """Record the KNX IP Secure settings a secure download wrote: the backbone key
+        (``@LoadedIPRoutingBackboneKey``) and the hashes of the device authentication code and the
+        management password, all encrypted (a hash is what a client authenticates with). Stored
+        directly, like the Tool Keys."""
         state = self._state(project_id)
         if state.cipher is None:
             raise ProjectPasswordRequired(
-                "a Tool Key is stored with the project password"
+                "KNX IP Secure keys are stored with the project password"
             )
-        key = secrets.token_bytes(16)
         security = self._security_element(state, device_id)
-        security.set(
-            "ToolKey", state.cipher.seal(base64.b64encode(key).decode("ascii"))
-        )
+        for name, value in (
+            ("LoadedIPRoutingBackboneKey", backbone_key),
+            ("LoadedDeviceAuthenticationCodeHash", authentication_code_hash),
+            ("LoadedDeviceManagementPasswordHash", management_password_hash),
+        ):
+            if value is not None:
+                security.set(
+                    name, state.cipher.seal(base64.b64encode(value).decode("ascii"))
+                )
         self._store_security(state, device_id, security)
-        return key
 
     def secure_commissioning(self, project_id: str, device_id: int) -> bool:
         """Whether the device is commissioned securely (the project holds a Tool Key for it)."""
@@ -1343,24 +1399,40 @@ class ProjectService:
         return device is not None and secure_commissioned(device)
 
     def secure_commissioning_impact(
-        self, project_id: str, device_id: int
+        self,
+        project_id: str,
+        device_id: int,
+        requires_security: Callable[[int], bool] | None = None,
     ) -> SecureCommissioningImpact:
-        """What :meth:`set_secure_commissioning` with ``False`` would change for the device."""
+        """What :meth:`set_secure_commissioning` with ``False`` would change for the device. A
+        link is removed when it may not communicate in the clear: to a group address with Security
+        ``On``, of a group object that requires security, or to a group address one of whose group
+        objects requires it (``requires_security(com object id)``, from the application)."""
         session = self._state(project_id).session
         secured = secured_group_addresses(session)
         rows = (
-            session.query(ComObjectLink.id, GroupAddress)
+            session.query(ComObjectLink.id, ComObjectLink.com_object_id, GroupAddress)
             .join(GroupAddress, GroupAddress.id == ComObjectLink.group_address_id)
             .join(ComObject, ComObject.id == ComObjectLink.com_object_id)
             .filter(ComObject.device_id == device_id)
             .order_by(GroupAddress.address, ComObjectLink.id)
             .all()
         )
+
+        def must_be_secured(com_object_id: int, ga: GroupAddress) -> bool:
+            if ga.security_mode == "On":
+                return True
+            if requires_security is None or ga.security_mode == "Off":
+                return False
+            return requires_security(com_object_id) or any(
+                requires_security(link.com_object_id) for link in ga.links
+            )
+
         unsecured: list[int] = []
         removed: list[int] = []
         removed_from: list[int] = []
-        for link_id, ga in rows:
-            if ga.security_mode == "On":
+        for link_id, com_object_id, ga in rows:
+            if must_be_secured(com_object_id, ga):
                 removed.append(link_id)
                 if ga.id not in removed_from:
                     removed_from.append(ga.id)
@@ -1371,15 +1443,19 @@ class ProjectService:
         )
 
     def set_secure_commissioning(
-        self, project_id: str, device_id: int, activated: bool
+        self,
+        project_id: str,
+        device_id: int,
+        activated: bool,
+        requires_security: Callable[[int], bool] | None = None,
     ) -> None:
         """Activate or deactivate the device's secure commissioning, as one undo step.
 
         Activating gives the device a new random Tool Key, stored encrypted, so the project needs
         a password (:class:`ProjectPasswordRequired` otherwise). Deactivating removes it; the
-        device's links to group addresses with Security ``On`` are removed with it (see
-        :meth:`secure_commissioning_impact`), and its ``Auto`` group addresses communicate in the
-        clear. The key the device holds is kept: the next download switches the device to plain
+        device's links that may not communicate in the clear are removed with it (see
+        :meth:`secure_commissioning_impact`), and its other ``Auto`` group addresses communicate in
+        the clear. The key the device holds is kept: the next download switches the device to plain
         communication with it."""
         state = self._state(project_id)
         if self.secure_commissioning(project_id, device_id) == activated:
@@ -1396,7 +1472,9 @@ class ProjectService:
                 SetDeviceSecureCommissioning(device_id=device_id, tool_key=key)
             )
             return
-        impact = self.secure_commissioning_impact(project_id, device_id)
+        impact = self.secure_commissioning_impact(
+            project_id, device_id, requires_security
+        )
         events: list[Event] = [
             UnlinkComObject(target_id=link_id) for link_id in impact.removed_links
         ]
@@ -1417,8 +1495,9 @@ class ProjectService:
 
     @staticmethod
     def _store_security(state: _Open, device_id: int, security: ET.Element) -> None:
-        """Store the device's ``<Security>`` directly, not as an undo step: an undo that dropped
-        a Tool Key the device already uses would lock the project out of the device."""
+        """Store the device's ``<Security>`` directly, not as an undo step: what a download left in
+        the device (the Tool Key it uses, its Sequence Number) must survive an undo, or the project
+        would be locked out of the device."""
         device = state.session.get(Device, device_id)
         if device is None:
             raise KeyError(f"No device with id {device_id}")

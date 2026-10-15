@@ -2502,5 +2502,12 @@ class ProjectStrings:
     def SECURE_COMMISSIONING_OFF(self) -> str:
         return _("Deactivated")
 
+    @property
+    def GA_SECURE_REQUIRED(self) -> str:
+        return _(
+            "A group object that requires secure communication would end up on a group"
+            " address in the clear."
+        )
+
 
 S = ProjectStrings()

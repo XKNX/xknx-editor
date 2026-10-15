@@ -75,6 +75,8 @@ class DownloadResult:
     tool_key_loaded: bool = False
     # The device's next Sequence Number Sending at the end of a secured download.
     sequence_number: int | None = None
+    # Whether the download ran over a secured connection.
+    secured: bool = False
 
 
 _IP_CONFIG_SCOPES = frozenset({DownloadScope.FULL, DownloadScope.APPLICATION})
@@ -533,6 +535,7 @@ async def download(
         tool_key_loaded=tool_key is not None
         and getattr(manager, "active_key", None) == tool_key,
         sequence_number=getattr(manager, "device_sequence_number", None),
+        secured=security is not None,
     )
 
 

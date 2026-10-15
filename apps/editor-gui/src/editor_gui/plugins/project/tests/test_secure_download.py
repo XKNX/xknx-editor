@@ -95,3 +95,46 @@ def test_a_sender_needs_communication_and_a_sending_flag() -> None:
         for db_id in (*objects, 99)
     }
     assert can_send == {1: True, 2: True, 3: True, 4: False, 5: False, 99: True}
+
+
+def _linker(
+    mode: str | None, linked: list[int], required: set[int], secure: set[int]
+) -> Any:
+    """Group objects 1..4, object n on device n; ``secure`` devices are commissioned securely."""
+    service = cast(Any, SimpleNamespace())
+    service._pid = "P"
+    service.devices = [
+        SimpleNamespace(node_id=n, com_objects=[SimpleNamespace(db_id=n)])
+        for n in range(1, 5)
+    ]
+    service._svc = SimpleNamespace(
+        group_address=lambda pid, ga_id: SimpleNamespace(
+            security_mode=mode, links=linked
+        ),
+        secure_commissioning=lambda pid, node_id: node_id in secure,
+    )
+    service.com_object_requires_security = required.__contains__
+    return service
+
+
+def _unsecures(
+    co: int, mode: str | None, linked: list[int], required: set[int], secure: set[int]
+) -> bool:
+    service = _linker(mode, linked, required, secure)
+    return ProjectService._link_would_unsecure(service, co, 1)  # pyright: ignore[reportPrivateUsage]
+
+
+def test_an_object_that_requires_security_needs_a_secured_group_address() -> None:
+    assert not _unsecures(1, None, [2], {1}, {1, 2})
+    assert not _unsecures(1, "On", [2], {1}, {1, 2})
+    assert _unsecures(1, "Off", [], {1}, {1})
+    assert _unsecures(
+        1, None, [], {1}, set()
+    )  # its device is commissioned in the clear
+    assert _unsecures(1, None, [2], {1}, {1})  # another linked device is in the clear
+
+
+def test_a_device_in_the_clear_stays_off_a_group_address_that_needs_security() -> None:
+    assert _unsecures(3, None, [1], {1}, {1})
+    assert not _unsecures(3, None, [1], set(), {1})
+    assert not _unsecures(3, "Off", [4], set(), set())

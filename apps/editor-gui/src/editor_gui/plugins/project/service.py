@@ -57,6 +57,7 @@ from xknxeditor.proj.core.skeleton import MEDIUM_TP
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger
     from editor_gui.plugins.catalog.service import CatalogService
+    from editor_gui.plugins.keyring.service import KeyringIpSecrets, KeyringService
     from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
@@ -71,6 +72,7 @@ if TYPE_CHECKING:
         DeviceInfo,
         DeviceKeys,
         GroupRangeInfo,
+        IpSecrets,
         SecureCommissioningImpact,
         SpaceDeviceInfo,
         SpaceInfo,
@@ -418,6 +420,67 @@ def _security_role_masks(device: Device) -> dict[str, int]:
     if roles is None:
         return {}
     return {role.id: role.mask for role in roles.security_role}
+
+
+def ip_secure_users(
+    project: "IpSecrets",
+    keyring: "KeyringIpSecrets | None",
+    tunnelling_interfaces: dict[str, int],
+    tunnelling_octets: list[int],
+) -> tuple[str | None, dict[int, str], list[tuple[int, int]]]:
+    """``(device authentication code, password by user id, tunnelling users)`` of an IP device,
+    from the project's passwords, else the keyring's. A project tunnelling bus interface
+    (``tunnelling_interfaces``: ``@RefId`` -> ``@AddressIndex``) is user ``AddressIndex + 1``
+    (user 1 is the management user) on that tunnelling address; a keyring tunnel names its user
+    and its address, found among the device's tunnelling addresses (``tunnelling_octets``, the
+    last octet of each, in order). Without a management password no password is returned: the
+    hashes are written as one table, which would lock the management access out."""
+    from xknx.exceptions import CouldNotParseAddress
+    from xknx.telegram import IndividualAddress
+
+    from xknxeditor.download.ip_secure import MANAGEMENT_USER_ID
+
+    authentication = project.device_authentication_code or (
+        keyring.device_authentication_code if keyring else None
+    )
+    management = project.management_password or (
+        keyring.management_password if keyring else None
+    )
+    passwords: dict[int, str] = {}
+    tunnelling: list[tuple[int, int]] = []
+    if not management:
+        return authentication, passwords, tunnelling
+    passwords[MANAGEMENT_USER_ID] = management
+    for ref, index in sorted(tunnelling_interfaces.items(), key=lambda item: item[1]):
+        password = project.tunnel_passwords.get(ref)
+        if password:
+            passwords[index + 1] = password
+            tunnelling.append((index + 1, index))
+    for user_id, address, password in keyring.tunnels if keyring else []:
+        if user_id in passwords:
+            continue
+        try:
+            octet = IndividualAddress(address).raw & 0xFF
+        except CouldNotParseAddress:
+            continue
+        if octet in tunnelling_octets:
+            passwords[user_id] = password
+            tunnelling.append((user_id, tunnelling_octets.index(octet) + 1))
+    return authentication, passwords, tunnelling
+
+
+def _tunnelling_interfaces(device: Device) -> dict[str, int]:
+    """The application's tunnelling bus interfaces: ``@Id`` -> ``@AddressIndex``."""
+    if device.app is None:
+        return {}
+    interfaces = device.app.program.static.bus_interfaces
+    if interfaces is None:
+        return {}
+    return {
+        bus_interface.id: bus_interface.address_index
+        for bus_interface in interfaces.bus_interface
+        if getattr(bus_interface.access_type, "value", None) == "Tunneling"
+    }
 
 
 def _int_or(value: str | None, default: int) -> int:
@@ -1709,6 +1772,59 @@ class ProjectService:
             return None
         return GroupSecurity(keys=keys, senders=senders, p2p=p2p)
 
+    def com_object_requires_security(self, com_object_id: int) -> bool:
+        """Whether the application requires KNX Data Secure for a group object (its
+        ``SecurityRequired``): it may then only be linked to secured group addresses."""
+        from xknxeditor.prod.parser_v2.application_indexer import (
+            com_object_security_required,
+        )
+
+        for device in self.devices:
+            for co in device.com_objects:
+                if co.db_id == com_object_id:
+                    if device.app is None:
+                        return False
+                    indexer = device.app.tree_builder().idx
+                    return com_object_security_required(indexer, co.id) != "None"
+        return False
+
+    def _link_would_unsecure(self, com_object_id: int, group_address_id: int) -> bool:
+        """Whether linking the group object would put a group object that requires security on a
+        group address in the clear: the object requires it and the group address would not be
+        secured, or the object's device is commissioned in the clear and a group object on the
+        group address requires it (3/5/3 1.5.3)."""
+        if self._pid is None:
+            return False
+        try:
+            ga = self._svc.group_address(self._pid, group_address_id)
+        except KeyError:
+            return False
+        owner = {
+            co.db_id: device
+            for device in self.devices
+            for co in device.com_objects
+            if co.db_id is not None
+        }
+        device = owner.get(com_object_id)
+        if device is None:
+            return False
+
+        def secure(other: Device) -> bool:
+            return bool(self._svc.secure_commissioning(self._pid or "", other.node_id))
+
+        if self.com_object_requires_security(com_object_id):
+            if ga.security_mode == "Off" or not secure(device):
+                return True
+            if ga.security_mode != "On" and not all(
+                secure(other)
+                for link in ga.links
+                if (other := owner.get(link)) is not None
+            ):
+                return True
+        if ga.security_mode not in ("On", "Off") and not secure(device):
+            return any(self.com_object_requires_security(link) for link in ga.links)
+        return False
+
     def _com_object_can_send(self, com_object_id: int) -> bool:
         """Whether a group object can send on its group addresses: it communicates and transmits,
         answers read requests or requests a read on init. An object not in the cached view-models
@@ -1762,7 +1878,9 @@ class ProjectService:
         """What deactivating the device's secure commissioning would change."""
         if self._pid is None:
             return None
-        return self._svc.secure_commissioning_impact(self._pid, device.node_id)
+        return self._svc.secure_commissioning_impact(
+            self._pid, device.node_id, self.com_object_requires_security
+        )
 
     def set_secure_commissioning(self, device: Device, activated: bool) -> None:
         """Activate or deactivate the device's secure commissioning (one undo step); activating
@@ -1770,7 +1888,12 @@ class ProjectService:
         if self._pid is None:
             return
         with self._io_lock:
-            self._svc.set_secure_commissioning(self._pid, device.node_id, activated)
+            self._svc.set_secure_commissioning(
+                self._pid,
+                device.node_id,
+                activated,
+                self.com_object_requires_security,
+            )
         self._bump(structural=True)
 
     def record_secure_download(self, device: Device, result: object) -> None:
@@ -1787,15 +1910,6 @@ class ProjectService:
                     self._pid, device.node_id, sequence
                 )
             self._bump(structural=False)
-
-    def ensure_tool_key(self, device: Device) -> bytes:
-        """The device's Tool Key, generated and stored first when the project has none."""
-        if self._pid is None:
-            raise ValueError("no project is open")
-        with self._io_lock:
-            key = self._svc.ensure_tool_key(self._pid, device.node_id)
-        self._bump(structural=False)
-        return key
 
     def set_tool_key_loaded(self, device: Device) -> None:
         """Record that the device uses its Tool Key after a secure download."""
@@ -2038,12 +2152,15 @@ class ProjectService:
             ),
         )
 
-    def ip_secure_config(self, device: Device) -> "IpSecureConfig | None":
-        """The KNX IP Secure settings a secured download writes to ``device``: the installation's
-        routing backbone key, for a secure-enabled IP device. ``None`` when the device is not an IP
-        device, its application is not KNX Data Secure, or the project has no backbone key. Tunnelling
-        user passwords and the device authentication code live in the keyring, not the project, so
-        they are not written from here."""
+    def ip_secure_config(
+        self, device: Device, keyring: "KeyringService | None" = None
+    ) -> "IpSecureConfig | None":
+        """The KNX IP Secure settings a secured download writes to ``device``, a secure-enabled IP
+        device: the installation's routing backbone key, and the device authentication code, the
+        management password and the tunnelling users' passwords from the project (else from the
+        loaded ``keyring``). The password hashes are only written with the management password
+        known, so the device's management access is never replaced by an unknown one. ``None``
+        when the device is not such a device or nothing is known for it."""
         from xknxeditor.download.ip_secure import IpSecureConfig
 
         if (
@@ -2062,17 +2179,60 @@ class ProjectService:
         ):
             return None
         backbone = self._svc.ip_backbone_key(self._pid)
-        if backbone is None:
+        project = self._svc.ip_secrets(self._pid, device.node_id)
+        ring = (
+            keyring.ip_secrets(device.individual_address)
+            if keyring is not None
+            else None
+        )
+        authentication, passwords, tunnelling = ip_secure_users(
+            project,
+            ring,
+            _tunnelling_interfaces(device),
+            [a.address for a in row.additional_addresses if a.address is not None],
+        )
+        if backbone is None and authentication is None and not passwords:
             return None
         installation = row.segment.line.area.installation.extra_attributes or {}
         tolerance = _int_or(installation.get("IPRoutingLatencyTolerance"), 2000)
         fraction = _float_or(installation.get("IPSyncLatencyFraction"), 0.1)
         return IpSecureConfig(
             backbone_key=backbone,
+            device_authentication_passphrase=authentication,
+            user_passwords=passwords,
+            tunnelling_users=tunnelling,
             multicast_latency_tolerance_ms=tolerance,
             # PID_SYNC_LATENCY_FRACTION is a DPT 5.001 scaling: 0..255 for 0..100 %.
             sync_latency_fraction=max(0, min(255, round(fraction * 255))),
         )
+
+    def record_ip_secure_download(
+        self, device: Device, config: "IpSecureConfig"
+    ) -> None:
+        """Record the KNX IP Secure settings a secure download wrote (``config``)."""
+        from xknxeditor.download.ip_secure import (
+            MANAGEMENT_USER_ID,
+            device_authentication_code,
+            password_hash,
+        )
+
+        if self._pid is None:
+            return
+        management = config.user_passwords.get(MANAGEMENT_USER_ID)
+        authentication = config.device_authentication_passphrase
+        with self._io_lock:
+            self._svc.set_ip_secure_loaded(
+                self._pid,
+                device.node_id,
+                backbone_key=config.backbone_key,
+                authentication_code_hash=device_authentication_code(authentication)
+                if authentication is not None
+                else None,
+                management_password_hash=password_hash(management)
+                if management is not None
+                else None,
+            )
+        self._bump(structural=False)
 
     def record_download(
         self,
@@ -3312,9 +3472,21 @@ class ProjectService:
         (a key is generated, so the project needs a password), ``"Off"`` does not, and ``"Auto"``
         secures it while every linked device is commissioned securely (see the core
         ``ga_security``). Raises ``GroupAddressSecurityError`` for ``"On"`` while a linked device
-        is not commissioned securely."""
+        is not commissioned securely, or for ``"Off"`` while a linked group object requires
+        security."""
+        from xknxeditor.proj import GroupAddressSecurityError
+
         if self._pid is None:
             return
+        if mode == "Off":
+            try:
+                links = self._svc.group_address(self._pid, ga_id).links
+            except KeyError:
+                links = []
+            if any(self.com_object_requires_security(link) for link in links):
+                raise GroupAddressSecurityError(
+                    "a group object on the group address requires secure communication"
+                )
         with self._io_lock:
             self._svc.set_group_address_security(self._pid, ga_id, mode)
         self._bump(structural=False)
@@ -3377,6 +3549,9 @@ class ProjectService:
             return None
         from xknxeditor.proj import GroupAddressSecurityError
 
+        if self._link_would_unsecure(com_object_id, group_address_id):
+            self._log.error(S.GA_SECURE_REQUIRED)
+            return None
         derive = self._dpt_to_derive_on_link(com_object_id, group_address_id)
         try:
             link_id = self._svc.link_com_object(
