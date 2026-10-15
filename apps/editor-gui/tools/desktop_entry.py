@@ -3,8 +3,14 @@
 PyInstaller analyses this module as the program's start script; it just launches the GUI.
 """
 
+import multiprocessing
 import os
 import sys
+
+# A worker process (e.g. one parsing applications) is this same executable: it runs its job and
+# exits here, before the GUI is imported.
+if __name__ == "__main__":
+    multiprocessing.freeze_support()
 
 # A frozen windowed app (PyInstaller console=False) has no console, so sys.stdout/sys.stderr are
 # None. Any print() or library that writes to them (e.g. structlog's PrintLogger) then crashes at

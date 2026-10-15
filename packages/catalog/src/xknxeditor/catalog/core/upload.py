@@ -154,7 +154,12 @@ def _ingest_catalog(session: Session, reg: Registry) -> None:
 
 
 def upload_knxprod(
-    content: bytes, dest_dir: Path, engine: Engine, *, require_catalog: bool = True
+    content: bytes,
+    dest_dir: Path,
+    engine: Engine,
+    *,
+    require_catalog: bool = True,
+    cache_dir: Path | None = None,
 ) -> Path:
     """Ingest .knxprod bytes into the database behind ``engine``. Returns the path where the file was saved.
 
@@ -175,7 +180,9 @@ def upload_knxprod(
             is not None
         )
         if not in_db:
-            registry = load(content, require_catalog=require_catalog)
+            registry = load(
+                content, require_catalog=require_catalog, cache_dir=cache_dir
+            )
             logger.debug(
                 "catalog import: %d bytes, %d manufacturers, %d hardware",
                 len(content),

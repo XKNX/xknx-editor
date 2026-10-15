@@ -5,7 +5,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 
 from pydantic import BaseModel, Field
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from xknxeditor.catalog.core.catalog_sections import collect_section_ids
@@ -191,6 +191,22 @@ def get_program_application_id(db: Session, program_id: str) -> str | None:
     return db.scalars(
         select(HardwareProgram.application_id).where(HardwareProgram.id == program_id)
     ).first()
+
+
+def is_program_without_application(db: Session, program_id: str) -> bool:
+    """Whether ``program_id`` is a known hardware program that loads no application, as the
+    program of a product without one (e.g. a power supply)."""
+    return (
+        db.scalar(
+            select(func.count())
+            .select_from(HardwareProgram)
+            .where(
+                HardwareProgram.id == program_id,
+                HardwareProgram.application_id.is_(None),
+            )
+        )
+        or 0
+    ) > 0
 
 
 def get_program_source(db: Session, program_id: str) -> tuple[str, str] | None:

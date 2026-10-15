@@ -80,7 +80,9 @@ def test_import_resolves_embedded_products_without_catalog_xml(tmp_path: Path) -
     proj.import_knxproj(fx, tmp_path / "p.xknx")
     assert proj.devices, "the embedded-product device should resolve"
     assert proj.unloaded_devices == []
-    assert proj.devices[0].app.id == "M-0002_A-A066-14-550B"
+    app = proj.devices[0].app
+    assert app is not None
+    assert app.id == "M-0002_A-A066-14-550B"
 
 
 def test_resolve_app_falls_back_to_application_ref(tmp_path: Path) -> None:
@@ -91,9 +93,9 @@ def test_resolve_app_falls_back_to_application_ref(tmp_path: Path) -> None:
         pytest.skip("knxproj fixture not available")
     proj = _project(tmp_path)
     proj.import_knxproj(fx, tmp_path / "p.xknx")
-    app_id = proj.devices[
-        0
-    ].app.id  # ingested application id (e.g. M-0002_A-A066-14-550B)
+    app = proj.devices[0].app
+    assert app is not None
+    app_id = app.id  # ingested application id (e.g. M-0002_A-A066-14-550B)
 
     # Unknown hardware program + the exact application ref -> resolves via the fallback.
     assert proj._resolve_app("M-9999_H-x_HP-x", app_id) is not None

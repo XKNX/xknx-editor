@@ -143,55 +143,131 @@ def _union_dataclass_members(hint: Any) -> list[type]:
     return []
 
 
+_type_keys: dict[type, str] = {}
+
+
+def _cached_type_key(cls: type) -> str:
+    key = _type_keys.get(cls)
+    if key is None:
+        key = _type_keys[cls] = type_key(cls)
+    return key
+
+
 def _convert_choice(
-    ctx: Context, value: Any, members: list[type], is_list: bool
+    ctx: Context, value: Any, by_key: dict[str, type], is_list: bool
 ) -> Any:
-    """Convert xs:choice items, mapping each to the IR union member sharing its type key.
-    Items with no match pass through unchanged."""
-    by_key = {type_key(m): m for m in members}
+    """Convert xs:choice items, mapping each to the IR union member sharing its type key
+    (``by_key``). Items with no match pass through unchanged."""
 
     def one(item: Any) -> Any:
-        target = by_key.get(type_key(type(item)))
+        target = by_key.get(_cached_type_key(type(item)))
         return convert(ctx, item, target) if target is not None else item
 
     return [one(v) for v in value] if is_list else one(value)
 
 
-def convert(ctx: Context, src: Any, target_cls: type) -> Any:
-    """Construct `target_cls` from `src`: run overrides, then copy matching fields."""
+# How a target field is filled from its source value.
+_COPY, _DATACLASS, _ENUM, _CHOICE = range(4)
+
+
+@dataclass(frozen=True, slots=True)
+class _FieldPlan:
+    name: str
+    alias: str | None
+    is_list: bool
+    kind: int
+    base: Any
+    # xs:choice: the IR union members by type key.
+    members: dict[str, type] | None
+
+
+@dataclass(frozen=True, slots=True)
+class _ClassPlan:
+    key: str
+    fields: tuple[_FieldPlan, ...]
+    has_puid: bool
+
+
+# The plan of a target class depends on the class alone, so it is worked out once per class
+# instead of once per converted element.
+_plans: dict[type, _ClassPlan] = {}
+
+
+def _class_plan(target_cls: type) -> _ClassPlan:
+    plan = _plans.get(target_cls)
+    if plan is not None:
+        return plan
     hints = _hints(target_cls)
     key = type_key(target_cls)
+    aliases = ALIASES.get(key, {})
+    field_plans: list[_FieldPlan] = []
+    for f in fields(target_cls):
+        is_list, base = _unwrap(hints.get(f.name, f.type))
+        members = _union_dataclass_members(base)
+        if members:
+            kind = _CHOICE
+        elif isinstance(base, type) and is_dataclass(base):
+            kind = _DATACLASS
+        elif isinstance(base, type) and issubclass(base, Enum):
+            kind = _ENUM
+        else:
+            kind = _COPY
+        field_plans.append(
+            _FieldPlan(
+                name=f.name,
+                alias=aliases.get(f.name),
+                is_list=is_list,
+                kind=kind,
+                base=base,
+                members={type_key(m): m for m in members} if members else None,
+            )
+        )
+    plan = _plans[target_cls] = _ClassPlan(
+        key=key,
+        fields=tuple(field_plans),
+        has_puid=any(f.name == "puid" for f in field_plans),
+    )
+    return plan
+
+
+_MISSING = object()
+
+
+def convert(ctx: Context, src: Any, target_cls: type) -> Any:
+    """Construct `target_cls` from `src`: run overrides, then copy matching fields."""
+    plan = _class_plan(target_cls)
+    key = plan.key
     ctx.logger.debug("convert", src=type(src).__name__, target=key)
     ov = OVERRIDES.get(key)
     produced = ov(ctx, src) if ov is not None else {}
     if produced:
         ctx.logger.debug("convert.override", target=key, owned=sorted(produced))
     kwargs: dict[str, Any] = dict(produced)
-    aliases = ALIASES.get(key, {})
 
-    for f in fields(target_cls):
+    for f in plan.fields:
         if f.name in kwargs:  # claimed by an override
             continue
-        src_name = f.name if hasattr(src, f.name) else aliases.get(f.name)
-        if src_name is None or not hasattr(
-            src, src_name
-        ):  # no source; leave to default/puid rule
-            continue
-        src_val = getattr(src, src_name)
+        src_val: Any = getattr(src, f.name, _MISSING)
+        if src_val is _MISSING:
+            if f.alias is None:  # no source; leave to default/puid rule
+                continue
+            src_val = getattr(src, f.alias, _MISSING)
+            if src_val is _MISSING:
+                continue
         if src_val is None:
             continue
-        is_list, base = _unwrap(hints.get(f.name, f.type))
-        members = _union_dataclass_members(base)
-        if members:  # xs:choice: convert to the matching IR union type
-            kwargs[f.name] = _convert_choice(ctx, src_val, members, is_list)
-        elif isinstance(base, type) and is_dataclass(base):
+        base = f.base
+        if f.kind == _CHOICE:  # xs:choice: convert to the matching IR union type
+            assert f.members is not None
+            kwargs[f.name] = _convert_choice(ctx, src_val, f.members, f.is_list)
+        elif f.kind == _DATACLASS:
             kwargs[f.name] = (
                 [convert(ctx, v, base) for v in src_val]
-                if is_list
+                if f.is_list
                 else convert(ctx, src_val, base)
             )
-        elif isinstance(base, type) and issubclass(base, Enum):
-            if is_list:
+        elif f.kind == _ENUM:
+            if f.is_list:
                 kwargs[f.name] = [
                     base(v.value) if isinstance(v, Enum) and type(v) is not base else v
                     for v in src_val
@@ -206,7 +282,7 @@ def convert(ctx: Context, src: Any, target_cls: type) -> Any:
             kwargs[f.name] = src_val
 
     # Fill a required PUID the source never had.
-    if any(f.name == "puid" for f in fields(target_cls)) and kwargs.get("puid") is None:
+    if plan.has_puid and kwargs.get("puid") is None:
         kwargs["puid"] = ctx.puid.allocate()
         ctx.logger.debug("convert.puid_synth", target=key, puid=kwargs["puid"])
 

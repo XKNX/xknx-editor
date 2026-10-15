@@ -97,6 +97,9 @@ msgstr "Zugewiesene Objekte"
 msgid "No devices"
 msgstr "Keine Geräte"
 
+msgid "This product has no application program."
+msgstr "Dieses Produkt hat kein Applikationsprogramm."
+
 msgid "Individual Address"
 msgstr "Physikalische Adresse"
 

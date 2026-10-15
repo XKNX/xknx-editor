@@ -33,20 +33,27 @@ if TYPE_CHECKING:
     from xknxeditor.download.image import DownloadImage, GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
     from xknxeditor.download.preflight import PreflightReport
-    from xknxeditor.prod import MasterData
+    from xknxeditor.prod import Application, MasterData
 
 
 class DeviceProgrammingError(RuntimeError):
     """A device cannot be programmed as configured (no app, no address, ...)."""
 
 
+def _application(device: Device) -> Application:
+    if device.app is None:
+        raise DeviceProgrammingError("device has no application program")
+    return device.app
+
+
 def _image_for(
     device: Device, group_communication: GroupCommunication | None = None
 ) -> DownloadImage:
+    application = _application(device)
     ui = device.dynamic_ui
     if ui is None:
         raise DeviceProgrammingError("device has no dynamic application to program")
-    return build_image(device.app, ui=ui, group_communication=group_communication)
+    return build_image(application, ui=ui, group_communication=group_communication)
 
 
 def _address(device: Device) -> str:
@@ -217,7 +224,7 @@ def runtime_managed_addresses(device: Device) -> set[int]:
     result view can annotate it instead of flagging a real change.
     """
     ui = device.dynamic_ui
-    if ui is None:
+    if ui is None or device.app is None:
         return set()
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 
@@ -281,7 +288,7 @@ async def eval_device(
     return await preflight(
         xknx,
         _address(device),
-        device.app,
+        _application(device),
         master=master,
         image=_image_for(device, group_communication),
         scope=scope,
@@ -322,7 +329,7 @@ async def download_device(
     return await download(
         xknx,
         _address(device),
-        device.app,
+        _application(device),
         master=master,
         image=_image_for(device, group_communication),
         scope=scope,

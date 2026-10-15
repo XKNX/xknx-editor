@@ -34,6 +34,7 @@ from xknxeditor.catalog.core.hardware import (
     get_hardware_program,
     get_program_application_id,
     get_program_source,
+    is_program_without_application,
     list_hardware,
     list_hardware_programs,
 )
@@ -77,7 +78,11 @@ class CatalogService:
         ``require_catalog=False`` ingests ``.knxproj``-embedded product data that omits
         ``Catalog.xml`` (hardware/applications still resolve devices)."""
         return upload_knxprod(
-            content, self._knxprod_dir, self._engine, require_catalog=require_catalog
+            content,
+            self._knxprod_dir,
+            self._engine,
+            require_catalog=require_catalog,
+            cache_dir=self._parse_cache_dir,
         )
 
     def delete_product(
@@ -162,6 +167,11 @@ class CatalogService:
         """The application id a hardware program loads, or ``None``."""
         with Session(self._engine) as db:
             return get_program_application_id(db, program_id)
+
+    def is_program_without_application(self, program_id: str) -> bool:
+        """Whether a known hardware program loads no application (e.g. a power supply's)."""
+        with Session(self._engine) as db:
+            return is_program_without_application(db, program_id)
 
     def has_application(self, application_id: str) -> bool:
         """Whether a hardware program loads ``application_id`` (so it can be resolved)."""

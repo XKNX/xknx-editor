@@ -196,7 +196,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             rows: list[dict[str, Any]] = []
             for d in project.devices:
                 newer = project.newer_application_version(d)
-                if newer is None:
+                if newer is None or d.app is None:
                     continue
                 parsed = parse_app_id(d.app.id)
                 rows.append(

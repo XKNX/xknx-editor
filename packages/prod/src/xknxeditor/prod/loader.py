@@ -15,20 +15,38 @@ from .archive import Archive
 from .catalog import parse_catalog_xml
 from .hardware import parse_hardware_xml
 from .master import parse_master_xml
+from .parse_cache import fill_cache
 from .registry import Registry
 
 logger = logging.getLogger(__name__)
 
 
-def load(source: str | bytes | Path, *, require_catalog: bool = True) -> Registry:
+def load(
+    source: str | bytes | Path,
+    *,
+    require_catalog: bool = True,
+    cache_dir: Path | None = None,
+) -> Registry:
     """Load a .knxprod (path or bytes) into one queryable `Registry`; ids are globally unique.
 
     ``require_catalog`` passes through to :class:`Archive`: set it ``False`` to ingest the product
     data embedded in a ``.knxproj`` (which omits ``Catalog.xml``); the catalog section/item index is
     then simply absent for manufacturers without a ``Catalog.xml``, hardware/applications still load.
+    ``cache_dir`` stores each application's parse in the parse cache (see :mod:`parse_cache`), so
+    loading the application later does not parse it again. With it, the applications are parsed in
+    parallel worker processes (see :func:`parse_cache.fill_cache`).
     """
     with Archive(source, require_catalog=require_catalog) as archive:
         registry = Registry(master=parse_master_xml(archive.get_master_xml()))
+        if cache_dir is not None:
+            fill_cache(
+                (
+                    xml
+                    for manufacturer_id in archive.manufacturer_ids
+                    for xml in archive.get_application_xmls(manufacturer_id).values()
+                ),
+                cache_dir,
+            )
 
         for manufacturer_id in sorted(archive.manufacturer_ids):
             doc = parse_hardware_xml(archive.get_hardware_xml(manufacturer_id))
@@ -41,7 +59,9 @@ def load(source: str | bytes | Path, *, require_catalog: bool = True) -> Registr
 
             apps_before = len(registry.applications)
             for app_xml in archive.get_application_xmls(manufacturer_id).values():
-                for application in parse_application_xml(app_xml, manufacturer_id):
+                for application in parse_application_xml(
+                    app_xml, manufacturer_id, cache_dir=cache_dir
+                ):
                     registry.applications[application.id] = application
 
             has_catalog = archive.has_catalog(manufacturer_id)

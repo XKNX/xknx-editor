@@ -555,6 +555,7 @@ class DynamicUI:
             parameter_instance_refs=parameter_instance_refs,
             module_instances=module_instances,
             com_object_instance_refs=com_object_instance_refs,
+            app_id=app.id,
         )
         self._ui: list[UiNode] | None = None
         self.script_env: JScriptEnv | None = None

@@ -1663,9 +1663,10 @@ class ProjectService:
         return inst
 
     def _style(self, state: _Open) -> GroupAddressStyle:
-        project = state.session.query(Project).first()
-        assert project is not None
-        return GroupAddressStyle(project.group_address_style)
+        # Only the style column: the project row also holds the product archives (tens of MB).
+        style = state.session.query(Project.group_address_style).limit(1).scalar()
+        assert style is not None
+        return GroupAddressStyle(style)
 
     def _compose_ia(self, device: Device) -> str | None:
         if device.address is None:
