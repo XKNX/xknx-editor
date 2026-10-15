@@ -71,8 +71,8 @@ class Project(Base):
     original_project_id: Mapped[str] = mapped_column(String, nullable=False, default="")
     # The ProjectInformation free-text comment, carried over so a round-trip preserves it.
     comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    # Non-secret ProjectInformation attributes xknxproject does not surface (ProjectStart,
-    # ProjectNumber, ContractNumber, ProjectEnd, ProjectId — all valid in project/20 and /23),
+    # ProjectInformation attributes xknxproject does not surface (ProjectStart, ProjectNumber,
+    # ContractNumber, ProjectEnd, ProjectId, ProjectTracingPassword — valid in project/14, /20, /23),
     # captured verbatim and re-emitted. ``None`` when the source had none.
     extra_attributes: Mapped[dict[str, str] | None] = mapped_column(JSON)
     # ProjectInformation child collections xknxproject drops, captured verbatim (namespace-stripped
@@ -230,6 +230,8 @@ class Segment(Base):
     additional_group_addresses: Mapped[str] = mapped_column(
         Text, nullable=False, default=""
     )
+    # The segment's security ``MasterSalt`` (project/23 Segment attr), kept verbatim. None if absent.
+    master_salt: Mapped[str | None] = mapped_column(String)
 
     line: Mapped["Line"] = relationship(back_populates="segments")
     devices: Mapped[list["Device"]] = relationship(
@@ -554,8 +556,7 @@ class GroupAddress(Base):
     # Marked as a global/broadcast group address (``Global``), carried over for round-trip.
     is_global: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     # Group-address security that xknxproject reduces to the ``data_secure`` bool, captured verbatim
-    # for a faithful round-trip: ``@Security`` (mode), ``@Key`` (the AES key — persisted on explicit
-    # authorisation, overriding the usual "no key material in the project DB" rule) and ``@Context``.
+    # for a faithful round-trip: ``@Security`` (mode), ``@Key`` (the AES key) and ``@Context``.
     # ``None`` when absent.
     security_mode: Mapped[str | None] = mapped_column(String)
     security_key: Mapped[str | None] = mapped_column(String)

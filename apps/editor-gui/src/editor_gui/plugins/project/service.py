@@ -65,6 +65,7 @@ if TYPE_CHECKING:
     from xknxeditor.proj.core.product_prune import ProgressCallback
     from xknxeditor.proj.core.service import (
         DeviceInfo,
+        DeviceKeys,
         GroupRangeInfo,
         SpaceDeviceInfo,
         SpaceInfo,
@@ -1745,6 +1746,12 @@ class ProjectService:
         """Whether the project holds KNX Secure data, whose keys an export protects only with the
         project password."""
         return self._pid is not None and self._svc.has_secure_data(self._pid)
+
+    def device_keys(self, device: Device) -> "DeviceKeys | None":
+        """The device's KNX Data Secure tool keys from the project, or ``None`` when it has none."""
+        if self._pid is None:
+            return None
+        return self._svc.device_keys(self._pid, device.node_id)
 
     def get_project_traces(self) -> list[_ProjectTrace]:
         """The project log (ProjectInformation/ProjectTraces), in document order.

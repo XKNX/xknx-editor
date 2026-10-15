@@ -496,8 +496,10 @@ class KnxGuiApp:
         self._connection_plugin = ConnectionPlugin(self._plugin_api)
         self._monitor_plugin = MonitorPlugin(self._plugin_api)
         self._keyring_plugin = KeyringPlugin(self._plugin_api)
-        # Data Secure: let programming/testing look up a device's tool key from the loaded keyring.
+        # Data Secure: programming/testing take a device's tool key from the project, else from the
+        # loaded keyring.
         self._connection_service.keyring = self._keyring_plugin.service
+        self._connection_service.project_keys = self._project_service.device_keys
         self._signing_plugin = SigningPlugin(self._plugin_api)
         self._recover_plugin = RecoverPlugin(self._plugin_api)
         self._health_plugin = HealthPlugin(self._plugin_api)

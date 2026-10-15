@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from xknxeditor.download.ip_config import IpDeviceConfig
     from xknxeditor.download.scope import DownloadScope
     from xknxeditor.prod import Application, MasterData
+    from xknxeditor.proj.core.service import DeviceKeys
     from xknxeditor.recover import AppId
 
 
@@ -109,6 +110,8 @@ class ConnectionService:
         # Keyring service (KNX Data Secure), injected at startup. Used to look up a device's tool
         # key so a point-to-point download/test is secured when the device was commissioned secure.
         self.keyring: KeyringService | None = None
+        # The device's tool keys from the open project; they take precedence over the keyring.
+        self.project_keys: Callable[[Device], DeviceKeys | None] | None = None
         # Download individual addresses by serial number when the device's is known.
         self.use_serial_number = True
         # Current point-to-point bus operation, so the UI can show a
@@ -560,8 +563,16 @@ class ConnectionService:
         return self._security_for(device)
 
     def _security_for(self, device: Device) -> DeviceSecurity | None:
-        """KNX Data Secure tool key for ``device`` from the loaded keyring, or ``None`` (program in
-        the clear). A non-``None`` result secures every management APDU of the download."""
+        """KNX Data Secure tool key for ``device``, or ``None`` (program in the clear). A non-``None``
+        result secures every management APDU of the download.
+
+        The project's keys come first: the tool key the device holds (``LoadedToolKey``). A device
+        whose tool key was never loaded into it still has its factory key; loading the tool key
+        (secure commissioning) is not supported, so it is programmed in the clear. Without project
+        keys for the device, the tool key comes from the loaded keyring."""
+        keys = self.project_keys(device) if self.project_keys is not None else None
+        if keys is not None:
+            return self._project_security(device, device.individual_address, keys)
         if self.keyring is None:
             return None
         security = self.keyring.device_security(device.individual_address)
@@ -684,7 +695,7 @@ class ConnectionService:
             return None
         security = self._security_for(device)
         current_security = (
-            self._current_address_security(current_address, security)
+            self._current_address_security(device, current_address, security)
             if current_address
             else None
         )
@@ -714,10 +725,42 @@ class ConnectionService:
             self._clear_busy()
         return future
 
-    def _current_address_security(
-        self, current_address: str, security: DeviceSecurity | None
+    def _project_security(
+        self, device: Device, address: str, keys: DeviceKeys
     ) -> DeviceSecurity | None:
-        """Tool key for the device at its current address: from the keyring, else the project's."""
+        """The project's tool key of ``device`` for a connection to ``address``."""
+        if keys.loaded_tool_key is None:
+            self._log.warning(
+                "programming in the clear: the device's tool key was never loaded into it, and "
+                "secure commissioning is not supported",
+                device=device.name,
+                address=address,
+            )
+            return None
+        if not address:
+            return None
+        from xknx.exceptions import CouldNotParseAddress
+        from xknx.telegram import IndividualAddress
+
+        from xknxeditor.download.data_secure import DeviceSecurity
+
+        try:
+            return DeviceSecurity(IndividualAddress(address), keys.loaded_tool_key)
+        except CouldNotParseAddress:
+            return None
+
+    def _current_address_security(
+        self, device: Device, current_address: str, security: DeviceSecurity | None
+    ) -> DeviceSecurity | None:
+        """Tool key for the device at its current address: the project's, else from the keyring,
+        else the one for its configured address."""
+        keys = self.project_keys(device) if self.project_keys is not None else None
+        if keys is not None:
+            return (
+                self._project_security(device, current_address, keys)
+                if security is not None
+                else None
+            )
         if self.keyring is not None:
             found = self.keyring.device_security(current_address)
             if found is not None:
@@ -885,9 +928,7 @@ class ConnectionService:
                 device.individual_address,
                 resolve_application,
                 group_communication=group_communication,
-                security=self.keyring.device_security(device.individual_address)
-                if self.keyring is not None
-                else None,
+                security=self._security_for(device),
                 interface_max_apdu=self.interface_max_apdu_length,
             )
         )

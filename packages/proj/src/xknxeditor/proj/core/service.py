@@ -8,6 +8,8 @@ relational tables and reads hand back ORM rows. Installation-scoped calls pass t
 
 from __future__ import annotations
 
+import base64
+import binascii
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -223,6 +225,15 @@ class SpaceInfo:
 
 
 @dataclass(frozen=True)
+class DeviceKeys:
+    """A device's KNX Data Secure tool keys from the project. ``loaded_tool_key`` is the key the
+    device holds; ``tool_key`` the one it is given on secure commissioning. ``None`` when absent."""
+
+    tool_key: bytes | None
+    loaded_tool_key: bytes | None
+
+
+@dataclass(frozen=True)
 class DeviceInfo:
     """A display-ready device. The refs point at the catalog product and loaded program; the caller
     resolves the application from them, since this package is ref-only."""
@@ -281,6 +292,19 @@ _DEVICE_SECRETS: dict[str, frozenset[str]] = {
     ),
     "BusInterfaces": frozenset({"Password"}),
 }
+# The secret attribute of the stored point-to-point links.
+_P2P_SECRETS = frozenset({"Key"})
+
+
+def _key(value: str | None) -> bytes | None:
+    """A base64 key attribute as its 16 key bytes, or ``None`` when absent or malformed."""
+    if not value:
+        return None
+    try:
+        key = base64.b64decode(value, validate=True)
+    except (binascii.Error, ValueError):
+        return None
+    return key if len(key) == 16 else None
 
 
 def _has_secret(xml: str, secrets: frozenset[str]) -> bool:
@@ -1030,8 +1054,8 @@ class ProjectService:
 
     def has_secure_data(self, project_id: str) -> bool:
         """Whether the project holds KNX Secure data: secured group addresses or their keys, a
-        device's keys, authentication code or management password, a bus interface password, or the
-        IP backbone key."""
+        device's keys, authentication code or management password, a bus interface password, a
+        point-to-point link key, or the IP backbone key."""
         session = self._state(project_id).session
         secure_group_address = session.query(GroupAddress.id).filter(
             (GroupAddress.data_secure.is_(True))
@@ -1040,8 +1064,10 @@ class ProjectService:
         if session.query(secure_group_address.exists()).scalar():
             return True
         if any(
-            "IPRoutingBackboneKey" in (attrs or {})
-            for (attrs,) in session.query(Installation.extra_attributes)
+            "IPRoutingBackboneKey" in (attrs or {}) or _has_secret(p2p, _P2P_SECRETS)
+            for attrs, p2p in session.query(
+                Installation.extra_attributes, Installation.p2p_links_xml
+            )
         ):
             return True
         return any(
@@ -1050,6 +1076,22 @@ class ProjectService:
             if subtrees
             for name, secrets in _DEVICE_SECRETS.items()
         )
+
+    def device_keys(self, project_id: str, device_id: int) -> DeviceKeys | None:
+        """The device's tool keys from its ``<Security>``, or ``None`` when it has neither."""
+        device = self._state(project_id).session.get(Device, device_id)
+        raw = (device.extra_subtrees or {}).get("Security") if device else None
+        if not raw:
+            return None
+        try:
+            security = ET.fromstring(raw)
+        except ET.ParseError:
+            return None
+        keys = DeviceKeys(
+            tool_key=_key(security.get("ToolKey")),
+            loaded_tool_key=_key(security.get("LoadedToolKey")),
+        )
+        return keys if keys.tool_key or keys.loaded_tool_key else None
 
     def rename_line(self, project_id: str, line_id: int, name: str) -> None:
         self._state(project_id).store.append(RenameLine(line_id=line_id, name=name))

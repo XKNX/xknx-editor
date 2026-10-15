@@ -632,7 +632,7 @@ def test_read_unassigned_devices() -> None:
 
 
 def test_installation_name_is_captured(tmp_path: Path) -> None:
-    """The <Installation @Name> and the non-secret extra attributes are read from the raw XML
+    """The <Installation @Name> and the extra attributes are read from the raw XML
     (xknxproject surfaces only the project name). Patch a fixture and confirm they round-trip."""
     import zipfile
 
@@ -703,7 +703,7 @@ def test_read_locations_extras_captures_scalars_and_ga_ref_names() -> None:
 
 
 def test_project_information_extra_attributes_captured(tmp_path: Path) -> None:
-    """Non-secret ProjectInformation attributes xknxproject drops (e.g. ProjectStart) are captured
+    """ProjectInformation attributes xknxproject drops (e.g. ProjectStart) are captured
     into Project.extra_attributes (#4)."""
     from xknxeditor.proj.models import Project
 

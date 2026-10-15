@@ -954,8 +954,8 @@ class _Writer:
             Guid=project_guid,
             LastModified=project.last_modified or now,
         )
-        # Non-secret ProjectInformation attributes captured on import (ProjectStart/ProjectNumber/
-        # ContractNumber/ProjectEnd/ProjectId); all valid in project/20 and /23.
+        # ProjectInformation attributes captured on import (ProjectStart/ProjectNumber/ContractNumber/
+        # ProjectEnd/ProjectId/ProjectTracingPassword); all valid in project/14, /20 and /23.
         for key, value in (project.extra_attributes or {}).items():
             info.set(key, value)
         # ProjectInformation child collections captured verbatim on import, re-emitted in schema
@@ -1180,6 +1180,10 @@ class _Writer:
                             Number=segment.number,
                             MediumTypeRefId=segment.medium_type,
                             DomainAddress=segment.domain_address,
+                            # MasterSalt only exists on the project/23 Segment.
+                            MasterSalt=segment.master_salt
+                            if self._schema == "23"
+                            else None,
                             Puid=self._next_puid(),
                         )
                         if first_segment_el is None:

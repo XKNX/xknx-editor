@@ -129,8 +129,8 @@ _INSTALLATION_EXTRA_ATTRS = (
 )
 
 # ProjectInformation attributes xknxproject does not surface, round-tripped verbatim. Restricted to
-# attributes defined in BOTH project/20 and /23 (the schema-specific CodePage/BusAccessLegacyMode and
-# v23 ArchivedVersion/ProjectType are left out), and NOT to the passwords.
+# attributes defined in project/14, /20 and /23 (the schema-specific CodePage/BusAccessLegacyMode and
+# v23 ArchivedVersion/ProjectType are left out).
 _PROJECT_EXTRA_ATTRS = (
     "ProjectStart",
     "ProjectNumber",
@@ -138,6 +138,7 @@ _PROJECT_EXTRA_ATTRS = (
     "ProjectEnd",
     "ProjectId",
     "CompletionStatus",
+    "ProjectTracingPassword",
 )
 
 _INSTALLATION_INDEX = 0
@@ -332,6 +333,7 @@ class _SegmentDesc:
     domain_address: int | None
     device_ids: tuple[str, ...]
     additional_group_addresses: tuple[int, ...] = ()
+    master_salt: str | None = None
 
 
 @dataclass(slots=True)
@@ -485,7 +487,7 @@ class _RawExtras:
         # --- descriptive metadata xknxproject does not surface (read from the raw XML) ---
         # The ProjectInformation @Comment (project.xml).
         self.project_comment: str = ""
-        # Non-secret ProjectInformation attributes xknxproject drops (see _PROJECT_EXTRA_ATTRS).
+        # ProjectInformation attributes xknxproject drops (see _PROJECT_EXTRA_ATTRS).
         self.project_extra_attributes: dict[str, str] = {}
         # ProjectInformation child collections xknxproject drops (see _PROJECT_INFO_SUBTREES).
         self.project_info_subtrees: dict[str, str] = {}
@@ -837,6 +839,7 @@ def _read_coupler_extras(root: ET.Element, extras: _RawExtras) -> None:
                             domain_address=seg_domain,
                             device_ids=device_ids,
                             additional_group_addresses=tuple(seg_addrs),
+                            master_salt=seg.get("MasterSalt"),
                         )
                     )
             if seg_descs and a_addr is not None and l_addr is not None:
@@ -1123,7 +1126,7 @@ _PROJECT_SUBTREES = ("UserFiles", "AddinData")
 def _read_project_meta(
     contents: _ProjectContents,
 ) -> tuple[str, list[_TraceEntry], dict[str, str], dict[str, str], dict[str, str]]:
-    """The ``ProjectInformation`` ``@Comment`` (+ non-secret extra attributes), every
+    """The ``ProjectInformation`` ``@Comment`` (+ extra attributes), every
     ``ProjectTraces/ProjectTrace`` and the verbatim child collections from the raw ``project.xml``.
 
     Returns ``(comment, traces, info_attributes, info_subtrees, project_subtrees)``. xknxproject
@@ -1526,6 +1529,7 @@ def _build_line_segments(
             additional_group_addresses=",".join(
                 str(a) for a in desc.additional_group_addresses
             ),
+            master_salt=desc.master_salt,
         )
         line.segments.append(segment)
         segments.append(segment)
