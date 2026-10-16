@@ -124,7 +124,9 @@ def test_a_device_without_a_tool_key_is_reached_in_the_clear() -> None:
 
 
 def test_the_factory_key_is_the_alternative_after_a_master_reset() -> None:
-    service, _ = _service(DeviceKeys(tool_key=None, loaded_tool_key=_LOADED, fdsk=_FDSK))
+    service, _ = _service(
+        DeviceKeys(tool_key=None, loaded_tool_key=_LOADED, fdsk=_FDSK)
+    )
     security = service.security_for(_DEVICE)
     assert security is not None and security.tool_key == _LOADED
     assert security.alternative_keys == (_FDSK,)

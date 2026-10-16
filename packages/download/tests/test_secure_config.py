@@ -307,7 +307,7 @@ async def test_a_current_sequence_number_is_kept() -> None:
     assert all(w[1] != 59 for w in device.writes)
 
 
-async def test_switching_to_plain_empties_the_tables_and_ends_the_security_mode() -> None:
+async def test_switching_to_plain_empties_the_tables() -> None:
     device = _SecurityDevice()
     runner = LoadProcedureRunner(
         _application(),
@@ -322,6 +322,4 @@ async def test_switching_to_plain_empties_the_tables_and_ends_the_security_mode(
     assert cleared == {52, 53, 54, 61}
     assert device.commands == [(51, bytes(3))]
     # Without a Point-to-point Key Table, that one is left alone.
-    assert all(
-        getattr(c, "prop_id", None) != 52 for c in plain_controls(p2p=False)
-    )
+    assert all(getattr(c, "prop_id", None) != 52 for c in plain_controls(p2p=False))
