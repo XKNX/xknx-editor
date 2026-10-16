@@ -1719,7 +1719,7 @@ msgstr "Veld"
 msgid "Filter devices by address, name or description…"
 msgstr "Apparaten filteren op adres, naam of beschrijving…"
 
-msgid "Group objects"
+msgid "Group Objects"
 msgstr "Groepsobjecten"
 
 msgid "No differences"

@@ -1823,7 +1823,7 @@ class ProjectStrings:
 
     @property
     def COMPARE_SECTION_COM_OBJECTS(self) -> str:
-        return _("Group objects")
+        return _("Group Objects")
 
     @property
     def COMPARE_NO_DIFFERENCES(self) -> str:

@@ -1865,7 +1865,7 @@ msgstr "Feld"
 msgid "Filter devices by address, name or description…"
 msgstr "Geräte nach Adresse, Name oder Beschreibung filtern…"
 
-msgid "Group objects"
+msgid "Group Objects"
 msgstr "Gruppenobjekte"
 
 msgid "No differences"
