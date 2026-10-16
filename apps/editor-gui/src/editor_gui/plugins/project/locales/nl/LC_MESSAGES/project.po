@@ -1665,3 +1665,6 @@ msgstr "Beheren…"
 
 msgid "The project has no device certificates."
 msgstr "Het project heeft geen apparaatcertificaten."
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "De beveiligingstabellen van {device} kunnen deze koppeling niet bevatten."

@@ -1925,6 +1925,60 @@ class ProjectService:
                     senders.setdefault(tunnel, 0)
         return keys, sorted(senders.items())
 
+    def security_table_sizes(
+        self,
+        project_id: str,
+        device_ids: Sequence[int],
+        can_send: Callable[[int], bool] | None = None,
+        with_link: tuple[int, int] | None = None,
+    ) -> dict[int, tuple[int, int]]:
+        """How many group keys and senders the devices' security tables hold (see
+        :meth:`group_security`), with the link ``(com object id, group address id)`` counted in
+        as well (it is not stored)."""
+        session = self._state(project_id).session
+        nested = session.begin_nested() if with_link is not None else None
+        try:
+            if with_link is not None:
+                session.add(
+                    ComObjectLink(
+                        com_object_id=with_link[0], group_address_id=with_link[1]
+                    )
+                )
+                session.flush()
+            secured = secured_group_addresses(session)
+            sizes: dict[int, tuple[int, int]] = {}
+            for device_id in device_ids:
+                group_addresses = {
+                    ga_id
+                    for (ga_id,) in session.query(ComObjectLink.group_address_id)
+                    .join(ComObject, ComObject.id == ComObjectLink.com_object_id)
+                    .filter(ComObject.device_id == device_id)
+                    if ga_id in secured
+                }
+                senders: set[int] = set()
+                if group_addresses:
+                    rows = (
+                        session.query(Device.id, ComObject.id)
+                        .join(ComObject, ComObject.device_id == Device.id)
+                        .join(
+                            ComObjectLink, ComObjectLink.com_object_id == ComObject.id
+                        )
+                        .filter(
+                            ComObjectLink.group_address_id.in_(group_addresses),
+                            Device.id != device_id,
+                        )
+                    )
+                    senders = {
+                        other
+                        for other, com_object_id in rows
+                        if can_send is None or can_send(com_object_id)
+                    }
+                sizes[device_id] = (len(group_addresses), len(senders))
+            return sizes
+        finally:
+            if nested is not None:
+                nested.rollback()
+
     def set_device_sequence_number(
         self, project_id: str, device_id: int, sequence_number: int
     ) -> None:

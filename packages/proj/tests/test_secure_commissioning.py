@@ -657,3 +657,25 @@ def test_device_certificates_can_be_removed(tmp_path: Path) -> None:
     assert svc.undo(pid)
     assert len(svc.device_certificates(pid)) == 1
     svc.close(pid)
+
+
+def test_security_table_sizes_with_a_link(tmp_path: Path) -> None:
+    svc, pid, first, second, _ = _project(tmp_path)
+    assert svc.security_table_sizes(pid, [first, second]) == {
+        first: (2, 1),
+        second: (2, 1),
+    }
+    third = svc.create_group_address(pid, 0, 0x0803, "Third")
+    svc.link_com_object(pid, _co(svc, pid, second), third)
+    # Counted with the first device's object on it as well, which makes it secured...
+    sizes = svc.security_table_sizes(
+        pid, [first, second], with_link=(_co(svc, pid, first), third)
+    )
+    assert sizes == {first: (3, 1), second: (3, 1)}
+    # ...without storing that link.
+    assert all(
+        link.group_address_id != third
+        for link in svc.com_object_links(pid, _co(svc, pid, first))
+    )
+    assert svc.security_table_sizes(pid, [second])[second] == (3, 1)
+    svc.close(pid)

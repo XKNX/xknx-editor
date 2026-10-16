@@ -2605,5 +2605,9 @@ class ProjectStrings:
     def PROJECT_CERTIFICATES_ADD(self) -> str:
         return _("Add Device Certificate…")
 
+    @property
+    def GA_SECURE_TABLES_FULL(self) -> str:
+        return _("The security tables of {device} cannot hold this link.")
+
 
 S = ProjectStrings()

@@ -1872,6 +1872,54 @@ class ProjectService:
                     return com_object_security_required(indexer, co.id) != "None"
         return False
 
+    def _security_tables_overflow(
+        self, com_object_id: int, group_address_id: int
+    ) -> str | None:
+        """The device (``address name``) whose security tables the link would make larger than
+        its application allows (``MaxSecurityGroupKeyTableEntries``,
+        ``MaxSecurityIndividualAddressEntries``), or ``None`` when they fit."""
+        if self._pid is None:
+            return None
+        owner = {
+            co.db_id: device
+            for device in self.devices
+            for co in device.com_objects
+            if co.db_id is not None
+        }
+        try:
+            links = self._svc.group_address(self._pid, group_address_id).links
+        except KeyError:
+            return None
+        devices = {
+            d.node_id: d
+            for co_id in [*links, com_object_id]
+            if (d := owner.get(co_id)) is not None
+            and d.app is not None
+            and d.app.program.is_secure_enabled
+            and self._svc.secure_commissioning(self._pid, d.node_id)
+        }
+        if not devices:
+            return None
+        sizes = self._svc.security_table_sizes(
+            self._pid,
+            list(devices),
+            self._com_object_can_send,
+            with_link=(com_object_id, group_address_id),
+        )
+        for node_id, (keys, senders) in sizes.items():
+            device = devices[node_id]
+            assert device.app is not None
+            program = device.app.program
+            key_limit = program.max_security_group_key_table_entries or 0
+            sender_limit = program.max_security_individual_address_entries or 0
+            if (key_limit and keys > key_limit) or (
+                sender_limit and senders > sender_limit
+            ):
+                return (
+                    f"{device.individual_address or '-'} {device.display_name}".strip()
+                )
+        return None
+
     def _link_would_unsecure(self, com_object_id: int, group_address_id: int) -> bool:
         """Whether linking the group object would put a group object that requires security on a
         group address in the clear: the object requires it and the group address would not be
@@ -3990,6 +4038,10 @@ class ProjectService:
 
         if self._link_would_unsecure(com_object_id, group_address_id):
             self._log.error(S.GA_SECURE_REQUIRED)
+            return None
+        full = self._security_tables_overflow(com_object_id, group_address_id)
+        if full is not None:
+            self._log.error(S.GA_SECURE_TABLES_FULL.format(device=full))
             return None
         derive = self._dpt_to_derive_on_link(com_object_id, group_address_id)
         try:

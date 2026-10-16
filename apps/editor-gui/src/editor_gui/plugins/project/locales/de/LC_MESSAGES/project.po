@@ -1807,3 +1807,6 @@ msgstr "Verwalten…"
 
 msgid "The project has no device certificates."
 msgstr "Das Projekt hat keine Gerätezertifikate."
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "Die Sicherheitstabellen von {device} fassen diese Verknüpfung nicht."
