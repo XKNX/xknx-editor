@@ -429,12 +429,17 @@ def ip_secure_users(
     tunnelling_octets: list[int],
 ) -> tuple[str | None, dict[int, str], list[tuple[int, int]]]:
     """``(device authentication code, password by user id, tunnelling users)`` of an IP device,
-    from the project's passwords, else the keyring's. A project tunnelling bus interface
-    (``tunnelling_interfaces``: ``@RefId`` -> ``@AddressIndex``) is user ``AddressIndex + 1``
-    (user 1 is the management user) on that tunnelling address; a keyring tunnel names its user
-    and its address, found among the device's tunnelling addresses (``tunnelling_octets``, the
-    last octet of each, in order). Without a management password no password is returned: the
-    hashes are written as one table, which would lock the management access out."""
+    from the project's passwords, else the keyring's.
+
+    The project's bus interfaces are users 2, 3, … in the device's order (user 1 is the
+    management user), the order exported projects number them in: a routing bus interface with a
+    password takes a user id as well, so the tunnels then start at user 3. A tunnelling one
+    (``tunnelling_interfaces``: ``@RefId`` -> ``@AddressIndex``) is that user's tunnelling
+    address ``AddressIndex`` (the device's additional address of that number). A keyring tunnel
+    names its user and its address, found among the device's tunnelling addresses
+    (``tunnelling_octets``, the last octet of each, in order). Without a management password no
+    password is returned: the hashes are written as one table, which would lock the management
+    access out."""
     from xknx.exceptions import CouldNotParseAddress
     from xknx.telegram import IndividualAddress
 
@@ -451,11 +456,14 @@ def ip_secure_users(
     if not management:
         return authentication, passwords, tunnelling
     passwords[MANAGEMENT_USER_ID] = management
-    for ref, index in sorted(tunnelling_interfaces.items(), key=lambda item: item[1]):
-        password = project.tunnel_passwords.get(ref)
-        if password:
-            passwords[index + 1] = password
-            tunnelling.append((index + 1, index))
+    for position, (ref, password) in enumerate(project.bus_interfaces, start=1):
+        user_id = MANAGEMENT_USER_ID + position
+        if not password:
+            continue
+        passwords[user_id] = password
+        index = tunnelling_interfaces.get(ref)
+        if index is not None:
+            tunnelling.append((user_id, index))
     for user_id, address, password in keyring.tunnels if keyring else []:
         if user_id in passwords:
             continue

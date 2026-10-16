@@ -471,7 +471,11 @@ def test_ip_secrets_and_what_was_loaded(tmp_path: Path) -> None:
         "auth",
         "mgmt",
     )
-    assert secrets.tunnel_passwords == {"M-1_A-1_BI-1": "tunnel"}
+    # In the device's order, which numbers the users; one without a password keeps its place.
+    assert secrets.bus_interfaces == [
+        ("M-1_A-1_BI-1", "tunnel"),
+        ("M-1_A-1_BI-2", None),
+    ]
     svc.set_ip_secure_loaded(
         pid,
         first,

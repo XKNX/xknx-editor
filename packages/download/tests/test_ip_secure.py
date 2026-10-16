@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import base64
+
 from xknxeditor.download.ip_secure import (
     EMPTY_PASSWORD_HASH,
     IpSecureConfig,
@@ -20,6 +22,15 @@ def test_derivations_match_the_standard() -> None:
     assert len(device_authentication_code("secret")) == 16
     # The two salts differ, so the same passphrase gives different results.
     assert password_hash("abc") != device_authentication_code("abc")
+
+
+def test_derivations_match_the_hashes_ets_stores() -> None:
+    # A project stores these hashes base64-encoded next to the passphrases (xknxproject's public
+    # "xknx_test_project"): the same derivations.
+    assert device_authentication_code("authcode") == base64.b64decode(
+        "2W7vedSbsgBROAkSj5XhEg=="
+    )
+    assert password_hash("test1234") == base64.b64decode("hVH0H6qL7jwBo8nJHdnx7g==")
 
 
 def _writes(controls: list[object]) -> dict[int, tuple[int, bytes]]:

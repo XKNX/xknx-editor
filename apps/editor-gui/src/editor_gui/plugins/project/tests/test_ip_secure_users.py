@@ -18,16 +18,31 @@ def test_project_passwords_come_first() -> None:
     project = IpSecrets(
         device_authentication_code="auth",
         management_password="mgmt",
-        tunnel_passwords={"M-1_A-1_BI-2": "two"},
+        bus_interfaces=[("M-1_A-1_BI-1", None), ("M-1_A-1_BI-2", "two")],
     )
     ring = KeyringIpSecrets("other", "other", [(2, "1.1.250", "ring")])
     authentication, passwords, tunnelling = ip_secure_users(
         project, ring, _TUNNELS, [250, 251]
     )
     assert authentication == "auth"
-    # The bus interface on tunnelling address 2 is user 3; the keyring adds user 2 on address 1.
+    # The second bus interface (tunnelling address 2) is user 3; the keyring adds user 2.
     assert passwords == {1: "mgmt", 3: "two", 2: "ring"}
     assert sorted(tunnelling) == [(2, 1), (3, 2)]
+
+
+def test_a_routing_interface_takes_the_first_user() -> None:
+    # A routing bus interface with a password is user 2, the tunnels follow.
+    project = IpSecrets(
+        management_password="mgmt",
+        bus_interfaces=[
+            ("M-1_A-1_BI-0", "routing"),
+            ("M-1_A-1_BI-1", "one"),
+            ("M-1_A-1_BI-2", "two"),
+        ],
+    )
+    _, passwords, tunnelling = ip_secure_users(project, None, _TUNNELS, [1, 2])
+    assert passwords == {1: "mgmt", 2: "routing", 3: "one", 4: "two"}
+    assert tunnelling == [(3, 1), (4, 2)]
 
 
 def test_the_keyring_fills_in() -> None:
@@ -42,7 +57,8 @@ def test_the_keyring_fills_in() -> None:
 
 def test_no_passwords_without_the_management_password() -> None:
     project = IpSecrets(
-        device_authentication_code="auth", tunnel_passwords={"M-1_A-1_BI-1": "one"}
+        device_authentication_code="auth",
+        bus_interfaces=[("M-1_A-1_BI-1", "one")],
     )
     assert ip_secure_users(project, None, _TUNNELS, [250]) == ("auth", {}, [])
 

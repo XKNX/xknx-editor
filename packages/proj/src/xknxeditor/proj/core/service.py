@@ -267,12 +267,15 @@ class DeviceKeys:
 @dataclass(frozen=True)
 class IpSecrets:
     """The KNX IP Secure passwords the project holds for an IP device, decrypted: its device
-    authentication code, its management (user 1) password and the password of each of its
-    tunnelling bus interfaces (by the bus interface's ``@RefId``). ``None``/missing when unknown."""
+    authentication code, its management (user 1) password and its bus interfaces as
+    ``(@RefId, password)`` in the device's order, which gives each its user id. ``None`` when
+    unknown."""
 
     device_authentication_code: str | None = None
     management_password: str | None = None
-    tunnel_passwords: dict[str, str] = field(default_factory=dict[str, str])
+    bus_interfaces: list[tuple[str, str | None]] = field(
+        default_factory=list[tuple[str, str | None]]
+    )
 
 
 @dataclass(frozen=True)
@@ -1341,7 +1344,7 @@ class ProjectService:
             return value or None
 
         attributes = security_attributes(device)
-        tunnels: dict[str, str] = {}
+        bus_interfaces: list[tuple[str, str | None]] = []
         raw = (device.extra_subtrees or {}).get("BusInterfaces")
         if raw:
             try:
@@ -1349,18 +1352,15 @@ class ProjectService:
             except ET.ParseError:
                 root = ET.Element("BusInterfaces")
             for bus_interface in root.iter("BusInterface"):
-                ref, password = (
-                    bus_interface.get("RefId"),
-                    clear(bus_interface.get("Password")),
-                )
-                if ref and password:
-                    tunnels[ref] = password
+                ref = bus_interface.get("RefId")
+                if ref:
+                    bus_interfaces.append((ref, clear(bus_interface.get("Password"))))
         return IpSecrets(
             device_authentication_code=clear(
                 attributes.get("DeviceAuthenticationCode")
             ),
             management_password=clear(attributes.get("DeviceManagementPassword")),
-            tunnel_passwords=tunnels,
+            bus_interfaces=bus_interfaces,
         )
 
     def set_ip_secure_loaded(
