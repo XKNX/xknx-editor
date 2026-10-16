@@ -501,7 +501,16 @@ class ConnectionService:
             self._log.warning("A bus operation is already running", device=device.name)
             return None
         self._log.info("Restarting device", device=device.name)
-        future = self.run_async(dm_restart(self._xknx, device.individual_address))
+        security = self._security_for(device)
+        if security is not None:
+            # A device commissioned securely only takes a restart secured with its Tool Key.
+            from xknx.telegram.apci import Restart
+
+            future = self.run_async(
+                self._send_secured(device.individual_address, Restart(), security)
+            )
+        else:
+            future = self.run_async(dm_restart(self._xknx, device.individual_address))
         if future is not None:
             future.add_done_callback(
                 functools.partial(
@@ -542,9 +551,22 @@ class ConnectionService:
         self._log.warning(
             "Master reset (destructive)", device=device.name, erase_code=erase_code
         )
-        future = self.run_async(
-            self._do_master_reset(device.individual_address, erase_code)
-        )
+        security = self._security_for(device)
+        if security is not None:
+            # Secured with the Tool Key the device holds (3/5/1 6.3.10): it rejects a plain one.
+            from xknx.telegram.apci import RestartMasterReset
+
+            future = self.run_async(
+                self._send_secured(
+                    device.individual_address,
+                    RestartMasterReset(erase_code=erase_code),
+                    security,
+                )
+            )
+        else:
+            future = self.run_async(
+                self._do_master_reset(device.individual_address, erase_code)
+            )
         if future is not None:
             future.add_done_callback(
                 functools.partial(
@@ -554,6 +576,26 @@ class ConnectionService:
         else:
             self._clear_busy()
         return future
+
+    async def _send_secured(
+        self, address: str, payload: Any, security: DeviceSecurity
+    ) -> None:
+        """Send a restart ``payload`` over a connection secured with the device's Tool Key; the
+        device drops the connection while restarting, so the closing is not checked."""
+        import contextlib
+
+        from xknx.telegram.address import IndividualAddress
+
+        from xknxeditor.download.session import management_session
+
+        assert self._xknx is not None
+        manager = management_session(self._xknx, IndividualAddress(address), security)
+        connection = await manager.open()
+        try:
+            await connection.send_data(payload, wait_for_ack=False)
+        finally:
+            with contextlib.suppress(Exception):
+                await manager.close()
 
     async def _do_master_reset(self, address: str, erase_code: int) -> None:
         import contextlib

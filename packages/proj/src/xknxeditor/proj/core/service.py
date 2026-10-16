@@ -1754,6 +1754,16 @@ class ProjectService:
         security.set("LoadedToolKey", tool_key)
         self._store_security(state, device_id, security)
 
+    def set_tool_key_unloaded(self, project_id: str, device_id: int) -> None:
+        """Record that the device holds no Tool Key any more (a factory reset): its
+        ``LoadedToolKey`` goes; its Tool Key stays for the next secure commissioning."""
+        state = self._state(project_id)
+        security = self._security_element(state, device_id)
+        if "LoadedToolKey" not in security.attrib:
+            return
+        del security.attrib["LoadedToolKey"]
+        self._store_security(state, device_id, security)
+
     @staticmethod
     def _store_security(state: _Open, device_id: int, security: ET.Element) -> None:
         """Store the device's ``<Security>`` directly, not as an undo step: what a download left in

@@ -615,3 +615,15 @@ def test_senders_for_the_connection_and_tunnels(tmp_path: Path) -> None:
     _keys, senders = svc.group_security(pid, first, tunnel_senders={0x0801: [0x21FA]})
     assert (0x21FA, 0) in senders
     svc.close(pid)
+
+
+def test_a_factory_reset_forgets_the_loaded_tool_key(tmp_path: Path) -> None:
+    svc, pid, first, _second, _ = _project(tmp_path)
+    svc.set_tool_key_loaded(pid, first)
+    keys = svc.device_keys(pid, first)
+    assert keys is not None and keys.loaded_tool_key is not None
+    svc.set_tool_key_unloaded(pid, first)
+    keys = svc.device_keys(pid, first)
+    # The device uses its FDSK again; the Tool Key it gets next stays.
+    assert keys is not None and keys.loaded_tool_key is None and keys.tool_key
+    svc.close(pid)

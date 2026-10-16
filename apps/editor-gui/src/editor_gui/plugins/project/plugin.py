@@ -85,6 +85,9 @@ if TYPE_CHECKING:
     from xknxeditor.recover import AppId
 
 
+# A_Restart_Master_Reset erase code of a factory reset with the individual address.
+_FACTORY_RESET = 2
+
 # App settings of KNX Secure (whether adding a secure device asks for its certificate).
 _SECURITY_SETTINGS = "security"
 
@@ -730,8 +733,23 @@ class ProjectPlugin:
         self._api.connection.restart_device(device)
 
     def _master_reset_device(self, device: "Device", erase_code: int) -> None:
-        """DESTRUCTIVE: master-reset the device (factory reset etc.) over the bus."""
-        self._api.connection.master_reset_device(device, erase_code)
+        """DESTRUCTIVE: master-reset the device (factory reset etc.) over the bus. A factory reset
+        with its address (erase code 2) gives a secure device its FDSK back, which the project
+        records."""
+        future = self._api.connection.master_reset_device(device, erase_code)
+        if future is None or erase_code != _FACTORY_RESET:
+            return
+
+        def done(f: "Future[Any]") -> None:
+            if f.cancelled() or f.exception() is not None:
+                return
+            apply = functools.partial(self._api.project.record_factory_reset, device)
+            if self._api.main_thread is not None:
+                self._api.main_thread.submit(apply)
+            else:
+                apply()
+
+        future.add_done_callback(done)
 
     def _render_dali_tab(self, device: "Device") -> None:
         """Render the DALI commissioning tab body (MDT DALI devices), passing bus-connected state."""

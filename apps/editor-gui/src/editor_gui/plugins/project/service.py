@@ -2272,6 +2272,15 @@ class ProjectService:
         ]
         self._svc.ensure_ip_secrets(self._pid, node_id, refs)
 
+    def record_factory_reset(self, device: Device) -> None:
+        """A factory reset (with the individual address) gave the device its FDSK back: it no
+        longer holds a Tool Key, so its next secure download needs its device certificate."""
+        if self._pid is None:
+            return
+        with self._io_lock:
+            self._svc.set_tool_key_unloaded(self._pid, device.node_id)
+        self._bump(structural=False)
+
     def record_secure_download(self, device: Device, result: object) -> None:
         """Record what a secured download left in the device (its ``DownloadResult``): the Tool
         Key it uses now and its next Sequence Number Sending."""
