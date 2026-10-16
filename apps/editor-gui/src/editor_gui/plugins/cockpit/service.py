@@ -33,6 +33,7 @@ class CockpitRow:
     issues: list[tuple[Severity, str]] = field(
         default_factory=list[tuple[Severity, str]]
     )
+    description: str = ""
 
     @property
     def needs_attention(self) -> bool:
@@ -158,6 +159,7 @@ class CockpitService:
                     commissioning_tooltip=tooltip,
                     loaded_count=loaded_count,
                     issues=by_device.get(d.node_id, []),
+                    description=d.description,
                 )
             )
         return rows

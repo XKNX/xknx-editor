@@ -1667,6 +1667,7 @@ class ProjectService:
                                     )
                                     or "",
                                     program_ref=row.hardware2program_ref_id,
+                                    description=row.description or "",
                                 )
                             )
                         else:

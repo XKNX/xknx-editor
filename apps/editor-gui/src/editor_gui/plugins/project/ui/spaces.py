@@ -10,8 +10,10 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.devices import render_read_device_item
+from editor_gui.widgets.description import description_icon
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.tree import leaf_rows, tree_node
 
 if TYPE_CHECKING:
     from xknxeditor.proj.core.service import (
@@ -202,7 +204,7 @@ class SpacesPanel:
             label = f"{label}  [{space.space_type}]"
         if flt:
             imgui.set_next_item_open(True, imgui.Cond_.always)
-        open_node = imgui.tree_node_ex(
+        open_node = tree_node(
             f"{label}##sp{space.id}", imgui.TreeNodeFlags_.default_open
         )
         if space.description and imgui.is_item_hovered():
@@ -223,9 +225,10 @@ class SpacesPanel:
             imgui.text_disabled(space.description)
         for child in space.children:
             self._render_space(child, flt)
-        for device in space.devices:
-            if self_match or self._device_matches(device, flt):
-                self._render_device(device, space_id=space.id)
+        with leaf_rows():
+            for device in space.devices:
+                if self_match or self._device_matches(device, flt):
+                    self._render_device(device, space_id=space.id)
         for function in space.functions:
             if self_match or self._function_matches(function, flt):
                 self._render_function(function)
@@ -391,10 +394,14 @@ class SpacesPanel:
         devices = self._get_unassigned_devices()
         if not devices:
             return
-        if not imgui.tree_node_ex(
-            f"{S.SPACES_UNASSIGNED_TITLE} ({len(devices)})##unassigned"
-        ):
+        if not tree_node(f"{S.SPACES_UNASSIGNED_TITLE} ({len(devices)})##unassigned"):
             return
+        with leaf_rows():
+            self._render_unassigned_devices(devices)
+        imgui.tree_pop()
+
+    def _render_unassigned_devices(self, devices: list["SpaceDeviceInfo"]) -> None:
+        assert self._on_set_device_space is not None
         targets = self._move_targets(
             -1
         )  # -1: no space excluded -> every space is a target
@@ -417,7 +424,6 @@ class SpacesPanel:
                         self._on_set_device_space(device.id, target.id)
                         imgui.close_current_popup()
                 imgui.end_popup()
-        imgui.tree_pop()
 
     @staticmethod
     def _device_label(device: "SpaceDeviceInfo") -> str:
@@ -501,8 +507,6 @@ class SpacesPanel:
             else ""
         )
         leaf = self._device_label(device)
-        if detail:
-            leaf = f"{leaf}  — {detail}"
         # allow_overlap: the "Without space" section draws an "Assign device" button via
         # same_line() over this full-width selectable. Without the flag the selectable (submitted
         # first) claims the click and the button never fires.
@@ -556,6 +560,9 @@ class SpacesPanel:
             ):
                 self._on_compare(device.id)
             imgui.end_popup()
+        # The description can be long: it shows while its icon is hovered.
+        if detail and description_icon(detail):
+            hovered = False
         if hovered:
             parts = [
                 p
@@ -563,7 +570,6 @@ class SpacesPanel:
                     device.manufacturer_name,
                     device.product_name,
                     device.hardware_name,
-                    device.description,
                 )
                 if p
             ]
@@ -573,7 +579,7 @@ class SpacesPanel:
     def _render_function(self, function: "FunctionInfo") -> None:
         label = function.name or function.usage_text or function.function_type
         type_label = _function_type_label(function.function_type)
-        open_node = imgui.tree_node_ex(f"ƒ {label}  [{type_label}]##fn{function.id}")
+        open_node = tree_node(f"ƒ {label}  [{type_label}]##fn{function.id}")
         editable = self._on_rename_function is not None
         if editable and imgui.begin_popup_context_item(f"##fnctx{function.id}"):
             if imgui.menu_item(S.SPACES_FN_RENAME, "", False)[0]:

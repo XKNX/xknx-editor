@@ -7,8 +7,10 @@ from editor_gui.device import Device, UnloadedDevice, address_order, device_labe
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
+from editor_gui.widgets.description import description_icon
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px
+from editor_gui.widgets.tree import leaf_rows, tree_node
 
 TreeDevice = Device | UnloadedDevice
 
@@ -196,7 +198,7 @@ class DevicesPanel:
             if flt:
                 imgui.set_next_item_open(True, imgui.Cond_.always)
             # The context menu belongs to the node whether it is open or closed.
-            area_open = imgui.tree_node_ex(f"{area_label}##area_{area.id}", area_flags)
+            area_open = tree_node(f"{area_label}##area_{area.id}", area_flags)
             self._render_area_context_menu(area, lines)
             if area_open:
                 for line in lines:
@@ -214,14 +216,13 @@ class DevicesPanel:
                     )
                     if flt:
                         imgui.set_next_item_open(True, imgui.Cond_.always)
-                    line_open = imgui.tree_node_ex(
-                        f"{line_label}##line_{line.id}", line_flags
-                    )
+                    line_open = tree_node(f"{line_label}##line_{line.id}", line_flags)
                     self._render_line_context_menu(line)
                     self._render_line_drop_target(area, line)
                     if line_open:
-                        for device in line_devices:
-                            self._render_device_node(device, _leaf, ordered_ids)
+                        with leaf_rows(nodes=True):
+                            for device in line_devices:
+                                self._render_device_node(device, _leaf, ordered_ids)
                         imgui.tree_pop()
                 imgui.tree_pop()
 
@@ -235,11 +236,12 @@ class DevicesPanel:
             )
             if flt:
                 imgui.set_next_item_open(True, imgui.Cond_.always)
-            if imgui.tree_node_ex(
+            if tree_node(
                 S.DEVICE_UNASSIGNED.format(count=len(unassigned)), unassigned_flags
             ):
-                for device in unassigned:
-                    self._render_device_node(device, _leaf, ordered_ids)
+                with leaf_rows(nodes=True):
+                    for device in unassigned:
+                        self._render_device_node(device, _leaf, ordered_ids)
                 imgui.tree_pop()
 
     def _render_device_node(
@@ -251,17 +253,27 @@ class DevicesPanel:
         if isinstance(device, UnloadedDevice):
             # Shown like any device, but without an application there is nothing to configure.
             imgui.push_style_color(imgui.Col_.text, _UNLOADED_COLOR)
-            imgui.tree_node_ex(self._device_label(device), leaf(device))
+            tree_node(self._device_label(device), leaf(device))
             imgui.pop_style_color()
-            if imgui.is_item_hovered():
-                imgui.set_tooltip(S.DEVICE_PRODUCT_DATA_MISSING)
+            hovered = imgui.is_item_hovered()
             self._render_unloaded_device_context_menu(device)
+            if self._render_description(device) or not hovered:
+                return
+            imgui.set_tooltip(S.DEVICE_PRODUCT_DATA_MISSING)
             return
-        imgui.tree_node_ex(self._device_label(device), leaf(device))
+        tree_node(self._device_label(device), leaf(device))
         if imgui.is_item_clicked():
             self._handle_device_click(device, ordered_ids)
         self._render_device_context_menu(device)
         self._render_device_drag_source(device)
+        self._render_description(device)
+
+    @staticmethod
+    def _render_description(device: TreeDevice) -> bool:
+        """The icon showing the device's description; whether it is hovered."""
+        if not device.description:
+            return False
+        return description_icon(device.description)
 
     def _render_unloaded_device_context_menu(self, device: UnloadedDevice) -> None:
         if imgui.begin_popup_context_item(f"##dev_ctx_{device.node_id}"):

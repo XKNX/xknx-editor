@@ -223,6 +223,7 @@ class UnloadedDevice:
     product_name: str
     individual_address: str
     program_ref: str | None
+    description: str = ""
 
     @property
     def display_name(self) -> str:

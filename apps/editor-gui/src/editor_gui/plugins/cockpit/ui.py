@@ -10,6 +10,10 @@ from editor_gui.plugins.cockpit.service import CockpitRow, CockpitService, sort_
 from editor_gui.plugins.cockpit.strings import S
 from editor_gui.plugins.health.service import Severity
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.description import (
+    description_icon,
+    description_icon_width,
+)
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.text_util import text_clipped_tooltip
@@ -128,7 +132,16 @@ class CockpitPanel:
             )[0]:
                 self._on_select(r.node_id)
             imgui.table_set_column_index(1)
-            text_clipped_tooltip(r.name)
+            if r.description:
+                # The description's icon at the end of the cell, the name clipped before it.
+                start = imgui.get_cursor_screen_pos().x
+                end = start + imgui.get_content_region_avail().x
+                icon_x = max(start, end - description_icon_width())
+                spacing = imgui.get_style().item_inner_spacing.x
+                text_clipped_tooltip(r.name, width=max(0.0, icon_x - spacing - start))
+                description_icon(r.description, x=icon_x)
+            else:
+                text_clipped_tooltip(r.name)
             imgui.table_set_column_index(2)
             text_clipped_tooltip(r.product or "-", disabled=True)
             imgui.table_set_column_index(3)

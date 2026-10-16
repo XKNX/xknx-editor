@@ -12,6 +12,7 @@ from editor_gui.plugins.catalog.strings import S
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.tree import leaf_rows, tree_node
 
 if TYPE_CHECKING:
     from editor_gui.plugins.catalog.online_catalog import (
@@ -209,21 +210,18 @@ class CatalogPanel:
                 for product in by_manufacturer[mfr_id]:
                     name = _label(product)
                     if search in name.lower() or search in mfr_label.lower():
-                        imgui.tree_node_ex(
-                            f"{mfr_label} - {name}##{_key(product)}", leaf_flags
-                        )
+                        tree_node(f"{mfr_label} - {name}##{_key(product)}", leaf_flags)
                         self._handle_product_click(product)
                         self._render_product_context_menu(product)
         else:
             for mfr_id in sorted_mfrs:
                 mfr_label = manufacturer_labels[mfr_id]
-                if imgui.tree_node(f"{mfr_label}##{mfr_id}"):
-                    for product in by_manufacturer[mfr_id]:
-                        imgui.tree_node_ex(
-                            f"{_label(product)}##{_key(product)}", leaf_flags
-                        )
-                        self._handle_product_click(product)
-                        self._render_product_context_menu(product)
+                if tree_node(f"{mfr_label}##{mfr_id}"):
+                    with leaf_rows(nodes=True):
+                        for product in by_manufacturer[mfr_id]:
+                            tree_node(f"{_label(product)}##{_key(product)}", leaf_flags)
+                            self._handle_product_click(product)
+                            self._render_product_context_menu(product)
                     imgui.tree_pop()
 
         self._render_product_detail()
@@ -455,7 +453,7 @@ class CatalogPanel:
             name_hit = (
                 not query or query in mfr.name.lower() or query in f"m-{mfr.id:04d}"
             )
-            if imgui.tree_node(f"{mfr.name}  (M-{mfr.id:04d})##online_mfr_{mfr.id}"):
+            if tree_node(f"{mfr.name}  (M-{mfr.id:04d})##online_mfr_{mfr.id}"):
                 self._render_online_products(
                     mfr.id, leaf_flags, "" if name_hit else query
                 )
@@ -530,7 +528,8 @@ class CatalogPanel:
             if not item.downloadable:
                 imgui.text_disabled(f"{label}  {S.ONLINE_NOT_DOWNLOADABLE}")
                 continue
-            imgui.tree_node_ex(f"{label}##online_item_{item.id}", leaf_flags)
+            with leaf_rows(nodes=True):
+                tree_node(f"{label}##online_item_{item.id}", leaf_flags)
             if imgui.is_item_clicked() and imgui.is_mouse_double_clicked(0):
                 self._start_download(item.id)
 
@@ -707,7 +706,7 @@ class CatalogPanel:
             if not item.downloadable:
                 imgui.text_disabled(f"{label}  {S.ONLINE_NOT_DOWNLOADABLE}")
                 continue
-            imgui.tree_node_ex(f"{label}##flat_{item.id}", leaf_flags)
+            tree_node(f"{label}##flat_{item.id}", leaf_flags)
             if imgui.is_item_clicked() and imgui.is_mouse_double_clicked(0):
                 self._start_download(item.id)
 
