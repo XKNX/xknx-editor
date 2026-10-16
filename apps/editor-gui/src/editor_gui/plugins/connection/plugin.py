@@ -2,6 +2,7 @@ import asyncio
 import contextlib
 import math
 import threading
+import time
 from collections.abc import Callable, Coroutine
 from concurrent.futures import Future
 from enum import Enum
@@ -49,6 +50,17 @@ _AUTOSTART_RETRY_SECONDS = 30.0
 _REOPEN_SECONDS = 5.0
 # How often an interface that was just downloaded is asked what connection it requires.
 _REOPEN_ATTEMPTS = 12
+# Seconds between the checks whether the credentials an interface requires are available now.
+_CREDENTIALS_CHECK_SECONDS = 2.0
+
+
+class _MissingCredentialsError(ConnectionError):
+    """The interface requires KNX IP Secure, and neither the project nor a keyring has the
+    credentials."""
+
+    def __init__(self, gateway: GatewayDescriptor | None) -> None:
+        super().__init__(S.CONNECT_SECURE_NO_CREDENTIALS)
+        self.gateway = gateway
 
 
 def _progmode_label_width() -> float:
@@ -103,6 +115,10 @@ class ConnectionPlugin:
         self._config: ConnectionConfig | None = None
         self._link_up = False
         self._watching_lost = False
+        # The interface a connection failed to for missing credentials, and the next check.
+        self._awaiting_credentials: GatewayDescriptor | None = None
+        self._retry_on_credentials = False
+        self._credentials_check_at = 0.0
         # Counts the connects and disconnects the user asked for; a reopen of an older one stops.
         self._session = 0
         # The bus monitor connection while it runs (the normal connection is closed then).
@@ -252,6 +268,7 @@ class ConnectionPlugin:
         self._connection_type = ConnectionType.TUNNELING
         self._selected_gateway = None
         self._session += 1
+        self._retry_on_credentials = False
         self._state = ConnectionState.CONNECTING
         self._error_message = None
         self._save_current_settings()
@@ -272,6 +289,7 @@ class ConnectionPlugin:
         self._selected_gateway = gateway
         self._preferred_gateway_ip = gateway.ip_addr
         self._session += 1
+        self._retry_on_credentials = False
         self._state = ConnectionState.CONNECTING
         self._error_message = None
         self._save_current_settings()
@@ -371,6 +389,9 @@ class ConnectionPlugin:
                     services=",".join(services),
                 )
         except Exception as e:
+            if isinstance(e, _MissingCredentialsError):
+                self._awaiting_credentials = e.gateway
+                self._retry_on_credentials = True
             self._state = ConnectionState.ERROR
             self._error_message = str(e)
             self._interface = None
@@ -418,7 +439,7 @@ class ConnectionPlugin:
                     threaded=True,
                 )
             if gateway is not None and gateway.routing_requires_secure:
-                raise ConnectionError(S.CONNECT_SECURE_NO_CREDENTIALS)
+                raise _MissingCredentialsError(gateway)
             return ConnectionConfig(
                 connection_type=ConnectionType.ROUTING,
                 multicast_group=self._multicast_group,
@@ -436,7 +457,7 @@ class ConnectionPlugin:
                 else None
             )
             if tunnel is None:
-                raise ConnectionError(S.CONNECT_SECURE_NO_CREDENTIALS)
+                raise _MissingCredentialsError(gateway)
             return ConnectionConfig(
                 connection_type=ConnectionType.TUNNELING_TCP_SECURE,
                 gateway_ip=self._controller_ip,
@@ -453,6 +474,25 @@ class ConnectionPlugin:
             gateway_ip=self._controller_ip,
             threaded=True,
         )
+
+    def _connect_with_credentials(self) -> None:
+        """Connect once the project or a keyring has the credentials the interface requires, e.g.
+        after the project opened that the startup connection came too early for."""
+        if not self._retry_on_credentials or self._state != ConnectionState.ERROR:
+            return
+        now = time.monotonic()
+        if now < self._credentials_check_at:
+            return
+        self._credentials_check_at = now + _CREDENTIALS_CHECK_SECONDS
+        try:
+            self._connection_config(self._awaiting_credentials)
+        except ConnectionError:
+            return
+        self._retry_on_credentials = False
+        self._log.info("the credentials the interface requires are available now")
+        self._state = ConnectionState.CONNECTING
+        self._error_message = None
+        self._run_async(self._connect_async())
 
     def _refresh_data_secure(self) -> None:
         """Hand the open connection the current Data Secure tables after a project change."""
@@ -471,6 +511,7 @@ class ConnectionPlugin:
         if self._state in (ConnectionState.DISCONNECTED, ConnectionState.DISCONNECTING):
             return
         self._session += 1
+        self._retry_on_credentials = False
         self._state = ConnectionState.DISCONNECTING
         self._run_async(self._disconnect_async())
 
@@ -781,6 +822,7 @@ class ConnectionPlugin:
 
     def render_status_indicator(self) -> None:
         self._refresh_data_secure()
+        self._connect_with_credentials()
         self._render_status_indicator()
 
     def _render_status_indicator(self) -> None:

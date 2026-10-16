@@ -158,3 +158,27 @@ def test_the_interfaces_download_reopens_the_connection() -> None:
     failed.set_exception(RuntimeError("timeout"))
     service._reopen_after_interface_download(failed)  # pyright: ignore[reportPrivateUsage]
     assert reopened == [True]
+
+
+def test_connected_once_the_credentials_are_there() -> None:
+    from editor_gui.plugins.connection.plugin import ConnectionState
+
+    tunnels: list[SecureTunnel] = []
+    plugin = _plugin(
+        None, secure_tunnel=lambda host, free: tunnels[0] if tunnels else None
+    )
+    started: list[object] = []
+    plugin._state = ConnectionState.ERROR
+    plugin._awaiting_credentials = _gateway(tunnelling_requires_secure=True)
+    plugin._retry_on_credentials = True
+    plugin._credentials_check_at = 0.0
+    plugin._log = SimpleNamespace(info=lambda *a, **k: None)  # pyright: ignore[reportUnknownLambdaType]
+    plugin._run_async = lambda coro: (started.append(coro), coro.close())
+    plugin._connect_async = lambda: SimpleNamespace(close=lambda: None)
+    plugin._connect_with_credentials()
+    assert started == []
+    tunnels.append(_TUNNELS[0])
+    plugin._credentials_check_at = 0.0
+    plugin._connect_with_credentials()
+    assert len(started) == 1
+    assert plugin._state is ConnectionState.CONNECTING
