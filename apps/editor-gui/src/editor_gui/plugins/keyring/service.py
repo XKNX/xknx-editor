@@ -172,6 +172,26 @@ class KeyringService:
             tunnels=tunnels,
         )
 
+    def backbone_key(self) -> bytes | None:
+        """The loaded keyring's routing backbone key."""
+        decrypted = self._decrypted
+        return decrypted.backbone_key if decrypted is not None else None
+
+    def data_secure_tables(self) -> tuple[dict[int, bytes], dict[int, int]] | None:
+        """The loaded keyring's group keys (raw group address -> key) and the devices it holds
+        with their Sequence Numbers (raw individual address -> last valid)."""
+        decrypted = self._decrypted
+        if decrypted is None or not decrypted.group_keys:
+            return None
+        senders: dict[int, int] = {}
+        for device in decrypted.devices:
+            try:
+                address = IndividualAddress(device.individual_address).raw
+            except CouldNotParseAddress:
+                continue
+            senders[address] = max((device.sequence_number or 0) - 1, 0)
+        return dict(decrypted.group_keys), senders
+
     def is_loaded(self) -> bool:
         """Whether a keyring is currently loaded (a single snapshot read)."""
         return self._model is not None

@@ -4,7 +4,7 @@ import asyncio
 import functools
 import threading
 import time
-from collections.abc import Awaitable, Callable, Coroutine
+from collections.abc import Awaitable, Callable, Collection, Coroutine
 from concurrent.futures import Future
 from dataclasses import dataclass
 from enum import Enum
@@ -22,6 +22,7 @@ from xknx.telegram.apci import GroupValueRead, GroupValueWrite
 
 if TYPE_CHECKING:
     from xknx import XKNX
+    from xknx.secure.data_secure import DataSecure
 
     from editor_gui.device import Device
     from editor_gui.net import TelegramSource
@@ -82,6 +83,17 @@ class BusmonitorState(Enum):
     STOPPING = "stopping"
 
 
+@dataclass(frozen=True)
+class SecureTunnel:
+    """The credentials of a KNX IP Secure tunnel: its user id, tunnelling address, password and
+    the interface's device authentication code."""
+
+    user_id: int
+    individual_address: str
+    password: str
+    authentication: str | None = None
+
+
 class ConnectionService:
     def __init__(self) -> None:
         self._log: Logger
@@ -118,6 +130,15 @@ class ConnectionService:
         self.keyring: KeyringService | None = None
         # The device's tool keys from the open project; they take precedence over the keyring.
         self.project_keys: Callable[[Device], DeviceKeys | None] | None = None
+        # The open project's KNX IP Secure tunnels of an interface (by its individual address),
+        # its routing backbone ``(key, latency ms)`` and its Data Secure tables ``(group keys,
+        # senders with their last valid Sequence Number)``; they take precedence over the keyring.
+        self.project_tunnels: Callable[[str], list[SecureTunnel]] | None = None
+        self.project_backbone: Callable[[], tuple[bytes, int] | None] | None = None
+        self._group_keys: dict[int, bytes] = {}
+        self.project_data_secure: (
+            Callable[[], tuple[dict[int, bytes], dict[int, int]] | None] | None
+        ) = None
         # Download individual addresses by serial number when the device's is known.
         self.use_serial_number = True
         # Current point-to-point bus operation, so the UI can show a
@@ -594,6 +615,77 @@ class ConnectionService:
                 address=device.individual_address,
             )
         return security
+
+    def secure_tunnel(
+        self, gateway_address: str, free: Collection[str] = ()
+    ) -> SecureTunnel | None:
+        """The credentials of a KNX IP Secure tunnel of the interface at ``gateway_address``: from
+        the project, else from the loaded keyring; one on a ``free`` tunnelling address first."""
+        tunnels = (
+            self.project_tunnels(gateway_address)
+            if self.project_tunnels is not None
+            else []
+        )
+        if not tunnels and self.keyring is not None:
+            secrets = self.keyring.ip_secrets(gateway_address)
+            if secrets is not None:
+                tunnels = [
+                    SecureTunnel(
+                        user_id, address, password, secrets.device_authentication_code
+                    )
+                    for user_id, address, password in secrets.tunnels
+                ]
+        if not tunnels:
+            return None
+        return next((t for t in tunnels if t.individual_address in free), tunnels[0])
+
+    def secure_backbone(self) -> tuple[bytes, int] | None:
+        """The KNX IP Secure routing backbone ``(key, latency ms)``: the project's, else the
+        loaded keyring's."""
+        backbone = (
+            self.project_backbone() if self.project_backbone is not None else None
+        )
+        if backbone is None and self.keyring is not None:
+            key = self.keyring.backbone_key()
+            if key is not None:
+                backbone = (key, 2000)
+        return backbone
+
+    def data_secure(self) -> DataSecure | None:
+        """KNX Data Secure for the group communication of the open connection: the keys of the
+        secured group addresses and their senders, from the project, else from the loaded
+        keyring; ``None`` without any."""
+        from xknx.secure.data_secure import DataSecure
+        from xknx.telegram import GroupAddress, IndividualAddress
+
+        tables = (
+            self.project_data_secure() if self.project_data_secure is not None else None
+        )
+        if not tables and self.keyring is not None:
+            tables = self.keyring.data_secure_tables()
+        if not tables or not tables[0]:
+            self._group_keys = {}
+            return None
+        group_keys, senders = tables
+        self._group_keys = dict(group_keys)
+        return DataSecure(
+            group_key_table={GroupAddress(raw): key for raw, key in group_keys.items()},
+            individual_address_table={
+                IndividualAddress(raw): sequence for raw, sequence in senders.items()
+            },
+        )
+
+    def secure_group_keys(self) -> dict[int, bytes]:
+        """The group keys the connection's Data Secure tables were last built with (raw group
+        address -> key), e.g. to show secured telegrams decrypted."""
+        return self._group_keys
+
+    def refresh_data_secure(self) -> None:
+        """Give the open connection the current Data Secure tables (not while a bus operation
+        runs: a secured download hooks into the same place)."""
+        if self._xknx is None or self.busy_operation is not None:
+            return
+        self._xknx.cemi_handler.data_secure = self.data_secure()
 
     def program_device(
         self,

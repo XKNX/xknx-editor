@@ -104,6 +104,8 @@ class ConnectionPlugin:
         )
 
         self._gateways: list[GatewayDescriptor] = []
+        # The project revision the connection's Data Secure tables were built from.
+        self._data_secure_revision = -1
         self._scanning = False
         # One-shot re-scan after autostart found nothing: on macOS the first discovery triggers the
         # "Local Network" permission prompt and returns no gateways; a delayed retry picks them up
@@ -276,18 +278,7 @@ class ConnectionPlugin:
         )
         try:
             self._xknx = XKNX()
-            if self._connection_type == ConnectionType.ROUTING:
-                config = ConnectionConfig(
-                    connection_type=ConnectionType.ROUTING,
-                    multicast_group=self._multicast_group,
-                    threaded=True,
-                )
-            else:
-                config = ConnectionConfig(
-                    connection_type=ConnectionType.TUNNELING,
-                    gateway_ip=self._controller_ip,
-                    threaded=True,
-                )
+            config = await self._connection_config()
             self._interface = ObservableKNXIPInterfaceThreaded(
                 xknx=self._xknx,
                 connection_config=config,
@@ -297,6 +288,9 @@ class ConnectionPlugin:
             # Replace the inert default interface so all internal send paths use ours.
             self._xknx.knxip_interface = self._interface
             await self._interface.start()
+            # Secured group communication with the project's (or the keyring's) keys.
+            self._xknx.cemi_handler.data_secure = self._api.connection.data_secure()
+            self._data_secure_revision = self._api.project.revision
             if self._selected_gateway is not None:
                 self._gateway_info = self._selected_gateway
             elif self._connection_type == ConnectionType.TUNNELING:
@@ -366,6 +360,79 @@ class ConnectionPlugin:
                 mode=self._connection_type.name.lower(),
                 error=f"{type(e).__name__}: {e}",
             )
+
+    async def _connection_config(self) -> ConnectionConfig:
+        """The connection to open: KNX IP Secure tunnelling (over TCP) when the interface requires
+        it, KNX IP Secure routing when the backbone does, with the credentials of the project or
+        the loaded keyring; plain otherwise."""
+        from xknx.io.connection import SecureConfig
+
+        connection = self._api.connection
+        if self._connection_type == ConnectionType.ROUTING:
+            gateway = self._selected_gateway
+            backbone = connection.secure_backbone()
+            if backbone is not None and (
+                gateway is None or gateway.routing_requires_secure is not False
+            ):
+                key, latency = backbone
+                return ConnectionConfig(
+                    connection_type=ConnectionType.ROUTING_SECURE,
+                    multicast_group=self._multicast_group,
+                    secure_config=SecureConfig(
+                        backbone_key=key.hex(), latency_ms=latency
+                    ),
+                    threaded=True,
+                )
+            if gateway is not None and gateway.routing_requires_secure:
+                raise ConnectionError(S.CONNECT_SECURE_NO_CREDENTIALS)
+            return ConnectionConfig(
+                connection_type=ConnectionType.ROUTING,
+                multicast_group=self._multicast_group,
+                threaded=True,
+            )
+        gateway = self._selected_gateway
+        if gateway is None:
+            with contextlib.suppress(Exception):
+                gateway = await request_description(self._controller_ip)
+        if gateway is not None and gateway.tunnelling_requires_secure:
+            free = [
+                str(address)
+                for address, slot in gateway.tunnelling_slots.items()
+                if slot.usable and slot.authorized and slot.free
+            ]
+            tunnel = (
+                connection.secure_tunnel(str(gateway.individual_address), free)
+                if gateway.individual_address is not None
+                else None
+            )
+            if tunnel is None:
+                raise ConnectionError(S.CONNECT_SECURE_NO_CREDENTIALS)
+            return ConnectionConfig(
+                connection_type=ConnectionType.TUNNELING_TCP_SECURE,
+                gateway_ip=self._controller_ip,
+                individual_address=tunnel.individual_address,
+                secure_config=SecureConfig(
+                    user_id=tunnel.user_id,
+                    user_password=tunnel.password,
+                    device_authentication_password=tunnel.authentication,
+                ),
+                threaded=True,
+            )
+        return ConnectionConfig(
+            connection_type=ConnectionType.TUNNELING,
+            gateway_ip=self._controller_ip,
+            threaded=True,
+        )
+
+    def _refresh_data_secure(self) -> None:
+        """Hand the open connection the current Data Secure tables after a project change."""
+        revision = self._api.project.revision
+        if self._xknx is None or revision == self._data_secure_revision:
+            return
+        if self._api.connection.busy_operation is not None:
+            return
+        self._data_secure_revision = revision
+        self._api.connection.refresh_data_secure()
 
     def disconnect(self) -> None:
         if self._api.connection.busmonitor_state is BusmonitorState.RUNNING:
@@ -598,6 +665,10 @@ class ConnectionPlugin:
             self._async_loop.call_soon_threadsafe(self._async_loop.stop)
 
     def render_status_indicator(self) -> None:
+        self._refresh_data_secure()
+        self._render_status_indicator()
+
+    def _render_status_indicator(self) -> None:
         draw_list = imgui.get_window_draw_list()
         cursor = imgui.get_cursor_screen_pos()
         text_height = imgui.get_text_line_height()

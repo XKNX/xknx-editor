@@ -1413,6 +1413,31 @@ class ProjectService:
         except ValueError:
             return None
 
+    def secure_senders(
+        self, project_id: str, can_send: Callable[[int], bool] | None = None
+    ) -> dict[int, int]:
+        """Every device that can send on a secured group address (raw individual address) with
+        its last valid Sequence Number (see :meth:`group_security`)."""
+        session = self._state(project_id).session
+        secured = secured_group_addresses(session)
+        rows = (
+            session.query(Device, ComObject.id)
+            .join(ComObject, ComObject.device_id == Device.id)
+            .join(ComObjectLink, ComObjectLink.com_object_id == ComObject.id)
+            .filter(ComObjectLink.group_address_id.in_(secured))
+            .all()
+        )
+        senders: dict[int, int] = {}
+        for device, com_object_id in rows:
+            if device.address is None:
+                continue
+            if can_send is not None and not can_send(com_object_id):
+                continue
+            line = device.segment.line
+            address = (line.area.address << 12) | (line.address << 8) | device.address
+            senders[address] = _last_valid_sequence_number(device)
+        return senders
+
     def group_address_senders(
         self,
         project_id: str,
@@ -1757,13 +1782,16 @@ class ProjectService:
         project_id: str,
         device_id: int,
         can_send: Callable[[int], bool] | None = None,
+        tunnel_senders: Mapping[int, Sequence[int]] | None = None,
     ) -> tuple[dict[int, bytes], list[tuple[int, int]]]:
         """The keys of the secured group addresses the device is linked to (raw address -> key)
         and the devices that may send on them: ``(individual address (raw), last valid sequence
         number)`` of every other addressed device with a group object on one of them that can send
         (``can_send(com object id)``: its flags let it transmit, answer read requests or request
-        a read; every linked object without it). A secured group address without a key yet gets
-        one, stored directly: devices may hold it from now on, so it is not an undo step."""
+        a read; every linked object without it), and the tunnels the group address is assigned to
+        (``tunnel_senders``: raw group address -> raw tunnelling addresses, sequence number 0). A
+        secured group address without a key yet gets one, stored directly: devices may hold it
+        from now on, so it is not an undo step."""
         state = self._state(project_id)
         session = state.session
         linked = (
@@ -1812,6 +1840,9 @@ class ProjectService:
                     (line.area.address << 12) | (line.address << 8) | other.address
                 )
                 senders[address] = _last_valid_sequence_number(other)
+            for group_address in keys:
+                for tunnel in (tunnel_senders or {}).get(group_address, ()):
+                    senders.setdefault(tunnel, 0)
         return keys, sorted(senders.items())
 
     def set_device_sequence_number(

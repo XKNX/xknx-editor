@@ -518,6 +518,15 @@ class KnxGuiApp:
         # loaded keyring.
         self._connection_service.keyring = self._keyring_plugin.service
         self._connection_service.project_keys = self._project_service.device_keys
+        # KNX IP Secure tunnels and routing, and KNX Data Secure group communication, of the
+        # editor's own connection: from the project, else from the loaded keyring.
+        self._connection_service.project_tunnels = self._project_service.secure_tunnels
+        self._connection_service.project_backbone = (
+            self._project_service.secure_backbone
+        )
+        self._connection_service.project_data_secure = (
+            self._project_service.data_secure_tables
+        )
         self._signing_plugin = SigningPlugin(self._plugin_api)
         self._recover_plugin = RecoverPlugin(self._plugin_api)
         self._health_plugin = HealthPlugin(self._plugin_api)

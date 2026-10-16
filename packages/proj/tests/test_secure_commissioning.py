@@ -605,3 +605,13 @@ def test_keyring_material(tmp_path: Path) -> None:
     pid = svc.open(path, _PASSWORD)
     assert svc.bus_interface_group_addresses(pid, first) == {"M-1_A-1_BI-1": [0x0801]}
     svc.close(pid)
+
+
+def test_senders_for_the_connection_and_tunnels(tmp_path: Path) -> None:
+    svc, pid, first, second, _ = _project(tmp_path)
+    # Every device that can send on a secured group address, with its last valid number.
+    assert svc.secure_senders(pid) == {0x2105: 0, 0x2106: 4710}
+    # A tunnel assigned to a secured group address sends on it too.
+    _keys, senders = svc.group_security(pid, first, tunnel_senders={0x0801: [0x21FA]})
+    assert (0x21FA, 0) in senders
+    svc.close(pid)

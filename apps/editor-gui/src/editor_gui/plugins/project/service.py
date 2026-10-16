@@ -58,6 +58,7 @@ from xknxeditor.proj.core.skeleton import MEDIUM_TP
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger
     from editor_gui.plugins.catalog.service import CatalogService
+    from editor_gui.plugins.connection.service import SecureTunnel
     from editor_gui.plugins.keyring.service import KeyringIpSecrets, KeyringService
     from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
     from xknxeditor.download.image import GroupCommunication
@@ -1843,7 +1844,10 @@ class ProjectService:
         if not device.app.program.is_secure_enabled:
             return None
         keys, senders = self._svc.group_security(
-            self._pid, device.node_id, self._com_object_can_send
+            self._pid,
+            device.node_id,
+            self._com_object_can_send,
+            self._tunnel_senders(),
         )
         p2p = self._svc.p2p_security(
             self._pid, device.node_id, _security_role_masks(device)
@@ -1904,6 +1908,30 @@ class ProjectService:
         if ga.security_mode not in ("On", "Off") and not secure(device):
             return any(self.com_object_requires_security(link) for link in ga.links)
         return False
+
+    def _tunnel_senders(self) -> dict[int, list[int]]:
+        """The tunnels of the project's KNX IP Secure interfaces by the group addresses assigned
+        to them (raw group address -> raw tunnelling addresses): a tool sends on those secured
+        group addresses through that tunnel, so the devices on them accept it as a sender."""
+        from xknx.telegram import IndividualAddress
+
+        if self._pid is None:
+            return {}
+        result: dict[int, list[int]] = {}
+        for device in self.devices:
+            settings = self.ip_secure_settings(device)
+            if settings is None:
+                continue
+            assigned = self._svc.bus_interface_group_addresses(
+                self._pid, device.node_id
+            )
+            for interface in settings.interfaces:
+                if interface.address is None:
+                    continue
+                tunnel = IndividualAddress(interface.address).raw
+                for group_address in assigned.get(interface.ref_id, []):
+                    result.setdefault(group_address, []).append(tunnel)
+        return result
 
     def _com_object_can_send(self, com_object_id: int) -> bool:
         """Whether a group object can send on its group addresses: it communicates and transmits,
@@ -1998,6 +2026,59 @@ class ProjectService:
         except KeyError:
             return False
         return self._ip_secure_application(device.app, ref)
+
+    def secure_tunnels(self, host_address: str) -> "list[SecureTunnel]":
+        """The KNX IP Secure tunnels of the project's interface at ``host_address`` (secure
+        commissioning activated), with their passwords."""
+        from editor_gui.plugins.connection.service import SecureTunnel
+
+        device = next(
+            (d for d in self.devices if d.individual_address == host_address), None
+        )
+        settings = self.ip_secure_settings(device) if device is not None else None
+        if settings is None:
+            return []
+        return [
+            SecureTunnel(
+                interface.user_id,
+                interface.address,
+                interface.password,
+                settings.authentication_code or None,
+            )
+            for interface in settings.interfaces
+            if interface.access == "Tunneling"
+            and interface.address
+            and interface.password
+        ]
+
+    def secure_backbone(self) -> tuple[bytes, int] | None:
+        """The project's KNX IP Secure routing backbone ``(key, latency ms)``, unless its backbone
+        security is switched off."""
+        if self._pid is None:
+            return None
+        installation = self._svc.installation_attributes(self._pid)
+        if installation.get("IPRoutingBackboneSecurity") == "Off":
+            return None
+        key = self._svc.ip_backbone_key(self._pid)
+        if key is None:
+            return None
+        return key, _int_or(installation.get("IPRoutingLatencyTolerance"), 2000)
+
+    def data_secure_tables(self) -> tuple[dict[int, bytes], dict[int, int]] | None:
+        """The project's Data Secure tables for a connection: the keys of the secured group
+        addresses and every device that can send on them with its last valid Sequence Number."""
+        from xknxeditor.proj import ProjectPasswordRequired
+
+        if self._pid is None:
+            return None
+        with self._io_lock:
+            try:
+                keys = self._svc.secured_group_keys(self._pid)
+            except ProjectPasswordRequired:
+                return None
+            if not keys:
+                return None
+            return keys, self._svc.secure_senders(self._pid, self._com_object_can_send)
 
     def export_keyring(self, path: Path, password: str) -> int:
         """Write the project's key material as a keyring (``.knxkeys``) to ``path``, encrypted and
