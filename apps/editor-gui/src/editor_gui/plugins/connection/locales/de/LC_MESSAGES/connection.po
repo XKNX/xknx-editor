@@ -150,3 +150,6 @@ msgstr "Unprogrammiertes Gerät (Werkseinstellungsadresse 15.15.255)"
 
 msgid "{count} device(s) in programming mode"
 msgstr "{count} Gerät(e) im Programmiermodus"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "Die Schnittstelle erfordert KNX IP Secure, aber weder das Projekt noch ein geladener Keyring enthält ihre Passwörter."

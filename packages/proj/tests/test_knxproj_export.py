@@ -1589,19 +1589,31 @@ def test_device_extra_subtrees_round_trip_to_export(tmp_path: Path) -> None:
 
 def test_p2p_links_round_trip_and_placement(tmp_path: Path) -> None:
     """<P2PLinks> (dropped by xknxproject) is stored verbatim and re-emitted between GroupAddresses
-    and Trades in the Installation (#5)."""
-    from xknxeditor.proj.models import Installation
+    and Trades in the Installation (#5). The export renumbers the devices, so the endpoints are
+    rewritten to the new ids; a link whose device is gone is dropped."""
+    from xknxeditor.proj.models import Device, Installation
 
     src = tmp_path / "src.xknx"
     svc = ProjectService()
     pid = svc.create(src, "P-P2P")
+    segment = svc.topology(pid, 0).areas[0].lines[0].segments[0].id
+    for address in (1, 2):
+        svc.add_device(pid, segment, "M-1_H-1_P-1", address=address, name=f"D{address}")
     svc.close(pid)
     engine = make_engine(url_for(src))
     try:
         with Session(engine) as session:
-            session.query(
-                Installation
-            ).one().p2p_links_xml = '<P2PLinks><P2PLink Id="L1" /></P2PLinks>'
+            for device in session.query(Device):
+                device.source_id = f"P-OLD-0_DI-{10 + (device.address or 0)}"
+            session.query(Installation).one().p2p_links_xml = (
+                '<P2PLinks><P2PLink Id="P-OLD-0_P2P-1">'
+                '<DeviceEndpoint DeviceRefId="P-OLD-0_DI-11" SecurityRoles="R-1" />'
+                '<DeviceEndpoint DeviceRefId="P-OLD-0_DI-12" />'
+                '</P2PLink><P2PLink Id="P-OLD-0_P2P-2">'
+                '<DeviceEndpoint DeviceRefId="P-OLD-0_DI-11" />'
+                '<DeviceEndpoint DeviceRefId="P-OLD-0_DI-99" />'
+                "</P2PLink></P2PLinks>"
+            )
             session.commit()
     finally:
         engine.dispose()
@@ -1620,6 +1632,74 @@ def test_p2p_links_round_trip_and_placement(tmp_path: Path) -> None:
     assert "P2PLinks" in tags
     # P2PLinks comes after GroupAddresses (Trades is omitted here as there are none).
     assert tags.index("GroupAddresses") < tags.index("P2PLinks")
+    ids = {
+        e.get("Address"): e.get("Id")
+        for e in root.iter()
+        if _ln(e.tag) == "DeviceInstance"
+    }
+    links = [e for e in root.iter() if _ln(e.tag) == "P2PLink"]
+    assert len(links) == 1  # the link to the missing device is dropped
+    endpoints = list(links[0])
+    assert [e.get("DeviceRefId") for e in endpoints] == [ids["1"], ids["2"]]
+    assert endpoints[0].get("SecurityRoles") == "R-1"
+    assert links[0].get("Id") == "P-P2P-0_P2P-1"
+
+
+def test_export_rewrites_bus_interface_connectors(tmp_path: Path) -> None:
+    """A bus interface's ``Connector`` names its group address by id; the export renumbers the
+    group addresses, so it is rewritten (and dropped when the group address is gone). The same
+    holds for an unassigned device's links, and the renumbered devices keep clear of its id."""
+    from xknxeditor.proj.models import Device, GroupAddress, Installation
+
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-BI")
+    segment = svc.topology(pid, 0).areas[0].lines[0].segments[0].id
+    svc.add_device(pid, segment, "M-1_H-1_P-1", address=1, name="IP")
+    svc.create_group_address(pid, 0, 0x0801, "First")
+    svc.create_group_address(pid, 0, 0x0802, "Second")
+    svc.close(pid)
+    engine = make_engine(url_for(src))
+    try:
+        with Session(engine) as session:
+            for ga in session.query(GroupAddress):
+                ga.source_id = f"P-OLD-0_GA-{ga.address}"
+            session.query(Device).one().extra_subtrees = {
+                "BusInterfaces": '<BusInterfaces><BusInterface RefId="M-1_A-1_BI-1">'
+                '<Connectors><Connector GroupAddressRefId="P-OLD-0_GA-2050" />'
+                '<Connector GroupAddressRefId="P-OLD-0_GA-9" /></Connectors>'
+                "</BusInterface></BusInterfaces>"
+            }
+            session.query(Installation).one().unassigned_devices_xml = [
+                '<DeviceInstance Id="P-BI-0_DI-1" ProductRefId="M-1_H-1_P-1">'
+                "<ComObjectInstanceRefs>"
+                '<ComObjectInstanceRef RefId="O-1_R-1" Links="GA-2049 P-OLD-0_GA-9" />'
+                "</ComObjectInstanceRefs></DeviceInstance>"
+            ]
+            session.commit()
+    finally:
+        engine.dispose()
+
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out, schema="23")
+    with zipfile.ZipFile(out) as zf:
+        zero = next(n for n in zf.namelist() if n.endswith("/0.xml"))
+        root = ET.fromstring(zf.read(zero))
+
+    def _ln(t: str) -> str:
+        return t.rsplit("}", 1)[-1]
+
+    ga_ids = {
+        e.get("Address"): e.get("Id")
+        for e in root.iter()
+        if _ln(e.tag) == "GroupAddress"
+    }
+    connectors = [e for e in root.iter() if _ln(e.tag) == "Connector"]
+    assert [c.get("GroupAddressRefId") for c in connectors] == [ga_ids["2050"]]
+    device_ids = [e.get("Id") for e in root.iter() if _ln(e.tag) == "DeviceInstance"]
+    assert len(device_ids) == len(set(device_ids)) == 2
+    unassigned = next(e for e in root.iter() if _ln(e.tag) == "ComObjectInstanceRef")
+    assert unassigned.get("Links") == ga_ids["2049"].rsplit("_", 1)[-1]
 
 
 def test_project_information_collections_round_trip_to_export(tmp_path: Path) -> None:

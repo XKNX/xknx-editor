@@ -22,6 +22,11 @@ class ProjectInfoPanel:
         on_rename: Callable[[str], None] | None = None,
         on_set_password: Callable[[str | None], None] | None = None,
         needs_password: Callable[[], bool] = lambda: False,
+        get_backbone_security: Callable[[], str | None] | None = None,
+        on_backbone_security: Callable[[str | None], str | None] | None = None,
+        get_certificates: Callable[[], list[tuple[bytes, str]]] | None = None,
+        on_remove_certificate: Callable[[bytes], None] | None = None,
+        on_add_certificate: Callable[[], None] | None = None,
     ) -> None:
         self._get_project_info = get_project_info
         self._on_rename = on_rename
@@ -31,6 +36,13 @@ class ProjectInfoPanel:
         self._name_editing = False
         self._password_dialog_open = False
         self._password_form = NewPasswordForm()
+        self._get_backbone_security = get_backbone_security
+        self._on_backbone_security = on_backbone_security
+        self._get_certificates = get_certificates
+        self._on_remove_certificate = on_remove_certificate
+        self._on_add_certificate = on_add_certificate
+        self._certificates_open = False
+        self._security_error = ""
 
     def render(self) -> None:
         info = self._get_project_info()
@@ -59,6 +71,8 @@ class ProjectInfoPanel:
         imgui.table_setup_column("", imgui.TableColumnFlags_.width_stretch, 1.0)
         self._render_name(info)
         self._render_password(info)
+        self._render_backbone_security()
+        self._render_certificates_row()
         for label, value in rows:
             imgui.table_next_row()
             imgui.table_set_column_index(0)
@@ -66,7 +80,10 @@ class ProjectInfoPanel:
             imgui.table_set_column_index(1)
             imgui.text_wrapped(value or "-")
         imgui.end_table()
+        if self._security_error:
+            imgui.text_colored(imgui.ImVec4(1.0, 0.42, 0.42, 1.0), self._security_error)
         self._render_password_dialog()
+        self._render_certificates_dialog()
 
     def _render_name(self, info: "_ProjectInfo") -> None:
         imgui.table_next_row()
@@ -86,6 +103,87 @@ class ProjectInfoPanel:
         # Renamed when the field is left; an empty name keeps the current one.
         if imgui.is_item_deactivated_after_edit():
             self._on_rename(self._name_buffer)
+
+    def _render_backbone_security(self) -> None:
+        """The installation's KNX IP Secure routing (Automatic/Secured/Not secured)."""
+        if self._get_backbone_security is None or self._on_backbone_security is None:
+            return
+        imgui.table_next_row()
+        imgui.table_set_column_index(0)
+        imgui.align_text_to_frame_padding()
+        imgui.text_disabled(S.PROJECT_INFO_BACKBONE_SECURITY)
+        imgui.table_set_column_index(1)
+        current = self._get_backbone_security()
+        choices: list[tuple[str | None, str]] = [
+            (None, S.GA_SECURITY_AUTO),
+            ("On", S.GA_SECURITY_ON),
+            ("Off", S.GA_SECURITY_OFF),
+        ]
+        label = next(
+            (text for mode, text in choices if mode == current), S.GA_SECURITY_AUTO
+        )
+        imgui.set_next_item_width(px(200.0))
+        if imgui.begin_combo("##backbone_security", label):
+            for mode, text in choices:
+                if imgui.selectable(text, mode == current)[0] and mode != current:
+                    self._security_error = self._on_backbone_security(mode) or ""
+            imgui.end_combo()
+
+    def _render_certificates_row(self) -> None:
+        """The number of device certificates, with the dialog that manages them."""
+        if self._get_certificates is None:
+            return
+        imgui.table_next_row()
+        imgui.table_set_column_index(0)
+        imgui.align_text_to_frame_padding()
+        imgui.text_disabled(S.PROJECT_INFO_CERTIFICATES)
+        imgui.table_set_column_index(1)
+        imgui.align_text_to_frame_padding()
+        imgui.text(str(len(self._get_certificates())))
+        imgui.same_line()
+        if imgui.button(S.PROJECT_CERTIFICATES_MANAGE):
+            self._certificates_open = True
+
+    def _render_certificates_dialog(self) -> None:
+        """The project's device certificates: serial number and the device with it, each
+        removable, and "Add Device Certificate…"."""
+        from editor_gui.device_info import serial_text
+
+        title = f"{S.PROJECT_CERTIFICATES_TITLE}###device_certificates"
+        if self._certificates_open:
+            imgui.open_popup(title)
+            self._certificates_open = False
+        if not begin_dialog(title, width=520.0):
+            return
+        certificates = self._get_certificates() if self._get_certificates else []
+        if not certificates:
+            imgui.text_disabled(S.PROJECT_CERTIFICATES_EMPTY)
+        elif imgui.begin_table("##certificates", 3, imgui.TableFlags_.row_bg):
+            imgui.table_setup_column(S.PROJECT_CERTIFICATES_SERIAL)
+            imgui.table_setup_column(S.PROJECT_CERTIFICATES_DEVICE)
+            imgui.table_setup_column("", imgui.TableColumnFlags_.width_fixed)
+            imgui.table_headers_row()
+            for serial, device in certificates:
+                imgui.table_next_row()
+                imgui.table_next_column()
+                imgui.align_text_to_frame_padding()
+                imgui.text(serial_text(serial) or serial.hex().upper())
+                imgui.table_next_column()
+                imgui.text(device or "-")
+                imgui.table_next_column()
+                if self._on_remove_certificate is not None and imgui.button(
+                    f"{S.PROJECT_CERTIFICATES_REMOVE}##{serial.hex()}"
+                ):
+                    self._on_remove_certificate(serial)
+            imgui.end_table()
+        labels = [S.PROJECT_CERTIFICATES_ADD, S.BTN_CLOSE]
+        clicked = dialog_buttons(*labels)
+        if clicked == 0 and self._on_add_certificate is not None:
+            imgui.close_current_popup()
+            self._on_add_certificate()
+        elif clicked == 1:
+            imgui.close_current_popup()
+        end_dialog()
 
     def _render_password(self, info: "_ProjectInfo") -> None:
         imgui.table_next_row()

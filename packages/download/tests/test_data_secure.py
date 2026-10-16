@@ -170,11 +170,13 @@ def _device_sync_response(
     return response
 
 
-def _device_secured_response(payload: MemoryRead, *, sequence_number: int) -> CEMILData:
+def _device_secured_response(
+    payload: MemoryRead, *, sequence_number: int, key: bytes = TOOL_KEY
+) -> CEMILData:
     """Emulate a device sending a secured S-A_Data response frame."""
     response = _cemi(DEVICE, TOOL, sequence_number=0)
     cipher, mac = _encrypt(
-        key=TOOL_KEY,
+        key=key,
         fields=_BlockFields(response),
         nonce=sequence_number.to_bytes(6, "big"),
         additional_data=DATA_SCF.to_knx(),
@@ -425,3 +427,47 @@ def test_hook_delegates_foreign_traffic_to_previous_securer() -> None:
     hook.received_cemi(inc)
     assert previous.out == [out]
     assert previous.inc == [inc]
+
+
+def _synchronized() -> SecureManagement:
+    management = SecureManagement(
+        device=DeviceSecurity(DEVICE, TOOL_KEY), tool_address=TOOL
+    )
+    management.arm_sync()
+    request = management.build_sync_request_cemi(_cemi(TOOL, DEVICE, sequence_number=0))
+    management.decode_sync_response_cemi(
+        _device_sync_response(request, sending=0x100, tool_expected=0x200)
+    )
+    return management
+
+
+def test_tool_key_change_takes_effect_with_the_device_answer() -> None:
+    management = _synchronized()
+    new_key = bytes(range(16, 32))
+    management.change_tool_key(new_key)
+    # The Tool Key write itself (and a retransmission of it) still uses the current key.
+    management.wrap_cemi(
+        _cemi(TOOL, DEVICE, sequence_number=1, payload=MemoryRead(address=0, count=1))
+    )
+    assert management.active_key == TOOL_KEY
+    answer = _device_secured_response(
+        MemoryRead(address=0x10, count=1), sequence_number=0x100, key=new_key
+    )
+    assert isinstance(management.unwrap_cemi(answer).payload, MemoryRead)
+    assert management.active_key == new_key
+
+
+def test_an_answer_with_the_old_key_keeps_it() -> None:
+    management = _synchronized()
+    management.change_tool_key(bytes(range(16, 32)))
+    answer = _device_secured_response(
+        MemoryRead(address=0x10, count=1), sequence_number=0x100
+    )
+    assert isinstance(management.unwrap_cemi(answer).payload, MemoryRead)
+    assert management.active_key == TOOL_KEY
+
+
+def test_device_security_alternative_keys() -> None:
+    other = bytes(range(16, 32))
+    security = DeviceSecurity(DEVICE, TOOL_KEY, [other, TOOL_KEY, other.hex()])
+    assert security.keys == (TOOL_KEY, other)

@@ -1634,6 +1634,7 @@ def _build_device(
         description=xdevice.description,
         comment=state.extras.device_comment.get(xdevice.identifier, ""),
         last_modified=getattr(xdevice, "last_modified", None),
+        source_id=xdevice.identifier,
         order_number=xdevice.order_number,
         hardware_name=xdevice.hardware_name,
         product_name=xdevice.product_name,
@@ -1844,6 +1845,7 @@ def _build_group_addresses(
             ),
             security_key=state.extras.ga_security.get(xga.raw_address, {}).get("Key"),
             context=state.extras.ga_security.get(xga.raw_address, {}).get("Context"),
+            source_id=xga.identifier,
         )
         group_range.group_addresses.append(ga)
         state.register_group_address(xga.identifier, ga)

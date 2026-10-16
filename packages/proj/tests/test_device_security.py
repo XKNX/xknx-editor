@@ -265,7 +265,9 @@ def test_a_point_to_point_link_key_is_secure_data(tmp_path: Path) -> None:
     ("security", "secure"),
     [
         ({"SequenceNumber": "1"}, False),
-        ({"LoadedDeviceAuthenticationCodeHash": "aGFzaA=="}, False),
+        # A KNX IP Secure hash is what a client authenticates with: a secret as well.
+        ({"LoadedDeviceAuthenticationCodeHash": "aGFzaA=="}, True),
+        ({"LoadedDeviceAuthenticationCodeHash": ""}, False),
         ({"LoadedToolKey": _KEY, "SequenceNumber": "1"}, True),
         ({"ToolKey": _KEY}, True),
         ({"DeviceAuthenticationCode": "code"}, True),

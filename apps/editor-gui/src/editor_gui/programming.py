@@ -32,6 +32,7 @@ if TYPE_CHECKING:
     from xknxeditor.download.download import DownloadResult
     from xknxeditor.download.image import DownloadImage, GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
+    from xknxeditor.download.ip_secure import IpSecureConfig
     from xknxeditor.download.preflight import PreflightReport
     from xknxeditor.prod import Application, MasterData
 
@@ -308,6 +309,10 @@ async def download_device(
     serial_number: bytes | None = None,
     confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
     ip_config: IpDeviceConfig | None = None,
+    tool_key: bytes | None = None,
+    ip_secure: IpSecureConfig | None = None,
+    disable_security: bool = False,
+    routing_blocking: bool | None = None,
 ) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -325,6 +330,11 @@ async def download_device(
 
     ``ip_config`` holds the project's IP settings of an IP device; a full download writes them
     and returns the MAC address it read.
+
+    ``tool_key`` is the device's Tool Key for a secured download: a device still using its FDSK
+    gets it written (secure commissioning); see :func:`xknxeditor.download.download`.
+    ``disable_security`` switches a device whose secure commissioning was deactivated to plain
+    communication.
     """
     return await download(
         xknx,
@@ -337,6 +347,10 @@ async def download_device(
         commission_serial_number=serial_number,
         progress=progress,
         security=security,
+        tool_key=tool_key,
+        ip_secure=ip_secure,
+        disable_security=disable_security,
+        routing_blocking=routing_blocking,
         confirm_full_download=confirm_full_download,
         ip_config=ip_config,
     )

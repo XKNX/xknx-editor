@@ -4,7 +4,7 @@ import asyncio
 import functools
 import threading
 import time
-from collections.abc import Awaitable, Callable, Coroutine
+from collections.abc import Awaitable, Callable, Collection, Coroutine
 from concurrent.futures import Future
 from dataclasses import dataclass
 from enum import Enum
@@ -22,6 +22,7 @@ from xknx.telegram.apci import GroupValueRead, GroupValueWrite
 
 if TYPE_CHECKING:
     from xknx import XKNX
+    from xknx.secure.data_secure import DataSecure
 
     from editor_gui.device import Device
     from editor_gui.net import TelegramSource
@@ -30,6 +31,7 @@ if TYPE_CHECKING:
     from xknxeditor.download.data_secure import DeviceSecurity
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
+    from xknxeditor.download.ip_secure import IpSecureConfig
     from xknxeditor.download.scope import DownloadScope
     from xknxeditor.prod import Application, MasterData
     from xknxeditor.proj.core.service import DeviceKeys
@@ -69,11 +71,27 @@ class LinkInfo:
         return f"{self.name} ({self.host}:{self.port}{suffix})"
 
 
+class DeviceCertificateRequired(Exception):
+    """A secure download needs the device's FDSK: it still uses its factory key, which the
+    project does not know (no device certificate for its serial number)."""
+
+
 class BusmonitorState(Enum):
     OFF = "off"
     STARTING = "starting"
     RUNNING = "running"
     STOPPING = "stopping"
+
+
+@dataclass(frozen=True)
+class SecureTunnel:
+    """The credentials of a KNX IP Secure tunnel: its user id, tunnelling address, password and
+    the interface's device authentication code."""
+
+    user_id: int
+    individual_address: str
+    password: str
+    authentication: str | None = None
 
 
 class ConnectionService:
@@ -107,11 +125,23 @@ class ConnectionService:
         self.interface_max_apdu_length: int | None = None
         # Display name of the connected interface.
         self.interface_name: str | None = None
+        # The individual address of the interface the connection runs through.
+        self.interface_address: str | None = None
+        self._reopen: Callable[[], None] | None = None
         # Keyring service (KNX Data Secure), injected at startup. Used to look up a device's tool
         # key so a point-to-point download/test is secured when the device was commissioned secure.
         self.keyring: KeyringService | None = None
         # The device's tool keys from the open project; they take precedence over the keyring.
         self.project_keys: Callable[[Device], DeviceKeys | None] | None = None
+        # The open project's KNX IP Secure tunnels of an interface (by its individual address),
+        # its routing backbone ``(key, latency ms)`` and its Data Secure tables ``(group keys,
+        # senders with their last valid Sequence Number)``; they take precedence over the keyring.
+        self.project_tunnels: Callable[[str], list[SecureTunnel]] | None = None
+        self.project_backbone: Callable[[], tuple[bytes, int] | None] | None = None
+        self._group_keys: dict[int, bytes] = {}
+        self.project_data_secure: (
+            Callable[[], tuple[dict[int, bytes], dict[int, int]] | None] | None
+        ) = None
         # Download individual addresses by serial number when the device's is known.
         self.use_serial_number = True
         # Current point-to-point bus operation, so the UI can show a
@@ -243,6 +273,10 @@ class ConnectionService:
         for cb in self._busmonitor_listeners:
             cb(raw_cemi)
 
+    def set_reopen_controller(self, reopen: Callable[[], None]) -> None:
+        """How the connection is opened anew when its interface requires another one."""
+        self._reopen = reopen
+
     # --- bus monitor mode -----------------------------------------------------
 
     def set_busmonitor_controller(
@@ -321,6 +355,7 @@ class ConnectionService:
         if xknx is None:
             self.interface_max_apdu_length = None
             self.interface_name = None
+            self.interface_address = None
             self.link_info = None
 
     @property
@@ -474,7 +509,16 @@ class ConnectionService:
             self._log.warning("A bus operation is already running", device=device.name)
             return None
         self._log.info("Restarting device", device=device.name)
-        future = self.run_async(dm_restart(self._xknx, device.individual_address))
+        security = self._security_for(device)
+        if security is not None:
+            # A device commissioned securely only takes a restart secured with its Tool Key.
+            from xknx.telegram.apci import Restart
+
+            future = self.run_async(
+                self._send_secured(device.individual_address, Restart(), security)
+            )
+        else:
+            future = self.run_async(dm_restart(self._xknx, device.individual_address))
         if future is not None:
             future.add_done_callback(
                 functools.partial(
@@ -515,9 +559,22 @@ class ConnectionService:
         self._log.warning(
             "Master reset (destructive)", device=device.name, erase_code=erase_code
         )
-        future = self.run_async(
-            self._do_master_reset(device.individual_address, erase_code)
-        )
+        security = self._security_for(device)
+        if security is not None:
+            # Secured with the Tool Key the device holds (3/5/1 6.3.10): it rejects a plain one.
+            from xknx.telegram.apci import RestartMasterReset
+
+            future = self.run_async(
+                self._send_secured(
+                    device.individual_address,
+                    RestartMasterReset(erase_code=erase_code),
+                    security,
+                )
+            )
+        else:
+            future = self.run_async(
+                self._do_master_reset(device.individual_address, erase_code)
+            )
         if future is not None:
             future.add_done_callback(
                 functools.partial(
@@ -527,6 +584,26 @@ class ConnectionService:
         else:
             self._clear_busy()
         return future
+
+    async def _send_secured(
+        self, address: str, payload: Any, security: DeviceSecurity
+    ) -> None:
+        """Send a restart ``payload`` over a connection secured with the device's Tool Key; the
+        device drops the connection while restarting, so the closing is not checked."""
+        import contextlib
+
+        from xknx.telegram.address import IndividualAddress
+
+        from xknxeditor.download.session import management_session
+
+        assert self._xknx is not None
+        manager = management_session(self._xknx, IndividualAddress(address), security)
+        connection = await manager.open()
+        try:
+            await connection.send_data(payload, wait_for_ack=False)
+        finally:
+            with contextlib.suppress(Exception):
+                await manager.close()
 
     async def _do_master_reset(self, address: str, erase_code: int) -> None:
         import contextlib
@@ -589,6 +666,77 @@ class ConnectionService:
             )
         return security
 
+    def secure_tunnel(
+        self, gateway_address: str, free: Collection[str] = ()
+    ) -> SecureTunnel | None:
+        """The credentials of a KNX IP Secure tunnel of the interface at ``gateway_address``: from
+        the project, else from the loaded keyring; one on a ``free`` tunnelling address first."""
+        tunnels = (
+            self.project_tunnels(gateway_address)
+            if self.project_tunnels is not None
+            else []
+        )
+        if not tunnels and self.keyring is not None:
+            secrets = self.keyring.ip_secrets(gateway_address)
+            if secrets is not None:
+                tunnels = [
+                    SecureTunnel(
+                        user_id, address, password, secrets.device_authentication_code
+                    )
+                    for user_id, address, password in secrets.tunnels
+                ]
+        if not tunnels:
+            return None
+        return next((t for t in tunnels if t.individual_address in free), tunnels[0])
+
+    def secure_backbone(self) -> tuple[bytes, int] | None:
+        """The KNX IP Secure routing backbone ``(key, latency ms)``: the project's, else the
+        loaded keyring's."""
+        backbone = (
+            self.project_backbone() if self.project_backbone is not None else None
+        )
+        if backbone is None and self.keyring is not None:
+            key = self.keyring.backbone_key()
+            if key is not None:
+                backbone = (key, 2000)
+        return backbone
+
+    def data_secure(self) -> DataSecure | None:
+        """KNX Data Secure for the group communication of the open connection: the keys of the
+        secured group addresses and their senders, from the project, else from the loaded
+        keyring; ``None`` without any."""
+        from xknx.secure.data_secure import DataSecure
+        from xknx.telegram import GroupAddress, IndividualAddress
+
+        tables = (
+            self.project_data_secure() if self.project_data_secure is not None else None
+        )
+        if not tables and self.keyring is not None:
+            tables = self.keyring.data_secure_tables()
+        if not tables or not tables[0]:
+            self._group_keys = {}
+            return None
+        group_keys, senders = tables
+        self._group_keys = dict(group_keys)
+        return DataSecure(
+            group_key_table={GroupAddress(raw): key for raw, key in group_keys.items()},
+            individual_address_table={
+                IndividualAddress(raw): sequence for raw, sequence in senders.items()
+            },
+        )
+
+    def secure_group_keys(self) -> dict[int, bytes]:
+        """The group keys the connection's Data Secure tables were last built with (raw group
+        address -> key), e.g. to show secured telegrams decrypted."""
+        return self._group_keys
+
+    def refresh_data_secure(self) -> None:
+        """Give the open connection the current Data Secure tables (not while a bus operation
+        runs: a secured download hooks into the same place)."""
+        if self._xknx is None or self.busy_operation is not None:
+            return
+        self._xknx.cemi_handler.data_secure = self.data_secure()
+
     def program_device(
         self,
         device: Device,
@@ -601,6 +749,10 @@ class ConnectionService:
         serial_number: bytes | None = None,
         confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
         ip_config: IpDeviceConfig | None = None,
+        tool_key: bytes | None = None,
+        ip_secure: IpSecureConfig | None = None,
+        disable_security: bool = False,
+        routing_blocking: bool | None = None,
     ) -> Future[Any] | None:
         """Download the device's configured application/parameters onto the bus.
 
@@ -611,7 +763,9 @@ class ConnectionService:
         An individual address scope downloads only the address: to the device in programming mode
         (``waiting`` is called while none is), to the device with ``serial_number``, or for an
         overwrite to the device at ``current_address``. A full download of a device that does not
-        answer yet gets its address by ``serial_number`` when given.
+        answer yet gets its address by ``serial_number`` when given. ``tool_key`` commissions the
+        device securely; ``disable_security`` switches it to plain communication with the key it
+        holds.
         """
         if self.not_connected("program_device"):
             return None
@@ -644,10 +798,11 @@ class ConnectionService:
         from xknxeditor.download.scope import DownloadScope
 
         scope = scope or DownloadScope.FULL
+        # Before the bus slot is taken: a missing device certificate is reported to the caller.
+        security = self._download_security(device, tool_key)
         if not self.begin_operation("program", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
             return None
-        security = self._security_for(device)
         self._log.info(
             "Programming device",
             device=device.name,
@@ -667,13 +822,27 @@ class ConnectionService:
                 serial_number=serial_number,
                 confirm_full_download=confirm_full_download,
                 ip_config=ip_config,
+                tool_key=tool_key if security is not None else None,
+                ip_secure=ip_secure if security is not None else None,
+                disable_security=disable_security and security is not None,
+                routing_blocking=routing_blocking if security is not None else None,
             )
         )
         if future is not None:
             future.add_done_callback(self._log_program_result)
+            if device.individual_address == self.interface_address:
+                future.add_done_callback(self._reopen_after_interface_download)
         else:
             self._clear_busy()
         return future
+
+    def _reopen_after_interface_download(self, future: Future[Any]) -> None:
+        """The interface the connection runs through was downloaded: the services it secures and
+        its tunnels may have changed, so the connection follows what it requires now."""
+        if future.cancelled() or future.exception() is not None:
+            return
+        if self._reopen is not None:
+            self._reopen()
 
     def _download_individual_address(
         self,
@@ -725,27 +894,57 @@ class ConnectionService:
             self._clear_busy()
         return future
 
+    def _download_security(
+        self, device: Device, tool_key: bytes | None
+    ) -> DeviceSecurity | None:
+        """The security of a download that gives the device its Tool Key ``tool_key``: the
+        session starts with the key the device uses (its loaded Tool Key, else its FDSK, else a
+        loaded keyring's key for it) and falls back to the others. Raises
+        :class:`DeviceCertificateRequired` when none is known."""
+        if tool_key is None:
+            return self._security_for(device)
+        if not device.individual_address:
+            return None
+        keys = self.project_keys(device) if self.project_keys is not None else None
+        loaded = keys.loaded_tool_key if keys is not None else None
+        fdsk = keys.fdsk if keys is not None else None
+        ring = (
+            self.keyring.device_security(device.individual_address)
+            if self.keyring is not None
+            else None
+        )
+        keyring_key = ring.tool_key if ring is not None else None
+        current = loaded or fdsk or keyring_key
+        if current is None:
+            raise DeviceCertificateRequired(device.individual_address)
+        from xknx.telegram import IndividualAddress
+
+        from xknxeditor.download.data_secure import DeviceSecurity
+
+        alternatives = [
+            key for key in (tool_key, fdsk, loaded, keyring_key) if key is not None
+        ]
+        return DeviceSecurity(
+            IndividualAddress(device.individual_address), current, alternatives
+        )
+
     def _project_security(
         self, device: Device, address: str, keys: DeviceKeys
     ) -> DeviceSecurity | None:
-        """The project's tool key of ``device`` for a connection to ``address``."""
-        if keys.loaded_tool_key is None:
-            self._log.warning(
-                "programming in the clear: the device's tool key was never loaded into it, and "
-                "secure commissioning is not supported",
-                device=device.name,
-                address=address,
-            )
-            return None
-        if not address:
+        """The project's tool key of ``device`` for a connection to ``address``: the key the
+        device holds (``LoadedToolKey``), with its FDSK as the alternative (after a master reset).
+        A device that never got a Tool Key is reached in the clear."""
+        key = keys.loaded_tool_key
+        if key is None or not address:
             return None
         from xknx.exceptions import CouldNotParseAddress
         from xknx.telegram import IndividualAddress
 
         from xknxeditor.download.data_secure import DeviceSecurity
 
+        alternatives = [keys.fdsk] if keys.fdsk is not None else []
         try:
-            return DeviceSecurity(IndividualAddress(address), keys.loaded_tool_key)
+            return DeviceSecurity(IndividualAddress(address), key, alternatives)
         except CouldNotParseAddress:
             return None
 

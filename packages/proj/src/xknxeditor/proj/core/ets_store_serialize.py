@@ -28,6 +28,8 @@ from io import BytesIO
 from pathlib import Path, PurePosixPath
 from uuid import uuid4
 
+from sqlalchemy.orm import object_session
+
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.ets_store import (
     project_mask,
@@ -35,6 +37,7 @@ from xknxeditor.proj.core.ets_store import (
     write_store_stream,
     write_store_version,
 )
+from xknxeditor.proj.core.ga_security import secured_group_addresses
 from xknxeditor.proj.core.knxproj_export import (
     assign_ids,
     enable,
@@ -121,6 +124,10 @@ class _StoreBuilder:
         self._idseq: dict[tuple[str, int], int] = {}
         self._seqcount: dict[str, int] = {}
         self._ga_link_id, self._di_id = assign_ids(pid, installation)
+        session = object_session(installation) if installation is not None else None
+        self._secured = (
+            secured_group_addresses(session) if session is not None else set[int]()
+        )
         self._assign_puids()
 
     # -- Puid allocation -------------------------------------------------------------------
@@ -437,7 +444,7 @@ class _StoreBuilder:
                 for link in ordered
                 if link.group_address_id in self._ga_link_id
             )
-            secure = any(link.group_address.data_secure for link in co.links)
+            secure = any(link.group_address_id in self._secured for link in co.links)
             ref = relidref(co.instance_ref_id or co.ref_id)
             if not (co.links or has_override(co) or ref not in tree_instances):
                 continue

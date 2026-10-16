@@ -51,23 +51,31 @@ from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga, parse_
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.ga_export import write_ga_csv as _write_ga_csv
 from xknxeditor.proj.core.identity import qualified_com_object_ref
+from xknxeditor.proj.core.ip_secure import PASSWORD_ACCESS_TYPES
 from xknxeditor.proj.core.project_secrets import check_project_password
 from xknxeditor.proj.core.skeleton import MEDIUM_TP
 
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger
     from editor_gui.plugins.catalog.service import CatalogService
+    from editor_gui.plugins.connection.service import SecureTunnel
+    from editor_gui.plugins.keyring.service import KeyringIpSecrets, KeyringService
     from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
+    from xknxeditor.download.ip_secure import IpSecureConfig
+    from xknxeditor.download.secure_config import GroupSecurity
     from xknxeditor.prod.parser_v2.calculation import ChangeSet
     from xknxeditor.proj.core.compact import CompactResult
+    from xknxeditor.proj.core.fdsk import Fdsk
     from xknxeditor.proj.core.import_notes import ImportLoss
     from xknxeditor.proj.core.product_prune import ProgressCallback
     from xknxeditor.proj.core.service import (
         DeviceInfo,
         DeviceKeys,
         GroupRangeInfo,
+        IpSecrets,
+        SecureCommissioningImpact,
         SpaceDeviceInfo,
         SpaceInfo,
     )
@@ -406,6 +414,165 @@ class DeviceProduct:
         )
 
 
+def _security_role_masks(device: Device) -> dict[str, int]:
+    """The device application's security roles: ``SecurityRole @Id`` -> ``@Mask``."""
+    if device.app is None:
+        return {}
+    roles = device.app.program.static.security_roles
+    if roles is None:
+        return {}
+    return {role.id: role.mask for role in roles.security_role}
+
+
+@dataclass(frozen=True)
+class IpSecureInterface:
+    """A bus interface of a KNX IP Secure device as the settings show it: its ``@RefId``, kind
+    (``"Tunneling"``/``"Routing"``), user id, tunnelling address (``None`` for routing) and
+    password."""
+
+    ref_id: str
+    access: str
+    user_id: int
+    address: str | None
+    password: str
+
+
+@dataclass(frozen=True)
+class IpSecureSettings:
+    """The KNX IP Secure settings of a device: its authentication code, its commissioning
+    password, whether its tunnels are secured and its bus interfaces."""
+
+    authentication_code: str
+    commissioning_password: str
+    secure_tunnelling: bool
+    interfaces: list[IpSecureInterface]
+
+
+def ip_secure_users(
+    project: "IpSecrets",
+    keyring: "KeyringIpSecrets | None",
+    tunnelling_interfaces: dict[str, int],
+    tunnelling_octets: list[int],
+) -> tuple[str | None, dict[int, str], list[tuple[int, int]]]:
+    """``(device authentication code, password by user id, tunnelling users)`` of an IP device,
+    from the project's passwords, else the keyring's.
+
+    The project's bus interfaces are users 2, 3, … in the device's order (user 1 is the
+    management user), the order exported projects number them in: a routing bus interface with a
+    password takes a user id as well, so the tunnels then start at user 3. A tunnelling one
+    (``tunnelling_interfaces``: ``@RefId`` -> ``@AddressIndex``) is that user's tunnelling
+    address ``AddressIndex`` (the device's additional address of that number). A keyring tunnel
+    names its user and its address, found among the device's tunnelling addresses
+    (``tunnelling_octets``, the last octet of each, in order). Without a management password no
+    password is returned: the hashes are written as one table, which would lock the management
+    access out."""
+    from xknx.exceptions import CouldNotParseAddress
+    from xknx.telegram import IndividualAddress
+
+    from xknxeditor.download.ip_secure import MANAGEMENT_USER_ID
+
+    authentication = project.device_authentication_code or (
+        keyring.device_authentication_code if keyring else None
+    )
+    management = project.management_password or (
+        keyring.management_password if keyring else None
+    )
+    passwords: dict[int, str] = {}
+    tunnelling: list[tuple[int, int]] = []
+    if not management:
+        return authentication, passwords, tunnelling
+    passwords[MANAGEMENT_USER_ID] = management
+    for position, bus_interface in enumerate(project.bus_interfaces, start=1):
+        user_id = MANAGEMENT_USER_ID + position
+        if not bus_interface.password:
+            continue
+        passwords[user_id] = bus_interface.password
+        index = tunnelling_interfaces.get(bus_interface.ref_id)
+        if index is not None:
+            tunnelling.append((user_id, index))
+    for user_id, address, password in keyring.tunnels if keyring else []:
+        if user_id in passwords:
+            continue
+        try:
+            octet = IndividualAddress(address).raw & 0xFF
+        except CouldNotParseAddress:
+            continue
+        if octet in tunnelling_octets:
+            passwords[user_id] = password
+            tunnelling.append((user_id, tunnelling_octets.index(octet) + 1))
+    return authentication, passwords, tunnelling
+
+
+def _secured_families(
+    kinds: set[str],
+    project: "IpSecrets",
+    passwords: dict[int, str],
+    backbone: bytes | None,
+) -> dict[int, bool]:
+    """Which KNXnet/IP service families a secure download makes require security: device
+    management and tunnelling once their passwords are written (the tunnels as their bus
+    interfaces say, ``@IsSecureEnabled``), routing with the backbone key. A family the
+    application has no bus interface for is left alone, as is one without its passwords."""
+    from xknxeditor.download.ip_secure import (
+        SERVICE_FAMILY_DEVICE_MANAGEMENT,
+        SERVICE_FAMILY_ROUTING,
+        SERVICE_FAMILY_TUNNELLING,
+    )
+
+    families: dict[int, bool] = {}
+    if passwords:
+        families[SERVICE_FAMILY_DEVICE_MANAGEMENT] = True
+        if "Tunneling" in kinds:
+            families[SERVICE_FAMILY_TUNNELLING] = all(
+                bus_interface.secure for bus_interface in project.bus_interfaces
+            )
+    if "Routing" in kinds and backbone is not None:
+        families[SERVICE_FAMILY_ROUTING] = True
+    return families
+
+
+def _bus_interfaces(device: Device) -> list[tuple[str, str, int]]:
+    """The application's bus interfaces as ``(@Id, @AccessType, @AddressIndex)``, in order."""
+    return _app_bus_interfaces(device.app) if device.app is not None else []
+
+
+def _app_bus_interfaces(app: Application) -> list[tuple[str, str, int]]:
+    interfaces = app.program.static.bus_interfaces
+    if interfaces is None:
+        return []
+    return [
+        (
+            bus_interface.id,
+            str(getattr(bus_interface.access_type, "value", "")),
+            bus_interface.address_index,
+        )
+        for bus_interface in interfaces.bus_interface
+    ]
+
+
+def _tunnelling_interfaces(device: Device) -> dict[str, int]:
+    """The application's tunnelling bus interfaces: ``@Id`` -> ``@AddressIndex``."""
+    return {
+        ref: index
+        for ref, access, index in _bus_interfaces(device)
+        if access == "Tunneling"
+    }
+
+
+def _int_or(value: str | None, default: int) -> int:
+    try:
+        return int(value) if value is not None else default
+    except ValueError:
+        return default
+
+
+def _float_or(value: str | None, default: float) -> float:
+    try:
+        return float(value) if value is not None else default
+    except ValueError:
+        return default
+
+
 class ProjectService:
     def __init__(self, catalog: "CatalogService") -> None:
         self._catalog = catalog
@@ -453,6 +620,10 @@ class ProjectService:
         self._topology_cache_version: int = -1
         self._ga_cache_version: int = -1
         self._version: int = 0
+        # node id -> ((node id, revision), its KNX IP Secure settings); see ip_secure_settings.
+        self._ip_secure_cache: dict[
+            int, tuple[tuple[int, int], IpSecureSettings | None]
+        ] = {}
         self._selected_node_id: int | None = None
         # Multi-selection: the full set of selected device node ids (the primary above is
         # the last-clicked one, kept for all single-device consumers). Empty = single/none.
@@ -1016,6 +1187,7 @@ class ProjectService:
         self._topology_cache_version = -1
         self._ga_cache_version = -1
         self._version = 0
+        self._ip_secure_cache.clear()
         self._selected_node_id = None
         self._selected_node_ids = set()
         self._dynui_lru.clear()
@@ -1656,8 +1828,617 @@ class ProjectService:
                 additional=additional,
             )
         return GroupCommunication(
-            device_address=device_address, links=links, filter_table=filter_table
+            device_address=device_address,
+            links=links,
+            filter_table=filter_table,
+            security=self._group_security(device),
         )
+
+    def _group_security(self, device: Device) -> "GroupSecurity | None":
+        """The keys of the device's secured group addresses and their senders, for a device whose
+        application supports KNX Data Secure; ``None`` when none of its group addresses is secured."""
+        from xknxeditor.download.secure_config import GroupSecurity
+
+        if self._pid is None or device.app is None:
+            return None
+        if not device.app.program.is_secure_enabled:
+            return None
+        keys, senders = self._svc.group_security(
+            self._pid,
+            device.node_id,
+            self._com_object_can_send,
+            self._tunnel_senders(),
+        )
+        p2p = self._svc.p2p_security(
+            self._pid, device.node_id, _security_role_masks(device)
+        )
+        if not keys and not p2p:
+            return None
+        return GroupSecurity(keys=keys, senders=senders, p2p=p2p)
+
+    def com_object_requires_security(self, com_object_id: int) -> bool:
+        """Whether the application requires KNX Data Secure for a group object (its
+        ``SecurityRequired``): it may then only be linked to secured group addresses."""
+        from xknxeditor.prod.parser_v2.application_indexer import (
+            com_object_security_required,
+        )
+
+        for device in self.devices:
+            for co in device.com_objects:
+                if co.db_id == com_object_id:
+                    if device.app is None:
+                        return False
+                    indexer = device.app.tree_builder().idx
+                    return com_object_security_required(indexer, co.id) != "None"
+        return False
+
+    def _security_tables_overflow(
+        self, com_object_id: int, group_address_id: int
+    ) -> str | None:
+        """The device (``address name``) whose security tables the link would make larger than
+        its application allows (``MaxSecurityGroupKeyTableEntries``,
+        ``MaxSecurityIndividualAddressEntries``), or ``None`` when they fit."""
+        if self._pid is None:
+            return None
+        owner = {
+            co.db_id: device
+            for device in self.devices
+            for co in device.com_objects
+            if co.db_id is not None
+        }
+        try:
+            links = self._svc.group_address(self._pid, group_address_id).links
+        except KeyError:
+            return None
+        devices = {
+            d.node_id: d
+            for co_id in [*links, com_object_id]
+            if (d := owner.get(co_id)) is not None
+            and d.app is not None
+            and d.app.program.is_secure_enabled
+            and self._svc.secure_commissioning(self._pid, d.node_id)
+        }
+        if not devices:
+            return None
+        sizes = self._svc.security_table_sizes(
+            self._pid,
+            list(devices),
+            self._com_object_can_send,
+            with_link=(com_object_id, group_address_id),
+        )
+        for node_id, (keys, senders) in sizes.items():
+            device = devices[node_id]
+            assert device.app is not None
+            program = device.app.program
+            key_limit = program.max_security_group_key_table_entries or 0
+            sender_limit = program.max_security_individual_address_entries or 0
+            if (key_limit and keys > key_limit) or (
+                sender_limit and senders > sender_limit
+            ):
+                return (
+                    f"{device.individual_address or '-'} {device.display_name}".strip()
+                )
+        return None
+
+    def _link_would_unsecure(self, com_object_id: int, group_address_id: int) -> bool:
+        """Whether linking the group object would put a group object that requires security on a
+        group address in the clear: the object requires it and the group address would not be
+        secured, or the object's device is commissioned in the clear and a group object on the
+        group address requires it (3/5/3 1.5.3)."""
+        if self._pid is None:
+            return False
+        try:
+            ga = self._svc.group_address(self._pid, group_address_id)
+        except KeyError:
+            return False
+        owner = {
+            co.db_id: device
+            for device in self.devices
+            for co in device.com_objects
+            if co.db_id is not None
+        }
+        device = owner.get(com_object_id)
+        if device is None:
+            return False
+
+        def secure(other: Device) -> bool:
+            return bool(self._svc.secure_commissioning(self._pid or "", other.node_id))
+
+        if self.com_object_requires_security(com_object_id):
+            if ga.security_mode == "Off" or not secure(device):
+                return True
+            if ga.security_mode != "On" and not all(
+                secure(other)
+                for link in ga.links
+                if (other := owner.get(link)) is not None
+            ):
+                return True
+        if ga.security_mode not in ("On", "Off") and not secure(device):
+            return any(self.com_object_requires_security(link) for link in ga.links)
+        return False
+
+    def _tunnel_senders(self) -> dict[int, list[int]]:
+        """The tunnels of the project's KNX IP Secure interfaces by the group addresses assigned
+        to them (raw group address -> raw tunnelling addresses): a tool sends on those secured
+        group addresses through that tunnel, so the devices on them accept it as a sender."""
+        from xknx.telegram import IndividualAddress
+
+        if self._pid is None:
+            return {}
+        result: dict[int, list[int]] = {}
+        for device in self.devices:
+            settings = self.ip_secure_settings(device)
+            if settings is None:
+                continue
+            assigned = self._svc.bus_interface_group_addresses(
+                self._pid, device.node_id
+            )
+            for interface in settings.interfaces:
+                if interface.address is None:
+                    continue
+                tunnel = IndividualAddress(interface.address).raw
+                for group_address in assigned.get(interface.ref_id, []):
+                    result.setdefault(group_address, []).append(tunnel)
+        return result
+
+    def _com_object_can_send(self, com_object_id: int) -> bool:
+        """Whether a group object can send on its group addresses: it communicates and transmits,
+        answers read requests or requests a read on init. An object not in the cached view-models
+        counts as one that can."""
+        for device in self.devices:
+            for co in device.com_objects:
+                if co.db_id == com_object_id:
+                    flags = co.flags
+                    return flags.communication and (
+                        flags.transmit or flags.read or flags.read_on_init
+                    )
+        return True
+
+    def download_tool_key(self, device: Device) -> bytes | None:
+        """The Tool Key a download gives the device: its own when its secure commissioning is
+        activated, else ``None`` (a download in the clear, or with a keyring's key)."""
+        if self._pid is None or device.app is None:
+            return None
+        if not device.app.program.is_secure_enabled:
+            return None
+        keys = self.device_keys(device)
+        return keys.tool_key if keys is not None else None
+
+    def download_disables_security(self, device: Device) -> bool:
+        """Whether a download switches the device to plain communication: its secure
+        commissioning is deactivated, but it still holds a Tool Key from an earlier secure
+        download, so it is reached with that key once more."""
+        if self._pid is None or device.app is None:
+            return False
+        if not device.app.program.is_secure_enabled:
+            return False
+        keys = self.device_keys(device)
+        return (
+            keys is not None
+            and keys.tool_key is None
+            and keys.loaded_tool_key is not None
+        )
+
+    def secure_commissioning(self, device: Device) -> bool | None:
+        """Whether the device is commissioned securely; ``None`` when its application does not
+        support KNX Data Secure."""
+        if self._pid is None or device.app is None:
+            return None
+        if not device.app.program.is_secure_enabled:
+            return None
+        return self._svc.secure_commissioning(self._pid, device.node_id)
+
+    def secure_commissioning_of(self, node_id: int) -> bool:
+        """Whether the device with ``node_id`` is commissioned securely."""
+        return self._pid is not None and self._svc.secure_commissioning(
+            self._pid, node_id
+        )
+
+    def secure_commissioning_impact(
+        self, device: Device
+    ) -> "SecureCommissioningImpact | None":
+        """What deactivating the device's secure commissioning would change."""
+        if self._pid is None:
+            return None
+        return self._svc.secure_commissioning_impact(
+            self._pid, device.node_id, self.com_object_requires_security
+        )
+
+    def set_secure_commissioning(self, device: Device, activated: bool) -> None:
+        """Activate or deactivate the device's secure commissioning (one undo step); activating
+        needs a project password (``ProjectPasswordRequired``)."""
+        if self._pid is None:
+            return
+        with self._io_lock:
+            self._svc.set_secure_commissioning(
+                self._pid,
+                device.node_id,
+                activated,
+                self.com_object_requires_security,
+            )
+            if activated:
+                self._ensure_ip_secrets(
+                    device.node_id,
+                    device.app,
+                    self._svc.device(self._pid, device.node_id).hardware2program_ref_id,
+                )
+        self._bump(structural=True)
+
+    def ip_secure_device(self, device: Device) -> bool:
+        """Whether the device is a KNX IP Secure device: an IP device whose application supports
+        KNX Data Secure and has tunnelling or routing bus interfaces."""
+        if self._pid is None or device.app is None:
+            return False
+        try:
+            ref = self._svc.device(self._pid, device.node_id).hardware2program_ref_id
+        except KeyError:
+            return False
+        return self._ip_secure_application(device.app, ref)
+
+    def secure_tunnels(self, host_address: str) -> "list[SecureTunnel]":
+        """The KNX IP Secure tunnels of the project's interface at ``host_address`` (secure
+        commissioning activated), with their passwords."""
+        from editor_gui.plugins.connection.service import SecureTunnel
+
+        device = next(
+            (d for d in self.devices if d.individual_address == host_address), None
+        )
+        settings = self.ip_secure_settings(device) if device is not None else None
+        if settings is None:
+            return []
+        return [
+            SecureTunnel(
+                interface.user_id,
+                interface.address,
+                interface.password,
+                settings.authentication_code or None,
+            )
+            for interface in settings.interfaces
+            if interface.access == "Tunneling"
+            and interface.address
+            and interface.password
+        ]
+
+    def secure_backbone(self) -> tuple[bytes, int] | None:
+        """The project's KNX IP Secure routing backbone ``(key, latency ms)``, unless its backbone
+        security is switched off."""
+        if self._pid is None:
+            return None
+        installation = self._svc.installation_attributes(self._pid)
+        if installation.get("IPRoutingBackboneSecurity") == "Off":
+            return None
+        key = self._svc.ip_backbone_key(self._pid)
+        if key is None:
+            return None
+        return key, _int_or(installation.get("IPRoutingLatencyTolerance"), 2000)
+
+    def data_secure_tables(self) -> tuple[dict[int, bytes], dict[int, int]] | None:
+        """The project's Data Secure tables for a connection: the keys of the secured group
+        addresses and every device that can send on them with its last valid Sequence Number."""
+        from xknxeditor.proj import ProjectPasswordRequired
+
+        if self._pid is None:
+            return None
+        with self._io_lock:
+            try:
+                keys = self._svc.secured_group_keys(self._pid)
+            except ProjectPasswordRequired:
+                return None
+            if not keys:
+                return None
+            return keys, self._svc.secure_senders(self._pid, self._com_object_can_send)
+
+    def export_keyring(self, path: Path, password: str) -> int:
+        """Write the project's key material as a keyring (``.knxkeys``) to ``path``, encrypted and
+        signed with ``password``: the backbone key, every device commissioned securely (with the
+        Tool Key it holds, else the one it gets), the tunnels of the KNX IP Secure devices (with
+        the secured group addresses assigned to them and their senders) and the keys of the
+        secured group addresses. Returns how many devices it holds."""
+        from xknx.telegram import IndividualAddress
+
+        from xknxeditor.datasecure import (
+            KeyringDevice,
+            KeyringTunnel,
+            create_keyring,
+            serialize_keyring,
+        )
+
+        if self._pid is None:
+            raise ValueError("No project is open.")
+        installation = self._svc.installation_attributes(self._pid)
+        with self._io_lock:
+            group_keys = self._svc.secured_group_keys(self._pid)
+        devices: list[KeyringDevice] = []
+        tunnels: list[KeyringTunnel] = []
+        for device in self.devices:
+            address = device.individual_address
+            keys = self.device_keys(device)
+            tool_key = (keys.loaded_tool_key or keys.tool_key) if keys else None
+            if not address or tool_key is None:
+                continue
+            settings = self.ip_secure_settings(device)
+            devices.append(
+                KeyringDevice(
+                    address,
+                    tool_key=tool_key,
+                    sequence_number=self._svc.device_sequence_number(
+                        self._pid, device.node_id
+                    ),
+                    management_password=settings.commissioning_password or None
+                    if settings
+                    else None,
+                    authentication=settings.authentication_code or None
+                    if settings
+                    else None,
+                )
+            )
+            if settings is None:
+                continue
+            assigned = self._svc.bus_interface_group_addresses(
+                self._pid, device.node_id
+            )
+            for interface in settings.interfaces:
+                if interface.access != "Tunneling" or not interface.address:
+                    continue
+                if not interface.password:
+                    continue
+                tunnels.append(
+                    KeyringTunnel(
+                        host=address,
+                        individual_address=interface.address,
+                        user_id=interface.user_id,
+                        password=interface.password,
+                        authentication=settings.authentication_code or None,
+                        group_addresses={
+                            ga: [
+                                str(IndividualAddress(raw))
+                                for raw in self._svc.group_address_senders(
+                                    self._pid, ga, self._com_object_can_send
+                                )
+                            ]
+                            for ga in assigned.get(interface.ref_id, [])
+                            if ga in group_keys
+                        },
+                    )
+                )
+        created = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%S")
+        keyring = create_keyring(
+            self._project_name_for_keyring(),
+            password,
+            created,
+            backbone_key=self._svc.ip_backbone_key(self._pid),
+            multicast_address=installation.get("IPRoutingMulticastAddress")
+            or "224.0.23.12",
+            latency=_int_or(installation.get("IPRoutingLatencyTolerance"), 2000),
+            tunnels=tunnels,
+            devices=devices,
+            group_keys=group_keys,
+        )
+        path.write_bytes(serialize_keyring(keyring))
+        self._log.info("keyring exported", devices=len(devices), tunnels=len(tunnels))
+        return len(devices)
+
+    def _project_name_for_keyring(self) -> str:
+        info = self.get_project_metadata()
+        return (info.name if info is not None else "") or "Project"
+
+    def ip_secure_settings(self, device: Device) -> IpSecureSettings | None:
+        """The device's KNX IP Secure settings, for a KNX IP Secure device commissioned securely;
+        ``None`` otherwise. Cached per project revision (the settings panel asks every frame)."""
+        key = (device.node_id, self._version)
+        cached = self._ip_secure_cache.get(device.node_id)
+        if cached is not None and cached[0] == key:
+            return cached[1]
+        settings = self._read_ip_secure_settings(device)
+        self._ip_secure_cache[device.node_id] = (key, settings)
+        return settings
+
+    def _read_ip_secure_settings(self, device: Device) -> IpSecureSettings | None:
+        if self._pid is None or not self.ip_secure_device(device):
+            return None
+        if not self._svc.secure_commissioning(self._pid, device.node_id):
+            return None
+        secrets = self._svc.ip_secrets(self._pid, device.node_id)
+        kinds = {ref: (access, index) for ref, access, index in _bus_interfaces(device)}
+        octets = self._svc.device_additional_addresses(self._pid, device.node_id)
+        prefix = device.individual_address.rsplit(".", 1)[0]
+        interfaces: list[IpSecureInterface] = []
+        for position, bus_interface in enumerate(secrets.bus_interfaces, start=1):
+            access, index = kinds.get(bus_interface.ref_id, ("", 0))
+            if access not in PASSWORD_ACCESS_TYPES:
+                continue
+            address = None
+            if access == "Tunneling" and 0 < index <= len(octets) and prefix:
+                address = f"{prefix}.{octets[index - 1]}"
+            interfaces.append(
+                IpSecureInterface(
+                    ref_id=bus_interface.ref_id,
+                    access=access,
+                    user_id=1 + position,
+                    address=address,
+                    password=bus_interface.password or "",
+                )
+            )
+        return IpSecureSettings(
+            authentication_code=secrets.device_authentication_code or "",
+            commissioning_password=secrets.management_password or "",
+            secure_tunnelling=all(b.secure for b in secrets.bus_interfaces),
+            interfaces=interfaces,
+        )
+
+    def set_ip_secure_settings(
+        self,
+        device: Device,
+        *,
+        authentication_code: str | None = None,
+        commissioning_password: str | None = None,
+        interface_password: tuple[str, str] | None = None,
+        secure_tunnelling: bool | None = None,
+    ) -> None:
+        """Change one of the device's KNX IP Secure settings (see the core ``set_ip_secrets``);
+        ``ValueError`` for a password the device cannot take."""
+        if self._pid is None:
+            return
+        with self._io_lock:
+            self._svc.set_ip_secrets(
+                self._pid,
+                device.node_id,
+                authentication_code=authentication_code,
+                management_password=commissioning_password,
+                bus_interface_passwords=dict([interface_password])
+                if interface_password
+                else None,
+                secure_tunnelling=secure_tunnelling,
+            )
+        self._bump(structural=False)
+
+    def _ip_secure_application(
+        self, app: Application, hardware_ref: str | None
+    ) -> bool:
+        if not app.program.is_secure_enabled or not any(
+            access in PASSWORD_ACCESS_TYPES
+            for _ref, access, _index in _app_bus_interfaces(app)
+        ):
+            return False
+        return bool(hardware_ref) and self._catalog.hardware_is_ip_enabled(
+            hardware_ref or ""
+        )
+
+    def _ensure_ip_secrets(
+        self, node_id: int, app: Application | None, hardware_ref: str | None
+    ) -> None:
+        """Give a KNX IP Secure device its passwords when it has none yet (the caller holds the
+        IO lock)."""
+        if self._pid is None or app is None:
+            return
+        if not self._ip_secure_application(app, hardware_ref):
+            return
+        kinds = _app_bus_interfaces(app)
+        refs = [ref for ref, access, _index in kinds if access in PASSWORD_ACCESS_TYPES]
+        self._svc.ensure_ip_secrets(self._pid, node_id, refs)
+        # A secure IP router routes with the installation's backbone key.
+        if any(access == "Routing" for _ref, access, _index in kinds):
+            self._svc.ensure_backbone_key(self._pid)
+
+    def backbone_security(self) -> str | None:
+        """The installation's KNX IP Secure routing setting (``"On"``/``"Off"``, ``None`` =
+        Auto); see the core ``backbone_security``."""
+        return self._svc.backbone_security(self._pid) if self._pid is not None else None
+
+    def set_backbone_security(self, mode: str | None) -> None:
+        """Set the installation's KNX IP Secure routing; On needs a project password
+        (``ProjectPasswordRequired``) for its key."""
+        if self._pid is None:
+            return
+        with self._io_lock:
+            self._svc.set_backbone_security(self._pid, mode)
+        self._bump(structural=False)
+
+    def device_certificate_list(self) -> list[tuple[bytes, str]]:
+        """The project's device certificates as ``(serial number, the device with it)``, the
+        device as ``address name`` or empty when no device has its serial number."""
+        if self._pid is None:
+            return []
+        owners = {
+            serial: f"{d.individual_address or '-'} {d.display_name}".strip()
+            for d in self.devices
+            if (serial := self._device_serial(d.node_id)) is not None
+        }
+        return [
+            (fdsk.serial_number, owners.get(fdsk.serial_number, ""))
+            for fdsk in self._svc.device_certificates(self._pid).values()
+        ]
+
+    def _device_serial(self, node_id: int) -> bytes | None:
+        from editor_gui.device_info import serial_from_project
+
+        info = self.get_device_info(node_id)
+        return serial_from_project(info.serial_number) if info is not None else None
+
+    def remove_device_certificate(self, serial_number: bytes) -> None:
+        """Remove a device certificate from the project (one undo step)."""
+        if self._pid is None:
+            return
+        with self._io_lock:
+            self._svc.remove_device_certificate(self._pid, serial_number)
+        self._bump(structural=False)
+
+    def security_proxy_coupler(self, device: Device) -> bool:
+        """Whether the device is a coupler with the security extensions (its hardware program's
+        ``CouplerCapabilities`` has ``SecurityProxy``) commissioned securely."""
+        if self._pid is None or device.app is None:
+            return False
+        try:
+            ref = self._svc.device(self._pid, device.node_id).hardware2program_ref_id
+        except KeyError:
+            return False
+        if not ref or "SecurityProxy" not in self._catalog.coupler_capabilities(ref):
+            return False
+        return self._svc.secure_commissioning(self._pid, device.node_id)
+
+    def unicast_broadcast_blocking(self, device: Device) -> str | None:
+        """The coupler's blocking setting (``"On"``/``"Off"``, ``None`` = Auto)."""
+        if self._pid is None:
+            return None
+        return self._svc.unicast_broadcast_blocking(self._pid, device.node_id)
+
+    def set_unicast_broadcast_blocking(self, device: Device, mode: str | None) -> None:
+        if self._pid is None:
+            return
+        with self._io_lock:
+            self._svc.set_unicast_broadcast_blocking(self._pid, device.node_id, mode)
+        self._bump(structural=False)
+
+    def download_routing_blocking(self, device: Device) -> bool | None:
+        """Whether a download blocks point-to-point and broadcast messages on both sides of the
+        device, a coupler with the security extensions; ``None`` for any other device. Auto
+        blocks them on a coupler used as a Security Proxy (KNX AN192 3.5.2.2); the project never
+        sets one up to translate between secured and plain lines, so Auto routes them."""
+        if not self.security_proxy_coupler(device):
+            return None
+        return self.unicast_broadcast_blocking(device) == "On"
+
+    def record_factory_reset(self, device: Device) -> None:
+        """A factory reset (with the individual address) gave the device its FDSK back: it no
+        longer holds a Tool Key, so its next secure download needs its device certificate."""
+        if self._pid is None:
+            return
+        with self._io_lock:
+            self._svc.set_tool_key_unloaded(self._pid, device.node_id)
+        self._bump(structural=False)
+
+    def record_secure_download(self, device: Device, result: object) -> None:
+        """Record what a secured download left in the device (its ``DownloadResult``): the Tool
+        Key it uses now and its next Sequence Number Sending."""
+        if self._pid is None:
+            return
+        if getattr(result, "tool_key_loaded", False):
+            self.set_tool_key_loaded(device)
+        sequence = getattr(result, "sequence_number", None)
+        if isinstance(sequence, int):
+            with self._io_lock:
+                self._svc.set_device_sequence_number(
+                    self._pid, device.node_id, sequence
+                )
+            self._bump(structural=False)
+
+    def set_tool_key_loaded(self, device: Device) -> None:
+        """Record that the device uses its Tool Key after a secure download."""
+        if self._pid is None:
+            return
+        with self._io_lock:
+            self._svc.set_tool_key_loaded(self._pid, device.node_id)
+        self._bump(structural=False)
+
+    def add_device_certificate(self, code: str) -> "Fdsk":
+        """Add the device certificate (FDSK label code) to the project; see the core method."""
+        if self._pid is None:
+            raise ValueError("no project is open")
+        with self._io_lock:
+            fdsk = self._svc.add_device_certificate(self._pid, code)
+        self._bump(structural=False)
+        self._log.info("device certificate added")
+        return fdsk
 
     def _coupler_pass_through(
         self, coupler_address: int
@@ -1881,6 +2662,97 @@ class ProjectService:
                 a.address for a in row.additional_addresses if a.address is not None
             ),
         )
+
+    def ip_secure_config(
+        self, device: Device, keyring: "KeyringService | None" = None
+    ) -> "IpSecureConfig | None":
+        """The KNX IP Secure settings a secured download writes to ``device``, a secure-enabled IP
+        device: the installation's routing backbone key, and the device authentication code, the
+        management password and the tunnelling users' passwords from the project (else from the
+        loaded ``keyring``). The password hashes are only written with the management password
+        known, so the device's management access is never replaced by an unknown one. ``None``
+        when the device is not such a device or nothing is known for it."""
+        from xknxeditor.download.ip_secure import IpSecureConfig
+
+        if (
+            self._pid is None
+            or device.app is None
+            or not device.app.program.is_secure_enabled
+        ):
+            return None
+        row = next(
+            (r for r in self._svc.devices(self._pid) if r.id == device.node_id), None
+        )
+        if (
+            row is None
+            or not row.hardware2program_ref_id
+            or not self._catalog.hardware_is_ip_enabled(row.hardware2program_ref_id)
+        ):
+            return None
+        installation = row.segment.line.area.installation.extra_attributes or {}
+        kinds = {access for _ref, access, _index in _bus_interfaces(device)}
+        # The backbone key is the routing one: only a device that routes takes it, and not while
+        # the installation's backbone security is switched off.
+        backbone = (
+            self._svc.ip_backbone_key(self._pid)
+            if "Routing" in kinds
+            and installation.get("IPRoutingBackboneSecurity") != "Off"
+            else None
+        )
+        project = self._svc.ip_secrets(self._pid, device.node_id)
+        ring = (
+            keyring.ip_secrets(device.individual_address)
+            if keyring is not None
+            else None
+        )
+        authentication, passwords, tunnelling = ip_secure_users(
+            project,
+            ring,
+            _tunnelling_interfaces(device),
+            [a.address for a in row.additional_addresses if a.address is not None],
+        )
+        if backbone is None and authentication is None and not passwords:
+            return None
+        tolerance = _int_or(installation.get("IPRoutingLatencyTolerance"), 2000)
+        fraction = _float_or(installation.get("IPSyncLatencyFraction"), 0.1)
+        return IpSecureConfig(
+            backbone_key=backbone,
+            device_authentication_passphrase=authentication,
+            user_passwords=passwords,
+            tunnelling_users=tunnelling,
+            secured_families=_secured_families(kinds, project, passwords, backbone),
+            multicast_latency_tolerance_ms=tolerance,
+            # PID_SYNC_LATENCY_FRACTION is a DPT 5.001 scaling: 0..255 for 0..100 %.
+            sync_latency_fraction=max(0, min(255, round(fraction * 255))),
+        )
+
+    def record_ip_secure_download(
+        self, device: Device, config: "IpSecureConfig"
+    ) -> None:
+        """Record the KNX IP Secure settings a secure download wrote (``config``)."""
+        from xknxeditor.download.ip_secure import (
+            MANAGEMENT_USER_ID,
+            device_authentication_code,
+            password_hash,
+        )
+
+        if self._pid is None:
+            return
+        management = config.user_passwords.get(MANAGEMENT_USER_ID)
+        authentication = config.device_authentication_passphrase
+        with self._io_lock:
+            self._svc.set_ip_secure_loaded(
+                self._pid,
+                device.node_id,
+                backbone_key=config.backbone_key,
+                authentication_code_hash=device_authentication_code(authentication)
+                if authentication is not None
+                else None,
+                management_password_hash=password_hash(management)
+                if management is not None
+                else None,
+            )
+        self._bump(structural=False)
 
     def record_download(
         self,
@@ -2341,9 +3213,18 @@ class ProjectService:
         address: int | None = None,
         parameters: list[tuple[str, str]] | None = None,
         product: DeviceProduct | None = None,
+        secure_commissioning: bool | None = None,
     ) -> int | None:
+        """Add a device. A device that supports KNX Data Secure is commissioned securely by
+        default when the project has a password (``secure_commissioning`` ``None``); ``True``
+        activates it (the project needs a password, ``ProjectPasswordRequired`` otherwise),
+        ``False`` adds it commissioned in the clear."""
         if self._pid is None:
             return None
+        if not app.program.is_secure_enabled:
+            secure_commissioning = False
+        elif secure_commissioning is None:
+            secure_commissioning = self.project_password is not None
         product = product or DeviceProduct()
         if segment_id is None:
             segment_id = self._default_device_segment_id()
@@ -2376,7 +3257,10 @@ class ProjectService:
             hardware_name=product.hardware_name,
             order_number=product.order_number,
             manufacturer_name=product.manufacturer_name,
+            secure_commissioning=secure_commissioning,
         )
+        if secure_commissioning:
+            self._ensure_ip_secrets(device_id, app, hardware2program_ref_id)
         if hardware2program_ref_id is not None:
             self._app_cache[hardware2program_ref_id] = app
         self._bump()
@@ -2728,6 +3612,7 @@ class ProjectService:
         )
         source = self.find_device_by_node_id(node_id) if include_links else None
         source_links = self._capture_links(source) if source is not None else []
+        secure = self._svc.secure_commissioning(self._pid, node_id)
         created: list[int] = []
         for i in range(max(1, count)):
             suffix = " (copy)" if count == 1 else f" (copy {i + 1})"
@@ -2743,6 +3628,7 @@ class ProjectService:
                     order_number=row.order_number,
                     manufacturer_name=row.manufacturer_name,
                 ),
+                secure_commissioning=secure,
             )
             if new_id is not None:
                 if source_links:
@@ -3103,6 +3989,30 @@ class ProjectService:
         self._svc.set_group_address_datapoint_type(self._pid, ga_id, dpt or None)
         self._bump(structural=False)
 
+    def set_group_address_security(self, ga_id: int, mode: str) -> None:
+        """Set a group address's Security mode (``"Auto"``/``"On"``/``"Off"``). ``"On"`` secures it
+        (a key is generated, so the project needs a password), ``"Off"`` does not, and ``"Auto"``
+        secures it while every linked device is commissioned securely (see the core
+        ``ga_security``). Raises ``GroupAddressSecurityError`` for ``"On"`` while a linked device
+        is not commissioned securely, or for ``"Off"`` while a linked group object requires
+        security."""
+        from xknxeditor.proj import GroupAddressSecurityError
+
+        if self._pid is None:
+            return
+        if mode == "Off":
+            try:
+                links = self._svc.group_address(self._pid, ga_id).links
+            except KeyError:
+                links = []
+            if any(self.com_object_requires_security(link) for link in links):
+                raise GroupAddressSecurityError(
+                    "a group object on the group address requires secure communication"
+                )
+        with self._io_lock:
+            self._svc.set_group_address_security(self._pid, ga_id, mode)
+        self._bump(structural=False)
+
     def remove_group_address(
         self, ga_id: int, address: str = "", name: str = ""
     ) -> None:
@@ -3159,14 +4069,27 @@ class ProjectService:
     ) -> int | None:
         if self._pid is None:
             return None
+        from xknxeditor.proj import GroupAddressSecurityError
+
+        if self._link_would_unsecure(com_object_id, group_address_id):
+            self._log.error(S.GA_SECURE_REQUIRED)
+            return None
+        full = self._security_tables_overflow(com_object_id, group_address_id)
+        if full is not None:
+            self._log.error(S.GA_SECURE_TABLES_FULL.format(device=full))
+            return None
         derive = self._dpt_to_derive_on_link(com_object_id, group_address_id)
-        link_id = self._svc.link_com_object(
-            self._pid,
-            com_object_id,
-            group_address_id,
-            sending=is_sending,
-            derive_datapoint_type=derive,
-        )
+        try:
+            link_id = self._svc.link_com_object(
+                self._pid,
+                com_object_id,
+                group_address_id,
+                sending=is_sending,
+                derive_datapoint_type=derive,
+            )
+        except GroupAddressSecurityError:
+            self._log.error(S.GA_SECURE_LINK_REFUSED)
+            return None
         self._bump(structural=False)
         return link_id
 

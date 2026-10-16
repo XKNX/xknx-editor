@@ -241,17 +241,46 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "(its hardware is marked NoDownloadWithoutPlugin); pass without_plugin=true only "
                 "if the user explicitly confirmed programming it anyway"
             )
-        future = service.program_device(
-            device,
-            resolved,
-            group_communication,
-            without_plugin=without_plugin,
-            current_address=current_address,
-            serial_number=serial,
-            ip_config=ctx.run_locked(
-                lambda: ctx.api.project.ip_download_config(device)
-            ),
+        from editor_gui.plugins.connection.service import DeviceCertificateRequired
+        from xknxeditor.proj import ProjectPasswordRequired
+
+        try:
+            tool_key = ctx.run_locked(lambda: ctx.api.project.download_tool_key(device))
+        except ProjectPasswordRequired as exc:
+            raise ToolError(
+                "the device is commissioned securely: set a project password first"
+            ) from exc
+        ip_secure = ctx.run_locked(
+            lambda: ctx.api.project.ip_secure_config(device, service.keyring)
         )
+        try:
+            future = service.program_device(
+                device,
+                resolved,
+                group_communication,
+                without_plugin=without_plugin,
+                current_address=current_address,
+                serial_number=serial,
+                ip_config=ctx.run_locked(
+                    lambda: ctx.api.project.ip_download_config(device)
+                ),
+                tool_key=tool_key,
+                ip_secure=ip_secure,
+                disable_security=ctx.run_locked(
+                    lambda: ctx.api.project.download_disables_security(device)
+                ),
+                routing_blocking=ctx.run_locked(
+                    lambda: ctx.api.project.download_routing_blocking(device)
+                ),
+            )
+        except DeviceCertificateRequired as exc:
+            raise ToolError(
+                f"device {node_id} is commissioned securely for the first time: add its "
+                "device certificate (the FDSK from its label) with "
+                f"project_add_device_certificate(code, node_id={node_id}) first, or deactivate "
+                "its secure commissioning "
+                "with project_set_secure_commissioning to program it in the clear"
+            ) from exc
         if future is None:
             raise ToolError("programming could not be scheduled (no connection)")
         try:
@@ -266,6 +295,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 node_id, resolved.value, serial, mac
             )
         )
+        ctx.run_locked(lambda: ctx.api.project.record_secure_download(device, result))
+        if ip_secure is not None and getattr(result, "secured", False):
+            ctx.run_locked(
+                lambda: ctx.api.project.record_ip_secure_download(device, ip_secure)
+            )
         return {"status": "programmed", "node_id": node_id}
 
     @tool

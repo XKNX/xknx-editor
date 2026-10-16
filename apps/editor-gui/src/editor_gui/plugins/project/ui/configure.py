@@ -33,6 +33,7 @@ from xknxeditor.recover.dossier import printable_text
 
 if TYPE_CHECKING:
     from editor_gui.device_info import DeviceInfo as BusDeviceInfo
+    from editor_gui.plugins.project.service import IpSecureSettings
     from xknxeditor.catalog import ProductSummary, ProgramSummary
     from xknxeditor.proj.core.service import DeviceInfo
 from editor_gui.programming import error_class_text
@@ -219,6 +220,13 @@ class ConfigurePanel:
         get_icon: Callable[[Device, str], Icon | None] | None = None,
         get_picture: Callable[[Device, str], Picture | None] | None = None,
         on_serial_number_change: Callable[[Device, bytes | None], None] | None = None,
+        get_secure_commissioning: Callable[[Device], bool | None] | None = None,
+        on_secure_commissioning_change: Callable[[Device, bool], None] | None = None,
+        on_add_certificate: Callable[[Device], None] | None = None,
+        get_ip_secure: "Callable[[Device], IpSecureSettings | None] | None" = None,
+        get_routing_blocking: Callable[[Device], str | None] | None = None,
+        on_routing_blocking: Callable[[Device, str | None], None] | None = None,
+        on_ip_secure_change: Callable[[Device, str, object], str | None] | None = None,
         use_serial_number_default: Callable[[], bool] | None = None,
         find_serial_owner: Callable[[Device, bytes], str | None] | None = None,
         find_product: "Callable[[str], ProductSummary | None] | None" = None,
@@ -322,6 +330,17 @@ class ConfigurePanel:
         self._program_use_serial = False
         self._serial_buffer = ""
         self._on_serial_number_change = on_serial_number_change
+        self._get_secure_commissioning = get_secure_commissioning
+        self._on_secure_commissioning_change = on_secure_commissioning_change
+        self._on_add_certificate = on_add_certificate
+        self._get_ip_secure = get_ip_secure
+        self._get_routing_blocking = get_routing_blocking
+        self._on_routing_blocking = on_routing_blocking
+        self._on_ip_secure_change = on_ip_secure_change
+        # The KNX IP Secure section's edit buffers (field key -> text) and its "show" switch.
+        self._ip_secure_buffers: dict[str, str] = {}
+        self._ip_secure_device: int | None = None
+        self._ip_secure_show = False
         self._use_serial_number_default = use_serial_number_default
         self._find_serial_owner = find_serial_owner
         self._render_dali = (
@@ -411,6 +430,7 @@ class ConfigurePanel:
         self._render_manual_button(self._get_device_info(device.node_id))
         self._render_readout_result(device)
         self._render_ip_config(device)
+        self._render_ip_secure(device)
 
     def _programming_labels(self) -> list[str]:
         labels: list[str] = []
@@ -540,6 +560,31 @@ class ConfigurePanel:
             fields.append(
                 (S.CONFIGURE_SERIAL_NUMBER, lambda: self._serial_input(device))
             )
+        secure = (
+            self._get_secure_commissioning(device)
+            if self._get_secure_commissioning is not None
+            else None
+        )
+        if secure is not None:
+            fields.append(
+                (
+                    S.CONFIGURE_SECURE_COMMISSIONING,
+                    lambda: self._secure_commissioning_input(device, secure),
+                )
+            )
+        # "-": not a coupler with the security extensions commissioned securely.
+        blocking = (
+            self._get_routing_blocking(device)
+            if self._get_routing_blocking is not None
+            else "-"
+        )
+        if blocking != "-":
+            fields.append(
+                (
+                    S.CONFIGURE_ROUTING_BLOCKING,
+                    lambda: self._routing_blocking_input(device, blocking),
+                )
+            )
         avail = imgui.get_content_region_avail().x
         group_w = self._label_w + px(120)
         ncols = max(1, min(len(fields), int(avail // group_w) if group_w > 0 else 1))
@@ -656,6 +701,66 @@ class ConfigurePanel:
                 self._on_serial_number_change(device, serial)
         if not imgui.is_item_active() and self._serial_buffer != stored:
             self._serial_buffer = stored
+
+    def _secure_commissioning_input(self, device: Device, activated: bool) -> None:
+        """The device setting "Secure Commissioning" (Activated/Deactivated) and the button that
+        adds the device certificate it is commissioned with."""
+        style = imgui.get_style()
+        # The combo is as wide as its longest choice; the certificate button follows on the same
+        # line when it fits, else below.
+        combo_w = (
+            max(
+                imgui.calc_text_size(S.SECURE_COMMISSIONING_ON).x,
+                imgui.calc_text_size(S.SECURE_COMMISSIONING_OFF).x,
+            )
+            + style.frame_padding.x * 2
+            + imgui.get_frame_height()
+            + style.item_inner_spacing.x
+        )
+        avail = imgui.get_content_region_avail().x
+        button = S.CONFIGURE_ADD_CERTIFICATE
+        button_w = imgui.calc_text_size(button).x + style.frame_padding.x * 2
+        start_x = imgui.get_cursor_pos_x()
+        imgui.set_next_item_width(min(combo_w, avail))
+        current = S.SECURE_COMMISSIONING_ON if activated else S.SECURE_COMMISSIONING_OFF
+        if imgui.begin_combo("##secure_commissioning", current):
+            for value, text in (
+                (True, S.SECURE_COMMISSIONING_ON),
+                (False, S.SECURE_COMMISSIONING_OFF),
+            ):
+                if (
+                    imgui.selectable(text, value == activated)[0]
+                    and value != activated
+                    and self._on_secure_commissioning_change is not None
+                ):
+                    self._on_secure_commissioning_change(device, value)
+            imgui.end_combo()
+        if self._on_add_certificate is not None:
+            if combo_w + style.item_spacing.x + button_w <= avail:
+                imgui.same_line()
+            else:
+                imgui.set_cursor_pos_x(start_x)
+            if imgui.button(button):
+                self._on_add_certificate(device)
+
+    def _routing_blocking_input(self, device: Device, current: str | None) -> None:
+        """A coupler's blocking of point-to-point and broadcast messages (Automatic/On/Off)."""
+        choices: list[tuple[str | None, str]] = [
+            (None, S.ROUTING_BLOCKING_AUTO),
+            ("On", S.ROUTING_BLOCKING_ON),
+            ("Off", S.ROUTING_BLOCKING_OFF),
+        ]
+        label = next((text for mode, text in choices if mode == current), choices[0][1])
+        imgui.set_next_item_width(-1)
+        if imgui.begin_combo("##routing_blocking", label):
+            for mode, text in choices:
+                if (
+                    imgui.selectable(text, mode == current)[0]
+                    and mode != current
+                    and self._on_routing_blocking is not None
+                ):
+                    self._on_routing_blocking(device, mode)
+            imgui.end_combo()
 
     def _render_device_actions(self, device: Device) -> None:
         """The device's occasional actions (read-out, restart, reset) in one row that wraps when
@@ -1362,6 +1467,119 @@ class ConfigurePanel:
                 (S.CONFIGURE_IP_MAC, cfg.get("MACAddress", "")),
             ]
         )
+
+    def _render_ip_secure(self, device: Device) -> None:
+        """The KNX IP Secure settings of a secure IP device: its commissioning password, its
+        authentication code, whether its tunnels are secured and the password of each bus
+        interface (with its user id), all editable. The passwords are hidden unless shown."""
+        settings = (
+            self._get_ip_secure(device) if self._get_ip_secure is not None else None
+        )
+        if settings is None:
+            return
+        if self._ip_secure_device != device.node_id:
+            self._ip_secure_buffers = {}
+            self._ip_secure_device = device.node_id
+            self._ip_secure_show = False
+        imgui.spacing()
+        if not imgui.collapsing_header(S.CONFIGURE_IP_SECURE):
+            return
+        _, self._ip_secure_show = imgui.checkbox(
+            S.CONFIGURE_IP_SECURE_SHOW, self._ip_secure_show
+        )
+        changed, secure = imgui.checkbox(
+            S.CONFIGURE_IP_SECURE_TUNNELLING, settings.secure_tunnelling
+        )
+        if changed:
+            self._ip_secure_edit(device, "secure_tunnelling", secure)
+        for key, label, value in (
+            (
+                "commissioning_password",
+                S.CONFIGURE_IP_SECURE_PASSWORD,
+                settings.commissioning_password,
+            ),
+            (
+                "authentication_code",
+                S.CONFIGURE_IP_SECURE_AUTHENTICATION,
+                settings.authentication_code,
+            ),
+        ):
+            imgui.align_text_to_frame_padding()
+            imgui.text_disabled(label)
+            imgui.same_line(self._label_w)
+            self._ip_secure_input(device, key, value, key)
+        if not settings.interfaces:
+            return
+        imgui.spacing()
+        flags = imgui.TableFlags_.row_bg | imgui.TableFlags_.borders_inner_h
+        if not imgui.begin_table("##ip_secure_interfaces", 3, flags):
+            return
+        imgui.table_setup_column(S.CONFIGURE_IP_SECURE_INTERFACE)
+        imgui.table_setup_column(
+            S.CONFIGURE_IP_SECURE_USER, imgui.TableColumnFlags_.width_fixed
+        )
+        imgui.table_setup_column(S.CONFIGURE_IP_SECURE_INTERFACE_PASSWORD)
+        imgui.table_headers_row()
+        for interface in settings.interfaces:
+            imgui.table_next_row()
+            imgui.table_next_column()
+            imgui.align_text_to_frame_padding()
+            if interface.access == "Routing":
+                imgui.text(S.CONFIGURE_IP_SECURE_ROUTING)
+            else:
+                imgui.text(
+                    S.CONFIGURE_IP_SECURE_TUNNEL.format(
+                        address=interface.address or "-"
+                    )
+                )
+            imgui.table_next_column()
+            imgui.text(str(interface.user_id))
+            imgui.table_next_column()
+            self._ip_secure_input(
+                device,
+                f"interface:{interface.ref_id}",
+                interface.password,
+                "interface_password",
+                interface.ref_id,
+            )
+        imgui.end_table()
+
+    def _ip_secure_input(
+        self, device: Device, key: str, value: str, field: str, ref: str = ""
+    ) -> None:
+        """A KNX IP Secure password field (hidden unless shown) with a copy button; an edit is
+        stored when the field is left."""
+        button = S.CONFIGURE_IP_SECURE_COPY
+        button_w = (
+            imgui.calc_text_size(button).x + imgui.get_style().frame_padding.x * 2
+        )
+        buffer = self._ip_secure_buffers.get(key, value)
+        imgui.set_next_item_width(
+            max(px(80), imgui.get_content_region_avail().x - button_w - px(8))
+        )
+        flags = (
+            imgui.InputTextFlags_.none
+            if self._ip_secure_show
+            else imgui.InputTextFlags_.password
+        )
+        _, buffer = imgui.input_text(f"##ip_secure_{key}", buffer, flags)
+        self._ip_secure_buffers[key] = buffer
+        if imgui.is_item_deactivated_after_edit() and buffer != value:
+            self._ip_secure_edit(device, field, (ref, buffer) if ref else buffer)
+        if not imgui.is_item_active() and buffer != value:
+            self._ip_secure_buffers[key] = value
+        imgui.same_line()
+        if imgui.button(f"{button}##copy_{key}") and value:
+            imgui.set_clipboard_text(value)
+            if self._notify is not None:
+                self._notify(S.CONFIGURE_COPIED)
+
+    def _ip_secure_edit(self, device: Device, field: str, value: object) -> None:
+        if self._on_ip_secure_change is None:
+            return
+        error = self._on_ip_secure_change(device, field, value)
+        if error and self._notify is not None:
+            self._notify(error)
 
     def _render_label_value(self, label: str, value: str) -> None:
         imgui.text_disabled(label)

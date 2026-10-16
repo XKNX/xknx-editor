@@ -15,6 +15,7 @@ from editor_gui.plugins.project.service import DeviceProduct
 if TYPE_CHECKING:
     from editor_gui.plugins.catalog.online_catalog import OnlineCatalogItem
     from xknxeditor.catalog import ProductSummary
+    from xknxeditor.prod import Application
 
 
 class CatalogPlugin:
@@ -80,6 +81,30 @@ class CatalogPlugin:
             self._notify(S.CATALOG_ADD_NO_APP)
             return
 
+        # A device that supports KNX Data Secure is commissioned securely by default, which needs
+        # a project password: ask for one first; without it the device is added in the clear.
+        request = self._api.request_project_password
+        if (
+            app.program.is_secure_enabled
+            and request is not None
+            and self._api.project.project_password is None
+        ):
+            request(
+                S.CATALOG_ADD_SECURE_PASSWORD,
+                lambda: self._add(product, app, space_id, secure_commissioning=True),
+                lambda: self._add(product, app, space_id, secure_commissioning=False),
+            )
+            return
+        self._add(product, app, space_id)
+
+    def _add(
+        self,
+        product: ProductSummary,
+        app: Application,
+        space_id: int | None,
+        *,
+        secure_commissioning: bool | None = None,
+    ) -> None:
         # A new device has no name of its own; it shows its product's name until renamed.
         device_id = self._api.project.add_device(
             product_ref_id=product.product_ref_id,
@@ -87,10 +112,14 @@ class CatalogPlugin:
             name="",
             app=app,
             product=DeviceProduct.of(product),
+            secure_commissioning=secure_commissioning,
         )
         if device_id:
             if space_id is not None:
                 self._api.project.set_device_space(device_id, space_id)
+            ask = self._api.ask_device_certificate
+            if ask is not None and self._api.project.secure_commissioning_of(device_id):
+                ask(device_id)
             label = product.name or app.name
             self._log.info("device added", name=label, id=device_id)
             self._notify(S.CATALOG_ADD_OK.format(name=label))

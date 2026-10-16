@@ -179,3 +179,6 @@ msgstr "Nicht jetzt"
 
 msgid "“{name}” was added to the local catalog. Add it to the project now?"
 msgstr "„{name}“ wurde zum lokalen Katalog hinzugefügt. Jetzt zum Projekt hinzufügen?"
+
+msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
+msgstr "Dieses Gerät unterstützt KNX Data Secure. Legen Sie ein Projektpasswort fest, um es sicher in Betrieb zu nehmen; ohne Passwort wird es hinzugefügt und unverschlüsselt in Betrieb genommen."

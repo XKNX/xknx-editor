@@ -38,9 +38,13 @@ class KeyringPanel:
         self,
         service: "KeyringService",
         get_group_addresses: "Callable[[], Sequence[_GroupAddressLike]]",
+        export_project: "Callable[[Path, str], object] | None" = None,
     ) -> None:
         self._service = service
         self._get_group_addresses = get_group_addresses
+        # Writes the open project's key material as a keyring (the "from project" export).
+        self._export_project = export_project
+        self._export_from_project = False
         # import: file dialog -> password modal
         self._dialog: pfd.open_file | None = None
         self._pending_path: str | None = None
@@ -118,8 +122,18 @@ class KeyringPanel:
 
     # --- export (button in the window: save dialog + new-password modal) ---------------
 
+    def begin_project_export(self, default_name: str) -> None:
+        """Open the save dialog to export the open project's key material as a keyring."""
+        self._export_from_project = True
+        self._save_dialog = pfd.save_file(
+            S.KEYRING_EXPORT_PROJECT,
+            f"{default_name}.knxkeys",
+            [S.KEYRING_FILTER, "*.knxkeys", S.ALL_FILES, "*"],
+        )
+
     def begin_export(self) -> None:
         """Open the save dialog to pick the target ``.knxkeys`` path."""
+        self._export_from_project = False
         default = "keyring.knxkeys"
         self._save_dialog = pfd.save_file(
             S.KEYRING_EXPORT, default, [S.KEYRING_FILTER, "*.knxkeys", S.ALL_FILES, "*"]
@@ -161,9 +175,14 @@ class KeyringPanel:
         clicked = dialog_buttons(S.KEYRING_EXPORT_SAVE, S.BTN_CANCEL)
         if (clicked == 0 or submitted) and can_export:
             try:
-                self._service.export(
-                    Path(self._pending_export_path), self._export_password
-                )
+                if self._export_from_project and self._export_project is not None:
+                    self._export_project(
+                        Path(self._pending_export_path), self._export_password
+                    )
+                else:
+                    self._service.export(
+                        Path(self._pending_export_path), self._export_password
+                    )
                 self._pending_export_path = None
                 self._export_password = ""
                 self._export_error = None

@@ -108,6 +108,18 @@ class HardwareProgramMediumType(Base):
     )
 
 
+class HardwareProgramCouplerCapability(Base):
+    """A coupler capability of a hardware program (``Hardware2Program@CouplerCapabilities``,
+    e.g. ``SecurityProxy``)."""
+
+    __tablename__ = "hardware_program_coupler_capabilities"
+
+    hardware_program_id: Mapped[str] = mapped_column(
+        ForeignKey("hardware_programs.id"), primary_key=True
+    )
+    capability: Mapped[str] = mapped_column(String, primary_key=True)
+
+
 class CatalogSection(Base):
     """Hierarchical catalog section (self-referential parent/children)."""
 

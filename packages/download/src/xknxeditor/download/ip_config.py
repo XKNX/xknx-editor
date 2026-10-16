@@ -174,7 +174,8 @@ def ip_config_controls(
     return controls
 
 
-def _insert_position(application: Application, controls: Sequence[object]) -> int:
+def insert_position(application: Application, controls: Sequence[object]) -> int:
+    """Where controls that belong before the final restart go into ``controls``."""
     if application.program.mask_version == _LINE_COUPLER_MASK:
         loads = [
             i
@@ -215,7 +216,7 @@ def with_ip_config_controls(
     application: Application, controls: Sequence[object], config: IpDeviceConfig
 ) -> list[object]:
     """``controls`` with the IP settings inserted before the last restart."""
-    position = _insert_position(application, controls)
+    position = insert_position(application, controls)
     return [
         *controls[:position],
         *ip_config_controls(application, config),

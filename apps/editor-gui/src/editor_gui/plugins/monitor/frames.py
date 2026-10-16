@@ -7,6 +7,7 @@ priority and flags. The TPDU is decoded with xknx where it can be.
 
 from __future__ import annotations
 
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from typing import Any
 
@@ -82,6 +83,8 @@ class FrameInfo:
     ack: TP1Acknowledgement | None = None
     # The frame could not be decoded (truncated or unknown).
     malformed: bool = False
+    # A KNX Data Secure frame shown with its decrypted (or verified) APDU.
+    decrypted: bool = False
 
     @property
     def busmonitor_status(self) -> CEMIBusmonitorStatus | None:
@@ -181,7 +184,7 @@ class FrameInfo:
             return ack_name(self.ack)
         if self.tpci is not None and self.tpci.control:
             return _CONTROL_TPDU_NAMES.get(type(self.tpci), type(self.tpci).__name__)
-        if self.data_secure:
+        if self.data_secure and not self.decrypted:
             return "SecureService"
         if self.apci is not None:
             return type(self.apci).__name__
@@ -221,6 +224,42 @@ class FrameInfo:
         if letters:
             parts.append(letters)
         return " ".join(parts)
+
+
+#: The keys of the secured group addresses (raw address -> key), to show their telegrams
+#: decrypted; set by the monitor from the open project or the loaded keyring.
+secure_group_keys: Callable[[], Mapping[int, bytes]] | None = None
+
+
+def _plain_apdu(
+    apci: APCI | None,
+    tpci: TPCI | None,
+    ctrl1: int,
+    ctrl2: int,
+    source: int,
+    destination: int,
+) -> APCI | None:
+    """The APDU of a KNX Data Secure group telegram, decrypted (or verified) with its group
+    address's key; ``None`` when it is none, the key is unknown or the check fails."""
+    from xknx.telegram.apci import SecureAPDU
+
+    if not isinstance(apci, SecureAPDU) or tpci is None or secure_group_keys is None:
+        return None
+    key = secure_group_keys().get(destination)
+    if key is None:
+        return None
+    try:
+        plain = apci.secured_data.get_plain_apdu(
+            key=key,
+            scf=apci.scf,
+            address_fields_raw=source.to_bytes(2, "big")
+            + destination.to_bytes(2, "big"),
+            frame_flags=(ctrl1 << 8) | ctrl2,
+            tpci=tpci,
+        )
+        return APCI.from_knx(plain)
+    except Exception:
+        return None
 
 
 def decode_cemi(raw: bytes) -> FrameInfo | None:
@@ -264,6 +303,7 @@ def _decode_busmon(raw: bytes) -> FrameInfo:
         apci_code=info.apci_code,
         busmon_info=busmon.info,
         tp1=decoded,
+        decrypted=info.decrypted,
     )
 
 
@@ -298,6 +338,9 @@ def _decode_ldata(code: int, body: bytes) -> FrameInfo:
                 apci = APCI.from_knx(bytes((tpdu[0] & 0x03,)) + tpdu[1:])
             except Exception:
                 apci = None
+    plain = (
+        _plain_apdu(apci, tpci, ctrl1, ctrl2, source, destination) if group else None
+    )
     return FrameInfo(
         message_code=code,
         ctrl1=ctrl1,
@@ -306,8 +349,9 @@ def _decode_ldata(code: int, body: bytes) -> FrameInfo:
         destination=destination,
         tpdu=tpdu,
         tpci=tpci,
-        apci=apci,
+        apci=plain or apci,
         apci_code=apci_code,
+        decrypted=plain is not None,
     )
 
 

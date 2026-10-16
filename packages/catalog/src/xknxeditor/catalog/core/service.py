@@ -149,6 +149,18 @@ class CatalogService:
         with Session(self._engine) as db:
             return get_hardware_program(db, hardware_id, program_id)
 
+    def coupler_capabilities(self, program_id: str) -> set[str]:
+        """The coupler capabilities of a hardware program (e.g. ``SecurityProxy``)."""
+        from xknxeditor.catalog.models import HardwareProgramCouplerCapability
+
+        with Session(self._engine) as db:
+            return {
+                row.capability
+                for row in db.query(HardwareProgramCouplerCapability).filter(
+                    HardwareProgramCouplerCapability.hardware_program_id == program_id
+                )
+            }
+
     def get_application_xml(self, program_id: str) -> tuple[bytes, str] | None:
         with Session(self._engine) as db:
             return get_application_xml(db, program_id)

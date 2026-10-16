@@ -174,3 +174,6 @@ msgstr "Kamer"
 
 msgid "“{name}” was added to the local catalog. Add it to the project now?"
 msgstr "“{name}” is aan de lokale catalogus toegevoegd. Nu aan het project toevoegen?"
+
+msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
+msgstr "Dit apparaat ondersteunt KNX Data Secure. Stel een projectwachtwoord in om het beveiligd in bedrijf te stellen; zonder wachtwoord wordt het toegevoegd en onversleuteld in bedrijf gesteld."

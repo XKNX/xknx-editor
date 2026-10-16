@@ -380,6 +380,33 @@ class ProjectStrings:
         return _("{count} difference(s)")
 
     @property
+    def DEVICE_CERTIFICATE_TITLE(self) -> str:
+        return _("Add Device Certificate")
+
+    @property
+    def DEVICE_CERTIFICATE_PROMPT(self) -> str:
+        return _(
+            "This device is commissioned securely for the first time. Enter the FDSK from its "
+            "label or certificate (36 characters):"
+        )
+
+    @property
+    def DEVICE_CERTIFICATE_REQUIRED(self) -> str:
+        return _("The device certificate (FDSK) is missing.")
+
+    @property
+    def DEVICE_CERTIFICATE_INVALID(self) -> str:
+        return _("This is not a valid FDSK; please check it.")
+
+    @property
+    def DEVICE_CERTIFICATE_OTHER_DEVICE(self) -> str:
+        return _("This certificate belongs to the device with serial number {serial}.")
+
+    @property
+    def SECURE_DOWNLOAD_PASSWORD_REQUIRED(self) -> str:
+        return _("Set a project password first: it protects the device keys.")
+
+    @property
     def TOOLS_DIFF_PASSWORD_PROMPT(self) -> str:
         return _("The other project is protected with a password. Enter it to compare:")
 
@@ -1866,6 +1893,36 @@ class ProjectStrings:
         return _("Invalid address or already in use.")
 
     @property
+    def GA_SECURITY(self) -> str:
+        return _("Security")
+
+    @property
+    def GA_SECURITY_AUTO(self) -> str:
+        return _("Automatic")
+
+    @property
+    def GA_SECURITY_ON(self) -> str:
+        return _("Secured")
+
+    @property
+    def GA_SECURITY_OFF(self) -> str:
+        return _("Not secured")
+
+    @property
+    def GA_SECURE_LINK_REFUSED(self) -> str:
+        return _(
+            "A secured group address can only be linked to devices that are commissioned"
+            " securely."
+        )
+
+    @property
+    def GA_SECURE_ON_REFUSED(self) -> str:
+        return _(
+            "Not every device linked to this group address is commissioned securely, so it"
+            " cannot be secured."
+        )
+
+    @property
     def GA_SET_DPT(self) -> str:
         return _("Set Datapoint Type")
 
@@ -2406,6 +2463,167 @@ class ProjectStrings:
     @property
     def GA_IMPORT_BUTTON(self) -> str:
         return _("Import")
+
+    @property
+    def DEVICE_CERTIFICATE_PLAIN(self) -> str:
+        return _("Plain")
+
+    @property
+    def SECURE_COMMISSIONING_OFF_TITLE(self) -> str:
+        return _("Deactivate Secure Commissioning")
+
+    @property
+    def SECURE_COMMISSIONING_OFF_UNSECURED(self) -> str:
+        return _("These group addresses will then communicate in the clear:")
+
+    @property
+    def SECURE_COMMISSIONING_OFF_REMOVED(self) -> str:
+        return _(
+            "The device's group objects will be removed from these secured group addresses:"
+        )
+
+    @property
+    def SECURE_COMMISSIONING_OFF_CONFIRM(self) -> str:
+        return _("Deactivate")
+
+    @property
+    def CONFIGURE_SECURE_COMMISSIONING(self) -> str:
+        return _("Secure Commissioning")
+
+    @property
+    def CONFIGURE_ADD_CERTIFICATE(self) -> str:
+        return _("Add Device Certificate…")
+
+    @property
+    def SECURE_COMMISSIONING_ON(self) -> str:
+        return _("Activated")
+
+    @property
+    def SECURE_COMMISSIONING_OFF(self) -> str:
+        return _("Deactivated")
+
+    @property
+    def GA_SECURE_REQUIRED(self) -> str:
+        return _(
+            "A group object that requires secure communication would end up on a group"
+            " address in the clear."
+        )
+
+    @property
+    def DEVICE_CERTIFICATE_LATER(self) -> str:
+        return _("Later")
+
+    @property
+    def DEVICE_CERTIFICATE_DONT_ASK(self) -> str:
+        return _("Don't ask when adding devices")
+
+    @property
+    def CONFIGURE_IP_SECURE(self) -> str:
+        return _("KNX IP Secure")
+
+    @property
+    def CONFIGURE_IP_SECURE_SHOW(self) -> str:
+        return _("Show Passwords")
+
+    @property
+    def CONFIGURE_IP_SECURE_TUNNELLING(self) -> str:
+        return _("Secure Tunneling")
+
+    @property
+    def CONFIGURE_IP_SECURE_PASSWORD(self) -> str:
+        return _("Commissioning Password")
+
+    @property
+    def CONFIGURE_IP_SECURE_AUTHENTICATION(self) -> str:
+        return _("Authentication Code")
+
+    @property
+    def CONFIGURE_IP_SECURE_INTERFACE(self) -> str:
+        return _("Interface")
+
+    @property
+    def CONFIGURE_IP_SECURE_USER(self) -> str:
+        return _("User")
+
+    @property
+    def CONFIGURE_IP_SECURE_INTERFACE_PASSWORD(self) -> str:
+        return _("Password")
+
+    @property
+    def CONFIGURE_IP_SECURE_ROUTING(self) -> str:
+        return _("Routing")
+
+    @property
+    def CONFIGURE_IP_SECURE_TUNNEL(self) -> str:
+        return _("Tunnel {address}")
+
+    @property
+    def CONFIGURE_IP_SECURE_COPY(self) -> str:
+        return _("Copy")
+
+    @property
+    def IP_SECURE_PASSWORD_INVALID(self) -> str:
+        return _("A password needs 1 to 20 Latin-1 characters.")
+
+    @property
+    def BTN_CLOSE(self) -> str:
+        return _("Close")
+
+    @property
+    def PROJECT_INFO_BACKBONE_SECURITY(self) -> str:
+        return _("IP Backbone Security")
+
+    @property
+    def PROJECT_INFO_CERTIFICATES(self) -> str:
+        return _("Device Certificates")
+
+    @property
+    def PROJECT_CERTIFICATES_MANAGE(self) -> str:
+        return _("Manage…")
+
+    @property
+    def PROJECT_CERTIFICATES_TITLE(self) -> str:
+        return _("Device Certificates")
+
+    @property
+    def PROJECT_CERTIFICATES_EMPTY(self) -> str:
+        return _("The project has no device certificates.")
+
+    @property
+    def PROJECT_CERTIFICATES_SERIAL(self) -> str:
+        return _("Serial Number")
+
+    @property
+    def PROJECT_CERTIFICATES_DEVICE(self) -> str:
+        return _("Device")
+
+    @property
+    def PROJECT_CERTIFICATES_REMOVE(self) -> str:
+        return _("Remove")
+
+    @property
+    def PROJECT_CERTIFICATES_ADD(self) -> str:
+        return _("Add Device Certificate…")
+
+    @property
+    def GA_SECURE_TABLES_FULL(self) -> str:
+        return _("The security tables of {device} cannot hold this link.")
+
+    @property
+    def CONFIGURE_ROUTING_BLOCKING(self) -> str:
+        return _("Point-to-Point and Broadcast")
+
+    @property
+    def ROUTING_BLOCKING_AUTO(self) -> str:
+        return _("Automatic")
+
+    @property
+    def ROUTING_BLOCKING_ON(self) -> str:
+        return _("Blocked")
+
+    @property
+    def ROUTING_BLOCKING_OFF(self) -> str:
+        return _("Routed")
 
 
 S = ProjectStrings()

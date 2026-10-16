@@ -23,6 +23,7 @@ class KeyringPlugin:
         self._panel = KeyringPanel(
             service=self._service,
             get_group_addresses=lambda: api.project.group_addresses,
+            export_project=api.project.export_keyring,
         )
         self._window_open = False
         self._was_loaded = False
@@ -49,6 +50,14 @@ class KeyringPlugin:
                     self._window_open = False
             elif imgui.menu_item(S.KEYRING_IMPORT, "", False)[0]:
                 self._panel.begin_import()  # file dialog; no window
+            # The open project's own key material, for other tools (e.g. secure tunnels).
+            if self._api.project.is_open and self._api.project.project_needs_password():
+                imgui.separator()
+                if imgui.menu_item(S.KEYRING_EXPORT_PROJECT, "", False)[0]:
+                    info = self._api.project.get_project_metadata()
+                    self._panel.begin_project_export(
+                        (info.name if info is not None else "") or "project"
+                    )
             imgui.end_menu()
 
     def render_window(self) -> None:

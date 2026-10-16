@@ -6,6 +6,7 @@ from collections.abc import Callable
 from typing import Any
 
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
+from editor_gui.plugins.monitor import frames
 from editor_gui.plugins.monitor.formatting import (
     DptFormat,
     ProjectIndex,
@@ -23,6 +24,8 @@ class MonitorPlugin:
     name = "monitor"
 
     def __init__(self, api: PluginAPI) -> None:
+        # Secured group telegrams are shown decrypted with the connection's group keys.
+        frames.secure_group_keys = api.connection.secure_group_keys
         self._api = api
         self._service = MonitorService(api.connection)
         self._service.set_logger(Logger(api.log, "monitor"))

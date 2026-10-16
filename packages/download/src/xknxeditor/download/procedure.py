@@ -114,6 +114,12 @@ from .scope import (
     control_in_scope,
     target_object_type,
 )
+from .secure_config import (
+    PID_TOOL_KEY,
+    SECURITY_OBJECT,
+    SECURITY_PROPERTY_WIDTHS,
+    sequence_number_control,
+)
 
 if TYPE_CHECKING:
     from xknxeditor.prod import Application
@@ -312,6 +318,10 @@ def _application_id(application: Application) -> bytes:
         + program.application_number.to_bytes(2, "big")
         + bytes([program.application_version & 0xFF])
     )
+
+
+#: A Sequence Number Sending above this is close to the end of its 48 bits (3/5/3 1.5.4.1).
+SEQUENCE_NUMBER_WARNING = 0xFF0000000000
 
 
 class LoadProcedureRunner:
@@ -1294,6 +1304,12 @@ class LoadProcedureRunner:
 
     def _property_write_data(self, index: int, control: LdCtrlWriteProp) -> bytes:
         """Overlay image elements onto inline data, keeping device-owned CRCs zero."""
+        if control.start_element == 0:
+            # Element 0 of an array property is its number of valid elements, 2 octets; writing
+            # 0 clears the array.
+            return (control.inline_data or b"").ljust(2 * control.count, b"\x00")[
+                : 2 * control.count
+            ]
         object_type = (
             control.obj_type
             if control.obj_idx is None and control.obj_type is not None
@@ -1449,7 +1465,17 @@ class LoadProcedureRunner:
         control: LdCtrlWriteProp | LdCtrlCompareProp | LdCtrlLoadImageProp,
     ) -> None:
         key = (index, control.prop_id)
-        if key in self._property_widths or control.prop_id in STANDARD_WRITE_WIDTHS:
+        if key in self._property_widths:
+            return
+        if (
+            control.obj_idx is None
+            and control.obj_type == SECURITY_OBJECT
+            and control.prop_id in SECURITY_PROPERTY_WIDTHS
+        ):
+            # Before the standard widths: PID 56 is the Tool Key here, not the maximum APDU length.
+            self._property_widths[key] = SECURITY_PROPERTY_WIDTHS[control.prop_id]
+            return
+        if control.prop_id in STANDARD_WRITE_WIDTHS:
             return
         if (
             control.obj_idx is None
@@ -1485,6 +1511,13 @@ class LoadProcedureRunner:
         await self._ensure_property_width(index, control)
         data = self._property_write_data(index, control)
         programmer = await self._bus()
+        tool_key = (
+            control.obj_idx is None
+            and control.obj_type == SECURITY_OBJECT
+            and control.prop_id == PID_TOOL_KEY
+        )
+        if tool_key and not await self._announce_tool_key(data):
+            return
         if await self._extended_fits(index, control.prop_id):
             object_type, instance = self._extended_targets[index]
             await programmer.write_property_ext(
@@ -1503,8 +1536,46 @@ class LoadProcedureRunner:
             data,
             count=control.count,
             start_index=control.start_element,
-            verify=control.verify,
+            # The Tool Key is write-only: its response carries no elements (3/5/1 6.3.10).
+            verify=control.verify and not tool_key,
         )
+
+    async def _announce_tool_key(self, key: bytes) -> bool:
+        """Prepare the secured connection for a Tool Key write; ``False`` when the device already
+        uses ``key``, so there is nothing to write."""
+        if getattr(self._manager, "active_key", None) == key:
+            logger.info("download: %s already uses its Tool Key", self._target())
+            return False
+        change = getattr(self._manager, "change_tool_key", None)
+        if change is None:
+            raise DownloadError(
+                "the Tool Key can only be written over a secured connection"
+            )
+        await self._initialize_sequence_number()
+        change(key)
+        logger.info("download: writing the Tool Key of %s", self._target())
+        return True
+
+    async def _initialize_sequence_number(self) -> None:
+        """On the initial secure configuration (the device does not use its Tool Key yet), set a
+        Sequence Number Sending below the current timestamp to it, and warn about one close to
+        its end (3/5/3 1.5.4.1)."""
+        from .data_secure import sequence_number_timestamp
+
+        current = getattr(self._manager, "device_sequence_number", None)
+        if not isinstance(current, int):
+            return
+        if current > SEQUENCE_NUMBER_WARNING:
+            logger.warning(
+                "download: the Sequence Number of %s is close to its end (%#014x)",
+                self._target(),
+                current,
+            )
+        now = sequence_number_timestamp()
+        if current >= now:
+            return
+        logger.info("download: initialising the Sequence Number of %s", self._target())
+        await self._write_prop(sequence_number_control(now))
 
     async def _load_image_prop(self, control: LdCtrlLoadImageProp) -> None:
         """Capture property elements for subsequent image-backed comparisons.

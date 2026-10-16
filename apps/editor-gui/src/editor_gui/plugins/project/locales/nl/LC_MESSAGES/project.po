@@ -1551,3 +1551,129 @@ msgstr "Vergelijken"
 
 msgid "Wrong password, please try again."
 msgstr "Verkeerd wachtwoord, probeer het opnieuw."
+
+msgid "Add Device Certificate"
+msgstr "Apparaatcertificaat toevoegen"
+
+msgid "This device is commissioned securely for the first time. Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Dit apparaat wordt voor het eerst beveiligd in bedrijf gesteld. Voer de FDSK van het etiket of certificaat in (36 tekens):"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "Het apparaatcertificaat (FDSK) ontbreekt."
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "Dit is geen geldige FDSK; controleer deze."
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "Dit certificaat hoort bij het apparaat met serienummer {serial}."
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "Stel eerst een projectwachtwoord in: het beveiligt de apparaatsleutels."
+
+msgid "Security"
+msgstr "Beveiliging"
+
+msgid "Automatic"
+msgstr "Automatisch"
+
+msgid "Secured"
+msgstr "Beveiligd"
+
+msgid "Not secured"
+msgstr "Niet beveiligd"
+
+msgid "Plain"
+msgstr "Onversleuteld"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "Beveiligde inbedrijfstelling deactiveren"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "Deze groepsadressen communiceren dan onversleuteld:"
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "De groepsobjecten van het apparaat worden van deze beveiligde groepsadressen verwijderd:"
+
+msgid "Deactivate"
+msgstr "Deactiveren"
+
+msgid "Secure Commissioning"
+msgstr "Beveiligde Inbedrijfstelling"
+
+msgid "Add Device Certificate…"
+msgstr "Apparaatcertificaat toevoegen…"
+
+msgid "Activated"
+msgstr "Geactiveerd"
+
+msgid "Deactivated"
+msgstr "Gedeactiveerd"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "Een beveiligd groepsadres kan alleen worden gekoppeld aan apparaten die beveiligd in bedrijf worden gesteld."
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "Niet alle apparaten die aan dit groepsadres zijn gekoppeld worden beveiligd in bedrijf gesteld, daarom kan het niet worden beveiligd."
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "Een groepsobject dat beveiligde communicatie vereist, zou op een onversleuteld groepsadres terechtkomen."
+
+msgid "Later"
+msgstr "Later"
+
+msgid "Don't ask when adding devices"
+msgstr "Niet vragen bij het toevoegen van apparaten"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "Wachtwoorden tonen"
+
+msgid "Secure Tunneling"
+msgstr "Beveiligd tunnelen"
+
+msgid "Commissioning Password"
+msgstr "Inbedrijfstellingswachtwoord"
+
+msgid "Authentication Code"
+msgstr "Authenticatiecode"
+
+msgid "Interface"
+msgstr "Interface"
+
+msgid "Routing"
+msgstr "Routing"
+
+msgid "Tunnel {address}"
+msgstr "Tunnel {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "Een wachtwoord heeft 1 tot 20 Latin-1-tekens nodig."
+
+msgid "Close"
+msgstr "Sluiten"
+
+msgid "IP Backbone Security"
+msgstr "IP-backbonebeveiliging"
+
+msgid "Device Certificates"
+msgstr "Apparaatcertificaten"
+
+msgid "Manage…"
+msgstr "Beheren…"
+
+msgid "The project has no device certificates."
+msgstr "Het project heeft geen apparaatcertificaten."
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "De beveiligingstabellen van {device} kunnen deze koppeling niet bevatten."
+
+msgid "Point-to-Point and Broadcast"
+msgstr "Punt-naar-punt en broadcast"
+
+msgid "Blocked"
+msgstr "Geblokkeerd"
+
+msgid "Routed"
+msgstr "Doorgestuurd"

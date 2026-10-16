@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+
+import pytest
 from xknx.telegram import IndividualAddress, Telegram
 from xknx.telegram.apci import (
     APCI,
@@ -260,3 +263,14 @@ class FakeDevice:
     def _telegram(payload: APCI) -> Telegram:
         """Wrap a response payload in an incoming telegram."""
         return Telegram(destination_address=_LOAD_STATE, payload=payload)
+
+
+@pytest.fixture(autouse=True)
+def _no_sync_interval(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
+    """No waiting between S-A_Sync requests in tests (a test that checks it sets its own)."""
+    from xknxeditor.download import secure_session
+
+    monkeypatch.setattr(secure_session, "_SYNC_INTERVAL", 0.0)
+    secure_session._last_sync_response.clear()  # pyright: ignore[reportPrivateUsage]
+    yield
+    secure_session._last_sync_response.clear()  # pyright: ignore[reportPrivateUsage]

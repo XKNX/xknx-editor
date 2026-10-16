@@ -47,6 +47,12 @@ SECRET_ATTRIBUTES = frozenset(
         "LoadedIPRoutingBackboneKey",
         "DeviceAuthenticationCode",
         "DeviceManagementPassword",
+        # The KNX IP Secure hashes are the keys a client authenticates with (3/8/9 2.3.1.3/4).
+        "DeviceAuthenticationCodeHash",
+        "LoadedDeviceAuthenticationCodeHash",
+        "DeviceManagementPasswordHash",
+        "LoadedDeviceManagementPasswordHash",
+        "PasswordHash",
         "Key",
         "Password",
         "FDSK",
@@ -61,7 +67,12 @@ SECURE_ATTRIBUTES = SECRET_ATTRIBUTES - {"BCUKey", "ProjectTracingPassword"}
 # Columns holding a secret value on its own.
 _SECRET_COLUMNS = frozenset({("group_addresses", "security_key")})
 # Keys of a JSON map (or of an undo-history snapshot) whose value is a secret.
-_SECRET_FIELDS = SECRET_ATTRIBUTES | {"security_key"}
+_SECRET_FIELDS = SECRET_ATTRIBUTES | {
+    "security_key",
+    "old_security_key",
+    "tool_key",
+    "old_tool_key",
+}
 
 _PREFIX = "enc1:"
 _TOKEN = re.compile(r"enc1:[A-Za-z0-9+/]+={0,2}")
@@ -72,7 +83,15 @@ _SECURE_ATTRIBUTE = re.compile(
     rf'(?<=\s)({"|".join(sorted(SECURE_ATTRIBUTES))})="[^"]+"'
 )
 # A cheap filter for the rows that can hold a secret or a token at all.
-_CANDIDATES = ("%Key%", "%Password%", "%FDSK%", "%enc1:%", "%security_key%")
+_CANDIDATES = (
+    "%Key%",
+    "%Password%",
+    "%Authentication%",
+    "%FDSK%",
+    "%enc1:%",
+    "%security_key%",
+    "%tool_key%",
+)
 
 _KDF = "pbkdf2-sha256"
 _ITERATIONS = 600_000
@@ -139,6 +158,10 @@ class ProjectCipher:
         return _TOKEN_BYTES.sub(
             lambda m: self.unseal(m.group().decode("ascii")).encode("utf-8"), data
         )
+
+    def seal_attribute(self, text: str) -> str:
+        """``text`` sealed as an XML attribute value (the inverse of :meth:`value`)."""
+        return self.seal(escape(text, _ATTRIBUTE_ENTITIES))
 
     def value(self, stored: str | None) -> str | None:
         """A stored secret value in the clear (the inverse of sealing a single value)."""

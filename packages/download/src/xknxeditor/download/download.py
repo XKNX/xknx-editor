@@ -23,13 +23,21 @@ from .ip_config import (
     IP_PARAMETER_OBJECT,
     PID_MAC_ADDRESS,
     IpDeviceConfig,
+    insert_position,
     with_ip_config_controls,
 )
 from .ip_config import applies as ip_config_applies
+from .ip_secure import IpSecureConfig, ip_secure_controls
 from .merge import mask_authorize_levels, resolve_download_controls
 from .procedure import LoadProcedureRunner
 from .programmer import MAX_COMMUNICATION_APDU_LENGTH
 from .scope import DownloadScope, mask_object_types
+from .secure_config import (
+    commissioning_controls,
+    plain_controls,
+    routing_control_controls,
+    table_controls,
+)
 from .session import apdu_overhead, management_session
 
 logger = logging.getLogger(__name__)
@@ -67,6 +75,13 @@ class DownloadResult:
 
     # MAC address of an IP device whose IP settings were written.
     mac_address: bytes | None = None
+    # Whether the device uses the Tool Key the download was given, at its end (secure
+    # commissioning wrote it, or the device already had it).
+    tool_key_loaded: bool = False
+    # The device's next Sequence Number Sending at the end of a secured download.
+    sequence_number: int | None = None
+    # Whether the download ran over a secured connection.
+    secured: bool = False
 
 
 _IP_CONFIG_SCOPES = frozenset({DownloadScope.FULL, DownloadScope.APPLICATION})
@@ -79,8 +94,18 @@ def _resolve_controls(
     image: DownloadImage,
     scope: DownloadScope,
     ip_config: IpDeviceConfig | None = None,
+    security: DeviceSecurity | None = None,
+    tool_key: bytes | None = None,
+    ip_secure: IpSecureConfig | None = None,
+    disable_security: bool = False,
+    routing_blocking: bool | None = None,
 ) -> list[object]:
-    """Select and materialize the scoped procedure before any device mutation."""
+    """Select and materialize the scoped procedure before any device mutation.
+
+    A secured download of a device with secured group addresses writes its security tables
+    before the final restart; with ``tool_key`` it starts with the Security Mode and the Tool
+    Key, with ``disable_security`` it ends with emptied tables and the Security Mode off (see
+    :mod:`.secure_config`)."""
     controls = _resolve_procedure(application, master, image, scope)
     if (
         ip_config is not None
@@ -88,6 +113,37 @@ def _resolve_controls(
         and ip_config_applies(application)
     ):
         controls = with_ip_config_controls(application, controls, ip_config)
+    if security is None:
+        return controls
+    if disable_security:
+        position = insert_position(application, controls)
+        p2p = bool(application.program.max_security_p2_pkey_table_entries)
+        return [
+            *controls[:position],
+            *plain_controls(p2p=p2p),
+            *controls[position:],
+        ]
+    if routing_blocking is not None:
+        position = insert_position(application, controls)
+        controls = [
+            *controls[:position],
+            *routing_control_controls(block=routing_blocking),
+            *controls[position:],
+        ]
+    if image.security_tables is not None:
+        position = insert_position(application, controls)
+        controls = [
+            *controls[:position],
+            *table_controls(image.security_tables),
+            *controls[position:],
+        ]
+    if ip_secure is not None:
+        extra = ip_secure_controls(ip_secure)
+        if extra:
+            position = insert_position(application, controls)
+            controls = [*controls[:position], *extra, *controls[position:]]
+    if tool_key is not None:
+        controls = [*commissioning_controls(tool_key), *controls]
     return controls
 
 
@@ -298,6 +354,10 @@ async def download(
     progress: Callable[[int, int], None] | None = None,
     confirm_full_download: Callable[[str], Awaitable[bool]] | None = None,
     ip_config: IpDeviceConfig | None = None,
+    tool_key: bytes | None = None,
+    ip_secure: IpSecureConfig | None = None,
+    disable_security: bool = False,
+    routing_blocking: bool | None = None,
 ) -> DownloadResult:
     """Download ``application`` into the device at ``individual_address``.
 
@@ -339,7 +399,28 @@ async def download(
     download when that check passes; when it does not, the full download asks
     ``confirm_full_download`` with the reason first if the application wants that
     (``PromptBeforeFullDownload``).
+
+    ``tool_key`` is the device's Tool Key from the project, for a secured download (``security``):
+    a device that still uses its FDSK (secure commissioning) or the key the session tried first
+    gets it written, after the Security Mode is switched on. ``security`` then carries the key
+    the device is expected to use and, as alternatives, the others (e.g. the FDSK). The result
+    tells whether the device uses ``tool_key`` at the end, and its next Sequence Number.
+
+    ``disable_security`` switches a device whose secure commissioning was deactivated to plain
+    communication, over the secured connection with the key it still holds (``security``).
+
+    ``routing_blocking`` blocks (``True``) or routes (``False``) point-to-point and broadcast
+    messages on both sides of a coupler with the security extensions (KNX AN192); ``None``
+    leaves them.
     """
+    if tool_key is not None and security is None:
+        raise DownloadError("writing the Tool Key needs a secured download")
+    if ip_secure is not None and security is None:
+        raise DownloadError("writing IP Secure settings needs a secured download")
+    if disable_security and (security is None or tool_key is not None):
+        raise DownloadError(
+            "switching a device to plain communication needs its key and no new Tool Key"
+        )
     _reject_address_scope(scope)
     if image is None:
         logger.debug("download: assembling image (scope=%s)", scope.name)
@@ -351,7 +432,18 @@ async def download(
         )
     else:
         logger.debug("download: using pre-built image (scope=%s)", scope.name)
-    controls = _resolve_controls(application, master, image, scope, ip_config)
+    controls = _resolve_controls(
+        application,
+        master,
+        image,
+        scope,
+        ip_config,
+        security,
+        tool_key,
+        ip_secure,
+        disable_security,
+        routing_blocking if security is not None else None,
+    )
     address = IndividualAddress(individual_address)
     if (
         commission
@@ -376,11 +468,33 @@ async def download(
     )
     if checked is not scope:
         scope = checked
-        controls = _resolve_controls(application, master, image, scope, ip_config)
+        controls = _resolve_controls(
+            application,
+            master,
+            image,
+            scope,
+            ip_config,
+            security,
+            tool_key,
+            ip_secure,
+            disable_security,
+            routing_blocking if security is not None else None,
+        )
     adapted = await _device_association_format(xknx, address, security, image, scope)
     if adapted is not image:
         image = adapted
-        controls = _resolve_controls(application, master, image, scope, ip_config)
+        controls = _resolve_controls(
+            application,
+            master,
+            image,
+            scope,
+            ip_config,
+            security,
+            tool_key,
+            ip_secure,
+            disable_security,
+            routing_blocking if security is not None else None,
+        )
     apdu_ceiling, negotiate_apdu = _apdu_settings(max_apdu_length)
     logger.debug(
         "download: %s -> %d load controls, apdu=%s secure=%s",
@@ -436,7 +550,13 @@ async def download(
         await reset_individual_address(xknx)
     mac = runner.captured_property(IP_PARAMETER_OBJECT, PID_MAC_ADDRESS)
     return DownloadResult(
-        mac_address=mac if mac is not None and len(mac) == _MAC_ADDRESS_LENGTH else None
+        mac_address=mac
+        if mac is not None and len(mac) == _MAC_ADDRESS_LENGTH
+        else None,
+        tool_key_loaded=tool_key is not None
+        and getattr(manager, "active_key", None) == tool_key,
+        sequence_number=getattr(manager, "device_sequence_number", None),
+        secured=security is not None,
     )
 
 

@@ -10,8 +10,10 @@ from __future__ import annotations
 
 import base64
 import binascii
-from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+import datetime
+import secrets
+from collections.abc import Callable, Mapping, Sequence
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -21,6 +23,7 @@ from sqlalchemy import func, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
+from xknxeditor.proj.core import ip_secure
 from xknxeditor.proj.core.addressing import (
     GroupAddressStyle,
     format_ga,
@@ -76,13 +79,16 @@ from xknxeditor.proj.core.events import (
     SetComObjectFlag,
     SetComObjectPriority,
     SetComObjectSending,
+    SetDeviceCertificates,
     SetDeviceCommissioning,
     SetDeviceDescription,
     SetDeviceName,
+    SetDeviceSecureCommissioning,
     SetDeviceSpace,
     SetFunctionType,
     SetGroupAddressAddress,
     SetGroupAddressDatapointType,
+    SetGroupAddressSecurity,
     SetParameter,
     SetProjectName,
     SetSpaceType,
@@ -90,11 +96,21 @@ from xknxeditor.proj.core.events import (
     UnlinkComObject,
     UpdateDeviceApplication,
 )
+from xknxeditor.proj.core.fdsk import Fdsk, InvalidFdskError, parse_fdsk
 from xknxeditor.proj.core.function_detect import classify_function
 from xknxeditor.proj.core.ga_export import (
     GaExport,
     GaRange,
     GroupAddressStyleMismatch,
+)
+from xknxeditor.proj.core.ga_security import (
+    AUTO_MODES,
+    commissioned_devices,
+    is_secured,
+    linked_devices,
+    secure_commissioned,
+    secured_group_addresses,
+    security_attributes,
 )
 from xknxeditor.proj.core.product_prune import ProgressCallback
 from xknxeditor.proj.core.project_secrets import (
@@ -152,7 +168,10 @@ class GroupAddressInfo:
     links: list[int]
     description: str
     comment: str
+    # Whether it is secured now (see :mod:`.ga_security`).
     data_secure: bool
+    # The ``@Security`` mode: "Auto"/"On"/"Off" (None = default, treated as Auto).
+    security_mode: str | None = None
 
 
 @dataclass(frozen=True)
@@ -238,10 +257,46 @@ class SpaceInfo:
 @dataclass(frozen=True)
 class DeviceKeys:
     """A device's KNX Data Secure tool keys from the project. ``loaded_tool_key`` is the key the
-    device holds; ``tool_key`` the one it is given on secure commissioning. ``None`` when absent."""
+    device holds; ``tool_key`` the one it is given on secure commissioning; ``fdsk`` its factory
+    key from the device certificates. ``None`` when absent."""
 
     tool_key: bytes | None
     loaded_tool_key: bytes | None
+    fdsk: bytes | None = None
+
+
+@dataclass(frozen=True)
+class IpBusInterface:
+    """A bus interface of an IP device: its application ``@RefId``, its password (``None`` when
+    unknown) and whether it is secured (``@IsSecureEnabled``)."""
+
+    ref_id: str
+    password: str | None = None
+    secure: bool = True
+
+
+@dataclass(frozen=True)
+class IpSecrets:
+    """The KNX IP Secure passwords the project holds for an IP device, decrypted: its device
+    authentication code, its management (user 1) password and its bus interfaces in the
+    device's order, which gives each its user id (see :mod:`.ip_secure`). ``None`` when
+    unknown."""
+
+    device_authentication_code: str | None = None
+    management_password: str | None = None
+    bus_interfaces: list[IpBusInterface] = field(default_factory=list[IpBusInterface])
+
+
+@dataclass(frozen=True)
+class SecureCommissioningImpact:
+    """What deactivating a device's secure commissioning changes: the group addresses that then
+    communicate in the clear (``Auto`` ones it is secured with now) and the links that are
+    removed, as they may not communicate in the clear (see
+    :meth:`ProjectService.secure_commissioning_impact`), with those group addresses."""
+
+    unsecured: list[int]
+    removed_links: list[int]
+    removed_from: list[int]
 
 
 @dataclass(frozen=True)
@@ -305,6 +360,45 @@ def _take_legacy_password(session: Session) -> str | None:
     return str(password) or None
 
 
+def _p2p_links(xml: str) -> list[tuple[str | None, list[tuple[str, list[str]]]]]:
+    """Each ``<P2PLink>`` as ``(key, [(device id, security role ids)])`` from a stored
+    ``<P2PLinks>`` string. Both endpoint kinds (``DeviceEndpoint``, ``BusInterfaceEndpoint``) name
+    their device by ``@DeviceRefId``; a device endpoint lists the roles its device is given on the
+    other end (``@SecurityRoles``)."""
+    if not xml:
+        return []
+    try:
+        root = ET.fromstring(xml)
+    except ET.ParseError:
+        return []
+    links: list[tuple[str | None, list[tuple[str, list[str]]]]] = []
+    for link in root.iter("P2PLink"):
+        endpoints = [
+            (ref, (endpoint.get("SecurityRoles") or "").split())
+            for endpoint in link
+            if (ref := endpoint.get("DeviceRefId"))
+        ]
+        links.append((link.get("Key"), endpoints))
+    return links
+
+
+def _last_valid_sequence_number(device: Device) -> int:
+    """The last valid Sequence Number of a sender for a receiver's Security Individual Address
+    Table: one below the device's ``<Security @SequenceNumber>`` (its next Sequence Number
+    Sending, as last read), else 0 (unknown, 3/5/1 6.3.8.5)."""
+    value = security_attributes(device).get("SequenceNumber")
+    try:
+        return max(int(value) - 1, 0) if value else 0
+    except ValueError:
+        return 0
+
+
+def _sequence_timestamp() -> str:
+    """The current UTC time in the form of ``<Security @SequenceNumberTimestamp>``."""
+    now = datetime.datetime.now(datetime.UTC)
+    return f"{now:%Y-%m-%dT%H:%M:%S}.{now.microsecond:06d}0Z"
+
+
 def _key(value: str | None) -> bytes | None:
     """A base64 key attribute as its 16 key bytes, or ``None`` when absent or malformed."""
     if not value:
@@ -314,6 +408,11 @@ def _key(value: str | None) -> bytes | None:
     except (binascii.Error, ValueError):
         return None
     return key if len(key) == 16 else None
+
+
+class GroupAddressSecurityError(ValueError):
+    """A link or Security mode would put a device that is not commissioned securely on a
+    secured group address."""
 
 
 class ProjectService:
@@ -476,15 +575,27 @@ class ProjectService:
         hardware_name: str = "",
         order_number: str = "",
         manufacturer_name: str = "",
+        secure_commissioning: bool = False,
     ) -> int:
         """Add a device. ``product_ref_id`` names the catalog product; ``hardware2program_ref_id`` is
         the loaded program the application resolves through. Being ref-only, this package never
         reads the catalog, so the caller expands the application and supplies ``parameters``
         (``(ref_id, value)``), ``com_objects`` (``(ref_id, channel_id)``), ``module_instances``
-        (``(instance_id, ref_id)``) and the product's display fields."""
+        (``(instance_id, ref_id)``) and the product's display fields. ``secure_commissioning``
+        activates it for a device that supports KNX Data Secure, in the same undo step (see
+        :meth:`set_secure_commissioning`)."""
         state = self._state(project_id)
         if address is not None:
             self._check_unique_address(state, segment_id, address)
+        tool_key: str | None = None
+        if secure_commissioning:
+            if state.cipher is None:
+                raise ProjectPasswordRequired(
+                    "a Tool Key is stored with the project password"
+                )
+            tool_key = state.cipher.seal(
+                base64.b64encode(secrets.token_bytes(16)).decode("ascii")
+            )
         event = AddDevice(
             segment_id=segment_id,
             address=address,
@@ -499,6 +610,7 @@ class ProjectService:
             hardware_name=hardware_name,
             order_number=order_number,
             manufacturer_name=manufacturer_name,
+            tool_key=tool_key,
         )
         state.store.append(event)
         assert event.device_id is not None
@@ -669,6 +781,7 @@ class ProjectService:
         datapoint type are recorded as one undo step, so typing a group address
         from the object it is linked to stays one action."""
         state = self._state(project_id)
+        self._check_secure_link(state, com_object_id, group_address_id)
         event = LinkComObject(
             com_object_id=com_object_id,
             group_address_id=group_address_id,
@@ -692,6 +805,22 @@ class ProjectService:
             state.store.append(event)
         assert event.link_id is not None
         return event.link_id
+
+    @staticmethod
+    def _check_secure_link(
+        state: _Open, com_object_id: int, group_address_id: int
+    ) -> None:
+        """Refuse linking a device that is not commissioned securely to a group address with
+        Security ``On`` (``GroupAddressSecurityError``)."""
+        ga = state.session.get(GroupAddress, group_address_id)
+        com_object = state.session.get(ComObject, com_object_id)
+        if ga is None or com_object is None or ga.security_mode != "On":
+            return
+        device = state.session.get(Device, com_object.device_id)
+        if device is not None and not secure_commissioned(device):
+            raise GroupAddressSecurityError(
+                "a secured group address can only be linked to devices commissioned securely"
+            )
 
     def set_com_object_sending(self, project_id: str, link_id: int) -> None:
         """Set this link as the com-object's sender, clearing the bit on its siblings."""
@@ -759,6 +888,49 @@ class ProjectService:
                 datapoint_type=normalize_datapoint_type(datapoint_type),
             )
         )
+
+    def set_group_address_security(
+        self, project_id: str, group_address_id: int, mode: str | None
+    ) -> None:
+        """Set a group address's ``@Security`` mode (``"Auto"``/``"On"``/``"Off"``, ``None`` =
+        default; see :mod:`.ga_security`). Securing one for the first time generates a random AES
+        key, stored encrypted, so the project needs a password (:class:`ProjectPasswordRequired`
+        otherwise); the key is kept once made, so toggling the mode does not change it across the
+        installation. ``On`` is refused (``GroupAddressSecurityError``) while a linked device is
+        not commissioned securely."""
+        if mode not in AUTO_MODES and mode not in ("On", "Off"):
+            raise ValueError(f"Unknown group address security mode {mode!r}")
+        state = self._state(project_id)
+        ga = state.session.get(GroupAddress, group_address_id)
+        if ga is None:
+            raise KeyError(f"No group address with id {group_address_id}")
+        devices = linked_devices(state.session).get(ga.id, set())
+        commissioned = commissioned_devices(state.session)
+        if mode == "On" and not devices <= commissioned:
+            raise GroupAddressSecurityError(
+                "a secured group address can only be linked to devices commissioned securely"
+            )
+        secured = is_secured(mode, devices, commissioned)
+        key = ga.security_key
+        if secured and key is None:
+            key = self._new_group_key(state)
+        state.store.append(
+            SetGroupAddressSecurity(
+                group_address_id=group_address_id,
+                security_mode=mode,
+                data_secure=secured,
+                security_key=key,
+            )
+        )
+
+    @staticmethod
+    def _new_group_key(state: _Open) -> str:
+        """A new random group address key, sealed with the project password."""
+        if state.cipher is None:
+            raise ProjectPasswordRequired(
+                "a group address key is stored with the project password"
+            )
+        return state.cipher.seal(base64.b64encode(secrets.token_bytes(16)).decode())
 
     # --- building functions -----------------------------------------------
 
@@ -1108,17 +1280,811 @@ class ProjectService:
         """Whether the project holds KNX Secure data (see :func:`project_secrets.has_secure_data`)."""
         return has_secure_data(self._state(project_id).session)
 
-    def device_keys(self, project_id: str, device_id: int) -> DeviceKeys | None:
-        """The device's tool keys from its ``<Security>``, or ``None`` when it has neither."""
+    def device_certificates(self, project_id: str) -> dict[str, Fdsk]:
+        """The project's device certificates by serial number (base64, as on the devices)."""
+        state = self._state(project_id)
+        project = state.session.query(Project).one()
+        raw = (project.info_subtrees or {}).get("DeviceCertificates")
+        if not raw:
+            return {}
+        result: dict[str, Fdsk] = {}
+        for element in ET.fromstring(raw).iter("DeviceCertificate"):
+            serial, code = element.get("SerialNumber"), element.get("FDSK")
+            if not serial or not code:
+                continue
+            if state.cipher is not None:
+                code = state.cipher.value(code) or ""
+            try:
+                result[serial] = parse_fdsk(code)
+            except InvalidFdskError:
+                continue
+        return result
+
+    def remove_device_certificate(self, project_id: str, serial_number: bytes) -> None:
+        """Remove the device certificate of ``serial_number`` (one undo step)."""
+        state = self._state(project_id)
+        project = state.session.query(Project).one()
+        raw = (project.info_subtrees or {}).get("DeviceCertificates")
+        if not raw:
+            return
+        root = ET.fromstring(raw)
+        serial = base64.b64encode(serial_number).decode("ascii")
+        removed = [e for e in root if e.get("SerialNumber") == serial]
+        if not removed:
+            return
+        for element in removed:
+            root.remove(element)
+        state.store.append(
+            SetDeviceCertificates(
+                project_id=project.id,
+                certificates=ET.tostring(root, encoding="unicode"),
+            )
+        )
+
+    def add_device_certificate(self, project_id: str, code: str) -> Fdsk:
+        """Add (or replace) the certificate of the device with the serial number in the FDSK label
+        ``code``; the FDSK is stored encrypted, so the project needs a password
+        (:class:`ProjectPasswordRequired` otherwise). Raises ``InvalidFdskError`` for a bad code."""
+        state = self._state(project_id)
+        fdsk = parse_fdsk(code)
+        if state.cipher is None:
+            raise ProjectPasswordRequired("an FDSK is stored with the project password")
+        project = state.session.query(Project).one()
+        raw = (project.info_subtrees or {}).get("DeviceCertificates")
+        root = ET.fromstring(raw) if raw else ET.Element("DeviceCertificates")
+        serial = base64.b64encode(fdsk.serial_number).decode("ascii")
+        for element in list(root):
+            if element.get("SerialNumber") == serial:
+                root.remove(element)
+        ET.SubElement(
+            root,
+            "DeviceCertificate",
+            SerialNumber=serial,
+            FDSK=state.cipher.seal(fdsk.label),
+        )
+        state.store.append(
+            SetDeviceCertificates(
+                project_id=project.id,
+                certificates=ET.tostring(root, encoding="unicode"),
+            )
+        )
+        return fdsk
+
+    def installation_attributes(self, project_id: str) -> dict[str, str]:
+        """The installation's attributes kept from the import (e.g. its IP routing settings)."""
+        installation = self._state(project_id).session.query(Installation).first()
+        return dict(installation.extra_attributes or {}) if installation else {}
+
+    def backbone_security(self, project_id: str) -> str | None:
+        """The installation's KNX IP Secure routing setting (``@IPRoutingBackboneSecurity``:
+        ``"On"``/``"Off"``, ``None`` = Auto, secured once it has a backbone key)."""
+        return self.installation_attributes(project_id).get("IPRoutingBackboneSecurity")
+
+    def set_backbone_security(self, project_id: str, mode: str | None) -> None:
+        """Set the installation's KNX IP Secure routing (``"On"``/``"Off"``/``None`` = Auto). On
+        gives it a backbone key when it has none (see :meth:`ensure_backbone_key`). Stored directly:
+        devices may hold the key."""
+        if mode not in (None, "Auto", "On", "Off"):
+            raise ValueError(f"Unknown backbone security {mode!r}")
+        state = self._state(project_id)
+        installation = state.session.query(Installation).first()
+        if installation is None:
+            raise KeyError("The project has no installation")
+        attributes = dict(installation.extra_attributes or {})
+        if mode in (None, "Auto"):
+            attributes.pop("IPRoutingBackboneSecurity", None)
+        else:
+            attributes["IPRoutingBackboneSecurity"] = mode
+        installation.extra_attributes = attributes
+        state.session.commit()
+        if mode == "On":
+            self.ensure_backbone_key(project_id)
+
+    def ensure_backbone_key(self, project_id: str) -> bool:
+        """Give the installation a random KNX IP Secure backbone key when it has none and its
+        routing security is not switched off; stored encrypted (the project needs a password).
+        ``True`` when one was made."""
+        state = self._state(project_id)
+        installation = state.session.query(Installation).first()
+        if installation is None:
+            return False
+        attributes = dict(installation.extra_attributes or {})
+        if attributes.get("IPRoutingBackboneKey"):
+            return False
+        if attributes.get("IPRoutingBackboneSecurity") == "Off":
+            return False
+        if state.cipher is None:
+            raise ProjectPasswordRequired(
+                "a backbone key is stored with the project password"
+            )
+        attributes["IPRoutingBackboneKey"] = state.cipher.seal(
+            base64.b64encode(secrets.token_bytes(16)).decode("ascii")
+        )
+        installation.extra_attributes = attributes
+        state.session.commit()
+        return True
+
+    def ip_backbone_key(self, project_id: str) -> bytes | None:
+        """The installation's KNX IP Secure routing backbone key (16 octets), decrypted, or
+        ``None`` when the project has none."""
+        state = self._state(project_id)
+        installation = state.session.query(Installation).first()
+        attrs = installation.extra_attributes if installation is not None else None
+        value = (attrs or {}).get("IPRoutingBackboneKey")
+        if value and state.cipher is not None:
+            value = state.cipher.value(value)
+        return _key(value)
+
+    def ip_secrets(self, project_id: str, device_id: int) -> IpSecrets:
+        """The device's KNX IP Secure passwords from its ``<Security>`` and ``<BusInterfaces>``."""
         state = self._state(project_id)
         device = state.session.get(Device, device_id)
-        raw = (device.extra_subtrees or {}).get("Security") if device else None
-        if not raw:
+        if device is None:
+            return IpSecrets()
+
+        def clear(value: str | None) -> str | None:
+            if value and state.cipher is not None:
+                value = state.cipher.value(value)
+            return value or None
+
+        attributes = security_attributes(device)
+        bus_interfaces = [
+            IpBusInterface(
+                ref_id=element.get("RefId", ""),
+                password=clear(element.get("Password")),
+                secure=element.get("IsSecureEnabled", "true").lower()
+                not in ("false", "0"),
+            )
+            for element in ip_secure.bus_interfaces(
+                (device.extra_subtrees or {}).get("BusInterfaces")
+            ).iter("BusInterface")
+            if element.get("RefId")
+        ]
+        return IpSecrets(
+            device_authentication_code=clear(
+                attributes.get("DeviceAuthenticationCode")
+            ),
+            management_password=clear(attributes.get("DeviceManagementPassword")),
+            bus_interfaces=bus_interfaces,
+        )
+
+    def secured_group_keys(self, project_id: str) -> dict[int, bytes]:
+        """The key of every secured group address (raw address -> 16 octets); one without a key
+        yet gets one, stored directly (see :meth:`group_security`)."""
+        state = self._state(project_id)
+        secured = secured_group_addresses(state.session)
+        keys: dict[int, bytes] = {}
+        created = False
+        for ga in state.session.query(GroupAddress).filter(
+            GroupAddress.id.in_(secured)
+        ):
+            if ga.security_key is None:
+                ga.security_key = self._new_group_key(state)
+                ga.data_secure = True
+                created = True
+            value = ga.security_key
+            if state.cipher is not None:
+                value = state.cipher.value(value)
+            key = _key(value)
+            if key is not None:
+                keys[ga.address] = key
+        if created:
+            state.session.commit()
+        return keys
+
+    def device_sequence_number(self, project_id: str, device_id: int) -> int | None:
+        """The device's next Sequence Number Sending as last read (``None`` when unknown)."""
+        device = self._state(project_id).session.get(Device, device_id)
+        if device is None:
             return None
+        value = security_attributes(device).get("SequenceNumber")
         try:
-            security = ET.fromstring(raw)
-        except ET.ParseError:
+            return int(value) if value else None
+        except ValueError:
             return None
+
+    def secure_senders(
+        self, project_id: str, can_send: Callable[[int], bool] | None = None
+    ) -> dict[int, int]:
+        """Every device that can send on a secured group address (raw individual address) with
+        its last valid Sequence Number (see :meth:`group_security`)."""
+        session = self._state(project_id).session
+        secured = secured_group_addresses(session)
+        rows = (
+            session.query(Device, ComObject.id)
+            .join(ComObject, ComObject.device_id == Device.id)
+            .join(ComObjectLink, ComObjectLink.com_object_id == ComObject.id)
+            .filter(ComObjectLink.group_address_id.in_(secured))
+            .all()
+        )
+        senders: dict[int, int] = {}
+        for device, com_object_id in rows:
+            if device.address is None:
+                continue
+            if can_send is not None and not can_send(com_object_id):
+                continue
+            line = device.segment.line
+            address = (line.area.address << 12) | (line.address << 8) | device.address
+            senders[address] = _last_valid_sequence_number(device)
+        return senders
+
+    def group_address_senders(
+        self,
+        project_id: str,
+        address: int,
+        can_send: Callable[[int], bool] | None = None,
+    ) -> list[int]:
+        """The individual addresses (raw) of the devices that can send on a group address (see
+        :meth:`group_security`), sorted."""
+        session = self._state(project_id).session
+        rows = (
+            session.query(Device, ComObject.id)
+            .join(ComObject, ComObject.device_id == Device.id)
+            .join(ComObjectLink, ComObjectLink.com_object_id == ComObject.id)
+            .join(GroupAddress, GroupAddress.id == ComObjectLink.group_address_id)
+            .filter(GroupAddress.address == address)
+            .all()
+        )
+        senders: set[int] = set()
+        for device, com_object_id in rows:
+            if device.address is None:
+                continue
+            if can_send is not None and not can_send(com_object_id):
+                continue
+            line = device.segment.line
+            senders.add(
+                (line.area.address << 12) | (line.address << 8) | device.address
+            )
+        return sorted(senders)
+
+    def bus_interface_group_addresses(
+        self, project_id: str, device_id: int
+    ) -> dict[str, list[int]]:
+        """The group addresses (raw) assigned to each of the device's bus interfaces (its
+        ``<Connector>`` elements), by the bus interface's ``@RefId``."""
+        state = self._state(project_id)
+        device = state.session.get(Device, device_id)
+        if device is None:
+            return {}
+        by_source = {
+            ga.source_id.rsplit("_", 1)[-1]: ga.address
+            for ga in state.session.query(GroupAddress)
+            if ga.source_id
+        }
+        result: dict[str, list[int]] = {}
+        root = ip_secure.bus_interfaces(
+            (device.extra_subtrees or {}).get("BusInterfaces")
+        )
+        for element in root.iter("BusInterface"):
+            addresses = [
+                by_source[ref.rsplit("_", 1)[-1]]
+                for connector in element.iter("Connector")
+                if (ref := connector.get("GroupAddressRefId"))
+                and ref.rsplit("_", 1)[-1] in by_source
+            ]
+            if addresses:
+                result[element.get("RefId", "")] = addresses
+        return result
+
+    def device_additional_addresses(self, project_id: str, device_id: int) -> list[int]:
+        """The last octet of each additional individual address the device holds (its tunnelling
+        addresses), in order."""
+        device = self._state(project_id).session.get(Device, device_id)
+        if device is None:
+            return []
+        return [a.address for a in device.additional_addresses if a.address is not None]
+
+    def ensure_ip_secrets(
+        self, project_id: str, device_id: int, bus_interface_refs: Sequence[str]
+    ) -> bool:
+        """Give a secure IP device the KNX IP Secure passwords it has none of yet: a device
+        authentication code, a commissioning password and a password for each of
+        ``bus_interface_refs`` (its application's tunnelling and routing bus interfaces, in the
+        application's order), random, with their hashes. Stored directly, encrypted (so the
+        project needs a password): once made they are kept, as the device may hold them.
+        ``True`` when anything was added."""
+        state = self._state(project_id)
+        if state.cipher is None:
+            raise ProjectPasswordRequired(
+                "KNX IP Secure passwords are stored with the project password"
+            )
+        cipher = state.cipher
+        device = state.session.get(Device, device_id)
+        if device is None:
+            raise KeyError(f"No device with id {device_id}")
+        security = self._security_element(state, device_id)
+        changed = False
+        for name, derive in (
+            ("DeviceAuthenticationCode", ip_secure.authentication_code_hash),
+            ("DeviceManagementPassword", ip_secure.password_hash),
+        ):
+            if not security.get(name):
+                value = ip_secure.new_password()
+                security.set(name, cipher.seal_attribute(value))
+                security.set(
+                    f"{name}Hash", cipher.seal(ip_secure.encoded(derive(value)))
+                )
+                changed = True
+        root = ip_secure.bus_interfaces(
+            (device.extra_subtrees or {}).get("BusInterfaces")
+        )
+        ip_secure.add_bus_interfaces(root, bus_interface_refs)
+        for ref in bus_interface_refs:
+            element = ip_secure.bus_interface(root, ref)
+            if element is not None and not element.get("Password"):
+                value = ip_secure.new_password()
+                element.set("Password", cipher.seal_attribute(value))
+                element.set(
+                    "PasswordHash",
+                    cipher.seal(ip_secure.encoded(ip_secure.password_hash(value))),
+                )
+                changed = True
+        if changed:
+            subtrees = dict(device.extra_subtrees or {})
+            subtrees["BusInterfaces"] = ET.tostring(root, encoding="unicode")
+            device.extra_subtrees = subtrees
+            self._store_security(state, device_id, security)
+        return changed
+
+    def set_ip_secrets(
+        self,
+        project_id: str,
+        device_id: int,
+        *,
+        authentication_code: str | None = None,
+        management_password: str | None = None,
+        bus_interface_passwords: Mapping[str, str] | None = None,
+        secure_tunnelling: bool | None = None,
+    ) -> None:
+        """Change a secure IP device's KNX IP Secure settings (``None`` keeps one): its device
+        authentication code, its commissioning password, the passwords of bus interfaces (by
+        ``@RefId``) and whether its tunnels are secured. Stored directly like the generated ones;
+        a download writes them. ``ValueError`` for a password the device cannot take."""
+        state = self._state(project_id)
+        if state.cipher is None:
+            raise ProjectPasswordRequired(
+                "KNX IP Secure passwords are stored with the project password"
+            )
+        cipher = state.cipher
+        device = state.session.get(Device, device_id)
+        if device is None:
+            raise KeyError(f"No device with id {device_id}")
+        for value in (
+            authentication_code,
+            management_password,
+            *(bus_interface_passwords or {}).values(),
+        ):
+            if value is not None:
+                ip_secure.check_password(value)
+        security = self._security_element(state, device_id)
+        for name, value, derive in (
+            (
+                "DeviceAuthenticationCode",
+                authentication_code,
+                ip_secure.authentication_code_hash,
+            ),
+            ("DeviceManagementPassword", management_password, ip_secure.password_hash),
+        ):
+            if value is not None:
+                security.set(name, cipher.seal_attribute(value))
+                security.set(
+                    f"{name}Hash", cipher.seal(ip_secure.encoded(derive(value)))
+                )
+        root = ip_secure.bus_interfaces(
+            (device.extra_subtrees or {}).get("BusInterfaces")
+        )
+        for ref, value in (bus_interface_passwords or {}).items():
+            ip_secure.add_bus_interfaces(root, [ref])
+            element = ip_secure.bus_interface(root, ref)
+            assert element is not None
+            element.set("Password", cipher.seal_attribute(value))
+            element.set(
+                "PasswordHash",
+                cipher.seal(ip_secure.encoded(ip_secure.password_hash(value))),
+            )
+        if secure_tunnelling is not None:
+            for element in root.iter("BusInterface"):
+                if secure_tunnelling:
+                    element.attrib.pop("IsSecureEnabled", None)
+                else:
+                    element.set("IsSecureEnabled", "false")
+        subtrees = dict(device.extra_subtrees or {})
+        if len(root):
+            subtrees["BusInterfaces"] = ET.tostring(root, encoding="unicode")
+        device.extra_subtrees = subtrees
+        self._store_security(state, device_id, security)
+
+    def set_ip_secure_loaded(
+        self,
+        project_id: str,
+        device_id: int,
+        *,
+        backbone_key: bytes | None = None,
+        authentication_code_hash: bytes | None = None,
+        management_password_hash: bytes | None = None,
+    ) -> None:
+        """Record the KNX IP Secure settings a secure download wrote: the backbone key
+        (``@LoadedIPRoutingBackboneKey``) and the hashes of the device authentication code and the
+        management password, all encrypted (a hash is what a client authenticates with). Stored
+        directly, like the Tool Keys."""
+        state = self._state(project_id)
+        if state.cipher is None:
+            raise ProjectPasswordRequired(
+                "KNX IP Secure keys are stored with the project password"
+            )
+        security = self._security_element(state, device_id)
+        for name, value in (
+            ("LoadedIPRoutingBackboneKey", backbone_key),
+            ("LoadedDeviceAuthenticationCodeHash", authentication_code_hash),
+            ("LoadedDeviceManagementPasswordHash", management_password_hash),
+        ):
+            if value is not None:
+                security.set(
+                    name, state.cipher.seal(base64.b64encode(value).decode("ascii"))
+                )
+        self._store_security(state, device_id, security)
+
+    def secure_commissioning(self, project_id: str, device_id: int) -> bool:
+        """Whether the device is commissioned securely (the project holds a Tool Key for it)."""
+        device = self._state(project_id).session.get(Device, device_id)
+        return device is not None and secure_commissioned(device)
+
+    def secure_commissioning_impact(
+        self,
+        project_id: str,
+        device_id: int,
+        requires_security: Callable[[int], bool] | None = None,
+    ) -> SecureCommissioningImpact:
+        """What :meth:`set_secure_commissioning` with ``False`` would change for the device. A
+        link is removed when it may not communicate in the clear: to a group address with Security
+        ``On``, of a group object that requires security, or to a group address one of whose group
+        objects requires it (``requires_security(com object id)``, from the application)."""
+        session = self._state(project_id).session
+        secured = secured_group_addresses(session)
+        rows = (
+            session.query(ComObjectLink.id, ComObjectLink.com_object_id, GroupAddress)
+            .join(GroupAddress, GroupAddress.id == ComObjectLink.group_address_id)
+            .join(ComObject, ComObject.id == ComObjectLink.com_object_id)
+            .filter(ComObject.device_id == device_id)
+            .order_by(GroupAddress.address, ComObjectLink.id)
+            .all()
+        )
+
+        def must_be_secured(com_object_id: int, ga: GroupAddress) -> bool:
+            if ga.security_mode == "On":
+                return True
+            if requires_security is None or ga.security_mode == "Off":
+                return False
+            return requires_security(com_object_id) or any(
+                requires_security(link.com_object_id) for link in ga.links
+            )
+
+        unsecured: list[int] = []
+        removed: list[int] = []
+        removed_from: list[int] = []
+        for link_id, com_object_id, ga in rows:
+            if must_be_secured(com_object_id, ga):
+                removed.append(link_id)
+                if ga.id not in removed_from:
+                    removed_from.append(ga.id)
+            elif ga.id in secured and ga.id not in unsecured:
+                unsecured.append(ga.id)
+        return SecureCommissioningImpact(
+            unsecured=unsecured, removed_links=removed, removed_from=removed_from
+        )
+
+    def set_secure_commissioning(
+        self,
+        project_id: str,
+        device_id: int,
+        activated: bool,
+        requires_security: Callable[[int], bool] | None = None,
+    ) -> None:
+        """Activate or deactivate the device's secure commissioning, as one undo step.
+
+        Activating gives the device a new random Tool Key, stored encrypted, so the project needs
+        a password (:class:`ProjectPasswordRequired` otherwise). Deactivating removes it; the
+        device's links that may not communicate in the clear are removed with it (see
+        :meth:`secure_commissioning_impact`), and its other ``Auto`` group addresses communicate in
+        the clear. The key the device holds is kept: the next download switches the device to plain
+        communication with it."""
+        state = self._state(project_id)
+        if self.secure_commissioning(project_id, device_id) == activated:
+            return
+        if activated:
+            if state.cipher is None:
+                raise ProjectPasswordRequired(
+                    "a Tool Key is stored with the project password"
+                )
+            key = state.cipher.seal(
+                base64.b64encode(secrets.token_bytes(16)).decode("ascii")
+            )
+            state.store.append(
+                SetDeviceSecureCommissioning(device_id=device_id, tool_key=key)
+            )
+            return
+        impact = self.secure_commissioning_impact(
+            project_id, device_id, requires_security
+        )
+        events: list[Event] = [
+            UnlinkComObject(target_id=link_id) for link_id in impact.removed_links
+        ]
+        events.append(SetDeviceSecureCommissioning(device_id=device_id, tool_key=None))
+        state.store.append(
+            events[0] if len(events) == 1 else CompositeEvent(events=events)
+        )
+
+    def set_tool_key_loaded(self, project_id: str, device_id: int) -> None:
+        """Record that the device uses its Tool Key now (``LoadedToolKey`` = ``ToolKey``)."""
+        state = self._state(project_id)
+        security = self._security_element(state, device_id)
+        tool_key = security.get("ToolKey")
+        if not tool_key or security.get("LoadedToolKey") == tool_key:
+            return
+        security.set("LoadedToolKey", tool_key)
+        self._store_security(state, device_id, security)
+
+    def unicast_broadcast_blocking(self, project_id: str, device_id: int) -> str | None:
+        """A coupler's blocking of point-to-point and broadcast messages
+        (``<Security @UnicastBroadcastBlocking>``: ``"On"``/``"Off"``, ``None`` = Auto)."""
+        device = self._state(project_id).session.get(Device, device_id)
+        if device is None:
+            return None
+        value = security_attributes(device).get("UnicastBroadcastBlocking")
+        return None if value in (None, "Auto") else value
+
+    def set_unicast_broadcast_blocking(
+        self, project_id: str, device_id: int, mode: str | None
+    ) -> None:
+        """Set a coupler's blocking of point-to-point and broadcast messages (``"On"``/``"Off"``,
+        ``None`` = Auto); the next download writes it."""
+        if mode not in (None, "Auto", "On", "Off"):
+            raise ValueError(f"Unknown blocking {mode!r}")
+        state = self._state(project_id)
+        security = self._security_element(state, device_id)
+        if mode in (None, "Auto"):
+            security.attrib.pop("UnicastBroadcastBlocking", None)
+        else:
+            security.set("UnicastBroadcastBlocking", mode)
+        self._store_security(state, device_id, security)
+
+    def set_tool_key_unloaded(self, project_id: str, device_id: int) -> None:
+        """Record that the device holds no Tool Key any more (a factory reset): its
+        ``LoadedToolKey`` goes; its Tool Key stays for the next secure commissioning."""
+        state = self._state(project_id)
+        security = self._security_element(state, device_id)
+        if "LoadedToolKey" not in security.attrib:
+            return
+        del security.attrib["LoadedToolKey"]
+        self._store_security(state, device_id, security)
+
+    @staticmethod
+    def _store_security(state: _Open, device_id: int, security: ET.Element) -> None:
+        """Store the device's ``<Security>`` directly, not as an undo step: what a download left in
+        the device (the Tool Key it uses, its Sequence Number) must survive an undo, or the project
+        would be locked out of the device."""
+        device = state.session.get(Device, device_id)
+        if device is None:
+            raise KeyError(f"No device with id {device_id}")
+        subtrees = {
+            k: v for k, v in (device.extra_subtrees or {}).items() if k != "Security"
+        }
+        subtrees["Security"] = ET.tostring(security, encoding="unicode")
+        device.extra_subtrees = subtrees
+        state.session.commit()
+
+    @staticmethod
+    def _security_element(state: _Open, device_id: int) -> ET.Element:
+        device = state.session.get(Device, device_id)
+        if device is None:
+            raise KeyError(f"No device with id {device_id}")
+        raw = (device.extra_subtrees or {}).get("Security")
+        return ET.fromstring(raw) if raw else ET.Element("Security")
+
+    def group_security(
+        self,
+        project_id: str,
+        device_id: int,
+        can_send: Callable[[int], bool] | None = None,
+        tunnel_senders: Mapping[int, Sequence[int]] | None = None,
+    ) -> tuple[dict[int, bytes], list[tuple[int, int]]]:
+        """The keys of the secured group addresses the device is linked to (raw address -> key)
+        and the devices that may send on them: ``(individual address (raw), last valid sequence
+        number)`` of every other addressed device with a group object on one of them that can send
+        (``can_send(com object id)``: its flags let it transmit, answer read requests or request
+        a read; every linked object without it), and the tunnels the group address is assigned to
+        (``tunnel_senders``: raw group address -> raw tunnelling addresses, sequence number 0). A
+        secured group address without a key yet gets one, stored directly: devices may hold it
+        from now on, so it is not an undo step."""
+        state = self._state(project_id)
+        session = state.session
+        linked = (
+            session.query(GroupAddress)
+            .join(ComObjectLink, ComObjectLink.group_address_id == GroupAddress.id)
+            .join(ComObject, ComObject.id == ComObjectLink.com_object_id)
+            .filter(ComObject.device_id == device_id)
+            .distinct()
+            .all()
+        )
+        secured = secured_group_addresses(session)
+        keys: dict[int, bytes] = {}
+        created = False
+        for ga in linked:
+            if ga.id not in secured:
+                continue
+            if ga.security_key is None:
+                ga.security_key = self._new_group_key(state)
+                ga.data_secure = True
+                created = True
+            value = ga.security_key
+            if state.cipher is not None:
+                value = state.cipher.value(value)
+            key = _key(value)
+            if key is not None:
+                keys[ga.address] = key
+        if created:
+            session.commit()
+        senders: dict[int, int] = {}
+        if keys:
+            rows = (
+                session.query(Device, ComObject.id)
+                .join(ComObject, ComObject.device_id == Device.id)
+                .join(ComObjectLink, ComObjectLink.com_object_id == ComObject.id)
+                .join(GroupAddress, GroupAddress.id == ComObjectLink.group_address_id)
+                .filter(GroupAddress.address.in_(keys), Device.id != device_id)
+                .all()
+            )
+            for other, com_object_id in rows:
+                if other.address is None:
+                    continue
+                if can_send is not None and not can_send(com_object_id):
+                    continue
+                line = other.segment.line
+                address = (
+                    (line.area.address << 12) | (line.address << 8) | other.address
+                )
+                senders[address] = _last_valid_sequence_number(other)
+            for group_address in keys:
+                for tunnel in (tunnel_senders or {}).get(group_address, ()):
+                    senders.setdefault(tunnel, 0)
+        return keys, sorted(senders.items())
+
+    def security_table_sizes(
+        self,
+        project_id: str,
+        device_ids: Sequence[int],
+        can_send: Callable[[int], bool] | None = None,
+        with_link: tuple[int, int] | None = None,
+    ) -> dict[int, tuple[int, int]]:
+        """How many group keys and senders the devices' security tables hold (see
+        :meth:`group_security`), with the link ``(com object id, group address id)`` counted in
+        as well (it is not stored)."""
+        session = self._state(project_id).session
+        nested = session.begin_nested() if with_link is not None else None
+        try:
+            if with_link is not None:
+                session.add(
+                    ComObjectLink(
+                        com_object_id=with_link[0], group_address_id=with_link[1]
+                    )
+                )
+                session.flush()
+            secured = secured_group_addresses(session)
+            sizes: dict[int, tuple[int, int]] = {}
+            for device_id in device_ids:
+                group_addresses = {
+                    ga_id
+                    for (ga_id,) in session.query(ComObjectLink.group_address_id)
+                    .join(ComObject, ComObject.id == ComObjectLink.com_object_id)
+                    .filter(ComObject.device_id == device_id)
+                    if ga_id in secured
+                }
+                senders: set[int] = set()
+                if group_addresses:
+                    rows = (
+                        session.query(Device.id, ComObject.id)
+                        .join(ComObject, ComObject.device_id == Device.id)
+                        .join(
+                            ComObjectLink, ComObjectLink.com_object_id == ComObject.id
+                        )
+                        .filter(
+                            ComObjectLink.group_address_id.in_(group_addresses),
+                            Device.id != device_id,
+                        )
+                    )
+                    senders = {
+                        other
+                        for other, com_object_id in rows
+                        if can_send is None or can_send(com_object_id)
+                    }
+                sizes[device_id] = (len(group_addresses), len(senders))
+            return sizes
+        finally:
+            if nested is not None:
+                nested.rollback()
+
+    def set_device_sequence_number(
+        self, project_id: str, device_id: int, sequence_number: int
+    ) -> None:
+        """Record the device's next Sequence Number Sending, read at the end of a secured
+        download (``<Security @SequenceNumber>`` with its timestamp). Stored directly, like the
+        Tool Keys: it describes the device, not an edit."""
+        state = self._state(project_id)
+        security = self._security_element(state, device_id)
+        security.set("SequenceNumber", str(sequence_number))
+        security.set("SequenceNumberTimestamp", _sequence_timestamp())
+        self._store_security(state, device_id, security)
+
+    def p2p_security(
+        self,
+        project_id: str,
+        device_id: int,
+        role_masks: Mapping[str, int] | None = None,
+    ) -> list[tuple[int, bytes, int]]:
+        """The device's secure point-to-point / broadcast partners as ``(partner individual
+        address (raw), 16-octet key, roles)``, read from the installation's ``<P2PLinks>``.
+        ``roles`` are the roles the partner has on this device (3/5/1 6.3.6.1): the masks
+        (``role_masks``, this device's application ``SecurityRole @Id`` -> ``@Mask``) of the roles
+        the partner's endpoint lists, ORed; roles of other applications are not this device's.
+        Endpoints resolve by the device's source ``@Id``; a link whose partner cannot be resolved
+        is skipped."""
+        state = self._state(project_id)
+        device = state.session.get(Device, device_id)
+        if device is None or not device.source_id:
+            return []
+        owner_of = {
+            other.source_id: other
+            for other in state.session.query(Device)
+            if other.source_id
+        }
+        masks = role_masks or {}
+        result: list[tuple[int, bytes, int]] = []
+        for installation in state.session.query(Installation):
+            for link_key, endpoints in _p2p_links(installation.p2p_links_xml):
+                resolved = [(owner_of.get(ref), roles) for ref, roles in endpoints]
+                if not any(d is device for d, _ in resolved):
+                    continue
+                no_partner: tuple[Device | None, list[str]] = (None, [])
+                partner, partner_roles = next(
+                    (
+                        (d, roles)
+                        for d, roles in resolved
+                        if d is not None and d.id != device_id
+                    ),
+                    no_partner,
+                )
+                if partner is None or partner.address is None:
+                    continue
+                value = link_key
+                if value and state.cipher is not None:
+                    value = state.cipher.value(value)
+                key = _key(value)
+                if key is None:
+                    continue
+                line = partner.segment.line
+                address = (
+                    (line.area.address << 12) | (line.address << 8) | partner.address
+                )
+                roles = 0
+                for role in partner_roles:
+                    roles |= masks.get(role, 0)
+                result.append((address, key, roles & 0xFFFF))
+        return result
+
+    def device_keys(self, project_id: str, device_id: int) -> DeviceKeys | None:
+        """The device's tool keys from its ``<Security>`` and its FDSK from the device certificate
+        of its serial number, or ``None`` when it has none of them."""
+        state = self._state(project_id)
+        device = state.session.get(Device, device_id)
+        if device is None:
+            return None
+        certificate = self.device_certificates(project_id).get(device.serial_number)
+        fdsk = certificate.key if certificate is not None else None
+        raw = (device.extra_subtrees or {}).get("Security")
+        try:
+            security = ET.fromstring(raw) if raw else ET.Element("Security")
+        except ET.ParseError:
+            security = ET.Element("Security")
 
         def key(name: str) -> bytes | None:
             value = security.get(name)
@@ -1126,8 +2092,10 @@ class ProjectService:
                 value = state.cipher.value(value)
             return _key(value)
 
-        keys = DeviceKeys(tool_key=key("ToolKey"), loaded_tool_key=key("LoadedToolKey"))
-        return keys if keys.tool_key or keys.loaded_tool_key else None
+        keys = DeviceKeys(
+            tool_key=key("ToolKey"), loaded_tool_key=key("LoadedToolKey"), fdsk=fdsk
+        )
+        return keys if keys.tool_key or keys.loaded_tool_key or keys.fdsk else None
 
     def rename_line(self, project_id: str, line_id: int, name: str) -> None:
         self._state(project_id).store.append(RenameLine(line_id=line_id, name=name))
@@ -1476,7 +2444,8 @@ class ProjectService:
         state = self._state(project_id)
         style = self._style(state)
         rows = state.session.query(GroupAddress).order_by(GroupAddress.id).all()
-        return [self._ga_info(row, style) for row in rows]
+        secured = secured_group_addresses(state.session)
+        return [self._ga_info(row, style, secured) for row in rows]
 
     def group_ranges(self, project_id: str, installation: int) -> list[GroupRangeInfo]:
         """The installation's group-address range tree (roots → children), resolved for display."""
@@ -1492,7 +2461,8 @@ class ProjectService:
             .order_by(GroupRange.range_start)
             .all()
         )
-        return [self._range_info(r, style) for r in roots]
+        secured = secured_group_addresses(state.session)
+        return [self._range_info(r, style, secured) for r in roots]
 
     def space_tree(self, project_id: str, installation: int) -> list[SpaceInfo]:
         """The installation's building/location tree (roots → children), with devices and functions
@@ -1600,7 +2570,9 @@ class ProjectService:
         ga = state.session.get(GroupAddress, group_address_id)
         if ga is None:
             raise KeyError(f"No group address with id {group_address_id}")
-        return self._ga_info(ga, self._style(state))
+        return self._ga_info(
+            ga, self._style(state), secured_group_addresses(state.session)
+        )
 
     def next_free_group_address(
         self, project_id: str, installation: int, *, start: int = 1
@@ -1702,7 +2674,9 @@ class ProjectService:
             for r in rows
         ]
 
-    def _ga_info(self, ga: GroupAddress, style: GroupAddressStyle) -> GroupAddressInfo:
+    def _ga_info(
+        self, ga: GroupAddress, style: GroupAddressStyle, secured: set[int]
+    ) -> GroupAddressInfo:
         return GroupAddressInfo(
             id=ga.id,
             address=ga.address,
@@ -1712,11 +2686,12 @@ class ProjectService:
             links=[link.com_object_id for link in ga.links],
             description=ga.description,
             comment=ga.comment,
-            data_secure=ga.data_secure,
+            data_secure=ga.id in secured,
+            security_mode=ga.security_mode,
         )
 
     def _range_info(
-        self, group_range: GroupRange, style: GroupAddressStyle
+        self, group_range: GroupRange, style: GroupAddressStyle, secured: set[int]
     ) -> GroupRangeInfo:
         return GroupRangeInfo(
             id=group_range.id,
@@ -1724,11 +2699,11 @@ class ProjectService:
             range_start=group_range.range_start,
             range_end=group_range.range_end,
             children=[
-                self._range_info(child, style)
+                self._range_info(child, style, secured)
                 for child in sorted(group_range.children, key=lambda c: c.range_start)
             ],
             group_addresses=[
-                self._ga_info(ga, style)
+                self._ga_info(ga, style, secured)
                 for ga in sorted(group_range.group_addresses, key=lambda g: g.address)
             ],
         )

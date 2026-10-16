@@ -9,6 +9,7 @@ and any pre-change values ``revert`` needs — through the ``events`` JSON colum
 from __future__ import annotations
 
 import base64
+import xml.etree.ElementTree as ET
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any, ClassVar, cast
@@ -16,6 +17,7 @@ from typing import Any, ClassVar, cast
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
 
+from xknxeditor.proj.core.ga_security import secure_commissioned
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.skeleton import MEDIUM_IP
 from xknxeditor.proj.models import (
@@ -273,6 +275,8 @@ class AddDevice(Event):
     hardware_name: str = ""
     order_number: str = ""
     manufacturer_name: str = ""
+    # The Tool Key (an ``enc1:`` token) of a device added with secure commissioning activated.
+    tool_key: str | None = None
     device_id: int | None = None
     parameter_ids: list[int] = field(default_factory=list[int])
     com_object_ids: list[int] = field(default_factory=list[int])
@@ -291,6 +295,8 @@ class AddDevice(Event):
             order_number=self.order_number,
             manufacturer_name=self.manufacturer_name,
         )
+        if self.tool_key is not None:
+            _set_tool_key(device, self.tool_key)
         if self.device_id is not None:
             device.id = self.device_id
         for i, (instance_id, ref_id) in enumerate(self.module_instances):
@@ -336,6 +342,7 @@ class AddDevice(Event):
             "hardware_name": self.hardware_name,
             "order_number": self.order_number,
             "manufacturer_name": self.manufacturer_name,
+            "tool_key": self.tool_key,
             "device_id": self.device_id,
             "parameter_ids": self.parameter_ids,
             "com_object_ids": self.com_object_ids,
@@ -753,7 +760,13 @@ class ChangeDeviceApplication(Event):
         if self.old_fields:
             _restore_application_loaded(device, self.old_fields["loaded"])
             device.group_object_tree = self.old_fields["group_object_tree"]
-            device.extra_subtrees = self.old_fields["extra_subtrees"]
+            # The device's Tool Keys may have changed since (a download); they stay.
+            restored = dict(self.old_fields["extra_subtrees"] or {})
+            security = (device.extra_subtrees or {}).get("Security")
+            restored.pop("Security", None)
+            if security:
+                restored["Security"] = security
+            device.extra_subtrees = restored or None
         _restore_rows(session, self.removed)
         session.expire(device)
 
@@ -1111,6 +1124,75 @@ class CreateGroupAddress(Event):
         return cls(**data)
 
 
+def _may_be_secured(
+    session: Session, group_address: GroupAddress, device_id: int | None = None
+) -> bool:
+    """Whether the group address is or may become secured by a change of its links (with
+    ``device_id`` joining): never with Security ``Off``; with ``On``, a key or a securely
+    commissioned device on it (``Auto``, see :mod:`.ga_security`) it may."""
+    if group_address.security_mode == "Off":
+        return False
+    if group_address.security_mode == "On" or group_address.security_key:
+        return True
+    devices = _devices_on(session, group_address.id)
+    if device_id is not None:
+        devices.add(device_id)
+    return any(
+        (device := session.get(Device, other)) is not None
+        and secure_commissioned(device)
+        for other in devices
+    )
+
+
+def _devices_on(session: Session, group_address_id: int) -> set[int]:
+    """The devices with a group object linked to the group address."""
+    return {
+        device_id
+        for (device_id,) in session.query(ComObject.device_id)
+        .join(ComObjectLink, ComObjectLink.com_object_id == ComObject.id)
+        .filter(ComObjectLink.group_address_id == group_address_id)
+    }
+
+
+def _link_affects(
+    session: Session, com_object_id: int, group_address_id: int
+) -> set[int]:
+    """The devices whose group communication a change of this link changes: the group object's
+    own device and, for a secured group address, every device linked to it (their Security
+    Individual Address Tables list each other)."""
+    affected: set[int] = set()
+    com_object = session.get(ComObject, com_object_id)
+    if com_object is not None:
+        affected.add(com_object.device_id)
+    group_address = session.get(GroupAddress, group_address_id)
+    if group_address is not None and _may_be_secured(
+        session, group_address, com_object.device_id if com_object else None
+    ):
+        affected |= _devices_on(session, group_address_id)
+    return affected
+
+
+def _clear_communication_loaded(
+    session: Session, device_ids: set[int]
+) -> dict[str, bool]:
+    """Mark the group communication of ``device_ids`` as not loaded; the previous values (only of
+    those that were loaded) for revert."""
+    cleared: dict[str, bool] = {}
+    for device_id in sorted(device_ids):
+        device = session.get(Device, device_id)
+        if device is not None and device.communication_part_loaded:
+            cleared[str(device_id)] = True
+            device.communication_part_loaded = False
+    return cleared
+
+
+def _restore_communication_loaded(session: Session, cleared: dict[str, bool]) -> None:
+    for device_id, loaded in cleared.items():
+        device = session.get(Device, int(device_id))
+        if device is not None:
+            device.communication_part_loaded = loaded
+
+
 @_register
 @dataclass
 class LinkComObject(Event):
@@ -1120,8 +1202,13 @@ class LinkComObject(Event):
     group_address_id: int
     is_sending: bool = False
     link_id: int | None = None
+    # Devices whose group communication was loaded before (see _clear_communication_loaded).
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
 
     def apply(self, session: Session) -> None:
+        self.cleared = _clear_communication_loaded(
+            session, _link_affects(session, self.com_object_id, self.group_address_id)
+        )
         link = ComObjectLink(
             com_object_id=self.com_object_id,
             group_address_id=self.group_address_id,
@@ -1137,6 +1224,7 @@ class LinkComObject(Event):
         link = session.get(ComObjectLink, self.link_id)
         if link is not None:
             session.delete(link)
+        _restore_communication_loaded(session, self.cleared)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -1144,6 +1232,7 @@ class LinkComObject(Event):
             "group_address_id": self.group_address_id,
             "is_sending": self.is_sending,
             "link_id": self.link_id,
+            "cleared": self.cleared,
         }
 
     @classmethod
@@ -1365,6 +1454,149 @@ class SetGroupAddressDatapointType(Event):
 
 @_register
 @dataclass
+class SetGroupAddressSecurity(Event):
+    """Set a group address's KNX Data Secure state: its ``@Security`` mode (``"Auto"``/``"On"``/
+    ``"Off"``, ``None`` = default), whether it is secured (``data_secure``) and its key (an
+    ``enc1:`` token, kept once generated; ``security_key``/``old_security_key`` are encrypted
+    like the column, see :mod:`project_secrets`). Devices linked to it then need a group download, so
+    their group-communication loaded flag is cleared (restored on revert)."""
+
+    event_type: ClassVar[str] = "SetGroupAddressSecurity"
+
+    group_address_id: int
+    security_mode: str | None
+    data_secure: bool
+    security_key: str | None
+    captured: bool = False
+    old_mode: str | None = None
+    old_data_secure: bool = False
+    old_security_key: str | None = None
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+
+    def apply(self, session: Session) -> None:
+        ga = session.get(GroupAddress, self.group_address_id)
+        if ga is None:
+            return
+        self.old_mode = ga.security_mode
+        self.old_data_secure = ga.data_secure
+        self.old_security_key = ga.security_key
+        self.captured = True
+        self.cleared = _clear_communication_loaded(
+            session, _devices_on(session, self.group_address_id)
+        )
+        ga.security_mode = self.security_mode
+        ga.data_secure = self.data_secure
+        ga.security_key = self.security_key
+
+    def revert(self, session: Session) -> None:
+        ga = session.get(GroupAddress, self.group_address_id)
+        if ga is not None and self.captured:
+            ga.security_mode = self.old_mode
+            ga.data_secure = self.old_data_secure
+            ga.security_key = self.old_security_key
+        _restore_communication_loaded(session, self.cleared)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "group_address_id": self.group_address_id,
+            "security_mode": self.security_mode,
+            "data_secure": self.data_secure,
+            "security_key": self.security_key,
+            "captured": self.captured,
+            "old_mode": self.old_mode,
+            "old_data_secure": self.old_data_secure,
+            "old_security_key": self.old_security_key,
+            "cleared": self.cleared,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetGroupAddressSecurity:
+        data = dict(data)
+        if "old_key" in data:  # the field name of earlier builds
+            data["old_security_key"] = data.pop("old_key")
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetDeviceSecureCommissioning(Event):
+    """Activate or deactivate a device's secure commissioning: set its Tool Key (an ``enc1:``
+    token) or, with ``None``, remove it. Only ``<Security @ToolKey>`` changes: the key the device
+    holds (``@LoadedToolKey``) stays, as the device keeps using it until it is switched to plain
+    communication or reset. The device and the devices sharing a group address with it that may be
+    secured need a group download, so their loaded flags are cleared (restored on revert).
+    ``tool_key``/``old_tool_key`` are encrypted like the column (see :mod:`project_secrets`)."""
+
+    event_type: ClassVar[str] = "SetDeviceSecureCommissioning"
+
+    device_id: int
+    tool_key: str | None
+    captured: bool = False
+    old_tool_key: str | None = None
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+
+    def apply(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is None:
+            return
+        affected = {self.device_id}
+        group_addresses = (
+            session.query(GroupAddress)
+            .join(ComObjectLink, ComObjectLink.group_address_id == GroupAddress.id)
+            .join(ComObject, ComObject.id == ComObjectLink.com_object_id)
+            .filter(ComObject.device_id == self.device_id)
+            .distinct()
+        )
+        for ga in group_addresses:
+            if _may_be_secured(session, ga, self.device_id) or self.tool_key:
+                affected |= _devices_on(session, ga.id)
+        self.cleared = _clear_communication_loaded(session, affected)
+        self.old_tool_key = _set_tool_key(device, self.tool_key)
+        self.captured = True
+
+    def revert(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is not None and self.captured:
+            _set_tool_key(device, self.old_tool_key)
+        _restore_communication_loaded(session, self.cleared)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "device_id": self.device_id,
+            "tool_key": self.tool_key,
+            "captured": self.captured,
+            "old_tool_key": self.old_tool_key,
+            "cleared": self.cleared,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetDeviceSecureCommissioning:
+        return cls(**data)
+
+
+def _set_tool_key(device: Device, tool_key: str | None) -> str | None:
+    """Set (or with ``None`` remove) the device's ``<Security @ToolKey>``; the previous value."""
+    subtrees = dict(device.extra_subtrees or {})
+    raw = subtrees.get("Security")
+    try:
+        security = ET.fromstring(raw) if raw else ET.Element("Security")
+    except ET.ParseError:
+        security = ET.Element("Security")
+    previous = security.get("ToolKey")
+    if tool_key is None:
+        security.attrib.pop("ToolKey", None)
+    else:
+        security.set("ToolKey", tool_key)
+    if security.attrib or len(security):
+        subtrees["Security"] = ET.tostring(security, encoding="unicode")
+    else:
+        subtrees.pop("Security", None)
+    device.extra_subtrees = subtrees or None
+    return previous
+
+
+@_register
+@dataclass
 class RenameGroupAddress(Event):
     event_type: ClassVar[str] = "RenameGroupAddress"
 
@@ -1416,6 +1648,8 @@ class SetGroupAddressAddress(Event):
     created: list[bool] = field(default_factory=list[bool])
     old_address: int | None = None
     old_group_range_id: int | None = None
+    # Devices whose group communication was loaded before (the address is in their tables).
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
 
     def apply(self, session: Session) -> None:
         ga = session.get(GroupAddress, self.group_address_id)
@@ -1423,6 +1657,9 @@ class SetGroupAddressAddress(Event):
             return
         self.old_address = ga.address
         self.old_group_range_id = ga.group_range_id
+        self.cleared = _clear_communication_loaded(
+            session, _devices_on(session, self.group_address_id)
+        )
 
         # Ensure the target range chain exists (same walk as CreateGroupAddress), tracking which
         # ranges this event created so revert drops exactly those and redo rebuilds identical ids.
@@ -1488,6 +1725,7 @@ class SetGroupAddressAddress(Event):
             target = session.get(GroupRange, self.range_ids[first_created])
             if target is not None:
                 session.delete(target)
+        _restore_communication_loaded(session, self.cleared)
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -1499,6 +1737,7 @@ class SetGroupAddressAddress(Event):
             "created": self.created,
             "old_address": self.old_address,
             "old_group_range_id": self.old_group_range_id,
+            "cleared": self.cleared,
         }
 
     @classmethod
@@ -1517,11 +1756,16 @@ class SetComObjectSending(Event):
     link_id: int
     captured: bool = False
     previous: dict[str, bool] = field(default_factory=dict[str, bool])
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
 
     def apply(self, session: Session) -> None:
         link = session.get(ComObjectLink, self.link_id)
         if link is None:
             return
+        com_object = session.get(ComObject, link.com_object_id)
+        self.cleared = _clear_communication_loaded(
+            session, {com_object.device_id} if com_object is not None else set()
+        )
         siblings = (
             session.query(ComObjectLink)
             .filter_by(com_object_id=link.com_object_id)
@@ -1539,12 +1783,14 @@ class SetComObjectSending(Event):
             sibling = session.get(ComObjectLink, int(sibling_id))
             if sibling is not None:
                 sibling.is_sending = was_sending
+        _restore_communication_loaded(session, self.cleared)
 
     def to_dict(self) -> dict[str, Any]:
         return {
             "link_id": self.link_id,
             "captured": self.captured,
             "previous": self.previous,
+            "cleared": self.cleared,
         }
 
     @classmethod
@@ -1610,18 +1856,48 @@ class RemoveSegment(_SubtreeDelete):
     _model: ClassVar[type[Base]] = Segment
 
 
+@dataclass
+class _LoadedSubtreeDelete(_SubtreeDelete):
+    """A delete that also changes the group communication of devices (see ``_affected``)."""
+
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+
+    def _affected(self, session: Session) -> set[int]:
+        raise NotImplementedError
+
+    def apply(self, session: Session) -> None:
+        self.cleared = _clear_communication_loaded(session, self._affected(session))
+        super().apply(session)
+
+    def revert(self, session: Session) -> None:
+        super().revert(session)
+        _restore_communication_loaded(session, self.cleared)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {**super().to_dict(), "cleared": self.cleared}
+
+
 @_register
 @dataclass
-class RemoveGroupAddress(_SubtreeDelete):
+class RemoveGroupAddress(_LoadedSubtreeDelete):
     event_type: ClassVar[str] = "RemoveGroupAddress"
     _model: ClassVar[type[Base]] = GroupAddress
 
+    def _affected(self, session: Session) -> set[int]:
+        return _devices_on(session, self.target_id)
+
 
 @_register
 @dataclass
-class UnlinkComObject(_SubtreeDelete):
+class UnlinkComObject(_LoadedSubtreeDelete):
     event_type: ClassVar[str] = "UnlinkComObject"
     _model: ClassVar[type[Base]] = ComObjectLink
+
+    def _affected(self, session: Session) -> set[int]:
+        link = session.get(ComObjectLink, self.target_id)
+        if link is None:
+            return set()
+        return _link_affects(session, link.com_object_id, link.group_address_id)
 
 
 # --- field changes (stash the prior value, put it back on revert) --------------
@@ -1685,6 +1961,49 @@ class SetProjectName(Event):
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> SetProjectName:
         return cls(**data)
+
+
+@_register
+@dataclass
+class SetDeviceCertificates(Event):
+    """Replace the project's ``<DeviceCertificates>`` (the FDSKs, kept encrypted as they are)."""
+
+    event_type: ClassVar[str] = "SetDeviceCertificates"
+
+    project_id: str
+    certificates: str | None
+    old_certificates: str | None = None
+
+    def apply(self, session: Session) -> None:
+        project = session.get(Project, self.project_id)
+        if project is not None:
+            self.old_certificates = (project.info_subtrees or {}).get(
+                "DeviceCertificates"
+            )
+            _set_info_subtree(project, "DeviceCertificates", self.certificates)
+
+    def revert(self, session: Session) -> None:
+        project = session.get(Project, self.project_id)
+        if project is not None:
+            _set_info_subtree(project, "DeviceCertificates", self.old_certificates)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "project_id": self.project_id,
+            "certificates": self.certificates,
+            "old_certificates": self.old_certificates,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetDeviceCertificates:
+        return cls(**data)
+
+
+def _set_info_subtree(project: Project, name: str, xml: str | None) -> None:
+    subtrees = {k: v for k, v in (project.info_subtrees or {}).items() if k != name}
+    if xml:
+        subtrees[name] = xml
+    project.info_subtrees = subtrees or None
 
 
 @_register

@@ -211,5 +211,11 @@ class ConnectionStrings:
     def MENU_STOP_BUSMONITOR(self) -> str:
         return _("Stop Bus Monitor")
 
+    @property
+    def CONNECT_SECURE_NO_CREDENTIALS(self) -> str:
+        return _(
+            "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+        )
+
 
 S = ConnectionStrings()

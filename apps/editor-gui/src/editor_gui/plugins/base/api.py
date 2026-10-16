@@ -27,3 +27,11 @@ class PluginAPI:
     main_thread: "MainThreadExecutor | None" = None
     # Runs a callable on a worker thread behind the app's progress modal, labelled with the text.
     run_background: Callable[[str, Callable[[], None]], None] | None = None
+    # Asks the user for a new project password with the given explanation: once it is set, the
+    # first callable runs (on the UI thread); the second one runs when the user declines.
+    request_project_password: (
+        Callable[[str, Callable[[], None], Callable[[], None]], None] | None
+    ) = None
+    # Asks for the device certificate of a device just added with secure commissioning (by node
+    # id), unless the user turned that off. Set by the project plugin.
+    ask_device_certificate: Callable[[int], None] | None = None

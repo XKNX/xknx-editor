@@ -150,3 +150,20 @@ def test_commissioning_records_the_mac_address(tmp_path: Path) -> None:
     assert svc.devices(pid)[0].ip_config == {"MACAddress": "E8:F6:0A:E0:62:3D"}
     assert svc.undo(pid)
     assert svc.devices(pid)[0].ip_config is None
+
+
+def test_undoing_a_change_keeps_the_tool_keys(tmp_path: Path) -> None:
+    svc, pid, device_id, _ga = _project(tmp_path)
+    svc.set_project_password(pid, "geheim")
+    svc.set_secure_commissioning(pid, device_id, True)
+    _change(svc, pid, device_id)
+    # A download after the change gives the device its Tool Key.
+    keys = svc.device_keys(pid, device_id)
+    assert keys is not None and keys.tool_key is not None
+    tool_key = keys.tool_key
+    svc.set_tool_key_loaded(pid, device_id)
+    assert svc.undo(pid)  # the application change
+    keys = svc.device_keys(pid, device_id)
+    assert keys is not None
+    assert (keys.tool_key, keys.loaded_tool_key) == (tool_key, tool_key)
+    svc.close(pid)
