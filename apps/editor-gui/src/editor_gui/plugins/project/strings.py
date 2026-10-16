@@ -313,7 +313,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_REPLACE_WITH(self) -> str:
-        return _("Replace with (template)")
+        return _("Replace with (Template)")
 
     @property
     def TOOLS_REPLACE_PREVIEW(self) -> str:
@@ -357,11 +357,11 @@ class ProjectStrings:
 
     @property
     def TOOLS_DIFF_PICK(self) -> str:
-        return _("Choose project to compare...")
+        return _("Choose Project to Compare…")
 
     @property
     def TOOLS_DIFF_PICK_TITLE(self) -> str:
-        return _("Choose project to compare")
+        return _("Choose Project to Compare")
 
     @property
     def TOOLS_DIFF_FILTER(self) -> str:
@@ -424,7 +424,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_DIFF_GAS(self) -> str:
-        return _("Group addresses")
+        return _("Group Addresses")
 
     @property
     def TOOLS_DIFF_KIND(self) -> dict[str, str]:
@@ -484,7 +484,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_COPY_PREVIEW(self) -> str:
-        return _("Copy name: {name}")
+        return _("Copy Name: {name}")
 
     @property
     def TOOLS_COPY_RUN(self) -> str:
@@ -821,7 +821,7 @@ class ProjectStrings:
 
     @property
     def SPACES_FN_ROLE(self) -> str:
-        return _("Role (optional)")
+        return _("Role (Optional)")
 
     @property
     def SPACES_FN_TYPE_CUSTOM(self) -> str:
@@ -1502,11 +1502,11 @@ class ProjectStrings:
 
     @property
     def MEMORY_SAVE(self) -> str:
-        return _("Save")
+        return _("Save…")
 
     @property
     def MEMORY_DIFF(self) -> str:
-        return _("Diff")
+        return _("Diff…")
 
     @property
     def MEMORY_CLEAR_DIFF(self) -> str:

@@ -181,11 +181,11 @@ class CatalogStrings:
 
     @property
     def CATALOG_ADD_ONLINE_YES(self) -> str:
-        return _("Add to project")
+        return _("Add to Project")
 
     @property
     def CATALOG_ADD_ONLINE_NO(self) -> str:
-        return _("Not now")
+        return _("Not Now")
 
     @property
     def TAB_LOCAL(self) -> str:

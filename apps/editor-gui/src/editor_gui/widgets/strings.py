@@ -66,7 +66,7 @@ class WidgetStrings(BaseStrings):
 
     @property
     def GROUP_OBJECTS_CTX_EDIT_DESCRIPTION(self) -> str:
-        return _("Edit description…")
+        return _("Edit Description…")
 
     @property
     def GROUP_OBJECTS_EDIT_DESCRIPTION(self) -> str:

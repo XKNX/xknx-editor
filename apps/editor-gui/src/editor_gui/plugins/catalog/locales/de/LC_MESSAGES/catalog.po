@@ -168,13 +168,13 @@ msgstr "Ja"
 msgid "No"
 msgstr "Nein"
 
-msgid "Add to project"
+msgid "Add to Project"
 msgstr "Zum Projekt hinzufügen"
 
 msgid "Add to project?"
 msgstr "Zum Projekt hinzufügen?"
 
-msgid "Not now"
+msgid "Not Now"
 msgstr "Nicht jetzt"
 
 msgid "“{name}” was added to the local catalog. Add it to the project now?"

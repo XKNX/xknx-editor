@@ -124,11 +124,11 @@ class BaseStrings:
 
     @property
     def NEW_PROJECT_NAME_LABEL(self) -> str:
-        return _("Project name")
+        return _("Project Name")
 
     @property
     def NEW_PROJECT_STYLE_LABEL(self) -> str:
-        return _("Group address style")
+        return _("Group Address Style")
 
     @property
     def NEW_PROJECT_STYLE_FREE(self) -> str:
@@ -665,15 +665,15 @@ class MenuStrings:
 
     @property
     def MYKNX_2FA_REENTER(self) -> str:
-        return _("Re-enter credentials")
+        return _("Re-enter Credentials")
 
     @property
     def MYKNX_2FA_START(self) -> str:
-        return _("Start 2FA sign-in")
+        return _("Start 2FA Sign-In")
 
     @property
     def MYKNX_OAUTH_TITLE(self) -> str:
-        return _("MyKnx OAuth credentials (2FA)")
+        return _("MyKnx OAuth Credentials (2FA)")
 
     @property
     def MYKNX_OAUTH_HELP(self) -> str:
@@ -693,7 +693,7 @@ class MenuStrings:
 
     @property
     def MYKNX_OAUTH_CLIENT_SECRET(self) -> str:
-        return _("Client secret")
+        return _("Client Secret")
 
     @property
     def MYKNX_OAUTH_EXTRACT(self) -> str:
@@ -804,7 +804,7 @@ class MenuStrings:
 
     @property
     def MYKNX_DONGLE_EXISTS_TITLE(self) -> str:
-        return _("Project already in the store")
+        return _("Project Already in the Store")
 
     @property
     def MYKNX_DONGLE_EXISTS_PROMPT(self) -> str:
@@ -819,7 +819,7 @@ class MenuStrings:
 
     @property
     def MYKNX_DONGLE_NEW_COPY(self) -> str:
-        return _("Add copy")
+        return _("Add Copy")
 
     @property
     def MYKNX_DONGLE_COPY_SUFFIX(self) -> str:
@@ -1235,11 +1235,11 @@ class MenuStrings:
 
     @property
     def COMPACT_APPLICATIONS(self) -> str:
-        return _("Application programs")
+        return _("Application Programs")
 
     @property
     def COMPACT_PRODUCTS(self) -> str:
-        return _("Device types (products)")
+        return _("Device Types (Products)")
 
     @property
     def COMPACT_HARDWARE(self) -> str:
@@ -1251,11 +1251,11 @@ class MenuStrings:
 
     @property
     def COMPACT_CATALOG_ITEMS(self) -> str:
-        return _("Catalog entries")
+        return _("Catalog Entries")
 
     @property
     def COMPACT_BAGGAGES(self) -> str:
-        return _("Help and plug-in files")
+        return _("Help and Plug-in Files")
 
     @property
     def COMPACT_DETAILS(self) -> str:
@@ -1263,11 +1263,11 @@ class MenuStrings:
 
     @property
     def COMPACT_SIZE_NOW(self) -> str:
-        return _("Current file size")
+        return _("Current File Size")
 
     @property
     def COMPACT_SIZE_ESTIMATE(self) -> str:
-        return _("Estimated size afterwards")
+        return _("Estimated Size Afterwards")
 
     @property
     def COMPACT_WARNING(self) -> str:

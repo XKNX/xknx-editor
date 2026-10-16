@@ -59,7 +59,7 @@ class RecoverStrings:
 
     @property
     def BTN_VERIFY(self) -> str:
-        return _("Verify (read-only)")
+        return _("Verify (Read-Only)")
 
     @property
     def BTN_EXPORT_SNAPSHOT(self) -> str:

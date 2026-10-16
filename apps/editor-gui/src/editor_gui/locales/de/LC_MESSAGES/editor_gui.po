@@ -362,7 +362,7 @@ msgstr "Die ETS-Datei 'installer.guid' auswählen"
 msgid "ETS installer id"
 msgstr "ETS-Installations-ID"
 
-msgid "Project already in the store"
+msgid "Project Already in the Store"
 msgstr "Projekt bereits im Store"
 
 msgid ""
@@ -373,7 +373,7 @@ msgstr ""
 msgid "Overwrite"
 msgstr "Überschreiben"
 
-msgid "Add copy"
+msgid "Add Copy"
 msgstr "Kopie hinzufügen"
 
 msgid "XKNX Export"
@@ -645,10 +645,10 @@ msgstr ""
 "gibt nichts zu entfernen. Die Projektdatei kann trotzdem komprimiert werden,"
 " um ungenutzten Speicherplatz freizugeben."
 
-msgid "Application programs"
+msgid "Application Programs"
 msgstr "Applikationsprogramme"
 
-msgid "Device types (products)"
+msgid "Device Types (Products)"
 msgstr "Gerätetypen (Produkte)"
 
 msgid "Hardware"
@@ -657,19 +657,19 @@ msgstr "Hardware"
 msgid "Manufacturers"
 msgstr "Hersteller"
 
-msgid "Catalog entries"
+msgid "Catalog Entries"
 msgstr "Katalogeinträge"
 
-msgid "Help and plug-in files"
+msgid "Help and Plug-in Files"
 msgstr "Hilfe- und Plug-in-Dateien"
 
 msgid "Details"
 msgstr "Details"
 
-msgid "Current file size"
+msgid "Current File Size"
 msgstr "Aktuelle Dateigröße"
 
-msgid "Estimated size afterwards"
+msgid "Estimated Size Afterwards"
 msgstr "Geschätzte Größe danach"
 
 msgid ""
@@ -713,13 +713,13 @@ msgstr "Schließe die Anmeldung in deinem Browser ab. Code: {code}"
 msgid "Login failed (HTTP 401). Either the password is wrong, or this account uses two-factor authentication - the server does not say which."
 msgstr "Anmeldung fehlgeschlagen (HTTP 401). Entweder ist das Passwort falsch, oder dieser Account nutzt Zwei-Faktor-Authentifizierung - der Server sagt nicht, welches."
 
-msgid "Re-enter credentials"
+msgid "Re-enter Credentials"
 msgstr "Zugangsdaten neu eingeben"
 
-msgid "Start 2FA sign-in"
+msgid "Start 2FA Sign-In"
 msgstr "2FA-Anmeldung starten"
 
-msgid "MyKnx OAuth credentials (2FA)"
+msgid "MyKnx OAuth Credentials (2FA)"
 msgstr "MyKnx-OAuth-Zugangsdaten (2FA)"
 
 msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see 'License with an ETS Dongle'."
@@ -728,7 +728,7 @@ msgstr "Nur für Accounts mit Zwei-Faktor-Authentifizierung nötig. Die 2FA-Anme
 msgid "Client ID"
 msgstr "Client-ID"
 
-msgid "Client secret"
+msgid "Client Secret"
 msgstr "Client-Secret"
 
 msgid "Extract from ETS…"
@@ -785,10 +785,10 @@ msgstr "Lokale Kopie verwenden"
 msgid "Working on a local copy; written back to {home} when you close the project."
 msgstr "Es wird mit einer lokalen Kopie gearbeitet; sie wird beim Schließen des Projekts nach {home} zurückgeschrieben."
 
-msgid "Project name"
+msgid "Project Name"
 msgstr "Projektname"
 
-msgid "Group address style"
+msgid "Group Address Style"
 msgstr "Gruppenadress-Darstellung"
 
 msgid "Free"

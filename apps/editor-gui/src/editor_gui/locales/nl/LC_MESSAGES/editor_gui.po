@@ -221,10 +221,10 @@ msgstr ""
 " niets te verwijderen. Het projectbestand kan toch worden gecomprimeerd om "
 "ongebruikte ruimte vrij te maken."
 
-msgid "Application programs"
+msgid "Application Programs"
 msgstr "Applicatieprogramma's"
 
-msgid "Device types (products)"
+msgid "Device Types (Products)"
 msgstr "Apparaattypen (producten)"
 
 msgid "Hardware"
@@ -233,19 +233,19 @@ msgstr "Hardware"
 msgid "Manufacturers"
 msgstr "Fabrikanten"
 
-msgid "Catalog entries"
+msgid "Catalog Entries"
 msgstr "Catalogusitems"
 
-msgid "Help and plug-in files"
+msgid "Help and Plug-in Files"
 msgstr "Help- en plug-inbestanden"
 
 msgid "Details"
 msgstr "Details"
 
-msgid "Current file size"
+msgid "Current File Size"
 msgstr "Huidige bestandsgrootte"
 
-msgid "Estimated size afterwards"
+msgid "Estimated Size Afterwards"
 msgstr "Geschatte grootte achteraf"
 
 msgid ""
@@ -345,10 +345,10 @@ msgstr "Toevoegen"
 msgid "New Project"
 msgstr "Nieuw project"
 
-msgid "Project name"
+msgid "Project Name"
 msgstr "Projectnaam"
 
-msgid "Group address style"
+msgid "Group Address Style"
 msgstr "Groepsadresstijl"
 
 msgid "Free"
@@ -591,13 +591,13 @@ msgstr "Voltooi het inloggen in je browser. Code: {code}"
 msgid "Login failed (HTTP 401). Either the password is wrong, or this account uses two-factor authentication - the server does not say which."
 msgstr "Inloggen mislukt (HTTP 401). Ofwel is het wachtwoord onjuist, ofwel gebruikt dit account tweestapsverificatie - de server zegt niet welke van de twee."
 
-msgid "Re-enter credentials"
+msgid "Re-enter Credentials"
 msgstr "Inloggegevens opnieuw invoeren"
 
-msgid "Start 2FA sign-in"
+msgid "Start 2FA Sign-In"
 msgstr "2FA-inloggen starten"
 
-msgid "MyKnx OAuth credentials (2FA)"
+msgid "MyKnx OAuth Credentials (2FA)"
 msgstr "MyKnx-OAuth-inloggegevens (2FA)"
 
 msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see 'License with an ETS Dongle'."
@@ -606,7 +606,7 @@ msgstr "Alleen nodig voor accounts met tweestapsverificatie. Het 2FA-inloggen op
 msgid "Client ID"
 msgstr "Client-ID"
 
-msgid "Client secret"
+msgid "Client Secret"
 msgstr "Client-secret"
 
 msgid "Extract from ETS…"
@@ -681,7 +681,7 @@ msgstr "Selecteer het ETS-bestand installer.guid"
 msgid "ETS installer id"
 msgstr "ETS-installatie-id"
 
-msgid "Project already in the store"
+msgid "Project Already in the Store"
 msgstr "Project staat al in de ProjectStore"
 
 msgid "A project folder '{pid}' already exists in this ETS ProjectStore. Overwrite it, or add it as a separate copy?"
@@ -690,7 +690,7 @@ msgstr "Er bestaat al een projectmap '{pid}' in deze ETS-ProjectStore. Overschri
 msgid "Overwrite"
 msgstr "Overschrijven"
 
-msgid "Add copy"
+msgid "Add Copy"
 msgstr "Kopie toevoegen"
 
 msgid "XKNX Export"

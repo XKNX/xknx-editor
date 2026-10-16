@@ -85,7 +85,7 @@ class MonitorStrings:
 
     @property
     def MONITOR_ADDRESS_LABEL(self) -> str:
-        return _("Group address:")
+        return _("Group Address:")
 
     @property
     def MONITOR_ADDRESS_HINT(self) -> str:

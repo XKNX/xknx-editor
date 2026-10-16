@@ -97,7 +97,7 @@ msgstr "Stoppen"
 msgid "To Address"
 msgstr "Tot adres"
 
-msgid "Verify (read-only)"
+msgid "Verify (Read-Only)"
 msgstr "Verifiëren (alleen lezen)"
 
 msgid "Verifying (re-reading and comparing)..."

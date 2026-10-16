@@ -40,7 +40,7 @@ msgstr "Neues Projekt erstellen"
 msgid "Add to Open Project"
 msgstr "Zum geöffneten Projekt hinzufügen"
 
-msgid "Verify (read-only)"
+msgid "Verify (Read-Only)"
 msgstr "Verifizieren (nur lesen)"
 
 msgid "Export Snapshot"

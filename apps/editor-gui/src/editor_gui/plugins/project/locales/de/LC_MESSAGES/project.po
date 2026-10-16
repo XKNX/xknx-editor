@@ -627,7 +627,7 @@ msgstr "Ersetzen durch"
 msgid "Create group addresses for each copy"
 msgstr "Gruppenadressen für jede Kopie anlegen"
 
-msgid "Copy name: {name}"
+msgid "Copy Name: {name}"
 msgstr "Kopiename: {name}"
 
 msgid "Copy"
@@ -767,7 +767,7 @@ msgstr ""
 msgid "Device to Replace"
 msgstr "Zu ersetzendes Gerät"
 
-msgid "Replace with (template)"
+msgid "Replace with (Template)"
 msgstr "Ersetzen durch (Vorlage)"
 
 msgid "Group Object Mapping (by Number)"
@@ -897,7 +897,7 @@ msgstr "Erstellen"
 msgid "Assign Group Address"
 msgstr "Gruppenadresse zuordnen"
 
-msgid "Role (optional)"
+msgid "Role (Optional)"
 msgstr "Rolle (optional)"
 
 msgid "Custom"
@@ -1448,11 +1448,11 @@ msgstr "Adresse ändern…"
 msgid "Channels ({count})"
 msgstr "Kanäle ({count})"
 
-msgid "Choose project to compare"
+msgid "Choose Project to Compare"
 msgstr "Zu vergleichendes Projekt wählen"
 
-msgid "Choose project to compare..."
-msgstr "Zu vergleichendes Projekt wählen..."
+msgid "Choose Project to Compare…"
+msgstr "Zu vergleichendes Projekt wählen…"
 
 msgid "Columns"
 msgstr "Spalten"
@@ -1634,8 +1634,11 @@ msgstr "entfernt"
 msgid "{count} difference(s)"
 msgstr "{count} Unterschied(e)"
 
-msgid "Diff"
-msgstr "Vergleichen"
+msgid "Save…"
+msgstr "Speichern…"
+
+msgid "Diff…"
+msgstr "Vergleichen…"
 
 msgid "Clear Diff"
 msgstr "Vergleich aufheben"

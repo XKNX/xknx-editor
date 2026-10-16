@@ -112,7 +112,7 @@ msgstr "(plug-in vereist)"
 msgid "Add Device"
 msgstr "Apparaat toevoegen"
 
-msgid "Add to project"
+msgid "Add to Project"
 msgstr "Aan project toevoegen"
 
 msgid "Add to project?"
@@ -154,7 +154,7 @@ msgstr "Geen downloadbare producten"
 msgid "No products imported yet — import a .knxprod or use the Online tab."
 msgstr "Nog geen producten geïmporteerd — importeer een .knxprod of gebruik het tabblad Online."
 
-msgid "Not now"
+msgid "Not Now"
 msgstr "Niet nu"
 
 msgid "Online"

@@ -289,7 +289,7 @@ msgstr "Vervangen door"
 msgid "Create group addresses for each copy"
 msgstr "Groepsadressen voor elke kopie aanmaken"
 
-msgid "Copy name: {name}"
+msgid "Copy Name: {name}"
 msgstr "Kopienaam: {name}"
 
 msgid "Copy"
@@ -377,7 +377,7 @@ msgstr "Vervang een apparaat door een ander model (een sjabloonapparaat in het p
 msgid "Device to Replace"
 msgstr "Te vervangen apparaat"
 
-msgid "Replace with (template)"
+msgid "Replace with (Template)"
 msgstr "Vervangen door (sjabloon)"
 
 msgid "Group Object Mapping (by Number)"
@@ -420,7 +420,7 @@ msgstr "Aanmaken"
 msgid "Assign Group Address"
 msgstr "Groepsadres toewijzen"
 
-msgid "Role (optional)"
+msgid "Role (Optional)"
 msgstr "Rol (optioneel)"
 
 msgid "Custom"
@@ -979,11 +979,11 @@ msgstr "Gewijzigd"
 msgid "Channels ({count})"
 msgstr "Kanalen ({count})"
 
-msgid "Choose project to compare"
+msgid "Choose Project to Compare"
 msgstr "Te vergelijken project kiezen"
 
-msgid "Choose project to compare..."
-msgstr "Te vergelijken project kiezen..."
+msgid "Choose Project to Compare…"
+msgstr "Te vergelijken project kiezen…"
 
 msgid "Click to open this device in the editor"
 msgstr "Klik om dit apparaat in de editor te openen"
@@ -1489,8 +1489,11 @@ msgstr "{count} verschil(len)"
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} overeenkomend, {changed} zouden wijzigen"
 
-msgid "Diff"
-msgstr "Vergelijken"
+msgid "Save…"
+msgstr "Opslaan…"
+
+msgid "Diff…"
+msgstr "Vergelijken…"
 
 msgid "Clear Diff"
 msgstr "Vergelijking wissen"
