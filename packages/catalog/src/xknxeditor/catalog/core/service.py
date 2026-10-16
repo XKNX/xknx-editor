@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from sqlalchemy import exists, func, select
 from sqlalchemy.orm import Session
@@ -12,9 +13,11 @@ from xknxeditor.catalog.core.applications import (
     ApplicationSummary,
     get_application_detail,
     get_application_detail_by_id,
+    get_application_source,
     get_application_xml,
     get_replaces_versions,
     list_applications,
+    load_application_program,
 )
 from xknxeditor.catalog.core.catalog_sections import (
     CatalogSectionNode,
@@ -53,6 +56,11 @@ from xknxeditor.catalog.models import (
     Manufacturer,
 )
 from xknxeditor.prod import Application
+
+if TYPE_CHECKING:
+    from xknxeditor.namespaces.intermediate.application_program_t import (
+        ApplicationProgram,
+    )
 
 
 class CatalogService:
@@ -184,6 +192,22 @@ class CatalogService:
         """Whether a known hardware program loads no application (e.g. a power supply's)."""
         with Session(self._engine) as db:
             return is_program_without_application(db, program_id)
+
+    def load_application_program(
+        self, application_id: str, language: str | None = None
+    ) -> ApplicationProgram:
+        """Parse the program of ``application_id`` on its own (any thread); raises
+        :class:`LookupError` when it cannot be loaded."""
+        with Session(self._engine) as db:
+            return load_application_program(
+                db, application_id, language, self._parse_cache_dir
+            )
+
+    def application_source(self, application_id: str) -> str | None:
+        """What ``application_id`` is read from (stored product file and application id), the same
+        for the same content on every machine; ``None`` when no program loads it."""
+        with Session(self._engine) as db:
+            return get_application_source(db, application_id)
 
     def has_application(self, application_id: str) -> bool:
         """Whether a hardware program loads ``application_id`` (so it can be resolved)."""

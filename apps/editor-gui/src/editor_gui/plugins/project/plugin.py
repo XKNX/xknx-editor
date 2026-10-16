@@ -196,6 +196,7 @@ class ProjectPlugin:
 
         self._configure_panel = ConfigurePanel(
             get_devices=lambda: api.project.devices,
+            application_ready=api.project.application_ready,
             get_selected_device=lambda: api.project.selected_device,
             set_selected_device=self._set_selected_device,
             on_param_change=self._handle_param_change,
@@ -1345,7 +1346,7 @@ class ProjectPlugin:
 
     def _help_text(self, device: "Device", context: str) -> str | None:
         """A help page from the ContextHelpFile baggage of the device's source .knxprod."""
-        if device.app is None:
+        if device.app is None or not device.app.loaded:
             return None
         help_file = device.app.program.context_help_file
         if not help_file:
@@ -1355,7 +1356,7 @@ class ProjectPlugin:
 
     def _icon(self, device: "Device", name: str) -> Icon | None:
         """An icon from the IconFile baggage of the device's source .knxprod."""
-        if device.app is None:
+        if device.app is None or not device.app.loaded:
             return None
         icon_file = device.app.program.icon_file
         if not icon_file:

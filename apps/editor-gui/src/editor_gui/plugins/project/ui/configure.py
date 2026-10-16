@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 import structlog
-from imgui_bundle import imgui
+from imgui_bundle import imgui, imspinner
 from xknx.exceptions import CouldNotParseAddress
 from xknx.telegram import IndividualAddress
 
@@ -167,6 +167,19 @@ class ProgramRequest:
     use_serial_number: bool = False
 
 
+def _render_loading_application() -> None:
+    """Shown while the device's application loads in the background."""
+    imgui.spacing()
+    imspinner.spinner_ang(
+        "##application-loading",
+        px(6),
+        px(2),
+        color=imgui.ImColor(imgui.get_style_color_vec4(imgui.Col_.tab_selected)),
+    )
+    imgui.same_line()
+    imgui.text_disabled(S.CONFIGURE_LOADING_APPLICATION)
+
+
 class ConfigurePanel:
     def __init__(
         self,
@@ -230,8 +243,11 @@ class ConfigurePanel:
         use_serial_number_default: Callable[[], bool] | None = None,
         find_serial_owner: Callable[[Device, bytes], str | None] | None = None,
         find_product: "Callable[[str], ProductSummary | None] | None" = None,
+        application_ready: Callable[[Device], bool] | None = None,
     ) -> None:
         self._get_devices = get_devices
+        # Whether a device's application is loaded (it is loaded in the background otherwise).
+        self._application_ready = application_ready
         self._get_selected_device = get_selected_device
         self._set_selected_device = set_selected_device
         self._on_param_change = on_param_change
@@ -420,7 +436,8 @@ class ConfigurePanel:
             self._buffer_device_id = device.node_id
 
         self._render_header_fields(device)
-        self._render_plugin_notices(device)
+        if self._ready(device):
+            self._render_plugin_notices(device)
         self._render_device_actions(device)
         # Application program (change/update), the manual, and the from-device read-out follow
         # directly below the "Read from Device" action.
@@ -431,6 +448,9 @@ class ConfigurePanel:
         self._render_readout_result(device)
         self._render_ip_config(device)
         self._render_ip_secure(device)
+
+    def _ready(self, device: Device) -> bool:
+        return self._application_ready is None or self._application_ready(device)
 
     def _programming_labels(self) -> list[str]:
         labels: list[str] = []
@@ -893,6 +913,9 @@ class ConfigurePanel:
         self._begin_details()
         self._render_title_row(device)
         imgui.separator()
+        if not self._ready(device):
+            _render_loading_application()
+            return
 
         if imgui.begin_tab_bar("##editor_tabs"):
             ui_nodes = device.get_ui()

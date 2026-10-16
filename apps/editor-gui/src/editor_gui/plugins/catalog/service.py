@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from editor_gui.concurrency import io_guarded
+from xknxeditor.prod import Application
 
 _CATALOG_SETTINGS = "catalog"
 
@@ -19,7 +20,9 @@ if TYPE_CHECKING:
         OnlineManufacturer,
     )
     from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
-    from xknxeditor.prod import Application
+    from xknxeditor.namespaces.intermediate.application_program_t import (
+        ApplicationProgram,
+    )
 
 
 class CatalogService:
@@ -245,6 +248,31 @@ class CatalogService:
         from editor_gui.strings import get_locale
 
         return self._service.get_application(application_id, get_locale())
+
+    @io_guarded(lambda: None)
+    def application_source(self, application_id: str) -> str | None:
+        """What ``application_id`` is read from, in the current language; ``None`` when it is not
+        in the catalog."""
+        from editor_gui.strings import get_locale
+
+        source = self._service.application_source(application_id)
+        return None if source is None else f"{source}|{get_locale()}"
+
+    def unloaded_application(
+        self, application_id: str, name: str, version: str, manufacturer_id: str
+    ) -> Application:
+        """``application_id`` known by its name and versions, parsed in the current language when
+        first used (on any thread)."""
+        from editor_gui.strings import get_locale
+
+        language = get_locale()
+
+        def load() -> ApplicationProgram:
+            return self._service.load_application_program(application_id, language)
+
+        return Application.unloaded(
+            application_id, name, version, manufacturer_id, load
+        )
 
     @io_guarded(list)
     def find_products_for_application(

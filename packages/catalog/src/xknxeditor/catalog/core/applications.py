@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING
 
 from sqlalchemy import select
@@ -17,8 +18,6 @@ from xknxeditor.catalog.models import (
 )
 
 if TYPE_CHECKING:
-    from pathlib import Path
-
     from xknxeditor.namespaces.intermediate.application_program_t import (
         ApplicationProgram,
     )
@@ -187,11 +186,50 @@ def get_application_detail_by_id(
     ``language`` (e.g. "de-DE" or "de") localizes labels when the archive carries
     that locale. Returns ``None`` when no program references the id.
     """
-    program_id = db.scalars(
-        select(HardwareProgram.id)
+    program = _application_program(db, application_id)
+    if program is None:
+        return None
+    return get_application_detail(db, program.id, language, cache_dir)
+
+
+def _application_program(db: Session, application_id: str) -> HardwareProgram | None:
+    """The hardware program an application id is resolved through (the same one every time)."""
+    return db.scalars(
+        select(HardwareProgram)
         .where(HardwareProgram.application_id == application_id)
+        .order_by(HardwareProgram.id)
         .limit(1)
     ).first()
-    if program_id is None:
+
+
+def load_application_program(
+    db: Session,
+    application_id: str,
+    language: str | None = None,
+    cache_dir: Path | None = None,
+) -> ApplicationProgram:
+    """Parse the program of ``application_id`` (as :func:`get_application_detail_by_id` resolves
+    it), without keeping it among the applications held in memory; raises :class:`LookupError`
+    when it cannot be loaded."""
+    program = _application_program(db, application_id)
+    if program is None:
+        raise LookupError(f"application {application_id} is not in the catalog")
+    app = _load_application(
+        program.knxprod_path,
+        program.hardware.manufacturer_id,
+        application_id,
+        language,
+        cache_dir,
+    )
+    if app is None:
+        raise LookupError(f"application {application_id} could not be loaded")
+    return app.program
+
+
+def get_application_source(db: Session, application_id: str) -> str | None:
+    """What the application of ``application_id`` is read from: the stored product file (named by
+    its content hash) and the application id. ``None`` when no program references the id."""
+    program = _application_program(db, application_id)
+    if program is None:
         return None
-    return get_application_detail(db, program_id, language, cache_dir)
+    return f"{Path(program.knxprod_path).name}|{application_id}"

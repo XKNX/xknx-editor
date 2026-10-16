@@ -20,8 +20,9 @@ from uuid import uuid4
 from xml.etree import ElementTree as ET
 
 from sqlalchemy import func, text
+from sqlalchemy.dialects.sqlite import insert as sqlite_insert
 from sqlalchemy.engine import Engine
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from xknxeditor.proj.core import ip_secure
 from xknxeditor.proj.core.addressing import (
@@ -128,6 +129,7 @@ from xknxeditor.proj.models import (
     ComObject,
     ComObjectLink,
     Device,
+    DeviceSnapshot,
     Function,
     FunctionGroupAddress,
     GroupAddress,
@@ -2388,8 +2390,63 @@ class ProjectService:
     def topology(self, project_id: str, installation: int) -> Installation:
         return self._installation(self._state(project_id), installation)
 
-    def devices(self, project_id: str) -> list[Device]:
-        return self._state(project_id).session.query(Device).order_by(Device.id).all()
+    def devices(self, project_id: str, *, with_contents: bool = False) -> list[Device]:
+        """The project's devices; ``with_contents`` also loads their parameters, module instances,
+        group objects and line in the same go (for building every device)."""
+        query = self._state(project_id).session.query(Device).order_by(Device.id)
+        if with_contents:
+            query = query.options(
+                selectinload(Device.parameters),
+                selectinload(Device.module_instances),
+                selectinload(Device.com_objects),
+                selectinload(Device.segment)
+                .selectinload(Segment.line)
+                .selectinload(Line.area),
+            )
+        return query.all()
+
+    def device_snapshots(self, project_id: str) -> dict[int, tuple[str, str]]:
+        """The stored device snapshots: ``device id -> (key, data)``."""
+        session = self._state(project_id).session
+        return {
+            device_id: (key, data)
+            for device_id, key, data in session.query(
+                DeviceSnapshot.device_id, DeviceSnapshot.key, DeviceSnapshot.data
+            )
+        }
+
+    def store_device_snapshots(
+        self, project_id: str, snapshots: Mapping[int, tuple[str, str]]
+    ) -> None:
+        """Store ``device id -> (key, data)`` snapshots, replacing a device's previous one. Not an
+        undoable step: a snapshot only caches what the device's application derives."""
+        if not snapshots:
+            return
+        session = self._state(project_id).session
+        existing = {device_id for (device_id,) in session.query(Device.id)}
+        rows = [
+            {"device_id": device_id, "key": key, "data": data}
+            for device_id, (key, data) in snapshots.items()
+            if device_id in existing
+        ]
+        if not rows:
+            return
+        statement = sqlite_insert(DeviceSnapshot)
+        try:
+            session.execute(
+                statement.on_conflict_do_update(
+                    index_elements=[DeviceSnapshot.device_id],
+                    set_={
+                        "key": statement.excluded.key,
+                        "data": statement.excluded.data,
+                    },
+                ),
+                rows,
+            )
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
 
     def device(self, project_id: str, device_id: int) -> DeviceInfo:
         """A display-ready device (assembled individual address plus catalog/program refs)."""
@@ -2452,6 +2509,20 @@ class ProjectService:
         state = self._state(project_id)
         style = self._style(state)
         inst = self._installation(state, installation)
+        # Every range with its children, group addresses and their links in a few queries, instead of
+        # one query per range and group address while the tree is resolved. Held until then: the
+        # session keeps loaded rows only while something references them.
+        loaded = (
+            state.session.query(GroupRange)
+            .filter(GroupRange.installation_id == inst.id)
+            .options(
+                selectinload(GroupRange.children),
+                selectinload(GroupRange.group_addresses).selectinload(
+                    GroupAddress.links
+                ),
+            )
+            .all()
+        )
         roots = (
             state.session.query(GroupRange)
             .filter(
@@ -2462,7 +2533,9 @@ class ProjectService:
             .all()
         )
         secured = secured_group_addresses(state.session)
-        return [self._range_info(r, style, secured) for r in roots]
+        tree = [self._range_info(r, style, secured) for r in roots]
+        del loaded
+        return tree
 
     def space_tree(self, project_id: str, installation: int) -> list[SpaceInfo]:
         """The installation's building/location tree (roots → children), with devices and functions
