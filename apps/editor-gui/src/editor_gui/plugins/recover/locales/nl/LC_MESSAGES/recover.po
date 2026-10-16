@@ -55,8 +55,8 @@ msgstr "Product / applicatie"
 msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
 msgstr "%(address)s lezen  (%(done)d/%(total)d)  -  %(stage)s"
 
-msgid "Reading devices..."
-msgstr "Apparaten lezen..."
+msgid "Reading devices…"
+msgstr "Apparaten lezen…"
 
 msgid "Recover"
 msgstr "Herstellen"
@@ -67,8 +67,8 @@ msgstr "Project van de bus herstellen"
 msgid "Recover Selected"
 msgstr "Geselecteerde herstellen"
 
-msgid "Recover from Bus..."
-msgstr "Van de bus herstellen..."
+msgid "Recover from Bus…"
+msgstr "Van de bus herstellen…"
 
 msgid "Recovered"
 msgstr "Hersteld"
@@ -82,8 +82,8 @@ msgstr "Zoeken"
 msgid "Scanning %(address)s  (%(done)d/%(total)d, %(found)d found)"
 msgstr "%(address)s doorzoeken  (%(done)d/%(total)d, %(found)d gevonden)"
 
-msgid "Scanning the bus..."
-msgstr "Bus wordt doorzocht..."
+msgid "Scanning the bus…"
+msgstr "Bus wordt doorzocht…"
 
 msgid "Set an address range and scan the bus."
 msgstr "Stel een adresbereik in en doorzoek de bus."
@@ -100,8 +100,8 @@ msgstr "Tot adres"
 msgid "Verify (Read-Only)"
 msgstr "Verifiëren (alleen lezen)"
 
-msgid "Verifying (re-reading and comparing)..."
-msgstr "Verifiëren (opnieuw lezen en vergelijken)..."
+msgid "Verifying (re-reading and comparing)…"
+msgstr "Verifiëren (opnieuw lezen en vergelijken)…"
 
 msgid "already in project - skipped"
 msgstr "al in project - overgeslagen"

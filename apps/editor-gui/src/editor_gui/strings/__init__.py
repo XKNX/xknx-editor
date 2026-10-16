@@ -144,7 +144,7 @@ class BaseStrings:
 
     @property
     def NEW_PROJECT_CREATE(self) -> str:
-        return _("Create...")
+        return _("Create…")
 
     @property
     def BTN_COPY(self) -> str:
@@ -172,15 +172,15 @@ class BaseStrings:
 
     @property
     def STATUS_PROGRAMMING(self) -> str:
-        return _("Programming {address}...")
+        return _("Programming {address}…")
 
     @property
     def STATUS_READING(self) -> str:
-        return _("Reading {address}...")
+        return _("Reading {address}…")
 
     @property
     def STATUS_TESTING(self) -> str:
-        return _("Testing {address}...")
+        return _("Testing {address}…")
 
     @property
     def STATUS_PROGRAM_DONE(self) -> str:
@@ -234,7 +234,7 @@ class MenuStrings:
 
     @property
     def MENU_SAVE_AS(self) -> str:
-        return _("Save As...")
+        return _("Save As…")
 
     @property
     def SAVE_AS_OK(self) -> str:
@@ -246,7 +246,7 @@ class MenuStrings:
 
     @property
     def MENU_SETTINGS(self) -> str:
-        return _("Settings...")
+        return _("Settings…")
 
     @property
     def PANEL_MCP(self) -> str:
@@ -322,7 +322,7 @@ class MenuStrings:
     @property
     def KI_INFO(self) -> str:
         return _(
-            "This editor is controllable by an AI assistant (Claude, Codex, ...) through the "
+            "This editor is controllable by an AI assistant (Claude, Codex, …) through the "
             "built-in MCP server: it exposes the catalog and project as tools over Streamable "
             "HTTP. Start the server below, then register its endpoint in your AI tool."
         )
@@ -402,15 +402,15 @@ class MenuStrings:
 
     @property
     def MENU_EXPORT_KNXPROJ(self) -> str:
-        return _("Export .knxproj...")
+        return _("Export .knxproj…")
 
     @property
     def MENU_EXPORT_GA_EXPORT(self) -> str:
-        return _("Export Group Addresses...")
+        return _("Export Group Addresses…")
 
     @property
     def MENU_IMPORT_GA(self) -> str:
-        return _("Import Group Addresses...")
+        return _("Import Group Addresses…")
 
     @property
     def GA_EXPORT_OK(self) -> str:
@@ -864,11 +864,11 @@ class MenuStrings:
 
     @property
     def MENU_LOAD_KNXPROD(self) -> str:
-        return _("Load .knxprod...")
+        return _("Load .knxprod…")
 
     @property
     def MENU_LOAD_FROM_URL(self) -> str:
-        return _("Load OpenKNX from URL...")
+        return _("Load OpenKNX from URL…")
 
     @property
     def URL_PROMPT_TITLE(self) -> str:
@@ -894,7 +894,7 @@ class MenuStrings:
 
     @property
     def URL_DOWNLOADING(self) -> str:
-        return _("Downloading and importing...")
+        return _("Downloading and importing…")
 
     @property
     def URL_IMPORT_OK(self) -> str:

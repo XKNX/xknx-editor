@@ -70,7 +70,7 @@ class ProjectStrings:
     @property
     def ML_HELP(self) -> str:
         return _(
-            "Pairs are matched by list order (1st with 1st, ...). Surplus items on the "
+            "Pairs are matched by list order (1st with 1st, …). Surplus items on the "
             "longer side are ignored. Reorder a list via its right-click menu."
         )
 
@@ -115,11 +115,11 @@ class ProjectStrings:
 
     @property
     def ML_ADD_OBJECTS(self) -> str:
-        return _("Add Objects...")
+        return _("Add Objects…")
 
     @property
     def ML_ADD_GAS(self) -> str:
-        return _("Add Group Addresses...")
+        return _("Add Group Addresses…")
 
     @property
     def ML_ADD_SELECTED(self) -> str:
@@ -167,7 +167,7 @@ class ProjectStrings:
 
     @property
     def ML_FILTER_HINT(self) -> str:
-        return _("Filter...")
+        return _("Filter…")
 
     @property
     def ML_PICK_OBJECTS_TITLE(self) -> str:
@@ -507,7 +507,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_FILTER_HINT(self) -> str:
-        return _("Filter devices...")
+        return _("Filter devices…")
 
     @property
     def TOOLS_SELECT_ALL(self) -> str:
@@ -578,7 +578,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_LABELS_EXPORT(self) -> str:
-        return _("Export CSV...")
+        return _("Export CSV…")
 
     @property
     def TOOLS_LABELS_DONE(self) -> str:
@@ -651,7 +651,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_LABELS_EXPORT_HTML(self) -> str:
-        return _("Export HTML...")
+        return _("Export HTML…")
 
     @property
     def TOOLS_LABELS_NO_FIELDS(self) -> str:
@@ -1245,7 +1245,7 @@ class ProjectStrings:
 
     @property
     def BTN_RESET_DEVICE(self) -> str:
-        return _("Reset...")
+        return _("Reset…")
 
     @property
     def RESET_POPUP_TITLE(self) -> str:
@@ -1396,7 +1396,7 @@ class ProjectStrings:
 
     @property
     def CONFIGURE_OPEN_MANUAL_BUSY(self) -> str:
-        return _("Searching manual...")
+        return _("Searching manual…")
 
     @property
     def CONFIGURE_OPEN_MANUAL_HINT(self) -> str:
@@ -1424,11 +1424,11 @@ class ProjectStrings:
 
     @property
     def UPDATING_APPLICATION(self) -> str:
-        return _("Updating the application program...")
+        return _("Updating the application program…")
 
     @property
     def CHANGING_APPLICATION(self) -> str:
-        return _("Changing the application program...")
+        return _("Changing the application program…")
 
     @property
     def CHANGE_APP_FAILED(self) -> str:
@@ -1448,7 +1448,7 @@ class ProjectStrings:
 
     @property
     def CONFIGURE_PARAM_FILTER_HINT(self) -> str:
-        return _("Filter parameters...")
+        return _("Filter parameters…")
 
     @property
     def CONFIGURE_APPLY_ALL(self) -> str:
@@ -1666,7 +1666,7 @@ class ProjectStrings:
 
     @property
     def PREFLIGHT_EXPORT(self) -> str:
-        return _("Export Ist/Soll...")
+        return _("Export Ist/Soll…")
 
     @property
     def PREFLIGHT_EXPORT_PATH(self) -> str:
@@ -1686,7 +1686,7 @@ class ProjectStrings:
 
     @property
     def DEVICE_FILTER_HINT(self) -> str:
-        return _("Filter devices (name, address)...")
+        return _("Filter devices (name, address)…")
 
     @property
     def DEVICE_EMPTY_HINT(self) -> str:
@@ -1697,11 +1697,11 @@ class ProjectStrings:
 
     @property
     def GA_FILTER_HINT(self) -> str:
-        return _("Filter group addresses (address, name)...")
+        return _("Filter group addresses (address, name)…")
 
     @property
     def SPACES_FILTER_HINT(self) -> str:
-        return _("Filter rooms, devices, functions...")
+        return _("Filter rooms, devices, functions…")
 
     @property
     def DEVICE_AREA(self) -> str:

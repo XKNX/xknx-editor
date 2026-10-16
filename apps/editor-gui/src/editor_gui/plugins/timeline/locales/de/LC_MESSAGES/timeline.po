@@ -10,8 +10,8 @@ msgstr "Zeitverlauf"
 msgid "No project open"
 msgstr "Kein Projekt geöffnet"
 
-msgid "Filter group addresses..."
-msgstr "Gruppenadressen filtern..."
+msgid "Filter group addresses…"
+msgstr "Gruppenadressen filtern…"
 
 msgid "Tick group addresses on the left to plot their values over time."
 msgstr ""

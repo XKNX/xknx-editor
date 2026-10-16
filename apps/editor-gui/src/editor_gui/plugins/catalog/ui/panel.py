@@ -158,7 +158,7 @@ class CatalogPanel:
         self._render_delete_modal()
 
     def _render_local_catalog(self) -> None:
-        self._search = filter_box("##catalog_search", "Search...", self._search)
+        self._search = filter_box("##catalog_search", "Search…", self._search)
         deleting = self._deleting
         if deleting is not None:
             imgui.text_disabled(S.DELETING.format(name=deleting))

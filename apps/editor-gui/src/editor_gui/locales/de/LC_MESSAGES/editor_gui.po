@@ -56,11 +56,11 @@ msgstr "Projekt: {name}  ·  {devices} Geräte  ·  {gas} GAs"
 msgid "No project open"
 msgstr "Kein Projekt geöffnet"
 
-msgid "Programming {address}..."
-msgstr "Programmiere {address}..."
+msgid "Programming {address}…"
+msgstr "Programmiere {address}…"
 
-msgid "Testing {address}..."
-msgstr "Teste {address}..."
+msgid "Testing {address}…"
+msgstr "Teste {address}…"
 
 msgid "Programming complete"
 msgstr "Programmierung abgeschlossen"
@@ -86,8 +86,8 @@ msgstr "Projekt öffnen (.knxproj/.xknx)"
 msgid "Open Recent"
 msgstr "Zuletzt geöffnet"
 
-msgid "Settings..."
-msgstr "Einstellungen..."
+msgid "Settings…"
+msgstr "Einstellungen…"
 
 msgid "MCP"
 msgstr "MCP"
@@ -152,8 +152,8 @@ msgstr ""
 msgid "Recent Projects"
 msgstr "Letzte Projekte"
 
-msgid "Export .knxproj..."
-msgstr ".knxproj exportieren..."
+msgid "Export .knxproj…"
+msgstr ".knxproj exportieren…"
 
 msgid "Sign Export"
 msgstr "Export signieren"
@@ -196,8 +196,8 @@ msgstr "Ohne Zertifikat exportieren"
 msgid "Export ETS Project"
 msgstr "ETS-Projekt exportieren"
 
-msgid "Load .knxprod..."
-msgstr ".knxprod laden..."
+msgid "Load .knxprod…"
+msgstr ".knxprod laden…"
 
 msgid "Exit"
 msgstr "Beenden"
@@ -395,8 +395,8 @@ msgstr "ETS 6 (Schema 23)"
 msgid "AI MCP"
 msgstr "KI MCP"
 
-msgid "This editor is controllable by an AI assistant (Claude, Codex, ...) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
-msgstr "Dieser Editor ist von einer KI (Claude, Codex, ...) über den eingebauten MCP-Server steuerbar: er stellt Katalog und Projekt als Tools über Streamable HTTP bereit. Starte unten den Server und trage seinen Endpunkt in deinem KI-Tool ein."
+msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
+msgstr "Dieser Editor ist von einer KI (Claude, Codex, …) über den eingebauten MCP-Server steuerbar: er stellt Katalog und Projekt als Tools über Streamable HTTP bereit. Starte unten den Server und trage seinen Endpunkt in deinem KI-Tool ein."
 
 msgid "MCP Endpoint"
 msgstr "MCP-Endpunkt"
@@ -417,8 +417,8 @@ msgstr "Host 0.0.0.0 verwenden, damit der Server von anderen Geräten im Netzwer
 msgid "Switching language…"
 msgstr "Sprache wird gewechselt…"
 
-msgid "Load OpenKNX from URL..."
-msgstr "OpenKNX von URL laden..."
+msgid "Load OpenKNX from URL…"
+msgstr "OpenKNX von URL laden…"
 
 msgid "Load OpenKNX from URL"
 msgstr "OpenKNX von URL laden"
@@ -429,8 +429,8 @@ msgstr "Link zu einem OpenKNX-Release (z. B. eine GitHub-Release-.zip) einfügen
 msgid "Load"
 msgstr "Laden"
 
-msgid "Downloading and importing..."
-msgstr "Herunterladen und importieren..."
+msgid "Downloading and importing…"
+msgstr "Herunterladen und importieren…"
 
 msgid "Imported {count} new product version(s) from URL"
 msgstr "{count} neue Produktversion(en) von URL importiert"
@@ -447,8 +447,8 @@ msgstr "OpenKNX-GitHub-Release-URL einfügen (die Release-Seite funktioniert —
 msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\nExamples:\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/tag/3.6.2-Release\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/latest"
 msgstr "OpenKNX-GitHub-Release-URL einfügen (die Release-Seite funktioniert — das .zip-Asset wird automatisch gefunden). Ein direkter .knxprod- oder KNX-Produkt-XML-Link geht auch.\nBeispiele:\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/tag/3.6.2-Release\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/latest"
 
-msgid "Save As..."
-msgstr "Speichern unter..."
+msgid "Save As…"
+msgstr "Speichern unter…"
 
 msgid "Saved as {name}"
 msgstr "Gespeichert als {name}"
@@ -594,8 +594,8 @@ msgstr "Design"
 msgid "Theme Tweaks"
 msgstr "Design anpassen"
 
-msgid "Reading {address}..."
-msgstr "Lese {address}..."
+msgid "Reading {address}…"
+msgstr "Lese {address}…"
 
 msgid "FPS: {fps:.1f}{idling}"
 msgstr "FPS: {fps:.1f}{idling}"
@@ -764,8 +764,8 @@ msgstr "Gruppenadressen-Exporte (*.xml, *.csv)"
 msgid "Projects (*.xknx, *.knxproj, *.xml, *.csv)"
 msgstr "Projekte (*.xknx, *.knxproj, *.xml, *.csv)"
 
-msgid "Import Group Addresses..."
-msgstr "Gruppenadressen importieren..."
+msgid "Import Group Addresses…"
+msgstr "Gruppenadressen importieren…"
 
 msgid "Feedback"
 msgstr "Feedback"
@@ -800,8 +800,8 @@ msgstr "Zweistufig"
 msgid "Three-level"
 msgstr "Dreistufig"
 
-msgid "Create..."
-msgstr "Erstellen..."
+msgid "Create…"
+msgstr "Erstellen…"
 
 msgid "claude mcp add --transport http xknx-editor {url}"
 msgstr "claude mcp add --transport http xknx-editor {url}"
@@ -815,8 +815,8 @@ msgstr "codex mcp add xknx-editor --url {url}"
 msgid "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
 msgstr "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
 
-msgid "Export Group Addresses..."
-msgstr "Gruppenadressen exportieren..."
+msgid "Export Group Addresses…"
+msgstr "Gruppenadressen exportieren…"
 
 msgid "Export Group Addresses"
 msgstr "Gruppenadressen exportieren"

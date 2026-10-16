@@ -25,8 +25,8 @@ msgstr "({count} Kommunikationsobjekte)"
 msgid "Fetch Online Catalog"
 msgstr "Online-Katalog abrufen"
 
-msgid "Loading manufacturer list..."
-msgstr "Herstellerliste wird geladen..."
+msgid "Loading manufacturer list…"
+msgstr "Herstellerliste wird geladen…"
 
 msgid "Online catalog not reachable"
 msgstr "Online-Katalog nicht erreichbar"
@@ -34,20 +34,20 @@ msgstr "Online-Katalog nicht erreichbar"
 msgid "{count} manufacturers"
 msgstr "{count} Hersteller"
 
-msgid "Loading products..."
-msgstr "Produkte werden geladen..."
+msgid "Loading products…"
+msgstr "Produkte werden geladen…"
 
 msgid "No downloadable products"
 msgstr "Keine herunterladbaren Produkte"
 
-msgid "Downloading {name}..."
-msgstr "{name} wird heruntergeladen..."
+msgid "Downloading {name}…"
+msgstr "{name} wird heruntergeladen…"
 
 msgid "(plugin required)"
 msgstr "(Plugin erforderlich)"
 
-msgid "Search manufacturers..."
-msgstr "Hersteller suchen..."
+msgid "Search manufacturers…"
+msgstr "Hersteller suchen…"
 
 msgid "Country"
 msgstr "Land"
@@ -99,8 +99,8 @@ msgstr ""
 msgid "Program Version"
 msgstr "Programmversion"
 
-msgid "Search products, order number..."
-msgstr "Produkte, Bestellnummer suchen..."
+msgid "Search products, order number…"
+msgstr "Produkte, Bestellnummer suchen…"
 
 msgid "Product index: {mfrs} manufacturers, {products} products"
 msgstr "Produktindex: {mfrs} Hersteller, {products} Produkte"
@@ -108,8 +108,8 @@ msgstr "Produktindex: {mfrs} Hersteller, {products} Produkte"
 msgid "No product index yet - fetch the online catalog to build it"
 msgstr "Noch kein Produktindex - Online-Katalog abrufen zum Aufbauen"
 
-msgid "Building product index... {done}/{total} manufacturers"
-msgstr "Baue Produktindex... {done}/{total} Hersteller"
+msgid "Building product index… {done}/{total} manufacturers"
+msgstr "Baue Produktindex… {done}/{total} Hersteller"
 
 msgid "Cancel"
 msgstr "Abbrechen"

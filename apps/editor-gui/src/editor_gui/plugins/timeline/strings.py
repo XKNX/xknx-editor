@@ -19,7 +19,7 @@ class TimelineStrings:
 
     @property
     def TIMELINE_SEARCH(self) -> str:
-        return _("Filter group addresses...")
+        return _("Filter group addresses…")
 
     @property
     def TIMELINE_NO_PINS(self) -> str:

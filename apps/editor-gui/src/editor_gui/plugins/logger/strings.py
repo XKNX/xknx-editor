@@ -13,7 +13,7 @@ class LoggerStrings(BaseStrings):
 
     @property
     def FILTER_PLACEHOLDER(self) -> str:
-        return _("Filter...")
+        return _("Filter…")
 
     @property
     def COL_TIME(self) -> str:

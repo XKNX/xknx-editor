@@ -33,7 +33,7 @@ class CatalogStrings:
 
     @property
     def ONLINE_LOADING(self) -> str:
-        return _("Loading manufacturer list...")
+        return _("Loading manufacturer list…")
 
     @property
     def ONLINE_FAILED(self) -> str:
@@ -49,7 +49,7 @@ class CatalogStrings:
 
     @property
     def ONLINE_LOADING_PRODUCTS(self) -> str:
-        return _("Loading products...")
+        return _("Loading products…")
 
     @property
     def ONLINE_NO_PRODUCTS(self) -> str:
@@ -57,7 +57,7 @@ class CatalogStrings:
 
     @property
     def ONLINE_DOWNLOADING(self) -> str:
-        return _("Downloading {name}...")
+        return _("Downloading {name}…")
 
     @property
     def ONLINE_NOT_DOWNLOADABLE(self) -> str:
@@ -69,7 +69,7 @@ class CatalogStrings:
 
     @property
     def ONLINE_SEARCH_HINT(self) -> str:
-        return _("Search products, order number...")
+        return _("Search products, order number…")
 
     @property
     def ONLINE_COUNTRY_LABEL(self) -> str:
@@ -85,7 +85,7 @@ class CatalogStrings:
 
     @property
     def ONLINE_INDEX_BUILDING(self) -> str:
-        return _("Building product index... {done}/{total} manufacturers")
+        return _("Building product index… {done}/{total} manufacturers")
 
     @property
     def ONLINE_INDEX_CANCEL(self) -> str:

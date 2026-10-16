@@ -10,8 +10,8 @@ msgstr ""
 msgid "Recover"
 msgstr "Wiederherstellen"
 
-msgid "Recover from Bus..."
-msgstr "Vom Bus wiederherstellen..."
+msgid "Recover from Bus…"
+msgstr "Vom Bus wiederherstellen…"
 
 msgid "Recover Project from Bus"
 msgstr "Projekt vom Bus wiederherstellen"
@@ -46,8 +46,8 @@ msgstr "Verifizieren (nur lesen)"
 msgid "Export Snapshot"
 msgstr "Schnappschuss exportieren"
 
-msgid "Verifying (re-reading and comparing)..."
-msgstr "Verifizierung (erneutes Lesen und Vergleichen)..."
+msgid "Verifying (re-reading and comparing)…"
+msgstr "Verifizierung (erneutes Lesen und Vergleichen)…"
 
 msgid "%(count)d group address(es) have no sender or multiple senders."
 msgstr "%(count)d Gruppenadresse(n) haben keinen oder mehrere Sender."
@@ -67,8 +67,8 @@ msgstr "Status"
 msgid "Set an address range and scan the bus."
 msgstr "Adressbereich festlegen und den Bus durchsuchen."
 
-msgid "Scanning the bus..."
-msgstr "Bus wird durchsucht..."
+msgid "Scanning the bus…"
+msgstr "Bus wird durchsucht…"
 
 msgid "Scanning %(address)s  (%(done)d/%(total)d, %(found)d found)"
 msgstr "Suche %(address)s  (%(done)d/%(total)d, %(found)d gefunden)"
@@ -76,8 +76,8 @@ msgstr "Suche %(address)s  (%(done)d/%(total)d, %(found)d gefunden)"
 msgid "Loading missing products from online catalog: %(what)s"
 msgstr "Fehlende Produkte werden aus dem Online-Katalog geladen: %(what)s"
 
-msgid "Reading devices..."
-msgstr "Geräte werden gelesen..."
+msgid "Reading devices…"
+msgstr "Geräte werden gelesen…"
 
 msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
 msgstr "Lese %(address)s  (%(done)d/%(total)d)  -  %(stage)s"

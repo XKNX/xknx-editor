@@ -19,7 +19,7 @@ class RecoverStrings:
 
     @property
     def MENU_OPEN_WINDOW(self) -> str:
-        return _("Recover from Bus...")
+        return _("Recover from Bus…")
 
     @property
     def WINDOW_TITLE(self) -> str:
@@ -67,7 +67,7 @@ class RecoverStrings:
 
     @property
     def STATUS_VERIFYING(self) -> str:
-        return _("Verifying (re-reading and comparing)...")
+        return _("Verifying (re-reading and comparing)…")
 
     @property
     def OVERVIEW_WARNINGS(self) -> str:
@@ -95,7 +95,7 @@ class RecoverStrings:
 
     @property
     def STATUS_SCANNING(self) -> str:
-        return _("Scanning the bus...")
+        return _("Scanning the bus…")
 
     @property
     def STATUS_SCAN_PROGRESS(self) -> str:
@@ -107,7 +107,7 @@ class RecoverStrings:
 
     @property
     def STATUS_RECOVERING(self) -> str:
-        return _("Reading devices...")
+        return _("Reading devices…")
 
     @property
     def STATUS_RECOVER_PROGRESS(self) -> str:
