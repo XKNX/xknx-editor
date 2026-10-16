@@ -1300,6 +1300,27 @@ class ProjectService:
                 continue
         return result
 
+    def remove_device_certificate(self, project_id: str, serial_number: bytes) -> None:
+        """Remove the device certificate of ``serial_number`` (one undo step)."""
+        state = self._state(project_id)
+        project = state.session.query(Project).one()
+        raw = (project.info_subtrees or {}).get("DeviceCertificates")
+        if not raw:
+            return
+        root = ET.fromstring(raw)
+        serial = base64.b64encode(serial_number).decode("ascii")
+        removed = [e for e in root if e.get("SerialNumber") == serial]
+        if not removed:
+            return
+        for element in removed:
+            root.remove(element)
+        state.store.append(
+            SetDeviceCertificates(
+                project_id=project.id,
+                certificates=ET.tostring(root, encoding="unicode"),
+            )
+        )
+
     def add_device_certificate(self, project_id: str, code: str) -> Fdsk:
         """Add (or replace) the certificate of the device with the serial number in the FDSK label
         ``code``; the FDSK is stored encrypted, so the project needs a password
@@ -1333,6 +1354,55 @@ class ProjectService:
         """The installation's attributes kept from the import (e.g. its IP routing settings)."""
         installation = self._state(project_id).session.query(Installation).first()
         return dict(installation.extra_attributes or {}) if installation else {}
+
+    def backbone_security(self, project_id: str) -> str | None:
+        """The installation's KNX IP Secure routing setting (``@IPRoutingBackboneSecurity``:
+        ``"On"``/``"Off"``, ``None`` = Auto, secured once it has a backbone key)."""
+        return self.installation_attributes(project_id).get("IPRoutingBackboneSecurity")
+
+    def set_backbone_security(self, project_id: str, mode: str | None) -> None:
+        """Set the installation's KNX IP Secure routing (``"On"``/``"Off"``/``None`` = Auto). On
+        gives it a backbone key when it has none (see :meth:`ensure_backbone_key`). Stored directly:
+        devices may hold the key."""
+        if mode not in (None, "Auto", "On", "Off"):
+            raise ValueError(f"Unknown backbone security {mode!r}")
+        state = self._state(project_id)
+        installation = state.session.query(Installation).first()
+        if installation is None:
+            raise KeyError("The project has no installation")
+        attributes = dict(installation.extra_attributes or {})
+        if mode in (None, "Auto"):
+            attributes.pop("IPRoutingBackboneSecurity", None)
+        else:
+            attributes["IPRoutingBackboneSecurity"] = mode
+        installation.extra_attributes = attributes
+        state.session.commit()
+        if mode == "On":
+            self.ensure_backbone_key(project_id)
+
+    def ensure_backbone_key(self, project_id: str) -> bool:
+        """Give the installation a random KNX IP Secure backbone key when it has none and its
+        routing security is not switched off; stored encrypted (the project needs a password).
+        ``True`` when one was made."""
+        state = self._state(project_id)
+        installation = state.session.query(Installation).first()
+        if installation is None:
+            return False
+        attributes = dict(installation.extra_attributes or {})
+        if attributes.get("IPRoutingBackboneKey"):
+            return False
+        if attributes.get("IPRoutingBackboneSecurity") == "Off":
+            return False
+        if state.cipher is None:
+            raise ProjectPasswordRequired(
+                "a backbone key is stored with the project password"
+            )
+        attributes["IPRoutingBackboneKey"] = state.cipher.seal(
+            base64.b64encode(secrets.token_bytes(16)).decode("ascii")
+        )
+        installation.extra_attributes = attributes
+        state.session.commit()
+        return True
 
     def ip_backbone_key(self, project_id: str) -> bytes | None:
         """The installation's KNX IP Secure routing backbone key (16 octets), decrypted, or

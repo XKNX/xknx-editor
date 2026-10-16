@@ -1792,3 +1792,18 @@ msgstr "Tunnel {address}"
 
 msgid "A password needs 1 to 20 Latin-1 characters."
 msgstr "Ein Passwort braucht 1 bis 20 Latin-1-Zeichen."
+
+msgid "Close"
+msgstr "Schließen"
+
+msgid "IP Backbone Security"
+msgstr "IP-Backbone-Sicherheit"
+
+msgid "Device Certificates"
+msgstr "Gerätezertifikate"
+
+msgid "Manage…"
+msgstr "Verwalten…"
+
+msgid "The project has no device certificates."
+msgstr "Das Projekt hat keine Gerätezertifikate."

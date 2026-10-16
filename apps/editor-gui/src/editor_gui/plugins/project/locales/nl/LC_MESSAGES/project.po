@@ -1650,3 +1650,18 @@ msgstr "Tunnel {address}"
 
 msgid "A password needs 1 to 20 Latin-1 characters."
 msgstr "Een wachtwoord heeft 1 tot 20 Latin-1-tekens nodig."
+
+msgid "Close"
+msgstr "Sluiten"
+
+msgid "IP Backbone Security"
+msgstr "IP-backbonebeveiliging"
+
+msgid "Device Certificates"
+msgstr "Apparaatcertificaten"
+
+msgid "Manage…"
+msgstr "Beheren…"
+
+msgid "The project has no device certificates."
+msgstr "Het project heeft geen apparaatcertificaten."

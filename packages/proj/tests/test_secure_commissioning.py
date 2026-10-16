@@ -627,3 +627,33 @@ def test_a_factory_reset_forgets_the_loaded_tool_key(tmp_path: Path) -> None:
     # The device uses its FDSK again; the Tool Key it gets next stays.
     assert keys is not None and keys.loaded_tool_key is None and keys.tool_key
     svc.close(pid)
+
+
+def test_backbone_security(tmp_path: Path) -> None:
+    svc, pid, _first, _second, path = _project(tmp_path)
+    assert svc.backbone_security(pid) is None and svc.ip_backbone_key(pid) is None
+    # Off: no key is made for it.
+    svc.set_backbone_security(pid, "Off")
+    assert not svc.ensure_backbone_key(pid)
+    svc.set_backbone_security(pid, "On")
+    key = svc.ip_backbone_key(pid)
+    assert key is not None and len(key) == 16
+    # Kept once made.
+    assert not svc.ensure_backbone_key(pid) and svc.ip_backbone_key(pid) == key
+    svc.set_backbone_security(pid, None)
+    assert svc.backbone_security(pid) is None
+    svc.close(pid)
+    assert base64.b64encode(key) not in path.read_bytes()
+
+
+def test_device_certificates_can_be_removed(tmp_path: Path) -> None:
+    svc, pid, _first, _second, _ = _project(tmp_path)
+    svc.add_device_certificate(pid, _FDSK.label)
+    assert set(svc.device_certificates(pid)) == {
+        base64.b64encode(_SERIAL).decode("ascii")
+    }
+    svc.remove_device_certificate(pid, _SERIAL)
+    assert svc.device_certificates(pid) == {}
+    assert svc.undo(pid)
+    assert len(svc.device_certificates(pid)) == 1
+    svc.close(pid)

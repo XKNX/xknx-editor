@@ -2565,5 +2565,45 @@ class ProjectStrings:
     def IP_SECURE_PASSWORD_INVALID(self) -> str:
         return _("A password needs 1 to 20 Latin-1 characters.")
 
+    @property
+    def BTN_CLOSE(self) -> str:
+        return _("Close")
+
+    @property
+    def PROJECT_INFO_BACKBONE_SECURITY(self) -> str:
+        return _("IP Backbone Security")
+
+    @property
+    def PROJECT_INFO_CERTIFICATES(self) -> str:
+        return _("Device Certificates")
+
+    @property
+    def PROJECT_CERTIFICATES_MANAGE(self) -> str:
+        return _("Manage…")
+
+    @property
+    def PROJECT_CERTIFICATES_TITLE(self) -> str:
+        return _("Device Certificates")
+
+    @property
+    def PROJECT_CERTIFICATES_EMPTY(self) -> str:
+        return _("The project has no device certificates.")
+
+    @property
+    def PROJECT_CERTIFICATES_SERIAL(self) -> str:
+        return _("Serial Number")
+
+    @property
+    def PROJECT_CERTIFICATES_DEVICE(self) -> str:
+        return _("Device")
+
+    @property
+    def PROJECT_CERTIFICATES_REMOVE(self) -> str:
+        return _("Remove")
+
+    @property
+    def PROJECT_CERTIFICATES_ADD(self) -> str:
+        return _("Add Device Certificate…")
+
 
 S = ProjectStrings()

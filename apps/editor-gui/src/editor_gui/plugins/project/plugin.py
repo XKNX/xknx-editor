@@ -310,6 +310,11 @@ class ProjectPlugin:
             on_rename=api.project.set_project_name,
             on_set_password=api.project.set_project_password,
             needs_password=api.project.project_needs_password,
+            get_backbone_security=api.project.backbone_security,
+            on_backbone_security=self._set_backbone_security,
+            get_certificates=api.project.device_certificate_list,
+            on_remove_certificate=api.project.remove_device_certificate,
+            on_add_certificate=self._add_project_certificate,
         )
         self._project_log_panel = ProjectLogPanel(
             get_traces=api.project.get_project_traces,
@@ -1571,6 +1576,21 @@ class ProjectPlugin:
         data["ask_certificate_on_add"] = not dont_ask
         save_settings(_SECURITY_SETTINGS, data)
 
+    def _set_backbone_security(self, mode: str | None) -> str | None:
+        """The installation's KNX IP Secure routing; the message to show when refused."""
+        from xknxeditor.proj import ProjectPasswordRequired
+
+        try:
+            self._api.project.set_backbone_security(mode)
+        except ProjectPasswordRequired:
+            return S.SECURE_DOWNLOAD_PASSWORD_REQUIRED
+        return None
+
+    def _add_project_certificate(self) -> None:
+        """ "Add Device Certificate…" from the project's certificate list (no device chosen)."""
+        self._certificate_device = None
+        self._certificate_dialog.open(S.PROJECT_CERTIFICATES_TITLE)
+
     def _ask_certificate_for(self, device: "Device") -> None:
         """ "Add Device Certificate" from the device settings."""
         self._certificate_device = device
@@ -1650,12 +1670,17 @@ class ProjectPlugin:
         from xknxeditor.proj.core.fdsk import InvalidFdskError, parse_fdsk
 
         device = self._certificate_device
-        if device is None:
-            return None
         try:
             fdsk = parse_fdsk(code)
         except InvalidFdskError:
             return S.DEVICE_CERTIFICATE_INVALID
+        if device is None:
+            # Added from the project's list: the certificate names its device by serial number.
+            try:
+                self._api.project.add_device_certificate(code)
+            except ProjectPasswordRequired:
+                return S.SECURE_DOWNLOAD_PASSWORD_REQUIRED
+            return None
         serial = self._project_serial(device.node_id)
         if serial is not None and serial != fdsk.serial_number:
             return S.DEVICE_CERTIFICATE_OTHER_DEVICE.format(

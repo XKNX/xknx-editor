@@ -2265,12 +2265,55 @@ class ProjectService:
             return
         if not self._ip_secure_application(app, hardware_ref):
             return
-        refs = [
-            ref
-            for ref, access, _index in _app_bus_interfaces(app)
-            if access in PASSWORD_ACCESS_TYPES
-        ]
+        kinds = _app_bus_interfaces(app)
+        refs = [ref for ref, access, _index in kinds if access in PASSWORD_ACCESS_TYPES]
         self._svc.ensure_ip_secrets(self._pid, node_id, refs)
+        # A secure IP router routes with the installation's backbone key.
+        if any(access == "Routing" for _ref, access, _index in kinds):
+            self._svc.ensure_backbone_key(self._pid)
+
+    def backbone_security(self) -> str | None:
+        """The installation's KNX IP Secure routing setting (``"On"``/``"Off"``, ``None`` =
+        Auto); see the core ``backbone_security``."""
+        return self._svc.backbone_security(self._pid) if self._pid is not None else None
+
+    def set_backbone_security(self, mode: str | None) -> None:
+        """Set the installation's KNX IP Secure routing; On needs a project password
+        (``ProjectPasswordRequired``) for its key."""
+        if self._pid is None:
+            return
+        with self._io_lock:
+            self._svc.set_backbone_security(self._pid, mode)
+        self._bump(structural=False)
+
+    def device_certificate_list(self) -> list[tuple[bytes, str]]:
+        """The project's device certificates as ``(serial number, the device with it)``, the
+        device as ``address name`` or empty when no device has its serial number."""
+        if self._pid is None:
+            return []
+        owners = {
+            serial: f"{d.individual_address or '-'} {d.display_name}".strip()
+            for d in self.devices
+            if (serial := self._device_serial(d.node_id)) is not None
+        }
+        return [
+            (fdsk.serial_number, owners.get(fdsk.serial_number, ""))
+            for fdsk in self._svc.device_certificates(self._pid).values()
+        ]
+
+    def _device_serial(self, node_id: int) -> bytes | None:
+        from editor_gui.device_info import serial_from_project
+
+        info = self.get_device_info(node_id)
+        return serial_from_project(info.serial_number) if info is not None else None
+
+    def remove_device_certificate(self, serial_number: bytes) -> None:
+        """Remove a device certificate from the project (one undo step)."""
+        if self._pid is None:
+            return
+        with self._io_lock:
+            self._svc.remove_device_certificate(self._pid, serial_number)
+        self._bump(structural=False)
 
     def record_factory_reset(self, device: Device) -> None:
         """A factory reset (with the individual address) gave the device its FDSK back: it no
