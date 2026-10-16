@@ -142,6 +142,17 @@ def _same_line_if_fits_checkbox(label: str) -> None:
         imgui.same_line(0.0, style.item_spacing.x * 2)
 
 
+def _edit_being_stored() -> bool:
+    """Whether a field that was edited lost the focus and reports it (to store the edit) in this
+    frame or the next."""
+    data = imgui.get_current_context().deactivated_item_data
+    return (
+        data.id_ != 0
+        and data.has_been_edited_before
+        and data.elapse_frame >= imgui.get_frame_count()
+    )
+
+
 def _reset_presets() -> list[tuple[str, int]]:
     """(label, KNX A_Restart_Master_Reset erase code). Codes per the KNX Application Layer spec
     (verified: 2=FactoryReset, 7=FactoryResetWithoutIA, 3=ResetIA, 4=ResetAP, 5=ResetParam,
@@ -275,6 +286,10 @@ class ConfigurePanel:
         self._diff_refs: frozenset[str] = frozenset()
         self._diff_selection: frozenset[tuple[int, int]] = frozenset()
         self._multi_targets: list[int] = []
+        # The device shown last, and whether it is still shown although another one is
+        # selected (see _current_device).
+        self._shown_device: Device | None = None
+        self._holding = False
         self._on_individual_address_change = on_individual_address_change
         self._on_name_change = on_name_change
         self._on_description_change = on_description_change
@@ -370,7 +385,11 @@ class ConfigurePanel:
         self._label_w = 0.0  # start of the value column next to field labels
 
     def _current_device(self) -> Device | None:
-        """The selected device, defaulting to the first one."""
+        """The selected device, defaulting to the first one.
+
+        A field stores its edit when it loses the focus, which is reported to the field a frame
+        later. When that happens by selecting another device, the device shown so far stays
+        shown until then, so the edit is stored for it and not dropped or given to the other."""
         devices = self._get_devices()
         if not devices:
             return None
@@ -378,6 +397,20 @@ class ConfigurePanel:
         if device is None:
             device = devices[0]
             self._set_selected_device(device)
+        shown = self._shown_device
+        self._holding = False
+        if (
+            shown is not None
+            and shown.node_id != device.node_id
+            and _edit_being_stored()
+        ):
+            # The current object of that device: storing the edit may have rebuilt it.
+            current = next((d for d in devices if d.node_id == shown.node_id), None)
+            if current is not None:
+                self._holding = True
+                self._shown_device = current
+                return current
+        self._shown_device = device
         return device
 
     def _begin_details(self) -> None:
@@ -435,6 +468,7 @@ class ConfigurePanel:
             self._name_buffer = device.name
             self._address_buffer = device.individual_address
             self._description_buffer = device.description
+            self._serial_buffer = serial_text(self._project_serial(device)) or ""
             self._buffer_device_id = device.node_id
 
         self._render_header_fields(device)
@@ -687,7 +721,10 @@ class ConfigurePanel:
         _, self._description_buffer = imgui.input_text_multiline(
             "##description", self._description_buffer, imgui.ImVec2(-1, height)
         )
-        if imgui.is_item_deactivated_after_edit():
+        if (
+            imgui.is_item_deactivated_after_edit()
+            and self._description_buffer != device.description
+        ):
             self._on_description_change(device, self._description_buffer)
         if (
             not imgui.is_item_active()
@@ -700,7 +737,10 @@ class ConfigurePanel:
         _, self._address_buffer = imgui.input_text(
             "##individual_address", self._address_buffer
         )
-        if imgui.is_item_deactivated_after_edit():
+        if (
+            imgui.is_item_deactivated_after_edit()
+            and self._address_buffer != device.individual_address
+        ):
             self._on_individual_address_change(device, self._address_buffer)
         if (
             not imgui.is_item_active()
@@ -718,7 +758,7 @@ class ConfigurePanel:
         _, self._serial_buffer = imgui.input_text_with_hint(
             "##serial_number", "0000:00000000", self._serial_buffer
         )
-        if imgui.is_item_deactivated_after_edit():
+        if imgui.is_item_deactivated_after_edit() and self._serial_buffer != stored:
             text = self._serial_buffer.strip()
             serial = parse_serial_text(text) if text else None
             if text and serial is None:
@@ -1324,9 +1364,11 @@ class ConfigurePanel:
     def _joint_devices(self, primary: Device) -> list[Device]:
         """Selected devices (incl. the primary) that share the primary's application, in the order
         returned by ``get_devices``. Only these can be jointly edited (ref_ids are app-scoped).
-        Returns just ``[primary]`` when multi-select is not wired or the selection is a single row."""
+        Returns just ``[primary]`` when multi-select is not wired or the selection is a single row,
+        and while the device shown before the selection changed stays shown."""
         if (
-            self._get_selected_node_ids is None
+            self._holding
+            or self._get_selected_node_ids is None
             or self._on_param_change_selected is None
         ):
             return [primary]
