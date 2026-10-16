@@ -3,7 +3,9 @@ identical to evaluating them; a device whose data changed is evaluated again."""
 
 from __future__ import annotations
 
+import shutil
 import time
+import zipfile
 from collections.abc import Iterator, Sequence
 from pathlib import Path
 from typing import Any
@@ -16,6 +18,7 @@ from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.service import ProjectService
 from xknxeditor.prod.parser_v2.ui import UiNode, UiParameter, UiParameterBlock, UiTab
+from xknxeditor.proj import export_knxproj
 
 _APP_ID = "M-0008_A-7072-21-5CC3-O000A"
 
@@ -243,6 +246,49 @@ def test_stale_background_load_does_not_contaminate_a_newer_project(
     with proj._loading_lock:
         assert "A-stale-generation" not in proj._failed_loads
     proj.close()
+
+
+def _exported_device_xml(archive: Path) -> dict[str, bytes]:
+    """The installation XML (``0.xml``) of a .knxproj: topology, devices, their com-object and
+    parameter instances and links - everything the devices contribute to the export. ``project.xml``
+    is excluded because it carries a per-export-run id/timestamp unrelated to the device data."""
+    with zipfile.ZipFile(archive) as zf:
+        return {
+            name: zf.read(name) for name in zf.namelist() if name.endswith("/0.xml")
+        }
+
+
+def test_export_is_identical_whether_devices_came_from_snapshots_or_full_eval(
+    tmp_path: Path,
+) -> None:
+    """Opening from device snapshots must not change what the project exports: the export reads the
+    database, not the (snapshot-restored) display devices, so a snapshot open and a full evaluation
+    produce the same device XML. Guards against snapshot data loss on export."""
+    cat, path, _ = _project(tmp_path)
+    snap_src, full_src = tmp_path / "snap.xknx", tmp_path / "full.xknx"
+    shutil.copy(path, snap_src)
+    shutil.copy(path, full_src)
+
+    # Open via the snapshot path: devices are restored from their stored snapshots.
+    proj = _service(cat)
+    proj.open(snap_src)
+    assert proj.devices and not any(
+        d.app is not None and d.app.loaded for d in proj.devices
+    )
+    proj.close()
+
+    # Open forcing full evaluation (no snapshots), as a project open before #80 did.
+    proj = _service(cat)
+    proj._store_snapshots = lambda: None  # type: ignore[method-assign]
+    proj.open(full_src)
+    proj._snapshots = {}
+    assert proj.devices
+    proj.close()
+
+    snap_out, full_out = tmp_path / "snap.knxproj", tmp_path / "full.knxproj"
+    export_knxproj(snap_src, snap_out)
+    export_knxproj(full_src, full_out)
+    assert _exported_device_xml(snap_out) == _exported_device_xml(full_out)
 
 
 def _wait(condition: Any, timeout: float = 30.0) -> None:
