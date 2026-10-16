@@ -3,7 +3,7 @@ from __future__ import annotations
 import struct
 import zlib
 
-from editor_gui.widgets.icons import dark_png, white_png
+from editor_gui.widgets.icons import readable_png, white_png
 
 
 def _png(
@@ -69,11 +69,11 @@ def test_not_a_png() -> None:
     assert white_png(b"<svg/>") is None
 
 
-def test_picture_greys_are_inverted_and_colours_kept() -> None:
+def test_dark_greys_are_inverted_on_a_dark_background_and_colours_kept() -> None:
     src = _png(
         [(0, 0, 0, 255), (64, 160, 64, 255), (250, 250, 245, 128), (0, 0, 0, 0)], 2, 1
     )
-    result = dark_png(src)
+    result = readable_png(src, dark_background=True)
     assert result is not None
     assert _pixels(result) == [
         (255, 255, 255, 255),
@@ -83,5 +83,25 @@ def test_picture_greys_are_inverted_and_colours_kept() -> None:
     ]
 
 
+def test_dark_greys_are_kept_on_a_light_background() -> None:
+    src = _png([(0, 0, 0, 255), (64, 160, 64, 255), (0, 0, 0, 0), (0, 0, 0, 0)], 2)
+    assert readable_png(src, dark_background=False) is None
+
+
+def test_light_greys_are_inverted_on_a_light_background() -> None:
+    src = _png([(240, 240, 240, 255), (30, 30, 30, 64), (0, 0, 0, 0)], 3)
+    result = readable_png(src, dark_background=False)
+    assert result is not None
+    assert _pixels(result)[:2] == [(15, 15, 15, 255), (225, 225, 225, 64)]
+    assert readable_png(src, dark_background=True) is None
+
+
+def test_picture_without_greys_is_kept() -> None:
+    src = _png([(64, 160, 64, 255), (0, 0, 0, 0)], 2)
+    assert readable_png(src, dark_background=True) is None
+
+
 def test_opaque_picture_is_kept() -> None:
-    assert dark_png(_png([(0, 0, 0, 255), (255, 255, 255, 255)], 2)) is None
+    src = _png([(0, 0, 0, 255), (255, 255, 255, 255)], 2)
+    assert readable_png(src, dark_background=True) is None
+    assert readable_png(src, dark_background=False) is None
