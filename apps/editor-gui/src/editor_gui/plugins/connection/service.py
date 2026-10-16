@@ -794,6 +794,7 @@ class ConnectionService:
                 "Programming without the manufacturer's plugin, as confirmed",
                 device=device.name,
             )
+        from editor_gui.memory_cap_cache import learned_memory_cap
         from editor_gui.programming import download_device
         from xknxeditor.download.scope import DownloadScope
 
@@ -803,6 +804,14 @@ class ConnectionService:
         if not self.begin_operation("program", device.individual_address):
             self._log.warning("A bus operation is already running", device=device.name)
             return None
+        app_id = getattr(getattr(device, "app", None), "id", None)
+        seed_cap = learned_memory_cap(app_id)
+        if seed_cap is not None:
+            self._log.info(
+                "Using learned memory-service cap",
+                device=device.name,
+                cap=seed_cap,
+            )
         self._log.info(
             "Programming device",
             device=device.name,
@@ -826,15 +835,42 @@ class ConnectionService:
                 ip_secure=ip_secure if security is not None else None,
                 disable_security=disable_security and security is not None,
                 routing_blocking=routing_blocking if security is not None else None,
+                memory_service_count=seed_cap,
             )
         )
         if future is not None:
             future.add_done_callback(self._log_program_result)
+            future.add_done_callback(
+                functools.partial(self._remember_memory_cap, application_id=app_id)
+            )
             if device.individual_address == self.interface_address:
                 future.add_done_callback(self._reopen_after_interface_download)
         else:
             self._clear_busy()
         return future
+
+    def _remember_memory_cap(
+        self, future: Future[Any], *, application_id: str | None
+    ) -> None:
+        """Persist the memory-service cap a successful download settled on, so the next
+        download of the same application seeds it and skips the discovery retry."""
+        if future.cancelled() or future.exception() is not None:
+            return
+        result = future.result()
+        cap = getattr(result, "memory_service_count", None)
+        if cap is None or application_id is None:
+            return
+        from editor_gui.memory_cap_cache import learned_memory_cap, remember_memory_cap
+
+        if learned_memory_cap(application_id) == cap:
+            return
+        remember_memory_cap(application_id, cap)
+        self._log.info(
+            "Learned memory-service cap; later downloads of this application skip the "
+            "discovery retry",
+            application=application_id,
+            cap=cap,
+        )
 
     def _reopen_after_interface_download(self, future: Future[Any]) -> None:
         """The interface the connection runs through was downloaded: the services it secures and

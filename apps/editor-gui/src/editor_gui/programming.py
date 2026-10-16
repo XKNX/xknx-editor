@@ -313,6 +313,7 @@ async def download_device(
     ip_secure: IpSecureConfig | None = None,
     disable_security: bool = False,
     routing_blocking: bool | None = None,
+    memory_service_count: int | None = None,
 ) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -353,4 +354,5 @@ async def download_device(
         routing_blocking=routing_blocking,
         confirm_full_download=confirm_full_download,
         ip_config=ip_config,
+        memory_service_count=memory_service_count,
     )

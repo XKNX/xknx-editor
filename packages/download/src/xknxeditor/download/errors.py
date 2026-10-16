@@ -11,6 +11,15 @@ class LoadStateError(DownloadError):
     """A Load State Machine did not reach the expected state."""
 
 
+class MemoryWriteNotAcknowledged(DownloadError):
+    """A classic memory write received no acknowledgement from the device.
+
+    Some firmwares advertise a large APDU yet only accept short memory services;
+    a write sized to the advertised APDU then goes unacknowledged. The download
+    retries with a lowered memory-service cap when this is raised.
+    """
+
+
 class PartialDownloadError(DownloadError):
     """A download failed after it had begun changing the device's load state.
 

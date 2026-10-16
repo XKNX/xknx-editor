@@ -16,7 +16,12 @@ from typing import TYPE_CHECKING
 from xknx.exceptions import ManagementConnectionError
 from xknx.telegram import IndividualAddress
 
-from .errors import DownloadError, PartialDownloadError, UnsupportedProcedureError
+from .errors import (
+    DownloadError,
+    MemoryWriteNotAcknowledged,
+    PartialDownloadError,
+    UnsupportedProcedureError,
+)
 from .group_communication import materialize_group_communication_controls
 from .image import build_image
 from .ip_config import (
@@ -30,7 +35,7 @@ from .ip_config import applies as ip_config_applies
 from .ip_secure import IpSecureConfig, ip_secure_controls
 from .merge import mask_authorize_levels, resolve_download_controls
 from .procedure import LoadProcedureRunner
-from .programmer import MAX_COMMUNICATION_APDU_LENGTH
+from .programmer import MAX_COMMUNICATION_APDU_LENGTH, MEMORY_SERVICE_FALLBACKS
 from .scope import DownloadScope, mask_object_types
 from .secure_config import (
     commissioning_controls,
@@ -82,10 +87,27 @@ class DownloadResult:
     sequence_number: int | None = None
     # Whether the download ran over a secured connection.
     secured: bool = False
+    # The memory-service cap the successful run used: None when the default
+    # APDU-derived size worked, or the lowered value a no-ACK fallback settled on. A
+    # caller can remember this per application to seed the next download and skip
+    # the discovery retry.
+    memory_service_count: int | None = None
 
 
 _IP_CONFIG_SCOPES = frozenset({DownloadScope.FULL, DownloadScope.APPLICATION})
 _MAC_ADDRESS_LENGTH = 6
+
+
+def _memory_cap_ladder(seed: int | None) -> tuple[int | None, ...]:
+    """Memory-service caps to try in order.
+
+    Without a seed, start from the APDU-derived default (``None``) and fall back to
+    progressively smaller caps. With a seed (a previously learned limit), start there
+    and only fall back to still-smaller caps, so a known device skips the discovery.
+    """
+    if seed is None:
+        return (None, *MEMORY_SERVICE_FALLBACKS)
+    return (seed, *(c for c in MEMORY_SERVICE_FALLBACKS if c < seed))
 
 
 def _resolve_controls(
@@ -358,6 +380,7 @@ async def download(
     ip_secure: IpSecureConfig | None = None,
     disable_security: bool = False,
     routing_blocking: bool | None = None,
+    memory_service_count: int | None = None,
 ) -> DownloadResult:
     """Download ``application`` into the device at ``individual_address``.
 
@@ -504,43 +527,92 @@ async def download(
         security is not None,
     )
 
-    manager = _connection_manager(xknx, address, security)
-    runner = LoadProcedureRunner(
-        application,
-        image,
-        connection_manager=manager,
-        max_apdu_length=apdu_ceiling,
-        controls=controls,
-        object_types=_object_types(application, master),
-        scope=scope,
-        expected_descriptor=expected_descriptor,
-        negotiate_apdu=negotiate_apdu,
-        apdu_overhead=_apdu_overhead(security),
-        authorize_levels=_authorize_levels(application, master, security),
-    )
-    try:
-        await runner.run(progress)
-    except Exception as exc:
-        # A failure after the procedure began writing the device may leave it in a
-        # partially loaded, inconsistent state. Flag that for load scopes so the
-        # caller can warn the user; an unload is meant to clear the device, so its
-        # failures pass through unwrapped. The original failure is kept both as the
-        # cause and inside the message so it is never lost from any log sink.
-        if runner.state_mutated and scope not in (
-            DownloadScope.UNLOAD,
-            DownloadScope.UNLOAD_ALL,
-        ):
+    object_types = _object_types(application, master)
+    authorize_levels = _authorize_levels(application, master, security)
+    # Size memory writes from the negotiated APDU first; if a device leaves a classic
+    # memory write unacknowledged (some firmwares advertise more than they accept),
+    # retry the whole download with progressively smaller memory-service caps. A caller
+    # that already learned a device's limit passes it as ``memory_service_count`` to
+    # start there and skip the discovery retry.
+    memory_caps = _memory_cap_ladder(memory_service_count)
+    if memory_service_count is not None:
+        logger.info(
+            "download: %s starting at a learned %d-octet memory-service cap",
+            address,
+            memory_service_count,
+        )
+    runner: LoadProcedureRunner | None = None
+    manager: ConnectionManager | None = None
+    used_memory_cap: int | None = None
+    for attempt, memory_cap in enumerate(memory_caps):
+        manager = _connection_manager(xknx, address, security)
+        runner = LoadProcedureRunner(
+            application,
+            image,
+            connection_manager=manager,
+            max_apdu_length=apdu_ceiling,
+            controls=controls,
+            object_types=object_types,
+            scope=scope,
+            expected_descriptor=expected_descriptor,
+            negotiate_apdu=negotiate_apdu,
+            apdu_overhead=_apdu_overhead(security),
+            authorize_levels=authorize_levels,
+            memory_service_count=memory_cap,
+        )
+        try:
+            await runner.run(progress)
+            used_memory_cap = memory_cap
+            break
+        except MemoryWriteNotAcknowledged as exc:
+            next_cap = (
+                memory_caps[attempt + 1] if attempt + 1 < len(memory_caps) else None
+            )
+            if next_cap is not None:
+                logger.warning(
+                    "download: %s left a memory write unacknowledged; retrying with a "
+                    "%d-octet memory-service cap. Cause: %s",
+                    address,
+                    next_cap,
+                    exc,
+                )
+                continue
             raise PartialDownloadError(
                 f"Downloading {address} failed after it had started writing the "
                 f"device, so it may be left in an inconsistent, partially loaded "
                 f"state - re-download it to restore a working state. Cause: {exc}"
             ) from exc
-        raise
-    finally:
-        # Ensure the connection is closed even if the procedure omits a trailing
-        # Disconnect or fails partway through.
-        await manager.close()
+        except Exception as exc:
+            # A failure after the procedure began writing the device may leave it in a
+            # partially loaded, inconsistent state. Flag that for load scopes so the
+            # caller can warn the user; an unload is meant to clear the device, so its
+            # failures pass through unwrapped. The original failure is kept both as the
+            # cause and inside the message so it is never lost from any log sink.
+            if runner.state_mutated and scope not in (
+                DownloadScope.UNLOAD,
+                DownloadScope.UNLOAD_ALL,
+            ):
+                raise PartialDownloadError(
+                    f"Downloading {address} failed after it had started writing the "
+                    f"device, so it may be left in an inconsistent, partially loaded "
+                    f"state - re-download it to restore a working state. Cause: {exc}"
+                ) from exc
+            raise
+        finally:
+            # Ensure the connection is closed even if the procedure omits a trailing
+            # Disconnect or fails partway through.
+            await manager.close()
 
+    # The loop only reaches here via a successful run (every other path raises).
+    assert runner is not None and manager is not None
+
+    if used_memory_cap is not None:
+        logger.info(
+            "download: %s completed with a %d-octet memory-service cap "
+            "(device rejected larger classic memory writes)",
+            address,
+            used_memory_cap,
+        )
     if scope is DownloadScope.UNLOAD_ALL:
         logger.info(
             "download: unload complete; resetting %s to the default address", address
@@ -557,6 +629,7 @@ async def download(
         and getattr(manager, "active_key", None) == tool_key,
         sequence_number=getattr(manager, "device_sequence_number", None),
         secured=security is not None,
+        memory_service_count=used_memory_cap,
     )
 
 

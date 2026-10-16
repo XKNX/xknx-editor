@@ -64,6 +64,7 @@ from .errors import (
     CompareMismatch,
     DownloadError,
     LoadStateError,
+    MemoryWriteNotAcknowledged,
     PropertyAccessRejected,
     VerificationError,
 )
@@ -76,8 +77,14 @@ if TYPE_CHECKING:
 
 # Octets consumed by TPCI/APCI/count/address in a standard A_Memory_Write ASDU.
 _MEMORY_OVERHEAD = 3
-# A_Memory_Write encodes the byte count in 6 bits.
+# A_Memory_Write/Read encode the octet count in 6 bits. By default the chunk is sized
+# from the negotiated APDU (fast). A device that rejects a long classic memory write
+# (some firmwares advertise a large APDU yet only accept short memory services) is
+# retried with a lowered cap set via ``max_memory_service_count``.
 _MAX_MEMORY_CHUNK = 0x3F
+# Fallback memory-service caps tried, in order, after a memory write is not
+# acknowledged. 15 matches ETS's conservative default; 12 is the smallest ETS uses.
+MEMORY_SERVICE_FALLBACKS = (15, 12)
 # Octets consumed by APCI/object/property/count/index in A_PropertyValue_Write.
 _PROPERTY_OVERHEAD = 5
 # A_PropertyExtValue_* frames: object type, 12 bit instance and PID, 8 bit count, 16 bit start.
@@ -172,6 +179,9 @@ class DeviceProgrammer:
         self.memory_auto_verify = False
         self._memory_verify_known = False
         self.table_reference_width: int | None = None
+        # Upper bound on the classic memory-service payload. Defaults to the protocol
+        # maximum so the chunk follows the negotiated APDU; a no-ACK fallback lowers it.
+        self.max_memory_service_count: int = _MAX_MEMORY_CHUNK
 
     @property
     def _plain_apdu_length(self) -> int:
@@ -183,8 +193,8 @@ class DeviceProgrammer:
 
     @property
     def memory_chunk_size(self) -> int:
-        """Largest classic memory payload that fits into a single telegram."""
-        return self._payload_budget(_MEMORY_OVERHEAD, _MAX_MEMORY_CHUNK)
+        """Largest classic memory payload per telegram, within the current cap."""
+        return self._payload_budget(_MEMORY_OVERHEAD, self.max_memory_service_count)
 
     def _payload_budget(self, overhead: int, maximum: int) -> int:
         size = min(self._plain_apdu_length - overhead, maximum)
@@ -535,6 +545,18 @@ class DeviceProgrammer:
                 "memory range exceeds supported 20-bit address space"
             )
 
+    def _connection_failure(
+        self, exc: ManagementConnectionError, operation: str
+    ) -> ManagementConnectionError:
+        """Re-cast a transport failure to name the operation and target in flight.
+
+        xknx reports a lost acknowledgement without saying which point-to-point
+        operation it belonged to; this keeps that detail in the surfaced error.
+        """
+        return ManagementConnectionError(
+            f"{exc} while {operation} [{self.diagnostic_context}]"
+        )
+
     async def _write_block(self, address: int, block: bytes) -> None:
         """Write one block via A_Memory_Write or A_UserMemory_Write by address."""
         request = (
@@ -542,13 +564,21 @@ class DeviceProgrammer:
             if address >= _USER_MEMORY_BOUNDARY
             else MemoryWrite(address=address, data=block)
         )
-        if not self.memory_auto_verify:
-            await self.connection.send_data(request)
-            return
-        expected = (
-            UserMemoryResponse if address >= _USER_MEMORY_BOUNDARY else MemoryResponse
-        )
-        telegram = await self.connection.request(request, expected)
+        try:
+            if not self.memory_auto_verify:
+                await self.connection.send_data(request)
+                return
+            expected = (
+                UserMemoryResponse
+                if address >= _USER_MEMORY_BOUNDARY
+                else MemoryResponse
+            )
+            telegram = await self.connection.request(request, expected)
+        except ManagementConnectionError as exc:
+            raise MemoryWriteNotAcknowledged(
+                f"{exc} while writing memory {address:#06x} ({len(block)} byte(s)) "
+                f"[{self.diagnostic_context}]"
+            ) from exc
         response = telegram.payload
         if (
             not isinstance(response, expected)
@@ -726,16 +756,23 @@ class DeviceProgrammer:
             start_index,
             data.hex(),
         )
-        telegram = await self.connection.request(
-            PropertyValueWrite(
-                object_index=object_index,
-                property_id=property_id,
-                count=count,
-                start_index=start_index,
-                data=data,
-            ),
-            PropertyValueResponse,
-        )
+        try:
+            telegram = await self.connection.request(
+                PropertyValueWrite(
+                    object_index=object_index,
+                    property_id=property_id,
+                    count=count,
+                    start_index=start_index,
+                    data=data,
+                ),
+                PropertyValueResponse,
+            )
+        except ManagementConnectionError as exc:
+            raise self._connection_failure(
+                exc,
+                f"writing object {object_index} property {property_id} "
+                f"({len(data)} byte(s), {count} element(s))",
+            ) from exc
         self._log_property_response(telegram.payload, "write")
         response = _validate_property_response(
             telegram.payload,

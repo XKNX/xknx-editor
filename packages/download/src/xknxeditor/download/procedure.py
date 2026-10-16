@@ -343,6 +343,7 @@ class LoadProcedureRunner:
         negotiate_apdu: bool = False,
         apdu_overhead: int = 0,
         authorize_levels: int = 0,
+        memory_service_count: int | None = None,
     ) -> None:
         """Initialize the runner.
 
@@ -410,6 +411,9 @@ class LoadProcedureRunner:
         self._descriptor_checked = False
         self._negotiated_apdu: int | None = None
         self._authorize_levels = authorize_levels
+        # Optional lowered cap on the classic memory-service payload (a no-ACK
+        # fallback); None keeps the programmer's APDU-derived default.
+        self._memory_service_count = memory_service_count
         # (legacy control filter, original error) -> mapped error; 0 is wildcard.
         self._error_mappings: dict[tuple[int, int], int] = {}
         self._controls = (
@@ -780,6 +784,8 @@ class LoadProcedureRunner:
             self._programmer.diagnostic_context = self._diagnostic_context()
             if self.application.program.mask_version == "MV-07B0":
                 self._programmer.table_reference_width = 4
+            if self._memory_service_count is not None:
+                self._programmer.max_memory_service_count = self._memory_service_count
             return self._programmer
         if self._manager is None:
             raise DownloadError("no connection available")
@@ -794,6 +800,8 @@ class LoadProcedureRunner:
         self._programmer.diagnostic_context = self._diagnostic_context()
         if self.application.program.mask_version == "MV-07B0":
             self._programmer.table_reference_width = 4
+        if self._memory_service_count is not None:
+            self._programmer.max_memory_service_count = self._memory_service_count
         await self._prepare_device(self._programmer)
         return self._programmer
 

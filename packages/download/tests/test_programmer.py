@@ -76,9 +76,19 @@ async def test_read_memory_raises_on_empty_reply() -> None:
         await programmer.read_memory(0, 8)
 
 
-def test_memory_chunk_size_respects_apdu() -> None:
+def test_memory_chunk_size_follows_apdu_by_default() -> None:
+    # By default the classic memory chunk follows the negotiated APDU; a device that
+    # cannot accept the full amount is handled by the no-ACK fallback, not a flat cap.
     assert DeviceProgrammer(FakeDevice(), max_apdu_length=15).memory_chunk_size == 12
     assert DeviceProgrammer(FakeDevice(), max_apdu_length=55).memory_chunk_size == 52
+
+
+def test_memory_chunk_size_honours_lowered_cap() -> None:
+    # The no-ACK fallback lowers the cap; the chunk then follows the smaller of the
+    # cap and the APDU budget.
+    programmer = DeviceProgrammer(FakeDevice(), max_apdu_length=55)
+    programmer.max_memory_service_count = 15
+    assert programmer.memory_chunk_size == 15
 
 
 def test_memory_chunk_size_accounts_for_secure_overhead() -> None:
@@ -130,6 +140,30 @@ async def test_write_memory_verify_detects_mismatch() -> None:
     programmer = DeviceProgrammer(DroppingDevice())
     with pytest.raises(VerificationError, match="verification failed"):
         await programmer.write_memory(0x10, b"\x01\x02\x03", verify=True)
+
+
+async def test_memory_write_no_ack_names_operation_and_context() -> None:
+    # A lost acknowledgement must surface as the typed MemoryWriteNotAcknowledged and
+    # name the exact write (address and length) plus the active diagnostic context.
+    from xknx.exceptions import ManagementConnectionError
+
+    from xknxeditor.download.errors import MemoryWriteNotAcknowledged
+
+    class NoAckDevice(FakeDevice):
+        async def send_data(self, payload: object, wait_for_ack: bool = True) -> None:
+            if isinstance(payload, MemoryWrite):
+                raise ManagementConnectionError("No ACK received for repeated telegram")
+            await super().send_data(payload, wait_for_ack)  # type: ignore[arg-type]
+
+    programmer = DeviceProgrammer(NoAckDevice())
+    programmer.diagnostic_context = "control=(5, 48) target-index=4 target-type=3"
+    with pytest.raises(MemoryWriteNotAcknowledged) as excinfo:
+        await programmer.write_memory(0x45C0, bytes(10))
+    message = str(excinfo.value)
+    assert "No ACK received for repeated telegram" in message
+    assert "writing memory 0x45c0" in message
+    assert "10 byte" in message
+    assert "control=(5, 48)" in message
 
 
 async def test_property_round_trip() -> None:

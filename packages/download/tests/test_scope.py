@@ -91,3 +91,14 @@ def test_unknown_index_fails_closed() -> None:
 
     with pytest.raises(UnsupportedProcedureError, match="InterfaceObjects"):
         control_in_scope(_ctrl(lsm_idx=3), DownloadScope.GROUP_COMMUNICATION)
+
+
+def test_memory_cap_ladder_seeds_and_falls_back() -> None:
+    from xknxeditor.download.download import _memory_cap_ladder
+
+    # No learned limit: start at the APDU-derived default, then fall back.
+    assert _memory_cap_ladder(None) == (None, 15, 12)
+    # A learned limit starts there and only drops to still-smaller caps.
+    assert _memory_cap_ladder(15) == (15, 12)
+    assert _memory_cap_ladder(12) == (12,)
+    assert _memory_cap_ladder(52) == (52, 15, 12)
