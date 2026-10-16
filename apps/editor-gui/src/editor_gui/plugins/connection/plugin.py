@@ -54,7 +54,7 @@ _REOPEN_ATTEMPTS = 12
 _CREDENTIALS_CHECK_SECONDS = 2.0
 
 
-class _MissingCredentialsError(ConnectionError):
+class MissingCredentialsError(ConnectionError):
     """The interface requires KNX IP Secure, and neither the project nor a keyring has the
     credentials."""
 
@@ -389,7 +389,7 @@ class ConnectionPlugin:
                     services=",".join(services),
                 )
         except Exception as e:
-            if isinstance(e, _MissingCredentialsError):
+            if isinstance(e, MissingCredentialsError):
                 self._awaiting_credentials = e.gateway
                 self._retry_on_credentials = True
             self._state = ConnectionState.ERROR
@@ -439,7 +439,7 @@ class ConnectionPlugin:
                     threaded=True,
                 )
             if gateway is not None and gateway.routing_requires_secure:
-                raise _MissingCredentialsError(gateway)
+                raise MissingCredentialsError(gateway)
             return ConnectionConfig(
                 connection_type=ConnectionType.ROUTING,
                 multicast_group=self._multicast_group,
@@ -457,7 +457,7 @@ class ConnectionPlugin:
                 else None
             )
             if tunnel is None:
-                raise _MissingCredentialsError(gateway)
+                raise MissingCredentialsError(gateway)
             return ConnectionConfig(
                 connection_type=ConnectionType.TUNNELING_TCP_SECURE,
                 gateway_ip=self._controller_ip,
