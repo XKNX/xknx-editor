@@ -61,6 +61,25 @@ def test_wide_entry_carries_object_number_above_255() -> None:
     assert data == bytes.fromhex("0001 0001 0196".replace(" ", ""))
 
 
+def test_narrow_request_keeps_wide_when_object_number_exceeds_255() -> None:
+    # A device whose wide table has not been loaded yet reports format 0 (narrow). The
+    # download rewrites the table, so it must keep the width the data needs rather than
+    # overflow a one-octet object number (OpenKNX devices use object numbers up to ~1500).
+    associations = (Association(group_address_index=0, group_object_number=928),)
+    wide = build_association_table_b(associations, wide=True)
+    image = DownloadImage(
+        segments=(),
+        properties=(),
+        relative_segments=(
+            RelativeSegment(2, wide, b"\xff" * len(wide), associations=associations),
+        ),
+    )
+    kept = image.with_association_table_format(False)
+    segment = kept.relative_segment(2)
+    assert segment is not None
+    assert segment.data == wide
+
+
 @pytest.mark.parametrize(("width", "wide"), [(2, False), (4, True), (1, None)])
 async def test_programmer_reads_the_association_table_format(
     width: int, wide: bool | None

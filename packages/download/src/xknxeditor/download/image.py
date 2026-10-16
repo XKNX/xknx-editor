@@ -272,10 +272,19 @@ class DownloadImage:
 
     def with_association_table_format(self, wide: bool) -> DownloadImage:
         """This image with its System B association table in format 1 (``wide``, two
-        octets per field) or format 0 (one octet per field)."""
+        octets per field) or format 0 (one octet per field).
+
+        The download rewrites the association table, so it must use at least the width
+        the data needs: a device whose wide table has not been loaded yet reports
+        format 0, but narrowing would drop any group object number or address index
+        above 255 (e.g. OpenKNX devices with hundreds of objects)."""
         segment = self.relative_segment(ResourceObjectType.OBJECT_ASSOCIATION_TABLE)
         if segment is None or segment.associations is None:
             return self
+        wide = wide or any(
+            a.group_object_number > 0xFF or a.group_address_index + 1 > 0xFF
+            for a in segment.associations
+        )
         data = build_association_table_b(segment.associations, wide=wide)
         if data == segment.data:
             return self
