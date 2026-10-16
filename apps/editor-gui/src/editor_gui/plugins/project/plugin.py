@@ -42,7 +42,10 @@ from editor_gui.plugins.project.ui import (
     ToolsPanel,
 )
 from editor_gui.plugins.project.ui.dali_commissioning import DaliCommissioningPanel
-from editor_gui.plugins.project.ui.device_certificate import DeviceCertificateDialog
+from editor_gui.plugins.project.ui.device_certificate import (
+    CertificateState,
+    DeviceCertificateDialog,
+)
 from editor_gui.plugins.project.ui.device_compare import DeviceComparePanel
 from editor_gui.plugins.project.ui.devices import Area, Line
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
@@ -149,7 +152,9 @@ class ProjectPlugin:
         self._read_device_dialog = ReadDeviceDialog(self._request_device_info)
         # The device a certificate is asked for, while the dialog is open.
         self._certificate_device: Device | None = None
-        self._certificate_dialog = DeviceCertificateDialog(self._add_certificate)
+        self._certificate_dialog = DeviceCertificateDialog(
+            self._add_certificate, api.project.remove_device_certificate
+        )
         api.ask_device_certificate = self._ask_certificate_on_add
         self._secure_commissioning_dialog = SecureCommissioningDialog()
         # Live device readouts (read-only "read from device" action), keyed by node id. Written on
@@ -270,6 +275,9 @@ class ProjectPlugin:
             get_secure_commissioning=api.project.secure_commissioning,
             on_secure_commissioning_change=self._change_secure_commissioning,
             on_add_certificate=self._ask_certificate_for,
+            has_certificate=lambda d: (
+                api.project.device_certificate_state(d)[0] is not None
+            ),
             get_ip_secure=api.project.ip_secure_settings,
             get_routing_blocking=lambda d: (
                 api.project.unicast_broadcast_blocking(d)
@@ -1588,14 +1596,33 @@ class ProjectPlugin:
                 )
             )
 
-        self._certificate_device = device
-        label = f"{device.individual_address or '-'} {device.display_name}".strip()
         if self._api.main_thread is not None:
             self._api.main_thread.submit(
-                functools.partial(self._certificate_dialog.open, label, again, plain)
+                functools.partial(
+                    self._open_certificate_dialog, device, then=again, plain=plain
+                )
             )
         else:
-            self._certificate_dialog.open(label, again, plain)
+            self._open_certificate_dialog(device, then=again, plain=plain)
+
+    def _open_certificate_dialog(
+        self,
+        device: "Device",
+        then: Callable[[], None] | None = None,
+        plain: Callable[[], None] | None = None,
+        on_dont_ask: Callable[[bool], None] | None = None,
+    ) -> None:
+        """The certificate dialog for ``device``, with the certificate the project holds for it."""
+        self._certificate_device = device
+        label = f"{device.individual_address or '-'} {device.display_name}".strip()
+        serial, key_in_use = self._api.project.device_certificate_state(device)
+        self._certificate_dialog.open(
+            label,
+            then,
+            plain,
+            on_dont_ask,
+            state=CertificateState(serial, key_in_use),
+        )
 
     def _ask_certificate_on_add(self, node_id: int) -> None:
         """A device was added with secure commissioning: ask for its certificate right away,
@@ -1607,9 +1634,7 @@ class ProjectPlugin:
         device = self._api.project.find_device_by_node_id(node_id)
         if device is None:
             return
-        self._certificate_device = device
-        label = f"{device.individual_address or '-'} {device.display_name}".strip()
-        self._certificate_dialog.open(label, on_dont_ask=self._dont_ask_certificate)
+        self._open_certificate_dialog(device, on_dont_ask=self._dont_ask_certificate)
 
     @staticmethod
     def _dont_ask_certificate(dont_ask: bool) -> None:
@@ -1635,10 +1660,8 @@ class ProjectPlugin:
         self._certificate_dialog.open(S.PROJECT_CERTIFICATES_TITLE)
 
     def _ask_certificate_for(self, device: "Device") -> None:
-        """ "Add Device Certificate" from the device settings."""
-        self._certificate_device = device
-        label = f"{device.individual_address or '-'} {device.display_name}".strip()
-        self._certificate_dialog.open(label)
+        """ "Add Device Certificate" / "Device Certificate" from the device settings."""
+        self._open_certificate_dialog(device)
 
     def _change_ip_secure(
         self, device: "Device", field: str, value: object

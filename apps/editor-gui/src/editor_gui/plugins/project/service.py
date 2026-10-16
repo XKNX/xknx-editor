@@ -2783,6 +2783,27 @@ class ProjectService:
             return None
         return self._svc.device_keys(self._pid, device.node_id)
 
+    def device_certificate_state(self, device: Device) -> tuple[bytes | None, bool]:
+        """The serial number the project holds the device's certificate for (``None`` without
+        one) and whether the device uses its own Tool Key (the certificate is then needed again
+        only after a factory reset). Cached by revision: the device settings read it every
+        frame."""
+        if self._pid is None:
+            return None, False
+        cache_key = f"device_certificate_state:{device.node_id}"
+        hit = self._revision_cache.get(cache_key)
+        if hit is not None and hit[0] == self.revision:
+            return cast("tuple[bytes | None, bool]", hit[1])
+        keys = self.device_keys(device)
+        serial = (
+            self._device_serial(device.node_id)
+            if keys is not None and keys.fdsk is not None
+            else None
+        )
+        state = (serial, keys is not None and keys.loaded_tool_key is not None)
+        self._revision_cache[cache_key] = (self.revision, state)
+        return state
+
     def get_project_traces(self) -> list[_ProjectTrace]:
         """The project log (ProjectInformation/ProjectTraces), in document order.
 

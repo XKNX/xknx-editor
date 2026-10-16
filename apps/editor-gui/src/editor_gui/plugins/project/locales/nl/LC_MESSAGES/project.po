@@ -1558,8 +1558,29 @@ msgstr "Verkeerd wachtwoord, probeer het opnieuw."
 msgid "Add Device Certificate"
 msgstr "Apparaatcertificaat toevoegen"
 
-msgid "This device is commissioned securely for the first time. Enter the FDSK from its label or certificate (36 characters):"
-msgstr "Dit apparaat wordt voor het eerst beveiligd in bedrijf gesteld. Voer de FDSK van het etiket of certificaat in (36 tekens):"
+msgid "Device Certificate"
+msgstr "Apparaatcertificaat"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "Dit apparaat gebruikt al zijn eigen sleutel uit dit project. Het certificaat is pas na een fabrieksreset weer nodig."
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "Dit apparaat gebruikt nog zijn fabriekssleutel: de eerste beveiligde download heeft het certificaat nodig."
+
+msgid "Stored Certificate: {serial}"
+msgstr "Opgeslagen certificaat: {serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Voer de FDSK van het etiket of certificaat in (36 tekens):"
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "Voer de nieuwe FDSK in om het te vervangen (36 tekens):"
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "Opgeslagen certificaat verwijderen? Na een fabrieksreset is het apparaat dan alleen nog bereikbaar met de code van het etiket."
+
+msgid "Device Certificate…"
+msgstr "Apparaatcertificaat…"
 
 msgid "The device certificate (FDSK) is missing."
 msgstr "Het apparaatcertificaat (FDSK) ontbreekt."

@@ -384,11 +384,45 @@ class ProjectStrings:
         return _("Add Device Certificate")
 
     @property
-    def DEVICE_CERTIFICATE_PROMPT(self) -> str:
+    def DEVICE_CERTIFICATE_TITLE_STORED(self) -> str:
+        return _("Device Certificate")
+
+    @property
+    def DEVICE_CERTIFICATE_IN_USE(self) -> str:
         return _(
-            "This device is commissioned securely for the first time. Enter the FDSK from its "
-            "label or certificate (36 characters):"
+            "This device already uses its own key from this project. Its certificate is only "
+            "needed again after a factory reset."
         )
+
+    @property
+    def DEVICE_CERTIFICATE_NEEDED(self) -> str:
+        return _(
+            "This device still uses its factory key: its first secure download needs its "
+            "certificate."
+        )
+
+    @property
+    def DEVICE_CERTIFICATE_STORED(self) -> str:
+        return _("Stored Certificate: {serial}")
+
+    @property
+    def DEVICE_CERTIFICATE_ENTER(self) -> str:
+        return _("Enter the FDSK from its label or certificate (36 characters):")
+
+    @property
+    def DEVICE_CERTIFICATE_REPLACE(self) -> str:
+        return _("To replace it, enter the new FDSK (36 characters):")
+
+    @property
+    def DEVICE_CERTIFICATE_REMOVE_CONFIRM(self) -> str:
+        return _(
+            "Remove the stored certificate? After a factory reset, the device can then only "
+            "be reached again with the code from its label."
+        )
+
+    @property
+    def CONFIGURE_DEVICE_CERTIFICATE(self) -> str:
+        return _("Device Certificate…")
 
     @property
     def DEVICE_CERTIFICATE_REQUIRED(self) -> str:

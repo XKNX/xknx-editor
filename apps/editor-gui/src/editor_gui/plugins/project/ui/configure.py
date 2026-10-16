@@ -236,6 +236,7 @@ class ConfigurePanel:
         get_secure_commissioning: Callable[[Device], bool | None] | None = None,
         on_secure_commissioning_change: Callable[[Device, bool], None] | None = None,
         on_add_certificate: Callable[[Device], None] | None = None,
+        has_certificate: Callable[[Device], bool] | None = None,
         get_ip_secure: "Callable[[Device], IpSecureSettings | None] | None" = None,
         get_routing_blocking: Callable[[Device], str | None] | None = None,
         on_routing_blocking: Callable[[Device, str | None], None] | None = None,
@@ -349,6 +350,7 @@ class ConfigurePanel:
         self._get_secure_commissioning = get_secure_commissioning
         self._on_secure_commissioning_change = on_secure_commissioning_change
         self._on_add_certificate = on_add_certificate
+        self._has_certificate = has_certificate
         self._get_ip_secure = get_ip_secure
         self._get_routing_blocking = get_routing_blocking
         self._on_routing_blocking = on_routing_blocking
@@ -729,7 +731,7 @@ class ConfigurePanel:
 
     def _secure_commissioning_input(self, device: Device, activated: bool) -> None:
         """The device setting "Secure Commissioning" (Activated/Deactivated) and the button that
-        adds the device certificate it is commissioned with."""
+        adds the device certificate it is commissioned with, or shows the one stored."""
         style = imgui.get_style()
         # The combo is as wide as its longest choice; the certificate button follows on the same
         # line when it fits, else below.
@@ -743,7 +745,10 @@ class ConfigurePanel:
             + style.item_inner_spacing.x
         )
         avail = imgui.get_content_region_avail().x
-        button = S.CONFIGURE_ADD_CERTIFICATE
+        stored = self._has_certificate is not None and self._has_certificate(device)
+        button = (
+            S.CONFIGURE_DEVICE_CERTIFICATE if stored else S.CONFIGURE_ADD_CERTIFICATE
+        )
         button_w = imgui.calc_text_size(button).x + style.frame_padding.x * 2
         start_x = imgui.get_cursor_pos_x()
         imgui.set_next_item_width(min(combo_w, avail))

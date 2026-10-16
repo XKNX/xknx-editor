@@ -1703,8 +1703,29 @@ msgstr "Falsches Passwort, bitte erneut versuchen."
 msgid "Add Device Certificate"
 msgstr "Gerätezertifikat hinzufügen"
 
-msgid "This device is commissioned securely for the first time. Enter the FDSK from its label or certificate (36 characters):"
-msgstr "Dieses Gerät wird zum ersten Mal sicher in Betrieb genommen. Geben Sie den FDSK von seinem Etikett oder Zertifikat ein (36 Zeichen):"
+msgid "Device Certificate"
+msgstr "Gerätezertifikat"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "Dieses Gerät verwendet bereits seinen eigenen Schlüssel aus diesem Projekt. Sein Zertifikat wird erst nach einem Werksreset wieder benötigt."
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "Dieses Gerät verwendet noch seinen Werksschlüssel: Der erste sichere Download benötigt sein Zertifikat."
+
+msgid "Stored Certificate: {serial}"
+msgstr "Gespeichertes Zertifikat: {serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Geben Sie den FDSK von seinem Etikett oder Zertifikat ein (36 Zeichen):"
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "Zum Ersetzen geben Sie den neuen FDSK ein (36 Zeichen):"
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "Gespeichertes Zertifikat entfernen? Nach einem Werksreset ist das Gerät dann nur noch mit dem Code von seinem Etikett erreichbar."
+
+msgid "Device Certificate…"
+msgstr "Gerätezertifikat…"
 
 msgid "The device certificate (FDSK) is missing."
 msgstr "Das Gerätezertifikat (FDSK) fehlt."
