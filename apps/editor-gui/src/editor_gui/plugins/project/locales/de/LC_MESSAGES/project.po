@@ -1822,3 +1822,36 @@ msgstr "Gesperrt"
 
 msgid "Routed"
 msgstr "Weitergeleitet"
+
+msgid "Compare Devices"
+msgstr "Geräte vergleichen"
+
+msgid "Compare with…"
+msgstr "Vergleichen mit…"
+
+msgid "Device A"
+msgstr "Gerät A"
+
+msgid "Device B"
+msgstr "Gerät B"
+
+msgid "Field"
+msgstr "Feld"
+
+msgid "Filter devices by address, name or description…"
+msgstr "Geräte nach Adresse, Name oder Beschreibung filtern…"
+
+msgid "Group objects"
+msgstr "Gruppenobjekte"
+
+msgid "No differences"
+msgstr "Keine Unterschiede"
+
+msgid "Only differences"
+msgstr "Nur Unterschiede"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "Öffnen Sie ein Projekt mit mindestens zwei Geräten zum Vergleichen."
+
+msgid "{count} differences"
+msgstr "{count} Unterschiede"

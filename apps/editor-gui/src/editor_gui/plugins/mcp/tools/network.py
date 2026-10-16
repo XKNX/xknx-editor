@@ -110,41 +110,46 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def network_state() -> dict[str, Any]:
-        """Whether the connection is being recorded and how many entries are buffered.
-
-        The capture is the Group Monitor (group telegrams) plus Bus Activity (all other frames,
-        including the app's own). ``state`` is "capturing" while either records; ``recording``
-        gives each one; ``telegrams`` counts decodable L_Data frames, ``cemi_records`` all
-        frames."""
+        """Read recording state for the normal connection's Group Monitor and Bus Activity.
+        Returns {state, recording, telegrams, cemi_records}; recording has {group_monitor, bus_activity}
+        booleans, and state is "capturing" while either records, otherwise "stopped". telegrams counts
+        buffered L_Data frames; cemi_records counts all buffered frames. Recording state does not
+        establish whether a bus connection is open."""
         return capture_state(monitor)
 
     @tool
     def network_start() -> dict[str, str]:
-        """Start recording in the Group Monitor and Bus Activity (recorded entries are kept;
-        call network_clear first for an empty capture)."""
+        """Enable recording in the Group Monitor and Bus Activity for the normal connection.
+        Existing entries are kept; network_clear clears them. Returns {status: "capturing"}.
+        This enables local recording without opening a bus connection."""
         for kind in LINK_LAYER_KINDS:
             monitor.start(kind)
         return {"status": "capturing"}
 
     @tool
     def network_stop() -> dict[str, str]:
-        """Stop recording in the Group Monitor and Bus Activity."""
+        """Stop Group Monitor and Bus Activity recording while keeping buffered entries and the
+        normal bus connection unchanged. Returns {status: "stopped"}."""
         for kind in LINK_LAYER_KINDS:
             monitor.stop(kind)
         return {"status": "stopped"}
 
     @tool
     def network_clear() -> dict[str, str]:
-        """Clear the Group Monitor and Bus Activity recordings (a running recording continues)."""
+        """Clear the Group Monitor and Bus Activity logs; active recording continues and cached
+        latest values remain. Returns {status: "cleared"}. Cleared logs cannot be restored with
+        project_undo."""
         for kind in LINK_LAYER_KINDS:
             monitor.clear_log(kind)
         return {"status": "cleared"}
 
     @tool
     def network_telegrams(limit: int = 100) -> dict[str, Any]:
-        """Decoded telegrams of the Group Monitor and Bus Activity, merged by time, oldest first
-        (``limit`` caps the most recent; <=0 = all). ``monitor`` names the recording each one
-        is in. Returns {items, count}."""
+        """Read decoded L_Data telegrams from the Group Monitor and Bus Activity, merged oldest first.
+        limit selects the most recent decodable entries (<=0 means all). Returns {items, count}; each
+        item has {timestamp, source_type, monitor, telegram}. timestamp is ISO-formatted, source_type
+        is "connection", monitor is "group_monitor" or "bus_activity", and telegram is a display
+        string. count is the returned count."""
         items: list[dict[str, Any]] = []
         for kind, record in reversed(monitor.merged_log()):
             if 0 < limit <= len(items):
@@ -165,8 +170,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def network_cemi_records(limit: int = 100) -> dict[str, Any]:
-        """Raw cEMI frames of the Group Monitor and Bus Activity, merged by time, oldest first
-        (``limit`` caps the most recent; <=0 = all). Returns {items, count}."""
+        """Read raw cEMI frames from the Group Monitor and Bus Activity, merged oldest first.
+        limit selects the most recent frames (<=0 means all). Returns {items, count}; each item has
+        {timestamp, source_type, monitor, msg_code, src_addr, dst_addr, hops, raw}. timestamp is
+        ISO-formatted, source_type is "connection", monitor is "group_monitor" or "bus_activity",
+        and raw is space-separated hex. Non-data frames have empty addresses and null hops.
+        count is the returned count."""
         entries = monitor.merged_log()
         if limit > 0:
             entries = entries[-limit:]

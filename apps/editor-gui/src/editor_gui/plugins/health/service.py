@@ -97,34 +97,17 @@ class HealthService:
         out: list[Finding] = []
         for d in devices:
             unlinked = 0
-            non_sending = 0
             for co in d.get_visible_com_objects():
                 if not co.flags.communication or co.db_id is None:
                     continue
-                links = self._project.get_links_for_com_object(co.db_id)
-                if not links:
+                if not self._project.get_links_for_com_object(co.db_id):
                     unlinked += 1
-                    continue
-                # A transmit-capable object linked only as receiving never sends its telegram
-                # (e.g. a push-button/sensor object linked without a sending group address).
-                if co.flags.transmit and not any(link.is_sending for link in links):
-                    non_sending += 1
             if unlinked:
                 out.append(
                     Finding(
                         Severity.INFO,
                         "com-object",
                         f"{d.name}: {unlinked} unlinked communication object(s)",
-                        d.node_id,
-                    )
-                )
-            if non_sending:
-                out.append(
-                    Finding(
-                        Severity.WARNING,
-                        "com-object",
-                        f"{d.name}: {non_sending} object(s) linked but never send "
-                        "(no sending group address)",
                         d.node_id,
                     )
                 )

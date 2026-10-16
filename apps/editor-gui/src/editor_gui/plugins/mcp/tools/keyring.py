@@ -19,28 +19,32 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def keyring_load(path: str, password: str) -> dict[str, Any]:
-        """Decrypt and load a KNX .knxkeys keyring into memory (raises on a wrong password)."""
+        """Decrypt a .knxkeys file at path on the editor host and replace the keyring held in memory.
+        Raises on a wrong password or invalid file. Returns {loaded: true, path}. This is runtime
+        state, outside project_undo history; it is not stored in the project or written to the bus."""
         keyring.load(Path(path), password)
         return {"loaded": True, "path": str(keyring.path) if keyring.path else None}
 
     @tool
     def keyring_export(path: str, password: str) -> dict[str, Any]:
-        """Export the loaded keyring to ``path``, re-encrypted and signed under ``password``.
-
-        Same key material under a (possibly) different keyring password. Requires a loaded keyring.
-        """
+        """Export the loaded keyring to path on the editor host, re-encrypted and signed under
+        password with the same key material. Requires a loaded keyring. An existing destination
+        file is overwritten; this cannot be undone with project_undo. Returns {exported: true, path}.
+        This writes a file without changing keys on bus devices."""
         keyring.export(Path(path), password)
         return {"exported": True, "path": path}
 
     @tool
     def keyring_clear() -> dict[str, str]:
-        """Discard the loaded keyring."""
+        """Discard the keyring held in memory. Returns {status: "cleared"}. The source file remains
+        available for keyring_load; project_undo cannot restore runtime keyring state."""
         keyring.clear()
         return {"status": "cleared"}
 
     @tool
     def keyring_status() -> dict[str, Any]:
-        """Whether a keyring is loaded, its source path and project name."""
+        """Return {loaded, path, project} for the in-memory keyring. path is its editor-host source
+        path or null; project is the project name stored in the keyring, or null."""
         return {
             "loaded": keyring.keyring is not None,
             "path": str(keyring.path) if keyring.path else None,

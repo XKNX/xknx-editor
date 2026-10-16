@@ -119,6 +119,7 @@ class SpacesPanel:
         can_paste_config: Callable[[int], bool] | None = None,
         count_paste_targets: Callable[[int], int] | None = None,
         on_device_info: Callable[[int], None] | None = None,
+        on_compare: Callable[[int], None] | None = None,
     ) -> None:
         self._get_space_tree = get_space_tree
         self._on_select_device_id = on_select_device_id
@@ -139,6 +140,7 @@ class SpacesPanel:
         self._on_copy_config = on_copy_config
         self._can_paste_config_cb = can_paste_config
         self._on_device_info = on_device_info
+        self._on_compare = on_compare
         self._config_dialog = DeviceConfigDialog(
             "spaces",
             on_paste_config or (lambda _n, _p, _l: None),
@@ -515,6 +517,7 @@ class SpacesPanel:
             bool(device.individual_address)
             or (space_id is not None and self._on_set_device_space is not None)
             or self._on_copy_config is not None
+            or self._on_compare is not None
         )
         if has_menu and imgui.begin_popup_context_item(f"##spdev_ctx_{device.id}"):
             if (
@@ -547,6 +550,11 @@ class SpacesPanel:
                 render_read_device_item(
                     device.id, bool(device.individual_address), self._on_device_info
                 )
+            if (
+                self._on_compare is not None
+                and imgui.menu_item(S.CONTEXT_COMPARE_DEVICE, "", False)[0]
+            ):
+                self._on_compare(device.id)
             imgui.end_popup()
         if hovered:
             parts = [

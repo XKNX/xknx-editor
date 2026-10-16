@@ -1489,9 +1489,6 @@ msgstr "{count} verschil(len)"
 msgid "{matched} matched, {changed} would change"
 msgstr "{matched} overeenkomend, {changed} zouden wijzigen"
 
-msgid "Save"
-msgstr "Opslaan"
-
 msgid "Diff"
 msgstr "Vergelijken"
 
@@ -1680,3 +1677,35 @@ msgstr "Geblokkeerd"
 
 msgid "Routed"
 msgstr "Doorgestuurd"
+msgid "Compare Devices"
+msgstr "Apparaten vergelijken"
+
+msgid "Compare with…"
+msgstr "Vergelijken met…"
+
+msgid "Device A"
+msgstr "Apparaat A"
+
+msgid "Device B"
+msgstr "Apparaat B"
+
+msgid "Field"
+msgstr "Veld"
+
+msgid "Filter devices by address, name or description…"
+msgstr "Apparaten filteren op adres, naam of beschrijving…"
+
+msgid "Group objects"
+msgstr "Groepsobjecten"
+
+msgid "No differences"
+msgstr "Geen verschillen"
+
+msgid "Only differences"
+msgstr "Alleen verschillen"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "Open een project met minstens twee apparaten om te vergelijken."
+
+msgid "{count} differences"
+msgstr "{count} verschillen"

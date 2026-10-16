@@ -308,10 +308,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def catalog_list_products(
         name_contains: str | None = None, manufacturer_contains: str | None = None
     ) -> dict[str, Any]:
-        """Orderable products in the local catalog (product_ref_id is what project_add_device needs).
-
-        Optional case-insensitive filters match the product name/order number and the manufacturer
-        name; the catalog can be large, so filter rather than listing everything."""
+        """List local catalog product versions. name_contains matches product names/order numbers;
+        manufacturer_contains matches manufacturer names. Both filters are case-insensitive.
+        Returns {items, count}; each item has {product_ref_id, hardware2program_ref_id, name,
+        order_number, application_id, application_version, manufacturer_id, manufacturer_name}.
+        Pass product_ref_id and optional hardware2program_ref_id to project_add_device; pass
+        application_id to catalog_get_application. Filter large catalogs to limit the response."""
 
         def _matches(p: Any) -> bool:
             name = (name_contains or "").lower()
@@ -342,7 +344,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def catalog_get_application(application_id: str) -> dict[str, Any]:
-        """Resolve a catalog application by id (name and version)."""
+        """Resolve a catalog application by `application_id` (from a catalog_list_products item's
+        `application_id`). Returns {id, name}."""
 
         def _read() -> dict[str, Any]:
             app = catalog.get_application(application_id)
@@ -358,19 +361,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         product_ref_id: str | None = None,
         manufacturer: str | None = None,
     ) -> dict[str, Any]:
-        """Point to a device's technical documentation for ``query``.
+        """Find device documentation for a topic such as "dimming curve". Supply product_ref_id
+        from catalog_list_products to resolve product details, or pass manufacturer directly.
+        Returns {query, manufacturer, order_number, document_url, references, note}; each reference
+        has {title, kind, url} and optionally hint.
 
-        Give a topic like "dimming curve" or "channel A parameters". Supply ``product_ref_id`` to pull
-        the manufacturer + order number + product name from the catalog (recommended), or pass
-        ``manufacturer`` directly. Returns:
-        - ``document_url``: a BEST-EFFORT resolved manual PDF (KNX application description / technical
-          manual, manufacturer site preferred) when a product_ref_id is given — fetch this FIRST with
-          catalog_docs_fetch, but VERIFY it and fall back to the references (it is not always exact).
-        - ``references``: ready-to-open search links, best source first (KNX device database,
-          manufacturer site, OpenKNX for DIY, web search).
-
-        Match the exact order number AND series/generation (e.g. ``AKH-0400.02`` vs ``.03``): manuals
-        differ per series. See ``note`` for how to use these without blowing up context."""
+        document_url is a best-effort manual link and may be null. Try it with catalog_docs_fetch,
+        verify the exact order number and series/generation, then use references as fallbacks.
+        Read only relevant sections. For configuration IDs and allowed values, use
+        project_list_parameters/project_list_com_objects."""
         resolved_mfr = manufacturer
         order_number: str | None = None
         product_name: str | None = None
@@ -483,34 +482,23 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         max_chars: int = 6000,
         refresh: bool = False,
     ) -> dict[str, Any]:
-        """Download a documentation file and read it WITHOUT dumping the whole thing into context.
+        """Read a PDF or text/Markdown manual incrementally using a URL from catalog_docs. Verify
+        the device's exact order number and series. GitHub blob URLs become raw-file URLs; downloads
+        use allowed documentation hosts. Files are cached on disk; refresh=true downloads again.
 
-        Handles PDF manuals AND markdown/text docs (e.g. OpenKNX Applikationsbeschreibungen on
-        GitHub — a github.com/.../blob/... link is auto-rewritten to the raw file). Get a link from
-        catalog_docs first, then read incrementally.
+        PDF results always include {url, total_pages}, plus:
+        - page=N (1-based, takes precedence over find): {page, text, truncated}.
+        - find="term": {find, pages}, with matching 1-based page numbers.
+        - neither: {outline, hint}; outline entries have {title, page}, or the list is empty.
 
-        PDF (has pages):
-        - no ``page``/``find``: returns ``total_pages`` + the document ``outline`` (section titles +
-          page numbers). NOTE: many manuals have no bookmarks — then ``outline`` is empty, use ``find``.
-        - ``find="term"``: returns the page numbers where the term occurs. Case-insensitive substring;
-          it does NOT match synonyms, and manuals mix German/English, so try both spellings
-          (e.g. "Sperren"/"disable"/"lock", "Stellgröße"/"control value", "Präsenz"/"presence").
-        - ``page=N``: returns that page's text (capped at ``max_chars``).
+        Text/Markdown results always include {url, content_type: "text", total_chars}; page is ignored.
+        - find="term": adds {find, match_count, matches}; matches has at most 50 {line, text} entries
+          with 1-based line numbers and snippets up to 200 characters; match_count counts all matches.
+        - no find: adds {outline, text, truncated, hint}; outline entries have {level, title, line}.
 
-        Markdown/text (``content_type: "text"``, no pages, ``page`` is ignored):
-        - no ``find``: returns the markdown heading ``outline`` + the ``text`` (capped at ``max_chars``).
-        - ``find="term"``: returns the matching line numbers with a snippet of each line.
-
-        The result ALWAYS includes the source ``url`` — hand it to the user or open it to verify a
-        finding against the original. Docs are cached ON DISK permanently (see catalog_docs_cached),
-        so after the first fetch every call is instant and works offline; pass ``refresh=True`` to
-        re-download an updated doc.
-
-        Tip (learned the hard way): pick the manual that matches the device's exact order number and
-        SERIES/generation — a manufacturer's current product page often links only the newest
-        series' manual (e.g. an ``.03`` handbook for an ``.02`` device), whose objects/parameters
-        differ. Only downloads from knx.org, known manufacturer sites and GitHub; runs on the request
-        thread (network + parse) and does not touch the project."""
+        max_chars caps returned page/document text. find is a case-insensitive substring search;
+        try German/English terms when needed. Use find when a PDF has no outline. Returns the source
+        url for verification; this does not change the project."""
         from pypdf import PdfReader
 
         url = _normalize_doc_url(url)
@@ -545,10 +533,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def catalog_docs_cached() -> dict[str, Any]:
-        """List the documentation PDFs already cached on disk (filename → source url + size).
-
-        These are available instantly and offline via catalog_docs_fetch. Recognise a device by its
-        manual's filename and reuse the ``url`` directly instead of searching again."""
+        """List documentation files cached on the editor host. Returns {items, count}; each item has
+        {filename, url, size_bytes}. Pass url to catalog_docs_fetch to reuse a PDF or text/Markdown
+        file offline without searching or downloading again."""
         index = _read_index()
         cache_dir = _docs_cache_dir()
         items = []
@@ -562,13 +549,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def catalog_import_knxprod(path: str) -> dict[str, Any]:
-        """Import a local .knxprod file into the catalog. Returns the newly added product versions.
-
-        A new application version of a product already in the catalog is added next to the existing
-        versions; ``added_versions`` lists each one, ``added_refs`` their product refs.
-
-        The path is on the EDITOR's machine. If your MCP client runs on a different machine, use
-        catalog_import_knxprod_bytes instead, or catalog_download_online_products for online-catalog
+        """Import a .knxprod at path on the editor host into the local catalog, keeping existing
+        versions. For a file on a remote client, use catalog_import_knxprod_bytes.
+        Returns {added_refs, added_versions}: added_refs lists distinct product refs for added versions;
+        each added_versions item has {product_ref_id, hardware2program_ref_id, application_id,
+        application_version}. Pass product_ref_id and optional hardware2program_ref_id to
+        project_add_device. Catalog imports are outside project_undo history and do not program
         devices."""
         added = ctx.run_locked(
             lambda: catalog.import_knxprod(Path(path)), timeout=_SLOW
@@ -577,13 +563,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def catalog_import_knxprod_bytes(filename: str, data_base64: str) -> dict[str, Any]:
-        """Import a .knxprod supplied INLINE as base64, for when the client is not on the editor host.
-
-        Use this when a local file path is not reachable by the editor (remote MCP client): attach the
-        .knxprod and pass its bytes as base64. The archive is decoded, validated and imported; then
-        read its content with catalog_list_products / catalog_get_application / project_list_com_objects
-        / project_list_parameters (the tool returns product refs, not raw bytes). Prefer
-        catalog_import_knxprod(path) when the file is already on the editor host. Capped at 25 MB."""
+        """Import a .knxprod from a remote client: pass its filename and base64 bytes as data_base64
+        (decoded size at most 25 MB). Prefer catalog_import_knxprod for files on the editor host.
+        Returns {added_refs, added_versions, filename, size_bytes}; filename is sanitized and
+        size_bytes is the decoded size. added_refs lists distinct product refs for added versions;
+        each added_versions item has {product_ref_id, hardware2program_ref_id, application_id,
+        application_version}. Pass product_ref_id and optional hardware2program_ref_id to
+        project_add_device. This changes the local catalog, outside project_undo history."""
         try:
             raw = base64.b64decode(data_base64, validate=True)
         except ValueError as exc:
@@ -612,11 +598,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def catalog_delete_product(product_ref_id: str) -> dict[str, Any]:
-        """Delete a product from the local catalog. Cannot be undone.
-
-        Also removes what only this product used: hardware programs, hardware, applications, empty
-        catalog sections, manufacturers and the stored .knxprod archives. ``affected_devices`` counts
-        the open project's devices that can't be loaded until the product is imported again."""
+        """Delete all versions of a local catalog product using product_ref_id from
+        catalog_list_products. Also removes exclusively used programs, hardware, applications,
+        sections, manufacturers and stored archives. This is irreversible with project_undo.
+        Returns {product_ref_id, removed_programs, removed_applications, removed_hardware,
+        removed_sections, removed_manufacturers, removed_files, affected_devices}. The removed lists
+        contain IDs, except removed_files contains filenames. affected_devices counts open-project
+        devices that cannot be loaded until the product is reimported; hardware is unchanged."""
         project = ctx.api.project
 
         def _delete() -> dict[str, Any]:
@@ -649,18 +637,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def catalog_online_language() -> dict[str, str]:
-        """The selected online download country/language (KNX language id, e.g. ``de-DE``)."""
+        """Return {language}: the selected online download country/language code (e.g. "de-DE")."""
         return {"language": catalog.online_language}
 
     @tool
     def catalog_set_online_language(code: str) -> dict[str, str]:
-        """Select and persist the online download country/language."""
+        """Persist the online download country/language using code such as "de-DE".
+        Returns {language}, containing code. This setting is outside project_undo history."""
         catalog.set_online_language(code)
         return {"language": code}
 
     @tool
     def catalog_refresh_online_manufacturers() -> dict[str, Any]:
-        """Download the online manufacturer list now (network). Returns {items, count}."""
+        """Refresh the online manufacturer list over the network. Returns {items, count}; each item
+        has {id, name}. Pass id as manufacturer_id to catalog_online_items."""
         items = [
             {"id": m.id, "name": m.name} for m in catalog.refresh_online_manufacturers()
         ]
@@ -668,7 +658,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def catalog_online_items(manufacturer_id: int) -> dict[str, Any]:
-        """Downloadable products a manufacturer offers in the online catalog (network)."""
+        """List a manufacturer's online catalog products over the network. Pass id from
+        catalog_refresh_online_manufacturers as manufacturer_id. Returns {items, count}; each item
+        has {id, name, order_number, downloadable}. Collect id values from downloadable items into
+        catalog_item_ids for catalog_download_online_products."""
         items = [
             {
                 "id": item.id,
@@ -684,7 +677,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def catalog_download_online_products(
         catalog_item_ids: list[str], language_ids: list[str] | None = None
     ) -> dict[str, Any]:
-        """Download the .knxprod for the given online catalog items and import it (network)."""
+        """Download and import online products into the local catalog. catalog_item_ids must be a
+        nonempty list of id values from downloadable catalog_online_items entries. Omitted or empty
+        language_ids uses the selected catalog_online_language; otherwise use codes such as "de-DE".
+        Returns {added_refs, added_versions}; added_refs lists distinct product refs for added versions;
+        each added_versions item has {product_ref_id, hardware2program_ref_id, application_id,
+        application_version}. Pass product_ref_id and optional hardware2program_ref_id to
+        project_add_device. The import is outside project_undo history and does not program devices."""
         if not catalog_item_ids:
             raise ToolError("catalog_item_ids must not be empty")
         added = ctx.run_locked(

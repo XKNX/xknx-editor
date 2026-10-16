@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     )
     from xknxeditor.prod.parser_v2.calculation import ChangeSet
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
-    from xknxeditor.prod.parser_v2.ui import UiComObject, UiNode
+    from xknxeditor.prod.parser_v2.ui import UiComObject, UiNode, UiParameter
 
 
 class PinDir(Enum):
@@ -194,6 +194,23 @@ def _collect_ui_com_objects(
             result.append(node)
         elif isinstance(node, (_UiTab, _UiParameterBlock)):
             result.extend(_collect_ui_com_objects(node.children))
+    return result
+
+
+def collect_ui_parameters(
+    nodes: list[UiNode] | tuple[UiNode, ...],
+) -> list[UiParameter]:
+    """Flatten a device UI tree to its parameter leaves (imgui-free), recursing tabs and blocks."""
+    from xknxeditor.prod.parser_v2.ui import UiParameter as _UiParameter
+    from xknxeditor.prod.parser_v2.ui import UiParameterBlock as _UiParameterBlock
+    from xknxeditor.prod.parser_v2.ui import UiTab as _UiTab
+
+    result: list[UiParameter] = []
+    for node in nodes:
+        if isinstance(node, _UiParameter):
+            result.append(node)
+        elif isinstance(node, (_UiTab, _UiParameterBlock)):
+            result.extend(collect_ui_parameters(node.children))
     return result
 
 

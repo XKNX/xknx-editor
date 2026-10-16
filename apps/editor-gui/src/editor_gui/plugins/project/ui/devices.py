@@ -63,9 +63,11 @@ class DevicesPanel:
         count_paste_targets: Callable[[int], int] = lambda _n: 1,
         get_unloaded_devices: Callable[[], list[UnloadedDevice]] = lambda: [],
         on_device_info: Callable[[int], None] | None = None,
+        on_compare: Callable[[int], None] | None = None,
     ) -> None:
         self._get_devices = get_devices
         self._on_device_info = on_device_info
+        self._on_compare = on_compare
         self._get_unloaded_devices = get_unloaded_devices
         self._get_areas = get_areas
         self._get_lines = get_lines
@@ -322,6 +324,11 @@ class DevicesPanel:
                     bool(device.individual_address),
                     self._on_device_info,
                 )
+            if (
+                self._on_compare is not None
+                and imgui.menu_item(S.CONTEXT_COMPARE_DEVICE, "", False)[0]
+            ):
+                self._on_compare(device.node_id)
             imgui.separator()
             if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
                 self._delete_target_device = device

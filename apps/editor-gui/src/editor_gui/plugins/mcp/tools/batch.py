@@ -202,14 +202,44 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         atomic: bool = True,
         dry_run: bool = False,
     ) -> dict[str, Any]:
-        """Apply many project mutations in one call. Each op is ``{"op": name, "params": {...}}``.
+        """Apply project edits in order. Each operations entry is {"op": name, "params": {...}}.
+        These are undoable project steps; applying changes to hardware requires connection tools.
+        A batch may require multiple project_undo calls. IDs must be known before the call; later
+        operations cannot reference earlier results.
 
-        Allowed ops: add_device, rename_device, set_individual_address, set_parameter,
-        set_com_object_flag, create_group_address, rename_group_address, set_group_address_dpt,
-        remove_group_address, link_com_object, unlink_com_object, create_area, create_line. (No
-        bus/programming ops.) ``dry_run`` validates without applying. ``atomic`` (default true) rolls
-        the whole batch back on the first failure; non-atomic applies best-effort. Undo with
-        project_undo (a batch is a run of undoable steps)."""
+        Supported ops with required params (optional params in brackets) and success result fields:
+        - add_device: product_ref_id [name] -> {node_id}; uses the first matching catalog product.
+        - rename_device: node_id, name -> {node_id}.
+        - set_individual_address: node_id, address -> {node_id, address}.
+        - set_parameter: node_id, parameter_ref_id, value -> {node_id, parameter_ref_id}.
+        - set_com_object_flag: node_id, com_object_ref_id, flag, value -> {node_id, com_object_ref_id}.
+        - create_group_address: [address, name] -> {group_address_id}.
+        - rename_group_address: group_address_id, name -> {group_address_id}.
+        - set_group_address_dpt: group_address_id [dpt; omitted/null clears] -> {group_address_id}.
+        - remove_group_address: group_address_id -> {group_address_id}.
+        - link_com_object: node_id, com_object_ref_id, group_address_id [is_sending=false] -> {link_id}.
+        - unlink_com_object: assignment_id -> {assignment_id}.
+        - create_area: area_number [name] -> {area_id}.
+        - create_line: area_id, line_number [name] -> {line_id}.
+
+        Use node_id from project_list_devices, product_ref_id from catalog_list_products, parameter
+        ref_id from project_list_parameters as parameter_ref_id, and object ref_id from
+        project_list_com_objects as com_object_ref_id. Use id from project_list_group_addresses as
+        group_address_id; use area id from project_topology as area_id. For assignment_id, use id
+        from project_get_ga_assignments, assignment_id from project_get_com_object_links or a returned
+        link_id. Linkable objects are required for linking; set is_sending=true for a transmitting
+        link. flag is communication/read/write/transmit/update/read_on_init.
+
+        dry_run=true checks only operation names, required params and flag names, without applying
+        edits or validating referenced entities/values. Returns {dry_run, valid, results}; each result
+        has {index, op, valid}, plus issue when invalid. index is zero-based.
+
+        With dry_run=false, returns {applied, atomic, rolled_back, ok, failed, results}. Each result
+        has {index, op, status}, plus result on "ok" or error on "error"; "skipped" has neither.
+        atomic=true (default) stops on the first reported error and rewinds applied project edits;
+        later operations are skipped. atomic=false continues, so applied=true can coexist with
+        failures. ok counts successful handler returns even after rollback; inspect rolled_back and
+        each result. Handlers can return without changing anything, so re-read critical edits."""
         require_project(ctx)
 
         if dry_run:

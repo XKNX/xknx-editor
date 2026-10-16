@@ -8,6 +8,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
+from imgui_bundle import imgui
 from xknx.telegram.apci import GroupValueRead, GroupValueWrite
 
 from editor_gui.device_info import (
@@ -42,6 +43,7 @@ from editor_gui.plugins.project.ui import (
 )
 from editor_gui.plugins.project.ui.dali_commissioning import DaliCommissioningPanel
 from editor_gui.plugins.project.ui.device_certificate import DeviceCertificateDialog
+from editor_gui.plugins.project.ui.device_compare import DeviceComparePanel
 from editor_gui.plugins.project.ui.devices import Area, Line
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
@@ -58,6 +60,7 @@ from editor_gui.plugins.project.ui.read_device_dialog import ReadDeviceDialog
 from editor_gui.plugins.project.ui.secure_commissioning import SecureCommissioningDialog
 from editor_gui.plugins.project.ui.tools import apply_name_swap, shifted_ia
 from editor_gui.widgets import ButtonActions
+from editor_gui.widgets.dialog import begin_tool_window
 from editor_gui.widgets.dpt_value import GroupValueBus
 from editor_gui.widgets.icons import (
     Icon,
@@ -179,7 +182,22 @@ class ProjectPlugin:
             count_paste_targets=self._count_paste_targets,
             get_unloaded_devices=lambda: api.project.unloaded_devices,
             on_device_info=self._open_read_dialog,
+            on_compare=self._open_compare,
         )
+        self._compare_panel = DeviceComparePanel(
+            get_devices=lambda: api.project.devices,
+            get_links=lambda db_id: [
+                (a.group_address_id, a.is_sending)
+                for a in api.project.get_links_for_com_object(db_id)
+            ],
+            get_address=lambda ga_id: (
+                ga.address
+                if (ga := api.project.get_group_address(ga_id)) is not None
+                else ""
+            ),
+            get_revision=lambda: api.project.revision,
+        )
+        self._compare_open = False
 
         group_bus = GroupValueBus(
             connected=lambda: api.connection.xknx is not None,
@@ -310,6 +328,7 @@ class ProjectPlugin:
             can_paste_config=self._can_paste_config,
             count_paste_targets=self._count_paste_targets,
             on_device_info=self._open_read_dialog,
+            on_compare=self._open_compare,
         )
 
         self._project_info_panel = ProjectInfoPanel(
@@ -781,6 +800,23 @@ class ProjectPlugin:
             return
         label = f"{device.individual_address or ''} {device.name}".strip()
         self._read_device_dialog.open(node_id, label)
+
+    def _open_compare(self, node_id: int) -> None:
+        """Open the compare-devices window, seeded with ``node_id`` as device A."""
+        self._compare_panel.set_primary(node_id)
+        self._compare_open = True
+
+    def render_compare_window(self) -> None:
+        """The floating "Compare Devices" window; dispatched from the app overlay pass."""
+        if not self._compare_open:
+            return
+        expanded, open_state = begin_tool_window(
+            S.COMPARE_TITLE, True, width=80 * 16, height=40 * 16
+        )
+        self._compare_open = bool(open_state)
+        if expanded:
+            self._compare_panel.render()
+        imgui.end()
 
     def _device_readout(self, node_id: int) -> "DeviceInfo | None":
         with self._readout_lock:
@@ -2173,6 +2209,7 @@ class ProjectPlugin:
         self._button_runner.render()
         self._memory_preview.render()
         self._preflight_result.render()
+        self.render_compare_window()
 
     def on_load(self) -> None:
         pass

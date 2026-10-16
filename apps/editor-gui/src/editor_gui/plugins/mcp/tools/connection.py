@@ -27,6 +27,7 @@ Scope = Literal[
     "FULL",
     "PARAMETERS",
     "GROUP_COMMUNICATION",
+    "PARAMETERS_AND_GROUP_COMMUNICATION",
     "APPLICATION",
     "UNLOAD",
     "UNLOAD_ALL",
@@ -107,7 +108,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def connection_configure(
         controller_ip: str, multicast_group: str = "", routing: bool = False
     ) -> dict[str, str]:
-        """Set and persist the gateway/connection settings (applied on the next connect)."""
+        """Persist the gateway/connection settings. Empty or whitespace-only ``controller_ip`` /
+        ``multicast_group`` strings keep their previous value; non-empty strings replace them.
+        ``routing`` here is only the stored preference — connection_connect always uses tunnelling,
+        connection_connect_gateway prefers tunnelling and otherwise routing. Disconnect before
+        changing an active connection's target."""
         conn.configure(controller_ip, multicast_group, routing)
         return {"status": "configured"}
 
@@ -182,39 +187,40 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         current_address: str | None = None,
         use_serial_number: bool = False,
     ) -> dict[str, Any]:
-        """Download the device's application/parameters/links onto the bus (``timeout`` seconds).
+        """Download the device (``node_id`` from project_list_devices) onto the bus (``timeout``
+        seconds). Needs an open connection, a project individual address, and the device physically on
+        the bus; secure devices need a matching loaded keyring. Bus changes are NOT undoable with
+        project_undo, and a failure or timeout may leave partial changes.
 
-        Needs an open connection and the device's individual address, and the device must physically
-        be on the bus. NEW device (first commissioning): set the address in the project
-        (project_set_individual_address), assign it to the device in programming mode
-        (connection_assign_individual_address), then program with scope FULL. ALREADY-programmed
-        device: run connection_evaluate_device ONCE to preview the diff, then program.
+        ALREADY-programmed device: run connection_evaluate_device once to preview the diff, then
+        program with the scope matching your change. NEW device: assign its address first
+        (project_set_individual_address, then connection_assign_individual_address with the device in
+        programming mode), then program with scope FULL.
 
-        ``scope`` — pick the one matching what you changed (all scopes run the same load procedure,
-        just filtered, and only changed bytes are written; only the two address scopes program the
-        individual address):
+        ``scope`` (default FULL) selects which loadable parts run; the procedure may reload/restart
+        the device, so do not assume only changed bytes are written:
         - PARAMETERS: parameter values only.
-        - GROUP_COMMUNICATION: group-address links only (address/association/group-object tables).
-        - APPLICATION: parameters + com-object (group-object) table, but NOT the group-address links.
-        - FULL (default): everything = APPLICATION + GROUP_COMMUNICATION. Use when a change touches
-          BOTH the application AND the links (e.g. changing a push-button function type AND relinking
-          its objects) — no single partial scope covers both — or when unsure. Not heavier than the
-          partials (same procedure, delta writes), it just does not re-flash firmware or the address.
-        - UNLOAD: remove the application (reset the device to unloaded).
-        - INDIVIDUAL_ADDRESS: only the device's project address, to the single device in
-          programming mode; waits until someone presses its programming button (until ``timeout``).
-          Refused when another device already uses the address.
-        - OVERWRITE_INDIVIDUAL_ADDRESS: change the address of the device that currently answers at
-          ``current_address`` to the project address, without pressing its programming button (it
-          is switched to programming mode remotely).
+        - GROUP_COMMUNICATION: the group-address link tables (address/association/group-object).
+        - PARAMETERS_AND_GROUP_COMMUNICATION: both of the above — the scope for a change that touches
+          parameters AND links (e.g. changing a push-button function type AND relinking its objects).
+        - APPLICATION: the complete application load — parameters, com-object table, AND the
+          group-address link tables (like FULL, without the standalone address-assignment step).
+        - FULL: the full application load; for a device not yet answering it can also assign the
+          project address first (optionally via ``use_serial_number``).
+        - UNLOAD: remove the application. UNLOAD_ALL also resets the single device in programming mode
+          to 15.15.255 — make sure that is the intended device.
+        - INDIVIDUAL_ADDRESS: write ONLY the project address to the single device in programming mode
+          (waits until its programming button is pressed, up to ``timeout``); refused when another
+          device already uses the address. OVERWRITE_INDIVIDUAL_ADDRESS writes it to the device
+          currently answering at ``current_address`` (required), switching it to programming mode
+          remotely.
 
-        ``use_serial_number`` addresses the device by the serial number stored in the project
-        (project_set_serial_number) instead of programming mode: for INDIVIDUAL_ADDRESS, and for a
-        FULL download of a device that does not answer at its address yet.
-
-        A device whose hardware is marked NoDownloadWithoutPlugin is refused unless
-        ``without_plugin`` is set - only after the user explicitly confirmed programming it without
-        the manufacturer's plugin, which may leave it misconfigured."""
+        ``use_serial_number`` addresses the device by its project serial (project_set_serial_number)
+        instead of programming mode — for INDIVIDUAL_ADDRESS, or a FULL commissioning download of a
+        device that does not answer at its address yet. A device whose hardware is
+        NoDownloadWithoutPlugin is refused unless ``without_plugin=true``, set only after the user
+        explicitly confirmed programming it without the manufacturer's plugin. Returns
+        {status, node_id}."""
         device, group_communication = _programmable_device(node_id)
         resolved = _resolve_scope(scope)
         if resolved.name == "OVERWRITE_INDIVIDUAL_ADDRESS" and not current_address:
@@ -306,12 +312,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def connection_evaluate_device(
         node_id: int, scope: Scope | None = None, timeout: float = 120.0
     ) -> dict[str, Any]:
-        """Preview what a download would change on an ALREADY-programmed device (``timeout`` seconds).
+        """Preview what a download would change on an ALREADY-programmed device, without changing it.
 
-        Reads the live device point-to-point and diffs it against the generated image. Meaningful
-        only for a device that is already commissioned and answers at its individual address — for a
-        NEW/virgin device it fails (nothing responds), so skip it and program directly with scope
-        FULL. Needs an open connection and the device's individual address."""
+        Reads the live device point-to-point and diffs it against the generated image. Needs an open
+        connection and the device answering at its project individual address — a device that does not
+        respond (e.g. a virgin/unprogrammed one) fails, so skip this and program a NEW device directly
+        with scope FULL. ``scope`` defaults to FULL; the individual-address scopes are rejected.
+        ``timeout`` in seconds. Returns {node_id, changed_bytes, changed_segments, changed_properties,
+        summary}; changed_segments/changed_properties are counts and do not describe unload/restart or
+        address-reset effects."""
         device, group_communication = _programmable_device(node_id)
         resolved = _resolve_scope(scope)
         if resolved.individual_address_only:
@@ -337,9 +346,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def connection_assign_individual_address(
         node_id: int, timeout: float = 30.0
     ) -> dict[str, Any]:
-        """Write the device's project individual address to a device in programming mode.
-
-        Needs an open connection and a device in programming mode on the bus. ``timeout`` seconds."""
+        """Write the device's project individual address to the single device currently in
+        programming mode. Needs an open connection and an unused project address set beforehand with
+        project_set_individual_address (this does not check address occupancy); exactly one device
+        must be in programming mode. This bus change is NOT undoable. ``timeout`` in seconds. Returns
+        {status, node_id, address}."""
         _ensure_connected()
         device = _device(node_id)
         if not device.individual_address:

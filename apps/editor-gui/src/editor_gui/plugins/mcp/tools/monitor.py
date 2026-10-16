@@ -26,7 +26,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def monitor_latest(address: str) -> dict[str, Any]:
-        """The latest value seen on a group address (raw payload, timestamp, service)."""
+        """Read the cached value last seen on a group-address string such as "1/2/3"; no bus request
+        is sent. Returns {address, service, timestamp, payload}; service is "Write" or "Response",
+        timestamp is ISO-formatted, and payload is a raw payload string. Raises if no value was seen;
+        a cached value may be stale."""
         value = monitor.latest(address)
         if value is None:
             raise ToolError(f"no value seen for {address!r}")
@@ -39,9 +42,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def monitor_telegrams(limit: int = 100) -> dict[str, Any]:
-        """A snapshot of the live bus telegram log. ``limit`` caps the most recent entries (<=0 = all).
-
-        Returns ``{items, count}`` with items oldest→newest."""
+        """Read the Group Monitor's recorded group telegrams, oldest first. limit selects the most
+        recent entries (<=0 means all). Returns {items, count}; each item has {timestamp, source,
+        destination, service, payload}. timestamp is ISO-formatted; service is "Read", "Write" or
+        "Response"; payload is a raw payload string or null for reads. count is the returned count."""
         records = monitor.telegrams()
         if limit > 0:
             records = records[-limit:]
@@ -59,10 +63,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def monitor_read_value(address: str, timeout: float = 3.0) -> dict[str, Any]:
-        """Send a GroupValueRead and wait for a fresh response (``timeout`` seconds).
-
-        Unlike monitor_send_read (fire-and-forget), this blocks until a telegram newer than the read
-        is seen on ``address`` and returns it, or raises on timeout. Needs an open connection."""
+        """Send a GroupValueRead to a group-address string (e.g. "1/2/3") and wait up to timeout
+        seconds for a fresh value. Requires an open connection; raises on timeout. Any Write or
+        Response seen on that address since the request can satisfy the wait, including unrelated
+        traffic. Returns {address, service, timestamp, payload}; timestamp is ISO-formatted and payload
+        is a raw payload string. This sends a bus read without editing the project."""
         _require_connection()
         sent_at = datetime.now()
         monitor.send_read(address)
@@ -83,7 +88,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def monitor_clear() -> dict[str, str]:
-        """Clear the monitor's stored values and telegram log."""
+        """Clear cached latest values and the Group Monitor log; active recording continues.
+        Returns {status: "cleared"}. Cleared data cannot be restored with project_undo."""
         monitor.clear()
         return {"status": "cleared"}
 
@@ -91,7 +97,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def monitor_send_write(
         address: str, value: str, dpt: str | None = None
     ) -> dict[str, str]:
-        """Send a GroupValueWrite. ``dpt`` defaults to the group address' configured DPT if known."""
+        """Queue a GroupValueWrite to a group-address string such as "1/2/3". Requires an open
+        connection. value is encoded using dpt, or the address's project DPT when omitted; missing
+        or unsupported DPTs and values that cannot be encoded raise an error.
+        Returns {status: "queued", address}; this does not confirm delivery or device action.
+        This can actuate hardware and is not reversible with project_undo; it does not edit the
+        project. Inspect fresh bus feedback to verify the effect."""
         _require_connection()
         resolved = dpt
         if resolved is None:
@@ -113,7 +124,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def monitor_send_read(address: str) -> dict[str, str]:
-        """Send a GroupValueRead to a group address (fire-and-forget; poll monitor_latest for the reply)."""
+        """Queue a GroupValueRead to a group-address string such as "1/2/3". Requires an open
+        connection. Returns {status: "queued", address} without waiting for a reply; monitor_read_value
+        waits for a fresh value. When polling monitor_latest, check timestamp to avoid stale data.
+        This sends a bus read without editing the project."""
         _require_connection()
         monitor.send_read(address)
         return {"status": "queued", "address": address}

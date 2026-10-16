@@ -1752,6 +1752,62 @@ class ProjectStrings:
         return _("Copy Configuration")
 
     @property
+    def CONTEXT_COMPARE_DEVICE(self) -> str:
+        return _("Compare with…")
+
+    @property
+    def COMPARE_TITLE(self) -> str:
+        return _("Compare Devices")
+
+    @property
+    def COMPARE_NEED_TWO(self) -> str:
+        return _("Open a project with at least two devices to compare.")
+
+    @property
+    def COMPARE_ONLY_DIFF(self) -> str:
+        return _("Only differences")
+
+    @property
+    def COMPARE_COPY(self) -> str:
+        return _("Copy")
+
+    @property
+    def COMPARE_FILTER_HINT(self) -> str:
+        return _("Filter devices by address, name or description…")
+
+    @property
+    def COMPARE_SUMMARY(self) -> str:
+        return _("{count} differences")
+
+    @property
+    def COMPARE_SECTION_HEADER(self) -> str:
+        return _("Device")
+
+    @property
+    def COMPARE_SECTION_PARAMETERS(self) -> str:
+        return _("Parameters")
+
+    @property
+    def COMPARE_SECTION_COM_OBJECTS(self) -> str:
+        return _("Group objects")
+
+    @property
+    def COMPARE_NO_DIFFERENCES(self) -> str:
+        return _("No differences")
+
+    @property
+    def COMPARE_COL_FIELD(self) -> str:
+        return _("Field")
+
+    @property
+    def COMPARE_COL_A(self) -> str:
+        return _("Device A")
+
+    @property
+    def COMPARE_COL_B(self) -> str:
+        return _("Device B")
+
+    @property
     def CONTEXT_PASTE_CONFIG(self) -> str:
         return _("Paste Configuration")
 
