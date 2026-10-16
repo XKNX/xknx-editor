@@ -77,5 +77,9 @@ class KeyringStrings:
     def KEYRING_DEVICES(self) -> str:
         return _("Devices ({count})")
 
+    @property
+    def KEYRING_EXPORT_PROJECT(self) -> str:
+        return _("Export Keyring from Project…")
+
 
 S = KeyringStrings()

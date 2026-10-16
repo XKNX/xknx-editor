@@ -1765,3 +1765,30 @@ msgstr "Später"
 
 msgid "Don't ask when adding devices"
 msgstr "Beim Hinzufügen von Geräten nicht fragen"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "Passwörter anzeigen"
+
+msgid "Secure Tunneling"
+msgstr "Sicheres Tunneling"
+
+msgid "Commissioning Password"
+msgstr "Inbetriebnahmepasswort"
+
+msgid "Authentication Code"
+msgstr "Authentifizierungscode"
+
+msgid "Interface"
+msgstr "Schnittstelle"
+
+msgid "Routing"
+msgstr "Routing"
+
+msgid "Tunnel {address}"
+msgstr "Tunnel {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "Ein Passwort braucht 1 bis 20 Latin-1-Zeichen."

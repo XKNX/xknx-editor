@@ -159,6 +159,10 @@ class ProjectCipher:
             lambda m: self.unseal(m.group().decode("ascii")).encode("utf-8"), data
         )
 
+    def seal_attribute(self, text: str) -> str:
+        """``text`` sealed as an XML attribute value (the inverse of :meth:`value`)."""
+        return self.seal(escape(text, _ATTRIBUTE_ENTITIES))
+
     def value(self, stored: str | None) -> str | None:
         """A stored secret value in the clear (the inverse of sealing a single value)."""
         if stored is None or not is_token(stored):

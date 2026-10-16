@@ -15,6 +15,7 @@ from xknxeditor.proj import (
     ProjectService,
 )
 from xknxeditor.proj.core.fdsk import Fdsk, InvalidFdskError, parse_fdsk
+from xknxeditor.proj.models import Device as _DeviceModel
 
 _SERIAL = bytes.fromhex("00FA12345678")
 _FDSK = Fdsk(_SERIAL, bytes(range(16)))
@@ -472,7 +473,7 @@ def test_ip_secrets_and_what_was_loaded(tmp_path: Path) -> None:
         "mgmt",
     )
     # In the device's order, which numbers the users; one without a password keeps its place.
-    assert secrets.bus_interfaces == [
+    assert [(b.ref_id, b.password) for b in secrets.bus_interfaces] == [
         ("M-1_A-1_BI-1", "tunnel"),
         ("M-1_A-1_BI-2", None),
     ]
@@ -502,4 +503,105 @@ def test_objects_that_require_security_keep_off_plain_group_addresses(
     svc.set_secure_commissioning(pid, second, False, required.__contains__)
     assert svc.com_object_links(pid, _co(svc, pid, second)) == []
     assert all(g.data_secure for g in svc.group_addresses(pid))
+    svc.close(pid)
+
+
+def test_ip_secure_passwords_are_made_once(tmp_path: Path) -> None:
+    from xknx.secure.security_primitives import (
+        derive_device_authentication_password,
+        derive_user_password,
+    )
+
+    from xknxeditor.proj.core import ip_secure
+
+    svc, pid, first, _second, path = _project(tmp_path)
+    refs = ["M-1_A-1_BI-0", "M-1_A-1_BI-1"]
+    assert svc.ensure_ip_secrets(pid, first, refs)
+    secrets = svc.ip_secrets(pid, first)
+    passwords = [
+        secrets.device_authentication_code,
+        secrets.management_password,
+        *(b.password for b in secrets.bus_interfaces),
+    ]
+    assert [b.ref_id for b in secrets.bus_interfaces] == refs
+    assert all(
+        p is not None and len(p) == 8 and all(" " <= c <= "~" for c in p)
+        for p in passwords
+    )
+    # Kept once made.
+    assert not svc.ensure_ip_secrets(pid, first, refs)
+    assert svc.ip_secrets(pid, first) == secrets
+    # The hashes are the standard derivations.
+    assert ip_secure.authentication_code_hash("authcode") == (
+        derive_device_authentication_password("authcode")
+    )
+    assert ip_secure.password_hash("pässwort") == derive_user_password("pässwort")
+    svc.close(pid)
+    data = path.read_bytes()
+    for value in passwords:
+        assert value is not None and value.encode() not in data
+
+
+def test_ip_secure_passwords_can_be_changed(tmp_path: Path) -> None:
+    svc, pid, first, _second, path = _project(tmp_path)
+    svc.ensure_ip_secrets(pid, first, ["M-1_A-1_BI-1"])
+    special = "a\"<b>&c'"
+    svc.set_ip_secrets(
+        pid,
+        first,
+        management_password=special,
+        bus_interface_passwords={"M-1_A-1_BI-1": "tunnel-1"},
+        secure_tunnelling=False,
+    )
+    secrets = svc.ip_secrets(pid, first)
+    assert secrets.management_password == special
+    assert secrets.bus_interfaces[0].password == "tunnel-1"
+    assert not secrets.bus_interfaces[0].secure
+    svc.set_ip_secrets(pid, first, secure_tunnelling=True)
+    assert svc.ip_secrets(pid, first).bus_interfaces[0].secure
+    for wrong in ("", "x" * 21, "€uro"):
+        with pytest.raises(ValueError):
+            svc.set_ip_secrets(pid, first, authentication_code=wrong)
+    svc.close(pid)
+    pid = svc.open(path, _PASSWORD)
+    assert svc.ip_secrets(pid, first).management_password == special
+    svc.close(pid)
+
+
+def test_keyring_material(tmp_path: Path) -> None:
+    svc, pid, first, second, path = _project(tmp_path)
+    keys = svc.secured_group_keys(pid)
+    assert keys[0x0801] == _GA_KEY and len(keys[0x0802]) == 16
+    assert svc.group_address_senders(pid, 0x0801) == [0x2105, 0x2106]
+    second_co = _co(svc, pid, second)
+    assert svc.group_address_senders(pid, 0x0801, lambda co: co != second_co) == [
+        0x2105
+    ]
+    assert svc.device_sequence_number(pid, second) == 4711
+    assert svc.device_sequence_number(pid, first) is None
+    svc.close(pid)
+    from sqlalchemy.orm import Session as _Session
+
+    from xknxeditor.proj.db import make_engine, url_for
+    from xknxeditor.proj.models import GroupAddress as _GroupAddress
+
+    engine = make_engine(url_for(path))
+    try:
+        with _Session(engine) as session:
+            for ga in session.query(_GroupAddress):
+                ga.source_id = f"P-OLD-0_GA-{ga.address}"
+            device = session.get(_DeviceModel, first)
+            assert device is not None
+            device.extra_subtrees = {
+                **(device.extra_subtrees or {}),
+                "BusInterfaces": '<BusInterfaces><BusInterface RefId="M-1_A-1_BI-1">'
+                '<Connectors><Connector GroupAddressRefId="P-OLD-0_GA-2049" />'
+                '<Connector GroupAddressRefId="P-OLD-0_GA-7" /></Connectors>'
+                "</BusInterface></BusInterfaces>",
+            }
+            session.commit()
+    finally:
+        engine.dispose()
+    pid = svc.open(path, _PASSWORD)
+    assert svc.bus_interface_group_addresses(pid, first) == {"M-1_A-1_BI-1": [0x0801]}
     svc.close(pid)

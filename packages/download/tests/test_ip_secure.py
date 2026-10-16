@@ -69,3 +69,26 @@ def test_password_hashes_and_tunnelling_users() -> None:
 def test_empty_config_writes_only_defaults() -> None:
     writes = _writes(ip_secure_controls(IpSecureConfig()))
     assert set(writes) == {95, 96}
+
+
+def test_secured_service_families_come_last() -> None:
+    from xknxeditor.namespaces.intermediate.ld_ctrl_invoke_function_prop_t import (
+        LdCtrlInvokeFunctionProp,
+    )
+
+    controls = ip_secure_controls(
+        IpSecureConfig(
+            user_passwords={1: "mgmt"},
+            secured_families={4: True, 3: True, 5: False},
+        )
+    )
+    commands = [c for c in controls if isinstance(c, LdCtrlInvokeFunctionProp)]
+    assert [c.inline_data for c in commands] == [
+        bytes([0, 0, 3, 1]),
+        bytes([0, 0, 4, 1]),
+        bytes([0, 0, 5, 0]),
+    ]
+    assert all(c.prop_id == 94 and c.obj_type == 11 for c in commands)
+    assert controls.index(commands[0]) > max(
+        i for i, c in enumerate(controls) if isinstance(c, LdCtrlWriteProp)
+    )

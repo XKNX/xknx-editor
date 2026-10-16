@@ -2517,5 +2517,53 @@ class ProjectStrings:
     def DEVICE_CERTIFICATE_DONT_ASK(self) -> str:
         return _("Don't ask when adding devices")
 
+    @property
+    def CONFIGURE_IP_SECURE(self) -> str:
+        return _("KNX IP Secure")
+
+    @property
+    def CONFIGURE_IP_SECURE_SHOW(self) -> str:
+        return _("Show Passwords")
+
+    @property
+    def CONFIGURE_IP_SECURE_TUNNELLING(self) -> str:
+        return _("Secure Tunneling")
+
+    @property
+    def CONFIGURE_IP_SECURE_PASSWORD(self) -> str:
+        return _("Commissioning Password")
+
+    @property
+    def CONFIGURE_IP_SECURE_AUTHENTICATION(self) -> str:
+        return _("Authentication Code")
+
+    @property
+    def CONFIGURE_IP_SECURE_INTERFACE(self) -> str:
+        return _("Interface")
+
+    @property
+    def CONFIGURE_IP_SECURE_USER(self) -> str:
+        return _("User")
+
+    @property
+    def CONFIGURE_IP_SECURE_INTERFACE_PASSWORD(self) -> str:
+        return _("Password")
+
+    @property
+    def CONFIGURE_IP_SECURE_ROUTING(self) -> str:
+        return _("Routing")
+
+    @property
+    def CONFIGURE_IP_SECURE_TUNNEL(self) -> str:
+        return _("Tunnel {address}")
+
+    @property
+    def CONFIGURE_IP_SECURE_COPY(self) -> str:
+        return _("Copy")
+
+    @property
+    def IP_SECURE_PASSWORD_INVALID(self) -> str:
+        return _("A password needs 1 to 20 Latin-1 characters.")
+
 
 S = ProjectStrings()

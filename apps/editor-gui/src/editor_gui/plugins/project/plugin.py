@@ -6,7 +6,7 @@ import threading
 import zipfile
 from collections.abc import Callable
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from xknx.telegram.apci import GroupValueRead, GroupValueWrite
 
@@ -248,6 +248,8 @@ class ProjectPlugin:
             get_secure_commissioning=api.project.secure_commissioning,
             on_secure_commissioning_change=self._change_secure_commissioning,
             on_add_certificate=self._ask_certificate_for,
+            get_ip_secure=api.project.ip_secure_settings,
+            on_ip_secure_change=self._change_ip_secure,
             use_serial_number_default=lambda: api.connection.use_serial_number,
             find_serial_owner=self._serial_owner,
             find_product=api.catalog.find_product,
@@ -1556,6 +1558,31 @@ class ProjectPlugin:
         self._certificate_device = device
         label = f"{device.individual_address or '-'} {device.display_name}".strip()
         self._certificate_dialog.open(label)
+
+    def _change_ip_secure(
+        self, device: "Device", field: str, value: object
+    ) -> str | None:
+        """An edit in the device's KNX IP Secure settings; the message to show when rejected."""
+        from xknxeditor.proj import ProjectPasswordRequired
+
+        project = self._api.project
+        try:
+            if field == "secure_tunnelling":
+                project.set_ip_secure_settings(device, secure_tunnelling=bool(value))
+            elif field == "interface_password" and isinstance(value, tuple):
+                ref, password = cast("tuple[str, str]", value)
+                project.set_ip_secure_settings(
+                    device, interface_password=(ref, password)
+                )
+            elif field == "authentication_code" and isinstance(value, str):
+                project.set_ip_secure_settings(device, authentication_code=value)
+            elif field == "commissioning_password" and isinstance(value, str):
+                project.set_ip_secure_settings(device, commissioning_password=value)
+        except ProjectPasswordRequired:
+            return S.SECURE_DOWNLOAD_PASSWORD_REQUIRED
+        except ValueError:
+            return S.IP_SECURE_PASSWORD_INVALID
+        return None
 
     def _change_secure_commissioning(self, device: "Device", activated: bool) -> None:
         """The device setting "Secure Commissioning"; activating needs a project password."""

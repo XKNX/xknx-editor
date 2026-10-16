@@ -23,6 +23,7 @@ from sqlalchemy import func, text
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
+from xknxeditor.proj.core import ip_secure
 from xknxeditor.proj.core.addressing import (
     GroupAddressStyle,
     format_ga,
@@ -265,17 +266,25 @@ class DeviceKeys:
 
 
 @dataclass(frozen=True)
+class IpBusInterface:
+    """A bus interface of an IP device: its application ``@RefId``, its password (``None`` when
+    unknown) and whether it is secured (``@IsSecureEnabled``)."""
+
+    ref_id: str
+    password: str | None = None
+    secure: bool = True
+
+
+@dataclass(frozen=True)
 class IpSecrets:
     """The KNX IP Secure passwords the project holds for an IP device, decrypted: its device
-    authentication code, its management (user 1) password and its bus interfaces as
-    ``(@RefId, password)`` in the device's order, which gives each its user id. ``None`` when
+    authentication code, its management (user 1) password and its bus interfaces in the
+    device's order, which gives each its user id (see :mod:`.ip_secure`). ``None`` when
     unknown."""
 
     device_authentication_code: str | None = None
     management_password: str | None = None
-    bus_interfaces: list[tuple[str, str | None]] = field(
-        default_factory=list[tuple[str, str | None]]
-    )
+    bus_interfaces: list[IpBusInterface] = field(default_factory=list[IpBusInterface])
 
 
 @dataclass(frozen=True)
@@ -1320,6 +1329,11 @@ class ProjectService:
         )
         return fdsk
 
+    def installation_attributes(self, project_id: str) -> dict[str, str]:
+        """The installation's attributes kept from the import (e.g. its IP routing settings)."""
+        installation = self._state(project_id).session.query(Installation).first()
+        return dict(installation.extra_attributes or {}) if installation else {}
+
     def ip_backbone_key(self, project_id: str) -> bytes | None:
         """The installation's KNX IP Secure routing backbone key (16 octets), decrypted, or
         ``None`` when the project has none."""
@@ -1344,17 +1358,18 @@ class ProjectService:
             return value or None
 
         attributes = security_attributes(device)
-        bus_interfaces: list[tuple[str, str | None]] = []
-        raw = (device.extra_subtrees or {}).get("BusInterfaces")
-        if raw:
-            try:
-                root = ET.fromstring(raw)
-            except ET.ParseError:
-                root = ET.Element("BusInterfaces")
-            for bus_interface in root.iter("BusInterface"):
-                ref = bus_interface.get("RefId")
-                if ref:
-                    bus_interfaces.append((ref, clear(bus_interface.get("Password"))))
+        bus_interfaces = [
+            IpBusInterface(
+                ref_id=element.get("RefId", ""),
+                password=clear(element.get("Password")),
+                secure=element.get("IsSecureEnabled", "true").lower()
+                not in ("false", "0"),
+            )
+            for element in ip_secure.bus_interfaces(
+                (device.extra_subtrees or {}).get("BusInterfaces")
+            ).iter("BusInterface")
+            if element.get("RefId")
+        ]
         return IpSecrets(
             device_authentication_code=clear(
                 attributes.get("DeviceAuthenticationCode")
@@ -1362,6 +1377,227 @@ class ProjectService:
             management_password=clear(attributes.get("DeviceManagementPassword")),
             bus_interfaces=bus_interfaces,
         )
+
+    def secured_group_keys(self, project_id: str) -> dict[int, bytes]:
+        """The key of every secured group address (raw address -> 16 octets); one without a key
+        yet gets one, stored directly (see :meth:`group_security`)."""
+        state = self._state(project_id)
+        secured = secured_group_addresses(state.session)
+        keys: dict[int, bytes] = {}
+        created = False
+        for ga in state.session.query(GroupAddress).filter(
+            GroupAddress.id.in_(secured)
+        ):
+            if ga.security_key is None:
+                ga.security_key = self._new_group_key(state)
+                ga.data_secure = True
+                created = True
+            value = ga.security_key
+            if state.cipher is not None:
+                value = state.cipher.value(value)
+            key = _key(value)
+            if key is not None:
+                keys[ga.address] = key
+        if created:
+            state.session.commit()
+        return keys
+
+    def device_sequence_number(self, project_id: str, device_id: int) -> int | None:
+        """The device's next Sequence Number Sending as last read (``None`` when unknown)."""
+        device = self._state(project_id).session.get(Device, device_id)
+        if device is None:
+            return None
+        value = security_attributes(device).get("SequenceNumber")
+        try:
+            return int(value) if value else None
+        except ValueError:
+            return None
+
+    def group_address_senders(
+        self,
+        project_id: str,
+        address: int,
+        can_send: Callable[[int], bool] | None = None,
+    ) -> list[int]:
+        """The individual addresses (raw) of the devices that can send on a group address (see
+        :meth:`group_security`), sorted."""
+        session = self._state(project_id).session
+        rows = (
+            session.query(Device, ComObject.id)
+            .join(ComObject, ComObject.device_id == Device.id)
+            .join(ComObjectLink, ComObjectLink.com_object_id == ComObject.id)
+            .join(GroupAddress, GroupAddress.id == ComObjectLink.group_address_id)
+            .filter(GroupAddress.address == address)
+            .all()
+        )
+        senders: set[int] = set()
+        for device, com_object_id in rows:
+            if device.address is None:
+                continue
+            if can_send is not None and not can_send(com_object_id):
+                continue
+            line = device.segment.line
+            senders.add(
+                (line.area.address << 12) | (line.address << 8) | device.address
+            )
+        return sorted(senders)
+
+    def bus_interface_group_addresses(
+        self, project_id: str, device_id: int
+    ) -> dict[str, list[int]]:
+        """The group addresses (raw) assigned to each of the device's bus interfaces (its
+        ``<Connector>`` elements), by the bus interface's ``@RefId``."""
+        state = self._state(project_id)
+        device = state.session.get(Device, device_id)
+        if device is None:
+            return {}
+        by_source = {
+            ga.source_id.rsplit("_", 1)[-1]: ga.address
+            for ga in state.session.query(GroupAddress)
+            if ga.source_id
+        }
+        result: dict[str, list[int]] = {}
+        root = ip_secure.bus_interfaces(
+            (device.extra_subtrees or {}).get("BusInterfaces")
+        )
+        for element in root.iter("BusInterface"):
+            addresses = [
+                by_source[ref.rsplit("_", 1)[-1]]
+                for connector in element.iter("Connector")
+                if (ref := connector.get("GroupAddressRefId"))
+                and ref.rsplit("_", 1)[-1] in by_source
+            ]
+            if addresses:
+                result[element.get("RefId", "")] = addresses
+        return result
+
+    def device_additional_addresses(self, project_id: str, device_id: int) -> list[int]:
+        """The last octet of each additional individual address the device holds (its tunnelling
+        addresses), in order."""
+        device = self._state(project_id).session.get(Device, device_id)
+        if device is None:
+            return []
+        return [a.address for a in device.additional_addresses if a.address is not None]
+
+    def ensure_ip_secrets(
+        self, project_id: str, device_id: int, bus_interface_refs: Sequence[str]
+    ) -> bool:
+        """Give a secure IP device the KNX IP Secure passwords it has none of yet: a device
+        authentication code, a commissioning password and a password for each of
+        ``bus_interface_refs`` (its application's tunnelling and routing bus interfaces, in the
+        application's order), random, with their hashes. Stored directly, encrypted (so the
+        project needs a password): once made they are kept, as the device may hold them.
+        ``True`` when anything was added."""
+        state = self._state(project_id)
+        if state.cipher is None:
+            raise ProjectPasswordRequired(
+                "KNX IP Secure passwords are stored with the project password"
+            )
+        cipher = state.cipher
+        device = state.session.get(Device, device_id)
+        if device is None:
+            raise KeyError(f"No device with id {device_id}")
+        security = self._security_element(state, device_id)
+        changed = False
+        for name, derive in (
+            ("DeviceAuthenticationCode", ip_secure.authentication_code_hash),
+            ("DeviceManagementPassword", ip_secure.password_hash),
+        ):
+            if not security.get(name):
+                value = ip_secure.new_password()
+                security.set(name, cipher.seal_attribute(value))
+                security.set(
+                    f"{name}Hash", cipher.seal(ip_secure.encoded(derive(value)))
+                )
+                changed = True
+        root = ip_secure.bus_interfaces(
+            (device.extra_subtrees or {}).get("BusInterfaces")
+        )
+        ip_secure.add_bus_interfaces(root, bus_interface_refs)
+        for ref in bus_interface_refs:
+            element = ip_secure.bus_interface(root, ref)
+            if element is not None and not element.get("Password"):
+                value = ip_secure.new_password()
+                element.set("Password", cipher.seal_attribute(value))
+                element.set(
+                    "PasswordHash",
+                    cipher.seal(ip_secure.encoded(ip_secure.password_hash(value))),
+                )
+                changed = True
+        if changed:
+            subtrees = dict(device.extra_subtrees or {})
+            subtrees["BusInterfaces"] = ET.tostring(root, encoding="unicode")
+            device.extra_subtrees = subtrees
+            self._store_security(state, device_id, security)
+        return changed
+
+    def set_ip_secrets(
+        self,
+        project_id: str,
+        device_id: int,
+        *,
+        authentication_code: str | None = None,
+        management_password: str | None = None,
+        bus_interface_passwords: Mapping[str, str] | None = None,
+        secure_tunnelling: bool | None = None,
+    ) -> None:
+        """Change a secure IP device's KNX IP Secure settings (``None`` keeps one): its device
+        authentication code, its commissioning password, the passwords of bus interfaces (by
+        ``@RefId``) and whether its tunnels are secured. Stored directly like the generated ones;
+        a download writes them. ``ValueError`` for a password the device cannot take."""
+        state = self._state(project_id)
+        if state.cipher is None:
+            raise ProjectPasswordRequired(
+                "KNX IP Secure passwords are stored with the project password"
+            )
+        cipher = state.cipher
+        device = state.session.get(Device, device_id)
+        if device is None:
+            raise KeyError(f"No device with id {device_id}")
+        for value in (
+            authentication_code,
+            management_password,
+            *(bus_interface_passwords or {}).values(),
+        ):
+            if value is not None:
+                ip_secure.check_password(value)
+        security = self._security_element(state, device_id)
+        for name, value, derive in (
+            (
+                "DeviceAuthenticationCode",
+                authentication_code,
+                ip_secure.authentication_code_hash,
+            ),
+            ("DeviceManagementPassword", management_password, ip_secure.password_hash),
+        ):
+            if value is not None:
+                security.set(name, cipher.seal_attribute(value))
+                security.set(
+                    f"{name}Hash", cipher.seal(ip_secure.encoded(derive(value)))
+                )
+        root = ip_secure.bus_interfaces(
+            (device.extra_subtrees or {}).get("BusInterfaces")
+        )
+        for ref, value in (bus_interface_passwords or {}).items():
+            ip_secure.add_bus_interfaces(root, [ref])
+            element = ip_secure.bus_interface(root, ref)
+            assert element is not None
+            element.set("Password", cipher.seal_attribute(value))
+            element.set(
+                "PasswordHash",
+                cipher.seal(ip_secure.encoded(ip_secure.password_hash(value))),
+            )
+        if secure_tunnelling is not None:
+            for element in root.iter("BusInterface"):
+                if secure_tunnelling:
+                    element.attrib.pop("IsSecureEnabled", None)
+                else:
+                    element.set("IsSecureEnabled", "false")
+        subtrees = dict(device.extra_subtrees or {})
+        if len(root):
+            subtrees["BusInterfaces"] = ET.tostring(root, encoding="unicode")
+        device.extra_subtrees = subtrees
+        self._store_security(state, device_id, security)
 
     def set_ip_secure_loaded(
         self,

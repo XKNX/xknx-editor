@@ -51,6 +51,7 @@ from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga, parse_
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.ga_export import write_ga_csv as _write_ga_csv
 from xknxeditor.proj.core.identity import qualified_com_object_ref
+from xknxeditor.proj.core.ip_secure import PASSWORD_ACCESS_TYPES
 from xknxeditor.proj.core.project_secrets import check_project_password
 from xknxeditor.proj.core.skeleton import MEDIUM_TP
 
@@ -422,6 +423,30 @@ def _security_role_masks(device: Device) -> dict[str, int]:
     return {role.id: role.mask for role in roles.security_role}
 
 
+@dataclass(frozen=True)
+class IpSecureInterface:
+    """A bus interface of a KNX IP Secure device as the settings show it: its ``@RefId``, kind
+    (``"Tunneling"``/``"Routing"``), user id, tunnelling address (``None`` for routing) and
+    password."""
+
+    ref_id: str
+    access: str
+    user_id: int
+    address: str | None
+    password: str
+
+
+@dataclass(frozen=True)
+class IpSecureSettings:
+    """The KNX IP Secure settings of a device: its authentication code, its commissioning
+    password, whether its tunnels are secured and its bus interfaces."""
+
+    authentication_code: str
+    commissioning_password: str
+    secure_tunnelling: bool
+    interfaces: list[IpSecureInterface]
+
+
 def ip_secure_users(
     project: "IpSecrets",
     keyring: "KeyringIpSecrets | None",
@@ -456,12 +481,12 @@ def ip_secure_users(
     if not management:
         return authentication, passwords, tunnelling
     passwords[MANAGEMENT_USER_ID] = management
-    for position, (ref, password) in enumerate(project.bus_interfaces, start=1):
+    for position, bus_interface in enumerate(project.bus_interfaces, start=1):
         user_id = MANAGEMENT_USER_ID + position
-        if not password:
+        if not bus_interface.password:
             continue
-        passwords[user_id] = password
-        index = tunnelling_interfaces.get(ref)
+        passwords[user_id] = bus_interface.password
+        index = tunnelling_interfaces.get(bus_interface.ref_id)
         if index is not None:
             tunnelling.append((user_id, index))
     for user_id, address, password in keyring.tunnels if keyring else []:
@@ -477,17 +502,59 @@ def ip_secure_users(
     return authentication, passwords, tunnelling
 
 
+def _secured_families(
+    kinds: set[str],
+    project: "IpSecrets",
+    passwords: dict[int, str],
+    backbone: bytes | None,
+) -> dict[int, bool]:
+    """Which KNXnet/IP service families a secure download makes require security: device
+    management and tunnelling once their passwords are written (the tunnels as their bus
+    interfaces say, ``@IsSecureEnabled``), routing with the backbone key. A family the
+    application has no bus interface for is left alone, as is one without its passwords."""
+    from xknxeditor.download.ip_secure import (
+        SERVICE_FAMILY_DEVICE_MANAGEMENT,
+        SERVICE_FAMILY_ROUTING,
+        SERVICE_FAMILY_TUNNELLING,
+    )
+
+    families: dict[int, bool] = {}
+    if passwords:
+        families[SERVICE_FAMILY_DEVICE_MANAGEMENT] = True
+        if "Tunneling" in kinds:
+            families[SERVICE_FAMILY_TUNNELLING] = all(
+                bus_interface.secure for bus_interface in project.bus_interfaces
+            )
+    if "Routing" in kinds and backbone is not None:
+        families[SERVICE_FAMILY_ROUTING] = True
+    return families
+
+
+def _bus_interfaces(device: Device) -> list[tuple[str, str, int]]:
+    """The application's bus interfaces as ``(@Id, @AccessType, @AddressIndex)``, in order."""
+    return _app_bus_interfaces(device.app) if device.app is not None else []
+
+
+def _app_bus_interfaces(app: Application) -> list[tuple[str, str, int]]:
+    interfaces = app.program.static.bus_interfaces
+    if interfaces is None:
+        return []
+    return [
+        (
+            bus_interface.id,
+            str(getattr(bus_interface.access_type, "value", "")),
+            bus_interface.address_index,
+        )
+        for bus_interface in interfaces.bus_interface
+    ]
+
+
 def _tunnelling_interfaces(device: Device) -> dict[str, int]:
     """The application's tunnelling bus interfaces: ``@Id`` -> ``@AddressIndex``."""
-    if device.app is None:
-        return {}
-    interfaces = device.app.program.static.bus_interfaces
-    if interfaces is None:
-        return {}
     return {
-        bus_interface.id: bus_interface.address_index
-        for bus_interface in interfaces.bus_interface
-        if getattr(bus_interface.access_type, "value", None) == "Tunneling"
+        ref: index
+        for ref, access, index in _bus_interfaces(device)
+        if access == "Tunneling"
     }
 
 
@@ -552,6 +619,10 @@ class ProjectService:
         self._topology_cache_version: int = -1
         self._ga_cache_version: int = -1
         self._version: int = 0
+        # node id -> ((node id, revision), its KNX IP Secure settings); see ip_secure_settings.
+        self._ip_secure_cache: dict[
+            int, tuple[tuple[int, int], IpSecureSettings | None]
+        ] = {}
         self._selected_node_id: int | None = None
         # Multi-selection: the full set of selected device node ids (the primary above is
         # the last-clicked one, kept for all single-device consumers). Empty = single/none.
@@ -1115,6 +1186,7 @@ class ProjectService:
         self._topology_cache_version = -1
         self._ga_cache_version = -1
         self._version = 0
+        self._ip_secure_cache.clear()
         self._selected_node_id = None
         self._selected_node_ids = set()
         self._dynui_lru.clear()
@@ -1908,7 +1980,216 @@ class ProjectService:
                 activated,
                 self.com_object_requires_security,
             )
+            if activated:
+                self._ensure_ip_secrets(
+                    device.node_id,
+                    device.app,
+                    self._svc.device(self._pid, device.node_id).hardware2program_ref_id,
+                )
         self._bump(structural=True)
+
+    def ip_secure_device(self, device: Device) -> bool:
+        """Whether the device is a KNX IP Secure device: an IP device whose application supports
+        KNX Data Secure and has tunnelling or routing bus interfaces."""
+        if self._pid is None or device.app is None:
+            return False
+        try:
+            ref = self._svc.device(self._pid, device.node_id).hardware2program_ref_id
+        except KeyError:
+            return False
+        return self._ip_secure_application(device.app, ref)
+
+    def export_keyring(self, path: Path, password: str) -> int:
+        """Write the project's key material as a keyring (``.knxkeys``) to ``path``, encrypted and
+        signed with ``password``: the backbone key, every device commissioned securely (with the
+        Tool Key it holds, else the one it gets), the tunnels of the KNX IP Secure devices (with
+        the secured group addresses assigned to them and their senders) and the keys of the
+        secured group addresses. Returns how many devices it holds."""
+        from xknx.telegram import IndividualAddress
+
+        from xknxeditor.datasecure import (
+            KeyringDevice,
+            KeyringTunnel,
+            create_keyring,
+            serialize_keyring,
+        )
+
+        if self._pid is None:
+            raise ValueError("No project is open.")
+        installation = self._svc.installation_attributes(self._pid)
+        with self._io_lock:
+            group_keys = self._svc.secured_group_keys(self._pid)
+        devices: list[KeyringDevice] = []
+        tunnels: list[KeyringTunnel] = []
+        for device in self.devices:
+            address = device.individual_address
+            keys = self.device_keys(device)
+            tool_key = (keys.loaded_tool_key or keys.tool_key) if keys else None
+            if not address or tool_key is None:
+                continue
+            settings = self.ip_secure_settings(device)
+            devices.append(
+                KeyringDevice(
+                    address,
+                    tool_key=tool_key,
+                    sequence_number=self._svc.device_sequence_number(
+                        self._pid, device.node_id
+                    ),
+                    management_password=settings.commissioning_password or None
+                    if settings
+                    else None,
+                    authentication=settings.authentication_code or None
+                    if settings
+                    else None,
+                )
+            )
+            if settings is None:
+                continue
+            assigned = self._svc.bus_interface_group_addresses(
+                self._pid, device.node_id
+            )
+            for interface in settings.interfaces:
+                if interface.access != "Tunneling" or not interface.address:
+                    continue
+                if not interface.password:
+                    continue
+                tunnels.append(
+                    KeyringTunnel(
+                        host=address,
+                        individual_address=interface.address,
+                        user_id=interface.user_id,
+                        password=interface.password,
+                        authentication=settings.authentication_code or None,
+                        group_addresses={
+                            ga: [
+                                str(IndividualAddress(raw))
+                                for raw in self._svc.group_address_senders(
+                                    self._pid, ga, self._com_object_can_send
+                                )
+                            ]
+                            for ga in assigned.get(interface.ref_id, [])
+                            if ga in group_keys
+                        },
+                    )
+                )
+        created = datetime.datetime.now(datetime.UTC).strftime("%Y-%m-%dT%H:%M:%S")
+        keyring = create_keyring(
+            self._project_name_for_keyring(),
+            password,
+            created,
+            backbone_key=self._svc.ip_backbone_key(self._pid),
+            multicast_address=installation.get("IPRoutingMulticastAddress")
+            or "224.0.23.12",
+            latency=_int_or(installation.get("IPRoutingLatencyTolerance"), 2000),
+            tunnels=tunnels,
+            devices=devices,
+            group_keys=group_keys,
+        )
+        path.write_bytes(serialize_keyring(keyring))
+        self._log.info("keyring exported", devices=len(devices), tunnels=len(tunnels))
+        return len(devices)
+
+    def _project_name_for_keyring(self) -> str:
+        info = self.get_project_metadata()
+        return (info.name if info is not None else "") or "Project"
+
+    def ip_secure_settings(self, device: Device) -> IpSecureSettings | None:
+        """The device's KNX IP Secure settings, for a KNX IP Secure device commissioned securely;
+        ``None`` otherwise. Cached per project revision (the settings panel asks every frame)."""
+        key = (device.node_id, self._version)
+        cached = self._ip_secure_cache.get(device.node_id)
+        if cached is not None and cached[0] == key:
+            return cached[1]
+        settings = self._read_ip_secure_settings(device)
+        self._ip_secure_cache[device.node_id] = (key, settings)
+        return settings
+
+    def _read_ip_secure_settings(self, device: Device) -> IpSecureSettings | None:
+        if self._pid is None or not self.ip_secure_device(device):
+            return None
+        if not self._svc.secure_commissioning(self._pid, device.node_id):
+            return None
+        secrets = self._svc.ip_secrets(self._pid, device.node_id)
+        kinds = {ref: (access, index) for ref, access, index in _bus_interfaces(device)}
+        octets = self._svc.device_additional_addresses(self._pid, device.node_id)
+        prefix = device.individual_address.rsplit(".", 1)[0]
+        interfaces: list[IpSecureInterface] = []
+        for position, bus_interface in enumerate(secrets.bus_interfaces, start=1):
+            access, index = kinds.get(bus_interface.ref_id, ("", 0))
+            if access not in PASSWORD_ACCESS_TYPES:
+                continue
+            address = None
+            if access == "Tunneling" and 0 < index <= len(octets) and prefix:
+                address = f"{prefix}.{octets[index - 1]}"
+            interfaces.append(
+                IpSecureInterface(
+                    ref_id=bus_interface.ref_id,
+                    access=access,
+                    user_id=1 + position,
+                    address=address,
+                    password=bus_interface.password or "",
+                )
+            )
+        return IpSecureSettings(
+            authentication_code=secrets.device_authentication_code or "",
+            commissioning_password=secrets.management_password or "",
+            secure_tunnelling=all(b.secure for b in secrets.bus_interfaces),
+            interfaces=interfaces,
+        )
+
+    def set_ip_secure_settings(
+        self,
+        device: Device,
+        *,
+        authentication_code: str | None = None,
+        commissioning_password: str | None = None,
+        interface_password: tuple[str, str] | None = None,
+        secure_tunnelling: bool | None = None,
+    ) -> None:
+        """Change one of the device's KNX IP Secure settings (see the core ``set_ip_secrets``);
+        ``ValueError`` for a password the device cannot take."""
+        if self._pid is None:
+            return
+        with self._io_lock:
+            self._svc.set_ip_secrets(
+                self._pid,
+                device.node_id,
+                authentication_code=authentication_code,
+                management_password=commissioning_password,
+                bus_interface_passwords=dict([interface_password])
+                if interface_password
+                else None,
+                secure_tunnelling=secure_tunnelling,
+            )
+        self._bump(structural=False)
+
+    def _ip_secure_application(
+        self, app: Application, hardware_ref: str | None
+    ) -> bool:
+        if not app.program.is_secure_enabled or not any(
+            access in PASSWORD_ACCESS_TYPES
+            for _ref, access, _index in _app_bus_interfaces(app)
+        ):
+            return False
+        return bool(hardware_ref) and self._catalog.hardware_is_ip_enabled(
+            hardware_ref or ""
+        )
+
+    def _ensure_ip_secrets(
+        self, node_id: int, app: Application | None, hardware_ref: str | None
+    ) -> None:
+        """Give a KNX IP Secure device its passwords when it has none yet (the caller holds the
+        IO lock)."""
+        if self._pid is None or app is None:
+            return
+        if not self._ip_secure_application(app, hardware_ref):
+            return
+        refs = [
+            ref
+            for ref, access, _index in _app_bus_interfaces(app)
+            if access in PASSWORD_ACCESS_TYPES
+        ]
+        self._svc.ensure_ip_secrets(self._pid, node_id, refs)
 
     def record_secure_download(self, device: Device, result: object) -> None:
         """Record what a secured download left in the device (its ``DownloadResult``): the Tool
@@ -2192,7 +2473,16 @@ class ProjectService:
             or not self._catalog.hardware_is_ip_enabled(row.hardware2program_ref_id)
         ):
             return None
-        backbone = self._svc.ip_backbone_key(self._pid)
+        installation = row.segment.line.area.installation.extra_attributes or {}
+        kinds = {access for _ref, access, _index in _bus_interfaces(device)}
+        # The backbone key is the routing one: only a device that routes takes it, and not while
+        # the installation's backbone security is switched off.
+        backbone = (
+            self._svc.ip_backbone_key(self._pid)
+            if "Routing" in kinds
+            and installation.get("IPRoutingBackboneSecurity") != "Off"
+            else None
+        )
         project = self._svc.ip_secrets(self._pid, device.node_id)
         ring = (
             keyring.ip_secrets(device.individual_address)
@@ -2207,7 +2497,6 @@ class ProjectService:
         )
         if backbone is None and authentication is None and not passwords:
             return None
-        installation = row.segment.line.area.installation.extra_attributes or {}
         tolerance = _int_or(installation.get("IPRoutingLatencyTolerance"), 2000)
         fraction = _float_or(installation.get("IPSyncLatencyFraction"), 0.1)
         return IpSecureConfig(
@@ -2215,6 +2504,7 @@ class ProjectService:
             device_authentication_passphrase=authentication,
             user_passwords=passwords,
             tunnelling_users=tunnelling,
+            secured_families=_secured_families(kinds, project, passwords, backbone),
             multicast_latency_tolerance_ms=tolerance,
             # PID_SYNC_LATENCY_FRACTION is a DPT 5.001 scaling: 0..255 for 0..100 %.
             sync_latency_fraction=max(0, min(255, round(fraction * 255))),
@@ -2753,6 +3043,8 @@ class ProjectService:
             manufacturer_name=product.manufacturer_name,
             secure_commissioning=secure_commissioning,
         )
+        if secure_commissioning:
+            self._ensure_ip_secrets(device_id, app, hardware2program_ref_id)
         if hardware2program_ref_id is not None:
             self._app_cache[hardware2program_ref_id] = app
         self._bump()

@@ -401,6 +401,101 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_set)
 
     @tool
+    def project_get_ip_secure(
+        node_id: int, include_passwords: bool = False
+    ) -> dict[str, Any]:
+        """The KNX IP Secure settings of a secure IP device commissioned securely: whether its
+        tunnels are secured and its bus interfaces (kind, user id, tunnelling address). With
+        ``include_passwords`` also its commissioning password, its authentication code and the
+        bus interfaces' passwords - only when the user asks for them."""
+        require_project(ctx)
+
+        def _get() -> dict[str, Any]:
+            settings = project.ip_secure_settings(_require_device(node_id))
+            if settings is None:
+                raise ToolError(
+                    f"device {node_id} is no KNX IP Secure device commissioned securely"
+                )
+            result: dict[str, Any] = {
+                "node_id": node_id,
+                "secure_tunnelling": settings.secure_tunnelling,
+                "interfaces": [
+                    {
+                        "ref_id": i.ref_id,
+                        "kind": i.access,
+                        "user_id": i.user_id,
+                        "address": i.address,
+                        **({"password": i.password} if include_passwords else {}),
+                    }
+                    for i in settings.interfaces
+                ],
+            }
+            if include_passwords:
+                result["commissioning_password"] = settings.commissioning_password
+                result["authentication_code"] = settings.authentication_code
+            return result
+
+        return ctx.run_locked(_get)
+
+    @tool
+    def project_set_ip_secure(
+        node_id: int,
+        commissioning_password: str | None = None,
+        authentication_code: str | None = None,
+        interface_ref_id: str | None = None,
+        interface_password: str | None = None,
+        secure_tunnelling: bool | None = None,
+    ) -> dict[str, str]:
+        """Change a secure IP device's KNX IP Secure settings (the next download writes them):
+        its commissioning password, its authentication code, the password of one bus interface
+        (``interface_ref_id`` from project_get_ip_secure) or whether its tunnels are secured.
+        Passwords have 1 to 20 Latin-1 characters."""
+        from xknxeditor.proj import ProjectPasswordRequired
+
+        require_project(ctx)
+        if (interface_ref_id is None) != (interface_password is None):
+            raise ToolError("give interface_ref_id and interface_password together")
+
+        def _set() -> dict[str, str]:
+            device = _require_device(node_id)
+            if project.ip_secure_settings(device) is None:
+                raise ToolError(
+                    f"device {node_id} is no KNX IP Secure device commissioned securely"
+                )
+            try:
+                project.set_ip_secure_settings(
+                    device,
+                    commissioning_password=commissioning_password,
+                    authentication_code=authentication_code,
+                    interface_password=(interface_ref_id, interface_password)
+                    if interface_ref_id is not None and interface_password is not None
+                    else None,
+                    secure_tunnelling=secure_tunnelling,
+                )
+            except ProjectPasswordRequired as exc:
+                raise ToolError("set a project password first") from exc
+            except ValueError as exc:
+                raise ToolError(f"not accepted: {exc}") from exc
+            return {"status": "changed", "node_id": str(node_id)}
+
+        return ctx.run_locked(_set)
+
+    @tool
+    def project_export_keyring(dest: str, password: str) -> dict[str, Any]:
+        """Export the open project's key material as a keyring (``.knxkeys``) to ``dest``,
+        encrypted with ``password``: the backbone key, the devices commissioned securely, the
+        tunnels of the KNX IP Secure devices and the keys of the secured group addresses (e.g. for
+        a secure tunnel of another tool)."""
+        require_project(ctx)
+        if not password:
+            raise ToolError("a keyring password is needed")
+        target = Path(dest)
+        if target.suffix.lower() != ".knxkeys":
+            target = target.with_suffix(".knxkeys")
+        devices = ctx.run_locked(lambda: project.export_keyring(target, password))
+        return {"path": str(target), "devices": devices}
+
+    @tool
     def project_close() -> dict[str, str]:
         """Close the open project."""
         ctx.run_locked(project.close)

@@ -22,18 +22,27 @@ from xknx.secure.security_primitives import (
 )
 
 from xknxeditor.namespaces.intermediate import LdCtrlWriteProp
+from xknxeditor.namespaces.intermediate.ld_ctrl_invoke_function_prop_t import (
+    LdCtrlInvokeFunctionProp,
+)
 from xknxeditor.namespaces.intermediate.ld_ctrl_proc_type_t import LdCtrlProcType
 
 IP_PARAMETER_OBJECT: Final = 11
 PID_BACKBONE_KEY: Final = 91
 PID_DEVICE_AUTHENTICATION_CODE: Final = 92
 PID_PASSWORD_HASHES: Final = 93
+PID_SECURED_SERVICE_FAMILIES: Final = 94
 PID_MULTICAST_LATENCY_TOLERANCE: Final = 95
 PID_SYNC_LATENCY_FRACTION: Final = 96
 PID_TUNNELLING_USERS: Final = 97
 
 #: The password hash of an empty passphrase (3/8/9 §2.3.1.4.3), the value of an unconfigured user.
 EMPTY_PASSWORD_HASH: Final = bytes.fromhex("E9C304B914A35175FD7D1C673AB52FE1")
+#: KNXnet/IP service families whose security a tool sets (3/8/9 2.3.1.5.4.1).
+SERVICE_FAMILY_DEVICE_MANAGEMENT: Final = 0x03
+SERVICE_FAMILY_TUNNELLING: Final = 0x04
+SERVICE_FAMILY_ROUTING: Final = 0x05
+
 #: User ID 1 is the management client (full access); limited users are 2..127.
 MANAGEMENT_USER_ID: Final = 1
 MAX_USER_ID: Final = 127
@@ -60,6 +69,10 @@ class IpSecureConfig:
     written, never the passphrase. ``tunnelling_users`` maps a user id to its tunnelling-address
     index (3/8/9 §2.3.1.8); user id 1 is implicit and must not appear. The latencies default to
     the standard's values (2000 ms, 10.2 %, 3/8/9 §2.3.1.6, §2.3.1.7).
+
+    ``secured_families`` sets whether each KNXnet/IP service family (device management,
+    tunnelling, routing) requires security (3/8/9 §2.3.1.5); a family not listed keeps its
+    setting. Ex factory none does (§2.3.1.5.3).
     """
 
     backbone_key: bytes | None = None
@@ -68,6 +81,7 @@ class IpSecureConfig:
     tunnelling_users: Sequence[tuple[int, int]] = ()
     multicast_latency_tolerance_ms: int = 2000
     sync_latency_fraction: int = 0x1A
+    secured_families: Mapping[int, bool] = field(default_factory=dict[int, bool])
 
 
 def _write(
@@ -123,4 +137,15 @@ def ip_secure_controls(config: IpSecureConfig) -> list[object]:
     if users:
         data = b"".join(bytes([user_id, index]) for user_id, index in users)
         controls.append(_write(PID_TUNNELLING_USERS, data, count=len(users)))
+    # Last: a family requires security only once its passwords are in place.
+    for family, secured in sorted(config.secured_families.items()):
+        controls.append(
+            LdCtrlInvokeFunctionProp(
+                obj_type=IP_PARAMETER_OBJECT,
+                prop_id=PID_SECURED_SERVICE_FAMILIES,
+                # reserved, service "write the security requirement", family, version
+                inline_data=bytes([0, 0, family, 1 if secured else 0]),
+                applies_to=_APPLIES,
+            )
+        )
     return controls

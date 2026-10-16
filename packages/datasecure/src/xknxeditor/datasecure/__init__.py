@@ -1,3 +1,4 @@
+from xknxeditor.datasecure.create import KeyringDevice, KeyringTunnel, create_keyring
 from xknxeditor.datasecure.schema import load_keyring, serialize_keyring
 from xknxeditor.datasecure.secure import (
     DecryptedDevice,
@@ -20,7 +21,10 @@ __all__ = [
     "DecryptedDevice",
     "DecryptedInterface",
     "DecryptedKeyring",
+    "KeyringDevice",
     "KeyringSignatureError",
+    "KeyringTunnel",
+    "create_keyring",
     "decrypt_keyring",
     "encrypt_key",
     "encrypt_password",

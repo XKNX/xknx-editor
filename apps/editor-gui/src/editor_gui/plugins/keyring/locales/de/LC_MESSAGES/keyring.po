@@ -57,3 +57,6 @@ msgstr "Schlüsselbund exportieren…"
 
 msgid "Set the password for the exported keyring:"
 msgstr "Passwort für den exportierten Schlüsselbund festlegen:"
+
+msgid "Export Keyring from Project…"
+msgstr "Keyring aus Projekt exportieren…"
