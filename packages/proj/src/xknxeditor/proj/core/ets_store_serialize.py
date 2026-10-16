@@ -12,7 +12,8 @@ is therefore reused from :mod:`knxproj_export` rather than duplicated.
 
 Scope of this writer (v1): topology, devices (parameter/com-object instances, module instances,
 the group-object tree), group addresses, buildings with their device assignments, and the project
-header. Building *functions*, per-device ``BinaryData`` and ``IPConfig`` are not emitted yet.
+header. Building *functions* and per-device ``BinaryData`` are not emitted yet. A device's
+``IPConfig`` and extra individual addresses are, under the store's short names ``IP`` and ``AA``.
 """
 
 from __future__ import annotations
@@ -514,6 +515,33 @@ class _StoreBuilder:
         self._build_com_objects(di, device)
         self._build_module_instances(di, device)
         self._build_group_object_tree(di, device)
+        self._build_additional_addresses(di, device)
+        self._build_ip_config(di, device)
+
+    def _build_additional_addresses(self, di: ET.Element, device: Device) -> None:
+        """Extra individual addresses a coupler or IP interface reserves.
+
+        The store shortens ``<AdditionalAddresses>/<Address>`` to ``<AA>/<Addr>``. An entry without
+        an address cannot be represented there and is skipped.
+        """
+        entries = [
+            addr for addr in device.additional_addresses if addr.address is not None
+        ]
+        if not entries:
+            return
+        container = _attr(di, "AA")
+        for addr in entries:
+            _attr(container, "Addr", Address=addr.address, Name=addr.name or "")
+
+    def _build_ip_config(self, di: ET.Element, device: Device) -> None:
+        """The device's IP interface config, captured at import.
+
+        The store names the element ``IP``; the attributes (``Assign``, ``IPAddress``,
+        ``SubnetMask``, ``DefaultGateway``, ``MACAddress``) are the ones the source carried.
+        Without this an IP interface comes back with no address to program against.
+        """
+        if device.ip_config:
+            _attr(di, "IP", **device.ip_config)
 
     def _build_com_objects(self, di: ET.Element, device: Device) -> None:
         # Same write gate as the .knxproj export: emit an instance only for a linked or overridden

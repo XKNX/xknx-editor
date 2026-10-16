@@ -318,8 +318,10 @@ class KnxGuiApp:
         self._export_ga_export_dialog: pfd.save_file | None = None
         self._ga_export_options_requested = False
         self._ga_export_options: dict[str, Any] = {}
-        # Folder picker for the ETS 6 ProjectStore export when the default path is not found.
+        # Folder picker for the ProjectStore export when the default path is not found, and which
+        # ETS generation that export is aimed at (set when the export starts, read by the dialogs).
         self._projectstore_dialog: pfd.select_folder | None = None
+        self._projectstore_format = ets_store.StoreFormat.ETS6
         # File picker for the ETS installer.guid when it is not found locally (e.g. exporting on a
         # Mac for a Windows ETS), plus the store folder resolved in the step before it.
         self._installer_guid_dialog: pfd.open_file | None = None
@@ -1011,29 +1013,34 @@ class KnxGuiApp:
         self._myknx_thread = threading.Thread(target=_run, daemon=True)
         self._myknx_thread.start()
 
-    def _ets6_projectstore_dir(self) -> Path:
-        """Default ETS 6 project store: %ProgramData%\\KNX\\ETS6\\ProjectStore."""
+    def _ets_projectstore_dir(self, store_format: ets_store.StoreFormat) -> Path:
+        """Default project store for ``store_format``: %ProgramData%\\KNX\\ETS{5,6}\\ProjectStore."""
         base = os.environ.get("PROGRAMDATA") or r"C:\ProgramData"
-        return Path(base) / "KNX" / "ETS6" / "ProjectStore"
+        return Path(base) / "KNX" / store_format.app_dir / "ProjectStore"
 
-    def _begin_projectstore_export(self) -> None:
-        """Resolve the ProjectStore folder (default, else ask the user), then export."""
-        store = self._ets6_projectstore_dir()
+    def _begin_projectstore_export(self, store_format: ets_store.StoreFormat) -> None:
+        """Resolve the ProjectStore folder for ``store_format`` (default, else ask), then export."""
+        self._projectstore_format = store_format
+        store = self._ets_projectstore_dir(store_format)
         if store.parent.exists():
             self._resolve_installer_guid_then_export(store)
         else:
-            # ETS 6 not at the default location (or non-Windows): ask the user for the store folder.
-            self._projectstore_dialog = pfd.select_folder(S.MYKNX_DONGLE_PICK_STORE, "")
+            # ETS not at the default location (or non-Windows): ask the user for the store folder.
+            ets = "ETS 5" if store_format is ets_store.StoreFormat.ETS5 else "ETS 6"
+            self._projectstore_dialog = pfd.select_folder(
+                S.MYKNX_DONGLE_PICK_STORE.format(ets=ets), ""
+            )
 
     def _resolve_installer_guid_then_export(self, store: Path) -> None:
         """Resolve the target ETS installation GUID (read it locally, else let the user pick it)."""
-        guid = ets_store.read_installer_guid()
+        guid = ets_store.read_installer_guid(self._projectstore_format, store=store)
         if guid:
             self._prepare_projectstore_export(store, guid)
         else:
             # The .store descriptor binds the project to the target ETS installation; on a machine
             # without ETS (e.g. a Mac exporting for a Windows ETS), ask for the installer.guid file
-            # copied from the ETS machine's %ProgramData%/KNX/ETS6/Installer.
+            # copied from that ETS version's %ProgramData%/KNX/ETS{5,6}/Installer. ETS 5 and ETS 6
+            # do not share a GUID.
             self._pending_store_path = store
             self._installer_guid_dialog = pfd.open_file(
                 S.MYKNX_DONGLE_PICK_INSTALLER,
@@ -1058,7 +1065,10 @@ class KnxGuiApp:
     def _export_to_ets6_projectstore(
         self, store: Path, installer_guid: str, *, create_copy: bool
     ) -> None:
-        """Write the project's ``P-XXXX`` store folder into ``store`` (the ETS 6 ProjectStore).
+        """Write the project's ``P-XXXX`` store folder into ``store``.
+
+        The shape follows ``self._projectstore_format``: ETS 5 and ETS 6 do not read each other's
+        topology. ``store`` is that version's ProjectStore.
 
         ETS loads a project from its store without an import signature/certificate check; the user
         then copies/clones it in ETS, which re-signs and re-licenses it with their dongle. The
@@ -1119,9 +1129,16 @@ class KnxGuiApp:
                         product_members=members,
                         overwrite=not create_copy,
                         reveal=reveal,
+                        store_format=self._projectstore_format,
                     )
+                ets = (
+                    "ETS 5"
+                    if self._projectstore_format is ets_store.StoreFormat.ETS5
+                    else "ETS 6"
+                )
                 self._log.info(
-                    "exported to ETS 6 ProjectStore",
+                    "exported to ETS ProjectStore",
+                    ets=ets,
                     path=str(store / built.pid),
                     pid=built.pid,
                 )
@@ -2600,6 +2617,14 @@ class KnxGuiApp:
                 self._project_service.is_open,
             )[0]:
                 self._export_knxproj()
+            if imgui.menu_item(
+                S.MENU_EXPORT_ETS5_STORE, "", False, self._project_service.is_open
+            )[0]:
+                self._begin_projectstore_export(ets_store.StoreFormat.ETS5)
+            if imgui.menu_item(
+                S.MENU_EXPORT_ETS6_STORE, "", False, self._project_service.is_open
+            )[0]:
+                self._begin_projectstore_export(ets_store.StoreFormat.ETS6)
             if imgui.menu_item(S.MENU_COMPACT_PROJECT, "", False, self._can_compact())[
                 0
             ]:
@@ -3271,9 +3296,16 @@ class KnxGuiApp:
             imgui.InputTextFlags_.read_only,
         )
         imgui.spacing()
-        # Write the project's P-XXXX folder straight into the ETS 6 ProjectStore (internal format).
-        if imgui.button(S.MYKNX_DONGLE_EXPORT_STORE, imgui.ImVec2(-1, 0)):
-            self._begin_projectstore_export()
+        # Write the project's P-XXXX folder straight into that ETS version's ProjectStore.
+        # The format chosen above (ETS 5 schema 20 / ETS 6 schema 23) is the .knxproj schema; the
+        # store export is a separate target, so both are offered here.
+        if imgui.button(S.MENU_EXPORT_ETS5_STORE, imgui.ImVec2(-1, 0)):
+            self._begin_projectstore_export(ets_store.StoreFormat.ETS5)
+            self._export_pending_dest = None
+            self._myknx_force_close = True
+            imgui.close_current_popup()
+        if imgui.button(S.MENU_EXPORT_ETS6_STORE, imgui.ImVec2(-1, 0)):
+            self._begin_projectstore_export(ets_store.StoreFormat.ETS6)
             self._export_pending_dest = None
             self._myknx_force_close = True
             imgui.close_current_popup()

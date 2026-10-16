@@ -27,6 +27,7 @@ from xknxeditor.proj.models import (
     ComObject,
     ComObjectLink,
     Device,
+    DeviceAdditionalAddress,
     GroupAddress,
     GroupRange,
     Installation,
@@ -250,6 +251,36 @@ def test_ets5_store_drops_what_ets5_cannot_read() -> None:
     assert line.find("DI") is not None
     ci = area.find(".//CI")
     assert ci is not None and ci.get("Birdy-SecurityState") is None
+
+
+def test_store_writes_coupler_ip_config_and_extra_addresses() -> None:
+    """An IP interface keeps the address ETS programs it at, and the tunnel addresses it reserves."""
+    with _session() as session:
+        project, inst = _project(session)
+        device = inst.areas[1].lines[0].segments[0].devices[0]
+        device.ip_config = {
+            "Assign": "Fixed",
+            "IPAddress": "192.168.3.23",
+            "SubnetMask": "255.255.255.0",
+            "DefaultGateway": "192.168.3.1",
+            "MACAddress": "70:B3:D5:DC:84:06",
+        }
+        device.additional_addresses.append(DeviceAdditionalAddress(address=2, name=""))
+        session.flush()
+        built = build_store_streams(
+            project, inst, store_format=ets_store.StoreFormat.ETS5
+        )
+    di = _di(built.streams, f"{PID}-0_A-2")
+    ip = di.find("IP")
+    assert ip is not None
+    assert ip.get("Assign") == "Fixed"
+    assert ip.get("IPAddress") == "192.168.3.23"
+    assert ip.get("MACAddress") == "70:B3:D5:DC:84:06"
+    extra = di.find("AA")
+    assert extra is not None
+    assert [(a.get("Address"), a.get("Name")) for a in extra.findall("Addr")] == [
+        ("2", "")
+    ]
 
 
 def test_write_project_store_sidecars(tmp_path: Path) -> None:

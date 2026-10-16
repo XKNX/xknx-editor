@@ -405,6 +405,14 @@ class MenuStrings:
         return _("Export .knxproj…")
 
     @property
+    def MENU_EXPORT_ETS5_STORE(self) -> str:
+        return _("Export to ETS 5 ProjectStore")
+
+    @property
+    def MENU_EXPORT_ETS6_STORE(self) -> str:
+        return _("Export to ETS 6 ProjectStore")
+
+    @property
     def MENU_EXPORT_GA_EXPORT(self) -> str:
         return _("Export Group Addresses…")
 
@@ -792,7 +800,7 @@ class MenuStrings:
 
     @property
     def MYKNX_DONGLE_PICK_STORE(self) -> str:
-        return _("Select the ETS 6 ProjectStore folder")
+        return _("Select the {ets} ProjectStore folder")
 
     @property
     def MYKNX_DONGLE_PICK_INSTALLER(self) -> str:
@@ -831,13 +839,14 @@ class MenuStrings:
             "Re-license the project through your own licensed ETS via its local project store, "
             "which re-signs the copy with your dongle license:\n"
             "\n"
-            "   1. Click 'Export to ETS 6 ProjectStore' below. It writes the project's 'P-XXXX' "
-            "folder straight into your ETS project store. If ETS is not installed on this "
-            "computer, you are asked for the store folder (or any folder you then copy over "
-            "manually).\n"
-            "   2. The export needs your 'installer.guid' file from "
-            "C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are "
-            "asked to select it.\n"
+            "   1. Click 'Export to ETS 5 ProjectStore' or 'Export to ETS 6 ProjectStore' "
+            "(also in the File menu). It writes the project's 'P-XXXX' folder straight into "
+            "that ETS version's project store. The two formats are not interchangeable. If ETS "
+            "is not installed on this computer, you are asked for the store folder (or any "
+            "folder you then copy over manually).\n"
+            "   2. The export needs the 'installer.guid' of that ETS version, from "
+            "C:\\ProgramData\\KNX\\ETS5\\Installer or ...\\ETS6\\Installer. ETS 5 and ETS 6 do "
+            "not share one. If it cannot be found automatically, you are asked to select it.\n"
             "   3. Restart ETS - the project appears in the project overview.\n"
             "   4. Make a copy of it there (ETS 6: Copy in the overview; ETS 5: right-click > "
             "Copy > As Clone). The copy is re-signed with your license - open it, then use or "

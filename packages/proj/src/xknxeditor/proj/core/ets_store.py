@@ -106,18 +106,35 @@ def write_store_version(
     )
 
 
-def installer_guid_path() -> Path:
-    """Path to the local ETS 6 installer GUID file (``%ProgramData%/KNX/ETS6/Installer/installer.guid``)."""
+def installer_guid_path(store_format: StoreFormat = StoreFormat.ETS6) -> Path:
+    """Path to the local installer GUID file for ``store_format``.
+
+    ``%ProgramData%/KNX/ETS5/Installer/installer.guid`` or the ETS 6 equivalent. The two
+    installations do not share a GUID.
+    """
     base = os.environ.get("PROGRAMDATA") or r"C:\ProgramData"
-    return Path(base) / "KNX" / "ETS6" / "Installer" / "installer.guid"
+    return Path(base) / "KNX" / store_format.app_dir / "Installer" / "installer.guid"
 
 
-def read_installer_guid() -> str | None:
-    """Return the local ETS installer GUID (BOM-stripped), or ``None`` if ETS is not installed here."""
-    path = installer_guid_path()
-    if not path.is_file():
-        return None
-    return path.read_text(encoding="utf-8-sig").strip()
+def read_installer_guid(
+    store_format: StoreFormat = StoreFormat.ETS6, *, store: Path | None = None
+) -> str | None:
+    """Return the installer GUID for ``store_format`` (BOM-stripped), or ``None`` if it is not found.
+
+    Looks at the default ``%ProgramData%`` location first. When ``store`` is a ProjectStore folder
+    the user picked by hand, also tries ``<that ETS dir>/Installer/installer.guid`` beside it, which
+    is where the file sits when ETS lives under a non-default prefix.
+    """
+    candidates = [installer_guid_path(store_format)]
+    if store is not None:
+        candidates.append(store.parent / "Installer" / "installer.guid")
+    for path in candidates:
+        if not path.is_file():
+            continue
+        text = path.read_text(encoding="utf-8-sig").strip()
+        if text:
+            return text
+    return None
 
 
 def store_descriptor(project_id: str, installer_guid: str) -> str:
