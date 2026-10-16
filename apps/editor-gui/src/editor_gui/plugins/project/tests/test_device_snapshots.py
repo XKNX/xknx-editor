@@ -196,6 +196,55 @@ def test_application_that_fails_to_load_leaves_its_devices_unloaded(
     proj.close()
 
 
+def test_failed_application_drops_every_cached_wrapper_of_that_id(
+    tmp_path: Path,
+) -> None:
+    """When an application fails to load, every cached wrapper for that application id is dropped,
+    not just the one instance - two hardware programs can resolve to the same application through
+    separate wrappers, and a sibling would otherwise stay cached and never rebuild."""
+    cat, path, (a, _b) = _project(tmp_path)
+    proj = _service(cat)
+    proj.open(path)
+    device = next(d for d in proj.devices if d.node_id == a)
+    app = device.app
+    assert app is not None and not app.loaded
+    # A second wrapper with the same application id under a different key, as a second hardware
+    # program resolving to the same application would produce.
+    sibling = cat.unloaded_application(
+        app.id, app.name, app.version, app.manufacturer_id
+    )
+    assert sibling is not app
+    proj._app_cache["P-OTHER-PROGRAM"] = sibling
+    with proj._loading_lock:
+        proj._failed_loads.add(app.id)
+    assert not proj.application_ready(device)
+    assert "P-OTHER-PROGRAM" not in proj._app_cache
+    proj.close()
+
+
+def test_stale_background_load_does_not_contaminate_a_newer_project(
+    tmp_path: Path,
+) -> None:
+    """A background load started for an earlier project must not write its failure into the
+    current one after the project changed (which bumps the load generation)."""
+    cat, path, _ = _project(tmp_path)
+    proj = _service(cat)
+    proj.open(path)
+    generation = proj._load_generation
+
+    class _Broken:
+        id = "A-stale-generation"
+
+        def resolved(self) -> None:
+            raise LookupError("archive gone")
+
+    proj._reset()  # a project switch bumps the generation
+    proj._load_application(_Broken(), generation)  # the old-generation worker now fails
+    with proj._loading_lock:
+        assert "A-stale-generation" not in proj._failed_loads
+    proj.close()
+
+
 def _wait(condition: Any, timeout: float = 30.0) -> None:
     end = time.monotonic() + timeout
     while not condition():

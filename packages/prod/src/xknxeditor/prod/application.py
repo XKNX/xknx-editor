@@ -128,16 +128,22 @@ class Application:
                 assert self._reloader is not None
                 with gc_paused():
                     program = self._reloader()
-                self._program = program
             tree_builder = self._tree_builder
             if with_tree and tree_builder is None:
                 from .parser_v2.dynamic import DynamicTreeBuilder as _DynamicTreeBuilder
 
                 with gc_paused():
                     tree_builder = _DynamicTreeBuilder(program)
-                self._tree_builder = tree_builder
-        with _resident_lock:
-            self._mark_used()
+            # Publish the program and its tree together under the LRU lock, which eviction also
+            # holds: otherwise a concurrent eviction during the (slow) tree build could null the
+            # fields between the two assignments and leave a half-loaded state - a program without
+            # its tree, or a tree paired with a later-reloaded (possibly updated) program. Marking
+            # used in the same section keeps this application resident past that eviction pass.
+            with _resident_lock:
+                self._program = program
+                if tree_builder is not None:
+                    self._tree_builder = tree_builder
+                self._mark_used()
         return program, tree_builder
 
     @property

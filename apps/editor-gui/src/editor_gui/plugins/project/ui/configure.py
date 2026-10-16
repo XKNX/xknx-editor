@@ -580,31 +580,36 @@ class ConfigurePanel:
             fields.append(
                 (S.CONFIGURE_SERIAL_NUMBER, lambda: self._serial_input(device))
             )
-        secure = (
-            self._get_secure_commissioning(device)
-            if self._get_secure_commissioning is not None
-            else None
-        )
-        if secure is not None:
-            fields.append(
-                (
-                    S.CONFIGURE_SECURE_COMMISSIONING,
-                    lambda: self._secure_commissioning_input(device, secure),
-                )
+        # The secure-commissioning and routing-blocking fields need the parsed application. Only
+        # read them once it is loaded: for a snapshot device _ready() starts the background load
+        # and returns False, so these fields appear when it is ready instead of parsing the whole
+        # application synchronously on the render thread (which would freeze the frame).
+        if self._ready(device):
+            secure = (
+                self._get_secure_commissioning(device)
+                if self._get_secure_commissioning is not None
+                else None
             )
-        # "-": not a coupler with the security extensions commissioned securely.
-        blocking = (
-            self._get_routing_blocking(device)
-            if self._get_routing_blocking is not None
-            else "-"
-        )
-        if blocking != "-":
-            fields.append(
-                (
-                    S.CONFIGURE_ROUTING_BLOCKING,
-                    lambda: self._routing_blocking_input(device, blocking),
+            if secure is not None:
+                fields.append(
+                    (
+                        S.CONFIGURE_SECURE_COMMISSIONING,
+                        lambda: self._secure_commissioning_input(device, secure),
+                    )
                 )
+            # "-": not a coupler with the security extensions commissioned securely.
+            blocking = (
+                self._get_routing_blocking(device)
+                if self._get_routing_blocking is not None
+                else "-"
             )
+            if blocking != "-":
+                fields.append(
+                    (
+                        S.CONFIGURE_ROUTING_BLOCKING,
+                        lambda: self._routing_blocking_input(device, blocking),
+                    )
+                )
         avail = imgui.get_content_region_avail().x
         group_w = self._label_w + px(120)
         ncols = max(1, min(len(fields), int(avail // group_w) if group_w > 0 else 1))
@@ -816,6 +821,10 @@ class ConfigurePanel:
         """Change the application program, or update it to the version that replaces it."""
         if device.app is None:
             imgui.text_disabled(S.CONFIGURE_NO_APPLICATION)
+            return
+        # The change targets and update-version lookups parse the application; defer them until it
+        # is loaded so selecting a snapshot device does not parse synchronously on the render thread.
+        if not self._ready(device):
             return
         if (
             self._get_change_targets is not None

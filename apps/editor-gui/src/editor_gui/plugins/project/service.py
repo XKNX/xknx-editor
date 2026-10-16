@@ -660,6 +660,9 @@ class ProjectService:
         self._loading: set[str] = set()
         self._failed_loads: set[str] = set()
         self._handled_failures: set[str] = set()
+        # Bumped whenever the project changes (_reset); a background load started for an earlier
+        # project ignores its result so it cannot contaminate the current project's state.
+        self._load_generation = 0
         self._areas_cache: list[_Area] | None = None
         self._lines_cache: dict[int, list[_Line]] | None = None
         self._ga_cache: list[_GroupAddress] | None = None
@@ -1252,7 +1255,9 @@ class ProjectService:
         self._new_snapshots.clear()
         self._source_cache.clear()
         with self._loading_lock:
+            self._loading.clear()
             self._failed_loads.clear()
+            self._load_generation += 1
         self._handled_failures.clear()
 
     def _bump(self, *, structural: bool = True) -> None:
@@ -1508,15 +1513,18 @@ class ProjectService:
             )
             return None
         assert self._pid is not None
-        # A legacy/static application (no <Dynamic> section) resolves fine but has no editable
-        # parameter UI - the device shows up, just with an empty parameter tree (issue #51).
-        if getattr(app.program, "dynamic", None) is None:
-            self._log.debug(
-                "device application has no dynamic parameter UI (legacy/static application)",
-                device_id=row.id,
-                app=app.id,
-            )
         try:
+            # A legacy/static application (no <Dynamic> section) resolves fine but has no editable
+            # parameter UI - the device shows up, just with an empty parameter tree (issue #51).
+            # Accessing app.program here also forces the lazy parse; a failure (e.g. a shared
+            # application whose archive is missing) is caught below and reported as this one device
+            # being unloadable, not propagated so it aborts the whole project build.
+            if getattr(app.program, "dynamic", None) is None:
+                self._log.debug(
+                    "device application has no dynamic parameter UI (legacy/static application)",
+                    device_id=row.id,
+                    app=app.id,
+                )
             pirs, mis, coirs = _instance_refs(row, app.program.id)
             ia = self._svc.individual_address(self._pid, row.id) or ""
             device = Device(
@@ -1713,23 +1721,27 @@ class ProjectService:
             failed = app.id in self._failed_loads
             if not failed and app.id not in self._loading:
                 self._loading.add(app.id)
+                generation = self._load_generation
                 threading.Thread(
                     target=self._load_application,
-                    args=(app,),
+                    args=(app, generation),
                     name="application-load",
                     daemon=True,
                 ).start()
         if failed and app.id not in self._handled_failures:
             # Build its devices again from their application, which reports them as not
-            # loadable, as a project open without snapshots does.
+            # loadable, as a project open without snapshots does. Drop every cached wrapper for
+            # this application id, not just this instance: two hardware programs can resolve to the
+            # same application through separate wrappers, and the sibling would otherwise stay
+            # cached and never rebuild (stuck on "Loading application program…").
             self._handled_failures.add(app.id)
             for key, cached in list(self._app_cache.items()):
-                if cached is app:
+                if cached.id == app.id:
                     del self._app_cache[key]
             self._bump()
         return False
 
-    def _load_application(self, app: Application) -> None:
+    def _load_application(self, app: Application, generation: int) -> None:
         try:
             app.resolved()
         except Exception as e:
@@ -1739,10 +1751,13 @@ class ProjectService:
                 error=f"{type(e).__name__}: {e}",
             )
             with self._loading_lock:
-                self._failed_loads.add(app.id)
+                # A load started for an earlier project must not write into the current one.
+                if generation == self._load_generation:
+                    self._failed_loads.add(app.id)
         finally:
             with self._loading_lock:
-                self._loading.discard(app.id)
+                if generation == self._load_generation:
+                    self._loading.discard(app.id)
 
     def find_device_by_node_id(self, node_id: int) -> Device | None:
         return next((d for d in self.devices if d.node_id == node_id), None)
