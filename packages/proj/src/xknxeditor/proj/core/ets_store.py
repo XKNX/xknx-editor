@@ -51,9 +51,23 @@ def ets5hash(data: bytes, mask: int) -> str:
 
 
 def write_store_stream(store_dir: Path, name: str, data: bytes, mask: int) -> None:
-    """Write a store stream ``name`` plus its ``name.ets5hash`` sidecar into ``store_dir``."""
+    """Write a store stream ``name`` plus its ``name.ets5hash`` sidecar into ``store_dir``.
+
+    An empty stream (``data == b""``, e.g. a project with no unassigned devices or no traces)
+    gets **no base file at all** -- only the ``.ets5hash`` sidecar. Verified against a genuine,
+    licensed ETS 5.7.7 ProjectStore: every optional section a project never touched (``U``, ``PT``,
+    and the legacy ``AI``/``BA``/``D``/``HE``/``IPSD``/``S``/``T``/``UF`` streams) has only its
+    ``.ets5hash`` on disk, computed over zero bytes -- the section file itself is absent, not a
+    present-but-empty file. Writing a present-but-empty (or non-empty-but-wrong-shape) file for an
+    unused section does not match this and has been observed to make ETS treat the project as
+    damaged. Cross-checked against the independent `etssign <https://github.com/daimoniac/etssign>`_
+    C implementation, which confirms the same recipe against both ETS 5.7.7 and ETS 6.4.1.
+    """
     store_dir.mkdir(parents=True, exist_ok=True)
-    (store_dir / name).write_bytes(data)
+    if data:
+        (store_dir / name).write_bytes(data)
+    else:
+        (store_dir / name).unlink(missing_ok=True)
     (store_dir / f"{name}.ets5hash").write_text(ets5hash(data, mask), encoding="ascii")
 
 
@@ -78,11 +92,19 @@ def read_installer_guid() -> str | None:
 
 
 def store_descriptor(project_id: str, installer_guid: str) -> str:
-    """Return the ``P-XXXX.store`` value binding the project to this ETS installation.
+    """Return the ``{id}.store`` value binding a store folder to this ETS installation.
 
     Mirrors ``InstallationGuidWriter.CreateHmacForStore``: base64 of
     ``HMAC-SHA256(key=UTF16LE(installer_guid), msg=UTF16LE("{id}:{id}"))``. ETS verifies this on
     open, so it must use the GUID from :func:`read_installer_guid` on the target machine.
+
+    Despite the name, this is not project-specific: a genuine ProjectStore has one of these per
+    folder that needs one, keyed by that folder's own id -- the project folder (``{pid}.store``,
+    ``id=pid``) *and* every manufacturer folder inside it (``M-XXXX/M-XXXX.store``, ``id="M-XXXX"``).
+    Verified byte-for-byte against a real ETS 5.7.7 ProjectStore for both: a manufacturer folder
+    without its own ``.store`` is apparently treated as missing/untrusted by ETS even though every
+    file in it and its ``.ets5hash`` sidecars are otherwise correct (:func:`write_project_store`
+    writes one per folder in ``product_members``).
     """
     key = installer_guid.encode("utf-16-le")
     msg = f"{project_id}:{project_id}".encode("utf-16-le")

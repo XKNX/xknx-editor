@@ -268,7 +268,12 @@ class _StoreBuilder:
         return _serialize(root)
 
     def _build_unassigned(self) -> bytes:
-        return _serialize(ET.Element("UDI"))
+        # xknxeditor's model has no concept of a device outside the Area/Line/Segment topology (an
+        # imported device with no line home is dropped at import, see the module docstring), so this
+        # section is always empty. A genuine ProjectStore represents an unused ``U`` section as no
+        # base file at all (see write_store_stream), not a serialized empty ``<UDI/>`` element -- so
+        # this returns the same "empty" ``b""`` rather than serializing a root element nothing reads.
+        return b""
 
     def _build_buildings(self) -> bytes:
         root = ET.Element("Ls")
@@ -354,6 +359,12 @@ class _StoreBuilder:
             )
 
     def _build_traces(self) -> bytes:
+        # A project with no recorded traces yet (e.g. one never opened/saved in real ETS) has no
+        # base ``PT`` file in a genuine store either -- same "empty means absent" shape as ``U``
+        # (see write_store_stream and _build_unassigned). Only serialize a ``<PTrcs>`` element once
+        # there is at least one trace to carry.
+        if not self._project.traces:
+            return b""
         root = ET.Element("PTrcs")
         for trace in self._project.traces:
             _attr(
@@ -585,14 +596,23 @@ def write_project_store(
     Writes each stream with its ``.ets5hash`` sidecar, the ``storeVersion`` marker and the
     ``{pid}.store`` descriptor bound to ``installer_guid`` (the target machine's ETS installation
     GUID). Manufacturer product data (``M-XXXX/*`` members) is written loose so device product/
-    application refs resolve; empty ``BinaryData``/``UserFiles``/``AddinData`` folders complete the
-    layout. ``dest_dir`` is the ``P-XXXX`` folder itself (use :func:`store_pid_exists` and
-    :func:`next_free_pid` to decide the id and avoid clobbering an unrelated project).
+    application refs resolve, each folder getting its own ``M-XXXX.store`` descriptor the same way
+    the project folder does (see :func:`xknxeditor.proj.core.ets_store.store_descriptor` -- verified
+    against a genuine ProjectStore, a manufacturer folder without one is treated as missing/untrusted
+    even though its files and hashes are otherwise correct); empty ``BinaryData``/``UserFiles``/
+    ``AddinData`` folders complete the layout. ``dest_dir`` is the ``P-XXXX`` folder itself (use
+    :func:`store_pid_exists` and :func:`next_free_pid` to decide the id and avoid clobbering an
+    unrelated project).
 
-    The folder is built in a sibling temp directory and swapped in only once complete, so a failed
-    write never destroys an existing store. ``overwrite`` controls the swap: ``True`` replaces an
-    existing ``dest_dir``; ``False`` (for a new copy) refuses when it is already taken, so a slot
-    occupied between picking the id and writing is never clobbered.
+    The folder is built in a sibling temp directory and only installed into ``dest_dir`` once
+    complete, so a failed write never destroys an existing store. ``overwrite`` controls what
+    happens when ``dest_dir`` already exists: ``True`` **merges** the freshly built folder into it
+    (see :func:`_install_into_existing` -- this writer only owns the streams/descriptors/folders it
+    knows how to build; anything else already in ``dest_dir``, such as a real ``BinaryData``
+    attachment, a stream type this writer does not model yet, or a manufacturer folder it could not
+    resolve, is left exactly as ETS wrote it rather than being deleted along with the rest).
+    ``False`` (for a new copy) refuses when the slot is already taken, so a slot occupied between
+    picking the id and writing is never clobbered.
 
     ``project_name`` overrides the stored project name (e.g. to tag a new copy); ``None`` keeps it.
     ``reveal`` turns a stream with the project's encrypted secrets into one with them in the clear
@@ -617,24 +637,81 @@ def write_project_store(
         write_store_stream(staging, name, data, mask)
     write_store_version(staging)
     write_store_descriptor(staging, built.pid, installer_guid)
+
+    manufacturer_folders: set[str] = set()
     for member, data in (product_members or {}).items():
         if not _is_safe_member(member):
             continue  # drop traversal/absolute members from an untrusted archive
         target = staging / member
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
+        top = PurePosixPath(member).parts[0]
+        if top.startswith("M-") and "/" in member:
+            manufacturer_folders.add(top)
+    for folder in manufacturer_folders:
+        write_store_descriptor(staging / folder, folder, installer_guid)
+
     for folder in ("BinaryData", "UserFiles", "AddinData"):
         (staging / folder).mkdir(exist_ok=True)
 
-    # Swap the finished folder in. The window between removing the old one and the rename is far
-    # smaller than writing every stream in place would be.
     if dest_dir.exists():
         if not overwrite:
             shutil.rmtree(staging)
             raise FileExistsError(f"store folder already exists: {dest_dir}")
-        shutil.rmtree(dest_dir)
-    staging.rename(dest_dir)
+        _install_into_existing(staging, dest_dir, built.pid, manufacturer_folders)
+        shutil.rmtree(staging)
+    else:
+        staging.rename(dest_dir)
     return built
+
+
+def _install_into_existing(
+    staging: Path, dest_dir: Path, pid: str, manufacturer_folders: set[str]
+) -> None:
+    """Install a freshly built store folder into an already-existing ``dest_dir``, without
+    destroying content this writer does not own.
+
+    Earlier versions of this function unconditionally ``rmtree``'d ``dest_dir`` and swapped
+    ``staging`` in. That deletes every stream type this writer does not emit yet (the legacy
+    ``AI``/``BA``/``D``/``HE``/``IPSD``/``S``/``T``/``UF`` streams a genuine ETS install may have
+    created), every manufacturer folder this export could not resolve, and any real
+    ``BinaryData``/``UserFiles``/``AddinData`` content -- then ETS reports the project as damaged.
+    This merges instead, replacing only what the writer actually (re)built:
+
+    - the per-area streams of *this* pid (a stale ``{pid}-0_A-N`` this writer wrote on an earlier
+      export but no longer emits, e.g. because an area was deleted, is removed -- this writer is the
+      sole owner of that naming scheme, so cleaning it up is safe);
+    - each manufacturer folder in ``manufacturer_folders`` is replaced wholesale (so stale files
+      from an earlier, different version of that manufacturer's data do not linger) -- but a
+      manufacturer folder *not* in that set (one this export could not resolve) is left untouched;
+    - everything else staging provides (``P``/``I``/``U``/``B``/``G``/``PT``, the current areas,
+      ``storeVersion``, ``{pid}.store``, each manufacturer ``.store``, the three placeholder
+      folders) is copied in, overwriting same-named entries.
+
+    Anything already in ``dest_dir`` that staging does not mention at all -- an unmodelled stream,
+    an unresolved manufacturer, a real binary attachment -- is never touched.
+    """
+    area_re = re.compile(rf"^{re.escape(pid)}-0_A-\d+(\.ets5hash)?$")
+    for existing in dest_dir.iterdir():
+        if area_re.match(existing.name) and not (staging / existing.name).exists():
+            existing.unlink()
+    for folder in manufacturer_folders:
+        target = dest_dir / folder
+        if target.exists():
+            shutil.rmtree(target)
+    _merge_tree(staging, dest_dir)
+
+
+def _merge_tree(src: Path, dst: Path) -> None:
+    """Copy ``src``'s tree into ``dst``, overwriting same-named files but never deleting anything
+    in ``dst`` that ``src`` does not provide."""
+    dst.mkdir(parents=True, exist_ok=True)
+    for item in src.iterdir():
+        target = dst / item.name
+        if item.is_dir():
+            _merge_tree(item, target)
+        else:
+            shutil.copy2(item, target)
 
 
 def unzip_members(blob: bytes | None) -> dict[str, bytes]:
