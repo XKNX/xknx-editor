@@ -19,6 +19,7 @@ from editor_gui.plugins.project.ui.device_diff import (
     snapshot_device,
 )
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.description import description_icon, description_icon_width
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
@@ -129,24 +130,29 @@ class DeviceComparePanel:
         devices: list[Device],
         by_id: dict[int, Device],
     ) -> int:
-        imgui.set_next_item_width(-1)
         cur = by_id.get(current)
-        label = self._device_entry(cur) if cur is not None else "?"
+        description = cur.description if cur is not None else ""
+        # The selected device's description behind an icon after the dropdown.
+        icon_room = (
+            description_icon_width() + imgui.get_style().item_spacing.x
+            if description
+            else 0.0
+        )
+        imgui.set_next_item_width(-icon_room if icon_room else -1)
+        label = device_label(cur) if cur is not None else "?"
         if imgui.begin_combo(combo_id, label):
             for d in devices:
                 if imgui.selectable(
-                    f"{self._device_entry(d)}##{combo_id}{d.node_id}",
+                    f"{device_label(d)}##{combo_id}{d.node_id}",
                     d.node_id == current,
                 )[0]:
                     current = d.node_id
+                if d.description:
+                    description_icon(d.description)
             imgui.end_combo()
+        if description:
+            description_icon(description)
         return current
-
-    @staticmethod
-    def _device_entry(d: Device) -> str:
-        """'<address>  <name>  ·  <description>' — the description helps tell clones apart."""
-        base = device_label(d)
-        return f"{base}  ·  {d.description}" if d.description else base
 
     @staticmethod
     def _matches(d: Device, needle: str) -> bool:

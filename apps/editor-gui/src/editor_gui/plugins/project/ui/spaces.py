@@ -428,13 +428,8 @@ class SpacesPanel:
     @staticmethod
     def _device_label(device: "SpaceDeviceInfo") -> str:
         ia = f"{device.individual_address}  " if device.individual_address else ""
-        primary = (
-            device.name
-            or device.product_name
-            or device.hardware_name
-            or device.description
-            or "?"
-        )
+        # Unnamed: the product/hardware name; the description shows behind its icon only.
+        primary = device.name or device.product_name or device.hardware_name or "?"
         return f"{ia}{primary}".strip()
 
     def _render_new_function_popup(self, space_id: int) -> None:
@@ -493,19 +488,7 @@ class SpacesPanel:
     def _render_device(
         self, device: "SpaceDeviceInfo", space_id: int | None = None
     ) -> None:
-        # Fall back to the product/hardware name when the device is unnamed.
-        primary = (
-            device.name
-            or device.product_name
-            or device.hardware_name
-            or device.description
-            or "?"
-        )
-        detail = (
-            device.description
-            if device.description and device.description != primary
-            else ""
-        )
+        detail = device.description
         leaf = self._device_label(device)
         # allow_overlap: the "Without space" section draws an "Assign device" button via
         # same_line() over this full-width selectable. Without the flag the selectable (submitted
