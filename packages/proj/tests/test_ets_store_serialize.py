@@ -217,6 +217,41 @@ def test_device_streams_and_write_gate() -> None:
     assert node is not None and node.get("GroupObjectInstances") == "O-2_R-2"
 
 
+def test_ets5_store_drops_what_ets5_cannot_read() -> None:
+    """ETS 5's object model rejects the ETS 6 topology.
+
+    A line must carry ``MediumTypeRefId`` with the devices directly under it (a ``<Segment>``
+    makes ETS 5 drop the line). ``Birdy-SecurityState`` is an ETS 6 annotation a genuine ETS 5
+    store never carries. The legacy sections ETS 5 always accounts for are present but empty.
+    """
+    with _session() as session:
+        project, inst = _project(session)
+        built = build_store_streams(
+            project, inst, store_format=ets_store.StoreFormat.ETS5
+        )
+
+    for name in ("AI", "BA", "D", "HE", "IPSD", "S", "T", "UF"):
+        assert built.streams[name] == b""
+
+    installation = ET.fromstring(built.streams["I"].decode("utf-8-sig"))
+    assert installation.tag == "I"
+    assert installation.get("DefaultLine") == ""
+
+    info = ET.fromstring(built.streams["P"].decode("utf-8-sig")).find("ProjInfo")
+    assert info is not None
+    assert info.get("CompletionStatus") == "Editing"
+    assert info.get("Birdy-DeviceCount") == "1"
+    assert info.get("Birdy-RoomCount") is None
+
+    area = ET.fromstring(built.streams[f"{PID}-0_A-2"].decode("utf-8-sig"))
+    assert area.find("Segment") is None
+    line = area.find("Line")
+    assert line is not None and line.get("MediumTypeRefId") == "MT-0"
+    assert line.find("DI") is not None
+    ci = area.find(".//CI")
+    assert ci is not None and ci.get("Birdy-SecurityState") is None
+
+
 def test_write_project_store_sidecars(tmp_path: Path) -> None:
     with _session() as session:
         project, inst = _project(session)
@@ -236,8 +271,8 @@ def test_write_project_store_sidecars(tmp_path: Path) -> None:
         assert sidecar == ets_store.ets5hash(data, mask)
     # storeVersion, the installation-bound descriptor, product data and the empty folders.
     assert (store_dir / "storeVersion").read_text(
-        encoding="utf-8"
-    ) == ets_store.STORE_VERSION
+        encoding="utf-8", newline=""
+    ) == ets_store.StoreFormat.ETS6.store_version
     assert (store_dir / f"{PID}.store").read_text(
         encoding="utf-8"
     ) == ets_store.store_descriptor(PID, INSTALLER_GUID)

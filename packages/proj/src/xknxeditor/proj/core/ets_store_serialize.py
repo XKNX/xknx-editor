@@ -32,6 +32,7 @@ from sqlalchemy.orm import object_session
 
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.ets_store import (
+    StoreFormat,
     project_mask,
     write_store_descriptor,
     write_store_stream,
@@ -61,6 +62,15 @@ _IP_ROUTING_LATENCY_TOLERANCE = "2000"
 
 #: A valid ETS project id (``P-`` + hex). Guards any filesystem path derived from a project id.
 _PID_RE = re.compile(r"P-[0-9A-Fa-f]+\Z")
+
+#: Medium type for a line whose segments did not survive the model (TP, as a genuine ETS 5 store
+#: writes on every line of a TP installation).
+_DEFAULT_MEDIUM_TYPE = "MT-0"
+
+#: Sections an ETS 5 store always accounts for, none of which this writer has content for: addin
+#: data, bus access, trades ("Gewerke"), history entries, IP-secure data, split (``S``), todo items
+#: and user files. Written as empty (hash sidecar only), matching a genuine ETS 5 ProjectStore.
+_ETS5_LEGACY_STREAMS = ("AI", "BA", "D", "HE", "IPSD", "S", "T", "UF")
 
 
 def _is_safe_member(member: str) -> bool:
@@ -109,10 +119,12 @@ class _StoreBuilder:
         pid: str,
         *,
         name: str | None = None,
+        store_format: StoreFormat = StoreFormat.ETS6,
     ) -> None:
         self._project = project
         self._installation = installation
         self._pid = pid
+        self._format = store_format
         self._name = name if name is not None else project.name
         # Persistent-unique-id per object, assigned in the order a genuine store does: the whole
         # topology skeleton, then spaces, then devices, then the group-address tree. Keyed by
@@ -205,6 +217,11 @@ class _StoreBuilder:
             "G": self._build_group_addresses(),
             "PT": self._build_traces(),
         }
+        if self._format is StoreFormat.ETS5:
+            # Sections ETS 5 always accounts for and ETS 6 dropped. A genuine ETS 5 store carries a
+            # hash-of-empty sidecar for each (no base file, see write_store_stream); a genuine ETS 6
+            # store has no trace of them at all, which is why they are not written for both.
+            streams.update(dict.fromkeys(_ETS5_LEGACY_STREAMS, b""))
         streams.update(self._build_areas())
         return streams
 
@@ -229,6 +246,22 @@ class _StoreBuilder:
             sum(1 for s in inst.spaces if (s.space_type or "") == "Room") if inst else 0
         )
         function_count = sum(len(s.functions) for s in inst.spaces) if inst else 0
+        # The project list reads its "Status" column from CompletionStatus; without it the project
+        # is listed as "Unknown". It is captured at import into extra_attributes (it is one of the
+        # ProjectInformation attributes xknxproject does not surface), so re-emit it from there and
+        # fall back to what ETS puts on a project that is simply being worked on.
+        counts: dict[str, object] = (
+            {"Birdy-DeviceCount": device_count}
+            if self._format is StoreFormat.ETS5
+            else {
+                "Birdy-RoomCount": room_count,
+                "Birdy-DeviceCount": device_count,
+                "Birdy-FunctionCount": function_count,
+                "Birdy-LineCount": line_count,
+                "Birdy-AssignedCertificateCount": 0,
+                "Birdy-UnassignedCertificateCount": 0,
+            }
+        )
         _attr(
             root,
             "ProjInfo",
@@ -237,16 +270,10 @@ class _StoreBuilder:
             LastModified=project.last_modified or now,
             ProjectStart=extra.get("ProjectStart") or now,
             Comment=project.comment or "",
+            CompletionStatus=extra.get("CompletionStatus") or "Editing",
             LastUsedPuid=self._counter,
             Guid=self.guid,
-            **{
-                "Birdy-RoomCount": room_count,
-                "Birdy-DeviceCount": device_count,
-                "Birdy-FunctionCount": function_count,
-                "Birdy-LineCount": line_count,
-                "Birdy-AssignedCertificateCount": 0,
-                "Birdy-UnassignedCertificateCount": 0,
-            },
+            **counts,
         )
         return _serialize(root)
 
@@ -257,11 +284,23 @@ class _StoreBuilder:
         return self._guid
 
     def _build_installation(self) -> bytes:
+        name = self._installation.name if self._installation else ""
+        if self._format is StoreFormat.ETS5:
+            # ETS 5 stores the single installation as the root element itself; the ``<Is>`` wrapper
+            # (and with it more than one installation) arrived with ETS 6.
+            root = ET.Element(
+                "I",
+                Name=name,
+                BCUKey=_BCU_KEY,
+                DefaultLine="",
+                IPRoutingLatencyTolerance=_IP_ROUTING_LATENCY_TOLERANCE,
+            )
+            return _serialize(root)
         root = ET.Element("Is")
         _attr(
             root,
             "I",
-            Name=(self._installation.name if self._installation else ""),
+            Name=name,
             BCUKey=_BCU_KEY,
             IPRoutingLatencyTolerance=_IP_ROUTING_LATENCY_TOLERANCE,
         )
@@ -384,22 +423,55 @@ class _StoreBuilder:
         for a_seq, area in enumerate(
             sorted(inst.areas, key=lambda a: a.address), start=1
         ):
+            # ``Name`` is mandatory on a topology element, and it must be *present* even when
+            # empty: ETS 5.7 refuses an <Area> without it with "required property 'Name' does not
+            # exist", drops the whole area -- and with it every device in it -- and then rewrites
+            # the store without the area streams. The project still opens, but comes up with no
+            # devices and no group-address associations, which is what made this hard to spot.
+            # (ETS 6 happens to tolerate a missing Name here; ETS 5 does not.)
             area_el = ET.Element(
                 "Area",
                 Id=f"{self._pid}-0_A-{a_seq}",
                 Address=str(area.address),
+                Name=area.name or "",
                 Puid=str(self._p("A", area.id)),
             )
             for line in sorted(area.lines, key=lambda line_: line_.address):
+                segments = list(line.segments)
+                if self._format is StoreFormat.ETS5:
+                    # ETS 5 has no segment layer: the medium type sits on the line and the devices
+                    # are its direct children. Writing an ETS 6 ``<Segment>`` here costs the whole
+                    # line -- ETS 5 fails it with "required property 'MediumTypeRefId' does not
+                    # exist" and drops it, taking every device on it with it.
+                    line_el = _attr(
+                        area_el,
+                        "Line",
+                        Id=f"{self._pid}-0_L-{self._s('L', line.id)}",
+                        Address=line.address,
+                        Name=line.name or "",
+                        MediumTypeRefId=(
+                            segments[0].medium_type
+                            if segments
+                            else _DEFAULT_MEDIUM_TYPE
+                        ),
+                        Puid=self._p("L", line.id),
+                    )
+                    # A line with several segments cannot be represented; the devices still all
+                    # belong to the line, so they are flattened onto it (import already notes the
+                    # segment loss, see core.import_notes).
+                    for segment in segments:
+                        for device in segment.devices:
+                            self._build_device(line_el, device)
+                    continue
                 line_el = _attr(
                     area_el,
                     "Line",
                     Id=f"{self._pid}-0_L-{self._s('L', line.id)}",
                     Address=line.address,
-                    Name=line.name or None,
+                    Name=line.name or "",
                     Puid=self._p("L", line.id),
                 )
-                for segment in line.segments:
+                for segment in segments:
                     seg_el = _attr(
                         line_el,
                         "Segment",
@@ -482,7 +554,14 @@ class _StoreBuilder:
                 TransmitFlag=enable(co.transmit_flag_override),
                 UpdateFlag=enable(co.update_flag_override),
                 ReadOnInitFlag=enable(co.read_on_init_flag_override),
-                **{"Birdy-SecurityState": "true" if secure else "false"},
+                # ETS 6 annotates each link with whether its group address is secured. A genuine
+                # ETS 5 store never carries ``Birdy-SecurityState`` (the property is absent from
+                # its object model), so the attribute is ETS 6 only.
+                **(
+                    {"Birdy-SecurityState": "true" if secure else "false"}
+                    if self._format is StoreFormat.ETS6
+                    else {}
+                ),
             )
 
     def _build_module_instances(self, di: ET.Element, device: Device) -> None:
@@ -568,13 +647,18 @@ def build_store_streams(
     *,
     pid: str | None = None,
     name: str | None = None,
+    store_format: StoreFormat = StoreFormat.ETS6,
 ) -> StoreStreams:
     """Serialize ``project`` into the ETS store streams (no files written).
 
     ``name`` overrides the stored project name (e.g. to tag a new copy); ``None`` keeps it.
+    ``store_format`` selects the target ETS generation's stream shapes -- the two are not
+    interchangeable, see :class:`xknxeditor.proj.core.ets_store.StoreFormat`.
     """
     resolved_pid = pid or project.id
-    builder = _StoreBuilder(project, installation, resolved_pid, name=name)
+    builder = _StoreBuilder(
+        project, installation, resolved_pid, name=name, store_format=store_format
+    )
     streams = builder.build()
     return StoreStreams(pid=resolved_pid, guid=builder.guid, streams=streams)
 
@@ -590,8 +674,9 @@ def write_project_store(
     product_members: Mapping[str, bytes] | None = None,
     overwrite: bool = True,
     reveal: Callable[[bytes], bytes] | None = None,
+    store_format: StoreFormat = StoreFormat.ETS6,
 ) -> StoreStreams:
-    """Write a complete ``P-XXXX`` store directory ETS 6 can open.
+    """Write a complete ``P-XXXX`` store directory the target ETS can open.
 
     Writes each stream with its ``.ets5hash`` sidecar, the ``storeVersion`` marker and the
     ``{pid}.store`` descriptor bound to ``installer_guid`` (the target machine's ETS installation
@@ -616,9 +701,12 @@ def write_project_store(
 
     ``project_name`` overrides the stored project name (e.g. to tag a new copy); ``None`` keeps it.
     ``reveal`` turns a stream with the project's encrypted secrets into one with them in the clear
-    (see :meth:`ProjectService.reveal`).
+    (see :meth:`ProjectService.reveal`). ``store_format`` must match the ETS generation owning
+    ``dest_dir``: a store written for the other one opens but comes up empty.
     """
-    built = build_store_streams(project, installation, pid=pid, name=project_name)
+    built = build_store_streams(
+        project, installation, pid=pid, name=project_name, store_format=store_format
+    )
     if reveal is not None:
         built.streams.update(
             {name: reveal(data) for name, data in built.streams.items()}
@@ -635,7 +723,7 @@ def write_project_store(
     staging.mkdir(parents=True)
     for name, data in built.streams.items():
         write_store_stream(staging, name, data, mask)
-    write_store_version(staging)
+    write_store_version(staging, store_format)
     write_store_descriptor(staging, built.pid, installer_guid)
 
     manufacturer_folders: set[str] = set()

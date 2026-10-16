@@ -1,7 +1,7 @@
-"""Write ETS6 internal project-store files ("FileProjectStore"), used by the dongle workaround.
+"""Write ETS internal project-store files ("FileProjectStore"), used by the dongle workaround.
 
 A ``.knxproj`` is the interchange format (XML archive). ETS' local project store
-(``%ProgramData%/KNX/ETS6/ProjectStore/P-XXXX/``) is a different, internal format: one XML stream
+(``%ProgramData%/KNX/ETS{5,6}/ProjectStore/P-XXXX/``) is a different, internal format: one XML stream
 per object-model section (``P`` project, ``B`` buildings, ``I`` installation, ``G`` group addresses,
 ``PT`` traces, ``P-XXXX-0_A-N`` application data, …), each guarded by a ``<name>.ets5hash`` sidecar,
 plus ``storeVersion`` and a ``P-XXXX.store`` descriptor.
@@ -22,10 +22,35 @@ import hashlib
 import hmac
 import os
 import uuid
+from enum import Enum
 from pathlib import Path
 
-#: ``storeVersion`` content: schema line + tool-version line (ETS 6.4.x).
-STORE_VERSION = "23\n6.4.8718.0"
+
+class StoreFormat(Enum):
+    """Which ETS generation's store layout to write.
+
+    The two are *not* interchangeable. The integrity primitives are identical (same ``.ets5hash``
+    recipe, same ``.store`` HMAC), but the object-model streams differ in shape and each ETS rejects
+    the other's: ETS 5 discards every line of an ETS 6 topology (it wants ``MediumTypeRefId`` on the
+    ``Line``, not on a ``Segment`` it knows nothing about), which drops all devices and leaves the
+    project open-able but empty. The ``storeVersion`` marker is the declared discriminator; see
+    ets_store_serialize for the per-format stream shapes.
+    """
+
+    ETS5 = "ets5"
+    ETS6 = "ets6"
+
+    @property
+    def store_version(self) -> str:
+        """``storeVersion`` content: schema line + tool-version line, both CRLF-terminated."""
+        if self is StoreFormat.ETS5:
+            return "20\r\n5.7.597.39777\r\n"
+        return "23\r\n6.4.8718.0\r\n"
+
+    @property
+    def app_dir(self) -> str:
+        """The ``%ProgramData%/KNX/<this>/ProjectStore`` folder name for this generation."""
+        return "ETS5" if self is StoreFormat.ETS5 else "ETS6"
 
 
 def project_mask(project_guid: str, project_id: str) -> int:
@@ -71,10 +96,14 @@ def write_store_stream(store_dir: Path, name: str, data: bytes, mask: int) -> No
     (store_dir / f"{name}.ets5hash").write_text(ets5hash(data, mask), encoding="ascii")
 
 
-def write_store_version(store_dir: Path) -> None:
-    """Write the ``storeVersion`` marker (no hash sidecar)."""
+def write_store_version(
+    store_dir: Path, store_format: StoreFormat = StoreFormat.ETS6
+) -> None:
+    """Write the ``storeVersion`` marker for ``store_format`` (no hash sidecar)."""
     store_dir.mkdir(parents=True, exist_ok=True)
-    (store_dir / "storeVersion").write_text(STORE_VERSION, encoding="utf-8")
+    (store_dir / "storeVersion").write_text(
+        store_format.store_version, encoding="utf-8", newline=""
+    )
 
 
 def installer_guid_path() -> Path:
