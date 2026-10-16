@@ -959,22 +959,28 @@ class DeviceProgrammer:
         ``occurrence`` is zero-based, matching the product application program XML (``Occurrence="0"``
         is the first instance). Scans interface objects reading ``PID_OBJECT_TYPE``
         until the requested occurrence is found. Cached per programmer instance.
+
+        Each object tells its own type; the device object's ``PID_IO_LIST`` is only used
+        from the first object whose type cannot be read on. A list that does not match
+        the objects (e.g. one missing an entry) therefore never leads to a wrong object.
         """
         cached = self._object_index_cache.get((object_type, occurrence))
         if cached is not None:
             return cached
-        await self._read_io_list()
         ordinal = 0
         for index in range(_MAX_OBJECT_INDEX + 1):
-            if index in self._object_types:
-                found_type = self._object_types[index]
-            else:
+            if index not in self._object_types:
                 try:
                     data = await self.read_property(index, PID_OBJECT_TYPE)
                 except (VerificationError, DownloadError):
-                    break
-                found_type = int.from_bytes(data[:2], "big") if len(data) >= 2 else None
-                self._object_types[index] = found_type
+                    data = b""
+                if len(data) >= 2:
+                    self._object_types[index] = int.from_bytes(data[:2], "big")
+                else:
+                    # Past the last object, or an object without a readable type.
+                    await self._read_io_list()
+                    self._object_types.setdefault(index, None)
+            found_type = self._object_types[index]
             if found_type is None:
                 break
             if found_type == object_type:
@@ -987,7 +993,8 @@ class DeviceProgrammer:
         )
 
     async def _read_io_list(self) -> None:
-        """Take the object types from the device object's PID_IO_LIST, when it has one.
+        """Take the object types from the device object's PID_IO_LIST, when it has one,
+        for the objects whose type is not known yet.
 
         The list names the type of every interface object in index order, including
         objects whose PID_OBJECT_TYPE cannot be read, which would end the scan early.
@@ -1020,8 +1027,9 @@ class DeviceProgrammer:
             logger.debug("io list not readable: %s", exc)
             return
         logger.debug("io list: %s", [f"{t:#06x}" for t in types])
-        self._object_types.update(enumerate(types))
-        self._object_types[len(types)] = None
+        for index, listed_type in enumerate(types):
+            self._object_types.setdefault(index, listed_type)
+        self._object_types.setdefault(len(types), None)
 
     async def read_load_state(self, object_index: int) -> load_state.LoadState:
         """Read the current state of an object's Load State Machine."""

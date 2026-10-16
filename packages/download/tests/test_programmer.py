@@ -457,11 +457,26 @@ async def test_locate_object_uses_the_io_list_past_an_unreadable_object() -> Non
     programmer = DeviceProgrammer(device)
     assert await programmer.locate_object(0x000B) == 7
     assert await programmer.locate_object(0xC351) == 8
-    assert not any(
-        getattr(p, "property_id", None) == PID_OBJECT_TYPE for p in device.sent
-    )
+    # the objects tell their types up to the unreadable one; the list covers the rest
+    assert [
+        p.object_index
+        for p in device.sent
+        if getattr(p, "property_id", None) == PID_OBJECT_TYPE
+    ] == [0, 1, 2]
     with pytest.raises(LoadStateError, match="not found"):
         await programmer.locate_object(0x0006)
+
+
+async def test_locate_object_trusts_the_objects_over_the_io_list() -> None:
+    # The list lacks the entry of object 5, so from there on it names the type of the
+    # next object; each object still tells its own type.
+    types = {0: 0x0000, 1: 0x0001, 2: 0x0002, 3: 0x0003, 4: 0x0004, 5: 0x0005}
+    types |= {6: 0x0006, 7: 0x000B}
+    device = _IoListDevice(object_types=types)
+    device.io_list = (0x0000, 0x0001, 0x0002, 0x0003, 0x0004, 0x0006, 0x000B)
+    programmer = DeviceProgrammer(device)
+    assert await programmer.locate_object(0x000B) == 7
+    assert not any(getattr(p, "property_id", None) == PID_IO_LIST for p in device.sent)
 
 
 async def test_locate_object_reads_each_object_type_once() -> None:
