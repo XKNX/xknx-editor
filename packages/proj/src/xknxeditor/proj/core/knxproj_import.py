@@ -34,7 +34,11 @@ from xml.etree import ElementTree as ET
 from zipfile import BadZipFile
 
 from sqlalchemy.orm import Session
-from xknxproject.exceptions import InvalidPasswordException, UnexpectedFileContent
+from xknxproject.exceptions import (
+    InvalidPasswordException,
+    InvalidProjectArchive,
+    UnexpectedFileContent,
+)
 from xknxproject.models.knxproject import DPTType
 from xknxproject.models.models import (
     ComObjectInstanceRef,
@@ -270,10 +274,11 @@ def _parse_checked(
         return _parse(source, password, language)
     except InvalidPasswordException:
         raise  # protected + no password (extractor reports this eagerly)
-    except (BadZipFile, zlib.error, RuntimeError) as e:
+    except (BadZipFile, zlib.error, RuntimeError, InvalidProjectArchive) as e:
         # Standard-zip encryption has only a one-byte password check: a wrong password may
         # fail the header check (RuntimeError) or slip through and fail decompression later
-        # (zlib.error). With a password set, treat any such failure as a wrong password.
+        # (zlib.error, which xknxproject reports as InvalidProjectArchive). With a password
+        # set, treat any such failure as a wrong password.
         if password is not None:
             raise InvalidPasswordException("Invalid password.") from e
         raise UnexpectedFileContent(f"Not a readable .knxproj archive: {e}") from e

@@ -16,7 +16,11 @@ from zipfile import BadZipFile
 
 import pytest
 from sqlalchemy.orm import Session
-from xknxproject.exceptions import InvalidPasswordException, UnexpectedFileContent
+from xknxproject.exceptions import (
+    InvalidPasswordException,
+    InvalidProjectArchive,
+    UnexpectedFileContent,
+)
 
 from xknxeditor.proj import ProjectService, import_knxproj
 from xknxeditor.proj.core import knxproj_import
@@ -398,7 +402,14 @@ def test_device_extra_attributes_captures_unmodelled_only() -> None:
 
 @pytest.mark.parametrize(
     "raised",
-    [zlib.error("bad"), BadZipFile("bad"), RuntimeError("Bad password for file")],
+    [
+        zlib.error("bad"),
+        BadZipFile("bad"),
+        RuntimeError("Bad password for file"),
+        # xknxproject's report of a zlib.error: a wrong password that passed the one-byte
+        # check of the standard zip encryption
+        InvalidProjectArchive("Could not decompress project data."),
+    ],
 )
 def test_parse_failure_with_password_is_invalid_password(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch, raised: Exception
