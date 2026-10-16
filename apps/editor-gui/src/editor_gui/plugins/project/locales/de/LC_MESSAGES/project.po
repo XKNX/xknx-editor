@@ -182,8 +182,8 @@ msgstr "Hardware-Typ"
 msgid "differs from project V{version} — program to apply"
 msgstr "weicht von Projekt V{version} ab — programmieren"
 
-msgid "Filter parameters..."
-msgstr "Parameter filtern..."
+msgid "Filter parameters…"
+msgstr "Parameter filtern…"
 
 msgid "Hardware"
 msgstr "Hardware"
@@ -304,8 +304,8 @@ msgstr ""
 "(das Gerät trägt einen älteren Wert; unbedenklich, wird beim Programmieren "
 "normalisiert)"
 
-msgid "Export Ist/Soll..."
-msgstr "Export Ist/Soll..."
+msgid "Export Ist/Soll…"
+msgstr "Export Ist/Soll…"
 
 msgid "Export Path:"
 msgstr "Exportpfad:"
@@ -316,8 +316,8 @@ msgstr "Speicher {address}"
 msgid "object {object} property {property}"
 msgstr "Objekt {object} Eigenschaft {property}"
 
-msgid "Filter devices (name, address)..."
-msgstr "Geräte filtern (Name, Adresse)..."
+msgid "Filter devices (name, address)…"
+msgstr "Geräte filtern (Name, Adresse)…"
 
 msgid ""
 "No devices. Open or import a project (File menu), or right-click here to add"
@@ -326,11 +326,11 @@ msgstr ""
 "Keine Geräte. Öffnen oder importieren Sie ein Projekt (Menü Datei) oder "
 "klicken Sie rechts, um einen Bereich hinzuzufügen."
 
-msgid "Filter group addresses (address, name)..."
-msgstr "Gruppenadressen filtern (Adresse, Name)..."
+msgid "Filter group addresses (address, name)…"
+msgstr "Gruppenadressen filtern (Adresse, Name)…"
 
-msgid "Filter rooms, devices, functions..."
-msgstr "Räume, Geräte, Funktionen filtern..."
+msgid "Filter rooms, devices, functions…"
+msgstr "Räume, Geräte, Funktionen filtern…"
 
 msgid "Area {area}"
 msgstr "Bereich {area}"
@@ -506,7 +506,7 @@ msgid "Open a project to use the Mass Linker."
 msgstr "Öffne ein Projekt, um die Massenverknüpfung zu nutzen."
 
 msgid ""
-"Pairs are matched by list order (1st with 1st, ...). Surplus items on the "
+"Pairs are matched by list order (1st with 1st, …). Surplus items on the "
 "longer side are ignored. Reorder a list via its right-click menu."
 msgstr ""
 "Paare werden nach Listenreihenfolge gebildet (1. mit 1. usw.). Überzählige "
@@ -525,11 +525,11 @@ msgstr "Ziel (Objekte)"
 msgid "Preview & Link"
 msgstr "Vorschau & Verknüpfen"
 
-msgid "Add Objects..."
-msgstr "Objekte hinzufügen..."
+msgid "Add Objects…"
+msgstr "Objekte hinzufügen…"
 
-msgid "Add Group Addresses..."
-msgstr "Gruppenadressen hinzufügen..."
+msgid "Add Group Addresses…"
+msgstr "Gruppenadressen hinzufügen…"
 
 msgid "Add Selected"
 msgstr "Auswahl hinzufügen"
@@ -564,8 +564,8 @@ msgstr "GA-Name ({source}, {target}, {n})"
 msgid "Start Address"
 msgstr "Startadresse"
 
-msgid "Filter..."
-msgstr "Filter..."
+msgid "Filter…"
+msgstr "Filter…"
 
 msgid "Add Communication Objects"
 msgstr "Kommunikationsobjekte hinzufügen"
@@ -627,7 +627,7 @@ msgstr "Ersetzen durch"
 msgid "Create group addresses for each copy"
 msgstr "Gruppenadressen für jede Kopie anlegen"
 
-msgid "Copy name: {name}"
+msgid "Copy Name: {name}"
 msgstr "Kopiename: {name}"
 
 msgid "Copy"
@@ -659,8 +659,8 @@ msgstr "{count} Adresse(n) verschoben"
 msgid "Export {count} device(s) to a CSV for on-site labelling."
 msgstr "{count} Gerät(e) als CSV für die Beschriftung vor Ort exportieren."
 
-msgid "Export CSV..."
-msgstr "CSV exportieren..."
+msgid "Export CSV…"
+msgstr "CSV exportieren…"
 
 msgid "Exported to {path}"
 msgstr "Exportiert nach {path}"
@@ -748,8 +748,8 @@ msgstr "Keine"
 msgid "{sel} of {total} selected"
 msgstr "{sel} von {total} ausgewählt"
 
-msgid "Filter devices..."
-msgstr "Geräte filtern..."
+msgid "Filter devices…"
+msgstr "Geräte filtern…"
 
 msgid "Replace Device"
 msgstr "Gerät ersetzen"
@@ -767,7 +767,7 @@ msgstr ""
 msgid "Device to Replace"
 msgstr "Zu ersetzendes Gerät"
 
-msgid "Replace with (template)"
+msgid "Replace with (Template)"
 msgstr "Ersetzen durch (Vorlage)"
 
 msgid "Group Object Mapping (by Number)"
@@ -897,7 +897,7 @@ msgstr "Erstellen"
 msgid "Assign Group Address"
 msgstr "Gruppenadresse zuordnen"
 
-msgid "Role (optional)"
+msgid "Role (Optional)"
 msgstr "Rolle (optional)"
 
 msgid "Custom"
@@ -948,7 +948,7 @@ msgstr "Parameter zurücksetzen"
 msgid "Reset Type"
 msgstr "Reset-Typ"
 
-msgid "Reset..."
+msgid "Reset…"
 msgstr "Zurücksetzen…"
 
 msgid "Restart"
@@ -1334,11 +1334,11 @@ msgstr "Ändern des Applikationsprogramms fehlgeschlagen"
 msgid "Updating the application program failed"
 msgstr "Aktualisieren des Applikationsprogramms fehlgeschlagen"
 
-msgid "Updating the application program..."
-msgstr "Applikationsprogramm wird aktualisiert..."
+msgid "Updating the application program…"
+msgstr "Applikationsprogramm wird aktualisiert…"
 
-msgid "Changing the application program..."
-msgstr "Applikationsprogramm wird geändert..."
+msgid "Changing the application program…"
+msgstr "Applikationsprogramm wird geändert…"
 
 msgid "Rename Space"
 msgstr "Bereich umbenennen"
@@ -1448,11 +1448,11 @@ msgstr "Adresse ändern…"
 msgid "Channels ({count})"
 msgstr "Kanäle ({count})"
 
-msgid "Choose project to compare"
+msgid "Choose Project to Compare"
 msgstr "Zu vergleichendes Projekt wählen"
 
-msgid "Choose project to compare..."
-msgstr "Zu vergleichendes Projekt wählen..."
+msgid "Choose Project to Compare…"
+msgstr "Zu vergleichendes Projekt wählen…"
 
 msgid "Columns"
 msgstr "Spalten"
@@ -1496,8 +1496,8 @@ msgstr "PDF-Handbuch herunterladen"
 msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
 msgstr "ETS verschlüsselt die Kommentare im Protokoll. Extrahieren Sie den Entschlüsselungsschlüssel aus der Knx.Ets.Common.dll Ihrer eigenen ETS-Installation, um sie zu lesen; es wird nichts übertragen."
 
-msgid "Export HTML..."
-msgstr "HTML exportieren..."
+msgid "Export HTML…"
+msgstr "HTML exportieren…"
 
 msgid "Extract from Knx.Ets.Common.dll…"
 msgstr "Aus Knx.Ets.Common.dll extrahieren…"
@@ -1592,8 +1592,8 @@ msgstr "Gruppenadressen umnummerieren, indem ein Versatz auf ihren Rohwert addie
 msgid "Rows"
 msgstr "Zeilen"
 
-msgid "Searching manual..."
-msgstr "Handbuch wird gesucht..."
+msgid "Searching manual…"
+msgstr "Handbuch wird gesucht…"
 
 msgid "Select at least one field."
 msgstr "Mindestens ein Feld auswählen."
@@ -1634,8 +1634,11 @@ msgstr "entfernt"
 msgid "{count} difference(s)"
 msgstr "{count} Unterschied(e)"
 
-msgid "Diff"
-msgstr "Vergleichen"
+msgid "Save…"
+msgstr "Speichern…"
+
+msgid "Diff…"
+msgstr "Vergleichen…"
 
 msgid "Clear Diff"
 msgstr "Vergleich aufheben"
@@ -1700,8 +1703,29 @@ msgstr "Falsches Passwort, bitte erneut versuchen."
 msgid "Add Device Certificate"
 msgstr "Gerätezertifikat hinzufügen"
 
-msgid "This device is commissioned securely for the first time. Enter the FDSK from its label or certificate (36 characters):"
-msgstr "Dieses Gerät wird zum ersten Mal sicher in Betrieb genommen. Geben Sie den FDSK von seinem Etikett oder Zertifikat ein (36 Zeichen):"
+msgid "Device Certificate"
+msgstr "Gerätezertifikat"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "Dieses Gerät verwendet bereits seinen eigenen Schlüssel aus diesem Projekt. Sein Zertifikat wird erst nach einem Werksreset wieder benötigt."
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "Dieses Gerät verwendet noch seinen Werksschlüssel: Der erste sichere Download benötigt sein Zertifikat."
+
+msgid "Stored Certificate: {serial}"
+msgstr "Gespeichertes Zertifikat: {serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Geben Sie den FDSK von seinem Etikett oder Zertifikat ein (36 Zeichen):"
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "Zum Ersetzen geben Sie den neuen FDSK ein (36 Zeichen):"
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "Gespeichertes Zertifikat entfernen? Nach einem Werksreset ist das Gerät dann nur noch mit dem Code von seinem Etikett erreichbar."
+
+msgid "Device Certificate…"
+msgstr "Gerätezertifikat…"
 
 msgid "The device certificate (FDSK) is missing."
 msgstr "Das Gerätezertifikat (FDSK) fehlt."
@@ -1841,7 +1865,7 @@ msgstr "Feld"
 msgid "Filter devices by address, name or description…"
 msgstr "Geräte nach Adresse, Name oder Beschreibung filtern…"
 
-msgid "Group objects"
+msgid "Group Objects"
 msgstr "Gruppenobjekte"
 
 msgid "No differences"

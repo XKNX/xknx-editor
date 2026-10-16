@@ -93,6 +93,7 @@ def _panel(devices, selected_ids):
     p._on_param_change_selected = lambda *a: None
     p._diff_refs = frozenset()
     p._diff_selection = frozenset()
+    p._holding = False
     return p
 
 

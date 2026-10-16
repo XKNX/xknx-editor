@@ -13,8 +13,8 @@ msgstr "Tijdlijn"
 msgid "No project open"
 msgstr "Geen project geopend"
 
-msgid "Filter group addresses..."
-msgstr "Groepsadressen filteren..."
+msgid "Filter group addresses…"
+msgstr "Groepsadressen filteren…"
 
 msgid "Tick group addresses on the left to plot their values over time."
 msgstr ""

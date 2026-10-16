@@ -22,7 +22,7 @@ def _stage_label(stage: str) -> str:
     return {
         STAGE_GROUP_COMMUNICATION: S.STAGE_GROUP_COMMUNICATION,
         STAGE_PARAMETERS: S.STAGE_PARAMETERS,
-    }.get(stage, "...")
+    }.get(stage, "…")
 
 
 class RecoverPanel:

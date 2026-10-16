@@ -19,7 +19,7 @@ class CockpitStrings:
 
     @property
     def COCKPIT_SEARCH(self) -> str:
-        return _("Filter devices...")
+        return _("Filter devices…")
 
     @property
     def COCKPIT_ATTENTION_ONLY(self) -> str:

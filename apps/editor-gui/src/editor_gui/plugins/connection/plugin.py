@@ -879,7 +879,7 @@ class ConnectionPlugin:
             )
             imgui.dummy(px_vec2(12, 0))
             imgui.same_line()
-            imgui.text_disabled("Connecting...")
+            imgui.text_disabled("Connecting…")
         elif self._state == ConnectionState.ERROR:
             draw_list.add_circle_filled(center, px(4), color_u32(0.8, 0.2, 0.2, 1.0))
             imgui.dummy(px_vec2(12, 0))
@@ -1148,7 +1148,7 @@ class ConnectionPlugin:
                 if imgui.menu_item(S.MENU_DISCONNECT, "", False)[0]:
                     self.disconnect()
             elif self._state == ConnectionState.CONNECTING:
-                imgui.text_disabled("Connecting...")
+                imgui.text_disabled("Connecting…")
             elif self._state == ConnectionState.ERROR:
                 imgui.text_colored(
                     imgui.ImVec4(0.8, 0.2, 0.2, 1.0), "Connection failed"

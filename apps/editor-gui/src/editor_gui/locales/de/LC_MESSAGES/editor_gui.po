@@ -56,11 +56,11 @@ msgstr "Projekt: {name}  ·  {devices} Geräte  ·  {gas} GAs"
 msgid "No project open"
 msgstr "Kein Projekt geöffnet"
 
-msgid "Programming {address}..."
-msgstr "Programmiere {address}..."
+msgid "Programming {address}…"
+msgstr "Programmiere {address}…"
 
-msgid "Testing {address}..."
-msgstr "Teste {address}..."
+msgid "Testing {address}…"
+msgstr "Teste {address}…"
 
 msgid "Programming complete"
 msgstr "Programmierung abgeschlossen"
@@ -86,8 +86,8 @@ msgstr "Projekt öffnen (.knxproj/.xknx)"
 msgid "Open Recent"
 msgstr "Zuletzt geöffnet"
 
-msgid "Settings..."
-msgstr "Einstellungen..."
+msgid "Settings…"
+msgstr "Einstellungen…"
 
 msgid "MCP"
 msgstr "MCP"
@@ -152,8 +152,8 @@ msgstr ""
 msgid "Recent Projects"
 msgstr "Letzte Projekte"
 
-msgid "Export .knxproj..."
-msgstr ".knxproj exportieren..."
+msgid "Export .knxproj…"
+msgstr ".knxproj exportieren…"
 
 msgid "Sign Export"
 msgstr "Export signieren"
@@ -196,8 +196,8 @@ msgstr "Ohne Zertifikat exportieren"
 msgid "Export ETS Project"
 msgstr "ETS-Projekt exportieren"
 
-msgid "Load .knxprod..."
-msgstr ".knxprod laden..."
+msgid "Load .knxprod…"
+msgstr ".knxprod laden…"
 
 msgid "Exit"
 msgstr "Beenden"
@@ -362,7 +362,7 @@ msgstr "Die ETS-Datei 'installer.guid' auswählen"
 msgid "ETS installer id"
 msgstr "ETS-Installations-ID"
 
-msgid "Project already in the store"
+msgid "Project Already in the Store"
 msgstr "Projekt bereits im Store"
 
 msgid ""
@@ -373,7 +373,7 @@ msgstr ""
 msgid "Overwrite"
 msgstr "Überschreiben"
 
-msgid "Add copy"
+msgid "Add Copy"
 msgstr "Kopie hinzufügen"
 
 msgid "XKNX Export"
@@ -395,8 +395,8 @@ msgstr "ETS 6 (Schema 23)"
 msgid "AI MCP"
 msgstr "KI MCP"
 
-msgid "This editor is controllable by an AI assistant (Claude, Codex, ...) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
-msgstr "Dieser Editor ist von einer KI (Claude, Codex, ...) über den eingebauten MCP-Server steuerbar: er stellt Katalog und Projekt als Tools über Streamable HTTP bereit. Starte unten den Server und trage seinen Endpunkt in deinem KI-Tool ein."
+msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
+msgstr "Dieser Editor ist von einer KI (Claude, Codex, …) über den eingebauten MCP-Server steuerbar: er stellt Katalog und Projekt als Tools über Streamable HTTP bereit. Starte unten den Server und trage seinen Endpunkt in deinem KI-Tool ein."
 
 msgid "MCP Endpoint"
 msgstr "MCP-Endpunkt"
@@ -417,8 +417,8 @@ msgstr "Host 0.0.0.0 verwenden, damit der Server von anderen Geräten im Netzwer
 msgid "Switching language…"
 msgstr "Sprache wird gewechselt…"
 
-msgid "Load OpenKNX from URL..."
-msgstr "OpenKNX von URL laden..."
+msgid "Load OpenKNX from URL…"
+msgstr "OpenKNX von URL laden…"
 
 msgid "Load OpenKNX from URL"
 msgstr "OpenKNX von URL laden"
@@ -429,8 +429,8 @@ msgstr "Link zu einem OpenKNX-Release (z. B. eine GitHub-Release-.zip) einfügen
 msgid "Load"
 msgstr "Laden"
 
-msgid "Downloading and importing..."
-msgstr "Herunterladen und importieren..."
+msgid "Downloading and importing…"
+msgstr "Herunterladen und importieren…"
 
 msgid "Imported {count} new product version(s) from URL"
 msgstr "{count} neue Produktversion(en) von URL importiert"
@@ -447,8 +447,8 @@ msgstr "OpenKNX-GitHub-Release-URL einfügen (die Release-Seite funktioniert —
 msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\nExamples:\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/tag/3.6.2-Release\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/latest"
 msgstr "OpenKNX-GitHub-Release-URL einfügen (die Release-Seite funktioniert — das .zip-Asset wird automatisch gefunden). Ein direkter .knxprod- oder KNX-Produkt-XML-Link geht auch.\nBeispiele:\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/tag/3.6.2-Release\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/latest"
 
-msgid "Save As..."
-msgstr "Speichern unter..."
+msgid "Save As…"
+msgstr "Speichern unter…"
 
 msgid "Saved as {name}"
 msgstr "Gespeichert als {name}"
@@ -594,8 +594,8 @@ msgstr "Design"
 msgid "Theme Tweaks"
 msgstr "Design anpassen"
 
-msgid "Reading {address}..."
-msgstr "Lese {address}..."
+msgid "Reading {address}…"
+msgstr "Lese {address}…"
 
 msgid "FPS: {fps:.1f}{idling}"
 msgstr "FPS: {fps:.1f}{idling}"
@@ -645,10 +645,10 @@ msgstr ""
 "gibt nichts zu entfernen. Die Projektdatei kann trotzdem komprimiert werden,"
 " um ungenutzten Speicherplatz freizugeben."
 
-msgid "Application programs"
+msgid "Application Programs"
 msgstr "Applikationsprogramme"
 
-msgid "Device types (products)"
+msgid "Device Types (Products)"
 msgstr "Gerätetypen (Produkte)"
 
 msgid "Hardware"
@@ -657,19 +657,19 @@ msgstr "Hardware"
 msgid "Manufacturers"
 msgstr "Hersteller"
 
-msgid "Catalog entries"
+msgid "Catalog Entries"
 msgstr "Katalogeinträge"
 
-msgid "Help and plug-in files"
+msgid "Help and Plug-in Files"
 msgstr "Hilfe- und Plug-in-Dateien"
 
 msgid "Details"
 msgstr "Details"
 
-msgid "Current file size"
+msgid "Current File Size"
 msgstr "Aktuelle Dateigröße"
 
-msgid "Estimated size afterwards"
+msgid "Estimated Size Afterwards"
 msgstr "Geschätzte Größe danach"
 
 msgid ""
@@ -713,13 +713,13 @@ msgstr "Schließe die Anmeldung in deinem Browser ab. Code: {code}"
 msgid "Login failed (HTTP 401). Either the password is wrong, or this account uses two-factor authentication - the server does not say which."
 msgstr "Anmeldung fehlgeschlagen (HTTP 401). Entweder ist das Passwort falsch, oder dieser Account nutzt Zwei-Faktor-Authentifizierung - der Server sagt nicht, welches."
 
-msgid "Re-enter credentials"
+msgid "Re-enter Credentials"
 msgstr "Zugangsdaten neu eingeben"
 
-msgid "Start 2FA sign-in"
+msgid "Start 2FA Sign-In"
 msgstr "2FA-Anmeldung starten"
 
-msgid "MyKnx OAuth credentials (2FA)"
+msgid "MyKnx OAuth Credentials (2FA)"
 msgstr "MyKnx-OAuth-Zugangsdaten (2FA)"
 
 msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see 'License with an ETS Dongle'."
@@ -728,7 +728,7 @@ msgstr "Nur für Accounts mit Zwei-Faktor-Authentifizierung nötig. Die 2FA-Anme
 msgid "Client ID"
 msgstr "Client-ID"
 
-msgid "Client secret"
+msgid "Client Secret"
 msgstr "Client-Secret"
 
 msgid "Extract from ETS…"
@@ -764,8 +764,8 @@ msgstr "Gruppenadressen-Exporte (*.xml, *.csv)"
 msgid "Projects (*.xknx, *.knxproj, *.xml, *.csv)"
 msgstr "Projekte (*.xknx, *.knxproj, *.xml, *.csv)"
 
-msgid "Import Group Addresses..."
-msgstr "Gruppenadressen importieren..."
+msgid "Import Group Addresses…"
+msgstr "Gruppenadressen importieren…"
 
 msgid "Feedback"
 msgstr "Feedback"
@@ -785,10 +785,10 @@ msgstr "Lokale Kopie verwenden"
 msgid "Working on a local copy; written back to {home} when you close the project."
 msgstr "Es wird mit einer lokalen Kopie gearbeitet; sie wird beim Schließen des Projekts nach {home} zurückgeschrieben."
 
-msgid "Project name"
+msgid "Project Name"
 msgstr "Projektname"
 
-msgid "Group address style"
+msgid "Group Address Style"
 msgstr "Gruppenadress-Darstellung"
 
 msgid "Free"
@@ -800,8 +800,8 @@ msgstr "Zweistufig"
 msgid "Three-level"
 msgstr "Dreistufig"
 
-msgid "Create..."
-msgstr "Erstellen..."
+msgid "Create…"
+msgstr "Erstellen…"
 
 msgid "claude mcp add --transport http xknx-editor {url}"
 msgstr "claude mcp add --transport http xknx-editor {url}"
@@ -815,8 +815,8 @@ msgstr "codex mcp add xknx-editor --url {url}"
 msgid "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
 msgstr "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
 
-msgid "Export Group Addresses..."
-msgstr "Gruppenadressen exportieren..."
+msgid "Export Group Addresses…"
+msgstr "Gruppenadressen exportieren…"
 
 msgid "Export Group Addresses"
 msgstr "Gruppenadressen exportieren"

@@ -161,7 +161,7 @@ msgstr "Aufzeichnung wurde beendet"
 msgid "e.g. 1/2/3"
 msgstr "z. B. 1/2/3"
 
-msgid "Group address:"
+msgid "Group Address:"
 msgstr "Gruppenadresse:"
 
 msgid "Load: {rate} t/s"

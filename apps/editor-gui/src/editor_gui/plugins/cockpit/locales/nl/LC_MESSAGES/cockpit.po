@@ -19,8 +19,8 @@ msgstr "Communicatiedeel"
 msgid "Device Overview"
 msgstr "Apparaatoverzicht"
 
-msgid "Filter devices..."
-msgstr "Apparaten filteren..."
+msgid "Filter devices…"
+msgstr "Apparaten filteren…"
 
 msgid "Individual Address"
 msgstr "Individueel adres"

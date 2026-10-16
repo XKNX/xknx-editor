@@ -124,11 +124,11 @@ class BaseStrings:
 
     @property
     def NEW_PROJECT_NAME_LABEL(self) -> str:
-        return _("Project name")
+        return _("Project Name")
 
     @property
     def NEW_PROJECT_STYLE_LABEL(self) -> str:
-        return _("Group address style")
+        return _("Group Address Style")
 
     @property
     def NEW_PROJECT_STYLE_FREE(self) -> str:
@@ -144,7 +144,7 @@ class BaseStrings:
 
     @property
     def NEW_PROJECT_CREATE(self) -> str:
-        return _("Create...")
+        return _("Create…")
 
     @property
     def BTN_COPY(self) -> str:
@@ -172,15 +172,15 @@ class BaseStrings:
 
     @property
     def STATUS_PROGRAMMING(self) -> str:
-        return _("Programming {address}...")
+        return _("Programming {address}…")
 
     @property
     def STATUS_READING(self) -> str:
-        return _("Reading {address}...")
+        return _("Reading {address}…")
 
     @property
     def STATUS_TESTING(self) -> str:
-        return _("Testing {address}...")
+        return _("Testing {address}…")
 
     @property
     def STATUS_PROGRAM_DONE(self) -> str:
@@ -234,7 +234,7 @@ class MenuStrings:
 
     @property
     def MENU_SAVE_AS(self) -> str:
-        return _("Save As...")
+        return _("Save As…")
 
     @property
     def SAVE_AS_OK(self) -> str:
@@ -246,7 +246,7 @@ class MenuStrings:
 
     @property
     def MENU_SETTINGS(self) -> str:
-        return _("Settings...")
+        return _("Settings…")
 
     @property
     def PANEL_MCP(self) -> str:
@@ -322,7 +322,7 @@ class MenuStrings:
     @property
     def KI_INFO(self) -> str:
         return _(
-            "This editor is controllable by an AI assistant (Claude, Codex, ...) through the "
+            "This editor is controllable by an AI assistant (Claude, Codex, …) through the "
             "built-in MCP server: it exposes the catalog and project as tools over Streamable "
             "HTTP. Start the server below, then register its endpoint in your AI tool."
         )
@@ -402,15 +402,15 @@ class MenuStrings:
 
     @property
     def MENU_EXPORT_KNXPROJ(self) -> str:
-        return _("Export .knxproj...")
+        return _("Export .knxproj…")
 
     @property
     def MENU_EXPORT_GA_EXPORT(self) -> str:
-        return _("Export Group Addresses...")
+        return _("Export Group Addresses…")
 
     @property
     def MENU_IMPORT_GA(self) -> str:
-        return _("Import Group Addresses...")
+        return _("Import Group Addresses…")
 
     @property
     def GA_EXPORT_OK(self) -> str:
@@ -665,15 +665,15 @@ class MenuStrings:
 
     @property
     def MYKNX_2FA_REENTER(self) -> str:
-        return _("Re-enter credentials")
+        return _("Re-enter Credentials")
 
     @property
     def MYKNX_2FA_START(self) -> str:
-        return _("Start 2FA sign-in")
+        return _("Start 2FA Sign-In")
 
     @property
     def MYKNX_OAUTH_TITLE(self) -> str:
-        return _("MyKnx OAuth credentials (2FA)")
+        return _("MyKnx OAuth Credentials (2FA)")
 
     @property
     def MYKNX_OAUTH_HELP(self) -> str:
@@ -693,7 +693,7 @@ class MenuStrings:
 
     @property
     def MYKNX_OAUTH_CLIENT_SECRET(self) -> str:
-        return _("Client secret")
+        return _("Client Secret")
 
     @property
     def MYKNX_OAUTH_EXTRACT(self) -> str:
@@ -804,7 +804,7 @@ class MenuStrings:
 
     @property
     def MYKNX_DONGLE_EXISTS_TITLE(self) -> str:
-        return _("Project already in the store")
+        return _("Project Already in the Store")
 
     @property
     def MYKNX_DONGLE_EXISTS_PROMPT(self) -> str:
@@ -819,7 +819,7 @@ class MenuStrings:
 
     @property
     def MYKNX_DONGLE_NEW_COPY(self) -> str:
-        return _("Add copy")
+        return _("Add Copy")
 
     @property
     def MYKNX_DONGLE_COPY_SUFFIX(self) -> str:
@@ -864,11 +864,11 @@ class MenuStrings:
 
     @property
     def MENU_LOAD_KNXPROD(self) -> str:
-        return _("Load .knxprod...")
+        return _("Load .knxprod…")
 
     @property
     def MENU_LOAD_FROM_URL(self) -> str:
-        return _("Load OpenKNX from URL...")
+        return _("Load OpenKNX from URL…")
 
     @property
     def URL_PROMPT_TITLE(self) -> str:
@@ -894,7 +894,7 @@ class MenuStrings:
 
     @property
     def URL_DOWNLOADING(self) -> str:
-        return _("Downloading and importing...")
+        return _("Downloading and importing…")
 
     @property
     def URL_IMPORT_OK(self) -> str:
@@ -1235,11 +1235,11 @@ class MenuStrings:
 
     @property
     def COMPACT_APPLICATIONS(self) -> str:
-        return _("Application programs")
+        return _("Application Programs")
 
     @property
     def COMPACT_PRODUCTS(self) -> str:
-        return _("Device types (products)")
+        return _("Device Types (Products)")
 
     @property
     def COMPACT_HARDWARE(self) -> str:
@@ -1251,11 +1251,11 @@ class MenuStrings:
 
     @property
     def COMPACT_CATALOG_ITEMS(self) -> str:
-        return _("Catalog entries")
+        return _("Catalog Entries")
 
     @property
     def COMPACT_BAGGAGES(self) -> str:
-        return _("Help and plug-in files")
+        return _("Help and Plug-in Files")
 
     @property
     def COMPACT_DETAILS(self) -> str:
@@ -1263,11 +1263,11 @@ class MenuStrings:
 
     @property
     def COMPACT_SIZE_NOW(self) -> str:
-        return _("Current file size")
+        return _("Current File Size")
 
     @property
     def COMPACT_SIZE_ESTIMATE(self) -> str:
-        return _("Estimated size afterwards")
+        return _("Estimated Size Afterwards")
 
     @property
     def COMPACT_WARNING(self) -> str:

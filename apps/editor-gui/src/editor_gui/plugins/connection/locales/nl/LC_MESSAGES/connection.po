@@ -109,7 +109,7 @@ msgstr "Bestelnummer"
 msgid "Press the programming button on a device to put it into programming mode, then rescan."
 msgstr "Druk op de programmeerknop van een apparaat om het in programmeermodus te zetten en zoek daarna opnieuw."
 
-msgid "Product (catalog)"
+msgid "Product (Catalog)"
 msgstr "Product (catalogus)"
 
 msgid "Programming mode active"

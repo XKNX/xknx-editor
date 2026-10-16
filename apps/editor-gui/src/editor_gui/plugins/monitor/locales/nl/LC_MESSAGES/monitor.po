@@ -161,7 +161,7 @@ msgstr "Opname is gestopt"
 msgid "e.g. 1/2/3"
 msgstr "bijv. 1/2/3"
 
-msgid "Group address:"
+msgid "Group Address:"
 msgstr "Groepsadres:"
 
 msgid "Load: {rate} t/s"

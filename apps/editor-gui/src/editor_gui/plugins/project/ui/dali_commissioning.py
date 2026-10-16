@@ -192,10 +192,10 @@ class DaliCommissioningPanel:
         if imgui.button("All Off"):
             self._start(device, "broadcast", lambda c: c.broadcast(False))
         imgui.same_line()
-        if imgui.button("New Installation..."):
+        if imgui.button("New Installation…"):
             self._pending = "new"
         imgui.same_line()
-        if imgui.button("Post Installation..."):
+        if imgui.button("Post Installation…"):
             self._pending = "post"
         imgui.end_disabled()
 
@@ -329,7 +329,7 @@ class DaliCommissioningPanel:
         imgui.end_table()
 
         imgui.begin_disabled(busy or not present)
-        if imgui.button("Program Groups..."):
+        if imgui.button("Program Groups…"):
             self._pending = "groups"
         imgui.end_disabled()
 
@@ -365,7 +365,7 @@ class DaliCommissioningPanel:
 
         has_values = any(lv for lv in state.scene_edits.values())
         imgui.begin_disabled(busy or not has_values)
-        if imgui.button("Program Scenes..."):
+        if imgui.button("Program Scenes…"):
             self._pending = "scenes"
         imgui.end_disabled()
 

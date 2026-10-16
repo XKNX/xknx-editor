@@ -1,7 +1,8 @@
 """Icons and pictures an application ships as images.
 
-Single-coloured icons are drawn in the text colour; the grey parts of pictures on a
-transparent background are inverted to stay readable on the dark theme.
+Single-coloured icons are drawn in the text colour. The grey parts of other images on a
+transparent background are inverted when they would hardly stand out from the theme's
+background: dark greys on a dark theme, light greys on a light one.
 """
 
 from __future__ import annotations
@@ -29,8 +30,9 @@ class Picture:
     height: float
 
 
-_cache: dict[str, Icon | None] = {}
-_pictures: dict[str, Picture | None] = {}
+# Keyed by the image key and whether the background is dark.
+_cache: dict[tuple[str, bool], Icon | None] = {}
+_pictures: dict[tuple[str, bool], Picture | None] = {}
 # Largest channel difference of a pixel that still counts as grey.
 _GREY_SPREAD = 16
 
@@ -128,59 +130,83 @@ def white_png(data: bytes) -> bytes | None:
     return _encode_rgba(header, width, height, pixels)
 
 
-def dark_png(data: bytes) -> bytes | None:
-    """``data`` with its grey pixels inverted, if it is an RGBA PNG with transparent parts."""
+def _is_grey(r: int, g: int, b: int) -> bool:
+    return max(r, g, b) - min(r, g, b) <= _GREY_SPREAD
+
+
+def readable_png(data: bytes, dark_background: bool) -> bytes | None:
+    """``data`` with its grey pixels inverted when, on average, they are as dark (or as light)
+    as the background, if it is an RGBA PNG with transparent parts; ``None`` when it is kept
+    (an image without transparent parts brings its own background)."""
     decoded = _decode_rgba(data)
     if decoded is None:
         return None
     header, width, height, pixels = decoded
     if not any(pixels[i] == 0 for i in range(3, len(pixels), 4)):
         return None
+    # The brightness of the visible greys, weighted by their opacity.
+    weight = brightness = 0
+    for i in range(0, len(pixels), 4):
+        r, g, b, a = pixels[i], pixels[i + 1], pixels[i + 2], pixels[i + 3]
+        if a and _is_grey(r, g, b):
+            weight += a
+            brightness += (r + g + b) * a
+    if not weight or (brightness / (3 * weight) < 128) != dark_background:
+        return None
     for i in range(0, len(pixels), 4):
         r, g, b = pixels[i], pixels[i + 1], pixels[i + 2]
-        if max(r, g, b) - min(r, g, b) <= _GREY_SPREAD:
+        if _is_grey(r, g, b):
             pixels[i : i + 3] = bytes((255 - r, 255 - g, 255 - b))
     return _encode_rgba(header, width, height, pixels)
 
 
+def dark_background() -> bool:
+    """Whether the theme's window background is dark."""
+    c = imgui.get_style().color_(imgui.Col_.window_bg)
+    return 0.299 * c.x + 0.587 * c.y + 0.114 * c.z < 0.5
+
+
 def has_icon(key: str) -> bool:
-    """Whether the icon for ``key`` was loaded (or found missing) before."""
-    return key in _cache
+    """Whether the icon for ``key`` was loaded (or found missing) before for this theme."""
+    return (key, dark_background()) in _cache
 
 
 def load_icon(key: str, data: bytes | None) -> Icon | None:
-    """The texture for an icon image, created once per ``key``."""
-    if key in _cache:
-        return _cache[key]
+    """The texture for an icon image, created once per ``key`` and theme brightness."""
+    dark = dark_background()
+    if (key, dark) in _cache:
+        return _cache[(key, dark)]
     icon: Icon | None = None
     if data:
         white = white_png(data)
+        shown = white or readable_png(data, dark) or data
         try:
             image = hello_imgui.image_and_size_from_encoded_data(
-                white or data, f"icon:{key}"
+                shown, f"icon:{key}:{_variant(dark)}"
             )
         except RuntimeError:
             image = None
         if image is not None and image.size.x > 0:
             icon = Icon(imgui.ImTextureRef(image.texture_id), white is not None)
-    _cache[key] = icon
+    _cache[(key, dark)] = icon
     return icon
 
 
 def has_picture(key: str) -> bool:
-    """Whether the picture for ``key`` was loaded (or found missing) before."""
-    return key in _pictures
+    """Whether the picture for ``key`` was loaded (or found missing) before for this theme."""
+    return (key, dark_background()) in _pictures
 
 
 def load_picture(key: str, data: bytes | None) -> Picture | None:
-    """The texture for a picture, created once per ``key``."""
-    if key in _pictures:
-        return _pictures[key]
+    """The texture for a picture, created once per ``key`` and theme brightness."""
+    dark = dark_background()
+    if (key, dark) in _pictures:
+        return _pictures[(key, dark)]
     picture: Picture | None = None
     if data:
         try:
             image = hello_imgui.image_and_size_from_encoded_data(
-                dark_png(data) or data, f"picture:{key}"
+                readable_png(data, dark) or data, f"picture:{key}:{_variant(dark)}"
             )
         except RuntimeError:
             image = None
@@ -188,8 +214,12 @@ def load_picture(key: str, data: bytes | None) -> Picture | None:
             picture = Picture(
                 imgui.ImTextureRef(image.texture_id), image.size.x, image.size.y
             )
-    _pictures[key] = picture
+    _pictures[(key, dark)] = picture
     return picture
+
+
+def _variant(dark: bool) -> str:
+    return "dark" if dark else "light"
 
 
 def draw_icon(icon: Icon, pos: imgui.ImVec2, size: float) -> None:

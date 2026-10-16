@@ -254,7 +254,7 @@ class HexView:
         imgui.text_disabled("Param:")
         imgui.same_line()
         imgui.set_next_item_width(-1.0)
-        preview = self._goto_param_buf or "search..."
+        preview = self._goto_param_buf or "search…"
         if imgui.begin_combo("##hx_goto_param", preview):
             if imgui.is_window_appearing():
                 imgui.set_keyboard_focus_here()

@@ -155,7 +155,7 @@ msgstr "Algemeen"
 msgid "Default (inherit)"
 msgstr "Standaard (overgeërfd)"
 
-msgid "Edit description…"
+msgid "Edit Description…"
 msgstr "Beschrijving bewerken…"
 
 msgid "Edit Description"

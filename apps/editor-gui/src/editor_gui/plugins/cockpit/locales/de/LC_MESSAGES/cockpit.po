@@ -13,8 +13,8 @@ msgstr "Übersicht"
 msgid "No project open"
 msgstr "Kein Projekt geöffnet"
 
-msgid "Filter devices..."
-msgstr "Geräte filtern..."
+msgid "Filter devices…"
+msgstr "Geräte filtern…"
 
 msgid "Needs attention only"
 msgstr "Nur Handlungsbedarf"

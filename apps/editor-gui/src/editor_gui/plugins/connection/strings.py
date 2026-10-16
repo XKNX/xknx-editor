@@ -98,7 +98,7 @@ class ConnectionStrings:
 
     @property
     def PROGMODE_PRODUCT(self) -> str:
-        return _("Product (catalog)")
+        return _("Product (Catalog)")
 
     @property
     def PROGMODE_APPLICATION(self) -> str:

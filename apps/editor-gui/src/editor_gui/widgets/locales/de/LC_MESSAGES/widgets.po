@@ -152,7 +152,7 @@ msgstr "Allgemein"
 msgid "Default (inherit)"
 msgstr "Standard (vererbt)"
 
-msgid "Edit description…"
+msgid "Edit Description…"
 msgstr "Beschreibung bearbeiten…"
 
 msgid "Edit Description"

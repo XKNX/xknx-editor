@@ -10,8 +10,8 @@ msgstr ""
 msgid "Logs"
 msgstr "Logboek"
 
-msgid "Filter..."
-msgstr "Filteren..."
+msgid "Filter…"
+msgstr "Filteren…"
 
 msgid "Time"
 msgstr "Tijd"

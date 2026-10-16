@@ -142,6 +142,17 @@ def _same_line_if_fits_checkbox(label: str) -> None:
         imgui.same_line(0.0, style.item_spacing.x * 2)
 
 
+def _edit_being_stored() -> bool:
+    """Whether a field that was edited lost the focus and reports it (to store the edit) in this
+    frame or the next."""
+    data = imgui.get_current_context().deactivated_item_data
+    return (
+        data.id_ != 0
+        and data.has_been_edited_before
+        and data.elapse_frame >= imgui.get_frame_count()
+    )
+
+
 def _reset_presets() -> list[tuple[str, int]]:
     """(label, KNX A_Restart_Master_Reset erase code). Codes per the KNX Application Layer spec
     (verified: 2=FactoryReset, 7=FactoryResetWithoutIA, 3=ResetIA, 4=ResetAP, 5=ResetParam,
@@ -236,6 +247,7 @@ class ConfigurePanel:
         get_secure_commissioning: Callable[[Device], bool | None] | None = None,
         on_secure_commissioning_change: Callable[[Device, bool], None] | None = None,
         on_add_certificate: Callable[[Device], None] | None = None,
+        has_certificate: Callable[[Device], bool] | None = None,
         get_ip_secure: "Callable[[Device], IpSecureSettings | None] | None" = None,
         get_routing_blocking: Callable[[Device], str | None] | None = None,
         on_routing_blocking: Callable[[Device, str | None], None] | None = None,
@@ -274,6 +286,10 @@ class ConfigurePanel:
         self._diff_refs: frozenset[str] = frozenset()
         self._diff_selection: frozenset[tuple[int, int]] = frozenset()
         self._multi_targets: list[int] = []
+        # The device shown last, and whether it is still shown although another one is
+        # selected (see _current_device).
+        self._shown_device: Device | None = None
+        self._holding = False
         self._on_individual_address_change = on_individual_address_change
         self._on_name_change = on_name_change
         self._on_description_change = on_description_change
@@ -349,6 +365,7 @@ class ConfigurePanel:
         self._get_secure_commissioning = get_secure_commissioning
         self._on_secure_commissioning_change = on_secure_commissioning_change
         self._on_add_certificate = on_add_certificate
+        self._has_certificate = has_certificate
         self._get_ip_secure = get_ip_secure
         self._get_routing_blocking = get_routing_blocking
         self._on_routing_blocking = on_routing_blocking
@@ -368,7 +385,11 @@ class ConfigurePanel:
         self._label_w = 0.0  # start of the value column next to field labels
 
     def _current_device(self) -> Device | None:
-        """The selected device, defaulting to the first one."""
+        """The selected device, defaulting to the first one.
+
+        A field stores its edit when it loses the focus, which is reported to the field a frame
+        later. When that happens by selecting another device, the device shown so far stays
+        shown until then, so the edit is stored for it and not dropped or given to the other."""
         devices = self._get_devices()
         if not devices:
             return None
@@ -376,6 +397,20 @@ class ConfigurePanel:
         if device is None:
             device = devices[0]
             self._set_selected_device(device)
+        shown = self._shown_device
+        self._holding = False
+        if (
+            shown is not None
+            and shown.node_id != device.node_id
+            and _edit_being_stored()
+        ):
+            # The current object of that device: storing the edit may have rebuilt it.
+            current = next((d for d in devices if d.node_id == shown.node_id), None)
+            if current is not None:
+                self._holding = True
+                self._shown_device = current
+                return current
+        self._shown_device = device
         return device
 
     def _begin_details(self) -> None:
@@ -433,6 +468,7 @@ class ConfigurePanel:
             self._name_buffer = device.name
             self._address_buffer = device.individual_address
             self._description_buffer = device.description
+            self._serial_buffer = serial_text(self._project_serial(device)) or ""
             self._buffer_device_id = device.node_id
 
         self._render_header_fields(device)
@@ -685,7 +721,10 @@ class ConfigurePanel:
         _, self._description_buffer = imgui.input_text_multiline(
             "##description", self._description_buffer, imgui.ImVec2(-1, height)
         )
-        if imgui.is_item_deactivated_after_edit():
+        if (
+            imgui.is_item_deactivated_after_edit()
+            and self._description_buffer != device.description
+        ):
             self._on_description_change(device, self._description_buffer)
         if (
             not imgui.is_item_active()
@@ -698,7 +737,10 @@ class ConfigurePanel:
         _, self._address_buffer = imgui.input_text(
             "##individual_address", self._address_buffer
         )
-        if imgui.is_item_deactivated_after_edit():
+        if (
+            imgui.is_item_deactivated_after_edit()
+            and self._address_buffer != device.individual_address
+        ):
             self._on_individual_address_change(device, self._address_buffer)
         if (
             not imgui.is_item_active()
@@ -716,7 +758,7 @@ class ConfigurePanel:
         _, self._serial_buffer = imgui.input_text_with_hint(
             "##serial_number", "0000:00000000", self._serial_buffer
         )
-        if imgui.is_item_deactivated_after_edit():
+        if imgui.is_item_deactivated_after_edit() and self._serial_buffer != stored:
             text = self._serial_buffer.strip()
             serial = parse_serial_text(text) if text else None
             if text and serial is None:
@@ -729,7 +771,7 @@ class ConfigurePanel:
 
     def _secure_commissioning_input(self, device: Device, activated: bool) -> None:
         """The device setting "Secure Commissioning" (Activated/Deactivated) and the button that
-        adds the device certificate it is commissioned with."""
+        adds the device certificate it is commissioned with, or shows the one stored."""
         style = imgui.get_style()
         # The combo is as wide as its longest choice; the certificate button follows on the same
         # line when it fits, else below.
@@ -743,7 +785,10 @@ class ConfigurePanel:
             + style.item_inner_spacing.x
         )
         avail = imgui.get_content_region_avail().x
-        button = S.CONFIGURE_ADD_CERTIFICATE
+        stored = self._has_certificate is not None and self._has_certificate(device)
+        button = (
+            S.CONFIGURE_DEVICE_CERTIFICATE if stored else S.CONFIGURE_ADD_CERTIFICATE
+        )
         button_w = imgui.calc_text_size(button).x + style.frame_padding.x * 2
         start_x = imgui.get_cursor_pos_x()
         imgui.set_next_item_width(min(combo_w, avail))
@@ -1319,9 +1364,11 @@ class ConfigurePanel:
     def _joint_devices(self, primary: Device) -> list[Device]:
         """Selected devices (incl. the primary) that share the primary's application, in the order
         returned by ``get_devices``. Only these can be jointly edited (ref_ids are app-scoped).
-        Returns just ``[primary]`` when multi-select is not wired or the selection is a single row."""
+        Returns just ``[primary]`` when multi-select is not wired or the selection is a single row,
+        and while the device shown before the selection changed stays shown."""
         if (
-            self._get_selected_node_ids is None
+            self._holding
+            or self._get_selected_node_ids is None
             or self._on_param_change_selected is None
         ):
             return [primary]

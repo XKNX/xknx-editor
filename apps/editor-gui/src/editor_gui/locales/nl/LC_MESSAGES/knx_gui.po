@@ -37,8 +37,8 @@ msgstr "Nieuw Project"
 msgid "Open Project"
 msgstr "Project Openen"
 
-msgid "Load .knxprod..."
-msgstr "Laad .knxprod..."
+msgid "Load .knxprod…"
+msgstr "Laad .knxprod…"
 
 msgid "Exit"
 msgstr "Afsluiten"

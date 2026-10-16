@@ -20,6 +20,7 @@ from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_select import dpt_combo
 from editor_gui.widgets.dpt_value import GroupValueBus
 from editor_gui.widgets.text_util import text_clipped_tooltip
+from editor_gui.widgets.tree import leaf_rows, tree_node
 
 if TYPE_CHECKING:
     from editor_gui.device import Device
@@ -295,12 +296,17 @@ class GroupAddressesPanel:
             # Force-open the folders on the path to a GA we were asked to reveal.
             imgui.set_next_item_open(True, imgui.Cond_.always)
         # Collapsed by default; a filter still force-opens matching ranges (above).
-        open_node = imgui.tree_node_ex(label)
+        open_node = tree_node(label)
         self._render_range_context_menu(node, is_root)
         if not open_node:
             return
         for child in node.children:
             self._render_range(child, flt)
+        with leaf_rows():
+            self._render_group_addresses(node, flt)
+        imgui.tree_pop()
+
+    def _render_group_addresses(self, node: "GroupRangeInfo", flt: str) -> None:
         for ga in node.group_addresses:
             if flt and not self._ga_matches(ga, flt):
                 continue
@@ -314,7 +320,6 @@ class GroupAddressesPanel:
             if ga.id == self._reveal_ga_id:
                 imgui.set_scroll_here_y()
             self._render_ga_context_menu(ga)
-        imgui.tree_pop()
 
     @staticmethod
     def _ga_matches(ga: object, flt: str) -> bool:

@@ -118,7 +118,7 @@ msgstr "Bestellnummer"
 msgid "Press the programming button on a device to put it into programming mode, then rescan."
 msgstr "Drücken Sie die Programmiertaste eines Geräts, um es in den Programmiermodus zu versetzen, und suchen Sie dann erneut."
 
-msgid "Product (catalog)"
+msgid "Product (Catalog)"
 msgstr "Produkt (Katalog)"
 
 msgid "Programming mode active"

@@ -281,7 +281,7 @@ def render_date_param(
     """A date entry with a button that opens a calendar."""
     regional = regional_format()
     width = imgui.calc_item_width()
-    button = imgui.calc_text_size("...").x + 2 * imgui.get_style().frame_padding.x
+    button = imgui.calc_text_size("…").x + 2 * imgui.get_style().frame_padding.x
     spacing = imgui.get_style().item_inner_spacing.x
     imgui.set_next_item_width(max(px(60.0), width - button - spacing))
     shown = "" if differs else format_date(value, year_shown, regional)
@@ -295,7 +295,7 @@ def render_date_param(
             on_change(date)
     imgui.same_line(0, spacing)
     popup = f"##date_popup_{widget_id}"
-    if imgui.button(f"...##date_{widget_id}"):
+    if imgui.button(f"…##date_{widget_id}"):
         current = _date_of(value)
         _shown_month[widget_id] = (current.year, current.month)
         imgui.open_popup(popup)

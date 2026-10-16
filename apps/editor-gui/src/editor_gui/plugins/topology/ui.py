@@ -23,10 +23,10 @@ _BOX_H = 24.0
 _LEFT = 10.0
 _COL_GAP = 20.0
 _TEXT_PAD = 5.0
-# Each column is as wide as its longest label, within these bounds; longer labels end in "...".
+# Each column is as wide as its longest label, within these bounds; longer labels end in "…".
 _COL_MIN_W = (120.0, 150.0, 260.0)
 _COL_MAX_W = (240.0, 260.0, 480.0)
-_ELLIPSIS = "..."
+_ELLIPSIS = "…"
 
 
 @dataclass
