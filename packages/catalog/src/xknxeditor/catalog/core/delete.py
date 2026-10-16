@@ -18,6 +18,7 @@ from xknxeditor.catalog.models import (
     CatalogSectionProduct,
     Hardware,
     HardwareProgram,
+    HardwareProgramCouplerCapability,
     HardwareProgramMediumType,
     Manufacturer,
 )
@@ -89,6 +90,13 @@ def _delete_rows(
         ).all()
     ]
     removed_program_ids = [p.id for p in programs]
+    session.execute(
+        delete(HardwareProgramCouplerCapability).where(
+            HardwareProgramCouplerCapability.hardware_program_id.in_(
+                removed_program_ids
+            )
+        )
+    )
     session.execute(
         delete(HardwareProgramMediumType).where(
             HardwareProgramMediumType.hardware_program_id.in_(removed_program_ids)

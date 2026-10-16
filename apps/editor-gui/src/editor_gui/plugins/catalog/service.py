@@ -277,6 +277,11 @@ class CatalogService:
         hardware = self._service.get_hardware(hardware_id)
         return bool(hardware is not None and hardware.is_ip_enabled)
 
+    @io_guarded(lambda: set[str]())
+    def coupler_capabilities(self, hardware2program_id: str) -> set[str]:
+        """The coupler capabilities of a hardware program (e.g. ``SecurityProxy``)."""
+        return self._service.coupler_capabilities(hardware2program_id)
+
     @io_guarded(lambda: False)
     def has_application(self, application_id: str) -> bool:
         """Whether a hardware program in the catalog loads ``application_id``."""

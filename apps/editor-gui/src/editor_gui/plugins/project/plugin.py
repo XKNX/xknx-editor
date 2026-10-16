@@ -252,6 +252,12 @@ class ProjectPlugin:
             on_secure_commissioning_change=self._change_secure_commissioning,
             on_add_certificate=self._ask_certificate_for,
             get_ip_secure=api.project.ip_secure_settings,
+            get_routing_blocking=lambda d: (
+                api.project.unicast_broadcast_blocking(d)
+                if api.project.security_proxy_coupler(d)
+                else "-"
+            ),
+            on_routing_blocking=api.project.set_unicast_broadcast_blocking,
             on_ip_secure_change=self._change_ip_secure,
             use_serial_number_default=lambda: api.connection.use_serial_number,
             find_serial_owner=self._serial_owner,
@@ -1937,6 +1943,7 @@ class ProjectPlugin:
                 tool_key=tool_key,
                 ip_secure=ip_secure,
                 disable_security=self._api.project.download_disables_security(device),
+                routing_blocking=self._api.project.download_routing_blocking(device),
             )
         except DeviceCertificateRequired:
             item.message = S.DEVICE_CERTIFICATE_REQUIRED

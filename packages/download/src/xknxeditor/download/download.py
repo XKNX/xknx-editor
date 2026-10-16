@@ -32,7 +32,12 @@ from .merge import mask_authorize_levels, resolve_download_controls
 from .procedure import LoadProcedureRunner
 from .programmer import MAX_COMMUNICATION_APDU_LENGTH
 from .scope import DownloadScope, mask_object_types
-from .secure_config import commissioning_controls, plain_controls, table_controls
+from .secure_config import (
+    commissioning_controls,
+    plain_controls,
+    routing_control_controls,
+    table_controls,
+)
 from .session import apdu_overhead, management_session
 
 logger = logging.getLogger(__name__)
@@ -93,6 +98,7 @@ def _resolve_controls(
     tool_key: bytes | None = None,
     ip_secure: IpSecureConfig | None = None,
     disable_security: bool = False,
+    routing_blocking: bool | None = None,
 ) -> list[object]:
     """Select and materialize the scoped procedure before any device mutation.
 
@@ -115,6 +121,13 @@ def _resolve_controls(
         return [
             *controls[:position],
             *plain_controls(p2p=p2p),
+            *controls[position:],
+        ]
+    if routing_blocking is not None:
+        position = insert_position(application, controls)
+        controls = [
+            *controls[:position],
+            *routing_control_controls(block=routing_blocking),
             *controls[position:],
         ]
     if image.security_tables is not None:
@@ -344,6 +357,7 @@ async def download(
     tool_key: bytes | None = None,
     ip_secure: IpSecureConfig | None = None,
     disable_security: bool = False,
+    routing_blocking: bool | None = None,
 ) -> DownloadResult:
     """Download ``application`` into the device at ``individual_address``.
 
@@ -394,6 +408,10 @@ async def download(
 
     ``disable_security`` switches a device whose secure commissioning was deactivated to plain
     communication, over the secured connection with the key it still holds (``security``).
+
+    ``routing_blocking`` blocks (``True``) or routes (``False``) point-to-point and broadcast
+    messages on both sides of a coupler with the security extensions (KNX AN192); ``None``
+    leaves them.
     """
     if tool_key is not None and security is None:
         raise DownloadError("writing the Tool Key needs a secured download")
@@ -424,6 +442,7 @@ async def download(
         tool_key,
         ip_secure,
         disable_security,
+        routing_blocking if security is not None else None,
     )
     address = IndividualAddress(individual_address)
     if (
@@ -459,6 +478,7 @@ async def download(
             tool_key,
             ip_secure,
             disable_security,
+            routing_blocking if security is not None else None,
         )
     adapted = await _device_association_format(xknx, address, security, image, scope)
     if adapted is not image:
@@ -473,6 +493,7 @@ async def download(
             tool_key,
             ip_secure,
             disable_security,
+            routing_blocking if security is not None else None,
         )
     apdu_ceiling, negotiate_apdu = _apdu_settings(max_apdu_length)
     logger.debug(

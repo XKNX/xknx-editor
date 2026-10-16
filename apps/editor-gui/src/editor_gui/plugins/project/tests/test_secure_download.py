@@ -138,3 +138,17 @@ def test_a_device_in_the_clear_stays_off_a_group_address_that_needs_security() -
     assert _unsecures(3, None, [1], {1}, {1})
     assert not _unsecures(3, None, [1], set(), {1})
     assert not _unsecures(3, "Off", [4], set(), set())
+
+
+def test_routing_blocking_of_a_security_proxy_coupler() -> None:
+    service = cast(Any, SimpleNamespace())
+    service.security_proxy_coupler = lambda device: device.proxy
+    service.unicast_broadcast_blocking = lambda device: device.mode
+    decide = lambda **fields: ProjectService.download_routing_blocking(  # noqa: E731
+        service, cast(Any, SimpleNamespace(**fields))
+    )
+    assert decide(proxy=False, mode="On") is None  # any other device: left alone
+    assert decide(proxy=True, mode="On") is True
+    assert decide(proxy=True, mode="Off") is False
+    # Auto: blocked only for a Security Proxy in use, which the project never sets up.
+    assert decide(proxy=True, mode=None) is False

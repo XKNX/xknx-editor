@@ -184,6 +184,36 @@ def commissioning_controls(tool_key: bytes) -> list[object]:
     ]
 
 
+#: The Router Object of a coupler and its routing control of point-to-point and broadcast
+#: messages (KNX AN192 2.3.1.1, 2.3.1.2): BLOCK (0) or RULE (1, the default) in b1..b0.
+ROUTER_OBJECT: Final = 6
+PID_PTP_CONFIG: Final = 80
+PID_BC_CONFIG: Final = 82
+_ROUTE_BLOCK: Final = 0
+_ROUTE_RULE: Final = 1
+
+
+def routing_control_controls(*, block: bool, router_objects: int = 2) -> list[object]:
+    """Block (or route by the rules) point-to-point and broadcast messages on each side of a
+    coupler with the security extensions: its two Router Objects (primary and secondary side),
+    written on every full and group download over the secured connection (AN192 2.5.2, 2.5.3)."""
+    value = bytes([_ROUTE_BLOCK if block else _ROUTE_RULE])
+    return [
+        LdCtrlWriteProp(
+            obj_type=ROUTER_OBJECT,
+            occurrence=occurrence,
+            prop_id=prop_id,
+            start_element=1,
+            count=1,
+            verify=True,
+            inline_data=value,
+            applies_to=_TABLES,
+        )
+        for occurrence in range(router_objects)
+        for prop_id in (PID_PTP_CONFIG, PID_BC_CONFIG)
+    ]
+
+
 def plain_controls(*, p2p: bool) -> list[object]:
     """Switch a device that was commissioned securely to plain communication, over the secured
     connection with its Tool Key: its security tables are emptied (the Point-to-point Key Table

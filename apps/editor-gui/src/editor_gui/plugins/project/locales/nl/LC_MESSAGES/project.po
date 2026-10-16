@@ -1668,3 +1668,12 @@ msgstr "Het project heeft geen apparaatcertificaten."
 
 msgid "The security tables of {device} cannot hold this link."
 msgstr "De beveiligingstabellen van {device} kunnen deze koppeling niet bevatten."
+
+msgid "Point-to-Point and Broadcast"
+msgstr "Punt-naar-punt en broadcast"
+
+msgid "Blocked"
+msgstr "Geblokkeerd"
+
+msgid "Routed"
+msgstr "Doorgestuurd"

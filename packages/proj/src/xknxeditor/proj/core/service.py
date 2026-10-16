@@ -1824,6 +1824,30 @@ class ProjectService:
         security.set("LoadedToolKey", tool_key)
         self._store_security(state, device_id, security)
 
+    def unicast_broadcast_blocking(self, project_id: str, device_id: int) -> str | None:
+        """A coupler's blocking of point-to-point and broadcast messages
+        (``<Security @UnicastBroadcastBlocking>``: ``"On"``/``"Off"``, ``None`` = Auto)."""
+        device = self._state(project_id).session.get(Device, device_id)
+        if device is None:
+            return None
+        value = security_attributes(device).get("UnicastBroadcastBlocking")
+        return None if value in (None, "Auto") else value
+
+    def set_unicast_broadcast_blocking(
+        self, project_id: str, device_id: int, mode: str | None
+    ) -> None:
+        """Set a coupler's blocking of point-to-point and broadcast messages (``"On"``/``"Off"``,
+        ``None`` = Auto); the next download writes it."""
+        if mode not in (None, "Auto", "On", "Off"):
+            raise ValueError(f"Unknown blocking {mode!r}")
+        state = self._state(project_id)
+        security = self._security_element(state, device_id)
+        if mode in (None, "Auto"):
+            security.attrib.pop("UnicastBroadcastBlocking", None)
+        else:
+            security.set("UnicastBroadcastBlocking", mode)
+        self._store_security(state, device_id, security)
+
     def set_tool_key_unloaded(self, project_id: str, device_id: int) -> None:
         """Record that the device holds no Tool Key any more (a factory reset): its
         ``LoadedToolKey`` goes; its Tool Key stays for the next secure commissioning."""

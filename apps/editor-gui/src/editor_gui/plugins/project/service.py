@@ -2363,6 +2363,41 @@ class ProjectService:
             self._svc.remove_device_certificate(self._pid, serial_number)
         self._bump(structural=False)
 
+    def security_proxy_coupler(self, device: Device) -> bool:
+        """Whether the device is a coupler with the security extensions (its hardware program's
+        ``CouplerCapabilities`` has ``SecurityProxy``) commissioned securely."""
+        if self._pid is None or device.app is None:
+            return False
+        try:
+            ref = self._svc.device(self._pid, device.node_id).hardware2program_ref_id
+        except KeyError:
+            return False
+        if not ref or "SecurityProxy" not in self._catalog.coupler_capabilities(ref):
+            return False
+        return self._svc.secure_commissioning(self._pid, device.node_id)
+
+    def unicast_broadcast_blocking(self, device: Device) -> str | None:
+        """The coupler's blocking setting (``"On"``/``"Off"``, ``None`` = Auto)."""
+        if self._pid is None:
+            return None
+        return self._svc.unicast_broadcast_blocking(self._pid, device.node_id)
+
+    def set_unicast_broadcast_blocking(self, device: Device, mode: str | None) -> None:
+        if self._pid is None:
+            return
+        with self._io_lock:
+            self._svc.set_unicast_broadcast_blocking(self._pid, device.node_id, mode)
+        self._bump(structural=False)
+
+    def download_routing_blocking(self, device: Device) -> bool | None:
+        """Whether a download blocks point-to-point and broadcast messages on both sides of the
+        device, a coupler with the security extensions; ``None`` for any other device. Auto
+        blocks them on a coupler used as a Security Proxy (KNX AN192 3.5.2.2); the project never
+        sets one up to translate between secured and plain lines, so Auto routes them."""
+        if not self.security_proxy_coupler(device):
+            return None
+        return self.unicast_broadcast_blocking(device) == "On"
+
     def record_factory_reset(self, device: Device) -> None:
         """A factory reset (with the individual address) gave the device its FDSK back: it no
         longer holds a Tool Key, so its next secure download needs its device certificate."""

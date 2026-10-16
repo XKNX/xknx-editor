@@ -323,3 +323,26 @@ async def test_switching_to_plain_empties_the_tables() -> None:
     assert device.commands == [(51, bytes(3))]
     # Without a Point-to-point Key Table, that one is left alone.
     assert all(getattr(c, "prop_id", None) != 52 for c in plain_controls(p2p=False))
+
+
+def test_routing_control_on_both_sides() -> None:
+    from xknxeditor.download.secure_config import routing_control_controls
+    from xknxeditor.namespaces.intermediate import LdCtrlWriteProp
+
+    controls = routing_control_controls(block=True)
+    writes = [
+        (c.obj_type, c.occurrence, c.prop_id, c.inline_data)
+        for c in controls
+        if isinstance(c, LdCtrlWriteProp)
+    ]
+    assert writes == [
+        (6, 0, 80, b"\x00"),
+        (6, 0, 82, b"\x00"),
+        (6, 1, 80, b"\x00"),
+        (6, 1, 82, b"\x00"),
+    ]
+    assert {
+        c.inline_data
+        for c in routing_control_controls(block=False)
+        if isinstance(c, LdCtrlWriteProp)
+    } == {b"\x01"}

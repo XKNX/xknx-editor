@@ -2609,5 +2609,21 @@ class ProjectStrings:
     def GA_SECURE_TABLES_FULL(self) -> str:
         return _("The security tables of {device} cannot hold this link.")
 
+    @property
+    def CONFIGURE_ROUTING_BLOCKING(self) -> str:
+        return _("Point-to-Point and Broadcast")
+
+    @property
+    def ROUTING_BLOCKING_AUTO(self) -> str:
+        return _("Automatic")
+
+    @property
+    def ROUTING_BLOCKING_ON(self) -> str:
+        return _("Blocked")
+
+    @property
+    def ROUTING_BLOCKING_OFF(self) -> str:
+        return _("Routed")
+
 
 S = ProjectStrings()

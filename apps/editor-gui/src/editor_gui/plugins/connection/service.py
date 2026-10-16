@@ -744,6 +744,7 @@ class ConnectionService:
         tool_key: bytes | None = None,
         ip_secure: IpSecureConfig | None = None,
         disable_security: bool = False,
+        routing_blocking: bool | None = None,
     ) -> Future[Any] | None:
         """Download the device's configured application/parameters onto the bus.
 
@@ -816,6 +817,7 @@ class ConnectionService:
                 tool_key=tool_key if security is not None else None,
                 ip_secure=ip_secure if security is not None else None,
                 disable_security=disable_security and security is not None,
+                routing_blocking=routing_blocking if security is not None else None,
             )
         )
         if future is not None:

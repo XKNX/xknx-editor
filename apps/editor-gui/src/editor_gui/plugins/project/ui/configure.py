@@ -224,6 +224,8 @@ class ConfigurePanel:
         on_secure_commissioning_change: Callable[[Device, bool], None] | None = None,
         on_add_certificate: Callable[[Device], None] | None = None,
         get_ip_secure: "Callable[[Device], IpSecureSettings | None] | None" = None,
+        get_routing_blocking: Callable[[Device], str | None] | None = None,
+        on_routing_blocking: Callable[[Device, str | None], None] | None = None,
         on_ip_secure_change: Callable[[Device, str, object], str | None] | None = None,
         use_serial_number_default: Callable[[], bool] | None = None,
         find_serial_owner: Callable[[Device, bytes], str | None] | None = None,
@@ -332,6 +334,8 @@ class ConfigurePanel:
         self._on_secure_commissioning_change = on_secure_commissioning_change
         self._on_add_certificate = on_add_certificate
         self._get_ip_secure = get_ip_secure
+        self._get_routing_blocking = get_routing_blocking
+        self._on_routing_blocking = on_routing_blocking
         self._on_ip_secure_change = on_ip_secure_change
         # The KNX IP Secure section's edit buffers (field key -> text) and its "show" switch.
         self._ip_secure_buffers: dict[str, str] = {}
@@ -568,6 +572,19 @@ class ConfigurePanel:
                     lambda: self._secure_commissioning_input(device, secure),
                 )
             )
+        # "-": not a coupler with the security extensions commissioned securely.
+        blocking = (
+            self._get_routing_blocking(device)
+            if self._get_routing_blocking is not None
+            else "-"
+        )
+        if blocking != "-":
+            fields.append(
+                (
+                    S.CONFIGURE_ROUTING_BLOCKING,
+                    lambda: self._routing_blocking_input(device, blocking),
+                )
+            )
         avail = imgui.get_content_region_avail().x
         group_w = self._label_w + px(120)
         ncols = max(1, min(len(fields), int(avail // group_w) if group_w > 0 else 1))
@@ -725,6 +742,25 @@ class ConfigurePanel:
                 imgui.set_cursor_pos_x(start_x)
             if imgui.button(button):
                 self._on_add_certificate(device)
+
+    def _routing_blocking_input(self, device: Device, current: str | None) -> None:
+        """A coupler's blocking of point-to-point and broadcast messages (Automatic/On/Off)."""
+        choices: list[tuple[str | None, str]] = [
+            (None, S.ROUTING_BLOCKING_AUTO),
+            ("On", S.ROUTING_BLOCKING_ON),
+            ("Off", S.ROUTING_BLOCKING_OFF),
+        ]
+        label = next((text for mode, text in choices if mode == current), choices[0][1])
+        imgui.set_next_item_width(-1)
+        if imgui.begin_combo("##routing_blocking", label):
+            for mode, text in choices:
+                if (
+                    imgui.selectable(text, mode == current)[0]
+                    and mode != current
+                    and self._on_routing_blocking is not None
+                ):
+                    self._on_routing_blocking(device, mode)
+            imgui.end_combo()
 
     def _render_device_actions(self, device: Device) -> None:
         """The device's occasional actions (read-out, restart, reset) in one row that wraps when

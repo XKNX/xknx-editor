@@ -608,7 +608,7 @@ def test_keyring_material(tmp_path: Path) -> None:
 
 
 def test_senders_for_the_connection_and_tunnels(tmp_path: Path) -> None:
-    svc, pid, first, second, _ = _project(tmp_path)
+    svc, pid, first, _second, _ = _project(tmp_path)
     # Every device that can send on a secured group address, with its last valid number.
     assert svc.secure_senders(pid) == {0x2105: 0, 0x2106: 4710}
     # A tunnel assigned to a secured group address sends on it too.
@@ -678,4 +678,16 @@ def test_security_table_sizes_with_a_link(tmp_path: Path) -> None:
         for link in svc.com_object_links(pid, _co(svc, pid, first))
     )
     assert svc.security_table_sizes(pid, [second])[second] == (3, 1)
+    svc.close(pid)
+
+
+def test_unicast_broadcast_blocking(tmp_path: Path) -> None:
+    svc, pid, first, _second, _ = _project(tmp_path)
+    assert svc.unicast_broadcast_blocking(pid, first) is None
+    svc.set_unicast_broadcast_blocking(pid, first, "On")
+    assert svc.unicast_broadcast_blocking(pid, first) == "On"
+    svc.set_unicast_broadcast_blocking(pid, first, "Auto")
+    assert svc.unicast_broadcast_blocking(pid, first) is None
+    with pytest.raises(ValueError):
+        svc.set_unicast_broadcast_blocking(pid, first, "Maybe")
     svc.close(pid)

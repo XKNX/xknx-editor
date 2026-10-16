@@ -15,6 +15,7 @@ from xknxeditor.catalog.models import (
     CatalogSectionProduct,
     Hardware,
     HardwareProgram,
+    HardwareProgramCouplerCapability,
     HardwareProgramMediumType,
     Manufacturer,
 )
@@ -123,6 +124,13 @@ def _ingest_program(
         session.merge(
             HardwareProgramMediumType(
                 hardware_program_id=program.id, medium_type=medium_type
+            )
+        )
+    for capability in program.raw.coupler_capabilities or []:
+        session.merge(
+            HardwareProgramCouplerCapability(
+                hardware_program_id=program.id,
+                capability=str(getattr(capability, "value", capability)),
             )
         )
 

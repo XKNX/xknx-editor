@@ -269,6 +269,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 disable_security=ctx.run_locked(
                     lambda: ctx.api.project.download_disables_security(device)
                 ),
+                routing_blocking=ctx.run_locked(
+                    lambda: ctx.api.project.download_routing_blocking(device)
+                ),
             )
         except DeviceCertificateRequired as exc:
             raise ToolError(

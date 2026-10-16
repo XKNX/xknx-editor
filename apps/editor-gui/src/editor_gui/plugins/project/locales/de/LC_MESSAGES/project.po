@@ -1810,3 +1810,12 @@ msgstr "Das Projekt hat keine Gerätezertifikate."
 
 msgid "The security tables of {device} cannot hold this link."
 msgstr "Die Sicherheitstabellen von {device} fassen diese Verknüpfung nicht."
+
+msgid "Point-to-Point and Broadcast"
+msgstr "Punkt-zu-Punkt und Broadcast"
+
+msgid "Blocked"
+msgstr "Gesperrt"
+
+msgid "Routed"
+msgstr "Weitergeleitet"
