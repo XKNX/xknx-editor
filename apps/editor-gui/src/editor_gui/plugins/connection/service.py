@@ -125,6 +125,9 @@ class ConnectionService:
         self.interface_max_apdu_length: int | None = None
         # Display name of the connected interface.
         self.interface_name: str | None = None
+        # The individual address of the interface the connection runs through.
+        self.interface_address: str | None = None
+        self._reopen: Callable[[], None] | None = None
         # Keyring service (KNX Data Secure), injected at startup. Used to look up a device's tool
         # key so a point-to-point download/test is secured when the device was commissioned secure.
         self.keyring: KeyringService | None = None
@@ -270,6 +273,10 @@ class ConnectionService:
         for cb in self._busmonitor_listeners:
             cb(raw_cemi)
 
+    def set_reopen_controller(self, reopen: Callable[[], None]) -> None:
+        """How the connection is opened anew when its interface requires another one."""
+        self._reopen = reopen
+
     # --- bus monitor mode -----------------------------------------------------
 
     def set_busmonitor_controller(
@@ -348,6 +355,7 @@ class ConnectionService:
         if xknx is None:
             self.interface_max_apdu_length = None
             self.interface_name = None
+            self.interface_address = None
             self.link_info = None
 
     @property
@@ -822,9 +830,19 @@ class ConnectionService:
         )
         if future is not None:
             future.add_done_callback(self._log_program_result)
+            if device.individual_address == self.interface_address:
+                future.add_done_callback(self._reopen_after_interface_download)
         else:
             self._clear_busy()
         return future
+
+    def _reopen_after_interface_download(self, future: Future[Any]) -> None:
+        """The interface the connection runs through was downloaded: the services it secures and
+        its tunnels may have changed, so the connection follows what it requires now."""
+        if future.cancelled() or future.exception() is not None:
+            return
+        if self._reopen is not None:
+            self._reopen()
 
     def _download_individual_address(
         self,

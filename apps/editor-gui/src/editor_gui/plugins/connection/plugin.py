@@ -45,6 +45,10 @@ _SETTINGS = "connection"
 
 # Delay before the one-shot autostart re-scan (macOS Local Network permission grant window).
 _AUTOSTART_RETRY_SECONDS = 30.0
+# Seconds between the attempts to reopen a lost connection.
+_REOPEN_SECONDS = 5.0
+# How often an interface that was just downloaded is asked what connection it requires.
+_REOPEN_ATTEMPTS = 12
 
 
 def _progmode_label_width() -> float:
@@ -95,6 +99,12 @@ class ConnectionPlugin:
         self._async_thread: threading.Thread | None = None
         # Unregisters the lost/re-established callback of the open connection.
         self._unregister_link_state: Callable[[], None] | None = None
+        # The configuration of the open connection, and whether its link is up.
+        self._config: ConnectionConfig | None = None
+        self._link_up = False
+        self._watching_lost = False
+        # Counts the connects and disconnects the user asked for; a reopen of an older one stops.
+        self._session = 0
         # The bus monitor connection while it runs (the normal connection is closed then).
         self._busmonitor: BusmonitorConnection | None = None
         api.connection.set_busmonitor_controller(
@@ -102,6 +112,7 @@ class ConnectionPlugin:
             stop=self.stop_busmonitor,
             supported=lambda: not self.is_routing,
         )
+        api.connection.set_reopen_controller(self.reopen)
 
         self._gateways: list[GatewayDescriptor] = []
         # The project revision the connection's Data Secure tables were built from.
@@ -240,6 +251,7 @@ class ConnectionPlugin:
             return
         self._connection_type = ConnectionType.TUNNELING
         self._selected_gateway = None
+        self._session += 1
         self._state = ConnectionState.CONNECTING
         self._error_message = None
         self._save_current_settings()
@@ -259,6 +271,7 @@ class ConnectionPlugin:
             self._multicast_group = gateway.multicast_address or DEFAULT_MCAST_GRP
         self._selected_gateway = gateway
         self._preferred_gateway_ip = gateway.ip_addr
+        self._session += 1
         self._state = ConnectionState.CONNECTING
         self._error_message = None
         self._save_current_settings()
@@ -270,7 +283,9 @@ class ConnectionPlugin:
             return f"{self._multicast_group} (routing)"
         return self._controller_ip
 
-    async def _connect_async(self) -> None:
+    async def _connect_async(self, reopen: bool = False) -> None:
+        """Open the connection; ``reopen`` replaces a lost or outdated one, so the open
+        recordings go on."""
         self._log.info(
             "connecting",
             target=self._connection_target,
@@ -278,7 +293,13 @@ class ConnectionPlugin:
         )
         try:
             self._xknx = XKNX()
-            config = await self._connection_config()
+            description = (
+                await self._gateway_description()
+                if self._connection_type == ConnectionType.TUNNELING
+                else None
+            )
+            gateway = description or self._selected_gateway
+            config = self._connection_config(gateway)
             self._interface = ObservableKNXIPInterfaceThreaded(
                 xknx=self._xknx,
                 connection_config=config,
@@ -291,20 +312,9 @@ class ConnectionPlugin:
             # Secured group communication with the project's (or the keyring's) keys.
             self._xknx.cemi_handler.data_secure = self._api.connection.data_secure()
             self._data_secure_revision = self._api.project.revision
-            if self._selected_gateway is not None:
-                self._gateway_info = self._selected_gateway
-            elif self._connection_type == ConnectionType.TUNNELING:
-                try:
-                    self._gateway_info = await request_description(self._controller_ip)
-                except Exception as desc_err:
-                    self._gateway_info = None
-                    self._log.debug(
-                        "gateway description unavailable",
-                        ip=self._controller_ip,
-                        error=f"{type(desc_err).__name__}: {desc_err}",
-                    )
-            else:
-                self._gateway_info = None
+            self._gateway_info = gateway
+            self._config = config
+            self._link_up = True
             self._state = ConnectionState.CONNECTED
             interface_apdu: int | None = None
             try:
@@ -322,14 +332,26 @@ class ConnectionPlugin:
             )
             self._api.connection.set_connection(self._xknx, asyncio.get_running_loop())
             self._api.connection.link_info = self._link_info()
+            self._api.connection.interface_address = (
+                str(gateway.individual_address)
+                if gateway is not None and gateway.individual_address is not None
+                else None
+            )
             # Lost/re-established events of the open connection (xknx reconnects by itself).
             self._unregister_link_state = (
                 self._xknx.connection_manager.register_connection_state_changed_cb(
                     self._on_link_state
                 )
             )
-            self._api.connection.dispatch_connected()
-            self._log.info("connected", target=self._connection_target)
+            if reopen:
+                self._api.connection.dispatch_link_state(True)
+            else:
+                self._api.connection.dispatch_connected()
+            self._log.info(
+                "connected",
+                target=self._connection_target,
+                mode=config.connection_type.name.lower(),
+            )
             if self._gateway_info:
                 services = [
                     s
@@ -361,15 +383,27 @@ class ConnectionPlugin:
                 error=f"{type(e).__name__}: {e}",
             )
 
-    async def _connection_config(self) -> ConnectionConfig:
-        """The connection to open: KNX IP Secure tunnelling (over TCP) when the interface requires
-        it, KNX IP Secure routing when the backbone does, with the credentials of the project or
-        the loaded keyring; plain otherwise."""
+    async def _gateway_description(self) -> GatewayDescriptor | None:
+        """The tunnelling interface's description as it is now: its download changes the services
+        it secures."""
+        try:
+            return await request_description(self._controller_ip)
+        except Exception as err:
+            self._log.debug(
+                "gateway description unavailable",
+                ip=self._controller_ip,
+                error=f"{type(err).__name__}: {err}",
+            )
+            return None
+
+    def _connection_config(self, gateway: GatewayDescriptor | None) -> ConnectionConfig:
+        """The connection to open to ``gateway``: KNX IP Secure tunnelling (over TCP) when the
+        interface requires it, KNX IP Secure routing when the backbone does, with the credentials
+        of the project or the loaded keyring; plain otherwise."""
         from xknx.io.connection import SecureConfig
 
         connection = self._api.connection
         if self._connection_type == ConnectionType.ROUTING:
-            gateway = self._selected_gateway
             backbone = connection.secure_backbone()
             if backbone is not None and (
                 gateway is None or gateway.routing_requires_secure is not False
@@ -390,10 +424,6 @@ class ConnectionPlugin:
                 multicast_group=self._multicast_group,
                 threaded=True,
             )
-        gateway = self._selected_gateway
-        if gateway is None:
-            with contextlib.suppress(Exception):
-                gateway = await request_description(self._controller_ip)
         if gateway is not None and gateway.tunnelling_requires_secure:
             free = [
                 str(address)
@@ -440,10 +470,13 @@ class ConnectionPlugin:
             return
         if self._state in (ConnectionState.DISCONNECTED, ConnectionState.DISCONNECTING):
             return
+        self._session += 1
         self._state = ConnectionState.DISCONNECTING
         self._run_async(self._disconnect_async())
 
-    async def _disconnect_async(self) -> None:
+    async def _disconnect_async(self, reopen: bool = False) -> None:
+        """Close the connection; ``reopen`` closes it for a new one, so the open recordings go
+        on."""
         if self._unregister_link_state is not None:
             self._unregister_link_state()
             self._unregister_link_state = None
@@ -455,17 +488,99 @@ class ConnectionPlugin:
             self._interface = None
             self._gateway_info = None
             self._xknx = None
+            self._config = None
+            self._link_up = False
             self._state = ConnectionState.DISCONNECTED
             self._api.connection.set_connection(None, None)
-            if was_connected:
+            if was_connected and not reopen:
                 self._api.connection.dispatch_disconnected()
             self._log.info("disconnected")
 
     def _on_link_state(self, state: XknxConnectionState) -> None:
         if state is XknxConnectionState.CONNECTED:
+            self._link_up = True
             self._api.connection.dispatch_link_state(True)
         elif state is XknxConnectionState.DISCONNECTED:
+            self._link_up = False
             self._api.connection.dispatch_link_state(False)
+            self._run_async(self._reopen_while_lost(self._session))
+
+    def reopen(self) -> None:
+        """Open the connection anew when the interface now requires another one, e.g. secure
+        tunnelling after its download."""
+        if self._state == ConnectionState.CONNECTED:
+            self._run_async(self._reopen_when_answered(self._session))
+
+    async def _reopen_when_answered(self, session: int) -> None:
+        """Check the connection once the interface answers again (it may still restart)."""
+        for _ in range(_REOPEN_ATTEMPTS):
+            if await self._reopen_if_changed(session):
+                return
+            await asyncio.sleep(_REOPEN_SECONDS)
+
+    async def _reopen_if_changed(self, session: int) -> bool:
+        """Replace the open connection when the interface now requires another configuration
+        (secure or plain, other credentials). Without the credentials it requires, the connection
+        is tried once and shows why it fails. ``False`` when the interface did not answer."""
+        if self._open_config(session) is None:
+            return True
+        gateway = self._selected_gateway
+        if self._connection_type == ConnectionType.TUNNELING:
+            gateway = await self._gateway_description()
+            if gateway is None:
+                return False
+        try:
+            config = self._connection_config(gateway)
+        except ConnectionError:
+            config = None
+        current = self._open_config(session)
+        if current is None:
+            return True
+        if config is not None and _config_key(config) == _config_key(current):
+            return True
+        self._log.info("the interface requires another connection, reconnecting")
+        await self._reopen(session, retry=config is not None)
+        return True
+
+    def _open_config(self, session: int) -> ConnectionConfig | None:
+        """The configuration of the open connection while it is the one of ``session``."""
+        return self._config if session == self._session else None
+
+    async def _reopen_while_lost(self, session: int) -> None:
+        """While the connection is lost, check whether the interface now requires another one.
+        The connection reconnects by itself with the configuration it has; one the interface no
+        longer accepts is replaced."""
+        if self._watching_lost:
+            return
+        self._watching_lost = True
+        try:
+            while (
+                session == self._session
+                and not self._link_up
+                and self._config is not None
+            ):
+                await self._reopen_if_changed(session)
+                await asyncio.sleep(_REOPEN_SECONDS)
+        finally:
+            self._watching_lost = False
+
+    async def _reopen(self, session: int, retry: bool = True) -> None:
+        """Close the connection and open it anew; with ``retry`` until it is open or the user
+        connects or disconnects otherwise."""
+        await self._disconnect_async(reopen=True)
+        self._api.connection.dispatch_link_state(False)
+        while session == self._session:
+            self._state = ConnectionState.CONNECTING
+            self._error_message = None
+            await self._connect_async(reopen=True)
+            if self.connected:
+                return
+            if not retry:
+                break
+            await asyncio.sleep(_REOPEN_SECONDS)
+        if not self.connected:
+            # Not reopened: the recordings of the connection end.
+            self._api.connection.dispatch_disconnected()
 
     def _link_info(self) -> LinkInfo:
         """How the open connection is described in recordings."""
@@ -1052,3 +1167,20 @@ class ConnectionPlugin:
 
     def on_unload(self) -> None:
         self.shutdown()
+
+
+def _config_key(config: ConnectionConfig) -> tuple[object, ...]:
+    """What tells two connection configurations apart for the interface."""
+    secure = config.secure_config
+    return (
+        config.connection_type,
+        config.individual_address,
+        None
+        if secure is None
+        else (
+            secure.user_id,
+            secure.user_password,
+            secure.device_authentication_password,
+            secure.backbone_key,
+        ),
+    )

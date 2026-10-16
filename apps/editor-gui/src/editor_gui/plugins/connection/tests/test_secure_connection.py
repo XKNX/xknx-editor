@@ -86,7 +86,7 @@ def test_a_secure_tunnel_when_the_interface_requires_it() -> None:
     service = ConnectionService()
     service.project_tunnels = lambda host: _TUNNELS
     plugin = _plugin(gateway, secure_tunnel=service.secure_tunnel)
-    config = asyncio.run(ConnectionPlugin._connection_config(plugin))  # pyright: ignore[reportPrivateUsage]
+    config = ConnectionPlugin._connection_config(plugin, plugin._selected_gateway)  # pyright: ignore[reportPrivateUsage]
     assert config.connection_type is ConnectionType.TUNNELING_TCP_SECURE
     assert config.individual_address == IndividualAddress("1.1.251")
     assert config.secure_config is not None
@@ -98,15 +98,63 @@ def test_a_secure_tunnel_when_the_interface_requires_it() -> None:
 
 def test_plain_tunnel_and_secure_routing() -> None:
     plugin = _plugin(_gateway(), secure_tunnel=lambda *a: None)
-    config = asyncio.run(ConnectionPlugin._connection_config(plugin))  # pyright: ignore[reportPrivateUsage]
+    config = ConnectionPlugin._connection_config(plugin, plugin._selected_gateway)  # pyright: ignore[reportPrivateUsage]
     assert config.connection_type is ConnectionType.TUNNELING
     plugin = _plugin(
         _gateway(routing_requires_secure=True),
         routing=True,
         secure_backbone=lambda: (bytes(range(16)), 1500),
     )
-    config = asyncio.run(ConnectionPlugin._connection_config(plugin))  # pyright: ignore[reportPrivateUsage]
+    config = ConnectionPlugin._connection_config(plugin, plugin._selected_gateway)  # pyright: ignore[reportPrivateUsage]
     assert config.connection_type is ConnectionType.ROUTING_SECURE
     assert config.secure_config is not None
     assert config.secure_config.backbone_key == bytes(range(16))
     assert config.secure_config.latency_ms == 1500
+
+
+def _reopening(plugin: Any, description: Any) -> list[bool]:
+    """Run the reopen check of ``plugin`` against ``description``; the reopens it starts."""
+    reopened: list[bool] = []
+
+    async def gateway_description() -> Any:
+        return description
+
+    async def reopen(session: int, retry: bool = True) -> None:
+        reopened.append(retry)
+
+    plugin._session = 1
+    plugin._gateway_description = gateway_description
+    plugin._reopen = reopen
+    plugin._log = SimpleNamespace(info=lambda *a, **k: None)  # pyright: ignore[reportUnknownLambdaType]
+    config = ConnectionPlugin._connection_config  # pyright: ignore[reportPrivateUsage]
+    plugin._config = config(plugin, plugin._selected_gateway)
+    assert asyncio.run(ConnectionPlugin._reopen_if_changed(plugin, 1))  # pyright: ignore[reportPrivateUsage]
+    return reopened
+
+
+def test_reopened_when_the_interface_now_requires_secure_tunnelling() -> None:
+    secured = _gateway(tunnelling_requires_secure=True)
+    service = ConnectionService()
+    service.project_tunnels = lambda host: _TUNNELS
+    plugin = _plugin(_gateway(), secure_tunnel=service.secure_tunnel)
+    assert _reopening(plugin, _gateway()) == []
+    plugin = _plugin(_gateway(), secure_tunnel=service.secure_tunnel)
+    assert _reopening(plugin, secured) == [True]
+    # Without credentials it is tried once, to show why it fails.
+    plugin = _plugin(_gateway(), secure_tunnel=lambda *a: None)
+    assert _reopening(plugin, secured) == [False]
+
+
+def test_the_interfaces_download_reopens_the_connection() -> None:
+    from concurrent.futures import Future
+
+    service = ConnectionService()
+    reopened: list[bool] = []
+    service.set_reopen_controller(lambda: reopened.append(True))
+    done: Future[Any] = Future()
+    done.set_result(None)
+    service._reopen_after_interface_download(done)  # pyright: ignore[reportPrivateUsage]
+    failed: Future[Any] = Future()
+    failed.set_exception(RuntimeError("timeout"))
+    service._reopen_after_interface_download(failed)  # pyright: ignore[reportPrivateUsage]
+    assert reopened == [True]
