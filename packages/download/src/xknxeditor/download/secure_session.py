@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+import time
 from typing import TYPE_CHECKING, Final
 
 from xknx.exceptions import ManagementConnectionError, ManagementConnectionTimeout
@@ -41,6 +42,11 @@ logger = logging.getLogger(__name__)
 # will not answer two requests within 1 s of each other (3/3/7 5.3.2).
 _SYNC_RETRY_DELAY: Final = 1.0
 _SYNC_ATTEMPTS: Final = 3
+# That holds across connections too: a download opens a few short sessions to the same device in
+# a row, so each S-A_Sync waits until the device's last S-A_Sync response is that long ago.
+_SYNC_INTERVAL: Final = 1.2
+# Raw individual address -> time.monotonic() of the device's last S-A_Sync response.
+_last_sync_response: dict[int, float] = {}
 # The armed hook replaces this outgoing APDU with the S-A_Sync request, so the
 # device never sees it - it is only a vehicle to drive one connection-oriented
 # request/response over the transport layer.
@@ -149,6 +155,7 @@ class SecureConnectionManager:
 
     async def _synchronize_with(self, connection: BusConnection) -> bool:
         for attempt in range(_SYNC_ATTEMPTS):
+            await self._wait_for_sync_interval()
             self._management.arm_sync()
             try:
                 await connection.request(_SYNC_TRIGGER, SecureAPDU)
@@ -161,6 +168,17 @@ class SecureConnectionManager:
                 await asyncio.sleep(_SYNC_RETRY_DELAY)
                 continue
             if self._management.synchronized:
+                _last_sync_response[self._address.raw] = time.monotonic()
                 return True
             await asyncio.sleep(_SYNC_RETRY_DELAY)
         return False
+
+    async def _wait_for_sync_interval(self) -> None:
+        """Wait until the device's last S-A_Sync response is long enough ago for it to answer a
+        new request (3/3/7: it ignores one within 1 s of its last response)."""
+        last = _last_sync_response.get(self._address.raw)
+        if last is None:
+            return
+        wait = last + _SYNC_INTERVAL - time.monotonic()
+        if wait > 0:
+            await asyncio.sleep(wait)

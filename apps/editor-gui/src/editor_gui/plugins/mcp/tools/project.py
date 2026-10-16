@@ -353,21 +353,45 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return {"open": True, "path": str(project.path) if project.path else None}
 
     @tool
-    def project_add_device_certificate(code: str) -> dict[str, Any]:
+    def project_add_device_certificate(
+        code: str, node_id: int | None = None
+    ) -> dict[str, Any]:
         """Add a KNX Data Secure device certificate: ``code`` is the FDSK from the device label
         (36 characters, groups separated by "-"). A device with the certificate's serial number is
-        then commissioned securely with it. Needs a password-protected project."""
+        then commissioned securely with it. With ``node_id`` the certificate is for that device:
+        one without a serial number takes the certificate's, one with another is refused. Needs a
+        password-protected project."""
+        from editor_gui.device_info import serial_from_project, serial_to_project
         from xknxeditor.proj import ProjectPasswordRequired
-        from xknxeditor.proj.core.fdsk import InvalidFdskError
+        from xknxeditor.proj.core.fdsk import InvalidFdskError, parse_fdsk
 
         require_project(ctx)
         try:
-            fdsk = ctx.run_locked(lambda: project.add_device_certificate(code))
+            serial = parse_fdsk(code).serial_number
         except InvalidFdskError as exc:
             raise ToolError(f"not a valid FDSK: {exc}") from exc
-        except ProjectPasswordRequired as exc:
-            raise ToolError("set a project password first") from exc
-        return {"serial_number": fdsk.serial_number.hex().upper()}
+
+        def _add() -> dict[str, Any]:
+            device = _require_device(node_id) if node_id is not None else None
+            if device is not None:
+                info = project.get_device_info(device.node_id)
+                current = serial_from_project(info.serial_number) if info else None
+                if current is not None and current != serial:
+                    raise ToolError(
+                        f"the certificate is for serial number {serial.hex().upper()}, "
+                        f"device {node_id} has {current.hex().upper()}"
+                    )
+            try:
+                project.add_device_certificate(code)
+            except ProjectPasswordRequired as exc:
+                raise ToolError("set a project password first") from exc
+            if device is not None:
+                project.set_device_commissioning(
+                    device.node_id, serial_number=serial_to_project(serial)
+                )
+            return {"serial_number": serial.hex().upper()}
+
+        return ctx.run_locked(_add)
 
     @tool
     def project_set_secure_commissioning(

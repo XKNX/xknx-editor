@@ -277,7 +277,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(
                 f"device {node_id} is commissioned securely for the first time: add its "
                 "device certificate (the FDSK from its label) with "
-                "project_add_device_certificate first, or deactivate its secure commissioning "
+                f"project_add_device_certificate(code, node_id={node_id}) first, or deactivate "
+                "its secure commissioning "
                 "with project_set_secure_commissioning to program it in the clear"
             ) from exc
         if future is None:

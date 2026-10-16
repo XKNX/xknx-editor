@@ -121,3 +121,23 @@ def test_connection_manager_rejects_mismatched_security_address() -> None:
     security = DeviceSecurity(IndividualAddress("1.2.3"), TOOL_KEY)
     with pytest.raises(SecureProgrammingError, match="not the download target"):
         _connection_manager(xknx, DEVICE, security)  # type: ignore[arg-type]
+
+
+async def test_a_new_session_waits_for_the_sync_interval(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A device ignores an S-A_Sync request within 1 s of its last S-A_Sync response, also from
+    # a new connection (a download opens several short sessions in a row).
+    import time
+
+    monkeypatch.setattr(secure_session, "_SYNC_INTERVAL", 0.3)
+    xknx = _FakeXKNX()
+    security = DeviceSecurity(DEVICE, TOOL_KEY)
+    first = SecureConnectionManager(xknx, DEVICE, security)  # type: ignore[arg-type]
+    await first.open()
+    await first.close()
+    started = time.monotonic()
+    second = SecureConnectionManager(xknx, DEVICE, security)  # type: ignore[arg-type]
+    await second.open()
+    await second.close()
+    assert time.monotonic() - started >= 0.25
