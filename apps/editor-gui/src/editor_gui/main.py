@@ -57,6 +57,7 @@ from editor_gui.plugins.recover import RecoverPlugin
 from editor_gui.plugins.signing import SigningPlugin
 from editor_gui.plugins.timeline import TimelinePlugin
 from editor_gui.plugins.topology import TopologyPlugin
+from editor_gui.portal_save import PortalSaveDialog
 from editor_gui.settings import config_dir, load_settings, save_settings
 from editor_gui.strings import S, get_locale, set_locale
 from editor_gui.update_check import UpdateInfo, check_for_update
@@ -314,7 +315,8 @@ class KnxGuiApp:
         self._import_knxproj_save_dialog: pfd.save_file | None = None
         self._import_ga_export_save_dialog: pfd.save_file | None = None
         self._import_ga_export_source: str | None = None
-        self._export_knxproj_dialog: pfd.save_file | None = None
+        self._export_knxproj_dialog: pfd.save_file | PortalSaveDialog | None = None
+        self._export_knxproj_default = ""
         self._export_ga_export_dialog: pfd.save_file | None = None
         self._ga_export_options_requested = False
         self._ga_export_options: dict[str, Any] = {}
@@ -473,12 +475,8 @@ class KnxGuiApp:
         self._update_prompt_requested = False
         self._update_thread: threading.Thread | None = None
         self._update_manual = False  # a user-triggered check also reports "up to date"
-        # Target schema for .knxproj export. Default project/20 (schema 20 shape) imports into
-        # schema-20 and schema-23 importers (the latter converts up). A native project/23 export is
-        # only possible when every used device's product data is project/23-era; see _do_export_knxproj.
-        self._export_schema = (
-            "20"  # "23"=native project/23, "20"=project/20 (also imports in project/23)
-        )
+        # Target schema for .knxproj export. ETS 6 (project/23) is the default; ETS 5 is project/20.
+        self._export_schema = "23"
         # Command palette (Ctrl+P): fuzzy jump to devices / run actions.
         self._palette_open = False
         self._palette_query = ""
@@ -741,6 +739,19 @@ class KnxGuiApp:
         info = self._project_service.get_project_metadata()
         name = _file_name(info.name) if info is not None else ""
         default = f"{name or 'project'}.knxproj"
+        self._export_knxproj_default = default
+        # On Linux the file-type list is the ETS version. The portal returns which
+        # entry was confirmed; ETS 6 is the initial selection.
+        if sys.platform == "linux":
+            ets6 = S.FILE_DIALOG_ETS6_FILTER
+            ets5 = S.FILE_DIALOG_ETS5_FILTER
+            self._export_knxproj_dialog = PortalSaveDialog(
+                S.FILE_DIALOG_KNXPROJ_SAVE_TITLE,
+                default,
+                [(ets6, "*.knxproj"), (ets5, "*.knxproj")],
+                current=ets5 if self._export_schema == "20" else ets6,
+            )
+            return
         self._export_knxproj_dialog = pfd.save_file(
             S.FILE_DIALOG_KNXPROJ_SAVE_TITLE,
             default,
@@ -1299,8 +1310,7 @@ class KnxGuiApp:
         with heading():
             imgui.text_wrapped(S.MYKNX_SIGN_PROMPT)
         imgui.spacing()
-        # Target format: schema 20 (default) or schema 23 -- matches what those
-        # schema versions actually write (CreatedBy/ToolVersion + namespace).
+        # Target format: ETS 6 (schema 23, default) or ETS 5 (schema 20).
         imgui.text_disabled(S.EXPORT_FORMAT)
         formats = [("23", S.EXPORT_FORMAT_ETS6), ("20", S.EXPORT_FORMAT_ETS5)]
         current = next(lbl for code, lbl in formats if code == self._export_schema)
@@ -2310,8 +2320,32 @@ class KnxGuiApp:
             self._export_knxproj_dialog is not None
             and self._export_knxproj_dialog.ready()
         ):
-            result = self._export_knxproj_dialog.result()
+            dialog = self._export_knxproj_dialog
+            result = dialog.result()
             self._export_knxproj_dialog = None
+            if isinstance(dialog, PortalSaveDialog) and dialog.error:
+                # The portal dialog never opened. Fall back to the helper dialog; the
+                # format combo in the next window still chooses ETS 5 or ETS 6.
+                self._log.warning("portal save dialog failed", error=dialog.error)
+                self._export_knxproj_dialog = pfd.save_file(
+                    S.FILE_DIALOG_KNXPROJ_SAVE_TITLE,
+                    self._export_knxproj_default,
+                    [
+                        S.FILE_DIALOG_KNXPROJ_FILTER,
+                        "*.knxproj",
+                        S.FILE_DIALOG_ALL_FILES,
+                        "*",
+                    ],
+                )
+                return
+            if isinstance(dialog, PortalSaveDialog):
+                schemas = {
+                    S.FILE_DIALOG_ETS6_FILTER: "23",
+                    S.FILE_DIALOG_ETS5_FILTER: "20",
+                }
+                chosen = schemas.get(dialog.selected_filter)
+                if chosen is not None:
+                    self._export_schema = chosen
             if result:
                 # Ask about MyKnx certificate signing before running the export.
                 self._maybe_overwrite_then(
@@ -2617,14 +2651,6 @@ class KnxGuiApp:
                 self._project_service.is_open,
             )[0]:
                 self._export_knxproj()
-            if imgui.menu_item(
-                S.MENU_EXPORT_ETS5_STORE, "", False, self._project_service.is_open
-            )[0]:
-                self._begin_projectstore_export(ets_store.StoreFormat.ETS5)
-            if imgui.menu_item(
-                S.MENU_EXPORT_ETS6_STORE, "", False, self._project_service.is_open
-            )[0]:
-                self._begin_projectstore_export(ets_store.StoreFormat.ETS6)
             if imgui.menu_item(S.MENU_COMPACT_PROJECT, "", False, self._can_compact())[
                 0
             ]:

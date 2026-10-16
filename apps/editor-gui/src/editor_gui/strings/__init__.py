@@ -839,8 +839,8 @@ class MenuStrings:
             "Re-license the project through your own licensed ETS via its local project store, "
             "which re-signs the copy with your dongle license:\n"
             "\n"
-            "   1. Click 'Export to ETS 5 ProjectStore' or 'Export to ETS 6 ProjectStore' "
-            "(also in the File menu). It writes the project's 'P-XXXX' folder straight into "
+            "   1. Click 'Export to ETS 5 ProjectStore' or 'Export to ETS 6 ProjectStore'. "
+            "It writes the project's 'P-XXXX' folder straight into "
             "that ETS version's project store. The two formats are not interchangeable. If ETS "
             "is not installed on this computer, you are asked for the store folder (or any "
             "folder you then copy over manually).\n"
@@ -1005,6 +1005,14 @@ class MenuStrings:
     @property
     def FILE_DIALOG_KNXPROJ_FILTER(self) -> str:
         return _("ETS Project (*.knxproj)")
+
+    @property
+    def FILE_DIALOG_ETS6_FILTER(self) -> str:
+        return _("ETS 6 Project (*.knxproj)")
+
+    @property
+    def FILE_DIALOG_ETS5_FILTER(self) -> str:
+        return _("ETS 5 Project (*.knxproj)")
 
     @property
     def FILE_DIALOG_GA_IMPORT_FILTER(self) -> str:
