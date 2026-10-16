@@ -317,7 +317,9 @@ class ConnectionPlugin:
                 else None
             )
             gateway = description or self._selected_gateway
-            config = self._connection_config(gateway)
+            config = await self._on_main_thread(
+                lambda: self._connection_config(gateway)
+            )
             self._interface = ObservableKNXIPInterfaceThreaded(
                 xknx=self._xknx,
                 connection_config=config,
@@ -328,7 +330,9 @@ class ConnectionPlugin:
             self._xknx.knxip_interface = self._interface
             await self._interface.start()
             # Secured group communication with the project's (or the keyring's) keys.
-            self._xknx.cemi_handler.data_secure = self._api.connection.data_secure()
+            self._xknx.cemi_handler.data_secure = await self._on_main_thread(
+                self._api.connection.data_secure
+            )
             self._data_secure_revision = self._api.project.revision
             self._gateway_info = gateway
             self._config = config
@@ -403,6 +407,14 @@ class ConnectionPlugin:
                 mode=self._connection_type.name.lower(),
                 error=f"{type(e).__name__}: {e}",
             )
+
+    async def _on_main_thread[T](self, fn: Callable[[], T]) -> T:
+        """``fn`` run on the main thread, where the project's data is read (its reads elsewhere
+        find nothing while the main thread reads it)."""
+        executor = getattr(self._api, "main_thread", None)
+        if executor is None:
+            return fn()
+        return await asyncio.wrap_future(executor.submit(fn))
 
     async def _gateway_description(self) -> GatewayDescriptor | None:
         """The tunnelling interface's description as it is now: its download changes the services
@@ -571,7 +583,9 @@ class ConnectionPlugin:
             if gateway is None:
                 return False
         try:
-            config = self._connection_config(gateway)
+            config = await self._on_main_thread(
+                lambda: self._connection_config(gateway)
+            )
         except ConnectionError:
             config = None
         current = self._open_config(session)
