@@ -49,6 +49,7 @@ class Application:
 
     __slots__ = (
         "_id",
+        "_load_lock",
         "_name",
         "_program",
         "_reloader",
@@ -67,6 +68,34 @@ class Application:
         self.manufacturer_id = manufacturer_id
         self._tree_builder: DynamicTreeBuilder | None = None
         self._reloader: Callable[[], ApplicationProgram] | None = None
+        self._load_lock = threading.Lock()
+
+    @classmethod
+    def unloaded(
+        cls,
+        application_id: str,
+        name: str,
+        version: str,
+        manufacturer_id: str,
+        loader: Callable[[], ApplicationProgram],
+    ) -> Application:
+        """An application known by its id, name and versions only; ``loader`` parses its program
+        when it is first used."""
+        app = cls.__new__(cls)
+        app._program = None
+        app._id = application_id
+        app._name = name
+        app.version = version
+        app.manufacturer_id = manufacturer_id
+        app._tree_builder = None
+        app._reloader = loader
+        app._load_lock = threading.Lock()
+        return app
+
+    @property
+    def loaded(self) -> bool:
+        """Whether the parsed program and its evaluation tree are in memory."""
+        return self._program is not None and self._tree_builder is not None
 
     def __repr__(self) -> str:
         return f"Application(id={self._id!r}, version={self.version!r})"
@@ -91,20 +120,25 @@ class Application:
     def _resolve(
         self, *, with_tree: bool
     ) -> tuple[ApplicationProgram, DynamicTreeBuilder | None]:
-        with _resident_lock:
+        # Loading holds only this application's lock, so other applications stay usable meanwhile
+        # (e.g. while one loads in the background).
+        with self._load_lock:
             program = self._program
             if program is None:
                 assert self._reloader is not None
                 with gc_paused():
                     program = self._reloader()
                 self._program = program
-            if with_tree and self._tree_builder is None:
+            tree_builder = self._tree_builder
+            if with_tree and tree_builder is None:
                 from .parser_v2.dynamic import DynamicTreeBuilder as _DynamicTreeBuilder
 
                 with gc_paused():
-                    self._tree_builder = _DynamicTreeBuilder(program)
+                    tree_builder = _DynamicTreeBuilder(program)
+                self._tree_builder = tree_builder
+        with _resident_lock:
             self._mark_used()
-            return program, self._tree_builder
+        return program, tree_builder
 
     @property
     def program(self) -> ApplicationProgram:

@@ -16,6 +16,9 @@ msgstr "Geschiedenis"
 msgid "No devices"
 msgstr "Geen apparaten"
 
+msgid "Loading application program…"
+msgstr "Applicatieprogramma wordt geladen…"
+
 msgid "This product has no application program."
 msgstr "Dit product heeft geen applicatieprogramma."
 

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass, field
+from dataclasses import InitVar, dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING
 
@@ -268,6 +268,9 @@ class Device:
     param_inputs: dict[str, str] = field(
         default_factory=dict[str, str], repr=False, compare=False, init=False
     )
+    # The group objects as a snapshot of an earlier evaluation, restored with ``visible`` (their
+    # positions in ``com_objects``): the application is then only loaded when it is used.
+    visible: InitVar[list[int] | None] = None
 
     @property
     def display_name(self) -> str:
@@ -275,11 +278,19 @@ class Device:
         return self.name or self.product_name or (self.app.name if self.app else "")
 
     @property
+    def evaluated(self) -> bool:
+        """Whether the device's parameters are evaluated (it then needs no application loaded)."""
+        return self._dynamic_ui is not None
+
+    @property
     def has_application(self) -> bool:
         """Whether the product has an application program (with parameters and objects)."""
         return self.app is not None
 
-    def __post_init__(self) -> None:
+    def __post_init__(self, visible: list[int] | None) -> None:
+        if visible is not None:
+            self._cached_visible_cos = [self.com_objects[i] for i in visible]
+            return
         self._ensure_dynamic_ui()
         if not self.com_objects:
             self.com_objects = self._create_com_objects_from_app()

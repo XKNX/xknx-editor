@@ -218,6 +218,9 @@ class DynamicTreeBuilder:
         # This set is shared by reference into the Choose/Repeat nodes and is complete once _build ends.
         self._widget_param_refs: set[str] = set()
         self._plugin_warned: set[str] = set()
+        # A module definition's subtree, built once and shared by all its instances: nodes hold no
+        # per-instance state (the instance comes from the evaluation context).
+        self._module_subtrees: dict[str, list[DynamicNode | None]] = {}
         # Union members share the same memory offset; only one is the "active" overlay at a time.
         # Map each of a union member's parameter-refs to its union siblings' parameter-refs, so a
         # Choose on an inactive union member renders nothing (see ChooseWhenNode). Without this we
@@ -361,7 +364,10 @@ class DynamicTreeBuilder:
             mod_def = self.idx.module_defs.get(ref_id)
             if mod_def is None or mod_def.dynamic is None:
                 return None
-            children = [self._build(child) for child in mod_def.dynamic.choice]
+            children = self._module_subtrees.get(ref_id)
+            if children is None:
+                children = [self._build(child) for child in mod_def.dynamic.choice]
+                self._module_subtrees[ref_id] = children
             arguments: dict[str, ModuleArg] = {arg.ref_id: arg for arg in elem.choice}
             param_ref_defaults = compute_param_ref_defaults(
                 mod_def.static.parameter_refs if mod_def.static else None, self.idx

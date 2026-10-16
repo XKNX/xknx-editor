@@ -754,6 +754,23 @@ class TradeDevice(Base):
     device: Mapped["Device"] = relationship(back_populates="trade_links")
 
 
+class DeviceSnapshot(Base):
+    """What the editor derived from a device's application when it last evaluated it (its group
+    objects), so a project opens without loading every application.
+
+    ``key`` identifies everything the snapshot was derived from; a snapshot whose key no longer
+    matches is ignored and replaced. ``data`` is JSON in the editor's own format. Not part of the
+    undo history and not exported."""
+
+    __tablename__ = "device_snapshots"
+
+    device_id: Mapped[int] = mapped_column(
+        ForeignKey("devices.id", ondelete="CASCADE"), primary_key=True
+    )
+    key: Mapped[str] = mapped_column(String, nullable=False)
+    data: Mapped[str] = mapped_column(Text, nullable=False)
+
+
 class Event(Base):
     """The undo/redo history; ``data`` is the serialized command payload including before-values."""
 

@@ -1094,6 +1094,10 @@ class ProjectStrings:
         return _("No devices")
 
     @property
+    def CONFIGURE_LOADING_APPLICATION(self) -> str:
+        return _("Loading application program…")
+
+    @property
     def CONFIGURE_NO_APPLICATION(self) -> str:
         return _("This product has no application program.")
 

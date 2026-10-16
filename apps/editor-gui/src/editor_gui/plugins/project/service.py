@@ -7,6 +7,7 @@ import os
 import platform
 import shutil
 import subprocess
+import threading
 import time
 import xml.etree.ElementTree as ET
 import zipfile
@@ -29,6 +30,7 @@ from editor_gui.device import (
 )
 from editor_gui.device_info import serial_to_project
 from editor_gui.device_plugins import ConfigurationApp, configuration_apps
+from editor_gui.device_snapshot import decode_snapshot, encode_snapshot, snapshot_key
 from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.history import HistoryEntry
@@ -178,14 +180,56 @@ def _parameter_instance_refs(
     ]
 
 
+_COLUMN_KEYS: dict[type, tuple[str, ...]] = {}
+
+
 def _row_values(obj: Any) -> tuple[Any, ...]:
-    return tuple(getattr(obj, column.key) for column in obj.__table__.columns)
+    keys = _COLUMN_KEYS.get(type(obj))
+    if keys is None:
+        keys = tuple(column.key for column in obj.__table__.columns)
+        _COLUMN_KEYS[type(obj)] = keys
+    # The loaded values directly (far cheaper than the mapped attributes), the attributes for
+    # a row whose values are not loaded.
+    values = obj.__dict__
+    try:
+        return tuple(values[key] for key in keys)
+    except KeyError:
+        return tuple(getattr(obj, key) for key in keys)
+
+
+def _instance_refs(
+    row: Any, app_program_id: str
+) -> tuple[list[ParameterInstanceRef], list[Any], list[ComObjectInstanceRef]]:
+    """The parameter, module and com-object instance refs a device of ``row`` is built with."""
+    from xknxeditor.namespaces.intermediate import ParameterInstanceRef as _PIR
+    from xknxeditor.namespaces.intermediate.module_instance_t import (
+        ModuleInstance as _MI,
+    )
+
+    pirs = [_PIR(ref_id=p.ref_id, value=p.value) for p in row.parameters]
+    mis = [_MI(id=mi.instance_id, ref_id=mi.ref_id) for mi in row.module_instances]
+    # Every persisted ComObject row is an instantiated object (that is what pins the device's
+    # object set against the parser's channel over-activation). Seed one instance ref per row
+    # — with its flag overrides where present, else a bare ref — so objects added by a
+    # function/mode re-instantiation (default, i.e. all-None, flags) are also counted as
+    # instantiated and thus shown/encoded rather than pruned away.
+    coirs = [
+        _co_instance_ref_from_row(
+            co_row, ref_id=_qualified_com_object_ref(co_row, app_program_id)
+        )
+        or ComObjectInstanceRef(
+            ref_id=_qualified_com_object_ref(co_row, app_program_id)
+        )
+        for co_row in row.com_objects
+    ]
+    return pirs, mis, coirs
 
 
 def _device_source_key(row: Any) -> tuple[Any, ...]:
     """Everything a device is built from: its program, parameters, module instances, com objects."""
     return (
         row.hardware2program_ref_id,
+        getattr(row, "application_program_ref_id", None),
         tuple(_row_values(p) for p in row.parameters),
         tuple(_row_values(mi) for mi in row.module_instances),
         tuple(_row_values(co) for co in row.com_objects),
@@ -604,6 +648,18 @@ class ProjectService:
         self._unloaded_devices: list[UnloadedDevice] = []
         # Per device, the stored data it was last built from (see _device_source_key).
         self._build_keys: dict[int, tuple[Any, ...]] = {}
+        # The stored device snapshots (device id -> key, data), read once per open, and the ones
+        # made since, to be stored.
+        self._snapshots: dict[int, tuple[str, str]] | None = None
+        self._new_snapshots: dict[int, tuple[str, str]] = {}
+        # What each application id is read from (see CatalogService.application_source).
+        self._source_cache: dict[str, str | None] = {}
+        # Applications loading in the background, and those that failed to load (their devices
+        # are then built without a snapshot, which shows them as not loadable).
+        self._loading_lock = threading.Lock()
+        self._loading: set[str] = set()
+        self._failed_loads: set[str] = set()
+        self._handled_failures: set[str] = set()
         self._areas_cache: list[_Area] | None = None
         self._lines_cache: dict[int, list[_Line]] | None = None
         self._ga_cache: list[_GroupAddress] | None = None
@@ -1192,6 +1248,12 @@ class ProjectService:
         self._selected_node_ids = set()
         self._dynui_lru.clear()
         self._app_cache.clear()
+        self._snapshots = None
+        self._new_snapshots.clear()
+        self._source_cache.clear()
+        with self._loading_lock:
+            self._failed_loads.clear()
+        self._handled_failures.clear()
 
     def _bump(self, *, structural: bool = True) -> None:
         """Advance the revision so views refresh. ``structural=False`` for edits that don't change
@@ -1214,6 +1276,7 @@ class ProjectService:
         if row is None:
             return
         rebuilt = self._build_device(row)
+        self._store_snapshots()
         if rebuilt is None:
             return
         for i, d in enumerate(self._devices_cache):
@@ -1302,6 +1365,123 @@ class ProjectService:
         return cached
 
     def _build_device(self, row: Any) -> Device | None:
+        """The device of ``row``: from its snapshot when nothing it was derived from changed, else
+        evaluated from its application (and a new snapshot made)."""
+        content = _device_source_key(row)
+        restored = self._restore_device(row, content)
+        if restored is not None:
+            self._build_keys[row.id] = content
+            return restored
+        device = self._evaluate_device(row)
+        if device is not None:
+            self._build_keys[row.id] = content
+        if device is not None and device.app is not None:
+            source = self._application_source(device.app.id)
+            if source is not None:
+                self._new_snapshots[row.id] = (
+                    snapshot_key(content, source),
+                    encode_snapshot(
+                        device.app, device.com_objects, device.get_visible_com_objects()
+                    ),
+                )
+        return device
+
+    def _application_source(self, application_id: str) -> str | None:
+        if application_id not in self._source_cache:
+            self._source_cache[application_id] = self._catalog.application_source(
+                application_id
+            )
+        return self._source_cache[application_id]
+
+    def _stored_snapshot(self, device_id: int) -> tuple[str, str] | None:
+        if self._pid is None:
+            return None
+        if self._snapshots is None:
+            self._snapshots = self._svc.device_snapshots(self._pid)
+        return self._snapshots.get(device_id)
+
+    def _store_snapshots(self) -> None:
+        """Store the snapshots made since the last call."""
+        if self._pid is None or not self._new_snapshots:
+            return
+        snapshots, self._new_snapshots = self._new_snapshots, {}
+        try:
+            self._svc.store_device_snapshots(self._pid, snapshots)
+        except Exception as e:
+            # Only the next open is slower without them.
+            self._log.warning(
+                "device snapshots not stored", error=f"{type(e).__name__}: {e}"
+            )
+            return
+        if self._snapshots is not None:
+            self._snapshots.update(snapshots)
+
+    def _restore_device(self, row: Any, content: tuple[Any, ...]) -> Device | None:
+        """The device of ``row`` from its stored snapshot, without loading its application;
+        ``None`` when it has none that matches what the device is now built from."""
+        stored = self._stored_snapshot(row.id)
+        program_ref = row.hardware2program_ref_id
+        if stored is None or program_ref is None:
+            return None
+        cached = self._app_cache.get(program_ref)
+        cache_key = program_ref
+        app_id = (
+            cached.id
+            if cached is not None
+            else self._catalog.get_program_application_id(program_ref)
+        )
+        if app_id is None:
+            app_id = getattr(row, "application_program_ref_id", None)
+            if app_id is None:
+                return None
+            cache_key = app_id
+            cached = self._app_cache.get(app_id)
+        with self._loading_lock:
+            if app_id in self._failed_loads:
+                return None
+        source = self._application_source(app_id)
+        if source is None or stored[0] != snapshot_key(content, source):
+            return None
+        snapshot = decode_snapshot(stored[1])
+        if snapshot is None:
+            return None
+        app = cached
+        if app is None:
+            app = self._catalog.unloaded_application(
+                app_id,
+                snapshot.application_name,
+                snapshot.application_version,
+                snapshot.manufacturer_id,
+            )
+            self._app_cache[cache_key] = app
+        assert self._pid is not None
+        try:
+            pirs, mis, coirs = _instance_refs(row, app.id)
+            device = Device(
+                node_id=row.id,
+                name=row.name,
+                product_name=row.product_name or "",
+                app=app,
+                individual_address=self._svc.individual_address(self._pid, row.id)
+                or "",
+                description=row.description,
+                com_objects=snapshot.com_objects,
+                parameter_instance_refs=pirs,
+                module_instances=mis,
+                com_object_instance_refs=coirs,
+                visible=snapshot.visible,
+            )
+        except (IndexError, ValueError) as e:
+            self._log.debug("device snapshot unusable", device_id=row.id, error=str(e))
+            return None
+        device.download_plugin_required = self._requires_download_plugin(program_ref)
+        device.configuration_app = next(
+            (a.name for a in self._configuration_apps() if a.applies_to(app.id)),
+            None,
+        )
+        return device
+
+    def _evaluate_device(self, row: Any) -> Device | None:
         try:
             app = self._resolve_app(
                 row.hardware2program_ref_id,
@@ -1336,30 +1516,8 @@ class ProjectService:
                 device_id=row.id,
                 app=app.id,
             )
-        from xknxeditor.namespaces.intermediate import ParameterInstanceRef as _PIR
-        from xknxeditor.namespaces.intermediate.module_instance_t import (
-            ModuleInstance as _MI,
-        )
-
         try:
-            pirs = [_PIR(ref_id=p.ref_id, value=p.value) for p in row.parameters]
-            mis = [
-                _MI(id=mi.instance_id, ref_id=mi.ref_id) for mi in row.module_instances
-            ]
-            # Every persisted ComObject row is an instantiated object (that is what pins the device's
-            # object set against the parser's channel over-activation). Seed one instance ref per row
-            # — with its flag overrides where present, else a bare ref — so objects added by a
-            # function/mode re-instantiation (default, i.e. all-None, flags) are also counted as
-            # instantiated and thus shown/encoded rather than pruned away.
-            coirs = [
-                _co_instance_ref_from_row(
-                    co_row, ref_id=_qualified_com_object_ref(co_row, app.program.id)
-                )
-                or ComObjectInstanceRef(
-                    ref_id=_qualified_com_object_ref(co_row, app.program.id)
-                )
-                for co_row in row.com_objects
-            ]
+            pirs, mis, coirs = _instance_refs(row, app.program.id)
             ia = self._svc.individual_address(self._pid, row.id) or ""
             device = Device(
                 node_id=row.id,
@@ -1473,7 +1631,12 @@ class ProjectService:
             devices: list[Device] = []
             unloaded: list[UnloadedDevice] = []
             if self._pid is not None:
-                rows = list(self._svc.devices(self._pid))
+                # Grouped by program, so the devices to evaluate need each application loaded once
+                # (only the most recently used ones stay in memory).
+                rows = sorted(
+                    self._svc.devices(self._pid, with_contents=True),
+                    key=lambda r: (r.hardware2program_ref_id or "", r.id),
+                )
                 total = len(rows)
                 report = self.build_progress
                 started = time.monotonic()
@@ -1517,6 +1680,7 @@ class ProjectService:
                                 else (row.name or "")
                             )
                             report(i, total, label)
+                self._store_snapshots()
                 self._log.info(
                     "devices built",
                     built=len(devices),
@@ -1537,6 +1701,48 @@ class ProjectService:
         """Project devices whose application could not be loaded, shown without parameters."""
         _ = self.devices
         return self._unloaded_devices
+
+    def application_ready(self, device: Device) -> bool:
+        """Whether ``device``'s application is loaded. If not, it is loaded in the background and
+        this answers ``False`` until it is; a device restored from its snapshot loads it only
+        when it is used."""
+        app = device.app
+        if app is None or app.loaded or device.evaluated:
+            return True
+        with self._loading_lock:
+            failed = app.id in self._failed_loads
+            if not failed and app.id not in self._loading:
+                self._loading.add(app.id)
+                threading.Thread(
+                    target=self._load_application,
+                    args=(app,),
+                    name="application-load",
+                    daemon=True,
+                ).start()
+        if failed and app.id not in self._handled_failures:
+            # Build its devices again from their application, which reports them as not
+            # loadable, as a project open without snapshots does.
+            self._handled_failures.add(app.id)
+            for key, cached in list(self._app_cache.items()):
+                if cached is app:
+                    del self._app_cache[key]
+            self._bump()
+        return False
+
+    def _load_application(self, app: Application) -> None:
+        try:
+            app.resolved()
+        except Exception as e:
+            self._log.error(
+                "failed to load device application (broken product data?)",
+                app=app.id,
+                error=f"{type(e).__name__}: {e}",
+            )
+            with self._loading_lock:
+                self._failed_loads.add(app.id)
+        finally:
+            with self._loading_lock:
+                self._loading.discard(app.id)
 
     def find_device_by_node_id(self, node_id: int) -> Device | None:
         return next((d for d in self.devices if d.node_id == node_id), None)
@@ -2863,6 +3069,10 @@ class ProjectService:
         the rebuild themselves. The lock is re-entrant, so the ``devices`` read below still works."""
         with self._io_lock:
             self._app_cache.clear()
+            self._source_cache.clear()
+            with self._loading_lock:
+                self._failed_loads.clear()
+            self._handled_failures.clear()
             self._bump()
             if rebuild:
                 _ = (
@@ -2883,6 +3093,7 @@ class ProjectService:
                     del self._app_cache[key]
             for ref in programs:
                 self._plugin_cache.pop(ref, None)
+            self._source_cache.clear()
             self._bump()
             if rebuild:
                 _ = self.devices
