@@ -247,6 +247,8 @@ class ToolsPanel:
         # The other project when it needs a password, and the password entered for it.
         self._diff_password_path: str | None = None
         self._diff_password = ""
+        # The password field takes the keyboard focus when it is asked for.
+        self._diff_password_focus = False
 
     def render(self) -> None:
         if not self._is_open():
@@ -807,11 +809,15 @@ class ToolsPanel:
         outcome = self._on_diff_projects(path, password)
         self._diff_result, self._diff_error = outcome.result, outcome.error
         self._diff_password_path = path if outcome.needs_password else None
+        self._diff_password_focus = outcome.needs_password
 
     def _render_diff_password(self, path: str) -> None:
         """Ask for the password of the other, password-protected project."""
         imgui.text_wrapped(S.TOOLS_DIFF_PASSWORD_PROMPT)
         imgui.set_next_item_width(px(260.0))
+        if self._diff_password_focus:
+            imgui.set_keyboard_focus_here()
+            self._diff_password_focus = False
         submitted, self._diff_password = imgui.input_text(
             "##diff_password",
             self._diff_password,

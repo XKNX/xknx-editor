@@ -63,7 +63,12 @@ from editor_gui.strings import S, get_locale, set_locale
 from editor_gui.theme import ThemeWindow, apply_style, apply_theme, theme_name, themes
 from editor_gui.update_check import UpdateInfo, check_for_update
 from editor_gui.widgets.checkbox import checkbox
-from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
+from editor_gui.widgets.dialog import (
+    begin_dialog,
+    dialog_buttons,
+    end_dialog,
+    focus_when_appearing,
+)
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.fonts import heading, load_fonts
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
@@ -1737,6 +1742,7 @@ class KnxGuiApp:
             return
         imgui.text_wrapped(S.IMPORT_PASSWORD_PROMPT)
         imgui.set_next_item_width(-1)
+        focus_when_appearing()
         submitted, self._import_password = imgui.input_text(
             "##import-password",
             self._import_password,
@@ -2099,6 +2105,7 @@ class KnxGuiApp:
             return
         imgui.text_wrapped(S.OPEN_PASSWORD_PROMPT)
         imgui.set_next_item_width(-1)
+        focus_when_appearing()
         submitted, self._open_password = imgui.input_text(
             "##open-password",
             self._open_password,
