@@ -164,9 +164,6 @@ msgstr "Vom Gerät lesen"
 msgid "Set an individual address and connect to the bus first"
 msgstr "Zuerst eine physikalische Adresse setzen und mit dem Bus verbinden"
 
-msgid "From Device (Live)"
-msgstr "Vom Gerät (live)"
-
 msgid "Mask Version"
 msgstr "Maskenversion"
 
@@ -963,9 +960,6 @@ msgstr "Neustart"
 msgid "no fault reported"
 msgstr "kein Fehler gemeldet"
 
-msgid "programming mode active"
-msgstr "Programmiermodus aktiv"
-
 msgid "(Top Level)"
 msgstr "(oberste Ebene)"
 
@@ -1519,9 +1513,6 @@ msgstr "Abstand X / Y (mm)"
 
 msgid "Group Addresses"
 msgstr "Gruppenadressen"
-
-msgid "Group objects read from the device"
-msgstr "Vom Gerät gelesene Gruppenobjekte"
 
 msgid "IP Address"
 msgstr "IP-Adresse"

@@ -15,7 +15,6 @@ from editor_gui.device import ComObject, Device, device_label
 from editor_gui.device_info import (
     application_program_label,
     application_version_text,
-    firmware_text,
     parse_serial_text,
     serial_from_project,
     serial_text,
@@ -30,14 +29,11 @@ from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.app_id import parse_app_id
 from xknxeditor.prod.parser_v2.ui import UiNode
-from xknxeditor.recover.dossier import printable_text
 
 if TYPE_CHECKING:
-    from editor_gui.device_info import DeviceInfo as BusDeviceInfo
     from editor_gui.plugins.project.service import IpSecureSettings
     from xknxeditor.catalog import ProductSummary, ProgramSummary
     from xknxeditor.proj.core.service import DeviceInfo
-from editor_gui.programming import error_class_text
 from editor_gui.programming_dali import is_dali_dca_app
 from editor_gui.settings import load_settings, save_settings
 from editor_gui.widgets import (
@@ -240,10 +236,6 @@ class ConfigurePanel:
         get_change_targets: "Callable[[Device], list[ProgramSummary]] | None" = None,
         on_change_application: "Callable[[Device, ProgramSummary], None] | None" = None,
         on_read_device_info: Callable[[Device], None] | None = None,
-        get_device_readout: "Callable[[int], BusDeviceInfo | None] | None" = None,
-        get_expected_group_addresses: "Callable[[Device], dict[int, set[int]]] | None" = None,
-        get_group_address_names: "Callable[[], dict[int, str]] | None" = None,
-        format_group_address: Callable[[int], str] | None = None,
         on_restart_device: Callable[[Device], None] | None = None,
         on_master_reset_device: Callable[[Device, int], None] | None = None,
         suggest_ga: Callable[[Device, ComObject], tuple[str, str]] | None = None,
@@ -331,20 +323,6 @@ class ConfigurePanel:
         self._on_master_reset_device = on_master_reset_device
         self._reset_armed = False  # confirm checkbox in the master-reset popup
         self._reset_erase_idx = 0
-        self._get_device_readout = get_device_readout
-        self._get_expected_group_addresses = get_expected_group_addresses
-        self._get_group_address_names = get_group_address_names
-        self._format_group_address = format_group_address
-        # Cache the (DB-backed) expected group-address map and GA names of the read-out so scrolling
-        # its table doesn't recompute every frame.
-        self._expected_cache_key: tuple[int, int] | None = None
-        self._expected_cache: dict[int, set[int]] = {}
-        self._ga_names_cache_key: int | None = None
-        self._ga_names_cache: dict[int, str] = {}
-        # Fully formatted group-object rows (number, matches-project, address text), built once per
-        # read-out so scrolling the table does not re-sort, re-compare and re-format every frame.
-        self._readout_rows_cache_key: tuple[int, int] | None = None
-        self._readout_rows_cache: list[tuple[str, bool, str]] = []
         # Parameter count + module ("Channels") tables, derived from the device UI tree every frame
         # otherwise (count_parameters + build_module_tables walk the whole tree with regex). Keyed by
         # id(ui_nodes): device.get_ui() returns a fresh list when a parameter edit rebuilds the UI, so
@@ -504,7 +482,6 @@ class ConfigurePanel:
         self._render_application_program(device)
         imgui.spacing()
         self._render_manual_button(self._get_device_info(device.node_id))
-        self._render_readout_result(device)
         self._render_ip_config(device)
         # Whether the device is a KNX IP Secure device comes from its application: shown once it
         # is loaded, so selecting a device never parses its application on the render thread.
@@ -1176,115 +1153,6 @@ class ConfigurePanel:
             else device.app.program.application_version
         )
 
-    def _render_readout_result(self, device: Device) -> None:
-        """Show the state read off the bus (mask, application version, serial/order/hardware) next to
-        the project's planned state. The read-out itself is triggered from the action row; this only
-        renders the result once it exists."""
-        readout = (
-            self._get_device_readout(device.node_id)
-            if self._get_device_readout is not None
-            else None
-        )
-        if readout is None:
-            return
-        imgui.text_disabled(S.READOUT_TITLE)
-        mask = (
-            f"{readout.mask_version:#06x}" if readout.mask_version is not None else ""
-        )
-        # Compare the version read off the device to the project's version. Only flag a mismatch
-        # (device behind/ahead of the project -> programming needed); a match needs no marker.
-        app = readout.application
-        app_v = app.application_version if app is not None else None
-        project_v = self._current_app_version(device)
-        if app_v is None:
-            version_value = "-"
-        elif project_v is None or app_v == project_v:
-            version_value = application_version_text(app_v)
-        else:
-            mismatch = S.READOUT_VERSION_MISMATCH.format(
-                version=application_version_text(project_v)
-            )
-            version_value = f"{application_version_text(app_v)}  {mismatch}"
-        if app is not None:
-            manufacturer = app.manufacturer_id
-        elif readout.manufacturer_id is not None:
-            manufacturer = f"M-{readout.manufacturer_id:04X}"
-        else:
-            manufacturer = ""
-        serial = readout.serial_number
-        order = printable_text(readout.order_number) if readout.order_number else None
-        hardware = readout.hardware_type
-        self._render_detail_grid(
-            [
-                (S.CONFIGURE_MANUFACTURER, manufacturer),
-                (S.CONFIGURE_APP_VERSION, version_value),
-                (S.READOUT_MASK, mask),
-                (S.READOUT_SERIAL, serial.hex().upper() if serial else ""),
-                (S.READOUT_ORDER, order or ""),
-                (S.READOUT_HARDWARE, hardware.hex().upper() if hardware else ""),
-                (S.DEVICE_INFO_FIRMWARE, firmware_text(readout.firmware_version) or ""),
-            ]
-        )
-        self._render_diagnosis(readout)
-        self._render_readout_group_objects(device, readout)
-
-    def _render_diagnosis(self, readout: "BusDeviceInfo") -> None:
-        """Light error diagnosis from the standard Device-Object properties: the error class
-        (green when no fault, orange otherwise) and a programming-mode note when active."""
-        if readout.error_code is not None:
-            imgui.text_disabled(S.READOUT_STATUS)
-            imgui.same_line()
-            if readout.error_code == 0:
-                imgui.text_colored(
-                    imgui.ImVec4(0.45, 0.8, 0.45, 1.0), S.READOUT_STATUS_OK
-                )
-            else:
-                imgui.text_colored(
-                    imgui.ImVec4(0.95, 0.55, 0.35, 1.0),
-                    error_class_text(readout.error_code) or "",
-                )
-        if readout.programming_mode:
-            imgui.text_colored(imgui.ImVec4(0.95, 0.75, 0.35, 1.0), S.READOUT_PROG_MODE)
-
-    def _render_readout_group_objects(
-        self, device: Device, readout: "BusDeviceInfo"
-    ) -> None:
-        """Group objects read off the device: one row per object with its number and the group
-        addresses found on it. Addresses are green when they match the project's planned links for
-        that object number, orange when they differ."""
-        if not readout.group_objects:
-            return
-        rows = self._readout_rows(device, readout)
-        imgui.spacing()
-        imgui.text_disabled(S.READOUT_GROUP_OBJECTS)
-        flags = (
-            imgui.TableFlags_.row_bg
-            | imgui.TableFlags_.borders_inner_h
-            | imgui.TableFlags_.scroll_y
-            | imgui.TableFlags_.resizable
-            | imgui.TableFlags_.reorderable
-        )
-        if not begin_data_table(
-            "##readout_gos", 2, flags, imgui.ImVec2(0.0, px(200.0))
-        ):
-            return
-        imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(44.0))
-        imgui.table_setup_column(S.READOUT_GROUP_ADDRESSES)
-        data_table_headers()
-        ok = imgui.ImVec4(0.45, 0.8, 0.45, 1.0)
-        differ = imgui.ImVec4(0.95, 0.55, 0.35, 1.0)
-        clipper = imgui.ListClipper()
-        clipper.begin(len(rows))
-        while clipper.step():
-            for i in range(clipper.display_start, clipper.display_end):
-                number, match, text = rows[i]
-                imgui.table_next_row()
-                imgui.table_next_column()
-                imgui.text(number)
-                imgui.table_next_column()
-                imgui.text_colored(ok if match else differ, text)
-        imgui.end_table()
-
     def _ui_derived_tables(
         self, ui_nodes: list[UiNode]
     ) -> tuple[int, list[ModuleTable]]:
@@ -1301,65 +1169,6 @@ class ConfigurePanel:
             )
             self._ui_derived_key = key
         return self._ui_derived
-
-    def _readout_rows(
-        self, device: Device, readout: "BusDeviceInfo"
-    ) -> list[tuple[str, bool, str]]:
-        """Group-object rows (number, matches-project, address text) built once per read-out. The
-        formatting resolves the GA style and compares against the project's planned links, so it must
-        not run every frame while the table scrolls."""
-        key = (device.node_id, id(readout))
-        if self._readout_rows_cache_key != key:
-            expected = self._expected_group_addresses(device, readout)
-            names = self._ga_names(readout)
-            self._readout_rows_cache = [
-                (
-                    str(go.number),
-                    set(go.group_addresses) == expected.get(go.number, set()),
-                    ", ".join(self._format_ga(a, names) for a in go.group_addresses)
-                    if go.group_addresses
-                    else "-",
-                )
-                for go in sorted(readout.group_objects, key=lambda g: g.number)
-            ]
-            self._readout_rows_cache_key = key
-        return self._readout_rows_cache
-
-    def _format_ga(self, address: int, names: dict[int, str]) -> str:
-        formatted = (
-            self._format_group_address(address)
-            if self._format_group_address is not None
-            else str(address)
-        )
-        name = names.get(address)
-        return f"{formatted}  {name}" if name else formatted
-
-    def _ga_names(self, readout: "BusDeviceInfo") -> dict[int, str]:
-        """Group-address value -> name, cached per read-out so the table render stays cheap."""
-        key = id(readout)
-        if self._ga_names_cache_key != key:
-            self._ga_names_cache = (
-                self._get_group_address_names()
-                if self._get_group_address_names is not None
-                else {}
-            )
-            self._ga_names_cache_key = key
-        return self._ga_names_cache
-
-    def _expected_group_addresses(
-        self, device: Device, readout: "BusDeviceInfo"
-    ) -> dict[int, set[int]]:
-        """Project's planned group addresses per object, computed once per read-out and cached (the
-        lookup hits the DB, so it must not run every frame while the table scrolls)."""
-        key = (device.node_id, id(readout))
-        if self._expected_cache_key != key:
-            self._expected_cache = (
-                self._get_expected_group_addresses(device)
-                if self._get_expected_group_addresses is not None
-                else {}
-            )
-            self._expected_cache_key = key
-        return self._expected_cache
 
     def _render_master_reset(self, device: Device, enabled: bool) -> None:
         """Destructive master-reset action: a button opening a confirm popup with an erase-type

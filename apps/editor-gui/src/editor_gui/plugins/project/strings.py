@@ -1341,18 +1341,6 @@ class ProjectStrings:
         return _("The reported value matches {devices} in this project.")
 
     @property
-    def READOUT_TITLE(self) -> str:
-        return _("From Device (Live)")
-
-    @property
-    def READOUT_GROUP_OBJECTS(self) -> str:
-        return _("Group objects read from the device")
-
-    @property
-    def READOUT_GROUP_ADDRESSES(self) -> str:
-        return _("Group Addresses")
-
-    @property
     def READOUT_MASK(self) -> str:
         return _("Mask Version")
 
@@ -1375,10 +1363,6 @@ class ProjectStrings:
     @property
     def READOUT_STATUS_OK(self) -> str:
         return _("no fault reported")
-
-    @property
-    def READOUT_PROG_MODE(self) -> str:
-        return _("programming mode active")
 
     @property
     def READOUT_VERSION_MISMATCH(self) -> str:

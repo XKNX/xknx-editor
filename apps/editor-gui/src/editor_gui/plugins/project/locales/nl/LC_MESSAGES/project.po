@@ -489,9 +489,6 @@ msgstr "Herstart"
 msgid "no fault reported"
 msgstr "geen fout gemeld"
 
-msgid "programming mode active"
-msgstr "programmeermodus actief"
-
 msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
 msgstr "{ready} gereed · {amb} dubbelzinnig · {bad} incompatibel · {none} geen overeenkomst"
 
@@ -1096,9 +1093,6 @@ msgstr "De handleiding van dit apparaat zoeken (via de KNX-apparatendatabase, an
 msgid "From"
 msgstr "Vanaf"
 
-msgid "From Device (Live)"
-msgstr "Van apparaat (live)"
-
 msgid "Full"
 msgstr "Volledig"
 
@@ -1179,9 +1173,6 @@ msgstr "Groepsobjecten ({count})"
 
 msgid "Group Addresses"
 msgstr "Groepsadressen"
-
-msgid "Group objects read from the device"
-msgstr "Van het apparaat gelezen groepsobjecten"
 
 msgid "IP Address"
 msgstr "IP-adres"

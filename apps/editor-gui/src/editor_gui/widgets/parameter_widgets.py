@@ -510,17 +510,21 @@ def _render_time_param(
             on_change(stored)
 
 
+# Gap between a field and the suffix (e.g. a unit) after it, at 100 % scaling.
+_SUFFIX_GAP = 5.0
+
+
 def _suffix_width(suffix: str | None) -> float:
     """Room a suffix shown after a field takes."""
     if not suffix:
         return 0.0
-    return imgui.calc_text_size(suffix).x + imgui.get_style().item_spacing.x
+    return imgui.calc_text_size(suffix).x + px(_SUFFIX_GAP)
 
 
 def _render_suffix(suffix: str | None) -> None:
     """``suffix`` (e.g. a unit) after the previous field, on the field's text line."""
     if suffix:
-        imgui.same_line()
+        imgui.same_line(0.0, px(_SUFFIX_GAP))
         imgui.align_text_to_frame_padding()
         imgui.text(suffix)
 

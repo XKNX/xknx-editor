@@ -11,6 +11,7 @@ from collections.abc import Callable
 
 from imgui_bundle import hello_imgui, imgui
 
+from editor_gui.plugins.project.device_info_view import Toned
 from editor_gui.plugins.project.program_queue import OperationState, QueueItem
 from editor_gui.plugins.project.strings import S
 from xknxeditor.download.scope import DownloadScope
@@ -20,6 +21,9 @@ FORCE_STOP_AFTER = 10.0
 
 _RED = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
 _WARNING = imgui.ImVec4(0.95, 0.75, 0.2, 1.0)
+# Result values that match the project, and ones that differ from it.
+_OK = imgui.ImVec4(0.45, 0.8, 0.45, 1.0)
+_DIFFERS = imgui.ImVec4(0.95, 0.55, 0.35, 1.0)
 
 
 class ProgramQueuePanel:
@@ -212,7 +216,11 @@ def _render_result(sections: list[tuple[str, list[tuple[str, str]]]]) -> None:
             imgui.table_next_column()
             imgui.text(f"- {label}:")
             imgui.table_next_column()
-            imgui.text(value)
+            tone = value.tone if isinstance(value, Toned) else None
+            if tone is None:
+                imgui.text(value)
+            else:
+                imgui.text_colored(_OK if tone == "ok" else _DIFFERS, value)
     imgui.end_table()
     imgui.spacing()
 
