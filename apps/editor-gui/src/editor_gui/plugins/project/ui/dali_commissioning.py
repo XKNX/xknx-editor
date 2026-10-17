@@ -16,8 +16,11 @@ from dataclasses import dataclass, field
 from imgui_bundle import imgui
 
 from editor_gui.device import Device
+from editor_gui.plugins.project.strings import S
+from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.dali import DaliBusState, MdtDaliCommissioner
 from xknxeditor.dali.model import (
     GROUP_SINGLE,
@@ -35,7 +38,31 @@ DaliRunner = Callable[
 ]
 
 # Group combo entries: real groups 0-15, then "single" and "unassigned".
-_GROUP_ITEMS = [str(i) for i in range(MAX_GROUP)] + ["single", "unassigned"]
+
+
+def _group_items() -> list[str]:
+    """The group choices: the group numbers, then single and unassigned."""
+    return [str(i) for i in range(MAX_GROUP)] + [
+        S.DALI_GROUP_SINGLE,
+        S.DALI_GROUP_UNASSIGNED,
+    ]
+
+
+def _task_text(task: str) -> str:
+    """The running task as the user reads it."""
+    texts = {
+        "scan": S.DALI_TASK_SCAN,
+        "broadcast": S.DALI_TASK_BROADCAST,
+        "blink": S.DALI_TASK_BLINK,
+        "blink-stop": S.DALI_TASK_BLINK_STOP,
+        "new-install": S.DALI_TASK_NEW,
+        "post-install": S.DALI_TASK_POST,
+        "program-groups": S.DALI_TASK_GROUPS,
+        "program-scenes": S.DALI_TASK_SCENES,
+    }
+    return texts.get(task, task)
+
+
 _MAX_LEVEL = 255
 
 
@@ -177,42 +204,40 @@ class DaliCommissioningPanel:
             scan = state.scan
 
         if not connected:
-            imgui.text_disabled(
-                "Connect to a KNX interface to commission the DALI bus."
-            )
+            imgui.text_disabled(S.DALI_CONNECT_HINT)
             return
 
         imgui.begin_disabled(bool(busy))
-        if imgui.button("Scan Bus"):
+        if imgui.button(S.DALI_SCAN):
             self._start(device, "scan", lambda c: c.scan(), store_scan=True)
         imgui.same_line()
-        if imgui.button("All ECGs On"):
+        if imgui.button(S.DALI_ALL_ON):
             self._start(device, "broadcast", lambda c: c.broadcast(True))
         imgui.same_line()
-        if imgui.button("All Off"):
+        if imgui.button(S.DALI_ALL_OFF):
             self._start(device, "broadcast", lambda c: c.broadcast(False))
         imgui.same_line()
-        if imgui.button("New Installation…"):
+        if imgui.button(S.DALI_NEW_INSTALLATION):
             self._pending = "new"
         imgui.same_line()
-        if imgui.button("Post Installation…"):
+        if imgui.button(S.DALI_POST_INSTALLATION):
             self._pending = "post"
         imgui.end_disabled()
 
         if busy:
-            imgui.text_disabled(
-                f"Running: {busy}{f'  ({progress})' if progress else ''}"
-            )
+            running = S.DALI_RUNNING.format(task=_task_text(busy))
+            imgui.text_disabled(f"{running}  ({progress})" if progress else running)
         if error:
             imgui.text_colored(imgui.ImVec4(0.9, 0.4, 0.4, 1.0), error)
 
         self._render_confirm(device, ia)
 
         if scan is None:
-            imgui.text_disabled("Run 'Scan bus' to read the DALI bus.")
+            imgui.text_disabled(S.DALI_SCAN_HINT)
             return
         if scan.firmware is not None:
-            imgui.text_disabled(f"Firmware {'.'.join(str(x) for x in scan.firmware)}")
+            version = ".".join(str(x) for x in scan.firmware)
+            imgui.text_disabled(S.DALI_FIRMWARE.format(version=version))
         self._render_ecg_table(device, scan, state, busy=bool(busy))
         self._render_scenes(scan, state, busy=bool(busy))
 
@@ -220,17 +245,17 @@ class DaliCommissioningPanel:
         def cb(readback: object) -> None:
             found = getattr(readback, "param1", None)
             if found is not None:
-                self._note_progress(ia, f"found {found}")
+                self._note_progress(ia, S.DALI_FOUND.format(count=found))
 
         return cb
 
     def _render_confirm(self, device: Device, ia: str) -> None:
-        title = "Confirm DALI Programming"
+        title = f"{S.DALI_CONFIRM_TITLE}###dali_confirm"
         if self._pending:
             imgui.open_popup(title)
         if begin_dialog(title):
-            imgui.text(_CONFIRM_TEXT.get(self._pending, ""))
-            clicked = dialog_buttons("Continue", "Cancel")
+            imgui.text(_confirm_text(self._pending))
+            clicked = dialog_buttons(S.DALI_CONTINUE, S.DALI_CANCEL)
             if clicked == 0:
                 kind = self._pending
                 self._pending = ""
@@ -285,19 +310,26 @@ class DaliCommissioningPanel:
         self, device: Device, scan: DaliBusState, state: _DeviceUi, *, busy: bool
     ) -> None:
         present = scan.present_ecgs
-        imgui.text_disabled(f"{len(present)} ECG(s) present")
+        imgui.text_disabled(S.DALI_ECGS_PRESENT.format(count=len(present)))
         flags = (
             imgui.TableFlags_.borders
             | imgui.TableFlags_.row_bg
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.scroll_y
+            | imgui.TableFlags_.reorderable
         )
-        if not imgui.begin_table("##dali_ecgs", 6, flags):
+        if not begin_data_table("##dali_ecgs", 6, flags):
             return
         imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(40.0))
-        for col in ("Group", "Type", "Long Address", "Alarm", ""):
+        for col in (
+            S.DALI_COL_GROUP,
+            S.DALI_COL_TYPE,
+            S.DALI_COL_LONG_ADDRESS,
+            S.DALI_COL_ALARM,
+            "",
+        ):
             imgui.table_setup_column(col)
-        imgui.table_headers_row()
+        data_table_headers()
         for ecg in present:
             imgui.table_next_row()
             imgui.table_next_column()
@@ -305,11 +337,11 @@ class DaliCommissioningPanel:
             imgui.table_next_column()
             effective = state.group_edits.get(ecg.slot, ecg.group_index)
             imgui.set_next_item_width(px(110.0))
-            changed, combo = imgui.combo(
-                f"##grp{ecg.slot}", _group_to_combo(effective), _GROUP_ITEMS
+            changed, picked = combo(
+                f"##grp{ecg.slot}", _group_to_combo(effective), _group_items()
             )
             if changed:
-                state.group_edits[ecg.slot] = _combo_to_group(combo)
+                state.group_edits[ecg.slot] = _combo_to_group(picked)
             imgui.table_next_column()
             imgui.text(str(ecg.ecg_type))
             imgui.table_next_column()
@@ -318,10 +350,10 @@ class DaliCommissioningPanel:
             imgui.text("!" if ecg.alarm else "")
             imgui.table_next_column()
             imgui.begin_disabled(busy)
-            if imgui.button(f"Blink##{ecg.slot}"):
+            if imgui.button(f"{S.DALI_BLINK}##blink{ecg.slot}"):
                 self._start(device, "blink", lambda c, s=ecg.slot: c.blink_ecg(s, True))
             imgui.same_line()
-            if imgui.button(f"Stop##{ecg.slot}"):
+            if imgui.button(f"{S.DALI_STOP}##stop{ecg.slot}"):
                 self._start(
                     device, "blink-stop", lambda c, s=ecg.slot: c.blink_ecg(s, False)
                 )
@@ -329,7 +361,7 @@ class DaliCommissioningPanel:
         imgui.end_table()
 
         imgui.begin_disabled(busy or not present)
-        if imgui.button("Program Groups…"):
+        if imgui.button(S.DALI_PROGRAM_GROUPS):
             self._pending = "groups"
         imgui.end_disabled()
 
@@ -344,44 +376,39 @@ class DaliCommissioningPanel:
             }
         )
         imgui.separator()
-        imgui.text("Scenes")
+        imgui.text(S.DALI_SCENES)
         if not groups_in_use:
-            imgui.text_disabled("Assign ECGs to groups above to define scenes.")
+            imgui.text_disabled(S.DALI_SCENES_HINT)
             return
         imgui.set_next_item_width(px(160.0))
-        _, state.scene_sel = imgui.combo(
-            "Scene##dali_scene_sel",
+        _, state.scene_sel = combo(
+            f"{S.DALI_SCENE}##dali_scene_sel",
             state.scene_sel,
-            [f"Scene {i + 1}" for i in range(MAX_SCENES)],
+            [S.DALI_SCENE_NUMBER.format(number=i + 1) for i in range(MAX_SCENES)],
         )
         levels = state.scene_edits.setdefault(state.scene_sel, {})
         for group in groups_in_use:
             imgui.set_next_item_width(px(120.0))
             changed, value = imgui.input_int(
-                f"Group {group}##scn{group}", levels.get(group, 0)
+                f"{S.DALI_GROUP_NUMBER.format(number=group)}##scn{group}",
+                levels.get(group, 0),
             )
             if changed:
                 levels[group] = max(0, min(_MAX_LEVEL, value))
 
         has_values = any(lv for lv in state.scene_edits.values())
         imgui.begin_disabled(busy or not has_values)
-        if imgui.button("Program Scenes…"):
+        if imgui.button(S.DALI_PROGRAM_SCENES):
             self._pending = "scenes"
         imgui.end_disabled()
 
 
-_CONFIRM_TEXT = {
-    "new": (
-        "New installation re-scans the DALI bus and REASSIGNS every ballast's\n"
-        "short address. Destructive and cannot be undone. Continue?"
-    ),
-    "post": (
-        "Post installation scans the bus for new ballasts and updates addressing.\n"
-        "This changes the device. Continue?"
-    ),
-    "groups": (
-        "Write the group assignment to the DALI bus. This applies the groups to the\n"
-        "gateway and its ballasts. Continue?"
-    ),
-    "scenes": ("Write the scene values to the DALI bus. Continue?"),
-}
+def _confirm_text(kind: str) -> str:
+    """What confirming the pending ``kind`` of programming does."""
+    texts = {
+        "new": S.DALI_CONFIRM_NEW,
+        "post": S.DALI_CONFIRM_POST,
+        "groups": S.DALI_CONFIRM_GROUPS,
+        "scenes": S.DALI_CONFIRM_SCENES,
+    }
+    return texts.get(kind, "")

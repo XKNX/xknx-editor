@@ -31,6 +31,7 @@ from editor_gui.widgets.dialog import (
     end_dialog,
 )
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 if TYPE_CHECKING:
     from xknxeditor.download.preflight import PreflightReport, SegmentDiff
@@ -128,7 +129,9 @@ class PreflightResultWindow:
         imgui.end()
 
     def _render_body(self) -> None:
-        imgui.text_disabled(f"{self._label}    scope={self._scope}")
+        imgui.text_disabled(
+            f"{self._label}    {S.PREFLIGHT_SCOPE.format(scope=self._scope)}"
+        )
         imgui.same_line()
         # Text is plain (not selectable), so offer explicit copy-to-clipboard.
         if imgui.small_button(S.COPY_LOG):
@@ -217,9 +220,11 @@ class PreflightResultWindow:
             imgui.TableFlags_.row_bg
             | imgui.TableFlags_.borders_inner_h
             | imgui.TableFlags_.scroll_y
+            | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.reorderable
         )
         avail = imgui.get_content_region_avail()
-        if not imgui.begin_table(
+        if not begin_data_table(
             "##preflight", 4, flags, imgui.ImVec2(avail.x, avail.y)
         ):
             return
@@ -234,7 +239,7 @@ class PreflightResultWindow:
         imgui.table_setup_column(
             S.PREFLIGHT_COL_CHANGED, imgui.TableColumnFlags_.width_fixed, px(90)
         )
-        imgui.table_headers_row()
+        data_table_headers()
 
         for segment in report.segments:
             self._render_row(

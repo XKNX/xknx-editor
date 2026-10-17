@@ -15,10 +15,12 @@ from editor_gui.device import com_object_display_name
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
+from editor_gui.widgets.backgrounds import child_background, content_background
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_select import dpt_combo
 from editor_gui.widgets.dpt_value import GroupValueBus
+from editor_gui.widgets.tables import begin_data_table, table_header_menu
 from editor_gui.widgets.text_util import text_clipped_tooltip
 from editor_gui.widgets.tree import leaf_rows, tree_node
 
@@ -190,7 +192,9 @@ class GroupAddressesPanel:
 
         avail = imgui.get_content_region_avail()
         tree_height = max(avail.y * 0.6, 0.0)
-        if imgui.begin_child("##ga_tree", imgui.ImVec2(0.0, tree_height)):
+        with child_background(content_background()):
+            tree_open = imgui.begin_child("##ga_tree", imgui.ImVec2(0.0, tree_height))
+        if tree_open:
             # The context menu must live in the same window as the tree — begin_child is its own
             # window, so a right-click here does NOT reach the panel-level menu above (that one only
             # fires in the area below the tree). Register it inside the child too, like the Devices
@@ -623,8 +627,13 @@ class GroupAddressesPanel:
                 names[a.com_object_id][3] if a.com_object_id in names else unknown
             ),
         )
-        flags = imgui.TableFlags_.borders_inner | imgui.TableFlags_.sizing_stretch_prop
-        if not imgui.begin_table("##ga_assignments", 3, flags):
+        flags = (
+            imgui.TableFlags_.borders_inner
+            | imgui.TableFlags_.sizing_stretch_prop
+            | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.reorderable
+        )
+        if not begin_data_table("##ga_assignments", 3, flags):
             return
         imgui.table_setup_column(
             S.GA_COL_DEVICE, imgui.TableColumnFlags_.width_stretch, 0.5
@@ -642,6 +651,7 @@ class GroupAddressesPanel:
             imgui.table_header(imgui.table_get_column_name(col))
             if col == 2 and imgui.is_item_hovered():
                 imgui.set_tooltip(S.GA_COL_SENDING_TOOLTIP)
+        table_header_menu()
         for a in assignments:
             entry = names.get(a.com_object_id)
             if entry is None:

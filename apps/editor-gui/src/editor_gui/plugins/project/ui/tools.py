@@ -34,7 +34,8 @@ from editor_gui.plugins.project.ui.project_diff import (
     DiffOutcome,
     DiffResult,
 )
-from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.checkbox import checkbox, radio_button
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dpi import px, px_vec2
 from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
 
@@ -333,7 +334,7 @@ class ToolsPanel:
         """A full-width device dropdown; returns the (possibly changed) selected index."""
         idx = min(idx, len(devices) - 1)
         imgui.set_next_item_width(-1)
-        if imgui.begin_combo(combo_id, self._device_label(devices[idx])):
+        if begin_combo(combo_id, self._device_label(devices[idx])):
             for i, d in enumerate(devices):
                 if imgui.selectable(
                     f"{self._device_label(d)}##{combo_id}{i}", i == idx
@@ -405,10 +406,10 @@ class ToolsPanel:
 
     def _render_shift_tab(self) -> None:
         # Pick what to shift: device individual addresses, or group addresses.
-        if imgui.radio_button(S.TOOLS_SHIFT_MODE_IA, self._shift_mode == "ia"):
+        if radio_button(S.TOOLS_SHIFT_MODE_IA, self._shift_mode == "ia"):
             self._shift_mode = "ia"
         imgui.same_line()
-        if imgui.radio_button(S.TOOLS_SHIFT_MODE_GA, self._shift_mode == "ga"):
+        if radio_button(S.TOOLS_SHIFT_MODE_GA, self._shift_mode == "ga"):
             self._shift_mode = "ga"
         imgui.separator()
         if self._shift_mode == "ga":
@@ -647,7 +648,7 @@ class ToolsPanel:
             (_MODE_SHEET, S.TOOLS_LABELS_MODE_SHEET),
             (_MODE_LEGEND, S.TOOLS_LABELS_MODE_LEGEND),
         ):
-            if imgui.radio_button(label, self._label_mode == mode):
+            if radio_button(label, self._label_mode == mode):
                 self._label_mode = mode
             imgui.same_line()
         imgui.new_line()

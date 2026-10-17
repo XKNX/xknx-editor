@@ -123,10 +123,10 @@ msgstr "MCP-Host"
 msgid "MCP Port"
 msgstr "MCP-Port"
 
-msgid "Server: running"
+msgid "Server: Running"
 msgstr "Server: läuft"
 
-msgid "Server: stopped"
+msgid "Server: Stopped"
 msgstr "Server: gestoppt"
 
 msgid "Start Server"
@@ -190,7 +190,7 @@ msgstr "Anmeldung fehlgeschlagen: {error}"
 msgid "Sign & Export"
 msgstr "Signieren & exportieren"
 
-msgid "Export without Certificate"
+msgid "Export Without Certificate"
 msgstr "Ohne Zertifikat exportieren"
 
 msgid "Export ETS Project"
@@ -707,7 +707,7 @@ msgstr "Größe nachher"
 msgid "Compacting cancelled, the project was not changed"
 msgstr "Komprimieren abgebrochen, das Projekt wurde nicht geändert"
 
-msgid "Remove unused product data"
+msgid "Remove Unused Product Data"
 msgstr "Nicht verwendete Produktdaten entfernen"
 
 msgid "Removes product data no device uses; the project stays unchanged."
@@ -851,7 +851,7 @@ msgstr "1/1 - Name/Adresse"
 msgid "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
 msgstr "3/3 - Haupt - Mittel - Untergruppenname/Haupt - Mittel - Untergruppenadresse"
 
-msgid "Export with header line"
+msgid "Export with Header Line"
 msgstr "Mit Kopfzeile exportieren"
 
 msgid "CSV Separator"
@@ -1147,3 +1147,12 @@ msgstr "Mit Dongle lizenzieren… (ETS 6)"
 
 msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store below:\n   1. Click 'Export to ETS 6 ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n   2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n   3. Restart ETS 6 - the project appears in the project overview.\n   4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed: go Back and choose 'Export without Certificate' (with ETS 5 as version) and Signing Keys active to save a .knxproj, then import that file into ETS 5. \nThis is bounded by the device-per-project limit of your license."
 msgstr "Lizenziere das Projekt über dein eigenes lizenziertes ETS neu, das die Kopie mit deiner Dongle-Lizenz neu signiert:\n\nETS 6 - nutze unten den lokalen ProjectStore:\n   1. Klicke auf 'In ETS-6-ProjectStore exportieren'. Das schreibt den Ordner 'P-XXXX' des Projekts direkt in deinen ETS-6-ProjectStore. Wenn ETS auf diesem Computer nicht installiert ist, wirst du nach dem Store-Ordner gefragt (oder einem beliebigen Ordner, den du dann manuell hinüberkopierst).\n   2. Der Export braucht deine 'installer.guid' aus C:\\ProgramData\\KNX\\ETS6\\Installer. Wird sie nicht automatisch gefunden, wirst du gebeten, sie auszuwählen.\n   3. Starte ETS 6 neu - das Projekt erscheint in der Projektübersicht.\n   4. Erstelle dort eine Kopie davon (Kopieren in der Übersicht). Die Kopie wird mit deiner Lizenz neu signiert - öffne sie und nutze oder exportiere sie dann normal.\n\nETS 5 - kein ProjectStore nötig: geh zurück und wähle 'Ohne Zertifikat exportieren' (mit ETS 5 als Version) und aktivierten Signierschlüsseln, um eine .knxproj zu speichern, und importiere diese Datei dann in ETS 5. \nDas ist durch das Geräte-pro-Projekt-Limit deiner Lizenz begrenzt."
+
+msgid "Hide Tab Bar"
+msgstr "Registerkarten ausblenden"
+
+msgid "Open {url}"
+msgstr "{url} öffnen"
+
+msgid "Copy Link"
+msgstr "Link kopieren"

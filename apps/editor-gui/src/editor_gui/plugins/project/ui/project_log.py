@@ -18,6 +18,7 @@ from editor_gui import trace_key
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.proj import (
     TRACE_DLL_NAME,
     KeyExtractionError,
@@ -64,18 +65,23 @@ class ProjectLogPanel:
 
         needle = self._filter.strip().lower()
         rows = [t for t in traces if not needle or self._matches(t, needle)]
-        rows.sort(key=self._sort_value, reverse=self._sort_desc)
 
         flags = (
             imgui.TableFlags_.borders_inner
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.row_bg
             | imgui.TableFlags_.scroll_y
+            | imgui.TableFlags_.reorderable
+            | imgui.TableFlags_.sortable
         )
-        if not imgui.begin_table("##project_log", 3, flags):
+        if not begin_data_table("##project_log", 3, flags):
             return
         imgui.table_setup_column(
-            S.PROJECT_LOG_COL_DATE, imgui.TableColumnFlags_.width_fixed, px(150.0)
+            S.PROJECT_LOG_COL_DATE,
+            imgui.TableColumnFlags_.width_fixed
+            | imgui.TableColumnFlags_.default_sort
+            | imgui.TableColumnFlags_.prefer_sort_descending,
+            px(150.0),
         )
         imgui.table_setup_column(
             S.PROJECT_LOG_COL_USER, imgui.TableColumnFlags_.width_fixed, px(120.0)
@@ -83,7 +89,9 @@ class ProjectLogPanel:
         imgui.table_setup_column(
             S.PROJECT_LOG_COL_COMMENT, imgui.TableColumnFlags_.width_stretch, 1.0
         )
-        self._sortable_header()
+        data_table_headers()
+        self._read_sort()
+        rows.sort(key=self._sort_value, reverse=self._sort_desc)
 
         for t in rows:
             comment = self._display(t)
@@ -174,28 +182,14 @@ class ProjectLogPanel:
     def _display(t: _ProjectTrace) -> str:
         return t.comment_plain or t.comment
 
-    def _sortable_header(self) -> None:
-        """Header row whose cells are clickable to sort by that column (no imgui sort-spec API)."""
-        labels = (
-            S.PROJECT_LOG_COL_DATE,
-            S.PROJECT_LOG_COL_USER,
-            S.PROJECT_LOG_COL_COMMENT,
-        )
-        imgui.table_next_row(imgui.TableRowFlags_.headers)
-        for col, label in enumerate(labels):
-            imgui.table_set_column_index(col)
-            marker = ""
-            if col == self._sort_key:
-                marker = " v" if self._sort_desc else " ^"
-            if imgui.selectable(f"{label}{marker}##hdr{col}", False):
-                self._toggle_sort(col)
-
-    def _toggle_sort(self, col: int) -> None:
-        if self._sort_key == col:
-            self._sort_desc = not self._sort_desc
-        else:
-            self._sort_key = col
-            self._sort_desc = False
+    def _read_sort(self) -> None:
+        """The column and direction the user sorts by, from the header row."""
+        specs = imgui.table_get_sort_specs()
+        if specs is None or not specs.specs_count:
+            return
+        column = specs.get_specs(0)
+        self._sort_key = column.column_index
+        self._sort_desc = column.get_sort_direction() == imgui.SortDirection.descending
 
     def _sort_value(self, t: _ProjectTrace) -> str:
         if self._sort_key == 1:

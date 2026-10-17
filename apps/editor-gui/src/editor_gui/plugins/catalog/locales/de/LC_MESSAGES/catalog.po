@@ -31,9 +31,6 @@ msgstr "Herstellerliste wird geladen…"
 msgid "Online catalog not reachable"
 msgstr "Online-Katalog nicht erreichbar"
 
-msgid "{count} manufacturers"
-msgstr "{count} Hersteller"
-
 msgid "Loading products…"
 msgstr "Produkte werden geladen…"
 
@@ -48,9 +45,6 @@ msgstr "(Plugin erforderlich)"
 
 msgid "Search manufacturers…"
 msgstr "Hersteller suchen…"
-
-msgid "Country"
-msgstr "Land"
 
 msgid "Product Details"
 msgstr "Produktdetails"
@@ -102,13 +96,13 @@ msgstr "Programmversion"
 msgid "Search products, order number…"
 msgstr "Produkte, Bestellnummer suchen…"
 
-msgid "Product index: {mfrs} manufacturers, {products} products"
+msgid "Product Index: {mfrs} manufacturers, {products} products"
 msgstr "Produktindex: {mfrs} Hersteller, {products} Produkte"
 
-msgid "No product index yet - fetch the online catalog to build it"
+msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Noch kein Produktindex - Online-Katalog abrufen zum Aufbauen"
 
-msgid "Building product index… {done}/{total} manufacturers"
+msgid "Building Product Index… {done}/{total} manufacturers"
 msgstr "Baue Produktindex… {done}/{total} Hersteller"
 
 msgid "Cancel"
@@ -182,3 +176,6 @@ msgstr "„{name}“ wurde zum lokalen Katalog hinzugefügt. Jetzt zum Projekt h
 
 msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
 msgstr "Dieses Gerät unterstützt KNX Data Secure. Legen Sie ein Projektpasswort fest, um es sicher in Betrieb zu nehmen; ohne Passwort wird es hinzugefügt und unverschlüsselt in Betrieb genommen."
+
+msgid "Search…"
+msgstr "Suchen…"

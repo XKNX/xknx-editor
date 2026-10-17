@@ -81,5 +81,37 @@ class KeyringStrings:
     def KEYRING_EXPORT_PROJECT(self) -> str:
         return _("Export Keyring from Project…")
 
+    @property
+    def COL_TYPE(self) -> str:
+        return _("Type")
+
+    @property
+    def COL_ADDRESS(self) -> str:
+        return _("Address")
+
+    @property
+    def COL_HOST(self) -> str:
+        return _("Host")
+
+    @property
+    def COL_USER(self) -> str:
+        return _("User")
+
+    @property
+    def COL_KEY(self) -> str:
+        return _("Key")
+
+    @property
+    def COL_IN_PROJECT(self) -> str:
+        return _("In Project")
+
+    @property
+    def COL_TOOL_KEY(self) -> str:
+        return _("Tool Key")
+
+    @property
+    def BACKBONE_KEY(self) -> str:
+        return _("{address}   key {key}")
+
 
 S = KeyringStrings()

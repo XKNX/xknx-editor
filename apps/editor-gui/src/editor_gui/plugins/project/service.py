@@ -783,6 +783,9 @@ class ProjectService:
             int, tuple[tuple[int, int], IpSecureSettings | None]
         ] = {}
         self._selected_node_id: int | None = None
+        # A space selected in the Buildings tree: its details replace the device's until a device
+        # is selected again.
+        self._selected_space_id: int | None = None
         # Multi-selection: the full set of selected device node ids (the primary above is
         # the last-clicked one, kept for all single-device consumers). Empty = single/none.
         self._selected_node_ids: set[int] = set()
@@ -1347,6 +1350,7 @@ class ProjectService:
         self._version = 0
         self._ip_secure_cache.clear()
         self._selected_node_id = None
+        self._selected_space_id = None
         self._selected_node_ids = set()
         self._dynui_lru.clear()
         self._app_cache.clear()
@@ -1969,6 +1973,8 @@ class ProjectService:
     @selected_device.setter
     def selected_device(self, device: Device | None) -> None:
         new_id = device.node_id if device is not None else None
+        # Selecting a device (also the one already selected) shows its details again.
+        self._selected_space_id = None
         if new_id != self._selected_node_id:
             self._selected_node_id = new_id
             # Any single-device select (command palette, Health/Cockpit navigate) collapses the
@@ -2650,9 +2656,13 @@ class ProjectService:
         return settings
 
     def _read_ip_secure_settings(self, device: Device) -> IpSecureSettings | None:
-        if self._pid is None or not self.ip_secure_device(device):
+        # The project's secure commissioning first: it rules out nearly every device without
+        # loading its application program.
+        if self._pid is None or not self._svc.secure_commissioning(
+            self._pid, device.node_id
+        ):
             return None
-        if not self._svc.secure_commissioning(self._pid, device.node_id):
+        if not self.ip_secure_device(device):
             return None
         secrets = self._svc.ip_secrets(self._pid, device.node_id)
         kinds = {ref: (access, index) for ref, access, index in _bus_interfaces(device)}
@@ -2711,13 +2721,12 @@ class ProjectService:
     def _ip_secure_application(
         self, app: Application, hardware_ref: str | None
     ) -> bool:
-        if not app.program.is_secure_enabled or not any(
+        # The hardware first: the catalog tells it without loading the application program.
+        if not hardware_ref or not self._catalog.hardware_is_ip_enabled(hardware_ref):
+            return False
+        return app.program.is_secure_enabled and any(
             access in PASSWORD_ACCESS_TYPES
             for _ref, access, _index in _app_bus_interfaces(app)
-        ):
-            return False
-        return bool(hardware_ref) and self._catalog.hardware_is_ip_enabled(
-            hardware_ref or ""
         )
 
     def _ensure_ip_secrets(
@@ -4649,6 +4658,41 @@ class ProjectService:
         if self._pid is None:
             return
         self._svc.rename_space(self._pid, space_id, name)
+        self._bump(structural=False)
+
+    @property
+    def selected_space_id(self) -> int | None:
+        """The space selected in the Buildings tree, if a space rather than a device is."""
+        return self._selected_space_id
+
+    @selected_space_id.setter
+    def selected_space_id(self, space_id: int | None) -> None:
+        self._selected_space_id = space_id
+
+    def find_space(self, space_id: int) -> "SpaceInfo | None":
+        """The space ``space_id`` of the building tree."""
+
+        def search(spaces: "list[SpaceInfo]") -> "SpaceInfo | None":
+            for space in spaces:
+                if space.id == space_id:
+                    return space
+                found = search(space.children)
+                if found is not None:
+                    return found
+            return None
+
+        return search(self.get_space_tree())
+
+    def set_space_number(self, space_id: int, number: str) -> None:
+        if self._pid is None:
+            return
+        self._svc.set_space_number(self._pid, space_id, number)
+        self._bump(structural=False)
+
+    def set_space_description(self, space_id: int, description: str) -> None:
+        if self._pid is None:
+            return
+        self._svc.set_space_description(self._pid, space_id, description)
         self._bump(structural=False)
 
     def set_space_type(self, space_id: int, space_type: str) -> None:

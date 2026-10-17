@@ -159,3 +159,23 @@ def test_space_devices_sorted_by_address(tmp_path: Path) -> None:
         svc.set_device_space(pid, device_id, room)
     node = _find(_tree(svc, pid), room)
     assert [d.individual_address for d in node.devices] == expected
+
+
+def test_set_number_and_description_with_undo(tmp_path: Path) -> None:
+    svc, pid = _new(tmp_path)
+    floor = svc.create_space(pid, 0, "Floor", "OG")
+
+    svc.set_space_number(pid, floor, "1.OG")
+    svc.set_space_description(pid, floor, "Bedrooms and bath")
+    node = _find(_tree(svc, pid), floor)
+    assert node is not None
+    assert (node.number, node.description) == ("1.OG", "Bedrooms and bath")
+
+    svc.undo(pid)  # undo description
+    assert _find(_tree(svc, pid), floor).description == ""
+    svc.undo(pid)  # undo number
+    assert _find(_tree(svc, pid), floor).number == ""
+    svc.redo(pid)
+    svc.redo(pid)
+    node = _find(_tree(svc, pid), floor)
+    assert (node.number, node.description) == ("1.OG", "Bedrooms and bath")

@@ -43,7 +43,7 @@ class RecoverStrings:
 
     @property
     def AUTO_APPLY(self) -> str:
-        return _("Add to open project as read")
+        return _("Add to Open Project as Read")
 
     @property
     def BTN_RECOVER_SELECTED(self) -> str:

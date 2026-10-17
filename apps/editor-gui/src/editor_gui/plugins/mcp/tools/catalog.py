@@ -636,14 +636,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     # --- online catalog ---------------------------------------------------
 
     @tool
-    def catalog_online_language() -> dict[str, str]:
-        """Return {language}: the selected online download country/language code (e.g. "de-DE")."""
-        return {"language": catalog.online_language}
+    def catalog_online_language() -> dict[str, Any]:
+        """Return {language, languages}: the languages online products are downloaded in, the
+        editor's language first (e.g. "de-DE"), then its other languages."""
+        return {
+            "language": catalog.online_language,
+            "languages": catalog.online_languages,
+        }
 
     @tool
     def catalog_set_online_language(code: str) -> dict[str, str]:
-        """Persist the online download country/language using code such as "de-DE".
-        Returns {language}, containing code. This setting is outside project_undo history."""
+        """Download online products in code only (such as "de-DE") for the rest of the session,
+        instead of the editor's languages. Returns {language}, containing code. This setting is
+        outside project_undo history."""
         catalog.set_online_language(code)
         return {"language": code}
 
@@ -679,7 +684,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     ) -> dict[str, Any]:
         """Download and import online products into the local catalog. catalog_item_ids must be a
         nonempty list of id values from downloadable catalog_online_items entries. Omitted or empty
-        language_ids uses the selected catalog_online_language; otherwise use codes such as "de-DE".
+        language_ids uses the languages of catalog_online_language; otherwise use codes such as
+        "de-DE".
         Returns {added_refs, added_versions}; added_refs lists distinct product refs for added versions;
         each added_versions item has {product_ref_id, hardware2program_ref_id, application_id,
         application_version}. Pass product_ref_id and optional hardware2program_ref_id to

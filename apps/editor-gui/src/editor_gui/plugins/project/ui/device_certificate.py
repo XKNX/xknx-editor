@@ -10,6 +10,7 @@ from imgui_bundle import imgui
 
 from editor_gui.device_info import serial_text
 from editor_gui.plugins.project.strings import S
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 
@@ -117,9 +118,7 @@ class DeviceCertificateDialog:
             imgui.text_colored(_ERROR_COLOR, self._error)
         if self._on_dont_ask is not None:
             imgui.spacing()
-            _, self._dont_ask = imgui.checkbox(
-                S.DEVICE_CERTIFICATE_DONT_ASK, self._dont_ask
-            )
+            _, self._dont_ask = checkbox(S.DEVICE_CERTIFICATE_DONT_ASK, self._dont_ask)
         if self._plain is not None:
             clicked = dialog_buttons(
                 S.BTN_OK,

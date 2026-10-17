@@ -2,7 +2,6 @@ import asyncio
 import functools
 import secrets
 import tempfile
-import threading
 import zipfile
 from collections.abc import Callable
 from pathlib import Path
@@ -65,6 +64,7 @@ from editor_gui.plugins.project.ui.project_diff import (
 )
 from editor_gui.plugins.project.ui.read_device_dialog import ReadDeviceDialog
 from editor_gui.plugins.project.ui.secure_commissioning import SecureCommissioningDialog
+from editor_gui.plugins.project.ui.space_details import SpaceDetailsPanel
 from editor_gui.plugins.project.ui.tools import apply_name_swap, shifted_ia
 from editor_gui.widgets import ButtonActions
 from editor_gui.widgets.dialog import begin_tool_window
@@ -92,6 +92,7 @@ if TYPE_CHECKING:
     from xknxeditor.download.scope import DownloadScope
     from xknxeditor.prod import Application
     from xknxeditor.prod.parser_v2.ui import UiButton
+    from xknxeditor.proj.core.service import SpaceInfo
     from xknxeditor.recover import AppId
 
 
@@ -104,6 +105,19 @@ _SECURITY_SETTINGS = "security"
 
 def _run_now(fn: Callable[[], None]) -> None:
     fn()
+
+
+def _project_version(device: "Device") -> int | None:
+    """The version of the device's application in the project (from its id, ``...-26-...`` -> 38),
+    else the application's own."""
+    if device.app is None:
+        return None
+    from xknxeditor.prod.app_id import parse_app_id
+
+    parsed = parse_app_id(device.app.id)
+    return (
+        parsed.version if parsed is not None else device.app.program.application_version
+    )
 
 
 class ProjectPlugin:
@@ -163,8 +177,6 @@ class ProjectPlugin:
         self._secure_commissioning_dialog = SecureCommissioningDialog()
         # Live device readouts (read-only "read from device" action), keyed by node id. Written on
         # the async loop thread's done-callback, read on the UI thread -> guarded by a lock.
-        self._device_readouts: dict[int, DeviceInfo] = {}
-        self._readout_lock = threading.Lock()
         # Copied device configuration (params + GA links) for "Paste configuration".
         self._device_config_clipboard: DeviceConfigClipboard | None = None
 
@@ -254,10 +266,6 @@ class ProjectPlugin:
             on_read_device_info=self._read_device_info,
             on_restart_device=self._restart_device,
             on_master_reset_device=self._master_reset_device,
-            get_device_readout=self._device_readout,
-            get_expected_group_addresses=api.project.expected_group_addresses,
-            get_group_address_names=api.project.group_address_names,
-            format_group_address=self._format_group_address,
             suggest_ga=self._suggest_ga_for_object,
             get_name_template=self._ga_name_template,
             set_name_template=self._set_ga_name_template,
@@ -319,6 +327,11 @@ class ProjectPlugin:
             on_export=export_group_addresses,
         )
 
+        self._space_details = SpaceDetailsPanel(
+            on_rename=api.project.rename_space,
+            on_set_description=api.project.set_space_description,
+            on_set_number=api.project.set_space_number,
+        )
         self._spaces_panel = SpacesPanel(
             get_space_tree=api.project.get_space_tree,
             on_select_device_id=self._select_device_by_id,
@@ -330,7 +343,8 @@ class ProjectPlugin:
             on_remove_function_ga=api.project.remove_function_group_address,
             get_ga_range_tree=api.project.get_group_range_tree,
             on_create_space=api.project.create_space,
-            on_rename_space=api.project.rename_space,
+            get_selected_space_id=lambda: api.project.selected_space_id,
+            on_select_space=self._select_space,
             on_set_space_type=api.project.set_space_type,
             on_move_space=api.project.move_space,
             on_remove_space=api.project.remove_space,
@@ -600,6 +614,14 @@ class ProjectPlugin:
 
     def _set_selected_device(self, device: "Device") -> None:
         self._api.project.selected_device = device
+
+    def _select_space(self, space_id: int) -> None:
+        self._api.project.selected_space_id = space_id
+
+    def selected_space(self) -> "SpaceInfo | None":
+        """The space selected in the Buildings tree (its details replace the device's), if any."""
+        space_id = self._api.project.selected_space_id
+        return self._api.project.find_space(space_id) if space_id is not None else None
 
     def _select_device_by_id(self, node_id: int) -> None:
         device = self._api.project.find_device_by_node_id(node_id)
@@ -882,10 +904,6 @@ class ProjectPlugin:
         if expanded:
             self._compare_panel.render()
         imgui.end()
-
-    def _device_readout(self, node_id: int) -> "DeviceInfo | None":
-        with self._readout_lock:
-            return self._device_readouts.get(node_id)
 
     def _format_group_address(self, address: int) -> str:
         from xknxeditor.proj.core.addressing import format_ga
@@ -1927,8 +1945,6 @@ class ProjectPlugin:
             return
         from xknxeditor.proj.core.addressing import format_ga
 
-        with self._readout_lock:
-            self._device_readouts[item.node_id] = result
         self._api.log.info(
             "device info",
             plugin="project",
@@ -1946,11 +1962,22 @@ class ProjectPlugin:
         if device is not None:
             self._store_read_serial(device, result)
         style = self._api.project.group_address_style
+        names = self._api.project.group_address_names()
+
+        def group_address(value: int) -> str:
+            text = format_ga(value, style)
+            name = names.get(value)
+            return f"{text}  {name}" if name else text
+
         item.details = device_info_sections(
             result,
             manufacturers=self._manufacturer_names(),
             application_name=self._application_name(device, result),
-            group_address=lambda value: format_ga(value, style),
+            group_address=group_address,
+            project_version=_project_version(device) if device is not None else None,
+            expected=self._api.project.expected_group_addresses(device)
+            if device is not None
+            else None,
         )
 
     def _store_read_serial(self, device: "Device", result: "DeviceInfo") -> None:
@@ -2233,6 +2260,10 @@ class ProjectPlugin:
         self._configure_panel.render()
 
     def _render_device(self) -> None:
+        space = self.selected_space()
+        if space is not None:
+            self._space_details.render(space)
+            return
         self._sync_selected_device_from_editor()
         self._configure_panel.render_device()
 

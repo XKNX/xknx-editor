@@ -16,7 +16,7 @@ msgstr "%d parameters konden niet worden hersteld"
 msgid "Add to Open Project"
 msgstr "Aan geopend project toevoegen"
 
-msgid "Add to open project as read"
+msgid "Add to Open Project as Read"
 msgstr "Aan geopend project toevoegen (gelezen)"
 
 msgid "Added %(count)d device(s) to the open project (%(target)s)."

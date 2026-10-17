@@ -19,5 +19,10 @@ def test_long_description_gets_an_icon() -> None:
     assert shows_description_icon("Taster links, Dimmen langer Tastendruck") is True
 
 
+def test_multi_line_description_gets_an_icon() -> None:
+    assert shows_description_icon("EG\nKüche") is True
+    assert shows_description_icon("Küche EG\n") is False
+
+
 def test_whitespace_only_gets_no_icon() -> None:
     assert shows_description_icon("   " * 10) is False

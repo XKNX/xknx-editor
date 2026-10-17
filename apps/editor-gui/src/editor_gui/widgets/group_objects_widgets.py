@@ -16,6 +16,7 @@ from editor_gui.device import (
     com_object_display_name,
 )
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import (
     begin_dialog,
     begin_tool_window,
@@ -24,6 +25,7 @@ from editor_gui.widgets.dialog import (
 )
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.strings import S
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.proj.core.addressing import GroupAddressStyle
 
 # One com-object → group-address link: (assignment_id, group_address_id, text, is_sending).
@@ -192,24 +194,24 @@ class GroupObjectsTable:
             | imgui.TableFlags_.sizing_stretch_prop
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.row_bg  # zebra striping for readability across many objects
+            | imgui.TableFlags_.reorderable
         )
         n_cols = 6 + len(FLAG_LABELS)
-        if not imgui.begin_table(f"##group_objects_{device.node_id}", n_cols, flags):
+        if not begin_data_table(f"##group_objects_{device.node_id}", n_cols, flags):
             return
 
         imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(64.0))
-        imgui.table_setup_column("Name", imgui.TableColumnFlags_.width_stretch, 0.28)
-        imgui.table_setup_column("DPT", imgui.TableColumnFlags_.width_stretch, 0.1)
-        imgui.table_setup_column("Length", imgui.TableColumnFlags_.width_stretch, 0.1)
-        imgui.table_setup_column("Prio", imgui.TableColumnFlags_.width_stretch, 0.08)
-        imgui.table_setup_column(
-            "Group Addresses", imgui.TableColumnFlags_.width_stretch, 0.44
-        )
+        stretch = imgui.TableColumnFlags_.width_stretch
+        imgui.table_setup_column(S.GROUP_OBJECTS_COL_NAME, stretch, 0.28)
+        imgui.table_setup_column(S.GROUP_OBJECTS_COL_DPT, stretch, 0.1)
+        imgui.table_setup_column(S.GROUP_OBJECTS_COL_LENGTH, stretch, 0.1)
+        imgui.table_setup_column(S.GROUP_OBJECTS_COL_PRIO, stretch, 0.08)
+        imgui.table_setup_column(S.GROUP_OBJECTS_COL_GROUP_ADDRESSES, stretch, 0.44)
         for _attr, letter, _name in FLAG_LABELS:
             imgui.table_setup_column(
                 letter, imgui.TableColumnFlags_.width_fixed, px(22.0)
             )
-        imgui.table_headers_row()
+        data_table_headers()
 
         for com_obj in com_objects:
             self._render_row(device, com_obj, get_links, get_all_group_addresses)
@@ -438,7 +440,7 @@ class GroupObjectsTable:
             else S.GROUP_OBJECTS_DPT_DEFAULT
         )
         imgui.set_next_item_width(-1.0)
-        if not imgui.begin_combo(f"##dpt_{com_object.id}", preview):
+        if not begin_combo(f"##dpt_{com_object.id}", preview):
             return
         if imgui.selectable(
             S.GROUP_OBJECTS_DPT_DEFAULT, com_object.datapoint_type_override is None
@@ -456,7 +458,7 @@ class GroupObjectsTable:
         assert self._on_set_priority is not None
         current = com_object.priority
         imgui.set_next_item_width(-1.0)
-        if not imgui.begin_combo(
+        if not begin_combo(
             f"##prio_{com_object.id}", current or S.GROUP_OBJECTS_DPT_DEFAULT
         ):
             return

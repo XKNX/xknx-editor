@@ -38,17 +38,15 @@ _TIMEOUT_SECONDS = 30.0
 
 # Country/language choices for online product downloads (label -> KNX language id used as the
 # DownloadProduct LanguageIds). Kept short and covering the common KNX markets.
-CATALOG_LANGUAGES: list[tuple[str, str]] = [
-    ("Deutschland (de-DE)", "de-DE"),
-    ("English US (en-US)", "en-US"),
-    ("English UK (en-GB)", "en-GB"),
-    ("France (fr-FR)", "fr-FR"),
-    ("Italia (it-IT)", "it-IT"),
-    ("España (es-ES)", "es-ES"),
-    ("Nederland (nl-NL)", "nl-NL"),
-    ("Polska (pl-PL)", "pl-PL"),
-]
-DEFAULT_LANGUAGE = "en-US"
+# The catalog language of each language of the editor; the first is the fallback.
+APP_LANGUAGES: dict[str, str] = {"en": "en-US", "de": "de-DE", "nl": "nl-NL"}
+
+
+def download_languages(locale: str) -> list[str]:
+    """The languages products are downloaded in for the editor language ``locale``: that one
+    first, then the editor's other languages, so the texts are there after switching."""
+    first = APP_LANGUAGES.get(locale.split("-")[0].lower(), APP_LANGUAGES["en"])
+    return [first, *(code for code in APP_LANGUAGES.values() if code != first)]
 
 
 class OnlineCatalogError(Exception):
@@ -59,6 +57,25 @@ class OnlineCatalogError(Exception):
 class OnlineManufacturer:
     id: int
     name: str
+
+
+@dataclass(frozen=True)
+class OnlineCatalogSection:
+    """A section of a manufacturer's online catalog, which files products; sections nest."""
+
+    id: str
+    name: str  # in the catalog's default language
+    translations: tuple[tuple[str, str], ...] = ()  # (language such as "de-DE", name)
+
+    def name_in(self, locale: str) -> str:
+        """The name in ``locale`` ("de" or "de-DE"), else the default name."""
+        language = locale.lower()
+        for wanted in (language, language.split("-")[0]):
+            for code, text in self.translations:
+                code = code.lower()
+                if text and wanted in (code, code.split("-")[0]):
+                    return text
+        return self.name
 
 
 @dataclass(frozen=True)
@@ -76,6 +93,8 @@ class OnlineCatalogItem:
     download_block_reason: str = (
         ""  # why the online download is refused (empty = downloadable)
     )
+    # The sections filing the product, from the top one down (empty when none does).
+    sections: tuple[OnlineCatalogSection, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -238,13 +257,54 @@ def _download_block_reason(entry: dict[str, object]) -> str:
     return ""
 
 
+def _section_paths(
+    data: dict[str, object],
+) -> dict[str, tuple[OnlineCatalogSection, ...]]:
+    """Each entry id of the index with the sections filing it, from the top one down.
+
+    ``Sections`` nest by ``ChildSections``; each lists the ids of its entries in
+    ``IndexFileEntrieIds`` (also ids of entries the index no longer has) and its names in
+    ``Translations``. An entry filed twice keeps its first section."""
+    paths: dict[str, tuple[OnlineCatalogSection, ...]] = {}
+
+    def walk(raw: object, above: tuple[OnlineCatalogSection, ...]) -> None:
+        if not isinstance(raw, dict):
+            return
+        section_id = _ci_get(raw, "Id")
+        if not (isinstance(section_id, str) and section_id):
+            return
+        translations: list[tuple[str, str]] = []
+        for translation in _ci_get(raw, "Translations") or []:
+            if isinstance(translation, dict):
+                language = _ci_get(translation, "Language")
+                text = _ci_get(translation, "Text")
+                if isinstance(language, str) and isinstance(text, str) and text:
+                    translations.append((language, text))
+        name = _ci_get(raw, "Name")
+        section = OnlineCatalogSection(
+            id=section_id,
+            name=name if isinstance(name, str) and name else section_id,
+            translations=tuple(translations),
+        )
+        path = (*above, section)
+        for entry_id in _ci_get(raw, "IndexFileEntrieIds") or []:
+            if isinstance(entry_id, str):
+                paths.setdefault(entry_id, path)
+        for child in _ci_get(raw, "ChildSections") or []:
+            walk(child, path)
+
+    for raw in _ci_get(data, "Sections") or []:
+        walk(raw, ())
+    return paths
+
+
 def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
     """Parse a ``Download/Index/{mfr}`` response into downloadable catalog items.
 
     The index is Newtonsoft-JSON ``IndexFileData`` with an ``Entries`` array; each entry carries an
     ``Id``, ``CatalogItemName``/``ProductName``, ``OrderNumber`` and download-gating flags
-    (``NoDownloadWithoutPlugin``, ``DownloadInfoIncomplete``, ``RequiresExternalSoftware``). Sorted
-    by display name.
+    (``NoDownloadWithoutPlugin``, ``DownloadInfoIncomplete``, ``RequiresExternalSoftware``), and
+    the catalog ``Sections`` file the entries. Sorted by display name.
     """
     try:
         data = json.loads(index_bytes)
@@ -263,6 +323,7 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
     )
 
     entries = _ci_get(data, "Entries") if isinstance(data, dict) else None
+    sections = _section_paths(data) if isinstance(data, dict) else {}
     items: list[OnlineCatalogItem] = []
     if isinstance(entries, list):
         for entry in entries:
@@ -293,6 +354,7 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
                         _ci_get(entry, "ApplicationProgramName") or ""
                     ),
                     download_block_reason=block_reason,
+                    sections=sections.get(cid, ()),
                 )
             )
     items.sort(key=lambda i: i.name.lower())

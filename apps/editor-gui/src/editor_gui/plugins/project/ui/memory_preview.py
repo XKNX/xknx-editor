@@ -8,6 +8,7 @@ from imgui_bundle import portable_file_dialogs as pfd
 from editor_gui.device import Device, device_label
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets import HexView
+from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_tool_window
 from xknxeditor.prod.errors import EncodingError
 
@@ -101,7 +102,7 @@ class MemoryPreviewWindow:
             if self._device is not None and d.node_id == self._device.node_id:
                 current_idx = i
         imgui.set_next_item_width(-1)
-        changed, new_idx = imgui.combo("##mp_device", current_idx, labels)
+        changed, new_idx = combo("##mp_device", current_idx, labels)
         if changed:
             self._device = devices[new_idx]
             self._segments = {}

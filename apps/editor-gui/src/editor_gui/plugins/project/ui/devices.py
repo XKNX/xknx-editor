@@ -7,6 +7,7 @@ from editor_gui.device import Device, UnloadedDevice, address_order, device_labe
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
+from editor_gui.widgets.backgrounds import fill_content_background
 from editor_gui.widgets.description import render_description
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px
@@ -120,6 +121,7 @@ class DevicesPanel:
             "##device_filter", S.DEVICE_FILTER_HINT, self._filter_text
         )
         flt = self._filter_text.strip().lower()
+        fill_content_background()
 
         if not areas and not devices:
             imgui.text_disabled(S.DEVICE_EMPTY_HINT)

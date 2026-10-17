@@ -310,15 +310,15 @@ class MonitorStrings:
 
     @property
     def SCOPE_ALL(self) -> str:
-        return _("All telegrams ({count})")
+        return _("All Telegrams ({count})")
 
     @property
     def SCOPE_SELECTED(self) -> str:
-        return _("Selected telegrams ({count})")
+        return _("Selected Telegrams ({count})")
 
     @property
     def SCOPE_FILTERED(self) -> str:
-        return _("Filtered telegrams ({count})")
+        return _("Filtered Telegrams ({count})")
 
     @property
     def FILE_FILTER(self) -> str:
@@ -504,11 +504,11 @@ class MonitorStrings:
 
     @property
     def COL_TYPE(self) -> str:
-        return _("Type")
+        return _("Telegram Type")
 
     @property
     def COL_TYPE_SHORT(self) -> str:
-        return _("Type")
+        return _("Telegram Type (Short)")
 
     @property
     def COL_DPT(self) -> str:
@@ -565,6 +565,26 @@ class MonitorStrings:
     @property
     def COL_DESTINATION_DESCRIPTION(self) -> str:
         return _("Destination Description")
+
+    @property
+    def ACTIVITY_COL_ADDRESS(self) -> str:
+        return _("Address")
+
+    @property
+    def ACTIVITY_COL_NAME(self) -> str:
+        return _("Name")
+
+    @property
+    def ACTIVITY_COL_DPT(self) -> str:
+        return _("DPT")
+
+    @property
+    def ACTIVITY_COL_VALUE(self) -> str:
+        return _("Value")
+
+    @property
+    def ACTIVITY_COL_TIME(self) -> str:
+        return _("Time")
 
 
 S = MonitorStrings()

@@ -62,7 +62,7 @@ class WidgetStrings(BaseStrings):
 
     @property
     def GROUP_OBJECTS_DPT_DEFAULT(self) -> str:
-        return _("Default (inherit)")
+        return _("Default (Inherit)")
 
     @property
     def GROUP_OBJECTS_CTX_EDIT_DESCRIPTION(self) -> str:
@@ -265,6 +265,98 @@ class WidgetStrings(BaseStrings):
     @property
     def DPT_VALUE_EDIT_TITLE(self) -> str:
         return _("Edit Value")
+
+    @property
+    def TABLE_SIZE_COLUMN(self) -> str:
+        return _("Size Column to Fit")
+
+    @property
+    def TABLE_SIZE_ALL(self) -> str:
+        return _("Size All Columns to Fit")
+
+    @property
+    def TABLE_RESET_ORDER(self) -> str:
+        return _("Reset Column Order")
+
+    @property
+    def TABLE_RESET_VISIBILITY(self) -> str:
+        return _("Reset Column Visibility")
+
+    @property
+    def TABLE_RESET_ALL(self) -> str:
+        return _("Reset All Columns")
+
+    @property
+    def GROUP_OBJECTS_COL_NAME(self) -> str:
+        return _("Name")
+
+    @property
+    def GROUP_OBJECTS_COL_DPT(self) -> str:
+        return _("DPT")
+
+    @property
+    def GROUP_OBJECTS_COL_LENGTH(self) -> str:
+        return _("Length")
+
+    @property
+    def GROUP_OBJECTS_COL_PRIO(self) -> str:
+        return _("Prio")
+
+    @property
+    def GROUP_OBJECTS_COL_GROUP_ADDRESSES(self) -> str:
+        return _("Group Addresses")
+
+    @property
+    def HEX_EMPTY(self) -> str:
+        return _("(empty)")
+
+    @property
+    def HEX_OPTIONS(self) -> str:
+        return _("Options")
+
+    @property
+    def HEX_COLUMNS(self) -> str:
+        return _("Columns")
+
+    @property
+    def HEX_GREY_ZEROS(self) -> str:
+        return _("Grey Out Zeros")
+
+    @property
+    def HEX_UPPERCASE(self) -> str:
+        return _("Uppercase Hex")
+
+    @property
+    def HEX_SHOW_ASCII(self) -> str:
+        return _("Show ASCII")
+
+    @property
+    def HEX_COPY(self) -> str:
+        return _("Copy")
+
+    @property
+    def HEX_COPY_BYTES(self) -> str:
+        return _("Copy {count} B")
+
+    @property
+    def HEX_GO_TO(self) -> str:
+        return _("Go To:")
+
+    @property
+    def HEX_DIFFS(self) -> str:
+        return _("{count} difference(s)")
+
+    @property
+    def HEX_NO_DIFFS(self) -> str:
+        return _("no differences")
+
+    @property
+    def HEX_PARAMETER(self) -> str:
+        return _("Parameter:")
+
+    @property
+    def HEX_PARAMETER_SEARCH(self) -> str:
+        return _("search…")
 
 
 S = WidgetStrings()

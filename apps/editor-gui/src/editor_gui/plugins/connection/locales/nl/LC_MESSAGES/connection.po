@@ -153,3 +153,21 @@ msgstr "{count} apparaat/apparaten in programmeermodus"
 
 msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
 msgstr "De interface vereist KNX IP Secure, maar noch het project noch een geladen keyring bevat de wachtwoorden."
+
+msgid "Error: {error}"
+msgstr "Fout: {error}"
+
+msgid "Unknown error"
+msgstr "Onbekende fout"
+
+msgid "Name: {name}"
+msgstr "Naam: {name}"
+
+msgid "KNX Address: {address}"
+msgstr "KNX-adres: {address}"
+
+msgid "Core Version: {version}"
+msgstr "Core-versie: {version}"
+
+msgid "Services: {services}"
+msgstr "Diensten: {services}"

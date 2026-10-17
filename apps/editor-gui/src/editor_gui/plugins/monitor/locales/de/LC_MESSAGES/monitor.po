@@ -104,9 +104,6 @@ msgstr "System-Broadcast"
 msgid "Time"
 msgstr "Zeit"
 
-msgid "Type"
-msgstr "Typ"
-
 msgid "Date"
 msgstr "Datum"
 
@@ -275,13 +272,13 @@ msgstr "Stopp"
 msgid "to bus"
 msgstr "zum Bus"
 
-msgid "All telegrams ({count})"
+msgid "All Telegrams ({count})"
 msgstr "Alle Telegramme ({count})"
 
 msgid "Export Telegrams"
 msgstr "Telegramme exportieren"
 
-msgid "Filtered telegrams ({count})"
+msgid "Filtered Telegrams ({count})"
 msgstr "Gefilterte Telegramme ({count})"
 
 msgid "Which telegrams?"
@@ -290,7 +287,7 @@ msgstr "Welche Telegramme?"
 msgid "Print Telegrams"
 msgstr "Telegramme drucken"
 
-msgid "Selected telegrams ({count})"
+msgid "Selected Telegrams ({count})"
 msgstr "Ausgewählte Telegramme ({count})"
 
 msgid "Bus monitor mode: the normal connection is closed. Nothing can be sent or downloaded until the bus monitor is stopped."
@@ -385,3 +382,15 @@ msgstr "Quellbeschreibung"
 
 msgid "Destination Description"
 msgstr "Zielbeschreibung"
+
+msgid "Telegram Type"
+msgstr "Telegrammtyp"
+
+msgid "Telegram Type (Short)"
+msgstr "Telegrammtyp (kurz)"
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "Name"
+msgstr "Name"

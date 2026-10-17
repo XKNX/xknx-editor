@@ -35,6 +35,8 @@ from editor_gui.dpt_formats import (
     SubtypeFormat,
 )
 from editor_gui.regional import regional_format
+from editor_gui.widgets.checkbox import checkbox, radio_button
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import general_float
@@ -188,14 +190,14 @@ class _Choice(_Editor):
             for index, (label, _) in enumerate(self.options):
                 if index:
                     imgui.same_line()
-                if imgui.radio_button(
+                if radio_button(
                     f"{label}##{widget_id}_{index}", self.selected == index
                 ):
                     self.selected = index
             return False
         imgui.set_next_item_width(px(170.0 if inline else 260.0))
         current = self.options[self.selected][0] if self.options else ""
-        if imgui.begin_combo(f"##{widget_id}", current):
+        if begin_combo(f"##{widget_id}", current):
             for index, (label, _) in enumerate(self.options):
                 if imgui.selectable(f"{label}##{index}", self.selected == index)[0]:
                     self.selected = index
@@ -362,7 +364,7 @@ class _Fields(_Editor):
             if item.kind == "enum":
                 options = item.options if item.required else ["-", *item.options]
                 imgui.set_next_item_width(px(110.0 if inline else 180.0))
-                if imgui.begin_combo(item_id, _option_text(options[item.selected])):
+                if begin_combo(item_id, _option_text(options[item.selected])):
                     for option_index, option in enumerate(options):
                         if imgui.selectable(
                             _option_text(option), item.selected == option_index
@@ -370,7 +372,7 @@ class _Fields(_Editor):
                             item.selected = option_index
                     imgui.end_combo()
             elif item.kind == "boolean":
-                item.checked = imgui.checkbox(item_id, item.checked)[1]
+                item.checked = checkbox(item_id, item.checked)[1]
             else:
                 hint = _range_hint(item.minimum, item.maximum)
                 imgui.set_next_item_width(px(60.0 if inline else 180.0))
@@ -518,16 +520,14 @@ class _MasterField:
                 if index:
                     imgui.same_line()
                 text = label or str(index)
-                if imgui.radio_button(
-                    f"{text}##{widget_id}_{index}", self.selected == index
-                ):
+                if radio_button(f"{text}##{widget_id}_{index}", self.selected == index):
                     self.selected = index
             return False
         if kind == "enum":
             texts = self.fmt.texts
             current = value_text(texts[self.selected][1]) if texts else ""
             imgui.set_next_item_width(px(170.0 if inline else 260.0))
-            if imgui.begin_combo(f"##{widget_id}", current):
+            if begin_combo(f"##{widget_id}", current):
                 for index, (_, text) in enumerate(texts):
                     if imgui.selectable(
                         f"{value_text(text)}##{index}", self.selected == index

@@ -1,4 +1,4 @@
-"""Tests for the JSON settings store (used by recent files, connection, catalog language, MCP)."""
+"""Tests for the JSON settings store (used by recent files, connection, MCP)."""
 
 from __future__ import annotations
 

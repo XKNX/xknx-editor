@@ -1,4 +1,4 @@
-"""Checkboxes about the size of the text, the same size everywhere in the app."""
+"""Checkboxes and radio buttons about the size of the text, the same size everywhere in the app."""
 
 from __future__ import annotations
 
@@ -16,3 +16,17 @@ def checkbox(label: str, value: bool, *, centred: bool = False) -> tuple[bool, b
     result = imgui.checkbox(label, value)
     imgui.pop_style_var()
     return result
+
+
+def radio_button(label: str, active: bool, *, centred: bool = False) -> bool:
+    """A radio button about the size of the text; whether it was clicked. ``centred`` lines it
+    up with full-height fields (buttons, inputs) on the same row; otherwise it lines up with
+    plain text."""
+    padding = imgui.get_style().frame_padding
+    small = padding.y / 4
+    if centred:
+        imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() + padding.y - small)
+    imgui.push_style_var(imgui.StyleVar_.frame_padding, imgui.ImVec2(padding.x, small))
+    pressed = imgui.radio_button(label, active)
+    imgui.pop_style_var()
+    return pressed

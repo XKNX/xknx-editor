@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import threading
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -9,6 +10,7 @@ from typing import TYPE_CHECKING
 from editor_gui.concurrency import io_guarded
 from xknxeditor.prod import Application
 
+# The settings file the download language was stored in (see _forget_stored_language).
 _CATALOG_SETTINGS = "catalog"
 
 if TYPE_CHECKING:
@@ -25,15 +27,27 @@ if TYPE_CHECKING:
     )
 
 
+def _forget_stored_language() -> None:
+    """Remove the download language earlier versions let the user choose and stored: the
+    editor's language decides it now. Its file goes when nothing else is in it."""
+    from editor_gui.settings import config_dir, load_settings, save_settings
+
+    data = load_settings(_CATALOG_SETTINGS)
+    if "language" not in data:
+        return
+    del data["language"]
+    if data:
+        save_settings(_CATALOG_SETTINGS, data)
+        return
+    with contextlib.suppress(OSError):
+        (config_dir() / f"{_CATALOG_SETTINGS}.json").unlink()
+
+
 class CatalogService:
     def __init__(
         self, catalog_path: Path, io_lock: threading.RLock | None = None
     ) -> None:
-        from editor_gui.plugins.catalog.online_catalog import (
-            DEFAULT_LANGUAGE,
-            OnlineCatalogClient,
-        )
-        from editor_gui.settings import load_settings
+        from editor_gui.plugins.catalog.online_catalog import OnlineCatalogClient
         from xknxeditor.catalog import CatalogService as _CatalogService
 
         self._service = _CatalogService(catalog_path)
@@ -45,25 +59,27 @@ class CatalogService:
         self._io_lock = io_lock or threading.RLock()
         # Manufacturer list from the KNX online catalog service (cached next to the db).
         self._online_client = OnlineCatalogClient(catalog_path.parent)
-        # Selected download country/language, persisted in the app config.
-        lang = load_settings(_CATALOG_SETTINGS).get("language")
-        self._language: str = (
-            lang if isinstance(lang, str) and lang else DEFAULT_LANGUAGE
-        )
+        # A download language chosen for this session (over MCP), else the editor's languages.
+        self._language: str | None = None
+        _forget_stored_language()
+
+    @property
+    def online_languages(self) -> list[str]:
+        """The languages products are downloaded in (KNX language ids such as ``de-DE``): the
+        editor's language first, then its other languages."""
+        from editor_gui.plugins.catalog.online_catalog import download_languages
+        from editor_gui.strings import get_locale
+
+        return [self._language] if self._language else download_languages(get_locale())
 
     @property
     def online_language(self) -> str:
-        """The selected download country/language (KNX language id, e.g. ``de-DE``)."""
-        return self._language
+        """The first download language (KNX language id, e.g. ``de-DE``)."""
+        return self.online_languages[0]
 
     def set_online_language(self, code: str) -> None:
-        """Select and persist the download country/language."""
-        from editor_gui.settings import load_settings, save_settings
-
+        """Download in ``code`` only, for the rest of the session."""
         self._language = code
-        data = load_settings(_CATALOG_SETTINGS)
-        data["language"] = code
-        save_settings(_CATALOG_SETTINGS, data)
 
     def online_manufacturers(self) -> list[OnlineManufacturer] | None:
         """The cached online manufacturer list, or None when the cache is empty.
@@ -193,9 +209,9 @@ class CatalogService:
         """Download a ``.knxprod`` for the given catalog items and import it; returns the new
         product versions.
 
-        Defaults to the selected country/language (:attr:`online_language`)."""
+        Defaults to the editor's languages (:attr:`online_languages`)."""
         data = self._online_client.download_product(
-            catalog_item_ids, language_ids or [self._language]
+            catalog_item_ids, language_ids or self.online_languages
         )
         return self._import_knxprod_bytes(data)
 

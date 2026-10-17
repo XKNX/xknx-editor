@@ -22,6 +22,7 @@ from imgui_bundle import imgui
 from editor_gui.device import Device
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.parameter_widgets import render_param_widget
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.prod.parser_v2.ui import (
     UiNode,
     UiParameter,
@@ -186,13 +187,14 @@ def render_module_tables(
             | imgui.TableFlags_.row_bg
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.scroll_x
+            | imgui.TableFlags_.reorderable
         )
         n_cols = len(table.columns) + 1  # +1 for the leading instance-index column
         row_h = imgui.get_frame_height_with_spacing()
         outer = imgui.ImVec2(
             0.0, (len(rows) + 1) * row_h + 8.0
         )  # header + all rows, no clipping
-        if not imgui.begin_table(f"##modtbl_{table.key}", n_cols, flags, outer):
+        if not begin_data_table(f"##modtbl_{table.key}", n_cols, flags, outer):
             continue
         imgui.table_setup_scroll_freeze(
             1, 0
@@ -200,7 +202,7 @@ def render_module_tables(
         imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(44.0))
         for col in table.columns:
             imgui.table_setup_column(col.label or col.slot)
-        imgui.table_headers_row()
+        data_table_headers()
         for row in rows:
             imgui.table_next_row()
             imgui.table_next_column()

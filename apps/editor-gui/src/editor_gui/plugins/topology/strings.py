@@ -19,7 +19,7 @@ class TopologyStrings:
 
     @property
     def TOPOLOGY_UNASSIGNED(self) -> str:
-        return _("unassigned")
+        return _("Unassigned")
 
     @property
     def TOPOLOGY_HINT(self) -> str:
@@ -28,6 +28,14 @@ class TopologyStrings:
     @property
     def TOPOLOGY_BUILDING_MODE(self) -> str:
         return _("Building View")
+
+    @property
+    def TOPOLOGY_AREA(self) -> str:
+        return _("Area {area}")
+
+    @property
+    def TOPOLOGY_LINE(self) -> str:
+        return _("L {line}")
 
 
 S = TopologyStrings()

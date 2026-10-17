@@ -15,6 +15,7 @@ from imgui_bundle import imgui
 
 from editor_gui.device import Device, address_order, device_label
 from editor_gui.plugins.topology.strings import S
+from editor_gui.widgets.backgrounds import child_background, content_background
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.description import ICON_DESCRIPTION, description_tooltip
 from editor_gui.widgets.dpi import px
@@ -97,7 +98,11 @@ class TopologyPanel:
             )
             self._layout_key = key
         layout = self._layout_cache
-        if imgui.begin_child("##topo_canvas", imgui.ImVec2(0.0, 0.0), True):
+        with child_background(content_background()):
+            canvas_open = imgui.begin_child(
+                "##topo_canvas", imgui.ImVec2(0.0, 0.0), True
+            )
+        if canvas_open:
             self._handle_zoom()
             self._draw(layout)
         imgui.end_child()
@@ -154,14 +159,18 @@ class TopologyPanel:
                 sub_label = (
                     S.TOPOLOGY_UNASSIGNED
                     if line == S.TOPOLOGY_UNASSIGNED
-                    else f"L {line}"
+                    else S.TOPOLOGY_LINE.format(line=line)
                 )
                 layout.subs.append((sub_label, sub_y))
                 area_rows.append(sub_y)
                 for dy in dev_rows:
                     layout.links.append((1, sub_y, dy))
             group_y = sum(area_rows) / len(area_rows) if area_rows else 0.0
-            group_label = area if area == S.TOPOLOGY_UNASSIGNED else f"Area {area}"
+            group_label = (
+                area
+                if area == S.TOPOLOGY_UNASSIGNED
+                else S.TOPOLOGY_AREA.format(area=area)
+            )
             layout.groups.append((group_label, group_y))
             for sy in area_rows:
                 layout.links.append((0, group_y, sy))

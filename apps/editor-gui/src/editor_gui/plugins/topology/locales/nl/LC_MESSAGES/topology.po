@@ -13,7 +13,7 @@ msgstr "Topologie"
 msgid "No project open"
 msgstr "Geen project geopend"
 
-msgid "unassigned"
+msgid "Unassigned"
 msgstr "niet toegewezen"
 
 msgid "Area -> Line -> Device. Click a device to open it."
@@ -27,3 +27,9 @@ msgstr "Gebouwweergave"
 
 msgid "Ctrl/Cmd+scroll to zoom. Click a device to open it."
 msgstr "Ctrl/Cmd+scrollen om te zoomen. Klik op een apparaat om het te openen."
+
+msgid "Area {area}"
+msgstr "Gebied {area}"
+
+msgid "L {line}"
+msgstr "L {line}"

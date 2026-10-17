@@ -16,6 +16,7 @@ from editor_gui.dpt import transcoder_for
 from editor_gui.plugins.monitor.service import TelegramRecord
 from editor_gui.plugins.timeline.strings import S
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dpi import px
 
 # (raw group-address value, display label, dpt string)
@@ -90,7 +91,7 @@ class TimelinePanel:
         values = [0.0, 60.0, 300.0]
         current = values.index(self._window_s) if self._window_s in values else 0
         imgui.set_next_item_width(px(120.0))
-        if imgui.begin_combo(f"{S.TIMELINE_WINDOW}##tl_win", labels[current]):
+        if begin_combo(f"{S.TIMELINE_WINDOW}##tl_win", labels[current]):
             for i, lbl in enumerate(labels):
                 if imgui.selectable(lbl, i == current)[0]:
                     self._window_s = values[i]

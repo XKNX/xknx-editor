@@ -149,7 +149,7 @@ msgstr "Millisekunden"
 msgid "General"
 msgstr "Allgemein"
 
-msgid "Default (inherit)"
+msgid "Default (Inherit)"
 msgstr "Standard (vererbt)"
 
 msgid "Edit Description…"
@@ -205,3 +205,69 @@ msgstr "{building}  Gebäude\n{floor}  Etage\n{room}  Raum\n{device}  Gerätenam
 
 msgid "{n}  Sequential index ({n:02} zero-pads)"
 msgstr "{n}  Fortlaufender Index ({n:02} füllt mit Nullen)"
+
+msgid "Size Column to Fit"
+msgstr "Spaltenbreite anpassen"
+
+msgid "Size All Columns to Fit"
+msgstr "Alle Spaltenbreiten anpassen"
+
+msgid "Reset Column Order"
+msgstr "Spaltenreihenfolge zurücksetzen"
+
+msgid "Reset Column Visibility"
+msgstr "Spaltenauswahl zurücksetzen"
+
+msgid "Reset All Columns"
+msgstr "Alle Spalten zurücksetzen"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "Länge"
+
+msgid "Prio"
+msgstr "Prio"
+
+msgid "Group Addresses"
+msgstr "Gruppenadressen"
+
+msgid "(empty)"
+msgstr "(leer)"
+
+msgid "Options"
+msgstr "Optionen"
+
+msgid "Columns"
+msgstr "Spalten"
+
+msgid "Grey Out Zeros"
+msgstr "Nullen ausgrauen"
+
+msgid "Uppercase Hex"
+msgstr "Hex in Großbuchstaben"
+
+msgid "Show ASCII"
+msgstr "ASCII anzeigen"
+
+msgid "Copy"
+msgstr "Kopieren"
+
+msgid "Copy {count} B"
+msgstr "{count} B kopieren"
+
+msgid "Go To:"
+msgstr "Gehe zu:"
+
+msgid "{count} difference(s)"
+msgstr "{count} Unterschied(e)"
+
+msgid "no differences"
+msgstr "keine Unterschiede"
+
+msgid "Parameter:"
+msgstr "Parameter:"
+
+msgid "search…"
+msgstr "suchen…"

@@ -15,7 +15,6 @@ from editor_gui.device import ComObject, Device, device_label
 from editor_gui.device_info import (
     application_program_label,
     application_version_text,
-    firmware_text,
     parse_serial_text,
     serial_from_project,
     serial_text,
@@ -23,21 +22,20 @@ from editor_gui.device_info import (
 from editor_gui.device_plugins import device_plugins
 from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.plugins.project.strings import S
-from editor_gui.widgets.dpi import label_column_width, px
+from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.fonts import italic
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.app_id import parse_app_id
 from xknxeditor.prod.parser_v2.ui import UiNode
-from xknxeditor.recover.dossier import printable_text
 
 if TYPE_CHECKING:
-    from editor_gui.device_info import DeviceInfo as BusDeviceInfo
     from editor_gui.plugins.project.service import IpSecureSettings
     from xknxeditor.catalog import ProductSummary, ProgramSummary
     from xknxeditor.proj.core.service import DeviceInfo
-from editor_gui.programming import error_class_text
 from editor_gui.programming_dali import is_dali_dca_app
+from editor_gui.settings import load_settings, save_settings
 from editor_gui.widgets import (
     ButtonActions,
     GroupObjectsTable,
@@ -47,7 +45,9 @@ from editor_gui.widgets import (
     render_ui_tree,
     take_selected_help,
 )
+from editor_gui.widgets.backgrounds import child_background, side_background
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.combo import begin_combo, combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.group_objects_widgets import (
     GroupAddressCatalog,
@@ -63,6 +63,22 @@ from editor_gui.widgets.module_table import (
 
 _log = structlog.get_logger("configure")
 _PLUGIN_NOTICE_COLOR = imgui.ImVec4(0.95, 0.75, 0.35, 1.0)
+
+
+def _move_cursor_up(distance: float) -> None:
+    pos = imgui.get_cursor_screen_pos()
+    imgui.set_cursor_screen_pos(imgui.ImVec2(pos.x, pos.y - distance))
+
+
+# Height of the line above the help that resizes it when dragged, and the thickness of the line.
+_HELP_SPLITTER = 7.0
+_HELP_LINE = 3.0
+# The help's height (at 100 % scaling) until the user drags it, and the app setting that keeps
+# the dragged one.
+_HELP_HEIGHT = 160.0
+_HELP_HEIGHT_SETTING = "help_height"
+# Room at 100 % scaling between the help's edges and its text.
+_HELP_PADDING = (18.0, 13.0)
 # Product ids of OpenKNX devices (manufacturer KNX Association, 0x00FA).
 _OPENKNX_PRODUCT_PREFIX = "M-00FA_"
 
@@ -221,10 +237,6 @@ class ConfigurePanel:
         get_change_targets: "Callable[[Device], list[ProgramSummary]] | None" = None,
         on_change_application: "Callable[[Device, ProgramSummary], None] | None" = None,
         on_read_device_info: Callable[[Device], None] | None = None,
-        get_device_readout: "Callable[[int], BusDeviceInfo | None] | None" = None,
-        get_expected_group_addresses: "Callable[[Device], dict[int, set[int]]] | None" = None,
-        get_group_address_names: "Callable[[], dict[int, str]] | None" = None,
-        format_group_address: Callable[[int], str] | None = None,
         on_restart_device: Callable[[Device], None] | None = None,
         on_master_reset_device: Callable[[Device, int], None] | None = None,
         suggest_ga: Callable[[Device, ComObject], tuple[str, str]] | None = None,
@@ -312,20 +324,6 @@ class ConfigurePanel:
         self._on_master_reset_device = on_master_reset_device
         self._reset_armed = False  # confirm checkbox in the master-reset popup
         self._reset_erase_idx = 0
-        self._get_device_readout = get_device_readout
-        self._get_expected_group_addresses = get_expected_group_addresses
-        self._get_group_address_names = get_group_address_names
-        self._format_group_address = format_group_address
-        # Cache the (DB-backed) expected group-address map and GA names of the read-out so scrolling
-        # its table doesn't recompute every frame.
-        self._expected_cache_key: tuple[int, int] | None = None
-        self._expected_cache: dict[int, set[int]] = {}
-        self._ga_names_cache_key: int | None = None
-        self._ga_names_cache: dict[int, str] = {}
-        # Fully formatted group-object rows (number, matches-project, address text), built once per
-        # read-out so scrolling the table does not re-sort, re-compare and re-format every frame.
-        self._readout_rows_cache_key: tuple[int, int] | None = None
-        self._readout_rows_cache: list[tuple[str, bool, str]] = []
         # Parameter count + module ("Channels") tables, derived from the device UI tree every frame
         # otherwise (count_parameters + build_module_tables walk the whole tree with regex). Keyed by
         # id(ui_nodes): device.get_ui() returns a fresh list when a parameter edit rebuilds the UI, so
@@ -485,7 +483,6 @@ class ConfigurePanel:
         self._render_application_program(device)
         imgui.spacing()
         self._render_manual_button(self._get_device_info(device.node_id))
-        self._render_readout_result(device)
         self._render_ip_config(device)
         # Whether the device is a KNX IP Secure device comes from its application: shown once it
         # is loaded, so selecting a device never parses its application on the render thread.
@@ -828,7 +825,7 @@ class ConfigurePanel:
         start_x = imgui.get_cursor_pos_x()
         imgui.set_next_item_width(min(combo_w, avail))
         current = S.SECURE_COMMISSIONING_ON if activated else S.SECURE_COMMISSIONING_OFF
-        if imgui.begin_combo("##secure_commissioning", current):
+        if begin_combo("##secure_commissioning", current):
             for value, text in (
                 (True, S.SECURE_COMMISSIONING_ON),
                 (False, S.SECURE_COMMISSIONING_OFF),
@@ -857,7 +854,7 @@ class ConfigurePanel:
         ]
         label = next((text for mode, text in choices if mode == current), choices[0][1])
         imgui.set_next_item_width(-1)
-        if imgui.begin_combo("##routing_blocking", label):
+        if begin_combo("##routing_blocking", label):
             for mode, text in choices:
                 if (
                     imgui.selectable(text, mode == current)[0]
@@ -920,7 +917,7 @@ class ConfigurePanel:
             )
             imgui.set_next_item_width(-1)
             imgui.begin_disabled(not targets)
-            if imgui.begin_combo("##change_application", label):
+            if begin_combo("##change_application", label):
                 imgui.selectable(f"{label}##current_application", True)
                 for program in targets:
                     assert program.application_version is not None
@@ -1157,113 +1154,6 @@ class ConfigurePanel:
             else device.app.program.application_version
         )
 
-    def _render_readout_result(self, device: Device) -> None:
-        """Show the state read off the bus (mask, application version, serial/order/hardware) next to
-        the project's planned state. The read-out itself is triggered from the action row; this only
-        renders the result once it exists."""
-        readout = (
-            self._get_device_readout(device.node_id)
-            if self._get_device_readout is not None
-            else None
-        )
-        if readout is None:
-            return
-        imgui.text_disabled(S.READOUT_TITLE)
-        mask = (
-            f"{readout.mask_version:#06x}" if readout.mask_version is not None else ""
-        )
-        # Compare the version read off the device to the project's version. Only flag a mismatch
-        # (device behind/ahead of the project -> programming needed); a match needs no marker.
-        app = readout.application
-        app_v = app.application_version if app is not None else None
-        project_v = self._current_app_version(device)
-        if app_v is None:
-            version_value = "-"
-        elif project_v is None or app_v == project_v:
-            version_value = application_version_text(app_v)
-        else:
-            mismatch = S.READOUT_VERSION_MISMATCH.format(
-                version=application_version_text(project_v)
-            )
-            version_value = f"{application_version_text(app_v)}  {mismatch}"
-        if app is not None:
-            manufacturer = app.manufacturer_id
-        elif readout.manufacturer_id is not None:
-            manufacturer = f"M-{readout.manufacturer_id:04X}"
-        else:
-            manufacturer = ""
-        serial = readout.serial_number
-        order = printable_text(readout.order_number) if readout.order_number else None
-        hardware = readout.hardware_type
-        self._render_detail_grid(
-            [
-                (S.CONFIGURE_MANUFACTURER, manufacturer),
-                (S.CONFIGURE_APP_VERSION, version_value),
-                (S.READOUT_MASK, mask),
-                (S.READOUT_SERIAL, serial.hex().upper() if serial else ""),
-                (S.READOUT_ORDER, order or ""),
-                (S.READOUT_HARDWARE, hardware.hex().upper() if hardware else ""),
-                (S.DEVICE_INFO_FIRMWARE, firmware_text(readout.firmware_version) or ""),
-            ]
-        )
-        self._render_diagnosis(readout)
-        self._render_readout_group_objects(device, readout)
-
-    def _render_diagnosis(self, readout: "BusDeviceInfo") -> None:
-        """Light error diagnosis from the standard Device-Object properties: the error class
-        (green when no fault, orange otherwise) and a programming-mode note when active."""
-        if readout.error_code is not None:
-            imgui.text_disabled(S.READOUT_STATUS)
-            imgui.same_line()
-            if readout.error_code == 0:
-                imgui.text_colored(
-                    imgui.ImVec4(0.45, 0.8, 0.45, 1.0), S.READOUT_STATUS_OK
-                )
-            else:
-                imgui.text_colored(
-                    imgui.ImVec4(0.95, 0.55, 0.35, 1.0),
-                    error_class_text(readout.error_code) or "",
-                )
-        if readout.programming_mode:
-            imgui.text_colored(imgui.ImVec4(0.95, 0.75, 0.35, 1.0), S.READOUT_PROG_MODE)
-
-    def _render_readout_group_objects(
-        self, device: Device, readout: "BusDeviceInfo"
-    ) -> None:
-        """Group objects read off the device: one row per object with its number and the group
-        addresses found on it. Addresses are green when they match the project's planned links for
-        that object number, orange when they differ."""
-        if not readout.group_objects:
-            return
-        rows = self._readout_rows(device, readout)
-        imgui.spacing()
-        imgui.text_disabled(S.READOUT_GROUP_OBJECTS)
-        flags = (
-            imgui.TableFlags_.row_bg
-            | imgui.TableFlags_.borders_inner_h
-            | imgui.TableFlags_.scroll_y
-        )
-        if not imgui.begin_table(
-            "##readout_gos", 2, flags, imgui.ImVec2(0.0, px(200.0))
-        ):
-            return
-        imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(44.0))
-        imgui.table_setup_column(S.READOUT_GROUP_ADDRESSES)
-        imgui.table_headers_row()
-        ok = imgui.ImVec4(0.45, 0.8, 0.45, 1.0)
-        differ = imgui.ImVec4(0.95, 0.55, 0.35, 1.0)
-        clipper = imgui.ListClipper()
-        clipper.begin(len(rows))
-        while clipper.step():
-            for i in range(clipper.display_start, clipper.display_end):
-                number, match, text = rows[i]
-                imgui.table_next_row()
-                imgui.table_next_column()
-                imgui.text(number)
-                imgui.table_next_column()
-                imgui.text_colored(ok if match else differ, text)
-        imgui.end_table()
-
     def _ui_derived_tables(
         self, ui_nodes: list[UiNode]
     ) -> tuple[int, list[ModuleTable]]:
@@ -1280,65 +1170,6 @@ class ConfigurePanel:
             )
             self._ui_derived_key = key
         return self._ui_derived
-
-    def _readout_rows(
-        self, device: Device, readout: "BusDeviceInfo"
-    ) -> list[tuple[str, bool, str]]:
-        """Group-object rows (number, matches-project, address text) built once per read-out. The
-        formatting resolves the GA style and compares against the project's planned links, so it must
-        not run every frame while the table scrolls."""
-        key = (device.node_id, id(readout))
-        if self._readout_rows_cache_key != key:
-            expected = self._expected_group_addresses(device, readout)
-            names = self._ga_names(readout)
-            self._readout_rows_cache = [
-                (
-                    str(go.number),
-                    set(go.group_addresses) == expected.get(go.number, set()),
-                    ", ".join(self._format_ga(a, names) for a in go.group_addresses)
-                    if go.group_addresses
-                    else "-",
-                )
-                for go in sorted(readout.group_objects, key=lambda g: g.number)
-            ]
-            self._readout_rows_cache_key = key
-        return self._readout_rows_cache
-
-    def _format_ga(self, address: int, names: dict[int, str]) -> str:
-        formatted = (
-            self._format_group_address(address)
-            if self._format_group_address is not None
-            else str(address)
-        )
-        name = names.get(address)
-        return f"{formatted}  {name}" if name else formatted
-
-    def _ga_names(self, readout: "BusDeviceInfo") -> dict[int, str]:
-        """Group-address value -> name, cached per read-out so the table render stays cheap."""
-        key = id(readout)
-        if self._ga_names_cache_key != key:
-            self._ga_names_cache = (
-                self._get_group_address_names()
-                if self._get_group_address_names is not None
-                else {}
-            )
-            self._ga_names_cache_key = key
-        return self._ga_names_cache
-
-    def _expected_group_addresses(
-        self, device: Device, readout: "BusDeviceInfo"
-    ) -> dict[int, set[int]]:
-        """Project's planned group addresses per object, computed once per read-out and cached (the
-        lookup hits the DB, so it must not run every frame while the table scrolls)."""
-        key = (device.node_id, id(readout))
-        if self._expected_cache_key != key:
-            self._expected_cache = (
-                self._get_expected_group_addresses(device)
-                if self._get_expected_group_addresses is not None
-                else {}
-            )
-            self._expected_cache_key = key
-        return self._expected_cache
 
     def _render_master_reset(self, device: Device, enabled: bool) -> None:
         """Destructive master-reset action: a button opening a confirm popup with an erase-type
@@ -1357,9 +1188,14 @@ class ConfigurePanel:
         imgui.text_colored(imgui.ImVec4(0.95, 0.55, 0.35, 1.0), S.RESET_WARNING)
         imgui.pop_text_wrap_pos()
         presets = _reset_presets()
-        imgui.set_next_item_width(px(320.0))
-        _, self._reset_erase_idx = imgui.combo(
-            S.RESET_TYPE, self._reset_erase_idx, [label for label, _ in presets]
+        # The label left of the drop-down, which ends where the warning wraps.
+        imgui.align_text_to_frame_padding()
+        imgui.text(S.RESET_TYPE)
+        value_x = label_column_width(S.RESET_TYPE, minimum=80.0)
+        imgui.same_line(value_x)
+        imgui.set_next_item_width(px(360.0) - value_x)
+        _, self._reset_erase_idx = combo(
+            "##reset_type", self._reset_erase_idx, [label for label, _ in presets]
         )
         _, self._reset_armed = checkbox(S.RESET_CONFIRM, self._reset_armed)
         clicked = dialog_buttons(
@@ -1467,33 +1303,81 @@ class ConfigurePanel:
         return self._get_help(device, context) or None
 
     def _help_height(self) -> float:
-        """Height of the heading and pane of the help below the parameters."""
-        return imgui.get_frame_height_with_spacing() + self._help_pane_height()
+        """Height of the splitter and pane of the help below the parameters."""
+        return px(_HELP_SPLITTER) + self._help_pane_height()
 
     def _help_pane_height(self) -> float:
         if self._help_pane_h <= 0:
-            self._help_pane_h = imgui.get_text_line_height_with_spacing() * 5
+            stored = load_settings("app").get(_HELP_HEIGHT_SETTING)
+            if not isinstance(stored, int | float) or stored <= 0:
+                stored = _HELP_HEIGHT
+            self._help_pane_h = px(float(stored))
         return self._help_pane_h
 
-    def _render_help_heading(self) -> None:
-        """The help heading, which resizes the help when dragged."""
-        imgui.separator_text(S.CONFIGURE_HELP)
-        top_left = imgui.get_item_rect_min()
-        size = imgui.get_item_rect_size()
-        imgui.set_cursor_screen_pos(top_left)
-        imgui.invisible_button("##help_splitter", size)
-        if imgui.is_item_hovered() or imgui.is_item_active():
+    def _save_help_height(self) -> None:
+        data = load_settings("app")
+        data[_HELP_HEIGHT_SETTING] = round(self._help_pane_h / px(1.0), 1)
+        save_settings("app", data)
+
+    def _render_help_splitter(self) -> None:
+        """The line above the help, which resizes the help when dragged."""
+        top_left = imgui.get_cursor_screen_pos()
+        width = imgui.get_content_region_avail().x
+        imgui.invisible_button(
+            "##help_splitter", imgui.ImVec2(width, px(_HELP_SPLITTER))
+        )
+        hovered = imgui.is_item_hovered()
+        active = imgui.is_item_active()
+        if hovered or active:
             imgui.set_mouse_cursor(imgui.MouseCursor_.resize_ns)
-        if imgui.is_item_active():
+        if active:
             line = imgui.get_text_line_height_with_spacing()
             height = self._help_pane_height() - imgui.get_io().mouse_delta.y
             self._help_pane_h = min(max(height, line * 2), line * 40)
+        if imgui.is_item_deactivated():
+            self._save_help_height()
+        color = (
+            imgui.Col_.separator_active
+            if active
+            else imgui.Col_.separator_hovered
+            if hovered
+            else imgui.Col_.separator
+        )
+        # The line right below the parameters, the rest on the help's background.
+        line_bottom = top_left.y + px(_HELP_LINE)
+        draw_list = imgui.get_window_draw_list()
+        draw_list.add_rect_filled(
+            top_left,
+            imgui.ImVec2(top_left.x + width, line_bottom),
+            imgui.get_color_u32(color),
+        )
+        draw_list.add_rect_filled(
+            imgui.ImVec2(top_left.x, line_bottom),
+            imgui.ImVec2(top_left.x + width, top_left.y + px(_HELP_SPLITTER)),
+            imgui.get_color_u32(side_background()),
+        )
 
     def _render_help(self, text: str, height: float) -> None:
+        # The splitter right below the parameters and the help right below it, without the spacing
+        # between items.
+        spacing = imgui.get_style().item_spacing.y
+        _move_cursor_up(spacing)
+        height += spacing
         top = imgui.get_cursor_screen_pos().y
-        self._render_help_heading()
+        self._render_help_splitter()
+        _move_cursor_up(spacing)
         pane = height - (imgui.get_cursor_screen_pos().y - top)
-        if imgui.begin_child("##param_help", imgui.ImVec2(0, max(pane, 1.0)), True):
+        # No frame of its own: the help text on the page tree's background, with a scrollbar at the
+        # right edge when it is longer than the pane.
+        imgui.push_style_var(imgui.StyleVar_.window_padding, px_vec2(*_HELP_PADDING))
+        with child_background(side_background()):
+            help_open = imgui.begin_child(
+                "##param_help",
+                imgui.ImVec2(0, max(pane, 1.0)),
+                imgui.ChildFlags_.always_use_window_padding,
+            )
+        imgui.pop_style_var()
+        if help_open:
             render_markdown(text)
         imgui.end_child()
 
@@ -1531,24 +1415,22 @@ class ConfigurePanel:
             return
         imgui.text_disabled(getattr(lp, "style", ""))
         for i, proc in enumerate(procedures):
-            label = f"Procedure {i + 1}  ({len(proc.steps)} steps)##lp{i}"
+            procedure = S.LOAD_PROCEDURE.format(number=i + 1, count=len(proc.steps))
+            label = f"{procedure}##lp{i}"
             if imgui.tree_node(label):
                 _table_flags = (
                     imgui.TableFlags_.borders_outer
                     | imgui.TableFlags_.borders_inner_v
                     | imgui.TableFlags_.sizing_stretch_prop
+                    | imgui.TableFlags_.resizable
+                    | imgui.TableFlags_.reorderable
                 )
-                if imgui.begin_table(f"##lpt{i}", 3, _table_flags):
-                    imgui.table_setup_column(
-                        "Kind", imgui.TableColumnFlags_.width_stretch, 0.3
-                    )
-                    imgui.table_setup_column(
-                        "Applies To", imgui.TableColumnFlags_.width_stretch, 0.15
-                    )
-                    imgui.table_setup_column(
-                        "Details", imgui.TableColumnFlags_.width_stretch, 0.55
-                    )
-                    imgui.table_headers_row()
+                if begin_data_table(f"##lpt{i}", 3, _table_flags):
+                    stretch = imgui.TableColumnFlags_.width_stretch
+                    imgui.table_setup_column(S.LOAD_COL_KIND, stretch, 0.3)
+                    imgui.table_setup_column(S.LOAD_COL_APPLIES_TO, stretch, 0.15)
+                    imgui.table_setup_column(S.LOAD_COL_DETAILS, stretch, 0.55)
+                    data_table_headers()
                     for step in proc.steps:
                         imgui.table_next_row()
                         imgui.table_set_column_index(0)
@@ -1598,10 +1480,10 @@ class ConfigurePanel:
         imgui.spacing()
         if not imgui.collapsing_header(S.CONFIGURE_IP_SECURE):
             return
-        _, self._ip_secure_show = imgui.checkbox(
+        _, self._ip_secure_show = checkbox(
             S.CONFIGURE_IP_SECURE_SHOW, self._ip_secure_show
         )
-        changed, secure = imgui.checkbox(
+        changed, secure = checkbox(
             S.CONFIGURE_IP_SECURE_TUNNELLING, settings.secure_tunnelling
         )
         if changed:
@@ -1625,15 +1507,20 @@ class ConfigurePanel:
         if not settings.interfaces:
             return
         imgui.spacing()
-        flags = imgui.TableFlags_.row_bg | imgui.TableFlags_.borders_inner_h
-        if not imgui.begin_table("##ip_secure_interfaces", 3, flags):
+        flags = (
+            imgui.TableFlags_.row_bg
+            | imgui.TableFlags_.borders_inner_h
+            | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.reorderable
+        )
+        if not begin_data_table("##ip_secure_interfaces", 3, flags):
             return
         imgui.table_setup_column(S.CONFIGURE_IP_SECURE_INTERFACE)
         imgui.table_setup_column(
             S.CONFIGURE_IP_SECURE_USER, imgui.TableColumnFlags_.width_fixed
         )
         imgui.table_setup_column(S.CONFIGURE_IP_SECURE_INTERFACE_PASSWORD)
-        imgui.table_headers_row()
+        data_table_headers()
         for interface in settings.interfaces:
             imgui.table_next_row()
             imgui.table_next_column()
@@ -1856,6 +1743,6 @@ class ConfigurePanel:
         imgui.text_disabled(S.CONFIGURE_DOWNLOAD_SCOPE)
         imgui.same_line()
         imgui.set_next_item_width(self._scope_combo_width())
-        changed, new_idx = imgui.combo("##download_scope", current, _scope_labels())
+        changed, new_idx = combo("##download_scope", current, _scope_labels())
         if changed:
             self._download_scope = _SCOPE_ORDER[new_idx]

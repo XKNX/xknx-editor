@@ -229,8 +229,11 @@ def _render_color_popup(current: int) -> int | None:
             imgui.end_tab_item()
         if imgui.begin_tab_item(S.COLOR_ADVANCED)[0]:
             color = [((current >> s) & 0xFF) / 255.0 for s in (16, 8, 0)]
+            # No options menu: its texts are untranslated.
             changed, color = imgui.color_picker3(
-                "##color_picker", color, imgui.ColorEditFlags_.display_hex
+                "##color_picker",
+                color,
+                imgui.ColorEditFlags_.display_hex | imgui.ColorEditFlags_.no_options,
             )
             if imgui.is_item_deactivated_after_edit() or (
                 changed and not imgui.is_mouse_down(imgui.MouseButton_.left)

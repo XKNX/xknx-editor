@@ -60,3 +60,27 @@ msgstr "Passwort für den exportierten Schlüsselbund festlegen:"
 
 msgid "Export Keyring from Project…"
 msgstr "Keyring aus Projekt exportieren…"
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "Host"
+msgstr "Host"
+
+msgid "User"
+msgstr "Benutzer"
+
+msgid "Key"
+msgstr "Schlüssel"
+
+msgid "In Project"
+msgstr "Im Projekt"
+
+msgid "Tool Key"
+msgstr "Tool-Schlüssel"
+
+msgid "{address}   key {key}"
+msgstr "{address}   Schlüssel {key}"
