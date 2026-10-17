@@ -2656,9 +2656,13 @@ class ProjectService:
         return settings
 
     def _read_ip_secure_settings(self, device: Device) -> IpSecureSettings | None:
-        if self._pid is None or not self.ip_secure_device(device):
+        # The project's secure commissioning first: it rules out nearly every device without
+        # loading its application program.
+        if self._pid is None or not self._svc.secure_commissioning(
+            self._pid, device.node_id
+        ):
             return None
-        if not self._svc.secure_commissioning(self._pid, device.node_id):
+        if not self.ip_secure_device(device):
             return None
         secrets = self._svc.ip_secrets(self._pid, device.node_id)
         kinds = {ref: (access, index) for ref, access, index in _bus_interfaces(device)}
@@ -2717,13 +2721,12 @@ class ProjectService:
     def _ip_secure_application(
         self, app: Application, hardware_ref: str | None
     ) -> bool:
-        if not app.program.is_secure_enabled or not any(
+        # The hardware first: the catalog tells it without loading the application program.
+        if not hardware_ref or not self._catalog.hardware_is_ip_enabled(hardware_ref):
+            return False
+        return app.program.is_secure_enabled and any(
             access in PASSWORD_ACCESS_TYPES
             for _ref, access, _index in _app_bus_interfaces(app)
-        ):
-            return False
-        return bool(hardware_ref) and self._catalog.hardware_is_ip_enabled(
-            hardware_ref or ""
         )
 
     def _ensure_ip_secrets(
