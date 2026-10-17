@@ -30,6 +30,10 @@ _SIDE = 0.05
 # from it toward the separator color.
 _GROUP = 0.025
 _BOX_LINE = 0.5
+# The least a group heading and a thin line differ from the background, in luminance: a light
+# separator (Microsoft Style) would leave the lines and headings of the page tree invisible.
+_GROUP_CONTRAST = 0.04
+_LINE_CONTRAST = 0.09
 
 
 def _mix(a: imgui.ImVec4, b: imgui.ImVec4, t: float) -> imgui.ImVec4:
@@ -81,15 +85,39 @@ def side_background() -> imgui.ImVec4:
 
 
 def group_background() -> imgui.ImVec4:
-    """The background of a group's heading row beside content: a little toward the text color."""
+    """The background of a group's heading row beside content: a little toward the text color,
+    at least visibly apart from the rows below it."""
+    side = side_background()
     text = imgui.get_style().color_(imgui.Col_.text)
-    return _mix(side_background(), text, _GROUP)
+    return _apart(side, _mix(side, text, _GROUP), text, _GROUP_CONTRAST)
 
 
 def box_line() -> imgui.ImVec4:
-    """The thin lines around group headings and the selected row: half a separator."""
+    """The thin lines around group headings and the selected row: half a separator, but at
+    least visible against the background (a theme's separator can be nearly as light)."""
+    side = side_background()
     separator = imgui.get_style().color_(imgui.Col_.separator)
-    return _mix(side_background(), separator, _BOX_LINE)
+    text = imgui.get_style().color_(imgui.Col_.text)
+    return _apart(side, _mix(side, separator, _BOX_LINE), text, _LINE_CONTRAST)
+
+
+def _apart(
+    background: imgui.ImVec4,
+    color: imgui.ImVec4,
+    toward: imgui.ImVec4,
+    contrast: float,
+) -> imgui.ImVec4:
+    """``color``, or in a light theme a color from ``background`` toward ``toward`` that
+    differs from the background by ``contrast`` in luminance when ``color`` differs less."""
+    if (
+        _luminance(background) < 0.5
+        or abs(_luminance(color) - _luminance(background)) >= contrast
+    ):
+        return color
+    span = abs(_luminance(toward) - _luminance(background))
+    if span == 0:
+        return color
+    return _mix(background, toward, min(contrast / span, 1.0))
 
 
 def fill_content_background() -> None:
