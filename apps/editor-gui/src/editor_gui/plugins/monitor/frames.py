@@ -241,6 +241,7 @@ def _plain_apdu(
 ) -> APCI | None:
     """The APDU of a KNX Data Secure group telegram, decrypted (or verified) with its group
     address's key; ``None`` when it is none, the key is unknown or the check fails."""
+    from xknx.cemi.flags import CEMIAddressType, CEMIFrameFormat
     from xknx.telegram.apci import SecureAPDU
 
     if not isinstance(apci, SecureAPDU) or tpci is None or secure_group_keys is None:
@@ -254,7 +255,8 @@ def _plain_apdu(
             scf=apci.scf,
             address_fields_raw=source.to_bytes(2, "big")
             + destination.to_bytes(2, "big"),
-            frame_flags=(ctrl1 << 8) | ctrl2,
+            address_type=CEMIAddressType(ctrl2 >> 7),
+            frame_format=CEMIFrameFormat(ctrl2 & 0x0F),
             tpci=tpci,
         )
         return APCI.from_knx(plain)

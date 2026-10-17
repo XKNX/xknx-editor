@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 from imgui_bundle import imgui, imspinner
 from xknx import XKNX
 from xknx.core import XknxConnectionState
-from xknx.exceptions import ConfirmationError
+from xknx.exceptions import ConfirmationError, RequestResponseError
 from xknx.io.connection import ConnectionConfig, ConnectionType
 from xknx.io.const import DEFAULT_MCAST_GRP
 from xknx.io.gateway_scanner import GatewayDescriptor, GatewayScanner
@@ -23,7 +23,6 @@ from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.connection.busmonitor import (
     DEFAULT_GATEWAY_PORT,
     BusmonitorConnection,
-    RequestResponseError,
     rejection_reason,
 )
 from editor_gui.plugins.connection.interface import ObservableKNXIPInterfaceThreaded

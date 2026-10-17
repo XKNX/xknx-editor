@@ -94,12 +94,18 @@ class _FakeConnection:
         return False
 
 
-class _FakeManagement:
+class _FakeBroadcast:
     def __init__(self, calls: list[tuple[str, object]]) -> None:
         self._calls = calls
 
-    async def send_broadcast(self, payload: object) -> None:
+    async def send(self, payload: object) -> None:
         self._calls.append(("broadcast", payload))
+
+
+class _FakeManagement:
+    def __init__(self, calls: list[tuple[str, object]]) -> None:
+        self._calls = calls
+        self.broadcast = _FakeBroadcast(calls)
 
     def connection(self, address: object) -> _FakeConnection:
         self._calls.append(("connect", address))
