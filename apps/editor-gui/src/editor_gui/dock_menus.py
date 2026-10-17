@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from imgui_bundle import hello_imgui, imgui
 
+from editor_gui.strings import S
 from editor_gui.widgets.checkbox import checkbox
 
 _POPUP = "##section_menu"
@@ -78,10 +79,10 @@ def _render_menu(
         return
     tab_bar = node.tab_bar
     if tab_bar is not None and sum(1 for tab in tab_bar.tabs if tab.window) == 1:
-        # One tab: the default menu's own entry (hide the tab bar).
-        imgui.internal.dock_node_window_menu_handler_default(
-            imgui.get_current_context(), node, tab_bar
-        )
+        # One tab: its tab bar can be hidden (the small triangle left at the top shows it again).
+        hidden = imgui.internal.DockNodeFlagsPrivate_.hidden_tab_bar
+        if imgui.menu_item(S.DOCK_HIDE_TAB_BAR, "", node.is_hidden_tab_bar())[0]:
+            node.set_local_flags(node.local_flags ^ hidden)
         imgui.separator()
     shown = node.visible_window.name if node.visible_window is not None else None
     for window in windows:

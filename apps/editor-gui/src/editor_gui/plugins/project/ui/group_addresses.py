@@ -20,6 +20,7 @@ from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_select import dpt_combo
 from editor_gui.widgets.dpt_value import GroupValueBus
+from editor_gui.widgets.tables import begin_data_table, table_header_menu
 from editor_gui.widgets.text_util import text_clipped_tooltip
 from editor_gui.widgets.tree import leaf_rows, tree_node
 
@@ -626,8 +627,13 @@ class GroupAddressesPanel:
                 names[a.com_object_id][3] if a.com_object_id in names else unknown
             ),
         )
-        flags = imgui.TableFlags_.borders_inner | imgui.TableFlags_.sizing_stretch_prop
-        if not imgui.begin_table("##ga_assignments", 3, flags):
+        flags = (
+            imgui.TableFlags_.borders_inner
+            | imgui.TableFlags_.sizing_stretch_prop
+            | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.reorderable
+        )
+        if not begin_data_table("##ga_assignments", 3, flags):
             return
         imgui.table_setup_column(
             S.GA_COL_DEVICE, imgui.TableColumnFlags_.width_stretch, 0.5
@@ -645,6 +651,7 @@ class GroupAddressesPanel:
             imgui.table_header(imgui.table_get_column_name(col))
             if col == 2 and imgui.is_item_hovered():
                 imgui.set_tooltip(S.GA_COL_SENDING_TOOLTIP)
+        table_header_menu()
         for a in assignments:
             entry = names.get(a.com_object_id)
             if entry is None:

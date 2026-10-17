@@ -26,6 +26,7 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.fonts import italic
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.app_id import parse_app_id
 from xknxeditor.prod.parser_v2.ui import UiNode
@@ -1255,14 +1256,16 @@ class ConfigurePanel:
             imgui.TableFlags_.row_bg
             | imgui.TableFlags_.borders_inner_h
             | imgui.TableFlags_.scroll_y
+            | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.reorderable
         )
-        if not imgui.begin_table(
+        if not begin_data_table(
             "##readout_gos", 2, flags, imgui.ImVec2(0.0, px(200.0))
         ):
             return
         imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(44.0))
         imgui.table_setup_column(S.READOUT_GROUP_ADDRESSES)
-        imgui.table_headers_row()
+        data_table_headers()
         ok = imgui.ImVec4(0.45, 0.8, 0.45, 1.0)
         differ = imgui.ImVec4(0.95, 0.55, 0.35, 1.0)
         clipper = imgui.ListClipper()
@@ -1582,24 +1585,22 @@ class ConfigurePanel:
             return
         imgui.text_disabled(getattr(lp, "style", ""))
         for i, proc in enumerate(procedures):
-            label = f"Procedure {i + 1}  ({len(proc.steps)} steps)##lp{i}"
+            procedure = S.LOAD_PROCEDURE.format(number=i + 1, count=len(proc.steps))
+            label = f"{procedure}##lp{i}"
             if imgui.tree_node(label):
                 _table_flags = (
                     imgui.TableFlags_.borders_outer
                     | imgui.TableFlags_.borders_inner_v
                     | imgui.TableFlags_.sizing_stretch_prop
+                    | imgui.TableFlags_.resizable
+                    | imgui.TableFlags_.reorderable
                 )
-                if imgui.begin_table(f"##lpt{i}", 3, _table_flags):
-                    imgui.table_setup_column(
-                        "Kind", imgui.TableColumnFlags_.width_stretch, 0.3
-                    )
-                    imgui.table_setup_column(
-                        "Applies To", imgui.TableColumnFlags_.width_stretch, 0.15
-                    )
-                    imgui.table_setup_column(
-                        "Details", imgui.TableColumnFlags_.width_stretch, 0.55
-                    )
-                    imgui.table_headers_row()
+                if begin_data_table(f"##lpt{i}", 3, _table_flags):
+                    stretch = imgui.TableColumnFlags_.width_stretch
+                    imgui.table_setup_column(S.LOAD_COL_KIND, stretch, 0.3)
+                    imgui.table_setup_column(S.LOAD_COL_APPLIES_TO, stretch, 0.15)
+                    imgui.table_setup_column(S.LOAD_COL_DETAILS, stretch, 0.55)
+                    data_table_headers()
                     for step in proc.steps:
                         imgui.table_next_row()
                         imgui.table_set_column_index(0)
@@ -1649,10 +1650,10 @@ class ConfigurePanel:
         imgui.spacing()
         if not imgui.collapsing_header(S.CONFIGURE_IP_SECURE):
             return
-        _, self._ip_secure_show = imgui.checkbox(
+        _, self._ip_secure_show = checkbox(
             S.CONFIGURE_IP_SECURE_SHOW, self._ip_secure_show
         )
-        changed, secure = imgui.checkbox(
+        changed, secure = checkbox(
             S.CONFIGURE_IP_SECURE_TUNNELLING, settings.secure_tunnelling
         )
         if changed:
@@ -1676,15 +1677,20 @@ class ConfigurePanel:
         if not settings.interfaces:
             return
         imgui.spacing()
-        flags = imgui.TableFlags_.row_bg | imgui.TableFlags_.borders_inner_h
-        if not imgui.begin_table("##ip_secure_interfaces", 3, flags):
+        flags = (
+            imgui.TableFlags_.row_bg
+            | imgui.TableFlags_.borders_inner_h
+            | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.reorderable
+        )
+        if not begin_data_table("##ip_secure_interfaces", 3, flags):
             return
         imgui.table_setup_column(S.CONFIGURE_IP_SECURE_INTERFACE)
         imgui.table_setup_column(
             S.CONFIGURE_IP_SECURE_USER, imgui.TableColumnFlags_.width_fixed
         )
         imgui.table_setup_column(S.CONFIGURE_IP_SECURE_INTERFACE_PASSWORD)
-        imgui.table_headers_row()
+        data_table_headers()
         for interface in settings.interfaces:
             imgui.table_next_row()
             imgui.table_next_column()

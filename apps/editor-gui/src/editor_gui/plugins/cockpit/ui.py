@@ -17,6 +17,7 @@ from editor_gui.widgets.description import (
 )
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
 _ATTENTION_COLOR = imgui.ImVec4(1.0, 0.75, 0.3, 1.0)
@@ -99,9 +100,10 @@ class CockpitPanel:
             | imgui.TableFlags_.scroll_y
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.sortable
+            | imgui.TableFlags_.reorderable
         )
         avail = imgui.get_content_region_avail()
-        if not imgui.begin_table("##cockpit", 5, flags, imgui.ImVec2(avail.x, avail.y)):
+        if not begin_data_table("##cockpit", 5, flags, imgui.ImVec2(avail.x, avail.y)):
             return
         imgui.table_setup_scroll_freeze(0, 1)
         imgui.table_setup_column(
@@ -121,7 +123,7 @@ class CockpitPanel:
         imgui.table_setup_column(
             S.COCKPIT_COL_STATUS, imgui.TableColumnFlags_.width_stretch, 0.2
         )
-        imgui.table_headers_row()
+        data_table_headers()
         rows = [r for r in self._sorted_rows() if self._matches(r, needle)]
         for i, r in enumerate(rows):
             imgui.table_next_row()

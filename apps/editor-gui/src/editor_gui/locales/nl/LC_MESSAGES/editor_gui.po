@@ -271,7 +271,7 @@ msgstr "Grootte achteraf"
 msgid "Compacting cancelled, the project was not changed"
 msgstr "Comprimeren geannuleerd, het project is niet gewijzigd"
 
-msgid "Remove unused product data"
+msgid "Remove Unused Product Data"
 msgstr "Ongebruikte productgegevens verwijderen"
 
 msgid ""
@@ -438,10 +438,10 @@ msgstr "MCP-poort"
 msgid "Bearer Token (Optional)"
 msgstr "Bearer-token (optioneel)"
 
-msgid "Server: running"
+msgid "Server: Running"
 msgstr "Server: actief"
 
-msgid "Server: stopped"
+msgid "Server: Stopped"
 msgstr "Server: gestopt"
 
 msgid "Start Server"
@@ -510,7 +510,7 @@ msgstr "1/1 - Naam/Adres"
 msgid "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
 msgstr "3/3 - Hoofd - midden - subgroepnaam/Hoofd - midden - subgroepadres"
 
-msgid "Export with header line"
+msgid "Export with Header Line"
 msgstr "Exporteren met kopregel"
 
 msgid "CSV Separator"
@@ -702,7 +702,7 @@ msgstr "Licentieer het project opnieuw via je eigen gelicentieerde ETS en de lok
 msgid "Sign & Export"
 msgstr "Ondertekenen & exporteren"
 
-msgid "Export without Certificate"
+msgid "Export Without Certificate"
 msgstr "Zonder certificaat exporteren"
 
 msgid "Export ETS Project"
@@ -1027,3 +1027,12 @@ msgstr "{count} incompatibel(e) apparaat/apparaten verwijderd; opnieuw exportere
 
 msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
 msgstr "Dit bestand importeert NIET in de gekozen ETS-versie: de productgegevens van deze fabrikanten bestaan alleen voor een nieuwere ETS (bijv. een ETS 6-product in een ETS 5-export), dus ETS weigert het hele project. Verwijder de betrokken apparaten of exporteer voor de nieuwere ETS."
+
+msgid "Hide Tab Bar"
+msgstr "Tabbladen verbergen"
+
+msgid "Open {url}"
+msgstr "{url} openen"
+
+msgid "Copy Link"
+msgstr "Link kopiëren"

@@ -62,7 +62,7 @@ from editor_gui.settings import config_dir, load_settings, save_settings
 from editor_gui.strings import S, get_locale, set_locale
 from editor_gui.theme import ThemeWindow, apply_style, apply_theme, theme_name, themes
 from editor_gui.update_check import UpdateInfo, check_for_update
-from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.dialog import (
     begin_dialog,
     dialog_buttons,
@@ -73,6 +73,7 @@ from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.fonts import heading, load_fonts
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
+from editor_gui.widgets.tables import reset_all_tables
 from editor_gui.window_title import set_window_title
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
@@ -244,6 +245,18 @@ def _file_name(name: str) -> str:
     """``name`` usable as a file name on every operating system."""
     cleaned = "".join("_" if ch in '<>:"/\\|?*' or ord(ch) < 32 else ch for ch in name)
     return cleaned.strip().rstrip(". ")
+
+
+def _link(url: str) -> None:
+    """``url`` as a link that opens it, with a menu to copy it (the built-in one is untranslated)."""
+    if imgui.text_link(url):
+        webbrowser.open(url)
+    if imgui.is_item_hovered():
+        imgui.set_tooltip(S.LINK_OPEN.format(url=url))
+    if imgui.begin_popup_context_item(f"##link_{url}"):
+        if imgui.menu_item(S.LINK_COPY, "", False)[0]:
+            imgui.set_clipboard_text(url)
+        imgui.end_popup()
 
 
 # Room at 100 % scaling above and below the status bar's text.
@@ -816,7 +829,7 @@ class KnxGuiApp:
         for index, (value, label) in enumerate((("xml", "XML"), ("csv", "CSV"))):
             if index:
                 imgui.same_line()
-            if imgui.radio_button(label, options["format"] == value):
+            if radio_button(label, options["format"] == value):
                 options["format"] = value
         imgui.spacing()
         imgui.begin_disabled(options["format"] != "csv")
@@ -834,7 +847,7 @@ class KnxGuiApp:
             )
         )
         for layout, label in layouts.items():
-            if imgui.radio_button(label, options["csv_layout"] == layout):
+            if radio_button(label, options["csv_layout"] == layout):
                 options["csv_layout"] = layout
         imgui.spacing()
         _, options["csv_header"] = checkbox(
@@ -850,7 +863,7 @@ class KnxGuiApp:
         for index, (key, label) in enumerate(separators):
             if index:
                 imgui.same_line()
-            if imgui.radio_button(f"{label}##ga_sep", options["csv_separator"] == key):
+            if radio_button(f"{label}##ga_sep", options["csv_separator"] == key):
                 options["csv_separator"] = key
         imgui.end_disabled()
         clicked = dialog_buttons(S.BTN_EXPORT, S.BTN_CANCEL)
@@ -2595,6 +2608,7 @@ class KnxGuiApp:
             | imgui.WindowFlags_.no_focus_on_appearing
             | imgui.WindowFlags_.no_bring_to_front_on_focus
             | imgui.WindowFlags_.no_nav
+            | imgui.WindowFlags_.no_nav_focus
         )
         if imgui.begin("##status_bar", None, flags)[0]:
             top_left = imgui.get_window_pos()
@@ -2731,6 +2745,9 @@ class KnxGuiApp:
         imgui.text_disabled(fps)
 
     def gui_menu(self) -> None:
+        # The menu bar is not a window to switch to with Ctrl+Tab (it would be listed there with
+        # an untranslated name).
+        imgui.internal.get_current_window().flags |= imgui.WindowFlags_.no_nav_focus
         if imgui.begin_menu(S.MENU_FILE):
             if imgui.menu_item(S.MENU_NEW_PROJECT, S.SHORTCUT_NEW, False)[0]:
                 self._new_project()
@@ -2905,7 +2922,7 @@ class KnxGuiApp:
         imgui.text_disabled(S.ABOUT_LICENSE)
         imgui.text(S.ABOUT_WEBSITE)
         imgui.same_line()
-        imgui.text_link_open_url(_REPO_URL, _REPO_URL)
+        _link(_REPO_URL)
         clicked = dialog_buttons(S.MENU_CHECK_UPDATES, S.BTN_OK)
         if clicked == 0:
             self._start_update_check(manual=True)
@@ -3796,6 +3813,7 @@ class KnxGuiApp:
             for w in params.docking_params.dockable_windows:
                 w.dock_space_name = docks.get(_dock_window_name(w), w.dock_space_name)
             self._rebuild_layout(expanded=False, ratios={})
+            reset_all_tables()
         imgui.separator()
         windows = [
             w for w in params.docking_params.dockable_windows if w.include_in_view_menu

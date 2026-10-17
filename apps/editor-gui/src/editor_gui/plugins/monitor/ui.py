@@ -17,6 +17,7 @@ from editor_gui.plugins.monitor.table import TelegramView
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_value import DptValueInput
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
 if TYPE_CHECKING:
@@ -235,15 +236,17 @@ class MonitorPanel:
             | imgui.TableFlags_.sizing_stretch_prop
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.scroll_y
+            | imgui.TableFlags_.reorderable
         )
-        if not imgui.begin_table("##monitor", 5, flags):
+        if not begin_data_table("##monitor", 5, flags):
             return
-        imgui.table_setup_column("Address", imgui.TableColumnFlags_.width_stretch, 0.16)
-        imgui.table_setup_column("Name", imgui.TableColumnFlags_.width_stretch, 0.34)
-        imgui.table_setup_column("DPT", imgui.TableColumnFlags_.width_stretch, 0.14)
-        imgui.table_setup_column("Value", imgui.TableColumnFlags_.width_stretch, 0.26)
-        imgui.table_setup_column("Time", imgui.TableColumnFlags_.width_stretch, 0.1)
-        imgui.table_headers_row()
+        stretch = imgui.TableColumnFlags_.width_stretch
+        imgui.table_setup_column(S.ACTIVITY_COL_ADDRESS, stretch, 0.16)
+        imgui.table_setup_column(S.ACTIVITY_COL_NAME, stretch, 0.34)
+        imgui.table_setup_column(S.ACTIVITY_COL_DPT, stretch, 0.14)
+        imgui.table_setup_column(S.ACTIVITY_COL_VALUE, stretch, 0.26)
+        imgui.table_setup_column(S.ACTIVITY_COL_TIME, stretch, 0.1)
+        data_table_headers()
 
         clipper = imgui.ListClipper()
         clipper.begin(len(gas))

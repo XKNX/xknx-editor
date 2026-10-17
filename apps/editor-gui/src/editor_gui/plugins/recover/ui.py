@@ -11,6 +11,7 @@ from imgui_bundle import portable_file_dialogs as pfd
 from editor_gui.plugins.recover.strings import S
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.recover.recover import STAGE_GROUP_COMMUNICATION, STAGE_PARAMETERS
 
 if TYPE_CHECKING:
@@ -133,8 +134,13 @@ class RecoverPanel:
         service = self._service
         if not service.entries:
             return
-        flags = imgui.TableFlags_.borders_inner | imgui.TableFlags_.sizing_stretch_prop
-        if not imgui.begin_table("##recover_results", 6, flags):
+        flags = (
+            imgui.TableFlags_.borders_inner
+            | imgui.TableFlags_.sizing_stretch_prop
+            | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.reorderable
+        )
+        if not begin_data_table("##recover_results", 6, flags):
             return
         imgui.table_setup_column("", imgui.TableColumnFlags_.width_fixed)
         for header in (
@@ -145,7 +151,7 @@ class RecoverPanel:
             S.COL_DETAILS,
         ):
             imgui.table_setup_column(header)
-        imgui.table_headers_row()
+        data_table_headers()
         for index, entry in enumerate(service.entries):
             imgui.table_next_row()
             imgui.table_set_column_index(0)

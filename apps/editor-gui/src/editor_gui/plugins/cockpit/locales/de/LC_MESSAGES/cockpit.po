@@ -16,7 +16,7 @@ msgstr "Kein Projekt geöffnet"
 msgid "Filter devices…"
 msgstr "Geräte filtern…"
 
-msgid "Needs attention only"
+msgid "Needs Attention Only"
 msgstr "Nur Handlungsbedarf"
 
 msgid "{count} device(s) not in catalog"

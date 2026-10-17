@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from imgui_bundle import hello_imgui, imgui
 
 from editor_gui.strings import S
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dialog import begin_tool_window
 from editor_gui.widgets.dpi import label_column_width
 from editor_gui.widgets.filter_box import filter_box
@@ -67,8 +68,35 @@ def color_name(name: str) -> str:
     return f"{text} ({' '.join(states)})" if states else text
 
 
+# How far table lines move from the window color toward the text color in a light theme: the
+# lines between cells, and the outer ones.
+_TABLE_LINE = 0.15
+_TABLE_LINE_STRONG = 0.25
 # The text color of Windows dialogs (#333333).
 _WINDOWS_TEXT = imgui.ImVec4(0.2, 0.2, 0.2, 1.0)
+
+
+def _rgb(r: int, g: int, b: int) -> imgui.ImVec4:
+    return imgui.ImVec4(r / 255, g / 255, b / 255, 1.0)
+
+
+# Microsoft Style with the colors of Windows dialogs: hovered items light blue, pressed ones a
+# little darker, the selected tab white like the page beside it with a blue line on top. The
+# theme's own tab colors barely differ, so neither hovering nor the selected tab showed.
+_WINDOWS_COLORS = {
+    imgui.Col_.text: _WINDOWS_TEXT,
+    imgui.Col_.tab: _rgb(228, 228, 228),
+    imgui.Col_.tab_hovered: _rgb(229, 241, 251),
+    imgui.Col_.tab_selected: _rgb(255, 255, 255),
+    imgui.Col_.tab_selected_overline: _rgb(0, 120, 215),
+    imgui.Col_.tab_dimmed: _rgb(228, 228, 228),
+    imgui.Col_.tab_dimmed_selected: _rgb(255, 255, 255),
+    imgui.Col_.tab_dimmed_selected_overline: _rgb(160, 160, 160),
+    imgui.Col_.button_hovered: _rgb(229, 241, 251),
+    imgui.Col_.button_active: _rgb(204, 228, 247),
+    imgui.Col_.header_hovered: _rgb(229, 241, 251),
+    imgui.Col_.header_active: _rgb(204, 228, 247),
+}
 
 
 def apply_theme(tweaked: hello_imgui.ImGuiTweakedTheme) -> None:
@@ -99,9 +127,29 @@ def apply_style() -> None:
     style.cell_padding = imgui.ImVec2(6.0, 4.0)
     tweaked = hello_imgui.get_runner_params().imgui_window_params.tweaked_theme
     if tweaked.theme == hello_imgui.ImGuiTheme_.microsoft_style:
-        # The dark gray text of Windows dialogs rather than the theme's near black.
-        style.set_color_(imgui.Col_.text, _WINDOWS_TEXT)
+        for col, color in _WINDOWS_COLORS.items():
+            style.set_color_(col, color)
+    _apply_table_lines(style)
     apply_window_colors()
+
+
+def _apply_table_lines(style: imgui.Style) -> None:
+    """In a light theme, table lines a little darker than the window rather than the near black
+    some light themes ship (dark themes draw them subtly already)."""
+    window = style.color_(imgui.Col_.window_bg)
+    w = [min(max(c, 0.0), 1.0) for c in (window.x, window.y, window.z)]
+    if 0.2126 * w[0] + 0.7152 * w[1] + 0.0722 * w[2] < 0.5:
+        return
+    text = style.color_(imgui.Col_.text)
+    for col, share in (
+        (imgui.Col_.table_border_light, _TABLE_LINE),
+        (imgui.Col_.table_border_strong, _TABLE_LINE_STRONG),
+    ):
+        mixed = [
+            a + (b - a) * share
+            for a, b in zip(w, (text.x, text.y, text.z), strict=True)
+        ]
+        style.set_color_(col, imgui.ImVec4(mixed[0], mixed[1], mixed[2], 1.0))
 
 
 def apply_window_colors() -> None:
@@ -269,6 +317,39 @@ def _label(text: str, column: float) -> None:
     imgui.set_next_item_width(-1.0)
 
 
+def _color_field(index: int, color: imgui.ImVec4, flags: int) -> imgui.ImVec4 | None:
+    """A color's swatch, which opens a picker, and its hex field; the changed color, if any.
+    Drawn from parts, as the built-in color field's menu and picker labels are untranslated."""
+    changed_color: imgui.ImVec4 | None = None
+    popup = f"##color_picker{index}"
+    if imgui.color_button(f"##swatch{index}", color, flags):
+        imgui.open_popup(popup)
+    imgui.same_line(0.0, imgui.get_style().item_inner_spacing.x)
+    imgui.set_next_item_width(-1.0)
+    changed, edited = imgui.color_edit4(
+        f"##color{index}",
+        color,
+        flags
+        | imgui.ColorEditFlags_.no_picker
+        | imgui.ColorEditFlags_.no_options
+        | imgui.ColorEditFlags_.no_small_preview,
+    )
+    if changed:
+        changed_color = edited
+    if imgui.begin_popup(popup):
+        changed, picked = imgui.color_picker4(
+            f"##picker{index}",
+            color,
+            flags
+            | imgui.ColorEditFlags_.no_side_preview
+            | imgui.ColorEditFlags_.no_options,
+        )
+        if changed:
+            changed_color = picked
+        imgui.end_popup()
+    return changed_color
+
+
 def _slider(owner: object, setting: _Setting, column: float) -> bool:
     """The slider of ``setting`` on ``owner``; whether it changed."""
     _label(setting.label(), column)
@@ -381,10 +462,8 @@ class ThemeWindow:
             column = _column(*(n for _, n in shown))
             for index, name in shown:
                 _label(name, column)
-                changed, color = imgui.color_edit4(
-                    f"##color{index}", style.color_(index), flags
-                )
-                if changed:
+                color = _color_field(index, style.color_(index), flags)
+                if color is not None:
                     style.set_color_(index, color)
         imgui.end_child()
 
@@ -399,12 +478,12 @@ class ThemeWindow:
         for setting in _RENDERING:
             _slider(style, setting, column)
         _label(S.THEME_ANTI_ALIASED_LINES, column)
-        style.anti_aliased_lines = imgui.checkbox(
+        style.anti_aliased_lines = checkbox(
             "##anti_aliased_lines", style.anti_aliased_lines
         )[1]
         _label(S.THEME_ANTI_ALIASED_FILL, column)
-        style.anti_aliased_fill = imgui.checkbox(
+        style.anti_aliased_fill = checkbox(
             "##anti_aliased_fill", style.anti_aliased_fill
         )[1]
         _label(S.THEME_DEMO_WINDOW, column)
-        self._demo = imgui.checkbox("##demo_window", self._demo)[1]
+        self._demo = checkbox("##demo_window", self._demo)[1]

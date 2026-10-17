@@ -35,6 +35,7 @@ from editor_gui.dpt_formats import (
     SubtypeFormat,
 )
 from editor_gui.regional import regional_format
+from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import general_float
@@ -188,7 +189,7 @@ class _Choice(_Editor):
             for index, (label, _) in enumerate(self.options):
                 if index:
                     imgui.same_line()
-                if imgui.radio_button(
+                if radio_button(
                     f"{label}##{widget_id}_{index}", self.selected == index
                 ):
                     self.selected = index
@@ -370,7 +371,7 @@ class _Fields(_Editor):
                             item.selected = option_index
                     imgui.end_combo()
             elif item.kind == "boolean":
-                item.checked = imgui.checkbox(item_id, item.checked)[1]
+                item.checked = checkbox(item_id, item.checked)[1]
             else:
                 hint = _range_hint(item.minimum, item.maximum)
                 imgui.set_next_item_width(px(60.0 if inline else 180.0))
@@ -518,9 +519,7 @@ class _MasterField:
                 if index:
                     imgui.same_line()
                 text = label or str(index)
-                if imgui.radio_button(
-                    f"{text}##{widget_id}_{index}", self.selected == index
-                ):
+                if radio_button(f"{text}##{widget_id}_{index}", self.selected == index):
                     self.selected = index
             return False
         if kind == "enum":

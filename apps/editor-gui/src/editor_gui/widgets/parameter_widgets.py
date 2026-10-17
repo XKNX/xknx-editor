@@ -17,7 +17,7 @@ from editor_gui.widgets.backgrounds import (
     group_background,
     side_background,
 )
-from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import format_float, general_float, parse_float
 from editor_gui.widgets.fonts import bold
@@ -391,14 +391,7 @@ def render_param_widget(
 def _small_radio(label: str, active: bool, *, first: bool) -> bool:
     """A radio button about the size of the text, centred in a row of full-height fields;
     the ones after the ``first`` follow on its line."""
-    padding = imgui.get_style().frame_padding
-    small = padding.y / 4
-    if first:
-        imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() + padding.y - small)
-    imgui.push_style_var(imgui.StyleVar_.frame_padding, imgui.ImVec2(padding.x, small))
-    pressed = imgui.radio_button(label, active)
-    imgui.pop_style_var()
-    return pressed
+    return radio_button(label, active, centred=first)
 
 
 def _render_text_param(

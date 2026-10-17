@@ -159,14 +159,18 @@ class TopologyPanel:
                 sub_label = (
                     S.TOPOLOGY_UNASSIGNED
                     if line == S.TOPOLOGY_UNASSIGNED
-                    else f"L {line}"
+                    else S.TOPOLOGY_LINE.format(line=line)
                 )
                 layout.subs.append((sub_label, sub_y))
                 area_rows.append(sub_y)
                 for dy in dev_rows:
                     layout.links.append((1, sub_y, dy))
             group_y = sum(area_rows) / len(area_rows) if area_rows else 0.0
-            group_label = area if area == S.TOPOLOGY_UNASSIGNED else f"Area {area}"
+            group_label = (
+                area
+                if area == S.TOPOLOGY_UNASSIGNED
+                else S.TOPOLOGY_AREA.format(area=area)
+            )
             layout.groups.append((group_label, group_y))
             for sy in area_rows:
                 layout.links.append((0, group_y, sy))

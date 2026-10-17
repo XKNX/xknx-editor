@@ -269,7 +269,7 @@ class ProjectStrings:
 
     @property
     def ML_SHOW_PROBLEMS(self) -> str:
-        return _("Only problems")
+        return _("Only Problems")
 
     @property
     def ML_OK(self) -> str:
@@ -514,7 +514,7 @@ class ProjectStrings:
 
     @property
     def TOOLS_COPY_CREATE_GAS(self) -> str:
-        return _("Create group addresses for each copy")
+        return _("Create Group Addresses for Each Copy")
 
     @property
     def TOOLS_COPY_PREVIEW(self) -> str:
@@ -573,11 +573,11 @@ class ProjectStrings:
 
     @property
     def TOOLS_SHIFT_MODE_IA(self) -> str:
-        return _("Individual addresses")
+        return _("Individual Addresses")
 
     @property
     def TOOLS_SHIFT_MODE_GA(self) -> str:
-        return _("Group addresses")
+        return _("Group Addresses")
 
     @property
     def TOOLS_SHIFT_NO_GAS(self) -> str:
@@ -1430,7 +1430,7 @@ class ProjectStrings:
 
     @property
     def CONFIGURE_OPEN_MANUAL_BUSY(self) -> str:
-        return _("Searching manual…")
+        return _("Searching Manual…")
 
     @property
     def CONFIGURE_OPEN_MANUAL_HINT(self) -> str:
@@ -1486,11 +1486,11 @@ class ProjectStrings:
 
     @property
     def CONFIGURE_APPLY_ALL(self) -> str:
-        return _("Apply changes to all {count} identical devices")
+        return _("Apply Changes to All {count} Identical Devices")
 
     @property
     def CONFIGURE_APPLY_ALL_CHANNELS(self) -> str:
-        return _("Apply changes to all channels")
+        return _("Apply Changes to All Channels")
 
     @property
     def CONFIGURE_MULTI_EDIT(self) -> str:
@@ -1799,7 +1799,7 @@ class ProjectStrings:
 
     @property
     def COMPARE_ONLY_DIFF(self) -> str:
-        return _("Only differences")
+        return _("Only Differences")
 
     @property
     def COMPARE_COPY(self) -> str:
@@ -1867,7 +1867,7 @@ class ProjectStrings:
 
     @property
     def CONFIG_INCLUDE_LINKS(self) -> str:
-        return _("Group address links")
+        return _("Group Address Links")
 
     @property
     def CONFIG_PASTE_BTN(self) -> str:
@@ -2000,7 +2000,7 @@ class ProjectStrings:
 
     @property
     def GA_SECURITY_OFF(self) -> str:
-        return _("Not secured")
+        return _("Not Secured")
 
     @property
     def GA_SECURE_LINK_REFUSED(self) -> str:
@@ -2394,7 +2394,7 @@ class ProjectStrings:
 
     @property
     def PLUGIN_DOWNLOAD_CONFIRM(self) -> str:
-        return _("Program without the manufacturer's plugin anyway")
+        return _("Program Without the Manufacturer's Plugin Anyway")
 
     @property
     def OPERATION_DOWNLOADING(self) -> str:
@@ -2625,7 +2625,7 @@ class ProjectStrings:
 
     @property
     def DEVICE_CERTIFICATE_DONT_ASK(self) -> str:
-        return _("Don't ask when adding devices")
+        return _("Don't Ask When Adding Devices")
 
     @property
     def CONFIGURE_IP_SECURE(self) -> str:
@@ -2734,6 +2734,196 @@ class ProjectStrings:
     @property
     def ROUTING_BLOCKING_OFF(self) -> str:
         return _("Routed")
+
+    @property
+    def DALI_CONNECT_HINT(self) -> str:
+        return _("Connect to a KNX interface to commission the DALI bus.")
+
+    @property
+    def DALI_SCAN(self) -> str:
+        return _("Scan Bus")
+
+    @property
+    def DALI_ALL_ON(self) -> str:
+        return _("All ECGs On")
+
+    @property
+    def DALI_ALL_OFF(self) -> str:
+        return _("All Off")
+
+    @property
+    def DALI_NEW_INSTALLATION(self) -> str:
+        return _("New Installation…")
+
+    @property
+    def DALI_POST_INSTALLATION(self) -> str:
+        return _("Post Installation…")
+
+    @property
+    def DALI_RUNNING(self) -> str:
+        return _("Running: {task}")
+
+    @property
+    def DALI_TASK_SCAN(self) -> str:
+        return _("scanning the bus")
+
+    @property
+    def DALI_TASK_BROADCAST(self) -> str:
+        return _("switching all ECGs")
+
+    @property
+    def DALI_TASK_BLINK(self) -> str:
+        return _("blinking")
+
+    @property
+    def DALI_TASK_BLINK_STOP(self) -> str:
+        return _("stopping the blinking")
+
+    @property
+    def DALI_TASK_NEW(self) -> str:
+        return _("new installation")
+
+    @property
+    def DALI_TASK_POST(self) -> str:
+        return _("post installation")
+
+    @property
+    def DALI_TASK_GROUPS(self) -> str:
+        return _("programming the groups")
+
+    @property
+    def DALI_TASK_SCENES(self) -> str:
+        return _("programming the scenes")
+
+    @property
+    def DALI_FOUND(self) -> str:
+        return _("{count} found")
+
+    @property
+    def DALI_SCAN_HINT(self) -> str:
+        return _("Use 'Scan Bus' to read the DALI bus.")
+
+    @property
+    def DALI_FIRMWARE(self) -> str:
+        return _("Firmware {version}")
+
+    @property
+    def DALI_CONFIRM_TITLE(self) -> str:
+        return _("Confirm DALI Programming")
+
+    @property
+    def DALI_CONTINUE(self) -> str:
+        return _("Continue")
+
+    @property
+    def DALI_CANCEL(self) -> str:
+        return _("Cancel")
+
+    @property
+    def DALI_CONFIRM_NEW(self) -> str:
+        return _(
+            "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+        )
+
+    @property
+    def DALI_CONFIRM_POST(self) -> str:
+        return _(
+            "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+        )
+
+    @property
+    def DALI_CONFIRM_GROUPS(self) -> str:
+        return _(
+            "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+        )
+
+    @property
+    def DALI_CONFIRM_SCENES(self) -> str:
+        return _("Write the scene values to the DALI bus. Continue?")
+
+    @property
+    def DALI_ECGS_PRESENT(self) -> str:
+        return _("{count} ECG(s) present")
+
+    @property
+    def DALI_COL_GROUP(self) -> str:
+        return _("Group")
+
+    @property
+    def DALI_COL_TYPE(self) -> str:
+        return _("Type")
+
+    @property
+    def DALI_COL_LONG_ADDRESS(self) -> str:
+        return _("Long Address")
+
+    @property
+    def DALI_COL_ALARM(self) -> str:
+        return _("Alarm")
+
+    @property
+    def DALI_BLINK(self) -> str:
+        return _("Blink")
+
+    @property
+    def DALI_STOP(self) -> str:
+        return _("Stop")
+
+    @property
+    def DALI_PROGRAM_GROUPS(self) -> str:
+        return _("Program Groups…")
+
+    @property
+    def DALI_SCENES(self) -> str:
+        return _("Scenes")
+
+    @property
+    def DALI_SCENES_HINT(self) -> str:
+        return _("Assign the ECGs to groups above to define scenes.")
+
+    @property
+    def DALI_SCENE(self) -> str:
+        return _("Scene")
+
+    @property
+    def DALI_SCENE_NUMBER(self) -> str:
+        return _("Scene {number}")
+
+    @property
+    def DALI_GROUP_NUMBER(self) -> str:
+        return _("Group {number}")
+
+    @property
+    def DALI_PROGRAM_SCENES(self) -> str:
+        return _("Program Scenes…")
+
+    @property
+    def DALI_GROUP_SINGLE(self) -> str:
+        return _("Single")
+
+    @property
+    def DALI_GROUP_UNASSIGNED(self) -> str:
+        return _("Unassigned")
+
+    @property
+    def LOAD_PROCEDURE(self) -> str:
+        return _("Procedure {number}  ({count} steps)")
+
+    @property
+    def LOAD_COL_KIND(self) -> str:
+        return _("Kind")
+
+    @property
+    def LOAD_COL_APPLIES_TO(self) -> str:
+        return _("Applies To")
+
+    @property
+    def LOAD_COL_DETAILS(self) -> str:
+        return _("Details")
+
+    @property
+    def PREFLIGHT_SCOPE(self) -> str:
+        return _("Scope: {scope}")
 
 
 S = ProjectStrings()

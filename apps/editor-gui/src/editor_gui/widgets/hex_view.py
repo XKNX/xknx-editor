@@ -5,6 +5,7 @@ import struct
 from imgui_bundle import imgui
 
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.strings import S
 
 
 class HexView:
@@ -32,7 +33,7 @@ class HexView:
     ) -> None:
         n = len(data)
         if n == 0:
-            imgui.text_disabled("(empty)")
+            imgui.text_disabled(S.HEX_EMPTY)
             return
 
         line_h = imgui.get_text_line_height()
@@ -197,29 +198,31 @@ class HexView:
                 _copy_selection()
 
         imgui.separator()
-        if imgui.button("Options"):
+        if imgui.button(f"{S.HEX_OPTIONS}##hx_options"):
             imgui.open_popup("##hx_opts")
 
         if imgui.begin_popup("##hx_opts"):
             col_options = [8, 16, 32]
             col_idx = col_options.index(self.cols) if self.cols in col_options else 1
-            changed, col_idx = imgui.combo("Columns", col_idx, ["8", "16", "32"])
+            changed, col_idx = imgui.combo(
+                f"{S.HEX_COLUMNS}##hx_columns", col_idx, ["8", "16", "32"]
+            )
             if changed:
                 self.cols = col_options[col_idx]
-            _, self.grey_zeros = checkbox("Grey out zeros", self.grey_zeros)
-            _, self.uppercase = checkbox("Uppercase hex", self.uppercase)
-            _, self.show_ascii = checkbox("Show ASCII", self.show_ascii)
+            _, self.grey_zeros = checkbox(S.HEX_GREY_ZEROS, self.grey_zeros)
+            _, self.uppercase = checkbox(S.HEX_UPPERCASE, self.uppercase)
+            _, self.show_ascii = checkbox(S.HEX_SHOW_ASCII, self.show_ascii)
             imgui.end_popup()
 
         imgui.same_line()
         imgui.begin_disabled(n_sel == 0)
-        copy_label = f"Copy {n_sel}B" if n_sel > 0 else "Copy"
-        if imgui.button(copy_label):
+        copy_label = S.HEX_COPY_BYTES.format(count=n_sel) if n_sel > 0 else S.HEX_COPY
+        if imgui.button(f"{copy_label}###hx_copy"):
             _copy_selection()
         imgui.end_disabled()
 
         imgui.same_line()
-        imgui.text_disabled("  Go to:")
+        imgui.text_disabled("  " + S.HEX_GO_TO)
         imgui.same_line()
         imgui.set_next_item_width(glyph_w * (addr_digits + 2))
         entered, self._goto_buf = imgui.input_text(
@@ -243,18 +246,20 @@ class HexView:
         imgui.text_disabled(rng)
 
         if ref is not None:
-            diff_str = f"  {n_diffs} diff{'s' if n_diffs != 1 else ''}"
             imgui.same_line()
             if n_diffs:
-                imgui.text_colored(imgui.ImVec4(0.9, 0.4, 0.2, 1.0), diff_str)
+                imgui.text_colored(
+                    imgui.ImVec4(0.9, 0.4, 0.2, 1.0),
+                    "  " + S.HEX_DIFFS.format(count=n_diffs),
+                )
             else:
-                imgui.text_disabled(diff_str + "  (ok)")
+                imgui.text_disabled("  " + S.HEX_NO_DIFFS)
 
         imgui.begin_disabled(byte_map is None)
-        imgui.text_disabled("Param:")
+        imgui.text_disabled(S.HEX_PARAMETER)
         imgui.same_line()
         imgui.set_next_item_width(-1.0)
-        preview = self._goto_param_buf or "search…"
+        preview = self._goto_param_buf or S.HEX_PARAMETER_SEARCH
         if imgui.begin_combo("##hx_goto_param", preview):
             if imgui.is_window_appearing():
                 imgui.set_keyboard_focus_here()

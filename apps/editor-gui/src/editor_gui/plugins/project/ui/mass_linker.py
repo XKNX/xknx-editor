@@ -29,6 +29,7 @@ from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 if TYPE_CHECKING:
     from editor_gui.device import ComObject, Device
@@ -370,8 +371,9 @@ class MassLinkerPanel:
             imgui.TableFlags_.borders_inner_h
             | imgui.TableFlags_.row_bg
             | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.reorderable
         )
-        if not imgui.begin_table("##ml1", 6, flags):
+        if not begin_data_table("##ml1", 6, flags):
             return
         imgui.table_setup_column("##st", imgui.TableColumnFlags_.width_fixed, px(22.0))
         imgui.table_setup_column(
@@ -387,7 +389,7 @@ class MassLinkerPanel:
             S.ML_COL_TARGET_GA, imgui.TableColumnFlags_.width_stretch, 0.36
         )
         imgui.table_setup_column("##rm", imgui.TableColumnFlags_.width_fixed, px(26.0))
-        imgui.table_headers_row()
+        data_table_headers()
         for i, row in enumerate(self._rows1):
             if self._problems_only and row.status == "ready":
                 continue
@@ -580,8 +582,9 @@ class MassLinkerPanel:
             imgui.TableFlags_.borders_inner_h
             | imgui.TableFlags_.row_bg
             | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.reorderable
         )
-        if not imgui.begin_table("##ml2", 6, flags):
+        if not begin_data_table("##ml2", 6, flags):
             return
         imgui.table_setup_column(
             S.ML_COL_OBJECT, imgui.TableColumnFlags_.width_stretch, 0.34
@@ -599,7 +602,7 @@ class MassLinkerPanel:
             S.ML_COL_GA_NAME, imgui.TableColumnFlags_.width_stretch, 0.32
         )
         imgui.table_setup_column("##rm", imgui.TableColumnFlags_.width_fixed, px(28.0))
-        imgui.table_headers_row()
+        data_table_headers()
         candidates = self._all_objects()
         for i, row in enumerate(self._rows2):
             imgui.table_next_row()

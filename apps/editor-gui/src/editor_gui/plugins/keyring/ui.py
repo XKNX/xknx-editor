@@ -18,6 +18,7 @@ from editor_gui.widgets.dialog import (
     end_dialog,
     focus_when_appearing,
 )
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 if TYPE_CHECKING:
     from editor_gui.plugins.keyring.service import KeyringService
@@ -230,8 +231,10 @@ class KeyringPanel:
             S.KEYRING_BACKBONE, imgui.TreeNodeFlags_.default_open
         ):
             imgui.text_disabled(
-                f"{model.backbone.multicast_address}   "
-                f"key {_key_preview(decrypted.backbone_key)}"
+                S.BACKBONE_KEY.format(
+                    address=model.backbone.multicast_address,
+                    key=_key_preview(decrypted.backbone_key),
+                )
             )
 
         self._render_interfaces(decrypted)
@@ -244,11 +247,16 @@ class KeyringPanel:
             S.KEYRING_INTERFACES.format(count=len(interfaces))
         ):
             return
-        flags = imgui.TableFlags_.borders_inner | imgui.TableFlags_.sizing_stretch_prop
-        if imgui.begin_table("##kr_ifaces", 4, flags):
-            for header in ("Type", "Address", "Host", "User"):
+        flags = (
+            imgui.TableFlags_.borders_inner
+            | imgui.TableFlags_.sizing_stretch_prop
+            | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.reorderable
+        )
+        if begin_data_table("##kr_ifaces", 4, flags):
+            for header in (S.COL_TYPE, S.COL_ADDRESS, S.COL_HOST, S.COL_USER):
                 imgui.table_setup_column(header)
-            imgui.table_headers_row()
+            data_table_headers()
             for iface in interfaces:
                 imgui.table_next_row()
                 imgui.table_set_column_index(0)
@@ -268,11 +276,16 @@ class KeyringPanel:
         ):
             return
         secure = {g.address for g in self._get_group_addresses() if g.data_secure}
-        flags = imgui.TableFlags_.borders_inner | imgui.TableFlags_.sizing_stretch_prop
-        if imgui.begin_table("##kr_gas", 3, flags):
-            for header in ("Address", "Key", "In Project"):
+        flags = (
+            imgui.TableFlags_.borders_inner
+            | imgui.TableFlags_.sizing_stretch_prop
+            | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.reorderable
+        )
+        if begin_data_table("##kr_gas", 3, flags):
+            for header in (S.COL_ADDRESS, S.COL_KEY, S.COL_IN_PROJECT):
                 imgui.table_setup_column(header)
-            imgui.table_headers_row()
+            data_table_headers()
             for raw_address, key in sorted(group_keys.items()):
                 addr = str(GroupAddress(raw_address))
                 imgui.table_next_row()
@@ -293,11 +306,16 @@ class KeyringPanel:
             S.KEYRING_DEVICES.format(count=len(devices))
         ):
             return
-        flags = imgui.TableFlags_.borders_inner | imgui.TableFlags_.sizing_stretch_prop
-        if imgui.begin_table("##kr_devices", 2, flags):
-            for header in ("Address", "Tool Key"):
+        flags = (
+            imgui.TableFlags_.borders_inner
+            | imgui.TableFlags_.sizing_stretch_prop
+            | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.reorderable
+        )
+        if begin_data_table("##kr_devices", 2, flags):
+            for header in (S.COL_ADDRESS, S.COL_TOOL_KEY):
                 imgui.table_setup_column(header)
-            imgui.table_headers_row()
+            data_table_headers()
             for dev in devices:
                 imgui.table_next_row()
                 imgui.table_set_column_index(0)

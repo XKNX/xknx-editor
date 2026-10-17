@@ -10,7 +10,7 @@ msgstr "Topologie"
 msgid "No project open"
 msgstr "Kein Projekt geöffnet"
 
-msgid "unassigned"
+msgid "Unassigned"
 msgstr "nicht zugeordnet"
 
 msgid "Area -> Line -> Device. Click a device to open it."
@@ -24,3 +24,9 @@ msgstr "Gebäudeansicht"
 
 msgid "Ctrl/Cmd+scroll to zoom. Click a device to open it."
 msgstr "Strg/Cmd+Scrollen zum Zoomen. Klicke ein Gerät, um es zu öffnen."
+
+msgid "Area {area}"
+msgstr "Bereich {area}"
+
+msgid "L {line}"
+msgstr "L {line}"

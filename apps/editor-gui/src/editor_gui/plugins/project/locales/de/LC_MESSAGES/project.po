@@ -481,7 +481,7 @@ msgstr ""
 msgid "Duplicate"
 msgstr "Duplizieren"
 
-msgid "Apply changes to all {count} identical devices"
+msgid "Apply Changes to All {count} Identical Devices"
 msgstr "Änderungen auf alle {count} baugleichen Geräte anwenden"
 
 msgid ""
@@ -624,7 +624,7 @@ msgstr "Im Namen suchen"
 msgid "Replace with"
 msgstr "Ersetzen durch"
 
-msgid "Create group addresses for each copy"
+msgid "Create Group Addresses for Each Copy"
 msgstr "Gruppenadressen für jede Kopie anlegen"
 
 msgid "Copy Name: {name}"
@@ -831,7 +831,7 @@ msgid ""
 msgstr ""
 "{ready} bereit · {amb} mehrdeutig · {bad} inkompatibel · {none} ungepaart"
 
-msgid "Only problems"
+msgid "Only Problems"
 msgstr "Nur Probleme"
 
 msgid ""
@@ -1038,7 +1038,7 @@ msgstr "Name der Mittelgruppe (die nächste freie Nummer wird automatisch vergeb
 msgid "Delete this folder and every group address in it? This can be undone."
 msgstr "Diesen Ordner und alle enthaltenen Gruppenadressen löschen? Kann rückgängig gemacht werden."
 
-msgid "Apply changes to all channels"
+msgid "Apply Changes to All Channels"
 msgstr "Änderungen auf alle Kanäle anwenden"
 
 msgid "S"
@@ -1072,7 +1072,7 @@ msgstr "'{name}' duplizieren:"
 msgid "Parameters"
 msgstr "Parameter"
 
-msgid "Group address links"
+msgid "Group Address Links"
 msgstr "Gruppenadress-Verknüpfungen"
 
 msgid "Paste"
@@ -1259,7 +1259,7 @@ msgstr "Dieses Gerät enthält eine Hersteller-Konfigurations-App (“{name}”)
 msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
 msgstr "Der Hersteller erlaubt das Programmieren dieses Geräts nur mit seinem Plugin, das hier nicht verfügbar ist. Ohne das Plugin kann das Gerät falsch konfiguriert oder in einem Fehlerzustand zurückbleiben."
 
-msgid "Program without the manufacturer's plugin anyway"
+msgid "Program Without the Manufacturer's Plugin Anyway"
 msgstr "Trotzdem ohne das Plugin des Herstellers programmieren"
 
 msgid "Overwrite Individual Address"
@@ -1514,7 +1514,7 @@ msgstr "Das Handbuch dieses Geräts suchen (über die KNX-Gerätedatenbank, sons
 msgid "Gap X / Y (mm)"
 msgstr "Abstand X / Y (mm)"
 
-msgid "Group addresses"
+msgid "Group Addresses"
 msgstr "Gruppenadressen"
 
 msgid "Group objects read from the device"
@@ -1526,7 +1526,7 @@ msgstr "IP-Adresse"
 msgid "IP Configuration"
 msgstr "IP-Konfiguration"
 
-msgid "Individual addresses"
+msgid "Individual Addresses"
 msgstr "Physikalische Adressen"
 
 msgid "Installation"
@@ -1589,7 +1589,7 @@ msgstr "Gruppenadressen umnummerieren, indem ein Versatz auf ihren Rohwert addie
 msgid "Rows"
 msgstr "Zeilen"
 
-msgid "Searching manual…"
+msgid "Searching Manual…"
 msgstr "Handbuch wird gesucht…"
 
 msgid "Select at least one field."
@@ -1745,7 +1745,7 @@ msgstr "Automatisch"
 msgid "Secured"
 msgstr "Gesichert"
 
-msgid "Not secured"
+msgid "Not Secured"
 msgstr "Nicht gesichert"
 
 msgid "Plain"
@@ -1787,7 +1787,7 @@ msgstr "Ein Gruppenobjekt, das sichere Kommunikation erfordert, käme auf eine u
 msgid "Later"
 msgstr "Später"
 
-msgid "Don't ask when adding devices"
+msgid "Don't Ask When Adding Devices"
 msgstr "Beim Hinzufügen von Geräten nicht fragen"
 
 msgid "KNX IP Secure"
@@ -1868,7 +1868,7 @@ msgstr "Gruppenobjekte"
 msgid "No differences"
 msgstr "Keine Unterschiede"
 
-msgid "Only differences"
+msgid "Only Differences"
 msgstr "Nur Unterschiede"
 
 msgid "Open a project with at least two devices to compare."
@@ -1891,3 +1891,135 @@ msgstr "Hier wird der Standard-Download verwendet."
 
 msgid "Part of the device data is not available."
 msgstr "Ein Teil der Gerätedaten ist nicht verfügbar."
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "Für die Inbetriebnahme des DALI-Busses mit einer KNX-Schnittstelle verbinden."
+
+msgid "Scan Bus"
+msgstr "Bus scannen"
+
+msgid "All ECGs On"
+msgstr "Alle EVG ein"
+
+msgid "All Off"
+msgstr "Alle aus"
+
+msgid "New Installation…"
+msgstr "Neuinstallation…"
+
+msgid "Post Installation…"
+msgstr "Nachinstallation…"
+
+msgid "Running: {task}"
+msgstr "Läuft: {task}"
+
+msgid "scanning the bus"
+msgstr "Bus wird gescannt"
+
+msgid "switching all ECGs"
+msgstr "alle EVG werden geschaltet"
+
+msgid "blinking"
+msgstr "Blinken"
+
+msgid "stopping the blinking"
+msgstr "Blinken wird beendet"
+
+msgid "new installation"
+msgstr "Neuinstallation"
+
+msgid "post installation"
+msgstr "Nachinstallation"
+
+msgid "programming the groups"
+msgstr "Gruppen werden programmiert"
+
+msgid "programming the scenes"
+msgstr "Szenen werden programmiert"
+
+msgid "{count} found"
+msgstr "{count} gefunden"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "„Bus scannen“ liest den DALI-Bus."
+
+msgid "Firmware {version}"
+msgstr "Firmware {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "DALI-Programmierung bestätigen"
+
+msgid "Continue"
+msgstr "Fortfahren"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "Die Neuinstallation scannt den DALI-Bus erneut und vergibt die Kurzadresse\nJEDES Vorschaltgeräts neu. Das lässt sich nicht rückgängig machen. Fortfahren?"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "Die Nachinstallation sucht auf dem Bus nach neuen Vorschaltgeräten und passt die\nAdressierung an. Das ändert das Gerät. Fortfahren?"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "Die Gruppenzuordnung auf den DALI-Bus schreiben. Das überträgt die Gruppen auf\ndas Gateway und seine Vorschaltgeräte. Fortfahren?"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "Die Szenenwerte auf den DALI-Bus schreiben. Fortfahren?"
+
+msgid "{count} ECG(s) present"
+msgstr "{count} EVG vorhanden"
+
+msgid "Group"
+msgstr "Gruppe"
+
+msgid "Long Address"
+msgstr "Langadresse"
+
+msgid "Alarm"
+msgstr "Alarm"
+
+msgid "Blink"
+msgstr "Blinken"
+
+msgid "Stop"
+msgstr "Stopp"
+
+msgid "Program Groups…"
+msgstr "Gruppen programmieren…"
+
+msgid "Scenes"
+msgstr "Szenen"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "Für Szenen die EVG oben Gruppen zuordnen."
+
+msgid "Scene"
+msgstr "Szene"
+
+msgid "Scene {number}"
+msgstr "Szene {number}"
+
+msgid "Group {number}"
+msgstr "Gruppe {number}"
+
+msgid "Program Scenes…"
+msgstr "Szenen programmieren…"
+
+msgid "Single"
+msgstr "Einzeln"
+
+msgid "Unassigned"
+msgstr "Nicht zugeordnet"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "Ablauf {number}  ({count} Schritte)"
+
+msgid "Kind"
+msgstr "Art"
+
+msgid "Applies To"
+msgstr "Gilt für"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Scope: {scope}"
+msgstr "Bereich: {scope}"

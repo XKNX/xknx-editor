@@ -23,7 +23,7 @@ class CockpitStrings:
 
     @property
     def COCKPIT_ATTENTION_ONLY(self) -> str:
-        return _("Needs attention only")
+        return _("Needs Attention Only")
 
     @property
     def COCKPIT_SKIPPED(self) -> str:
