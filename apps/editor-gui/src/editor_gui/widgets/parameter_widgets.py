@@ -1796,6 +1796,8 @@ def _celltext_height(sep: UiSeparator, width: float | None) -> float:
     if not sep.text or sep.hint not in ("Headline", None):
         return 0.0
     text = "\n".join(line.lstrip(" ") for line in sep.text.split("\n"))
+    if width:
+        width = max(width - px(_CELL_GAP), 1.0)
     if sep.hint == "Headline":
         with bold(_HEADLINE_SCALE):
             return imgui.calc_text_size(text, wrap_width=width if width else -1.0).y
@@ -1806,17 +1808,26 @@ def _render_cell_separator(
     sep: UiSeparator, origin: float, row_height: float, height: float
 ) -> float:
     """A separator in a grid cell: a headline in bold, a label as plain text, a ruler across.
-    Text wraps at the cell's right edge; a label ``height`` high is centred in a row
-    ``row_height`` high. Returns the height of the text as drawn."""
+    Text wraps where the fields of the cell end (the cell's right edge less the gap to the next
+    column); a label ``height`` high is centred in a row ``row_height`` high. Returns the height
+    of the text as drawn."""
     if sep.text and sep.hint in ("Headline", None):
         imgui.set_cursor_pos_y(
             imgui.get_cursor_pos_y() + max(0.0, (row_height - height) / 2)
         )
+        right = (
+            imgui.get_cursor_pos_x()
+            + imgui.get_content_region_avail().x
+            - px(_CELL_GAP)
+        )
+        text = _indented_cell_text(sep.text, origin)
+        imgui.push_text_wrap_pos(max(right, imgui.get_cursor_pos_x() + 1.0))
         if sep.hint == "Headline":
             with bold(_HEADLINE_SCALE):
-                imgui.text_wrapped(_indented_cell_text(sep.text, origin))
+                imgui.text_unformatted(text)
         else:
-            imgui.text_wrapped(_indented_cell_text(sep.text, origin))
+            imgui.text_unformatted(text)
+        imgui.pop_text_wrap_pos()
         return imgui.get_item_rect_size().y
     _render_separator(sep)
     return 0.0
