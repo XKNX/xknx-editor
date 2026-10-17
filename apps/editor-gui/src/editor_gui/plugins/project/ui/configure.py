@@ -483,7 +483,10 @@ class ConfigurePanel:
         self._render_manual_button(self._get_device_info(device.node_id))
         self._render_readout_result(device)
         self._render_ip_config(device)
-        self._render_ip_secure(device)
+        # Whether the device is a KNX IP Secure device comes from its application: shown once it
+        # is loaded, so selecting a device never parses its application on the render thread.
+        if self._ready(device):
+            self._render_ip_secure(device)
 
     def _ready(self, device: Device) -> bool:
         return self._application_ready is None or self._application_ready(device)
