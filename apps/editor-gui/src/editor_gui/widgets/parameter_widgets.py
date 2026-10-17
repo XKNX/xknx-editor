@@ -921,6 +921,9 @@ def _page_path(
 
 # Device node id -> selected page key.
 _selected_pages: dict[int, str] = {}
+# (device node id, page key) of the page shown last: a page that comes up selects its help, as a
+# click on it does (also the page a device opens on).
+_shown_page: list[tuple[int, str]] = []
 # Device node id -> (UI nodes, filter, pages) of the last page tree built.
 _page_cache: dict[int, tuple[list[UiNode], str, tuple[ParameterPage, ...]]] = {}
 
@@ -974,6 +977,8 @@ def render_ui_tree(
             _selected_pages[device.node_id] = first.key
     selected = path[-1] if path else None
     opened = frozenset(p.key for p in (path or [])[:-1])
+    if selected is not None:
+        _show_page_help(device, selected)
 
     if height <= 0:
         height = imgui.get_content_region_avail().y
@@ -1029,6 +1034,15 @@ def render_ui_tree(
             footer(bottom - imgui.get_cursor_screen_pos().y)
         imgui.end_table()
     return popup_request
+
+
+def _show_page_help(device: Device, page: ParameterPage) -> None:
+    shown = (device.node_id, page.key)
+    if _shown_page == [shown]:
+        return
+    _shown_page[:] = [shown]
+    if page.block is not None and page.block.help_context:
+        _selected_help[:] = [page.block.help_context]
 
 
 def _render_page_tree(
