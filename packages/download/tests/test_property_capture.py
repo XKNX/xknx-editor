@@ -521,6 +521,45 @@ async def test_literal_compare_is_not_overridden_by_another_object_or_range() ->
         await runner.run()
 
 
+async def test_mcb_capture_is_split_to_fit_the_apdu() -> None:
+    """A 7-element MCB read does not fit an APDU of 55 and is rejected whole."""
+
+    class ShortApdu(PropertyDevice):
+        def _handle_property_read(
+            self, payload: PropertyValueRead
+        ) -> PropertyValueResponse:
+            if payload.property_id == 27 and payload.count * 8 > 50:
+                return PropertyValueResponse(
+                    object_index=payload.object_index,
+                    property_id=payload.property_id,
+                    count=0,
+                    start_index=payload.start_index,
+                    data=b"",
+                )
+            return super()._handle_property_read(payload)
+
+    device = ShortApdu()
+    device.elements = {
+        (4, 27, element): bytes([element]) * 8 for element in range(1, 8)
+    }
+    runner = LoadProcedureRunner(
+        _application(LdCtrlLoadImageProp(obj_idx=4, prop_id=27, count=7)),
+        DownloadImage(segments=(), properties=()),
+        DeviceProgrammer(device, max_apdu_length=55),
+        object_types=MAPPING,
+    )
+    await runner.run()
+    reads = [
+        p
+        for p in device.sent
+        if isinstance(p, PropertyValueRead) and p.property_id == 27
+    ]
+    assert [(p.start_index, p.count) for p in reads] == [(1, 6), (7, 1)]
+    assert [runner._property_captures[4, 27, element] for element in range(1, 8)] == [  # pyright: ignore[reportPrivateUsage]
+        bytes([element]) * 8 for element in range(1, 8)
+    ]
+
+
 @pytest.mark.parametrize("count", [0, 16])
 async def test_unsupported_capture_range_is_rejected_before_any_io(count: int) -> None:
     device = PropertyDevice()

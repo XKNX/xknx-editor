@@ -1446,24 +1446,70 @@ class LoadProcedureRunner:
         index: int,
         control: LdCtrlCompareProp | LdCtrlLoadImageProp,
     ) -> bytes:
+        """Read every element, splitting a range that would not fit one APDU.
+
+        A device answers an oversized property read with zero elements. The
+        Weinzierl application captures seven 8-octet MCB entries in one control;
+        at an APDU of 55 that response is 61 octets and the device rejects it.
+        """
         programmer = await self._bus()
         if index in self._extended_targets:
             await self._ensure_property_width(index, control)
-        if await self._extended_fits(index, control.prop_id):
+        width = self._property_width(index, control.prop_id) or 0
+        extended = await self._extended_fits(index, control.prop_id)
+        per_frame = (
+            (
+                programmer.extended_property_chunk_size(width)
+                if extended
+                else programmer.property_chunk_size(width)
+            )
+            if width
+            else control.count
+        )
+        parts: list[bytes] = []
+        remaining = control.count
+        start = control.start_element
+        while remaining:
+            frame = min(per_frame, remaining)
+            parts.append(
+                await self._read_property_frame(
+                    programmer,
+                    index,
+                    control,
+                    count=frame,
+                    start_index=start,
+                    extended=extended,
+                )
+            )
+            remaining -= frame
+            start += frame
+        return b"".join(parts)
+
+    async def _read_property_frame(
+        self,
+        programmer: DeviceProgrammer,
+        index: int,
+        control: LdCtrlCompareProp | LdCtrlLoadImageProp,
+        *,
+        count: int,
+        start_index: int,
+        extended: bool,
+    ) -> bytes:
+        if extended:
             object_type, instance = self._extended_targets[index]
             return await programmer.read_property_ext(
                 object_type,
                 instance,
                 control.prop_id,
-                count=control.count,
-                start_index=control.start_element,
+                count=count,
+                start_index=start_index,
                 require_nonzero=True,
             )
         return await programmer.read_property(
             await self._object_index(index),
             control.prop_id,
-            count=control.count,
-            start_index=control.start_element,
+            count=count,
+            start_index=start_index,
             require_nonzero=True,
         )
 
