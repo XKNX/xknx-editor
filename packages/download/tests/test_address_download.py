@@ -35,12 +35,17 @@ class _Manager:
         self.closed = True
 
 
+class _Broadcast:
+    def __init__(self) -> None:
+        self.sent: list[object] = []
+
+    async def send(self, payload: object) -> None:
+        self.sent.append(payload)
+
+
 class _Management:
     def __init__(self) -> None:
-        self.broadcasts: list[object] = []
-
-    async def send_broadcast(self, payload: object) -> None:
-        self.broadcasts.append(payload)
+        self.broadcast = _Broadcast()
 
 
 class _XKNX:
@@ -162,7 +167,7 @@ async def test_download_waits_for_the_programming_button(
         "sleep",
         "verify",
     ]
-    (payload,) = xknx.management.broadcasts
+    (payload,) = xknx.management.broadcast.sent
     assert isinstance(payload, apci.IndividualAddressWrite)
     assert payload.address == _NEW
 
@@ -175,7 +180,7 @@ async def test_download_to_a_device_that_already_has_the_address(
 
     await commissioning.download_individual_address(cast("XKNX", xknx), _NEW)
 
-    assert xknx.management.broadcasts == []
+    assert xknx.management.broadcast.sent == []
     assert ("verify", _NEW) in calls
 
 
@@ -187,7 +192,7 @@ async def test_download_refuses_an_address_in_use(
 
     with pytest.raises(AddressInUseError):
         await commissioning.download_individual_address(cast("XKNX", xknx), _NEW)
-    assert xknx.management.broadcasts == []
+    assert xknx.management.broadcast.sent == []
 
 
 async def test_download_refuses_several_devices_in_programming_mode(
@@ -217,7 +222,7 @@ async def test_overwrite_switches_programming_mode_remotely(
         ("switch", (_CURRENT, True)),
         ("verify", _NEW),
     ]
-    (payload,) = xknx.management.broadcasts
+    (payload,) = xknx.management.broadcast.sent
     assert isinstance(payload, apci.IndividualAddressWrite)
     assert payload.address == _NEW
 
@@ -246,7 +251,7 @@ async def test_overwrite_stops_when_another_device_is_in_programming_mode(
             cast("XKNX", xknx), _NEW, current_address=_CURRENT
         )
     assert ("switch", (_CURRENT, False)) in calls
-    assert xknx.management.broadcasts == []
+    assert xknx.management.broadcast.sent == []
 
 
 async def test_overwrite_refuses_an_address_in_use(

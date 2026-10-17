@@ -27,6 +27,7 @@ from xknx.core import XknxConnectionState
 from xknx.exceptions import (
     CommunicationError,
     CouldNotParseCEMI,
+    RequestResponseError,
     UnsupportedCEMIMessage,
 )
 from xknx.io import util
@@ -83,14 +84,6 @@ class TP1Acknowledgement(IntEnum):
     NAK_BUSY = 0x00
 
 
-class RequestResponseError(CommunicationError):
-    """The tunnelling server rejected the connect request."""
-
-    def __init__(self, message: str, error_code: ErrorCode | None = None) -> None:
-        super().__init__(message)
-        self.error_code = error_code
-
-
 # --- connecting ------------------------------------------------------------------------------
 
 
@@ -101,25 +94,18 @@ def _busmonitor_cri() -> ConnectRequestInformation:
 class BusmonitorUDPTunnel(UDPTunnel):
     """A UDP tunnel opened with the bus monitor layer. It never sends KNX frames."""
 
-    async def _connect_request(self) -> bool:
-        connect = Connect(
+    async def _connect_request(self) -> None:
+        response = await Connect(
             transport=self.transport, local_hpai=self.local_hpai, cri=_busmonitor_cri()
-        )
-        await connect.start()
-        if not connect.success:
-            raise RequestResponseError(
-                f"ConnectRequest failed. Status code: {connect.response_status_code}",
-                connect.response_status_code,
-            )
-        self.communication_channel = connect.communication_channel
+        ).request()
+        self.communication_channel = response.communication_channel
         self._data_endpoint_addr = (
             None
-            if connect.data_endpoint.route_back
-            else connect.data_endpoint.addr_tuple
+            if response.data_endpoint.route_back
+            else response.data_endpoint.addr_tuple
         )
-        self._src_address = connect.crd.individual_address or IndividualAddress(0)
+        self._src_address = response.crd.individual_address or IndividualAddress(0)
         self.xknx.current_address = self._src_address
-        return True
 
     async def send_cemi(self, cemi: CEMIFrame) -> None:
         raise CommunicationError(SEND_ERROR)
@@ -128,21 +114,14 @@ class BusmonitorUDPTunnel(UDPTunnel):
 class BusmonitorTCPTunnel(TCPTunnel):
     """A TCP tunnel opened with the bus monitor layer. It never sends KNX frames."""
 
-    async def _connect_request(self) -> bool:
-        connect = Connect(
+    async def _connect_request(self) -> None:
+        response = await Connect(
             transport=self.transport, local_hpai=self.local_hpai, cri=_busmonitor_cri()
-        )
-        await connect.start()
-        if not connect.success:
-            raise RequestResponseError(
-                f"ConnectRequest failed. Status code: {connect.response_status_code}",
-                connect.response_status_code,
-            )
-        self.communication_channel = connect.communication_channel
+        ).request()
+        self.communication_channel = response.communication_channel
         self._data_endpoint_addr = None
-        self._src_address = connect.crd.individual_address or IndividualAddress(0)
+        self._src_address = response.crd.individual_address or IndividualAddress(0)
         self.xknx.current_address = self._src_address
-        return True
 
     async def send_cemi(self, cemi: CEMIFrame) -> None:
         raise CommunicationError(SEND_ERROR)

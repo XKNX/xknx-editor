@@ -65,9 +65,6 @@ _SECURE_APCI_HIGH_BITS: Final = 0x03
 _SECURE_APCI_LOW: Final = 0xF1
 # The MAC is the 32 most significant bits of the CBC result (3/3/7 5.1.3.4.2).
 _MAC_LENGTH: Final = 4
-# Only the address type bit and the extended-frame nibble of the control field
-# are authenticated in B0 (3/3/7 5.1.3.2, "AT = A000EEEEb").
-_B0_CONTROL_FIELD_MASK: Final = 0x8F
 # Octets a Secure APDU adds around the plain APDU (3/3/7 5.1.3.5.1, Figure 104):
 # 2 Secure APCI + 1 SCF + 6 SeqNr + 4 MAC. The plaintext APDU must be this much
 # smaller than the device's wire APDU length so the secured frame still fits.
@@ -190,7 +187,7 @@ class _BlockFields:
         self.source = cemi.src_addr.to_knx()
         self.destination = cemi.dst_addr.to_knx()
         # AT = A000EEEEb: address type bit and extended-frame nibble only.
-        self.address_type = cemi.flags & _B0_CONTROL_FIELD_MASK
+        self.address_type = cemi.address_type.to_knx() | cemi.flags.frame_format
         # The full TPCI octet as carried on the wire; its low 2 bits are 0 for a
         # data frame and become the top 2 bits of the Secure APCI in B0.
         self.tpci_octet = cemi.tpci.to_knx()

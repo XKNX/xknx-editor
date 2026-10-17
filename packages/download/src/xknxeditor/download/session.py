@@ -9,10 +9,43 @@ from xknx.exceptions import ManagementConnectionError
 
 if TYPE_CHECKING:
     from xknx import XKNX
+    from xknx.management.management import P2PConnection
+    from xknx.telegram import Telegram
     from xknx.telegram.address import IndividualAddress
+    from xknx.telegram.apci import APCI
 
     from .data_secure import DeviceSecurity
     from .programmer import BusConnection, ConnectionManager
+
+
+class XknxBusConnection:
+    """A point-to-point connection of ``xknx`` as a :class:`BusConnection`.
+
+    ``xknx`` checks the answer to a request service against the response type the service
+    declares; a request here names the response it expects, which also covers services that
+    declare none (a memory write answered by its echo, a function property command).
+    """
+
+    def __init__(self, connection: P2PConnection) -> None:
+        self._connection = connection
+
+    async def send_data(self, payload: APCI, wait_for_ack: bool = True) -> None:
+        """Send a payload and, by default, wait for the transport layer ACK."""
+        await self._connection.send_data(payload, wait_for_ack)
+
+    async def request(self, payload: APCI, expected: type[APCI] | None) -> Telegram:
+        """Send a payload and return the device's response, which must be an ``expected``."""
+        telegram = await self._connection.request(payload)
+        if expected is not None and not isinstance(telegram.payload, expected):
+            raise ManagementConnectionError(
+                f"Received unexpected telegram: {telegram.payload}"
+            )
+        return telegram
+
+
+async def connect(xknx: XKNX, address: IndividualAddress) -> BusConnection:
+    """Open a connection-oriented point-to-point connection to ``address``."""
+    return XknxBusConnection(await xknx.management.connect(address))
 
 
 class XknxConnectionManager:
@@ -26,7 +59,7 @@ class XknxConnectionManager:
 
     async def open(self) -> BusConnection:
         """Open a fresh connection to the device."""
-        self._connection = await self._xknx.management.connect(self._address)
+        self._connection = await connect(self._xknx, self._address)
         return self._connection
 
     async def close(self) -> None:

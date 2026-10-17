@@ -19,6 +19,7 @@ from xknx.exceptions import ManagementConnectionError, XKNXException
 from xknx.telegram import IndividualAddress
 
 from xknxeditor.download import DeviceProgrammer
+from xknxeditor.download.session import connect
 
 from .dossier import DeviceDossier, read_dossier
 from .identify import AppId, read_application_id
@@ -204,7 +205,7 @@ async def identify_device_at(
     to be started. Read-only.
     """
     target = IndividualAddress(address)
-    connection = await xknx.management.connect(target)
+    connection = await connect(xknx, target)
     try:
         return await read_application_id(DeviceProgrammer(connection))
     finally:
@@ -239,7 +240,7 @@ async def recover_device_at(
     for attempt in range(max(attempts, 1)):
         connection = None
         try:
-            connection = await xknx.management.connect(target)
+            connection = await connect(xknx, target)
             programmer = DeviceProgrammer(connection)
             if negotiate_apdu:
                 with contextlib.suppress(XKNXException):

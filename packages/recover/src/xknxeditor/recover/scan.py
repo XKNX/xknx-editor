@@ -19,6 +19,7 @@ from xknx.telegram import IndividualAddress
 
 from xknxeditor.download import DeviceProgrammer
 from xknxeditor.download.errors import DownloadError
+from xknxeditor.download.session import connect
 
 from .identify import AppId, read_application_id
 
@@ -68,7 +69,7 @@ async def probe_device(
     """
     target = IndividualAddress(address)
     try:
-        connection = await xknx.management.connect(target)
+        connection = await connect(xknx, target)
     except _PROBE_ERRORS:
         return None
     try:
@@ -95,7 +96,7 @@ async def probe_and_identify(
     """
     target = IndividualAddress(address)
     try:
-        connection = await xknx.management.connect(target)
+        connection = await connect(xknx, target)
     except _PROBE_ERRORS:
         return None, None
     try:

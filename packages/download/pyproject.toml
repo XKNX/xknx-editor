@@ -9,7 +9,7 @@ dependencies = [
     "xknxeditor-prod",
     # Pinned: relies on P2PConnection.request(payload, expected) and the
     # management API as published in the 3.x line.
-    "xknx>=3.20,<4",
+    "xknx>=4.0,<5",
 ]
 
 [build-system]

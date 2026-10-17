@@ -116,7 +116,7 @@ async def _write_address_via_programming_mode(
     if not devices:
         raise ManagementConnectionError("No device in programming mode detected.")
 
-    await xknx.management.send_broadcast(
+    await xknx.management.broadcast.send(
         payload=apci.IndividualAddressWrite(address=address),
     )
     logger.debug("Wrote address %s to the device in programming mode.", address)
@@ -246,7 +246,7 @@ async def download_individual_address(
             f"The individual address {address} is already in use by another device."
         )
     if devices[0] != address:
-        await xknx.management.send_broadcast(
+        await xknx.management.broadcast.send(
             payload=apci.IndividualAddressWrite(address=address),
         )
         logger.debug("Wrote address %s to device %s.", address, devices[0])
@@ -338,7 +338,7 @@ async def reset_individual_address(xknx: XKNX) -> None:
     if not devices:
         raise ManagementConnectionError("No device in programming mode detected.")
 
-    await xknx.management.send_broadcast(
+    await xknx.management.broadcast.send(
         payload=apci.IndividualAddressWrite(address=DEFAULT_INDIVIDUAL_ADDRESS),
     )
     logger.debug("Reset device %s to the default address.", devices[0])
