@@ -65,6 +65,7 @@ from editor_gui.plugins.project.ui.project_diff import (
 )
 from editor_gui.plugins.project.ui.read_device_dialog import ReadDeviceDialog
 from editor_gui.plugins.project.ui.secure_commissioning import SecureCommissioningDialog
+from editor_gui.plugins.project.ui.space_details import SpaceDetailsPanel
 from editor_gui.plugins.project.ui.tools import apply_name_swap, shifted_ia
 from editor_gui.widgets import ButtonActions
 from editor_gui.widgets.dialog import begin_tool_window
@@ -92,6 +93,7 @@ if TYPE_CHECKING:
     from xknxeditor.download.scope import DownloadScope
     from xknxeditor.prod import Application
     from xknxeditor.prod.parser_v2.ui import UiButton
+    from xknxeditor.proj.core.service import SpaceInfo
     from xknxeditor.recover import AppId
 
 
@@ -319,6 +321,11 @@ class ProjectPlugin:
             on_export=export_group_addresses,
         )
 
+        self._space_details = SpaceDetailsPanel(
+            on_rename=api.project.rename_space,
+            on_set_description=api.project.set_space_description,
+            on_set_number=api.project.set_space_number,
+        )
         self._spaces_panel = SpacesPanel(
             get_space_tree=api.project.get_space_tree,
             on_select_device_id=self._select_device_by_id,
@@ -330,7 +337,8 @@ class ProjectPlugin:
             on_remove_function_ga=api.project.remove_function_group_address,
             get_ga_range_tree=api.project.get_group_range_tree,
             on_create_space=api.project.create_space,
-            on_rename_space=api.project.rename_space,
+            get_selected_space_id=lambda: api.project.selected_space_id,
+            on_select_space=self._select_space,
             on_set_space_type=api.project.set_space_type,
             on_move_space=api.project.move_space,
             on_remove_space=api.project.remove_space,
@@ -600,6 +608,14 @@ class ProjectPlugin:
 
     def _set_selected_device(self, device: "Device") -> None:
         self._api.project.selected_device = device
+
+    def _select_space(self, space_id: int) -> None:
+        self._api.project.selected_space_id = space_id
+
+    def selected_space(self) -> "SpaceInfo | None":
+        """The space selected in the Buildings tree (its details replace the device's), if any."""
+        space_id = self._api.project.selected_space_id
+        return self._api.project.find_space(space_id) if space_id is not None else None
 
     def _select_device_by_id(self, node_id: int) -> None:
         device = self._api.project.find_device_by_node_id(node_id)
@@ -2233,6 +2249,10 @@ class ProjectPlugin:
         self._configure_panel.render()
 
     def _render_device(self) -> None:
+        space = self.selected_space()
+        if space is not None:
+            self._space_details.render(space)
+            return
         self._sync_selected_device_from_editor()
         self._configure_panel.render_device()
 

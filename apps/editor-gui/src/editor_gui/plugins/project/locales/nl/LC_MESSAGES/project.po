@@ -426,14 +426,20 @@ msgstr "Rol (optioneel)"
 msgid "Custom"
 msgstr "Aangepast"
 
-msgid "Switching (light)"
-msgstr "Schakelen (licht)"
+msgid "Switchable Light"
+msgstr "Schakelbaar licht"
 
-msgid "Dimming (light)"
-msgstr "Dimmen (licht)"
+msgid "Dimmable Light"
+msgstr "Dimbaar licht"
 
-msgid "Blinds / Sun Protection"
-msgstr "Jaloezie / zonwering"
+msgid "Sun Protection"
+msgstr "Zonwering"
+
+msgid "Heating (Switching Variable)"
+msgstr "Verwarming (schakelende stuurgrootheid)"
+
+msgid "Heating (Continuous Variable)"
+msgstr "Verwarming (continue stuurgrootheid)"
 
 msgid "Switchable Socket"
 msgstr "Schakelbaar stopcontact"
@@ -885,9 +891,6 @@ msgstr "Applicatieprogramma wordt bijgewerkt…"
 
 msgid "Changing the application program…"
 msgstr "Applicatieprogramma wordt gewijzigd…"
-
-msgid "Rename Space"
-msgstr "Ruimte hernoemen"
 
 msgid "Delete Space"
 msgstr "Ruimte verwijderen"

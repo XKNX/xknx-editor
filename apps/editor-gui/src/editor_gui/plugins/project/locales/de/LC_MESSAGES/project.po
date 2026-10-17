@@ -903,17 +903,23 @@ msgstr "Rolle (optional)"
 msgid "Custom"
 msgstr "Benutzerdefiniert"
 
-msgid "Switching (light)"
-msgstr "Schalten (Licht)"
+msgid "Switchable Light"
+msgstr "Licht schalten"
 
-msgid "Dimming (light)"
-msgstr "Dimmen (Licht)"
+msgid "Dimmable Light"
+msgstr "Licht dimmen"
 
-msgid "Blinds / Sun Protection"
-msgstr "Jalousie / Sonnenschutz"
+msgid "Sun Protection"
+msgstr "Sonnenschutz"
+
+msgid "Heating (Switching Variable)"
+msgstr "Heizung (schaltende Stellgröße)"
+
+msgid "Heating (Continuous Variable)"
+msgstr "Heizung (stetige Stellgröße)"
 
 msgid "Switchable Socket"
-msgstr "Schaltbare Steckdose"
+msgstr "Steckdose schalten"
 
 msgid "Confirmed Restart"
 msgstr "Bestätigter Neustart"
@@ -1336,9 +1342,6 @@ msgstr "Applikationsprogramm wird aktualisiert…"
 
 msgid "Changing the application program…"
 msgstr "Applikationsprogramm wird geändert…"
-
-msgid "Rename Space"
-msgstr "Bereich umbenennen"
 
 msgid "Delete Space"
 msgstr "Bereich löschen"

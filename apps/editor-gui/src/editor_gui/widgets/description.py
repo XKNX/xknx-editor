@@ -11,18 +11,23 @@ from editor_gui.widgets.dpi import px
 ICON_DESCRIPTION = ""
 # Width the description wraps at in its tooltip, at 100 % scaling.
 _WRAP_WIDTH = 420.0
-# A description this short or shorter is shown inline; a longer one goes behind the note icon.
+# A description this short or shorter is shown inline; a longer one (or one of several lines)
+# goes behind the note icon.
 MIN_DESCRIPTION_LENGTH = 15
 
 
 def shows_description_icon(description: str | None) -> bool:
-    """Whether ``description`` is long enough to be shown behind the note icon (vs inline)."""
-    return description is not None and len(description.strip()) > MIN_DESCRIPTION_LENGTH
+    """Whether ``description`` is shown behind the note icon (vs inline): when it is long or has
+    more than one line."""
+    if description is None:
+        return False
+    text = description.strip()
+    return len(text) > MIN_DESCRIPTION_LENGTH or "\n" in text
 
 
 def render_description(description: str | None) -> bool:
-    """Append ``description`` after the previous item: a short one inline (dimmed), a longer one
-    behind a hover icon. Returns whether the icon is hovered (always ``False`` for the inline form)."""
+    """Append ``description`` after the previous item: a short one inline (dimmed), a longer or
+    multi-line one behind a hover icon. Returns whether the icon is hovered (always ``False`` for the inline form)."""
     if not description or not description.strip():
         return False
     if shows_description_icon(description):

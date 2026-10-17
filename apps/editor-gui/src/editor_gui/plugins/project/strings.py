@@ -740,16 +740,8 @@ class ProjectStrings:
         return _("Create")
 
     @property
-    def SPACES_RENAME(self) -> str:
-        return _("Rename")
-
-    @property
     def SPACES_DELETE(self) -> str:
         return _("Delete")
-
-    @property
-    def SPACES_RENAME_TITLE(self) -> str:
-        return _("Rename Space")
 
     @property
     def SPACES_DELETE_TITLE(self) -> str:
@@ -863,15 +855,23 @@ class ProjectStrings:
 
     @property
     def SPACES_FN_TYPE_SWITCH(self) -> str:
-        return _("Switching (light)")
+        return _("Switchable Light")
 
     @property
     def SPACES_FN_TYPE_DIM(self) -> str:
-        return _("Dimming (light)")
+        return _("Dimmable Light")
 
     @property
-    def SPACES_FN_TYPE_BLIND(self) -> str:
-        return _("Blinds / Sun Protection")
+    def SPACES_FN_TYPE_SUN_PROTECTION(self) -> str:
+        return _("Sun Protection")
+
+    @property
+    def SPACES_FN_TYPE_HEATING_SWITCHING(self) -> str:
+        return _("Heating (Switching Variable)")
+
+    @property
+    def SPACES_FN_TYPE_HEATING_CONTINUOUS(self) -> str:
+        return _("Heating (Continuous Variable)")
 
     @property
     def SPACES_FN_TYPE_SOCKET(self) -> str:
@@ -2924,6 +2924,10 @@ class ProjectStrings:
     @property
     def PREFLIGHT_SCOPE(self) -> str:
         return _("Scope: {scope}")
+
+    @property
+    def SPACE_NUMBER(self) -> str:
+        return _("Number")
 
 
 S = ProjectStrings()

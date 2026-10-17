@@ -92,6 +92,8 @@ from xknxeditor.proj.core.events import (
     SetGroupAddressSecurity,
     SetParameter,
     SetProjectName,
+    SetSpaceDescription,
+    SetSpaceNumber,
     SetSpaceType,
     SyncDeviceComObjects,
     UnlinkComObject,
@@ -1139,6 +1141,19 @@ class ProjectService:
 
     def rename_space(self, project_id: str, space_id: int, name: str) -> None:
         self._state(project_id).store.append(RenameSpace(space_id=space_id, name=name))
+
+    def set_space_number(self, project_id: str, space_id: int, number: str) -> None:
+        """Set the number of a space, a free text."""
+        self._state(project_id).store.append(
+            SetSpaceNumber(space_id=space_id, number=number)
+        )
+
+    def set_space_description(
+        self, project_id: str, space_id: int, description: str
+    ) -> None:
+        self._state(project_id).store.append(
+            SetSpaceDescription(space_id=space_id, description=description)
+        )
 
     def set_space_type(self, project_id: str, space_id: int, space_type: str) -> None:
         self._state(project_id).store.append(

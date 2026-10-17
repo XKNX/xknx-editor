@@ -53,6 +53,7 @@ from editor_gui.plugins.mcp import McpServerPlugin
 from editor_gui.plugins.monitor import MonitorPlugin
 from editor_gui.plugins.project import ProjectPlugin, ProjectService
 from editor_gui.plugins.project.knxproj_manufacturer import collect_manufacturer_bundle
+from editor_gui.plugins.project.ui.spaces import space_type_label
 from editor_gui.plugins.recover import RecoverPlugin
 from editor_gui.plugins.signing import SigningPlugin
 from editor_gui.plugins.timeline import TimelinePlugin
@@ -367,6 +368,8 @@ class KnxGuiApp:
         # FPS and the idling toggle at the end of the status bar.
         self._show_status_fps = False
         self._show_status_bar = True
+        # The Manufacturer tab was hidden for a selected space (see _sync_device_section).
+        self._manufacturer_hidden = False
         # Overwrite guard: the portable file dialog does not confirm replacing an existing file on
         # macOS (it wraps AppleScript's "choose file name"), so we ask here. Requests queue as
         # (target, action) pairs so a second dialog resolving mid-confirmation cannot drop the first.
@@ -2568,6 +2571,31 @@ class KnxGuiApp:
 
         self._run_bg(S.PROGRESS_LOAD_KNXPROD, worker)
 
+    def _sync_device_section(self) -> None:
+        """While a space is selected in the Buildings tree, the Device tab shows it, titled with
+        its type (Building, Floor, …), and the Manufacturer tab is hidden and left out of the
+        menus; selecting a device again restores both."""
+        space = self._project_plugin.selected_space()
+        title = (
+            space_type_label(space.space_type) or _DOCK_LABELS["device"]()
+            if space is not None
+            else _DOCK_LABELS["device"]()
+        )
+        for window in hello_imgui.get_runner_params().docking_params.dockable_windows:
+            name = _dock_window_name(window)
+            if name == "device":
+                label = f"{title}###device"
+                if window.label != label:
+                    window.label = label
+            elif name == "manufacturer":
+                window.include_in_view_menu = space is None
+                if space is not None and window.is_visible:
+                    window.is_visible = False
+                    self._manufacturer_hidden = True
+                elif space is None and self._manufacturer_hidden:
+                    window.is_visible = True
+                    self._manufacturer_hidden = False
+
     def _render_status_bar(self) -> None:
         """The status bar along the bottom of the window, below the docked panels: a thin line on
         top, and as much room above its text as below it. The docked panels end above it."""
@@ -3335,6 +3363,7 @@ class KnxGuiApp:
 
     def render_overlays(self) -> None:
         self._project_service.take_rechecked_devices()
+        self._sync_device_section()
         self._render_status_bar()
         render_section_menus()
         set_window_title(self._window_title())

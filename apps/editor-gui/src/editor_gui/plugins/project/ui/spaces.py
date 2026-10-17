@@ -25,15 +25,22 @@ if TYPE_CHECKING:
 
 
 def _function_type_presets() -> list[tuple[str, str]]:
-    """(label, KNX FunctionType code) for the type picker. Codes verified against knx_master.xml
-    (current, non-deprecated); role stays free text since group addresses are accepted without one."""
+    """(label, KNX FunctionType code) for the type picker: every current (non-deprecated) type
+    of knx_master.xml, in its order; role stays free text since group addresses are accepted
+    without one."""
     return [
+        (S.SPACES_FN_TYPE_CUSTOM, "FT-0"),
         (S.SPACES_FN_TYPE_SWITCH, "FT-1"),
         (S.SPACES_FN_TYPE_DIM, "FT-6"),
-        (S.SPACES_FN_TYPE_BLIND, "FT-7"),
+        (S.SPACES_FN_TYPE_SUN_PROTECTION, "FT-7"),
+        (S.SPACES_FN_TYPE_HEATING_SWITCHING, "FT-8"),
+        (S.SPACES_FN_TYPE_HEATING_CONTINUOUS, "FT-9"),
         (S.SPACES_FN_TYPE_SOCKET, "FT-10"),
-        (S.SPACES_FN_TYPE_CUSTOM, "FT-0"),
     ]
+
+
+# The type a new function starts with: a switchable light.
+_DEFAULT_FUNCTION_TYPE = 1
 
 
 def _function_type_label(code: str) -> str:
@@ -57,6 +64,22 @@ def _space_type_presets() -> list[tuple[str, str]]:
     ]
 
 
+def space_type_label(code: str) -> str:
+    """The name of the space type ``code`` (e.g. "Floor"), translated; an unknown code itself."""
+    for label, c in _space_type_presets():
+        if c == code:
+            return label
+    return code
+
+
+def space_label(space: "SpaceInfo") -> str:
+    """A space as the tree lists it: its name, then its number in brackets."""
+    label = space.name or space_type_label(space.space_type) or "?"
+    if space.number:
+        label = f"{label} ({space.number})"
+    return label
+
+
 def _default_child_type_index(parent_type: str | None) -> int:
     """Sensible default type for a new child, given its parent's type (index into the presets):
     a building holds floors, a floor holds rooms, everything else defaults to a room."""
@@ -71,10 +94,6 @@ def _default_child_type_index(parent_type: str | None) -> int:
 # must be passed the same string).
 def _new_space_dialog(key: str) -> str:
     return f"{S.SPACES_SPACE_NEW_TITLE}###newspace_{key}"
-
-
-def _rename_space_dialog(space_id: int) -> str:
-    return f"{S.SPACES_RENAME_TITLE}###renspace{space_id}"
 
 
 def _delete_space_dialog(space_id: int) -> str:
@@ -110,7 +129,8 @@ class SpacesPanel:
         on_remove_function_ga: Callable[[int], None] | None = None,
         get_ga_range_tree: Callable[[], list[Any]] | None = None,
         on_create_space: Callable[[int | None, str, str], None] | None = None,
-        on_rename_space: Callable[[int, str], None] | None = None,
+        get_selected_space_id: Callable[[], int | None] | None = None,
+        on_select_space: Callable[[int], None] | None = None,
         on_set_space_type: Callable[[int, str], None] | None = None,
         on_move_space: Callable[[int, int | None], None] | None = None,
         on_remove_space: Callable[[int], None] | None = None,
@@ -134,7 +154,8 @@ class SpacesPanel:
         self._on_remove_function_ga = on_remove_function_ga
         self._get_ga_range_tree = get_ga_range_tree
         self._on_create_space = on_create_space
-        self._on_rename_space = on_rename_space
+        self._get_selected_space_id = get_selected_space_id
+        self._on_select_space = on_select_space
         self._on_set_space_type = on_set_space_type
         self._on_move_space = on_move_space
         self._on_remove_space = on_remove_space
@@ -154,7 +175,9 @@ class SpacesPanel:
         # "New function" form state (one dialog at a time; keyed by the target space).
         self._new_fn_space: int | None = None
         self._new_fn_name = ""
-        self._new_fn_type = 0  # index into _function_type_presets()
+        self._new_fn_type = (
+            _DEFAULT_FUNCTION_TYPE  # index into _function_type_presets()
+        )
         # "Rename function" + "assign group address" dialog state.
         self._rename_fn: int | None = None
         self._rename_buf = ""
@@ -164,7 +187,6 @@ class SpacesPanel:
         # "New space" + "rename space" + "assign device" dialog state (shared; one popup at a time).
         self._new_space_name = ""
         self._new_space_type = 0  # index into _space_type_presets()
-        self._space_rename_buf = ""
         self._assign_filter = ""
         # A popup requested from inside a context menu must be opened one scope up, not inside the
         # context-menu popup: imgui.open_popup() and begin_popup() only match when called in the
@@ -201,30 +223,39 @@ class SpacesPanel:
         # A space that matches by its own name shows all its contents; otherwise
         # only the matching devices/functions (and matching child spaces).
         self_match = not flt or self._space_matches_self(space, flt)
-        label = space.name or space.space_type or "?"
-        if space.space_type:
-            label = f"{label}  [{space.space_type}]"
         if flt:
             imgui.set_next_item_open(True, imgui.Cond_.always)
-        open_node = tree_node(
-            f"{label}##sp{space.id}", imgui.TreeNodeFlags_.default_open
+        # A click selects the space (its details show in place of the device's), the arrow and
+        # a double click open it.
+        flags = (
+            imgui.TreeNodeFlags_.default_open
+            | imgui.TreeNodeFlags_.open_on_arrow
+            | imgui.TreeNodeFlags_.open_on_double_click
         )
-        if space.description and imgui.is_item_hovered():
-            imgui.set_tooltip(space.description)
+        selected = (
+            self._get_selected_space_id() if self._get_selected_space_id else None
+        )
+        if space.id == selected:
+            flags |= imgui.TreeNodeFlags_.selected
+        open_node = tree_node(f"{space_label(space)}##sp{space.id}", flags)
+        if (
+            self._on_select_space is not None
+            and imgui.is_item_clicked()
+            and not imgui.is_item_toggled_open()
+        ):
+            self._on_select_space(space.id)
         # The context menu and the space's own popups must run whether the node is expanded or not
-        # (a collapsed node can still be renamed/moved/deleted), so render them before the return.
+        # (a collapsed node can still be moved/deleted), so render them before the return.
         self._render_space_context_menu(space)
+        # A short description shows inline; a longer one shows while its icon is hovered.
+        render_description(space.description)
         self._open_if_pending(_new_space_dialog(str(space.id)))
         self._render_new_space_popup(space.id, _new_space_dialog(str(space.id)))
-        self._open_if_pending(_rename_space_dialog(space.id))
-        self._render_space_rename_popup(space.id)
         self._open_if_pending(_delete_space_dialog(space.id))
         self._render_space_delete_confirm(space.id)
         self._render_assign_device_popup(space.id)
         if not open_node:
             return
-        if space.description:
-            imgui.text_disabled(space.description)
         for child in space.children:
             self._render_space(child, flt)
         with leaf_rows():
@@ -244,7 +275,7 @@ class SpacesPanel:
             if imgui.small_button(f"{S.SPACES_ADD_FUNCTION}##addfn{space.id}"):
                 self._new_fn_space = space.id
                 self._new_fn_name = ""
-                self._new_fn_type = 0
+                self._new_fn_type = _DEFAULT_FUNCTION_TYPE
                 imgui.open_popup(_new_function_dialog(space.id))
             self._render_new_function_popup(space.id)
         imgui.tree_pop()
@@ -257,7 +288,13 @@ class SpacesPanel:
             imgui.open_popup(popup_id)
 
     def _render_space_context_menu(self, space: "SpaceInfo") -> None:
-        if self._on_rename_space is None:  # editing disabled -> no menu
+        editing = (
+            self._on_create_space,
+            self._on_set_space_type,
+            self._on_move_space,
+            self._on_remove_space,
+        )
+        if all(callback is None for callback in editing):  # editing disabled -> no menu
             return
         if not imgui.begin_popup_context_item(f"##spctx{space.id}"):
             return
@@ -268,9 +305,6 @@ class SpacesPanel:
             self._new_space_name = ""
             self._new_space_type = _default_child_type_index(space.space_type)
             self._pending_popup_id = _new_space_dialog(str(space.id))
-        if imgui.menu_item(S.SPACES_RENAME, "", False)[0]:
-            self._space_rename_buf = space.name
-            self._pending_popup_id = _rename_space_dialog(space.id)
         if self._on_set_space_type is not None and imgui.begin_menu(S.SPACES_TYPE):
             for label, code in _space_type_presets():
                 if imgui.menu_item(label, "", space.space_type == code)[0]:
@@ -327,23 +361,6 @@ class SpacesPanel:
         if clicked == 0:
             _, code = presets[self._new_space_type]
             self._on_create_space(parent_id, code, self._new_space_name.strip())
-            imgui.close_current_popup()
-        elif clicked == 1:
-            imgui.close_current_popup()
-        end_dialog()
-
-    def _render_space_rename_popup(self, space_id: int) -> None:
-        if self._on_rename_space is None or not begin_dialog(
-            _rename_space_dialog(space_id)
-        ):
-            return
-        imgui.set_next_item_width(px(240.0))
-        _, self._space_rename_buf = imgui.input_text(
-            S.SPACES_SPACE_NAME, self._space_rename_buf
-        )
-        clicked = dialog_buttons(S.SPACES_RENAME, S.ML_CANCEL)
-        if clicked == 0:
-            self._on_rename_space(space_id, self._space_rename_buf.strip())
             imgui.close_current_popup()
         elif clicked == 1:
             imgui.close_current_popup()
