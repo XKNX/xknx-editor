@@ -3,13 +3,16 @@ objects), stored in the project so it opens without loading every application.
 
 A snapshot's key covers everything the device was built from: the application (its stored product
 file, which is named by its content hash), the language, the device's parameters, module instances
-and group objects, and the code that evaluates them. A device whose key changed is evaluated again.
+and group objects, and the code that evaluates them. A device whose content changed is evaluated
+again. One whose snapshot only comes from other code (another editor version) opens from it and is
+evaluated again in the background.
 The data is JSON of plain values only, so a project from elsewhere cannot make the editor run code.
 """
 
 from __future__ import annotations
 
 import dataclasses
+import enum
 import hashlib
 import json
 from functools import cache
@@ -83,16 +86,37 @@ def source_fingerprint() -> str:
 def snapshot_key(source: tuple[Any, ...], application_source: str) -> str:
     """The key of the snapshot of a device built from ``source`` (its program refs, then the
     column values of its parameters, module instances and group objects, each row starting with
-    its id) with the application read from ``application_source``."""
+    its id) with the application read from ``application_source``: the hash of that content, then
+    the fingerprint of the code that evaluated it."""
+    return f"{_content_key(source, application_source)}.{code_fingerprint()}"
+
+
+def snapshot_state(
+    stored_key: str, source: tuple[Any, ...], application_source: str
+) -> SnapshotState:
+    """How a snapshot stored under ``stored_key`` fits the device built from ``source``."""
+    content, _, fingerprint = stored_key.partition(".")
+    if content != _content_key(source, application_source):
+        return SnapshotState.OUTDATED
+    if fingerprint != code_fingerprint():
+        return SnapshotState.OTHER_CODE
+    return SnapshotState.CURRENT
+
+
+class SnapshotState(enum.Enum):
+    # Built from this content by this code.
+    CURRENT = enum.auto()
+    # Built from this content by other code (another editor version): almost always still what
+    # this code derives, so it is shown until the device has been evaluated again.
+    OTHER_CODE = enum.auto()
+    # Built from other content (the device or its application changed).
+    OUTDATED = enum.auto()
+
+
+def _content_key(source: tuple[Any, ...], application_source: str) -> str:
     program_refs = source[:-3]
     rows = [sorted(table, key=lambda values: values[0]) for table in source[-3:]]
-    content = [
-        SNAPSHOT_FORMAT,
-        code_fingerprint(),
-        application_source,
-        list(program_refs),
-        rows,
-    ]
+    content = [SNAPSHOT_FORMAT, application_source, list(program_refs), rows]
     encoded = json.dumps(content, sort_keys=True, default=str, separators=(",", ":"))
     return hashlib.sha256(encoded.encode()).hexdigest()
 

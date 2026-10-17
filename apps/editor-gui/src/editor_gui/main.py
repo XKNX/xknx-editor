@@ -3165,6 +3165,7 @@ class KnxGuiApp:
             save_settings("app", data)
 
     def render_overlays(self) -> None:
+        self._project_service.take_rechecked_devices()
         render_section_menus()
         set_window_title(self._window_title())
         # Log the active OpenGL renderer once, from the frame path (context guaranteed current).
