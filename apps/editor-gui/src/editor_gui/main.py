@@ -60,6 +60,7 @@ from editor_gui.plugins.topology import TopologyPlugin
 from editor_gui.portal_save import PortalSaveDialog
 from editor_gui.settings import config_dir, load_settings, save_settings
 from editor_gui.strings import S, get_locale, set_locale
+from editor_gui.theme import ThemeWindow, apply_style, apply_theme, theme_name, themes
 from editor_gui.update_check import UpdateInfo, check_for_update
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -340,7 +341,7 @@ class KnxGuiApp:
         self._gl_logged = False
         self._title_key: tuple[int, int] | None = None
         self._title_name = ""
-        self._show_theme_tweaks = False
+        self._theme_window = ThemeWindow()
         # FPS and the idling toggle at the end of the status bar.
         self._show_status_fps = False
         # Overwrite guard: the portable file dialog does not confirm replacing an existing file on
@@ -3172,10 +3173,7 @@ class KnxGuiApp:
         if not self._gl_logged:
             self._gl_logged = True
             _log_gl_renderer(self._log)
-        if self._show_theme_tweaks:
-            self._show_theme_tweaks = bool(
-                hello_imgui.show_theme_tweak_gui_window(self._show_theme_tweaks)
-            )
+        self._theme_window.render()
         # Bring the Editor tab to the front when another view (Device Overview, Topology, Health)
         # selected a device. Consumed here (a per-frame global callback) rather than in the Editor
         # panel itself, because a background dock tab is not rendered and would never see the flag.
@@ -3674,19 +3672,14 @@ class KnxGuiApp:
     def _render_theme_menu(self, tweaked_theme: hello_imgui.ImGuiTweakedTheme) -> None:
         if not imgui.begin_menu(S.MENU_THEME):
             return
-        changed, shown = imgui.menu_item(
-            S.MENU_THEME_TWEAKS, "", self._show_theme_tweaks
-        )
-        if changed:
-            self._show_theme_tweaks = shown
+        if imgui.menu_item(S.MENU_THEME_CUSTOMIZE, "", False)[0]:
+            self._theme_window.open = True
         imgui.separator()
-        for i in range(int(hello_imgui.ImGuiTheme_.count)):
-            theme = hello_imgui.ImGuiTheme_(i)
+        for theme in themes():
             selected = tweaked_theme.theme == theme
-            if imgui.menu_item(hello_imgui.imgui_theme_name(theme), "", selected)[0]:
+            if imgui.menu_item(theme_name(theme), "", selected)[0]:
                 tweaked_theme.theme = theme
-                hello_imgui.apply_tweaked_theme(tweaked_theme)
-                _apply_window_colors()
+                apply_theme(tweaked_theme)
         imgui.end_menu()
 
     def _refresh_dock_titles(self) -> None:
@@ -4107,51 +4100,6 @@ def create_dockable_windows(app: KnxGuiApp) -> list[hello_imgui.DockableWindow]:
     return windows
 
 
-def _apply_style() -> None:
-    """Refine the imgui style on top of the theme: rounded corners + roomier spacing."""
-    style = imgui.get_style()
-    style.window_rounding = 6.0
-    style.child_rounding = 4.0
-    style.frame_rounding = 4.0
-    style.popup_rounding = 4.0
-    style.grab_rounding = 4.0
-    style.tab_rounding = 4.0
-    style.scrollbar_rounding = 4.0
-    style.frame_border_size = 1.0
-    style.window_padding = imgui.ImVec2(10.0, 10.0)
-    style.frame_padding = imgui.ImVec2(8.0, 4.0)
-    style.item_spacing = imgui.ImVec2(8.0, 6.0)
-    style.item_inner_spacing = imgui.ImVec2(6.0, 4.0)
-    style.scrollbar_size = 12.0
-    style.cell_padding = imgui.ImVec2(6.0, 4.0)
-    _apply_window_colors()
-
-
-def _apply_window_colors() -> None:
-    """Opaque windows, popups and title bars, and a dark dim behind modal dialogs.
-
-    The theme ships translucent backgrounds and a translucent active title bar, which lets the
-    content behind dialogs and tool windows show through."""
-    style = imgui.get_style()
-    for col in (imgui.Col_.window_bg, imgui.Col_.popup_bg):
-        color = style.color_(col)
-        style.set_color_(col, imgui.ImVec4(color.x, color.y, color.z, 1.0))
-    # The active title bar keeps the shade it had over the window background, now opaque.
-    title = style.color_(imgui.Col_.title_bg_active)
-    window = style.color_(imgui.Col_.window_bg)
-    alpha = title.w
-    style.set_color_(
-        imgui.Col_.title_bg_active,
-        imgui.ImVec4(
-            title.x * alpha + window.x * (1.0 - alpha),
-            title.y * alpha + window.y * (1.0 - alpha),
-            title.z * alpha + window.z * (1.0 - alpha),
-            1.0,
-        ),
-    )
-    style.set_color_(imgui.Col_.modal_window_dim_bg, imgui.ImVec4(0.0, 0.0, 0.0, 0.45))
-
-
 # UI languages offered in the Language menu (locale code, native label). Catalogs live under each
 # plugin's locales/<code>/LC_MESSAGES; "en" is the untranslated source.
 _UI_LANGUAGES: list[tuple[str, str]] = [
@@ -4296,7 +4244,7 @@ def _main() -> None:
     runner_params.imgui_window_params.tweaked_theme.theme = (
         hello_imgui.ImGuiTheme_.darcula_darker
     )
-    runner_params.callbacks.setup_imgui_style = _apply_style
+    runner_params.callbacks.setup_imgui_style = apply_style
     runner_params.callbacks.load_additional_fonts = load_fonts
 
     runner_params.imgui_window_params.show_menu_bar = True

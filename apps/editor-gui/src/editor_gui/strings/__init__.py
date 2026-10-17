@@ -974,8 +974,204 @@ class MenuStrings:
         return _("Theme")
 
     @property
-    def MENU_THEME_TWEAKS(self) -> str:
-        return _("Theme Tweaks")
+    def MENU_THEME_CUSTOMIZE(self) -> str:
+        return _("Customize Theme…")
+
+    @property
+    def THEME_WINDOW_TITLE(self) -> str:
+        return _("Customize Theme")
+
+    @property
+    def THEME_TAB_SIZES(self) -> str:
+        return _("Sizes")
+
+    @property
+    def THEME_TAB_COLORS(self) -> str:
+        return _("Colors")
+
+    @property
+    def THEME_TAB_RENDERING(self) -> str:
+        return _("Rendering")
+
+    @property
+    def THEME_SECTION_ADJUSTMENTS(self) -> str:
+        return _("Adjustments")
+
+    @property
+    def THEME_DEFAULT(self) -> str:
+        return _("Theme Default")
+
+    @property
+    def THEME_RESET(self) -> str:
+        return _("Reset to Theme")
+
+    @property
+    def THEME_ROUNDING(self) -> str:
+        return _("Rounding")
+
+    @property
+    def THEME_SCROLLBAR_ROUNDING_RATIO(self) -> str:
+        return _("Scrollbar Rounding Ratio")
+
+    @property
+    def THEME_OPACITY(self) -> str:
+        return _("Opacity")
+
+    @property
+    def THEME_HUE(self) -> str:
+        return _("Hue")
+
+    @property
+    def THEME_SATURATION(self) -> str:
+        return _("Saturation")
+
+    @property
+    def THEME_BRIGHTNESS_WIDGETS(self) -> str:
+        return _("Brightness of Controls")
+
+    @property
+    def THEME_BRIGHTNESS_BACKGROUNDS(self) -> str:
+        return _("Brightness of Backgrounds")
+
+    @property
+    def THEME_BRIGHTNESS_TEXT(self) -> str:
+        return _("Brightness of Text")
+
+    @property
+    def THEME_BRIGHTNESS_FIELDS(self) -> str:
+        return _("Brightness of Input Fields")
+
+    @property
+    def THEME_SECTION_SPACING(self) -> str:
+        return _("Spacing")
+
+    @property
+    def THEME_SECTION_BORDERS(self) -> str:
+        return _("Borders")
+
+    @property
+    def THEME_SECTION_ALIGNMENT(self) -> str:
+        return _("Alignment")
+
+    @property
+    def THEME_WINDOW_PADDING(self) -> str:
+        return _("Window Padding")
+
+    @property
+    def THEME_FRAME_PADDING(self) -> str:
+        return _("Field Padding")
+
+    @property
+    def THEME_CELL_PADDING(self) -> str:
+        return _("Cell Padding")
+
+    @property
+    def THEME_ITEM_SPACING(self) -> str:
+        return _("Item Spacing")
+
+    @property
+    def THEME_ITEM_INNER_SPACING(self) -> str:
+        return _("Item Inner Spacing")
+
+    @property
+    def THEME_TOUCH_PADDING(self) -> str:
+        return _("Extra Touch Padding")
+
+    @property
+    def THEME_INDENT(self) -> str:
+        return _("Indent")
+
+    @property
+    def THEME_SCROLLBAR_SIZE(self) -> str:
+        return _("Scrollbar Width")
+
+    @property
+    def THEME_GRAB_SIZE(self) -> str:
+        return _("Minimum Slider Grip Size")
+
+    @property
+    def THEME_WINDOWS(self) -> str:
+        return _("Windows")
+
+    @property
+    def THEME_CHILD_WINDOWS(self) -> str:
+        return _("Child Windows")
+
+    @property
+    def THEME_POPUPS(self) -> str:
+        return _("Popups")
+
+    @property
+    def THEME_FIELDS(self) -> str:
+        return _("Fields")
+
+    @property
+    def THEME_TABS(self) -> str:
+        return _("Tabs")
+
+    @property
+    def THEME_TAB_BAR(self) -> str:
+        return _("Tab Bar")
+
+    @property
+    def THEME_SCROLLBARS(self) -> str:
+        return _("Scrollbars")
+
+    @property
+    def THEME_SLIDER_GRIPS(self) -> str:
+        return _("Slider Grips")
+
+    @property
+    def THEME_WINDOW_TITLE_ALIGN(self) -> str:
+        return _("Window Title")
+
+    @property
+    def THEME_BUTTON_TEXT_ALIGN(self) -> str:
+        return _("Button Text")
+
+    @property
+    def THEME_SELECTABLE_TEXT_ALIGN(self) -> str:
+        return _("List Entry Text")
+
+    @property
+    def THEME_SEPARATOR_TEXT_ALIGN(self) -> str:
+        return _("Separator Text")
+
+    @property
+    def THEME_FONT_SCALE(self) -> str:
+        return _("Font Scale")
+
+    @property
+    def THEME_ANTI_ALIASED_LINES(self) -> str:
+        return _("Anti-Aliased Lines")
+
+    @property
+    def THEME_ANTI_ALIASED_FILL(self) -> str:
+        return _("Anti-Aliased Fills")
+
+    @property
+    def THEME_CURVE_TOLERANCE(self) -> str:
+        return _("Curve Tessellation Tolerance")
+
+    @property
+    def THEME_CIRCLE_ERROR(self) -> str:
+        return _("Maximum Circle Tessellation Error")
+
+    @property
+    def THEME_GLOBAL_OPACITY(self) -> str:
+        return _("Global Opacity")
+
+    @property
+    def THEME_DISABLED_OPACITY(self) -> str:
+        return _("Opacity of Disabled Items")
+
+    @property
+    def THEME_DEMO_WINDOW(self) -> str:
+        return _("Show ImGui Demo Window")
+
+    @property
+    def THEME_FILTER_COLORS(self) -> str:
+        return _("Filter colors")
 
     @property
     def MENU_UNDO(self) -> str:
