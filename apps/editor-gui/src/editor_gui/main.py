@@ -76,6 +76,7 @@ from editor_gui.widgets.dialog import (
     begin_dialog,
     dialog_buttons,
     end_dialog,
+    floating_window_border,
     focus_when_appearing,
 )
 from editor_gui.widgets.dpi import px, px_vec2
@@ -4069,7 +4070,8 @@ class KnxGuiApp:
         imgui.set_next_window_size(px_vec2(580.0, 0.0), imgui.Cond_.appearing)
         flags = imgui.WindowFlags_.no_collapse | imgui.WindowFlags_.no_saved_settings
         # p_open=True gives the window a close (X) button; when clicked it returns open=False.
-        expanded, still_open = imgui.begin(S.WELCOME_TITLE, True, flags)
+        with floating_window_border():
+            expanded, still_open = imgui.begin(S.WELCOME_TITLE, True, flags)
         if expanded:
             imgui.text_wrapped(S.WELCOME_HINT)
             imgui.spacing()

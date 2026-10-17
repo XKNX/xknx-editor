@@ -34,6 +34,9 @@ _BOX_LINE = 0.5
 # separator (Microsoft Style) would leave the lines and headings of the page tree invisible.
 _GROUP_CONTRAST = 0.04
 _LINE_CONTRAST = 0.09
+# The least the border of a floating window (a dialog) differs from the window, in luminance:
+# the light field borders of Microsoft Style would leave a dialog without a visible outline.
+_WINDOW_BORDER_CONTRAST = 0.35
 
 
 def _mix(a: imgui.ImVec4, b: imgui.ImVec4, t: float) -> imgui.ImVec4:
@@ -99,6 +102,18 @@ def box_line() -> imgui.ImVec4:
     separator = imgui.get_style().color_(imgui.Col_.separator)
     text = imgui.get_style().color_(imgui.Col_.text)
     return _apart(side, _mix(side, separator, _BOX_LINE), text, _LINE_CONTRAST)
+
+
+def window_border() -> imgui.ImVec4:
+    """The border of a floating window: the theme's border, but in a light theme at least
+    clearly apart from the window's background."""
+    style = imgui.get_style()
+    return _apart(
+        _window(),
+        style.color_(imgui.Col_.border),
+        style.color_(imgui.Col_.text),
+        _WINDOW_BORDER_CONTRAST,
+    )
 
 
 def _apart(

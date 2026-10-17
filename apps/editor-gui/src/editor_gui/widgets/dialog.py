@@ -9,10 +9,12 @@ size.
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Iterator, Sequence
+from contextlib import contextmanager
 
 from imgui_bundle import imgui
 
+from editor_gui.widgets.backgrounds import window_border
 from editor_gui.widgets.dpi import px, px_vec2
 
 _MIN_BUTTON_WIDTH = 90.0
@@ -24,6 +26,23 @@ def _center_next_window() -> None:
         imgui.Cond_.appearing,
         imgui.ImVec2(0.5, 0.5),
     )
+
+
+@contextmanager
+def floating_window_border() -> Iterator[None]:
+    """Windows begun inside get a border that stands out from their background, also in a theme
+    without window borders (Microsoft Style), while the fields in them keep the theme's lighter
+    one."""
+    style = imgui.get_style()
+    imgui.push_style_color(imgui.Col_.border, window_border())
+    imgui.push_style_var(
+        imgui.StyleVar_.window_border_size, max(style.window_border_size, 1.0)
+    )
+    try:
+        yield
+    finally:
+        imgui.pop_style_var()
+        imgui.pop_style_color()
 
 
 def begin_dialog(
@@ -47,7 +66,8 @@ def begin_dialog(
     else:
         flags |= imgui.WindowFlags_.always_auto_resize
     flags |= imgui.WindowFlags_.no_saved_settings
-    return imgui.begin_popup_modal(title, None, flags)[0]
+    with floating_window_border():
+        return imgui.begin_popup_modal(title, None, flags)[0]
 
 
 def end_dialog() -> None:
@@ -115,4 +135,5 @@ def begin_tool_window(
     """
     _center_next_window()
     imgui.set_next_window_size(px_vec2(width, height), imgui.Cond_.first_use_ever)
-    return imgui.begin(title, p_open, flags)
+    with floating_window_border():
+        return imgui.begin(title, p_open, flags)
