@@ -13,7 +13,7 @@ import httpx
 import pytest
 from fastmcp import FastMCP
 
-from editor_gui.plugins.mcp import plugin
+from editor_gui.plugins.mcp import plugin, server
 from editor_gui.plugins.mcp.context import McpContext
 
 _MCP_PATH = "/mcp/"
@@ -25,7 +25,7 @@ _BASE_URL = "http://127.0.0.1:8765"
 @pytest.fixture
 def app(monkeypatch: pytest.MonkeyPatch) -> Any:
     """The real ``build_http_app`` over a bare FastMCP, so the guard wiring is what is tested."""
-    monkeypatch.setattr(plugin, "build_server", lambda ctx, auth=None: FastMCP("probe"))
+    monkeypatch.setattr(server, "build_server", lambda ctx, auth=None: FastMCP("probe"))
     return plugin.build_http_app(cast("McpContext", None), None)
 
 
