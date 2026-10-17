@@ -246,6 +246,10 @@ def _file_name(name: str) -> str:
     return cleaned.strip().rstrip(". ")
 
 
+# Room at 100 % scaling above and below the status bar's text.
+_STATUS_PADDING = 7.0
+
+
 def _myknx_product_name(product: dict[str, object], pid: str) -> str:
     """Best-effort human-readable name for a MyKnx product/license, else the id.
 
@@ -349,6 +353,7 @@ class KnxGuiApp:
         self._theme_window = ThemeWindow()
         # FPS and the idling toggle at the end of the status bar.
         self._show_status_fps = False
+        self._show_status_bar = True
         # Overwrite guard: the portable file dialog does not confirm replacing an existing file on
         # macOS (it wraps AppleScript's "choose file name"), so we ask here. Requests queue as
         # (target, action) pairs so a second dialog resolving mid-confirmation cannot drop the first.
@@ -2550,6 +2555,62 @@ class KnxGuiApp:
 
         self._run_bg(S.PROGRESS_LOAD_KNXPROD, worker)
 
+    def _render_status_bar(self) -> None:
+        """The status bar along the bottom of the window, below the docked panels: a thin line on
+        top, and as much room above its text as below it. The docked panels end above it."""
+        window_params = hello_imgui.get_runner_params().imgui_window_params
+        if not self._show_status_bar:
+            window_params.full_screen_window_margin_bottom_right = imgui.ImVec2(
+                0.0, 0.0
+            )
+            return
+        pad = px(_STATUS_PADDING)
+        content = (
+            imgui.get_frame_height()
+            if self._show_status_fps
+            else imgui.get_text_line_height()
+        )
+        height = 1.0 + 2 * pad + content
+        # The margin is in units of the font size.
+        window_params.full_screen_window_margin_bottom_right = imgui.ImVec2(
+            0.0, height / imgui.get_font_size()
+        )
+        viewport = imgui.get_main_viewport()
+        imgui.set_next_window_pos(
+            imgui.ImVec2(viewport.pos.x, viewport.pos.y + viewport.size.y - height)
+        )
+        imgui.set_next_window_size(imgui.ImVec2(viewport.size.x, height))
+        style = imgui.get_style()
+        imgui.push_style_var(
+            imgui.StyleVar_.window_padding,
+            imgui.ImVec2(style.window_padding.x, pad + 1.0),
+        )
+        imgui.push_style_var(imgui.StyleVar_.window_border_size, 0.0)
+        imgui.push_style_var(imgui.StyleVar_.window_rounding, 0.0)
+        flags = (
+            imgui.WindowFlags_.no_decoration
+            | imgui.WindowFlags_.no_move
+            | imgui.WindowFlags_.no_saved_settings
+            | imgui.WindowFlags_.no_docking
+            | imgui.WindowFlags_.no_focus_on_appearing
+            | imgui.WindowFlags_.no_bring_to_front_on_focus
+            | imgui.WindowFlags_.no_nav
+        )
+        if imgui.begin("##status_bar", None, flags)[0]:
+            top_left = imgui.get_window_pos()
+            top_right = imgui.ImVec2(
+                top_left.x + imgui.get_window_width(), top_left.y + 1.0
+            )
+            draw_list = imgui.get_window_draw_list()
+            draw_list.push_clip_rect(top_left, top_right, False)
+            draw_list.add_rect_filled(
+                top_left, top_right, imgui.get_color_u32(imgui.Col_.separator)
+            )
+            draw_list.pop_clip_rect()
+            self.gui_status_bar()
+        imgui.end()
+        imgui.pop_style_var(3)
+
     def gui_status_bar(self) -> None:
         self._connection_plugin.render_status_indicator()
 
@@ -3257,6 +3318,7 @@ class KnxGuiApp:
 
     def render_overlays(self) -> None:
         self._project_service.take_rechecked_devices()
+        self._render_status_bar()
         render_section_menus()
         set_window_title(self._window_title())
         # Log the active OpenGL renderer once, from the frame path (context guaranteed current).
@@ -3770,11 +3832,9 @@ class KnxGuiApp:
             data["show_context_help"] = shown
             save_settings("app", data)
         window_params = params.imgui_window_params
-        changed, shown = imgui.menu_item(
-            S.MENU_STATUS_BAR, "", window_params.show_status_bar
-        )
+        changed, shown = imgui.menu_item(S.MENU_STATUS_BAR, "", self._show_status_bar)
         if changed:
-            window_params.show_status_bar = shown
+            self._show_status_bar = shown
         changed, shown = imgui.menu_item(S.MENU_STATUS_FPS, "", self._show_status_fps)
         if changed:
             self._show_status_fps = shown
@@ -4369,12 +4429,10 @@ def _main() -> None:
     runner_params.imgui_window_params.show_menu_view = False
     runner_params.callbacks.show_menus = app.gui_menu
 
-    runner_params.imgui_window_params.show_status_bar = True
-    runner_params.imgui_window_params.show_status_fps = (
-        False  # hide the built-in FPS counter
-    )
+    # The app draws its own status bar (KnxGuiApp._render_status_bar), as high as its content.
+    runner_params.imgui_window_params.show_status_bar = False
+    runner_params.imgui_window_params.show_status_fps = False
     runner_params.imgui_window_params.remember_status_bar_settings = False
-    runner_params.callbacks.show_status = app.gui_status_bar
 
     # Keep the imgui layout .ini in the central data dir (with the JSON settings and catalog).
     runner_params.ini_folder_type = hello_imgui.IniFolderType.absolute_path
