@@ -33,13 +33,50 @@ def test_unload() -> None:
 
 
 def test_memory_mapped_control_packs_lsm_index() -> None:
-    # BIM M112: octet 0 is (lsm_idx << 4) | event, padded to 12 octets.
+    # BIM M112: octet 0 is (lsm_idx << 4) | event, padded to 11 octets (ETS).
     record = ls.memory_mapped_control(1, ls.unload())
-    assert record == bytes.fromhex("140000000000000000000000")
+    assert record == bytes.fromhex("1400000000000000000000")
     assert len(record) == ls.MEMORY_MAPPED_CONTROL_SIZE
     loading = ls.memory_mapped_control(3, ls.start_loading())
     assert loading[0] == 0x31
-    assert loading[1:] == bytes(11)
+    assert loading[1:] == bytes(10)
+
+
+def test_memory_mapped_abs_segment_keeps_length() -> None:
+    # ETS MV-0701 LoadControl_M112: 13 00 00 4000 01FF FF 03 00 (length, not end).
+    event = ls.alloc_absolute_segment(
+        ls.SegmentType.ABS_DATA,
+        start_address=0x4000,
+        length=0x01FF,
+        access_attributes=0xFF,
+        memory_type=0x03,
+        memory_attributes=0x00,
+    )
+    record = ls.memory_mapped_control(1, event)
+    assert record == bytes.fromhex("130000400001ffff030000")
+    assoc = ls.memory_mapped_control(
+        2,
+        ls.alloc_absolute_segment(
+            ls.SegmentType.ABS_DATA,
+            start_address=0x4200,
+            length=0x01FD,
+            access_attributes=0xFF,
+            memory_type=0x03,
+            memory_attributes=0x00,
+        ),
+    )
+    assert assoc == bytes.fromhex("230000420001fdff030000")
+
+
+def test_memory_mapped_task_segment_inserts_reserved_octet() -> None:
+    # ETS: 13 02 00 4000 80 0002 A01F 20.
+    event = ls.alloc_task_segment(
+        start_address=0x4000,
+        pei_type=0x80,
+        application_id=bytes.fromhex("0002a01f20"),
+    )
+    record = ls.memory_mapped_control(1, event)
+    assert record == bytes.fromhex("1302004000800002a01f20")
 
 
 def test_alloc_absolute_data_segment() -> None:

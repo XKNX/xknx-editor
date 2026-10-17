@@ -1176,7 +1176,7 @@ class DeviceProgrammer:
         retries: int = 30,
         retry_delay: float = 1.0,
     ) -> None:
-        """Write a 12-octet M112 load-control record and poll the status byte.
+        """Write an 11-octet M112 load-control record and poll the status byte.
 
         The control address is write-only shared memory; do not use
         ``write_memory`` (PID 14 probe / optional read-back). The record must

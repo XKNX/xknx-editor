@@ -213,11 +213,17 @@ async def _partial_scope(
         partial_download_mismatch,
     )
     from .programmer import DeviceProgrammer
-    from .resources import mask_resources
+    from .resources import bundled_mask_resources, mask_resources
 
     options = application.program.static.options
+    mapped = bundled_mask_resources(application.program.mask_version)
+    # BIM M112 product procedures reload by unloading/allocating absolute
+    # segments. A "partial" still runs those AbsSegments; skipping Unload of
+    # LSM 3 leaves a half-mapped application. Always take the full load.
+    memory_mapped = mapped is not None and mapped.memory_mapped_lsm() is not None
     prefer = (
-        scope in (DownloadScope.FULL, DownloadScope.APPLICATION)
+        not memory_mapped
+        and scope in (DownloadScope.FULL, DownloadScope.APPLICATION)
         and options is not None
         and options.prefer_partial_download_if_application_loaded
     )

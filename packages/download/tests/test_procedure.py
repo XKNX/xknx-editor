@@ -1217,7 +1217,7 @@ def _m112_application(*controls: object) -> Application:
 
 
 async def test_m112_unload_writes_memory_control() -> None:
-    """MV-0701 drives LSM 1 through the 12-octet memory record at 0x0104."""
+    """MV-0701 drives LSM 1 through the 11-octet memory record at 0x0104."""
     application = _m112_application(LdCtrlUnload(lsm_idx=1, occurrence=0))
     runner, device = _runner(application, _empty_image())
     device.load_states[1] = LoadState.LOADED
@@ -1230,7 +1230,7 @@ async def test_m112_unload_writes_memory_control() -> None:
         if isinstance(payload, MemoryWrite) and payload.address == 0x0104
     ]
     assert len(writes) == 1
-    assert writes[0].data == bytes.fromhex("140000000000000000000000")
+    assert writes[0].data == bytes.fromhex("1400000000000000000000")
     assert device.load_states[1] == LoadState.UNLOADED
     assert not [
         payload
@@ -1268,9 +1268,57 @@ async def test_m112_load_complete_uses_application_status() -> None:
 
 
 async def test_m112_pei_task_segment_skips_missing_status() -> None:
-    """LSM 5 has no LoadStatus byte on MV-0701; do not read 0xB6EE."""
+    """LSM 5 has no LoadStatus on MV-0701; ETS skips the PEI AllocAbsTask."""
     application = _m112_application(
         LdCtrlTaskSegment(lsm_idx=5, address=0x4400, occurrence=0)
+    )
+    runner, device = _runner(application, _empty_image())
+
+    await runner.run()
+
+    assert not [
+        payload
+        for payload in device.sent
+        if isinstance(payload, MemoryWrite) and payload.address == 0x0104
+    ]
+    assert not [
+        payload
+        for payload in device.sent
+        if isinstance(payload, MemoryRead) and payload.address == 0xB6EE
+    ]
+
+
+async def test_m112_task_segment_patches_manufacturer() -> None:
+    """ETS writes manufacturer 0x0002 into BIM M112 AllocAbsTask records."""
+    application = _m112_application(
+        LdCtrlTaskSegment(lsm_idx=1, address=0x4000, occurrence=0)
+    )
+    runner, device = _runner(application, _empty_image())
+    device.load_states[1] = LoadState.LOADING
+
+    await runner.run()
+
+    writes = [
+        payload
+        for payload in device.sent
+        if isinstance(payload, MemoryWrite) and payload.address == 0x0104
+    ]
+    assert writes[0].data == bytes.fromhex("1302004000010002000101")
+
+
+async def test_m112_abs_segment_sends_length() -> None:
+    """ETS AbsSegment keeps the XML length, with a reserved octet after type."""
+    application = _m112_application(
+        LdCtrlAbsSegment(
+            lsm_idx=1,
+            occurrence=0,
+            seg_type=0,
+            address=0x4000,
+            size=0x01FF,
+            access=0xFF,
+            mem_type=3,
+            seg_flags=0x80,
+        )
     )
     runner, device = _runner(application, _empty_image())
 
@@ -1281,10 +1329,42 @@ async def test_m112_pei_task_segment_skips_missing_status() -> None:
         for payload in device.sent
         if isinstance(payload, MemoryWrite) and payload.address == 0x0104
     ]
-    assert len(writes) == 1
-    assert writes[0].data[0] == 0x53
-    assert not [
-        payload
-        for payload in device.sent
-        if isinstance(payload, MemoryRead) and payload.address == 0xB6EE
-    ]
+    assert writes[0].data == bytes.fromhex("130000400001ffff038000")
+
+
+async def test_abs_segment_writes_initialized_bytes_in_partial_scope() -> None:
+    """Allocating a segment must flash the code seed, even on a parameter download."""
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0x4B20,
+                data=b"\xaa\xbb\xcc\xdd",
+                mask=b"\x00\x00\x00\x00",
+                initialized_mask=b"\xff\xff\xff\xff",
+            ),
+        ),
+        properties=(),
+    )
+    application = _application(
+        LdCtrlAbsSegment(
+            lsm_idx=3,
+            occurrence=0,
+            seg_type=0,
+            address=0x4B20,
+            size=4,
+            access=0xFF,
+            mem_type=3,
+            seg_flags=0x80,
+        )
+    )
+    device = _device()
+    runner = LoadProcedureRunner(
+        application,
+        image,
+        DeviceProgrammer(device),
+        scope=DownloadScope.PARAMETERS,
+    )
+
+    await runner.run()
+
+    assert bytes(device.memory[0x4B20 + i] for i in range(4)) == b"\xaa\xbb\xcc\xdd"

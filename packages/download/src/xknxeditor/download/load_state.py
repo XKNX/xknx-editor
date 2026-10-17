@@ -4,7 +4,7 @@ A loadable part of a KNX device (address table, association table, group object
 table, application program, ...) is guarded by a Load State Machine. Property
 based masks (Realisation Type 1) are driven by writing *load events* to
 ``PID_LOAD_STATE_CONTROL`` (property id 5) of the part's interface object.
-BIM M112 masks (``LoadControl_M112``) share one 12-octet memory record instead;
+BIM M112 masks (``LoadControl_M112``) share one 11-octet memory record instead;
 the LSM index occupies the high nibble of the first octet.
 
 The state machine and its load events are defined in KNX Standard v3.0.0,
@@ -24,9 +24,9 @@ from xknx.profile.const import ResourceGenericPropertyId
 PID_LOAD_STATE_CONTROL = ResourceGenericPropertyId.PID_LOAD_STATE_CONTROL
 # Number of octets one control element occupies.
 LOAD_STATE_CONTROL_SIZE = 10
-# BIM M112 (LoadControl_M112) packs the LSM index into the first octet and
-# occupies 12 octets at the shared memory-mapped load-control address.
-MEMORY_MAPPED_CONTROL_SIZE = 12
+# BIM M112 (LoadControl_M112) packs the LSM index into the first octet.
+# ETS writes 11 octets (A_Memory_Write count=11) at the shared control address.
+MEMORY_MAPPED_CONTROL_SIZE = 11
 
 
 class LoadState(IntEnum):
@@ -91,17 +91,23 @@ def unload() -> bytes:
 
 
 def memory_mapped_control(lsm_idx: int, event: bytes) -> bytes:
-    """Pack a 10-octet property load event into the 12-octet M112 memory record.
+    """Pack a property load event into the 11-octet ADM1/M112 memory record.
 
-    Octet 0 is ``(lsm_idx << 4) | event``; octets 1-11 are the property event's
-    additional data, zero-padded. BIM M112 (masks MV-0701/MV-0705) shares one
-    load-control address across LSMs, so the index has to travel in the record.
+    Octet 0 is ``(lsm_idx << 4) | event``. Additional events insert a reserved
+    zero after the segment type. Absolute data/stack segments keep the property
+    format's length (ETS ``LoadControl_M112`` on MV-0701: start ``0x4000``,
+    length ``0x01FF``). Unload/load/complete stay a single opcode plus padding.
     """
     if not event:
         raise ValueError("empty load event")
     if not 0 <= lsm_idx <= 0x0F:
         raise ValueError(f"load state machine index {lsm_idx} does not fit four bits")
-    record = bytes([(lsm_idx << 4) | (event[0] & 0x0F)]) + event[1:]
+    opcode = (lsm_idx << 4) | (event[0] & 0x0F)
+    if event[0] == LoadEvent.ADDITIONAL and len(event) >= 2:
+        payload = event[1:]
+        record = bytes([opcode, payload[0], 0x00]) + bytes(payload[1:])
+    else:
+        record = bytes([opcode]) + event[1:]
     if len(record) > MEMORY_MAPPED_CONTROL_SIZE:
         raise ValueError(
             f"load event too long for memory-mapped control: {len(record)} > "

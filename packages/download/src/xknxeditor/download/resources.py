@@ -104,7 +104,7 @@ class MaskResources:
     def memory_mapped_lsm(self) -> tuple[int, int] | None:
         """Return ``(control_address, lsm1_status_address)`` for BIM M112 masks.
 
-        Those masks share one 12-octet load-control address across LSMs. Status
+        Those masks share one 11-octet load-control address across LSMs. Status
         bytes are looked up per LSM name, not by arithmetic past the last
         documented LoadStatus resource. Property-mapped masks return ``None``.
         """

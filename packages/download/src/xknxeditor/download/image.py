@@ -640,22 +640,28 @@ def _group_communication_segments(
                 set(number_of.values()),
                 active_numbers or None,
             )
-            result.append(MemorySegment(base, data, mask=mask))
+            # Flag/size overlay sits on the manufacturer seed (header and data
+            # pointers). After AllocAbsDataSeg those seed octets must go out too,
+            # or the BCU checksums an empty object table.
+            result.append(
+                MemorySegment(
+                    base,
+                    data,
+                    mask=mask,
+                    initialized_mask=b"\xff" * len(data),
+                )
+            )
     address_table = static.address_table
     if address_table is not None and address_table.code_segment is not None:
         base = base_addresses.get(address_table.code_segment)
         if base is not None:
             offset = address_table.offset or 0
             data = build_group_address_table(gc.device_address, group_addresses)
-            # The download writes only the count and the group address
-            # entries; the two own-address octets after the count are written
-            # during individual-address programming, not by this download, so keep
-            # them out of the mask (they legitimately differ per realisation, e.g.
-            # a 0xffff placeholder).
-            mask = bytearray(b"\xff" * len(data))
-            mask[1] = mask[2] = 0x00
+            # Include the own-address octets. Unloading LSM 1 clears the table;
+            # leaving them masked meant a later application download never
+            # restored 1.1.x and group telegrams no longer matched.
             address = base + offset
-            result.append(MemorySegment(address, data, mask=bytes(mask)))
+            result.append(MemorySegment(address, data, mask=b"\xff" * len(data)))
     association_table = static.association_table
     if association_table is not None and association_table.code_segment is not None:
         base = base_addresses.get(association_table.code_segment)

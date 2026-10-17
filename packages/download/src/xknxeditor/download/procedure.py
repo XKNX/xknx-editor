@@ -12,7 +12,7 @@ Load State Machine control follows the property based Realisation Type 1 (writin
 load events to ``PID_LOAD_STATE_CONTROL`` of the addressed interface object, see
 Chapter 3/5/1 "Resources", section 4.23) when the mask locates
 ``ApplicationLoadControl`` as a system property. Masks that map that resource to
-standard memory (BIM M112, e.g. MV-0701) write the 12-octet ``LoadControl_M112``
+standard memory (BIM M112, e.g. MV-0701) write the 11-octet ``LoadControl_M112``
 record at the shared control address and poll the matching LoadStatus byte.
 
 Connection handling follows the point-to-point management connection lifecycle: the transport connection is
@@ -587,12 +587,18 @@ class LoadProcedureRunner:
         address: int,
         size: int,
         space: LdCtrlMemAddrSpace = LdCtrlMemAddrSpace.STANDARD,
+        *,
+        include_initialized: bool | None = None,
     ) -> list[tuple[int, bytes]] | None:
+        if include_initialized is None:
+            include_initialized = self.scope in (
+                DownloadScope.FULL,
+                DownloadScope.APPLICATION,
+            )
         runs = self.image.masked_writes(
             address,
             size,
-            include_initialized=self.scope
-            in (DownloadScope.FULL, DownloadScope.APPLICATION),
+            include_initialized=include_initialized,
         )
         if (
             space is LdCtrlMemAddrSpace.LC_FILTER
@@ -1928,24 +1934,28 @@ class LoadProcedureRunner:
         """
         segment_type = load_state.SegmentType(control.seg_type)
         index = await self._resolve_index(control)
+        event = load_state.alloc_absolute_segment(
+            segment_type,
+            control.address,
+            control.size,
+            access_attributes=control.access,
+            memory_type=control.mem_type,
+            memory_attributes=control.seg_flags,
+        )
         await self._emit_load_event(
             index,
-            load_state.alloc_absolute_segment(
-                segment_type,
-                control.address,
-                control.size,
-                access_attributes=control.access,
-                memory_type=control.mem_type,
-                memory_attributes=control.seg_flags,
-            ),
+            event,
             load_state.LoadState.LOADING,
         )
         # Per the KNX Load Controls (KNX Standard v3.0.0, 2/3/1) an AbsSegment
         # allocation is followed by a verified memory write of the segment data -
         # but only the bytes the image actually produced (its mask). Bytes the
         # encoder did not write stay at their current device value.
+        # Allocation defines the checksum range. A partial download's parameter
+        # mask alone would skip the application-code seed (n_runs=0) and leave
+        # the BCU with an empty or stale segment after AllocAbsDataSeg.
         runs = (
-            self._memory_runs(control.address, control.size)
+            self._memory_runs(control.address, control.size, include_initialized=True)
             if self._enable_segment_write
             else []
         )
@@ -1957,13 +1967,27 @@ class LoadProcedureRunner:
     async def _task_segment(self, control: LdCtrlTaskSegment) -> None:
         """Allocate the task segment via a load event."""
         index = await self._resolve_index(control)
+        mapped = self._memory_lsm(index)
+        # MV-0701 has no PEI LoadStatus; ETS skips this AllocAbsTask (LSM 5
+        # would otherwise remap the group-object table at 0x4400).
+        if mapped is not None and mapped[1] is None:
+            return
+        application_id = _application_id(self.application)
+        static = getattr(self.application.program, "static", None)
+        options = getattr(static, "options", None) if static is not None else None
+        patch = mapped is not None or (
+            options is not None and options.legacy_patch_manufacturer_id_in_task_segment
+        )
+        if patch:
+            application_id = (0x0002).to_bytes(2, "big") + application_id[2:]
+        event = load_state.alloc_task_segment(
+            control.address,
+            self.application.program.pei_type,
+            application_id,
+        )
         await self._emit_load_event(
             index,
-            load_state.alloc_task_segment(
-                control.address,
-                self.application.program.pei_type,
-                _application_id(self.application),
-            ),
+            event,
             load_state.LoadState.LOADING,
         )
 
@@ -2018,7 +2042,11 @@ class LoadProcedureRunner:
             # by _abs_segment, so it is a clean allocate-only preview here too, not an error.
             if self._enable_segment_write:
                 await self._diff_masked(
-                    control.address, control.size, segments, missing_ok=True
+                    control.address,
+                    control.size,
+                    segments,
+                    missing_ok=True,
+                    include_initialized=True,
                 )
             return
         if isinstance(control, LdCtrlWriteProp):
@@ -2088,6 +2116,7 @@ class LoadProcedureRunner:
         segments: list[SegmentDiff],
         *,
         missing_ok: bool = False,
+        include_initialized: bool | None = None,
     ) -> None:
         """Diff each masked write run the image would apply within ``[address, size)``.
 
@@ -2103,7 +2132,7 @@ class LoadProcedureRunner:
         allocated and left unwritten, not an error. So the AbsSegment diff passes ``missing_ok=True``
         and a ``None`` there is a clean, allocate-only preview, exactly as the download behaves.
         """
-        runs = self._memory_runs(address, size)
+        runs = self._memory_runs(address, size, include_initialized=include_initialized)
         if runs is None:
             if missing_ok:
                 return
