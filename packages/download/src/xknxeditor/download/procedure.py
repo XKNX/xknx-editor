@@ -10,8 +10,10 @@ themselves - complete download, partial download and unload - follow Chapter 3/5
 
 Load State Machine control follows the property based Realisation Type 1 (writing
 load events to ``PID_LOAD_STATE_CONTROL`` of the addressed interface object, see
-Chapter 3/5/1 "Resources", section 4.23); the memory mapped variant used by very
-old (BCU) device models is out of scope.
+Chapter 3/5/1 "Resources", section 4.23) when the mask locates
+``ApplicationLoadControl`` as a system property. Masks that map that resource to
+standard memory (BIM M112, e.g. MV-0701) write the 12-octet ``LoadControl_M112``
+record at the shared control address and poll the matching LoadStatus byte.
 
 Connection handling follows the point-to-point management connection lifecycle: the transport connection is
 opened on a Connect control and closed on Disconnect; a Restart tears it down
@@ -108,6 +110,7 @@ from .merge import resolve_download_controls
 from .preflight import PreflightReport, PropertyDiff, SegmentDiff
 from .programmer import DEFAULT_MAX_APDU_LENGTH, PID_TABLE_REFERENCE, DeviceProgrammer
 from .property_layout import STANDARD_WRITE_WIDTHS, property_width
+from .resources import bundled_mask_resources
 from .scope import (
     GROUP_COMMUNICATION_OBJECTS,
     DownloadScope,
@@ -915,6 +918,51 @@ class LoadProcedureRunner:
             ),
         )
 
+    def _memory_lsm(self, index: int) -> tuple[int, int | None] | None:
+        """Return ``(control_address, status_address)`` for a memory-mapped LSM.
+
+        BIM M112 shares one load-control address. ``status_address`` is ``None``
+        when the mask has no LoadStatus resource for ``index`` (PEI on MV-0701);
+        the control write still goes through memory, without a status poll.
+        Property-mapped masks (and LSM index 0) return ``None``.
+        """
+        if index < 1:
+            return None
+        resources = bundled_mask_resources(self.application.program.mask_version)
+        if resources is None:
+            return None
+        mapped = resources.memory_mapped_lsm()
+        if mapped is None:
+            return None
+        control, _status_lsm1 = mapped
+        return control, resources.memory_mapped_lsm_status(index)
+
+    async def _emit_load_event(
+        self,
+        index: int,
+        event: bytes,
+        expected: load_state.LoadState,
+        *,
+        also_accept: load_state.LoadState | None = None,
+    ) -> None:
+        """Write a load event through the mask's LSM realisation."""
+        programmer = await self._bus()
+        mapped = self._memory_lsm(index)
+        if mapped is not None:
+            control_addr, status_addr = mapped
+            await programmer.send_memory_load_event(
+                index,
+                control_addr,
+                status_addr,
+                event,
+                expected,
+                also_accept=also_accept,
+            )
+            return
+        await programmer.send_load_event(
+            index, event, expected, also_accept=also_accept
+        )
+
     async def _execute(self, control: object) -> None:
         """Dispatch a single Load Control to the matching bus operation."""
         where = f" [{self._position[0]}/{self._position[1]}]" if self._position else ""
@@ -934,8 +982,7 @@ class LoadProcedureRunner:
             return
         if isinstance(control, LdCtrlMaxLength):
             index = await self._resolve_index(control)
-            programmer = await self._bus()
-            await programmer.send_load_event(
+            await self._emit_load_event(
                 index,
                 load_state.relative_allocation(control.size),
                 load_state.LoadState.LOADING,
@@ -976,18 +1023,16 @@ class LoadProcedureRunner:
             return
         if isinstance(control, LdCtrlUnload):
             index = await self._resolve_index(control)
-            programmer = await self._bus()
-            await programmer.send_load_event(
+            await self._emit_load_event(
                 index, load_state.unload(), load_state.LoadState.UNLOADED
             )
             return
         if isinstance(control, LdCtrlLoad):
             index = await self._resolve_index(control)
-            programmer = await self._bus()
             # Some present objects (DIMinBOX, issue #24) keep reporting LOADED
             # after accepting START_LOADING. Allow that result for this control;
             # allocation events and LoadCompleted still verify their own states.
-            await programmer.send_load_event(
+            await self._emit_load_event(
                 index,
                 load_state.start_loading(),
                 load_state.LoadState.LOADING,
@@ -996,8 +1041,7 @@ class LoadProcedureRunner:
             return
         if isinstance(control, LdCtrlLoadCompleted):
             index = await self._resolve_index(control)
-            programmer = await self._bus()
-            await programmer.send_load_event(
+            await self._emit_load_event(
                 index, load_state.load_complete(), load_state.LoadState.LOADED
             )
             return
@@ -1071,8 +1115,7 @@ class LoadProcedureRunner:
             return
         if isinstance(control, LdCtrlRelSegment):
             index = await self._resolve_index(control)
-            programmer = await self._bus()
-            await programmer.send_load_event(
+            await self._emit_load_event(
                 index,
                 load_state.data_relative_allocation(
                     control.size, mode=control.mode, fill=control.fill
@@ -1085,8 +1128,7 @@ class LoadProcedureRunner:
             return
         if isinstance(control, LdCtrlTaskPtr):
             index = await self._resolve_index(control)
-            programmer = await self._bus()
-            await programmer.send_load_event(
+            await self._emit_load_event(
                 index,
                 load_state.task_pointer(
                     control.init_ptr, control.save_ptr, control.serial_ptr
@@ -1096,8 +1138,7 @@ class LoadProcedureRunner:
             return
         if isinstance(control, LdCtrlTaskCtrl1):
             index = await self._resolve_index(control)
-            programmer = await self._bus()
-            await programmer.send_load_event(
+            await self._emit_load_event(
                 index,
                 load_state.task_control_1(control.address, control.count),
                 load_state.LoadState.LOADING,
@@ -1105,8 +1146,7 @@ class LoadProcedureRunner:
             return
         if isinstance(control, LdCtrlTaskCtrl2):
             index = await self._resolve_index(control)
-            programmer = await self._bus()
-            await programmer.send_load_event(
+            await self._emit_load_event(
                 index,
                 load_state.task_control_2(
                     control.callback, control.address, control.seg0, control.seg1
@@ -1888,8 +1928,7 @@ class LoadProcedureRunner:
         """
         segment_type = load_state.SegmentType(control.seg_type)
         index = await self._resolve_index(control)
-        programmer = await self._bus()
-        await programmer.send_load_event(
+        await self._emit_load_event(
             index,
             load_state.alloc_absolute_segment(
                 segment_type,
@@ -1918,8 +1957,7 @@ class LoadProcedureRunner:
     async def _task_segment(self, control: LdCtrlTaskSegment) -> None:
         """Allocate the task segment via a load event."""
         index = await self._resolve_index(control)
-        programmer = await self._bus()
-        await programmer.send_load_event(
+        await self._emit_load_event(
             index,
             load_state.alloc_task_segment(
                 control.address,

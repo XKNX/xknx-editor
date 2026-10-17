@@ -32,6 +32,16 @@ def test_unload() -> None:
     assert ls.unload() == bytes([0x04]) + bytes(9)
 
 
+def test_memory_mapped_control_packs_lsm_index() -> None:
+    # BIM M112: octet 0 is (lsm_idx << 4) | event, padded to 12 octets.
+    record = ls.memory_mapped_control(1, ls.unload())
+    assert record == bytes.fromhex("140000000000000000000000")
+    assert len(record) == ls.MEMORY_MAPPED_CONTROL_SIZE
+    loading = ls.memory_mapped_control(3, ls.start_loading())
+    assert loading[0] == 0x31
+    assert loading[1:] == bytes(11)
+
+
 def test_alloc_absolute_data_segment() -> None:
     # AllocAbsDataSeg (segment type 0): 03 00 SSSS LLLL AA TT MM 00.
     # Load Controls cookbook example: start 0x4000, end 0x41FE => length 0x01FF,

@@ -544,7 +544,7 @@ async def test_inline_size_limits_writes_and_rejects_short_data_before_unload(
         if relative
         else LdCtrlWriteMem(address=0x3804, size=1, inline_data=b"ABCD", verify=True)
     )
-    device = FakeDevice(MAPPING)
+    device = FakeDevice(MAPPING, descriptor=0x07B0)
     device.table_references[4] = 0x3804
     r = LoadProcedureRunner(
         _application(write),
@@ -1002,7 +1002,7 @@ async def test_memory_capture_populates_later_write(relative) -> None:
         if relative
         else LdCtrlWriteMem(address=0x100, size=4, verify=True)
     )
-    device = FakeDevice(MAPPING)
+    device = FakeDevice(MAPPING, descriptor=0x07B0)
     device.table_references[4] = 0x100
     device.memory.update({0x100 + n: value for n, value in enumerate(b"DATA")})
     await LoadProcedureRunner(
@@ -1169,7 +1169,7 @@ async def test_captured_and_supplied_memory_overlay_inline_defaults(
 
     from .test_procedure import _application
 
-    device = FakeDevice(MAPPING)
+    device = FakeDevice(MAPPING, descriptor=0x07B0)
     device.table_references[4] = 0x100
     device.memory = {0x100 + n: value for n, value in enumerate(b"ABCD")}
     if relative:

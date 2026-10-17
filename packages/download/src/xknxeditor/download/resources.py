@@ -36,6 +36,18 @@ if TYPE_CHECKING:
 # Bundled per-mask resource table (see mask_resources.json / packages/download/tools/gen_mask_resources.py).
 _BUNDLED_TABLE = "mask_resources.json"
 
+# BIM M112 loadable-part index to the named LoadStatus resource. Missing names
+# mean that LSM has no status byte to poll.
+_LSM_STATUS_RESOURCES: MappingProxyType[int, ResourceName] = MappingProxyType(
+    {
+        1: ResourceName.GROUP_ADDRESS_TABLE_LOAD_STATUS,
+        2: ResourceName.GROUP_ASSOCIATION_TABLE_LOAD_STATUS,
+        3: ResourceName.APPLICATION_LOAD_STATUS,
+        4: ResourceName.GROUP_OBJECT_TABLE_LOAD_STATUS,
+        5: ResourceName.PEIPROG_LOAD_STATUS,
+    }
+)
+
 # Address spaces that place a resource in interface object relative memory (the
 # System B group communication tables and parameter segment).
 _RELATIVE_SPACES = frozenset(
@@ -88,6 +100,34 @@ class MaskResources:
         """Whether a resource lives in interface object relative memory (System B)."""
         location = self._by_name.get(name)
         return location is not None and location.address_space in _RELATIVE_SPACES
+
+    def memory_mapped_lsm(self) -> tuple[int, int] | None:
+        """Return ``(control_address, lsm1_status_address)`` for BIM M112 masks.
+
+        Those masks share one 12-octet load-control address across LSMs. Status
+        bytes are looked up per LSM name, not by arithmetic past the last
+        documented LoadStatus resource. Property-mapped masks return ``None``.
+        """
+        control = self.memory_address(ResourceName.APPLICATION_LOAD_CONTROL)
+        if control is None:
+            control = self.memory_address(ResourceName.GROUP_ADDRESS_TABLE_LOAD_CONTROL)
+        status = self.memory_address(ResourceName.GROUP_ADDRESS_TABLE_LOAD_STATUS)
+        if control is None or status is None:
+            return None
+        return control, status
+
+    def memory_mapped_lsm_status(self, index: int) -> int | None:
+        """Return the memory LoadStatus address for ``index``, if the mask has one.
+
+        BIM M112 documents LSM 1-3 as address table, association table and
+        application. LSM 4/5 exist only when the mask publishes group-object or
+        PEI program status. Inventing consecutive addresses past that (e.g.
+        ``0xB6EE`` for LSM 5 on MV-0701) makes the device stop answering.
+        """
+        name = _LSM_STATUS_RESOURCES.get(index)
+        if name is None:
+            return None
+        return self.memory_address(name)
 
 
 def mask_resources(

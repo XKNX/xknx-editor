@@ -68,6 +68,16 @@ def test_bundled_table_covers_known_masks() -> None:
     memory_mapped = bundled_mask_resources("MV-0705")
     assert memory_mapped is not None
     assert memory_mapped.memory_address(ResourceName.APPLICATION_LOAD_CONTROL) == 260
+    assert memory_mapped.memory_mapped_lsm() == (260, 46826)
+
+    m112 = bundled_mask_resources("MV-0701")
+    assert m112 is not None
+    assert m112.memory_mapped_lsm() == (260, 46826)
+    assert m112.memory_mapped_lsm_status(1) == 46826
+    assert m112.memory_mapped_lsm_status(2) == 46827
+    assert m112.memory_mapped_lsm_status(3) == 46828
+    assert m112.memory_mapped_lsm_status(5) is None
+    assert system_b.memory_mapped_lsm() is None
 
     assert bundled_mask_resources("MV-9999-unknown") is None
 

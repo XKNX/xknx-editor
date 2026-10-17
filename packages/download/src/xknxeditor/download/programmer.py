@@ -1144,6 +1144,92 @@ class DeviceProgrammer:
                 f"object {object_index} did not reach {target}, last state {state.name}"
             )
 
+    async def read_memory_load_state(
+        self, address: int, object_index: int
+    ) -> load_state.LoadState:
+        """Read a memory-mapped Load State Machine status byte."""
+        data = await self.read_memory(address, 1)
+        if not data:
+            raise LoadStateError(
+                f"empty load state at {address:#06x} for object {object_index}"
+            )
+        state = _decode_load_state(data[0], object_index)
+        logger.debug(
+            "memory load state read: %s object-index=%d addr=%#06x data=%s state=%s",
+            self.diagnostic_context,
+            object_index,
+            address,
+            data.hex(),
+            state.name,
+        )
+        return state
+
+    async def send_memory_load_event(
+        self,
+        object_index: int,
+        control_address: int,
+        status_address: int | None,
+        event: bytes,
+        expected: load_state.LoadState,
+        *,
+        also_accept: load_state.LoadState | None = None,
+        retries: int = 30,
+        retry_delay: float = 1.0,
+    ) -> None:
+        """Write a 12-octet M112 load-control record and poll the status byte.
+
+        The control address is write-only shared memory; do not use
+        ``write_memory`` (PID 14 probe / optional read-back). The record must
+        fit a single classic memory telegram. ``status_address`` is omitted when
+        the mask has no LoadStatus resource for this LSM (PEI on MV-0701); the
+        write is then taken as complete after the transport ACK.
+        """
+        record = load_state.memory_mapped_control(object_index, event)
+        if self.memory_chunk_size < len(record):
+            raise VerificationError(
+                f"memory-mapped load control ({len(record)} octets) does not fit "
+                f"the memory chunk ({self.memory_chunk_size})"
+            )
+        accepted = (expected,) if also_accept is None else (expected, also_accept)
+        target = " or ".join(state.name for state in accepted)
+        logger.debug(
+            "send_memory_load_event: %s object-index=%d addr=%#06x event=%s "
+            "record=%s expected=%s",
+            self.diagnostic_context,
+            object_index,
+            control_address,
+            event.hex(),
+            record.hex(),
+            target,
+        )
+        await self._write_block(control_address, record)
+        if status_address is None:
+            return
+        state = await self.read_memory_load_state(status_address, object_index)
+        for poll in range(1, max(retries, 0) + 1):
+            if state in accepted:
+                return
+            if state == load_state.LoadState.ERROR:
+                raise LoadStateError(
+                    f"object {object_index} entered ERROR state (expected {target})"
+                )
+            await asyncio.sleep(retry_delay)
+            state = await self.read_memory_load_state(status_address, object_index)
+            logger.debug(
+                "memory load state poll: %s object-index=%d poll=%d/%d state=%s "
+                "expected=%s",
+                self.diagnostic_context,
+                object_index,
+                poll,
+                retries,
+                state.name,
+                target,
+            )
+        if state not in accepted:
+            raise LoadStateError(
+                f"object {object_index} did not reach {target}, last state {state.name}"
+            )
+
     async def restart(self) -> None:
         """Restart the device (also closes the transport connection).
 

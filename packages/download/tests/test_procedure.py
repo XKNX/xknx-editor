@@ -10,6 +10,7 @@ from xknx.telegram.apci import (
     FunctionPropertyCommand,
     FunctionPropertyStateRead,
     MemoryRead,
+    MemoryWrite,
     PropertyValueRead,
     PropertyValueWrite,
 )
@@ -56,6 +57,7 @@ from xknxeditor.namespaces.intermediate.ld_ctrl_read_function_prop_t import (
 )
 from xknxeditor.namespaces.intermediate.ld_ctrl_rel_segment_t import LdCtrlRelSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_restart_t import LdCtrlRestart
+from xknxeditor.namespaces.intermediate.ld_ctrl_task_segment_t import LdCtrlTaskSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_unload_t import LdCtrlUnload
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_mem_t import LdCtrlWriteMem
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_prop_t import LdCtrlWriteProp
@@ -87,16 +89,26 @@ def _application(*controls: object) -> Application:
             pei_type=1,
             application_number=1,
             application_version=1,
-            mask_version="MV-0705",
+            mask_version="MV-07B0",
         ),
     )
     return cast("Application", fake)
 
 
+def _device(object_types: dict[int, int] | None = None) -> FakeDevice:
+    """System B test device matching ``_application``'s MV-07B0 mask."""
+    types = (
+        object_types
+        if object_types is not None
+        else {0: 0x0000, 1: _ADDRESS_TABLE_TYPE}
+    )
+    return FakeDevice(object_types=types, descriptor=0x07B0)
+
+
 def _runner(
     application: Application, image: DownloadImage
 ) -> tuple[LoadProcedureRunner, FakeDevice]:
-    device = FakeDevice(object_types={0: 0x0000, 1: _ADDRESS_TABLE_TYPE})
+    device = _device()
     programmer = DeviceProgrammer(device)
     return LoadProcedureRunner(application, image, programmer), device
 
@@ -341,7 +353,7 @@ async def test_write_rel_mem_uses_table_reference() -> None:
             inline_data=b"\x11\x22",
         )
     )
-    device = FakeDevice(object_types={0: 0x0000, 1: 3})
+    device = _device({0: 0x0000, 1: 3})
     device.table_references[1] = 0x4000
     runner = LoadProcedureRunner(
         application, DownloadImage(segments=(), properties=()), DeviceProgrammer(device)
@@ -377,7 +389,7 @@ async def test_write_rel_mem_image_backed_uses_relative_lookup() -> None:
             inline_data=None,
         )
     )
-    device = FakeDevice(object_types={0: 0x0000, 1: 3})
+    device = _device({0: 0x0000, 1: 3})
     device.table_references[1] = 0x3804
     runner = LoadProcedureRunner(application, image, DeviceProgrammer(device))
 
@@ -415,7 +427,7 @@ async def test_write_rel_mem_relative_segment_by_object_type() -> None:
         ),
         LdCtrlLoadCompleted(obj_type=1),
     )
-    device = FakeDevice(object_types={0: 0x0000, 1: _ADDRESS_TABLE_TYPE})
+    device = _device({0: 0x0000, 1: _ADDRESS_TABLE_TYPE})
     device.table_references[1] = 0x3400
     runner = LoadProcedureRunner(application, image, DeviceProgrammer(device))
 
@@ -449,7 +461,7 @@ async def test_coupler_filter_table_clear_is_noop_and_write_lands() -> None:
         LdCtrlDisconnect(),
     )
     # Router object (type 6) at interface object index 2; its table base is where the write lands.
-    device = FakeDevice(object_types={0: 0x0000, 1: _ADDRESS_TABLE_TYPE, 2: router})
+    device = _device({0: 0x0000, 1: _ADDRESS_TABLE_TYPE, 2: router})
     device.table_references[2] = 0x5000
     runner = LoadProcedureRunner(application, image, DeviceProgrammer(device))
 
@@ -512,7 +524,7 @@ async def test_filter_table_field_feeds_systemb_and_bcu1() -> None:
         ),
         LdCtrlDisconnect(),
     )
-    device = FakeDevice(object_types={0: 0x0000, 1: _ADDRESS_TABLE_TYPE, 2: 6})
+    device = _device({0: 0x0000, 1: _ADDRESS_TABLE_TYPE, 2: 6})
     device.table_references[2] = 0x4200
     await LoadProcedureRunner(app, image, DeviceProgrammer(device)).run()
     assert bytes(device.memory[0x4200 + i] for i in range(len(table))) == table
@@ -1196,3 +1208,83 @@ async def test_map_error_for_a_different_error_does_not_tolerate() -> None:
 
     with pytest.raises(PropertyAccessRejected):
         await runner.run()
+
+
+def _m112_application(*controls: object) -> Application:
+    application = _application(*controls)
+    application.program.mask_version = "MV-0701"
+    return application
+
+
+async def test_m112_unload_writes_memory_control() -> None:
+    """MV-0701 drives LSM 1 through the 12-octet memory record at 0x0104."""
+    application = _m112_application(LdCtrlUnload(lsm_idx=1, occurrence=0))
+    runner, device = _runner(application, _empty_image())
+    device.load_states[1] = LoadState.LOADED
+
+    await runner.run()
+
+    writes = [
+        payload
+        for payload in device.sent
+        if isinstance(payload, MemoryWrite) and payload.address == 0x0104
+    ]
+    assert len(writes) == 1
+    assert writes[0].data == bytes.fromhex("140000000000000000000000")
+    assert device.load_states[1] == LoadState.UNLOADED
+    assert not [
+        payload
+        for payload in device.sent
+        if isinstance(payload, PropertyValueWrite)
+        and payload.property_id == PID_LOAD_STATE_CONTROL
+    ]
+    assert any(
+        isinstance(payload, MemoryRead) and payload.address == 0xB6EA
+        for payload in device.sent
+    )
+
+
+async def test_m112_load_complete_uses_application_status() -> None:
+    """LSM 3 status is the ApplicationLoadStatus byte at 0xB6EC."""
+    application = _m112_application(
+        LdCtrlLoad(lsm_idx=3),
+        LdCtrlLoadCompleted(lsm_idx=3),
+    )
+    runner, device = _runner(application, _empty_image())
+
+    await runner.run()
+
+    records = [
+        payload.data[0]
+        for payload in device.sent
+        if isinstance(payload, MemoryWrite) and payload.address == 0x0104
+    ]
+    assert records == [0x31, 0x32]
+    assert device.load_states[3] == LoadState.LOADED
+    assert any(
+        isinstance(payload, MemoryRead) and payload.address == 0xB6EC
+        for payload in device.sent
+    )
+
+
+async def test_m112_pei_task_segment_skips_missing_status() -> None:
+    """LSM 5 has no LoadStatus byte on MV-0701; do not read 0xB6EE."""
+    application = _m112_application(
+        LdCtrlTaskSegment(lsm_idx=5, address=0x4400, occurrence=0)
+    )
+    runner, device = _runner(application, _empty_image())
+
+    await runner.run()
+
+    writes = [
+        payload
+        for payload in device.sent
+        if isinstance(payload, MemoryWrite) and payload.address == 0x0104
+    ]
+    assert len(writes) == 1
+    assert writes[0].data[0] == 0x53
+    assert not [
+        payload
+        for payload in device.sent
+        if isinstance(payload, MemoryRead) and payload.address == 0xB6EE
+    ]

@@ -1,16 +1,18 @@
 """Load State Machine states and load events.
 
 A loadable part of a KNX device (address table, association table, group object
-table, application program, ...) is guarded by a Load State Machine. The machine
-is driven by writing *load events* to ``PID_LOAD_STATE_CONTROL`` (property id 5)
-of the part's interface object and reading back the resulting *load state*.
+table, application program, ...) is guarded by a Load State Machine. Property
+based masks (Realisation Type 1) are driven by writing *load events* to
+``PID_LOAD_STATE_CONTROL`` (property id 5) of the part's interface object.
+BIM M112 masks (``LoadControl_M112``) share one 12-octet memory record instead;
+the LSM index occupies the high nibble of the first octet.
 
 The state machine and its load events are defined in KNX Standard v3.0.0,
 Chapter 3/5/1 "Resources", section 4.23 "Load State Machine" (the property based
 Realisation Type 1, section 4.23.2) and section 4.2.5 "PID_LOAD_STATE_CONTROL
 (PID = 5)"; the procedures that issue them are in Chapter 3/5/2 "Management
-Procedures" (DM_LoadStateMachineWrite). Every load event is a 10 octet control
-value; unused octets are zero.
+Procedures" (DM_LoadStateMachineWrite). Every property load event is a 10 octet
+control value; unused octets are zero.
 """
 
 from __future__ import annotations
@@ -22,6 +24,9 @@ from xknx.profile.const import ResourceGenericPropertyId
 PID_LOAD_STATE_CONTROL = ResourceGenericPropertyId.PID_LOAD_STATE_CONTROL
 # Number of octets one control element occupies.
 LOAD_STATE_CONTROL_SIZE = 10
+# BIM M112 (LoadControl_M112) packs the LSM index into the first octet and
+# occupies 12 octets at the shared memory-mapped load-control address.
+MEMORY_MAPPED_CONTROL_SIZE = 12
 
 
 class LoadState(IntEnum):
@@ -83,6 +88,26 @@ def load_complete() -> bytes:
 def unload() -> bytes:
     """Load event moving the machine to ``UNLOADED``."""
     return _pad(bytes([LoadEvent.UNLOAD]))
+
+
+def memory_mapped_control(lsm_idx: int, event: bytes) -> bytes:
+    """Pack a 10-octet property load event into the 12-octet M112 memory record.
+
+    Octet 0 is ``(lsm_idx << 4) | event``; octets 1-11 are the property event's
+    additional data, zero-padded. BIM M112 (masks MV-0701/MV-0705) shares one
+    load-control address across LSMs, so the index has to travel in the record.
+    """
+    if not event:
+        raise ValueError("empty load event")
+    if not 0 <= lsm_idx <= 0x0F:
+        raise ValueError(f"load state machine index {lsm_idx} does not fit four bits")
+    record = bytes([(lsm_idx << 4) | (event[0] & 0x0F)]) + event[1:]
+    if len(record) > MEMORY_MAPPED_CONTROL_SIZE:
+        raise ValueError(
+            f"load event too long for memory-mapped control: {len(record)} > "
+            f"{MEMORY_MAPPED_CONTROL_SIZE}"
+        )
+    return record + bytes(MEMORY_MAPPED_CONTROL_SIZE - len(record))
 
 
 def alloc_absolute_segment(
