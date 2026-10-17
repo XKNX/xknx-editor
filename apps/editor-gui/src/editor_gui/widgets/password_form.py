@@ -2,6 +2,8 @@
 
 from imgui_bundle import imgui
 
+from editor_gui.widgets.dialog import focus_when_appearing
+
 _ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 
 
@@ -22,6 +24,7 @@ class NewPasswordForm:
         flags = imgui.InputTextFlags_.password
         imgui.text_disabled(label)
         imgui.set_next_item_width(-1)
+        focus_when_appearing()
         _, self.password = imgui.input_text("##password", self.password, flags)
         imgui.text_disabled(repeat_label)
         imgui.set_next_item_width(-1)

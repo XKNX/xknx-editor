@@ -597,9 +597,6 @@ msgstr "Leerlaufmodus aktivieren"
 msgid "Theme"
 msgstr "Design"
 
-msgid "Theme Tweaks"
-msgstr "Design anpassen"
-
 msgid "Reading {address}…"
 msgstr "Lese {address}…"
 
@@ -967,3 +964,153 @@ msgstr "Die Passwörter stimmen nicht überein."
 
 msgid "Protecting the project with the password…"
 msgstr "Projekt wird mit dem Passwort geschützt…"
+
+msgid "Customize Theme…"
+msgstr "Design anpassen…"
+
+msgid "Customize Theme"
+msgstr "Design anpassen"
+
+msgid "Sizes"
+msgstr "Größen"
+
+msgid "Colors"
+msgstr "Farben"
+
+msgid "Rendering"
+msgstr "Darstellung"
+
+msgid "Adjustments"
+msgstr "Anpassungen"
+
+msgid "Theme Default"
+msgstr "Design-Standard"
+
+msgid "Reset to Theme"
+msgstr "Auf Design zurücksetzen"
+
+msgid "Rounding"
+msgstr "Rundung"
+
+msgid "Scrollbar Rounding Ratio"
+msgstr "Rundungsverhältnis Bildlaufleisten"
+
+msgid "Opacity"
+msgstr "Deckkraft"
+
+msgid "Hue"
+msgstr "Farbton"
+
+msgid "Saturation"
+msgstr "Sättigung"
+
+msgid "Brightness of Controls"
+msgstr "Helligkeit der Bedienelemente"
+
+msgid "Brightness of Backgrounds"
+msgstr "Helligkeit der Hintergründe"
+
+msgid "Brightness of Text"
+msgstr "Helligkeit des Texts"
+
+msgid "Brightness of Input Fields"
+msgstr "Helligkeit der Eingabefelder"
+
+msgid "Spacing"
+msgstr "Abstände"
+
+msgid "Borders"
+msgstr "Rahmen"
+
+msgid "Alignment"
+msgstr "Ausrichtung"
+
+msgid "Window Padding"
+msgstr "Fensterinnenabstand"
+
+msgid "Field Padding"
+msgstr "Feldinnenabstand"
+
+msgid "Cell Padding"
+msgstr "Zelleninnenabstand"
+
+msgid "Item Spacing"
+msgstr "Elementabstand"
+
+msgid "Item Inner Spacing"
+msgstr "Innerer Elementabstand"
+
+msgid "Extra Touch Padding"
+msgstr "Zusätzlicher Touch-Abstand"
+
+msgid "Indent"
+msgstr "Einrückung"
+
+msgid "Scrollbar Width"
+msgstr "Breite der Bildlaufleisten"
+
+msgid "Minimum Slider Grip Size"
+msgstr "Mindestgröße der Schiebereglergriffe"
+
+msgid "Windows"
+msgstr "Fenster"
+
+msgid "Child Windows"
+msgstr "Untergeordnete Fenster"
+
+msgid "Popups"
+msgstr "Popups"
+
+msgid "Fields"
+msgstr "Felder"
+
+msgid "Tabs"
+msgstr "Registerkarten"
+
+msgid "Tab Bar"
+msgstr "Registerleiste"
+
+msgid "Scrollbars"
+msgstr "Bildlaufleisten"
+
+msgid "Slider Grips"
+msgstr "Schiebereglergriffe"
+
+msgid "Window Title"
+msgstr "Fenstertitel"
+
+msgid "Button Text"
+msgstr "Schaltflächentext"
+
+msgid "List Entry Text"
+msgstr "Text von Listeneinträgen"
+
+msgid "Separator Text"
+msgstr "Text von Trennlinien"
+
+msgid "Font Scale"
+msgstr "Schriftskalierung"
+
+msgid "Anti-Aliased Lines"
+msgstr "Kantenglättung für Linien"
+
+msgid "Anti-Aliased Fills"
+msgstr "Kantenglättung für Flächen"
+
+msgid "Curve Tessellation Tolerance"
+msgstr "Toleranz der Kurvenunterteilung"
+
+msgid "Maximum Circle Tessellation Error"
+msgstr "Maximaler Fehler der Kreisunterteilung"
+
+msgid "Global Opacity"
+msgstr "Globale Deckkraft"
+
+msgid "Opacity of Disabled Items"
+msgstr "Deckkraft deaktivierter Elemente"
+
+msgid "Show ImGui Demo Window"
+msgstr "ImGui-Demofenster anzeigen"
+
+msgid "Filter colors"
+msgstr "Farben filtern"

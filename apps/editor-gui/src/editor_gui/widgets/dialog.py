@@ -54,6 +54,13 @@ def end_dialog() -> None:
     imgui.end_popup()
 
 
+def focus_when_appearing() -> None:
+    """Give the next input the keyboard focus when its dialog appears, so typing goes into it at
+    once (e.g. a password asked for)."""
+    if imgui.is_window_appearing():
+        imgui.set_keyboard_focus_here()
+
+
 def dialog_buttons(*labels: str, enabled: Sequence[bool] | None = None) -> int | None:
     """A row of equal-width buttons below a separator, the primary one first.
 

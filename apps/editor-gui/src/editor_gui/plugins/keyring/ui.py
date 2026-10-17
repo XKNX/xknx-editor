@@ -12,7 +12,12 @@ from xknx.telegram.address import GroupAddress
 
 from editor_gui.device import address_order
 from editor_gui.plugins.keyring.strings import S
-from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
+from editor_gui.widgets.dialog import (
+    begin_dialog,
+    dialog_buttons,
+    end_dialog,
+    focus_when_appearing,
+)
 
 if TYPE_CHECKING:
     from editor_gui.plugins.keyring.service import KeyringService
@@ -92,6 +97,7 @@ class KeyringPanel:
             return
         imgui.text_disabled(Path(self._pending_path).name)
         imgui.set_next_item_width(-1)
+        focus_when_appearing()
         submitted, self._password = imgui.input_text(
             "##keyring_pw",
             self._password,
@@ -164,6 +170,7 @@ class KeyringPanel:
         imgui.text_disabled(Path(self._pending_export_path).name)
         imgui.text_disabled(S.KEYRING_EXPORT_HINT)
         imgui.set_next_item_width(-1)
+        focus_when_appearing()
         submitted, self._export_password = imgui.input_text(
             "##keyring_export_pw",
             self._export_password,

@@ -53,9 +53,14 @@ def description_icon(description: str, *, x: float | None = None) -> bool:
     color = imgui.Col_.text if hovered else imgui.Col_.text_disabled
     imgui.text_colored(imgui.get_style().color_(color), ICON_DESCRIPTION)
     if hovered:
-        imgui.begin_tooltip()
-        imgui.push_text_wrap_pos(px(_WRAP_WIDTH))
-        imgui.text_unformatted(description)
-        imgui.pop_text_wrap_pos()
-        imgui.end_tooltip()
+        description_tooltip(description)
     return hovered
+
+
+def description_tooltip(description: str) -> None:
+    """The tooltip of the description icon: ``description``, wrapped."""
+    imgui.begin_tooltip()
+    imgui.push_text_wrap_pos(px(_WRAP_WIDTH))
+    imgui.text_unformatted(description)
+    imgui.pop_text_wrap_pos()
+    imgui.end_tooltip()

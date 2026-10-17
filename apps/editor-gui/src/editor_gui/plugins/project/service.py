@@ -30,7 +30,13 @@ from editor_gui.device import (
 )
 from editor_gui.device_info import serial_to_project
 from editor_gui.device_plugins import ConfigurationApp, configuration_apps
-from editor_gui.device_snapshot import decode_snapshot, encode_snapshot, snapshot_key
+from editor_gui.device_snapshot import (
+    SnapshotState,
+    decode_snapshot,
+    encode_snapshot,
+    snapshot_key,
+    snapshot_state,
+)
 from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.history import HistoryEntry
@@ -247,6 +253,92 @@ def _qualified_com_object_ref(co_row: Any, app_program_id: str) -> str:
     return qualified_com_object_ref(
         co_row.ref_id, getattr(co_row, "instance_ref_id", "") or "", app_program_id
     )
+
+
+@dataclass(frozen=True)
+class _ComObjectOverrides:
+    """A device's stored com-object row: its id and per-instance overrides."""
+
+    ref: str
+    db_id: int
+    text: str | None
+    function_text: str | None
+    description: str | None
+    datapoint_type: str | None
+    priority: str | None
+
+
+@dataclass(frozen=True)
+class _DeviceInputs:
+    """What a device is evaluated from besides its application, read from the project."""
+
+    node_id: int
+    name: str
+    product_name: str
+    description: str
+    individual_address: str
+    parameter_instance_refs: list[ParameterInstanceRef]
+    module_instances: list[Any]
+    com_object_instance_refs: list[ComObjectInstanceRef]
+    download_plugin_required: bool
+    configuration_app: str | None
+    com_objects: tuple[_ComObjectOverrides, ...]
+
+
+def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
+    """The device evaluated from ``app``; reads nothing from the project, so it runs on any
+    thread."""
+    device = Device(
+        node_id=inputs.node_id,
+        name=inputs.name,
+        product_name=inputs.product_name,
+        app=app,
+        individual_address=inputs.individual_address,
+        description=inputs.description,
+        parameter_instance_refs=inputs.parameter_instance_refs,
+        module_instances=inputs.module_instances,
+        com_object_instance_refs=inputs.com_object_instance_refs,
+    )
+    device.download_plugin_required = inputs.download_plugin_required
+    device.configuration_app = inputs.configuration_app
+    for row in inputs.com_objects:
+        co = device.find_com_object(row.ref)
+        if co is not None:
+            co.db_id = row.db_id
+            # Carry the stored per-instance overrides so get_visible_com_objects prefers them
+            # over the app default, and reflect them on the display object right away for the
+            # panels that read device.com_objects directly.
+            co.text_override = row.text
+            co.function_text_override = row.function_text
+            co.description = row.description or ""
+            co.datapoint_type_override = row.datapoint_type
+            if row.text:
+                co.name = row.text
+            if row.function_text:
+                co.function_text = row.function_text
+            if row.datapoint_type:
+                co.dpt = dpt_from_token(row.datapoint_type)
+            if row.priority:
+                co.priority = row.priority
+    # Warm the lightweight views the panels read for every device, then drop the heavy
+    # per-device DynamicUI evaluator (~15 MB each) — it is rebuilt lazily only when a device
+    # is inspected or edited. This keeps memory bounded to the active device.
+    device.get_visible_com_objects()
+    device.release_dynamic_ui()
+    return device
+
+
+@dataclass
+class _Recheck:
+    """A device opened from a snapshot that other code made, to be evaluated again."""
+
+    device: Device
+    inputs: _DeviceInputs
+    # What the device was built from, its application source and the snapshot's data.
+    content: tuple[Any, ...]
+    source: str
+    data: str
+    generation: int
 
 
 def _co_instance_ref_from_row(
@@ -663,6 +755,13 @@ class ProjectService:
         # Bumped whenever the project changes (_reset); a background load started for an earlier
         # project ignores its result so it cannot contaminate the current project's state.
         self._load_generation = 0
+        # Devices opened from a snapshot of other code (another editor version), evaluated again in
+        # the background: queued, and evaluated for the main thread to take over; the generation
+        # whose devices the background thread evaluates (-1 while none).
+        self._recheck_lock = threading.Lock()
+        self._recheck_queue: dict[int, _Recheck] = {}
+        self._rechecked: list[tuple[_Recheck, Device]] = []
+        self._recheck_generation = -1
         self._areas_cache: list[_Area] | None = None
         self._lines_cache: dict[int, list[_Line]] | None = None
         self._ga_cache: list[_GroupAddress] | None = None
@@ -1258,6 +1357,9 @@ class ProjectService:
             self._loading.clear()
             self._failed_loads.clear()
             self._load_generation += 1
+        with self._recheck_lock:
+            self._recheck_queue.clear()
+            self._rechecked.clear()
         self._handled_failures.clear()
 
     def _bump(self, *, structural: bool = True) -> None:
@@ -1445,7 +1547,10 @@ class ProjectService:
             if app_id in self._failed_loads:
                 return None
         source = self._application_source(app_id)
-        if source is None or stored[0] != snapshot_key(content, source):
+        if source is None:
+            return None
+        state = snapshot_state(stored[0], content, source)
+        if state is SnapshotState.OUTDATED:
             return None
         snapshot = decode_snapshot(stored[1])
         if snapshot is None:
@@ -1484,7 +1589,106 @@ class ProjectService:
             (a.name for a in self._configuration_apps() if a.applies_to(app.id)),
             None,
         )
+        if state is SnapshotState.OTHER_CODE:
+            with self._recheck_lock:
+                self._recheck_queue[row.id] = _Recheck(
+                    device=device,
+                    inputs=self._device_inputs(row, app.id),
+                    content=content,
+                    source=source,
+                    data=stored[1],
+                    generation=self._load_generation,
+                )
         return device
+
+    def _recheck(self) -> None:
+        """Evaluate the devices opened from a snapshot of other code again, in the background."""
+        with self._recheck_lock:
+            generation = self._load_generation
+            if not self._recheck_queue or self._recheck_generation == generation:
+                return
+            self._recheck_generation = generation
+        threading.Thread(
+            target=self._recheck_devices,
+            args=(generation,),
+            name="snapshot-recheck",
+            daemon=True,
+        ).start()
+
+    def _recheck_devices(self, generation: int) -> None:
+        """Evaluate the queued devices of project ``generation`` one after the other, the selected
+        device first; the main thread takes the results over (see take_rechecked_devices)."""
+        while True:
+            with self._recheck_lock:
+                if generation != self._load_generation or not self._recheck_queue:
+                    if self._recheck_generation == generation:
+                        self._recheck_generation = -1
+                    return
+                selected = self._selected_node_id
+                if selected is not None and selected in self._recheck_queue:
+                    job = self._recheck_queue.pop(selected)
+                else:
+                    job = self._recheck_queue.pop(next(iter(self._recheck_queue)))
+            app = job.device.app
+            assert app is not None
+            device: Device | None
+            try:
+                # As the device build: the collector would rescan the many new objects over and over.
+                with gc_paused():
+                    device = _compute_device(job.inputs, app)
+            except Exception as e:
+                # Kept as opened from its snapshot; the next open tries again.
+                self._log.warning(
+                    "device not evaluated again",
+                    device_id=job.inputs.node_id,
+                    app=app.id,
+                    error=f"{type(e).__name__}: {e}",
+                )
+                device = None
+            with self._recheck_lock:
+                if generation == self._load_generation and device is not None:
+                    self._rechecked.append((job, device))
+
+    @io_guarded(lambda: None)
+    def take_rechecked_devices(self) -> None:
+        """Take over the devices evaluated again in the background (main thread, every frame): a
+        device whose group objects came out different replaces the one opened from its snapshot,
+        and every one gets a snapshot of this code."""
+        if not self._rechecked:
+            return
+        with self._recheck_lock:
+            results, self._rechecked = self._rechecked, []
+        replaced = False
+        for job, device in results:
+            node_id = job.inputs.node_id
+            cache = self._devices_cache
+            if (
+                job.generation != self._load_generation
+                or cache is None
+                or job.device.edited_in_place
+                or self._build_keys.get(node_id) != job.content
+            ):
+                # Changed meanwhile, and evaluated again by that change.
+                continue
+            index = next((i for i, d in enumerate(cache) if d is job.device), None)
+            if index is None:
+                continue
+            assert device.app is not None
+            data = encode_snapshot(
+                device.app, device.com_objects, device.get_visible_com_objects()
+            )
+            self._new_snapshots[node_id] = (snapshot_key(job.content, job.source), data)
+            if data != job.data:
+                self._log.info(
+                    "device group objects changed by the new version",
+                    device_id=node_id,
+                    address=device.individual_address,
+                )
+                cache[index] = device
+                replaced = True
+        self._store_snapshots()
+        if replaced:
+            self._bump(structural=False)
 
     def _evaluate_device(self, row: Any) -> Device | None:
         try:
@@ -1525,56 +1729,7 @@ class ProjectService:
                     device_id=row.id,
                     app=app.id,
                 )
-            pirs, mis, coirs = _instance_refs(row, app.program.id)
-            ia = self._svc.individual_address(self._pid, row.id) or ""
-            device = Device(
-                node_id=row.id,
-                name=row.name,
-                product_name=row.product_name or "",
-                app=app,
-                individual_address=ia,
-                description=row.description,
-                parameter_instance_refs=pirs,
-                module_instances=mis,
-                com_object_instance_refs=coirs,
-            )
-            device.download_plugin_required = self._requires_download_plugin(
-                row.hardware2program_ref_id
-            )
-            device.configuration_app = next(
-                (
-                    a.name
-                    for a in self._configuration_apps()
-                    if a.applies_to(app.program.id)
-                ),
-                None,
-            )
-            for co_row in row.com_objects:
-                co = device.find_com_object(
-                    _qualified_com_object_ref(co_row, app.program.id)
-                )
-                if co is not None:
-                    co.db_id = co_row.id
-                    # Carry the stored per-instance overrides so get_visible_com_objects prefers them
-                    # over the app default, and reflect them on the display object right away for the
-                    # panels that read device.com_objects directly.
-                    co.text_override = co_row.text_override
-                    co.function_text_override = co_row.function_text_override
-                    co.description = co_row.description_override or ""
-                    co.datapoint_type_override = co_row.datapoint_type_override
-                    if co_row.text_override:
-                        co.name = co_row.text_override
-                    if co_row.function_text_override:
-                        co.function_text = co_row.function_text_override
-                    if co_row.datapoint_type_override:
-                        co.dpt = dpt_from_token(co_row.datapoint_type_override)
-                    if co_row.priority:
-                        co.priority = co_row.priority
-            # Warm the lightweight views the panels read for every device, then drop the heavy
-            # per-device DynamicUI evaluator (~15 MB each) — it is rebuilt lazily only when a device
-            # is inspected or edited. This keeps memory bounded to the active device.
-            device.get_visible_com_objects()
-            device.release_dynamic_ui()
+            device = _compute_device(self._device_inputs(row, app.program.id), app)
             self._build_keys[row.id] = _device_source_key(row)
             return device
         except Exception as e:
@@ -1588,6 +1743,44 @@ class ProjectService:
                 error=f"{type(e).__name__}: {e}",
             )
             return None
+
+    def _device_inputs(self, row: Any, app_program_id: str) -> _DeviceInputs:
+        """What the device of ``row`` is evaluated from besides its application."""
+        assert self._pid is not None
+        pirs, mis, coirs = _instance_refs(row, app_program_id)
+        return _DeviceInputs(
+            node_id=row.id,
+            name=row.name,
+            product_name=row.product_name or "",
+            description=row.description,
+            individual_address=self._svc.individual_address(self._pid, row.id) or "",
+            parameter_instance_refs=pirs,
+            module_instances=mis,
+            com_object_instance_refs=coirs,
+            download_plugin_required=self._requires_download_plugin(
+                row.hardware2program_ref_id
+            ),
+            configuration_app=next(
+                (
+                    a.name
+                    for a in self._configuration_apps()
+                    if a.applies_to(app_program_id)
+                ),
+                None,
+            ),
+            com_objects=tuple(
+                _ComObjectOverrides(
+                    ref=_qualified_com_object_ref(co_row, app_program_id),
+                    db_id=co_row.id,
+                    text=co_row.text_override,
+                    function_text=co_row.function_text_override,
+                    description=co_row.description_override,
+                    datapoint_type=co_row.datapoint_type_override,
+                    priority=co_row.priority,
+                )
+                for co_row in row.com_objects
+            ),
+        )
 
     def _without_application(self, program_ref: str | None) -> bool:
         """Whether the product of ``program_ref`` has no application program at all."""
@@ -1690,6 +1883,7 @@ class ProjectService:
                             )
                             report(i, total, label)
                 self._store_snapshots()
+                self._recheck()
                 self._log.info(
                     "devices built",
                     built=len(devices),

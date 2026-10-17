@@ -3,6 +3,9 @@
 The editor's main thread is blocked by the imgui run loop, so the server (uvicorn + its own asyncio
 loop) runs on a dedicated thread — mirroring the connection plugin's "KNX-Async" thread. Start/stop is
 driven from the Settings > MCP tab; ``stop`` asks uvicorn to exit and joins the thread.
+
+FastMCP and the tools are imported, and the server is built, on that thread too: a server restored at
+start-up then does not delay the editor's first frame.
 """
 
 from __future__ import annotations
@@ -13,8 +16,6 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from editor_gui.plugins.base import Logger
-from editor_gui.plugins.mcp.context import McpContext
-from editor_gui.plugins.mcp.server import build_server
 
 if TYPE_CHECKING:
     import uvicorn
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     from editor_gui.plugins.base import PluginAPI
     from editor_gui.plugins.connection.plugin import ConnectionPlugin
     from editor_gui.plugins.keyring.service import KeyringService
+    from editor_gui.plugins.mcp.context import McpContext
     from editor_gui.plugins.monitor.service import MonitorService
 
 
@@ -52,6 +54,8 @@ def build_http_app(ctx: McpContext, auth: Any) -> Any:
     server is bound to loopback (the default, and the only case a browser can reach), and stays out
     of the way of a deliberate non-loopback bind, which the bearer token is there to cover instead.
     """
+    from editor_gui.plugins.mcp.server import build_server
+
     return build_server(ctx, auth=auth).http_app(host_origin_protection="auto")
 
 
@@ -69,49 +73,80 @@ class McpServerPlugin:
         keyring: KeyringService,
     ) -> None:
         self._log = Logger(api.log, "mcp")
-        self._ctx = McpContext(
-            api=api,
-            run_on_ui=run_on_ui,
-            connection_plugin=connection_plugin,
-            monitor=monitor,
-            keyring=keyring,
-            log=self._log,
-        )
+        self._context_args: dict[str, Any] = {
+            "api": api,
+            "run_on_ui": run_on_ui,
+            "connection_plugin": connection_plugin,
+            "monitor": monitor,
+            "keyring": keyring,
+            "log": self._log,
+        }
+        self._ctx: McpContext | None = None
         self._server: uvicorn.Server | None = None
         self._thread: threading.Thread | None = None
+        # Guards the hand-over of the server built on its thread against a stop meanwhile.
+        self._server_lock = threading.Lock()
+        self._stop_requested = False
 
     @property
     def is_running(self) -> bool:
         return self._thread is not None and self._thread.is_alive()
 
+    def _context(self) -> McpContext:
+        if self._ctx is None:
+            from editor_gui.plugins.mcp.context import McpContext
+
+            self._ctx = McpContext(**self._context_args)
+        return self._ctx
+
     def start(self, host: str, port: int, token: str = "") -> None:
         if self.is_running:
             return
-        import uvicorn
-
-        auth = _build_auth(token)
-        if auth is None and host not in ("127.0.0.1", "::1", "localhost"):
+        token = (token or os.environ.get("XKNX_MCP_AUTH_TOKEN", "")).strip()
+        if not token and host not in ("127.0.0.1", "::1", "localhost"):
             # No token on a non-loopback bind means anyone who can reach this host can read/edit the
             # project and drive the KNX bus. Surface it loudly; do not silently expose it.
             self._log.warning(
                 "MCP server exposed on a non-loopback address without a bearer token",
                 host=host,
             )
-        config = uvicorn.Config(
-            build_http_app(self._ctx, auth), host=host, port=port, log_level="warning"
-        )
-        self._server = uvicorn.Server(config)
+        with self._server_lock:
+            self._stop_requested = False
         self._thread = threading.Thread(
-            target=self._server.run, daemon=True, name="xknxeditor-mcp"
+            target=self._serve,
+            args=(host, port, token),
+            daemon=True,
+            name="xknxeditor-mcp",
         )
         self._thread.start()
-        self._log.info(
-            "MCP server started", host=host, port=port, auth=auth is not None
-        )
+        self._log.info("MCP server started", host=host, port=port, auth=bool(token))
+
+    def _serve(self, host: str, port: int, token: str) -> None:
+        """Build the server and run it until it is asked to exit (on the server thread)."""
+        try:
+            import uvicorn
+
+            config = uvicorn.Config(
+                build_http_app(self._context(), _build_auth(token)),
+                host=host,
+                port=port,
+                log_level="warning",
+            )
+            server = uvicorn.Server(config)
+        except Exception as e:
+            self._log.error("MCP server start failed", error=f"{type(e).__name__}: {e}")
+            return
+        with self._server_lock:
+            if self._stop_requested:
+                return
+            self._server = server
+        server.run()
 
     def stop(self) -> None:
-        if self._server is not None:
-            self._server.should_exit = True
+        with self._server_lock:
+            self._stop_requested = True
+            if self._server is not None:
+                self._server.should_exit = True
         if self._thread is not None:
             self._thread.join(timeout=10.0)
             if self._thread.is_alive():

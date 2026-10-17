@@ -1733,3 +1733,18 @@ msgstr "Open een project met minstens twee apparaten om te vergelijken."
 
 msgid "{count} differences"
 msgstr "{count} verschillen"
+
+msgid "The manufacturer plugin is not available here:"
+msgstr "De plug-in van de fabrikant ontbreekt hier:"
+
+msgid "Only it can program the device."
+msgstr "Alleen de plug-in kan het programmeren."
+
+msgid "Settings made in its dialog are not shown."
+msgstr "Instellingen uit de dialoog ontbreken hier."
+
+msgid "The standard download is used instead."
+msgstr "Hier wordt de standaarddownload gebruikt."
+
+msgid "Part of the device data is not available."
+msgstr "Een deel van de apparaatgegevens ontbreekt."

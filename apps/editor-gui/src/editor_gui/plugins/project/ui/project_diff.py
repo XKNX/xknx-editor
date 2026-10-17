@@ -100,7 +100,8 @@ def _diff_section[V](
 
 
 def _device_label(d: DeviceSnap) -> str:
-    return f"{d.name} · {d.product or d.order}".rstrip(" ·")
+    # A device the user named shows only that name, an unnamed one its product.
+    return d.name or d.product or d.order
 
 
 def _ga_label(g: GaSnap) -> str:

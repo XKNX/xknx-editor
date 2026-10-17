@@ -247,6 +247,8 @@ class ToolsPanel:
         # The other project when it needs a password, and the password entered for it.
         self._diff_password_path: str | None = None
         self._diff_password = ""
+        # The password field takes the keyboard focus when it is asked for.
+        self._diff_password_focus = False
 
     def render(self) -> None:
         if not self._is_open():
@@ -321,10 +323,11 @@ class ToolsPanel:
     # -- Replace Device ----------------------------------------------------
 
     def _device_label(self, device: Device) -> str:
-        """'<ia>  <name>  ·  <description>' for combos; names are often empty on import."""
+        """'<ia>  <name>' for combos; an unnamed device (often so on import) also shows its
+        product, else its order number or manufacturer."""
         label = device_label(device)
-        desc = self._describe(device.node_id)
-        return f"{label}  ·  {desc}" if desc and desc not in label else label
+        desc = self._unnamed_description(device)
+        return f"{label}  ·  {desc}" if desc else label
 
     def _device_combo(self, combo_id: str, idx: int, devices: list[Device]) -> int:
         """A full-width device dropdown; returns the (possibly changed) selected index."""
@@ -541,6 +544,14 @@ class ToolsPanel:
             return ""
         return info.product_name or info.order_number or info.manufacturer_name
 
+    def _unnamed_description(self, device: Device) -> str:
+        """The description shown after a device the user did not name (one they named shows only
+        its name), unless its label already shows it."""
+        if device.name:
+            return ""
+        desc = self._describe(device.node_id)
+        return "" if desc in device_label(device) else desc
+
     def _matches(self, device: Device, flt: str) -> bool:
         if not flt:
             return True
@@ -556,12 +567,11 @@ class ToolsPanel:
         return [d for d in devices if self._matches(d, flt)]
 
     def _device_row_label(self, device: Device) -> None:
-        """Render '<ia>  <name>  ·  <description>' after a row's checkbox."""
+        """Render '<ia>  <name>' after a row's checkbox, an unnamed device's description after it."""
         imgui.same_line()
-        label = device_label(device)
-        imgui.text(label)
-        desc = self._describe(device.node_id)
-        if desc and desc not in label:
+        imgui.text(device_label(device))
+        desc = self._unnamed_description(device)
+        if desc:
             imgui.same_line()
             imgui.text_disabled(f" · {desc}")
 
@@ -807,11 +817,15 @@ class ToolsPanel:
         outcome = self._on_diff_projects(path, password)
         self._diff_result, self._diff_error = outcome.result, outcome.error
         self._diff_password_path = path if outcome.needs_password else None
+        self._diff_password_focus = outcome.needs_password
 
     def _render_diff_password(self, path: str) -> None:
         """Ask for the password of the other, password-protected project."""
         imgui.text_wrapped(S.TOOLS_DIFF_PASSWORD_PROMPT)
         imgui.set_next_item_width(px(260.0))
+        if self._diff_password_focus:
+            imgui.set_keyboard_focus_here()
+            self._diff_password_focus = False
         submitted, self._diff_password = imgui.input_text(
             "##diff_password",
             self._diff_password,

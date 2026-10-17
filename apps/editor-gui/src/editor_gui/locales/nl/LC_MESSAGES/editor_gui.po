@@ -167,9 +167,6 @@ msgstr "Inactiviteitsmodus inschakelen"
 msgid "Theme"
 msgstr "Thema"
 
-msgid "Theme Tweaks"
-msgstr "Thema aanpassen"
-
 msgid "Reading {address}…"
 msgstr "{address} wordt gelezen…"
 
@@ -860,3 +857,153 @@ msgstr "De wachtwoorden komen niet overeen."
 
 msgid "Protecting the project with the password…"
 msgstr "Project wordt met het wachtwoord beveiligd…"
+
+msgid "Customize Theme…"
+msgstr "Thema aanpassen…"
+
+msgid "Customize Theme"
+msgstr "Thema aanpassen"
+
+msgid "Sizes"
+msgstr "Afmetingen"
+
+msgid "Colors"
+msgstr "Kleuren"
+
+msgid "Rendering"
+msgstr "Weergave"
+
+msgid "Adjustments"
+msgstr "Aanpassingen"
+
+msgid "Theme Default"
+msgstr "Thema-standaard"
+
+msgid "Reset to Theme"
+msgstr "Terugzetten naar thema"
+
+msgid "Rounding"
+msgstr "Afronding"
+
+msgid "Scrollbar Rounding Ratio"
+msgstr "Afrondingsverhouding schuifbalken"
+
+msgid "Opacity"
+msgstr "Dekking"
+
+msgid "Hue"
+msgstr "Tint"
+
+msgid "Saturation"
+msgstr "Verzadiging"
+
+msgid "Brightness of Controls"
+msgstr "Helderheid van bedieningselementen"
+
+msgid "Brightness of Backgrounds"
+msgstr "Helderheid van achtergronden"
+
+msgid "Brightness of Text"
+msgstr "Helderheid van tekst"
+
+msgid "Brightness of Input Fields"
+msgstr "Helderheid van invoervelden"
+
+msgid "Spacing"
+msgstr "Afstanden"
+
+msgid "Borders"
+msgstr "Randen"
+
+msgid "Alignment"
+msgstr "Uitlijning"
+
+msgid "Window Padding"
+msgstr "Binnenmarge vensters"
+
+msgid "Field Padding"
+msgstr "Binnenmarge velden"
+
+msgid "Cell Padding"
+msgstr "Binnenmarge cellen"
+
+msgid "Item Spacing"
+msgstr "Afstand tussen elementen"
+
+msgid "Item Inner Spacing"
+msgstr "Binnenafstand elementen"
+
+msgid "Extra Touch Padding"
+msgstr "Extra aanraakmarge"
+
+msgid "Indent"
+msgstr "Inspringing"
+
+msgid "Scrollbar Width"
+msgstr "Breedte schuifbalken"
+
+msgid "Minimum Slider Grip Size"
+msgstr "Minimale grootte schuifknoppen"
+
+msgid "Windows"
+msgstr "Vensters"
+
+msgid "Child Windows"
+msgstr "Subvensters"
+
+msgid "Popups"
+msgstr "Pop-ups"
+
+msgid "Fields"
+msgstr "Velden"
+
+msgid "Tabs"
+msgstr "Tabbladen"
+
+msgid "Tab Bar"
+msgstr "Tabbalk"
+
+msgid "Scrollbars"
+msgstr "Schuifbalken"
+
+msgid "Slider Grips"
+msgstr "Schuifknoppen"
+
+msgid "Window Title"
+msgstr "Venstertitel"
+
+msgid "Button Text"
+msgstr "Knoptekst"
+
+msgid "List Entry Text"
+msgstr "Tekst van lijstitems"
+
+msgid "Separator Text"
+msgstr "Tekst van scheidingslijnen"
+
+msgid "Font Scale"
+msgstr "Lettertypeschaal"
+
+msgid "Anti-Aliased Lines"
+msgstr "Anti-aliasing voor lijnen"
+
+msgid "Anti-Aliased Fills"
+msgstr "Anti-aliasing voor vlakken"
+
+msgid "Curve Tessellation Tolerance"
+msgstr "Tolerantie curveverdeling"
+
+msgid "Maximum Circle Tessellation Error"
+msgstr "Maximale fout cirkelverdeling"
+
+msgid "Global Opacity"
+msgstr "Globale dekking"
+
+msgid "Opacity of Disabled Items"
+msgstr "Dekking van uitgeschakelde elementen"
+
+msgid "Show ImGui Demo Window"
+msgstr "ImGui-demovenster tonen"
+
+msgid "Filter colors"
+msgstr "Kleuren filteren"
