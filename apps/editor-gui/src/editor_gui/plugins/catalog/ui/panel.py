@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import threading
 from collections.abc import Callable
+from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
@@ -9,6 +10,7 @@ from imgui_bundle import imgui
 from editor_gui.device_info import application_version_text
 from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.plugins.catalog.strings import S
+from editor_gui.strings import get_locale
 from editor_gui.widgets.backgrounds import fill_content_background
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
@@ -18,10 +20,79 @@ from editor_gui.widgets.tree import leaf_rows, tree_node
 if TYPE_CHECKING:
     from editor_gui.plugins.catalog.online_catalog import (
         OnlineCatalogItem,
+        OnlineCatalogSection,
         OnlineIndexStatus,
         OnlineManufacturer,
     )
     from xknxeditor.catalog import ProductSummary
+
+
+@dataclass
+class _SectionNode:
+    """A catalog section in the online tree: its sections below and the products it files."""
+
+    section: OnlineCatalogSection | None
+    children: dict[str, _SectionNode] = field(default_factory=dict[str, "_SectionNode"])
+    items: list[OnlineCatalogItem] = field(default_factory=list["OnlineCatalogItem"])
+
+
+def section_tree(items: list[OnlineCatalogItem], locale: str) -> _SectionNode:
+    """``items`` filed into their catalog sections; sections and products sorted by their names
+    (the sections' in ``locale``), products without a section at the top level."""
+    root = _SectionNode(None)
+    for item in items:
+        node = root
+        for section in item.sections:
+            node = node.children.setdefault(section.id, _SectionNode(section))
+        node.items.append(item)
+
+    def order(node: _SectionNode) -> None:
+        node.children = dict(
+            sorted(
+                node.children.items(),
+                key=lambda kv: _section_name(kv[1], locale).lower(),
+            )
+        )
+        node.items.sort(key=lambda i: i.name.lower())
+        for child in node.children.values():
+            order(child)
+
+    order(root)
+    return root
+
+
+def _online_label(
+    item: OnlineCatalogItem,
+    local: dict[str, set[int | None]],
+    *,
+    with_manufacturer: bool = False,
+) -> str:
+    """An online product as listed: its name, order number and application version, its
+    manufacturer when asked for, and whether the local catalog has it already (``local``: the
+    versions there by lower-case order number)."""
+    order = f"  ({item.order_number})" if item.order_number else ""
+    ver = (
+        f"  V{application_version_text(item.application_version)}"
+        if item.application_version is not None
+        else ""
+    )
+    mfr = (
+        f"  - {item.manufacturer_name}"
+        if with_manufacturer and item.manufacturer_name
+        else ""
+    )
+    have = local.get(item.order_number.lower())
+    imported = have is not None and (
+        item.application_version is None
+        or None in have
+        or item.application_version in have
+    )
+    mark = f"  {S.ONLINE_ALREADY_IMPORTED}" if imported else ""
+    return f"{item.name}{order}{ver}{mfr}{mark}"
+
+
+def _section_name(node: _SectionNode, locale: str) -> str:
+    return node.section.name_in(locale) if node.section is not None else ""
 
 
 def _label(product: ProductSummary) -> str:
@@ -59,9 +130,6 @@ class CatalogPanel:
         on_online_refresh: Callable[[], None] | None = None,
         fetch_online_items: Callable[[int], list[OnlineCatalogItem]] | None = None,
         download_online_item: Callable[[str], None] | None = None,
-        language_options: list[tuple[str, str]] | None = None,
-        get_language: Callable[[], str] | None = None,
-        set_language: Callable[[str], None] | None = None,
         get_missing_app_count: Callable[[], int] | None = None,
         fetch_missing_apps: Callable[[], None] | None = None,
         build_online_index: Callable[
@@ -99,14 +167,17 @@ class CatalogPanel:
             and get_online_manufacturers() is not None
         )
         self._online_search: str = ""
-        self._language_options = language_options or []
-        self._get_language = get_language
-        self._set_language = set_language
         # Online product browse/download (per-manufacturer index + .knxprod download).
         self._fetch_online_items = fetch_online_items
         self._download_online_item = download_online_item
         self._online_lock = threading.Lock()
         self._online_items: dict[int, list[OnlineCatalogItem]] = {}
+        # (frame, versions in the local catalog by order number) of the last lookup.
+        self._local_versions: tuple[int, dict[str, set[int | None]]] = (-1, {})
+        # Manufacturer id -> (products, (filter, language), section tree) of the tree last built.
+        self._online_trees: dict[
+            int, tuple[list[OnlineCatalogItem], tuple[str, str], _SectionNode]
+        ] = {}
         self._online_items_loading: set[int] = set()
         self._online_downloading: set[str] = set()
         self._selected_product: ProductSummary | None = None
@@ -159,7 +230,7 @@ class CatalogPanel:
         self._render_delete_modal()
 
     def _render_local_catalog(self) -> None:
-        self._search = filter_box("##catalog_search", "Search…", self._search)
+        self._search = filter_box("##catalog_search", S.LOCAL_SEARCH_HINT, self._search)
         fill_content_background()
         deleting = self._deleting
         if deleting is not None:
@@ -419,14 +490,13 @@ class CatalogPanel:
         elif self._online_error:
             imgui.same_line()
             imgui.text_colored(imgui.ImVec4(1.0, 0.4, 0.4, 1.0), S.ONLINE_FAILED)
+        self._render_index_controls()
 
-        self._render_language_combo()
         leaf_flags = (
             imgui.TreeNodeFlags_.leaf
             | imgui.TreeNodeFlags_.no_tree_push_on_open
             | imgui.TreeNodeFlags_.span_avail_width
         )
-        self._render_index_controls()
         imgui.separator()
 
         # The search runs against the full product index (all manufacturers), so an order number
@@ -451,7 +521,6 @@ class CatalogPanel:
             (m for m in online if self._manufacturer_matches(m, query)),
             key=lambda m: m.name.lower(),
         )
-        imgui.text_disabled(S.ONLINE_COUNT.format(count=len(shown)))
         for mfr in shown:
             name_hit = (
                 not query or query in mfr.name.lower() or query in f"m-{mfr.id:04d}"
@@ -475,25 +544,6 @@ class CatalogPanel:
             query in i.name.lower() or query in i.order_number.lower() for i in items
         )
 
-    def _render_language_combo(self) -> None:
-        """Country/language selector for online product downloads (persisted by the service)."""
-        if not (self._language_options and self._get_language and self._set_language):
-            return
-        current = self._get_language()
-        cur_label = next(
-            (label for label, code in self._language_options if code == current),
-            current,
-        )
-        imgui.set_next_item_width(px(200.0))
-        if imgui.begin_combo(S.ONLINE_COUNTRY_LABEL, cur_label):
-            for label, code in self._language_options:
-                selected = code == current
-                if imgui.selectable(label, selected)[0]:
-                    self._set_language(code)
-                if selected:
-                    imgui.set_item_default_focus()
-            imgui.end_combo()
-
     def _render_online_products(
         self, manufacturer_id: int, leaf_flags: int, query: str = ""
     ) -> None:
@@ -509,32 +559,74 @@ class CatalogPanel:
                 self._start_fetch_items(manufacturer_id)
             imgui.text_disabled(S.ONLINE_LOADING_PRODUCTS)
             return
-        if query:
-            items = [
-                i
-                for i in items
-                if query in i.name.lower() or query in i.order_number.lower()
-            ]
-        if not items:
+        tree = self._section_tree(manufacturer_id, items, query)
+        if not tree.children and not tree.items:
             imgui.text_disabled(S.ONLINE_NO_PRODUCTS)
             return
-        items = sorted(items, key=lambda i: i.name.lower())
-        for item in items:
-            label = (
-                f"{item.name}  ({item.order_number})"
-                if item.order_number
-                else item.name
-            )
-            if item.id in downloading:
-                imgui.text_disabled(S.ONLINE_DOWNLOADING.format(name=item.name))
-                continue
-            if not item.downloadable:
-                imgui.text_disabled(f"{label}  {S.ONLINE_NOT_DOWNLOADABLE}")
-                continue
-            with leaf_rows(nodes=True):
-                tree_node(f"{label}##online_item_{item.id}", leaf_flags)
-            if imgui.is_item_clicked() and imgui.is_mouse_double_clicked(0):
-                self._start_download(item.id)
+        self._render_section(
+            tree, manufacturer_id, leaf_flags, downloading, bool(query)
+        )
+
+    def _section_tree(
+        self, manufacturer_id: int, items: list[OnlineCatalogItem], query: str
+    ) -> _SectionNode:
+        """The products matching ``query`` filed into their sections, kept while the products,
+        the filter and the language stay the same."""
+        locale = get_locale()
+        cached = self._online_trees.get(manufacturer_id)
+        if cached is not None and cached[0] is items and cached[1] == (query, locale):
+            return cached[2]
+        shown = [
+            i
+            for i in items
+            if not query or query in i.name.lower() or query in i.order_number.lower()
+        ]
+        tree = section_tree(shown, locale)
+        self._online_trees[manufacturer_id] = (items, (query, locale), tree)
+        return tree
+
+    def _render_section(
+        self,
+        node: _SectionNode,
+        manufacturer_id: int,
+        leaf_flags: int,
+        downloading: set[str],
+        open_all: bool,
+    ) -> None:
+        """A section's sections below it, as tree nodes, then its products."""
+        locale = get_locale()
+        for child in node.children.values():
+            assert child.section is not None
+            if open_all:
+                imgui.set_next_item_open(True, imgui.Cond_.always)
+            label = child.section.name_in(locale)
+            if tree_node(f"{label}##online_sec_{manufacturer_id}_{child.section.id}"):
+                self._render_section(
+                    child, manufacturer_id, leaf_flags, downloading, open_all
+                )
+                imgui.tree_pop()
+        local = self._local_versions_by_order()
+        for item in node.items:
+            self._render_online_item(item, leaf_flags, downloading, local)
+
+    def _render_online_item(
+        self,
+        item: OnlineCatalogItem,
+        leaf_flags: int,
+        downloading: set[str],
+        local: dict[str, set[int | None]],
+    ) -> None:
+        label = _online_label(item, local)
+        if item.id in downloading:
+            imgui.text_disabled(S.ONLINE_DOWNLOADING.format(name=item.name))
+            return
+        if not item.downloadable:
+            imgui.text_disabled(f"{label}  {S.ONLINE_NOT_DOWNLOADABLE}")
+            return
+        with leaf_rows(nodes=True):
+            tree_node(f"{label}##online_item_{item.id}", leaf_flags)
+        if imgui.is_item_clicked() and imgui.is_mouse_double_clicked(0):
+            self._start_download(item.id)
 
     def _start_fetch_items(self, manufacturer_id: int) -> None:
         if self._fetch_online_items is None:
@@ -635,10 +727,11 @@ class CatalogPanel:
     # --- full product index: build + flat cross-manufacturer search ------
 
     def _render_index_controls(self) -> None:
-        """Status line + (while building) progress + cancel. The index is built automatically after
-        'fetch online catalog' — there is no separate build button."""
+        """Status (while building: progress + cancel) on the line of the fetch button. The index is
+        built automatically after 'fetch online catalog' — there is no separate build button."""
         if self._get_online_index_status is None or self._build_online_index is None:
             return
+        imgui.same_line()
         if self._index_building:
             done, total = self._index_progress
             imgui.text_disabled(
@@ -688,21 +781,7 @@ class CatalogPanel:
             downloading = set(self._online_downloading)
         local = self._local_versions_by_order()
         for item in self._flat_results:
-            order = f"  ({item.order_number})" if item.order_number else ""
-            ver = (
-                f"  V{application_version_text(item.application_version)}"
-                if item.application_version is not None
-                else ""
-            )
-            mfr = f"  - {item.manufacturer_name}" if item.manufacturer_name else ""
-            have = local.get(item.order_number.lower())
-            imported = have is not None and (
-                item.application_version is None
-                or None in have
-                or item.application_version in have
-            )
-            mark = f"  {S.ONLINE_ALREADY_IMPORTED}" if imported else ""
-            label = f"{item.name}{order}{ver}{mfr}{mark}"
+            label = _online_label(item, local, with_manufacturer=True)
             if item.id in downloading:
                 imgui.text_disabled(S.ONLINE_DOWNLOADING.format(name=item.name))
                 continue
@@ -715,13 +794,17 @@ class CatalogPanel:
 
     def _local_versions_by_order(self) -> dict[str, set[int | None]]:
         """Map order number (lower-case) -> set of application versions already in the local
-        catalog, so online search hits can be marked as already imported."""
+        catalog, so online search hits can be marked as already imported. Built once per frame."""
+        frame = imgui.get_frame_count()
+        if self._local_versions[0] == frame:
+            return self._local_versions[1]
         out: dict[str, set[int | None]] = {}
         for product in self._get_products():
             if product.order_number:
                 out.setdefault(product.order_number.lower(), set()).add(
                     product.application_version
                 )
+        self._local_versions = (frame, out)
         return out
 
     def _run_build_index(self) -> None:
