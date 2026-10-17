@@ -578,17 +578,39 @@ class ConfigurePanel:
     def _render_plugin_notices(self, device: Device) -> None:
         """Notes on the manufacturer plugins the product data asks for, which are not available."""
         plugins = device_plugins(device)
-        notices = [
-            text
-            for shown, text in (
-                (plugins.download_required, S.PLUGIN_DOWNLOAD_REQUIRED),
-                (plugins.user_interface, S.PLUGIN_USER_INTERFACE),
-                (plugins.download and not plugins.download_required, S.PLUGIN_DOWNLOAD),
-                (plugins.data_handler, S.PLUGIN_DATA_HANDLER),
-                (plugins.external_software, S.PLUGIN_EXTERNAL_SOFTWARE),
+        # What the one unavailable plugin does: one sentence for a single point, else one note
+        # listing them all.
+        plugin_points = [
+            (sentence, point)
+            for shown, sentence, point in (
+                (
+                    plugins.download_required,
+                    S.PLUGIN_DOWNLOAD_REQUIRED,
+                    S.PLUGIN_ITEM_DOWNLOAD_REQUIRED,
+                ),
+                (
+                    plugins.user_interface,
+                    S.PLUGIN_USER_INTERFACE,
+                    S.PLUGIN_ITEM_USER_INTERFACE,
+                ),
+                (
+                    plugins.download and not plugins.download_required,
+                    S.PLUGIN_DOWNLOAD,
+                    S.PLUGIN_ITEM_DOWNLOAD,
+                ),
+                (
+                    plugins.data_handler,
+                    S.PLUGIN_DATA_HANDLER,
+                    S.PLUGIN_ITEM_DATA_HANDLER,
+                ),
             )
             if shown
         ]
+        notices: list[str] = []
+        if len(plugin_points) == 1:
+            notices.append(plugin_points[0][0])
+        if plugins.external_software:
+            notices.append(S.PLUGIN_EXTERNAL_SOFTWARE)
         if plugins.configuration_app is not None:
             # When the app's functionality is ported (device in the DALI whitelist) say so;
             # otherwise state that only the standard parameters are programmable.
@@ -599,9 +621,15 @@ class ConfigurePanel:
                 else S.PLUGIN_CONFIGURATION_APP
             )
             notices.append(template.format(name=plugins.configuration_app))
-        if not notices:
+        if not notices and len(plugin_points) < 2:
             return
         imgui.push_style_color(imgui.Col_.text, _PLUGIN_NOTICE_COLOR)
+        if len(plugin_points) > 1:
+            imgui.text_wrapped(S.PLUGIN_NOTICES_HEADING)
+            for _sentence, point in plugin_points:
+                imgui.bullet()
+                imgui.same_line()
+                imgui.text_wrapped(point)
         for text in notices:
             imgui.text_wrapped(text)
         imgui.pop_style_color()

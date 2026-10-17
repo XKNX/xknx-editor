@@ -2345,6 +2345,26 @@ class ProjectStrings:
         )
 
     @property
+    def PLUGIN_NOTICES_HEADING(self) -> str:
+        return _("The manufacturer plugin is not available here:")
+
+    @property
+    def PLUGIN_ITEM_DOWNLOAD_REQUIRED(self) -> str:
+        return _("Only it can program the device.")
+
+    @property
+    def PLUGIN_ITEM_USER_INTERFACE(self) -> str:
+        return _("Settings made in its dialog are not shown.")
+
+    @property
+    def PLUGIN_ITEM_DOWNLOAD(self) -> str:
+        return _("The standard download is used instead.")
+
+    @property
+    def PLUGIN_ITEM_DATA_HANDLER(self) -> str:
+        return _("Part of the device data is not available.")
+
+    @property
     def PLUGIN_EXTERNAL_SOFTWARE(self) -> str:
         return _(
             "This device is also configured with separate software from the manufacturer."
