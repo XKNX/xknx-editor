@@ -200,5 +200,11 @@ msgstr "Waarde {number}"
 msgid "Name template"
 msgstr "Naamsjabloon"
 
-msgid "Placeholders: {building} {floor} {room} {device} {devicename} {devicedescription} {product} {manufacturer} {order} {address} {object} {ganame} {function} {number} {dpt}"
-msgstr "Tijdelijke aanduidingen: {building} {floor} {room} {device} {devicename} {devicedescription} {product} {manufacturer} {order} {address} {object} {ganame} {function} {number} {dpt}"
+msgid "Placeholders"
+msgstr "Tijdelijke aanduidingen"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  Gebouw\n{floor}  Verdieping\n{room}  Ruimte\n{device}  Apparaatnaam of -beschrijving\n{devicename}  Apparaatnaam\n{devicedescription}  Apparaatbeschrijving\n{product}  Product\n{manufacturer}  Fabrikant\n{order}  Bestelnummer\n{address}  Fysiek adres\n{object}  Objectnaam\n{ganame}  Objectnaam\n{function}  Functie\n{number}  Objectnummer\n{dpt}  Datapunttype"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  Volgnummer ({n:02} vult met nullen)"

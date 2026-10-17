@@ -197,5 +197,11 @@ msgstr "Wert bearbeiten"
 msgid "Name template"
 msgstr "Namensvorlage"
 
-msgid "Placeholders: {building} {floor} {room} {device} {devicename} {devicedescription} {product} {manufacturer} {order} {address} {object} {ganame} {function} {number} {dpt}"
-msgstr "Platzhalter: {building} {floor} {room} {device} {devicename} {devicedescription} {product} {manufacturer} {order} {address} {object} {ganame} {function} {number} {dpt}"
+msgid "Placeholders"
+msgstr "Platzhalter"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  Gebäude\n{floor}  Etage\n{room}  Raum\n{device}  Gerätename oder -beschreibung\n{devicename}  Gerätename\n{devicedescription}  Gerätebeschreibung\n{product}  Produkt\n{manufacturer}  Hersteller\n{order}  Bestellnummer\n{address}  Physikalische Adresse\n{object}  Objektname\n{ganame}  Objektname\n{function}  Funktion\n{number}  Objektnummer\n{dpt}  Datenpunkttyp"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  Fortlaufender Index ({n:02} füllt mit Nullen)"

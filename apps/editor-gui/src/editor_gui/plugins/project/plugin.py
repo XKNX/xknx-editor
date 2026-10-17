@@ -667,12 +667,17 @@ class ProjectPlugin:
         """Recommendation for a new group address for ``com_object``: the next free address and a
         name rendered from the program-wide name template (see :mod:`ga_name_template`), filled with
         the device's building/floor/room, identifiers, and the object's name and function. The
-        default template reproduces "Flur - Taster - TW 1 - Switch"."""
+        default template reproduces "Flur-Taster-TW 1-Switch"."""
         address = self._api.project.next_free_group_address() or ""
+        values = self._ga_name_values(device, com_object)
+        return address, render_name_template(self._ga_name_template(), values)
+
+    def _ga_name_values(self, device: "Device", com_object: Any) -> dict[str, object]:
+        """Placeholder values for the group-address name template (see :mod:`ga_name_template`),
+        shared by the single-link suggestion and the bulk create flow."""
         building, floor, room = self._device_space_fields(device.node_id)
         info = self._api.project.get_device_info(device.node_id)
-        dpt = getattr(getattr(com_object, "dpt", None), "name", "") or ""
-        values = {
+        return {
             "building": building,
             "floor": floor,
             "room": room,
@@ -686,10 +691,9 @@ class ProjectPlugin:
             "object": com_object.name or "",
             "ganame": com_object.name or "",
             "function": getattr(com_object, "function_text", "") or "",
-            "number": str(getattr(com_object, "number", "") or ""),
-            "dpt": dpt,
+            "number": getattr(com_object, "number", "") or "",
+            "dpt": getattr(getattr(com_object, "dpt", None), "name", "") or "",
         }
-        return address, render_name_template(self._ga_name_template(), values)
 
     def _ga_name_template(self) -> str:
         """The program-wide group-address name template (``app.json``), or the default."""
@@ -973,14 +977,13 @@ class ProjectPlugin:
         name_template: str = "{object}",
     ) -> None:
         """Create a group address for each selected com-object and link it as the sending address —
-        the bulk 'create group addresses' flow. ``name_template`` supports ``{object}``,
-        ``{device}``, ``{room}``, ``{function}``, ``{number}``, ``{dpt}`` and ``{n}`` (batch index,
-        1-based; ``{n:02}`` zero-pads); ``start_address`` (optional) seeds sequential addressing,
-        else each gets the next free address."""
+        the bulk 'create group addresses' flow. ``name_template`` supports every placeholder of the
+        single-link name template (see :mod:`ga_name_template`) plus ``{n}`` (batch index, 1-based;
+        ``{n:02}`` zero-pads); ``start_address`` (optional) seeds sequential addressing, else each
+        gets the next free address."""
         from xknxeditor.proj.core.addressing import format_ga, parse_ga
 
         style = self._api.project.group_address_style
-        room = self._device_room(device)
         base: int | None = None
         if start_address:
             try:
@@ -995,18 +998,11 @@ class ProjectPlugin:
         for i, co in enumerate(com_objects):
             if co.db_id is None:
                 continue
-            try:
-                name = (name_template or "{object}").format(
-                    object=co.name,
-                    device=device.name,
-                    room=room,
-                    function=getattr(co, "function_text", "") or "",
-                    number=co.number,
-                    dpt=getattr(co.dpt, "name", "") or "",
-                    n=i + 1,
-                )
-            except (KeyError, IndexError, ValueError):
-                name = co.name or f"{device.name} {co.number}"
+            values = self._ga_name_values(device, co)
+            values["n"] = i + 1
+            name = render_name_template(name_template or "{object}", values) or (
+                co.name or f"{device.name} {co.number}"
+            )
             address = format_ga(base + i, style) if base is not None else None
             ga_id = self._api.project.create_group_address(address, name)
             if ga_id is None:

@@ -298,11 +298,22 @@ class GroupObjectsTable:
             self._batch_open = False
         if not begin_dialog(S.GROUP_OBJECTS_BATCH_TITLE, width=440.0):
             return
-        imgui.text_wrapped(S.GROUP_OBJECTS_BATCH_HINT)
-        imgui.spacing()
         imgui.text_disabled(S.GROUP_OBJECTS_BATCH_NAME)
         imgui.set_next_item_width(-1)
-        _, self._batch_template = imgui.input_text("##batch_name", self._batch_template)
+        # Share the program-wide name template with the single-link dialog (uniform input); fall
+        # back to the local buffer when no template callbacks are wired.
+        template = (
+            self._get_name_template()
+            if self._get_name_template is not None
+            else self._batch_template
+        )
+        changed, template = imgui.input_text("##batch_name", template)
+        if changed:
+            if self._set_name_template is not None:
+                self._set_name_template(template)
+            else:
+                self._batch_template = template
+        self._render_placeholder_reference(S.GROUP_OBJECTS_BATCH_HINT)
         imgui.text_disabled(S.GROUP_OBJECTS_BATCH_START)
         imgui.set_next_item_width(-1)
         _, self._batch_start = imgui.input_text_with_hint(
@@ -315,7 +326,7 @@ class GroupObjectsTable:
         if clicked == 0:
             if self._on_auto_create_gas is not None:
                 self._on_auto_create_gas(
-                    device, selected, self._batch_start.strip(), self._batch_template
+                    device, selected, self._batch_start.strip(), template
                 )
             self._selected.clear()
             imgui.close_current_popup()
@@ -547,12 +558,12 @@ class GroupObjectsTable:
         imgui.separator()
 
     def _render_name_template(self, device: Device, com_object: ComObject) -> None:
-        """A collapsed 'Name template' section editing the program-wide auto-name template. Editing
-        it regenerates the suggested name live (unless the user hand-edited the name field)."""
+        """The always-visible 'Name template' editor for the program-wide auto-name template, with
+        the placeholder reference behind a collapsed section below it. Editing the template
+        regenerates the suggested name live (unless the user hand-edited the name field)."""
         if self._get_name_template is None or self._set_name_template is None:
             return
-        if not imgui.tree_node_ex(S.GA_NAME_TEMPLATE_SECTION):
-            return
+        imgui.text_disabled(S.GA_NAME_TEMPLATE_SECTION)
         imgui.set_next_item_width(-1.0)
         changed, template = imgui.input_text_with_hint(
             "##ganametemplate", S.GA_CREATE_NAME_HINT, self._get_name_template()
@@ -561,8 +572,16 @@ class GroupObjectsTable:
             self._set_name_template(template)
             if not self._create_name_edited and self._suggest_ga is not None:
                 _, self._create_name = self._suggest_ga(device, com_object)
-        imgui.text_disabled(S.GA_NAME_TEMPLATE_HINT)
-        imgui.tree_pop()
+        self._render_placeholder_reference()
+
+    def _render_placeholder_reference(self, extra: str | None = None) -> None:
+        """A collapsed 'Placeholders' section listing each placeholder with a short description;
+        ``extra`` appends a flow-specific line (e.g. the bulk flow's ``{n}`` index)."""
+        if imgui.tree_node_ex(S.GA_NAME_TEMPLATE_PLACEHOLDERS):
+            imgui.text_disabled(S.GA_NAME_TEMPLATE_HINT)
+            if extra:
+                imgui.text_disabled(extra)
+            imgui.tree_pop()
 
     def _render_address_inputs(self) -> str:
         """Address entry for the new GA. In 3-level style three int fields (main/middle/sub) where
@@ -668,7 +687,7 @@ class GroupObjectsTable:
             f"{S.GA_LINK_TITLE}: {com_object_display_name(com_object)}##addga_window"
         )
         expanded, add_open = begin_tool_window(
-            title, self._add_open, width=_PICKER_WIDTH + 24.0, height=420.0
+            title, self._add_open, width=_PICKER_WIDTH + 24.0, height=560.0
         )
         self._add_open = bool(add_open)
         if expanded:

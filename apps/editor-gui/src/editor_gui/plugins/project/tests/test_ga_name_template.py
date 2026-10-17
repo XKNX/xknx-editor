@@ -26,8 +26,18 @@ _FULL = {
 def test_default_template_reproduces_room_device_object_function() -> None:
     assert (
         render_name_template(DEFAULT_GA_NAME_TEMPLATE, _FULL)
-        == "Flur - Taster - TW 1 - Switch"
+        == "Flur-Taster-TW 1-Switch"
     )
+
+
+def test_no_space_template_keeps_tight_separators_on_empty_middle() -> None:
+    values = {**_FULL, "device": ""}
+    assert render_name_template("{room}-{device}-{object}", values) == "Flur-TW 1"
+
+
+def test_space_template_keeps_spaced_separators_on_empty_middle() -> None:
+    values = {**_FULL, "device": ""}
+    assert render_name_template("{room} - {device} - {object}", values) == "Flur - TW 1"
 
 
 def test_empty_leading_placeholder_drops_its_separator() -> None:
@@ -71,3 +81,11 @@ def test_placeholders_cover_the_default_template_tokens() -> None:
 
     for name in re.findall(r"\{(\w+)\}", DEFAULT_GA_NAME_TEMPLATE):
         assert name in PLACEHOLDERS
+
+
+def test_format_spec_zero_pads_numeric_value() -> None:
+    assert render_name_template("{object} {n:02}", {**_FULL, "n": 3}) == "TW 1 03"
+
+
+def test_format_spec_on_text_value_falls_back() -> None:
+    assert render_name_template("{object:02}", _FULL) == "TW 1"

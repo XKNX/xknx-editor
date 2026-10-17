@@ -94,10 +94,7 @@ class WidgetStrings(BaseStrings):
 
     @property
     def GROUP_OBJECTS_BATCH_HINT(self) -> str:
-        return _(
-            "Name template placeholders: {object}, {device}, {room}, {function}, "
-            "{number}, {dpt}, {n} (index; {n:02} zero-pads)"
-        )
+        return _("{n}  Sequential index ({n:02} zero-pads)")
 
     @property
     def GROUP_OBJECTS_BATCH_NAME(self) -> str:
@@ -144,11 +141,27 @@ class WidgetStrings(BaseStrings):
         return _("Name template")
 
     @property
+    def GA_NAME_TEMPLATE_PLACEHOLDERS(self) -> str:
+        return _("Placeholders")
+
+    @property
     def GA_NAME_TEMPLATE_HINT(self) -> str:
         return _(
-            "Placeholders: {building} {floor} {room} {device} {devicename} "
-            "{devicedescription} {product} {manufacturer} {order} {address} {object} "
-            "{ganame} {function} {number} {dpt}"
+            "{building}  Building\n"
+            "{floor}  Floor\n"
+            "{room}  Room\n"
+            "{device}  Device name or description\n"
+            "{devicename}  Device name\n"
+            "{devicedescription}  Device description\n"
+            "{product}  Product\n"
+            "{manufacturer}  Manufacturer\n"
+            "{order}  Order number\n"
+            "{address}  Individual address\n"
+            "{object}  Object name\n"
+            "{ganame}  Object name\n"
+            "{function}  Function\n"
+            "{number}  Object number\n"
+            "{dpt}  Datapoint type"
         )
 
     @property
