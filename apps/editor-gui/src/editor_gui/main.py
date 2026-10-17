@@ -2607,12 +2607,8 @@ class KnxGuiApp:
             )
             return
         pad = px(_STATUS_PADDING)
-        content = (
-            imgui.get_frame_height()
-            if self._show_status_fps
-            else imgui.get_text_line_height()
-        )
-        height = 1.0 + 2 * pad + content
+        # One line of text; the idling checkbox of the FPS display fits that line too.
+        height = 1.0 + 2 * pad + imgui.get_text_line_height()
         # The margin is in units of the font size.
         window_params.full_screen_window_margin_bottom_right = imgui.ImVec2(
             0.0, height / imgui.get_font_size()
@@ -2769,6 +2765,9 @@ class KnxGuiApp:
         imgui.same_line(
             max(imgui.get_window_width() - width - style.window_padding.x, 0.0)
         )
+        # The checkbox, a little higher than the text, centred on the text line so the status
+        # bar keeps its height.
+        imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() - style.frame_padding.y / 4)
         _, idling.enable_idling = checkbox(S.MENU_ENABLE_IDLING, idling.enable_idling)
         imgui.same_line()
         imgui.text_disabled(fps)
