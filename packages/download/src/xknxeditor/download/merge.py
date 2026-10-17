@@ -25,6 +25,9 @@ from xknxeditor.namespaces.intermediate.ld_ctrl_base_t import LdCtrlBase
 from xknxeditor.namespaces.intermediate.ld_ctrl_merge_t import LdCtrlMerge
 from xknxeditor.namespaces.intermediate.ld_ctrl_proc_type_t import LdCtrlProcType
 from xknxeditor.namespaces.intermediate.load_procedure_style_t import LoadProcedureStyle
+from xknxeditor.namespaces.intermediate.mask_version_t_management_model import (
+    MaskVersionManagementModel,
+)
 from xknxeditor.namespaces.intermediate.procedure_type_t import ProcedureType
 from xknxeditor.namespaces.intermediate.resource_access_t import ResourceAccess
 
@@ -324,3 +327,20 @@ def mask_authorize_levels(master_data: MasterData | None, mask_version_id: str) 
                 if name == _AUTHORIZE_LEVELS_FEATURE:
                     return feature.value or 0
     return 0
+
+
+def mask_has_property_services(
+    master_data: MasterData | None, mask_version_id: str
+) -> bool:
+    """Whether the mask answers ``A_PropertyValue_Read``.
+
+    BCU1 (system 1) has no interface-object properties. Probing them times out.
+    An unknown mask keeps the probes, which newer devices answer.
+    """
+    if master_data is None or master_data.mask_versions is None:
+        return True
+    for mask_version in master_data.mask_versions.mask_version:
+        if mask_version.id != mask_version_id:
+            continue
+        return mask_version.management_model is not MaskVersionManagementModel.BCU1
+    return True
