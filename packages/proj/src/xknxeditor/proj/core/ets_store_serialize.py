@@ -12,7 +12,8 @@ is therefore reused from :mod:`knxproj_export` rather than duplicated.
 
 Scope of this writer (v1): topology, devices (parameter/com-object instances, module instances,
 the group-object tree), group addresses, buildings with their device assignments, and the project
-header. Building *functions*, per-device ``BinaryData`` and ``IPConfig`` are not emitted yet.
+header. Building *functions* and per-device ``BinaryData`` are not emitted yet. A device's
+``IPConfig`` and extra individual addresses are, under the store's short names ``IP`` and ``AA``.
 """
 
 from __future__ import annotations
@@ -32,6 +33,7 @@ from sqlalchemy.orm import object_session
 
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.ets_store import (
+    StoreFormat,
     project_mask,
     write_store_descriptor,
     write_store_stream,
@@ -61,6 +63,15 @@ _IP_ROUTING_LATENCY_TOLERANCE = "2000"
 
 #: A valid ETS project id (``P-`` + hex). Guards any filesystem path derived from a project id.
 _PID_RE = re.compile(r"P-[0-9A-Fa-f]+\Z")
+
+#: Medium type for a line whose segments did not survive the model (TP, as a genuine ETS 5 store
+#: writes on every line of a TP installation).
+_DEFAULT_MEDIUM_TYPE = "MT-0"
+
+#: Sections an ETS 5 store always accounts for, none of which this writer has content for: addin
+#: data, bus access, trades ("Gewerke"), history entries, IP-secure data, split (``S``), todo items
+#: and user files. Written as empty (hash sidecar only), matching a genuine ETS 5 ProjectStore.
+_ETS5_LEGACY_STREAMS = ("AI", "BA", "D", "HE", "IPSD", "S", "T", "UF")
 
 
 def _is_safe_member(member: str) -> bool:
@@ -109,10 +120,12 @@ class _StoreBuilder:
         pid: str,
         *,
         name: str | None = None,
+        store_format: StoreFormat = StoreFormat.ETS6,
     ) -> None:
         self._project = project
         self._installation = installation
         self._pid = pid
+        self._format = store_format
         self._name = name if name is not None else project.name
         # Persistent-unique-id per object, assigned in the order a genuine store does: the whole
         # topology skeleton, then spaces, then devices, then the group-address tree. Keyed by
@@ -205,6 +218,11 @@ class _StoreBuilder:
             "G": self._build_group_addresses(),
             "PT": self._build_traces(),
         }
+        if self._format is StoreFormat.ETS5:
+            # Sections ETS 5 always accounts for and ETS 6 dropped. A genuine ETS 5 store carries a
+            # hash-of-empty sidecar for each (no base file, see write_store_stream); a genuine ETS 6
+            # store has no trace of them at all, which is why they are not written for both.
+            streams.update(dict.fromkeys(_ETS5_LEGACY_STREAMS, b""))
         streams.update(self._build_areas())
         return streams
 
@@ -229,6 +247,22 @@ class _StoreBuilder:
             sum(1 for s in inst.spaces if (s.space_type or "") == "Room") if inst else 0
         )
         function_count = sum(len(s.functions) for s in inst.spaces) if inst else 0
+        # The project list reads its "Status" column from CompletionStatus; without it the project
+        # is listed as "Unknown". It is captured at import into extra_attributes (it is one of the
+        # ProjectInformation attributes xknxproject does not surface), so re-emit it from there and
+        # fall back to what ETS puts on a project that is simply being worked on.
+        counts: dict[str, object] = (
+            {"Birdy-DeviceCount": device_count}
+            if self._format is StoreFormat.ETS5
+            else {
+                "Birdy-RoomCount": room_count,
+                "Birdy-DeviceCount": device_count,
+                "Birdy-FunctionCount": function_count,
+                "Birdy-LineCount": line_count,
+                "Birdy-AssignedCertificateCount": 0,
+                "Birdy-UnassignedCertificateCount": 0,
+            }
+        )
         _attr(
             root,
             "ProjInfo",
@@ -237,16 +271,10 @@ class _StoreBuilder:
             LastModified=project.last_modified or now,
             ProjectStart=extra.get("ProjectStart") or now,
             Comment=project.comment or "",
+            CompletionStatus=extra.get("CompletionStatus") or "Editing",
             LastUsedPuid=self._counter,
             Guid=self.guid,
-            **{
-                "Birdy-RoomCount": room_count,
-                "Birdy-DeviceCount": device_count,
-                "Birdy-FunctionCount": function_count,
-                "Birdy-LineCount": line_count,
-                "Birdy-AssignedCertificateCount": 0,
-                "Birdy-UnassignedCertificateCount": 0,
-            },
+            **counts,
         )
         return _serialize(root)
 
@@ -257,18 +285,35 @@ class _StoreBuilder:
         return self._guid
 
     def _build_installation(self) -> bytes:
+        name = self._installation.name if self._installation else ""
+        if self._format is StoreFormat.ETS5:
+            # ETS 5 stores the single installation as the root element itself; the ``<Is>`` wrapper
+            # (and with it more than one installation) arrived with ETS 6.
+            root = ET.Element(
+                "I",
+                Name=name,
+                BCUKey=_BCU_KEY,
+                DefaultLine="",
+                IPRoutingLatencyTolerance=_IP_ROUTING_LATENCY_TOLERANCE,
+            )
+            return _serialize(root)
         root = ET.Element("Is")
         _attr(
             root,
             "I",
-            Name=(self._installation.name if self._installation else ""),
+            Name=name,
             BCUKey=_BCU_KEY,
             IPRoutingLatencyTolerance=_IP_ROUTING_LATENCY_TOLERANCE,
         )
         return _serialize(root)
 
     def _build_unassigned(self) -> bytes:
-        return _serialize(ET.Element("UDI"))
+        # xknxeditor's model has no concept of a device outside the Area/Line/Segment topology (an
+        # imported device with no line home is dropped at import, see the module docstring), so this
+        # section is always empty. A genuine ProjectStore represents an unused ``U`` section as no
+        # base file at all (see write_store_stream), not a serialized empty ``<UDI/>`` element -- so
+        # this returns the same "empty" ``b""`` rather than serializing a root element nothing reads.
+        return b""
 
     def _build_buildings(self) -> bytes:
         root = ET.Element("Ls")
@@ -354,6 +399,12 @@ class _StoreBuilder:
             )
 
     def _build_traces(self) -> bytes:
+        # A project with no recorded traces yet (e.g. one never opened/saved in real ETS) has no
+        # base ``PT`` file in a genuine store either -- same "empty means absent" shape as ``U``
+        # (see write_store_stream and _build_unassigned). Only serialize a ``<PTrcs>`` element once
+        # there is at least one trace to carry.
+        if not self._project.traces:
+            return b""
         root = ET.Element("PTrcs")
         for trace in self._project.traces:
             _attr(
@@ -373,22 +424,55 @@ class _StoreBuilder:
         for a_seq, area in enumerate(
             sorted(inst.areas, key=lambda a: a.address), start=1
         ):
+            # ``Name`` is mandatory on a topology element, and it must be *present* even when
+            # empty: ETS 5.7 refuses an <Area> without it with "required property 'Name' does not
+            # exist", drops the whole area -- and with it every device in it -- and then rewrites
+            # the store without the area streams. The project still opens, but comes up with no
+            # devices and no group-address associations, which is what made this hard to spot.
+            # (ETS 6 happens to tolerate a missing Name here; ETS 5 does not.)
             area_el = ET.Element(
                 "Area",
                 Id=f"{self._pid}-0_A-{a_seq}",
                 Address=str(area.address),
+                Name=area.name or "",
                 Puid=str(self._p("A", area.id)),
             )
             for line in sorted(area.lines, key=lambda line_: line_.address):
+                segments = list(line.segments)
+                if self._format is StoreFormat.ETS5:
+                    # ETS 5 has no segment layer: the medium type sits on the line and the devices
+                    # are its direct children. Writing an ETS 6 ``<Segment>`` here costs the whole
+                    # line -- ETS 5 fails it with "required property 'MediumTypeRefId' does not
+                    # exist" and drops it, taking every device on it with it.
+                    line_el = _attr(
+                        area_el,
+                        "Line",
+                        Id=f"{self._pid}-0_L-{self._s('L', line.id)}",
+                        Address=line.address,
+                        Name=line.name or "",
+                        MediumTypeRefId=(
+                            segments[0].medium_type
+                            if segments
+                            else _DEFAULT_MEDIUM_TYPE
+                        ),
+                        Puid=self._p("L", line.id),
+                    )
+                    # A line with several segments cannot be represented; the devices still all
+                    # belong to the line, so they are flattened onto it (import already notes the
+                    # segment loss, see core.import_notes).
+                    for segment in segments:
+                        for device in segment.devices:
+                            self._build_device(line_el, device)
+                    continue
                 line_el = _attr(
                     area_el,
                     "Line",
                     Id=f"{self._pid}-0_L-{self._s('L', line.id)}",
                     Address=line.address,
-                    Name=line.name or None,
+                    Name=line.name or "",
                     Puid=self._p("L", line.id),
                 )
-                for segment in line.segments:
+                for segment in segments:
                     seg_el = _attr(
                         line_el,
                         "Segment",
@@ -431,6 +515,33 @@ class _StoreBuilder:
         self._build_com_objects(di, device)
         self._build_module_instances(di, device)
         self._build_group_object_tree(di, device)
+        self._build_additional_addresses(di, device)
+        self._build_ip_config(di, device)
+
+    def _build_additional_addresses(self, di: ET.Element, device: Device) -> None:
+        """Extra individual addresses a coupler or IP interface reserves.
+
+        The store shortens ``<AdditionalAddresses>/<Address>`` to ``<AA>/<Addr>``. An entry without
+        an address cannot be represented there and is skipped.
+        """
+        entries = [
+            addr for addr in device.additional_addresses if addr.address is not None
+        ]
+        if not entries:
+            return
+        container = _attr(di, "AA")
+        for addr in entries:
+            _attr(container, "Addr", Address=addr.address, Name=addr.name or "")
+
+    def _build_ip_config(self, di: ET.Element, device: Device) -> None:
+        """The device's IP interface config, captured at import.
+
+        The store names the element ``IP``; the attributes (``Assign``, ``IPAddress``,
+        ``SubnetMask``, ``DefaultGateway``, ``MACAddress``) are the ones the source carried.
+        Without this an IP interface comes back with no address to program against.
+        """
+        if device.ip_config:
+            _attr(di, "IP", **device.ip_config)
 
     def _build_com_objects(self, di: ET.Element, device: Device) -> None:
         # Same write gate as the .knxproj export: emit an instance only for a linked or overridden
@@ -471,7 +582,14 @@ class _StoreBuilder:
                 TransmitFlag=enable(co.transmit_flag_override),
                 UpdateFlag=enable(co.update_flag_override),
                 ReadOnInitFlag=enable(co.read_on_init_flag_override),
-                **{"Birdy-SecurityState": "true" if secure else "false"},
+                # ETS 6 annotates each link with whether its group address is secured. A genuine
+                # ETS 5 store never carries ``Birdy-SecurityState`` (the property is absent from
+                # its object model), so the attribute is ETS 6 only.
+                **(
+                    {"Birdy-SecurityState": "true" if secure else "false"}
+                    if self._format is StoreFormat.ETS6
+                    else {}
+                ),
             )
 
     def _build_module_instances(self, di: ET.Element, device: Device) -> None:
@@ -557,13 +675,18 @@ def build_store_streams(
     *,
     pid: str | None = None,
     name: str | None = None,
+    store_format: StoreFormat = StoreFormat.ETS6,
 ) -> StoreStreams:
     """Serialize ``project`` into the ETS store streams (no files written).
 
     ``name`` overrides the stored project name (e.g. to tag a new copy); ``None`` keeps it.
+    ``store_format`` selects the target ETS generation's stream shapes -- the two are not
+    interchangeable, see :class:`xknxeditor.proj.core.ets_store.StoreFormat`.
     """
     resolved_pid = pid or project.id
-    builder = _StoreBuilder(project, installation, resolved_pid, name=name)
+    builder = _StoreBuilder(
+        project, installation, resolved_pid, name=name, store_format=store_format
+    )
     streams = builder.build()
     return StoreStreams(pid=resolved_pid, guid=builder.guid, streams=streams)
 
@@ -579,26 +702,39 @@ def write_project_store(
     product_members: Mapping[str, bytes] | None = None,
     overwrite: bool = True,
     reveal: Callable[[bytes], bytes] | None = None,
+    store_format: StoreFormat = StoreFormat.ETS6,
 ) -> StoreStreams:
-    """Write a complete ``P-XXXX`` store directory ETS 6 can open.
+    """Write a complete ``P-XXXX`` store directory the target ETS can open.
 
     Writes each stream with its ``.ets5hash`` sidecar, the ``storeVersion`` marker and the
     ``{pid}.store`` descriptor bound to ``installer_guid`` (the target machine's ETS installation
     GUID). Manufacturer product data (``M-XXXX/*`` members) is written loose so device product/
-    application refs resolve; empty ``BinaryData``/``UserFiles``/``AddinData`` folders complete the
-    layout. ``dest_dir`` is the ``P-XXXX`` folder itself (use :func:`store_pid_exists` and
-    :func:`next_free_pid` to decide the id and avoid clobbering an unrelated project).
+    application refs resolve, each folder getting its own ``M-XXXX.store`` descriptor the same way
+    the project folder does (see :func:`xknxeditor.proj.core.ets_store.store_descriptor` -- verified
+    against a genuine ProjectStore, a manufacturer folder without one is treated as missing/untrusted
+    even though its files and hashes are otherwise correct); empty ``BinaryData``/``UserFiles``/
+    ``AddinData`` folders complete the layout. ``dest_dir`` is the ``P-XXXX`` folder itself (use
+    :func:`store_pid_exists` and :func:`next_free_pid` to decide the id and avoid clobbering an
+    unrelated project).
 
-    The folder is built in a sibling temp directory and swapped in only once complete, so a failed
-    write never destroys an existing store. ``overwrite`` controls the swap: ``True`` replaces an
-    existing ``dest_dir``; ``False`` (for a new copy) refuses when it is already taken, so a slot
-    occupied between picking the id and writing is never clobbered.
+    The folder is built in a sibling temp directory and only installed into ``dest_dir`` once
+    complete, so a failed write never destroys an existing store. ``overwrite`` controls what
+    happens when ``dest_dir`` already exists: ``True`` **merges** the freshly built folder into it
+    (see :func:`_install_into_existing` -- this writer only owns the streams/descriptors/folders it
+    knows how to build; anything else already in ``dest_dir``, such as a real ``BinaryData``
+    attachment, a stream type this writer does not model yet, or a manufacturer folder it could not
+    resolve, is left exactly as ETS wrote it rather than being deleted along with the rest).
+    ``False`` (for a new copy) refuses when the slot is already taken, so a slot occupied between
+    picking the id and writing is never clobbered.
 
     ``project_name`` overrides the stored project name (e.g. to tag a new copy); ``None`` keeps it.
     ``reveal`` turns a stream with the project's encrypted secrets into one with them in the clear
-    (see :meth:`ProjectService.reveal`).
+    (see :meth:`ProjectService.reveal`). ``store_format`` must match the ETS generation owning
+    ``dest_dir``: a store written for the other one opens but comes up empty.
     """
-    built = build_store_streams(project, installation, pid=pid, name=project_name)
+    built = build_store_streams(
+        project, installation, pid=pid, name=project_name, store_format=store_format
+    )
     if reveal is not None:
         built.streams.update(
             {name: reveal(data) for name, data in built.streams.items()}
@@ -615,26 +751,83 @@ def write_project_store(
     staging.mkdir(parents=True)
     for name, data in built.streams.items():
         write_store_stream(staging, name, data, mask)
-    write_store_version(staging)
+    write_store_version(staging, store_format)
     write_store_descriptor(staging, built.pid, installer_guid)
+
+    manufacturer_folders: set[str] = set()
     for member, data in (product_members or {}).items():
         if not _is_safe_member(member):
             continue  # drop traversal/absolute members from an untrusted archive
         target = staging / member
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes(data)
+        top = PurePosixPath(member).parts[0]
+        if top.startswith("M-") and "/" in member:
+            manufacturer_folders.add(top)
+    for folder in manufacturer_folders:
+        write_store_descriptor(staging / folder, folder, installer_guid)
+
     for folder in ("BinaryData", "UserFiles", "AddinData"):
         (staging / folder).mkdir(exist_ok=True)
 
-    # Swap the finished folder in. The window between removing the old one and the rename is far
-    # smaller than writing every stream in place would be.
     if dest_dir.exists():
         if not overwrite:
             shutil.rmtree(staging)
             raise FileExistsError(f"store folder already exists: {dest_dir}")
-        shutil.rmtree(dest_dir)
-    staging.rename(dest_dir)
+        _install_into_existing(staging, dest_dir, built.pid, manufacturer_folders)
+        shutil.rmtree(staging)
+    else:
+        staging.rename(dest_dir)
     return built
+
+
+def _install_into_existing(
+    staging: Path, dest_dir: Path, pid: str, manufacturer_folders: set[str]
+) -> None:
+    """Install a freshly built store folder into an already-existing ``dest_dir``, without
+    destroying content this writer does not own.
+
+    Earlier versions of this function unconditionally ``rmtree``'d ``dest_dir`` and swapped
+    ``staging`` in. That deletes every stream type this writer does not emit yet (the legacy
+    ``AI``/``BA``/``D``/``HE``/``IPSD``/``S``/``T``/``UF`` streams a genuine ETS install may have
+    created), every manufacturer folder this export could not resolve, and any real
+    ``BinaryData``/``UserFiles``/``AddinData`` content -- then ETS reports the project as damaged.
+    This merges instead, replacing only what the writer actually (re)built:
+
+    - the per-area streams of *this* pid (a stale ``{pid}-0_A-N`` this writer wrote on an earlier
+      export but no longer emits, e.g. because an area was deleted, is removed -- this writer is the
+      sole owner of that naming scheme, so cleaning it up is safe);
+    - each manufacturer folder in ``manufacturer_folders`` is replaced wholesale (so stale files
+      from an earlier, different version of that manufacturer's data do not linger) -- but a
+      manufacturer folder *not* in that set (one this export could not resolve) is left untouched;
+    - everything else staging provides (``P``/``I``/``U``/``B``/``G``/``PT``, the current areas,
+      ``storeVersion``, ``{pid}.store``, each manufacturer ``.store``, the three placeholder
+      folders) is copied in, overwriting same-named entries.
+
+    Anything already in ``dest_dir`` that staging does not mention at all -- an unmodelled stream,
+    an unresolved manufacturer, a real binary attachment -- is never touched.
+    """
+    area_re = re.compile(rf"^{re.escape(pid)}-0_A-\d+(\.ets5hash)?$")
+    for existing in dest_dir.iterdir():
+        if area_re.match(existing.name) and not (staging / existing.name).exists():
+            existing.unlink()
+    for folder in manufacturer_folders:
+        target = dest_dir / folder
+        if target.exists():
+            shutil.rmtree(target)
+    _merge_tree(staging, dest_dir)
+
+
+def _merge_tree(src: Path, dst: Path) -> None:
+    """Copy ``src``'s tree into ``dst``, overwriting same-named files but never deleting anything
+    in ``dst`` that ``src`` does not provide."""
+    dst.mkdir(parents=True, exist_ok=True)
+    for item in src.iterdir():
+        target = dst / item.name
+        if item.is_dir():
+            _merge_tree(item, target)
+        else:
+            shutil.copy2(item, target)
 
 
 def unzip_members(blob: bytes | None) -> dict[str, bytes]:

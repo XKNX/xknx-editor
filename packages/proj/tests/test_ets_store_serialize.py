@@ -27,6 +27,7 @@ from xknxeditor.proj.models import (
     ComObject,
     ComObjectLink,
     Device,
+    DeviceAdditionalAddress,
     GroupAddress,
     GroupRange,
     Installation,
@@ -153,8 +154,11 @@ def test_section_decomposition() -> None:
     assert info.get("Birdy-DeviceCount") == "1"
     assert info.get("Birdy-RoomCount") == "1"
     assert info.get("Birdy-LineCount") == "2"
-    # Unassigned-device section is present but empty.
-    assert ET.fromstring(built.streams["U"].decode("utf-8-sig")).tag == "UDI"
+    # Unassigned-device and traces sections are unused -- a genuine store has no base file for
+    # those, only a ``.ets5hash`` of zero bytes (see write_store_stream), so the in-memory stream
+    # content here is the same "empty" b"" rather than a serialized empty root element.
+    assert built.streams["U"] == b""
+    assert built.streams["PT"] == b""
 
 
 def test_building_tree_links_device() -> None:
@@ -214,6 +218,71 @@ def test_device_streams_and_write_gate() -> None:
     assert node is not None and node.get("GroupObjectInstances") == "O-2_R-2"
 
 
+def test_ets5_store_drops_what_ets5_cannot_read() -> None:
+    """ETS 5's object model rejects the ETS 6 topology.
+
+    A line must carry ``MediumTypeRefId`` with the devices directly under it (a ``<Segment>``
+    makes ETS 5 drop the line). ``Birdy-SecurityState`` is an ETS 6 annotation a genuine ETS 5
+    store never carries. The legacy sections ETS 5 always accounts for are present but empty.
+    """
+    with _session() as session:
+        project, inst = _project(session)
+        built = build_store_streams(
+            project, inst, store_format=ets_store.StoreFormat.ETS5
+        )
+
+    for name in ("AI", "BA", "D", "HE", "IPSD", "S", "T", "UF"):
+        assert built.streams[name] == b""
+
+    installation = ET.fromstring(built.streams["I"].decode("utf-8-sig"))
+    assert installation.tag == "I"
+    assert installation.get("DefaultLine") == ""
+
+    info = ET.fromstring(built.streams["P"].decode("utf-8-sig")).find("ProjInfo")
+    assert info is not None
+    assert info.get("CompletionStatus") == "Editing"
+    assert info.get("Birdy-DeviceCount") == "1"
+    assert info.get("Birdy-RoomCount") is None
+
+    area = ET.fromstring(built.streams[f"{PID}-0_A-2"].decode("utf-8-sig"))
+    assert area.find("Segment") is None
+    line = area.find("Line")
+    assert line is not None and line.get("MediumTypeRefId") == "MT-0"
+    assert line.find("DI") is not None
+    ci = area.find(".//CI")
+    assert ci is not None and ci.get("Birdy-SecurityState") is None
+
+
+def test_store_writes_coupler_ip_config_and_extra_addresses() -> None:
+    """An IP interface keeps the address ETS programs it at, and the tunnel addresses it reserves."""
+    with _session() as session:
+        project, inst = _project(session)
+        device = inst.areas[1].lines[0].segments[0].devices[0]
+        device.ip_config = {
+            "Assign": "Fixed",
+            "IPAddress": "192.168.3.23",
+            "SubnetMask": "255.255.255.0",
+            "DefaultGateway": "192.168.3.1",
+            "MACAddress": "70:B3:D5:DC:84:06",
+        }
+        device.additional_addresses.append(DeviceAdditionalAddress(address=2, name=""))
+        session.flush()
+        built = build_store_streams(
+            project, inst, store_format=ets_store.StoreFormat.ETS5
+        )
+    di = _di(built.streams, f"{PID}-0_A-2")
+    ip = di.find("IP")
+    assert ip is not None
+    assert ip.get("Assign") == "Fixed"
+    assert ip.get("IPAddress") == "192.168.3.23"
+    assert ip.get("MACAddress") == "70:B3:D5:DC:84:06"
+    extra = di.find("AA")
+    assert extra is not None
+    assert [(a.get("Address"), a.get("Name")) for a in extra.findall("Addr")] == [
+        ("2", "")
+    ]
+
+
 def test_write_project_store_sidecars(tmp_path: Path) -> None:
     with _session() as session:
         project, inst = _project(session)
@@ -233,14 +302,27 @@ def test_write_project_store_sidecars(tmp_path: Path) -> None:
         assert sidecar == ets_store.ets5hash(data, mask)
     # storeVersion, the installation-bound descriptor, product data and the empty folders.
     assert (store_dir / "storeVersion").read_text(
-        encoding="utf-8"
-    ) == ets_store.STORE_VERSION
+        encoding="utf-8", newline=""
+    ) == ets_store.StoreFormat.ETS6.store_version
     assert (store_dir / f"{PID}.store").read_text(
         encoding="utf-8"
     ) == ets_store.store_descriptor(PID, INSTALLER_GUID)
     assert (store_dir / "M-0083" / "Hardware.xml").read_bytes() == b"<KNX/>"
     for folder in ("BinaryData", "UserFiles", "AddinData"):
         assert (store_dir / folder).is_dir()
+    # Every manufacturer folder gets its own installer-bound descriptor, the same mechanism as the
+    # project folder's own {pid}.store (verified against a genuine ProjectStore: a manufacturer
+    # folder without one is otherwise treated as missing even though its files are all correct).
+    assert (store_dir / "M-0083" / "M-0083.store").read_text(
+        encoding="utf-8"
+    ) == ets_store.store_descriptor("M-0083", INSTALLER_GUID)
+    # Unused sections (no unassigned devices, no traces) get no base file at all, only a
+    # .ets5hash of zero bytes -- matching a genuine store rather than a present-but-empty file.
+    for name in ("U", "PT"):
+        assert not (store_dir / name).exists()
+        assert (store_dir / f"{name}.ets5hash").read_text(
+            encoding="ascii"
+        ) == ets_store.ets5hash(b"", mask)
 
 
 def test_existing_folder_overwrite_is_clean(tmp_path: Path) -> None:
@@ -254,6 +336,62 @@ def test_existing_folder_overwrite_is_clean(tmp_path: Path) -> None:
         stale.write_bytes(b"stale")
         write_project_store(store_root / PID, project, inst, INSTALLER_GUID, pid=PID)
     assert not stale.exists()
+
+
+def test_reexport_preserves_content_this_writer_does_not_own(tmp_path: Path) -> None:
+    """Re-exporting into an existing, genuine ETS folder must not destroy what ETS put there.
+
+    Regression test for the "project is damaged" / "M-XXXX folders are missing" reports: an
+    earlier version of ``write_project_store`` unconditionally ``rmtree``'d the destination before
+    swapping the freshly built folder in, which silently dropped every stream type this writer does
+    not model yet (``AI``/``BA``/``D``/``HE``/``IPSD``/``S``/``T``/``UF`` -- see ets_store.py), any
+    manufacturer folder this export could not resolve, and real ``BinaryData``/``UserFiles``
+    attachments.
+    """
+    with _session() as session:
+        project, inst = _project(session)
+        store_dir = tmp_path / PID
+        write_project_store(
+            store_dir,
+            project,
+            inst,
+            INSTALLER_GUID,
+            product_members={
+                "M-0083/Hardware.xml": b"<old/>",
+                "M-0083/Stale.xml": b"gone",
+            },
+        )
+
+        # Simulate a genuine ETS install having since touched this folder: a legacy stream type
+        # this writer never emits, a real binary attachment, and a manufacturer this export's
+        # catalog cannot resolve (e.g. its source .knxprod was removed).
+        (store_dir / "AI.ets5hash").write_text("untouched", encoding="ascii")
+        (store_dir / "BinaryData" / "note.pdf").write_bytes(b"real attachment")
+        other_manufacturer = store_dir / "M-00FF" / "Hardware.xml"
+        other_manufacturer.parent.mkdir(parents=True)
+        other_manufacturer.write_bytes(b"<other/>")
+
+        write_project_store(
+            store_dir,
+            project,
+            inst,
+            INSTALLER_GUID,
+            pid=PID,
+            product_members={"M-0083/Hardware.xml": b"<new/>"},
+        )
+
+    # Unmodelled stream type and the real attachment: untouched.
+    assert (store_dir / "AI.ets5hash").read_text(encoding="ascii") == "untouched"
+    assert (store_dir / "BinaryData" / "note.pdf").read_bytes() == b"real attachment"
+    # Manufacturer this export could not resolve: untouched.
+    assert other_manufacturer.read_bytes() == b"<other/>"
+    # Manufacturer this export *did* resolve: replaced wholesale (new content; stale file from
+    # the previous export of the same manufacturer is gone) and still has its own descriptor.
+    assert (store_dir / "M-0083" / "Hardware.xml").read_bytes() == b"<new/>"
+    assert not (store_dir / "M-0083" / "Stale.xml").exists()
+    assert (store_dir / "M-0083" / "M-0083.store").read_text(
+        encoding="utf-8"
+    ) == ets_store.store_descriptor("M-0083", INSTALLER_GUID)
 
 
 def test_new_copy_uses_free_id_and_tagged_name(tmp_path: Path) -> None:
