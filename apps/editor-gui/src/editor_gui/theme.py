@@ -84,6 +84,10 @@ def _rgb(r: int, g: int, b: int) -> imgui.ImVec4:
 # Microsoft Style with the colors of Windows dialogs: hovered items light blue, pressed ones a
 # little darker, the selected tab white like the page beside it with a blue line on top. The
 # theme's own tab colors barely differ, so neither hovering nor the selected tab showed.
+_WINDOWS_THEMES = (
+    hello_imgui.ImGuiTheme_.microsoft_style,
+    hello_imgui.ImGuiTheme_.white_is_white,
+)
 _WINDOWS_COLORS = {
     imgui.Col_.text: _WINDOWS_TEXT,
     imgui.Col_.tab: _rgb(228, 228, 228),
@@ -111,11 +115,14 @@ def apply_style() -> None:
     the theme was adjusted to stays."""
     style = imgui.get_style()
     tweaked = hello_imgui.get_runner_params().imgui_window_params.tweaked_theme
-    windows = tweaked.theme == hello_imgui.ImGuiTheme_.microsoft_style
+    # White Is White is Microsoft Style a little darker: it gets the same Windows colors, but
+    # keeps rounded corners.
+    windows = tweaked.theme in _WINDOWS_THEMES
+    square = tweaked.theme == hello_imgui.ImGuiTheme_.microsoft_style
     if tweaked.tweaks.rounding < 0:
         # Square corners in Microsoft Style, like Windows dialogs; rounded ones elsewhere.
-        rounding = 0.0 if windows else 4.0
-        style.window_rounding = 0.0 if windows else 6.0
+        rounding = 0.0 if square else 4.0
+        style.window_rounding = 0.0 if square else 6.0
         style.child_rounding = rounding
         style.frame_rounding = rounding
         style.popup_rounding = rounding
@@ -130,10 +137,22 @@ def apply_style() -> None:
     style.scrollbar_size = 12.0
     style.cell_padding = imgui.ImVec2(6.0, 4.0)
     if windows:
+        _clamp_colors(style)
         for col, color in _WINDOWS_COLORS.items():
             style.set_color_(col, color)
     _apply_table_lines(style)
     apply_window_colors()
+
+
+def _clamp_colors(style: imgui.Style) -> None:
+    """Every color within 0..1: White Is White gives its window backgrounds about 6.6 (drawn as
+    white), which the backgrounds mixed from them would carry along."""
+    for col in range(imgui.Col_.count):
+        c = style.color_(col)
+        style.set_color_(
+            col,
+            imgui.ImVec4(*(min(max(v, 0.0), 1.0) for v in (c.x, c.y, c.z, c.w))),
+        )
 
 
 def _apply_table_lines(style: imgui.Style) -> None:
