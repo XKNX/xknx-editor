@@ -1039,8 +1039,8 @@ msgstr "Apparaat verwijderen"
 msgid "Description"
 msgstr "Beschrijving"
 
-msgid "Destructive: the device is reset over the bus and must be re-commissioned with ETS. In KNX Secure mode this deactivates device security."
-msgstr "Destructief: het apparaat wordt via de bus teruggezet en moet met ETS opnieuw in bedrijf worden gesteld. In KNX Secure-modus wordt hierdoor de apparaatbeveiliging uitgeschakeld."
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "Destructief: het apparaat wordt via de bus teruggezet en moet opnieuw in bedrijf worden gesteld. In KNX Secure-modus wordt hierdoor de apparaatbeveiliging uitgeschakeld."
 
 msgid "Download PDF Manual"
 msgstr "PDF-handleiding downloaden"

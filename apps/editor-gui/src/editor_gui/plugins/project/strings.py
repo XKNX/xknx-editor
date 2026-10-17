@@ -1288,8 +1288,8 @@ class ProjectStrings:
     @property
     def RESET_WARNING(self) -> str:
         return _(
-            "Destructive: the device is reset over the bus and must be re-commissioned with "
-            "ETS. In KNX Secure mode this deactivates device security."
+            "Destructive: the device is reset over the bus and must be commissioned again. "
+            "In KNX Secure mode this deactivates device security."
         )
 
     @property

@@ -1188,9 +1188,14 @@ class ConfigurePanel:
         imgui.text_colored(imgui.ImVec4(0.95, 0.55, 0.35, 1.0), S.RESET_WARNING)
         imgui.pop_text_wrap_pos()
         presets = _reset_presets()
-        imgui.set_next_item_width(px(320.0))
+        # The label left of the drop-down, which ends where the warning wraps.
+        imgui.align_text_to_frame_padding()
+        imgui.text(S.RESET_TYPE)
+        value_x = label_column_width(S.RESET_TYPE, minimum=80.0)
+        imgui.same_line(value_x)
+        imgui.set_next_item_width(px(360.0) - value_x)
         _, self._reset_erase_idx = combo(
-            S.RESET_TYPE, self._reset_erase_idx, [label for label, _ in presets]
+            "##reset_type", self._reset_erase_idx, [label for label, _ in presets]
         )
         _, self._reset_armed = checkbox(S.RESET_CONFIRM, self._reset_armed)
         clicked = dialog_buttons(

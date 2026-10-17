@@ -1481,8 +1481,8 @@ msgstr "'{name}' löschen? Seine Kommunikationsobjekte und Gruppenadress-Verknü
 msgid "Delete Device"
 msgstr "Gerät löschen"
 
-msgid "Destructive: the device is reset over the bus and must be re-commissioned with ETS. In KNX Secure mode this deactivates device security."
-msgstr "Destruktiv: Das Gerät wird über den Bus zurückgesetzt und muss mit ETS neu in Betrieb genommen werden. Im KNX-Secure-Modus wird dabei die Gerätesicherheit deaktiviert."
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "Destruktiv: Das Gerät wird über den Bus zurückgesetzt und muss neu in Betrieb genommen werden. Im KNX-Secure-Modus wird dabei die Gerätesicherheit deaktiviert."
 
 msgid "Download PDF Manual"
 msgstr "PDF-Handbuch herunterladen"
