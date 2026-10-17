@@ -15,6 +15,7 @@ from imgui_bundle import imgui
 
 from editor_gui.device import Device, address_order, device_label
 from editor_gui.plugins.topology.strings import S
+from editor_gui.widgets.backgrounds import child_background, content_background
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.description import ICON_DESCRIPTION, description_tooltip
 from editor_gui.widgets.dpi import px
@@ -97,7 +98,11 @@ class TopologyPanel:
             )
             self._layout_key = key
         layout = self._layout_cache
-        if imgui.begin_child("##topo_canvas", imgui.ImVec2(0.0, 0.0), True):
+        with child_background(content_background()):
+            canvas_open = imgui.begin_child(
+                "##topo_canvas", imgui.ImVec2(0.0, 0.0), True
+            )
+        if canvas_open:
             self._handle_zoom()
             self._draw(layout)
         imgui.end_child()

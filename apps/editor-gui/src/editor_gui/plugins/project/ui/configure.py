@@ -23,7 +23,7 @@ from editor_gui.device_info import (
 from editor_gui.device_plugins import device_plugins
 from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.plugins.project.strings import S
-from editor_gui.widgets.dpi import label_column_width, px
+from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.fonts import italic
 from xknxeditor.download.scope import DownloadScope
@@ -47,6 +47,7 @@ from editor_gui.widgets import (
     render_ui_tree,
     take_selected_help,
 )
+from editor_gui.widgets.backgrounds import child_background, side_background
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.group_objects_widgets import (
@@ -63,6 +64,18 @@ from editor_gui.widgets.module_table import (
 
 _log = structlog.get_logger("configure")
 _PLUGIN_NOTICE_COLOR = imgui.ImVec4(0.95, 0.75, 0.35, 1.0)
+
+
+def _move_cursor_up(distance: float) -> None:
+    pos = imgui.get_cursor_screen_pos()
+    imgui.set_cursor_screen_pos(imgui.ImVec2(pos.x, pos.y - distance))
+
+
+# Height of the line above the help that resizes it when dragged, and the thickness of the line.
+_HELP_SPLITTER = 7.0
+_HELP_LINE = 3.0
+# Room at 100 % scaling between the help's edges and its text.
+_HELP_PADDING = (18.0, 13.0)
 # Product ids of OpenKNX devices (manufacturer KNX Association, 0x00FA).
 _OPENKNX_PRODUCT_PREFIX = "M-00FA_"
 
@@ -1467,33 +1480,71 @@ class ConfigurePanel:
         return self._get_help(device, context) or None
 
     def _help_height(self) -> float:
-        """Height of the heading and pane of the help below the parameters."""
-        return imgui.get_frame_height_with_spacing() + self._help_pane_height()
+        """Height of the splitter and pane of the help below the parameters."""
+        return px(_HELP_SPLITTER) + self._help_pane_height()
 
     def _help_pane_height(self) -> float:
         if self._help_pane_h <= 0:
             self._help_pane_h = imgui.get_text_line_height_with_spacing() * 5
         return self._help_pane_h
 
-    def _render_help_heading(self) -> None:
-        """The help heading, which resizes the help when dragged."""
-        imgui.separator_text(S.CONFIGURE_HELP)
-        top_left = imgui.get_item_rect_min()
-        size = imgui.get_item_rect_size()
-        imgui.set_cursor_screen_pos(top_left)
-        imgui.invisible_button("##help_splitter", size)
-        if imgui.is_item_hovered() or imgui.is_item_active():
+    def _render_help_splitter(self) -> None:
+        """The line above the help, which resizes the help when dragged."""
+        top_left = imgui.get_cursor_screen_pos()
+        width = imgui.get_content_region_avail().x
+        imgui.invisible_button(
+            "##help_splitter", imgui.ImVec2(width, px(_HELP_SPLITTER))
+        )
+        hovered = imgui.is_item_hovered()
+        active = imgui.is_item_active()
+        if hovered or active:
             imgui.set_mouse_cursor(imgui.MouseCursor_.resize_ns)
-        if imgui.is_item_active():
+        if active:
             line = imgui.get_text_line_height_with_spacing()
             height = self._help_pane_height() - imgui.get_io().mouse_delta.y
             self._help_pane_h = min(max(height, line * 2), line * 40)
+        color = (
+            imgui.Col_.separator_active
+            if active
+            else imgui.Col_.separator_hovered
+            if hovered
+            else imgui.Col_.separator
+        )
+        # The line right below the parameters, the rest on the help's background.
+        line_bottom = top_left.y + px(_HELP_LINE)
+        draw_list = imgui.get_window_draw_list()
+        draw_list.add_rect_filled(
+            top_left,
+            imgui.ImVec2(top_left.x + width, line_bottom),
+            imgui.get_color_u32(color),
+        )
+        draw_list.add_rect_filled(
+            imgui.ImVec2(top_left.x, line_bottom),
+            imgui.ImVec2(top_left.x + width, top_left.y + px(_HELP_SPLITTER)),
+            imgui.get_color_u32(side_background()),
+        )
 
     def _render_help(self, text: str, height: float) -> None:
+        # The splitter right below the parameters and the help right below it, without the spacing
+        # between items.
+        spacing = imgui.get_style().item_spacing.y
+        _move_cursor_up(spacing)
+        height += spacing
         top = imgui.get_cursor_screen_pos().y
-        self._render_help_heading()
+        self._render_help_splitter()
+        _move_cursor_up(spacing)
         pane = height - (imgui.get_cursor_screen_pos().y - top)
-        if imgui.begin_child("##param_help", imgui.ImVec2(0, max(pane, 1.0)), True):
+        # No frame of its own: the help text on the page tree's background, with a scrollbar at the
+        # right edge when it is longer than the pane.
+        imgui.push_style_var(imgui.StyleVar_.window_padding, px_vec2(*_HELP_PADDING))
+        with child_background(side_background()):
+            help_open = imgui.begin_child(
+                "##param_help",
+                imgui.ImVec2(0, max(pane, 1.0)),
+                imgui.ChildFlags_.always_use_window_padding,
+            )
+        imgui.pop_style_var()
+        if help_open:
             render_markdown(text)
         imgui.end_child()
 

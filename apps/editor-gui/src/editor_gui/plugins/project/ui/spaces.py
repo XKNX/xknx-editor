@@ -10,6 +10,7 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.devices import render_read_device_item
+from editor_gui.widgets.backgrounds import fill_content_background
 from editor_gui.widgets.description import render_description
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
@@ -188,6 +189,7 @@ class SpacesPanel:
             "##spaces_filter", S.SPACES_FILTER_HINT, self._filter_text
         )
         flt = self._filter_text.strip().lower()
+        fill_content_background()
         for space in tree:
             self._render_space(space, flt)
         self._render_unassigned_section()

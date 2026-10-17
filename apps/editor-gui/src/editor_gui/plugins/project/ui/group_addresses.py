@@ -15,6 +15,7 @@ from editor_gui.device import com_object_display_name
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
+from editor_gui.widgets.backgrounds import child_background, content_background
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_select import dpt_combo
@@ -190,7 +191,9 @@ class GroupAddressesPanel:
 
         avail = imgui.get_content_region_avail()
         tree_height = max(avail.y * 0.6, 0.0)
-        if imgui.begin_child("##ga_tree", imgui.ImVec2(0.0, tree_height)):
+        with child_background(content_background()):
+            tree_open = imgui.begin_child("##ga_tree", imgui.ImVec2(0.0, tree_height))
+        if tree_open:
             # The context menu must live in the same window as the tree — begin_child is its own
             # window, so a right-click here does NOT reach the panel-level menu above (that one only
             # fires in the area below the tree). Register it inside the child too, like the Devices

@@ -40,9 +40,9 @@ def _load_variant(flags: int) -> imgui.ImFont | None:
 
 
 @contextmanager
-def bold() -> Iterator[None]:
-    """Draw in the bold font at the normal text size."""
-    imgui.push_font(_bold, imgui.get_style().font_size_base)
+def bold(scale: float = 1.0) -> Iterator[None]:
+    """Draw in the bold font at the normal text size, or ``scale`` times it."""
+    imgui.push_font(_bold, imgui.get_style().font_size_base * scale)
     try:
         yield
     finally:

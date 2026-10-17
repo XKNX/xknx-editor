@@ -1156,9 +1156,6 @@ msgstr "Start: {time}"
 msgid "End: {time}"
 msgstr "Ende: {time}"
 
-msgid "Help"
-msgstr "Hilfe"
-
 msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
 msgstr "Die Produktdaten dieses Geräts fehlen - sein Applikationsprogramm ist nicht im Katalog. Importieren Sie das Produkt, um das Gerät zu bearbeiten."
 

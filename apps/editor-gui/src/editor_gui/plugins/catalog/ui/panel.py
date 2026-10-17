@@ -9,6 +9,7 @@ from imgui_bundle import imgui
 from editor_gui.device_info import application_version_text
 from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.plugins.catalog.strings import S
+from editor_gui.widgets.backgrounds import fill_content_background
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
@@ -159,6 +160,7 @@ class CatalogPanel:
 
     def _render_local_catalog(self) -> None:
         self._search = filter_box("##catalog_search", "Search…", self._search)
+        fill_content_background()
         deleting = self._deleting
         if deleting is not None:
             imgui.text_disabled(S.DELETING.format(name=deleting))
@@ -434,6 +436,7 @@ class CatalogPanel:
             "##online_search", S.ONLINE_SEARCH_HINT, self._online_search
         )
         query = self._online_search.lower().strip()
+        fill_content_background()
         if (
             query != self._flat_query
         ):  # None sentinel (after a build) always forces a recompute

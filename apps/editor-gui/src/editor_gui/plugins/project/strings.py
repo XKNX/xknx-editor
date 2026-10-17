@@ -2467,10 +2467,6 @@ class ProjectStrings:
         return _("End: {time}")
 
     @property
-    def CONFIGURE_HELP(self) -> str:
-        return _("Help")
-
-    @property
     def DEVICE_PRODUCT_DATA_MISSING(self) -> str:
         return _(
             "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
