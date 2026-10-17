@@ -43,20 +43,45 @@ def context() -> Iterator[None]:
     imgui.destroy_context(ctx)
 
 
+def _use_theme(
+    monkeypatch: pytest.MonkeyPatch,
+    tweaks: hello_imgui.ImGuiThemeTweaks,
+    applied: hello_imgui.ImGuiTheme_ = hello_imgui.ImGuiTheme_.darcula_darker,
+) -> None:
+    params = SimpleNamespace(
+        imgui_window_params=SimpleNamespace(
+            tweaked_theme=SimpleNamespace(tweaks=tweaks, theme=applied)
+        )
+    )
+    monkeypatch.setattr(hello_imgui, "get_runner_params", lambda: params)
+
+
 @pytest.mark.parametrize("rounding", [-1.0, 9.0])
 def test_the_editor_style_keeps_an_adjusted_rounding(
     context: None, monkeypatch: pytest.MonkeyPatch, rounding: float
 ) -> None:
     tweaks = hello_imgui.ImGuiThemeTweaks()
     tweaks.rounding = rounding
-    params = SimpleNamespace(
-        imgui_window_params=SimpleNamespace(
-            tweaked_theme=SimpleNamespace(tweaks=tweaks)
-        )
-    )
-    monkeypatch.setattr(hello_imgui, "get_runner_params", lambda: params)
+    _use_theme(monkeypatch, tweaks)
     style = imgui.get_style()
     style.frame_rounding = 9.0
     theme.apply_style()
     assert style.frame_rounding == (4.0 if rounding < 0 else 9.0)
     assert style.frame_padding.x == 8.0
+
+
+def test_microsoft_style_has_the_dark_gray_text_of_windows_dialogs(
+    context: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _use_theme(
+        monkeypatch,
+        hello_imgui.ImGuiThemeTweaks(),
+        hello_imgui.ImGuiTheme_.microsoft_style,
+    )
+    theme.apply_style()
+    text = imgui.get_style().color_(imgui.Col_.text)
+    assert (round(text.x * 255), round(text.y * 255), round(text.z * 255)) == (
+        51,
+        51,
+        51,
+    )

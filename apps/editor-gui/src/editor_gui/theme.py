@@ -67,6 +67,10 @@ def color_name(name: str) -> str:
     return f"{text} ({' '.join(states)})" if states else text
 
 
+# The text color of Windows dialogs (#333333).
+_WINDOWS_TEXT = imgui.ImVec4(0.2, 0.2, 0.2, 1.0)
+
+
 def apply_theme(tweaked: hello_imgui.ImGuiTweakedTheme) -> None:
     """Apply ``tweaked`` with the editor's own style on top, as the editor starts with it."""
     hello_imgui.apply_tweaked_theme(tweaked)
@@ -93,6 +97,10 @@ def apply_style() -> None:
     style.item_inner_spacing = imgui.ImVec2(6.0, 4.0)
     style.scrollbar_size = 12.0
     style.cell_padding = imgui.ImVec2(6.0, 4.0)
+    tweaked = hello_imgui.get_runner_params().imgui_window_params.tweaked_theme
+    if tweaked.theme == hello_imgui.ImGuiTheme_.microsoft_style:
+        # The dark gray text of Windows dialogs rather than the theme's near black.
+        style.set_color_(imgui.Col_.text, _WINDOWS_TEXT)
     apply_window_colors()
 
 
