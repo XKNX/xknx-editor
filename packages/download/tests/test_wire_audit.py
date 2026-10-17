@@ -724,8 +724,10 @@ async def test_verify_on_write_direct_verifies_inline_and_can_skip_it() -> None:
         LdCtrlWriteMem(address=0x10D, size=1, verify=True, inline_data=b"\x00"),
     ]
     device = FakeDevice()
+    application = _application(*verified)
+    application.program.mask_version = "MV-0012"
     await LoadProcedureRunner(
-        _application(*verified),
+        application,
         DownloadImage((), ()),
         DeviceProgrammer(device),
     ).run()
@@ -740,8 +742,10 @@ async def test_verify_on_write_direct_verifies_inline_and_can_skip_it() -> None:
         LdCtrlWriteMem(address=0x100, size=2, verify=True),
     ]
     device = FakeDevice()
+    skipped_application = _application(*skipped)
+    skipped_application.program.mask_version = "MV-0012"
     await LoadProcedureRunner(
-        _application(*skipped),
+        skipped_application,
         DownloadImage((MemorySegment(0x100, b"AB"),), ()),
         DeviceProgrammer(device),
     ).run()

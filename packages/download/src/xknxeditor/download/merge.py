@@ -342,5 +342,6 @@ def mask_has_property_services(
     for mask_version in master_data.mask_versions.mask_version:
         if mask_version.id != mask_version_id:
             continue
-        return mask_version.management_model is not MaskVersionManagementModel.BCU1
+        model = getattr(mask_version, "management_model", None)
+        return model is not MaskVersionManagementModel.BCU1
     return True

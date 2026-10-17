@@ -1275,7 +1275,10 @@ class LoadProcedureRunner:
 
     async def _memory_programmer(self) -> DeviceProgrammer:
         programmer = await self._bus()
-        if self.application.program.mask_version == "MV-07B0":
+        if (
+            self._property_services
+            and self.application.program.mask_version == "MV-07B0"
+        ):
             await programmer.enable_memory_auto_verify()
         return programmer
 
