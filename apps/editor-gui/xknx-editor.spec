@@ -49,6 +49,16 @@ for _pkg in ("xknxeditor", "editor_gui"):
     _hiddenimports += collect_submodules(_pkg)
     _datas += collect_data_files(_pkg, include_py_files=False)
 
+# The frozen app ships no .py sources, so the fingerprint of the code that evaluates applications
+# (the key of the device snapshots stored in projects) is taken here, from the sources being built.
+from editor_gui.device_snapshot import BUNDLED_FINGERPRINT, source_fingerprint
+
+_fingerprint = os.path.join(workpath, BUNDLED_FINGERPRINT)
+os.makedirs(workpath, exist_ok=True)
+with open(_fingerprint, "w", encoding="ascii") as _f:
+    _f.write(source_fingerprint())
+_datas.append((_fingerprint, "editor_gui"))
+
 # Trim collected data we never ship: imgui_bundle's demo playground + its assets (the app has its
 # own fonts/icon), and .pyi type stubs (dev-only, not used at runtime). Saves ~6-7 MB.
 _SKIP_DIRS = ("imgui_bundle/demos_python", "imgui_bundle/demos_assets")

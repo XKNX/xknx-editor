@@ -41,11 +41,26 @@ class DeviceSnapshot:
     visible: list[int]
 
 
+# Written into a frozen build by its build, which has the sources a frozen build does not ship.
+BUNDLED_FINGERPRINT = "code_fingerprint.txt"
+
+
 @cache
 def code_fingerprint() -> str:
-    """Identifies the code that evaluates applications into group objects: the editor version and,
-    when it runs from its sources, their content (so a changed evaluation is never served from an
-    older snapshot)."""
+    """Identifies the code that evaluates applications into group objects (so a changed evaluation
+    is never served from an older snapshot): the fingerprint of the sources stored in a frozen
+    build, else that of the sources it runs from."""
+    import editor_gui
+
+    try:
+        bundled = Path(editor_gui.__file__).parent / BUNDLED_FINGERPRINT
+        return bundled.read_text(encoding="ascii").strip()
+    except OSError:
+        return source_fingerprint()
+
+
+def source_fingerprint() -> str:
+    """The editor version and the content of the sources that evaluate applications."""
     import editor_gui
     import xknxeditor.prod
 
