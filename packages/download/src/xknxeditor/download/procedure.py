@@ -347,6 +347,7 @@ class LoadProcedureRunner:
         apdu_overhead: int = 0,
         authorize_levels: int = 0,
         memory_service_count: int | None = None,
+        property_services: bool = True,
     ) -> None:
         """Initialize the runner.
 
@@ -383,6 +384,9 @@ class LoadProcedureRunner:
             tuple[LdCtrlMemAddrSpace | int | None, int], int
         ] = {}
         self._enable_segment_write = True
+        # Inline WriteMem (ADM1 WriteDirect) is read back when this stays true.
+        # Procedures that never set the variable keep today's Verify behaviour.
+        self._enable_verify_on_write_direct = True
         self._property_widths: dict[tuple[int, int], int] = {}
         # Property controls addressed by object type use the extended property services when
         # the application supports them; they get a negative key in place of an object index,
@@ -414,6 +418,8 @@ class LoadProcedureRunner:
         self._descriptor_checked = False
         self._negotiated_apdu: int | None = None
         self._authorize_levels = authorize_levels
+        # BCU1 has no interface-object properties. Leave this on for every other mask.
+        self._property_services = property_services
         # Optional lowered cap on the classic memory-service payload (a no-ACK
         # fallback); None keeps the programmer's APDU-derived default.
         self._memory_service_count = memory_service_count
@@ -441,6 +447,7 @@ class LoadProcedureRunner:
         self._property_captures.clear()
         self._memory_captures.clear()
         self._enable_segment_write = True
+        self._enable_verify_on_write_direct = True
         self._error_mappings.clear()
         total = len(in_scope)
         logger.info(
@@ -557,6 +564,7 @@ class LoadProcedureRunner:
         self._property_captures.clear()
         self._memory_captures.clear()
         self._enable_segment_write = True
+        self._enable_verify_on_write_direct = True
         self._error_mappings.clear()
         logger.info(
             "download preflight start: %s, %d of %d load controls in scope",
@@ -696,9 +704,9 @@ class LoadProcedureRunner:
                 )
             if isinstance(control, LdCtrlLoadImageRelMem):
                 captured_objects.add(control.obj_idx)
-            if (
-                isinstance(control, LdCtrlSetControlVariable)
-                and control.name is not LdCtrlControlVariable.ENABLE_SEGMENT_WRITE
+            if isinstance(control, LdCtrlSetControlVariable) and control.name not in (
+                LdCtrlControlVariable.ENABLE_SEGMENT_WRITE,
+                LdCtrlControlVariable.ENABLE_VERIFY_ON_WRITE_DIRECT,
             ):
                 raise UnsupportedProcedureError(
                     f"unsupported control variable {control.name.value}"
@@ -811,6 +819,8 @@ class LoadProcedureRunner:
             self._programmer.table_reference_width = 4
         if self._memory_service_count is not None:
             self._programmer.max_memory_service_count = self._memory_service_count
+        if not self._property_services:
+            self._programmer.skip_property_verify_probe()
         await self._prepare_device(self._programmer)
         return self._programmer
 
@@ -838,16 +848,21 @@ class LoadProcedureRunner:
             logger.info("device mask confirmed: descriptor %#06x", actual)
         if self._negotiate_apdu:
             if self._negotiated_apdu is None:
-                device_max = await programmer.read_max_apdu_length()
-                self._negotiated_apdu = max(
-                    DEFAULT_MAX_APDU_LENGTH,
-                    min(device_max, self._max_apdu_length),
-                )
-                logger.info(
-                    "negotiated APDU length: %d (device reports %d)",
-                    self._negotiated_apdu,
-                    device_max,
-                )
+                if self._property_services:
+                    device_max = await programmer.read_max_apdu_length()
+                    self._negotiated_apdu = max(
+                        DEFAULT_MAX_APDU_LENGTH,
+                        min(device_max, self._max_apdu_length),
+                    )
+                    logger.info(
+                        "negotiated APDU length: %d (device reports %d)",
+                        self._negotiated_apdu,
+                        device_max,
+                    )
+                else:
+                    # BCU1 APDU length is the classic 15 octets. Property 56
+                    # does not exist there; reading it times out.
+                    self._negotiated_apdu = DEFAULT_MAX_APDU_LENGTH
             programmer.max_apdu_length = self._negotiated_apdu
         if self._authorize_levels > 0:
             # Access protection is per connection, so authorize on every open (a
@@ -980,6 +995,9 @@ class LoadProcedureRunner:
             )
             return
         if isinstance(control, LdCtrlSetControlVariable):
+            if control.name is LdCtrlControlVariable.ENABLE_VERIFY_ON_WRITE_DIRECT:
+                self._enable_verify_on_write_direct = control.value
+                return
             if control.name is not LdCtrlControlVariable.ENABLE_SEGMENT_WRITE:
                 raise UnsupportedProcedureError(
                     f"unsupported control variable {control.name.value}"
@@ -1189,6 +1207,17 @@ class LoadProcedureRunner:
             return
         raise self._unsupported(control)
 
+    def _direct_memory_verify(self, control: LdCtrlWriteMem) -> bool:
+        """Whether this WriteMem is read back after the write.
+
+        ``EnableVerifyOnWriteDirect`` gates inline writes only (ADM1 WriteDirect).
+        Image-backed writes keep the control's own Verify attribute. The flag
+        defaults to enabled, so a procedure that never sets it still verifies.
+        """
+        if control.inline_data is not None and not self._enable_verify_on_write_direct:
+            return False
+        return bool(control.verify)
+
     async def _write_mem(self, control: LdCtrlWriteMem) -> None:
         """Write a WriteMem control to memory.
 
@@ -1202,15 +1231,16 @@ class LoadProcedureRunner:
                 f"no image data for address range {control.address:#06x}.."
                 f"{control.address + control.size:#06x}"
             )
+        verify = self._direct_memory_verify(control)
         logger.debug(
             "write_mem image-backed: addr=%#06x size=%d runs=%d verify=%s",
             control.address,
             control.size,
             len(runs),
-            control.verify,
+            verify,
         )
         for address, data in runs:
-            await programmer.write_memory(address, data, verify=control.verify)
+            await programmer.write_memory(address, data, verify=verify)
 
     async def _write_rel_mem(self, control: LdCtrlWriteRelMem) -> None:
         """Write a WriteRelMem control relative to the object's table base.

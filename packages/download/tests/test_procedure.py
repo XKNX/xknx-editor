@@ -1043,6 +1043,27 @@ async def test_authorize_skipped_when_levels_zero() -> None:
     assert manager.device.authorize_keys == []
 
 
+async def test_bcu1_skips_property_probes() -> None:
+    runner, manager = _managed_runner(
+        LdCtrlConnect(),
+        LdCtrlWriteMem(address=0x10D, size=1, verify=True, inline_data=b"\x00"),
+        max_apdu_length=239,
+        negotiate_apdu=True,
+        property_services=False,
+    )
+
+    await runner.run()
+
+    assert not any(type(p).__name__ == "PropertyValueRead" for p in manager.device.sent)
+    assert manager.device.memory[0x10D] == 0
+    assert any(
+        type(p).__name__ == "MemoryRead" and getattr(p, "address", None) == 0x10D
+        for p in manager.device.sent
+    )
+    assert runner._programmer is not None
+    assert runner._programmer.max_apdu_length == 15
+
+
 async def test_negotiate_apdu_uses_device_maximum() -> None:
     runner, manager = _managed_runner(
         LdCtrlLoad(obj_type=_ADDRESS_TABLE_TYPE, occurrence=0),

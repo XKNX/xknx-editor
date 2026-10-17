@@ -703,6 +703,55 @@ async def test_control_variable_suppresses_segment_write() -> None:
     assert device.load_states[4] == 2
 
 
+async def test_verify_on_write_direct_verifies_inline_and_can_skip_it() -> None:
+    from xknx.telegram.apci import MemoryRead
+
+    from xknxeditor.download.image import MemorySegment
+    from xknxeditor.namespaces.intermediate.ld_ctrl_control_variable_t import (
+        LdCtrlControlVariable,
+    )
+    from xknxeditor.namespaces.intermediate.ld_ctrl_set_control_variable_t import (
+        LdCtrlSetControlVariable,
+    )
+    from xknxeditor.namespaces.intermediate.ld_ctrl_write_mem_t import LdCtrlWriteMem
+
+    from .test_procedure import _application
+
+    verified = [
+        LdCtrlSetControlVariable(
+            name=LdCtrlControlVariable.ENABLE_VERIFY_ON_WRITE_DIRECT, value=True
+        ),
+        LdCtrlWriteMem(address=0x10D, size=1, verify=True, inline_data=b"\x00"),
+    ]
+    device = FakeDevice()
+    await LoadProcedureRunner(
+        _application(*verified),
+        DownloadImage((), ()),
+        DeviceProgrammer(device),
+    ).run()
+    assert device.memory[0x10D] == 0
+    assert any(isinstance(p, MemoryRead) and p.address == 0x10D for p in device.sent)
+
+    skipped = [
+        LdCtrlSetControlVariable(
+            name=LdCtrlControlVariable.ENABLE_VERIFY_ON_WRITE_DIRECT, value=False
+        ),
+        LdCtrlWriteMem(address=0x10D, size=1, verify=True, inline_data=b"\xff"),
+        LdCtrlWriteMem(address=0x100, size=2, verify=True),
+    ]
+    device = FakeDevice()
+    await LoadProcedureRunner(
+        _application(*skipped),
+        DownloadImage((MemorySegment(0x100, b"AB"),), ()),
+        DeviceProgrammer(device),
+    ).run()
+    assert device.memory[0x10D] == 0xFF
+    assert bytes(device.memory[a] for a in (0x100, 0x101)) == b"AB"
+    reads = [p.address for p in device.sent if isinstance(p, MemoryRead)]
+    assert 0x10D not in reads
+    assert 0x100 in reads
+
+
 async def test_wrong_property_write_echo_fails_immediately() -> None:
     from xknxeditor.download.errors import VerificationError
 
