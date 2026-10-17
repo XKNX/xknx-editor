@@ -183,6 +183,15 @@ class DeviceProgrammer:
         # maximum so the chunk follows the negotiated APDU; a no-ACK fallback lowers it.
         self.max_memory_service_count: int = _MAX_MEMORY_CHUNK
 
+    def skip_property_verify_probe(self) -> None:
+        """Treat memory auto-verify as off without reading PID 14.
+
+        BCU1 has no property services. The probe would time out, and a classic
+        memory write is checked by a following memory read instead.
+        """
+        self.memory_auto_verify = False
+        self._memory_verify_known = True
+
     @property
     def _plain_apdu_length(self) -> int:
         """Usable plaintext APDU length after the wire overhead."""

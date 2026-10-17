@@ -33,7 +33,11 @@ from .ip_config import (
 )
 from .ip_config import applies as ip_config_applies
 from .ip_secure import IpSecureConfig, ip_secure_controls
-from .merge import mask_authorize_levels, resolve_download_controls
+from .merge import (
+    mask_authorize_levels,
+    mask_has_property_services,
+    resolve_download_controls,
+)
 from .procedure import LoadProcedureRunner
 from .programmer import MAX_COMMUNICATION_APDU_LENGTH, MEMORY_SERVICE_FALLBACKS
 from .scope import DownloadScope, mask_object_types
@@ -327,6 +331,12 @@ def _authorize_levels(
     return mask_authorize_levels(master.raw, application.program.mask_version)
 
 
+def _property_services(application: Application, master: MasterData | None) -> bool:
+    """BCU1 masks have no property services. Unknown masks keep the probes."""
+    raw = master.raw if master is not None else None
+    return mask_has_property_services(raw, application.program.mask_version)
+
+
 def _reject_address_scope(scope: DownloadScope) -> None:
     if scope.individual_address_only:
         raise UnsupportedProcedureError(
@@ -559,6 +569,7 @@ async def download(
             apdu_overhead=_apdu_overhead(security),
             authorize_levels=authorize_levels,
             memory_service_count=memory_cap,
+            property_services=_property_services(application, master),
         )
         try:
             await runner.run(progress)
@@ -685,6 +696,7 @@ async def preflight(
         negotiate_apdu=negotiate_apdu,
         apdu_overhead=_apdu_overhead(security),
         authorize_levels=_authorize_levels(application, master, security),
+        property_services=_property_services(application, master),
     )
     try:
         return await runner.preflight()
