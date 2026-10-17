@@ -83,13 +83,22 @@ def _rgb(r: int, g: int, b: int) -> imgui.ImVec4:
 
 # Microsoft Style with the colors of Windows dialogs: hovered items light blue, pressed ones a
 # little darker, the selected tab white like the page beside it with a blue line on top. The
-# theme's own tab colors barely differ, so neither hovering nor the selected tab showed.
+# theme's own tab colors barely differ, so neither hovering nor the selected tab showed. Field
+# borders and lines are the light grays of Windows dialogs, the scrollbars those of Windows.
 _WINDOWS_THEMES = (
     hello_imgui.ImGuiTheme_.microsoft_style,
     hello_imgui.ImGuiTheme_.white_is_white,
 )
 _WINDOWS_COLORS = {
     imgui.Col_.text: _WINDOWS_TEXT,
+    # Ticked checkboxes and chosen radio buttons in the dark gray of the text, not near black.
+    imgui.Col_.check_mark: _WINDOWS_TEXT,
+    imgui.Col_.border: _rgb(204, 204, 204),
+    imgui.Col_.separator: _rgb(229, 229, 229),
+    imgui.Col_.scrollbar_bg: _rgb(240, 240, 240),
+    imgui.Col_.scrollbar_grab: _rgb(205, 205, 205),
+    imgui.Col_.scrollbar_grab_hovered: _rgb(166, 166, 166),
+    imgui.Col_.scrollbar_grab_active: _rgb(96, 96, 96),
     imgui.Col_.tab: _rgb(228, 228, 228),
     imgui.Col_.tab_hovered: _rgb(229, 241, 251),
     imgui.Col_.tab_selected: _rgb(255, 255, 255),

@@ -9,6 +9,9 @@ from imgui_bundle import imgui
 # How far the drop-down background moves from an input field's toward the text color: a white
 # field gives the light gray (242) of a Windows drop-down next to dark gray (#333) text.
 _BACKGROUND_SHADE = 0.064
+# How far a drop-down's border moves from an input field's toward the field background: the
+# light gray (229) of a Windows drop-down's border next to an input field's (204).
+_BORDER_SHADE = 0.5
 # The arrow's width relative to the font size (8 px at the 14 px font); it is half as high.
 _ARROW_WIDTH = 4.0 / 7.0
 
@@ -28,6 +31,16 @@ def combo_background(hovered: bool = False) -> imgui.ImVec4:
     return _mix(field, style.color_(imgui.Col_.text), _BACKGROUND_SHADE)
 
 
+def combo_border() -> imgui.ImVec4:
+    """The border of a drop-down: a little lighter than an input field's."""
+    style = imgui.get_style()
+    return _mix(
+        style.color_(imgui.Col_.border),
+        style.color_(imgui.Col_.frame_bg),
+        _BORDER_SHADE,
+    )
+
+
 def begin_combo(label: str, preview: str, flags: int = 0) -> bool:
     """``imgui.begin_combo`` drawn as a Windows drop-down; end it with ``imgui.end_combo``."""
     background = combo_background()
@@ -35,6 +48,7 @@ def begin_combo(label: str, preview: str, flags: int = 0) -> bool:
     colors = (
         (imgui.Col_.frame_bg, background),
         (imgui.Col_.frame_bg_hovered, hovered),
+        (imgui.Col_.border, combo_border()),
     )
     arrow = not flags & (
         imgui.ComboFlags_.no_arrow_button | imgui.ComboFlags_.no_preview
