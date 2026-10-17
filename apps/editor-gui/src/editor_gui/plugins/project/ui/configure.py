@@ -39,6 +39,7 @@ if TYPE_CHECKING:
     from xknxeditor.proj.core.service import DeviceInfo
 from editor_gui.programming import error_class_text
 from editor_gui.programming_dali import is_dali_dca_app
+from editor_gui.settings import load_settings, save_settings
 from editor_gui.widgets import (
     ButtonActions,
     GroupObjectsTable,
@@ -75,6 +76,10 @@ def _move_cursor_up(distance: float) -> None:
 # Height of the line above the help that resizes it when dragged, and the thickness of the line.
 _HELP_SPLITTER = 7.0
 _HELP_LINE = 3.0
+# The help's height (at 100 % scaling) until the user drags it, and the app setting that keeps
+# the dragged one.
+_HELP_HEIGHT = 160.0
+_HELP_HEIGHT_SETTING = "help_height"
 # Room at 100 % scaling between the help's edges and its text.
 _HELP_PADDING = (18.0, 13.0)
 # Product ids of OpenKNX devices (manufacturer KNX Association, 0x00FA).
@@ -1488,8 +1493,16 @@ class ConfigurePanel:
 
     def _help_pane_height(self) -> float:
         if self._help_pane_h <= 0:
-            self._help_pane_h = imgui.get_text_line_height_with_spacing() * 5
+            stored = load_settings("app").get(_HELP_HEIGHT_SETTING)
+            if not isinstance(stored, int | float) or stored <= 0:
+                stored = _HELP_HEIGHT
+            self._help_pane_h = px(float(stored))
         return self._help_pane_h
+
+    def _save_help_height(self) -> None:
+        data = load_settings("app")
+        data[_HELP_HEIGHT_SETTING] = round(self._help_pane_h / px(1.0), 1)
+        save_settings("app", data)
 
     def _render_help_splitter(self) -> None:
         """The line above the help, which resizes the help when dragged."""
@@ -1506,6 +1519,8 @@ class ConfigurePanel:
             line = imgui.get_text_line_height_with_spacing()
             height = self._help_pane_height() - imgui.get_io().mouse_delta.y
             self._help_pane_h = min(max(height, line * 2), line * 40)
+        if imgui.is_item_deactivated():
+            self._save_help_height()
         color = (
             imgui.Col_.separator_active
             if active
