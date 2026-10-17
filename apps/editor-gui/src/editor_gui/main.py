@@ -64,6 +64,7 @@ from editor_gui.strings import S, get_locale, set_locale
 from editor_gui.theme import ThemeWindow, apply_style, apply_theme, theme_name, themes
 from editor_gui.update_check import UpdateInfo, check_for_update
 from editor_gui.widgets.checkbox import checkbox, radio_button
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import (
     begin_dialog,
     dialog_buttons,
@@ -1380,7 +1381,7 @@ class KnxGuiApp:
         formats = [("23", S.EXPORT_FORMAT_ETS6), ("20", S.EXPORT_FORMAT_ETS5)]
         current = next(lbl for code, lbl in formats if code == self._export_schema)
         imgui.set_next_item_width(-1)
-        if imgui.begin_combo("##export_schema", current):
+        if begin_combo("##export_schema", current):
             for code, lbl in formats:
                 if imgui.selectable(lbl, code == self._export_schema)[0]:
                     self._set_export_schema(code)
@@ -1546,7 +1547,7 @@ class KnxGuiApp:
             self._myknx_products[0][1],
         )
         imgui.set_next_item_width(-1)
-        if imgui.begin_combo("##myknx_license", current):
+        if begin_combo("##myknx_license", current):
             for pid, lbl, enabled in self._myknx_products:
                 # Non-cloud/expired licenses stay visible but greyed out and unselectable, so the
                 # user sees the whole account and why a license cannot sign online.
@@ -1964,7 +1965,7 @@ class KnxGuiApp:
         current = next(
             label for style, label in styles if style is self._new_project_style
         )
-        if imgui.begin_combo("##new_project_style", current):
+        if begin_combo("##new_project_style", current):
             for style, label in styles:
                 if imgui.selectable(label, style is self._new_project_style)[0]:
                     self._new_project_style = style

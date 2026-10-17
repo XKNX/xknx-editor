@@ -35,6 +35,7 @@ from editor_gui.plugins.project.ui.project_diff import (
     DiffResult,
 )
 from editor_gui.widgets.checkbox import checkbox, radio_button
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dpi import px, px_vec2
 from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
 
@@ -333,7 +334,7 @@ class ToolsPanel:
         """A full-width device dropdown; returns the (possibly changed) selected index."""
         idx = min(idx, len(devices) - 1)
         imgui.set_next_item_width(-1)
-        if imgui.begin_combo(combo_id, self._device_label(devices[idx])):
+        if begin_combo(combo_id, self._device_label(devices[idx])):
             for i, d in enumerate(devices):
                 if imgui.selectable(
                     f"{self._device_label(d)}##{combo_id}{i}", i == idx

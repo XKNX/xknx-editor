@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.password_form import NewPasswordForm
@@ -124,7 +125,7 @@ class ProjectInfoPanel:
             (text for mode, text in choices if mode == current), S.GA_SECURITY_AUTO
         )
         imgui.set_next_item_width(px(200.0))
-        if imgui.begin_combo("##backbone_security", label):
+        if begin_combo("##backbone_security", label):
             for mode, text in choices:
                 if imgui.selectable(text, mode == current)[0] and mode != current:
                     self._security_error = self._on_backbone_security(mode) or ""

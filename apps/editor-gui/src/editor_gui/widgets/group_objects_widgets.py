@@ -16,6 +16,7 @@ from editor_gui.device import (
     com_object_display_name,
 )
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import (
     begin_dialog,
     begin_tool_window,
@@ -439,7 +440,7 @@ class GroupObjectsTable:
             else S.GROUP_OBJECTS_DPT_DEFAULT
         )
         imgui.set_next_item_width(-1.0)
-        if not imgui.begin_combo(f"##dpt_{com_object.id}", preview):
+        if not begin_combo(f"##dpt_{com_object.id}", preview):
             return
         if imgui.selectable(
             S.GROUP_OBJECTS_DPT_DEFAULT, com_object.datapoint_type_override is None
@@ -457,7 +458,7 @@ class GroupObjectsTable:
         assert self._on_set_priority is not None
         current = com_object.priority
         imgui.set_next_item_width(-1.0)
-        if not imgui.begin_combo(
+        if not begin_combo(
             f"##prio_{com_object.id}", current or S.GROUP_OBJECTS_DPT_DEFAULT
         ):
             return

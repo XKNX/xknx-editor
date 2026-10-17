@@ -11,6 +11,7 @@ from imgui_bundle import hello_imgui, imgui
 
 from editor_gui.strings import S
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import begin_tool_window
 from editor_gui.widgets.dpi import label_column_width
 from editor_gui.widgets.filter_box import filter_box
@@ -109,15 +110,18 @@ def apply_style() -> None:
     """Refine the imgui style on top of the theme: rounded corners + roomier spacing. A rounding
     the theme was adjusted to stays."""
     style = imgui.get_style()
-    tweaks = hello_imgui.get_runner_params().imgui_window_params.tweaked_theme.tweaks
-    if tweaks.rounding < 0:
-        style.window_rounding = 6.0
-        style.child_rounding = 4.0
-        style.frame_rounding = 4.0
-        style.popup_rounding = 4.0
-        style.grab_rounding = 4.0
-        style.tab_rounding = 4.0
-        style.scrollbar_rounding = 4.0
+    tweaked = hello_imgui.get_runner_params().imgui_window_params.tweaked_theme
+    windows = tweaked.theme == hello_imgui.ImGuiTheme_.microsoft_style
+    if tweaked.tweaks.rounding < 0:
+        # Square corners in Microsoft Style, like Windows dialogs; rounded ones elsewhere.
+        rounding = 0.0 if windows else 4.0
+        style.window_rounding = 0.0 if windows else 6.0
+        style.child_rounding = rounding
+        style.frame_rounding = rounding
+        style.popup_rounding = rounding
+        style.grab_rounding = rounding
+        style.tab_rounding = rounding
+        style.scrollbar_rounding = rounding
     style.frame_border_size = 1.0
     style.window_padding = imgui.ImVec2(10.0, 10.0)
     style.frame_padding = imgui.ImVec2(8.0, 4.0)
@@ -125,8 +129,7 @@ def apply_style() -> None:
     style.item_inner_spacing = imgui.ImVec2(6.0, 4.0)
     style.scrollbar_size = 12.0
     style.cell_padding = imgui.ImVec2(6.0, 4.0)
-    tweaked = hello_imgui.get_runner_params().imgui_window_params.tweaked_theme
-    if tweaked.theme == hello_imgui.ImGuiTheme_.microsoft_style:
+    if windows:
         for col, color in _WINDOWS_COLORS.items():
             style.set_color_(col, color)
     _apply_table_lines(style)
@@ -415,7 +418,7 @@ class ThemeWindow:
     def _render_theme(self, tweaked: hello_imgui.ImGuiTweakedTheme) -> None:
         column = _column(S.MENU_THEME, *(s.label() for s in _ADJUSTMENTS))
         _label(S.MENU_THEME, column)
-        if imgui.begin_combo("##theme", theme_name(tweaked.theme)):
+        if begin_combo("##theme", theme_name(tweaked.theme)):
             for theme in themes():
                 if imgui.selectable(theme_name(theme), theme == tweaked.theme)[0]:
                     tweaked.theme = theme

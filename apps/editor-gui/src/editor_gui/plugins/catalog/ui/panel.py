@@ -12,6 +12,7 @@ from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.plugins.catalog.strings import S
 from editor_gui.strings import get_locale
 from editor_gui.widgets.backgrounds import fill_content_background
+from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
@@ -464,7 +465,7 @@ class CatalogPanel:
         imgui.text(S.CATALOG_ADD_SPACE_LABEL)
         imgui.same_line()
         imgui.set_next_item_width(px(240.0))
-        changed, picked = imgui.combo(
+        changed, picked = combo(
             "##catalog_add_space", current, [label for _, label in options]
         )
         if changed:

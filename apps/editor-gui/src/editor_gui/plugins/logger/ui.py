@@ -6,6 +6,7 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.logger.service import LogRecord
 from editor_gui.plugins.logger.strings import S
+from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
@@ -97,7 +98,7 @@ class LogPanel:
         )
         imgui.same_line()
         imgui.set_next_item_width(px(100))
-        _, self._min_level_idx = imgui.combo(
+        _, self._min_level_idx = combo(
             "##loglevel", self._min_level_idx, [label for label, _ in _LEVEL_OPTIONS]
         )
         imgui.same_line()

@@ -18,6 +18,7 @@ from editor_gui.widgets.backgrounds import (
     side_background,
 )
 from editor_gui.widgets.checkbox import checkbox, radio_button
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.float_format import format_float, general_float, parse_float
 from editor_gui.widgets.fonts import bold
@@ -321,7 +322,7 @@ def render_param_widget(
                     ):
                         on_change(str(choice.value))
             else:
-                if imgui.begin_combo(f"##{widget_id}", preview):
+                if begin_combo(f"##{widget_id}", preview):
                     for choice in w.choices:
                         selected = not differs and str(choice.value) == param.value
                         if imgui.selectable(choice.label, selected)[0]:
@@ -594,7 +595,7 @@ def _spin_buttons(widget_id: str, *, enabled: bool) -> int:
 def _render_differs_text(widget_id: str, on_change: Callable[[str], None]) -> None:
     """A checkbox cannot show a third "differs" state, so offer an explicit Off/On choice that,
     once picked, writes the same value to every selected device."""
-    if imgui.begin_combo(f"##{widget_id}", S.PARAM_DIFFERS):
+    if begin_combo(f"##{widget_id}", S.PARAM_DIFFERS):
         if imgui.selectable(S.PARAM_OFF, False)[0]:
             on_change("0")
         if imgui.selectable(S.PARAM_ON, False)[0]:

@@ -27,6 +27,7 @@ from editor_gui.device import device_label
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
@@ -418,7 +419,7 @@ class MassLinkerPanel:
         cur = by_id.get(row.target_ga) if row.target_ga is not None else None
         label = f"{cur.text}  {cur.name}" if cur else S.ML_TARGET_NONE
         imgui.set_next_item_width(-1)
-        if imgui.begin_combo(f"##tga{i}", label):
+        if begin_combo(f"##tga{i}", label):
             self._tgt_filter = filter_box(
                 f"##tgaflt{i}", S.ML_FILTER_HINT, self._tgt_filter
             )
@@ -642,7 +643,7 @@ class MassLinkerPanel:
             _co_text(row.target_co) if row.target_co is not None else S.ML_TARGET_NONE
         )
         imgui.set_next_item_width(-1)
-        if imgui.begin_combo(f"##tco{i}", label):
+        if begin_combo(f"##tco{i}", label):
             self._tgt_filter = filter_box(
                 f"##tcoflt{i}", S.ML_FILTER_HINT, self._tgt_filter
             )

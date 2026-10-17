@@ -17,6 +17,7 @@ from imgui_bundle import imgui
 
 from editor_gui.device import Device
 from editor_gui.plugins.project.strings import S
+from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
@@ -336,11 +337,11 @@ class DaliCommissioningPanel:
             imgui.table_next_column()
             effective = state.group_edits.get(ecg.slot, ecg.group_index)
             imgui.set_next_item_width(px(110.0))
-            changed, combo = imgui.combo(
+            changed, picked = combo(
                 f"##grp{ecg.slot}", _group_to_combo(effective), _group_items()
             )
             if changed:
-                state.group_edits[ecg.slot] = _combo_to_group(combo)
+                state.group_edits[ecg.slot] = _combo_to_group(picked)
             imgui.table_next_column()
             imgui.text(str(ecg.ecg_type))
             imgui.table_next_column()
@@ -380,7 +381,7 @@ class DaliCommissioningPanel:
             imgui.text_disabled(S.DALI_SCENES_HINT)
             return
         imgui.set_next_item_width(px(160.0))
-        _, state.scene_sel = imgui.combo(
+        _, state.scene_sel = combo(
             f"{S.DALI_SCENE}##dali_scene_sel",
             state.scene_sel,
             [S.DALI_SCENE_NUMBER.format(number=i + 1) for i in range(MAX_SCENES)],

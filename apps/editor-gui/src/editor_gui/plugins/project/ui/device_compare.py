@@ -19,6 +19,7 @@ from editor_gui.plugins.project.ui.device_diff import (
     snapshot_device,
 )
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.description import (
     description_icon_width,
     render_description,
@@ -147,7 +148,7 @@ class DeviceComparePanel:
             room = 0.0
         imgui.set_next_item_width(-room if room else -1)
         label = device_label(cur) if cur is not None else "?"
-        if imgui.begin_combo(combo_id, label):
+        if begin_combo(combo_id, label):
             for d in devices:
                 if imgui.selectable(
                     f"{device_label(d)}##{combo_id}{d.node_id}",

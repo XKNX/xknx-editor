@@ -47,6 +47,7 @@ from editor_gui.widgets import (
 )
 from editor_gui.widgets.backgrounds import child_background, side_background
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.combo import begin_combo, combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.group_objects_widgets import (
     GroupAddressCatalog,
@@ -824,7 +825,7 @@ class ConfigurePanel:
         start_x = imgui.get_cursor_pos_x()
         imgui.set_next_item_width(min(combo_w, avail))
         current = S.SECURE_COMMISSIONING_ON if activated else S.SECURE_COMMISSIONING_OFF
-        if imgui.begin_combo("##secure_commissioning", current):
+        if begin_combo("##secure_commissioning", current):
             for value, text in (
                 (True, S.SECURE_COMMISSIONING_ON),
                 (False, S.SECURE_COMMISSIONING_OFF),
@@ -853,7 +854,7 @@ class ConfigurePanel:
         ]
         label = next((text for mode, text in choices if mode == current), choices[0][1])
         imgui.set_next_item_width(-1)
-        if imgui.begin_combo("##routing_blocking", label):
+        if begin_combo("##routing_blocking", label):
             for mode, text in choices:
                 if (
                     imgui.selectable(text, mode == current)[0]
@@ -916,7 +917,7 @@ class ConfigurePanel:
             )
             imgui.set_next_item_width(-1)
             imgui.begin_disabled(not targets)
-            if imgui.begin_combo("##change_application", label):
+            if begin_combo("##change_application", label):
                 imgui.selectable(f"{label}##current_application", True)
                 for program in targets:
                     assert program.application_version is not None
@@ -1188,7 +1189,7 @@ class ConfigurePanel:
         imgui.pop_text_wrap_pos()
         presets = _reset_presets()
         imgui.set_next_item_width(px(320.0))
-        _, self._reset_erase_idx = imgui.combo(
+        _, self._reset_erase_idx = combo(
             S.RESET_TYPE, self._reset_erase_idx, [label for label, _ in presets]
         )
         _, self._reset_armed = checkbox(S.RESET_CONFIRM, self._reset_armed)
@@ -1737,6 +1738,6 @@ class ConfigurePanel:
         imgui.text_disabled(S.CONFIGURE_DOWNLOAD_SCOPE)
         imgui.same_line()
         imgui.set_next_item_width(self._scope_combo_width())
-        changed, new_idx = imgui.combo("##download_scope", current, _scope_labels())
+        changed, new_idx = combo("##download_scope", current, _scope_labels())
         if changed:
             self._download_scope = _SCOPE_ORDER[new_idx]

@@ -11,6 +11,7 @@ from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.devices import render_read_device_item
 from editor_gui.widgets.backgrounds import fill_content_background
+from editor_gui.widgets.combo import combo
 from editor_gui.widgets.description import render_description
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
@@ -351,7 +352,7 @@ class SpacesPanel:
         )
         presets = _space_type_presets()
         imgui.set_next_item_width(px(220.0))
-        _, self._new_space_type = imgui.combo(
+        _, self._new_space_type = combo(
             S.SPACES_SPACE_TYPE, self._new_space_type, [label for label, _ in presets]
         )
         can_create = bool(self._new_space_name.strip())
@@ -458,7 +459,7 @@ class SpacesPanel:
         _, self._new_fn_name = imgui.input_text(S.SPACES_FN_NAME, self._new_fn_name)
         presets = _function_type_presets()
         imgui.set_next_item_width(px(220.0))
-        _, self._new_fn_type = imgui.combo(
+        _, self._new_fn_type = combo(
             S.SPACES_FN_TYPE, self._new_fn_type, [label for label, _ in presets]
         )
         can_create = bool(self._new_fn_name.strip())

@@ -5,6 +5,7 @@ import struct
 from imgui_bundle import imgui
 
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.combo import begin_combo, combo
 from editor_gui.widgets.strings import S
 
 
@@ -204,7 +205,7 @@ class HexView:
         if imgui.begin_popup("##hx_opts"):
             col_options = [8, 16, 32]
             col_idx = col_options.index(self.cols) if self.cols in col_options else 1
-            changed, col_idx = imgui.combo(
+            changed, col_idx = combo(
                 f"{S.HEX_COLUMNS}##hx_columns", col_idx, ["8", "16", "32"]
             )
             if changed:
@@ -260,7 +261,7 @@ class HexView:
         imgui.same_line()
         imgui.set_next_item_width(-1.0)
         preview = self._goto_param_buf or S.HEX_PARAMETER_SEARCH
-        if imgui.begin_combo("##hx_goto_param", preview):
+        if begin_combo("##hx_goto_param", preview):
             if imgui.is_window_appearing():
                 imgui.set_keyboard_focus_here()
             _, self._goto_param_buf = imgui.input_text(
