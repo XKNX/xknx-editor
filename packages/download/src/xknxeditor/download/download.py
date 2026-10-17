@@ -339,8 +339,12 @@ def _authorize_levels(
 
 def _property_services(application: Application, master: MasterData | None) -> bool:
     """BCU1 masks have no property services. Unknown masks keep the probes."""
+    program = getattr(application, "program", None)
+    mask_version = getattr(program, "mask_version", None)
+    if not isinstance(mask_version, str):
+        return True
     raw = master.raw if master is not None else None
-    return mask_has_property_services(raw, application.program.mask_version)
+    return mask_has_property_services(raw, mask_version)
 
 
 def _reject_address_scope(scope: DownloadScope) -> None:
