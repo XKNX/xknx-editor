@@ -1007,3 +1007,23 @@ msgstr "ImGui-demovenster tonen"
 
 msgid "Filter colors"
 msgstr "Kleuren filteren"
+msgid "ETS 6 needs a signed and licensed .knxproj: log in to license it and set a signing key - or use the 'License with a Dongle' way below.\nETS 5: just use 'Export without Certificate' with Signing Keys."
+msgstr "ETS 6 heeft een ondertekend en gelicentieerd .knxproj nodig: meld je aan om het te licentiëren en stel een ondertekeningssleutel in - of gebruik hieronder de manier 'Licentie met een dongle'.\nETS 5: gebruik gewoon 'Exporteren zonder certificaat' met ondertekeningssleutels."
+
+msgid "ETS Version Export Format"
+msgstr "ETS-versie exportformaat"
+
+msgid "License with a Dongle… (ETS 6)"
+msgstr "Licentie met een dongle… (ETS 6)"
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store below:\n   1. Click 'Export to ETS 6 ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n   2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n   3. Restart ETS 6 - the project appears in the project overview.\n   4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed: go Back and choose 'Export without Certificate' (with ETS 5 as version) and Signing Keys active to save a .knxproj, then import that file into ETS 5. \nThis is bounded by the device-per-project limit of your license."
+msgstr "Licentieer het project opnieuw via je eigen gelicentieerde ETS, dat de kopie opnieuw ondertekent met je donglelicentie:\n\nETS 6 - gebruik hieronder de lokale projectstore:\n   1. Klik op 'Exporteren naar ETS 6 ProjectStore'. Dit schrijft de map 'P-XXXX' van het project rechtstreeks naar je ETS 6-projectstore. Als ETS niet op deze computer is geïnstalleerd, wordt om de storemap gevraagd (of een willekeurige map die je daarna handmatig overkopieert).\n   2. De export heeft je 'installer.guid' uit C:\\ProgramData\\KNX\\ETS6\\Installer nodig. Als die niet automatisch wordt gevonden, wordt gevraagd die te selecteren.\n   3. Herstart ETS 6 - het project verschijnt in het projectoverzicht.\n   4. Maak daar een kopie ervan (Kopiëren in het overzicht). De kopie wordt opnieuw ondertekend met je licentie - open die en gebruik of exporteer die daarna normaal.\n\nETS 5 - geen projectstore nodig: ga terug en kies 'Exporteren zonder certificaat' (met ETS 5 als versie) en actieve ondertekeningssleutels om een .knxproj op te slaan, en importeer dat bestand vervolgens in ETS 5. \nDit wordt begrensd door de limiet aan apparaten per project van je licentie."
+
+msgid "Remove device(s) & re-export"
+msgstr "Apparaat/apparaten verwijderen & opnieuw exporteren"
+
+msgid "Removed {count} incompatible device(s); re-exporting"
+msgstr "{count} incompatibel(e) apparaat/apparaten verwijderd; opnieuw exporteren"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
+msgstr "Dit bestand importeert NIET in de gekozen ETS-versie: de productgegevens van deze fabrikanten bestaan alleen voor een nieuwere ETS (bijv. een ETS 6-product in een ETS 5-export), dus ETS weigert het hele project. Verwijder de betrokken apparaten of exporteer voor de nieuwere ETS."

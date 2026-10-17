@@ -189,6 +189,10 @@ class ExportResult:
     schema: str
     unverifiable_folders: list[str] = field(default_factory=list[str])
     missing_references: list[str] = field(default_factory=list[str])
+    # Manufacturer product refs whose data is only available at a schema NEWER than the export
+    # target (e.g. an ETS6/project-23 product in an ETS5/project-20 export). The target ETS cannot
+    # read them and rejects the whole archive, so they are reported for the user to resolve.
+    schema_incompatible_products: list[str] = field(default_factory=list[str])
     import_notes: list[ImportLoss] = field(default_factory=list[ImportLoss])
     file_size: int = 0
     device_count: int = 0
@@ -252,10 +256,12 @@ def _audit_installation_refs(members: Mapping[str, bytes]) -> list[str]:
 
 
 # Supported target schemas mapped to (CreatedBy, ToolVersion) — the tool identity validated on
-# import. Verified against genuine exports: ETS5 (5.7) writes project/20;
-# ETS6 6.3 and 6.4 both use project/23 natively. We stamp the 6.3 tool version (6.3.7959.0) for
-# schema 23 so the export imports into 6.3 as well as 6.4+ (a newer build number would be
-# refused by an older importer as "from a newer version"). project/22 is older ETS6, project/14 ETS4.
+# import. Verified against genuine exports: ETS5 (5.7) writes project/20; ETS6 6.3 and 6.4 both use
+# project/23 natively. We stamp the 6.3 tool version (6.3.7959.0) for schema 23 so the export
+# imports into 6.3 as well as 6.4+. For schema 20 we stamp a 5.7 build; ETS 5's import accepts any
+# released 5.7.x build (the schema-20 gate is "ToolVersion >= 5.7.0.0", not "<= the running build"),
+# verified empirically: a file stamped 5.7.1428.39779 (a 5.7.7-era build) imports into ETS 5.7.4.
+# project/22 is older ETS6, project/14 ETS4.
 _SCHEMA_TOOLS: dict[str, tuple[str, str]] = {
     "14": ("ETS4", "4.2.1287.32739"),
     "20": ("ETS5", "5.7.1428.39779"),
@@ -338,11 +344,15 @@ _PARAM_TYPE_EMPTY_PAIR = re.compile(rb"(<ParameterType\b[^>]*?>)</ParameterType>
 
 
 def _restamp_tool_identity(data: bytes, schema: str) -> bytes:
-    """Rewrite an existing, non-target ``CreatedBy``/``ToolVersion`` on the root to the released pair.
+    """Rewrite an existing ``CreatedBy``/``ToolVersion`` on the root to the target released pair.
 
-    ETS refuses an archive whose manufacturer XML names an unreleased tool identity
-    (``CreatedBy="MT"``). Only an existing root attribute is rewritten — a member without one is
-    left untouched (adding it would break byte-identity for clean members)."""
+    A genuine ETS export stamps *every* member (project files and each manufacturer XML) with its
+    own single tool identity; a member that still names a different one (an unreleased
+    ``CreatedBy="MT"``, or a release built by a newer/older ETS than the target) makes the target ETS
+    reject the archive as "created with a newer version". So any existing root identity is rewritten
+    to the target pair; only a member without a ``CreatedBy`` at all is left untouched (adding one
+    would break byte-identity for a clean member). The folder signature is recomputed afterwards, so
+    rewriting a signed member's bytes is fine."""
     created_by, tool_version = _SCHEMA_TOOLS[schema]
     match = re.search(rb"<KNX\b[^>]*>", data)
     if match is None:
@@ -394,6 +404,27 @@ def _heal_manufacturer_member(data: bytes, schema: str) -> bytes:
         return _fill_empty_parameter_types(data)
     data = _restamp_tool_identity(data, schema)
     return _fill_empty_parameter_types(data)
+
+
+def _schema_incompatible_folders(
+    members: Mapping[str, bytes], schema: str
+) -> list[str]:
+    """Manufacturer folders whose XML is a NEWER schema than ``schema`` (unreadable by that ETS).
+
+    A project/23 (ETS6) product cannot be read by an ETS that speaks project/20 (ETS5): it rejects
+    the whole archive. Such members are kept verbatim at their own schema (they cannot be converted
+    down), so detect and report them. Returns sorted ``M-XXXX`` folder names."""
+    if not schema.isdigit():
+        return []
+    target = int(schema)
+    bad: set[str] = set()
+    for name, data in members.items():
+        if not (name.endswith(".xml") and name.split("/", 1)[0].startswith("M-")):
+            continue
+        detected = _schema_from_knx_xml(data)
+        if detected is not None and detected.isdigit() and int(detected) > target:
+            bad.add(name.split("/", 1)[0])
+    return sorted(bad)
 
 
 def _heal_extra_files(
@@ -722,10 +753,23 @@ def export_knxproj(
     manufacturer_count = len(
         {path.split("/", 1)[0] for path in effective_extra if path.startswith("M-")}
     )
+    schema_incompatible = _schema_incompatible_folders(effective_extra, schema)
+    for folder in schema_incompatible:
+        # e.g. an ETS6/project-23 product bundled into an ETS5/project-20 export. ETS5 cannot read
+        # it and rejects the whole archive as "created with a newer version"; name it so the user
+        # can remove the device or add its ETS5 product data.
+        logger.error(
+            "manufacturer %s provides only project/>%s (newer-ETS) product data; the target ETS "
+            "cannot import it. Remove that device or add its matching product data for this ETS "
+            "version.",
+            folder,
+            schema,
+        )
     return ExportResult(
         schema=schema,
         unverifiable_folders=audit.unverifiable,
         missing_references=missing_refs,
+        schema_incompatible_products=schema_incompatible,
         import_notes=import_notes.loads(import_notes_raw),
         file_size=file_size,
         device_count=device_count,

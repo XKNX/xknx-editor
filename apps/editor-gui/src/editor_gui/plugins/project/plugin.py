@@ -22,6 +22,10 @@ from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.project.button_runner import ButtonRunner
 from editor_gui.plugins.project.compare_match import compare_mismatch, matching_devices
 from editor_gui.plugins.project.device_info_view import device_info_sections
+from editor_gui.plugins.project.ga_name_template import (
+    DEFAULT_GA_NAME_TEMPLATE,
+    render_name_template,
+)
 from editor_gui.plugins.project.online_runner import OnlineButtonRunner
 from editor_gui.plugins.project.program_queue import (
     ProgramQueue,
@@ -255,6 +259,8 @@ class ProjectPlugin:
             get_group_address_names=api.project.group_address_names,
             format_group_address=self._format_group_address,
             suggest_ga=self._suggest_ga_for_object,
+            get_name_template=self._ga_name_template,
+            set_name_template=self._set_ga_name_template,
             on_create_and_link=self._create_and_link_ga,
             group_style=lambda: api.project.group_address_style,
             next_free_sub=self._next_free_sub,
@@ -659,22 +665,69 @@ class ProjectPlugin:
         self, device: "Device", com_object: Any
     ) -> tuple[str, str]:
         """Recommendation for a new group address for ``com_object``: the next free address and a
-        name combining the device's room, a device identifier, the object/channel name and its
-        function, e.g. "Flur - Taster - TW 1 - Switch" (each part included only when present and
-        not already covered). The device identifier keeps names unique when several devices with
-        the same objects share a room: it prefers the device description, then its short name."""
+        name rendered from the program-wide name template (see :mod:`ga_name_template`), filled with
+        the device's building/floor/room, identifiers, and the object's name and function. The
+        default template reproduces "Flur - Taster - TW 1 - Switch"."""
         address = self._api.project.next_free_group_address() or ""
-        parts: list[str] = []
-        for token in (
-            self._device_room(device),
-            self._device_ga_token(device),
-            com_object.name or "",
-            getattr(com_object, "function_text", "") or "",
-        ):
-            token = token.strip()
-            if token and token not in parts:
-                parts.append(token)
-        return address, " - ".join(parts)
+        building, floor, room = self._device_space_fields(device.node_id)
+        info = self._api.project.get_device_info(device.node_id)
+        dpt = getattr(getattr(com_object, "dpt", None), "name", "") or ""
+        values = {
+            "building": building,
+            "floor": floor,
+            "room": room,
+            "device": self._device_ga_token(device),
+            "devicename": (getattr(info, "name", "") or device.name or "").strip(),
+            "devicedescription": (getattr(info, "description", "") or "").strip(),
+            "product": getattr(info, "product_name", "") or "",
+            "manufacturer": getattr(info, "manufacturer_name", "") or "",
+            "order": getattr(info, "order_number", "") or "",
+            "address": getattr(info, "individual_address", "") or "",
+            "object": com_object.name or "",
+            "ganame": com_object.name or "",
+            "function": getattr(com_object, "function_text", "") or "",
+            "number": str(getattr(com_object, "number", "") or ""),
+            "dpt": dpt,
+        }
+        return address, render_name_template(self._ga_name_template(), values)
+
+    def _ga_name_template(self) -> str:
+        """The program-wide group-address name template (``app.json``), or the default."""
+        from editor_gui.settings import load_settings
+
+        return str(
+            load_settings("app").get("ga_name_template") or DEFAULT_GA_NAME_TEMPLATE
+        )
+
+    def _set_ga_name_template(self, template: str) -> None:
+        """Persist the group-address name template program-wide (``app.json``)."""
+        from editor_gui.settings import load_settings, save_settings
+
+        data = load_settings("app")
+        data["ga_name_template"] = template
+        save_settings("app", data)
+
+    def _device_space_fields(self, node_id: int) -> tuple[str, str, str]:
+        """(building, floor, room) names of the space holding ``node_id``: building and floor by
+        their space type, room the direct container. Each "" when absent."""
+        building_types = {"Building", "BuildingPart"}
+
+        def walk(
+            spaces: list[Any], building: str, floor: str
+        ) -> tuple[str, str, str] | None:
+            for space in spaces:
+                here_building = (
+                    space.name if space.space_type in building_types else building
+                )
+                here_floor = space.name if space.space_type == "Floor" else floor
+                if any(d.id == node_id for d in space.devices):
+                    return here_building, here_floor, space.name
+                hit = walk(space.children, here_building, here_floor)
+                if hit is not None:
+                    return hit
+            return None
+
+        return walk(self._api.project.get_space_tree(), "", "") or ("", "", "")
 
     def _device_ga_token(self, device: "Device") -> str:
         """Identifier of ``device`` for a group-address name: its description if set, otherwise the

@@ -196,3 +196,9 @@ msgstr "Deze waarde kan niet met dit datatype worden verzonden."
 
 msgid "Value {number}"
 msgstr "Waarde {number}"
+
+msgid "Name template"
+msgstr "Naamsjabloon"
+
+msgid "Placeholders: {building} {floor} {room} {device} {devicename} {devicedescription} {product} {manufacturer} {order} {address} {object} {ganame} {function} {number} {dpt}"
+msgstr "Tijdelijke aanduidingen: {building} {floor} {room} {device} {devicename} {devicedescription} {product} {manufacturer} {order} {address} {object} {ganame} {function} {number} {dpt}"

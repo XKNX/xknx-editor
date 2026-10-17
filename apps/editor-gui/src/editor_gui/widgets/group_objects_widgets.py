@@ -69,6 +69,8 @@ class GroupObjectsTable:
         on_auto_create_gas: Callable[[Device, list[ComObject], str, str], None]
         | None = None,
         suggest_ga: Callable[[Device, ComObject], tuple[str, str]] | None = None,
+        get_name_template: Callable[[], str] | None = None,
+        set_name_template: Callable[[str], None] | None = None,
         on_create_and_link: Callable[[Device, ComObject, str, str], None] | None = None,
         group_style: Callable[[], object] | None = None,
         next_free_sub: Callable[[int, int], int] | None = None,
@@ -87,6 +89,9 @@ class GroupObjectsTable:
         self._on_unlink = on_unlink
         self._on_auto_create_gas = on_auto_create_gas
         self._suggest_ga = suggest_ga
+        # Read/write the program-wide group-address name template, edited inline in the "+" dialog.
+        self._get_name_template = get_name_template
+        self._set_name_template = set_name_template
         self._on_create_and_link = on_create_and_link
         self._group_style = group_style
         self._next_free_sub = next_free_sub
@@ -117,6 +122,9 @@ class GroupObjectsTable:
         # Buffers for the per-row "create new GA" fields, prefilled when the "+" popup opens.
         self._create_addr = ""
         self._create_name = ""
+        # True once the user hand-edited the name field, so changing the template no longer
+        # overwrites their name. Reset each time the "+" dialog is (re)opened for an object.
+        self._create_name_edited = False
         # 3-level entry: main/middle/sub; changing main or middle auto-fills the next free sub.
         # Kept as text (not input_int) so edits register per keystroke — input_int only reports the
         # change when the field loses focus, which broke the "recompute after 1s idle" debounce.
@@ -515,9 +523,12 @@ class GroupObjectsTable:
         imgui.text_disabled(S.GA_CREATE_NEW)
         address = self._render_address_inputs()
         imgui.set_next_item_width(-1.0)
-        _, self._create_name = imgui.input_text_with_hint(
+        name_changed, self._create_name = imgui.input_text_with_hint(
             "##newname", S.GA_CREATE_NAME_HINT, self._create_name
         )
+        if name_changed:
+            self._create_name_edited = True
+        self._render_name_template(device, com_object)
         # Share one row: Create fills the remaining width, Cancel keeps a fixed width so it stays
         # inside the window (a full-width Create button pushed Cancel off the right edge).
         cancel_w = px(90.0)
@@ -534,6 +545,24 @@ class GroupObjectsTable:
         ):
             self._add_open = False
         imgui.separator()
+
+    def _render_name_template(self, device: Device, com_object: ComObject) -> None:
+        """A collapsed 'Name template' section editing the program-wide auto-name template. Editing
+        it regenerates the suggested name live (unless the user hand-edited the name field)."""
+        if self._get_name_template is None or self._set_name_template is None:
+            return
+        if not imgui.tree_node_ex(S.GA_NAME_TEMPLATE_SECTION):
+            return
+        imgui.set_next_item_width(-1.0)
+        changed, template = imgui.input_text_with_hint(
+            "##ganametemplate", S.GA_CREATE_NAME_HINT, self._get_name_template()
+        )
+        if changed:
+            self._set_name_template(template)
+            if not self._create_name_edited and self._suggest_ga is not None:
+                _, self._create_name = self._suggest_ga(device, com_object)
+        imgui.text_disabled(S.GA_NAME_TEMPLATE_HINT)
+        imgui.tree_pop()
 
     def _render_address_inputs(self) -> str:
         """Address entry for the new GA. In 3-level style three int fields (main/middle/sub) where
@@ -608,6 +637,7 @@ class GroupObjectsTable:
             self._add_co = com_object
             self._add_open = True
             self._sub_recompute_at = None
+            self._create_name_edited = False
             if self._suggest_ga is not None:
                 self._create_addr, self._create_name = self._suggest_ga(
                     device, com_object

@@ -1230,16 +1230,26 @@ def test_import_captures_product_provenance(tmp_path: Path) -> None:
 
 def test_export_reemits_imported_manufacturer_data(tmp_path: Path) -> None:
     """A project imported from a real .knxproj and exported again must carry its original
-    ``M-XXXX/*`` folder *contents* (byte-identical) and signed master, with no missing references —
-    the manufacturer data survives the round trip without the catalog (issue #22). The folder
-    ``.signature`` is a derived artifact: it is kept verbatim when it still verifies, otherwise
-    recomputed, so it is asserted to verify under the active signing key rather than byte-compared."""
+    ``M-XXXX/*`` folder *contents* and signed master, with no missing references — the manufacturer
+    data survives the round trip without the catalog (issue #22). Each member is byte-identical
+    except its root ``CreatedBy``/``ToolVersion``, which is restamped to the export's released tool
+    identity (a genuine ETS stamps every member with its own, and a member left at a newer build
+    makes an older ETS reject the whole archive). The folder ``.signature`` is derived: kept verbatim
+    when it still verifies, otherwise recomputed, so it is asserted to verify under the active
+    signing key rather than byte-compared."""
     captured = tmp_path / "captured.xknx"
     import_knxproj(_REAL, captured)
 
     out = tmp_path / "out.knxproj"
     result = export_knxproj(captured, out)
     assert not result.missing_references
+
+    # The target tool identity every member is normalised to (project/20 -> ETS5).
+    created_by, tool_version = b"ETS5", b"5.7.1428.39779"
+
+    def _strip_identity(data: bytes) -> bytes:
+        """Member bytes with the root's CreatedBy/ToolVersion blanked, to compare the body alone."""
+        return re.sub(rb'(CreatedBy|ToolVersion)="[^"]*"', rb'\1=""', data)
 
     source_members = _archive_members(_REAL)
     out_members = _archive_members(out)
@@ -1249,8 +1259,17 @@ def test_export_reemits_imported_manufacturer_data(tmp_path: Path) -> None:
         if not top.startswith("M-") or "/" not in name:
             continue
         assert name in out_members, f"{name} dropped on export"
-        assert out_members[name] == data, f"{name} not byte-identical"
-        folder_files.setdefault(top, {})[name.split("/", 1)[1]] = out_members[name]
+        got = out_members[name]
+        # Body preserved; only the root tool identity differs.
+        assert _strip_identity(got) == _strip_identity(data), f"{name} body changed"
+        if b"CreatedBy=" in got:
+            assert f'CreatedBy="{created_by.decode()}"'.encode() in got, (
+                f"{name} CreatedBy"
+            )
+            assert f'ToolVersion="{tool_version.decode()}"'.encode() in got, (
+                f"{name} ToolVersion"
+            )
+        folder_files.setdefault(top, {})[name.split("/", 1)[1]] = got
 
     for folder, files in folder_files.items():
         sig = f"{folder}.signature"

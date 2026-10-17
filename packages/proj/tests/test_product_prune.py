@@ -406,6 +406,8 @@ def test_export_remove_unused_products_round_trip(tmp_path: Path) -> None:
     assert "M-0002/M-0002_A-FFFF-01-0000.xml" not in members
     assert b"M-0002_H-UNUSED" not in members["M-0002/Hardware.xml"]
     source = _archive(_REAL)
+    # Re-emitted byte-identical: export restamps every member to the released schema-20 tool
+    # identity (ETS5 5.7.1428.39779), which is exactly what this fixture already carries.
     assert members["M-0002/Hardware.xml"] == source["M-0002/Hardware.xml"]
     files = {
         n.split("/", 1)[1]: d for n, d in members.items() if n.startswith("M-0002/")

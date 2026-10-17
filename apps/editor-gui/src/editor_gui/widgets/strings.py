@@ -140,6 +140,18 @@ class WidgetStrings(BaseStrings):
         return _("Create & Link")
 
     @property
+    def GA_NAME_TEMPLATE_SECTION(self) -> str:
+        return _("Name template")
+
+    @property
+    def GA_NAME_TEMPLATE_HINT(self) -> str:
+        return _(
+            "Placeholders: {building} {floor} {room} {device} {devicename} "
+            "{devicedescription} {product} {manufacturer} {order} {address} {object} "
+            "{ganame} {function} {number} {dpt}"
+        )
+
+    @property
     def PARAM_CHANGED_TOOLTIP(self) -> str:
         return _("Changed from default ({default}) — right-click to reset")
 

@@ -645,7 +645,7 @@ class MenuStrings:
         return _(
             "ETS 6 needs a signed and licensed .knxproj: log in to license it and set a "
             "signing key - or use the 'License with a Dongle' way below.\n"
-            "ETS 5: just use 'Export without Certificate'."
+            "ETS 5: just use 'Export without Certificate' with Signing Keys."
         )
 
     @property
@@ -753,7 +753,24 @@ class MenuStrings:
 
     @property
     def EXPORT_FORMAT(self) -> str:
-        return _("Export Format")
+        return _("ETS Version Export Format")
+
+    @property
+    def EXPORT_INCOMPAT_REMOVE(self) -> str:
+        return _("Remove device(s) & re-export")
+
+    @property
+    def EXPORT_INCOMPAT_REMOVED(self) -> str:
+        return _("Removed {count} incompatible device(s); re-exporting")
+
+    @property
+    def EXPORT_SUMMARY_INCOMPAT(self) -> str:
+        return _(
+            "This file will NOT import into the chosen ETS version: the product data of these "
+            "manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 "
+            "export), so ETS rejects the whole project. Remove the affected device(s) or export "
+            "for the newer ETS."
+        )
 
     @property
     def EXPORT_FORMAT_ETS6(self) -> str:
@@ -765,7 +782,7 @@ class MenuStrings:
 
     @property
     def MYKNX_DONGLE_BUTTON(self) -> str:
-        return _("License with a Dongle…")
+        return _("License with a Dongle… (ETS 6)")
 
     @property
     def SIGNING_KEY_BUTTON(self) -> str:
@@ -836,21 +853,21 @@ class MenuStrings:
     @property
     def MYKNX_DONGLE_STEPS(self) -> str:
         return _(
-            "Re-license the project through your own licensed ETS via its local project store, "
-            "which re-signs the copy with your dongle license:\n"
+            "Re-license the project through your own licensed ETS, which re-signs the copy with "
+            "your dongle license:\n"
             "\n"
-            "   1. Click 'Export to ETS 5 ProjectStore' or 'Export to ETS 6 ProjectStore'. "
-            "It writes the project's 'P-XXXX' folder straight into "
-            "that ETS version's project store. The two formats are not interchangeable. If ETS "
-            "is not installed on this computer, you are asked for the store folder (or any "
-            "folder you then copy over manually).\n"
-            "   2. The export needs the 'installer.guid' of that ETS version, from "
-            "C:\\ProgramData\\KNX\\ETS5\\Installer or ...\\ETS6\\Installer. ETS 5 and ETS 6 do "
-            "not share one. If it cannot be found automatically, you are asked to select it.\n"
-            "   3. Restart ETS - the project appears in the project overview.\n"
-            "   4. Make a copy of it there (ETS 6: Copy in the overview; ETS 5: right-click > "
-            "Copy > As Clone). The copy is re-signed with your license - open it, then use or "
-            "export it normally.\n"
+            "ETS 6 - use the local project store below:\n"
+            "   1. Click 'Export to ETS 6 ProjectStore'. It writes the project's 'P-XXXX' folder "
+            "straight into your ETS 6 project store. If ETS is not installed on this computer, you "
+            "are asked for the store folder (or any folder you then copy over manually).\n"
+            "   2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. "
+            "If it cannot be found automatically, you are asked to select it.\n"
+            "   3. Restart ETS 6 - the project appears in the project overview.\n"
+            "   4. Make a copy of it there (Copy in the overview). The copy is re-signed with your "
+            "license - open it, then use or export it normally.\n"
+            "\n"
+            "ETS 5 - no project store is needed: go Back and choose 'Export without Certificate' "
+            "(with ETS 5 as version) and Signing Keys active to save a .knxproj, then import that file into ETS 5. "
             "\n"
             "This is bounded by the device-per-project limit of your license."
         )

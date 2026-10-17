@@ -193,3 +193,9 @@ msgstr "Wert {number}"
 
 msgid "Edit Value"
 msgstr "Wert bearbeiten"
+
+msgid "Name template"
+msgstr "Namensvorlage"
+
+msgid "Placeholders: {building} {floor} {room} {device} {devicename} {devicedescription} {product} {manufacturer} {order} {address} {object} {ganame} {function} {number} {dpt}"
+msgstr "Platzhalter: {building} {floor} {room} {device} {devicename} {devicedescription} {product} {manufacturer} {order} {address} {object} {ganame} {function} {number} {dpt}"

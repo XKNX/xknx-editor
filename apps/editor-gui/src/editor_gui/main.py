@@ -111,7 +111,7 @@ from xknxeditor.proj.core.product_prune import (
     STEP_VACUUM,
 )
 from xknxeditor.proj.db import frame_db_profiler, make_engine, url_for
-from xknxeditor.proj.models import Installation, Project
+from xknxeditor.proj.models import Device, Installation, Project
 
 _REPO_URL = "https://github.com/xknx/xknx-editor"
 # Direct download of the Windows "compat" build (bundled Mesa software OpenGL, pure CPU) — the one that
@@ -461,6 +461,14 @@ class KnxGuiApp:
         self._export_summary_schema = ""
         self._export_summary_at = ""
         self._export_summary_requested = False
+        # The certificate signer used for the export, kept so the export-complete window can
+        # re-export after removing a device whose product data is too new for the chosen ETS.
+        self._export_summary_signer: (
+            Callable[[str, bytes, str], bytes | None] | None
+        ) = None
+        # Devices (node_id, label) the open summary flags as incompatible with the chosen ETS
+        # version; computed once when the window opens (not per frame).
+        self._export_summary_incompat_rows: list[tuple[int, str]] = []
         # Set by the .knxprod load worker; the render loop opens a modal message box with it so a
         # catalog import gives explicit, click-to-dismiss feedback (not just a log line). _msg holds
         # the text while the modal is open (worker->render handoff via _result, latched into _msg).
@@ -482,7 +490,9 @@ class KnxGuiApp:
         self._update_thread: threading.Thread | None = None
         self._update_manual = False  # a user-triggered check also reports "up to date"
         # Target schema for .knxproj export. ETS 6 (project/23) is the default; ETS 5 is project/20.
-        self._export_schema = "23"
+        # Persisted so a chosen ETS version sticks across sessions.
+        _schema = str(load_settings("app").get("export_schema") or "23")
+        self._export_schema = _schema if _schema in ("20", "23") else "23"
         # Command palette (Ctrl+P): fuzzy jump to devices / run actions.
         self._palette_open = False
         self._palette_query = ""
@@ -972,6 +982,7 @@ class KnxGuiApp:
                         used_schema, f"project/{used_schema}"
                     )
                     self._export_summary_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+                    self._export_summary_signer = signer
                     self._export_summary_requested = True
                 if result.import_notes:
                     # Remind the user what the source .knxproj carried that this export omits. Set
@@ -1009,6 +1020,26 @@ class KnxGuiApp:
                         references=", ".join(result.missing_references),
                         path=dest,
                     )
+                if result.schema_incompatible_products:
+                    # A product is only available at a newer schema than the chosen ETS version
+                    # (e.g. an ETS6 product in an ETS5 export). The target ETS rejects the whole
+                    # archive as "created with a newer version". Logged here; the export-complete
+                    # window shows the warning and offers to remove the device(s) and re-export.
+                    self._log.error(
+                        "export: products have no data for the chosen ETS version; that ETS will "
+                        "reject the import (remove the device, or export for the newer ETS)",
+                        products=", ".join(result.schema_incompatible_products),
+                        path=dest,
+                    )
+                    # Ensure the export-complete window opens even if it was gated out above.
+                    self._export_summary = result
+                    self._export_summary_path = dest
+                    self._export_summary_schema = labels.get(
+                        used_schema, f"project/{used_schema}"
+                    )
+                    self._export_summary_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+                    self._export_summary_signer = signer
+                    self._export_summary_requested = True
             except MyKnxError as e:
                 # Clean, actionable text goes to the toast (error=); full server detail + HTTP
                 # status stay in the Log record for debugging.
@@ -1029,6 +1060,13 @@ class KnxGuiApp:
 
         self._myknx_thread = threading.Thread(target=_run, daemon=True)
         self._myknx_thread.start()
+
+    def _set_export_schema(self, code: str) -> None:
+        """Set and persist the .knxproj export schema (ETS version format), so it sticks."""
+        self._export_schema = code
+        data = load_settings("app")
+        data["export_schema"] = code
+        save_settings("app", data)
 
     def _ets_projectstore_dir(self, store_format: ets_store.StoreFormat) -> Path:
         """Default project store for ``store_format``: %ProgramData%\\KNX\\ETS{5,6}\\ProjectStore."""
@@ -1324,7 +1362,7 @@ class KnxGuiApp:
         if imgui.begin_combo("##export_schema", current):
             for code, lbl in formats:
                 if imgui.selectable(lbl, code == self._export_schema)[0]:
-                    self._export_schema = code
+                    self._set_export_schema(code)
             imgui.end_combo()
         changed, self._export_remove_unused = checkbox(
             S.EXPORT_REMOVE_UNUSED, self._export_remove_unused
@@ -2353,7 +2391,7 @@ class KnxGuiApp:
                 }
                 chosen = schemas.get(dialog.selected_filter)
                 if chosen is not None:
-                    self._export_schema = chosen
+                    self._set_export_schema(chosen)
             if result:
                 # Ask about MyKnx certificate signing before running the export.
                 self._maybe_overwrite_then(
@@ -2892,6 +2930,15 @@ class KnxGuiApp:
         file size, device/building/group-address counts, bundled manufacturer folders, and whether
         it carries a folder signature and a MyKnx certificate."""
         if self._export_summary_requested:
+            # Devices whose product data is too new for the chosen ETS (computed once here, not per
+            # frame) so the window can name them and offer to remove them.
+            self._export_summary_incompat_rows = (
+                self._schema_incompat_devices(
+                    self._export_summary.schema_incompatible_products
+                )
+                if self._export_summary is not None
+                else []
+            )
             imgui.open_popup(S.EXPORT_SUMMARY_TITLE)
             self._export_summary_requested = False
         imgui.set_next_window_size_constraints(
@@ -2939,11 +2986,47 @@ class KnxGuiApp:
                 imgui.table_next_column()
                 imgui.text(value)
             imgui.end_table()
-        clicked = dialog_buttons(S.EXPORT_SUMMARY_OPEN_FOLDER, S.EXPORT_SUMMARY_CLOSE)
-        if clicked == 0:
-            self._open_folder(Path(self._export_summary_path).parent)
-        elif clicked == 1:
-            imgui.close_current_popup()
+        incompatible = bool(summary.schema_incompatible_products)
+        if incompatible:
+            # The chosen ETS version cannot read some device's product data; this file will not
+            # import. Flag it in red and list the affected devices, with a remove-and-re-export
+            # action below.
+            imgui.spacing()
+            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.92, 0.33, 0.33, 1.0))
+            imgui.text_wrapped(S.EXPORT_SUMMARY_INCOMPAT)
+            imgui.pop_style_color()
+            for _nid, label in self._export_summary_incompat_rows:
+                imgui.bullet_text(label)
+        if incompatible:
+            labels = [
+                S.EXPORT_INCOMPAT_REMOVE,
+                S.EXPORT_SUMMARY_OPEN_FOLDER,
+                S.EXPORT_SUMMARY_CLOSE,
+            ]
+            clicked = dialog_buttons(*labels)
+            if clicked == 0:
+                removed = self._export_summary_incompat_rows
+                dest, signer = self._export_summary_path, self._export_summary_signer
+                imgui.close_current_popup()
+                if removed:
+                    for nid, _label in removed:
+                        self._project_service.remove_device(nid)
+                    self._flash_toast(
+                        S.EXPORT_INCOMPAT_REMOVED.format(count=len(removed))
+                    )
+                    self._do_export_knxproj(dest, signer)
+            elif clicked == 1:
+                self._open_folder(Path(self._export_summary_path).parent)
+            elif clicked == 2:
+                imgui.close_current_popup()
+        else:
+            clicked = dialog_buttons(
+                S.EXPORT_SUMMARY_OPEN_FOLDER, S.EXPORT_SUMMARY_CLOSE
+            )
+            if clicked == 0:
+                self._open_folder(Path(self._export_summary_path).parent)
+            elif clicked == 1:
+                imgui.close_current_popup()
         end_dialog()
 
     # --- compact project ---------------------------------------------------
@@ -3268,6 +3351,30 @@ class KnxGuiApp:
                 imgui.progress_bar(-1.0 * float(imgui.get_time()), bar, "")
         imgui.end()
 
+    def _schema_incompat_devices(self, folders: list[str]) -> list[tuple[int, str]]:
+        """(node_id, label) of project devices whose product/program is one of ``folders``.
+
+        Reads the model directly (once, when the window opens — not per frame) so the manufacturer
+        ref ids are exact, which the GUI device view does not expose."""
+        source = self._project_service.working_path
+        if source is None:
+            return []
+        prefixes = tuple(f"{f}_" for f in folders)
+        rows: list[tuple[int, str]] = []
+        engine = make_engine(url_for(Path(source)))
+        with Session(engine) as session:
+            for d in session.query(Device).all():
+                refs = (d.product_ref_id or "", d.hardware2program_ref_id or "")
+                if not any(r.startswith(prefixes) for r in refs):
+                    continue
+                device_name = d.name or d.product_name or d.product_ref_id
+                parts = [p for p in (d.manufacturer_name, device_name) if p]
+                label = " - ".join(parts)
+                if d.product_name and d.product_name != device_name:
+                    label = f"{label} ({d.product_name})"
+                rows.append((d.id, label))
+        return rows
+
     def _render_projectstore_confirm_modal(self) -> None:
         """Ask whether to overwrite an existing store folder or add a separate, renamed copy."""
         pending = self._projectstore_confirm
@@ -3329,13 +3436,16 @@ class KnxGuiApp:
         )
         imgui.spacing()
         # Write the project's P-XXXX folder straight into that ETS version's ProjectStore.
-        # The format chosen above (ETS 5 schema 20 / ETS 6 schema 23) is the .knxproj schema; the
-        # store export is a separate target, so both are offered here.
-        if imgui.button(S.MENU_EXPORT_ETS5_STORE, imgui.ImVec2(-1, 0)):
-            self._begin_projectstore_export(ets_store.StoreFormat.ETS5)
-            self._export_pending_dest = None
-            self._myknx_force_close = True
-            imgui.close_current_popup()
+        # ETS 5 ProjectStore export is disabled for now: a fresh ETS 5 store still needs the split
+        # manufacturer cache (H/C/A + binary COC/PC/CPC) this writer does not produce yet, without
+        # which ETS 5 can crash opening an area with devices. For ETS 5 use the "Export without
+        # Certificate" .knxproj route instead (see the steps above). Re-enable when the cache is
+        # produced.
+        # if imgui.button(S.MENU_EXPORT_ETS5_STORE, imgui.ImVec2(-1, 0)):
+        #     self._begin_projectstore_export(ets_store.StoreFormat.ETS5)
+        #     self._export_pending_dest = None
+        #     self._myknx_force_close = True
+        #     imgui.close_current_popup()
         if imgui.button(S.MENU_EXPORT_ETS6_STORE, imgui.ImVec2(-1, 0)):
             self._begin_projectstore_export(ets_store.StoreFormat.ETS6)
             self._export_pending_dest = None
