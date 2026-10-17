@@ -633,22 +633,42 @@ def _group_communication_segments(
                 for ref_id in ui.instantiated_com_object_ref_ids()
                 if ref_id in number_of
             }
-            data, mask = _build_com_object_table(
-                seed[0],
-                ui,
-                linked_numbers,
-                set(number_of.values()),
-                active_numbers or None,
-            )
-            # Flag/size overlay sits on the manufacturer seed (header and data
-            # pointers). After AllocAbsDataSeg those seed octets must go out too,
-            # or the BCU checksums an empty object table.
+            object_numbers = set(number_of.values())
+            # BCU1 keeps the address, association and group-object tables inside the
+            # one EEPROM segment. A System-B record laid out from the segment start
+            # overwrites the application id and the table pointers.
+            if _bcu1_mask(application.program.mask_version):
+                data, mask = _bcu1_com_object_overlay(
+                    seed[0],
+                    ui,
+                    linked_numbers,
+                    object_numbers,
+                    active_numbers or None,
+                    com_object_table.offset or 0,
+                )
+                initialized = bytearray(b"\xff" * len(data))
+                run_control = 0x010D - base
+                if 0 <= run_control < len(initialized):
+                    # Leave the run byte to the procedure's inline stop/start writes.
+                    initialized[run_control] = 0
+            else:
+                data, mask = _build_com_object_table(
+                    seed[0],
+                    ui,
+                    linked_numbers,
+                    object_numbers,
+                    active_numbers or None,
+                )
+                # Flag/size overlay sits on the manufacturer seed (header and data
+                # pointers). After AllocAbsDataSeg those seed octets must go out too,
+                # or the BCU checksums an empty object table.
+                initialized = bytearray(b"\xff" * len(data))
             result.append(
                 MemorySegment(
                     base,
                     data,
                     mask=mask,
-                    initialized_mask=b"\xff" * len(data),
+                    initialized_mask=bytes(initialized),
                 )
             )
     address_table = static.address_table
@@ -675,7 +695,10 @@ def _group_communication_segments(
                 for link in links
             ]
             _validate_table_capacity(application, group_addresses, associations)
-            data = build_association_table(associations)
+            if _bcu1_mask(application.program.mask_version):
+                data = _bcu1_association_table(associations, set(number_of.values()))
+            else:
+                data = build_association_table(associations)
             address = base + (association_table.offset or 0)
             result.append(MemorySegment(address, data, mask=b"\xff" * len(data)))
     return result
@@ -843,6 +866,73 @@ def _resolved_group_object_descriptors(
 _COM_OBJECT_HEADER = 5
 _COM_OBJECT_RECORD = 4
 _COMMUNICATION_BIT = 0x04
+
+# BCU1 (mask 001x) group-object table: a count octet, then 3-octet records whose
+# last octet is the flag byte. The association table is one slot per object
+# number; 0xFE is an empty slot.
+_BCU1_EMPTY_ASSOCIATION = 0xFE
+
+
+def _bcu1_mask(mask_version: str) -> bool:
+    version = _mask_number(mask_version)
+    return version is not None and version & 0xFFF0 == 0x0010
+
+
+def _bcu1_association_table(
+    associations: Sequence[Association], object_numbers: set[int]
+) -> bytes:
+    """One ``[address index or 0xFE][object number]`` slot per object number."""
+    if not object_numbers:
+        return build_association_table(associations)
+    count = max(object_numbers) + 1
+    if count > 0xFF:
+        raise ImageError(f"association table has too many entries: {count}")
+    slot: dict[int, int] = {}
+    for association in sorted(
+        associations,
+        key=lambda a: (
+            not a.sending,
+            a.group_object_number,
+            a.group_address_index,
+        ),
+    ):
+        slot.setdefault(
+            association.group_object_number, association.group_address_index
+        )
+    out = bytearray([count])
+    for number in range(count):
+        out.append(slot.get(number, _BCU1_EMPTY_ASSOCIATION))
+        out.append(number)
+    return bytes(out)
+
+
+def _bcu1_com_object_overlay(
+    seed: bytes,
+    ui: DynamicUI,
+    linked_numbers: set[int],
+    object_numbers: set[int],
+    active_numbers: set[int] | None,
+    table_offset: int,
+) -> tuple[bytes, bytes]:
+    """Write each object's flag into its 3-octet BCU1 record, leaving pointers."""
+    data, mask = bytearray(seed), bytearray(len(seed))
+    visible = _resolved_group_object_descriptors(ui, linked_numbers)
+    for number in object_numbers:
+        pos = table_offset + 1 + number * 3 + 2
+        if pos >= len(data):
+            continue
+        descriptor = visible.get(number)
+        if descriptor is None or (
+            active_numbers is not None and number not in active_numbers
+        ):
+            flags = data[pos] & ~_COMMUNICATION_BIT
+            if number in linked_numbers:
+                flags |= _COMMUNICATION_BIT
+            data[pos] = flags
+        else:
+            data[pos] = (data[pos] & 0x20) | descriptor[0]
+        mask[pos] = 0xFF
+    return bytes(data), bytes(mask)
 
 
 def _build_com_object_table(
