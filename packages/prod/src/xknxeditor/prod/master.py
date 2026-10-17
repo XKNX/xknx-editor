@@ -11,9 +11,11 @@ from typing import TYPE_CHECKING
 
 from xknxeditor.namespaces import detect_version
 
-from .data import to_ir
+from .parse_cache import cached_to_ir
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from xknxeditor.namespaces import intermediate as ir
 
 
@@ -48,7 +50,8 @@ class MasterData:
         return self._manufacturers
 
 
-def parse_master_xml(xml_bytes: bytes) -> MasterData:
-    """Build `MasterData` from a master XML."""
-    knx = to_ir(xml_bytes, detect_version(xml_bytes))
+def parse_master_xml(xml_bytes: bytes, cache_dir: Path | None = None) -> MasterData:
+    """Build `MasterData` from a master XML; with ``cache_dir``, through the parse cache (the
+    same XML is then parsed only once)."""
+    knx = cached_to_ir(xml_bytes, detect_version(xml_bytes), cache_dir)
     return MasterData(raw=knx.master_data)

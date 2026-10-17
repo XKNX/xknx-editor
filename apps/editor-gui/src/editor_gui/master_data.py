@@ -87,7 +87,8 @@ def _load_bytes() -> tuple[bytes, str]:
 def load_master() -> tuple[MasterData, MasterDataInfo]:
     """Load the global master data (cached or freshly fetched) and report its version and date."""
     data, source = _load_bytes()
-    master = parse_master_xml(data)
+    # Through the parse cache next to the catalog's: every start reads the same master XML.
+    master = parse_master_xml(data, config_dir() / "ir_cache")
     version = master.raw.version if master.raw is not None else 0
     cache = _cache_path()
     try:
