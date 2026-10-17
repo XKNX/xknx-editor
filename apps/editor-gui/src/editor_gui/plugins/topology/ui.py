@@ -2,7 +2,8 @@
 
 Read-only. *Physical* mode shows Area -> Line -> Device (from individual addresses); *Building*
 mode shows Building/Room -> Device (from the location tree). Ctrl+mouse-wheel zooms; a box shows
-the device's address, name and application, and clicking it selects the device."""
+the device's address, name and application (and an icon showing its description), and clicking it
+selects the device."""
 
 from __future__ import annotations
 
@@ -15,6 +16,7 @@ from imgui_bundle import imgui
 from editor_gui.device import Device, address_order, device_label
 from editor_gui.plugins.topology.strings import S
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.description import ICON_DESCRIPTION, description_tooltip
 from editor_gui.widgets.dpi import px
 
 # Unscaled layout metrics (multiplied by the zoom factor at draw time).
@@ -27,6 +29,8 @@ _TEXT_PAD = 5.0
 _COL_MIN_W = (120.0, 150.0, 260.0)
 _COL_MAX_W = (240.0, 260.0, 480.0)
 _ELLIPSIS = "…"
+# Space between a device's label and its description icon.
+_ICON_GAP = 6.0
 
 
 @dataclass
@@ -35,6 +39,7 @@ class _DevBox:
     node_id: int
     label: str
     tooltip: str
+    description: str = ""
 
 
 @dataclass
@@ -136,7 +141,13 @@ class TopologyPanel:
                     y = row * _ROW_H
                     dev_rows.append(y)
                     layout.devices.append(
-                        _DevBox(y, d.node_id, _device_label(d), _device_tooltip(d))
+                        _DevBox(
+                            y,
+                            d.node_id,
+                            _device_label(d),
+                            _device_tooltip(d),
+                            d.description.strip(),
+                        )
                     )
                     row += 1
                 sub_y = sum(dev_rows) / len(dev_rows)
@@ -189,10 +200,14 @@ class TopologyPanel:
                     dev = dev_by_id.get(sd.id)
                     if dev is not None:
                         label, tooltip = _device_label(dev), _device_tooltip(dev)
+                        description = dev.description
                     else:
                         ia = sd.individual_address or "-"
                         label, tooltip = f"{ia}  {sd.name}", sd.name or ia
-                    layout.devices.append(_DevBox(y, sd.id, label, tooltip))
+                        description = sd.description or ""
+                    layout.devices.append(
+                        _DevBox(y, sd.id, label, tooltip, description.strip())
+                    )
                     row += 1
                 sub_y = sum(dev_rows) / len(dev_rows)
                 layout.subs.append((room_label, sub_y))
@@ -210,22 +225,23 @@ class TopologyPanel:
         """Width of ``text`` in unscaled pixels."""
         return imgui.calc_text_size(text).x / px(1.0)
 
+    def _icon_room(self) -> float:
+        """Width a device box keeps for its description icon, in unscaled pixels."""
+        return _ICON_GAP + self._text_width(ICON_DESCRIPTION)
+
     def _column_widths(self, layout: _Layout) -> list[float]:
+        icon = self._icon_room()
         columns = (
-            [label for label, _ in layout.groups],
-            [label for label, _ in layout.subs],
-            [d.label for d in layout.devices],
+            [self._text_width(label) for label, _ in layout.groups],
+            [self._text_width(label) for label, _ in layout.subs],
+            [
+                self._text_width(d.label) + (icon if d.description else 0.0)
+                for d in layout.devices
+            ],
         )
         return [
-            max(
-                low,
-                min(
-                    high,
-                    max((self._text_width(t) for t in texts), default=0.0)
-                    + 2 * _TEXT_PAD,
-                ),
-            )
-            for texts, low, high in zip(columns, _COL_MIN_W, _COL_MAX_W, strict=True)
+            max(low, min(high, max(widths, default=0.0) + 2 * _TEXT_PAD))
+            for widths, low, high in zip(columns, _COL_MIN_W, _COL_MAX_W, strict=True)
         ]
 
     def _fit(self, label: str, width: float) -> str:
@@ -291,16 +307,37 @@ class TopologyPanel:
         hovered = imgui.is_window_hovered()
         mouse = imgui.get_mouse_pos()
         clicked = imgui.is_mouse_clicked(0)
+        icon_room = self._icon_room()
+        icon_w = self._text_width(ICON_DESCRIPTION)
+        style = imgui.get_style()
         for d in layout.devices:
-            box(xs[2], d.y, widths[2], dev_col, self._fit(d.label, widths[2]))
+            label_w = widths[2] - (icon_room if d.description else 0.0)
+            box(xs[2], d.y, widths[2], dev_col, self._fit(d.label, label_w))
             bx = origin.x + xs[2] * z
             by = origin.y + d.y * z
-            if (
+            box_hovered = (
                 hovered
                 and bx <= mouse.x <= bx + widths[2] * z
                 and by <= mouse.y <= by + _BOX_H * z
-            ):
-                imgui.set_tooltip(d.tooltip)
+            )
+            icon_hovered = False
+            if d.description:
+                # At the end of the box, showing the description while hovered.
+                ix = bx + (widths[2] - _TEXT_PAD - icon_w) * z
+                icon_hovered = box_hovered and mouse.x >= ix - _ICON_GAP / 2 * z
+                color = imgui.Col_.text if icon_hovered else imgui.Col_.text_disabled
+                dl.add_text(
+                    font,
+                    font_size,
+                    imgui.ImVec2(ix, by + 4 * z),
+                    imgui.get_color_u32(style.color_(color)),
+                    ICON_DESCRIPTION,
+                )
+            if box_hovered:
+                if icon_hovered:
+                    description_tooltip(d.description)
+                else:
+                    imgui.set_tooltip(d.tooltip)
                 if clicked:
                     self._on_select(d.node_id)
         total_w = (xs[2] + widths[2] + _COL_GAP) * z
