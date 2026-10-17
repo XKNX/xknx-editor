@@ -17,6 +17,13 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.programming import (
+    PREFLIGHT_CONFIG,
+    PREFLIGHT_DEFAULT,
+    PREFLIGHT_RUNTIME,
+    classify_preflight,
+    preflight_segment_counts,
+)
 from editor_gui.widgets.dialog import (
     begin_dialog,
     begin_tool_window,
@@ -34,10 +41,11 @@ _RED = imgui.ImVec4(0.9, 0.35, 0.35, 1.0)
 _BLUE = imgui.ImVec4(0.45, 0.7, 0.95, 1.0)
 _TEAL = imgui.ImVec4(0.4, 0.8, 0.75, 1.0)
 
-# How a changed location is classified, most to least actionable.
-_CAT_CONFIG = "config"  # a changed bit carries a real configured parameter value
-_CAT_DEFAULT = "default"  # changed bits only reset to the application default (benign)
-_CAT_RUNTIME = "runtime"  # device-managed byte the firmware sets itself (benign)
+# Classification of a changed location. The config/default/runtime categories come from
+# editor_gui.programming (shared with the MCP evaluate tool); _CAT_MATCH is view-only.
+_CAT_CONFIG = PREFLIGHT_CONFIG
+_CAT_DEFAULT = PREFLIGHT_DEFAULT
+_CAT_RUNTIME = PREFLIGHT_RUNTIME
 _CAT_MATCH = "match"
 
 
@@ -154,20 +162,11 @@ class PreflightResultWindow:
         # scary without context: real configured changes vs. bytes only reset to the
         # application default (device holds an older value) vs. device-managed runtime
         # bytes. The last two are benign; only the first is a change you made.
-        config_bytes = default_bytes = runtime_bytes = 0
-        config_locations = 0
-        for segment in report.segments:
-            if not segment.changed:
-                continue
-            c, d, r = self._segment_byte_counts(segment)
-            config_bytes += c
-            default_bytes += d
-            runtime_bytes += r
-            if c:
-                config_locations += 1
-        # Property writes are always real configured values (flags, tables).
-        config_bytes += sum(p.changed_bytes for p in report.changed_properties)
-        config_locations += len(report.changed_properties)
+        classes = classify_preflight(report, self._runtime, self._driven)
+        config_bytes = classes.config_bytes
+        default_bytes = classes.default_bytes
+        runtime_bytes = classes.runtime_bytes
+        config_locations = classes.config_locations
 
         if config_locations:
             imgui.push_style_color(imgui.Col_.text, _ORANGE)
@@ -257,49 +256,13 @@ class PreflightResultWindow:
             )
         imgui.end_table()
 
-    def _byte_category(self, address: int, changed_bits: int) -> str:
-        """Classify one changed byte from the bits that differ from the device.
-
-        A device-managed (runtime) byte is benign; otherwise, a changed bit that an
-        active parameter writes is a real configured change, while a changed bit no
-        parameter drives is only reset to the application default (the device holds
-        an older value) and is likewise benign.
-        """
-        if address in self._runtime:
-            return _CAT_RUNTIME
-        if changed_bits & self._driven.get(address, 0):
-            return _CAT_CONFIG
-        return _CAT_DEFAULT
-
-    @staticmethod
-    def _changed_bits(segment: SegmentDiff, offset: int) -> int:
-        """Bits that differ from the device at ``offset`` within ``segment``."""
-        planned = segment.planned[offset]
-        current = segment.current[offset] if offset < len(segment.current) else 0
-        return planned ^ current
-
-    def _segment_byte_counts(self, segment: SegmentDiff) -> tuple[int, int, int]:
-        """Return ``(config, default, runtime)`` changed-byte counts for ``segment``."""
-        config = default = runtime = 0
-        for r in segment.changed_ranges:
-            for i in range(r.length):
-                offset = r.start + i
-                category = self._byte_category(
-                    segment.address + offset, self._changed_bits(segment, offset)
-                )
-                if category == _CAT_CONFIG:
-                    config += 1
-                elif category == _CAT_RUNTIME:
-                    runtime += 1
-                else:
-                    default += 1
-        return config, default, runtime
-
     def _segment_category(self, segment: SegmentDiff) -> str:
         """The segment's overall category, taking the most actionable of its bytes."""
         if not segment.changed:
             return _CAT_MATCH
-        config, default, runtime = self._segment_byte_counts(segment)
+        config, default, runtime = preflight_segment_counts(
+            segment, self._runtime, self._driven
+        )
         if config:
             return _CAT_CONFIG
         if default:

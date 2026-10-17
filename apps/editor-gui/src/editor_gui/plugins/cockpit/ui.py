@@ -13,6 +13,7 @@ from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.description import (
     description_icon,
     description_icon_width,
+    shows_description_icon,
 )
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
@@ -132,7 +133,7 @@ class CockpitPanel:
             )[0]:
                 self._on_select(r.node_id)
             imgui.table_set_column_index(1)
-            if r.description:
+            if shows_description_icon(r.description):
                 # The description's icon at the end of the cell, the name clipped before it.
                 start = imgui.get_cursor_screen_pos().x
                 end = start + imgui.get_content_region_avail().x
@@ -140,6 +141,11 @@ class CockpitPanel:
                 spacing = imgui.get_style().item_inner_spacing.x
                 text_clipped_tooltip(r.name, width=max(0.0, icon_x - spacing - start))
                 description_icon(r.description, x=icon_x)
+            elif r.description:
+                # A short description inline after the name.
+                text_clipped_tooltip(r.name)
+                imgui.same_line()
+                imgui.text_disabled(r.description)
             else:
                 text_clipped_tooltip(r.name)
             imgui.table_set_column_index(2)

@@ -19,7 +19,11 @@ from editor_gui.plugins.project.ui.device_diff import (
     snapshot_device,
 )
 from editor_gui.widgets.checkbox import checkbox
-from editor_gui.widgets.description import description_icon, description_icon_width
+from editor_gui.widgets.description import (
+    description_icon_width,
+    render_description,
+    shows_description_icon,
+)
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
@@ -132,13 +136,15 @@ class DeviceComparePanel:
     ) -> int:
         cur = by_id.get(current)
         description = cur.description if cur is not None else ""
-        # The selected device's description behind an icon after the dropdown.
-        icon_room = (
-            description_icon_width() + imgui.get_style().item_spacing.x
-            if description
-            else 0.0
-        )
-        imgui.set_next_item_width(-icon_room if icon_room else -1)
+        # Room after the dropdown for the description: the icon (long) or the inline text (short).
+        spacing = imgui.get_style().item_spacing.x
+        if shows_description_icon(description):
+            room = description_icon_width() + spacing
+        elif description.strip():
+            room = imgui.calc_text_size(description).x + spacing
+        else:
+            room = 0.0
+        imgui.set_next_item_width(-room if room else -1)
         label = device_label(cur) if cur is not None else "?"
         if imgui.begin_combo(combo_id, label):
             for d in devices:
@@ -147,11 +153,9 @@ class DeviceComparePanel:
                     d.node_id == current,
                 )[0]:
                     current = d.node_id
-                if d.description:
-                    description_icon(d.description)
+                render_description(d.description)
             imgui.end_combo()
-        if description:
-            description_icon(description)
+        render_description(description)
         return current
 
     @staticmethod

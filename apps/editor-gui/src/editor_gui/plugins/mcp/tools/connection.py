@@ -318,9 +318,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         connection and the device answering at its project individual address — a device that does not
         respond (e.g. a virgin/unprogrammed one) fails, so skip this and program a NEW device directly
         with scope FULL. ``scope`` defaults to FULL; the individual-address scopes are rejected.
-        ``timeout`` in seconds. Returns {node_id, changed_bytes, changed_segments, changed_properties,
-        summary}; changed_segments/changed_properties are counts and do not describe unload/restart or
-        address-reset effects."""
+        ``timeout`` in seconds.
+
+        Returns {node_id, changed_bytes, config_bytes, default_bytes, runtime_bytes, config_locations,
+        changed_segments, changed_properties, summary}. ``changed_bytes`` is the raw total; it is split
+        into three classes, and ONLY ``config_bytes`` is a real configuration change you would push:
+        - config_bytes: bytes carrying a configured parameter value / a property write (flags, tables).
+        - default_bytes: bytes merely reset to the application default (the device holds an older value)
+          — benign.
+        - runtime_bytes: bytes the device firmware manages itself (e.g. a download counter) — benign,
+          and they typically never converge to zero even right after a successful download.
+        So a non-zero ``changed_bytes`` with ``config_bytes == 0`` (``config_locations == 0``) means the
+        device already carries the configuration; do not treat that as a pending change. changed_segments/
+        changed_properties are counts and do not describe unload/restart or address-reset effects."""
         device, group_communication = _programmable_device(node_id)
         resolved = _resolve_scope(scope)
         if resolved.individual_address_only:
@@ -334,9 +344,25 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         if future is None:
             raise ToolError("evaluation could not be scheduled (no connection)")
         report = future.result(timeout=timeout)
+        # Classify the raw changed bytes (config vs. benign default/runtime) with the same logic
+        # the GUI pre-flight uses; the classifiers read the device UI, so run them on the UI thread.
+        from editor_gui.programming import (
+            classify_preflight,
+            parameter_driven_bits,
+            runtime_managed_addresses,
+        )
+
+        runtime_addresses, driven_bits = ctx.run_locked(
+            lambda: (runtime_managed_addresses(device), parameter_driven_bits(device))
+        )
+        classes = classify_preflight(report, runtime_addresses, driven_bits)
         return {
             "node_id": node_id,
             "changed_bytes": report.total_changed_bytes,
+            "config_bytes": classes.config_bytes,
+            "default_bytes": classes.default_bytes,
+            "runtime_bytes": classes.runtime_bytes,
+            "config_locations": classes.config_locations,
             "changed_segments": len(report.changed_segments),
             "changed_properties": len(report.changed_properties),
             "summary": report.summary(),

@@ -10,7 +10,7 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.devices import render_read_device_item
-from editor_gui.widgets.description import description_icon
+from editor_gui.widgets.description import render_description
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.tree import leaf_rows, tree_node
@@ -543,8 +543,8 @@ class SpacesPanel:
             ):
                 self._on_compare(device.id)
             imgui.end_popup()
-        # The description can be long: it shows while its icon is hovered.
-        if detail and description_icon(detail):
+        # A short description shows inline; a longer one shows while its icon is hovered.
+        if render_description(detail):
             hovered = False
         if hovered:
             parts = [

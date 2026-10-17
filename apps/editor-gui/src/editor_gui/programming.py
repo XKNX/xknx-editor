@@ -23,7 +23,7 @@ from xknxeditor.download.image import build_image
 from xknxeditor.download.scope import DownloadScope
 
 if TYPE_CHECKING:
-    from collections.abc import Awaitable, Callable
+    from collections.abc import AbstractSet, Awaitable, Callable, Mapping
 
     from xknx import XKNX
 
@@ -33,7 +33,7 @@ if TYPE_CHECKING:
     from xknxeditor.download.image import DownloadImage, GroupCommunication
     from xknxeditor.download.ip_config import IpDeviceConfig
     from xknxeditor.download.ip_secure import IpSecureConfig
-    from xknxeditor.download.preflight import PreflightReport
+    from xknxeditor.download.preflight import PreflightReport, SegmentDiff
     from xknxeditor.prod import Application, MasterData
 
 
@@ -268,6 +268,101 @@ def parameter_driven_bits(device: Device) -> dict[int, int]:
             if bits:
                 driven[base + offset] = driven.get(base + offset, 0) | bits
     return driven
+
+
+# A changed byte a pre-flight would write falls into one of three classes; only the first is
+# an actual configuration change the operator intends, the other two are benign.
+PREFLIGHT_CONFIG = "config"  # a changed bit carries a real configured parameter value
+PREFLIGHT_DEFAULT = "default"  # changed bits only reset to the application default
+PREFLIGHT_RUNTIME = "runtime"  # device-managed byte the firmware sets itself
+
+
+def preflight_byte_category(
+    address: int,
+    changed_bits: int,
+    runtime_addresses: AbstractSet[int],
+    driven_bits: Mapping[int, int],
+) -> str:
+    """Classify one changed byte from the bits that differ from the device.
+
+    A device-managed (runtime) byte is benign; otherwise a changed bit an active parameter
+    writes is a real configured change, while a changed bit no parameter drives is only reset
+    to the application default (the device holds an older value) and is likewise benign.
+    """
+    if address in runtime_addresses:
+        return PREFLIGHT_RUNTIME
+    if changed_bits & driven_bits.get(address, 0):
+        return PREFLIGHT_CONFIG
+    return PREFLIGHT_DEFAULT
+
+
+def _segment_changed_bits(segment: SegmentDiff, offset: int) -> int:
+    """Bits that differ from the device at ``offset`` within ``segment``."""
+    planned = segment.planned[offset]
+    current = segment.current[offset] if offset < len(segment.current) else 0
+    return planned ^ current
+
+
+def preflight_segment_counts(
+    segment: SegmentDiff,
+    runtime_addresses: AbstractSet[int],
+    driven_bits: Mapping[int, int],
+) -> tuple[int, int, int]:
+    """Return ``(config, default, runtime)`` changed-byte counts for one memory segment."""
+    config = default = runtime = 0
+    for byte_range in segment.changed_ranges:
+        for i in range(byte_range.length):
+            offset = byte_range.start + i
+            category = preflight_byte_category(
+                segment.address + offset,
+                _segment_changed_bits(segment, offset),
+                runtime_addresses,
+                driven_bits,
+            )
+            if category == PREFLIGHT_CONFIG:
+                config += 1
+            elif category == PREFLIGHT_RUNTIME:
+                runtime += 1
+            else:
+                default += 1
+    return config, default, runtime
+
+
+@dataclass(frozen=True, slots=True)
+class PreflightClassification:
+    """A pre-flight's changed bytes split into config / default / runtime (see the category
+    constants). Only ``config_bytes`` is an intended configuration change; the rest is benign.
+    ``config_locations`` counts the memory segments carrying a configured byte plus every changed
+    property write (property writes are always configured values)."""
+
+    config_bytes: int
+    default_bytes: int
+    runtime_bytes: int
+    config_locations: int
+
+    @property
+    def actionable(self) -> bool:
+        """Whether the download would change any real configured value."""
+        return self.config_bytes > 0
+
+
+def classify_preflight(
+    report: PreflightReport,
+    runtime_addresses: AbstractSet[int],
+    driven_bits: Mapping[int, int],
+) -> PreflightClassification:
+    """Split a pre-flight report's changed bytes into config / default / runtime totals."""
+    config = default = runtime = config_locations = 0
+    for segment in report.changed_segments:
+        c, d, r = preflight_segment_counts(segment, runtime_addresses, driven_bits)
+        config += c
+        default += d
+        runtime += r
+        if c:
+            config_locations += 1
+    config += sum(p.changed_bytes for p in report.changed_properties)
+    config_locations += len(report.changed_properties)
+    return PreflightClassification(config, default, runtime, config_locations)
 
 
 async def eval_device(

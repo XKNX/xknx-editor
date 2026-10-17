@@ -7,7 +7,7 @@ from editor_gui.device import Device, UnloadedDevice, address_order, device_labe
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
-from editor_gui.widgets.description import description_icon
+from editor_gui.widgets.description import render_description
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px
 from editor_gui.widgets.tree import leaf_rows, tree_node
@@ -270,10 +270,9 @@ class DevicesPanel:
 
     @staticmethod
     def _render_description(device: TreeDevice) -> bool:
-        """The icon showing the device's description; whether it is hovered."""
-        if not device.description:
-            return False
-        return description_icon(device.description)
+        """The device's description after its row: a short one inline, a longer one behind a
+        hover icon. Returns whether the icon is hovered."""
+        return render_description(device.description)
 
     def _render_unloaded_device_context_menu(self, device: UnloadedDevice) -> None:
         if imgui.begin_popup_context_item(f"##dev_ctx_{device.node_id}"):
