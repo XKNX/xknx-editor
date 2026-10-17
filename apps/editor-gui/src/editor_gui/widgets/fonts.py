@@ -8,6 +8,10 @@ from contextlib import contextmanager
 from imgui_bundle import hello_imgui, imgui
 
 _DEFAULT_FONT = "fonts/DroidSans.ttf"
+# Letters 12 px high (the em of the font is 12 px; an ImGui font size counts ascent plus descent),
+# the size of the 9 pt text of Windows dialogs, so labels and values written for those fit the same
+# fields.
+_FONT_SIZE = 14.0
 # ImGuiFreeTypeLoaderFlags_Bold: emboldened glyphs of the same face.
 _FREETYPE_BOLD = 1 << 5
 # ImGuiFreeTypeLoaderFlags_Oblique: slanted glyphs of the same face.
@@ -21,7 +25,7 @@ def load_fonts() -> None:
     """Load the default fonts and the bold and italic variants; the ``load_additional_fonts``
     callback."""
     global _bold, _italic
-    hello_imgui.imgui_default_settings.load_default_font_with_font_awesome_icons()
+    hello_imgui.load_font_ttf_with_font_awesome_icons(_DEFAULT_FONT, _FONT_SIZE)
     _bold = _load_variant(_FREETYPE_BOLD)
     _italic = _load_variant(_FREETYPE_OBLIQUE)
 
@@ -30,7 +34,7 @@ def _load_variant(flags: int) -> imgui.ImFont | None:
     params = hello_imgui.FontLoadingParams()
     params.font_config.font_loader_flags = flags
     try:
-        return hello_imgui.load_font(_DEFAULT_FONT, 14.0, params)
+        return hello_imgui.load_font(_DEFAULT_FONT, _FONT_SIZE, params)
     except RuntimeError:
         return None
 
