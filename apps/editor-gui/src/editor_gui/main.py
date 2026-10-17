@@ -61,7 +61,14 @@ from editor_gui.plugins.topology import TopologyPlugin
 from editor_gui.portal_save import PortalSaveDialog
 from editor_gui.settings import config_dir, load_settings, save_settings
 from editor_gui.strings import S, get_locale, set_locale
-from editor_gui.theme import ThemeWindow, apply_style, apply_theme, theme_name, themes
+from editor_gui.theme import (
+    ThemeWindow,
+    apply_style,
+    apply_theme,
+    system_theme,
+    theme_name,
+    themes,
+)
 from editor_gui.update_check import UpdateInfo, check_for_update
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
@@ -4464,9 +4471,11 @@ def _main() -> None:
     )
     runner_params.imgui_window_params.enable_viewports = False
 
-    # A polished dark theme + rounded, well-spaced widgets for a modern look.
+    # The chosen theme is stored in the layout .ini (see below); a first start, with no .ini
+    # yet, follows the system's light or dark preference.
+    ini_path = config_dir() / "XKNX_Editor.ini"
     runner_params.imgui_window_params.tweaked_theme.theme = (
-        hello_imgui.ImGuiTheme_.darcula_darker
+        hello_imgui.ImGuiTheme_.darcula_darker if ini_path.exists() else system_theme()
     )
     runner_params.callbacks.setup_imgui_style = apply_style
     runner_params.callbacks.load_additional_fonts = load_fonts
@@ -4483,7 +4492,7 @@ def _main() -> None:
 
     # Keep the imgui layout .ini in the central data dir (with the JSON settings and catalog).
     runner_params.ini_folder_type = hello_imgui.IniFolderType.absolute_path
-    runner_params.ini_filename = str(config_dir() / "XKNX_Editor.ini")
+    runner_params.ini_filename = str(ini_path)
     runner_params.docking_params.docking_splits = create_docking_splits(
         app.bottom_expanded
     )

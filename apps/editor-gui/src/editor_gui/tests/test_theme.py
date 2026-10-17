@@ -27,6 +27,33 @@ def test_color_names(name: str, expected: str) -> None:
     assert theme.color_name(name) == expected
 
 
+@pytest.mark.parametrize(
+    ("light", "expected"),
+    [
+        (True, hello_imgui.ImGuiTheme_.microsoft_style),
+        (False, hello_imgui.ImGuiTheme_.darcula_darker),
+        (None, hello_imgui.ImGuiTheme_.darcula_darker),
+    ],
+)
+def test_system_theme_follows_the_light_or_dark_preference(
+    monkeypatch: pytest.MonkeyPatch,
+    light: bool | None,
+    expected: hello_imgui.ImGuiTheme_,
+) -> None:
+    monkeypatch.setattr(theme.darkdetect, "isLight", lambda: light)
+    assert theme.system_theme() == expected
+
+
+def test_system_theme_is_dark_when_the_preference_cannot_be_read(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fail() -> bool:
+        raise OSError
+
+    monkeypatch.setattr(theme.darkdetect, "isLight", fail)
+    assert theme.system_theme() == hello_imgui.ImGuiTheme_.darcula_darker
+
+
 def test_every_theme_has_a_name_with_spaces() -> None:
     names = [theme.theme_name(t) for t in theme.themes()]
     assert len(names) == len(set(names))

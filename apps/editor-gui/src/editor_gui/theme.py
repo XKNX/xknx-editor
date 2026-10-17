@@ -7,6 +7,7 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass
 
+import darkdetect
 from imgui_bundle import hello_imgui, imgui
 
 from editor_gui.strings import S
@@ -53,6 +54,18 @@ def themes() -> list[hello_imgui.ImGuiTheme_]:
     return [
         hello_imgui.ImGuiTheme_(i) for i in range(int(hello_imgui.ImGuiTheme_.count))
     ]
+
+
+def system_theme() -> hello_imgui.ImGuiTheme_:
+    """The theme to start with when none was chosen yet: Microsoft Style when the system prefers
+    light apps, Darcula (Darker) when it prefers dark ones or does not tell."""
+    try:
+        light = darkdetect.isLight()
+    except Exception:
+        light = None
+    if light:
+        return hello_imgui.ImGuiTheme_.microsoft_style
+    return hello_imgui.ImGuiTheme_.darcula_darker
 
 
 def theme_name(theme: hello_imgui.ImGuiTheme_) -> str:
