@@ -23,6 +23,7 @@ from xknxeditor.proj.core.key_extract import (
     extraction_backend,
 )
 from xknxeditor.proj.core.knxproj_export import (
+    ExportCancelled,
     ExportResult,
     export_knxproj,
     fetch_master_xml,
@@ -74,6 +75,7 @@ __all__ = [
     "CompactCancelled",
     "CompactResult",
     "EventStore",
+    "ExportCancelled",
     "ExportResult",
     "GaExport",
     "GroupAddressSecurityError",

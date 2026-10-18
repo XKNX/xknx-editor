@@ -1204,3 +1204,9 @@ msgstr "Archiv wird geschrieben…"
 
 msgid "Getting the certificate from MyKnx…"
 msgstr "Zertifikat wird von MyKnx geholt…"
+
+msgid "Cancelling…"
+msgstr "Wird abgebrochen…"
+
+msgid "Export cancelled, no file was written"
+msgstr "Export abgebrochen, es wurde keine Datei geschrieben"

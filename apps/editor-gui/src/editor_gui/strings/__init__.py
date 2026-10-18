@@ -653,6 +653,14 @@ class MenuStrings:
         return _("Getting the certificate from MyKnx…")
 
     @property
+    def EXPORT_STAGE_CANCELLING(self) -> str:
+        return _("Cancelling…")
+
+    @property
+    def EXPORT_CANCELLED(self) -> str:
+        return _("Export cancelled, no file was written")
+
+    @property
     def EXPORT_FAILED_TITLE(self) -> str:
         return _("Export Failed")
 

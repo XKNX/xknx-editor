@@ -55,6 +55,7 @@ import datetime
 import io
 import json
 import logging
+import os
 import re
 import xml.etree.ElementTree as ET
 import zipfile
@@ -575,6 +576,10 @@ def fetch_master_xml(
     return read_master_xml(knxproj, schema)
 
 
+class ExportCancelled(Exception):
+    """The export was cancelled; the destination file was left as it was."""
+
+
 def export_knxproj(
     source: Path | str,
     dest: Path | str,
@@ -589,6 +594,7 @@ def export_knxproj(
     project_name: str | None = None,
     remove_unused_products: bool = False,
     password: str | None = None,
+    cancelled: Callable[[], bool] | None = None,
 ) -> ExportResult:
     """Read the project at ``source`` (a ``.xknx``) and write a ``.knxproj`` archive to ``dest``.
 
@@ -630,6 +636,10 @@ def export_knxproj(
       password: The password of a password-protected project: it decrypts the project's secrets
         and protects the exported project folder. Raises :class:`ProjectPasswordRequired` when
         missing and :class:`InvalidProjectPassword` when wrong.
+      cancelled: Polled between the export's steps and while the archive is written; when it
+        returns true :class:`ExportCancelled` is raised. The archive is written to a temporary
+        file that replaces ``dest`` only when it is complete, so a cancelled or failed export
+        leaves ``dest`` as it was.
     """
     ns = _ns_for(schema)  # validate the requested schema early
     logger.debug(
@@ -714,6 +724,7 @@ def export_knxproj(
                 certificate_signer,
                 cipher=cipher,
                 password=password if cipher is not None else None,
+                cancelled=cancelled,
             )
     finally:
         engine.dispose()
@@ -1085,7 +1096,13 @@ class _Writer:
         *,
         cipher: ProjectCipher | None = None,
         password: str | None = None,
+        cancelled: Callable[[], bool] | None = None,
     ) -> tuple[SignatureAudit, list[str], bool, bool]:
+        def check_cancelled() -> None:
+            if cancelled is not None and cancelled():
+                raise ExportCancelled
+
+        check_cancelled()
         pid = project.id
         self._source_schema = project.schema_version or self._schema
         ga_link_id, di_id = _assign_ids(pid, installation)
@@ -1199,6 +1216,7 @@ class _Writer:
         # Optionally obtain the project certificate (licensing proof), which binds to the folder
         # signature just computed. Done before opening the archive so a signer failure aborts cleanly.
         certificate: bytes | None = None
+        check_cancelled()
         if certificate_signer is not None:
             logger.debug("export: requesting project certificate for %s", pid)
             # The signer's project_name is echoed by the server into the certificate's
@@ -1244,9 +1262,11 @@ class _Writer:
         # Sign through the vendor assembly when available (the primary path, as in
         # OpenKNXproducer); a no-op elsewhere, where the offline audit below still covers
         # every folder.
+        check_cancelled()
         sign_member_map(members)
         audit = audit_and_sign_folders(members)
         missing_refs = _audit_installation_refs(members)
+        check_cancelled()
 
         # An unsigned export carries no project certificate. An empty `{pid}_M-dummy` license marker
         # in the archive root lets a licensed ETS 5 import it (ETS 5 treats any `{pid}_M-*` entry as
@@ -1259,14 +1279,24 @@ class _Writer:
         if password:
             protect_project_folder(members, pid, password)
 
-        dest.unlink(missing_ok=True)
-        with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as zf:
-            for path, data in members.items():
-                # The encrypted folder is stored as it is, like in genuine archives.
-                stored = path == f"{pid}.zip" and bool(password)
-                zf.writestr(
-                    path, data, zipfile.ZIP_STORED if stored else zipfile.ZIP_DEFLATED
-                )
+        # Written next to ``dest`` and moved over it when complete: a cancelled or failed export
+        # leaves no partial archive and an existing file unchanged.
+        partial = dest.with_name(f".{dest.name}.{os.getpid()}.part")
+        try:
+            with zipfile.ZipFile(partial, "w", zipfile.ZIP_DEFLATED) as zf:
+                for path, data in members.items():
+                    check_cancelled()
+                    # The encrypted folder is stored as it is, like in genuine archives.
+                    stored = path == f"{pid}.zip" and bool(password)
+                    zf.writestr(
+                        path,
+                        data,
+                        zipfile.ZIP_STORED if stored else zipfile.ZIP_DEFLATED,
+                    )
+            os.replace(partial, dest)
+        except BaseException:
+            partial.unlink(missing_ok=True)
+            raise
         return (
             audit,
             missing_refs,

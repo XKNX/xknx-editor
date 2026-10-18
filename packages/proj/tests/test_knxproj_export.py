@@ -11,7 +11,12 @@ from xml.etree import ElementTree as ET
 import pytest
 from sqlalchemy.orm import Session
 
-from xknxeditor.proj import ProjectService, export_knxproj, import_knxproj
+from xknxeditor.proj import (
+    ExportCancelled,
+    ProjectService,
+    export_knxproj,
+    import_knxproj,
+)
 from xknxeditor.proj.core.knxproj_signing import verify_directory_signature
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
@@ -1866,3 +1871,41 @@ def test_export_omits_dummy_marker_when_certificate_signed(tmp_path: Path) -> No
     )
     with zipfile.ZipFile(out) as zf:
         assert not any(n.endswith("_M-dummy") for n in zf.namelist())
+
+
+def _empty_project(tmp_path: Path) -> Path:
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    svc.close(svc.create(src, "P-CAN"))
+    return src
+
+
+def test_cancelled_export_leaves_the_existing_file(tmp_path: Path) -> None:
+    """A cancelled export raises ExportCancelled; the file it would replace is unchanged and no
+    partial archive is left behind."""
+    src = _empty_project(tmp_path)
+    out = tmp_path / "out.knxproj"
+    out.write_bytes(b"previous export")
+    polls = 0
+
+    def cancelled() -> bool:
+        nonlocal polls
+        polls += 1
+        return polls > 3  # cancelled while the export is under way
+
+    with pytest.raises(ExportCancelled):
+        export_knxproj(src, out, cancelled=cancelled)
+
+    assert out.read_bytes() == b"previous export"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["out.knxproj", "src.xknx"]
+
+
+def test_export_replaces_the_file_only_when_complete(tmp_path: Path) -> None:
+    src = _empty_project(tmp_path)
+    out = tmp_path / "out.knxproj"
+    out.write_bytes(b"previous export")
+
+    export_knxproj(src, out, cancelled=lambda: False)
+
+    assert zipfile.is_zipfile(out)
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["out.knxproj", "src.xknx"]

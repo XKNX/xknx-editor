@@ -91,6 +91,7 @@ from xknxeditor.proj import (
     MYKNX_DLL_NAME,
     CompactCancelled,
     CompactResult,
+    ExportCancelled,
     ExportResult,
     InvalidProjectPassword,
     MyKnxError,
@@ -977,16 +978,27 @@ class KnxGuiApp:
         program_refs = self._project_service.program_refs()
         remove_unused = self._export_remove_unused
         password = self._project_service.project_password
+        # Set by the progress window's Cancel; the export stops at its next step.
+        cancel_requested = threading.Event()
+
+        def stage(text: str) -> None:
+            if not cancel_requested.is_set():
+                self.set_progress(None, text)
+
         # The signer shows its step in the progress window.
         certificate_signer: Callable[[str, bytes, str], bytes | None] | None = None
         if signer is not None:
             sign = signer
 
             def sign_with_stage(pid: str, signature: bytes, name: str) -> bytes | None:
-                self.set_progress(None, S.EXPORT_STAGE_CERTIFICATE)
+                stage(S.EXPORT_STAGE_CERTIFICATE)
                 return sign(pid, signature, name)
 
             certificate_signer = sign_with_stage
+
+        def cancel_export() -> None:
+            cancel_requested.set()
+            self.set_progress(None, S.EXPORT_STAGE_CANCELLING)
 
         def _run() -> None:
             try:
@@ -995,7 +1007,7 @@ class KnxGuiApp:
                 self._progress_running = False
 
         def _export() -> None:
-            self.set_progress(None, S.EXPORT_STAGE_BUNDLE)
+            stage(S.EXPORT_STAGE_BUNDLE)
             self._log.debug(
                 "export knxproj",
                 dest=dest,
@@ -1022,7 +1034,7 @@ class KnxGuiApp:
                 self._log.warning(
                     "manufacturer bundle failed", error=f"{type(e).__name__}: {e}"
                 )
-            self.set_progress(None, S.EXPORT_STAGE_WRITE)
+            stage(S.EXPORT_STAGE_WRITE)
             try:
                 result = export_knxproj(
                     source,
@@ -1036,6 +1048,7 @@ class KnxGuiApp:
                     fetch_master=True,
                     certificate_signer=certificate_signer,
                     remove_unused_products=remove_unused,
+                    cancelled=cancel_requested.is_set,
                 )
                 used_schema = result.schema
                 self._last_export_path = dest
@@ -1124,6 +1137,9 @@ class KnxGuiApp:
                     self._export_summary_at = datetime.now().strftime("%Y-%m-%d %H:%M")
                     self._export_summary_signer = signer
                     self._export_summary_requested = True
+            except ExportCancelled:
+                self._log.info("export cancelled", path=dest)
+                self._flash_toast(S.EXPORT_CANCELLED)
             except MyKnxError as e:
                 # Clean, actionable text goes to the toast (error=); full server detail + HTTP
                 # status stay in the Log record for debugging.
@@ -1149,6 +1165,7 @@ class KnxGuiApp:
                 self._show_export_failure(dest, str(e) or type(e).__name__)
 
         self._begin_progress(S.EXPORT_PROGRESS_TEXT.format(name=Path(dest).name))
+        self._progress_cancel = cancel_export
         self._myknx_thread = threading.Thread(target=_run, daemon=True)
         self._myknx_thread.start()
 
@@ -1806,8 +1823,9 @@ class KnxGuiApp:
         imgui.text_wrapped(self._progress_text)
         elapsed = time.time() - self._progress_started_at
         fraction = self._progress_fraction
-        # Fixed width: a stretch (-1) bar inside an auto-resizing modal feeds back and shrinks it.
-        bar_size = px_vec2(520.0, 0.0)
+        # The window's content width, at least 520 px: a stretch (-1) bar inside an auto-resizing
+        # modal feeds back and shrinks it, a fixed width leaves a wider margin on the right.
+        bar_size = imgui.ImVec2(max(px(520.0), imgui.get_content_region_avail().x), 0.0)
         if fraction is not None:
             fraction = max(0.0, min(1.0, fraction))
             imgui.progress_bar(fraction, bar_size, f"{fraction * 100:0.0f}%")

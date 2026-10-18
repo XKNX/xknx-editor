@@ -1084,3 +1084,9 @@ msgstr "Archief wordt geschreven…"
 
 msgid "Getting the certificate from MyKnx…"
 msgstr "Certificaat wordt van MyKnx opgehaald…"
+
+msgid "Cancelling…"
+msgstr "Bezig met annuleren…"
+
+msgid "Export cancelled, no file was written"
+msgstr "Exporteren geannuleerd, er is geen bestand geschreven"
