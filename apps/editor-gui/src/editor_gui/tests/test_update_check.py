@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from editor_gui.update_check import pick_newer
 
 
@@ -71,3 +73,31 @@ def test_non_numeric_or_malformed_tags_do_not_crash() -> None:
 
 def test_no_releases() -> None:
     assert pick_newer("0.1.0", []) is None
+
+
+def test_assets_with_their_digests_are_kept() -> None:
+    release: dict[str, Any] = _rel("xknx-editor-v0.2.0")
+    release["assets"] = [
+        {
+            "name": "XKNX-Editor-windows-installer-x64.exe",
+            "browser_download_url": "https://example.org/x64.exe",
+            "digest": "sha256:abc123",
+            "size": 42,
+        },
+        {
+            "name": "XKNX-Editor-linux.tar.gz",
+            "browser_download_url": "https://example.org/l",
+        },
+        {"name": "broken"},
+    ]
+    info = pick_newer("0.1.0", [release])
+    assert info is not None
+    assert [(a.name, a.url, a.sha256, a.size) for a in info.assets] == [
+        (
+            "XKNX-Editor-windows-installer-x64.exe",
+            "https://example.org/x64.exe",
+            "abc123",
+            42,
+        ),
+        ("XKNX-Editor-linux.tar.gz", "https://example.org/l", None, 0),
+    ]

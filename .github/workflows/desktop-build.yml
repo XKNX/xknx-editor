@@ -1,6 +1,8 @@
 name: Desktop build
 
 # Package the XKNX Editor into a standalone desktop app on each OS (see apps/editor-gui/DEPLOY.md).
+# Windows gets an installer per architecture (XKNX-Editor-windows-installer-x64/arm64.exe, built with
+# Inno Setup, see apps/editor-gui/packaging/windows) next to the portable ZIPs.
 # - workflow_dispatch / tag push: build and keep the archives as workflow artifacts.
 # - release published (created by release-please for the xknx-editor component): build and attach
 #   the per-OS archives to that GitHub Release.
@@ -29,9 +31,9 @@ jobs:
           - os: macos-latest
             asset: XKNX-Editor-macos.zip
           - os: windows-latest
-            asset: XKNX-Editor-windows.zip
-          # (The native ARM64 Windows build is a separate job below — it bundles software OpenGL,
-          # because Windows-on-ARM is almost always a VM without a usable OpenGL driver.)
+            asset: XKNX-Editor-windows-portable-x64.zip
+          # (The x64 installer, which offers software OpenGL, and the native ARM64 Windows build are
+          # separate jobs below; Windows-on-ARM is almost always a VM without a usable OpenGL driver.)
           # Build on the OLDEST available LTS, not ubuntu-latest: a PyInstaller bundle only runs on
           # a glibc >= the one it was built against, so building on an older glibc widens the set of
           # user systems it runs on. (ubuntu-latest also auto-migrates to newer images over time,
@@ -90,12 +92,6 @@ jobs:
             Copy-Item "embed_openssl\$n" $dst -Force
             Write-Host "Overlaid $n from python.org $pyver ($abi) into the bundle"
           }
-
-      - name: Add Windows installer to the bundle
-        if: runner.os == 'Windows'
-        shell: pwsh
-        working-directory: apps/editor-gui
-        run: Copy-Item "tools\install.bat","tools\uninstall.bat" "dist\XKNX-Editor\" -Force
 
       # A Linux ELF binary cannot embed an icon, so ship a user-local installer that registers a
       # .desktop launcher + themed icon (the only way the desktop environment shows one). The icon
@@ -206,8 +202,9 @@ jobs:
   # gallium driver (LLVM JIT -> native code, multithreaded, far faster than softpipe). softpipe (pure
   # C, no JIT) stays reachable via GALLIUM_DRIVER=softpipe as a manual fallback. No source rebuild:
   # the normal OpenGL-only wheel is reused; only the GL driver DLL is swapped.
+  # The x64 installer is built here too: its "Software rendering" option installs these Mesa DLLs.
   build-windows-softwaregl:
-    name: Build (windows software OpenGL)
+    name: Build (windows x64 installer, software OpenGL)
     runs-on: windows-latest
     if: >-
       github.event_name != 'release' ||
@@ -246,10 +243,11 @@ jobs:
             Copy-Item "embed_openssl\$n" (Join-Path $internal $n) -Force
           }
 
-      # Fetch prebuilt Mesa for Windows (pal1000/mesa-dist-win) and drop its x64 opengl32.dll + sibling
-      # DLLs NEXT TO THE EXE. Windows' safe DLL search resolves opengl32 from the app dir before
-      # system32, so GLFW loads Mesa instead of the (missing/1.1) system driver. desktop_entry sets
-      # GALLIUM_DRIVER=llvmpipe at startup (see tools/desktop_entry.py).
+      # Fetch prebuilt Mesa for Windows (pal1000/mesa-dist-win) and keep its x64 opengl32.dll + sibling
+      # DLLs in mesa\. The installer and the portable bundle put them NEXT TO THE EXE: Windows' safe
+      # DLL search resolves opengl32 from the app dir before system32, so GLFW loads Mesa instead of
+      # the (missing/1.1) system driver. desktop_entry sets GALLIUM_DRIVER=llvmpipe at startup (see
+      # tools/desktop_entry.py).
       - name: Bundle Mesa software OpenGL (softpipe)
         shell: pwsh
         working-directory: apps/editor-gui
@@ -270,28 +268,41 @@ jobs:
           # WGL software OpenGL needs only the ICD loader (opengl32.dll) + the gallium driver
           # (libgallium_wgl.dll, which contains softpipe/llvmpipe). Skip Mesa's D3D12/Vulkan/OpenCL/
           # video-encoder DLLs (clon12compiler alone is ~120 MB) — they bloat the archive by ~440 MB.
+          New-Item -ItemType Directory -Force -Path mesa | Out-Null
           foreach ($n in "opengl32.dll","libgallium_wgl.dll") {
             $src = Join-Path $og.DirectoryName $n
             if (-not (Test-Path $src)) { throw "expected Mesa DLL $n" }
-            Copy-Item $src "dist\XKNX-Editor\" -Force
+            Copy-Item $src "mesa\" -Force
           }
-          Get-ChildItem "dist\XKNX-Editor\opengl32.dll","dist\XKNX-Editor\libgallium_wgl.dll" | Format-List Name,Length
+          Get-ChildItem "mesa" | Format-List Name,Length
 
-      - name: Assemble compat bundle (marker + installer)
+      - name: Build installer (x64)
+        shell: pwsh
+        working-directory: apps/editor-gui
+        run: >-
+          ./packaging/windows/build_installer.ps1 -Arch x64
+          -SourceDir dist\XKNX-Editor -MesaDir mesa -OutputDir .
+
+      - name: Assemble portable software OpenGL bundle
         shell: pwsh
         working-directory: apps/editor-gui
         run: |
           $ErrorActionPreference = "Stop"
-          New-Item -ItemType File -Path "dist\XKNX-Editor\software_gl.marker" -Force | Out-Null
-          Copy-Item "tools\install.bat","tools\uninstall.bat" "dist\XKNX-Editor\" -Force
+          Copy-Item "mesa\*.dll","packaging\windows\software_gl.marker" "dist\XKNX-Editor\" -Force
           Push-Location dist
-          Compress-Archive -Path "XKNX-Editor" -DestinationPath "..\XKNX-Editor-windows-softwaregl.zip" -Force
+          Compress-Archive -Path "XKNX-Editor" -DestinationPath "..\XKNX-Editor-windows-portable-x64-softwaregl.zip" -Force
           Pop-Location
 
       - uses: actions/upload-artifact@v7
         with:
-          name: XKNX-Editor-windows-softwaregl.zip
-          path: apps/editor-gui/XKNX-Editor-windows-softwaregl.zip
+          name: XKNX-Editor-windows-installer-x64.exe
+          path: apps/editor-gui/XKNX-Editor-windows-installer-x64.exe
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: XKNX-Editor-windows-portable-x64-softwaregl.zip
+          path: apps/editor-gui/XKNX-Editor-windows-portable-x64-softwaregl.zip
           if-no-files-found: error
 
       - name: Attach to release
@@ -300,7 +311,9 @@ jobs:
         working-directory: apps/editor-gui
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" "XKNX-Editor-windows-softwaregl.zip" --clobber
+        run: >-
+          gh release upload "${{ github.event.release.tag_name }}" --clobber
+          "XKNX-Editor-windows-installer-x64.exe" "XKNX-Editor-windows-portable-x64-softwaregl.zip"
 
 
   # Native ARM64 software-OpenGL compat build for Windows-on-ARM VMs (UTM/QEMU) with no OpenGL driver.
@@ -349,28 +362,42 @@ jobs:
           if (-not $og) { throw "opengl32.dll not found in Mesa arm64 archive" }
           Write-Host "Mesa arm64 dir: $($og.DirectoryName)"
           # mmozeiko's Mesa is statically linked, so opengl32.dll is self-contained (no separate
-          # libgallium_wgl.dll like pal1000's x64 build). Copy opengl32.dll (required) plus
+          # libgallium_wgl.dll like pal1000's x64 build). Keep opengl32.dll (required) plus
           # libgallium_wgl.dll only if this build happens to ship it. Skip Mesa's GLES/EGL/Vulkan DLLs.
-          Copy-Item (Join-Path $og.DirectoryName "opengl32.dll") "dist\XKNX-Editor\" -Force
+          New-Item -ItemType Directory -Force -Path mesa | Out-Null
+          Copy-Item (Join-Path $og.DirectoryName "opengl32.dll") "mesa\" -Force
           $gal = Join-Path $og.DirectoryName "libgallium_wgl.dll"
-          if (Test-Path $gal) { Copy-Item $gal "dist\XKNX-Editor\" -Force }
-          Get-ChildItem "dist\XKNX-Editor\opengl32.dll" | Format-List Name,Length
+          if (Test-Path $gal) { Copy-Item $gal "mesa\" -Force }
+          Get-ChildItem "mesa" | Format-List Name,Length
 
-      - name: Assemble compat bundle (marker + installer)
+      # The installer offers the Mesa DLLs as "Software rendering", selected by default on arm64.
+      - name: Build installer (arm64)
+        shell: pwsh
+        working-directory: apps/editor-gui
+        run: >-
+          ./packaging/windows/build_installer.ps1 -Arch arm64
+          -SourceDir dist\XKNX-Editor -MesaDir mesa -OutputDir .
+
+      - name: Assemble portable bundle (with software OpenGL)
         shell: pwsh
         working-directory: apps/editor-gui
         run: |
           $ErrorActionPreference = "Stop"
-          New-Item -ItemType File -Path "dist\XKNX-Editor\software_gl.marker" -Force | Out-Null
-          Copy-Item "tools\install.bat","tools\uninstall.bat" "dist\XKNX-Editor\" -Force
+          Copy-Item "mesa\*.dll","packaging\windows\software_gl.marker" "dist\XKNX-Editor\" -Force
           Push-Location dist
-          Compress-Archive -Path "XKNX-Editor" -DestinationPath "..\XKNX-Editor-windows-arm64.zip" -Force
+          Compress-Archive -Path "XKNX-Editor" -DestinationPath "..\XKNX-Editor-windows-portable-arm64.zip" -Force
           Pop-Location
 
       - uses: actions/upload-artifact@v7
         with:
-          name: XKNX-Editor-windows-arm64.zip
-          path: apps/editor-gui/XKNX-Editor-windows-arm64.zip
+          name: XKNX-Editor-windows-installer-arm64.exe
+          path: apps/editor-gui/XKNX-Editor-windows-installer-arm64.exe
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: XKNX-Editor-windows-portable-arm64.zip
+          path: apps/editor-gui/XKNX-Editor-windows-portable-arm64.zip
           if-no-files-found: error
 
       - name: Attach to release
@@ -379,4 +406,48 @@ jobs:
         working-directory: apps/editor-gui
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ github.event.release.tag_name }}" "XKNX-Editor-windows-arm64.zip" --clobber
+        run: >-
+          gh release upload "${{ github.event.release.tag_name }}" --clobber
+          "XKNX-Editor-windows-installer-arm64.exe" "XKNX-Editor-windows-portable-arm64.zip"
+
+  # WinGet: write the manifests of this release's installers (packaging/winget/make_manifests.py) and
+  # keep them as an artifact. With the repository secret WINGET_TOKEN (a classic token with
+  # public_repo of an account that has a fork of microsoft/winget-pkgs) they are also submitted there
+  # as a pull request. The first submission of the package is reviewed by hand by the WinGet team.
+  winget:
+    name: WinGet manifests
+    runs-on: windows-latest
+    needs: [build-windows-softwaregl, build-windows-arm64]
+    if: >-
+      github.event_name == 'release' &&
+      startsWith(github.event.release.tag_name, 'xknx-editor-v')
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: XKNX-Editor-windows-installer-*.exe
+          merge-multiple: true
+          path: installers
+      - name: Write manifests
+        shell: pwsh
+        run: >-
+          python apps/editor-gui/packaging/winget/make_manifests.py
+          --tag "${{ github.event.release.tag_name }}"
+          --x64 installers/XKNX-Editor-windows-installer-x64.exe
+          --arm64 installers/XKNX-Editor-windows-installer-arm64.exe
+          --out winget-manifests
+      - uses: actions/upload-artifact@v7
+        with:
+          name: winget-manifests
+          path: winget-manifests
+          if-no-files-found: error
+      - name: Submit to microsoft/winget-pkgs
+        shell: pwsh
+        env:
+          WINGET_TOKEN: ${{ secrets.WINGET_TOKEN }}
+        run: |
+          $ErrorActionPreference = "Stop"
+          if (-not $env:WINGET_TOKEN) { Write-Host "WINGET_TOKEN is not set: the manifests are kept as an artifact only"; exit 0 }
+          curl.exe -fsSL -o wingetcreate.exe https://aka.ms/wingetcreate/latest
+          $dir = (Get-ChildItem winget-manifests -Recurse -Filter *.installer.yaml | Select-Object -First 1).DirectoryName
+          ./wingetcreate.exe submit --token $env:WINGET_TOKEN $dir

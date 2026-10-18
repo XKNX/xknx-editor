@@ -21,6 +21,16 @@ _RELEASE_PAGE = "https://github.com/xknx/xknx-editor/releases/tag/{tag}"
 
 
 @dataclass(frozen=True)
+class ReleaseAsset:
+    """A downloadable file of a release."""
+
+    name: str  # e.g. "XKNX-Editor-windows-installer-x64.exe"
+    url: str  # its browser_download_url
+    sha256: str | None = None  # hex digest GitHub publishes for the asset, if any
+    size: int = 0
+
+
+@dataclass(frozen=True)
 class UpdateInfo:
     """A release newer than the running app."""
 
@@ -28,6 +38,33 @@ class UpdateInfo:
     tag: str  # e.g. "xknx-editor-v0.2.0"
     url: str  # release page to open in the browser
     notes: str = ""  # the release's notes/body (markdown text), if any
+    assets: tuple[ReleaseAsset, ...] = ()
+
+
+def _assets(release: dict[str, Any]) -> tuple[ReleaseAsset, ...]:
+    """The release's assets with a name and a download URL; ``digest`` is ``"sha256:<hex>"``."""
+    raw = release.get("assets")
+    if not isinstance(raw, list):
+        return ()
+    assets: list[ReleaseAsset] = []
+    for item in cast("list[Any]", raw):
+        if not isinstance(item, dict):
+            continue
+        entry = cast("dict[str, Any]", item)
+        name, url = entry.get("name"), entry.get("browser_download_url")
+        if not isinstance(name, str) or not isinstance(url, str):
+            continue
+        digest = entry.get("digest")
+        sha256 = (
+            digest.removeprefix("sha256:")
+            if isinstance(digest, str) and digest.startswith("sha256:")
+            else None
+        )
+        size = entry.get("size")
+        assets.append(
+            ReleaseAsset(name, url, sha256, size if isinstance(size, int) else 0)
+        )
+    return tuple(assets)
 
 
 def _parse_version(text: str) -> tuple[int, ...] | None:
@@ -49,7 +86,7 @@ def pick_newer(current: str, releases: list[dict[str, Any]]) -> UpdateInfo | Non
     cur = _parse_version(current)
     if cur is None:
         return None
-    best: tuple[tuple[int, ...], str, str] | None = None
+    best: tuple[tuple[int, ...], str, str, tuple[ReleaseAsset, ...]] | None = None
     for rel in releases:
         if rel.get("draft") or rel.get("prerelease"):
             continue
@@ -61,16 +98,17 @@ def pick_newer(current: str, releases: list[dict[str, Any]]) -> UpdateInfo | Non
             continue
         if best is None or ver > best[0]:
             body = rel.get("body")
-            best = (ver, tag, body if isinstance(body, str) else "")
+            best = (ver, tag, body if isinstance(body, str) else "", _assets(rel))
     if best is None or best[0] <= cur:
         return None
-    ver_tuple, tag, notes = best
+    ver_tuple, tag, notes, assets = best
     version = ".".join(str(p) for p in ver_tuple)
     return UpdateInfo(
         version=version,
         tag=tag,
         url=_RELEASE_PAGE.format(tag=tag),
         notes=notes.strip(),
+        assets=assets,
     )
 
 
