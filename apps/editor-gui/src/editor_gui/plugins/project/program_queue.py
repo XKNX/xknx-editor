@@ -93,6 +93,15 @@ class QueueItem:
     future: Future[Any] | None = field(default=None, repr=False)
     # The user canceled it; a running operation shows Canceling until it has ended.
     canceled_by_user: bool = False
+    # Who started it when not the editor's own UI: ORIGIN_MCP for an MCP client.
+    origin: str | None = None
+    # Resolved with the item once it has ended (finished, failed or canceled), for a caller that
+    # waits for the outcome (an MCP tool).
+    ended: Future[QueueItem] | None = field(default=None, repr=False)
+
+
+# The origin of an operation an MCP client started.
+ORIGIN_MCP = "MCP"
 
 
 class ProgramQueue:
@@ -161,6 +170,9 @@ class ProgramQueue:
                 and item.script is None
                 and queued.device_info is None
                 and item.device_info is None
+                # A caller waits for each of these, so they stay separate operations.
+                and queued.ended is None
+                and item.ended is None
             ):
                 queued.scope = item.scope
                 queued.without_plugin = item.without_plugin
@@ -205,6 +217,8 @@ class ProgramQueue:
             item.message = S.OPERATION_CANCELED_BY_USER
         item.ended_at = datetime.datetime.now()
         self._history.insert(0, item)
+        if item.ended is not None and not item.ended.done():
+            item.ended.set_result(item)
 
     def clear_history(self) -> None:
         self._history.clear()

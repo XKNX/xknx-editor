@@ -7,6 +7,7 @@ if TYPE_CHECKING:
     from editor_gui.plugins.catalog.service import CatalogService
     from editor_gui.plugins.connection.service import ConnectionService
     from editor_gui.plugins.logger.service import LogService
+    from editor_gui.plugins.project.program_queue import QueueItem
     from editor_gui.plugins.project.service import ProjectService
 
 API_VERSION = 1
@@ -35,3 +36,10 @@ class PluginAPI:
     # Asks for the device certificate of a device just added with secure commissioning (by node
     # id), unless the user turned that off. Set by the project plugin.
     ask_device_certificate: Callable[[int], None] | None = None
+    # Queues a programming of a project device (node id, download scope, origin and options) in
+    # the operations queue, shown there like one started in the editor; returns the item, whose
+    # ``ended`` future resolves once it has ended, or None for a device not in the project. Set by
+    # the project plugin.
+    queue_program: Callable[..., "QueueItem | None"] | None = None
+    # Cancels a queued or running operation. Set by the project plugin.
+    cancel_operation: Callable[["QueueItem"], None] | None = None

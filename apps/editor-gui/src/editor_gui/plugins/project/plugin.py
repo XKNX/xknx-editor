@@ -178,6 +178,8 @@ class ProjectPlugin:
             self._add_certificate, api.project.remove_device_certificate
         )
         api.ask_device_certificate = self._ask_certificate_on_add
+        api.queue_program = self._queue_program
+        api.cancel_operation = self._program_queue.cancel_item
         self._secure_commissioning_dialog = SecureCommissioningDialog()
         # Live device readouts (read-only "read from device" action), keyed by node id. Written on
         # the async loop thread's done-callback, read on the UI thread -> guarded by a lock.
@@ -1635,6 +1637,38 @@ class ProjectPlugin:
             )
         )
 
+    def _queue_program(
+        self,
+        node_id: int,
+        scope: "DownloadScope",
+        *,
+        origin: str,
+        without_plugin: bool = False,
+        current_address: str | None = None,
+        serial_number: bytes | None = None,
+    ) -> QueueItem | None:
+        """Queue a programming started outside the editor's UI (``origin``, e.g. an MCP client),
+        shown in Operations like one started here. Returns the item, whose ``ended`` future
+        resolves once it has ended, or None for a device not in the project."""
+        from concurrent.futures import Future
+
+        device = self._api.project.find_device_by_node_id(node_id)
+        if device is None:
+            return None
+        item = QueueItem(
+            node_id=device.node_id,
+            address=device.individual_address or "",
+            name=device.name,
+            scope=scope,
+            without_plugin=without_plugin,
+            current_address=current_address,
+            serial_number=serial_number,
+            origin=origin,
+            ended=Future(),
+        )
+        self._program_queue.enqueue(item)
+        return item
+
     def _ask_certificate(self, device: "Device", item: QueueItem) -> None:
         """Ask for the device's FDSK; once added, the same download is queued again. "Plain"
         deactivates its secure commissioning and downloads it in the clear."""
@@ -2105,7 +2139,9 @@ class ProjectPlugin:
             )
         except DeviceCertificateRequired:
             item.message = S.DEVICE_CERTIFICATE_REQUIRED
-            self._ask_certificate(device, item)
+            # The caller of an operation started elsewhere gets the message instead of a dialog.
+            if item.origin is None:
+                self._ask_certificate(device, item)
             return None
         if future is None:
             if device.download_plugin_required and not item.without_plugin:

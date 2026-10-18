@@ -110,6 +110,11 @@ class ProgramQueuePanel:
             _warning_icon()
             imgui.same_line()
         imgui.text(f"{item.address} {item.name}".strip())
+        if item.origin is not None:
+            imgui.same_line()
+            imgui.text_disabled(item.origin)
+            if imgui.is_item_hovered():
+                imgui.set_tooltip(S.OPERATION_STARTED_BY_MCP)
         if active:
             self._render_cancel(item, right)
             if item.state is OperationState.RUNNING:
@@ -191,6 +196,8 @@ def _render_details(item: QueueItem) -> None:
         _render_result(item.details)
     else:
         imgui.text_disabled(S.OPERATION_NO_DETAILS)
+    if item.origin is not None:
+        imgui.text(S.OPERATION_STARTED_BY_MCP)
     if item.connection:
         imgui.text(S.OPERATION_CONNECTION.format(connection=item.connection))
     if item.started_at is not None:

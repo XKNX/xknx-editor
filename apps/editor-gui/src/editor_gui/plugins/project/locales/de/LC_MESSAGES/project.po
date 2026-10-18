@@ -2074,3 +2074,6 @@ msgstr "Zusätzliche Adressen zuweisen"
 
 msgid "Change additional addresses"
 msgstr "Zusätzliche Adressen ändern"
+
+msgid "Started by an MCP client."
+msgstr "Von einem MCP-Client gestartet."

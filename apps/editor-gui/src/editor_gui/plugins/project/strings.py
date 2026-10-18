@@ -2455,6 +2455,10 @@ class ProjectStrings:
         return _("Cancelled by user.")
 
     @property
+    def OPERATION_STARTED_BY_MCP(self) -> str:
+        return _("Started by an MCP client.")
+
+    @property
     def OPERATION_FAILED(self) -> str:
         return _("failed")
 

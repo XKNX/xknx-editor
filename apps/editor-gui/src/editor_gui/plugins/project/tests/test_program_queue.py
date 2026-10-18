@@ -290,3 +290,52 @@ def test_dedupe_keeps_the_latest_current_address() -> None:
     h.queue.enqueue(QueueItem(1, "1.1.1", "D1", scope, current_address="1.1.21"))
     (queued,) = h.queue.queued
     assert queued.current_address == "1.1.21"
+
+
+def _waited_item(node_id: int) -> QueueItem:
+    return QueueItem(
+        node_id=node_id,
+        address=f"1.1.{node_id}",
+        name=f"D{node_id}",
+        scope=DownloadScope.FULL,
+        origin="MCP",
+        ended=Future(),
+    )
+
+
+def test_a_waiting_caller_learns_how_the_operation_ended() -> None:
+    h = _Harness()
+    finished, failed, canceled, dropped = (_waited_item(n) for n in (1, 2, 3, 4))
+    for item in (finished, failed, canceled, dropped):
+        h.queue.enqueue(item)
+    h.queue.cancel_item(dropped)  # still waiting: ends at once
+    h.finish(1)
+    h.finish(2, error=True)
+    h.queue.cancel_current()
+    h.finish(3, cancelled=True)
+    for item, state in (
+        (finished, OperationState.FINISHED),
+        (failed, OperationState.FAILED),
+        (canceled, OperationState.CANCELED),
+        (dropped, OperationState.CANCELED),
+    ):
+        assert item.ended is not None and item.ended.result(timeout=0) is item
+        assert item.state is state
+
+
+def test_a_device_that_cannot_start_ends_the_wait() -> None:
+    h = _Harness(start_returns_none=True)
+    item = _waited_item(1)
+    h.queue.enqueue(item)
+    assert item.ended is not None and item.ended.result(timeout=0).state is (
+        OperationState.FAILED
+    )
+
+
+def test_operations_someone_waits_for_are_not_merged() -> None:
+    h = _Harness()
+    h.queue.enqueue(_item(9))  # keeps the bus busy
+    h.queue.enqueue(_waited_item(1))
+    h.queue.enqueue(_waited_item(1))
+    h.queue.enqueue(_item(1))  # a click is not merged into a waited one either
+    assert [q.node_id for q in h.queue.queued] == [1, 1, 1]

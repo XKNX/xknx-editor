@@ -1928,3 +1928,6 @@ msgstr "Aanvullende adressen toewijzen"
 
 msgid "Change additional addresses"
 msgstr "Aanvullende adressen wijzigen"
+
+msgid "Started by an MCP client."
+msgstr "Gestart door een MCP-client."

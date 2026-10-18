@@ -781,3 +781,94 @@ async def test_programming_tools_record_the_download(
         (node_id, "full", b"\x00\xfa\x01\x02\x03\x04", None),
         (node_id, "ia"),
     ]
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_programming_runs_in_the_operations_queue(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from concurrent.futures import Future
+
+    from editor_gui.plugins.project.program_queue import (
+        ORIGIN_MCP,
+        OperationState,
+        QueueItem,
+    )
+
+    ctx = _build_ctx(tmp_path)
+    connection = ctx.api.connection
+    monkeypatch.setattr(ConnectionService, "xknx", property(lambda self: object()))
+    direct: list[str] = []
+
+    def program_device(*args: object, **kwargs: object) -> None:
+        direct.append("program")
+
+    def assign_individual_address(device: object) -> None:
+        direct.append("ia")
+
+    monkeypatch.setattr(connection, "program_device", program_device)
+    monkeypatch.setattr(
+        connection, "assign_individual_address_for_device", assign_individual_address
+    )
+    queued: list[QueueItem] = []
+    outcome: dict[str, Any] = {"state": OperationState.FINISHED, "message": None}
+
+    def queue_program(
+        node_id: int, scope: Any, *, origin: str, **options: Any
+    ) -> QueueItem:
+        item = QueueItem(
+            node_id=node_id,
+            address="1.1.5",
+            name="D",
+            scope=scope,
+            origin=origin,
+            ended=Future(),
+            **options,
+        )
+        queued.append(item)
+        if outcome["state"] is not None:
+            item.state = outcome["state"]
+            item.message = outcome["message"]
+            assert item.ended is not None
+            item.ended.set_result(item)
+        return item
+
+    canceled: list[QueueItem] = []
+    ctx.api.queue_program = queue_program
+    ctx.api.cancel_operation = canceled.append
+    async with Client(build_server(ctx)) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product = (await _data(client, "catalog_list_products"))["items"][0]
+        node_id = (
+            await _data(
+                client, "project_add_device", product_ref_id=product["product_ref_id"]
+            )
+        )["node_id"]
+        await _data(
+            client, "project_set_individual_address", node_id=node_id, address="1.1.5"
+        )
+        programmed = await _data(
+            client, "connection_program_device", node_id=node_id, scope="PARAMETERS"
+        )
+        assert programmed == {"status": "programmed", "node_id": node_id}
+        assigned = await _data(
+            client, "connection_assign_individual_address", node_id=node_id
+        )
+        assert assigned["status"] == "assigned"
+        outcome.update(state=OperationState.CANCELED, message="Cancelled by user.")
+        with pytest.raises(Exception, match="Cancelled by user"):
+            await client.call_tool("connection_program_device", {"node_id": node_id})
+        outcome.update(state=None)  # never ends: the tool gives up and cancels it
+        with pytest.raises(Exception, match="did not finish"):
+            await client.call_tool(
+                "connection_program_device", {"node_id": node_id, "timeout": 0.2}
+            )
+    assert direct == []
+    assert [(i.scope.name if i.scope else None, i.origin) for i in queued] == [
+        ("PARAMETERS", ORIGIN_MCP),
+        ("INDIVIDUAL_ADDRESS", ORIGIN_MCP),
+        ("FULL", ORIGIN_MCP),
+        ("FULL", ORIGIN_MCP),
+    ]
+    assert canceled == [queued[-1]]
