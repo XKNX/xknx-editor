@@ -2758,7 +2758,7 @@ class KnxGuiApp:
             draw_list = imgui.get_window_draw_list()
             draw_list.push_clip_rect(top_left, top_right, False)
             draw_list.add_rect_filled(
-                top_left, top_right, imgui.get_color_u32(imgui.Col_.separator)
+                top_left, top_right, imgui.get_color_u32(imgui.Col_.border)
             )
             draw_list.pop_clip_rect()
             self.gui_status_bar()
@@ -2887,10 +2887,38 @@ class KnxGuiApp:
         imgui.same_line()
         imgui.text_disabled(fps)
 
+    def _render_menu_separator(self) -> None:
+        """The line between the menu bar and the docked panels, drawn from the menu bar like the
+        line above the status bar: 1 px in the border color over the window background. A menu
+        bar in a theme with window borders ends in its own 1 px border, which the line covers; the
+        panels start below the rest of it."""
+        style = imgui.get_style()
+        gap = 1.0
+        own = 1.0 if style.window_border_size > 0 else 0.0
+        window_params = hello_imgui.get_runner_params().imgui_window_params
+        # The margin is in units of the font size.
+        window_params.full_screen_window_margin_top_left = imgui.ImVec2(
+            0.0, (gap - own) / imgui.get_font_size()
+        )
+        pos, size = imgui.get_window_pos(), imgui.get_window_size()
+        top = pos.y + size.y - own
+        top_left = imgui.ImVec2(pos.x, top)
+        bottom_right = imgui.ImVec2(pos.x + size.x, top + gap)
+        draw_list = imgui.get_window_draw_list()
+        draw_list.push_clip_rect(top_left, bottom_right, False)
+        draw_list.add_rect_filled(
+            top_left, bottom_right, imgui.get_color_u32(imgui.Col_.window_bg)
+        )
+        draw_list.add_rect_filled(
+            top_left, bottom_right, imgui.get_color_u32(imgui.Col_.border)
+        )
+        draw_list.pop_clip_rect()
+
     def gui_menu(self) -> None:
         # The menu bar is not a window to switch to with Ctrl+Tab (it would be listed there with
         # an untranslated name).
         imgui.internal.get_current_window().flags |= imgui.WindowFlags_.no_nav_focus
+        self._render_menu_separator()
         if imgui.begin_menu(S.MENU_FILE):
             if imgui.menu_item(S.MENU_NEW_PROJECT, S.SHORTCUT_NEW, False)[0]:
                 self._new_project()
