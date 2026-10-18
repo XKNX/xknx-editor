@@ -76,6 +76,13 @@ def _com_object_dict(co: ComObject) -> dict[str, Any]:
     }
 
 
+def _prune(d: dict[str, Any]) -> dict[str, Any]:
+    """Drop keys whose value is None, an empty string, or an empty list/tuple, to keep list
+    payloads compact. A falsy-but-meaningful value (0, False) is kept. Used for the spaces tree,
+    which has many empty optional fields; the device/group-address list dicts keep a fixed shape."""
+    return {k: v for k, v in d.items() if v not in (None, "", [], ())}
+
+
 def _device_dict(device: Device) -> dict[str, Any]:
     return {
         "node_id": device.node_id,
@@ -106,60 +113,72 @@ def _ga_dict(g: Any) -> dict[str, Any]:
 
 
 def _space_device_dict(d: Any) -> dict[str, Any]:
-    return {
-        "node_id": d.id,
-        "name": d.name,
-        "individual_address": d.individual_address or None,
-        "description": d.description,
-        "product_name": d.product_name,
-        "manufacturer_name": d.manufacturer_name,
-    }
+    return _prune(
+        {
+            "node_id": d.id,
+            "name": d.name,
+            "individual_address": d.individual_address or None,
+            "description": d.description,
+            "product_name": d.product_name,
+            "manufacturer_name": d.manufacturer_name,
+        }
+    )
 
 
 def _function_dict(f: Any) -> dict[str, Any]:
-    return {
-        "id": f.id,
-        "name": f.name,
-        "function_type": f.function_type,
-        "usage_text": f.usage_text,
-        "group_addresses": [
-            {
-                "id": g.id,
-                "group_address_id": g.group_address_id,
-                "text": g.text,
-                "role": g.role,
-            }
-            for g in f.group_addresses
-        ],
-    }
+    return _prune(
+        {
+            "id": f.id,
+            "name": f.name,
+            "function_type": f.function_type,
+            "usage_text": f.usage_text,
+            "group_addresses": [
+                {
+                    "id": g.id,
+                    "group_address_id": g.group_address_id,
+                    "text": g.text,
+                    "role": g.role,
+                }
+                for g in f.group_addresses
+            ],
+        }
+    )
 
 
 def _space_dict(s: Any) -> dict[str, Any]:
-    """Recursively serialize a building/location tree node (space -> children/devices/functions)."""
-    return {
-        "id": s.id,
-        "name": s.name,
-        "space_type": s.space_type,
-        "number": s.number,
-        "usage_text": s.usage_text,
-        "description": s.description,
-        "devices": [_space_device_dict(d) for d in s.devices],
-        "functions": [_function_dict(f) for f in s.functions],
-        "children": [_space_dict(c) for c in s.children],
-    }
+    """Recursively serialize a building/location tree node (space -> children/devices/functions).
+    Empty optional fields (number, usage_text, description) and empty device/function/children
+    lists are omitted to keep the tree compact."""
+    return _prune(
+        {
+            "id": s.id,
+            "name": s.name,
+            "space_type": s.space_type,
+            "number": s.number,
+            "usage_text": s.usage_text,
+            "description": s.description,
+            "devices": [_space_device_dict(d) for d in s.devices],
+            "functions": [_function_dict(f) for f in s.functions],
+            "children": [_space_dict(c) for c in s.children],
+        }
+    )
 
 
-def _widget_dict(widget: Any) -> dict[str, Any]:
-    """Serialize a UiParameter widget into the value constraints an LLM needs to set it correctly."""
+def _widget_dict(widget: Any, include_choices: bool = True) -> dict[str, Any]:
+    """Serialize a UiParameter widget into the value constraints an LLM needs to set it correctly.
+
+    ``include_choices=False`` (the bulk list/tree tools) drops an enum's full choice list to save
+    tokens, keeping only ``choice_count``; the per-parameter project_get_parameter returns the
+    complete ``choices``."""
     if widget is None:
         return {"type": "none"}
     name = type(widget).__name__
     if name == "EnumWidget":
+        if not include_choices:
+            return {"type": "enum", "choice_count": len(widget.choices)}
         return {
             "type": "enum",
-            "choices": [
-                {"value": c.value, "label": c.label, "id": c.id} for c in widget.choices
-            ],
+            "choices": [{"value": c.value, "label": c.label} for c in widget.choices],
         }
     if name in ("NumberWidget", "NumberSliderWidget", "ProgressBarWidget"):
         return {"type": "number", "min": widget.min, "max": widget.max}
@@ -174,22 +193,40 @@ def _widget_dict(widget: Any) -> dict[str, Any]:
     return {"type": name}
 
 
-def _parameter_dict(p: Any) -> dict[str, Any]:
-    return {
+def _enum_value_label(widget: Any, value: Any) -> str | None:
+    """Label of an enum widget's currently selected ``value``, or None for non-enums/no match."""
+    if widget is None or type(widget).__name__ != "EnumWidget":
+        return None
+    for c in widget.choices:
+        if str(c.value) == str(value):
+            return c.label
+    return None
+
+
+def _parameter_dict(p: Any, include_choices: bool = True) -> dict[str, Any]:
+    data = {
         "ref_id": p.ref_id,
         "label": p.label,
         "value": p.value,
         "default_value": p.default_value,
         "access": getattr(p.access, "name", str(p.access)),
-        "widget": _widget_dict(p.widget),
+        "widget": _widget_dict(p.widget, include_choices),
     }
+    # With the choice list omitted, keep the current value readable by naming its label.
+    if (
+        not include_choices
+        and (label := _enum_value_label(p.widget, p.value)) is not None
+    ):
+        data["value_label"] = label
+    return data
 
 
-def _ui_node(node: Any) -> dict[str, Any]:
+def _ui_node(node: Any, include_choices: bool = True) -> dict[str, Any]:
     """One node of the device UI tree as a dict, preserving group nesting (tabs/blocks -> children).
 
     Parameters carry the full _parameter_dict; groups carry their heading and children; separators are
-    dropped. Lets a caller see which parameters belong to a channel / button pair / level."""
+    dropped. Lets a caller see which parameters belong to a channel / button pair / level.
+    ``include_choices`` is threaded to the parameter serialization (the tree omits enum choice lists)."""
     from xknxeditor.prod.parser_v2.ui import (
         UiButton,
         UiParameter,
@@ -198,7 +235,7 @@ def _ui_node(node: Any) -> dict[str, Any]:
     )
 
     if isinstance(node, UiParameter):
-        return {"kind": "parameter", **_parameter_dict(node)}
+        return {"kind": "parameter", **_parameter_dict(node, include_choices)}
     if isinstance(node, UiButton):
         return {
             "kind": "button",
@@ -210,7 +247,9 @@ def _ui_node(node: Any) -> dict[str, Any]:
     if isinstance(node, (UiTab, UiParameterBlock)):
         heading = getattr(node, "text", None) or getattr(node, "name", None)
         children = [
-            d for ch in node.children if (d := _ui_node(ch)).get("kind") != "separator"
+            d
+            for ch in node.children
+            if (d := _ui_node(ch, include_choices)).get("kind") != "separator"
         ]
         return {
             "kind": "tab" if isinstance(node, UiTab) else "block",
@@ -823,15 +862,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_list_parameters(node_id: int) -> dict[str, Any]:
-        """A device's visible application parameters with current value, default, and allowed values.
+        """A device's visible application parameters with current value and default.
         Returns {items, count}; each item has ref_id, label, value, default_value, access, widget.
+        To keep the list compact, an enum ``widget`` carries only ``choice_count`` (plus
+        ``value_label`` on the item for the current value), NOT the full choice list — call
+        project_get_parameter for a single parameter's complete ``choices``.
 
-        Pass an item's ``ref_id`` to project_set_parameter as its ``parameter_ref_id`` argument, with a
-        ``value`` permitted by that item's ``widget``."""
+        Pass an item's ``ref_id`` to project_set_parameter as its ``parameter_ref_id`` argument."""
 
         def _read() -> list[dict[str, Any]]:
             device = _require_device(node_id)
-            return [_parameter_dict(p) for p in _collect_ui_parameters(device.get_ui())]
+            return [
+                _parameter_dict(p, include_choices=False)
+                for p in _collect_ui_parameters(device.get_ui())
+            ]
 
         return _items(ctx.run_locked(_read))
 
@@ -843,12 +887,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - "tab"/"block": {kind, name, children}, with children using the same node shapes.
         - "parameter": {kind, ref_id, label, value, default_value, access, widget}.
         - "button": {kind, id, text, online, read_only}; other nodes contain only kind.
-        Pass a parameter's ref_id as parameter_ref_id to project_get_parameter/project_set_parameter;
-        widget describes its allowed values. This reads project configuration."""
+        To stay compact, an enum ``widget`` here carries only ``choice_count`` (plus ``value_label``
+        for the current value), NOT the full choice list — call project_get_parameter for one
+        parameter's complete ``choices``.
+        Pass a parameter's ref_id as parameter_ref_id to project_get_parameter/project_set_parameter.
+        This reads project configuration."""
 
         def _read() -> list[dict[str, Any]]:
             device = _require_device(node_id)
-            return [_ui_node(n) for n in device.get_ui()]
+            return [_ui_node(n, include_choices=False) for n in device.get_ui()]
 
         return _items(ctx.run_locked(_read))
 
@@ -856,8 +903,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_get_parameter(node_id: int, parameter_ref_id: str) -> dict[str, Any]:
         """Read a project application parameter. Use node_id from project_list_devices and pass
         ref_id from project_list_parameters or project_parameter_tree as parameter_ref_id.
-        Returns {ref_id, label, value, default_value, access, widget}; widget describes allowed values
-        for project_set_parameter."""
+        Returns {ref_id, label, value, default_value, access, widget}; for an enum, widget includes
+        the full ``choices`` (value/label/id) — the allowed values for project_set_parameter."""
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id)

@@ -314,25 +314,32 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ip_secure = ctx.run_locked(
             lambda: ctx.api.project.ip_secure_config(device, service.keyring)
         )
+        # Pre-read all project state on the UI thread (plain values), then run program_device
+        # itself under the same lock: its synchronous security lookup reads the (non-thread-safe)
+        # project session, which must not run on this MCP worker thread. The args are already plain
+        # here, so there is no nested run_locked. The bus Future is awaited OUTSIDE the lock below.
+        ip_config = ctx.run_locked(lambda: ctx.api.project.ip_download_config(device))
+        disable_security = ctx.run_locked(
+            lambda: ctx.api.project.download_disables_security(device)
+        )
+        routing_blocking = ctx.run_locked(
+            lambda: ctx.api.project.download_routing_blocking(device)
+        )
         try:
-            future = service.program_device(
-                device,
-                resolved,
-                group_communication,
-                without_plugin=without_plugin,
-                current_address=current_address,
-                serial_number=serial,
-                ip_config=ctx.run_locked(
-                    lambda: ctx.api.project.ip_download_config(device)
-                ),
-                tool_key=tool_key,
-                ip_secure=ip_secure,
-                disable_security=ctx.run_locked(
-                    lambda: ctx.api.project.download_disables_security(device)
-                ),
-                routing_blocking=ctx.run_locked(
-                    lambda: ctx.api.project.download_routing_blocking(device)
-                ),
+            future = ctx.run_locked(
+                lambda: service.program_device(
+                    device,
+                    resolved,
+                    group_communication,
+                    without_plugin=without_plugin,
+                    current_address=current_address,
+                    serial_number=serial,
+                    ip_config=ip_config,
+                    tool_key=tool_key,
+                    ip_secure=ip_secure,
+                    disable_security=disable_security,
+                    routing_blocking=routing_blocking,
+                )
             )
         except DeviceCertificateRequired as exc:
             raise _certificate_error(node_id) from exc
@@ -384,11 +391,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         resolved = _resolve_scope(scope)
         if resolved.individual_address_only:
             raise ToolError("an individual address download cannot be evaluated")
-        future = service.evaluate_device(
-            device,
-            resolved,
-            group_communication,
-            ctx.run_locked(lambda: ctx.api.project.ip_download_config(device)),
+        # Run evaluate_device under the lock on the UI thread: its synchronous security lookup
+        # reads the non-thread-safe project session and must not run on this MCP worker thread.
+        # The bus Future is awaited outside the lock below.
+        ip_config = ctx.run_locked(lambda: ctx.api.project.ip_download_config(device))
+        future = ctx.run_locked(
+            lambda: service.evaluate_device(
+                device, resolved, group_communication, ip_config
+            )
         )
         if future is None:
             raise ToolError("evaluation could not be scheduled (no connection)")

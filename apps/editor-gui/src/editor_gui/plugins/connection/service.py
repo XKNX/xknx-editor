@@ -4,6 +4,7 @@ import asyncio
 import functools
 import threading
 import time
+import traceback
 from collections.abc import Awaitable, Callable, Collection, Coroutine
 from concurrent.futures import Future
 from dataclasses import dataclass
@@ -39,6 +40,13 @@ if TYPE_CHECKING:
     from xknxeditor.prod import Application, MasterData
     from xknxeditor.proj.core.service import DeviceKeys
     from xknxeditor.recover import AppId
+
+
+def _exc_traceback(exc: BaseException) -> str:
+    """The full formatted traceback of ``exc`` (including any chained cause). Logged on a failed
+    bus operation so an intermittent, hard-to-reproduce error (e.g. a cross-thread DB race) keeps
+    its stack instead of only a one-line message."""
+    return "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
 
 
 @dataclass(frozen=True, slots=True)
@@ -1038,14 +1046,20 @@ class ConnectionService:
                 # recovery step explicit. The wrapper alone would hide the root
                 # cause, which is what the user needs to see.
                 cause = exc.__cause__ or exc
-                self._log.error("Programming failed", error=str(cause))
+                self._log.error(
+                    "Programming failed",
+                    error=str(cause),
+                    traceback=_exc_traceback(exc),
+                )
                 self._log.error(
                     "The device may now be in an inconsistent, partially loaded "
                     "state. Re-run programming (full download) once the cause above "
                     "is resolved to restore a working state."
                 )
             else:
-                self._log.error("Programming failed", error=str(exc))
+                self._log.error(
+                    "Programming failed", error=str(exc), traceback=_exc_traceback(exc)
+                )
                 if isinstance(exc, ManagementConnectionError):
                     # A full download of a virgin device first writes its address to the single
                     # device in programming mode; nothing answering here usually means the device
@@ -1134,7 +1148,12 @@ class ConnectionService:
             return
         exc = future.exception()
         if exc is not None:
-            self._log.error("Evaluation failed", address=address, error=str(exc))
+            self._log.error(
+                "Evaluation failed",
+                address=address,
+                error=str(exc),
+                traceback=_exc_traceback(exc),
+            )
             if isinstance(exc, ManagementConnectionError):
                 # A dry run still reads the live device over a point-to-point connection.
                 # No ACK means nothing answered at that individual address on the bus.
