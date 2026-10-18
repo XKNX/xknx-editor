@@ -149,6 +149,9 @@ Root: HKA; Subkey: "Software\Classes\Applications\{#AppExe}"; ValueType: none; F
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
+; A silent update started by the app (/RELAUNCH=1, see self_update.py) starts it again, with the
+; project that was open (/OPEN=<path>).
+Filename: "{app}\{#AppExe}"; Parameters: "{code:RelaunchParameters}"; Flags: nowait runasoriginaluser; Check: RelaunchAfterUpdate
 
 [Code]
 const
@@ -187,6 +190,18 @@ var
 begin
   Result := RegQueryStringValue(HKA, 'Software\Classes\.xknx', '', ProgId) and
     (CompareText(ProgId, '{#ProgId}') = 0);
+end;
+
+function RelaunchAfterUpdate: Boolean;
+begin
+  Result := WizardSilent and (ExpandConstant('{param:RELAUNCH|0}') = '1');
+end;
+
+function RelaunchParameters(Param: string): string;
+begin
+  Result := ExpandConstant('{param:OPEN|}');
+  if Result <> '' then
+    Result := AddQuotes(Result);
 end;
 
 procedure CurStepChanged(CurStep: TSetupStep);

@@ -1385,6 +1385,25 @@ class MenuStrings:
         return _("Download")
 
     @property
+    def UPDATE_INSTALL(self) -> str:
+        return _("Install Update")
+
+    @property
+    def UPDATE_INSTALL_HINT(self) -> str:
+        return _(
+            "Install Update downloads the installer, closes XKNX Editor and starts it again "
+            "with the open project."
+        )
+
+    @property
+    def PROGRESS_DOWNLOAD_UPDATE(self) -> str:
+        return _("Downloading the update…")
+
+    @property
+    def UPDATE_DOWNLOAD_PROGRESS(self) -> str:
+        return _("{done} of {total} MB")
+
+    @property
     def UPDATE_SKIP(self) -> str:
         return _("Skip This Version")
 

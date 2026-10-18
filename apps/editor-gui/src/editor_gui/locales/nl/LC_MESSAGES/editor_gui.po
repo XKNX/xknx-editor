@@ -1036,3 +1036,15 @@ msgstr "{url} openen"
 
 msgid "Copy Link"
 msgstr "Link kopiëren"
+
+msgid "Install Update"
+msgstr "Update installeren"
+
+msgid "Install Update downloads the installer, closes XKNX Editor and starts it again with the open project."
+msgstr "'Update installeren' downloadt het installatieprogramma, sluit XKNX Editor en start het daarna opnieuw met het geopende project."
+
+msgid "Downloading the update…"
+msgstr "Update wordt gedownload…"
+
+msgid "{done} of {total} MB"
+msgstr "{done} van {total} MB"

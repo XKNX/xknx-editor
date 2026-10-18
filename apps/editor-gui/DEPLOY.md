@@ -39,6 +39,11 @@ Software rendering (Mesa's `opengl32.dll` next to the exe plus `software_gl.mark
 - registers an uninstaller in Apps & Features, which can also delete the settings, catalog and
   caches (projects and the local copies of network projects are always kept);
 - updates in place: a newer installer replaces the whole bundle and asks to close a running app;
+- is also run by the app itself: when the update check finds a newer release, "Install Update"
+  downloads that release's installer for this architecture, checks it against the SHA-256 digest
+  GitHub publishes for the asset, runs it silently (`/RELAUNCH=1`, `/OPEN=<project>`) and exits;
+  the installer keeps the folder and the options and starts the app again with the open project
+  (`src/editor_gui/self_update.py`). Portable and source runs keep opening the release page;
 - removes a folder left by the former `install.bat` (`C:\Program Files\XKNX-Editor`);
 - follows the Windows language (English, German, Dutch).
 

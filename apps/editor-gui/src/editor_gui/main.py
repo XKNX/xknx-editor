@@ -24,7 +24,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from xknxproject.exceptions import InvalidPasswordException, XknxProjectException
 
-from editor_gui import __version__
+from editor_gui import __version__, self_update
 from editor_gui import signing_key as signing_key_store
 from editor_gui import trace_key as trace_key_store
 from editor_gui.certs import ensure_ca_bundle
@@ -69,7 +69,7 @@ from editor_gui.theme import (
     theme_name,
     themes,
 )
-from editor_gui.update_check import UpdateInfo, check_for_update
+from editor_gui.update_check import ReleaseAsset, UpdateInfo, check_for_update
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import (
@@ -530,6 +530,9 @@ class KnxGuiApp:
         self._update_info: UpdateInfo | None = None
         self._update_prompt_requested = False
         self._update_thread: threading.Thread | None = None
+        # "user"/"machine" when running from an installation of the Windows installer, which
+        # updates in place (self_update.py); None opens the release page instead.
+        self._update_scope = self_update.installed_scope()
         # A project passed on the command line, opened once the window is up.
         self.startup_file: str | None = None
         self._update_manual = False  # a user-triggered check also reports "up to date"
@@ -640,7 +643,7 @@ class KnxGuiApp:
         ]
 
     def setup(self) -> None:
-        self._log.info("editor started")
+        self._log.info("editor started", installation=self._update_scope or "none")
         self._can_launch_file_dialog()
         # Apply a previously extracted/saved signing key so exports are signed with it.
         if signing_key_store.apply_cached_key():
@@ -3002,8 +3005,19 @@ class KnxGuiApp:
             if imgui.begin_child("##update-notes", px_vec2(0.0, 220.0), True):
                 imgui.text_wrapped(info.notes)
             imgui.end_child()
-        clicked = dialog_buttons(S.UPDATE_DOWNLOAD, S.UPDATE_SKIP, S.UPDATE_LATER)
-        if clicked == 0:
+        installer = self._update_installer(info)
+        if installer is not None:
+            imgui.spacing()
+            imgui.text_wrapped(S.UPDATE_INSTALL_HINT)
+        clicked = dialog_buttons(
+            S.UPDATE_INSTALL if installer is not None else S.UPDATE_DOWNLOAD,
+            S.UPDATE_SKIP,
+            S.UPDATE_LATER,
+        )
+        if clicked == 0 and installer is not None:
+            self._install_update(installer)
+            imgui.close_current_popup()
+        elif clicked == 0:
             try:
                 webbrowser.open(info.url)
             except Exception as e:
@@ -3017,6 +3031,62 @@ class KnxGuiApp:
         elif clicked == 2:
             imgui.close_current_popup()
         end_dialog()
+
+    def _update_installer(self, info: UpdateInfo) -> ReleaseAsset | None:
+        """The release's installer for this machine, when this installation updates in place."""
+        if self._update_scope is None:
+            return None
+        return self_update.pick_installer(info.assets, platform.machine())
+
+    def _install_update(self, installer: ReleaseAsset) -> None:
+        """Download ``installer`` behind the progress modal, then run it and exit; it restarts the
+        app with the project that is open now."""
+        scope = self._update_scope
+        if scope is None:
+            return
+        target = Path(tempfile.mkdtemp(prefix="xknx-update-")) / installer.name
+        project = self._project_service.path if self._project_service.is_open else None
+        open_project = str(project) if project is not None else None
+        megabyte = 1024 * 1024
+
+        def report(done: int, total: int) -> None:
+            self.set_progress(
+                done / total if total else None,
+                S.UPDATE_DOWNLOAD_PROGRESS.format(
+                    done=done // megabyte, total=total // megabyte
+                )
+                if total
+                else "",
+            )
+
+        def worker() -> None:
+            try:
+                self_update.download(installer, target, report)
+            except Exception as e:
+                self._log.error(
+                    "update could not be downloaded", url=installer.url, error=str(e)
+                )
+                return
+            self._ui_executor.submit(
+                lambda: self._start_update(target, scope, open_project)
+            )
+
+        self._run_bg(S.PROGRESS_DOWNLOAD_UPDATE, worker)
+
+    def _start_update(
+        self, installer: Path, scope: str, open_project: str | None
+    ) -> None:
+        try:
+            self_update.start_installer(
+                installer, self_update.installer_arguments(scope, open_project)
+            )
+        except OSError as e:
+            self._log.error(
+                "could not start the installer", path=str(installer), error=str(e)
+            )
+            return
+        self._log.info("update installer started", path=str(installer))
+        hello_imgui.get_runner_params().app_shall_exit = True
 
     def _import_note_text(self, note: ImportLoss) -> str:
         """Localized, human-readable line for one import-loss note (code -> message)."""
