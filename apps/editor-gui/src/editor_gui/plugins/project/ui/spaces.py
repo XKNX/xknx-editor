@@ -122,14 +122,14 @@ class SpacesPanel:
         self,
         get_space_tree: "Callable[[], list[SpaceInfo]]",
         on_select_device_id: Callable[[int], None],
-        on_create_function: Callable[[int, str, str], None] | None = None,
+        on_create_function: Callable[[int, str, str], object] | None = None,
         on_remove_function: Callable[[int], None] | None = None,
         on_rename_function: Callable[[int, str], None] | None = None,
         on_set_function_type: Callable[[int, str], None] | None = None,
-        on_add_function_ga: Callable[[int, int, str], None] | None = None,
+        on_add_function_ga: Callable[[int, int, str], object] | None = None,
         on_remove_function_ga: Callable[[int], None] | None = None,
         get_ga_range_tree: Callable[[], list[Any]] | None = None,
-        on_create_space: Callable[[int | None, str, str], None] | None = None,
+        on_create_space: Callable[[int | None, str, str], object] | None = None,
         get_selected_space_id: Callable[[], int | None] | None = None,
         on_select_space: Callable[[int], None] | None = None,
         on_set_space_type: Callable[[int, str], None] | None = None,
@@ -369,7 +369,7 @@ class SpacesPanel:
 
     def _render_space_delete_confirm(self, space_id: int) -> None:
         if self._on_remove_space is None or not begin_dialog(
-            _delete_space_dialog(space_id)
+            _delete_space_dialog(space_id), width=420.0
         ):
             return
         imgui.text_wrapped(S.SPACES_DELETE_CONFIRM)

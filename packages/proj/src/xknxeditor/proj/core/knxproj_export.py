@@ -55,6 +55,7 @@ import datetime
 import io
 import json
 import logging
+import os
 import re
 import xml.etree.ElementTree as ET
 import zipfile
@@ -335,10 +336,6 @@ def _provenance_schema(
     return None
 
 
-_LEGACY_SCHEMA_MAX = (
-    14  # project/10..14 are the ETS3/4-era family converted up on export
-)
-
 _PARAM_TYPE_SELF_CLOSED = re.compile(rb"(<ParameterType\b[^>]*?)/>")
 _PARAM_TYPE_EMPTY_PAIR = re.compile(rb"(<ParameterType\b[^>]*?>)</ParameterType>")
 
@@ -386,21 +383,23 @@ def _fill_empty_parameter_types(data: bytes) -> bytes:
 def _heal_manufacturer_member(data: bytes, schema: str) -> bytes:
     """Heal one manufacturer XML member for the archive.
 
-    A member whose modern schema differs from the project's (e.g. a project/20 product inside a
-    project/23 archive) is kept verbatim at its OWN namespace and tool identity — exactly what ETS
-    writes (the kept member keeps its original ``CreatedBy="ETS5"``). A legacy (project/<=14) member
-    is converted up to the project schema (namespace + released tool identity). A member already at
-    the project schema has an unreleased tool identity restamped. Childless parameter types are
-    always filled (ETS aborts the import with a NullReferenceException otherwise)."""
+    A member of an older schema than the project's (a project/20 product inside a project/23
+    archive, or a legacy project/<=14 one) is converted up to the project schema: namespace and
+    released tool identity, the rest unchanged — exactly what ETS writes (a project/20 OpenKNX
+    application in an ETS6 export differs from its .knxprod only in the root's namespace and
+    ``CreatedBy``/``ToolVersion``), and ETS6 rejects an archive with a project/20 member
+    ("unsupported namespace"). A member of a newer schema cannot be converted down: it is kept
+    verbatim and reported (:func:`_schema_incompatible_folders`). A member already at the project
+    schema has an unreleased tool identity restamped. Childless parameter types are always filled
+    (ETS aborts the import with a NullReferenceException otherwise)."""
     detected = _schema_from_knx_xml(data)
     if detected is not None and detected != schema:
-        if int(detected) <= _LEGACY_SCHEMA_MAX:
+        if detected.isdigit() and schema.isdigit() and int(detected) < int(schema):
             data = data.replace(
                 f'xmlns="http://knx.org/xml/project/{detected}"'.encode(),
                 f'xmlns="http://knx.org/xml/project/{schema}"'.encode(),
             )
             data = _restamp_tool_identity(data, schema)
-        # Modern mismatch: keep the namespace and the original tool identity verbatim.
         return _fill_empty_parameter_types(data)
     data = _restamp_tool_identity(data, schema)
     return _fill_empty_parameter_types(data)
@@ -577,6 +576,10 @@ def fetch_master_xml(
     return read_master_xml(knxproj, schema)
 
 
+class ExportCancelled(Exception):
+    """The export was cancelled; the destination file was left as it was."""
+
+
 def export_knxproj(
     source: Path | str,
     dest: Path | str,
@@ -591,6 +594,7 @@ def export_knxproj(
     project_name: str | None = None,
     remove_unused_products: bool = False,
     password: str | None = None,
+    cancelled: Callable[[], bool] | None = None,
 ) -> ExportResult:
     """Read the project at ``source`` (a ``.xknx``) and write a ``.knxproj`` archive to ``dest``.
 
@@ -632,6 +636,10 @@ def export_knxproj(
       password: The password of a password-protected project: it decrypts the project's secrets
         and protects the exported project folder. Raises :class:`ProjectPasswordRequired` when
         missing and :class:`InvalidProjectPassword` when wrong.
+      cancelled: Polled between the export's steps and while the archive is written; when it
+        returns true :class:`ExportCancelled` is raised. The archive is written to a temporary
+        file that replaces ``dest`` only when it is complete, so a cancelled or failed export
+        leaves ``dest`` as it was.
     """
     ns = _ns_for(schema)  # validate the requested schema early
     logger.debug(
@@ -716,6 +724,7 @@ def export_knxproj(
                 certificate_signer,
                 cipher=cipher,
                 password=password if cipher is not None else None,
+                cancelled=cancelled,
             )
     finally:
         engine.dispose()
@@ -1087,7 +1096,13 @@ class _Writer:
         *,
         cipher: ProjectCipher | None = None,
         password: str | None = None,
+        cancelled: Callable[[], bool] | None = None,
     ) -> tuple[SignatureAudit, list[str], bool, bool]:
+        def check_cancelled() -> None:
+            if cancelled is not None and cancelled():
+                raise ExportCancelled
+
+        check_cancelled()
         pid = project.id
         self._source_schema = project.schema_version or self._schema
         ga_link_id, di_id = _assign_ids(pid, installation)
@@ -1201,6 +1216,7 @@ class _Writer:
         # Optionally obtain the project certificate (licensing proof), which binds to the folder
         # signature just computed. Done before opening the archive so a signer failure aborts cleanly.
         certificate: bytes | None = None
+        check_cancelled()
         if certificate_signer is not None:
             logger.debug("export: requesting project certificate for %s", pid)
             # The signer's project_name is echoed by the server into the certificate's
@@ -1246,9 +1262,11 @@ class _Writer:
         # Sign through the vendor assembly when available (the primary path, as in
         # OpenKNXproducer); a no-op elsewhere, where the offline audit below still covers
         # every folder.
+        check_cancelled()
         sign_member_map(members)
         audit = audit_and_sign_folders(members)
         missing_refs = _audit_installation_refs(members)
+        check_cancelled()
 
         # An unsigned export carries no project certificate. An empty `{pid}_M-dummy` license marker
         # in the archive root lets a licensed ETS 5 import it (ETS 5 treats any `{pid}_M-*` entry as
@@ -1261,14 +1279,24 @@ class _Writer:
         if password:
             protect_project_folder(members, pid, password)
 
-        dest.unlink(missing_ok=True)
-        with zipfile.ZipFile(dest, "w", zipfile.ZIP_DEFLATED) as zf:
-            for path, data in members.items():
-                # The encrypted folder is stored as it is, like in genuine archives.
-                stored = path == f"{pid}.zip" and bool(password)
-                zf.writestr(
-                    path, data, zipfile.ZIP_STORED if stored else zipfile.ZIP_DEFLATED
-                )
+        # Written next to ``dest`` and moved over it when complete: a cancelled or failed export
+        # leaves no partial archive and an existing file unchanged.
+        partial = dest.with_name(f".{dest.name}.{os.getpid()}.part")
+        try:
+            with zipfile.ZipFile(partial, "w", zipfile.ZIP_DEFLATED) as zf:
+                for path, data in members.items():
+                    check_cancelled()
+                    # The encrypted folder is stored as it is, like in genuine archives.
+                    stored = path == f"{pid}.zip" and bool(password)
+                    zf.writestr(
+                        path,
+                        data,
+                        zipfile.ZIP_STORED if stored else zipfile.ZIP_DEFLATED,
+                    )
+            os.replace(partial, dest)
+        except BaseException:
+            partial.unlink(missing_ok=True)
+            raise
         return (
             audit,
             missing_refs,

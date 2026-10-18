@@ -21,9 +21,9 @@ from dataclasses import dataclass
 from enum import IntEnum
 
 from xknx import XKNX
-from xknx.cemi import CEMIFrame, CEMILData
+from xknx.cemi.cemi_frame import CEMIFrame, CEMILData
 from xknx.cemi.cemi_frame import CEMIInfo as _XknxCEMIInfo
-from xknx.core import XknxConnectionState
+from xknx.core.connection_state import XknxConnectionState
 from xknx.exceptions import (
     CommunicationError,
     CouldNotParseCEMI,
@@ -31,7 +31,7 @@ from xknx.exceptions import (
     UnsupportedCEMIMessage,
 )
 from xknx.io import util
-from xknx.io.request_response import Connect
+from xknx.io.request_response.connect import Connect
 from xknx.io.tunnel import TCPTunnel, UDPTunnel
 from xknx.knxip import ConnectRequestInformation, ErrorCode, TunnellingLayer
 from xknx.telegram import GroupAddress, IndividualAddress, Telegram

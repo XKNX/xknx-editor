@@ -43,7 +43,8 @@ class _CopiedObject:
     """One source com-object's configuration on the clipboard: its links and flag values."""
 
     links: list[tuple[int, bool]]  # (ga_id, is_sending), in the source's display order
-    flags: dict[str, bool] = field(default_factory=dict)  # attr -> value (C/R/W/T/U)
+    # attr -> value (C/R/W/T/U)
+    flags: dict[str, bool] = field(default_factory=dict[str, bool])
 
 
 # Accent colour for the sending group address (shown emphasised).
@@ -436,7 +437,7 @@ class GroupObjectsTable:
         current = com_object.dpt
         preview = (
             f"{current.code} {current.name}"
-            if current is not None and current.major
+            if current.major
             else S.GROUP_OBJECTS_DPT_DEFAULT
         )
         imgui.set_next_item_width(-1.0)
@@ -447,7 +448,7 @@ class GroupObjectsTable:
         )[0]:
             self._on_set_dpt(device, com_object.id, None)
         for dpt in com_object.supported_dpts:
-            selected = current is not None and dpt.code == current.code
+            selected = dpt.code == current.code
             if imgui.selectable(f"{dpt.code}  {dpt.name}", selected)[0]:
                 self._on_set_dpt(device, com_object.id, dpt.code)
         imgui.end_combo()

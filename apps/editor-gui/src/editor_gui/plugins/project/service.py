@@ -191,14 +191,15 @@ def _parameter_instance_refs(
     ]
 
 
-_COLUMN_KEYS: dict[type, tuple[str, ...]] = {}
+_COLUMN_KEYS: dict[type[Any], tuple[str, ...]] = {}
 
 
 def _row_values(obj: Any) -> tuple[Any, ...]:
-    keys = _COLUMN_KEYS.get(type(obj))
+    row_type = cast(type[Any], type(obj))
+    keys = _COLUMN_KEYS.get(row_type)
     if keys is None:
         keys = tuple(column.key for column in obj.__table__.columns)
-        _COLUMN_KEYS[type(obj)] = keys
+        _COLUMN_KEYS[row_type] = keys
     # The loaded values directly (far cheaper than the mapped attributes), the attributes for
     # a row whose values are not loaded.
     values = obj.__dict__
@@ -493,7 +494,7 @@ class _Line:
 
 
 @dataclass
-class _GroupAddress:
+class GroupAddressInfo:
     id: int
     address: str
     name: str
@@ -505,7 +506,7 @@ class _GroupAddress:
 
 
 @dataclass
-class _ProjectInfo:
+class ProjectInfo:
     id: str
     name: str
     group_address_style: str
@@ -529,7 +530,7 @@ class _ProjectInfo:
 
 
 @dataclass
-class _ProjectTrace:
+class ProjectTrace:
     """One project-log entry. ``comment`` is verbatim from the source (it is encrypted on disk);
     ``comment_plain`` is the decrypted text when a trace key is installed, else ``None``."""
 
@@ -540,7 +541,7 @@ class _ProjectTrace:
 
 
 @dataclass
-class _Assignment:
+class Assignment:
     id: int
     com_object_id: int
     group_address_id: int
@@ -794,7 +795,7 @@ class ProjectService:
         self._recheck_generation = -1
         self._areas_cache: list[_Area] | None = None
         self._lines_cache: dict[int, list[_Line]] | None = None
-        self._ga_cache: list[_GroupAddress] | None = None
+        self._ga_cache: list[GroupAddressInfo] | None = None
         # Per-frame tree reads for visible panels (Buildings, "Without space", GA view) are cached by
         # revision via the @revision_cached decorator, keyed by method name in this dict, so a static
         # panel does not re-query SQLite and rebuild the ORM tree every frame (that kept the app off
@@ -2131,13 +2132,13 @@ class ProjectService:
 
     @property
     @io_guarded(list)
-    def group_addresses(self) -> list[_GroupAddress]:
+    def group_addresses(self) -> list[GroupAddressInfo]:
         if self._pid is None:
             return []
         if self._ga_cache is not None and self._ga_cache_version == self._version:
             return self._ga_cache
         self._ga_cache = [
-            _GroupAddress(
+            GroupAddressInfo(
                 id=g.id,
                 address=g.text,
                 name=g.name,
@@ -2154,14 +2155,14 @@ class ProjectService:
 
     @io_guarded(lambda: None)
     @revision_cached_by_args
-    def get_group_address(self, ga_id: int) -> _GroupAddress | None:
+    def get_group_address(self, ga_id: int) -> GroupAddressInfo | None:
         if self._pid is None:
             return None
         try:
             g = self._svc.group_address(self._pid, ga_id)
         except KeyError:
             return None
-        return _GroupAddress(
+        return GroupAddressInfo(
             id=g.id,
             address=g.text,
             name=g.name,
@@ -2174,11 +2175,11 @@ class ProjectService:
 
     @io_guarded(list)
     @revision_cached_by_args
-    def get_assignments_for_ga(self, ga_id: int) -> list[_Assignment]:
+    def get_assignments_for_ga(self, ga_id: int) -> list[Assignment]:
         if self._pid is None:
             return []
         return [
-            _Assignment(
+            Assignment(
                 id=link.id,
                 com_object_id=link.com_object_id,
                 group_address_id=link.group_address_id,
@@ -2189,13 +2190,13 @@ class ProjectService:
 
     @io_guarded(list)
     @revision_cached_by_args
-    def get_links_for_com_object(self, com_object_db_id: int) -> list[_Assignment]:
+    def get_links_for_com_object(self, com_object_db_id: int) -> list[Assignment]:
         """A device com-object's group-address links (the per-com-object direction, for the editor's
         Group Objects view). ``com_object_db_id`` is ``ComObject.db_id``."""
         if self._pid is None:
             return []
         return [
-            _Assignment(
+            Assignment(
                 id=link.id,
                 com_object_id=link.com_object_id,
                 group_address_id=link.group_address_id,
@@ -2944,13 +2945,13 @@ class ProjectService:
 
     @io_guarded(lambda: None)
     @revision_cached
-    def get_project_metadata(self) -> _ProjectInfo | None:
+    def get_project_metadata(self) -> ProjectInfo | None:
         """Project-level metadata (name, author, tool/schema version, …) from the imported project."""
         if self._pid is None:
             return None
         p = self._svc.project(self._pid)
         installations = self._svc.installations(self._pid)
-        return _ProjectInfo(
+        return ProjectInfo(
             id=p.id,
             name=p.name,
             group_address_style=p.group_address_style,
@@ -3037,7 +3038,7 @@ class ProjectService:
         self._revision_cache[cache_key] = (self.revision, state)
         return state
 
-    def get_project_traces(self) -> list[_ProjectTrace]:
+    def get_project_traces(self) -> list[ProjectTrace]:
         """The project log (ProjectInformation/ProjectTraces), in document order.
 
         Comments are stored verbatim (they are encrypted on disk); ``comment_plain`` is filled with
@@ -3049,7 +3050,7 @@ class ProjectService:
             return []
         p = self._svc.project(self._pid)
         return [
-            _ProjectTrace(
+            ProjectTrace(
                 date=t.date,
                 user_name=t.user_name,
                 comment=t.comment,

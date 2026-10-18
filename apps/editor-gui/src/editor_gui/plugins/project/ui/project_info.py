@@ -14,13 +14,13 @@ from editor_gui.widgets.password_form import NewPasswordForm
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 if TYPE_CHECKING:
-    from editor_gui.plugins.project.service import _ProjectInfo
+    from editor_gui.plugins.project.service import ProjectInfo
 
 
 class ProjectInfoPanel:
     def __init__(
         self,
-        get_project_info: "Callable[[], _ProjectInfo | None]",
+        get_project_info: "Callable[[], ProjectInfo | None]",
         on_rename: Callable[[str], None] | None = None,
         on_set_password: Callable[[str | None], None] | None = None,
         needs_password: Callable[[], bool] = lambda: False,
@@ -87,7 +87,7 @@ class ProjectInfoPanel:
         self._render_password_dialog()
         self._render_certificates_dialog()
 
-    def _render_name(self, info: "_ProjectInfo") -> None:
+    def _render_name(self, info: "ProjectInfo") -> None:
         imgui.table_next_row()
         imgui.table_set_column_index(0)
         imgui.align_text_to_frame_padding()
@@ -193,7 +193,7 @@ class ProjectInfoPanel:
             imgui.close_current_popup()
         end_dialog()
 
-    def _render_password(self, info: "_ProjectInfo") -> None:
+    def _render_password(self, info: "ProjectInfo") -> None:
         imgui.table_next_row()
         imgui.table_set_column_index(0)
         imgui.align_text_to_frame_padding()

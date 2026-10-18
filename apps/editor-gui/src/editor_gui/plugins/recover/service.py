@@ -467,7 +467,9 @@ class RecoverService:
             self.fetch_status = ""
             self._fetch_thread = None
 
-    def _fetch_manufacturer(self, manufacturer_id: str, error_type: type) -> None:
+    def _fetch_manufacturer(
+        self, manufacturer_id: str, error_type: type[Exception]
+    ) -> None:
         # The "M-XXXX" number is hex (M-0083 = 0x0083 = 131), which is the id the
         # online catalog expects; a decimal parse (83) is rejected as Bad Request.
         try:

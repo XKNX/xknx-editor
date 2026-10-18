@@ -64,7 +64,7 @@ class DeviceInfo:
     address_table_load_state: LoadState | None = None
     association_table_load_state: LoadState | None = None
     group_object_table_load_state: LoadState | None = None
-    group_objects: list[GroupObjectInfo] = field(default_factory=list)
+    group_objects: list[GroupObjectInfo] = field(default_factory=list[GroupObjectInfo])
     group_communication_error: str | None = None
     # The tables were not read: the device's application is unknown and it is not System B.
     application_unknown: bool = False

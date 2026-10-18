@@ -538,7 +538,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         file offline without searching or downloading again."""
         index = _read_index()
         cache_dir = _docs_cache_dir()
-        items = []
+        items: list[dict[str, Any]] = []
         for name, src in sorted(index.items()):
             path = cache_dir / name
             if path.exists():

@@ -11,7 +11,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-from xknx.cemi import CEMIFrame, CEMILData, CEMIMessageCode
+from xknx.cemi.cemi_frame import CEMIFrame, CEMILData
+from xknx.cemi.const import CEMIMessageCode
 from xknx.telegram import GroupAddress, Telegram, TelegramDirection
 
 from editor_gui.plugins.mcp.context import McpContext, make_tool

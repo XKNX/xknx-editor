@@ -1068,6 +1068,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     raise ToolError(
                         f"no device with node_id {nid}; call project_list_devices for valid ids"
                     )
+            assert dev_a is not None and dev_b is not None
 
             def get_links(db_id: int) -> list[tuple[int, bool]]:
                 return [

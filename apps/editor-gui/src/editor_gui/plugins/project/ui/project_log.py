@@ -29,14 +29,14 @@ from xknxeditor.proj import (
 )
 
 if TYPE_CHECKING:
-    from editor_gui.plugins.project.service import _ProjectTrace
+    from editor_gui.plugins.project.service import ProjectTrace
 
 _RED = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
 _GREEN = imgui.ImVec4(0.4, 0.8, 0.4, 1.0)
 
 
 class ProjectLogPanel:
-    def __init__(self, get_traces: Callable[[], list[_ProjectTrace]]) -> None:
+    def __init__(self, get_traces: Callable[[], list[ProjectTrace]]) -> None:
         self._get_traces = get_traces
         self._filter = ""
         # 0 = Date, 1 = User, 2 = Comment; default: newest first (Date descending).
@@ -179,26 +179,27 @@ class ProjectLogPanel:
     # --- table helpers -------------------------------------------------------------------
 
     @staticmethod
-    def _display(t: _ProjectTrace) -> str:
+    def _display(t: ProjectTrace) -> str:
         return t.comment_plain or t.comment
 
     def _read_sort(self) -> None:
         """The column and direction the user sorts by, from the header row."""
         specs = imgui.table_get_sort_specs()
-        if specs is None or not specs.specs_count:
+        # The bindings type the specs as non-optional, but they are None outside a sortable table.
+        if specs is None or not specs.specs_count:  # pyright: ignore[reportUnnecessaryComparison]
             return
         column = specs.get_specs(0)
         self._sort_key = column.column_index
         self._sort_desc = column.get_sort_direction() == imgui.SortDirection.descending
 
-    def _sort_value(self, t: _ProjectTrace) -> str:
+    def _sort_value(self, t: ProjectTrace) -> str:
         if self._sort_key == 1:
             return t.user_name.lower()
         if self._sort_key == 2:
             return self._display(t).lower()
         return t.date
 
-    def _matches(self, t: _ProjectTrace, needle: str) -> bool:
+    def _matches(self, t: ProjectTrace, needle: str) -> bool:
         return (
             needle in t.date.lower()
             or needle in t.user_name.lower()

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 
 from imgui_bundle import hello_imgui, imgui
@@ -41,7 +41,7 @@ def _load_variant(path: str, flags: int = 0) -> imgui.ImFont | None:
 
 
 @contextmanager
-def bold(scale: float = 1.0) -> Iterator[None]:
+def bold(scale: float = 1.0) -> Generator[None]:
     """Draw in the bold font at the normal text size, or ``scale`` times it."""
     imgui.push_font(_bold, imgui.get_style().font_size_base * scale)
     try:
@@ -51,7 +51,7 @@ def bold(scale: float = 1.0) -> Iterator[None]:
 
 
 @contextmanager
-def heading() -> Iterator[None]:
+def heading() -> Generator[None]:
     """Draw in the bold font at a larger headline size (for prominent intro text)."""
     imgui.push_font(_bold, imgui.get_style().font_size_base * 1.35)
     try:
@@ -61,7 +61,7 @@ def heading() -> Iterator[None]:
 
 
 @contextmanager
-def italic() -> Iterator[None]:
+def italic() -> Generator[None]:
     """Draw in the italic font at the normal text size."""
     imgui.push_font(_italic, imgui.get_style().font_size_base)
     try:

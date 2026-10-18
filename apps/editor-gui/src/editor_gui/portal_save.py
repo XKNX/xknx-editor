@@ -123,16 +123,20 @@ def _save(
     filters: list[tuple[str, str]],
     current: str,
 ) -> tuple[str, str] | None:
+    import importlib
     import secrets
     from typing import Any
 
-    import jeepney
-    from jeepney import DBusAddress, MessageType
-    from jeepney.bus_messages import MatchRule
-    from jeepney.io.blocking import open_dbus_connection
+    # jeepney ships without type stubs and is only installed on Linux. Its names are
+    # looked up as Any, so the rest of this module stays strictly typed on every OS.
+    jeepney: Any = importlib.import_module("jeepney")
+    DBusAddress = jeepney.DBusAddress
+    MessageType = jeepney.MessageType
+    MatchRule = importlib.import_module("jeepney.bus_messages").MatchRule
+    open_dbus_connection = importlib.import_module(
+        "jeepney.io.blocking"
+    ).open_dbus_connection
 
-    # jeepney ships without type stubs. The portal call is kept behind Any so the
-    # rest of this module stays strictly typed.
     token = "xknx" + secrets.token_hex(8)
     patterns = [(label, [(0, pattern)]) for label, pattern in filters]
     selected = next((item for item in patterns if item[0] == current), patterns[0])
@@ -156,8 +160,7 @@ def _save(
             path=path,
         )
         conn.bus_proxy.AddMatch(rule)
-        make_call = cast(Any, jeepney).new_method_call
-        call = make_call(
+        call = jeepney.new_method_call(
             DBusAddress(
                 "/org/freedesktop/portal/desktop",
                 bus_name="org.freedesktop.portal.Desktop",

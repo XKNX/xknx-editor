@@ -1,5 +1,6 @@
 {
   "include": [
+    "apps/editor-gui/src",
     "packages/catalog/src",
     "packages/dali/src",
     "packages/download/src",
@@ -11,7 +12,8 @@
   ],
   "exclude": [
     "**/files",
-    "**/intermediate"
+    "**/intermediate",
+    "**/tests"
   ],
   "pythonVersion": "3.13",
   "typeCheckingMode": "strict",

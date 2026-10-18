@@ -110,15 +110,6 @@ def address_order(individual_address: str | None) -> tuple[int, int, int]:
     return (area, line, number)
 
 
-_co_id_counter = 0
-
-
-def _next_co_id() -> str:
-    global _co_id_counter
-    _co_id_counter += 1
-    return f"co_{_co_id_counter}"
-
-
 FLAG_LABELS = [
     ("communication", "C", "Communication"),
     ("read", "R", "Read"),
@@ -241,13 +232,13 @@ class Device:
     product_name: str = ""
     com_objects: list[ComObject] = field(default_factory=list[ComObject])
     parameter_instance_refs: list[ParameterInstanceRef] = field(
-        default_factory=list, repr=False, compare=False
+        default_factory=list["ParameterInstanceRef"], repr=False, compare=False
     )
     module_instances: list[ModuleInstance] = field(
-        default_factory=list, repr=False, compare=False
+        default_factory=list["ModuleInstance"], repr=False, compare=False
     )
     com_object_instance_refs: list[ComObjectInstanceRef] = field(
-        default_factory=list, repr=False, compare=False
+        default_factory=list["ComObjectInstanceRef"], repr=False, compare=False
     )
     _dynamic_ui: DynamicUI | None = field(
         default=None, repr=False, compare=False, init=False

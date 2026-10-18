@@ -6,6 +6,7 @@ concise, actionable ``user_message`` (for the UI), not an opaque ``bytes`` repr.
 
 from __future__ import annotations
 
+import json
 import logging
 import urllib.request
 from typing import Any, ClassVar
@@ -63,6 +64,7 @@ def test_cloud_disabled_license_raises_actionable_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(myknx_cert, "_post", _fake_post)
+    monkeypatch.setattr(myknx_cert, "_get", _fake_get_licenses([{"id": "PROD"}]))
     session = MyKnxSession(access_token="", session_id="S1", next_ot_token="T1")
     with pytest.raises(MyKnxError) as excinfo:
         session.project_certificate("PROD", "deadbeef", "Demo")
@@ -71,6 +73,103 @@ def test_cloud_disabled_license_raises_actionable_error(
     assert "KNX Specifications" in err.detail  # raw server text kept for logs
     assert "dongle" in err.user_message.lower()  # points the user at the workaround
     assert "\\n" not in err.user_message  # newlines flattened for a one-line toast
+
+
+def _fake_get_licenses(licenses: list[dict[str, str]]) -> Any:
+    def fake_get(
+        url: str, headers: dict[str, str], timeout: float
+    ) -> tuple[int, dict[str, str], bytes]:
+        assert url.endswith("/product/getAll"), url
+        return 200, {}, json.dumps(licenses).encode()
+
+    return fake_get
+
+
+def _recording_req(
+    session: MyKnxSession,
+    monkeypatch: pytest.MonkeyPatch,
+    licenses: bytes,
+    add: tuple[int, bytes] = (200, b""),
+) -> list[str]:
+    """Answer the session's requests like MyKnx with the license list ``licenses``; record them."""
+    calls: list[str] = []
+
+    def fake_req(
+        method: str, path: str, body_bytes: bytes | None = None
+    ) -> tuple[int, bytes]:
+        calls.append(f"{method} {path}")
+        if path == "/product/getAll":
+            return 200, licenses
+        if path == "/workset":
+            return 200, b'{"id": "NEW"}'
+        if path.endswith("/certificate"):
+            return 200, b'"CERT KNX:\\"P-9.certificate\\"\\n"'
+        if path == "/workset/NEW/product/PROD":
+            return add
+        return 200, b""
+
+    monkeypatch.setattr(session, "_req", fake_req)
+    return calls
+
+
+def test_license_in_a_workset_signs_in_that_workset(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A license stays in its workset (another installation's, claimed by its session): adding
+    it to a new one fails with "Product belongs to another workset which is still active" and a
+    claim of its workset with 404, but the certificate is issued in its workset as it is. That
+    workset is neither claimed nor released, so the session using it keeps it."""
+    session = MyKnxSession(access_token="", session_id="s", next_ot_token="t")
+    calls = _recording_req(
+        session, monkeypatch, b'[{"id": "OTHER"}, {"id": "PROD", "worksetId": "WS9"}]'
+    )
+
+    cert = session.project_certificate("PROD", "hash", "P-9.certificate")
+
+    assert cert.startswith(b'CERT KNX:"P-9.certificate"')
+    assert calls == [
+        "GET /product/getAll",
+        "POST /workset/WS9/product/PROD/certificate",
+    ]
+
+
+def test_license_in_no_workset_gets_a_new_one(monkeypatch: pytest.MonkeyPatch) -> None:
+    session = MyKnxSession(access_token="", session_id="s", next_ot_token="t")
+    calls = _recording_req(session, monkeypatch, b'[{"id": "PROD", "worksetId": null}]')
+
+    session.project_certificate("PROD", "hash", "P-9.certificate")
+
+    assert calls == [
+        "GET /product/getAll",
+        "POST /workset",
+        "POST /workset/NEW/claim",
+        "POST /workset/NEW/product/PROD",
+        "POST /workset/NEW/product/PROD/certificate",
+        "POST /workset/NEW/release",
+    ]
+
+
+def test_license_in_an_unnamed_other_workset_says_so(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session = MyKnxSession(access_token="", session_id="s", next_ot_token="t")
+    _recording_req(
+        session,
+        monkeypatch,
+        b"{}",
+        add=(
+            422,
+            b'"Cannot add product to workset: session error\\n'
+            b'Product belongs to another workset which is still active."',
+        ),
+    )
+
+    with pytest.raises(MyKnxError) as excinfo:
+        session.project_certificate("PROD", "hash", "P-9.certificate")
+
+    message = excinfo.value.user_message
+    assert message.startswith("The license is in another workset")
+    assert "still active" in message
 
 
 # --- credentials must never reach the log ---------------------------------------------------

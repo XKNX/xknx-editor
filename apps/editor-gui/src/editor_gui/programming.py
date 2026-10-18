@@ -23,7 +23,8 @@ from xknxeditor.download.image import build_image
 from xknxeditor.download.scope import DownloadScope
 
 if TYPE_CHECKING:
-    from collections.abc import AbstractSet, Awaitable, Callable, Mapping
+    from collections.abc import Awaitable, Callable, Mapping
+    from collections.abc import Set as AbstractSet
 
     from xknx import XKNX
 
@@ -131,6 +132,7 @@ async def read_device_overview(xknx: XKNX, address: str) -> DeviceOverview:
 
     from xknxeditor.download import DeviceProgrammer
     from xknxeditor.download.errors import DownloadError
+    from xknxeditor.download.session import XknxBusConnection
     from xknxeditor.recover import read_application_id, read_dossier
 
     async def _prop(programmer: DeviceProgrammer, pid: int) -> bytes:
@@ -143,7 +145,7 @@ async def read_device_overview(xknx: XKNX, address: str) -> DeviceOverview:
     target = IndividualAddress(address)
     connection = await xknx.management.connect(target)
     try:
-        programmer = DeviceProgrammer(connection)
+        programmer = DeviceProgrammer(XknxBusConnection(connection))
         mask = await programmer.read_device_descriptor()
         app = await read_application_id(programmer)
         dossier = await read_dossier(programmer)
@@ -196,7 +198,10 @@ async def scan_programming_mode_devices(
     address), then reads each one's :class:`DeviceOverview` over a point-to-point connection. A
     device that answers the broadcast but fails the follow-up read is still returned, with its
     ``error`` set, so the user sees it was present."""
-    from xknx.management.procedures import nm_individual_address_read
+    # Imported from the package, where tests replace it.
+    from xknx.management.procedures import (
+        nm_individual_address_read,  # pyright: ignore[reportPrivateImportUsage]
+    )
 
     addresses = await nm_individual_address_read(xknx, timeout=timeout)
     seen: set[str] = set()

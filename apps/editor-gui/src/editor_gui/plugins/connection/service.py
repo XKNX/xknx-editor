@@ -8,13 +8,16 @@ from collections.abc import Awaitable, Callable, Collection, Coroutine
 from concurrent.futures import Future
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
-from xknx.cemi import CEMIFrame, CEMILData, CEMIMessageCode
+from xknx.cemi.cemi_frame import CEMIFrame, CEMILData
+from xknx.cemi.const import CEMIMessageCode
 from xknx.exceptions import ManagementConnectionError
-from xknx.management.procedures import (
-    dm_restart,
+from xknx.management.procedures.device.dm_restart_r_co import dm_restart
+from xknx.management.procedures.network.nm_individual_address_read import (
     nm_individual_address_read,
+)
+from xknx.management.procedures.network.nm_individual_address_serial_number_write import (
     nm_individual_address_serial_number_write,
 )
 from xknx.telegram import GroupAddress, Telegram
@@ -364,6 +367,11 @@ class ConnectionService:
     def xknx(self) -> XKNX | None:
         return self._xknx
 
+    @property
+    def _connected_xknx(self) -> XKNX:
+        """The connection, for the calls made after ``not_connected`` returned ``False``."""
+        return cast("XKNX", self._xknx)
+
     def connection_label(self, *, with_address: bool) -> str | None:
         """The connected interface's name, optionally prefixed with our individual address."""
         xknx = self._xknx
@@ -395,7 +403,7 @@ class ConnectionService:
                 original=raw_cemi.hex(" "),
                 reencoded=reencoded.hex(" "),
             )
-        future = self.run_async(self._xknx.knxip_interface.send_cemi(cemi))
+        future = self.run_async(self._connected_xknx.knxip_interface.send_cemi(cemi))
         if future is not None:
             future.add_done_callback(self._log_send_cemi_result)
         return future
@@ -423,7 +431,9 @@ class ConnectionService:
     def read_programming_mode_devices(self, timeout: float = 3.0) -> Future[Any] | None:
         if self.not_connected("read_programming_mode_devices"):
             return None
-        return self.run_async(nm_individual_address_read(self._xknx, timeout=timeout))
+        return self.run_async(
+            nm_individual_address_read(self._connected_xknx, timeout=timeout)
+        )
 
     def scan_programming_mode(self, timeout: float = 3.0) -> Future[Any] | None:
         """Find devices in programming mode and read each one's dossier off the bus.
@@ -441,7 +451,7 @@ class ConnectionService:
             return None
         self._log.info("Scanning for devices in programming mode")
         future = self.run_async(
-            scan_programming_mode_devices(self._xknx, timeout=timeout)
+            scan_programming_mode_devices(self._connected_xknx, timeout=timeout)
         )
         if future is not None:
             future.add_done_callback(self._log_progmode_scan_result)
@@ -475,7 +485,9 @@ class ConnectionService:
             serial=serial.hex(),
         )
         return self.run_async(
-            nm_individual_address_serial_number_write(self._xknx, serial, address)
+            nm_individual_address_serial_number_write(
+                self._connected_xknx, serial, address
+            )
         )
 
     def assign_individual_address(self, address: str) -> Future[Any] | None:
@@ -488,7 +500,7 @@ class ConnectionService:
         # device running and in programming mode.
         from xknxeditor.download.commissioning import program_individual_address
 
-        return self.run_async(program_individual_address(self._xknx, address))
+        return self.run_async(program_individual_address(self._connected_xknx, address))
 
     def assign_individual_address_for_device(
         self, device: Device
@@ -520,7 +532,9 @@ class ConnectionService:
                 self._send_secured(device.individual_address, Restart(), security)
             )
         else:
-            future = self.run_async(dm_restart(self._xknx, device.individual_address))
+            future = self.run_async(
+                dm_restart(self._connected_xknx, device.individual_address)
+            )
         if future is not None:
             future.add_done_callback(
                 functools.partial(
@@ -617,14 +631,14 @@ class ConnectionService:
         # normally fails - suppress it so a successful reset is not reported as an error. A failure
         # of the send itself still propagates (real error).
         target = IndividualAddress(address)
-        conn = await self._xknx.management.connect(target)
+        conn = await self._connected_xknx.management.connect(target)
         try:
             await conn.send_data(
                 RestartMasterReset(erase_code=erase_code), wait_for_ack=False
             )
         finally:
             with contextlib.suppress(Exception):
-                await self._xknx.management.disconnect(target)
+                await self._connected_xknx.management.disconnect(target)
 
     def _log_reset_result(
         self, future: Future[Any], address: str | None = None
@@ -823,7 +837,7 @@ class ConnectionService:
         )
         future = self.run_async(
             download_device(
-                self._xknx,
+                self._connected_xknx,
                 device,
                 scope,
                 group_communication,
@@ -916,7 +930,7 @@ class ConnectionService:
         )
         future = self.run_async(
             download_individual_address(
-                self._xknx,
+                self._connected_xknx,
                 device.individual_address,
                 current_address=current_address,
                 security=security,
@@ -1091,7 +1105,7 @@ class ConnectionService:
         )
         future = self.run_async(
             eval_device(
-                self._xknx,
+                self._connected_xknx,
                 device,
                 scope,
                 group_communication,
@@ -1161,7 +1175,7 @@ class ConnectionService:
         self._log.info("Reading device info", device=device.name)
         future = self.run_async(
             read_device_info(
-                self._xknx,
+                self._connected_xknx,
                 device.individual_address,
                 resolve_application,
                 group_communication=group_communication,
@@ -1225,7 +1239,7 @@ class ConnectionService:
         )
         future = self.run_async(
             run_dali_operation(
-                self._xknx,
+                self._connected_xknx,
                 device.individual_address,
                 security,
                 channel,
