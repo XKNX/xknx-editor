@@ -162,6 +162,10 @@ def apply_style() -> None:
         _clamp_colors(style)
         for col, color in _WINDOWS_COLORS.items():
             style.set_color_(col, color)
+    # The themes leave the text cursor at imgui's default, the white of its dark colors, which
+    # disappears in the white fields of the light themes. imgui's own color sets draw it in the
+    # text color.
+    style.set_color_(imgui.Col_.input_text_cursor, style.color_(imgui.Col_.text))
     _apply_table_lines(style)
     apply_window_colors()
 
