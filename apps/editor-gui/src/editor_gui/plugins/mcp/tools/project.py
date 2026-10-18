@@ -26,8 +26,15 @@ from editor_gui.device import (
 from editor_gui.device import (
     com_object_display_name,
 )
+from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 from editor_gui.plugins.project.service import DeviceProduct
+
+# A device whose parameters only the manufacturer's plugin dialog sets.
+PLUGIN_PARAMETERS_ERROR = (
+    "device {node_id} sets its parameters in the manufacturer's plugin dialog, which is "
+    "not available here; its parameters cannot be changed"
+)
 
 if TYPE_CHECKING:
     from fastmcp import FastMCP
@@ -1398,6 +1405,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         def _set() -> dict[str, Any]:
             device = _require_device(node_id)
+            if parameters_in_plugin(device):
+                raise ToolError(PLUGIN_PARAMETERS_ERROR.format(node_id=node_id))
             if not any(
                 p.ref_id == parameter_ref_id
                 for p in _collect_ui_parameters(device.get_ui())

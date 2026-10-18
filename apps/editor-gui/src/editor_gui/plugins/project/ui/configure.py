@@ -19,12 +19,12 @@ from editor_gui.device_info import (
     serial_from_project,
     serial_text,
 )
-from editor_gui.device_plugins import device_plugins
+from editor_gui.device_plugins import device_plugins, parameters_in_plugin
 from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
-from editor_gui.widgets.fonts import italic
+from editor_gui.widgets.fonts import heading, italic
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.app_id import parse_app_id
@@ -1063,7 +1063,12 @@ class ConfigurePanel:
             if imgui.begin_tab_item(
                 f"{S.EDITOR_TAB_PARAMETERS.format(count=param_count)}###editor_tab_params"
             )[0]:
-                if ui_nodes:
+                if parameters_in_plugin(device):
+                    # The standard pages would let the plugin's settings be edited without it.
+                    with heading():
+                        imgui.text_wrapped(S.PLUGIN_PARAMETERS_TITLE)
+                    imgui.text_wrapped(S.PLUGIN_PARAMETERS_TEXT)
+                elif ui_nodes:
                     self._param_filter = filter_box(
                         "##param_filter",
                         S.CONFIGURE_PARAM_FILTER_HINT,

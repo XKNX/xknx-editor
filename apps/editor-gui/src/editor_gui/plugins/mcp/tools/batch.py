@@ -12,7 +12,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
+from editor_gui.plugins.mcp.tools.project import PLUGIN_PARAMETERS_ERROR
 from editor_gui.plugins.project.service import DeviceProduct
 
 if TYPE_CHECKING:
@@ -30,6 +32,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         device = project.find_device_by_node_id(node_id)
         if device is None:
             raise ValueError(f"no device with node_id {node_id}")
+        return device
+
+    def _parameters_device(node_id: Any) -> Any:
+        device = _device(node_id)
+        if parameters_in_plugin(device):
+            raise ValueError(PLUGIN_PARAMETERS_ERROR.format(node_id=node_id))
         return device
 
     def _resolve_co_db_id(node_id: Any, ref_id: str) -> int:
@@ -92,7 +100,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             ("node_id", "parameter_ref_id", "value"),
             lambda p: (
                 project.set_param(
-                    _device(p["node_id"]), p["parameter_ref_id"], p["value"]
+                    _parameters_device(p["node_id"]), p["parameter_ref_id"], p["value"]
                 ),
                 {"node_id": p["node_id"], "parameter_ref_id": p["parameter_ref_id"]},
             )[1],

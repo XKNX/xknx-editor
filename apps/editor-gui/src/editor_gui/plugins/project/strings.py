@@ -2331,6 +2331,18 @@ class ProjectStrings:
         )
 
     @property
+    def PLUGIN_PARAMETERS_TITLE(self) -> str:
+        return _("Parameters in the Manufacturer's Plugin")
+
+    @property
+    def PLUGIN_PARAMETERS_TEXT(self) -> str:
+        return _(
+            "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX "
+            "Editor cannot run, so they cannot be changed here. A download writes their current "
+            "values unchanged; the group objects can be linked as usual."
+        )
+
+    @property
     def PLUGIN_USER_INTERFACE(self) -> str:
         return _(
             "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
