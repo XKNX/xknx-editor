@@ -184,6 +184,10 @@ def _reset_presets() -> list[tuple[str, int]]:
     ]
 
 
+# The dialog of a Program press keeps its identity while its title follows the case.
+_PROGRAM_DIALOG_ID = "###program_device"
+
+
 @dataclass(frozen=True, slots=True)
 class ProgramRequest:
     """A Program press: the scope and the choices made in its dialog, if one was needed."""
@@ -586,7 +590,8 @@ class ConfigurePanel:
             imgui.end_disabled()
             _no_application_tooltip(device)
             if self._confirm_program_open:
-                imgui.open_popup(S.PROGRAM_CONFIRM_TITLE)
+                title, _confirm = self._program_dialog(device)
+                imgui.open_popup(f"{title}{_PROGRAM_DIALOG_ID}")
                 self._confirm_program_open = False
                 self._program_without_plugin = False
                 self._overwrite_current_address = ""
@@ -1690,8 +1695,23 @@ class ConfigurePanel:
             serial_owner=owner,
         )
 
+    def _program_dialog(self, device: Device) -> tuple[str, str]:
+        """Title and confirm button of the dialog a Program press opens when it has to ask
+        something first (see direct_program_request)."""
+        scope = self._download_scope
+        if scope is DownloadScope.UNLOAD:
+            return S.PROGRAM_UNLOAD_TITLE, S.SCOPE_UNLOAD
+        if scope is DownloadScope.UNLOAD_ALL:
+            return S.SCOPE_UNLOAD_ALL, S.SCOPE_UNLOAD
+        if scope is DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS:
+            return S.SCOPE_OVERWRITE_INDIVIDUAL_ADDRESS, S.BTN_OVERWRITE_ADDRESS
+        if device.download_plugin_required and not scope.individual_address_only:
+            return S.PROGRAM_PLUGIN_TITLE, S.BTN_PROGRAM_DEVICE
+        return S.PROGRAM_SERIAL_USED_TITLE, S.BTN_PROGRAM_DEVICE
+
     def _render_program_confirm(self, device: Device) -> None:
-        if not begin_dialog(S.PROGRAM_CONFIRM_TITLE):
+        title, confirm = self._program_dialog(device)
+        if not begin_dialog(f"{title}{_PROGRAM_DIALOG_ID}"):
             return
         scope = self._download_scope
         address = device.individual_address or "?"
@@ -1701,7 +1721,17 @@ class ConfigurePanel:
             else None
         )
         use_serial = serial is not None and self._program_use_serial
-        if use_serial:
+        plugin_required = (
+            device.download_plugin_required and not scope.individual_address_only
+        )
+        imgui.push_text_wrap_pos(px(420.0))
+        if scope is DownloadScope.UNLOAD:
+            imgui.text_wrapped(S.PROGRAM_UNLOAD_TEXT.format(address=address))
+        elif scope is DownloadScope.UNLOAD_ALL:
+            imgui.text_wrapped(S.PROGRAM_UNLOAD_ALL_TEXT.format(address=address))
+        elif scope is DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS:
+            imgui.text_wrapped(S.PROGRAM_OVERWRITE_TEXT.format(address=address))
+        elif use_serial and serial is not None:
             imgui.text_wrapped(
                 S.PROGRAM_ADDRESS_SERIAL_TEXT.format(
                     address=address, serial=serial_text(serial)
@@ -1709,12 +1739,7 @@ class ConfigurePanel:
             )
         elif scope is DownloadScope.INDIVIDUAL_ADDRESS:
             imgui.text_wrapped(S.PROGRAM_ADDRESS_TEXT.format(address=address))
-        elif scope is DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS:
-            imgui.text_wrapped(S.PROGRAM_OVERWRITE_TEXT.format(address=address))
-        else:
-            imgui.text_wrapped(
-                S.PROGRAM_CONFIRM_TEXT.format(address=address, scope=scope.name)
-            )
+        imgui.pop_text_wrap_pos()
         imgui.spacing()
         if serial is not None:
             _, self._program_use_serial = checkbox(
@@ -1749,9 +1774,6 @@ class ConfigurePanel:
             if address_error is not None and self._overwrite_current_address.strip():
                 imgui.text_colored(_PLUGIN_NOTICE_COLOR, address_error)
             imgui.spacing()
-        plugin_required = (
-            device.download_plugin_required and not scope.individual_address_only
-        )
         if plugin_required:
             imgui.push_text_wrap_pos(px(420.0))
             imgui.text_colored(_PLUGIN_NOTICE_COLOR, S.PLUGIN_DOWNLOAD_WARNING)
@@ -1763,9 +1785,7 @@ class ConfigurePanel:
         can_program = (
             not plugin_required or self._program_without_plugin
         ) and address_error is None
-        clicked = dialog_buttons(
-            S.BTN_PROGRAM_DEVICE, S.BTN_CANCEL, enabled=[can_program, True]
-        )
+        clicked = dialog_buttons(confirm, S.BTN_CANCEL, enabled=[can_program, True])
         if clicked == 0:
             if self._on_program_device is not None:
                 self._on_program_device(

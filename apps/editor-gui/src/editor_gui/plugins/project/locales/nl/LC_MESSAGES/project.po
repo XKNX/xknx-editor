@@ -1871,3 +1871,21 @@ msgstr "Details"
 
 msgid "Scope: {scope}"
 msgstr "Bereik: {scope}"
+
+msgid "Unload Application Program"
+msgstr "Applicatieprogramma ontladen"
+
+msgid "This unloads the application program of the device at {address}. The device stops working until its application program is downloaded again."
+msgstr "Hiermee wordt het applicatieprogramma van het apparaat op {address} ontladen. Het apparaat werkt pas weer als het applicatieprogramma opnieuw is gedownload."
+
+msgid "This unloads the application program of the device at {address} and then resets its individual address to 15.15.255; for that, its programming button has to be pressed. The device stops working until it is commissioned again."
+msgstr "Hiermee wordt het applicatieprogramma van het apparaat op {address} ontladen en daarna het individuele adres teruggezet naar 15.15.255; daarvoor moet de programmeerknop worden ingedrukt. Het apparaat werkt pas weer als het opnieuw in bedrijf is gesteld."
+
+msgid "Overwrite Address"
+msgstr "Adres overschrijven"
+
+msgid "Manufacturer's Plugin Not Available"
+msgstr "Plug-in van de fabrikant niet beschikbaar"
+
+msgid "Serial Number Already Used"
+msgstr "Serienummer al in gebruik"

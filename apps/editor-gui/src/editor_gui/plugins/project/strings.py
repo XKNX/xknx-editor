@@ -1152,15 +1152,35 @@ class ProjectStrings:
         return _("Test Programming")
 
     @property
-    def PROGRAM_CONFIRM_TITLE(self) -> str:
-        return _("Program device?")
+    def PROGRAM_UNLOAD_TITLE(self) -> str:
+        return _("Unload Application Program")
 
     @property
-    def PROGRAM_CONFIRM_TEXT(self) -> str:
+    def PROGRAM_UNLOAD_TEXT(self) -> str:
         return _(
-            "This writes to the device at {address} (scope: {scope}) and changes its "
-            "configuration. Continue?"
+            "This unloads the application program of the device at {address}. The device "
+            "stops working until its application program is downloaded again."
         )
+
+    @property
+    def PROGRAM_UNLOAD_ALL_TEXT(self) -> str:
+        return _(
+            "This unloads the application program of the device at {address} and then resets "
+            "its individual address to 15.15.255; for that, its programming button has to be "
+            "pressed. The device stops working until it is commissioned again."
+        )
+
+    @property
+    def BTN_OVERWRITE_ADDRESS(self) -> str:
+        return _("Overwrite Address")
+
+    @property
+    def PROGRAM_PLUGIN_TITLE(self) -> str:
+        return _("Manufacturer's Plugin Not Available")
+
+    @property
+    def PROGRAM_SERIAL_USED_TITLE(self) -> str:
+        return _("Serial Number Already Used")
 
     @property
     def CONFIGURE_DOWNLOAD_SCOPE(self) -> str:
