@@ -74,7 +74,7 @@ def test_each_architecture_installs_per_user_or_for_all_users(files: dict[str, s
             ) in installer
     assert installer.count("ElevationRequirement: elevatesSelf") == 2
     assert "ReleaseDate: 2026-10-17" in installer
-    assert "FileExtensions:\n- xknx\n" in installer
+    assert "FileExtensions:\n- xknx\n- knxproj\n" in installer
 
 
 def test_other_tags_are_refused(tmp_path: Path):

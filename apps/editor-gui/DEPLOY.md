@@ -35,7 +35,8 @@ Software rendering (Mesa's `opengl32.dll` next to the exe plus `software_gl.mark
 - installs for the current user without administrator rights (`%LOCALAPPDATA%\Programs\XKNX Editor`),
   or for all users in Program Files (chosen on its first page, with a UAC prompt);
 - offers a Start menu entry, a desktop shortcut and the `.xknx` file association (all selected by
-  default), and software rendering;
+  default), opening `.knxproj` files as an import (not selected by default), and software
+  rendering;
 - registers an uninstaller in Apps & Features, which can also delete the settings, catalog and
   caches (projects and the local copies of network projects are always kept);
 - updates in place: a newer installer replaces the whole bundle and asks to close a running app;
@@ -60,7 +61,7 @@ powershell -File packaging/windows/build_installer.ps1 -Arch x64 -SourceDir dist
 
 Without `-MesaDir` the installer has no software rendering option. Unattended installation:
 `/VERYSILENT /SUPPRESSMSGBOXES /CURRENTUSER` (or `/ALLUSERS`), and optionally
-`/TASKS="startmenuicon,desktopicon,fileassoc,softwaregl"` to choose the tasks.
+`/TASKS="startmenuicon,desktopicon,fileassoc,fileassocknxproj,softwaregl"` to choose the tasks.
 
 ## WinGet
 

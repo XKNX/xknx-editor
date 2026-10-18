@@ -24,7 +24,8 @@ the [Releases page](https://github.com/xknx/xknx-editor/releases/latest) and sta
 
 On Windows, run `XKNX-Editor-windows-installer-x64.exe` (or `-arm64.exe` on Windows on ARM). It
 installs for the current user without administrator rights, adds a Start menu entry, a desktop
-shortcut and the `.xknx` file association, and can be removed in Apps & Features. In a virtual
+shortcut and the `.xknx` file association (optionally also `.knxproj`, opened as an import), and
+can be removed in Apps & Features. In a virtual
 machine without a graphics driver, select "Software rendering" in the installer. The
 `XKNX-Editor-windows-portable-*.zip` archives run without installation.
 

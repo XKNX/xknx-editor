@@ -22,6 +22,7 @@
 #define AppName "XKNX Editor"
 #define AppExe "XKNX-Editor.exe"
 #define ProgId "XKNXEditor.Project"
+#define KnxprojProgId "XKNXEditor.KnxProject"
 
 [Setup]
 ; Never change the AppId: Windows, upgrades and WinGet (ProductCode "<AppId>_is1") identify the
@@ -86,6 +87,12 @@ dutch.FileAssoc=.xknx-projecten openen met XKNX Editor
 english.FileTypeName=XKNX Editor Project
 german.FileTypeName=XKNX Editor-Projekt
 dutch.FileTypeName=XKNX Editor-project
+english.FileAssocKnxproj=Open .knxproj projects with XKNX Editor (imported into a new .xknx project)
+german.FileAssocKnxproj=.knxproj-Projekte mit XKNX Editor öffnen (Import in ein neues .xknx-Projekt)
+dutch.FileAssocKnxproj=.knxproj-projecten openen met XKNX Editor (import in een nieuw .xknx-project)
+english.KnxprojTypeName=KNX Project
+german.KnxprojTypeName=KNX-Projekt
+dutch.KnxprojTypeName=KNX-project
 english.GraphicsGroup=Graphics:
 german.GraphicsGroup=Grafik:
 dutch.GraphicsGroup=Grafische weergave:
@@ -103,6 +110,7 @@ dutch.RemoveUserData=Ook de instellingen, de productcatalogus en de caches van X
 Name: "startmenuicon"; Description: "{cm:StartMenuIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "fileassoc"; Description: "{cm:FileAssoc}"; GroupDescription: "{cm:FileAssocGroup}"
+Name: "fileassocknxproj"; Description: "{cm:FileAssocKnxproj}"; GroupDescription: "{cm:FileAssocGroup}"; Flags: unchecked
 #ifdef MesaDir
 ; Windows on ARM runs almost always in a virtual machine without OpenGL, so it is selected there.
 #if Arch == "arm64"
@@ -134,18 +142,32 @@ Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: startmenu
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
 
 [Registry]
-Root: HKA; Subkey: "Software\Classes\.xknx"; ValueType: string; ValueName: ""; ValueData: "{#ProgId}"; Flags: uninsdeletevalue; Tasks: fileassoc
-Root: HKA; Subkey: "Software\Classes\.xknx\OpenWithProgids"; ValueType: string; ValueName: "{#ProgId}"; ValueData: ""; Flags: uninsdeletevalue; Tasks: fileassoc
+Root: HKA; Subkey: "Software\Classes\.xknx"; ValueType: string; ValueName: ""; ValueData: "{#ProgId}"; Flags: uninsdeletevalue uninsdeletekeyifempty; Tasks: fileassoc
+Root: HKA; Subkey: "Software\Classes\.xknx\OpenWithProgids"; ValueType: string; ValueName: "{#ProgId}"; ValueData: ""; Flags: uninsdeletevalue uninsdeletekeyifempty; Tasks: fileassoc
 Root: HKA; Subkey: "Software\Classes\{#ProgId}"; ValueType: string; ValueName: ""; ValueData: "{cm:FileTypeName}"; Flags: uninsdeletekey; Tasks: fileassoc
 Root: HKA; Subkey: "Software\Classes\{#ProgId}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#AppExe},0"; Tasks: fileassoc
 Root: HKA; Subkey: "Software\Classes\{#ProgId}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExe}"" ""%1"""; Tasks: fileassoc
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExe}"; ValueType: none; Flags: uninsdeletekeyifempty; Tasks: fileassoc or fileassocknxproj
 Root: HKA; Subkey: "Software\Classes\Applications\{#AppExe}\SupportedTypes"; ValueType: string; ValueName: ".xknx"; ValueData: ""; Flags: uninsdeletekey; Tasks: fileassoc
-; The association was deselected on an update. The extension's default is left alone when
-; another app took it over meanwhile.
-Root: HKA; Subkey: "Software\Classes\.xknx"; ValueType: none; ValueName: ""; Flags: deletevalue; Tasks: not fileassoc; Check: XknxOpensWithUs
+; .knxproj projects, opened as an import (not selected by default). The per-user or per-machine
+; default set here wins over an association another app registered for all users; uninstalling
+; or deselecting restores that one.
+Root: HKA; Subkey: "Software\Classes\.knxproj"; ValueType: string; ValueName: ""; ValueData: "{#KnxprojProgId}"; Flags: uninsdeletevalue uninsdeletekeyifempty; Tasks: fileassocknxproj
+Root: HKA; Subkey: "Software\Classes\.knxproj\OpenWithProgids"; ValueType: string; ValueName: "{#KnxprojProgId}"; ValueData: ""; Flags: uninsdeletevalue uninsdeletekeyifempty; Tasks: fileassocknxproj
+Root: HKA; Subkey: "Software\Classes\{#KnxprojProgId}"; ValueType: string; ValueName: ""; ValueData: "{cm:KnxprojTypeName}"; Flags: uninsdeletekey; Tasks: fileassocknxproj
+Root: HKA; Subkey: "Software\Classes\{#KnxprojProgId}\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\{#AppExe},0"; Tasks: fileassocknxproj
+Root: HKA; Subkey: "Software\Classes\{#KnxprojProgId}\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\{#AppExe}"" ""%1"""; Tasks: fileassocknxproj
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExe}\SupportedTypes"; ValueType: string; ValueName: ".knxproj"; ValueData: ""; Flags: uninsdeletevalue; Tasks: fileassocknxproj
+; An association deselected on an update. The extension's default is left alone when another app
+; took it over meanwhile.
+Root: HKA; Subkey: "Software\Classes\.xknx"; ValueType: none; ValueName: ""; Flags: deletevalue; Tasks: not fileassoc; Check: ExtensionOpensWithUs('.xknx', '{#ProgId}')
+Root: HKA; Subkey: "Software\Classes\{#KnxprojProgId}"; ValueType: none; Flags: deletekey; Tasks: not fileassocknxproj
+Root: HKA; Subkey: "Software\Classes\.knxproj\OpenWithProgids"; ValueType: none; ValueName: "{#KnxprojProgId}"; Flags: deletevalue; Tasks: not fileassocknxproj
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExe}\SupportedTypes"; ValueType: none; ValueName: ".knxproj"; Flags: deletevalue; Tasks: not fileassocknxproj
+Root: HKA; Subkey: "Software\Classes\.knxproj"; ValueType: none; ValueName: ""; Flags: deletevalue; Tasks: not fileassocknxproj; Check: ExtensionOpensWithUs('.knxproj', '{#KnxprojProgId}')
 Root: HKA; Subkey: "Software\Classes\{#ProgId}"; ValueType: none; Flags: deletekey; Tasks: not fileassoc
 Root: HKA; Subkey: "Software\Classes\.xknx\OpenWithProgids"; ValueType: none; ValueName: "{#ProgId}"; Flags: deletevalue; Tasks: not fileassoc
-Root: HKA; Subkey: "Software\Classes\Applications\{#AppExe}"; ValueType: none; Flags: deletekey; Tasks: not fileassoc
+Root: HKA; Subkey: "Software\Classes\Applications\{#AppExe}\SupportedTypes"; ValueType: none; ValueName: ".xknx"; Flags: deletevalue; Tasks: not fileassoc
 
 [Run]
 Filename: "{app}\{#AppExe}"; Description: "{cm:LaunchProgram,{#AppName}}"; Flags: nowait postinstall skipifsilent
@@ -184,12 +206,12 @@ begin
   DeleteFile(ExpandConstant('{userdesktop}\XKNX-Editor.lnk'));
 end;
 
-function XknxOpensWithUs: Boolean;
+function ExtensionOpensWithUs(Extension, OurProgId: string): Boolean;
 var
   ProgId: string;
 begin
-  Result := RegQueryStringValue(HKA, 'Software\Classes\.xknx', '', ProgId) and
-    (CompareText(ProgId, '{#ProgId}') = 0);
+  Result := RegQueryStringValue(HKA, 'Software\Classes\' + Extension, '', ProgId) and
+    (CompareText(ProgId, OurProgId) = 0);
 end;
 
 function RelaunchAfterUpdate: Boolean;

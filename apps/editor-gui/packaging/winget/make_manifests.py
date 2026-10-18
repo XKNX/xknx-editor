@@ -100,6 +100,7 @@ def manifests(
         "UpgradeBehavior: install",
         "FileExtensions:",
         "- xknx",
+        "- knxproj",
         f"ProductCode: {_quote(code)}",
         f"ReleaseDate: {release_date.isoformat()}",
         "AppsAndFeaturesEntries:",
