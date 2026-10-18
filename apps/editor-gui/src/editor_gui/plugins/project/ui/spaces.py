@@ -369,7 +369,7 @@ class SpacesPanel:
 
     def _render_space_delete_confirm(self, space_id: int) -> None:
         if self._on_remove_space is None or not begin_dialog(
-            _delete_space_dialog(space_id)
+            _delete_space_dialog(space_id), width=420.0
         ):
             return
         imgui.text_wrapped(S.SPACES_DELETE_CONFIRM)

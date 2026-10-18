@@ -51,7 +51,7 @@ class DeviceConfigDialog:
         if self._open:
             imgui.open_popup(self._popup_id)
             self._open = False
-        if not begin_dialog(self._popup_id):
+        if not begin_dialog(self._popup_id, width=420.0):
             return
         is_paste = self._mode == "paste"
         count = (

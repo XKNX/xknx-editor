@@ -500,7 +500,7 @@ class GroupAddressesPanel:
     def _render_delete_range_popup(self) -> None:
         if self._on_remove_range is None:
             return
-        if not begin_dialog(S.GA_FOLDER_DELETE):
+        if not begin_dialog(S.GA_FOLDER_DELETE, width=420.0):
             return
         imgui.text_wrapped(S.GA_FOLDER_DELETE_CONFIRM)
         clicked = dialog_buttons(S.CONTEXT_DELETE, S.BTN_CANCEL)

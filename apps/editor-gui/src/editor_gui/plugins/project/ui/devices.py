@@ -349,7 +349,7 @@ class DevicesPanel:
             imgui.end_popup()
 
     def _render_delete_device_popup(self) -> None:
-        if begin_dialog(S.DEVICE_DELETE_TITLE):
+        if begin_dialog(S.DEVICE_DELETE_TITLE, width=420.0):
             device = self._delete_target_device
             name = self._device_display_name(device) if device else ""
             imgui.text_wrapped(S.DEVICE_DELETE_CONFIRM.format(name=name))
