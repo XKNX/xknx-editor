@@ -40,10 +40,6 @@ class CatalogStrings:
         return _("Online catalog not reachable")
 
     @property
-    def ONLINE_COUNT(self) -> str:
-        return _("{count} manufacturers")
-
-    @property
     def ONLINE_MATCH_COUNT(self) -> str:
         return _("{count} matches")
 
@@ -72,20 +68,16 @@ class CatalogStrings:
         return _("Search products, order number…")
 
     @property
-    def ONLINE_COUNTRY_LABEL(self) -> str:
-        return _("Country")
-
-    @property
     def ONLINE_INDEX_STATUS(self) -> str:
-        return _("Product index: {mfrs} manufacturers, {products} products")
+        return _("Product Index: {mfrs} manufacturers, {products} products")
 
     @property
     def ONLINE_INDEX_NONE(self) -> str:
-        return _("No product index yet - fetch the online catalog to build it")
+        return _("No Product Index yet - fetch the online catalog to build it")
 
     @property
     def ONLINE_INDEX_BUILDING(self) -> str:
-        return _("Building product index… {done}/{total} manufacturers")
+        return _("Building Product Index… {done}/{total} manufacturers")
 
     @property
     def ONLINE_INDEX_CANCEL(self) -> str:
@@ -245,6 +237,10 @@ class CatalogStrings:
         return _(
             "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
         )
+
+    @property
+    def LOCAL_SEARCH_HINT(self) -> str:
+        return _("Search…")
 
 
 S = CatalogStrings()

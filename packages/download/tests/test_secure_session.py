@@ -9,6 +9,7 @@ real bus.
 from __future__ import annotations
 
 import pytest
+from xknx.exceptions import ManagementConnectionTimeout
 from xknx.telegram import Telegram
 from xknx.telegram.address import IndividualAddress
 from xknx.telegram.apci import APCI
@@ -37,7 +38,9 @@ class _FakeConnection:
         self._cemi_handler = cemi_handler
         self.disconnected = False
 
-    async def request(self, payload: APCI, expected: type[APCI] | None) -> Telegram:
+    async def request(
+        self, payload: APCI, expected: type[APCI] | None = None
+    ) -> Telegram:
         hook = self._cemi_handler.data_secure
         assert hook is not None
         secured = hook.outgoing_cemi(  # type: ignore[attr-defined]
@@ -98,10 +101,12 @@ async def test_open_restores_hook_when_sync_fails(
     sentinel = object()
     xknx.cemi_handler.data_secure = sentinel
 
-    # A connection that never delivers a valid sync response.
+    # A connection whose device never answers the sync request.
     class _SilentConnection(_FakeConnection):
-        async def request(self, payload: APCI, expected: type[APCI] | None) -> Telegram:
-            return Telegram(source_address=DEVICE, destination_address=TOOL)
+        async def request(
+            self, payload: APCI, expected: type[APCI] | None = None
+        ) -> Telegram:
+            raise ManagementConnectionTimeout("no S-A_Sync response")
 
     async def connect(address: IndividualAddress) -> _SilentConnection:
         return _SilentConnection(xknx.cemi_handler)

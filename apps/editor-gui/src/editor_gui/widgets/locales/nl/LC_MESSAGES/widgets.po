@@ -152,7 +152,7 @@ msgstr "Milliseconden"
 msgid "General"
 msgstr "Algemeen"
 
-msgid "Default (inherit)"
+msgid "Default (Inherit)"
 msgstr "Standaard (overgeërfd)"
 
 msgid "Edit Description…"
@@ -208,3 +208,69 @@ msgstr "{building}  Gebouw\n{floor}  Verdieping\n{room}  Ruimte\n{device}  Appar
 
 msgid "{n}  Sequential index ({n:02} zero-pads)"
 msgstr "{n}  Volgnummer ({n:02} vult met nullen)"
+
+msgid "Size Column to Fit"
+msgstr "Kolombreedte aanpassen"
+
+msgid "Size All Columns to Fit"
+msgstr "Alle kolombreedtes aanpassen"
+
+msgid "Reset Column Order"
+msgstr "Kolomvolgorde herstellen"
+
+msgid "Reset Column Visibility"
+msgstr "Kolomweergave herstellen"
+
+msgid "Reset All Columns"
+msgstr "Alle kolommen herstellen"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "Lengte"
+
+msgid "Prio"
+msgstr "Prio"
+
+msgid "Group Addresses"
+msgstr "Groepsadressen"
+
+msgid "(empty)"
+msgstr "(leeg)"
+
+msgid "Options"
+msgstr "Opties"
+
+msgid "Columns"
+msgstr "Kolommen"
+
+msgid "Grey Out Zeros"
+msgstr "Nullen grijs weergeven"
+
+msgid "Uppercase Hex"
+msgstr "Hex in hoofdletters"
+
+msgid "Show ASCII"
+msgstr "ASCII tonen"
+
+msgid "Copy"
+msgstr "Kopiëren"
+
+msgid "Copy {count} B"
+msgstr "{count} B kopiëren"
+
+msgid "Go To:"
+msgstr "Ga naar:"
+
+msgid "{count} difference(s)"
+msgstr "{count} verschil(len)"
+
+msgid "no differences"
+msgstr "geen verschillen"
+
+msgid "Parameter:"
+msgstr "Parameter:"
+
+msgid "search…"
+msgstr "zoeken…"

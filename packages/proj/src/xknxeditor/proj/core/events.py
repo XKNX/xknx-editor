@@ -2522,6 +2522,74 @@ class RenameSpace(Event):
 
 @_register
 @dataclass
+class SetSpaceNumber(Event):
+    """Set a space's number, a free text (e.g. a room number)."""
+
+    event_type: ClassVar[str] = "SetSpaceNumber"
+
+    space_id: int
+    number: str
+    old_number: str | None = None
+
+    def apply(self, session: Session) -> None:
+        space = session.get(Space, self.space_id)
+        if space is not None:
+            self.old_number = space.number
+            space.number = self.number
+
+    def revert(self, session: Session) -> None:
+        space = session.get(Space, self.space_id)
+        if space is not None and self.old_number is not None:
+            space.number = self.old_number
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "space_id": self.space_id,
+            "number": self.number,
+            "old_number": self.old_number,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetSpaceNumber:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetSpaceDescription(Event):
+    """Set a space's description."""
+
+    event_type: ClassVar[str] = "SetSpaceDescription"
+
+    space_id: int
+    description: str
+    old_description: str | None = None
+
+    def apply(self, session: Session) -> None:
+        space = session.get(Space, self.space_id)
+        if space is not None:
+            self.old_description = space.description
+            space.description = self.description
+
+    def revert(self, session: Session) -> None:
+        space = session.get(Space, self.space_id)
+        if space is not None and self.old_description is not None:
+            space.description = self.old_description
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "space_id": self.space_id,
+            "description": self.description,
+            "old_description": self.old_description,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetSpaceDescription:
+        return cls(**data)
+
+
+@_register
+@dataclass
 class SetSpaceType(Event):
     event_type: ClassVar[str] = "SetSpaceType"
 

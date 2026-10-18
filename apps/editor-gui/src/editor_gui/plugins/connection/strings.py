@@ -217,5 +217,41 @@ class ConnectionStrings:
             "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
         )
 
+    @property
+    def STATUS_CONNECTING(self) -> str:
+        return _("Connecting…")
+
+    @property
+    def STATUS_ERROR(self) -> str:
+        return _("Error: {error}")
+
+    @property
+    def STATUS_UNKNOWN_ERROR(self) -> str:
+        return _("Unknown error")
+
+    @property
+    def STATUS_CONNECTION_FAILED(self) -> str:
+        return _("Connection failed")
+
+    @property
+    def GATEWAY_SECTION(self) -> str:
+        return _("Gateway")
+
+    @property
+    def GATEWAY_NAME(self) -> str:
+        return _("Name: {name}")
+
+    @property
+    def GATEWAY_ADDRESS(self) -> str:
+        return _("KNX Address: {address}")
+
+    @property
+    def GATEWAY_CORE_VERSION(self) -> str:
+        return _("Core Version: {version}")
+
+    @property
+    def GATEWAY_SERVICES(self) -> str:
+        return _("Services: {services}")
+
 
 S = ConnectionStrings()

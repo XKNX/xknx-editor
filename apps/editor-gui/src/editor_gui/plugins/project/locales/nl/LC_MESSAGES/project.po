@@ -286,7 +286,7 @@ msgstr "Zoeken in naam"
 msgid "Replace with"
 msgstr "Vervangen door"
 
-msgid "Create group addresses for each copy"
+msgid "Create Group Addresses for Each Copy"
 msgstr "Groepsadressen voor elke kopie aanmaken"
 
 msgid "Copy Name: {name}"
@@ -426,14 +426,20 @@ msgstr "Rol (optioneel)"
 msgid "Custom"
 msgstr "Aangepast"
 
-msgid "Switching (light)"
-msgstr "Schakelen (licht)"
+msgid "Switchable Light"
+msgstr "Schakelbaar licht"
 
-msgid "Dimming (light)"
-msgstr "Dimmen (licht)"
+msgid "Dimmable Light"
+msgstr "Dimbaar licht"
 
-msgid "Blinds / Sun Protection"
-msgstr "Jaloezie / zonwering"
+msgid "Sun Protection"
+msgstr "Zonwering"
+
+msgid "Heating (Switching Variable)"
+msgstr "Verwarming (schakelende stuurgrootheid)"
+
+msgid "Heating (Continuous Variable)"
+msgstr "Verwarming (continue stuurgrootheid)"
 
 msgid "Switchable Socket"
 msgstr "Schakelbaar stopcontact"
@@ -482,9 +488,6 @@ msgstr "Herstart"
 
 msgid "no fault reported"
 msgstr "geen fout gemeld"
-
-msgid "programming mode active"
-msgstr "programmeermodus actief"
 
 msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
 msgstr "{ready} gereed · {amb} dubbelzinnig · {bad} incompatibel · {none} geen overeenkomst"
@@ -573,7 +576,7 @@ msgstr ""
 "{count} apparaten bewerken — wijzigingen gelden voor alle, afwijkende waarden "
 "tonen <verschilt>"
 
-msgid "Apply changes to all channels"
+msgid "Apply Changes to All Channels"
 msgstr "Wijzigingen op alle kanalen toepassen"
 
 msgid "Duplicate"
@@ -597,7 +600,7 @@ msgstr "'{name}' dupliceren:"
 msgid "Parameters"
 msgstr "Parameters"
 
-msgid "Group address links"
+msgid "Group Address Links"
 msgstr "Groepsadres-koppelingen"
 
 msgid "Paste"
@@ -683,9 +686,6 @@ msgstr "Start: {time}"
 
 msgid "End: {time}"
 msgstr "Einde: {time}"
-
-msgid "Help"
-msgstr "Help"
 
 msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
 msgstr "De productgegevens van dit apparaat ontbreken - het applicatieprogramma staat niet in de catalogus. Importeer het product om het apparaat te bewerken."
@@ -808,7 +808,7 @@ msgstr "Dit apparaat bevat een configuratie-app van de fabrikant (“{name}”) 
 msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
 msgstr "De fabrikant staat het programmeren van dit apparaat alleen toe met zijn plug-in, die hier niet beschikbaar is. Zonder de plug-in kan het apparaat verkeerd geconfigureerd of in een foutstatus achterblijven."
 
-msgid "Program without the manufacturer's plugin anyway"
+msgid "Program Without the Manufacturer's Plugin Anyway"
 msgstr "Toch programmeren zonder de plug-in van de fabrikant"
 
 msgid "Overwrite Individual Address"
@@ -889,9 +889,6 @@ msgstr "Applicatieprogramma wordt bijgewerkt…"
 msgid "Changing the application program…"
 msgstr "Applicatieprogramma wordt gewijzigd…"
 
-msgid "Rename Space"
-msgstr "Ruimte hernoemen"
-
 msgid "Delete Space"
 msgstr "Ruimte verwijderen"
 
@@ -943,7 +940,7 @@ msgstr "Alle bestanden"
 msgid "Application Version"
 msgstr "Applicatieversie"
 
-msgid "Apply changes to all {count} identical devices"
+msgid "Apply Changes to All {count} Identical Devices"
 msgstr "Wijzigingen op alle {count} identieke apparaten toepassen"
 
 msgid "Assign Sequential"
@@ -1042,8 +1039,8 @@ msgstr "Apparaat verwijderen"
 msgid "Description"
 msgstr "Beschrijving"
 
-msgid "Destructive: the device is reset over the bus and must be re-commissioned with ETS. In KNX Secure mode this deactivates device security."
-msgstr "Destructief: het apparaat wordt via de bus teruggezet en moet met ETS opnieuw in bedrijf worden gesteld. In KNX Secure-modus wordt hierdoor de apparaatbeveiliging uitgeschakeld."
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "Destructief: het apparaat wordt via de bus teruggezet en moet opnieuw in bedrijf worden gesteld. In KNX Secure-modus wordt hierdoor de apparaatbeveiliging uitgeschakeld."
 
 msgid "Download PDF Manual"
 msgstr "PDF-handleiding downloaden"
@@ -1095,9 +1092,6 @@ msgstr "De handleiding van dit apparaat zoeken (via de KNX-apparatendatabase, an
 
 msgid "From"
 msgstr "Vanaf"
-
-msgid "From Device (Live)"
-msgstr "Van apparaat (live)"
 
 msgid "Full"
 msgstr "Volledig"
@@ -1177,11 +1171,8 @@ msgstr "Groepsadressen"
 msgid "Group Objects ({count})"
 msgstr "Groepsobjecten ({count})"
 
-msgid "Group addresses"
+msgid "Group Addresses"
 msgstr "Groepsadressen"
-
-msgid "Group objects read from the device"
-msgstr "Van het apparaat gelezen groepsobjecten"
 
 msgid "IP Address"
 msgstr "IP-adres"
@@ -1189,7 +1180,7 @@ msgstr "IP-adres"
 msgid "IP Configuration"
 msgstr "IP-configuratie"
 
-msgid "Individual addresses"
+msgid "Individual Addresses"
 msgstr "Fysieke adressen"
 
 msgid "Installation"
@@ -1288,7 +1279,7 @@ msgstr "Object"
 msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
 msgstr "Alleen voor ETS 6-apparaten: deze test vergelijkt het apparaat met een geheugenbeeld dat op de manier van ETS 6 is gegenereerd. Een apparaat dat het laatst met ETS 5 is geprogrammeerd, gebruikt een andere byte-indeling en toont grote onterechte verschillen - het resultaat is alleen zinvol voor een apparaat dat het laatst met ETS 6 is geprogrammeerd."
 
-msgid "Only problems"
+msgid "Only Problems"
 msgstr "Alleen problemen"
 
 msgid "Order Info"
@@ -1363,7 +1354,7 @@ msgstr "Opslaan"
 msgid "Schema Version"
 msgstr "Schemaversie"
 
-msgid "Searching manual…"
+msgid "Searching Manual…"
 msgstr "Handleiding wordt gezocht…"
 
 msgid "Select All"
@@ -1603,7 +1594,7 @@ msgstr "Automatisch"
 msgid "Secured"
 msgstr "Beveiligd"
 
-msgid "Not secured"
+msgid "Not Secured"
 msgstr "Niet beveiligd"
 
 msgid "Plain"
@@ -1645,7 +1636,7 @@ msgstr "Een groepsobject dat beveiligde communicatie vereist, zou op een onversl
 msgid "Later"
 msgstr "Later"
 
-msgid "Don't ask when adding devices"
+msgid "Don't Ask When Adding Devices"
 msgstr "Niet vragen bij het toevoegen van apparaten"
 
 msgid "KNX IP Secure"
@@ -1725,7 +1716,7 @@ msgstr "Groepsobjecten"
 msgid "No differences"
 msgstr "Geen verschillen"
 
-msgid "Only differences"
+msgid "Only Differences"
 msgstr "Alleen verschillen"
 
 msgid "Open a project with at least two devices to compare."
@@ -1748,3 +1739,135 @@ msgstr "Hier wordt de standaarddownload gebruikt."
 
 msgid "Part of the device data is not available."
 msgstr "Een deel van de apparaatgegevens ontbreekt."
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "Maak verbinding met een KNX-interface om de DALI-bus in bedrijf te stellen."
+
+msgid "Scan Bus"
+msgstr "Bus scannen"
+
+msgid "All ECGs On"
+msgstr "Alle ECG's aan"
+
+msgid "All Off"
+msgstr "Alle uit"
+
+msgid "New Installation…"
+msgstr "Nieuwe installatie…"
+
+msgid "Post Installation…"
+msgstr "Nainstallatie…"
+
+msgid "Running: {task}"
+msgstr "Bezig: {task}"
+
+msgid "scanning the bus"
+msgstr "bus wordt gescand"
+
+msgid "switching all ECGs"
+msgstr "alle ECG's worden geschakeld"
+
+msgid "blinking"
+msgstr "knipperen"
+
+msgid "stopping the blinking"
+msgstr "knipperen wordt gestopt"
+
+msgid "new installation"
+msgstr "nieuwe installatie"
+
+msgid "post installation"
+msgstr "nainstallatie"
+
+msgid "programming the groups"
+msgstr "groepen worden geprogrammeerd"
+
+msgid "programming the scenes"
+msgstr "scènes worden geprogrammeerd"
+
+msgid "{count} found"
+msgstr "{count} gevonden"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "Gebruik 'Bus scannen' om de DALI-bus te lezen."
+
+msgid "Firmware {version}"
+msgstr "Firmware {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "DALI-programmering bevestigen"
+
+msgid "Continue"
+msgstr "Doorgaan"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "Een nieuwe installatie scant de DALI-bus opnieuw en wijst het korte adres van\nELK voorschakelapparaat opnieuw toe. Dit kan niet ongedaan worden gemaakt. Doorgaan?"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "Een nainstallatie zoekt op de bus naar nieuwe voorschakelapparaten en past de\nadressering aan. Dit wijzigt het apparaat. Doorgaan?"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "De groepstoewijzing naar de DALI-bus schrijven. Dit past de groepen toe op de\ngateway en zijn voorschakelapparaten. Doorgaan?"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "De scènewaarden naar de DALI-bus schrijven. Doorgaan?"
+
+msgid "{count} ECG(s) present"
+msgstr "{count} ECG('s) aanwezig"
+
+msgid "Group"
+msgstr "Groep"
+
+msgid "Long Address"
+msgstr "Lang adres"
+
+msgid "Alarm"
+msgstr "Alarm"
+
+msgid "Blink"
+msgstr "Knipperen"
+
+msgid "Stop"
+msgstr "Stop"
+
+msgid "Program Groups…"
+msgstr "Groepen programmeren…"
+
+msgid "Scenes"
+msgstr "Scènes"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "Wijs de ECG's hierboven aan groepen toe om scènes te definiëren."
+
+msgid "Scene"
+msgstr "Scène"
+
+msgid "Scene {number}"
+msgstr "Scène {number}"
+
+msgid "Group {number}"
+msgstr "Groep {number}"
+
+msgid "Program Scenes…"
+msgstr "Scènes programmeren…"
+
+msgid "Single"
+msgstr "Enkel"
+
+msgid "Unassigned"
+msgstr "Niet toegewezen"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "Procedure {number}  ({count} stappen)"
+
+msgid "Kind"
+msgstr "Soort"
+
+msgid "Applies To"
+msgstr "Geldt voor"
+
+msgid "Details"
+msgstr "Details"
+
+msgid "Scope: {scope}"
+msgstr "Bereik: {scope}"

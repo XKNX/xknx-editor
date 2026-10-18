@@ -53,6 +53,7 @@ from editor_gui.plugins.mcp import McpServerPlugin
 from editor_gui.plugins.monitor import MonitorPlugin
 from editor_gui.plugins.project import ProjectPlugin, ProjectService
 from editor_gui.plugins.project.knxproj_manufacturer import collect_manufacturer_bundle
+from editor_gui.plugins.project.ui.spaces import space_type_label
 from editor_gui.plugins.recover import RecoverPlugin
 from editor_gui.plugins.signing import SigningPlugin
 from editor_gui.plugins.timeline import TimelinePlugin
@@ -60,19 +61,29 @@ from editor_gui.plugins.topology import TopologyPlugin
 from editor_gui.portal_save import PortalSaveDialog
 from editor_gui.settings import config_dir, load_settings, save_settings
 from editor_gui.strings import S, get_locale, set_locale
-from editor_gui.theme import ThemeWindow, apply_style, apply_theme, theme_name, themes
+from editor_gui.theme import (
+    ThemeWindow,
+    apply_style,
+    apply_theme,
+    system_theme,
+    theme_name,
+    themes,
+)
 from editor_gui.update_check import UpdateInfo, check_for_update
-from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.checkbox import checkbox, radio_button
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import (
     begin_dialog,
     dialog_buttons,
     end_dialog,
+    floating_window_border,
     focus_when_appearing,
 )
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.fonts import heading, load_fonts
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
+from editor_gui.widgets.tables import reset_all_tables
 from editor_gui.window_title import set_window_title
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
@@ -246,6 +257,22 @@ def _file_name(name: str) -> str:
     return cleaned.strip().rstrip(". ")
 
 
+def _link(url: str) -> None:
+    """``url`` as a link that opens it, with a menu to copy it (the built-in one is untranslated)."""
+    if imgui.text_link(url):
+        webbrowser.open(url)
+    if imgui.is_item_hovered():
+        imgui.set_tooltip(S.LINK_OPEN.format(url=url))
+    if imgui.begin_popup_context_item(f"##link_{url}"):
+        if imgui.menu_item(S.LINK_COPY, "", False)[0]:
+            imgui.set_clipboard_text(url)
+        imgui.end_popup()
+
+
+# Room at 100 % scaling above and below the status bar's text.
+_STATUS_PADDING = 7.0
+
+
 def _myknx_product_name(product: dict[str, object], pid: str) -> str:
     """Best-effort human-readable name for a MyKnx product/license, else the id.
 
@@ -349,6 +376,9 @@ class KnxGuiApp:
         self._theme_window = ThemeWindow()
         # FPS and the idling toggle at the end of the status bar.
         self._show_status_fps = False
+        self._show_status_bar = True
+        # The Manufacturer tab was hidden for a selected space (see _sync_device_section).
+        self._manufacturer_hidden = False
         # Overwrite guard: the portable file dialog does not confirm replacing an existing file on
         # macOS (it wraps AppleScript's "choose file name"), so we ask here. Requests queue as
         # (target, action) pairs so a second dialog resolving mid-confirmation cannot drop the first.
@@ -811,7 +841,7 @@ class KnxGuiApp:
         for index, (value, label) in enumerate((("xml", "XML"), ("csv", "CSV"))):
             if index:
                 imgui.same_line()
-            if imgui.radio_button(label, options["format"] == value):
+            if radio_button(label, options["format"] == value):
                 options["format"] = value
         imgui.spacing()
         imgui.begin_disabled(options["format"] != "csv")
@@ -829,7 +859,7 @@ class KnxGuiApp:
             )
         )
         for layout, label in layouts.items():
-            if imgui.radio_button(label, options["csv_layout"] == layout):
+            if radio_button(label, options["csv_layout"] == layout):
                 options["csv_layout"] = layout
         imgui.spacing()
         _, options["csv_header"] = checkbox(
@@ -845,7 +875,7 @@ class KnxGuiApp:
         for index, (key, label) in enumerate(separators):
             if index:
                 imgui.same_line()
-            if imgui.radio_button(f"{label}##ga_sep", options["csv_separator"] == key):
+            if radio_button(f"{label}##ga_sep", options["csv_separator"] == key):
                 options["csv_separator"] = key
         imgui.end_disabled()
         clicked = dialog_buttons(S.BTN_EXPORT, S.BTN_CANCEL)
@@ -1359,7 +1389,7 @@ class KnxGuiApp:
         formats = [("23", S.EXPORT_FORMAT_ETS6), ("20", S.EXPORT_FORMAT_ETS5)]
         current = next(lbl for code, lbl in formats if code == self._export_schema)
         imgui.set_next_item_width(-1)
-        if imgui.begin_combo("##export_schema", current):
+        if begin_combo("##export_schema", current):
             for code, lbl in formats:
                 if imgui.selectable(lbl, code == self._export_schema)[0]:
                     self._set_export_schema(code)
@@ -1525,7 +1555,7 @@ class KnxGuiApp:
             self._myknx_products[0][1],
         )
         imgui.set_next_item_width(-1)
-        if imgui.begin_combo("##myknx_license", current):
+        if begin_combo("##myknx_license", current):
             for pid, lbl, enabled in self._myknx_products:
                 # Non-cloud/expired licenses stay visible but greyed out and unselectable, so the
                 # user sees the whole account and why a license cannot sign online.
@@ -1943,7 +1973,7 @@ class KnxGuiApp:
         current = next(
             label for style, label in styles if style is self._new_project_style
         )
-        if imgui.begin_combo("##new_project_style", current):
+        if begin_combo("##new_project_style", current):
             for style, label in styles:
                 if imgui.selectable(label, style is self._new_project_style)[0]:
                     self._new_project_style = style
@@ -2550,6 +2580,84 @@ class KnxGuiApp:
 
         self._run_bg(S.PROGRESS_LOAD_KNXPROD, worker)
 
+    def _sync_device_section(self) -> None:
+        """While a space is selected in the Buildings tree, the Device tab shows it, titled with
+        its type (Building, Floor, …), and the Manufacturer tab is hidden and left out of the
+        menus; selecting a device again restores both."""
+        space = self._project_plugin.selected_space()
+        title = (
+            space_type_label(space.space_type) or _DOCK_LABELS["device"]()
+            if space is not None
+            else _DOCK_LABELS["device"]()
+        )
+        for window in hello_imgui.get_runner_params().docking_params.dockable_windows:
+            name = _dock_window_name(window)
+            if name == "device":
+                label = f"{title}###device"
+                if window.label != label:
+                    window.label = label
+            elif name == "manufacturer":
+                window.include_in_view_menu = space is None
+                if space is not None and window.is_visible:
+                    window.is_visible = False
+                    self._manufacturer_hidden = True
+                elif space is None and self._manufacturer_hidden:
+                    window.is_visible = True
+                    self._manufacturer_hidden = False
+
+    def _render_status_bar(self) -> None:
+        """The status bar along the bottom of the window, below the docked panels: a thin line on
+        top, and as much room above its text as below it. The docked panels end above it."""
+        window_params = hello_imgui.get_runner_params().imgui_window_params
+        if not self._show_status_bar:
+            window_params.full_screen_window_margin_bottom_right = imgui.ImVec2(
+                0.0, 0.0
+            )
+            return
+        pad = px(_STATUS_PADDING)
+        # One line of text; the idling checkbox of the FPS display fits that line too.
+        height = 1.0 + 2 * pad + imgui.get_text_line_height()
+        # The margin is in units of the font size.
+        window_params.full_screen_window_margin_bottom_right = imgui.ImVec2(
+            0.0, height / imgui.get_font_size()
+        )
+        viewport = imgui.get_main_viewport()
+        imgui.set_next_window_pos(
+            imgui.ImVec2(viewport.pos.x, viewport.pos.y + viewport.size.y - height)
+        )
+        imgui.set_next_window_size(imgui.ImVec2(viewport.size.x, height))
+        style = imgui.get_style()
+        imgui.push_style_var(
+            imgui.StyleVar_.window_padding,
+            imgui.ImVec2(style.window_padding.x, pad + 1.0),
+        )
+        imgui.push_style_var(imgui.StyleVar_.window_border_size, 0.0)
+        imgui.push_style_var(imgui.StyleVar_.window_rounding, 0.0)
+        flags = (
+            imgui.WindowFlags_.no_decoration
+            | imgui.WindowFlags_.no_move
+            | imgui.WindowFlags_.no_saved_settings
+            | imgui.WindowFlags_.no_docking
+            | imgui.WindowFlags_.no_focus_on_appearing
+            | imgui.WindowFlags_.no_bring_to_front_on_focus
+            | imgui.WindowFlags_.no_nav
+            | imgui.WindowFlags_.no_nav_focus
+        )
+        if imgui.begin("##status_bar", None, flags)[0]:
+            top_left = imgui.get_window_pos()
+            top_right = imgui.ImVec2(
+                top_left.x + imgui.get_window_width(), top_left.y + 1.0
+            )
+            draw_list = imgui.get_window_draw_list()
+            draw_list.push_clip_rect(top_left, top_right, False)
+            draw_list.add_rect_filled(
+                top_left, top_right, imgui.get_color_u32(imgui.Col_.separator)
+            )
+            draw_list.pop_clip_rect()
+            self.gui_status_bar()
+        imgui.end()
+        imgui.pop_style_var(3)
+
     def gui_status_bar(self) -> None:
         self._connection_plugin.render_status_indicator()
 
@@ -2665,11 +2773,17 @@ class KnxGuiApp:
         imgui.same_line(
             max(imgui.get_window_width() - width - style.window_padding.x, 0.0)
         )
+        # The checkbox, a little higher than the text, centred on the text line so the status
+        # bar keeps its height.
+        imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() - style.frame_padding.y / 4)
         _, idling.enable_idling = checkbox(S.MENU_ENABLE_IDLING, idling.enable_idling)
         imgui.same_line()
         imgui.text_disabled(fps)
 
     def gui_menu(self) -> None:
+        # The menu bar is not a window to switch to with Ctrl+Tab (it would be listed there with
+        # an untranslated name).
+        imgui.internal.get_current_window().flags |= imgui.WindowFlags_.no_nav_focus
         if imgui.begin_menu(S.MENU_FILE):
             if imgui.menu_item(S.MENU_NEW_PROJECT, S.SHORTCUT_NEW, False)[0]:
                 self._new_project()
@@ -2844,7 +2958,7 @@ class KnxGuiApp:
         imgui.text_disabled(S.ABOUT_LICENSE)
         imgui.text(S.ABOUT_WEBSITE)
         imgui.same_line()
-        imgui.text_link_open_url(_REPO_URL, _REPO_URL)
+        _link(_REPO_URL)
         clicked = dialog_buttons(S.MENU_CHECK_UPDATES, S.BTN_OK)
         if clicked == 0:
             self._start_update_check(manual=True)
@@ -3257,6 +3371,8 @@ class KnxGuiApp:
 
     def render_overlays(self) -> None:
         self._project_service.take_rechecked_devices()
+        self._sync_device_section()
+        self._render_status_bar()
         render_section_menus()
         set_window_title(self._window_title())
         # Log the active OpenGL renderer once, from the frame path (context guaranteed current).
@@ -3734,6 +3850,7 @@ class KnxGuiApp:
             for w in params.docking_params.dockable_windows:
                 w.dock_space_name = docks.get(_dock_window_name(w), w.dock_space_name)
             self._rebuild_layout(expanded=False, ratios={})
+            reset_all_tables()
         imgui.separator()
         windows = [
             w for w in params.docking_params.dockable_windows if w.include_in_view_menu
@@ -3770,11 +3887,9 @@ class KnxGuiApp:
             data["show_context_help"] = shown
             save_settings("app", data)
         window_params = params.imgui_window_params
-        changed, shown = imgui.menu_item(
-            S.MENU_STATUS_BAR, "", window_params.show_status_bar
-        )
+        changed, shown = imgui.menu_item(S.MENU_STATUS_BAR, "", self._show_status_bar)
         if changed:
-            window_params.show_status_bar = shown
+            self._show_status_bar = shown
         changed, shown = imgui.menu_item(S.MENU_STATUS_FPS, "", self._show_status_fps)
         if changed:
             self._show_status_fps = shown
@@ -3955,7 +4070,8 @@ class KnxGuiApp:
         imgui.set_next_window_size(px_vec2(580.0, 0.0), imgui.Cond_.appearing)
         flags = imgui.WindowFlags_.no_collapse | imgui.WindowFlags_.no_saved_settings
         # p_open=True gives the window a close (X) button; when clicked it returns open=False.
-        expanded, still_open = imgui.begin(S.WELCOME_TITLE, True, flags)
+        with floating_window_border():
+            expanded, still_open = imgui.begin(S.WELCOME_TITLE, True, flags)
         if expanded:
             imgui.text_wrapped(S.WELCOME_HINT)
             imgui.spacing()
@@ -4357,9 +4473,11 @@ def _main() -> None:
     )
     runner_params.imgui_window_params.enable_viewports = False
 
-    # A polished dark theme + rounded, well-spaced widgets for a modern look.
+    # The chosen theme is stored in the layout .ini (see below); a first start, with no .ini
+    # yet, follows the system's light or dark preference.
+    ini_path = config_dir() / "XKNX_Editor.ini"
     runner_params.imgui_window_params.tweaked_theme.theme = (
-        hello_imgui.ImGuiTheme_.darcula_darker
+        hello_imgui.ImGuiTheme_.darcula_darker if ini_path.exists() else system_theme()
     )
     runner_params.callbacks.setup_imgui_style = apply_style
     runner_params.callbacks.load_additional_fonts = load_fonts
@@ -4369,16 +4487,14 @@ def _main() -> None:
     runner_params.imgui_window_params.show_menu_view = False
     runner_params.callbacks.show_menus = app.gui_menu
 
-    runner_params.imgui_window_params.show_status_bar = True
-    runner_params.imgui_window_params.show_status_fps = (
-        False  # hide the built-in FPS counter
-    )
+    # The app draws its own status bar (KnxGuiApp._render_status_bar), as high as its content.
+    runner_params.imgui_window_params.show_status_bar = False
+    runner_params.imgui_window_params.show_status_fps = False
     runner_params.imgui_window_params.remember_status_bar_settings = False
-    runner_params.callbacks.show_status = app.gui_status_bar
 
     # Keep the imgui layout .ini in the central data dir (with the JSON settings and catalog).
     runner_params.ini_folder_type = hello_imgui.IniFolderType.absolute_path
-    runner_params.ini_filename = str(config_dir() / "XKNX_Editor.ini")
+    runner_params.ini_filename = str(ini_path)
     runner_params.docking_params.docking_splits = create_docking_splits(
         app.bottom_expanded
     )

@@ -6,7 +6,9 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.logger.service import LogRecord
 from editor_gui.plugins.logger.strings import S
+from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 LEVEL_COLORS: dict[str, tuple[float, float, float]] = {
     "debug": (0.5, 0.5, 0.55),
@@ -96,7 +98,7 @@ class LogPanel:
         )
         imgui.same_line()
         imgui.set_next_item_width(px(100))
-        _, self._min_level_idx = imgui.combo(
+        _, self._min_level_idx = combo(
             "##loglevel", self._min_level_idx, [label for label, _ in _LEVEL_OPTIONS]
         )
         imgui.same_line()
@@ -123,8 +125,9 @@ class LogPanel:
             | imgui.TableFlags_.borders_inner_h
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.borders_inner_v
+            | imgui.TableFlags_.reorderable
         )
-        if not imgui.begin_table("##logs", 3, flags, imgui.ImVec2(avail.x, avail.y)):
+        if not begin_data_table("##logs", 3, flags, imgui.ImVec2(avail.x, avail.y)):
             return
 
         imgui.table_setup_scroll_freeze(0, 1)
@@ -135,7 +138,7 @@ class LogPanel:
             S.COL_LEVEL, imgui.TableColumnFlags_.width_fixed, px(55)
         )
         imgui.table_setup_column(S.COL_MESSAGE, imgui.TableColumnFlags_.width_stretch)
-        imgui.table_headers_row()
+        data_table_headers()
 
         clipper = imgui.ListClipper()
         clipper.begin(len(records))

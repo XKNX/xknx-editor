@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any
 from imgui_bundle import imgui, imspinner
 from xknx import XKNX
 from xknx.core import XknxConnectionState
-from xknx.exceptions import ConfirmationError
+from xknx.exceptions import ConfirmationError, RequestResponseError
 from xknx.io.connection import ConnectionConfig, ConnectionType
 from xknx.io.const import DEFAULT_MCAST_GRP
 from xknx.io.gateway_scanner import GatewayDescriptor, GatewayScanner
@@ -23,7 +23,6 @@ from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.connection.busmonitor import (
     DEFAULT_GATEWAY_PORT,
     BusmonitorConnection,
-    RequestResponseError,
     rejection_reason,
 )
 from editor_gui.plugins.connection.interface import ObservableKNXIPInterfaceThreaded
@@ -879,16 +878,19 @@ class ConnectionPlugin:
             )
             imgui.dummy(px_vec2(12, 0))
             imgui.same_line()
-            imgui.text_disabled("Connecting…")
+            imgui.text_disabled(S.STATUS_CONNECTING)
         elif self._state == ConnectionState.ERROR:
             draw_list.add_circle_filled(center, px(4), color_u32(0.8, 0.2, 0.2, 1.0))
             imgui.dummy(px_vec2(12, 0))
             imgui.same_line()
             error_short = (
-                self._error_message[:60] if self._error_message else "Unknown error"
+                self._error_message[:60]
+                if self._error_message
+                else S.STATUS_UNKNOWN_ERROR
             )
             imgui.text_colored(
-                imgui.ImVec4(0.8, 0.2, 0.2, 1.0), f"Error: {error_short}"
+                imgui.ImVec4(0.8, 0.2, 0.2, 1.0),
+                S.STATUS_ERROR.format(error=error_short),
             )
             if self._error_message and imgui.is_item_hovered():
                 imgui.set_tooltip(self._error_message)
@@ -1122,13 +1124,23 @@ class ConnectionPlugin:
                 imgui.text(S.STATUS_CONNECTED_TO.format(ip=self._connection_target))
                 if self._gateway_info:
                     imgui.separator()
-                    imgui.text_disabled("Gateway")
-                    imgui.text(f"  Name: {self._gateway_info.name}")
+                    imgui.text_disabled(S.GATEWAY_SECTION)
+                    imgui.text(
+                        "  " + S.GATEWAY_NAME.format(name=self._gateway_info.name)
+                    )
                     if self._gateway_info.individual_address:
                         imgui.text(
-                            f"  KNX Address: {self._gateway_info.individual_address}"
+                            "  "
+                            + S.GATEWAY_ADDRESS.format(
+                                address=self._gateway_info.individual_address
+                            )
                         )
-                    imgui.text(f"  Core Version: {self._gateway_info.core_version}")
+                    imgui.text(
+                        "  "
+                        + S.GATEWAY_CORE_VERSION.format(
+                            version=self._gateway_info.core_version
+                        )
+                    )
                     services: list[str] = []
                     if self._gateway_info.supports_tunnelling:
                         services.append("Tunneling")
@@ -1139,7 +1151,10 @@ class ConnectionPlugin:
                     if self._gateway_info.supports_secure:
                         services.append("Secure")
                     if services:
-                        imgui.text(f"  Services: {', '.join(services)}")
+                        imgui.text(
+                            "  "
+                            + S.GATEWAY_SERVICES.format(services=", ".join(services))
+                        )
                 imgui.separator()
                 imgui.text_disabled(S.SECTION_DIAGNOSTICS)
                 if imgui.menu_item(S.MENU_READ_PROGMODE, "", self._progmode_open)[0]:
@@ -1148,10 +1163,10 @@ class ConnectionPlugin:
                 if imgui.menu_item(S.MENU_DISCONNECT, "", False)[0]:
                     self.disconnect()
             elif self._state == ConnectionState.CONNECTING:
-                imgui.text_disabled("Connecting…")
+                imgui.text_disabled(S.STATUS_CONNECTING)
             elif self._state == ConnectionState.ERROR:
                 imgui.text_colored(
-                    imgui.ImVec4(0.8, 0.2, 0.2, 1.0), "Connection failed"
+                    imgui.ImVec4(0.8, 0.2, 0.2, 1.0), S.STATUS_CONNECTION_FAILED
                 )
                 if self._error_message:
                     imgui.text_wrapped(self._error_message)

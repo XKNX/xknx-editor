@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any
 
 from editor_gui.plugins.base import Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.catalog.online_catalog import (
-    CATALOG_LANGUAGES,
     OnlineCatalogError,
 )
 from editor_gui.plugins.catalog.strings import S
@@ -32,9 +31,6 @@ class CatalogPlugin:
             on_online_refresh=self._refresh_online,
             fetch_online_items=self._fetch_online_items,
             download_online_item=self._download_online_item,
-            language_options=CATALOG_LANGUAGES,
-            get_language=lambda: api.catalog.online_language,
-            set_language=api.catalog.set_online_language,
             get_missing_app_count=self._missing_app_count,
             fetch_missing_apps=self._fetch_missing_apps,
             build_online_index=self._build_online_index,

@@ -37,7 +37,7 @@ msgstr "Mediumconfiguratie"
 msgid "Name"
 msgstr "Naam"
 
-msgid "Needs attention only"
+msgid "Needs Attention Only"
 msgstr "Alleen actie vereist"
 
 msgid "No project open"

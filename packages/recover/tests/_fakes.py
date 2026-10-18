@@ -39,7 +39,9 @@ class FakeConnection:
     async def send_data(self, payload: APCI, wait_for_ack: bool = True) -> None:
         raise AssertionError(f"unexpected send_data: {payload}")
 
-    async def request(self, payload: APCI, expected: type[APCI] | None) -> Telegram:
+    async def request(
+        self, payload: APCI, expected: type[APCI] | None = None
+    ) -> Telegram:
         if isinstance(payload, DeviceDescriptorRead):
             return _telegram(
                 DeviceDescriptorResponse(descriptor=0, value=self.descriptor)

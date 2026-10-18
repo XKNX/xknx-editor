@@ -7,9 +7,12 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass
 
+import darkdetect
 from imgui_bundle import hello_imgui, imgui
 
 from editor_gui.strings import S
+from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import begin_tool_window
 from editor_gui.widgets.dpi import label_column_width
 from editor_gui.widgets.filter_box import filter_box
@@ -53,6 +56,18 @@ def themes() -> list[hello_imgui.ImGuiTheme_]:
     ]
 
 
+def system_theme() -> hello_imgui.ImGuiTheme_:
+    """The theme to start with when none was chosen yet: Microsoft Style when the system prefers
+    light apps, Darcula (Darker) when it prefers dark ones or does not tell."""
+    try:
+        light = darkdetect.isLight()
+    except Exception:
+        light = None
+    if light:
+        return hello_imgui.ImGuiTheme_.microsoft_style
+    return hello_imgui.ImGuiTheme_.darcula_darker
+
+
 def theme_name(theme: hello_imgui.ImGuiTheme_) -> str:
     return _THEME_NAMES.get(theme) or hello_imgui.imgui_theme_name(theme)
 
@@ -67,6 +82,50 @@ def color_name(name: str) -> str:
     return f"{text} ({' '.join(states)})" if states else text
 
 
+# How far table lines move from the window color toward the text color in a light theme: the
+# lines between cells, and the outer ones.
+_TABLE_LINE = 0.15
+_TABLE_LINE_STRONG = 0.25
+# The text color of Windows dialogs (#333333).
+_WINDOWS_TEXT = imgui.ImVec4(0.2, 0.2, 0.2, 1.0)
+
+
+def _rgb(r: int, g: int, b: int) -> imgui.ImVec4:
+    return imgui.ImVec4(r / 255, g / 255, b / 255, 1.0)
+
+
+# Microsoft Style with the colors of Windows dialogs: hovered items light blue, pressed ones a
+# little darker, the selected tab white like the page beside it with a blue line on top. The
+# theme's own tab colors barely differ, so neither hovering nor the selected tab showed. Field
+# borders and lines are the light grays of Windows dialogs, the scrollbars those of Windows.
+_WINDOWS_THEMES = (
+    hello_imgui.ImGuiTheme_.microsoft_style,
+    hello_imgui.ImGuiTheme_.white_is_white,
+)
+_WINDOWS_COLORS = {
+    imgui.Col_.text: _WINDOWS_TEXT,
+    # Ticked checkboxes and chosen radio buttons in the dark gray of the text, not near black.
+    imgui.Col_.check_mark: _WINDOWS_TEXT,
+    imgui.Col_.border: _rgb(204, 204, 204),
+    imgui.Col_.separator: _rgb(229, 229, 229),
+    imgui.Col_.scrollbar_bg: _rgb(240, 240, 240),
+    imgui.Col_.scrollbar_grab: _rgb(205, 205, 205),
+    imgui.Col_.scrollbar_grab_hovered: _rgb(166, 166, 166),
+    imgui.Col_.scrollbar_grab_active: _rgb(96, 96, 96),
+    imgui.Col_.tab: _rgb(228, 228, 228),
+    imgui.Col_.tab_hovered: _rgb(229, 241, 251),
+    imgui.Col_.tab_selected: _rgb(255, 255, 255),
+    imgui.Col_.tab_selected_overline: _rgb(0, 120, 215),
+    imgui.Col_.tab_dimmed: _rgb(228, 228, 228),
+    imgui.Col_.tab_dimmed_selected: _rgb(255, 255, 255),
+    imgui.Col_.tab_dimmed_selected_overline: _rgb(160, 160, 160),
+    imgui.Col_.button_hovered: _rgb(229, 241, 251),
+    imgui.Col_.button_active: _rgb(204, 228, 247),
+    imgui.Col_.header_hovered: _rgb(229, 241, 251),
+    imgui.Col_.header_active: _rgb(204, 228, 247),
+}
+
+
 def apply_theme(tweaked: hello_imgui.ImGuiTweakedTheme) -> None:
     """Apply ``tweaked`` with the editor's own style on top, as the editor starts with it."""
     hello_imgui.apply_tweaked_theme(tweaked)
@@ -77,15 +136,21 @@ def apply_style() -> None:
     """Refine the imgui style on top of the theme: rounded corners + roomier spacing. A rounding
     the theme was adjusted to stays."""
     style = imgui.get_style()
-    tweaks = hello_imgui.get_runner_params().imgui_window_params.tweaked_theme.tweaks
-    if tweaks.rounding < 0:
-        style.window_rounding = 6.0
-        style.child_rounding = 4.0
-        style.frame_rounding = 4.0
-        style.popup_rounding = 4.0
-        style.grab_rounding = 4.0
-        style.tab_rounding = 4.0
-        style.scrollbar_rounding = 4.0
+    tweaked = hello_imgui.get_runner_params().imgui_window_params.tweaked_theme
+    # White Is White is Microsoft Style a little darker: it gets the same Windows colors, but
+    # keeps rounded corners.
+    windows = tweaked.theme in _WINDOWS_THEMES
+    square = tweaked.theme == hello_imgui.ImGuiTheme_.microsoft_style
+    if tweaked.tweaks.rounding < 0:
+        # Square corners in Microsoft Style, like Windows dialogs; rounded ones elsewhere.
+        rounding = 0.0 if square else 4.0
+        style.window_rounding = 0.0 if square else 6.0
+        style.child_rounding = rounding
+        style.frame_rounding = rounding
+        style.popup_rounding = rounding
+        style.grab_rounding = rounding
+        style.tab_rounding = rounding
+        style.scrollbar_rounding = rounding
     style.frame_border_size = 1.0
     style.window_padding = imgui.ImVec2(10.0, 10.0)
     style.frame_padding = imgui.ImVec2(8.0, 4.0)
@@ -93,7 +158,42 @@ def apply_style() -> None:
     style.item_inner_spacing = imgui.ImVec2(6.0, 4.0)
     style.scrollbar_size = 12.0
     style.cell_padding = imgui.ImVec2(6.0, 4.0)
+    if windows:
+        _clamp_colors(style)
+        for col, color in _WINDOWS_COLORS.items():
+            style.set_color_(col, color)
+    _apply_table_lines(style)
     apply_window_colors()
+
+
+def _clamp_colors(style: imgui.Style) -> None:
+    """Every color within 0..1: White Is White gives its window backgrounds about 6.6 (drawn as
+    white), which the backgrounds mixed from them would carry along."""
+    for col in range(imgui.Col_.count):
+        c = style.color_(col)
+        style.set_color_(
+            col,
+            imgui.ImVec4(*(min(max(v, 0.0), 1.0) for v in (c.x, c.y, c.z, c.w))),
+        )
+
+
+def _apply_table_lines(style: imgui.Style) -> None:
+    """In a light theme, table lines a little darker than the window rather than the near black
+    some light themes ship (dark themes draw them subtly already)."""
+    window = style.color_(imgui.Col_.window_bg)
+    w = [min(max(c, 0.0), 1.0) for c in (window.x, window.y, window.z)]
+    if 0.2126 * w[0] + 0.7152 * w[1] + 0.0722 * w[2] < 0.5:
+        return
+    text = style.color_(imgui.Col_.text)
+    for col, share in (
+        (imgui.Col_.table_border_light, _TABLE_LINE),
+        (imgui.Col_.table_border_strong, _TABLE_LINE_STRONG),
+    ):
+        mixed = [
+            a + (b - a) * share
+            for a, b in zip(w, (text.x, text.y, text.z), strict=True)
+        ]
+        style.set_color_(col, imgui.ImVec4(mixed[0], mixed[1], mixed[2], 1.0))
 
 
 def apply_window_colors() -> None:
@@ -261,6 +361,39 @@ def _label(text: str, column: float) -> None:
     imgui.set_next_item_width(-1.0)
 
 
+def _color_field(index: int, color: imgui.ImVec4, flags: int) -> imgui.ImVec4 | None:
+    """A color's swatch, which opens a picker, and its hex field; the changed color, if any.
+    Drawn from parts, as the built-in color field's menu and picker labels are untranslated."""
+    changed_color: imgui.ImVec4 | None = None
+    popup = f"##color_picker{index}"
+    if imgui.color_button(f"##swatch{index}", color, flags):
+        imgui.open_popup(popup)
+    imgui.same_line(0.0, imgui.get_style().item_inner_spacing.x)
+    imgui.set_next_item_width(-1.0)
+    changed, edited = imgui.color_edit4(
+        f"##color{index}",
+        color,
+        flags
+        | imgui.ColorEditFlags_.no_picker
+        | imgui.ColorEditFlags_.no_options
+        | imgui.ColorEditFlags_.no_small_preview,
+    )
+    if changed:
+        changed_color = edited
+    if imgui.begin_popup(popup):
+        changed, picked = imgui.color_picker4(
+            f"##picker{index}",
+            color,
+            flags
+            | imgui.ColorEditFlags_.no_side_preview
+            | imgui.ColorEditFlags_.no_options,
+        )
+        if changed:
+            changed_color = picked
+        imgui.end_popup()
+    return changed_color
+
+
 def _slider(owner: object, setting: _Setting, column: float) -> bool:
     """The slider of ``setting`` on ``owner``; whether it changed."""
     _label(setting.label(), column)
@@ -326,7 +459,7 @@ class ThemeWindow:
     def _render_theme(self, tweaked: hello_imgui.ImGuiTweakedTheme) -> None:
         column = _column(S.MENU_THEME, *(s.label() for s in _ADJUSTMENTS))
         _label(S.MENU_THEME, column)
-        if imgui.begin_combo("##theme", theme_name(tweaked.theme)):
+        if begin_combo("##theme", theme_name(tweaked.theme)):
             for theme in themes():
                 if imgui.selectable(theme_name(theme), theme == tweaked.theme)[0]:
                     tweaked.theme = theme
@@ -373,10 +506,8 @@ class ThemeWindow:
             column = _column(*(n for _, n in shown))
             for index, name in shown:
                 _label(name, column)
-                changed, color = imgui.color_edit4(
-                    f"##color{index}", style.color_(index), flags
-                )
-                if changed:
+                color = _color_field(index, style.color_(index), flags)
+                if color is not None:
                     style.set_color_(index, color)
         imgui.end_child()
 
@@ -391,12 +522,12 @@ class ThemeWindow:
         for setting in _RENDERING:
             _slider(style, setting, column)
         _label(S.THEME_ANTI_ALIASED_LINES, column)
-        style.anti_aliased_lines = imgui.checkbox(
+        style.anti_aliased_lines = checkbox(
             "##anti_aliased_lines", style.anti_aliased_lines
         )[1]
         _label(S.THEME_ANTI_ALIASED_FILL, column)
-        style.anti_aliased_fill = imgui.checkbox(
+        style.anti_aliased_fill = checkbox(
             "##anti_aliased_fill", style.anti_aliased_fill
         )[1]
         _label(S.THEME_DEMO_WINDOW, column)
-        self._demo = imgui.checkbox("##demo_window", self._demo)[1]
+        self._demo = checkbox("##demo_window", self._demo)[1]

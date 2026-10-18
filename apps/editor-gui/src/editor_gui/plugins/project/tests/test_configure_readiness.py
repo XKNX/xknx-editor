@@ -53,7 +53,6 @@ def test_ip_secure_settings_wait_for_the_application(
         "_render_device_actions",
         "_render_application_program",
         "_render_manual_button",
-        "_render_readout_result",
         "_render_ip_config",
     ):
         monkeypatch.setattr(panel, name, lambda *_args: None)

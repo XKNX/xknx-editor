@@ -17,7 +17,7 @@ from editor_gui.device_info import (
     serial_text,
     size_text,
 )
-from editor_gui.plugins.project.device_info_view import device_info_sections
+from editor_gui.plugins.project.device_info_view import Toned, device_info_sections
 from editor_gui.plugins.project.program_queue import (
     OperationState,
     ProgramQueue,
@@ -116,6 +116,7 @@ def test_sections_leave_out_unread_values() -> None:
     assert "Order Number" not in general
     assert sections[1][1] == [
         ("Application Program", "KNX Association LED-Dimmer"),
+        ("Application Version", "5.1"),
         ("Load State", "Loaded"),
     ]
     assert sections[2][1] == [
@@ -157,6 +158,38 @@ def test_system_b_masks() -> None:
     assert is_system_b(0x57B0)
     assert not is_system_b(0x0705)
     assert not is_system_b(None)
+
+
+def test_sections_compare_with_the_project() -> None:
+    info = DeviceInfo(
+        individual_address="1.0.27",
+        programming_mode=True,
+        error_code=0,
+        application=AppId("M-00FA", 0xA012, 0x51),
+        group_objects=[
+            GroupObjectInfo(1, "1 bit", "", (0x0B02,)),
+            GroupObjectInfo(2, "1 bit", "", (0x0B03,)),
+        ],
+    )
+    sections = device_info_sections(
+        info,
+        manufacturers={},
+        application_name=None,
+        group_address=str,
+        project_version=0x50,
+        expected={1: {0x0B02}, 2: {0x0B04}},
+    )
+    general = dict(sections[0][1])
+    assert isinstance(general["Programming Mode"], Toned)
+    assert general["Programming Mode"].tone == "differs"
+    assert general["Status"] == "no fault reported"
+    assert general["Status"].tone == "ok"
+    version = dict(sections[1][1])["Application Version"]
+    assert version.startswith("5.1") and "5.0" in version
+    assert version.tone == "differs"
+    objects = dict(sections[2][1])
+    assert objects["Obj#1 (1 bit)"].tone == "ok"
+    assert objects["Obj#2 (1 bit)"].tone == "differs"
 
 
 def test_unknown_application_is_reported_in_group_communication() -> None:

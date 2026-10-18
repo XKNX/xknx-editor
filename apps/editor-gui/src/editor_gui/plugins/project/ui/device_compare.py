@@ -19,12 +19,14 @@ from editor_gui.plugins.project.ui.device_diff import (
     snapshot_device,
 )
 from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.description import (
     description_icon_width,
     render_description,
     shows_description_icon,
 )
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
 # Row colours: amber when both devices have the item but it differs; red when it is present on only
@@ -146,7 +148,7 @@ class DeviceComparePanel:
             room = 0.0
         imgui.set_next_item_width(-room if room else -1)
         label = device_label(cur) if cur is not None else "?"
-        if imgui.begin_combo(combo_id, label):
+        if begin_combo(combo_id, label):
             for d in devices:
                 if imgui.selectable(
                     f"{device_label(d)}##{combo_id}{d.node_id}",
@@ -180,8 +182,9 @@ class DeviceComparePanel:
             | imgui.TableFlags_.sizing_stretch_prop
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.row_bg
+            | imgui.TableFlags_.reorderable
         )
-        if not imgui.begin_table(f"##cmp_tbl_{title}", 3, flags):
+        if not begin_data_table(f"##cmp_tbl_{title}", 3, flags):
             return
         imgui.table_setup_column(
             S.COMPARE_COL_FIELD, imgui.TableColumnFlags_.width_stretch, 0.34
@@ -192,7 +195,7 @@ class DeviceComparePanel:
         imgui.table_setup_column(
             S.COMPARE_COL_B, imgui.TableColumnFlags_.width_stretch, 0.33
         )
-        imgui.table_headers_row()
+        data_table_headers()
         clipper = imgui.ListClipper()
         clipper.begin(len(shown))
         while clipper.step():

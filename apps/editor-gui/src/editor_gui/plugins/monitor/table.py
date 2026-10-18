@@ -32,9 +32,11 @@ from editor_gui.plugins.monitor.service import MonitorKind
 from editor_gui.plugins.monitor.strings import S
 from editor_gui.plugins.monitor.xmlio import export_xml, import_xml
 from editor_gui.strings import get_locale
+from editor_gui.widgets.checkbox import radio_button
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 if TYPE_CHECKING:
     from editor_gui.plugins.connection.service import ConnectionService
@@ -419,7 +421,6 @@ class TelegramView:
             imgui.TableFlags_.resizable
             | imgui.TableFlags_.reorderable
             | imgui.TableFlags_.hideable
-            | imgui.TableFlags_.scroll_x
             | imgui.TableFlags_.scroll_y
             | imgui.TableFlags_.row_bg
             | imgui.TableFlags_.borders_inner_v
@@ -429,17 +430,30 @@ class TelegramView:
         # resets cleanly to the mode's defaults. Column settings are stored by index, so the id
         # changes whenever columns are inserted.
         table_id = f"##monitor_{self.kind.value}_{'full' if extended else 'simple'}"
-        if not imgui.begin_table(table_id, len(COLUMNS), flags):
+        # Extended scrolls sideways through its many columns; in the compact set the value takes
+        # the rest of the width, so the columns end at the panel's edge.
+        if extended:
+            flags |= imgui.TableFlags_.scroll_x
+        if not begin_data_table(table_id, len(COLUMNS), flags):
             return
         imgui.table_setup_scroll_freeze(0, 1)
         for i, column in enumerate(COLUMNS):
-            column_flags = imgui.TableColumnFlags_.width_fixed
+            column_flags = (
+                imgui.TableColumnFlags_.width_stretch
+                if not extended and column.key == "info"
+                else imgui.TableColumnFlags_.width_fixed
+            )
             # Extended shows every column; compact shows only the simple set.
             hide = not extended and i not in _SIMPLE_COLUMNS[self.kind]
             if hide:
                 column_flags |= imgui.TableColumnFlags_.default_hide
-            imgui.table_setup_column(column.label, column_flags, px(column.width))
-        imgui.table_headers_row()
+            width = (
+                1.0
+                if column_flags & imgui.TableColumnFlags_.width_stretch
+                else px(column.width)
+            )
+            imgui.table_setup_column(column.label, column_flags, width)
+        data_table_headers()
         self._enabled_columns = [
             column
             for column in range(len(COLUMNS))
@@ -719,18 +733,18 @@ class TelegramView:
             self._scope_action = None
             return
         imgui.text_unformatted(S.SCOPE_LABEL)
-        if imgui.radio_button(
+        if radio_button(
             S.SCOPE_ALL.format(count=len(self._channel.log)), self._scope_choice == 0
         ):
             self._scope_choice = 0
         selected = len(self.selected)
         imgui.begin_disabled(selected == 0)
-        if imgui.radio_button(
+        if radio_button(
             S.SCOPE_SELECTED.format(count=selected), self._scope_choice == 1
         ):
             self._scope_choice = 1
         imgui.end_disabled()
-        if self.filter.strip() and imgui.radio_button(
+        if self.filter.strip() and radio_button(
             S.SCOPE_FILTERED.format(count=len(self._view)), self._scope_choice == 2
         ):
             self._scope_choice = 2

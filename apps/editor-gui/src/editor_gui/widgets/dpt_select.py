@@ -9,6 +9,7 @@ from dataclasses import dataclass
 
 from imgui_bundle import imgui
 
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dpi import px
 
 _SUBTYPE = re.compile(r"^DPST-(\d+)-(\d+)$")
@@ -72,7 +73,7 @@ def dpt_combo(
     """A drop-down of all data point types; returns ``(changed, token)`` with ``""`` for none."""
     current = token or ""
     changed = False
-    if imgui.begin_combo(
+    if begin_combo(
         f"##{widget_id}",
         dpt_choice_label(current, names),
         imgui.ComboFlags_.height_largest,

@@ -17,10 +17,16 @@ import asyncio
 import contextlib
 import logging
 import time
-from typing import TYPE_CHECKING, Final
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, ClassVar, Final
 
 from xknx.exceptions import ManagementConnectionError, ManagementConnectionTimeout
-from xknx.telegram.apci import DeviceDescriptorRead, SecureAPDU
+from xknx.telegram.apci import (
+    APCIRequest,
+    APCIService,
+    DeviceDescriptorRead,
+    SecureAPDU,
+)
 
 from .data_secure import (
     CemiSecurer,
@@ -29,6 +35,7 @@ from .data_secure import (
     SecureProgrammingError,
     ToolKeyCemiSecure,
 )
+from .session import connect
 
 if TYPE_CHECKING:
     from xknx import XKNX
@@ -47,10 +54,33 @@ _SYNC_ATTEMPTS: Final = 3
 _SYNC_INTERVAL: Final = 1.2
 # Raw individual address -> time.monotonic() of the device's last S-A_Sync response.
 _last_sync_response: dict[int, float] = {}
+
+
 # The armed hook replaces this outgoing APDU with the S-A_Sync request, so the
 # device never sees it - it is only a vehicle to drive one connection-oriented
 # request/response over the transport layer.
-_SYNC_TRIGGER: Final = DeviceDescriptorRead(descriptor=0)
+@dataclass(slots=True)
+class _SyncTrigger(APCIRequest[SecureAPDU]):
+    """An A_DeviceDescriptor_Read of descriptor 0, answered by the S-A_Sync response."""
+
+    CODE: ClassVar = APCIService.DEVICE_DESCRIPTOR_READ
+
+    def calculated_length(self) -> int:
+        """Get length of APCI payload."""
+        return DeviceDescriptorRead(descriptor=0).calculated_length()
+
+    @classmethod
+    def from_knx(cls, raw: bytes) -> _SyncTrigger:
+        """Parse/deserialize from KNX raw data."""
+        DeviceDescriptorRead.from_knx(raw)
+        return cls()
+
+    def to_knx(self) -> bytearray:
+        """Serialize to KNX raw data."""
+        return DeviceDescriptorRead(descriptor=0).to_knx()
+
+
+_SYNC_TRIGGER: Final = _SyncTrigger()
 
 
 class SecureConnectionManager:
@@ -90,7 +120,7 @@ class SecureConnectionManager:
             if self._transport is not None:
                 self._connection = await self._transport.open()
             else:
-                self._connection = await self._xknx.management.connect(self._address)
+                self._connection = await connect(self._xknx, self._address)
             await self._synchronize(self._connection)
         except BaseException:
             self._restore()

@@ -301,11 +301,11 @@ class MenuStrings:
 
     @property
     def SETTINGS_MCP_RUNNING(self) -> str:
-        return _("Server: running")
+        return _("Server: Running")
 
     @property
     def SETTINGS_MCP_STOPPED(self) -> str:
-        return _("Server: stopped")
+        return _("Server: Stopped")
 
     @property
     def SETTINGS_MCP_START(self) -> str:
@@ -456,7 +456,7 @@ class MenuStrings:
 
     @property
     def GA_EXPORT_CSV_HEADER(self) -> str:
-        return _("Export with header line")
+        return _("Export with Header Line")
 
     @property
     def GA_EXPORT_CSV_SEPARATOR(self) -> str:
@@ -878,7 +878,7 @@ class MenuStrings:
 
     @property
     def MYKNX_SIGN_SKIP(self) -> str:
-        return _("Export without Certificate")
+        return _("Export Without Certificate")
 
     @property
     def FILE_DIALOG_KNXPROJ_SAVE_TITLE(self) -> str:
@@ -1536,11 +1536,23 @@ class MenuStrings:
 
     @property
     def EXPORT_REMOVE_UNUSED(self) -> str:
-        return _("Remove unused product data")
+        return _("Remove Unused Product Data")
 
     @property
     def EXPORT_REMOVE_UNUSED_HELP(self) -> str:
         return _("Removes product data no device uses; the project stays unchanged.")
+
+    @property
+    def DOCK_HIDE_TAB_BAR(self) -> str:
+        return _("Hide Tab Bar")
+
+    @property
+    def LINK_OPEN(self) -> str:
+        return _("Open {url}")
+
+    @property
+    def LINK_COPY(self) -> str:
+        return _("Copy Link")
 
 
 class _CombinedStrings(BaseStrings, MenuStrings):

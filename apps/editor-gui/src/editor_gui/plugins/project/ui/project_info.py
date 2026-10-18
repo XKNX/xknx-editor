@@ -7,9 +7,11 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.password_form import NewPasswordForm
+from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import _ProjectInfo
@@ -123,7 +125,7 @@ class ProjectInfoPanel:
             (text for mode, text in choices if mode == current), S.GA_SECURITY_AUTO
         )
         imgui.set_next_item_width(px(200.0))
-        if imgui.begin_combo("##backbone_security", label):
+        if begin_combo("##backbone_security", label):
             for mode, text in choices:
                 if imgui.selectable(text, mode == current)[0] and mode != current:
                     self._security_error = self._on_backbone_security(mode) or ""
@@ -158,11 +160,17 @@ class ProjectInfoPanel:
         certificates = self._get_certificates() if self._get_certificates else []
         if not certificates:
             imgui.text_disabled(S.PROJECT_CERTIFICATES_EMPTY)
-        elif imgui.begin_table("##certificates", 3, imgui.TableFlags_.row_bg):
+        elif begin_data_table(
+            "##certificates",
+            3,
+            imgui.TableFlags_.row_bg
+            | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.reorderable,
+        ):
             imgui.table_setup_column(S.PROJECT_CERTIFICATES_SERIAL)
             imgui.table_setup_column(S.PROJECT_CERTIFICATES_DEVICE)
             imgui.table_setup_column("", imgui.TableColumnFlags_.width_fixed)
-            imgui.table_headers_row()
+            data_table_headers()
             for serial, device in certificates:
                 imgui.table_next_row()
                 imgui.table_next_column()

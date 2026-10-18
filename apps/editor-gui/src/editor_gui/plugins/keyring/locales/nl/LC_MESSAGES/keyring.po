@@ -60,3 +60,27 @@ msgstr "{project} — gemaakt door {by}"
 
 msgid "Export Keyring from Project…"
 msgstr "Keyring uit project exporteren…"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Address"
+msgstr "Adres"
+
+msgid "Host"
+msgstr "Host"
+
+msgid "User"
+msgstr "Gebruiker"
+
+msgid "Key"
+msgstr "Sleutel"
+
+msgid "In Project"
+msgstr "In project"
+
+msgid "Tool Key"
+msgstr "Toolsleutel"
+
+msgid "{address}   key {key}"
+msgstr "{address}   sleutel {key}"

@@ -28,22 +28,19 @@ msgstr "Fabrikantenlijst laden…"
 msgid "Online catalog not reachable"
 msgstr "Onlinecatalogus niet bereikbaar"
 
-msgid "{count} manufacturers"
-msgstr "{count} fabrikanten"
-
 msgid "Program Version"
 msgstr "Programmaversie"
 
 msgid "Search products, order number…"
 msgstr "Producten, bestelnummer zoeken…"
 
-msgid "Product index: {mfrs} manufacturers, {products} products"
+msgid "Product Index: {mfrs} manufacturers, {products} products"
 msgstr "Productindex: {mfrs} fabrikanten, {products} producten"
 
-msgid "No product index yet - fetch the online catalog to build it"
+msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Nog geen productindex - haal de online catalogus op om te bouwen"
 
-msgid "Building product index… {done}/{total} manufacturers"
+msgid "Building Product Index… {done}/{total} manufacturers"
 msgstr "Productindex bouwen… {done}/{total} fabrikanten"
 
 msgid "Cancel"
@@ -121,9 +118,6 @@ msgstr "Aan project toevoegen?"
 msgid "Application"
 msgstr "Applicatie"
 
-msgid "Country"
-msgstr "Land"
-
 msgid "Downloading {name}…"
 msgstr "{name} wordt gedownload…"
 
@@ -177,3 +171,6 @@ msgstr "“{name}” is aan de lokale catalogus toegevoegd. Nu aan het project t
 
 msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
 msgstr "Dit apparaat ondersteunt KNX Data Secure. Stel een projectwachtwoord in om het beveiligd in bedrijf te stellen; zonder wachtwoord wordt het toegevoegd en onversleuteld in bedrijf gesteld."
+
+msgid "Search…"
+msgstr "Zoeken…"

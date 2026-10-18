@@ -836,6 +836,8 @@ def test_entire_group_object_table_matches_capture_including_unlinked_objects() 
 
 
 async def test_auto_verify_real_xknx_p2p_consumes_echo_and_wraps_sequences() -> None:
+    import asyncio
+
     from xknx.management import P2PConnection
     from xknx.telegram import IndividualAddress, Telegram
     from xknx.telegram.apci import (
@@ -844,6 +846,8 @@ async def test_auto_verify_real_xknx_p2p_consumes_echo_and_wraps_sequences() -> 
         PropertyValueResponse,
     )
     from xknx.telegram.tpci import TAck, TDataConnected
+
+    from xknxeditor.download.session import XknxBusConnection
 
     address, tool = IndividualAddress("1.1.5"), IndividualAddress("1.1.34")
     sequence = 0
@@ -887,13 +891,15 @@ async def test_auto_verify_real_xknx_p2p_consumes_echo_and_wraps_sequences() -> 
 
     conn = P2PConnection(
         SimpleNamespace(
-            current_address=tool, cemi_handler=SimpleNamespace(send_telegram=send)
+            current_address=tool,
+            cemi_handler=SimpleNamespace(send_telegram=send),
+            task_registry=SimpleNamespace(background=asyncio.ensure_future),
         ),
         address,
         rate_limit=0,
     )
     conn._connected = True
-    p = DeviceProgrammer(conn)
+    p = DeviceProgrammer(XknxBusConnection(conn))
     await p.enable_memory_auto_verify()
     await p.write_memory(0x3804, bytes(range(240)), verify=True)
     assert await p.read_table_reference(3) == 0x3604
