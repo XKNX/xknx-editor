@@ -1221,6 +1221,14 @@ class _Writer:
         # archive under the project folder and must be covered by the folder signature.
         self._binary_files: dict[str, bytes] = {}
 
+    def _topology_name(self, name: str) -> str | None:
+        """The ``@Name`` of an area or line: an empty one is left out in project/22+23, as genuine
+        exports do, but kept in project/14+20, whose generation rejects an area without a name in
+        its project data."""
+        if not name and self._uses_segments:
+            return None
+        return name
+
     def _el(self, parent: ET.Element, tag: str, **attrs: object) -> ET.Element:
         child = ET.SubElement(parent, f"{{{self._ns}}}{tag}")
         for key, value in attrs.items():
@@ -1515,19 +1523,23 @@ class _Writer:
             inst.set(key, value)
 
         topo = self._el(inst, "Topology")
+        # Source line id (without project prefix) -> the id this export gives the line.
+        exported_lines: dict[str, str] = {}
         for area in sorted(installation.areas, key=lambda x: x.address):
             area_el = self._el(
                 topo,
                 "Area",
                 Id=f"{pid}-0_{self._ids.id('A', area, area.source_id)}",
                 Address=area.address,
-                Name=area.name,
+                Name=self._topology_name(area.name),
                 Comment=area.comment or None,
                 Description=area.description or None,
                 Puid=self._ids.puid(area, area.puid),
             )
             for line in sorted(area.lines, key=lambda x: x.address):
                 line_id = f"{pid}-0_{self._ids.id('L', line, line.source_id)}"
+                if line.source_id:
+                    exported_lines[_local_id(line.source_id)] = line_id
                 medium = line.segments[0].medium_type if line.segments else "MT-0"
                 # RF/PL DomainAddress lives on the Segment (project/22+23) or the Line (14+20).
                 line_domain = next(
@@ -1544,7 +1556,7 @@ class _Writer:
                     "Line",
                     Id=line_id,
                     Address=line.address,
-                    Name=line.name,
+                    Name=self._topology_name(line.name),
                     Comment=line.comment or None,
                     Description=line.description or None,
                     MediumTypeRefId=None if self._uses_segments else medium,
@@ -1619,6 +1631,12 @@ class _Writer:
                     for addr in line_extra:
                         self._el(agas, "GroupAddress", Address=int(addr))
 
+        # An imported installation keeps its own DefaultLine (none if it had none, or if that line
+        # is gone); otherwise the line picked above.
+        if installation.default_line is not None:
+            self._default_line_id = exported_lines.get(
+                _local_id(installation.default_line)
+            )
         if self._default_line_id is not None:
             inst.set("DefaultLine", self._default_line_id)
 
@@ -1977,7 +1995,8 @@ class _Writer:
                 container,
                 "Address",
                 Address=addr.address,
-                Name=addr.name or None,
+                # Written also when empty, as genuine exports do.
+                Name=addr.name,
                 Description=addr.description or None,
                 Comment=addr.comment or None,
             )

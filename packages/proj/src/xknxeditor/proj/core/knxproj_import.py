@@ -125,8 +125,8 @@ _DEVICE_MANAGED_ATTRS = frozenset(
 # Installation attributes xknxproject does not surface, round-tripped verbatim. Restricted to
 # attributes defined in project/14, /20 and /23. The keys (BCUKey, IPRoutingBackboneKey) are kept like
 # the group-address and device keys, so a re-imported project can still reach its secured devices.
-# DefaultLine/CompletionStatus are omitted: the export recomputes the former and the latter is
-# regenerated runtime state.
+# DefaultLine is kept separately (``Installation.default_line``, a line id); CompletionStatus is
+# omitted as regenerated runtime state.
 _INSTALLATION_EXTRA_ATTRS = (
     "InstallationId",
     "IPRoutingMulticastAddress",
@@ -494,6 +494,8 @@ class _RawExtras:
         self.project_files: bytes | None = None
         # The <Installation> @Name (xknxproject surfaces only the project name, not the installation's).
         self.installation_name: str = ""
+        # The installation's ``@DefaultLine`` (a line ``@Id``); "" when it has none.
+        self.installation_default_line = ""
         # <Installation> attributes xknxproject drops (see _INSTALLATION_EXTRA_ATTRS).
         self.installation_extra_attributes: dict[str, str] = {}
         # The installation's <P2PLinks> subtree as a namespace-stripped XML string ("" if absent).
@@ -708,6 +710,7 @@ def _read_device_extras(contents: _ProjectContents) -> _RawExtras:
     )
     if installation is not None:
         extras.installation_name = installation.get("Name") or ""
+        extras.installation_default_line = installation.get("DefaultLine") or ""
         extras.installation_extra_attributes = {
             name: value
             for name in _INSTALLATION_EXTRA_ATTRS
@@ -1483,6 +1486,7 @@ def _build(
     )
     installation.extra_attributes = extras.installation_extra_attributes or None
     installation.p2p_links_xml = extras.installation_p2p_links
+    installation.default_line = extras.installation_default_line
     session.add(installation)
 
     state = _ImportState(extras)

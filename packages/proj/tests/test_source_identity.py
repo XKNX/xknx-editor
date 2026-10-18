@@ -13,7 +13,12 @@ from sqlalchemy.orm import Session
 
 from xknxeditor.proj import ProjectService, export_knxproj, import_knxproj
 from xknxeditor.proj.db import make_engine, url_for
-from xknxeditor.proj.models import Device, GroupAddress, Project
+from xknxeditor.proj.models import (
+    Device,
+    DeviceAdditionalAddress,
+    GroupAddress,
+    Project,
+)
 
 _BUS_ACCESS = 'Type=IpTunneling;HostAddress=192.168.16.103;Name="IP Tunneling"'
 
@@ -71,7 +76,9 @@ def _with_bus_access(zero_xml: str) -> str:
     return ET.tostring(root, encoding="unicode")
 
 
-def _as_source_project(exported: Path, dest: Path) -> None:
+def _as_source_project(
+    exported: Path, dest: Path, *, default_line: bool = True
+) -> None:
     """Rewrite an export into what a source project looks like: the project P-04BB, a device and a
     group address with numbers of a long-edited project, Puids from 1001, LastUsedPuid 3178, a
     ProjectType and a segment's BusAccess."""
@@ -96,6 +103,8 @@ def _as_source_project(exported: Path, dest: Path) -> None:
             )
             if name.endswith("/0.xml"):
                 text = _with_bus_access(text)
+                if not default_line:
+                    text = re.sub(r' DefaultLine="[^"]*"', "", text, count=1)
             data = text.encode("utf-8")
         out[name.replace(pid, "P-04BB")] = data
     with zipfile.ZipFile(dest, "w") as zf:
@@ -132,12 +141,12 @@ def _segment_with(root: ET.Element, child: str) -> ET.Element:
     )
 
 
-def _imported(tmp_path: Path) -> tuple[Path, ET.Element]:
+def _imported(tmp_path: Path, *, default_line: bool = True) -> tuple[Path, ET.Element]:
     """The rewritten source project imported, and its own 0.xml."""
     first = tmp_path / "first.knxproj"
     export_knxproj(_created(tmp_path), first, schema="23")
     source = tmp_path / "source.knxproj"
-    _as_source_project(first, source)
+    _as_source_project(first, source, default_line=default_line)
     imported = tmp_path / "imported.xknx"
     import_knxproj(source, imported)
     return imported, _zero(source)
@@ -233,3 +242,60 @@ def test_project_20_has_no_project_type_and_the_bus_access_on_the_line(
     line = _element(_zero(out), "Line", Name="Line 2")
     access = [c for c in line if _localname(c.tag) == "BusAccess"]
     assert [a.get("Parameter") for a in access] == [_BUS_ACCESS]
+
+
+def _installation(root: ET.Element) -> ET.Element:
+    return _element(root, "Installation")
+
+
+def test_the_default_line_of_the_source_is_kept(tmp_path: Path) -> None:
+    imported, source = _imported(tmp_path)
+    default_line = _installation(source).get("DefaultLine")
+    assert default_line
+    out = tmp_path / "out.knxproj"
+    export_knxproj(imported, out, schema="23")
+    assert _installation(_zero(out)).get("DefaultLine") == default_line
+
+
+def test_no_default_line_when_the_source_had_none(tmp_path: Path) -> None:
+    imported, source = _imported(tmp_path, default_line=False)
+    assert _installation(source).get("DefaultLine") is None
+    out = tmp_path / "out.knxproj"
+    export_knxproj(imported, out, schema="23")
+    assert _installation(_zero(out)).get("DefaultLine") is None
+
+
+def test_a_project_created_in_the_editor_gets_a_default_line(tmp_path: Path) -> None:
+    out = tmp_path / "out.knxproj"
+    export_knxproj(_created(tmp_path), out, schema="23")
+    default_line = _installation(_zero(out)).get("DefaultLine")
+    assert default_line is not None
+    assert _element(_zero(out), "Line", Id=default_line).get("Name") == "Line 2"
+
+
+def test_empty_area_and_line_names(tmp_path: Path) -> None:
+    """An empty name is left out in project/23 and kept in project/20."""
+    src = tmp_path / "src.xknx"
+    svc = ProjectService()
+    pid = svc.create(src, "P-NAMES")
+    area_id = svc.create_area(pid, 0, 3, "")
+    svc.create_line(pid, area_id, 1, "")
+    svc.close(pid)
+    for schema, name in (("23", None), ("20", "")):
+        out = tmp_path / f"out{schema}.knxproj"
+        export_knxproj(src, out, schema=schema)
+        area = _element(_zero(out), "Area", Address="3")
+        assert area.get("Name") == name
+        assert _element(area, "Line", Address="1").get("Name") == name
+
+
+def test_an_additional_address_always_has_a_name(tmp_path: Path) -> None:
+    src = _created(tmp_path)
+    with Session(make_engine(url_for(src))) as session:
+        device = session.query(Device).one()
+        device.additional_addresses.append(DeviceAdditionalAddress(address=200))
+        session.commit()
+    out = tmp_path / "out.knxproj"
+    export_knxproj(src, out, schema="23")
+    address = _element(_zero(out), "Address", Address="200")
+    assert address.get("Name") == ""

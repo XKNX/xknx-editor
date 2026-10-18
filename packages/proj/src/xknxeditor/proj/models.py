@@ -159,6 +159,10 @@ class Installation(Base):
     # The installation's ``<P2PLinks>`` subtree (point-to-point links incl. their keys/endpoint
     # security), captured verbatim (namespace-stripped XML) and re-emitted. Empty when absent.
     p2p_links_xml: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # The source's ``@DefaultLine`` (a line ``@Id``), written back on export: "" when an imported
+    # installation had none (so none is written), None when unknown (created in the editor or
+    # imported before this was kept), for which the export picks a line holding devices.
+    default_line: Mapped[str | None] = mapped_column(String)
 
     areas: Mapped[list["Area"]] = relationship(
         back_populates="installation", cascade="all, delete-orphan"
