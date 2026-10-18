@@ -186,12 +186,37 @@ def _reset_presets() -> list[tuple[str, int]]:
 
 @dataclass(frozen=True, slots=True)
 class ProgramRequest:
-    """A confirmed Program press: the scope and the choices made in its confirmation."""
+    """A Program press: the scope and the choices made in its dialog, if one was needed."""
 
     scope: DownloadScope
     without_plugin: bool = False
     current_address: str | None = None
     use_serial_number: bool = False
+
+
+def direct_program_request(
+    scope: DownloadScope,
+    *,
+    plugin_required: bool,
+    use_serial_number: bool,
+    serial_owner: str | None,
+) -> ProgramRequest | None:
+    """The request a Program press starts right away, or ``None`` when its dialog has to ask
+    first: an unload, which leaves the device without a working application, the current
+    address to overwrite, the missing download plugin, or a serial number another device of
+    the project has already (``serial_owner``). ``use_serial_number`` is the connection's
+    setting, for a device whose serial number is known."""
+    if scope in (
+        DownloadScope.UNLOAD,
+        DownloadScope.UNLOAD_ALL,
+        DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS,
+    ):
+        return None
+    if plugin_required and not scope.individual_address_only:
+        return None
+    if use_serial_number and serial_owner is not None:
+        return None
+    return ProgramRequest(scope=scope, use_serial_number=use_serial_number)
 
 
 def _render_loading_application() -> None:
@@ -551,8 +576,13 @@ class ConfigurePanel:
             enabled = bool(device.individual_address) and device.has_application
             imgui.begin_disabled(not enabled)
             if imgui.button(S.BTN_PROGRAM_DEVICE):
-                # Programming writes to the device; confirm first.
-                self._confirm_program_open = True
+                # Programming starts right away; the dialog only opens when it has to ask
+                # something first (see direct_program_request).
+                request = self._direct_program_request(device)
+                if request is None:
+                    self._confirm_program_open = True
+                elif self._on_program_device is not None:
+                    self._on_program_device(device, request)
             imgui.end_disabled()
             _no_application_tooltip(device)
             if self._confirm_program_open:
@@ -1635,6 +1665,30 @@ class ConfigurePanel:
             imgui.table_set_column_index(col + 1)
             self._value_copy(value)
         imgui.end_table()
+
+    def _direct_program_request(self, device: Device) -> ProgramRequest | None:
+        scope = self._download_scope
+        serial = (
+            self._project_serial(device)
+            if scope is DownloadScope.INDIVIDUAL_ADDRESS
+            else None
+        )
+        use_serial = bool(
+            serial is not None
+            and self._use_serial_number_default
+            and self._use_serial_number_default()
+        )
+        owner = (
+            self._find_serial_owner(device, serial)
+            if use_serial and serial is not None and self._find_serial_owner is not None
+            else None
+        )
+        return direct_program_request(
+            scope,
+            plugin_required=device.download_plugin_required,
+            use_serial_number=use_serial,
+            serial_owner=owner,
+        )
 
     def _render_program_confirm(self, device: Device) -> None:
         if not begin_dialog(S.PROGRAM_CONFIRM_TITLE):
