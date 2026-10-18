@@ -131,6 +131,7 @@ async def read_device_overview(xknx: XKNX, address: str) -> DeviceOverview:
 
     from xknxeditor.download import DeviceProgrammer
     from xknxeditor.download.errors import DownloadError
+    from xknxeditor.download.session import XknxBusConnection
     from xknxeditor.recover import read_application_id, read_dossier
 
     async def _prop(programmer: DeviceProgrammer, pid: int) -> bytes:
@@ -143,7 +144,7 @@ async def read_device_overview(xknx: XKNX, address: str) -> DeviceOverview:
     target = IndividualAddress(address)
     connection = await xknx.management.connect(target)
     try:
-        programmer = DeviceProgrammer(connection)
+        programmer = DeviceProgrammer(XknxBusConnection(connection))
         mask = await programmer.read_device_descriptor()
         app = await read_application_id(programmer)
         dossier = await read_dossier(programmer)
