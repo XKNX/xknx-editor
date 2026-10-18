@@ -21,7 +21,7 @@ from xknx.profile.const import (
     ResourceObjectType,
 )
 
-from xknxeditor.download.errors import DownloadError
+from xknxeditor.download.errors import DownloadError, MemoryReadNotAnswered
 from xknxeditor.download.load_state import LoadState
 
 if TYPE_CHECKING:
@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 
     from xknxeditor.download import DeviceProgrammer
     from xknxeditor.download.data_secure import DeviceSecurity
+    from xknxeditor.download.programmer import ConnectionManager
     from xknxeditor.prod import Application
     from xknxeditor.recover import AppId, RawGroupCommunication
     from xknxeditor.recover.tables_decode import DecodedGroupObject
@@ -208,6 +209,32 @@ def is_system_b(mask_version: int | None) -> bool:
     return mask_version is not None and mask_version & 0x0FFF == 0x07B0
 
 
+async def _group_communication_tables(
+    manager: ConnectionManager,
+    programmer: DeviceProgrammer,
+    application: Application | None,
+    overhead: int,
+) -> RawGroupCommunication:
+    """Read the device's group communication tables. A table read in long frames that gets no
+    response (the interface or a coupler drops frames that long) is read again over a new
+    connection in standard frames."""
+    from xknxeditor.download import DeviceProgrammer
+    from xknxeditor.recover import read_group_communication
+
+    try:
+        return await read_group_communication(
+            programmer, application, linked_objects_only=True
+        )
+    except MemoryReadNotAnswered:
+        with contextlib.suppress(Exception):
+            await manager.close()
+        connection = await manager.open()
+        standard = DeviceProgrammer(connection, apdu_overhead=overhead)
+        return await read_group_communication(
+            standard, application, linked_objects_only=True
+        )
+
+
 async def read_device_info(
     xknx: XKNX,
     address: str,
@@ -231,7 +258,7 @@ async def read_device_info(
         MAX_COMMUNICATION_APDU_LENGTH,
     )
     from xknxeditor.download.session import apdu_overhead, management_session
-    from xknxeditor.recover import read_application_id, read_group_communication
+    from xknxeditor.recover import read_application_id
 
     info = DeviceInfo(individual_address=address)
     manager = management_session(xknx, IndividualAddress(address), security)
@@ -292,8 +319,8 @@ async def read_device_info(
                     DEFAULT_MAX_APDU_LENGTH, min(device_max, limit)
                 )
             try:
-                tables = await read_group_communication(
-                    programmer, application, linked_objects_only=True
+                tables = await _group_communication_tables(
+                    manager, programmer, application, apdu_overhead(security)
                 )
             except Exception as exc:
                 info.group_communication_error = str(exc) or type(exc).__name__

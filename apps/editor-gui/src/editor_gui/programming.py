@@ -382,6 +382,7 @@ async def eval_device(
     master: MasterData | None = None,
     security: DeviceSecurity | None = None,
     ip_config: IpDeviceConfig | None = None,
+    interface_max_apdu_length: int | None = None,
 ) -> PreflightReport:
     """Dry run: report what programming ``device`` would change, writing nothing.
 
@@ -389,6 +390,7 @@ async def eval_device(
     an ``UNLOAD`` scope and for applications with a default/merged procedure style.
     ``security`` (KNX Data Secure tool key) secures the point-to-point reads when the
     device is commissioned secure; ``None`` reads in the clear.
+    ``interface_max_apdu_length`` (the connected interface's maximum) limits the frames.
     """
     return await preflight(
         xknx,
@@ -399,6 +401,7 @@ async def eval_device(
         scope=scope,
         security=security,
         ip_config=ip_config,
+        interface_max_apdu_length=interface_max_apdu_length,
     )
 
 
@@ -418,6 +421,7 @@ async def download_device(
     disable_security: bool = False,
     routing_blocking: bool | None = None,
     memory_service_count: int | None = None,
+    interface_max_apdu_length: int | None = None,
 ) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -439,7 +443,8 @@ async def download_device(
     ``tool_key`` is the device's Tool Key for a secured download: a device still using its FDSK
     gets it written (secure commissioning); see :func:`xknxeditor.download.download`.
     ``disable_security`` switches a device whose secure commissioning was deactivated to plain
-    communication.
+    communication. ``interface_max_apdu_length`` (the connected interface's maximum)
+    limits the frames.
     """
     return await download(
         xknx,
@@ -459,4 +464,5 @@ async def download_device(
         confirm_full_download=confirm_full_download,
         ip_config=ip_config,
         memory_service_count=memory_service_count,
+        interface_max_apdu_length=interface_max_apdu_length,
     )

@@ -18,6 +18,7 @@ from xknx.telegram import IndividualAddress
 
 from .errors import (
     DownloadError,
+    MemoryReadNotAnswered,
     MemoryWriteNotAcknowledged,
     PartialDownloadError,
     UnsupportedProcedureError,
@@ -35,7 +36,11 @@ from .ip_config import applies as ip_config_applies
 from .ip_secure import IpSecureConfig, ip_secure_controls
 from .merge import mask_authorize_levels, resolve_download_controls
 from .procedure import LoadProcedureRunner
-from .programmer import MAX_COMMUNICATION_APDU_LENGTH, MEMORY_SERVICE_FALLBACKS
+from .programmer import (
+    DEFAULT_MAX_APDU_LENGTH,
+    MAX_COMMUNICATION_APDU_LENGTH,
+    MEMORY_SERVICE_FALLBACKS,
+)
 from .scope import DownloadScope, mask_object_types
 from .secure_config import (
     commissioning_controls,
@@ -60,11 +65,20 @@ if TYPE_CHECKING:
     from .project_data import SeedDevice
 
 
-def _apdu_settings(max_apdu_length: int | None) -> tuple[int, bool]:
-    """Resolve the APDU ceiling and whether to negotiate it from the device."""
-    if max_apdu_length is None:
-        return MAX_COMMUNICATION_APDU_LENGTH, True
-    return max_apdu_length, False
+def _apdu_settings(
+    max_apdu_length: int | None, interface_max_apdu_length: int | None = None
+) -> tuple[int, bool]:
+    """Resolve the APDU ceiling and whether to negotiate it from the device.
+
+    A negotiated length stays within the interface's maximum APDU length: a frame longer
+    than the interface accepts is dropped, even when the device could take it.
+    """
+    if max_apdu_length is not None:
+        return max_apdu_length, False
+    ceiling = MAX_COMMUNICATION_APDU_LENGTH
+    if interface_max_apdu_length is not None:
+        ceiling = max(DEFAULT_MAX_APDU_LENGTH, min(ceiling, interface_max_apdu_length))
+    return ceiling, True
 
 
 def _connection_manager(
@@ -381,6 +395,7 @@ async def download(
     disable_security: bool = False,
     routing_blocking: bool | None = None,
     memory_service_count: int | None = None,
+    interface_max_apdu_length: int | None = None,
 ) -> DownloadResult:
     """Download ``application`` into the device at ``individual_address``.
 
@@ -392,8 +407,9 @@ async def download(
     controls. ``scope`` selects a full or partial download.
 
     ``max_apdu_length`` defaults to ``None``, which negotiates the length from the
-    device (reading its maximum APDU length once, for larger and fewer telegrams);
-    pass a fixed integer to override. ``expected_descriptor`` (the device
+    device (reading its maximum APDU length once, for larger and fewer telegrams),
+    within ``interface_max_apdu_length`` (the connecting interface's maximum) when
+    given; pass a fixed integer to override. ``expected_descriptor`` (the device
     descriptor type 0, e.g. ``0x07B0`` for a System B device) is checked against
     the device before any write when given, guarding against programming the wrong
     device.
@@ -518,12 +534,14 @@ async def download(
             disable_security,
             routing_blocking if security is not None else None,
         )
-    apdu_ceiling, negotiate_apdu = _apdu_settings(max_apdu_length)
+    apdu_ceiling, negotiate_apdu = _apdu_settings(
+        max_apdu_length, interface_max_apdu_length
+    )
     logger.debug(
         "download: %s -> %d load controls, apdu=%s secure=%s",
         address,
         len(controls),
-        "negotiate" if negotiate_apdu else apdu_ceiling,
+        f"negotiate (at most {apdu_ceiling})" if negotiate_apdu else apdu_ceiling,
         security is not None,
     )
 
@@ -564,13 +582,13 @@ async def download(
             await runner.run(progress)
             used_memory_cap = memory_cap
             break
-        except MemoryWriteNotAcknowledged as exc:
+        except (MemoryWriteNotAcknowledged, MemoryReadNotAnswered) as exc:
             next_cap = (
                 memory_caps[attempt + 1] if attempt + 1 < len(memory_caps) else None
             )
             if next_cap is not None:
                 logger.warning(
-                    "download: %s left a memory write unacknowledged; retrying with a "
+                    "download: %s left a long memory service unanswered; retrying with a "
                     "%d-octet memory-service cap. Cause: %s",
                     address,
                     next_cap,
@@ -648,6 +666,7 @@ async def preflight(
     expected_descriptor: int | None = None,
     security: DeviceSecurity | None = None,
     ip_config: IpDeviceConfig | None = None,
+    interface_max_apdu_length: int | None = None,
 ) -> PreflightReport:
     """Report what :func:`download` would change on the device, changing nothing.
 
@@ -657,7 +676,9 @@ async def preflight(
     written and no load state is changed. Run this before a real download to
     confirm the change set (and to catch a mismatched application via the
     procedure's compare controls). Pass a pre-built ``image`` to skip assembly.
-    ``xknx`` has to be started.
+    ``interface_max_apdu_length`` limits the negotiated APDU length as for
+    :func:`download`; a long memory read that gets no response is repeated with
+    smaller blocks. ``xknx`` has to be started.
     """
     _reject_address_scope(scope)
     if image is None:
@@ -670,23 +691,38 @@ async def preflight(
     address = IndividualAddress(individual_address)
     image = await _device_association_format(xknx, address, security, image, scope)
     controls = _resolve_controls(application, master, image, scope, ip_config)
-    apdu_ceiling, negotiate_apdu = _apdu_settings(max_apdu_length)
-
-    manager = _connection_manager(xknx, address, security)
-    runner = LoadProcedureRunner(
-        application,
-        image,
-        connection_manager=manager,
-        max_apdu_length=apdu_ceiling,
-        controls=controls,
-        object_types=_object_types(application, master),
-        scope=scope,
-        expected_descriptor=expected_descriptor,
-        negotiate_apdu=negotiate_apdu,
-        apdu_overhead=_apdu_overhead(security),
-        authorize_levels=_authorize_levels(application, master, security),
+    apdu_ceiling, negotiate_apdu = _apdu_settings(
+        max_apdu_length, interface_max_apdu_length
     )
-    try:
-        return await runner.preflight()
-    finally:
-        await manager.close()
+    memory_caps = _memory_cap_ladder(None)
+    for attempt, memory_cap in enumerate(memory_caps):
+        manager = _connection_manager(xknx, address, security)
+        runner = LoadProcedureRunner(
+            application,
+            image,
+            connection_manager=manager,
+            max_apdu_length=apdu_ceiling,
+            controls=controls,
+            object_types=_object_types(application, master),
+            scope=scope,
+            expected_descriptor=expected_descriptor,
+            negotiate_apdu=negotiate_apdu,
+            apdu_overhead=_apdu_overhead(security),
+            authorize_levels=_authorize_levels(application, master, security),
+            memory_service_count=memory_cap,
+        )
+        try:
+            return await runner.preflight()
+        except MemoryReadNotAnswered as exc:
+            if attempt + 1 >= len(memory_caps):
+                raise
+            logger.warning(
+                "preflight: %s left a long memory read unanswered; retrying with a "
+                "%d-octet memory-service cap. Cause: %s",
+                address,
+                memory_caps[attempt + 1],
+                exc,
+            )
+        finally:
+            await manager.close()
+    raise AssertionError("unreachable")
