@@ -1456,9 +1456,8 @@ async def test_m112_abs_segment_sends_length() -> None:
     assert writes[0].data == bytes.fromhex("130000400001ffff038000")
 
 
-async def test_abs_segment_writes_initialized_bytes_in_partial_scope() -> None:
-    """Allocating a segment must flash the code seed, even on a parameter download."""
-    image = DownloadImage(
+def _abs_segment_image() -> DownloadImage:
+    return DownloadImage(
         segments=(
             MemorySegment(
                 address=0x4B20,
@@ -1469,22 +1468,32 @@ async def test_abs_segment_writes_initialized_bytes_in_partial_scope() -> None:
         ),
         properties=(),
     )
-    application = _application(
-        LdCtrlAbsSegment(
-            lsm_idx=3,
-            occurrence=0,
-            seg_type=0,
-            address=0x4B20,
-            size=4,
-            access=0xFF,
-            mem_type=3,
-            seg_flags=0x80,
-        )
+
+
+def _abs_segment_control() -> LdCtrlAbsSegment:
+    return LdCtrlAbsSegment(
+        lsm_idx=3,
+        occurrence=0,
+        seg_type=0,
+        address=0x4B20,
+        size=4,
+        access=0xFF,
+        mem_type=3,
+        seg_flags=0x80,
     )
+
+
+async def test_abs_segment_writes_initialized_bytes_in_partial_scope_for_memory_mapped_lsm() -> (
+    None
+):
+    """A memory-mapped LSM mask (BIM M112) reallocates on almost every load; a
+    parameter download's mask alone could leave that segment empty or stale, so
+    its AbsSegment write still flashes the whole code seed."""
+    application = _m112_application(_abs_segment_control())
     device = _device()
     runner = LoadProcedureRunner(
         application,
-        image,
+        _abs_segment_image(),
         DeviceProgrammer(device),
         scope=DownloadScope.PARAMETERS,
     )
@@ -1492,3 +1501,22 @@ async def test_abs_segment_writes_initialized_bytes_in_partial_scope() -> None:
     await runner.run()
 
     assert bytes(device.memory[0x4B20 + i] for i in range(4)) == b"\xaa\xbb\xcc\xdd"
+
+
+async def test_abs_segment_keeps_the_parameter_mask_for_property_mapped_masks() -> None:
+    """A property-mapped mask (System B, BCU2) does not reallocate a segment the way
+    BIM M112 does; a parameter download writes only the parameter bytes, not the
+    unchanged application code seed - otherwise a parameter download costs as much
+    bus time as a full one on a large application (e.g. MV-0700's 28k code segment)."""
+    application = _application(_abs_segment_control())
+    device = _device()
+    runner = LoadProcedureRunner(
+        application,
+        _abs_segment_image(),
+        DeviceProgrammer(device),
+        scope=DownloadScope.PARAMETERS,
+    )
+
+    await runner.run()
+
+    assert all(0x4B20 + i not in device.memory for i in range(4))

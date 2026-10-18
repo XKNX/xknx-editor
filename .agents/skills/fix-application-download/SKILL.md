@@ -31,7 +31,7 @@ The ETS run must use the same parameters, group links, and application as the pr
 From the repository root:
 
 ```bash
-uv run python .agents/skills/fix-application-download/scripts/compare_ets_download.py \
+uv run python packages/download/tools/compare_ets_download.py \
   --ets /path/to/ets-group-monitor.xml \
   --project /path/to/project.xknx \
   --device 1.1.4

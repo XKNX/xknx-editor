@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Protocol
 
 from xknx.exceptions import ManagementConnectionError
@@ -1130,6 +1131,31 @@ class DeviceProgrammer:
             target,
             state.name,
         )
+        await self._poll_load_state(
+            state,
+            accepted,
+            target,
+            object_index,
+            retries=retries,
+            retry_delay=retry_delay,
+            read=lambda: self.read_load_state(object_index),
+            log_prefix="load state poll",
+        )
+
+    async def _poll_load_state(
+        self,
+        state: load_state.LoadState,
+        accepted: tuple[load_state.LoadState, ...],
+        target: str,
+        object_index: int,
+        *,
+        retries: int,
+        retry_delay: float,
+        read: Callable[[], Awaitable[load_state.LoadState]],
+        log_prefix: str,
+    ) -> None:
+        """Poll ``read`` until ``state`` reaches ``accepted``, shared by the property
+        (``send_load_event``) and memory-mapped (``send_memory_load_event``) transports."""
         for poll in range(1, max(retries, 0) + 1):
             if state in accepted:
                 return
@@ -1138,9 +1164,10 @@ class DeviceProgrammer:
                     f"object {object_index} entered ERROR state (expected {target})"
                 )
             await asyncio.sleep(retry_delay)
-            state = await self.read_load_state(object_index)
+            state = await read()
             logger.debug(
-                "load state poll: %s object-index=%d poll=%d/%d state=%s expected=%s",
+                "%s: %s object-index=%d poll=%d/%d state=%s expected=%s",
+                log_prefix,
                 self.diagnostic_context,
                 object_index,
                 poll,
@@ -1215,29 +1242,16 @@ class DeviceProgrammer:
         if status_address is None:
             return
         state = await self.read_memory_load_state(status_address, object_index)
-        for poll in range(1, max(retries, 0) + 1):
-            if state in accepted:
-                return
-            if state == load_state.LoadState.ERROR:
-                raise LoadStateError(
-                    f"object {object_index} entered ERROR state (expected {target})"
-                )
-            await asyncio.sleep(retry_delay)
-            state = await self.read_memory_load_state(status_address, object_index)
-            logger.debug(
-                "memory load state poll: %s object-index=%d poll=%d/%d state=%s "
-                "expected=%s",
-                self.diagnostic_context,
-                object_index,
-                poll,
-                retries,
-                state.name,
-                target,
-            )
-        if state not in accepted:
-            raise LoadStateError(
-                f"object {object_index} did not reach {target}, last state {state.name}"
-            )
+        await self._poll_load_state(
+            state,
+            accepted,
+            target,
+            object_index,
+            retries=retries,
+            retry_delay=retry_delay,
+            read=lambda: self.read_memory_load_state(status_address, object_index),
+            log_prefix="memory load state poll",
+        )
 
     async def restart(self) -> None:
         """Restart the device (also closes the transport connection).

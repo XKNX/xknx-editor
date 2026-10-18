@@ -32,6 +32,7 @@ from .project_data import (
 )
 from .resources import (
     bcu1_group_object_table,
+    m112_association_table,
     property_mapped_lsms,
     reserved_memory,
 )
@@ -138,6 +139,8 @@ def packed_group_tables(
     octet and the device address.
     """
     if not property_mapped_lsms(application.program.mask_version):
+        return None
+    if not m112_association_table(application.program.mask_version):
         return None
     if address_table_length <= 0:
         return None
@@ -767,11 +770,15 @@ def _group_communication_segments(
         if base is not None:
             offset = address_table.offset or 0
             data = build_group_address_table(gc.device_address, group_addresses)
-            # Include the own-address octets. Unloading LSM 1 clears the table;
-            # leaving them masked meant a later application download never
-            # restored 1.1.x and group telegrams no longer matched.
+            # The download writes only the count and the group address
+            # entries; the two own-address octets after the count are written
+            # during individual-address programming, not by this download, so keep
+            # them out of the mask (they legitimately differ per realisation, e.g.
+            # a 0xffff placeholder).
+            mask = bytearray(b"\xff" * len(data))
+            mask[1] = mask[2] = 0x00
             address = base + offset
-            result.append(MemorySegment(address, data, mask=b"\xff" * len(data)))
+            result.append(MemorySegment(address, data, mask=bytes(mask)))
             packed = packed_group_tables(application, len(data))
     association_table = static.association_table
     if association_table is not None and association_table.code_segment is not None:

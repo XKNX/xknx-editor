@@ -481,6 +481,25 @@ def bcu1_association_table(mask_version: str) -> bool:
     )
 
 
+def m112_association_table(mask_version: str) -> bool:
+    """Whether the association table is the property-mapped M112 list.
+
+    Only this flavour declares the address and association tables at their
+    maximum size, contiguous, so only it is a candidate for ETS packing the
+    association table against the used address table (see
+    :func:`xknxeditor.download.image.packed_group_tables`).
+    ``AssociationTable_Bcu2`` (MV-0020/0021/0025) is also property-mapped but
+    is a different table reached through its own pointer; it is not packed.
+    """
+    resources = bundled_mask_resources(mask_version)
+    if resources is None:
+        return False
+    return (
+        resources.flavour(ResourceName.GROUP_ASSOCIATION_TABLE)
+        is ResourceFlavour.ASSOCIATION_TABLE_M112
+    )
+
+
 def bundled_mask_resources(mask_version_id: str) -> MaskResources | None:
     """Build a resource map for ``mask_version_id`` from the bundled table."""
     entry = _object_dict(_bundled_table().get(mask_version_id))

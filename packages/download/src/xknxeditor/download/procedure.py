@@ -433,6 +433,11 @@ class LoadProcedureRunner:
         )
         # Position of the control currently being executed, for diagnostics.
         self._position: tuple[int, int] | None = None
+        # Memoized result of _packed_group_tables(): every AbsSegment and task
+        # control on a packed mask asks for the same placement, computed from
+        # the (unchanging) application and image for this run.
+        self._packed_group_tables_computed = False
+        self._packed_group_tables_cache: PackedGroupTables | None = None
 
     async def run(self, progress: Callable[[int, int], None] | None = None) -> None:
         """Execute the Load Procedure, honouring the selected download scope.
@@ -940,6 +945,24 @@ class LoadProcedureRunner:
             ),
         )
 
+    def _memory_mapped_mask(self) -> bool:
+        """Whether this mask's product procedure places tables through absolute
+        segments it reallocates on almost every load.
+
+        True for every BIM M112 mask, including the property-mapped MV-0705 /
+        MV-2705: their LSM events go through a property, but the address,
+        association and application placement still goes through
+        AllocAbsDataSeg. A partial download's parameter mask alone can then
+        leave a reallocated segment empty or stale, so an AbsSegment write on
+        these masks flushes the full code seed even outside a full or
+        application download. Property-mapped masks that are not BIM M112
+        (System B, BCU2) do not reallocate that way and keep the scope-based
+        rule (:meth:`_memory_runs`'s default): only a full/application download
+        writes the seed, a parameter download touches only the changed bytes.
+        """
+        resources = bundled_mask_resources(self.application.program.mask_version)
+        return resources is not None and resources.memory_mapped_lsm() is not None
+
     def _memory_lsm(self, index: int) -> tuple[int, int | None] | None:
         """Return ``(control_address, status_address)`` for a memory-mapped LSM.
 
@@ -963,7 +986,19 @@ class LoadProcedureRunner:
         return control, resources.memory_mapped_lsm_status(index)
 
     def _packed_group_tables(self) -> PackedGroupTables | None:
-        """ETS placement of the address and association tables, if this mask packs them."""
+        """ETS placement of the address and association tables, if this mask packs them.
+
+        Memoized: every ``AbsSegment`` and task-segment control on a packed mask
+        asks for the same placement, computed from this run's unchanging
+        application and image.
+        """
+        if self._packed_group_tables_computed:
+            return self._packed_group_tables_cache
+        self._packed_group_tables_computed = True
+        self._packed_group_tables_cache = self._compute_packed_group_tables()
+        return self._packed_group_tables_cache
+
+    def _compute_packed_group_tables(self) -> PackedGroupTables | None:
         from .image import packed_group_tables
 
         static = getattr(self.application.program, "static", None)
@@ -2063,11 +2098,16 @@ class LoadProcedureRunner:
         # allocation is followed by a verified memory write of the segment data -
         # but only the bytes the image actually produced (its mask). Bytes the
         # encoder did not write stay at their current device value.
-        # Allocation defines the checksum range. A partial download's parameter
-        # mask alone would skip the application-code seed (n_runs=0) and leave
-        # the BCU with an empty or stale segment after AllocAbsDataSeg.
+        # A memory-mapped mask (BIM M112) reallocates that range on almost every
+        # load; a partial download's parameter mask alone would skip the
+        # application-code seed (n_runs=0) and leave the BCU with an empty or
+        # stale segment after AllocAbsDataSeg, so flush the full seed there even
+        # outside a full/application download. Other masks keep the scope-based
+        # default (see :meth:`_memory_runs`), or a parameter download would cost
+        # as much bus time as a full one on a large application.
+        include_initialized = True if self._memory_mapped_mask() else None
         runs = (
-            self._memory_runs(address, size, include_initialized=True)
+            self._memory_runs(address, size, include_initialized=include_initialized)
             if self._enable_segment_write
             else []
         )
@@ -2162,7 +2202,7 @@ class LoadProcedureRunner:
                     size,
                     segments,
                     missing_ok=True,
-                    include_initialized=True,
+                    include_initialized=True if self._memory_mapped_mask() else None,
                 )
             return
         if isinstance(control, LdCtrlWriteProp):

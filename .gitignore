@@ -18,6 +18,7 @@ wheels/
 .installed.cfg
 *.egg
 .cursor
+
 .env
 .venv
 env/

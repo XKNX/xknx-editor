@@ -156,6 +156,17 @@ def test_a_gap_between_the_tables_is_not_packed() -> None:
     assert all(segment.address != 0x4005 for segment in segments)
 
 
+def test_bcu2_association_table_is_not_packed() -> None:
+    """AssociationTable_Bcu2 (MV-0020/0021/0025) is property-mapped too, but it is
+    a different table reached through its own pointer, not the M112 list ETS packs.
+    Even with the two segments declared contiguous, the association table stays at
+    its declared address."""
+    segments = _segments("MV-0020")
+    association = next(segment for segment in segments if segment.address == 0x41FF)
+    assert association.data == bytes.fromhex("010101")
+    assert all(segment.address != 0x4005 for segment in segments)
+
+
 def _abs(lsm: int, address: int, size: int) -> LdCtrlAbsSegment:
     return LdCtrlAbsSegment(
         lsm_idx=lsm,
