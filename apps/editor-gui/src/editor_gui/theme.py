@@ -126,6 +126,12 @@ _WINDOWS_COLORS = {
 }
 
 
+# The Windows selection blue over a white field: (179, 214, 243), dark text stays readable on it.
+_SELECTION = imgui.ImVec4(0.0, 120 / 255, 215 / 255, 0.3)
+# The least a selection differs from a light field, in luminance (Light Rounded has 0.16).
+_SELECTION_MIN_CONTRAST = 0.08
+
+
 def apply_theme(tweaked: hello_imgui.ImGuiTweakedTheme) -> None:
     """Apply ``tweaked`` with the editor's own style on top, as the editor starts with it."""
     hello_imgui.apply_tweaked_theme(tweaked)
@@ -166,6 +172,7 @@ def apply_style() -> None:
     # disappears in the white fields of the light themes. imgui's own color sets draw it in the
     # text color.
     style.set_color_(imgui.Col_.input_text_cursor, style.color_(imgui.Col_.text))
+    _apply_text_selection(style)
     _apply_table_lines(style)
     apply_window_colors()
 
@@ -179,6 +186,25 @@ def _clamp_colors(style: imgui.Style) -> None:
             col,
             imgui.ImVec4(*(min(max(v, 0.0), 1.0) for v in (c.x, c.y, c.z, c.w))),
         )
+
+
+def _luminance(color: imgui.ImVec4) -> float:
+    r, g, b = (min(max(c, 0.0), 1.0) for c in (color.x, color.y, color.z))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _apply_text_selection(style: imgui.Style) -> None:
+    """Selected text in a light field in the light blue of Windows text boxes when the theme's
+    selection barely differs from the field (Microsoft Style, White Is White, Gray Variations)."""
+    field = style.color_(imgui.Col_.frame_bg)
+    selection = style.color_(imgui.Col_.text_selected_bg)
+    if _luminance(field) < 0.8:
+        return
+    shown = abs(_luminance(selection) - _luminance(field)) * min(
+        max(selection.w, 0.0), 1.0
+    )
+    if shown < _SELECTION_MIN_CONTRAST:
+        style.set_color_(imgui.Col_.text_selected_bg, _SELECTION)
 
 
 def _apply_table_lines(style: imgui.Style) -> None:
