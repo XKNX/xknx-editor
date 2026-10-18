@@ -1349,6 +1349,87 @@ async def test_m112_task_segment_patches_manufacturer_when_requested() -> None:
     assert writes[0].data == bytes.fromhex("1302004000010002000101")
 
 
+async def test_m112_code_only_segment_is_not_allocated() -> None:
+    """A checksum-less code seed is not an AbsSegment allocation.
+
+    The Merten 5701 segment at 0x5100 is 25856 bytes of application code and
+    no parameter bytes. ETS never allocates it. The device does not ACK that
+    11-octet record, so the full download stops there.
+    """
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0x5100,
+                data=b"\x11" * 8,
+                mask=b"\x00" * 8,
+                initialized_mask=b"\xff" * 8,
+            ),
+        ),
+        properties=(),
+    )
+    application = _m112_application(
+        LdCtrlAbsSegment(
+            lsm_idx=3,
+            occurrence=0,
+            seg_type=0,
+            address=0x5100,
+            size=8,
+            access=0xF1,
+            mem_type=3,
+            seg_flags=0,
+        )
+    )
+    runner, device = _runner(application, image)
+    device.load_states[3] = LoadState.LOADING
+
+    await runner.run()
+
+    assert not [
+        payload
+        for payload in device.sent
+        if isinstance(payload, (MemoryWrite, MemoryRead))
+    ]
+
+
+async def test_m112_checksummed_code_seed_is_still_allocated() -> None:
+    """Checksum bit 7 still allocates, so the seed is written into that range."""
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0x4400,
+                data=b"\xaa\xbb",
+                mask=b"\x00\x00",
+                initialized_mask=b"\xff\xff",
+            ),
+        ),
+        properties=(),
+    )
+    application = _m112_application(
+        LdCtrlAbsSegment(
+            lsm_idx=3,
+            occurrence=0,
+            seg_type=0,
+            address=0x4400,
+            size=2,
+            access=0xF1,
+            mem_type=3,
+            seg_flags=0x80,
+        )
+    )
+    runner, device = _runner(application, image)
+    device.load_states[3] = LoadState.LOADING
+
+    await runner.run()
+
+    writes = [
+        payload
+        for payload in device.sent
+        if isinstance(payload, MemoryWrite) and payload.address == 0x0104
+    ]
+    assert writes and writes[0].data[0] == 0x33
+    assert bytes(device.memory[0x4400 + i] for i in range(2)) == b"\xaa\xbb"
+
+
 async def test_m112_abs_segment_sends_length() -> None:
     """ETS AbsSegment keeps the XML length, with a reserved octet after type."""
     application = _m112_application(

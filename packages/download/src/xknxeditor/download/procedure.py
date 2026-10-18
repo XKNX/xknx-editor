@@ -2027,6 +2027,25 @@ class LoadProcedureRunner:
         segment_type = load_state.SegmentType(control.seg_type)
         index = await self._resolve_index(control)
         address, size = self._segment_placement(control.address, control.size)
+        # A checksum-less segment whose image holds only the code seed has no
+        # parameter bytes. ETS does not allocate it (the Merten 5701 segment at
+        # 0x5100 is 25856 bytes, and the device does not ACK that record). The
+        # seed stays as it already is on the device. A checksummed segment still
+        # allocates, so the code seed is written into the range the device checks.
+        if (
+            self._memory_lsm(index) is not None
+            and self._enable_segment_write
+            and not ((control.seg_flags or 0) & 0x80)
+            and self._memory_runs(address, size, include_initialized=False) == []
+            and self._memory_runs(address, size, include_initialized=True)
+        ):
+            logger.info(
+                "skipping code-only segment without checksum: %s address=%#06x size=%d",
+                self._diagnostic_context(),
+                address,
+                size,
+            )
+            return
         event = load_state.alloc_absolute_segment(
             segment_type,
             address,
