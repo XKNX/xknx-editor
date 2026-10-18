@@ -1889,3 +1889,6 @@ msgstr "Plug-in van de fabrikant niet beschikbaar"
 
 msgid "Serial Number Already Used"
 msgstr "Serienummer al in gebruik"
+
+msgid "Cancelled by user."
+msgstr "Geannuleerd door de gebruiker."

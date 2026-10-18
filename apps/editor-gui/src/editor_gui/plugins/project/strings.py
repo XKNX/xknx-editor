@@ -2451,6 +2451,10 @@ class ProjectStrings:
         return _("Canceled")
 
     @property
+    def OPERATION_CANCELED_BY_USER(self) -> str:
+        return _("Cancelled by user.")
+
+    @property
     def OPERATION_FAILED(self) -> str:
         return _("failed")
 

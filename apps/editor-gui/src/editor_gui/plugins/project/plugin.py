@@ -139,6 +139,7 @@ class ProjectPlugin:
         self._program_queue = ProgramQueue(
             is_busy=lambda: api.connection.busy_operation is not None,
             start=self._start_program,
+            cancel=api.connection.cancel_operation,
             submit=api.main_thread.submit if api.main_thread is not None else None,
             connection=lambda item: api.connection.connection_label(
                 with_address=item.script is None

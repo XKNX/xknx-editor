@@ -2035,3 +2035,6 @@ msgstr "Plugin des Herstellers nicht verfügbar"
 
 msgid "Serial Number Already Used"
 msgstr "Seriennummer bereits verwendet"
+
+msgid "Cancelled by user."
+msgstr "Vom Benutzer abgebrochen."

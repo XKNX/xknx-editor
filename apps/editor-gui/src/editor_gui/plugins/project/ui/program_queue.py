@@ -134,14 +134,11 @@ class ProgramQueuePanel:
 
     def _render_cancel(self, item: QueueItem, right: float) -> None:
         run = item.script
-        running_download = (
-            item.state is OperationState.RUNNING
-            and run is None
-            and not item.cancelable_while_running
-        )
         size = imgui.get_frame_height()
         imgui.same_line(max(right - size, 0.0))
-        imgui.begin_disabled(running_download or (run is not None and run.canceled))
+        imgui.begin_disabled(
+            item.canceled_by_user or (run is not None and run.canceled)
+        )
         if imgui.button("X##cancel", imgui.ImVec2(size, size)):
             self._on_cancel(item)
         imgui.end_disabled()
@@ -264,6 +261,8 @@ def _state(item: QueueItem) -> str:
         case OperationState.WAITING:
             return S.OPERATION_WAITING
         case OperationState.RUNNING:
+            if item.canceled_by_user:
+                return S.SCRIPT_CANCELING
             if item.device_info is not None:
                 return S.OPERATION_READING
             if item.script is None:

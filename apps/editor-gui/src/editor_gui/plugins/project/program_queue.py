@@ -23,6 +23,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any
 
+from editor_gui.plugins.project.strings import S
 from xknxeditor.download.partial import FullDownloadDeclined
 from xknxeditor.prod.script import AbortToken, ScriptAborted
 
@@ -90,17 +91,16 @@ class QueueItem:
     # Answered by the user: overwrite the application a download found in the device.
     full_download_question: Future[bool] | None = field(default=None, repr=False)
     future: Future[Any] | None = field(default=None, repr=False)
-
-    @property
-    def cancelable_while_running(self) -> bool:
-        return self.scope is not None and self.scope.individual_address_only
+    # The user canceled it; a running operation shows Canceling until it has ended.
+    canceled_by_user: bool = False
 
 
 class ProgramQueue:
     """Serialises programmings. ``is_busy() -> bool`` reports whether any bus op is running;
     ``start(item) -> Future | None`` starts one programming (``None`` = could not start); ``submit``
     marshals a callable onto the UI thread (``None`` runs it inline, for tests); ``connection``
-    names the bus connection an item runs on."""
+    names the bus connection an item runs on; ``cancel(future)`` stops a running operation so its
+    future ends only once the operation has unwound (``None`` cancels the future itself)."""
 
     def __init__(
         self,
@@ -112,8 +112,10 @@ class ProgramQueue:
         on_finished: Callable[[QueueItem, Any], None] | None = None,
         describe_error: Callable[[QueueItem, BaseException], str | None] | None = None,
         error_text: Callable[[BaseException], str | None] | None = None,
+        cancel: Callable[[Future[Any]], None] | None = None,
     ) -> None:
         self._is_busy = is_busy
+        self._cancel = cancel
         self._start = start
         self._submit = submit
         self._connection = connection
@@ -171,12 +173,13 @@ class ProgramQueue:
         self.tick()
 
     def cancel(self, node_id: int) -> None:
-        """Remove a *queued* device (the running one cannot be interrupted)."""
+        """Remove a *queued* device; the running one is canceled with ``cancel_current``."""
         for item in [q for q in self._queued if q.node_id == node_id]:
             self._remove_queued(item)
 
     def cancel_item(self, item: QueueItem) -> None:
-        """Cancel one operation: a waiting one ends at once, a running script is asked to stop."""
+        """Cancel one operation: a waiting one ends at once, a running one is stopped (see
+        ``cancel_current``)."""
         if item is self._current:
             self.cancel_current()
         elif item in self._queued:
@@ -189,10 +192,17 @@ class ProgramQueue:
 
     def _remove_queued(self, item: QueueItem) -> None:
         self._queued.remove(item)
+        item.canceled_by_user = True
         self._end(item, OperationState.CANCELED)
 
     def _end(self, item: QueueItem, state: OperationState) -> None:
         item.state = state
+        if (
+            state is OperationState.CANCELED
+            and item.canceled_by_user
+            and not item.message
+        ):
+            item.message = S.OPERATION_CANCELED_BY_USER
         item.ended_at = datetime.datetime.now()
         self._history.insert(0, item)
 
@@ -200,15 +210,22 @@ class ProgramQueue:
         self._history.clear()
 
     def cancel_current(self) -> None:
-        """Ask a running parameter script to stop; it decides itself when to return. An address
-        download is cancelled at once."""
+        """Cancel the running operation. A parameter script is asked to stop and decides itself
+        when to return; any other operation (a download, an address download, a device info
+        read) is stopped at its next bus exchange and ends once it has closed its connection, so
+        the next one does not start on a bus still in use. A device whose download was canceled
+        needs a new download."""
         current = self._current
         if current is None:
             return
         if current.script is not None:
             current.script.cancel()
-        elif current.cancelable_while_running and current.future is not None:
-            current.future.cancel()
+        elif current.future is not None and not current.canceled_by_user:
+            current.canceled_by_user = True
+            if self._cancel is not None:
+                self._cancel(current.future)
+            else:
+                current.future.cancel()
 
     def tick(self) -> None:
         """Start the next queued device if the bus is free. Idempotent; safe to call every frame."""
@@ -258,6 +275,9 @@ def _outcome(
     if future.cancelled():
         return OperationState.CANCELED, None
     error = future.exception()
+    if item.canceled_by_user and error is not None:
+        # Stopped while it ran: whatever the interrupted exchange raised is the cancellation.
+        return OperationState.CANCELED, None
     if isinstance(error, ScriptAborted | FullDownloadDeclined):
         return OperationState.CANCELED, None
     if error is not None:
