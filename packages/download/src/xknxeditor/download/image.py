@@ -30,7 +30,12 @@ from .project_data import (
     module_instances_from_device,
     parameter_instance_refs_from_device,
 )
-from .resources import property_mapped_lsms
+from .resources import (
+    bcu1_association_table,
+    bcu1_group_object_table,
+    property_mapped_lsms,
+    reserved_memory,
+)
 from .secure_config import GroupSecurity, SecurityTables, security_tables
 from .tables import (
     Association,
@@ -97,19 +102,6 @@ def _coupler_bytes(
     return bytes(patched), bytes(valid)
 
 
-def _reserved_memory(mask_version: str) -> range | None:
-    """Standard memory a mask version keeps out of the application's segment data:
-    0x0117-0x0118 for the BCU1/BCU2 families, 0x4001-0x4002 for the 07xx family."""
-    version = _mask_number(mask_version)
-    if version is None:
-        return None
-    if version & 0x0FF0 in (0x0010, 0x0020):
-        return range(0x0117, 0x0119)
-    if version & 0x0FF0 == 0x0700:
-        return range(0x4001, 0x4003)
-    return None
-
-
 if TYPE_CHECKING:
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 
@@ -138,9 +130,13 @@ def packed_group_tables(
 ) -> PackedGroupTables | None:
     """Return the ETS placement of the address and association tables.
 
-    ``None`` when the mask keeps the declared segment addresses (MV-0701) or the
-    two tables are not a contiguous absolute pair. ``address_table_length`` is
-    the encoded address table, including its count octet and the device address.
+    Property-mapped masks whose association flavour is ``AssociationTable_M112``
+    declare the two tables at their maximum size. When those segments are
+    contiguous, ETS slides the association table up against the used address
+    table. ``None`` when ``PropertyMappedLsms`` is 0 (the declared address stays)
+    or the two tables are not a contiguous absolute pair. See the resource
+    comment in ``resources.py``. ``address_table_length`` includes the count
+    octet and the device address.
     """
     if not property_mapped_lsms(application.program.mask_version):
         return None
@@ -495,7 +491,7 @@ def build_image(
         )
         if table is not None
     }
-    reserved = _reserved_memory(application.program.mask_version)
+    reserved = reserved_memory(application.program.mask_version)
     segments: list[MemorySegment] = []
     application_segments: list[ObjectMemorySegment] = []
     for segment_id, (data, mask) in encoded.items():
@@ -519,7 +515,7 @@ def build_image(
             declaration, ApplicationProgramStaticCodeRelativeSegment
         ) and not (declaration is not None and declaration.user_memory):
             base = base_addresses[segment_id]
-            if reserved is not None:
+            if reserved:
                 initialized = bytes(
                     0 if base + offset in reserved else value
                     for offset, value in enumerate(initialized)
@@ -728,10 +724,11 @@ def _group_communication_segments(
                 <= len(seed[0])
             ):
                 table_numbers.update(range(record_count))
-            # BCU1 keeps the address, association and group-object tables inside the
-            # one EEPROM segment. A System-B record laid out from the segment start
-            # overwrites the application id and the table pointers.
-            if _bcu1_mask(application.program.mask_version):
+            # GroupObjectTable_Bcu10 / Bcu11 / Bcu1PL keep the address, association
+            # and group-object tables inside the one EEPROM segment. A 4-octet
+            # record laid out from the segment start overwrites the application id
+            # and the table pointers.
+            if bcu1_group_object_table(application.program.mask_version):
                 data, mask = _bcu1_com_object_overlay(
                     seed[0],
                     ui,
@@ -790,7 +787,7 @@ def _group_communication_segments(
                 for link in links
             ]
             _validate_table_capacity(application, group_addresses, associations)
-            if _bcu1_mask(application.program.mask_version):
+            if bcu1_association_table(application.program.mask_version):
                 data = _bcu1_association_table(associations, set(number_of.values()))
             else:
                 data = build_association_table(associations)
@@ -966,15 +963,11 @@ _COM_OBJECT_HEADER = 5
 _COM_OBJECT_RECORD = 4
 _COMMUNICATION_BIT = 0x04
 
-# BCU1 (mask 001x) group-object table: a count octet, then 3-octet records whose
-# last octet is the flag byte. The association table is one slot per object
-# number; 0xFE is an empty slot.
+# AssociationTable_Bcu1: a count octet, then one slot per object number.
+# 0xFE is an empty slot. GroupObjectTable_Bcu1x is a count plus 3-octet records
+# whose last octet is the flag byte. Which masks those are is the flavour, not
+# a nibble of the mask version (see resources.py).
 _BCU1_EMPTY_ASSOCIATION = 0xFE
-
-
-def _bcu1_mask(mask_version: str) -> bool:
-    version = _mask_number(mask_version)
-    return version is not None and version & 0xFFF0 == 0x0010
 
 
 def _bcu1_association_table(

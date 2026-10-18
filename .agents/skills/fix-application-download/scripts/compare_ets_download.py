@@ -2,7 +2,7 @@
 
 Run from the repository root:
 
-  uv run python .cursor/skills/fix-application-download/scripts/compare_ets_download.py \
+  uv run python .agents/skills/fix-application-download/scripts/compare_ets_download.py \
     --ets /path/to/ets-group-monitor.xml \
     --project /path/to/project.xknx \
     --device 1.1.4
@@ -612,6 +612,13 @@ def _print_compare(
     if uncovered:
         print(f"ETS wrote {len(uncovered)} bytes the editor image does not contain")
         print("  " + _ranges(uncovered))
+        print(
+            "HINT uncovered: if these addresses are the start of the association "
+            "table and the editor has the same bytes at the declared association "
+            "address, see reference.md (packed association table). Otherwise follow "
+            "the load-control record for this address, then the mask flavour in "
+            "resources.py."
+        )
     if clobber:
         print("editor would change bytes ETS read and left in place:")
         print("  " + _ranges(clobber))

@@ -92,6 +92,102 @@ def test_property_mapped_lsms_distinguishes_m112_masks() -> None:
     assert not property_mapped_lsms("MV-FFFF-unknown")
 
 
+def test_flavours_select_the_table_and_load_control_realisation() -> None:
+    from xknxeditor.download.resources import (
+        bcu1_association_table,
+        bcu1_group_object_table,
+        bundled_mask_resources,
+        reserved_memory,
+    )
+    from xknxeditor.namespaces.intermediate.hawk_configuration_data_t_features_feature_name import (
+        HawkConfigurationDataFeaturesFeatureName as MaskFeature,
+    )
+    from xknxeditor.namespaces.intermediate.hawk_configuration_data_t_resources_resource_resource_type_flavour import (
+        HawkConfigurationDataResourcesResourceResourceTypeFlavour as Flavour,
+    )
+
+    m0705 = bundled_mask_resources("MV-0705")
+    assert m0705 is not None
+    assert m0705.feature(MaskFeature.PROPERTY_MAPPED_LSMS) == 1
+    assert m0705.flavour(ResourceName.GROUP_ADDRESS_TABLE) is Flavour.ADDRESS_TABLE_BCU1
+    assert (
+        m0705.flavour(ResourceName.GROUP_ASSOCIATION_TABLE)
+        is Flavour.ASSOCIATION_TABLE_M112
+    )
+    assert (
+        m0705.flavour(ResourceName.GROUP_OBJECT_TABLE)
+        is Flavour.GROUP_OBJECT_TABLE_M112
+    )
+    assert (
+        m0705.flavour(ResourceName.APPLICATION_LOAD_CONTROL)
+        is Flavour.LOAD_CONTROL_M112
+    )
+    assert reserved_memory("MV-0705") == frozenset({0x4001, 0x4002})
+
+    m0701 = bundled_mask_resources("MV-0701")
+    assert m0701 is not None
+    assert m0701.feature(MaskFeature.PROPERTY_MAPPED_LSMS) == 0
+    assert not bcu1_group_object_table("MV-0701")
+    assert not bcu1_association_table("MV-0701")
+
+    m0011 = bundled_mask_resources("MV-0011")
+    assert m0011 is not None
+    assert (
+        m0011.flavour(ResourceName.GROUP_OBJECT_TABLE)
+        is Flavour.GROUP_OBJECT_TABLE_BCU11
+    )
+    assert (
+        m0011.flavour(ResourceName.GROUP_ASSOCIATION_TABLE)
+        is Flavour.ASSOCIATION_TABLE_BCU1
+    )
+    assert bcu1_group_object_table("MV-0011")
+    assert bcu1_association_table("MV-0011")
+    assert reserved_memory("MV-0012") == frozenset({0x0117, 0x0118})
+
+    # BCU2 is property-mapped and keeps the load-state-machine pointer, not the
+    # 3-octet BCU1 overlay. The individual address is still 0x0117.
+    m0021 = bundled_mask_resources("MV-0021")
+    assert m0021 is not None
+    assert m0021.feature(MaskFeature.PROPERTY_MAPPED_LSMS) == 1
+    assert (
+        m0021.flavour(ResourceName.GROUP_OBJECT_TABLE)
+        is Flavour.GROUP_OBJECT_TABLE_BCU2
+    )
+    assert m0021.property_ref(ResourceName.GROUP_ADDRESS_TABLE_PTR) == (1, 7)
+    assert not bcu1_group_object_table("MV-0021")
+    assert not bcu1_association_table("MV-0021")
+    assert reserved_memory("MV-0021") == frozenset({0x0117, 0x0118})
+
+    # Powerline uses the BCU1 record flavours. System B does not reserve the
+    # M112 individual-address octets. MV-2705 is property-mapped with BCU2 load
+    # control, and its address table is still the M112 head at 0x4000.
+    assert bcu1_group_object_table("MV-1011")
+    assert bcu1_association_table("MV-1011")
+    assert reserved_memory("MV-1011") == frozenset({0x0117, 0x0118})
+    assert reserved_memory("MV-07B0") == frozenset()
+    assert reserved_memory("MV-0910") == frozenset()
+    m2705 = bundled_mask_resources("MV-2705")
+    assert m2705 is not None
+    assert m2705.feature(MaskFeature.PROPERTY_MAPPED_LSMS) == 1
+    assert (
+        m2705.flavour(ResourceName.APPLICATION_LOAD_CONTROL)
+        is Flavour.LOAD_CONTROL_BCU2
+    )
+    assert reserved_memory("MV-2705") == frozenset({0x4001, 0x4002})
+
+    # The current coupler block is the property. The legacy block's memory octet
+    # at 0x60 is not the programming mode of MV-0912.
+    m0912 = bundled_mask_resources("MV-0912")
+    assert m0912 is not None
+    assert m0912.property_ref(ResourceName.PROGRAMMING_MODE) == (0, 54)
+    system_b = bundled_mask_resources("MV-07B0")
+    assert system_b is not None
+    assert (
+        system_b.flavour(ResourceName.GROUP_ADDRESS_TABLE)
+        is Flavour.ADDRESS_TABLE_SYSTEM_B
+    )
+
+
 def test_mask_resources_falls_back_to_bundled_without_master() -> None:
     resolved = mask_resources(None, "MV-07B0")
     assert resolved is not None

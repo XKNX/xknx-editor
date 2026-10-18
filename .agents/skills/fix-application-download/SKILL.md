@@ -31,7 +31,7 @@ The ETS run must use the same parameters, group links, and application as the pr
 From the repository root:
 
 ```bash
-uv run python .cursor/skills/fix-application-download/scripts/compare_ets_download.py \
+uv run python .agents/skills/fix-application-download/scripts/compare_ets_download.py \
   --ets /path/to/ets-group-monitor.xml \
   --project /path/to/project.xknx \
   --device 1.1.4
@@ -46,6 +46,14 @@ Exit 0 and `RESULT match` means every byte ETS wrote is in the editor image and 
 Read [reference.md](reference.md) only for a hint the script actually prints.
 
 ## Fix
+
+Classify the mask before editing code. The device's mask version is on the application (`MaskVersion`, `MV-0705`). Its `features` and `resources` are in `packages/download/src/xknxeditor/download/mask_resources.json`. The module comment in `packages/download/src/xknxeditor/download/resources.py` says what each flavour changes in the download: address space is where the resource sits, flavour is which realisation it is, and `PropertyMappedLsms` chooses property transport even when a `LoadControl_M112` memory address is also published.
+
+- Dispatch on the feature or flavour the mask already has (`PropertyMappedLsms`, `AssociationTable_M112`, `GroupObjectTable_Bcu11`, `LoadControl_M112`, `AddressTable_SystemB`).
+- A flavour that is already implemented is a regression test for that flavour. Add the device under the existing test, and stop.
+- A flavour the bundled table does not list is a change to `packages/download/tools/gen_mask_resources.py`, regenerated from `knx_master.xml`. A `HawkConfigurationData` with `LegacyVersion` set is the old view of the same mask (MV-07B0's second block). The generator keeps the block that has no legacy version.
+- `LegacyPatchManufacturerIdInTaskSegment` is an application option. Product XML addresses of a `Pointer` resource are the maximum layout.
+- Do not add a manufacturer test or a new set of mask ids. That is the branch the flavour table replaces.
 
 Change only the mismatch the script reports.
 

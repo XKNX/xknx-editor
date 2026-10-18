@@ -15,7 +15,7 @@ On the 4-octet table (5-byte header) the flag sits at `segment + 5 + number * 4`
 
 The overlay is `_group_communication_segments` / `_build_com_object_table` in `packages/download/src/xknxeditor/download/image.py`. Include every static com-object number, and every slot in `range(seed[0])` when `5 + count * 4` fits in the segment. A linked object keeps the bit.
 
-BCU1 (mask `0x001x` / `0x002x`, such as the Siemens N 561) keeps the address, association, and group-object tables inside one EEPROM segment. That path must stay on `_bcu1_com_object_overlay`. Laying a System-B record out from the start of the segment overwrites the application id and the table pointers.
+`GroupObjectTable_Bcu10` / `GroupObjectTable_Bcu11` (mask `MV-001x`, such as the Siemens N 561) and `GroupObjectTable_Bcu1PL` keep the address, association, and group-object tables inside one EEPROM segment. That path must stay on `_bcu1_com_object_overlay`. `GroupObjectTable_Bcu2` (`MV-002x`) is a different table and must not take this overlay. Laying a 4-octet record out from the start of the BCU1 segment overwrites the application id and the table pointers. Which mask is which comes from the flavour in `resources.py`, not from a nibble of the mask id.
 
 ## Task-segment manufacturer
 
@@ -36,6 +36,14 @@ Octet 0 is `(lsm << 4) | opcode` (`1` load, `2` complete, `3` additional, `4` un
 Status bytes come from the mask's `LoadStatus` resources (`packages/download/src/xknxeditor/download/resources.py`). `MV-0701` has no PEI `LoadStatus`. Skip that `AllocAbsTask`. Inventing the next address (for example `0xB6EE`) makes the device stop answering.
 
 `object 3 entered ERROR` on this mask is application `LoadCompleted` (`LSM 3`), after the address table (`LSM 1`) and association table (`LSM 2`) have already loaded.
+
+## Packed association table
+
+Hint: `uncovered` bytes, and the same bytes are present in the editor image at the declared association-table address.
+
+`AssociationTable_M112` with `PropertyMappedLsms` = 1 and an `AddressTable_Bcu1` in standard memory declares the two tables at their maximum size, contiguous. ETS writes only the used address table and places the association table immediately after it. The association segment still ends at the declared end. MV-0705 does this (`0x4000`, then the association table where the used address table ends). MV-0701 has the same table flavour with `PropertyMappedLsms` 0, so LSM 2 stays at the declared address (`0x41FF` on the Berker 8014). A gap between the declared segments is left where the product put it.
+
+Load control on that property-mapped mask is `PID_LOAD_STATE_CONTROL`, including when `LoadControl_M112` also publishes `0x0104`. The compare script checks memory bytes, not which transport carried the load event. `memory_mapped_lsm()` staying set is what keeps the absolute-segment procedure.
 
 ## What a matching Berker 8014 download contains
 
