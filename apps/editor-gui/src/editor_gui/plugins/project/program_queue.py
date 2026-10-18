@@ -79,7 +79,9 @@ class QueueItem:
     # A device info readout instead of a download; True also reads the group communication.
     device_info: bool | None = None
     # Result rows shown in the details: (section, [(label, value), ...]).
-    details: list[tuple[str, list[tuple[str, str]]]] = field(default_factory=list)
+    details: list[tuple[str, list[tuple[str, str]]]] = field(
+        default_factory=list[tuple[str, list[tuple[str, str]]]]
+    )
     # Confirmed to program a device whose hardware needs the manufacturer's plugin.
     without_plugin: bool = False
     # The device's current address, for an individual address overwrite.

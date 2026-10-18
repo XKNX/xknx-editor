@@ -30,10 +30,10 @@ if TYPE_CHECKING:
 class ManufacturerBundle:
     """Result of :func:`collect_manufacturer_bundle`."""
 
-    extra_files: dict[str, bytes] = field(default_factory=dict)
+    extra_files: dict[str, bytes] = field(default_factory=dict[str, bytes])
     master_xml: bytes | None = None
-    resolved_manufacturers: set[str] = field(default_factory=set)
-    skipped_refs: set[str] = field(default_factory=set)
+    resolved_manufacturers: set[str] = field(default_factory=set[str])
+    skipped_refs: set[str] = field(default_factory=set[str])
 
 
 def collect_manufacturer_bundle(

@@ -5,7 +5,7 @@ have a command bar to write/read a group address (values decoded via the GA's DP
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from imgui_bundle import imgui
 
@@ -24,7 +24,7 @@ if TYPE_CHECKING:
     from editor_gui.plugins.connection.service import ConnectionService
     from editor_gui.plugins.monitor.records import MonitorRecord
     from editor_gui.plugins.monitor.service import MonitorService
-    from editor_gui.plugins.project.service import _GroupAddress
+    from editor_gui.plugins.project.service import GroupAddressInfo
 
 
 _ERROR_COLOR = imgui.ImVec4(0.95, 0.45, 0.4, 1.0)
@@ -35,7 +35,7 @@ class MonitorPanel:
         self,
         service: MonitorService,
         connection: ConnectionService,
-        get_group_addresses: Callable[[], list[_GroupAddress]],
+        get_group_addresses: Callable[[], list[GroupAddressInfo]],
         get_index: Callable[[], ProjectIndex],
         notify: Callable[[str], None] | None = None,
         on_select_device: Callable[[int], None] | None = None,
@@ -230,7 +230,7 @@ class MonitorPanel:
         if read:
             self._service.send_read(self._selected)
 
-    def _render_table(self, gas: list[_GroupAddress]) -> None:
+    def _render_table(self, gas: list[GroupAddressInfo]) -> None:
         flags = (
             imgui.TableFlags_.borders_inner
             | imgui.TableFlags_.sizing_stretch_prop
@@ -291,5 +291,5 @@ def _decode(payload: Any, dpt: str | None) -> str:
             pass
     value = getattr(payload, "value", None)
     if isinstance(value, tuple):
-        return " ".join(f"{b:02x}" for b in value)
+        return " ".join(f"{b:02x}" for b in cast(tuple[int, ...], value))
     return str(value) if value is not None else "?"

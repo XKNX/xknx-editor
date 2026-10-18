@@ -170,7 +170,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     def _validate(op: dict[str, Any], index: int) -> dict[str, Any]:
         name = op.get("op")
-        params = op.get("params", {}) or {}
+        params: dict[str, Any] = op.get("params", {}) or {}
         if name not in handlers:
             return {
                 "index": index,

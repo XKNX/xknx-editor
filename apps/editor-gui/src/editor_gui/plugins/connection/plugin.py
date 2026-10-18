@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 from imgui_bundle import imgui, imspinner
 from xknx import XKNX
-from xknx.core import XknxConnectionState
+from xknx.core.connection_state import XknxConnectionState
 from xknx.exceptions import ConfirmationError, RequestResponseError
 from xknx.io.connection import ConnectionConfig, ConnectionType
 from xknx.io.const import DEFAULT_MCAST_GRP

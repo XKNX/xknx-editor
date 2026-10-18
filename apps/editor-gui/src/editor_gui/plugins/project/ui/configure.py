@@ -3,7 +3,7 @@ import webbrowser
 from collections.abc import Callable
 from contextlib import nullcontext
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from imgui_bundle import imgui, imspinner
@@ -33,6 +33,7 @@ from xknxeditor.prod.parser_v2.ui import UiNode
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import IpSecureSettings
     from xknxeditor.catalog import ProductSummary, ProgramSummary
+    from xknxeditor.proj.core.addressing import GroupAddressStyle
     from xknxeditor.proj.core.service import DeviceInfo
 from editor_gui.programming_dali import is_dali_dca_app
 from editor_gui.settings import load_settings, save_settings
@@ -273,9 +274,9 @@ class ConfigurePanel:
         get_name_template: Callable[[], str] | None = None,
         set_name_template: Callable[[str], None] | None = None,
         on_create_and_link: Callable[[Device, ComObject, str, str], None] | None = None,
-        group_style: Callable[[], object] | None = None,
+        group_style: "Callable[[], GroupAddressStyle] | None" = None,
         next_free_sub: Callable[[int, int], int] | None = None,
-        get_ga_range_tree: Callable[[], list[object]] | None = None,
+        get_ga_range_tree: Callable[[], list[Any]] | None = None,
         get_selected_node_ids: Callable[[], set[int]] | None = None,
         on_param_change_selected: Callable[[list[int], str, str], None] | None = None,
         render_dali: Callable[[Device], None] | None = None,
@@ -785,7 +786,8 @@ class ConfigurePanel:
             self._name_buffer = default
             self._name_prefilled = True
             state = imgui.internal.get_input_text_state(imgui.get_item_id())
-            if state is not None:
+            # The bindings type the state as non-optional, but it is None without an active edit.
+            if state is not None:  # pyright: ignore[reportUnnecessaryComparison]
                 state.reload_user_buf_and_move_to_end()
         if imgui.is_item_deactivated():
             # The default name itself is not stored as a custom name.

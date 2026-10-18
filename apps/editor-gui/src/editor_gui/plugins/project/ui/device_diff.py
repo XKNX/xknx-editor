@@ -157,7 +157,7 @@ def snapshot_device(
     com_objects = {
         f"{co.number:05d}": CoCell(
             name=com_object_display_name(co) or co.name,
-            dpt=(co.dpt.code if co.dpt is not None and co.dpt.major else ""),
+            dpt=(co.dpt.code if co.dpt.major else ""),
             flags=_flag_letters(co.flags),
             priority=co.priority or "",
             links=_device_links(co, get_links, get_address),

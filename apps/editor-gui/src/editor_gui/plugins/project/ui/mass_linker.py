@@ -34,7 +34,8 @@ from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 if TYPE_CHECKING:
     from editor_gui.device import ComObject, Device
-    from editor_gui.plugins.project.service import _Assignment as Assignment
+    from editor_gui.plugins.project.service import Assignment
+    from xknxeditor.proj.core.addressing import GroupAddressStyle
     from xknxeditor.proj.core.service import GroupRangeInfo
 
 LinkResult = tuple[int, list[str]]  # (linked count, error messages)
@@ -241,7 +242,7 @@ class MassLinkerPanel:
             [list[tuple[ComObject, ComObject, str, str]]], LinkResult
         ],
         get_selected_node_id: Callable[[], int | None],
-        group_style: Callable[[], object],
+        group_style: Callable[[], GroupAddressStyle],
         get_links_for_co: Callable[[int], list[Assignment]] | None = None,
     ) -> None:
         self._get_devices = get_devices
@@ -475,7 +476,7 @@ class MassLinkerPanel:
         from xknxeditor.proj.core.addressing import parse_ga
 
         try:
-            start = parse_ga(self._seq_start.strip(), self._group_style())  # type: ignore[arg-type]
+            start = parse_ga(self._seq_start.strip(), self._group_style())
         except (ValueError, IndexError):
             start = 0
         targets = sequential_targets(
@@ -533,11 +534,11 @@ class MassLinkerPanel:
             typed = row.ga_addr.strip()
             if typed:
                 with contextlib.suppress(ValueError, IndexError):
-                    used.add(parse_ga(typed, style))  # type: ignore[arg-type]
+                    used.add(parse_ga(typed, style))
         try:
             start = (
                 parse_ga(self._co_start.strip(), style) if self._co_start.strip() else 1
-            )  # type: ignore[arg-type]
+            )
         except (ValueError, IndexError):
             start = 1
         paired = [i for i, r in enumerate(self._rows2) if r.target_co is not None]
@@ -546,7 +547,7 @@ class MassLinkerPanel:
         need_addr = [i for i in paired if not self._rows2[i].ga_addr.strip()]
         values = first_free_values(used, start, len(need_addr))
         addr_by_row = {
-            i: format_ga(values[k], style)  # type: ignore[arg-type]
+            i: format_ga(values[k], style)
             for k, i in enumerate(need_addr)
             if k < len(values)
         }

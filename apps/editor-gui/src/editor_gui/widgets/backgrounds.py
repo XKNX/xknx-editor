@@ -9,7 +9,7 @@ draws them a little darker instead, so the two still differ.
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 
 from imgui_bundle import imgui
@@ -153,7 +153,7 @@ def fill_content_background() -> None:
 
 
 @contextmanager
-def child_background(color: imgui.ImVec4) -> Iterator[None]:
+def child_background(color: imgui.ImVec4) -> Generator[None]:
     """Child windows begun inside get ``color`` as background, with square corners (an area of
     the window rather than a box in it)."""
     imgui.push_style_color(imgui.Col_.child_bg, color)

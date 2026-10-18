@@ -58,7 +58,7 @@ class _StdlibBridgeHandler(logging.Handler):
 
     def emit(self, record: logging.LogRecord) -> None:
         try:
-            self._service._ingest_stdlib(record)
+            self._service.ingest_stdlib(record)
         except Exception:  # logging must never raise into the emitting call site
             self.handleError(record)
 
@@ -69,7 +69,7 @@ class LogRecord:
     level: str
     plugin: str
     event: str
-    payload: dict[str, str] = field(default_factory=dict)
+    payload: dict[str, str] = field(default_factory=dict[str, str])
 
     @property
     def timestamp_str(self) -> str:
@@ -163,7 +163,7 @@ class LogService:
                 return
         pkg_logger.addHandler(_StdlibBridgeHandler(self))
 
-    def _ingest_stdlib(self, record: logging.LogRecord) -> None:
+    def ingest_stdlib(self, record: logging.LogRecord) -> None:
         """Convert a stdlib ``LogRecord`` into our ``LogRecord`` and store it."""
         parts = record.name.split(".")
         # "xknxeditor.download.procedure" -> "download"; anything else keeps its own short name.

@@ -7,7 +7,8 @@ import time
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 
-from xknx.cemi import CEMIFrame, CEMILData, CEMIMessageCode
+from xknx.cemi.cemi_frame import CEMIFrame, CEMILData
+from xknx.cemi.const import CEMIMessageCode
 from xknx.telegram import GroupAddress, Telegram
 
 from editor_gui.plugins.monitor.records import TICKS_PER_SECOND, MonitorRecord

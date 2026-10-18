@@ -11,7 +11,7 @@ import webbrowser
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import imgui_bundle._patch_runners_add_save_screenshot_param as _screenshot_patch
 import platformdirs
@@ -724,7 +724,11 @@ class KnxGuiApp:
 
     def _recent_files(self) -> list[str]:
         raw = load_settings("app").get("recent_files")
-        return [p for p in raw if isinstance(p, str)] if isinstance(raw, list) else []
+        return (
+            [p for p in cast(list[object], raw) if isinstance(p, str)]
+            if isinstance(raw, list)
+            else []
+        )
 
     def _add_recent(self, path: str) -> None:
         recent = [p for p in self._recent_files() if p != path]
@@ -4391,7 +4395,8 @@ def _current_ratios(
             return {}
         nodes[name] = node
     root = nodes["RightSpace"]
-    while root.parent_node is not None:
+    # The bindings type the dock nodes and windows as non-optional, but they can be None.
+    while root.parent_node is not None:  # pyright: ignore[reportUnnecessaryComparison]
         root = root.parent_node
     # A split shares its parent's size minus the separator between the two parts.
     gap = imgui.get_style().docking_separator_size
@@ -4419,7 +4424,7 @@ def _keep_window_sections(params: hello_imgui.DockingParams) -> None:
     }
     for window in params.dockable_windows:
         imgui_window = imgui.internal.find_window_by_name(window.label)
-        if imgui_window is None:
+        if imgui_window is None:  # pyright: ignore[reportUnnecessaryComparison]
             continue
         name = sections.get(imgui_window.dock_id)
         if name is not None:
@@ -4427,7 +4432,7 @@ def _keep_window_sections(params: hello_imgui.DockingParams) -> None:
         node = imgui_window.dock_node
         if (
             window.is_visible
-            and node is not None
+            and node is not None  # pyright: ignore[reportUnnecessaryComparison]
             and node.selected_tab_id == imgui_window.tab_id
         ):
             window.focus_window_at_next_frame = True

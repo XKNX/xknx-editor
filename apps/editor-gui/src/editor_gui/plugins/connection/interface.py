@@ -5,7 +5,7 @@ import contextlib
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from xknx.cemi import CEMIFrame
+from xknx.cemi.cemi_frame import CEMIFrame
 from xknx.exceptions import XKNXException
 from xknx.io.data_connection import SequenceVerdict
 from xknx.io.interface import Interface

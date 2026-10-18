@@ -6,6 +6,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import cast
 
 import darkdetect
 from imgui_bundle import hello_imgui, imgui
@@ -74,7 +75,8 @@ def theme_name(theme: hello_imgui.ImGuiTheme_) -> str:
 
 def color_name(name: str) -> str:
     """imgui's name of a style color as words: ``FrameBgHovered`` is "Frame Background (Hovered)"."""
-    words = [_COLOR_WORDS.get(w, w) for w in re.findall(r"[A-Z][a-z]*", name)]
+    parts = cast(list[str], re.findall(r"[A-Z][a-z]*", name))
+    words = [_COLOR_WORDS.get(w, w) for w in parts]
     states: list[str] = []
     while len(words) > 1 and words[-1] in _COLOR_STATES:
         states.insert(0, words.pop())

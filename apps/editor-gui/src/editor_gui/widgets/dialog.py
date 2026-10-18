@@ -10,7 +10,7 @@ size.
 
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
+from collections.abc import Generator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 
@@ -76,7 +76,7 @@ def _track_placement(title: str) -> None:
 
 
 @contextmanager
-def floating_window_border() -> Iterator[None]:
+def floating_window_border() -> Generator[None]:
     """Windows begun inside get a border that stands out from their background, also in a theme
     without window borders (Microsoft Style), while the fields in them keep the theme's lighter
     one."""
