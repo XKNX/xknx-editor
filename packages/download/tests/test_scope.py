@@ -102,3 +102,20 @@ def test_memory_cap_ladder_seeds_and_falls_back() -> None:
     assert _memory_cap_ladder(15) == (15, 12)
     assert _memory_cap_ladder(12) == (12,)
     assert _memory_cap_ladder(52) == (52, 15, 12)
+
+
+def test_app_object_control_classifies_without_mask_type() -> None:
+    from xknxeditor.download.errors import UnsupportedProcedureError
+    from xknxeditor.download.scope import control_in_scope, target_object_type
+    from xknxeditor.namespaces.intermediate.ld_ctrl_write_prop_t import LdCtrlWriteProp
+
+    control = LdCtrlWriteProp(obj_idx=6, prop_id=58, verify=False)
+    system = {1: 1, 2: 2, 3: 3}  # populated mask map; index 6 is an application object
+    # Index 6 is absent -> application object -> non-system (None), included in a
+    # partial scope instead of aborting the whole download.
+    assert target_object_type(control, system) is None
+    assert control_in_scope(control, DownloadScope.PARAMETERS, system) is True
+    assert control_in_scope(control, DownloadScope.GROUP_COMMUNICATION, system) is True
+    # With no mask metadata at all the index stays unclassifiable and fails closed.
+    with pytest.raises(UnsupportedProcedureError, match="InterfaceObjects metadata"):
+        target_object_type(control, {})

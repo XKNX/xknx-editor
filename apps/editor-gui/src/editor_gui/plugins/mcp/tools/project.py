@@ -1018,8 +1018,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         application-relative ref, com-objects by object number). Returns {node_id_a, node_id_b,
         difference_count, header, parameters, com_objects}; each section is a list of rows
         {key, label, kind, a, b} where kind is added|removed|changed|same and a/b are the values on
-        each device (\"\" when the item is absent there). With only_differences=true (default) the
-        'same' rows are omitted to keep the result small."""
+        each device (\"\" when the item is absent there). Com-object rows additionally carry
+        a_links/b_links: the group addresses each device links as [{address, sending}] (sending
+        first). This lets a caller tell a structural difference (object linked on one side only, or
+        different flags/DPT) from a mere room-mapped GA difference (same structure, both linked
+        sending, only the address differs). With only_differences=true (default) the 'same' rows are
+        omitted to keep the result small."""
         from editor_gui.plugins.project.ui.device_diff import (
             diff_devices,
             snapshot_device,
@@ -1033,6 +1037,28 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 for r in rows
                 if not only_differences or r.kind != "same"
             ]
+
+        def _links(cell: Any) -> list[dict[str, Any]]:
+            links = cell.links if cell is not None else ()
+            return [{"address": addr, "sending": sending} for addr, sending in links]
+
+        def _co_rows(rows: list[Any], snap_a: Any, snap_b: Any) -> list[dict[str, Any]]:
+            out: list[dict[str, Any]] = []
+            for r in rows:
+                if only_differences and r.kind == "same":
+                    continue
+                out.append(
+                    {
+                        "key": r.key,
+                        "label": r.label,
+                        "kind": r.kind,
+                        "a": r.a,
+                        "b": r.b,
+                        "a_links": _links(snap_a.com_objects.get(r.key)),
+                        "b_links": _links(snap_b.com_objects.get(r.key)),
+                    }
+                )
+            return out
 
         def _compare() -> dict[str, Any]:
             dev_a = project.find_device_by_node_id(node_id_a)
@@ -1053,17 +1079,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 ga = project.get_group_address(ga_id)
                 return ga.address if ga is not None else ""
 
-            result = diff_devices(
-                snapshot_device(dev_a, get_links, get_address),
-                snapshot_device(dev_b, get_links, get_address),
-            )
+            snap_a = snapshot_device(dev_a, get_links, get_address)
+            snap_b = snapshot_device(dev_b, get_links, get_address)
+            result = diff_devices(snap_a, snap_b)
             return {
                 "node_id_a": node_id_a,
                 "node_id_b": node_id_b,
                 "difference_count": result.difference_count,
                 "header": _rows(result.header),
                 "parameters": _rows(result.parameters),
-                "com_objects": _rows(result.com_objects),
+                "com_objects": _co_rows(result.com_objects, snap_a, snap_b),
             }
 
         return ctx.run_locked(_compare, timeout=_SLOW)

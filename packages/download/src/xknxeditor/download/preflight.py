@@ -113,6 +113,10 @@ class PreflightReport:
 
     segments: tuple[SegmentDiff, ...]
     properties: tuple[PropertyDiff, ...]
+    # Absolute memory addresses whose device value changed between two reads during the
+    # preview, i.e. the firmware is writing them itself at runtime. A difference there is
+    # not a real configuration change and should be classified as device-managed.
+    device_written: frozenset[int] = frozenset()
 
     @property
     def changed_segments(self) -> tuple[SegmentDiff, ...]:
@@ -137,21 +141,32 @@ class PreflightReport:
         return self.total_changed_bytes > 0
 
     def summary(self) -> str:
-        """Return a human readable, multi-line summary of the pending changes."""
+        """Return a human readable, multi-line summary of the pending changes.
+
+        Only locations that would actually change are listed; unchanged segments and
+        properties are collapsed into a trailing count rather than enumerated, so the
+        output stays compact even on a device with many memory segments.
+        """
+        changed_segments = self.changed_segments
+        changed_properties = self.changed_properties
         lines = [
             f"Pre-flight: {self.total_changed_bytes} byte(s) would change "
-            f"({len(self.changed_segments)} memory segment(s), "
-            f"{len(self.changed_properties)} property write(s))."
+            f"({len(changed_segments)} memory segment(s), "
+            f"{len(changed_properties)} property write(s))."
         ]
-        for segment in self.segments:
-            state = f"{segment.changed_bytes}/{len(segment.planned)} changed"
-            marker = " " if segment.changed else " (no change)"
-            lines.append(f"  memory {segment.address:#06x}: {state}{marker}")
-        for prop in self.properties:
-            state = f"{prop.changed_bytes}/{len(prop.planned)} changed"
-            marker = " " if prop.changed else " (no change)"
+        for segment in changed_segments:
+            lines.append(
+                f"  memory {segment.address:#06x}: "
+                f"{segment.changed_bytes}/{len(segment.planned)} changed"
+            )
+        for prop in changed_properties:
             lines.append(
                 f"  object {prop.object_label} property {prop.property_id}: "
-                f"{state}{marker}"
+                f"{prop.changed_bytes}/{len(prop.planned)} changed"
             )
+        unchanged = (len(self.segments) - len(changed_segments)) + (
+            len(self.properties) - len(changed_properties)
+        )
+        if unchanged:
+            lines.append(f"  ({unchanged} unchanged location(s) omitted)")
         return "\n".join(lines)

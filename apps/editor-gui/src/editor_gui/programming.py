@@ -352,6 +352,10 @@ def classify_preflight(
     driven_bits: Mapping[int, int],
 ) -> PreflightClassification:
     """Split a pre-flight report's changed bytes into config / default / runtime totals."""
+    # Addresses the device was observed rewriting during the preview are device-managed
+    # too, not just the statically known access-"None" parameters.
+    if report.device_written:
+        runtime_addresses = set(runtime_addresses) | report.device_written
     config = default = runtime = config_locations = 0
     for segment in report.changed_segments:
         c, d, r = preflight_segment_counts(segment, runtime_addresses, driven_bits)

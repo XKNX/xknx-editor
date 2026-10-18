@@ -521,3 +521,28 @@ async def test_locate_object_reads_each_object_type_once() -> None:
     assert await programmer.locate_object(0x0001) == 1
     assert await programmer.locate_object(0x0002) == 2
     assert len(device.sent) == reads_before
+
+
+async def test_transient_read_timeout_is_retried() -> None:
+    # A lost response on a live connection (the reported "Timeout while waiting for
+    # MemoryResponse" during a verify read) is retried instead of aborting the download.
+    from xknx.exceptions import ManagementConnectionError
+
+    class FlakyRead(FakeDevice):
+        def __init__(self) -> None:
+            super().__init__()
+            self.read_failures = 0
+
+        async def request(self, payload: object, expected: object) -> object:
+            if isinstance(payload, MemoryRead) and self.read_failures == 0:
+                self.read_failures = 1
+                raise ManagementConnectionError(
+                    "Timeout while waiting for MemoryResponse"
+                )
+            return await super().request(payload, expected)  # type: ignore[arg-type]
+
+    device = FlakyRead()
+    device.memory.update({0x10 + i: i for i in range(4)})
+    programmer = DeviceProgrammer(device)
+    assert await programmer.read_memory(0x10, 4) == bytes(range(4))
+    assert device.read_failures == 1  # first read raised once and was retried

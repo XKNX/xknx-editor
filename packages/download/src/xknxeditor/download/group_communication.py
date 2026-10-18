@@ -36,7 +36,6 @@ def materialize_group_communication_controls(
     Do not append controls after completion/restart. Copies
     keep the master/application templates reusable for another image or scope.
     """
-    # see .references/ets_map.md
     if scope in (DownloadScope.UNLOAD, DownloadScope.UNLOAD_ALL):
         return list(controls)
     selected = [c for c in controls if control_in_scope(c, scope, object_types)]
