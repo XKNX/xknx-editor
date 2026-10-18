@@ -77,3 +77,20 @@ def test_the_frozen_app_console_is_the_log_file_itself(
         set_session_log(previous)
 
     assert disk.getvalue().count("once") == 1
+
+
+def test_package_logs_reach_the_log_file() -> None:
+    disk = io.StringIO()
+    previous = session_log()
+    set_session_log(disk)
+    try:
+        LogService()
+        logging.getLogger("xknxeditor.proj.core.myknx_cert").error(
+            "add product to workset failed: HTTP %s", 422
+        )
+    finally:
+        set_session_log(previous)
+
+    text = disk.getvalue()
+    assert "add product to workset failed: HTTP 422" in text
+    assert "plugin=project" in text
