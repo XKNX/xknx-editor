@@ -504,6 +504,10 @@ class KnxGuiApp:
         self._export_summary_schema = ""
         self._export_summary_at = ""
         self._export_summary_requested = False
+        # A failed .knxproj export: (heading, reason, whether getting the certificate
+        # failed). Set by the export worker; the Export Failed window shows it.
+        self._export_failure: tuple[str, str, bool] | None = None
+        self._export_failure_requested = False
         # The certificate signer used for the export, kept so the export-complete window can
         # re-export after removing a device whose product data is too new for the chosen ETS.
         self._export_summary_signer: (
@@ -1069,6 +1073,14 @@ class KnxGuiApp:
                         "the import (add the missing product to the catalog)",
                         references=", ".join(result.missing_references),
                         path=dest,
+                        dialog=True,
+                    )
+                    self._show_export_failure(
+                        dest,
+                        S.EXPORT_FAILED_MISSING.format(
+                            references=", ".join(result.missing_references)
+                        ),
+                        heading=S.EXPORT_FAILED_NOT_IMPORTABLE,
                     )
                 if result.schema_incompatible_products:
                     # A product is only available at a newer schema than the chosen ETS version
@@ -1100,16 +1112,37 @@ class KnxGuiApp:
                     status=e.status,
                     detail=e.detail,
                     exception=f"{type(e).__name__}: {e}",
+                    dialog=True,
                 )
+                self._show_export_failure(dest, e.user_message, signing=True)
             except (
                 Exception
             ) as e:  # OSError/ValueError from export, or other HTTP errors
                 self._log.error(
-                    "export failed", path=dest, error=f"{type(e).__name__}: {e}"
+                    "export failed",
+                    path=dest,
+                    error=f"{type(e).__name__}: {e}",
+                    dialog=True,
                 )
+                self._show_export_failure(dest, str(e) or type(e).__name__)
 
         self._myknx_thread = threading.Thread(target=_run, daemon=True)
         self._myknx_thread.start()
+
+    def _show_export_failure(
+        self,
+        dest: str,
+        reason: str,
+        signing: bool = False,
+        heading: str | None = None,
+    ) -> None:
+        """Open the Export Failed window for ``dest`` with ``reason`` on the next frame (called on
+        the export worker thread). ``heading`` (with ``{name}``) defaults to "could not be
+        exported"."""
+        name = Path(dest).name
+        text = (heading or S.EXPORT_FAILED_TEXT).format(name=name)
+        self._export_failure = (text, reason, signing)
+        self._export_failure_requested = True
 
     def _set_export_schema(self, code: str) -> None:
         """Set and persist the .knxproj export schema (ETS version format), so it sticks."""
@@ -3232,6 +3265,34 @@ class KnxGuiApp:
                 imgui.close_current_popup()
         end_dialog()
 
+    def _render_export_failure_modal(self) -> None:
+        """The Export Failed window: which file, why, and for a certificate that could not be
+        obtained the ways to export without one."""
+        if self._export_failure_requested:
+            imgui.open_popup(S.EXPORT_FAILED_TITLE)
+            self._export_failure_requested = False
+        if not begin_dialog(S.EXPORT_FAILED_TITLE, width=520.0):
+            return
+        failure = self._export_failure
+        if failure is None:
+            imgui.close_current_popup()
+            end_dialog()
+            return
+        text, reason, signing = failure
+        with heading():
+            imgui.text_wrapped(text)
+        imgui.spacing()
+        if signing:
+            imgui.text_wrapped(S.EXPORT_FAILED_CERTIFICATE)
+        imgui.text_wrapped(reason)
+        if signing:
+            imgui.spacing()
+            imgui.text_wrapped(S.EXPORT_FAILED_CERTIFICATE_HINT)
+        if dialog_buttons(S.EXPORT_SUMMARY_CLOSE) == 0:
+            self._export_failure = None
+            imgui.close_current_popup()
+        end_dialog()
+
     # --- compact project ---------------------------------------------------
 
     def _can_compact(self) -> bool:
@@ -3500,6 +3561,7 @@ class KnxGuiApp:
         self._render_update_modal()
         self._render_import_notes_modal()
         self._render_export_summary_modal()
+        self._render_export_failure_modal()
         self._render_compact_modal()
         self._render_compact_result_modal()
         self._render_knxprod_result_modal()
@@ -3861,7 +3923,10 @@ class KnxGuiApp:
             if rec.timestamp <= self._toast_seen_ts:
                 continue
             self._toast_seen_ts = rec.timestamp
-            if rec.level in ("warning", "error", "critical"):
+            # Records also shown in a dialog (e.g. a failed export) get no toast.
+            if rec.level in ("warning", "error", "critical") and not rec.payload.get(
+                "dialog"
+            ):
                 detail = rec.payload.get("error") or ""
                 text = f"[{rec.plugin}] {rec.event}" + (f": {detail}" if detail else "")
                 self._toasts.append((text, rec.level, now + 6.0))

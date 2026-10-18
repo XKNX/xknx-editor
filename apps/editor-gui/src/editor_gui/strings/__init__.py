@@ -637,6 +637,36 @@ class MenuStrings:
         )
 
     @property
+    def EXPORT_FAILED_TITLE(self) -> str:
+        return _("Export Failed")
+
+    @property
+    def EXPORT_FAILED_TEXT(self) -> str:
+        return _("The project could not be exported to {name}.")
+
+    @property
+    def EXPORT_FAILED_CERTIFICATE(self) -> str:
+        return _("MyKnx did not issue the certificate for the project:")
+
+    @property
+    def EXPORT_FAILED_CERTIFICATE_HINT(self) -> str:
+        return _(
+            "To export without it, choose 'Export Without Certificate' or 'License with a "
+            "Dongle…' in the Sign Export window."
+        )
+
+    @property
+    def EXPORT_FAILED_NOT_IMPORTABLE(self) -> str:
+        return _("{name} cannot be imported.")
+
+    @property
+    def EXPORT_FAILED_MISSING(self) -> str:
+        return _(
+            "The file was written, but it refers to product data that is not in the catalog: "
+            "{references}. Add these products to the catalog and export again."
+        )
+
+    @property
     def MYKNX_SIGN_TITLE(self) -> str:
         return _("Sign Export")
 

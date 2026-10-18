@@ -1171,3 +1171,21 @@ msgstr "Update wird heruntergeladen…"
 
 msgid "{done} of {total} MB"
 msgstr "{done} von {total} MB"
+
+msgid "Export Failed"
+msgstr "Export fehlgeschlagen"
+
+msgid "The project could not be exported to {name}."
+msgstr "Das Projekt konnte nicht nach {name} exportiert werden."
+
+msgid "MyKnx did not issue the certificate for the project:"
+msgstr "MyKnx hat das Zertifikat für das Projekt nicht ausgestellt:"
+
+msgid "To export without it, choose 'Export Without Certificate' or 'License with a Dongle…' in the Sign Export window."
+msgstr "Um ohne Zertifikat zu exportieren, wählen Sie im Fenster „Export signieren“ „Ohne Zertifikat exportieren“ oder „Mit Dongle lizenzieren…“."
+
+msgid "{name} cannot be imported."
+msgstr "{name} kann nicht importiert werden."
+
+msgid "The file was written, but it refers to product data that is not in the catalog: {references}. Add these products to the catalog and export again."
+msgstr "Die Datei wurde geschrieben, verweist aber auf Produktdaten, die nicht im Katalog sind: {references}. Fügen Sie diese Produkte dem Katalog hinzu und exportieren Sie erneut."

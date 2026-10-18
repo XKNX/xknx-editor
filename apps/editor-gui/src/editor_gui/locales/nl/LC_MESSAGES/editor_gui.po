@@ -1051,3 +1051,21 @@ msgstr "Update wordt gedownload…"
 
 msgid "{done} of {total} MB"
 msgstr "{done} van {total} MB"
+
+msgid "Export Failed"
+msgstr "Exporteren mislukt"
+
+msgid "The project could not be exported to {name}."
+msgstr "Het project kon niet naar {name} worden geëxporteerd."
+
+msgid "MyKnx did not issue the certificate for the project:"
+msgstr "MyKnx heeft het certificaat voor het project niet uitgegeven:"
+
+msgid "To export without it, choose 'Export Without Certificate' or 'License with a Dongle…' in the Sign Export window."
+msgstr "Kies in het venster „Export ondertekenen” „Zonder certificaat exporteren” of „Licentie met een dongle…” om zonder certificaat te exporteren."
+
+msgid "{name} cannot be imported."
+msgstr "{name} kan niet worden geïmporteerd."
+
+msgid "The file was written, but it refers to product data that is not in the catalog: {references}. Add these products to the catalog and export again."
+msgstr "Het bestand is geschreven, maar verwijst naar productgegevens die niet in de catalogus staan: {references}. Voeg deze producten toe aan de catalogus en exporteer opnieuw."
