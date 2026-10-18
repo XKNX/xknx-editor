@@ -1,6 +1,7 @@
 """Pages of applications converted from the older product format: the visible parameters of a
-hidden block go to the empty visible page beside it with the greatest display order not above
-their own, in display order (the rocker pages of the Gira Tastsensor 3 Basis, issue #96)."""
+hidden block go to the visible page beside it with the greatest display order not above their
+own, in display order (the rocker pages of the Gira Tastsensor 3 Basis, issue #96; the internal
+"GP_ConvertibleVersion" at the end of the "D: Function" page of an ABB valve drive)."""
 
 from __future__ import annotations
 
@@ -74,19 +75,19 @@ def _channel() -> UiTab:
     )
 
 
-def test_hidden_parameters_fill_the_empty_pages_in_display_order() -> None:
+def test_hidden_parameters_go_to_their_pages_in_display_order() -> None:
     (channel,) = place_hidden_parameters([_channel()], _order)
     assert isinstance(channel, UiTab)
     hidden, rocker_1, rocker_2, full = channel.children
     assert _labels(rocker_1) == ["function-1", "led-1", "command-1"]
     assert _labels(rocker_2) == ["function-2"]
-    # A page with content of its own keeps it; the parameter stays in the hidden block.
-    assert _labels(full) == ["own"]
+    # A page with content of its own gets them too, sorted in by display order.
+    assert _labels(full) == ["function-full", "own"]
     assert isinstance(hidden, UiParameterBlock)
     remaining = [
         node.ref_id for node in hidden.children if isinstance(node, UiParameter)
     ]
-    assert remaining == ["internal", "function-full"]
+    assert remaining == ["internal"]
 
 
 def test_a_hidden_parameter_is_not_shown() -> None:
@@ -101,7 +102,7 @@ def test_without_display_orders_nothing_moves() -> None:
     assert place_hidden_parameters([channel], lambda _ref: None) == [channel]
 
 
-def test_a_page_with_only_a_separator_is_not_empty() -> None:
+def test_a_separator_keeps_its_place() -> None:
     hidden = UiParameterBlock(
         id="hidden",
         hidden=True,
@@ -112,4 +113,5 @@ def test_a_page_with_only_a_separator_is_not_empty() -> None:
         [hidden, _page("Wippe 1", "page-1", separator)], _order
     )
     assert isinstance(placed, UiParameterBlock)
-    assert placed.children == (separator,)
+    assert placed.children[0] == separator
+    assert _labels(placed) == ["function-1", "led-1"]

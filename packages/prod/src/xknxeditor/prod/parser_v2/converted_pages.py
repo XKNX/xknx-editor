@@ -4,8 +4,9 @@ In that format a page is a heading in one list of parameters ordered by display 
 belongs to the page in front of it. The converted dynamic section keeps the pages as blocks, but
 may leave a page empty and put its parameters into a hidden block (``Access="None"``) beside it,
 e.g. the rocker pages of the Gira Tastsensor 3 Basis. Such a parameter is shown on the visible page
-beside the hidden block with the greatest display order not above its own, when that page has no
-content of its own, sorted by display order. A page with content keeps it as it is.
+beside the hidden block with the greatest display order not above its own, and the page lists its
+parameters in display order (an internal parameter like "GP_ConvertibleVersion" of the ABB
+valve drives too: it is shown at the end of the "D: Function" page).
 """
 
 from __future__ import annotations
@@ -23,10 +24,10 @@ DisplayOrder = Callable[[str], int | None]
 def place_hidden_parameters(
     nodes: Sequence[UiNode], display_order: DisplayOrder
 ) -> list[UiNode]:
-    """Move the visible parameters of hidden blocks onto the empty visible pages beside them.
+    """Move the visible parameters of hidden blocks onto the visible pages beside them.
 
     ``display_order`` returns a ParameterRef's display order, or ``None`` when it has none (the
-    parameter then stays where it is). Nodes without hidden blocks beside empty visible pages are
+    parameter then stays where it is). Nodes without hidden blocks beside visible pages are
     returned unchanged.
     """
     return _place(list(nodes), display_order)
@@ -35,7 +36,6 @@ def place_hidden_parameters(
 def _place(nodes: list[UiNode], display_order: DisplayOrder) -> list[UiNode]:
     nodes = [_with_placed_children(node, display_order) for node in nodes]
     pages: list[tuple[int, int]] = []
-    empty: set[int] = set()
     for index, node in enumerate(nodes):
         if (
             isinstance(node, UiParameterBlock)
@@ -46,9 +46,7 @@ def _place(nodes: list[UiNode], display_order: DisplayOrder) -> list[UiNode]:
             order = display_order(node.param_ref_id)
             if order is not None:
                 pages.append((order, index))
-                if not node.children:
-                    empty.add(index)
-    if not empty:
+    if not pages:
         return nodes
     moved: dict[int, list[tuple[int, UiParameter]]] = {}
     for node in nodes:
@@ -66,8 +64,7 @@ def _place(nodes: list[UiNode], display_order: DisplayOrder) -> list[UiNode]:
                 ),
                 default=None,
             )
-            # Only an empty page takes them: one with content shows what it declares.
-            if target is not None and target[1] in empty:
+            if target is not None:
                 moved.setdefault(target[1], []).append((order, parameter))
     if not moved:
         return nodes
