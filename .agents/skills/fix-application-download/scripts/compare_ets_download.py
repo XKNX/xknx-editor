@@ -448,14 +448,59 @@ def editor_image(
     )
     if patch:
         application_bytes = b"\x00\x02" + application_bytes[2:]
+    holes = _procedure_inline_holes(application, written)
+    written.update(holes)
     meta: dict[str, object] = {
         "application": application.id,
         "mask": application.program.mask_version,
         "load_procedure_style": str(application.load_procedure_style),
         "task_application_id": application_bytes.hex(),
         "legacy_manufacturer_patch": patch,
+        "procedure_inline": len(holes),
     }
     return written, meta
+
+
+def _procedure_inline_holes(
+    application: object, image: dict[int, int]
+) -> dict[int, int]:
+    """Inline procedure bytes the image deliberately leaves empty.
+
+    The mask procedure writes these itself (BCU1 stops the application at
+    ``0x010D``, clears the checksum RAM, then starts it). Filling the hole in
+    the image would replace the stop value with the final run byte.
+    """
+    from xknxeditor.download.errors import DownloadError
+    from xknxeditor.download.merge import resolve_download_controls
+    from xknxeditor.namespaces.intermediate.ld_ctrl_mem_addr_space_t import (
+        LdCtrlMemAddrSpace,
+    )
+    from xknxeditor.namespaces.intermediate.ld_ctrl_write_mem_t import LdCtrlWriteMem
+    from xknxeditor.prod import parse_master_xml
+
+    path = _default_catalog().parent / "knx_master.xml"
+    if not path.is_file():
+        print(f"\nNo master data at {path}; procedure inline bytes were not applied.")
+        return {}
+    try:
+        master = parse_master_xml(path.read_bytes())
+        if master.raw is None:
+            return {}
+        controls = resolve_download_controls(application, master.raw)  # type: ignore[arg-type]
+    except (OSError, ValueError, KeyError, DownloadError) as exc:
+        print(f"\nCould not read the mask procedure: {exc}", file=sys.stderr)
+        return {}
+    holes: dict[int, int] = {}
+    for control in controls:
+        if not isinstance(control, LdCtrlWriteMem) or not control.inline_data:
+            continue
+        if control.address_space is not LdCtrlMemAddrSpace.STANDARD:
+            continue
+        for offset, byte in enumerate(control.inline_data[: control.size]):
+            address = control.address + offset
+            if address not in image:
+                holes[address] = byte
+    return holes
 
 
 def _project_device(
@@ -557,6 +602,9 @@ def _print_meta(meta: dict[str, object]) -> None:
         f"editor task application id {meta['task_application_id']}  "
         f"legacy manufacturer patch {meta['legacy_manufacturer_patch']}"
     )
+    inline = meta.get("procedure_inline")
+    if inline:
+        print(f"procedure inline bytes outside the image: {inline}")
 
 
 def _print_compare(

@@ -31,7 +31,6 @@ from .project_data import (
     parameter_instance_refs_from_device,
 )
 from .resources import (
-    bcu1_association_table,
     bcu1_group_object_table,
     property_mapped_lsms,
     reserved_memory,
@@ -787,10 +786,9 @@ def _group_communication_segments(
                 for link in links
             ]
             _validate_table_capacity(application, group_addresses, associations)
-            if bcu1_association_table(application.program.mask_version):
-                data = _bcu1_association_table(associations, set(number_of.values()))
-            else:
-                data = build_association_table(associations)
+            # AssociationTable_Bcu1 is this same list, at the pointer in the
+            # shared EEPROM. One slot per object drops a second group address.
+            data = build_association_table(associations)
             address = (
                 packed.association_address
                 if packed is not None
@@ -963,39 +961,10 @@ _COM_OBJECT_HEADER = 5
 _COM_OBJECT_RECORD = 4
 _COMMUNICATION_BIT = 0x04
 
-# AssociationTable_Bcu1: a count octet, then one slot per object number.
-# 0xFE is an empty slot. GroupObjectTable_Bcu1x is a count plus 3-octet records
-# whose last octet is the flag byte. Which masks those are is the flavour, not
-# a nibble of the mask version (see resources.py).
-_BCU1_EMPTY_ASSOCIATION = 0xFE
-
-
-def _bcu1_association_table(
-    associations: Sequence[Association], object_numbers: set[int]
-) -> bytes:
-    """One ``[address index or 0xFE][object number]`` slot per object number."""
-    if not object_numbers:
-        return build_association_table(associations)
-    count = max(object_numbers) + 1
-    if count > 0xFF:
-        raise ImageError(f"association table has too many entries: {count}")
-    slot: dict[int, int] = {}
-    for association in sorted(
-        associations,
-        key=lambda a: (
-            not a.sending,
-            a.group_object_number,
-            a.group_address_index,
-        ),
-    ):
-        slot.setdefault(
-            association.group_object_number, association.group_address_index
-        )
-    out = bytearray([count])
-    for number in range(count):
-        out.append(slot.get(number, _BCU1_EMPTY_ASSOCIATION))
-        out.append(number)
-    return bytes(out)
+# GroupObjectTable_Bcu1x is a count plus 3-octet records whose last octet is
+# the flag byte. Which masks those are is the flavour, not a nibble of the
+# mask version (see resources.py). The association table next to it is the
+# ordinary one-octet list, not one slot per object number.
 
 
 def _bcu1_com_object_overlay(

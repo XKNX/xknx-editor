@@ -1,8 +1,10 @@
 """BCU1 group tables share the application EEPROM.
 
-The Siemens N 561 (mask MV-0011) keeps one association slot per object and a
-3-octet group-object record inside the same segment as the application id.
-A System B record laid out from the segment start overwrites that id.
+Mask MV-0011 (AssociationTable_Bcu1, GroupObjectTable_Bcu11) keeps the
+one-octet association list and a 3-octet group-object record inside the same
+segment as the application id. A System B record laid out from the segment
+start overwrites that id. A second link to one object is a second entry;
+unlinked objects are omitted.
 """
 
 from __future__ import annotations
@@ -141,11 +143,46 @@ def test_bcu1_tables_keep_the_application_header() -> None:
     )
 
     association = next(segment for segment in segments if segment.address == 0x013B)
-    # One slot per object: unlinked objects are 0xFE, object 1 uses address index 1.
-    assert association.data == bytes.fromhex("03fe000101fe02")
+    # One link: object 1, address-table index 1. Objects 0 and 2 are omitted.
+    assert association.data == bytes.fromhex("010101")
 
     address_table = next(segment for segment in segments if segment.address == 0x0116)
     assert address_table.data == bytes.fromhex("021133090d")
+
+
+def test_bcu1_association_keeps_every_link() -> None:
+    """ETS writes one entry per link. A receiving address is not dropped."""
+    nodes = [
+        _com_object(0, read=False, write=True, transmit=False, update=True),
+        _com_object(1, read=True, write=True, transmit=True, update=True),
+    ]
+    segments = _group_communication_segments(
+        _application("MV-0011"),  # type: ignore[arg-type]
+        _UI(nodes),  # type: ignore[arg-type]
+        {_SEGMENT: _BASE},
+        {_SEGMENT: (_seed(), b"\x00" * 256)},
+        GroupCommunication(
+            device_address=0x114A,
+            links=(
+                GroupObjectLink(
+                    com_object_ref_id="O-0_R", group_address=0x110D, sending=True
+                ),
+                GroupObjectLink(
+                    com_object_ref_id="O-0_R", group_address=0x1000, sending=False
+                ),
+                GroupObjectLink(
+                    com_object_ref_id="O-1_R", group_address=0x110E, sending=True
+                ),
+                GroupObjectLink(
+                    com_object_ref_id="O-1_R", group_address=0x1001, sending=False
+                ),
+            ),
+        ),
+    )
+    association = next(segment for segment in segments if segment.address == 0x013B)
+    # Sorted addresses 0x1000, 0x1001, 0x110D, 0x110E are indexes 1..4.
+    # Sending links first, then the receiving links.
+    assert association.data == bytes.fromhex("040300040101000201")
 
 
 def test_system_b_overlay_still_starts_at_the_segment() -> None:

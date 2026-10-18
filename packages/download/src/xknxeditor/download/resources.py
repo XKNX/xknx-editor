@@ -54,9 +54,11 @@ Address table:
 
 Association table:
 
-- ``AssociationTable_Bcu1`` is one slot per object number inside the shared
-  BCU1 EEPROM segment. An empty slot is ``0xFE``. The powerline masks use this
-  same flavour.
+- ``AssociationTable_Bcu1`` is the one-octet association list (a count, then
+  one ``[address index, object number]`` entry per link), placed at the
+  ``GroupAssociationTablePtr`` inside the shared BCU1 EEPROM segment. A second
+  link to the same object is another entry. An unlinked object is left out.
+  The powerline masks use this same flavour.
 - ``AssociationTable_Bcu2`` is the BCU2 table reached through its pointer. It
   is not the BCU1 slot layout and not the M112 list.
 - ``AssociationTable_M112`` is the list of ``[address index, object number]``
@@ -469,7 +471,7 @@ def bcu1_group_object_table(mask_version: str) -> bool:
 
 
 def bcu1_association_table(mask_version: str) -> bool:
-    """Whether the association table is one BCU1 slot per object number."""
+    """Whether the association table is the BCU1 list at its pointer."""
     resources = bundled_mask_resources(mask_version)
     if resources is None:
         return False
