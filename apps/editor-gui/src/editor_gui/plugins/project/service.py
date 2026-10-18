@@ -49,8 +49,12 @@ from xknxeditor.namespaces.intermediate.enable_t import Enable
 from xknxeditor.prod import Application
 from xknxeditor.prod.gc_pause import gc_paused
 from xknxeditor.prod.parser_v2.calculation import VALIDATION_FAILED
+from xknxeditor.proj import (
+    AdditionalAddressError,
+    ProjectStorageError,
+    ensure_sqlite_writable,
+)
 from xknxeditor.proj import ProjectService as _ProjectService
-from xknxeditor.proj import ProjectStorageError, ensure_sqlite_writable
 from xknxeditor.proj import import_ga_export as _import_ga_export
 from xknxeditor.proj import import_knxproj as _import_knxproj
 from xknxeditor.proj import is_ga_export as _is_ga_export
@@ -79,6 +83,7 @@ if TYPE_CHECKING:
     from xknxeditor.proj.core.import_notes import ImportLoss
     from xknxeditor.proj.core.product_prune import ProgressCallback
     from xknxeditor.proj.core.service import (
+        AdditionalAddressInfo,
         DeviceInfo,
         DeviceKeys,
         GroupRangeInfo,
@@ -375,6 +380,17 @@ def _rejection_text(exc: ValueError) -> str:
     return S.VALIDATION_FAILED if message == VALIDATION_FAILED else message
 
 
+def additional_address_error_text(exc: AdditionalAddressError) -> str:
+    """The message shown for a rejected additional individual address."""
+    if exc.kind == AdditionalAddressError.NOT_ENOUGH:
+        return S.ADDITIONAL_ADDRESSES_NOT_ENOUGH
+    if exc.kind == AdditionalAddressError.OTHER_LINE:
+        return S.ADDITIONAL_ADDRESS_OTHER_LINE.format(line=exc.address)
+    if exc.kind == AdditionalAddressError.IN_USE:
+        return S.ADDITIONAL_ADDRESS_IN_USE.format(address=exc.address)
+    return S.ADDITIONAL_ADDRESS_INVALID
+
+
 def _history_device_id(data: dict[str, Any]) -> int | None:
     """The device id an undone/redone event touched — for a ``SyncDeviceComObjects`` (``device_id``)
     or a ``Composite`` (from the first sub-event that carries one), so only that device is rebuilt."""
@@ -388,6 +404,18 @@ def _history_device_id(data: dict[str, Any]) -> int | None:
         if node_id is not None:
             return node_id
     return None
+
+
+# Events that, wrapped in a composite with the additional addresses they assign, still need the
+# full rebuild they get on their own.
+_STRUCTURAL_EVENTS = frozenset(
+    ("AddDevice", "ChangeDeviceApplication", "MoveDevice", "UpdateDeviceApplication")
+)
+
+
+def _changes_structure(data: dict[str, Any]) -> bool:
+    """Whether a composite event holds an event that changes the device structure."""
+    return any(sub.get("type") in _STRUCTURAL_EVENTS for sub in data.get("events", []))
 
 
 def _history_label(event_type: str, data: dict[str, Any]) -> str:
@@ -428,6 +456,8 @@ def _history_label(event_type: str, data: dict[str, Any]) -> str:
         return f"Rename device to {data.get('name', '')!r}"
     if event_type == "MoveDevice":
         return "Move device"
+    if event_type == "SetDeviceAdditionalAddresses":
+        return str(data.get("label") or S.HISTORY_ADDITIONAL_ADDRESSES)
     if event_type == "SetComObjectFlag":
         return "Set flag"
     if event_type == "SetComObjectDatapointType":
@@ -3510,6 +3540,7 @@ class ProjectService:
             module_instances=module_instances or None,
             parameters=parameters.values,
             com_object_data=objects.data,
+            additional_addresses=new_app.program.additional_addresses_count or 0,
         )
         self._app_cache[target.id] = new_app
         self._bump()
@@ -3557,6 +3588,7 @@ class ProjectService:
             new_app_id=new_app.id,
             com_objects=[(co.id, None) for co in com_objects],
             module_instances=module_instances or None,
+            additional_addresses=new_app.program.additional_addresses_count or 0,
         )
         self._app_cache[program.id] = new_app
         self._bump()
@@ -3665,11 +3697,15 @@ class ProjectService:
         parameters: list[tuple[str, str]] | None = None,
         product: DeviceProduct | None = None,
         secure_commissioning: bool | None = None,
+        with_additional_addresses: bool = True,
     ) -> int | None:
         """Add a device. A device that supports KNX Data Secure is commissioned securely by
         default when the project has a password (``secure_commissioning`` ``None``); ``True``
         activates it (the project needs a password, ``ProjectPasswordRequired`` otherwise),
-        ``False`` adds it commissioned in the clear."""
+        ``False`` adds it commissioned in the clear. The device gets the additional individual
+        addresses its application has (its tunnelling addresses), the highest free ones of the
+        line, unless ``with_additional_addresses`` is off; when the line has too few free, it is
+        added without them."""
         if self._pid is None:
             return None
         if not app.program.is_secure_enabled:
@@ -3693,23 +3729,42 @@ class ProjectService:
         com_objects: list[tuple[str, str | None]] = [
             (co.id, None) for co in init_objects
         ]
-        device_id = self._svc.add_device(
-            self._pid,
-            segment_id,
-            product_ref_id,
-            name=name,
-            address=address,
-            hardware2program_ref_id=hardware2program_ref_id,
-            application_program_ref_id=app.id,
-            parameters=parameters or None,
-            com_objects=com_objects,
-            module_instances=module_instances if module_instances else None,
-            product_name=product.product_name,
-            hardware_name=product.hardware_name,
-            order_number=product.order_number,
-            manufacturer_name=product.manufacturer_name,
-            secure_commissioning=secure_commissioning,
+        pid = self._pid
+
+        def add(additional: int) -> int:
+            return self._svc.add_device(
+                pid,
+                segment_id,
+                product_ref_id,
+                name=name,
+                address=address,
+                hardware2program_ref_id=hardware2program_ref_id,
+                application_program_ref_id=app.id,
+                parameters=parameters or None,
+                com_objects=com_objects,
+                module_instances=module_instances if module_instances else None,
+                product_name=product.product_name,
+                hardware_name=product.hardware_name,
+                order_number=product.order_number,
+                manufacturer_name=product.manufacturer_name,
+                secure_commissioning=secure_commissioning,
+                additional_addresses=additional,
+            )
+
+        additional = (
+            app.program.additional_addresses_count or 0
+            if with_additional_addresses
+            else 0
         )
+        try:
+            device_id = add(additional)
+        except AdditionalAddressError as exc:
+            self._log.warning(
+                "device added without its additional addresses",
+                count=additional,
+                error=str(exc),
+            )
+            device_id = add(0)
         if secure_commissioning:
             self._ensure_ip_secrets(device_id, app, hardware2program_ref_id)
         if hardware2program_ref_id is not None:
@@ -4221,6 +4276,116 @@ class ProjectService:
             return False
         self._bump()
         return True
+
+    def next_free_device_number(self, area_number: int, line_number: int) -> int | None:
+        """The lowest device number of the line ``area_number.line_number`` that no device and no
+        additional address uses; ``None`` when the line does not exist or is full."""
+        if self._pid is None:
+            return None
+        line = next(
+            (
+                line
+                for area in self._svc.topology(self._pid, _INSTALLATION).areas
+                if area.address == area_number
+                for line in area.lines
+                if line.address == line_number
+            ),
+            None,
+        )
+        if line is None:
+            return None
+        try:
+            return self._svc.next_free_individual_address(self._pid, line.id)
+        except ValueError:
+            return None
+
+    def additional_address_count(self, device: Device) -> int:
+        """How many additional individual addresses the device's application has (its tunnelling
+        addresses); 0 while its application is not loaded."""
+        if device.app is None:
+            return 0
+        return device.app.program.additional_addresses_count or 0
+
+    def additional_addresses(self, node_id: int) -> "list[AdditionalAddressInfo]":
+        """The device's additional individual addresses, every entry in order."""
+        info = self.get_device_info(node_id)
+        return list(info.additional_addresses) if info is not None else []
+
+    def assign_additional_addresses(
+        self, device: Device, count: int | None = None
+    ) -> "list[AdditionalAddressInfo]":
+        """Give the device's additional addresses without one an address, adding entries up to
+        ``count`` (the application's number by default): the highest free device numbers of its
+        line. Undoable. Raises ``AdditionalAddressError`` when the line has too few free."""
+        if self._pid is None:
+            return []
+        entries = self._svc.assign_additional_addresses(
+            self._pid,
+            device.node_id,
+            self.additional_address_count(device) if count is None else count,
+            label=S.HISTORY_ASSIGN_ADDITIONAL_ADDRESSES,
+        )
+        self._bump(structural=False)
+        return entries
+
+    def set_additional_address(
+        self, node_id: int, index: int, address: str | None
+    ) -> None:
+        """Set the address of the device's additional address ``index`` (1-based): a device number
+        or a full ``a.l.d`` in its line, empty or ``None`` to clear it. Undoable. Raises
+        ``AdditionalAddressError`` when the address is invalid, outside the line or in use."""
+        if self._pid is None:
+            return
+        new = self._svc.additional_address_text(self._pid, node_id, address) or ""
+        old = next(
+            (e.address for e in self.additional_addresses(node_id) if e.index == index),
+            None,
+        )
+        if (old or "") == new:
+            return
+        self._svc.set_additional_address(
+            self._pid,
+            node_id,
+            index,
+            address,
+            label=S.HISTORY_ADDITIONAL_ADDRESS_CHANGED.format(
+                self._device_history_name(node_id), old or "", new
+            ),
+        )
+        self._bump(structural=False)
+
+    def set_additional_address_name(self, node_id: int, index: int, name: str) -> None:
+        """Set the name of the device's additional address ``index`` (1-based). Undoable."""
+        if self._pid is None:
+            return
+        self._svc.set_additional_address_name(
+            self._pid, node_id, index, name, label=S.HISTORY_ADDITIONAL_ADDRESS_NAMES
+        )
+        self._bump(structural=False)
+
+    def set_additional_address_description(
+        self, node_id: int, index: int, description: str
+    ) -> None:
+        """Set the description of the device's additional address ``index`` (1-based).
+        Undoable."""
+        if self._pid is None:
+            return
+        self._svc.set_additional_address_description(
+            self._pid,
+            node_id,
+            index,
+            description,
+            label=S.HISTORY_ADDITIONAL_ADDRESS_DESCRIPTIONS,
+        )
+        self._bump(structural=False)
+
+    def _device_history_name(self, node_id: int) -> str:
+        """The device's name as the history names it: its own, else its default one."""
+        device = self.find_device_by_node_id(node_id)
+        if device is not None:
+            return device.display_name
+        info = self.get_device_info(node_id)
+        return info.name if info is not None else ""
 
     def set_flag(self, device: Device, co_id: str, flag_name: str, value: bool) -> None:
         if self._pid is None:
@@ -4755,7 +4920,14 @@ class ProjectService:
                     )
                     self._bump(structural=False)
                     return
-            elif event_type in ("Composite", "SyncDeviceComObjects"):
+            elif event_type == "SetDeviceAdditionalAddresses":
+                # Read from the project on every revision; no device structure changes.
+                self._bump(structural=False)
+                return
+            elif event_type in (
+                "Composite",
+                "SyncDeviceComObjects",
+            ) and not _changes_structure(data):
                 node_id = _history_device_id(data)
                 if node_id is not None:
                     self._refresh_device(node_id)  # rebuild only this device (not all)

@@ -11,6 +11,7 @@ from editor_gui.plugins.project.program_queue import (
     QueueItem,
     ScriptRun,
 )
+from editor_gui.plugins.project.strings import S
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.parser_v2.ui import UiButton
 from xknxeditor.prod.script import ScriptAborted, ScriptError
@@ -24,11 +25,14 @@ class _Harness:
         self.started: list[int] = []  # node_ids in start order
         self._futures: dict[int, Future[Any]] = {}
         self._start_none = start_returns_none
+        # Futures asked to stop; like the connection's cancel_operation they end only later.
+        self.cancel_requests: list[Future[Any]] = []
         self.queue = ProgramQueue(
             is_busy=lambda: self.busy,
             start=self._start,
             submit=None,  # run advance inline
             connection=lambda item: f"iface {item.node_id}",
+            cancel=self.cancel_requests.append,
         )
 
     def _start(self, item: QueueItem) -> Future[Any] | None:
@@ -41,12 +45,19 @@ class _Harness:
         return fut
 
     def finish(
-        self, node_id: int, *, error: bool = False, exc: BaseException | None = None
+        self,
+        node_id: int,
+        *,
+        error: bool = False,
+        exc: BaseException | None = None,
+        cancelled: bool = False,
     ) -> None:
         """Complete a running device's future (bus frees, queue advances)."""
         self.busy = False
         fut = self._futures.pop(node_id)
-        if exc is not None:
+        if cancelled:
+            fut.cancel()
+        elif exc is not None:
             fut.set_exception(exc)
         elif error:
             fut.set_exception(RuntimeError("boom"))
@@ -138,8 +149,13 @@ def test_cancel_waiting_items() -> None:
     assert h.queue.queued == []
     assert [i.node_id for i in h.queue.history] == [4, 3, 2]
     assert all(i.state is OperationState.CANCELED for i in h.queue.history)
-    # a running download cannot be interrupted
-    assert h.queue.current is not None and h.queue.current.node_id == 1
+    assert all(i.message == S.OPERATION_CANCELED_BY_USER for i in h.queue.history)
+    # the running download is asked to stop as well, and ends once it has
+    current = h.queue.current
+    assert current is not None and current.node_id == 1 and current.canceled_by_user
+    h.finish(1, cancelled=True)
+    assert h.queue.current is None
+    assert [i.node_id for i in h.queue.history] == [1, 4, 3, 2]
 
 
 def test_start_none_drops_and_advances() -> None:
@@ -219,23 +235,51 @@ def test_cancel_current_cancels_an_address_download() -> None:
         )
     )
     current = h.queue.current
-    assert current is not None and current.cancelable_while_running
+    assert current is not None
     h.queue.cancel_current()
+    h.finish(1, cancelled=True)
     assert current.state is OperationState.CANCELED
     assert current.future is None
     assert h.queue.current is None
 
 
-def test_cancel_current_leaves_an_application_download_running() -> None:
+def test_a_canceled_download_ends_only_once_it_stopped() -> None:
     h = _Harness()
     h.queue.enqueue(
         QueueItem(node_id=1, address="1.1.1", name="D1", scope=DownloadScope.FULL)
     )
+    h.queue.enqueue(_item(2))
     current = h.queue.current
-    assert current is not None and not current.cancelable_while_running
+    assert current is not None
     h.queue.cancel_current()
-    assert h.queue.current is current
-    assert current.state is OperationState.RUNNING
+    h.queue.cancel_current()  # a second click asks nothing more
+    assert h.cancel_requests == [current.future]
+    # still running (Canceling) until the download has unwound; the next one waits
+    assert h.queue.current is current and current.state is OperationState.RUNNING
+    assert current.canceled_by_user and h.started == [1]
+    h.finish(1, cancelled=True)
+    assert current.state is OperationState.CANCELED
+    assert current.message == S.OPERATION_CANCELED_BY_USER
+    assert h.started == [1, 2]
+
+
+def test_an_error_of_the_interrupted_exchange_counts_as_canceled() -> None:
+    h = _Harness()
+    h.queue.enqueue(_item(1))
+    current = h.queue.current
+    assert current is not None
+    h.queue.cancel_current()
+    h.finish(1, error=True)
+    assert current.state is OperationState.CANCELED
+    assert current.message == S.OPERATION_CANCELED_BY_USER
+
+
+def test_a_download_that_fails_without_cancel_still_fails() -> None:
+    h = _Harness()
+    h.queue.enqueue(_item(1))
+    h.finish(1, error=True)
+    (failed,) = h.queue.history
+    assert (failed.state, failed.message) == (OperationState.FAILED, "boom")
 
 
 def test_dedupe_keeps_the_latest_current_address() -> None:
@@ -246,3 +290,52 @@ def test_dedupe_keeps_the_latest_current_address() -> None:
     h.queue.enqueue(QueueItem(1, "1.1.1", "D1", scope, current_address="1.1.21"))
     (queued,) = h.queue.queued
     assert queued.current_address == "1.1.21"
+
+
+def _waited_item(node_id: int) -> QueueItem:
+    return QueueItem(
+        node_id=node_id,
+        address=f"1.1.{node_id}",
+        name=f"D{node_id}",
+        scope=DownloadScope.FULL,
+        origin="MCP",
+        ended=Future(),
+    )
+
+
+def test_a_waiting_caller_learns_how_the_operation_ended() -> None:
+    h = _Harness()
+    finished, failed, canceled, dropped = (_waited_item(n) for n in (1, 2, 3, 4))
+    for item in (finished, failed, canceled, dropped):
+        h.queue.enqueue(item)
+    h.queue.cancel_item(dropped)  # still waiting: ends at once
+    h.finish(1)
+    h.finish(2, error=True)
+    h.queue.cancel_current()
+    h.finish(3, cancelled=True)
+    for item, state in (
+        (finished, OperationState.FINISHED),
+        (failed, OperationState.FAILED),
+        (canceled, OperationState.CANCELED),
+        (dropped, OperationState.CANCELED),
+    ):
+        assert item.ended is not None and item.ended.result(timeout=0) is item
+        assert item.state is state
+
+
+def test_a_device_that_cannot_start_ends_the_wait() -> None:
+    h = _Harness(start_returns_none=True)
+    item = _waited_item(1)
+    h.queue.enqueue(item)
+    assert item.ended is not None and item.ended.result(timeout=0).state is (
+        OperationState.FAILED
+    )
+
+
+def test_operations_someone_waits_for_are_not_merged() -> None:
+    h = _Harness()
+    h.queue.enqueue(_item(9))  # keeps the bus busy
+    h.queue.enqueue(_waited_item(1))
+    h.queue.enqueue(_waited_item(1))
+    h.queue.enqueue(_item(1))  # a click is not merged into a waited one either
+    assert [q.node_id for q in h.queue.queued] == [1, 1, 1]

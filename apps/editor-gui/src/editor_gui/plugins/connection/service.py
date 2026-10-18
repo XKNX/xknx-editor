@@ -118,6 +118,8 @@ class ConnectionService:
         self.busmonitor_link: LinkInfo | None = None
         self._xknx: XKNX | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
+        # The task behind each future of run_async while it runs (cancel_operation).
+        self._operation_tasks: dict[Future[Any], list[asyncio.Task[Any]]] = {}
         # Global KNX master data (mask-version default procedures), injected at
         # startup. Required to resolve an UNLOAD scope and default/merged procedures.
         self.master: MasterData | None = None
@@ -1257,4 +1259,30 @@ class ConnectionService:
         if self._loop is None:
             coro.close()
             return None
-        return asyncio.run_coroutine_threadsafe(coro, self._loop)
+        # The task the coroutine runs in, for cancel_operation.
+        started: list[asyncio.Task[Any]] = []
+
+        async def tracked() -> Any:
+            task = asyncio.current_task()
+            if task is not None:
+                started.append(task)
+            return await coro
+
+        future = asyncio.run_coroutine_threadsafe(tracked(), self._loop)
+        self._operation_tasks[future] = started
+        future.add_done_callback(self._forget_operation_task)
+        return future
+
+    def _forget_operation_task(self, future: Future[Any]) -> None:
+        self._operation_tasks.pop(future, None)
+
+    def cancel_operation(self, future: Future[Any]) -> None:
+        """Stop the operation behind ``future`` (from ``run_async``) at its next await. Its task
+        is canceled on the loop rather than the future itself: the future ends only once the
+        operation has unwound and closed its connection, and its done callbacks free the bus
+        only then."""
+        started = self._operation_tasks.get(future)
+        if started and self._loop is not None:
+            self._loop.call_soon_threadsafe(started[0].cancel)
+        else:
+            future.cancel()

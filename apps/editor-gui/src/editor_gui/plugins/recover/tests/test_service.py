@@ -79,7 +79,9 @@ class _FakeProject:
         segment_id: int | None = None,
         address: int | None = None,
         parameters: list[tuple[str, str]] | None = None,
+        with_additional_addresses: bool = True,
     ) -> int:
+        assert not with_additional_addresses
         self.addresses.append((segment_id, address))
         self.names.append(name)
         self.params.extend(parameters or [])

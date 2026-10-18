@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import binascii
+import contextlib
 import datetime
 import secrets
 from collections.abc import Callable, Mapping, Sequence
@@ -80,6 +81,7 @@ from xknxeditor.proj.core.events import (
     SetComObjectFlag,
     SetComObjectPriority,
     SetComObjectSending,
+    SetDeviceAdditionalAddresses,
     SetDeviceCertificates,
     SetDeviceCommissioning,
     SetDeviceDescription,
@@ -98,6 +100,7 @@ from xknxeditor.proj.core.events import (
     SyncDeviceComObjects,
     UnlinkComObject,
     UpdateDeviceApplication,
+    additional_address_entries,
 )
 from xknxeditor.proj.core.fdsk import Fdsk, InvalidFdskError, parse_fdsk
 from xknxeditor.proj.core.function_detect import classify_function
@@ -131,6 +134,7 @@ from xknxeditor.proj.models import (
     ComObject,
     ComObjectLink,
     Device,
+    DeviceAdditionalAddress,
     DeviceSnapshot,
     Function,
     FunctionGroupAddress,
@@ -304,6 +308,20 @@ class SecureCommissioningImpact:
 
 
 @dataclass(frozen=True)
+class AdditionalAddressInfo:
+    """One additional individual address of a device: its entry number ``index`` (1-based, the
+    ``AddressIndex`` a tunnelling bus interface names), the full ``address`` (``a.l.d`` in the
+    device's line) and its device number ``octet`` (both ``None`` when the entry has no address),
+    and its name and description."""
+
+    index: int
+    address: str | None
+    octet: int | None
+    name: str
+    description: str
+
+
+@dataclass(frozen=True)
 class DeviceInfo:
     """A display-ready device. The refs point at the catalog product and loaded program; the caller
     resolves the application from them, since this package is ref-only."""
@@ -329,6 +347,8 @@ class DeviceInfo:
     communication_part_loaded: bool
     medium_config_loaded: bool
     parameters_loaded: bool
+    # The additional individual addresses (tunnelling addresses of an IP interface), in order.
+    additional_addresses: tuple[AdditionalAddressInfo, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -412,6 +432,49 @@ def _key(value: str | None) -> bytes | None:
     except (binascii.Error, ValueError):
         return None
     return key if len(key) == 16 else None
+
+
+NOT_ENOUGH_ADDITIONAL_ADDRESSES = (
+    "The line does not provide enough addresses for all necessary additional addresses."
+)
+
+
+class AdditionalAddressError(ValueError):
+    """An additional individual address that cannot be set or assigned. ``kind`` says why:
+    :attr:`NOT_ENOUGH` (the line has too few free device numbers), :attr:`INVALID` (not a device
+    number from 1 to 255), :attr:`OTHER_LINE` (outside the device's line, ``address`` is that
+    line ``a.l``) or :attr:`IN_USE` (a device or another additional address of the line has it,
+    ``address`` is the ``a.l.d`` concerned)."""
+
+    NOT_ENOUGH = "not_enough"
+    INVALID = "invalid"
+    OTHER_LINE = "other_line"
+    IN_USE = "in_use"
+
+    def __init__(self, kind: str, message: str, address: str = "") -> None:
+        super().__init__(message)
+        self.kind = kind
+        self.address = address
+
+
+def _empty_additional_entry() -> dict[str, Any]:
+    return {"address": None, "name": "", "description": "", "comment": ""}
+
+
+def _fill_additional_entries(entries: list[dict[str, Any]], used: set[int]) -> None:
+    """Give each entry without an address the highest free device number of the line, counting
+    down from 255 and skipping ``used``. Raises :class:`AdditionalAddressError` when the line has
+    too few free numbers (the entries are left unchanged then)."""
+    missing = [entry for entry in entries if entry.get("address") is None]
+    if not missing:
+        return
+    free = [number for number in range(255, 0, -1) if number not in used]
+    if len(free) < len(missing):
+        raise AdditionalAddressError(
+            AdditionalAddressError.NOT_ENOUGH, NOT_ENOUGH_ADDITIONAL_ADDRESSES
+        )
+    for entry, number in zip(missing, free, strict=False):
+        entry["address"] = number
 
 
 class GroupAddressSecurityError(ValueError):
@@ -580,6 +643,7 @@ class ProjectService:
         order_number: str = "",
         manufacturer_name: str = "",
         secure_commissioning: bool = False,
+        additional_addresses: int = 0,
     ) -> int:
         """Add a device. ``product_ref_id`` names the catalog product; ``hardware2program_ref_id`` is
         the loaded program the application resolves through. Being ref-only, this package never
@@ -587,10 +651,22 @@ class ProjectService:
         (``(ref_id, value)``), ``com_objects`` (``(ref_id, channel_id)``), ``module_instances``
         (``(instance_id, ref_id)``) and the product's display fields. ``secure_commissioning``
         activates it for a device that supports KNX Data Secure, in the same undo step (see
-        :meth:`set_secure_commissioning`)."""
+        :meth:`set_secure_commissioning`). ``additional_addresses`` entries (the application's
+        additional individual addresses) are created with the addresses
+        :meth:`assign_additional_addresses` picks, in the same undo step; too few free numbers in
+        the line raise :class:`AdditionalAddressError`."""
         state = self._state(project_id)
         if address is not None:
             self._check_unique_address(state, segment_id, address)
+        entries = [_empty_additional_entry() for _ in range(additional_addresses)]
+        if entries:
+            segment = state.session.get(Segment, segment_id)
+            if segment is None:
+                raise KeyError(f"No segment with id {segment_id}")
+            used = self._line_numbers_in_use(state, segment.line_id)
+            if address is not None:
+                used.add(address)
+            _fill_additional_entries(entries, used)
         tool_key: str | None = None
         if secure_commissioning:
             if state.cipher is None:
@@ -615,6 +691,7 @@ class ProjectService:
             order_number=order_number,
             manufacturer_name=manufacturer_name,
             tool_key=tool_key,
+            additional_addresses=entries,
         )
         state.store.append(event)
         assert event.device_id is not None
@@ -1591,6 +1668,205 @@ class ProjectService:
             return []
         return [a.address for a in device.additional_addresses if a.address is not None]
 
+    def additional_addresses(
+        self, project_id: str, device_id: int
+    ) -> list[AdditionalAddressInfo]:
+        """The device's additional individual addresses, every entry (with or without an
+        address) in order."""
+        state = self._state(project_id)
+        return self._additional_infos(self._require_device(state, device_id))
+
+    def assign_additional_addresses(
+        self,
+        project_id: str,
+        device_id: int,
+        count: int | None = None,
+        *,
+        label: str | None = None,
+    ) -> list[AdditionalAddressInfo]:
+        """Give each additional address of the device without one an address, after adding
+        entries up to ``count``: the highest free device numbers of its line, counting down from
+        255 and skipping the numbers its devices and their additional addresses use. One undo step
+        (``label`` names it in the history); nothing is recorded when nothing changes. Raises
+        :class:`AdditionalAddressError` when the line has too few free numbers."""
+        state = self._state(project_id)
+        device = self._require_device(state, device_id)
+        entries = additional_address_entries(device)
+        before = [dict(entry) for entry in entries]
+        while len(entries) < (count or 0):
+            entries.append(_empty_additional_entry())
+        _fill_additional_entries(
+            entries, self._line_numbers_in_use(state, device.segment.line_id)
+        )
+        if entries != before:
+            state.store.append(
+                SetDeviceAdditionalAddresses(
+                    device_id=device_id, entries=entries, label=label
+                )
+            )
+        return self._additional_infos(device)
+
+    def set_additional_address(
+        self,
+        project_id: str,
+        device_id: int,
+        index: int,
+        address: int | str | None,
+        *,
+        label: str | None = None,
+    ) -> None:
+        """Set the address of the device's additional address ``index`` (1-based; missing entries
+        up to it are added), undoable. ``address`` is the device number (1-255) or the full
+        ``a.l.d`` in the device's line; ``None`` or ``""`` clears it. Raises
+        :class:`AdditionalAddressError` for a number outside 1-255, another line, or a number a
+        device or another additional address of the line uses (the device's own included)."""
+        state = self._state(project_id)
+        device = self._require_device(state, device_id)
+        line = device.segment.line
+        number = self._additional_number(line, address)
+        entries = self._entries_up_to(device, index)
+        entry = entries[index - 1]
+        if entry["address"] == number and len(entries) == len(
+            device.additional_addresses
+        ):
+            return
+        if number is not None:
+            used = self._line_numbers_in_use(state, line.id, without_device=device_id)
+            used |= {
+                other["address"]
+                for position, other in enumerate(entries, start=1)
+                if position != index and other["address"] is not None
+            }
+            if number in used:
+                full = format_ia(line.area.address, line.address, number)
+                raise AdditionalAddressError(
+                    AdditionalAddressError.IN_USE,
+                    f"The individual address {full} is already used in this line.",
+                    full,
+                )
+        entry["address"] = number
+        state.store.append(
+            SetDeviceAdditionalAddresses(
+                device_id=device_id, entries=entries, label=label
+            )
+        )
+
+    def additional_address_text(
+        self, project_id: str, device_id: int, address: int | str | None
+    ) -> str | None:
+        """The full ``a.l.d`` that ``address`` (a device number or a full address) names as an
+        additional address of the device, ``None`` for no address. Raises
+        :class:`AdditionalAddressError` like :meth:`set_additional_address` for a number outside
+        1-255 or another line (whether the address is free is not checked)."""
+        state = self._state(project_id)
+        line = self._require_device(state, device_id).segment.line
+        number = self._additional_number(line, address)
+        if number is None:
+            return None
+        return format_ia(line.area.address, line.address, number)
+
+    def set_additional_address_name(
+        self,
+        project_id: str,
+        device_id: int,
+        index: int,
+        name: str,
+        *,
+        label: str | None = None,
+    ) -> None:
+        """Set the name of the device's additional address ``index`` (1-based), undoable."""
+        self._set_additional_text(project_id, device_id, index, "name", name, label)
+
+    def set_additional_address_description(
+        self,
+        project_id: str,
+        device_id: int,
+        index: int,
+        description: str,
+        *,
+        label: str | None = None,
+    ) -> None:
+        """Set the description of the device's additional address ``index`` (1-based),
+        undoable."""
+        self._set_additional_text(
+            project_id, device_id, index, "description", description, label
+        )
+
+    def _set_additional_text(
+        self,
+        project_id: str,
+        device_id: int,
+        index: int,
+        key: str,
+        value: str,
+        label: str | None,
+    ) -> None:
+        state = self._state(project_id)
+        device = self._require_device(state, device_id)
+        entries = self._entries_up_to(device, index)
+        if entries[index - 1][key] == value and len(entries) == len(
+            device.additional_addresses
+        ):
+            return
+        entries[index - 1][key] = value
+        state.store.append(
+            SetDeviceAdditionalAddresses(
+                device_id=device_id, entries=entries, label=label
+            )
+        )
+
+    @staticmethod
+    def _entries_up_to(device: Device, index: int) -> list[dict[str, Any]]:
+        """The device's additional-address entries, with empty ones added up to ``index``."""
+        if not 1 <= index <= 255:
+            raise IndexError(f"No additional address {index}")
+        entries = additional_address_entries(device)
+        while len(entries) < index:
+            entries.append(_empty_additional_entry())
+        return entries
+
+    @staticmethod
+    def _additional_number(line: Line, address: int | str | None) -> int | None:
+        """The device number ``address`` names in ``line``, ``None`` for no address."""
+        number: int | None
+        if isinstance(address, str):
+            text = address.strip()
+            if not text:
+                return None
+            own = f"{line.area.address}.{line.address}"
+            try:
+                if "." in text:
+                    area_no, line_no, number = parse_ia(text)
+                else:
+                    area_no, line_no, number = (
+                        line.area.address,
+                        line.address,
+                        int(text),
+                    )
+            except ValueError as exc:
+                raise AdditionalAddressError(
+                    AdditionalAddressError.INVALID,
+                    f"{text!r} is not an individual address.",
+                    text,
+                ) from exc
+            if (area_no, line_no) != (line.area.address, line.address):
+                raise AdditionalAddressError(
+                    AdditionalAddressError.OTHER_LINE,
+                    f"An additional address must be in the device's line {own}.",
+                    own,
+                )
+        else:
+            number = address
+        if number is None:
+            return None
+        if not 1 <= number <= 255:
+            raise AdditionalAddressError(
+                AdditionalAddressError.INVALID,
+                "An additional address takes a device number from 1 to 255.",
+                str(number),
+            )
+        return number
+
     def ensure_ip_secrets(
         self, project_id: str, device_id: int, bus_interface_refs: Sequence[str]
     ) -> bool:
@@ -2272,27 +2548,33 @@ class ProjectService:
         product_name: str | None = None,
         manufacturer_name: str | None = None,
         description: str | None = None,
+        additional_addresses: int = 0,
     ) -> tuple[int, int]:
         """Update a device to a newer version of the same application, keeping parameter values and
         group-address links (see :class:`UpdateDeviceApplication`). Returns ``(kept, dropped)``: how
-        many parameter/com-object rows carried over and how many were dropped as incompatible."""
+        many parameter/com-object rows carried over and how many were dropped as incompatible.
+        The device gets the additional addresses the new version has more of
+        (``additional_addresses``) in the same undo step, see
+        :meth:`_more_additional_addresses`."""
         state = self._state(project_id)
-        event = state.store.append(
-            UpdateDeviceApplication(
-                device_id=device_id,
-                new_product_ref_id=product_ref_id,
-                new_hardware2program_ref_id=hardware2program_ref_id,
-                old_app_id=old_app_id,
-                new_app_id=new_app_id,
-                valid_ref_ids=valid_ref_ids,
-                new_order_number=order_number,
-                new_hardware_name=hardware_name,
-                new_product_name=product_name,
-                new_manufacturer_name=manufacturer_name,
-                new_description=description,
+        event = UpdateDeviceApplication(
+            device_id=device_id,
+            new_product_ref_id=product_ref_id,
+            new_hardware2program_ref_id=hardware2program_ref_id,
+            old_app_id=old_app_id,
+            new_app_id=new_app_id,
+            valid_ref_ids=valid_ref_ids,
+            new_order_number=order_number,
+            new_hardware_name=hardware_name,
+            new_product_name=product_name,
+            new_manufacturer_name=manufacturer_name,
+            new_description=description,
+        )
+        state.store.append(
+            self._with_more_additional_addresses(
+                state, device_id, event, additional_addresses
             )
         )
-        assert isinstance(event, UpdateDeviceApplication)
         dropped = len(event.deleted_params) + len(event.deleted_com_objects)
         device = state.session.get(Device, device_id)
         kept = (len(device.parameters) + len(device.com_objects)) if device else 0
@@ -2309,30 +2591,95 @@ class ProjectService:
         module_instances: list[tuple[str, str]] | None = None,
         parameters: list[tuple[str, str]] | None = None,
         com_object_data: list[dict[str, Any] | None] | None = None,
+        additional_addresses: int = 0,
     ) -> None:
         """Switch a device to another application program of its hardware, starting from that
         application's defaults plus ``parameters`` and ``com_object_data`` (see
-        :class:`ChangeDeviceApplication`)."""
-        self._state(project_id).store.append(
-            ChangeDeviceApplication(
-                device_id=device_id,
-                new_hardware2program_ref_id=hardware2program_ref_id,
-                new_app_id=new_app_id,
-                com_objects=[[ref, channel] for ref, channel in com_objects],
-                module_instances=[list(row) for row in module_instances or []],
-                parameters=[list(row) for row in parameters or []],
-                com_object_data=list(com_object_data or []),
+        :class:`ChangeDeviceApplication`). The device gets the additional addresses the new
+        application has more of (``additional_addresses``) in the same undo step, see
+        :meth:`_more_additional_addresses`."""
+        state = self._state(project_id)
+        state.store.append(
+            self._with_more_additional_addresses(
+                state,
+                device_id,
+                ChangeDeviceApplication(
+                    device_id=device_id,
+                    new_hardware2program_ref_id=hardware2program_ref_id,
+                    new_app_id=new_app_id,
+                    com_objects=[[ref, channel] for ref, channel in com_objects],
+                    module_instances=[list(row) for row in module_instances or []],
+                    parameters=[list(row) for row in parameters or []],
+                    com_object_data=list(com_object_data or []),
+                ),
+                additional_addresses,
             )
+        )
+
+    def _with_more_additional_addresses(
+        self, state: _Open, device_id: int, event: Event, count: int
+    ) -> Event:
+        """``event``, together with the additional addresses that take the device to ``count``
+        entries when it has fewer (see :meth:`_more_additional_addresses`)."""
+        more = self._more_additional_addresses(state, device_id, count)
+        return event if more is None else CompositeEvent(events=[event, more])
+
+    def _more_additional_addresses(
+        self, state: _Open, device_id: int, count: int
+    ) -> SetDeviceAdditionalAddresses | None:
+        """The entries that take the device to ``count`` additional addresses, the new ones with
+        addresses as :meth:`assign_additional_addresses` picks them; ``None`` when it has as many
+        already. When the line has too few free numbers the new entries stay without an address
+        (assigning them reports it), so the application change itself still goes through."""
+        device = self._require_device(state, device_id)
+        entries = additional_address_entries(device)
+        if len(entries) >= count:
+            return None
+        added = [_empty_additional_entry() for _ in range(count - len(entries))]
+        with contextlib.suppress(AdditionalAddressError):
+            _fill_additional_entries(
+                added, self._line_numbers_in_use(state, device.segment.line_id)
+            )
+        return SetDeviceAdditionalAddresses(
+            device_id=device_id, entries=entries + added
         )
 
     def move_device(
         self, project_id: str, device_id: int, segment_id: int, address: int | None
     ) -> None:
+        """Move a device to ``segment_id`` with the device number ``address``. Moved to another
+        line, its additional addresses are assigned again in the new line, in the same undo step;
+        too few free numbers there raise :class:`AdditionalAddressError`."""
         state = self._state(project_id)
         if address is not None:
             self._check_unique_address(state, segment_id, address, exclude=device_id)
+        move = MoveDevice(device_id=device_id, segment_id=segment_id, address=address)
+        device = state.session.get(Device, device_id)
+        target = state.session.get(Segment, segment_id)
+        if (
+            device is None
+            or target is None
+            or not device.additional_addresses
+            or device.segment.line_id == target.line_id
+        ):
+            state.store.append(move)
+            return
+        entries = additional_address_entries(device)
+        for entry in entries:
+            entry["address"] = None
+        used = self._line_numbers_in_use(
+            state, target.line_id, without_device=device_id
+        )
+        if address is not None:
+            used.add(address)
+        _fill_additional_entries(entries, used)
         state.store.append(
-            MoveDevice(device_id=device_id, segment_id=segment_id, address=address)
+            CompositeEvent(
+                events=[
+                    move,
+                    SetDeviceAdditionalAddresses(device_id=device_id, entries=entries),
+                ]
+            )
         )
 
     # --- undo / redo / history --------------------------------------------
@@ -2488,6 +2835,7 @@ class ProjectService:
             communication_part_loaded=device.communication_part_loaded,
             medium_config_loaded=device.medium_config_loaded,
             parameters_loaded=device.parameters_loaded,
+            additional_addresses=tuple(self._additional_infos(device)),
         )
 
     def com_object_links(self, project_id: str, com_object_id: int) -> list[LinkInfo]:
@@ -2693,16 +3041,12 @@ class ProjectService:
         return self._compose_ia(device)
 
     def next_free_individual_address(self, project_id: str, line_id: int) -> int:
-        """Lowest free device octet (1-255) over all the line's segments."""
+        """Lowest free device octet (1-255) over all the line's segments, skipping the numbers its
+        devices and their additional addresses use."""
         state = self._state(project_id)
         if state.session.get(Line, line_id) is None:
             raise KeyError(f"No line with id {line_id}")
-        used = {
-            octet
-            for (octet,) in state.session.query(Device.address)
-            .join(Segment, Device.segment_id == Segment.id)
-            .filter(Segment.line_id == line_id, Device.address.is_not(None))
-        }
+        used = self._line_numbers_in_use(state, line_id)
         octet = 1
         while octet in used:
             octet += 1
@@ -2887,6 +3231,53 @@ class ProjectService:
         line = device.segment.line
         return format_ia(line.area.address, line.address, device.address)
 
+    @staticmethod
+    def _require_device(state: _Open, device_id: int) -> Device:
+        device = state.session.get(Device, device_id)
+        if device is None:
+            raise KeyError(f"No device with id {device_id}")
+        return device
+
+    @staticmethod
+    def _additional_infos(device: Device) -> list[AdditionalAddressInfo]:
+        line = device.segment.line
+        return [
+            AdditionalAddressInfo(
+                index=index,
+                address=format_ia(line.area.address, line.address, row.address)
+                if row.address is not None
+                else None,
+                octet=row.address,
+                name=row.name,
+                description=row.description,
+            )
+            for index, row in enumerate(device.additional_addresses, start=1)
+        ]
+
+    @staticmethod
+    def _line_numbers_in_use(
+        state: _Open, line_id: int, *, without_device: int | None = None
+    ) -> set[int]:
+        """The device numbers the line's devices and their additional addresses use (the
+        additional addresses of ``without_device`` left out)."""
+        devices = (
+            state.session.query(Device.address)
+            .join(Segment, Device.segment_id == Segment.id)
+            .filter(Segment.line_id == line_id, Device.address.is_not(None))
+        )
+        additional = (
+            state.session.query(DeviceAdditionalAddress.address)
+            .join(Device, DeviceAdditionalAddress.device_id == Device.id)
+            .join(Segment, Device.segment_id == Segment.id)
+            .filter(
+                Segment.line_id == line_id,
+                DeviceAdditionalAddress.address.is_not(None),
+            )
+        )
+        if without_device is not None:
+            additional = additional.filter(Device.id != without_device)
+        return {number for (number,) in devices} | {number for (number,) in additional}
+
     def _first_segment(self, state: _Open, line: Line) -> Segment:
         segment = (
             state.session.query(Segment)
@@ -2919,4 +3310,19 @@ class ProjectService:
         if clash is not None:
             raise ValueError(
                 f"Individual address {address} already used on this line by device {clash.id}"
+            )
+        additional = (
+            state.session.query(DeviceAdditionalAddress)
+            .join(Device, DeviceAdditionalAddress.device_id == Device.id)
+            .join(Segment, Device.segment_id == Segment.id)
+            .filter(
+                Segment.line_id == segment.line_id,
+                DeviceAdditionalAddress.address == address,
+            )
+            .first()
+        )
+        if additional is not None:
+            raise ValueError(
+                f"Individual address {address} already used on this line as an additional "
+                f"address of device {additional.device_id}"
             )

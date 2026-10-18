@@ -110,6 +110,11 @@ class ProgramQueuePanel:
             _warning_icon()
             imgui.same_line()
         imgui.text(f"{item.address} {item.name}".strip())
+        if item.origin is not None:
+            imgui.same_line()
+            imgui.text_disabled(item.origin)
+            if imgui.is_item_hovered():
+                imgui.set_tooltip(S.OPERATION_STARTED_BY_MCP)
         if active:
             self._render_cancel(item, right)
             if item.state is OperationState.RUNNING:
@@ -134,14 +139,11 @@ class ProgramQueuePanel:
 
     def _render_cancel(self, item: QueueItem, right: float) -> None:
         run = item.script
-        running_download = (
-            item.state is OperationState.RUNNING
-            and run is None
-            and not item.cancelable_while_running
-        )
         size = imgui.get_frame_height()
         imgui.same_line(max(right - size, 0.0))
-        imgui.begin_disabled(running_download or (run is not None and run.canceled))
+        imgui.begin_disabled(
+            item.canceled_by_user or (run is not None and run.canceled)
+        )
         if imgui.button("X##cancel", imgui.ImVec2(size, size)):
             self._on_cancel(item)
         imgui.end_disabled()
@@ -194,6 +196,8 @@ def _render_details(item: QueueItem) -> None:
         _render_result(item.details)
     else:
         imgui.text_disabled(S.OPERATION_NO_DETAILS)
+    if item.origin is not None:
+        imgui.text(S.OPERATION_STARTED_BY_MCP)
     if item.connection:
         imgui.text(S.OPERATION_CONNECTION.format(connection=item.connection))
     if item.started_at is not None:
@@ -264,6 +268,8 @@ def _state(item: QueueItem) -> str:
         case OperationState.WAITING:
             return S.OPERATION_WAITING
         case OperationState.RUNNING:
+            if item.canceled_by_user:
+                return S.SCRIPT_CANCELING
             if item.device_info is not None:
                 return S.OPERATION_READING
             if item.script is None:

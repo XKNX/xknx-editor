@@ -822,9 +822,16 @@ def _unique_key(key: str, seen: dict[str, int]) -> str:
 
 
 def _has_content(nodes: tuple[UiNode, ...]) -> bool:
+    """Whether ``nodes`` show something. An inline block only counts with content of its own: one
+    whose pages all moved into the tree (a channel holding its pages in an inline list) is empty,
+    so its channel opens its first page instead of an empty one."""
     return any(
         isinstance(n, (UiParameter, UiButton, UiSeparator))
-        or (isinstance(n, UiParameterBlock) and not n.hidden)
+        or (
+            isinstance(n, UiParameterBlock)
+            and not n.hidden
+            and (not n.inline or _has_content(n.children))
+        )
         for n in nodes
     )
 

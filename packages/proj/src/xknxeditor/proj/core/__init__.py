@@ -49,7 +49,12 @@ from xknxeditor.proj.core.product_prune import (
     prune_product_blob,
     prune_product_members,
 )
-from xknxeditor.proj.core.service import GroupAddressSecurityError, ProjectService
+from xknxeditor.proj.core.service import (
+    AdditionalAddressError,
+    AdditionalAddressInfo,
+    GroupAddressSecurityError,
+    ProjectService,
+)
 from xknxeditor.proj.core.trace_crypto import (
     current_marker,
     decrypt_comment,
@@ -64,6 +69,8 @@ __all__ = [
     "DLL_NAME",
     "MYKNX_DLL_NAME",
     "TRACE_DLL_NAME",
+    "AdditionalAddressError",
+    "AdditionalAddressInfo",
     "CompactCancelled",
     "CompactResult",
     "EventStore",
