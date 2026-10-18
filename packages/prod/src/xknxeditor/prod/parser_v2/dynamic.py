@@ -47,6 +47,7 @@ from .calculation import (
     run_validations,
 )
 from .context import EvalCapture, EvalContext
+from .converted_pages import place_hidden_parameters
 from .encode import (
     MemWrite,
     PropertyKey,
@@ -606,7 +607,13 @@ class DynamicUI:
             self._ui, _ = self._eval_settled()
             self._state.trim_to_active()
             self._prune_inactive_channels()
+            if self._app.pre_ets4_style:
+                self._ui = place_hidden_parameters(self._ui, self._display_order)
         return self._ui
+
+    def _display_order(self, ref_id: str) -> int | None:
+        ref = self._idx.parameter_refs.get(ref_id)
+        return ref.display_order if ref is not None else None
 
     def _prune_inactive_channels(self) -> None:
         """Drop UI sections of channels the device did not instantiate.

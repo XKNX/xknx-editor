@@ -872,3 +872,54 @@ async def test_programming_runs_in_the_operations_queue(
         ("FULL", ORIGIN_MCP),
     ]
     assert canceled == [queued[-1]]
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_parameters_of_a_plugin_dialog_device_cannot_be_changed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A device whose parameters the manufacturer's plugin dialog sets refuses parameter
+    changes, alone and in a batch."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        products = await _data(client, "catalog_list_products")
+        product_ref = products["items"][0]["product_ref_id"]
+        node_id = (
+            await _data(client, "project_add_device", product_ref_id=product_ref)
+        )["node_id"]
+        params = (await _data(client, "project_list_parameters", node_id=node_id))[
+            "items"
+        ]
+        assert params
+        ref_id = params[0]["ref_id"]
+
+        for module in ("project", "batch"):
+            monkeypatch.setattr(
+                f"editor_gui.plugins.mcp.tools.{module}.parameters_in_plugin",
+                lambda _device: True,
+            )
+        result = await client.call_tool(
+            "project_set_parameter",
+            {"node_id": node_id, "parameter_ref_id": ref_id, "value": "0"},
+            raise_on_error=False,
+        )
+        assert result.is_error
+        assert "plugin dialog" in str(result.content[0])
+        batch = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "set_parameter",
+                    "params": {
+                        "node_id": node_id,
+                        "parameter_ref_id": ref_id,
+                        "value": "0",
+                    },
+                }
+            ],
+        )
+        assert batch["applied"] is False
+        assert "plugin dialog" in str(batch)

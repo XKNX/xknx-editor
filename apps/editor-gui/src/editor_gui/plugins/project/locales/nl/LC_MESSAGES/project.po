@@ -1931,3 +1931,9 @@ msgstr "Aanvullende adressen wijzigen"
 
 msgid "Started by an MCP client."
 msgstr "Gestart door een MCP-client."
+
+msgid "Parameters in the Manufacturer's Plugin"
+msgstr "Parameters in de plug-in van de fabrikant"
+
+msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
+msgstr "De fabrikant stelt de parameters van dit apparaat in met een eigen plug-in-dialoog, die XKNX Editor niet kan uitvoeren; ze kunnen hier daarom niet worden gewijzigd. Een download schrijft hun huidige waarden ongewijzigd; de groepsobjecten kunnen zoals gewoonlijk worden gekoppeld."

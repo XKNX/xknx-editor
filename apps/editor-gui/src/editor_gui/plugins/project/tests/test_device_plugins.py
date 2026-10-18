@@ -9,7 +9,12 @@ from types import SimpleNamespace
 from typing import Any, cast
 from unittest.mock import MagicMock
 
-from editor_gui.device_plugins import DevicePlugins, configuration_apps, device_plugins
+from editor_gui.device_plugins import (
+    DevicePlugins,
+    configuration_apps,
+    device_plugins,
+    parameters_in_plugin,
+)
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.connection.service import ConnectionService
 
@@ -116,3 +121,14 @@ def test_configuration_apps_from_embedded_packages() -> None:
     assert app.applies_to("M-0083_A-0155-40-1234")
     assert not app.applies_to("M-0083_A-0154-41-0F69")
     assert not app.applies_to("M-0083_A-01540-40-0F69")
+
+
+def test_parameters_in_the_manufacturer_plugin() -> None:
+    plugin = SimpleNamespace(
+        ets_ui_plugin="{9CB4A7CC-C8E0-4C8A-9312-2AFA954E19F5}",
+        ets_download_plugin=None,
+        ets_data_handler=None,
+        requires_external_software=False,
+    )
+    assert parameters_in_plugin(_device(plugin))
+    assert not parameters_in_plugin(_device(None))

@@ -86,6 +86,12 @@ class DevicePlugins:
         )
 
 
+def parameters_in_plugin(device: Device) -> bool:
+    """Whether `device`'s parameters are set in the manufacturer's own parameter dialog (a UI
+    plugin) instead of the standard parameter pages: they are not edited here."""
+    return device_plugins(device).user_interface
+
+
 def device_plugins(device: Device) -> DevicePlugins:
     """The manufacturer plugins `device`'s product data names."""
     program = device.app.program if device.app is not None else None
