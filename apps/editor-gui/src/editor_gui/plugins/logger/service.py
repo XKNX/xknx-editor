@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import logging
-import os
 import sys
-import tempfile
 import time
 from collections import deque
 from collections.abc import MutableMapping
@@ -11,6 +9,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import structlog
+
+from editor_gui.log_file import PlainTextFile, session_log
 
 _MAX_RECORDS = 10_000
 
@@ -58,7 +58,7 @@ class _StdlibBridgeHandler(logging.Handler):
 
     def emit(self, record: logging.LogRecord) -> None:
         try:
-            self._service._ingest_stdlib(record)
+            self._service.ingest_stdlib(record)
         except Exception:  # logging must never raise into the emitting call site
             self.handleError(record)
 
@@ -69,7 +69,7 @@ class LogRecord:
     level: str
     plugin: str
     event: str
-    payload: dict[str, str] = field(default_factory=dict)
+    payload: dict[str, str] = field(default_factory=dict[str, str])
 
     @property
     def timestamp_str(self) -> str:
@@ -118,24 +118,30 @@ class LogService:
         return event_dict
 
     def _log_stream(self) -> Any:
-        """A console-and-file stream for structlog's PrintLogger."""
-        path = os.path.join(tempfile.gettempdir(), "xknx-editor.log")
-        log_file = open(path, "a", encoding="utf-8", buffering=1)  # noqa: SIM115
+        """A console-and-file stream for structlog's PrintLogger: the console as is, the session log
+        file without colour codes. The frozen app's console is that file already."""
+        log_file = session_log()
         stream = sys.stdout if sys.stdout is not None else sys.stderr
-        return log_file if stream is None else _TeeStream(stream, log_file)
+        if stream is None or stream is log_file:
+            return PlainTextFile(log_file)
+        return _TeeStream(stream, PlainTextFile(log_file))
 
     def _configure_structlog(self) -> None:
+        # Before the renderer: on Windows it wraps sys.stdout for colours, which would hide that the
+        # frozen app's console is the log file and write each line to it twice.
+        self._stream = self._log_stream()
+        self._renderer = structlog.dev.ConsoleRenderer()
         structlog.configure(
             processors=[
                 self._wrap_payload,
                 structlog.processors.add_log_level,
                 structlog.processors.TimeStamper(fmt="%H:%M:%S", utc=False),
                 self._capture,
-                structlog.dev.ConsoleRenderer(),
+                self._renderer,
             ],
             wrapper_class=structlog.make_filtering_bound_logger(logging.DEBUG),
             context_class=dict,
-            logger_factory=structlog.PrintLoggerFactory(file=self._log_stream()),
+            logger_factory=structlog.PrintLoggerFactory(file=self._stream),
             cache_logger_on_first_use=False,
         )
 
@@ -157,7 +163,7 @@ class LogService:
                 return
         pkg_logger.addHandler(_StdlibBridgeHandler(self))
 
-    def _ingest_stdlib(self, record: logging.LogRecord) -> None:
+    def ingest_stdlib(self, record: logging.LogRecord) -> None:
         """Convert a stdlib ``LogRecord`` into our ``LogRecord`` and store it."""
         parts = record.name.split(".")
         # "xknxeditor.download.procedure" -> "download"; anything else keeps its own short name.
@@ -169,15 +175,30 @@ class LogService:
             for k, v in record.__dict__.items()
             if k not in _STDLIB_RECORD_ATTRS
         }
+        level = record.levelname.lower()
+        event = record.getMessage()
         self._store(
             LogRecord(
                 timestamp=record.created,
-                level=record.levelname.lower(),
+                level=level,
                 plugin=plugin,
-                event=record.getMessage(),
+                event=event,
                 payload=payload,
             )
         )
+        # Also into the console and the log file, in the app's own format, so a reported log has
+        # the libraries' steps too (download, MyKNX signing, export, import).
+        line: dict[str, Any] = {
+            "event": event,
+            "level": level,
+            "timestamp": time.strftime("%H:%M:%S", time.localtime(record.created)),
+            "plugin": plugin,
+        }
+        if payload:
+            line["payload"] = payload
+        if record.exc_info:
+            line["exc_info"] = record.exc_info
+        self._stream.write(self._renderer(None, level, line) + "\n")
 
     def debug(self, event: str, plugin: str, **kwargs: Any) -> None:
         structlog.get_logger().debug(event, plugin=plugin, **kwargs)

@@ -32,12 +32,43 @@ T = TypeVar("T")
 
 # Substrings that mark an argument as secret; its value is never logged. A substring denylist (not an
 # exact name) so future args like ``auth_token`` or ``api_key`` are redacted without revisiting this.
-_SECRET_ARG_MARKERS = ("password", "token", "secret", "credential", "passphrase")
+_SECRET_ARG_MARKERS = (
+    "password",
+    "token",
+    "secret",
+    "credential",
+    "passphrase",
+    "authentication",
+)
+
+# Arguments that are secret only in a specific tool: the same name is harmless elsewhere, so a
+# substring marker would over-redact (e.g. ``code`` is a device FDSK here but a language code in
+# catalog_set_online_language). Keyed by tool name -> set of secret argument names.
+_SECRET_ARGS_BY_TOOL: dict[str, frozenset[str]] = {
+    "project_add_device_certificate": frozenset({"code"}),
+}
+
+# Large upload arguments: logged as a length summary, never their full content.
+_BULK_ARGS = frozenset({"data_base64"})
 
 
 def _is_secret_arg(name: str) -> bool:
     lowered = name.lower()
     return any(marker in lowered for marker in _SECRET_ARG_MARKERS)
+
+
+def _redact_args(tool: str, kwargs: dict[str, Any]) -> dict[str, Any]:
+    """Tool-call arguments with secrets masked and bulk uploads summarized by length."""
+    secret_here = _SECRET_ARGS_BY_TOOL.get(tool, frozenset())
+    redacted: dict[str, Any] = {}
+    for name, value in kwargs.items():
+        if _is_secret_arg(name) or name in secret_here:
+            redacted[name] = "***"
+        elif name in _BULK_ARGS and isinstance(value, str):
+            redacted[name] = f"<{len(value)} chars>"
+        else:
+            redacted[name] = value
+    return redacted
 
 
 # Exceptions the services raise for ordinary bad input / expected failures: surfaced to the MCP
@@ -104,7 +135,7 @@ def make_tool(
         @functools.wraps(fn)
         def wrapper(*args: Any, **kwargs: Any) -> T:
             # Log every tool call so the GUI log shows what the LLM is doing (secrets redacted).
-            logged = {k: ("***" if _is_secret_arg(k) else v) for k, v in kwargs.items()}
+            logged = _redact_args(fn.__name__, kwargs)
             ctx.log.info("tool call", tool=fn.__name__, args=logged)
             try:
                 return fn(*args, **kwargs)

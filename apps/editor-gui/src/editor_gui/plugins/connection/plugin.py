@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any
 
 from imgui_bundle import imgui, imspinner
 from xknx import XKNX
-from xknx.core import XknxConnectionState
+from xknx.core.connection_state import XknxConnectionState
 from xknx.exceptions import ConfirmationError, RequestResponseError
 from xknx.io.connection import ConnectionConfig, ConnectionType
 from xknx.io.const import DEFAULT_MCAST_GRP
@@ -345,6 +345,8 @@ class ConnectionPlugin:
                     "interface max APDU length unavailable",
                     error=f"{type(feature_err).__name__}: {feature_err}",
                 )
+            if interface_apdu is not None:
+                self._log.info("interface max APDU length", length=interface_apdu)
             self._api.connection.interface_max_apdu_length = interface_apdu
             self._api.connection.interface_name = (
                 self._gateway_info.name

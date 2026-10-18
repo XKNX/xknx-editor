@@ -137,7 +137,6 @@ def _finalize_controls(
         and int(mask_version.removeprefix("MV-"), 16) & 0xFF0 == 0x7B0
     )
     # Automatic transformations precede removal of the absent second program.
-    # see .references/ets_map.md
     return [
         _explicit(c)
         for c in controls
@@ -207,7 +206,6 @@ def _splice(
 
 # Clear the second-application option (0x40) when no second program is supplied,
 # then score procedure subtypes by their overlap with the requested options.
-# see .references/ets_map.md
 _SUBTYPE_OPTIONS = {
     "all": 0xFF,
     "full": 0xFF,

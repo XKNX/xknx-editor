@@ -41,7 +41,7 @@ class CoCell:
     dpt: str
     flags: str  # letters, e.g. "C R - T -"
     priority: str
-    links: str  # sending GA first, then the rest, space-joined
+    links: tuple[tuple[str, bool], ...]  # (group address, is_sending), sending first
 
 
 @dataclass(frozen=True)
@@ -119,7 +119,7 @@ def _co_text(cell: CoCell) -> str:
     """One-line summary of a com-object cell for the diff column."""
     parts = [p for p in (cell.dpt, cell.flags, cell.priority) if p]
     if cell.links:
-        parts.append(f"-> {cell.links}")
+        parts.append("-> " + " ".join(addr for addr, _ in cell.links))
     return "  ·  ".join(parts)
 
 
@@ -157,10 +157,10 @@ def snapshot_device(
     com_objects = {
         f"{co.number:05d}": CoCell(
             name=com_object_display_name(co) or co.name,
-            dpt=(co.dpt.code if co.dpt is not None and co.dpt.major else ""),
+            dpt=(co.dpt.code if co.dpt.major else ""),
             flags=_flag_letters(co.flags),
             priority=co.priority or "",
-            links=_links_text(co, get_links, get_address),
+            links=_device_links(co, get_links, get_address),
         )
         for co in device.get_visible_com_objects()
     }
@@ -212,11 +212,13 @@ def _flag_letters(flags: ComObjectFlags) -> str:
     )
 
 
-def _links_text(
+def _device_links(
     co: ComObject, get_links: LinksResolver, get_address: AddressResolver
-) -> str:
-    """Linked group addresses, sending one first, space-joined; empty for an unlinked object."""
+) -> tuple[tuple[str, bool], ...]:
+    """Linked group addresses as ``(address, is_sending)``, sending first; empty when unlinked."""
     if co.db_id is None:
-        return ""
+        return ()
     links = sorted(get_links(co.db_id), key=lambda link: not link[1])  # sending first
-    return " ".join(addr for ga_id, _ in links if (addr := get_address(ga_id)))
+    return tuple(
+        (addr, sending) for ga_id, sending in links if (addr := get_address(ga_id))
+    )

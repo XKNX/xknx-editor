@@ -21,6 +21,7 @@ from functools import cached_property
 from typing import TYPE_CHECKING, Any
 
 from xknx.dpt.payload import DPTArray, DPTBinary
+from xknx.exceptions import CouldNotParseAddress
 from xknx.telegram import GroupAddress as XGroupAddress
 from xknx.telegram.apci import GroupValueRead, GroupValueResponse, GroupValueWrite
 
@@ -332,7 +333,14 @@ class MonitorService:
     # --- latest values and the legacy telegram list -----------------------
 
     def latest(self, address: str) -> LiveValue | None:
-        return self._values.get(address)
+        # Look up by the same canonical key used when storing (str(XGroupAddress(raw))), so an
+        # equivalent address written in another style (e.g. 1/515 or 2563 for 1/2/3) still hits
+        # the cache instead of missing on an exact string match.
+        try:
+            key = str(XGroupAddress(address))
+        except CouldNotParseAddress:
+            key = address
+        return self._values.get(key)
 
     def merged_log(
         self, kinds: Iterable[MonitorKind] = LINK_LAYER_KINDS

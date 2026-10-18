@@ -750,11 +750,14 @@ msgstr "XKNX-project openen"
 msgid "Save XKNX Project"
 msgstr "XKNX-project opslaan"
 
-msgid "Replace existing file?"
-msgstr "Bestaand bestand vervangen?"
+msgid "Replace File"
+msgstr "Bestand vervangen"
 
-msgid "A file named {name} already exists in:\n{dir}\n\nSaving here replaces its current contents. This cannot be undone."
-msgstr "Er bestaat al een bestand met de naam {name} in:\n{dir}\n\nOpslaan vervangt de huidige inhoud ervan. Dit kan niet ongedaan worden gemaakt."
+msgid "{name} already exists."
+msgstr "{name} bestaat al."
+
+msgid "It is in {dir}. Replacing it overwrites its current content; this cannot be undone."
+msgstr "Het staat in {dir}. Vervangen overschrijft de huidige inhoud; dit kan niet ongedaan worden gemaakt."
 
 msgid "Replace"
 msgstr "Vervangen"
@@ -836,6 +839,9 @@ msgstr "Configuratiemap openen"
 
 msgid "Open Cache Folder"
 msgstr "Cachemap openen"
+
+msgid "Open Log Folder"
+msgstr "Logboekmap openen"
 
 msgid "Removes product data no device uses; the project stays unchanged."
 msgstr "Verwijdert productgegevens die geen enkel apparaat gebruikt; het project zelf blijft ongewijzigd."
@@ -1036,3 +1042,51 @@ msgstr "{url} openen"
 
 msgid "Copy Link"
 msgstr "Link kopiëren"
+
+msgid "Install Update"
+msgstr "Update installeren"
+
+msgid "Install Update downloads the installer, closes XKNX Editor and starts it again with the open project."
+msgstr "'Update installeren' downloadt het installatieprogramma, sluit XKNX Editor en start het daarna opnieuw met het geopende project."
+
+msgid "Downloading the update…"
+msgstr "Update wordt gedownload…"
+
+msgid "{done} of {total} MB"
+msgstr "{done} van {total} MB"
+
+msgid "Export Failed"
+msgstr "Exporteren mislukt"
+
+msgid "The project could not be exported to {name}."
+msgstr "Het project kon niet naar {name} worden geëxporteerd."
+
+msgid "MyKnx did not issue the certificate for the project:"
+msgstr "MyKnx heeft het certificaat voor het project niet uitgegeven:"
+
+msgid "To export without it, choose 'Export Without Certificate' or 'License with a Dongle…' in the Sign Export window."
+msgstr "Kies in het venster „Export ondertekenen” „Zonder certificaat exporteren” of „Licentie met een dongle…” om zonder certificaat te exporteren."
+
+msgid "{name} cannot be imported."
+msgstr "{name} kan niet worden geïmporteerd."
+
+msgid "The file was written, but it refers to product data that is not in the catalog: {references}. Add these products to the catalog and export again."
+msgstr "Het bestand is geschreven, maar verwijst naar productgegevens die niet in de catalogus staan: {references}. Voeg deze producten toe aan de catalogus en exporteer opnieuw."
+
+msgid "Exporting {name} — this can take a while for large projects."
+msgstr "{name} wordt geëxporteerd – dit kan bij grote projecten even duren."
+
+msgid "Collecting the manufacturer data…"
+msgstr "Fabrikantgegevens worden verzameld…"
+
+msgid "Writing the archive…"
+msgstr "Archief wordt geschreven…"
+
+msgid "Getting the certificate from MyKnx…"
+msgstr "Certificaat wordt van MyKnx opgehaald…"
+
+msgid "Cancelling…"
+msgstr "Bezig met annuleren…"
+
+msgid "Export cancelled, no file was written"
+msgstr "Exporteren geannuleerd, er is geen bestand geschreven"

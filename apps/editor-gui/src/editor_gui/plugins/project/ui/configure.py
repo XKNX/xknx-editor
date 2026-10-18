@@ -3,7 +3,7 @@ import webbrowser
 from collections.abc import Callable
 from contextlib import nullcontext
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import structlog
 from imgui_bundle import imgui, imspinner
@@ -19,12 +19,12 @@ from editor_gui.device_info import (
     serial_from_project,
     serial_text,
 )
-from editor_gui.device_plugins import device_plugins
+from editor_gui.device_plugins import device_plugins, parameters_in_plugin
 from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
-from editor_gui.widgets.fonts import italic
+from editor_gui.widgets.fonts import heading, italic
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.app_id import parse_app_id
@@ -33,6 +33,7 @@ from xknxeditor.prod.parser_v2.ui import UiNode
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import IpSecureSettings
     from xknxeditor.catalog import ProductSummary, ProgramSummary
+    from xknxeditor.proj.core.addressing import GroupAddressStyle
     from xknxeditor.proj.core.service import DeviceInfo
 from editor_gui.programming_dali import is_dali_dca_app
 from editor_gui.settings import load_settings, save_settings
@@ -63,6 +64,7 @@ from editor_gui.widgets.module_table import (
 
 _log = structlog.get_logger("configure")
 _PLUGIN_NOTICE_COLOR = imgui.ImVec4(0.95, 0.75, 0.35, 1.0)
+_ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 
 
 def _move_cursor_up(distance: float) -> None:
@@ -184,14 +186,43 @@ def _reset_presets() -> list[tuple[str, int]]:
     ]
 
 
+# The dialog of a Program press keeps its identity while its title follows the case.
+_PROGRAM_DIALOG_ID = "###program_device"
+
+
 @dataclass(frozen=True, slots=True)
 class ProgramRequest:
-    """A confirmed Program press: the scope and the choices made in its confirmation."""
+    """A Program press: the scope and the choices made in its dialog, if one was needed."""
 
     scope: DownloadScope
     without_plugin: bool = False
     current_address: str | None = None
     use_serial_number: bool = False
+
+
+def direct_program_request(
+    scope: DownloadScope,
+    *,
+    plugin_required: bool,
+    use_serial_number: bool,
+    serial_owner: str | None,
+) -> ProgramRequest | None:
+    """The request a Program press starts right away, or ``None`` when its dialog has to ask
+    first: an unload, which leaves the device without a working application, the current
+    address to overwrite, the missing download plugin, or a serial number another device of
+    the project has already (``serial_owner``). ``use_serial_number`` is the connection's
+    setting, for a device whose serial number is known."""
+    if scope in (
+        DownloadScope.UNLOAD,
+        DownloadScope.UNLOAD_ALL,
+        DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS,
+    ):
+        return None
+    if plugin_required and not scope.individual_address_only:
+        return None
+    if use_serial_number and serial_owner is not None:
+        return None
+    return ProgramRequest(scope=scope, use_serial_number=use_serial_number)
 
 
 def _render_loading_application() -> None:
@@ -243,9 +274,9 @@ class ConfigurePanel:
         get_name_template: Callable[[], str] | None = None,
         set_name_template: Callable[[str], None] | None = None,
         on_create_and_link: Callable[[Device, ComObject, str, str], None] | None = None,
-        group_style: Callable[[], object] | None = None,
+        group_style: "Callable[[], GroupAddressStyle] | None" = None,
         next_free_sub: Callable[[int, int], int] | None = None,
-        get_ga_range_tree: Callable[[], list[object]] | None = None,
+        get_ga_range_tree: Callable[[], list[Any]] | None = None,
         get_selected_node_ids: Callable[[], set[int]] | None = None,
         on_param_change_selected: Callable[[list[int], str, str], None] | None = None,
         render_dali: Callable[[Device], None] | None = None,
@@ -266,6 +297,10 @@ class ConfigurePanel:
         get_routing_blocking: Callable[[Device], str | None] | None = None,
         on_routing_blocking: Callable[[Device, str | None], None] | None = None,
         on_ip_secure_change: Callable[[Device, str, object], str | None] | None = None,
+        get_additional_address_count: Callable[[Device], int] | None = None,
+        on_additional_address_change: Callable[[Device, int, str, str], str | None]
+        | None = None,
+        on_assign_additional_addresses: Callable[[Device], str | None] | None = None,
         use_serial_number_default: Callable[[], bool] | None = None,
         find_serial_owner: Callable[[Device, bytes], str | None] | None = None,
         find_product: "Callable[[str], ProductSummary | None] | None" = None,
@@ -376,6 +411,16 @@ class ConfigurePanel:
         self._ip_secure_buffers: dict[str, str] = {}
         self._ip_secure_device: int | None = None
         self._ip_secure_show = False
+        # The additional individual addresses: how many the application has, the edits (index,
+        # field "address"/"name"/"description", text -> the message when rejected), the
+        # assignment of the missing ones, the edit buffers ("field:index" -> text) and the
+        # message of the last rejected edit.
+        self._get_additional_address_count = get_additional_address_count
+        self._on_additional_address_change = on_additional_address_change
+        self._on_assign_additional_addresses = on_assign_additional_addresses
+        self._additional_buffers: dict[str, str] = {}
+        self._additional_device: int | None = None
+        self._additional_error = ""
         self._use_serial_number_default = use_serial_number_default
         self._find_serial_owner = find_serial_owner
         self._render_dali = (
@@ -484,6 +529,7 @@ class ConfigurePanel:
         imgui.spacing()
         self._render_manual_button(self._get_device_info(device.node_id))
         self._render_ip_config(device)
+        self._render_additional_addresses(device)
         # Whether the device is a KNX IP Secure device comes from its application: shown once it
         # is loaded, so selecting a device never parses its application on the render thread.
         if self._ready(device):
@@ -551,12 +597,18 @@ class ConfigurePanel:
             enabled = bool(device.individual_address) and device.has_application
             imgui.begin_disabled(not enabled)
             if imgui.button(S.BTN_PROGRAM_DEVICE):
-                # Programming writes to the device; confirm first.
-                self._confirm_program_open = True
+                # Programming starts right away; the dialog only opens when it has to ask
+                # something first (see direct_program_request).
+                request = self._direct_program_request(device)
+                if request is None:
+                    self._confirm_program_open = True
+                elif self._on_program_device is not None:
+                    self._on_program_device(device, request)
             imgui.end_disabled()
             _no_application_tooltip(device)
             if self._confirm_program_open:
-                imgui.open_popup(S.PROGRAM_CONFIRM_TITLE)
+                title, _confirm = self._program_dialog(device)
+                imgui.open_popup(f"{title}{_PROGRAM_DIALOG_ID}")
                 self._confirm_program_open = False
                 self._program_without_plugin = False
                 self._overwrite_current_address = ""
@@ -734,7 +786,8 @@ class ConfigurePanel:
             self._name_buffer = default
             self._name_prefilled = True
             state = imgui.internal.get_input_text_state(imgui.get_item_id())
-            if state is not None:
+            # The bindings type the state as non-optional, but it is None without an active edit.
+            if state is not None:  # pyright: ignore[reportUnnecessaryComparison]
                 state.reload_user_buf_and_move_to_end()
         if imgui.is_item_deactivated():
             # The default name itself is not stored as a custom name.
@@ -1012,7 +1065,12 @@ class ConfigurePanel:
             if imgui.begin_tab_item(
                 f"{S.EDITOR_TAB_PARAMETERS.format(count=param_count)}###editor_tab_params"
             )[0]:
-                if ui_nodes:
+                if parameters_in_plugin(device):
+                    # The standard pages would let the plugin's settings be edited without it.
+                    with heading():
+                        imgui.text_wrapped(S.PLUGIN_PARAMETERS_TITLE)
+                    imgui.text_wrapped(S.PLUGIN_PARAMETERS_TEXT)
+                elif ui_nodes:
                     self._param_filter = filter_box(
                         "##param_filter",
                         S.CONFIGURE_PARAM_FILTER_HINT,
@@ -1464,6 +1522,91 @@ class ConfigurePanel:
             ]
         )
 
+    def _render_additional_addresses(self, device: Device) -> None:
+        """The device's additional individual addresses (the tunnelling addresses of an IP
+        interface): per entry its address, name and description, all editable, and the button that
+        assigns the missing addresses. Shown when the device has entries or its application has
+        some; a rejected edit shows its message above the table."""
+        info = self._get_device_info(device.node_id)
+        entries = list(info.additional_addresses) if info is not None else []
+        # The application's number needs the parsed application: only read it once it is loaded.
+        count = (
+            self._get_additional_address_count(device)
+            if self._get_additional_address_count is not None and self._ready(device)
+            else 0
+        )
+        rows = max(len(entries), count)
+        if rows == 0:
+            return
+        if self._additional_device != device.node_id:
+            self._additional_buffers = {}
+            self._additional_error = ""
+            self._additional_device = device.node_id
+        imgui.spacing()
+        if not imgui.collapsing_header(S.CONFIGURE_ADDITIONAL_ADDRESSES):
+            return
+        if self._on_assign_additional_addresses is not None:
+            missing = rows > len(entries) or any(e.address is None for e in entries)
+            imgui.begin_disabled(not missing)
+            if imgui.button(S.BTN_ASSIGN_ADDITIONAL_ADDRESSES):
+                self._additional_error = (
+                    self._on_assign_additional_addresses(device) or ""
+                )
+            imgui.end_disabled()
+        if self._additional_error:
+            imgui.push_style_color(imgui.Col_.text, _ERROR_COLOR)
+            imgui.text_wrapped(self._additional_error)
+            imgui.pop_style_color()
+        flags = (
+            imgui.TableFlags_.row_bg
+            | imgui.TableFlags_.borders_inner_h
+            | imgui.TableFlags_.resizable
+        )
+        if not begin_data_table("##additional_addresses", 4, flags):
+            return
+        imgui.table_setup_column(
+            S.ADDITIONAL_ADDRESS_INDEX, imgui.TableColumnFlags_.width_fixed
+        )
+        imgui.table_setup_column(S.CONFIGURE_ADDITIONAL_ADDRESS)
+        imgui.table_setup_column(S.CONFIGURE_NAME)
+        imgui.table_setup_column(S.CONFIGURE_DESCRIPTION)
+        data_table_headers()
+        by_index = {entry.index: entry for entry in entries}
+        for index in range(1, rows + 1):
+            entry = by_index.get(index)
+            imgui.table_next_row()
+            imgui.table_next_column()
+            imgui.align_text_to_frame_padding()
+            imgui.text(str(index))
+            for field, value in (
+                ("address", (entry.address or "") if entry is not None else ""),
+                ("name", entry.name if entry is not None else ""),
+                ("description", entry.description if entry is not None else ""),
+            ):
+                imgui.table_next_column()
+                self._additional_input(device, index, field, value)
+        imgui.end_table()
+
+    def _additional_input(
+        self, device: Device, index: int, field: str, value: str
+    ) -> None:
+        """One field of an additional address; an edit is stored when the field is left."""
+        key = f"{field}:{index}"
+        buffer = self._additional_buffers.get(key, value)
+        imgui.set_next_item_width(-1)
+        _, buffer = imgui.input_text(f"##additional_{key}", buffer)
+        self._additional_buffers[key] = buffer
+        if (
+            imgui.is_item_deactivated_after_edit()
+            and buffer != value
+            and self._on_additional_address_change is not None
+        ):
+            self._additional_error = (
+                self._on_additional_address_change(device, index, field, buffer) or ""
+            )
+        if not imgui.is_item_active() and buffer != value:
+            self._additional_buffers[key] = value
+
     def _render_ip_secure(self, device: Device) -> None:
         """The KNX IP Secure settings of a secure IP device: its commissioning password, its
         authentication code, whether its tunnels are secured and the password of each bus
@@ -1636,8 +1779,47 @@ class ConfigurePanel:
             self._value_copy(value)
         imgui.end_table()
 
+    def _direct_program_request(self, device: Device) -> ProgramRequest | None:
+        scope = self._download_scope
+        serial = (
+            self._project_serial(device)
+            if scope is DownloadScope.INDIVIDUAL_ADDRESS
+            else None
+        )
+        use_serial = bool(
+            serial is not None
+            and self._use_serial_number_default
+            and self._use_serial_number_default()
+        )
+        owner = (
+            self._find_serial_owner(device, serial)
+            if use_serial and serial is not None and self._find_serial_owner is not None
+            else None
+        )
+        return direct_program_request(
+            scope,
+            plugin_required=device.download_plugin_required,
+            use_serial_number=use_serial,
+            serial_owner=owner,
+        )
+
+    def _program_dialog(self, device: Device) -> tuple[str, str]:
+        """Title and confirm button of the dialog a Program press opens when it has to ask
+        something first (see direct_program_request)."""
+        scope = self._download_scope
+        if scope is DownloadScope.UNLOAD:
+            return S.PROGRAM_UNLOAD_TITLE, S.SCOPE_UNLOAD
+        if scope is DownloadScope.UNLOAD_ALL:
+            return S.SCOPE_UNLOAD_ALL, S.SCOPE_UNLOAD
+        if scope is DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS:
+            return S.SCOPE_OVERWRITE_INDIVIDUAL_ADDRESS, S.BTN_OVERWRITE_ADDRESS
+        if device.download_plugin_required and not scope.individual_address_only:
+            return S.PROGRAM_PLUGIN_TITLE, S.BTN_PROGRAM_DEVICE
+        return S.PROGRAM_SERIAL_USED_TITLE, S.BTN_PROGRAM_DEVICE
+
     def _render_program_confirm(self, device: Device) -> None:
-        if not begin_dialog(S.PROGRAM_CONFIRM_TITLE):
+        title, confirm = self._program_dialog(device)
+        if not begin_dialog(f"{title}{_PROGRAM_DIALOG_ID}"):
             return
         scope = self._download_scope
         address = device.individual_address or "?"
@@ -1647,7 +1829,17 @@ class ConfigurePanel:
             else None
         )
         use_serial = serial is not None and self._program_use_serial
-        if use_serial:
+        plugin_required = (
+            device.download_plugin_required and not scope.individual_address_only
+        )
+        imgui.push_text_wrap_pos(px(420.0))
+        if scope is DownloadScope.UNLOAD:
+            imgui.text_wrapped(S.PROGRAM_UNLOAD_TEXT.format(address=address))
+        elif scope is DownloadScope.UNLOAD_ALL:
+            imgui.text_wrapped(S.PROGRAM_UNLOAD_ALL_TEXT.format(address=address))
+        elif scope is DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS:
+            imgui.text_wrapped(S.PROGRAM_OVERWRITE_TEXT.format(address=address))
+        elif use_serial and serial is not None:
             imgui.text_wrapped(
                 S.PROGRAM_ADDRESS_SERIAL_TEXT.format(
                     address=address, serial=serial_text(serial)
@@ -1655,12 +1847,7 @@ class ConfigurePanel:
             )
         elif scope is DownloadScope.INDIVIDUAL_ADDRESS:
             imgui.text_wrapped(S.PROGRAM_ADDRESS_TEXT.format(address=address))
-        elif scope is DownloadScope.OVERWRITE_INDIVIDUAL_ADDRESS:
-            imgui.text_wrapped(S.PROGRAM_OVERWRITE_TEXT.format(address=address))
-        else:
-            imgui.text_wrapped(
-                S.PROGRAM_CONFIRM_TEXT.format(address=address, scope=scope.name)
-            )
+        imgui.pop_text_wrap_pos()
         imgui.spacing()
         if serial is not None:
             _, self._program_use_serial = checkbox(
@@ -1695,9 +1882,6 @@ class ConfigurePanel:
             if address_error is not None and self._overwrite_current_address.strip():
                 imgui.text_colored(_PLUGIN_NOTICE_COLOR, address_error)
             imgui.spacing()
-        plugin_required = (
-            device.download_plugin_required and not scope.individual_address_only
-        )
         if plugin_required:
             imgui.push_text_wrap_pos(px(420.0))
             imgui.text_colored(_PLUGIN_NOTICE_COLOR, S.PLUGIN_DOWNLOAD_WARNING)
@@ -1709,9 +1893,7 @@ class ConfigurePanel:
         can_program = (
             not plugin_required or self._program_without_plugin
         ) and address_error is None
-        clicked = dialog_buttons(
-            S.BTN_PROGRAM_DEVICE, S.BTN_CANCEL, enabled=[can_program, True]
-        )
+        clicked = dialog_buttons(confirm, S.BTN_CANCEL, enabled=[can_program, True])
         if clicked == 0:
             if self._on_program_device is not None:
                 self._on_program_device(

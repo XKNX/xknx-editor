@@ -6,9 +6,10 @@ from __future__ import annotations
 import io
 import logging
 import sys
-import tempfile
-from pathlib import Path
 
+import pytest
+
+from editor_gui.log_file import session_log, set_session_log
 from editor_gui.plugins.logger.service import LogService
 
 
@@ -45,14 +46,51 @@ def test_bridge_is_idempotent_across_instances():
     assert len(bridges) == 1
 
 
-def test_structlog_is_written_to_console_and_disk(monkeypatch, tmp_path: Path) -> None:
+def test_structlog_is_written_to_console_and_disk(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     console = io.StringIO()
     monkeypatch.setattr(sys, "stdout", console)
-    monkeypatch.setattr(tempfile, "gettempdir", lambda: str(tmp_path))
-
-    svc = LogService()
-    assert (tmp_path / "xknx-editor.log").exists()
-    svc.info("tee test", "app", value=42)
+    disk = io.StringIO()
+    previous = session_log()
+    set_session_log(disk)
+    try:
+        svc = LogService()
+        svc.info("tee test", "app", value=42)
+    finally:
+        set_session_log(previous)
 
     assert "tee test" in console.getvalue()
-    assert "tee test" in (tmp_path / "xknx-editor.log").read_text()
+    assert "tee test" in disk.getvalue()
+
+
+def test_the_frozen_app_console_is_the_log_file_itself(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    disk = io.StringIO()
+    monkeypatch.setattr(sys, "stdout", disk)
+    previous = session_log()
+    set_session_log(disk)
+    try:
+        LogService().info("once", "app")
+    finally:
+        set_session_log(previous)
+
+    assert disk.getvalue().count("once") == 1
+
+
+def test_package_logs_reach_the_log_file() -> None:
+    disk = io.StringIO()
+    previous = session_log()
+    set_session_log(disk)
+    try:
+        LogService()
+        logging.getLogger("xknxeditor.proj.core.myknx_cert").error(
+            "add product to workset failed: HTTP %s", 422
+        )
+    finally:
+        set_session_log(previous)
+
+    text = disk.getvalue()
+    assert "add product to workset failed: HTTP 422" in text
+    assert "plugin=project" in text

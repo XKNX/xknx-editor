@@ -899,11 +899,14 @@ msgstr "Ältere ETS-Produktdatenbanken (.vd1-.vd5) werden nicht direkt importier
 msgid "ETS Group-Address Export (*.xml)"
 msgstr "ETS-Gruppenadressen-Export (*.xml)"
 
-msgid "Replace existing file?"
-msgstr "Vorhandene Datei ersetzen?"
+msgid "Replace File"
+msgstr "Datei ersetzen"
 
-msgid "A file named {name} already exists in:\n{dir}\n\nSaving here replaces its current contents. This cannot be undone."
-msgstr "Eine Datei namens {name} existiert bereits in:\n{dir}\n\nBeim Speichern wird ihr aktueller Inhalt ersetzt. Dies kann nicht rückgängig gemacht werden."
+msgid "{name} already exists."
+msgstr "{name} ist bereits vorhanden."
+
+msgid "It is in {dir}. Replacing it overwrites its current content; this cannot be undone."
+msgstr "Sie liegt in {dir}. Beim Ersetzen wird ihr aktueller Inhalt überschrieben; das kann nicht rückgängig gemacht werden."
 
 msgid "Replace"
 msgstr "Ersetzen"
@@ -952,6 +955,9 @@ msgstr "Konfigurationsordner öffnen"
 
 msgid "Open Cache Folder"
 msgstr "Cache-Ordner öffnen"
+
+msgid "Open Log Folder"
+msgstr "Log-Ordner öffnen"
 
 msgid "This project is protected with a password. Enter it to open the project:"
 msgstr "Dieses Projekt ist mit einem Passwort geschützt. Geben Sie es ein, um das Projekt zu öffnen:"
@@ -1156,3 +1162,51 @@ msgstr "{url} öffnen"
 
 msgid "Copy Link"
 msgstr "Link kopieren"
+
+msgid "Install Update"
+msgstr "Update installieren"
+
+msgid "Install Update downloads the installer, closes XKNX Editor and starts it again with the open project."
+msgstr "„Update installieren“ lädt das Installationsprogramm herunter, schließt XKNX Editor und startet ihn danach mit dem geöffneten Projekt neu."
+
+msgid "Downloading the update…"
+msgstr "Update wird heruntergeladen…"
+
+msgid "{done} of {total} MB"
+msgstr "{done} von {total} MB"
+
+msgid "Export Failed"
+msgstr "Export fehlgeschlagen"
+
+msgid "The project could not be exported to {name}."
+msgstr "Das Projekt konnte nicht nach {name} exportiert werden."
+
+msgid "MyKnx did not issue the certificate for the project:"
+msgstr "MyKnx hat das Zertifikat für das Projekt nicht ausgestellt:"
+
+msgid "To export without it, choose 'Export Without Certificate' or 'License with a Dongle…' in the Sign Export window."
+msgstr "Um ohne Zertifikat zu exportieren, wählen Sie im Fenster „Export signieren“ „Ohne Zertifikat exportieren“ oder „Mit Dongle lizenzieren…“."
+
+msgid "{name} cannot be imported."
+msgstr "{name} kann nicht importiert werden."
+
+msgid "The file was written, but it refers to product data that is not in the catalog: {references}. Add these products to the catalog and export again."
+msgstr "Die Datei wurde geschrieben, verweist aber auf Produktdaten, die nicht im Katalog sind: {references}. Fügen Sie diese Produkte dem Katalog hinzu und exportieren Sie erneut."
+
+msgid "Exporting {name} — this can take a while for large projects."
+msgstr "{name} wird exportiert – das kann bei großen Projekten eine Weile dauern."
+
+msgid "Collecting the manufacturer data…"
+msgstr "Herstellerdaten werden gesammelt…"
+
+msgid "Writing the archive…"
+msgstr "Archiv wird geschrieben…"
+
+msgid "Getting the certificate from MyKnx…"
+msgstr "Zertifikat wird von MyKnx geholt…"
+
+msgid "Cancelling…"
+msgstr "Wird abgebrochen…"
+
+msgid "Export cancelled, no file was written"
+msgstr "Export abgebrochen, es wurde keine Datei geschrieben"

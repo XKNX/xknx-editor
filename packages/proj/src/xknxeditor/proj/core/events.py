@@ -26,6 +26,7 @@ from xknxeditor.proj.models import (
     ComObject,
     ComObjectLink,
     Device,
+    DeviceAdditionalAddress,
     Function,
     FunctionGroupAddress,
     GroupAddress,
@@ -277,6 +278,10 @@ class AddDevice(Event):
     manufacturer_name: str = ""
     # The Tool Key (an ``enc1:`` token) of a device added with secure commissioning activated.
     tool_key: str | None = None
+    # The device's additional individual addresses (see :class:`SetDeviceAdditionalAddresses`).
+    additional_addresses: list[dict[str, Any]] = field(
+        default_factory=list[dict[str, Any]]
+    )
     device_id: int | None = None
     parameter_ids: list[int] = field(default_factory=list[int])
     com_object_ids: list[int] = field(default_factory=list[int])
@@ -315,6 +320,7 @@ class AddDevice(Event):
             if i < len(self.com_object_ids):
                 com_object.id = self.com_object_ids[i]
             device.com_objects.append(com_object)
+        _set_additional_entries(device, self.additional_addresses)
         session.add(device)
         session.flush()
         self.device_id = device.id
@@ -343,6 +349,7 @@ class AddDevice(Event):
             "order_number": self.order_number,
             "manufacturer_name": self.manufacturer_name,
             "tool_key": self.tool_key,
+            "additional_addresses": self.additional_addresses,
             "device_id": self.device_id,
             "parameter_ids": self.parameter_ids,
             "com_object_ids": self.com_object_ids,
@@ -1593,6 +1600,83 @@ def _set_tool_key(device: Device, tool_key: str | None) -> str | None:
         subtrees.pop("Security", None)
     device.extra_subtrees = subtrees or None
     return previous
+
+
+def additional_address_entries(device: Device) -> list[dict[str, Any]]:
+    """The device's additional individual addresses as event entries, in order."""
+    return [
+        {
+            "address": row.address,
+            "name": row.name,
+            "description": row.description,
+            "comment": row.comment,
+        }
+        for row in device.additional_addresses
+    ]
+
+
+def _set_additional_entries(device: Device, entries: list[dict[str, Any]]) -> None:
+    """Make the device's additional individual addresses ``entries``, updating the existing rows in
+    place (their order is the entry number) and adding or removing rows at the end."""
+    rows = device.additional_addresses
+    for index, entry in enumerate(entries):
+        if index < len(rows):
+            row = rows[index]
+        else:
+            row = DeviceAdditionalAddress()
+            rows.append(row)
+        address = entry.get("address")
+        row.address = int(address) if address is not None else None
+        row.name = str(entry.get("name") or "")
+        row.description = str(entry.get("description") or "")
+        row.comment = str(entry.get("comment") or "")
+    for row in list(rows[len(entries) :]):
+        rows.remove(row)
+
+
+@_register
+@dataclass
+class SetDeviceAdditionalAddresses(Event):
+    """Set a device's complete list of additional individual addresses (the tunnelling addresses
+    of an IP interface, the addresses a coupler claims). Each entry holds ``address`` (the device
+    number 1-255 in the device's line, or ``None``), ``name``, ``description`` and ``comment``;
+    revert restores the previous list. ``label`` names the change in the history."""
+
+    event_type: ClassVar[str] = "SetDeviceAdditionalAddresses"
+
+    device_id: int
+    entries: list[dict[str, Any]]
+    label: str | None = None
+    old_entries: list[dict[str, Any]] | None = None
+
+    def apply(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is None:
+            return
+        self.old_entries = additional_address_entries(device)
+        _set_additional_entries(device, self.entries)
+        session.flush()
+
+    def revert(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is None or self.old_entries is None:
+            return
+        _set_additional_entries(device, self.old_entries)
+        session.flush()
+
+    def to_dict(self) -> dict[str, Any]:
+        data: dict[str, Any] = {
+            "device_id": self.device_id,
+            "entries": self.entries,
+            "old_entries": self.old_entries,
+        }
+        if self.label is not None:
+            data["label"] = self.label
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetDeviceAdditionalAddresses:
+        return cls(**data)
 
 
 @_register

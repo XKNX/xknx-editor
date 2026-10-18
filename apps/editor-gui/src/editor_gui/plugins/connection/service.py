@@ -4,17 +4,21 @@ import asyncio
 import functools
 import threading
 import time
+import traceback
 from collections.abc import Awaitable, Callable, Collection, Coroutine
 from concurrent.futures import Future
 from dataclasses import dataclass
 from enum import Enum
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
-from xknx.cemi import CEMIFrame, CEMILData, CEMIMessageCode
+from xknx.cemi.cemi_frame import CEMIFrame, CEMILData
+from xknx.cemi.const import CEMIMessageCode
 from xknx.exceptions import ManagementConnectionError
-from xknx.management.procedures import (
-    dm_restart,
+from xknx.management.procedures.device.dm_restart_r_co import dm_restart
+from xknx.management.procedures.network.nm_individual_address_read import (
     nm_individual_address_read,
+)
+from xknx.management.procedures.network.nm_individual_address_serial_number_write import (
     nm_individual_address_serial_number_write,
 )
 from xknx.telegram import GroupAddress, Telegram
@@ -36,6 +40,13 @@ if TYPE_CHECKING:
     from xknxeditor.prod import Application, MasterData
     from xknxeditor.proj.core.service import DeviceKeys
     from xknxeditor.recover import AppId
+
+
+def _exc_traceback(exc: BaseException) -> str:
+    """The full formatted traceback of ``exc`` (including any chained cause). Logged on a failed
+    bus operation so an intermittent, hard-to-reproduce error (e.g. a cross-thread DB race) keeps
+    its stack instead of only a one-line message."""
+    return "".join(traceback.format_exception(type(exc), exc, exc.__traceback__))
 
 
 @dataclass(frozen=True, slots=True)
@@ -118,6 +129,8 @@ class ConnectionService:
         self.busmonitor_link: LinkInfo | None = None
         self._xknx: XKNX | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
+        # The task behind each future of run_async while it runs (cancel_operation).
+        self._operation_tasks: dict[Future[Any], list[asyncio.Task[Any]]] = {}
         # Global KNX master data (mask-version default procedures), injected at
         # startup. Required to resolve an UNLOAD scope and default/merged procedures.
         self.master: MasterData | None = None
@@ -362,6 +375,11 @@ class ConnectionService:
     def xknx(self) -> XKNX | None:
         return self._xknx
 
+    @property
+    def _connected_xknx(self) -> XKNX:
+        """The connection, for the calls made after ``not_connected`` returned ``False``."""
+        return cast("XKNX", self._xknx)
+
     def connection_label(self, *, with_address: bool) -> str | None:
         """The connected interface's name, optionally prefixed with our individual address."""
         xknx = self._xknx
@@ -393,7 +411,7 @@ class ConnectionService:
                 original=raw_cemi.hex(" "),
                 reencoded=reencoded.hex(" "),
             )
-        future = self.run_async(self._xknx.knxip_interface.send_cemi(cemi))
+        future = self.run_async(self._connected_xknx.knxip_interface.send_cemi(cemi))
         if future is not None:
             future.add_done_callback(self._log_send_cemi_result)
         return future
@@ -421,7 +439,9 @@ class ConnectionService:
     def read_programming_mode_devices(self, timeout: float = 3.0) -> Future[Any] | None:
         if self.not_connected("read_programming_mode_devices"):
             return None
-        return self.run_async(nm_individual_address_read(self._xknx, timeout=timeout))
+        return self.run_async(
+            nm_individual_address_read(self._connected_xknx, timeout=timeout)
+        )
 
     def scan_programming_mode(self, timeout: float = 3.0) -> Future[Any] | None:
         """Find devices in programming mode and read each one's dossier off the bus.
@@ -439,7 +459,7 @@ class ConnectionService:
             return None
         self._log.info("Scanning for devices in programming mode")
         future = self.run_async(
-            scan_programming_mode_devices(self._xknx, timeout=timeout)
+            scan_programming_mode_devices(self._connected_xknx, timeout=timeout)
         )
         if future is not None:
             future.add_done_callback(self._log_progmode_scan_result)
@@ -473,7 +493,9 @@ class ConnectionService:
             serial=serial.hex(),
         )
         return self.run_async(
-            nm_individual_address_serial_number_write(self._xknx, serial, address)
+            nm_individual_address_serial_number_write(
+                self._connected_xknx, serial, address
+            )
         )
 
     def assign_individual_address(self, address: str) -> Future[Any] | None:
@@ -486,7 +508,7 @@ class ConnectionService:
         # device running and in programming mode.
         from xknxeditor.download.commissioning import program_individual_address
 
-        return self.run_async(program_individual_address(self._xknx, address))
+        return self.run_async(program_individual_address(self._connected_xknx, address))
 
     def assign_individual_address_for_device(
         self, device: Device
@@ -518,7 +540,9 @@ class ConnectionService:
                 self._send_secured(device.individual_address, Restart(), security)
             )
         else:
-            future = self.run_async(dm_restart(self._xknx, device.individual_address))
+            future = self.run_async(
+                dm_restart(self._connected_xknx, device.individual_address)
+            )
         if future is not None:
             future.add_done_callback(
                 functools.partial(
@@ -615,14 +639,14 @@ class ConnectionService:
         # normally fails - suppress it so a successful reset is not reported as an error. A failure
         # of the send itself still propagates (real error).
         target = IndividualAddress(address)
-        conn = await self._xknx.management.connect(target)
+        conn = await self._connected_xknx.management.connect(target)
         try:
             await conn.send_data(
                 RestartMasterReset(erase_code=erase_code), wait_for_ack=False
             )
         finally:
             with contextlib.suppress(Exception):
-                await self._xknx.management.disconnect(target)
+                await self._connected_xknx.management.disconnect(target)
 
     def _log_reset_result(
         self, future: Future[Any], address: str | None = None
@@ -821,7 +845,7 @@ class ConnectionService:
         )
         future = self.run_async(
             download_device(
-                self._xknx,
+                self._connected_xknx,
                 device,
                 scope,
                 group_communication,
@@ -836,6 +860,7 @@ class ConnectionService:
                 disable_security=disable_security and security is not None,
                 routing_blocking=routing_blocking if security is not None else None,
                 memory_service_count=seed_cap,
+                interface_max_apdu_length=self.interface_max_apdu_length,
             )
         )
         if future is not None:
@@ -914,7 +939,7 @@ class ConnectionService:
         )
         future = self.run_async(
             download_individual_address(
-                self._xknx,
+                self._connected_xknx,
                 device.individual_address,
                 current_address=current_address,
                 security=security,
@@ -1021,14 +1046,20 @@ class ConnectionService:
                 # recovery step explicit. The wrapper alone would hide the root
                 # cause, which is what the user needs to see.
                 cause = exc.__cause__ or exc
-                self._log.error("Programming failed", error=str(cause))
+                self._log.error(
+                    "Programming failed",
+                    error=str(cause),
+                    traceback=_exc_traceback(exc),
+                )
                 self._log.error(
                     "The device may now be in an inconsistent, partially loaded "
                     "state. Re-run programming (full download) once the cause above "
                     "is resolved to restore a working state."
                 )
             else:
-                self._log.error("Programming failed", error=str(exc))
+                self._log.error(
+                    "Programming failed", error=str(exc), traceback=_exc_traceback(exc)
+                )
                 if isinstance(exc, ManagementConnectionError):
                     # A full download of a virgin device first writes its address to the single
                     # device in programming mode; nothing answering here usually means the device
@@ -1089,13 +1120,14 @@ class ConnectionService:
         )
         future = self.run_async(
             eval_device(
-                self._xknx,
+                self._connected_xknx,
                 device,
                 scope,
                 group_communication,
                 self.master,
                 security=security,
                 ip_config=ip_config,
+                interface_max_apdu_length=self.interface_max_apdu_length,
             )
         )
         if future is not None:
@@ -1116,7 +1148,12 @@ class ConnectionService:
             return
         exc = future.exception()
         if exc is not None:
-            self._log.error("Evaluation failed", address=address, error=str(exc))
+            self._log.error(
+                "Evaluation failed",
+                address=address,
+                error=str(exc),
+                traceback=_exc_traceback(exc),
+            )
             if isinstance(exc, ManagementConnectionError):
                 # A dry run still reads the live device over a point-to-point connection.
                 # No ACK means nothing answered at that individual address on the bus.
@@ -1159,7 +1196,7 @@ class ConnectionService:
         self._log.info("Reading device info", device=device.name)
         future = self.run_async(
             read_device_info(
-                self._xknx,
+                self._connected_xknx,
                 device.individual_address,
                 resolve_application,
                 group_communication=group_communication,
@@ -1223,7 +1260,7 @@ class ConnectionService:
         )
         future = self.run_async(
             run_dali_operation(
-                self._xknx,
+                self._connected_xknx,
                 device.individual_address,
                 security,
                 channel,
@@ -1257,4 +1294,30 @@ class ConnectionService:
         if self._loop is None:
             coro.close()
             return None
-        return asyncio.run_coroutine_threadsafe(coro, self._loop)
+        # The task the coroutine runs in, for cancel_operation.
+        started: list[asyncio.Task[Any]] = []
+
+        async def tracked() -> Any:
+            task = asyncio.current_task()
+            if task is not None:
+                started.append(task)
+            return await coro
+
+        future = asyncio.run_coroutine_threadsafe(tracked(), self._loop)
+        self._operation_tasks[future] = started
+        future.add_done_callback(self._forget_operation_task)
+        return future
+
+    def _forget_operation_task(self, future: Future[Any]) -> None:
+        self._operation_tasks.pop(future, None)
+
+    def cancel_operation(self, future: Future[Any]) -> None:
+        """Stop the operation behind ``future`` (from ``run_async``) at its next await. Its task
+        is canceled on the loop rather than the future itself: the future ends only once the
+        operation has unwound and closed its connection, and its done callbacks free the bus
+        only then."""
+        started = self._operation_tasks.get(future)
+        if started and self._loop is not None:
+            self._loop.call_soon_threadsafe(started[0].cancel)
+        else:
+            future.cancel()

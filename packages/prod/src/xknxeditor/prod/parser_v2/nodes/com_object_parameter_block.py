@@ -80,5 +80,6 @@ class ComObjectParameterBlockNode(DynamicNode):
                 ),
                 cell=self._elem.cell,
                 icon=self._elem.icon,
+                param_ref_id=self._elem.param_ref_id,
             )
         ]

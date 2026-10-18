@@ -23,7 +23,8 @@ from xknxeditor.download.image import build_image
 from xknxeditor.download.scope import DownloadScope
 
 if TYPE_CHECKING:
-    from collections.abc import AbstractSet, Awaitable, Callable, Mapping
+    from collections.abc import Awaitable, Callable, Mapping
+    from collections.abc import Set as AbstractSet
 
     from xknx import XKNX
 
@@ -131,6 +132,7 @@ async def read_device_overview(xknx: XKNX, address: str) -> DeviceOverview:
 
     from xknxeditor.download import DeviceProgrammer
     from xknxeditor.download.errors import DownloadError
+    from xknxeditor.download.session import XknxBusConnection
     from xknxeditor.recover import read_application_id, read_dossier
 
     async def _prop(programmer: DeviceProgrammer, pid: int) -> bytes:
@@ -143,7 +145,7 @@ async def read_device_overview(xknx: XKNX, address: str) -> DeviceOverview:
     target = IndividualAddress(address)
     connection = await xknx.management.connect(target)
     try:
-        programmer = DeviceProgrammer(connection)
+        programmer = DeviceProgrammer(XknxBusConnection(connection))
         mask = await programmer.read_device_descriptor()
         app = await read_application_id(programmer)
         dossier = await read_dossier(programmer)
@@ -196,7 +198,10 @@ async def scan_programming_mode_devices(
     address), then reads each one's :class:`DeviceOverview` over a point-to-point connection. A
     device that answers the broadcast but fails the follow-up read is still returned, with its
     ``error`` set, so the user sees it was present."""
-    from xknx.management.procedures import nm_individual_address_read
+    # Imported from the package, where tests replace it.
+    from xknx.management.procedures import (
+        nm_individual_address_read,  # pyright: ignore[reportPrivateImportUsage]
+    )
 
     addresses = await nm_individual_address_read(xknx, timeout=timeout)
     seen: set[str] = set()
@@ -352,6 +357,10 @@ def classify_preflight(
     driven_bits: Mapping[int, int],
 ) -> PreflightClassification:
     """Split a pre-flight report's changed bytes into config / default / runtime totals."""
+    # Addresses the device was observed rewriting during the preview are device-managed
+    # too, not just the statically known access-"None" parameters.
+    if report.device_written:
+        runtime_addresses = set(runtime_addresses) | report.device_written
     config = default = runtime = config_locations = 0
     for segment in report.changed_segments:
         c, d, r = preflight_segment_counts(segment, runtime_addresses, driven_bits)
@@ -373,6 +382,7 @@ async def eval_device(
     master: MasterData | None = None,
     security: DeviceSecurity | None = None,
     ip_config: IpDeviceConfig | None = None,
+    interface_max_apdu_length: int | None = None,
 ) -> PreflightReport:
     """Dry run: report what programming ``device`` would change, writing nothing.
 
@@ -380,6 +390,7 @@ async def eval_device(
     an ``UNLOAD`` scope and for applications with a default/merged procedure style.
     ``security`` (KNX Data Secure tool key) secures the point-to-point reads when the
     device is commissioned secure; ``None`` reads in the clear.
+    ``interface_max_apdu_length`` (the connected interface's maximum) limits the frames.
     """
     return await preflight(
         xknx,
@@ -390,6 +401,7 @@ async def eval_device(
         scope=scope,
         security=security,
         ip_config=ip_config,
+        interface_max_apdu_length=interface_max_apdu_length,
     )
 
 
@@ -409,6 +421,7 @@ async def download_device(
     disable_security: bool = False,
     routing_blocking: bool | None = None,
     memory_service_count: int | None = None,
+    interface_max_apdu_length: int | None = None,
 ) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 
@@ -430,7 +443,8 @@ async def download_device(
     ``tool_key`` is the device's Tool Key for a secured download: a device still using its FDSK
     gets it written (secure commissioning); see :func:`xknxeditor.download.download`.
     ``disable_security`` switches a device whose secure commissioning was deactivated to plain
-    communication.
+    communication. ``interface_max_apdu_length`` (the connected interface's maximum)
+    limits the frames.
     """
     return await download(
         xknx,
@@ -450,4 +464,5 @@ async def download_device(
         confirm_full_download=confirm_full_download,
         ip_config=ip_config,
         memory_service_count=memory_service_count,
+        interface_max_apdu_length=interface_max_apdu_length,
     )

@@ -247,6 +247,81 @@ async def test_delete_product(tmp_path: Path) -> None:
 
 
 @pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_additional_address_tools(tmp_path: Path) -> None:
+    """Additional individual addresses are assigned, set and read through the project tools."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        device = await _data(client, "project_add_device", product_ref_id=ref)
+        node_id = device["node_id"]
+        line = device["individual_address"].rsplit(".", 1)[0]
+        info = await _data(client, "project_get_device", node_id=node_id)
+        assert info["additional_addresses"] == []
+
+        assigned = await _data(
+            client, "project_assign_additional_addresses", node_id=node_id, count=2
+        )
+        assert [e["address"] for e in assigned["additional_addresses"]] == [
+            f"{line}.255",
+            f"{line}.254",
+        ]
+        changed = await _data(
+            client,
+            "project_set_additional_address",
+            node_id=node_id,
+            index=2,
+            address=f"{line}.200",
+            name="Tunnel 2",
+        )
+        assert changed["additional_addresses"][1] == {
+            "index": 2,
+            "address": f"{line}.200",
+            "name": "Tunnel 2",
+            "description": "",
+        }
+        cleared = await _data(
+            client,
+            "project_set_additional_address",
+            node_id=node_id,
+            index=1,
+            address=None,
+        )
+        assert cleared["additional_addresses"][0]["address"] is None
+        info = await _data(client, "project_get_device", node_id=node_id)
+        assert [e["address"] for e in info["additional_addresses"]] == [
+            None,
+            f"{line}.200",
+        ]
+        with pytest.raises(Exception, match="already used in this line"):
+            await client.call_tool(
+                "project_set_additional_address",
+                {
+                    "node_id": node_id,
+                    "index": 1,
+                    "address": device["individual_address"],
+                },
+            )
+        with pytest.raises(Exception, match="device number from 1 to 255"):
+            await client.call_tool(
+                "project_set_additional_address",
+                {"node_id": node_id, "index": 1, "address": "0"},
+            )
+        with pytest.raises(Exception, match="not provide enough addresses"):
+            await client.call_tool(
+                "project_assign_additional_addresses",
+                {"node_id": node_id, "count": 255},
+            )
+        # Undo of the clear brings the first address back.
+        await _data(client, "project_undo")
+        info = await _data(client, "project_get_device", node_id=node_id)
+        assert info["additional_addresses"][0]["address"] == f"{line}.255"
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
 async def test_import_knxprod_bytes(tmp_path: Path) -> None:
     """A .knxprod imports inline as base64 (remote client), then is readable via catalog tools."""
     import base64 as _b64
@@ -706,3 +781,145 @@ async def test_programming_tools_record_the_download(
         (node_id, "full", b"\x00\xfa\x01\x02\x03\x04", None),
         (node_id, "ia"),
     ]
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_programming_runs_in_the_operations_queue(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from concurrent.futures import Future
+
+    from editor_gui.plugins.project.program_queue import (
+        ORIGIN_MCP,
+        OperationState,
+        QueueItem,
+    )
+
+    ctx = _build_ctx(tmp_path)
+    connection = ctx.api.connection
+    monkeypatch.setattr(ConnectionService, "xknx", property(lambda self: object()))
+    direct: list[str] = []
+
+    def program_device(*args: object, **kwargs: object) -> None:
+        direct.append("program")
+
+    def assign_individual_address(device: object) -> None:
+        direct.append("ia")
+
+    monkeypatch.setattr(connection, "program_device", program_device)
+    monkeypatch.setattr(
+        connection, "assign_individual_address_for_device", assign_individual_address
+    )
+    queued: list[QueueItem] = []
+    outcome: dict[str, Any] = {"state": OperationState.FINISHED, "message": None}
+
+    def queue_program(
+        node_id: int, scope: Any, *, origin: str, **options: Any
+    ) -> QueueItem:
+        item = QueueItem(
+            node_id=node_id,
+            address="1.1.5",
+            name="D",
+            scope=scope,
+            origin=origin,
+            ended=Future(),
+            **options,
+        )
+        queued.append(item)
+        if outcome["state"] is not None:
+            item.state = outcome["state"]
+            item.message = outcome["message"]
+            assert item.ended is not None
+            item.ended.set_result(item)
+        return item
+
+    canceled: list[QueueItem] = []
+    ctx.api.queue_program = queue_program
+    ctx.api.cancel_operation = canceled.append
+    async with Client(build_server(ctx)) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product = (await _data(client, "catalog_list_products"))["items"][0]
+        node_id = (
+            await _data(
+                client, "project_add_device", product_ref_id=product["product_ref_id"]
+            )
+        )["node_id"]
+        await _data(
+            client, "project_set_individual_address", node_id=node_id, address="1.1.5"
+        )
+        programmed = await _data(
+            client, "connection_program_device", node_id=node_id, scope="PARAMETERS"
+        )
+        assert programmed == {"status": "programmed", "node_id": node_id}
+        assigned = await _data(
+            client, "connection_assign_individual_address", node_id=node_id
+        )
+        assert assigned["status"] == "assigned"
+        outcome.update(state=OperationState.CANCELED, message="Cancelled by user.")
+        with pytest.raises(Exception, match="Cancelled by user"):
+            await client.call_tool("connection_program_device", {"node_id": node_id})
+        outcome.update(state=None)  # never ends: the tool gives up and cancels it
+        with pytest.raises(Exception, match="did not finish"):
+            await client.call_tool(
+                "connection_program_device", {"node_id": node_id, "timeout": 0.2}
+            )
+    assert direct == []
+    assert [(i.scope.name if i.scope else None, i.origin) for i in queued] == [
+        ("PARAMETERS", ORIGIN_MCP),
+        ("INDIVIDUAL_ADDRESS", ORIGIN_MCP),
+        ("FULL", ORIGIN_MCP),
+        ("FULL", ORIGIN_MCP),
+    ]
+    assert canceled == [queued[-1]]
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_parameters_of_a_plugin_dialog_device_cannot_be_changed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A device whose parameters the manufacturer's plugin dialog sets refuses parameter
+    changes, alone and in a batch."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        products = await _data(client, "catalog_list_products")
+        product_ref = products["items"][0]["product_ref_id"]
+        node_id = (
+            await _data(client, "project_add_device", product_ref_id=product_ref)
+        )["node_id"]
+        params = (await _data(client, "project_list_parameters", node_id=node_id))[
+            "items"
+        ]
+        assert params
+        ref_id = params[0]["ref_id"]
+
+        for module in ("project", "batch"):
+            monkeypatch.setattr(
+                f"editor_gui.plugins.mcp.tools.{module}.parameters_in_plugin",
+                lambda _device: True,
+            )
+        result = await client.call_tool(
+            "project_set_parameter",
+            {"node_id": node_id, "parameter_ref_id": ref_id, "value": "0"},
+            raise_on_error=False,
+        )
+        assert result.is_error
+        assert "plugin dialog" in str(result.content[0])
+        batch = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "set_parameter",
+                    "params": {
+                        "node_id": node_id,
+                        "parameter_ref_id": ref_id,
+                        "value": "0",
+                    },
+                }
+            ],
+        )
+        assert batch["applied"] is False
+        assert "plugin dialog" in str(batch)

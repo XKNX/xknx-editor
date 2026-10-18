@@ -6,14 +6,24 @@ from collections.abc import Mapping
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import LdCtrlAbsSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_base_t import LdCtrlBase
 from xknxeditor.namespaces.intermediate.ld_ctrl_load_completed_t import (
     LdCtrlLoadCompleted,
 )
+from xknxeditor.namespaces.intermediate.ld_ctrl_load_image_rel_mem_t import (
+    LdCtrlLoadImageRelMem,
+)
 from xknxeditor.namespaces.intermediate.ld_ctrl_load_t import LdCtrlLoad
+from xknxeditor.namespaces.intermediate.ld_ctrl_max_length_t import LdCtrlMaxLength
 from xknxeditor.namespaces.intermediate.ld_ctrl_rel_segment_t import LdCtrlRelSegment
+from xknxeditor.namespaces.intermediate.ld_ctrl_task_ctrl1_t import LdCtrlTaskCtrl1
+from xknxeditor.namespaces.intermediate.ld_ctrl_task_ctrl2_t import LdCtrlTaskCtrl2
+from xknxeditor.namespaces.intermediate.ld_ctrl_task_ptr_t import LdCtrlTaskPtr
+from xknxeditor.namespaces.intermediate.ld_ctrl_task_segment_t import LdCtrlTaskSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_unload_t import LdCtrlUnload
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_prop_t import LdCtrlWriteProp
+from xknxeditor.namespaces.intermediate.ld_ctrl_write_rel_mem_t import LdCtrlWriteRelMem
 
 from .errors import UnsupportedProcedureError
 
@@ -24,6 +34,22 @@ if TYPE_CHECKING:
     from xknxeditor.namespaces.intermediate.master_data_t import MasterData
 
 GROUP_COMMUNICATION_OBJECTS = frozenset({1, 2, 9})
+# Load events a load state machine accepts only while loading: they run where the Load of their
+# loadable part runs, or the device answers them with the error state.
+_LOADING_EVENTS = (
+    LdCtrlLoad,
+    LdCtrlLoadCompleted,
+    LdCtrlRelSegment,
+    LdCtrlAbsSegment,
+    LdCtrlTaskSegment,
+    LdCtrlTaskPtr,
+    LdCtrlTaskCtrl1,
+    LdCtrlTaskCtrl2,
+    LdCtrlMaxLength,
+)
+# Writes into a loadable part's relative memory: a group communication table's belong to its
+# download.
+_RELATIVE_WRITES = (LdCtrlWriteRelMem, LdCtrlLoadImageRelMem)
 _DEVICE_OBJECT = 0
 _ROUTER_OBJECT = 6
 
@@ -83,8 +109,10 @@ def mask_object_types(
 def target_object_type(control: object, object_types: Mapping[int, int]) -> int | None:
     """Resolve classification only; the original control still chooses the wire service.
 
-    An indexed target with missing metadata is unsafe to classify and fails closed.
-    The device object at index zero is the only fixed identity used without metadata.
+    Returns ``None`` for an application object (an index absent from a populated mask
+    map) so the scope rules treat it as non-system and default to including it. With
+    no mask metadata at all (empty map) an indexed target fails closed. The device
+    object at index zero is the only fixed identity used without metadata.
     """
     if type(control).__name__ == "LdCtrlClearLcfilterTable":
         return _ROUTER_OBJECT
@@ -100,6 +128,14 @@ def target_object_type(control: object, object_types: Mapping[int, int]) -> int 
     if index == 0:
         return _DEVICE_OBJECT
     if index not in object_types:
+        # A populated mask map lists every system interface object, so an index that
+        # is absent is an application object (index at or above the mask's first
+        # application object). Classify it as non-system (None): the scope rules then
+        # default to including it. Only an
+        # empty map (no mask metadata at all) is genuinely unclassifiable and fails
+        # closed, since a missing system object then cannot be told apart.
+        if object_types:
+            return None
         raise UnsupportedProcedureError(
             f"cannot resolve interface object index {index} to a type for "
             f"{type(control).__name__}; mask InterfaceObjects metadata is required"
@@ -126,16 +162,8 @@ def control_in_scope(
         return True
     if isinstance(control, LdCtrlBase) and control.applies_to.value != "auto":
         return True
-    # see .references/ets_map.md
     if not isinstance(
-        control,
-        (
-            LdCtrlUnload,
-            LdCtrlLoad,
-            LdCtrlLoadCompleted,
-            LdCtrlRelSegment,
-            LdCtrlWriteProp,
-        ),
+        control, (LdCtrlUnload, LdCtrlWriteProp, *_LOADING_EVENTS, *_RELATIVE_WRITES)
     ):
         return True
     target = target_object_type(control, object_types or {})
@@ -151,13 +179,15 @@ def control_in_scope(
         if target in (1, 2):
             return group
         return target not in (3, 4, 9)
-    if isinstance(control, (LdCtrlLoad, LdCtrlLoadCompleted, LdCtrlRelSegment)):
+    if isinstance(control, _LOADING_EVENTS):
         if target in GROUP_COMMUNICATION_OBJECTS:
             return group
         if target == 4:
             return has_application_program2 and (
                 parameters or isinstance(control, LdCtrlRelSegment)
             )
+    if isinstance(control, _RELATIVE_WRITES) and target in GROUP_COMMUNICATION_OBJECTS:
+        return group
     if isinstance(control, LdCtrlWriteProp) and (
         (target in (1, 2) and control.prop_id == 23)
         or (target == 9 and control.prop_id in (51, 52))

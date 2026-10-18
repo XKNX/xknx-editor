@@ -20,6 +20,15 @@ class MemoryWriteNotAcknowledged(DownloadError):
     """
 
 
+class MemoryReadNotAnswered(DownloadError):
+    """A memory read that needs a long frame received no response.
+
+    The device may answer it, yet the interface or a coupler on the way drops a frame that
+    long. The download and its preflight retry with a lowered memory-service cap, so every
+    response fits a standard frame, when this is raised.
+    """
+
+
 class PartialDownloadError(DownloadError):
     """A download failed after it had begun changing the device's load state.
 
@@ -40,7 +49,7 @@ class CompareMismatch(VerificationError):
     """Valid response data differs from the comparison or verification image.
 
     Unlike malformed responses, this failure can match a control's
-    ``OnError(Cause=CompareMismatch)`` handler. See .references/ets_map.md.
+    ``OnError(Cause=CompareMismatch)`` handler.
     """
 
     error_code = 0xC0042B09
@@ -103,7 +112,7 @@ _PROPERTY_NAMES = {11: "serial number", 12: "manufacturer ID", 78: "hardware typ
 # Error reported for a rejected write to a protected or non-existing resource.
 # A device answers such a write with a
 # 0-element response; a Load Procedure can map this error to success with an
-# LdCtrlMapError bracket. See .references/ets_map.md for provenance.
+# LdCtrlMapError bracket.
 RESOURCE_WRITE_PROTECTED_ERROR = 3221498632
 RESOURCE_READ_PROTECTED_ERROR = 0xC0042B07
 

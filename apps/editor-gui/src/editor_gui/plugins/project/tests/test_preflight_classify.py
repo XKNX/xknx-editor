@@ -92,3 +92,18 @@ def test_classify_report_totals_and_locations() -> None:
     assert classes.runtime_bytes == 0
     assert classes.config_locations == 2  # config segment + property
     assert classes.actionable is True
+
+
+def test_device_written_address_counts_as_runtime() -> None:
+    # The 0x45c0 case: a byte the firmware rewrites at runtime (observed unstable during
+    # the preview) is device-managed even though a driven bit differs -> it must not be
+    # counted as config, so config_bytes==0 honestly means "in sync".
+    report = PreflightReport(
+        segments=(SegmentDiff(address=0x45C0, current=b"\x00", planned=b"\x40"),),
+        properties=(),
+        device_written=frozenset({0x45C0}),
+    )
+    classes = classify_preflight(report, frozenset(), {0x45C0: 0x40})
+    assert classes.config_bytes == 0
+    assert classes.runtime_bytes == 1
+    assert classes.actionable is False

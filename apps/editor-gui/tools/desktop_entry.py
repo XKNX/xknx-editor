@@ -14,16 +14,12 @@ if __name__ == "__main__":
 
 # A frozen windowed app (PyInstaller console=False) has no console, so sys.stdout/sys.stderr are
 # None. Any print() or library that writes to them (e.g. structlog's PrintLogger) then crashes at
-# startup. Redirect both to a log file before anything else runs; it also aids diagnosing the build.
+# startup. Redirect both to this run's log file before anything else runs; it also aids diagnosing
+# the build. The log service writes to the same file.
 if sys.stdout is None or sys.stderr is None:
-    import tempfile
+    from editor_gui.log_file import session_log
 
-    _log = open(  # noqa: SIM115 - kept open for the process lifetime by design
-        os.path.join(tempfile.gettempdir(), "xknx-editor.log"),
-        "a",
-        encoding="utf-8",
-        buffering=1,
-    )
+    _log = session_log()
     if sys.stdout is None:
         sys.stdout = _log
     if sys.stderr is None:

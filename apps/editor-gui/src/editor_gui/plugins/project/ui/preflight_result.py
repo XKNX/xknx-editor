@@ -95,7 +95,9 @@ class PreflightResultWindow:
                 scope,
                 report,
                 None,
-                frozenset(runtime_addresses),
+                # Addresses observed rewritten by the device count as device-managed too,
+                # so the per-row view agrees with the classified totals.
+                frozenset(runtime_addresses) | report.device_written,
                 dict(driven_bits or {}),
             )
 

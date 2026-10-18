@@ -467,7 +467,9 @@ class RecoverService:
             self.fetch_status = ""
             self._fetch_thread = None
 
-    def _fetch_manufacturer(self, manufacturer_id: str, error_type: type) -> None:
+    def _fetch_manufacturer(
+        self, manufacturer_id: str, error_type: type[Exception]
+    ) -> None:
         # The "M-XXXX" number is hex (M-0083 = 0x0083 = 131), which is the id the
         # online catalog expects; a decimal parse (83) is rejected as Bad Request.
         try:
@@ -600,6 +602,9 @@ class RecoverService:
                 # an inactive/conditional parameter is stored (and ignored by the
                 # evaluator) rather than raising mid-device via a live set.
                 parameters=list(recovered.parameters.values.items()),
+                # The addresses the device uses are not read from the bus: picking free ones
+                # could take the numbers of devices recovered later.
+                with_additional_addresses=False,
             )
             if device_id is None:
                 return False

@@ -102,3 +102,43 @@ def test_filter_keeps_matching_pages_and_their_parents() -> None:
     assert not pm.selectable
     assert [p.label for p in pm.children] == ["Inputs"]
     assert pm.children[0].selectable
+
+
+def test_a_channel_whose_pages_sit_in_an_inline_list_opens_its_first_page() -> None:
+    channel = UiTab(
+        id="openknx",
+        name="OpenKNX",
+        children=(
+            _block(
+                "PB-2",
+                "",
+                _block("PB-3", "Allgemein", _param("P-1", "Startup delay")),
+                _block("PB-4", "Erweitert", _param("P-2", "Heartbeat")),
+                inline=True,
+                layout=ParameterBlockLayout.LIST,
+            ),
+        ),
+    )
+    (page,) = build_pages([channel], "d")
+    assert not page.selectable
+    assert [c.label for c in page.children] == ["Allgemein", "Erweitert"]
+
+
+def test_an_inline_block_with_parameters_keeps_its_channel_selectable() -> None:
+    channel = UiTab(
+        id="ch",
+        name="Channel",
+        children=(
+            _block(
+                "PB-1",
+                "",
+                _param("P-1", "Mode"),
+                _block("PB-2", "Details", _param("P-2", "Delay")),
+                inline=True,
+                layout=ParameterBlockLayout.LIST,
+            ),
+        ),
+    )
+    (page,) = build_pages([channel], "d")
+    assert page.selectable
+    assert [c.label for c in page.children] == ["Details"]

@@ -12,7 +12,9 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
+from editor_gui.plugins.mcp.tools.project import PLUGIN_PARAMETERS_ERROR
 from editor_gui.plugins.project.service import DeviceProduct
 
 if TYPE_CHECKING:
@@ -30,6 +32,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         device = project.find_device_by_node_id(node_id)
         if device is None:
             raise ValueError(f"no device with node_id {node_id}")
+        return device
+
+    def _parameters_device(node_id: Any) -> Any:
+        device = _device(node_id)
+        if parameters_in_plugin(device):
+            raise ValueError(PLUGIN_PARAMETERS_ERROR.format(node_id=node_id))
         return device
 
     def _resolve_co_db_id(node_id: Any, ref_id: str) -> int:
@@ -65,6 +73,36 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
         return {"node_id": node_id}
 
+    def _op_set_individual_address(p: dict[str, Any]) -> dict[str, Any]:
+        # set_device_individual_address returns False on reject; verify the device actually
+        # carries the new address (mirrors the standalone project_set_individual_address) so a
+        # rejected address is reported as an error, not a false "ok".
+        node_id = p["node_id"]
+        project.set_device_individual_address(
+            node_id, _device(node_id).individual_address, p["address"]
+        )
+        if _device(node_id).individual_address != p["address"]:
+            raise ValueError(
+                f"could not set individual address {p['address']!r} (invalid or already in use)"
+            )
+        return {"node_id": node_id, "address": p["address"]}
+
+    def _op_link_com_object(p: dict[str, Any]) -> dict[str, Any]:
+        # link_com_object_to_ga returns None when the link is rejected (unknown GA, security
+        # rules); surface that as an error instead of reporting ok with link_id=None.
+        link_id = project.link_com_object_to_ga(
+            _resolve_co_db_id(p["node_id"], p["com_object_ref_id"]),
+            p["group_address_id"],
+            p.get("is_sending", False),
+        )
+        if link_id is None:
+            raise ValueError(
+                f"could not link com-object to group address {p['group_address_id']} "
+                "(check the group address id exists; a Security-On group address only takes "
+                "securely commissioned devices)"
+            )
+        return {"link_id": link_id}
+
     # op name -> (required params, handler). Handlers raise ValueError on bad input.
     handlers: dict[
         str, tuple[tuple[str, ...], Callable[[dict[str, Any]], dict[str, Any]]]
@@ -79,20 +117,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 {"node_id": p["node_id"]},
             )[1],
         ),
-        "set_individual_address": (
-            ("node_id", "address"),
-            lambda p: (
-                project.set_device_individual_address(
-                    p["node_id"], _device(p["node_id"]).individual_address, p["address"]
-                ),
-                {"node_id": p["node_id"], "address": p["address"]},
-            )[1],
-        ),
+        "set_individual_address": (("node_id", "address"), _op_set_individual_address),
         "set_parameter": (
             ("node_id", "parameter_ref_id", "value"),
             lambda p: (
                 project.set_param(
-                    _device(p["node_id"]), p["parameter_ref_id"], p["value"]
+                    _parameters_device(p["node_id"]), p["parameter_ref_id"], p["value"]
                 ),
                 {"node_id": p["node_id"], "parameter_ref_id": p["parameter_ref_id"]},
             )[1],
@@ -137,13 +167,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ),
         "link_com_object": (
             ("node_id", "com_object_ref_id", "group_address_id"),
-            lambda p: {
-                "link_id": project.link_com_object_to_ga(
-                    _resolve_co_db_id(p["node_id"], p["com_object_ref_id"]),
-                    p["group_address_id"],
-                    p.get("is_sending", False),
-                )
-            },
+            _op_link_com_object,
         ),
         "unlink_com_object": (
             ("assignment_id",),
@@ -170,7 +194,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     def _validate(op: dict[str, Any], index: int) -> dict[str, Any]:
         name = op.get("op")
-        params = op.get("params", {}) or {}
+        params: dict[str, Any] = op.get("params", {}) or {}
         if name not in handlers:
             return {
                 "index": index,

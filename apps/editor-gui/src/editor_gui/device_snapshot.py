@@ -17,7 +17,7 @@ import hashlib
 import json
 from functools import cache
 from pathlib import Path
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from editor_gui.device import ComObject, ComObjectFlags
 from editor_gui.dpt import DPT
@@ -178,8 +178,11 @@ def encode_snapshot(
 def decode_snapshot(data: str) -> DeviceSnapshot | None:
     """The snapshot stored as ``data``; ``None`` when it is not one this editor can use."""
     try:
-        content = json.loads(data)
-        if not isinstance(content, dict) or content.get("format") != SNAPSHOT_FORMAT:
+        decoded: object = json.loads(data)
+        if not isinstance(decoded, dict):
+            return None
+        content = cast(dict[str, Any], decoded)
+        if content.get("format") != SNAPSHOT_FORMAT:
             return None
         name, version, manufacturer_id = content["application"]
         return DeviceSnapshot(

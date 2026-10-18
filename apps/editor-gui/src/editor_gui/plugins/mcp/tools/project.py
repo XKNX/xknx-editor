@@ -26,8 +26,15 @@ from editor_gui.device import (
 from editor_gui.device import (
     com_object_display_name,
 )
+from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 from editor_gui.plugins.project.service import DeviceProduct
+
+# A device whose parameters only the manufacturer's plugin dialog sets.
+PLUGIN_PARAMETERS_ERROR = (
+    "device {node_id} sets its parameters in the manufacturer's plugin dialog, which is "
+    "not available here; its parameters cannot be changed"
+)
 
 if TYPE_CHECKING:
     from fastmcp import FastMCP
@@ -69,12 +76,28 @@ def _com_object_dict(co: ComObject) -> dict[str, Any]:
     }
 
 
+def _prune(d: dict[str, Any]) -> dict[str, Any]:
+    """Drop keys whose value is None, an empty string, or an empty list/tuple, to keep list
+    payloads compact. A falsy-but-meaningful value (0, False) is kept. Used for the spaces tree,
+    which has many empty optional fields; the device/group-address list dicts keep a fixed shape."""
+    return {k: v for k, v in d.items() if v not in (None, "", [], ())}
+
+
 def _device_dict(device: Device) -> dict[str, Any]:
     return {
         "node_id": device.node_id,
         "name": device.name,
         "individual_address": device.individual_address or None,
         "description": device.description,
+    }
+
+
+def _additional_address_dict(entry: Any) -> dict[str, Any]:
+    return {
+        "index": entry.index,
+        "address": entry.address,
+        "name": entry.name,
+        "description": entry.description,
     }
 
 
@@ -90,60 +113,72 @@ def _ga_dict(g: Any) -> dict[str, Any]:
 
 
 def _space_device_dict(d: Any) -> dict[str, Any]:
-    return {
-        "node_id": d.id,
-        "name": d.name,
-        "individual_address": d.individual_address or None,
-        "description": d.description,
-        "product_name": d.product_name,
-        "manufacturer_name": d.manufacturer_name,
-    }
+    return _prune(
+        {
+            "node_id": d.id,
+            "name": d.name,
+            "individual_address": d.individual_address or None,
+            "description": d.description,
+            "product_name": d.product_name,
+            "manufacturer_name": d.manufacturer_name,
+        }
+    )
 
 
 def _function_dict(f: Any) -> dict[str, Any]:
-    return {
-        "id": f.id,
-        "name": f.name,
-        "function_type": f.function_type,
-        "usage_text": f.usage_text,
-        "group_addresses": [
-            {
-                "id": g.id,
-                "group_address_id": g.group_address_id,
-                "text": g.text,
-                "role": g.role,
-            }
-            for g in f.group_addresses
-        ],
-    }
+    return _prune(
+        {
+            "id": f.id,
+            "name": f.name,
+            "function_type": f.function_type,
+            "usage_text": f.usage_text,
+            "group_addresses": [
+                {
+                    "id": g.id,
+                    "group_address_id": g.group_address_id,
+                    "text": g.text,
+                    "role": g.role,
+                }
+                for g in f.group_addresses
+            ],
+        }
+    )
 
 
 def _space_dict(s: Any) -> dict[str, Any]:
-    """Recursively serialize a building/location tree node (space -> children/devices/functions)."""
-    return {
-        "id": s.id,
-        "name": s.name,
-        "space_type": s.space_type,
-        "number": s.number,
-        "usage_text": s.usage_text,
-        "description": s.description,
-        "devices": [_space_device_dict(d) for d in s.devices],
-        "functions": [_function_dict(f) for f in s.functions],
-        "children": [_space_dict(c) for c in s.children],
-    }
+    """Recursively serialize a building/location tree node (space -> children/devices/functions).
+    Empty optional fields (number, usage_text, description) and empty device/function/children
+    lists are omitted to keep the tree compact."""
+    return _prune(
+        {
+            "id": s.id,
+            "name": s.name,
+            "space_type": s.space_type,
+            "number": s.number,
+            "usage_text": s.usage_text,
+            "description": s.description,
+            "devices": [_space_device_dict(d) for d in s.devices],
+            "functions": [_function_dict(f) for f in s.functions],
+            "children": [_space_dict(c) for c in s.children],
+        }
+    )
 
 
-def _widget_dict(widget: Any) -> dict[str, Any]:
-    """Serialize a UiParameter widget into the value constraints an LLM needs to set it correctly."""
+def _widget_dict(widget: Any, include_choices: bool = True) -> dict[str, Any]:
+    """Serialize a UiParameter widget into the value constraints an LLM needs to set it correctly.
+
+    ``include_choices=False`` (the bulk list/tree tools) drops an enum's full choice list to save
+    tokens, keeping only ``choice_count``; the per-parameter project_get_parameter returns the
+    complete ``choices``."""
     if widget is None:
         return {"type": "none"}
     name = type(widget).__name__
     if name == "EnumWidget":
+        if not include_choices:
+            return {"type": "enum", "choice_count": len(widget.choices)}
         return {
             "type": "enum",
-            "choices": [
-                {"value": c.value, "label": c.label, "id": c.id} for c in widget.choices
-            ],
+            "choices": [{"value": c.value, "label": c.label} for c in widget.choices],
         }
     if name in ("NumberWidget", "NumberSliderWidget", "ProgressBarWidget"):
         return {"type": "number", "min": widget.min, "max": widget.max}
@@ -158,22 +193,40 @@ def _widget_dict(widget: Any) -> dict[str, Any]:
     return {"type": name}
 
 
-def _parameter_dict(p: Any) -> dict[str, Any]:
-    return {
+def _enum_value_label(widget: Any, value: Any) -> str | None:
+    """Label of an enum widget's currently selected ``value``, or None for non-enums/no match."""
+    if widget is None or type(widget).__name__ != "EnumWidget":
+        return None
+    for c in widget.choices:
+        if str(c.value) == str(value):
+            return c.label
+    return None
+
+
+def _parameter_dict(p: Any, include_choices: bool = True) -> dict[str, Any]:
+    data = {
         "ref_id": p.ref_id,
         "label": p.label,
         "value": p.value,
         "default_value": p.default_value,
         "access": getattr(p.access, "name", str(p.access)),
-        "widget": _widget_dict(p.widget),
+        "widget": _widget_dict(p.widget, include_choices),
     }
+    # With the choice list omitted, keep the current value readable by naming its label.
+    if (
+        not include_choices
+        and (label := _enum_value_label(p.widget, p.value)) is not None
+    ):
+        data["value_label"] = label
+    return data
 
 
-def _ui_node(node: Any) -> dict[str, Any]:
+def _ui_node(node: Any, include_choices: bool = True) -> dict[str, Any]:
     """One node of the device UI tree as a dict, preserving group nesting (tabs/blocks -> children).
 
     Parameters carry the full _parameter_dict; groups carry their heading and children; separators are
-    dropped. Lets a caller see which parameters belong to a channel / button pair / level."""
+    dropped. Lets a caller see which parameters belong to a channel / button pair / level.
+    ``include_choices`` is threaded to the parameter serialization (the tree omits enum choice lists)."""
     from xknxeditor.prod.parser_v2.ui import (
         UiButton,
         UiParameter,
@@ -182,7 +235,7 @@ def _ui_node(node: Any) -> dict[str, Any]:
     )
 
     if isinstance(node, UiParameter):
-        return {"kind": "parameter", **_parameter_dict(node)}
+        return {"kind": "parameter", **_parameter_dict(node, include_choices)}
     if isinstance(node, UiButton):
         return {
             "kind": "button",
@@ -194,7 +247,9 @@ def _ui_node(node: Any) -> dict[str, Any]:
     if isinstance(node, (UiTab, UiParameterBlock)):
         heading = getattr(node, "text", None) or getattr(node, "name", None)
         children = [
-            d for ch in node.children if (d := _ui_node(ch)).get("kind") != "separator"
+            d
+            for ch in node.children
+            if (d := _ui_node(ch, include_choices)).get("kind") != "separator"
         ]
         return {
             "kind": "tab" if isinstance(node, UiTab) else "block",
@@ -708,8 +763,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_get_device(node_id: int) -> dict[str, Any]:
         """Read a project device using node_id from project_list_devices. Returns
         {node_id, name, individual_address, description}, plus {product_ref_id, hardware2program_ref_id,
-        order_number, hardware_name, product_name, manufacturer_name} when catalog metadata is
-        available. individual_address is null when unset."""
+        order_number, hardware_name, product_name, manufacturer_name, additional_addresses} when
+        catalog metadata is available. individual_address is null when unset. additional_addresses
+        lists the device's additional individual addresses (the tunnelling addresses of an IP
+        interface) as {index, address, name, description}; index is 1-based (the AddressIndex of a
+        tunnelling interface), address an "a.l.d" string or null for an entry without one."""
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id)
@@ -723,6 +781,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "hardware_name": info.hardware_name,
                     "product_name": info.product_name,
                     "manufacturer_name": info.manufacturer_name,
+                    "additional_addresses": [
+                        _additional_address_dict(entry)
+                        for entry in info.additional_addresses
+                    ],
                 }
             return data
 
@@ -800,15 +862,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_list_parameters(node_id: int) -> dict[str, Any]:
-        """A device's visible application parameters with current value, default, and allowed values.
+        """A device's visible application parameters with current value and default.
         Returns {items, count}; each item has ref_id, label, value, default_value, access, widget.
+        To keep the list compact, an enum ``widget`` carries only ``choice_count`` (plus
+        ``value_label`` on the item for the current value), NOT the full choice list — call
+        project_get_parameter for a single parameter's complete ``choices``.
 
-        Pass an item's ``ref_id`` to project_set_parameter as its ``parameter_ref_id`` argument, with a
-        ``value`` permitted by that item's ``widget``."""
+        Pass an item's ``ref_id`` to project_set_parameter as its ``parameter_ref_id`` argument."""
 
         def _read() -> list[dict[str, Any]]:
             device = _require_device(node_id)
-            return [_parameter_dict(p) for p in _collect_ui_parameters(device.get_ui())]
+            return [
+                _parameter_dict(p, include_choices=False)
+                for p in _collect_ui_parameters(device.get_ui())
+            ]
 
         return _items(ctx.run_locked(_read))
 
@@ -820,12 +887,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - "tab"/"block": {kind, name, children}, with children using the same node shapes.
         - "parameter": {kind, ref_id, label, value, default_value, access, widget}.
         - "button": {kind, id, text, online, read_only}; other nodes contain only kind.
-        Pass a parameter's ref_id as parameter_ref_id to project_get_parameter/project_set_parameter;
-        widget describes its allowed values. This reads project configuration."""
+        To stay compact, an enum ``widget`` here carries only ``choice_count`` (plus ``value_label``
+        for the current value), NOT the full choice list — call project_get_parameter for one
+        parameter's complete ``choices``.
+        Pass a parameter's ref_id as parameter_ref_id to project_get_parameter/project_set_parameter.
+        This reads project configuration."""
 
         def _read() -> list[dict[str, Any]]:
             device = _require_device(node_id)
-            return [_ui_node(n) for n in device.get_ui()]
+            return [_ui_node(n, include_choices=False) for n in device.get_ui()]
 
         return _items(ctx.run_locked(_read))
 
@@ -833,8 +903,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_get_parameter(node_id: int, parameter_ref_id: str) -> dict[str, Any]:
         """Read a project application parameter. Use node_id from project_list_devices and pass
         ref_id from project_list_parameters or project_parameter_tree as parameter_ref_id.
-        Returns {ref_id, label, value, default_value, access, widget}; widget describes allowed values
-        for project_set_parameter."""
+        Returns {ref_id, label, value, default_value, access, widget}; for an enum, widget includes
+        the full ``choices`` (value/label/id) — the allowed values for project_set_parameter."""
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id)
@@ -1002,8 +1072,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         application-relative ref, com-objects by object number). Returns {node_id_a, node_id_b,
         difference_count, header, parameters, com_objects}; each section is a list of rows
         {key, label, kind, a, b} where kind is added|removed|changed|same and a/b are the values on
-        each device (\"\" when the item is absent there). With only_differences=true (default) the
-        'same' rows are omitted to keep the result small."""
+        each device (\"\" when the item is absent there). Com-object rows additionally carry
+        a_links/b_links: the group addresses each device links as [{address, sending}] (sending
+        first). This lets a caller tell a structural difference (object linked on one side only, or
+        different flags/DPT) from a mere room-mapped GA difference (same structure, both linked
+        sending, only the address differs). With only_differences=true (default) the 'same' rows are
+        omitted to keep the result small."""
         from editor_gui.plugins.project.ui.device_diff import (
             diff_devices,
             snapshot_device,
@@ -1018,6 +1092,28 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 if not only_differences or r.kind != "same"
             ]
 
+        def _links(cell: Any) -> list[dict[str, Any]]:
+            links = cell.links if cell is not None else ()
+            return [{"address": addr, "sending": sending} for addr, sending in links]
+
+        def _co_rows(rows: list[Any], snap_a: Any, snap_b: Any) -> list[dict[str, Any]]:
+            out: list[dict[str, Any]] = []
+            for r in rows:
+                if only_differences and r.kind == "same":
+                    continue
+                out.append(
+                    {
+                        "key": r.key,
+                        "label": r.label,
+                        "kind": r.kind,
+                        "a": r.a,
+                        "b": r.b,
+                        "a_links": _links(snap_a.com_objects.get(r.key)),
+                        "b_links": _links(snap_b.com_objects.get(r.key)),
+                    }
+                )
+            return out
+
         def _compare() -> dict[str, Any]:
             dev_a = project.find_device_by_node_id(node_id_a)
             dev_b = project.find_device_by_node_id(node_id_b)
@@ -1026,6 +1122,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     raise ToolError(
                         f"no device with node_id {nid}; call project_list_devices for valid ids"
                     )
+            assert dev_a is not None and dev_b is not None
 
             def get_links(db_id: int) -> list[tuple[int, bool]]:
                 return [
@@ -1037,17 +1134,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 ga = project.get_group_address(ga_id)
                 return ga.address if ga is not None else ""
 
-            result = diff_devices(
-                snapshot_device(dev_a, get_links, get_address),
-                snapshot_device(dev_b, get_links, get_address),
-            )
+            snap_a = snapshot_device(dev_a, get_links, get_address)
+            snap_b = snapshot_device(dev_b, get_links, get_address)
+            result = diff_devices(snap_a, snap_b)
             return {
                 "node_id_a": node_id_a,
                 "node_id_b": node_id_b,
                 "difference_count": result.difference_count,
                 "header": _rows(result.header),
                 "parameters": _rows(result.parameters),
-                "com_objects": _rows(result.com_objects),
+                "com_objects": _co_rows(result.com_objects, snap_a, snap_b),
             }
 
         return ctx.run_locked(_compare, timeout=_SLOW)
@@ -1204,6 +1300,80 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_set)
 
     @tool
+    def project_set_additional_address(
+        node_id: int,
+        index: int,
+        address: str | None,
+        name: str | None = None,
+        description: str | None = None,
+    ) -> dict[str, Any]:
+        """Set an additional individual address of a project device (a tunnelling address of an
+        IP interface) using node_id from project_list_devices. index is 1-based (see
+        additional_addresses in project_get_device; entries up to it are created). address is an
+        "a.l.d" string in the device's own line, or a device number 1-255; null or "" clears it.
+        It must not be used by a device or another additional address of the line. name and
+        description, when given, are set too. Each change is one undo step (project_undo).
+        Returns {node_id, additional_addresses}. This does not write the bus; a full download of
+        the device writes the addresses."""
+        from xknxeditor.proj import AdditionalAddressError
+
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            _require_device(node_id)
+            try:
+                project.set_additional_address(node_id, index, address)
+                if name is not None:
+                    project.set_additional_address_name(node_id, index, name)
+                if description is not None:
+                    project.set_additional_address_description(
+                        node_id, index, description
+                    )
+            except IndexError as exc:
+                raise ToolError(f"invalid index {index}; use 1 to 255") from exc
+            except AdditionalAddressError as exc:
+                raise ToolError(str(exc)) from exc
+            return {
+                "node_id": node_id,
+                "additional_addresses": [
+                    _additional_address_dict(entry)
+                    for entry in project.additional_addresses(node_id)
+                ],
+            }
+
+        return ctx.run_locked(_set)
+
+    @tool
+    def project_assign_additional_addresses(
+        node_id: int, count: int | None = None
+    ) -> dict[str, Any]:
+        """Assign the missing additional individual addresses of a project device (the
+        tunnelling addresses of an IP interface) using node_id from project_list_devices: entries
+        are created up to count (default: as many as the device's application has) and every
+        entry without an address gets one, the highest free device numbers of the device's line
+        counting down from 255. One undo step (project_undo). Fails when the line has too few free
+        addresses. Returns {node_id, additional_addresses}, each {index, address, name,
+        description}."""
+        from xknxeditor.proj import AdditionalAddressError
+
+        require_project(ctx)
+
+        def _assign() -> dict[str, Any]:
+            device = _require_device(node_id)
+            try:
+                entries = project.assign_additional_addresses(device, count)
+            except AdditionalAddressError as exc:
+                raise ToolError(str(exc)) from exc
+            return {
+                "node_id": node_id,
+                "additional_addresses": [
+                    _additional_address_dict(entry) for entry in entries
+                ],
+            }
+
+        return ctx.run_locked(_assign)
+
+    @tool
     def project_set_serial_number(node_id: int, serial_number: str) -> dict[str, Any]:
         """Store a device's KNX serial number in the project using node_id from project_list_devices.
         serial_number takes 12 hex digits (e.g. "0083:7AA2039C"); an empty string clears it.
@@ -1283,6 +1453,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         def _set() -> dict[str, Any]:
             device = _require_device(node_id)
+            if parameters_in_plugin(device):
+                raise ToolError(PLUGIN_PARAMETERS_ERROR.format(node_id=node_id))
             if not any(
                 p.ref_id == parameter_ref_id
                 for p in _collect_ui_parameters(device.get_ui())

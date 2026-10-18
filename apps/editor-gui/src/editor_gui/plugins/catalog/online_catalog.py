@@ -22,10 +22,11 @@ import urllib.error
 import urllib.request
 import xml.etree.ElementTree as ET
 import zipfile
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import TypeGuard, cast
 
 DEFAULT_BASE_URL = "https://onlinecatalog.knx.org"
 MASTER_DATA_URL = "https://update.knx.org/data/XML/project-23/knx_master.xml"
@@ -115,7 +116,7 @@ def parse_manufacturer_ids(xml_bytes: bytes) -> list[int]:
     """Parse the ``Download/Manufacturers`` XML into a sorted list of manufacturer ids."""
     root = ET.fromstring(xml_bytes)
     ids = [
-        int(e.text)
+        int(cast(str, e.text))
         for e in root
         if _local_name(e.tag) == "unsignedShort" and (e.text or "").strip()
     ]
@@ -212,7 +213,12 @@ def _http_post(url: str, body: bytes, content_type: str = "application/json") ->
         raise OnlineCatalogError(f"{url}: {reason}") from exc
 
 
-def _ci_get(d: dict, key: str) -> object:
+def _is_dict(value: object) -> TypeGuard[dict[str, object]]:
+    """Whether a decoded JSON value is an object."""
+    return isinstance(value, dict)
+
+
+def _ci_get(d: dict[str, object], key: str) -> object:
     """Case-insensitive dict lookup (the server's JSON casing is not pinned here)."""
     for k, v in d.items():
         if k.lower() == key.lower():
@@ -227,7 +233,7 @@ def _app_version(app_ident: object) -> int | None:
     (e.g. ``[0, 131, 0, 64, 40]`` -> 40). Also accepts the string id form
     ``M-XXXX_A-NNNN-VV-...`` where ``VV`` is the version in hex. Returns None if unknown."""
     if isinstance(app_ident, list) and app_ident:
-        last = app_ident[-1]
+        last = cast(list[object], app_ident)[-1]
         return last if isinstance(last, int) else None
     if isinstance(app_ident, str):
         parts = app_ident.split("-")
@@ -268,14 +274,14 @@ def _section_paths(
     paths: dict[str, tuple[OnlineCatalogSection, ...]] = {}
 
     def walk(raw: object, above: tuple[OnlineCatalogSection, ...]) -> None:
-        if not isinstance(raw, dict):
+        if not _is_dict(raw):
             return
         section_id = _ci_get(raw, "Id")
         if not (isinstance(section_id, str) and section_id):
             return
         translations: list[tuple[str, str]] = []
-        for translation in _ci_get(raw, "Translations") or []:
-            if isinstance(translation, dict):
+        for translation in cast(Iterable[object], _ci_get(raw, "Translations") or []):
+            if _is_dict(translation):
                 language = _ci_get(translation, "Language")
                 text = _ci_get(translation, "Text")
                 if isinstance(language, str) and isinstance(text, str) and text:
@@ -287,13 +293,15 @@ def _section_paths(
             translations=tuple(translations),
         )
         path = (*above, section)
-        for entry_id in _ci_get(raw, "IndexFileEntrieIds") or []:
+        for entry_id in cast(
+            Iterable[object], _ci_get(raw, "IndexFileEntrieIds") or []
+        ):
             if isinstance(entry_id, str):
                 paths.setdefault(entry_id, path)
-        for child in _ci_get(raw, "ChildSections") or []:
+        for child in cast(Iterable[object], _ci_get(raw, "ChildSections") or []):
             walk(child, path)
 
-    for raw in _ci_get(data, "Sections") or []:
+    for raw in cast(Iterable[object], _ci_get(data, "Sections") or []):
         walk(raw, ())
     return paths
 
@@ -312,22 +320,20 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
         raise OnlineCatalogError(f"index is not valid JSON: {exc}") from exc
 
     mfr_id = 0
-    if isinstance(data, dict):
+    if _is_dict(data):
         raw_mid = _ci_get(data, "ManufacturerId")
         if isinstance(raw_mid, int):
             mfr_id = raw_mid
         elif isinstance(raw_mid, str) and raw_mid.strip().lstrip("-").isdigit():
             mfr_id = int(raw_mid)
-    mfr_name = (
-        str(_ci_get(data, "ManufacturerName") or "") if isinstance(data, dict) else ""
-    )
+    mfr_name = str(_ci_get(data, "ManufacturerName") or "") if _is_dict(data) else ""
 
-    entries = _ci_get(data, "Entries") if isinstance(data, dict) else None
-    sections = _section_paths(data) if isinstance(data, dict) else {}
+    entries = _ci_get(data, "Entries") if _is_dict(data) else None
+    sections = _section_paths(data) if _is_dict(data) else {}
     items: list[OnlineCatalogItem] = []
     if isinstance(entries, list):
-        for entry in entries:
-            if not isinstance(entry, dict):
+        for entry in cast(list[object], entries):
+            if not _is_dict(entry):
                 continue
             cid = _ci_get(entry, "Id")
             if not (isinstance(cid, str) and cid):
@@ -383,7 +389,7 @@ def _item_from_dict(d: dict[str, object]) -> OnlineCatalogItem:
         name=str(d.get("name") or ""),
         order_number=str(d.get("order") or ""),
         downloadable=bool(d.get("dl")),
-        manufacturer_id=int(d.get("mid") or 0),
+        manufacturer_id=int(cast(int | str, d.get("mid") or 0)),
         manufacturer_name=str(d.get("mname") or ""),
         application_version=ver if isinstance(ver, int) else None,
         application_program_name=str(d.get("appname") or ""),

@@ -4,7 +4,10 @@
 project structure. To make the archive self-contained (applications resolvable), the GUI — which has
 the catalog — re-extracts each used manufacturer's ``M-XXXX/`` tree (Hardware/Catalog/application
 program XMLs, baggages) and its ``M-XXXX.signature`` from the original ``.knxprod`` the device was
-imported from, and merges those archives' ``knx_master.xml`` into one. The result is passed to
+imported from, and merges those archives' ``knx_master.xml`` into one. A manufacturer whose
+products come from several ``.knxprod`` files has a ``Hardware.xml``/``Catalog.xml`` in each; those
+are merged into one, so every device's hardware and catalog entry is in the archive (the export
+re-signs the changed folder). The result is passed to
 ``export_knxproj(..., extra_files=..., master_xml=...)``.
 
 The original ``.knxprod`` files must still exist at the paths the catalog recorded; refs that can't
@@ -19,6 +22,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from xknxeditor.proj.core.manufacturer_xml import merge_manufacturer_xml
+
 if TYPE_CHECKING:
     from editor_gui.plugins.catalog.service import CatalogService
 
@@ -27,10 +32,10 @@ if TYPE_CHECKING:
 class ManufacturerBundle:
     """Result of :func:`collect_manufacturer_bundle`."""
 
-    extra_files: dict[str, bytes] = field(default_factory=dict)
+    extra_files: dict[str, bytes] = field(default_factory=dict[str, bytes])
     master_xml: bytes | None = None
-    resolved_manufacturers: set[str] = field(default_factory=set)
-    skipped_refs: set[str] = field(default_factory=set)
+    resolved_manufacturers: set[str] = field(default_factory=set[str])
+    skipped_refs: set[str] = field(default_factory=set[str])
 
 
 def collect_manufacturer_bundle(
@@ -73,9 +78,18 @@ def collect_manufacturer_bundle(
                         if name.endswith("/"):
                             continue  # zip directory entry
                         member = name == signature or name.startswith(prefix)
-                        # First archive wins on collision (same manufacturer, two sources).
-                        if member and name not in bundle.extra_files:
+                        if not member:
+                            continue
+                        if name not in bundle.extra_files:
                             bundle.extra_files[name] = zf.read(name)
+                        elif name.endswith(".xml") and name.count("/") == 1:
+                            # The same manufacturer file from another source: merge what it adds
+                            # (e.g. Hardware.xml of a product imported on its own).
+                            bundle.extra_files[name] = merge_manufacturer_xml(
+                                bundle.extra_files[name], zf.read(name)
+                            )
+                        # Other files of the same name (application programs, baggages) are the
+                        # same data: the first source's copy is kept.
                     bundle.resolved_manufacturers.add(mid)
         except (OSError, zipfile.BadZipFile):
             # Source archive gone or unreadable: skip every ref that pointed at it.

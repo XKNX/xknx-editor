@@ -18,7 +18,7 @@ from __future__ import annotations
 import asyncio
 import logging
 from collections.abc import Awaitable, Callable
-from typing import TYPE_CHECKING, Protocol
+from typing import TYPE_CHECKING, Protocol, TypeVar
 
 from xknx.exceptions import ManagementConnectionError
 from xknx.profile.const import (
@@ -65,6 +65,7 @@ from .errors import (
     CompareMismatch,
     DownloadError,
     LoadStateError,
+    MemoryReadNotAnswered,
     MemoryWriteNotAcknowledged,
     PropertyAccessRejected,
     VerificationError,
@@ -84,8 +85,15 @@ _MEMORY_OVERHEAD = 3
 # retried with a lowered cap set via ``max_memory_service_count``.
 _MAX_MEMORY_CHUNK = 0x3F
 # Fallback memory-service caps tried, in order, after a memory write is not
-# acknowledged. 15 matches ETS's conservative default; 12 is the smallest ETS uses.
+# acknowledged. 15 is the conservative standard-frame default; 12 the smallest fallback.
 MEMORY_SERVICE_FALLBACKS = (15, 12)
+# A lost acknowledgement or response on a still-open connection can be transient; the
+# operation is resent a few times before it is treated as failed. Memory reads and
+# writes are idempotent by address, so a resend cannot corrupt the device.
+_TRANSIENT_RETRIES = 2
+_TRANSIENT_RETRY_DELAY = 0.2
+
+_T = TypeVar("_T")
 # Octets consumed by APCI/object/property/count/index in A_PropertyValue_Write.
 _PROPERTY_OVERHEAD = 5
 # A_PropertyExtValue_* frames: object type, 12 bit instance and PID, 8 bit count, 16 bit start.
@@ -113,7 +121,6 @@ _MAX_OBJECT_INDEX = 255
 # A_Memory_Read/Write carry a 16-bit address, so they only reach the first 64
 # KiB; at and above this boundary A_UserMemory_Read/Write (3-byte address) are
 # used. Split transfers at this boundary so each block uses the correct service.
-# see .references/ets_map.md
 _USER_MEMORY_BOUNDARY = 0x10000
 # A_UserMemory_Read/Write encode the octet count in 4 bits.
 _MAX_USER_MEMORY_CHUNK = 0xF
@@ -501,7 +508,19 @@ class DeviceProgrammer:
         else:
             request = MemoryRead(address=address, count=count)
             expected = MemoryResponse
-        telegram = await self.connection.request(request, expected)
+        try:
+            telegram = await self._retry_transient(
+                lambda: self.connection.request(request, expected)
+            )
+        except ManagementConnectionError as exc:
+            # A response longer than a standard frame can be dropped by the interface or a
+            # coupler; the caller retries with standard-size blocks then.
+            if count > DEFAULT_MAX_APDU_LENGTH - _MEMORY_OVERHEAD:
+                raise MemoryReadNotAnswered(
+                    f"{exc} while reading memory {address:#06x} ({count} byte(s)) "
+                    f"[{self.diagnostic_context}]"
+                ) from exc
+            raise
         payload = telegram.payload
         if not isinstance(payload, expected):
             raise VerificationError(f"no memory response for address {address:#06x}")
@@ -567,6 +586,30 @@ class DeviceProgrammer:
             f"{exc} while {operation} [{self.diagnostic_context}]"
         )
 
+    async def _retry_transient(self, send: Callable[[], Awaitable[_T]]) -> _T:
+        """Run a management request, retrying a transient timeout a bounded number of
+        times before letting it propagate.
+
+        A lost ACK or response on a still-open connection is resent; memory reads and
+        writes are idempotent by address, so a resend cannot corrupt the device. A
+        persistent failure (e.g. the device dropped the connection) still propagates
+        after the retries, so a genuine no-acknowledge reaches the caller unchanged.
+        """
+        for attempt in range(_TRANSIENT_RETRIES + 1):
+            try:
+                return await send()
+            except ManagementConnectionError:
+                if attempt >= _TRANSIENT_RETRIES:
+                    raise
+                logger.debug(
+                    "transient management timeout [%s]; retry %d/%d",
+                    self.diagnostic_context,
+                    attempt + 1,
+                    _TRANSIENT_RETRIES,
+                )
+                await asyncio.sleep(_TRANSIENT_RETRY_DELAY)
+        raise AssertionError("unreachable")
+
     async def _write_block(self, address: int, block: bytes) -> None:
         """Write one block via A_Memory_Write or A_UserMemory_Write by address."""
         request = (
@@ -576,14 +619,16 @@ class DeviceProgrammer:
         )
         try:
             if not self.memory_auto_verify:
-                await self.connection.send_data(request)
+                await self._retry_transient(lambda: self.connection.send_data(request))
                 return
             expected = (
                 UserMemoryResponse
                 if address >= _USER_MEMORY_BOUNDARY
                 else MemoryResponse
             )
-            telegram = await self.connection.request(request, expected)
+            telegram = await self._retry_transient(
+                lambda: self.connection.request(request, expected)
+            )
         except ManagementConnectionError as exc:
             raise MemoryWriteNotAcknowledged(
                 f"{exc} while writing memory {address:#06x} ({len(block)} byte(s)) "
@@ -820,7 +865,6 @@ class DeviceProgrammer:
         if response.count == 0:
             # NoVerify permits an empty ordinary property confirmation; this is
             # not evidence that the data was stored.
-            # see .references/ets_map.md
             logger.debug(
                 "unverified property write: %s object-index=%d pid=%d "
                 "zero-element confirmation accepted; storage not verified",

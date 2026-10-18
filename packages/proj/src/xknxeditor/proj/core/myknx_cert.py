@@ -9,6 +9,8 @@ Protocol:
   * Certificate is workset-scoped and server-signed:
     ``POST /v1/workset`` -> ``.../claim`` -> ``.../product/{productId}``
     -> ``.../product/{productId}/certificate`` (body ``{"projectHash", "projectName"}``) -> ``.../release``.
+    A license stays in its workset after the release; once it is in one (``worksetId`` in
+    ``GET /v1/product/getAll``), that workset is claimed instead of creating and filling a new one.
   * Requires a cloud-enabled product license; others fail add-product with HTTP 422.
 """
 
@@ -72,6 +74,20 @@ def _server_detail(resp: bytes) -> str:
             if value:
                 return str(value)
     return text
+
+
+# A license is in one workset at a time: adding one that is in another workset is answered
+# with "Product belongs to another workset which is still active" (when the license list,
+# which names its workset, could not be read first).
+_LICENSE_ELSEWHERE = (
+    "The license is in another workset (another installation using it), and MyKnx did not "
+    "tell which one. Try again, or pick another license that can sign online."
+)
+
+
+def _myknx_says(detail: str) -> str:
+    flat = detail.replace("\n", " ").strip()
+    return f" (MyKnx: {flat})" if flat else ""
 
 
 def project_hash(folder_signature: bytes) -> str:
@@ -393,17 +409,70 @@ class MyKnxSession:
         types: list[dict[str, object]] = json.loads(resp or b"[]")
         return {str(t.get("id") or ""): t for t in types}
 
+    def _product_workset(self, product_id: str) -> str | None:
+        """The workset the license ``product_id`` belongs to, or None. None too when the license
+        list cannot be read: a new workset is tried then."""
+        try:
+            products = self.products()
+        except (RuntimeError, OSError, ValueError) as exc:
+            logger.warning("license list not readable: %s", exc)
+            return None
+        for product in products:
+            if str(product.get("id") or "") == product_id:
+                return str(product.get("worksetId") or "") or None
+        return None
+
+    def _add_product(self, ws: str, product_id: str) -> None:
+        """Add the license ``product_id`` to the workset ``ws``."""
+        s, resp = self._req("POST", f"/workset/{ws}/product/{product_id}")
+        if s // 100 != 2:
+            detail = _server_detail(resp)
+            logger.error(
+                "add product to workset failed: HTTP %s (product_id=%s): %s",
+                s,
+                product_id,
+                detail,
+            )
+            # The most common failure: the picked license is not cloud-enabled.
+            cloud_disabled = s == 422 and "cloud" in detail.lower()
+            if cloud_disabled:
+                user_message = (
+                    "This license cannot sign projects online: "
+                    + detail.replace("\n", " ").strip()
+                    + ". Pick a cloud-enabled ETS license (e.g. ETS Professional), or use "
+                    "'License with a dongle' instead."
+                )
+            elif s == 422 and "another workset" in detail.lower():
+                user_message = _LICENSE_ELSEWHERE + _myknx_says(detail)
+            else:
+                user_message = f"MyKnx rejected the license (HTTP {s}): " + (
+                    detail.replace("\n", " ").strip()
+                )
+            raise MyKnxError(
+                f"add product to workset failed: HTTP {s}: {detail}",
+                status=s,
+                detail=detail,
+                user_message=user_message,
+            )
+
     def project_certificate(
         self, product_id: str, project_hash_hex: str, project_name: str
     ) -> bytes:
         """Request a project certificate for ``product_id``.
 
-        Flow: create a workset, claim it, add the product, then
-        ``POST /v1/workset/{ws}/product/{product_id}/certificate`` with
-        ``{"projectHash","projectName"}``. Returns the certificate bytes. The product must be a
-        cloud-enabled license; others yield HTTP 422.
+        A license is in one workset at a time and stays there (another installation's workset,
+        claimed by its session). For a license in a workset the certificate is requested in that
+        workset as it is: ``POST /v1/workset/{ws}/product/{product_id}/certificate`` with
+        ``{"projectHash","projectName"}``, without claiming or releasing it, so the session using
+        it keeps it (its claim answers 404 here anyway). For a license in none: create a
+        workset, claim it, add the product, request the certificate, release it. Returns the
+        certificate bytes. The product must be a cloud-enabled license; others yield HTTP 422.
         """
         logger.debug("requesting project certificate", extra={"product_id": product_id})
+        held = self._product_workset(product_id)
+        if held is not None:
+            logger.debug("license belongs to workset", extra={"workset": held})
+            return self._certificate(held, product_id, project_hash_hex, project_name)
         s, resp = self._req(
             "POST", "/workset", json.dumps({"description": "xknx-editor"}).encode()
         )
@@ -421,82 +490,65 @@ class MyKnxSession:
                 detail = _server_detail(resp)
                 logger.error("claim workset failed: HTTP %s: %s", s, detail)
                 raise MyKnxError(
-                    f"claim workset failed: HTTP {s}: {detail}", status=s, detail=detail
-                )
-            s, resp = self._req("POST", f"/workset/{ws}/product/{product_id}")
-            if s // 100 != 2:
-                detail = _server_detail(resp)
-                logger.error(
-                    "add product to workset failed: HTTP %s (product_id=%s): %s",
-                    s,
-                    product_id,
-                    detail,
-                )
-                # The most common failure: the picked license is not cloud-enabled.
-                cloud_disabled = s == 422 and "cloud" in detail.lower()
-                user_message = (
-                    (
-                        "This license cannot sign projects online: "
-                        + detail.replace("\n", " ").strip()
-                        + ". Pick a cloud-enabled ETS license (e.g. ETS Professional), or use "
-                        "'License with a dongle' instead."
-                    )
-                    if cloud_disabled
-                    else f"MyKnx rejected the license (HTTP {s}): "
-                    + detail.replace("\n", " ").strip()
-                )
-                raise MyKnxError(
-                    f"add product to workset failed: HTTP {s}: {detail}",
+                    f"claim workset failed: HTTP {s}: {detail}",
                     status=s,
                     detail=detail,
-                    user_message=user_message,
+                    user_message="MyKnx did not hand over the new workset "
+                    f"(HTTP {s}){_myknx_says(detail)}.",
                 )
-            payload = json.dumps(
-                {"projectHash": project_hash_hex, "projectName": project_name}
-            ).encode()
-            # projectHash is the base64 folder signature sent verbatim (see project_hash); log its
-            # length + prefix so a rejected certificate can be diagnosed from a user's log file.
-            logger.debug(
-                "certificate request: projectName=%s projectHash=%d chars prefix=%.24s",
-                project_name,
-                len(project_hash_hex),
-                project_hash_hex,
-            )
-            s, resp = self._req(
-                "POST", f"/workset/{ws}/product/{product_id}/certificate", payload
-            )
-            if s // 100 != 2:
-                detail = _server_detail(resp)
-                logger.error("certificate request failed: HTTP %s: %s", s, detail)
-                raise MyKnxError(
-                    f"certificate request failed: HTTP {s}: {detail}",
-                    status=s,
-                    detail=detail,
-                )
-            logger.info(
-                "project certificate obtained", extra={"product_id": product_id}
-            )
-            text = resp.decode("utf-8", "replace").lstrip()
-            if text.startswith("{"):
-                try:
-                    data = json.loads(resp)
-                    for key in ("certificate", "file", "File", "data"):
-                        if data.get(key):
-                            return normalize_certificate(str(data[key]))
-                except json.JSONDecodeError:
-                    pass
-            # The endpoint returns the certificate as a bare JSON *string* (not an object), i.e.
-            # the body is `"CERT KNX:\"...\"\n\tID=\"CloudLicense\"\n..."`. Returning it verbatim
-            # writes the JSON escaping into {pid}.certificate, so the file starts with a quote and
-            # contains literal \n / \" — the project is then rejected as uncertified.
-            if text.startswith('"'):
-                try:
-                    return normalize_certificate(json.loads(resp))
-                except (json.JSONDecodeError, TypeError):
-                    pass
-            return normalize_certificate(text)
+            self._add_product(ws, product_id)
+            return self._certificate(ws, product_id, project_hash_hex, project_name)
         finally:
             self._req("POST", f"/workset/{ws}/release")
+
+    def _certificate(
+        self, ws: str, product_id: str, project_hash_hex: str, project_name: str
+    ) -> bytes:
+        """The project certificate for ``product_id`` in the workset ``ws``."""
+        payload = json.dumps(
+            {"projectHash": project_hash_hex, "projectName": project_name}
+        ).encode()
+        # projectHash is the base64 folder signature sent verbatim (see project_hash); log its
+        # length + prefix so a rejected certificate can be diagnosed from a user's log file.
+        logger.debug(
+            "certificate request: projectName=%s projectHash=%d chars prefix=%.24s",
+            project_name,
+            len(project_hash_hex),
+            project_hash_hex,
+        )
+        s, resp = self._req(
+            "POST", f"/workset/{ws}/product/{product_id}/certificate", payload
+        )
+        if s // 100 != 2:
+            detail = _server_detail(resp)
+            logger.error("certificate request failed: HTTP %s: %s", s, detail)
+            raise MyKnxError(
+                f"certificate request failed: HTTP {s}: {detail}",
+                status=s,
+                detail=detail,
+                user_message=f"MyKnx did not issue the certificate (HTTP {s})"
+                f"{_myknx_says(detail)}.",
+            )
+        logger.info("project certificate obtained", extra={"product_id": product_id})
+        text = resp.decode("utf-8", "replace").lstrip()
+        if text.startswith("{"):
+            try:
+                data = json.loads(resp)
+                for key in ("certificate", "file", "File", "data"):
+                    if data.get(key):
+                        return normalize_certificate(str(data[key]))
+            except json.JSONDecodeError:
+                pass
+        # The endpoint returns the certificate as a bare JSON *string* (not an object), i.e.
+        # the body is `"CERT KNX:\"...\"\n\tID=\"CloudLicense\"\n..."`. Returning it verbatim
+        # writes the JSON escaping into {pid}.certificate, so the file starts with a quote and
+        # contains literal \n / \" — the project is then rejected as uncertified.
+        if text.startswith('"'):
+            try:
+                return normalize_certificate(json.loads(resp))
+            except (json.JSONDecodeError, TypeError):
+                pass
+        return normalize_certificate(text)
 
 
 def obtain_certificate(

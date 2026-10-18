@@ -86,6 +86,49 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
         return device, group_communication
 
+    def _certificate_error(node_id: int) -> ToolError:
+        return ToolError(
+            f"device {node_id} is commissioned securely for the first time: add its "
+            "device certificate (the FDSK from its label) with "
+            f"project_add_device_certificate(code, node_id={node_id}) first, or deactivate "
+            "its secure commissioning "
+            "with project_set_secure_commissioning to program it in the clear"
+        )
+
+    def _run_queued(node_id: int, scope: Any, timeout: float, **options: Any) -> bool:
+        """Run a programming in the editor's operations queue, labelled as started by an MCP
+        client, so the user sees it there (also in the history) and can cancel it; it waits behind
+        operations already queued. Returns False when the editor has no queue (no project plugin,
+        e.g. a headless server), so the caller programs directly. Raises ToolError when the
+        operation fails, is canceled, or does not end within ``timeout`` (it is canceled then)."""
+        queue = ctx.api.queue_program
+        if queue is None:
+            return False
+        from editor_gui.plugins.project.program_queue import ORIGIN_MCP, OperationState
+        from editor_gui.plugins.project.strings import S
+
+        item = ctx.run_locked(
+            lambda: queue(node_id, scope, origin=ORIGIN_MCP, **options)
+        )
+        if item is None or item.ended is None:
+            raise ToolError(f"no device with node_id {node_id}")
+        try:
+            ended = item.ended.result(timeout=timeout)
+        except TimeoutError as exc:
+            cancel = ctx.api.cancel_operation
+            if cancel is not None:
+                ctx.run_on_ui(lambda: cancel(item))
+            raise ToolError(
+                f"the operation did not finish within {timeout} s and was canceled"
+            ) from exc
+        if ended.state is OperationState.FINISHED:
+            return True
+        if ended.message == S.DEVICE_CERTIFICATE_REQUIRED:
+            raise _certificate_error(node_id)
+        if ended.state is OperationState.CANCELED:
+            raise ToolError(ended.message or S.OPERATION_CANCELED_BY_USER)
+        raise ToolError(ended.message or "the operation failed")
+
     def _project_serial(node_id: int) -> bytes | None:
         from editor_gui.device_info import serial_from_project
 
@@ -219,8 +262,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         instead of programming mode — for INDIVIDUAL_ADDRESS, or a FULL commissioning download of a
         device that does not answer at its address yet. A device whose hardware is
         NoDownloadWithoutPlugin is refused unless ``without_plugin=true``, set only after the user
-        explicitly confirmed programming it without the manufacturer's plugin. Returns
-        {status, node_id}."""
+        explicitly confirmed programming it without the manufacturer's plugin.
+
+        The programming runs in the editor's operations queue, labelled MCP: the user sees it there
+        and in its history, it waits behind operations already queued, and the user can cancel it
+        (the call then fails with the cancel message). Returns {status, node_id}."""
         device, group_communication = _programmable_device(node_id)
         resolved = _resolve_scope(scope)
         if resolved.name == "OVERWRITE_INDIVIDUAL_ADDRESS" and not current_address:
@@ -256,37 +302,47 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(
                 "the device is commissioned securely: set a project password first"
             ) from exc
+        if _run_queued(
+            node_id,
+            resolved,
+            timeout,
+            without_plugin=without_plugin,
+            current_address=current_address,
+            serial_number=serial,
+        ):
+            return {"status": "programmed", "node_id": node_id}
         ip_secure = ctx.run_locked(
             lambda: ctx.api.project.ip_secure_config(device, service.keyring)
         )
+        # Pre-read all project state on the UI thread (plain values), then run program_device
+        # itself under the same lock: its synchronous security lookup reads the (non-thread-safe)
+        # project session, which must not run on this MCP worker thread. The args are already plain
+        # here, so there is no nested run_locked. The bus Future is awaited OUTSIDE the lock below.
+        ip_config = ctx.run_locked(lambda: ctx.api.project.ip_download_config(device))
+        disable_security = ctx.run_locked(
+            lambda: ctx.api.project.download_disables_security(device)
+        )
+        routing_blocking = ctx.run_locked(
+            lambda: ctx.api.project.download_routing_blocking(device)
+        )
         try:
-            future = service.program_device(
-                device,
-                resolved,
-                group_communication,
-                without_plugin=without_plugin,
-                current_address=current_address,
-                serial_number=serial,
-                ip_config=ctx.run_locked(
-                    lambda: ctx.api.project.ip_download_config(device)
-                ),
-                tool_key=tool_key,
-                ip_secure=ip_secure,
-                disable_security=ctx.run_locked(
-                    lambda: ctx.api.project.download_disables_security(device)
-                ),
-                routing_blocking=ctx.run_locked(
-                    lambda: ctx.api.project.download_routing_blocking(device)
-                ),
+            future = ctx.run_locked(
+                lambda: service.program_device(
+                    device,
+                    resolved,
+                    group_communication,
+                    without_plugin=without_plugin,
+                    current_address=current_address,
+                    serial_number=serial,
+                    ip_config=ip_config,
+                    tool_key=tool_key,
+                    ip_secure=ip_secure,
+                    disable_security=disable_security,
+                    routing_blocking=routing_blocking,
+                )
             )
         except DeviceCertificateRequired as exc:
-            raise ToolError(
-                f"device {node_id} is commissioned securely for the first time: add its "
-                "device certificate (the FDSK from its label) with "
-                f"project_add_device_certificate(code, node_id={node_id}) first, or deactivate "
-                "its secure commissioning "
-                "with project_set_secure_commissioning to program it in the clear"
-            ) from exc
+            raise _certificate_error(node_id) from exc
         if future is None:
             raise ToolError("programming could not be scheduled (no connection)")
         try:
@@ -335,11 +391,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         resolved = _resolve_scope(scope)
         if resolved.individual_address_only:
             raise ToolError("an individual address download cannot be evaluated")
-        future = service.evaluate_device(
-            device,
-            resolved,
-            group_communication,
-            ctx.run_locked(lambda: ctx.api.project.ip_download_config(device)),
+        # Run evaluate_device under the lock on the UI thread: its synchronous security lookup
+        # reads the non-thread-safe project session and must not run on this MCP worker thread.
+        # The bus Future is awaited outside the lock below.
+        ip_config = ctx.run_locked(lambda: ctx.api.project.ip_download_config(device))
+        future = ctx.run_locked(
+            lambda: service.evaluate_device(
+                device, resolved, group_communication, ip_config
+            )
         )
         if future is None:
             raise ToolError("evaluation could not be scheduled (no connection)")
@@ -375,7 +434,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Write the device's project individual address to the single device currently in
         programming mode. Needs an open connection and an unused project address set beforehand with
         project_set_individual_address (this does not check address occupancy); exactly one device
-        must be in programming mode. This bus change is NOT undoable. ``timeout`` in seconds. Returns
+        must be in programming mode. This bus change is NOT undoable. ``timeout`` in seconds.
+
+        It runs in the editor's operations queue, labelled MCP, like connection_program_device with
+        scope INDIVIDUAL_ADDRESS: it waits until a device is in programming mode (its programming
+        button pressed), up to ``timeout``, and the user can cancel it. Returns
         {status, node_id, address}."""
         _ensure_connected()
         device = _device(node_id)
@@ -384,6 +447,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 f"device {node_id} has no individual address; set one with "
                 "project_set_individual_address first"
             )
+        from xknxeditor.download.scope import DownloadScope
+
+        if _run_queued(node_id, DownloadScope.INDIVIDUAL_ADDRESS, timeout):
+            return {
+                "status": "assigned",
+                "node_id": node_id,
+                "address": device.individual_address,
+            }
         future = service.assign_individual_address_for_device(device)
         if future is None:
             raise ToolError("assignment could not be scheduled (no connection)")

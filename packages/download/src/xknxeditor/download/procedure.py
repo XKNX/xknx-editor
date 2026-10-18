@@ -151,7 +151,7 @@ _ROUTER_OBJECT_TYPE = ResourceObjectType.OBJECT_ROUTER
 # LdCtrlMapError): set means failure, clear means success. Mapping an error to a
 # value with this bit clear turns a rejected access into a tolerated one. These
 # 32-bit values and the flag convention are the tool's load-procedure
-# representation, not a bus error code (see .references/ets_map.md).
+# representation, not a bus error code.
 _ERROR_FLAG = 0x80000000
 
 
@@ -379,7 +379,6 @@ class LoadProcedureRunner:
         # controls overlay it onto InlineData. Key by resolved object, PID and element so
         # index/type addressing and overlapping ranges refer to the same bytes.
         # Keep this separate from the caller's immutable download image.
-        # see .references/ets_map.md
         self._property_captures: dict[tuple[int, int, int], bytes] = {}
         self._memory_captures: dict[
             tuple[LdCtrlMemAddrSpace | int | None, int], int
@@ -438,6 +437,8 @@ class LoadProcedureRunner:
         # the (unchanging) application and image for this run.
         self._packed_group_tables_computed = False
         self._packed_group_tables_cache: PackedGroupTables | None = None
+        # Absolute addresses a preflight found the device rewriting at runtime.
+        self._device_written: set[int] = set()
 
     async def run(self, progress: Callable[[int, int], None] | None = None) -> None:
         """Execute the Load Procedure, honouring the selected download scope.
@@ -485,7 +486,6 @@ class LoadProcedureRunner:
         matches. The first matching handler decides whether to continue at the
         next control or fail with an optional application message.
         """
-        # see .references/ets_map.md
         handlers = control.on_error if isinstance(control, LdCtrlBase) else []
         if handlers:
             cause = None
@@ -563,6 +563,7 @@ class LoadProcedureRunner:
         """
         segments: list[SegmentDiff] = []
         properties: list[PropertyDiff] = []
+        self._device_written = set()
         in_scope = materialize_group_communication_controls(
             self.image, self._controls, self._object_types, self.scope
         )
@@ -590,7 +591,11 @@ class LoadProcedureRunner:
         finally:
             self._position = None
             await self._close()
-        return PreflightReport(segments=tuple(segments), properties=tuple(properties))
+        return PreflightReport(
+            segments=tuple(segments),
+            properties=tuple(properties),
+            device_written=frozenset(self._device_written),
+        )
 
     def _in_scope(self, control: object) -> bool:
         """Whether a control participates in the requested download scope."""
@@ -1291,7 +1296,6 @@ class LoadProcedureRunner:
             # that mapping; a different error retains failure with the new code. The
             # bracketed access reports its rejection as a PropertyAccessRejected,
             # matched by both control filter and error identity in run().
-            # see .references/ets_map.md
             key = (control.ld_ctrl_filter, control.original_error)
             self._error_mappings.pop(key, None)
             if control.mapped_error != control.original_error:
@@ -1811,7 +1815,6 @@ class LoadProcedureRunner:
         Repeated captures fill only missing elements. Allocation and writes must not replace this
         baseline: the par procedure uses it to detect a moved table reference.
         """
-        # see .references/ets_map.md
         index = await self._resolve_index(control, extended=True)
         data = await self._read_property(index, control)
         logger.debug(
@@ -2014,7 +2017,6 @@ class LoadProcedureRunner:
         if mask is not None and len(mask) < len(expected):
             # An omitted mask suffix checks every bit; only the supplied prefix
             # limits the comparison.
-            # see .references/ets_map.md
             mask += b"\xff" * (len(expected) - len(mask))
         # Shortening the compare to the overlap is only safe when the octets the response does not
         # cover carry nothing the compare was meant to check - i.e. the procedure's own trailing
@@ -2255,12 +2257,38 @@ class LoadProcedureRunner:
                 gaps.describe_missing(name),
             )
 
+    async def _note_device_written(
+        self,
+        programmer: DeviceProgrammer,
+        address: int,
+        current: bytes,
+        planned: bytes,
+    ) -> None:
+        """Flag changed bytes the device rewrites itself at runtime.
+
+        A changed byte whose device value differs again on a second read is written
+        by the firmware, not a real configuration difference. Only the bytes that
+        differ from ``planned`` are re-read, so an in-sync device costs no extra I/O.
+        """
+        changed = [
+            i
+            for i in range(min(len(current), len(planned)))
+            if current[i] != planned[i]
+        ]
+        if not changed:
+            return
+        again = await programmer.read_memory(address, len(current))
+        for i in changed:
+            if i < len(again) and again[i] != current[i]:
+                self._device_written.add(address + i)
+
     async def _diff_memory(
         self, address: int, planned: bytes, segments: list[SegmentDiff]
     ) -> None:
         """Read current memory at ``address`` and record a diff against ``planned``."""
         programmer = await self._bus()
         current = await programmer.read_memory(address, len(planned))
+        await self._note_device_written(programmer, address, current, bytes(planned))
         segments.append(
             SegmentDiff(address=address, current=current, planned=bytes(planned))
         )
@@ -2300,6 +2328,9 @@ class LoadProcedureRunner:
         programmer = await self._bus()
         for run_address, planned in runs:
             current = await programmer.read_memory(run_address, len(planned))
+            await self._note_device_written(
+                programmer, run_address, current, bytes(planned)
+            )
             segments.append(
                 SegmentDiff(
                     address=run_address, current=current, planned=bytes(planned)
@@ -2332,6 +2363,9 @@ class LoadProcedureRunner:
         programmer = await self._bus()
         for run_offset, planned in runs:
             current = await programmer.read_memory(base + run_offset, len(planned))
+            await self._note_device_written(
+                programmer, base + run_offset, current, bytes(planned)
+            )
             segments.append(
                 SegmentDiff(
                     address=base + run_offset,

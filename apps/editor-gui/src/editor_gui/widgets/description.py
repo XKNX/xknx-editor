@@ -13,7 +13,7 @@ ICON_DESCRIPTION = ""
 _WRAP_WIDTH = 420.0
 # A description this short or shorter is shown inline; a longer one (or one of several lines)
 # goes behind the note icon.
-MIN_DESCRIPTION_LENGTH = 15
+MIN_DESCRIPTION_LENGTH = 20
 
 
 def shows_description_icon(description: str | None) -> bool:

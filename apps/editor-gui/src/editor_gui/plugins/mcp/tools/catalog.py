@@ -368,7 +368,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         document_url is a best-effort manual link and may be null. Try it with catalog_docs_fetch,
         verify the exact order number and series/generation, then use references as fallbacks.
-        Read only relevant sections. For configuration IDs and allowed values, use
+        Read only relevant sections (manuals are often large PDFs). The references are ordered
+        best-source-first and are fallbacks for each other (manufacturer site / KNX device database /
+        web search); if none is fetchable, ask the user to open a link and paste the relevant section
+        rather than guessing. For configuration IDs and allowed values, use
         project_list_parameters/project_list_com_objects."""
         resolved_mfr = manufacturer
         order_number: str | None = None
@@ -458,19 +461,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "document_url": document_url,
             "references": references,
             "note": (
-                "``document_url`` is a BEST-EFFORT resolved manual PDF (KNX application description / "
-                "technical manual) — try it FIRST: fetch it with catalog_docs_fetch and use find= for "
-                "your query. It is not always exact (wrong series, a datasheet, or a reseller host "
-                "that catalog_docs_fetch may refuse), and may be null. VERIFY it matches the device's "
-                "exact order number/series; if it is wrong, null, or not fetchable, use ``references`` "
-                "instead. These are external pages and often LARGE PDFs: never load a whole manual "
-                "into context — extract only the part relevant to the query. The references are "
-                "ordered best-source-first and are fallbacks for each other (manufacturer site <-> "
-                "KNX device database <-> web search). If nothing works or you cannot fetch the "
-                "documents yourself, ASK THE USER to open a link and paste the relevant section "
-                "instead of guessing. To CONFIGURE a device, prefer project_list_parameters / "
-                "project_list_com_objects: they already give ref_ids, current values and allowed "
-                "values. Docs are mainly for human-readable explanations and wiring."
+                "``document_url`` is best-effort (may be null, a wrong series/datasheet, or a host "
+                "catalog_docs_fetch refuses) — fetch and VERIFY it first, otherwise fall back to "
+                "``references``. See this tool's description for the full guidance."
             ),
         }
 
@@ -501,6 +494,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         url for verification; this does not change the project."""
         from pypdf import PdfReader
 
+        # max_chars slices the returned text; a negative value would return almost the whole
+        # document (Python's text[:negative]). Clamp to a positive value with a hard ceiling.
+        max_chars = max(1, min(max_chars, 200_000))
         url = _normalize_doc_url(url)
         data = _download_doc(url, refresh=refresh)
         if not data[:5].startswith(b"%PDF"):
@@ -538,7 +534,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         file offline without searching or downloading again."""
         index = _read_index()
         cache_dir = _docs_cache_dir()
-        items = []
+        items: list[dict[str, Any]] = []
         for name, src in sorted(index.items()):
             path = cache_dir / name
             if path.exists():

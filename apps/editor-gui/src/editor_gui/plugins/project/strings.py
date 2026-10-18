@@ -1152,15 +1152,35 @@ class ProjectStrings:
         return _("Test Programming")
 
     @property
-    def PROGRAM_CONFIRM_TITLE(self) -> str:
-        return _("Program device?")
+    def PROGRAM_UNLOAD_TITLE(self) -> str:
+        return _("Unload Application Program")
 
     @property
-    def PROGRAM_CONFIRM_TEXT(self) -> str:
+    def PROGRAM_UNLOAD_TEXT(self) -> str:
         return _(
-            "This writes to the device at {address} (scope: {scope}) and changes its "
-            "configuration. Continue?"
+            "This unloads the application program of the device at {address}. The device "
+            "stops working until its application program is downloaded again."
         )
+
+    @property
+    def PROGRAM_UNLOAD_ALL_TEXT(self) -> str:
+        return _(
+            "This unloads the application program of the device at {address} and then resets "
+            "its individual address to 15.15.255; for that, its programming button has to be "
+            "pressed. The device stops working until it is commissioned again."
+        )
+
+    @property
+    def BTN_OVERWRITE_ADDRESS(self) -> str:
+        return _("Overwrite Address")
+
+    @property
+    def PROGRAM_PLUGIN_TITLE(self) -> str:
+        return _("Manufacturer's Plugin Not Available")
+
+    @property
+    def PROGRAM_SERIAL_USED_TITLE(self) -> str:
+        return _("Serial Number Already Used")
 
     @property
     def CONFIGURE_DOWNLOAD_SCOPE(self) -> str:
@@ -2311,6 +2331,18 @@ class ProjectStrings:
         )
 
     @property
+    def PLUGIN_PARAMETERS_TITLE(self) -> str:
+        return _("Parameters in the Manufacturer's Plugin")
+
+    @property
+    def PLUGIN_PARAMETERS_TEXT(self) -> str:
+        return _(
+            "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX "
+            "Editor cannot run, so they cannot be changed here. A download writes their current "
+            "values unchanged; the group objects can be linked as usual."
+        )
+
+    @property
     def PLUGIN_USER_INTERFACE(self) -> str:
         return _(
             "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
@@ -2429,6 +2461,14 @@ class ProjectStrings:
     @property
     def OPERATION_CANCELED(self) -> str:
         return _("Canceled")
+
+    @property
+    def OPERATION_CANCELED_BY_USER(self) -> str:
+        return _("Cancelled by user.")
+
+    @property
+    def OPERATION_STARTED_BY_MCP(self) -> str:
+        return _("Started by an MCP client.")
 
     @property
     def OPERATION_FAILED(self) -> str:
@@ -2912,6 +2952,62 @@ class ProjectStrings:
     @property
     def SPACE_NUMBER(self) -> str:
         return _("Number")
+
+    @property
+    def CONFIGURE_ADDITIONAL_ADDRESSES(self) -> str:
+        return _("Additional Individual Addresses")
+
+    @property
+    def CONFIGURE_ADDITIONAL_ADDRESS(self) -> str:
+        return _("Additional Individual Address")
+
+    @property
+    def BTN_ASSIGN_ADDITIONAL_ADDRESSES(self) -> str:
+        return _("Assign Missing Addresses")
+
+    @property
+    def ADDITIONAL_ADDRESSES_NOT_ENOUGH(self) -> str:
+        return _(
+            "The line does not provide enough addresses for all necessary additional addresses."
+        )
+
+    @property
+    def ADDITIONAL_ADDRESS_INVALID(self) -> str:
+        return _(
+            "Enter a device number from 1 to 255 or a full individual address in the device's line."
+        )
+
+    @property
+    def ADDITIONAL_ADDRESS_OTHER_LINE(self) -> str:
+        return _("An additional address must be in the device's line {line}.")
+
+    @property
+    def ADDITIONAL_ADDRESS_IN_USE(self) -> str:
+        return _("The individual address {address} is already used in this line.")
+
+    @property
+    def HISTORY_ADDITIONAL_ADDRESS_CHANGED(self) -> str:
+        return _("Changed additional address of device '{0}' from '{1}' to '{2}'.")
+
+    @property
+    def HISTORY_ADDITIONAL_ADDRESS_NAMES(self) -> str:
+        return _("Change additional address names")
+
+    @property
+    def HISTORY_ADDITIONAL_ADDRESS_DESCRIPTIONS(self) -> str:
+        return _("Change additional address descriptions")
+
+    @property
+    def HISTORY_ASSIGN_ADDITIONAL_ADDRESSES(self) -> str:
+        return _("Assign additional addresses")
+
+    @property
+    def HISTORY_ADDITIONAL_ADDRESSES(self) -> str:
+        return _("Change additional addresses")
+
+    @property
+    def ADDITIONAL_ADDRESS_INDEX(self) -> str:
+        return "#"
 
 
 S = ProjectStrings()

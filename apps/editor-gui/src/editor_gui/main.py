@@ -11,7 +11,7 @@ import webbrowser
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import imgui_bundle._patch_runners_add_save_screenshot_param as _screenshot_patch
 import platformdirs
@@ -24,12 +24,13 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from xknxproject.exceptions import InvalidPasswordException, XknxProjectException
 
-from editor_gui import __version__
+from editor_gui import __version__, self_update
 from editor_gui import signing_key as signing_key_store
 from editor_gui import trace_key as trace_key_store
 from editor_gui.certs import ensure_ca_bundle
 from editor_gui.concurrency import MainThreadExecutor
 from editor_gui.dock_menus import render_section_menus
+from editor_gui.log_file import log_dir
 from editor_gui.master_data import MasterDataInfo, load_master, master_xml_bytes
 from editor_gui.myknx_oauth import (
     load_cached_credentials as load_myknx_oauth_credentials,
@@ -69,7 +70,7 @@ from editor_gui.theme import (
     theme_name,
     themes,
 )
-from editor_gui.update_check import UpdateInfo, check_for_update
+from editor_gui.update_check import ReleaseAsset, UpdateInfo, check_for_update
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import (
@@ -90,6 +91,7 @@ from xknxeditor.proj import (
     MYKNX_DLL_NAME,
     CompactCancelled,
     CompactResult,
+    ExportCancelled,
     ExportResult,
     InvalidProjectPassword,
     MyKnxError,
@@ -125,13 +127,16 @@ from xknxeditor.proj.db import frame_db_profiler, make_engine, url_for
 from xknxeditor.proj.models import Device, Installation, Project
 
 _REPO_URL = "https://github.com/xknx/xknx-editor"
-# Direct download of the Windows "compat" build (bundled Mesa software OpenGL, pure CPU) — the one that
-# runs in VMs (UTM/QEMU) and on hosts without a working OpenGL driver. Pick the architecture-matching
-# asset (native ARM64 vs x64). /releases/latest/download always points at the newest release's asset.
+# Direct downloads for hosts without a working OpenGL driver (VMs such as UTM/QEMU): the installer,
+# whose "Software rendering" option adds Mesa's software OpenGL (pure CPU), and the portable build
+# that already contains it. Pick the architecture-matching assets (native ARM64 vs x64).
+# /releases/latest/download always points at the newest release's asset.
+_WINDOWS_ARCH = "arm64" if platform.machine() == "ARM64" else "x64"
+_INSTALLER_URL = f"{_REPO_URL}/releases/latest/download/XKNX-Editor-windows-installer-{_WINDOWS_ARCH}.exe"
 _COMPAT_ASSET = (
-    "XKNX-Editor-windows-arm64.zip"  # the arm64 build already bundles software OpenGL
-    if platform.machine() == "ARM64"
-    else "XKNX-Editor-windows-softwaregl.zip"
+    "XKNX-Editor-windows-portable-arm64.zip"  # the arm64 build already bundles software OpenGL
+    if _WINDOWS_ARCH == "arm64"
+    else "XKNX-Editor-windows-portable-x64-softwaregl.zip"
 )
 _COMPAT_BUILD_URL = f"{_REPO_URL}/releases/latest/download/{_COMPAT_ASSET}"
 _LINUX_FILE_DIALOG_HELPERS = ("zenity", "kdialog", "matedialog", "qarma")
@@ -147,6 +152,15 @@ def _find_linux_file_dialog_helper(path: str | None = None) -> str | None:
         ),
         None,
     )
+
+
+def startup_file(argv: list[str]) -> str | None:
+    """The file to open at start: the first argument that is not an option, as an absolute path.
+    Opening a project from the file manager (the .xknx file association) passes it this way."""
+    for arg in argv[1:]:
+        if arg and not arg.startswith("-"):
+            return os.path.abspath(arg)
+    return None
 
 
 def _restore_subprocess_library_path() -> None:
@@ -491,6 +505,10 @@ class KnxGuiApp:
         self._export_summary_schema = ""
         self._export_summary_at = ""
         self._export_summary_requested = False
+        # A failed .knxproj export: (heading, reason, whether getting the certificate
+        # failed). Set by the export worker; the Export Failed window shows it.
+        self._export_failure: tuple[str, str, bool] | None = None
+        self._export_failure_requested = False
         # The certificate signer used for the export, kept so the export-complete window can
         # re-export after removing a device whose product data is too new for the chosen ETS.
         self._export_summary_signer: (
@@ -518,6 +536,11 @@ class KnxGuiApp:
         self._update_info: UpdateInfo | None = None
         self._update_prompt_requested = False
         self._update_thread: threading.Thread | None = None
+        # "user"/"machine" when running from an installation of the Windows installer, which
+        # updates in place (self_update.py); None opens the release page instead.
+        self._update_scope = self_update.installed_scope()
+        # A project passed on the command line, opened once the window is up.
+        self.startup_file: str | None = None
         self._update_manual = False  # a user-triggered check also reports "up to date"
         # Target schema for .knxproj export. ETS 6 (project/23) is the default; ETS 5 is project/20.
         # Persisted so a chosen ETS version sticks across sessions.
@@ -626,7 +649,7 @@ class KnxGuiApp:
         ]
 
     def setup(self) -> None:
-        self._log.info("editor started")
+        self._log.info("editor started", installation=self._update_scope or "none")
         self._can_launch_file_dialog()
         # Apply a previously extracted/saved signing key so exports are signed with it.
         if signing_key_store.apply_cached_key():
@@ -642,6 +665,8 @@ class KnxGuiApp:
         # Best-effort check for a newer release on GitHub (unless the user disabled it).
         if self._update_check_enabled():
             self._start_update_check(manual=False)
+        if self.startup_file is not None:
+            self._do_open_project(self.startup_file)
 
     # --- update check (GitHub releases) -----------------------------------
 
@@ -699,7 +724,11 @@ class KnxGuiApp:
 
     def _recent_files(self) -> list[str]:
         raw = load_settings("app").get("recent_files")
-        return [p for p in raw if isinstance(p, str)] if isinstance(raw, list) else []
+        return (
+            [p for p in cast(list[object], raw) if isinstance(p, str)]
+            if isinstance(raw, list)
+            else []
+        )
 
     def _add_recent(self, path: str) -> None:
         recent = [p for p in self._recent_files() if p != path]
@@ -728,6 +757,7 @@ class KnxGuiApp:
             S.FILE_DIALOG_PROJECT_SAVE_TITLE,
             f"{self._new_project_name.strip() or 'New project'}.xknx",
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
+            pfd.opt.force_overwrite,
         )
 
     def _save_as(self) -> None:
@@ -737,6 +767,7 @@ class KnxGuiApp:
             S.FILE_DIALOG_SAVE_AS_TITLE,
             "",
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
+            pfd.opt.force_overwrite,
         )
 
     def _open_project(self) -> None:
@@ -802,6 +833,7 @@ class KnxGuiApp:
             S.FILE_DIALOG_KNXPROJ_SAVE_TITLE,
             default,
             [S.FILE_DIALOG_KNXPROJ_FILTER, "*.knxproj", S.FILE_DIALOG_ALL_FILES, "*"],
+            pfd.opt.force_overwrite,
         )
 
     def _export_ga_export(self) -> None:
@@ -905,6 +937,7 @@ class KnxGuiApp:
             S.FILE_DIALOG_GA_EXPORT_SAVE_TITLE,
             default,
             [name, f"*{suffix}", S.FILE_DIALOG_ALL_FILES, "*"],
+            pfd.opt.force_overwrite,
         )
 
     def _do_export_ga_export(self, dest: str) -> None:
@@ -949,8 +982,36 @@ class KnxGuiApp:
         program_refs = self._project_service.program_refs()
         remove_unused = self._export_remove_unused
         password = self._project_service.project_password
+        # Set by the progress window's Cancel; the export stops at its next step.
+        cancel_requested = threading.Event()
+
+        def stage(text: str) -> None:
+            if not cancel_requested.is_set():
+                self.set_progress(None, text)
+
+        # The signer shows its step in the progress window.
+        certificate_signer: Callable[[str, bytes, str], bytes | None] | None = None
+        if signer is not None:
+            sign = signer
+
+            def sign_with_stage(pid: str, signature: bytes, name: str) -> bytes | None:
+                stage(S.EXPORT_STAGE_CERTIFICATE)
+                return sign(pid, signature, name)
+
+            certificate_signer = sign_with_stage
+
+        def cancel_export() -> None:
+            cancel_requested.set()
+            self.set_progress(None, S.EXPORT_STAGE_CANCELLING)
 
         def _run() -> None:
+            try:
+                _export()
+            finally:
+                self._progress_running = False
+
+        def _export() -> None:
+            stage(S.EXPORT_STAGE_BUNDLE)
             self._log.debug(
                 "export knxproj",
                 dest=dest,
@@ -977,6 +1038,7 @@ class KnxGuiApp:
                 self._log.warning(
                     "manufacturer bundle failed", error=f"{type(e).__name__}: {e}"
                 )
+            stage(S.EXPORT_STAGE_WRITE)
             try:
                 result = export_knxproj(
                     source,
@@ -988,8 +1050,9 @@ class KnxGuiApp:
                     # Substitute the canonical signed master when the bundled one is unusable (e.g.
                     # a merged, unsigned master from a legacy multi-source project).
                     fetch_master=True,
-                    certificate_signer=signer,
+                    certificate_signer=certificate_signer,
                     remove_unused_products=remove_unused,
+                    cancelled=cancel_requested.is_set,
                 )
                 used_schema = result.schema
                 self._last_export_path = dest
@@ -1049,6 +1112,14 @@ class KnxGuiApp:
                         "the import (add the missing product to the catalog)",
                         references=", ".join(result.missing_references),
                         path=dest,
+                        dialog=True,
+                    )
+                    self._show_export_failure(
+                        dest,
+                        S.EXPORT_FAILED_MISSING.format(
+                            references=", ".join(result.missing_references)
+                        ),
+                        heading=S.EXPORT_FAILED_NOT_IMPORTABLE,
                     )
                 if result.schema_incompatible_products:
                     # A product is only available at a newer schema than the chosen ETS version
@@ -1070,6 +1141,9 @@ class KnxGuiApp:
                     self._export_summary_at = datetime.now().strftime("%Y-%m-%d %H:%M")
                     self._export_summary_signer = signer
                     self._export_summary_requested = True
+            except ExportCancelled:
+                self._log.info("export cancelled", path=dest)
+                self._flash_toast(S.EXPORT_CANCELLED)
             except MyKnxError as e:
                 # Clean, actionable text goes to the toast (error=); full server detail + HTTP
                 # status stay in the Log record for debugging.
@@ -1080,16 +1154,39 @@ class KnxGuiApp:
                     status=e.status,
                     detail=e.detail,
                     exception=f"{type(e).__name__}: {e}",
+                    dialog=True,
                 )
+                self._show_export_failure(dest, e.user_message, signing=True)
             except (
                 Exception
             ) as e:  # OSError/ValueError from export, or other HTTP errors
                 self._log.error(
-                    "export failed", path=dest, error=f"{type(e).__name__}: {e}"
+                    "export failed",
+                    path=dest,
+                    error=f"{type(e).__name__}: {e}",
+                    dialog=True,
                 )
+                self._show_export_failure(dest, str(e) or type(e).__name__)
 
+        self._begin_progress(S.EXPORT_PROGRESS_TEXT.format(name=Path(dest).name))
+        self._progress_cancel = cancel_export
         self._myknx_thread = threading.Thread(target=_run, daemon=True)
         self._myknx_thread.start()
+
+    def _show_export_failure(
+        self,
+        dest: str,
+        reason: str,
+        signing: bool = False,
+        heading: str | None = None,
+    ) -> None:
+        """Open the Export Failed window for ``dest`` with ``reason`` on the next frame (called on
+        the export worker thread). ``heading`` (with ``{name}``) defaults to "could not be
+        exported"."""
+        name = Path(dest).name
+        text = (heading or S.EXPORT_FAILED_TEXT).format(name=name)
+        self._export_failure = (text, reason, signing)
+        self._export_failure_requested = True
 
     def _set_export_schema(self, code: str) -> None:
         """Set and persist the .knxproj export schema (ETS version format), so it sticks."""
@@ -1730,8 +1827,9 @@ class KnxGuiApp:
         imgui.text_wrapped(self._progress_text)
         elapsed = time.time() - self._progress_started_at
         fraction = self._progress_fraction
-        # Fixed width: a stretch (-1) bar inside an auto-resizing modal feeds back and shrinks it.
-        bar_size = px_vec2(520.0, 0.0)
+        # The window's content width, at least 520 px: a stretch (-1) bar inside an auto-resizing
+        # modal feeds back and shrinks it, a fixed width leaves a wider margin on the right.
+        bar_size = imgui.ImVec2(max(px(520.0), imgui.get_content_region_avail().x), 0.0)
         if fraction is not None:
             fraction = max(0.0, min(1.0, fraction))
             imgui.progress_bar(fraction, bar_size, f"{fraction * 100:0.0f}%")
@@ -1850,10 +1948,13 @@ class KnxGuiApp:
         *,
         save_in_place_ok: bool = False,
         default_suffix: str | None = None,
+        confirmed: bool = False,
     ) -> None:
         """Run ``action`` now, or — if ``path`` already exists — ask for overwrite confirmation
-        first. The portable file dialog does not confirm replacing an existing file on macOS (it
-        wraps AppleScript's "choose file name"), so the guard lives here. ``save_in_place_ok`` skips
+        first. This is the one confirmation on every OS: the native save dialogs are opened with
+        ``force_overwrite`` (no prompt of their own, which they do not show the same way on every
+        OS). ``confirmed`` skips it for a path the save dialog already confirmed (the XDG portal
+        always asks), unless a suffix is appended to it here. ``save_in_place_ok`` skips
         the prompt when the target is the currently-open project itself (a plain save is no loss);
         it is NOT set for New/Import/Export, which would replace that file with different content.
         ``default_suffix`` mirrors the suffix the action appends to a suffixless path (``.xknx`` for
@@ -1862,6 +1963,7 @@ class KnxGuiApp:
         mid-confirmation never drops the first action."""
         if default_suffix is not None and not Path(path).suffix:
             path = str(Path(path).with_suffix(default_suffix))
+            confirmed = False
         target = Path(path)
         current = self._project_service.path
         same_as_open = (
@@ -1869,7 +1971,7 @@ class KnxGuiApp:
             and current is not None
             and target.resolve() == current.resolve()
         )
-        if target.exists() and not same_as_open:
+        if target.exists() and not same_as_open and not confirmed:
             self._overwrite_queue.append((path, action))
         else:
             action()
@@ -1890,9 +1992,9 @@ class KnxGuiApp:
             return
         path, action = self._overwrite_queue[0]
         target = Path(path)
-        imgui.text_wrapped(
-            S.OVERWRITE_PROMPT.format(name=target.name, dir=str(target.parent))
-        )
+        with heading():
+            imgui.text_wrapped(S.OVERWRITE_HEADING.format(name=target.name))
+        imgui.text_wrapped(S.OVERWRITE_PROMPT.format(dir=str(target.parent)))
         clicked = dialog_buttons(S.BTN_OVERWRITE, S.BTN_CANCEL)
         replace, cancel = clicked == 0, clicked == 1
         if replace or cancel:
@@ -2297,6 +2399,7 @@ class KnxGuiApp:
             S.FILE_DIALOG_PROJECT_SAVE_TITLE,
             Path(source).with_suffix(".xknx").name,
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
+            pfd.opt.force_overwrite,
         )
         self._log.debug("knxproj import destination dialog opened", source=source)
 
@@ -2309,6 +2412,7 @@ class KnxGuiApp:
             S.FILE_DIALOG_PROJECT_SAVE_TITLE,
             Path(source).with_suffix(".xknx").name,
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
+            pfd.opt.force_overwrite,
         )
 
     def _do_import_ga_export(self, source: str, dest: str) -> None:
@@ -2412,6 +2516,7 @@ class KnxGuiApp:
                         S.FILE_DIALOG_ALL_FILES,
                         "*",
                     ],
+                    pfd.opt.force_overwrite,
                 )
                 return
             if isinstance(dialog, PortalSaveDialog):
@@ -2425,7 +2530,9 @@ class KnxGuiApp:
             if result:
                 # Ask about MyKnx certificate signing before running the export.
                 self._maybe_overwrite_then(
-                    result, lambda r=result: self._begin_export_sign_prompt(r)
+                    result,
+                    lambda r=result: self._begin_export_sign_prompt(r),
+                    confirmed=isinstance(dialog, PortalSaveDialog),
                 )
 
         if (
@@ -2651,7 +2758,7 @@ class KnxGuiApp:
             draw_list = imgui.get_window_draw_list()
             draw_list.push_clip_rect(top_left, top_right, False)
             draw_list.add_rect_filled(
-                top_left, top_right, imgui.get_color_u32(imgui.Col_.separator)
+                top_left, top_right, imgui.get_color_u32(imgui.Col_.border)
             )
             draw_list.pop_clip_rect()
             self.gui_status_bar()
@@ -2780,10 +2887,38 @@ class KnxGuiApp:
         imgui.same_line()
         imgui.text_disabled(fps)
 
+    def _render_menu_separator(self) -> None:
+        """The line between the menu bar and the docked panels, drawn from the menu bar like the
+        line above the status bar: 1 px in the border color over the window background. A menu
+        bar in a theme with window borders ends in its own 1 px border, which the line covers; the
+        panels start below the rest of it."""
+        style = imgui.get_style()
+        gap = 1.0
+        own = 1.0 if style.window_border_size > 0 else 0.0
+        window_params = hello_imgui.get_runner_params().imgui_window_params
+        # The margin is in units of the font size.
+        window_params.full_screen_window_margin_top_left = imgui.ImVec2(
+            0.0, (gap - own) / imgui.get_font_size()
+        )
+        pos, size = imgui.get_window_pos(), imgui.get_window_size()
+        top = pos.y + size.y - own
+        top_left = imgui.ImVec2(pos.x, top)
+        bottom_right = imgui.ImVec2(pos.x + size.x, top + gap)
+        draw_list = imgui.get_window_draw_list()
+        draw_list.push_clip_rect(top_left, bottom_right, False)
+        draw_list.add_rect_filled(
+            top_left, bottom_right, imgui.get_color_u32(imgui.Col_.window_bg)
+        )
+        draw_list.add_rect_filled(
+            top_left, bottom_right, imgui.get_color_u32(imgui.Col_.border)
+        )
+        draw_list.pop_clip_rect()
+
     def gui_menu(self) -> None:
         # The menu bar is not a window to switch to with Ctrl+Tab (it would be listed there with
         # an untranslated name).
         imgui.internal.get_current_window().flags |= imgui.WindowFlags_.no_nav_focus
+        self._render_menu_separator()
         if imgui.begin_menu(S.MENU_FILE):
             if imgui.menu_item(S.MENU_NEW_PROJECT, S.SHORTCUT_NEW, False)[0]:
                 self._new_project()
@@ -2889,6 +3024,8 @@ class KnxGuiApp:
                 self._open_folder(config_dir())
             if imgui.menu_item(S.MENU_OPEN_CACHE_DIR, "", False)[0]:
                 self._open_folder(Path(platformdirs.user_cache_dir("xknx-editor")))
+            if imgui.menu_item(S.MENU_OPEN_LOG_DIR, "", False)[0]:
+                self._open_folder(log_dir())
             imgui.end_menu()
 
         if imgui.menu_item(S.MENU_FEEDBACK, "", False)[0]:
@@ -2986,8 +3123,19 @@ class KnxGuiApp:
             if imgui.begin_child("##update-notes", px_vec2(0.0, 220.0), True):
                 imgui.text_wrapped(info.notes)
             imgui.end_child()
-        clicked = dialog_buttons(S.UPDATE_DOWNLOAD, S.UPDATE_SKIP, S.UPDATE_LATER)
-        if clicked == 0:
+        installer = self._update_installer(info)
+        if installer is not None:
+            imgui.spacing()
+            imgui.text_wrapped(S.UPDATE_INSTALL_HINT)
+        clicked = dialog_buttons(
+            S.UPDATE_INSTALL if installer is not None else S.UPDATE_DOWNLOAD,
+            S.UPDATE_SKIP,
+            S.UPDATE_LATER,
+        )
+        if clicked == 0 and installer is not None:
+            self._install_update(installer)
+            imgui.close_current_popup()
+        elif clicked == 0:
             try:
                 webbrowser.open(info.url)
             except Exception as e:
@@ -3001,6 +3149,62 @@ class KnxGuiApp:
         elif clicked == 2:
             imgui.close_current_popup()
         end_dialog()
+
+    def _update_installer(self, info: UpdateInfo) -> ReleaseAsset | None:
+        """The release's installer for this machine, when this installation updates in place."""
+        if self._update_scope is None:
+            return None
+        return self_update.pick_installer(info.assets, platform.machine())
+
+    def _install_update(self, installer: ReleaseAsset) -> None:
+        """Download ``installer`` behind the progress modal, then run it and exit; it restarts the
+        app with the project that is open now."""
+        scope = self._update_scope
+        if scope is None:
+            return
+        target = Path(tempfile.mkdtemp(prefix="xknx-update-")) / installer.name
+        project = self._project_service.path if self._project_service.is_open else None
+        open_project = str(project) if project is not None else None
+        megabyte = 1024 * 1024
+
+        def report(done: int, total: int) -> None:
+            self.set_progress(
+                done / total if total else None,
+                S.UPDATE_DOWNLOAD_PROGRESS.format(
+                    done=done // megabyte, total=total // megabyte
+                )
+                if total
+                else "",
+            )
+
+        def worker() -> None:
+            try:
+                self_update.download(installer, target, report)
+            except Exception as e:
+                self._log.error(
+                    "update could not be downloaded", url=installer.url, error=str(e)
+                )
+                return
+            self._ui_executor.submit(
+                lambda: self._start_update(target, scope, open_project)
+            )
+
+        self._run_bg(S.PROGRESS_DOWNLOAD_UPDATE, worker)
+
+    def _start_update(
+        self, installer: Path, scope: str, open_project: str | None
+    ) -> None:
+        try:
+            self_update.start_installer(
+                installer, self_update.installer_arguments(scope, open_project)
+            )
+        except OSError as e:
+            self._log.error(
+                "could not start the installer", path=str(installer), error=str(e)
+            )
+            return
+        self._log.info("update installer started", path=str(installer))
+        hello_imgui.get_runner_params().app_shall_exit = True
 
     def _import_note_text(self, note: ImportLoss) -> str:
         """Localized, human-readable line for one import-loss note (code -> message)."""
@@ -3141,6 +3345,34 @@ class KnxGuiApp:
                 self._open_folder(Path(self._export_summary_path).parent)
             elif clicked == 1:
                 imgui.close_current_popup()
+        end_dialog()
+
+    def _render_export_failure_modal(self) -> None:
+        """The Export Failed window: which file, why, and for a certificate that could not be
+        obtained the ways to export without one."""
+        if self._export_failure_requested:
+            imgui.open_popup(S.EXPORT_FAILED_TITLE)
+            self._export_failure_requested = False
+        if not begin_dialog(S.EXPORT_FAILED_TITLE, width=520.0):
+            return
+        failure = self._export_failure
+        if failure is None:
+            imgui.close_current_popup()
+            end_dialog()
+            return
+        text, reason, signing = failure
+        with heading():
+            imgui.text_wrapped(text)
+        imgui.spacing()
+        if signing:
+            imgui.text_wrapped(S.EXPORT_FAILED_CERTIFICATE)
+        imgui.text_wrapped(reason)
+        if signing:
+            imgui.spacing()
+            imgui.text_wrapped(S.EXPORT_FAILED_CERTIFICATE_HINT)
+        if dialog_buttons(S.EXPORT_SUMMARY_CLOSE) == 0:
+            self._export_failure = None
+            imgui.close_current_popup()
         end_dialog()
 
     # --- compact project ---------------------------------------------------
@@ -3411,6 +3643,7 @@ class KnxGuiApp:
         self._render_update_modal()
         self._render_import_notes_modal()
         self._render_export_summary_modal()
+        self._render_export_failure_modal()
         self._render_compact_modal()
         self._render_compact_result_modal()
         self._render_knxprod_result_modal()
@@ -3772,7 +4005,10 @@ class KnxGuiApp:
             if rec.timestamp <= self._toast_seen_ts:
                 continue
             self._toast_seen_ts = rec.timestamp
-            if rec.level in ("warning", "error", "critical"):
+            # Records also shown in a dialog (e.g. a failed export) get no toast.
+            if rec.level in ("warning", "error", "critical") and not rec.payload.get(
+                "dialog"
+            ):
                 detail = rec.payload.get("error") or ""
                 text = f"[{rec.plugin}] {rec.event}" + (f": {detail}" if detail else "")
                 self._toasts.append((text, rec.level, now + 6.0))
@@ -4187,7 +4423,8 @@ def _current_ratios(
             return {}
         nodes[name] = node
     root = nodes["RightSpace"]
-    while root.parent_node is not None:
+    # The bindings type the dock nodes and windows as non-optional, but they can be None.
+    while root.parent_node is not None:  # pyright: ignore[reportUnnecessaryComparison]
         root = root.parent_node
     # A split shares its parent's size minus the separator between the two parts.
     gap = imgui.get_style().docking_separator_size
@@ -4215,7 +4452,7 @@ def _keep_window_sections(params: hello_imgui.DockingParams) -> None:
     }
     for window in params.dockable_windows:
         imgui_window = imgui.internal.find_window_by_name(window.label)
-        if imgui_window is None:
+        if imgui_window is None:  # pyright: ignore[reportUnnecessaryComparison]
             continue
         name = sections.get(imgui_window.dock_id)
         if name is not None:
@@ -4223,7 +4460,7 @@ def _keep_window_sections(params: hello_imgui.DockingParams) -> None:
         node = imgui_window.dock_node
         if (
             window.is_visible
-            and node is not None
+            and node is not None  # pyright: ignore[reportUnnecessaryComparison]
             and node.selected_tab_id == imgui_window.tab_id
         ):
             window.focus_window_at_next_frame = True
@@ -4437,6 +4674,7 @@ def _main() -> None:
     catalog_path = config_dir() / "catalog.xknxcatalog"
     catalog_path.parent.mkdir(parents=True, exist_ok=True)
     app = KnxGuiApp(catalog_path)
+    app.startup_file = startup_file(sys.argv)
 
     # Start on the Welcome screen (New / Open / Recent). We deliberately do NOT auto-open a project
     # so the Welcome is always visible on launch; the recent list gives one-click access.
@@ -4563,8 +4801,10 @@ def _show_graphics_error(detail: str) -> None:
         "(UTM/QEMU/Parallels), on Windows on ARM, and over remote sessions.\n\n"
         "What helps:\n"
         "- In a VM (UTM/QEMU): the Microsoft OpenGL Compatibility Pack does NOT help, because the "
-        "VM exposes no GPU to Windows. Download and use the separate compatibility build of "
-        "XKNX-Editor (bundled Mesa software OpenGL), which renders on the CPU without a GPU:\n"
+        "VM exposes no GPU to Windows. Run the XKNX-Editor installer again and select "
+        "'Software rendering', which renders on the CPU without a GPU:\n"
+        f"    {_INSTALLER_URL}\n"
+        "  or use the portable build with software rendering:\n"
         f"    {_COMPAT_BUILD_URL}\n"
         "- On a physical Windows on ARM PC: install the 'OpenCL and OpenGL Compatibility Pack' "
         "from the Microsoft Store, then restart.\n"

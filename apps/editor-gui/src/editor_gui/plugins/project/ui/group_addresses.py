@@ -26,7 +26,7 @@ from editor_gui.widgets.tree import leaf_rows, tree_node
 
 if TYPE_CHECKING:
     from editor_gui.device import Device
-    from editor_gui.plugins.project.service import _Assignment
+    from editor_gui.plugins.project.service import Assignment
     from xknxeditor.proj.core.addressing import GroupAddressStyle
     from xknxeditor.proj.core.service import GroupRangeInfo
 
@@ -39,7 +39,7 @@ class GroupAddressesPanel:
     def __init__(
         self,
         get_range_tree: "Callable[[], list[GroupRangeInfo]]",
-        get_assignments_for_ga: "Callable[[int], list[_Assignment]]",
+        get_assignments_for_ga: "Callable[[int], list[Assignment]]",
         get_devices: "Callable[[], list[Device]]",
         on_create_ga: Callable[[str, str], None],
         on_rename_ga: Callable[[int, str], None],
@@ -48,7 +48,7 @@ class GroupAddressesPanel:
         on_set_ga_address: Callable[[int, str], bool] | None = None,
         on_set_ga_security: Callable[[int, str], bool] | None = None,
         take_requested_ga: Callable[[], int | None] | None = None,
-        on_create_range: Callable[[int | None, str], None] | None = None,
+        on_create_range: Callable[[int | None, str], object] | None = None,
         on_rename_range: Callable[[int, str], None] | None = None,
         on_remove_range: Callable[[int], None] | None = None,
         group_style: "Callable[[], GroupAddressStyle] | None" = None,
@@ -500,7 +500,7 @@ class GroupAddressesPanel:
     def _render_delete_range_popup(self) -> None:
         if self._on_remove_range is None:
             return
-        if not begin_dialog(S.GA_FOLDER_DELETE):
+        if not begin_dialog(S.GA_FOLDER_DELETE, width=420.0):
             return
         imgui.text_wrapped(S.GA_FOLDER_DELETE_CONFIRM)
         clicked = dialog_buttons(S.CONTEXT_DELETE, S.BTN_CANCEL)

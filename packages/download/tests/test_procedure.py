@@ -1470,6 +1470,10 @@ def _abs_segment_image() -> DownloadImage:
     )
 
 
+# LSM 3 as the application program object, so a parameter download keeps its segment.
+_APPLICATION_OBJECT = {0: 0, 3: 3}
+
+
 def _abs_segment_control() -> LdCtrlAbsSegment:
     return LdCtrlAbsSegment(
         lsm_idx=3,
@@ -1495,7 +1499,9 @@ async def test_abs_segment_writes_initialized_bytes_in_partial_scope_for_memory_
         application,
         _abs_segment_image(),
         DeviceProgrammer(device),
+        controls=[_abs_segment_control()],
         scope=DownloadScope.PARAMETERS,
+        object_types=_APPLICATION_OBJECT,
     )
 
     await runner.run()
@@ -1514,7 +1520,9 @@ async def test_abs_segment_keeps_the_parameter_mask_for_property_mapped_masks() 
         application,
         _abs_segment_image(),
         DeviceProgrammer(device),
+        controls=[_abs_segment_control()],
         scope=DownloadScope.PARAMETERS,
+        object_types=_APPLICATION_OBJECT,
     )
 
     await runner.run()

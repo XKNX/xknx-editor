@@ -24,6 +24,8 @@ class HexView:
         self._goto_param_buf: str = ""
         self._scroll_to: float | None = None
         self._child_h: float = 300.0
+        # Height the rows below the hex area took in the last frame (see draw).
+        self._footer_h: float | None = None
 
     def draw(
         self,
@@ -78,10 +80,12 @@ class HexView:
                 " ".join(fmt_byte.format(b) for b in data[sel_lo : sel_hi + 1])
             )
 
-        # Reserve footer height for options + preview + param rows
+        # Reserve the height of the rows below (options, preview and parameter rows): what they
+        # took in the last frame, so the window itself never needs a scrollbar; estimated in the
+        # first one.
         sp = imgui.get_style().item_spacing.y
         preview_rows = 9 if ref is not None else 8
-        footer_h = (
+        footer_h = self._footer_h or (
             imgui.get_frame_height_with_spacing() * 2
             + sp
             + imgui.get_text_line_height_with_spacing() * preview_rows
@@ -190,6 +194,7 @@ class HexView:
 
         imgui.pop_style_var(2)
         imgui.end_child()
+        footer_top = imgui.get_cursor_pos_y()
 
         if imgui.is_item_hovered():
             if io.key_ctrl and imgui.is_key_pressed(imgui.Key.a):  # type: ignore[attr-defined]
@@ -351,3 +356,4 @@ class HexView:
         else:
             _row("Parameter:", None)
             _row("Value:", None)
+        self._footer_h = imgui.get_cursor_pos_y() - footer_top

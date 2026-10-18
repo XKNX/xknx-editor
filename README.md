@@ -22,6 +22,13 @@ workflows which can auto-download PDF manuals from the manufacturers.
 Prebuilt apps for **Windows, Linux, and macOS** are attached to every release — grab the latest from
 the [Releases page](https://github.com/xknx/xknx-editor/releases/latest) and start it directly.
 
+On Windows, run `XKNX-Editor-windows-installer-x64.exe` (or `-arm64.exe` on Windows on ARM). It
+installs for the current user without administrator rights, adds a Start menu entry, a desktop
+shortcut and the `.xknx` file association (optionally also `.knxproj`, opened as an import), and
+can be removed in Apps & Features. In a virtual
+machine without a graphics driver, select "Software rendering" in the installer. The
+`XKNX-Editor-windows-portable-*.zip` archives run without installation.
+
 On macOS the app is not signed by Apple yet, so the first launch is blocked:
 
 <img src="docs/images/macwarning.png" alt="macOS Gatekeeper warning" width="200">
@@ -40,6 +47,15 @@ disk-image tool instead of launching):
 ```bash
 chmod +x XKNX-Editor-x86_64.AppImage && ./XKNX-Editor-x86_64.AppImage
 ```
+
+## Reporting problems
+
+Report a problem via **Feedback** in the menu bar, which opens the
+[issues page](https://github.com/xknx/xknx-editor/issues), and attach the log of the run in which
+it happened. **Help → Open Log Folder** opens the folder: every run writes its own
+`xknx-editor_<date>_<time>_<process>.log`, and the last 10 runs are kept. The folder is
+`%LOCALAPPDATA%\xknx-editor\xknx-editor\Logs` on Windows, `~/Library/Logs/xknx-editor` on macOS
+and `~/.local/state/xknx-editor/log` on Linux.
 
 ## Features
 

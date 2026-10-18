@@ -60,8 +60,10 @@ with open(_fingerprint, "w", encoding="ascii") as _f:
 _datas.append((_fingerprint, "editor_gui"))
 
 # Trim collected data we never ship: imgui_bundle's demo playground + its assets (the app has its
-# own fonts/icon), and .pyi type stubs (dev-only, not used at runtime). Saves ~6-7 MB.
-_SKIP_DIRS = ("imgui_bundle/demos_python", "imgui_bundle/demos_assets")
+# own fonts/icon), and .pyi type stubs (dev-only, not used at runtime). Saves ~6-7 MB. Bytecode
+# caches a local test run leaves in the source tree are not data either (their long names also
+# came close to the Windows path limit of an installation).
+_SKIP_DIRS = ("imgui_bundle/demos_python", "imgui_bundle/demos_assets", "__pycache__")
 
 
 def _keep(dst):

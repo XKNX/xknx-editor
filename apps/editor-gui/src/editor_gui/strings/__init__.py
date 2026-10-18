@@ -637,6 +637,60 @@ class MenuStrings:
         )
 
     @property
+    def EXPORT_PROGRESS_TEXT(self) -> str:
+        return _("Exporting {name} — this can take a while for large projects.")
+
+    @property
+    def EXPORT_STAGE_BUNDLE(self) -> str:
+        return _("Collecting the manufacturer data…")
+
+    @property
+    def EXPORT_STAGE_WRITE(self) -> str:
+        return _("Writing the archive…")
+
+    @property
+    def EXPORT_STAGE_CERTIFICATE(self) -> str:
+        return _("Getting the certificate from MyKnx…")
+
+    @property
+    def EXPORT_STAGE_CANCELLING(self) -> str:
+        return _("Cancelling…")
+
+    @property
+    def EXPORT_CANCELLED(self) -> str:
+        return _("Export cancelled, no file was written")
+
+    @property
+    def EXPORT_FAILED_TITLE(self) -> str:
+        return _("Export Failed")
+
+    @property
+    def EXPORT_FAILED_TEXT(self) -> str:
+        return _("The project could not be exported to {name}.")
+
+    @property
+    def EXPORT_FAILED_CERTIFICATE(self) -> str:
+        return _("MyKnx did not issue the certificate for the project:")
+
+    @property
+    def EXPORT_FAILED_CERTIFICATE_HINT(self) -> str:
+        return _(
+            "To export without it, choose 'Export Without Certificate' or 'License with a "
+            "Dongle…' in the Sign Export window."
+        )
+
+    @property
+    def EXPORT_FAILED_NOT_IMPORTABLE(self) -> str:
+        return _("{name} cannot be imported.")
+
+    @property
+    def EXPORT_FAILED_MISSING(self) -> str:
+        return _(
+            "The file was written, but it refers to product data that is not in the catalog: "
+            "{references}. Add these products to the catalog and export again."
+        )
+
+    @property
     def MYKNX_SIGN_TITLE(self) -> str:
         return _("Sign Export")
 
@@ -1249,13 +1303,16 @@ class MenuStrings:
 
     @property
     def OVERWRITE_TITLE(self) -> str:
-        return _("Replace existing file?")
+        return _("Replace File")
+
+    @property
+    def OVERWRITE_HEADING(self) -> str:
+        return _("{name} already exists.")
 
     @property
     def OVERWRITE_PROMPT(self) -> str:
         return _(
-            "A file named {name} already exists in:\n{dir}\n\n"
-            "Saving here replaces its current contents. This cannot be undone."
+            "It is in {dir}. Replacing it overwrites its current content; this cannot be undone."
         )
 
     @property
@@ -1385,6 +1442,25 @@ class MenuStrings:
         return _("Download")
 
     @property
+    def UPDATE_INSTALL(self) -> str:
+        return _("Install Update")
+
+    @property
+    def UPDATE_INSTALL_HINT(self) -> str:
+        return _(
+            "Install Update downloads the installer, closes XKNX Editor and starts it again "
+            "with the open project."
+        )
+
+    @property
+    def PROGRESS_DOWNLOAD_UPDATE(self) -> str:
+        return _("Downloading the update…")
+
+    @property
+    def UPDATE_DOWNLOAD_PROGRESS(self) -> str:
+        return _("{done} of {total} MB")
+
+    @property
     def UPDATE_SKIP(self) -> str:
         return _("Skip This Version")
 
@@ -1411,6 +1487,10 @@ class MenuStrings:
     @property
     def MENU_OPEN_CACHE_DIR(self) -> str:
         return _("Open Cache Folder")
+
+    @property
+    def MENU_OPEN_LOG_DIR(self) -> str:
+        return _("Open Log Folder")
 
     # --- compact project ------------------------------------------------
     @property
