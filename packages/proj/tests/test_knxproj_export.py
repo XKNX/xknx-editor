@@ -625,10 +625,11 @@ def test_export_converts_legacy_manufacturer_schema(tmp_path: Path) -> None:
     assert b"4.1.1207.40711" not in rewritten
 
 
-def test_export_keeps_manufacturer_at_its_own_schema(tmp_path: Path) -> None:
-    """A project/23 export carrying a device whose product data is project/20 keeps that
-    manufacturer data at /20 while the project files stay /23 — exactly what ETS writes (verified
-    against a real ETS6.3 export). No conversion, no 'schema mismatch' error."""
+def test_export_converts_older_manufacturer_schema_up(tmp_path: Path) -> None:
+    """A project/23 export carrying a device whose product data is project/20 converts that
+    manufacturer data up to /23 (namespace and tool identity, the rest unchanged) — what ETS6
+    writes: an OpenKNX application in an ETS 6.4 export differs from its project/20 .knxprod only
+    there, and ETS6 rejects a project/20 member ("unsupported namespace 'project/20'")."""
     src = tmp_path / "src.xknx"
     svc = ProjectService()
     pid = svc.create(src, "P-MOD")
@@ -636,7 +637,8 @@ def test_export_keeps_manufacturer_at_its_own_schema(tmp_path: Path) -> None:
     out = tmp_path / "out.knxproj"
     v20_hardware = (
         b'<?xml version="1.0" encoding="utf-8"?>\n'
-        b'<KNX xmlns="http://knx.org/xml/project/20"><ManufacturerData/></KNX>'
+        b'<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="OpenKNXproducer" '
+        b'ToolVersion="4.3.9.0"><ManufacturerData/></KNX>'
     )
     result = export_knxproj(
         src,
@@ -646,14 +648,17 @@ def test_export_keeps_manufacturer_at_its_own_schema(tmp_path: Path) -> None:
     )
     assert result.schema == "23"  # project files follow the requested schema
     members = _archive_members(out)
-    # manufacturer data kept at its own /20 (not converted up, not rejected)
-    assert b"http://knx.org/xml/project/20" in members["M-0001/Hardware.xml"]
+    hardware = members["M-0001/Hardware.xml"]
+    assert b'xmlns="http://knx.org/xml/project/23"' in hardware
+    assert b"project/20" not in hardware
+    assert b'CreatedBy="ETS6"' in hardware
+    assert b"OpenKNXproducer" not in hardware
+    assert hardware.endswith(b"<ManufacturerData/></KNX>")
 
 
-def test_export_allows_mixed_manufacturer_schemas(tmp_path: Path) -> None:
-    """Manufacturer data from different eras (project/20 and project/23) coexists in one project/23
-    archive, each folder keeping its own schema — ETS reads each M-folder by its own namespace, so
-    this is NOT an error."""
+def test_export_aligns_mixed_manufacturer_schemas(tmp_path: Path) -> None:
+    """Manufacturer data from different eras (project/20 and project/23) in one project/23 archive
+    all ends up at /23, as ETS6 writes it; this is NOT an error."""
     src = tmp_path / "src.xknx"
     svc = ProjectService()
     pid = svc.create(src, "P-MIX")
@@ -678,7 +683,7 @@ def test_export_allows_mixed_manufacturer_schemas(tmp_path: Path) -> None:
     )
     assert result.schema == "23"
     members = _archive_members(out)
-    assert b"http://knx.org/xml/project/20" in members["M-0001/Hardware.xml"]
+    assert b"http://knx.org/xml/project/23" in members["M-0001/Hardware.xml"]
     assert b"http://knx.org/xml/project/23" in members["M-0002/Hardware.xml"]
 
 

@@ -335,10 +335,6 @@ def _provenance_schema(
     return None
 
 
-_LEGACY_SCHEMA_MAX = (
-    14  # project/10..14 are the ETS3/4-era family converted up on export
-)
-
 _PARAM_TYPE_SELF_CLOSED = re.compile(rb"(<ParameterType\b[^>]*?)/>")
 _PARAM_TYPE_EMPTY_PAIR = re.compile(rb"(<ParameterType\b[^>]*?>)</ParameterType>")
 
@@ -386,21 +382,23 @@ def _fill_empty_parameter_types(data: bytes) -> bytes:
 def _heal_manufacturer_member(data: bytes, schema: str) -> bytes:
     """Heal one manufacturer XML member for the archive.
 
-    A member whose modern schema differs from the project's (e.g. a project/20 product inside a
-    project/23 archive) is kept verbatim at its OWN namespace and tool identity — exactly what ETS
-    writes (the kept member keeps its original ``CreatedBy="ETS5"``). A legacy (project/<=14) member
-    is converted up to the project schema (namespace + released tool identity). A member already at
-    the project schema has an unreleased tool identity restamped. Childless parameter types are
-    always filled (ETS aborts the import with a NullReferenceException otherwise)."""
+    A member of an older schema than the project's (a project/20 product inside a project/23
+    archive, or a legacy project/<=14 one) is converted up to the project schema: namespace and
+    released tool identity, the rest unchanged — exactly what ETS writes (a project/20 OpenKNX
+    application in an ETS6 export differs from its .knxprod only in the root's namespace and
+    ``CreatedBy``/``ToolVersion``), and ETS6 rejects an archive with a project/20 member
+    ("unsupported namespace"). A member of a newer schema cannot be converted down: it is kept
+    verbatim and reported (:func:`_schema_incompatible_folders`). A member already at the project
+    schema has an unreleased tool identity restamped. Childless parameter types are always filled
+    (ETS aborts the import with a NullReferenceException otherwise)."""
     detected = _schema_from_knx_xml(data)
     if detected is not None and detected != schema:
-        if int(detected) <= _LEGACY_SCHEMA_MAX:
+        if detected.isdigit() and schema.isdigit() and int(detected) < int(schema):
             data = data.replace(
                 f'xmlns="http://knx.org/xml/project/{detected}"'.encode(),
                 f'xmlns="http://knx.org/xml/project/{schema}"'.encode(),
             )
             data = _restamp_tool_identity(data, schema)
-        # Modern mismatch: keep the namespace and the original tool identity verbatim.
         return _fill_empty_parameter_types(data)
     data = _restamp_tool_identity(data, schema)
     return _fill_empty_parameter_types(data)
