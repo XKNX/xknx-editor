@@ -2,8 +2,8 @@
 
 The package's *own* models (no IR import), modelled as a slice of the KNX IR
 (`xknxeditor.namespaces.intermediate`) so a future `.knxproj` converter stays a plain field mapping.
-Rows are keyed by internal autoincrement integers; the `.knxproj` `id`/`puid` strings are a boundary
-concern and not persisted.
+Rows are keyed by internal autoincrement integers; an imported element keeps its `.knxproj` `Id` and
+`Puid` (``source_id``/``puid``) for the export, which reuses them.
 
 Layout: ``Installation → Area → Line → Segment → Device``, with group addresses in their own
 recursive ``GroupRange`` tree. ``Event`` holds undo/redo history (see :mod:`.core.event_store`); the
@@ -28,6 +28,20 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
 class Base(DeclarativeBase):
     """Declarative base shared by every project ORM model."""
+
+
+class _SourcePuid:
+    """The element's ``@Puid`` in the imported .knxproj, reused on export so a round trip keeps
+    it. None for an element created in the editor."""
+
+    puid: Mapped[int | None] = mapped_column(Integer)
+
+
+class _SourceIdentity(_SourcePuid):
+    """The element's ``@Id`` and ``@Puid`` in the imported .knxproj, reused on export so a round
+    trip keeps them. Empty/None for an element created in the editor."""
+
+    source_id: Mapped[str] = mapped_column(String, nullable=False, default="")
 
 
 class Project(Base):
@@ -66,9 +80,11 @@ class Project(Base):
     )
     knx_validation: Mapped[str] = mapped_column(Text, nullable=False, default="")
     knx_certificate: Mapped[str] = mapped_column(Text, nullable=False, default="")
-    # The project id (P-XXXX) in the source .knxproj. The certificate/.validation are bound to it,
-    # so an export of a protected project must reuse this id.
+    # The project id (P-XXXX) in the source .knxproj. The export writes the project under it (the
+    # project's own ``id`` stays unique among the open projects); empty for a project created here.
     original_project_id: Mapped[str] = mapped_column(String, nullable=False, default="")
+    # The source's ``ProjectInformation/@LastUsedPuid``: the export numbers new elements after it.
+    last_used_puid: Mapped[int | None] = mapped_column(Integer)
     # The ProjectInformation free-text comment, carried over so a round-trip preserves it.
     comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
     # ProjectInformation attributes xknxproject does not surface (ProjectStart, ProjectNumber,
@@ -143,6 +159,10 @@ class Installation(Base):
     # The installation's ``<P2PLinks>`` subtree (point-to-point links incl. their keys/endpoint
     # security), captured verbatim (namespace-stripped XML) and re-emitted. Empty when absent.
     p2p_links_xml: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # The source's ``@DefaultLine`` (a line ``@Id``), written back on export: "" when an imported
+    # installation had none (so none is written), None when unknown (created in the editor or
+    # imported before this was kept), for which the export picks a line holding devices.
+    default_line: Mapped[str | None] = mapped_column(String)
 
     areas: Mapped[list["Area"]] = relationship(
         back_populates="installation", cascade="all, delete-orphan"
@@ -164,7 +184,7 @@ class Installation(Base):
     unassigned_devices_xml: Mapped[list[str] | None] = mapped_column(JSON)
 
 
-class Area(Base):
+class Area(_SourceIdentity, Base):
     """A topology area (address bits 12-15)."""
 
     __tablename__ = "areas"
@@ -185,7 +205,7 @@ class Area(Base):
     )
 
 
-class Line(Base):
+class Line(_SourceIdentity, Base):
     """A topology line (address bits 8-11); individual addresses are unique per line."""
 
     __tablename__ = "lines"
@@ -211,7 +231,7 @@ class Line(Base):
     )
 
 
-class Segment(Base):
+class Segment(_SourceIdentity, Base):
     """A media segment of a line, holding the medium type (e.g. ``MT-0`` TP / ``MT-5`` IP)."""
 
     __tablename__ = "segments"
@@ -233,6 +253,9 @@ class Segment(Base):
     )
     # The segment's security ``MasterSalt`` (project/23 Segment attr), kept verbatim. None if absent.
     master_salt: Mapped[str | None] = mapped_column(String)
+    # The ``<BusAccess>`` attributes (``Name``, ``Parameter``): the bus access last used for this
+    # segment (project/22+23 Segment, project/14+20 Line child), kept verbatim. None if absent.
+    bus_access: Mapped[dict[str, str] | None] = mapped_column(JSON)
 
     line: Mapped["Line"] = relationship(back_populates="segments")
     devices: Mapped[list["Device"]] = relationship(
@@ -240,7 +263,7 @@ class Segment(Base):
     )
 
 
-class Device(Base):
+class Device(_SourcePuid, Base):
     """A device instance. ``address`` is the 0-255 individual-address octet, unique per line.
 
     ``product_ref_id`` is the purchased catalog product; ``hardware2program_ref_id`` is the loaded
@@ -505,7 +528,7 @@ class ComObject(Base):
     )
 
 
-class GroupRange(Base):
+class GroupRange(_SourceIdentity, Base):
     """A node in the recursive group-address range tree (main → middle under ThreeLevel)."""
 
     __tablename__ = "group_ranges"
@@ -538,7 +561,7 @@ class GroupRange(Base):
     )
 
 
-class GroupAddress(Base):
+class GroupAddress(_SourcePuid, Base):
     """A group address held in a leaf group range."""
 
     __tablename__ = "group_addresses"
@@ -600,7 +623,7 @@ class ComObjectLink(Base):
     group_address: Mapped["GroupAddress"] = relationship(back_populates="links")
 
 
-class Space(Base):
+class Space(_SourceIdentity, Base):
     """A node in the building/location tree (recursive: building -> floor -> room -> ...), imported
     from the .knxproj project's locations. ``space_type`` is the project type string (e.g. ``Building``,
     ``Floor``, ``Room``). ``order`` preserves the project's original sibling order."""
@@ -639,7 +662,7 @@ class Space(Base):
     )
 
 
-class Function(Base):
+class Function(_SourceIdentity, Base):
     """A function assigned to a space (``Function``): a named grouping of group addresses by
     role (e.g. a light's switch/status/dimming addresses)."""
 
@@ -669,7 +692,7 @@ class Function(Base):
     )
 
 
-class FunctionGroupAddress(Base):
+class FunctionGroupAddress(_SourceIdentity, Base):
     """A group address referenced by a function, with its ``role`` within that function."""
 
     __tablename__ = "function_group_addresses"
@@ -693,7 +716,7 @@ class FunctionGroupAddress(Base):
     )
 
 
-class Trade(Base):
+class Trade(_SourcePuid, Base):
     """A trade (Gewerke): a named grouping of devices by discipline, in a recursive tree, imported
     from the .knxproj Installation ``Trades``. ``order`` preserves the original sibling order.
 
