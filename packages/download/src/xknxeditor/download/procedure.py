@@ -2008,7 +2008,10 @@ class LoadProcedureRunner:
         application_id = _application_id(self.application)
         static = getattr(self.application.program, "static", None)
         options = getattr(static, "options", None) if static is not None else None
-        patch = mapped is not None or (
+        # Only applications that ask for it (LegacyPatchManufacturerIdInTaskSegment)
+        # replace the manufacturer with 0x0002. BIM M112 product procedures such as
+        # the Berker 8014 keep their own id; ETS writes 0006 E052 12 there.
+        patch = (
             options is not None and options.legacy_patch_manufacturer_id_in_task_segment
         )
         if patch:

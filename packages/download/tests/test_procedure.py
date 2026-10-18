@@ -1309,10 +1309,32 @@ async def test_m112_pei_task_segment_skips_missing_status() -> None:
     ]
 
 
-async def test_m112_task_segment_patches_manufacturer() -> None:
-    """ETS writes manufacturer 0x0002 into BIM M112 AllocAbsTask records."""
+async def test_m112_task_segment_keeps_manufacturer() -> None:
+    """ETS writes the product manufacturer into BIM M112 AllocAbsTask records."""
     application = _m112_application(
         LdCtrlTaskSegment(lsm_idx=1, address=0x4000, occurrence=0)
+    )
+    runner, device = _runner(application, _empty_image())
+    device.load_states[1] = LoadState.LOADING
+
+    await runner.run()
+
+    writes = [
+        payload
+        for payload in device.sent
+        if isinstance(payload, MemoryWrite) and payload.address == 0x0104
+    ]
+    # M-0072, application 1, version 1. Not replaced with 0x0002.
+    assert writes[0].data == bytes.fromhex("1302004000010072000101")
+
+
+async def test_m112_task_segment_patches_manufacturer_when_requested() -> None:
+    """LegacyPatchManufacturerIdInTaskSegment still forces manufacturer 0x0002."""
+    application = _m112_application(
+        LdCtrlTaskSegment(lsm_idx=1, address=0x4000, occurrence=0)
+    )
+    application.program.static = SimpleNamespace(  # type: ignore[attr-defined]
+        options=SimpleNamespace(legacy_patch_manufacturer_id_in_task_segment=True)
     )
     runner, device = _runner(application, _empty_image())
     device.load_states[1] = LoadState.LOADING

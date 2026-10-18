@@ -633,7 +633,24 @@ def _group_communication_segments(
                 for ref_id in ui.instantiated_com_object_ref_ids()
                 if ref_id in number_of
             }
-            object_numbers = set(number_of.values())
+            referenced_numbers = set(number_of.values())
+            # The static table also holds objects with no dynamic ComObjectRef
+            # (unused channels, antitheft, …). Their seed still has the
+            # communication bit set. ETS clears that bit; leaving it makes
+            # LoadCompleted checksum the wrong image and enter ERROR.
+            table_numbers = {
+                com_object.number for com_object in com_object_table.com_object
+            }
+            # The first octet is the number of 4-octet records. Holes in the
+            # numbering (no ComObject at all) still carry the seed's
+            # communication bit; ETS clears every slot in that count.
+            record_count = seed[0][0]
+            if (
+                record_count
+                and _COM_OBJECT_HEADER + record_count * _COM_OBJECT_RECORD
+                <= len(seed[0])
+            ):
+                table_numbers.update(range(record_count))
             # BCU1 keeps the address, association and group-object tables inside the
             # one EEPROM segment. A System-B record laid out from the segment start
             # overwrites the application id and the table pointers.
@@ -642,7 +659,7 @@ def _group_communication_segments(
                     seed[0],
                     ui,
                     linked_numbers,
-                    object_numbers,
+                    referenced_numbers,
                     active_numbers or None,
                     com_object_table.offset or 0,
                 )
@@ -656,7 +673,7 @@ def _group_communication_segments(
                     seed[0],
                     ui,
                     linked_numbers,
-                    object_numbers,
+                    table_numbers | referenced_numbers,
                     active_numbers or None,
                 )
                 # Flag/size overlay sits on the manufacturer seed (header and data

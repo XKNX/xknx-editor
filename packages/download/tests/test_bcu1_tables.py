@@ -157,3 +157,38 @@ def test_system_b_overlay_still_starts_at_the_segment() -> None:
     assert eeprom.initialized_mask[0x0D] == 0xFF
     association = next(segment for segment in segments if segment.address == 0x013B)
     assert association.data == bytes.fromhex("010101")
+
+
+def test_m112_clears_communication_without_a_dynamic_ref() -> None:
+    """A static group object with no ComObjectRef must not keep the seed's communication bit."""
+    application = _application("MV-0701")
+    application.program.static.com_object_table.com_object.append(
+        SimpleNamespace(id="O-3", number=3)
+    )
+    nodes = [
+        _com_object(0, read=False, write=True, transmit=False, update=True),
+        _com_object(1, read=True, write=True, transmit=True, update=True),
+        _com_object(2, read=True, write=False, transmit=False, update=True),
+    ]
+    seed = bytearray(_seed())
+    # Five records: object 3 is static-only, object 4 is a hole with no ComObject.
+    seed[0] = 5
+    seed[5 + 3 * 4] = 0xCF
+    seed[5 + 4 * 4] = 0xDF
+    segments = _group_communication_segments(
+        application,  # type: ignore[arg-type]
+        _UI(nodes),  # type: ignore[arg-type]
+        {_SEGMENT: _BASE},
+        {_SEGMENT: (bytes(seed), b"\x00" * len(seed))},
+        GroupCommunication(
+            device_address=0x1133,
+            links=(
+                GroupObjectLink(
+                    com_object_ref_id="O-1_R", group_address=0x090D, sending=True
+                ),
+            ),
+        ),
+    )
+    eeprom = next(segment for segment in segments if len(segment.data) == 256)
+    assert eeprom.data[5 + 3 * 4] == 0xCB
+    assert eeprom.data[5 + 4 * 4] == 0xDB
