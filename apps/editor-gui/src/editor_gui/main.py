@@ -752,6 +752,7 @@ class KnxGuiApp:
             S.FILE_DIALOG_PROJECT_SAVE_TITLE,
             f"{self._new_project_name.strip() or 'New project'}.xknx",
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
+            pfd.opt.force_overwrite,
         )
 
     def _save_as(self) -> None:
@@ -761,6 +762,7 @@ class KnxGuiApp:
             S.FILE_DIALOG_SAVE_AS_TITLE,
             "",
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
+            pfd.opt.force_overwrite,
         )
 
     def _open_project(self) -> None:
@@ -826,6 +828,7 @@ class KnxGuiApp:
             S.FILE_DIALOG_KNXPROJ_SAVE_TITLE,
             default,
             [S.FILE_DIALOG_KNXPROJ_FILTER, "*.knxproj", S.FILE_DIALOG_ALL_FILES, "*"],
+            pfd.opt.force_overwrite,
         )
 
     def _export_ga_export(self) -> None:
@@ -929,6 +932,7 @@ class KnxGuiApp:
             S.FILE_DIALOG_GA_EXPORT_SAVE_TITLE,
             default,
             [name, f"*{suffix}", S.FILE_DIALOG_ALL_FILES, "*"],
+            pfd.opt.force_overwrite,
         )
 
     def _do_export_ga_export(self, dest: str) -> None:
@@ -973,8 +977,25 @@ class KnxGuiApp:
         program_refs = self._project_service.program_refs()
         remove_unused = self._export_remove_unused
         password = self._project_service.project_password
+        # The signer shows its step in the progress window.
+        certificate_signer: Callable[[str, bytes, str], bytes | None] | None = None
+        if signer is not None:
+            sign = signer
+
+            def sign_with_stage(pid: str, signature: bytes, name: str) -> bytes | None:
+                self.set_progress(None, S.EXPORT_STAGE_CERTIFICATE)
+                return sign(pid, signature, name)
+
+            certificate_signer = sign_with_stage
 
         def _run() -> None:
+            try:
+                _export()
+            finally:
+                self._progress_running = False
+
+        def _export() -> None:
+            self.set_progress(None, S.EXPORT_STAGE_BUNDLE)
             self._log.debug(
                 "export knxproj",
                 dest=dest,
@@ -1001,6 +1022,7 @@ class KnxGuiApp:
                 self._log.warning(
                     "manufacturer bundle failed", error=f"{type(e).__name__}: {e}"
                 )
+            self.set_progress(None, S.EXPORT_STAGE_WRITE)
             try:
                 result = export_knxproj(
                     source,
@@ -1012,7 +1034,7 @@ class KnxGuiApp:
                     # Substitute the canonical signed master when the bundled one is unusable (e.g.
                     # a merged, unsigned master from a legacy multi-source project).
                     fetch_master=True,
-                    certificate_signer=signer,
+                    certificate_signer=certificate_signer,
                     remove_unused_products=remove_unused,
                 )
                 used_schema = result.schema
@@ -1126,6 +1148,7 @@ class KnxGuiApp:
                 )
                 self._show_export_failure(dest, str(e) or type(e).__name__)
 
+        self._begin_progress(S.EXPORT_PROGRESS_TEXT.format(name=Path(dest).name))
         self._myknx_thread = threading.Thread(target=_run, daemon=True)
         self._myknx_thread.start()
 
@@ -1903,10 +1926,13 @@ class KnxGuiApp:
         *,
         save_in_place_ok: bool = False,
         default_suffix: str | None = None,
+        confirmed: bool = False,
     ) -> None:
         """Run ``action`` now, or — if ``path`` already exists — ask for overwrite confirmation
-        first. The portable file dialog does not confirm replacing an existing file on macOS (it
-        wraps AppleScript's "choose file name"), so the guard lives here. ``save_in_place_ok`` skips
+        first. This is the one confirmation on every OS: the native save dialogs are opened with
+        ``force_overwrite`` (no prompt of their own, which they do not show the same way on every
+        OS). ``confirmed`` skips it for a path the save dialog already confirmed (the XDG portal
+        always asks), unless a suffix is appended to it here. ``save_in_place_ok`` skips
         the prompt when the target is the currently-open project itself (a plain save is no loss);
         it is NOT set for New/Import/Export, which would replace that file with different content.
         ``default_suffix`` mirrors the suffix the action appends to a suffixless path (``.xknx`` for
@@ -1915,6 +1941,7 @@ class KnxGuiApp:
         mid-confirmation never drops the first action."""
         if default_suffix is not None and not Path(path).suffix:
             path = str(Path(path).with_suffix(default_suffix))
+            confirmed = False
         target = Path(path)
         current = self._project_service.path
         same_as_open = (
@@ -1922,7 +1949,7 @@ class KnxGuiApp:
             and current is not None
             and target.resolve() == current.resolve()
         )
-        if target.exists() and not same_as_open:
+        if target.exists() and not same_as_open and not confirmed:
             self._overwrite_queue.append((path, action))
         else:
             action()
@@ -1943,9 +1970,9 @@ class KnxGuiApp:
             return
         path, action = self._overwrite_queue[0]
         target = Path(path)
-        imgui.text_wrapped(
-            S.OVERWRITE_PROMPT.format(name=target.name, dir=str(target.parent))
-        )
+        with heading():
+            imgui.text_wrapped(S.OVERWRITE_HEADING.format(name=target.name))
+        imgui.text_wrapped(S.OVERWRITE_PROMPT.format(dir=str(target.parent)))
         clicked = dialog_buttons(S.BTN_OVERWRITE, S.BTN_CANCEL)
         replace, cancel = clicked == 0, clicked == 1
         if replace or cancel:
@@ -2350,6 +2377,7 @@ class KnxGuiApp:
             S.FILE_DIALOG_PROJECT_SAVE_TITLE,
             Path(source).with_suffix(".xknx").name,
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
+            pfd.opt.force_overwrite,
         )
         self._log.debug("knxproj import destination dialog opened", source=source)
 
@@ -2362,6 +2390,7 @@ class KnxGuiApp:
             S.FILE_DIALOG_PROJECT_SAVE_TITLE,
             Path(source).with_suffix(".xknx").name,
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
+            pfd.opt.force_overwrite,
         )
 
     def _do_import_ga_export(self, source: str, dest: str) -> None:
@@ -2465,6 +2494,7 @@ class KnxGuiApp:
                         S.FILE_DIALOG_ALL_FILES,
                         "*",
                     ],
+                    pfd.opt.force_overwrite,
                 )
                 return
             if isinstance(dialog, PortalSaveDialog):
@@ -2478,7 +2508,9 @@ class KnxGuiApp:
             if result:
                 # Ask about MyKnx certificate signing before running the export.
                 self._maybe_overwrite_then(
-                    result, lambda r=result: self._begin_export_sign_prompt(r)
+                    result,
+                    lambda r=result: self._begin_export_sign_prompt(r),
+                    confirmed=isinstance(dialog, PortalSaveDialog),
                 )
 
         if (

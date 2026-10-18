@@ -637,6 +637,22 @@ class MenuStrings:
         )
 
     @property
+    def EXPORT_PROGRESS_TEXT(self) -> str:
+        return _("Exporting {name} — this can take a while for large projects.")
+
+    @property
+    def EXPORT_STAGE_BUNDLE(self) -> str:
+        return _("Collecting the manufacturer data…")
+
+    @property
+    def EXPORT_STAGE_WRITE(self) -> str:
+        return _("Writing the archive…")
+
+    @property
+    def EXPORT_STAGE_CERTIFICATE(self) -> str:
+        return _("Getting the certificate from MyKnx…")
+
+    @property
     def EXPORT_FAILED_TITLE(self) -> str:
         return _("Export Failed")
 
@@ -1279,13 +1295,16 @@ class MenuStrings:
 
     @property
     def OVERWRITE_TITLE(self) -> str:
-        return _("Replace existing file?")
+        return _("Replace File")
+
+    @property
+    def OVERWRITE_HEADING(self) -> str:
+        return _("{name} already exists.")
 
     @property
     def OVERWRITE_PROMPT(self) -> str:
         return _(
-            "A file named {name} already exists in:\n{dir}\n\n"
-            "Saving here replaces its current contents. This cannot be undone."
+            "It is in {dir}. Replacing it overwrites its current content; this cannot be undone."
         )
 
     @property
