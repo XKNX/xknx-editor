@@ -95,7 +95,9 @@ Load control:
   rather than the memory record.
 - ``LoadControl_M112`` is the 11-octet memory record. Octet 0 is
   ``(lsm << 4) | opcode``. An additional record inserts a reserved 0 after the
-  segment type. It is written only when ``PropertyMappedLsms`` is 0.
+  segment type. It is written only when ``PropertyMappedLsms`` is 0. When the
+  feature is 1 the events are property writes to the LSM index, and an index
+  with no LoadStatus (PEI on MV-0705) is not sent.
 
 A mask can carry two ``HawkConfigurationData`` blocks. The one with
 ``LegacyVersion`` unset is the mask. The other is an older view of the same
@@ -109,7 +111,7 @@ property). ``PropertyMappedLsms`` selects the ``lsm`` occurrence.
 a feature and not a flavour. A memory-mapped mask is not a reason to rewrite
 the task-segment manufacturer.
 
-The fixed line-coupler octets at ``0x010D``–``0x011C`` are still chosen by the
+The fixed line-coupler octets at ``0x010D``-``0x011C`` are still chosen by the
 091x mask family. No resource flavour describes that map.
 
 When a download mismatches ETS, read this mask's feature and flavours before
@@ -283,6 +285,26 @@ class MaskResources:
         if name is None:
             return None
         return self.memory_address(name)
+
+    def omits_load_event(self, index: int) -> bool:
+        """Whether a property-mapped ``LoadControl_M112`` mask has no status for ``index``.
+
+        MV-0705's procedure still lists an LSM 5 task segment and load after
+        restart. The mask publishes no PEI LoadStatus, and ETS does not send
+        those events. The LSM index is used as the object index, which on this
+        mask is the first application object; it rejects property 5.
+        """
+        if self.feature(MaskFeature.PROPERTY_MAPPED_LSMS) != 1:
+            return False
+        flavour = self.flavour(ResourceName.APPLICATION_LOAD_CONTROL)
+        if flavour is None:
+            flavour = self.flavour(ResourceName.GROUP_ADDRESS_TABLE_LOAD_CONTROL)
+        if flavour is not ResourceFlavour.LOAD_CONTROL_M112:
+            return False
+        name = _LSM_STATUS_RESOURCES.get(index)
+        if name is None:
+            return False
+        return self.location(name) is None
 
     def reserved_addresses(self) -> frozenset[int]:
         """Octets a segment write leaves untouched because the device owns them.

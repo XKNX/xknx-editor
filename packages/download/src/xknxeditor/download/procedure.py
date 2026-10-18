@@ -1023,6 +1023,9 @@ class LoadProcedureRunner:
         also_accept: load_state.LoadState | None = None,
     ) -> None:
         """Write a load event through the mask's LSM realisation."""
+        resources = bundled_mask_resources(self.application.program.mask_version)
+        if resources is not None and resources.omits_load_event(index):
+            return
         programmer = await self._bus()
         mapped = self._memory_lsm(index)
         if mapped is not None:

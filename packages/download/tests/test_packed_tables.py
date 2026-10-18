@@ -23,6 +23,7 @@ from xknxeditor.download.procedure import LoadProcedureRunner
 from xknxeditor.download.programmer import DeviceProgrammer
 from xknxeditor.download.project_data import GroupObjectLink
 from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import LdCtrlAbsSegment
+from xknxeditor.namespaces.intermediate.ld_ctrl_load_t import LdCtrlLoad
 from xknxeditor.namespaces.intermediate.ld_ctrl_task_segment_t import LdCtrlTaskSegment
 from xknxeditor.prod.parser_v2.ui.com_object import UiComObject
 
@@ -218,6 +219,34 @@ async def test_mv0705_allocates_the_packed_tables_as_properties() -> None:
     assert device.memory[0x4019] == 0x0D
     assert device.memory[0x401A] == 0x03
     assert 0x41FF not in device.memory
+
+
+async def test_mv0705_skips_the_pei_load_ets_does_not_send() -> None:
+    """The procedure's LSM 5 task segment and load are absent from the ETS record.
+
+    Object 5 is the first application object on MV-0705. It has no load-state
+    property, so the write comes back with zero elements.
+    """
+    application = cast("Application", _application("MV-0705"))
+    device = FakeDevice()
+    runner = LoadProcedureRunner(
+        application,
+        _image(association_address=0x4019),
+        DeviceProgrammer(device),
+        controls=[
+            LdCtrlTaskSegment(lsm_idx=5, address=0x43FE, occurrence=0),
+            LdCtrlLoad(lsm_idx=5),
+        ],
+    )
+
+    await runner.run()
+
+    assert not [
+        payload
+        for payload in device.sent
+        if isinstance(payload, PropertyValueWrite)
+        and payload.property_id == PID_LOAD_STATE_CONTROL
+    ]
 
 
 async def test_mv0701_still_allocates_the_declared_association_segment() -> None:

@@ -45,6 +45,8 @@ Hint: `uncovered` bytes, and the same bytes are present in the editor image at t
 
 Load control on that property-mapped mask is `PID_LOAD_STATE_CONTROL`, including when `LoadControl_M112` also publishes `0x0104`. The compare script checks memory bytes, not which transport carried the load event. `memory_mapped_lsm()` staying set is what keeps the absolute-segment procedure.
 
+The Merten 4806 procedure also lists an LSM 5 task segment and load after the restart. MV-0705 publishes no PEI LoadStatus, and ETS does not send them. Object 5 is `FirstAppObjectIdx`; a property write of PID 5 there is rejected with zero elements. Skip that LSM. A byte compare can still report `RESULT match`.
+
 ## What a matching Berker 8014 download contains
 
 ETS, programming individual address `1.1.4` from tool `15.15.4`:
