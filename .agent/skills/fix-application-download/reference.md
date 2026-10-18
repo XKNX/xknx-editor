@@ -1,0 +1,50 @@
+# Download mismatches seen against ETS
+
+Use a section only when `compare_ets_download.py` reports that class. Re-run the script after the change.
+
+## Group-object communication bit
+
+Hint: `group_object_communication` or `communication_bit`.
+
+The manufacturer seed leaves bit `0x04` set on every group-object slot. ETS clears it for slots that are not communicating. Two kinds of slot are easy to miss:
+
+- A static `ComObject` with no dynamic `ComObjectRef` (unused channel, antitheft, alarm).
+- A hole: the table count in the first octet includes a number that has no `ComObject` at all.
+
+On the 4-octet table (5-byte header) the flag sits at `segment + 5 + number * 4`. The diff is only bit `0x04` (`0xDF` vs `0xDB`, `0xCF` vs `0xCB`). `LoadCompleted` then checksums the wrong image and that LSM enters `ERROR`.
+
+The overlay is `_group_communication_segments` / `_build_com_object_table` in `packages/download/src/xknxeditor/download/image.py`. Include every static com-object number, and every slot in `range(seed[0])` when `5 + count * 4` fits in the segment. A linked object keeps the bit.
+
+BCU1 (mask `0x001x` / `0x002x`, such as the Siemens N 561) keeps the address, association, and group-object tables inside one EEPROM segment. That path must stay on `_bcu1_com_object_overlay`. Laying a System-B record out from the start of the segment overwrites the application id and the table pointers.
+
+## Task-segment manufacturer
+
+Hint: `task segment app … != editor`.
+
+`AllocAbsTask` carries a 5-octet application id: manufacturer (2), application number (2), version (1). ETS writes the product's own id. For the Berker 8014 (`M-0006`, application `0xE052`, version `0x12`, mask `MV-0701`) that is `0006e05212`.
+
+`_task_segment` in `packages/download/src/xknxeditor/download/procedure.py` may replace the manufacturer with `0x0002` only when the application sets `LegacyPatchManufacturerIdInTaskSegment`. A memory-mapped mask is not a reason to patch. BIM M112 product procedures keep their own id.
+
+The id is not inside the EEPROM image. It lives only in the task-segment load-control record, which is why a clean memory compare can still fail on the device.
+
+## BIM M112 load control
+
+Mask `MV-0701` (`LoadControl_M112`) uses one 11-octet memory record, usually at `0x0104`, not `PID_LOAD_STATE_CONTROL`. The script prints these as `memory LSM…`.
+
+Octet 0 is `(lsm << 4) | opcode` (`1` load, `2` complete, `3` additional, `4` unload). An additional record inserts a reserved `0` after the segment type. Absolute data keeps the property-format length. Encoding is `memory_mapped_control` in `packages/download/src/xknxeditor/download/load_state.py`.
+
+Status bytes come from the mask's `LoadStatus` resources (`packages/download/src/xknxeditor/download/resources.py`). `MV-0701` has no PEI `LoadStatus`. Skip that `AllocAbsTask`. Inventing the next address (for example `0xB6EE`) makes the device stop answering.
+
+`object 3 entered ERROR` on this mask is application `LoadCompleted` (`LSM 3`), after the address table (`LSM 1`) and association table (`LSM 2`) have already loaded.
+
+## What a matching Berker 8014 download contains
+
+ETS, programming individual address `1.1.4` from tool `15.15.4`:
+
+- Memory load control at `0x0104`, 11 octets.
+- Unload, load, absolute segment, task segment, complete for LSM 1 at `0x4000` and LSM 2 at `0x41FF`.
+- LSM 3: RAM segment, one-byte stack, then the EEPROM segment at `0x43FE` (checksum attribute `0x80`), its task segment `0006e05212`, then complete.
+- The address table and association table were read and not rewritten.
+- A property write and a restart follow the loads.
+
+After the communication-bit and manufacturer fixes, the script reports `RESULT match` for that dump against the saved project.
