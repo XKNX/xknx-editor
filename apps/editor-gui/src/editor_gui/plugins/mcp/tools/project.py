@@ -78,6 +78,15 @@ def _device_dict(device: Device) -> dict[str, Any]:
     }
 
 
+def _additional_address_dict(entry: Any) -> dict[str, Any]:
+    return {
+        "index": entry.index,
+        "address": entry.address,
+        "name": entry.name,
+        "description": entry.description,
+    }
+
+
 def _ga_dict(g: Any) -> dict[str, Any]:
     return {
         "id": g.id,
@@ -708,8 +717,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_get_device(node_id: int) -> dict[str, Any]:
         """Read a project device using node_id from project_list_devices. Returns
         {node_id, name, individual_address, description}, plus {product_ref_id, hardware2program_ref_id,
-        order_number, hardware_name, product_name, manufacturer_name} when catalog metadata is
-        available. individual_address is null when unset."""
+        order_number, hardware_name, product_name, manufacturer_name, additional_addresses} when
+        catalog metadata is available. individual_address is null when unset. additional_addresses
+        lists the device's additional individual addresses (the tunnelling addresses of an IP
+        interface) as {index, address, name, description}; index is 1-based (the AddressIndex of a
+        tunnelling interface), address an "a.l.d" string or null for an entry without one."""
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id)
@@ -723,6 +735,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "hardware_name": info.hardware_name,
                     "product_name": info.product_name,
                     "manufacturer_name": info.manufacturer_name,
+                    "additional_addresses": [
+                        _additional_address_dict(entry)
+                        for entry in info.additional_addresses
+                    ],
                 }
             return data
 
@@ -1202,6 +1218,80 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             return _device_dict(updated)
 
         return ctx.run_locked(_set)
+
+    @tool
+    def project_set_additional_address(
+        node_id: int,
+        index: int,
+        address: str | None,
+        name: str | None = None,
+        description: str | None = None,
+    ) -> dict[str, Any]:
+        """Set an additional individual address of a project device (a tunnelling address of an
+        IP interface) using node_id from project_list_devices. index is 1-based (see
+        additional_addresses in project_get_device; entries up to it are created). address is an
+        "a.l.d" string in the device's own line, or a device number 1-255; null or "" clears it.
+        It must not be used by a device or another additional address of the line. name and
+        description, when given, are set too. Each change is one undo step (project_undo).
+        Returns {node_id, additional_addresses}. This does not write the bus; a full download of
+        the device writes the addresses."""
+        from xknxeditor.proj import AdditionalAddressError
+
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            _require_device(node_id)
+            try:
+                project.set_additional_address(node_id, index, address)
+                if name is not None:
+                    project.set_additional_address_name(node_id, index, name)
+                if description is not None:
+                    project.set_additional_address_description(
+                        node_id, index, description
+                    )
+            except IndexError as exc:
+                raise ToolError(f"invalid index {index}; use 1 to 255") from exc
+            except AdditionalAddressError as exc:
+                raise ToolError(str(exc)) from exc
+            return {
+                "node_id": node_id,
+                "additional_addresses": [
+                    _additional_address_dict(entry)
+                    for entry in project.additional_addresses(node_id)
+                ],
+            }
+
+        return ctx.run_locked(_set)
+
+    @tool
+    def project_assign_additional_addresses(
+        node_id: int, count: int | None = None
+    ) -> dict[str, Any]:
+        """Assign the missing additional individual addresses of a project device (the
+        tunnelling addresses of an IP interface) using node_id from project_list_devices: entries
+        are created up to count (default: as many as the device's application has) and every
+        entry without an address gets one, the highest free device numbers of the device's line
+        counting down from 255. One undo step (project_undo). Fails when the line has too few free
+        addresses. Returns {node_id, additional_addresses}, each {index, address, name,
+        description}."""
+        from xknxeditor.proj import AdditionalAddressError
+
+        require_project(ctx)
+
+        def _assign() -> dict[str, Any]:
+            device = _require_device(node_id)
+            try:
+                entries = project.assign_additional_addresses(device, count)
+            except AdditionalAddressError as exc:
+                raise ToolError(str(exc)) from exc
+            return {
+                "node_id": node_id,
+                "additional_addresses": [
+                    _additional_address_dict(entry) for entry in entries
+                ],
+            }
+
+        return ctx.run_locked(_assign)
 
     @tool
     def project_set_serial_number(node_id: int, serial_number: str) -> dict[str, Any]:

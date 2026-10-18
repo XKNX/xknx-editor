@@ -2038,3 +2038,39 @@ msgstr "Seriennummer bereits verwendet"
 
 msgid "Cancelled by user."
 msgstr "Vom Benutzer abgebrochen."
+
+msgid "Additional Individual Addresses"
+msgstr "Zusätzliche physikalische Adressen"
+
+msgid "Additional Individual Address"
+msgstr "Zusätzliche physikalische Adresse"
+
+msgid "Assign Missing Addresses"
+msgstr "Fehlende Adressen zuweisen"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "Die Linie enthält nicht genügend freie Adressen für alle notwendigen zusätzlichen Adressen."
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "Geben Sie eine Teilnehmernummer von 1 bis 255 oder eine vollständige physikalische Adresse in der Linie des Geräts ein."
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "Eine zusätzliche Adresse muss in der Linie {line} des Geräts liegen."
+
+msgid "The individual address {address} is already used in this line."
+msgstr "Die physikalische Adresse {address} wird in dieser Linie bereits verwendet."
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "Zusätzliche Adresse des Gerätes '{0}' von '{1}' auf '{2}' gesetzt."
+
+msgid "Change additional address names"
+msgstr "Namen der zusätzlichen Adressen ändern"
+
+msgid "Change additional address descriptions"
+msgstr "Beschreibungen der zusätzlichen Adressen ändern"
+
+msgid "Assign additional addresses"
+msgstr "Zusätzliche Adressen zuweisen"
+
+msgid "Change additional addresses"
+msgstr "Zusätzliche Adressen ändern"

@@ -2937,5 +2937,61 @@ class ProjectStrings:
     def SPACE_NUMBER(self) -> str:
         return _("Number")
 
+    @property
+    def CONFIGURE_ADDITIONAL_ADDRESSES(self) -> str:
+        return _("Additional Individual Addresses")
+
+    @property
+    def CONFIGURE_ADDITIONAL_ADDRESS(self) -> str:
+        return _("Additional Individual Address")
+
+    @property
+    def BTN_ASSIGN_ADDITIONAL_ADDRESSES(self) -> str:
+        return _("Assign Missing Addresses")
+
+    @property
+    def ADDITIONAL_ADDRESSES_NOT_ENOUGH(self) -> str:
+        return _(
+            "The line does not provide enough addresses for all necessary additional addresses."
+        )
+
+    @property
+    def ADDITIONAL_ADDRESS_INVALID(self) -> str:
+        return _(
+            "Enter a device number from 1 to 255 or a full individual address in the device's line."
+        )
+
+    @property
+    def ADDITIONAL_ADDRESS_OTHER_LINE(self) -> str:
+        return _("An additional address must be in the device's line {line}.")
+
+    @property
+    def ADDITIONAL_ADDRESS_IN_USE(self) -> str:
+        return _("The individual address {address} is already used in this line.")
+
+    @property
+    def HISTORY_ADDITIONAL_ADDRESS_CHANGED(self) -> str:
+        return _("Changed additional address of device '{0}' from '{1}' to '{2}'.")
+
+    @property
+    def HISTORY_ADDITIONAL_ADDRESS_NAMES(self) -> str:
+        return _("Change additional address names")
+
+    @property
+    def HISTORY_ADDITIONAL_ADDRESS_DESCRIPTIONS(self) -> str:
+        return _("Change additional address descriptions")
+
+    @property
+    def HISTORY_ASSIGN_ADDITIONAL_ADDRESSES(self) -> str:
+        return _("Assign additional addresses")
+
+    @property
+    def HISTORY_ADDITIONAL_ADDRESSES(self) -> str:
+        return _("Change additional addresses")
+
+    @property
+    def ADDITIONAL_ADDRESS_INDEX(self) -> str:
+        return "#"
+
 
 S = ProjectStrings()

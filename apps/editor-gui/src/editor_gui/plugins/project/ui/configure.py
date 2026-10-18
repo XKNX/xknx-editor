@@ -63,6 +63,7 @@ from editor_gui.widgets.module_table import (
 
 _log = structlog.get_logger("configure")
 _PLUGIN_NOTICE_COLOR = imgui.ImVec4(0.95, 0.75, 0.35, 1.0)
+_ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
 
 
 def _move_cursor_up(distance: float) -> None:
@@ -295,6 +296,10 @@ class ConfigurePanel:
         get_routing_blocking: Callable[[Device], str | None] | None = None,
         on_routing_blocking: Callable[[Device, str | None], None] | None = None,
         on_ip_secure_change: Callable[[Device, str, object], str | None] | None = None,
+        get_additional_address_count: Callable[[Device], int] | None = None,
+        on_additional_address_change: Callable[[Device, int, str, str], str | None]
+        | None = None,
+        on_assign_additional_addresses: Callable[[Device], str | None] | None = None,
         use_serial_number_default: Callable[[], bool] | None = None,
         find_serial_owner: Callable[[Device, bytes], str | None] | None = None,
         find_product: "Callable[[str], ProductSummary | None] | None" = None,
@@ -405,6 +410,16 @@ class ConfigurePanel:
         self._ip_secure_buffers: dict[str, str] = {}
         self._ip_secure_device: int | None = None
         self._ip_secure_show = False
+        # The additional individual addresses: how many the application has, the edits (index,
+        # field "address"/"name"/"description", text -> the message when rejected), the
+        # assignment of the missing ones, the edit buffers ("field:index" -> text) and the
+        # message of the last rejected edit.
+        self._get_additional_address_count = get_additional_address_count
+        self._on_additional_address_change = on_additional_address_change
+        self._on_assign_additional_addresses = on_assign_additional_addresses
+        self._additional_buffers: dict[str, str] = {}
+        self._additional_device: int | None = None
+        self._additional_error = ""
         self._use_serial_number_default = use_serial_number_default
         self._find_serial_owner = find_serial_owner
         self._render_dali = (
@@ -513,6 +528,7 @@ class ConfigurePanel:
         imgui.spacing()
         self._render_manual_button(self._get_device_info(device.node_id))
         self._render_ip_config(device)
+        self._render_additional_addresses(device)
         # Whether the device is a KNX IP Secure device comes from its application: shown once it
         # is loaded, so selecting a device never parses its application on the render thread.
         if self._ready(device):
@@ -1498,6 +1514,91 @@ class ConfigurePanel:
                 (S.CONFIGURE_IP_MAC, cfg.get("MACAddress", "")),
             ]
         )
+
+    def _render_additional_addresses(self, device: Device) -> None:
+        """The device's additional individual addresses (the tunnelling addresses of an IP
+        interface): per entry its address, name and description, all editable, and the button that
+        assigns the missing addresses. Shown when the device has entries or its application has
+        some; a rejected edit shows its message above the table."""
+        info = self._get_device_info(device.node_id)
+        entries = list(info.additional_addresses) if info is not None else []
+        # The application's number needs the parsed application: only read it once it is loaded.
+        count = (
+            self._get_additional_address_count(device)
+            if self._get_additional_address_count is not None and self._ready(device)
+            else 0
+        )
+        rows = max(len(entries), count)
+        if rows == 0:
+            return
+        if self._additional_device != device.node_id:
+            self._additional_buffers = {}
+            self._additional_error = ""
+            self._additional_device = device.node_id
+        imgui.spacing()
+        if not imgui.collapsing_header(S.CONFIGURE_ADDITIONAL_ADDRESSES):
+            return
+        if self._on_assign_additional_addresses is not None:
+            missing = rows > len(entries) or any(e.address is None for e in entries)
+            imgui.begin_disabled(not missing)
+            if imgui.button(S.BTN_ASSIGN_ADDITIONAL_ADDRESSES):
+                self._additional_error = (
+                    self._on_assign_additional_addresses(device) or ""
+                )
+            imgui.end_disabled()
+        if self._additional_error:
+            imgui.push_style_color(imgui.Col_.text, _ERROR_COLOR)
+            imgui.text_wrapped(self._additional_error)
+            imgui.pop_style_color()
+        flags = (
+            imgui.TableFlags_.row_bg
+            | imgui.TableFlags_.borders_inner_h
+            | imgui.TableFlags_.resizable
+        )
+        if not begin_data_table("##additional_addresses", 4, flags):
+            return
+        imgui.table_setup_column(
+            S.ADDITIONAL_ADDRESS_INDEX, imgui.TableColumnFlags_.width_fixed
+        )
+        imgui.table_setup_column(S.CONFIGURE_ADDITIONAL_ADDRESS)
+        imgui.table_setup_column(S.CONFIGURE_NAME)
+        imgui.table_setup_column(S.CONFIGURE_DESCRIPTION)
+        data_table_headers()
+        by_index = {entry.index: entry for entry in entries}
+        for index in range(1, rows + 1):
+            entry = by_index.get(index)
+            imgui.table_next_row()
+            imgui.table_next_column()
+            imgui.align_text_to_frame_padding()
+            imgui.text(str(index))
+            for field, value in (
+                ("address", (entry.address or "") if entry is not None else ""),
+                ("name", entry.name if entry is not None else ""),
+                ("description", entry.description if entry is not None else ""),
+            ):
+                imgui.table_next_column()
+                self._additional_input(device, index, field, value)
+        imgui.end_table()
+
+    def _additional_input(
+        self, device: Device, index: int, field: str, value: str
+    ) -> None:
+        """One field of an additional address; an edit is stored when the field is left."""
+        key = f"{field}:{index}"
+        buffer = self._additional_buffers.get(key, value)
+        imgui.set_next_item_width(-1)
+        _, buffer = imgui.input_text(f"##additional_{key}", buffer)
+        self._additional_buffers[key] = buffer
+        if (
+            imgui.is_item_deactivated_after_edit()
+            and buffer != value
+            and self._on_additional_address_change is not None
+        ):
+            self._additional_error = (
+                self._on_additional_address_change(device, index, field, buffer) or ""
+            )
+        if not imgui.is_item_active() and buffer != value:
+            self._additional_buffers[key] = value
 
     def _render_ip_secure(self, device: Device) -> None:
         """The KNX IP Secure settings of a secure IP device: its commissioning password, its

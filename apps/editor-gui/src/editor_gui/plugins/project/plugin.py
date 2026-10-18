@@ -31,7 +31,10 @@ from editor_gui.plugins.project.program_queue import (
     QueueItem,
     ScriptRun,
 )
-from editor_gui.plugins.project.service import DeviceConfigClipboard
+from editor_gui.plugins.project.service import (
+    DeviceConfigClipboard,
+    additional_address_error_text,
+)
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui import (
     ConfigurePanel,
@@ -301,6 +304,9 @@ class ProjectPlugin:
             ),
             on_routing_blocking=api.project.set_unicast_broadcast_blocking,
             on_ip_secure_change=self._change_ip_secure,
+            get_additional_address_count=api.project.additional_address_count,
+            on_additional_address_change=self._change_additional_address,
+            on_assign_additional_addresses=self._assign_additional_addresses,
             use_serial_number_default=lambda: api.connection.use_serial_number,
             find_serial_owner=self._serial_owner,
             find_product=api.catalog.find_product,
@@ -591,25 +597,10 @@ class ProjectPlugin:
     def _on_move_device(
         self, device: "Device", area_number: int, line_number: int
     ) -> None:
-        devices = self._api.project.devices
-        used_numbers: set[int] = set()
-        for d in devices:
-            if not d.individual_address:
-                continue
-            parts = d.individual_address.split(".")
-            if len(parts) < 3:
-                continue
-            try:
-                a, ln, dev = int(parts[0]), int(parts[1]), int(parts[2])
-            except ValueError:
-                continue
-            if a == area_number and ln == line_number:
-                used_numbers.add(dev)
-
-        device_number = 1
-        while device_number in used_numbers:
-            device_number += 1
-
+        # The lowest number of the line that neither a device nor an additional address uses.
+        device_number = (
+            self._api.project.next_free_device_number(area_number, line_number) or 1
+        )
         new_address = f"{area_number}.{line_number}.{device_number}"
         self._handle_individual_address_change(device, new_address)
 
@@ -1754,6 +1745,36 @@ class ProjectPlugin:
             return S.SECURE_DOWNLOAD_PASSWORD_REQUIRED
         except ValueError:
             return S.IP_SECURE_PASSWORD_INVALID
+        return None
+
+    def _change_additional_address(
+        self, device: "Device", index: int, field: str, value: str
+    ) -> str | None:
+        """An edit of the device's additional address ``index`` (``field`` ``"address"``,
+        ``"name"`` or ``"description"``); the message to show when rejected."""
+        from xknxeditor.proj import AdditionalAddressError
+
+        project = self._api.project
+        try:
+            if field == "address":
+                project.set_additional_address(device.node_id, index, value)
+            elif field == "name":
+                project.set_additional_address_name(device.node_id, index, value)
+            elif field == "description":
+                project.set_additional_address_description(device.node_id, index, value)
+        except AdditionalAddressError as exc:
+            return additional_address_error_text(exc)
+        return None
+
+    def _assign_additional_addresses(self, device: "Device") -> str | None:
+        """Assign the device's missing additional addresses; the message when the line has too
+        few free."""
+        from xknxeditor.proj import AdditionalAddressError
+
+        try:
+            self._api.project.assign_additional_addresses(device)
+        except AdditionalAddressError as exc:
+            return additional_address_error_text(exc)
         return None
 
     def _change_secure_commissioning(self, device: "Device", activated: bool) -> None:

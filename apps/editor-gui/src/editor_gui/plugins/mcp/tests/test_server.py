@@ -247,6 +247,81 @@ async def test_delete_product(tmp_path: Path) -> None:
 
 
 @pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_additional_address_tools(tmp_path: Path) -> None:
+    """Additional individual addresses are assigned, set and read through the project tools."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        device = await _data(client, "project_add_device", product_ref_id=ref)
+        node_id = device["node_id"]
+        line = device["individual_address"].rsplit(".", 1)[0]
+        info = await _data(client, "project_get_device", node_id=node_id)
+        assert info["additional_addresses"] == []
+
+        assigned = await _data(
+            client, "project_assign_additional_addresses", node_id=node_id, count=2
+        )
+        assert [e["address"] for e in assigned["additional_addresses"]] == [
+            f"{line}.255",
+            f"{line}.254",
+        ]
+        changed = await _data(
+            client,
+            "project_set_additional_address",
+            node_id=node_id,
+            index=2,
+            address=f"{line}.200",
+            name="Tunnel 2",
+        )
+        assert changed["additional_addresses"][1] == {
+            "index": 2,
+            "address": f"{line}.200",
+            "name": "Tunnel 2",
+            "description": "",
+        }
+        cleared = await _data(
+            client,
+            "project_set_additional_address",
+            node_id=node_id,
+            index=1,
+            address=None,
+        )
+        assert cleared["additional_addresses"][0]["address"] is None
+        info = await _data(client, "project_get_device", node_id=node_id)
+        assert [e["address"] for e in info["additional_addresses"]] == [
+            None,
+            f"{line}.200",
+        ]
+        with pytest.raises(Exception, match="already used in this line"):
+            await client.call_tool(
+                "project_set_additional_address",
+                {
+                    "node_id": node_id,
+                    "index": 1,
+                    "address": device["individual_address"],
+                },
+            )
+        with pytest.raises(Exception, match="device number from 1 to 255"):
+            await client.call_tool(
+                "project_set_additional_address",
+                {"node_id": node_id, "index": 1, "address": "0"},
+            )
+        with pytest.raises(Exception, match="not provide enough addresses"):
+            await client.call_tool(
+                "project_assign_additional_addresses",
+                {"node_id": node_id, "count": 255},
+            )
+        # Undo of the clear brings the first address back.
+        await _data(client, "project_undo")
+        info = await _data(client, "project_get_device", node_id=node_id)
+        assert info["additional_addresses"][0]["address"] == f"{line}.255"
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
 async def test_import_knxprod_bytes(tmp_path: Path) -> None:
     """A .knxprod imports inline as base64 (remote client), then is readable via catalog tools."""
     import base64 as _b64

@@ -600,6 +600,9 @@ class RecoverService:
                 # an inactive/conditional parameter is stored (and ignored by the
                 # evaluator) rather than raising mid-device via a live set.
                 parameters=list(recovered.parameters.values.items()),
+                # The addresses the device uses are not read from the bus: picking free ones
+                # could take the numbers of devices recovered later.
+                with_additional_addresses=False,
             )
             if device_id is None:
                 return False

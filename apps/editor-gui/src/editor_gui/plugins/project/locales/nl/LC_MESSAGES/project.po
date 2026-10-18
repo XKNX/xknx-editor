@@ -1892,3 +1892,39 @@ msgstr "Serienummer al in gebruik"
 
 msgid "Cancelled by user."
 msgstr "Geannuleerd door de gebruiker."
+
+msgid "Additional Individual Addresses"
+msgstr "Aanvullende individuele adressen"
+
+msgid "Additional Individual Address"
+msgstr "Aanvullend individueel adres"
+
+msgid "Assign Missing Addresses"
+msgstr "Ontbrekende adressen toewijzen"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "De lijn biedt niet genoeg vrije adressen voor alle benodigde aanvullende adressen."
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "Voer een apparaatnummer van 1 tot 255 of een volledig individueel adres in de lijn van het apparaat in."
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "Een aanvullend adres moet in de lijn {line} van het apparaat liggen."
+
+msgid "The individual address {address} is already used in this line."
+msgstr "Het individuele adres {address} wordt in deze lijn al gebruikt."
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "Aanvullend adres van apparaat '{0}' gewijzigd van '{1}' in '{2}'."
+
+msgid "Change additional address names"
+msgstr "Namen van aanvullende adressen wijzigen"
+
+msgid "Change additional address descriptions"
+msgstr "Beschrijvingen van aanvullende adressen wijzigen"
+
+msgid "Assign additional addresses"
+msgstr "Aanvullende adressen toewijzen"
+
+msgid "Change additional addresses"
+msgstr "Aanvullende adressen wijzigen"
