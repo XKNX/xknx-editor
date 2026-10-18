@@ -65,6 +65,7 @@ from .errors import (
     CompareMismatch,
     DownloadError,
     LoadStateError,
+    MemoryReadNotAnswered,
     MemoryWriteNotAcknowledged,
     PropertyAccessRejected,
     VerificationError,
@@ -498,9 +499,19 @@ class DeviceProgrammer:
         else:
             request = MemoryRead(address=address, count=count)
             expected = MemoryResponse
-        telegram = await self._retry_transient(
-            lambda: self.connection.request(request, expected)
-        )
+        try:
+            telegram = await self._retry_transient(
+                lambda: self.connection.request(request, expected)
+            )
+        except ManagementConnectionError as exc:
+            # A response longer than a standard frame can be dropped by the interface or a
+            # coupler; the caller retries with standard-size blocks then.
+            if count > DEFAULT_MAX_APDU_LENGTH - _MEMORY_OVERHEAD:
+                raise MemoryReadNotAnswered(
+                    f"{exc} while reading memory {address:#06x} ({count} byte(s)) "
+                    f"[{self.diagnostic_context}]"
+                ) from exc
+            raise
         payload = telegram.payload
         if not isinstance(payload, expected):
             raise VerificationError(f"no memory response for address {address:#06x}")

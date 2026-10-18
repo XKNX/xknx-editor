@@ -20,6 +20,15 @@ class MemoryWriteNotAcknowledged(DownloadError):
     """
 
 
+class MemoryReadNotAnswered(DownloadError):
+    """A memory read that needs a long frame received no response.
+
+    The device may answer it, yet the interface or a coupler on the way drops a frame that
+    long. The download and its preflight retry with a lowered memory-service cap, so every
+    response fits a standard frame, when this is raised.
+    """
+
+
 class PartialDownloadError(DownloadError):
     """A download failed after it had begun changing the device's load state.
 

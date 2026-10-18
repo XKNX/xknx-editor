@@ -345,6 +345,8 @@ class ConnectionPlugin:
                     "interface max APDU length unavailable",
                     error=f"{type(feature_err).__name__}: {feature_err}",
                 )
+            if interface_apdu is not None:
+                self._log.info("interface max APDU length", length=interface_apdu)
             self._api.connection.interface_max_apdu_length = interface_apdu
             self._api.connection.interface_name = (
                 self._gateway_info.name

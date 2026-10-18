@@ -838,6 +838,7 @@ class ConnectionService:
                 disable_security=disable_security and security is not None,
                 routing_blocking=routing_blocking if security is not None else None,
                 memory_service_count=seed_cap,
+                interface_max_apdu_length=self.interface_max_apdu_length,
             )
         )
         if future is not None:
@@ -1098,6 +1099,7 @@ class ConnectionService:
                 self.master,
                 security=security,
                 ip_config=ip_config,
+                interface_max_apdu_length=self.interface_max_apdu_length,
             )
         )
         if future is not None:
