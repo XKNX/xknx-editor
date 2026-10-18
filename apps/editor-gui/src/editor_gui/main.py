@@ -125,13 +125,16 @@ from xknxeditor.proj.db import frame_db_profiler, make_engine, url_for
 from xknxeditor.proj.models import Device, Installation, Project
 
 _REPO_URL = "https://github.com/xknx/xknx-editor"
-# Direct download of the Windows "compat" build (bundled Mesa software OpenGL, pure CPU) — the one that
-# runs in VMs (UTM/QEMU) and on hosts without a working OpenGL driver. Pick the architecture-matching
-# asset (native ARM64 vs x64). /releases/latest/download always points at the newest release's asset.
+# Direct downloads for hosts without a working OpenGL driver (VMs such as UTM/QEMU): the installer,
+# whose "Software rendering" option adds Mesa's software OpenGL (pure CPU), and the portable build
+# that already contains it. Pick the architecture-matching assets (native ARM64 vs x64).
+# /releases/latest/download always points at the newest release's asset.
+_WINDOWS_ARCH = "arm64" if platform.machine() == "ARM64" else "x64"
+_INSTALLER_URL = f"{_REPO_URL}/releases/latest/download/XKNX-Editor-windows-installer-{_WINDOWS_ARCH}.exe"
 _COMPAT_ASSET = (
-    "XKNX-Editor-windows-arm64.zip"  # the arm64 build already bundles software OpenGL
-    if platform.machine() == "ARM64"
-    else "XKNX-Editor-windows-softwaregl.zip"
+    "XKNX-Editor-windows-portable-arm64.zip"  # the arm64 build already bundles software OpenGL
+    if _WINDOWS_ARCH == "arm64"
+    else "XKNX-Editor-windows-portable-x64-softwaregl.zip"
 )
 _COMPAT_BUILD_URL = f"{_REPO_URL}/releases/latest/download/{_COMPAT_ASSET}"
 _LINUX_FILE_DIALOG_HELPERS = ("zenity", "kdialog", "matedialog", "qarma")
@@ -147,6 +150,15 @@ def _find_linux_file_dialog_helper(path: str | None = None) -> str | None:
         ),
         None,
     )
+
+
+def startup_file(argv: list[str]) -> str | None:
+    """The file to open at start: the first argument that is not an option, as an absolute path.
+    Opening a project from the file manager (the .xknx file association) passes it this way."""
+    for arg in argv[1:]:
+        if arg and not arg.startswith("-"):
+            return os.path.abspath(arg)
+    return None
 
 
 def _restore_subprocess_library_path() -> None:
@@ -518,6 +530,8 @@ class KnxGuiApp:
         self._update_info: UpdateInfo | None = None
         self._update_prompt_requested = False
         self._update_thread: threading.Thread | None = None
+        # A project passed on the command line, opened once the window is up.
+        self.startup_file: str | None = None
         self._update_manual = False  # a user-triggered check also reports "up to date"
         # Target schema for .knxproj export. ETS 6 (project/23) is the default; ETS 5 is project/20.
         # Persisted so a chosen ETS version sticks across sessions.
@@ -642,6 +656,8 @@ class KnxGuiApp:
         # Best-effort check for a newer release on GitHub (unless the user disabled it).
         if self._update_check_enabled():
             self._start_update_check(manual=False)
+        if self.startup_file is not None:
+            self._do_open_project(self.startup_file)
 
     # --- update check (GitHub releases) -----------------------------------
 
@@ -4437,6 +4453,7 @@ def _main() -> None:
     catalog_path = config_dir() / "catalog.xknxcatalog"
     catalog_path.parent.mkdir(parents=True, exist_ok=True)
     app = KnxGuiApp(catalog_path)
+    app.startup_file = startup_file(sys.argv)
 
     # Start on the Welcome screen (New / Open / Recent). We deliberately do NOT auto-open a project
     # so the Welcome is always visible on launch; the recent list gives one-click access.
@@ -4563,8 +4580,10 @@ def _show_graphics_error(detail: str) -> None:
         "(UTM/QEMU/Parallels), on Windows on ARM, and over remote sessions.\n\n"
         "What helps:\n"
         "- In a VM (UTM/QEMU): the Microsoft OpenGL Compatibility Pack does NOT help, because the "
-        "VM exposes no GPU to Windows. Download and use the separate compatibility build of "
-        "XKNX-Editor (bundled Mesa software OpenGL), which renders on the CPU without a GPU:\n"
+        "VM exposes no GPU to Windows. Run the XKNX-Editor installer again and select "
+        "'Software rendering', which renders on the CPU without a GPU:\n"
+        f"    {_INSTALLER_URL}\n"
+        "  or use the portable build with software rendering:\n"
         f"    {_COMPAT_BUILD_URL}\n"
         "- On a physical Windows on ARM PC: install the 'OpenCL and OpenGL Compatibility Pack' "
         "from the Microsoft Store, then restart.\n"

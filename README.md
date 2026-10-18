@@ -22,6 +22,12 @@ workflows which can auto-download PDF manuals from the manufacturers.
 Prebuilt apps for **Windows, Linux, and macOS** are attached to every release — grab the latest from
 the [Releases page](https://github.com/xknx/xknx-editor/releases/latest) and start it directly.
 
+On Windows, run `XKNX-Editor-windows-installer-x64.exe` (or `-arm64.exe` on Windows on ARM). It
+installs for the current user without administrator rights, adds a Start menu entry, a desktop
+shortcut and the `.xknx` file association, and can be removed in Apps & Features. In a virtual
+machine without a graphics driver, select "Software rendering" in the installer. The
+`XKNX-Editor-windows-portable-*.zip` archives run without installation.
+
 On macOS the app is not signed by Apple yet, so the first launch is blocked:
 
 <img src="docs/images/macwarning.png" alt="macOS Gatekeeper warning" width="200">
