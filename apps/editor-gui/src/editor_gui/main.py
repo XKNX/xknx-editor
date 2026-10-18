@@ -30,6 +30,7 @@ from editor_gui import trace_key as trace_key_store
 from editor_gui.certs import ensure_ca_bundle
 from editor_gui.concurrency import MainThreadExecutor
 from editor_gui.dock_menus import render_section_menus
+from editor_gui.log_file import log_dir
 from editor_gui.master_data import MasterDataInfo, load_master, master_xml_bytes
 from editor_gui.myknx_oauth import (
     load_cached_credentials as load_myknx_oauth_credentials,
@@ -2908,6 +2909,8 @@ class KnxGuiApp:
                 self._open_folder(config_dir())
             if imgui.menu_item(S.MENU_OPEN_CACHE_DIR, "", False)[0]:
                 self._open_folder(Path(platformdirs.user_cache_dir("xknx-editor")))
+            if imgui.menu_item(S.MENU_OPEN_LOG_DIR, "", False)[0]:
+                self._open_folder(log_dir())
             imgui.end_menu()
 
         if imgui.menu_item(S.MENU_FEEDBACK, "", False)[0]:

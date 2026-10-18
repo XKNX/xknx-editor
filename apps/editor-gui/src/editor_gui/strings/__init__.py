@@ -1431,6 +1431,10 @@ class MenuStrings:
     def MENU_OPEN_CACHE_DIR(self) -> str:
         return _("Open Cache Folder")
 
+    @property
+    def MENU_OPEN_LOG_DIR(self) -> str:
+        return _("Open Log Folder")
+
     # --- compact project ------------------------------------------------
     @property
     def MENU_COMPACT_PROJECT(self) -> str:

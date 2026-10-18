@@ -48,6 +48,15 @@ disk-image tool instead of launching):
 chmod +x XKNX-Editor-x86_64.AppImage && ./XKNX-Editor-x86_64.AppImage
 ```
 
+## Reporting problems
+
+Report a problem via **Feedback** in the menu bar, which opens the
+[issues page](https://github.com/xknx/xknx-editor/issues), and attach the log of the run in which
+it happened. **Help → Open Log Folder** opens the folder: every run writes its own
+`xknx-editor_<date>_<time>_<process>.log`, and the last 10 runs are kept. The folder is
+`%LOCALAPPDATA%\xknx-editor\xknx-editor\Logs` on Windows, `~/Library/Logs/xknx-editor` on macOS
+and `~/.local/state/xknx-editor/log` on Linux.
+
 ## Features
 
 <!-- Images are placeholders — replace the files in docs/images/ with real screenshots. -->

@@ -953,6 +953,9 @@ msgstr "Konfigurationsordner öffnen"
 msgid "Open Cache Folder"
 msgstr "Cache-Ordner öffnen"
 
+msgid "Open Log Folder"
+msgstr "Log-Ordner öffnen"
+
 msgid "This project is protected with a password. Enter it to open the project:"
 msgstr "Dieses Projekt ist mit einem Passwort geschützt. Geben Sie es ein, um das Projekt zu öffnen:"
 

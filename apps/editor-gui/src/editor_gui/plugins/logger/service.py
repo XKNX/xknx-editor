@@ -1,9 +1,7 @@
 from __future__ import annotations
 
 import logging
-import os
 import sys
-import tempfile
 import time
 from collections import deque
 from collections.abc import MutableMapping
@@ -11,6 +9,8 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import structlog
+
+from editor_gui.log_file import PlainTextFile, session_log
 
 _MAX_RECORDS = 10_000
 
@@ -118,13 +118,18 @@ class LogService:
         return event_dict
 
     def _log_stream(self) -> Any:
-        """A console-and-file stream for structlog's PrintLogger."""
-        path = os.path.join(tempfile.gettempdir(), "xknx-editor.log")
-        log_file = open(path, "a", encoding="utf-8", buffering=1)  # noqa: SIM115
+        """A console-and-file stream for structlog's PrintLogger: the console as is, the session log
+        file without colour codes. The frozen app's console is that file already."""
+        log_file = session_log()
         stream = sys.stdout if sys.stdout is not None else sys.stderr
-        return log_file if stream is None else _TeeStream(stream, log_file)
+        if stream is None or stream is log_file:
+            return PlainTextFile(log_file)
+        return _TeeStream(stream, PlainTextFile(log_file))
 
     def _configure_structlog(self) -> None:
+        # Before the renderer: on Windows it wraps sys.stdout for colours, which would hide that the
+        # frozen app's console is the log file and write each line to it twice.
+        stream = self._log_stream()
         structlog.configure(
             processors=[
                 self._wrap_payload,
@@ -135,7 +140,7 @@ class LogService:
             ],
             wrapper_class=structlog.make_filtering_bound_logger(logging.DEBUG),
             context_class=dict,
-            logger_factory=structlog.PrintLoggerFactory(file=self._log_stream()),
+            logger_factory=structlog.PrintLoggerFactory(file=stream),
             cache_logger_on_first_use=False,
         )
 

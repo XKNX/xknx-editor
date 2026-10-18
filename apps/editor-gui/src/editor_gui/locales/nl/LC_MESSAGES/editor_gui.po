@@ -837,6 +837,9 @@ msgstr "Configuratiemap openen"
 msgid "Open Cache Folder"
 msgstr "Cachemap openen"
 
+msgid "Open Log Folder"
+msgstr "Logboekmap openen"
+
 msgid "Removes product data no device uses; the project stays unchanged."
 msgstr "Verwijdert productgegevens die geen enkel apparaat gebruikt; het project zelf blijft ongewijzigd."
 
