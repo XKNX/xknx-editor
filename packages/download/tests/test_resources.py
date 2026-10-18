@@ -82,6 +82,16 @@ def test_bundled_table_covers_known_masks() -> None:
     assert bundled_mask_resources("MV-9999-unknown") is None
 
 
+def test_property_mapped_lsms_distinguishes_m112_masks() -> None:
+    from xknxeditor.download.resources import property_mapped_lsms
+
+    assert property_mapped_lsms("MV-0705")
+    assert property_mapped_lsms("MV-5705")
+    assert not property_mapped_lsms("MV-0701")
+    assert not property_mapped_lsms("MV-0700")
+    assert not property_mapped_lsms("MV-FFFF-unknown")
+
+
 def test_mask_resources_falls_back_to_bundled_without_master() -> None:
     resolved = mask_resources(None, "MV-07B0")
     assert resolved is not None

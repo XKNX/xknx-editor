@@ -176,6 +176,40 @@ def _bundled_table() -> Mapping[str, Mapping[str, list[object]]]:
     return json.loads(text)
 
 
+# Master-data feature ``PropertyMappedLsms`` = 1. These masks drive each Load
+# State Machine by writing ``PID_LOAD_STATE_CONTROL``, even when the mask also
+# publishes a ``StandardMemory`` ``LoadControl_M112`` address (MV-0705, MV-5705).
+# MV-0700 and MV-0701 leave the feature at 0 and keep the shared memory record.
+_PROPERTY_MAPPED_LSMS = frozenset(
+    {
+        "MV-0020",
+        "MV-0021",
+        "MV-0025",
+        "MV-0300-01000000000000000000",
+        "MV-0300-01000001000000000000",
+        "MV-0705",
+        "MV-07B0",
+        "MV-0912",
+        "MV-091A",
+        "MV-17B0",
+        "MV-2705",
+        "MV-27B0",
+        "MV-2920",
+        "MV-5705",
+        "MV-57B0",
+    }
+)
+
+
+def property_mapped_lsms(mask_version: str) -> bool:
+    """Whether ``mask_version`` drives load state machines through a property.
+
+    False for the memory-mapped BIM M112 masks (MV-0700, MV-0701) and for any
+    mask the bundled table does not list.
+    """
+    return mask_version in _PROPERTY_MAPPED_LSMS
+
+
 def bundled_mask_resources(mask_version_id: str) -> MaskResources | None:
     """Build a resource map for ``mask_version_id`` from the bundled table."""
     entry = _bundled_table().get(mask_version_id)

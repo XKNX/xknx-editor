@@ -30,6 +30,7 @@ from .project_data import (
     module_instances_from_device,
     parameter_instance_refs_from_device,
 )
+from .resources import property_mapped_lsms
 from .secure_config import GroupSecurity, SecurityTables, security_tables
 from .tables import (
     Association,
@@ -111,6 +112,81 @@ def _reserved_memory(mask_version: str) -> range | None:
 
 if TYPE_CHECKING:
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
+
+
+@dataclass(frozen=True, slots=True)
+class PackedGroupTables:
+    """Where a property-mapped M112 mask places the two group tables.
+
+    The product data declares the address table and the association table at
+    their maximum size, contiguous (``0x4000`` for 511 octets, then ``0x41FF``).
+    ETS allocates only the used address table and slides the association table
+    up against it, extending that segment so it still ends at the declared end.
+    """
+
+    address_address: int
+    address_length: int
+    declared_address_size: int
+    association_address: int
+    association_length: int
+    declared_association_address: int
+    declared_association_size: int
+
+
+def packed_group_tables(
+    application: Application, address_table_length: int
+) -> PackedGroupTables | None:
+    """Return the ETS placement of the address and association tables.
+
+    ``None`` when the mask keeps the declared segment addresses (MV-0701) or the
+    two tables are not a contiguous absolute pair. ``address_table_length`` is
+    the encoded address table, including its count octet and the device address.
+    """
+    if not property_mapped_lsms(application.program.mask_version):
+        return None
+    if address_table_length <= 0:
+        return None
+    static = application.program.static
+    if static.code is None:
+        return None
+    address = static.address_table
+    association = static.association_table
+    if (
+        address is None
+        or association is None
+        or address.code_segment is None
+        or association.code_segment is None
+        or (address.offset or 0) != 0
+        or (association.offset or 0) != 0
+    ):
+        return None
+    segments = {segment.id: segment for segment in static.code.absolute_segment}
+    address_segment = segments.get(address.code_segment)
+    association_segment = segments.get(association.code_segment)
+    if (
+        address_segment is None
+        or association_segment is None
+        or address_segment.size <= 0
+        or association_segment.size <= 0
+    ):
+        return None
+    if address_table_length > address_segment.size:
+        return None
+    if association_segment.address != address_segment.address + address_segment.size:
+        return None
+    start = address_segment.address + address_table_length
+    end = association_segment.address + association_segment.size
+    if start > end:
+        return None
+    return PackedGroupTables(
+        address_address=address_segment.address,
+        address_length=address_table_length,
+        declared_address_size=address_segment.size,
+        association_address=start,
+        association_length=end - start,
+        declared_association_address=association_segment.address,
+        declared_association_size=association_segment.size,
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -623,6 +699,7 @@ def _group_communication_segments(
     linked_numbers = {number_of[link.com_object_ref_id] for link in links}
 
     result: list[MemorySegment] = []
+    packed: PackedGroupTables | None = None
     com_object_table = static.com_object_table
     if com_object_table is not None and com_object_table.code_segment is not None:
         seed = encoded.get(com_object_table.code_segment)
@@ -699,6 +776,7 @@ def _group_communication_segments(
             # restored 1.1.x and group telegrams no longer matched.
             address = base + offset
             result.append(MemorySegment(address, data, mask=b"\xff" * len(data)))
+            packed = packed_group_tables(application, len(data))
     association_table = static.association_table
     if association_table is not None and association_table.code_segment is not None:
         base = base_addresses.get(association_table.code_segment)
@@ -716,7 +794,11 @@ def _group_communication_segments(
                 data = _bcu1_association_table(associations, set(number_of.values()))
             else:
                 data = build_association_table(associations)
-            address = base + (association_table.offset or 0)
+            address = (
+                packed.association_address
+                if packed is not None
+                else base + (association_table.offset or 0)
+            )
             result.append(MemorySegment(address, data, mask=b"\xff" * len(data)))
     return result
 

@@ -10,10 +10,11 @@ themselves - complete download, partial download and unload - follow Chapter 3/5
 
 Load State Machine control follows the property based Realisation Type 1 (writing
 load events to ``PID_LOAD_STATE_CONTROL`` of the addressed interface object, see
-Chapter 3/5/1 "Resources", section 4.23) when the mask locates
-``ApplicationLoadControl`` as a system property. Masks that map that resource to
-standard memory (BIM M112, e.g. MV-0701) write the 11-octet ``LoadControl_M112``
-record at the shared control address and poll the matching LoadStatus byte.
+Chapter 3/5/1 "Resources", section 4.23) when the mask's ``PropertyMappedLsms``
+feature is set. That includes MV-0705, which also lists a standard-memory
+``LoadControl_M112`` address; ETS still writes the property. Masks that leave the
+feature unset (BIM M112 MV-0701) write the 11-octet record at the shared control
+address and poll the matching LoadStatus byte.
 
 Connection handling follows the point-to-point management connection lifecycle: the transport connection is
 opened on a Connect control and closed on Disconnect; a Restart tears it down
@@ -110,7 +111,7 @@ from .merge import resolve_download_controls
 from .preflight import PreflightReport, PropertyDiff, SegmentDiff
 from .programmer import DEFAULT_MAX_APDU_LENGTH, PID_TABLE_REFERENCE, DeviceProgrammer
 from .property_layout import STANDARD_WRITE_WIDTHS, property_width
-from .resources import bundled_mask_resources
+from .resources import bundled_mask_resources, property_mapped_lsms
 from .scope import (
     GROUP_COMMUNICATION_OBJECTS,
     DownloadScope,
@@ -127,7 +128,7 @@ from .secure_config import (
 if TYPE_CHECKING:
     from xknxeditor.prod import Application
 
-    from .image import DownloadImage, PropertyValue
+    from .image import DownloadImage, PackedGroupTables, PropertyValue
     from .programmer import ConnectionManager
 
 logger = logging.getLogger(__name__)
@@ -945,9 +946,12 @@ class LoadProcedureRunner:
         BIM M112 shares one load-control address. ``status_address`` is ``None``
         when the mask has no LoadStatus resource for ``index`` (PEI on MV-0701);
         the control write still goes through memory, without a status poll.
-        Property-mapped masks (and LSM index 0) return ``None``.
+        Property-mapped masks (MV-0705 included; it also lists the memory
+        address) and LSM index 0 return ``None``.
         """
         if index < 1:
+            return None
+        if property_mapped_lsms(self.application.program.mask_version):
             return None
         resources = bundled_mask_resources(self.application.program.mask_version)
         if resources is None:
@@ -957,6 +961,58 @@ class LoadProcedureRunner:
             return None
         control, _status_lsm1 = mapped
         return control, resources.memory_mapped_lsm_status(index)
+
+    def _packed_group_tables(self) -> PackedGroupTables | None:
+        """ETS placement of the address and association tables, if this mask packs them."""
+        from .image import packed_group_tables
+
+        static = getattr(self.application.program, "static", None)
+        address_table = getattr(static, "address_table", None)
+        code = getattr(static, "code", None)
+        if address_table is None or code is None or address_table.code_segment is None:
+            return None
+        segments = {segment.id: segment for segment in code.absolute_segment}
+        address_segment = segments.get(address_table.code_segment)
+        if address_segment is None:
+            return None
+        base = address_segment.address + (address_table.offset or 0)
+        tables = [
+            segment
+            for segment in self.image.segments
+            if segment.address == base
+            and segment.mask is not None
+            and all(segment.mask)
+        ]
+        if not tables:
+            return None
+        table = min(tables, key=lambda segment: len(segment.data))
+        return packed_group_tables(self.application, len(table.data))
+
+    def _segment_placement(self, address: int, size: int) -> tuple[int, int]:
+        """Address and length ETS allocates for an absolute segment.
+
+        A property-mapped mask declares the address table and association table
+        at full capacity. The allocation uses the encoded address table and
+        starts the association table on the next octet.
+        """
+        packed = self._packed_group_tables()
+        if packed is None:
+            return address, size
+        if address == packed.address_address and size == packed.declared_address_size:
+            return address, packed.address_length
+        if (
+            address == packed.declared_association_address
+            and size == packed.declared_association_size
+        ):
+            return packed.association_address, packed.association_length
+        return address, size
+
+    def _task_address(self, address: int) -> int:
+        """Task-segment address, moved with the association table when ETS packs it."""
+        packed = self._packed_group_tables()
+        if packed is not None and address == packed.declared_association_address:
+            return packed.association_address
+        return address
 
     async def _emit_load_event(
         self,
@@ -1967,10 +2023,11 @@ class LoadProcedureRunner:
         """
         segment_type = load_state.SegmentType(control.seg_type)
         index = await self._resolve_index(control)
+        address, size = self._segment_placement(control.address, control.size)
         event = load_state.alloc_absolute_segment(
             segment_type,
-            control.address,
-            control.size,
+            address,
+            size,
             access_attributes=control.access,
             memory_type=control.mem_type,
             memory_attributes=control.seg_flags,
@@ -1988,7 +2045,7 @@ class LoadProcedureRunner:
         # mask alone would skip the application-code seed (n_runs=0) and leave
         # the BCU with an empty or stale segment after AllocAbsDataSeg.
         runs = (
-            self._memory_runs(control.address, control.size, include_initialized=True)
+            self._memory_runs(address, size, include_initialized=True)
             if self._enable_segment_write
             else []
         )
@@ -2017,7 +2074,7 @@ class LoadProcedureRunner:
         if patch:
             application_id = (0x0002).to_bytes(2, "big") + application_id[2:]
         event = load_state.alloc_task_segment(
-            control.address,
+            self._task_address(control.address),
             self.application.program.pei_type,
             application_id,
         )
@@ -2077,9 +2134,10 @@ class LoadProcedureRunner:
             # image does NOT cover (a RAM/system segment) is allocated and left unwritten
             # by _abs_segment, so it is a clean allocate-only preview here too, not an error.
             if self._enable_segment_write:
+                address, size = self._segment_placement(control.address, control.size)
                 await self._diff_masked(
-                    control.address,
-                    control.size,
+                    address,
+                    size,
                     segments,
                     missing_ok=True,
                     include_initialized=True,
