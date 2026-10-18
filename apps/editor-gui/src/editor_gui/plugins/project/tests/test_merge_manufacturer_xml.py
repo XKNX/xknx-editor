@@ -9,10 +9,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
 
-from editor_gui.plugins.project.knxproj_manufacturer import (
-    _merge_manufacturer_xml,  # pyright: ignore[reportPrivateUsage]
-    collect_manufacturer_bundle,
-)
+from editor_gui.plugins.project.knxproj_manufacturer import collect_manufacturer_bundle
+from xknxeditor.proj.core.manufacturer_xml import merge_manufacturer_xml
 
 
 def _hardware(ns: str, *items: tuple[str, str]) -> bytes:
@@ -39,7 +37,7 @@ def _program_ids(xml: bytes) -> list[str]:
 
 
 def test_hardware_of_another_source_is_added() -> None:
-    merged = _merge_manufacturer_xml(
+    merged = merge_manufacturer_xml(
         _hardware("23", ("M-00FA_H-1", "A1")),
         _hardware("23", ("M-00FA_H-2", "B1"), ("M-00FA_H-1", "A1")),
     )
@@ -47,14 +45,14 @@ def test_hardware_of_another_source_is_added() -> None:
 
 
 def test_a_new_program_of_known_hardware_is_added() -> None:
-    merged = _merge_manufacturer_xml(
+    merged = merge_manufacturer_xml(
         _hardware("23", ("M-00FA_H-1", "A1")), _hardware("23", ("M-00FA_H-1", "A2"))
     )
     assert _program_ids(merged) == ["M-00FA_H-1_HP-A1", "M-00FA_H-1_HP-A2"]
 
 
 def test_an_older_schema_is_merged_in_the_base_namespace() -> None:
-    merged = _merge_manufacturer_xml(
+    merged = merge_manufacturer_xml(
         _hardware("23", ("M-00FA_H-1", "A1")),
         _hardware("20", ("M-00FA_H-0xA501", "A502")),
     )
@@ -64,7 +62,7 @@ def test_an_older_schema_is_merged_in_the_base_namespace() -> None:
 
 def test_nothing_new_keeps_the_original_bytes() -> None:
     base = _hardware("23", ("M-00FA_H-1", "A1"), ("M-00FA_H-2", "B1"))
-    assert _merge_manufacturer_xml(base, _hardware("20", ("M-00FA_H-2", "B1"))) is base
+    assert merge_manufacturer_xml(base, _hardware("20", ("M-00FA_H-2", "B1"))) is base
 
 
 def test_the_bundle_merges_hardware_of_two_sources(tmp_path: Path) -> None:

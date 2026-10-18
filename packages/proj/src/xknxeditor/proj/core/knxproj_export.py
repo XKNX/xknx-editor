@@ -79,6 +79,10 @@ from xknxeditor.proj.core.knxproj_signing import (
     audit_and_sign_folders,
     directory_signature,
 )
+from xknxeditor.proj.core.manufacturer_xml import (
+    DeviceProduct,
+    combine_product_members,
+)
 from xknxeditor.proj.core.product_prune import (
     ProductPruneReport,
     prune_product_members,
@@ -271,6 +275,14 @@ _SCHEMA_TOOLS: dict[str, tuple[str, str]] = {
 }
 DEFAULT_SCHEMA = "20"  # project/20: read by both ETS5 and ETS6
 
+# A project id: "P-" and 4 hex digits (Project Scheme 4.2.3).
+_PROJECT_ID = re.compile(r"P-[0-9A-Fa-f]{4}")
+
+# Captured ProjectInformation attributes that only some target schemas define, by the schemas.
+_SCHEMA_SPECIFIC_INFO_ATTRS: dict[str, frozenset[str]] = {
+    "ProjectType": frozenset({"21", "22", "23"}),
+}
+
 
 def _ns_for(schema: str) -> str:
     if schema not in _SCHEMA_TOOLS:
@@ -441,6 +453,37 @@ def _heal_extra_files(
     return healed
 
 
+def _device_products(project: Project) -> list[DeviceProduct]:
+    """The product data refs of the project's devices (see :class:`DeviceProduct`)."""
+    session = object_session(project)
+    if session is None:
+        return []
+    return [
+        DeviceProduct(
+            product=product or "",
+            hardware2program=program or "",
+            application=application or "",
+            imported=bool(source_id),
+        )
+        for product, program, application, source_id in session.query(
+            Device.product_ref_id,
+            Device.hardware2program_ref_id,
+            Device.application_program_ref_id,
+            Device.source_id,
+        )
+    ]
+
+
+def _usable_master(master: bytes | None, schema: str) -> bytes | None:
+    """``master`` when it is a signed master of ``schema``, else None."""
+    if master is None:
+        return None
+    try:
+        return _check_master(master, "the project", _ns_for(schema))
+    except (ValueError, ET.ParseError):
+        return None
+
+
 def _stored_provenance_sources(
     project: Project, schema: str, master_xml: bytes | None
 ) -> tuple[dict[str, bytes], bytes | None, str]:
@@ -481,16 +524,22 @@ def _resolve_export_sources(
 ) -> tuple[str, str, dict[str, bytes], bytes | None]:
     """Resolve the schema, namespace, manufacturer members and master XML the archive is built from.
 
-    Caller-supplied ``extra_files`` win; without them the project's stored import provenance is
-    re-emitted (:func:`_stored_provenance_sources`). The project files (project.xml / 0.xml) and
+    Caller-supplied ``extra_files`` (the product files the devices were added from) add to the
+    project's stored import provenance what its devices need beyond it (``combine_product_members``),
+    and its stored master is kept when it fits the schema; without them the provenance is re-emitted
+    (:func:`_stored_provenance_sources`). The project files (project.xml / 0.xml) and
     knx_master.xml share ONE schema, but each ``M-xxxx/`` manufacturer folder keeps its OWN original
     schema — as ETS writes it. So the master is obtained at the project schema, an unusable supplied
     master is substituted by the fetched one when ``fetch_master`` is set, legacy (project/<=14)
     manufacturer members are converted up, and modern members at a different schema pass through
     verbatim (no mismatch error)."""
     if extra_files:
-        effective_extra: dict[str, bytes] = dict(extra_files)
-        effective_master = master_xml
+        effective_extra = combine_product_members(
+            _unzip_members(project.imported_product_members),
+            extra_files,
+            _device_products(project),
+        )
+        effective_master = _usable_master(project.knx_master_xml, schema) or master_xml
     else:
         effective_extra, effective_master, schema = _stored_provenance_sources(
             project, schema, master_xml
@@ -884,30 +933,151 @@ def _group_object_tree_instances(raw: str) -> set[str]:
     return out
 
 
+class _ExportIds:
+    """The ids and Puids of the exported elements.
+
+    An imported element keeps its own: they are reserved before anything is written, the first
+    element claiming one keeping it. Any other element is numbered after them: an id after the
+    highest one of its kind, a Puid after the source's ``LastUsedPuid``, so no number an element had
+    is given to another. Without imported ones the elements are numbered from 1 in the order they
+    are written. Ids are kept without the project prefix (``A-1``, ``DI-7``, ``F-2_GF-0``)."""
+
+    def __init__(self, last_used_puid: int | None = None) -> None:
+        self._ids: dict[str, dict[str, object]] = {}
+        self._counters: dict[str, int] = {}
+        self._puids: dict[int, object] = {}
+        self._last_used = last_used_puid or 0
+        self._puid_counter: int | None = None
+        self._max_puid = 0
+
+    def reserve(
+        self, kind: str, owner: object, source_id: str, puid: int | None
+    ) -> None:
+        local = _local_id(source_id)
+        if local and re.fullmatch(rf"(?:[A-Z]+-\d+_)*{kind}-\d+", local):
+            self._ids.setdefault(kind, {}).setdefault(local, owner)
+        self.reserve_puid(owner, puid)
+
+    def reserve_puid(self, owner: object, puid: int | None) -> None:
+        if puid is not None and puid > 0:
+            self._puids.setdefault(puid, owner)
+
+    def id(
+        self,
+        kind: str,
+        owner: object,
+        source_id: str = "",
+        *,
+        scope: str = "",
+        first: int = 1,
+    ) -> str:
+        """``owner``'s id of ``kind``: its reserved one, else the next free ``{scope}{kind}-n``
+        (numbered per scope from ``first``)."""
+        claims = self._ids.setdefault(kind, {})
+        local = _local_id(source_id)
+        if local and claims.get(local) is owner:
+            return local
+        counter = f"{scope}{kind}"
+        n = self._counters.get(counter)
+        if n is None:
+            pattern = re.compile(rf"{re.escape(scope)}{kind}-(\d+)")
+            numbers = [
+                int(match.group(1))
+                for claimed in claims
+                if (match := pattern.fullmatch(claimed))
+            ]
+            n = max(numbers, default=first - 1)
+        while True:
+            n += 1
+            candidate = f"{scope}{kind}-{n}"
+            if candidate not in claims:
+                break
+        self._counters[counter] = n
+        claims[candidate] = owner
+        return candidate
+
+    def puid(self, owner: object, puid: int | None = None) -> int:
+        """``owner``'s Puid: its reserved one, else the next free one."""
+        if puid is None or self._puids.get(puid) is not owner:
+            if self._puid_counter is None:
+                self._puid_counter = max(self._last_used, max(self._puids, default=0))
+            puid = self._puid_counter + 1
+            while puid in self._puids:
+                puid += 1
+            self._puid_counter = puid
+            self._puids[puid] = owner
+        self._max_puid = max(self._max_puid, puid)
+        return puid
+
+    @property
+    def last_used_puid(self) -> int:
+        """The ``LastUsedPuid`` to write: the source's, or the highest Puid written if higher."""
+        return max(self._last_used, self._max_puid)
+
+
+def _local_id(source_id: str) -> str:
+    """``source_id`` without its project prefix (``P-04BB-0_F-1_GF-0`` -> ``F-1_GF-0``); an id
+    without one is returned as is."""
+    if source_id.startswith("P-") and "_" in source_id:
+        return source_id.split("_", 1)[1]
+    return source_id
+
+
+def _reserve_source_identities(ids: _ExportIds, installation: Installation) -> None:
+    """Reserve the imported ids and Puids of ``installation``'s elements (see :class:`_ExportIds`),
+    including those of the unassigned devices, which are written verbatim."""
+    for raw in installation.unassigned_devices_xml or []:
+        try:
+            element = ET.fromstring(raw)
+        except ET.ParseError:
+            continue
+        owner = ("unassigned", element.get("Id", ""))
+        puid = element.get("Puid", "")
+        ids.reserve(
+            "DI", owner, element.get("Id", ""), int(puid) if puid.isdigit() else None
+        )
+    for area in installation.areas:
+        ids.reserve("A", area, area.source_id, area.puid)
+        for line in area.lines:
+            ids.reserve("L", line, line.source_id, line.puid)
+            for segment in line.segments:
+                ids.reserve("S", segment, segment.source_id, segment.puid)
+                for device in segment.devices:
+                    ids.reserve("DI", device, device.source_id, device.puid)
+    for group_range in installation.group_ranges:
+        ids.reserve("GR", group_range, group_range.source_id, group_range.puid)
+        for ga in group_range.group_addresses:
+            ids.reserve("GA", ga, ga.source_id, ga.puid)
+    for space in installation.spaces:
+        ids.reserve("BP", space, space.source_id, space.puid)
+        for function in space.functions:
+            ids.reserve("F", function, function.source_id, function.puid)
+            for ref in function.group_addresses:
+                ids.reserve("GF", ref, ref.source_id, ref.puid)
+    for trade in installation.trades:
+        ids.reserve_puid(trade, trade.puid)
+
+
 def _assign_ids(
-    pid: str, installation: Installation | None
+    pid: str, installation: Installation | None, ids: _ExportIds | None = None
 ) -> tuple[dict[int, str], dict[int, str]]:
-    """Assign the stable element ids genuine exports use: GA link tokens (``GA-n``) and device ids."""
+    """The group-address link tokens (``GA-n``) and device ids, imported ones kept (``ids``;
+    without it, numbered in order)."""
+    ids = ids or _ExportIds()
     ga_link_id: dict[int, str] = {}
     di_id: dict[int, str] = {}
     if installation is None:
         return ga_link_id, di_id
-    ga_seq = 0
     for group_range in installation.group_ranges:
         for ga in group_range.group_addresses:
-            ga_seq += 1
-            ga_link_id[ga.id] = f"GA-{ga_seq}"
-    # Unassigned devices are re-emitted with their original ids; the numbering skips those.
-    taken = _unassigned_device_ids(installation)
-    di_seq = 0
+            ga_link_id[ga.id] = ids.id("GA", ga, ga.source_id)
     for area in installation.areas:
         for line in area.lines:
             for segment in line.segments:
                 for device in segment.devices:
-                    di_seq += 1
-                    while f"{pid}-0_DI-{di_seq}" in taken:
-                        di_seq += 1
-                    di_id[device.id] = f"{pid}-0_DI-{di_seq}"
+                    di_id[device.id] = (
+                        f"{pid}-0_{ids.id('DI', device, device.source_id)}"
+                    )
     return ga_link_id, di_id
 
 
@@ -1015,7 +1185,8 @@ class _Writer:
         self._ns = ns
         self._created_by = created_by
         self._tool_version = tool_version
-        self._puid = 0  # per-document unique element id stamped on topology/GA nodes
+        # Ids and Puids of the written elements, set per archive in write_archive.
+        self._ids = _ExportIds()
         # Imported ids -> this export's ids, for references inside verbatim stored subtrees.
         self._refs = _SourceRefs()
         self._pid = ""
@@ -1049,10 +1220,6 @@ class _Writer:
         # ETS stores each per-device BinaryData payload as a file, not inline; these are added to the
         # archive under the project folder and must be covered by the folder signature.
         self._binary_files: dict[str, bytes] = {}
-
-    def _next_puid(self) -> int:
-        self._puid += 1
-        return self._puid
 
     def _el(self, parent: ET.Element, tag: str, **attrs: object) -> ET.Element:
         child = ET.SubElement(parent, f"{{{self._ns}}}{tag}")
@@ -1103,9 +1270,17 @@ class _Writer:
                 raise ExportCancelled
 
         check_cancelled()
-        pid = project.id
+        # An imported project is written under its source id (its own id is only unique locally).
+        pid = (
+            project.original_project_id
+            if _PROJECT_ID.fullmatch(project.original_project_id)
+            else project.id
+        )
         self._source_schema = project.schema_version or self._schema
-        ga_link_id, di_id = _assign_ids(pid, installation)
+        self._ids = _ExportIds(project.last_used_puid)
+        if installation is not None:
+            _reserve_source_identities(self._ids, installation)
+        ga_link_id, di_id = _assign_ids(pid, installation, self._ids)
 
         if master_xml is None:
             master = self._root()
@@ -1136,14 +1311,17 @@ class _Writer:
             Name=project.name,
             GroupAddressStyle=project.group_address_style,
             Comment=project.comment or None,
-            LastUsedPuid=self._puid,
+            LastUsedPuid=self._ids.last_used_puid,
             Guid=project_guid,
             LastModified=project.last_modified or now,
         )
         # ProjectInformation attributes captured on import (ProjectStart/ProjectNumber/ContractNumber/
-        # ProjectEnd/ProjectId/ProjectTracingPassword); all valid in project/14, /20 and /23.
+        # ProjectEnd/ProjectId/ProjectTracingPassword, valid in project/14, /20 and /23; ProjectType
+        # only from project/21 on).
         for key, value in (project.extra_attributes or {}).items():
-            info.set(key, value)
+            schemas = _SCHEMA_SPECIFIC_INFO_ATTRS.get(key)
+            if schemas is None or self._schema in schemas:
+                info.set(key, value)
         # ProjectInformation child collections captured verbatim on import, re-emitted in schema
         # order: Tags, HistoryEntries, ToDoItems, ProjectTraces, DeviceCertificates.
         info_subtrees = project.info_subtrees or {}
@@ -1337,24 +1515,19 @@ class _Writer:
             inst.set(key, value)
 
         topo = self._el(inst, "Topology")
-        l_seq = 0
-        s_seq = 0
-        for a_seq, area in enumerate(
-            sorted(installation.areas, key=lambda x: x.address), start=1
-        ):
+        for area in sorted(installation.areas, key=lambda x: x.address):
             area_el = self._el(
                 topo,
                 "Area",
-                Id=f"{pid}-0_A-{a_seq}",
+                Id=f"{pid}-0_{self._ids.id('A', area, area.source_id)}",
                 Address=area.address,
                 Name=area.name,
                 Comment=area.comment or None,
                 Description=area.description or None,
-                Puid=self._next_puid(),
+                Puid=self._ids.puid(area, area.puid),
             )
             for line in sorted(area.lines, key=lambda x: x.address):
-                l_seq += 1
-                line_id = f"{pid}-0_L-{l_seq}"
+                line_id = f"{pid}-0_{self._ids.id('L', line, line.source_id)}"
                 medium = line.segments[0].medium_type if line.segments else "MT-0"
                 # RF/PL DomainAddress lives on the Segment (project/22+23) or the Line (14+20).
                 line_domain = next(
@@ -1376,17 +1549,16 @@ class _Writer:
                     Description=line.description or None,
                     MediumTypeRefId=None if self._uses_segments else medium,
                     DomainAddress=None if self._uses_segments else line_domain,
-                    Puid=self._next_puid(),
+                    Puid=self._ids.puid(line, line.puid),
                 )
                 first_segment_el: ET.Element | None = None
                 any_segment_aga = False
                 for segment in line.segments:
                     if self._uses_segments:
-                        s_seq += 1
                         container = self._el(
                             line_el,
                             "Segment",
-                            Id=f"{pid}-0_S-{s_seq}",
+                            Id=f"{pid}-0_{self._ids.id('S', segment, segment.source_id)}",
                             Number=segment.number,
                             MediumTypeRefId=segment.medium_type,
                             DomainAddress=segment.domain_address,
@@ -1394,7 +1566,7 @@ class _Writer:
                             MasterSalt=segment.master_salt
                             if self._schema == "23"
                             else None,
-                            Puid=self._next_puid(),
+                            Puid=self._ids.puid(segment, segment.puid),
                         )
                         if first_segment_el is None:
                             first_segment_el = container
@@ -1407,6 +1579,9 @@ class _Writer:
                         self._build_device(
                             container, device, di_id[device.id], ga_link_id
                         )
+                    # The bus access last used for the segment, after its devices (schema order).
+                    if self._uses_segments and segment.bus_access:
+                        self._el(container, "BusAccess", **segment.bus_access)
                     # Each segment's own "route regardless" pass-through addresses, as the last child
                     # of the Segment (project/22+23). Keeping them per-segment avoids collapsing a
                     # multi-segment line's addresses onto the first segment.
@@ -1421,6 +1596,13 @@ class _Writer:
                             agas = self._el(container, "AdditionalGroupAddresses")
                             for addr in seg_extra:
                                 self._el(agas, "GroupAddress", Address=int(addr))
+                # project/14+20 keep one bus access on the Line, after all its devices.
+                if not self._uses_segments:
+                    bus_access = next(
+                        (s.bus_access for s in line.segments if s.bus_access), None
+                    )
+                    if bus_access:
+                        self._el(line_el, "BusAccess", **bus_access)
                 # Line-level union: on the Line for project/14+20; for project/22+23 only as a
                 # fallback when no segment carried its own (a 14/20 source or a from-scratch line),
                 # emitted on the first segment to avoid losing the addresses on a schema upgrade.
@@ -1448,10 +1630,9 @@ class _Writer:
 
         gas = self._el(inst, "GroupAddresses")
         ranges = self._el(gas, "GroupRanges")
-        gr_seq = 0
         roots = [gr for gr in installation.group_ranges if gr.parent_id is None]
         for group_range in sorted(roots, key=lambda x: x.range_start):
-            gr_seq = self._build_range(ranges, group_range, pid, gr_seq, ga_link_id)
+            self._build_range(ranges, group_range, pid, ga_link_id)
 
         # <P2PLinks> (schema order: after GroupAddresses, before Trades). Point-to-point links incl.
         # their keys/endpoint security, captured verbatim on import and re-emitted here. project/20+.
@@ -1501,7 +1682,7 @@ class _Writer:
             Description=trade.description or None,
             CompletionStatus=trade.completion_status or None,
             Context=(trade.context or None) if self._trade_has_context else None,
-            Puid=self._next_puid(),
+            Puid=self._ids.puid(trade, trade.puid),
         )
         for child in sorted(trade.children, key=lambda t: (t.order, t.id)):
             self._build_trade(trade_el, child, di_id)
@@ -1526,9 +1707,8 @@ class _Writer:
         # when the project has no spaces; ETS reads an empty Locations without complaint.
         locs = self._el(inst_el, "Locations")
         roots = [s for s in installation.spaces if s.parent_id is None]
-        counters = {"sp": 0, "f": 0, "gar": 0}
         for space in sorted(roots, key=lambda s: (s.order, s.id)):
-            self._build_space(locs, space, pid, di_id, ga_link_id, counters)
+            self._build_space(locs, space, pid, di_id, ga_link_id)
 
     def _build_space(
         self,
@@ -1537,14 +1717,12 @@ class _Writer:
         pid: str,
         di_id: dict[int, str],
         ga_link_id: dict[int, str],
-        counters: dict[str, int],
     ) -> None:
-        counters["sp"] += 1
         sp = self._el(
             parent,
             "Space",
             Type=space.space_type or "Room",
-            Id=f"{pid}-0_BP-{counters['sp']}",
+            Id=f"{pid}-0_{self._ids.id('BP', space, space.source_id)}",
             Name=space.name,
             Number=space.number or None,
             Usage=space.usage or None,
@@ -1552,21 +1730,21 @@ class _Writer:
             Comment=space.comment or None,
             DefaultLine=space.default_line or None,
             Context=space.context or None,
-            Puid=self._next_puid(),
+            Puid=self._ids.puid(space, space.puid),
         )
         # The Space content model is a strict sequence: nested Space* first, then DeviceInstanceRef*,
         # then Function*. Emitting DeviceInstanceRef/Function before child spaces violates the schema.
         for child in sorted(space.children, key=lambda s: (s.order, s.id)):
-            self._build_space(sp, child, pid, di_id, ga_link_id, counters)
+            self._build_space(sp, child, pid, di_id, ga_link_id)
         for device in space.devices:
             if device.id in di_id:
                 self._el(sp, "DeviceInstanceRef", RefId=di_id[device.id])
         for fn in sorted(space.functions, key=lambda f: (f.order, f.id)):
-            counters["f"] += 1
+            function_id = self._ids.id("F", fn, fn.source_id)
             fn_el = self._el(
                 sp,
                 "Function",
-                Id=f"{pid}-0_F-{counters['f']}",
+                Id=f"{pid}-0_{function_id}",
                 Name=fn.name,
                 Type=fn.function_type or None,
                 Comment=fn.comment or None,
@@ -1575,26 +1753,27 @@ class _Writer:
                 Number=fn.number or None,
                 DefaultGroupRange=fn.default_group_range or None,
                 Context=fn.context or None,
-                Puid=self._next_puid(),
+                Puid=self._ids.puid(fn, fn.puid),
             )
-            gf = 0
             for fga in fn.group_addresses:
                 if fga.group_address_id not in ga_link_id:
                     continue
                 # GroupAddressRef_t requires Name and Puid (schema); the importer crashes building
-                # the buildings tree when they are missing. The Id is scoped under the function
+                # the buildings tree when they are missing. A new Id is scoped under the function
                 # (``_F-n_GF-m``) as genuine exports write it.
+                ref_id = self._ids.id(
+                    "GF", fga, fga.source_id, scope=f"{function_id}_", first=0
+                )
                 self._el(
                     fn_el,
                     "GroupAddressRef",
-                    Id=f"{pid}-0_F-{counters['f']}_GF-{gf}",
+                    Id=f"{pid}-0_{ref_id}",
                     Name=fga.name,
                     RefId=f"{pid}-0_{ga_link_id[fga.group_address_id]}",
                     Role=fga.role or None,
                     Context=fga.context or None,
-                    Puid=self._next_puid(),
+                    Puid=self._ids.puid(fga, fga.puid),
                 )
-                gf += 1
 
     def _build_device(
         self,
@@ -1630,7 +1809,7 @@ class _Writer:
             else None,
             MediumConfigLoaded="true" if device.medium_config_loaded else None,
             ParametersLoaded="true" if device.parameters_loaded else None,
-            Puid=self._next_puid(),
+            Puid=self._ids.puid(device, device.puid),
         )
         # DeviceInstance attributes captured verbatim on import (everything the columns above don't
         # cover). They came from the source schema, so re-emit them only when writing that same
@@ -1973,14 +2152,12 @@ class _Writer:
         parent: ET.Element,
         group_range: GroupRange,
         pid: str,
-        seq: int,
         ga_link_id: dict[int, str],
-    ) -> int:
-        seq += 1
+    ) -> None:
         gr_el = self._el(
             parent,
             "GroupRange",
-            Id=f"{pid}-0_GR-{seq}",
+            Id=f"{pid}-0_{self._ids.id('GR', group_range, group_range.source_id)}",
             RangeStart=group_range.range_start,
             RangeEnd=group_range.range_end,
             Name=group_range.name,
@@ -1988,12 +2165,12 @@ class _Writer:
             Description=group_range.description or None,
             # Coupler pass-through flag; emit only when set (absent means filtered).
             Unfiltered="true" if group_range.unfiltered else None,
-            Puid=self._next_puid(),
+            Puid=self._ids.puid(group_range, group_range.puid),
         )
         # GroupRange_t is a strict sequence: nested GroupRange* first, then GroupAddress*. Emitting
         # addresses before child ranges violates the schema when a range holds both (Free style).
         for child in sorted(group_range.children, key=lambda x: x.range_start):
-            seq = self._build_range(gr_el, child, pid, seq, ga_link_id)
+            self._build_range(gr_el, child, pid, ga_link_id)
         for ga in sorted(group_range.group_addresses, key=lambda x: x.address):
             # Heal a stored datapoint type to ETS token form; a value ETS cannot open is rejected
             # loudly, naming the group address so the user can fix it.
@@ -2018,9 +2195,8 @@ class _Writer:
                 if exports_key(ga, ga.id in self._secured)
                 else None,
                 Context=ga.context or None,
-                Puid=self._next_puid(),
+                Puid=self._ids.puid(ga, ga.puid),
             )
-        return seq
 
 
 # Object-model id/ref helpers shared with the ETS project-store serializer

@@ -141,7 +141,8 @@ _INSTALLATION_EXTRA_ATTRS = (
 
 # ProjectInformation attributes xknxproject does not surface, round-tripped verbatim. Restricted to
 # attributes defined in project/14, /20 and /23 (the schema-specific CodePage/BusAccessLegacyMode and
-# v23 ArchivedVersion/ProjectType are left out).
+# v23 ArchivedVersion are left out), plus ProjectType (project/21+), which the export writes only to
+# the schemas that define it.
 _PROJECT_EXTRA_ATTRS = (
     "ProjectStart",
     "ProjectNumber",
@@ -150,6 +151,7 @@ _PROJECT_EXTRA_ATTRS = (
     "ProjectId",
     "CompletionStatus",
     "ProjectTracingPassword",
+    "ProjectType",
 )
 
 _INSTALLATION_INDEX = 0
@@ -356,10 +358,18 @@ class _AddrEntry:
     comment: str = ""
 
 
+# An element's ``@Id`` and ``@Puid`` in the source project ("" / None when absent).
+type _Identity = tuple[str, int | None]
+
+
+def _identity(elem: ET.Element) -> _Identity:
+    return elem.get("Id", ""), _int_attr(elem, "Puid")
+
+
 @dataclass(frozen=True, slots=True)
 class _SegmentDesc:
     """A raw ``<Segment>`` (project/22+23) of a line: its ``Number``, ``MediumTypeRefId``,
-    ``DomainAddress`` and the ``@Id`` of every ``DeviceInstance`` nested under it. Used to rebuild
+    ``DomainAddress``, ``<BusAccess>`` and the ``@Id`` of every ``DeviceInstance`` nested under it. Used to rebuild
     one ``Segment`` per raw segment (xknxproject collapses them, reassigning devices and losing the
     per-segment domain)."""
 
@@ -369,6 +379,8 @@ class _SegmentDesc:
     device_ids: tuple[str, ...]
     additional_group_addresses: tuple[int, ...] = ()
     master_salt: str | None = None
+    bus_access: dict[str, str] | None = None
+    identity: _Identity = ("", None)
 
 
 @dataclass(slots=True)
@@ -395,6 +407,7 @@ class _AddresslessDevice:
     parameters_loaded: bool
     address: None = None
     individual_address: str = ""
+    project_uid: int | None = None
     application_program_ref: None = None
     order_number: str = ""
     hardware_name: str = ""
@@ -426,6 +439,7 @@ def _addressless_device(element: ET.Element) -> _AddresslessDevice | None:
         communication_part_loaded=loaded("CommunicationPartLoaded"),
         medium_config_loaded=loaded("MediumConfigLoaded"),
         parameters_loaded=loaded("ParametersLoaded"),
+        project_uid=_int_attr(element, "Puid"),
     )
 
 
@@ -442,6 +456,7 @@ class _TradeEntry:
     context: str
     device_ids: list[str]
     children: list[_TradeEntry]
+    puid: int | None = None
 
 
 # Per-device data read straight from the raw project XML because xknxproject drops it. Keyed by
@@ -497,6 +512,18 @@ class _RawExtras:
         self.line_pass_through: dict[tuple[int, int], list[int]] = {}
         # (Area @Address, Line @Address) -> RF/PL ``DomainAddress`` (Line in 14+20, Segment in 22+23).
         self.domain_address: dict[tuple[int, int], int] = {}
+        # (Area @Address, Line @Address) -> the line's ``<BusAccess>`` attributes (the bus access last
+        # used for it; on the Line in 14+20, on the Segment in 22+23, see _SegmentDesc).
+        self.line_bus_access: dict[tuple[int, int], dict[str, str]] = {}
+        # The ``@Id``/``@Puid`` of the topology and group-range elements xknxproject does not
+        # identify, kept so an export reuses them: areas by address, lines by (area, line) address,
+        # group ranges by (start, end) in document order.
+        self.area_identity: dict[int, _Identity] = {}
+        self.line_identity: dict[tuple[int, int], _Identity] = {}
+        self.grouprange_identity: dict[tuple[int, int], list[_Identity]] = {}
+        # The source project's ``Project/@Id`` and ``ProjectInformation/@LastUsedPuid``.
+        self.source_project_id = ""
+        self.last_used_puid: int | None = None
         # (Area @Address, Line @Address) -> the line's raw ``<Segment>`` descriptors (project/22+23),
         # in document order. Empty for project/14+20 (devices sit directly under the Line).
         self.segments: dict[tuple[int, int], list[_SegmentDesc]] = {}
@@ -583,6 +610,9 @@ def _parse(
             "project metadata",
             lambda: _read_project_meta(contents),
             ("", [], {}, {}, {}),
+        )
+        extras.source_project_id, extras.last_used_puid = _best_effort(
+            "project identity", lambda: _read_project_identity(contents), ("", None)
         )
         extras.project_files = _best_effort(
             "project files", lambda: _capture_project_files(contents), None
@@ -828,6 +858,15 @@ def _read_aga_addresses(parent: ET.Element) -> list[int]:
     return out
 
 
+def _bus_access(container: ET.Element) -> dict[str, str] | None:
+    """The attributes of ``container``'s own ``<BusAccess>`` child (the bus access last used for a
+    line or segment), or None when it has none."""
+    for child in container:
+        if _localname(child.tag) == "BusAccess":
+            return dict(child.attrib)
+    return None
+
+
 def _read_coupler_extras(root: ET.Element, extras: _RawExtras) -> None:
     """Read the topology data xknxproject drops from ``root``: per-line ``AdditionalGroupAddresses``
     pass-through (on the Segment in project/22+23, on the Line in 14+20), the ``Unfiltered`` flags on
@@ -837,12 +876,16 @@ def _read_coupler_extras(root: ET.Element, extras: _RawExtras) -> None:
         if _localname(area.tag) != "Area":
             continue
         a_addr = _int_attr(area, "Address")
+        if a_addr is not None:
+            extras.area_identity.setdefault(a_addr, _identity(area))
         if a_addr is not None and (a_comment := area.get("Comment")):
             extras.area_comment[a_addr] = a_comment
         for line in area:
             if _localname(line.tag) != "Line":
                 continue
             l_addr = _int_attr(line, "Address")
+            if a_addr is not None and l_addr is not None:
+                extras.line_identity.setdefault((a_addr, l_addr), _identity(line))
             if (
                 a_addr is not None
                 and l_addr is not None
@@ -853,6 +896,9 @@ def _read_coupler_extras(root: ET.Element, extras: _RawExtras) -> None:
             # ``DomainAddress`` (RF/PL) sits on the Line in project/14+20 and on the Segment in
             # project/22+23; xknxproject drops it either way. Prefer the Segment value when present.
             domain = _int_attr(line, "DomainAddress")
+            line_bus_access = _bus_access(line)
+            if line_bus_access and a_addr is not None and l_addr is not None:
+                extras.line_bus_access[(a_addr, l_addr)] = line_bus_access
             seg_descs: list[_SegmentDesc] = []
             for seg in line:
                 if _localname(seg.tag) == "Segment":
@@ -875,6 +921,8 @@ def _read_coupler_extras(root: ET.Element, extras: _RawExtras) -> None:
                             device_ids=device_ids,
                             additional_group_addresses=tuple(seg_addrs),
                             master_salt=seg.get("MasterSalt"),
+                            bus_access=_bus_access(seg),
+                            identity=_identity(seg),
                         )
                     )
             if seg_descs and a_addr is not None and l_addr is not None:
@@ -896,6 +944,9 @@ def _read_coupler_extras(root: ET.Element, extras: _RawExtras) -> None:
         if name == "GroupRange":
             start, end = _int_attr(elem, "RangeStart"), _int_attr(elem, "RangeEnd")
             if start is not None and end is not None:
+                extras.grouprange_identity.setdefault((start, end), []).append(
+                    _identity(elem)
+                )
                 if _is_true(elem.get("Unfiltered")):
                     extras.unfiltered_ranges.add((start, end))
                 if description := elem.get("Description"):
@@ -1026,6 +1077,7 @@ def _read_trade(elem: ET.Element) -> _TradeEntry:
         context=elem.get("Context") or "",
         device_ids=device_ids,
         children=children,
+        puid=_int_attr(elem, "Puid"),
     )
 
 
@@ -1156,6 +1208,25 @@ _PROJECT_INFO_SUBTREES = ("Tags", "HistoryEntries", "ToDoItems", "DeviceCertific
 # Project-level (not ProjectInformation) child collections xknxproject drops, round-tripped verbatim
 # from project.xml. ``UserFiles`` references attached files by name; the element is re-emitted as-is.
 _PROJECT_SUBTREES = ("UserFiles", "AddinData")
+
+
+def _read_project_identity(contents: _ProjectContents) -> tuple[str, int | None]:
+    """The source project's ``Project/@Id`` and ``ProjectInformation/@LastUsedPuid`` from the raw
+    ``project.xml``, so an export keeps the project's id and numbers new elements after its last
+    Puid. ``("", None)`` when absent."""
+    raw = _read_project_file(contents, "project.xml")
+    if raw is None:
+        return "", None
+    project_id = ""
+    last_used: int | None = None
+    for elem in ET.fromstring(raw).iter():
+        name = _localname(elem.tag)
+        if name == "Project" and not project_id:
+            project_id = elem.get("Id", "")
+        elif name == "ProjectInformation":
+            last_used = _int_attr(elem, "LastUsedPuid")
+            break
+    return project_id, last_used
 
 
 def _read_project_meta(
@@ -1385,6 +1456,8 @@ def _build(
         knx_master_xml=knx_master_xml,
         imported_product_members=product_members,
         imported_project_files=extras.project_files,
+        original_project_id=extras.source_project_id,
+        last_used_puid=extras.last_used_puid,
         traces=[
             ProjectTrace(
                 project_id=pid,
@@ -1487,8 +1560,13 @@ def _build_topology(
     for xarea in parser.areas:
         area = areas_by_addr.get(xarea.address)
         if area is None:
+            area_id, area_puid = state.extras.area_identity.get(
+                xarea.address, ("", None)
+            )
             area = Area(
                 address=xarea.address,
+                source_id=area_id,
+                puid=area_puid,
                 name=xarea.name,
                 description=getattr(xarea, "description", "") or "",
                 comment=state.extras.area_comment.get(xarea.address, ""),
@@ -1501,8 +1579,13 @@ def _build_topology(
             if xline.address in area_lines:
                 dropped_lines += 1
                 continue
+            line_id, line_puid = state.extras.line_identity.get(
+                (xarea.address, xline.address), ("", None)
+            )
             line = Line(
                 address=xline.address,
+                source_id=line_id,
+                puid=line_puid,
                 name=xline.name,
                 description=getattr(xline, "description", "") or "",
                 comment=state.extras.line_comment.get(
@@ -1536,9 +1619,14 @@ def _build_line_segments(
     descs = state.extras.segments.get(key, [])
     default_domain = state.extras.domain_address.get(key)
     addressless = state.extras.addressless_devices.get(key, [])
+    # A line-level BusAccess (project/14+20) belongs to the line's only segment.
+    line_bus_access = state.extras.line_bus_access.get(key)
     if not descs:
         segment = Segment(
-            number=0, medium_type=xline.medium_type, domain_address=default_domain
+            number=0,
+            medium_type=xline.medium_type,
+            domain_address=default_domain,
+            bus_access=line_bus_access,
         )
         line.segments.append(segment)
         for xdevice in [*xline.devices, *addressless]:
@@ -1553,6 +1641,8 @@ def _build_line_segments(
     for desc in descs:
         segment = Segment(
             number=desc.number,
+            source_id=desc.identity[0],
+            puid=desc.identity[1],
             medium_type=desc.medium_type_ref or xline.medium_type,
             domain_address=(
                 desc.domain_address
@@ -1563,6 +1653,7 @@ def _build_line_segments(
                 str(a) for a in desc.additional_group_addresses
             ),
             master_salt=desc.master_salt,
+            bus_access=desc.bus_access or (line_bus_access if not segments else None),
         )
         line.segments.append(segment)
         segments.append(segment)
@@ -1640,6 +1731,7 @@ def _build_device(
         comment=state.extras.device_comment.get(xdevice.identifier, ""),
         last_modified=getattr(xdevice, "last_modified", None),
         source_id=xdevice.identifier,
+        puid=getattr(xdevice, "project_uid", None),
         order_number=xdevice.order_number,
         hardware_name=xdevice.hardware_name,
         product_name=xdevice.product_name,
@@ -1851,6 +1943,7 @@ def _build_group_addresses(
             security_key=state.extras.ga_security.get(xga.raw_address, {}).get("Key"),
             context=state.extras.ga_security.get(xga.raw_address, {}).get("Context"),
             source_id=xga.identifier,
+            puid=getattr(xga, "project_uid", None),
         )
         group_range.group_addresses.append(ga)
         state.register_group_address(xga.identifier, ga)
@@ -1864,7 +1957,14 @@ def _build_ranges(
     state: _ImportState,
 ) -> None:
     for xr in xranges:
+        # Each range takes the next identity read for its (start, end), in document order.
+        identities = state.extras.grouprange_identity.get(
+            (xr.range_start, xr.range_end), []
+        )
+        source_id, puid = identities.pop(0) if identities else ("", None)
         gr = GroupRange(
+            source_id=source_id,
+            puid=puid,
             range_start=xr.range_start,
             range_end=xr.range_end,
             name=xr.name,
@@ -1923,6 +2023,8 @@ def _build_spaces(
         extra = state.extras.function_extra.get(func.identifier, {})
         ga_refs = state.extras.function_ga_refs.get(func.identifier, {})
         function = Function(
+            source_id=getattr(func, "identifier", "") or "",
+            puid=getattr(func, "project_uid", None),
             function_type=func.function_type,
             name=func.name,
             usage_text=func.usage_text,
@@ -1940,6 +2042,8 @@ def _build_spaces(
                 meta = ga_refs.get(ref.ref_id, {})
                 function.group_addresses.append(
                     FunctionGroupAddress(
+                        source_id=getattr(ref, "identifier", "") or "",
+                        puid=getattr(ref, "project_uid", None),
                         group_address=ga,
                         role=ref.role,
                         name=meta.get("Name", ""),
@@ -1958,6 +2062,8 @@ def _build_space(
     space_by_identifier: dict[str, Space],
 ) -> None:
     space = Space(
+        source_id=xspace.identifier,
+        puid=getattr(xspace, "project_uid", None),
         space_type=xspace.space_type.value,
         name=xspace.name,
         number=xspace.number,
@@ -2007,6 +2113,7 @@ def _build_trade(
         context=entry.context,
         order=order,
         parent=parent,
+        puid=entry.puid,
     )
     installation.trades.append(trade)
     unresolved: list[str] = []

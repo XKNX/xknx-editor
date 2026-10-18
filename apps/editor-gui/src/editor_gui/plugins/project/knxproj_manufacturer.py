@@ -22,6 +22,8 @@ from collections.abc import Iterable
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
+from xknxeditor.proj.core.manufacturer_xml import merge_manufacturer_xml
+
 if TYPE_CHECKING:
     from editor_gui.plugins.catalog.service import CatalogService
 
@@ -83,7 +85,7 @@ def collect_manufacturer_bundle(
                         elif name.endswith(".xml") and name.count("/") == 1:
                             # The same manufacturer file from another source: merge what it adds
                             # (e.g. Hardware.xml of a product imported on its own).
-                            bundle.extra_files[name] = _merge_manufacturer_xml(
+                            bundle.extra_files[name] = merge_manufacturer_xml(
                                 bundle.extra_files[name], zf.read(name)
                             )
                         # Other files of the same name (application programs, baggages) are the
@@ -106,91 +108,6 @@ def _find_manufacturers(root: ET.Element) -> ET.Element | None:
         if _localname(el.tag) == "Manufacturers":
             return el
     return None
-
-
-_KNX_PROJECT_NS = "http://knx.org/xml/project/"
-
-
-def _namespace(tag: str) -> str:
-    return tag[1:].split("}", 1)[0] if tag.startswith("{") else ""
-
-
-# Attributes that identify an element among its siblings in manufacturer data, in order.
-_KEY_ATTRIBUTES = ("Id", "RefId", "Identifier", "AttributeName")
-
-
-def _element_key(element: ET.Element) -> tuple[str, str] | None:
-    for attribute in _KEY_ATTRIBUTES:
-        value = element.get(attribute)
-        if value is not None:
-            return attribute, value
-    return None
-
-
-def _merge_elements(base: ET.Element, extra: ET.Element) -> bool:
-    """Add to ``base`` what ``extra`` has and it lacks: children are matched by tag and their
-    ``Id``/``RefId``/``Identifier``/``AttributeName``, a child without one by tag when ``base``
-    has exactly one such child (containers like ``Hardware`` or ``Languages``); matched children
-    are merged the same way, the others appended. Returns whether anything was added."""
-    keyed: dict[tuple[str, tuple[str, str]], ET.Element] = {}
-    unkeyed: dict[str, list[ET.Element]] = {}
-    for child in base:
-        key = _element_key(child)
-        if key is None:
-            unkeyed.setdefault(child.tag, []).append(child)
-        else:
-            keyed[(child.tag, key)] = child
-    added = False
-    for child in extra:
-        key = _element_key(child)
-        if key is not None:
-            match = keyed.get((child.tag, key))
-        else:
-            same = unkeyed.get(child.tag, [])
-            match = same[0] if len(same) == 1 else None
-            if match is None and any(
-                ET.tostring(child) == ET.tostring(other) for other in same
-            ):
-                continue
-        if match is not None:
-            added = _merge_elements(match, child) or added
-            continue
-        base.append(child)
-        if key is not None:
-            keyed[(child.tag, key)] = child
-        else:
-            unkeyed.setdefault(child.tag, []).append(child)
-        added = True
-    return added
-
-
-def _merge_manufacturer_xml(base: bytes, extra: bytes) -> bytes:
-    """Merge a manufacturer XML file (``Hardware.xml``, ``Catalog.xml``) from another source into
-    ``base``. A source of another KNX schema version (``project/20`` into ``project/23``) is merged
-    in the base's namespace. ``base`` is returned verbatim when ``extra`` adds nothing or either
-    does not parse."""
-    try:
-        base_root = ET.fromstring(base)
-        extra_root = ET.fromstring(extra)
-    except ET.ParseError:
-        return base
-    base_ns, extra_ns = _namespace(base_root.tag), _namespace(extra_root.tag)
-    if base_ns != extra_ns:
-        if not (
-            base_ns.startswith(_KNX_PROJECT_NS) and extra_ns.startswith(_KNX_PROJECT_NS)
-        ):
-            return base
-        for element in extra_root.iter():
-            if _namespace(element.tag) == extra_ns:
-                element.tag = f"{{{base_ns}}}{_localname(element.tag)}"
-    if base_root.tag != extra_root.tag or not _merge_elements(base_root, extra_root):
-        return base
-    # Keep the default namespace unprefixed so the merged file parses like the originals.
-    if base_root.tag.startswith("{"):
-        ET.register_namespace("", base_root.tag[1:].split("}", 1)[0])
-    return b'<?xml version="1.0" encoding="utf-8"?>\n' + ET.tostring(
-        base_root, encoding="unicode"
-    ).encode("utf-8")
 
 
 def _merge_masters(masters: list[bytes]) -> bytes | None:
