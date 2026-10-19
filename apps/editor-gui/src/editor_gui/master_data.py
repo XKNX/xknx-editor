@@ -14,19 +14,23 @@ callers degrade with a clear message rather than crashing.
 from __future__ import annotations
 
 import contextlib
-import time
 from dataclasses import dataclass
 from datetime import date as _date
 from pathlib import Path
 
 from editor_gui.settings import config_dir
 from xknxeditor.prod import MasterData, parse_master_xml
-from xknxeditor.proj import fetch_master_xml, master_cache_path
+from xknxeditor.proj import (
+    MASTER_MAX_AGE_SECONDS,
+    fetch_master_xml,
+    master_cache_is_stale,
+    master_cache_path,
+)
 
 # The project/23 master, matching the XML namespace used across the app (see online_catalog).
 _SCHEMA = "23"
 # Re-fetch the cached master once it is older than this; a failed refresh keeps the old cache.
-_MAX_CACHE_AGE_SECONDS = 7 * 24 * 60 * 60
+_MAX_CACHE_AGE_SECONDS = MASTER_MAX_AGE_SECONDS
 
 
 @dataclass(frozen=True, slots=True)
@@ -45,10 +49,7 @@ def _cache_path() -> Path:
 
 def _is_stale(cache: Path) -> bool:
     """True when the cache is older than the max age (or its age cannot be read)."""
-    try:
-        return time.time() - cache.stat().st_mtime > _MAX_CACHE_AGE_SECONDS
-    except OSError:
-        return True
+    return master_cache_is_stale(cache)
 
 
 def _download_and_cache(cache: Path) -> bytes:

@@ -1,8 +1,10 @@
-"""An export with ``fetch_master`` writes the current signed master: downloaded on every export and
-cached; without a download the newest of the cached, stored and supplied masters."""
+"""An export with ``fetch_master`` writes the current signed master: the cached copy while it is
+fresh, else downloaded and cached; the newest of it and the stored and supplied masters."""
 
 from __future__ import annotations
 
+import os
+import time
 import zipfile
 from pathlib import Path
 
@@ -10,7 +12,12 @@ import pytest
 from sqlalchemy.orm import Session
 
 import xknxeditor.proj.core.knxproj_export as exp
-from xknxeditor.proj import ProjectService, export_knxproj, master_cache_path
+from xknxeditor.proj import (
+    MASTER_MAX_AGE_SECONDS,
+    ProjectService,
+    export_knxproj,
+    master_cache_path,
+)
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import Project
 
@@ -54,6 +61,17 @@ def _offline(knxproj: object = None, timeout: float = 15.0, schema: str = "") ->
     raise OSError("offline")
 
 
+def _cache(tmp_path: Path, version: int, *, stale: bool = False) -> Path:
+    cache_dir = tmp_path / "cache"
+    cache_dir.mkdir()
+    cache = master_cache_path(cache_dir, "23")
+    cache.write_bytes(_master(version))
+    if stale:
+        stamp = time.time() - MASTER_MAX_AGE_SECONDS - 60
+        os.utime(cache, (stamp, stamp))
+    return cache_dir
+
+
 def test_export_writes_the_downloaded_master_and_caches_it(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -70,7 +88,7 @@ def test_export_writes_the_downloaded_master_and_caches_it(
     assert [p.name for p in cache_dir.iterdir()] == ["knx_master.xml"]
 
 
-def test_every_export_downloads_the_master(
+def test_without_cache_every_export_downloads_the_master(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     src = _project(tmp_path, _master(304))
@@ -86,7 +104,7 @@ def test_every_export_downloads_the_master(
     ("cached", "stored", "expected"),
     [(306, 304, 306), (300, 304, 304), (304, 304, 304)],
 )
-def test_offline_export_writes_the_newest_master(
+def test_a_fresh_cache_is_used_without_download(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
     cached: int,
@@ -94,13 +112,52 @@ def test_offline_export_writes_the_newest_master(
     expected: int,
 ) -> None:
     src = _project(tmp_path, _master(stored))
-    monkeypatch.setattr(exp, "fetch_master_xml", _offline)
-    cache_dir = tmp_path / "cache"
-    cache_dir.mkdir()
-    master_cache_path(cache_dir, "23").write_bytes(_master(cached))
+    calls: list[str] = []
+    monkeypatch.setattr(exp, "fetch_master_xml", _fetch_returns(_master(308), calls))
+    cache_dir = _cache(tmp_path, cached)
 
     written = _written(src, tmp_path, fetch_master=True, master_cache_dir=cache_dir)
     assert written == _master(expected)
+    assert calls == []
+
+
+def test_a_stale_cache_is_refreshed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    src = _project(tmp_path, _master(304))
+    calls: list[str] = []
+    monkeypatch.setattr(exp, "fetch_master_xml", _fetch_returns(_master(308), calls))
+    cache_dir = _cache(tmp_path, 306, stale=True)
+
+    written = _written(src, tmp_path, fetch_master=True, master_cache_dir=cache_dir)
+    assert written == _master(308)
+    assert calls == ["23"]
+    assert master_cache_path(cache_dir, "23").read_bytes() == _master(308)
+
+
+def test_offline_export_with_a_stale_cache_writes_the_newest_master(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    src = _project(tmp_path, _master(304))
+    monkeypatch.setattr(exp, "fetch_master_xml", _offline)
+    cache_dir = _cache(tmp_path, 306, stale=True)
+
+    written = _written(src, tmp_path, fetch_master=True, master_cache_dir=cache_dir)
+    assert written == _master(306)
+
+
+def test_an_unusable_cache_is_replaced(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    src = _project(tmp_path, _master(304))
+    calls: list[str] = []
+    monkeypatch.setattr(exp, "fetch_master_xml", _fetch_returns(_master(308), calls))
+    cache_dir = _cache(tmp_path, 0)
+    master_cache_path(cache_dir, "23").write_bytes(b"<KNX")
+
+    written = _written(src, tmp_path, fetch_master=True, master_cache_dir=cache_dir)
+    assert written == _master(308)
+    assert calls == ["23"]
 
 
 def test_offline_export_skips_an_unusable_cache(
@@ -108,8 +165,7 @@ def test_offline_export_skips_an_unusable_cache(
 ) -> None:
     src = _project(tmp_path, _master(304))
     monkeypatch.setattr(exp, "fetch_master_xml", _offline)
-    cache_dir = tmp_path / "cache"
-    cache_dir.mkdir()
+    cache_dir = _cache(tmp_path, 0)
     master_cache_path(cache_dir, "23").write_bytes(b"<KNX")
 
     written = _written(src, tmp_path, fetch_master=True, master_cache_dir=cache_dir)

@@ -58,6 +58,7 @@ import json
 import logging
 import os
 import re
+import time
 import xml.etree.ElementTree as ET
 import zipfile
 from collections.abc import Callable, Mapping
@@ -485,12 +486,25 @@ def _usable_master(master: bytes | None, schema: str) -> bytes | None:
         return None
 
 
+# A cached master is refreshed from the KNX update server once it is older than this.
+MASTER_MAX_AGE_SECONDS = 7 * 24 * 60 * 60
+
+
 def master_cache_path(cache_dir: Path | str, schema: str) -> Path:
     """Where the current signed master for ``schema`` is cached in ``cache_dir``.
 
     The project/23 master keeps the plain ``knx_master.xml``; other schemas get their number."""
     name = "knx_master.xml" if schema == "23" else f"knx_master-{schema}.xml"
     return Path(cache_dir) / name
+
+
+def master_cache_is_stale(cache: Path) -> bool:
+    """True when the cached master is older than :data:`MASTER_MAX_AGE_SECONDS` (or its age
+    cannot be read)."""
+    try:
+        return time.time() - cache.stat().st_mtime > MASTER_MAX_AGE_SECONDS
+    except OSError:
+        return True
 
 
 def _master_version(master: bytes, schema: str) -> int:
@@ -516,18 +530,27 @@ def _newest_master(
 ) -> bytes | None:
     """The current signed master for ``schema``, as every export writes the current master data.
 
-    It is downloaded from the KNX update server and kept in ``cache_dir``. Without a download, the
-    newest usable master of the cached copy and ``fallbacks`` is taken (the cached copy on a tie);
-    None when there is none."""
+    The copy in ``cache_dir`` is used while it is fresh (:func:`master_cache_is_stale`); when it is
+    stale, missing or unusable (or there is no ``cache_dir``), the master is downloaded from the KNX
+    update server and cached. Without a download, the newest usable master of the cached copy and
+    ``fallbacks`` is taken (the cached copy on a tie); None when there is none."""
     cache = master_cache_path(cache_dir, schema) if cache_dir is not None else None
-    try:
-        current = fetch_master_xml(schema=schema)
-    except Exception as exc:
-        logger.warning(
-            "fetching current knx_master.xml failed (%s); using the newest available",
-            exc,
-        )
+    cached: bytes | None = None
+    if cache is not None:
+        with contextlib.suppress(OSError):
+            cached = _usable_master(cache.read_bytes(), schema)
+    if cache is not None and cached is not None and not master_cache_is_stale(cache):
+        current = None
     else:
+        try:
+            current = fetch_master_xml(schema=schema)
+        except Exception as exc:
+            logger.warning(
+                "fetching current knx_master.xml failed (%s); using the newest available",
+                exc,
+            )
+            current = None
+    if current is not None:
         if cache is not None:
             partial = cache.with_name(f"{cache.name}.{uuid4().hex}.tmp")
             try:
@@ -538,10 +561,7 @@ def _newest_master(
                 logger.warning("caching knx_master.xml failed (%s)", exc)
                 partial.unlink(missing_ok=True)
         return current
-    candidates = list(fallbacks)
-    if cache is not None:
-        with contextlib.suppress(OSError):
-            candidates.insert(0, cache.read_bytes())
+    candidates = [cached, *fallbacks]
     usable = [m for m in (_usable_master(c, schema) for c in candidates) if m]
     return max(usable, key=lambda m: _master_version(m, schema), default=None)
 
@@ -714,13 +734,15 @@ def export_knxproj(
         master of the project that fits the schema takes precedence.
       master_source: Optional signed ``.knxproj`` whose (signed) master data is reused when no
         other master is available.
-      fetch_master: When true, write the current signed master for the exported schema: it is
-        downloaded (:func:`fetch_master_xml`) on every export, as a genuine export always carries the
-        tool's current master data. Without a download the newest signed master of the cached copy,
-        the project's stored one, ``master_xml`` and ``master_source`` is written, else the
-        generated unsigned master. Off by default so the export performs no network I/O unless asked.
-      master_cache_dir: Folder where ``fetch_master`` keeps the downloaded master
-        (:func:`master_cache_path`) for exports without a download.
+      fetch_master: When true, write the current signed master for the exported schema, as a
+        genuine export always carries the tool's current master data: the cached copy in
+        ``master_cache_dir`` while it is fresh, else downloaded (:func:`fetch_master_xml`) and
+        cached. The newest signed master of that, the project's stored one, ``master_xml`` and
+        ``master_source`` is written, else the generated unsigned master. Off by default so the
+        export performs no network I/O unless asked.
+      master_cache_dir: Folder where ``fetch_master`` keeps the current master
+        (:func:`master_cache_path`), refreshed once it is older than
+        :data:`MASTER_MAX_AGE_SECONDS`. Without it, every export downloads the master.
       master_version: ``MasterData`` ``Version`` attribute for the generated master (informational;
         only meaningful when the ``knx_master.xml`` is subsequently signed by an external master-data
         signer). Ignored when a signed master is supplied/fetched/reused.
