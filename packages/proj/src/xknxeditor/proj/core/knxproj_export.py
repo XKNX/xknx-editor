@@ -51,12 +51,14 @@ round-trip merges or drops:
 
 from __future__ import annotations
 
+import contextlib
 import datetime
 import io
 import json
 import logging
 import os
 import re
+import time
 import xml.etree.ElementTree as ET
 import zipfile
 from collections.abc import Callable, Mapping
@@ -484,6 +486,86 @@ def _usable_master(master: bytes | None, schema: str) -> bytes | None:
         return None
 
 
+# A cached master is refreshed from the KNX update server once it is older than this.
+MASTER_MAX_AGE_SECONDS = 7 * 24 * 60 * 60
+
+
+def master_cache_path(cache_dir: Path | str, schema: str) -> Path:
+    """Where the current signed master for ``schema`` is cached in ``cache_dir``.
+
+    The project/23 master keeps the plain ``knx_master.xml``; other schemas get their number."""
+    name = "knx_master.xml" if schema == "23" else f"knx_master-{schema}.xml"
+    return Path(cache_dir) / name
+
+
+def master_cache_is_stale(cache: Path) -> bool:
+    """True when the cached master is older than :data:`MASTER_MAX_AGE_SECONDS` (or its age
+    cannot be read)."""
+    try:
+        return time.time() - cache.stat().st_mtime > MASTER_MAX_AGE_SECONDS
+    except OSError:
+        return True
+
+
+def _master_version(master: bytes, schema: str) -> int:
+    """The ``MasterData@Version`` of a usable master (0 when it carries none)."""
+    master_data = ET.fromstring(master).find(f"{{{_ns_for(schema)}}}MasterData")
+    version = master_data.get("Version", "") if master_data is not None else ""
+    return int(version) if version.isdigit() else 0
+
+
+def _source_master(master_source: Path | str | None, schema: str) -> bytes | None:
+    """The signed master of the ``.knxproj`` at ``master_source``, None when it has none."""
+    if master_source is None:
+        return None
+    try:
+        return read_master_xml(master_source, schema)
+    except (OSError, KeyError, ValueError, ET.ParseError, zipfile.BadZipFile) as exc:
+        logger.warning("no signed master data in %s (%s)", master_source, exc)
+        return None
+
+
+def _newest_master(
+    schema: str, cache_dir: Path | str | None, fallbacks: list[bytes | None]
+) -> bytes | None:
+    """The current signed master for ``schema``, as every export writes the current master data.
+
+    The copy in ``cache_dir`` is used while it is fresh (:func:`master_cache_is_stale`); when it is
+    stale, missing or unusable (or there is no ``cache_dir``), the master is downloaded from the KNX
+    update server and cached. Without a download, the newest usable master of the cached copy and
+    ``fallbacks`` is taken (the cached copy on a tie); None when there is none."""
+    cache = master_cache_path(cache_dir, schema) if cache_dir is not None else None
+    cached: bytes | None = None
+    if cache is not None:
+        with contextlib.suppress(OSError):
+            cached = _usable_master(cache.read_bytes(), schema)
+    if cache is not None and cached is not None and not master_cache_is_stale(cache):
+        current = None
+    else:
+        try:
+            current = fetch_master_xml(schema=schema)
+        except Exception as exc:
+            logger.warning(
+                "fetching current knx_master.xml failed (%s); using the newest available",
+                exc,
+            )
+            current = None
+    if current is not None:
+        if cache is not None:
+            partial = cache.with_name(f"{cache.name}.{uuid4().hex}.tmp")
+            try:
+                cache.parent.mkdir(parents=True, exist_ok=True)
+                partial.write_bytes(current)
+                os.replace(partial, cache)
+            except OSError as exc:
+                logger.warning("caching knx_master.xml failed (%s)", exc)
+                partial.unlink(missing_ok=True)
+        return current
+    candidates = [cached, *fallbacks]
+    usable = [m for m in (_usable_master(c, schema) for c in candidates) if m]
+    return max(usable, key=lambda m: _master_version(m, schema), default=None)
+
+
 def _stored_provenance_sources(
     project: Project, schema: str, master_xml: bytes | None
 ) -> tuple[dict[str, bytes], bytes | None, str]:
@@ -521,6 +603,7 @@ def _resolve_export_sources(
     master_xml: bytes | None,
     master_source: Path | str | None,
     fetch_master: bool,
+    master_cache_dir: Path | str | None = None,
 ) -> tuple[str, str, dict[str, bytes], bytes | None]:
     """Resolve the schema, namespace, manufacturer members and master XML the archive is built from.
 
@@ -529,8 +612,8 @@ def _resolve_export_sources(
     and its stored master is kept when it fits the schema; without them the provenance is re-emitted
     (:func:`_stored_provenance_sources`). The project files (project.xml / 0.xml) and
     knx_master.xml share ONE schema, but each ``M-xxxx/`` manufacturer folder keeps its OWN original
-    schema — as ETS writes it. So the master is obtained at the project schema, an unusable supplied
-    master is substituted by the fetched one when ``fetch_master`` is set, legacy (project/<=14)
+    schema — as ETS writes it. So the master is obtained at the project schema — with
+    ``fetch_master`` the current one (:func:`_newest_master`) —, legacy (project/<=14)
     manufacturer members are converted up, and modern members at a different schema pass through
     verbatim (no mismatch error)."""
     if extra_files:
@@ -545,43 +628,28 @@ def _resolve_export_sources(
             project, schema, master_xml
         )
 
-    if effective_master is None and (fetch_master or master_source is not None):
-        try:
-            if fetch_master:
-                effective_master = fetch_master_xml(master_source, schema=schema)
-            else:
-                assert master_source is not None  # implied by the branch condition
-                effective_master = read_master_xml(master_source, schema)
-        except Exception as exc:
-            logger.warning(
-                "no signed master data available (%s); using generated unsigned master",
-                exc,
-            )
-
     # The project files (project.xml / 0.xml) and knx_master.xml use ONE schema (``schema``), but the
     # manufacturer data under each ``M-xxxx/`` keeps its OWN original schema — exactly what ETS writes
     # (e.g. an ETS6 project/23 archive carrying a device whose product data stays project/20). So the
     # master is obtained AT the project schema and the manufacturer members are emitted as-is; the
     # project schema is NOT bumped to match the master or the product data.
-
-    # A supplied/merged master that does not verify for the (aligned) schema — wrong namespace that
-    # cannot be aligned, or a blanked signature — would make the import fail; replace it with the
-    # canonical signed one when fetching is allowed.
-    if effective_master is not None and fetch_master:
-        try:
-            _check_master(effective_master, "bundled master", _ns_for(schema))
-        except (ValueError, ET.ParseError) as exc:
-            try:
-                effective_master = fetch_master_xml(master_source, schema=schema)
-                logger.warning(
-                    "replaced unusable bundled master (%s) with the fetched one", exc
-                )
-            except Exception as fetch_exc:
-                logger.warning(
-                    "unusable bundled master (%s) and no replacement (%s); writing it as-is",
-                    exc,
-                    fetch_exc,
-                )
+    if fetch_master:
+        newest = _newest_master(
+            schema,
+            master_cache_dir,
+            [effective_master, _source_master(master_source, schema)],
+        )
+        if newest is not None:
+            effective_master = newest
+        elif effective_master is not None:
+            logger.warning(
+                "no signed master data for project/%s available; writing the supplied one as-is",
+                schema,
+            )
+    elif effective_master is None and master_source is not None:
+        effective_master = _source_master(master_source, schema)
+    if effective_master is None:
+        logger.info("no signed master data available; using generated unsigned master")
 
     effective_extra = _heal_extra_files(effective_extra, schema)
     return schema, _ns_for(schema), effective_extra, effective_master
@@ -638,6 +706,7 @@ def export_knxproj(
     master_xml: bytes | None = None,
     master_source: Path | str | None = None,
     fetch_master: bool = False,
+    master_cache_dir: Path | str | None = None,
     master_version: int = 1,
     certificate_signer: CertificateSigner | None = None,
     project_name: str | None = None,
@@ -661,13 +730,19 @@ def export_knxproj(
       extra_files: Optional raw archive members to add verbatim (e.g. manufacturer ``M-XXXX/``
         trees and their ``M-XXXX.signature`` files, supplied by a caller that has the catalog).
         Keys colliding with the export's own paths are ignored.
-      master_xml: Optional ``knx_master.xml`` bytes to write instead of the generated one. Takes
-        precedence over ``fetch_master``/``master_source``.
-      master_source: Optional signed ``.knxproj`` whose (signed) master data is reused. Used as the
-        fallback source when ``fetch_master`` is set and the download fails.
-      fetch_master: When true (and ``master_xml`` is not given), download the current signed master
-        for ``schema`` (:func:`fetch_master_xml`), falling back to ``master_source`` and then to the
-        generated unsigned master. Off by default so the export performs no network I/O unless asked.
+      master_xml: Optional ``knx_master.xml`` bytes to write instead of the generated one. A stored
+        master of the project that fits the schema takes precedence.
+      master_source: Optional signed ``.knxproj`` whose (signed) master data is reused when no
+        other master is available.
+      fetch_master: When true, write the current signed master for the exported schema, as a
+        genuine export always carries the tool's current master data: the cached copy in
+        ``master_cache_dir`` while it is fresh, else downloaded (:func:`fetch_master_xml`) and
+        cached. The newest signed master of that, the project's stored one, ``master_xml`` and
+        ``master_source`` is written, else the generated unsigned master. Off by default so the
+        export performs no network I/O unless asked.
+      master_cache_dir: Folder where ``fetch_master`` keeps the current master
+        (:func:`master_cache_path`), refreshed once it is older than
+        :data:`MASTER_MAX_AGE_SECONDS`. Without it, every export downloads the master.
       master_version: ``MasterData`` ``Version`` attribute for the generated master (informational;
         only meaningful when the ``knx_master.xml`` is subsequently signed by an external master-data
         signer). Ignored when a signed master is supplied/fetched/reused.
@@ -734,7 +809,13 @@ def export_knxproj(
             # extra_files win, else the project's captured import provenance is re-emitted (and the
             # schema realigned to it). Done inside the session so stored provenance can be read.
             schema, ns, effective_extra, master_xml = _resolve_export_sources(
-                project, schema, extra_files, master_xml, master_source, fetch_master
+                project,
+                schema,
+                extra_files,
+                master_xml,
+                master_source,
+                fetch_master,
+                master_cache_dir,
             )
             if remove_unused_products and effective_extra:
                 used = used_product_ids(session)

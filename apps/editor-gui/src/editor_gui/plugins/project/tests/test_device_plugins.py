@@ -124,11 +124,30 @@ def test_configuration_apps_from_embedded_packages() -> None:
 
 
 def test_parameters_in_the_manufacturer_plugin() -> None:
-    plugin = SimpleNamespace(
+    # A UI-only plugin writes to the standard parameter DOM; its parameters are still editable
+    # here and reach the device through a normal download.
+    ui_only = SimpleNamespace(
         ets_ui_plugin="{9CB4A7CC-C8E0-4C8A-9312-2AFA954E19F5}",
         ets_download_plugin=None,
         ets_data_handler=None,
         requires_external_software=False,
     )
-    assert parameters_in_plugin(_device(plugin))
+    assert not parameters_in_plugin(_device(ui_only))
     assert not parameters_in_plugin(_device(None))
+    # A plugin that performs its own device write (download / data-handler) actually keeps
+    # values out of the standard pages; so does hardware that refuses a plain download.
+    writes_data = SimpleNamespace(
+        ets_ui_plugin=None,
+        ets_download_plugin="{A}",
+        ets_data_handler=None,
+        requires_external_software=False,
+    )
+    assert parameters_in_plugin(_device(writes_data))
+    data_handler = SimpleNamespace(
+        ets_ui_plugin=None,
+        ets_download_plugin=None,
+        ets_data_handler="{B}",
+        requires_external_software=False,
+    )
+    assert parameters_in_plugin(_device(data_handler))
+    assert parameters_in_plugin(_device(None, required=True))

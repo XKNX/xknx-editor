@@ -2343,6 +2343,10 @@ class ProjectStrings:
         )
 
     @property
+    def PLUGIN_PARAMETERS_EDIT_ANYWAY(self) -> str:
+        return _("Edit parameters anyway")
+
+    @property
     def PLUGIN_USER_INTERFACE(self) -> str:
         return _(
             "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."

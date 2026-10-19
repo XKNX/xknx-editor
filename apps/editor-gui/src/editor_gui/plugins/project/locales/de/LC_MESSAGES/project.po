@@ -1511,8 +1511,6 @@ msgstr "Das Handbuch dieses Geräts suchen (über die KNX-Gerätedatenbank, sons
 msgid "Gap X / Y (mm)"
 msgstr "Abstand X / Y (mm)"
 
-msgid "Group Addresses"
-msgstr "Gruppenadressen"
 
 msgid "IP Address"
 msgstr "IP-Adresse"
@@ -2083,3 +2081,6 @@ msgstr "Parameter im Plugin des Herstellers"
 
 msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
 msgstr "Der Hersteller stellt die Parameter dieses Geräts in einem eigenen Plugin-Dialog ein, den XKNX Editor nicht ausführen kann; sie können deshalb hier nicht geändert werden. Ein Download schreibt ihre aktuellen Werte unverändert; die Gruppenobjekte lassen sich wie gewohnt verknüpfen."
+
+msgid "Edit parameters anyway"
+msgstr "Parameter trotzdem bearbeiten"

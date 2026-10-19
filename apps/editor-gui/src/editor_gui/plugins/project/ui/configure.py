@@ -395,6 +395,8 @@ class ConfigurePanel:
         self._confirm_program_open: bool = False
         # Confirmed to program a device whose hardware needs the manufacturer's plugin.
         self._program_without_plugin: bool = False
+        # Devices whose plugin-dialog warning the user chose to override and edit anyway.
+        self._edit_plugin_params_override: set[int] = set()
         self._overwrite_current_address = ""
         self._program_use_serial = False
         self._serial_buffer = ""
@@ -1065,11 +1067,16 @@ class ConfigurePanel:
             if imgui.begin_tab_item(
                 f"{S.EDITOR_TAB_PARAMETERS.format(count=param_count)}###editor_tab_params"
             )[0]:
-                if parameters_in_plugin(device):
+                if (
+                    parameters_in_plugin(device)
+                    and device.node_id not in self._edit_plugin_params_override
+                ):
                     # The standard pages would let the plugin's settings be edited without it.
                     with heading():
                         imgui.text_wrapped(S.PLUGIN_PARAMETERS_TITLE)
                     imgui.text_wrapped(S.PLUGIN_PARAMETERS_TEXT)
+                    if imgui.button(S.PLUGIN_PARAMETERS_EDIT_ANYWAY):
+                        self._edit_plugin_params_override.add(device.node_id)
                 elif ui_nodes:
                     self._param_filter = filter_box(
                         "##param_filter",
