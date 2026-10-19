@@ -21,11 +21,10 @@ from pathlib import Path
 
 from editor_gui.settings import config_dir
 from xknxeditor.prod import MasterData, parse_master_xml
-from xknxeditor.proj import fetch_master_xml
+from xknxeditor.proj import fetch_master_xml, master_cache_path
 
 # The project/23 master, matching the XML namespace used across the app (see online_catalog).
 _SCHEMA = "23"
-_CACHE_NAME = "knx_master.xml"
 # Re-fetch the cached master once it is older than this; a failed refresh keeps the old cache.
 _MAX_CACHE_AGE_SECONDS = 7 * 24 * 60 * 60
 
@@ -40,7 +39,8 @@ class MasterDataInfo:
 
 
 def _cache_path() -> Path:
-    return config_dir() / _CACHE_NAME
+    # Shared with the export, which refreshes it with every downloaded master.
+    return master_cache_path(config_dir(), _SCHEMA)
 
 
 def _is_stale(cache: Path) -> bool:

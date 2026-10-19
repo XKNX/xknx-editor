@@ -27,6 +27,7 @@ from xknxeditor.proj.core.knxproj_export import (
     ExportResult,
     export_knxproj,
     fetch_master_xml,
+    master_cache_path,
     read_master_xml,
 )
 from xknxeditor.proj.core.knxproj_import import import_knxproj
@@ -102,6 +103,7 @@ __all__ = [
     "import_knxproj",
     "is_encrypted",
     "is_ga_export",
+    "master_cache_path",
     "myknx_certificate_signer",
     "prune_product_blob",
     "prune_product_members",
