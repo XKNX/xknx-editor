@@ -28,6 +28,7 @@ from editor_gui import __version__, self_update
 from editor_gui import signing_key as signing_key_store
 from editor_gui import trace_key as trace_key_store
 from editor_gui.certs import ensure_ca_bundle
+from editor_gui.color import warning_red
 from editor_gui.concurrency import MainThreadExecutor
 from editor_gui.dock_menus import render_section_menus
 from editor_gui.log_file import log_dir
@@ -79,9 +80,11 @@ from editor_gui.widgets.dialog import (
     end_dialog,
     floating_window_border,
     focus_when_appearing,
+    outlined_tabs,
+    tab_page,
 )
 from editor_gui.widgets.dpi import px, px_vec2
-from editor_gui.widgets.fonts import heading, load_fonts
+from editor_gui.widgets.fonts import fitted_heading, heading, load_fonts
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
 from editor_gui.widgets.tables import reset_all_tables
@@ -422,8 +425,6 @@ class KnxGuiApp:
         self._myknx_2fa_prompt = False
         # Request to open the OAuth-credentials config modal next frame (set from a button handler).
         self._myknx_open_oauth_config = False
-        # Set by the dongle modal's "Save as .zip" action to close the whole export prompt next frame.
-        self._myknx_force_close = False
         # OAuth client credentials (client id/secret) for the device-code flow: entered by hand or
         # extracted from the user's Knx.Ets.MyKnx.dll, cached per-user.
         _oauth_creds = load_myknx_oauth_credentials()
@@ -1472,15 +1473,8 @@ class KnxGuiApp:
         # (auto-resize + full-width inputs made this window span the whole screen before).
         if not begin_dialog(S.MYKNX_SIGN_TITLE, width=780.0):
             return
-        if self._myknx_force_close:
-            # The dongle modal's "Save as .zip" already ran the export; dismiss the whole prompt.
-            self._myknx_force_close = False
-            imgui.close_current_popup()
-            end_dialog()
-            return
         dest = self._export_pending_dest
-        with heading():
-            imgui.text_wrapped(S.MYKNX_SIGN_PROMPT)
+        fitted_heading(S.MYKNX_SIGN_PROMPT)
         imgui.spacing()
         # Target format: ETS 6 (schema 23, default) or ETS 5 (schema 20).
         imgui.text_disabled(S.EXPORT_FORMAT)
@@ -1499,7 +1493,8 @@ class KnxGuiApp:
             data = load_settings("app")
             data["export_remove_unused_products"] = self._export_remove_unused
             save_settings("app", data)
-        # Help text below the checkbox, wrapped (the German text is too long for one line).
+        # The note next to the checkbox; it wraps below its start where the line is too short.
+        imgui.same_line()
         imgui.push_style_color(
             imgui.Col_.text, imgui.get_style_color_vec4(imgui.Col_.text_disabled)
         )
@@ -1512,6 +1507,93 @@ class KnxGuiApp:
         logging_in = bool(
             self._myknx_login_thread and self._myknx_login_thread.is_alive()
         )
+        # The two ways to license the export: signing online with a MyKnx login, or through the
+        # user's own ETS with a dongle.
+        selected_pid = ""
+        dongle = False
+        with outlined_tabs():
+            if imgui.begin_tab_bar("##export_license"):
+                if imgui.begin_tab_item(S.MYKNX_SIGN_TAB)[0]:
+                    with tab_page("##myknx_page"):
+                        selected_pid = self._render_myknx_login_tab(logging_in)
+                    imgui.end_tab_item()
+                if imgui.begin_tab_item(S.MYKNX_DONGLE_TAB)[0]:
+                    dongle = True
+                    with tab_page("##dongle_page"):
+                        self._render_dongle_tab()
+                    imgui.end_tab_item()
+                imgui.end_tab_bar()
+        imgui.spacing()
+        # The folder-signing key signs every .knxproj export, with and without certificate (the
+        # dongle way re-signs in ETS). A child modal: closing it returns to the export dialog.
+        if signing_key_is_placeholder():
+            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
+            imgui.text_wrapped(S.SIGNING_KEY_PLACEHOLDER_HINT)
+            imgui.pop_style_color()
+        if imgui.button(S.SIGNING_KEY_BUTTON, imgui.ImVec2(-1, 0)):
+            imgui.open_popup(S.SIGNING_KEY_TITLE)
+        self._render_signing_key_modal()
+        # OAuth-credentials config modal: opened automatically from "Start 2FA sign-in" when no
+        # credentials are available yet (no manual button).
+        if self._myknx_open_oauth_config:
+            imgui.open_popup(S.MYKNX_OAUTH_TITLE)
+            self._myknx_open_oauth_config = False
+        self._render_myknx_oauth_modal()
+
+        if dongle:
+            # The dongle way writes the project into the ETS 6 ProjectStore instead of a file.
+            clicked = dialog_buttons(
+                S.MENU_EXPORT_ETS6_STORE, S.MYKNX_SIGN_SKIP, S.BTN_CANCEL
+            )
+            if clicked == 0:
+                # ETS 5 ProjectStore export is disabled for now: a fresh ETS 5 store still needs
+                # the split manufacturer cache (H/C/A + binary COC/PC/CPC) this writer does not
+                # produce yet, without which ETS 5 can crash opening an area with devices. For
+                # ETS 5 use the "Export without Certificate" .knxproj route instead (see the
+                # steps). Re-enable when the cache is produced:
+                # self._begin_projectstore_export(ets_store.StoreFormat.ETS5)
+                self._begin_projectstore_export(ets_store.StoreFormat.ETS6)
+                self._export_pending_dest = None
+                imgui.close_current_popup()
+                end_dialog()
+                return
+        else:
+            clicked = dialog_buttons(
+                S.MYKNX_SIGN_CONFIRM,
+                S.MYKNX_SIGN_SKIP,
+                S.BTN_CANCEL,
+                enabled=[bool(selected_pid) and not logging_in, True, True],
+            )
+        sign, skip, cancel = clicked == 0, clicked == 1, clicked == 2
+        if dest is not None and sign and selected_pid:
+            # An OAuth (2FA) session is already authenticated; otherwise sign with username/password.
+            if self._myknx_oauth_session is not None:
+                signer = session_certificate_signer(
+                    self._myknx_oauth_session, selected_pid
+                )
+            else:
+                signer = myknx_certificate_signer(
+                    self._myknx_username, self._myknx_password, selected_pid
+                )
+            self._do_export_knxproj(dest, signer)
+            self._export_pending_dest = None
+            imgui.close_current_popup()
+        elif dest is not None and skip:
+            self._do_export_knxproj(dest)
+            self._export_pending_dest = None
+            imgui.close_current_popup()
+        elif cancel:
+            self._export_pending_dest = None
+            imgui.close_current_popup()
+        end_dialog()
+
+    def _render_myknx_login_tab(self, logging_in: bool) -> str:
+        """Credentials, login and license choice. Returns the selected product id ("" if none)."""
+        # An ETS running with the same account claims the license for its own session.
+        imgui.push_style_color(imgui.Col_.text, warning_red())
+        imgui.text_wrapped(S.MYKNX_SIGN_ETS_RUNNING)
+        imgui.pop_style_color()
+        imgui.spacing()
         # Labels above the fields (imgui's built-in label sits to the right and gets clipped when
         # the input is full-width). Editing credentials invalidates a previous login.
         if logging_in:
@@ -1533,60 +1615,7 @@ class KnxGuiApp:
             self._myknx_login_error = ""
             self._myknx_oauth_session = None
             self._myknx_2fa_prompt = False
-
-        selected_pid = self._render_myknx_license_section(logging_in)
-        imgui.spacing()
-        imgui.separator()
-        # Alternative to online signing: license the exported .knxproj locally with a dongle.
-        # The info popup is opened here (inside this modal) so it stacks as a child modal — closing
-        # it returns to the export dialog instead of dismissing the whole export.
-        if imgui.button(S.MYKNX_DONGLE_BUTTON, imgui.ImVec2(-1, 0)):
-            imgui.open_popup(S.MYKNX_DONGLE_TITLE)
-        self._render_dongle_modal()
-        # Folder-signing key: open a child modal (stacks on top; closing returns to the export dialog).
-        if signing_key_is_placeholder():
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
-            imgui.text_wrapped(S.SIGNING_KEY_PLACEHOLDER_HINT)
-            imgui.pop_style_color()
-        if imgui.button(S.SIGNING_KEY_BUTTON, imgui.ImVec2(-1, 0)):
-            imgui.open_popup(S.SIGNING_KEY_TITLE)
-        self._render_signing_key_modal()
-        # OAuth-credentials config modal: opened automatically from "Start 2FA sign-in" when no
-        # credentials are available yet (no manual button).
-        if self._myknx_open_oauth_config:
-            imgui.open_popup(S.MYKNX_OAUTH_TITLE)
-            self._myknx_open_oauth_config = False
-        self._render_myknx_oauth_modal()
-
-        can_sign = bool(selected_pid) and not logging_in
-        clicked = dialog_buttons(
-            S.MYKNX_SIGN_CONFIRM,
-            S.MYKNX_SIGN_SKIP,
-            S.BTN_CANCEL,
-            enabled=[can_sign, True, True],
-        )
-        sign, skip, cancel = clicked == 0, clicked == 1, clicked == 2
-        if dest is not None and (sign and can_sign):
-            # An OAuth (2FA) session is already authenticated; otherwise sign with username/password.
-            if self._myknx_oauth_session is not None:
-                signer = session_certificate_signer(
-                    self._myknx_oauth_session, selected_pid
-                )
-            else:
-                signer = myknx_certificate_signer(
-                    self._myknx_username, self._myknx_password, selected_pid
-                )
-            self._do_export_knxproj(dest, signer)
-            self._export_pending_dest = None
-            imgui.close_current_popup()
-        elif dest is not None and skip:
-            self._do_export_knxproj(dest)
-            self._export_pending_dest = None
-            imgui.close_current_popup()
-        elif cancel:
-            self._export_pending_dest = None
-            imgui.close_current_popup()
-        end_dialog()
+        return self._render_myknx_license_section(logging_in)
 
     def _render_myknx_license_section(self, logging_in: bool) -> str:
         """Login button / license dropdown. Returns the selected product id ("" if none)."""
@@ -1636,7 +1665,7 @@ class KnxGuiApp:
             return ""
         if self._myknx_login_error:
             imgui.text_colored(
-                imgui.ImVec4(1.0, 0.4, 0.4, 1.0),
+                warning_red(),
                 S.MYKNX_SIGN_LOGIN_FAILED.format(error=self._myknx_login_error),
             )
             return ""
@@ -3760,17 +3789,13 @@ class KnxGuiApp:
                 )
         end_dialog()
 
-    def _render_dongle_modal(self) -> None:
-        """Step-by-step 'license with a dongle' -- a child modal of the export dialog.
-
-        Rendered inside the export modal's scope so it stacks on top; closing it returns to the
-        export dialog. Each step is on its own wrapped line with spacing for readability."""
-        if not begin_dialog(S.MYKNX_DONGLE_TITLE, width=66.0 * 16.0):
-            return
+    def _render_dongle_tab(self) -> None:
+        """Step-by-step 'license with a dongle' in its tab of the export dialog; the dialog's first
+        button writes the project into the ETS 6 ProjectStore."""
         # Read-only multiline input so the text stays selectable/copyable inline (mouse-drag +
         # Ctrl/Cmd+C). It does NOT word-wrap, so hard-wrap to the box width first (long paths and
         # P-XXXX_M-dummy stay intact) — otherwise long lines are clipped on the right.
-        height = hello_imgui.em_to_vec2(0.0, 22.0).y
+        height = hello_imgui.em_to_vec2(0.0, 13.0).y
         avail = imgui.get_content_region_avail().x
         # Average glyph width (not the widest "m") so lines fill the box instead of wrapping early.
         alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "
@@ -3784,29 +3809,8 @@ class KnxGuiApp:
             imgui.ImVec2(-1.0, height),
             imgui.InputTextFlags_.read_only,
         )
-        imgui.spacing()
-        # Write the project's P-XXXX folder straight into that ETS version's ProjectStore.
-        # ETS 5 ProjectStore export is disabled for now: a fresh ETS 5 store still needs the split
-        # manufacturer cache (H/C/A + binary COC/PC/CPC) this writer does not produce yet, without
-        # which ETS 5 can crash opening an area with devices. For ETS 5 use the "Export without
-        # Certificate" .knxproj route instead (see the steps above). Re-enable when the cache is
-        # produced.
-        # if imgui.button(S.MENU_EXPORT_ETS5_STORE, imgui.ImVec2(-1, 0)):
-        #     self._begin_projectstore_export(ets_store.StoreFormat.ETS5)
-        #     self._export_pending_dest = None
-        #     self._myknx_force_close = True
-        #     imgui.close_current_popup()
-        if imgui.button(S.MENU_EXPORT_ETS6_STORE, imgui.ImVec2(-1, 0)):
-            self._begin_projectstore_export(ets_store.StoreFormat.ETS6)
-            self._export_pending_dest = None
-            self._myknx_force_close = True
-            imgui.close_current_popup()
-        clicked = dialog_buttons(S.BTN_COPY, S.MYKNX_DONGLE_BACK)
-        if clicked == 0:
+        if imgui.button(S.BTN_COPY):
             imgui.set_clipboard_text(S.MYKNX_DONGLE_STEPS)
-        elif clicked == 1:
-            imgui.close_current_popup()
-        end_dialog()
 
     def _render_signing_key_modal(self) -> None:
         """Signing-key manager as a child modal of the export dialog (view/edit/save/extract).

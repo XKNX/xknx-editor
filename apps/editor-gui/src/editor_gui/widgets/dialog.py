@@ -134,6 +134,37 @@ def focus_when_appearing() -> None:
         imgui.set_keyboard_focus_here()
 
 
+@contextmanager
+def outlined_tabs() -> Generator[None]:
+    """Outline the tabs of the tab bars begun inside, so they read as tabs in every theme (light
+    themes draw the selected tab in the window colour); their content goes in :func:`tab_page`."""
+    imgui.push_style_var(imgui.StyleVar_.tab_border_size, 1.0)
+    try:
+        yield
+    finally:
+        imgui.pop_style_var()
+
+
+@contextmanager
+def tab_page(str_id: str) -> Generator[None]:
+    """A bordered page right below the tabs for the selected tab's content, as tall as the content,
+    in the window's colour like the selected tab of light themes."""
+    imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() - imgui.get_style().item_spacing.y)
+    imgui.push_style_color(imgui.Col_.child_bg, imgui.ImVec4(0.0, 0.0, 0.0, 0.0))
+    imgui.begin_child(
+        str_id,
+        imgui.ImVec2(0.0, 0.0),
+        imgui.ChildFlags_.borders
+        | imgui.ChildFlags_.auto_resize_y
+        | imgui.ChildFlags_.always_use_window_padding,
+    )
+    imgui.pop_style_color()
+    try:
+        yield
+    finally:
+        imgui.end_child()
+
+
 def dialog_buttons(*labels: str, enabled: Sequence[bool] | None = None) -> int | None:
     """A row of equal-width buttons below a separator, the primary one first.
 

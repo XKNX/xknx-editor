@@ -172,9 +172,6 @@ msgstr "MyKnx-Benutzername"
 msgid "MyKnx Password"
 msgstr "MyKnx-Passwort"
 
-msgid "Log in"
-msgstr "Anmelden"
-
 msgid "Logging in…"
 msgstr "Anmeldung…"
 
@@ -278,9 +275,6 @@ msgstr "Bearer-Token (optional)"
 msgid "License with a Dongle…"
 msgstr "Mit Dongle lizenzieren…"
 
-msgid "License with an ETS Dongle"
-msgstr "Mit ETS-Dongle lizenzieren"
-
 msgid ""
 "If you have a licensed ETS (dongle or local license), you can license this project in your own ETS instead of signing it online. Export it here without a certificate, then bring it into ETS.\n"
 "\n"
@@ -336,9 +330,6 @@ msgstr "ETS 6 (Schema 20)"
 
 msgid "ETS 5 (schema 14)"
 msgstr "ETS 5 (Schema 14)"
-
-msgid "Back"
-msgstr "Zurück"
 
 msgid "MCP Server"
 msgstr "MCP Server"
@@ -710,9 +701,6 @@ msgstr "Komprimieren abgebrochen, das Projekt wurde nicht geändert"
 msgid "Remove Unused Product Data"
 msgstr "Nicht verwendete Produktdaten entfernen"
 
-msgid "Removes product data no device uses; the project stays unchanged."
-msgstr "Entfernt Produktdaten, die kein Gerät verwendet; das Projekt selbst bleibt unverändert."
-
 msgid "ETS 6 needs a signed and licensed .knxproj: log in to license it and set a signing key - or use the 'License with a Dongle' way below.\nETS 5: just use 'Export without Certificate'."
 msgstr "ETS 6 braucht eine signierte und lizenzierte .knxproj: melde dich an, um sie zu lizenzieren, und hinterlege einen Signierschlüssel - oder nutze unten den 'Mit Dongle lizenzieren'-Weg.\nETS 5: einfach 'Ohne Zertifikat exportieren' verwenden."
 
@@ -730,9 +718,6 @@ msgstr "2FA-Anmeldung starten"
 
 msgid "MyKnx OAuth Credentials (2FA)"
 msgstr "MyKnx-OAuth-Zugangsdaten (2FA)"
-
-msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see 'License with an ETS Dongle'."
-msgstr "Nur für Accounts mit Zwei-Faktor-Authentifizierung nötig. Die 2FA-Anmeldung öffnet sich automatisch im Browser, wenn ein normaler Login abgelehnt wird. Trage die OAuth-Client-ID/-Secret ein oder extrahiere sie aus deinem installierten ETS: wähle 'Knx.Ets.MyKnx.dll' aus dem ETS-Programmordner (z. B. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternativ: Wenn du irgendein lizenziertes ETS installiert hast, überspringe die Online-Signierung ganz und nutze stattdessen den lokalen ProjectStore - siehe 'Mit ETS-Dongle lizenzieren'."
 
 msgid "Client ID"
 msgstr "Client-ID"
@@ -1145,15 +1130,6 @@ msgid ""
 msgstr ""
 "Diese Datei lässt sich NICHT in die gewählte ETS-Version importieren: Die Produktdaten dieser Hersteller gibt es nur für eine neuere ETS (z. B. ein ETS-6-Produkt in einem ETS-5-Export), daher lehnt ETS das ganze Projekt ab. Entferne die betroffenen Geräte oder exportiere für die neuere ETS."
 
-msgid "ETS 6 needs a signed and licensed .knxproj: log in to license it and set a signing key - or use the 'License with a Dongle' way below.\nETS 5: just use 'Export without Certificate' with Signing Keys."
-msgstr "ETS 6 braucht eine signierte und lizenzierte .knxproj: melde dich an, um sie zu lizenzieren, und hinterlege einen Signierschlüssel - oder nutze unten den 'Mit Dongle lizenzieren'-Weg.\nETS 5: einfach 'Ohne Zertifikat exportieren' mit Signierschlüsseln verwenden."
-
-msgid "License with a Dongle… (ETS 6)"
-msgstr "Mit Dongle lizenzieren… (ETS 6)"
-
-msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store below:\n   1. Click 'Export to ETS 6 ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n   2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n   3. Restart ETS 6 - the project appears in the project overview.\n   4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed: go Back and choose 'Export without Certificate' (with ETS 5 as version) and Signing Keys active to save a .knxproj, then import that file into ETS 5. \nThis is bounded by the device-per-project limit of your license."
-msgstr "Lizenziere das Projekt über dein eigenes lizenziertes ETS neu, das die Kopie mit deiner Dongle-Lizenz neu signiert:\n\nETS 6 - nutze unten den lokalen ProjectStore:\n   1. Klicke auf 'In ETS-6-ProjectStore exportieren'. Das schreibt den Ordner 'P-XXXX' des Projekts direkt in deinen ETS-6-ProjectStore. Wenn ETS auf diesem Computer nicht installiert ist, wirst du nach dem Store-Ordner gefragt (oder einem beliebigen Ordner, den du dann manuell hinüberkopierst).\n   2. Der Export braucht deine 'installer.guid' aus C:\\ProgramData\\KNX\\ETS6\\Installer. Wird sie nicht automatisch gefunden, wirst du gebeten, sie auszuwählen.\n   3. Starte ETS 6 neu - das Projekt erscheint in der Projektübersicht.\n   4. Erstelle dort eine Kopie davon (Kopieren in der Übersicht). Die Kopie wird mit deiner Lizenz neu signiert - öffne sie und nutze oder exportiere sie dann normal.\n\nETS 5 - kein ProjectStore nötig: geh zurück und wähle 'Ohne Zertifikat exportieren' (mit ETS 5 als Version) und aktivierten Signierschlüsseln, um eine .knxproj zu speichern, und importiere diese Datei dann in ETS 5. \nDas ist durch das Geräte-pro-Projekt-Limit deiner Lizenz begrenzt."
-
 msgid "Hide Tab Bar"
 msgstr "Registerkarten ausblenden"
 
@@ -1184,9 +1160,6 @@ msgstr "Das Projekt konnte nicht nach {name} exportiert werden."
 msgid "MyKnx did not issue the certificate for the project:"
 msgstr "MyKnx hat das Zertifikat für das Projekt nicht ausgestellt:"
 
-msgid "To export without it, choose 'Export Without Certificate' or 'License with a Dongle…' in the Sign Export window."
-msgstr "Um ohne Zertifikat zu exportieren, wählen Sie im Fenster „Export signieren“ „Ohne Zertifikat exportieren“ oder „Mit Dongle lizenzieren…“."
-
 msgid "{name} cannot be imported."
 msgstr "{name} kann nicht importiert werden."
 
@@ -1210,3 +1183,30 @@ msgstr "Wird abgebrochen…"
 
 msgid "Export cancelled, no file was written"
 msgstr "Export abgebrochen, es wurde keine Datei geschrieben"
+
+msgid "ETS 6 needs a licensed .knxproj: through a MyKnx login or a dongle.\nETS 5: just use 'Export Without Certificate'."
+msgstr "ETS 6 braucht eine lizenzierte .knxproj: über die MyKnx-Anmeldung oder einen Dongle.\nETS 5: einfach 'Ohne Zertifikat exportieren' verwenden."
+
+msgid "Sign with MyKnx Login"
+msgstr "Mit MyKnx-Anmeldung signieren"
+
+msgid "License with a Dongle"
+msgstr "Mit Dongle lizenzieren"
+
+msgid "ETS must not be running on any computer with this MyKnx account while you log in and export here."
+msgstr "ETS darf auf keinem Computer mit diesem MyKnx-Account laufen, während du dich hier anmeldest und exportierst."
+
+msgid "Login"
+msgstr "Anmelden"
+
+msgid "(only in the export, the project stays unchanged)"
+msgstr "(nur im Export, das Projekt bleibt unverändert)"
+
+msgid "To export without it, choose 'Export Without Certificate' or the 'License with a Dongle' tab in the Sign Export window."
+msgstr "Um ohne Zertifikat zu exportieren, wählen Sie im Fenster „Export signieren“ „Ohne Zertifikat exportieren“ oder den Reiter „Mit Dongle lizenzieren“."
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store:\n   1. Click 'Export to ETS 6 ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n   2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n   3. Restart ETS 6 - the project appears in the project overview.\n   4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed: choose 'Export Without Certificate' (with ETS 5 as version) and an active signing key to save a .knxproj, then import that file into ETS 5.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Lizenziere das Projekt über dein eigenes lizenziertes ETS neu, das die Kopie mit deiner Dongle-Lizenz neu signiert:\n\nETS 6 - nutze den lokalen ProjectStore:\n   1. Klicke auf 'In ETS-6-ProjectStore exportieren'. Das schreibt den Ordner 'P-XXXX' des Projekts direkt in deinen ETS-6-ProjectStore. Wenn ETS auf diesem Computer nicht installiert ist, wirst du nach dem Store-Ordner gefragt (oder einem beliebigen Ordner, den du dann manuell hinüberkopierst).\n   2. Der Export braucht deine 'installer.guid' aus C:\\ProgramData\\KNX\\ETS6\\Installer. Wird sie nicht automatisch gefunden, wirst du gebeten, sie auszuwählen.\n   3. Starte ETS 6 neu - das Projekt erscheint in der Projektübersicht.\n   4. Erstelle dort eine Kopie davon (Kopieren in der Übersicht). Die Kopie wird mit deiner Lizenz neu signiert - öffne sie und nutze oder exportiere sie dann normal.\n\nETS 5 - kein ProjectStore nötig: wähle 'Ohne Zertifikat exportieren' (mit ETS 5 als Version) mit aktivem Signierschlüssel, um eine .knxproj zu speichern, und importiere diese Datei dann in ETS 5.\n\nDas ist durch das Geräte-pro-Projekt-Limit deiner Lizenz begrenzt."
+
+msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
+msgstr "Nur für Accounts mit Zwei-Faktor-Authentifizierung nötig. Die 2FA-Anmeldung öffnet sich automatisch im Browser, wenn ein normaler Login abgelehnt wird. Trage die OAuth-Client-ID/-Secret ein oder extrahiere sie aus deinem installierten ETS: wähle 'Knx.Ets.MyKnx.dll' aus dem ETS-Programmordner (z. B. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternativ: Wenn du irgendein lizenziertes ETS installiert hast, überspringe die Online-Signierung ganz und nutze stattdessen den lokalen ProjectStore - siehe Reiter 'Mit Dongle lizenzieren'."
