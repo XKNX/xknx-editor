@@ -14,6 +14,7 @@ __version__ = "0.1.0"
 
 from xknxeditor.proj.core import (
     DLL_NAME,
+    MASTER_MAX_AGE_SECONDS,
     MYKNX_DLL_NAME,
     TRACE_DLL_NAME,
     AdditionalAddressError,
@@ -46,6 +47,8 @@ from xknxeditor.proj.core import (
     import_knxproj,
     is_encrypted,
     is_ga_export,
+    master_cache_is_stale,
+    master_cache_path,
     myknx_certificate_signer,
     prune_product_blob,
     prune_product_members,
@@ -69,6 +72,7 @@ from xknxeditor.proj.db import ProjectStorageError, ensure_sqlite_writable
 
 __all__ = [
     "DLL_NAME",
+    "MASTER_MAX_AGE_SECONDS",
     "MYKNX_DLL_NAME",
     "TRACE_DLL_NAME",
     "AdditionalAddressError",
@@ -105,6 +109,8 @@ __all__ = [
     "import_knxproj",
     "is_encrypted",
     "is_ga_export",
+    "master_cache_is_stale",
+    "master_cache_path",
     "myknx_certificate_signer",
     "prune_product_blob",
     "prune_product_members",

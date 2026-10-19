@@ -23,10 +23,13 @@ from xknxeditor.proj.core.key_extract import (
     extraction_backend,
 )
 from xknxeditor.proj.core.knxproj_export import (
+    MASTER_MAX_AGE_SECONDS,
     ExportCancelled,
     ExportResult,
     export_knxproj,
     fetch_master_xml,
+    master_cache_is_stale,
+    master_cache_path,
     read_master_xml,
 )
 from xknxeditor.proj.core.knxproj_import import import_knxproj
@@ -68,6 +71,7 @@ from xknxeditor.proj.core.trace_crypto import (
 
 __all__ = [
     "DLL_NAME",
+    "MASTER_MAX_AGE_SECONDS",
     "MYKNX_DLL_NAME",
     "TRACE_DLL_NAME",
     "AdditionalAddressError",
@@ -102,6 +106,8 @@ __all__ = [
     "import_knxproj",
     "is_encrypted",
     "is_ga_export",
+    "master_cache_is_stale",
+    "master_cache_path",
     "myknx_certificate_signer",
     "prune_product_blob",
     "prune_product_members",

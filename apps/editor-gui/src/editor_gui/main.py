@@ -1047,9 +1047,10 @@ class KnxGuiApp:
                     schema=self._export_schema,
                     extra_files=extra_files,
                     master_xml=master_xml,
-                    # Substitute the canonical signed master when the bundled one is unusable (e.g.
-                    # a merged, unsigned master from a legacy multi-source project).
+                    # The current signed master, cached with the app's master data for exports
+                    # without a download.
                     fetch_master=True,
+                    master_cache_dir=config_dir(),
                     certificate_signer=certificate_signer,
                     remove_unused_products=remove_unused,
                     cancelled=cancel_requested.is_set,

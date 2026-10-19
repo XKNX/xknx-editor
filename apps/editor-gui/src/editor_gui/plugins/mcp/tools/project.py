@@ -29,6 +29,7 @@ from editor_gui.device import (
 from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 from editor_gui.plugins.project.service import DeviceProduct
+from editor_gui.settings import config_dir
 
 # A device whose parameters only the manufacturer's plugin dialog sets.
 PLUGIN_PARAMETERS_ERROR = (
@@ -660,8 +661,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 password=project.project_password,
                 extra_files=bundle.extra_files,
                 master_xml=bundle.master_xml,
-                # Substitute the canonical signed master when the bundled one is unusable.
+                # The current signed master, cached with the app's master data.
                 fetch_master=True,
+                master_cache_dir=config_dir(),
             )
             if result.unverifiable_folders:
                 warnings.append(
