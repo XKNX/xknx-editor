@@ -3621,9 +3621,12 @@ class KnxGuiApp:
         render_section_menus()
         set_window_title(self._window_title())
         # Log the active OpenGL renderer once, from the frame path (context guaranteed current).
+        # Skip it in the windowless web mode: its null backend has no GL context, so a context-less
+        # glGetString would segfault at the C level (uncatchable) and crash startup.
         if not self._gl_logged:
             self._gl_logged = True
-            _log_gl_renderer(self._log)
+            if web.active_hub is None:
+                _log_gl_renderer(self._log)
         self._theme_window.render()
         # Bring the Editor tab to the front when another view (Device Overview, Topology, Health)
         # selected a device. Consumed here (a per-frame global callback) rather than in the Editor
