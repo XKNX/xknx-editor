@@ -13,8 +13,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
-from imgui_bundle import portable_file_dialogs as pfd
 
+from editor_gui import file_dialogs
 from editor_gui.os_open import open_path
 from editor_gui.plugins.connection.service import BusmonitorState
 from editor_gui.plugins.monitor.formatting import (
@@ -153,8 +153,8 @@ class TelegramView:
         self._scope_action: str | None = None
         self._scope_choice = 0
         self._scope_opened = False
-        self._save_dialog: pfd.save_file | None = None
-        self._open_dialog: pfd.open_file | None = None
+        self._save_dialog: file_dialogs.SaveFileDialog | None = None
+        self._open_dialog: file_dialogs.OpenFileDialog | None = None
         self._pending_export: list[MonitorRecord] = []
         self._pending_export_all = False
         self._message: tuple[str, bool] | None = None
@@ -611,7 +611,7 @@ class TelegramView:
             self._open_import()
 
     def _open_import(self) -> None:
-        self._open_dialog = pfd.open_file(
+        self._open_dialog = file_dialogs.open_file(
             S.TOOL_IMPORT, "", [S.FILE_FILTER, "*.xml", S.FILE_ALL, "*"]
         )
 
@@ -631,7 +631,7 @@ class TelegramView:
         self._pending_export = records
         self._pending_export_all = everything
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-        self._save_dialog = pfd.save_file(
+        self._save_dialog = file_dialogs.save_file(
             S.TOOL_EXPORT,
             f"{_FILE_NAMES[self.kind]}-{stamp}.xml",
             [S.FILE_FILTER, "*.xml", S.FILE_ALL, "*"],

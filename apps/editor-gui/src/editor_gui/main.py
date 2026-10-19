@@ -7,7 +7,6 @@ import sys
 import tempfile
 import threading
 import time
-import webbrowser
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
@@ -24,7 +23,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from xknxproject.exceptions import InvalidPasswordException, XknxProjectException
 
-from editor_gui import __version__, self_update
+from editor_gui import __version__, file_dialogs, self_update, web
 from editor_gui import signing_key as signing_key_store
 from editor_gui import trace_key as trace_key_store
 from editor_gui.certs import ensure_ca_bundle
@@ -41,6 +40,7 @@ from editor_gui.myknx_oauth import (
 from editor_gui.myknx_oauth import (
     save_credentials as save_myknx_oauth_credentials,
 )
+from editor_gui.os_open import open_url
 from editor_gui.plugins.base import API_VERSION, Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.catalog import CatalogPlugin, CatalogService
 from editor_gui.plugins.cockpit import CockpitPlugin
@@ -71,7 +71,7 @@ from editor_gui.theme import (
     themes,
 )
 from editor_gui.update_check import ReleaseAsset, UpdateInfo, check_for_update
-from editor_gui.web import enable_web_mode, web_address
+from editor_gui.web import enable_web_mode, web_options
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import (
@@ -275,7 +275,7 @@ def _file_name(name: str) -> str:
 def _link(url: str) -> None:
     """``url`` as a link that opens it, with a menu to copy it (the built-in one is untranslated)."""
     if imgui.text_link(url):
-        webbrowser.open(url)
+        open_url(url)
     if imgui.is_item_hovered():
         imgui.set_tooltip(S.LINK_OPEN.format(url=url))
     if imgui.begin_popup_context_item(f"##link_{url}"):
@@ -351,30 +351,32 @@ class KnxGuiApp:
         self._catalog_service_path = catalog_path
         self._catalog_service = CatalogService(catalog_path)
 
-        self._open_file_dialog: pfd.open_file | None = None
-        self._save_file_dialog: pfd.save_file | None = None
-        self._open_project_dialog: pfd.open_file | None = None
-        self._save_project_dialog: pfd.save_file | None = None
+        self._open_file_dialog: file_dialogs.OpenFileDialog | None = None
+        self._save_file_dialog: file_dialogs.SaveFileDialog | None = None
+        self._open_project_dialog: file_dialogs.OpenFileDialog | None = None
+        self._save_project_dialog: file_dialogs.SaveFileDialog | None = None
         # New-project wizard: collected before the save dialog opens, then applied to the fresh file.
         self._new_project_requested = False
         self._new_project_name = "New project"
         self._new_project_style = GroupAddressStyle.THREE_LEVEL
-        self._save_as_dialog: pfd.save_file | None = None
-        self._import_knxproj_save_dialog: pfd.save_file | None = None
-        self._import_ga_export_save_dialog: pfd.save_file | None = None
+        self._save_as_dialog: file_dialogs.SaveFileDialog | None = None
+        self._import_knxproj_save_dialog: file_dialogs.SaveFileDialog | None = None
+        self._import_ga_export_save_dialog: file_dialogs.SaveFileDialog | None = None
         self._import_ga_export_source: str | None = None
-        self._export_knxproj_dialog: pfd.save_file | PortalSaveDialog | None = None
+        self._export_knxproj_dialog: (
+            file_dialogs.SaveFileDialog | PortalSaveDialog | None
+        ) = None
         self._export_knxproj_default = ""
-        self._export_ga_export_dialog: pfd.save_file | None = None
+        self._export_ga_export_dialog: file_dialogs.SaveFileDialog | None = None
         self._ga_export_options_requested = False
         self._ga_export_options: dict[str, Any] = {}
         # Folder picker for the ProjectStore export when the default path is not found, and which
         # ETS generation that export is aimed at (set when the export starts, read by the dialogs).
-        self._projectstore_dialog: pfd.select_folder | None = None
+        self._projectstore_dialog: file_dialogs.SelectFolderDialog | None = None
         self._projectstore_format = ets_store.StoreFormat.ETS6
         # File picker for the ETS installer.guid when it is not found locally (e.g. exporting on a
         # Mac for a Windows ETS), plus the store folder resolved in the step before it.
-        self._installer_guid_dialog: pfd.open_file | None = None
+        self._installer_guid_dialog: file_dialogs.OpenFileDialog | None = None
         self._pending_store_path: Path | None = None
         # Set when a P-XXXX folder already exists in the store: (store_root, installer_guid) held
         # until the user picks overwrite vs. new copy in the confirmation modal.
@@ -430,7 +432,7 @@ class KnxGuiApp:
         _oauth_creds = load_myknx_oauth_credentials()
         self._myknx_client_id = _oauth_creds[0] if _oauth_creds else ""
         self._myknx_client_secret = _oauth_creds[1] if _oauth_creds else ""
-        self._myknx_oauth_dll_dialog: pfd.open_file | None = None
+        self._myknx_oauth_dll_dialog: file_dialogs.OpenFileDialog | None = None
         self._myknx_oauth_extract_thread: threading.Thread | None = None
         self._myknx_oauth_extract_error = ""
         self._import_knxproj_source: str | None = None
@@ -754,7 +756,7 @@ class KnxGuiApp:
     def _open_new_project_save_dialog(self) -> None:
         if not self._can_launch_file_dialog():
             return
-        self._save_project_dialog = pfd.save_file(
+        self._save_project_dialog = file_dialogs.save_file(
             S.FILE_DIALOG_PROJECT_SAVE_TITLE,
             f"{self._new_project_name.strip() or 'New project'}.xknx",
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
@@ -764,7 +766,7 @@ class KnxGuiApp:
     def _save_as(self) -> None:
         if not self._project_service.is_open or not self._can_launch_file_dialog():
             return
-        self._save_as_dialog = pfd.save_file(
+        self._save_as_dialog = file_dialogs.save_file(
             S.FILE_DIALOG_SAVE_AS_TITLE,
             "",
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
@@ -777,7 +779,7 @@ class KnxGuiApp:
         # Accept .knxproj and .xml here too: _do_open_project routes .knxproj archives and ETS
         # group-address exports (ga-export/01 .xml) through their importers.
         self._log.debug("opening project file dialog")
-        self._open_project_dialog = pfd.open_file(
+        self._open_project_dialog = file_dialogs.open_file(
             S.FILE_DIALOG_PROJECT_TITLE,
             "",
             [
@@ -820,7 +822,7 @@ class KnxGuiApp:
         self._export_knxproj_default = default
         # On Linux the file-type list is the ETS version. The portal returns which
         # entry was confirmed; ETS 6 is the initial selection.
-        if sys.platform == "linux":
+        if sys.platform == "linux" and web.active_hub is None:
             ets6 = S.FILE_DIALOG_ETS6_FILTER
             ets5 = S.FILE_DIALOG_ETS5_FILTER
             self._export_knxproj_dialog = PortalSaveDialog(
@@ -830,7 +832,7 @@ class KnxGuiApp:
                 current=ets5 if self._export_schema == "20" else ets6,
             )
             return
-        self._export_knxproj_dialog = pfd.save_file(
+        self._export_knxproj_dialog = file_dialogs.save_file(
             S.FILE_DIALOG_KNXPROJ_SAVE_TITLE,
             default,
             [S.FILE_DIALOG_KNXPROJ_FILTER, "*.knxproj", S.FILE_DIALOG_ALL_FILES, "*"],
@@ -934,7 +936,7 @@ class KnxGuiApp:
             if suffix == ".csv"
             else S.FILE_DIALOG_GA_EXPORT_FILTER
         )
-        self._export_ga_export_dialog = pfd.save_file(
+        self._export_ga_export_dialog = file_dialogs.save_file(
             S.FILE_DIALOG_GA_EXPORT_SAVE_TITLE,
             default,
             [name, f"*{suffix}", S.FILE_DIALOG_ALL_FILES, "*"],
@@ -1210,7 +1212,7 @@ class KnxGuiApp:
         else:
             # ETS not at the default location (or non-Windows): ask the user for the store folder.
             ets = "ETS 5" if store_format is ets_store.StoreFormat.ETS5 else "ETS 6"
-            self._projectstore_dialog = pfd.select_folder(
+            self._projectstore_dialog = file_dialogs.select_folder(
                 S.MYKNX_DONGLE_PICK_STORE.format(ets=ets), ""
             )
 
@@ -1225,7 +1227,7 @@ class KnxGuiApp:
             # copied from that ETS version's %ProgramData%/KNX/ETS{5,6}/Installer. ETS 5 and ETS 6
             # do not share a GUID.
             self._pending_store_path = store
-            self._installer_guid_dialog = pfd.open_file(
+            self._installer_guid_dialog = file_dialogs.open_file(
                 S.MYKNX_DONGLE_PICK_INSTALLER,
                 "",
                 [
@@ -1407,7 +1409,7 @@ class KnxGuiApp:
         self._myknx_oauth_user_code = user_code
         self._myknx_oauth_url = url
         try:
-            opened = webbrowser.open(url)
+            opened = open_url(url)
         except Exception as e:
             opened = False
             self._log.warning("myknx 2fa browser open failed", url=url, error=str(e))
@@ -2396,7 +2398,7 @@ class KnxGuiApp:
         # Pass only the default file name, not a full path: on macOS a path with "/" in the save
         # dialog's name field gets mangled into ":"-separated segments.
         self._log.debug("opening knxproj import destination dialog", source=source)
-        self._import_knxproj_save_dialog = pfd.save_file(
+        self._import_knxproj_save_dialog = file_dialogs.save_file(
             S.FILE_DIALOG_PROJECT_SAVE_TITLE,
             Path(source).with_suffix(".xknx").name,
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
@@ -2409,7 +2411,7 @@ class KnxGuiApp:
         if not self._can_launch_file_dialog():
             return
         self._import_ga_export_source = source
-        self._import_ga_export_save_dialog = pfd.save_file(
+        self._import_ga_export_save_dialog = file_dialogs.save_file(
             S.FILE_DIALOG_PROJECT_SAVE_TITLE,
             Path(source).with_suffix(".xknx").name,
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
@@ -2508,7 +2510,7 @@ class KnxGuiApp:
                 # The portal dialog never opened. Fall back to the helper dialog; the
                 # format combo in the next window still chooses ETS 5 or ETS 6.
                 self._log.warning("portal save dialog failed", error=dialog.error)
-                self._export_knxproj_dialog = pfd.save_file(
+                self._export_knxproj_dialog = file_dialogs.save_file(
                     S.FILE_DIALOG_KNXPROJ_SAVE_TITLE,
                     self._export_knxproj_default,
                     [
@@ -2971,7 +2973,7 @@ class KnxGuiApp:
                 imgui.menu_item(S.MENU_LOAD_KNXPROD, "", False)[0]
                 and self._can_launch_file_dialog()
             ):
-                self._open_file_dialog = pfd.open_file(
+                self._open_file_dialog = file_dialogs.open_file(
                     S.FILE_DIALOG_KNXPROD_TITLE,
                     "",
                     [
@@ -3040,12 +3042,17 @@ class KnxGuiApp:
         """Open the project's GitHub issues page in the default browser."""
         url = "https://github.com/xknx/xknx-editor/issues"
         try:
-            webbrowser.open(url)
+            open_url(url)
         except Exception as e:
             self._log.error("could not open feedback page", url=url, error=str(e))
 
     def _open_folder(self, path: Path) -> None:
-        """Reveal a directory in the OS file manager (created if missing)."""
+        """Reveal a directory in the OS file manager (created if missing); in the browser UI, list
+        its files for download."""
+        if web.active_hub is not None:
+            path.mkdir(parents=True, exist_ok=True)
+            web.active_hub.show_folder(path)
+            return
         try:
             path.mkdir(parents=True, exist_ok=True)
             if sys.platform == "darwin":
@@ -3138,7 +3145,7 @@ class KnxGuiApp:
             imgui.close_current_popup()
         elif clicked == 0:
             try:
-                webbrowser.open(info.url)
+                open_url(info.url)
             except Exception as e:
                 self._log.error(
                     "could not open release page", url=info.url, error=str(e)
@@ -3849,7 +3856,7 @@ class KnxGuiApp:
             imgui.end_disabled()
             imgui.text_disabled(S.MYKNX_OAUTH_EXTRACTING)
         elif imgui.button(S.MYKNX_OAUTH_EXTRACT, imgui.ImVec2(-1, 0)):
-            self._myknx_oauth_dll_dialog = pfd.open_file(
+            self._myknx_oauth_dll_dialog = file_dialogs.open_file(
                 S.MYKNX_OAUTH_EXTRACT,
                 default_myknx_dll_path(),
                 [MYKNX_DLL_NAME, "*.dll", S.MYKNX_OAUTH_ALL_FILES, "*"],
@@ -4761,9 +4768,9 @@ def _main() -> None:
         runner_params.renderer_backend_type = hello_imgui.RendererBackendType.direct_x12
 
     # Browser UI (--web[=host:port]): no window, the browser draws the app.
-    web = web_address(sys.argv)
-    if web is not None:
-        enable_web_mode(runner_params, web)
+    options = web_options(sys.argv)
+    if options is not None:
+        enable_web_mode(runner_params, options)
 
     try:
         hello_imgui.run(runner_params)

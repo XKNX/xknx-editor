@@ -1634,6 +1634,110 @@ class MenuStrings:
     def LINK_COPY(self) -> str:
         return _("Copy Link")
 
+    @property
+    def WEB_LOGIN_HINT(self) -> str:
+        return _("Enter the access token shown when the editor was started.")
+
+    @property
+    def WEB_LOGIN_TOKEN(self) -> str:
+        return _("Access Token")
+
+    @property
+    def WEB_LOGIN_BUTTON(self) -> str:
+        return _("Sign In")
+
+    @property
+    def WEB_LOGIN_WRONG(self) -> str:
+        return _("Wrong access token.")
+
+    @property
+    def WEB_RECONNECTING(self) -> str:
+        return _("Disconnected. Reconnecting…")
+
+    @property
+    def WEB_DENIED(self) -> str:
+        return _("Access denied. Please sign in again.")
+
+    @property
+    def WEB_UPLOAD(self) -> str:
+        return _("Upload from This Computer…")
+
+    @property
+    def WEB_DROP_HINT(self) -> str:
+        return _("Or drop files here.")
+
+    @property
+    def WEB_SERVER_FILES(self) -> str:
+        return _("Files on the Server")
+
+    @property
+    def WEB_NO_FILES(self) -> str:
+        return _("No files yet.")
+
+    @property
+    def WEB_OPEN(self) -> str:
+        return _("Open")
+
+    @property
+    def WEB_SAVE(self) -> str:
+        return _("Save")
+
+    @property
+    def WEB_SELECT(self) -> str:
+        return _("Select")
+
+    @property
+    def WEB_FILE_NAME(self) -> str:
+        return _("File Name")
+
+    @property
+    def WEB_FOLDER_NAME(self) -> str:
+        return _("Folder Name")
+
+    @property
+    def WEB_FILE_TYPE(self) -> str:
+        return _("File Type")
+
+    @property
+    def WEB_DOWNLOAD_AFTER(self) -> str:
+        return _("Download to This Computer")
+
+    @property
+    def WEB_UPLOADING(self) -> str:
+        return _("Uploading {name}…")
+
+    @property
+    def WEB_UPLOAD_FAILED(self) -> str:
+        return _("Upload failed: {error}")
+
+    @property
+    def WEB_FILE_READY(self) -> str:
+        return _("{name} is ready.")
+
+    @property
+    def WEB_DOWNLOAD(self) -> str:
+        return _("Download")
+
+    @property
+    def WEB_SHOW(self) -> str:
+        return _("Show")
+
+    @property
+    def WEB_FOLDER_TITLE(self) -> str:
+        return _("Folder on the Server")
+
+    @property
+    def WEB_VIEW_ONLY(self) -> str:
+        return _("View only: another browser controls the editor.")
+
+    @property
+    def WEB_TAKE_CONTROL(self) -> str:
+        return _("Take Control")
+
+    @property
+    def WEB_OPEN_LINK(self) -> str:
+        return _("Open Link")
+
 
 class _CombinedStrings(BaseStrings, MenuStrings):
     pass

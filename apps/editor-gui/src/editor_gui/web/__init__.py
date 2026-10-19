@@ -4,14 +4,22 @@ The app runs unchanged on hello_imgui's Null platform and renderer. After each f
 (vertices, indices, draw commands) and texture updates go to the browser, which draws them with
 WebGL 2; the browser's mouse, keyboard, text and clipboard come back as ImGui input. Only frames
 that changed are sent, so an idle UI costs next to nothing. This module stays light: the server
-part is imported only when the web mode starts."""
+part is imported only when the web mode starts.
+
+Options: ``--web[=[host:]port]`` (default ``127.0.0.1:8080``), ``--web-cert=FILE`` and
+``--web-key=FILE`` for HTTPS, ``--web-files=DIR`` for the folder the browser's files go to (default:
+``files`` in the app's data folder). The access token comes from ``XKNX_WEB_TOKEN``, else it is
+created once and kept in the app's settings, so the address stays the same across restarts."""
 
 from __future__ import annotations
 
 import logging
 import os
+import secrets
 import struct
 import time
+from dataclasses import dataclass
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
 
 from imgui_bundle import hello_imgui, imgui
@@ -32,27 +40,69 @@ _TRACE = os.environ.get("XKNX_WEB_TRACE") == "1"
 active_hub: WebHub | None = None
 
 
-def web_address(argv: list[str]) -> tuple[str, int] | None:
-    """``(host, port)`` from ``--web`` or ``--web=[host:]port``, None without the option."""
+@dataclass(frozen=True)
+class WebOptions:
+    host: str = DEFAULT_HOST
+    port: int = DEFAULT_PORT
+    certfile: str | None = None
+    keyfile: str | None = None
+    files: str | None = None
+
+
+def web_options(argv: list[str]) -> WebOptions | None:
+    """The web mode's options from the command line, None without ``--web``."""
+    enabled = False
+    host, port = DEFAULT_HOST, DEFAULT_PORT
+    values: dict[str, str] = {}
     for arg in argv[1:]:
         if arg == "--web":
-            return DEFAULT_HOST, DEFAULT_PORT
-        if arg.startswith("--web="):
-            value = arg.split("=", 1)[1]
-            host, _, port = value.rpartition(":")
-            return host or DEFAULT_HOST, int(port) if port else DEFAULT_PORT
-    return None
+            enabled = True
+        elif arg.startswith("--web="):
+            enabled = True
+            given_host, _, given_port = arg.split("=", 1)[1].rpartition(":")
+            host = given_host or DEFAULT_HOST
+            port = int(given_port) if given_port else DEFAULT_PORT
+        elif arg.startswith(("--web-cert=", "--web-key=", "--web-files=")):
+            name, _, value = arg.partition("=")
+            values[name] = value
+    if not enabled:
+        return None
+    return WebOptions(
+        host,
+        port,
+        values.get("--web-cert") or None,
+        values.get("--web-key") or None,
+        values.get("--web-files") or None,
+    )
+
+
+def access_token() -> str:
+    """``XKNX_WEB_TOKEN``, else the token kept in the settings (created on first use)."""
+    from editor_gui.settings import load_settings, save_settings
+
+    given = os.environ.get("XKNX_WEB_TOKEN", "").strip()
+    if given:
+        return given
+    settings = load_settings("web")
+    token = settings.get("token")
+    if isinstance(token, str) and len(token) >= 16:
+        return token
+    token = secrets.token_urlsafe(24)
+    save_settings("web", {**settings, "token": token})
+    return token
 
 
 def enable_web_mode(
-    runner_params: hello_imgui.RunnerParams, address: tuple[str, int]
+    runner_params: hello_imgui.RunnerParams, options: WebOptions
 ) -> WebHub:
     """Switch ``runner_params`` to the windowless web mode and start the server."""
     global active_hub
-    from editor_gui.web.frames import KIND_FRAME, encode_frame, message
+    from editor_gui.settings import config_dir
+    from editor_gui.web.frames import Frame, encode_frame
     from editor_gui.web.server import WebHub
 
-    hub = WebHub()
+    files = Path(options.files) if options.files else config_dir() / "files"
+    hub = WebHub(access_token(), files)
     active_hub = hub
     runner_params.platform_backend_type = hello_imgui.PlatformBackendType.null
     runner_params.renderer_backend_type = hello_imgui.RendererBackendType.null
@@ -61,7 +111,7 @@ def enable_web_mode(
     post_init = callbacks.post_init or _nothing
     pre_new_frame = callbacks.pre_new_frame or _nothing
     after_swap = callbacks.after_swap or _nothing
-    last_body: list[bytes] = [b""]
+    last_frame: list[Frame | None] = [None]
     clients_seen = [False]
     frame_start = [0.0]
 
@@ -105,24 +155,26 @@ def enable_web_mode(
         for event in hub.take_input():
             if _TRACE:
                 print(f"{time.monotonic():.3f} apply {event}", flush=True)
-            _apply(io, event)
+            if event.get("t") == "dialog":
+                hub.answer_dialog(event)
+            else:
+                _apply(io, event)
         pre_new_frame()
 
     def web_after_swap() -> None:
         after_swap()
         ordered = hub.textures.process(imgui.get_platform_io().textures)
         connected = hub.connected
-        frame: bytes | None = None
+        frame: Frame | None = None
         # None before the first frame was rendered.
         draw_data = cast("imgui.ImDrawData | None", imgui.get_draw_data())
         if connected and draw_data is not None and draw_data.valid:
-            body = encode_frame(draw_data, int(imgui.get_mouse_cursor()))
+            encoded = encode_frame(draw_data, int(imgui.get_mouse_cursor()))
             # A browser that just connected needs the current frame even when nothing changed.
-            if body != last_body[0] or not clients_seen[0]:
-                last_body[0] = body
-                frame = message(KIND_FRAME, body)
+            if not encoded.same_as(last_frame[0]) or not clients_seen[0]:
+                last_frame[0] = frame = encoded
                 if _TRACE:
-                    print(f"{time.monotonic():.3f} frame {len(frame)}", flush=True)
+                    print(f"{time.monotonic():.3f} frame", flush=True)
         clients_seen[0] = connected
         hub.publish(ordered, frame)
 
@@ -130,12 +182,16 @@ def enable_web_mode(
     callbacks.pre_new_frame = web_pre_new_frame
     callbacks.after_swap = web_after_swap
 
-    host, port = address
-    hub.start(host, port)
-    shown = "localhost" if host in ("127.0.0.1", "::1") else host
-    url = f"http://{shown}:{port}/?token={hub.token}"
+    hub.start(
+        options.host, options.port, certfile=options.certfile, keyfile=options.keyfile
+    )
+    scheme = "https" if options.certfile else "http"
+    shown = "localhost" if options.host in ("127.0.0.1", "::1") else options.host
+    url = f"{scheme}://{shown}:{options.port}/?token={hub.token}"
     print(f"XKNX Editor web UI: {url}", flush=True)
-    logger.info("web UI listening on %s:%d", host, port)
+    logger.info(
+        "web UI listening on %s:%d, files in %s", options.host, options.port, files
+    )
     return hub
 
 

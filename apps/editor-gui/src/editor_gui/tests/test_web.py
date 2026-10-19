@@ -1,20 +1,32 @@
-"""Tests of the browser UI: frame and texture encoding, key mapping, options and the server."""
+"""Tests of the browser UI: frame and texture encoding, key mapping, options, files, dialogs and the
+server (access, uploads, downloads, control)."""
 
 from __future__ import annotations
 
 import json
 import struct
 import time
+import zipfile
 import zlib
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
+from pathlib import Path
+from typing import Any
 
 import pytest
 from imgui_bundle import imgui
+from imgui_bundle import portable_file_dialogs as pfd
 from starlette.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
-from editor_gui import web
+from editor_gui import file_dialogs, settings, web
 from editor_gui.web import frames
+from editor_gui.web.dialogs import (
+    WebOpenFile,
+    WebSaveFile,
+    WebSelectFolder,
+    filter_pairs,
+)
+from editor_gui.web.files import FileFolder, safe_name, watch_written, zip_folder
 from editor_gui.web.keys import imgui_key
 from editor_gui.web.server import WebHub
 
@@ -23,6 +35,7 @@ _PNG = bytes.fromhex(
     "1a0000001149444154789c63f8cfc0f01f86199039009b7e0bf572b0b93c0000"
     "000049454e44ae426082"
 )
+_TOKEN = "secret-token-for-tests"
 
 
 @pytest.fixture
@@ -36,12 +49,24 @@ def context() -> Iterator[imgui.IO]:
     imgui.destroy_context(ctx)
 
 
+@pytest.fixture
+def hub(tmp_path: Path) -> WebHub:
+    return WebHub(_TOKEN, tmp_path / "files")
+
+
 def _render(mirror: frames.TextureMirror, text: str = "Hallo ä ö ü") -> list[bytes]:
     """One frame with a window and some text; the texture messages it produced."""
     imgui.get_io().delta_time = 1 / 60
     imgui.new_frame()
+    imgui.set_next_window_pos(imgui.ImVec2(10, 10))
+    imgui.set_next_window_size(imgui.ImVec2(300, 200))
     imgui.begin("Window")
     imgui.text(text)
+    imgui.end()
+    imgui.set_next_window_pos(imgui.ImVec2(320, 10))
+    imgui.set_next_window_size(imgui.ImVec2(300, 200))
+    imgui.begin("Other")
+    imgui.text("unchanged")
     imgui.end()
     imgui.render()
     return mirror.process(imgui.get_platform_io().textures)
@@ -51,12 +76,23 @@ def _body(message: bytes) -> tuple[int, bytes]:
     return message[0], zlib.decompress(message[1:])
 
 
-def _parse_frame(body: bytes) -> dict[str, object]:
+def _event(message: bytes) -> dict[str, Any]:
+    kind, body = _body(message)
+    assert kind == frames.KIND_EVENT
+    return json.loads(body)
+
+
+def _parse_frame(body: bytes) -> dict[str, Any]:
     """The frame layout the browser reads (see frames.py)."""
     cursor, index_size, _, x, y, w, h, count = struct.unpack_from("<BBHffffI", body)
     off = 24
-    lists = []
+    lists: list[dict[str, Any]] = []
     for _ in range(count):
+        kind, digest = struct.unpack_from("<B8s", body, off)
+        off += 9
+        if kind == frames.LIST_KEPT:
+            lists.append({"kept": True, "hash": digest})
+            continue
         vertices, indices, commands = struct.unpack_from("<III", body, off)
         off += 12 + vertices * 20
         index_bytes = indices * index_size
@@ -65,7 +101,15 @@ def _parse_frame(body: bytes) -> dict[str, object]:
             struct.unpack_from("<ffffIIII", body, off + 32 * i) for i in range(commands)
         ]
         off += 32 * commands
-        lists.append({"vertices": vertices, "indices": indices, "commands": cmds})
+        lists.append(
+            {
+                "kept": False,
+                "hash": digest,
+                "vertices": vertices,
+                "indices": indices,
+                "commands": cmds,
+            }
+        )
     assert off == len(body)
     return {
         "cursor": cursor - 1,
@@ -75,19 +119,22 @@ def _parse_frame(body: bytes) -> dict[str, object]:
     }
 
 
+# --- frames and textures ----------------------------------------------------------------------
+
+
 def test_frame_round_trip(context: imgui.IO) -> None:
     mirror = frames.TextureMirror()
     created = _render(mirror)
     _render(mirror)  # a new window shows from its second frame on
     draw_data = imgui.get_draw_data()
-    body = frames.encode_frame(draw_data, int(imgui.MouseCursor_.text_input))
+    frame = frames.encode_frame(draw_data, int(imgui.MouseCursor_.text_input))
 
-    frame = _parse_frame(body)
-    assert frame["cursor"] == int(imgui.MouseCursor_.text_input)
-    assert frame["index_size"] in (2, 4)
-    assert frame["display"] == (0.0, 0.0, 640.0, 480.0)
-    lists = frame["lists"]
-    assert isinstance(lists, list)
+    parsed = _parse_frame(frame.body())
+    assert parsed["cursor"] == int(imgui.MouseCursor_.text_input)
+    assert parsed["index_size"] in (2, 4)
+    assert parsed["display"] == (0.0, 0.0, 640.0, 480.0)
+    lists = parsed["lists"]
+    assert not any(item["kept"] for item in lists)
     assert sum(item["vertices"] for item in lists) == draw_data.total_vtx_count
     assert sum(item["indices"] for item in lists) == draw_data.total_idx_count
     # Every draw command uses the font atlas texture the mirror created.
@@ -96,6 +143,25 @@ def test_frame_round_trip(context: imgui.IO) -> None:
     atlas_id = struct.unpack_from("<I", texture)[0]
     used = {cmd[4] for item in lists for cmd in item["commands"] if cmd[7]}
     assert used == {atlas_id}
+
+
+def test_unchanged_draw_lists_are_only_referenced(context: imgui.IO) -> None:
+    mirror = frames.TextureMirror()
+    _render(mirror)
+    _render(mirror)
+    first = frames.encode_frame(imgui.get_draw_data(), 0)
+    _render(mirror, "Hallo Welt, geändert")
+    second = frames.encode_frame(imgui.get_draw_data(), 0)
+
+    assert not second.same_as(first)
+    parsed = _parse_frame(second.body(first.hashes))
+    kept = [item for item in parsed["lists"] if item["kept"]]
+    sent = [item for item in parsed["lists"] if not item["kept"]]
+    # The window with the changed text travels; the unchanged one is only referenced.
+    assert kept and sent
+    assert {item["hash"] for item in kept} <= first.hashes
+    assert len(second.body(first.hashes)) < len(second.body())
+    assert second.same_as(second)
 
 
 def test_texture_create_and_snapshot(context: imgui.IO) -> None:
@@ -146,7 +212,12 @@ def test_encoded_image_texture() -> None:
     texture_id, message = mirror.add_encoded(_PNG, 3, 2)
     kind, body = _body(message)
     assert kind == frames.KIND_TEXTURE
-    assert struct.unpack_from("<IB3xII", body) == (texture_id, frames.TEX_ENCODED, 3, 2)
+    assert struct.unpack_from("<IB3xII", body) == (
+        texture_id,
+        frames.TEX_ENCODED,
+        3,
+        2,
+    )
     assert body[32:] == _PNG
     assert [_body(m) for m in mirror.snapshot()] == [(kind, body)]
 
@@ -163,6 +234,9 @@ def test_image_sizes() -> None:
     assert web._image_size(b"\xff\xd8\x00") is None
 
 
+# --- input, options ---------------------------------------------------------------------------
+
+
 def test_keys() -> None:
     assert imgui_key("KeyA") == imgui.Key.a
     assert imgui_key("Digit3") == imgui.Key._3
@@ -173,15 +247,31 @@ def test_keys() -> None:
     assert imgui_key("NoSuchKey") is None
 
 
-def test_web_address() -> None:
-    assert web.web_address(["app"]) is None
-    assert web.web_address(["app", "--web"]) == ("127.0.0.1", 8080)
-    assert web.web_address(["app", "--web=9000"]) == ("127.0.0.1", 9000)
-    assert web.web_address(["app", "--web=0.0.0.0:9001"]) == ("0.0.0.0", 9001)
-    assert web.web_address(["app", "project.xknx", "--web=:9002"]) == (
-        "127.0.0.1",
-        9002,
-    )
+def test_web_options() -> None:
+    assert web.web_options(["app"]) is None
+    assert web.web_options(["app", "--web-files=x"]) is None
+    assert web.web_options(["app", "--web"]) == web.WebOptions()
+    assert web.web_options(["app", "--web=9000"]) == web.WebOptions(port=9000)
+    assert web.web_options(
+        [
+            "app",
+            "project.xknx",
+            "--web=0.0.0.0:9001",
+            "--web-cert=c.pem",
+            "--web-key=k.pem",
+            "--web-files=/srv/knx",
+        ]
+    ) == web.WebOptions("0.0.0.0", 9001, "c.pem", "k.pem", "/srv/knx")
+
+
+def test_access_token(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "config_dir", lambda: tmp_path)
+    monkeypatch.delenv("XKNX_WEB_TOKEN", raising=False)
+    first = web.access_token()
+    assert len(first) >= 16
+    assert web.access_token() == first  # kept in the settings
+    monkeypatch.setenv("XKNX_WEB_TOKEN", "given-by-the-environment")
+    assert web.access_token() == "given-by-the-environment"
 
 
 def test_apply_input(context: imgui.IO) -> None:
@@ -208,31 +298,189 @@ def test_apply_input(context: imgui.IO) -> None:
     imgui.end_frame()
 
 
-def test_server_needs_the_token() -> None:
-    hub = WebHub(token="secret")
-    with TestClient(hub.app()) as client:
-        assert client.get("/").status_code == 403
-        assert client.get("/?token=wrong").status_code == 403
-        page = client.get("/?token=secret")
+# --- files and dialogs ------------------------------------------------------------------------
+
+
+def test_safe_and_unique_names(tmp_path: Path) -> None:
+    assert safe_name("../../etc/passwd") == "passwd"
+    assert safe_name(r"C:\Users\x\project.xknx") == "project.xknx"
+    assert safe_name('a<b>:"c|?*.knxproj') == "a_b___c___.knxproj"
+    assert safe_name("  ..  ") == "file"
+    folder = FileFolder(tmp_path)
+    assert folder.unique_name("p.xknx") == "p.xknx"
+    (tmp_path / "p.xknx").write_bytes(b"1")
+    (tmp_path / "p (2).xknx").write_bytes(b"2")
+    assert folder.unique_name("p.xknx") == "p (3).xknx"
+    assert {e.name for e in folder.files()} == {"p.xknx", "p (2).xknx"}
+
+
+def test_watch_written_waits_for_the_change(tmp_path: Path) -> None:
+    existing = tmp_path / "old.knxproj"
+    existing.write_bytes(b"old")
+    seen: list[Path] = []
+    watch_written(existing, seen.append, interval=0.05)
+    time.sleep(0.3)
+    assert seen == []  # unchanged: not offered
+    existing.write_bytes(b"new content")
+    deadline = time.monotonic() + 5
+    while not seen and time.monotonic() < deadline:
+        time.sleep(0.05)
+    assert seen == [existing]
+
+
+def test_zip_folder(tmp_path: Path) -> None:
+    folder = tmp_path / "Store"
+    (folder / "sub").mkdir(parents=True)
+    (folder / "a.txt").write_text("a")
+    (folder / "sub" / "b.txt").write_text("b")
+    with zipfile.ZipFile(zip_folder(folder)) as archive:
+        assert sorted(archive.namelist()) == ["Store/a.txt", "Store/sub/b.txt"]
+
+
+def test_filter_pairs() -> None:
+    assert filter_pairs(["Projects", "*.xknx *.knxproj", "All Files", "*"]) == [
+        ("Projects", ["*.xknx", "*.knxproj"]),
+        ("All Files", ["*"]),
+    ]
+    assert filter_pairs(None) == []
+
+
+def test_open_dialog(hub: WebHub) -> None:
+    (hub.files.root / "a.knxproj").write_bytes(b"x")
+    dialog = WebOpenFile(hub, "Open", "", ["Projects", "*.knxproj"])
+    request = dialog.event()
+    assert request["kind"] == "open"
+    assert [f["name"] for f in request["files"]] == ["a.knxproj"]
+    assert not dialog.ready()
+    dialog.answer({"ok": True, "names": ["a.knxproj", "../missing.xknx"]})
+    assert dialog.ready()
+    assert dialog.result() == [str(hub.files.root / "a.knxproj")]
+
+
+def test_save_dialog_adds_the_extension_and_downloads(
+    hub: WebHub, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    offered: list[Path] = []
+    monkeypatch.setattr(hub, "download_when_written", offered.append)
+    dialog = WebSaveFile(
+        hub, "Export", "C:/x/Project.knxproj", ["ETS", "*.knxproj", "All", "*"]
+    )
+    assert dialog.event()["name"] == "Project.knxproj"
+    dialog.answer({"ok": True, "name": "Haus", "filter": 0, "download": True})
+    target = hub.files.root / "Haus.knxproj"
+    assert dialog.result() == str(target)
+    assert offered == [target]
+
+
+def test_cancelled_dialogs(hub: WebHub) -> None:
+    save = WebSaveFile(hub, "Save")
+    save.answer({"ok": False})
+    assert save.ready() and save.result() == ""
+    opened = WebOpenFile(hub, "Open")
+    opened.answer({"ok": False})
+    assert opened.ready() and opened.result() == []
+
+
+def test_select_folder(hub: WebHub) -> None:
+    dialog = WebSelectFolder(hub, "Store")
+    dialog.answer({"ok": True, "name": "ProjectStore", "download": False})
+    assert Path(dialog.result()).is_dir()
+
+
+def test_file_dialogs_use_the_page_in_web_mode(
+    hub: WebHub, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(web, "active_hub", hub)
+    assert isinstance(file_dialogs.open_file("Open"), WebOpenFile)
+    multi = file_dialogs.open_file("Open", options=pfd.opt.multiselect)
+    assert isinstance(multi, WebOpenFile) and multi.multiselect
+    assert isinstance(file_dialogs.save_file("Save"), WebSaveFile)
+    assert isinstance(file_dialogs.select_folder("Folder"), WebSelectFolder)
+
+
+# --- server -----------------------------------------------------------------------------------
+
+
+def _receive_until(
+    socket: Any, test: Callable[[bytes], bool], limit: int = 50
+) -> list[bytes]:
+    """Messages up to and including the first that passes ``test``."""
+    seen: list[bytes] = []
+    for _ in range(limit):
+        message = socket.receive_bytes()
+        seen.append(message)
+        if test(message):
+            return seen
+    raise AssertionError("message not received")
+
+
+def _is_event(kind: str) -> Callable[[bytes], bool]:
+    return lambda m: m[0] == frames.KIND_EVENT and _event(m).get("t") == kind
+
+
+def _controls(socket: Any, expected: bool) -> None:
+    """Wait until the browser is told it does (or does not) control the app."""
+    _receive_until(
+        socket,
+        lambda m: (
+            m[0] == frames.KIND_EVENT
+            and _event(m).get("t") == "control"
+            and _event(m)["control"] is expected
+        ),
+    )
+
+
+def test_sign_in(hub: WebHub) -> None:
+    with TestClient(hub.app(), follow_redirects=False) as client:
+        page = client.get("/")
         assert page.status_code == 200
-        assert "client.js" in page.text
+        assert 'name="token"' in page.text  # the sign-in form
         assert client.get("/client.js").status_code == 200
-        with (
-            pytest.raises(WebSocketDisconnect) as closed,
-            client.websocket_connect("/ws?token=wrong"),
+        # The token in the address becomes a cookie and leaves the address.
+        swap = client.get(f"/?token={_TOKEN}")
+        assert swap.status_code == 303
+        assert "httponly" in swap.headers["set-cookie"].lower()
+        assert "samesite=strict" in swap.headers["set-cookie"].lower()
+        app_page = client.get("/")
+        assert app_page.status_code == 200
+        assert "client.js" in app_page.text
+
+
+def test_sign_in_form(hub: WebHub) -> None:
+    with TestClient(hub.app(), follow_redirects=False) as client:
+        wrong = client.post("/login", data={"token": "nope"})
+        assert wrong.status_code == 401
+        assert 'class="error"' in wrong.text
+        right = client.post("/login", data={"token": _TOKEN})
+        assert right.status_code == 303
+        assert "client.js" in client.get("/").text
+
+
+def test_socket_refuses_strangers(hub: WebHub) -> None:
+    with TestClient(hub.app()) as client:
+        for path, headers in (
+            ("/ws?token=wrong", {}),
+            (f"/ws?token={_TOKEN}", {"origin": "https://evil.example"}),
         ):
-            pass
-        assert closed.value.code == 4403
+            with (
+                pytest.raises(WebSocketDisconnect) as closed,
+                client.websocket_connect(path, headers=headers),
+            ):
+                pass
+            assert closed.value.code == 4403
 
 
-def test_server_sends_textures_and_takes_input() -> None:
-    hub = WebHub(token="secret")
-    _, message = hub.textures.add_encoded(_PNG, 3, 2)
+def test_socket_sends_texts_textures_and_takes_input(hub: WebHub) -> None:
+    _, texture = hub.textures.add_encoded(_PNG, 3, 2)
     with (
         TestClient(hub.app()) as client,
-        client.websocket_connect("/ws?token=secret") as socket,
+        client.websocket_connect(f"/ws?token={_TOKEN}") as socket,
     ):
-        assert socket.receive_bytes() == message
+        texts = _event(socket.receive_bytes())
+        assert texts["t"] == "texts" and texts["texts"]["WEB_OPEN"]
+        assert socket.receive_bytes() == texture
+        control = _event(socket.receive_bytes())
+        assert control == {"t": "control", "control": True, "browsers": 1}
         socket.send_text(json.dumps([{"t": "size", "w": 800, "h": 600, "r": 2}]))
         deadline = time.monotonic() + 5
         events: list[dict[str, object]] = []
@@ -243,3 +491,106 @@ def test_server_sends_textures_and_takes_input() -> None:
     assert hub.size == (800.0, 600.0)
     assert hub.scale == 2.0
     assert hub.wake.is_set()
+
+
+def test_frames_send_only_new_draw_lists(hub: WebHub) -> None:
+    header = struct.pack("<BBHffffI", 1, 2, 0, 0, 0, 100, 100, 2)
+    a, b, c = (frames._LIST_HEADER.pack(0, 0, 0) for _ in range(3))
+    first = frames.Frame(header, ((b"A" * 8, a), (b"B" * 8, b)))
+    second = frames.Frame(header, ((b"A" * 8, a), (b"C" * 8, c)))
+    with (
+        TestClient(hub.app()) as client,
+        client.websocket_connect(f"/ws?token={_TOKEN}") as socket,
+    ):
+        _receive_until(socket, _is_event("control"))
+        hub.publish([], first)
+        one = _receive_until(socket, lambda m: m[0] == frames.KIND_FRAME)[-1]
+        hub.publish([], second)
+        two = _receive_until(socket, lambda m: m[0] == frames.KIND_FRAME)[-1]
+    kinds_one = [(i["kept"], i["hash"]) for i in _parse_frame(_body(one)[1])["lists"]]
+    kinds_two = [(i["kept"], i["hash"]) for i in _parse_frame(_body(two)[1])["lists"]]
+    assert kinds_one == [(False, b"A" * 8), (False, b"B" * 8)]
+    assert kinds_two == [(True, b"A" * 8), (False, b"C" * 8)]
+
+
+def test_one_browser_controls(hub: WebHub) -> None:
+    with (
+        TestClient(hub.app()) as client,
+        client.websocket_connect(f"/ws?token={_TOKEN}") as first,
+    ):
+        _controls(first, True)
+        with client.websocket_connect(f"/ws?token={_TOKEN}") as second:
+            _controls(second, False)
+            # A watching browser's input is ignored ...
+            second.send_text(json.dumps([{"t": "text", "s": "x"}]))
+            time.sleep(0.2)
+            assert all(e.get("t") != "text" for e in hub.take_input())
+            # ... until it takes over.
+            second.send_text(json.dumps([{"t": "take"}]))
+            _controls(second, True)
+            _controls(first, False)
+        # The controlling browser left: the remaining one controls again.
+        _controls(first, True)
+
+
+def test_upload_needs_an_open_dialog(hub: WebHub) -> None:
+    with TestClient(hub.app()) as client:
+        client.get(f"/?token={_TOKEN}")
+        refused = client.post("/upload?dialog=999&name=a.knxproj", content=b"data")
+        assert refused.status_code == 409
+        dialog = WebOpenFile(hub, "Open")
+        stored = client.post(
+            f"/upload?dialog={dialog.id}&name=../a.knxproj", content=b"data"
+        )
+        assert stored.status_code == 200
+        assert stored.json() == {"name": "a.knxproj", "size": 4}
+        assert (hub.files.root / "a.knxproj").read_bytes() == b"data"
+        again = client.post(f"/upload?dialog={dialog.id}&name=a.knxproj", content=b"2")
+        assert again.json()["name"] == "a (2).knxproj"
+        foreign = client.post(
+            f"/upload?dialog={dialog.id}&name=b.knxproj",
+            content=b"x",
+            headers={"origin": "https://evil.example"},
+        )
+        assert foreign.status_code == 403
+
+
+def test_downloads_only_offered_files(hub: WebHub, tmp_path: Path) -> None:
+    report = tmp_path / "labels.html"
+    report.write_text("<p>labels</p>")
+    with (
+        TestClient(hub.app()) as client,
+        client.websocket_connect(f"/ws?token={_TOKEN}") as socket,
+    ):
+        _receive_until(socket, _is_event("control"))
+        hub.offer_file(report, show=True)
+        offer = _event(_receive_until(socket, _is_event("file"))[-1])
+        assert offer["show"] and offer["name"] == "labels.html"
+        assert client.get(f"/{offer['url']}").status_code == 403  # no sign-in yet
+        client.get(f"/?token={_TOKEN}")
+        shown = client.get(f"/{offer['url']}?show=1")
+        assert shown.status_code == 200 and shown.text == "<p>labels</p>"
+        assert "inline" in shown.headers["content-disposition"]
+        assert client.get("/files/1-unknown/x.html").status_code == 404
+        hub.open_url("https://example.com/manual.pdf")
+        assert _event(_receive_until(socket, _is_event("open"))[-1])["url"] == (
+            "https://example.com/manual.pdf"
+        )
+        hub.show_folder(tmp_path)
+        listing = _event(_receive_until(socket, _is_event("folder"))[-1])
+        assert [f["name"] for f in listing["files"]] == ["labels.html"]
+
+
+def test_dialog_goes_to_the_controlling_browser(hub: WebHub) -> None:
+    with (
+        TestClient(hub.app()) as client,
+        client.websocket_connect(f"/ws?token={_TOKEN}") as socket,
+    ):
+        _receive_until(socket, _is_event("control"))
+        dialog = WebSaveFile(hub, "Save", "p.xknx", ["XKNX", "*.xknx"])
+        request = _event(_receive_until(socket, _is_event("dialog"))[-1])
+        assert request["id"] == dialog.id and request["name"] == "p.xknx"
+        hub.answer_dialog({"t": "dialog", "id": dialog.id, "ok": False})
+        closed = _event(_receive_until(socket, _is_event("dialog-close"))[-1])
+        assert closed["id"] == dialog.id
+        assert dialog.ready()

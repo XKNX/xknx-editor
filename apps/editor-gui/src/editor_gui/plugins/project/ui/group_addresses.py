@@ -9,8 +9,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
-from imgui_bundle import portable_file_dialogs as pfd
 
+from editor_gui import file_dialogs
 from editor_gui.device import com_object_display_name
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
@@ -74,7 +74,7 @@ class GroupAddressesPanel:
         self._bus = bus
         self._on_import = on_import
         self._on_export = on_export
-        self._import_dialog: pfd.open_file | None = None
+        self._import_dialog: file_dialogs.OpenFileDialog | None = None
         self._import_message = ""
         self._open_import_result = False
         # External "select this GA" requests (e.g. clicking a Health finding).
@@ -237,7 +237,7 @@ class GroupAddressesPanel:
     def start_import(self) -> None:
         """Ask for a group address file and import it into the open project."""
         if self._import_dialog is None:
-            self._import_dialog = pfd.open_file(
+            self._import_dialog = file_dialogs.open_file(
                 S.GA_IMPORT_TITLE,
                 "",
                 [S.GA_IMPORT_FILTER, "*.xml *.csv", S.GA_IMPORT_ALL_FILES, "*"],

@@ -7,9 +7,9 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Protocol
 
 from imgui_bundle import imgui
-from imgui_bundle import portable_file_dialogs as pfd
 from xknx.telegram.address import GroupAddress
 
+from editor_gui import file_dialogs
 from editor_gui.device import address_order
 from editor_gui.plugins.keyring.strings import S
 from editor_gui.widgets.dialog import (
@@ -52,13 +52,13 @@ class KeyringPanel:
         self._export_project = export_project
         self._export_from_project = False
         # import: file dialog -> password modal
-        self._dialog: pfd.open_file | None = None
+        self._dialog: file_dialogs.OpenFileDialog | None = None
         self._pending_path: str | None = None
         self._password = ""
         self._error: str | None = None
         self._prompt_open = False
         # export: save dialog -> new-password modal
-        self._save_dialog: pfd.save_file | None = None
+        self._save_dialog: file_dialogs.SaveFileDialog | None = None
         self._pending_export_path: str | None = None
         self._export_password = ""
         self._export_error: str | None = None
@@ -71,7 +71,7 @@ class KeyringPanel:
 
     def begin_import(self) -> None:
         """Open the file dialog to pick a ``.knxkeys`` keyring (triggered from the menu)."""
-        self._dialog = pfd.open_file(
+        self._dialog = file_dialogs.open_file(
             S.KEYRING_IMPORT, "", [S.KEYRING_FILTER, "*.knxkeys", S.ALL_FILES, "*"]
         )
 
@@ -132,7 +132,7 @@ class KeyringPanel:
     def begin_project_export(self, default_name: str) -> None:
         """Open the save dialog to export the open project's key material as a keyring."""
         self._export_from_project = True
-        self._save_dialog = pfd.save_file(
+        self._save_dialog = file_dialogs.save_file(
             S.KEYRING_EXPORT_PROJECT,
             f"{default_name}.knxkeys",
             [S.KEYRING_FILTER, "*.knxkeys", S.ALL_FILES, "*"],
@@ -142,7 +142,7 @@ class KeyringPanel:
         """Open the save dialog to pick the target ``.knxkeys`` path."""
         self._export_from_project = False
         default = "keyring.knxkeys"
-        self._save_dialog = pfd.save_file(
+        self._save_dialog = file_dialogs.save_file(
             S.KEYRING_EXPORT, default, [S.KEYRING_FILTER, "*.knxkeys", S.ALL_FILES, "*"]
         )
 

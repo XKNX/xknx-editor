@@ -1210,3 +1210,75 @@ msgstr "Wird abgebrochen…"
 
 msgid "Export cancelled, no file was written"
 msgstr "Export abgebrochen, es wurde keine Datei geschrieben"
+
+msgid "Enter the access token shown when the editor was started."
+msgstr "Geben Sie das Zugriffstoken ein, das beim Start des Editors angezeigt wurde."
+
+msgid "Access Token"
+msgstr "Zugriffstoken"
+
+msgid "Sign In"
+msgstr "Anmelden"
+
+msgid "Wrong access token."
+msgstr "Falsches Zugriffstoken."
+
+msgid "Disconnected. Reconnecting…"
+msgstr "Verbindung getrennt. Neu verbinden…"
+
+msgid "Access denied. Please sign in again."
+msgstr "Zugriff verweigert. Bitte erneut anmelden."
+
+msgid "Upload from This Computer…"
+msgstr "Von diesem Computer hochladen…"
+
+msgid "Or drop files here."
+msgstr "Oder Dateien hier ablegen."
+
+msgid "Files on the Server"
+msgstr "Dateien auf dem Server"
+
+msgid "No files yet."
+msgstr "Noch keine Dateien."
+
+msgid "Open"
+msgstr "Öffnen"
+
+msgid "Select"
+msgstr "Auswählen"
+
+msgid "File Name"
+msgstr "Dateiname"
+
+msgid "Folder Name"
+msgstr "Ordnername"
+
+msgid "File Type"
+msgstr "Dateityp"
+
+msgid "Download to This Computer"
+msgstr "Auf diesen Computer herunterladen"
+
+msgid "Uploading {name}…"
+msgstr "{name} wird hochgeladen…"
+
+msgid "Upload failed: {error}"
+msgstr "Hochladen fehlgeschlagen: {error}"
+
+msgid "{name} is ready."
+msgstr "{name} ist bereit."
+
+msgid "Show"
+msgstr "Anzeigen"
+
+msgid "Folder on the Server"
+msgstr "Ordner auf dem Server"
+
+msgid "View only: another browser controls the editor."
+msgstr "Nur ansehen: Ein anderer Browser steuert den Editor."
+
+msgid "Take Control"
+msgstr "Steuerung übernehmen"
+
+msgid "Open Link"
+msgstr "Link öffnen"

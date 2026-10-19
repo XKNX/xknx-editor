@@ -1,5 +1,4 @@
 import threading
-import webbrowser
 from collections.abc import Callable
 from contextlib import nullcontext
 from dataclasses import dataclass
@@ -21,6 +20,7 @@ from editor_gui.device_info import (
 )
 from editor_gui.device_plugins import device_plugins, parameters_in_plugin
 from editor_gui.hardware_text import bus_current_text, rail_text
+from editor_gui.os_open import open_url
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
@@ -1187,13 +1187,13 @@ class ConfigurePanel:
         self, manufacturer: str, order_number: str, product_name: str
     ) -> None:
         """Resolve and open the manual URL off the UI thread; always opens something (KNX search as
-        last resort). Only touches ``webbrowser`` and a plain bool flag, never imgui."""
+        last resort). Only touches ``open_url`` and a plain bool flag, never imgui."""
         _log.info("open manual", manufacturer=manufacturer, order=order_number)
         try:
             url = doc_links.resolve_manual_url(
                 manufacturer, order_number, product_name
             ) or doc_links.knx_search_url(order_number, manufacturer)
-            webbrowser.open(url)
+            open_url(url)
             _log.info("manual opened", url=url)
         except Exception as exc:
             _log.warning("manual lookup failed", order=order_number, error=str(exc))

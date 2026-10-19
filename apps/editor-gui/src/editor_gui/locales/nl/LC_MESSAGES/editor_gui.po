@@ -1090,3 +1090,75 @@ msgstr "Bezig met annuleren…"
 
 msgid "Export cancelled, no file was written"
 msgstr "Exporteren geannuleerd, er is geen bestand geschreven"
+
+msgid "Enter the access token shown when the editor was started."
+msgstr "Voer het toegangstoken in dat bij het starten van de editor werd getoond."
+
+msgid "Access Token"
+msgstr "Toegangstoken"
+
+msgid "Sign In"
+msgstr "Aanmelden"
+
+msgid "Wrong access token."
+msgstr "Onjuist toegangstoken."
+
+msgid "Disconnected. Reconnecting…"
+msgstr "Verbinding verbroken. Opnieuw verbinden…"
+
+msgid "Access denied. Please sign in again."
+msgstr "Toegang geweigerd. Meld u opnieuw aan."
+
+msgid "Upload from This Computer…"
+msgstr "Uploaden vanaf deze computer…"
+
+msgid "Or drop files here."
+msgstr "Of sleep bestanden hierheen."
+
+msgid "Files on the Server"
+msgstr "Bestanden op de server"
+
+msgid "No files yet."
+msgstr "Nog geen bestanden."
+
+msgid "Open"
+msgstr "Openen"
+
+msgid "Select"
+msgstr "Selecteren"
+
+msgid "File Name"
+msgstr "Bestandsnaam"
+
+msgid "Folder Name"
+msgstr "Mapnaam"
+
+msgid "File Type"
+msgstr "Bestandstype"
+
+msgid "Download to This Computer"
+msgstr "Downloaden naar deze computer"
+
+msgid "Uploading {name}…"
+msgstr "{name} wordt geüpload…"
+
+msgid "Upload failed: {error}"
+msgstr "Uploaden mislukt: {error}"
+
+msgid "{name} is ready."
+msgstr "{name} is klaar."
+
+msgid "Show"
+msgstr "Weergeven"
+
+msgid "Folder on the Server"
+msgstr "Map op de server"
+
+msgid "View only: another browser controls the editor."
+msgstr "Alleen bekijken: een andere browser bedient de editor."
+
+msgid "Take Control"
+msgstr "Besturing overnemen"
+
+msgid "Open Link"
+msgstr "Link openen"
