@@ -1211,17 +1211,8 @@ msgstr "Wird abgebrochen…"
 msgid "Export cancelled, no file was written"
 msgstr "Export abgebrochen, es wurde keine Datei geschrieben"
 
-msgid "Enter the access token shown when the editor was started."
-msgstr "Geben Sie das Zugriffstoken ein, das beim Start des Editors angezeigt wurde."
-
-msgid "Access Token"
-msgstr "Zugriffstoken"
-
 msgid "Sign In"
 msgstr "Anmelden"
-
-msgid "Wrong access token."
-msgstr "Falsches Zugriffstoken."
 
 msgid "Disconnected. Reconnecting…"
 msgstr "Verbindung getrennt. Neu verbinden…"
@@ -1300,3 +1291,9 @@ msgstr "Datei auswählen…"
 
 msgid "{name} is ready."
 msgstr "{name} ist bereit."
+
+msgid "Enter the password for access to the editor."
+msgstr "Geben Sie das Passwort für den Zugriff auf den Editor ein."
+
+msgid "Wrong password."
+msgstr "Falsches Passwort."

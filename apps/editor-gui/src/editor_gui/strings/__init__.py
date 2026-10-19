@@ -1636,11 +1636,11 @@ class MenuStrings:
 
     @property
     def WEB_LOGIN_HINT(self) -> str:
-        return _("Enter the access token shown when the editor was started.")
+        return _("Enter the password for access to the editor.")
 
     @property
-    def WEB_LOGIN_TOKEN(self) -> str:
-        return _("Access Token")
+    def WEB_LOGIN_PASSWORD(self) -> str:
+        return _("Password")
 
     @property
     def WEB_LOGIN_BUTTON(self) -> str:
@@ -1648,7 +1648,7 @@ class MenuStrings:
 
     @property
     def WEB_LOGIN_WRONG(self) -> str:
-        return _("Wrong access token.")
+        return _("Wrong password.")
 
     @property
     def WEB_RECONNECTING(self) -> str:

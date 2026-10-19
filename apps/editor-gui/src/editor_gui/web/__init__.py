@@ -6,17 +6,25 @@ WebGL 2; the browser's mouse, keyboard, text and clipboard come back as ImGui in
 that changed are sent, so an idle UI costs next to nothing. This module stays light: the server
 part is imported only when the web mode starts.
 
-Options: ``--web[=[host:]port]`` (default ``127.0.0.1:8080``), ``--web-cert=FILE`` and
-``--web-key=FILE`` for HTTPS, ``--web-files=DIR`` for the folder the browser's files go to (default:
-``files`` in the app's data folder). The access token comes from ``XKNX_WEB_TOKEN``, else it is
-created once and kept in the app's settings, so the address stays the same across restarts."""
+Options:
+
+- ``--web[=[host:]port]``: serve the browser UI (default ``127.0.0.1:8080``, this computer only).
+- ``--web-cert=FILE``, ``--web-key=FILE``: HTTPS.
+- ``--web-files=DIR``: the folder the browser's files go to (default: ``files`` in the app's data
+  folder).
+- ``--web-password-file=FILE`` or ``XKNX_WEB_PASSWORD``: browsers sign in with this password. A
+  server reachable in the network needs it, or ``--web-trust-proxy`` when a proxy in front signs
+  users in itself (e.g. Home Assistant Ingress); otherwise the web mode does not start.
+- ``--web-idle=MINUTES``: after that long without input from the controlling browser, a browser
+  that connects gets control (default 10)."""
 
 from __future__ import annotations
 
 import logging
 import os
-import secrets
+import socket
 import struct
+import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -47,6 +55,21 @@ class WebOptions:
     certfile: str | None = None
     keyfile: str | None = None
     files: str | None = None
+    password_file: str | None = None
+    trust_proxy: bool = False
+    idle_minutes: float = 10.0
+
+    @property
+    def local(self) -> bool:
+        """Served on this computer only."""
+        return self.host in ("127.0.0.1", "localhost", "::1")
+
+    def password(self) -> str | None:
+        """The sign-in password: the file's first line, else ``XKNX_WEB_PASSWORD``."""
+        if self.password_file:
+            lines = Path(self.password_file).read_text(encoding="utf-8").splitlines()
+            return (lines[0] if lines else "") or None
+        return os.environ.get("XKNX_WEB_PASSWORD") or None
 
 
 def web_options(argv: list[str]) -> WebOptions | None:
@@ -62,7 +85,17 @@ def web_options(argv: list[str]) -> WebOptions | None:
             given_host, _, given_port = arg.split("=", 1)[1].rpartition(":")
             host = given_host or DEFAULT_HOST
             port = int(given_port) if given_port else DEFAULT_PORT
-        elif arg.startswith(("--web-cert=", "--web-key=", "--web-files=")):
+        elif arg == "--web-trust-proxy":
+            values[arg] = "1"
+        elif arg.startswith(
+            (
+                "--web-cert=",
+                "--web-key=",
+                "--web-files=",
+                "--web-password-file=",
+                "--web-idle=",
+            )
+        ):
             name, _, value = arg.partition("=")
             values[name] = value
     if not enabled:
@@ -73,23 +106,10 @@ def web_options(argv: list[str]) -> WebOptions | None:
         values.get("--web-cert") or None,
         values.get("--web-key") or None,
         values.get("--web-files") or None,
+        values.get("--web-password-file") or None,
+        "--web-trust-proxy" in values,
+        float(values.get("--web-idle") or 10.0),
     )
-
-
-def access_token() -> str:
-    """``XKNX_WEB_TOKEN``, else the token kept in the settings (created on first use)."""
-    from editor_gui.settings import load_settings, save_settings
-
-    given = os.environ.get("XKNX_WEB_TOKEN", "").strip()
-    if given:
-        return given
-    settings = load_settings("web")
-    token = settings.get("token")
-    if isinstance(token, str) and len(token) >= 16:
-        return token
-    token = secrets.token_urlsafe(24)
-    save_settings("web", {**settings, "token": token})
-    return token
 
 
 def enable_web_mode(
@@ -102,8 +122,24 @@ def enable_web_mode(
     from editor_gui.web.server import WebHub
     from editor_gui.widgets import dialog
 
+    password = options.password()
+    if not options.local and password is None and not options.trust_proxy:
+        print(
+            f"XKNX Editor web UI: {options.host} is reachable from the network. Set a password "
+            "(XKNX_WEB_PASSWORD or --web-password-file=FILE), or --web-trust-proxy when a proxy "
+            "in front signs users in.",
+            file=sys.stderr,
+            flush=True,
+        )
+        raise SystemExit(2)
     files = Path(options.files) if options.files else config_dir() / "files"
-    hub = WebHub(access_token(), files)
+    hub = WebHub(
+        files,
+        password=password,
+        # Without a password or a trusted proxy: this computer only, by its own name.
+        local_only=password is None and not options.trust_proxy,
+        idle_seconds=options.idle_minutes * 60.0,
+    )
     active_hub = hub
     # The web file dialogs are the app's own: nested in the topmost open dialog, else after the
     # app's windows.
@@ -203,8 +239,13 @@ def enable_web_mode(
         options.host, options.port, certfile=options.certfile, keyfile=options.keyfile
     )
     scheme = "https" if options.certfile else "http"
-    shown = "localhost" if options.host in ("127.0.0.1", "::1") else options.host
-    url = f"{scheme}://{shown}:{options.port}/?token={hub.token}"
+    if options.local:
+        shown = "localhost"
+    elif options.host in ("0.0.0.0", "::", ""):
+        shown = socket.gethostname()  # every address of this computer: name it
+    else:
+        shown = options.host
+    url = f"{scheme}://{shown}:{options.port}/"
     print(f"XKNX Editor web UI: {url}", flush=True)
     logger.info(
         "web UI listening on %s:%d, files in %s", options.host, options.port, files

@@ -1091,17 +1091,8 @@ msgstr "Bezig met annuleren…"
 msgid "Export cancelled, no file was written"
 msgstr "Exporteren geannuleerd, er is geen bestand geschreven"
 
-msgid "Enter the access token shown when the editor was started."
-msgstr "Voer het toegangstoken in dat bij het starten van de editor werd getoond."
-
-msgid "Access Token"
-msgstr "Toegangstoken"
-
 msgid "Sign In"
 msgstr "Aanmelden"
-
-msgid "Wrong access token."
-msgstr "Onjuist toegangstoken."
 
 msgid "Disconnected. Reconnecting…"
 msgstr "Verbinding verbroken. Opnieuw verbinden…"
@@ -1180,3 +1171,9 @@ msgstr "Bestand kiezen…"
 
 msgid "{name} is ready."
 msgstr "{name} is klaar."
+
+msgid "Enter the password for access to the editor."
+msgstr "Voer het wachtwoord in voor toegang tot de editor."
+
+msgid "Wrong password."
+msgstr "Onjuist wachtwoord."

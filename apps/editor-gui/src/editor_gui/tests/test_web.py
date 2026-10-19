@@ -3,6 +3,7 @@ server (access, uploads, downloads, control)."""
 
 from __future__ import annotations
 
+import contextlib
 import json
 import struct
 import time
@@ -13,13 +14,13 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from imgui_bundle import imgui
+from imgui_bundle import hello_imgui, imgui
 from imgui_bundle import portable_file_dialogs as pfd
 from starlette.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
-from editor_gui import file_dialogs, settings, web
-from editor_gui.web import frames
+from editor_gui import file_dialogs, web
+from editor_gui.web import frames, server
 from editor_gui.web.dialogs import (
     DownloadNotice,
     FolderNotice,
@@ -38,7 +39,7 @@ _PNG = bytes.fromhex(
     "1a0000001149444154789c63f8cfc0f01f86199039009b7e0bf572b0b93c0000"
     "000049454e44ae426082"
 )
-_TOKEN = "secret-token-for-tests"
+_PASSWORD = "secret password for the tests"
 
 
 @pytest.fixture
@@ -54,7 +55,7 @@ def context() -> Iterator[imgui.IO]:
 
 @pytest.fixture
 def hub(tmp_path: Path) -> WebHub:
-    return WebHub(_TOKEN, tmp_path / "files")
+    return WebHub(tmp_path / "files")
 
 
 def _render(mirror: frames.TextureMirror, text: str = "Hallo ä ö ü") -> list[bytes]:
@@ -250,12 +251,15 @@ def test_keys() -> None:
     assert imgui_key("NoSuchKey") is None
 
 
-def test_web_options() -> None:
+def test_web_options(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     assert web.web_options(["app"]) is None
     assert web.web_options(["app", "--web-files=x"]) is None
-    assert web.web_options(["app", "--web"]) == web.WebOptions()
+    local = web.web_options(["app", "--web"])
+    assert local == web.WebOptions() and local.local
     assert web.web_options(["app", "--web=9000"]) == web.WebOptions(port=9000)
-    assert web.web_options(
+    secret = tmp_path / "password.txt"
+    secret.write_text("from the file\n")
+    options = web.web_options(
         [
             "app",
             "project.xknx",
@@ -263,18 +267,28 @@ def test_web_options() -> None:
             "--web-cert=c.pem",
             "--web-key=k.pem",
             "--web-files=/srv/knx",
+            f"--web-password-file={secret}",
+            "--web-trust-proxy",
+            "--web-idle=2.5",
         ]
-    ) == web.WebOptions("0.0.0.0", 9001, "c.pem", "k.pem", "/srv/knx")
+    )
+    assert options == web.WebOptions(
+        "0.0.0.0", 9001, "c.pem", "k.pem", "/srv/knx", str(secret), True, 2.5
+    )
+    assert options is not None and not options.local
+    assert options.password() == "from the file"
+    monkeypatch.setenv("XKNX_WEB_PASSWORD", "from the environment")
+    assert web.WebOptions(host="0.0.0.0").password() == "from the environment"
 
 
-def test_access_token(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(settings, "config_dir", lambda: tmp_path)
-    monkeypatch.delenv("XKNX_WEB_TOKEN", raising=False)
-    first = web.access_token()
-    assert len(first) >= 16
-    assert web.access_token() == first  # kept in the settings
-    monkeypatch.setenv("XKNX_WEB_TOKEN", "given-by-the-environment")
-    assert web.access_token() == "given-by-the-environment"
+def test_network_without_protection_does_not_start(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("XKNX_WEB_PASSWORD", raising=False)
+    monkeypatch.setattr(web, "active_hub", None)
+    with pytest.raises(SystemExit):
+        web.enable_web_mode(hello_imgui.RunnerParams(), web.WebOptions(host="0.0.0.0"))
+    assert web.active_hub is None
 
 
 def test_apply_input(context: imgui.IO) -> None:
@@ -436,6 +450,13 @@ def _receive_until(
     raise AssertionError("message not received")
 
 
+def _ws(client: TestClient, headers: dict[str, str] | None = None) -> Any:
+    """A WebSocket made to ``localhost`` (the test client otherwise names its own host)."""
+    return client.websocket_connect(
+        "/ws", headers={"host": "localhost", **(headers or {})}
+    )
+
+
 def _is_event(kind: str) -> Callable[[bytes], bool]:
     return lambda m: m[0] == frames.KIND_EVENT and _event(m).get("t") == kind
 
@@ -452,51 +473,69 @@ def _controls(socket: Any, expected: bool) -> None:
     )
 
 
-def test_sign_in(hub: WebHub) -> None:
-    with TestClient(hub.app(), follow_redirects=False) as client:
+def test_this_computer_needs_no_sign_in(hub: WebHub) -> None:
+    with TestClient(
+        hub.app(), base_url="http://localhost", follow_redirects=False
+    ) as client:
         page = client.get("/")
         assert page.status_code == 200
-        assert 'name="token"' in page.text  # the sign-in form
+        assert "client.js" in page.text
+        # A new browser gets its own session.
+        cookie = page.headers["set-cookie"].lower()
+        assert "xknx_web_session=" in cookie and "httponly" in cookie
+        assert "samesite=strict" in cookie
+        assert "set-cookie" not in client.get("/").headers  # already has one
         assert client.get("/client.js").status_code == 200
-        # The token in the address becomes a cookie and leaves the address.
-        swap = client.get(f"/?token={_TOKEN}")
-        assert swap.status_code == 303
-        assert "httponly" in swap.headers["set-cookie"].lower()
-        assert "samesite=strict" in swap.headers["set-cookie"].lower()
-        app_page = client.get("/")
-        assert app_page.status_code == 200
-        assert "client.js" in app_page.text
+    # Another name for this computer (a web page's own domain): refused.
+    with TestClient(hub.app(), base_url="http://attacker.example") as client:
+        assert client.get("/").status_code == 403
+        with (
+            pytest.raises(WebSocketDisconnect) as closed,
+            _ws(client, {"host": "attacker.example:8080"}),
+        ):
+            pass
+        assert closed.value.code == 4403
 
 
-def test_sign_in_form(hub: WebHub) -> None:
-    with TestClient(hub.app(), follow_redirects=False) as client:
-        wrong = client.post("/login", data={"token": "nope"})
+def test_password_sign_in(tmp_path: Path) -> None:
+    hub = WebHub(tmp_path / "files", password=_PASSWORD, local_only=False)
+    with TestClient(
+        hub.app(), base_url="http://editor.lan", follow_redirects=False
+    ) as client:
+        form = client.get("/")
+        assert 'name="password"' in form.text
+        with (
+            pytest.raises(WebSocketDisconnect) as closed,
+            _ws(client),
+        ):
+            pass
+        assert closed.value.code == 4403
+        wrong = client.post("/login", data={"password": "nope"})
         assert wrong.status_code == 401
         assert 'class="error"' in wrong.text
-        right = client.post("/login", data={"token": _TOKEN})
+        right = client.post("/login", data={"password": _PASSWORD})
         assert right.status_code == 303
         assert "client.js" in client.get("/").text
+        session = client.cookies["xknx_web_session"]
+        with _browser(client, session) as socket:
+            assert _event(socket.receive_bytes())["t"] == "texts"
 
 
-def test_socket_refuses_strangers(hub: WebHub) -> None:
-    with TestClient(hub.app()) as client:
-        for path, headers in (
-            ("/ws?token=wrong", {}),
-            (f"/ws?token={_TOKEN}", {"origin": "https://evil.example"}),
-        ):
-            with (
-                pytest.raises(WebSocketDisconnect) as closed,
-                client.websocket_connect(path, headers=headers),
-            ):
-                pass
-            assert closed.value.code == 4403
+def test_socket_refuses_other_sites(hub: WebHub) -> None:
+    with (
+        TestClient(hub.app(), base_url="http://localhost") as client,
+        pytest.raises(WebSocketDisconnect) as closed,
+        _ws(client, {"origin": "https://evil.example"}),
+    ):
+        pass
+    assert closed.value.code == 4403
 
 
 def test_socket_sends_texts_textures_and_takes_input(hub: WebHub) -> None:
     _, texture = hub.textures.add_encoded(_PNG, 3, 2)
     with (
-        TestClient(hub.app()) as client,
-        client.websocket_connect(f"/ws?token={_TOKEN}") as socket,
+        TestClient(hub.app(), base_url="http://localhost") as client,
+        _ws(client) as socket,
     ):
         texts = _event(socket.receive_bytes())
         assert texts["t"] == "texts" and texts["texts"]["WEB_TAKE_CONTROL"]
@@ -507,7 +546,7 @@ def test_socket_sends_texts_textures_and_takes_input(hub: WebHub) -> None:
         deadline = time.monotonic() + 5
         events: list[dict[str, object]] = []
         while not events and time.monotonic() < deadline:
-            events = hub.take_input()
+            events = [e for e in hub.take_input() if e.get("t") != "focus"]
             time.sleep(0.01)
     assert events == [{"t": "size", "w": 800, "h": 600, "r": 2}]
     assert hub.size == (800.0, 600.0)
@@ -521,8 +560,8 @@ def test_frames_send_only_new_draw_lists(hub: WebHub) -> None:
     first = frames.Frame(header, ((b"A" * 8, a), (b"B" * 8, b)))
     second = frames.Frame(header, ((b"A" * 8, a), (b"C" * 8, c)))
     with (
-        TestClient(hub.app()) as client,
-        client.websocket_connect(f"/ws?token={_TOKEN}") as socket,
+        TestClient(hub.app(), base_url="http://localhost") as client,
+        _ws(client) as socket,
     ):
         _receive_until(socket, _is_event("control"))
         hub.publish([], first)
@@ -535,29 +574,74 @@ def test_frames_send_only_new_draw_lists(hub: WebHub) -> None:
     assert kinds_two == [(True, b"A" * 8), (False, b"C" * 8)]
 
 
+def _browser(client: TestClient, session: str) -> Any:
+    """A WebSocket of the browser with this session cookie."""
+    return _ws(client, {"cookie": f"xknx_web_session={session}"})
+
+
 def test_one_browser_controls(hub: WebHub) -> None:
     with (
-        TestClient(hub.app()) as client,
-        client.websocket_connect(f"/ws?token={_TOKEN}") as first,
+        TestClient(hub.app(), base_url="http://localhost") as client,
+        _browser(client, "first") as first,
     ):
         _controls(first, True)
-        with client.websocket_connect(f"/ws?token={_TOKEN}") as second:
+        first.send_text(json.dumps([{"t": "move", "x": 1, "y": 1}]))  # active
+        with _browser(client, "second") as second:
             _controls(second, False)
             # A watching browser's input is ignored ...
             second.send_text(json.dumps([{"t": "text", "s": "x"}]))
             time.sleep(0.2)
             assert all(e.get("t") != "text" for e in hub.take_input())
-            # ... until it takes over.
+            # ... until it takes over; the other one then watches.
             second.send_text(json.dumps([{"t": "take"}]))
             _controls(second, True)
             _controls(first, False)
-        # The controlling browser left: the remaining one controls again.
-        _controls(first, True)
+
+
+def test_a_reload_keeps_control(hub: WebHub) -> None:
+    with TestClient(hub.app(), base_url="http://localhost") as client:
+        with _browser(client, "mine") as first:
+            _controls(first, True)
+        with _browser(client, "other") as other:
+            # Right after the controlling browser left: it may come back (a reload).
+            _controls(other, False)
+            with _browser(client, "mine") as again:
+                _controls(again, True)
+
+
+def test_an_inactive_browser_loses_control(tmp_path: Path) -> None:
+    hub = WebHub(tmp_path / "files", idle_seconds=0.2)
+    with (
+        TestClient(hub.app(), base_url="http://localhost") as client,
+        _browser(client, "idle") as idle,
+    ):
+        _controls(idle, True)
+        time.sleep(0.4)
+        with _browser(client, "new") as new:
+            _controls(new, True)
+            _controls(idle, False)
+
+
+def test_control_passes_on_when_the_browser_does_not_return(
+    hub: WebHub, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(server, "_RETURN_SECONDS", 0.2)
+    with (
+        TestClient(hub.app(), base_url="http://localhost") as client,
+        contextlib.ExitStack() as stack,
+    ):
+        controlling = stack.enter_context(_browser(client, "controlling"))
+        _controls(controlling, True)
+        controlling.send_text(json.dumps([{"t": "move", "x": 1, "y": 1}]))
+        watching = stack.enter_context(_browser(client, "watching"))
+        _controls(watching, False)
+        controlling.close()
+        _controls(watching, True)  # not back within the moment a reload takes
 
 
 def test_upload_needs_an_open_dialog(hub: WebHub) -> None:
-    with TestClient(hub.app()) as client:
-        client.get(f"/?token={_TOKEN}")
+    with TestClient(hub.app(), base_url="http://localhost") as client:
+        client.get("/")
         refused = client.post("/upload?dialog=999&name=a.knxproj", content=b"data")
         assert refused.status_code == 409
         dialog = WebOpenFile(hub, "Open")
@@ -581,16 +665,15 @@ def test_downloads_only_offered_files(hub: WebHub, tmp_path: Path) -> None:
     report = tmp_path / "labels.html"
     report.write_text("<p>labels</p>")
     with (
-        TestClient(hub.app()) as client,
-        client.websocket_connect(f"/ws?token={_TOKEN}") as socket,
+        TestClient(hub.app(), base_url="http://localhost") as client,
+        _ws(client) as socket,
     ):
         _receive_until(socket, _is_event("control"))
         hub.offer_file(report, show=True)
         shown_event = _event(_receive_until(socket, _is_event("open"))[-1])
         assert shown_event["show"] and shown_event["name"] == "labels.html"
         assert shown_event["url"].endswith("?show=1")
-        assert client.get(f"/{shown_event['url']}").status_code == 403  # no sign-in yet
-        client.get(f"/?token={_TOKEN}")
+        client.get("/")
         shown = client.get(f"/{shown_event['url']}")
         assert shown.status_code == 200 and shown.text == "<p>labels</p>"
         assert "inline" in shown.headers["content-disposition"]
@@ -614,8 +697,8 @@ def test_downloads_only_offered_files(hub: WebHub, tmp_path: Path) -> None:
 
 def test_dialog_goes_to_the_controlling_browser(hub: WebHub) -> None:
     with (
-        TestClient(hub.app()) as client,
-        client.websocket_connect(f"/ws?token={_TOKEN}") as socket,
+        TestClient(hub.app(), base_url="http://localhost") as client,
+        _ws(client) as socket,
     ):
         _receive_until(socket, _is_event("control"))
         dialog = WebSaveFile(hub, "Save", "p.xknx", ["XKNX", "*.xknx"])
@@ -629,8 +712,8 @@ def test_dialog_goes_to_the_controlling_browser(hub: WebHub) -> None:
 
 def test_page_actions_are_sent_when_they_change(hub: WebHub) -> None:
     with (
-        TestClient(hub.app()) as client,
-        client.websocket_connect(f"/ws?token={_TOKEN}") as socket,
+        TestClient(hub.app(), base_url="http://localhost") as client,
+        _ws(client) as socket,
     ):
         _receive_until(socket, _is_event("control"))
         action = {"kind": "download", "url": "files/1/a", "name": "a"}

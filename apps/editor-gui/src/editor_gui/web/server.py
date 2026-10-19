@@ -4,10 +4,13 @@ The GUI thread publishes frames, texture messages and page events through :class
 server thread (its own asyncio loop, run by uvicorn) forwards them to the browsers and queues the
 input of the controlling browser for the GUI thread.
 
-- **Access** needs the session token: ``?token=`` in the address once, which the server swaps for an
-  HttpOnly cookie, or the sign-in form. WebSockets and uploads from another site are refused
-  (Origin check), so the cookie cannot be used by foreign pages.
-- **Control**: one browser controls the app; any other one watches and can take over.
+- **Browsers** are told apart by a random session cookie each gets on its first visit.
+- **Access**: served only on this computer, every browser may use the app, but only requests made to
+  ``localhost`` are answered (a web page cannot reach it under a name of its own, DNS rebinding).
+  Reachable in the network, a browser signs in once with the password, or a proxy that signs users
+  in itself is trusted. WebSockets and uploads from another site are refused (Origin check).
+- **Control**: one browser controls the app, also across a reload. Another one watches and can
+  take over; it gets control right away when the controlling one was inactive for a while.
 - **Frames**: every browser gets only the draw lists it does not have from its previous frame. A
   browser that falls behind skips frames, never texture messages or page events.
 - **The page** itself only does what a browser has to: the file picker, dropped files, downloads,
@@ -18,7 +21,6 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
-import hashlib
 import html
 import json
 import logging
@@ -65,7 +67,10 @@ logger = logging.getLogger(__name__)
 
 _STATIC = Path(__file__).parent / "static"
 _FONT = Path(__file__).parent.parent / "assets" / "fonts" / "DroidSans.ttf"
-_COOKIE = "xknx_web"
+_COOKIE = "xknx_web_session"
+_LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
+# A browser that just left (a reload) gets control back when it returns within this time.
+_RETURN_SECONDS = 5.0
 _MAX_UPLOAD = 2 * 1024**3
 
 
@@ -74,6 +79,8 @@ class _Client:
     """One connected browser: its ordered messages and the latest frame not sent yet."""
 
     socket: WebSocket
+    # The browser's session (its cookie): a reload is the same browser.
+    session: str = ""
     ordered: deque[bytes] = field(default_factory=lambda: deque[bytes]())
     frame: Frame | None = None
     # The draw lists of the last frame this browser got (it keeps exactly those).
@@ -103,8 +110,24 @@ def page_texts() -> dict[str, str]:
 class WebHub:
     """Between the GUI thread and the browsers."""
 
-    def __init__(self, token: str, files: Path) -> None:
-        self.token = token
+    def __init__(
+        self,
+        files: Path,
+        *,
+        password: str | None = None,
+        local_only: bool = True,
+        idle_seconds: float = 600.0,
+    ) -> None:
+        """``password``: browsers sign in with it (None: no sign-in). ``local_only``: answer only
+        requests made to ``localhost``. ``idle_seconds``: after that long without input from the
+        controlling browser, a browser that connects gets control."""
+        self._password = password
+        self._local_only = local_only
+        self._idle_seconds = idle_seconds
+        self._signed_in: set[str] = set()
+        self._controller_session: str | None = None
+        self._controller_active = 0.0
+        self._controller_left = 0.0
         self.textures = TextureMirror()
         self.files = FileFolder(files)
         self.downloads = Downloads()
@@ -325,20 +348,65 @@ class WebHub:
         if client is self._controller:
             return
         self._controller = client
+        if client is not None:
+            self._controller_session = client.session
+            self._controller_active = time.monotonic()
         # Nothing stays pressed from the previous browser.
         self._input.append({"t": "focus", "f": False})
         self._announce_control()
         self.wake.set()
 
-    def _session(self) -> str:
-        return hashlib.sha256(f"xknx-web:{self.token}".encode()).hexdigest()
+    def _controller_idle(self) -> bool:
+        return time.monotonic() - self._controller_active > self._idle_seconds
+
+    def _on_connect(self, client: _Client) -> None:
+        """Control for a browser that connects: its own again (a reload), or free, or the
+        controlling browser was inactive for too long; else it watches."""
+        returning = client.session == self._controller_session
+        if self._controller is None:
+            just_left = time.monotonic() - self._controller_left < _RETURN_SECONDS
+            if returning or not just_left or self._controller_idle():
+                self._set_controller(client)
+                return
+        elif returning or self._controller_idle():
+            self._set_controller(client)
+            return
+        self._announce_control()
+
+    def _on_disconnect(self, client: _Client) -> None:
+        if client is not self._controller:
+            self._announce_control()
+            return
+        self._controller = None
+        self._controller_left = time.monotonic()
+        self._announce_control()
+        if self._loop is not None:
+            # Not back in a moment (a reload): the next browser gets control.
+            self._loop.call_later(_RETURN_SECONDS, self._hand_over)
+
+    def _hand_over(self) -> None:
+        if self._controller is None and self._clients:
+            self._set_controller(self._clients[0])
+
+    def _host_allowed(self, connection: HTTPConnection) -> bool:
+        """Served on this computer only: just requests made to ``localhost``."""
+        if not self._local_only:
+            return True
+        host = connection.headers.get("host", "")
+        return (urlsplit(f"//{host}").hostname or "") in _LOCAL_HOSTS
 
     def _authorized(self, connection: HTTPConnection) -> bool:
-        cookie = connection.cookies.get(_COOKIE)
-        if cookie is not None and secrets.compare_digest(cookie, self._session()):
+        if not self._host_allowed(connection):
+            return False
+        if self._password is None:
             return True
-        token = connection.query_params.get("token")
-        return token is not None and secrets.compare_digest(token, self.token)
+        session = connection.cookies.get(_COOKIE)
+        return session is not None and session in self._signed_in
+
+    @property
+    def sign_in(self) -> bool:
+        """Whether browsers sign in with a password."""
+        return self._password is not None
 
     @staticmethod
     def _same_origin(connection: HTTPConnection) -> bool:
@@ -351,14 +419,16 @@ class WebHub:
         )
         return urlsplit(origin).netloc == host.split(",")[0].strip()
 
-    def _with_session(self, request: Request, response: Response) -> Response:
+    def _with_session(
+        self, request: Request, response: Response, session: str
+    ) -> Response:
         secure = (
             request.url.scheme == "https"
             or request.headers.get("x-forwarded-proto") == "https"
         )
         response.set_cookie(
             _COOKIE,
-            self._session(),
+            session,
             httponly=True,
             samesite="strict",
             secure=secure,
@@ -367,26 +437,38 @@ class WebHub:
         return response
 
     async def _index(self, request: Request) -> Response:
-        if request.query_params.get("token") is not None and self._authorized(request):
-            # Swap the token in the address for the cookie, so it leaves the address bar.
-            return self._with_session(request, RedirectResponse("./", status_code=303))
+        if not self._host_allowed(request):
+            return PlainTextResponse("Forbidden", status_code=403)
         if not self._authorized(request):
             return _login_page(self.theme, error=False)
-        return FileResponse(
+        page = FileResponse(
             _STATIC / "index.html",
             media_type="text/html; charset=utf-8",
             headers={"Cache-Control": "no-store"},
         )
+        if request.cookies.get(_COOKIE):
+            return page
+        # A new browser: its own session from now on.
+        return self._with_session(request, page, secrets.token_urlsafe(32))
 
     async def _login(self, request: Request) -> Response:
+        if not self._host_allowed(request):
+            return PlainTextResponse("Forbidden", status_code=403)
         form = await request.form()
-        token = str(form.get("token", ""))
-        if not self._same_origin(request) or not secrets.compare_digest(
-            token, self.token
+        given = str(form.get("password", "")).encode("utf-8")
+        expected = (self._password or "").encode("utf-8")
+        if (
+            self._password is None
+            or not self._same_origin(request)
+            or not secrets.compare_digest(given, expected)
         ):
             await asyncio.sleep(1.0)
             return _login_page(self.theme, error=True)
-        return self._with_session(request, RedirectResponse("./", status_code=303))
+        session = secrets.token_urlsafe(32)
+        self._signed_in.add(session)
+        return self._with_session(
+            request, RedirectResponse("./", status_code=303), session
+        )
 
     async def _font(self, request: Request) -> Response:
         return FileResponse(_FONT, media_type="font/ttf")
@@ -443,16 +525,16 @@ class WebHub:
         await socket.accept()
         if self._loop is None:  # served without start(), e.g. by a test client
             self._loop = asyncio.get_running_loop()
-        client = _Client(socket)
+        # Without a cookie (blocked by the browser) the connection is a browser of its own.
+        session = socket.cookies.get(_COOKIE) or secrets.token_urlsafe(32)
+        client = _Client(socket, session)
         client.ordered.append(event_message({"t": "texts", "texts": page_texts()}))
         if self.theme:
             client.ordered.append(event_message({"t": "theme", **self.theme}))
         client.ordered.extend(self.textures.snapshot())
         client.frame = self._frame
         self._clients.append(client)
-        if self._controller is None:
-            self._controller = client
-        self._announce_control()
+        self._on_connect(client)
         self.wake.set()  # a new browser needs a frame now
         sender = asyncio.create_task(self._send(client))
         try:
@@ -465,10 +547,7 @@ class WebHub:
             sender.cancel()
             with contextlib.suppress(asyncio.CancelledError):
                 await sender
-            if client is self._controller:
-                self._set_controller(self._clients[0] if self._clients else None)
-            else:
-                self._announce_control()
+            self._on_disconnect(client)
 
     async def _send(self, client: _Client) -> None:
         while True:
@@ -498,6 +577,7 @@ class WebHub:
                 if event.get("t") == "take":
                     self._set_controller(client)
                 continue
+            self._controller_active = time.monotonic()
             if event.get("t") == "caps":
                 self.auto_download = bool(event.get("download", True))
                 continue
@@ -558,7 +638,7 @@ class WebHub:
 
 
 def _login_page(theme: dict[str, Any], *, error: bool) -> HTMLResponse:
-    """The sign-in form (the session token, as printed when the app started), in the app's look."""
+    """The sign-in form (the password for the web access), in the app's look."""
     colours = {
         "bg": "#f0f0f0",
         "panel": "#ffffff",
@@ -597,8 +677,8 @@ def _login_page(theme: dict[str, Any], *, error: bool) -> HTMLResponse:
   <h1>{title}</h1>
   <p class="hint">{html.escape(S.WEB_LOGIN_HINT)}</p>
   {notice}
-  <label for="token">{html.escape(S.WEB_LOGIN_TOKEN)}</label>
-  <input id="token" name="token" type="password" autocomplete="current-password" autofocus>
+  <label for="password">{html.escape(S.WEB_LOGIN_PASSWORD)}</label>
+  <input id="password" name="password" type="password" autocomplete="current-password" autofocus>
   <button type="submit">{html.escape(S.WEB_LOGIN_BUTTON)}</button>
 </form></body></html>"""
     return HTMLResponse(page, status_code=401 if error else 200)
