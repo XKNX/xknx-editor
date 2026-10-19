@@ -514,6 +514,10 @@ class ConnectionPlugin:
             return
         if self._api.connection.busy_operation is not None:
             return
+        # Not while a background task holds the project (an open, a language switch): reading the
+        # tables would wait for it on the UI thread. A frame after it tries again.
+        if self._api.project.loading:
+            return
         self._data_secure_revision = revision
         self._api.connection.refresh_data_secure()
 

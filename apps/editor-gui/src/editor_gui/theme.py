@@ -132,6 +132,9 @@ _WINDOWS_COLORS = {
 _SELECTION = imgui.ImVec4(0.0, 120 / 255, 215 / 255, 0.3)
 # The least a selection differs from a light field, in luminance (Light Rounded has 0.16).
 _SELECTION_MIN_CONTRAST = 0.08
+# Links: the blue of Windows hyperlinks on light windows, a lighter blue on dark ones.
+_LINK_ON_LIGHT = imgui.ImVec4(0.0, 102 / 255, 204 / 255, 1.0)
+_LINK_ON_DARK = imgui.ImVec4(110 / 255, 168 / 255, 254 / 255, 1.0)
 
 
 def apply_theme(tweaked: hello_imgui.ImGuiTweakedTheme) -> None:
@@ -175,6 +178,7 @@ def apply_style() -> None:
     # text color.
     style.set_color_(imgui.Col_.input_text_cursor, style.color_(imgui.Col_.text))
     _apply_text_selection(style)
+    _apply_link_color(style)
     _apply_table_lines(style)
     apply_window_colors()
 
@@ -207,6 +211,14 @@ def _apply_text_selection(style: imgui.Style) -> None:
     )
     if shown < _SELECTION_MIN_CONTRAST:
         style.set_color_(imgui.Col_.text_selected_bg, _SELECTION)
+
+
+def _apply_link_color(style: imgui.Style) -> None:
+    """Links in a link blue that stands out from the window: the themes derive the link color from
+    a header shade, near white on the white windows of the light themes and grey in dark ones."""
+    window = style.color_(imgui.Col_.window_bg)
+    light = _luminance(window) >= 0.5
+    style.set_color_(imgui.Col_.text_link, _LINK_ON_LIGHT if light else _LINK_ON_DARK)
 
 
 def _apply_table_lines(style: imgui.Style) -> None:

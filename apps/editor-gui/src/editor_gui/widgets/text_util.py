@@ -27,3 +27,17 @@ def text_clipped_tooltip(
     )
     if text and hovered and imgui.calc_text_size(text).x > avail:
         imgui.set_tooltip(text)
+
+
+def fit_text(text: str, room: float) -> str:
+    """``text`` shortened with an ellipsis to fit ``room`` pixels."""
+    if room <= 0 or imgui.calc_text_size(text).x <= room:
+        return text
+    low, high = 0, len(text)
+    while low < high:
+        middle = (low + high + 1) // 2
+        if imgui.calc_text_size(text[:middle] + "…").x <= room:
+            low = middle
+        else:
+            high = middle - 1
+    return text[:low].rstrip() + "…"

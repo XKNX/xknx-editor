@@ -6,6 +6,8 @@ from __future__ import annotations
 
 from imgui_bundle import imgui
 
+from editor_gui.widgets.text_util import fit_text
+
 # How far the drop-down background moves from an input field's toward the text color: a white
 # field gives the light gray (242) of a Windows drop-down next to dark gray (#333) text.
 _BACKGROUND_SHADE = 0.064
@@ -61,7 +63,7 @@ def begin_combo(label: str, preview: str, flags: int = 0) -> bool:
                 - imgui.get_frame_height()
                 - imgui.get_style().frame_padding.x
             )
-            preview = _fit(preview, room)
+            preview = fit_text(preview, room)
         flags |= imgui.ComboFlags_.no_arrow_button
     for col, color in colors:
         imgui.push_style_color(col, color)
@@ -97,20 +99,6 @@ def combo(
                 imgui.set_item_default_focus()
         imgui.end_combo()
     return changed, current
-
-
-def _fit(text: str, room: float) -> str:
-    """``text`` shortened with an ellipsis to fit ``room`` pixels."""
-    if room <= 0 or imgui.calc_text_size(text).x <= room:
-        return text
-    low, high = 0, len(text)
-    while low < high:
-        middle = (low + high + 1) // 2
-        if imgui.calc_text_size(text[:middle] + "…").x <= room:
-            low = middle
-        else:
-            high = middle - 1
-    return text[:low].rstrip() + "…"
 
 
 def _draw_arrow() -> None:
