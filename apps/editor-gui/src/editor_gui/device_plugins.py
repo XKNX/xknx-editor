@@ -87,9 +87,13 @@ class DevicePlugins:
 
 
 def parameters_in_plugin(device: Device) -> bool:
-    """Whether `device`'s parameters are set in the manufacturer's own parameter dialog (a UI
-    plugin) instead of the standard parameter pages: they are not edited here."""
-    return device_plugins(device).user_interface
+    """Whether `device`'s parameters are actually written by the manufacturer's plugin — a UI-only
+    plugin writes to the standard parameter DOM, so its values can be edited here and reach the
+    device via a normal download. Only a plugin that performs its own device write (download /
+    data-handler plugin, or hardware that refuses a download without one) truly keeps values out
+    of the standard pages."""
+    plugins = device_plugins(device)
+    return plugins.download or plugins.data_handler or plugins.download_required
 
 
 def device_plugins(device: Device) -> DevicePlugins:
