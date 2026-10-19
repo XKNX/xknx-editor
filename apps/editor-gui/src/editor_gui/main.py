@@ -294,6 +294,10 @@ def _link(url: str) -> None:
 # Room at 100 % scaling above and below the status bar's text.
 _STATUS_PADDING = 7.0
 
+# Refresh rate (Hz) once input stops, and while a progress dialog shows work going on.
+_FPS_IDLE = 6.0
+_FPS_PROGRESS = 30.0
+
 
 def _myknx_product_name(product: dict[str, object], pid: str) -> str:
     """Best-effort human-readable name for a MyKnx product/license, else the id.
@@ -1869,6 +1873,10 @@ class KnxGuiApp:
             self._progress_cancel = None
 
     def _render_progress_modal(self) -> None:
+        # Without input the window drops to the idle refresh rate, at which a progress bar looks
+        # frozen; it keeps redrawing at the active rate while work is in progress.
+        idling = hello_imgui.get_runner_params().fps_idling
+        idling.fps_idle = _FPS_PROGRESS if self._progress_running else _FPS_IDLE
         if self._progress_requested:
             imgui.open_popup(S.PROGRESS_TITLE)
             self._progress_requested = False
@@ -4108,34 +4116,36 @@ class KnxGuiApp:
         if imgui.begin_menu(S.MENU_LANGUAGE):
             for code, label in _UI_LANGUAGES:
                 if imgui.menu_item(label, "", code == current)[0] and code != current:
-                    set_locale(code)
-                    data = load_settings("app")
-                    data["locale"] = code
-                    save_settings("app", data)
-                    # Re-translate the docked panel/tab titles in place (kept identity via ###name).
-                    self._refresh_dock_titles()
-
-                    # Device labels are parsed per language; re-resolve + rebuild the device views in
-                    # the new language on a worker thread behind the progress bar, so the (slow)
-                    # re-parse of every application doesn't freeze the UI on the next frame.
-                    def _reresolve() -> None:
-                        def report(done: int, total: int, sub: str = "") -> None:
-                            text = S.PROGRESS_DEVICES.format(done=done, total=total)
-                            self.set_progress(
-                                done / total if total else None,
-                                f"{text} — {sub}" if sub else text,
-                            )
-
-                        self._project_service.build_progress = report
-                        try:
-                            self._project_service.refresh_catalog_resolution(
-                                rebuild=True
-                            )
-                        finally:
-                            self._project_service.build_progress = None
-
-                    self._run_bg(S.PROGRESS_LANGUAGE, _reresolve)
+                    self._switch_language(code)
             imgui.end_menu()
+
+    def _switch_language(self, code: str) -> None:
+        """Show the UI in ``code`` from now on and remember it."""
+        set_locale(code)
+        data = load_settings("app")
+        data["locale"] = code
+        save_settings("app", data)
+        # Re-translate the docked panel/tab titles in place (kept identity via ###name).
+        self._refresh_dock_titles()
+
+        # Device labels are parsed per language; re-resolve + rebuild the device views in
+        # the new language on a worker thread behind the progress bar, so the (slow)
+        # re-parse of every application doesn't freeze the UI on the next frame.
+        def _reresolve() -> None:
+            def report(done: int, total: int, sub: str = "") -> None:
+                text = S.PROGRESS_DEVICES.format(done=done, total=total)
+                self.set_progress(
+                    done / total if total else None,
+                    f"{text} — {sub}" if sub else text,
+                )
+
+            self._project_service.build_progress = report
+            try:
+                self._project_service.refresh_catalog_resolution(rebuild=True)
+            finally:
+                self._project_service.build_progress = None
+
+        self._run_bg(S.PROGRESS_LANGUAGE, _reresolve)
 
     def _render_view_menu(self) -> None:
         """View menu: the default layout, which panels are shown, and the status bar."""
@@ -4757,7 +4767,7 @@ def _main() -> None:
     # so we leave it off (docking still works inside the main window; panels just can't be torn out
     # into separate OS windows). fps_max still caps the active/interactive rate.
     runner_params.fps_idling.enable_idling = True
-    runner_params.fps_idling.fps_idle = 6.0  # idle refresh (Hz) once input stops
+    runner_params.fps_idling.fps_idle = _FPS_IDLE  # idle refresh (Hz) once input stops
     runner_params.fps_idling.time_active_after_last_event = (
         1.0  # idle sooner after activity
     )
