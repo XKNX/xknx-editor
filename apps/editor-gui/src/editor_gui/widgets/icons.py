@@ -180,14 +180,9 @@ def load_icon(key: str, data: bytes | None) -> Icon | None:
     if data:
         white = white_png(data)
         shown = white or readable_png(data, dark) or data
-        try:
-            image = hello_imgui.image_and_size_from_encoded_data(
-                shown, f"icon:{key}:{_variant(dark)}"
-            )
-        except RuntimeError:
-            image = None
-        if image is not None and image.size.x > 0:
-            icon = Icon(imgui.ImTextureRef(image.texture_id), white is not None)
+        texture = _texture(shown, f"icon:{key}:{_variant(dark)}")
+        if texture is not None:
+            icon = Icon(texture[0], white is not None)
     _cache[(key, dark)] = icon
     return icon
 
@@ -204,18 +199,29 @@ def load_picture(key: str, data: bytes | None) -> Picture | None:
         return _pictures[(key, dark)]
     picture: Picture | None = None
     if data:
-        try:
-            image = hello_imgui.image_and_size_from_encoded_data(
-                readable_png(data, dark) or data, f"picture:{key}:{_variant(dark)}"
-            )
-        except RuntimeError:
-            image = None
-        if image is not None and image.size.x > 0:
-            picture = Picture(
-                imgui.ImTextureRef(image.texture_id), image.size.x, image.size.y
-            )
+        texture = _texture(
+            readable_png(data, dark) or data, f"picture:{key}:{_variant(dark)}"
+        )
+        if texture is not None:
+            picture = Picture(*texture)
     _pictures[(key, dark)] = picture
     return picture
+
+
+def _texture(data: bytes, key: str) -> tuple[imgui.ImTextureRef, float, float] | None:
+    """A texture for an encoded image and its size, None when it cannot be decoded. In the web
+    mode the browser decodes and holds it."""
+    from editor_gui import web
+
+    if web.active_hub is not None:
+        return web.encoded_texture(data)
+    try:
+        image = hello_imgui.image_and_size_from_encoded_data(data, key)
+    except RuntimeError:
+        return None
+    if image.size.x <= 0:
+        return None
+    return imgui.ImTextureRef(image.texture_id), image.size.x, image.size.y
 
 
 def _variant(dark: bool) -> str:

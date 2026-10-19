@@ -71,6 +71,7 @@ from editor_gui.theme import (
     themes,
 )
 from editor_gui.update_check import ReleaseAsset, UpdateInfo, check_for_update
+from editor_gui.web import enable_web_mode, web_address
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import (
@@ -4758,6 +4759,11 @@ def _main() -> None:
         runner_params.renderer_backend_type = hello_imgui.RendererBackendType.direct_x11
     elif _renderer in ("dx12", "directx12", "direct_x12"):
         runner_params.renderer_backend_type = hello_imgui.RendererBackendType.direct_x12
+
+    # Browser UI (--web[=host:port]): no window, the browser draws the app.
+    web = web_address(sys.argv)
+    if web is not None:
+        enable_web_mode(runner_params, web)
 
     try:
         hello_imgui.run(runner_params)
