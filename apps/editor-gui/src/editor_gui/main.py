@@ -435,6 +435,10 @@ class KnxGuiApp:
         self._myknx_2fa_prompt = False
         # Request to open the OAuth-credentials config modal next frame (set from a button handler).
         self._myknx_open_oauth_config = False
+        # The dongle steps wrapped to the width of their box: ((text, width), wrapped text).
+        self._dongle_steps_wrapped: tuple[tuple[str, float], str] = (("", 0.0), "")
+        # Width of the Sign Export fields' titles column (set each frame the dialog shows).
+        self._sign_title_w = 0.0
         # OAuth client credentials (client id/secret) for the device-code flow: entered by hand or
         # extracted from the user's Knx.Ets.MyKnx.dll, cached per-user.
         _oauth_creds = load_myknx_oauth_credentials()
@@ -1501,13 +1505,34 @@ class KnxGuiApp:
             self._myknx_login_error = ""
         # Fixed width so the wrapped text actually wraps and labels aren't pushed off-screen
         # (auto-resize + full-width inputs made this window span the whole screen before).
-        if not begin_dialog(S.MYKNX_SIGN_TITLE, width=780.0):
+        if not begin_dialog(S.MYKNX_SIGN_TITLE, width=700.0):
             return
         dest = self._export_pending_dest
         fitted_heading(S.MYKNX_SIGN_PROMPT)
         imgui.spacing()
+        # The fields' titles in front of them, every field from the same column, also the ones on
+        # the login tab's page (inside its padding).
+        style = imgui.get_style()
+        self._sign_title_w = (
+            max(
+                imgui.calc_text_size(label).x
+                for label in (
+                    S.EXPORT_FORMAT,
+                    S.MYKNX_SIGN_USERNAME,
+                    S.MYKNX_SIGN_PASSWORD,
+                    S.MYKNX_SIGN_LICENSE,
+                )
+            )
+            + style.item_spacing.x
+        )
         # Target format: ETS 6 (schema 23, default) or ETS 5 (schema 20).
-        imgui.text_disabled(S.EXPORT_FORMAT)
+        _title_in_front(
+            S.EXPORT_FORMAT,
+            imgui.get_cursor_start_pos().x
+            + style.window_padding.x
+            + style.child_border_size
+            + self._sign_title_w,
+        )
         formats = [("23", S.EXPORT_FORMAT_ETS6), ("20", S.EXPORT_FORMAT_ETS5)]
         current = next(lbl for code, lbl in formats if code == self._export_schema)
         imgui.set_next_item_width(-1)
@@ -1573,7 +1598,7 @@ class KnxGuiApp:
         if dongle:
             # The dongle way writes the project into the ETS 6 ProjectStore instead of a file.
             clicked = dialog_buttons(
-                S.MENU_EXPORT_ETS6_STORE, S.MYKNX_SIGN_SKIP, S.BTN_CANCEL
+                S.MYKNX_DONGLE_EXPORT_STORE, S.MYKNX_SIGN_SKIP, S.BTN_CANCEL
             )
             if clicked == 0:
                 # ETS 5 ProjectStore export is disabled for now: a fresh ETS 5 store still needs
@@ -1624,16 +1649,15 @@ class KnxGuiApp:
         imgui.text_wrapped(S.MYKNX_SIGN_ETS_RUNNING)
         imgui.pop_style_color()
         imgui.spacing()
-        # Labels above the fields (imgui's built-in label sits to the right and gets clipped when
-        # the input is full-width). Editing credentials invalidates a previous login.
+        # Titles in front of the fields. Editing credentials invalidates a previous login.
         if logging_in:
             imgui.begin_disabled()
-        imgui.text_disabled(S.MYKNX_SIGN_USERNAME)
+        _title_in_front(S.MYKNX_SIGN_USERNAME, self._sign_value_x())
         imgui.set_next_item_width(-1)
         user_changed, self._myknx_username = imgui.input_text(
             "##myknx_user", self._myknx_username
         )
-        imgui.text_disabled(S.MYKNX_SIGN_PASSWORD)
+        _title_in_front(S.MYKNX_SIGN_PASSWORD, self._sign_value_x())
         imgui.set_next_item_width(-1)
         pw_changed, self._myknx_password = imgui.input_text(
             "##myknx_pw", self._myknx_password, imgui.InputTextFlags_.password
@@ -1646,6 +1670,10 @@ class KnxGuiApp:
             self._myknx_oauth_session = None
             self._myknx_2fa_prompt = False
         return self._render_myknx_license_section(logging_in)
+
+    def _sign_value_x(self) -> float:
+        """Where the Sign Export fields start in the current window (page)."""
+        return imgui.get_cursor_start_pos().x + self._sign_title_w
 
     def _render_myknx_license_section(self, logging_in: bool) -> str:
         """Login button / license dropdown. Returns the selected product id ("" if none)."""
@@ -1688,6 +1716,7 @@ class KnxGuiApp:
             can_login = bool(self._myknx_username and self._myknx_password)
             if not can_login:
                 imgui.begin_disabled()
+            imgui.set_cursor_pos_x(self._sign_value_x())
             if imgui.button(S.MYKNX_SIGN_LOGIN, px_vec2(150, 0)):
                 self._start_myknx_login()
             if not can_login:
@@ -1702,7 +1731,7 @@ class KnxGuiApp:
         if not self._myknx_products:
             imgui.text_disabled(S.MYKNX_SIGN_NO_LICENSES)
             return ""
-        imgui.text_disabled(S.MYKNX_SIGN_LICENSE)
+        _title_in_front(S.MYKNX_SIGN_LICENSE, self._sign_value_x())
         current = next(
             (
                 lbl
@@ -3873,16 +3902,21 @@ class KnxGuiApp:
         # Ctrl/Cmd+C). It does NOT word-wrap, so hard-wrap to the box width first (long paths and
         # P-XXXX_M-dummy stay intact) — otherwise long lines are clipped on the right.
         height = hello_imgui.em_to_vec2(0.0, 13.0).y
-        avail = imgui.get_content_region_avail().x
-        # Average glyph width (not the widest "m") so lines fill the box instead of wrapping early.
-        alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "
-        char_w = (imgui.calc_text_size(alphabet).x / len(alphabet)) or 7.0
-        cols = int(
-            max(20.0, (avail - px(24.0)) / char_w)
-        )  # leave room for the scrollbar/padding
+        style = imgui.get_style()
+        # The box's text width: inside its padding and next to its scrollbar (the steps are longer
+        # than the box is tall).
+        width = (
+            imgui.get_content_region_avail().x
+            - 2 * style.frame_padding.x
+            - style.scrollbar_size
+            - 2 * style.frame_border_size
+        )
+        key = (S.MYKNX_DONGLE_STEPS, width)
+        if self._dongle_steps_wrapped[0] != key:
+            self._dongle_steps_wrapped = (key, _wrap_text(key[0], width))
         imgui.input_text_multiline(
             "##dongle_steps",
-            _wrap_text(S.MYKNX_DONGLE_STEPS, cols),
+            self._dongle_steps_wrapped[1],
             imgui.ImVec2(-1.0, height),
             imgui.InputTextFlags_.read_only,
         )
@@ -4684,29 +4718,36 @@ _UI_LANGUAGES: list[tuple[str, str]] = [
 ]
 
 
-def _wrap_text(text: str, cols: int) -> str:
-    """Hard-wrap each line to ``cols`` characters, preserving blank lines and indentation.
+def _title_in_front(label: str, value_x: float) -> None:
+    """``label`` as the title of the field that follows, which starts at ``value_x``."""
+    imgui.align_text_to_frame_padding()
+    imgui.text_disabled(label)
+    imgui.same_line(value_x)
+
+
+def _wrap_text(text: str, width: float) -> str:
+    """Hard-wrap each line to ``width`` pixels of the current font, preserving blank lines and
+    indentation (continuation lines are indented a little further).
 
     imgui's read-only multiline input keeps the text selectable/copyable but does NOT word-wrap,
     so long lines get clipped on the right. Pre-wrapping here gives readable, non-clipped text while
     staying copyable. Long tokens (Windows paths, ``P-XXXX_M-dummy``) are never split.
     """
-    import textwrap
-
     out: list[str] = []
     for line in text.split("\n"):
         if not line.strip():
             out.append("")
             continue
         indent = line[: len(line) - len(line.lstrip())]
-        wrapped = textwrap.wrap(
-            line,
-            width=max(20, cols),
-            break_long_words=False,
-            break_on_hyphens=False,
-            subsequent_indent=indent + "   ",
-        )
-        out.extend(wrapped or [line])
+        current = indent
+        for word in line.split():
+            candidate = f"{current} {word}" if current.strip() else current + word
+            if current.strip() and imgui.calc_text_size(candidate).x > width:
+                out.append(current)
+                current = indent + "   " + word
+            else:
+                current = candidate
+        out.append(current)
     return "\n".join(out)
 
 

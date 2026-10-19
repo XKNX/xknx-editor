@@ -409,10 +409,6 @@ class MenuStrings:
         return _("Export to ETS 5 ProjectStore")
 
     @property
-    def MENU_EXPORT_ETS6_STORE(self) -> str:
-        return _("Export to ETS 6 ProjectStore")
-
-    @property
     def MENU_EXPORT_GA_EXPORT(self) -> str:
         return _("Export Group Addresses…")
 
@@ -650,7 +646,7 @@ class MenuStrings:
 
     @property
     def EXPORT_STAGE_CERTIFICATE(self) -> str:
-        return _("Getting the certificate from MyKnx…")
+        return _("Getting the certificate from MyKNX…")
 
     @property
     def EXPORT_STAGE_CANCELLING(self) -> str:
@@ -670,7 +666,7 @@ class MenuStrings:
 
     @property
     def EXPORT_FAILED_CERTIFICATE(self) -> str:
-        return _("MyKnx did not issue the certificate for the project:")
+        return _("MyKNX did not issue the certificate for the project:")
 
     @property
     def EXPORT_FAILED_CERTIFICATE_HINT(self) -> str:
@@ -697,13 +693,13 @@ class MenuStrings:
     @property
     def MYKNX_SIGN_PROMPT(self) -> str:
         return _(
-            "ETS 6: needs a licensed .knxproj through a MyKnx login or a dongle.\n"
+            "ETS 6: needs a licensed .knxproj through a MyKNX login or a dongle.\n"
             "ETS 5: just use 'Export Without Certificate'."
         )
 
     @property
     def MYKNX_SIGN_TAB(self) -> str:
-        return _("Sign with MyKnx Login")
+        return _("Sign with MyKNX Login")
 
     @property
     def MYKNX_DONGLE_TAB(self) -> str:
@@ -712,17 +708,17 @@ class MenuStrings:
     @property
     def MYKNX_SIGN_ETS_RUNNING(self) -> str:
         return _(
-            "ETS must not be running on any computer with this MyKnx account while you log in "
+            "ETS must not be running on any computer with this MyKNX account while you log in "
             "and export here."
         )
 
     @property
     def MYKNX_SIGN_USERNAME(self) -> str:
-        return _("MyKnx Username")
+        return _("MyKNX Username")
 
     @property
     def MYKNX_SIGN_PASSWORD(self) -> str:
-        return _("MyKnx Password")
+        return _("MyKNX Password")
 
     @property
     def MYKNX_SIGN_LOGIN(self) -> str:
@@ -749,7 +745,7 @@ class MenuStrings:
 
     @property
     def MYKNX_OAUTH_TITLE(self) -> str:
-        return _("MyKnx OAuth Credentials (2FA)")
+        return _("MyKNX OAuth Credentials (2FA)")
 
     @property
     def MYKNX_OAUTH_HELP(self) -> str:
@@ -821,7 +817,7 @@ class MenuStrings:
 
     @property
     def EXPORT_FORMAT(self) -> str:
-        return _("ETS Version Export Format")
+        return _("Format Version")
 
     @property
     def EXPORT_INCOMPAT_REMOVE(self) -> str:
@@ -869,7 +865,7 @@ class MenuStrings:
 
     @property
     def MYKNX_DONGLE_EXPORT_STORE(self) -> str:
-        return _("Export to ETS 6 ProjectStore")
+        return _("Export to ProjectStore")
 
     @property
     def MYKNX_DONGLE_PICK_STORE(self) -> str:
@@ -913,7 +909,7 @@ class MenuStrings:
             "your dongle license:\n"
             "\n"
             "ETS 6 - use the local project store:\n"
-            "   1. Click 'Export to ETS 6 ProjectStore'. It writes the project's 'P-XXXX' folder "
+            "   1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder "
             "straight into your ETS 6 project store. If ETS is not installed on this computer, you "
             "are asked for the store folder (or any folder you then copy over manually).\n"
             "   2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. "
