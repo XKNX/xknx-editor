@@ -20,6 +20,8 @@ from editor_gui.widgets.backgrounds import window_border
 from editor_gui.widgets.dpi import px, px_vec2
 
 _MIN_BUTTON_WIDTH = 90.0
+# The frame in which Escape last dismissed a dialog.
+_escape_frame = [-1]
 # Off by more than this (pixels) from where it was placed, a dialog was moved by the user.
 _MOVED_TOLERANCE = 1.5
 
@@ -229,8 +231,12 @@ def dialog_buttons(*labels: str, enabled: Sequence[bool] | None = None) -> int |
                 | imgui.FocusedFlags_.no_popup_hierarchy
             )
             and imgui.is_key_pressed(imgui.Key.escape, repeat=False)
+            # Closing a dialog focuses the one below at once, in the same frame: one press closes
+            # only the first dialog it reaches.
+            and imgui.get_frame_count() != _escape_frame[0]
         ):
             clicked = index
+            _escape_frame[0] = imgui.get_frame_count()
     return clicked
 
 
