@@ -954,16 +954,16 @@ class LoadProcedureRunner:
         """Whether this mask's product procedure places tables through absolute
         segments it reallocates on almost every load.
 
-        True for every BIM M112 mask, including the property-mapped MV-0705 /
-        MV-2705: their LSM events go through a property, but the address,
-        association and application placement still goes through
-        AllocAbsDataSeg. A partial download's parameter mask alone can then
-        leave a reallocated segment empty or stale, so an AbsSegment write on
-        these masks flushes the full code seed even outside a full or
-        application download. Property-mapped masks that are not BIM M112
-        (System B, BCU2) do not reallocate that way and keep the scope-based
-        rule (:meth:`_memory_runs`'s default): only a full/application download
-        writes the seed, a parameter download touches only the changed bytes.
+        True when the mask publishes a memory-mapped load control: MV-0700,
+        MV-0701, MV-0705 and MV-5705. A partial download's parameter mask alone
+        can then leave a reallocated segment empty or stale, so an AbsSegment
+        write flushes the full code seed even outside a full or application
+        download. MV-2705 is property-mapped M112 and publishes no memory
+        load-control address, so this returns false. It still packs its
+        association table (``AssociationTable_M112``). MV-2705, System B and
+        BCU2 keep the scope-based rule (:meth:`_memory_runs`'s default): only a
+        full/application download writes the seed, a parameter download touches
+        only the changed bytes.
         """
         resources = bundled_mask_resources(self.application.program.mask_version)
         return resources is not None and resources.memory_mapped_lsm() is not None

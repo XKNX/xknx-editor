@@ -742,11 +742,12 @@ def _group_communication_segments(
                     active_numbers or None,
                     com_object_table.offset or 0,
                 )
-                initialized = bytearray(b"\xff" * len(data))
+                seed_mask = bytearray(b"\xff" * len(data))
                 run_control = 0x010D - base
-                if 0 <= run_control < len(initialized):
+                if 0 <= run_control < len(seed_mask):
                     # Leave the run byte to the procedure's inline stop/start writes.
-                    initialized[run_control] = 0
+                    seed_mask[run_control] = 0
+                initialized = seed_mask
             else:
                 data, mask = _build_com_object_table(
                     seed[0],
@@ -755,16 +756,24 @@ def _group_communication_segments(
                     table_numbers | referenced_numbers,
                     active_numbers or None,
                 )
-                # Flag/size overlay sits on the manufacturer seed (header and data
-                # pointers). After AllocAbsDataSeg those seed octets must go out too,
-                # or the BCU checksums an empty object table.
-                initialized = bytearray(b"\xff" * len(data))
+                # GroupObjectTable_M112 sits on the manufacturer seed (header and
+                # data pointers). After AllocAbsDataSeg those seed octets must go
+                # out too, or the BCU checksums an empty object table.
+                # GroupObjectTable_Bcu2 is not reallocated; a full download writes
+                # the flag and size bytes only.
+                initialized = (
+                    bytearray(b"\xff" * len(data))
+                    if m112_group_object_table(application.program.mask_version)
+                    else None
+                )
             result.append(
                 MemorySegment(
                     base,
                     data,
                     mask=mask,
-                    initialized_mask=bytes(initialized),
+                    initialized_mask=None
+                    if initialized is None
+                    else bytes(initialized),
                 )
             )
     address_table = static.address_table

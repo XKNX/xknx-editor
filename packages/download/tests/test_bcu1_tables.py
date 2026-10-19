@@ -253,3 +253,6 @@ def test_bcu2_keeps_communication_on_static_slots() -> None:
     assert eeprom.mask is not None
     assert eeprom.mask[5 + 3 * 4] == 0x00
     assert eeprom.mask[5 + 4 * 4] == 0x00
+    # A full download writes initialized bytes. BCU2 has none, so the seed
+    # stays out of that write.
+    assert eeprom.initialized_mask is None
