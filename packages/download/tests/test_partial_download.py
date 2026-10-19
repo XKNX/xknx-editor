@@ -196,6 +196,21 @@ async def test_partial_download_into_another_application_fails(
     )
 
 
+async def test_prefer_partial_skipped_for_memory_mapped_lsm(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """BIM M112 AbsSegment reloads need Unload of LSM 3; never shrink to partial."""
+    app = _application(
+        "MV-0701",
+        prefer_partial_download_if_application_loaded=True,
+        prompt_before_full_download=True,
+    )
+    assert (
+        await _scope(monkeypatch, _device(app), app, DownloadScope.FULL)
+        is DownloadScope.FULL
+    )
+
+
 async def test_prefer_partial(monkeypatch: pytest.MonkeyPatch) -> None:
     app = _application(
         prefer_partial_download_if_application_loaded=True,

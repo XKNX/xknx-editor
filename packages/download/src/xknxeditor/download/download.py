@@ -34,7 +34,11 @@ from .ip_config import (
 )
 from .ip_config import applies as ip_config_applies
 from .ip_secure import IpSecureConfig, ip_secure_controls
-from .merge import mask_authorize_levels, resolve_download_controls
+from .merge import (
+    mask_authorize_levels,
+    mask_has_property_services,
+    resolve_download_controls,
+)
 from .procedure import LoadProcedureRunner
 from .programmer import (
     DEFAULT_MAX_APDU_LENGTH,
@@ -227,11 +231,17 @@ async def _partial_scope(
         partial_download_mismatch,
     )
     from .programmer import DeviceProgrammer
-    from .resources import mask_resources
+    from .resources import bundled_mask_resources, mask_resources
 
     options = application.program.static.options
+    mapped = bundled_mask_resources(application.program.mask_version)
+    # BIM M112 product procedures reload by unloading/allocating absolute
+    # segments. A "partial" still runs those AbsSegments; skipping Unload of
+    # LSM 3 leaves a half-mapped application. Always take the full load.
+    memory_mapped = mapped is not None and mapped.memory_mapped_lsm() is not None
     prefer = (
-        scope in (DownloadScope.FULL, DownloadScope.APPLICATION)
+        not memory_mapped
+        and scope in (DownloadScope.FULL, DownloadScope.APPLICATION)
         and options is not None
         and options.prefer_partial_download_if_application_loaded
     )
@@ -339,6 +349,16 @@ def _authorize_levels(
     if master is None:
         return 0
     return mask_authorize_levels(master.raw, application.program.mask_version)
+
+
+def _property_services(application: Application, master: MasterData | None) -> bool:
+    """BCU1 masks have no property services. Unknown masks keep the probes."""
+    program = getattr(application, "program", None)
+    mask_version = getattr(program, "mask_version", None)
+    if not isinstance(mask_version, str):
+        return True
+    raw = master.raw if master is not None else None
+    return mask_has_property_services(raw, mask_version)
 
 
 def _reject_address_scope(scope: DownloadScope) -> None:
@@ -577,6 +597,7 @@ async def download(
             apdu_overhead=_apdu_overhead(security),
             authorize_levels=authorize_levels,
             memory_service_count=memory_cap,
+            property_services=_property_services(application, master),
         )
         try:
             await runner.run(progress)
@@ -710,6 +731,7 @@ async def preflight(
             apdu_overhead=_apdu_overhead(security),
             authorize_levels=_authorize_levels(application, master, security),
             memory_service_count=memory_cap,
+            property_services=_property_services(application, master),
         )
         try:
             return await runner.preflight()

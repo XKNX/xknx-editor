@@ -39,6 +39,16 @@ from xknxeditor.download.load_state import (
 from xknxeditor.download.programmer import PID_OBJECT_TYPE, PID_TABLE_REFERENCE
 
 _LOAD_STATE = IndividualAddress("1.1.1")
+# BIM M112 shared load-control record and LSM-1 status (MV-0701/MV-0705).
+_M112_CONTROL = 0x0104
+_M112_STATUS_LSM1 = 0xB6EA
+_M112_STATUS_COUNT = 8
+_LOAD_TRANSITIONS = {
+    LoadEvent.START_LOADING: LoadState.LOADING,
+    LoadEvent.LOAD_COMPLETE: LoadState.LOADED,
+    LoadEvent.UNLOAD: LoadState.UNLOADED,
+    LoadEvent.ADDITIONAL: LoadState.LOADING,
+}
 
 
 class FakeDevice:
@@ -88,8 +98,7 @@ class FakeDevice:
         """Handle a payload the programmer does not expect an answer to."""
         self.sent.append(payload)
         if isinstance(payload, MemoryWrite | UserMemoryWrite):
-            for index, byte in enumerate(payload.data):
-                self.memory[payload.address + index] = byte
+            self._store_memory(payload.address, payload.data)
         elif isinstance(payload, PropertyValueWrite):
             self._handle_property_write(payload)
         elif isinstance(payload, Restart):
@@ -111,8 +120,7 @@ class FakeDevice:
                 )
             )
         if isinstance(payload, MemoryWrite | UserMemoryWrite):
-            for index, byte in enumerate(payload.data):
-                self.memory[payload.address + index] = byte
+            self._store_memory(payload.address, payload.data)
             response = (
                 UserMemoryResponse
                 if isinstance(payload, UserMemoryWrite)
@@ -126,9 +134,7 @@ class FakeDevice:
             ):
                 # Device quirk: too-large read -> empty reply (not a short one).
                 return self._telegram(MemoryResponse(address=payload.address, data=b""))
-            data = bytes(
-                self.memory.get(payload.address + i, 0) for i in range(payload.count)
-            )
+            data = self._read_memory(payload.address, payload.count)
             return self._telegram(MemoryResponse(address=payload.address, data=data))
         if isinstance(payload, UserMemoryRead):
             data = bytes(
@@ -189,17 +195,43 @@ class FakeDevice:
             )
         raise AssertionError(f"unexpected request: {payload}")
 
+    def _store_memory(self, address: int, data: bytes) -> None:
+        """Write device memory and interpret a BIM M112 load-control record."""
+        for index, byte in enumerate(data):
+            self.memory[address + index] = byte
+        if address != _M112_CONTROL or not data:
+            return
+        index = data[0] >> 4
+        event = data[0] & 0x0F
+        try:
+            self.load_states[index] = _LOAD_TRANSITIONS[LoadEvent(event)]
+        except (ValueError, KeyError):
+            return
+
+    def _read_memory(self, address: int, count: int) -> bytes:
+        """Read device memory, serving M112 load-status bytes from LSM state."""
+        end = address + count
+        status_end = _M112_STATUS_LSM1 + _M112_STATUS_COUNT
+        if count > 0 and address < status_end and end > _M112_STATUS_LSM1:
+            out = bytearray()
+            for offset in range(count):
+                loc = address + offset
+                if _M112_STATUS_LSM1 <= loc < status_end:
+                    index = loc - _M112_STATUS_LSM1 + 1
+                    if index in self.load_states:
+                        out.append(self.load_states[index])
+                    else:
+                        out.append(self.memory.get(loc, 0))
+                else:
+                    out.append(self.memory.get(loc, 0))
+            return bytes(out)
+        return bytes(self.memory.get(address + i, 0) for i in range(count))
+
     def _handle_property_write(self, payload: PropertyValueWrite) -> None:
         """Apply a property write, interpreting load state control specially."""
         if payload.property_id == PID_LOAD_STATE_CONTROL and payload.data:
             event = payload.data[0]
-            transitions = {
-                LoadEvent.START_LOADING: LoadState.LOADING,
-                LoadEvent.LOAD_COMPLETE: LoadState.LOADED,
-                LoadEvent.UNLOAD: LoadState.UNLOADED,
-                LoadEvent.ADDITIONAL: LoadState.LOADING,
-            }
-            self.load_states[payload.object_index] = transitions[LoadEvent(event)]
+            self.load_states[payload.object_index] = _LOAD_TRANSITIONS[LoadEvent(event)]
             return
         key = (payload.object_index, payload.property_id)
         width = len(payload.data) // payload.count

@@ -30,6 +30,13 @@ from .project_data import (
     module_instances_from_device,
     parameter_instance_refs_from_device,
 )
+from .resources import (
+    bcu1_group_object_table,
+    m112_association_table,
+    m112_group_object_table,
+    property_mapped_lsms,
+    reserved_memory,
+)
 from .secure_config import GroupSecurity, SecurityTables, security_tables
 from .tables import (
     Association,
@@ -96,21 +103,89 @@ def _coupler_bytes(
     return bytes(patched), bytes(valid)
 
 
-def _reserved_memory(mask_version: str) -> range | None:
-    """Standard memory a mask version keeps out of the application's segment data:
-    0x0117-0x0118 for the BCU1/BCU2 families, 0x4001-0x4002 for the 07xx family."""
-    version = _mask_number(mask_version)
-    if version is None:
-        return None
-    if version & 0x0FF0 in (0x0010, 0x0020):
-        return range(0x0117, 0x0119)
-    if version & 0x0FF0 == 0x0700:
-        return range(0x4001, 0x4003)
-    return None
-
-
 if TYPE_CHECKING:
     from xknxeditor.prod.parser_v2.dynamic import DynamicUI
+
+
+@dataclass(frozen=True, slots=True)
+class PackedGroupTables:
+    """Where a property-mapped M112 mask places the two group tables.
+
+    The product data declares the address table and the association table at
+    their maximum size, contiguous (``0x4000`` for 511 octets, then ``0x41FF``).
+    ETS allocates only the used address table and slides the association table
+    up against it, extending that segment so it still ends at the declared end.
+    """
+
+    address_address: int
+    address_length: int
+    declared_address_size: int
+    association_address: int
+    association_length: int
+    declared_association_address: int
+    declared_association_size: int
+
+
+def packed_group_tables(
+    application: Application, address_table_length: int
+) -> PackedGroupTables | None:
+    """Return the ETS placement of the address and association tables.
+
+    Property-mapped masks whose association flavour is ``AssociationTable_M112``
+    declare the two tables at their maximum size. When those segments are
+    contiguous, ETS slides the association table up against the used address
+    table. ``None`` when ``PropertyMappedLsms`` is 0 (the declared address stays)
+    or the two tables are not a contiguous absolute pair. See the resource
+    comment in ``resources.py``. ``address_table_length`` includes the count
+    octet and the device address.
+    """
+    if not property_mapped_lsms(application.program.mask_version):
+        return None
+    if not m112_association_table(application.program.mask_version):
+        return None
+    if address_table_length <= 0:
+        return None
+    static = application.program.static
+    if static.code is None:
+        return None
+    address = static.address_table
+    association = static.association_table
+    if (
+        address is None
+        or association is None
+        or address.code_segment is None
+        or association.code_segment is None
+        or (address.offset or 0) != 0
+        or (association.offset or 0) != 0
+    ):
+        return None
+    segments = {segment.id: segment for segment in static.code.absolute_segment}
+    address_segment = segments.get(address.code_segment)
+    association_segment = segments.get(association.code_segment)
+    if (
+        address_segment is None
+        or association_segment is None
+        or address_segment.size <= 0
+        or association_segment.size <= 0
+    ):
+        return None
+    if address_table_length > address_segment.size:
+        return None
+    if association_segment.address != address_segment.address + address_segment.size:
+        return None
+    start = address_segment.address + address_table_length
+    end = association_segment.address + association_segment.size
+    if start > end:
+        return None
+    return PackedGroupTables(
+        address_address=address_segment.address,
+        address_length=address_table_length,
+        declared_address_size=address_segment.size,
+        association_address=start,
+        association_length=end - start,
+        declared_association_address=association_segment.address,
+        declared_association_size=association_segment.size,
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -419,7 +494,7 @@ def build_image(
         )
         if table is not None
     }
-    reserved = _reserved_memory(application.program.mask_version)
+    reserved = reserved_memory(application.program.mask_version)
     segments: list[MemorySegment] = []
     application_segments: list[ObjectMemorySegment] = []
     for segment_id, (data, mask) in encoded.items():
@@ -443,7 +518,7 @@ def build_image(
             declaration, ApplicationProgramStaticCodeRelativeSegment
         ) and not (declaration is not None and declaration.user_memory):
             base = base_addresses[segment_id]
-            if reserved is not None:
+            if reserved:
                 initialized = bytes(
                     0 if base + offset in reserved else value
                     for offset, value in enumerate(initialized)
@@ -623,6 +698,7 @@ def _group_communication_segments(
     linked_numbers = {number_of[link.com_object_ref_id] for link in links}
 
     result: list[MemorySegment] = []
+    packed: PackedGroupTables | None = None
     com_object_table = static.com_object_table
     if com_object_table is not None and com_object_table.code_segment is not None:
         seed = encoded.get(com_object_table.code_segment)
@@ -633,14 +709,64 @@ def _group_communication_segments(
                 for ref_id in ui.instantiated_com_object_ref_ids()
                 if ref_id in number_of
             }
-            data, mask = _build_com_object_table(
-                seed[0],
-                ui,
-                linked_numbers,
-                set(number_of.values()),
-                active_numbers or None,
+            referenced_numbers = set(number_of.values())
+            table_numbers: set[int] = set()
+            if m112_group_object_table(application.program.mask_version):
+                # The static table also holds objects with no dynamic ComObjectRef
+                # (unused channels, antitheft, …). Their seed still has the
+                # communication bit set. ETS clears that bit; leaving it makes
+                # LoadCompleted checksum the wrong image and enter ERROR.
+                table_numbers = {
+                    com_object.number for com_object in com_object_table.com_object
+                }
+                # The first octet is the number of 4-octet records. Holes in the
+                # numbering (no ComObject at all) still carry the seed's
+                # communication bit; ETS clears every slot in that count.
+                record_count = seed[0][0]
+                if (
+                    record_count
+                    and _COM_OBJECT_HEADER + record_count * _COM_OBJECT_RECORD
+                    <= len(seed[0])
+                ):
+                    table_numbers.update(range(record_count))
+            # GroupObjectTable_Bcu10 / Bcu11 / Bcu1PL keep the address, association
+            # and group-object tables inside the one EEPROM segment. A 4-octet
+            # record laid out from the segment start overwrites the application id
+            # and the table pointers.
+            if bcu1_group_object_table(application.program.mask_version):
+                data, mask = _bcu1_com_object_overlay(
+                    seed[0],
+                    ui,
+                    linked_numbers,
+                    referenced_numbers,
+                    active_numbers or None,
+                    com_object_table.offset or 0,
+                )
+                initialized = bytearray(b"\xff" * len(data))
+                run_control = 0x010D - base
+                if 0 <= run_control < len(initialized):
+                    # Leave the run byte to the procedure's inline stop/start writes.
+                    initialized[run_control] = 0
+            else:
+                data, mask = _build_com_object_table(
+                    seed[0],
+                    ui,
+                    linked_numbers,
+                    table_numbers | referenced_numbers,
+                    active_numbers or None,
+                )
+                # Flag/size overlay sits on the manufacturer seed (header and data
+                # pointers). After AllocAbsDataSeg those seed octets must go out too,
+                # or the BCU checksums an empty object table.
+                initialized = bytearray(b"\xff" * len(data))
+            result.append(
+                MemorySegment(
+                    base,
+                    data,
+                    mask=mask,
+                    initialized_mask=bytes(initialized),
+                )
             )
-            result.append(MemorySegment(base, data, mask=mask))
     address_table = static.address_table
     if address_table is not None and address_table.code_segment is not None:
         base = base_addresses.get(address_table.code_segment)
@@ -656,6 +782,7 @@ def _group_communication_segments(
             mask[1] = mask[2] = 0x00
             address = base + offset
             result.append(MemorySegment(address, data, mask=bytes(mask)))
+            packed = packed_group_tables(application, len(data))
     association_table = static.association_table
     if association_table is not None and association_table.code_segment is not None:
         base = base_addresses.get(association_table.code_segment)
@@ -669,8 +796,14 @@ def _group_communication_segments(
                 for link in links
             ]
             _validate_table_capacity(application, group_addresses, associations)
+            # AssociationTable_Bcu1 is this same list, at the pointer in the
+            # shared EEPROM. One slot per object drops a second group address.
             data = build_association_table(associations)
-            address = base + (association_table.offset or 0)
+            address = (
+                packed.association_address
+                if packed is not None
+                else base + (association_table.offset or 0)
+            )
             result.append(MemorySegment(address, data, mask=b"\xff" * len(data)))
     return result
 
@@ -837,6 +970,40 @@ def _resolved_group_object_descriptors(
 _COM_OBJECT_HEADER = 5
 _COM_OBJECT_RECORD = 4
 _COMMUNICATION_BIT = 0x04
+
+# GroupObjectTable_Bcu1x is a count plus 3-octet records whose last octet is
+# the flag byte. Which masks those are is the flavour, not a nibble of the
+# mask version (see resources.py). The association table next to it is the
+# ordinary one-octet list, not one slot per object number.
+
+
+def _bcu1_com_object_overlay(
+    seed: bytes,
+    ui: DynamicUI,
+    linked_numbers: set[int],
+    object_numbers: set[int],
+    active_numbers: set[int] | None,
+    table_offset: int,
+) -> tuple[bytes, bytes]:
+    """Write each object's flag into its 3-octet BCU1 record, leaving pointers."""
+    data, mask = bytearray(seed), bytearray(len(seed))
+    visible = _resolved_group_object_descriptors(ui, linked_numbers)
+    for number in object_numbers:
+        pos = table_offset + 1 + number * 3 + 2
+        if pos >= len(data):
+            continue
+        descriptor = visible.get(number)
+        if descriptor is None or (
+            active_numbers is not None and number not in active_numbers
+        ):
+            flags = data[pos] & ~_COMMUNICATION_BIT
+            if number in linked_numbers:
+                flags |= _COMMUNICATION_BIT
+            data[pos] = flags
+        else:
+            data[pos] = (data[pos] & 0x20) | descriptor[0]
+        mask[pos] = 0xFF
+    return bytes(data), bytes(mask)
 
 
 def _build_com_object_table(

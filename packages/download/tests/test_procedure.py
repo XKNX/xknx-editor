@@ -10,6 +10,7 @@ from xknx.telegram.apci import (
     FunctionPropertyCommand,
     FunctionPropertyStateRead,
     MemoryRead,
+    MemoryWrite,
     PropertyValueRead,
     PropertyValueWrite,
 )
@@ -56,6 +57,7 @@ from xknxeditor.namespaces.intermediate.ld_ctrl_read_function_prop_t import (
 )
 from xknxeditor.namespaces.intermediate.ld_ctrl_rel_segment_t import LdCtrlRelSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_restart_t import LdCtrlRestart
+from xknxeditor.namespaces.intermediate.ld_ctrl_task_segment_t import LdCtrlTaskSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_unload_t import LdCtrlUnload
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_mem_t import LdCtrlWriteMem
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_prop_t import LdCtrlWriteProp
@@ -87,16 +89,26 @@ def _application(*controls: object) -> Application:
             pei_type=1,
             application_number=1,
             application_version=1,
-            mask_version="MV-0705",
+            mask_version="MV-07B0",
         ),
     )
     return cast("Application", fake)
 
 
+def _device(object_types: dict[int, int] | None = None) -> FakeDevice:
+    """System B test device matching ``_application``'s MV-07B0 mask."""
+    types = (
+        object_types
+        if object_types is not None
+        else {0: 0x0000, 1: _ADDRESS_TABLE_TYPE}
+    )
+    return FakeDevice(object_types=types, descriptor=0x07B0)
+
+
 def _runner(
     application: Application, image: DownloadImage
 ) -> tuple[LoadProcedureRunner, FakeDevice]:
-    device = FakeDevice(object_types={0: 0x0000, 1: _ADDRESS_TABLE_TYPE})
+    device = _device()
     programmer = DeviceProgrammer(device)
     return LoadProcedureRunner(application, image, programmer), device
 
@@ -341,7 +353,7 @@ async def test_write_rel_mem_uses_table_reference() -> None:
             inline_data=b"\x11\x22",
         )
     )
-    device = FakeDevice(object_types={0: 0x0000, 1: 3})
+    device = _device({0: 0x0000, 1: 3})
     device.table_references[1] = 0x4000
     runner = LoadProcedureRunner(
         application, DownloadImage(segments=(), properties=()), DeviceProgrammer(device)
@@ -377,7 +389,7 @@ async def test_write_rel_mem_image_backed_uses_relative_lookup() -> None:
             inline_data=None,
         )
     )
-    device = FakeDevice(object_types={0: 0x0000, 1: 3})
+    device = _device({0: 0x0000, 1: 3})
     device.table_references[1] = 0x3804
     runner = LoadProcedureRunner(application, image, DeviceProgrammer(device))
 
@@ -415,7 +427,7 @@ async def test_write_rel_mem_relative_segment_by_object_type() -> None:
         ),
         LdCtrlLoadCompleted(obj_type=1),
     )
-    device = FakeDevice(object_types={0: 0x0000, 1: _ADDRESS_TABLE_TYPE})
+    device = _device({0: 0x0000, 1: _ADDRESS_TABLE_TYPE})
     device.table_references[1] = 0x3400
     runner = LoadProcedureRunner(application, image, DeviceProgrammer(device))
 
@@ -449,7 +461,7 @@ async def test_coupler_filter_table_clear_is_noop_and_write_lands() -> None:
         LdCtrlDisconnect(),
     )
     # Router object (type 6) at interface object index 2; its table base is where the write lands.
-    device = FakeDevice(object_types={0: 0x0000, 1: _ADDRESS_TABLE_TYPE, 2: router})
+    device = _device({0: 0x0000, 1: _ADDRESS_TABLE_TYPE, 2: router})
     device.table_references[2] = 0x5000
     runner = LoadProcedureRunner(application, image, DeviceProgrammer(device))
 
@@ -512,7 +524,7 @@ async def test_filter_table_field_feeds_systemb_and_bcu1() -> None:
         ),
         LdCtrlDisconnect(),
     )
-    device = FakeDevice(object_types={0: 0x0000, 1: _ADDRESS_TABLE_TYPE, 2: 6})
+    device = _device({0: 0x0000, 1: _ADDRESS_TABLE_TYPE, 2: 6})
     device.table_references[2] = 0x4200
     await LoadProcedureRunner(app, image, DeviceProgrammer(device)).run()
     assert bytes(device.memory[0x4200 + i] for i in range(len(table))) == table
@@ -1031,6 +1043,27 @@ async def test_authorize_skipped_when_levels_zero() -> None:
     assert manager.device.authorize_keys == []
 
 
+async def test_bcu1_skips_property_probes() -> None:
+    runner, manager = _managed_runner(
+        LdCtrlConnect(),
+        LdCtrlWriteMem(address=0x10D, size=1, verify=True, inline_data=b"\x00"),
+        max_apdu_length=239,
+        negotiate_apdu=True,
+        property_services=False,
+    )
+
+    await runner.run()
+
+    assert not any(type(p).__name__ == "PropertyValueRead" for p in manager.device.sent)
+    assert manager.device.memory[0x10D] == 0
+    assert any(
+        type(p).__name__ == "MemoryRead" and getattr(p, "address", None) == 0x10D
+        for p in manager.device.sent
+    )
+    assert runner._programmer is not None
+    assert runner._programmer.max_apdu_length == 15
+
+
 async def test_negotiate_apdu_uses_device_maximum() -> None:
     runner, manager = _managed_runner(
         LdCtrlLoad(obj_type=_ADDRESS_TABLE_TYPE, occurrence=0),
@@ -1196,3 +1229,302 @@ async def test_map_error_for_a_different_error_does_not_tolerate() -> None:
 
     with pytest.raises(PropertyAccessRejected):
         await runner.run()
+
+
+def _m112_application(*controls: object) -> Application:
+    application = _application(*controls)
+    application.program.mask_version = "MV-0701"
+    return application
+
+
+async def test_m112_unload_writes_memory_control() -> None:
+    """MV-0701 drives LSM 1 through the 11-octet memory record at 0x0104."""
+    application = _m112_application(LdCtrlUnload(lsm_idx=1, occurrence=0))
+    runner, device = _runner(application, _empty_image())
+    device.load_states[1] = LoadState.LOADED
+
+    await runner.run()
+
+    writes = [
+        payload
+        for payload in device.sent
+        if isinstance(payload, MemoryWrite) and payload.address == 0x0104
+    ]
+    assert len(writes) == 1
+    assert writes[0].data == bytes.fromhex("1400000000000000000000")
+    assert device.load_states[1] == LoadState.UNLOADED
+    assert not [
+        payload
+        for payload in device.sent
+        if isinstance(payload, PropertyValueWrite)
+        and payload.property_id == PID_LOAD_STATE_CONTROL
+    ]
+    assert any(
+        isinstance(payload, MemoryRead) and payload.address == 0xB6EA
+        for payload in device.sent
+    )
+
+
+async def test_m112_load_complete_uses_application_status() -> None:
+    """LSM 3 status is the ApplicationLoadStatus byte at 0xB6EC."""
+    application = _m112_application(
+        LdCtrlLoad(lsm_idx=3),
+        LdCtrlLoadCompleted(lsm_idx=3),
+    )
+    runner, device = _runner(application, _empty_image())
+
+    await runner.run()
+
+    records = [
+        payload.data[0]
+        for payload in device.sent
+        if isinstance(payload, MemoryWrite) and payload.address == 0x0104
+    ]
+    assert records == [0x31, 0x32]
+    assert device.load_states[3] == LoadState.LOADED
+    assert any(
+        isinstance(payload, MemoryRead) and payload.address == 0xB6EC
+        for payload in device.sent
+    )
+
+
+async def test_m112_pei_task_segment_skips_missing_status() -> None:
+    """LSM 5 has no LoadStatus on MV-0701; ETS skips the PEI AllocAbsTask."""
+    application = _m112_application(
+        LdCtrlTaskSegment(lsm_idx=5, address=0x4400, occurrence=0)
+    )
+    runner, device = _runner(application, _empty_image())
+
+    await runner.run()
+
+    assert not [
+        payload
+        for payload in device.sent
+        if isinstance(payload, MemoryWrite) and payload.address == 0x0104
+    ]
+    assert not [
+        payload
+        for payload in device.sent
+        if isinstance(payload, MemoryRead) and payload.address == 0xB6EE
+    ]
+
+
+async def test_m112_task_segment_keeps_manufacturer() -> None:
+    """ETS writes the product manufacturer into BIM M112 AllocAbsTask records."""
+    application = _m112_application(
+        LdCtrlTaskSegment(lsm_idx=1, address=0x4000, occurrence=0)
+    )
+    runner, device = _runner(application, _empty_image())
+    device.load_states[1] = LoadState.LOADING
+
+    await runner.run()
+
+    writes = [
+        payload
+        for payload in device.sent
+        if isinstance(payload, MemoryWrite) and payload.address == 0x0104
+    ]
+    # M-0072, application 1, version 1. Not replaced with 0x0002.
+    assert writes[0].data == bytes.fromhex("1302004000010072000101")
+
+
+async def test_m112_task_segment_patches_manufacturer_when_requested() -> None:
+    """LegacyPatchManufacturerIdInTaskSegment still forces manufacturer 0x0002."""
+    application = _m112_application(
+        LdCtrlTaskSegment(lsm_idx=1, address=0x4000, occurrence=0)
+    )
+    application.program.static = SimpleNamespace(  # type: ignore[attr-defined]
+        options=SimpleNamespace(legacy_patch_manufacturer_id_in_task_segment=True)
+    )
+    runner, device = _runner(application, _empty_image())
+    device.load_states[1] = LoadState.LOADING
+
+    await runner.run()
+
+    writes = [
+        payload
+        for payload in device.sent
+        if isinstance(payload, MemoryWrite) and payload.address == 0x0104
+    ]
+    assert writes[0].data == bytes.fromhex("1302004000010002000101")
+
+
+async def test_m112_code_only_segment_is_not_allocated() -> None:
+    """A checksum-less code seed is not an AbsSegment allocation.
+
+    The Merten 5701 segment at 0x5100 is 25856 bytes of application code and
+    no parameter bytes. ETS never allocates it. The device does not ACK that
+    11-octet record, so the full download stops there.
+    """
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0x5100,
+                data=b"\x11" * 8,
+                mask=b"\x00" * 8,
+                initialized_mask=b"\xff" * 8,
+            ),
+        ),
+        properties=(),
+    )
+    application = _m112_application(
+        LdCtrlAbsSegment(
+            lsm_idx=3,
+            occurrence=0,
+            seg_type=0,
+            address=0x5100,
+            size=8,
+            access=0xF1,
+            mem_type=3,
+            seg_flags=0,
+        )
+    )
+    runner, device = _runner(application, image)
+    device.load_states[3] = LoadState.LOADING
+
+    await runner.run()
+
+    assert not [
+        payload
+        for payload in device.sent
+        if isinstance(payload, (MemoryWrite, MemoryRead))
+    ]
+
+
+async def test_m112_checksummed_code_seed_is_still_allocated() -> None:
+    """Checksum bit 7 still allocates, so the seed is written into that range."""
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0x4400,
+                data=b"\xaa\xbb",
+                mask=b"\x00\x00",
+                initialized_mask=b"\xff\xff",
+            ),
+        ),
+        properties=(),
+    )
+    application = _m112_application(
+        LdCtrlAbsSegment(
+            lsm_idx=3,
+            occurrence=0,
+            seg_type=0,
+            address=0x4400,
+            size=2,
+            access=0xF1,
+            mem_type=3,
+            seg_flags=0x80,
+        )
+    )
+    runner, device = _runner(application, image)
+    device.load_states[3] = LoadState.LOADING
+
+    await runner.run()
+
+    writes = [
+        payload
+        for payload in device.sent
+        if isinstance(payload, MemoryWrite) and payload.address == 0x0104
+    ]
+    assert writes and writes[0].data[0] == 0x33
+    assert bytes(device.memory[0x4400 + i] for i in range(2)) == b"\xaa\xbb"
+
+
+async def test_m112_abs_segment_sends_length() -> None:
+    """ETS AbsSegment keeps the XML length, with a reserved octet after type."""
+    application = _m112_application(
+        LdCtrlAbsSegment(
+            lsm_idx=1,
+            occurrence=0,
+            seg_type=0,
+            address=0x4000,
+            size=0x01FF,
+            access=0xFF,
+            mem_type=3,
+            seg_flags=0x80,
+        )
+    )
+    runner, device = _runner(application, _empty_image())
+
+    await runner.run()
+
+    writes = [
+        payload
+        for payload in device.sent
+        if isinstance(payload, MemoryWrite) and payload.address == 0x0104
+    ]
+    assert writes[0].data == bytes.fromhex("130000400001ffff038000")
+
+
+def _abs_segment_image() -> DownloadImage:
+    return DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0x4B20,
+                data=b"\xaa\xbb\xcc\xdd",
+                mask=b"\x00\x00\x00\x00",
+                initialized_mask=b"\xff\xff\xff\xff",
+            ),
+        ),
+        properties=(),
+    )
+
+
+# LSM 3 as the application program object, so a parameter download keeps its segment.
+_APPLICATION_OBJECT = {0: 0, 3: 3}
+
+
+def _abs_segment_control() -> LdCtrlAbsSegment:
+    return LdCtrlAbsSegment(
+        lsm_idx=3,
+        occurrence=0,
+        seg_type=0,
+        address=0x4B20,
+        size=4,
+        access=0xFF,
+        mem_type=3,
+        seg_flags=0x80,
+    )
+
+
+async def test_abs_segment_writes_initialized_bytes_in_partial_scope_for_memory_mapped_lsm() -> (
+    None
+):
+    """A memory-mapped LSM mask (BIM M112) reallocates on almost every load; a
+    parameter download's mask alone could leave that segment empty or stale, so
+    its AbsSegment write still flashes the whole code seed."""
+    application = _m112_application(_abs_segment_control())
+    device = _device()
+    runner = LoadProcedureRunner(
+        application,
+        _abs_segment_image(),
+        DeviceProgrammer(device),
+        controls=[_abs_segment_control()],
+        scope=DownloadScope.PARAMETERS,
+        object_types=_APPLICATION_OBJECT,
+    )
+
+    await runner.run()
+
+    assert bytes(device.memory[0x4B20 + i] for i in range(4)) == b"\xaa\xbb\xcc\xdd"
+
+
+async def test_abs_segment_keeps_the_parameter_mask_for_property_mapped_masks() -> None:
+    """A property-mapped mask (System B, BCU2) does not reallocate a segment the way
+    BIM M112 does; a parameter download writes only the parameter bytes, not the
+    unchanged application code seed - otherwise a parameter download costs as much
+    bus time as a full one on a large application (e.g. MV-0700's 28k code segment)."""
+    application = _application(_abs_segment_control())
+    device = _device()
+    runner = LoadProcedureRunner(
+        application,
+        _abs_segment_image(),
+        DeviceProgrammer(device),
+        controls=[_abs_segment_control()],
+        scope=DownloadScope.PARAMETERS,
+        object_types=_APPLICATION_OBJECT,
+    )
+
+    await runner.run()
+
+    assert all(0x4B20 + i not in device.memory for i in range(4))

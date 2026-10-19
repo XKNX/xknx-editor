@@ -191,6 +191,15 @@ class DeviceProgrammer:
         # maximum so the chunk follows the negotiated APDU; a no-ACK fallback lowers it.
         self.max_memory_service_count: int = _MAX_MEMORY_CHUNK
 
+    def skip_property_verify_probe(self) -> None:
+        """Treat memory auto-verify as off without reading PID 14.
+
+        BCU1 has no property services. The probe would time out, and a classic
+        memory write is checked by a following memory read instead.
+        """
+        self.memory_auto_verify = False
+        self._memory_verify_known = True
+
     @property
     def _plain_apdu_length(self) -> int:
         """Usable plaintext APDU length after the wire overhead."""
@@ -1166,6 +1175,31 @@ class DeviceProgrammer:
             target,
             state.name,
         )
+        await self._poll_load_state(
+            state,
+            accepted,
+            target,
+            object_index,
+            retries=retries,
+            retry_delay=retry_delay,
+            read=lambda: self.read_load_state(object_index),
+            log_prefix="load state poll",
+        )
+
+    async def _poll_load_state(
+        self,
+        state: load_state.LoadState,
+        accepted: tuple[load_state.LoadState, ...],
+        target: str,
+        object_index: int,
+        *,
+        retries: int,
+        retry_delay: float,
+        read: Callable[[], Awaitable[load_state.LoadState]],
+        log_prefix: str,
+    ) -> None:
+        """Poll ``read`` until ``state`` reaches ``accepted``, shared by the property
+        (``send_load_event``) and memory-mapped (``send_memory_load_event``) transports."""
         for poll in range(1, max(retries, 0) + 1):
             if state in accepted:
                 return
@@ -1174,9 +1208,10 @@ class DeviceProgrammer:
                     f"object {object_index} entered ERROR state (expected {target})"
                 )
             await asyncio.sleep(retry_delay)
-            state = await self.read_load_state(object_index)
+            state = await read()
             logger.debug(
-                "load state poll: %s object-index=%d poll=%d/%d state=%s expected=%s",
+                "%s: %s object-index=%d poll=%d/%d state=%s expected=%s",
+                log_prefix,
                 self.diagnostic_context,
                 object_index,
                 poll,
@@ -1188,6 +1223,79 @@ class DeviceProgrammer:
             raise LoadStateError(
                 f"object {object_index} did not reach {target}, last state {state.name}"
             )
+
+    async def read_memory_load_state(
+        self, address: int, object_index: int
+    ) -> load_state.LoadState:
+        """Read a memory-mapped Load State Machine status byte."""
+        data = await self.read_memory(address, 1)
+        if not data:
+            raise LoadStateError(
+                f"empty load state at {address:#06x} for object {object_index}"
+            )
+        state = _decode_load_state(data[0], object_index)
+        logger.debug(
+            "memory load state read: %s object-index=%d addr=%#06x data=%s state=%s",
+            self.diagnostic_context,
+            object_index,
+            address,
+            data.hex(),
+            state.name,
+        )
+        return state
+
+    async def send_memory_load_event(
+        self,
+        object_index: int,
+        control_address: int,
+        status_address: int | None,
+        event: bytes,
+        expected: load_state.LoadState,
+        *,
+        also_accept: load_state.LoadState | None = None,
+        retries: int = 30,
+        retry_delay: float = 1.0,
+    ) -> None:
+        """Write an 11-octet M112 load-control record and poll the status byte.
+
+        The control address is write-only shared memory; do not use
+        ``write_memory`` (PID 14 probe / optional read-back). The record must
+        fit a single classic memory telegram. ``status_address`` is omitted when
+        the mask has no LoadStatus resource for this LSM (PEI on MV-0701); the
+        write is then taken as complete after the transport ACK.
+        """
+        record = load_state.memory_mapped_control(object_index, event)
+        if self.memory_chunk_size < len(record):
+            raise VerificationError(
+                f"memory-mapped load control ({len(record)} octets) does not fit "
+                f"the memory chunk ({self.memory_chunk_size})"
+            )
+        accepted = (expected,) if also_accept is None else (expected, also_accept)
+        target = " or ".join(state.name for state in accepted)
+        logger.debug(
+            "send_memory_load_event: %s object-index=%d addr=%#06x event=%s "
+            "record=%s expected=%s",
+            self.diagnostic_context,
+            object_index,
+            control_address,
+            event.hex(),
+            record.hex(),
+            target,
+        )
+        await self._write_block(control_address, record)
+        if status_address is None:
+            return
+        state = await self.read_memory_load_state(status_address, object_index)
+        await self._poll_load_state(
+            state,
+            accepted,
+            target,
+            object_index,
+            retries=retries,
+            retry_delay=retry_delay,
+            read=lambda: self.read_memory_load_state(status_address, object_index),
+            log_prefix="memory load state poll",
+        )
 
     async def restart(self) -> None:
         """Restart the device (also closes the transport connection).

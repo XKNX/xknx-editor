@@ -7,6 +7,7 @@ from typing import cast
 
 from xknxeditor.download.merge import (
     mask_authorize_levels,
+    mask_has_property_services,
     resolve_download_controls,
 )
 from xknxeditor.namespaces.intermediate.ld_ctrl_connect_t import LdCtrlConnect
@@ -190,6 +191,34 @@ def _master_with_features(*features: object) -> MasterData:
 def _feature(name: str, value: int) -> object:
     # The parsed model wraps the name in an enum with a ``value`` attribute; mimic it.
     return SimpleNamespace(name=SimpleNamespace(value=name), value=value)
+
+
+def test_bcu1_mask_has_no_property_services() -> None:
+    from xknxeditor.namespaces.intermediate.mask_version_t_management_model import (
+        MaskVersionManagementModel,
+    )
+
+    master = cast(
+        "MasterData",
+        SimpleNamespace(
+            mask_versions=SimpleNamespace(
+                mask_version=[
+                    SimpleNamespace(
+                        id="MV-0011",
+                        management_model=MaskVersionManagementModel.BCU1,
+                    ),
+                    SimpleNamespace(
+                        id="MV-0701",
+                        management_model=MaskVersionManagementModel.BIM_M112,
+                    ),
+                ]
+            )
+        ),
+    )
+    assert mask_has_property_services(master, "MV-0011") is False
+    assert mask_has_property_services(master, "MV-0701") is True
+    assert mask_has_property_services(None, "MV-0011") is True
+    assert mask_has_property_services(master, "MV-9999") is True
 
 
 def test_mask_authorize_levels_returns_feature_value() -> None:
