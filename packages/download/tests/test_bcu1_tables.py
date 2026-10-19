@@ -229,3 +229,27 @@ def test_m112_clears_communication_without_a_dynamic_ref() -> None:
     eeprom = next(segment for segment in segments if len(segment.data) == 256)
     assert eeprom.data[5 + 3 * 4] == 0xCB
     assert eeprom.data[5 + 4 * 4] == 0xDB
+
+
+def test_bcu2_keeps_communication_on_static_slots() -> None:
+    """GroupObjectTable_Bcu2 is not the M112 record; its other slots stay as seeded."""
+    application = _application("MV-0020")
+    application.program.static.com_object_table.com_object.append(
+        SimpleNamespace(id="O-3", number=3)
+    )
+    nodes = [_com_object(0, read=False, write=True, transmit=False, update=True)]
+    seed = bytearray(_seed())
+    seed[0] = 5
+    seed[5 + 3 * 4] = 0xCF
+    seed[5 + 4 * 4] = 0xDF
+    segments = _group_communication_segments(
+        application,  # type: ignore[arg-type]
+        _UI(nodes),  # type: ignore[arg-type]
+        {_SEGMENT: _BASE},
+        {_SEGMENT: (bytes(seed), b"\x00" * len(seed))},
+        GroupCommunication(device_address=0x1133, links=()),
+    )
+    eeprom = next(segment for segment in segments if len(segment.data) == 256)
+    assert eeprom.mask is not None
+    assert eeprom.mask[5 + 3 * 4] == 0x00
+    assert eeprom.mask[5 + 4 * 4] == 0x00

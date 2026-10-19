@@ -470,6 +470,22 @@ def bcu1_group_object_table(mask_version: str) -> bool:
     )
 
 
+def m112_group_object_table(mask_version: str) -> bool:
+    """Whether the group-object table is the 4-octet M112 record.
+
+    Only this flavour has the per-slot communication-bit rule: ETS clears the
+    bit on static objects without a ComObjectRef and on holes in the table
+    count. ``GroupObjectTable_Bcu2`` (MV-0020/0021/0025) is a different record.
+    """
+    resources = bundled_mask_resources(mask_version)
+    if resources is None:
+        return False
+    return (
+        resources.flavour(ResourceName.GROUP_OBJECT_TABLE)
+        is ResourceFlavour.GROUP_OBJECT_TABLE_M112
+    )
+
+
 def bcu1_association_table(mask_version: str) -> bool:
     """Whether the association table is the BCU1 list at its pointer."""
     resources = bundled_mask_resources(mask_version)

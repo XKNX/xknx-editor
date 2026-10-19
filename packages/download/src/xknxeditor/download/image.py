@@ -33,6 +33,7 @@ from .project_data import (
 from .resources import (
     bcu1_group_object_table,
     m112_association_table,
+    m112_group_object_table,
     property_mapped_lsms,
     reserved_memory,
 )
@@ -709,23 +710,25 @@ def _group_communication_segments(
                 if ref_id in number_of
             }
             referenced_numbers = set(number_of.values())
-            # The static table also holds objects with no dynamic ComObjectRef
-            # (unused channels, antitheft, …). Their seed still has the
-            # communication bit set. ETS clears that bit; leaving it makes
-            # LoadCompleted checksum the wrong image and enter ERROR.
-            table_numbers = {
-                com_object.number for com_object in com_object_table.com_object
-            }
-            # The first octet is the number of 4-octet records. Holes in the
-            # numbering (no ComObject at all) still carry the seed's
-            # communication bit; ETS clears every slot in that count.
-            record_count = seed[0][0]
-            if (
-                record_count
-                and _COM_OBJECT_HEADER + record_count * _COM_OBJECT_RECORD
-                <= len(seed[0])
-            ):
-                table_numbers.update(range(record_count))
+            table_numbers: set[int] = set()
+            if m112_group_object_table(application.program.mask_version):
+                # The static table also holds objects with no dynamic ComObjectRef
+                # (unused channels, antitheft, …). Their seed still has the
+                # communication bit set. ETS clears that bit; leaving it makes
+                # LoadCompleted checksum the wrong image and enter ERROR.
+                table_numbers = {
+                    com_object.number for com_object in com_object_table.com_object
+                }
+                # The first octet is the number of 4-octet records. Holes in the
+                # numbering (no ComObject at all) still carry the seed's
+                # communication bit; ETS clears every slot in that count.
+                record_count = seed[0][0]
+                if (
+                    record_count
+                    and _COM_OBJECT_HEADER + record_count * _COM_OBJECT_RECORD
+                    <= len(seed[0])
+                ):
+                    table_numbers.update(range(record_count))
             # GroupObjectTable_Bcu10 / Bcu11 / Bcu1PL keep the address, association
             # and group-object tables inside the one EEPROM segment. A 4-octet
             # record laid out from the segment start overwrites the application id
