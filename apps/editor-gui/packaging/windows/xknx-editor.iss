@@ -139,6 +139,8 @@ Source: "software_gl.marker"; DestDir: "{app}"; Tasks: softwaregl
 
 [Icons]
 Name: "{autoprograms}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: startmenuicon
+; The browser UI: the editor without a window, shown in the default browser.
+Name: "{autoprograms}\{#AppName} (Browser)"; Filename: "{app}\{#AppExe}"; Parameters: "--web"; Tasks: startmenuicon
 Name: "{autodesktop}\{#AppName}"; Filename: "{app}\{#AppExe}"; Tasks: desktopicon
 
 [Registry]

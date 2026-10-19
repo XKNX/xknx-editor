@@ -6,8 +6,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
-from imgui_bundle import portable_file_dialogs as pfd
 
+from editor_gui import file_dialogs
 from editor_gui.plugins.recover.strings import S
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import px
@@ -33,8 +33,8 @@ class RecoverPanel:
         self._service = service
         self._start = "1.1.1"
         self._end = "1.1.20"
-        self._save_dialog: pfd.save_file | None = None
-        self._snapshot_dialog: pfd.save_file | None = None
+        self._save_dialog: file_dialogs.SaveFileDialog | None = None
+        self._snapshot_dialog: file_dialogs.SaveFileDialog | None = None
         self._focus_requested = False
 
     def request_focus(self) -> None:
@@ -193,12 +193,12 @@ class RecoverPanel:
         imgui.end_disabled()
         imgui.same_line()
         if imgui.button(S.BTN_EXPORT_SNAPSHOT):
-            self._snapshot_dialog = pfd.save_file(
+            self._snapshot_dialog = file_dialogs.save_file(
                 S.BTN_EXPORT_SNAPSHOT, "recover-snapshot.json"
             )
         imgui.same_line()
         if imgui.button(f"{S.BTN_ADD_NEW} ({recovered_count})"):
-            self._save_dialog = pfd.save_file(S.BTN_ADD_NEW, "recovered.xknx")
+            self._save_dialog = file_dialogs.save_file(S.BTN_ADD_NEW, "recovered.xknx")
         imgui.same_line()
         imgui.begin_disabled(not service.has_project())
         if imgui.button(f"{S.BTN_ADD_MERGE} ({recovered_count})"):

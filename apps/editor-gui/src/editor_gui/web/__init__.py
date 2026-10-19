@@ -16,16 +16,24 @@ Options:
   server reachable in the network needs it, or ``--web-trust-proxy`` when a proxy in front signs
   users in itself (e.g. Home Assistant Ingress); otherwise the web mode does not start.
 - ``--web-idle=MINUTES``: after that long without input from the controlling browser, a browser
-  that connects gets control (default 10)."""
+  that connects gets control (default 10).
+- ``--web-no-browser``: served on this computer only, the default browser opens the page once the
+  server listens; this option keeps it closed (an autostart, a service).
+
+Ctrl+C in the terminal it was started from (and SIGTERM, e.g. from ``docker stop``) ends the app
+like File > Exit."""
 
 from __future__ import annotations
 
 import logging
 import os
+import signal
 import socket
 import struct
 import sys
+import threading
 import time
+import webbrowser
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
@@ -58,6 +66,7 @@ class WebOptions:
     password_file: str | None = None
     trust_proxy: bool = False
     idle_minutes: float = 10.0
+    open_browser: bool = True
 
     @property
     def local(self) -> bool:
@@ -85,7 +94,7 @@ def web_options(argv: list[str]) -> WebOptions | None:
             given_host, _, given_port = arg.split("=", 1)[1].rpartition(":")
             host = given_host or DEFAULT_HOST
             port = int(given_port) if given_port else DEFAULT_PORT
-        elif arg == "--web-trust-proxy":
+        elif arg in ("--web-trust-proxy", "--web-no-browser"):
             values[arg] = "1"
         elif arg.startswith(
             (
@@ -109,6 +118,7 @@ def web_options(argv: list[str]) -> WebOptions | None:
         values.get("--web-password-file") or None,
         "--web-trust-proxy" in values,
         float(values.get("--web-idle") or 10.0),
+        "--web-no-browser" not in values,
     )
 
 
@@ -250,7 +260,40 @@ def enable_web_mode(
     logger.info(
         "web UI listening on %s:%d, files in %s", options.host, options.port, files
     )
+
+    def stop(_signum: int, _frame: object) -> None:
+        # Like File > Exit; the next frame ends the app (an idle one is woken).
+        hello_imgui.get_runner_params().app_shall_exit = True
+        hub.wake.set()
+
+    for name in ("SIGINT", "SIGTERM", "SIGBREAK"):  # SIGBREAK: Ctrl+Break on Windows
+        if hasattr(signal, name):
+            signal.signal(getattr(signal, name), stop)
+    if options.local and options.open_browser:
+        threading.Thread(
+            target=_open_when_listening,
+            args=(options.port, url),
+            name="web-ui-browser",
+            daemon=True,
+        ).start()
     return hub
+
+
+def _open_when_listening(port: int, url: str, timeout: float = 15.0) -> None:
+    """Open ``url`` in the default browser once the server accepts connections."""
+    deadline = time.monotonic() + timeout
+    while time.monotonic() < deadline:
+        try:
+            with socket.create_connection(("127.0.0.1", port), timeout=0.5):
+                break
+        except OSError:
+            time.sleep(0.2)
+    else:
+        return
+    try:
+        webbrowser.open(url)
+    except Exception:  # no browser here: the address is printed and logged
+        logger.info("no browser opened for %s", url)
 
 
 def _nothing() -> None:

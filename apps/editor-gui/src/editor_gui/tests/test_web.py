@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import contextlib
 import json
+import socket
 import struct
 import time
 import zipfile
@@ -276,9 +277,28 @@ def test_web_options(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         "0.0.0.0", 9001, "c.pem", "k.pem", "/srv/knx", str(secret), True, 2.5
     )
     assert options is not None and not options.local
+    assert options.open_browser
     assert options.password() == "from the file"
+    quiet = web.web_options(["app", "--web", "--web-no-browser"])
+    assert quiet is not None and not quiet.open_browser
     monkeypatch.setenv("XKNX_WEB_PASSWORD", "from the environment")
     assert web.WebOptions(host="0.0.0.0").password() == "from the environment"
+
+
+def test_the_browser_opens_once_the_server_listens(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    opened: list[str] = []
+    monkeypatch.setattr(web.webbrowser, "open", opened.append)
+    with socket.socket() as listening:
+        listening.bind(("127.0.0.1", 0))
+        listening.listen()
+        port = listening.getsockname()[1]
+        web._open_when_listening(port, f"http://localhost:{port}/")
+    assert opened == [f"http://localhost:{port}/"]
+    # Nothing listens: no browser, after the time given.
+    web._open_when_listening(port, "http://localhost:1/", timeout=0.3)
+    assert len(opened) == 1
 
 
 def test_network_without_protection_does_not_start(

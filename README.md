@@ -23,8 +23,8 @@ Prebuilt apps for **Windows, Linux, and macOS** are attached to every release �
 the [Releases page](https://github.com/xknx/xknx-editor/releases/latest) and start it directly.
 
 On Windows, run `XKNX-Editor-windows-installer-x64.exe` (or `-arm64.exe` on Windows on ARM). It
-installs for the current user without administrator rights, adds a Start menu entry, a desktop
-shortcut and the `.xknx` file association (optionally also `.knxproj`, opened as an import), and
+installs for the current user without administrator rights, adds a Start menu entry (and one for
+the [browser UI](#browser-ui)), a desktop shortcut and the `.xknx` file association (optionally also `.knxproj`, opened as an import), and
 can be removed in Apps & Features. In a virtual
 machine without a graphics driver, select "Software rendering" in the installer. The
 `XKNX-Editor-windows-portable-*.zip` archives run without installation.
@@ -117,6 +117,56 @@ connection). Start it from **Settings → MCP**. It can edit the project and pro
 expose it to clients you trust.
 
 ![MCP server](docs/images/mcp.png)
+
+## Browser UI
+
+The editor can also run without a window and be used in a web browser: on the same computer, or on
+a server next to the installation (a mini PC, a NAS, a container) that you reach from the house
+network. It is the same editor with the same dialogs; the browser draws it itself (no video
+stream), so it stays sharp at any display scaling. Works in current Chrome, Edge, Opera, Firefox and
+Safari (WebGL 2).
+
+Start the app with `--web` and open the address it prints:
+
+| | Command |
+|---|---|
+| Windows | `XKNX-Editor.exe --web`, or the Start menu entry **XKNX Editor (Browser)** |
+| macOS | `/Applications/XKNX-Editor.app/Contents/MacOS/XKNX-Editor --web` |
+| Linux | `./XKNX-Editor-x86_64.AppImage --web` |
+| From source | `uv run python -m editor_gui.main --web` |
+
+By default it serves `http://localhost:8080/` on this computer only and opens the default browser
+there. No sign-in is needed then. **File → Exit** in the browser, or Ctrl+C in the terminal it was
+started from, ends it. A project file can be given as usual, e.g. `XKNX-Editor.exe --web Haus.xknx`.
+
+Reachable from other devices, every browser signs in once with a password you choose:
+
+```bash
+XKNX_WEB_PASSWORD='choose a password' ./XKNX-Editor-x86_64.AppImage --web=0.0.0.0:8080
+```
+
+Without a password the app does not start on a network address, as anyone reaching it could program
+the installation and read its KNX Secure keys. Behind a proxy that signs users in itself (e.g. Home
+Assistant Ingress), use `--web-trust-proxy` instead. For HTTPS, pass a certificate or let a reverse
+proxy in front handle it.
+
+| Option | Meaning |
+|---|---|
+| `--web[=[host:]port]` | Serve the browser UI (default `127.0.0.1:8080`) |
+| `--web-password-file=FILE` | Sign-in password from the first line of `FILE` (or `XKNX_WEB_PASSWORD`) |
+| `--web-trust-proxy` | A proxy in front signs users in; no password |
+| `--web-files=DIR` | Folder for uploaded, saved and exported files (default: `files` in the app's data folder) |
+| `--web-idle=MINUTES` | Control passes to another browser after this much inactivity (default 10) |
+| `--web-cert=FILE`, `--web-key=FILE` | Serve HTTPS with this certificate and key |
+| `--web-no-browser` | Do not open the browser at start (an autostart, a service) |
+
+One browser controls the editor at a time; it keeps control across a reload. Another browser watches
+and can take over with **Take Control**, and gets control right away once the controlling one was
+inactive for the idle time.
+
+Files go through the browser: **Open** uploads a file from your computer (or drop it on the page)
+or picks one already on the server; **Save** and **Export** write into the server's file folder and
+download the result to your computer when **Download to This Computer** is ticked.
 
 ## Running from source
 

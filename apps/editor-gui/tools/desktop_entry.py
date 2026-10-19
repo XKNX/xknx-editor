@@ -12,6 +12,21 @@ import sys
 if __name__ == "__main__":
     multiprocessing.freeze_support()
 
+# The browser UI (--web) started from a terminal on Windows: the windowed exe has no console of its
+# own, so it writes to that terminal (the web address, why it does not start) and Ctrl+C stops it.
+# Started otherwise (Start menu, Explorer) there is none to attach to and the log file is used.
+if (
+    sys.platform == "win32"
+    and getattr(sys, "frozen", False)
+    and any(a == "--web" or a.startswith("--web=") for a in sys.argv[1:])
+):
+    import ctypes
+
+    if ctypes.windll.kernel32.AttachConsole(-1):  # ATTACH_PARENT_PROCESS
+        _console = open("CONOUT$", "w", encoding="utf-8", errors="replace", buffering=1)  # noqa: SIM115
+        sys.stdout = _console
+        sys.stderr = _console
+
 # A frozen windowed app (PyInstaller console=False) has no console, so sys.stdout/sys.stderr are
 # None. Any print() or library that writes to them (e.g. structlog's PrintLogger) then crashes at
 # startup. Redirect both to this run's log file before anything else runs; it also aids diagnosing
