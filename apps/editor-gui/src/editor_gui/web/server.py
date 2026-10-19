@@ -9,7 +9,10 @@ input of the controlling browser for the GUI thread.
   (Origin check), so the cookie cannot be used by foreign pages.
 - **Control**: one browser controls the app; any other one watches and can take over.
 - **Frames**: every browser gets only the draw lists it does not have from its previous frame. A
-  browser that falls behind skips frames, never texture messages or page events."""
+  browser that falls behind skips frames, never texture messages or page events.
+- **The page** itself only does what a browser has to: the file picker, dropped files, downloads,
+  opening links. The dialogs around them are the app's own (:mod:`editor_gui.web.dialogs`); the few
+  page elements (sign-in, view-only note) use the app's font and theme colours."""
 
 from __future__ import annotations
 
@@ -23,6 +26,7 @@ import secrets
 import threading
 import time
 from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
@@ -43,6 +47,7 @@ from starlette.routing import Route, WebSocketRoute
 from starlette.websockets import WebSocket, WebSocketDisconnect
 
 from editor_gui.strings import S
+from editor_gui.web.dialogs import DialogHost, DownloadNotice, FolderNotice, LinkNotice
 from editor_gui.web.files import Downloads, FileFolder, watch_written, zip_folder
 from editor_gui.web.frames import (
     KIND_CLIPBOARD,
@@ -59,6 +64,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 _STATIC = Path(__file__).parent / "static"
+_FONT = Path(__file__).parent.parent / "assets" / "fonts" / "DroidSans.ttf"
 _COOKIE = "xknx_web"
 _MAX_UPLOAD = 2 * 1024**3
 
@@ -82,27 +88,9 @@ def event_message(event: dict[str, Any]) -> bytes:
 _PAGE_TEXTS = (
     "WEB_RECONNECTING",
     "WEB_DENIED",
-    "WEB_UPLOAD",
-    "WEB_DROP_HINT",
-    "WEB_SERVER_FILES",
-    "WEB_NO_FILES",
-    "WEB_OPEN",
-    "WEB_SAVE",
-    "WEB_SELECT",
-    "WEB_FILE_NAME",
-    "WEB_FOLDER_NAME",
-    "WEB_FILE_TYPE",
-    "WEB_DOWNLOAD_AFTER",
-    "WEB_UPLOADING",
-    "WEB_UPLOAD_FAILED",
-    "WEB_FILE_READY",
-    "WEB_DOWNLOAD",
-    "WEB_SHOW",
-    "WEB_FOLDER_TITLE",
     "WEB_VIEW_ONLY",
     "WEB_TAKE_CONTROL",
-    "WEB_OPEN_LINK",
-    "BTN_CANCEL",
+    "WEB_CHOOSE_FILE",
     "BTN_CLOSE",
 )
 
@@ -133,6 +121,20 @@ class WebHub:
         self._frame: Frame | None = None
         self._dialogs: dict[int, WebDialog] = {}
         self._loop: asyncio.AbstractEventLoop | None = None
+        # The web dialogs and notices, drawn by the app (GUI thread).
+        self.host = DialogHost(self.clear_actions)
+        # Notices to show, queued from other threads (the GUI thread adds them to the host).
+        self._later: deque[Callable[[], Any]] = deque()
+        # Where the app's buttons are whose action the page performs itself on a click (file
+        # picker, download, link): browsers do these only from the click's own handler.
+        self._actions: dict[str, str] = {}
+        self._actions_lock = threading.Lock()
+        # Whether the controlling browser starts a download without a click (not Safari).
+        self.auto_download = True
+        # Shows a short note in the app (its toast), set by the app.
+        self.notify: Callable[[str], None] | None = None
+        # The app's theme colours for the page's own elements.
+        self.theme: dict[str, Any] = {}
 
     # GUI thread (and workers)
 
@@ -159,7 +161,9 @@ class WebHub:
         return bool(self._clients)
 
     def open_dialog(self, dialog: WebDialog) -> None:
+        """Show ``dialog`` in the app; tell the page whether files can be dropped on it."""
         self._dialogs[dialog.id] = dialog
+        self.host.add(dialog)
         self._post(event_message(dialog.event()))
 
     def close_dialog(self, dialog_id: int) -> None:
@@ -171,55 +175,107 @@ class WebHub:
         if dialog is not None:
             dialog.answer(event)
 
+    def request_pick(self, dialog: WebDialog) -> None:
+        """Ask the page to open the browser's file picker for ``dialog``."""
+        self._post(event_message({**dialog.event(), "t": "pick"}))
+
+    def page_action(
+        self,
+        key: str,
+        rect: tuple[float, float, float, float] | None,
+        action: dict[str, Any],
+    ) -> None:
+        """The button ``key`` is at ``rect`` (None: not visible); a click there makes the page do
+        ``action`` itself. Sent to the page only when it changed."""
+        if rect is None:
+            with self._actions_lock:
+                gone = self._actions.pop(key, None)
+            if gone is not None:
+                self._post(event_message({"t": "area-clear", "key": key}))
+            return
+        x, y, w, h = rect
+        message_json = json.dumps(
+            {"t": "area", "key": key, "x": x, "y": y, "w": w, "h": h, "action": action}
+        )
+        with self._actions_lock:
+            if self._actions.get(key) == message_json:
+                return
+            self._actions[key] = message_json
+        self._post(message(KIND_EVENT, message_json.encode("utf-8")))
+
+    def clear_actions(self, prefix: str) -> None:
+        """Forget the page actions of a closed dialog."""
+        with self._actions_lock:
+            for key in [k for k in self._actions if k.startswith(prefix)]:
+                del self._actions[key]
+        self._post(event_message({"t": "area-clear", "prefix": prefix}))
+
+    def later(self, make: Callable[[], Any]) -> None:
+        """Show the notice ``make()`` returns, on the GUI thread (callable from any thread)."""
+        self._later.append(make)
+
+    def show_later(self) -> None:
+        """Add the queued notices to the host (GUI thread)."""
+        while self._later:
+            self.host.add(self._later.popleft()())
+
+    def upload_event(self, event: dict[str, Any]) -> None:
+        """An upload's progress, from the page (GUI thread)."""
+        dialog = self._dialogs.get(int(event.get("id", 0) or 0))
+        if dialog is not None:
+            dialog.upload_event(event)
+
+    def blocked(self, event: dict[str, Any]) -> None:
+        """The browser did not open a link or report: offer it in a notice (GUI thread)."""
+        self.host.add(
+            LinkNotice(
+                self,
+                str(event.get("url", "")),
+                show=bool(event.get("show")),
+                name=str(event.get("name", "")),
+            )
+        )
+
     def download_when_written(self, path: Path) -> None:
         """Offer ``path`` for download once the app has written it (a folder as a ZIP)."""
         watch_written(path, lambda p: self.offer_file(p, download=True))
 
+    def file_url(self, path: Path) -> str:
+        """An address the browser can download ``path`` from (only files offered this way)."""
+        return f"files/{self.downloads.register(path)}/{quote(path.name)}"
+
+    def download(self, url: str, name: str) -> None:
+        self._post(event_message({"t": "download", "url": url, "name": name}))
+
     def offer_file(
         self, path: Path, *, show: bool = False, download: bool = False
     ) -> None:
-        """Let the browser download (or show, e.g. an HTML report) a file the app wrote."""
+        """Download a file the app wrote, or show it in a new tab (e.g. an HTML report)."""
         if path.is_dir():
             path = zip_folder(path)
-        key = self.downloads.register(path)
-        self._post(
-            event_message(
-                {
-                    "t": "file",
-                    "url": f"files/{key}/{quote(path.name)}",
-                    "name": path.name,
-                    "show": show,
-                    "download": download,
-                }
-            )
-        )
+        url = self.file_url(path)
+        if show:
+            self.open_url(f"{url}?show=1", name=path.name, show=True)
+        if download:
+            self.download(url, path.name)
+            if self.notify is not None:
+                self.notify(S.WEB_DOWNLOAD_STARTED.format(name=path.name))
+            if not self.auto_download:
+                name = path.name
+                self.later(lambda: DownloadNotice(self, url, name))
 
     def show_folder(self, folder: Path) -> None:
-        """List a folder's files in the browser, each one downloadable."""
-        entries: list[dict[str, Any]] = []
-        try:
-            children = sorted(
-                (c for c in folder.iterdir() if c.is_file()),
-                key=lambda c: c.stat().st_mtime,
-                reverse=True,
-            )
-        except OSError:
-            children = []
-        for child in children[:200]:
-            key = self.downloads.register(child)
-            entries.append(
-                {
-                    "name": child.name,
-                    "size": child.stat().st_size,
-                    "url": f"files/{key}/{quote(child.name)}",
-                }
-            )
-        self._post(
-            event_message({"t": "folder", "path": str(folder), "files": entries})
-        )
+        """List a folder's files in the app, each one downloadable (GUI thread)."""
+        self.host.add(FolderNotice(self, folder))
 
-    def open_url(self, url: str) -> None:
-        self._post(event_message({"t": "open", "url": url}))
+    def open_url(self, url: str, *, name: str = "", show: bool = False) -> None:
+        """Open a link (or a file shown in the browser) in a new tab of the controlling browser."""
+        self._post(event_message({"t": "open", "url": url, "name": name, "show": show}))
+
+    def set_theme(self, theme: dict[str, Any]) -> None:
+        """The app's theme colours changed: pass them to every page."""
+        self.theme = theme
+        self._post(event_message({"t": "theme", **theme}), all_=True)
 
     def _post(self, msg: bytes, *, all_: bool = False) -> None:
         """Queue a page message for the controlling browser (or every browser)."""
@@ -257,6 +313,11 @@ class WebHub:
             if controls:
                 client.ordered.extend(
                     event_message(d.event()) for d in list(self._dialogs.values())
+                )
+                with self._actions_lock:
+                    actions = list(self._actions.values())
+                client.ordered.extend(
+                    message(KIND_EVENT, a.encode("utf-8")) for a in actions
                 )
             client.wake.set()
 
@@ -310,7 +371,7 @@ class WebHub:
             # Swap the token in the address for the cookie, so it leaves the address bar.
             return self._with_session(request, RedirectResponse("./", status_code=303))
         if not self._authorized(request):
-            return _login_page(error=False)
+            return _login_page(self.theme, error=False)
         return FileResponse(
             _STATIC / "index.html",
             media_type="text/html; charset=utf-8",
@@ -324,8 +385,11 @@ class WebHub:
             token, self.token
         ):
             await asyncio.sleep(1.0)
-            return _login_page(error=True)
+            return _login_page(self.theme, error=True)
         return self._with_session(request, RedirectResponse("./", status_code=303))
+
+    async def _font(self, request: Request) -> Response:
+        return FileResponse(_FONT, media_type="font/ttf")
 
     async def _script(self, request: Request) -> Response:
         return FileResponse(
@@ -381,6 +445,8 @@ class WebHub:
             self._loop = asyncio.get_running_loop()
         client = _Client(socket)
         client.ordered.append(event_message({"t": "texts", "texts": page_texts()}))
+        if self.theme:
+            client.ordered.append(event_message({"t": "theme", **self.theme}))
         client.ordered.extend(self.textures.snapshot())
         client.frame = self._frame
         self._clients.append(client)
@@ -432,6 +498,9 @@ class WebHub:
                 if event.get("t") == "take":
                     self._set_controller(client)
                 continue
+            if event.get("t") == "caps":
+                self.auto_download = bool(event.get("download", True))
+                continue
             if event.get("t") == "size":
                 self.size = (float(event["w"]), float(event["h"]))
                 self.scale = float(event.get("r", 1.0)) or 1.0
@@ -447,6 +516,7 @@ class WebHub:
                 Route("/", self._index),
                 Route("/login", self._login, methods=["POST"]),
                 Route("/client.js", self._script),
+                Route("/font.ttf", self._font),
                 Route("/files/{key}/{name}", self._file),
                 Route("/upload", self._upload, methods=["POST"]),
                 WebSocketRoute("/ws", self._socket),
@@ -487,28 +557,48 @@ class WebHub:
         return thread
 
 
-def _login_page(*, error: bool) -> HTMLResponse:
-    """The sign-in form: the session token, as printed when the app started."""
+def _login_page(theme: dict[str, Any], *, error: bool) -> HTMLResponse:
+    """The sign-in form (the session token, as printed when the app started), in the app's look."""
+    colours = {
+        "bg": "#f0f0f0",
+        "panel": "#ffffff",
+        "text": "#1e1e1e",
+        "muted": "#6e6e6e",
+        "frame": "#ffffff",
+        "border": "#c8c8c8",
+        "button": "#e1e1e1",
+        "button_hovered": "#d0e4f7",
+        **{k: v for k, v in theme.items() if isinstance(v, str)},
+    }
+    size = theme.get("font_px", 15)
     title = html.escape(S.APP_TITLE)
     notice = f'<p class="error">{html.escape(S.WEB_LOGIN_WRONG)}</p>' if error else ""
     page = f"""<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
 <style>
-  :root {{ color-scheme: light dark; }}
-  body {{ font: 15px system-ui, sans-serif; display: grid; place-items: center; min-height: 100vh;
-         margin: 0; background: Canvas; color: CanvasText; }}
-  form {{ display: grid; gap: 10px; width: min(340px, 90vw); }}
-  input, button {{ font: inherit; padding: 8px 10px; }}
-  .error {{ color: #d33; margin: 0; }}
-  p {{ margin: 0; opacity: .8; }}
+  @font-face {{ font-family: "XKNX"; src: url("font.ttf") format("truetype"); }}
+  body {{ font: {size}px "XKNX", system-ui, sans-serif; display: grid; place-items: center;
+         min-height: 100vh; margin: 0; background: {colours["bg"]}; color: {colours["text"]}; }}
+  form {{ display: grid; gap: 8px; width: min(380px, 90vw); background: {colours["panel"]};
+          border: 1px solid {colours["border"]}; padding: 16px 18px; }}
+  h1 {{ font-size: 1.35em; margin: 0 0 4px; }}
+  p {{ margin: 0; }}
+  .hint, label {{ color: {colours["muted"]}; }}
+  .error {{ color: #c0392b; }}
+  input {{ font: inherit; color: inherit; background: {colours["frame"]};
+           border: 1px solid {colours["border"]}; padding: 4px 6px; }}
+  button {{ font: inherit; color: inherit; background: {colours["button"]};
+            border: 1px solid {colours["border"]}; padding: 4px 16px; justify-self: start;
+            min-width: 90px; }}
+  button:hover {{ background: {colours["button_hovered"]}; }}
 </style></head>
 <body><form method="post" action="login">
-  <h2 style="margin:0">{title}</h2>
-  <p>{html.escape(S.WEB_LOGIN_HINT)}</p>
+  <h1>{title}</h1>
+  <p class="hint">{html.escape(S.WEB_LOGIN_HINT)}</p>
   {notice}
-  <input name="token" type="password" autocomplete="current-password" autofocus
-         aria-label="{html.escape(S.WEB_LOGIN_TOKEN)}" placeholder="{html.escape(S.WEB_LOGIN_TOKEN)}">
+  <label for="token">{html.escape(S.WEB_LOGIN_TOKEN)}</label>
+  <input id="token" name="token" type="password" autocomplete="current-password" autofocus>
   <button type="submit">{html.escape(S.WEB_LOGIN_BUTTON)}</button>
 </form></body></html>"""
     return HTMLResponse(page, status_code=401 if error else 200)

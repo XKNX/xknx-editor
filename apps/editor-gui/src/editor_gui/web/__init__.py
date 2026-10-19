@@ -100,10 +100,14 @@ def enable_web_mode(
     from editor_gui.settings import config_dir
     from editor_gui.web.frames import Frame, encode_frame
     from editor_gui.web.server import WebHub
+    from editor_gui.widgets import dialog
 
     files = Path(options.files) if options.files else config_dir() / "files"
     hub = WebHub(access_token(), files)
     active_hub = hub
+    # The web file dialogs are the app's own: nested in the topmost open dialog, else after the
+    # app's windows.
+    dialog.nested_content = hub.host.draw
     runner_params.platform_backend_type = hello_imgui.PlatformBackendType.null
     runner_params.renderer_backend_type = hello_imgui.RendererBackendType.null
 
@@ -111,6 +115,7 @@ def enable_web_mode(
     post_init = callbacks.post_init or _nothing
     pre_new_frame = callbacks.pre_new_frame or _nothing
     after_swap = callbacks.after_swap or _nothing
+    after_windows = callbacks.post_render_dockable_windows or _nothing
     last_frame: list[Frame | None] = [None]
     clients_seen = [False]
     frame_start = [0.0]
@@ -152,17 +157,28 @@ def enable_web_mode(
         if hub.size is not None:
             io.display_size = imgui.ImVec2(*hub.size)
         io.display_framebuffer_scale = imgui.ImVec2(hub.scale, hub.scale)
+        hub.show_later()
         for event in hub.take_input():
             if _TRACE:
                 print(f"{time.monotonic():.3f} apply {event}", flush=True)
-            if event.get("t") == "dialog":
-                hub.answer_dialog(event)
+            kind = event.get("t")
+            if kind == "upload":
+                hub.upload_event(event)
+            elif kind == "blocked":
+                hub.blocked(event)
             else:
                 _apply(io, event)
         pre_new_frame()
 
+    def web_after_windows() -> None:
+        after_windows()
+        hub.host.draw()
+
     def web_after_swap() -> None:
         after_swap()
+        theme = _theme()
+        if theme != hub.theme:
+            hub.set_theme(theme)
         ordered = hub.textures.process(imgui.get_platform_io().textures)
         connected = hub.connected
         frame: Frame | None = None
@@ -181,6 +197,7 @@ def enable_web_mode(
     callbacks.post_init = web_post_init
     callbacks.pre_new_frame = web_pre_new_frame
     callbacks.after_swap = web_after_swap
+    callbacks.post_render_dockable_windows = web_after_windows
 
     hub.start(
         options.host, options.port, certfile=options.certfile, keyfile=options.keyfile
@@ -197,6 +214,29 @@ def enable_web_mode(
 
 def _nothing() -> None:
     pass
+
+
+def _css(colour: imgui.ImVec4) -> str:
+    return "#{:02x}{:02x}{:02x}".format(
+        *(round(max(0.0, min(1.0, c)) * 255) for c in (colour.x, colour.y, colour.z))
+    )
+
+
+def _theme() -> dict[str, Any]:
+    """The app's colours and font size, for the page's own elements."""
+    style = imgui.get_style()
+    col = imgui.Col_
+    return {
+        "bg": _css(style.color_(col.window_bg)),
+        "panel": _css(style.color_(col.popup_bg)),
+        "text": _css(style.color_(col.text)),
+        "muted": _css(style.color_(col.text_disabled)),
+        "frame": _css(style.color_(col.frame_bg)),
+        "border": _css(style.color_(col.border)),
+        "button": _css(style.color_(col.button)),
+        "button_hovered": _css(style.color_(col.button_hovered)),
+        "font_px": round(style.font_size_base),
+    }
 
 
 def _apply(io: imgui.IO, event: dict[str, Any]) -> None:

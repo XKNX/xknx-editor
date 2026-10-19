@@ -1711,10 +1711,6 @@ class MenuStrings:
         return _("Upload failed: {error}")
 
     @property
-    def WEB_FILE_READY(self) -> str:
-        return _("{name} is ready.")
-
-    @property
     def WEB_DOWNLOAD(self) -> str:
         return _("Download")
 
@@ -1733,6 +1729,34 @@ class MenuStrings:
     @property
     def WEB_TAKE_CONTROL(self) -> str:
         return _("Take Control")
+
+    @property
+    def WEB_COL_NAME(self) -> str:
+        return _("Name")
+
+    @property
+    def WEB_COL_SIZE(self) -> str:
+        return _("Size")
+
+    @property
+    def WEB_COL_MODIFIED(self) -> str:
+        return _("Modified")
+
+    @property
+    def WEB_LINK_BLOCKED(self) -> str:
+        return _("The browser did not open it by itself.")
+
+    @property
+    def WEB_DOWNLOAD_STARTED(self) -> str:
+        return _("Download started: {name}")
+
+    @property
+    def WEB_CHOOSE_FILE(self) -> str:
+        return _("Choose File…")
+
+    @property
+    def WEB_FILE_READY(self) -> str:
+        return _("{name} is ready.")
 
     @property
     def WEB_OPEN_LINK(self) -> str:

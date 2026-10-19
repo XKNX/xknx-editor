@@ -86,6 +86,7 @@ from editor_gui.widgets.fonts import heading, load_fonts
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
 from editor_gui.widgets.tables import reset_all_tables
+from editor_gui.widgets.text_util import human_size
 from editor_gui.window_title import set_window_title
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
@@ -654,6 +655,9 @@ class KnxGuiApp:
     def setup(self) -> None:
         self._log.info("editor started", installation=self._update_scope or "none")
         self._can_launch_file_dialog()
+        # In the browser UI, notes about downloads show as this app's toasts.
+        if web.active_hub is not None:
+            web.active_hub.notify = self._flash_toast
         # Apply a previously extracted/saved signing key so exports are signed with it.
         if signing_key_store.apply_cached_key():
             self._log.info("signing key loaded")
@@ -3283,7 +3287,7 @@ class KnxGuiApp:
         yes, no = S.EXPORT_SUMMARY_YES, S.EXPORT_SUMMARY_NO
         rows = [
             (S.EXPORT_SUMMARY_PROJECT, summary.project_name),
-            (S.EXPORT_SUMMARY_FILE_SIZE, _human_size(summary.file_size)),
+            (S.EXPORT_SUMMARY_FILE_SIZE, human_size(summary.file_size)),
             (S.EXPORT_SUMMARY_FORMAT, self._export_summary_schema),
             (S.EXPORT_SUMMARY_MASTER_VERSION, str(summary.master_version)),
             (S.EXPORT_SUMMARY_EXPORTED_AT, self._export_summary_at),
@@ -3529,7 +3533,7 @@ class KnxGuiApp:
                 imgui.table_next_column()
                 imgui.text_disabled(label)
                 imgui.table_next_column()
-                imgui.text(_human_size(size))
+                imgui.text(human_size(size))
             imgui.end_table()
         if not report.nothing_removed:
             imgui.spacing()
@@ -3565,8 +3569,8 @@ class KnxGuiApp:
         imgui.spacing()
         report = result.report
         rows = [
-            (S.COMPACT_SIZE_BEFORE, _human_size(result.file_size_before)),
-            (S.COMPACT_SIZE_AFTER, _human_size(result.file_size_after)),
+            (S.COMPACT_SIZE_BEFORE, human_size(result.file_size_before)),
+            (S.COMPACT_SIZE_AFTER, human_size(result.file_size_after)),
             (S.COMPACT_APPLICATIONS, str(len(report.application_programs))),
             (S.COMPACT_PRODUCTS, str(len(report.products))),
             (S.COMPACT_MANUFACTURERS, str(len(report.manufacturers))),
@@ -4611,16 +4615,6 @@ def _wrap_text(text: str, cols: int) -> str:
         )
         out.extend(wrapped or [line])
     return "\n".join(out)
-
-
-def _human_size(num_bytes: int) -> str:
-    """Human-readable byte size (e.g. '1.2 MB')."""
-    size = float(num_bytes)
-    for unit in ("B", "KB", "MB", "GB"):
-        if size < 1024.0 or unit == "GB":
-            return f"{size:.0f} {unit}" if unit == "B" else f"{size:.1f} {unit}"
-        size /= 1024.0
-    return f"{size:.1f} GB"
 
 
 def _detect_locale() -> str:

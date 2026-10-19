@@ -27,3 +27,13 @@ def text_clipped_tooltip(
     )
     if text and hovered and imgui.calc_text_size(text).x > avail:
         imgui.set_tooltip(text)
+
+
+def human_size(num_bytes: int) -> str:
+    """Human-readable byte size (e.g. '1.2 MB')."""
+    size = float(num_bytes)
+    for unit in ("B", "KB", "MB", "GB"):
+        if size < 1024.0 or unit == "GB":
+            return f"{size:.0f} {unit}" if unit == "B" else f"{size:.1f} {unit}"
+        size /= 1024.0
+    return f"{size:.1f} GB"

@@ -1265,9 +1265,6 @@ msgstr "{name} wird hochgeladen…"
 msgid "Upload failed: {error}"
 msgstr "Hochladen fehlgeschlagen: {error}"
 
-msgid "{name} is ready."
-msgstr "{name} ist bereit."
-
 msgid "Show"
 msgstr "Anzeigen"
 
@@ -1282,3 +1279,24 @@ msgstr "Steuerung übernehmen"
 
 msgid "Open Link"
 msgstr "Link öffnen"
+
+msgid "Name"
+msgstr "Name"
+
+msgid "Size"
+msgstr "Größe"
+
+msgid "Modified"
+msgstr "Geändert"
+
+msgid "The browser did not open it by itself."
+msgstr "Der Browser hat es nicht selbst geöffnet."
+
+msgid "Download started: {name}"
+msgstr "Download gestartet: {name}"
+
+msgid "Choose File…"
+msgstr "Datei auswählen…"
+
+msgid "{name} is ready."
+msgstr "{name} ist bereit."

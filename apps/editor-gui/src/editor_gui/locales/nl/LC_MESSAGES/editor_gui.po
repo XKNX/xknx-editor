@@ -1145,9 +1145,6 @@ msgstr "{name} wordt geüpload…"
 msgid "Upload failed: {error}"
 msgstr "Uploaden mislukt: {error}"
 
-msgid "{name} is ready."
-msgstr "{name} is klaar."
-
 msgid "Show"
 msgstr "Weergeven"
 
@@ -1162,3 +1159,24 @@ msgstr "Besturing overnemen"
 
 msgid "Open Link"
 msgstr "Link openen"
+
+msgid "Name"
+msgstr "Naam"
+
+msgid "Size"
+msgstr "Grootte"
+
+msgid "Modified"
+msgstr "Gewijzigd"
+
+msgid "The browser did not open it by itself."
+msgstr "De browser heeft het niet zelf geopend."
+
+msgid "Download started: {name}"
+msgstr "Download gestart: {name}"
+
+msgid "Choose File…"
+msgstr "Bestand kiezen…"
+
+msgid "{name} is ready."
+msgstr "{name} is klaar."

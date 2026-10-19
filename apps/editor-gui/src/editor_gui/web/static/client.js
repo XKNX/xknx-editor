@@ -1,8 +1,8 @@
 // XKNX Editor browser UI: draws the frames the app sends (Dear ImGui draw data) with WebGL 2 and
-// sends mouse, keyboard, text and clipboard input back. The page also shows the app's file
-// dialogs (upload, download), its links and whether this browser controls the app. The wire
-// format is described in editor_gui/web/frames.py. All addresses are relative, so the page also
-// works behind a reverse proxy under a sub-path.
+// sends mouse, keyboard, text and clipboard input back. The page also does what only a browser
+// can for the app's dialogs (file picker, dropped files, downloads, links) and shows whether this
+// browser controls the app. The wire format is described in editor_gui/web/frames.py. All
+// addresses are relative, so the page also works behind a reverse proxy under a sub-path.
 "use strict";
 (() => {
   const KIND_FRAME = 1, KIND_TEXTURE = 2, KIND_CLIPBOARD = 3, KIND_EVENT = 4;
@@ -15,24 +15,15 @@
   const canvas = document.getElementById("ui");
   const keys = document.getElementById("keys");
   const status = document.getElementById("status");
-  const layer = document.getElementById("layer");
-  const toasts = document.getElementById("toasts");
   const banner = document.getElementById("banner");
+  const chooser = document.getElementById("chooser");
 
-  // Page texts; the app sends them in its language when the connection opens.
+  // The page's own texts; the app sends them in its language when the connection opens.
   const T = {
     WEB_RECONNECTING: "Disconnected. Reconnecting…", WEB_DENIED: "Access denied. Please sign in again.",
-    WEB_UPLOAD: "Upload from This Computer…", WEB_DROP_HINT: "Or drop files here.",
-    WEB_SERVER_FILES: "Files on the Server", WEB_NO_FILES: "No files yet.", WEB_OPEN: "Open",
-    WEB_SAVE: "Save", WEB_SELECT: "Select", WEB_FILE_NAME: "File Name", WEB_FOLDER_NAME: "Folder Name",
-    WEB_FILE_TYPE: "File Type", WEB_DOWNLOAD_AFTER: "Download to This Computer",
-    WEB_UPLOADING: "Uploading {name}…",
-    WEB_UPLOAD_FAILED: "Upload failed: {error}", WEB_FILE_READY: "{name} is ready.",
-    WEB_DOWNLOAD: "Download", WEB_SHOW: "Show", WEB_FOLDER_TITLE: "Folder on the Server",
     WEB_VIEW_ONLY: "View only: another browser controls the editor.", WEB_TAKE_CONTROL: "Take Control",
-    WEB_OPEN_LINK: "Open Link", BTN_CANCEL: "Cancel", BTN_CLOSE: "Close",
+    WEB_CHOOSE_FILE: "Choose File…", BTN_CLOSE: "Close",
   };
-  const fmt = (text, values) => text.replace(/\{(\w+)\}/g, (m, k) => (k in values ? values[k] : m));
 
   // preserveDrawingBuffer: the canvas keeps the last frame until the browser composites it; a frame
   // drawn between two compositor updates is otherwise not shown by some engines (WebKit).
@@ -322,6 +313,7 @@
       status.textContent = "";
       lastMods = "";
     };
+    areas.clear();
     socket.onmessage = (event) => {
       // Messages are decompressed asynchronously; keep them in order.
       chain = chain.then(() => onMessage(event.data)).catch((e) => console.error(e));
@@ -335,7 +327,8 @@
       frame = null;
       controlling = false;
       banner.hidden = true;
-      closeAllDialogs();
+      uploadTarget = null;
+      hideChooser();
       requestDraw();
       if (denied) setTimeout(() => location.reload(), 1500);
       else setTimeout(connect, 2000);
@@ -374,15 +367,31 @@
   }
 
   // ---- page events ---------------------------------------------------------------------------
+  // The app draws its dialogs itself; the page only does what a browser has to: the file picker,
+  // dropped files, downloads and opening links. Its own few elements use the app's theme.
 
   function onEvent(ev) {
     if (ev.t === "texts") Object.assign(T, ev.texts);
+    else if (ev.t === "theme") applyTheme(ev);
     else if (ev.t === "control") onControl(ev);
-    else if (ev.t === "dialog") showDialog(ev);
-    else if (ev.t === "dialog-close") closeDialog(ev.id);
-    else if (ev.t === "file") onFile(ev);
-    else if (ev.t === "folder") showFolder(ev);
-    else if (ev.t === "open") openLink(ev.url, ev.url, T.WEB_OPEN_LINK);
+    else if (ev.t === "dialog") uploadTarget = ev.upload ? ev : null;
+    else if (ev.t === "dialog-close") {
+      if (uploadTarget && uploadTarget.id === ev.id) uploadTarget = null;
+      hideChooser();
+    }
+    else if (ev.t === "area") areas.set(ev.key, ev);
+    else if (ev.t === "area-clear") clearAreas(ev);
+    else if (ev.t === "pick") { if (!recently(`pick:${ev.id}`)) pick(ev); }
+    else if (ev.t === "download") { if (!recently(`download:${ev.url}`)) download(ev.url, ev.name); }
+    else if (ev.t === "open") { if (!recently(`open:${ev.url}`)) openLink(ev); }
+  }
+
+  function applyTheme(ev) {
+    const root = document.documentElement.style;
+    for (const key of ["bg", "panel", "text", "muted", "frame", "border", "button", "button_hovered"]) {
+      if (ev[key]) root.setProperty(`--${key.replace("_", "-")}`, ev[key]);
+    }
+    if (ev.font_px) root.setProperty("--font-px", `${ev.font_px}px`);
   }
 
   function onControl(ev) {
@@ -392,9 +401,10 @@
     if (!controlling) {
       banner.querySelector("span").textContent = T.WEB_VIEW_ONLY;
       banner.querySelector("button").textContent = T.WEB_TAKE_CONTROL;
-      closeAllDialogs();
+      hideChooser();
     } else if (!was) {
       lastMods = "";
+      send({ t: "caps", download: AUTO_DOWNLOAD });
       sendSize();
       send({ t: "focus", f: document.hasFocus() });
       keys.focus({ preventScroll: true });
@@ -404,248 +414,137 @@
 
   banner.querySelector("button").addEventListener("click", () => send({ t: "take" }, true));
 
-  function el(tag, props = {}, ...children) {
-    const node = document.createElement(tag);
-    for (const [k, v] of Object.entries(props)) {
-      if (k === "class") node.className = v;
-      else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
-      else if (k in node) node[k] = v;
-      else node.setAttribute(k, v);
-    }
-    for (const c of children) if (c != null) node.append(c);
-    return node;
-  }
-
-  function toast(text, actions = []) {
-    const item = el("div", { class: "toast" }, el("span", {}, text), ...actions);
-    const close = el("button", { class: "x", title: T.BTN_CLOSE, onclick: () => item.remove() }, "×");
-    item.append(close);
-    toasts.append(item);
-    setTimeout(() => item.remove(), 15000);
-    return item;
-  }
-
   function download(url, name) {
-    const a = el("a", { href: url, download: name });
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = name;
     document.body.append(a);
     a.click();
     a.remove();
   }
 
-  function openLink(url, text, label) {
-    // Opened from the user's click in the app, the browser usually allows it; otherwise offer a
-    // button the user clicks.
-    const win = window.open(url, "_blank", "noopener");
-    if (!win) toast(text, [el("button", { onclick: () => window.open(url, "_blank", "noopener") }, label)]);
+  function openLink(ev) {
+    // Asked for right after the user's click in the app, the browser usually allows it;
+    // otherwise the app offers it in a dialog, whose button is a fresh click.
+    const win = window.open(ev.url, "_blank", "noopener");
+    if (!win) send({ t: "blocked", url: ev.url, name: ev.name, show: ev.show });
   }
 
-  function onFile(ev) {
-    if (ev.download) {
-      download(ev.url, ev.name);
-      toast(fmt(T.WEB_FILE_READY, { name: ev.name }),
-            [el("button", { onclick: () => download(ev.url, ev.name) }, T.WEB_DOWNLOAD)]);
-    } else if (ev.show) {
-      openLink(`${ev.url}?show=1`, fmt(T.WEB_FILE_READY, { name: ev.name }), T.WEB_SHOW);
-    } else {
-      toast(fmt(T.WEB_FILE_READY, { name: ev.name }),
-            [el("button", { onclick: () => download(ev.url, ev.name) }, T.WEB_DOWNLOAD)]);
-    }
+  // -- uploads
+
+  let uploadTarget = null;  // the app's open file dialog that takes uploads
+  const picker = document.createElement("input");
+  picker.type = "file";
+  picker.hidden = true;
+  document.body.append(picker);
+  let pickTarget = null;
+  picker.addEventListener("change", () => {
+    const files = [...picker.files];
+    picker.value = "";
+    if (files.length && pickTarget) upload(files, pickTarget);
+  });
+
+  // Where the app's buttons are whose action the page does itself (file picker, download, link):
+  // a click there runs it in the click's own handler, which every browser accepts. The app sees
+  // the click too and asks for the same action; that request is then skipped.
+  const areas = new Map();
+  const done = new Map();
+  const IS_CHROMIUM = !!(navigator.userAgentData && navigator.userAgentData.brands
+    && navigator.userAgentData.brands.some((b) => b.brand === "Chromium"));
+  // Safari (and every browser on iOS) starts a download only from a click.
+  const AUTO_DOWNLOAD = !(/iPhone|iPad|iPod/.test(navigator.userAgent)
+    || (/AppleWebKit/.test(navigator.userAgent) && !/Chrome|Chromium|Edg|OPR|Firefox|FxiOS|CriOS/.test(navigator.userAgent)));
+
+  function recently(key) {
+    const at = done.get(key);
+    done.delete(key);
+    return at !== undefined && Date.now() - at < 3000;
   }
 
-  function size(bytes) {
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+  function clearAreas(ev) {
+    if (ev.key) areas.delete(ev.key);
+    if (ev.prefix) for (const key of [...areas.keys()]) if (key.startsWith(ev.prefix)) areas.delete(key);
   }
 
-  function when(seconds) {
-    return new Date(seconds * 1000).toLocaleString(undefined, { dateStyle: "short", timeStyle: "short" });
+  function openPicker(ev) {
+    pickTarget = ev;
+    picker.multiple = !!ev.multi;
+    picker.accept = ev.accept || "";
+    picker.click();
   }
 
-  function modal(title, onClose) {
-    const box = el("div", { class: "modal", role: "dialog", "aria-modal": "true" });
-    const shade = el("div", { class: "shade" }, box);
-    box.append(el("h3", {}, title));
-    shade.addEventListener("keydown", (e) => {
-      if (e.key === "Escape") { e.preventDefault(); onClose(); }
-      e.stopPropagation();
-    });
-    layer.append(shade);
-    return { shade, box };
-  }
-
-  function showFolder(ev) {
-    let view;
-    const close = () => { view.shade.remove(); keys.focus({ preventScroll: true }); };
-    view = modal(T.WEB_FOLDER_TITLE, close);
-    view.box.append(el("p", { class: "path" }, ev.path));
-    const list = el("div", { class: "list" });
-    if (!ev.files.length) list.append(el("div", { class: "empty" }, T.WEB_NO_FILES));
-    for (const f of ev.files) {
-      list.append(el("div", { class: "row" },
-        el("span", { class: "name" }, f.name), el("span", { class: "size" }, size(f.size)),
-        el("a", { href: f.url, download: f.name, class: "button" }, T.WEB_DOWNLOAD)));
-    }
-    view.box.append(list, el("div", { class: "buttons" },
-      el("button", { class: "primary", onclick: close }, T.BTN_CLOSE)));
-    view.box.querySelector("button.primary").focus();
-  }
-
-  // -- file dialogs
-
-  const dialogs = new Map();
-
-  function globRegex(pattern) {
-    const body = pattern.replace(/[.+^${}()|[\]\\]/g, "\\$&").replace(/\*/g, ".*").replace(/\?/g, ".");
-    return new RegExp(`^${body}$`, "i");
-  }
-
-  function matches(name, patterns) {
-    return !patterns.length || patterns.some((p) => p === "*" || globRegex(p).test(name));
-  }
-
-  function rememberDownload(value) {
-    try {
-      if (value === undefined) return localStorage.getItem("xknx-web-download") !== "0";
-      localStorage.setItem("xknx-web-download", value ? "1" : "0");
-    } catch (e) { /* storage blocked: default on */ }
-    return true;
-  }
-
-  function closeDialog(id) {
-    const view = dialogs.get(id);
-    if (!view) return;
-    dialogs.delete(id);
-    view.shade.remove();
-    keys.focus({ preventScroll: true });
-  }
-
-  function closeAllDialogs() {
-    for (const id of [...dialogs.keys()]) closeDialog(id);
-  }
-
-  function answer(ev, result) {
-    send({ t: "dialog", id: ev.id, ...result });
-    closeDialog(ev.id);
-  }
-
-  function showDialog(ev) {
-    if (dialogs.has(ev.id) || !controlling) return;
-    const cancel = () => answer(ev, { ok: false });
-    const view = modal(ev.title, cancel);
-    dialogs.set(ev.id, view);
-    const { box } = view;
-    const filters = ev.filters.length ? ev.filters : [["*", ["*"]]];
-    const typeSelect = el("select", {}, ...filters.map(([label], i) => el("option", { value: i }, label)));
-    const isFolder = ev.kind === "folder";
-    const entries = isFolder ? ev.folders : ev.files;
-    const list = el("div", { class: "list" });
-    const selected = new Set();
-    let nameInput = null;
-    let downloadBox = null;
-    let primary = null;
-
-    function refresh() {
-      list.replaceChildren();
-      const patterns = isFolder ? [] : filters[Number(typeSelect.value)][1];
-      const shown = entries.filter((f) => matches(f.name, patterns));
-      if (!shown.length) list.append(el("div", { class: "empty" }, T.WEB_NO_FILES));
-      for (const f of shown) {
-        const row = el("div", { class: "row", tabIndex: 0 },
-          el("span", { class: "name" }, f.name),
-          el("span", { class: "size" }, isFolder ? "" : size(f.size)),
-          el("span", { class: "when" }, when(f.modified)));
-        if (selected.has(f.name)) row.classList.add("selected");
-        row.addEventListener("click", (e) => {
-          if (nameInput) {
-            nameInput.value = f.name;
-          } else {
-            if (!(ev.multi && (e.ctrlKey || e.metaKey))) selected.clear();
-            if (selected.has(f.name)) selected.delete(f.name); else selected.add(f.name);
-            primary.disabled = !selected.size;
-          }
-          refresh();
-        });
-        row.addEventListener("dblclick", () => {
-          if (nameInput) nameInput.value = f.name; else { selected.clear(); selected.add(f.name); }
-          accept();
-        });
-        list.append(row);
+  canvas.addEventListener("click", (e) => {
+    if (!controlling) return;
+    const p = pointer(e);
+    for (const area of areas.values()) {
+      if (p.x < area.x || p.x >= area.x + area.w || p.y < area.y || p.y >= area.y + area.h) continue;
+      const action = area.action;
+      if (action.kind === "pick") {
+        done.set(`pick:${action.id}`, Date.now());
+        openPicker(action);
+      } else if (action.kind === "download") {
+        done.set(`download:${action.url}`, Date.now());
+        download(action.url, action.name);
+      } else if (action.kind === "open") {
+        done.set(`open:${action.url}`, Date.now());
+        window.open(action.url, "_blank", "noopener");
       }
+      break;
     }
+  });
 
-    function accept() {
-      if (ev.kind === "open") {
-        if (selected.size) answer(ev, { ok: true, names: [...selected] });
+  function pick(ev) {
+    // The button was used otherwise (keyboard): Chromium still opens the picker shortly after a
+    // user action; other browsers need one click on the page's own button.
+    const active = navigator.userActivation ? navigator.userActivation.isActive : false;
+    if (IS_CHROMIUM && active) openPicker(ev);
+    else { pickTarget = ev; showChooser(); }
+  }
+
+  function showChooser() {
+    chooser.querySelector("button.choose").textContent = T.WEB_CHOOSE_FILE;
+    chooser.querySelector("button.close").title = T.BTN_CLOSE;
+    chooser.hidden = false;
+    chooser.querySelector("button.choose").focus();
+  }
+
+  function hideChooser() {
+    chooser.hidden = true;
+  }
+
+  chooser.querySelector("button.choose").addEventListener("click", () => { hideChooser(); openPicker(pickTarget); });
+  chooser.querySelector("button.close").addEventListener("click", () => { hideChooser(); keys.focus({ preventScroll: true }); });
+
+  async function upload(files, target) {
+    const stored = [];
+    for (const file of target.multi ? files : files.slice(0, 1)) {
+      send({ t: "upload", id: target.id, state: "start", name: file.name });
+      try {
+        const response = await fetch(`upload?dialog=${target.id}&name=${encodeURIComponent(file.name)}`,
+                                     { method: "POST", body: file, credentials: "same-origin" });
+        if (!response.ok) throw new Error((await response.text()) || response.statusText);
+        stored.push((await response.json()).name);
+      } catch (e) {
+        send({ t: "upload", id: target.id, state: "error", error: e.message });
         return;
       }
-      const name = nameInput.value.trim();
-      if (!name) { nameInput.focus(); return; }
-      // No question here: like the desktop's dialogs (opened with force_overwrite), the app asks
-      // once itself before it replaces a file.
-      rememberDownload(downloadBox.checked);
-      answer(ev, { ok: true, name, filter: Number(typeSelect.value), download: downloadBox.checked });
     }
-
-    async function upload(files) {
-      const note = el("p", { class: "note" });
-      box.append(note);
-      const stored = [];
-      for (const file of files) {
-        note.textContent = fmt(T.WEB_UPLOADING, { name: file.name });
-        try {
-          const response = await fetch(`upload?dialog=${ev.id}&name=${encodeURIComponent(file.name)}`,
-                                       { method: "POST", body: file, credentials: "same-origin" });
-          if (!response.ok) throw new Error(await response.text() || response.statusText);
-          stored.push((await response.json()).name);
-        } catch (e) {
-          note.textContent = fmt(T.WEB_UPLOAD_FAILED, { error: e.message });
-          return;
-        }
-        if (!ev.multi) break;
-      }
-      answer(ev, { ok: true, names: stored });
-    }
-
-    if (ev.kind === "open") {
-      const picker = el("input", { type: "file", multiple: ev.multi, hidden: true });
-      picker.addEventListener("change", () => picker.files.length && upload([...picker.files]));
-      box.append(
-        el("div", { class: "drop" },
-          el("button", { onclick: () => picker.click() }, T.WEB_UPLOAD),
-          el("span", {}, T.WEB_DROP_HINT), picker));
-      box.addEventListener("dragover", (e) => { e.preventDefault(); box.classList.add("dragging"); });
-      box.addEventListener("dragleave", () => box.classList.remove("dragging"));
-      box.addEventListener("drop", (e) => {
-        e.preventDefault();
-        box.classList.remove("dragging");
-        if (e.dataTransfer.files.length) upload([...e.dataTransfer.files]);
-      });
-    } else {
-      nameInput = el("input", { type: "text", value: ev.name, spellcheck: false });
-      nameInput.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); accept(); } });
-      box.append(el("label", { class: "field" },
-        el("span", {}, isFolder ? T.WEB_FOLDER_NAME : T.WEB_FILE_NAME), nameInput));
-    }
-    if (!isFolder) {
-      typeSelect.addEventListener("change", refresh);
-      box.append(el("label", { class: "field" }, el("span", {}, T.WEB_FILE_TYPE), typeSelect));
-    }
-    box.append(el("h4", {}, T.WEB_SERVER_FILES), list);
-    if (ev.kind !== "open") {
-      downloadBox = el("input", { type: "checkbox", checked: rememberDownload() });
-      box.append(el("label", { class: "check" }, downloadBox, el("span", {}, T.WEB_DOWNLOAD_AFTER)));
-    }
-    const label = ev.kind === "open" ? T.WEB_OPEN : ev.kind === "save" ? T.WEB_SAVE : T.WEB_SELECT;
-    primary = el("button", { class: "primary", onclick: accept, disabled: ev.kind === "open" }, label);
-    box.append(el("div", { class: "buttons" }, primary, el("button", { onclick: cancel }, T.BTN_CANCEL)));
-    refresh();
-    (nameInput || box.querySelector("button")).focus();
-    if (nameInput) {
-      const dot = nameInput.value.lastIndexOf(".");
-      nameInput.setSelectionRange(0, dot > 0 ? dot : nameInput.value.length);
-    }
+    send({ t: "upload", id: target.id, state: "done", names: stored });
   }
+
+  // Files dropped on the page go into the app's open file dialog.
+  window.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    if (controlling && uploadTarget) document.body.classList.add("dragging");
+  });
+  window.addEventListener("dragleave", (e) => {
+    if (!e.relatedTarget) document.body.classList.remove("dragging");
+  });
+  window.addEventListener("drop", (e) => {
+    e.preventDefault();
+    document.body.classList.remove("dragging");
+    if (controlling && uploadTarget && e.dataTransfer.files.length) upload([...e.dataTransfer.files], uploadTarget);
+  });
 
   // ---- input ---------------------------------------------------------------------------------
 
@@ -743,9 +642,6 @@
 
   new ResizeObserver(() => { sendSize(); requestDraw(); }).observe(canvas);
   window.addEventListener("resize", () => { sendSize(); requestDraw(); });
-  // A file dropped outside a dialog must not replace the page.
-  window.addEventListener("dragover", (e) => e.preventDefault());
-  window.addEventListener("drop", (e) => e.preventDefault());
   keys.focus({ preventScroll: true });
   connect();
 })();

@@ -21,6 +21,8 @@ from starlette.websockets import WebSocketDisconnect
 from editor_gui import file_dialogs, settings, web
 from editor_gui.web import frames
 from editor_gui.web.dialogs import (
+    DownloadNotice,
+    FolderNotice,
     WebOpenFile,
     WebSaveFile,
     WebSelectFolder,
@@ -29,6 +31,7 @@ from editor_gui.web.dialogs import (
 from editor_gui.web.files import FileFolder, safe_name, watch_written, zip_folder
 from editor_gui.web.keys import imgui_key
 from editor_gui.web.server import WebHub
+from editor_gui.widgets import dialog as app_dialog
 
 _PNG = bytes.fromhex(
     "89504e470d0a1a0a0000000d49484452000000030000000208060000009d7466"
@@ -349,12 +352,31 @@ def test_open_dialog(hub: WebHub) -> None:
     (hub.files.root / "a.knxproj").write_bytes(b"x")
     dialog = WebOpenFile(hub, "Open", "", ["Projects", "*.knxproj"])
     request = dialog.event()
-    assert request["kind"] == "open"
-    assert [f["name"] for f in request["files"]] == ["a.knxproj"]
+    assert request == {
+        "t": "dialog",
+        "id": dialog.id,
+        "upload": True,
+        "multi": False,
+        "accept": ".knxproj",
+    }
+    assert hub.host.items == [dialog]
     assert not dialog.ready()
     dialog.answer({"ok": True, "names": ["a.knxproj", "../missing.xknx"]})
     assert dialog.ready()
     assert dialog.result() == [str(hub.files.root / "a.knxproj")]
+    assert dialog.closing
+
+
+def test_upload_progress_answers_the_dialog(hub: WebHub) -> None:
+    (hub.files.root / "up.knxproj").write_bytes(b"x")
+    dialog = WebOpenFile(hub, "Open")
+    dialog.upload_event({"state": "start", "name": "up.knxproj"})
+    assert not dialog.ready()
+    dialog.upload_event({"state": "error", "error": "too large"})
+    assert not dialog.ready()
+    dialog.upload_event({"state": "done", "names": ["up.knxproj"]})
+    assert dialog.ready()
+    assert dialog.result() == [str(hub.files.root / "up.knxproj")]
 
 
 def test_save_dialog_adds_the_extension_and_downloads(
@@ -365,7 +387,7 @@ def test_save_dialog_adds_the_extension_and_downloads(
     dialog = WebSaveFile(
         hub, "Export", "C:/x/Project.knxproj", ["ETS", "*.knxproj", "All", "*"]
     )
-    assert dialog.event()["name"] == "Project.knxproj"
+    assert dialog.default_name == "Project.knxproj"
     dialog.answer({"ok": True, "name": "Haus", "filter": 0, "download": True})
     target = hub.files.root / "Haus.knxproj"
     assert dialog.result() == str(target)
@@ -477,7 +499,7 @@ def test_socket_sends_texts_textures_and_takes_input(hub: WebHub) -> None:
         client.websocket_connect(f"/ws?token={_TOKEN}") as socket,
     ):
         texts = _event(socket.receive_bytes())
-        assert texts["t"] == "texts" and texts["texts"]["WEB_OPEN"]
+        assert texts["t"] == "texts" and texts["texts"]["WEB_TAKE_CONTROL"]
         assert socket.receive_bytes() == texture
         control = _event(socket.receive_bytes())
         assert control == {"t": "control", "control": True, "browsers": 1}
@@ -564,21 +586,30 @@ def test_downloads_only_offered_files(hub: WebHub, tmp_path: Path) -> None:
     ):
         _receive_until(socket, _is_event("control"))
         hub.offer_file(report, show=True)
-        offer = _event(_receive_until(socket, _is_event("file"))[-1])
-        assert offer["show"] and offer["name"] == "labels.html"
-        assert client.get(f"/{offer['url']}").status_code == 403  # no sign-in yet
+        shown_event = _event(_receive_until(socket, _is_event("open"))[-1])
+        assert shown_event["show"] and shown_event["name"] == "labels.html"
+        assert shown_event["url"].endswith("?show=1")
+        assert client.get(f"/{shown_event['url']}").status_code == 403  # no sign-in yet
         client.get(f"/?token={_TOKEN}")
-        shown = client.get(f"/{offer['url']}?show=1")
+        shown = client.get(f"/{shown_event['url']}")
         assert shown.status_code == 200 and shown.text == "<p>labels</p>"
         assert "inline" in shown.headers["content-disposition"]
         assert client.get("/files/1-unknown/x.html").status_code == 404
+        hub.offer_file(report, download=True)
+        fetch = _event(_receive_until(socket, _is_event("download"))[-1])
+        assert fetch["name"] == "labels.html"
+        assert (
+            "attachment"
+            in client.get(f"/{fetch['url']}").headers["content-disposition"]
+        )
         hub.open_url("https://example.com/manual.pdf")
         assert _event(_receive_until(socket, _is_event("open"))[-1])["url"] == (
             "https://example.com/manual.pdf"
         )
-        hub.show_folder(tmp_path)
-        listing = _event(_receive_until(socket, _is_event("folder"))[-1])
-        assert [f["name"] for f in listing["files"]] == ["labels.html"]
+    hub.show_folder(tmp_path)
+    (notice,) = hub.host.items
+    assert isinstance(notice, FolderNotice)
+    assert [e.name for e in notice.entries] == ["labels.html"]
 
 
 def test_dialog_goes_to_the_controlling_browser(hub: WebHub) -> None:
@@ -589,8 +620,98 @@ def test_dialog_goes_to_the_controlling_browser(hub: WebHub) -> None:
         _receive_until(socket, _is_event("control"))
         dialog = WebSaveFile(hub, "Save", "p.xknx", ["XKNX", "*.xknx"])
         request = _event(_receive_until(socket, _is_event("dialog"))[-1])
-        assert request["id"] == dialog.id and request["name"] == "p.xknx"
+        assert request["id"] == dialog.id and request["upload"] is False
         hub.answer_dialog({"t": "dialog", "id": dialog.id, "ok": False})
         closed = _event(_receive_until(socket, _is_event("dialog-close"))[-1])
         assert closed["id"] == dialog.id
         assert dialog.ready()
+
+
+def test_page_actions_are_sent_when_they_change(hub: WebHub) -> None:
+    with (
+        TestClient(hub.app()) as client,
+        client.websocket_connect(f"/ws?token={_TOKEN}") as socket,
+    ):
+        _receive_until(socket, _is_event("control"))
+        action = {"kind": "download", "url": "files/1/a", "name": "a"}
+        hub.page_action("folder-1:a", (10, 20, 30, 40), action)
+        hub.page_action("folder-1:a", (10, 20, 30, 40), action)  # unchanged: not sent
+        hub.page_action("folder-1:a", (10, 25, 30, 40), action)
+        first = _event(_receive_until(socket, _is_event("area"))[-1])
+        moved = _event(_receive_until(socket, _is_event("area"))[-1])
+        assert (first["y"], moved["y"]) == (20, 25)
+        assert first["action"] == action
+        hub.clear_actions("folder-1:")
+        cleared = _event(_receive_until(socket, _is_event("area-clear"))[-1])
+        assert cleared == {"t": "area-clear", "prefix": "folder-1:"}
+
+
+def test_safari_gets_a_download_notice(hub: WebHub, tmp_path: Path) -> None:
+    exported = tmp_path / "p.knxproj"
+    exported.write_bytes(b"x")
+    notes: list[str] = []
+    hub.notify = notes.append
+    hub.offer_file(exported, download=True)
+    hub.show_later()
+    assert hub.host.items == []  # the browser downloads by itself
+    hub.auto_download = False
+    hub.offer_file(exported, download=True)
+    hub.show_later()
+    (notice,) = hub.host.items
+    assert isinstance(notice, DownloadNotice) and notice.name == "p.knxproj"
+    assert len(notes) == 2 and "p.knxproj" in notes[0]
+
+
+def _frame(draw: Callable[[], None]) -> None:
+    io = imgui.get_io()
+    io.delta_time = 1 / 60
+    imgui.new_frame()
+    draw()
+    imgui.render()
+    for texture in imgui.get_platform_io().textures:
+        if texture.status != imgui.ImTextureStatus.ok:
+            texture.set_tex_id(1)
+            texture.set_status(imgui.ImTextureStatus.ok)
+
+
+def test_web_dialog_opens_inside_an_open_app_dialog(
+    context: imgui.IO, hub: WebHub, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(app_dialog, "nested_content", hub.host.draw)
+    dialog = WebOpenFile(hub, "Open")
+    seen: list[bool] = []
+
+    def app_window() -> None:
+        imgui.open_popup("App Dialog")
+        if app_dialog.begin_dialog("App Dialog", width=400.0):
+            imgui.text("asks for a file")
+            seen.append(imgui.is_popup_open(dialog.popup_id))
+            app_dialog.end_dialog()  # the web dialog is drawn in here
+        hub.host.draw()  # after the app's windows: already drawn this frame
+
+    for _ in range(3):
+        _frame(app_window)
+    # From the second frame on the web dialog is open one level above the app's dialog.
+    assert seen[1:] == [True, True]
+    dialog.answer({"ok": False})
+    for _ in range(2):
+        _frame(app_window)
+    assert hub.host.items == []
+    assert seen[-1] is False
+
+
+def test_web_dialog_opens_on_its_own(context: imgui.IO, hub: WebHub) -> None:
+    dialog = WebSaveFile(hub, "Save", "p.xknx", ["XKNX", "*.xknx"])
+    shown: list[bool] = []
+
+    def windows() -> None:
+        hub.host.draw()
+        shown.append(imgui.is_popup_open(dialog.popup_id))
+
+    for _ in range(3):
+        _frame(windows)
+    assert shown[-1]
+    dialog.answer({"ok": True, "name": "q", "filter": 0, "download": False})
+    _frame(windows)
+    assert hub.host.items == []
+    assert dialog.result() == str(hub.files.root / "q.xknx")

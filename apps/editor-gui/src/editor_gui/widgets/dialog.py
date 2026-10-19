@@ -10,7 +10,7 @@ size.
 
 from __future__ import annotations
 
-from collections.abc import Generator, Sequence
+from collections.abc import Callable, Generator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 
@@ -123,7 +123,15 @@ def begin_dialog(
     return opened
 
 
+# Drawn inside every dialog just before it ends, while it is the current popup: the browser UI
+# (``editor_gui.web``) shows its file dialogs nested in the topmost open dialog this way, so that
+# dialog stays open below them.
+nested_content: Callable[[], None] | None = None
+
+
 def end_dialog() -> None:
+    if nested_content is not None:
+        nested_content()
     imgui.end_popup()
 
 
@@ -134,12 +142,17 @@ def focus_when_appearing() -> None:
         imgui.set_keyboard_focus_here()
 
 
-def dialog_buttons(*labels: str, enabled: Sequence[bool] | None = None) -> int | None:
+def dialog_buttons(
+    *labels: str,
+    enabled: Sequence[bool] | None = None,
+    rects: list[tuple[float, float, float, float]] | None = None,
+) -> int | None:
     """A row of equal-width buttons below a separator, the primary one first.
 
     The last label is the button that dismisses the dialog: it sits at the right edge and Escape
     triggers it while the dialog has focus. The others sit left-aligned. Returns the index of the
-    clicked button, or ``None``.
+    clicked button, or ``None``. ``rects`` receives each button's screen rectangle (x, y, width,
+    height).
     """
     style = imgui.get_style()
     width = max(
@@ -167,6 +180,9 @@ def dialog_buttons(*labels: str, enabled: Sequence[bool] | None = None) -> int |
         if imgui.button(label, imgui.ImVec2(width, 0.0)):
             clicked = index
         imgui.end_disabled()
+        if rects is not None:
+            low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
+            rects.append((low.x, low.y, high.x - low.x, high.y - low.y))
         if (
             index == dismiss
             and clicked is None
