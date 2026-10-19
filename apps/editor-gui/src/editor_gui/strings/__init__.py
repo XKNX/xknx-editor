@@ -1371,6 +1371,10 @@ class MenuStrings:
         return _("Switching language…")
 
     @property
+    def PROGRESS_CANCELLING(self) -> str:
+        return _("Cancelling…")
+
+    @property
     def IMPORT_PASSWORD_TITLE(self) -> str:
         return _("Project Password")
 

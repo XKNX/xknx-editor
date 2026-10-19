@@ -4120,19 +4120,19 @@ class KnxGuiApp:
             imgui.end_menu()
 
     def _switch_language(self, code: str) -> None:
-        """Show the UI in ``code`` from now on and remember it."""
-        set_locale(code)
-        data = load_settings("app")
-        data["locale"] = code
-        save_settings("app", data)
-        # Re-translate the docked panel/tab titles in place (kept identity via ###name).
-        self._refresh_dock_titles()
+        """Show the UI in ``code`` from now on and remember it. Cancelling the device rebuild
+        returns to the language before."""
+        previous = get_locale()
+        self._apply_language(code)
+        cancel = threading.Event()
 
         # Device labels are parsed per language; re-resolve + rebuild the device views in
         # the new language on a worker thread behind the progress bar, so the (slow)
         # re-parse of every application doesn't freeze the UI on the next frame.
         def _reresolve() -> None:
             def report(done: int, total: int, sub: str = "") -> None:
+                if cancel.is_set():
+                    return
                 text = S.PROGRESS_DEVICES.format(done=done, total=total)
                 self.set_progress(
                     done / total if total else None,
@@ -4141,11 +4141,32 @@ class KnxGuiApp:
 
             self._project_service.build_progress = report
             try:
-                self._project_service.refresh_catalog_resolution(rebuild=True)
+                done = self._project_service.refresh_catalog_resolution(
+                    rebuild=True, cancelled=cancel.is_set
+                )
             finally:
                 self._project_service.build_progress = None
+            if not done:
+                # Back to the language before; its devices are all reused, not built again.
+                set_locale(previous)
+                self._ui_executor.submit(lambda: self._apply_language(previous))
+                _ = self._project_service.devices
+
+        def _cancel() -> None:
+            cancel.set()
+            self.set_progress(None, S.PROGRESS_CANCELLING)
 
         self._run_bg(S.PROGRESS_LANGUAGE, _reresolve)
+        if self._progress_running:
+            self._progress_cancel = _cancel
+
+    def _apply_language(self, code: str) -> None:
+        set_locale(code)
+        data = load_settings("app")
+        data["locale"] = code
+        save_settings("app", data)
+        # Re-translate the docked panel/tab titles in place (kept identity via ###name).
+        self._refresh_dock_titles()
 
     def _render_view_menu(self) -> None:
         """View menu: the default layout, which panels are shown, and the status bar."""
