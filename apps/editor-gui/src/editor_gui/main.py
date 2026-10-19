@@ -1899,9 +1899,15 @@ class KnxGuiApp:
         else:
             # ImGui shows an animated indeterminate bar for a negative fraction.
             imgui.progress_bar(-1.0 * float(imgui.get_time()), bar_size, "")
+        # The current step, and the seconds so far right-aligned with the bar on the same line (after
+        # a step too long for that, which widens the dialog).
+        seconds = f"{elapsed:0.0f}s"
+        right = imgui.get_cursor_pos_x() + bar_size.x - imgui.calc_text_size(seconds).x
         if self._progress_stage:
             imgui.text_disabled(self._progress_stage)
-        imgui.text_disabled(f"{elapsed:0.0f}s")
+            imgui.same_line()
+        imgui.set_cursor_pos_x(max(right, imgui.get_cursor_pos_x()))
+        imgui.text_disabled(seconds)
         cancel = self._progress_cancel
         if cancel is not None and dialog_buttons(S.BTN_CANCEL) == 0:
             self._progress_cancel = None
