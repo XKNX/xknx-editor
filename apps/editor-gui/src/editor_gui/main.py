@@ -4727,24 +4727,30 @@ def _title_in_front(label: str, value_x: float) -> None:
 
 def _wrap_text(text: str, width: float) -> str:
     """Hard-wrap each line to ``width`` pixels of the current font, preserving blank lines and
-    indentation (continuation lines are indented a little further).
+    indentation. The continuation lines of a numbered step ("1. …") start under its text.
 
     imgui's read-only multiline input keeps the text selectable/copyable but does NOT word-wrap,
     so long lines get clipped on the right. Pre-wrapping here gives readable, non-clipped text while
     staying copyable. Long tokens (Windows paths, ``P-XXXX_M-dummy``) are never split.
     """
+    space = imgui.calc_text_size(" ").x or 1.0
     out: list[str] = []
     for line in text.split("\n"):
         if not line.strip():
             out.append("")
             continue
         indent = line[: len(line) - len(line.lstrip())]
+        hanging = indent
+        marker = re.match(r"\s*\d+\.\s+", line)
+        if marker is not None:
+            # Spaces as wide as the indentation and the number in front of the text.
+            hanging = " " * round(imgui.calc_text_size(marker.group(0)).x / space)
         current = indent
         for word in line.split():
             candidate = f"{current} {word}" if current.strip() else current + word
             if current.strip() and imgui.calc_text_size(candidate).x > width:
                 out.append(current)
-                current = indent + "   " + word
+                current = hanging + word
             else:
                 current = candidate
         out.append(current)
