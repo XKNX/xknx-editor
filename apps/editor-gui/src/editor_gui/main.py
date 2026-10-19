@@ -93,6 +93,7 @@ from editor_gui.widgets.fonts import fitted_heading, heading, load_fonts
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
 from editor_gui.widgets.tables import reset_all_tables
+from editor_gui.widgets.text_util import fit_text
 from editor_gui.window_title import set_window_title
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
@@ -1899,12 +1900,18 @@ class KnxGuiApp:
         else:
             # ImGui shows an animated indeterminate bar for a negative fraction.
             imgui.progress_bar(-1.0 * float(imgui.get_time()), bar_size, "")
-        # The current step, and the seconds so far right-aligned with the bar on the same line (after
-        # a step too long for that, which widens the dialog).
+        # The current step, shortened with "…" where it would reach them, and the seconds so far
+        # right-aligned with the bar on the same line.
         seconds = f"{elapsed:0.0f}s"
-        right = imgui.get_cursor_pos_x() + bar_size.x - imgui.calc_text_size(seconds).x
-        if self._progress_stage:
-            imgui.text_disabled(self._progress_stage)
+        seconds_width = imgui.calc_text_size(seconds).x
+        right = imgui.get_cursor_pos_x() + bar_size.x - seconds_width
+        stage = self._progress_stage
+        if stage:
+            room = bar_size.x - seconds_width - imgui.get_style().item_spacing.x
+            shown = fit_text(stage, room)
+            imgui.text_disabled(shown)
+            if shown != stage and imgui.is_item_hovered():
+                imgui.set_tooltip(stage)
             imgui.same_line()
         imgui.set_cursor_pos_x(max(right, imgui.get_cursor_pos_x()))
         imgui.text_disabled(seconds)
