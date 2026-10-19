@@ -71,7 +71,12 @@ from editor_gui.theme import (
     theme_name,
     themes,
 )
-from editor_gui.update_check import ReleaseAsset, UpdateInfo, check_for_update
+from editor_gui.update_check import (
+    ReleaseAsset,
+    UpdateCheckError,
+    UpdateInfo,
+    fetch_update,
+)
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import (
@@ -543,6 +548,10 @@ class KnxGuiApp:
         # A project passed on the command line, opened once the window is up.
         self.startup_file: str | None = None
         self._update_manual = False  # a user-triggered check also reports "up to date"
+        # The dialog of a user-triggered check: "checking", "current", "failed", or None (closed).
+        self._update_check_state: str | None = None
+        self._update_check_error = ""
+        self._update_check_open_requested = False
         # Target schema for .knxproj export. ETS 6 (project/23) is the default; ETS 5 is project/20.
         # Persisted so a chosen ETS version sticks across sessions.
         _schema = str(load_settings("app").get("export_schema") or "23")
@@ -688,30 +697,46 @@ class KnxGuiApp:
         save_settings("app", data)
 
     def _start_update_check(self, *, manual: bool) -> None:
+        if manual:
+            # A dialog shows the check running and then its result (or the update found).
+            self._update_check_state = "checking"
+            self._update_check_open_requested = True
         if self._update_thread is not None and self._update_thread.is_alive():
+            self._update_manual = self._update_manual or manual
             return
         self._update_manual = manual
 
         def worker() -> None:
-            info = check_for_update(__version__)
-            # Marshal the result back onto the UI thread (touches settings + toasts + popups).
-            self._ui_executor.submit(lambda: self._on_update_result(info))
+            error = ""
+            try:
+                info = fetch_update(__version__)
+            except UpdateCheckError as e:
+                info, error = None, str(e)
+            # Marshal the result back onto the UI thread (touches settings + popups).
+            self._ui_executor.submit(lambda: self._on_update_result(info, error))
 
         self._update_thread = threading.Thread(
             target=worker, daemon=True, name="update-check"
         )
         self._update_thread.start()
 
-    def _on_update_result(self, info: UpdateInfo | None) -> None:
+    def _on_update_result(self, info: UpdateInfo | None, error: str = "") -> None:
         self._update_thread = None
-        # A user-triggered check ignores a previously skipped version and reassures when up to date.
+        manual, self._update_manual = self._update_manual, False
+        # A user-triggered check ignores a previously skipped version and tells when up to date or
+        # when the check failed; the startup check stays silent then.
         if info is not None and (
-            self._update_manual or info.version != self._skipped_update_version()
+            manual or info.version != self._skipped_update_version()
         ):
+            self._update_check_state = None
             self._update_info = info
             self._update_prompt_requested = True
-        elif self._update_manual:
-            self._flash_toast(S.UPDATE_UP_TO_DATE.format(version=__version__))
+        elif manual and error:
+            self._log.warning("update check failed", error=error)
+            self._update_check_state = "failed"
+            self._update_check_error = error
+        elif manual:
+            self._update_check_state = "current"
 
     def shutdown(self) -> None:
         # Stop the MCP server first so in-flight tool calls stop before the bus loop and project they
@@ -3131,6 +3156,36 @@ class KnxGuiApp:
             self._start_update_check(manual=True)
         elif clicked == 1:
             imgui.close_current_popup()
+        # The check's dialogs open on top of this one, which stays open behind them.
+        self._render_update_check_modal()
+        self._render_update_modal()
+        end_dialog()
+
+    def _render_update_check_modal(self) -> None:
+        """A user-triggered update check: running, then up to date or why it failed. A found update
+        replaces it with the update dialog."""
+        if self._update_check_open_requested:
+            imgui.open_popup(S.MENU_CHECK_UPDATES)
+            self._update_check_open_requested = False
+        if not begin_dialog(S.MENU_CHECK_UPDATES, width=420.0):
+            return
+        state = self._update_check_state
+        if state is None:
+            imgui.close_current_popup()
+            end_dialog()
+            return
+        if state == "checking":
+            imgui.text(S.UPDATE_CHECKING)
+        elif state == "current":
+            imgui.text_wrapped(S.UPDATE_UP_TO_DATE.format(version=__version__))
+        else:
+            imgui.text_wrapped(
+                S.UPDATE_CHECK_FAILED.format(error=self._update_check_error)
+            )
+        label = S.BTN_CANCEL if state == "checking" else S.BTN_OK
+        if dialog_buttons(label) == 0:
+            self._update_check_state = None
+            imgui.close_current_popup()
         end_dialog()
 
     def _render_update_modal(self) -> None:
@@ -3670,6 +3725,7 @@ class KnxGuiApp:
         self._render_new_project_modal()
         self._render_myknx_sign_modal()
         self._render_about_modal()
+        self._render_update_check_modal()
         self._render_update_modal()
         self._render_import_notes_modal()
         self._render_export_summary_modal()

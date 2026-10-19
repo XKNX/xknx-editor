@@ -1067,8 +1067,8 @@ msgstr "Bezig met annuleren…"
 msgid "Export cancelled, no file was written"
 msgstr "Exporteren geannuleerd, er is geen bestand geschreven"
 
-msgid "ETS 6 needs a licensed .knxproj: through a MyKnx login or a dongle.\nETS 5: just use 'Export Without Certificate'."
-msgstr "ETS 6 heeft een gelicentieerd .knxproj nodig: via een MyKnx-login of een dongle.\nETS 5: gebruik gewoon 'Zonder certificaat exporteren'."
+msgid "ETS 6: needs a licensed .knxproj through a MyKnx login or a dongle.\nETS 5: just use 'Export Without Certificate'."
+msgstr "ETS 6: heeft een gelicentieerd .knxproj nodig via een MyKnx-login of een dongle.\nETS 5: gebruik gewoon 'Zonder certificaat exporteren'."
 
 msgid "Sign with MyKnx Login"
 msgstr "Ondertekenen met MyKnx-login"
@@ -1079,7 +1079,7 @@ msgstr "Licentie met een dongle"
 msgid "ETS must not be running on any computer with this MyKnx account while you log in and export here."
 msgstr "ETS mag op geen enkele computer met dit MyKnx-account actief zijn terwijl je hier inlogt en exporteert."
 
-msgid "Login"
+msgid "Log in"
 msgstr "Inloggen"
 
 msgid "(only in the export, the project stays unchanged)"
@@ -1093,3 +1093,9 @@ msgstr "Licentieer het project opnieuw via je eigen gelicentieerde ETS, dat de k
 
 msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
 msgstr "Alleen nodig voor accounts met tweestapsverificatie. Het 2FA-inloggen opent automatisch in je browser wanneer een normale login wordt geweigerd. Voer de OAuth-client-id/-secret in, of haal ze uit je geïnstalleerde ETS: kies 'Knx.Ets.MyKnx.dll' in de ETS-programmamap (bijv. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAls je een gelicentieerde ETS geïnstalleerd hebt, kun je het online ondertekenen ook helemaal overslaan en in plaats daarvan de lokale ProjectStore gebruiken - zie het tabblad 'Licentie met een dongle'."
+
+msgid "Checking for updates…"
+msgstr "Zoeken naar updates…"
+
+msgid "The check for updates failed: {error}"
+msgstr "Het zoeken naar updates is mislukt: {error}"

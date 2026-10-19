@@ -697,7 +697,7 @@ class MenuStrings:
     @property
     def MYKNX_SIGN_PROMPT(self) -> str:
         return _(
-            "ETS 6 needs a licensed .knxproj: through a MyKnx login or a dongle.\n"
+            "ETS 6: needs a licensed .knxproj through a MyKnx login or a dongle.\n"
             "ETS 5: just use 'Export Without Certificate'."
         )
 
@@ -726,7 +726,7 @@ class MenuStrings:
 
     @property
     def MYKNX_SIGN_LOGIN(self) -> str:
-        return _("Login")
+        return _("Log in")
 
     @property
     def MYKNX_SIGN_2FA_WAITING(self) -> str:
@@ -1640,6 +1640,14 @@ class MenuStrings:
 
 class _CombinedStrings(BaseStrings, MenuStrings):
     pass
+
+    @property
+    def UPDATE_CHECKING(self) -> str:
+        return _("Checking for updates…")
+
+    @property
+    def UPDATE_CHECK_FAILED(self) -> str:
+        return _("The check for updates failed: {error}")
 
 
 S = _CombinedStrings()

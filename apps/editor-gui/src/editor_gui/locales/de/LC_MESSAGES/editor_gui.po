@@ -1184,8 +1184,8 @@ msgstr "Wird abgebrochen…"
 msgid "Export cancelled, no file was written"
 msgstr "Export abgebrochen, es wurde keine Datei geschrieben"
 
-msgid "ETS 6 needs a licensed .knxproj: through a MyKnx login or a dongle.\nETS 5: just use 'Export Without Certificate'."
-msgstr "ETS 6 braucht eine lizenzierte .knxproj: über die MyKnx-Anmeldung oder einen Dongle.\nETS 5: einfach 'Ohne Zertifikat exportieren' verwenden."
+msgid "ETS 6: needs a licensed .knxproj through a MyKnx login or a dongle.\nETS 5: just use 'Export Without Certificate'."
+msgstr "ETS 6: braucht eine lizenzierte .knxproj über die MyKnx-Anmeldung oder einen Dongle.\nETS 5: einfach 'Ohne Zertifikat exportieren' verwenden."
 
 msgid "Sign with MyKnx Login"
 msgstr "Mit MyKnx-Anmeldung signieren"
@@ -1196,7 +1196,7 @@ msgstr "Mit Dongle lizenzieren"
 msgid "ETS must not be running on any computer with this MyKnx account while you log in and export here."
 msgstr "ETS darf auf keinem Computer mit diesem MyKnx-Account laufen, während du dich hier anmeldest und exportierst."
 
-msgid "Login"
+msgid "Log in"
 msgstr "Anmelden"
 
 msgid "(only in the export, the project stays unchanged)"
@@ -1210,3 +1210,9 @@ msgstr "Lizenziere das Projekt über dein eigenes lizenziertes ETS neu, das die 
 
 msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
 msgstr "Nur für Accounts mit Zwei-Faktor-Authentifizierung nötig. Die 2FA-Anmeldung öffnet sich automatisch im Browser, wenn ein normaler Login abgelehnt wird. Trage die OAuth-Client-ID/-Secret ein oder extrahiere sie aus deinem installierten ETS: wähle 'Knx.Ets.MyKnx.dll' aus dem ETS-Programmordner (z. B. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternativ: Wenn du irgendein lizenziertes ETS installiert hast, überspringe die Online-Signierung ganz und nutze stattdessen den lokalen ProjectStore - siehe Reiter 'Mit Dongle lizenzieren'."
+
+msgid "Checking for updates…"
+msgstr "Suche nach Updates…"
+
+msgid "The check for updates failed: {error}"
+msgstr "Die Suche nach Updates ist fehlgeschlagen: {error}"
