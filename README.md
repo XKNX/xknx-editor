@@ -166,8 +166,8 @@ below it the navigation above (or beside) the other panels, which share one sect
 changes when the device is turned. On a narrow screen the menus are in one **☰** menu, the parameter
 editor shows its pages above the parameters with each label above its field, rows of buttons go on
 in the next line and wide tables scroll sideways. Each browser keeps its own zoom: two fingers,
-Ctrl+Plus/Minus/0, or **View → Zoom In/Zoom Out/Reset Zoom**; two fingers on the Topology diagram
-zoom the diagram. With a finger, a tap clicks, a swipe scrolls, holding and lifting is a
+Ctrl+Plus/Minus/0, Ctrl+wheel (a touchpad's pinch), or **View → Zoom In/Zoom Out/Reset Zoom**;
+on the Topology diagram they zoom the diagram. With a finger, a tap clicks, a swipe scrolls, holding and lifting is a
 right-click (context menus) and holding and moving drags. The on-screen keyboard appears for text
 fields only.
 

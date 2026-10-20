@@ -668,6 +668,8 @@
   let pinchAreas = [];
   // Zoom of such a view per wheel step (as the views do it).
   const VIEW_ZOOM_STEP = 1.1;
+  // Zoom of the app per wheel step with Ctrl (a mouse wheel's notch is one step).
+  const WHEEL_ZOOM = 0.1;
 
   function touchEvent(e, phase) {
     const p = pointer(e);
@@ -788,6 +790,17 @@
   canvas.addEventListener("contextmenu", (e) => e.preventDefault());
   canvas.addEventListener("wheel", (e) => {
     const unit = e.deltaMode === 1 ? 1 / 3 : e.deltaMode === 2 ? 1 : 1 / 100;
+    // Ctrl+wheel and a touchpad's pinch (sent as Ctrl+wheel) zoom the app, as the browser would;
+    // over a view with its own zoom (Topology) they zoom that view.
+    if (controlling && (e.ctrlKey || (IS_MAC && e.metaKey))) {
+      const p = pointer(e);
+      const view = pinchAreas.some(([x, y, w, h]) => p.x >= x && p.x < x + w && p.y >= y && p.y < y + h);
+      if (!view) {
+        setZoom(zoom * Math.exp(-e.deltaY * unit * WHEEL_ZOOM));
+        e.preventDefault();
+        return;
+      }
+    }
     send(mods(e));
     send({ t: "wheel", x: -e.deltaX * unit, y: -e.deltaY * unit });
     e.preventDefault();
