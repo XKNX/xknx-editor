@@ -1,0 +1,26 @@
+# Docker build context excludes. The build only needs the source tree + uv.lock; keep the rest out
+# so the context stays small and nothing private or generated is copied into the image.
+.git
+.github
+.references
+.venv
+**/.venv
+dist
+build
+**/__pycache__
+**/*.pyc
+*.knxproj
+*.knxprod
+*.xknx
+*.knxkeys
+.mypy_cache
+.ruff_cache
+.pytest_cache
+node_modules
+*.log
+.DS_Store
+# Packaging/docs not needed inside the image (keeps the build cache stable when they change)
+homeassistant
+repository.yaml
+.mcp.json
+xknx-web-container.png

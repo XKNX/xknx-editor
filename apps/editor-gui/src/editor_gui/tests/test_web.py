@@ -564,6 +564,29 @@ def test_socket_refuses_other_sites(hub: WebHub) -> None:
     assert closed.value.code == 4403
 
 
+def test_proxy_ip_restriction_answers_only_the_proxy(tmp_path: Path) -> None:
+    # Behind a reverse proxy (e.g. Home Assistant Ingress at 172.30.32.2): no sign-in, but only the
+    # proxy's own address is answered, so nothing else on the network reaches the passwordless app.
+    hub = WebHub(
+        tmp_path / "files", local_only=False, proxy_ips=frozenset({"172.30.32.2"})
+    )
+    with TestClient(
+        hub.app(), base_url="http://ingress", client=("172.30.32.2", 40000)
+    ) as client:
+        assert client.get("/").status_code == 200
+    # Any other peer (another add-on on the host) is refused, over HTTP and WebSocket alike.
+    with TestClient(
+        hub.app(), base_url="http://ingress", client=("172.30.32.9", 40000)
+    ) as client:
+        assert client.get("/").status_code == 403
+        with (
+            pytest.raises(WebSocketDisconnect) as closed,
+            _ws(client, {"host": "ingress"}),
+        ):
+            pass
+        assert closed.value.code == 4403
+
+
 def test_socket_sends_texts_textures_and_takes_input(hub: WebHub) -> None:
     _, texture = hub.textures.add_encoded(_PNG, 3, 2)
     with (

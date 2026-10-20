@@ -118,13 +118,17 @@ class WebHub:
         *,
         password: str | None = None,
         local_only: bool = True,
+        proxy_ips: frozenset[str] | None = None,
         idle_seconds: float = 600.0,
     ) -> None:
         """``password``: browsers sign in with it (None: no sign-in). ``local_only``: answer only
-        requests made to ``localhost``. ``idle_seconds``: after that long without input from the
-        controlling browser, a browser that connects gets control."""
+        requests made to ``localhost``. ``proxy_ips``: when set, answer only connections whose peer
+        is one of these addresses (the reverse proxy in front, e.g. Home Assistant Ingress at
+        172.30.32.2), rejecting everything else. ``idle_seconds``: after that long without input from
+        the controlling browser, a browser that connects gets control."""
         self._password = password
         self._local_only = local_only
+        self._proxy_ips = proxy_ips
         self._idle_seconds = idle_seconds
         self._signed_in: set[str] = set()
         self._controller_session: str | None = None
@@ -391,7 +395,12 @@ class WebHub:
             self._set_controller(self._clients[0])
 
     def _host_allowed(self, connection: HTTPConnection) -> bool:
-        """Served on this computer only: just requests made to ``localhost``."""
+        """Which connections to answer. With ``proxy_ips`` set, only those from the proxy in front
+        (its real transport peer); otherwise, when ``local_only``, only requests made to ``localhost``."""
+        if self._proxy_ips is not None:
+            peer = connection.client.host if connection.client else None
+            if peer not in self._proxy_ips:
+                return False
         if not self._local_only:
             return True
         host = connection.headers.get("host", "")

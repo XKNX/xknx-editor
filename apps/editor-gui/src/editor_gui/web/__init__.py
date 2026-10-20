@@ -15,6 +15,9 @@ Options:
 - ``--web-password-file=FILE`` or ``XKNX_WEB_PASSWORD``: browsers sign in with this password. A
   server reachable in the network needs it, or ``--web-trust-proxy`` when a proxy in front signs
   users in itself (e.g. Home Assistant Ingress); otherwise the web mode does not start.
+- ``--web-proxy-ip=IP[,IP...]``: answer only connections whose peer is one of these addresses (the
+  proxy in front). The Home Assistant add-on sets it to the Ingress address (``172.30.32.2``) so no
+  other add-on on the host can reach the editor directly, bypassing the login.
 - ``--web-idle=MINUTES``: after that long without input from the controlling browser, a browser
   that connects gets control (default 10).
 - ``--web-no-browser``: served on this computer only, the default browser opens the page once the
@@ -67,6 +70,7 @@ class WebOptions:
     trust_proxy: bool = False
     idle_minutes: float = 10.0
     open_browser: bool = True
+    proxy_ips: tuple[str, ...] = ()
 
     @property
     def local(self) -> bool:
@@ -109,12 +113,14 @@ def web_options(argv: list[str]) -> WebOptions | None:
                 "--web-files=",
                 "--web-password-file=",
                 "--web-idle=",
+                "--web-proxy-ip=",
             )
         ):
             name, _, value = arg.partition("=")
             values[name] = value
     if not enabled:
         return None
+    proxy = values.get("--web-proxy-ip") or ""
     return WebOptions(
         host,
         port,
@@ -125,6 +131,7 @@ def web_options(argv: list[str]) -> WebOptions | None:
         "--web-trust-proxy" in values,
         float(values.get("--web-idle") or 10.0),
         "--web-no-browser" not in values,
+        tuple(ip.strip() for ip in proxy.split(",") if ip.strip()),
     )
 
 
@@ -153,6 +160,8 @@ def enable_web_mode(
         files,
         password=password,
         local_only=options.local_only(password),
+        # When given, answer only the proxy in front (e.g. Home Assistant Ingress), nobody else.
+        proxy_ips=frozenset(options.proxy_ips) or None,
         idle_seconds=options.idle_minutes * 60.0,
     )
     active_hub = hub
