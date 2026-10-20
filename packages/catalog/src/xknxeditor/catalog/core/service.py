@@ -66,13 +66,15 @@ if TYPE_CHECKING:
 class CatalogService:
     """Database-owning facade: one session per method call, no manual engine threading."""
 
-    def __init__(self, db_path: str | Path) -> None:
+    def __init__(
+        self, db_path: str | Path, parse_cache_dir: Path | None = None
+    ) -> None:
         db_path = Path(db_path)
         self._engine = make_engine(f"sqlite:///{db_path}")
         self._knxprod_dir = knxprod_dir_for(db_path)
-        # Content-addressed cache for parsed application IR (see product.parse_cache), next to the
-        # .knxprod store so it lives with the catalog it belongs to.
-        self._parse_cache_dir = self._knxprod_dir.parent / "ir_cache"
+        # Content-addressed cache for parsed application IR (see product.parse_cache): where the
+        # app keeps its caches, else next to the .knxprod store it belongs to.
+        self._parse_cache_dir = parse_cache_dir or self._knxprod_dir.parent / "ir_cache"
 
     def close(self) -> None:
         """Release the database file (its pooled connections); later calls reconnect."""

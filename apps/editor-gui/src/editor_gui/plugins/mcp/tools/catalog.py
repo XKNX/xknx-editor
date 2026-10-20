@@ -21,8 +21,8 @@ from typing import TYPE_CHECKING, Any
 from urllib.parse import quote_plus, urlparse
 
 from fastmcp.exceptions import ToolError
-from platformdirs import user_cache_dir
 
+from editor_gui.cache import docs_cache_dir
 from editor_gui.doc_links import MANUFACTURER_DOMAINS as _MANUFACTURER_DOMAINS
 from editor_gui.doc_links import domain_for as _domain_for
 from editor_gui.doc_links import resolve_manual_url as _resolve_manual_url
@@ -178,7 +178,7 @@ _MEM_CACHE: dict[str, bytes] = {}
 
 
 def _docs_cache_dir() -> Path:
-    d = Path(user_cache_dir("xknx-editor")) / "docs"
+    d = docs_cache_dir()
     d.mkdir(parents=True, exist_ok=True)
     return d
 

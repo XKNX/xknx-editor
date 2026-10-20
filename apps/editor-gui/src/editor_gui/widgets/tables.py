@@ -12,9 +12,13 @@ from imgui_bundle import imgui
 from imgui_bundle.imgui import internal
 
 from editor_gui.settings import load_settings, save_settings
+from editor_gui.widgets.dpi import px
 from editor_gui.widgets.strings import S
 
 _SETTINGS = "app"
+# Narrower than this at 100 % scaling (a phone), a table is laid out this wide and scrolls
+# sideways instead of squeezing its columns.
+_NARROW_TABLE = 560.0
 _GENERATION_KEY = "table_generation"
 _generation: list[int] = []
 
@@ -47,14 +51,27 @@ def begin_data_table(
     columns: int,
     flags: int = 0,
     outer_size: imgui.ImVec2 | None = None,
+    *,
+    scroll_when_narrow: bool = False,
 ) -> bool:
     """``imgui.begin_table`` for a table of data, with the header menu of
-    :func:`data_table_headers` instead of the built-in one."""
+    :func:`data_table_headers` instead of the built-in one.
+
+    Where the window is narrow (a phone), a table that scrolls keeps its usual width and
+    scrolls sideways; with ``scroll_when_narrow`` one that does not scroll does so too, filling
+    the rest of the window then."""
+    inner_width = 0.0
+    width = px(_NARROW_TABLE)
+    scrolls = bool(flags & imgui.TableFlags_.scroll_y) or scroll_when_narrow
+    if scrolls and imgui.get_content_region_avail().x < width:
+        flags |= imgui.TableFlags_.scroll_x | imgui.TableFlags_.scroll_y
+        inner_width = width
     opened = imgui.begin_table(
         data_table_id(str_id),
         columns,
         flags,
         outer_size if outer_size is not None else imgui.ImVec2(0.0, 0.0),
+        inner_width,
     )
     if opened:
         internal.get_current_table().disable_default_context_menu = True

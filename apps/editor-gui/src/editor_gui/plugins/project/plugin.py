@@ -2357,6 +2357,10 @@ class ProjectPlugin:
     def show_context_help(self, shown: bool) -> None:
         self._configure_panel.show_help = shown
 
+    def reset_layout(self) -> None:
+        """Sizes the user dragged in the panels back to their defaults (Restore Default Layout)."""
+        self._configure_panel.reset_help_height()
+
     def import_group_addresses(self) -> None:
         """Ask for a group address file and import it into the open project."""
         self._group_addresses_panel.start_import()

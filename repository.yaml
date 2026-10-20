@@ -1,0 +1,7 @@
+# Home Assistant add-on repository metadata. Add this repository's URL under
+# Settings -> Add-ons -> Add-on Store -> (menu) -> Repositories to install the XKNX Editor add-on.
+# The Supervisor reads this file at the repository root and then finds the add-on in
+# homeassistant/xknx-editor/.
+name: XKNX Editor
+url: https://github.com/XKNX/xknx-editor
+maintainer: XKNX project (https://github.com/XKNX)

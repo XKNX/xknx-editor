@@ -70,7 +70,7 @@ def begin_combo(label: str, preview: str, flags: int = 0) -> bool:
     opened = imgui.begin_combo(label, preview, flags)
     imgui.pop_style_color(len(colors))
     if arrow:
-        _draw_arrow()
+        _draw_arrow(label)
     return opened
 
 
@@ -101,11 +101,17 @@ def combo(
     return changed, current
 
 
-def _draw_arrow() -> None:
-    """A small solid arrow at the right end of the drop-down just drawn."""
+def _draw_arrow(label: str) -> None:
+    """A small solid arrow at the right end of the drop-down ``label`` just drawn."""
     low = imgui.get_item_rect_min()
     high = imgui.get_item_rect_max()
     box = high.y - low.y
+    # The item reaches over a visible label right of the box; the arrow belongs in the box.
+    label_width = imgui.calc_text_size(label, hide_text_after_double_hash=True).x
+    if label_width > 0.0:
+        high = imgui.ImVec2(
+            high.x - label_width - imgui.get_style().item_inner_spacing.x, high.y
+        )
     draw = imgui.get_window_draw_list()
     width = round(imgui.get_font_size() * _ARROW_WIDTH)
     height = width / 2.0

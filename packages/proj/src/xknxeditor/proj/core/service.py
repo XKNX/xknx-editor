@@ -2022,6 +2022,10 @@ class ProjectService:
         device = self._state(project_id).session.get(Device, device_id)
         return device is not None and secure_commissioned(device)
 
+    def secure_commissioned_devices(self, project_id: str) -> set[int]:
+        """The ids of the devices commissioned securely (KNX Data Secure)."""
+        return commissioned_devices(self._state(project_id).session)
+
     def secure_commissioning_impact(
         self,
         project_id: str,

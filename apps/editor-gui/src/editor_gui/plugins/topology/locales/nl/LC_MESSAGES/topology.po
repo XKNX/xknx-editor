@@ -33,3 +33,6 @@ msgstr "Gebied {area}"
 
 msgid "L {line}"
 msgstr "L {line}"
+
+msgid "Zoom with two fingers. Tap a device to open it."
+msgstr "Zoom met twee vingers. Tik op een apparaat om het te openen."

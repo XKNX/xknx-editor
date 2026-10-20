@@ -959,9 +959,10 @@ class MenuStrings:
         return _(
             "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found "
             "automatically). A direct .knxprod or KNX product XML link also works.\n"
+            "\n"
             "Examples:\n"
-            "  https://github.com/OpenKNX/OAM-PresenceModule/releases/tag/3.6.2-Release\n"
-            "  https://github.com/OpenKNX/OAM-PresenceModule/releases/latest"
+            "  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n"
+            "  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
         )
 
     @property
@@ -1638,6 +1639,134 @@ class MenuStrings:
     def LINK_COPY(self) -> str:
         return _("Copy Link")
 
+    @property
+    def WEB_LOGIN_HINT(self) -> str:
+        return _("Enter the password for access to the editor.")
+
+    @property
+    def WEB_LOGIN_PASSWORD(self) -> str:
+        return _("Password")
+
+    @property
+    def WEB_LOGIN_BUTTON(self) -> str:
+        return _("Sign In")
+
+    @property
+    def WEB_LOGIN_WRONG(self) -> str:
+        return _("Wrong password.")
+
+    @property
+    def WEB_RECONNECTING(self) -> str:
+        return _("Disconnected. Reconnecting…")
+
+    @property
+    def WEB_DENIED(self) -> str:
+        return _("Access denied. Please sign in again.")
+
+    @property
+    def WEB_UPLOAD(self) -> str:
+        return _("Upload from This Computer…")
+
+    @property
+    def WEB_DROP_HINT(self) -> str:
+        return _("Or drop files here.")
+
+    @property
+    def WEB_SERVER_FILES(self) -> str:
+        return _("Files on the Server")
+
+    @property
+    def WEB_NO_FILES(self) -> str:
+        return _("No files yet.")
+
+    @property
+    def WEB_OPEN(self) -> str:
+        return _("Open")
+
+    @property
+    def WEB_SAVE(self) -> str:
+        return _("Save")
+
+    @property
+    def WEB_SELECT(self) -> str:
+        return _("Select")
+
+    @property
+    def WEB_FILE_NAME(self) -> str:
+        return _("File Name")
+
+    @property
+    def WEB_FOLDER_NAME(self) -> str:
+        return _("Folder Name")
+
+    @property
+    def WEB_FILE_TYPE(self) -> str:
+        return _("File Type")
+
+    @property
+    def WEB_DOWNLOAD_AFTER(self) -> str:
+        return _("Download to This Computer")
+
+    @property
+    def WEB_UPLOADING(self) -> str:
+        return _("Uploading {name}…")
+
+    @property
+    def WEB_UPLOAD_FAILED(self) -> str:
+        return _("Upload failed: {error}")
+
+    @property
+    def WEB_DOWNLOAD(self) -> str:
+        return _("Download")
+
+    @property
+    def WEB_SHOW(self) -> str:
+        return _("Show")
+
+    @property
+    def WEB_FOLDER_TITLE(self) -> str:
+        return _("Folder on the Server")
+
+    @property
+    def WEB_VIEW_ONLY(self) -> str:
+        return _("View only: another browser controls the editor.")
+
+    @property
+    def WEB_TAKE_CONTROL(self) -> str:
+        return _("Take Control")
+
+    @property
+    def WEB_COL_NAME(self) -> str:
+        return _("Name")
+
+    @property
+    def WEB_COL_SIZE(self) -> str:
+        return _("Size")
+
+    @property
+    def WEB_COL_MODIFIED(self) -> str:
+        return _("Modified")
+
+    @property
+    def WEB_LINK_BLOCKED(self) -> str:
+        return _("The browser did not open it by itself.")
+
+    @property
+    def WEB_DOWNLOAD_STARTED(self) -> str:
+        return _("Download started: {name}")
+
+    @property
+    def WEB_CHOOSE_FILE(self) -> str:
+        return _("Choose File…")
+
+    @property
+    def WEB_FILE_READY(self) -> str:
+        return _("{name} is ready.")
+
+    @property
+    def WEB_OPEN_LINK(self) -> str:
+        return _("Open Link")
+
 
 class _CombinedStrings(BaseStrings, MenuStrings):
     pass
@@ -1649,6 +1778,78 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     @property
     def UPDATE_CHECK_FAILED(self) -> str:
         return _("The check for updates failed: {error}")
+
+    @property
+    def GA_EXPORT_EMPTY(self) -> str:
+        return _("The project has no group addresses to export.")
+
+    @property
+    def MENU_CLEAR_CACHE(self) -> str:
+        return _("Clear Cache…")
+
+    @property
+    def CLEAR_CACHE_TITLE(self) -> str:
+        return _("Clear Cache")
+
+    @property
+    def CLEAR_CACHE_CONFIRM(self) -> str:
+        return _("Clear Cache")
+
+    @property
+    def CLEAR_CACHE_TEXT(self) -> str:
+        return _(
+            "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
+        )
+
+    @property
+    def CLEAR_CACHE_DONE(self) -> str:
+        return _("Cache cleared, {size} freed")
+
+    @property
+    def DATA_SECURE_DEVICE(self) -> str:
+        return _("KNX Secure")
+
+    @property
+    def MENU_ZOOM_IN(self) -> str:
+        return _("Zoom In")
+
+    @property
+    def MENU_ZOOM_OUT(self) -> str:
+        return _("Zoom Out")
+
+    @property
+    def MENU_ZOOM_RESET(self) -> str:
+        return _("Reset Zoom")
+
+    @property
+    def WEB_CUT(self) -> str:
+        return _("Cut")
+
+    @property
+    def WEB_COPY(self) -> str:
+        return _("Copy")
+
+    @property
+    def WEB_PASTE(self) -> str:
+        return _("Paste")
+
+    @property
+    def WEB_SELECT_ALL(self) -> str:
+        return _("Select All")
+
+    @property
+    def WEB_PASTE_HINT(self) -> str:
+        return _("Long-press in the field below and choose Paste.")
+
+    @property
+    def WEB_LOGIN_LOCKED(self) -> str:
+        return _("Too many wrong passwords. Please try again in a few minutes.")
+
+    @property
+    def WEB_PORT_IN_USE(self) -> str:
+        return _(
+            "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
+        )
 
 
 S = _CombinedStrings()

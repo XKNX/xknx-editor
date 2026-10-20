@@ -22,8 +22,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Protocol
 
 from imgui_bundle import imgui
-from imgui_bundle import portable_file_dialogs as pfd
 
+from editor_gui import file_dialogs
 from editor_gui.device import device_label
 from editor_gui.os_open import open_path
 from editor_gui.plugins.project.strings import S
@@ -233,7 +233,7 @@ class ToolsPanel:
         self._label_mode = _MODE_CSV
         self._label_use_custom = False
         self._label_grid = label_render.CustomGrid()
-        self._label_dialog: pfd.save_file | None = None
+        self._label_dialog: file_dialogs.SaveFileDialog | None = None
         self._label_content = ""  # pending file body (CSV or HTML)
         self._label_open_after = (
             False  # open the file in the browser after saving (HTML)
@@ -241,7 +241,7 @@ class ToolsPanel:
         # Last result line (shown under the active tab).
         self._status = ""
         # Project Diff state: file picker handle, last result, the other project's name, error.
-        self._diff_dialog: pfd.open_file | None = None
+        self._diff_dialog: file_dialogs.OpenFileDialog | None = None
         self._diff_result: DiffResult | None = None
         self._diff_other_name = ""
         self._diff_error = ""
@@ -687,7 +687,7 @@ class ToolsPanel:
         if self._label_mode == _MODE_CSV:
             self._label_content = label_render.labels_csv(header, rows)
             self._label_open_after = False
-            self._label_dialog = pfd.save_file(
+            self._label_dialog = file_dialogs.save_file(
                 S.TOOLS_LABELS_EXPORT, "labels.csv", ["CSV", "*.csv"]
             )
             return
@@ -701,7 +701,7 @@ class ToolsPanel:
         else:
             self._label_content = label_render.render_legend_html(header, rows)
         self._label_open_after = True
-        self._label_dialog = pfd.save_file(
+        self._label_dialog = file_dialogs.save_file(
             S.TOOLS_LABELS_EXPORT_HTML, "labels.html", ["HTML", "*.html"]
         )
 
@@ -760,7 +760,7 @@ class ToolsPanel:
         _desc(S.TOOLS_DIFF_DESC)
         imgui.separator_text(S.TOOLS_TAB_DIFF)
         if imgui.button(S.TOOLS_DIFF_PICK):
-            self._diff_dialog = pfd.open_file(
+            self._diff_dialog = file_dialogs.open_file(
                 S.TOOLS_DIFF_PICK_TITLE,
                 "",
                 [S.TOOLS_DIFF_FILTER, "*.knxproj *.xknx", S.TOOLS_SELECT_ALL, "*"],

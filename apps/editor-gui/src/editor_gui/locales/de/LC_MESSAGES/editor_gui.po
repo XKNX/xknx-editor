@@ -425,8 +425,8 @@ msgstr "Import von URL fehlgeschlagen: {error}"
 msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works."
 msgstr "OpenKNX-GitHub-Release-URL einfügen (die Release-Seite funktioniert — das .zip-Asset wird automatisch gefunden). Ein direkter .knxprod- oder KNX-Produkt-XML-Link geht auch."
 
-msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\nExamples:\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/tag/3.6.2-Release\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/latest"
-msgstr "OpenKNX-GitHub-Release-URL einfügen (die Release-Seite funktioniert — das .zip-Asset wird automatisch gefunden). Ein direkter .knxprod- oder KNX-Produkt-XML-Link geht auch.\nBeispiele:\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/tag/3.6.2-Release\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/latest"
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+msgstr "OpenKNX-GitHub-Release-URL einfügen (die Release-Seite funktioniert — das .zip-Asset wird automatisch gefunden). Ein direkter .knxprod- oder KNX-Produkt-XML-Link geht auch.\n\nBeispiele:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 
 msgid "Save As…"
 msgstr "Speichern unter…"
@@ -1163,6 +1163,93 @@ msgstr "Wird abgebrochen…"
 msgid "Export cancelled, no file was written"
 msgstr "Export abgebrochen, es wurde keine Datei geschrieben"
 
+msgid "Sign In"
+msgstr "Anmelden"
+
+msgid "Disconnected. Reconnecting…"
+msgstr "Verbindung getrennt. Neu verbinden…"
+
+msgid "Access denied. Please sign in again."
+msgstr "Zugriff verweigert. Bitte erneut anmelden."
+
+msgid "Upload from This Computer…"
+msgstr "Von diesem Computer hochladen…"
+
+msgid "Or drop files here."
+msgstr "Oder Dateien hier ablegen."
+
+msgid "Files on the Server"
+msgstr "Dateien auf dem Server"
+
+msgid "No files yet."
+msgstr "Noch keine Dateien."
+
+msgid "Open"
+msgstr "Öffnen"
+
+msgid "Select"
+msgstr "Auswählen"
+
+msgid "File Name"
+msgstr "Dateiname"
+
+msgid "Folder Name"
+msgstr "Ordnername"
+
+msgid "File Type"
+msgstr "Dateityp"
+
+msgid "Download to This Computer"
+msgstr "Auf diesen Computer herunterladen"
+
+msgid "Uploading {name}…"
+msgstr "{name} wird hochgeladen…"
+
+msgid "Upload failed: {error}"
+msgstr "Hochladen fehlgeschlagen: {error}"
+
+msgid "Show"
+msgstr "Anzeigen"
+
+msgid "Folder on the Server"
+msgstr "Ordner auf dem Server"
+
+msgid "View only: another browser controls the editor."
+msgstr "Nur ansehen: Ein anderer Browser steuert den Editor."
+
+msgid "Take Control"
+msgstr "Steuerung übernehmen"
+
+msgid "Open Link"
+msgstr "Link öffnen"
+
+msgid "Name"
+msgstr "Name"
+
+msgid "Size"
+msgstr "Größe"
+
+msgid "Modified"
+msgstr "Geändert"
+
+msgid "The browser did not open it by itself."
+msgstr "Der Browser hat es nicht selbst geöffnet."
+
+msgid "Download started: {name}"
+msgstr "Download gestartet: {name}"
+
+msgid "Choose File…"
+msgstr "Datei auswählen…"
+
+msgid "{name} is ready."
+msgstr "{name} ist bereit."
+
+msgid "Enter the password for access to the editor."
+msgstr "Geben Sie das Passwort für den Zugriff auf den Editor ein."
+
+msgid "Wrong password."
+msgstr "Falsches Passwort."
+
 msgid "ETS 6: needs a licensed .knxproj through a MyKNX login or a dongle.\nETS 5: just use 'Export Without Certificate'."
 msgstr "ETS 6: braucht eine lizenzierte .knxproj über die MyKNX-Anmeldung oder einen Dongle.\nETS 5: einfach 'Ohne Zertifikat exportieren' verwenden."
 
@@ -1195,3 +1282,48 @@ msgstr "Suche nach Updates…"
 
 msgid "The check for updates failed: {error}"
 msgstr "Die Suche nach Updates ist fehlgeschlagen: {error}"
+
+msgid "The project has no group addresses to export."
+msgstr "Das Projekt enthält keine Gruppenadressen zum Exportieren."
+
+msgid "Clear Cache…"
+msgstr "Cache leeren…"
+
+msgid "Clear Cache"
+msgstr "Cache leeren"
+
+msgid "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
+msgstr "Der Cache enthält {size} an aufbereiteten Produktdaten und an Dokumentation, die für die KI-Werkzeuge geladen wurde. Alles wird bei Bedarf neu erstellt; danach dauert nur die erste Verwendung jedes Produkts länger."
+
+msgid "Cache cleared, {size} freed"
+msgstr "Cache geleert, {size} freigegeben"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Zoom In"
+msgstr "Vergrößern"
+
+msgid "Zoom Out"
+msgstr "Verkleinern"
+
+msgid "Reset Zoom"
+msgstr "Zoom zurücksetzen"
+
+msgid "Cut"
+msgstr "Ausschneiden"
+
+msgid "Paste"
+msgstr "Einfügen"
+
+msgid "Select All"
+msgstr "Alles auswählen"
+
+msgid "Long-press in the field below and choose Paste."
+msgstr "Im Feld unten lange drücken und Einfügen wählen."
+
+msgid "Too many wrong passwords. Please try again in a few minutes."
+msgstr "Zu viele falsche Passwörter. Bitte in einigen Minuten erneut versuchen."
+
+msgid "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
+msgstr "Port {port} wird bereits von einem anderen Programm verwendet, daher kann die Browser-Oberfläche dort nicht starten. Mit einem anderen Port starten (z. B. --web={example}) oder ohne Port, um einen freien zu nehmen."

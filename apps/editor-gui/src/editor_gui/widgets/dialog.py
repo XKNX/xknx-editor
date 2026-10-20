@@ -1,8 +1,8 @@
 """Modal dialogs and tool windows with one look.
 
-Every dialog opens centred on the main window and stays centred while its content changes its size
-(wrapped text settles over the first frames, content loads later), until the user moves it. It has
-a title bar and does not remember a position it was moved to. Its buttons sit in one row of equal-width buttons: the actions left-aligned, the
+Every dialog opens centred on the main window, at most as large as it (it scrolls then), and
+stays centred while its content changes its size (wrapped text settles over the first frames,
+content loads later), until the user moves it. It has a title bar and does not remember a position it was moved to. Its buttons sit in one row of equal-width buttons: the actions left-aligned, the
 button that dismisses the dialog (Cancel, Close, No, ...) right-aligned and triggered by Escape.
 Tool windows open centred too while they float; they can be docked and keep their dock place and
 size.
@@ -10,7 +10,7 @@ size.
 
 from __future__ import annotations
 
-from collections.abc import Generator, Sequence
+from collections.abc import Callable, Generator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 
@@ -24,6 +24,8 @@ _MIN_BUTTON_WIDTH = 90.0
 _escape_frame = [-1]
 # Off by more than this (pixels) from where it was placed, a dialog was moved by the user.
 _MOVED_TOLERANCE = 1.5
+# Room a dialog leaves to each edge of a screen it does not fit on, at 100 % scaling.
+_SCREEN_MARGIN = 6.0
 
 
 @dataclass
@@ -49,6 +51,22 @@ def _center_next_window(title: str | None = None) -> None:
         imgui.Cond_.always if recentre else imgui.Cond_.appearing,
         imgui.ImVec2(0.5, 0.5),
     )
+
+
+def _fit_screen(title: str | None = None, width: float | None = None) -> int:
+    """Keep the next window within the screen (a phone): at most as large as the main window
+    less a margin, scrolling what does not fit. Returns the window flags for that: a horizontal
+    scroll bar once the window is as wide as the screen allows (``width`` in pixels is the width
+    it is given, else the size it had)."""
+    viewport = imgui.get_main_viewport()
+    margin = 2 * px(_SCREEN_MARGIN)
+    room = imgui.ImVec2(
+        max(viewport.size.x - margin, px(160)), max(viewport.size.y - margin, px(120))
+    )
+    imgui.set_next_window_size_constraints(imgui.ImVec2(0.0, 0.0), room)
+    placement = _placements.get(title) if title is not None else None
+    wanted = width if width is not None else placement.size[0] if placement else 0.0
+    return imgui.WindowFlags_.horizontal_scrollbar if wanted >= room.x - 1.0 else 0
 
 
 def _near(a: tuple[float, float], b: tuple[float, float]) -> bool:
@@ -109,6 +127,7 @@ def begin_dialog(
     size and can be resized. Without either it fits its content.
     """
     _center_next_window(title)
+    flags |= _fit_screen(title, px(width) if width is not None else None)
     if width is not None and height is not None:
         imgui.set_next_window_size(px_vec2(width, height), imgui.Cond_.appearing)
     elif width is not None:
@@ -125,7 +144,15 @@ def begin_dialog(
     return opened
 
 
+# Drawn inside every dialog just before it ends, while it is the current popup: the browser UI
+# (``editor_gui.web``) shows its file dialogs nested in the topmost open dialog this way, so that
+# dialog stays open below them.
+nested_content: Callable[[], None] | None = None
+
+
 def end_dialog() -> None:
+    if nested_content is not None:
+        nested_content()
     imgui.end_popup()
 
 
@@ -188,12 +215,17 @@ def tab_page(str_id: str) -> Generator[None]:
         draw.path_stroke(imgui.get_color_u32(imgui.Col_.border))
 
 
-def dialog_buttons(*labels: str, enabled: Sequence[bool] | None = None) -> int | None:
+def dialog_buttons(
+    *labels: str,
+    enabled: Sequence[bool] | None = None,
+    rects: list[tuple[float, float, float, float]] | None = None,
+) -> int | None:
     """A row of equal-width buttons below a separator, the primary one first.
 
     The last label is the button that dismisses the dialog: it sits at the right edge and Escape
     triggers it while the dialog has focus. The others sit left-aligned. Returns the index of the
-    clicked button, or ``None``.
+    clicked button, or ``None``. ``rects`` receives each button's screen rectangle (x, y, width,
+    height).
     """
     style = imgui.get_style()
     width = max(
@@ -221,6 +253,9 @@ def dialog_buttons(*labels: str, enabled: Sequence[bool] | None = None) -> int |
         if imgui.button(label, imgui.ImVec2(width, 0.0)):
             clicked = index
         imgui.end_disabled()
+        if rects is not None:
+            low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
+            rects.append((low.x, low.y, high.x - low.x, high.y - low.y))
         if (
             index == dismiss
             and clicked is None
@@ -250,5 +285,6 @@ def begin_tool_window(
     """
     _center_next_window()
     imgui.set_next_window_size(px_vec2(width, height), imgui.Cond_.first_use_ever)
+    flags |= _fit_screen(width=px(width))
     with floating_window_border():
         return imgui.begin(title, p_open, flags)

@@ -167,7 +167,7 @@ msgstr "Last: {rate} t/s"
 msgid "Clear"
 msgstr "Wissen"
 
-msgid "Not connected"
+msgid "Not Connected"
 msgstr "Niet verbonden"
 
 msgid "Filter by address or name…"
@@ -307,9 +307,6 @@ msgstr "Afspelen {done}/{total}"
 
 msgid "Stopped"
 msgstr "Gestopt"
-
-msgid "Waiting for a connection"
-msgstr "Wachten op een verbinding"
 
 msgid "Remove all telegrams"
 msgstr "Alle telegrammen verwijderen"

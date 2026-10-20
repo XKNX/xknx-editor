@@ -12,9 +12,8 @@ from collections.abc import Callable
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
-from imgui_bundle import portable_file_dialogs as pfd
 
-from editor_gui import trace_key
+from editor_gui import file_dialogs, trace_key
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
@@ -43,7 +42,7 @@ class ProjectLogPanel:
         self._sort_key = 0
         self._sort_desc = True
         # Key extraction (background thread; the .NET call takes a moment).
-        self._dialog: pfd.open_file | None = None
+        self._dialog: file_dialogs.OpenFileDialog | None = None
         self._extracting = False
         self._error: str | None = None
         self._result: tuple[bytes, bytes, str] | None = None
@@ -130,7 +129,7 @@ class ProjectLogPanel:
         imgui.separator()
 
     def _begin_extract(self) -> None:
-        self._dialog = pfd.open_file(
+        self._dialog = file_dialogs.open_file(
             S.PROJECT_LOG_EXTRACT,
             default_trace_dll_path(),
             [

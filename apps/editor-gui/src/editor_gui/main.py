@@ -7,14 +7,12 @@ import sys
 import tempfile
 import threading
 import time
-import webbrowser
 from collections.abc import Callable
 from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
 
 import imgui_bundle._patch_runners_add_save_screenshot_param as _screenshot_patch
-import platformdirs
 
 _screenshot_patch._get_caller_filename = lambda depth: ""  # type: ignore[assignment]
 
@@ -24,9 +22,16 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
 from xknxproject.exceptions import InvalidPasswordException, XknxProjectException
 
-from editor_gui import __version__, self_update
+from editor_gui import __version__, file_dialogs, self_update, web
 from editor_gui import signing_key as signing_key_store
 from editor_gui import trace_key as trace_key_store
+from editor_gui.cache import (
+    cache_dir,
+    cache_size,
+    clear_cache,
+    move_product_cache,
+    product_cache_dir,
+)
 from editor_gui.certs import ensure_ca_bundle
 from editor_gui.color import warning_red
 from editor_gui.concurrency import MainThreadExecutor
@@ -42,6 +47,7 @@ from editor_gui.myknx_oauth import (
 from editor_gui.myknx_oauth import (
     save_credentials as save_myknx_oauth_credentials,
 )
+from editor_gui.os_open import open_url
 from editor_gui.plugins.base import API_VERSION, Logger, PanelDefinition, PluginAPI
 from editor_gui.plugins.catalog import CatalogPlugin, CatalogService
 from editor_gui.plugins.cockpit import CockpitPlugin
@@ -77,8 +83,10 @@ from editor_gui.update_check import (
     UpdateInfo,
     fetch_update,
 )
+from editor_gui.web import enable_web_mode, web_options
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.description import set_secure_devices
 from editor_gui.widgets.dialog import (
     begin_dialog,
     dialog_buttons,
@@ -93,7 +101,8 @@ from editor_gui.widgets.fonts import fitted_heading, heading, load_fonts
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
 from editor_gui.widgets.tables import reset_all_tables
-from editor_gui.widgets.text_util import fit_text
+from editor_gui.widgets.text_util import fit_text, human_size
+from editor_gui.widgets.tree import collapsing_header
 from editor_gui.window_title import set_window_title
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
@@ -283,7 +292,7 @@ def _file_name(name: str) -> str:
 def _link(url: str) -> None:
     """``url`` as a link that opens it, with a menu to copy it (the built-in one is untranslated)."""
     if imgui.text_link(url):
-        webbrowser.open(url)
+        open_url(url)
     if imgui.is_item_hovered():
         imgui.set_tooltip(S.LINK_OPEN.format(url=url))
     if imgui.begin_popup_context_item(f"##link_{url}"):
@@ -361,32 +370,41 @@ def _log_gl_renderer(log: Logger) -> None:
 class KnxGuiApp:
     def __init__(self, catalog_path: Path) -> None:
         self._catalog_service_path = catalog_path
-        self._catalog_service = CatalogService(catalog_path)
+        self._catalog_service = CatalogService(
+            catalog_path, parse_cache_dir=product_cache_dir()
+        )
 
-        self._open_file_dialog: pfd.open_file | None = None
-        self._save_file_dialog: pfd.save_file | None = None
-        self._open_project_dialog: pfd.open_file | None = None
-        self._save_project_dialog: pfd.save_file | None = None
+        self._open_file_dialog: file_dialogs.OpenFileDialog | None = None
+        self._save_file_dialog: file_dialogs.SaveFileDialog | None = None
+        self._open_project_dialog: file_dialogs.OpenFileDialog | None = None
+        self._save_project_dialog: file_dialogs.SaveFileDialog | None = None
         # New-project wizard: collected before the save dialog opens, then applied to the fresh file.
         self._new_project_requested = False
         self._new_project_name = "New project"
         self._new_project_style = GroupAddressStyle.THREE_LEVEL
-        self._save_as_dialog: pfd.save_file | None = None
-        self._import_knxproj_save_dialog: pfd.save_file | None = None
-        self._import_ga_export_save_dialog: pfd.save_file | None = None
+        self._save_as_dialog: file_dialogs.SaveFileDialog | None = None
+        self._import_knxproj_save_dialog: file_dialogs.SaveFileDialog | None = None
+        self._import_ga_export_save_dialog: file_dialogs.SaveFileDialog | None = None
         self._import_ga_export_source: str | None = None
-        self._export_knxproj_dialog: pfd.save_file | PortalSaveDialog | None = None
+        self._export_knxproj_dialog: (
+            file_dialogs.SaveFileDialog | PortalSaveDialog | None
+        ) = None
         self._export_knxproj_default = ""
-        self._export_ga_export_dialog: pfd.save_file | None = None
+        self._export_ga_export_dialog: file_dialogs.SaveFileDialog | None = None
         self._ga_export_options_requested = False
         self._ga_export_options: dict[str, Any] = {}
+        # The project has no group addresses: say so instead of exporting an empty file.
+        self._ga_export_empty_requested = False
+        # Clear Cache…: the confirmation, with the size the cache had when it was asked for.
+        self._clear_cache_requested = False
+        self._clear_cache_size = 0
         # Folder picker for the ProjectStore export when the default path is not found, and which
         # ETS generation that export is aimed at (set when the export starts, read by the dialogs).
-        self._projectstore_dialog: pfd.select_folder | None = None
+        self._projectstore_dialog: file_dialogs.SelectFolderDialog | None = None
         self._projectstore_format = ets_store.StoreFormat.ETS6
         # File picker for the ETS installer.guid when it is not found locally (e.g. exporting on a
         # Mac for a Windows ETS), plus the store folder resolved in the step before it.
-        self._installer_guid_dialog: pfd.open_file | None = None
+        self._installer_guid_dialog: file_dialogs.OpenFileDialog | None = None
         self._pending_store_path: Path | None = None
         # Set when a P-XXXX folder already exists in the store: (store_root, installer_guid) held
         # until the user picks overwrite vs. new copy in the confirmation modal.
@@ -444,7 +462,7 @@ class KnxGuiApp:
         _oauth_creds = load_myknx_oauth_credentials()
         self._myknx_client_id = _oauth_creds[0] if _oauth_creds else ""
         self._myknx_client_secret = _oauth_creds[1] if _oauth_creds else ""
-        self._myknx_oauth_dll_dialog: pfd.open_file | None = None
+        self._myknx_oauth_dll_dialog: file_dialogs.OpenFileDialog | None = None
         self._myknx_oauth_extract_thread: threading.Thread | None = None
         self._myknx_oauth_extract_error = ""
         self._import_knxproj_source: str | None = None
@@ -636,7 +654,30 @@ class KnxGuiApp:
             load_settings("app").get("highlight_changes", True)
         )
         set_highlight_changes(self._highlight_changes)
+        # Device rows mark the devices commissioned with KNX Data Secure with a shield.
+        set_secure_devices(
+            self._project_service.secure_device_ids, lambda: S.DATA_SECURE_DEVICE
+        )
         self.bottom_expanded = bool(load_settings("app").get("bottom_expanded", False))
+        # The browser UI's layout for the size it is shown in (see form_factor), the usual one
+        # meanwhile remembered, and since when another one would fit.
+        self._form = "wide"
+        self._wide_layout: dict[str, Any] = {}
+        self._form_since: float | None = None
+        # The status bar's parts: whether one no longer fitted, and the room kept at the right.
+        self._status_full = False
+        self._status_reserved = 0.0
+        # Width the menus take side by side, per language (see gui_menu).
+        self._menus_width: dict[str, float] = {}
+        # After a layout switch: the order the tabs are moved into (window ids), from the frame
+        # the new layout is built until a later one.
+        self._tab_order: list[str] = []
+        self._tab_order_from = 0
+        self._tab_order_until = 0
+        # The usual layout's section sizes, measured while it had its room (a smaller browser
+        # squeezes it before the layout changes).
+        self._wide_ratios: dict[str, float] = {}
+        self._wide_measured = 0.0
         self._monitor_plugin.set_monitor_extended(self.bottom_expanded)
         self._monitor_plugin.set_layout_toggler(self._toggle_bottom_expanded)
 
@@ -670,6 +711,13 @@ class KnxGuiApp:
     def setup(self) -> None:
         self._log.info("editor started", installation=self._update_scope or "none")
         self._can_launch_file_dialog()
+        # In the browser UI, notes about downloads show as this app's toasts.
+        if web.active_hub is not None:
+            web.active_hub.notify = self._flash_toast
+            # An error the browser UI went on after: logged, and shown as a toast.
+            web.active_hub.report_error = lambda where, error: self._log.error(
+                "internal error", where=where, error=error
+            )
         # Apply a previously extracted/saved signing key so exports are signed with it.
         if signing_key_store.apply_cached_key():
             self._log.info("signing key loaded")
@@ -788,7 +836,7 @@ class KnxGuiApp:
     def _open_new_project_save_dialog(self) -> None:
         if not self._can_launch_file_dialog():
             return
-        self._save_project_dialog = pfd.save_file(
+        self._save_project_dialog = file_dialogs.save_file(
             S.FILE_DIALOG_PROJECT_SAVE_TITLE,
             f"{self._new_project_name.strip() or 'New project'}.xknx",
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
@@ -798,7 +846,7 @@ class KnxGuiApp:
     def _save_as(self) -> None:
         if not self._project_service.is_open or not self._can_launch_file_dialog():
             return
-        self._save_as_dialog = pfd.save_file(
+        self._save_as_dialog = file_dialogs.save_file(
             S.FILE_DIALOG_SAVE_AS_TITLE,
             "",
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
@@ -811,7 +859,7 @@ class KnxGuiApp:
         # Accept .knxproj and .xml here too: _do_open_project routes .knxproj archives and ETS
         # group-address exports (ga-export/01 .xml) through their importers.
         self._log.debug("opening project file dialog")
-        self._open_project_dialog = pfd.open_file(
+        self._open_project_dialog = file_dialogs.open_file(
             S.FILE_DIALOG_PROJECT_TITLE,
             "",
             [
@@ -854,7 +902,7 @@ class KnxGuiApp:
         self._export_knxproj_default = default
         # On Linux the file-type list is the ETS version. The portal returns which
         # entry was confirmed; ETS 6 is the initial selection.
-        if sys.platform == "linux":
+        if sys.platform == "linux" and web.active_hub is None:
             ets6 = S.FILE_DIALOG_ETS6_FILTER
             ets5 = S.FILE_DIALOG_ETS5_FILTER
             self._export_knxproj_dialog = PortalSaveDialog(
@@ -864,7 +912,7 @@ class KnxGuiApp:
                 current=ets5 if self._export_schema == "20" else ets6,
             )
             return
-        self._export_knxproj_dialog = pfd.save_file(
+        self._export_knxproj_dialog = file_dialogs.save_file(
             S.FILE_DIALOG_KNXPROJ_SAVE_TITLE,
             default,
             [S.FILE_DIALOG_KNXPROJ_FILTER, "*.knxproj", S.FILE_DIALOG_ALL_FILES, "*"],
@@ -873,6 +921,13 @@ class KnxGuiApp:
 
     def _export_ga_export(self) -> None:
         if not self._project_service.is_open or not self._can_launch_file_dialog():
+            return
+        # While a project loads its reads come back empty; then the export goes on as usual.
+        if (
+            not self._project_service.loading
+            and not self._project_service.group_addresses
+        ):
+            self._ga_export_empty_requested = True
             return
         saved = load_settings("app").get("ga_export", {})
         options = {
@@ -956,6 +1011,41 @@ class KnxGuiApp:
             imgui.close_current_popup()
         end_dialog()
 
+    def _render_clear_cache_modal(self) -> None:
+        if self._clear_cache_requested:
+            imgui.open_popup(S.CLEAR_CACHE_TITLE)
+            self._clear_cache_requested = False
+        if not begin_dialog(S.CLEAR_CACHE_TITLE, width=460.0):
+            return
+        imgui.text_wrapped(
+            S.CLEAR_CACHE_TEXT.format(size=human_size(self._clear_cache_size))
+        )
+        clicked = dialog_buttons(
+            S.CLEAR_CACHE_CONFIRM,
+            S.BTN_CANCEL,
+            enabled=[self._clear_cache_size > 0, True],
+        )
+        if clicked == 0:
+            freed = clear_cache()
+            self._log.info("cache cleared", freed=freed)
+            self._flash_toast(S.CLEAR_CACHE_DONE.format(size=human_size(freed)))
+            imgui.close_current_popup()
+        elif clicked == 1:
+            imgui.close_current_popup()
+        end_dialog()
+
+    def _render_ga_export_empty_modal(self) -> None:
+        title = f"{S.FILE_DIALOG_GA_EXPORT_SAVE_TITLE}###ga_export_empty"
+        if self._ga_export_empty_requested:
+            imgui.open_popup(title)
+            self._ga_export_empty_requested = False
+        if not begin_dialog(title, width=420.0):
+            return
+        imgui.text_wrapped(S.GA_EXPORT_EMPTY)
+        if dialog_buttons(S.BTN_OK) == 0:
+            imgui.close_current_popup()
+        end_dialog()
+
     def _open_ga_export_save_dialog(self) -> None:
         if not self._project_service.is_open or not self._can_launch_file_dialog():
             return
@@ -968,7 +1058,7 @@ class KnxGuiApp:
             if suffix == ".csv"
             else S.FILE_DIALOG_GA_EXPORT_FILTER
         )
-        self._export_ga_export_dialog = pfd.save_file(
+        self._export_ga_export_dialog = file_dialogs.save_file(
             S.FILE_DIALOG_GA_EXPORT_SAVE_TITLE,
             default,
             [name, f"*{suffix}", S.FILE_DIALOG_ALL_FILES, "*"],
@@ -1245,7 +1335,7 @@ class KnxGuiApp:
         else:
             # ETS not at the default location (or non-Windows): ask the user for the store folder.
             ets = "ETS 5" if store_format is ets_store.StoreFormat.ETS5 else "ETS 6"
-            self._projectstore_dialog = pfd.select_folder(
+            self._projectstore_dialog = file_dialogs.select_folder(
                 S.MYKNX_DONGLE_PICK_STORE.format(ets=ets), ""
             )
 
@@ -1260,7 +1350,7 @@ class KnxGuiApp:
             # copied from that ETS version's %ProgramData%/KNX/ETS{5,6}/Installer. ETS 5 and ETS 6
             # do not share a GUID.
             self._pending_store_path = store
-            self._installer_guid_dialog = pfd.open_file(
+            self._installer_guid_dialog = file_dialogs.open_file(
                 S.MYKNX_DONGLE_PICK_INSTALLER,
                 "",
                 [
@@ -1442,7 +1532,7 @@ class KnxGuiApp:
         self._myknx_oauth_user_code = user_code
         self._myknx_oauth_url = url
         try:
-            opened = webbrowser.open(url)
+            opened = open_url(url)
         except Exception as e:
             opened = False
             self._log.warning("myknx 2fa browser open failed", url=url, error=str(e))
@@ -2500,7 +2590,7 @@ class KnxGuiApp:
         # Pass only the default file name, not a full path: on macOS a path with "/" in the save
         # dialog's name field gets mangled into ":"-separated segments.
         self._log.debug("opening knxproj import destination dialog", source=source)
-        self._import_knxproj_save_dialog = pfd.save_file(
+        self._import_knxproj_save_dialog = file_dialogs.save_file(
             S.FILE_DIALOG_PROJECT_SAVE_TITLE,
             Path(source).with_suffix(".xknx").name,
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
@@ -2513,7 +2603,7 @@ class KnxGuiApp:
         if not self._can_launch_file_dialog():
             return
         self._import_ga_export_source = source
-        self._import_ga_export_save_dialog = pfd.save_file(
+        self._import_ga_export_save_dialog = file_dialogs.save_file(
             S.FILE_DIALOG_PROJECT_SAVE_TITLE,
             Path(source).with_suffix(".xknx").name,
             [S.FILE_DIALOG_PROJECT_FILTER, "*.xknx", S.FILE_DIALOG_ALL_FILES, "*"],
@@ -2612,7 +2702,7 @@ class KnxGuiApp:
                 # The portal dialog never opened. Fall back to the helper dialog; the
                 # format combo in the next window still chooses ETS 5 or ETS 6.
                 self._log.warning("portal save dialog failed", error=dialog.error)
-                self._export_knxproj_dialog = pfd.save_file(
+                self._export_knxproj_dialog = file_dialogs.save_file(
                     S.FILE_DIALOG_KNXPROJ_SAVE_TITLE,
                     self._export_knxproj_default,
                     [
@@ -2872,6 +2962,10 @@ class KnxGuiApp:
 
     def gui_status_bar(self) -> None:
         self._connection_plugin.render_status_indicator()
+        self._status_full = False
+        self._status_reserved = (
+            self._status_fps_width() if self._show_status_fps else 0.0
+        )
 
         # Bus-operation indicator: a programming/testing operation is in progress.
         busy = self._connection_service.busy_operation
@@ -2886,25 +2980,16 @@ class KnxGuiApp:
                 text = S.STATUS_READING.format(address=address)
             else:
                 text = S.STATUS_TESTING.format(address=address)
-            imgui.same_line()
-            imgui.text_disabled(" | ")
-            imgui.same_line()
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.95, 0.75, 0.2, 1.0))
-            imgui.text(text)
-            imgui.pop_style_color()
+            self._status_part(text, imgui.ImVec4(0.95, 0.75, 0.2, 1.0))
         elif self._connection_service.not_connected_notice():
             # A connection-requiring feature (program/test/send) was just refused:
             # flash the reason so the user sees *why* nothing happened.
-            imgui.same_line()
-            imgui.text_disabled(" | ")
-            imgui.same_line()
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.9, 0.35, 0.35, 1.0))
-            imgui.text(
+            self._status_part(
                 _connection_strings.STATUS_BUSMONITOR_BLOCKED
                 if self._connection_service.busmonitor_active
-                else S.STATUS_NO_CONNECTION
+                else S.STATUS_NO_CONNECTION,
+                imgui.ImVec4(0.9, 0.35, 0.35, 1.0),
             )
-            imgui.pop_style_color()
         else:
             # Briefly show the last programming outcome after the busy indicator clears.
             notice = self._connection_service.program_notice()
@@ -2915,23 +3000,17 @@ class KnxGuiApp:
                     if ok
                     else imgui.ImVec4(0.9, 0.35, 0.35, 1.0)
                 )
-                imgui.same_line()
-                imgui.text_disabled(" | ")
-                imgui.same_line()
-                imgui.push_style_color(imgui.Col_.text, color)
-                imgui.text(S.STATUS_PROGRAM_DONE if ok else S.STATUS_PROGRAM_FAILED)
-                imgui.pop_style_color()
+                self._status_part(
+                    S.STATUS_PROGRAM_DONE if ok else S.STATUS_PROGRAM_FAILED, color
+                )
 
         # Current project summary.
-        imgui.same_line()
-        imgui.text_disabled(" | ")
-        imgui.same_line()
         if self._project_service.is_open:
             meta = self._project_service.get_project_metadata()
             name = meta.name if meta and meta.name else None
             if not name and self._project_service.path is not None:
                 name = self._project_service.path.name
-            imgui.text_disabled(
+            self._status_part(
                 S.STATUS_PROJECT.format(
                     name=name or "?",
                     devices=len(self._project_service.devices),
@@ -2939,22 +3018,14 @@ class KnxGuiApp:
                 )
             )
         else:
-            imgui.text_disabled(S.STATUS_NO_PROJECT)
+            self._status_part(S.STATUS_NO_PROJECT)
 
         if self._mcp_plugin.is_running:
-            imgui.same_line()
-            imgui.text_disabled(" | ")
-            imgui.same_line()
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.4, 0.85, 0.45, 1.0))
-            imgui.text(S.STATUS_MCP_RUNNING)
-            imgui.pop_style_color()
+            self._status_part(S.STATUS_MCP_RUNNING, imgui.ImVec4(0.4, 0.85, 0.45, 1.0))
 
         # KNX master data (mask-version procedures) version and date.
         if self._master_info is not None:
-            imgui.same_line()
-            imgui.text_disabled(" | ")
-            imgui.same_line()
-            imgui.text_disabled(
+            self._status_part(
                 S.STATUS_MASTER_DATA.format(
                     version=self._master_info.version,
                     date=self._master_info.date,
@@ -2964,32 +3035,76 @@ class KnxGuiApp:
         if self._show_status_fps:
             self._render_status_fps()
 
+    def _status_part(self, text: str, color: imgui.ImVec4 | None = None) -> None:
+        """The next part of the status bar after a separator, greyed without ``color``. In a
+        narrow window the part that no longer fits is shortened (all of it in its tooltip) and
+        the parts after it are left out."""
+        if self._status_full:
+            return
+        imgui.same_line()
+        style = imgui.get_style()
+        separator = " | "
+        room = (
+            imgui.get_window_width()
+            - style.window_padding.x
+            - imgui.get_cursor_pos_x()
+            - self._status_reserved
+            - imgui.calc_text_size(separator).x
+            - style.item_spacing.x
+        )
+        if room < imgui.calc_text_size("MMM…").x:
+            self._status_full = True
+            return
+        imgui.text_disabled(separator)
+        imgui.same_line()
+        shown = fit_text(text, room)
+        if shown != text:
+            self._status_full = True
+        if color is None:
+            imgui.text_disabled(shown)
+        else:
+            imgui.text_colored(color, shown)
+        if shown != text and imgui.is_item_hovered():
+            imgui.set_tooltip(text)
+
+    def _status_fps_width(self) -> float:
+        """Width of the FPS display at the right of the status bar, its idling toggle included."""
+        style = imgui.get_style()
+        width = imgui.calc_text_size(
+            S.STATUS_FPS.format(fps=999.9, idling=S.STATUS_IDLING)
+        ).x
+        if web.active_hub is None:
+            width += (
+                imgui.get_text_line_height()
+                + style.frame_padding.y / 2
+                + style.item_inner_spacing.x
+                + imgui.calc_text_size(S.MENU_ENABLE_IDLING).x
+                + style.item_spacing.x
+            )
+        return width
+
     def _render_status_fps(self) -> None:
-        """FPS and the idling toggle, right-aligned in the status bar."""
+        """FPS and the idling toggle, right-aligned in the status bar. The web mode paces its frames
+        itself, so it has no idling to toggle: only the FPS then."""
+        toggle = web.active_hub is None
         idling = hello_imgui.get_runner_params().fps_idling
         fps = S.STATUS_FPS.format(
             fps=hello_imgui.frame_rate(),
             idling=S.STATUS_IDLING if idling.is_idling else "",
         )
         style = imgui.get_style()
-        width = (
-            imgui.get_text_line_height()
-            + style.frame_padding.y / 2
-            + style.item_inner_spacing.x
-            + imgui.calc_text_size(S.MENU_ENABLE_IDLING).x
-            + style.item_spacing.x
-            + imgui.calc_text_size(
-                S.STATUS_FPS.format(fps=999.9, idling=S.STATUS_IDLING)
-            ).x
-        )
+        width = self._status_fps_width()
         imgui.same_line(
             max(imgui.get_window_width() - width - style.window_padding.x, 0.0)
         )
-        # The checkbox, a little higher than the text, centred on the text line so the status
-        # bar keeps its height.
-        imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() - style.frame_padding.y / 4)
-        _, idling.enable_idling = checkbox(S.MENU_ENABLE_IDLING, idling.enable_idling)
-        imgui.same_line()
+        if toggle:
+            # The checkbox, a little higher than the text, centred on the text line so the status
+            # bar keeps its height.
+            imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() - style.frame_padding.y / 4)
+            _, idling.enable_idling = checkbox(
+                S.MENU_ENABLE_IDLING, idling.enable_idling
+            )
+            imgui.same_line()
         imgui.text_disabled(fps)
 
     def _render_menu_separator(self) -> None:
@@ -3024,6 +3139,29 @@ class KnxGuiApp:
         # an untranslated name).
         imgui.internal.get_current_window().flags |= imgui.WindowFlags_.no_nav_focus
         self._render_menu_separator()
+        # Where the menus do not fit side by side (a phone), they are all in one menu. Their
+        # width is measured while they are side by side, once per language.
+        needed = self._menus_width.get(get_locale())
+        collapse = needed is not None and needed > imgui.get_window_width()
+        if not collapse:
+            self._render_menus()
+            style = imgui.get_style()
+            self._menus_width[get_locale()] = (
+                imgui.get_item_rect_max().x
+                - imgui.get_window_pos().x
+                + style.item_spacing.x
+                + style.window_padding.x
+            )
+        elif imgui.begin_menu(f"{_ICON_MENU}##all_menus"):
+            self._render_menus()
+            imgui.end_menu()
+
+        self._ui_executor.drain()
+        self._poll_dialogs()
+        self._handle_shortcuts()
+
+    def _render_menus(self) -> None:
+        """The menus: in the menu bar, or as submenus of the one menu (see gui_menu)."""
         if imgui.begin_menu(S.MENU_FILE):
             if imgui.menu_item(S.MENU_NEW_PROJECT, S.SHORTCUT_NEW, False)[0]:
                 self._new_project()
@@ -3075,7 +3213,7 @@ class KnxGuiApp:
                 imgui.menu_item(S.MENU_LOAD_KNXPROD, "", False)[0]
                 and self._can_launch_file_dialog()
             ):
-                self._open_file_dialog = pfd.open_file(
+                self._open_file_dialog = file_dialogs.open_file(
                     S.FILE_DIALOG_KNXPROD_TITLE,
                     "",
                     [
@@ -3110,7 +3248,6 @@ class KnxGuiApp:
         self._render_mcp_menu()
         self._keyring_plugin.render_menu()
         self._signing_plugin.render_menu()
-        self._recover_plugin.render_menu()
 
         self._render_language_menu()
 
@@ -3127,29 +3264,34 @@ class KnxGuiApp:
             imgui.separator()
             if imgui.menu_item(S.MENU_OPEN_CONFIG_DIR, "", False)[0]:
                 self._open_folder(config_dir())
-            if imgui.menu_item(S.MENU_OPEN_CACHE_DIR, "", False)[0]:
-                self._open_folder(Path(platformdirs.user_cache_dir("xknx-editor")))
             if imgui.menu_item(S.MENU_OPEN_LOG_DIR, "", False)[0]:
                 self._open_folder(log_dir())
+            imgui.separator()
+            if imgui.menu_item(S.MENU_OPEN_CACHE_DIR, "", False)[0]:
+                self._open_folder(cache_dir())
+            if imgui.menu_item(S.MENU_CLEAR_CACHE, "", False)[0]:
+                self._clear_cache_size = cache_size()
+                self._clear_cache_requested = True
             imgui.end_menu()
 
         if imgui.menu_item(S.MENU_FEEDBACK, "", False)[0]:
             self._open_feedback()
 
-        self._ui_executor.drain()
-        self._poll_dialogs()
-        self._handle_shortcuts()
-
     def _open_feedback(self) -> None:
         """Open the project's GitHub issues page in the default browser."""
         url = "https://github.com/xknx/xknx-editor/issues"
         try:
-            webbrowser.open(url)
+            open_url(url)
         except Exception as e:
             self._log.error("could not open feedback page", url=url, error=str(e))
 
     def _open_folder(self, path: Path) -> None:
-        """Reveal a directory in the OS file manager (created if missing)."""
+        """Reveal a directory in the OS file manager (created if missing); in the browser UI, list
+        its files for download."""
+        if web.active_hub is not None:
+            path.mkdir(parents=True, exist_ok=True)
+            web.active_hub.show_folder(path)
+            return
         try:
             path.mkdir(parents=True, exist_ok=True)
             if sys.platform == "darwin":
@@ -3272,7 +3414,7 @@ class KnxGuiApp:
             imgui.close_current_popup()
         elif clicked == 0:
             try:
-                webbrowser.open(info.url)
+                open_url(info.url)
             except Exception as e:
                 self._log.error(
                     "could not open release page", url=info.url, error=str(e)
@@ -3410,7 +3552,7 @@ class KnxGuiApp:
         yes, no = S.EXPORT_SUMMARY_YES, S.EXPORT_SUMMARY_NO
         rows = [
             (S.EXPORT_SUMMARY_PROJECT, summary.project_name),
-            (S.EXPORT_SUMMARY_FILE_SIZE, _human_size(summary.file_size)),
+            (S.EXPORT_SUMMARY_FILE_SIZE, human_size(summary.file_size)),
             (S.EXPORT_SUMMARY_FORMAT, self._export_summary_schema),
             (S.EXPORT_SUMMARY_MASTER_VERSION, str(summary.master_version)),
             (S.EXPORT_SUMMARY_EXPORTED_AT, self._export_summary_at),
@@ -3620,7 +3762,7 @@ class KnxGuiApp:
                     imgui.table_next_column()
                     imgui.text(str(len(items)))
                 imgui.end_table()
-            if imgui.collapsing_header(S.COMPACT_DETAILS):
+            if collapsing_header(S.COMPACT_DETAILS):
                 details = [
                     *counts,
                     (S.COMPACT_HARDWARE, report.hardware),
@@ -3656,7 +3798,7 @@ class KnxGuiApp:
                 imgui.table_next_column()
                 imgui.text_disabled(label)
                 imgui.table_next_column()
-                imgui.text(_human_size(size))
+                imgui.text(human_size(size))
             imgui.end_table()
         if not report.nothing_removed:
             imgui.spacing()
@@ -3692,8 +3834,8 @@ class KnxGuiApp:
         imgui.spacing()
         report = result.report
         rows = [
-            (S.COMPACT_SIZE_BEFORE, _human_size(result.file_size_before)),
-            (S.COMPACT_SIZE_AFTER, _human_size(result.file_size_after)),
+            (S.COMPACT_SIZE_BEFORE, human_size(result.file_size_before)),
+            (S.COMPACT_SIZE_AFTER, human_size(result.file_size_after)),
             (S.COMPACT_APPLICATIONS, str(len(report.application_programs))),
             (S.COMPACT_PRODUCTS, str(len(report.products))),
             (S.COMPACT_MANUFACTURERS, str(len(report.manufacturers))),
@@ -3719,6 +3861,18 @@ class KnxGuiApp:
             self._log.warning(msg)
 
     def _toggle_bottom_expanded(self) -> None:
+        if self._form != "wide":
+            # The smaller layouts have no section across the full width: only the columns
+            # change, and the usual layout has it when it is shown again.
+            expanded = not self.bottom_expanded
+            self._monitor_plugin.set_monitor_extended(expanded)
+            self.bottom_expanded = expanded
+            self._wide_layout["expanded"] = expanded
+            data = load_settings("app")
+            data["bottom_expanded"] = expanded
+            data["wide_layout"] = self._wide_layout
+            save_settings("app", data)
+            return
         params = hello_imgui.get_runner_params().docking_params
         _keep_window_sections(params)
         expanded = not self.bottom_expanded
@@ -3736,16 +3890,174 @@ class KnxGuiApp:
             data["bottom_expanded"] = expanded
             save_settings("app", data)
 
+    def _update_web_layout(self) -> None:
+        """In the browser UI: switch to the layout for the size the app is shown in, once that
+        size has settled; not while typing (a touch screen's keyboard makes the app shorter for
+        a while) or with a button held."""
+        io = imgui.get_io()
+        wanted = form_factor(io.display_size.x, io.display_size.y, self._form)
+        if wanted == self._form:
+            self._form_since = None
+            now = time.monotonic()
+            if wanted == "wide" and now - self._wide_measured >= 1.0:
+                self._wide_measured = now
+                params = hello_imgui.get_runner_params().docking_params
+                self._wide_ratios = _current_ratios(params, self.bottom_expanded)
+            return
+        if io.want_text_input or any(imgui.is_mouse_down(b) for b in range(3)):
+            return
+        now = time.monotonic()
+        if self._form_since is None:
+            self._form_since = now
+        if now - self._form_since < _LAYOUT_SETTLE:
+            return
+        self._form_since = None
+        self._show_form(wanted)
+
+    def _show_form(self, form: str) -> None:
+        params = hello_imgui.get_runner_params().docking_params
+        _keep_window_sections(params)
+        if self._form == "wide":
+            # Shown again when there is room, also after a restart (see _restore_wide_layout).
+            self._wide_layout = {
+                "docks": {
+                    _dock_window_name(w): w.dock_space_name
+                    for w in params.dockable_windows
+                },
+                "ratios": self._wide_ratios
+                or _current_ratios(params, self.bottom_expanded),
+                "expanded": self.bottom_expanded,
+                "selected": [
+                    _dock_window_name(w)
+                    for w in params.dockable_windows
+                    if w.focus_window_at_next_frame
+                ],
+            }
+        from_wide = self._form == "wide"
+        self._form = form
+        key, default = self._context_help_setting()
+        self._project_plugin.show_context_help = bool(
+            load_settings("app").get(key, default)
+        )
+        data = load_settings("app")
+        if form == "wide":
+            data.pop("wide_layout", None)
+            save_settings("app", data)
+            _restore_wide_layout(params, self._wide_layout)
+            self._order_tabs(params)
+            return
+        data["wide_layout"] = self._wide_layout
+        save_settings("app", data)
+        self._show_compact_layout(form, from_wide=from_wide)
+
+    def _context_help_setting(self) -> tuple[str, bool]:
+        """The setting whether the editor shows its context help, and its default: on a phone
+        (navigation and one section) apart and off at first, as there is little room."""
+        if self._form in ("rows", "columns"):
+            return "show_context_help_phone", False
+        return "show_context_help", True
+
+    def _show_compact_layout(self, form: str, *, from_wide: bool) -> None:
+        """Build the smaller layout ``form``; its sections take the panels of the usual layout's
+        sections (see compact_section). Coming ``from_wide``, each shows the tab its usual
+        section of the same name showed; otherwise the tabs shown stay."""
+        params = hello_imgui.get_runner_params().docking_params
+        docks: dict[str, str] = self._wide_layout.get("docks", {})
+        selected: set[str] = set(self._wide_layout.get("selected") or [])
+        for w in params.dockable_windows:
+            name = _dock_window_name(w)
+            wide = docks.get(name, w.dock_space_name)
+            w.dock_space_name = compact_section(wide, form)
+            if from_wide:
+                w.focus_window_at_next_frame = (
+                    name in selected and w.dock_space_name == wide
+                )
+        # A section's tabs come in the order its windows are docked: a shared section lists the
+        # main section's tabs first, then those of the top right, the bottom right and the
+        # bottom left one (the usual sections keep their own order).
+        rank = {section: i for i, section in enumerate(_SECTION_ORDER)}
+        params.dockable_windows = sorted(
+            params.dockable_windows,
+            key=lambda w: rank.get(
+                docks.get(_dock_window_name(w), w.dock_space_name), len(rank)
+            ),
+        )
+        # A shared section shows the first of the tabs its sections showed (the main one's).
+        shown: set[str] = set()
+        for w in params.dockable_windows:
+            if w.focus_window_at_next_frame:
+                if w.dock_space_name in shown:
+                    w.focus_window_at_next_frame = False
+                shown.add(w.dock_space_name)
+        _forget_tab_order(params)
+        self._order_tabs(params)
+        params.docking_splits = compact_docking_splits(form)
+        params.layout_reset = True
+
+    def _order_tabs(self, params: hello_imgui.DockingParams) -> None:
+        """Have the tabs of the layout being built come in the order of the dockable windows."""
+        self._tab_order = [_dock_window_name(w) for w in params.dockable_windows]
+        # hello_imgui builds it in the next frame.
+        self._tab_order_from = imgui.get_frame_count() + 2
+        self._tab_order_until = imgui.get_frame_count() + 300
+
+    def _settle_tab_order(self) -> None:
+        """After a layout switch: move the tabs of each section into the order of the dockable
+        windows, one tab per section and frame. Imgui keeps the place a window's tab had in a
+        section whose id the new layout uses again, so the order of docking is not enough."""
+        if not self._tab_order or imgui.get_frame_count() < self._tab_order_from:
+            return
+        if imgui.get_frame_count() > self._tab_order_until:
+            self._tab_order = []
+            return
+        rank = {name: i for i, name in enumerate(self._tab_order)}
+        internal = imgui.internal
+        seen: set[int] = set()
+        settled = True
+        for w in hello_imgui.get_runner_params().docking_params.dockable_windows:
+            window = internal.find_window_by_name(w.label)
+            # The bindings type these as non-optional, but they can be None.
+            node = window.dock_node if window is not None else None  # pyright: ignore[reportUnnecessaryComparison]
+            bar = node.tab_bar if node is not None else None  # pyright: ignore[reportUnnecessaryComparison]
+            if bar is None or bar.id_ in seen:  # pyright: ignore[reportUnnecessaryComparison]
+                continue
+            seen.add(bar.id_)
+            tabs = list(bar.tabs)
+            places = [
+                i
+                for i, tab in enumerate(tabs)
+                if tab.window is not None  # pyright: ignore[reportUnnecessaryComparison]
+                and tab.window.name.split("###")[-1] in rank
+            ]
+            wanted = sorted(
+                places, key=lambda i: rank[tabs[i].window.name.split("###")[-1]]
+            )
+            for place, tab_index in zip(places, wanted, strict=True):
+                if place != tab_index:
+                    internal.tab_bar_queue_reorder(
+                        bar, tabs[tab_index], place - tab_index
+                    )
+                    settled = False
+                    break
+        if settled and seen:
+            self._tab_order = []
+
     def render_overlays(self) -> None:
+        if web.active_hub is not None:
+            self._update_web_layout()
+        self._settle_tab_order()
         self._project_service.take_rechecked_devices()
         self._sync_device_section()
         self._render_status_bar()
         render_section_menus()
         set_window_title(self._window_title())
         # Log the active OpenGL renderer once, from the frame path (context guaranteed current).
+        # Skip it in the windowless web mode: its null backend has no GL context, so a context-less
+        # glGetString would segfault at the C level (uncatchable) and crash startup.
         if not self._gl_logged:
             self._gl_logged = True
-            _log_gl_renderer(self._log)
+            if web.active_hub is None:
+                _log_gl_renderer(self._log)
         self._theme_window.render()
         # Bring the Editor tab to the front when another view (Device Overview, Topology, Health)
         # selected a device. Consumed here (a per-frame global callback) rather than in the Editor
@@ -3762,6 +4074,14 @@ class KnxGuiApp:
             hello_imgui.get_runner_params().docking_params.focus_dockable_window(
                 f"{_DOCK_LABELS['group_addresses']()}###group_addresses"
             )
+        if self._recover_plugin.take_focus_request():
+            # Shown again when it was closed, and in front of the other tabs of its dock.
+            for (
+                window
+            ) in hello_imgui.get_runner_params().docking_params.dockable_windows:
+                if _dock_window_name(window) == "recover":
+                    window.is_visible = True
+                    window.focus_window_at_next_frame = True
         self._project_plugin.render_overlays()
         self._render_progress_modal()
         self._render_import_password_modal()
@@ -3770,6 +4090,8 @@ class KnxGuiApp:
         self._render_network_consent_modal()
         self._render_overwrite_modal()
         self._render_ga_export_options_modal()
+        self._render_ga_export_empty_modal()
+        self._render_clear_cache_modal()
         self._render_projectstore_confirm_modal()
         self._render_url_prompt_modal()
         self._render_new_project_modal()
@@ -3784,7 +4106,10 @@ class KnxGuiApp:
         self._render_compact_result_modal()
         self._render_knxprod_result_modal()
         self._keyring_plugin.render_window()
-        self._signing_plugin.render_window()
+        # The Signing Key dialog asked for from the Signing menu.
+        if self._signing_plugin.take_open_request():
+            imgui.open_popup(S.SIGNING_KEY_TITLE)
+        self._render_signing_key_modal()
         self._connection_plugin.render_window()
         self._render_welcome()
         # Programming queue: advance it every frame (robust wakeup even if the bus was freed by a
@@ -3924,10 +4249,11 @@ class KnxGuiApp:
             imgui.set_clipboard_text(S.MYKNX_DONGLE_STEPS)
 
     def _render_signing_key_modal(self) -> None:
-        """Signing-key manager as a child modal of the export dialog (view/edit/save/extract).
+        """Signing-key manager (view/edit/save/extract) as a dialog, opened from the Signing menu
+        or from the export dialog.
 
-        Rendered inside the export modal's scope so it stacks on top; closing it returns to the
-        export dialog without cancelling the export."""
+        From the export dialog it is rendered inside that modal's scope so it stacks on top;
+        closing it returns to the export dialog without cancelling the export."""
         if not begin_dialog(S.SIGNING_KEY_TITLE, width=40.0 * 16.0):
             return
         self._signing_plugin.render_contents()
@@ -3964,7 +4290,7 @@ class KnxGuiApp:
             imgui.end_disabled()
             imgui.text_disabled(S.MYKNX_OAUTH_EXTRACTING)
         elif imgui.button(S.MYKNX_OAUTH_EXTRACT, imgui.ImVec2(-1, 0)):
-            self._myknx_oauth_dll_dialog = pfd.open_file(
+            self._myknx_oauth_dll_dialog = file_dialogs.open_file(
                 S.MYKNX_OAUTH_EXTRACT,
                 default_myknx_dll_path(),
                 [MYKNX_DLL_NAME, "*.dll", S.MYKNX_OAUTH_ALL_FILES, "*"],
@@ -4222,10 +4548,34 @@ class KnxGuiApp:
         params = hello_imgui.get_runner_params()
         if imgui.menu_item(S.MENU_RESTORE_LAYOUT, "", False)[0]:
             docks = {panel.name: panel.dock for panel in self.get_all_panels()}
-            for w in params.docking_params.dockable_windows:
-                w.dock_space_name = docks.get(_dock_window_name(w), w.dock_space_name)
-            self._rebuild_layout(expanded=False, ratios={})
+            if self._form != "wide":
+                # The smaller layout from the start, and the usual one when there is room.
+                self._wide_layout = {"docks": docks, "ratios": {}, "expanded": False}
+                if self.bottom_expanded:
+                    self._toggle_bottom_expanded()
+                self._show_compact_layout(self._form, from_wide=True)
+            else:
+                for w in params.docking_params.dockable_windows:
+                    w.dock_space_name = docks.get(
+                        _dock_window_name(w), w.dock_space_name
+                    )
+                self._rebuild_layout(expanded=False, ratios={})
             reset_all_tables()
+            self._project_plugin.reset_layout()
+        zoom = web.zoom()
+        if zoom is not None:
+            imgui.separator()
+            if imgui.menu_item(S.MENU_ZOOM_IN, "Ctrl++", False, zoom < web.ZOOMS[-1])[
+                0
+            ]:
+                web.zoom_step(1)
+            if imgui.menu_item(S.MENU_ZOOM_OUT, "Ctrl+-", False, zoom > web.ZOOMS[0])[
+                0
+            ]:
+                web.zoom_step(-1)
+            reset = f"{S.MENU_ZOOM_RESET} ({round(zoom * 100)} %)"
+            if imgui.menu_item(reset, "Ctrl+0", False, abs(zoom - 1.0) > 0.001)[0]:
+                web.zoom_step(0)
         imgui.separator()
         windows = [
             w for w in params.docking_params.dockable_windows if w.include_in_view_menu
@@ -4259,7 +4609,7 @@ class KnxGuiApp:
         if changed:
             self._project_plugin.show_context_help = shown
             data = load_settings("app")
-            data["show_context_help"] = shown
+            data[self._context_help_setting()[0]] = shown
             save_settings("app", data)
         window_params = params.imgui_window_params
         changed, shown = imgui.menu_item(S.MENU_STATUS_BAR, "", self._show_status_bar)
@@ -4268,11 +4618,13 @@ class KnxGuiApp:
         changed, shown = imgui.menu_item(S.MENU_STATUS_FPS, "", self._show_status_fps)
         if changed:
             self._show_status_fps = shown
-        changed, enabled = imgui.menu_item(
-            S.MENU_ENABLE_IDLING, "", params.fps_idling.enable_idling
-        )
-        if changed:
-            params.fps_idling.enable_idling = enabled
+        # The web mode paces its frames itself: no idling to toggle there.
+        if web.active_hub is None:
+            changed, enabled = imgui.menu_item(
+                S.MENU_ENABLE_IDLING, "", params.fps_idling.enable_idling
+            )
+            if changed:
+                params.fps_idling.enable_idling = enabled
         self._render_theme_menu(window_params.tweaked_theme)
         imgui.end_menu()
 
@@ -4333,12 +4685,24 @@ class KnxGuiApp:
         if not imgui.begin_menu(S.PANEL_MCP):
             return
         running = self._mcp_plugin.is_running
+        # The status, and the button that starts or stops the server right-aligned beside it.
+        imgui.align_text_to_frame_padding()
         imgui.text_colored(
             imgui.ImVec4(0.4, 0.85, 0.45, 1.0)
             if running
             else imgui.ImVec4(0.6, 0.6, 0.6, 1.0),
             S.SETTINGS_MCP_RUNNING if running else S.SETTINGS_MCP_STOPPED,
         )
+        label = S.SETTINGS_MCP_STOP if running else S.SETTINGS_MCP_START
+        button_w = imgui.calc_text_size(label).x + 2 * imgui.get_style().frame_padding.x
+        imgui.same_line()
+        right = imgui.get_cursor_pos_x() + imgui.get_content_region_avail().x - button_w
+        imgui.set_cursor_pos_x(max(right, imgui.get_cursor_pos_x()))
+        if imgui.button(label):
+            if running:
+                self._stop_mcp()
+            else:
+                self._start_mcp()
         imgui.separator()
         imgui.set_next_item_width(px(180.0))
         _, self._mcp_host = imgui.input_text(S.SETTINGS_MCP_HOST, self._mcp_host)
@@ -4348,13 +4712,9 @@ class KnxGuiApp:
         _, self._mcp_token = imgui.input_text(
             S.SETTINGS_MCP_TOKEN, self._mcp_token, imgui.InputTextFlags_.password
         )
-        imgui.separator()
         if running:
+            imgui.separator()
             imgui.text_disabled(f"http://{self._mcp_host}:{self._mcp_port}/mcp")
-            if imgui.menu_item(S.SETTINGS_MCP_STOP, "", False)[0]:
-                self._stop_mcp()
-        elif imgui.menu_item(S.SETTINGS_MCP_START, "", False)[0]:
-            self._start_mcp()
         imgui.end_menu()
 
     def _render_ki_panel(self) -> None:
@@ -4511,6 +4871,16 @@ _LAYOUT_VERSION = 16
 
 
 _SECTIONS = ("RightSpace", "DeviceSpace", "LeftSpace", "BottomSpace")
+# The one menu that holds all menus where they do not fit side by side (Font Awesome "bars").
+_ICON_MENU = ""
+# The usual sections in the order their tabs are listed where they share one section.
+_SECTION_ORDER = (
+    "LeftSpace",
+    "MainDockSpace",
+    "DeviceSpace",
+    "RightSpace",
+    "BottomSpace",
+)
 _DEFAULT_RATIOS = {
     # Wide enough for the Device panel's action buttons in one row.
     "right": 0.2,
@@ -4547,6 +4917,81 @@ def create_docking_splits(
         return [bottom, right, device, left]
     bottom = _split("LeftSpace", "BottomSpace", imgui.Dir.down, r["bottom"])
     return [right, device, left, bottom]
+
+
+# The browser UI's layouts by the size the app is shown in (app units, the browser's size divided
+# by its zoom): the usual one from this width on, and smaller ones below it. Switching back and
+# forth needs a little more or less than the limit, so a size right at it does not flip.
+_WIDE_MIN = 1000.0
+_WIDE_MARGIN = 40.0
+# How long a new size has to stay before the layout changes (resizing, turning the device).
+_LAYOUT_SETTLE = 0.4
+
+
+def form_factor(width: float, height: float, current: str | None = None) -> str:
+    """The layout for an app of this size: ``"wide"`` (the usual one), ``"rows"`` (navigation
+    above the rest: a portrait screen), ``"rows3"`` (also the bottom section: a large portrait
+    screen) or ``"columns"`` (navigation beside the rest: a small landscape screen)."""
+    limit = _WIDE_MIN
+    if current == "wide":
+        limit -= _WIDE_MARGIN
+    elif current is not None:
+        limit += _WIDE_MARGIN
+    if width >= limit:
+        return "wide"
+    if height < width:
+        return "columns"
+    return "rows3" if width >= 600.0 and height >= 800.0 else "rows"
+
+
+def compact_section(section: str, form: str) -> str:
+    """The section of a smaller layout that takes the panels of a section of the usual one: the
+    navigation keeps its own, the bottom one too with ``rows3``, all others share the main one."""
+    if section == "LeftSpace" or (form == "rows3" and section == "BottomSpace"):
+        return section
+    return "MainDockSpace"
+
+
+def compact_docking_splits(form: str) -> list[hello_imgui.DockingSplit]:
+    """The sections of a smaller layout (see form_factor)."""
+    if form == "columns":
+        return [_split("MainDockSpace", "LeftSpace", imgui.Dir.left, 0.42)]
+    if form == "rows3":
+        return [
+            _split("MainDockSpace", "BottomSpace", imgui.Dir.down, 0.28),
+            _split("MainDockSpace", "LeftSpace", imgui.Dir.up, 0.45),
+        ]
+    return [_split("MainDockSpace", "LeftSpace", imgui.Dir.up, 0.42)]
+
+
+def _restore_wide_layout(
+    params: hello_imgui.DockingParams, layout: dict[str, Any]
+) -> None:
+    """Rebuild the usual layout as remembered when a smaller one replaced it."""
+    docks: dict[str, str] = layout.get("docks", {})
+    selected: set[str] = set(layout.get("selected") or [])
+    for w in params.dockable_windows:
+        name = _dock_window_name(w)
+        w.dock_space_name = docks.get(name, w.dock_space_name)
+        if name in selected:
+            w.focus_window_at_next_frame = True
+    _forget_tab_order(params)
+    params.docking_splits = create_docking_splits(
+        bool(layout.get("expanded", False)), layout.get("ratios") or {}
+    )
+    params.layout_reset = True
+
+
+def _forget_tab_order(params: hello_imgui.DockingParams) -> None:
+    """Let the tabs of a rebuilt layout come in the order of the dockable windows: imgui keeps
+    the place a window's tab had in a section whose id the rebuilt layout uses again. Before
+    imgui runs (the start) there are no windows yet."""
+    if cast("object | None", imgui.get_current_context()) is None:
+        return
+    for w in params.dockable_windows:
+        window = imgui.internal.find_window_by_name(w.label)
+        if window is not None:  # pyright: ignore[reportUnnecessaryComparison]
+            window.dock_order = -1
 
 
 def _current_ratios(
@@ -4757,16 +5202,6 @@ def _wrap_text(text: str, width: float) -> str:
     return "\n".join(out)
 
 
-def _human_size(num_bytes: int) -> str:
-    """Human-readable byte size (e.g. '1.2 MB')."""
-    size = float(num_bytes)
-    for unit in ("B", "KB", "MB", "GB"):
-        if size < 1024.0 or unit == "GB":
-            return f"{size:.0f} {unit}" if unit == "B" else f"{size:.1f} {unit}"
-        size /= 1024.0
-    return f"{size:.1f} GB"
-
-
 def _detect_locale() -> str:
     import locale
 
@@ -4825,6 +5260,8 @@ def _main() -> None:
     # other runtime data, rather than cluttering the source tree.
     catalog_path = config_dir() / "catalog.xknxcatalog"
     catalog_path.parent.mkdir(parents=True, exist_ok=True)
+    # Parsed product data lived in the data folder before; it belongs to the cache folder.
+    move_product_cache(config_dir() / "ir_cache")
     app = KnxGuiApp(catalog_path)
     app.startup_file = startup_file(sys.argv)
 
@@ -4890,6 +5327,18 @@ def _main() -> None:
     )
     runner_params.docking_params.dockable_windows = create_dockable_windows(app)
     _apply_new_layout_once(runner_params.docking_params)
+    # Ended with a smaller layout of the browser UI: start with the usual one again.
+    app_settings = load_settings("app")
+    wide_layout = app_settings.pop("wide_layout", None)
+    if isinstance(wide_layout, dict):
+        _restore_wide_layout(
+            runner_params.docking_params, cast("dict[str, Any]", wide_layout)
+        )
+        runner_params.docking_params.layout_reset = False
+        runner_params.docking_params.layout_condition = (
+            hello_imgui.DockingLayoutCondition.application_start
+        )
+        save_settings("app", app_settings)
 
     runner_params.callbacks.post_init = app.setup
     runner_params.callbacks.before_exit = app.shutdown
@@ -4910,6 +5359,11 @@ def _main() -> None:
         runner_params.renderer_backend_type = hello_imgui.RendererBackendType.direct_x11
     elif _renderer in ("dx12", "directx12", "direct_x12"):
         runner_params.renderer_backend_type = hello_imgui.RendererBackendType.direct_x12
+
+    # Browser UI (--web[=host:port]): no window, the browser draws the app.
+    options = web_options(sys.argv)
+    if options is not None:
+        enable_web_mode(runner_params, options)
 
     try:
         hello_imgui.run(runner_params)

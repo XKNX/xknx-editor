@@ -3,8 +3,8 @@ from collections.abc import Callable
 from pathlib import Path
 
 from imgui_bundle import imgui
-from imgui_bundle import portable_file_dialogs as pfd
 
+from editor_gui import file_dialogs
 from editor_gui.device import Device, device_label
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets import HexView
@@ -27,9 +27,9 @@ class MemoryPreviewWindow:
         self._ref_data: dict[str, bytes] = {}
         self._encode_error: str | None = None
         # Native file dialogs (non-blocking) and the segment each one is for.
-        self._save_dialog: pfd.save_file | None = None
+        self._save_dialog: file_dialogs.SaveFileDialog | None = None
         self._save_seg_id: str | None = None
-        self._ref_dialog: pfd.open_file | None = None
+        self._ref_dialog: file_dialogs.OpenFileDialog | None = None
         self._ref_seg_id: str | None = None
         self._file_error: str | None = None
 
@@ -117,7 +117,7 @@ class MemoryPreviewWindow:
         if imgui.small_button(f"{S.MEMORY_SAVE}##sv{idx}"):
             self._save_seg_id = seg_id
             self._file_error = None
-            self._save_dialog = pfd.save_file(
+            self._save_dialog = file_dialogs.save_file(
                 S.MEMORY_SAVE_DUMP_TITLE,
                 self._dump_name(seg_id),
                 [S.MEMORY_FILE_FILTER, "*.bin", S.MEMORY_ALL_FILES, "*"],
@@ -129,7 +129,7 @@ class MemoryPreviewWindow:
         elif imgui.small_button(f"{S.MEMORY_DIFF}##df{idx}"):
             self._ref_seg_id = seg_id
             self._file_error = None
-            self._ref_dialog = pfd.open_file(
+            self._ref_dialog = file_dialogs.open_file(
                 S.MEMORY_LOAD_REF_TITLE,
                 "",
                 [S.MEMORY_FILE_FILTER, "*.bin", S.MEMORY_ALL_FILES, "*"],

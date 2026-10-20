@@ -24,6 +24,7 @@ from editor_gui.widgets.float_format import format_float, general_float, parse_f
 from editor_gui.widgets.fonts import bold
 from editor_gui.widgets.icons import Icon, Picture, draw_icon
 from editor_gui.widgets.strings import S
+from editor_gui.widgets.tables import data_table_id
 from editor_gui.widgets.time_format import (
     format_time,
     parse_time,
@@ -534,6 +535,10 @@ def _hint(widget: TimeWidget) -> str | None:
     return widget.hint.value if widget.hint is not None else None
 
 
+# Whether the page being drawn is in the narrow editor (see render_ui_tree).
+_narrow_page = [False]
+
+
 def _spin_width() -> float:
     return imgui.get_frame_height() * 0.6
 
@@ -612,7 +617,10 @@ def _render_int_param(
     differs: bool = False,
     increment: int = 1,
 ) -> None:
-    _set_number_field_width()
+    # On a narrow page (a phone) the field keeps its whole width for the number: arrows that
+    # small are hard to hit with a finger, and the keyboard types the number.
+    spin = not _narrow_page[0]
+    _set_number_field_width(spin=spin)
     if differs:
         _, new_text = imgui.input_text_with_hint(
             f"##{widget_id}", S.PARAM_DIFFERS, "", imgui.InputTextFlags_.chars_decimal
@@ -623,7 +631,7 @@ def _render_int_param(
             f"##{widget_id}", value, imgui.InputTextFlags_.chars_decimal
         )
         edited = imgui.is_item_deactivated_after_edit()
-    steps = _spin_buttons(widget_id, enabled=not differs)
+    steps = _spin_buttons(widget_id, enabled=not differs) if spin else 0
     if steps:
         try:
             new_text = str(int(value) + steps * (increment or 1))
@@ -962,6 +970,17 @@ _tree_scrolls: list[bool] = []
 _page_cache: dict[int, tuple[list[UiNode], str, tuple[ParameterPage, ...]]] = {}
 
 _TREE_WIDTH = 210.0
+# Narrower than this at 100 % scaling (a phone), the pages are a drop-down above the page, and
+# the help below it takes at most this share of the height (it keeps its own height then, see
+# stacked_layout).
+_STACKED_WIDTH = 480.0
+_STACKED_FOOTER_SHARE = 0.7
+# The least share of the window's height the page and help get there (the window scrolls then).
+_STACKED_PAGE_SHARE = 0.75
+# Indent of a page below the one it belongs to in that drop-down, at 100 % scaling.
+_CHOICE_INDENT = 14.0
+# A page narrower than this at 100 % scaling has each parameter label above its field.
+_LABELS_ABOVE_WIDTH = 420.0
 
 
 def _device_pages(
@@ -975,6 +994,49 @@ def _device_pages(
         pages = filter_pages(pages, needle)
     _page_cache[device.node_id] = (nodes, needle, pages)
     return pages
+
+
+def _render_page_choice(
+    pages: tuple[ParameterPage, ...],
+    path: list[ParameterPage],
+    selected: str | None,
+    width: float,
+) -> str | None:
+    """The pages as a drop-down (a narrow editor): the selected page with the pages above it,
+    and every page indented below the one it belongs to. Returns the key of a page chosen this
+    frame."""
+    chosen: list[str] = []
+
+    def rows(items: tuple[ParameterPage, ...], depth: int) -> None:
+        for page in items:
+            indent = depth * px(_CHOICE_INDENT)
+            if indent:
+                imgui.indent(indent)
+            if page.selectable:
+                is_selected = page.key == selected
+                if imgui.selectable(f"{page.label}##{page.key}", is_selected)[0]:
+                    chosen.append(page.key)
+                if is_selected and imgui.is_window_appearing():
+                    imgui.set_scroll_here_y()
+            else:
+                imgui.text_disabled(page.label)
+            if indent:
+                imgui.unindent(indent)
+            rows(page.children, depth + 1)
+
+    imgui.set_next_item_width(width)
+    preview = " / ".join(page.label.strip() for page in path)
+    if begin_combo("##page_choice", preview, imgui.ComboFlags_.height_largest):
+        rows(pages, 0)
+        imgui.end_combo()
+    return chosen[0] if chosen else None
+
+
+def stacked_layout() -> bool:
+    """Whether :func:`render_ui_tree` in the current window puts the page tree above the page
+    (a narrow window, a phone)."""
+    inner = internal.get_current_window().inner_rect
+    return inner.max.x - inner.min.x < px(_STACKED_WIDTH)
 
 
 def render_ui_tree(
@@ -1024,33 +1086,12 @@ def render_ui_tree(
     reached = imgui.ImVec2(window.dc.cursor_max_pos.x, window.dc.cursor_max_pos.y)
     imgui.set_cursor_screen_pos(imgui.ImVec2(inner.min.x, top))
     imgui.push_clip_rect(inner.min, inner.max, False)
-    flags = imgui.TableFlags_.resizable | imgui.TableFlags_.borders_inner_v
-    imgui.push_style_var(imgui.StyleVar_.cell_padding, imgui.ImVec2(0.0, 0.0))
-    # The table's border only marks where the columns are resized; the line is drawn below.
-    imgui.push_style_color(
-        imgui.Col_.table_border_light, imgui.ImVec4(0.0, 0.0, 0.0, 0.0)
-    )
-    table_open = imgui.begin_table(
-        f"##pages_{device.node_id}",
-        2,
-        flags,
-        imgui.ImVec2(inner.max.x - inner.min.x, height),
-    )
-    imgui.pop_style_color()
-    imgui.pop_style_var()
-    if table_open:
-        imgui.table_setup_column(
-            "##tree", imgui.TableColumnFlags_.width_fixed, px(_TREE_WIDTH)
-        )
-        imgui.table_setup_column("##page", imgui.TableColumnFlags_.width_stretch)
-        imgui.table_next_row()
-        imgui.table_next_column()
-        scroll = imgui.WindowFlags_.horizontal_scrollbar
+    scroll = imgui.WindowFlags_.horizontal_scrollbar
+
+    def tree(size: imgui.ImVec2) -> None:
         _selected_row.clear()
         with child_background(side_background()):
-            tree_open = imgui.begin_child(
-                "##page_tree", imgui.ImVec2(0, height), 0, scroll
-            )
+            tree_open = imgui.begin_child("##page_tree", size, 0, scroll)
         if tree_open:
             tree_rect = internal.get_current_window().inner_rect
             _tree_scrolls[:] = [internal.get_current_window().scrollbar_y]
@@ -1065,6 +1106,9 @@ def render_ui_tree(
                 get_icon,
             )
             imgui.unindent(px(_TREE_INDENT))
+            # An item after the tree's last move of the cursor (imgui asserts on a cursor moved
+            # past the content without one, e.g. when the filter leaves no page).
+            imgui.dummy(imgui.ImVec2(0.0, 0.0))
             if clicked is not None:
                 _selected_pages[device.node_id] = clicked
             # The selected row as far as it is scrolled into view.
@@ -1076,33 +1120,25 @@ def render_ui_tree(
                     [(row_top, row_bottom)] if row_top < row_bottom else []
                 )
         imgui.end_child()
-        # The line runs along the tree, from its top to its bottom.
-        line_left = imgui.get_item_rect_max().x
-        line_top = imgui.get_item_rect_min().y
-        line_bottom = imgui.get_item_rect_max().y
-        imgui.table_next_column()
-        # One pixel beside the table's border: the line between tree and page is 2 px wide.
-        _move_cursor_right(px(1.0))
-        line_right = imgui.get_cursor_screen_pos().x
-        bottom = top + height
-        page_height = height
-        if footer is not None:
-            page_height = max(height - footer_height, imgui.get_frame_height() * 3)
+
+    def page(size: imgui.ImVec2) -> EnumPopupRequest | None:
+        global _get_picture, _get_icon
+        request: EnumPopupRequest | None = None
         with child_background(content_background()):
             content_open = imgui.begin_child(
                 "##page_content",
-                imgui.ImVec2(0, page_height),
+                size,
                 imgui.ChildFlags_.always_use_window_padding,
                 scroll,
             )
         if content_open:
             _draw_page_top_line()
         if content_open and selected is not None:
-            global _get_picture, _get_icon
             _get_picture = get_picture
             _get_icon = get_icon
+            _narrow_page[0] = stacked
             try:
-                popup_request = _render_page(
+                request = _render_page(
                     device,
                     selected,
                     on_change,
@@ -1114,18 +1150,102 @@ def render_ui_tree(
             finally:
                 _get_picture = None
                 _get_icon = None
+                _narrow_page[0] = False
         imgui.end_child()
+        return request
+
+    width = inner.max.x - inner.min.x
+    stacked = stacked_layout()
+    if stacked:
+        # Narrow (a phone): the pages as a drop-down above the page, which gets the rest of the
+        # height; the help below it takes at most a share of the height.
+        least = imgui.get_frame_height() * 3
+        footer_height = min(
+            footer_height, (inner.max.y - inner.min.y) * _STACKED_FOOTER_SHARE
+        )
+        pad = imgui.get_style().window_padding.x
+        imgui.set_cursor_screen_pos(
+            imgui.ImVec2(inner.min.x + pad, top + imgui.get_style().item_spacing.y)
+        )
+        chosen = _render_page_choice(
+            pages, path or [], selected.key if selected else None, width - 2 * pad
+        )
+        if chosen is not None:
+            _selected_pages[device.node_id] = chosen
+        line_top = imgui.get_item_rect_max().y + imgui.get_style().item_spacing.y
+        imgui.get_window_draw_list().add_rect_filled(
+            imgui.ImVec2(inner.min.x, line_top),
+            imgui.ImVec2(inner.max.x, line_top + px(1.0)),
+            imgui.get_color_u32(imgui.Col_.separator),
+        )
+        imgui.set_cursor_screen_pos(imgui.ImVec2(inner.min.x, line_top + px(1.0)))
+        page_top = imgui.get_cursor_screen_pos().y
+        # On a short screen the page keeps most of the window's height and the window scrolls:
+        # its upper part (device, buttons, filter) moves out of view.
+        # (From where the page is when not scrolled: scrolling does not make it grow.)
+        page_height = max(
+            inner.max.y - (page_top + window.scroll.y) - footer_height,
+            least,
+            (inner.max.y - inner.min.y) * _STACKED_PAGE_SHARE - footer_height,
+        )
+        bottom = page_top + page_height + footer_height
+        popup_request = page(imgui.ImVec2(width, page_height))
         if footer is not None:
-            _move_cursor_right(px(1.0))
+            imgui.set_cursor_screen_pos(
+                imgui.ImVec2(inner.min.x, imgui.get_cursor_screen_pos().y)
+            )
             footer(bottom - imgui.get_cursor_screen_pos().y)
-        imgui.end_table()
-        _draw_page_line(line_left, line_right, line_top, line_bottom)
+    else:
+        flags = imgui.TableFlags_.resizable | imgui.TableFlags_.borders_inner_v
+        imgui.push_style_var(imgui.StyleVar_.cell_padding, imgui.ImVec2(0.0, 0.0))
+        # The table's border only marks where the columns are resized; the line is drawn below.
+        imgui.push_style_color(
+            imgui.Col_.table_border_light, imgui.ImVec4(0.0, 0.0, 0.0, 0.0)
+        )
+        # Its id follows the tables' generation: restoring the default layout resets the
+        # width the page tree was dragged to, too.
+        table_open = imgui.begin_table(
+            data_table_id(f"##pages_{device.node_id}"),
+            2,
+            flags,
+            imgui.ImVec2(width, height),
+        )
+        imgui.pop_style_color()
+        imgui.pop_style_var()
+        if table_open:
+            imgui.table_setup_column(
+                "##tree", imgui.TableColumnFlags_.width_fixed, px(_TREE_WIDTH)
+            )
+            imgui.table_setup_column("##page", imgui.TableColumnFlags_.width_stretch)
+            imgui.table_next_row()
+            imgui.table_next_column()
+            tree(imgui.ImVec2(0, height))
+            # The line runs along the tree, from its top to its bottom.
+            line_left = imgui.get_item_rect_max().x
+            line_top = imgui.get_item_rect_min().y
+            line_bottom = imgui.get_item_rect_max().y
+            imgui.table_next_column()
+            # One pixel beside the table's border: the line between tree and page is 2 px wide.
+            _move_cursor_right(px(1.0))
+            line_right = imgui.get_cursor_screen_pos().x
+            bottom = top + height
+            page_height = height
+            if footer is not None:
+                page_height = max(height - footer_height, imgui.get_frame_height() * 3)
+            popup_request = page(imgui.ImVec2(0, page_height))
+            if footer is not None:
+                _move_cursor_right(px(1.0))
+                footer(bottom - imgui.get_cursor_screen_pos().y)
+            imgui.end_table()
+            _draw_page_line(line_left, line_right, line_top, line_bottom)
     imgui.pop_clip_rect()
-    # The area ends at the window's edges, in its padding: it leaves nothing to scroll to.
+    # The area ends at the window's edges, in its padding: it leaves nothing to scroll to (but
+    # downwards where it is narrow, when the page reaches below the window).
     end = window.dc.cursor_max_pos
     work = window.work_rect
     window.dc.cursor_max_pos = imgui.ImVec2(
-        max(reached.x, min(end.x, work.max.x)), max(reached.y, min(end.y, work.max.y))
+        max(reached.x, min(end.x, work.max.x)),
+        max(reached.y, end.y if stacked else min(end.y, work.max.y)),
     )
     return popup_request
 
@@ -1905,27 +2025,33 @@ def _render_param_table(
     # Labels and values sit at the same positions as the columns of grids on the page.
     reference = min(imgui.get_content_region_avail().x, px(_GRID_REFERENCE_WIDTH))
     label_width = reference * _LIST_LABEL_SHARE
+    # On a narrow page (a phone) each label is above its field, which gets the whole width.
+    above = reference < px(_LABELS_ABOVE_WIDTH)
     padding = imgui.get_style().cell_padding
     imgui.push_style_var(imgui.StyleVar_.cell_padding, imgui.ImVec2(0, padding.y))
     opened = imgui.begin_table(
-        f"##params_{prefix}", 2, table_flags, imgui.ImVec2(reference, 0)
+        f"##params_{prefix}", 1 if above else 2, table_flags, imgui.ImVec2(reference, 0)
     )
     imgui.pop_style_var()
     if opened:
-        imgui.table_setup_column(
-            "Name", imgui.TableColumnFlags_.width_fixed, label_width
-        )
+        if not above:
+            imgui.table_setup_column(
+                "Name", imgui.TableColumnFlags_.width_fixed, label_width
+            )
         # Values such as a row of radio buttons may reach past the column.
         imgui.table_setup_column(
             "Value",
             imgui.TableColumnFlags_.width_stretch | imgui.TableColumnFlags_.no_clip,
         )
+        value_column = 0 if above else 1
         # Every row is as high as one with an input field.
         row_height = imgui.get_frame_height() + 2 * padding.y
         for param in params:
-            imgui.table_next_row(imgui.TableRowFlags_.none, row_height)
+            imgui.table_next_row(
+                imgui.TableRowFlags_.none, 0.0 if above else row_height
+            )
             if isinstance(param, UiButton):
-                imgui.table_set_column_index(1)
+                imgui.table_set_column_index(value_column)
                 _render_button(device, param, prefix, buttons)
                 continue
             imgui.table_set_column_index(0)
@@ -1964,12 +2090,20 @@ def _render_param_table(
             _track_help(param.help_context)
             if indent > 0:
                 imgui.unindent(indent)
-            imgui.table_set_column_index(1)
+            if above:
+                imgui.table_next_row(imgui.TableRowFlags_.none, row_height)
+            imgui.table_set_column_index(value_column)
+            # Above each other, the field is indented like its label.
+            value_indent = indent if above else 0.0
+            if value_indent > 0:
+                imgui.indent(value_indent)
             if _shows_as_text(param):
                 imgui.align_text_to_frame_padding()
                 imgui.text(_value_display(param, param.value))
                 _render_suffix(param.suffix)
                 _track_help(param.help_context)
+                if value_indent > 0:
+                    imgui.unindent(value_indent)
                 continue
             widget_id = f"{device.node_id}_{param.ref_id}"
             read_only = param.access == Access.READ
@@ -1988,6 +2122,8 @@ def _render_param_table(
             _track_help(param.help_context)
             _render_suffix(param.suffix)
             imgui.end_group()
+            if value_indent > 0:
+                imgui.unindent(value_indent)
             # Right-click a changed value or its label to restore the application default.
             if changed and not read_only:
                 _reset_menu(

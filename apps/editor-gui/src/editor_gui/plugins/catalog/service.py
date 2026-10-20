@@ -45,12 +45,15 @@ def _forget_stored_language() -> None:
 
 class CatalogService:
     def __init__(
-        self, catalog_path: Path, io_lock: threading.RLock | None = None
+        self,
+        catalog_path: Path,
+        io_lock: threading.RLock | None = None,
+        parse_cache_dir: Path | None = None,
     ) -> None:
         from editor_gui.plugins.catalog.online_catalog import OnlineCatalogClient
         from xknxeditor.catalog import CatalogService as _CatalogService
 
-        self._service = _CatalogService(catalog_path)
+        self._service = _CatalogService(catalog_path, parse_cache_dir)
         self._products: list[ProductSummary] | None = None
         self._product_index: dict[str, ProductSummary] | None = None
         self._programs: dict[str, list[ProgramSummary]] = {}

@@ -13,6 +13,9 @@ from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.description import (
     description_icon,
     description_icon_width,
+    is_secure_device,
+    secure_icon,
+    secure_icon_width,
     shows_description_icon,
 )
 from editor_gui.widgets.dpi import px
@@ -135,14 +138,34 @@ class CockpitPanel:
             )[0]:
                 self._on_select(r.node_id)
             imgui.table_set_column_index(1)
-            if shows_description_icon(r.description):
-                # The description's icon at the end of the cell, the name clipped before it.
+            secure = is_secure_device(r.node_id)
+            long_description = shows_description_icon(r.description)
+            if secure or long_description:
+                # The KNX Data Secure shield and the description's icon at the end of the cell, the
+                # name (and a short description) clipped before them.
+                spacing = imgui.get_style().item_inner_spacing.x
+                icons_w = (secure_icon_width() if secure else 0.0) + (
+                    description_icon_width() if long_description else 0.0
+                )
+                if secure and long_description:
+                    icons_w += spacing
                 start = imgui.get_cursor_screen_pos().x
                 end = start + imgui.get_content_region_avail().x
-                icon_x = max(start, end - description_icon_width())
-                spacing = imgui.get_style().item_inner_spacing.x
-                text_clipped_tooltip(r.name, width=max(0.0, icon_x - spacing - start))
-                description_icon(r.description, x=icon_x)
+                icon_x = max(start, end - icons_w)
+                room = max(0.0, icon_x - spacing - start)
+                text_clipped_tooltip(r.name, width=room)
+                used = imgui.calc_text_size(r.name).x + imgui.get_style().item_spacing.x
+                if r.description and not long_description and used < room:
+                    # A short description inline after the name, dimmed.
+                    imgui.same_line()
+                    text_clipped_tooltip(
+                        r.description, disabled=True, width=room - used
+                    )
+                if secure:
+                    secure_icon(x=icon_x)
+                    icon_x += secure_icon_width() + spacing
+                if long_description:
+                    description_icon(r.description, x=icon_x)
             elif r.description:
                 # A short description inline after the name.
                 text_clipped_tooltip(r.name)

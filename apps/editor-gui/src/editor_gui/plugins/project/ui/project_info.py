@@ -10,6 +10,7 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.password_form import NewPasswordForm
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
@@ -207,17 +208,18 @@ class ProjectInfoPanel:
         )
         if self._on_set_password is None:
             return
-        imgui.same_line()
         label = (
             S.PROJECT_CHANGE_PASSWORD
             if info.password_protected
             else S.PROJECT_SET_PASSWORD
         )
+        # The buttons go on in the next line where the panel is narrow.
+        same_line_if_fits(button_width(label))
         if imgui.button(label):
             self._password_form.reset()
             self._password_dialog_open = True
         if info.password_protected:
-            imgui.same_line()
+            same_line_if_fits(button_width(S.PROJECT_REMOVE_PASSWORD))
             # A project with KNX Secure data keeps its password: its keys are only protected by it.
             required = self._needs_password()
             imgui.begin_disabled(required)
