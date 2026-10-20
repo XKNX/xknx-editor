@@ -24,6 +24,7 @@ from editor_gui.os_open import open_url
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.fonts import heading, italic
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.tree import collapsing_header
@@ -130,12 +131,7 @@ def _scope_labels() -> list[str]:
 
 def _same_line_if_fits(label: str) -> None:
     """Put the next button beside the previous item if it fits, else below it."""
-    style = imgui.get_style()
-    width = imgui.calc_text_size(label).x + style.frame_padding.x * 2
-    right = imgui.get_item_rect_max().x + style.item_spacing.x + width
-    limit = imgui.get_window_pos().x + imgui.get_window_width() - style.window_padding.x
-    if right <= limit:
-        imgui.same_line()
+    same_line_if_fits(button_width(label))
 
 
 def _no_application_tooltip(device: Device) -> None:
@@ -155,10 +151,7 @@ def _same_line_if_fits_checkbox(label: str) -> None:
         + style.item_inner_spacing.x
         + imgui.calc_text_size(label).x
     )
-    right = imgui.get_item_rect_max().x + style.item_spacing.x * 2 + width
-    limit = imgui.get_window_pos().x + imgui.get_window_width() - style.window_padding.x
-    if right <= limit:
-        imgui.same_line(0.0, style.item_spacing.x * 2)
+    same_line_if_fits(width, style.item_spacing.x * 2)
 
 
 def _edit_being_stored() -> bool:

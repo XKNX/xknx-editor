@@ -17,6 +17,7 @@ from editor_gui.plugins.monitor.table import TelegramView
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_value import DptValueInput
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.flow import button_width, same_line_if_fits, text_width
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
@@ -28,6 +29,8 @@ if TYPE_CHECKING:
 
 
 _ERROR_COLOR = imgui.ImVec4(0.95, 0.45, 0.4, 1.0)
+# Room kept for a value field beside its label before both go to the next line, at 100 % scaling.
+_VALUE_ROOM = 90.0
 
 
 class MonitorPanel:
@@ -114,11 +117,14 @@ class MonitorPanel:
             "##mon_cmd_address", S.MONITOR_ADDRESS_HINT, self._cmd_address
         )
         if entry is not None:
-            imgui.same_line()
-            imgui.text_disabled(dpt_text(entry.dpt) or entry.name)
+            kind = dpt_text(entry.dpt) or entry.name
+            same_line_if_fits(text_width(kind))
+            imgui.text_disabled(kind)
             if imgui.is_item_hovered():
                 imgui.set_tooltip(entry.name)
-        imgui.same_line()
+        # The value with its label; in the next line where the panel is narrow.
+        same_line_if_fits(text_width(S.MONITOR_VALUE_LABEL) + px(_VALUE_ROOM))
+        imgui.align_text_to_frame_padding()
         imgui.text_disabled(S.MONITOR_VALUE_LABEL)
         imgui.same_line()
         token = entry.dpt if entry is not None else None
@@ -127,7 +133,7 @@ class MonitorPanel:
             submitted = self._cmd_value.render(token, index.formats, inline=True)
         else:
             imgui.text_disabled("-")
-        imgui.same_line()
+        same_line_if_fits(button_width(S.MONITOR_WRITE))
         can_write = (
             connected
             and entry is not None
@@ -140,12 +146,12 @@ class MonitorPanel:
         imgui.end_disabled()
         if not can_write and connected:
             imgui.set_item_tooltip(S.MONITOR_UNKNOWN_ADDRESS)
-        imgui.same_line()
+        same_line_if_fits(button_width(S.MONITOR_READ))
         imgui.begin_disabled(not connected or raw is None)
         read = imgui.button(f"{S.MONITOR_READ}##mon_cmd_read")
         imgui.end_disabled()
         if not connected:
-            imgui.same_line()
+            same_line_if_fits(text_width(S.MONITOR_DISCONNECTED))
             imgui.text_disabled(S.MONITOR_DISCONNECTED)
         if self._cmd_value.error:
             imgui.text_colored(_ERROR_COLOR, self._cmd_value.error)
@@ -201,7 +207,8 @@ class MonitorPanel:
         # The selected group address (set by clicking a table row), then the value to send.
         imgui.align_text_to_frame_padding()
         imgui.text(self._selected or "-")
-        imgui.same_line()
+        same_line_if_fits(text_width(S.MONITOR_VALUE_LABEL) + px(_VALUE_ROOM))
+        imgui.align_text_to_frame_padding()
         imgui.text_disabled(S.MONITOR_VALUE_LABEL)
         imgui.same_line()
         submitted = False
@@ -209,16 +216,16 @@ class MonitorPanel:
             submitted = self._write_value.render(token, formats, inline=True)
         else:
             imgui.text_disabled("-")
-        imgui.same_line()
+        same_line_if_fits(button_width(S.MONITOR_WRITE))
         imgui.begin_disabled(not self._write_value.can_write(token, formats))
         write = imgui.button(S.MONITOR_WRITE) or submitted
         imgui.end_disabled()
-        imgui.same_line()
+        same_line_if_fits(button_width(S.MONITOR_READ))
         read = imgui.button(S.MONITOR_READ)
         imgui.end_disabled()
         if not connected:
             # Right after the buttons, as in the other monitors.
-            imgui.same_line()
+            same_line_if_fits(text_width(S.MONITOR_DISCONNECTED))
             imgui.text_disabled(S.MONITOR_DISCONNECTED)
         if self._write_value.error:
             imgui.text_colored(_ERROR_COLOR, self._write_value.error)

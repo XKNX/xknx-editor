@@ -163,10 +163,13 @@ in front handle it.
 
 On a tablet or phone the layout follows the screen: from about 1000 pixels width the usual one,
 below it the navigation above (or beside) the other panels, which share one section as tabs; it
-changes when the device is turned. Each browser keeps its own zoom: two fingers, Ctrl+Plus/Minus/0,
-or **View → Zoom In/Zoom Out/Reset Zoom**. With a finger, a tap clicks, a swipe scrolls, holding
-and lifting is a right-click (context menus) and holding and moving drags. The on-screen keyboard
-appears for text fields only.
+changes when the device is turned. On a narrow screen the menus are in one **☰** menu, the parameter
+editor shows its pages above the parameters with each label above its field, rows of buttons go on
+in the next line and wide tables scroll sideways. Each browser keeps its own zoom: two fingers,
+Ctrl+Plus/Minus/0, or **View → Zoom In/Zoom Out/Reset Zoom**; two fingers on the Topology diagram
+zoom the diagram. With a finger, a tap clicks, a swipe scrolls, holding and lifting is a
+right-click (context menus) and holding and moving drags. The on-screen keyboard appears for text
+fields only.
 
 One browser controls the editor at a time; it keeps control across a reload. Another browser watches
 and can take over with **Take Control**, and gets control right away once the controlling one was

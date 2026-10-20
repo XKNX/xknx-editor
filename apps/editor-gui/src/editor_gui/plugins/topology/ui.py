@@ -13,6 +13,7 @@ from typing import Any
 
 from imgui_bundle import imgui
 
+from editor_gui import web
 from editor_gui.device import Device, address_order, device_label
 from editor_gui.plugins.topology.strings import S
 from editor_gui.widgets.backgrounds import child_background, content_background
@@ -111,6 +112,10 @@ class TopologyPanel:
                 "##topo_canvas", imgui.ImVec2(0.0, 0.0), True
             )
         if canvas_open:
+            # In the browser, two fingers on the diagram zoom it.
+            low = imgui.get_window_pos()
+            size = imgui.get_window_size()
+            web.pinch_area(low, imgui.ImVec2(low.x + size.x, low.y + size.y))
             self._handle_zoom()
             self._draw(layout)
         imgui.end_child()

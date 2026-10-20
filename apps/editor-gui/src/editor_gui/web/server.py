@@ -144,6 +144,8 @@ class WebHub:
         self.zoom = 1.0
         # Whether a text field of the app takes typing (a touch screen shows its keyboard).
         self.text_input = False
+        # Where two fingers zoom a view instead of the app: [x, y, width, height] in app units.
+        self.pinch_areas: list[list[float]] = []
         self._input: deque[dict[str, Any]] = deque()
         self._clients: list[_Client] = []
         self._controller: _Client | None = None
@@ -192,6 +194,10 @@ class WebHub:
     def set_zoom(self, zoom: float) -> None:
         """Zoom the app in the controlling browser (it answers with its new size)."""
         self._post(event_message({"t": "zoom", "z": zoom}))
+
+    def set_pinch_areas(self, areas: list[list[float]]) -> None:
+        self.pinch_areas = areas
+        self._post(event_message({"t": "pinch-areas", "areas": areas}))
 
     def set_text_input(self, wanted: bool) -> None:
         self.text_input = wanted
@@ -349,6 +355,7 @@ class WebHub:
                         "control": controls,
                         "browsers": len(self._clients),
                         "text_input": self.text_input,
+                        "pinch_areas": self.pinch_areas,
                     }
                 )
             )

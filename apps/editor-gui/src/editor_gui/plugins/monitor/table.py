@@ -36,6 +36,7 @@ from editor_gui.widgets.checkbox import radio_button
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.flow import button_width, same_line_if_fits, text_width
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 if TYPE_CHECKING:
@@ -55,6 +56,9 @@ ICON_COPY = ""
 
 # Seconds of a frame spent filtering a large log before showing what is done.
 _FILTER_BUDGET = 0.008
+# Narrowest the filter box gets beside the Compact/Extend toggle, at 100 % scaling; else the
+# toggle goes below it.
+_NARROW_FILTER = 160.0
 _ERROR_COLOR = imgui.ImVec4(0.9, 0.35, 0.35, 1.0)
 _WARN_COLOR = imgui.ImVec4(0.95, 0.6, 0.15, 1.0)
 _EVENT_COLOR = imgui.ImVec4(0.55, 0.7, 0.95, 1.0)
@@ -265,26 +269,44 @@ class TelegramView:
                 + imgui.get_style().frame_padding.x * 2.0
                 + px(4.0)
             )
+        # Too narrow for both in one line (a phone): the toggle goes below the filter.
+        below = imgui.get_content_region_avail().x - reserve < px(_NARROW_FILTER)
         self.filter = filter_box(
             f"##mon_filter_{self.kind.value}",
             S.MONITOR_FILTER_HINT,
             self.filter,
-            reserve,
+            0.0 if below else reserve,
         )
         if toggle is not None:
-            imgui.same_line(0.0, px(4.0))
+            if not below:
+                imgui.same_line(0.0, px(4.0))
             if imgui.button(f"{label}###mon_extend_toggle"):
                 toggle()
 
     def _icon_button(self, icon: str, name: str, hint: str, enabled: bool) -> bool:
+        label = f"{icon}##{name}_{self.kind.value}"
+        # The toolbar goes on in the next line where the panel is narrow.
+        if self._toolbar_items:
+            same_line_if_fits(button_width(label))
+        self._toolbar_items += 1
         imgui.begin_disabled(not enabled)
-        clicked = imgui.button(f"{icon}##{name}_{self.kind.value}")
+        clicked = imgui.button(label)
         imgui.end_disabled()
         imgui.set_item_tooltip(f"{name}\n{hint}" if hint else name)
-        imgui.same_line()
         return clicked and enabled
 
+    def _toolbar_text(self, text: str, color: imgui.ImVec4 | None = None) -> None:
+        """A note in the toolbar row, in the next line where it no longer fits."""
+        if self._toolbar_items:
+            same_line_if_fits(text_width(text))
+        self._toolbar_items += 1
+        if color is None:
+            imgui.text_disabled(text)
+        else:
+            imgui.text_colored(color, text)
+
     def _render_toolbar(self) -> None:
+        self._toolbar_items = 0
         channel = self._channel
         has_records = len(channel.log) > 0
         busmon = self._connection.busmonitor_state
@@ -339,20 +361,17 @@ class TelegramView:
             self._report_replay()
         # The bus load and the telegram count only while recording; otherwise just the state.
         if self._render_state():
-            imgui.same_line()
-            imgui.text_disabled(
+            self._toolbar_text(
                 S.MONITOR_BUS_LOAD.format(rate=f"{self._service.bus_load():.1f}")
             )
-            imgui.same_line()
             count = len(self._view)
             text = (
                 S.MONITOR_TELEGRAM_COUNT_ONE if count == 1 else S.MONITOR_TELEGRAM_COUNT
             )
-            imgui.text_disabled(text.format(count=count))
+            self._toolbar_text(text.format(count=count))
         if self.filtering:
-            imgui.same_line()
             done = self._pos * 100 // max(len(self._source), 1)
-            imgui.text_disabled(f"({done}%)")
+            self._toolbar_text(f"({done}%)")
 
     def _render_state(self) -> bool:
         """The recording state in the toolbar row; returns whether the monitor records."""
@@ -361,30 +380,29 @@ class TelegramView:
         if self.kind is MonitorKind.BUS:
             state = self._connection.busmonitor_state
             if state is BusmonitorState.STARTING:
-                imgui.text_colored(_WARN_COLOR, S.STATUS_BUSMON_STARTING)
+                self._toolbar_text(S.STATUS_BUSMON_STARTING, _WARN_COLOR)
             elif state is BusmonitorState.STOPPING:
-                imgui.text_colored(_WARN_COLOR, S.STATUS_BUSMON_STOPPING)
+                self._toolbar_text(S.STATUS_BUSMON_STOPPING, _WARN_COLOR)
             elif state is BusmonitorState.RUNNING:
-                imgui.text_colored(color, S.STATUS_RECORDING)
+                self._toolbar_text(S.STATUS_RECORDING, color)
                 recording = True
             elif not self._service.is_connected():
-                imgui.text_disabled(S.MONITOR_DISCONNECTED)
+                self._toolbar_text(S.MONITOR_DISCONNECTED)
             else:
-                imgui.text_disabled(S.STATUS_STOPPED)
+                self._toolbar_text(S.STATUS_STOPPED)
         elif self._channel.session:
-            imgui.text_colored(color, S.STATUS_RECORDING)
+            self._toolbar_text(S.STATUS_RECORDING, color)
             recording = True
         elif not self._service.is_connected():
-            imgui.text_disabled(S.MONITOR_DISCONNECTED)
+            self._toolbar_text(S.MONITOR_DISCONNECTED)
         else:
-            imgui.text_disabled(S.STATUS_STOPPED)
+            self._toolbar_text(S.STATUS_STOPPED)
         if self._service.replaying and self.kind is MonitorKind.GROUP:
             progress = self._service.replay_progress()
             if progress is not None:
-                imgui.same_line()
-                imgui.text_colored(
-                    _WARN_COLOR,
+                self._toolbar_text(
                     S.STATUS_REPLAYING.format(done=progress[0], total=progress[1]),
+                    _WARN_COLOR,
                 )
         return recording
 

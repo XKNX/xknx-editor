@@ -4,7 +4,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from editor_gui.main import compact_docking_splits, compact_section, form_factor
+from imgui_bundle import hello_imgui
+
+from editor_gui.main import (
+    _restore_wide_layout,  # pyright: ignore[reportPrivateUsage]
+    compact_docking_splits,
+    compact_section,
+    form_factor,
+)
 from editor_gui.web.touch import SLOP, TouchGestures
 
 
@@ -215,3 +222,19 @@ def test_compact_sections() -> None:
             for s in ("LeftSpace", "DeviceSpace", "RightSpace", "BottomSpace")
         } - {"MainDockSpace"}
         assert made == wanted
+
+
+def test_usual_layout_restored_before_imgui_runs() -> None:
+    """At the start (no imgui yet) after ending with a smaller layout: no crash, the windows go
+    back to their usual sections."""
+    params = hello_imgui.DockingParams()
+    window = hello_imgui.DockableWindow()
+    window.label = "Device###device"
+    window.dock_space_name = "MainDockSpace"
+    params.dockable_windows = [window]
+    _restore_wide_layout(
+        params,
+        {"docks": {"device": "DeviceSpace"}, "ratios": {}, "expanded": False},
+    )
+    assert params.dockable_windows[0].dock_space_name == "DeviceSpace"
+    assert {s.new_dock for s in params.docking_splits} >= {"DeviceSpace", "BottomSpace"}

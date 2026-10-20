@@ -24,6 +24,7 @@ from editor_gui.widgets.dialog import (
     end_dialog,
 )
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.flow import button_width, checkbox_width, same_line_if_fits
 from editor_gui.widgets.strings import S
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from xknxeditor.proj.core.addressing import GroupAddressStyle
@@ -154,35 +155,39 @@ class GroupObjectsTable:
             selected = [c for c in com_objects if c.id in self._selected]
             # All three regular buttons so they share the same height/baseline (mixing small_button
             # with button left the taller "Create" button looking lower than All/None).
+            # The row goes on in the next line where the panel is narrow.
             if imgui.button(S.GROUP_OBJECTS_SELECT_ALL):
                 self._selected = {c.id for c in com_objects}
-            imgui.same_line()
+            same_line_if_fits(button_width(S.GROUP_OBJECTS_SELECT_NONE))
             imgui.begin_disabled(not selected)
             if imgui.button(S.GROUP_OBJECTS_SELECT_NONE):
                 self._selected.clear()
             imgui.end_disabled()
-            imgui.same_line()
+            create = S.GROUP_OBJECTS_AUTO_CREATE.format(count=len(selected))
+            same_line_if_fits(button_width(create))
             imgui.begin_disabled(not selected)
-            if imgui.button(S.GROUP_OBJECTS_AUTO_CREATE.format(count=len(selected))):
+            if imgui.button(create):
                 self._batch_open = True
             imgui.end_disabled()
             if self._on_paste_links is not None:
                 targets = self._checked_targets(com_objects)
                 self._handle_copy_paste_shortcuts(device, com_objects, get_links)
-                imgui.same_line()
+                copy = S.GROUP_OBJECTS_COPY_LINKS.format(count=len(targets))
+                same_line_if_fits(button_width(copy))
                 imgui.begin_disabled(not targets)
-                if imgui.button(S.GROUP_OBJECTS_COPY_LINKS.format(count=len(targets))):
+                if imgui.button(copy):
                     self._copy_checked(com_objects, get_links)
                 imgui.end_disabled()
                 paste_n = min(len(self._link_clipboard), len(targets))
-                imgui.same_line()
+                paste = S.GROUP_OBJECTS_PASTE_LINKS.format(count=paste_n)
+                same_line_if_fits(button_width(paste))
                 imgui.begin_disabled(paste_n == 0)
-                if imgui.button(S.GROUP_OBJECTS_PASTE_LINKS.format(count=paste_n)):
+                if imgui.button(paste):
                     self._paste_to_checked(device, com_objects)
                 imgui.end_disabled()
                 if imgui.is_item_hovered(imgui.HoveredFlags_.allow_when_disabled):
                     imgui.set_tooltip(S.GROUP_OBJECTS_PASTE_LINKS_HINT)
-                imgui.same_line()
+                same_line_if_fits(checkbox_width(S.GROUP_OBJECTS_PASTE_MERGE))
                 _, self._paste_merge = checkbox(
                     S.GROUP_OBJECTS_PASTE_MERGE, self._paste_merge, centred=True
                 )
@@ -198,7 +203,9 @@ class GroupObjectsTable:
             | imgui.TableFlags_.reorderable
         )
         n_cols = 6 + len(FLAG_LABELS)
-        if not begin_data_table(f"##group_objects_{device.node_id}", n_cols, flags):
+        if not begin_data_table(
+            f"##group_objects_{device.node_id}", n_cols, flags, scroll_when_narrow=True
+        ):
             return
 
         imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(64.0))

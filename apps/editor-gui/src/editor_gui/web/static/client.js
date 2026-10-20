@@ -433,6 +433,7 @@
     else if (ev.t === "open") { if (!recently(`open:${ev.url}`)) openLink(ev); }
     else if (ev.t === "zoom") setZoom(ev.z);
     else if (ev.t === "text-input") { textInput = ev.on; updateKeyboard(); }
+    else if (ev.t === "pinch-areas") pinchAreas = ev.areas;
   }
 
   function applyTheme(ev) {
@@ -447,6 +448,7 @@
     const was = controlling;
     controlling = ev.control;
     textInput = !!ev.text_input;
+    pinchAreas = ev.pinch_areas || [];
     banner.hidden = controlling;
     if (!controlling) {
       banner.querySelector("span").textContent = T.WEB_VIEW_ONLY;
@@ -661,11 +663,21 @@
   const fingers = new Map();  // pointer id -> position on the page
   let finger = null;  // the finger of the gesture: { id, x, y } (start, app units)
   let holdTimer = 0;
-  let pinch = null;  // { distance, zoom } at its start
+  let pinch = null;  // { distance, zoom } at its start; { distance, view, steps } on a view
+  // Views with their own zoom (Topology): two fingers there zoom the view (app units).
+  let pinchAreas = [];
+  // Zoom of such a view per wheel step (as the views do it).
+  const VIEW_ZOOM_STEP = 1.1;
 
   function touchEvent(e, phase) {
     const p = pointer(e);
     return { t: "touch", p: phase, x: p.x, y: p.y, ms: e.timeStamp };
+  }
+
+  function pinchCenter() {
+    // Between the two fingers, in app units.
+    const [a, b] = [...fingers.values()];
+    return pointer({ clientX: (a.x + b.x) / 2, clientY: (a.y + b.y) / 2 });
   }
 
   function spread() {
@@ -683,9 +695,13 @@
     fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     touchUsed = true;
     if (fingers.size === 2) {
-      // A second finger: zoom instead of the first finger's gesture.
+      // A second finger: zoom instead of the first finger's gesture; the view between the
+      // fingers if it zooms itself, else the app.
       endFinger("cancel");
-      pinch = { distance: spread() || 1, zoom };
+      const center = pinchCenter();
+      const view = pinchAreas.some(([x, y, w, h]) =>
+        center.x >= x && center.x < x + w && center.y >= y && center.y < y + h);
+      pinch = view ? { distance: spread() || 1, view: center, steps: 0 } : { distance: spread() || 1, zoom };
       return;
     }
     if (fingers.size > 2 || pinch) return;
@@ -704,7 +720,15 @@
     if (!fingers.has(e.pointerId)) return;
     fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pinch && fingers.size >= 2) {
-      setZoom(pinch.zoom * spread() / pinch.distance);
+      if (pinch.view) {
+        const steps = Math.round(Math.log(spread() / pinch.distance) / Math.log(VIEW_ZOOM_STEP));
+        if (steps !== pinch.steps) {
+          send({ t: "pinch-wheel", x: pinch.view.x, y: pinch.view.y, steps: steps - pinch.steps });
+          pinch.steps = steps;
+        }
+      } else {
+        setZoom(pinch.zoom * spread() / pinch.distance);
+      }
       return;
     }
     if (!finger || finger.id !== e.pointerId) return;
@@ -717,7 +741,10 @@
     fingers.delete(e.pointerId);
     if (finger && finger.id === e.pointerId) endFinger(phase, e);
     // The fingers of a zoom lift one by one: the rest does nothing until all are up.
-    if (fingers.size === 0) pinch = null;
+    if (fingers.size === 0) {
+      if (pinch && pinch.view) send({ t: "pinch-wheel", end: true });
+      pinch = null;
+    }
   }
 
   canvas.addEventListener("pointermove", (e) => {

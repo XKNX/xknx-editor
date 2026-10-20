@@ -59,6 +59,17 @@ active_hub: WebHub | None = None
 ZOOMS = (0.5, 0.67, 0.75, 0.8, 0.9, 1.0, 1.1, 1.25, 1.5, 1.75, 2.0)
 
 
+# The areas drawn this frame whose view zooms itself (see pinch_area).
+_pinch_areas: list[tuple[float, float, float, float]] = []
+
+
+def pinch_area(low: imgui.ImVec2, high: imgui.ImVec2) -> None:
+    """In the web mode: two fingers on this area of the current frame (a view with its own zoom,
+    by Ctrl+wheel) zoom that view instead of the app."""
+    if active_hub is not None:
+        _pinch_areas.append((low.x, low.y, high.x - low.x, high.y - low.y))
+
+
 def zoom() -> float | None:
     """The controlling browser's zoom of the app; None outside the web mode."""
     return active_hub.zoom if active_hub is not None else None
@@ -255,6 +266,17 @@ def enable_web_mode(
                 hub.upload_event(event)
             elif kind == "blocked":
                 hub.blocked(event)
+            elif kind == "pinch-wheel":
+                # Two fingers on a view with its own zoom: Ctrl+wheel there.
+                touch[0] = True
+                io.add_mouse_source_event(imgui.MouseSource.touch_screen)
+                if event.get("end"):
+                    io.add_mouse_pos_event(-3.4e38, -3.4e38)
+                else:
+                    io.add_mouse_pos_event(float(event["x"]), float(event["y"]))
+                    io.add_key_event(imgui.Key.mod_ctrl, True)
+                    io.add_mouse_wheel_event(0.0, float(event.get("steps", 0)))
+                    io.add_key_event(imgui.Key.mod_ctrl, False)
             elif kind == "touch" and gestures:
                 if gestures[0].needs_frame(event):
                     hub.put_back(events[i:])
@@ -293,6 +315,10 @@ def enable_web_mode(
             imgui.internal.get_top_most_and_visible_popup_modal(),
         )
         imgui.get_current_context().dim_bg_ratio = 0.0 if modal is None else 1.0
+        areas = [list(a) for a in _pinch_areas]
+        _pinch_areas.clear()
+        if areas != hub.pinch_areas:
+            hub.set_pinch_areas(areas)
         # The page shows a touch screen's keyboard only while a text field takes typing.
         wanted = imgui.get_io().want_text_input
         if wanted != text_input[0]:

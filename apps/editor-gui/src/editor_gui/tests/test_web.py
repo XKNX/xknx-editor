@@ -579,6 +579,7 @@ def test_socket_sends_texts_textures_and_takes_input(hub: WebHub) -> None:
             "control": True,
             "browsers": 1,
             "text_input": False,
+            "pinch_areas": [],
         }
         socket.send_text(json.dumps([{"t": "size", "w": 800, "h": 600, "r": 2}]))
         deadline = time.monotonic() + 5

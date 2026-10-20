@@ -664,6 +664,16 @@ class KnxGuiApp:
         self._form = "wide"
         self._wide_layout: dict[str, Any] = {}
         self._form_since: float | None = None
+        # The status bar's parts: whether one no longer fitted, and the room kept at the right.
+        self._status_full = False
+        self._status_reserved = 0.0
+        # Width the menus take side by side, per language (see gui_menu).
+        self._menus_width: dict[str, float] = {}
+        # After a layout switch: the order the tabs are moved into (window ids), from the frame
+        # the new layout is built until a later one.
+        self._tab_order: list[str] = []
+        self._tab_order_from = 0
+        self._tab_order_until = 0
         # The usual layout's section sizes, measured while it had its room (a smaller browser
         # squeezes it before the layout changes).
         self._wide_ratios: dict[str, float] = {}
@@ -2948,6 +2958,10 @@ class KnxGuiApp:
 
     def gui_status_bar(self) -> None:
         self._connection_plugin.render_status_indicator()
+        self._status_full = False
+        self._status_reserved = (
+            self._status_fps_width() if self._show_status_fps else 0.0
+        )
 
         # Bus-operation indicator: a programming/testing operation is in progress.
         busy = self._connection_service.busy_operation
@@ -2962,25 +2976,16 @@ class KnxGuiApp:
                 text = S.STATUS_READING.format(address=address)
             else:
                 text = S.STATUS_TESTING.format(address=address)
-            imgui.same_line()
-            imgui.text_disabled(" | ")
-            imgui.same_line()
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.95, 0.75, 0.2, 1.0))
-            imgui.text(text)
-            imgui.pop_style_color()
+            self._status_part(text, imgui.ImVec4(0.95, 0.75, 0.2, 1.0))
         elif self._connection_service.not_connected_notice():
             # A connection-requiring feature (program/test/send) was just refused:
             # flash the reason so the user sees *why* nothing happened.
-            imgui.same_line()
-            imgui.text_disabled(" | ")
-            imgui.same_line()
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.9, 0.35, 0.35, 1.0))
-            imgui.text(
+            self._status_part(
                 _connection_strings.STATUS_BUSMONITOR_BLOCKED
                 if self._connection_service.busmonitor_active
-                else S.STATUS_NO_CONNECTION
+                else S.STATUS_NO_CONNECTION,
+                imgui.ImVec4(0.9, 0.35, 0.35, 1.0),
             )
-            imgui.pop_style_color()
         else:
             # Briefly show the last programming outcome after the busy indicator clears.
             notice = self._connection_service.program_notice()
@@ -2991,23 +2996,17 @@ class KnxGuiApp:
                     if ok
                     else imgui.ImVec4(0.9, 0.35, 0.35, 1.0)
                 )
-                imgui.same_line()
-                imgui.text_disabled(" | ")
-                imgui.same_line()
-                imgui.push_style_color(imgui.Col_.text, color)
-                imgui.text(S.STATUS_PROGRAM_DONE if ok else S.STATUS_PROGRAM_FAILED)
-                imgui.pop_style_color()
+                self._status_part(
+                    S.STATUS_PROGRAM_DONE if ok else S.STATUS_PROGRAM_FAILED, color
+                )
 
         # Current project summary.
-        imgui.same_line()
-        imgui.text_disabled(" | ")
-        imgui.same_line()
         if self._project_service.is_open:
             meta = self._project_service.get_project_metadata()
             name = meta.name if meta and meta.name else None
             if not name and self._project_service.path is not None:
                 name = self._project_service.path.name
-            imgui.text_disabled(
+            self._status_part(
                 S.STATUS_PROJECT.format(
                     name=name or "?",
                     devices=len(self._project_service.devices),
@@ -3015,22 +3014,14 @@ class KnxGuiApp:
                 )
             )
         else:
-            imgui.text_disabled(S.STATUS_NO_PROJECT)
+            self._status_part(S.STATUS_NO_PROJECT)
 
         if self._mcp_plugin.is_running:
-            imgui.same_line()
-            imgui.text_disabled(" | ")
-            imgui.same_line()
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.4, 0.85, 0.45, 1.0))
-            imgui.text(S.STATUS_MCP_RUNNING)
-            imgui.pop_style_color()
+            self._status_part(S.STATUS_MCP_RUNNING, imgui.ImVec4(0.4, 0.85, 0.45, 1.0))
 
         # KNX master data (mask-version procedures) version and date.
         if self._master_info is not None:
-            imgui.same_line()
-            imgui.text_disabled(" | ")
-            imgui.same_line()
-            imgui.text_disabled(
+            self._status_part(
                 S.STATUS_MASTER_DATA.format(
                     version=self._master_info.version,
                     date=self._master_info.date,
@@ -3039,6 +3030,54 @@ class KnxGuiApp:
 
         if self._show_status_fps:
             self._render_status_fps()
+
+    def _status_part(self, text: str, color: imgui.ImVec4 | None = None) -> None:
+        """The next part of the status bar after a separator, greyed without ``color``. In a
+        narrow window the part that no longer fits is shortened (all of it in its tooltip) and
+        the parts after it are left out."""
+        if self._status_full:
+            return
+        imgui.same_line()
+        style = imgui.get_style()
+        separator = " | "
+        room = (
+            imgui.get_window_width()
+            - style.window_padding.x
+            - imgui.get_cursor_pos_x()
+            - self._status_reserved
+            - imgui.calc_text_size(separator).x
+            - style.item_spacing.x
+        )
+        if room < imgui.calc_text_size("MMM…").x:
+            self._status_full = True
+            return
+        imgui.text_disabled(separator)
+        imgui.same_line()
+        shown = fit_text(text, room)
+        if shown != text:
+            self._status_full = True
+        if color is None:
+            imgui.text_disabled(shown)
+        else:
+            imgui.text_colored(color, shown)
+        if shown != text and imgui.is_item_hovered():
+            imgui.set_tooltip(text)
+
+    def _status_fps_width(self) -> float:
+        """Width of the FPS display at the right of the status bar, its idling toggle included."""
+        style = imgui.get_style()
+        width = imgui.calc_text_size(
+            S.STATUS_FPS.format(fps=999.9, idling=S.STATUS_IDLING)
+        ).x
+        if web.active_hub is None:
+            width += (
+                imgui.get_text_line_height()
+                + style.frame_padding.y / 2
+                + style.item_inner_spacing.x
+                + imgui.calc_text_size(S.MENU_ENABLE_IDLING).x
+                + style.item_spacing.x
+            )
+        return width
 
     def _render_status_fps(self) -> None:
         """FPS and the idling toggle, right-aligned in the status bar. The web mode paces its frames
@@ -3050,17 +3089,7 @@ class KnxGuiApp:
             idling=S.STATUS_IDLING if idling.is_idling else "",
         )
         style = imgui.get_style()
-        width = imgui.calc_text_size(
-            S.STATUS_FPS.format(fps=999.9, idling=S.STATUS_IDLING)
-        ).x
-        if toggle:
-            width += (
-                imgui.get_text_line_height()
-                + style.frame_padding.y / 2
-                + style.item_inner_spacing.x
-                + imgui.calc_text_size(S.MENU_ENABLE_IDLING).x
-                + style.item_spacing.x
-            )
+        width = self._status_fps_width()
         imgui.same_line(
             max(imgui.get_window_width() - width - style.window_padding.x, 0.0)
         )
@@ -3106,6 +3135,29 @@ class KnxGuiApp:
         # an untranslated name).
         imgui.internal.get_current_window().flags |= imgui.WindowFlags_.no_nav_focus
         self._render_menu_separator()
+        # Where the menus do not fit side by side (a phone), they are all in one menu. Their
+        # width is measured while they are side by side, once per language.
+        needed = self._menus_width.get(get_locale())
+        collapse = needed is not None and needed > imgui.get_window_width()
+        if not collapse:
+            self._render_menus()
+            style = imgui.get_style()
+            self._menus_width[get_locale()] = (
+                imgui.get_item_rect_max().x
+                - imgui.get_window_pos().x
+                + style.item_spacing.x
+                + style.window_padding.x
+            )
+        elif imgui.begin_menu(f"{_ICON_MENU}##all_menus"):
+            self._render_menus()
+            imgui.end_menu()
+
+        self._ui_executor.drain()
+        self._poll_dialogs()
+        self._handle_shortcuts()
+
+    def _render_menus(self) -> None:
+        """The menus: in the menu bar, or as submenus of the one menu (see gui_menu)."""
         if imgui.begin_menu(S.MENU_FILE):
             if imgui.menu_item(S.MENU_NEW_PROJECT, S.SHORTCUT_NEW, False)[0]:
                 self._new_project()
@@ -3220,10 +3272,6 @@ class KnxGuiApp:
 
         if imgui.menu_item(S.MENU_FEEDBACK, "", False)[0]:
             self._open_feedback()
-
-        self._ui_executor.drain()
-        self._poll_dialogs()
-        self._handle_shortcuts()
 
     def _open_feedback(self) -> None:
         """Open the project's GitHub issues page in the default browser."""
@@ -3888,6 +3936,7 @@ class KnxGuiApp:
             data.pop("wide_layout", None)
             save_settings("app", data)
             _restore_wide_layout(params, self._wide_layout)
+            self._order_tabs(params)
             return
         data["wide_layout"] = self._wide_layout
         save_settings("app", data)
@@ -3908,12 +3957,80 @@ class KnxGuiApp:
                 w.focus_window_at_next_frame = (
                     name in selected and w.dock_space_name == wide
                 )
+        # A section's tabs come in the order its windows are docked: a shared section lists the
+        # main section's tabs first, then those of the top right, the bottom right and the
+        # bottom left one (the usual sections keep their own order).
+        rank = {section: i for i, section in enumerate(_SECTION_ORDER)}
+        params.dockable_windows = sorted(
+            params.dockable_windows,
+            key=lambda w: rank.get(
+                docks.get(_dock_window_name(w), w.dock_space_name), len(rank)
+            ),
+        )
+        # A shared section shows the first of the tabs its sections showed (the main one's).
+        shown: set[str] = set()
+        for w in params.dockable_windows:
+            if w.focus_window_at_next_frame:
+                if w.dock_space_name in shown:
+                    w.focus_window_at_next_frame = False
+                shown.add(w.dock_space_name)
+        _forget_tab_order(params)
+        self._order_tabs(params)
         params.docking_splits = compact_docking_splits(form)
         params.layout_reset = True
+
+    def _order_tabs(self, params: hello_imgui.DockingParams) -> None:
+        """Have the tabs of the layout being built come in the order of the dockable windows."""
+        self._tab_order = [_dock_window_name(w) for w in params.dockable_windows]
+        # hello_imgui builds it in the next frame.
+        self._tab_order_from = imgui.get_frame_count() + 2
+        self._tab_order_until = imgui.get_frame_count() + 300
+
+    def _settle_tab_order(self) -> None:
+        """After a layout switch: move the tabs of each section into the order of the dockable
+        windows, one tab per section and frame. Imgui keeps the place a window's tab had in a
+        section whose id the new layout uses again, so the order of docking is not enough."""
+        if not self._tab_order or imgui.get_frame_count() < self._tab_order_from:
+            return
+        if imgui.get_frame_count() > self._tab_order_until:
+            self._tab_order = []
+            return
+        rank = {name: i for i, name in enumerate(self._tab_order)}
+        internal = imgui.internal
+        seen: set[int] = set()
+        settled = True
+        for w in hello_imgui.get_runner_params().docking_params.dockable_windows:
+            window = internal.find_window_by_name(w.label)
+            # The bindings type these as non-optional, but they can be None.
+            node = window.dock_node if window is not None else None  # pyright: ignore[reportUnnecessaryComparison]
+            bar = node.tab_bar if node is not None else None  # pyright: ignore[reportUnnecessaryComparison]
+            if bar is None or bar.id_ in seen:  # pyright: ignore[reportUnnecessaryComparison]
+                continue
+            seen.add(bar.id_)
+            tabs = list(bar.tabs)
+            places = [
+                i
+                for i, tab in enumerate(tabs)
+                if tab.window is not None  # pyright: ignore[reportUnnecessaryComparison]
+                and tab.window.name.split("###")[-1] in rank
+            ]
+            wanted = sorted(
+                places, key=lambda i: rank[tabs[i].window.name.split("###")[-1]]
+            )
+            for place, tab_index in zip(places, wanted, strict=True):
+                if place != tab_index:
+                    internal.tab_bar_queue_reorder(
+                        bar, tabs[tab_index], place - tab_index
+                    )
+                    settled = False
+                    break
+        if settled and seen:
+            self._tab_order = []
 
     def render_overlays(self) -> None:
         if web.active_hub is not None:
             self._update_web_layout()
+        self._settle_tab_order()
         self._project_service.take_rechecked_devices()
         self._sync_device_section()
         self._render_status_bar()
@@ -4738,6 +4855,16 @@ _LAYOUT_VERSION = 16
 
 
 _SECTIONS = ("RightSpace", "DeviceSpace", "LeftSpace", "BottomSpace")
+# The one menu that holds all menus where they do not fit side by side (Font Awesome "bars").
+_ICON_MENU = ""
+# The usual sections in the order their tabs are listed where they share one section.
+_SECTION_ORDER = (
+    "LeftSpace",
+    "MainDockSpace",
+    "DeviceSpace",
+    "RightSpace",
+    "BottomSpace",
+)
 _DEFAULT_RATIOS = {
     # Wide enough for the Device panel's action buttons in one row.
     "right": 0.2,
@@ -4832,10 +4959,23 @@ def _restore_wide_layout(
         w.dock_space_name = docks.get(name, w.dock_space_name)
         if name in selected:
             w.focus_window_at_next_frame = True
+    _forget_tab_order(params)
     params.docking_splits = create_docking_splits(
         bool(layout.get("expanded", False)), layout.get("ratios") or {}
     )
     params.layout_reset = True
+
+
+def _forget_tab_order(params: hello_imgui.DockingParams) -> None:
+    """Let the tabs of a rebuilt layout come in the order of the dockable windows: imgui keeps
+    the place a window's tab had in a section whose id the rebuilt layout uses again. Before
+    imgui runs (the start) there are no windows yet."""
+    if cast("object | None", imgui.get_current_context()) is None:
+        return
+    for w in params.dockable_windows:
+        window = imgui.internal.find_window_by_name(w.label)
+        if window is not None:  # pyright: ignore[reportUnnecessaryComparison]
+            window.dock_order = -1
 
 
 def _current_ratios(
