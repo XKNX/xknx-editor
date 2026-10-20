@@ -1298,5 +1298,5 @@ msgstr "Der Cache enthält {size} an aufbereiteten Produktdaten und an Dokumenta
 msgid "Cache cleared, {size} freed"
 msgstr "Cache geleert, {size} freigegeben"
 
-msgid "KNX Data Secure: commissioned securely"
-msgstr "KNX Data Secure: sicher in Betrieb genommen"
+msgid "KNX Secure"
+msgstr "KNX Secure"

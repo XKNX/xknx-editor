@@ -1203,5 +1203,5 @@ msgstr "De cache bevat {size} aan verwerkte productgegevens en aan documentatie 
 msgid "Cache cleared, {size} freed"
 msgstr "Cache gewist, {size} vrijgemaakt"
 
-msgid "KNX Data Secure: commissioned securely"
-msgstr "KNX Data Secure: veilig in bedrijf gesteld"
+msgid "KNX Secure"
+msgstr "KNX Secure"

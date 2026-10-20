@@ -1807,7 +1807,7 @@ class _CombinedStrings(BaseStrings, MenuStrings):
 
     @property
     def DATA_SECURE_DEVICE(self) -> str:
-        return _("KNX Data Secure: commissioned securely")
+        return _("KNX Secure")
 
 
 S = _CombinedStrings()
