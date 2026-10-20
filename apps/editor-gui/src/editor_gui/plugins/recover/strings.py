@@ -11,15 +11,7 @@ _ = create_translator("recover", _locale_dir)
 
 
 class RecoverStrings:
-    """Strings shown by the recover menu and window."""
-
-    @property
-    def MENU_RECOVER(self) -> str:
-        return _("Recover")
-
-    @property
-    def MENU_OPEN_WINDOW(self) -> str:
-        return _("Recover from Bus…")
+    """Strings shown by the recover window."""
 
     @property
     def WINDOW_TITLE(self) -> str:

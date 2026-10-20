@@ -3138,7 +3138,6 @@ class KnxGuiApp:
         self._render_mcp_menu()
         self._keyring_plugin.render_menu()
         self._signing_plugin.render_menu()
-        self._recover_plugin.render_menu()
 
         self._render_language_menu()
 
