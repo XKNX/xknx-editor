@@ -426,8 +426,11 @@
   function openLink(ev) {
     // Asked for right after the user's click in the app, the browser usually allows it;
     // otherwise the app offers it in a dialog, whose button is a fresh click.
-    const win = window.open(ev.url, "_blank", "noopener");
-    if (!win) send({ t: "blocked", url: ev.url, name: ev.name, show: ev.show });
+    // Without "noopener": with it, window.open returns null even when the tab opened, which
+    // looked like a blocked link and showed the dialog every time. The opener is cut by hand.
+    const win = window.open(ev.url, "_blank");
+    if (win) win.opener = null;
+    else send({ t: "blocked", url: ev.url, name: ev.name, show: ev.show });
   }
 
   // -- uploads
