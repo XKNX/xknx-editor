@@ -22,7 +22,9 @@ from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.description import (
     description_icon_width,
-    render_description,
+    is_secure_device,
+    render_device_marks,
+    secure_icon_width,
     shows_description_icon,
 )
 from editor_gui.widgets.filter_box import filter_box
@@ -139,7 +141,8 @@ class DeviceComparePanel:
     ) -> int:
         cur = by_id.get(current)
         description = cur.description if cur is not None else ""
-        # Room after the dropdown for the description: the icon (long) or the inline text (short).
+        # Room after the dropdown for the KNX Data Secure shield and the description: the icon
+        # (long) or the inline text (short).
         spacing = imgui.get_style().item_spacing.x
         if shows_description_icon(description):
             room = description_icon_width() + spacing
@@ -147,6 +150,8 @@ class DeviceComparePanel:
             room = imgui.calc_text_size(description).x + spacing
         else:
             room = 0.0
+        if is_secure_device(current):
+            room += secure_icon_width() + spacing
         imgui.set_next_item_width(-room if room else -1)
         label = device_label(cur) if cur is not None else "?"
         if begin_combo(combo_id, label):
@@ -156,9 +161,10 @@ class DeviceComparePanel:
                     d.node_id == current,
                 )[0]:
                     current = d.node_id
-                render_description(d.description)
+                render_device_marks(d.node_id, d.description)
             imgui.end_combo()
-        render_description(description)
+        if cur is not None:
+            render_device_marks(cur.node_id, description)
         return current
 
     @staticmethod

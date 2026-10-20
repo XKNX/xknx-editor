@@ -1805,5 +1805,9 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     def CLEAR_CACHE_DONE(self) -> str:
         return _("Cache cleared, {size} freed")
 
+    @property
+    def DATA_SECURE_DEVICE(self) -> str:
+        return _("KNX Data Secure: commissioned securely")
+
 
 S = _CombinedStrings()

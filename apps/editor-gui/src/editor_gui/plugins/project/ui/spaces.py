@@ -12,7 +12,7 @@ from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.devices import render_read_device_item
 from editor_gui.widgets.backgrounds import fill_content_background
 from editor_gui.widgets.combo import combo
-from editor_gui.widgets.description import render_description
+from editor_gui.widgets.description import render_description, render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.tree import leaf_rows, tree_node
@@ -563,8 +563,9 @@ class SpacesPanel:
             ):
                 self._on_compare(device.id)
             imgui.end_popup()
-        # A short description shows inline; a longer one shows while its icon is hovered.
-        if render_description(detail):
+        # The KNX Data Secure shield, then a short description inline or a longer one while its
+        # icon is hovered.
+        if render_device_marks(device.id, detail):
             hovered = False
         if hovered:
             parts = [

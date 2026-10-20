@@ -17,7 +17,13 @@ from editor_gui.device import Device, address_order, device_label
 from editor_gui.plugins.topology.strings import S
 from editor_gui.widgets.backgrounds import child_background, content_background
 from editor_gui.widgets.checkbox import checkbox
-from editor_gui.widgets.description import ICON_DESCRIPTION, description_tooltip
+from editor_gui.widgets.description import (
+    ICON_DESCRIPTION,
+    ICON_SECURE,
+    description_tooltip,
+    is_secure_device,
+    secure_tooltip,
+)
 from editor_gui.widgets.dpi import px
 
 # Unscaled layout metrics (multiplied by the zoom factor at draw time).
@@ -41,6 +47,8 @@ class _DevBox:
     label: str
     tooltip: str
     description: str = ""
+    # Commissioned with KNX Data Secure: a shield before the description icon.
+    secure: bool = False
 
 
 @dataclass
@@ -152,6 +160,7 @@ class TopologyPanel:
                             _device_label(d),
                             _device_tooltip(d),
                             d.description.strip(),
+                            is_secure_device(d.node_id),
                         )
                     )
                     row += 1
@@ -215,7 +224,14 @@ class TopologyPanel:
                         label, tooltip = f"{ia}  {sd.name}", sd.name or ia
                         description = sd.description or ""
                     layout.devices.append(
-                        _DevBox(y, sd.id, label, tooltip, description.strip())
+                        _DevBox(
+                            y,
+                            sd.id,
+                            label,
+                            tooltip,
+                            description.strip(),
+                            is_secure_device(sd.id),
+                        )
                     )
                     row += 1
                 sub_y = sum(dev_rows) / len(dev_rows)
@@ -234,19 +250,21 @@ class TopologyPanel:
         """Width of ``text`` in unscaled pixels."""
         return imgui.calc_text_size(text).x / px(1.0)
 
-    def _icon_room(self) -> float:
-        """Width a device box keeps for its description icon, in unscaled pixels."""
-        return _ICON_GAP + self._text_width(ICON_DESCRIPTION)
+    def _icon_room(self, icon: str = ICON_DESCRIPTION) -> float:
+        """Width a device box keeps for an icon, in unscaled pixels."""
+        return _ICON_GAP + self._text_width(icon)
+
+    def _icons_room(self, d: _DevBox) -> float:
+        """Width a device box keeps for its shield and description icon, in unscaled pixels."""
+        return (self._icon_room(ICON_SECURE) if d.secure else 0.0) + (
+            self._icon_room() if d.description else 0.0
+        )
 
     def _column_widths(self, layout: _Layout) -> list[float]:
-        icon = self._icon_room()
         columns = (
             [self._text_width(label) for label, _ in layout.groups],
             [self._text_width(label) for label, _ in layout.subs],
-            [
-                self._text_width(d.label) + (icon if d.description else 0.0)
-                for d in layout.devices
-            ],
+            [self._text_width(d.label) + self._icons_room(d) for d in layout.devices],
         )
         return [
             max(low, min(high, max(widths, default=0.0) + 2 * _TEXT_PAD))
@@ -318,9 +336,10 @@ class TopologyPanel:
         clicked = imgui.is_mouse_clicked(0)
         icon_room = self._icon_room()
         icon_w = self._text_width(ICON_DESCRIPTION)
+        secure_w = self._text_width(ICON_SECURE)
         style = imgui.get_style()
         for d in layout.devices:
-            label_w = widths[2] - (icon_room if d.description else 0.0)
+            label_w = widths[2] - self._icons_room(d)
             box(xs[2], d.y, widths[2], dev_col, self._fit(d.label, label_w))
             bx = origin.x + xs[2] * z
             by = origin.y + d.y * z
@@ -330,6 +349,25 @@ class TopologyPanel:
                 and by <= mouse.y <= by + _BOX_H * z
             )
             icon_hovered = False
+            secure_hovered = False
+            if d.secure:
+                # Before the description icon (or at the end of the box without one).
+                end = widths[2] - _TEXT_PAD - (icon_room if d.description else 0.0)
+                sx = bx + (end - secure_w) * z
+                secure_hovered = (
+                    box_hovered
+                    and sx - _ICON_GAP / 2 * z
+                    <= mouse.x
+                    < bx + (end + _ICON_GAP / 2) * z
+                )
+                color = imgui.Col_.text if secure_hovered else imgui.Col_.text_disabled
+                dl.add_text(
+                    font,
+                    font_size,
+                    imgui.ImVec2(sx, by + 4 * z),
+                    imgui.get_color_u32(style.color_(color)),
+                    ICON_SECURE,
+                )
             if d.description:
                 # At the end of the box, showing the description while hovered.
                 ix = bx + (widths[2] - _TEXT_PAD - icon_w) * z
@@ -345,6 +383,8 @@ class TopologyPanel:
             if box_hovered:
                 if icon_hovered:
                     description_tooltip(d.description)
+                elif secure_hovered:
+                    imgui.set_tooltip(secure_tooltip())
                 else:
                     imgui.set_tooltip(d.tooltip)
                 if clicked:

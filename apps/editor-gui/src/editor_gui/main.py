@@ -86,6 +86,7 @@ from editor_gui.update_check import (
 from editor_gui.web import enable_web_mode, web_options
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
+from editor_gui.widgets.description import set_secure_devices
 from editor_gui.widgets.dialog import (
     begin_dialog,
     dialog_buttons,
@@ -653,6 +654,10 @@ class KnxGuiApp:
             load_settings("app").get("highlight_changes", True)
         )
         set_highlight_changes(self._highlight_changes)
+        # Device rows mark the devices commissioned with KNX Data Secure with a shield.
+        set_secure_devices(
+            self._project_service.secure_device_ids, lambda: S.DATA_SECURE_DEVICE
+        )
         self.bottom_expanded = bool(load_settings("app").get("bottom_expanded", False))
         self._monitor_plugin.set_monitor_extended(self.bottom_expanded)
         self._monitor_plugin.set_layout_toggler(self._toggle_bottom_expanded)

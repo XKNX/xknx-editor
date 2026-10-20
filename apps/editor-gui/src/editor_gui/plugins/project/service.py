@@ -2492,6 +2492,15 @@ class ProjectService:
             return None
         return self._svc.secure_commissioning(self._pid, device.node_id)
 
+    @io_guarded(frozenset)
+    @revision_cached
+    def secure_device_ids(self) -> frozenset[int]:
+        """The devices commissioned securely (KNX Data Secure), by node id; read once per change
+        for the rows that mark them."""
+        if self._pid is None:
+            return frozenset()
+        return frozenset(self._svc.secure_commissioned_devices(self._pid))
+
     def secure_commissioning_of(self, node_id: int) -> bool:
         """Whether the device with ``node_id`` is commissioned securely."""
         return self._pid is not None and self._svc.secure_commissioning(
