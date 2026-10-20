@@ -73,6 +73,12 @@ class WebOptions:
         """Served on this computer only."""
         return self.host in ("127.0.0.1", "localhost", "::1")
 
+    def local_only(self, password: str | None) -> bool:
+        """Whether only requests to this computer's own name are answered (against DNS
+        rebinding): served on this computer, without a password or a proxy that signs users in.
+        A network address given explicitly is answered under any name."""
+        return self.local and password is None and not self.trust_proxy
+
     def password(self) -> str | None:
         """The sign-in password: the file's first line, else ``XKNX_WEB_PASSWORD``."""
         if self.password_file:
@@ -134,20 +140,19 @@ def enable_web_mode(
 
     password = options.password()
     if not options.local and password is None and not options.trust_proxy:
+        # Allowed (it may be protected otherwise, e.g. by the network), but not unnoticed.
         print(
-            f"XKNX Editor web UI: {options.host} is reachable from the network. Set a password "
-            "(XKNX_WEB_PASSWORD or --web-password-file=FILE), or --web-trust-proxy when a proxy "
-            "in front signs users in.",
+            f"XKNX Editor web UI: {options.host} is reachable from the network without a "
+            "password: anyone reaching it can use the editor. A password: XKNX_WEB_PASSWORD or "
+            "--web-password-file=FILE.",
             file=sys.stderr,
             flush=True,
         )
-        raise SystemExit(2)
     files = Path(options.files) if options.files else config_dir() / "files"
     hub = WebHub(
         files,
         password=password,
-        # Without a password or a trusted proxy: this computer only, by its own name.
-        local_only=password is None and not options.trust_proxy,
+        local_only=options.local_only(password),
         idle_seconds=options.idle_minutes * 60.0,
     )
     active_hub = hub

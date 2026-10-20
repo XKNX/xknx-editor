@@ -145,10 +145,11 @@ Reachable from other devices, every browser signs in once with a password you ch
 XKNX_WEB_PASSWORD='choose a password' ./XKNX-Editor-x86_64.AppImage --web=0.0.0.0:8080
 ```
 
-Without a password the app does not start on a network address, as anyone reaching it could program
-the installation and read its KNX Secure keys. Behind a proxy that signs users in itself (e.g. Home
-Assistant Ingress), use `--web-trust-proxy` instead. For HTTPS, pass a certificate or let a reverse
-proxy in front handle it.
+A network address given without a password works too, e.g. in a network protected otherwise; the app
+then warns in its terminal, as anyone reaching it could program the installation and read its KNX
+Secure keys. Behind a proxy that signs users in itself (e.g. Home Assistant Ingress) and reaches the
+app on this computer, add `--web-trust-proxy`. For HTTPS, pass a certificate or let a reverse proxy
+in front handle it.
 
 | Option | Meaning |
 |---|---|

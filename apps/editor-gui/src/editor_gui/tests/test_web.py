@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
-from imgui_bundle import hello_imgui, imgui
+from imgui_bundle import imgui
 from imgui_bundle import portable_file_dialogs as pfd
 from starlette.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
@@ -301,14 +301,13 @@ def test_the_browser_opens_once_the_server_listens(
     assert len(opened) == 1
 
 
-def test_network_without_protection_does_not_start(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.delenv("XKNX_WEB_PASSWORD", raising=False)
-    monkeypatch.setattr(web, "active_hub", None)
-    with pytest.raises(SystemExit):
-        web.enable_web_mode(hello_imgui.RunnerParams(), web.WebOptions(host="0.0.0.0"))
-    assert web.active_hub is None
+def test_only_this_computer_checks_the_name() -> None:
+    # On this computer without a password: only requests to its own name (DNS rebinding).
+    assert web.WebOptions().local_only(None)
+    assert not web.WebOptions().local_only("secret")
+    assert not web.WebOptions(trust_proxy=True).local_only(None)
+    # A network address given explicitly: any name, also without a password.
+    assert not web.WebOptions(host="0.0.0.0").local_only(None)
 
 
 def test_apply_input(context: imgui.IO) -> None:
