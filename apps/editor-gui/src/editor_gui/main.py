@@ -95,6 +95,7 @@ from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
 from editor_gui.widgets.tables import reset_all_tables
 from editor_gui.widgets.text_util import fit_text, human_size
+from editor_gui.widgets.tree import collapsing_header
 from editor_gui.window_title import set_window_title
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
@@ -3652,7 +3653,7 @@ class KnxGuiApp:
                     imgui.table_next_column()
                     imgui.text(str(len(items)))
                 imgui.end_table()
-            if imgui.collapsing_header(S.COMPACT_DETAILS):
+            if collapsing_header(S.COMPACT_DETAILS):
                 details = [
                     *counts,
                     (S.COMPACT_HARDWARE, report.hardware),

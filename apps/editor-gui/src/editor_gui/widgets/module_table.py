@@ -23,6 +23,7 @@ from editor_gui.device import Device
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.parameter_widgets import render_param_widget
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.prod.parser_v2.ui import (
     UiNode,
     UiParameter,
@@ -168,7 +169,7 @@ def render_module_tables(
     needle = filter_text.lower().strip()
     for table in tables:
         header = f"{table.title} ({len(table.rows)})"
-        if not imgui.collapsing_header(f"{header}##mod_{table.key}"):
+        if not collapsing_header(f"{header}##mod_{table.key}"):
             continue
         rows = [
             row

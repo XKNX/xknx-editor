@@ -26,6 +26,7 @@ from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.fonts import heading, italic
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.app_id import parse_app_id
 from xknxeditor.prod.parser_v2.ui import UiNode
@@ -1474,9 +1475,7 @@ class ConfigurePanel:
         if not procedures:
             return
         total_steps = sum(len(p.steps) for p in procedures)
-        if not imgui.collapsing_header(
-            S.CONFIGURE_LOAD_PROCEDURES.format(count=total_steps)
-        ):
+        if not collapsing_header(S.CONFIGURE_LOAD_PROCEDURES.format(count=total_steps)):
             return
         imgui.text_disabled(getattr(lp, "style", ""))
         for i, proc in enumerate(procedures):
@@ -1517,7 +1516,7 @@ class ConfigurePanel:
         if not cfg or not (cfg.keys() - {"Assign"}):
             return
         imgui.spacing()
-        if not imgui.collapsing_header(S.CONFIGURE_IP_CONFIG):
+        if not collapsing_header(S.CONFIGURE_IP_CONFIG):
             return
         self._render_detail_grid(
             [
@@ -1550,7 +1549,7 @@ class ConfigurePanel:
             self._additional_error = ""
             self._additional_device = device.node_id
         imgui.spacing()
-        if not imgui.collapsing_header(S.CONFIGURE_ADDITIONAL_ADDRESSES):
+        if not collapsing_header(S.CONFIGURE_ADDITIONAL_ADDRESSES):
             return
         if self._on_assign_additional_addresses is not None:
             missing = rows > len(entries) or any(e.address is None for e in entries)
@@ -1628,7 +1627,7 @@ class ConfigurePanel:
             self._ip_secure_device = device.node_id
             self._ip_secure_show = False
         imgui.spacing()
-        if not imgui.collapsing_header(S.CONFIGURE_IP_SECURE):
+        if not collapsing_header(S.CONFIGURE_IP_SECURE):
             return
         _, self._ip_secure_show = checkbox(
             S.CONFIGURE_IP_SECURE_SHOW, self._ip_secure_show
