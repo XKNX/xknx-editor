@@ -631,10 +631,15 @@ class DialogHost:
         self._items: list[_Item] = []
         self._frame = -1
         self._clear_actions = clear_actions
+        # The frame each item was added in (see draw).
+        self._added: dict[int, int] = {}
 
     def add(self, item: _Item) -> None:
         if item not in self._items:
             self._items.append(item)
+            # (Without an imgui context, in tests, there is no frame to wait for.)
+            if cast("object | None", imgui.get_current_context()) is not None:
+                self._added[id(item)] = imgui.get_frame_count()
 
     @property
     def items(self) -> list[_Item]:
@@ -647,6 +652,11 @@ class DialogHost:
         if not self._items or self._frame == frame:
             return
         item = self._items[0]
+        # Not in the frame it was asked for: a dialog closing with that click (a confirmation)
+        # would still be the one to nest it in, and a popup opened in a closed dialog never shows
+        # but keeps every later one waiting.
+        if self._added.get(id(item)) == frame:
+            return
         mine = imgui.is_popup_open(item.popup_id)
         if not mine and item.closing:
             self._remove(item)
@@ -663,5 +673,6 @@ class DialogHost:
 
     def _remove(self, item: _Item) -> None:
         self._items.remove(item)
+        self._added.pop(id(item), None)
         if self._clear_actions is not None and item.area_prefix:
             self._clear_actions(item.area_prefix)
