@@ -2,7 +2,8 @@
 touch screen where the mouse has nothing alike.
 
 - A tap clicks.
-- A swipe scrolls the list or panel under the finger, with momentum. Where nothing scrolls that
+- A swipe scrolls the list or panel under the finger, with momentum, in the direction it
+  started in (up and down, or sideways). Where nothing scrolls that
   way, or the finger is on a scroll bar, a window's title or something that shows a resize
   pointer (a splitter, a column border), it drags like the mouse (also a slider moved sideways).
 - Holding the finger still for a moment (the page tells when) and lifting it is a right-click,
@@ -86,6 +87,8 @@ class TouchGestures:
         self._last = (0.0, 0.0)
         self._down_frame = -1
         self._target: str | None = None
+        # The direction a swipe scrolls in: up and down, else sideways.
+        self._vertical = True
         # Scrolling still to do (finger movement since the last frame).
         self._pending = (0.0, 0.0)
         self._velocity = (0.0, 0.0)
@@ -126,7 +129,8 @@ class TouchGestures:
         if phase == "move":
             if self._state == "touched" and self._beyond_slop(event):
                 dx, dy = x - self._start[0], y - self._start[1]
-                target = ui.scroll_target(abs(dy) >= abs(dx))
+                self._vertical = abs(dy) >= abs(dx)
+                target = ui.scroll_target(self._vertical)
                 if target is None:
                     self._drag(x, y)
                 else:
@@ -136,13 +140,13 @@ class TouchGestures:
                     self._velocity = (0.0, 0.0)
                     self._last_move = now
                     # The content follows the finger from where it touched it.
-                    self._pending = (dx, dy)
+                    self._pending = self._along(dx, dy)
             elif self._state == "hold" and self._beyond_slop(event):
                 self._drag(x, y)
             elif self._state == "drag":
                 ui.move(x, y)
             elif self._state == "scroll":
-                dx, dy = x - self._last[0], y - self._last[1]
+                dx, dy = self._along(x - self._last[0], y - self._last[1])
                 self._pending = (self._pending[0] + dx, self._pending[1] + dy)
                 dt = now - self._last_move
                 if dt > 0:
@@ -213,6 +217,10 @@ class TouchGestures:
         self._velocity = (vx * decay, vy * decay)
         if not moved or math.hypot(*self._velocity) < _FLING_STOP:
             self._flinging = False
+
+    def _along(self, dx: float, dy: float) -> tuple[float, float]:
+        """The part of a movement in the direction the swipe scrolls in."""
+        return (0.0, dy) if self._vertical else (dx, 0.0)
 
     def _drag(self, x: float, y: float) -> None:
         """Press where the finger touched and follow it, like the mouse."""

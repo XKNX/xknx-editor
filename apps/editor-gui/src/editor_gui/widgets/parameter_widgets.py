@@ -1227,14 +1227,13 @@ def render_ui_tree(
             imgui.end_table()
             _draw_page_line(line_left, line_right, line_top, line_bottom)
     imgui.pop_clip_rect()
-    if stacked:
-        # Narrow: the window scrolls when the page reaches below it.
-        return popup_request
-    # The area ends at the window's edges, in its padding: it leaves nothing to scroll to.
+    # The area ends at the window's edges, in its padding: it leaves nothing to scroll to (but
+    # downwards where it is narrow, when the page reaches below the window).
     end = window.dc.cursor_max_pos
     work = window.work_rect
     window.dc.cursor_max_pos = imgui.ImVec2(
-        max(reached.x, min(end.x, work.max.x)), max(reached.y, min(end.y, work.max.y))
+        max(reached.x, min(end.x, work.max.x)),
+        max(reached.y, end.y if stacked else min(end.y, work.max.y)),
     )
     return popup_request
 

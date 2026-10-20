@@ -91,6 +91,16 @@ def test_swipe_scrolls_and_never_presses() -> None:
     assert ui.scrolled == [0.0, -100.0]
 
 
+def test_swipe_keeps_to_its_direction() -> None:
+    ui = FakeUi()
+    g = TouchGestures(ui)
+    finger(g, ui, "down", 100, 300)
+    finger(g, ui, "move", 110, 250, ms=16)
+    finger(g, ui, "move", 125, 200, ms=32)
+    g.step(0.0)
+    assert ui.scrolled == [0.0, -100.0]
+
+
 def test_swipe_waits_for_the_frame_after_the_touch() -> None:
     ui = FakeUi()
     g = TouchGestures(ui)
