@@ -3027,31 +3027,37 @@ class KnxGuiApp:
             self._render_status_fps()
 
     def _render_status_fps(self) -> None:
-        """FPS and the idling toggle, right-aligned in the status bar."""
+        """FPS and the idling toggle, right-aligned in the status bar. The web mode paces its frames
+        itself, so it has no idling to toggle: only the FPS then."""
+        toggle = web.active_hub is None
         idling = hello_imgui.get_runner_params().fps_idling
         fps = S.STATUS_FPS.format(
             fps=hello_imgui.frame_rate(),
             idling=S.STATUS_IDLING if idling.is_idling else "",
         )
         style = imgui.get_style()
-        width = (
-            imgui.get_text_line_height()
-            + style.frame_padding.y / 2
-            + style.item_inner_spacing.x
-            + imgui.calc_text_size(S.MENU_ENABLE_IDLING).x
-            + style.item_spacing.x
-            + imgui.calc_text_size(
-                S.STATUS_FPS.format(fps=999.9, idling=S.STATUS_IDLING)
-            ).x
-        )
+        width = imgui.calc_text_size(
+            S.STATUS_FPS.format(fps=999.9, idling=S.STATUS_IDLING)
+        ).x
+        if toggle:
+            width += (
+                imgui.get_text_line_height()
+                + style.frame_padding.y / 2
+                + style.item_inner_spacing.x
+                + imgui.calc_text_size(S.MENU_ENABLE_IDLING).x
+                + style.item_spacing.x
+            )
         imgui.same_line(
             max(imgui.get_window_width() - width - style.window_padding.x, 0.0)
         )
-        # The checkbox, a little higher than the text, centred on the text line so the status
-        # bar keeps its height.
-        imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() - style.frame_padding.y / 4)
-        _, idling.enable_idling = checkbox(S.MENU_ENABLE_IDLING, idling.enable_idling)
-        imgui.same_line()
+        if toggle:
+            # The checkbox, a little higher than the text, centred on the text line so the status
+            # bar keeps its height.
+            imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() - style.frame_padding.y / 4)
+            _, idling.enable_idling = checkbox(
+                S.MENU_ENABLE_IDLING, idling.enable_idling
+            )
+            imgui.same_line()
         imgui.text_disabled(fps)
 
     def _render_menu_separator(self) -> None:
@@ -4355,11 +4361,13 @@ class KnxGuiApp:
         changed, shown = imgui.menu_item(S.MENU_STATUS_FPS, "", self._show_status_fps)
         if changed:
             self._show_status_fps = shown
-        changed, enabled = imgui.menu_item(
-            S.MENU_ENABLE_IDLING, "", params.fps_idling.enable_idling
-        )
-        if changed:
-            params.fps_idling.enable_idling = enabled
+        # The web mode paces its frames itself: no idling to toggle there.
+        if web.active_hub is None:
+            changed, enabled = imgui.menu_item(
+                S.MENU_ENABLE_IDLING, "", params.fps_idling.enable_idling
+            )
+            if changed:
+                params.fps_idling.enable_idling = enabled
         self._render_theme_menu(window_params.tweaked_theme)
         imgui.end_menu()
 
