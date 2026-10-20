@@ -217,14 +217,8 @@ class MonitorPanel:
         read = imgui.button(S.MONITOR_READ)
         imgui.end_disabled()
         if not connected:
-            # Right-aligned in the same row.
+            # Right after the buttons, as in the other monitors.
             imgui.same_line()
-            width = imgui.calc_text_size(S.MONITOR_DISCONNECTED).x
-            right = (
-                imgui.get_cursor_pos_x() + imgui.get_content_region_avail().x - width
-            )
-            imgui.set_cursor_pos_x(max(right, imgui.get_cursor_pos_x()))
-            imgui.align_text_to_frame_padding()
             imgui.text_disabled(S.MONITOR_DISCONNECTED)
         if self._write_value.error:
             imgui.text_colored(_ERROR_COLOR, self._write_value.error)
