@@ -1393,6 +1393,14 @@ class ConfigurePanel:
             self._help_pane_h[key] = px(float(stored))
         return self._help_pane_h[key]
 
+    def reset_help_height(self) -> None:
+        """The help's height back to its default, in the usual and the narrow editor."""
+        self._help_pane_h.clear()
+        data = load_settings("app")
+        for key in (_HELP_HEIGHT_SETTING, _HELP_HEIGHT_NARROW_SETTING):
+            data.pop(key, None)
+        save_settings("app", data)
+
     def _save_help_height(self) -> None:
         key, _ = self._help_setting()
         data = load_settings("app")

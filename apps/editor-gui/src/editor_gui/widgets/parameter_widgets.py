@@ -24,6 +24,7 @@ from editor_gui.widgets.float_format import format_float, general_float, parse_f
 from editor_gui.widgets.fonts import bold
 from editor_gui.widgets.icons import Icon, Picture, draw_icon
 from editor_gui.widgets.strings import S
+from editor_gui.widgets.tables import data_table_id
 from editor_gui.widgets.time_format import (
     format_time,
     parse_time,
@@ -1201,8 +1202,10 @@ def render_ui_tree(
         imgui.push_style_color(
             imgui.Col_.table_border_light, imgui.ImVec4(0.0, 0.0, 0.0, 0.0)
         )
+        # Its id follows the tables' generation: restoring the default layout resets the
+        # width the page tree was dragged to, too.
         table_open = imgui.begin_table(
-            f"##pages_{device.node_id}",
+            data_table_id(f"##pages_{device.node_id}"),
             2,
             flags,
             imgui.ImVec2(width, height),

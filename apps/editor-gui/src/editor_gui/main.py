@@ -4561,6 +4561,7 @@ class KnxGuiApp:
                     )
                 self._rebuild_layout(expanded=False, ratios={})
             reset_all_tables()
+            self._project_plugin.reset_layout()
         zoom = web.zoom()
         if zoom is not None:
             imgui.separator()
