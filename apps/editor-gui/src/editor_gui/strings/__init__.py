@@ -1778,5 +1778,9 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     def UPDATE_CHECK_FAILED(self) -> str:
         return _("The check for updates failed: {error}")
 
+    @property
+    def GA_EXPORT_EMPTY(self) -> str:
+        return _("The project has no group addresses to export.")
+
 
 S = _CombinedStrings()

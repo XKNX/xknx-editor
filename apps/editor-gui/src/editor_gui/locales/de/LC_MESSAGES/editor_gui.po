@@ -1282,3 +1282,6 @@ msgstr "Suche nach Updates…"
 
 msgid "The check for updates failed: {error}"
 msgstr "Die Suche nach Updates ist fehlgeschlagen: {error}"
+
+msgid "The project has no group addresses to export."
+msgstr "Das Projekt enthält keine Gruppenadressen zum Exportieren."

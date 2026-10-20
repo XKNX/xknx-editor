@@ -383,6 +383,8 @@ class KnxGuiApp:
         self._export_ga_export_dialog: file_dialogs.SaveFileDialog | None = None
         self._ga_export_options_requested = False
         self._ga_export_options: dict[str, Any] = {}
+        # The project has no group addresses: say so instead of exporting an empty file.
+        self._ga_export_empty_requested = False
         # Folder picker for the ProjectStore export when the default path is not found, and which
         # ETS generation that export is aimed at (set when the export starts, read by the dialogs).
         self._projectstore_dialog: file_dialogs.SelectFolderDialog | None = None
@@ -880,6 +882,13 @@ class KnxGuiApp:
     def _export_ga_export(self) -> None:
         if not self._project_service.is_open or not self._can_launch_file_dialog():
             return
+        # While a project loads its reads come back empty; then the export goes on as usual.
+        if (
+            not self._project_service.loading
+            and not self._project_service.group_addresses
+        ):
+            self._ga_export_empty_requested = True
+            return
         saved = load_settings("app").get("ga_export", {})
         options = {
             "format": "xml",
@@ -959,6 +968,18 @@ class KnxGuiApp:
             save_settings("app", data)
             self._open_ga_export_save_dialog()
         elif clicked == 1:
+            imgui.close_current_popup()
+        end_dialog()
+
+    def _render_ga_export_empty_modal(self) -> None:
+        title = f"{S.FILE_DIALOG_GA_EXPORT_SAVE_TITLE}###ga_export_empty"
+        if self._ga_export_empty_requested:
+            imgui.open_popup(title)
+            self._ga_export_empty_requested = False
+        if not begin_dialog(title, width=420.0):
+            return
+        imgui.text_wrapped(S.GA_EXPORT_EMPTY)
+        if dialog_buttons(S.BTN_OK) == 0:
             imgui.close_current_popup()
         end_dialog()
 
@@ -3784,6 +3805,7 @@ class KnxGuiApp:
         self._render_network_consent_modal()
         self._render_overwrite_modal()
         self._render_ga_export_options_modal()
+        self._render_ga_export_empty_modal()
         self._render_projectstore_confirm_modal()
         self._render_url_prompt_modal()
         self._render_new_project_modal()

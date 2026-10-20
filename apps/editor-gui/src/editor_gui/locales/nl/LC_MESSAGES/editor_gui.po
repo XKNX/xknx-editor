@@ -1187,3 +1187,6 @@ msgstr "Zoeken naar updates…"
 
 msgid "The check for updates failed: {error}"
 msgstr "Het zoeken naar updates is mislukt: {error}"
+
+msgid "The project has no group addresses to export."
+msgstr "Het project bevat geen groepsadressen om te exporteren."
