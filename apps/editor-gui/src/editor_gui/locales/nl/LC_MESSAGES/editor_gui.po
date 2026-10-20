@@ -1205,3 +1205,12 @@ msgstr "Cache gewist, {size} vrijgemaakt"
 
 msgid "KNX Secure"
 msgstr "KNX Secure"
+
+msgid "Zoom In"
+msgstr "Inzoomen"
+
+msgid "Zoom Out"
+msgstr "Uitzoomen"
+
+msgid "Reset Zoom"
+msgstr "Zoom herstellen"

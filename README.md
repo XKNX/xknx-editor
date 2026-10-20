@@ -161,6 +161,13 @@ in front handle it.
 | `--web-cert=FILE`, `--web-key=FILE` | Serve HTTPS with this certificate and key |
 | `--web-no-browser` | Do not open the browser at start (an autostart, a service) |
 
+On a tablet or phone the layout follows the screen: from about 1000 pixels width the usual one,
+below it the navigation above (or beside) the other panels, which share one section as tabs; it
+changes when the device is turned. Each browser keeps its own zoom: two fingers, Ctrl+Plus/Minus/0,
+or **View → Zoom In/Zoom Out/Reset Zoom**. With a finger, a tap clicks, a swipe scrolls, holding
+and lifting is a right-click (context menus) and holding and moving drags. The on-screen keyboard
+appears for text fields only.
+
 One browser controls the editor at a time; it keeps control across a reload. Another browser watches
 and can take over with **Take Control**, and gets control right away once the controlling one was
 inactive for the idle time.

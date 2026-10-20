@@ -574,7 +574,12 @@ def test_socket_sends_texts_textures_and_takes_input(hub: WebHub) -> None:
         assert texts["t"] == "texts" and texts["texts"]["WEB_TAKE_CONTROL"]
         assert socket.receive_bytes() == texture
         control = _event(socket.receive_bytes())
-        assert control == {"t": "control", "control": True, "browsers": 1}
+        assert control == {
+            "t": "control",
+            "control": True,
+            "browsers": 1,
+            "text_input": False,
+        }
         socket.send_text(json.dumps([{"t": "size", "w": 800, "h": 600, "r": 2}]))
         deadline = time.monotonic() + 5
         events: list[dict[str, object]] = []
@@ -585,6 +590,33 @@ def test_socket_sends_texts_textures_and_takes_input(hub: WebHub) -> None:
     assert hub.size == (800.0, 600.0)
     assert hub.scale == 2.0
     assert hub.wake.is_set()
+
+
+def test_zoom_and_touch_keyboard_go_to_the_controlling_browser(hub: WebHub) -> None:
+    with (
+        TestClient(hub.app(), base_url="http://localhost") as client,
+        _ws(client) as socket,
+    ):
+        _receive_until(socket, _is_event("control"))
+        socket.send_text(
+            json.dumps([{"t": "size", "w": 400, "h": 700, "r": 3, "z": 1.25}])
+        )
+        deadline = time.monotonic() + 5
+        while hub.size is None and time.monotonic() < deadline:
+            time.sleep(0.01)
+        assert hub.zoom == 1.25
+        hub.set_zoom(1.5)
+        zoom = _receive_until(socket, _is_event("zoom"))[-1]
+        assert _event(zoom) == {"t": "zoom", "z": 1.5}
+        hub.set_text_input(True)
+        typing = _receive_until(socket, _is_event("text-input"))[-1]
+        assert _event(typing) == {"t": "text-input", "on": True}
+
+
+def test_input_put_back_comes_first(hub: WebHub) -> None:
+    hub.put_back([{"t": "c"}])
+    hub.put_back([{"t": "a"}, {"t": "b"}])
+    assert [e["t"] for e in hub.take_input()] == ["a", "b", "c"]
 
 
 def test_frames_send_only_new_draw_lists(hub: WebHub) -> None:

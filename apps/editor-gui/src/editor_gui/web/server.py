@@ -140,6 +140,10 @@ class WebHub:
         self.size: tuple[float, float] | None = None
         # The controlling browser's device pixel ratio: ImGui renders its fonts at that density.
         self.scale = 1.0
+        # The controlling browser's zoom of the app (1.0: 100 %).
+        self.zoom = 1.0
+        # Whether a text field of the app takes typing (a touch screen shows its keyboard).
+        self.text_input = False
         self._input: deque[dict[str, Any]] = deque()
         self._clients: list[_Client] = []
         self._controller: _Client | None = None
@@ -180,6 +184,18 @@ class WebHub:
         while self._input:
             events.append(self._input.popleft())
         return events
+
+    def put_back(self, events: list[dict[str, Any]]) -> None:
+        """Return events taken with :meth:`take_input` for the next frame, ahead of newer ones."""
+        self._input.extendleft(reversed(events))
+
+    def set_zoom(self, zoom: float) -> None:
+        """Zoom the app in the controlling browser (it answers with its new size)."""
+        self._post(event_message({"t": "zoom", "z": zoom}))
+
+    def set_text_input(self, wanted: bool) -> None:
+        self.text_input = wanted
+        self._post(event_message({"t": "text-input", "on": wanted}))
 
     @property
     def connected(self) -> bool:
@@ -332,6 +348,7 @@ class WebHub:
                         "t": "control",
                         "control": controls,
                         "browsers": len(self._clients),
+                        "text_input": self.text_input,
                     }
                 )
             )
@@ -589,6 +606,7 @@ class WebHub:
             if event.get("t") == "size":
                 self.size = (float(event["w"]), float(event["h"]))
                 self.scale = float(event.get("r", 1.0)) or 1.0
+                self.zoom = float(event.get("z", 1.0)) or 1.0
             elif event.get("t") == "clip":
                 self.clipboard = str(event.get("text", ""))
             self._input.append(event)

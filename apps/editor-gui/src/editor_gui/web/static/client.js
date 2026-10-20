@@ -17,6 +17,7 @@
   const status = document.getElementById("status");
   const banner = document.getElementById("banner");
   const chooser = document.getElementById("chooser");
+  const zoomNote = document.getElementById("zoom");
 
   // The page's own texts; the app sends them in its language when the connection opens.
   const T = {
@@ -349,6 +350,9 @@
     // Consecutive mouse moves collapse into the latest one.
     const last = pending[pending.length - 1];
     if (event.t === "move" && last && last.t === "move") pending[pending.length - 1] = event;
+    else if (event.t === "touch" && event.p === "move" && last && last.t === "touch" && last.p === "move") {
+      pending[pending.length - 1] = event;
+    }
     else pending.push(event);
     if (!flushScheduled) {
       flushScheduled = true;
@@ -362,8 +366,51 @@
     pending = [];
   }
 
+  // ---- zoom ----------------------------------------------------------------------------------
+  // The app's zoom in this browser (pinch, Ctrl+Plus/Minus/0, the app's View menu), kept for it.
+  // The app gets the browser's size divided by it, so its layout follows.
+  const ZOOMS = [0.5, 0.67, 0.75, 0.8, 0.9, 1, 1.1, 1.25, 1.5, 1.75, 2];
+  // The smallest size the app is laid out for (app units); a smaller browser shows it scaled down.
+  const MIN_SIZE = 320;
+  let zoom = 1;
+  try {
+    zoom = clampZoom(parseFloat(localStorage.getItem("xknx-zoom")) || 1);
+  } catch (e) { /* no storage: 100 % */ }
+  let zoomNoteTimer = 0;
+
+  function clampZoom(z) {
+    return Math.min(ZOOMS[ZOOMS.length - 1], Math.max(ZOOMS[0], z));
+  }
+
+  function appZoom() {
+    const fit = Math.min(canvas.clientWidth, canvas.clientHeight) / MIN_SIZE;
+    return fit > 0 ? Math.min(zoom, fit) : zoom;
+  }
+
+  function setZoom(z) {
+    z = clampZoom(Math.round(z * 100) / 100);
+    if (z === zoom) return;
+    zoom = z;
+    try {
+      localStorage.setItem("xknx-zoom", String(z));
+    } catch (e) { /* not kept */ }
+    sendSize();
+    requestDraw();
+    zoomNote.textContent = `${Math.round(z * 100)} %`;
+    zoomNote.hidden = false;
+    clearTimeout(zoomNoteTimer);
+    zoomNoteTimer = setTimeout(() => { zoomNote.hidden = true; }, 1200);
+  }
+
+  function zoomStep(direction) {
+    if (direction === 0) return setZoom(1);
+    const next = direction > 0 ? ZOOMS.find((z) => z > zoom + 0.001) : [...ZOOMS].reverse().find((z) => z < zoom - 0.001);
+    if (next !== undefined) setZoom(next);
+  }
+
   function sendSize() {
-    send({ t: "size", w: canvas.clientWidth, h: canvas.clientHeight, r: window.devicePixelRatio || 1 });
+    const z = appZoom(), ratio = window.devicePixelRatio || 1;
+    send({ t: "size", w: canvas.clientWidth / z, h: canvas.clientHeight / z, r: ratio * z, z: zoom });
   }
 
   // ---- page events ---------------------------------------------------------------------------
@@ -384,6 +431,8 @@
     else if (ev.t === "pick") { if (!recently(`pick:${ev.id}`)) pick(ev); }
     else if (ev.t === "download") { if (!recently(`download:${ev.url}`)) download(ev.url, ev.name); }
     else if (ev.t === "open") { if (!recently(`open:${ev.url}`)) openLink(ev); }
+    else if (ev.t === "zoom") setZoom(ev.z);
+    else if (ev.t === "text-input") { textInput = ev.on; updateKeyboard(); }
   }
 
   function applyTheme(ev) {
@@ -397,6 +446,7 @@
   function onControl(ev) {
     const was = controlling;
     controlling = ev.control;
+    textInput = !!ev.text_input;
     banner.hidden = controlling;
     if (!controlling) {
       banner.querySelector("span").textContent = T.WEB_VIEW_ONLY;
@@ -575,9 +625,117 @@
 
   const BUTTONS = { 0: 0, 1: 2, 2: 1, 3: 3, 4: 4 };
 
-  canvas.addEventListener("pointermove", (e) => send(pointer(e)));
+  // -- the keyboard of a touch screen: shown only while a text field of the app takes typing (the
+  // app says when); a hardware keyboard works throughout.
+
+  let textInput = false;
+  let touchUsed = false;
+  let refocusing = false;
+  const VK = navigator.virtualKeyboard;
+  if (VK) keys.setAttribute("virtualkeyboardpolicy", "manual");
+
+  function updateKeyboard(tapped = false) {
+    const show = touchUsed && textInput;
+    if (VK) {
+      if (show && (tapped || document.activeElement === keys)) VK.show();
+      else if (!show) VK.hide();
+      return;
+    }
+    // Without the keyboard API: no keyboard for a field that takes no text.
+    const mode = !touchUsed || textInput ? "text" : "none";
+    if (keys.inputMode === mode && !(show && tapped)) return;
+    keys.inputMode = mode;
+    if (document.activeElement === keys) {
+      refocusing = true;
+      keys.blur();
+      keys.focus({ preventScroll: true });
+      refocusing = false;
+    }
+  }
+
+  // -- fingers: one finger's phases go to the app, which tells taps, swipes, holds and drags apart
+  // (editor_gui/web/touch.py); two fingers zoom.
+
+  const SLOP = 8;  // app units, as in touch.py
+  const HOLD_MS = 500;
+  const fingers = new Map();  // pointer id -> position on the page
+  let finger = null;  // the finger of the gesture: { id, x, y } (start, app units)
+  let holdTimer = 0;
+  let pinch = null;  // { distance, zoom } at its start
+
+  function touchEvent(e, phase) {
+    const p = pointer(e);
+    return { t: "touch", p: phase, x: p.x, y: p.y, ms: e.timeStamp };
+  }
+
+  function spread() {
+    const [a, b] = [...fingers.values()];
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+
+  function endFinger(phase, e) {
+    clearTimeout(holdTimer);
+    if (finger && phase) send(e ? touchEvent(e, phase) : { t: "touch", p: phase });
+    finger = null;
+  }
+
+  function touchDown(e) {
+    fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    touchUsed = true;
+    if (fingers.size === 2) {
+      // A second finger: zoom instead of the first finger's gesture.
+      endFinger("cancel");
+      pinch = { distance: spread() || 1, zoom };
+      return;
+    }
+    if (fingers.size > 2 || pinch) return;
+    updateKeyboard(true);
+    const start = touchEvent(e, "down");
+    finger = { id: e.pointerId, x: start.x, y: start.y };
+    send(start);
+    holdTimer = setTimeout(() => {
+      if (!finger) return;
+      send({ t: "touch", p: "hold" });
+      if (navigator.vibrate) navigator.vibrate(15);
+    }, HOLD_MS);
+  }
+
+  function touchMove(e) {
+    if (!fingers.has(e.pointerId)) return;
+    fingers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch && fingers.size >= 2) {
+      setZoom(pinch.zoom * spread() / pinch.distance);
+      return;
+    }
+    if (!finger || finger.id !== e.pointerId) return;
+    const moved = touchEvent(e, "move");
+    if (Math.hypot(moved.x - finger.x, moved.y - finger.y) > SLOP) clearTimeout(holdTimer);
+    send(moved);
+  }
+
+  function touchUp(e, phase) {
+    fingers.delete(e.pointerId);
+    if (finger && finger.id === e.pointerId) endFinger(phase, e);
+    // The fingers of a zoom lift one by one: the rest does nothing until all are up.
+    if (fingers.size === 0) pinch = null;
+  }
+
+  canvas.addEventListener("pointermove", (e) => {
+    if (e.pointerType === "touch") touchMove(e);
+    else send(pointer(e));
+  });
   canvas.addEventListener("pointerdown", (e) => {
     canvas.setPointerCapture(e.pointerId);
+    if (e.pointerType === "touch") {
+      keys.focus({ preventScroll: true });
+      touchDown(e);
+      e.preventDefault();
+      return;
+    }
+    if (touchUsed) {
+      touchUsed = false;
+      updateKeyboard();
+    }
     keys.focus({ preventScroll: true });
     send(mods(e));
     send(pointer(e));
@@ -585,11 +743,21 @@
     e.preventDefault();
   });
   canvas.addEventListener("pointerup", (e) => {
+    if (e.pointerType === "touch") {
+      touchUp(e, "up");
+      e.preventDefault();
+      return;
+    }
     send(pointer(e));
     send({ t: "button", b: BUTTONS[e.button] ?? 0, d: false });
     e.preventDefault();
   });
-  canvas.addEventListener("pointerleave", () => send({ t: "leave" }));
+  canvas.addEventListener("pointercancel", (e) => {
+    if (e.pointerType === "touch") touchUp(e, "cancel");
+  });
+  canvas.addEventListener("pointerleave", (e) => {
+    if (e.pointerType !== "touch") send({ t: "leave" });
+  });
   canvas.addEventListener("contextmenu", (e) => e.preventDefault());
   canvas.addEventListener("wheel", (e) => {
     const unit = e.deltaMode === 1 ? 1 / 3 : e.deltaMode === 2 ? 1 : 1 / 100;
@@ -609,6 +777,11 @@
     const shortcut = m.c && !(e.altKey && !IS_MAC);  // AltGr on Windows reports Ctrl+Alt
     // Ctrl+V: the browser's paste event delivers the text first (see below).
     if (shortcut && e.code === "KeyV") return;
+    if (shortcut && ["+", "=", "-", "0"].includes(e.key)) {
+      zoomStep(e.key === "0" ? 0 : e.key === "-" ? -1 : 1);
+      e.preventDefault();
+      return;
+    }
     send(m);
     send({ t: "key", code: keyCode(e.code), d: true });
     if (OWN_KEYS.has(e.code) || (shortcut && e.code !== "KeyC" && e.code !== "KeyX")) e.preventDefault();
@@ -637,8 +810,11 @@
     send({ t: "key", code: "KeyV", d: true });
     send({ t: "key", code: "KeyV", d: false });
   });
-  keys.addEventListener("focus", () => send({ t: "focus", f: true }));
+  keys.addEventListener("focus", () => {
+    if (!refocusing) send({ t: "focus", f: true });
+  });
   keys.addEventListener("blur", () => {
+    if (refocusing) return;
     send({ t: "mods", c: false, s: false, a: false, m: false });
     send({ t: "focus", f: false });
   });

@@ -1300,3 +1300,12 @@ msgstr "Cache geleert, {size} freigegeben"
 
 msgid "KNX Secure"
 msgstr "KNX Secure"
+
+msgid "Zoom In"
+msgstr "Vergrößern"
+
+msgid "Zoom Out"
+msgstr "Verkleinern"
+
+msgid "Reset Zoom"
+msgstr "Zoom zurücksetzen"

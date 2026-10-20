@@ -659,6 +659,15 @@ class KnxGuiApp:
             self._project_service.secure_device_ids, lambda: S.DATA_SECURE_DEVICE
         )
         self.bottom_expanded = bool(load_settings("app").get("bottom_expanded", False))
+        # The browser UI's layout for the size it is shown in (see form_factor), the usual one
+        # meanwhile remembered, and since when another one would fit.
+        self._form = "wide"
+        self._wide_layout: dict[str, Any] = {}
+        self._form_since: float | None = None
+        # The usual layout's section sizes, measured while it had its room (a smaller browser
+        # squeezes it before the layout changes).
+        self._wide_ratios: dict[str, float] = {}
+        self._wide_measured = 0.0
         self._monitor_plugin.set_monitor_extended(self.bottom_expanded)
         self._monitor_plugin.set_layout_toggler(self._toggle_bottom_expanded)
 
@@ -3800,6 +3809,18 @@ class KnxGuiApp:
             self._log.warning(msg)
 
     def _toggle_bottom_expanded(self) -> None:
+        if self._form != "wide":
+            # The smaller layouts have no section across the full width: only the columns
+            # change, and the usual layout has it when it is shown again.
+            expanded = not self.bottom_expanded
+            self._monitor_plugin.set_monitor_extended(expanded)
+            self.bottom_expanded = expanded
+            self._wide_layout["expanded"] = expanded
+            data = load_settings("app")
+            data["bottom_expanded"] = expanded
+            data["wide_layout"] = self._wide_layout
+            save_settings("app", data)
+            return
         params = hello_imgui.get_runner_params().docking_params
         _keep_window_sections(params)
         expanded = not self.bottom_expanded
@@ -3817,7 +3838,82 @@ class KnxGuiApp:
             data["bottom_expanded"] = expanded
             save_settings("app", data)
 
+    def _update_web_layout(self) -> None:
+        """In the browser UI: switch to the layout for the size the app is shown in, once that
+        size has settled; not while typing (a touch screen's keyboard makes the app shorter for
+        a while) or with a button held."""
+        io = imgui.get_io()
+        wanted = form_factor(io.display_size.x, io.display_size.y, self._form)
+        if wanted == self._form:
+            self._form_since = None
+            now = time.monotonic()
+            if wanted == "wide" and now - self._wide_measured >= 1.0:
+                self._wide_measured = now
+                params = hello_imgui.get_runner_params().docking_params
+                self._wide_ratios = _current_ratios(params, self.bottom_expanded)
+            return
+        if io.want_text_input or any(imgui.is_mouse_down(b) for b in range(3)):
+            return
+        now = time.monotonic()
+        if self._form_since is None:
+            self._form_since = now
+        if now - self._form_since < _LAYOUT_SETTLE:
+            return
+        self._form_since = None
+        self._show_form(wanted)
+
+    def _show_form(self, form: str) -> None:
+        params = hello_imgui.get_runner_params().docking_params
+        _keep_window_sections(params)
+        if self._form == "wide":
+            # Shown again when there is room, also after a restart (see _restore_wide_layout).
+            self._wide_layout = {
+                "docks": {
+                    _dock_window_name(w): w.dock_space_name
+                    for w in params.dockable_windows
+                },
+                "ratios": self._wide_ratios
+                or _current_ratios(params, self.bottom_expanded),
+                "expanded": self.bottom_expanded,
+                "selected": [
+                    _dock_window_name(w)
+                    for w in params.dockable_windows
+                    if w.focus_window_at_next_frame
+                ],
+            }
+        from_wide = self._form == "wide"
+        self._form = form
+        data = load_settings("app")
+        if form == "wide":
+            data.pop("wide_layout", None)
+            save_settings("app", data)
+            _restore_wide_layout(params, self._wide_layout)
+            return
+        data["wide_layout"] = self._wide_layout
+        save_settings("app", data)
+        self._show_compact_layout(form, from_wide=from_wide)
+
+    def _show_compact_layout(self, form: str, *, from_wide: bool) -> None:
+        """Build the smaller layout ``form``; its sections take the panels of the usual layout's
+        sections (see compact_section). Coming ``from_wide``, each shows the tab its usual
+        section of the same name showed; otherwise the tabs shown stay."""
+        params = hello_imgui.get_runner_params().docking_params
+        docks: dict[str, str] = self._wide_layout.get("docks", {})
+        selected: set[str] = set(self._wide_layout.get("selected") or [])
+        for w in params.dockable_windows:
+            name = _dock_window_name(w)
+            wide = docks.get(name, w.dock_space_name)
+            w.dock_space_name = compact_section(wide, form)
+            if from_wide:
+                w.focus_window_at_next_frame = (
+                    name in selected and w.dock_space_name == wide
+                )
+        params.docking_splits = compact_docking_splits(form)
+        params.layout_reset = True
+
     def render_overlays(self) -> None:
+        if web.active_hub is not None:
+            self._update_web_layout()
         self._project_service.take_rechecked_devices()
         self._sync_device_section()
         self._render_status_bar()
@@ -4320,10 +4416,33 @@ class KnxGuiApp:
         params = hello_imgui.get_runner_params()
         if imgui.menu_item(S.MENU_RESTORE_LAYOUT, "", False)[0]:
             docks = {panel.name: panel.dock for panel in self.get_all_panels()}
-            for w in params.docking_params.dockable_windows:
-                w.dock_space_name = docks.get(_dock_window_name(w), w.dock_space_name)
-            self._rebuild_layout(expanded=False, ratios={})
+            if self._form != "wide":
+                # The smaller layout from the start, and the usual one when there is room.
+                self._wide_layout = {"docks": docks, "ratios": {}, "expanded": False}
+                if self.bottom_expanded:
+                    self._toggle_bottom_expanded()
+                self._show_compact_layout(self._form, from_wide=True)
+            else:
+                for w in params.docking_params.dockable_windows:
+                    w.dock_space_name = docks.get(
+                        _dock_window_name(w), w.dock_space_name
+                    )
+                self._rebuild_layout(expanded=False, ratios={})
             reset_all_tables()
+        zoom = web.zoom()
+        if zoom is not None:
+            imgui.separator()
+            if imgui.menu_item(S.MENU_ZOOM_IN, "Ctrl++", False, zoom < web.ZOOMS[-1])[
+                0
+            ]:
+                web.zoom_step(1)
+            if imgui.menu_item(S.MENU_ZOOM_OUT, "Ctrl+-", False, zoom > web.ZOOMS[0])[
+                0
+            ]:
+                web.zoom_step(-1)
+            reset = f"{S.MENU_ZOOM_RESET} ({round(zoom * 100)} %)"
+            if imgui.menu_item(reset, "Ctrl+0", False, abs(zoom - 1.0) > 0.001)[0]:
+                web.zoom_step(0)
         imgui.separator()
         windows = [
             w for w in params.docking_params.dockable_windows if w.include_in_view_menu
@@ -4655,6 +4774,68 @@ def create_docking_splits(
         return [bottom, right, device, left]
     bottom = _split("LeftSpace", "BottomSpace", imgui.Dir.down, r["bottom"])
     return [right, device, left, bottom]
+
+
+# The browser UI's layouts by the size the app is shown in (app units, the browser's size divided
+# by its zoom): the usual one from this width on, and smaller ones below it. Switching back and
+# forth needs a little more or less than the limit, so a size right at it does not flip.
+_WIDE_MIN = 1000.0
+_WIDE_MARGIN = 40.0
+# How long a new size has to stay before the layout changes (resizing, turning the device).
+_LAYOUT_SETTLE = 0.4
+
+
+def form_factor(width: float, height: float, current: str | None = None) -> str:
+    """The layout for an app of this size: ``"wide"`` (the usual one), ``"rows"`` (navigation
+    above the rest: a portrait screen), ``"rows3"`` (also the bottom section: a large portrait
+    screen) or ``"columns"`` (navigation beside the rest: a small landscape screen)."""
+    limit = _WIDE_MIN
+    if current == "wide":
+        limit -= _WIDE_MARGIN
+    elif current is not None:
+        limit += _WIDE_MARGIN
+    if width >= limit:
+        return "wide"
+    if height < width:
+        return "columns"
+    return "rows3" if width >= 600.0 and height >= 800.0 else "rows"
+
+
+def compact_section(section: str, form: str) -> str:
+    """The section of a smaller layout that takes the panels of a section of the usual one: the
+    navigation keeps its own, the bottom one too with ``rows3``, all others share the main one."""
+    if section == "LeftSpace" or (form == "rows3" and section == "BottomSpace"):
+        return section
+    return "MainDockSpace"
+
+
+def compact_docking_splits(form: str) -> list[hello_imgui.DockingSplit]:
+    """The sections of a smaller layout (see form_factor)."""
+    if form == "columns":
+        return [_split("MainDockSpace", "LeftSpace", imgui.Dir.left, 0.42)]
+    if form == "rows3":
+        return [
+            _split("MainDockSpace", "BottomSpace", imgui.Dir.down, 0.28),
+            _split("MainDockSpace", "LeftSpace", imgui.Dir.up, 0.45),
+        ]
+    return [_split("MainDockSpace", "LeftSpace", imgui.Dir.up, 0.42)]
+
+
+def _restore_wide_layout(
+    params: hello_imgui.DockingParams, layout: dict[str, Any]
+) -> None:
+    """Rebuild the usual layout as remembered when a smaller one replaced it."""
+    docks: dict[str, str] = layout.get("docks", {})
+    selected: set[str] = set(layout.get("selected") or [])
+    for w in params.dockable_windows:
+        name = _dock_window_name(w)
+        w.dock_space_name = docks.get(name, w.dock_space_name)
+        if name in selected:
+            w.focus_window_at_next_frame = True
+    params.docking_splits = create_docking_splits(
+        bool(layout.get("expanded", False)), layout.get("ratios") or {}
+    )
+    params.layout_reset = True
 
 
 def _current_ratios(
@@ -4990,6 +5171,18 @@ def _main() -> None:
     )
     runner_params.docking_params.dockable_windows = create_dockable_windows(app)
     _apply_new_layout_once(runner_params.docking_params)
+    # Ended with a smaller layout of the browser UI: start with the usual one again.
+    app_settings = load_settings("app")
+    wide_layout = app_settings.pop("wide_layout", None)
+    if isinstance(wide_layout, dict):
+        _restore_wide_layout(
+            runner_params.docking_params, cast("dict[str, Any]", wide_layout)
+        )
+        runner_params.docking_params.layout_reset = False
+        runner_params.docking_params.layout_condition = (
+            hello_imgui.DockingLayoutCondition.application_start
+        )
+        save_settings("app", app_settings)
 
     runner_params.callbacks.post_init = app.setup
     runner_params.callbacks.before_exit = app.shutdown

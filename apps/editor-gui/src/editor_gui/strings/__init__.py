@@ -1809,5 +1809,17 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     def DATA_SECURE_DEVICE(self) -> str:
         return _("KNX Secure")
 
+    @property
+    def MENU_ZOOM_IN(self) -> str:
+        return _("Zoom In")
+
+    @property
+    def MENU_ZOOM_OUT(self) -> str:
+        return _("Zoom Out")
+
+    @property
+    def MENU_ZOOM_RESET(self) -> str:
+        return _("Reset Zoom")
+
 
 S = _CombinedStrings()

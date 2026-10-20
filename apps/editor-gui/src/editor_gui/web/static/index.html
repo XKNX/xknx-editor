@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
 <title>XKNX Editor</title>
 <link rel="icon" type="image/png" href="favicon.png">
 <style>
@@ -29,6 +29,8 @@
   #chooser { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 30; display: flex;
              gap: 6px; align-items: center; padding: 10px; }
   #chooser .close { min-width: 0; padding: 3px 9px; }
+  #zoom { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: 25;
+          padding: 8px 16px; pointer-events: none; }
   [hidden] { display: none !important; }
   body.dragging::after { content: ""; position: fixed; inset: 6px; border: 2px dashed var(--muted);
                          pointer-events: none; }
@@ -40,6 +42,7 @@
 <div id="banner" class="box" hidden><span></span><button></button></div>
 <div id="chooser" class="box" hidden><button class="choose"></button><button class="close">×</button></div>
 <div id="status" class="box">…</div>
+<div id="zoom" class="box" hidden></div>
 <script src="client.js"></script>
 </body>
 </html>

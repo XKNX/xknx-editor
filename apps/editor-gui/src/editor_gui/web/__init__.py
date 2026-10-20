@@ -55,6 +55,30 @@ _TRACE = os.environ.get("XKNX_WEB_TRACE") == "1"
 
 active_hub: WebHub | None = None
 
+# The zoom steps of the browser UI (as in the page's client.js).
+ZOOMS = (0.5, 0.67, 0.75, 0.8, 0.9, 1.0, 1.1, 1.25, 1.5, 1.75, 2.0)
+
+
+def zoom() -> float | None:
+    """The controlling browser's zoom of the app; None outside the web mode."""
+    return active_hub.zoom if active_hub is not None else None
+
+
+def zoom_step(direction: int) -> None:
+    """Zoom in (1), out (-1) or back to 100 % (0) in the controlling browser."""
+    hub = active_hub
+    if hub is None:
+        return
+    current = hub.zoom
+    if direction == 0:
+        target: float | None = 1.0
+    elif direction > 0:
+        target = next((z for z in ZOOMS if z > current + 0.001), None)
+    else:
+        target = next((z for z in reversed(ZOOMS) if z < current - 0.001), None)
+    if target is not None:
+        hub.set_zoom(target)
+
 
 @dataclass(frozen=True)
 class WebOptions:
@@ -136,7 +160,9 @@ def enable_web_mode(
     from editor_gui.settings import config_dir
     from editor_gui.web.frames import Frame, encode_frame
     from editor_gui.web.server import WebHub
+    from editor_gui.web.touch import ImGuiTouchUi, TouchGestures, TouchLook
     from editor_gui.widgets import dialog
+    from editor_gui.widgets.dpi import px
 
     password = options.password()
     if not options.local and password is None and not options.trust_proxy:
@@ -171,6 +197,12 @@ def enable_web_mode(
     last_frame: list[Frame | None] = [None]
     clients_seen = [False]
     frame_start = [0.0]
+    # Set up in web_post_init, once ImGui runs.
+    gestures: list[TouchGestures] = []
+    touch_look = TouchLook()
+    # Whether the controlling browser was last used with a finger.
+    touch = [False]
+    text_input = [False]
 
     def web_post_init() -> None:
         io = imgui.get_io()
@@ -184,6 +216,7 @@ def enable_web_mode(
             hub.publish_clipboard(text)
         )
         platform_io.platform_get_clipboard_text_fn = lambda _ctx: hub.clipboard
+        gestures.append(TouchGestures(ImGuiTouchUi(io)))
         post_init()
 
     # The web mode paces the frames itself: hello_imgui's idling sleeps a fixed time, while browser
@@ -194,7 +227,10 @@ def enable_web_mode(
 
     def web_pre_new_frame() -> None:
         now = time.monotonic()
-        active = now - hub.last_input <= _ACTIVE_SECONDS
+        # A swipe's content moving on is drawn at the full rate too.
+        active = now - hub.last_input <= _ACTIVE_SECONDS or (
+            bool(gestures) and gestures[0].active
+        )
         wait = (1.0 / (_ACTIVE_FPS if active else idle_fps)) - (now - frame_start[0])
         if wait > 0:
             if active:
@@ -210,7 +246,8 @@ def enable_web_mode(
             io.display_size = imgui.ImVec2(*hub.size)
         io.display_framebuffer_scale = imgui.ImVec2(hub.scale, hub.scale)
         hub.show_later()
-        for event in hub.take_input():
+        events = hub.take_input()
+        for i, event in enumerate(events):
             if _TRACE:
                 print(f"{time.monotonic():.3f} apply {event}", flush=True)
             kind = event.get("t")
@@ -218,8 +255,28 @@ def enable_web_mode(
                 hub.upload_event(event)
             elif kind == "blocked":
                 hub.blocked(event)
+            elif kind == "touch" and gestures:
+                if gestures[0].needs_frame(event):
+                    hub.put_back(events[i:])
+                    break
+                touch[0] = True
+                gestures[0].handle(event, float(event.get("ms", 0.0)) / 1000.0)
             else:
+                if kind in ("move", "button", "wheel") and touch[0]:
+                    touch[0] = False
+                    io.add_mouse_source_event(imgui.MouseSource.mouse)
                 _apply(io, event)
+        if gestures:
+            gestures[0].step(time.monotonic())
+        touch_look.apply(touch[0], px(1.0))
+        # With a finger, a swipe on a tab bar would easily tear a panel out of its section:
+        # tabs only change their order then.
+        docking = hello_imgui.get_runner_params().docking_params
+        no_undocking = int(imgui.DockNodeFlags_.no_undocking)
+        flags = docking.main_dock_space_node_flags
+        flags = flags | no_undocking if touch[0] else flags & ~no_undocking
+        if flags != docking.main_dock_space_node_flags:
+            docking.main_dock_space_node_flags = flags
         pre_new_frame()
 
     def web_after_windows() -> None:
@@ -236,6 +293,11 @@ def enable_web_mode(
             imgui.internal.get_top_most_and_visible_popup_modal(),
         )
         imgui.get_current_context().dim_bg_ratio = 0.0 if modal is None else 1.0
+        # The page shows a touch screen's keyboard only while a text field takes typing.
+        wanted = imgui.get_io().want_text_input
+        if wanted != text_input[0]:
+            text_input[0] = wanted
+            hub.set_text_input(wanted)
 
     def web_after_swap() -> None:
         after_swap()
