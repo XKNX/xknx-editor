@@ -11,7 +11,7 @@ _ = create_translator("keyring", _locale_dir)
 class KeyringStrings:
     @property
     def PANEL_KEYRING(self) -> str:
-        return _("XKNX Secure")
+        return _("KNX Secure")
 
     @property
     def MENU_SHOW_WINDOW(self) -> str:

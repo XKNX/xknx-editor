@@ -52,8 +52,8 @@ msgstr "Stel het wachtwoord voor de geëxporteerde keyring in:"
 msgid "Show Window"
 msgstr "Venster tonen"
 
-msgid "XKNX Secure"
-msgstr "XKNX Secure"
+msgid "KNX Secure"
+msgstr "KNX Secure"
 
 msgid "{project} — created by {by}"
 msgstr "{project} — gemaakt door {by}"
