@@ -889,3 +889,32 @@ def test_web_dialog_opens_on_its_own(context: imgui.IO, hub: WebHub) -> None:
     _frame(windows)
     assert hub.host.items == []
     assert dialog.result() == str(hub.files.root / "q.xknx")
+
+
+def test_glyphs_snap_to_whole_pixels_at_fractional_scales() -> None:
+    def vertex(x: float, y: float, u: float, v: float) -> bytes:
+        return struct.pack("<ffffI", x, y, u, v, 0xFFFFFFFF)
+
+    white = (0.01, 0.01)
+    glyph = [
+        (10.2, 3, 0.2, 0.2),
+        (17.2, 3, 0.3, 0.2),
+        (17.2, 15, 0.3, 0.4),
+        (10.2, 15, 0.2, 0.4),
+    ]
+    shape = [(0, 3, *white), (5, 3, *white), (5, 9, *white)]
+    data = b"".join(vertex(*v) for v in shape + glyph)
+    snapped = frames.snap_to_pixels(data, 1.25, white)
+    values = [struct.unpack_from("<ffffI", snapped, i * 20) for i in range(7)]
+    # The shape stays; the glyph's top 3 * 1.25 = 3.75 px moves to 4 px, its height kept.
+    assert [v[1] for v in values[:3]] == [3, 3, 9]
+    tops = [v[1] * 1.25 for v in values[3:]]
+    assert tops[:2] == pytest.approx([4.0, 4.0])
+    assert values[5][1] - values[3][1] == pytest.approx(12.0)
+    # Its left 10.2 * 1.25 = 12.75 px moves to 13 px, its width kept.
+    assert values[3][0] * 1.25 == pytest.approx(13.0)
+    assert values[4][0] - values[3][0] == pytest.approx(7.0)
+    # Nothing textured: unchanged.
+    assert frames.snap_to_pixels(b"".join(vertex(*v) for v in shape), 1.25, white) == (
+        b"".join(vertex(*v) for v in shape)
+    )

@@ -14,6 +14,10 @@ Every message is one binary WebSocket message: a kind byte, then a zlib-compress
   width, height, then the rectangle x, y, width, height and its pixels. ``TEX_CREATE`` and
   ``TEX_UPDATE`` carry RGBA pixels of the rectangle, ``TEX_DESTROY`` none, ``TEX_ENCODED`` an
   encoded image (PNG) the browser decodes itself.
+At a browser scale that is not a whole number (a zoom of 125 %, a display at 150 %), every
+glyph and image is moved by less than a pixel so that it starts on a whole pixel of the
+browser's display: text otherwise falls between pixel rows and columns and looks blurred.
+
 - **Clipboard** (``KIND_CLIPBOARD``): the UTF-8 text the app copied.
 - **Event** (``KIND_EVENT``): a UTF-8 JSON object for the page itself (file dialogs, downloads,
   links, control of the app).
@@ -30,6 +34,7 @@ import zlib
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
+import numpy as np
 from imgui_bundle import imgui
 
 if TYPE_CHECKING:
@@ -49,6 +54,9 @@ TEX_DESTROY = 3
 TEX_ENCODED = 4
 
 _VERTEX_SIZE = 20  # sizeof(ImDrawVert)
+_VERTEX = np.dtype(
+    [("x", "<f4"), ("y", "<f4"), ("u", "<f4"), ("v", "<f4"), ("col", "<u4")]
+)
 _FRAME_HEADER = struct.Struct("<BBHffffI")
 _LIST_HEADER = struct.Struct("<III")
 _LIST_REF = struct.Struct("<B8s")
@@ -105,8 +113,15 @@ class Frame:
         return frozenset(h for h, _ in self.lists)
 
 
-def encode_frame(draw_data: imgui.ImDrawData, cursor: int) -> Frame:
-    """The frame of ``draw_data`` (see the module docstring)."""
+def encode_frame(
+    draw_data: imgui.ImDrawData,
+    cursor: int,
+    scale: float = 1.0,
+    white: tuple[float, float] = (0.0, 0.0),
+) -> Frame:
+    """The frame of ``draw_data`` (see the module docstring), for a browser with ``scale``
+    display pixels per unit; ``white`` is the texture position shapes are drawn with (the font
+    atlas's white pixel)."""
     lists = [draw_data.cmd_lists[i] for i in range(draw_data.cmd_lists.size())]
     index_size = next((_index_size(dl) for dl in lists if dl.idx_buffer.size() >= 2), 2)
     header = _FRAME_HEADER.pack(
@@ -121,18 +136,28 @@ def encode_frame(draw_data: imgui.ImDrawData, cursor: int) -> Frame:
     )
     encoded: list[tuple[bytes, bytes]] = []
     for draw_list in lists:
-        data = _encode_list(draw_list, index_size)
+        data = _encode_list(draw_list, index_size, scale, white)
         encoded.append((hashlib.blake2b(data, digest_size=8).digest(), data))
     return Frame(header, tuple(encoded))
 
 
-def _encode_list(draw_list: imgui.ImDrawList, index_size: int) -> bytes:
+def _encode_list(
+    draw_list: imgui.ImDrawList,
+    index_size: int,
+    scale: float,
+    white: tuple[float, float],
+) -> bytes:
     vertices = draw_list.vtx_buffer
     indices = draw_list.idx_buffer
     commands = draw_list.cmd_buffer
+    vertex_bytes = ctypes.string_at(
+        vertices.data_address(), vertices.size() * _VERTEX_SIZE
+    )
+    if scale != round(scale):
+        vertex_bytes = snap_to_pixels(vertex_bytes, scale, white)
     parts = [
         _LIST_HEADER.pack(vertices.size(), indices.size(), commands.size()),
-        ctypes.string_at(vertices.data_address(), vertices.size() * _VERTEX_SIZE),
+        vertex_bytes,
     ]
     index_bytes = indices.size() * index_size
     parts.append(ctypes.string_at(indices.data_address(), index_bytes))
@@ -154,6 +179,43 @@ def _encode_list(draw_list: imgui.ImDrawList, index_size: int) -> bytes:
             )
         )
     return b"".join(parts)
+
+
+def snap_to_pixels(
+    vertex_bytes: bytes, scale: float, white: tuple[float, float]
+) -> bytes:
+    """Move every textured rectangle among the vertices (a glyph, an image: four vertices in a
+    row whose texture position is not ``white``) so that its top left corner is on a whole pixel
+    at ``scale`` pixels per unit. Shapes (drawn with the white pixel) stay where they are."""
+    vertices = np.frombuffer(vertex_bytes, dtype=_VERTEX).copy()
+    textured = np.flatnonzero((vertices["u"] != white[0]) | (vertices["v"] != white[1]))
+    if textured.size < 4:
+        return vertex_bytes
+    # Runs of textured vertices next to each other; a rectangle starts every four in a run.
+    run_start = np.ones(textured.size, dtype=bool)
+    run_start[1:] = np.diff(textured) != 1
+    starts_at = np.flatnonzero(run_start)
+    run_length = np.diff(np.append(starts_at, textured.size))
+    position = np.arange(textured.size) - np.repeat(starts_at, run_length)
+    left = np.repeat(run_length, run_length) - position
+    first = textured[(position % 4 == 0) & (left >= 4)]
+    x, y = vertices["x"], vertices["y"]
+    # Only rectangles: top left, top right, bottom right, bottom left.
+    rect = (
+        (y[first] == y[first + 1])
+        & (y[first + 2] == y[first + 3])
+        & (x[first] == x[first + 3])
+        & (x[first + 1] == x[first + 2])
+    )
+    first = first[rect]
+    if first.size == 0:
+        return vertex_bytes
+    for axis in (x, y):
+        start = axis[first]
+        shift = (np.round(start * scale) / scale - start).astype(np.float32)
+        for corner in range(4):
+            axis[first + corner] += shift
+    return vertices.tobytes()
 
 
 def texture_body(

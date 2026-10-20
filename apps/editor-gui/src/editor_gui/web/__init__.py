@@ -298,6 +298,9 @@ def enable_web_mode(
         if gestures:
             gestures[0].step(time.monotonic())
         touch_look.apply(touch[0])
+        # Lines with their edges smoothed by geometry, not by a texture: only text and images
+        # are then textured, which encode_frame moves onto whole pixels.
+        imgui.get_style().anti_aliased_lines_use_tex = False
         # With a finger, a swipe on a tab bar would easily tear a panel out of its section:
         # tabs only change their order then.
         docking = hello_imgui.get_runner_params().docking_params
@@ -343,7 +346,13 @@ def enable_web_mode(
         # None before the first frame was rendered.
         draw_data = cast("imgui.ImDrawData | None", imgui.get_draw_data())
         if connected and draw_data is not None and draw_data.valid:
-            encoded = encode_frame(draw_data, int(imgui.get_mouse_cursor()))
+            white = imgui.get_io().fonts.tex_uv_white_pixel
+            encoded = encode_frame(
+                draw_data,
+                int(imgui.get_mouse_cursor()),
+                hub.scale,
+                (white.x, white.y),
+            )
             # A browser that just connected needs the current frame even when nothing changed.
             if not encoded.same_as(last_frame[0]) or not clients_seen[0]:
                 last_frame[0] = frame = encoded
