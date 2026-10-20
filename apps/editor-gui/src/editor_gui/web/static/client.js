@@ -452,6 +452,7 @@
       keepCaretVisible();
     }
     else if (ev.t === "pinch-areas") pinchAreas = ev.areas;
+    else if (ev.t === "selection") selectedText = ev.text || "";
   }
 
   function applyTheme(ev) {
@@ -878,8 +879,14 @@
 
   keys.addEventListener("keydown", (e) => {
     if (e.isComposing) return;
+    if (e.key === "Control" || e.key === "Meta") selectForCopy(true);
     const m = mods(e);
     const shortcut = m.c && !(e.altKey && !IS_MAC);  // AltGr on Windows reports Ctrl+Alt
+    // Only Ctrl+C and Ctrl+X copy the selected character (see onCopy); anything else, AltGr
+    // with a character included, must not replace it.
+    if (e.key !== "Control" && e.key !== "Meta" && !(shortcut && (e.code === "KeyC" || e.code === "KeyX"))) {
+      selectForCopy(false);
+    }
     // Ctrl+V: the browser's paste event delivers the text first (see below).
     if (shortcut && e.code === "KeyV") return;
     if (shortcut && ["+", "=", "-", "0"].includes(e.key)) {
@@ -892,6 +899,7 @@
     if (OWN_KEYS.has(e.code) || (shortcut && e.code !== "KeyC" && e.code !== "KeyX")) e.preventDefault();
   });
   keys.addEventListener("keyup", (e) => {
+    if (e.key === "Control" || e.key === "Meta") selectForCopy(false);
     send(mods(e));
     send({ t: "key", code: keyCode(e.code), d: false });
   });
@@ -939,6 +947,38 @@
 
   function hideTextMenu() {
     textMenu.hidden = true;
+  }
+
+  // -- copy and cut: the app's selected text goes into the clipboard in the key press (or the
+  // menu's tap) itself, as Safari (and any browser over plain http) allows it only then. A
+  // browser only copies when the page has something selected: the hidden field's invisible
+  // character, selected while Ctrl/Cmd is held.
+  let selectedText = "";
+
+  function selectForCopy(on) {
+    if (on && selectedText) keys.setSelectionRange(0, keys.value.length);
+    else keys.setSelectionRange(keys.value.length, keys.value.length);
+  }
+
+  function onCopy(e, cut) {
+    if (!controlling || !selectedText) return;
+    e.clipboardData.setData("text/plain", selectedText);
+    // The app removes the text itself (it gets Ctrl+X); the field keeps its character.
+    e.preventDefault();
+    if (cut) selectForCopy(false);
+  }
+
+  keys.addEventListener("copy", (e) => onCopy(e, false));
+  keys.addEventListener("cut", (e) => onCopy(e, true));
+
+  function copySelected() {
+    // From the menu's tap: the same way as Ctrl+C.
+    if (!selectedText) return;
+    quietly(() => {
+      selectForCopy(true);
+      try { document.execCommand("copy"); } catch (e) { /* not copied */ }
+      selectForCopy(false);
+    });
   }
 
   function shortcut(code) {
@@ -996,8 +1036,8 @@
     button.addEventListener("click", () => {
       hideTextMenu();
       const op = button.dataset.op;
-      if (op === "cut") shortcut("KeyX");
-      else if (op === "copy") shortcut("KeyC");
+      if (op === "cut") { copySelected(); shortcut("KeyX"); }
+      else if (op === "copy") { copySelected(); shortcut("KeyC"); }
       else if (op === "all") shortcut("KeyA");
       else if (navigator.clipboard && navigator.clipboard.readText && window.isSecureContext) {
         navigator.clipboard.readText().then(pasteText, openPasteBox);

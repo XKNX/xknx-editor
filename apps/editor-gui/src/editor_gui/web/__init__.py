@@ -245,6 +245,7 @@ def enable_web_mode(
     text_input = [False]
     caret_shown: list[tuple[int, int, int] | None] = [None]
     numeric_shown = [False]
+    selection_shown = [""]
 
     def web_post_init() -> None:
         io = imgui.get_io()
@@ -373,6 +374,23 @@ def enable_web_mode(
         )
         # A field for numbers gets a touch screen's number keyboard.
         state = imgui.get_current_context().input_text_state
+        # The selected text (not of a password) is with the page before Ctrl+C or Ctrl+X: some
+        # browsers (Safari) let a page copy only in the key press itself.
+        selected = ""
+        if (
+            wanted
+            and state.has_selection()
+            and not state.flags & imgui.InputTextFlags_.password
+        ):
+            start, end = sorted(
+                (state.get_selection_start(), state.get_selection_end())
+            )
+            selected = (
+                state.get_text().encode("utf-8")[start:end].decode("utf-8", "replace")
+            )
+        if selected != selection_shown[0]:
+            selection_shown[0] = selected
+            hub.set_selection(selected)
         numeric = wanted and bool(
             state.flags
             & (

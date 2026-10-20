@@ -212,6 +212,10 @@ class WebHub:
         """Zoom the app in the controlling browser (it answers with its new size)."""
         self._post(event_message({"t": "zoom", "z": zoom}))
 
+    def set_selection(self, text: str) -> None:
+        """The text selected in the app's text field taking typing ("" for none)."""
+        self._post(event_message({"t": "selection", "text": text}))
+
     def set_pinch_areas(self, areas: list[list[float]]) -> None:
         self.pinch_areas = areas
         self._post(event_message({"t": "pinch-areas", "areas": areas}))
