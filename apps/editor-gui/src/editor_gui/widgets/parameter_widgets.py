@@ -1060,6 +1060,9 @@ def render_ui_tree(
                 get_icon,
             )
             imgui.unindent(px(_TREE_INDENT))
+            # An item after the tree's last move of the cursor (imgui asserts on a cursor moved
+            # past the content without one, e.g. when the filter leaves no page).
+            imgui.dummy(imgui.ImVec2(0.0, 0.0))
             if clicked is not None:
                 _selected_pages[device.node_id] = clicked
             # The selected row as far as it is scrolled into view.

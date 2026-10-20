@@ -3931,6 +3931,10 @@ class KnxGuiApp:
             }
         from_wide = self._form == "wide"
         self._form = form
+        key, default = self._context_help_setting()
+        self._project_plugin.show_context_help = bool(
+            load_settings("app").get(key, default)
+        )
         data = load_settings("app")
         if form == "wide":
             data.pop("wide_layout", None)
@@ -3941,6 +3945,13 @@ class KnxGuiApp:
         data["wide_layout"] = self._wide_layout
         save_settings("app", data)
         self._show_compact_layout(form, from_wide=from_wide)
+
+    def _context_help_setting(self) -> tuple[str, bool]:
+        """The setting whether the editor shows its context help, and its default: on a phone
+        (navigation and one section) apart and off at first, as there is little room."""
+        if self._form in ("rows", "columns"):
+            return "show_context_help_phone", False
+        return "show_context_help", True
 
     def _show_compact_layout(self, form: str, *, from_wide: bool) -> None:
         """Build the smaller layout ``form``; its sections take the panels of the usual layout's
@@ -4593,7 +4604,7 @@ class KnxGuiApp:
         if changed:
             self._project_plugin.show_context_help = shown
             data = load_settings("app")
-            data["show_context_help"] = shown
+            data[self._context_help_setting()[0]] = shown
             save_settings("app", data)
         window_params = params.imgui_window_params
         changed, shown = imgui.menu_item(S.MENU_STATUS_BAR, "", self._show_status_bar)
