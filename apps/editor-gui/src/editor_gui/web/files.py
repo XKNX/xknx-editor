@@ -49,6 +49,8 @@ class Entry:
     name: str
     size: int
     modified: float
+    # A folder to go into (shown with a trailing "/", or ".." for the one above).
+    folder: bool = False
 
     def as_json(self) -> dict[str, object]:
         return {"name": self.name, "size": self.size, "modified": self.modified}

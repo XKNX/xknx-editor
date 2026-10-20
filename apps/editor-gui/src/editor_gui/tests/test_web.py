@@ -726,7 +726,32 @@ def test_downloads_only_offered_files(hub: WebHub, tmp_path: Path) -> None:
     hub.show_folder(tmp_path)
     (notice,) = hub.host.items
     assert isinstance(notice, FolderNotice)
-    assert [e.name for e in notice.entries] == ["labels.html"]
+    # The hub's own file folder is in there too, as a folder.
+    assert [e.name for e in notice.entries] == ["files", "labels.html"]
+
+
+def test_folder_notice_goes_into_subfolders(hub: WebHub, tmp_path: Path) -> None:
+    root = tmp_path / "cache"
+    (root / "product-data").mkdir(parents=True)
+    (root / "product-data" / "a.pkl").write_bytes(b"x")
+    (root / "docs").mkdir()
+    (root / "index.json").write_text("{}")
+    notice = FolderNotice(hub, root)
+    # Folders first, by name, then the files; nothing above the folder shown first.
+    assert [(e.name, e.folder) for e in notice.entries] == [
+        ("docs", True),
+        ("product-data", True),
+        ("index.json", False),
+    ]
+    notice.open(notice.entries[1])
+    assert notice.folder == root / "product-data"
+    assert [(e.name, e.folder) for e in notice.entries] == [
+        ("..", True),
+        ("a.pkl", False),
+    ]
+    notice.open(notice.entries[0])
+    assert notice.folder == root
+    assert notice.entries[0].name == "docs"
 
 
 def test_dialog_goes_to_the_controlling_browser(hub: WebHub) -> None:

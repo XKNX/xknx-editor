@@ -156,20 +156,24 @@ def _entries_table(
         row_flags = imgui.SelectableFlags_.allow_double_click
         if not download:
             row_flags |= imgui.SelectableFlags_.span_all_columns
-        if imgui.selectable(f"{entry.name}##{entry.name}", chosen, row_flags)[0]:
+        shown = f"{entry.name}/" if entry.folder and entry.name != ".." else entry.name
+        if imgui.selectable(f"{shown}##{entry.name}", chosen, row_flags)[0]:
             clicked = entry
             double = imgui.is_mouse_double_clicked(imgui.MouseButton_.left)
         if sizes:
             imgui.table_next_column()
-            imgui.text_disabled(human_size(entry.size))
+            if not entry.folder:
+                imgui.text_disabled(human_size(entry.size))
         imgui.table_next_column()
-        imgui.text_disabled(_modified(entry.modified))
+        if entry.name != "..":
+            imgui.text_disabled(_modified(entry.modified))
         if download:
             imgui.table_next_column()
-            if imgui.small_button(f"{S.WEB_DOWNLOAD}##{entry.name}"):
-                fetch = entry
-            if on_download is not None:
-                on_download(entry)
+            if not entry.folder:
+                if imgui.small_button(f"{S.WEB_DOWNLOAD}##{entry.name}"):
+                    fetch = entry
+                if on_download is not None:
+                    on_download(entry)
     imgui.end_table()
     return clicked, double, fetch
 
@@ -448,32 +452,57 @@ class WebSelectFolder(WebDialog):
 
 
 class FolderNotice(_Item):
-    """A folder of the server ("Open … Folder"), its files downloadable one by one."""
+    """A folder of the server ("Open … Folder"), its files downloadable one by one. Its subfolders
+    open with a click, ".." goes back up, but not above the folder shown first."""
 
     def __init__(self, hub: WebHub, folder: Path) -> None:
         self._hub = hub
+        self.root = folder
         self.folder = folder
         number = next(_ids)
         self.popup_id = f"{S.WEB_FOLDER_TITLE}###web-folder-{number}"
         self.area_prefix = f"folder-{number}:"
-        self._urls: dict[str, str] = {}
+        self._urls: dict[Path, str] = {}
+        self.entries = self._list()
+
+    def _list(self) -> list[Entry]:
+        """The subfolders by name, then the newest files (at most 200)."""
         try:
-            children = [c for c in folder.iterdir() if c.is_file()]
+            children = list(self.folder.iterdir())
         except OSError:
             children = []
-        entries: list[Entry] = []
+        folders: list[Entry] = []
+        files: list[Entry] = []
         for child in children:
             try:
                 stat = child.stat()
+                is_dir = child.is_dir()
             except OSError:
                 continue
-            entries.append(Entry(child.name, stat.st_size, stat.st_mtime))
-        self.entries = sorted(entries, key=lambda e: e.modified, reverse=True)[:200]
+            if is_dir:
+                folders.append(Entry(child.name, 0, stat.st_mtime, folder=True))
+            else:
+                files.append(Entry(child.name, stat.st_size, stat.st_mtime))
+        folders.sort(key=lambda e: e.name.lower())
+        files.sort(key=lambda e: e.modified, reverse=True)
+        up = [Entry("..", 0, 0.0, folder=True)] if self.folder != self.root else []
+        return up + folders + files[:200]
+
+    def open(self, entry: Entry) -> None:
+        """Go into the folder ``entry``, or up for ".."."""
+        # The page's download areas of the files shown so far go with them.
+        self._hub.clear_actions(self.area_prefix)
+        if entry.name == "..":
+            self.folder = self.folder.parent
+        else:
+            self.folder = self.folder / entry.name
+        self.entries = self._list()
 
     def _url(self, name: str) -> str:
-        if name not in self._urls:
-            self._urls[name] = self._hub.file_url(self.folder / name)
-        return self._urls[name]
+        path = self.folder / name
+        if path not in self._urls:
+            self._urls[path] = self._hub.file_url(path)
+        return self._urls[path]
 
     def _download_area(self, entry: Entry) -> None:
         url = self._url(entry.name)
@@ -488,13 +517,15 @@ class FolderNotice(_Item):
             return
         if not self.closing:
             imgui.text_disabled(str(self.folder))
-            _, _, fetch = _entries_table(
+            clicked, _, fetch = _entries_table(
                 "##web_folder_files",
                 self.entries,
                 download=True,
                 on_download=self._download_area,
             )
-            if fetch is not None:
+            if clicked is not None and clicked.folder:
+                self.open(clicked)
+            elif fetch is not None:
                 self._hub.download(self._url(fetch.name), fetch.name)
             if dialog_buttons(S.BTN_CLOSE) == 0:
                 self.closing = True
