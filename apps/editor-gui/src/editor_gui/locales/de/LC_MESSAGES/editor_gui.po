@@ -1285,3 +1285,15 @@ msgstr "Die Suche nach Updates ist fehlgeschlagen: {error}"
 
 msgid "The project has no group addresses to export."
 msgstr "Das Projekt enthält keine Gruppenadressen zum Exportieren."
+
+msgid "Clear Cache…"
+msgstr "Cache leeren…"
+
+msgid "Clear Cache"
+msgstr "Cache leeren"
+
+msgid "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
+msgstr "Der Cache enthält {size} an aufbereiteten Produktdaten und an Dokumentation, die für die KI-Werkzeuge geladen wurde. Alles wird bei Bedarf neu erstellt; danach dauert nur die erste Verwendung jedes Produkts länger."
+
+msgid "Cache cleared, {size} freed"
+msgstr "Cache geleert, {size} freigegeben"

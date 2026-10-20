@@ -13,7 +13,6 @@ from pathlib import Path
 from typing import Any, cast
 
 import imgui_bundle._patch_runners_add_save_screenshot_param as _screenshot_patch
-import platformdirs
 
 _screenshot_patch._get_caller_filename = lambda depth: ""  # type: ignore[assignment]
 
@@ -26,6 +25,13 @@ from xknxproject.exceptions import InvalidPasswordException, XknxProjectExceptio
 from editor_gui import __version__, file_dialogs, self_update, web
 from editor_gui import signing_key as signing_key_store
 from editor_gui import trace_key as trace_key_store
+from editor_gui.cache import (
+    cache_dir,
+    cache_size,
+    clear_cache,
+    move_product_cache,
+    product_cache_dir,
+)
 from editor_gui.certs import ensure_ca_bundle
 from editor_gui.color import warning_red
 from editor_gui.concurrency import MainThreadExecutor
@@ -363,7 +369,9 @@ def _log_gl_renderer(log: Logger) -> None:
 class KnxGuiApp:
     def __init__(self, catalog_path: Path) -> None:
         self._catalog_service_path = catalog_path
-        self._catalog_service = CatalogService(catalog_path)
+        self._catalog_service = CatalogService(
+            catalog_path, parse_cache_dir=product_cache_dir()
+        )
 
         self._open_file_dialog: file_dialogs.OpenFileDialog | None = None
         self._save_file_dialog: file_dialogs.SaveFileDialog | None = None
@@ -386,6 +394,9 @@ class KnxGuiApp:
         self._ga_export_options: dict[str, Any] = {}
         # The project has no group addresses: say so instead of exporting an empty file.
         self._ga_export_empty_requested = False
+        # Clear Cache…: the confirmation, with the size the cache had when it was asked for.
+        self._clear_cache_requested = False
+        self._clear_cache_size = 0
         # Folder picker for the ProjectStore export when the default path is not found, and which
         # ETS generation that export is aimed at (set when the export starts, read by the dialogs).
         self._projectstore_dialog: file_dialogs.SelectFolderDialog | None = None
@@ -968,6 +979,29 @@ class KnxGuiApp:
             data["ga_export"] = dict(options)
             save_settings("app", data)
             self._open_ga_export_save_dialog()
+        elif clicked == 1:
+            imgui.close_current_popup()
+        end_dialog()
+
+    def _render_clear_cache_modal(self) -> None:
+        if self._clear_cache_requested:
+            imgui.open_popup(S.CLEAR_CACHE_TITLE)
+            self._clear_cache_requested = False
+        if not begin_dialog(S.CLEAR_CACHE_TITLE, width=460.0):
+            return
+        imgui.text_wrapped(
+            S.CLEAR_CACHE_TEXT.format(size=human_size(self._clear_cache_size))
+        )
+        clicked = dialog_buttons(
+            S.CLEAR_CACHE_CONFIRM,
+            S.BTN_CANCEL,
+            enabled=[self._clear_cache_size > 0, True],
+        )
+        if clicked == 0:
+            freed = clear_cache()
+            self._log.info("cache cleared", freed=freed)
+            self._flash_toast(S.CLEAR_CACHE_DONE.format(size=human_size(freed)))
+            imgui.close_current_popup()
         elif clicked == 1:
             imgui.close_current_popup()
         end_dialog()
@@ -3154,10 +3188,14 @@ class KnxGuiApp:
             imgui.separator()
             if imgui.menu_item(S.MENU_OPEN_CONFIG_DIR, "", False)[0]:
                 self._open_folder(config_dir())
-            if imgui.menu_item(S.MENU_OPEN_CACHE_DIR, "", False)[0]:
-                self._open_folder(Path(platformdirs.user_cache_dir("xknx-editor")))
             if imgui.menu_item(S.MENU_OPEN_LOG_DIR, "", False)[0]:
                 self._open_folder(log_dir())
+            imgui.separator()
+            if imgui.menu_item(S.MENU_OPEN_CACHE_DIR, "", False)[0]:
+                self._open_folder(cache_dir())
+            if imgui.menu_item(S.MENU_CLEAR_CACHE, "", False)[0]:
+                self._clear_cache_size = cache_size()
+                self._clear_cache_requested = True
             imgui.end_menu()
 
         if imgui.menu_item(S.MENU_FEEDBACK, "", False)[0]:
@@ -3814,6 +3852,7 @@ class KnxGuiApp:
         self._render_overwrite_modal()
         self._render_ga_export_options_modal()
         self._render_ga_export_empty_modal()
+        self._render_clear_cache_modal()
         self._render_projectstore_confirm_modal()
         self._render_url_prompt_modal()
         self._render_new_project_modal()
@@ -4871,6 +4910,8 @@ def _main() -> None:
     # other runtime data, rather than cluttering the source tree.
     catalog_path = config_dir() / "catalog.xknxcatalog"
     catalog_path.parent.mkdir(parents=True, exist_ok=True)
+    # Parsed product data lived in the data folder before; it belongs to the cache folder.
+    move_product_cache(config_dir() / "ir_cache")
     app = KnxGuiApp(catalog_path)
     app.startup_file = startup_file(sys.argv)
 

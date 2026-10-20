@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from datetime import date as _date
 from pathlib import Path
 
+from editor_gui.cache import product_cache_dir
 from editor_gui.settings import config_dir
 from xknxeditor.prod import MasterData, parse_master_xml
 from xknxeditor.proj import (
@@ -88,8 +89,8 @@ def _load_bytes() -> tuple[bytes, str]:
 def load_master() -> tuple[MasterData, MasterDataInfo]:
     """Load the global master data (cached or freshly fetched) and report its version and date."""
     data, source = _load_bytes()
-    # Through the parse cache next to the catalog's: every start reads the same master XML.
-    master = parse_master_xml(data, config_dir() / "ir_cache")
+    # Through the product data cache, the catalog's: every start reads the same master XML.
+    master = parse_master_xml(data, product_cache_dir())
     version = master.raw.version if master.raw is not None else 0
     cache = _cache_path()
     try:

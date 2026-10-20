@@ -1783,5 +1783,27 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     def GA_EXPORT_EMPTY(self) -> str:
         return _("The project has no group addresses to export.")
 
+    @property
+    def MENU_CLEAR_CACHE(self) -> str:
+        return _("Clear Cache…")
+
+    @property
+    def CLEAR_CACHE_TITLE(self) -> str:
+        return _("Clear Cache")
+
+    @property
+    def CLEAR_CACHE_CONFIRM(self) -> str:
+        return _("Clear Cache")
+
+    @property
+    def CLEAR_CACHE_TEXT(self) -> str:
+        return _(
+            "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
+        )
+
+    @property
+    def CLEAR_CACHE_DONE(self) -> str:
+        return _("Cache cleared, {size} freed")
+
 
 S = _CombinedStrings()

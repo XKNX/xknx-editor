@@ -1190,3 +1190,15 @@ msgstr "Het zoeken naar updates is mislukt: {error}"
 
 msgid "The project has no group addresses to export."
 msgstr "Het project bevat geen groepsadressen om te exporteren."
+
+msgid "Clear Cache…"
+msgstr "Cache wissen…"
+
+msgid "Clear Cache"
+msgstr "Cache wissen"
+
+msgid "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
+msgstr "De cache bevat {size} aan verwerkte productgegevens en aan documentatie die voor de AI-tools is opgehaald. Alles wordt opnieuw aangemaakt wanneer dat nodig is; daarna duurt alleen het eerste gebruik van elk product langer."
+
+msgid "Cache cleared, {size} freed"
+msgstr "Cache gewist, {size} vrijgemaakt"
