@@ -145,17 +145,17 @@ class SigningPanel:
         imgui.separator()
 
         field_h = hello_imgui.em_to_vec2(0.0, 2.4).y
-        imgui.text(S.MODULUS)
+        imgui.text_disabled(S.MODULUS)
         imgui.set_next_item_width(-1)
         _, self._modulus = imgui.input_text_multiline(
             "##modulus", self._modulus, imgui.ImVec2(-1, field_h)
         )
-        imgui.text(S.PRIVATE_EXPONENT)
+        imgui.text_disabled(S.PRIVATE_EXPONENT)
         imgui.set_next_item_width(-1)
         _, self._private_exponent = imgui.input_text_multiline(
             "##priv", self._private_exponent, imgui.ImVec2(-1, field_h)
         )
-        imgui.text(S.PUBLIC_EXPONENT)
+        imgui.text_disabled(S.PUBLIC_EXPONENT)
         imgui.set_next_item_width(-1)
         _, self._public_exponent = imgui.input_text("##pub", self._public_exponent)
 

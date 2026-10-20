@@ -100,6 +100,10 @@ ParamMode = Literal["edit", "transfer", "raw"]
 calculations only, ``raw`` stores the values as they are."""
 
 
+class BuildCancelled(Exception):
+    """A device build stopped on request (see ``ProjectService.build_cancelled``)."""
+
+
 @dataclass(frozen=True)
 class UpdateApplicationResult:
     """Outcome of an application update: the version updated to and how many parameter/
@@ -767,6 +771,9 @@ class ProjectService:
         # Optional (i_done, total) callback invoked while (re)building the device views — lets the
         # GUI show a determinate "opening project" progress bar sized to the project's device count.
         self.build_progress: Callable[[int, int, str], None] | None = None
+        # Optional check between devices while (re)building them: ``True`` stops the build with
+        # BuildCancelled (see refresh_catalog_resolution).
+        self.build_cancelled: Callable[[], bool] | None = None
         self._devices_cache: list[Device] | None = None
         self._unloaded_devices: list[UnloadedDevice] = []
         # Per device, the stored data it was last built from (see _device_source_key).
@@ -1875,12 +1882,16 @@ class ProjectService:
                 )
                 total = len(rows)
                 report = self.build_progress
+                cancelled = self.build_cancelled
                 started = time.monotonic()
                 self._log.debug("building devices", total=total)
                 # Building creates millions of long-lived objects; the cyclic garbage collector would
                 # rescan all of them over and over, which dominates the load time.
                 with gc_paused():
                     for i, row in enumerate(rows, start=1):
+                        if cancelled is not None and cancelled():
+                            self._log.info("device build cancelled", built=i - 1)
+                            raise BuildCancelled
                         device = self._reuse_device(
                             row, previous
                         ) or self._build_device(row)
@@ -3328,7 +3339,12 @@ class ProjectService:
                 missing.append(ref)
         return missing
 
-    def refresh_catalog_resolution(self, *, rebuild: bool = False) -> None:
+    def refresh_catalog_resolution(
+        self,
+        *,
+        rebuild: bool = False,
+        cancelled: Callable[[], bool] | None = None,
+    ) -> bool:
         """Drop the cached catalog lookups and invalidate the device view — call after new .knxprod
         products were imported (so unresolved apps now resolve) or after a UI-language change (so
         device labels re-parse in the new language).
@@ -3337,8 +3353,13 @@ class ProjectService:
         from a worker thread (behind the progress modal) so the slow re-parse doesn't freeze the UI
         thread on the next frame. Holds the shared lock across clear + rebuild so per-frame UI reads
         (which acquire it non-blocking and bail otherwise) never see a half-cleared cache or trigger
-        the rebuild themselves. The lock is re-entrant, so the ``devices`` read below still works."""
+        the rebuild themselves. The lock is re-entrant, so the ``devices`` read below still works.
+
+        ``cancelled`` is asked between devices; once it answers ``True`` the rebuild stops and the
+        lookups are back as before, so the next device read reuses every device built before.
+        Returns whether the rebuild was not cancelled."""
         with self._io_lock:
+            kept_apps, kept_sources = dict(self._app_cache), dict(self._source_cache)
             self._app_cache.clear()
             self._source_cache.clear()
             with self._loading_lock:
@@ -3346,9 +3367,22 @@ class ProjectService:
             self._handled_failures.clear()
             self._bump()
             if rebuild:
-                _ = (
-                    self.devices
-                )  # rebuild under the held lock instead of lazily on the UI thread
+                self.build_cancelled = cancelled
+                try:
+                    # Rebuild under the held lock instead of lazily on the UI thread.
+                    _ = self.devices
+                except BuildCancelled:
+                    self._app_cache.clear()
+                    self._app_cache.update(kept_apps)
+                    self._source_cache.clear()
+                    self._source_cache.update(kept_sources)
+                    # Snapshots of the devices built so far are of the abandoned rebuild.
+                    self._new_snapshots.clear()
+                    self._bump()
+                    return False
+                finally:
+                    self.build_cancelled = None
+        return True
 
     def forget_deleted_product(
         self, deletion: "ProductDeletion", *, rebuild: bool = False

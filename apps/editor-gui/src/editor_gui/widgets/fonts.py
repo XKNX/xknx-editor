@@ -60,6 +60,19 @@ def heading() -> Generator[None]:
         imgui.pop_font()
 
 
+def fitted_heading(text: str, scale: float = 1.15) -> None:
+    """Bold intro lines, ``scale`` times the text size or less so each line fits the width.
+
+    Lines too wide even at the normal size wrap.
+    """
+    with bold():
+        widest = max(imgui.calc_text_size(line).x for line in text.split("\n"))
+    if widest > 0.0:
+        scale = max(1.0, min(scale, imgui.get_content_region_avail().x / widest))
+    with bold(scale):
+        imgui.text_wrapped(text)
+
+
 @contextmanager
 def italic() -> Generator[None]:
     """Draw in the italic font at the normal text size."""

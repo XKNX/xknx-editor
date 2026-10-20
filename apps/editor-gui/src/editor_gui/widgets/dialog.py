@@ -20,6 +20,8 @@ from editor_gui.widgets.backgrounds import window_border
 from editor_gui.widgets.dpi import px, px_vec2
 
 _MIN_BUTTON_WIDTH = 90.0
+# The frame in which Escape last dismissed a dialog.
+_escape_frame = [-1]
 # Off by more than this (pixels) from where it was placed, a dialog was moved by the user.
 _MOVED_TOLERANCE = 1.5
 
@@ -142,6 +144,58 @@ def focus_when_appearing() -> None:
         imgui.set_keyboard_focus_here()
 
 
+@contextmanager
+def outlined_tabs() -> Generator[None]:
+    """Outline the tabs of the tab bars begun inside, so they read as tabs in every theme (light
+    themes draw the selected tab in the window colour); their content goes in :func:`tab_page`.
+
+    The bar's own line below the tabs is left out: it is drawn in the selected tab's colour and
+    reaches into the window padding, where :func:`tab_page` frames the content instead.
+    """
+    imgui.push_style_var(imgui.StyleVar_.tab_border_size, 1.0)
+    imgui.push_style_var(imgui.StyleVar_.tab_bar_border_size, 0.0)
+    try:
+        yield
+    finally:
+        imgui.pop_style_var(2)
+
+
+@contextmanager
+def tab_page(str_id: str) -> Generator[None]:
+    """A framed page for the selected tab's content, right below the tabs and as tall as the content.
+
+    Call it first thing in the tab item. The selected tab opens into the page (no frame line below
+    it), and the page has the window's colour, like the selected tab of light themes.
+    """
+    tab_min, tab_max = imgui.get_item_rect_min(), imgui.get_item_rect_max()
+    imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() - imgui.get_style().item_spacing.y)
+    imgui.push_style_color(imgui.Col_.child_bg, imgui.ImVec4(0.0, 0.0, 0.0, 0.0))
+    imgui.begin_child(
+        str_id,
+        imgui.ImVec2(0.0, 0.0),
+        imgui.ChildFlags_.auto_resize_y | imgui.ChildFlags_.always_use_window_padding,
+    )
+    imgui.pop_style_color()
+    try:
+        yield
+    finally:
+        imgui.end_child()
+        # One open path on pixel centres, like imgui's own borders: from the selected tab's right
+        # border around the page to its left border. The ends reach the far edge of those border
+        # pixels, so the frame meets them without a gap.
+        lo, hi = imgui.get_item_rect_min(), imgui.get_item_rect_max()
+        x0, y0 = round(lo.x) + 0.5, round(lo.y) + 0.5
+        x1, y1 = round(hi.x) - 0.5, round(hi.y) - 0.5
+        draw = imgui.get_window_draw_list()
+        draw.path_line_to(imgui.ImVec2(round(tab_max.x) - 1.0, y0))
+        draw.path_line_to(imgui.ImVec2(x1, y0))
+        draw.path_line_to(imgui.ImVec2(x1, y1))
+        draw.path_line_to(imgui.ImVec2(x0, y1))
+        draw.path_line_to(imgui.ImVec2(x0, y0))
+        draw.path_line_to(imgui.ImVec2(round(tab_min.x) + 1.0, y0))
+        draw.path_stroke(imgui.get_color_u32(imgui.Col_.border))
+
+
 def dialog_buttons(
     *labels: str,
     enabled: Sequence[bool] | None = None,
@@ -187,10 +241,18 @@ def dialog_buttons(
             index == dismiss
             and clicked is None
             and not disabled
-            and imgui.is_window_focused(imgui.FocusedFlags_.root_and_child_windows)
+            # Not while a dialog or popup opened from this one has the focus: Escape is for that.
+            and imgui.is_window_focused(
+                imgui.FocusedFlags_.root_and_child_windows
+                | imgui.FocusedFlags_.no_popup_hierarchy
+            )
             and imgui.is_key_pressed(imgui.Key.escape, repeat=False)
+            # Closing a dialog focuses the one below at once, in the same frame: one press closes
+            # only the first dialog it reaches.
+            and imgui.get_frame_count() != _escape_frame[0]
         ):
             clicked = index
+            _escape_frame[0] = imgui.get_frame_count()
     return clicked
 
 

@@ -3,7 +3,7 @@
 The desktop app is published as GitHub releases tagged ``xknx-editor-v<version>``. On startup
 (unless the user disabled it) we ask GitHub's REST API for the releases, pick the highest
 ``xknx-editor-v*`` version and, if it is newer than the running one, surface a prompt the user can
-act on or skip. Network access is best-effort: any failure returns ``None`` (the app must never
+act on or skip. Network access is best-effort: the startup check ignores a failure (the app must never
 depend on reaching GitHub).
 """
 
@@ -112,9 +112,14 @@ def pick_newer(current: str, releases: list[dict[str, Any]]) -> UpdateInfo | Non
     )
 
 
-def check_for_update(current: str, *, timeout: float = 10.0) -> UpdateInfo | None:
-    """Query GitHub and return an :class:`UpdateInfo` if a newer release exists. Best-effort:
-    returns ``None`` on any network/parse error. Call off the UI thread."""
+class UpdateCheckError(Exception):
+    """GitHub could not be asked for the releases, or its answer was not a release list."""
+
+
+def fetch_update(current: str, *, timeout: float = 10.0) -> UpdateInfo | None:
+    """Query GitHub and return an :class:`UpdateInfo` if a newer release exists, ``None`` when
+    ``current`` is the newest. Raises :class:`UpdateCheckError` when the check fails. Call off the
+    UI thread."""
     try:
         req = urllib.request.Request(
             _RELEASES_API,
@@ -125,10 +130,10 @@ def check_for_update(current: str, *, timeout: float = 10.0) -> UpdateInfo | Non
         )
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             payload = json.loads(resp.read())
-    except Exception:
-        return None
+    except Exception as e:
+        raise UpdateCheckError(str(e)) from e
     if not isinstance(payload, list):
-        return None
+        raise UpdateCheckError("unexpected answer from GitHub")
     typed = cast("list[Any]", payload)
     releases: list[dict[str, Any]] = [r for r in typed if isinstance(r, dict)]
     return pick_newer(current, releases)

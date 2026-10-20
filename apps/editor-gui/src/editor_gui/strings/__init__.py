@@ -409,10 +409,6 @@ class MenuStrings:
         return _("Export to ETS 5 ProjectStore")
 
     @property
-    def MENU_EXPORT_ETS6_STORE(self) -> str:
-        return _("Export to ETS 6 ProjectStore")
-
-    @property
     def MENU_EXPORT_GA_EXPORT(self) -> str:
         return _("Export Group Addresses…")
 
@@ -650,7 +646,7 @@ class MenuStrings:
 
     @property
     def EXPORT_STAGE_CERTIFICATE(self) -> str:
-        return _("Getting the certificate from MyKnx…")
+        return _("Getting the certificate from MyKNX…")
 
     @property
     def EXPORT_STAGE_CANCELLING(self) -> str:
@@ -670,13 +666,13 @@ class MenuStrings:
 
     @property
     def EXPORT_FAILED_CERTIFICATE(self) -> str:
-        return _("MyKnx did not issue the certificate for the project:")
+        return _("MyKNX did not issue the certificate for the project:")
 
     @property
     def EXPORT_FAILED_CERTIFICATE_HINT(self) -> str:
         return _(
-            "To export without it, choose 'Export Without Certificate' or 'License with a "
-            "Dongle…' in the Sign Export window."
+            "To export without it, choose 'Export Without Certificate' or the 'License with a "
+            "Dongle' tab in the Sign Export window."
         )
 
     @property
@@ -697,18 +693,32 @@ class MenuStrings:
     @property
     def MYKNX_SIGN_PROMPT(self) -> str:
         return _(
-            "ETS 6 needs a signed and licensed .knxproj: log in to license it and set a "
-            "signing key - or use the 'License with a Dongle' way below.\n"
-            "ETS 5: just use 'Export without Certificate' with Signing Keys."
+            "ETS 6: needs a licensed .knxproj through a MyKNX login or a dongle.\n"
+            "ETS 5: just use 'Export Without Certificate'."
+        )
+
+    @property
+    def MYKNX_SIGN_TAB(self) -> str:
+        return _("Sign with MyKNX Login")
+
+    @property
+    def MYKNX_DONGLE_TAB(self) -> str:
+        return _("License with a Dongle")
+
+    @property
+    def MYKNX_SIGN_ETS_RUNNING(self) -> str:
+        return _(
+            "ETS must not be running on any computer with this MyKNX account while you log in "
+            "and export here."
         )
 
     @property
     def MYKNX_SIGN_USERNAME(self) -> str:
-        return _("MyKnx Username")
+        return _("MyKNX Username")
 
     @property
     def MYKNX_SIGN_PASSWORD(self) -> str:
-        return _("MyKnx Password")
+        return _("MyKNX Password")
 
     @property
     def MYKNX_SIGN_LOGIN(self) -> str:
@@ -735,7 +745,7 @@ class MenuStrings:
 
     @property
     def MYKNX_OAUTH_TITLE(self) -> str:
-        return _("MyKnx OAuth Credentials (2FA)")
+        return _("MyKNX OAuth Credentials (2FA)")
 
     @property
     def MYKNX_OAUTH_HELP(self) -> str:
@@ -746,7 +756,7 @@ class MenuStrings:
             "ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n"
             "\n"
             "Alternatively, if you have any licensed ETS installed, skip online signing entirely "
-            "and use the local project store instead - see 'License with an ETS Dongle'."
+            "and use the local project store instead - see the 'License with a Dongle' tab."
         )
 
     @property
@@ -807,7 +817,7 @@ class MenuStrings:
 
     @property
     def EXPORT_FORMAT(self) -> str:
-        return _("ETS Version Export Format")
+        return _("Format Version")
 
     @property
     def EXPORT_INCOMPAT_REMOVE(self) -> str:
@@ -835,10 +845,6 @@ class MenuStrings:
         return _("ETS 5 (schema 20)")
 
     @property
-    def MYKNX_DONGLE_BUTTON(self) -> str:
-        return _("License with a Dongle… (ETS 6)")
-
-    @property
     def SIGNING_KEY_BUTTON(self) -> str:
         return _("Signing Key…")
 
@@ -858,16 +864,8 @@ class MenuStrings:
         )
 
     @property
-    def MYKNX_DONGLE_BACK(self) -> str:
-        return _("Back")
-
-    @property
-    def MYKNX_DONGLE_TITLE(self) -> str:
-        return _("License with an ETS Dongle")
-
-    @property
     def MYKNX_DONGLE_EXPORT_STORE(self) -> str:
-        return _("Export to ETS 6 ProjectStore")
+        return _("Export to ProjectStore")
 
     @property
     def MYKNX_DONGLE_PICK_STORE(self) -> str:
@@ -910,18 +908,20 @@ class MenuStrings:
             "Re-license the project through your own licensed ETS, which re-signs the copy with "
             "your dongle license:\n"
             "\n"
-            "ETS 6 - use the local project store below:\n"
-            "   1. Click 'Export to ETS 6 ProjectStore'. It writes the project's 'P-XXXX' folder "
+            "ETS 6 - use the local project store:\n"
+            "1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder "
             "straight into your ETS 6 project store. If ETS is not installed on this computer, you "
             "are asked for the store folder (or any folder you then copy over manually).\n"
-            "   2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. "
+            "2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. "
             "If it cannot be found automatically, you are asked to select it.\n"
-            "   3. Restart ETS 6 - the project appears in the project overview.\n"
-            "   4. Make a copy of it there (Copy in the overview). The copy is re-signed with your "
+            "3. Restart ETS 6 - the project appears in the project overview.\n"
+            "4. Make a copy of it there (Copy in the overview). The copy is re-signed with your "
             "license - open it, then use or export it normally.\n"
             "\n"
-            "ETS 5 - no project store is needed: go Back and choose 'Export without Certificate' "
-            "(with ETS 5 as version) and Signing Keys active to save a .knxproj, then import that file into ETS 5. "
+            "ETS 5 - no project store is needed:\n"
+            "Choose 'Export Without Certificate' (with ETS 5 "
+            "as version) and an active signing key to save a .knxproj, then import that file into "
+            "ETS 5.\n"
             "\n"
             "This is bounded by the device-per-project limit of your license."
         )
@@ -1368,6 +1368,10 @@ class MenuStrings:
         return _("Switching language…")
 
     @property
+    def PROGRESS_CANCELLING(self) -> str:
+        return _("Cancelling…")
+
+    @property
     def IMPORT_PASSWORD_TITLE(self) -> str:
         return _("Project Password")
 
@@ -1620,7 +1624,7 @@ class MenuStrings:
 
     @property
     def EXPORT_REMOVE_UNUSED_HELP(self) -> str:
-        return _("Removes product data no device uses; the project stays unchanged.")
+        return _("(only in the export, the project stays unchanged)")
 
     @property
     def DOCK_HIDE_TAB_BAR(self) -> str:
@@ -1765,6 +1769,14 @@ class MenuStrings:
 
 class _CombinedStrings(BaseStrings, MenuStrings):
     pass
+
+    @property
+    def UPDATE_CHECKING(self) -> str:
+        return _("Checking for updates…")
+
+    @property
+    def UPDATE_CHECK_FAILED(self) -> str:
+        return _("The check for updates failed: {error}")
 
 
 S = _CombinedStrings()

@@ -27,6 +27,7 @@ from editor_gui import __version__, file_dialogs, self_update, web
 from editor_gui import signing_key as signing_key_store
 from editor_gui import trace_key as trace_key_store
 from editor_gui.certs import ensure_ca_bundle
+from editor_gui.color import warning_red
 from editor_gui.concurrency import MainThreadExecutor
 from editor_gui.dock_menus import render_section_menus
 from editor_gui.log_file import log_dir
@@ -70,7 +71,12 @@ from editor_gui.theme import (
     theme_name,
     themes,
 )
-from editor_gui.update_check import ReleaseAsset, UpdateInfo, check_for_update
+from editor_gui.update_check import (
+    ReleaseAsset,
+    UpdateCheckError,
+    UpdateInfo,
+    fetch_update,
+)
 from editor_gui.web import enable_web_mode, web_options
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
@@ -80,13 +86,15 @@ from editor_gui.widgets.dialog import (
     end_dialog,
     floating_window_border,
     focus_when_appearing,
+    outlined_tabs,
+    tab_page,
 )
 from editor_gui.widgets.dpi import px, px_vec2
-from editor_gui.widgets.fonts import heading, load_fonts
+from editor_gui.widgets.fonts import fitted_heading, heading, load_fonts
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
 from editor_gui.widgets.tables import reset_all_tables
-from editor_gui.widgets.text_util import human_size
+from editor_gui.widgets.text_util import fit_text, human_size
 from editor_gui.window_title import set_window_title
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
@@ -288,6 +296,10 @@ def _link(url: str) -> None:
 # Room at 100 % scaling above and below the status bar's text.
 _STATUS_PADDING = 7.0
 
+# Refresh rate (Hz) once input stops, and while a progress dialog shows work going on.
+_FPS_IDLE = 6.0
+_FPS_PROGRESS = 30.0
+
 
 def _myknx_product_name(product: dict[str, object], pid: str) -> str:
     """Best-effort human-readable name for a MyKnx product/license, else the id.
@@ -426,8 +438,10 @@ class KnxGuiApp:
         self._myknx_2fa_prompt = False
         # Request to open the OAuth-credentials config modal next frame (set from a button handler).
         self._myknx_open_oauth_config = False
-        # Set by the dongle modal's "Save as .zip" action to close the whole export prompt next frame.
-        self._myknx_force_close = False
+        # The dongle steps wrapped to the width of their box: ((text, width), wrapped text).
+        self._dongle_steps_wrapped: tuple[tuple[str, float], str] = (("", 0.0), "")
+        # Width of the Sign Export fields' titles column (set each frame the dialog shows).
+        self._sign_title_w = 0.0
         # OAuth client credentials (client id/secret) for the device-code flow: entered by hand or
         # extracted from the user's Knx.Ets.MyKnx.dll, cached per-user.
         _oauth_creds = load_myknx_oauth_credentials()
@@ -546,6 +560,10 @@ class KnxGuiApp:
         # A project passed on the command line, opened once the window is up.
         self.startup_file: str | None = None
         self._update_manual = False  # a user-triggered check also reports "up to date"
+        # The dialog of a user-triggered check: "checking", "current", "failed", or None (closed).
+        self._update_check_state: str | None = None
+        self._update_check_error = ""
+        self._update_check_open_requested = False
         # Target schema for .knxproj export. ETS 6 (project/23) is the default; ETS 5 is project/20.
         # Persisted so a chosen ETS version sticks across sessions.
         _schema = str(load_settings("app").get("export_schema") or "23")
@@ -694,30 +712,46 @@ class KnxGuiApp:
         save_settings("app", data)
 
     def _start_update_check(self, *, manual: bool) -> None:
+        if manual:
+            # A dialog shows the check running and then its result (or the update found).
+            self._update_check_state = "checking"
+            self._update_check_open_requested = True
         if self._update_thread is not None and self._update_thread.is_alive():
+            self._update_manual = self._update_manual or manual
             return
         self._update_manual = manual
 
         def worker() -> None:
-            info = check_for_update(__version__)
-            # Marshal the result back onto the UI thread (touches settings + toasts + popups).
-            self._ui_executor.submit(lambda: self._on_update_result(info))
+            error = ""
+            try:
+                info = fetch_update(__version__)
+            except UpdateCheckError as e:
+                info, error = None, str(e)
+            # Marshal the result back onto the UI thread (touches settings + popups).
+            self._ui_executor.submit(lambda: self._on_update_result(info, error))
 
         self._update_thread = threading.Thread(
             target=worker, daemon=True, name="update-check"
         )
         self._update_thread.start()
 
-    def _on_update_result(self, info: UpdateInfo | None) -> None:
+    def _on_update_result(self, info: UpdateInfo | None, error: str = "") -> None:
         self._update_thread = None
-        # A user-triggered check ignores a previously skipped version and reassures when up to date.
+        manual, self._update_manual = self._update_manual, False
+        # A user-triggered check ignores a previously skipped version and tells when up to date or
+        # when the check failed; the startup check stays silent then.
         if info is not None and (
-            self._update_manual or info.version != self._skipped_update_version()
+            manual or info.version != self._skipped_update_version()
         ):
+            self._update_check_state = None
             self._update_info = info
             self._update_prompt_requested = True
-        elif self._update_manual:
-            self._flash_toast(S.UPDATE_UP_TO_DATE.format(version=__version__))
+        elif manual and error:
+            self._log.warning("update check failed", error=error)
+            self._update_check_state = "failed"
+            self._update_check_error = error
+        elif manual:
+            self._update_check_state = "current"
 
     def shutdown(self) -> None:
         # Stop the MCP server first so in-flight tool calls stop before the bus loop and project they
@@ -1477,20 +1511,34 @@ class KnxGuiApp:
             self._myknx_login_error = ""
         # Fixed width so the wrapped text actually wraps and labels aren't pushed off-screen
         # (auto-resize + full-width inputs made this window span the whole screen before).
-        if not begin_dialog(S.MYKNX_SIGN_TITLE, width=780.0):
-            return
-        if self._myknx_force_close:
-            # The dongle modal's "Save as .zip" already ran the export; dismiss the whole prompt.
-            self._myknx_force_close = False
-            imgui.close_current_popup()
-            end_dialog()
+        if not begin_dialog(S.MYKNX_SIGN_TITLE, width=700.0):
             return
         dest = self._export_pending_dest
-        with heading():
-            imgui.text_wrapped(S.MYKNX_SIGN_PROMPT)
+        fitted_heading(S.MYKNX_SIGN_PROMPT)
         imgui.spacing()
+        # The fields' titles in front of them, every field from the same column, also the ones on
+        # the login tab's page (inside its padding).
+        style = imgui.get_style()
+        self._sign_title_w = (
+            max(
+                imgui.calc_text_size(label).x
+                for label in (
+                    S.EXPORT_FORMAT,
+                    S.MYKNX_SIGN_USERNAME,
+                    S.MYKNX_SIGN_PASSWORD,
+                    S.MYKNX_SIGN_LICENSE,
+                )
+            )
+            + style.item_spacing.x
+        )
         # Target format: ETS 6 (schema 23, default) or ETS 5 (schema 20).
-        imgui.text_disabled(S.EXPORT_FORMAT)
+        _title_in_front(
+            S.EXPORT_FORMAT,
+            imgui.get_cursor_start_pos().x
+            + style.window_padding.x
+            + style.child_border_size
+            + self._sign_title_w,
+        )
         formats = [("23", S.EXPORT_FORMAT_ETS6), ("20", S.EXPORT_FORMAT_ETS5)]
         current = next(lbl for code, lbl in formats if code == self._export_schema)
         imgui.set_next_item_width(-1)
@@ -1506,7 +1554,8 @@ class KnxGuiApp:
             data = load_settings("app")
             data["export_remove_unused_products"] = self._export_remove_unused
             save_settings("app", data)
-        # Help text below the checkbox, wrapped (the German text is too long for one line).
+        # The note next to the checkbox; it wraps below its start where the line is too short.
+        imgui.same_line()
         imgui.push_style_color(
             imgui.Col_.text, imgui.get_style_color_vec4(imgui.Col_.text_disabled)
         )
@@ -1519,38 +1568,25 @@ class KnxGuiApp:
         logging_in = bool(
             self._myknx_login_thread and self._myknx_login_thread.is_alive()
         )
-        # Labels above the fields (imgui's built-in label sits to the right and gets clipped when
-        # the input is full-width). Editing credentials invalidates a previous login.
-        if logging_in:
-            imgui.begin_disabled()
-        imgui.text_disabled(S.MYKNX_SIGN_USERNAME)
-        imgui.set_next_item_width(-1)
-        user_changed, self._myknx_username = imgui.input_text(
-            "##myknx_user", self._myknx_username
-        )
-        imgui.text_disabled(S.MYKNX_SIGN_PASSWORD)
-        imgui.set_next_item_width(-1)
-        pw_changed, self._myknx_password = imgui.input_text(
-            "##myknx_pw", self._myknx_password, imgui.InputTextFlags_.password
-        )
-        if logging_in:
-            imgui.end_disabled()
-        if (user_changed or pw_changed) and self._myknx_products is not None:
-            self._myknx_products = None  # credentials changed -> require re-login
-            self._myknx_login_error = ""
-            self._myknx_oauth_session = None
-            self._myknx_2fa_prompt = False
-
-        selected_pid = self._render_myknx_license_section(logging_in)
+        # The two ways to license the export: signing online with a MyKnx login, or through the
+        # user's own ETS with a dongle.
+        selected_pid = ""
+        dongle = False
+        with outlined_tabs():
+            if imgui.begin_tab_bar("##export_license"):
+                if imgui.begin_tab_item(S.MYKNX_SIGN_TAB)[0]:
+                    with tab_page("##myknx_page"):
+                        selected_pid = self._render_myknx_login_tab(logging_in)
+                    imgui.end_tab_item()
+                if imgui.begin_tab_item(S.MYKNX_DONGLE_TAB)[0]:
+                    dongle = True
+                    with tab_page("##dongle_page"):
+                        self._render_dongle_tab()
+                    imgui.end_tab_item()
+                imgui.end_tab_bar()
         imgui.spacing()
-        imgui.separator()
-        # Alternative to online signing: license the exported .knxproj locally with a dongle.
-        # The info popup is opened here (inside this modal) so it stacks as a child modal — closing
-        # it returns to the export dialog instead of dismissing the whole export.
-        if imgui.button(S.MYKNX_DONGLE_BUTTON, imgui.ImVec2(-1, 0)):
-            imgui.open_popup(S.MYKNX_DONGLE_TITLE)
-        self._render_dongle_modal()
-        # Folder-signing key: open a child modal (stacks on top; closing returns to the export dialog).
+        # The folder-signing key signs every .knxproj export, with and without certificate (the
+        # dongle way re-signs in ETS). A child modal: closing it returns to the export dialog.
         if signing_key_is_placeholder():
             imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.85, 0.7, 0.3, 1.0))
             imgui.text_wrapped(S.SIGNING_KEY_PLACEHOLDER_HINT)
@@ -1565,15 +1601,32 @@ class KnxGuiApp:
             self._myknx_open_oauth_config = False
         self._render_myknx_oauth_modal()
 
-        can_sign = bool(selected_pid) and not logging_in
-        clicked = dialog_buttons(
-            S.MYKNX_SIGN_CONFIRM,
-            S.MYKNX_SIGN_SKIP,
-            S.BTN_CANCEL,
-            enabled=[can_sign, True, True],
-        )
+        if dongle:
+            # The dongle way writes the project into the ETS 6 ProjectStore instead of a file.
+            clicked = dialog_buttons(
+                S.MYKNX_DONGLE_EXPORT_STORE, S.MYKNX_SIGN_SKIP, S.BTN_CANCEL
+            )
+            if clicked == 0:
+                # ETS 5 ProjectStore export is disabled for now: a fresh ETS 5 store still needs
+                # the split manufacturer cache (H/C/A + binary COC/PC/CPC) this writer does not
+                # produce yet, without which ETS 5 can crash opening an area with devices. For
+                # ETS 5 use the "Export without Certificate" .knxproj route instead (see the
+                # steps). Re-enable when the cache is produced:
+                # self._begin_projectstore_export(ets_store.StoreFormat.ETS5)
+                self._begin_projectstore_export(ets_store.StoreFormat.ETS6)
+                self._export_pending_dest = None
+                imgui.close_current_popup()
+                end_dialog()
+                return
+        else:
+            clicked = dialog_buttons(
+                S.MYKNX_SIGN_CONFIRM,
+                S.MYKNX_SIGN_SKIP,
+                S.BTN_CANCEL,
+                enabled=[bool(selected_pid) and not logging_in, True, True],
+            )
         sign, skip, cancel = clicked == 0, clicked == 1, clicked == 2
-        if dest is not None and (sign and can_sign):
+        if dest is not None and sign and selected_pid:
             # An OAuth (2FA) session is already authenticated; otherwise sign with username/password.
             if self._myknx_oauth_session is not None:
                 signer = session_certificate_signer(
@@ -1594,6 +1647,39 @@ class KnxGuiApp:
             self._export_pending_dest = None
             imgui.close_current_popup()
         end_dialog()
+
+    def _render_myknx_login_tab(self, logging_in: bool) -> str:
+        """Credentials, login and license choice. Returns the selected product id ("" if none)."""
+        # An ETS running with the same account claims the license for its own session.
+        imgui.push_style_color(imgui.Col_.text, warning_red())
+        imgui.text_wrapped(S.MYKNX_SIGN_ETS_RUNNING)
+        imgui.pop_style_color()
+        imgui.spacing()
+        # Titles in front of the fields. Editing credentials invalidates a previous login.
+        if logging_in:
+            imgui.begin_disabled()
+        _title_in_front(S.MYKNX_SIGN_USERNAME, self._sign_value_x())
+        imgui.set_next_item_width(-1)
+        user_changed, self._myknx_username = imgui.input_text(
+            "##myknx_user", self._myknx_username
+        )
+        _title_in_front(S.MYKNX_SIGN_PASSWORD, self._sign_value_x())
+        imgui.set_next_item_width(-1)
+        pw_changed, self._myknx_password = imgui.input_text(
+            "##myknx_pw", self._myknx_password, imgui.InputTextFlags_.password
+        )
+        if logging_in:
+            imgui.end_disabled()
+        if (user_changed or pw_changed) and self._myknx_products is not None:
+            self._myknx_products = None  # credentials changed -> require re-login
+            self._myknx_login_error = ""
+            self._myknx_oauth_session = None
+            self._myknx_2fa_prompt = False
+        return self._render_myknx_license_section(logging_in)
+
+    def _sign_value_x(self) -> float:
+        """Where the Sign Export fields start in the current window (page)."""
+        return imgui.get_cursor_start_pos().x + self._sign_title_w
 
     def _render_myknx_license_section(self, logging_in: bool) -> str:
         """Login button / license dropdown. Returns the selected product id ("" if none)."""
@@ -1636,6 +1722,7 @@ class KnxGuiApp:
             can_login = bool(self._myknx_username and self._myknx_password)
             if not can_login:
                 imgui.begin_disabled()
+            imgui.set_cursor_pos_x(self._sign_value_x())
             if imgui.button(S.MYKNX_SIGN_LOGIN, px_vec2(150, 0)):
                 self._start_myknx_login()
             if not can_login:
@@ -1643,14 +1730,14 @@ class KnxGuiApp:
             return ""
         if self._myknx_login_error:
             imgui.text_colored(
-                imgui.ImVec4(1.0, 0.4, 0.4, 1.0),
+                warning_red(),
                 S.MYKNX_SIGN_LOGIN_FAILED.format(error=self._myknx_login_error),
             )
             return ""
         if not self._myknx_products:
             imgui.text_disabled(S.MYKNX_SIGN_NO_LICENSES)
             return ""
-        imgui.text_disabled(S.MYKNX_SIGN_LICENSE)
+        _title_in_front(S.MYKNX_SIGN_LICENSE, self._sign_value_x())
         current = next(
             (
                 lbl
@@ -1822,6 +1909,10 @@ class KnxGuiApp:
             self._progress_cancel = None
 
     def _render_progress_modal(self) -> None:
+        # Without input the window drops to the idle refresh rate, at which a progress bar looks
+        # frozen; it keeps redrawing at the active rate while work is in progress.
+        idling = hello_imgui.get_runner_params().fps_idling
+        idling.fps_idle = _FPS_PROGRESS if self._progress_running else _FPS_IDLE
         if self._progress_requested:
             imgui.open_popup(S.PROGRESS_TITLE)
             self._progress_requested = False
@@ -1844,9 +1935,21 @@ class KnxGuiApp:
         else:
             # ImGui shows an animated indeterminate bar for a negative fraction.
             imgui.progress_bar(-1.0 * float(imgui.get_time()), bar_size, "")
-        if self._progress_stage:
-            imgui.text_disabled(self._progress_stage)
-        imgui.text_disabled(f"{elapsed:0.0f}s")
+        # The current step, shortened with "…" where it would reach them, and the seconds so far
+        # right-aligned with the bar on the same line.
+        seconds = f"{elapsed:0.0f}s"
+        seconds_width = imgui.calc_text_size(seconds).x
+        right = imgui.get_cursor_pos_x() + bar_size.x - seconds_width
+        stage = self._progress_stage
+        if stage:
+            room = bar_size.x - seconds_width - imgui.get_style().item_spacing.x
+            shown = fit_text(stage, room)
+            imgui.text_disabled(shown)
+            if shown != stage and imgui.is_item_hovered():
+                imgui.set_tooltip(stage)
+            imgui.same_line()
+        imgui.set_cursor_pos_x(max(right, imgui.get_cursor_pos_x()))
+        imgui.text_disabled(seconds)
         cancel = self._progress_cancel
         if cancel is not None and dialog_buttons(S.BTN_CANCEL) == 0:
             self._progress_cancel = None
@@ -3114,6 +3217,36 @@ class KnxGuiApp:
             self._start_update_check(manual=True)
         elif clicked == 1:
             imgui.close_current_popup()
+        # The check's dialogs open on top of this one, which stays open behind them.
+        self._render_update_check_modal()
+        self._render_update_modal()
+        end_dialog()
+
+    def _render_update_check_modal(self) -> None:
+        """A user-triggered update check: running, then up to date or why it failed. A found update
+        replaces it with the update dialog."""
+        if self._update_check_open_requested:
+            imgui.open_popup(S.MENU_CHECK_UPDATES)
+            self._update_check_open_requested = False
+        if not begin_dialog(S.MENU_CHECK_UPDATES, width=420.0):
+            return
+        state = self._update_check_state
+        if state is None:
+            imgui.close_current_popup()
+            end_dialog()
+            return
+        if state == "checking":
+            imgui.text(S.UPDATE_CHECKING)
+        elif state == "current":
+            imgui.text_wrapped(S.UPDATE_UP_TO_DATE.format(version=__version__))
+        else:
+            imgui.text_wrapped(
+                S.UPDATE_CHECK_FAILED.format(error=self._update_check_error)
+            )
+        label = S.BTN_CANCEL if state == "checking" else S.BTN_OK
+        if dialog_buttons(label) == 0:
+            self._update_check_state = None
+            imgui.close_current_popup()
         end_dialog()
 
     def _render_update_modal(self) -> None:
@@ -3656,6 +3789,7 @@ class KnxGuiApp:
         self._render_new_project_modal()
         self._render_myknx_sign_modal()
         self._render_about_modal()
+        self._render_update_check_modal()
         self._render_update_modal()
         self._render_import_notes_modal()
         self._render_export_summary_modal()
@@ -3775,53 +3909,33 @@ class KnxGuiApp:
                 )
         end_dialog()
 
-    def _render_dongle_modal(self) -> None:
-        """Step-by-step 'license with a dongle' -- a child modal of the export dialog.
-
-        Rendered inside the export modal's scope so it stacks on top; closing it returns to the
-        export dialog. Each step is on its own wrapped line with spacing for readability."""
-        if not begin_dialog(S.MYKNX_DONGLE_TITLE, width=66.0 * 16.0):
-            return
+    def _render_dongle_tab(self) -> None:
+        """Step-by-step 'license with a dongle' in its tab of the export dialog; the dialog's first
+        button writes the project into the ETS 6 ProjectStore."""
         # Read-only multiline input so the text stays selectable/copyable inline (mouse-drag +
         # Ctrl/Cmd+C). It does NOT word-wrap, so hard-wrap to the box width first (long paths and
         # P-XXXX_M-dummy stay intact) — otherwise long lines are clipped on the right.
-        height = hello_imgui.em_to_vec2(0.0, 22.0).y
-        avail = imgui.get_content_region_avail().x
-        # Average glyph width (not the widest "m") so lines fill the box instead of wrapping early.
-        alphabet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ "
-        char_w = (imgui.calc_text_size(alphabet).x / len(alphabet)) or 7.0
-        cols = int(
-            max(20.0, (avail - px(24.0)) / char_w)
-        )  # leave room for the scrollbar/padding
+        height = hello_imgui.em_to_vec2(0.0, 13.0).y
+        style = imgui.get_style()
+        # The box's text width: inside its padding and next to its scrollbar (the steps are longer
+        # than the box is tall).
+        width = (
+            imgui.get_content_region_avail().x
+            - 2 * style.frame_padding.x
+            - style.scrollbar_size
+            - 2 * style.frame_border_size
+        )
+        key = (S.MYKNX_DONGLE_STEPS, width)
+        if self._dongle_steps_wrapped[0] != key:
+            self._dongle_steps_wrapped = (key, _wrap_text(key[0], width))
         imgui.input_text_multiline(
             "##dongle_steps",
-            _wrap_text(S.MYKNX_DONGLE_STEPS, cols),
+            self._dongle_steps_wrapped[1],
             imgui.ImVec2(-1.0, height),
             imgui.InputTextFlags_.read_only,
         )
-        imgui.spacing()
-        # Write the project's P-XXXX folder straight into that ETS version's ProjectStore.
-        # ETS 5 ProjectStore export is disabled for now: a fresh ETS 5 store still needs the split
-        # manufacturer cache (H/C/A + binary COC/PC/CPC) this writer does not produce yet, without
-        # which ETS 5 can crash opening an area with devices. For ETS 5 use the "Export without
-        # Certificate" .knxproj route instead (see the steps above). Re-enable when the cache is
-        # produced.
-        # if imgui.button(S.MENU_EXPORT_ETS5_STORE, imgui.ImVec2(-1, 0)):
-        #     self._begin_projectstore_export(ets_store.StoreFormat.ETS5)
-        #     self._export_pending_dest = None
-        #     self._myknx_force_close = True
-        #     imgui.close_current_popup()
-        if imgui.button(S.MENU_EXPORT_ETS6_STORE, imgui.ImVec2(-1, 0)):
-            self._begin_projectstore_export(ets_store.StoreFormat.ETS6)
-            self._export_pending_dest = None
-            self._myknx_force_close = True
-            imgui.close_current_popup()
-        clicked = dialog_buttons(S.BTN_COPY, S.MYKNX_DONGLE_BACK)
-        if clicked == 0:
+        if imgui.button(S.BTN_COPY):
             imgui.set_clipboard_text(S.MYKNX_DONGLE_STEPS)
-        elif clicked == 1:
-            imgui.close_current_popup()
-        end_dialog()
 
     def _render_signing_key_modal(self) -> None:
         """Signing-key manager as a child modal of the export dialog (view/edit/save/extract).
@@ -4063,34 +4177,57 @@ class KnxGuiApp:
         if imgui.begin_menu(S.MENU_LANGUAGE):
             for code, label in _UI_LANGUAGES:
                 if imgui.menu_item(label, "", code == current)[0] and code != current:
-                    set_locale(code)
-                    data = load_settings("app")
-                    data["locale"] = code
-                    save_settings("app", data)
-                    # Re-translate the docked panel/tab titles in place (kept identity via ###name).
-                    self._refresh_dock_titles()
-
-                    # Device labels are parsed per language; re-resolve + rebuild the device views in
-                    # the new language on a worker thread behind the progress bar, so the (slow)
-                    # re-parse of every application doesn't freeze the UI on the next frame.
-                    def _reresolve() -> None:
-                        def report(done: int, total: int, sub: str = "") -> None:
-                            text = S.PROGRESS_DEVICES.format(done=done, total=total)
-                            self.set_progress(
-                                done / total if total else None,
-                                f"{text} — {sub}" if sub else text,
-                            )
-
-                        self._project_service.build_progress = report
-                        try:
-                            self._project_service.refresh_catalog_resolution(
-                                rebuild=True
-                            )
-                        finally:
-                            self._project_service.build_progress = None
-
-                    self._run_bg(S.PROGRESS_LANGUAGE, _reresolve)
+                    self._switch_language(code)
             imgui.end_menu()
+
+    def _switch_language(self, code: str) -> None:
+        """Show the UI in ``code`` from now on and remember it. Cancelling the device rebuild
+        returns to the language before."""
+        previous = get_locale()
+        self._apply_language(code)
+        cancel = threading.Event()
+
+        # Device labels are parsed per language; re-resolve + rebuild the device views in
+        # the new language on a worker thread behind the progress bar, so the (slow)
+        # re-parse of every application doesn't freeze the UI on the next frame.
+        def _reresolve() -> None:
+            def report(done: int, total: int, sub: str = "") -> None:
+                if cancel.is_set():
+                    return
+                text = S.PROGRESS_DEVICES.format(done=done, total=total)
+                self.set_progress(
+                    done / total if total else None,
+                    f"{text} — {sub}" if sub else text,
+                )
+
+            self._project_service.build_progress = report
+            try:
+                done = self._project_service.refresh_catalog_resolution(
+                    rebuild=True, cancelled=cancel.is_set
+                )
+            finally:
+                self._project_service.build_progress = None
+            if not done:
+                # Back to the language before; its devices are all reused, not built again.
+                set_locale(previous)
+                self._ui_executor.submit(lambda: self._apply_language(previous))
+                _ = self._project_service.devices
+
+        def _cancel() -> None:
+            cancel.set()
+            self.set_progress(None, S.PROGRESS_CANCELLING)
+
+        self._run_bg(S.PROGRESS_LANGUAGE, _reresolve)
+        if self._progress_running:
+            self._progress_cancel = _cancel
+
+    def _apply_language(self, code: str) -> None:
+        set_locale(code)
+        data = load_settings("app")
+        data["locale"] = code
+        save_settings("app", data)
+        # Re-translate the docked panel/tab titles in place (kept identity via ###name).
+        self._refresh_dock_titles()
 
     def _render_view_menu(self) -> None:
         """View menu: the default layout, which panels are shown, and the status bar."""
@@ -4595,29 +4732,42 @@ _UI_LANGUAGES: list[tuple[str, str]] = [
 ]
 
 
-def _wrap_text(text: str, cols: int) -> str:
-    """Hard-wrap each line to ``cols`` characters, preserving blank lines and indentation.
+def _title_in_front(label: str, value_x: float) -> None:
+    """``label`` as the title of the field that follows, which starts at ``value_x``."""
+    imgui.align_text_to_frame_padding()
+    imgui.text_disabled(label)
+    imgui.same_line(value_x)
+
+
+def _wrap_text(text: str, width: float) -> str:
+    """Hard-wrap each line to ``width`` pixels of the current font, preserving blank lines and
+    indentation. The continuation lines of a numbered step ("1. …") start under its text.
 
     imgui's read-only multiline input keeps the text selectable/copyable but does NOT word-wrap,
     so long lines get clipped on the right. Pre-wrapping here gives readable, non-clipped text while
     staying copyable. Long tokens (Windows paths, ``P-XXXX_M-dummy``) are never split.
     """
-    import textwrap
-
+    space = imgui.calc_text_size(" ").x or 1.0
     out: list[str] = []
     for line in text.split("\n"):
         if not line.strip():
             out.append("")
             continue
         indent = line[: len(line) - len(line.lstrip())]
-        wrapped = textwrap.wrap(
-            line,
-            width=max(20, cols),
-            break_long_words=False,
-            break_on_hyphens=False,
-            subsequent_indent=indent + "   ",
-        )
-        out.extend(wrapped or [line])
+        hanging = indent
+        marker = re.match(r"\s*\d+\.\s+", line)
+        if marker is not None:
+            # Spaces as wide as the indentation and the number in front of the text.
+            hanging = " " * round(imgui.calc_text_size(marker.group(0)).x / space)
+        current = indent
+        for word in line.split():
+            candidate = f"{current} {word}" if current.strip() else current + word
+            if current.strip() and imgui.calc_text_size(candidate).x > width:
+                out.append(current)
+                current = hanging + word
+            else:
+                current = candidate
+        out.append(current)
     return "\n".join(out)
 
 
@@ -4702,7 +4852,7 @@ def _main() -> None:
     # so we leave it off (docking still works inside the main window; panels just can't be torn out
     # into separate OS windows). fps_max still caps the active/interactive rate.
     runner_params.fps_idling.enable_idling = True
-    runner_params.fps_idling.fps_idle = 6.0  # idle refresh (Hz) once input stops
+    runner_params.fps_idling.fps_idle = _FPS_IDLE  # idle refresh (Hz) once input stops
     runner_params.fps_idling.time_active_after_last_event = (
         1.0  # idle sooner after activity
     )

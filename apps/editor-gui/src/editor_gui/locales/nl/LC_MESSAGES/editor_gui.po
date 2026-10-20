@@ -573,14 +573,11 @@ msgstr "Export ondertekenen"
 msgid "ETS 6 needs a signed and licensed .knxproj: log in to license it and set a signing key - or use the 'License with a Dongle' way below.\nETS 5: just use 'Export without Certificate'."
 msgstr "ETS 6 heeft een ondertekend en gelicentieerd .knxproj nodig: log in om het te licentiëren en stel een ondertekeningssleutel in - of gebruik hieronder de manier 'Licentiëren met een dongle'.\nETS 5: gebruik gewoon 'Zonder certificaat exporteren'."
 
-msgid "MyKnx Username"
-msgstr "MyKnx-gebruikersnaam"
+msgid "MyKNX Username"
+msgstr "MyKNX-gebruikersnaam"
 
-msgid "MyKnx Password"
-msgstr "MyKnx-wachtwoord"
-
-msgid "Log in"
-msgstr "Inloggen"
+msgid "MyKNX Password"
+msgstr "MyKNX-wachtwoord"
 
 msgid "Complete sign-in in your browser. Code: {code}"
 msgstr "Voltooi het inloggen in je browser. Code: {code}"
@@ -594,11 +591,8 @@ msgstr "Inloggegevens opnieuw invoeren"
 msgid "Start 2FA Sign-In"
 msgstr "2FA-inloggen starten"
 
-msgid "MyKnx OAuth Credentials (2FA)"
-msgstr "MyKnx-OAuth-inloggegevens (2FA)"
-
-msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see 'License with an ETS Dongle'."
-msgstr "Alleen nodig voor accounts met tweestapsverificatie. Het 2FA-inloggen opent automatisch in je browser wanneer een normale login wordt geweigerd. Voer de OAuth-client-id/-secret in, of haal ze uit je geïnstalleerde ETS: kies 'Knx.Ets.MyKnx.dll' in de ETS-programmamap (bijv. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAls je een gelicentieerde ETS geïnstalleerd hebt, kun je het online ondertekenen ook helemaal overslaan en in plaats daarvan de lokale ProjectStore gebruiken - zie 'Licentiëren met een ETS-dongle'."
+msgid "MyKNX OAuth Credentials (2FA)"
+msgstr "MyKNX-OAuth-inloggegevens (2FA)"
 
 msgid "Client ID"
 msgstr "Client-ID"
@@ -660,17 +654,11 @@ msgstr "Ondertekeningssleutel"
 msgid "Folder signature uses a placeholder key. Enter a valid signature under 'Signing Key…' or use the 'License with a Dongle' way."
 msgstr "De mapondertekening gebruikt een placeholdersleutel. Voer onder 'Ondertekeningssleutel…' een geldige ondertekening in of gebruik de manier 'Licentiëren met een dongle'."
 
-msgid "Back"
-msgstr "Terug"
-
-msgid "License with an ETS Dongle"
-msgstr "Licentiëren met een ETS-dongle"
-
 msgid "Export to ETS 5 ProjectStore"
 msgstr "Exporteren naar ETS 5-ProjectStore"
 
-msgid "Export to ETS 6 ProjectStore"
-msgstr "Exporteren naar ETS 6-ProjectStore"
+msgid "Export to ProjectStore"
+msgstr "Exporteren naar ProjectStore"
 
 msgid "Select the {ets} ProjectStore folder"
 msgstr "Selecteer de map van de {ets}-ProjectStore"
@@ -843,9 +831,6 @@ msgstr "Cachemap openen"
 msgid "Open Log Folder"
 msgstr "Logboekmap openen"
 
-msgid "Removes product data no device uses; the project stays unchanged."
-msgstr "Verwijdert productgegevens die geen enkel apparaat gebruikt; het project zelf blijft ongewijzigd."
-
 msgid "This project is protected with a password. Enter it to open the project:"
 msgstr "Dit project is met een wachtwoord beveiligd. Voer het in om het project te openen:"
 
@@ -1013,17 +998,12 @@ msgstr "ImGui-demovenster tonen"
 
 msgid "Filter colors"
 msgstr "Kleuren filteren"
+
 msgid "ETS 6 needs a signed and licensed .knxproj: log in to license it and set a signing key - or use the 'License with a Dongle' way below.\nETS 5: just use 'Export without Certificate' with Signing Keys."
 msgstr "ETS 6 heeft een ondertekend en gelicentieerd .knxproj nodig: meld je aan om het te licentiëren en stel een ondertekeningssleutel in - of gebruik hieronder de manier 'Licentie met een dongle'.\nETS 5: gebruik gewoon 'Exporteren zonder certificaat' met ondertekeningssleutels."
 
-msgid "ETS Version Export Format"
-msgstr "ETS-versie exportformaat"
-
-msgid "License with a Dongle… (ETS 6)"
-msgstr "Licentie met een dongle… (ETS 6)"
-
-msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store below:\n   1. Click 'Export to ETS 6 ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n   2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n   3. Restart ETS 6 - the project appears in the project overview.\n   4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed: go Back and choose 'Export without Certificate' (with ETS 5 as version) and Signing Keys active to save a .knxproj, then import that file into ETS 5. \nThis is bounded by the device-per-project limit of your license."
-msgstr "Licentieer het project opnieuw via je eigen gelicentieerde ETS, dat de kopie opnieuw ondertekent met je donglelicentie:\n\nETS 6 - gebruik hieronder de lokale projectstore:\n   1. Klik op 'Exporteren naar ETS 6 ProjectStore'. Dit schrijft de map 'P-XXXX' van het project rechtstreeks naar je ETS 6-projectstore. Als ETS niet op deze computer is geïnstalleerd, wordt om de storemap gevraagd (of een willekeurige map die je daarna handmatig overkopieert).\n   2. De export heeft je 'installer.guid' uit C:\\ProgramData\\KNX\\ETS6\\Installer nodig. Als die niet automatisch wordt gevonden, wordt gevraagd die te selecteren.\n   3. Herstart ETS 6 - het project verschijnt in het projectoverzicht.\n   4. Maak daar een kopie ervan (Kopiëren in het overzicht). De kopie wordt opnieuw ondertekend met je licentie - open die en gebruik of exporteer die daarna normaal.\n\nETS 5 - geen projectstore nodig: ga terug en kies 'Exporteren zonder certificaat' (met ETS 5 als versie) en actieve ondertekeningssleutels om een .knxproj op te slaan, en importeer dat bestand vervolgens in ETS 5. \nDit wordt begrensd door de limiet aan apparaten per project van je licentie."
+msgid "Format Version"
+msgstr "Formaatversie"
 
 msgid "Remove device(s) & re-export"
 msgstr "Apparaat/apparaten verwijderen & opnieuw exporteren"
@@ -1061,11 +1041,8 @@ msgstr "Exporteren mislukt"
 msgid "The project could not be exported to {name}."
 msgstr "Het project kon niet naar {name} worden geëxporteerd."
 
-msgid "MyKnx did not issue the certificate for the project:"
-msgstr "MyKnx heeft het certificaat voor het project niet uitgegeven:"
-
-msgid "To export without it, choose 'Export Without Certificate' or 'License with a Dongle…' in the Sign Export window."
-msgstr "Kies in het venster „Export ondertekenen” „Zonder certificaat exporteren” of „Licentie met een dongle…” om zonder certificaat te exporteren."
+msgid "MyKNX did not issue the certificate for the project:"
+msgstr "MyKNX heeft het certificaat voor het project niet uitgegeven:"
 
 msgid "{name} cannot be imported."
 msgstr "{name} kan niet worden geïmporteerd."
@@ -1082,8 +1059,8 @@ msgstr "Fabrikantgegevens worden verzameld…"
 msgid "Writing the archive…"
 msgstr "Archief wordt geschreven…"
 
-msgid "Getting the certificate from MyKnx…"
-msgstr "Certificaat wordt van MyKnx opgehaald…"
+msgid "Getting the certificate from MyKNX…"
+msgstr "Certificaat wordt van MyKNX opgehaald…"
 
 msgid "Cancelling…"
 msgstr "Bezig met annuleren…"
@@ -1177,3 +1154,36 @@ msgstr "Voer het wachtwoord in voor toegang tot de editor."
 
 msgid "Wrong password."
 msgstr "Onjuist wachtwoord."
+
+msgid "ETS 6: needs a licensed .knxproj through a MyKNX login or a dongle.\nETS 5: just use 'Export Without Certificate'."
+msgstr "ETS 6: heeft een gelicentieerd .knxproj nodig via een MyKNX-login of een dongle.\nETS 5: gebruik gewoon 'Zonder certificaat exporteren'."
+
+msgid "Sign with MyKNX Login"
+msgstr "Ondertekenen met MyKNX-login"
+
+msgid "License with a Dongle"
+msgstr "Licentie met een dongle"
+
+msgid "ETS must not be running on any computer with this MyKNX account while you log in and export here."
+msgstr "ETS mag op geen enkele computer met dit MyKNX-account actief zijn terwijl je hier inlogt en exporteert."
+
+msgid "Log in"
+msgstr "Inloggen"
+
+msgid "(only in the export, the project stays unchanged)"
+msgstr "(alleen in de export, het project blijft ongewijzigd)"
+
+msgid "To export without it, choose 'Export Without Certificate' or the 'License with a Dongle' tab in the Sign Export window."
+msgstr "Kies in het venster „Export ondertekenen” „Zonder certificaat exporteren” of het tabblad „Licentie met een dongle” om zonder certificaat te exporteren."
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store:\n1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n3. Restart ETS 6 - the project appears in the project overview.\n4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed:\nChoose 'Export Without Certificate' (with ETS 5 as version) and an active signing key to save a .knxproj, then import that file into ETS 5.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Licentieer het project opnieuw via je eigen gelicentieerde ETS, dat de kopie opnieuw ondertekent met je donglelicentie:\n\nETS 6 - gebruik de lokale projectstore:\n1. Klik op 'Exporteren naar ProjectStore'. Dit schrijft de map 'P-XXXX' van het project rechtstreeks naar je ETS 6-projectstore. Als ETS niet op deze computer is geïnstalleerd, wordt om de storemap gevraagd (of een willekeurige map die je daarna handmatig overkopieert).\n2. De export heeft je 'installer.guid' uit C:\\ProgramData\\KNX\\ETS6\\Installer nodig. Als die niet automatisch wordt gevonden, wordt gevraagd die te selecteren.\n3. Herstart ETS 6 - het project verschijnt in het projectoverzicht.\n4. Maak daar een kopie ervan (Kopiëren in het overzicht). De kopie wordt opnieuw ondertekend met je licentie - open die en gebruik of exporteer die daarna normaal.\n\nETS 5 - geen projectstore nodig:\nKies 'Zonder certificaat exporteren' (met ETS 5 als versie) met een actieve ondertekeningssleutel om een .knxproj op te slaan, en importeer dat bestand vervolgens in ETS 5.\n\nDit wordt begrensd door de limiet aan apparaten per project van je licentie."
+
+msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
+msgstr "Alleen nodig voor accounts met tweestapsverificatie. Het 2FA-inloggen opent automatisch in je browser wanneer een normale login wordt geweigerd. Voer de OAuth-client-id/-secret in, of haal ze uit je geïnstalleerde ETS: kies 'Knx.Ets.MyKnx.dll' in de ETS-programmamap (bijv. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAls je een gelicentieerde ETS geïnstalleerd hebt, kun je het online ondertekenen ook helemaal overslaan en in plaats daarvan de lokale ProjectStore gebruiken - zie het tabblad 'Licentie met een dongle'."
+
+msgid "Checking for updates…"
+msgstr "Zoeken naar updates…"
+
+msgid "The check for updates failed: {error}"
+msgstr "Het zoeken naar updates is mislukt: {error}"
