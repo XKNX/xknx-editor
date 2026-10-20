@@ -90,6 +90,8 @@ class LogPanel:
 
     def _render_toolbar(self) -> None:
         records = self._get_records()
+        # The count on the line of the fields after it.
+        imgui.align_text_to_frame_padding()
         imgui.text_disabled(str(len(records)))
         imgui.same_line()
         imgui.set_next_item_width(px(200))
