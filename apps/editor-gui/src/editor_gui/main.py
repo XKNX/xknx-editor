@@ -4370,12 +4370,24 @@ class KnxGuiApp:
         if not imgui.begin_menu(S.PANEL_MCP):
             return
         running = self._mcp_plugin.is_running
+        # The status, and the button that starts or stops the server right-aligned beside it.
+        imgui.align_text_to_frame_padding()
         imgui.text_colored(
             imgui.ImVec4(0.4, 0.85, 0.45, 1.0)
             if running
             else imgui.ImVec4(0.6, 0.6, 0.6, 1.0),
             S.SETTINGS_MCP_RUNNING if running else S.SETTINGS_MCP_STOPPED,
         )
+        label = S.SETTINGS_MCP_STOP if running else S.SETTINGS_MCP_START
+        button_w = imgui.calc_text_size(label).x + 2 * imgui.get_style().frame_padding.x
+        imgui.same_line()
+        right = imgui.get_cursor_pos_x() + imgui.get_content_region_avail().x - button_w
+        imgui.set_cursor_pos_x(max(right, imgui.get_cursor_pos_x()))
+        if imgui.button(label):
+            if running:
+                self._stop_mcp()
+            else:
+                self._start_mcp()
         imgui.separator()
         imgui.set_next_item_width(px(180.0))
         _, self._mcp_host = imgui.input_text(S.SETTINGS_MCP_HOST, self._mcp_host)
@@ -4385,13 +4397,9 @@ class KnxGuiApp:
         _, self._mcp_token = imgui.input_text(
             S.SETTINGS_MCP_TOKEN, self._mcp_token, imgui.InputTextFlags_.password
         )
-        imgui.separator()
         if running:
+            imgui.separator()
             imgui.text_disabled(f"http://{self._mcp_host}:{self._mcp_port}/mcp")
-            if imgui.menu_item(S.SETTINGS_MCP_STOP, "", False)[0]:
-                self._stop_mcp()
-        elif imgui.menu_item(S.SETTINGS_MCP_START, "", False)[0]:
-            self._start_mcp()
         imgui.end_menu()
 
     def _render_ki_panel(self) -> None:
