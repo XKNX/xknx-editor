@@ -1321,3 +1321,6 @@ msgstr "Alles auswählen"
 
 msgid "Long-press in the field below and choose Paste."
 msgstr "Im Feld unten lange drücken und Einfügen wählen."
+
+msgid "Too many wrong passwords. Please try again in a few minutes."
+msgstr "Zu viele falsche Passwörter. Bitte in einigen Minuten erneut versuchen."

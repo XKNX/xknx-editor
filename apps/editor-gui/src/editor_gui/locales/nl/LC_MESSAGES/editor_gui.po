@@ -1226,3 +1226,6 @@ msgstr "Alles selecteren"
 
 msgid "Long-press in the field below and choose Paste."
 msgstr "Houd het veld hieronder lang ingedrukt en kies Plakken."
+
+msgid "Too many wrong passwords. Please try again in a few minutes."
+msgstr "Te veel verkeerde wachtwoorden. Probeer het over een paar minuten opnieuw."

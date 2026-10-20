@@ -4,6 +4,7 @@ server (access, uploads, downloads, control)."""
 from __future__ import annotations
 
 import contextlib
+import html
 import json
 import socket
 import struct
@@ -21,6 +22,7 @@ from starlette.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
 from editor_gui import file_dialogs, web
+from editor_gui.strings import S
 from editor_gui.web import frames, server
 from editor_gui.web.dialogs import (
     DownloadNotice,
@@ -538,6 +540,38 @@ def test_password_sign_in(tmp_path: Path) -> None:
         session = client.cookies["xknx_web_session"]
         with _browser(client, session) as socket:
             assert _event(socket.receive_bytes())["t"] == "texts"
+
+
+def test_wrong_passwords_lock_out_for_a_while(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(server, "_LOGIN_DELAY", 0.0)
+    monkeypatch.setattr(server, "_LOGIN_ATTEMPTS", 3)
+    monkeypatch.setattr(server, "_LOGIN_LOCKOUT", 0.5)
+    hub = WebHub(tmp_path / "files", password=_PASSWORD, local_only=False)
+    with TestClient(
+        hub.app(), base_url="http://editor.lan", follow_redirects=False
+    ) as client:
+        for _ in range(3):
+            assert client.post("/login", data={"password": "nope"}).status_code == 401
+        # Locked: even the right password is refused for now.
+        locked = client.post("/login", data={"password": _PASSWORD})
+        assert locked.status_code == 429
+        assert S.WEB_LOGIN_LOCKED in html.unescape(locked.text)
+        time.sleep(0.6)
+        assert client.post("/login", data={"password": _PASSWORD}).status_code == 303
+
+
+def test_pages_are_not_framed_by_other_sites(tmp_path: Path) -> None:
+    hub = WebHub(tmp_path / "files", password=_PASSWORD, local_only=False)
+    with TestClient(hub.app(), base_url="http://editor.lan") as client:
+        pages = [client.get("/")]
+        client.post("/login", data={"password": _PASSWORD})
+        pages.append(client.get("/"))
+    assert "client.js" in pages[1].text
+    for page in pages:
+        assert page.headers["x-frame-options"] == "SAMEORIGIN"
+        assert page.headers["content-security-policy"] == "frame-ancestors 'self'"
 
 
 def test_pages_show_the_app_icon(tmp_path: Path) -> None:

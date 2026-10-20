@@ -1841,5 +1841,9 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     def WEB_PASTE_HINT(self) -> str:
         return _("Long-press in the field below and choose Paste.")
 
+    @property
+    def WEB_LOGIN_LOCKED(self) -> str:
+        return _("Too many wrong passwords. Please try again in a few minutes.")
+
 
 S = _CombinedStrings()

@@ -80,6 +80,17 @@ _LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
 # A browser that just left (a reload) gets control back when it returns within this time.
 _RETURN_SECONDS = 5.0
 _MAX_UPLOAD = 2 * 1024**3
+# A wrong password costs this many seconds, one attempt after the other (not in parallel); this
+# many wrong ones from one address within the lockout time refuse that address until it passed.
+_LOGIN_DELAY = 1.0
+_LOGIN_ATTEMPTS = 10
+_LOGIN_LOCKOUT = 300.0
+# The pages may only be shown in a frame of their own origin (a proxy's panel, e.g. Home
+# Assistant's), not by another site that could make a user click in them unknowingly.
+_FRAMING = {
+    "X-Frame-Options": "SAMEORIGIN",
+    "Content-Security-Policy": "frame-ancestors 'self'",
+}
 
 
 @dataclass(eq=False)
@@ -142,6 +153,9 @@ class WebHub:
         self._proxy_ips = proxy_ips
         self._idle_seconds = idle_seconds
         self._signed_in: set[str] = set()
+        # Wrong passwords: checked one after the other, and when, by address.
+        self._login_lock = asyncio.Lock()
+        self._failed_logins: dict[str, list[float]] = {}
         self._controller_session: str | None = None
         self._controller_active = 0.0
         self._controller_left = 0.0
@@ -513,7 +527,7 @@ class WebHub:
         page = FileResponse(
             _STATIC / "index.html",
             media_type="text/html; charset=utf-8",
-            headers={"Cache-Control": "no-store"},
+            headers={"Cache-Control": "no-store", **_FRAMING},
         )
         if request.cookies.get(_COOKIE):
             return page
@@ -526,13 +540,27 @@ class WebHub:
         form = await request.form()
         given = str(form.get("password", "")).encode("utf-8")
         expected = (self._password or "").encode("utf-8")
-        if (
-            self._password is None
-            or not self._same_origin(request)
-            or not secrets.compare_digest(given, expected)
-        ):
-            await asyncio.sleep(1.0)
-            return _login_page(self.theme, error=True)
+        address = request.client.host if request.client else ""
+        async with self._login_lock:
+            now = time.monotonic()
+            failed = [
+                t
+                for t in self._failed_logins.get(address, [])
+                if now - t < _LOGIN_LOCKOUT
+            ]
+            if len(failed) >= _LOGIN_ATTEMPTS:
+                self._failed_logins[address] = failed
+                await asyncio.sleep(_LOGIN_DELAY)
+                return _login_page(self.theme, error=True, locked=True)
+            if (
+                self._password is None
+                or not self._same_origin(request)
+                or not secrets.compare_digest(given, expected)
+            ):
+                self._failed_logins[address] = [*failed, now]
+                await asyncio.sleep(_LOGIN_DELAY)
+                return _login_page(self.theme, error=True)
+            self._failed_logins.pop(address, None)
         session = secrets.token_urlsafe(32)
         self._signed_in.add(session)
         return self._with_session(
@@ -715,7 +743,9 @@ class WebHub:
         return thread
 
 
-def _login_page(theme: dict[str, Any], *, error: bool) -> HTMLResponse:
+def _login_page(
+    theme: dict[str, Any], *, error: bool, locked: bool = False
+) -> HTMLResponse:
     """The sign-in form (the password for the web access), in the app's look."""
     colours = {
         "bg": "#f0f0f0",
@@ -730,7 +760,8 @@ def _login_page(theme: dict[str, Any], *, error: bool) -> HTMLResponse:
     }
     size = theme.get("font_px", 15)
     title = html.escape(S.APP_TITLE)
-    notice = f'<p class="error">{html.escape(S.WEB_LOGIN_WRONG)}</p>' if error else ""
+    wrong = S.WEB_LOGIN_LOCKED if locked else S.WEB_LOGIN_WRONG
+    notice = f'<p class="error">{html.escape(wrong)}</p>' if error else ""
     page = f"""<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
@@ -760,4 +791,6 @@ def _login_page(theme: dict[str, Any], *, error: bool) -> HTMLResponse:
   <input id="password" name="password" type="password" autocomplete="current-password" autofocus>
   <button type="submit">{html.escape(S.WEB_LOGIN_BUTTON)}</button>
 </form></body></html>"""
-    return HTMLResponse(page, status_code=401 if error else 200)
+    return HTMLResponse(
+        page, status_code=(429 if locked else 401) if error else 200, headers=_FRAMING
+    )
