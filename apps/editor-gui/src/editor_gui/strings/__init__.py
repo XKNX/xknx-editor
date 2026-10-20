@@ -959,9 +959,10 @@ class MenuStrings:
         return _(
             "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found "
             "automatically). A direct .knxprod or KNX product XML link also works.\n"
+            "\n"
             "Examples:\n"
-            "  https://github.com/OpenKNX/OAM-PresenceModule/releases/tag/3.6.2-Release\n"
-            "  https://github.com/OpenKNX/OAM-PresenceModule/releases/latest"
+            "  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n"
+            "  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
         )
 
     @property

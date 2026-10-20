@@ -53,8 +53,8 @@ msgstr "Import van URL mislukt: {error}"
 msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works."
 msgstr "Plak een OpenKNX-GitHub-release-URL (de release-pagina werkt — het .zip-asset wordt automatisch gevonden). Een directe .knxprod- of KNX-product-XML-link werkt ook."
 
-msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\nExamples:\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/tag/3.6.2-Release\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/latest"
-msgstr "Plak een OpenKNX-GitHub-release-URL (de release-pagina werkt — het .zip-asset wordt automatisch gevonden). Een directe .knxprod- of KNX-product-XML-link werkt ook.\nVoorbeelden:\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/tag/3.6.2-Release\n  https://github.com/OpenKNX/OAM-PresenceModule/releases/latest"
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+msgstr "Plak een OpenKNX-GitHub-release-URL (de release-pagina werkt — het .zip-asset wordt automatisch gevonden). Een directe .knxprod- of KNX-product-XML-link werkt ook.\n\nVoorbeelden:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
 
 msgid "Save As…"
 msgstr "Opslaan als…"
