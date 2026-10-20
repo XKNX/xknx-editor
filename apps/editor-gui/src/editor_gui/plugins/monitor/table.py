@@ -337,23 +337,27 @@ class TelegramView:
             ):
                 self._service.stop_replay()
             self._report_replay()
-        self._render_state()
-        imgui.same_line()
-        imgui.text_disabled(
-            S.MONITOR_BUS_LOAD.format(rate=f"{self._service.bus_load():.1f}")
-        )
-        imgui.same_line()
-        count = len(self._view)
-        text = S.MONITOR_TELEGRAM_COUNT_ONE if count == 1 else S.MONITOR_TELEGRAM_COUNT
-        imgui.text_disabled(text.format(count=count))
+        # The bus load and the telegram count only while recording; otherwise just the state.
+        if self._render_state():
+            imgui.same_line()
+            imgui.text_disabled(
+                S.MONITOR_BUS_LOAD.format(rate=f"{self._service.bus_load():.1f}")
+            )
+            imgui.same_line()
+            count = len(self._view)
+            text = (
+                S.MONITOR_TELEGRAM_COUNT_ONE if count == 1 else S.MONITOR_TELEGRAM_COUNT
+            )
+            imgui.text_disabled(text.format(count=count))
         if self.filtering:
             imgui.same_line()
             done = self._pos * 100 // max(len(self._source), 1)
             imgui.text_disabled(f"({done}%)")
 
-    def _render_state(self) -> None:
-        """The recording state in the toolbar row."""
-        recording = imgui.ImVec4(0.4, 0.85, 0.45, 1.0)
+    def _render_state(self) -> bool:
+        """The recording state in the toolbar row; returns whether the monitor records."""
+        color = imgui.ImVec4(0.4, 0.85, 0.45, 1.0)
+        recording = False
         if self.kind is MonitorKind.BUS:
             state = self._connection.busmonitor_state
             if state is BusmonitorState.STARTING:
@@ -361,13 +365,17 @@ class TelegramView:
             elif state is BusmonitorState.STOPPING:
                 imgui.text_colored(_WARN_COLOR, S.STATUS_BUSMON_STOPPING)
             elif state is BusmonitorState.RUNNING:
-                imgui.text_colored(recording, S.STATUS_RECORDING)
+                imgui.text_colored(color, S.STATUS_RECORDING)
+                recording = True
+            elif not self._service.is_connected():
+                imgui.text_disabled(S.MONITOR_DISCONNECTED)
             else:
                 imgui.text_disabled(S.STATUS_STOPPED)
         elif self._channel.session:
-            imgui.text_colored(recording, S.STATUS_RECORDING)
-        elif self._channel.recording:
-            imgui.text_disabled(S.STATUS_WAITING)
+            imgui.text_colored(color, S.STATUS_RECORDING)
+            recording = True
+        elif not self._service.is_connected():
+            imgui.text_disabled(S.MONITOR_DISCONNECTED)
         else:
             imgui.text_disabled(S.STATUS_STOPPED)
         if self._service.replaying and self.kind is MonitorKind.GROUP:
@@ -378,6 +386,7 @@ class TelegramView:
                     _WARN_COLOR,
                     S.STATUS_REPLAYING.format(done=progress[0], total=progress[1]),
                 )
+        return recording
 
     def _render_status(self) -> None:
         """Notes below the toolbar: the bus monitor mode, its errors and other messages."""

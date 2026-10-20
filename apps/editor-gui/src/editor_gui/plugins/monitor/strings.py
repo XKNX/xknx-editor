@@ -19,7 +19,7 @@ class MonitorStrings:
 
     @property
     def MONITOR_DISCONNECTED(self) -> str:
-        return _("Not connected")
+        return _("Not Connected")
 
     @property
     def MONITOR_VALUE_HINT(self) -> str:
@@ -193,10 +193,6 @@ class MonitorStrings:
     @property
     def STATUS_STOPPED(self) -> str:
         return _("Stopped")
-
-    @property
-    def STATUS_WAITING(self) -> str:
-        return _("Waiting for a connection")
 
     @property
     def STATUS_REPLAYING(self) -> str:
