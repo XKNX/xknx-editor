@@ -28,6 +28,7 @@ from editor_gui.widgets.description import (
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 from editor_gui.widgets.text_util import text_clipped_tooltip
+from editor_gui.widgets.tree import collapsing_header
 
 # Row colours: amber when both devices have the item but it differs; red when it is present on only
 # one side (missing on the other — the empty cell shows which device lacks it).
@@ -170,7 +171,7 @@ class DeviceComparePanel:
         shown = [r for r in rows if not self._only_diff or r.kind != "same"]
         changed = sum(1 for r in rows if r.kind != "same")
         header = f"{title} ({changed})" if changed else title
-        if not imgui.collapsing_header(
+        if not collapsing_header(
             f"{header}##cmp_{title}", imgui.TreeNodeFlags_.default_open
         ):
             return

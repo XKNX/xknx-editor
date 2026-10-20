@@ -36,6 +36,7 @@ from editor_gui.programming import (
 from editor_gui.settings import load_settings, save_settings
 from editor_gui.widgets.dialog import begin_tool_window
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
+from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.prod.app_id import parse_app_id
 
 if TYPE_CHECKING:
@@ -1003,7 +1004,7 @@ class ConnectionPlugin:
         if device is not None:
             header = f"{found.address}  —  {device.name}"
         imgui.set_next_item_open(True, imgui.Cond_.first_use_ever)
-        if not imgui.collapsing_header(f"{header}###progmode_{index}"):
+        if not collapsing_header(f"{header}###progmode_{index}"):
             return
         imgui.indent()
         if unprogrammed:

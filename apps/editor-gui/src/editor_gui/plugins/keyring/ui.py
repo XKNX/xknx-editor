@@ -19,6 +19,7 @@ from editor_gui.widgets.dialog import (
     focus_when_appearing,
 )
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.tree import collapsing_header
 
 if TYPE_CHECKING:
     from editor_gui.plugins.keyring.service import KeyringService
@@ -227,7 +228,7 @@ class KeyringPanel:
             )
         )
 
-        if model.backbone is not None and imgui.collapsing_header(
+        if model.backbone is not None and collapsing_header(
             S.KEYRING_BACKBONE, imgui.TreeNodeFlags_.default_open
         ):
             imgui.text_disabled(
@@ -243,7 +244,7 @@ class KeyringPanel:
 
     def _render_interfaces(self, decrypted: "DecryptedKeyring") -> None:
         interfaces = decrypted.interfaces
-        if not interfaces or not imgui.collapsing_header(
+        if not interfaces or not collapsing_header(
             S.KEYRING_INTERFACES.format(count=len(interfaces))
         ):
             return
@@ -271,7 +272,7 @@ class KeyringPanel:
 
     def _render_group_addresses(self, decrypted: "DecryptedKeyring") -> None:
         group_keys = decrypted.group_keys
-        if not group_keys or not imgui.collapsing_header(
+        if not group_keys or not collapsing_header(
             S.KEYRING_GROUP_ADDRESSES.format(count=len(group_keys))
         ):
             return
@@ -302,7 +303,7 @@ class KeyringPanel:
         devices = sorted(
             decrypted.devices, key=lambda d: address_order(d.individual_address)
         )
-        if not devices or not imgui.collapsing_header(
+        if not devices or not collapsing_header(
             S.KEYRING_DEVICES.format(count=len(devices))
         ):
             return
