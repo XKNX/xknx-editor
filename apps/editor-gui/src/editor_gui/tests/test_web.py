@@ -946,3 +946,32 @@ def test_glyphs_snap_to_whole_pixels_at_fractional_scales() -> None:
     assert frames.snap_to_pixels(b"".join(vertex(*v) for v in shape), 1.25, white) == (
         b"".join(vertex(*v) for v in shape)
     )
+
+
+def test_an_error_in_a_panel_does_not_end_the_frame(hub: WebHub) -> None:
+    """A panel that fails half-way (a child window still open) leaves imgui intact; the error is
+    reported once, not every frame."""
+    reports: list[tuple[str, str]] = []
+    hub.report_error = lambda where, error: reports.append((where, error))
+
+    def broken() -> None:
+        imgui.begin_child("##inner", imgui.ImVec2(100, 100))
+        raise ValueError("boom")
+
+    panel = web.guarded("panel", broken, hub)
+    context = imgui.create_context()
+    try:
+        io = imgui.get_io()
+        io.display_size = imgui.ImVec2(800, 600)
+        io.backend_flags |= imgui.BackendFlags_.renderer_has_textures
+        io.config_error_recovery_enable_assert = False
+        io.config_error_recovery_enable_debug_log = False
+        for _ in range(3):
+            imgui.new_frame()
+            imgui.begin("Panel")
+            panel()
+            imgui.end()
+            imgui.render()
+    finally:
+        imgui.destroy_context(context)
+    assert reports == [("panel", "ValueError: boom")]

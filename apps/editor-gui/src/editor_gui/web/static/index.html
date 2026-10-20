@@ -31,6 +31,15 @@
   #chooser .close { min-width: 0; padding: 3px 9px; }
   #zoom { position: fixed; left: 50%; top: 40%; transform: translate(-50%, -50%); z-index: 25;
           padding: 8px 16px; pointer-events: none; }
+  /* The menu a long press on the line typed in opens (touch screens), and the box to paste into
+     where the page may not read the clipboard. */
+  #textmenu { position: fixed; z-index: 35; display: flex; gap: 2px; padding: 3px; }
+  #textmenu button { min-width: 0; padding: 8px 12px; }
+  #pastebox { position: fixed; left: 50%; top: 18%; transform: translateX(-50%); z-index: 35; padding: 10px;
+              display: flex; flex-direction: column; gap: 8px; width: min(90vw, 420px); }
+  #pastebox textarea { font: inherit; color: var(--text); background: var(--frame); border: 1px solid var(--border);
+                       height: 4em; resize: none; }
+  #pastebox .close { align-self: flex-end; }
   [hidden] { display: none !important; }
   body.dragging::after { content: ""; position: fixed; inset: 6px; border: 2px dashed var(--muted);
                          pointer-events: none; }
@@ -43,6 +52,8 @@
 <div id="chooser" class="box" hidden><button class="choose"></button><button class="close">×</button></div>
 <div id="status" class="box">…</div>
 <div id="zoom" class="box" hidden></div>
+<div id="textmenu" class="box" hidden><button data-op="cut"></button><button data-op="copy"></button><button data-op="paste"></button><button data-op="all"></button></div>
+<div id="pastebox" class="box" hidden><span></span><textarea autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea><button class="close"></button></div>
 <script src="client.js"></script>
 </body>
 </html>

@@ -107,6 +107,11 @@ _PAGE_TEXTS = (
     "WEB_TAKE_CONTROL",
     "WEB_CHOOSE_FILE",
     "BTN_CLOSE",
+    "WEB_CUT",
+    "WEB_COPY",
+    "WEB_PASTE",
+    "WEB_SELECT_ALL",
+    "WEB_PASTE_HINT",
 )
 
 
@@ -174,6 +179,8 @@ class WebHub:
         self.auto_download = True
         # Shows a short note in the app (its toast), set by the app.
         self.notify: Callable[[str], None] | None = None
+        # Reports an error the app went on after (where, what), set by the app.
+        self.report_error: Callable[[str, str], None] | None = None
         # The app's theme colours for the page's own elements.
         self.theme: dict[str, Any] = {}
 

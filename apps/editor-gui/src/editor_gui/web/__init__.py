@@ -37,6 +37,7 @@ import sys
 import threading
 import time
 import webbrowser
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, cast
@@ -55,6 +56,8 @@ _ACTIVE_SECONDS = 1.5
 # The full rate: the Null backend has no frame cap of its own (no vsync), so the web mode paces it.
 _ACTIVE_FPS = 60.0
 _TRACE = os.environ.get("XKNX_WEB_TRACE") == "1"
+# An error that keeps coming back in the same place is reported again after this many seconds.
+_ERROR_REPORT_SECONDS = 10.0
 
 active_hub: WebHub | None = None
 
@@ -217,6 +220,16 @@ def enable_web_mode(
     runner_params.renderer_backend_type = hello_imgui.RendererBackendType.null
 
     callbacks = runner_params.callbacks
+    # An error in a panel or the menus does not end the app (and with it every browser's
+    # session): it is logged and reported, and the rest goes on.
+    for window in runner_params.docking_params.dockable_windows:
+        window.gui_function = guarded(
+            window.label.split("###")[-1], window.gui_function, hub
+        )
+    callbacks.show_menus = guarded("menus", callbacks.show_menus or _nothing, hub)
+    callbacks.post_render_dockable_windows = guarded(
+        "overlays", callbacks.post_render_dockable_windows or _nothing, hub
+    )
     post_init = callbacks.post_init or _nothing
     pre_new_frame = callbacks.pre_new_frame or _nothing
     after_swap = callbacks.after_swap or _nothing
@@ -240,6 +253,11 @@ def enable_web_mode(
         # Shortcuts follow the browser's platform (the client sends Cmd as Ctrl on a Mac), not
         # the server's.
         io.config_mac_osx_behaviors = False
+        # Imgui's checks of how it is used log and recover instead of ending the app.
+        io.config_error_recovery = True
+        io.config_error_recovery_enable_assert = False
+        io.config_error_recovery_enable_debug_log = True
+        io.config_error_recovery_enable_tooltip = False
         platform_io = imgui.get_platform_io()
         platform_io.platform_set_clipboard_text_fn = lambda _ctx, text: (
             hub.publish_clipboard(text)
@@ -436,6 +454,30 @@ def enable_web_mode(
             daemon=True,
         ).start()
     return hub
+
+
+def guarded(where: str, call: Callable[[], None], hub: WebHub) -> Callable[[], None]:
+    """``call`` (drawing a panel, the menus) so that an error in it does not end the app: imgui
+    is brought back to the state before it, the error goes to the log with its traceback, and the
+    app reports it (``hub.report_error``), the same place at most every few seconds."""
+    reported = [-_ERROR_REPORT_SECONDS]
+
+    def run() -> None:
+        state = imgui.internal.ErrorRecoveryState()
+        imgui.internal.error_recovery_store_state(state)
+        try:
+            call()
+        except Exception as error:
+            imgui.internal.error_recovery_try_to_recover_state(state)
+            now = time.monotonic()
+            if now - reported[0] < _ERROR_REPORT_SECONDS:
+                return
+            reported[0] = now
+            logger.exception("error in %s", where)
+            if hub.report_error is not None:
+                hub.report_error(where, f"{type(error).__name__}: {error}")
+
+    return run
 
 
 def _open_when_listening(port: int, url: str, timeout: float = 15.0) -> None:

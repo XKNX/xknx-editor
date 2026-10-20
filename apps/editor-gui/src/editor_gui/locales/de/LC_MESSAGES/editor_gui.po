@@ -1309,3 +1309,15 @@ msgstr "Verkleinern"
 
 msgid "Reset Zoom"
 msgstr "Zoom zurücksetzen"
+
+msgid "Cut"
+msgstr "Ausschneiden"
+
+msgid "Paste"
+msgstr "Einfügen"
+
+msgid "Select All"
+msgstr "Alles auswählen"
+
+msgid "Long-press in the field below and choose Paste."
+msgstr "Im Feld unten lange drücken und Einfügen wählen."

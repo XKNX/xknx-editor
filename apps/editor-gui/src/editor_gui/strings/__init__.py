@@ -1821,5 +1821,25 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     def MENU_ZOOM_RESET(self) -> str:
         return _("Reset Zoom")
 
+    @property
+    def WEB_CUT(self) -> str:
+        return _("Cut")
+
+    @property
+    def WEB_COPY(self) -> str:
+        return _("Copy")
+
+    @property
+    def WEB_PASTE(self) -> str:
+        return _("Paste")
+
+    @property
+    def WEB_SELECT_ALL(self) -> str:
+        return _("Select All")
+
+    @property
+    def WEB_PASTE_HINT(self) -> str:
+        return _("Long-press in the field below and choose Paste.")
+
 
 S = _CombinedStrings()

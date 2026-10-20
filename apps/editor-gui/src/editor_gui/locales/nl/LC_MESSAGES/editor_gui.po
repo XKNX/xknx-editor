@@ -1214,3 +1214,15 @@ msgstr "Uitzoomen"
 
 msgid "Reset Zoom"
 msgstr "Zoom herstellen"
+
+msgid "Cut"
+msgstr "Knippen"
+
+msgid "Paste"
+msgstr "Plakken"
+
+msgid "Select All"
+msgstr "Alles selecteren"
+
+msgid "Long-press in the field below and choose Paste."
+msgstr "Houd het veld hieronder lang ingedrukt en kies Plakken."

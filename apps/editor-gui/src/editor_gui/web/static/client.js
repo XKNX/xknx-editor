@@ -24,6 +24,8 @@
     WEB_RECONNECTING: "Disconnected. Reconnecting…", WEB_DENIED: "Access denied. Please sign in again.",
     WEB_VIEW_ONLY: "View only: another browser controls the editor.", WEB_TAKE_CONTROL: "Take Control",
     WEB_CHOOSE_FILE: "Choose File…", BTN_CLOSE: "Close",
+    WEB_CUT: "Cut", WEB_COPY: "Copy", WEB_PASTE: "Paste", WEB_SELECT_ALL: "Select All",
+    WEB_PASTE_HINT: "Long-press in the field below and choose Paste.",
   };
 
   // preserveDrawingBuffer: the canvas keeps the last frame until the browser composites it; a frame
@@ -293,7 +295,11 @@
       await onTexture(body);
     } else if (bytes[0] === KIND_CLIPBOARD) {
       const text = new TextDecoder().decode(body);
-      if (navigator.clipboard) navigator.clipboard.writeText(text).catch(() => {});
+      if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(text).catch(() => copyTheOldWay(text));
+      } else {
+        copyTheOldWay(text);
+      }
     } else if (bytes[0] === KIND_EVENT) {
       stats.events += 1;
       onEvent(JSON.parse(new TextDecoder().decode(body)));
@@ -439,6 +445,7 @@
     else if (ev.t === "zoom") setZoom(ev.z);
     else if (ev.t === "text-input") {
       textInput = ev.on;
+      if (!textInput) hideTextMenu();
       caret = ev.caret || null;
       setKeyboardKind(ev.numeric ? "decimal" : "text");
       updateKeyboard();
@@ -759,12 +766,18 @@
     if (fingers.size > 2 || pinch) return;
     updateKeyboard(true);
     const start = touchEvent(e, "down");
-    finger = { id: e.pointerId, x: start.x, y: start.y };
+    finger = { id: e.pointerId, x: start.x, y: start.y, cx: e.clientX, cy: e.clientY, menu: false };
     send(start);
     holdTimer = setTimeout(() => {
       if (!finger) return;
-      send({ t: "touch", p: "hold" });
       if (navigator.vibrate) navigator.vibrate(15);
+      // On the line typed in: the menu for the text (lifting the finger then does nothing).
+      if (onTypedLine(finger.cx, finger.cy)) {
+        finger.menu = true;
+        showTextMenu(finger.cx, finger.cy);
+        return;
+      }
+      send({ t: "touch", p: "hold" });
     }, HOLD_MS);
   }
 
@@ -791,7 +804,7 @@
 
   function touchUp(e, phase) {
     fingers.delete(e.pointerId);
-    if (finger && finger.id === e.pointerId) endFinger(phase, e);
+    if (finger && finger.id === e.pointerId) endFinger(finger.menu ? "cancel" : phase, e);
     // The fingers of a zoom lift one by one: the rest does nothing until all are up.
     if (fingers.size === 0) {
       if (pinch && pinch.view) send({ t: "pinch-wheel", end: true });
@@ -805,6 +818,8 @@
   });
   canvas.addEventListener("pointerdown", (e) => {
     canvas.setPointerCapture(e.pointerId);
+    hideTextMenu();
+    if (pasteBoxOpen) closePasteBox();
     if (e.pointerType === "touch") {
       keys.focus({ preventScroll: true });
       touchDown(e);
@@ -894,6 +909,119 @@
     keysSent = KEYS_BASE;
   }
 
+  // -- the menu a long press on the line typed in opens (a touch screen has no right mouse button
+  // for the app's text fields): its buttons keep the focus in the text field, which stays active.
+
+  const textMenu = document.getElementById("textmenu");
+  const pasteBox = document.getElementById("pastebox");
+  const pasteArea = pasteBox.querySelector("textarea");
+  let pasteBoxOpen = false;
+
+  function onTypedLine(clientX, clientY) {
+    if (!caret || !textInput) return false;
+    const r = canvas.getBoundingClientRect(), z = appZoom();
+    const top = r.top + caret[1] * z, height = caret[2] * z;
+    return clientY >= top - height * 0.5 && clientY <= top + height * 1.5;
+  }
+
+  function showTextMenu(clientX, clientY) {
+    for (const button of textMenu.querySelectorAll("button")) {
+      button.textContent = { cut: T.WEB_CUT, copy: T.WEB_COPY, paste: T.WEB_PASTE, all: T.WEB_SELECT_ALL }[button.dataset.op];
+    }
+    textMenu.hidden = false;
+    const width = textMenu.offsetWidth, height = textMenu.offsetHeight;
+    const view = window.visualViewport;
+    const right = view ? view.offsetLeft + view.width : window.innerWidth;
+    const top = clientY - height - 24 > 4 ? clientY - height - 24 : clientY + 24;
+    textMenu.style.left = `${Math.max(4, Math.min(clientX - width / 2, right - width - 4))}px`;
+    textMenu.style.top = `${top}px`;
+  }
+
+  function hideTextMenu() {
+    textMenu.hidden = true;
+  }
+
+  function shortcut(code) {
+    send({ t: "mods", c: true, s: false, a: false, m: false });
+    pressKey(code);
+    send({ t: "mods", c: false, s: false, a: false, m: false });
+  }
+
+  function pasteText(text) {
+    if (!text) return;
+    send({ t: "clip", text });
+    shortcut("KeyV");
+  }
+
+  function quietly(change) {
+    // Focus moves between the page's own fields without the app taking it as leaving.
+    refocusing = true;
+    try { change(); } finally { refocusing = false; }
+  }
+
+  function openPasteBox() {
+    pasteBox.querySelector("span").textContent = T.WEB_PASTE_HINT;
+    pasteBox.querySelector(".close").textContent = T.BTN_CLOSE;
+    pasteArea.value = "";
+    pasteBox.hidden = false;
+    pasteBoxOpen = true;
+    quietly(() => pasteArea.focus({ preventScroll: true }));
+  }
+
+  function closePasteBox() {
+    if (!pasteBoxOpen) return;
+    pasteBox.hidden = true;
+    quietly(() => keys.focus({ preventScroll: true }));
+    pasteBoxOpen = false;
+    updateKeyboard(true);
+  }
+
+  function copyTheOldWay(text) {
+    const field = document.createElement("textarea");
+    field.value = text;
+    field.style.cssText = "position: fixed; left: 0; top: 0; opacity: 0;";
+    document.body.append(field);
+    const back = document.activeElement;
+    quietly(() => {
+      field.select();
+      try { document.execCommand("copy"); } catch (e) { /* not copied */ }
+      field.remove();
+      if (back && back.focus) back.focus({ preventScroll: true });
+    });
+  }
+
+  for (const button of textMenu.querySelectorAll("button")) {
+    // The text field keeps the focus.
+    button.addEventListener("pointerdown", (e) => e.preventDefault());
+    button.addEventListener("click", () => {
+      hideTextMenu();
+      const op = button.dataset.op;
+      if (op === "cut") shortcut("KeyX");
+      else if (op === "copy") shortcut("KeyC");
+      else if (op === "all") shortcut("KeyA");
+      else if (navigator.clipboard && navigator.clipboard.readText && window.isSecureContext) {
+        navigator.clipboard.readText().then(pasteText, openPasteBox);
+      } else {
+        // Over plain http the page may not read the clipboard: the browser's own Paste does.
+        openPasteBox();
+      }
+    });
+  }
+  pasteArea.addEventListener("paste", (e) => {
+    e.preventDefault();
+    const text = e.clipboardData ? e.clipboardData.getData("text/plain") : "";
+    closePasteBox();
+    pasteText(text);
+  });
+  pasteArea.addEventListener("input", () => {
+    // Pasted from the keyboard's clipboard.
+    const text = pasteArea.value;
+    if (!text) return;
+    closePasteBox();
+    pasteText(text);
+  });
+  pasteBox.querySelector(".close").addEventListener("click", closePasteBox);
+
   function pressKey(code) {
     send({ t: "key", code, d: true });
     send({ t: "key", code, d: false });
@@ -925,10 +1053,10 @@
     send({ t: "key", code: "KeyV", d: false });
   });
   keys.addEventListener("focus", () => {
-    if (!refocusing) send({ t: "focus", f: true });
+    if (!refocusing && !pasteBoxOpen) send({ t: "focus", f: true });
   });
   keys.addEventListener("blur", () => {
-    if (refocusing) return;
+    if (refocusing || pasteBoxOpen) return;
     send({ t: "mods", c: false, s: false, a: false, m: false });
     send({ t: "focus", f: false });
   });

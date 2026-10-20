@@ -714,6 +714,10 @@ class KnxGuiApp:
         # In the browser UI, notes about downloads show as this app's toasts.
         if web.active_hub is not None:
             web.active_hub.notify = self._flash_toast
+            # An error the browser UI went on after: logged, and shown as a toast.
+            web.active_hub.report_error = lambda where, error: self._log.error(
+                "internal error", where=where, error=error
+            )
         # Apply a previously extracted/saved signing key so exports are signed with it.
         if signing_key_store.apply_cached_key():
             self._log.info("signing key loaded")
