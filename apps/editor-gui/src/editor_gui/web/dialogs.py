@@ -34,7 +34,7 @@ from editor_gui.widgets.dialog import (
 )
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
-from editor_gui.widgets.text_util import human_size
+from editor_gui.widgets.text_util import fit_text, human_size
 from editor_gui.widgets.value_pickers import format_date
 
 if TYPE_CHECKING:
@@ -130,24 +130,43 @@ def _entries_table(
         imgui.text_disabled(S.WEB_NO_FILES)
         return None, False, None
     columns = 2 + int(sizes) + int(download)
+    # Fixed columns as wide as their widest content (always computed, never a width saved from an
+    # earlier list), the name gets the rest and long names end in "…".
     flags = (
         imgui.TableFlags_.borders_inner
         | imgui.TableFlags_.row_bg
         | imgui.TableFlags_.scroll_y
         | imgui.TableFlags_.sizing_stretch_prop
         | imgui.TableFlags_.resizable
+        | imgui.TableFlags_.no_saved_settings
     )
     if not begin_data_table(
         table_id, columns, flags, imgui.ImVec2(0, px(_LIST_HEIGHT))
     ):
         return None, False, None
+    style = imgui.get_style()
     imgui.table_setup_scroll_freeze(0, 1)
     imgui.table_setup_column(S.WEB_COL_NAME, imgui.TableColumnFlags_.width_stretch)
     if sizes:
-        imgui.table_setup_column(S.WEB_COL_SIZE, imgui.TableColumnFlags_.width_fixed)
-    imgui.table_setup_column(S.WEB_COL_MODIFIED, imgui.TableColumnFlags_.width_fixed)
+        imgui.table_setup_column(
+            S.WEB_COL_SIZE,
+            imgui.TableColumnFlags_.width_fixed,
+            max(imgui.calc_text_size(t).x for t in ("999.9 MB", S.WEB_COL_SIZE)),
+        )
+    imgui.table_setup_column(
+        S.WEB_COL_MODIFIED,
+        imgui.TableColumnFlags_.width_fixed,
+        max(
+            imgui.calc_text_size(t).x
+            for t in (_modified(datetime.now().timestamp()), S.WEB_COL_MODIFIED)
+        ),
+    )
     if download:
-        imgui.table_setup_column("", imgui.TableColumnFlags_.width_fixed)
+        imgui.table_setup_column(
+            "",
+            imgui.TableColumnFlags_.width_fixed,
+            imgui.calc_text_size(S.WEB_DOWNLOAD).x + 2 * style.frame_padding.x,
+        )
     data_table_headers()
     for entry in entries:
         imgui.table_next_row()
@@ -156,10 +175,13 @@ def _entries_table(
         row_flags = imgui.SelectableFlags_.allow_double_click
         if not download:
             row_flags |= imgui.SelectableFlags_.span_all_columns
-        shown = f"{entry.name}/" if entry.folder and entry.name != ".." else entry.name
+        full = f"{entry.name}/" if entry.folder and entry.name != ".." else entry.name
+        shown = fit_text(full, imgui.get_content_region_avail().x)
         if imgui.selectable(f"{shown}##{entry.name}", chosen, row_flags)[0]:
             clicked = entry
             double = imgui.is_mouse_double_clicked(imgui.MouseButton_.left)
+        if shown != full and imgui.is_item_hovered():
+            imgui.set_tooltip(full)
         if sizes:
             imgui.table_next_column()
             if not entry.folder:
