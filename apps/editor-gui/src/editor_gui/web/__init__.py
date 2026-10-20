@@ -221,6 +221,7 @@ def enable_web_mode(
     touch_look = TouchLook()
     touch = _touch
     text_input = [False]
+    caret_shown: list[tuple[int, int, int] | None] = [None]
 
     def web_post_init() -> None:
         io = imgui.get_io()
@@ -329,11 +330,23 @@ def enable_web_mode(
         _pinch_areas.clear()
         if areas != hub.pinch_areas:
             hub.set_pinch_areas(areas)
-        # The page shows a touch screen's keyboard only while a text field takes typing.
+        # The page shows a touch screen's keyboard only while a text field takes typing, and
+        # keeps the line typed in visible above that keyboard.
         wanted = imgui.get_io().want_text_input
-        if wanted != text_input[0]:
+        ime = imgui.get_current_context().platform_ime_data
+        caret = (
+            (
+                round(ime.input_pos.x),
+                round(ime.input_pos.y),
+                round(ime.input_line_height),
+            )
+            if wanted and ime.want_visible
+            else None
+        )
+        if wanted != text_input[0] or caret != caret_shown[0]:
             text_input[0] = wanted
-            hub.set_text_input(wanted)
+            caret_shown[0] = caret
+            hub.set_text_input(wanted, caret)
 
     def web_after_swap() -> None:
         after_swap()

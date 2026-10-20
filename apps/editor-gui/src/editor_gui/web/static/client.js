@@ -418,7 +418,12 @@
   // dropped files, downloads and opening links. Its own few elements use the app's theme.
 
   function onEvent(ev) {
-    if (ev.t === "texts") Object.assign(T, ev.texts);
+    if (ev.t === "texts") {
+      // The app was started again with other page code: load it.
+      if (ev.build && pageBuild && ev.build !== pageBuild) location.reload();
+      pageBuild = ev.build || pageBuild;
+      Object.assign(T, ev.texts);
+    }
     else if (ev.t === "theme") applyTheme(ev);
     else if (ev.t === "control") onControl(ev);
     else if (ev.t === "dialog") uploadTarget = ev.upload ? ev : null;
@@ -432,7 +437,12 @@
     else if (ev.t === "download") { if (!recently(`download:${ev.url}`)) download(ev.url, ev.name); }
     else if (ev.t === "open") { if (!recently(`open:${ev.url}`)) openLink(ev); }
     else if (ev.t === "zoom") setZoom(ev.z);
-    else if (ev.t === "text-input") { textInput = ev.on; updateKeyboard(); }
+    else if (ev.t === "text-input") {
+      textInput = ev.on;
+      caret = ev.caret || null;
+      updateKeyboard();
+      keepCaretVisible();
+    }
     else if (ev.t === "pinch-areas") pinchAreas = ev.areas;
   }
 
@@ -632,6 +642,11 @@
 
   let textInput = false;
   let touchUsed = false;
+  let pageBuild = "";
+  // The line typed in ([x, y, height] in app units) while a text field takes typing.
+  let caret = null;
+  // Room kept between that line and a touch screen's keyboard, in CSS pixels.
+  const CARET_MARGIN = 16;
   let refocusing = false;
   const VK = navigator.virtualKeyboard;
   if (VK) keys.setAttribute("virtualkeyboardpolicy", "manual");
@@ -653,6 +668,23 @@
       keys.focus({ preventScroll: true });
       refocusing = false;
     }
+  }
+
+  // The keyboard of a touch screen covers the lower part of the app (the app keeps its size, so
+  // nothing moves away under the finger); the app slides up as far as the line typed in needs.
+  function keepCaretVisible() {
+    let shift = 0;
+    const view = window.visualViewport;
+    if (view && caret && textInput && touchUsed) {
+      const bottom = (caret[1] + caret[2]) * appZoom() + CARET_MARGIN;
+      shift = Math.max(0, Math.min(bottom - (view.offsetTop + view.height), caret[1] * appZoom()));
+    }
+    const transform = shift > 0 ? `translateY(${-Math.round(shift)}px)` : "";
+    if (canvas.style.transform !== transform) canvas.style.transform = transform;
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", keepCaretVisible);
+    window.visualViewport.addEventListener("scroll", keepCaretVisible);
   }
 
   // -- fingers: one finger's phases go to the app, which tells taps, swipes, holds and drags apart

@@ -609,9 +609,9 @@ def test_zoom_and_touch_keyboard_go_to_the_controlling_browser(hub: WebHub) -> N
         hub.set_zoom(1.5)
         zoom = _receive_until(socket, _is_event("zoom"))[-1]
         assert _event(zoom) == {"t": "zoom", "z": 1.5}
-        hub.set_text_input(True)
+        hub.set_text_input(True, (10, 20, 18))
         typing = _receive_until(socket, _is_event("text-input"))[-1]
-        assert _event(typing) == {"t": "text-input", "on": True}
+        assert _event(typing) == {"t": "text-input", "on": True, "caret": [10, 20, 18]}
 
 
 def test_input_put_back_comes_first(hub: WebHub) -> None:

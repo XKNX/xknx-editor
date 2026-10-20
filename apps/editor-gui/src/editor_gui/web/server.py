@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import hashlib
 import html
 import json
 import logging
@@ -66,6 +67,11 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 _STATIC = Path(__file__).parent / "static"
+# The page's code as this app serves it: a page from an older start reloads itself.
+_PAGE_BUILD = hashlib.blake2b(
+    b"".join((_STATIC / name).read_bytes() for name in ("index.html", "client.js")),
+    digest_size=8,
+).hexdigest()
 _FONT = Path(__file__).parent.parent / "assets" / "fonts" / "DroidSans.ttf"
 # The app icon, the page's icon in the browser tab.
 _ICON = Path(__file__).parent.parent / "assets" / "app_settings" / "icon.png"
@@ -199,9 +205,21 @@ class WebHub:
         self.pinch_areas = areas
         self._post(event_message({"t": "pinch-areas", "areas": areas}))
 
-    def set_text_input(self, wanted: bool) -> None:
+    def set_text_input(
+        self, wanted: bool, caret: tuple[int, int, int] | None = None
+    ) -> None:
+        """Whether a text field takes typing, and where its line typed in is (x, y, height in
+        app units)."""
         self.text_input = wanted
-        self._post(event_message({"t": "text-input", "on": wanted}))
+        self._post(
+            event_message(
+                {
+                    "t": "text-input",
+                    "on": wanted,
+                    "caret": list(caret) if caret else None,
+                }
+            )
+        )
 
     @property
     def connected(self) -> bool:
@@ -557,7 +575,9 @@ class WebHub:
         # Without a cookie (blocked by the browser) the connection is a browser of its own.
         session = socket.cookies.get(_COOKIE) or secrets.token_urlsafe(32)
         client = _Client(socket, session)
-        client.ordered.append(event_message({"t": "texts", "texts": page_texts()}))
+        client.ordered.append(
+            event_message({"t": "texts", "texts": page_texts(), "build": _PAGE_BUILD})
+        )
         if self.theme:
             client.ordered.append(event_message({"t": "theme", **self.theme}))
         client.ordered.extend(self.textures.snapshot())

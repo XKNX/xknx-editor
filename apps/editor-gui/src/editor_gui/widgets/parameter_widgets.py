@@ -962,13 +962,15 @@ _tree_scrolls: list[bool] = []
 _page_cache: dict[int, tuple[list[UiNode], str, tuple[ParameterPage, ...]]] = {}
 
 _TREE_WIDTH = 210.0
-# Narrower than this at 100 % scaling (a phone), the page tree is above the page, taking this
-# share of the height, and the help below them at most this one (it keeps its own height then,
-# see stacked_layout).
-
+# Narrower than this at 100 % scaling (a phone), the pages are a drop-down above the page, and
+# the help below it takes at most this share of the height (it keeps its own height then, see
+# stacked_layout).
 _STACKED_WIDTH = 480.0
-_STACKED_TREE_SHARE = 0.35
 _STACKED_FOOTER_SHARE = 0.7
+# The least share of the window's height the page and help get there (the window scrolls then).
+_STACKED_PAGE_SHARE = 0.75
+# Indent of a page below the one it belongs to in that drop-down, at 100 % scaling.
+_CHOICE_INDENT = 14.0
 # A page narrower than this at 100 % scaling has each parameter label above its field.
 _LABELS_ABOVE_WIDTH = 420.0
 
@@ -984,6 +986,42 @@ def _device_pages(
         pages = filter_pages(pages, needle)
     _page_cache[device.node_id] = (nodes, needle, pages)
     return pages
+
+
+def _render_page_choice(
+    pages: tuple[ParameterPage, ...],
+    path: list[ParameterPage],
+    selected: str | None,
+    width: float,
+) -> str | None:
+    """The pages as a drop-down (a narrow editor): the selected page with the pages above it,
+    and every page indented below the one it belongs to. Returns the key of a page chosen this
+    frame."""
+    chosen: list[str] = []
+
+    def rows(items: tuple[ParameterPage, ...], depth: int) -> None:
+        for page in items:
+            indent = depth * px(_CHOICE_INDENT)
+            if indent:
+                imgui.indent(indent)
+            if page.selectable:
+                is_selected = page.key == selected
+                if imgui.selectable(f"{page.label}##{page.key}", is_selected)[0]:
+                    chosen.append(page.key)
+                if is_selected and imgui.is_window_appearing():
+                    imgui.set_scroll_here_y()
+            else:
+                imgui.text_disabled(page.label)
+            if indent:
+                imgui.unindent(indent)
+            rows(page.children, depth + 1)
+
+    imgui.set_next_item_width(width)
+    preview = " / ".join(page.label.strip() for page in path)
+    if begin_combo("##page_choice", preview, imgui.ComboFlags_.height_largest):
+        rows(pages, 0)
+        imgui.end_combo()
+    return chosen[0] if chosen else None
 
 
 def stacked_layout() -> bool:
@@ -1107,14 +1145,24 @@ def render_ui_tree(
         return request
 
     width = inner.max.x - inner.min.x
-    if stacked_layout():
-        # Narrow (a phone): the page tree above the page, which gets the larger part; the help
-        # below them takes at most a share of the height.
+    stacked = stacked_layout()
+    if stacked:
+        # Narrow (a phone): the pages as a drop-down above the page, which gets the rest of the
+        # height; the help below it takes at most a share of the height.
         least = imgui.get_frame_height() * 3
-        footer_height = min(footer_height, height * _STACKED_FOOTER_SHARE)
-        tree_height = max(least, (height - footer_height) * _STACKED_TREE_SHARE)
-        tree(imgui.ImVec2(width, tree_height))
-        line_top = imgui.get_item_rect_max().y
+        footer_height = min(
+            footer_height, (inner.max.y - inner.min.y) * _STACKED_FOOTER_SHARE
+        )
+        pad = imgui.get_style().window_padding.x
+        imgui.set_cursor_screen_pos(
+            imgui.ImVec2(inner.min.x + pad, top + imgui.get_style().item_spacing.y)
+        )
+        chosen = _render_page_choice(
+            pages, path or [], selected.key if selected else None, width - 2 * pad
+        )
+        if chosen is not None:
+            _selected_pages[device.node_id] = chosen
+        line_top = imgui.get_item_rect_max().y + imgui.get_style().item_spacing.y
         imgui.get_window_draw_list().add_rect_filled(
             imgui.ImVec2(inner.min.x, line_top),
             imgui.ImVec2(inner.max.x, line_top + px(1.0)),
@@ -1122,8 +1170,15 @@ def render_ui_tree(
         )
         imgui.set_cursor_screen_pos(imgui.ImVec2(inner.min.x, line_top + px(1.0)))
         page_top = imgui.get_cursor_screen_pos().y
-        bottom = top + height
-        page_height = max(bottom - page_top - footer_height, least)
+        # On a short screen the page keeps most of the window's height and the window scrolls:
+        # its upper part (device, buttons, filter) moves out of view.
+        # (From where the page is when not scrolled: scrolling does not make it grow.)
+        page_height = max(
+            inner.max.y - (page_top + window.scroll.y) - footer_height,
+            least,
+            (inner.max.y - inner.min.y) * _STACKED_PAGE_SHARE - footer_height,
+        )
+        bottom = page_top + page_height + footer_height
         popup_request = page(imgui.ImVec2(width, page_height))
         if footer is not None:
             imgui.set_cursor_screen_pos(
@@ -1172,6 +1227,9 @@ def render_ui_tree(
             imgui.end_table()
             _draw_page_line(line_left, line_right, line_top, line_bottom)
     imgui.pop_clip_rect()
+    if stacked:
+        # Narrow: the window scrolls when the page reaches below it.
+        return popup_request
     # The area ends at the window's edges, in its padding: it leaves nothing to scroll to.
     end = window.dc.cursor_max_pos
     work = window.work_rect
