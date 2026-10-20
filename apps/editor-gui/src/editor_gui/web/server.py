@@ -206,10 +206,14 @@ class WebHub:
         self._post(event_message({"t": "pinch-areas", "areas": areas}))
 
     def set_text_input(
-        self, wanted: bool, caret: tuple[int, int, int] | None = None
+        self,
+        wanted: bool,
+        caret: tuple[int, int, int] | None = None,
+        *,
+        numeric: bool = False,
     ) -> None:
-        """Whether a text field takes typing, and where its line typed in is (x, y, height in
-        app units)."""
+        """Whether a text field takes typing, where its line typed in is (x, y, height in app
+        units), and whether it takes a number."""
         self.text_input = wanted
         self._post(
             event_message(
@@ -217,6 +221,7 @@ class WebHub:
                     "t": "text-input",
                     "on": wanted,
                     "caret": list(caret) if caret else None,
+                    "numeric": numeric,
                 }
             )
         )

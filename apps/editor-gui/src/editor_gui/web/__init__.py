@@ -222,6 +222,7 @@ def enable_web_mode(
     touch = _touch
     text_input = [False]
     caret_shown: list[tuple[int, int, int] | None] = [None]
+    numeric_shown = [False]
 
     def web_post_init() -> None:
         io = imgui.get_io()
@@ -343,10 +344,24 @@ def enable_web_mode(
             if wanted and ime.want_visible
             else None
         )
-        if wanted != text_input[0] or caret != caret_shown[0]:
+        # A field for numbers gets a touch screen's number keyboard.
+        state = imgui.get_current_context().input_text_state
+        numeric = wanted and bool(
+            state.flags
+            & (
+                imgui.InputTextFlags_.chars_decimal
+                | imgui.InputTextFlags_.chars_scientific
+            )
+        )
+        if (
+            wanted != text_input[0]
+            or caret != caret_shown[0]
+            or numeric != numeric_shown[0]
+        ):
             text_input[0] = wanted
             caret_shown[0] = caret
-            hub.set_text_input(wanted, caret)
+            numeric_shown[0] = numeric
+            hub.set_text_input(wanted, caret, numeric=numeric)
 
     def web_after_swap() -> None:
         after_swap()

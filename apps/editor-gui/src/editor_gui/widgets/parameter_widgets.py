@@ -534,6 +534,10 @@ def _hint(widget: TimeWidget) -> str | None:
     return widget.hint.value if widget.hint is not None else None
 
 
+# Whether the page being drawn is in the narrow editor (see render_ui_tree).
+_narrow_page = [False]
+
+
 def _spin_width() -> float:
     return imgui.get_frame_height() * 0.6
 
@@ -612,7 +616,10 @@ def _render_int_param(
     differs: bool = False,
     increment: int = 1,
 ) -> None:
-    _set_number_field_width()
+    # On a narrow page (a phone) the field keeps its whole width for the number: arrows that
+    # small are hard to hit with a finger, and the keyboard types the number.
+    spin = not _narrow_page[0]
+    _set_number_field_width(spin=spin)
     if differs:
         _, new_text = imgui.input_text_with_hint(
             f"##{widget_id}", S.PARAM_DIFFERS, "", imgui.InputTextFlags_.chars_decimal
@@ -623,7 +630,7 @@ def _render_int_param(
             f"##{widget_id}", value, imgui.InputTextFlags_.chars_decimal
         )
         edited = imgui.is_item_deactivated_after_edit()
-    steps = _spin_buttons(widget_id, enabled=not differs)
+    steps = _spin_buttons(widget_id, enabled=not differs) if spin else 0
     if steps:
         try:
             new_text = str(int(value) + steps * (increment or 1))
@@ -1128,6 +1135,7 @@ def render_ui_tree(
         if content_open and selected is not None:
             _get_picture = get_picture
             _get_icon = get_icon
+            _narrow_page[0] = stacked
             try:
                 request = _render_page(
                     device,
@@ -1141,6 +1149,7 @@ def render_ui_tree(
             finally:
                 _get_picture = None
                 _get_icon = None
+                _narrow_page[0] = False
         imgui.end_child()
         return request
 

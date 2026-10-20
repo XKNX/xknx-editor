@@ -440,6 +440,7 @@
     else if (ev.t === "text-input") {
       textInput = ev.on;
       caret = ev.caret || null;
+      setKeyboardKind(ev.numeric ? "decimal" : "text");
       updateKeyboard();
       keepCaretVisible();
     }
@@ -651,6 +652,23 @@
   const VK = navigator.virtualKeyboard;
   if (VK) keys.setAttribute("virtualkeyboardpolicy", "manual");
 
+  // The kind of keyboard a touch screen shows: for text, or for a number field.
+  let keyboardKind = "text";
+
+  function setKeyboardKind(kind) {
+    if (kind === keyboardKind) return;
+    keyboardKind = kind;
+    if (!VK) return;
+    keys.inputMode = kind;
+    // A keyboard that is shown changes its kind when the field gets the focus again.
+    if (touchUsed && textInput && document.activeElement === keys) {
+      refocusing = true;
+      keys.blur();
+      keys.focus({ preventScroll: true });
+      refocusing = false;
+    }
+  }
+
   function updateKeyboard(tapped = false) {
     const show = touchUsed && textInput;
     if (VK) {
@@ -659,7 +677,7 @@
       return;
     }
     // Without the keyboard API: no keyboard for a field that takes no text.
-    const mode = !touchUsed || textInput ? "text" : "none";
+    const mode = !touchUsed || textInput ? keyboardKind : "none";
     if (keys.inputMode === mode && !(show && tapped)) return;
     keys.inputMode = mode;
     if (document.activeElement === keys) {
