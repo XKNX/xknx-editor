@@ -830,18 +830,42 @@
     send(mods(e));
     send({ t: "key", code: keyCode(e.code), d: false });
   });
-  // Typed text (any layout, dead keys, IME) arrives through the text field.
-  keys.addEventListener("input", (e) => {
-    if (e.isComposing) return;
-    const text = keys.value.replace(/[\r\n\t]/g, "");
-    keys.value = "";
-    if (text) send({ t: "text", s: text });
-  });
-  keys.addEventListener("compositionend", () => {
-    const text = keys.value;
-    keys.value = "";
-    if (text) send({ t: "text", s: text });
-  });
+  // Typed text (any layout, dead keys, IME, a touch screen's keyboard) arrives through the text
+  // field. What changed in it goes to the app at once, also while a word is still being composed
+  // (a phone's keyboard composes every word until a space): removed characters as Backspace,
+  // new ones as text. The field keeps one invisible character, so that a phone keyboard's
+  // Backspace, which only edits the field, has something to remove.
+  const KEYS_BASE = "\u200b";
+  let keysSent = "";
+
+  function resetKeys() {
+    keys.value = KEYS_BASE;
+    keys.setSelectionRange(KEYS_BASE.length, KEYS_BASE.length);
+    keysSent = KEYS_BASE;
+  }
+
+  function pressKey(code) {
+    send({ t: "key", code, d: true });
+    send({ t: "key", code, d: false });
+  }
+
+  function sendKeysChange(composing) {
+    const value = keys.value;
+    let same = 0;
+    while (same < value.length && same < keysSent.length && value[same] === keysSent[same]) same++;
+    for (let i = same; i < keysSent.length; i++) pressKey("Backspace");
+    const added = value.slice(same);
+    keysSent = value;
+    for (const part of added.split(/(\r\n|[\r\n])/)) {
+      if (/^[\r\n]/.test(part)) pressKey("Enter");
+      else if (part) send({ t: "text", s: part.replace(/\t/g, "") });
+    }
+    if (!composing) resetKeys();
+  }
+
+  keys.addEventListener("input", (e) => sendKeysChange(e.isComposing));
+  keys.addEventListener("compositionend", () => sendKeysChange(false));
+  resetKeys();
   keys.addEventListener("paste", (e) => {
     const text = e.clipboardData ? e.clipboardData.getData("text/plain") : "";
     e.preventDefault();
