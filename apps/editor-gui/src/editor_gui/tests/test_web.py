@@ -541,6 +541,20 @@ def test_password_sign_in(tmp_path: Path) -> None:
             assert _event(socket.receive_bytes())["t"] == "texts"
 
 
+def test_pages_show_the_app_icon(tmp_path: Path) -> None:
+    hub = WebHub(tmp_path / "files", password=_PASSWORD, local_only=False)
+    with TestClient(hub.app(), base_url="http://editor.lan") as client:
+        # The sign-in page links it, and it is there before signing in.
+        assert 'rel="icon"' in client.get("/").text
+        for path in ("/favicon.png", "/favicon.ico"):
+            icon = client.get(path)
+            assert icon.status_code == 200
+            assert icon.headers["content-type"] == "image/png"
+            assert icon.content.startswith(b"\x89PNG")
+        client.post("/login", data={"password": _PASSWORD})
+        assert 'rel="icon"' in client.get("/").text
+
+
 def test_socket_refuses_other_sites(hub: WebHub) -> None:
     with (
         TestClient(hub.app(), base_url="http://localhost") as client,

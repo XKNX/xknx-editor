@@ -67,6 +67,8 @@ logger = logging.getLogger(__name__)
 
 _STATIC = Path(__file__).parent / "static"
 _FONT = Path(__file__).parent.parent / "assets" / "fonts" / "DroidSans.ttf"
+# The app icon, the page's icon in the browser tab.
+_ICON = Path(__file__).parent.parent / "assets" / "app_settings" / "icon.png"
 _COOKIE = "xknx_web_session"
 _LOCAL_HOSTS = frozenset({"localhost", "127.0.0.1", "::1"})
 # A browser that just left (a reload) gets control back when it returns within this time.
@@ -473,6 +475,9 @@ class WebHub:
     async def _font(self, request: Request) -> Response:
         return FileResponse(_FONT, media_type="font/ttf")
 
+    async def _icon(self, request: Request) -> Response:
+        return FileResponse(_ICON, media_type="image/png")
+
     async def _script(self, request: Request) -> Response:
         return FileResponse(
             _STATIC / "client.js",
@@ -597,6 +602,9 @@ class WebHub:
                 Route("/login", self._login, methods=["POST"]),
                 Route("/client.js", self._script),
                 Route("/font.ttf", self._font),
+                Route("/favicon.png", self._icon),
+                # Browsers ask for it on their own, e.g. for a downloaded file shown in a tab.
+                Route("/favicon.ico", self._icon),
                 Route("/files/{key}/{name}", self._file),
                 Route("/upload", self._upload, methods=["POST"]),
                 WebSocketRoute("/ws", self._socket),
@@ -656,6 +664,7 @@ def _login_page(theme: dict[str, Any], *, error: bool) -> HTMLResponse:
     page = f"""<!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{title}</title>
+<link rel="icon" type="image/png" href="favicon.png">
 <style>
   @font-face {{ font-family: "XKNX"; src: url("font.ttf") format("truetype"); }}
   body {{ font: {size}px "XKNX", system-ui, sans-serif; display: grid; place-items: center;
