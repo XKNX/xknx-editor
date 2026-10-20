@@ -963,11 +963,12 @@ _page_cache: dict[int, tuple[list[UiNode], str, tuple[ParameterPage, ...]]] = {}
 
 _TREE_WIDTH = 210.0
 # Narrower than this at 100 % scaling (a phone), the page tree is above the page, taking this
-# share of the height, and the help below them at most this one.
+# share of the height, and the help below them at most this one (it keeps its own height then,
+# see stacked_layout).
 
 _STACKED_WIDTH = 480.0
 _STACKED_TREE_SHARE = 0.35
-_STACKED_FOOTER_SHARE = 0.25
+_STACKED_FOOTER_SHARE = 0.7
 # A page narrower than this at 100 % scaling has each parameter label above its field.
 _LABELS_ABOVE_WIDTH = 420.0
 
@@ -983,6 +984,13 @@ def _device_pages(
         pages = filter_pages(pages, needle)
     _page_cache[device.node_id] = (nodes, needle, pages)
     return pages
+
+
+def stacked_layout() -> bool:
+    """Whether :func:`render_ui_tree` in the current window puts the page tree above the page
+    (a narrow window, a phone)."""
+    inner = internal.get_current_window().inner_rect
+    return inner.max.x - inner.min.x < px(_STACKED_WIDTH)
 
 
 def render_ui_tree(
@@ -1096,7 +1104,7 @@ def render_ui_tree(
         return request
 
     width = inner.max.x - inner.min.x
-    if width < px(_STACKED_WIDTH):
+    if stacked_layout():
         # Narrow (a phone): the page tree above the page, which gets the larger part; the help
         # below them takes at most a share of the height.
         least = imgui.get_frame_height() * 3

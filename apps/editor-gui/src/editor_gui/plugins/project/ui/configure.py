@@ -9,7 +9,7 @@ from imgui_bundle import imgui, imspinner
 from xknx.exceptions import CouldNotParseAddress
 from xknx.telegram import IndividualAddress
 
-from editor_gui import doc_links
+from editor_gui import doc_links, web
 from editor_gui.device import ComObject, Device, device_label
 from editor_gui.device_info import (
     application_program_label,
@@ -46,6 +46,7 @@ from editor_gui.widgets import (
     count_parameters,
     differing_param_refs,
     render_ui_tree,
+    stacked_layout,
     take_selected_help,
 )
 from editor_gui.widgets.backgrounds import child_background, side_background
@@ -76,11 +77,16 @@ def _move_cursor_up(distance: float) -> None:
 
 # Height of the line above the help that resizes it when dragged, and the thickness of the line.
 _HELP_SPLITTER = 7.0
+# Its height while the app is used with a finger (the browser UI on a touch screen).
+_HELP_SPLITTER_TOUCH = 16.0
 _HELP_LINE = 3.0
 # The help's height (at 100 % scaling) until the user drags it, and the app setting that keeps
 # the dragged one.
 _HELP_HEIGHT = 160.0
 _HELP_HEIGHT_SETTING = "help_height"
+# The same where the editor puts its pages above the parameters (a phone): there it is apart.
+_HELP_HEIGHT_NARROW = 100.0
+_HELP_HEIGHT_NARROW_SETTING = "help_height_narrow"
 # Room at 100 % scaling between the help's edges and its text.
 _HELP_PADDING = (18.0, 13.0)
 # Product ids of OpenKNX devices (manufacturer KNX Association, 0x00FA).
@@ -127,6 +133,11 @@ def _scope_labels() -> list[str]:
         S.SCOPE_UNLOAD,
         S.SCOPE_UNLOAD_ALL,
     ]
+
+
+def _help_splitter_height() -> float:
+    """Height of the line above the help that resizes it: larger for a finger."""
+    return px(_HELP_SPLITTER_TOUCH if web.touch_used() else _HELP_SPLITTER)
 
 
 def _same_line_if_fits(label: str) -> None:
@@ -310,7 +321,8 @@ class ConfigurePanel:
         self._get_help = get_help
         self._get_icon = get_icon
         self._get_picture = get_picture
-        self._help_pane_h = 0.0  # dragged height of the help pane
+        # Dragged heights of the help pane, by the setting that keeps them (see _help_setting).
+        self._help_pane_h: dict[str, float] = {}
         self._help: tuple[int, str] | None = None
         self.show_help = True
         # "Multi fill": when on, a parameter edit is applied to every device that runs
@@ -1363,19 +1375,28 @@ class ConfigurePanel:
 
     def _help_height(self) -> float:
         """Height of the splitter and pane of the help below the parameters."""
-        return px(_HELP_SPLITTER) + self._help_pane_height()
+        return _help_splitter_height() + self._help_pane_height()
+
+    @staticmethod
+    def _help_setting() -> tuple[str, float]:
+        """The setting that keeps the help's height in the current window, and its default."""
+        if stacked_layout():
+            return _HELP_HEIGHT_NARROW_SETTING, _HELP_HEIGHT_NARROW
+        return _HELP_HEIGHT_SETTING, _HELP_HEIGHT
 
     def _help_pane_height(self) -> float:
-        if self._help_pane_h <= 0:
-            stored = load_settings("app").get(_HELP_HEIGHT_SETTING)
+        key, default = self._help_setting()
+        if key not in self._help_pane_h:
+            stored = load_settings("app").get(key)
             if not isinstance(stored, int | float) or stored <= 0:
-                stored = _HELP_HEIGHT
-            self._help_pane_h = px(float(stored))
-        return self._help_pane_h
+                stored = default
+            self._help_pane_h[key] = px(float(stored))
+        return self._help_pane_h[key]
 
     def _save_help_height(self) -> None:
+        key, _ = self._help_setting()
         data = load_settings("app")
-        data[_HELP_HEIGHT_SETTING] = round(self._help_pane_h / px(1.0), 1)
+        data[key] = round(self._help_pane_height() / px(1.0), 1)
         save_settings("app", data)
 
     def _render_help_splitter(self) -> None:
@@ -1383,7 +1404,7 @@ class ConfigurePanel:
         top_left = imgui.get_cursor_screen_pos()
         width = imgui.get_content_region_avail().x
         imgui.invisible_button(
-            "##help_splitter", imgui.ImVec2(width, px(_HELP_SPLITTER))
+            "##help_splitter", imgui.ImVec2(width, _help_splitter_height())
         )
         hovered = imgui.is_item_hovered()
         active = imgui.is_item_active()
@@ -1392,7 +1413,9 @@ class ConfigurePanel:
         if active:
             line = imgui.get_text_line_height_with_spacing()
             height = self._help_pane_height() - imgui.get_io().mouse_delta.y
-            self._help_pane_h = min(max(height, line * 2), line * 40)
+            self._help_pane_h[self._help_setting()[0]] = min(
+                max(height, line * 2), line * 40
+            )
         if imgui.is_item_deactivated():
             self._save_help_height()
         color = (
@@ -1412,7 +1435,7 @@ class ConfigurePanel:
         )
         draw_list.add_rect_filled(
             imgui.ImVec2(top_left.x, line_bottom),
-            imgui.ImVec2(top_left.x + width, top_left.y + px(_HELP_SPLITTER)),
+            imgui.ImVec2(top_left.x + width, top_left.y + _help_splitter_height()),
             imgui.get_color_u32(side_background()),
         )
 

@@ -3,8 +3,8 @@ touch screen where the mouse has nothing alike.
 
 - A tap clicks.
 - A swipe scrolls the list or panel under the finger, with momentum. Where nothing scrolls that
-  way, or the finger is on a scroll bar or a window's title, it drags like the mouse (a splitter,
-  a slider moved sideways, a window).
+  way, or the finger is on a scroll bar, a window's title or something that shows a resize
+  pointer (a splitter, a column border), it drags like the mouse (also a slider moved sideways).
 - Holding the finger still for a moment (the page tells when) and lifting it is a right-click,
   for the context menus; holding and then moving drags like the mouse (drag and drop, selecting
   text).
@@ -34,6 +34,16 @@ _FLING_STOP = 15.0
 _FLING_DECAY = 0.325
 # A finger at rest this long before lifting leaves no momentum.
 _FLING_REST = 0.08
+# Pointers shown over what is dragged to resize or move (splitters, borders).
+_DRAG_CURSORS = frozenset(
+    {
+        imgui.MouseCursor_.resize_all,
+        imgui.MouseCursor_.resize_ns,
+        imgui.MouseCursor_.resize_ew,
+        imgui.MouseCursor_.resize_nesw,
+        imgui.MouseCursor_.resize_nwse,
+    }
+)
 
 
 class TouchUi(Protocol):
@@ -242,6 +252,9 @@ class ImGuiTouchUi:
         # The bindings type these as non-optional, but they can be None.
         if g.drag_drop_active or g.moving_window is not None:  # pyright: ignore[reportUnnecessaryComparison]
             return None
+        # A splitter or border under the finger (it shows a resize pointer) is dragged.
+        if imgui.get_mouse_cursor() in _DRAG_CURSORS:
+            return None
         window = g.hovered_window
         hovered = g.hovered_id
         # A text field taking typing: the finger selects text.
@@ -293,21 +306,18 @@ class ImGuiTouchUi:
 
 
 class TouchLook:
-    """Larger hit areas and scroll bars while the app is used with a finger; the theme's own
-    values otherwise. Applied every frame, so a theme change is taken over."""
+    """Larger scroll bars and slider grips while the app is used with a finger; the theme's own
+    values otherwise. Applied every frame, so a theme change is taken over. (No touch padding
+    around items: it widens every panel's hover area too, which then covers thin splitters
+    between panels.)"""
 
     def __init__(self) -> None:
         self._base: dict[str, Any] = {}
         self._applied: dict[str, Any] = {}
 
-    def apply(self, touch: bool, unit: float) -> None:
-        """``unit``: pixels per pixel at 100 % scaling (see ``widgets.dpi.px``)."""
+    def apply(self, touch: bool) -> None:
         style = imgui.get_style()
         current: dict[str, Any] = {
-            "touch_extra_padding": (
-                style.touch_extra_padding.x,
-                style.touch_extra_padding.y,
-            ),
             "scrollbar_size": style.scrollbar_size,
             "grab_min_size": style.grab_min_size,
         }
@@ -322,7 +332,6 @@ class TouchLook:
                 self._base[name] = value
         base = self._base
         wanted: dict[str, Any] = {
-            "touch_extra_padding": (4.0 * unit, 4.0 * unit),
             "scrollbar_size": round(base["scrollbar_size"] * 1.6),
             "grab_min_size": round(base["grab_min_size"] * 1.5),
         }
@@ -333,8 +342,4 @@ class TouchLook:
 
     @staticmethod
     def _set(name: str, value: Any) -> None:
-        style = imgui.get_style()
-        if name == "touch_extra_padding":
-            style.touch_extra_padding = imgui.ImVec2(*value)
-        else:
-            setattr(style, name, value)
+        setattr(imgui.get_style(), name, value)

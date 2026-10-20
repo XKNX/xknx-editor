@@ -70,6 +70,15 @@ def pinch_area(low: imgui.ImVec2, high: imgui.ImVec2) -> None:
         _pinch_areas.append((low.x, low.y, high.x - low.x, high.y - low.y))
 
 
+# Whether the controlling browser was last used with a finger.
+_touch = [False]
+
+
+def touch_used() -> bool:
+    """In the web mode: whether the app is used with a finger (handles to drag can be larger)."""
+    return _touch[0]
+
+
 def zoom() -> float | None:
     """The controlling browser's zoom of the app; None outside the web mode."""
     return active_hub.zoom if active_hub is not None else None
@@ -173,7 +182,6 @@ def enable_web_mode(
     from editor_gui.web.server import WebHub
     from editor_gui.web.touch import ImGuiTouchUi, TouchGestures, TouchLook
     from editor_gui.widgets import dialog
-    from editor_gui.widgets.dpi import px
 
     password = options.password()
     if not options.local and password is None and not options.trust_proxy:
@@ -211,8 +219,7 @@ def enable_web_mode(
     # Set up in web_post_init, once ImGui runs.
     gestures: list[TouchGestures] = []
     touch_look = TouchLook()
-    # Whether the controlling browser was last used with a finger.
-    touch = [False]
+    touch = _touch
     text_input = [False]
 
     def web_post_init() -> None:
@@ -290,7 +297,7 @@ def enable_web_mode(
                 _apply(io, event)
         if gestures:
             gestures[0].step(time.monotonic())
-        touch_look.apply(touch[0], px(1.0))
+        touch_look.apply(touch[0])
         # With a finger, a swipe on a tab bar would easily tear a panel out of its section:
         # tabs only change their order then.
         docking = hello_imgui.get_runner_params().docking_params
