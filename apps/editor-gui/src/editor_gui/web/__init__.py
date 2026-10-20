@@ -162,6 +162,7 @@ def enable_web_mode(
     pre_new_frame = callbacks.pre_new_frame or _nothing
     after_swap = callbacks.after_swap or _nothing
     after_windows = callbacks.post_render_dockable_windows or _nothing
+    before_render = callbacks.before_imgui_render or _nothing
     last_frame: list[Frame | None] = [None]
     clients_seen = [False]
     frame_start = [0.0]
@@ -220,6 +221,17 @@ def enable_web_mode(
         after_windows()
         hub.host.draw()
 
+    def web_before_render() -> None:
+        before_render()
+        # The grey behind a dialog at once: imgui fades it in over a few frames, which the
+        # browser only gets as often as frames change, so the fade looked slow there.
+        # None without one (the stub leaves that out).
+        modal = cast(
+            "imgui.internal.Window | None",
+            imgui.internal.get_top_most_and_visible_popup_modal(),
+        )
+        imgui.get_current_context().dim_bg_ratio = 0.0 if modal is None else 1.0
+
     def web_after_swap() -> None:
         after_swap()
         theme = _theme()
@@ -244,6 +256,7 @@ def enable_web_mode(
     callbacks.pre_new_frame = web_pre_new_frame
     callbacks.after_swap = web_after_swap
     callbacks.post_render_dockable_windows = web_after_windows
+    callbacks.before_imgui_render = web_before_render
 
     hub.start(
         options.host, options.port, certfile=options.certfile, keyfile=options.keyfile
