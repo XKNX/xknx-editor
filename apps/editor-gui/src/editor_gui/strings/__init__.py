@@ -1845,5 +1845,9 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     def WEB_LOGIN_LOCKED(self) -> str:
         return _("Too many wrong passwords. Please try again in a few minutes.")
 
+    @property
+    def WEB_PORT_IN_USE(self) -> str:
+        return _("Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one.")
+
 
 S = _CombinedStrings()

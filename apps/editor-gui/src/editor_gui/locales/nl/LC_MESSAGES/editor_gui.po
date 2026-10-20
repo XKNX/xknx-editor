@@ -1229,3 +1229,6 @@ msgstr "Houd het veld hieronder lang ingedrukt en kies Plakken."
 
 msgid "Too many wrong passwords. Please try again in a few minutes."
 msgstr "Te veel verkeerde wachtwoorden. Probeer het over een paar minuten opnieuw."
+
+msgid "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
+msgstr "Poort {port} wordt al door een ander programma gebruikt, daarom kan de browserinterface daar niet starten. Start met een andere poort (bijv. --web={example}) of zonder poort om een vrije te nemen."

@@ -26,6 +26,7 @@ import html
 import json
 import logging
 import secrets
+import socket
 import threading
 import time
 from collections import deque
@@ -711,17 +712,14 @@ class WebHub:
 
     def start(
         self,
-        host: str,
-        port: int,
+        sock: socket.socket,
         *,
         certfile: str | None = None,
         keyfile: str | None = None,
     ) -> threading.Thread:
-        """Serve on ``host``:``port`` (HTTPS with a certificate) from a daemon thread."""
+        """Serve on the bound socket ``sock`` (HTTPS with a certificate) from a daemon thread."""
         config = uvicorn.Config(
             self.app(),
-            host=host,
-            port=port,
             log_level="warning",
             ws="websockets-sansio",
             ssl_certfile=certfile,
@@ -735,7 +733,7 @@ class WebHub:
             asyncio.set_event_loop(loop)
             self._loop = loop
             ready.set()
-            loop.run_until_complete(server.serve())
+            loop.run_until_complete(server.serve(sockets=[sock]))
 
         thread = threading.Thread(target=run, name="web-ui", daemon=True)
         thread.start()

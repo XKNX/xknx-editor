@@ -135,8 +135,8 @@ Start the app with `--web` and open the address it prints:
 | Linux | `./XKNX-Editor-x86_64.AppImage --web` |
 | From source | `uv run python -m editor_gui.main --web` |
 
-By default it serves `http://localhost:8080/` on this computer only and opens the default browser
-there. No sign-in is needed then. **File → Exit** in the browser, or Ctrl+C in the terminal it was
+By default it serves `http://localhost:8080/` on this computer only (the next free port when 8080
+is in use) and opens the default browser there. No sign-in is needed then. **File → Exit** in the browser, or Ctrl+C in the terminal it was
 started from, ends it. A project file can be given as usual, e.g. `XKNX-Editor.exe --web Haus.xknx`.
 
 Reachable from other devices, every browser signs in once with a password you choose:
@@ -153,7 +153,7 @@ in front handle it.
 
 | Option | Meaning |
 |---|---|
-| `--web[=[host:]port]` | Serve the browser UI (default `127.0.0.1:8080`) |
+| `--web[=[host:]port]` | Serve the browser UI (default `127.0.0.1:8080`; a port given must be free) |
 | `--web-password-file=FILE` | Sign-in password from the first line of `FILE` (or `XKNX_WEB_PASSWORD`) |
 | `--web-trust-proxy` | A proxy in front signs users in; no password |
 | `--web-files=DIR` | Folder for uploaded, saved and exported files (default: `files` in the app's data folder) |

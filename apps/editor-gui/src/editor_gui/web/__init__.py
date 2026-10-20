@@ -9,6 +9,8 @@ part is imported only when the web mode starts.
 Options:
 
 - ``--web[=[host:]port]``: serve the browser UI (default ``127.0.0.1:8080``, this computer only).
+  Without a port, a free one is taken when 8080 is in use (8081, 8082, ...); a port given that is
+  in use is reported and the app does not start.
 - ``--web-cert=FILE``, ``--web-key=FILE``: HTTPS.
 - ``--web-files=DIR``: the folder the browser's files go to (default: ``files`` in the app's data
   folder).
@@ -51,6 +53,8 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8080
+# Ports tried after the default one when it is in use, before one the system picks.
+_MORE_PORTS = 19
 # Seconds after the last browser input during which the app renders at full rate.
 _ACTIVE_SECONDS = 1.5
 # The full rate: the Null backend has no frame cap of its own (no vsync), so the web mode paces it.
@@ -118,6 +122,8 @@ class WebOptions:
     idle_minutes: float = 10.0
     open_browser: bool = True
     proxy_ips: tuple[str, ...] = ()
+    # Whether the port was given (``--web=[host:]port``); otherwise another free one may be taken.
+    port_given: bool = False
 
     @property
     def local(self) -> bool:
@@ -142,6 +148,7 @@ def web_options(argv: list[str]) -> WebOptions | None:
     """The web mode's options from the command line, None without ``--web``."""
     enabled = False
     host, port = DEFAULT_HOST, DEFAULT_PORT
+    port_given = False
     values: dict[str, str] = {}
     for arg in argv[1:]:
         if arg == "--web":
@@ -151,6 +158,7 @@ def web_options(argv: list[str]) -> WebOptions | None:
             given_host, _, given_port = arg.split("=", 1)[1].rpartition(":")
             host = given_host or DEFAULT_HOST
             port = int(given_port) if given_port else DEFAULT_PORT
+            port_given = bool(given_port)
         elif arg in ("--web-trust-proxy", "--web-no-browser"):
             values[arg] = "1"
         elif arg.startswith(
@@ -179,7 +187,67 @@ def web_options(argv: list[str]) -> WebOptions | None:
         float(values.get("--web-idle") or 10.0),
         "--web-no-browser" not in values,
         tuple(ip.strip() for ip in proxy.split(",") if ip.strip()),
+        port_given,
     )
+
+
+def _bind(host: str, port: int) -> socket.socket | None:
+    """A socket bound to ``host``:``port`` for the server, None when the port is in use. Also a
+    program already answering there counts (Windows lets a socket bind to an address another
+    program listens on for all its addresses)."""
+    if port:
+        probe = {"0.0.0.0": "127.0.0.1", "::": "::1", "": "127.0.0.1"}.get(host, host)
+        try:
+            with socket.create_connection((probe, port), timeout=0.3):
+                return None
+        except OSError:
+            pass
+    family = socket.AF_INET6 if ":" in host else socket.AF_INET
+    sock = socket.socket(family, socket.SOCK_STREAM)
+    try:
+        # The port to this server alone (on Windows another program could share it otherwise).
+        exclusive = getattr(socket, "SO_EXCLUSIVEADDRUSE", None)
+        if exclusive is not None:
+            sock.setsockopt(socket.SOL_SOCKET, exclusive, 1)
+        else:
+            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        sock.bind((host, port))
+    except OSError:
+        sock.close()
+        return None
+    return sock
+
+
+def server_socket(options: WebOptions) -> socket.socket | None:
+    """The bound socket the server listens on: the port given, or without one the default port
+    and when that is in use the next free one (then one the system picks). None when the port
+    given is in use."""
+    if options.port_given:
+        return _bind(options.host, options.port)
+    for port in (*range(options.port, options.port + _MORE_PORTS + 1), 0):
+        sock = _bind(options.host, port)
+        if sock is not None:
+            return sock
+    return None
+
+
+def _port_in_use(options: WebOptions) -> None:
+    """Tell that the port given is in use (the terminal, and a message box when started from the
+    desktop), and end."""
+    from editor_gui.strings import S
+
+    example = f"{options.host}:{options.port + 1}"
+    text = S.WEB_PORT_IN_USE.format(port=options.port, example=example)
+    print(f"XKNX Editor web UI: {text}", file=sys.stderr, flush=True)
+    logger.error("web UI port %d in use", options.port)
+    desktop = sys.platform in ("win32", "darwin") or bool(
+        os.environ.get("DISPLAY") or os.environ.get("WAYLAND_DISPLAY")
+    )
+    if options.open_browser and desktop:
+        from imgui_bundle import portable_file_dialogs as pfd
+
+        pfd.message(S.APP_TITLE, text, pfd.choice.ok, pfd.icon.error).result()
+    raise SystemExit(2)
 
 
 def enable_web_mode(
@@ -440,9 +508,12 @@ def enable_web_mode(
     callbacks.post_render_dockable_windows = web_after_windows
     callbacks.before_imgui_render = web_before_render
 
-    hub.start(
-        options.host, options.port, certfile=options.certfile, keyfile=options.keyfile
-    )
+    sock = server_socket(options)
+    if sock is None:
+        _port_in_use(options)
+        raise AssertionError("unreachable")
+    port = sock.getsockname()[1]
+    hub.start(sock, certfile=options.certfile, keyfile=options.keyfile)
     scheme = "https" if options.certfile else "http"
     if options.local:
         shown = "localhost"
@@ -450,11 +521,9 @@ def enable_web_mode(
         shown = socket.gethostname()  # every address of this computer: name it
     else:
         shown = options.host
-    url = f"{scheme}://{shown}:{options.port}/"
+    url = f"{scheme}://{shown}:{port}/"
     print(f"XKNX Editor web UI: {url}", flush=True)
-    logger.info(
-        "web UI listening on %s:%d, files in %s", options.host, options.port, files
-    )
+    logger.info("web UI listening on %s:%d, files in %s", options.host, port, files)
 
     def stop(_signum: int, _frame: object) -> None:
         # Like File > Exit; the next frame ends the app (an idle one is woken).
@@ -467,7 +536,7 @@ def enable_web_mode(
     if options.local and options.open_browser:
         threading.Thread(
             target=_open_when_listening,
-            args=(options.port, url),
+            args=(port, url),
             name="web-ui-browser",
             daemon=True,
         ).start()

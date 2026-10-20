@@ -9,6 +9,7 @@ import json
 import socket
 import struct
 import time
+import urllib.request
 import zipfile
 import zlib
 from collections.abc import Callable, Iterator
@@ -259,7 +260,9 @@ def test_web_options(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     assert web.web_options(["app", "--web-files=x"]) is None
     local = web.web_options(["app", "--web"])
     assert local == web.WebOptions() and local.local
-    assert web.web_options(["app", "--web=9000"]) == web.WebOptions(port=9000)
+    assert web.web_options(["app", "--web=9000"]) == web.WebOptions(
+        port=9000, port_given=True
+    )
     secret = tmp_path / "password.txt"
     secret.write_text("from the file\n")
     options = web.web_options(
@@ -276,7 +279,15 @@ def test_web_options(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         ]
     )
     assert options == web.WebOptions(
-        "0.0.0.0", 9001, "c.pem", "k.pem", "/srv/knx", str(secret), True, 2.5
+        "0.0.0.0",
+        9001,
+        "c.pem",
+        "k.pem",
+        "/srv/knx",
+        str(secret),
+        True,
+        2.5,
+        port_given=True,
     )
     assert options is not None and not options.local
     assert options.open_browser
@@ -285,6 +296,45 @@ def test_web_options(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     assert quiet is not None and not quiet.open_browser
     monkeypatch.setenv("XKNX_WEB_PASSWORD", "from the environment")
     assert web.WebOptions(host="0.0.0.0").password() == "from the environment"
+
+
+def test_without_a_port_a_free_one_is_taken() -> None:
+    with socket.socket() as taken:
+        taken.bind(("127.0.0.1", 0))
+        taken.listen()
+        port = taken.getsockname()[1]
+        sock = web.server_socket(web.WebOptions(port=port))
+        assert sock is not None
+        with sock:
+            assert sock.getsockname()[1] != port
+        # A port given is not replaced by another one.
+        assert web.server_socket(web.WebOptions(port=port, port_given=True)) is None
+
+
+def test_a_port_given_in_use_is_reported(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(web.sys, "platform", "linux")
+    monkeypatch.delenv("DISPLAY", raising=False)
+    monkeypatch.delenv("WAYLAND_DISPLAY", raising=False)
+    with pytest.raises(SystemExit) as ended:
+        web._port_in_use(web.WebOptions(port=8080, port_given=True))
+    assert ended.value.code == 2
+
+
+def test_the_server_serves_on_its_socket(hub: WebHub) -> None:
+    sock = web.server_socket(web.WebOptions(port=0, port_given=True))
+    assert sock is not None
+    port = sock.getsockname()[1]
+    hub.start(sock)
+    deadline = time.monotonic() + 10
+    while True:
+        try:
+            with urllib.request.urlopen(f"http://localhost:{port}/") as reply:
+                assert reply.status == 200
+                break
+        except OSError:
+            if time.monotonic() > deadline:
+                raise
+            time.sleep(0.1)
 
 
 def test_the_browser_opens_once_the_server_listens(
