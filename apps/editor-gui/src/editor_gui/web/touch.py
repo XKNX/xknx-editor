@@ -234,6 +234,22 @@ class TouchGestures:
         return math.hypot(dx, dy) > SLOP
 
 
+def _room(window: imgui.internal.Window, vertical: bool) -> float:
+    """How far a window can be scrolled in that direction, as imgui lets the mouse wheel scroll
+    it: sideways only where the window scrolls sideways (a few pixels of content past its edge
+    do not make a window scroll), not at all where the wheel goes to the window around."""
+    flags = window.flags
+    if flags & imgui.WindowFlags_.no_scroll_with_mouse:
+        return 0.0
+    if vertical:
+        return window.scroll_max.y
+    sideways = (
+        imgui.WindowFlags_.horizontal_scrollbar
+        | imgui.WindowFlags_.always_horizontal_scrollbar
+    )
+    return window.scroll_max.x if flags & sideways else 0.0
+
+
 class ImGuiTouchUi:
     """:class:`TouchUi` with ImGui's input queue and windows."""
 
@@ -281,8 +297,7 @@ class ImGuiTouchUi:
                 and window.pos.y <= mouse.y < window.pos.y + window.title_bar_height
             ):
                 return None
-            room = window.scroll_max.y if vertical else window.scroll_max.x
-            if room > 0.0:
+            if _room(window, vertical) > 0.0:
                 return window.name
             if not window.flags & imgui.WindowFlags_.child_window:
                 return None
@@ -299,7 +314,7 @@ class ImGuiTouchUi:
             return False
         moved = False
         for vertical, delta in ((False, dx), (True, dy)):
-            room = window.scroll_max.y if vertical else window.scroll_max.x
+            room = _room(window, vertical)
             if not delta or room <= 0.0:
                 continue
             now = window.scroll.y if vertical else window.scroll.x
