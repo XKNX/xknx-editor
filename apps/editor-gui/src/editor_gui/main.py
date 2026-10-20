@@ -3798,6 +3798,14 @@ class KnxGuiApp:
             hello_imgui.get_runner_params().docking_params.focus_dockable_window(
                 f"{_DOCK_LABELS['group_addresses']()}###group_addresses"
             )
+        if self._recover_plugin.take_focus_request():
+            # Shown again when it was closed, and in front of the other tabs of its dock.
+            for (
+                window
+            ) in hello_imgui.get_runner_params().docking_params.dockable_windows:
+                if _dock_window_name(window) == "recover":
+                    window.is_visible = True
+                    window.focus_window_at_next_frame = True
         self._project_plugin.render_overlays()
         self._render_progress_modal()
         self._render_import_password_modal()

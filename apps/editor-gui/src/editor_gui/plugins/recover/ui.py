@@ -35,17 +35,9 @@ class RecoverPanel:
         self._end = "1.1.20"
         self._save_dialog: file_dialogs.SaveFileDialog | None = None
         self._snapshot_dialog: file_dialogs.SaveFileDialog | None = None
-        self._focus_requested = False
-
-    def request_focus(self) -> None:
-        """Bring the docked recover panel to the front on the next frame."""
-        self._focus_requested = True
 
     def render(self) -> None:
         service = self._service
-        if self._focus_requested:
-            imgui.set_window_focus()  # focus this docked window
-            self._focus_requested = False
         service.poll()
         self._poll_save_dialog()
 
