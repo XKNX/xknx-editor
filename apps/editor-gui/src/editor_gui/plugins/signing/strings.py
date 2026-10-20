@@ -18,10 +18,6 @@ class SigningStrings:
         return _("Signing Key…")
 
     @property
-    def WINDOW_TITLE(self) -> str:
-        return _("Signing Key")
-
-    @property
     def STATUS_GENUINE(self) -> str:
         return _("A signing key is set (exports are signed).")
 

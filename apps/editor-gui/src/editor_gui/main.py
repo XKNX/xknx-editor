@@ -3821,7 +3821,10 @@ class KnxGuiApp:
         self._render_compact_result_modal()
         self._render_knxprod_result_modal()
         self._keyring_plugin.render_window()
-        self._signing_plugin.render_window()
+        # The Signing Key dialog asked for from the Signing menu.
+        if self._signing_plugin.take_open_request():
+            imgui.open_popup(S.SIGNING_KEY_TITLE)
+        self._render_signing_key_modal()
         self._connection_plugin.render_window()
         self._render_welcome()
         # Programming queue: advance it every frame (robust wakeup even if the bus was freed by a
@@ -3961,10 +3964,11 @@ class KnxGuiApp:
             imgui.set_clipboard_text(S.MYKNX_DONGLE_STEPS)
 
     def _render_signing_key_modal(self) -> None:
-        """Signing-key manager as a child modal of the export dialog (view/edit/save/extract).
+        """Signing-key manager (view/edit/save/extract) as a dialog, opened from the Signing menu
+        or from the export dialog.
 
-        Rendered inside the export modal's scope so it stacks on top; closing it returns to the
-        export dialog without cancelling the export."""
+        From the export dialog it is rendered inside that modal's scope so it stacks on top;
+        closing it returns to the export dialog without cancelling the export."""
         if not begin_dialog(S.SIGNING_KEY_TITLE, width=40.0 * 16.0):
             return
         self._signing_plugin.render_contents()
