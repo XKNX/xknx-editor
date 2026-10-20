@@ -32,6 +32,13 @@ _PALETTE = [
 ]
 
 
+# Width of the list of group addresses, and the least the chart beside it gets (at 100 % scaling);
+# narrower, the list is above the chart, taking this share of the height.
+_LIST_WIDTH = 240.0
+_CHART_LEAST = 320.0
+_STACKED_LIST_SHARE = 0.4
+
+
 class TimelinePanel:
     def __init__(
         self,
@@ -55,10 +62,18 @@ class TimelinePanel:
             raw: _PALETTE[i % len(_PALETTE)] for i, (raw, _l, _d) in enumerate(ga_info)
         }
         avail = imgui.get_content_region_avail()
-        if imgui.begin_child("##tl_list", imgui.ImVec2(px(240.0), avail.y), True):
+        # Narrow (a phone): the list above the chart, else beside it.
+        stacked = avail.x < px(_LIST_WIDTH + _CHART_LEAST)
+        size = (
+            imgui.ImVec2(0.0, avail.y * _STACKED_LIST_SHARE)
+            if stacked
+            else imgui.ImVec2(px(_LIST_WIDTH), avail.y)
+        )
+        if imgui.begin_child("##tl_list", size, True):
             self._render_pin_list(ga_info, color_by_raw)
         imgui.end_child()
-        imgui.same_line()
+        if not stacked:
+            imgui.same_line()
         if imgui.begin_child("##tl_chart", imgui.ImVec2(0.0, 0.0), True):
             self._render_chart(ga_info, color_by_raw)
         imgui.end_child()

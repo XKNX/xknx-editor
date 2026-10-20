@@ -92,7 +92,9 @@ class TopologyPanel:
             return
         _, self._building_mode = checkbox(S.TOPOLOGY_BUILDING_MODE, self._building_mode)
         imgui.same_line()
-        imgui.text_disabled(S.TOPOLOGY_HINT)
+        imgui.text_disabled(
+            S.TOPOLOGY_HINT_TOUCH if web.touch_used() else S.TOPOLOGY_HINT
+        )
         if self._building_mode:
             source = self._get_space_tree()
             key = (True, id(source))

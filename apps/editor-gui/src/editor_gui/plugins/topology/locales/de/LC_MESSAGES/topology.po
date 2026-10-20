@@ -30,3 +30,6 @@ msgstr "Bereich {area}"
 
 msgid "L {line}"
 msgstr "L {line}"
+
+msgid "Zoom with two fingers. Tap a device to open it."
+msgstr "Mit zwei Fingern zoomen. Ein Gerät antippen, um es zu öffnen."

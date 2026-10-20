@@ -14,6 +14,7 @@ from imgui_bundle import hello_imgui, imgui
 
 from editor_gui import file_dialogs, signing_key
 from editor_gui.plugins.signing.strings import S
+from editor_gui.widgets.flow import button_width, same_line_if_fits
 from xknxeditor.proj import (
     DLL_NAME,
     KeyExtractionError,
@@ -174,10 +175,11 @@ class SigningPanel:
             if imgui.button(S.EXTRACT):
                 self.begin_extract()
             imgui.end_disabled()
-        imgui.same_line()
+        # The buttons go on in the next line where the dialog is narrow (a phone).
+        same_line_if_fits(button_width(S.SAVE))
         if imgui.button(S.SAVE) and self._save():
             self._status = S.SAVED
-        imgui.same_line()
+        same_line_if_fits(button_width(S.RESET))
         if imgui.button(S.RESET):
             self._reset()
 
@@ -187,4 +189,9 @@ class SigningPanel:
             imgui.text_colored(_GREEN, self._status)
 
         imgui.separator()
-        imgui.text_disabled(S.CREDIT)
+        # Wrapped, so a narrow dialog (a phone) shows it whole.
+        imgui.push_style_color(
+            imgui.Col_.text, imgui.get_style_color_vec4(imgui.Col_.text_disabled)
+        )
+        imgui.text_wrapped(S.CREDIT)
+        imgui.pop_style_color()

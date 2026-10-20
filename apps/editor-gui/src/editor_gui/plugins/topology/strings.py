@@ -37,5 +37,9 @@ class TopologyStrings:
     def TOPOLOGY_LINE(self) -> str:
         return _("L {line}")
 
+    @property
+    def TOPOLOGY_HINT_TOUCH(self) -> str:
+        return _("Zoom with two fingers. Tap a device to open it.")
+
 
 S = TopologyStrings()

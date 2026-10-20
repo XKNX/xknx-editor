@@ -8,6 +8,7 @@ from editor_gui.plugins.logger.service import LogRecord
 from editor_gui.plugins.logger.strings import S
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dpi import px
+from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
 
 LEVEL_COLORS: dict[str, tuple[float, float, float]] = {
@@ -98,12 +99,13 @@ class LogPanel:
         _, self._filter_text = imgui.input_text_with_hint(
             "##logfilter", S.FILTER_PLACEHOLDER, self._filter_text
         )
-        imgui.same_line()
+        # The row goes on in the next line where the panel is narrow.
+        same_line_if_fits(px(100))
         imgui.set_next_item_width(px(100))
         _, self._min_level_idx = combo(
             "##loglevel", self._min_level_idx, [label for label, _ in _LEVEL_OPTIONS]
         )
-        imgui.same_line()
+        same_line_if_fits(button_width(S.COPY_LOG))
         # Rows are plain text (not selectable), so offer an explicit copy-all-to-clipboard.
         # Copy the COMPLETE log (all records, ignoring the current filter) so nothing is lost.
         if imgui.button(S.COPY_LOG) and records:
@@ -112,7 +114,7 @@ class LogPanel:
             # terminates the C string in set_clipboard_text and would truncate the whole copy.
             text = "".join(c for c in text if c in "\n\t" or c.isprintable())
             imgui.set_clipboard_text(text)
-        imgui.same_line()
+        same_line_if_fits(button_width(S.BTN_CLEAR))
         if imgui.button(S.BTN_CLEAR):
             self._on_clear()
             self._last_count = 0
