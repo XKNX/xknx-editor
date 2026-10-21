@@ -87,6 +87,8 @@ from .state import GlobalState, ModuleState
 log = logging.getLogger(__name__)
 # Out-of-range values already reported, (value, id of its type), so a repeated encode stays quiet.
 _out_of_range_logged: set[tuple[str, int]] = set()
+# Parameters already reported as placed outside their segment.
+_outside_segment_logged: set[str] = set()
 
 
 class MemWrite(NamedTuple):
@@ -208,15 +210,23 @@ def _write_bits(
             buf[pos // 8] &= ~bit_mask
 
 
-def _write_param(buf: bytearray, w: MemWrite, size_in_bit: int, value: int) -> None:
-    """Write a parameter's bits; one placed past its segment's end is an encoding error."""
+def _write_param(buf: bytearray, w: MemWrite, size_in_bit: int, value: int) -> bool:
+    """Write a parameter's bits. One a product places past its segment's end (e.g. the last
+    channel of a module repeat) is left out, as the device holds only the segment's size."""
     end_bit = w.offset * 8 + w.bit_offset + size_in_bit
     if end_bit > len(buf) * 8:
-        raise EncodingError(
-            f"parameter {w.param_id} at offset {w.offset} lies outside segment {w.seg_id} "
-            f"({len(buf)} bytes)"
-        )
+        if w.param_id not in _outside_segment_logged:
+            _outside_segment_logged.add(w.param_id)
+            log.warning(
+                "parameter %s at offset %d lies outside segment %s (%d bytes), not written",
+                w.param_id,
+                w.offset,
+                w.seg_id,
+                len(buf),
+            )
+        return False
     _write_bits(buf, w.offset, w.bit_offset, size_in_bit, value)
+    return True
 
 
 def _encode_value(
@@ -1182,7 +1192,8 @@ def encode_to_memory_masked(
         if plan is None:
             continue
         encoded, write_bits = plan
-        _write_param(buf, w, write_bits, encoded)
+        if not _write_param(buf, w, write_bits, encoded):
+            continue
         start_bit = w.offset * 8 + w.bit_offset
         end_bit = start_bit + write_bits - 1
         mask = masks[w.seg_id]

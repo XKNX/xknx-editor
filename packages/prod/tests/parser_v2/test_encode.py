@@ -8,7 +8,6 @@ import pytest
 
 from xknxeditor.namespaces.intermediate.segment_base_t import SegmentBase
 from xknxeditor.prod import load
-from xknxeditor.prod.errors import EncodingError
 from xknxeditor.prod.parser_v2.dynamic import DynamicUI
 from xknxeditor.prod.parser_v2.encode import MemWrite, _write_param, segment_seed
 
@@ -125,15 +124,12 @@ def test_segment_seed_pads_data_to_the_declared_size() -> None:
     assert segment_seed(longer) == bytearray([7, 8])
 
 
-def test_parameter_outside_its_segment_is_an_encoding_error() -> None:
+def test_parameter_outside_its_segment_is_left_out() -> None:
     # A product can place a parameter past its segment (e.g. the last channel of a module
-    # repeat); that is reported, not written past the end.
+    # repeat); the device holds only the segment, so it is left out instead of written past it.
     buf = bytearray(4)
     inside = MemWrite("RS-1", 3, 0, "P-1", "PT-1", "7")
-    _write_param(buf, inside, 8, 7)
-    assert buf == bytearray([0, 0, 0, 7])
+    assert _write_param(buf, inside, 8, 7)
     outside = MemWrite("RS-1", 4, 0, "P-2", "PT-1", "1")
-    with pytest.raises(
-        EncodingError, match="P-2 at offset 4 lies outside segment RS-1"
-    ):
-        _write_param(buf, outside, 8, 1)
+    assert not _write_param(buf, outside, 8, 1)
+    assert buf == bytearray([0, 0, 0, 7])
