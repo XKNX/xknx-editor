@@ -32,8 +32,9 @@ DEFAULT_BASE_URL = "https://onlinecatalog.knx.org"
 MASTER_DATA_URL = "https://update.knx.org/data/XML/project-23/knx_master.xml"
 _CACHE_FILE = "online_catalog_manufacturers.json"
 _INDEX_CACHE_FILE = "online_catalog_index.json"
-# Raised when the cached items' meaning changes, so an older cache is rebuilt (2: market check).
-_INDEX_FORMAT = 2
+# Raised when the cached items' meaning changes, so an older cache is rebuilt (2: market check,
+# 3: plugin and incomplete-information flags no longer block).
+_INDEX_FORMAT = 3
 _INDEX_SAVE_EVERY = (
     10  # persist the growing index every N manufacturers, for resumability
 )
