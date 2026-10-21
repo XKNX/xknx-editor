@@ -197,3 +197,9 @@ msgstr "{name} konnte nicht exportiert werden: {error}"
 
 msgid "No stored archive for {name}"
 msgstr "Kein gespeichertes Archiv für {name}"
+
+msgid "Which room should {name} go into?"
+msgstr "In welchen Raum soll {name}?"
+
+msgid "Add Device to Project"
+msgstr "Gerät zum Projekt hinzufügen"

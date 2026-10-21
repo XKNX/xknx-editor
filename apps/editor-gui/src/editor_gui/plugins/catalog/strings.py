@@ -152,6 +152,14 @@ class CatalogStrings:
         return _("(no room)")
 
     @property
+    def CATALOG_ADD_SPACE_TITLE(self) -> str:
+        return _("Add Device to Project")
+
+    @property
+    def CATALOG_ADD_SPACE_PROMPT(self) -> str:
+        return _("Which room should {name} go into?")
+
+    @property
     def CATALOG_ADD_NEEDS_PROJECT(self) -> str:
         return _("Open or create a project first to add a device.")
 
