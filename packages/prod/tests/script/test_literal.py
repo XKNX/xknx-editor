@@ -22,6 +22,11 @@ from xknxeditor.prod.script.literal import parse_literal
         ("// note\n{a: 1 /* one */}", {"a": 1}),
         ("{a: '\\u00e4\\n'}", {"a": "ä\n"}),
         ("{1: 'one'}", {"1": "one"}),
+        ("[1, 2, 3,]", [1, 2, 3]),
+        ("{a: 1 /* c */, // line\n b: 2}", {"a": 1, "b": 2}),
+        ("""{q: 'she said "hi"'}""", {"q": 'she said "hi"'}),
+        ('{text: "a: b, {c}"}', {"text": "a: b, {c}"}),
+        ("{text: 'key: value, more'}", {"text": "key: value, more"}),
     ],
 )
 def test_parse(text: str, expected: object) -> None:
@@ -35,7 +40,17 @@ def test_special_numbers() -> None:
 
 
 @pytest.mark.parametrize(
-    "text", ["{a: 1", "{a 1}", "{a: x}", "{a: 'x}", "{a: 1} b", "{,}", ""]
+    "text",
+    [
+        "{a: 1",
+        "{a 1}",
+        "{a: x}",
+        "{a: 'x}",
+        "{a: 1} b",
+        "{,}",
+        "",
+        "{ this is not json at all ",
+    ],
 )
 def test_invalid(text: str) -> None:
     with pytest.raises(ValueError):
