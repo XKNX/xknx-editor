@@ -316,11 +316,19 @@ class _WithFields:
 
 
 @override("LdCtrlCompareProp_t")
-def _compare_prop(ctx: Context, src: Any) -> dict[str, Any]:
-    """A compare may test a ``Range`` instead of ``InlineData`` (optional on the base type); the
-    unified model wants the field, so it is passed on as absent rather than failing the import."""
+@override("ModuleDefLdCtrlCompareProp_t")
+@override("LdCtrlCompareMem_t")
+@override("LdCtrlCompareRelMem_t")
+def _compare_without_inline_data(ctx: Context, src: Any) -> dict[str, Any]:
+    """A compare may test a ``Range`` or the image's own data instead of ``InlineData`` (optional
+    on the base type); the unified model wants the field, so it is passed on as absent rather than
+    failing the import."""
     if getattr(src, "inline_data", None) is None:
-        ctx.logger.debug("convert.compare_prop.no_inline_data", range=src.range)
+        ctx.logger.debug(
+            "convert.compare.no_inline_data",
+            control=type(src).__name__,
+            range=getattr(src, "range", None),
+        )
         return {"inline_data": None}
     return {}
 

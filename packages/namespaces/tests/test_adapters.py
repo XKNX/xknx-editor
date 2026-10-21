@@ -89,6 +89,20 @@ def test_compare_prop_with_a_range_instead_of_inline_data() -> None:
     assert out.inline_data is None
 
 
+def test_compare_mem_without_inline_data() -> None:
+    # Without InlineData the compare checks the image's own data at the address.
+    from xknxeditor.namespaces.files.v20.ld_ctrl_compare_mem_t import (
+        LdCtrlCompareMem as V20CompareMem,
+    )
+    from xknxeditor.namespaces.intermediate.ld_ctrl_compare_mem_t import (
+        LdCtrlCompareMem as IRCompareMem,
+    )
+
+    src = V20CompareMem(address=42410, size=1)
+    out = convert(Context(version="v20"), src, IRCompareMem)
+    assert (out.address, out.size, out.inline_data) == (42410, 1, None)
+
+
 # --- PuidAllocator --------------------------------------------------------
 
 

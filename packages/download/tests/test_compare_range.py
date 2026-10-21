@@ -64,3 +64,30 @@ async def test_property_range_compare(version: bytes, passes: bool) -> None:
     else:
         with pytest.raises(CompareMismatch):
             await runner.run()
+
+
+@pytest.mark.parametrize(("device_value", "passes"), [(0x2A, True), (0x2B, False)])
+async def test_memory_compare_without_inline_data_checks_the_image(
+    device_value: int, passes: bool
+) -> None:
+    from xknxeditor.download.image import MemorySegment
+    from xknxeditor.namespaces.intermediate.ld_ctrl_compare_mem_t import (
+        LdCtrlCompareMem,
+    )
+
+    app, _ = seeded_application()
+    device = FakeDevice()
+    device.memory[0x4000] = device_value
+    fields: dict[str, Any] = {"inline_data": None}
+    control = LdCtrlCompareMem(address=0x4000, size=1, **fields)
+    runner = LoadProcedureRunner(
+        app,
+        DownloadImage((MemorySegment(0x4000, b"\x2a"),), ()),
+        DeviceProgrammer(device),
+        controls=[control],
+    )
+    if passes:
+        await runner.run()
+    else:
+        with pytest.raises(CompareMismatch):
+            await runner.run()

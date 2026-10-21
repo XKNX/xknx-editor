@@ -1957,7 +1957,8 @@ class LoadProcedureRunner:
             runs = self._memory_runs(address, control.size, control.address_space)
         values = {
             address + n: value
-            for n, value in enumerate(control.inline_data[: control.size])
+            # Without inline data the compare checks the image's own data at the address.
+            for n, value in enumerate((control.inline_data or b"")[: control.size])
         }
         for start, data in runs or []:
             values.update({start + n: value for n, value in enumerate(data)})
