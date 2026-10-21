@@ -505,10 +505,13 @@ def build_image(
         initialized = bytes([0xFF]) * min(len(seed or b""), len(data))
         initialized = initialized.ljust(len(data), b"\x00")
         if declaration is not None and declaration.mask is not None:
-            if len(declaration.mask) != len(data):
+            if len(declaration.mask) > len(data):
                 raise ImageError(f"initialized mask length mismatch for {segment_id}")
+            # Data (and its mask) may cover only the start of the segment; the rest is not
+            # initialized.
+            seed_mask = declaration.mask.ljust(len(data), b"\x00")
             initialized = bytes(
-                a & b for a, b in zip(initialized, declaration.mask, strict=True)
+                a & b for a, b in zip(initialized, seed_mask, strict=True)
             )
         if segment_id in table_ids:
             # Table builders supply initialized table bytes. Retain any parameters
