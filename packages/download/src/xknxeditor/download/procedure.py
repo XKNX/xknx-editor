@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import re
 import time
 from collections.abc import Callable, Mapping, Sequence
 from typing import TYPE_CHECKING
@@ -178,6 +179,32 @@ def _bytes_match(
     return read_back[:length] == expected[:length]
 
 
+_RANGE = re.compile(r"([\[(])(-?\d+)?,(-?\d+)?([\])])([su]?)")
+
+
+def _value_in_range(text: str, read_back: bytes, mask: bytes | None) -> bool:
+    """Whether ``read_back`` (masked) lies in the compare's ``Range``.
+
+    The range is an interval as the product data writes it: ``[`` / ``]`` include a bound,
+    ``(`` / ``)`` exclude it, a missing bound is open, and an ``s`` suffix reads the data as a
+    signed number (``u`` or none: unsigned). The data is read most significant octet first."""
+    match = _RANGE.fullmatch(text.strip())
+    if match is None:
+        raise UnsupportedProcedureError(f"invalid compare range {text!r}")
+    opening, low, high, closing, kind = match.groups()
+    data = bytes(read_back)
+    if mask:
+        mask = mask.ljust(len(data), b"\xff")
+        data = bytes(octet & mask[i] for i, octet in enumerate(data))
+    value = int.from_bytes(data, "big", signed=kind == "s")
+    if low is not None and (value < int(low) or (opening == "(" and value == int(low))):
+        return False
+    return not (
+        high is not None
+        and (value > int(high) or (closing == ")" and value == int(high)))
+    )
+
+
 def _significant_octets(expected: bytes, mask: bytes | None, *, start: int) -> int:
     """How many octets from ``start`` onwards the compare would actually have checked.
 
@@ -200,16 +227,17 @@ def _significant_octets(expected: bytes, mask: bytes | None, *, start: int) -> i
 def _unsupported_compare_reason(control: object) -> str | None:
     """A reason string if a Compare control uses a semantic this engine does not implement, else None.
 
-    Plain (optionally masked) equality compares are executed. The Invert, Range and
-    RetryInterval/TimeOut semantics (KNX Standard v3.0.0, 3/5/1 Compare controls) are NOT, so a
-    control that sets any of them is rejected up front rather than silently verified with the wrong
-    result (Invert would invert the outcome; Range/Retry change what "match" means)."""
+    Plain (optionally masked) equality compares are executed, and a property compare with a Range.
+    The Invert and RetryInterval/TimeOut semantics (KNX Standard v3.0.0, 3/5/1 Compare controls),
+    and a Range on other compares, are NOT, so a control that sets any of them is rejected up front
+    rather than silently verified with the wrong result (Invert would invert the outcome; Range/Retry
+    change what "match" means)."""
     if not isinstance(control, LdCtrlCompareBase):
         return None
     unsupported: list[str] = []
     if control.invert:
         unsupported.append("Invert (compare passes on inequality)")
-    if control.range is not None:
+    if control.range is not None and not isinstance(control, LdCtrlCompareProp):
         unsupported.append("Range (value-in-interval compare)")
     if control.retry_interval or control.time_out:
         unsupported.append("RetryInterval/TimeOut (poll until the state is reached)")
@@ -1954,6 +1982,9 @@ class LoadProcedureRunner:
         property: otherwise a truncated reply would pass this gate on a prefix.
         """
         index = await self._resolve_index(control, extended=True)
+        if control.range is not None:
+            await self._compare_prop_range(index, control, control.range)
+            return
         expected, captured_width, source = self._property_compare_data(index, control)
         read_back = await self._read_property(index, control)
         logger.debug(
@@ -2050,6 +2081,37 @@ class LoadProcedureRunner:
                 expected=expected,
                 read=read_back,
                 mask=mask,
+            )
+
+    async def _compare_prop_range(
+        self, index: int, control: LdCtrlCompareProp, value_range: str
+    ) -> None:
+        """Read a property and check that its value lies in ``value_range`` (e.g. a minimum
+        firmware version, ``[2216203124736,]``)."""
+        read_back = await self._read_property(index, control)
+        if not read_back:
+            raise VerificationError(
+                f"property compare for object {index} property {control.prop_id} "
+                "read no data from the device"
+            )
+        matched = _value_in_range(value_range, read_back, control.mask)
+        logger.debug(
+            "property range compare: %s object-index=%d pid=%d range=%s read=%s -> %s",
+            self._diagnostic_context(),
+            index,
+            control.prop_id,
+            value_range,
+            read_back.hex(),
+            "match" if matched else "MISMATCH",
+        )
+        if not matched:
+            raise CompareMismatch(
+                f"property compare failed for object {index} property "
+                f"{control.prop_id}: read {read_back.hex()} is outside {value_range}",
+                object_index=index,
+                property_id=control.prop_id,
+                read=read_back,
+                mask=control.mask,
             )
 
     async def _abs_segment(self, control: LdCtrlAbsSegment) -> None:
