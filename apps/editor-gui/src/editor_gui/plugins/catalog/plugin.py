@@ -40,6 +40,7 @@ class CatalogPlugin:
             can_add_to_project=lambda: api.project.is_open,
             plan_delete_product=self._plan_delete_product,
             delete_product=self._delete_product,
+            export_product=self._export_product,
         )
         self._panels = [
             PanelDefinition(
@@ -160,6 +161,31 @@ class CatalogPlugin:
             files=len(deletion.removed_files),
         )
         self._notify(S.DELETE_OK.format(name=product.name or ref))
+
+    def _export_product(self, product: ProductSummary, dest: str) -> None:
+        """Copy a local product's original ``.knxprod`` archive to ``dest`` (it is kept verbatim on
+        disk). The archive is the one that was imported, so a manufacturer bundle exports whole."""
+        import shutil
+
+        name = product.name or product.product_ref_id
+        source = self._api.catalog.get_program_source(product.hardware2program_ref_id)
+        if source is None:
+            self._log.warning("no stored archive for product", product=name)
+            self._notify(S.EXPORT_KNXPROD_UNAVAILABLE.format(name=name))
+            return
+        knxprod_path, _manufacturer = source
+        try:
+            shutil.copyfile(knxprod_path, dest)
+        except OSError as exc:
+            self._log.error(
+                "knxprod export failed",
+                product=name,
+                error=f"{type(exc).__name__}: {exc}",
+            )
+            self._notify(S.EXPORT_KNXPROD_FAILED.format(name=name, error=str(exc)))
+            return
+        self._log.info("exported knxprod", product=name, dest=dest)
+        self._notify(S.EXPORT_KNXPROD_OK.format(name=name))
 
     def _space_options(self) -> list[tuple[int, str]]:
         """Flattened (space_id, "Building / Floor / Room") pairs for the Add-device room picker,

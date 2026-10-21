@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
+from editor_gui import file_dialogs
 from editor_gui.device_info import application_version_text
 from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.plugins.catalog.strings import S
@@ -110,6 +111,12 @@ def _key(product: ProductSummary) -> str:
     return f"{product.product_ref_id}|{product.hardware2program_ref_id}"
 
 
+def _safe_stem(text: str) -> str:
+    """A filesystem-friendly default file name (no path separators or odd characters)."""
+    stem = "".join(c if c.isalnum() or c in " -_." else "_" for c in text).strip()
+    return stem or "product"
+
+
 def _same(a: ProductSummary | None, b: ProductSummary) -> bool:
     return a is not None and _key(a) == _key(b)
 
@@ -146,6 +153,7 @@ class CatalogPanel:
         can_add_to_project: Callable[[], bool] | None = None,
         plan_delete_product: Callable[[ProductSummary], int | None] | None = None,
         delete_product: Callable[[ProductSummary], None] | None = None,
+        export_product: Callable[[ProductSummary, str], None] | None = None,
     ) -> None:
         self._get_products = get_products
         self._on_select = on_select
@@ -212,6 +220,11 @@ class CatalogPanel:
         self._delete_affected = 0
         self._open_delete_popup = False
         self._deleting: str | None = None
+        # Export a local product's original .knxprod archive. The save dialog is polled each frame
+        # (desktop or browser); on a chosen path the callback copies the stored archive there.
+        self._export_product_cb = export_product
+        self._export_dialog: file_dialogs.SaveFileDialog | None = None
+        self._export_target: ProductSummary | None = None
 
     def render(self) -> None:
         self._render_missing_apps_banner()
@@ -229,6 +242,7 @@ class CatalogPanel:
             imgui.end_tab_bar()
         self._render_add_to_project_modal()
         self._render_delete_modal()
+        self._poll_export()
 
     def _render_local_catalog(self) -> None:
         self._search = filter_box("##catalog_search", S.LOCAL_SEARCH_HINT, self._search)
@@ -332,12 +346,43 @@ class CatalogPanel:
                 )  # double click adds to the project
 
     def _render_product_context_menu(self, product: ProductSummary) -> None:
-        if self._delete_product is None:
+        if self._delete_product is None and self._export_product_cb is None:
             return
         if imgui.begin_popup_context_item(f"##catalog_ctx_{_key(product)}"):
-            if imgui.menu_item(S.CONTEXT_DELETE, "", False, self._deleting is None)[0]:
+            if (
+                self._export_product_cb is not None
+                and imgui.menu_item(S.CONTEXT_EXPORT_KNXPROD, "", False)[0]
+            ):
+                self._start_export(product)
+            if (
+                self._delete_product is not None
+                and imgui.menu_item(
+                    S.CONTEXT_DELETE, "", False, self._deleting is None
+                )[0]
+            ):
                 self._request_delete(product)
             imgui.end_popup()
+
+    def _start_export(self, product: ProductSummary) -> None:
+        """Ask where to save the product's original ``.knxprod`` archive."""
+        stem = _safe_stem(
+            product.order_number or product.name or product.product_ref_id
+        )
+        self._export_target = product
+        self._export_dialog = file_dialogs.save_file(
+            S.EXPORT_KNXPROD_TITLE,
+            f"{stem}.knxprod",
+            [S.EXPORT_KNXPROD_FILTER, "*.knxprod"],
+        )
+
+    def _poll_export(self) -> None:
+        if self._export_dialog is None or not self._export_dialog.ready():
+            return
+        dest = self._export_dialog.result()
+        self._export_dialog = None
+        product, self._export_target = self._export_target, None
+        if dest and product is not None and self._export_product_cb is not None:
+            self._export_product_cb(product, dest)
 
     def _request_delete(self, product: ProductSummary) -> None:
         """Open the delete confirmation, with the number of project devices it affects."""

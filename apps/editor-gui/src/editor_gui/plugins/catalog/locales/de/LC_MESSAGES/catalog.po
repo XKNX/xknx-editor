@@ -179,3 +179,21 @@ msgstr "Dieses Gerät unterstützt KNX Data Secure. Legen Sie ein Projektpasswor
 
 msgid "Search…"
 msgstr "Suchen…"
+
+msgid "Export .knxprod…"
+msgstr "Als .knxprod exportieren…"
+
+msgid "Export .knxprod"
+msgstr ".knxprod exportieren"
+
+msgid "KNX product (*.knxprod)"
+msgstr "KNX-Produkt (*.knxprod)"
+
+msgid "Exported {name}"
+msgstr "{name} exportiert"
+
+msgid "Could not export {name}: {error}"
+msgstr "{name} konnte nicht exportiert werden: {error}"
+
+msgid "No stored archive for {name}"
+msgstr "Kein gespeichertes Archiv für {name}"

@@ -233,6 +233,30 @@ class CatalogStrings:
         return _("Deleted from the local catalog: {name}")
 
     @property
+    def CONTEXT_EXPORT_KNXPROD(self) -> str:
+        return _("Export .knxprod…")
+
+    @property
+    def EXPORT_KNXPROD_TITLE(self) -> str:
+        return _("Export .knxprod")
+
+    @property
+    def EXPORT_KNXPROD_FILTER(self) -> str:
+        return _("KNX product (*.knxprod)")
+
+    @property
+    def EXPORT_KNXPROD_OK(self) -> str:
+        return _("Exported {name}")
+
+    @property
+    def EXPORT_KNXPROD_FAILED(self) -> str:
+        return _("Could not export {name}: {error}")
+
+    @property
+    def EXPORT_KNXPROD_UNAVAILABLE(self) -> str:
+        return _("No stored archive for {name}")
+
+    @property
     def CATALOG_ADD_SECURE_PASSWORD(self) -> str:
         return _(
             "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
