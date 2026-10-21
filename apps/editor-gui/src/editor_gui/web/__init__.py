@@ -70,6 +70,8 @@ _TRACE = os.environ.get("XKNX_WEB_TRACE") == "1"
 _ERROR_REPORT_SECONDS = 10.0
 
 active_hub: WebHub | None = None
+# The browser UI's address, once it is served.
+page_url = ""
 
 # The zoom steps of the browser UI (as in the page's client.js).
 ZOOMS = (0.5, 0.67, 0.75, 0.8, 0.9, 1.0, 1.1, 1.25, 1.5, 1.75, 2.0)
@@ -236,7 +238,7 @@ def enable_web_mode(
     runner_params: hello_imgui.RunnerParams, options: WebOptions
 ) -> WebHub:
     """Switch ``runner_params`` to the windowless web mode and start the server."""
-    global active_hub
+    global active_hub, page_url
     from editor_gui.settings import config_dir
     from editor_gui.web.frames import Frame, encode_frame
     from editor_gui.web.server import WebHub
@@ -508,7 +510,7 @@ def enable_web_mode(
         shown = socket.gethostname()  # every address of this computer: name it
     else:
         shown = options.host
-    url = f"{scheme}://{shown}:{port}/"
+    url = page_url = f"{scheme}://{shown}:{port}/"
     print(f"XKNX Editor web UI: {url}", flush=True)
     logger.info("web UI listening on %s:%d, files in %s", options.host, port, files)
 

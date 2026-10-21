@@ -1,3 +1,4 @@
+import collections
 import os
 import platform
 import re
@@ -37,6 +38,17 @@ from editor_gui.certs import ensure_ca_bundle
 from editor_gui.color import warning_red
 from editor_gui.concurrency import MainThreadExecutor
 from editor_gui.dock_menus import render_section_menus
+from editor_gui.instances import (
+    BROWSER,
+    DESKTOP,
+    Instance,
+    Registry,
+    allow_foreground,
+    others,
+    request,
+    same_file,
+    with_project,
+)
 from editor_gui.log_file import log_dir
 from editor_gui.master_data import MasterDataInfo, load_master, master_xml_bytes
 from editor_gui.myknx_oauth import (
@@ -109,7 +121,7 @@ from editor_gui.widgets.tables import (
 )
 from editor_gui.widgets.text_util import fit_text, human_size, text_clipped_tooltip
 from editor_gui.widgets.tree import collapsing_header
-from editor_gui.window_title import set_window_title
+from editor_gui.window_title import bring_to_front, set_window_title, wake
 from xknxeditor.catalog import ProductSummary
 from xknxeditor.prod.app_id import parse_app_id
 from xknxeditor.prod.errors import ArchiveError
@@ -178,6 +190,11 @@ def _find_linux_file_dialog_helper(path: str | None = None) -> str | None:
         ),
         None,
     )
+
+
+def _any_popup_open() -> bool:
+    """Whether a popup or dialog is open now."""
+    return imgui.is_popup_open("", imgui.PopupFlags_.any_popup_id)
 
 
 def startup_file(argv: list[str]) -> str | None:
@@ -607,6 +624,13 @@ class KnxGuiApp:
         self._update_scope = self_update.installed_scope()
         # A project passed on the command line, opened once the window is up.
         self.startup_file: str | None = None
+        # Other editors running when this one started: asked about first (see instances.py).
+        self.running_editors: list[Instance] = []
+        # This editor's entry for the others, and their requests (handled on the UI thread).
+        self._registry: Registry | None = None
+        self._editor_requests: collections.deque[dict[str, Any]] = collections.deque()
+        # A project another editor has open, and those editors: asked about before opening it.
+        self._elsewhere: tuple[str, list[Instance]] | None = None
         self._update_manual = False  # a user-triggered check also reports "up to date"
         # The dialog of a user-triggered check: "checking", "current", "failed", or None (closed).
         self._update_check_state: str | None = None
@@ -758,16 +782,150 @@ class KnxGuiApp:
         # Apply a previously extracted project-log (trace) key so comments decrypt on open.
         if trace_key_store.apply_cached_key():
             self._log.info("trace key loaded")
+        self._register_editor()
+        # Best-effort check for a newer release on GitHub (unless the user disabled it).
+        if self._update_check_enabled():
+            self._start_update_check(manual=False)
+        # With other editors running, the user is asked first (_render_running_editors_modal).
+        if not self.running_editors:
+            self._start_session()
+
+    def _start_session(self) -> None:
+        """What a start does besides showing the app: connect, restart the MCP server, and open the
+        project given on the command line."""
         # Discover KNX gateways at startup and auto-connect to the last-used (or first) one.
         self._connection_plugin.autostart()
         # Restart the MCP server when it was running at the last exit.
         if load_settings("mcp").get("running"):
             self._start_mcp(save=False)
-        # Best-effort check for a newer release on GitHub (unless the user disabled it).
-        if self._update_check_enabled():
-            self._start_update_check(manual=False)
         if self.startup_file is not None:
             self._do_open_project(self.startup_file)
+
+    # --- other running editors (instances.py) -----------------------------
+
+    def _register_editor(self) -> None:
+        """Make this editor known to others started later, and answer their requests."""
+        hub = web.active_hub
+
+        def received(command: dict[str, Any]) -> None:
+            # On the registry's thread: queue it and wake the idle render loop.
+            self._editor_requests.append(command)
+            if hub is not None:
+                hub.wake.set()
+            else:
+                wake()
+
+        mode = BROWSER if hub is not None else DESKTOP
+        try:
+            self._registry = Registry(mode, web.page_url, received)
+        except OSError as e:
+            self._log.warning("not registered for other editors", error=str(e))
+
+    def _handle_editor_requests(self) -> None:
+        """Another editor asked this one to come to the front, and maybe to open a project."""
+        if self._registry is not None:
+            path = self._project_service.path
+            self._registry.set_project(str(path) if path is not None else "")
+        while self._editor_requests:
+            command = self._editor_requests[0]
+            file = command.get("file")
+            if isinstance(file, str) and file:
+                current = self._project_service.path
+                if current is None or not same_file(str(current), file):
+                    if self._bg_thread is not None or self._import_thread is not None:
+                        return  # opened once the running task is done
+                    self._do_open_project(file)
+            self._editor_requests.popleft()
+            if web.active_hub is None:
+                bring_to_front()
+
+    def _switch_to(self, other: Instance, file: str | None) -> bool:
+        """Bring ``other`` to the front (or its browser UI), opening ``file`` there; whether it
+        answered."""
+        allow_foreground(other.pid)
+        command: dict[str, Any] = {"cmd": "activate"}
+        if file:
+            command["file"] = file
+        if request(other, command) is None:
+            self._flash_toast(S.EDITOR_GONE)
+            return False
+        if other.mode == BROWSER:
+            if web.active_hub is not None:
+                web.active_hub.go_to(other.url)
+            else:
+                open_url(other.url)
+        return True
+
+    def _editor_label(self, other: Instance) -> str:
+        kind = (
+            S.EDITOR_BROWSER.format(url=other.url)
+            if other.mode == BROWSER
+            else S.EDITOR_WINDOW
+        )
+        project = Path(other.project).name if other.project else S.EDITOR_NO_PROJECT
+        return S.EDITOR_ENTRY.format(kind=kind, project=project)
+
+    def _render_running_editors_modal(self) -> None:
+        """At a start while other editors run: switch to one of them, or start this one too."""
+        title = f"{S.EDITOR_RUNNING_TITLE}###editor-running"
+        # Opened (again) while no other dialog is open: one opened meanwhile would replace it.
+        if self.running_editors and not _any_popup_open():
+            imgui.open_popup(title)
+        if not begin_dialog(title, width=560.0):
+            return
+        imgui.text_wrapped(S.EDITOR_RUNNING_TEXT)
+        imgui.spacing()
+        switched = self._render_editor_rows(self.running_editors, self.startup_file)
+        imgui.spacing()
+        clicked = dialog_buttons(S.EDITOR_START_ANOTHER, S.BTN_CANCEL)
+        if switched or clicked == 1:
+            imgui.close_current_popup()
+            self.running_editors = []
+            hello_imgui.get_runner_params().app_shall_exit = True
+        elif clicked == 0:
+            imgui.close_current_popup()
+            self.running_editors = []
+            self._start_session()
+        end_dialog()
+
+    def _render_editor_rows(self, editors: list[Instance], file: str | None) -> bool:
+        """One row per editor with its "Switch to It" button; whether one was switched to."""
+        switched = False
+        for index, other in enumerate(editors):
+            imgui.push_id(f"editor-{index}")
+            imgui.align_text_to_frame_padding()
+            imgui.bullet_text(self._editor_label(other))
+            imgui.same_line()
+            if imgui.button(S.EDITOR_SWITCH) and self._switch_to(other, file):
+                switched = True
+            imgui.pop_id()
+        return switched
+
+    def _render_project_elsewhere_modal(self) -> None:
+        """Before opening a project another editor has open: switch there, or open it anyway."""
+        title = f"{S.PROJECT_ELSEWHERE_TITLE}###project-elsewhere"
+        if self._elsewhere is not None and not _any_popup_open():
+            imgui.open_popup(title)
+        if not begin_dialog(title, width=560.0):
+            return
+        if self._elsewhere is None:
+            imgui.close_current_popup()
+            end_dialog()
+            return
+        path, editors = self._elsewhere
+        imgui.text_wrapped(S.PROJECT_ELSEWHERE_TEXT.format(name=Path(path).name))
+        imgui.spacing()
+        switched = self._render_editor_rows(editors, None)
+        imgui.spacing()
+        clicked = dialog_buttons(S.PROJECT_OPEN_ANYWAY, S.BTN_CANCEL)
+        if switched or clicked == 1:
+            imgui.close_current_popup()
+            self._elsewhere = None
+        elif clicked == 0:
+            imgui.close_current_popup()
+            self._elsewhere = None
+            self._do_open_project(path, open_anyway=True)
+        end_dialog()
 
     # --- update check (GitHub releases) -----------------------------------
 
@@ -830,6 +988,8 @@ class KnxGuiApp:
             self._update_check_state = "current"
 
     def shutdown(self) -> None:
+        if self._registry is not None:
+            self._registry.close()
         # Stop the MCP server first so in-flight tool calls stop before the bus loop and project they
         # depend on are torn down.
         self._mcp_plugin.stop()
@@ -2540,7 +2700,7 @@ class KnxGuiApp:
         )  # not added to Recent — it is a throwaway until saved
         self._log.info("untitled project created", path=str(path))
 
-    def _do_open_project(self, path: str) -> None:
+    def _do_open_project(self, path: str, *, open_anyway: bool = False) -> None:
         suffix = Path(path).suffix.lower()
         self._log.info(
             "routing open project",
@@ -2592,6 +2752,12 @@ class KnxGuiApp:
             self._log.error("project file no longer exists", path=path)
             self._remove_recent(path)
             return
+        # Another editor has it open: ask first, as two editors would overwrite each other's changes.
+        if not open_anyway:
+            elsewhere = with_project(path, others())
+            if elsewhere:
+                self._elsewhere = (path, elsewhere)
+                return
 
         def report(done: int, total: int, label: str = "") -> None:
             text = S.PROGRESS_DEVICES.format(done=done, total=total)
@@ -4384,6 +4550,7 @@ class KnxGuiApp:
     def render_overlays(self) -> None:
         if web.active_hub is not None:
             self._update_web_layout()
+        self._handle_editor_requests()
         self._settle_tab_order()
         self._project_service.take_rechecked_devices()
         self._sync_device_section()
@@ -4425,6 +4592,8 @@ class KnxGuiApp:
         self._render_progress_modal()
         self._render_import_password_modal()
         self._render_open_password_modal()
+        self._render_running_editors_modal()
+        self._render_project_elsewhere_modal()
         self._render_new_password_modal()
         self._render_network_consent_modal()
         self._render_overwrite_modal()
@@ -5638,6 +5807,9 @@ def _main() -> None:
     move_product_cache(config_dir() / "ir_cache")
     app = KnxGuiApp(catalog_path)
     app.startup_file = startup_file(sys.argv)
+    # Editors running already are offered first; --new-instance starts another without asking.
+    if "--new-instance" not in sys.argv:
+        app.running_editors = others()
 
     # Start on the Welcome screen (New / Open / Recent). We deliberately do NOT auto-open a project
     # so the Welcome is always visible on launch; the recent list gives one-click access.

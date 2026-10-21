@@ -48,6 +48,11 @@ disk-image tool instead of launching):
 chmod +x XKNX-Editor-x86_64.AppImage && ./XKNX-Editor-x86_64.AppImage
 ```
 
+Started while XKNX Editor already runs (as a window or as the browser UI), it asks whether to
+switch to the running one, which then opens a project given at the start, or to start another, e.g.
+for a second project or another bus connection. `--new-instance` starts another without asking.
+Opening a project another XKNX Editor has open asks first as well.
+
 ## Reporting problems
 
 Report a problem via **Feedback** in the menu bar, which opens the

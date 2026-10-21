@@ -1426,3 +1426,39 @@ msgstr "Im Browser öffnen"
 
 msgid "Stop XKNX Editor"
 msgstr "XKNX Editor beenden"
+
+msgid "XKNX Editor Already Running"
+msgstr "XKNX Editor läuft bereits"
+
+msgid "XKNX Editor is already running on this computer. Switch to it, or start another one, e.g. to work on a second project or with another bus connection."
+msgstr "XKNX Editor läuft auf diesem Computer bereits. Dorthin wechseln oder einen weiteren starten, z. B. für ein zweites Projekt oder eine andere Busverbindung."
+
+msgid "Window"
+msgstr "Fenster"
+
+msgid "Browser UI ({url})"
+msgstr "Browser-Oberfläche ({url})"
+
+msgid "No project open"
+msgstr "Kein Projekt geöffnet"
+
+msgid "{kind}: {project}"
+msgstr "{kind}: {project}"
+
+msgid "Switch to It"
+msgstr "Dorthin wechseln"
+
+msgid "Start Another"
+msgstr "Weiteren starten"
+
+msgid "That XKNX Editor has ended in the meantime."
+msgstr "Dieser XKNX Editor wurde inzwischen beendet."
+
+msgid "Project Already Open"
+msgstr "Projekt bereits geöffnet"
+
+msgid "{name} is already open in another XKNX Editor. Editing it in two editors at once can overwrite changes."
+msgstr "{name} ist bereits in einem anderen XKNX Editor geöffnet. Wird es in zwei Editoren gleichzeitig bearbeitet, können Änderungen überschrieben werden."
+
+msgid "Open Anyway"
+msgstr "Trotzdem öffnen"

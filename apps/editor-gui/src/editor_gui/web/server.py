@@ -368,6 +368,10 @@ class WebHub:
         """List a folder's files in the app, each one downloadable (GUI thread)."""
         self.host.add(FolderNotice(self, folder))
 
+    def go_to(self, url: str) -> None:
+        """Take the controlling browser's page to ``url`` (another editor's browser UI)."""
+        self._post(event_message({"t": "go", "url": url}))
+
     def open_url(self, url: str, *, name: str = "", show: bool = False) -> None:
         """Open a link (or a file shown in the browser) in a new tab of the controlling browser."""
         self._post(event_message({"t": "open", "url": url, "name": name, "show": show}))
