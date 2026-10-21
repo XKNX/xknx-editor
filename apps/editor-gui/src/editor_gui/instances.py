@@ -161,6 +161,10 @@ class Registry:
     def close(self) -> None:
         with contextlib.suppress(OSError):
             self._path.unlink()
+        # On Linux, closing alone leaves the listening thread's accept() waiting and the port
+        # answering; shutting it down first ends the accept().
+        with contextlib.suppress(OSError):
+            self._sock.shutdown(socket.SHUT_RDWR)
         with contextlib.suppress(OSError):
             self._sock.close()
 
