@@ -26,6 +26,7 @@ from editor_gui.widgets.description import (
     description_tooltip,
     is_secure_device,
     secure_tooltip,
+    wrapped_tooltip,
 )
 from editor_gui.widgets.dpi import px
 
@@ -536,13 +537,11 @@ class TopologyPanel:
                 and y0 <= mouse.y <= y0 + node_h * z
             ):
                 hovered_id = n.key
-        # A plain click pins the node under the cursor (or clears the pin on empty space);
-        # Shift+click instead opens the device. Hover previews, else the pin stays focused.
-        io = imgui.get_io()
-        clicked = imgui.is_mouse_clicked(0)
-        if clicked and not io.key_shift:
+        # A click pins the node under the cursor (or clears the pin on empty space), and on a
+        # device also opens it, as in the other views. Hover previews, else the pin stays focused.
+        select = imgui.is_mouse_clicked(0)
+        if select:
             self._pinned_key = hovered_id
-        select = clicked and io.key_shift
         focus_key = hovered_id if hovered_id is not None else self._pinned_key
         if focus_key is not None and focus_key not in graph.adj:
             focus_key = None  # pinned node is gone (e.g. filter changed)
@@ -630,7 +629,7 @@ class TopologyPanel:
                 if select and n.device_id is not None:
                     self._on_select(n.device_id)
         if tooltip_for is not None:
-            imgui.set_tooltip(tooltip_for.tooltip)
+            wrapped_tooltip(tooltip_for.tooltip)
         imgui.dummy(imgui.ImVec2(graph.width * z, graph.height * z))
 
     def _build_physical_layout(self, devices: list[Device]) -> _Layout:
@@ -727,8 +726,9 @@ class TopologyPanel:
                         description = dev.description
                     else:
                         ia = sd.individual_address or "-"
-                        label, tooltip = f"{ia}  {sd.name}", sd.name or ia
                         description = sd.description or ""
+                        label = f"{ia}  {sd.name}"
+                        tooltip = _with_description(sd.name or ia, description)
                     layout.devices.append(
                         _DevBox(
                             y,
@@ -892,7 +892,7 @@ class TopologyPanel:
                 elif secure_hovered:
                     imgui.set_tooltip(secure_tooltip())
                 else:
-                    imgui.set_tooltip(d.tooltip)
+                    wrapped_tooltip(d.tooltip)
                 if clicked:
                     self._on_select(d.node_id)
         total_w = (xs[2] + widths[2] + _COL_GAP) * z
@@ -977,7 +977,16 @@ def _device_label(d: Device) -> str:
 def _device_tooltip(d: Device) -> str:
     ia = d.individual_address or "-"
     app = getattr(d.app, "name", "") or ""
-    lines = [d.display_name or "(unnamed)", f"Address: {ia}"]
+    lines = [
+        d.display_name or S.TOPOLOGY_TIP_UNNAMED,
+        S.TOPOLOGY_TIP_ADDRESS.format(address=ia),
+    ]
     if app:
-        lines.append(f"Application: {app}")
-    return "\n".join(lines)
+        lines.append(S.TOPOLOGY_TIP_APPLICATION.format(application=app))
+    return _with_description("\n".join(lines), d.description)
+
+
+def _with_description(tooltip: str, description: str) -> str:
+    """``tooltip`` followed by the device's description, when it has one."""
+    description = description.strip()
+    return f"{tooltip}\n\n{description}" if description else tooltip
