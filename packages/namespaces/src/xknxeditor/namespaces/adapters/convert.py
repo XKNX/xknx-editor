@@ -303,6 +303,53 @@ def _master_data(ctx: Context, src: Any) -> dict[str, Any]:
     return {}
 
 
+class _WithFields:
+    """``src`` with some fields added or replaced, for the generic copy."""
+
+    def __init__(self, src: Any, **fields: Any) -> None:
+        self._src = src
+        self._fields = fields
+
+    def __getattr__(self, name: str) -> Any:
+        fields = self.__dict__["_fields"]
+        return fields[name] if name in fields else getattr(self.__dict__["_src"], name)
+
+
+@override("LdCtrlCompareProp_t")
+def _compare_prop(ctx: Context, src: Any) -> dict[str, Any]:
+    """A compare may test a ``Range`` instead of ``InlineData`` (optional on the base type); the
+    unified model wants the field, so it is passed on as absent rather than failing the import."""
+    if getattr(src, "inline_data", None) is None:
+        ctx.logger.debug("convert.compare_prop.no_inline_data", range=src.range)
+        return {"inline_data": None}
+    return {}
+
+
+@override("FunctionType_t")
+def _function_type(ctx: Context, src: Any) -> dict[str, Any]:
+    """Up to v14 a FunctionPoint carries no Id, but the unified model requires one. Newer master data
+    names it ``FP-<type number>_<role>`` (``FP-1_DR-1``); give the ones without an Id that name."""
+    from xknxeditor.namespaces.intermediate.function_type_t_function_point import (
+        FunctionTypeFunctionPoint,
+    )
+
+    points = getattr(src, "function_point", None) or []
+    if all(getattr(point, "id", None) for point in points):
+        return {}
+    number = getattr(src, "number", None)
+    converted: list[Any] = []
+    for index, point in enumerate(points, start=1):
+        point_id = getattr(point, "id", None)
+        if not point_id:
+            role = getattr(point, "role", None)
+            point_id = f"FP-{number}_{role}" if role else f"FP-{number}_{index}"
+        converted.append(
+            convert(ctx, _WithFields(point, id=point_id), FunctionTypeFunctionPoint)
+        )
+    ctx.logger.debug("convert.function_type.point_ids", number=number)
+    return {"function_point": converted}
+
+
 @override("GroupAddress_t")
 def _group_address(ctx: Context, src: Any) -> dict[str, Any]:
     """v10-v12 held DatapointType as an IDREFS list; the unified model takes a single ref.

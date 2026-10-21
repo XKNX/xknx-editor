@@ -47,6 +47,48 @@ def test_master_data_id_synthesized_for_pre_v12() -> None:
     assert out.version == 723  # real fields still copied
 
 
+def test_function_point_ids_synthesized_for_v14() -> None:
+    """Up to v14 a FunctionPoint has no Id; newer master data names it FP-<type number>_<role>."""
+    from xknxeditor.namespaces.files.v14.function_type_t import (
+        FunctionType as V14FunctionType,
+    )
+    from xknxeditor.namespaces.files.v14.function_type_t_function_point import (
+        FunctionTypeFunctionPoint as V14FunctionPoint,
+    )
+    from xknxeditor.namespaces.intermediate.function_type_t import (
+        FunctionType as IRFunctionType,
+    )
+
+    src = V14FunctionType(
+        id="FT-1",
+        number=1,
+        text="switchable light",
+        function_point=[
+            V14FunctionPoint(text="switching", role="DR-1", datapoint_type="DPST-1-1"),
+            V14FunctionPoint(text="status", role="DR-2", datapoint_type="DPST-1-1"),
+        ],
+    )
+    out = convert(Context(version="v14"), src, IRFunctionType)
+    assert [(p.id, p.text) for p in out.function_point] == [
+        ("FP-1_DR-1", "switching"),
+        ("FP-1_DR-2", "status"),
+    ]
+
+
+def test_compare_prop_with_a_range_instead_of_inline_data() -> None:
+    from xknxeditor.namespaces.files.v20.ld_ctrl_compare_prop_t import (
+        LdCtrlCompareProp as V20CompareProp,
+    )
+    from xknxeditor.namespaces.intermediate.ld_ctrl_compare_prop_t import (
+        LdCtrlCompareProp as IRCompareProp,
+    )
+
+    src = V20CompareProp(obj_idx=0, prop_id=201, range="[2216203124736,]")
+    out = convert(Context(version="v20"), src, IRCompareProp)
+    assert out.range == "[2216203124736,]"
+    assert out.inline_data is None
+
+
 # --- PuidAllocator --------------------------------------------------------
 
 
