@@ -37,8 +37,10 @@ from xknxeditor.namespaces.intermediate.property_union_t import PropertyUnion
 from ..errors import EncodingError
 from ..script.errors import ParameterValidationError
 from ..script.values import check_value
+from .allocator import AllocatorOverflow
 from .application_indexer import ApplicationIndexer
 from .calculation import (
+    VALIDATION_FAILED,
     CalculationScope,
     ChangeSet,
     Journal,
@@ -958,12 +960,32 @@ class DynamicUI:
                 raise_errors=raise_calc_errors,
                 abort=self.script_abort,
             )
+            if strict:
+                # A value that leaves an allocator too few numbers (e.g. more channels than it
+                # holds) is rejected with the allocator's message, as a failed validation.
+                self._ui = None
+                self.ui()
+        except AllocatorOverflow as exc:
+            journal.rollback()
+            self._ui = None
+            raise self._overflow_rejection(exc, ref_id) from exc
         except BaseException:
             journal.rollback()
             self._ui = None
             raise
-        self._ui = None
+        if not strict:
+            self._ui = None
         return journal.changes()
+
+    def _overflow_rejection(
+        self, exc: AllocatorOverflow, ref_id: str
+    ) -> ParameterValidationError:
+        """The rejection of an edit an allocator has too few numbers for, with its message."""
+        message = self._idx.messages.get(exc.message_ref or "")
+        return ParameterValidationError(
+            (message.text if message is not None else None) or VALIDATION_FAILED,
+            ref_id=ref_id,
+        )
 
     def _calc_scope(self, scope: ParameterState) -> CalculationScope:
         def get(local_ref: str) -> str | None:
@@ -1065,11 +1087,17 @@ class DynamicUI:
                     raise_errors=True,
                     abort=self.script_abort,
                 )
+            # Evaluated inside the batch, so an allocator overflow rejects it (see _change).
+            self._ui = None
+            self.ui()
+        except AllocatorOverflow as exc:
+            journal.rollback()
+            self._ui = None
+            raise self._overflow_rejection(exc, edits[-1][0]) from exc
         except BaseException:
             journal.rollback()
             self._ui = None
             raise
-        self._ui = None
         return journal.changes()
 
     def _edit_best_effort(

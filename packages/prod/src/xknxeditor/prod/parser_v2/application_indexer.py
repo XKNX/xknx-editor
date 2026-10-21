@@ -121,7 +121,12 @@ class ApplicationIndexer:
             self._index_validations(s.parameter_validations.parameter_validation)
         if s.allocators is not None:
             self.app_allocators = {
-                a.id: Allocator(id=a.id, start=a.start, max_inclusive=a.max_inclusive)
+                a.id: Allocator(
+                    id=a.id,
+                    start=a.start,
+                    max_inclusive=a.max_inclusive,
+                    error_message_ref=a.error_message_ref,
+                )
                 for a in s.allocators.allocator
             }
 
@@ -333,7 +338,12 @@ class ApplicationIndexer:
             )
         if md.static.allocators is not None:
             self.allocators[md.id] = {
-                a.id: Allocator(id=a.id, start=a.start, max_inclusive=a.max_inclusive)
+                a.id: Allocator(
+                    id=a.id,
+                    start=a.start,
+                    max_inclusive=a.max_inclusive,
+                    error_message_ref=a.error_message_ref,
+                )
                 for a in md.static.allocators.allocator
             }
         if md.arguments is not None:

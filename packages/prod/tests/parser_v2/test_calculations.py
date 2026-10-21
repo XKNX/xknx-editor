@@ -7,8 +7,9 @@ from pathlib import Path
 import pytest
 
 from xknxeditor.prod.application import parse_application_xml
+from xknxeditor.prod.parser_v2.allocator import AllocatorOverflow
 from xknxeditor.prod.parser_v2.dynamic import DynamicTreeBuilder, DynamicUI
-from xknxeditor.prod.script import CalculationError
+from xknxeditor.prod.script import CalculationError, ParameterValidationError
 
 APP = "M-00FA_A-0001-01-0000"
 
@@ -129,3 +130,31 @@ def test_active_parameter_ref_ids(ui: DynamicUI) -> None:
     active = ui.active_parameter_ref_ids()
     assert _ref(1) in active
     assert f"{MD}_M-2_MI-1_P-1_R-1" in active
+
+
+@pytest.mark.parametrize("batch", [False, True])
+def test_allocator_overflow_rejects_the_edit(
+    ui: DynamicUI, monkeypatch: pytest.MonkeyPatch, batch: bool
+) -> None:
+    # A value the tree cannot allocate numbers for (e.g. too many channels) is rejected with the
+    # allocator's message and leaves nothing changed.
+    evaluate = DynamicUI.ui
+    calls = 0
+
+    def overflowing(self: DynamicUI) -> list[object]:
+        nonlocal calls
+        calls += 1
+        if calls == 2:
+            raise AllocatorOverflow("overflow", "L-1", f"{APP}_M-1")
+        return list(evaluate(self))
+
+    monkeypatch.setattr(DynamicUI, "ui", overflowing)
+    with pytest.raises(ParameterValidationError) as err:
+        if batch:
+            ui.edit_parameters([(_ref(1), "5")])
+        else:
+            ui.edit_parameter(_ref(1), "5")
+    assert err.value.message == "Code must look like K123."
+    monkeypatch.undo()
+    assert ui.get_value(_ref(1)) == "1"
+    assert ui.get_value(_ref(2)) == "2"
