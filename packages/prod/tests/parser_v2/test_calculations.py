@@ -142,6 +142,8 @@ def test_allocator_overflow_rejects_the_edit(
 
     def overflowing(self: DynamicUI, *, capture_active: bool) -> None:
         if capture_active:  # the settle after the change
+            # An Assign of what the value turned on has written before the overflow.
+            self.apply_parameter_values({f"{MD}_M-2_MI-1_P-1_R-1": "77"})
             raise AllocatorOverflow("overflow", "L-1", f"{APP}_M-1")
         build(self, capture_active=capture_active)
 
@@ -155,3 +157,4 @@ def test_allocator_overflow_rejects_the_edit(
     monkeypatch.undo()
     assert ui.get_value(_ref(1)) == "1"
     assert ui.get_value(_ref(2)) == "2"
+    assert ui.get_value(f"{MD}_M-2_MI-1_P-1_R-1") == "0"  # the Assign is undone as well

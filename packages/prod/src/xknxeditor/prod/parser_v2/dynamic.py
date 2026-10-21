@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import logging
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import TYPE_CHECKING
@@ -1166,6 +1167,9 @@ class DynamicUI:
                 raise ValueError(
                     f"parameter ref {ref_id!r} is not active in the current UI state"
                 )
+        # The settle below also runs the Assigns of what the value turns on; a rejection returns
+        # to this state, as the journal undoes only the values the change wrote.
+        before = copy.deepcopy(self._state) if strict else None
         journal = self._journal()
         try:
             if validate:
@@ -1188,6 +1192,8 @@ class DynamicUI:
                 self._build_ui(capture_active=True)
         except AllocatorOverflow as exc:
             journal.rollback()
+            if before is not None:
+                self._state = before
             self._invalidate()
             raise self._overflow_rejection(exc, ref_id) from exc
         except BaseException:
@@ -1288,6 +1294,7 @@ class DynamicUI:
         so one rejected edit does not discard the rest); otherwise the batch is all-or-nothing."""
         if skip_invalid:
             return self._edit_best_effort(edits, validate=validate)
+        before = copy.deepcopy(self._state)  # see _change
         journal = self._journal()
         groups: dict[int, tuple[ParameterState, list[str]]] = {}
         try:
@@ -1311,6 +1318,7 @@ class DynamicUI:
             self._build_ui(capture_active=True)
         except AllocatorOverflow as exc:
             journal.rollback()
+            self._state = before
             self._invalidate()
             raise self._overflow_rejection(exc, edits[-1][0]) from exc
         except BaseException:
