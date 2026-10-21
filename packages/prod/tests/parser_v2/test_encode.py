@@ -6,8 +6,10 @@ from pathlib import Path
 
 import pytest
 
+from xknxeditor.namespaces.intermediate.segment_base_t import SegmentBase
 from xknxeditor.prod import load
 from xknxeditor.prod.parser_v2.dynamic import DynamicUI
+from xknxeditor.prod.parser_v2.encode import segment_seed
 
 _FIXTURE = (
     Path(__file__).parent.parent / "fixtures" / "gira_2gang_button_interface.knxprod"
@@ -110,3 +112,13 @@ def test_param_map_value_matches_encoded_byte(dui: DynamicUI) -> None:
         assert seg[offset] == 4, (
             f"encoded byte at offset {offset} is {seg[offset]:#04x}, expected 0x04"
         )
+
+
+def test_segment_seed_pads_data_to_the_declared_size() -> None:
+    # Data may cover only the start of a segment; parameters behind it are still in the segment.
+    seg = SegmentBase(id="AS-1", size=6, data=bytes([1, 2]))
+    assert segment_seed(seg) == bytearray([1, 2, 0, 0, 0, 0])
+    assert segment_seed(SegmentBase(id="AS-2", size=3)) == bytearray(3)
+    # Data longer than the declared size is kept whole.
+    longer = SegmentBase(id="AS-3", size=1, data=bytes([7, 8]))
+    assert segment_seed(longer) == bytearray([7, 8])

@@ -66,6 +66,7 @@ from .encode import (
     encode_to_properties,
     encode_to_typed_properties,
     resolve_param_values,
+    segment_seed,
     type_size_in_bit,
     validate_parameter_value,
     written_bit_mask,
@@ -719,8 +720,7 @@ class DynamicUI:
         the whole read.
         """
         return {
-            sid: len(seg.data) if seg.data else seg.size
-            for sid, seg in self._idx.code_segments.items()
+            sid: len(segment_seed(seg)) for sid, seg in self._idx.code_segments.items()
         }
 
     def encode_to_memory(self) -> dict[str, bytes]:

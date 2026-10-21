@@ -76,6 +76,7 @@ from xknxeditor.namespaces.intermediate.parameter_type_t_type_time import (
 )
 from xknxeditor.namespaces.intermediate.property_parameter_t import PropertyParameter
 from xknxeditor.namespaces.intermediate.property_union_t import PropertyUnion
+from xknxeditor.namespaces.intermediate.segment_base_t import SegmentBase
 from xknxeditor.namespaces.intermediate.union_parameter_t import UnionParameter
 
 from ..errors import EncodingError
@@ -177,6 +178,15 @@ def type_size_in_bit(tc: object, *, for_property: bool = False) -> int | None:
         # length prefix, a property value carries none.
         return tc.max_size * 8 if for_property else (tc.max_size + 4) * 8
     return getattr(tc, "size_in_bit", None)
+
+
+def segment_seed(seg: SegmentBase) -> bytearray:
+    """A code segment's starting bytes: its ``Data``, zero-padded to its declared ``Size`` (``Data``
+    may cover only the start of the segment)."""
+    data = seg.data or b""
+    out = bytearray(max(seg.size or 0, len(data)))
+    out[: len(data)] = data
+    return out
 
 
 def _write_bits(
@@ -1054,14 +1064,13 @@ def encode_to_memory(
 ) -> dict[str, bytes]:
     """Pack parameter values into per-segment byte buffers.
 
-    Yields {segment_id: bytes} for each segment, seeded from seg.data when set.
+    Yields {segment_id: bytes} for each segment, seeded by :func:`segment_seed`.
     Layout: bit_offset 0 is a byte's MSB; values are big-endian.
     """
     writes = collect_writes(app, idx, overrides, state)
     little_endian = _program_little_endian(app)
     bufs: dict[str, bytearray] = {
-        seg_id: bytearray(seg.data) if seg.data else bytearray(seg.size)
-        for seg_id, seg in idx.code_segments.items()
+        seg_id: segment_seed(seg) for seg_id, seg in idx.code_segments.items()
     }
     for w in writes.mem:
         buf = bufs.get(w.seg_id)
@@ -1102,8 +1111,7 @@ def encode_to_memory_masked(
     writes = collect_writes(app, idx, overrides, state, inactive_ranges=True)
     little_endian = _program_little_endian(app)
     bufs: dict[str, bytearray] = {
-        seg_id: bytearray(seg.data) if seg.data else bytearray(seg.size)
-        for seg_id, seg in idx.code_segments.items()
+        seg_id: segment_seed(seg) for seg_id, seg in idx.code_segments.items()
     }
     masks: dict[str, bytearray] = {
         seg_id: bytearray(len(buf)) for seg_id, buf in bufs.items()
@@ -1193,7 +1201,7 @@ def written_bit_mask(
     """
     writes = collect_writes(app, idx, overrides, state)
     masks: dict[str, bytearray] = {
-        seg_id: bytearray(seg.size if not seg.data else len(seg.data))
+        seg_id: bytearray(len(segment_seed(seg)))
         for seg_id, seg in idx.code_segments.items()
     }
     for w in writes.mem:
