@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import re
+
 from xknxeditor.namespaces.intermediate import (
     ComObjectInstanceRef,
     ModuleArg,
@@ -52,6 +54,10 @@ def compute_param_ref_defaults(
         if value is not None:
             result[pr.id] = value
     return result
+
+
+# The top-level module instance in an instance-qualified ref, e.g. "MD-34_M-15_MI-1" (and "MD-34").
+_INSTANCE_IN_REF = re.compile(r"(?:^|_)((MD-[^_]+)_M-[^_]+_MI-[^_]+)_")
 
 
 def _qualified(element_id: str, app_id: str | None) -> str:
@@ -446,6 +452,21 @@ class GlobalState(ParameterState):
             ms._parent = root
             root._children[key] = ms
             stored[mi.id] = (ms, mi.ref_id)
+        # A value of a module instance the saved list lacks (created by a later edit) still belongs
+        # to that instance, not to the application.
+        known = {_qualified(mid, app_id) for mid in stored}
+        for pir in parameter_instance_refs or []:
+            match = (
+                _INSTANCE_IN_REF.search(pir.ref_id) if pir.value is not None else None
+            )
+            if match is None or _qualified(match.group(1), app_id) in known:
+                continue
+            key = _qualified(match.group(1), app_id)
+            known.add(key)
+            ms = ModuleState(key, ref_id=_qualified(match.group(2), app_id))
+            ms._parent = root
+            root._children[key] = ms
+            stored[match.group(1)] = (ms, match.group(2))
         for pir in parameter_instance_refs or []:
             if pir.value is None:
                 continue

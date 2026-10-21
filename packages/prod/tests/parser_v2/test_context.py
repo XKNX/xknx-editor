@@ -150,6 +150,20 @@ class TestEvalContext:
         ]
         assert EvalContext(state).module_ctx(_MODULE_ID).get(_LOCAL_REF) == "7"
 
+    def test_module_value_without_a_saved_instance_belongs_to_the_instance(self):
+        # An instance created by a later edit can be missing from the saved list: its values still
+        # reach it, not the application.
+        state = GlobalState.from_project(
+            [ParameterInstanceRef(ref_id=_QUALIFIED_REF, value="7")], [], app_id=_BASE
+        )
+        state.reset_active()
+        assert EvalContext(state).module_ctx(_MODULE_ID).get(_LOCAL_REF) == "7"
+        assert _QUALIFIED_REF not in state.param_ref_id_to_value
+        state.trim_to_active()
+        assert [m.module_instance_id for m in state.module_children()] == [
+            _MODULE_INSTANCE_ID
+        ]
+
 
 class TestTrimToActive:
     def test_hidden_param_is_evicted_after_trim(self):
