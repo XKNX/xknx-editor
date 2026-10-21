@@ -215,6 +215,25 @@ def number_separators(locale: str | None) -> tuple[str, str]:
     return loc.decimal, loc.group
 
 
+_CURRENCY = {
+    "de-DE": "\u20ac",
+    "de-CH": "CHF",
+    "en-US": "$",
+    "en-GB": "\u00a3",
+    "nl-NL": "\u20ac",
+}
+
+
+def currency_symbol(locale: str | None) -> str:
+    """Currency symbol of ``locale`` (``None``: the system locale)."""
+    name = locale or system_locale()
+    if name in _CURRENCY:
+        return _CURRENCY[name]
+    return _CURRENCY.get(
+        _LANGUAGE_DEFAULT.get(name.split("-")[0].lower(), "en-US"), _CURRENCY["en-US"]
+    )
+
+
 def date_names(locale: str | None) -> tuple[str, list[str]]:
     """Long date pattern and month names of ``locale`` (``None``: the system locale)."""
     loc = _locale(locale or system_locale())
