@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import binascii
 import ipaddress
+import logging
 import math
 import re
 import struct
@@ -82,6 +83,10 @@ from xknxeditor.namespaces.intermediate.union_parameter_t import UnionParameter
 from ..errors import EncodingError
 from .application_indexer import ApplicationIndexer
 from .state import GlobalState, ModuleState
+
+log = logging.getLogger(__name__)
+# Out-of-range values already reported, (value, id of its type), so a repeated encode stays quiet.
+_out_of_range_logged: set[tuple[str, int]] = set()
 
 
 class MemWrite(NamedTuple):
@@ -225,7 +230,21 @@ def _encode_value(
     try:
         str_value = validate_parameter_value(str_value, tc)
     except ValueError:
-        return None
+        # Values set in the editor are checked before; one outside the type's range here is the
+        # product's own (e.g. a hidden parameter's default), written as given while it fits.
+        if not (
+            isinstance(tc, ParameterTypeTypeNumber)
+            and _fits_in_bits(str_value, size_in_bit)
+        ):
+            return None
+        if (str_value, id(tc)) not in _out_of_range_logged:
+            _out_of_range_logged.add((str_value, id(tc)))
+            log.warning(
+                "parameter value %r outside %s..%s, written as given",
+                str_value,
+                tc.min_inclusive,
+                tc.max_inclusive,
+            )
     if isinstance(tc, (ParameterTypeTypeNumber, ParameterTypeTypeTime)):
         # A time value is stored as a plain integer in the type's unit.
         return _apply_byte_order(
@@ -295,6 +314,15 @@ def _encode_restriction(
     return _apply_byte_order(
         _encode_number(str_value, size_in_bit), size_in_bit, little_endian
     )
+
+
+def _fits_in_bits(str_value: str, size_in_bit: int) -> bool:
+    """Whether the integer ``str_value`` is representable in ``size_in_bit`` bits, signed or not."""
+    try:
+        v = int(str_value, 0) if str_value[:2].lower() == "0x" else int(str_value)
+    except ValueError:
+        return False
+    return -(1 << (size_in_bit - 1)) <= v < (1 << size_in_bit)
 
 
 def _encode_number(str_value: str, size_in_bit: int) -> int | None:
