@@ -948,11 +948,19 @@ class MenuStrings:
 
     @property
     def MENU_LOAD_FROM_URL(self) -> str:
-        return _("Load OpenKNX from URL or folder…")
+        return _("Load OpenKNX from URL or Folder…")
+
+    @property
+    def MENU_LOAD_FROM_URL_FILES(self) -> str:
+        return _("Load OpenKNX from URL or Files…")
 
     @property
     def URL_PROMPT_TITLE(self) -> str:
-        return _("Load OpenKNX from URL or folder")
+        return _("Load OpenKNX from URL or Folder")
+
+    @property
+    def URL_PROMPT_TITLE_FILES(self) -> str:
+        return _("Load OpenKNX from URL or Files")
 
     @property
     def URL_PROMPT_HINT(self) -> str:
@@ -974,7 +982,18 @@ class MenuStrings:
 
     @property
     def URL_PROMPT_BROWSE_FOLDER(self) -> str:
-        return _("Choose folder…")
+        return _("Choose Folder…")
+
+    @property
+    def URL_PROMPT_FILES_HINT(self) -> str:
+        return _(
+            "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from "
+            "this computer to import all of them."
+        )
+
+    @property
+    def URL_PROMPT_CHOOSE_FILES(self) -> str:
+        return _("Choose Files…")
 
     @property
     def URL_PROMPT_LOAD(self) -> str:
@@ -1002,7 +1021,7 @@ class MenuStrings:
 
     @property
     def FOLDER_IMPORT_TITLE(self) -> str:
-        return _("Choose a folder with KNX product files")
+        return _("Choose a Folder with KNX Product Files")
 
     @property
     def FOLDER_IMPORTING(self) -> str:
@@ -1021,6 +1040,32 @@ class MenuStrings:
     @property
     def FOLDER_IMPORT_FAILED(self) -> str:
         return _("Import from folder failed: {error}")
+
+    @property
+    def FILES_IMPORT_TITLE(self) -> str:
+        return _("Choose KNX Product Files")
+
+    @property
+    def FILES_IMPORT_FILTER(self) -> str:
+        return _("KNX Product Files (*.knxprod, *.zip, *.xml)")
+
+    @property
+    def FILES_IMPORTING(self) -> str:
+        return _("Importing files…")
+
+    @property
+    def FILES_IMPORT_OK(self) -> str:
+        return _("Imported {count} new product version(s) from the files")
+
+    @property
+    def FILES_IMPORT_EMPTY(self) -> str:
+        return _(
+            "Nothing new imported from the files (no product files, or already in the catalog)"
+        )
+
+    @property
+    def FILES_IMPORT_FAILED(self) -> str:
+        return _("Import of the files failed: {error}")
 
     @property
     def MENU_EXIT(self) -> str:

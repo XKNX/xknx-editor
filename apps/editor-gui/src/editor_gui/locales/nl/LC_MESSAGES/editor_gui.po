@@ -1233,19 +1233,19 @@ msgstr "Te veel verkeerde wachtwoorden. Probeer het over een paar minuten opnieu
 msgid "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
 msgstr "Poort {port} wordt al door een ander programma gebruikt, daarom kan de browserinterface daar niet starten. Start met een andere poort (bijv. --web={example}) of zonder poort om een vrije te nemen."
 
-msgid "Load OpenKNX from URL or folder…"
+msgid "Load OpenKNX from URL or Folder…"
 msgstr "OpenKNX van URL of map laden…"
 
-msgid "Load OpenKNX from URL or folder"
+msgid "Load OpenKNX from URL or Folder"
 msgstr "OpenKNX van URL of map laden"
 
 msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
 msgstr "Of kies een lokale map met productbestanden (.knxprod, OpenKNX-release-.zip of KNX-product-XML) om ze allemaal te importeren."
 
-msgid "Choose folder…"
+msgid "Choose Folder…"
 msgstr "Map kiezen…"
 
-msgid "Choose a folder with KNX product files"
+msgid "Choose a Folder with KNX Product Files"
 msgstr "Kies een map met KNX-productbestanden"
 
 msgid "Importing from folder…"
@@ -1259,3 +1259,33 @@ msgstr "Niets nieuws uit map geïmporteerd (geen productbestanden gevonden of al
 
 msgid "Import from folder failed: {error}"
 msgstr "Importeren uit map mislukt: {error}"
+
+msgid "Load OpenKNX from URL or Files…"
+msgstr "OpenKNX van URL of uit bestanden laden…"
+
+msgid "Load OpenKNX from URL or Files"
+msgstr "OpenKNX van URL of uit bestanden laden"
+
+msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Of upload productbestanden (.knxprod, OpenKNX-release-.zip of KNX-product-XML) van deze computer om ze allemaal te importeren."
+
+msgid "Choose Files…"
+msgstr "Bestanden kiezen…"
+
+msgid "Choose KNX Product Files"
+msgstr "Kies KNX-productbestanden"
+
+msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
+msgstr "KNX-productbestanden (*.knxprod, *.zip, *.xml)"
+
+msgid "Importing files…"
+msgstr "Bestanden importeren…"
+
+msgid "Imported {count} new product version(s) from the files"
+msgstr "{count} nieuwe productversie(s) uit de bestanden geïmporteerd"
+
+msgid "Nothing new imported from the files (no product files, or already in the catalog)"
+msgstr "Niets nieuws uit de bestanden geïmporteerd (geen productbestanden of al in de catalogus)"
+
+msgid "Import of the files failed: {error}"
+msgstr "Importeren van de bestanden mislukt: {error}"

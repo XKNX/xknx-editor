@@ -493,6 +493,8 @@ class KnxGuiApp:
         self._url_input = ""
         # Folder picker launched from that prompt, to import every product source in a folder.
         self._url_folder_dialog: file_dialogs.SelectFolderDialog | None = None
+        # In the browser UI, a pick of product files (uploaded or in the file folder) instead.
+        self._url_files_dialog: file_dialogs.OpenFileDialog | None = None
         # Background import (keeps the UI responsive during the slow parse/catalog/device build).
         self._import_thread: threading.Thread | None = None
         self._import_pw: str | None = None
@@ -2259,10 +2261,13 @@ class KnxGuiApp:
         end_dialog()
 
     def _render_url_prompt_modal(self) -> None:
+        # In the browser UI a folder would be one on the server, so product files are uploaded.
+        files = web.active_hub is not None
+        title = S.URL_PROMPT_TITLE_FILES if files else S.URL_PROMPT_TITLE
         if self._url_prompt_requested:
-            imgui.open_popup(S.URL_PROMPT_TITLE)
+            imgui.open_popup(title)
             self._url_prompt_requested = False
-        if not begin_dialog(S.URL_PROMPT_TITLE, width=560.0):
+        if not begin_dialog(title, width=560.0):
             return
         imgui.text_wrapped(S.URL_PROMPT_HINT)
         imgui.spacing()
@@ -2272,10 +2277,28 @@ class KnxGuiApp:
         )
         url = self._url_input.strip()
         imgui.spacing()
-        imgui.text_wrapped(S.URL_PROMPT_FOLDER_HINT)
-        if imgui.button(S.URL_PROMPT_BROWSE_FOLDER):
-            imgui.close_current_popup()
-            self._url_folder_dialog = file_dialogs.select_folder(S.FOLDER_IMPORT_TITLE)
+        if files:
+            imgui.text_wrapped(S.URL_PROMPT_FILES_HINT)
+            if imgui.button(S.URL_PROMPT_CHOOSE_FILES):
+                imgui.close_current_popup()
+                self._url_files_dialog = file_dialogs.open_file(
+                    S.FILES_IMPORT_TITLE,
+                    "",
+                    [
+                        S.FILES_IMPORT_FILTER,
+                        "*.knxprod *.zip *.xml",
+                        S.FILE_DIALOG_ALL_FILES,
+                        "*",
+                    ],
+                    pfd.opt.multiselect,
+                )
+        else:
+            imgui.text_wrapped(S.URL_PROMPT_FOLDER_HINT)
+            if imgui.button(S.URL_PROMPT_BROWSE_FOLDER):
+                imgui.close_current_popup()
+                self._url_folder_dialog = file_dialogs.select_folder(
+                    S.FOLDER_IMPORT_TITLE
+                )
         imgui.spacing()
         clicked = dialog_buttons(S.URL_PROMPT_LOAD, S.URL_PROMPT_CANCEL)
         load = clicked == 0 or submitted
@@ -2362,6 +2385,48 @@ class KnxGuiApp:
         .knxprod, an OpenKNX release ZIP, or a raw KNX product XML. Files that are not a product
         source are skipped."""
 
+        def candidates() -> list[Path]:
+            return sorted(
+                p
+                for p in Path(folder).rglob("*")
+                if p.is_file() and p.suffix.lower() in (".knxprod", ".zip", ".xml")
+            )
+
+        self._start_product_files_import(
+            folder,
+            candidates,
+            (
+                S.FOLDER_IMPORTING,
+                S.FOLDER_IMPORT_OK,
+                S.FOLDER_IMPORT_EMPTY,
+                S.FOLDER_IMPORT_FAILED,
+            ),
+        )
+
+    def _start_files_import(self, paths: list[str]) -> None:
+        """Import the product files chosen in the browser UI (uploaded, or in its file folder) on a
+        worker thread, as :meth:`_start_folder_import` does for a folder's files."""
+        self._start_product_files_import(
+            ", ".join(Path(p).name for p in paths),
+            lambda: [Path(p) for p in paths],
+            (
+                S.FILES_IMPORTING,
+                S.FILES_IMPORT_OK,
+                S.FILES_IMPORT_EMPTY,
+                S.FILES_IMPORT_FAILED,
+            ),
+        )
+
+    def _start_product_files_import(
+        self,
+        source: str,
+        candidates: Callable[[], list[Path]],
+        texts: tuple[str, str, str, str],
+    ) -> None:
+        """Import each product source ``candidates()`` lists on a worker thread; files that are not
+        a product source are skipped. ``texts``: progress, done, nothing new, failed."""
+        importing, done, empty, failed = texts
+
         def worker() -> None:
             try:
                 master = master_xml_bytes()
@@ -2370,13 +2435,8 @@ class KnxGuiApp:
                         "KNX master data unavailable (offline and not cached) — connect to the "
                         "internet once so it can be downloaded, then retry"
                     )
-                candidates = sorted(
-                    p
-                    for p in Path(folder).rglob("*")
-                    if p.is_file() and p.suffix.lower() in (".knxprod", ".zip", ".xml")
-                )
                 added_total = 0
-                for path in candidates:
+                for path in candidates():
                     try:
                         data = path.read_bytes()
                         with self._catalog_service.io_lock:
@@ -2385,7 +2445,7 @@ class KnxGuiApp:
                             )
                     except Exception as e:
                         self._log.debug(
-                            "skipped file in folder import",
+                            "skipped file in product import",
                             path=str(path),
                             error=f"{type(e).__name__}: {e}",
                         )
@@ -2394,20 +2454,16 @@ class KnxGuiApp:
                 self._project_service.refresh_catalog_resolution(rebuild=True)
             except Exception as e:
                 self._log.error(
-                    "folder import failed",
-                    folder=folder,
+                    "product import failed",
+                    source=source,
                     error=f"{type(e).__name__}: {e}",
                 )
-                self._flash_toast(S.FOLDER_IMPORT_FAILED.format(error=str(e)))
+                self._flash_toast(failed.format(error=str(e)))
                 return
-            self._log.info("imported from folder", folder=folder, added=added_total)
-            self._flash_toast(
-                S.FOLDER_IMPORT_OK.format(count=added_total)
-                if added_total
-                else S.FOLDER_IMPORT_EMPTY
-            )
+            self._log.info("imported products", source=source, added=added_total)
+            self._flash_toast(done.format(count=added_total) if added_total else empty)
 
-        self._run_bg(S.FOLDER_IMPORTING, worker)
+        self._run_bg(importing, worker)
 
     def _clear_import_prompt(self) -> None:
         self._import_knxproj_source = None
@@ -2749,6 +2805,12 @@ class KnxGuiApp:
             self._url_folder_dialog = None
             if folder:
                 self._start_folder_import(folder)
+
+        if self._url_files_dialog is not None and self._url_files_dialog.ready():
+            paths = self._url_files_dialog.result()
+            self._url_files_dialog = None
+            if paths:
+                self._start_files_import(paths)
 
         if self._save_project_dialog is not None and self._save_project_dialog.ready():
             result = self._save_project_dialog.result()
@@ -3320,7 +3382,12 @@ class KnxGuiApp:
                         "*",
                     ],
                 )
-            if imgui.menu_item(S.MENU_LOAD_FROM_URL, "", False)[0]:
+            load_from_url = (
+                S.MENU_LOAD_FROM_URL_FILES
+                if web.active_hub is not None
+                else S.MENU_LOAD_FROM_URL
+            )
+            if imgui.menu_item(load_from_url, "", False)[0]:
                 self._url_input = ""
                 self._url_prompt_requested = True
             imgui.separator()
