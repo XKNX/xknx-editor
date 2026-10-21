@@ -241,22 +241,24 @@ def _instance_refs(
     return pirs, mis, coirs
 
 
-def _new_module_instances(device: Device, app_program_id: str) -> list[tuple[str, str]]:
-    """The device's module instances its saved list lacks (created by a parameter change). Saved
-    ids may be relative to the application (as an import keeps them), so both are compared
-    qualified."""
+def _module_instance_changes(
+    device: Device, app_program_id: str
+) -> tuple[list[tuple[str, str]], list[str]]:
+    """The device's module instances its saved list lacks (created by a parameter change), and the
+    saved ones it no longer has (ended by one), as saved. Saved ids may be relative to the
+    application (as an import keeps them), so both are compared qualified."""
 
     def qualified(element_id: str) -> str:
         if element_id.startswith(f"{app_program_id}_"):
             return element_id
         return f"{app_program_id}_{element_id}"
 
-    saved = {qualified(mi.id) for mi in device.module_instances if mi.id}
-    return [
-        (instance_id, ref_id)
-        for instance_id, ref_id in device.get_module_instances()
-        if qualified(instance_id) not in saved
-    ]
+    current = device.get_module_instances()
+    saved = {qualified(mi.id): mi.id for mi in device.module_instances if mi.id}
+    active = {qualified(instance_id) for instance_id, _ in current}
+    new = [(i, r) for i, r in current if qualified(i) not in saved]
+    ended = [saved_id for key, saved_id in saved.items() if key not in active]
+    return new, ended
 
 
 def _device_source_key(row: Any) -> tuple[Any, ...]:
@@ -3998,7 +4000,9 @@ class ProjectService:
         if self._pid is None or not values or device.app is None:
             return
         target = self._com_object_target(device, old_active)
-        new_instances = _new_module_instances(device, device.app.program.id)
+        new_instances, ended_instances = _module_instance_changes(
+            device, device.app.program.id
+        )
         self._svc.set_parameters(
             self._pid,
             device.node_id,
@@ -4009,6 +4013,7 @@ class ProjectService:
             app_program_id=device.app.program.id,
             label=label,
             module_instances=new_instances,
+            removed_module_instances=ended_instances,
         )
         if target is not None or new_instances:
             self._refresh_device(device.node_id)

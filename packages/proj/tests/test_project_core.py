@@ -281,6 +281,52 @@ def test_set_parameters_adds_new_module_instances(tmp_path: Path):
     assert instances() == added  # with the same row ids
 
 
+def test_set_parameters_removes_ended_module_instances(tmp_path: Path):
+    svc, pid = _new(tmp_path)
+    seg = _backbone_segment(svc, pid)
+    dev = svc.add_device(
+        pid,
+        seg,
+        PRODUCT,
+        address=1,
+        name="D",
+        module_instances=[
+            ("MD-1_M-1_MI-1", "MD-1"),
+            ("MD-1_M-2_MI-1", "MD-1"),
+            ("MD-1_M-3_MI-1", "MD-1"),
+        ],
+    )
+    # An imported instance carries its arguments: it is never removed.
+    session = svc._state(pid).session
+    imported = next(
+        m
+        for m in svc.devices(pid)[0].module_instances
+        if m.instance_id == "MD-1_M-3_MI-1"
+    )
+    session.get(type(imported), imported.id).arguments = [  # type: ignore[union-attr]
+        {"ref_id": "MD-1_A-1", "value": "5"}
+    ]
+    session.commit()
+
+    def instances() -> list[tuple[str, int]]:
+        return sorted(
+            (m.instance_id, m.id) for m in svc.devices(pid)[0].module_instances
+        )
+
+    before = instances()
+    svc.set_parameters(
+        pid,
+        dev,
+        [("P-1", "0")],
+        removed_module_instances=["MD-1_M-2_MI-1", "MD-1_M-3_MI-1"],
+    )
+    assert [i for i, _ in instances()] == ["MD-1_M-1_MI-1", "MD-1_M-3_MI-1"]
+    assert svc.undo(pid)
+    assert instances() == before  # back with the same row id
+    assert svc.redo(pid)
+    assert [i for i, _ in instances()] == ["MD-1_M-1_MI-1", "MD-1_M-3_MI-1"]
+
+
 def test_peek_undo_redo_reports_next_event(tmp_path: Path):
     svc, pid = _new(tmp_path)
     seg = _backbone_segment(svc, pid)
