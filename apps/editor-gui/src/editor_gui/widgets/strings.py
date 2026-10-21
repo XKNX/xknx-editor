@@ -117,6 +117,22 @@ class WidgetStrings(BaseStrings):
         return _("Receiving Group Address")
 
     @property
+    def GROUP_OBJECTS_VALUE_SENT(self) -> str:
+        return _("sent")
+
+    @property
+    def GROUP_OBJECTS_VALUE_RECEIVED(self) -> str:
+        return _("received")
+
+    @property
+    def GROUP_OBJECTS_VALUE_SENT_RECEIVED(self) -> str:
+        return _("sent & received")
+
+    @property
+    def GROUP_OBJECTS_VALUE_OLDER(self) -> str:
+        return _("older")
+
+    @property
     def GA_LINK_TITLE(self) -> str:
         return _("Link Group Address")
 

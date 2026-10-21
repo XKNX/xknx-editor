@@ -33,6 +33,8 @@ if TYPE_CHECKING:
 
 # Accent colour for the sending marker, matching the Group Objects table.
 _SENDING_COLOR = imgui.ImVec4(0.45, 0.8, 0.5, 1.0)
+# Accent colour for the last value a group address was seen carrying on the bus.
+_LIVE_COLOR = imgui.ImVec4(0.45, 0.7, 0.9, 1.0)
 
 
 class GroupAddressesPanel:
@@ -56,6 +58,8 @@ class GroupAddressesPanel:
         bus: GroupValueBus | None = None,
         on_import: Callable[[Path], tuple[int, int, int]] | None = None,
         on_export: Callable[[], None] | None = None,
+        get_latest_value: Callable[[str, str | None], tuple[str, str, float] | None]
+        | None = None,
     ) -> None:
         self._get_range_tree = get_range_tree
         self._get_assignments_for_ga = get_assignments_for_ga
@@ -74,6 +78,7 @@ class GroupAddressesPanel:
         self._bus = bus
         self._on_import = on_import
         self._on_export = on_export
+        self._get_latest_value = get_latest_value
         self._import_dialog: file_dialogs.OpenFileDialog | None = None
         self._import_message = ""
         self._open_import_result = False
@@ -311,19 +316,45 @@ class GroupAddressesPanel:
         imgui.tree_pop()
 
     def _render_group_addresses(self, node: "GroupRangeInfo", flt: str) -> None:
+        spacing = imgui.get_style().item_spacing.x
         for ga in node.group_addresses:
             if flt and not self._ga_matches(ga, flt):
                 continue
             selected = ga.id == self._selected_ga_id
-            ga_label = f"{ga.text}  {ga.name}##ga{ga.id}"
-            if imgui.selectable(ga_label, selected)[0]:
+            name = f"{ga.text}  {ga.name}"
+            # Full-width row so the whole line is the click / right-click target and the name stays
+            # fully visible; the last value seen on the bus is drawn after it (dimmed accent) and
+            # clipped, so it never covers the name. allow_overlap lets the value be hovered for a
+            # tooltip without fighting the row below it.
+            row_x = imgui.get_cursor_pos_x()
+            clicked = imgui.selectable(
+                f"{name}##ga{ga.id}", selected, imgui.SelectableFlags_.allow_overlap
+            )[0]
+            if clicked:
                 self._selected_ga_id = ga.id
-                self._selected_ga_text = f"{ga.text}  {ga.name}"
+                self._selected_ga_text = name
                 self._selected_ga_description = ga.description
                 self._selected_ga_comment = ga.comment
             if ga.id == self._reveal_ga_id:
                 imgui.set_scroll_here_y()
+            # Context menu while the selectable is still the last item, so it binds to the row.
             self._render_ga_context_menu(ga)
+            live = (
+                self._get_latest_value(ga.text, ga.datapoint_type)
+                if self._get_latest_value is not None
+                else None
+            )
+            value_text, value_time = (live[0], live[1]) if live else ("", "")
+            if value_text:
+                imgui.same_line()
+                imgui.set_cursor_pos_x(
+                    row_x + imgui.calc_text_size(name).x + spacing * 3.0
+                )
+                imgui.text_colored(_LIVE_COLOR, value_text)
+                if imgui.is_item_hovered():
+                    imgui.set_tooltip(
+                        f"{value_text}\n{value_time}" if value_time else value_text
+                    )
 
     @staticmethod
     def _ga_matches(ga: object, flt: str) -> bool:

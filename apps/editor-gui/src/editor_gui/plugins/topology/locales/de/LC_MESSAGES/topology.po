@@ -22,6 +22,45 @@ msgstr "Strg+Scrollen zum Zoomen. Klicke ein Gerät, um es zu öffnen."
 msgid "Building View"
 msgstr "Gebäudeansicht"
 
+msgid "Links"
+msgstr "Verknüpfungen"
+
+msgid "Physical"
+msgstr "Physikalisch"
+
+msgid "Building"
+msgstr "Gebäude"
+
+msgid "Matrix"
+msgstr "Matrix"
+
+msgid "A device x group-address matrix: amber = the device sends on that group address, blue = it receives. Hover a column for the group address, a row to open the device."
+msgstr "Eine Geräte-x-Gruppenadressen-Matrix: Bernstein = das Gerät sendet auf dieser Gruppenadresse, Blau = es empfängt. Spalte hovern für die Gruppenadresse, Zeile für das Gerät (Klick öffnet es)."
+
+msgid "sends"
+msgstr "sendet"
+
+msgid "receives"
+msgstr "empfängt"
+
+msgid "sends & receives"
+msgstr "sendet & empfängt"
+
+msgid "Each group address is a hub node; devices link to it (sender into the hub, hub out to receivers). Hover a device to see its group addresses, or a hub to see every device on it. Shift-click a device to open it."
+msgstr "Jede Gruppenadresse ist ein Knoten; Geräte sind mit ihr verbunden (Sender in den Knoten, Knoten hinaus zu den Empfängern). Über ein Gerät fahren zeigt seine Gruppenadressen, über einen Knoten alle Geräte daran. Mit Shift auf ein Gerät klicken öffnet es."
+
+msgid "No linked devices to show."
+msgstr "Keine verknüpften Geräte vorhanden."
+
+msgid "Room"
+msgstr "Raum"
+
+msgid "Group"
+msgstr "Gruppe"
+
+msgid "All"
+msgstr "Alle"
+
 msgid "Ctrl/Cmd+scroll to zoom. Click a device to open it."
 msgstr "Strg/Cmd+Scrollen zum Zoomen. Klicke ein Gerät, um es zu öffnen."
 

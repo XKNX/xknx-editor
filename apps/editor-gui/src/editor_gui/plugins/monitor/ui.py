@@ -5,13 +5,12 @@ have a command bar to write/read a group address (values decoded via the GA's DP
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
-from editor_gui.dpt import transcoder_for
 from editor_gui.plugins.monitor.formatting import ProjectIndex, dpt_text
-from editor_gui.plugins.monitor.service import MonitorKind
+from editor_gui.plugins.monitor.service import MonitorKind, decode_group_value
 from editor_gui.plugins.monitor.strings import S
 from editor_gui.plugins.monitor.table import TelegramView
 from editor_gui.widgets.dpi import px
@@ -277,7 +276,9 @@ class MonitorPanel:
                 latest = self._service.latest(ga.address)
                 imgui.table_set_column_index(3)
                 text_clipped_tooltip(
-                    _decode(latest.payload, ga.datapoint_type) if latest else ""
+                    decode_group_value(latest.payload, ga.datapoint_type)
+                    if latest
+                    else ""
                 )
                 imgui.table_set_column_index(4)
                 imgui.text_disabled(latest.time_str if latest else "")
@@ -289,16 +290,3 @@ class MonitorPanel:
             if ga.address == address:
                 return ga.datapoint_type
         return None
-
-
-def _decode(payload: Any, dpt: str | None) -> str:
-    transcoder = transcoder_for(dpt)
-    if transcoder is not None:
-        try:
-            return str(transcoder.from_knx(payload))
-        except Exception:
-            pass
-    value = getattr(payload, "value", None)
-    if isinstance(value, tuple):
-        return " ".join(f"{b:02x}" for b in cast(tuple[int, ...], value))
-    return str(value) if value is not None else "?"

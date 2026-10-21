@@ -97,7 +97,7 @@ from editor_gui.widgets.dialog import (
     tab_page,
 )
 from editor_gui.widgets.dpi import px, px_vec2
-from editor_gui.widgets.fonts import fitted_heading, heading, load_fonts
+from editor_gui.widgets.fonts import bold, fitted_heading, heading, load_fonts
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
 from editor_gui.widgets.tables import reset_all_tables
@@ -491,6 +491,8 @@ class KnxGuiApp:
         # "Load product from URL" prompt (imports a .knxprod / OpenKNX release / product XML).
         self._url_prompt_requested = False
         self._url_input = ""
+        # Folder picker launched from that prompt, to import every product source in a folder.
+        self._url_folder_dialog: file_dialogs.SelectFolderDialog | None = None
         # Background import (keeps the UI responsive during the slow parse/catalog/device build).
         self._import_thread: threading.Thread | None = None
         self._import_pw: str | None = None
@@ -646,6 +648,7 @@ class KnxGuiApp:
             self._plugin_api,
             get_selected_node_ids=lambda: [],
             export_group_addresses=self._export_ga_export,
+            get_latest_value=self._monitor_plugin.service.latest_text,
         )
         self._project_plugin.show_context_help = bool(
             load_settings("app").get("show_context_help", True)
@@ -1603,25 +1606,34 @@ class KnxGuiApp:
         # The fields' titles in front of them, every field from the same column, also the ones on
         # the login tab's page (inside its padding).
         style = imgui.get_style()
+        # EXPORT_FORMAT is drawn bold and larger below, so measure it the same way — it is wider than
+        # its regular size and the column must be wide enough that the field next to it does not
+        # overlap the label.
+        with bold(_STRONG_TITLE_SCALE):
+            format_label_w = imgui.calc_text_size(S.EXPORT_FORMAT).x
         self._sign_title_w = (
             max(
-                imgui.calc_text_size(label).x
-                for label in (
-                    S.EXPORT_FORMAT,
-                    S.MYKNX_SIGN_USERNAME,
-                    S.MYKNX_SIGN_PASSWORD,
-                    S.MYKNX_SIGN_LICENSE,
-                )
+                format_label_w,
+                *(
+                    imgui.calc_text_size(label).x
+                    for label in (
+                        S.MYKNX_SIGN_USERNAME,
+                        S.MYKNX_SIGN_PASSWORD,
+                        S.MYKNX_SIGN_LICENSE,
+                    )
+                ),
             )
             + style.item_spacing.x
         )
-        # Target format: ETS 6 (schema 23, default) or ETS 5 (schema 20).
+        # Target format: ETS 6 (schema 23, default) or ETS 5 (schema 20). Bold (strong=True): this is
+        # the key export choice and is easy to miss among the dimmed field titles.
         _title_in_front(
             S.EXPORT_FORMAT,
             imgui.get_cursor_start_pos().x
             + style.window_padding.x
             + style.child_border_size
             + self._sign_title_w,
+            strong=True,
         )
         formats = [("23", S.EXPORT_FORMAT_ETS6), ("20", S.EXPORT_FORMAT_ETS5)]
         current = next(lbl for code, lbl in formats if code == self._export_schema)
@@ -1656,15 +1668,36 @@ class KnxGuiApp:
         # user's own ETS with a dongle.
         selected_pid = ""
         dongle = False
+        # Both tabs share one height so the dialog does not jump on switch, sized to the dongle steps
+        # (the taller tab) so they show without an inner scrollbar. The dongle box's text width is the
+        # tab page's content width (page padding + the box's own frame padding/border).
+        style = imgui.get_style()
+        steps_w = (
+            imgui.get_content_region_avail().x
+            - 2 * style.window_padding.x
+            - 2 * style.frame_padding.x
+            - 2 * style.frame_border_size
+        )
+        steps_key = (S.MYKNX_DONGLE_STEPS, steps_w)
+        if self._dongle_steps_wrapped[0] != steps_key:
+            self._dongle_steps_wrapped = (steps_key, _wrap_text(steps_key[0], steps_w))
+        steps_lines = self._dongle_steps_wrapped[1].count("\n") + 1
+        tab_page_h = (
+            steps_lines * imgui.get_text_line_height()
+            + 2 * style.frame_padding.y  # the steps box's own padding
+            + imgui.get_frame_height()  # the Copy button row below the box
+            + style.item_spacing.y
+            + 2 * style.window_padding.y  # the tab page's own padding
+        )
         with outlined_tabs():
             if imgui.begin_tab_bar("##export_license"):
                 if imgui.begin_tab_item(S.MYKNX_SIGN_TAB)[0]:
-                    with tab_page("##myknx_page"):
+                    with tab_page("##myknx_page", tab_page_h):
                         selected_pid = self._render_myknx_login_tab(logging_in)
                     imgui.end_tab_item()
                 if imgui.begin_tab_item(S.MYKNX_DONGLE_TAB)[0]:
                     dongle = True
-                    with tab_page("##dongle_page"):
+                    with tab_page("##dongle_page", tab_page_h):
                         self._render_dongle_tab()
                     imgui.end_tab_item()
                 imgui.end_tab_bar()
@@ -2238,6 +2271,12 @@ class KnxGuiApp:
             "##load-url", self._url_input, imgui.InputTextFlags_.enter_returns_true
         )
         url = self._url_input.strip()
+        imgui.spacing()
+        imgui.text_wrapped(S.URL_PROMPT_FOLDER_HINT)
+        if imgui.button(S.URL_PROMPT_BROWSE_FOLDER):
+            imgui.close_current_popup()
+            self._url_folder_dialog = file_dialogs.select_folder(S.FOLDER_IMPORT_TITLE)
+        imgui.spacing()
         clicked = dialog_buttons(S.URL_PROMPT_LOAD, S.URL_PROMPT_CANCEL)
         load = clicked == 0 or submitted
         cancel = clicked == 1
@@ -2317,6 +2356,58 @@ class KnxGuiApp:
             )
 
         self._run_bg(S.URL_DOWNLOADING, worker)
+
+    def _start_folder_import(self, folder: str) -> None:
+        """Import every supported product source found under ``folder`` on a worker thread: a
+        .knxprod, an OpenKNX release ZIP, or a raw KNX product XML. Files that are not a product
+        source are skipped."""
+
+        def worker() -> None:
+            try:
+                master = master_xml_bytes()
+                if master is None:
+                    raise RuntimeError(
+                        "KNX master data unavailable (offline and not cached) — connect to the "
+                        "internet once so it can be downloaded, then retry"
+                    )
+                candidates = sorted(
+                    p
+                    for p in Path(folder).rglob("*")
+                    if p.is_file() and p.suffix.lower() in (".knxprod", ".zip", ".xml")
+                )
+                added_total = 0
+                for path in candidates:
+                    try:
+                        data = path.read_bytes()
+                        with self._catalog_service.io_lock:
+                            added = self._catalog_service.import_product_source(
+                                data, master
+                            )
+                    except Exception as e:
+                        self._log.debug(
+                            "skipped file in folder import",
+                            path=str(path),
+                            error=f"{type(e).__name__}: {e}",
+                        )
+                        continue
+                    added_total += len(added)
+                self._project_service.refresh_catalog_resolution(rebuild=True)
+            except Exception as e:
+                self._log.error(
+                    "folder import failed",
+                    folder=folder,
+                    error=f"{type(e).__name__}: {e}",
+                )
+                self._flash_toast(S.FOLDER_IMPORT_FAILED.format(error=str(e)))
+                return
+            self._log.info("imported from folder", folder=folder, added=added_total)
+            self._flash_toast(
+                S.FOLDER_IMPORT_OK.format(count=added_total)
+                if added_total
+                else S.FOLDER_IMPORT_EMPTY
+            )
+
+        self._run_bg(S.FOLDER_IMPORTING, worker)
 
     def _clear_import_prompt(self) -> None:
         self._import_knxproj_source = None
@@ -2652,6 +2743,12 @@ class KnxGuiApp:
             self._open_file_dialog = None
             if result:
                 self._load_knxprod(result[0])
+
+        if self._url_folder_dialog is not None and self._url_folder_dialog.ready():
+            folder = self._url_folder_dialog.result()
+            self._url_folder_dialog = None
+            if folder:
+                self._start_folder_import(folder)
 
         if self._save_project_dialog is not None and self._save_project_dialog.ready():
             result = self._save_project_dialog.result()
@@ -4226,22 +4323,26 @@ class KnxGuiApp:
         # Read-only multiline input so the text stays selectable/copyable inline (mouse-drag +
         # Ctrl/Cmd+C). It does NOT word-wrap, so hard-wrap to the box width first (long paths and
         # P-XXXX_M-dummy stay intact) — otherwise long lines are clipped on the right.
-        height = hello_imgui.em_to_vec2(0.0, 13.0).y
         style = imgui.get_style()
-        # The box's text width: inside its padding and next to its scrollbar (the steps are longer
-        # than the box is tall).
+        # The box's text width: inside its padding and the border (sized to its full content below,
+        # so there is no scrollbar to leave room for).
         width = (
             imgui.get_content_region_avail().x
             - 2 * style.frame_padding.x
-            - style.scrollbar_size
             - 2 * style.frame_border_size
         )
         key = (S.MYKNX_DONGLE_STEPS, width)
         if self._dongle_steps_wrapped[0] != key:
             self._dongle_steps_wrapped = (key, _wrap_text(key[0], width))
+        wrapped = self._dongle_steps_wrapped[1]
+        # Size the box to its wrapped line count so every step shows without an inner scrollbar. The
+        # read-only multiline advances one font line (no item spacing) per line, so use the plain line
+        # height; the surrounding tab page was sized to fit exactly this box plus the Copy button.
+        lines = wrapped.count("\n") + 1
+        height = lines * imgui.get_text_line_height() + 2 * style.frame_padding.y
         imgui.input_text_multiline(
             "##dongle_steps",
-            self._dongle_steps_wrapped[1],
+            wrapped,
             imgui.ImVec2(-1.0, height),
             imgui.InputTextFlags_.read_only,
         )
@@ -5163,10 +5264,24 @@ _UI_LANGUAGES: list[tuple[str, str]] = [
 ]
 
 
-def _title_in_front(label: str, value_x: float) -> None:
-    """``label`` as the title of the field that follows, which starts at ``value_x``."""
+_STRONG_TITLE_SCALE = 1.2
+
+
+def _title_in_front(
+    label: str, value_x: float, *, dim: bool = True, strong: bool = False
+) -> None:
+    """``label`` as the title of the field that follows, which starts at ``value_x``. ``dim`` greys
+    the label (the default for secondary fields); pass ``dim=False`` to keep it at full contrast, and
+    ``strong=True`` to draw it bold and larger (``_STRONG_TITLE_SCALE``), for a field that must stand
+    out."""
     imgui.align_text_to_frame_padding()
-    imgui.text_disabled(label)
+    if strong:
+        with bold(_STRONG_TITLE_SCALE):
+            imgui.text(label)
+    elif dim:
+        imgui.text_disabled(label)
+    else:
+        imgui.text(label)
     imgui.same_line(value_x)
 
 

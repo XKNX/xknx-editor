@@ -50,6 +50,20 @@ class _CopiedObject:
 
 # Accent colour for the sending group address (shown emphasised).
 _SENDING_COLOR = imgui.ImVec4(0.45, 0.8, 0.5, 1.0)
+# Colour of the last value a group address was seen carrying, by what the object does with it
+# (its flags): amber = the object sends, blue = it receives, teal = both; grey-blue when the flags
+# say neither. An object's older value (a different address updated more recently) is dimmed.
+_SENT_COLOR = imgui.ImVec4(0.92, 0.74, 0.42, 1.0)
+_RECEIVED_COLOR = imgui.ImVec4(0.45, 0.7, 0.92, 1.0)
+_BOTH_COLOR = imgui.ImVec4(0.45, 0.82, 0.72, 1.0)
+_LIVE_COLOR = imgui.ImVec4(0.6, 0.6, 0.66, 1.0)
+
+
+def _dim(color: imgui.ImVec4) -> imgui.ImVec4:
+    """A faded variant, for a value older than the object's most recent one."""
+    return imgui.ImVec4(color.x, color.y, color.z, 0.5)
+
+
 # Width of the group-address link picker: wide enough for "address + full name" without clipping.
 _PICKER_WIDTH = 460.0
 # Valid per-instance ComObjectInstanceRef @Priority values (ComObjectPriority_t).
@@ -62,6 +76,22 @@ def _clamp_int(text: str, lo: int, hi: int) -> int:
         return max(lo, min(hi, int(text.strip() or lo)))
     except ValueError:
         return lo
+
+
+def _value_role(com_object: ComObject) -> tuple[str, imgui.ImVec4]:
+    """How the object uses the bus, from its flags: it sends (Transmit/Read), receives
+    (Write/Update), or both; a label and colour for its value. This is the object's actual
+    direction, distinct from which group address is marked sending."""
+    flags = com_object.flags
+    sends = flags.transmit or flags.read
+    receives = flags.write or flags.update
+    if sends and receives:
+        return S.GROUP_OBJECTS_VALUE_SENT_RECEIVED, _BOTH_COLOR
+    if sends:
+        return S.GROUP_OBJECTS_VALUE_SENT, _SENT_COLOR
+    if receives:
+        return S.GROUP_OBJECTS_VALUE_RECEIVED, _RECEIVED_COLOR
+    return "", _LIVE_COLOR
 
 
 class GroupObjectsTable:
@@ -85,10 +115,14 @@ class GroupObjectsTable:
         on_set_priority: Callable[[Device, str, str | None], None] | None = None,
         on_set_description: Callable[[Device, str, str | None], None] | None = None,
         ga_menu: Callable[[int, ComObject], None] | None = None,
+        get_latest_value: Callable[[str, str | None], tuple[str, str, float] | None]
+        | None = None,
     ) -> None:
         self._set_flag = set_flag
         # Renders the context menu items of an assigned group address: (group_address_id, object).
         self._ga_menu = ga_menu
+        # The last value seen on a group address (decoded, with its arrival time), or None.
+        self._get_latest_value = get_latest_value
         self._on_link = on_link
         self._on_unlink = on_unlink
         self._on_auto_create_gas = on_auto_create_gas
@@ -344,6 +378,22 @@ class GroupObjectsTable:
             imgui.close_current_popup()
         end_dialog()
 
+    def _latest_values(
+        self, links: list[GroupLink], com_object: ComObject
+    ) -> dict[int, tuple[str, str, float]]:
+        """Last bus value of each linked group address, by assignment id: decoded text, arrival
+        time and a sortable epoch. ``link`` text is "address  name"; look up by the leading
+        address."""
+        if self._get_latest_value is None:
+            return {}
+        values: dict[int, tuple[str, str, float]] = {}
+        for assignment_id, _ga_id, text, _is_sending in links:
+            address = text.split(maxsplit=1)[0] if text else ""
+            live = self._get_latest_value(address, com_object.dpt.token)
+            if live is not None and live[0]:
+                values[assignment_id] = live
+        return values
+
     def _render_row(
         self,
         device: Device,
@@ -393,9 +443,16 @@ class GroupObjectsTable:
         db_id = com_object.db_id
         links = get_links(db_id) if db_id is not None else []
         # Sending group address first (accent colour); the rest are receive-only.
-        for assignment_id, ga_id, text, is_sending in sorted(
-            links, key=lambda link: not link[3]
-        ):
+        ordered = sorted(links, key=lambda link: not link[3])
+        # The last value seen on each linked address (decoded with the object's DPT). The sending
+        # address carries what the object last sent, a receive-only one what it last got; the most
+        # recently updated of them is the object's current value, so show it bright and dim the
+        # others. ``text`` is "address  name", so look up by the leading address token.
+        values = self._latest_values(ordered, com_object)
+        newest = max((at for _text, _time, at in values.values()), default=None)
+        direction, value_color = _value_role(com_object)
+        older = S.GROUP_OBJECTS_VALUE_OLDER
+        for assignment_id, ga_id, text, is_sending in ordered:
             if imgui.small_button(f"x##unlink{assignment_id}"):
                 self._on_unlink(assignment_id)
             imgui.same_line()
@@ -414,6 +471,24 @@ class GroupObjectsTable:
             ):
                 self._ga_menu(ga_id, com_object)
                 imgui.end_popup()
+            live = values.get(assignment_id)
+            if live is not None:
+                value_text, value_time, at = live
+                current = newest is None or at >= newest
+                imgui.same_line()
+                imgui.text_colored(
+                    value_color if current else _dim(value_color), value_text
+                )
+                if imgui.is_item_hovered():
+                    # Direction from the object's flags (what it does), not the sending-GA role;
+                    # mark an address whose value is older than the object's newest.
+                    notes = [n for n in (direction, None if current else older) if n]
+                    suffix = f"  ({', '.join(notes)})" if notes else ""
+                    imgui.set_tooltip(
+                        f"{value_text}{suffix}\n{value_time}"
+                        if value_time
+                        else f"{value_text}{suffix}"
+                    )
         if db_id is not None:
             self._render_add(device, com_object, db_id, links, get_all_group_addresses)
 

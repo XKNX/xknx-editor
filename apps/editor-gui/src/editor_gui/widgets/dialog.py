@@ -180,20 +180,21 @@ def outlined_tabs() -> Generator[None]:
 
 
 @contextmanager
-def tab_page(str_id: str) -> Generator[None]:
-    """A framed page for the selected tab's content, right below the tabs and as tall as the content.
+def tab_page(str_id: str, height: float = 0.0) -> Generator[None]:
+    """A framed page for the selected tab's content, right below the tabs.
 
     Call it first thing in the tab item. The selected tab opens into the page (no frame line below
-    it), and the page has the window's colour, like the selected tab of light themes.
+    it), and the page has the window's colour, like the selected tab of light themes. ``height`` (in
+    scaled pixels) fixes the page height so sibling tabs stay the same size; the default (0) sizes
+    the page to its content.
     """
     tab_min, tab_max = imgui.get_item_rect_min(), imgui.get_item_rect_max()
     imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() - imgui.get_style().item_spacing.y)
     imgui.push_style_color(imgui.Col_.child_bg, imgui.ImVec4(0.0, 0.0, 0.0, 0.0))
-    imgui.begin_child(
-        str_id,
-        imgui.ImVec2(0.0, 0.0),
-        imgui.ChildFlags_.auto_resize_y | imgui.ChildFlags_.always_use_window_padding,
-    )
+    flags = imgui.ChildFlags_.always_use_window_padding
+    if height <= 0.0:
+        flags |= imgui.ChildFlags_.auto_resize_y
+    imgui.begin_child(str_id, imgui.ImVec2(0.0, height), flags)
     imgui.pop_style_color()
     try:
         yield

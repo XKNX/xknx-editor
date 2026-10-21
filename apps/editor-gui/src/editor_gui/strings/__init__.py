@@ -948,11 +948,11 @@ class MenuStrings:
 
     @property
     def MENU_LOAD_FROM_URL(self) -> str:
-        return _("Load OpenKNX from URL…")
+        return _("Load OpenKNX from URL or folder…")
 
     @property
     def URL_PROMPT_TITLE(self) -> str:
-        return _("Load OpenKNX from URL")
+        return _("Load OpenKNX from URL or folder")
 
     @property
     def URL_PROMPT_HINT(self) -> str:
@@ -964,6 +964,17 @@ class MenuStrings:
             "  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n"
             "  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
         )
+
+    @property
+    def URL_PROMPT_FOLDER_HINT(self) -> str:
+        return _(
+            "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or "
+            "KNX product XML) to import all of them."
+        )
+
+    @property
+    def URL_PROMPT_BROWSE_FOLDER(self) -> str:
+        return _("Choose folder…")
 
     @property
     def URL_PROMPT_LOAD(self) -> str:
@@ -988,6 +999,28 @@ class MenuStrings:
     @property
     def URL_IMPORT_FAILED(self) -> str:
         return _("Import from URL failed: {error}")
+
+    @property
+    def FOLDER_IMPORT_TITLE(self) -> str:
+        return _("Choose a folder with KNX product files")
+
+    @property
+    def FOLDER_IMPORTING(self) -> str:
+        return _("Importing from folder…")
+
+    @property
+    def FOLDER_IMPORT_OK(self) -> str:
+        return _("Imported {count} new product version(s) from folder")
+
+    @property
+    def FOLDER_IMPORT_EMPTY(self) -> str:
+        return _(
+            "Nothing new imported from folder (no product files found, or already in the catalog)"
+        )
+
+    @property
+    def FOLDER_IMPORT_FAILED(self) -> str:
+        return _("Import from folder failed: {error}")
 
     @property
     def MENU_EXIT(self) -> str:

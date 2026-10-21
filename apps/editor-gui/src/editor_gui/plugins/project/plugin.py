@@ -131,6 +131,8 @@ class ProjectPlugin:
         api: PluginAPI,
         get_selected_node_ids: Callable[[], list[int]] | None = None,
         export_group_addresses: Callable[[], None] | None = None,
+        get_latest_value: Callable[[str, str | None], tuple[str, str, float] | None]
+        | None = None,
     ) -> None:
         self._api = api
         self._get_selected_node_ids = get_selected_node_ids
@@ -275,6 +277,7 @@ class ProjectPlugin:
             suggest_ga=self._suggest_ga_for_object,
             get_name_template=self._ga_name_template,
             set_name_template=self._set_ga_name_template,
+            get_latest_value=get_latest_value,
             on_create_and_link=self._create_and_link_ga,
             group_style=lambda: api.project.group_address_style,
             next_free_sub=self._next_free_sub,
@@ -334,6 +337,7 @@ class ProjectPlugin:
             bus=group_bus,
             on_import=api.project.import_group_addresses,
             on_export=export_group_addresses,
+            get_latest_value=get_latest_value,
         )
 
         self._space_details = SpaceDetailsPanel(

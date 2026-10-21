@@ -79,6 +79,21 @@ msgstr "Sendende Gruppenadresse"
 msgid "Receiving Group Address"
 msgstr "Empfangende Gruppenadresse"
 
+msgid "current value"
+msgstr "aktueller Wert"
+
+msgid "older"
+msgstr "älter"
+
+msgid "sent"
+msgstr "gesendet"
+
+msgid "received"
+msgstr "empfangen"
+
+msgid "sent & received"
+msgstr "gesendet & empfangen"
+
 msgid "Changed from default ({default})"
 msgstr "Geändert gegenüber Standardwert ({default})"
 

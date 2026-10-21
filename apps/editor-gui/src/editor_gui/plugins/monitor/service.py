@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 from functools import cached_property
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 from xknx.dpt.payload import DPTArray, DPTBinary
 from xknx.exceptions import CouldNotParseAddress
@@ -61,6 +61,21 @@ class LiveValue:
         # Cached: strftime does a tzset (getenv/notify) on macOS and the monitor re-renders every
         # frame; format the fixed timestamp once, not per frame.
         return self.timestamp.strftime("%H:%M:%S")
+
+
+def decode_group_value(payload: Any, dpt: str | None) -> str:
+    """A group value's payload as text in its datapoint type; a hex (or raw) fallback without
+    a usable DPT."""
+    transcoder = transcoder_for(dpt)
+    if transcoder is not None:
+        try:
+            return str(transcoder.from_knx(payload))
+        except Exception:
+            pass
+    value = getattr(payload, "value", None)
+    if isinstance(value, tuple):
+        return " ".join(f"{b:02x}" for b in cast("tuple[int, ...]", value))
+    return str(value) if value is not None else "?"
 
 
 @dataclass
@@ -341,6 +356,31 @@ class MonitorService:
         except CouldNotParseAddress:
             key = address
         return self._values.get(key)
+
+    def latest_text(
+        self, address: str, dpt: str | None
+    ) -> tuple[str, str, float] | None:
+        """The last value seen on ``address`` decoded with ``dpt`` (with its unit), the time it
+        arrived, and that time as a sortable epoch (to tell which of several addresses is the most
+        recent); None when nothing has been seen there yet."""
+        from editor_gui.dpt_formats import cached_master_formats
+        from editor_gui.plugins.monitor.formatting import decoded_value_text
+        from editor_gui.regional import regional_format
+
+        value = self.latest(address)
+        if value is None:
+            return None
+        text = decoded_value_text(
+            value.payload,
+            dpt,
+            cached_master_formats(getattr(self._connection, "master", None)),
+            regional_format().decimal,
+        )
+        return (
+            text or decode_group_value(value.payload, dpt),
+            value.time_str,
+            value.timestamp.timestamp(),
+        )
 
     def merged_log(
         self, kinds: Iterable[MonitorKind] = LINK_LAYER_KINDS

@@ -81,6 +81,21 @@ msgstr "Zendend groepsadres"
 msgid "Receiving Group Address"
 msgstr "Ontvangend groepsadres"
 
+msgid "current value"
+msgstr "huidige waarde"
+
+msgid "older"
+msgstr "ouder"
+
+msgid "sent"
+msgstr "verzonden"
+
+msgid "received"
+msgstr "ontvangen"
+
+msgid "sent & received"
+msgstr "verzonden & ontvangen"
+
 msgid "Changed from default ({default})"
 msgstr "Gewijzigd ten opzichte van de standaardwaarde ({default})"
 

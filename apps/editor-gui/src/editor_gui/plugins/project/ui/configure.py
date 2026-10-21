@@ -278,6 +278,8 @@ class ConfigurePanel:
         suggest_ga: Callable[[Device, ComObject], tuple[str, str]] | None = None,
         get_name_template: Callable[[], str] | None = None,
         set_name_template: Callable[[str], None] | None = None,
+        get_latest_value: Callable[[str, str | None], tuple[str, str, float] | None]
+        | None = None,
         on_create_and_link: Callable[[Device, ComObject, str, str], None] | None = None,
         group_style: "Callable[[], GroupAddressStyle] | None" = None,
         next_free_sub: Callable[[int, int], int] | None = None,
@@ -390,6 +392,7 @@ class ConfigurePanel:
             on_set_priority=set_priority,
             on_set_description=set_description,
             ga_menu=ga_menu,
+            get_latest_value=get_latest_value,
         )
         self._name_buffer: str = ""
         # The name field was pre-filled with the default name when it was activated.
