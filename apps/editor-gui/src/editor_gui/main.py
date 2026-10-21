@@ -8,6 +8,7 @@ import tempfile
 import threading
 import time
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
 from typing import Any, cast
@@ -100,10 +101,16 @@ from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.fonts import bold, fitted_heading, heading, load_fonts
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
-from editor_gui.widgets.tables import reset_all_tables
-from editor_gui.widgets.text_util import fit_text, human_size
+from editor_gui.widgets.tables import (
+    begin_data_table,
+    data_table_headers,
+    reset_all_tables,
+)
+from editor_gui.widgets.text_util import fit_text, human_size, text_clipped_tooltip
 from editor_gui.widgets.tree import collapsing_header
 from editor_gui.window_title import set_window_title
+from xknxeditor.catalog import ProductSummary
+from xknxeditor.prod.app_id import parse_app_id
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj import (
     MYKNX_DLL_NAME,
@@ -367,6 +374,20 @@ def _log_gl_renderer(log: Logger) -> None:
     )
 
 
+@dataclass
+class _ProductRow:
+    """One row of the product-import result table: pre-formatted cells for one product version."""
+
+    manufacturer: str
+    product: str
+    order: str
+    application: str
+    version: str
+    mask: str
+    hardware: str
+    registered: str
+
+
 class KnxGuiApp:
     def __init__(self, catalog_path: Path) -> None:
         self._catalog_service_path = catalog_path
@@ -559,6 +580,10 @@ class KnxGuiApp:
         # the text while the modal is open (worker->render handoff via _result, latched into _msg).
         self._knxprod_result: str | None = None
         self._knxprod_msg: str | None = None
+        # A detailed product-import result rendered as a table: (header, rows). The worker sets
+        # ``_import_rows_result``; the render loop latches it into ``_import_rows`` until OK.
+        self._import_rows_result: tuple[str, list[_ProductRow]] | None = None
+        self._import_rows: tuple[str, list[_ProductRow]] | None = None
         # Lossy-import notes to show in a readable modal (set after a lossy import or before an
         # export that echoes them); rendered by _render_import_notes_modal.
         self._import_notes: list[ImportLoss] = []
@@ -2363,20 +2388,24 @@ class KnxGuiApp:
                 # Hold the shared IO lock while ingesting so per-frame catalog reads bail (the
                 # established pattern for background imports); then rebuild device resolution.
                 with self._catalog_service.io_lock:
-                    added = self._catalog_service.import_product_source(data, master)
+                    added = self._catalog_service.import_product_source_contents(
+                        data, master
+                    )
                 self._project_service.refresh_catalog_resolution(rebuild=True)
             except Exception as e:
                 self._log.error(
                     "load from url failed", url=url, error=f"{type(e).__name__}: {e}"
                 )
-                self._flash_toast(S.URL_IMPORT_FAILED.format(error=str(e)))
+                self._knxprod_result = S.URL_IMPORT_FAILED.format(error=str(e))
                 return
             self._log.info("loaded from url", url=url, added=len(added))
-            self._flash_toast(
-                S.URL_IMPORT_OK.format(count=len(added))
-                if added
-                else S.URL_IMPORT_EMPTY
-            )
+            if added:
+                self._import_rows_result = (
+                    S.KNXPROD_IMPORT_SUMMARY.format(count=len(added), name=url),
+                    self._product_import_rows(added),
+                )
+            else:
+                self._knxprod_result = S.URL_IMPORT_EMPTY
 
         self._run_bg(S.URL_DOWNLOADING, worker)
 
@@ -2395,12 +2424,7 @@ class KnxGuiApp:
         self._start_product_files_import(
             folder,
             candidates,
-            (
-                S.FOLDER_IMPORTING,
-                S.FOLDER_IMPORT_OK,
-                S.FOLDER_IMPORT_EMPTY,
-                S.FOLDER_IMPORT_FAILED,
-            ),
+            (S.FOLDER_IMPORTING, S.FOLDER_IMPORT_EMPTY, S.FOLDER_IMPORT_FAILED),
         )
 
     def _start_files_import(self, paths: list[str]) -> None:
@@ -2409,23 +2433,19 @@ class KnxGuiApp:
         self._start_product_files_import(
             ", ".join(Path(p).name for p in paths),
             lambda: [Path(p) for p in paths],
-            (
-                S.FILES_IMPORTING,
-                S.FILES_IMPORT_OK,
-                S.FILES_IMPORT_EMPTY,
-                S.FILES_IMPORT_FAILED,
-            ),
+            (S.FILES_IMPORTING, S.FILES_IMPORT_EMPTY, S.FILES_IMPORT_FAILED),
         )
 
     def _start_product_files_import(
         self,
         source: str,
         candidates: Callable[[], list[Path]],
-        texts: tuple[str, str, str, str],
+        texts: tuple[str, str, str],
     ) -> None:
         """Import each product source ``candidates()`` lists on a worker thread; files that are not
-        a product source are skipped. ``texts``: progress, done, nothing new, failed."""
-        importing, done, empty, failed = texts
+        a product source are skipped. The imported versions are listed afterwards under ``source``.
+        ``texts``: progress, nothing new, failed."""
+        importing, empty, failed = texts
 
         def worker() -> None:
             try:
@@ -2435,13 +2455,15 @@ class KnxGuiApp:
                         "KNX master data unavailable (offline and not cached) — connect to the "
                         "internet once so it can be downloaded, then retry"
                     )
-                added_total = 0
+                added_all: list[ProductSummary] = []
                 for path in candidates():
                     try:
                         data = path.read_bytes()
                         with self._catalog_service.io_lock:
-                            added = self._catalog_service.import_product_source(
-                                data, master
+                            added = (
+                                self._catalog_service.import_product_source_contents(
+                                    data, master
+                                )
                             )
                     except Exception as e:
                         self._log.debug(
@@ -2450,7 +2472,17 @@ class KnxGuiApp:
                             error=f"{type(e).__name__}: {e}",
                         )
                         continue
-                    added_total += len(added)
+                    added_all.extend(added)
+                # Two identical files map to the same stored archive, so drop repeats while keeping
+                # first-seen order.
+                seen: set[tuple[str, str]] = set()
+                deduped: list[ProductSummary] = []
+                for product in added_all:
+                    key = (product.product_ref_id, product.hardware2program_ref_id)
+                    if key not in seen:
+                        seen.add(key)
+                        deduped.append(product)
+                added_all = deduped
                 self._project_service.refresh_catalog_resolution(rebuild=True)
             except Exception as e:
                 self._log.error(
@@ -2458,10 +2490,16 @@ class KnxGuiApp:
                     source=source,
                     error=f"{type(e).__name__}: {e}",
                 )
-                self._flash_toast(failed.format(error=str(e)))
+                self._knxprod_result = failed.format(error=str(e))
                 return
-            self._log.info("imported products", source=source, added=added_total)
-            self._flash_toast(done.format(count=added_total) if added_total else empty)
+            self._log.info("imported products", source=source, added=len(added_all))
+            if added_all:
+                self._import_rows_result = (
+                    S.KNXPROD_IMPORT_SUMMARY.format(count=len(added_all), name=source),
+                    self._product_import_rows(added_all),
+                )
+            else:
+                self._knxprod_result = empty
 
         self._run_bg(importing, worker)
 
@@ -2985,6 +3023,76 @@ class KnxGuiApp:
         ):
             self._export_knxproj()
 
+    def _product_import_rows(self, added: list[ProductSummary]) -> list[_ProductRow]:
+        """One pre-formatted table row per imported product version, with its technical facts
+        (order number, application + real version, mask, KNX Secure, size, bus current, media,
+        registration), sorted for reading."""
+        rows: list[_ProductRow] = []
+        for product in sorted(
+            added,
+            key=lambda p: (
+                (p.manufacturer_name or "").lower(),
+                (p.name or "").lower(),
+                p.order_number or "",
+            ),
+        ):
+            facts = self._catalog_service.product_facts(product.hardware2program_ref_id)
+            application = product.application_name or ""
+            if facts and facts.is_secure:
+                application = (
+                    f"{application}  ·  {S.KNXPROD_DETAIL_SECURE}"
+                    if application
+                    else S.KNXPROD_DETAIL_SECURE
+                )
+            parsed = parse_app_id(product.application_id or "")
+            if parsed is not None:
+                version = f"v{parsed.version}"
+            elif product.application_version is not None:
+                version = f"v{product.application_version}"
+            else:
+                version = ""
+            hardware = [
+                part
+                for part in (
+                    (
+                        S.KNXPROD_DETAIL_RAIL
+                        if product.is_rail_mounted
+                        else S.KNXPROD_DETAIL_FLUSH
+                    )
+                    if product.is_rail_mounted is not None
+                    else "",
+                    f"{product.width_mm:g} mm" if product.width_mm else "",
+                    f"{product.bus_current:g} mA" if product.bus_current else "",
+                    "/".join(facts.mediums) if facts and facts.mediums else "",
+                )
+                if part
+            ]
+            registered = [
+                part
+                for part in (
+                    facts.registration_number if facts else None,
+                    facts.registration_date.isoformat()
+                    if facts and facts.registration_date
+                    else None,
+                )
+                if part
+            ]
+            rows.append(
+                _ProductRow(
+                    manufacturer=product.manufacturer_name or product.manufacturer_id,
+                    product=product.name
+                    or product.application_name
+                    or product.product_ref_id,
+                    order=product.order_number or "",
+                    application=application,
+                    version=version,
+                    mask=facts.mask_version if facts and facts.mask_version else "",
+                    hardware="  ·  ".join(hardware),
+                    registered="  ·  ".join(registered),
+                )
+            )
+        return rows
+
     def _load_knxprod(self, path: str) -> None:
         # A .knxproj is a full project archive, not a product catalog. The file filter is only
         # advisory on macOS, so a .knxproj can be picked in the "Load .knxprod" dialog; route it
@@ -3006,21 +3114,20 @@ class KnxGuiApp:
             with self._catalog_service.io_lock:
                 self._log.info("loading knxprod", path=path)
                 try:
-                    added = self._catalog_service.import_knxprod(Path(path))
+                    added = self._catalog_service.import_knxprod_contents(Path(path))
                     name = Path(path).name
                     if added:
                         self._log.info(
                             "added applications to catalog", count=len(added)
                         )
-                        self._knxprod_result = S.KNXPROD_IMPORT_DONE.format(
-                            count=len(added), name=name
+                        self._import_rows_result = (
+                            S.KNXPROD_IMPORT_SUMMARY.format(
+                                count=len(added), name=name
+                            ),
+                            self._product_import_rows(added),
                         )
                     else:
-                        # Re-import of an already-known product: the message box below makes the
-                        # no-op visible, so this stays an info log.
-                        self._log.info(
-                            "knxprod already imported — no new products", path=path
-                        )
+                        self._log.info("knxprod held no products", path=path)
                         self._knxprod_result = S.KNXPROD_IMPORT_NOTHING_NEW.format(
                             name=name
                         )
@@ -3468,13 +3575,16 @@ class KnxGuiApp:
             self._log.error("could not open folder", path=str(path), error=str(e))
 
     def _render_knxprod_result_modal(self) -> None:
-        # A finished .knxprod catalog import shows a modal message box (success or "nothing new") so
-        # the outcome is explicit and click-to-dismiss. The worker hands the text over via
-        # _knxprod_result; latch it into _knxprod_msg, which stays set until the user clicks OK.
+        # A finished catalog import shows a modal: a detailed product table on success, else a short
+        # message ("nothing new" / error). The worker hands the result over via _knxprod_result /
+        # _import_rows_result; latch into _knxprod_msg / _import_rows, which stay set until OK.
         if self._knxprod_result is not None:
             self._knxprod_msg = self._knxprod_result
             self._knxprod_result = None
-        if self._knxprod_msg is None:
+        if self._import_rows_result is not None:
+            self._import_rows = self._import_rows_result
+            self._import_rows_result = None
+        if self._knxprod_msg is None and self._import_rows is None:
             return
         if not imgui.is_popup_open(S.KNXPROD_IMPORT_TITLE):
             # Don't steal the stage from another modal (e.g. an auto-update prompt at the same popup
@@ -3484,13 +3594,74 @@ class KnxGuiApp:
             if imgui.is_popup_open("", imgui.PopupFlags_.any_popup):
                 return
             imgui.open_popup(S.KNXPROD_IMPORT_TITLE)
-        if not begin_dialog(S.KNXPROD_IMPORT_TITLE, width=420.0):
+        width = 1000.0 if self._import_rows is not None else 560.0
+        if not begin_dialog(S.KNXPROD_IMPORT_TITLE, width=width):
             return
-        imgui.text_wrapped(self._knxprod_msg)
+        if self._import_rows is not None:
+            header, product_rows = self._import_rows
+            imgui.text_wrapped(header)
+            imgui.spacing()
+            self._render_product_table(product_rows)
+        else:
+            assert self._knxprod_msg is not None
+            line_h = imgui.get_text_line_height_with_spacing()
+            lines = self._knxprod_msg.count("\n") + 1
+            height = min(px(380.0), lines * line_h + px(8.0))
+            if imgui.begin_child("##knxprod_result_body", imgui.ImVec2(0.0, height)):
+                imgui.push_text_wrap_pos(0.0)
+                imgui.text_unformatted(self._knxprod_msg)
+                imgui.pop_text_wrap_pos()
+            imgui.end_child()
         if dialog_buttons(S.BTN_OK) == 0:
             self._knxprod_msg = None
+            self._import_rows = None
             imgui.close_current_popup()
         end_dialog()
+
+    def _render_product_table(self, rows: list[_ProductRow]) -> None:
+        """The imported product versions as a one-row-per-product table. Short columns keep a tight
+        fixed width; the free-text columns stretch to fill the dialog so it needs no sideways scroll
+        (the wrapper still scrolls sideways on a narrow phone window)."""
+        # (label, getter, stretch): a stretching column's width follows the dialog; a fixed one
+        # keeps the px width below. Overflow in any cell is clipped with a hover tooltip.
+        columns: tuple[tuple[str, Callable[[_ProductRow], str], bool, float], ...] = (
+            (S.KNXPROD_COL_MANUFACTURER, lambda r: r.manufacturer, False, 95.0),
+            (S.KNXPROD_COL_PRODUCT, lambda r: r.product, True, 1.4),
+            (S.KNXPROD_COL_ORDER, lambda r: r.order, False, 115.0),
+            (S.KNXPROD_COL_APPLICATION, lambda r: r.application, True, 1.4),
+            (S.KNXPROD_COL_VERSION, lambda r: r.version, False, 50.0),
+            (S.KNXPROD_COL_MASK, lambda r: r.mask, False, 72.0),
+            (S.KNXPROD_COL_HARDWARE, lambda r: r.hardware, True, 1.0),
+            (S.KNXPROD_COL_REGISTERED, lambda r: r.registered, False, 140.0),
+        )
+        flags = (
+            imgui.TableFlags_.borders_inner
+            | imgui.TableFlags_.row_bg
+            | imgui.TableFlags_.resizable
+            | imgui.TableFlags_.reorderable
+            | imgui.TableFlags_.scroll_y
+        )
+        height = min(px(380.0), (len(rows) + 2) * imgui.get_frame_height())
+        if not begin_data_table(
+            "##product_import", len(columns), flags, imgui.ImVec2(0.0, height)
+        ):
+            return
+        for label, _get, stretch, size in columns:
+            if stretch:
+                imgui.table_setup_column(
+                    label, imgui.TableColumnFlags_.width_stretch, size
+                )
+            else:
+                imgui.table_setup_column(
+                    label, imgui.TableColumnFlags_.width_fixed, px(size)
+                )
+        data_table_headers()
+        for row in rows:
+            imgui.table_next_row()
+            for index, (_label, get, _stretch, _size) in enumerate(columns):
+                imgui.table_set_column_index(index)
+                text_clipped_tooltip(get(row))
+        imgui.end_table()
 
     def _render_about_modal(self) -> None:
         if self._about_requested:

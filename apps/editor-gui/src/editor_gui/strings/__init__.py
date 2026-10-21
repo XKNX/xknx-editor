@@ -1008,10 +1008,6 @@ class MenuStrings:
         return _("Downloading and importing…")
 
     @property
-    def URL_IMPORT_OK(self) -> str:
-        return _("Imported {count} new product version(s) from URL")
-
-    @property
     def URL_IMPORT_EMPTY(self) -> str:
         return _("Nothing new imported (already in the catalog)")
 
@@ -1026,10 +1022,6 @@ class MenuStrings:
     @property
     def FOLDER_IMPORTING(self) -> str:
         return _("Importing from folder…")
-
-    @property
-    def FOLDER_IMPORT_OK(self) -> str:
-        return _("Imported {count} new product version(s) from folder")
 
     @property
     def FOLDER_IMPORT_EMPTY(self) -> str:
@@ -1052,10 +1044,6 @@ class MenuStrings:
     @property
     def FILES_IMPORTING(self) -> str:
         return _("Importing files…")
-
-    @property
-    def FILES_IMPORT_OK(self) -> str:
-        return _("Imported {count} new product version(s) from the files")
 
     @property
     def FILES_IMPORT_EMPTY(self) -> str:
@@ -1423,8 +1411,56 @@ class MenuStrings:
         return _("Loading product catalog…")
 
     @property
-    def KNXPROD_IMPORT_DONE(self) -> str:
-        return _("Product catalog imported: {count} new product version(s) from {name}")
+    def KNXPROD_IMPORT_SUMMARY(self) -> str:
+        return _("Imported {count} product version(s) from {name}:")
+
+    @property
+    def KNXPROD_DETAIL_SECURE(self) -> str:
+        return _("KNX Secure")
+
+    @property
+    def KNXPROD_DETAIL_RAIL(self) -> str:
+        return _("DIN rail")
+
+    @property
+    def KNXPROD_DETAIL_FLUSH(self) -> str:
+        return _("Flush-mounted")
+
+    @property
+    def KNXPROD_DETAIL_REGISTERED(self) -> str:
+        return _("Registered: {info}")
+
+    @property
+    def KNXPROD_COL_MANUFACTURER(self) -> str:
+        return _("Manufacturer")
+
+    @property
+    def KNXPROD_COL_PRODUCT(self) -> str:
+        return _("Product")
+
+    @property
+    def KNXPROD_COL_ORDER(self) -> str:
+        return _("Order no.")
+
+    @property
+    def KNXPROD_COL_APPLICATION(self) -> str:
+        return _("Application")
+
+    @property
+    def KNXPROD_COL_VERSION(self) -> str:
+        return _("Version")
+
+    @property
+    def KNXPROD_COL_MASK(self) -> str:
+        return _("Mask")
+
+    @property
+    def KNXPROD_COL_HARDWARE(self) -> str:
+        return _("Hardware")
+
+    @property
+    def KNXPROD_COL_REGISTERED(self) -> str:
+        return _("Registered")
 
     @property
     def KNXPROD_IMPORT_NOTHING_NEW(self) -> str:

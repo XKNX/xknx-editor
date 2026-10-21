@@ -470,6 +470,9 @@ msgstr "Zum Beispiel: {examples}"
 msgid "Product catalog imported: {count} new product version(s) from {name}"
 msgstr "Produktkatalog importiert: {count} neue Produktversion(en) aus {name}"
 
+msgid "Imported {count} product version(s) from {name}:"
+msgstr "{count} Produktversion(en) aus {name} importiert:"
+
 msgid "{name} was already in the catalog, nothing new imported"
 msgstr "{name} war bereits im Katalog, nichts Neues importiert"
 
@@ -1376,11 +1379,38 @@ msgstr "KNX-Produktdateien (*.knxprod, *.zip, *.xml)"
 msgid "Importing files…"
 msgstr "Dateien importieren…"
 
-msgid "Imported {count} new product version(s) from the files"
-msgstr "{count} neue Produktversion(en) aus den Dateien importiert"
-
 msgid "Nothing new imported from the files (no product files, or already in the catalog)"
 msgstr "Nichts Neues aus den Dateien importiert (keine Produktdateien oder bereits im Katalog)"
 
 msgid "Import of the files failed: {error}"
 msgstr "Import der Dateien fehlgeschlagen: {error}"
+
+msgid "DIN rail"
+msgstr "Hutschiene"
+
+msgid "Flush-mounted"
+msgstr "Unterputz"
+
+msgid "Registered: {info}"
+msgstr "Registriert: {info}"
+
+msgid "Manufacturer"
+msgstr "Hersteller"
+
+msgid "Product"
+msgstr "Produkt"
+
+msgid "Order no."
+msgstr "Bestellnr."
+
+msgid "Application"
+msgstr "Applikation"
+
+msgid "Version"
+msgstr "Version"
+
+msgid "Mask"
+msgstr "Maske"
+
+msgid "Registered"
+msgstr "Registriert"

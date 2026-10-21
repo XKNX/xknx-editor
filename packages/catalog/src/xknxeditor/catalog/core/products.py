@@ -1,5 +1,6 @@
 """Product-first catalog queries (orderable items with their program/application refs)."""
 
+import datetime
 from dataclasses import dataclass
 
 from sqlalchemy import select
@@ -10,6 +11,7 @@ from xknxeditor.catalog.models import (
     CatalogSectionProduct,
     Hardware,
     HardwareProgram,
+    HardwareProgramMediumType,
     Manufacturer,
 )
 
@@ -33,9 +35,52 @@ class ProductSummary:
     bus_current: float | None = None
 
 
-def list_products(db: Session) -> list[ProductSummary]:
-    """All catalog items with a ProductRefId, joined to program/application/manufacturer."""
-    rows = db.execute(
+@dataclass
+class ProductFacts:
+    """Extra technical facts for a hardware program, beyond :class:`ProductSummary`."""
+
+    mask_version: str | None
+    is_secure: bool | None
+    registration_number: str | None
+    registration_date: datetime.date | None
+    mediums: tuple[str, ...]
+
+
+def product_facts(db: Session, program_id: str) -> ProductFacts | None:
+    """The application mask version + KNX Secure flag and the hardware program's registration
+    number/date and medium types, for ``program_id`` (a ``hardware2program_ref_id``)."""
+    row = db.execute(
+        select(
+            Application.mask_version,
+            Application.is_secure_enabled,
+            HardwareProgram.registration_number,
+            HardwareProgram.registration_date,
+        )
+        .select_from(HardwareProgram)
+        .join(
+            Application, Application.id == HardwareProgram.application_id, isouter=True
+        )
+        .where(HardwareProgram.id == program_id)
+    ).first()
+    if row is None:
+        return None
+    mediums = tuple(
+        db.scalars(
+            select(HardwareProgramMediumType.medium_type)
+            .where(HardwareProgramMediumType.hardware_program_id == program_id)
+            .order_by(HardwareProgramMediumType.medium_type)
+        ).all()
+    )
+    return ProductFacts(row[0], row[1], row[2], row[3], mediums)
+
+
+def _list_products(
+    db: Session, knxprod_path: str | None = None
+) -> list[ProductSummary]:
+    """Catalog items with a ProductRefId, joined to program/application/manufacturer.
+
+    ``knxprod_path`` restricts the result to the versions ingested from one stored archive."""
+    stmt = (
         select(
             CatalogSectionProduct.product_ref_id,
             CatalogSectionProduct.hardware_program_id,
@@ -61,8 +106,10 @@ def list_products(db: Session) -> list[ProductSummary]:
             Application, Application.id == HardwareProgram.application_id, isouter=True
         )
         .where(CatalogSectionProduct.product_ref_id.is_not(None))
-        .distinct()
-    ).all()
+    )
+    if knxprod_path is not None:
+        stmt = stmt.where(HardwareProgram.knxprod_path == knxprod_path)
+    rows = db.execute(stmt.distinct()).all()
     return [
         ProductSummary(
             product_ref_id=product_ref_id,
@@ -96,6 +143,17 @@ def list_products(db: Session) -> list[ProductSummary]:
         ) in rows
         if product_ref_id is not None
     ]
+
+
+def list_products(db: Session) -> list[ProductSummary]:
+    """All catalog items with a ProductRefId, joined to program/application/manufacturer."""
+    return _list_products(db)
+
+
+def products_for_path(db: Session, knxprod_path: str) -> list[ProductSummary]:
+    """Every product version ingested from one stored ``.knxprod`` archive (by its path). Lets a
+    re-import of an already-present file still list what it provides, instead of reporting nothing."""
+    return _list_products(db, knxprod_path)
 
 
 def find_products_for_application(
