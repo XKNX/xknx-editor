@@ -252,12 +252,163 @@ def _ui_node(node: Any, include_choices: bool = True) -> dict[str, Any]:
             for ch in node.children
             if (d := _ui_node(ch, include_choices)).get("kind") != "separator"
         ]
-        return {
+        out: dict[str, Any] = {
             "kind": "tab" if isinstance(node, UiTab) else "block",
             "name": heading,
             "children": children,
         }
+        # A stable container id so a caller can re-read just this subtree (subtree_id).
+        if node.id:
+            out["id"] = node.id
+        return out
     return {"kind": type(node).__name__.removeprefix("Ui").lower()}
+
+
+# Above this many parameters, a default project_parameter_tree read returns the outline instead of
+# the full tree, so a single call never floods the caller with a touch-panel-sized payload. Below it,
+# the whole tree is cheap enough to send at once. Forced outline/subtree_id reads ignore this.
+_TREE_AUTO_OUTLINE_PARAMS = 600
+
+
+def _count_leaves(node: Any) -> tuple[int, int]:
+    """``(parameters, com_objects)`` in ``node``'s whole subtree."""
+    from xknxeditor.prod.parser_v2.ui import (
+        UiComObject,
+        UiParameter,
+        UiParameterBlock,
+        UiTab,
+    )
+
+    params = cos = 0
+    stack: list[Any] = [node]
+    while stack:
+        current = stack.pop()
+        if isinstance(current, UiParameter):
+            params += 1
+        elif isinstance(current, UiComObject):
+            cos += 1
+        elif isinstance(current, (UiTab, UiParameterBlock)):
+            stack.extend(current.children)
+    return params, cos
+
+
+def _outline_node(node: Any) -> dict[str, Any] | None:
+    """A container (tab/block) as an outline entry: id, heading, subtree leaf counts and nested
+    containers only — no parameter/com-object leaves. ``None`` for a non-container node."""
+    from xknxeditor.prod.parser_v2.ui import UiParameterBlock, UiTab
+
+    if not isinstance(node, (UiTab, UiParameterBlock)):
+        return None
+    params, cos = _count_leaves(node)
+    children = [d for ch in node.children if (d := _outline_node(ch)) is not None]
+    out: dict[str, Any] = {
+        "kind": "tab" if isinstance(node, UiTab) else "block",
+        "name": getattr(node, "text", None) or getattr(node, "name", None),
+        "parameter_count": params,
+        "com_object_count": cos,
+        "children": children,
+    }
+    if node.id:
+        out["id"] = node.id
+    return out
+
+
+def _find_subtree(nodes: list[Any], subtree_id: str) -> Any | None:
+    """The first tab/block with ``id == subtree_id`` anywhere in ``nodes``, else None."""
+    from xknxeditor.prod.parser_v2.ui import UiParameterBlock, UiTab
+
+    stack: list[Any] = list(nodes)
+    while stack:
+        current = stack.pop()
+        if isinstance(current, (UiTab, UiParameterBlock)):
+            if current.id == subtree_id:
+                return current
+            stack.extend(current.children)
+    return None
+
+
+def _dotted_dpt(value: str | None) -> str | None:
+    """A DPT in the dotted form the rest of the API uses (e.g. ``1.001``), from an ETS token
+    (``DPST-1-1``) or a value already dotted; the raw value if it cannot be parsed."""
+    if not value:
+        return value
+    from editor_gui.dpt import dpt_from_token
+
+    try:
+        return dpt_from_token(value).code or value
+    except Exception:
+        return value
+
+
+def _link_annotations(
+    co_dpt_token: str | None,
+    co_dpt_code: str | None,
+    ga_dpt_token: str | None,
+    is_sending: bool,
+    existing: list[Any],
+    group_address_id: int,
+) -> dict[str, Any]:
+    """Feedback a link should surface but the service only logs: a DPT mismatch (the GA keeps its
+    own DPT, so a differing com-object DPT is a real wiring issue) and, for a sending link, the other
+    group addresses the object already sends to (one sending GA per object is the norm). DPTs are
+    compared as tokens (reliable) but reported dotted, as everywhere else."""
+    out: dict[str, Any] = {}
+    if co_dpt_token and ga_dpt_token and co_dpt_token != ga_dpt_token:
+        out["dpt_mismatch"] = {
+            "com_object": co_dpt_code or _dotted_dpt(co_dpt_token),
+            "group_address": _dotted_dpt(ga_dpt_token),
+        }
+    if is_sending:
+        others = sorted(
+            {
+                a.group_address_id
+                for a in existing
+                if a.is_sending and a.group_address_id != group_address_id
+            }
+        )
+        if others:
+            out["other_sending_group_address_ids"] = others
+    return out
+
+
+def param_change_result(
+    device: Any,
+    parameter_ref_id: str,
+    requested: str,
+    changes: dict[str, tuple[str | None, str | None]],
+) -> dict[str, Any]:
+    """A trustworthy set-parameter result: the EFFECTIVE value read back after the edit, whether the
+    parameter is still active, and the calculated side-effect changes — so a caller never has to
+    assume the requested value stuck (it may be normalized, or the parameter may have been
+    deactivated by a structural change). ``changes`` is the edit's calculation change set."""
+    effective: str | None = None
+    active = False
+    for p in _collect_ui_parameters(device.get_ui()):
+        if p.ref_id == parameter_ref_id:
+            effective, active = p.value, True
+            break
+    if not active and parameter_ref_id in changes:
+        # The edit deactivated the parameter itself (a structural change); report its stored value.
+        effective = changes[parameter_ref_id][1]
+    result: dict[str, Any] = {
+        "ref_id": parameter_ref_id,
+        "requested": requested,
+        "value": effective,
+        "active": active,
+    }
+    side_effects = [
+        {"ref_id": ref, "old": old, "new": new}
+        for ref, (old, new) in sorted(changes.items())
+        if ref != parameter_ref_id and old != new
+    ]
+    if side_effects:
+        result["changed"] = side_effects
+    # Links the edit's com-object reconcile dropped (a function/mode change deactivating linked
+    # objects), captured by the service before deletion.
+    lost = list(getattr(device, "last_lost_links", []) or [])
+    if lost:
+        result["lost_links"] = lost
+    return result
 
 
 def register(mcp: FastMCP, ctx: McpContext) -> None:
@@ -863,43 +1014,94 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return _items(ctx.run_locked(_read))
 
     @tool
-    def project_list_parameters(node_id: int) -> dict[str, Any]:
+    def project_list_parameters(
+        node_id: int, search: str | None = None
+    ) -> dict[str, Any]:
         """A device's visible application parameters with current value and default.
         Returns {items, count}; each item has ref_id, label, value, default_value, access, widget.
         To keep the list compact, an enum ``widget`` carries only ``choice_count`` (plus
         ``value_label`` on the item for the current value), NOT the full choice list — call
-        project_get_parameter for a single parameter's complete ``choices``.
+        project_get_parameter for a single parameter's complete ``choices``. Optional ``search``
+        keeps only items whose label contains it (case-insensitive) — use it on a large device
+        instead of pulling every parameter.
 
         Pass an item's ``ref_id`` to project_set_parameter as its ``parameter_ref_id`` argument."""
 
         def _read() -> list[dict[str, Any]]:
             device = _require_device(node_id)
-            return [
+            rows = [
                 _parameter_dict(p, include_choices=False)
                 for p in _collect_ui_parameters(device.get_ui())
             ]
+            if search:
+                needle = search.casefold()
+                rows = [r for r in rows if needle in str(r.get("label", "")).casefold()]
+            return rows
 
         return _items(ctx.run_locked(_read))
 
     @tool
-    def project_parameter_tree(node_id: int) -> dict[str, Any]:
+    def project_parameter_tree(
+        node_id: int, outline: bool = False, subtree_id: str | None = None
+    ) -> dict[str, Any]:
         """Read a device's nested parameter UI using node_id from project_list_devices. Group
         headings distinguish repeated labels for different channels, buttons or display levels.
         Returns {items, count}; count is the number of top-level nodes. Node fields depend on kind:
-        - "tab"/"block": {kind, name, children}, with children using the same node shapes.
+        - "tab"/"block": {kind, name, children, id?}, with children using the same node shapes. ``id``
+          is the stable container id (present when the container has one); pass it as ``subtree_id``.
         - "parameter": {kind, ref_id, label, value, default_value, access, widget}.
         - "button": {kind, id, text, online, read_only}; other nodes contain only kind.
         To stay compact, an enum ``widget`` here carries only ``choice_count`` (plus ``value_label``
         for the current value), NOT the full choice list — call project_get_parameter for one
         parameter's complete ``choices``.
+
+        The response also carries ``outline`` (bool). On a LARGE device a plain call
+        (no ``outline``/``subtree_id``) returns the outline automatically instead of a huge tree —
+        then ``outline`` is true and ``parameter_count`` gives the full size. To avoid pulling a big
+        tree whole:
+        - ``outline=True`` returns ONLY the container skeleton — each tab/block as
+          {kind, id, name, parameter_count, com_object_count, children} with no parameter/com-object
+          leaves. Read this to see the structure and pick a section.
+        - ``subtree_id="<id>"`` returns only that one tab/block's subtree (optionally also with
+          ``outline=True``). An unknown id raises — ids go stale after a structural change, so
+          re-read the outline then. project_list_parameters(search=...) finds a parameter by label.
+
         Pass a parameter's ref_id as parameter_ref_id to project_get_parameter/project_set_parameter.
         This reads project configuration."""
 
-        def _read() -> list[dict[str, Any]]:
+        def _read() -> dict[str, Any]:
             device = _require_device(node_id)
-            return [_ui_node(n, include_choices=False) for n in device.get_ui()]
+            scope: list[Any] = list(device.get_ui())
+            if subtree_id is not None:
+                found = _find_subtree(scope, subtree_id)
+                if found is None:
+                    raise ToolError(
+                        f"no tab/block with id {subtree_id!r} on device {node_id}; call "
+                        "project_parameter_tree(outline=True) for the current ids "
+                        "(ids change after a structural edit)"
+                    )
+                scope = [found]
+            use_outline = outline
+            total: int | None = None
+            # A plain call on a large device falls back to the outline so one read is never huge.
+            if not outline and subtree_id is None:
+                total = sum(_count_leaves(n)[0] for n in scope)
+                if total > _TREE_AUTO_OUTLINE_PARAMS:
+                    use_outline = True
+            if use_outline:
+                rows = [d for n in scope if (d := _outline_node(n)) is not None]
+            else:
+                rows = [_ui_node(n, include_choices=False) for n in scope]
+            env: dict[str, Any] = {
+                "items": rows,
+                "count": len(rows),
+                "outline": use_outline,
+            }
+            if use_outline and not outline and total is not None:
+                env["parameter_count"] = total
+            return env
 
-        return _items(ctx.run_locked(_read))
+        return ctx.run_locked(_read)
 
     @tool
     def project_get_parameter(node_id: int, parameter_ref_id: str) -> dict[str, Any]:
@@ -1451,7 +1653,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         yourself. Setting a function type usually reveals extra symbol/label parameters; re-read the
         block with project_parameter_tree and set them too, so the button shows correctly on the device.
 
-        Returns the affected parameter (its ref_id and resulting value)."""
+        Returns {ref_id, requested, value, active, changed?, lost_links?}: ``value`` is read back
+        AFTER the edit (may be a normalized form of ``requested``, or null with ``active=false`` if
+        the edit deactivated the parameter), ``changed`` lists other parameters a calculation changed
+        as a side effect, and ``lost_links`` lists group-address links this change dropped by
+        deactivating their com-objects ({com_object_ref_id, group_address_id, address}). A rejected
+        value raises with the reason and does NOT take effect on a later edit."""
 
         def _set() -> dict[str, Any]:
             device = _require_device(node_id)
@@ -1465,11 +1672,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     f"no parameter {parameter_ref_id!r} on device {node_id}; "
                     "call project_list_parameters for valid ref_ids"
                 )
-            project.set_param(device, parameter_ref_id, value)
-            for p in _collect_ui_parameters(device.get_ui()):
-                if p.ref_id == parameter_ref_id:
-                    return {"ref_id": p.ref_id, "value": p.value}
-            return {"ref_id": parameter_ref_id, "value": value}
+            # edit_params (not set_param): applies and reconciles as one undo step and raises on
+            # reject WITHOUT the GUI's stash-and-retry, so a rejected MCP set never silently takes
+            # effect on a later edit.
+            changes = project.edit_params(
+                device, [(parameter_ref_id, value)], mode="edit"
+            )
+            return param_change_result(device, parameter_ref_id, value, changes)
 
         return ctx.run_locked(_set)
 
@@ -1645,8 +1854,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         a single link it has no byte effect — the send/receive direction comes from the object's own
         flags. For a transmitting object (push-button/sensor output) linked to several GAs, mark its
         intended sending GA; keep one sending GA per object. Returns {link_id, node_id,
-        com_object_ref_id, com_object_db_id, group_address_id, is_sending}; pass link_id as
-        project_unlink_com_object's assignment_id. Program the device to apply the link on the bus."""
+        com_object_ref_id, com_object_db_id, group_address_id, is_sending, already_linked} plus, when
+        relevant, ``dpt_mismatch`` ({com_object, group_address} — the GA keeps its own DPT, so the
+        objects will not interwork) and ``other_sending_group_address_ids`` (the object already sends
+        to these, so it now has several sending GAs). Linking the same pair again is idempotent
+        (``already_linked: true``, no duplicate). Pass link_id as project_unlink_com_object's
+        assignment_id. Program the device to apply the link on the bus."""
         require_project(ctx)
 
         def _link() -> dict[str, Any]:
@@ -1662,6 +1875,33 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     f"com-object {com_object_ref_id!r} is not instantiated in the project and "
                     "cannot be linked (only com-objects with linkable=true can be linked)"
                 )
+            existing = list(project.get_links_for_com_object(co.db_id))
+            co_dpt = getattr(co, "dpt", None)
+            ga_before = project.get_group_address(group_address_id)
+            ga_dpt_before = ga_before.datapoint_type if ga_before else None
+            annotations = _link_annotations(
+                getattr(co_dpt, "token", None),
+                getattr(co_dpt, "code", None),
+                ga_dpt_before,
+                is_sending,
+                existing,
+                group_address_id,
+            )
+            # Idempotent: re-linking the same pair returns the existing link, never a duplicate.
+            dup = next(
+                (a for a in existing if a.group_address_id == group_address_id), None
+            )
+            if dup is not None:
+                return {
+                    "link_id": dup.id,
+                    "node_id": node_id,
+                    "com_object_ref_id": com_object_ref_id,
+                    "com_object_db_id": co.db_id,
+                    "group_address_id": group_address_id,
+                    "is_sending": dup.is_sending,
+                    "already_linked": True,
+                    **annotations,
+                }
             link_id = project.link_com_object_to_ga(
                 co.db_id, group_address_id, is_sending
             )
@@ -1678,6 +1918,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "com_object_db_id": co.db_id,
                 "group_address_id": group_address_id,
                 "is_sending": is_sending,
+                "already_linked": False,
+                **annotations,
             }
 
         return ctx.run_locked(_link)

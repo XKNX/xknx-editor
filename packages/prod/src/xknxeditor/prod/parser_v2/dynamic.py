@@ -541,7 +541,16 @@ def _as_int(value: object) -> int | None:
 
 
 class DynamicUI:
-    __slots__ = ("_app", "_idx", "_state", "_tree", "_ui", "script_abort", "script_env")
+    __slots__ = (
+        "_active_snapshot",
+        "_app",
+        "_idx",
+        "_state",
+        "_tree",
+        "_ui",
+        "script_abort",
+        "script_env",
+    )
 
     def __init__(
         self,
@@ -565,8 +574,18 @@ class DynamicUI:
             app_id=app.id,
         )
         self._ui: list[UiNode] | None = None
+        # The parameter-driven active com-object set, snapshotted from the same settle that builds
+        # ``_ui`` (before the inactive-channel prune, matching the standalone derivation). Lets a
+        # read of the active set reuse the UI settle instead of running its own, and is cleared
+        # together with ``_ui`` on every state change (see ``_invalidate``).
+        self._active_snapshot: tuple[EvalCapture | None, frozenset[str]] | None = None
         self.script_env: JScriptEnv | None = None
         self.script_abort: AbortToken | None = None
+
+    def _invalidate(self) -> None:
+        """Drop the cached UI and the active-set snapshot after a state change."""
+        self._ui = None
+        self._active_snapshot = None
 
     def _discover_union_activity(self) -> None:
         """Discovery pass ahead of a render eval: evaluate the tree WITHOUT union suppression so every
@@ -602,13 +621,25 @@ class DynamicUI:
                 break
         return tree, result
 
+    def _build_ui(self, *, capture_active: bool) -> None:
+        """Settle the tree and cache the pruned UI. When ``capture_active`` is set, also record
+        the parameter-driven active com-object set from the SAME settle (before the prune), so a
+        following :meth:`active_parameter_driven_com_object_ref_ids` reuses this evaluation instead
+        of running another full settle."""
+        capture = (lambda: EvalCapture(None)) if capture_active else None
+        self._ui, result = self._eval_settled(capture)
+        self._state.trim_to_active()
+        if capture_active:
+            active = frozenset(self._state.active_param_refs() or set())
+            self._active_snapshot = (result, active)
+        self._prune_inactive_channels()
+        if self._app.pre_ets4_style:
+            self._ui = place_hidden_parameters(self._ui, self._display_order)
+
     def ui(self) -> list[UiNode]:
         if self._ui is None:
-            self._ui, _ = self._eval_settled()
-            self._state.trim_to_active()
-            self._prune_inactive_channels()
-            if self._app.pre_ets4_style:
-                self._ui = place_hidden_parameters(self._ui, self._display_order)
+            self._build_ui(capture_active=False)
+        assert self._ui is not None
         return self._ui
 
     def _display_order(self, ref_id: str) -> int | None:
@@ -655,7 +686,7 @@ class DynamicUI:
         re-prunes) cleanly."""
         tree, _ = self._eval_settled()
         self._state.trim_to_active()
-        self._ui = None
+        self._invalidate()
         return tree
 
     def com_objects_controlled_by(self, param_ref_id: str) -> set[str]:
@@ -664,7 +695,7 @@ class DynamicUI:
         Invalidates the cached ``ui()`` so the next call recomputes cleanly."""
         _, capture = self._eval_settled(lambda: EvalCapture(param_ref_id))
         self._state.trim_to_active()
-        self._ui = None
+        self._invalidate()
         return capture.controlled_ref_ids() if capture is not None else set()
 
     def active_parameter_driven_com_object_ref_ids(self) -> set[str]:
@@ -677,15 +708,14 @@ class DynamicUI:
         channels a function genuinely activates (their selector parameter is active) and the
         always-present objects, while excluding the channel over-activation of the raw tree — e.g. an
         individual channel whose objects sit under an outer selector that is NOT active because its
-        widget only lives in a different function branch. Invalidates the cached ``ui()``."""
-        # Record every emitted object's gate chain.
-        _, capture = self._eval_settled(lambda: EvalCapture(None))
-        self._state.trim_to_active()
-        self._ui = None
-        active = self._state.active_param_refs() or set()
-        return (
-            capture.active_ref_ids(frozenset(active)) if capture is not None else set()
-        )
+        widget only lives in a different function branch. Shares the UI settle via the active-set
+        snapshot (see :meth:`_build_ui`), so it does not run its own evaluation when ``ui()`` is
+        current for the same state."""
+        if self._active_snapshot is None:
+            self._build_ui(capture_active=True)
+        assert self._active_snapshot is not None
+        capture, active = self._active_snapshot
+        return capture.active_ref_ids(active) if capture is not None else set()
 
     def get_module_instances(self) -> list[tuple[str, str]]:
         """After eval, list ``(instance_id, ref_id)`` per top-level module instance."""
@@ -694,7 +724,7 @@ class DynamicUI:
 
     def set_com_obj_instance_ref(self, ref_id: str, coir: ComObjectInstanceRef) -> None:
         self._state.set_com_obj_instance_ref(ref_id, coir)
-        self._ui = None
+        self._invalidate()
 
     def instantiated_com_object_ref_ids(self) -> set[str]:
         """Com-object ref ids the device actually instantiated (from saved project state).
@@ -960,9 +990,9 @@ class DynamicUI:
             )
         except BaseException:
             journal.rollback()
-            self._ui = None
+            self._invalidate()
             raise
-        self._ui = None
+        self._invalidate()
         return journal.changes()
 
     def _calc_scope(self, scope: ParameterState) -> CalculationScope:
@@ -994,7 +1024,7 @@ class DynamicUI:
                 raise_errors=False,
                 abort=self.script_abort,
             )
-        self._ui = None
+        self._invalidate()
         return journal.changes()
 
     def _group_by_scope(
@@ -1029,7 +1059,7 @@ class DynamicUI:
         if validate:
             self._validate(scope, local, ref_id, value)
         journal.set(ref_id, value)
-        self._ui = None
+        self._invalidate()
         return scope, local
 
     def edit_parameters(
@@ -1067,9 +1097,9 @@ class DynamicUI:
                 )
         except BaseException:
             journal.rollback()
-            self._ui = None
+            self._invalidate()
             raise
-        self._ui = None
+        self._invalidate()
         return journal.changes()
 
     def _edit_best_effort(
@@ -1132,7 +1162,7 @@ class DynamicUI:
                 self._state.clear_instance_ref(ref_id)
             else:
                 self._state.set_instance_ref(ref_id, value)
-        self._ui = None
+        self._invalidate()
 
     def active_parameter_ref_ids(self) -> frozenset[str]:
         self.ui()
