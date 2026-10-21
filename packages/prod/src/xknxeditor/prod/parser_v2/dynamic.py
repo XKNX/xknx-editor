@@ -1176,7 +1176,12 @@ class DynamicUI:
                     local = idx.refs_by_number.get(owner, {}).get(number)
             else:
                 text = str(key)
-                for cand in (text, f"{owner or self._app.id}_{text}"):
+                # Full, owner-relative ("P-1_R-1") or application-relative ("MD-1_P-1_R-1").
+                for cand in (
+                    text,
+                    f"{owner or self._app.id}_{text}",
+                    f"{self._app.id}_{text}",
+                ):
                     if cand in idx.parameter_refs and idx.ref_owner.get(cand) == owner:
                         local = cand
                         break

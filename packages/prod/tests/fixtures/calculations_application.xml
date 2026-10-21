@@ -69,6 +69,13 @@ function offlineButton(device, online, progress, context) {
   var a = device.getParameterByName("A");
   a.value = a.value + context.n;
 }
+function caselessButton(device, online, progress, context) {
+  var a = device.GetParameterByName("A");
+  a.Value = a.VALUE + context.n;
+}
+function moduleIdButton(device) {
+  device.getParameterById("MD-1_P-1_R-1").value = 33;
+}
 function failingButton(device) {
   device.getParameterByName("C").value = 7;
   throw new Error("stop");

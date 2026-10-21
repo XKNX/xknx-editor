@@ -5,6 +5,39 @@
   var isArray = Array.isArray;
   var fnApply = Function.prototype.apply;
   var ABORT = { aborted: true };
+  // Taken before the JScript profile removes them from the scripts' global scope.
+  var ProxyCtor = typeof Proxy === "function" ? Proxy : null;
+  var ownNames = Object.getOwnPropertyNames;
+  var ownDescriptor = Object.getOwnPropertyDescriptor;
+
+  // The host objects are .NET objects in the reference tool, whose member names scripts reach
+  // case-insensitively (device.GetParameterById works like getParameterById).
+  function caseless(o) {
+    if (!ProxyCtor) return o;
+    var names = {};
+    var own = ownNames(o);
+    for (var i = 0; i < own.length; i++) {
+      var lower = own[i].toLowerCase();
+      if (!hasOwn.call(names, lower)) names[lower] = own[i];
+    }
+    function key(k) {
+      if (typeof k !== "string" || hasOwn.call(o, k)) return k;
+      var lower = k.toLowerCase();
+      return hasOwn.call(names, lower) ? names[lower] : k;
+    }
+    return new ProxyCtor(o, {
+      get: function (t, k) { return t[key(k)]; },
+      set: function (t, k, v) { t[key(k)] = v; return true; },
+      has: function (t, k) { return key(k) in t; },
+      getOwnPropertyDescriptor: function (t, k) {
+        var real = key(k);
+        var d = ownDescriptor(t, real);
+        if (d === undefined || real === k) return d;
+        d.configurable = true; // reported under another spelling, so not as the fixed original
+        return d;
+      }
+    });
+  }
 
   function makeError(e) {
     if (g.__xk) return g.__xk.hostError(e.message, e.number);
@@ -103,7 +136,7 @@
         });
       })(names[i]);
     }
-    defineProperty(o, "__xk_raw", { value: raw });
+    defineProperty(o, "__xk_raw", { value: caseless(raw) });
     return o;
   }
 
@@ -117,7 +150,7 @@
     defineProperty(p, "isActive", { get: function () { return host("p.active", ref); } });
     defineProperty(p, "parameterRefId", { get: function () { return host("p.ref", ref); } });
     defineProperty(p, "name", { get: function () { return host("p.name", ref); } });
-    return p;
+    return caseless(p);
   }
 
   function device(scope) {
@@ -143,7 +176,7 @@
     };
     methods(d);
     defineProperty(d, "ApplicationProgramName", { get: function () { return host("d.appName"); } });
-    return d;
+    return caseless(d);
   }
 
   var ONLINE = [
@@ -173,15 +206,15 @@
       })(ONLINE[i]);
     }
     methods(o);
-    return getters(o, ["connect", "disconnect", "readDeviceDescriptor0", "getMaxApduLength", "restart"]);
+    return caseless(getters(o, ["connect", "disconnect", "readDeviceDescriptor0", "getMaxApduLength", "restart"]));
   }
 
   function progress() {
-    return getters(methods({
+    return caseless(getters(methods({
       setProgress: arity(function (v) { host("g.progress", Number(v)); }, 1),
       setText: arity(function (t) { host("g.text", t === undefined ? "" : String(t)); }, 1),
       isCanceled: arity(function () { return host("g.canceled"); }, 0)
-    }), ["isCanceled"]);
+    }), ["isCanceled"]));
   }
 
   function logger(level) {
@@ -217,7 +250,7 @@
   var api = {
     install: function (globalsSpec) {
       var log = { error: logger("error"), warn: logger("warn"), info: logger("info"), Debug: logger("error") };
-      g.Log = log;
+      g.Log = caseless(log);
       g.error = log.error;
       g.warn = log.warn;
       g.info = log.info;
