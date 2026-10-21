@@ -23,6 +23,7 @@ from ...script import (
     ScriptContext,
     ScriptError,
 )
+from ...script.json_compat import loads_lenient
 from ...script.values import ScriptValueError, coerce_script_value, to_js
 
 if TYPE_CHECKING:
@@ -93,7 +94,7 @@ def _context_object(text: str | None, calc_id: str) -> dict[str, Any]:
     if not text:
         return {}
     try:
-        value = json.loads(text)
+        value = loads_lenient(text)
     except ValueError:
         log.warning("invalid transformation parameters in %s: %r", calc_id, text)
         return {}

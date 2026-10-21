@@ -163,6 +163,10 @@ class CatalogPanel:
         # double-click quick-add.
         self._get_spaces = get_spaces
         self._add_space_id: int | None = None
+        # Double-click a product to add it: first ask which room to place it in (when the project
+        # has rooms). ``_add_target`` is the product waiting on that choice.
+        self._add_target: ProductSummary | None = None
+        self._open_add_space_popup = False
         self._search: str = ""
         # Online catalog (manufacturer list from the KNX service).
         self._get_online_manufacturers = get_online_manufacturers
@@ -241,6 +245,7 @@ class CatalogPanel:
                 imgui.end_tab_item()
             imgui.end_tab_bar()
         self._render_add_to_project_modal()
+        self._render_add_space_modal()
         self._render_delete_modal()
         self._poll_export()
 
@@ -341,9 +346,44 @@ class CatalogPanel:
         if imgui.is_item_clicked():
             self._selected_product = product  # single click selects (shows detail)
             if imgui.is_mouse_double_clicked(0):
-                self._on_select(
-                    product, self._add_space_id
-                )  # double click adds to the project
+                self._request_add(product)  # double click adds to the project
+
+    def _request_add(self, product: ProductSummary) -> None:
+        """Double-click add: ask which room to place the device in first. Adds straight away only
+        when the project has no rooms to choose from."""
+        spaces = self._get_spaces() if self._get_spaces is not None else []
+        if not spaces:
+            self._on_select(product, None)
+            return
+        self._add_target = product
+        self._open_add_space_popup = True
+
+    def _render_add_space_modal(self) -> None:
+        title = S.CATALOG_ADD_SPACE_TITLE
+        if self._open_add_space_popup:
+            imgui.open_popup(title)
+            self._open_add_space_popup = False
+        product = self._add_target
+        if product is None:
+            return
+        if begin_dialog(title):
+            imgui.dummy(px_vec2(360, 0))  # anchor the minimum content width
+            imgui.text_wrapped(
+                S.CATALOG_ADD_SPACE_PROMPT.format(
+                    name=product.name or product.product_ref_id
+                )
+            )
+            imgui.spacing()
+            self._render_space_picker()
+            clicked = dialog_buttons(S.CATALOG_DETAIL_ADD, S.BTN_CANCEL)
+            if clicked == 0:
+                self._on_select(product, self._add_space_id)
+                self._add_target = None
+                imgui.close_current_popup()
+            elif clicked == 1:
+                self._add_target = None
+                imgui.close_current_popup()
+            end_dialog()
 
     def _render_product_context_menu(self, product: ProductSummary) -> None:
         if self._delete_product is None and self._export_product_cb is None:
