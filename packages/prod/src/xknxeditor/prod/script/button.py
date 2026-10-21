@@ -13,7 +13,7 @@ from .errors import (
     COR_E_TARGETINVOCATION,
     HostError,
 )
-from .json_compat import loads_lenient
+from .literal import parse_literal
 from .sandbox import AbortToken, HostFunction, ScriptContext
 from .texts import dotnet_text
 from .values import ScriptValueError, coerce_script_value, to_js
@@ -170,7 +170,7 @@ def _context_object(button: UiButton) -> dict[str, Any]:
     if not button.handler_parameters:
         return {}
     try:
-        value = loads_lenient(button.handler_parameters)
+        value = parse_literal(button.handler_parameters)
     except ValueError:
         log.warning(
             "invalid event handler parameters in %s: %r",

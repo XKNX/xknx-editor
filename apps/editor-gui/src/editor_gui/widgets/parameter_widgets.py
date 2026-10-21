@@ -324,9 +324,9 @@ def render_param_widget(
                         on_change(str(choice.value))
             else:
                 if begin_combo(f"##{widget_id}", preview):
-                    for choice in w.choices:
+                    for i, choice in enumerate(w.choices):
                         selected = not differs and str(choice.value) == param.value
-                        if imgui.selectable(choice.label, selected)[0]:
+                        if imgui.selectable(f"{choice.label}##{i}", selected)[0]:
                             on_change(str(choice.value))
                     imgui.end_combo()
         case NumberWidget() as w:
@@ -2336,9 +2336,9 @@ class EnumPopup:
         if imgui.begin_popup(self._popup_id):
             target = self._active
             if target is not None and isinstance(target.param.widget, EnumWidget):
-                for choice in target.param.widget.choices:
+                for i, choice in enumerate(target.param.widget.choices):
                     selected = str(choice.value) == target.param.value
-                    if imgui.menu_item(choice.label, "", selected)[0]:
+                    if imgui.menu_item(f"{choice.label}##{i}", "", selected)[0]:
                         self._on_change(
                             target.device, target.param.ref_id, str(choice.value)
                         )
