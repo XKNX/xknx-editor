@@ -1,10 +1,10 @@
 """Check GitHub for a newer XKNX Editor release.
 
-The desktop app is published as GitHub releases tagged ``xknx-editor-v<version>``. On startup
-(unless the user disabled it) we ask GitHub's REST API for the releases, pick the highest
-``xknx-editor-v*`` version and, if it is newer than the running one, surface a prompt the user can
-act on or skip. Network access is best-effort: the startup check ignores a failure (the app must never
-depend on reaching GitHub).
+The desktop app is published as GitHub releases tagged ``v<version>`` (older ones used
+``xknx-editor-v<version>``; both are accepted). On startup (unless the user disabled it) we ask
+GitHub's REST API for the releases, pick the highest app version and, if it is newer than the
+running one, surface a prompt the user can act on or skip. Network access is best-effort: the
+startup check ignores a failure (the app must never depend on reaching GitHub).
 """
 
 from __future__ import annotations
@@ -16,8 +16,18 @@ from dataclasses import dataclass
 from typing import Any, cast
 
 _RELEASES_API = "https://api.github.com/repos/xknx/xknx-editor/releases"
-_TAG_PREFIX = "xknx-editor-v"
+# Releases are tagged ``v<version>``; older ones used ``xknx-editor-v<version>``. Accept both so a
+# running app finds new and old releases across the tag-format change. Checked most-specific first.
+_TAG_PREFIXES = ("xknx-editor-v", "v")
 _RELEASE_PAGE = "https://github.com/xknx/xknx-editor/releases/tag/{tag}"
+
+
+def _tag_version_part(tag: str) -> str | None:
+    """The ``<version>`` part of an app release tag, or None if it is not one."""
+    for prefix in _TAG_PREFIXES:
+        if tag.startswith(prefix):
+            return tag[len(prefix) :]
+    return None
 
 
 @dataclass(frozen=True)
@@ -91,9 +101,12 @@ def pick_newer(current: str, releases: list[dict[str, Any]]) -> UpdateInfo | Non
         if rel.get("draft") or rel.get("prerelease"):
             continue
         tag = rel.get("tag_name")
-        if not isinstance(tag, str) or not tag.startswith(_TAG_PREFIX):
+        if not isinstance(tag, str):
             continue
-        ver = _parse_version(tag[len(_TAG_PREFIX) :])
+        part = _tag_version_part(tag)
+        if part is None:
+            continue
+        ver = _parse_version(part)
         if ver is None:
             continue
         if best is None or ver > best[0]:

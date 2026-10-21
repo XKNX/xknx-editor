@@ -23,7 +23,8 @@ jobs:
     # Library releases (xknxeditor-namespaces, ...) also fire 'release'; only build for the app's release.
     if: >-
       github.event_name != 'release' ||
-      startsWith(github.event.release.tag_name, 'xknx-editor-v')
+      (startsWith(github.event.release.tag_name, 'v') ||
+       startsWith(github.event.release.tag_name, 'xknx-editor-v'))
     strategy:
       fail-fast: false
       matrix:
@@ -208,7 +209,8 @@ jobs:
     runs-on: windows-latest
     if: >-
       github.event_name != 'release' ||
-      startsWith(github.event.release.tag_name, 'xknx-editor-v')
+      (startsWith(github.event.release.tag_name, 'v') ||
+       startsWith(github.event.release.tag_name, 'xknx-editor-v'))
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -325,7 +327,8 @@ jobs:
     runs-on: windows-11-arm
     if: >-
       github.event_name != 'release' ||
-      startsWith(github.event.release.tag_name, 'xknx-editor-v')
+      (startsWith(github.event.release.tag_name, 'v') ||
+       startsWith(github.event.release.tag_name, 'xknx-editor-v'))
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -420,7 +423,8 @@ jobs:
     needs: [build-windows-softwaregl, build-windows-arm64]
     if: >-
       github.event_name == 'release' &&
-      startsWith(github.event.release.tag_name, 'xknx-editor-v')
+      (startsWith(github.event.release.tag_name, 'v') ||
+       startsWith(github.event.release.tag_name, 'xknx-editor-v'))
     steps:
       - uses: actions/checkout@v7
       - uses: actions/download-artifact@v7

@@ -55,11 +55,25 @@ def test_library_and_draft_and_prerelease_tags_are_skipped() -> None:
         _rel("xknxeditor-namespaces-v9.9.9"),  # different component
         _rel("xknx-editor-v0.9.0", draft=True),  # draft
         _rel("xknx-editor-v0.8.0", prerelease=True),  # prerelease
-        _rel("v1.0.0"),  # no component prefix
         _rel("xknx-editor-v0.2.0"),  # the only eligible newer one
     ]
     info = pick_newer("0.1.0", releases)
     assert info is not None and info.version == "0.2.0"
+
+
+def test_new_tag_format_without_prefix_is_detected() -> None:
+    info = pick_newer("0.1.0", [_rel("v0.2.0")])
+    assert info is not None
+    assert info.version == "0.2.0"
+    assert info.tag == "v0.2.0"
+    assert info.url.endswith("/releases/tag/v0.2.0")
+
+
+def test_both_tag_formats_compete_by_version() -> None:
+    # The old (xknx-editor-v) and new (v) formats are both app releases; the highest version wins.
+    releases = [_rel("xknx-editor-v0.2.0"), _rel("v0.3.0")]
+    info = pick_newer("0.1.0", releases)
+    assert info is not None and info.version == "0.3.0" and info.tag == "v0.3.0"
 
 
 def test_non_numeric_or_malformed_tags_do_not_crash() -> None:

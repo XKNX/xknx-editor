@@ -20,7 +20,8 @@ from pathlib import Path
 
 PACKAGE_ID = "XKNX.Editor"
 MANIFEST_VERSION = "1.10.0"
-TAG_PREFIX = "xknx-editor-v"
+# Releases are tagged ``v<version>``; older ones used ``xknx-editor-v<version>``. Accept both.
+TAG_PREFIXES = ("xknx-editor-v", "v")
 REPO_URL = "https://github.com/XKNX/xknx-editor"
 INSTALLER_NAME = "XKNX-Editor-windows-installer-{arch}.exe"
 _ISS = Path(__file__).resolve().parent.parent / "windows" / "xknx-editor.iss"
@@ -75,13 +76,19 @@ def _footer(kind: str) -> list[str]:
     return [f"ManifestType: {kind}", f"ManifestVersion: {MANIFEST_VERSION}", ""]
 
 
+def _version_from_tag(tag: str) -> str:
+    """The ``<version>`` of a release tag, accepting either tag prefix."""
+    for prefix in TAG_PREFIXES:
+        if tag.startswith(prefix):
+            return tag[len(prefix) :]
+    raise ValueError(f"not an XKNX Editor release tag: {tag}")
+
+
 def manifests(
     tag: str, installers: dict[str, Path], release_date: datetime.date
 ) -> dict[str, str]:
     """The manifest files of the release ``tag`` by file name, for the installers by architecture."""
-    if not tag.startswith(TAG_PREFIX):
-        raise ValueError(f"not an XKNX Editor release tag: {tag}")
-    version = tag[len(TAG_PREFIX) :]
+    version = _version_from_tag(tag)
     code = product_code()
     ident = [f"PackageIdentifier: {PACKAGE_ID}", f"PackageVersion: {version}"]
 
@@ -170,7 +177,7 @@ def main() -> None:
     args = parser.parse_args()
     release_date = args.date or datetime.datetime.now(datetime.UTC).date()
     files = manifests(args.tag, {"x64": args.x64, "arm64": args.arm64}, release_date)
-    version = args.tag[len(TAG_PREFIX) :]
+    version = _version_from_tag(args.tag)
     target = args.out / "manifests" / "x" / "XKNX" / "Editor" / version
     target.mkdir(parents=True, exist_ok=True)
     for name, text in files.items():
