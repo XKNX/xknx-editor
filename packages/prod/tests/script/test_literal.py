@@ -27,6 +27,9 @@ from xknxeditor.prod.script.literal import parse_literal
         ("""{q: 'she said "hi"'}""", {"q": 'she said "hi"'}),
         ('{text: "a: b, {c}"}', {"text": "a: b, {c}"}),
         ("{text: 'key: value, more'}", {"text": "key: value, more"}),
+        ("{a: 010, b: 0, c: 00}", {"a": 8, "b": 0, "c": 0}),  # a leading zero is octal
+        ("[1,,2]", [1, None, 2]),  # an empty element is undefined
+        ("[,]", [None]),
     ],
 )
 def test_parse(text: str, expected: object) -> None:
@@ -51,6 +54,11 @@ def test_special_numbers() -> None:
         "",
         "{ this is not json at all ",
         "{a: '\\x41'}",  # unknown escape: rejected, not silently read as "x41"
+        "{a: '\\v'}",  # escapes Newtonsoft does not know
+        "{a: '\\0'}",
+        "{a: 08}",  # not an octal number
+        "{a: -0x1F}",  # hex only without a sign
+        "{a: +1}",
     ],
 )
 def test_invalid(text: str) -> None:
