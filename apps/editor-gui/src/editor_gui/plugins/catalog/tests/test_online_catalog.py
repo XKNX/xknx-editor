@@ -48,14 +48,21 @@ class TestParse:
     def test_manufacturer_names(self) -> None:
         assert parse_manufacturer_names(_MASTER_XML) == {1: "Siemens", 2: "ABB"}
 
-    def test_catalog_items_end_of_life_stay_downloadable(self) -> None:
-        # The server still serves end-of-life products.
+    @pytest.mark.parametrize(
+        "flag",
+        [
+            {"CatalogLifeType": 2},
+            {"NoDownloadWithoutPlugin": True},
+            {"DownloadInfoIncomplete": True},
+        ],
+    )
+    def test_catalog_items_the_server_still_serves(
+        self, flag: dict[str, object]
+    ) -> None:
+        # End-of-life, plugin and incomplete-information flags concern the device, not the
+        # catalog download: the server serves these products.
         index = json.dumps(
-            {
-                "Entries": [
-                    {"Id": "CI-1", "CatalogItemName": "Old", "CatalogLifeType": 2}
-                ]
-            }
+            {"Entries": [{"Id": "CI-1", "CatalogItemName": "A", **flag}]}
         )
         assert parse_catalog_items(index.encode())[0].downloadable
 
