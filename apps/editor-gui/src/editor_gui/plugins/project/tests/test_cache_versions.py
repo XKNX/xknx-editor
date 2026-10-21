@@ -14,7 +14,7 @@ from pathlib import Path
 from editor_gui.plugins.base import Logger
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
-from editor_gui.plugins.project.service import ProjectService
+from editor_gui.plugins.project.service import DeviceProduct, ProjectService
 
 
 def _project(tmp_path: Path) -> ProjectService:
@@ -67,3 +67,44 @@ def test_create_group_address_value_is_idempotent_and_visible(tmp_path: Path) ->
     # Second call for the same value must not duplicate the row.
     assert proj.create_group_address_value(raw) == ga_id
     assert sum(1 for g in proj.group_addresses if g.raw == raw) == 1
+
+
+def _fixture() -> Path:
+    for parent in Path(__file__).resolve().parents:
+        cand = (
+            parent / "packages/prod/tests/fixtures/gira_2gang_button_interface.knxprod"
+        )
+        if cand.exists():
+            return cand
+    raise FileNotFoundError("gira_2gang_button_interface.knxprod not found")
+
+
+def test_device_added_into_a_space_is_listed(tmp_path: Path) -> None:
+    """The catalog's Add with a room picked adds the device and then places it in the room. Placing
+    it (a non-structural change) used to mark the device list from before the add as current, so
+    the new device was missing from the Devices tree until the project was opened again."""
+    cat = CatalogService(tmp_path / "c.xknxcatalog")
+    cat.import_knxprod(_fixture())
+    product = cat.get_products()[0]
+    assert product.application_id is not None
+    app = cat.get_application(product.application_id)
+    assert app is not None
+    proj = ProjectService(cat)
+    proj.set_logger(Logger(LogService(), "project"))
+    proj.new(tmp_path / "p.xknx")
+    room = proj.create_space(None, "Building", "House")
+    assert room is not None
+    _ = proj.devices  # the Devices tree reads them every frame
+
+    device_id = proj.add_device(
+        product.product_ref_id,
+        product.hardware2program_ref_id,
+        "",
+        app,
+        product=DeviceProduct.of(product),
+    )
+    assert device_id is not None
+    proj.set_device_space(device_id, room)
+
+    assert device_id in [d.node_id for d in proj.devices]
+    proj.close()
