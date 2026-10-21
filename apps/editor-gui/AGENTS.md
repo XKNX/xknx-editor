@@ -58,3 +58,26 @@ Plugins that need to interact (e.g. `proxy` relaying CEMI frames to/from the rea
 - Panels hold their own internal state; shared state is accessed via dependency-injected callbacks
 - Catalog stores immutable templates; project stores device instances with overrides
 - Visibility (visible_com_objects, visible_parameters) computed at runtime, never baked into templates
+
+## Browser UI (`--web`)
+
+The same app also runs without a window: `--web` serves it to web browsers (`src/editor_gui/web/`). The app then runs on a server (a mini PC, a NAS, Home Assistant), and the user sits at another computer, tablet or phone. Every new feature has to work in both modes. `web.active_hub is not None` tells the browser mode.
+
+**Files and folders on the user's computer.** In the browser UI the app cannot reach the user's computer directly. Its file system is the server's, and files reach the user only through the browser. So:
+
+- **File dialogs:** use `editor_gui.file_dialogs` (`open_file`, `save_file`, `select_folder`), never `portable_file_dialogs` or other OS dialogs directly. In the browser UI they become the app's own dialogs in `web/dialogs.py`, working on the server's file folder:
+  - *Open* uploads files from the user's computer (file picker or drag and drop) or picks files already in the file folder. Pass `pfd.opt.multiselect` where several files make sense.
+  - *Save* writes into the file folder and then downloads the file to the user's computer when "Download to This Computer" is ticked.
+  - *Select folder* names a folder in the server's file folder, never one on the user's computer. A feature that reads a whole local folder needs a file-based way in the browser UI, e.g. Load OpenKNX from URL or Folder offers "Choose Files…" there.
+- **Opening files, folders and links:** use `editor_gui.os_open` (`open_path`, `open_url`) for files and links. They open in the user's browser, or download, instead of in an application on the server. Folders are listed in the app with downloadable files (`WebHub.show_folder`, see `KnxGuiApp._open_folder`).
+- **Messages:** don't show OS message boxes or notifications. In the browser UI they would appear on the server or nowhere. Use the app's own dialogs (`widgets/dialog.py`) and toasts.
+- **Paths:** paths the user sees or types are server paths. Don't offer a path field as the only way to choose a file.
+
+**Screens and input.**
+
+- **Clipboard:** the clipboard reaches the browser through ImGui's clipboard functions. Use `imgui.set_clipboard_text` / `get_clipboard_text`, not OS clipboard libraries.
+- **Narrow screens:** tablets and phones get narrow layouts. Let button rows wrap (`widgets/flow.py`), use `begin_data_table` for tables, and `begin_dialog` for dialogs.
+- **Touch:** touch screens have no hover and no modifier keys. Anything reachable only by hovering, by Shift/Ctrl+click or by a keyboard shortcut also needs a click, a button or a context-menu entry. A long press is the right click.
+- **Shared state:** all connected browsers share one UI state, and one of them controls it. State that should differ per browser (like the zoom) is held by the page.
+
+Tests: `src/editor_gui/tests/test_web.py`, `src/editor_gui/tests/test_touch.py`. Try a change with `uv run python -m editor_gui.main --web` (add `--web-no-browser` to keep the browser closed).

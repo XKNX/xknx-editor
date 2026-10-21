@@ -25,7 +25,7 @@ UV monorepo: `packages/` holds five core libraries; `apps/` holds applications.
 - `xknxeditor-catalog` — SQLite catalog of imported `.knxprod` hardware/applications, depends on product
 - `xknxeditor-proj` — project state management, depends on models
 - `xknxeditor-datasecure` — parses/serializes KNX keyring XML, depends on models
-- `apps/editor-gui` — project editor GUI app; consumes all packages; see `apps/editor-gui/AGENTS.md`
+- `apps/editor-gui` — project editor GUI app; consumes all packages; see `apps/editor-gui/AGENTS.md` (also for the browser UI, `--web`, which every GUI feature has to support)
 
 **Import paths** use the `xknxeditor` namespace package (src layout):
 - `from xknxeditor.namespaces import ...`
