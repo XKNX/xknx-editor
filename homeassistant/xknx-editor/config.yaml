@@ -4,7 +4,7 @@
 # Keep `version` in step with the app version in apps/editor-gui/src/editor_gui/__init__.py: it is
 # also the image tag the Supervisor pulls.
 name: XKNX Editor
-version: "0.5.1"
+version: "0.5.2"
 slug: xknx_editor
 description: Browser-based KNX project editor, with ETS signing-key extraction
 url: https://github.com/XKNX/xknx-editor/tree/main/homeassistant/xknx-editor

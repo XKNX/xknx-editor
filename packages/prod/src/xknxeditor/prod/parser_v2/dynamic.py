@@ -238,6 +238,85 @@ class DynamicTreeBuilder:
             app.static.parameter_refs, self.idx
         )
         self.tree: DynamicNode = _AppNode(node, global_param_ref_defaults)
+        # Page membership follows the selector chain, not XML block nesting: a parameter's page is
+        # found by walking the selector of its nearest enclosing choose up the chain of selectors
+        # until one names a ParameterBlock (its ParamRefId). ``_page_params`` are those block refs.
+        # A ref's nearest selector is taken from where it is PLACED (its ParameterRefRef, or a block
+        # heading), which is where the owning page is decided; ``_nearest_choose`` (the selector of
+        # each choose that USES a ref) is only a fallback for a chain that placements cannot complete.
+        # Computed once; used by :meth:`page_param_for`.
+        self._page_params, self._nearest_placement, self._nearest_choose = (
+            self._build_page_maps(app)
+        )
+
+    def _build_page_maps(
+        self, app: ApplicationProgram
+    ) -> tuple[set[str], dict[str, str], dict[str, str]]:
+        """``(page-parameter refs, nearest-choose-selector per PLACEMENT, nearest-choose-selector per
+        choose USE)`` for selector-chain page assignment (see :meth:`page_param_for`)."""
+        page_params: set[str] = set()
+        placement: dict[str, str] = {}
+        choose_use: dict[str, str] = {}
+
+        def walk(elem: object, selector: str | None) -> None:
+            if isinstance(elem, ComObjectParameterBlock):
+                if elem.param_ref_id:
+                    page_params.add(elem.param_ref_id)
+                    # A block heading's owning page comes from where the block is placed.
+                    if selector is not None:
+                        placement.setdefault(elem.param_ref_id, selector)
+                for child in elem.choice:
+                    walk(child, selector)
+            elif isinstance(
+                elem, (DependentChannelChoose, ChannelChoose, ComObjectParameterChoose)
+            ):
+                inner = elem.param_ref_id or selector
+                # A choose does not decide the owning page of its selector (a selector's page comes
+                # from where its widget is placed); record it only as a fallback link.
+                if elem.param_ref_id and selector is not None:
+                    choose_use.setdefault(elem.param_ref_id, selector)
+                for when in elem.when:
+                    for child in when.choice:
+                        walk(child, inner)
+            elif isinstance(elem, ParameterRefRef):
+                if selector is not None:
+                    placement.setdefault(elem.ref_id, selector)
+            elif isinstance(
+                elem,
+                (
+                    ApplicationProgramDynamic,
+                    ChannelIndependentBlock,
+                    ApplicationProgramChannel,
+                    Repeat,
+                ),
+            ):
+                for child in elem.choice:
+                    walk(child, selector)
+            # Modules are instanced at runtime (their ref ids become qualified), so their internal
+            # page assignment stays with the XML nesting; we do not descend into them here.
+
+        if app.dynamic is not None:
+            walk(app.dynamic, None)
+        return page_params, placement, choose_use
+
+    def _climb_to_page(self, ref_id: str, nearest: dict[str, str]) -> str | None:
+        selector = nearest.get(ref_id)
+        seen: set[str] = set()
+        while selector is not None and selector not in seen:
+            if selector in self._page_params:
+                return selector
+            seen.add(selector)
+            selector = nearest.get(selector)
+        return None
+
+    def page_param_for(self, ref_id: str) -> str | None:
+        """The ParamRefId of the ParameterBlock that owns ``ref_id``, or ``None`` when the parameter
+        is not gated toward a page (keep its XML-nested placement). Resolve by the placement chain
+        first (where each ref's widget/block sits, the page-deciding link); fall back to the
+        choose-use chain only when placements do not reach a page."""
+        return self._climb_to_page(
+            ref_id, self._nearest_placement
+        ) or self._climb_to_page(ref_id, self._nearest_choose)
 
     def _build_union_sibling_refs(self, app: ApplicationProgram) -> _UnionCompetitors:
         """``parameter_ref_id -> the parameter-ref ids that compete with it for the same union memory``.
@@ -540,11 +619,117 @@ def _as_int(value: object) -> int | None:
     return int(number) if number.is_integer() else None
 
 
+def _rehome_to_pages(
+    nodes: list[UiNode],
+    page_for: Callable[[str], str | None],
+    display_order: Callable[[str], int | None],
+) -> list[UiNode]:
+    """Move each parameter onto the page its selector chain names, rather than the ParameterBlock it
+    is nested under in the dynamic XML.
+
+    A parameter's page is the block whose ParamRefId its enclosing ``choose`` selectors chain up to
+    (``page_for``), which can differ from the block it physically sits in. This re-homes such
+    parameters so the displayed pages match the selector model. Presentation-only: it reorders an
+    already-settled UI tree and changes neither which parameters/objects are active nor their values.
+
+    Guards keep it safe to run on every application:
+
+    * a destination must be a NON-inline, NON-hidden block whose ParamRefId is unique among the
+      present blocks — an ambiguous ParamRefId (e.g. repeated blocks) is skipped so a parameter is
+      never duplicated across several blocks;
+    * a parameter keeps its enclosing NON-inline page, so one already on the right page is not pulled
+      out of an inline/read-only group inside it;
+    * a parameter under a hidden block is left where it is (a hidden page's own relocation stands);
+    * moved parameters merge into the destination by display order without disturbing the block's
+      existing children."""
+    import dataclasses
+
+    from .ui import UiParameter, UiParameterBlock, UiTab
+
+    # Count eligible destination blocks per ParamRefId: a block is eligible only when it is a real
+    # page (not inline), is shown (not hidden, nor under a hidden ancestor). A ParamRefId carried by
+    # more than one such block is ambiguous and excluded.
+    counts: dict[str, int] = {}
+
+    def scan(ns: Iterable[UiNode], hidden_anc: bool) -> None:
+        for n in ns:
+            if isinstance(n, UiParameterBlock):
+                hidden = hidden_anc or n.hidden
+                if n.param_ref_id and not n.inline and not hidden:
+                    counts[n.param_ref_id] = counts.get(n.param_ref_id, 0) + 1
+                scan(n.children, hidden)
+            elif isinstance(n, UiTab):
+                scan(n.children, hidden_anc)
+
+    scan(nodes, False)
+    eligible = {ref for ref, count in counts.items() if count == 1}
+    if not eligible:
+        return nodes
+
+    moved_ids: set[int] = set()
+    moved_by_target: dict[str, list[UiParameter]] = {}
+
+    def plan(ns: Iterable[UiNode], page: str | None, hidden_anc: bool) -> None:
+        for n in ns:
+            if isinstance(n, UiParameter):
+                target = page_for(n.ref_id)
+                if (
+                    not hidden_anc
+                    and target is not None
+                    and target in eligible
+                    and target != page
+                ):
+                    moved_ids.add(id(n))
+                    moved_by_target.setdefault(target, []).append(n)
+            elif isinstance(n, UiParameterBlock):
+                # A non-inline block is the page for its contents; an inline group keeps the
+                # enclosing page so its members are not lifted out of it.
+                inner = n.param_ref_id if (n.param_ref_id and not n.inline) else page
+                plan(n.children, inner, hidden_anc or n.hidden)
+            elif isinstance(n, UiTab):
+                plan(n.children, page, hidden_anc)
+
+    plan(nodes, None, False)
+    if not moved_ids:
+        return nodes
+
+    def merge(kept: tuple[UiNode, ...], extra: list[UiParameter]) -> tuple[UiNode, ...]:
+        # Insert the moved parameters among the kept children by display order, leaving the existing
+        # children (and any separators/sub-blocks) in their original relative positions.
+        extra = sorted(extra, key=lambda p: display_order(p.ref_id) or 0)
+        out: list[UiNode] = []
+        i = 0
+        for child in kept:
+            if isinstance(child, UiParameter):
+                order = display_order(child.ref_id) or 0
+                while i < len(extra) and (display_order(extra[i].ref_id) or 0) < order:
+                    out.append(extra[i])
+                    i += 1
+            out.append(child)
+        out.extend(extra[i:])
+        return tuple(out)
+
+    def rebuild(n: UiNode) -> UiNode:
+        if isinstance(n, UiParameterBlock):
+            kept = tuple(rebuild(c) for c in n.children if id(c) not in moved_ids)
+            extra = moved_by_target.get(n.param_ref_id or "", [])
+            if extra:
+                kept = merge(kept, extra)
+            return dataclasses.replace(n, children=kept)
+        if isinstance(n, UiTab):
+            kept = tuple(rebuild(c) for c in n.children if id(c) not in moved_ids)
+            return dataclasses.replace(n, children=kept)
+        return n
+
+    return [rebuild(n) for n in nodes if id(n) not in moved_ids]
+
+
 class DynamicUI:
     __slots__ = (
         "_active_snapshot",
         "_app",
         "_idx",
+        "_page_for",
         "_state",
         "_tree",
         "_ui",
@@ -567,6 +752,7 @@ class DynamicUI:
         self._app = app
         self._tree = builder.tree
         self._idx = builder.idx
+        self._page_for = builder.page_param_for
         self._state = GlobalState.from_project(
             parameter_instance_refs=parameter_instance_refs,
             module_instances=module_instances,
@@ -635,6 +821,10 @@ class DynamicUI:
         self._prune_inactive_channels()
         if self._app.pre_ets4_style:
             self._ui = place_hidden_parameters(self._ui, self._display_order)
+        # Final presentation step: move each parameter onto the page its selector chain names,
+        # rather than the block it is nested under in the raw XML. State/activeness are already
+        # settled above, so this only reorders the displayed tree.
+        self._ui = _rehome_to_pages(self._ui, self._page_for, self._display_order)
 
     def ui(self) -> list[UiNode]:
         if self._ui is None:
