@@ -68,6 +68,7 @@ from editor_gui.plugins.signing import SigningPlugin
 from editor_gui.plugins.timeline import TimelinePlugin
 from editor_gui.plugins.topology import TopologyPlugin
 from editor_gui.portal_save import PortalSaveDialog
+from editor_gui.ports import PortInUseError
 from editor_gui.settings import config_dir, load_settings, save_settings
 from editor_gui.strings import S, get_locale, set_locale
 from editor_gui.theme import (
@@ -551,6 +552,9 @@ class KnxGuiApp:
         self._mcp_port = str(_mcp_cfg.get("port") or "8765")
         # Optional bearer token; when set, the server requires it on every request. Empty = no auth.
         self._mcp_token = str(_mcp_cfg.get("token") or "")
+        # Why the last start failed (port in use, ...), shown with the server status until the next
+        # start.
+        self._mcp_error: str | None = None
         # Runs MCP tool bodies on this (imgui) thread; drained each frame in gui_menu.
         self._ui_executor = MainThreadExecutor()
         # Transient toasts, auto-raised from warning/error log records (visible failure feedback).
@@ -5005,14 +5009,29 @@ class KnxGuiApp:
         )
 
     def _start_mcp(self, *, save: bool = True) -> None:
-        if save:
-            self._save_mcp_settings(running=True)
+        """Start the MCP server; when it cannot start, say why (a toast, and beside the status)."""
+        self._mcp_error = None
         try:
             self._mcp_plugin.start(
                 self._mcp_host, int(self._mcp_port or "8765"), self._mcp_token
             )
+        except PortInUseError as e:
+            self._mcp_error = S.MCP_PORT_IN_USE.format(port=e.port)
         except Exception as e:
             self._log.error("MCP server start failed", error=f"{type(e).__name__}: {e}")
+            self._mcp_error = S.MCP_START_FAILED.format(error=str(e))
+        if self._mcp_error is not None:
+            self._flash_toast(self._mcp_error)
+        elif save:
+            self._save_mcp_settings(running=True)
+
+    def _render_mcp_error(self) -> None:
+        """Why the last start failed, while the server is stopped."""
+        if self._mcp_error is None or self._mcp_plugin.is_running:
+            return
+        imgui.push_text_wrap_pos(imgui.get_cursor_pos_x() + px(360.0))
+        imgui.text_colored(imgui.ImVec4(0.95, 0.45, 0.4, 1.0), self._mcp_error)
+        imgui.pop_text_wrap_pos()
 
     def _stop_mcp(self) -> None:
         self._mcp_plugin.stop()
@@ -5042,6 +5061,7 @@ class KnxGuiApp:
                 self._stop_mcp()
             else:
                 self._start_mcp()
+        self._render_mcp_error()
         imgui.separator()
         imgui.set_next_item_width(px(180.0))
         _, self._mcp_host = imgui.input_text(S.SETTINGS_MCP_HOST, self._mcp_host)
@@ -5071,6 +5091,7 @@ class KnxGuiApp:
             else imgui.ImVec4(0.6, 0.6, 0.6, 1.0),
             S.SETTINGS_MCP_RUNNING if running else S.SETTINGS_MCP_STOPPED,
         )
+        self._render_mcp_error()
         imgui.set_next_item_width(px(240.0))
         _, self._mcp_host = imgui.input_text(S.SETTINGS_MCP_HOST, self._mcp_host)
         imgui.push_text_wrap_pos(0.0)

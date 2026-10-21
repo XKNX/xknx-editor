@@ -46,6 +46,8 @@ from typing import TYPE_CHECKING, Any, cast
 
 from imgui_bundle import hello_imgui, imgui
 
+from editor_gui.ports import bind_port
+
 if TYPE_CHECKING:
     from editor_gui.web.server import WebHub
 
@@ -191,41 +193,14 @@ def web_options(argv: list[str]) -> WebOptions | None:
     )
 
 
-def _bind(host: str, port: int) -> socket.socket | None:
-    """A socket bound to ``host``:``port`` for the server, None when the port is in use. Also a
-    program already answering there counts (Windows lets a socket bind to an address another
-    program listens on for all its addresses)."""
-    if port:
-        probe = {"0.0.0.0": "127.0.0.1", "::": "::1", "": "127.0.0.1"}.get(host, host)
-        try:
-            with socket.create_connection((probe, port), timeout=0.3):
-                return None
-        except OSError:
-            pass
-    family = socket.AF_INET6 if ":" in host else socket.AF_INET
-    sock = socket.socket(family, socket.SOCK_STREAM)
-    try:
-        # The port to this server alone (on Windows another program could share it otherwise).
-        exclusive = getattr(socket, "SO_EXCLUSIVEADDRUSE", None)
-        if exclusive is not None:
-            sock.setsockopt(socket.SOL_SOCKET, exclusive, 1)
-        else:
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind((host, port))
-    except OSError:
-        sock.close()
-        return None
-    return sock
-
-
 def server_socket(options: WebOptions) -> socket.socket | None:
     """The bound socket the server listens on: the port given, or without one the default port
     and when that is in use the next free one (then one the system picks). None when the port
     given is in use."""
     if options.port_given:
-        return _bind(options.host, options.port)
+        return bind_port(options.host, options.port)
     for port in (*range(options.port, options.port + _MORE_PORTS + 1), 0):
-        sock = _bind(options.host, port)
+        sock = bind_port(options.host, port)
         if sock is not None:
             return sock
     return None

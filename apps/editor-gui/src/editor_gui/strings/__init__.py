@@ -308,6 +308,17 @@ class MenuStrings:
         return _("Server: Stopped")
 
     @property
+    def MCP_PORT_IN_USE(self) -> str:
+        return _(
+            "Port {port} is already in use by another program, so the MCP server cannot start. "
+            "Choose another port, or end the other program."
+        )
+
+    @property
+    def MCP_START_FAILED(self) -> str:
+        return _("The MCP server could not start: {error}")
+
+    @property
     def SETTINGS_MCP_START(self) -> str:
         return _("Start Server")
 

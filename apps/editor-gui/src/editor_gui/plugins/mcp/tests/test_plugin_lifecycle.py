@@ -3,6 +3,7 @@ FastMCP, and a stop at any point leaves no server running."""
 
 from __future__ import annotations
 
+import socket
 import subprocess
 import sys
 import threading
@@ -14,6 +15,7 @@ import pytest
 
 from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.mcp import plugin
+from editor_gui.ports import PortInUseError
 
 
 def test_the_editor_does_not_import_fastmcp_to_start() -> None:
@@ -91,3 +93,19 @@ def test_a_stop_before_the_server_is_built_leaves_none_running(
     stopper.join(10)
     assert not mcp.is_running
     assert mcp._server is None
+
+
+def test_a_port_in_use_is_reported_and_starts_nothing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    built = threading.Event()
+    mcp = _plugin(monkeypatch, built)
+    with socket.socket() as other:
+        other.bind(("127.0.0.1", 0))
+        other.listen()
+        port = other.getsockname()[1]
+        with pytest.raises(PortInUseError) as raised:
+            mcp.start("127.0.0.1", port)
+    assert raised.value.port == port
+    assert not mcp.is_running
+    assert not built.is_set()

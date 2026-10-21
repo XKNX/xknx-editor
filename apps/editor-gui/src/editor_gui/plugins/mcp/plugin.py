@@ -11,11 +11,13 @@ start-up then does not delay the editor's first frame.
 from __future__ import annotations
 
 import os
+import socket
 import threading
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from editor_gui.plugins.base import Logger
+from editor_gui.ports import PortInUseError, bind_port
 
 if TYPE_CHECKING:
     import uvicorn
@@ -100,8 +102,14 @@ class McpServerPlugin:
         return self._ctx
 
     def start(self, host: str, port: int, token: str = "") -> None:
+        """Start the server on ``host``:``port``. The port is taken here, before the server thread
+        starts, so a port another program uses raises :class:`PortInUseError` to the caller."""
         if self.is_running:
             return
+        sock = bind_port(host, port)
+        if sock is None:
+            self._log.error("MCP server port in use", host=host, port=port)
+            raise PortInUseError(port)
         token = (token or os.environ.get("XKNX_MCP_AUTH_TOKEN", "")).strip()
         if not token and host not in ("127.0.0.1", "::1", "localhost"):
             # No token on a non-loopback bind means anyone who can reach this host can read/edit the
@@ -112,35 +120,40 @@ class McpServerPlugin:
             )
         with self._server_lock:
             self._stop_requested = False
+        port = sock.getsockname()[1]
         self._thread = threading.Thread(
             target=self._serve,
-            args=(host, port, token),
+            args=(sock, host, port, token),
             daemon=True,
             name="xknxeditor-mcp",
         )
         self._thread.start()
         self._log.info("MCP server started", host=host, port=port, auth=bool(token))
 
-    def _serve(self, host: str, port: int, token: str) -> None:
-        """Build the server and run it until it is asked to exit (on the server thread)."""
-        try:
-            import uvicorn
+    def _serve(self, sock: socket.socket, host: str, port: int, token: str) -> None:
+        """Build the server and run it on the bound ``sock`` until it is asked to exit (on the
+        server thread)."""
+        with sock:
+            try:
+                import uvicorn
 
-            config = uvicorn.Config(
-                build_http_app(self._context(), _build_auth(token)),
-                host=host,
-                port=port,
-                log_level="warning",
-            )
-            server = uvicorn.Server(config)
-        except Exception as e:
-            self._log.error("MCP server start failed", error=f"{type(e).__name__}: {e}")
-            return
-        with self._server_lock:
-            if self._stop_requested:
+                config = uvicorn.Config(
+                    build_http_app(self._context(), _build_auth(token)),
+                    host=host,
+                    port=port,
+                    log_level="warning",
+                )
+                server = uvicorn.Server(config)
+            except Exception as e:
+                self._log.error(
+                    "MCP server start failed", error=f"{type(e).__name__}: {e}"
+                )
                 return
-            self._server = server
-        server.run()
+            with self._server_lock:
+                if self._stop_requested:
+                    return
+                self._server = server
+            server.run(sockets=[sock])
 
     def stop(self) -> None:
         with self._server_lock:

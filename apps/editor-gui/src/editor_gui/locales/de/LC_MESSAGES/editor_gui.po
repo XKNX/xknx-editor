@@ -1414,3 +1414,9 @@ msgstr "Maske"
 
 msgid "Registered"
 msgstr "Registriert"
+
+msgid "Port {port} is already in use by another program, so the MCP server cannot start. Choose another port, or end the other program."
+msgstr "Port {port} wird bereits von einem anderen Programm verwendet, daher kann der MCP-Server nicht starten. Einen anderen Port wählen oder das andere Programm beenden."
+
+msgid "The MCP server could not start: {error}"
+msgstr "Der MCP-Server konnte nicht starten: {error}"
