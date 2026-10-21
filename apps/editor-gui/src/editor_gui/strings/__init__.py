@@ -308,6 +308,17 @@ class MenuStrings:
         return _("Server: Stopped")
 
     @property
+    def MCP_PORT_IN_USE(self) -> str:
+        return _(
+            "Port {port} is already in use by another program, so the MCP server cannot start. "
+            "Choose another port, or end the other program."
+        )
+
+    @property
+    def MCP_START_FAILED(self) -> str:
+        return _("The MCP server could not start: {error}")
+
+    @property
     def SETTINGS_MCP_START(self) -> str:
         return _("Start Server")
 
@@ -1964,6 +1975,68 @@ class _CombinedStrings(BaseStrings, MenuStrings):
         return _(
             "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
         )
+
+    @property
+    def TRAY_OPEN_IN_BROWSER(self) -> str:
+        return _("Open in Browser")
+
+    @property
+    def TRAY_STOP(self) -> str:
+        return _("Stop XKNX Editor")
+
+    @property
+    def EDITOR_RUNNING_TITLE(self) -> str:
+        return _("XKNX Editor Already Running")
+
+    @property
+    def EDITOR_RUNNING_TEXT(self) -> str:
+        return _(
+            "XKNX Editor is already running on this computer. Switch to it, or start another one, "
+            "e.g. to work on a second project or with another bus connection."
+        )
+
+    @property
+    def EDITOR_WINDOW(self) -> str:
+        return _("Window")
+
+    @property
+    def EDITOR_BROWSER(self) -> str:
+        return _("Browser UI ({url})")
+
+    @property
+    def EDITOR_NO_PROJECT(self) -> str:
+        return _("No project open")
+
+    @property
+    def EDITOR_ENTRY(self) -> str:
+        return _("{kind}: {project}")
+
+    @property
+    def EDITOR_SWITCH(self) -> str:
+        return _("Switch to It")
+
+    @property
+    def EDITOR_START_ANOTHER(self) -> str:
+        return _("Start Another")
+
+    @property
+    def EDITOR_GONE(self) -> str:
+        return _("That XKNX Editor has ended in the meantime.")
+
+    @property
+    def PROJECT_ELSEWHERE_TITLE(self) -> str:
+        return _("Project Already Open")
+
+    @property
+    def PROJECT_ELSEWHERE_TEXT(self) -> str:
+        return _(
+            "{name} is already open in another XKNX Editor. Editing it in two editors at once can "
+            "overwrite changes."
+        )
+
+    @property
+    def PROJECT_OPEN_ANYWAY(self) -> str:
+        return _("Open Anyway")
 
 
 S = _CombinedStrings()

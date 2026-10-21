@@ -24,12 +24,15 @@ Options:
   that connects gets control (default 10).
 - ``--web-no-browser``: served on this computer only, the default browser opens the page once the
   server listens; this option keeps it closed (an autostart, a service).
+- ``--web-no-tray``: on a desktop, a tray icon shows that the editor runs (with Open in Browser and
+  Stop XKNX Editor); this option leaves it out.
 
 Ctrl+C in the terminal it was started from (and SIGTERM, e.g. from ``docker stop``) ends the app
 like File > Exit."""
 
 from __future__ import annotations
 
+import atexit
 import logging
 import os
 import signal
@@ -46,8 +49,11 @@ from typing import TYPE_CHECKING, Any, cast
 
 from imgui_bundle import hello_imgui, imgui
 
+from editor_gui.ports import bind_port
+
 if TYPE_CHECKING:
     from editor_gui.web.server import WebHub
+    from editor_gui.web.tray import Tray
 
 logger = logging.getLogger(__name__)
 
@@ -64,6 +70,8 @@ _TRACE = os.environ.get("XKNX_WEB_TRACE") == "1"
 _ERROR_REPORT_SECONDS = 10.0
 
 active_hub: WebHub | None = None
+# The browser UI's address, once it is served.
+page_url = ""
 
 # The zoom steps of the browser UI (as in the page's client.js).
 ZOOMS = (0.5, 0.67, 0.75, 0.8, 0.9, 1.0, 1.1, 1.25, 1.5, 1.75, 2.0)
@@ -124,6 +132,8 @@ class WebOptions:
     proxy_ips: tuple[str, ...] = ()
     # Whether the port was given (``--web=[host:]port``); otherwise another free one may be taken.
     port_given: bool = False
+    # A tray icon on a desktop (``--web-no-tray`` leaves it out).
+    tray: bool = True
 
     @property
     def local(self) -> bool:
@@ -159,7 +169,7 @@ def web_options(argv: list[str]) -> WebOptions | None:
             host = given_host or DEFAULT_HOST
             port = int(given_port) if given_port else DEFAULT_PORT
             port_given = bool(given_port)
-        elif arg in ("--web-trust-proxy", "--web-no-browser"):
+        elif arg in ("--web-trust-proxy", "--web-no-browser", "--web-no-tray"):
             values[arg] = "1"
         elif arg.startswith(
             (
@@ -188,34 +198,8 @@ def web_options(argv: list[str]) -> WebOptions | None:
         "--web-no-browser" not in values,
         tuple(ip.strip() for ip in proxy.split(",") if ip.strip()),
         port_given,
+        "--web-no-tray" not in values,
     )
-
-
-def _bind(host: str, port: int) -> socket.socket | None:
-    """A socket bound to ``host``:``port`` for the server, None when the port is in use. Also a
-    program already answering there counts (Windows lets a socket bind to an address another
-    program listens on for all its addresses)."""
-    if port:
-        probe = {"0.0.0.0": "127.0.0.1", "::": "::1", "": "127.0.0.1"}.get(host, host)
-        try:
-            with socket.create_connection((probe, port), timeout=0.3):
-                return None
-        except OSError:
-            pass
-    family = socket.AF_INET6 if ":" in host else socket.AF_INET
-    sock = socket.socket(family, socket.SOCK_STREAM)
-    try:
-        # The port to this server alone (on Windows another program could share it otherwise).
-        exclusive = getattr(socket, "SO_EXCLUSIVEADDRUSE", None)
-        if exclusive is not None:
-            sock.setsockopt(socket.SOL_SOCKET, exclusive, 1)
-        else:
-            sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        sock.bind((host, port))
-    except OSError:
-        sock.close()
-        return None
-    return sock
 
 
 def server_socket(options: WebOptions) -> socket.socket | None:
@@ -223,9 +207,9 @@ def server_socket(options: WebOptions) -> socket.socket | None:
     and when that is in use the next free one (then one the system picks). None when the port
     given is in use."""
     if options.port_given:
-        return _bind(options.host, options.port)
+        return bind_port(options.host, options.port)
     for port in (*range(options.port, options.port + _MORE_PORTS + 1), 0):
-        sock = _bind(options.host, port)
+        sock = bind_port(options.host, port)
         if sock is not None:
             return sock
     return None
@@ -254,7 +238,7 @@ def enable_web_mode(
     runner_params: hello_imgui.RunnerParams, options: WebOptions
 ) -> WebHub:
     """Switch ``runner_params`` to the windowless web mode and start the server."""
-    global active_hub
+    global active_hub, page_url
     from editor_gui.settings import config_dir
     from editor_gui.web.frames import Frame, encode_frame
     from editor_gui.web.server import WebHub
@@ -308,6 +292,8 @@ def enable_web_mode(
     frame_start = [0.0]
     # Set up in web_post_init, once ImGui runs.
     gestures: list[TouchGestures] = []
+    # The tray icon, once the server listens (none without a desktop or a tray).
+    trays: list[Tray] = []
     touch_look = TouchLook()
     touch = _touch
     text_input = [False]
@@ -348,10 +334,13 @@ def enable_web_mode(
             bool(gestures) and gestures[0].active
         )
         wait = (1.0 / (_ACTIVE_FPS if active else idle_fps)) - (now - frame_start[0])
+        tray = trays[0] if trays else None
+        if tray is not None:
+            tray.pump()
         if wait > 0:
             if active:
                 time.sleep(wait)
-            elif hub.wake.wait(wait):
+            elif tray.wait(hub.wake, wait) if tray is not None else hub.wake.wait(wait):
                 time.sleep(0.002)  # let the rest of a burst of input arrive
         hub.wake.clear()
         # hello_imgui's own idling would add its fixed sleep on top (its menu toggle included).
@@ -521,7 +510,7 @@ def enable_web_mode(
         shown = socket.gethostname()  # every address of this computer: name it
     else:
         shown = options.host
-    url = f"{scheme}://{shown}:{port}/"
+    url = page_url = f"{scheme}://{shown}:{port}/"
     print(f"XKNX Editor web UI: {url}", flush=True)
     logger.info("web UI listening on %s:%d, files in %s", options.host, port, files)
 
@@ -533,6 +522,8 @@ def enable_web_mode(
     for name in ("SIGINT", "SIGTERM", "SIGBREAK"):  # SIGBREAK: Ctrl+Break on Windows
         if hasattr(signal, name):
             signal.signal(getattr(signal, name), stop)
+    if options.tray:
+        trays.extend(_start_tray(url, lambda: stop(0, None)))
     if options.local and options.open_browser:
         threading.Thread(
             target=_open_when_listening,
@@ -565,6 +556,27 @@ def guarded(where: str, call: Callable[[], None], hub: WebHub) -> Callable[[], N
                 hub.report_error(where, f"{type(error).__name__}: {error}")
 
     return run
+
+
+def _start_tray(url: str, stop: Callable[[], None]) -> list[Tray]:
+    """The tray icon for the editor serving ``url`` (none without a desktop or a tray); removed
+    when the app ends."""
+    from editor_gui.strings import S
+    from editor_gui.web.tray import TrayMenu, start_tray
+
+    tray = start_tray(
+        TrayMenu(
+            f"{S.APP_TITLE} - {url}",
+            S.TRAY_OPEN_IN_BROWSER,
+            S.TRAY_STOP,
+            lambda: webbrowser.open(url),
+            stop,
+        )
+    )
+    if tray is None:
+        return []
+    atexit.register(tray.close)
+    return [tray]
 
 
 def _open_when_listening(port: int, url: str, timeout: float = 15.0) -> None:

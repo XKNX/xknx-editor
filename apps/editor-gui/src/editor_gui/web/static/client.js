@@ -442,6 +442,7 @@
     else if (ev.t === "pick") { if (!recently(`pick:${ev.id}`)) pick(ev); }
     else if (ev.t === "download") { if (!recently(`download:${ev.url}`)) download(ev.url, ev.name); }
     else if (ev.t === "open") { if (!recently(`open:${ev.url}`)) openLink(ev); }
+    else if (ev.t === "go") location.href = ev.url;  // another editor's browser UI
     else if (ev.t === "zoom") setZoom(ev.z);
     else if (ev.t === "text-input") {
       textInput = ev.on;
