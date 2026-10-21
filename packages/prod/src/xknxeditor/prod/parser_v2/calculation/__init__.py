@@ -24,7 +24,13 @@ from ...script import (
     ScriptError,
 )
 from ...script.literal import parse_literal
-from ...script.values import ScriptValueError, coerce_script_value, to_js
+from ...script.values import (
+    ScriptValueError,
+    coerce_script_value,
+    to_js,
+    to_vbscript,
+)
+from ...script.vbscript import culture_for, run_script
 
 if TYPE_CHECKING:
     from ...script.compat.runtime import JScriptEnv
@@ -101,9 +107,6 @@ def _context_object(text: str | None, calc_id: str) -> dict[str, Any]:
     return _as_dict(value)
 
 
-_vbscript_warned: set[str] = set()
-
-
 def run_calculations(
     idx: ApplicationIndexer,
     local_ref: str,
@@ -149,14 +152,15 @@ def _run_one(
     env: JScriptEnv | None,
     abort: AbortToken | None,
 ) -> None:
-    if calc.language == ParameterCalculationLanguage.VBSCRIPT:
-        if calc.id not in _vbscript_warned:
-            _vbscript_warned.add(calc.id)
-            log.warning("VBScript parameter calculation %s is not supported", calc.id)
-        return
     lr = direction == "LR"
     ins = (calc.lparameters if lr else calc.rparameters).parameter_ref_ref
     outs = (calc.rparameters if lr else calc.lparameters).parameter_ref_ref
+    if calc.language == ParameterCalculationLanguage.VBSCRIPT:
+        code = calc.lrtransformation if lr else calc.rltransformation
+        if not code:
+            return
+        _run_vbscript(idx, calc, code, ins, outs, scope, journal, abort)
+        return
     func = calc.lrtransformation_func if lr else calc.rltransformation_func
     inline = calc.lrtransformation if lr else calc.rltransformation
     params = (
@@ -194,6 +198,54 @@ def _run_one(
         raise
     except ScriptError as exc:
         raise CalculationError(exc.message, calculation_id=calc.id) from exc
+    _write_outputs(idx, calc, outs, computed, scope, journal)
+
+
+def _run_vbscript(
+    idx: ApplicationIndexer,
+    calc: ParameterCalculation,
+    code: str,
+    ins: list[Any],
+    outs: list[Any],
+    scope: CalculationScope,
+    journal: Journal,
+    abort: AbortToken | None,
+) -> None:
+    """Run inline VBScript code; the aliases are its variables, the outputs hold their current
+    values when it starts."""
+    inputs = {
+        _alias(idx, pr): to_vbscript(scope.get(pr.ref_id), idx.type_of(pr.ref_id))
+        for pr in ins
+    }
+    current = {
+        _alias(idx, pr): to_vbscript(scope.get(pr.ref_id), idx.type_of(pr.ref_id))
+        for pr in outs
+    }
+    try:
+        computed: dict[str, Any] = run_script(
+            code,
+            inputs,
+            current,
+            culture=culture_for(scope.locale),
+            abort=abort,
+            deadline=_SCRIPT_DEADLINE,
+        )
+    except ScriptAborted:
+        raise
+    except ScriptError as exc:
+        raise CalculationError(exc.message, calculation_id=calc.id) from exc
+    _write_outputs(idx, calc, outs, computed, scope, journal)
+
+
+def _write_outputs(
+    idx: ApplicationIndexer,
+    calc: ParameterCalculation,
+    outs: list[Any],
+    computed: dict[str, Any],
+    scope: CalculationScope,
+    journal: Journal,
+) -> None:
+    """Coerce the computed outputs to their parameter types and write the changed ones."""
     for pr in outs:
         alias = _alias(idx, pr)
         if alias not in computed or computed[alias] is None:

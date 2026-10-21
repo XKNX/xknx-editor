@@ -89,6 +89,24 @@ def to_js(value: str | None, tc: object) -> JsValue:
     return value
 
 
+def to_vbscript(value: str | None, tc: object) -> int | float | str | None:
+    """Stored value string to the value a VBScript calculation sees: integer parameters as
+    integers, float parameters as floats, everything else as text."""
+    if value is None or not has_value(tc):
+        return None
+    if isinstance(tc, _INTEGER_TYPES):
+        try:
+            return _parse_int(value)
+        except ValueError:
+            return value
+    if isinstance(tc, ParameterTypeTypeFloat):
+        try:
+            return float(value)
+        except ValueError:
+            return value
+    return value
+
+
 def dotnet_number_to_string(x: float) -> str:
     """Invariant ``Double.ToString()`` of .NET Framework (15 significant digits)."""
     if math.isnan(x):
