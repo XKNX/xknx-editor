@@ -590,8 +590,39 @@
       return emitDefault(node);
     }
 
+    // A chain like ``a || b || c ...`` nests to the left as deep as it is long; a product's
+    // condition can have hundreds of terms, so its left spine is walked in a loop, not recursed.
+    function plainChain(node) {
+      return (
+        node.__text === undefined &&
+        (node.type === "LogicalExpression" ||
+          (node.type === "BinaryExpression" && node.operator !== "+" && !BITWISE[node.operator]))
+      );
+    }
+
+    function emitChain(node) {
+      var spine = [];
+      var leaf = node;
+      while (plainChain(leaf)) {
+        spine.push(leaf);
+        leaf = leaf.left;
+      }
+      var out = emit(leaf);
+      for (var i = spine.length - 1; i >= 0; i--) {
+        var n = spine[i];
+        out =
+          src.slice(n.start, n.left.start) +
+          out +
+          src.slice(n.left.end, n.right.start) +
+          emit(n.right) +
+          src.slice(n.right.end, n.end);
+      }
+      return out;
+    }
+
     function emit(node) {
       if (node.__text !== undefined) return node.__text;
+      if (plainChain(node)) return emitChain(node);
       switch (node.type) {
         case "Program":
           return emitProgram(node);
