@@ -46,8 +46,8 @@ msgstr "empfängt"
 msgid "sends & receives"
 msgstr "sendet & empfängt"
 
-msgid "Each group address is a hub node; devices link to it (sender into the hub, hub out to receivers). Hover a device to see its group addresses, or a hub to see every device on it. Shift-click a device to open it."
-msgstr "Jede Gruppenadresse ist ein Knoten; Geräte sind mit ihr verbunden (Sender in den Knoten, Knoten hinaus zu den Empfängern). Über ein Gerät fahren zeigt seine Gruppenadressen, über einen Knoten alle Geräte daran. Mit Shift auf ein Gerät klicken öffnet es."
+msgid "Each group address is a hub node; devices link to it (sender into the hub, hub out to receivers). Hover a device to see its group addresses, or a hub to see every device on it. Click a device to open it."
+msgstr "Jede Gruppenadresse ist ein Knoten; Geräte sind mit ihr verbunden (Sender in den Knoten, Knoten hinaus zu den Empfängern). Über ein Gerät fahren zeigt seine Gruppenadressen, über einen Knoten alle Geräte daran. Ein Klick auf ein Gerät öffnet es."
 
 msgid "No linked devices to show."
 msgstr "Keine verknüpften Geräte vorhanden."
@@ -72,3 +72,12 @@ msgstr "L {line}"
 
 msgid "Zoom with two fingers. Tap a device to open it."
 msgstr "Mit zwei Fingern zoomen. Ein Gerät antippen, um es zu öffnen."
+
+msgid "(unnamed)"
+msgstr "(unbenannt)"
+
+msgid "Address: {address}"
+msgstr "Adresse: {address}"
+
+msgid "Application: {application}"
+msgstr "Applikation: {application}"

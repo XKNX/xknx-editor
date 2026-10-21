@@ -214,7 +214,7 @@ uv run ruff check              # Lint
 uv run pyright                 # Type check
 ```
 
-See `CLAUDE.md` and `apps/editor-gui/CLAUDE.md` for architecture notes and conventions.
+See `AGENTS.md` and `apps/editor-gui/AGENTS.md` for architecture notes and conventions.
 
 To test unreleased `xknx` changes, clone it as a sibling and add a `[tool.uv.sources]` override in
 `apps/editor-gui/pyproject.toml` (`xknx = { path = "../../../xknx", editable = true }`), then

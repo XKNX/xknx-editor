@@ -42,7 +42,7 @@ class TopologyStrings:
         return _(
             "Each group address is a hub node; devices link to it (sender into the hub, hub out to "
             "receivers). Hover a device to see its group addresses, or a hub to see every device "
-            "on it. Shift-click a device to open it."
+            "on it. Click a device to open it."
         )
 
     @property
@@ -72,6 +72,18 @@ class TopologyStrings:
     @property
     def TOPOLOGY_HINT_TOUCH(self) -> str:
         return _("Zoom with two fingers. Tap a device to open it.")
+
+    @property
+    def TOPOLOGY_TIP_UNNAMED(self) -> str:
+        return _("(unnamed)")
+
+    @property
+    def TOPOLOGY_TIP_ADDRESS(self) -> str:
+        return _("Address: {address}")
+
+    @property
+    def TOPOLOGY_TIP_APPLICATION(self) -> str:
+        return _("Application: {application}")
 
 
 S = TopologyStrings()

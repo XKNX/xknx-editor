@@ -49,8 +49,8 @@ msgstr "ontvangt"
 msgid "sends & receives"
 msgstr "zendt & ontvangt"
 
-msgid "Each group address is a hub node; devices link to it (sender into the hub, hub out to receivers). Hover a device to see its group addresses, or a hub to see every device on it. Shift-click a device to open it."
-msgstr "Elk groepsadres is een knooppunt; apparaten zijn ermee verbonden (zender het knooppunt in, knooppunt uit naar de ontvangers). Beweeg over een apparaat voor zijn groepsadressen, of over een knooppunt voor alle apparaten eraan. Shift-klik op een apparaat om het te openen."
+msgid "Each group address is a hub node; devices link to it (sender into the hub, hub out to receivers). Hover a device to see its group addresses, or a hub to see every device on it. Click a device to open it."
+msgstr "Elk groepsadres is een knooppunt; apparaten zijn ermee verbonden (zender het knooppunt in, knooppunt uit naar de ontvangers). Beweeg over een apparaat voor zijn groepsadressen, of over een knooppunt voor alle apparaten eraan. Klik op een apparaat om het te openen."
 
 msgid "No linked devices to show."
 msgstr "Geen gekoppelde apparaten om te tonen."
@@ -75,3 +75,12 @@ msgstr "L {line}"
 
 msgid "Zoom with two fingers. Tap a device to open it."
 msgstr "Zoom met twee vingers. Tik op een apparaat om het te openen."
+
+msgid "(unnamed)"
+msgstr "(naamloos)"
+
+msgid "Address: {address}"
+msgstr "Adres: {address}"
+
+msgid "Application: {application}"
+msgstr "Applicatie: {application}"

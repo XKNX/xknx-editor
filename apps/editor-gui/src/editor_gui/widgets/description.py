@@ -120,8 +120,14 @@ def _hover_icon(icon: str, x: float | None) -> bool:
 
 def description_tooltip(description: str) -> None:
     """The tooltip of the description icon: ``description``, wrapped."""
+    wrapped_tooltip(description)
+
+
+def wrapped_tooltip(text: str) -> None:
+    """A tooltip showing ``text`` wrapped at the description width (for texts that may hold a
+    long description)."""
     imgui.begin_tooltip()
     imgui.push_text_wrap_pos(px(_WRAP_WIDTH))
-    imgui.text_unformatted(description)
+    imgui.text_unformatted(text)
     imgui.pop_text_wrap_pos()
     imgui.end_tooltip()

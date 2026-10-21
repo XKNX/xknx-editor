@@ -1409,8 +1409,14 @@ class ProjectService:
         device structure (group-address/link changes): the expensive device cache — each device
         rebuild re-parses its application's dynamic UI — is kept valid instead of being discarded,
         so linking a group address stays instant on large projects."""
+        # Only a cache that is current stays current: one outdated by an earlier structural change
+        # (a device added and then placed in a room) must still be rebuilt.
+        current = (
+            self._devices_cache is not None
+            and self._devices_cache_version == self._version
+        )
         self._version += 1
-        if not structural and self._devices_cache is not None:
+        if not structural and current:
             self._devices_cache_version = self._version
 
     def _refresh_device(self, node_id: int) -> None:
