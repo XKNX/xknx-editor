@@ -208,6 +208,17 @@ def _write_bits(
             buf[pos // 8] &= ~bit_mask
 
 
+def _write_param(buf: bytearray, w: MemWrite, size_in_bit: int, value: int) -> None:
+    """Write a parameter's bits; one placed past its segment's end is an encoding error."""
+    end_bit = w.offset * 8 + w.bit_offset + size_in_bit
+    if end_bit > len(buf) * 8:
+        raise EncodingError(
+            f"parameter {w.param_id} at offset {w.offset} lies outside segment {w.seg_id} "
+            f"({len(buf)} bytes)"
+        )
+    _write_bits(buf, w.offset, w.bit_offset, size_in_bit, value)
+
+
 def _encode_value(
     str_value: str,
     size_in_bit: int,
@@ -1117,7 +1128,7 @@ def encode_to_memory(
         if plan is None:
             continue
         encoded, write_bits = plan
-        _write_bits(buf, w.offset, w.bit_offset, write_bits, encoded)
+        _write_param(buf, w, write_bits, encoded)
     return {seg_id: bytes(buf) for seg_id, buf in bufs.items()}
 
 
@@ -1171,7 +1182,7 @@ def encode_to_memory_masked(
         if plan is None:
             continue
         encoded, write_bits = plan
-        _write_bits(buf, w.offset, w.bit_offset, write_bits, encoded)
+        _write_param(buf, w, write_bits, encoded)
         start_bit = w.offset * 8 + w.bit_offset
         end_bit = start_bit + write_bits - 1
         mask = masks[w.seg_id]
