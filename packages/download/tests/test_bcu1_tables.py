@@ -11,8 +11,12 @@ from __future__ import annotations
 
 from types import SimpleNamespace
 
+import pytest
+
+from xknxeditor.download.errors import ImageError
 from xknxeditor.download.image import (
     GroupCommunication,
+    MemorySegment,
     _group_communication_segments,
 )
 from xknxeditor.download.project_data import GroupObjectLink
@@ -58,18 +62,23 @@ class _UI:
         return {node.ref_id for node in self._nodes}
 
 
-def _application(mask: str) -> SimpleNamespace:
+def _application(
+    mask: str, *, dynamic: bool = False, association_offset: int = 59
+) -> SimpleNamespace:
     objects = [SimpleNamespace(id=f"O-{number}", number=number) for number in range(3)]
     refs = [
         SimpleNamespace(id=f"O-{number}_R", ref_id=f"O-{number}") for number in range(3)
     ]
 
-    def table(offset: int) -> SimpleNamespace:
-        return SimpleNamespace(code_segment=_SEGMENT, offset=offset, max_entries=17)
+    def table(offset: int, max_entries: int = 17) -> SimpleNamespace:
+        return SimpleNamespace(
+            code_segment=_SEGMENT, offset=offset, max_entries=max_entries
+        )
 
     return SimpleNamespace(
         program=SimpleNamespace(
             mask_version=mask,
+            dynamic_table_management=dynamic,
             module_defs=None,
             static=SimpleNamespace(
                 script=None,
@@ -88,8 +97,8 @@ def _application(mask: str) -> SimpleNamespace:
                 parameter_calculations=None,
                 parameter_validations=None,
                 allocators=None,
-                address_table=table(22),
-                association_table=table(59),
+                address_table=table(22, 0 if dynamic else 17),
+                association_table=table(association_offset),
             ),
         )
     )
@@ -256,3 +265,61 @@ def test_bcu2_keeps_communication_on_static_slots() -> None:
     # A full download writes initialized bytes. BCU2 has none, so the seed
     # stays out of that write.
     assert eeprom.initialized_mask is None
+
+
+def _dynamic_segments(
+    links: int, *, association_offset: int = 59
+) -> list[MemorySegment]:
+    seed = _seed()
+    return _group_communication_segments(
+        _application("MV-0012", dynamic=True, association_offset=association_offset),  # type: ignore[arg-type]
+        _UI(
+            [
+                _com_object(n, read=True, write=True, transmit=True, update=True)
+                for n in range(3)
+            ]
+        ),  # type: ignore[arg-type]
+        {_SEGMENT: _BASE},
+        {_SEGMENT: (seed, b"\x00" * len(seed))},
+        GroupCommunication(
+            device_address=0x1133,
+            links=tuple(
+                GroupObjectLink(
+                    com_object_ref_id=f"O-{i % 3}_R",
+                    group_address=0x0900 + i,
+                    sending=i < 3,
+                )
+                for i in range(links)
+            ),
+        ),
+    )
+
+
+def _association_pointer(segments: list[MemorySegment]) -> int:
+    eeprom = next(segment for segment in segments if len(segment.data) == 256)
+    assert eeprom.mask is not None
+    assert eeprom.mask[0x11] == 0xFF
+    return eeprom.data[0x11]
+
+
+def test_dynamic_tables_keep_the_declared_association_place() -> None:
+    """The address table ends before the declared association table: it stays there."""
+    segments = _dynamic_segments(2)
+    assert any(segment.address == 0x013B for segment in segments)
+    assert _association_pointer(segments) == 0x3B
+
+
+def test_dynamic_tables_follow_a_grown_address_table() -> None:
+    """With no room declared for addresses, the association table follows them."""
+    segments = _dynamic_segments(4, association_offset=25)
+    # Count, own address and 4 group addresses: 0116h..0120h.
+    association = next(segment for segment in segments if segment.address == 0x0121)
+    assert association.data[0] == 4
+    assert _association_pointer(segments) == 0x21
+
+
+def test_dynamic_tables_end_at_the_group_object_table() -> None:
+    """Both tables share 0116h..015Dh; 18 links need 76 octets there."""
+    _dynamic_segments(17)
+    with pytest.raises(ImageError, match="are free before the group object table"):
+        _dynamic_segments(18)

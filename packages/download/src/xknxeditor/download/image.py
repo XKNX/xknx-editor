@@ -31,6 +31,7 @@ from .project_data import (
     parameter_instance_refs_from_device,
 )
 from .resources import (
+    bcu1_association_table,
     bcu1_group_object_table,
     m112_association_table,
     m112_group_object_table,
@@ -700,12 +701,15 @@ def _group_communication_segments(
 
     links = _active_links(ui, gc, number_of)
     group_addresses = sorted({link.group_address for link in links})
-    _validate_table_capacity(application, group_addresses, [])
+    dynamic_tables = _bcu1_dynamic_tables(application)
+    if not dynamic_tables:
+        _validate_table_capacity(application, group_addresses, [])
     index_of = {address: i + 1 for i, address in enumerate(group_addresses)}
     linked_numbers = {number_of[link.com_object_ref_id] for link in links}
 
     result: list[MemorySegment] = []
     packed: PackedGroupTables | None = None
+    address_table_end: int | None = None
     com_object_table = static.com_object_table
     if com_object_table is not None and com_object_table.code_segment is not None:
         seed = encoded.get(com_object_table.code_segment)
@@ -799,6 +803,7 @@ def _group_communication_segments(
             address = base + offset
             result.append(MemorySegment(address, data, mask=bytes(mask)))
             packed = packed_group_tables(application, len(data))
+            address_table_end = address + len(data)
     association_table = static.association_table
     if association_table is not None and association_table.code_segment is not None:
         base = base_addresses.get(association_table.code_segment)
@@ -811,17 +816,95 @@ def _group_communication_segments(
                 )
                 for link in links
             ]
-            _validate_table_capacity(application, group_addresses, associations)
             # AssociationTable_Bcu1 is this same list, at the pointer in the
             # shared EEPROM. One slot per object drops a second group address.
             data = build_association_table(associations)
-            address = (
-                packed.association_address
-                if packed is not None
-                else base + (association_table.offset or 0)
-            )
+            if dynamic_tables:
+                address = _bcu1_association_address(
+                    application, base_addresses, base, address_table_end, len(data)
+                )
+                _set_bcu1_association_pointer(result, address)
+            else:
+                _validate_table_capacity(application, group_addresses, associations)
+                address = (
+                    packed.association_address
+                    if packed is not None
+                    else base + (association_table.offset or 0)
+                )
             result.append(MemorySegment(address, data, mask=b"\xff" * len(data)))
     return result
+
+
+# GrAssocTabPtr: one octet at 0111h; the association table lies at 100h + its value.
+_BCU1_ASSOCIATION_POINTER = 0x0111
+_BCU1_ADDRESS_TABLE = 0x0116
+
+
+def _bcu1_dynamic_tables(application: Application) -> bool:
+    """Whether the BCU1 EEPROM tables are placed by the download.
+
+    The address table at 0116h then grows with the group addresses, and the
+    association table is found through GrAssocTabPtr, which the download sets.
+    """
+    program = application.program
+    return bool(program.dynamic_table_management) and bcu1_association_table(
+        program.mask_version
+    )
+
+
+def _bcu1_association_address(
+    application: Application,
+    base_addresses: Mapping[str, int],
+    base: int,
+    address_table_end: int | None,
+    length: int,
+) -> int:
+    """Return where the dynamically managed BCU1 association table goes.
+
+    It stays at its declared place while the address table ends before it, and
+    otherwise directly follows the address table. Both tables share the room up
+    to the group object table.
+    """
+    static = application.program.static
+    table = static.association_table
+    assert table is not None
+    declared = base + (table.offset or 0)
+    address = declared
+    if address_table_end is not None and address_table_end > address:
+        address = address_table_end
+    limit = declared + 1 + 2 * table.max_entries
+    objects = static.com_object_table
+    if objects is not None and objects.code_segment is not None:
+        objects_base = base_addresses.get(objects.code_segment)
+        if objects_base is not None:
+            objects_start = objects_base + (objects.offset or 0)
+            if objects_start > address:
+                limit = max(limit, objects_start)
+    pointer = address - 0x100
+    if not 0x19 <= pointer <= 0xFE or address + length > limit:
+        raise ImageError(
+            "group address and association tables need "
+            f"{address + length - _BCU1_ADDRESS_TABLE} octets from 0116h; "
+            f"{limit - _BCU1_ADDRESS_TABLE} are free before the group object table"
+        )
+    return address
+
+
+def _set_bcu1_association_pointer(segments: list[MemorySegment], address: int) -> None:
+    """Point GrAssocTabPtr at the association table written at ``address``."""
+    pointer = address - 0x100
+    for i, segment in enumerate(segments):
+        offset = _BCU1_ASSOCIATION_POINTER - segment.address
+        if 0 <= offset < len(segment.data):
+            data = bytearray(segment.data)
+            data[offset] = pointer
+            mask = bytearray(segment.mask or b"\xff" * len(data))
+            mask[offset] = 0xFF
+            segments[i] = replace(segment, data=bytes(data), mask=bytes(mask))
+            return
+    segments.append(
+        MemorySegment(_BCU1_ASSOCIATION_POINTER, bytes([pointer]), mask=b"\xff")
+    )
 
 
 def _group_communication_relative_segments(

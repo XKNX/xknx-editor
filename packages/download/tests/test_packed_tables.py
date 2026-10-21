@@ -77,6 +77,7 @@ def _application(mask: str, *, association_address: int = 0x41FF) -> SimpleNames
         load_procedures=None,
         program=SimpleNamespace(
             mask_version=mask,
+            dynamic_table_management=False,
             pei_type=0,
             application_number=0x4806,
             application_version=0x11,
