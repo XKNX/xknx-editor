@@ -32,6 +32,8 @@ DEFAULT_BASE_URL = "https://onlinecatalog.knx.org"
 MASTER_DATA_URL = "https://update.knx.org/data/XML/project-23/knx_master.xml"
 _CACHE_FILE = "online_catalog_manufacturers.json"
 _INDEX_CACHE_FILE = "online_catalog_index.json"
+# Raised when the cached items' meaning changes, so an older cache is rebuilt (2: market check).
+_INDEX_FORMAT = 2
 _INDEX_SAVE_EVERY = (
     10  # persist the growing index every N manufacturers, for resumability
 )
@@ -306,13 +308,30 @@ def _section_paths(
     return paths
 
 
+def _market_catalog_ids(data: dict[str, object]) -> set[str] | None:
+    """The catalog items some market offers, or None when the index lists no markets."""
+    markets = _ci_get(data, "Markets")
+    if not isinstance(markets, list) or not markets:
+        return None
+    ids: set[str] = set()
+    for market in cast(list[object], markets):
+        if _is_dict(market):
+            catalog_ids = _ci_get(market, "CatalogIds")
+            if isinstance(catalog_ids, list):
+                ids.update(
+                    i for i in cast(list[object], catalog_ids) if isinstance(i, str)
+                )
+    return ids
+
+
 def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
     """Parse a ``Download/Index/{mfr}`` response into downloadable catalog items.
 
     The index is Newtonsoft-JSON ``IndexFileData`` with an ``Entries`` array; each entry carries an
     ``Id``, ``CatalogItemName``/``ProductName``, ``OrderNumber`` and download-gating flags
     (``NoDownloadWithoutPlugin``, ``DownloadInfoIncomplete``, ``RequiresExternalSoftware``), and
-    the catalog ``Sections`` file the entries. Sorted by display name.
+    the catalog ``Sections`` file the entries. Entries no ``Markets`` entry lists are not
+    downloadable. Sorted by display name.
     """
     try:
         data = json.loads(index_bytes)
@@ -330,6 +349,7 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
 
     entries = _ci_get(data, "Entries") if _is_dict(data) else None
     sections = _section_paths(data) if _is_dict(data) else {}
+    in_market = _market_catalog_ids(data) if _is_dict(data) else None
     items: list[OnlineCatalogItem] = []
     if isinstance(entries, list):
         for entry in cast(list[object], entries):
@@ -345,6 +365,9 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
             )
             order = _ci_get(entry, "OrderNumber") or ""
             block_reason = _download_block_reason(entry)
+            if not block_reason and in_market is not None and cid not in in_market:
+                # The server refuses these with "NotInAnyMarket".
+                block_reason = "not offered in any market"
             items.append(
                 OnlineCatalogItem(
                     id=cid,
@@ -596,6 +619,8 @@ class OnlineCatalogClient:
     ) -> tuple[dict[int, list[OnlineCatalogItem]] | None, str | None]:
         try:
             raw = json.loads(self._index_path.read_text(encoding="utf-8"))
+            if raw.get("format") != _INDEX_FORMAT:
+                return None, None
             entries = raw["index"]
             index = {
                 int(mid): [_item_from_dict(d) for d in items]
@@ -611,6 +636,7 @@ class OnlineCatalogClient:
         try:
             self._index_path.parent.mkdir(parents=True, exist_ok=True)
             payload = {
+                "format": _INDEX_FORMAT,
                 "fetched_at": fetched_at,
                 "index": {
                     str(mid): [_item_to_dict(i) for i in items]
