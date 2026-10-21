@@ -244,23 +244,20 @@ class DynamicTreeBuilder:
         self.tree: DynamicNode = _AppNode(node, global_param_ref_defaults)
         # Page membership follows the selector chain, not XML block nesting: a parameter's page is
         # found by walking the selector of its nearest enclosing choose up the chain of selectors
-        # until one names a ParameterBlock (its ParamRefId). ``_page_params`` are those block refs.
-        # A ref's nearest selector is taken from where it is PLACED (its ParameterRefRef, or a block
-        # heading), which is where the owning page is decided; ``_nearest_choose`` (the selector of
-        # each choose that USES a ref) is only a fallback for a chain that placements cannot complete.
-        # Computed once; used by :meth:`page_param_for`.
-        self._page_params, self._nearest_placement, self._nearest_choose = (
-            self._build_page_maps(app)
-        )
+        # until one names a ParameterBlock (its ParamRefId). ``_page_params`` are those block refs;
+        # ``_nearest_placement`` maps each ref to the selector of the choose it is PLACED in (its
+        # ParameterRefRef, or a block heading) - where the owning page is decided. A ref placed
+        # outside any choose has no entry and keeps its XML-nested placement (it is never re-homed
+        # from where a choose merely USES it). Computed once; used by :meth:`page_param_for`.
+        self._page_params, self._nearest_placement = self._build_page_maps(app)
 
     def _build_page_maps(
         self, app: ApplicationProgram
-    ) -> tuple[set[str], dict[str, str], dict[str, str]]:
-        """``(page-parameter refs, nearest-choose-selector per PLACEMENT, nearest-choose-selector per
-        choose USE)`` for selector-chain page assignment (see :meth:`page_param_for`)."""
+    ) -> tuple[set[str], dict[str, str]]:
+        """``(page-parameter refs, nearest-choose-selector per PLACEMENT)`` for selector-chain page
+        assignment (see :meth:`page_param_for`)."""
         page_params: set[str] = set()
         placement: dict[str, str] = {}
-        choose_use: dict[str, str] = {}
 
         def walk(elem: object, selector: str | None) -> None:
             if isinstance(elem, ComObjectParameterBlock):
@@ -274,11 +271,10 @@ class DynamicTreeBuilder:
             elif isinstance(
                 elem, (DependentChannelChoose, ChannelChoose, ComObjectParameterChoose)
             ):
+                # A choose only resolves its selector; it does not decide the owning page of that
+                # selector (that comes from where the selector's own widget is placed), so nothing
+                # is recorded here - only the descent carries the new selector downward.
                 inner = elem.param_ref_id or selector
-                # A choose does not decide the owning page of its selector (a selector's page comes
-                # from where its widget is placed); record it only as a fallback link.
-                if elem.param_ref_id and selector is not None:
-                    choose_use.setdefault(elem.param_ref_id, selector)
                 for when in elem.when:
                     for child in when.choice:
                         walk(child, inner)
@@ -301,26 +297,21 @@ class DynamicTreeBuilder:
 
         if app.dynamic is not None:
             walk(app.dynamic, None)
-        return page_params, placement, choose_use
+        return page_params, placement
 
-    def _climb_to_page(self, ref_id: str, nearest: dict[str, str]) -> str | None:
-        selector = nearest.get(ref_id)
+    def page_param_for(self, ref_id: str) -> str | None:
+        """The ParamRefId of the ParameterBlock that owns ``ref_id``, or ``None`` when the parameter
+        is not gated toward a page (keep its XML-nested placement). Resolve by the placement chain:
+        each ref's owning page is where its widget/block is placed, never where a choose merely uses
+        it as a selector."""
+        selector = self._nearest_placement.get(ref_id)
         seen: set[str] = set()
         while selector is not None and selector not in seen:
             if selector in self._page_params:
                 return selector
             seen.add(selector)
-            selector = nearest.get(selector)
+            selector = self._nearest_placement.get(selector)
         return None
-
-    def page_param_for(self, ref_id: str) -> str | None:
-        """The ParamRefId of the ParameterBlock that owns ``ref_id``, or ``None`` when the parameter
-        is not gated toward a page (keep its XML-nested placement). Resolve by the placement chain
-        first (where each ref's widget/block sits, the page-deciding link); fall back to the
-        choose-use chain only when placements do not reach a page."""
-        return self._climb_to_page(
-            ref_id, self._nearest_placement
-        ) or self._climb_to_page(ref_id, self._nearest_choose)
 
     def _build_union_sibling_refs(self, app: ApplicationProgram) -> _UnionCompetitors:
         """``parameter_ref_id -> the parameter-ref ids that compete with it for the same union memory``.
@@ -650,23 +641,27 @@ def _rehome_to_pages(
 
     from .ui import UiParameter, UiParameterBlock, UiTab
 
-    # Count eligible destination blocks per ParamRefId: a block is eligible only when it is a real
-    # page (not inline), is shown (not hidden, nor under a hidden ancestor). A ParamRefId carried by
-    # more than one such block is ambiguous and excluded.
-    counts: dict[str, int] = {}
+    # The single eligible destination block per ParamRefId: a block is eligible only when it is a
+    # real page (not inline), is shown (not hidden, nor under a hidden ancestor). A ParamRefId
+    # carried by more than one such block is ambiguous and excluded (value ``None``). Insertion keys
+    # on this exact block instance, so an inline/hidden namesake sharing the ParamRefId never
+    # receives a copy.
+    eligible_block: dict[str, UiParameterBlock | None] = {}
 
     def scan(ns: Iterable[UiNode], hidden_anc: bool) -> None:
         for n in ns:
             if isinstance(n, UiParameterBlock):
                 hidden = hidden_anc or n.hidden
                 if n.param_ref_id and not n.inline and not hidden:
-                    counts[n.param_ref_id] = counts.get(n.param_ref_id, 0) + 1
+                    eligible_block[n.param_ref_id] = (
+                        None if n.param_ref_id in eligible_block else n
+                    )
                 scan(n.children, hidden)
             elif isinstance(n, UiTab):
                 scan(n.children, hidden_anc)
 
     scan(nodes, False)
-    eligible = {ref for ref, count in counts.items() if count == 1}
+    eligible = {ref for ref, block in eligible_block.items() if block is not None}
     if not eligible:
         return nodes
 
@@ -716,9 +711,12 @@ def _rehome_to_pages(
     def rebuild(n: UiNode) -> UiNode:
         if isinstance(n, UiParameterBlock):
             kept = tuple(rebuild(c) for c in n.children if id(c) not in moved_ids)
-            extra = moved_by_target.get(n.param_ref_id or "", [])
-            if extra:
-                kept = merge(kept, extra)
+            # Insert only into the one eligible block instance for this ParamRefId - not every
+            # block that happens to share it (an inline/hidden namesake would otherwise duplicate).
+            if n.param_ref_id and eligible_block.get(n.param_ref_id) is n:
+                extra = moved_by_target.get(n.param_ref_id, [])
+                if extra:
+                    kept = merge(kept, extra)
             return dataclasses.replace(n, children=kept)
         if isinstance(n, UiTab):
             kept = tuple(rebuild(c) for c in n.children if id(c) not in moved_ids)
