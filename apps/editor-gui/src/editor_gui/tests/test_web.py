@@ -381,7 +381,9 @@ def test_apply_input(context: imgui.IO) -> None:
     imgui.new_frame()
     assert (io.mouse_pos.x, io.mouse_pos.y) == (12, 34)
     assert io.mouse_down[0]
-    assert io.key_ctrl
+    # With the macOS key behaviours ImGui maps Ctrl to Super, so the control modifier surfaces as
+    # key_super there and as key_ctrl elsewhere; the app reads both, so accept either.
+    assert io.key_ctrl or io.key_super
     assert imgui.is_key_down(imgui.Key.c)
     imgui.end_frame()
 

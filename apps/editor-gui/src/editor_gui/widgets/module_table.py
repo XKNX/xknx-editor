@@ -141,8 +141,10 @@ def _column_header(labels: list[str]) -> str:
     if len(set(cleaned)) == 1:
         header = cleaned[0]
     else:
-        prefix = os.path.commonprefix(cleaned)
-        suffix = os.path.commonprefix([label[::-1] for label in cleaned])[::-1]
+        # commonprefix over label strings (common prefix, and suffix via reversed strings), not
+        # filesystem paths, so commonpath would be wrong here.
+        prefix = os.path.commonprefix(cleaned)  # noqa: RUF071
+        suffix = os.path.commonprefix([label[::-1] for label in cleaned])[::-1]  # noqa: RUF071
         shortest = min(len(label) for label in cleaned)
         if (
             len(prefix) + len(suffix) > shortest

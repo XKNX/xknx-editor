@@ -59,9 +59,9 @@ def used_product_ids(session: Session) -> UsedProductIds:
         Device.application_program_ref_id,
     ).all()
     return UsedProductIds(
-        frozenset(r[0] for r in rows if r[0]),
-        frozenset(r[1] for r in rows if r[1]),
-        frozenset(r[2] for r in rows if r[2]),
+        frozenset(p for r in rows if (p := r[0])),
+        frozenset(h for r in rows if (h := r[1])),
+        frozenset(a for r in rows if (a := r[2])),
     )
 
 

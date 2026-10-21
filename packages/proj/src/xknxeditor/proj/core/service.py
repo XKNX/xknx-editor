@@ -3280,7 +3280,9 @@ class ProjectService:
         )
         if without_device is not None:
             additional = additional.filter(Device.id != without_device)
-        return {number for (number,) in devices} | {number for (number,) in additional}
+        return {n for (n,) in devices if n is not None} | {
+            n for (n,) in additional if n is not None
+        }
 
     def _first_segment(self, state: _Open, line: Line) -> Segment:
         segment = (
