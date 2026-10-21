@@ -4,13 +4,13 @@ name: Container images
 #   - xknx-editor-web                 multi-arch (amd64 + arm64), for plain docker run / Compose
 #   - xknx-editor-ha-{amd64,aarch64}  one tag per arch, referenced by the Home Assistant add-on
 #
-# Pushes on a version tag (v*). A manual run builds without pushing unless "push" is ticked, so the
-# Dockerfile can be validated without publishing.
+# Pushes on a version tag (xknx-editor-v*). A manual run builds without pushing unless "push" is
+# ticked, so the Dockerfile can be validated without publishing.
 
 on:
   push:
     tags:
-      - "v*"
+      - "xknx-editor-v*"
   workflow_dispatch:
     inputs:
       push:
