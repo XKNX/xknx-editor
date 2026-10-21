@@ -174,6 +174,11 @@ class ApplicationIndexer:
         base = self.parameters.get(pr.ref_id) if pr is not None else None
         return getattr(base, "name", None)
 
+    def message_values(self) -> dict[str, str]:
+        """Each message's text under its name: scripts read them as global variables (a
+        validation returns ``outputSelectionError`` for the message of that name)."""
+        return {m.name: m.text for m in self.messages.values() if m.name and m.text}
+
     def message_text(self, key: object) -> str | None:
         """Message text by number (``M-<n>``) or by name."""
         for msg in self.messages.values():

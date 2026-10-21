@@ -206,6 +206,7 @@ def run_button(
             abort=abort,
             on_log=on_log,
             jscript=ui.script_env if ui.script_env is not None else True,
+            values=ui.indexer.message_values(),
         )
         ctx.invoke(
             button.handler,

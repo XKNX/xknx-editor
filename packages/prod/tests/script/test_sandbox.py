@@ -321,3 +321,12 @@ def test_parameterless_host_methods_run_on_read() -> None:
     value = ctx.invoke("h", [{"$host": "online"}, {"$host": "progress"}]).value
     assert value == "undefined,number,unknown,unknown,boolean,undefined"
     assert calls == ["connect", "disconnect", "connect", "disconnect"]
+
+
+def test_values_are_globals_the_script_may_redefine() -> None:
+    # A product's message names are global variables holding the message text.
+    ctx = ScriptContext(
+        values={"outputSelectionError": "Output in Use", "taken": "host"},
+        script="var taken = 'script'; function h() { return outputSelectionError + '|' + taken; }",
+    )
+    assert ctx.invoke("h", []).value == "Output in Use|script"
