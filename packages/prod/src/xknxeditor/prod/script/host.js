@@ -257,6 +257,9 @@
       g.Debug = log.Debug;
       if (globalsSpec && globalsSpec.getMessage) {
         g.getMessage = method(function (id) { return host("a.message", id); });
+        // The object whose members are the globals above: scripts also call
+        // ApplicationProgram.getMessage(n).
+        g.ApplicationProgram = caseless({ getMessage: g.getMessage });
       }
     },
     invoke: function (fn, args, readback) {

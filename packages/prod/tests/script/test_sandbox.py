@@ -153,6 +153,16 @@ def test_get_message_global() -> None:
     assert ctx.invoke("h", []).value == "msg 7"
 
 
+def test_application_program_object() -> None:
+    # The named object behind the global getMessage, called as ApplicationProgram.getMessage(n).
+    ctx = ScriptContext(
+        get_message=True,
+        host={"a.message": lambda i: f"msg {i}"},
+        script="function h() { return ApplicationProgram.getMessage(1) + '|' + ApplicationProgram.GetMessage(2); }",
+    )
+    assert ctx.invoke("h", []).value == "msg 1|msg 2"
+
+
 def test_progress_and_with_undo() -> None:
     calls: list[str] = []
 
