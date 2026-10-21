@@ -294,9 +294,12 @@ class GroupAddressesPanel:
     ) -> None:
         if flt and not self._range_has_match(node, flt):
             return  # while filtering, hide ranges with no matching group address
-        label = (
-            f"{node.name}##gr{node.id}" if node.name else f"[{node.id}]##gr{node.id}"
-        )
+        # Show the folder's main/middle-group number before its name (like the leaf GA rows),
+        # e.g. "0  Safety" and "0/1  Alarm". Free style has no number, so this stays the name only.
+        base = node.name or f"[{node.id}]"
+        number = getattr(node, "address", "")
+        shown = f"{number}  {base}" if number else base
+        label = f"{shown}##gr{node.id}"
         if flt:
             imgui.set_next_item_open(True, imgui.Cond_.always)
         elif self._reveal_ga_id is not None and self._range_contains_ga(

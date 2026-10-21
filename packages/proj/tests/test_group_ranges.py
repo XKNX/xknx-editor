@@ -5,7 +5,7 @@ level); deleting a folder removes the group addresses in it (restored on undo)."
 from pathlib import Path
 
 from xknxeditor.proj import ProjectService
-from xknxeditor.proj.core.addressing import GroupAddressStyle
+from xknxeditor.proj.core.addressing import GroupAddressStyle, format_group_range
 
 
 def _new(
@@ -94,6 +94,35 @@ def test_remove_folder_takes_gas_and_restores_on_undo(tmp_path: Path) -> None:
     node = _find(_roots(svc, pid), main)
     assert node is not None and node.name == "Beleuchtung"
     assert ga in {g.id for g in svc.group_addresses(pid)}
+
+
+def test_format_group_range_levels() -> None:
+    S = GroupAddressStyle
+    # ThreeLevel: level 0 is the main group, level 1 the main/middle group.
+    assert format_group_range(1 << 11, S.THREE_LEVEL, 0) == "1"
+    assert format_group_range((1 << 11) | (2 << 8), S.THREE_LEVEL, 1) == "1/2"
+    # TwoLevel has only main groups; Free has no numbered folders.
+    assert format_group_range(3 << 11, S.TWO_LEVEL, 0) == "3"
+    assert format_group_range(5, S.FREE, 0) == ""
+
+
+def test_folder_address_numbers(tmp_path: Path) -> None:
+    svc, pid = _new(tmp_path)
+    m0 = svc.create_group_range(pid, 0, None, "Sicherheit")  # main 0
+    m1 = svc.create_group_range(pid, 0, None, "Licht")  # main 1
+    mid = svc.create_group_range(pid, 0, m0, "Alarm")  # middle 0/0
+    assert m0 is not None and m1 is not None and mid is not None
+
+    roots = _roots(svc, pid)
+    assert _find(roots, m0).address == "0"
+    assert _find(roots, m1).address == "1"
+    assert _find(roots, mid).address == "0/0"
+
+    # TwoLevel: a main group carries its number, too.
+    svc2, pid2 = _new(tmp_path, GroupAddressStyle.TWO_LEVEL, name="two.xknx")
+    main2 = svc2.create_group_range(pid2, 0, None, "Main")
+    assert main2 is not None
+    assert _find(_roots(svc2, pid2), main2).address == "0"
 
 
 def test_folders_gated_by_style(tmp_path: Path) -> None:

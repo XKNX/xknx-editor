@@ -29,6 +29,7 @@ from xknxeditor.proj.core import ip_secure
 from xknxeditor.proj.core.addressing import (
     GroupAddressStyle,
     format_ga,
+    format_group_range,
     format_ia,
     parse_ia,
     ranges_for,
@@ -192,6 +193,8 @@ class GroupRangeInfo:
     range_end: int
     children: list[GroupRangeInfo]
     group_addresses: list[GroupAddressInfo]
+    # The folder's style-formatted number (main group "0", middle group "0/1"); empty for Free.
+    address: str = ""
 
 
 @dataclass(frozen=True)
@@ -3127,7 +3130,11 @@ class ProjectService:
         )
 
     def _range_info(
-        self, group_range: GroupRange, style: GroupAddressStyle, secured: set[int]
+        self,
+        group_range: GroupRange,
+        style: GroupAddressStyle,
+        secured: set[int],
+        level: int = 0,
     ) -> GroupRangeInfo:
         return GroupRangeInfo(
             id=group_range.id,
@@ -3135,13 +3142,14 @@ class ProjectService:
             range_start=group_range.range_start,
             range_end=group_range.range_end,
             children=[
-                self._range_info(child, style, secured)
+                self._range_info(child, style, secured, level + 1)
                 for child in sorted(group_range.children, key=lambda c: c.range_start)
             ],
             group_addresses=[
                 self._ga_info(ga, style, secured)
                 for ga in sorted(group_range.group_addresses, key=lambda g: g.address)
             ],
+            address=format_group_range(group_range.range_start, style, level),
         )
 
     def _space_info(self, space: Space, style: GroupAddressStyle) -> SpaceInfo:

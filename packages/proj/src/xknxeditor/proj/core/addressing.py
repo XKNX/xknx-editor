@@ -46,6 +46,19 @@ def parse_ia(text: str) -> tuple[int, int, int]:
     return int(area), int(line), int(device)
 
 
+def format_group_range(range_start: int, style: GroupAddressStyle, level: int) -> str:
+    """The number shown for a ``GroupRange`` folder: its main group (``level`` 0) or main/middle
+    group (``level`` 1), derived from ``range_start``. Empty for Free, which has no numbered
+    folders."""
+    if style is GroupAddressStyle.FREE:
+        return ""
+    main = range_start >> 11
+    if style is GroupAddressStyle.TWO_LEVEL or level <= 0:
+        return str(main)
+    middle = (range_start >> 8) & 0x7
+    return f"{main}/{middle}"
+
+
 def ranges_for(address: int, style: GroupAddressStyle) -> list[tuple[int, int, str]]:
     """The ``GroupRange`` chain (top → leaf) ``address`` belongs under in this style.
 
