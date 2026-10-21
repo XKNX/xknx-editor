@@ -6,6 +6,7 @@ import datetime
 import ipaddress
 import math
 import re
+from typing import cast
 
 from xknxeditor.namespaces.intermediate.parameter_type_t_type_color import (
     ParameterTypeTypeColor,
@@ -131,6 +132,12 @@ def from_js(js: object, tc: object) -> str:
         if not math.isfinite(f):
             raise ValueError(f"value {js!r} is not a number")
         return str(int(f)) if f.is_integer() else repr(f)
+    if isinstance(tc, ParameterTypeTypeRawData) and isinstance(js, list):
+        # Data as scripts read it from a device (online.readProperty): an array of octets.
+        octets = cast("list[object]", js)
+        if not all(isinstance(o, int) and 0 <= o <= 255 for o in octets):
+            raise ValueError(f"value {js!r} is not valid data")
+        return base64.b64encode(bytes(cast("list[int]", octets))).decode("ascii")
     if js is None:
         return ""
     if isinstance(js, bool):

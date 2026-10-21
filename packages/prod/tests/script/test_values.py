@@ -23,6 +23,9 @@ from xknxeditor.namespaces.intermediate.parameter_type_t_type_number import (
 from xknxeditor.namespaces.intermediate.parameter_type_t_type_number_type import (
     ParameterTypeTypeNumberType,
 )
+from xknxeditor.namespaces.intermediate.parameter_type_t_type_raw_data import (
+    ParameterTypeTypeRawData,
+)
 from xknxeditor.namespaces.intermediate.parameter_type_t_type_restriction import (
     ParameterTypeTypeRestriction,
 )
@@ -62,6 +65,7 @@ FLOAT = ParameterTypeTypeFloat(
     max_inclusive=10.0,
 )
 TEXT = ParameterTypeTypeText(size_in_bit=40, pattern="^[a-z]*$")
+RAW = ParameterTypeTypeRawData(max_size=8)
 IP = ParameterTypeTypeIpaddress(
     address_type=ParameterTypeTypeIpaddressAddressType.HOST_ADDRESS,
     version=ParameterTypeTypeIpaddressVersion.IPV4,
@@ -96,6 +100,9 @@ def test_to_js() -> None:
         (1e21, TEXT, "1E+21"),
         (True, TEXT, "True"),
         (None, TEXT, ""),
+        # Data a script read from a device: an array of octets.
+        ([1, 2, 255], RAW, "AQL/"),
+        ([], RAW, ""),
     ],
 )
 def test_from_js(js: object, tc: object, expected: str) -> None:
@@ -104,7 +111,14 @@ def test_from_js(js: object, tc: object, expected: str) -> None:
 
 @pytest.mark.parametrize(
     ("js", "tc"),
-    [("1.5", NUMBER), ("abc", NUMBER), ("x", FLOAT), (float("nan"), NUMBER)],
+    [
+        ("1.5", NUMBER),
+        ("abc", NUMBER),
+        ("x", FLOAT),
+        (float("nan"), NUMBER),
+        ([256], RAW),
+        (["a"], RAW),
+    ],
 )
 def test_from_js_rejects(js: object, tc: object) -> None:
     with pytest.raises(ValueError):
