@@ -241,6 +241,24 @@ def _instance_refs(
     return pirs, mis, coirs
 
 
+def _new_module_instances(device: Device, app_program_id: str) -> list[tuple[str, str]]:
+    """The device's module instances its saved list lacks (created by a parameter change). Saved
+    ids may be relative to the application (as an import keeps them), so both are compared
+    qualified."""
+
+    def qualified(element_id: str) -> str:
+        if element_id.startswith(f"{app_program_id}_"):
+            return element_id
+        return f"{app_program_id}_{element_id}"
+
+    saved = {qualified(mi.id) for mi in device.module_instances if mi.id}
+    return [
+        (instance_id, ref_id)
+        for instance_id, ref_id in device.get_module_instances()
+        if qualified(instance_id) not in saved
+    ]
+
+
 def _device_source_key(row: Any) -> tuple[Any, ...]:
     """Everything a device is built from: its program, parameters, module instances, com objects."""
     return (
@@ -3980,6 +3998,7 @@ class ProjectService:
         if self._pid is None or not values or device.app is None:
             return
         target = self._com_object_target(device, old_active)
+        new_instances = _new_module_instances(device, device.app.program.id)
         self._svc.set_parameters(
             self._pid,
             device.node_id,
@@ -3989,8 +4008,9 @@ class ProjectService:
             else [(r, None) for r in sorted(target)],
             app_program_id=device.app.program.id,
             label=label,
+            module_instances=new_instances,
         )
-        if target is not None:
+        if target is not None or new_instances:
             self._refresh_device(device.node_id)
         self._bump(structural=False)
 

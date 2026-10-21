@@ -248,6 +248,39 @@ def test_set_parameters_is_one_labelled_undo_step(tmp_path: Path):
     assert svc.peek_undo(pid)[0] == "SetParameter"  # type: ignore[index]
 
 
+def test_set_parameters_adds_new_module_instances(tmp_path: Path):
+    svc, pid = _new(tmp_path)
+    seg = _backbone_segment(svc, pid)
+    dev = svc.add_device(
+        pid,
+        seg,
+        PRODUCT,
+        address=1,
+        name="D",
+        module_instances=[("MD-1_M-1_MI-1", "MD-1")],
+    )
+
+    def instances() -> list[tuple[str, int]]:
+        return sorted(
+            (m.instance_id, m.id) for m in svc.devices(pid)[0].module_instances
+        )
+
+    (first,) = instances()
+    svc.set_parameters(
+        pid,
+        dev,
+        [("MD-1_M-2_MI-1_P-1_R-1", "5")],
+        module_instances=[("MD-1_M-1_MI-1", "MD-1"), ("MD-1_M-2_MI-1", "MD-1")],
+    )
+    added = instances()
+    assert [i for i, _ in added] == ["MD-1_M-1_MI-1", "MD-1_M-2_MI-1"]
+    assert added[0] == first  # the saved row stays as it is
+    assert svc.undo(pid)
+    assert instances() == [first]
+    assert svc.redo(pid)
+    assert instances() == added  # with the same row ids
+
+
 def test_peek_undo_redo_reports_next_event(tmp_path: Path):
     svc, pid = _new(tmp_path)
     seg = _backbone_segment(svc, pid)

@@ -936,6 +936,57 @@ class SyncDeviceComObjects(Event):
 
 @_register
 @dataclass
+class AddDeviceModuleInstances(Event):
+    """Add the module instances a parameter change created (``[instance_id, ref_id]`` each), so the
+    saved list and the export carry every instance in use. Rows already there (with the arguments
+    an import captured) are neither changed nor removed."""
+
+    event_type: ClassVar[str] = "AddDeviceModuleInstances"
+
+    device_id: int
+    instances: list[list[str]] = field(default_factory=list[list[str]])
+    added_ids: list[int] = field(default_factory=list[int])
+
+    def apply(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is None:
+            return
+        existing = {mi.instance_id for mi in device.module_instances}
+        rows: list[ModuleInstance] = []
+        for instance_id, ref_id in self.instances:
+            if instance_id in existing:
+                continue
+            row = ModuleInstance(
+                device_id=self.device_id, instance_id=instance_id, ref_id=ref_id
+            )
+            if len(rows) < len(self.added_ids):
+                row.id = self.added_ids[len(rows)]
+            session.add(row)
+            rows.append(row)
+        session.flush()
+        self.added_ids = [row.id for row in rows]
+
+    def revert(self, session: Session) -> None:
+        for row_id in self.added_ids:
+            row = session.get(ModuleInstance, row_id)
+            if row is not None:
+                session.delete(row)
+        session.flush()
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "device_id": self.device_id,
+            "instances": self.instances,
+            "added_ids": self.added_ids,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> AddDeviceModuleInstances:
+        return cls(**data)
+
+
+@_register
+@dataclass
 class SetParameter(Event):
     event_type: ClassVar[str] = "SetParameter"
 
