@@ -464,10 +464,18 @@ class OnlineCatalogClient:
     (for per-frame UI use); ``refresh_manufacturers`` hits the network and replaces the cache.
     """
 
-    def __init__(self, cache_dir: Path, base_url: str = DEFAULT_BASE_URL) -> None:
+    def __init__(
+        self,
+        cache_dir: Path,
+        base_url: str = DEFAULT_BASE_URL,
+        master_xml: Callable[[], bytes | None] | None = None,
+    ) -> None:
+        """``master_xml`` gives the master data the app already has, for the manufacturer names;
+        without it (or when it gives None) they are downloaded."""
         self._cache_path = cache_dir / _CACHE_FILE
         self._index_path = cache_dir / _INDEX_CACHE_FILE
         self._base_url = base_url
+        self._master_xml = master_xml
         self._lock = threading.Lock()
         # Full product index (all manufacturers), kept in memory once loaded so per-frame UI reads
         # are cheap; persisted to disk (slim fields only) so it survives restarts.
@@ -538,12 +546,29 @@ class OnlineCatalogClient:
         ids = parse_manufacturer_ids(
             _http_get(f"{self._base_url}/Download/Manufacturers")
         )
-        names = parse_manufacturer_names(_http_get(MASTER_DATA_URL))
+        names = self._manufacturer_names()
         manufacturers = [
             OnlineManufacturer(mid, names.get(mid, f"M-{mid:04d}")) for mid in ids
         ]
         self._save_cache(manufacturers)
         return manufacturers
+
+    def _manufacturer_names(self) -> dict[int, str]:
+        """Names from the app's master data, else the downloaded one, else the names cached last
+        time (the update server can be down while the catalog service works)."""
+        local = self._master_xml() if self._master_xml is not None else None
+        if local:
+            try:
+                return parse_manufacturer_names(local)
+            except (OnlineCatalogError, ET.ParseError):
+                pass
+        try:
+            return parse_manufacturer_names(_http_get(MASTER_DATA_URL))
+        except (OnlineCatalogError, ET.ParseError):
+            cached = self._load_cache()
+            if not cached:
+                raise
+            return {m.id: m.name for m in cached}
 
     # --- full product index (all manufacturers) --------------------------
 

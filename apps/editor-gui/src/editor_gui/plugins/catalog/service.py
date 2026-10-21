@@ -65,8 +65,13 @@ class CatalogService:
         self._replaces: dict[str, list[int]] = {}
         # Shared with the project service so a background import can hold both while it writes.
         self._io_lock = io_lock or threading.RLock()
-        # Manufacturer list from the KNX online catalog service (cached next to the db).
-        self._online_client = OnlineCatalogClient(catalog_path.parent)
+        # Manufacturer list from the KNX online catalog service (cached next to the db), named from
+        # the app's own master data.
+        from editor_gui.master_data import master_xml_bytes
+
+        self._online_client = OnlineCatalogClient(
+            catalog_path.parent, master_xml=master_xml_bytes
+        )
         # A download language chosen for this session (over MCP), else the editor's languages.
         self._language: str | None = None
         _forget_stored_language()

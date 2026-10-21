@@ -160,6 +160,35 @@ class TestClient:
             (tmp_path / "online_catalog_manufacturers.json").read_text("utf-8")
         ) == [{"id": 7, "name": "Berker"}, {"id": 1, "name": "Siemens"}]
 
+    def test_names_from_the_apps_master_data(self, tmp_path, monkeypatch) -> None:
+        urls: list[str] = []
+
+        def get(url: str) -> bytes:
+            urls.append(url)
+            return _MANUFACTURERS_XML
+
+        monkeypatch.setattr(oc, "_http_get", get)
+        client = OnlineCatalogClient(tmp_path, master_xml=lambda: _MASTER_XML)
+        names = {m.id: m.name for m in client.refresh_manufacturers()}
+        assert names == {1: "Siemens", 2: "ABB", 10: "M-0010"}
+        assert oc.MASTER_DATA_URL not in urls
+
+    def test_names_cached_last_time_when_the_master_is_unavailable(
+        self, tmp_path, monkeypatch
+    ) -> None:
+        def get(url: str) -> bytes:
+            if url == oc.MASTER_DATA_URL:
+                raise OnlineCatalogError("404 Not Found")
+            return _MANUFACTURERS_XML
+
+        monkeypatch.setattr(oc, "_http_get", get)
+        client = OnlineCatalogClient(tmp_path, master_xml=lambda: None)
+        with pytest.raises(OnlineCatalogError):
+            client.refresh_manufacturers()  # nothing cached yet
+        client._save_cache([OnlineManufacturer(1, "Siemens")])
+        names = {m.id: m.name for m in client.refresh_manufacturers()}
+        assert names == {1: "Siemens", 2: "M-0002", 10: "M-0010"}
+
 
 class TestSearchIndex:
     def _idx(self) -> dict[int, list[OnlineCatalogItem]]:
