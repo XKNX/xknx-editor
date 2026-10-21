@@ -48,6 +48,17 @@ class TestParse:
     def test_manufacturer_names(self) -> None:
         assert parse_manufacturer_names(_MASTER_XML) == {1: "Siemens", 2: "ABB"}
 
+    def test_catalog_items_end_of_life_stay_downloadable(self) -> None:
+        # The server still serves end-of-life products.
+        index = json.dumps(
+            {
+                "Entries": [
+                    {"Id": "CI-1", "CatalogItemName": "Old", "CatalogLifeType": 2}
+                ]
+            }
+        )
+        assert parse_catalog_items(index.encode())[0].downloadable
+
     def test_catalog_items_parsed_and_gated(self) -> None:
         index = json.dumps(
             {

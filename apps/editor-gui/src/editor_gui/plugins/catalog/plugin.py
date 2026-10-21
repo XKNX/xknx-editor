@@ -320,7 +320,7 @@ class CatalogPlugin:
                     item_ids.append(downloadable.id)
                 elif matches:
                     # Found online but download-gated (plugin / external software / incomplete /
-                    # end-of-life). Attempting the download anyway returns HTTP 400 (issue #51), so
+                    # in no market). Attempting the download anyway returns HTTP 400 (issue #51), so
                     # skip it and report the specific reason the index gave.
                     reason = next(
                         (

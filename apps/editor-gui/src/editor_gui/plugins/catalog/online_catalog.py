@@ -250,18 +250,15 @@ def _app_version(app_ident: object) -> int | None:
 def _download_block_reason(entry: dict[str, object]) -> str:
     """Why the online catalog refuses to serve this product's ``.knxprod`` (empty = downloadable).
 
-    The index entry carries download-gating flags; the server additionally rejects end-of-life /
-    not-in-any-market products at download time (DownloadNotAllowedException in the decompiled ETS),
-    so flag those up front too when the index exposes them."""
+    The index entry carries download-gating flags. Products no market offers are refused at download
+    time too ("NotInAnyMarket", see :func:`parse_catalog_items`); end-of-life ones are still served
+    (``CatalogLifeType`` does not gate the download)."""
     if bool(_ci_get(entry, "NoDownloadWithoutPlugin")):
         return "requires an ETS plugin"
     if bool(_ci_get(entry, "RequiresExternalSoftware")):
         return "requires external software"
     if bool(_ci_get(entry, "DownloadInfoIncomplete")):
         return "download information is incomplete"
-    life = _ci_get(entry, "CatalogLifeType")
-    if life == 2 or str(life or "").casefold() == "endoflife":
-        return "product is end-of-life"
     return ""
 
 
