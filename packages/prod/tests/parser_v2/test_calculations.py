@@ -67,6 +67,18 @@ def test_lr_chain_with_context_and_output_prefill(ui: DynamicUI) -> None:
     }
 
 
+@pytest.mark.parametrize(
+    "context", ["{ offset: 1}", "{offset:1,}", "{'offset': 1 /* one */}"]
+)
+def test_context_written_as_object_literal(context: str) -> None:
+    xml = XML.replace('"{&quot;offset&quot;: 1}"', f'"{context}"')
+    app = parse_application_xml(xml.encode(), "M-00FA")[0]
+    dui = DynamicUI(app.program)
+    dui.ui()
+    dui.edit_parameter(_ref(1), "5")
+    assert dui.get_value(_ref(2)) == "11"
+
+
 def test_rl_direction_does_not_ping_pong(ui: DynamicUI) -> None:
     ui.edit_parameter(_ref(2), "21")
     assert ui.get_value(_ref(1)) == "10"

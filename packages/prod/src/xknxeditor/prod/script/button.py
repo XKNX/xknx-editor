@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import json
 import logging
 from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, Any, cast
@@ -14,6 +13,7 @@ from .errors import (
     COR_E_TARGETINVOCATION,
     HostError,
 )
+from .literal import parse_literal
 from .sandbox import AbortToken, HostFunction, ScriptContext
 from .texts import dotnet_text
 from .values import ScriptValueError, coerce_script_value, to_js
@@ -170,7 +170,7 @@ def _context_object(button: UiButton) -> dict[str, Any]:
     if not button.handler_parameters:
         return {}
     try:
-        value = json.loads(button.handler_parameters)
+        value = parse_literal(button.handler_parameters)
     except ValueError:
         log.warning(
             "invalid event handler parameters in %s: %r",

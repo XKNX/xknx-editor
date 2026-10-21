@@ -223,7 +223,7 @@ def resolve_widget(param_type: ParameterType) -> Widget:
                 choices=tuple(
                     EnumChoice(
                         value=e.value,
-                        label=e.text or str(e.value),
+                        label=e.text or "",
                         id=e.id,
                         icon=e.icon,
                         picture_alignment=e.picture_alignment,
