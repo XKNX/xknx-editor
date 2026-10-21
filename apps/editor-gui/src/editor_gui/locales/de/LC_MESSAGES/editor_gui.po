@@ -1420,3 +1420,9 @@ msgstr "Port {port} wird bereits von einem anderen Programm verwendet, daher kan
 
 msgid "The MCP server could not start: {error}"
 msgstr "Der MCP-Server konnte nicht starten: {error}"
+
+msgid "Open in Browser"
+msgstr "Im Browser öffnen"
+
+msgid "Stop XKNX Editor"
+msgstr "XKNX Editor beenden"

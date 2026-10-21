@@ -1976,5 +1976,13 @@ class _CombinedStrings(BaseStrings, MenuStrings):
             "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
         )
 
+    @property
+    def TRAY_OPEN_IN_BROWSER(self) -> str:
+        return _("Open in Browser")
+
+    @property
+    def TRAY_STOP(self) -> str:
+        return _("Stop XKNX Editor")
+
 
 S = _CombinedStrings()

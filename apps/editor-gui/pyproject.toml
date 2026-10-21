@@ -7,11 +7,13 @@ requires-python = ">=3.13"
 dependencies = [
     "alembic>=1.20.0",
     "darkdetect>=0.8.0",
+    "dbus-fast>=5.2.0; sys_platform == 'linux'",
     "fastmcp>=4.1.3",
     "httpx>=0.28.1",
     "imgui-bundle>=1.92.900",
     "numpy>=2.5.4",
     "platformdirs>=4.13.5",
+    "pyobjc-framework-cocoa>=12.2.2; sys_platform == 'darwin'",
     "pypdf>=6.21.1",
     "python-multipart>=0.0.32",
     "sqlalchemy>=2.1.5",

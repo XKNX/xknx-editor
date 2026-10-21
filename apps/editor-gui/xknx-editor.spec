@@ -49,6 +49,13 @@ for _pkg in ("xknxeditor", "editor_gui"):
     _hiddenimports += collect_submodules(_pkg)
     _datas += collect_data_files(_pkg, include_py_files=False)
 
+# The browser UI's tray icon imports its operating system's toolkit by name at runtime: AppKit on
+# macOS, the D-Bus library on Linux.
+if sys.platform == "darwin":
+    _hiddenimports += ["objc", "AppKit", "Foundation"]
+elif sys.platform.startswith("linux"):
+    _hiddenimports += collect_submodules("dbus_fast")
+
 # The frozen app ships no .py sources, so the fingerprint of the code that evaluates applications
 # (the key of the device snapshots stored in projects) is taken here, from the sources being built.
 from editor_gui.device_snapshot import BUNDLED_FINGERPRINT, source_fingerprint

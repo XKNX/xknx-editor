@@ -139,6 +139,11 @@ By default it serves `http://localhost:8080/` on this computer only (the next fr
 is in use) and opens the default browser there. No sign-in is needed then. **File → Exit** in the browser, or Ctrl+C in the terminal it was
 started from, ends it. A project file can be given as usual, e.g. `XKNX-Editor.exe --web Haus.xknx`.
 
+On a desktop, a tray icon shows that the editor runs in the background: in the Windows notification
+area, the macOS menu bar, or the tray of a Linux desktop (KDE Plasma, GNOME with the AppIndicator
+extension, Xfce, …). Its menu has **Open in Browser** and **Stop XKNX Editor**; on Windows, and on
+Linux desktops that support it, a left click opens the browser directly.
+
 Reachable from other devices, every browser signs in once with a password you choose:
 
 ```bash
@@ -160,6 +165,7 @@ in front handle it.
 | `--web-idle=MINUTES` | Control passes to another browser after this much inactivity (default 10) |
 | `--web-cert=FILE`, `--web-key=FILE` | Serve HTTPS with this certificate and key |
 | `--web-no-browser` | Do not open the browser at start (an autostart, a service) |
+| `--web-no-tray` | No tray icon |
 
 On a tablet or phone the layout follows the screen: from about 1000 pixels width the usual one,
 below it the navigation above (or beside) the other panels, which share one section as tabs; it

@@ -24,12 +24,15 @@ Options:
   that connects gets control (default 10).
 - ``--web-no-browser``: served on this computer only, the default browser opens the page once the
   server listens; this option keeps it closed (an autostart, a service).
+- ``--web-no-tray``: on a desktop, a tray icon shows that the editor runs (with Open in Browser and
+  Stop XKNX Editor); this option leaves it out.
 
 Ctrl+C in the terminal it was started from (and SIGTERM, e.g. from ``docker stop``) ends the app
 like File > Exit."""
 
 from __future__ import annotations
 
+import atexit
 import logging
 import os
 import signal
@@ -50,6 +53,7 @@ from editor_gui.ports import bind_port
 
 if TYPE_CHECKING:
     from editor_gui.web.server import WebHub
+    from editor_gui.web.tray import Tray
 
 logger = logging.getLogger(__name__)
 
@@ -126,6 +130,8 @@ class WebOptions:
     proxy_ips: tuple[str, ...] = ()
     # Whether the port was given (``--web=[host:]port``); otherwise another free one may be taken.
     port_given: bool = False
+    # A tray icon on a desktop (``--web-no-tray`` leaves it out).
+    tray: bool = True
 
     @property
     def local(self) -> bool:
@@ -161,7 +167,7 @@ def web_options(argv: list[str]) -> WebOptions | None:
             host = given_host or DEFAULT_HOST
             port = int(given_port) if given_port else DEFAULT_PORT
             port_given = bool(given_port)
-        elif arg in ("--web-trust-proxy", "--web-no-browser"):
+        elif arg in ("--web-trust-proxy", "--web-no-browser", "--web-no-tray"):
             values[arg] = "1"
         elif arg.startswith(
             (
@@ -190,6 +196,7 @@ def web_options(argv: list[str]) -> WebOptions | None:
         "--web-no-browser" not in values,
         tuple(ip.strip() for ip in proxy.split(",") if ip.strip()),
         port_given,
+        "--web-no-tray" not in values,
     )
 
 
@@ -283,6 +290,8 @@ def enable_web_mode(
     frame_start = [0.0]
     # Set up in web_post_init, once ImGui runs.
     gestures: list[TouchGestures] = []
+    # The tray icon, once the server listens (none without a desktop or a tray).
+    trays: list[Tray] = []
     touch_look = TouchLook()
     touch = _touch
     text_input = [False]
@@ -323,10 +332,13 @@ def enable_web_mode(
             bool(gestures) and gestures[0].active
         )
         wait = (1.0 / (_ACTIVE_FPS if active else idle_fps)) - (now - frame_start[0])
+        tray = trays[0] if trays else None
+        if tray is not None:
+            tray.pump()
         if wait > 0:
             if active:
                 time.sleep(wait)
-            elif hub.wake.wait(wait):
+            elif tray.wait(hub.wake, wait) if tray is not None else hub.wake.wait(wait):
                 time.sleep(0.002)  # let the rest of a burst of input arrive
         hub.wake.clear()
         # hello_imgui's own idling would add its fixed sleep on top (its menu toggle included).
@@ -508,6 +520,8 @@ def enable_web_mode(
     for name in ("SIGINT", "SIGTERM", "SIGBREAK"):  # SIGBREAK: Ctrl+Break on Windows
         if hasattr(signal, name):
             signal.signal(getattr(signal, name), stop)
+    if options.tray:
+        trays.extend(_start_tray(url, lambda: stop(0, None)))
     if options.local and options.open_browser:
         threading.Thread(
             target=_open_when_listening,
@@ -540,6 +554,27 @@ def guarded(where: str, call: Callable[[], None], hub: WebHub) -> Callable[[], N
                 hub.report_error(where, f"{type(error).__name__}: {error}")
 
     return run
+
+
+def _start_tray(url: str, stop: Callable[[], None]) -> list[Tray]:
+    """The tray icon for the editor serving ``url`` (none without a desktop or a tray); removed
+    when the app ends."""
+    from editor_gui.strings import S
+    from editor_gui.web.tray import TrayMenu, start_tray
+
+    tray = start_tray(
+        TrayMenu(
+            f"{S.APP_TITLE} - {url}",
+            S.TRAY_OPEN_IN_BROWSER,
+            S.TRAY_STOP,
+            lambda: webbrowser.open(url),
+            stop,
+        )
+    )
+    if tray is None:
+        return []
+    atexit.register(tray.close)
+    return [tray]
 
 
 def _open_when_listening(port: int, url: str, timeout: float = 15.0) -> None:

@@ -1325,3 +1325,9 @@ msgstr "Poort {port} wordt al door een ander programma gebruikt, daarom kan de M
 
 msgid "The MCP server could not start: {error}"
 msgstr "De MCP-server kon niet starten: {error}"
+
+msgid "Open in Browser"
+msgstr "In browser openen"
+
+msgid "Stop XKNX Editor"
+msgstr "XKNX Editor stoppen"
