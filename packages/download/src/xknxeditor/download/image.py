@@ -465,7 +465,11 @@ def build_image(
     elif ui is None:
         ui = application.dynamic_ui()
         if ui is None:
-            raise ImageError("application has no dynamic section to encode")
+            # No parameters (e.g. an interface): nothing to encode, the procedure still loads it.
+            from xknxeditor.prod.parser_v2.dynamic import DynamicUI
+
+            program, tree_builder = application.resolved()
+            ui = DynamicUI(program, tree_builder=tree_builder)
 
     if parameter_values:
         for ref_id, value in parameter_values.items():
