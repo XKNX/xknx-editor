@@ -133,3 +133,50 @@ def test_reopen_up_to_date_db_takes_no_write_lock(tmp_path: Path) -> None:
     _migrate(engine)
     engine.dispose()
     assert writes == []
+
+
+def test_reopen_merges_duplicate_com_objects(tmp_path: Path) -> None:
+    # Version 2: a com object saved twice (referenced at two places of the parameter tree) becomes
+    # one row with both rows' links and the overrides the kept row lacks.
+    path = tmp_path / "proj.xknx"
+    svc = ProjectService()
+    pid = svc.create(path)
+    segment = svc.topology(pid, 0).areas[0].lines[0].segments[0].id
+    dev = svc.add_device(
+        pid,
+        segment,
+        "M-0001_H-x-1_P-1",
+        address=1,
+        com_objects=[("O-1_R-1", None), ("O-1_R-1", None), ("O-2_R-1", None)],
+    )
+    first, second = sorted(
+        co.id
+        for co in svc.devices(pid, with_contents=True)[0].com_objects
+        if co.ref_id == "O-1_R-1"
+    )
+    ga1 = svc.create_group_address(pid, 0, 0x0801, "a")
+    ga2 = svc.create_group_address(pid, 0, 0x0802, "b")
+    svc.link_com_object(pid, first, ga1)
+    svc.link_com_object(pid, second, ga1, sending=True)
+    svc.link_com_object(pid, second, ga2)
+    svc.close(pid)
+    con = sqlite3.connect(path)
+    con.execute("UPDATE com_objects SET text_override = 'Kept' WHERE id = ?", (second,))
+    con.execute("PRAGMA user_version = 1")
+    con.commit()
+    con.close()
+
+    svc2 = ProjectService()
+    pid2 = svc2.open(path)
+    (device,) = svc2.devices(pid2, with_contents=True)
+    assert device.id == dev
+    merged = [co for co in device.com_objects if co.ref_id == "O-1_R-1"]
+    assert [co.id for co in merged] == [first]
+    assert merged[0].text_override == "Kept"
+    assert sorted(
+        (link.group_address_id, link.is_sending) for link in merged[0].links
+    ) == [
+        (ga1, True),
+        (ga2, False),
+    ]
+    assert len(device.com_objects) == 2
