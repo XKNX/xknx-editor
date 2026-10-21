@@ -50,6 +50,7 @@ def test_special_numbers() -> None:
         "{,}",
         "",
         "{ this is not json at all ",
+        "{a: '\\x41'}",  # unknown escape: rejected, not silently read as "x41"
     ],
 )
 def test_invalid(text: str) -> None:

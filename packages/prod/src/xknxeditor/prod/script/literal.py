@@ -138,8 +138,15 @@ class _Parser:
                     self.fail("invalid \\u escape")
                 out.append(chr(int(digits, 16)))
                 self.pos += 4
+            elif escape in _ESCAPES:
+                out.append(_ESCAPES[escape])
+            elif escape in ('"', "'", "\\", "/"):
+                out.append(escape)  # self-representing escapes
             else:
-                out.append(_ESCAPES.get(escape, escape))
+                # Reject an unknown escape rather than dropping the backslash (\x41 -> "x41"): the
+                # reference reader rejects it too, so the blob falls back to empty instead of taking
+                # a silently changed value.
+                self.fail(f"invalid escape: \\{escape}")
         self.fail("unterminated string")
         return ""
 
