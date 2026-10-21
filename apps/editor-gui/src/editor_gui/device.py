@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import InitVar, dataclass, field
 from enum import Enum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from editor_gui.dpt import DPT
 from xknxeditor.prod import Application
@@ -276,6 +276,12 @@ class Device:
     # The rejected input per parameter, kept in its field and submitted again after later edits.
     param_inputs: dict[str, str] = field(
         default_factory=dict[str, str], repr=False, compare=False, init=False
+    )
+    # Links dropped by the most recent parameter edit's com-object reconcile (a function/mode change
+    # that deactivates linked objects); each entry is {com_object_ref_id, group_address_id, address}.
+    # Set per edit so a reader (e.g. the MCP set tool) can report what a change cost.
+    last_lost_links: list[dict[str, Any]] = field(
+        default_factory=list[dict[str, Any]], repr=False, compare=False, init=False
     )
     # The group objects as a snapshot of an earlier evaluation, restored with ``visible`` (their
     # positions in ``com_objects``): the application is then only loaded when it is used.

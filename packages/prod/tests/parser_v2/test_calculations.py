@@ -138,17 +138,14 @@ def test_allocator_overflow_rejects_the_edit(
 ) -> None:
     # A value the tree cannot allocate numbers for (e.g. too many channels) is rejected with the
     # allocator's message and leaves nothing changed.
-    evaluate = DynamicUI.ui
-    calls = 0
+    build = DynamicUI._build_ui  # pyright: ignore[reportPrivateUsage]
 
-    def overflowing(self: DynamicUI) -> list[object]:
-        nonlocal calls
-        calls += 1
-        if calls == 2:
+    def overflowing(self: DynamicUI, *, capture_active: bool) -> None:
+        if capture_active:  # the settle after the change
             raise AllocatorOverflow("overflow", "L-1", f"{APP}_M-1")
-        return list(evaluate(self))
+        build(self, capture_active=capture_active)
 
-    monkeypatch.setattr(DynamicUI, "ui", overflowing)
+    monkeypatch.setattr(DynamicUI, "_build_ui", overflowing)
     with pytest.raises(ParameterValidationError) as err:
         if batch:
             ui.edit_parameters([(_ref(1), "5")])

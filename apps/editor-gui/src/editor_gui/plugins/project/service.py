@@ -3996,10 +3996,13 @@ class ProjectService:
         *,
         label: str | None = None,
     ) -> None:
+        device.last_lost_links = []
         values = [(ref, new) for ref, (_, new) in changes.items() if new is not None]
         if self._pid is None or not values or device.app is None:
             return
         target = self._com_object_target(device, old_active)
+        if target is not None:
+            device.last_lost_links = self._removed_links(device, target)
         new_instances, ended_instances = _module_instance_changes(
             device, device.app.program.id
         )
@@ -4018,6 +4021,26 @@ class ProjectService:
         if target is not None or new_instances:
             self._refresh_device(device.node_id)
         self._bump(structural=False)
+
+    def _removed_links(self, device: Device, target: set[str]) -> list[dict[str, Any]]:
+        """Links the reconcile is about to drop: group-address links of the com-objects present now
+        but not in ``target``. Captured before ``set_parameters`` deletes them, so a caller can report
+        what a function/mode change cost. The removed set is small (only the deactivated objects)."""
+        removed_ids = {co.id for co in device.com_objects} - target
+        lost: list[dict[str, Any]] = []
+        for co in device.com_objects:
+            if co.id not in removed_ids or co.db_id is None:
+                continue
+            for a in self.get_links_for_com_object(co.db_id):
+                g = self.get_group_address(a.group_address_id)
+                lost.append(
+                    {
+                        "com_object_ref_id": co.id,
+                        "group_address_id": a.group_address_id,
+                        "address": g.address if g else None,
+                    }
+                )
+        return lost
 
     def _log_param_tree(self, device: Device, param_id: str) -> None:
         """Debug: dump the (pruned) parameter tree the device now renders — total parameter count and

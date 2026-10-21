@@ -14,7 +14,10 @@ from typing import TYPE_CHECKING, Any
 
 from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
-from editor_gui.plugins.mcp.tools.project import PLUGIN_PARAMETERS_ERROR
+from editor_gui.plugins.mcp.tools.project import (
+    PLUGIN_PARAMETERS_ERROR,
+    param_change_result,
+)
 from editor_gui.plugins.project.service import DeviceProduct
 
 if TYPE_CHECKING:
@@ -87,6 +90,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         return {"node_id": node_id, "address": p["address"]}
 
+    def _op_set_parameter(p: dict[str, Any]) -> dict[str, Any]:
+        # edit_params (not set_param): applies and reconciles as one undo step and raises on reject
+        # WITHOUT the GUI's stash-and-retry, so a rejected batch set never silently takes effect on a
+        # later edit. Returns the effective read-back value + calculated side effects.
+        device = _parameters_device(p["node_id"])
+        changes = project.edit_params(
+            device, [(p["parameter_ref_id"], p["value"])], mode="edit"
+        )
+        return {
+            "node_id": p["node_id"],
+            **param_change_result(device, p["parameter_ref_id"], p["value"], changes),
+        }
+
     def _op_link_com_object(p: dict[str, Any]) -> dict[str, Any]:
         # link_com_object_to_ga returns None when the link is rejected (unknown GA, security
         # rules); surface that as an error instead of reporting ok with link_id=None.
@@ -118,15 +134,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )[1],
         ),
         "set_individual_address": (("node_id", "address"), _op_set_individual_address),
-        "set_parameter": (
-            ("node_id", "parameter_ref_id", "value"),
-            lambda p: (
-                project.set_param(
-                    _parameters_device(p["node_id"]), p["parameter_ref_id"], p["value"]
-                ),
-                {"node_id": p["node_id"], "parameter_ref_id": p["parameter_ref_id"]},
-            )[1],
-        ),
+        "set_parameter": (("node_id", "parameter_ref_id", "value"), _op_set_parameter),
         "set_com_object_flag": (
             ("node_id", "com_object_ref_id", "flag", "value"),
             lambda p: (
@@ -235,7 +243,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - add_device: product_ref_id [name] -> {node_id}; uses the first matching catalog product.
         - rename_device: node_id, name -> {node_id}.
         - set_individual_address: node_id, address -> {node_id, address}.
-        - set_parameter: node_id, parameter_ref_id, value -> {node_id, parameter_ref_id}.
+        - set_parameter: node_id, parameter_ref_id, value -> {node_id, ref_id, requested, value,
+          active, changed?, lost_links?} (value is read back after the edit; changed lists calculated
+          side effects; lost_links lists links a function/mode change dropped).
         - set_com_object_flag: node_id, com_object_ref_id, flag, value -> {node_id, com_object_ref_id}.
         - create_group_address: [address, name] -> {group_address_id}.
         - rename_group_address: group_address_id, name -> {group_address_id}.

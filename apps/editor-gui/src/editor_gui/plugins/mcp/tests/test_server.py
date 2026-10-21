@@ -210,6 +210,231 @@ async def test_full_edit_flow(tmp_path: Path) -> None:
         assert dest.exists()
 
 
+def _kinds(nodes: list[dict[str, Any]]) -> set[str]:
+    out: set[str] = set()
+    for nd in nodes:
+        out.add(nd.get("kind"))
+        out |= _kinds(nd.get("children", []))
+    return out
+
+
+def _params_in(nodes: list[dict[str, Any]]) -> int:
+    n = 0
+    for nd in nodes:
+        if nd.get("kind") == "parameter":
+            n += 1
+        n += _params_in(nd.get("children", []))
+    return n
+
+
+def _ids(nodes: list[dict[str, Any]]) -> list[str]:
+    out: list[str] = []
+    for nd in nodes:
+        if nd.get("id"):
+            out.append(nd["id"])
+        out += _ids(nd.get("children", []))
+    return out
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_parameter_tree_outline_and_subtree(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        node_id = (
+            await _data(client, "project_add_device", product_ref_id=product_ref)
+        )["node_id"]
+
+        # Small device (well under the auto-outline threshold): the plain call returns the full tree.
+        full = await _data(client, "project_parameter_tree", node_id=node_id)
+        assert full["outline"] is False
+        assert "parameter_count" not in full
+        assert "parameter" in _kinds(full["items"])
+
+        # outline=True: containers only, each with subtree counts, no parameter/com-object leaves.
+        outline = await _data(
+            client, "project_parameter_tree", node_id=node_id, outline=True
+        )
+        assert outline["outline"] is True
+        assert _kinds(outline["items"]) <= {"tab", "block"}
+        assert all(
+            {"parameter_count", "com_object_count"} <= nd.keys()
+            for nd in outline["items"]
+        )
+
+        # A container id from the outline scopes the read to just that subtree.
+        ids = _ids(outline["items"])
+        assert ids, "outline should expose at least one container id"
+        sub = await _data(
+            client, "project_parameter_tree", node_id=node_id, subtree_id=ids[0]
+        )
+        assert 0 < _params_in(sub["items"]) <= _params_in(full["items"])
+
+        # An unknown id is a clear error, not an empty result.
+        with pytest.raises(Exception, match="no tab/block with id"):
+            await _data(
+                client, "project_parameter_tree", node_id=node_id, subtree_id="nope"
+            )
+
+        # list_parameters search filters by label.
+        allp = await _data(client, "project_list_parameters", node_id=node_id)
+        label = next((p["label"] for p in allp["items"] if p.get("label")), "")
+        needle = label[: max(3, len(label) // 2)]
+        filtered = await _data(
+            client, "project_list_parameters", node_id=node_id, search=needle
+        )
+        assert 0 < filtered["count"] <= allp["count"]
+        assert all(
+            needle.casefold() in str(p.get("label", "")).casefold()
+            for p in filtered["items"]
+        )
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_set_parameter_result_and_no_silent_retry(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        node_id = (
+            await _data(client, "project_add_device", product_ref_id=product_ref)
+        )["node_id"]
+
+        params = (await _data(client, "project_list_parameters", node_id=node_id))[
+            "items"
+        ]
+        enums = [p for p in params if p.get("widget", {}).get("type") == "enum"]
+        if not enums:
+            pytest.skip("fixture has no enum parameter to exercise reject/accept")
+        a = enums[0]
+
+        # A successful set returns a verified read-back, not just the requested value.
+        res = await _data(
+            client,
+            "project_set_parameter",
+            node_id=node_id,
+            parameter_ref_id=a["ref_id"],
+            value=a["value"],
+        )
+        assert res["ref_id"] == a["ref_id"]
+        assert res["requested"] == a["value"]
+        assert res["active"] is True
+        assert res["value"] == a["value"]
+
+        # A rejected set raises and must NOT take effect — not now, and not via a later retry.
+        # (The exact message is type-dependent; assert only that it raises with some reason.)
+        with pytest.raises(Exception, match=r".+"):
+            await _data(
+                client,
+                "project_set_parameter",
+                node_id=node_id,
+                parameter_ref_id=a["ref_id"],
+                value="____invalid_choice____",
+            )
+        after_reject = await _data(
+            client,
+            "project_get_parameter",
+            node_id=node_id,
+            parameter_ref_id=a["ref_id"],
+        )
+        assert after_reject["value"] == a["value"]
+
+        # A later successful set of ANY parameter does not resurrect the rejected value.
+        other = next((p for p in enums[1:]), a)
+        await _data(
+            client,
+            "project_set_parameter",
+            node_id=node_id,
+            parameter_ref_id=other["ref_id"],
+            value=other["value"],
+        )
+        again = await _data(
+            client,
+            "project_get_parameter",
+            node_id=node_id,
+            parameter_ref_id=a["ref_id"],
+        )
+        assert again["value"] == a["value"]
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_link_feedback_dedup_dpt_and_sending(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        node_id = (
+            await _data(client, "project_add_device", product_ref_id=product_ref)
+        )["node_id"]
+        cos = (await _data(client, "project_list_com_objects", node_id=node_id))[
+            "items"
+        ]
+        co = next(c for c in cos if c["linkable"])
+        co_dpt = co.get("dpt")
+
+        g1 = (await _data(client, "project_create_group_address"))["group_address_id"]
+
+        # First link: created, not a duplicate.
+        r1 = await _data(
+            client,
+            "project_link_com_object",
+            node_id=node_id,
+            com_object_ref_id=co["ref_id"],
+            group_address_id=g1,
+            is_sending=True,
+        )
+        assert r1["already_linked"] is False
+
+        # Re-linking the same pair is idempotent: same link, no duplicate row.
+        r2 = await _data(
+            client,
+            "project_link_com_object",
+            node_id=node_id,
+            com_object_ref_id=co["ref_id"],
+            group_address_id=g1,
+            is_sending=True,
+        )
+        assert r2["already_linked"] is True
+        assert r2["link_id"] == r1["link_id"]
+        links = await _data(
+            client,
+            "project_get_com_object_links",
+            node_id=node_id,
+            com_object_ref_id=co["ref_id"],
+        )
+        assert links["count"] == 1
+
+        # A second GA with a deliberately different DPT, linked sending: the result surfaces the
+        # DPT mismatch and that the object already sends to g1.
+        g2 = (await _data(client, "project_create_group_address"))["group_address_id"]
+        other_dpt = "5.001" if (co_dpt or "").startswith("1") else "1.001"
+        await _data(
+            client, "project_set_group_address_dpt", group_address_id=g2, dpt=other_dpt
+        )
+        r3 = await _data(
+            client,
+            "project_link_com_object",
+            node_id=node_id,
+            com_object_ref_id=co["ref_id"],
+            group_address_id=g2,
+            is_sending=True,
+        )
+        assert r3["already_linked"] is False
+        if co_dpt:
+            assert r3["dpt_mismatch"]["group_address"] == other_dpt
+        assert g1 in r3.get("other_sending_group_address_ids", [])
+
+
 @pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
 async def test_project_tools_require_open_project(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
