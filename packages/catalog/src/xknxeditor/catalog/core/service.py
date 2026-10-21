@@ -43,9 +43,12 @@ from xknxeditor.catalog.core.hardware import (
 )
 from xknxeditor.catalog.core.manufacturers import get_manufacturer, list_manufacturers
 from xknxeditor.catalog.core.products import (
+    ProductFacts,
     ProductSummary,
     find_products_for_application,
     list_products,
+    product_facts,
+    products_for_path,
 )
 from xknxeditor.catalog.core.upload import upload_knxprod
 from xknxeditor.catalog.db import knxprod_dir_for, make_engine
@@ -257,6 +260,16 @@ class CatalogService:
         """All orderable products with program/application refs."""
         with Session(self._engine) as db:
             return list_products(db)
+
+    def products_for_path(self, knxprod_path: str) -> list[ProductSummary]:
+        """Every product version ingested from one stored ``.knxprod`` archive (by its path)."""
+        with Session(self._engine) as db:
+            return products_for_path(db, knxprod_path)
+
+    def product_facts(self, program_id: str) -> ProductFacts | None:
+        """Mask version, KNX Secure, registration number/date and media for a hardware program."""
+        with Session(self._engine) as db:
+            return product_facts(db, program_id)
 
     def get_application(
         self, application_id: str, language: str | None = None

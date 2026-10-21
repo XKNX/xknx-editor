@@ -68,6 +68,9 @@ msgstr "Project opslaan als"
 msgid "Product catalog imported: {count} new product version(s) from {name}"
 msgstr "Productcatalogus geïmporteerd: {count} nieuwe productversie(s) uit {name}"
 
+msgid "Imported {count} product version(s) from {name}:"
+msgstr "{count} productversie(s) uit {name} geïmporteerd:"
+
 msgid "{name} was already in the catalog, nothing new imported"
 msgstr "{name} stond al in de catalogus, niets nieuws geïmporteerd"
 
@@ -1259,3 +1262,33 @@ msgstr "Niets nieuws uit map geïmporteerd (geen productbestanden gevonden of al
 
 msgid "Import from folder failed: {error}"
 msgstr "Importeren uit map mislukt: {error}"
+
+msgid "DIN rail"
+msgstr "DIN-rail"
+
+msgid "Flush-mounted"
+msgstr "Inbouw"
+
+msgid "Registered: {info}"
+msgstr "Geregistreerd: {info}"
+
+msgid "Manufacturer"
+msgstr "Fabrikant"
+
+msgid "Product"
+msgstr "Product"
+
+msgid "Order no."
+msgstr "Bestelnr."
+
+msgid "Application"
+msgstr "Applicatie"
+
+msgid "Version"
+msgstr "Versie"
+
+msgid "Mask"
+msgstr "Masker"
+
+msgid "Registered"
+msgstr "Geregistreerd"

@@ -21,7 +21,12 @@ if TYPE_CHECKING:
         OnlineIndexStatus,
         OnlineManufacturer,
     )
-    from xknxeditor.catalog import ProductDeletion, ProductSummary, ProgramSummary
+    from xknxeditor.catalog import (
+        ProductDeletion,
+        ProductFacts,
+        ProductSummary,
+        ProgramSummary,
+    )
     from xknxeditor.namespaces.intermediate.application_program_t import (
         ApplicationProgram,
     )
@@ -137,6 +142,27 @@ class CatalogService:
         from xknxeditor.prod import knxprod_from_source
 
         return self._import_knxprod_bytes(knxprod_from_source(data, master_xml))
+
+    def import_knxprod_contents(self, path: Path) -> list[ProductSummary]:
+        """Import a ``.knxprod`` and return every product version it provides, new or already in the
+        catalog. Unlike :meth:`import_knxprod` (which returns only the newly added versions), this
+        lets a re-import still list the file's products instead of dead-ending at "nothing new"."""
+        with self._io_lock:
+            stored = self._service.import_knxprod(path.read_bytes())
+            self._forget_products()
+            return self._service.products_for_path(str(stored))
+
+    def import_product_source_contents(
+        self, data: bytes, master_xml: bytes
+    ) -> list[ProductSummary]:
+        """Like :meth:`import_product_source`, but returns every product version the source provides
+        (new or already present), so a re-import still lists the file's products."""
+        from xknxeditor.prod import knxprod_from_source
+
+        with self._io_lock:
+            stored = self._service.import_knxprod(knxprod_from_source(data, master_xml))
+            self._forget_products()
+            return self._service.products_for_path(str(stored))
 
     def _import_knxprod_bytes(
         self, data: bytes, *, require_catalog: bool = True
@@ -259,6 +285,12 @@ class CatalogService:
             f"manufacturer {mid} present with {count} hardware program(s), "
             "none matching this ref (id mismatch)"
         )
+
+    @io_guarded(lambda: None)
+    def product_facts(self, hardware2program_ref_id: str) -> ProductFacts | None:
+        """Mask version, KNX Secure flag, registration number/date and media of a product version
+        (by its ``hardware2program_ref_id``); ``None`` while a background import holds the lock."""
+        return self._service.product_facts(hardware2program_ref_id)
 
     @io_guarded(lambda: None)
     def get_application(self, application_id: str) -> Application | None:

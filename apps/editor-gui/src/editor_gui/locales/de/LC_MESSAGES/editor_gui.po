@@ -470,6 +470,9 @@ msgstr "Zum Beispiel: {examples}"
 msgid "Product catalog imported: {count} new product version(s) from {name}"
 msgstr "Produktkatalog importiert: {count} neue Produktversion(en) aus {name}"
 
+msgid "Imported {count} product version(s) from {name}:"
+msgstr "{count} Produktversion(en) aus {name} importiert:"
+
 msgid "{name} was already in the catalog, nothing new imported"
 msgstr "{name} war bereits im Katalog, nichts Neues importiert"
 
@@ -1354,3 +1357,33 @@ msgstr "Nichts Neues aus Ordner importiert (keine Produktdateien gefunden oder b
 
 msgid "Import from folder failed: {error}"
 msgstr "Import aus Ordner fehlgeschlagen: {error}"
+
+msgid "DIN rail"
+msgstr "Hutschiene"
+
+msgid "Flush-mounted"
+msgstr "Unterputz"
+
+msgid "Registered: {info}"
+msgstr "Registriert: {info}"
+
+msgid "Manufacturer"
+msgstr "Hersteller"
+
+msgid "Product"
+msgstr "Produkt"
+
+msgid "Order no."
+msgstr "Bestellnr."
+
+msgid "Application"
+msgstr "Applikation"
+
+msgid "Version"
+msgstr "Version"
+
+msgid "Mask"
+msgstr "Maske"
+
+msgid "Registered"
+msgstr "Registriert"

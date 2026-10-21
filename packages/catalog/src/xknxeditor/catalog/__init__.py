@@ -14,7 +14,9 @@ _LAZY: dict[str, tuple[str, str]] = {
     "ProductDeletion": (".core.delete", "ProductDeletion"),
     "CatalogService": (".core.service", "CatalogService"),
     "HardwareFilters": (".core.hardware", "HardwareFilters"),
+    "ProductFacts": (".core.products", "ProductFacts"),
     "ProductSummary": (".core.products", "ProductSummary"),
+    "product_facts": (".core.products", "product_facts"),
     "ProgramSummary": (".core.hardware", "ProgramSummary"),
     "build_catalog_tree": (".core.catalog_sections", "build_catalog_tree"),
     "collect_section_ids": (".core.catalog_sections", "collect_section_ids"),
@@ -38,6 +40,7 @@ _LAZY: dict[str, tuple[str, str]] = {
     "list_hardware": (".core.hardware", "list_hardware"),
     "list_manufacturers": (".core.manufacturers", "list_manufacturers"),
     "list_products": (".core.products", "list_products"),
+    "products_for_path": (".core.products", "products_for_path"),
     "upload_knxprod": (".core.upload", "upload_knxprod"),
     "default_db_url": (".db", "default_db_url"),
     "knxprod_dir_for": (".db", "knxprod_dir_for"),
@@ -50,6 +53,7 @@ __all__ = [
     "CatalogService",
     "HardwareFilters",
     "ProductDeletion",
+    "ProductFacts",
     "ProductSummary",
     "ProgramSummary",
     "build_catalog_tree",
@@ -71,6 +75,8 @@ __all__ = [
     "list_products",
     "make_engine",
     "plan_product_deletion",
+    "product_facts",
+    "products_for_path",
     "upload_knxprod",
 ]
 
@@ -98,9 +104,12 @@ if TYPE_CHECKING:
     )
     from .core.manufacturers import get_manufacturer, list_manufacturers
     from .core.products import (
+        ProductFacts,
         ProductSummary,
         find_products_for_application,
         list_products,
+        product_facts,
+        products_for_path,
     )
     from .core.service import CatalogService
     from .core.upload import upload_knxprod
