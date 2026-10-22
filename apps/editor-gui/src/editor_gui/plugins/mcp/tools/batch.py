@@ -17,6 +17,8 @@ from editor_gui.plugins.mcp.context import McpContext, make_tool, require_projec
 from editor_gui.plugins.mcp.tools.project import (
     PLUGIN_PARAMETERS_ERROR,
     param_change_result,
+    perform_link,
+    resolve_in_scope,
 )
 from editor_gui.plugins.project.service import DeviceProduct
 
@@ -42,16 +44,6 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         if parameters_in_plugin(device):
             raise ValueError(PLUGIN_PARAMETERS_ERROR.format(node_id=node_id))
         return device
-
-    def _resolve_co_db_id(node_id: Any, ref_id: str) -> int:
-        co = _device(node_id).find_com_object(ref_id)
-        if co is None:
-            raise ValueError(f"no com-object {ref_id!r} on device {node_id}")
-        if co.db_id is None:
-            raise ValueError(
-                f"com-object {ref_id!r} is not linkable (not instantiated)"
-            )
-        return co.db_id
 
     def _op_add_device(p: dict[str, Any]) -> dict[str, Any]:
         product = next(
@@ -95,29 +87,51 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         # WITHOUT the GUI's stash-and-retry, so a rejected batch set never silently takes effect on a
         # later edit. Returns the effective read-back value + calculated side effects.
         device = _parameters_device(p["node_id"])
-        changes = project.edit_params(
-            device, [(p["parameter_ref_id"], p["value"])], mode="edit"
-        )
+        ref = p.get("parameter_ref_id")
+        value = p.get("value")
+        # Apply-time semantic addressing: resolve {label, subtree_id, value_label} NOW, against the
+        # device state AFTER any earlier ops in this batch, so a child a prior op just activated
+        # resolves (closes the parent->child dependency the plain ref form cannot express up front).
+        if not ref:
+            label = p.get("label")
+            if not label:
+                raise ValueError(
+                    "set_parameter needs parameter_ref_id, or a label to resolve"
+                )
+            resolved = resolve_in_scope(
+                list(device.get_ui()), p.get("subtree_id"), label, p.get("value_label")
+            )
+            ref = resolved["ref_id"]
+            if value is None:
+                value = resolved.get("resolved_value")
+        if value is None:
+            raise ValueError("set_parameter needs value (or value_label with a label)")
+        changes = project.edit_params(device, [(ref, value)], mode="edit")
         return {
             "node_id": p["node_id"],
-            **param_change_result(device, p["parameter_ref_id"], p["value"], changes),
+            **param_change_result(device, ref, value, changes),
         }
 
     def _op_link_com_object(p: dict[str, Any]) -> dict[str, Any]:
-        # link_com_object_to_ga returns None when the link is rejected (unknown GA, security
-        # rules); surface that as an error instead of reporting ok with link_id=None.
-        link_id = project.link_com_object_to_ga(
-            _resolve_co_db_id(p["node_id"], p["com_object_ref_id"]),
-            p["group_address_id"],
-            p.get("is_sending", False),
+        # Same feedback as the standalone project_link_com_object (idempotent dedup, dpt_mismatch,
+        # sending). None means the service refused the link; surface it as an error.
+        node_id = p["node_id"]
+        ref = p["com_object_ref_id"]
+        co = _device(node_id).find_com_object(ref)
+        if co is None:
+            raise ValueError(f"no com-object {ref!r} on device {node_id}")
+        if co.db_id is None:
+            raise ValueError(f"com-object {ref!r} is not linkable (not instantiated)")
+        result = perform_link(
+            project, node_id, ref, co, p["group_address_id"], p.get("is_sending", False)
         )
-        if link_id is None:
+        if result is None:
             raise ValueError(
                 f"could not link com-object to group address {p['group_address_id']} "
                 "(check the group address id exists; a Security-On group address only takes "
                 "securely commissioned devices)"
             )
-        return {"link_id": link_id}
+        return result
 
     # op name -> (required params, handler). Handlers raise ValueError on bad input.
     handlers: dict[
@@ -134,7 +148,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )[1],
         ),
         "set_individual_address": (("node_id", "address"), _op_set_individual_address),
-        "set_parameter": (("node_id", "parameter_ref_id", "value"), _op_set_parameter),
+        "set_parameter": (("node_id",), _op_set_parameter),
         "set_com_object_flag": (
             ("node_id", "com_object_ref_id", "flag", "value"),
             lambda p: (
@@ -243,15 +257,21 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - add_device: product_ref_id [name] -> {node_id}; uses the first matching catalog product.
         - rename_device: node_id, name -> {node_id}.
         - set_individual_address: node_id, address -> {node_id, address}.
-        - set_parameter: node_id, parameter_ref_id, value -> {node_id, ref_id, requested, value,
-          active, changed?, lost_links?} (value is read back after the edit; changed lists calculated
-          side effects; lost_links lists links a function/mode change dropped).
+        - set_parameter: node_id, (parameter_ref_id | label [subtree_id] [value_label]), value? ->
+          {node_id, ref_id, requested, value, active, changed?, lost_links?}. Address the parameter
+          by parameter_ref_id, or by label (resolved AT THIS OP'S TURN within subtree_id, so a child
+          a prior op in the batch just activated resolves; value_label gives an enum's value). value
+          is read back after the edit; changed lists calculated side effects; lost_links lists links a
+          function/mode change dropped.
         - set_com_object_flag: node_id, com_object_ref_id, flag, value -> {node_id, com_object_ref_id}.
         - create_group_address: [address, name] -> {group_address_id}.
         - rename_group_address: group_address_id, name -> {group_address_id}.
         - set_group_address_dpt: group_address_id [dpt; omitted/null clears] -> {group_address_id}.
         - remove_group_address: group_address_id -> {group_address_id}.
-        - link_com_object: node_id, com_object_ref_id, group_address_id [is_sending=false] -> {link_id}.
+        - link_com_object: node_id, com_object_ref_id, group_address_id [is_sending=false] ->
+          {link_id, node_id, com_object_ref_id, com_object_db_id, group_address_id, is_sending,
+          already_linked, dpt_mismatch?, other_sending_group_address_ids?} (same feedback as the
+          standalone tool; idempotent).
         - unlink_com_object: assignment_id -> {assignment_id}.
         - create_area: area_number [name] -> {area_id}.
         - create_line: area_id, line_number [name] -> {line_id}.

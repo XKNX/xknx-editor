@@ -859,16 +859,21 @@ def _split_pages(
                 pages.extend(sub)
                 continue
             inner, sub = _split_pages(node.children, key, seen)
-            pages.append(
-                ParameterPage(
-                    key=_unique_key(key, seen),
-                    label=_tab_label(node),
-                    icon=node.icon,
-                    content=inner,
-                    children=tuple(sub),
-                    selectable=_has_content(inner),
+            selectable = _has_content(inner)
+            # A channel that shows nothing and leads to no page is not a parameter page. Some
+            # devices carry channels that only group communication objects (no parameters); those
+            # belong to the Group Objects view, not the page tree.
+            if selectable or _first_selectable(tuple(sub)) is not None:
+                pages.append(
+                    ParameterPage(
+                        key=_unique_key(key, seen),
+                        label=_tab_label(node),
+                        icon=node.icon,
+                        content=inner,
+                        children=tuple(sub),
+                        selectable=selectable,
+                    )
                 )
-            )
         elif _is_page(node):
             assert isinstance(node, UiParameterBlock)
             key = f"{prefix}_{node.id}"
@@ -1439,7 +1444,6 @@ def _render_page(
     block = page.block
     if needle in page.label.lower():
         needle = ""
-    imgui.begin_disabled(block is not None and block.read_only)
     if block is not None and block.layout != ParameterBlockLayout.LIST:
         req = _render_grid_block(
             device, block, on_change, deferred_enum, page.key, differing_refs, buttons
@@ -1455,7 +1459,6 @@ def _render_page(
             differing_refs,
             buttons,
         )
-    imgui.end_disabled()
     return req
 
 
@@ -1569,8 +1572,7 @@ def _render_block(
     block_prefix = f"{prefix}_{block.id}"
 
     if block.layout in (ParameterBlockLayout.GRID, ParameterBlockLayout.TABLE):
-        imgui.begin_disabled(block.read_only)
-        req = _render_grid_block(
+        return _render_grid_block(
             device,
             block,
             on_change,
@@ -1579,12 +1581,9 @@ def _render_block(
             differing_refs,
             buttons,
         )
-        imgui.end_disabled()
-        return req
 
     if block.inline:
-        imgui.begin_disabled(block.read_only)
-        req = _render_children(
+        return _render_children(
             device,
             block.children,
             on_change,
@@ -1594,8 +1593,6 @@ def _render_block(
             differing_refs,
             buttons,
         )
-        imgui.end_disabled()
-        return req
 
     label = _instance_label(block.text or block.name or block.id, block.id)
     param_count = count_parameters(block.children)
@@ -1609,7 +1606,6 @@ def _render_block(
     imgui.same_line()
     imgui.text_disabled(f"({param_count})")
     if is_open:
-        imgui.begin_disabled(block.read_only)
         req = _render_children(
             device,
             block.children,
@@ -1620,7 +1616,6 @@ def _render_block(
             differing_refs,
             buttons,
         )
-        imgui.end_disabled()
         if req is not None:
             popup_request = req
         imgui.tree_pop()

@@ -21,7 +21,6 @@ class UiParameterBlock:
     layout: ParameterBlockLayout = ParameterBlockLayout.LIST
     row_labels: tuple[str, ...] = ()
     column_headers: tuple[str, ...] = ()
-    read_only: bool = False
     # Not shown in the dialog; its parameters stay active.
     hidden: bool = False
     help_context: str | None = None

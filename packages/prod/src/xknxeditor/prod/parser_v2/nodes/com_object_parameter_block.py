@@ -71,7 +71,6 @@ class ComObjectParameterBlockNode(DynamicNode):
                 children=tuple(items),
                 row_labels=row_labels,
                 column_headers=column_headers,
-                read_only=self._elem.access == Access.READ,
                 hidden=self._elem.access == Access.NONE,
                 help_context=self._elem.help_context,
                 column_widths=tuple(c.width for c in cols),

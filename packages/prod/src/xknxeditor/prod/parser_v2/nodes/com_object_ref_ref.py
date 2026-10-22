@@ -22,7 +22,7 @@ def _flag(ref_val: Enable | None, base_val: Enable | None) -> bool:
     return v is Enable.ENABLED
 
 
-def _dpt_codes(ref_dpts: list[str], base_dpts: list[str]) -> tuple[str, ...]:
+def dpt_codes(ref_dpts: list[str], base_dpts: list[str]) -> tuple[str, ...]:
     raw = ref_dpts or base_dpts
     codes: list[str] = []
     for token in raw:
@@ -94,7 +94,7 @@ class ComObjectRefRefNode(DynamicNode):
             if isinstance(co, ModuleDefStaticComObjectsComObject)
             else None
         )
-        self._dpt_codes: tuple[str, ...] = _dpt_codes(
+        self._dpt_codes: tuple[str, ...] = dpt_codes(
             cor.datapoint_type if cor else [],
             co.datapoint_type if co else [],
         )

@@ -275,7 +275,7 @@ async def test_parameter_tree_outline_and_subtree(tmp_path: Path) -> None:
         assert 0 < _params_in(sub["items"]) <= _params_in(full["items"])
 
         # An unknown id is a clear error, not an empty result.
-        with pytest.raises(Exception, match="no tab/block with id"):
+        with pytest.raises(Exception, match="no tab/block at id"):
             await _data(
                 client, "project_parameter_tree", node_id=node_id, subtree_id="nope"
             )
@@ -362,6 +362,234 @@ async def test_set_parameter_result_and_no_silent_retry(tmp_path: Path) -> None:
             parameter_ref_id=a["ref_id"],
         )
         assert again["value"] == a["value"]
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_find_potential_com_objects(tmp_path: Path) -> None:
+    """find_potential_com_objects lists the application's declared objects (static catalogue) with
+    the documented fields."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        node_id = (
+            await _data(client, "project_add_device", product_ref_id=product_ref)
+        )["node_id"]
+
+        res = await _data(client, "find_potential_com_objects", node_id=node_id)
+        assert res["count"] >= 1
+        for it in res["items"]:
+            assert {
+                "ref_id",
+                "number",
+                "name",
+                "function_text",
+                "dpt",
+                "object_size",
+            } <= it.keys()
+            assert isinstance(it["dpt"], list)
+            assert isinstance(it["number"], int)
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_resolve_parameter_by_label(tmp_path: Path) -> None:
+    """project_resolve_parameter maps a human label to a ref_id, errors on an ambiguous or unknown
+    label (never guesses), and resolves an enum value_label to its raw value."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        node_id = (
+            await _data(client, "project_add_device", product_ref_id=product_ref)
+        )["node_id"]
+
+        items = (await _data(client, "project_list_parameters", node_id=node_id))[
+            "items"
+        ]
+        by_label: dict[str, list[dict[str, Any]]] = {}
+        for it in items:
+            if it.get("label"):
+                by_label.setdefault(it["label"], []).append(it)
+        unique = next((v[0] for v in by_label.values() if len(v) == 1), None)
+        assert unique is not None, (
+            "fixture should have at least one uniquely-labelled parameter"
+        )
+
+        # A unique label resolves to exactly that parameter.
+        res = await _data(
+            client, "project_resolve_parameter", node_id=node_id, label=unique["label"]
+        )
+        assert res["ref_id"] == unique["ref_id"]
+
+        # An unknown label is an error, not a guess.
+        with pytest.raises(Exception, match="no active parameter labelled"):
+            await _data(
+                client,
+                "project_resolve_parameter",
+                node_id=node_id,
+                label="___does_not_exist___",
+            )
+
+        # A label repeated across module instances is ambiguous without a scope.
+        ambiguous = next((lbl for lbl, v in by_label.items() if len(v) > 1), None)
+        if ambiguous is not None:
+            with pytest.raises(Exception, match="ambiguous"):
+                await _data(
+                    client,
+                    "project_resolve_parameter",
+                    node_id=node_id,
+                    label=ambiguous,
+                )
+
+        # value_label of an enum resolves to the raw value.
+        enum_item = next(
+            (
+                it
+                for it in items
+                if it.get("widget", {}).get("type") == "enum"
+                and it.get("value_label")
+                and len(by_label[it["label"]]) == 1
+            ),
+            None,
+        )
+        if enum_item is not None:
+            res2 = await _data(
+                client,
+                "project_resolve_parameter",
+                node_id=node_id,
+                label=enum_item["label"],
+                value_label=enum_item["value_label"],
+            )
+            assert res2["resolved_value"] == enum_item["value"]
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_batch_activates_child_in_order(tmp_path: Path) -> None:
+    """A batch whose earlier op activates a parameter a later op then sets: the batch applies ops
+    sequentially, so the child is active in time and an ordered parent->child batch succeeds, while
+    the reverse order fails and rolls back. Pins the dependency issue to edit ORDER (and the child's
+    ref only materialising after the switch), not to missing deferred validation."""
+    parent = "M-0008_A-7072-21-5CC3-O000A_MD-1_M-200_MI-1_P-135_R-136"
+    child = "M-0008_A-7072-21-5CC3-O000A_MD-1_M-200_MI-1_UP-168_R-236"
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        node_id = (
+            await _data(client, "project_add_device", product_ref_id=product_ref)
+        )["node_id"]
+
+        def _set(ref: str, value: str) -> Any:
+            return _data(
+                client,
+                "project_set_parameter",
+                node_id=node_id,
+                parameter_ref_id=ref,
+                value=value,
+            )
+
+        # Learn a valid child value by briefly switching the parent on, then revert.
+        await _set(parent, "1")
+        cval = (
+            await _data(
+                client, "project_get_parameter", node_id=node_id, parameter_ref_id=child
+            )
+        )["value"]
+        await _set(parent, "0")
+
+        # With the parent off the child is inactive: a direct set is rejected (the single tool
+        # reports it as an unknown parameter since it is absent from the UI).
+        with pytest.raises(Exception, match=r"no parameter|not active"):
+            await _set(child, cval)
+
+        def _batch(order: list[tuple[str, str]]) -> Any:
+            return _data(
+                client,
+                "project_batch",
+                operations=[
+                    {
+                        "op": "set_parameter",
+                        "params": {
+                            "node_id": node_id,
+                            "parameter_ref_id": ref,
+                            "value": val,
+                        },
+                    }
+                    for ref, val in order
+                ],
+            )
+
+        # Ordered parent->child: the switch op activates the child before its op runs.
+        ok = await _batch([(parent, "1"), (child, cval)])
+        assert ok["ok"] == 2 and ok["failed"] == 0 and not ok["rolled_back"]
+
+        # Reverse order child->parent: the child op runs while still inactive -> fail + rollback.
+        await _set(parent, "0")
+        bad = await _batch([(child, cval), (parent, "1")])
+        assert bad["failed"] >= 1 and bad["rolled_back"] is True
+        assert bad["results"][0]["status"] == "error"
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_batch_resolves_child_by_label_at_apply_time(tmp_path: Path) -> None:
+    """A batch op addressed by label is resolved AT ITS TURN: an earlier op switches a parent on,
+    then a later op names the child by its (now unique, active) label and resolves it — which a plain
+    ref cannot express because the child's ref is not active up front. This closes the parent->child
+    dependency the tester hit."""
+    parent = "M-0008_A-7072-21-5CC3-O000A_MD-1_M-200_MI-1_P-135_R-136"
+    child = "M-0008_A-7072-21-5CC3-O000A_MD-1_M-200_MI-1_UP-168_R-236"
+    child_label = "At the beginning of the disabling function"
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        node_id = (
+            await _data(client, "project_add_device", product_ref_id=product_ref)
+        )["node_id"]
+
+        # Parent off: the child is inactive, so its label resolves to nothing.
+        with pytest.raises(Exception, match="no active parameter labelled"):
+            await _data(
+                client, "project_resolve_parameter", node_id=node_id, label=child_label
+            )
+
+        # Batch: switch the parent on by ref, then set the child BY LABEL (resolved at its turn).
+        res = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "set_parameter",
+                    "params": {
+                        "node_id": node_id,
+                        "parameter_ref_id": parent,
+                        "value": "1",
+                    },
+                },
+                {
+                    "op": "set_parameter",
+                    "params": {
+                        "node_id": node_id,
+                        "label": child_label,
+                        "value": "0",
+                    },
+                },
+            ],
+        )
+        assert res["ok"] == 2 and res["failed"] == 0 and not res["rolled_back"]
+        assert res["results"][1]["result"]["ref_id"] == child
 
 
 @pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")

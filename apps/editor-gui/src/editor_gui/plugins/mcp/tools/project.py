@@ -222,12 +222,96 @@ def _parameter_dict(p: Any, include_choices: bool = True) -> dict[str, Any]:
     return data
 
 
-def _ui_node(node: Any, include_choices: bool = True) -> dict[str, Any]:
+def _resolve_enum_value(widget: Any, value_label: str, param_label: str) -> str:
+    """The raw value of the enum choice whose label is ``value_label`` (exact, case-insensitive);
+    raises ValueError when the parameter is not an enum or the label matches no/several choices."""
+    if widget is None or type(widget).__name__ != "EnumWidget":
+        raise ValueError(
+            f"parameter {param_label!r} is not an enum; pass a raw value, not value_label"
+        )
+    want = value_label.strip().casefold()
+    hits = [c for c in widget.choices if (c.label or "").strip().casefold() == want]
+    if not hits:
+        avail = ", ".join(repr(c.label) for c in widget.choices)
+        raise ValueError(
+            f"no choice labelled {value_label!r} for {param_label!r}; choices: {avail}"
+        )
+    if len(hits) > 1:
+        raise ValueError(
+            f"choice label {value_label!r} is ambiguous for {param_label!r}"
+        )
+    return str(hits[0].value)
+
+
+def resolve_parameter_ref(
+    nodes: list[Any], label: str, value_label: str | None = None
+) -> dict[str, Any]:
+    """Resolve a parameter by its exact (case-insensitive) label within ``nodes`` to ONE ref_id.
+
+    Labels are not unique, so a label matching zero or several active parameters raises ValueError
+    (listing the candidate ref_ids) rather than silently picking one — the caller narrows the scope.
+    Matches only currently active parameters (the pruned UI). With ``value_label`` (an enum choice's
+    text) the result also carries ``resolved_value``, the raw value for project_set_parameter.
+    Returns {ref_id, label, value, access, resolved_value?}. Shared by project_resolve_parameter and
+    (later) apply-time resolution in the batch tool."""
+    want = label.strip().casefold()
+    matches = [
+        p
+        for p in _collect_ui_parameters(nodes)
+        if (p.label or "").strip().casefold() == want
+    ]
+    if not matches:
+        raise ValueError(f"no active parameter labelled {label!r} in this scope")
+    if len(matches) > 1:
+        cands = ", ".join(sorted(p.ref_id for p in matches))
+        raise ValueError(
+            f"parameter label {label!r} is ambiguous ({len(matches)} matches: {cands}); "
+            "narrow the scope with subtree_id"
+        )
+    p = matches[0]
+    out: dict[str, Any] = {
+        "ref_id": p.ref_id,
+        "label": p.label,
+        "value": p.value,
+        "access": getattr(p.access, "name", str(p.access)),
+    }
+    if value_label is not None:
+        out["resolved_value"] = _resolve_enum_value(p.widget, value_label, p.label)
+    return out
+
+
+def resolve_in_scope(
+    roots: list[Any],
+    subtree_id: str | None,
+    label: str,
+    value_label: str | None = None,
+) -> dict[str, Any]:
+    """:func:`resolve_parameter_ref` within an optional ``subtree_id`` scope of ``roots`` (a container
+    id from the outline). Raises ValueError for an unknown scope or an ambiguous/unknown label.
+    Shared by project_resolve_parameter and the batch tool's apply-time resolution."""
+    scope = roots
+    if subtree_id is not None:
+        found = _find_subtree(roots, subtree_id)
+        if found is None:
+            raise ValueError(
+                f"no tab/block at id {subtree_id!r}; call project_parameter_tree(outline=True) "
+                "for the current ids"
+            )
+        scope = [found]
+    return resolve_parameter_ref(scope, label, value_label)
+
+
+def _ui_node(
+    node: Any, include_choices: bool = True, path: str = "0"
+) -> dict[str, Any]:
     """One node of the device UI tree as a dict, preserving group nesting (tabs/blocks -> children).
 
     Parameters carry the full _parameter_dict; groups carry their heading and children; separators are
     dropped. Lets a caller see which parameters belong to a channel / button pair / level.
-    ``include_choices`` is threaded to the parameter serialization (the tree omits enum choice lists)."""
+    ``include_choices`` is threaded to the parameter serialization (the tree omits enum choice lists).
+    ``path`` is the node's index path (root index, then child indices joined by '.'); it is emitted as
+    each container's ``id`` because it is UNIQUE — the raw module/block id repeats across module
+    instances, so it is kept only as ``ref``. ``subtree_id`` takes the ``id`` path."""
     from xknxeditor.prod.parser_v2.ui import (
         UiButton,
         UiParameter,
@@ -249,17 +333,18 @@ def _ui_node(node: Any, include_choices: bool = True) -> dict[str, Any]:
         heading = getattr(node, "text", None) or getattr(node, "name", None)
         children = [
             d
-            for ch in node.children
-            if (d := _ui_node(ch, include_choices)).get("kind") != "separator"
+            for i, ch in enumerate(node.children)
+            if (d := _ui_node(ch, include_choices, f"{path}.{i}")).get("kind")
+            != "separator"
         ]
         out: dict[str, Any] = {
             "kind": "tab" if isinstance(node, UiTab) else "block",
+            "id": path,
             "name": heading,
             "children": children,
         }
-        # A stable container id so a caller can re-read just this subtree (subtree_id).
         if node.id:
-            out["id"] = node.id
+            out["ref"] = node.id
         return out
     return {"kind": type(node).__name__.removeprefix("Ui").lower()}
 
@@ -292,39 +377,51 @@ def _count_leaves(node: Any) -> tuple[int, int]:
     return params, cos
 
 
-def _outline_node(node: Any) -> dict[str, Any] | None:
-    """A container (tab/block) as an outline entry: id, heading, subtree leaf counts and nested
-    containers only — no parameter/com-object leaves. ``None`` for a non-container node."""
+def _outline_node(node: Any, path: str = "0") -> dict[str, Any] | None:
+    """A container (tab/block) as an outline entry: id (the unique index path, see :func:`_ui_node`),
+    heading, subtree leaf counts and nested containers only — no parameter/com-object leaves. ``None``
+    for a non-container node."""
     from xknxeditor.prod.parser_v2.ui import UiParameterBlock, UiTab
 
     if not isinstance(node, (UiTab, UiParameterBlock)):
         return None
     params, cos = _count_leaves(node)
-    children = [d for ch in node.children if (d := _outline_node(ch)) is not None]
+    children = [
+        d
+        for i, ch in enumerate(node.children)
+        if (d := _outline_node(ch, f"{path}.{i}")) is not None
+    ]
     out: dict[str, Any] = {
         "kind": "tab" if isinstance(node, UiTab) else "block",
+        "id": path,
         "name": getattr(node, "text", None) or getattr(node, "name", None),
         "parameter_count": params,
         "com_object_count": cos,
         "children": children,
     }
     if node.id:
-        out["id"] = node.id
+        out["ref"] = node.id
     return out
 
 
 def _find_subtree(nodes: list[Any], subtree_id: str) -> Any | None:
-    """The first tab/block with ``id == subtree_id`` anywhere in ``nodes``, else None."""
+    """The container at index path ``subtree_id`` (root index, then child indices joined by '.', as
+    emitted in each container's ``id``), or None when the path does not resolve to a tab/block."""
     from xknxeditor.prod.parser_v2.ui import UiParameterBlock, UiTab
 
-    stack: list[Any] = list(nodes)
-    while stack:
-        current = stack.pop()
-        if isinstance(current, (UiTab, UiParameterBlock)):
-            if current.id == subtree_id:
-                return current
-            stack.extend(current.children)
-    return None
+    try:
+        parts = [int(p) for p in subtree_id.split(".")]
+    except ValueError:
+        return None
+    if not parts:
+        return None
+    node: Any = nodes[parts[0]] if parts[0] < len(nodes) else None
+    try:
+        for p in parts[1:]:
+            node = node.children[p]
+    except (IndexError, AttributeError, TypeError):
+        return None
+    return node if isinstance(node, (UiTab, UiParameterBlock)) else None
 
 
 def _dotted_dpt(value: str | None) -> str | None:
@@ -369,6 +466,59 @@ def _link_annotations(
         if others:
             out["other_sending_group_address_ids"] = others
     return out
+
+
+def perform_link(
+    project: Any,
+    node_id: int,
+    com_object_ref_id: str,
+    co: Any,
+    group_address_id: int,
+    is_sending: bool,
+) -> dict[str, Any] | None:
+    """Create a com-object -> group-address link and build a feedback result: idempotent dedup
+    (``already_linked``, no duplicate row), ``dpt_mismatch`` and ``other_sending_group_address_ids``
+    (see :func:`_link_annotations`). ``co`` is the resolved com-object (``db_id`` set). Returns None
+    when the service refuses the link (unknown GA / security), so the caller raises its own error.
+    Shared by project_link_com_object and the batch link op so both give the same feedback."""
+    existing = list(project.get_links_for_com_object(co.db_id))
+    co_dpt = getattr(co, "dpt", None)
+    ga_before = project.get_group_address(group_address_id)
+    ga_dpt_before = ga_before.datapoint_type if ga_before else None
+    annotations = _link_annotations(
+        getattr(co_dpt, "token", None),
+        getattr(co_dpt, "code", None),
+        ga_dpt_before,
+        is_sending,
+        existing,
+        group_address_id,
+    )
+    base: dict[str, Any] = {
+        "node_id": node_id,
+        "com_object_ref_id": com_object_ref_id,
+        "com_object_db_id": co.db_id,
+        "group_address_id": group_address_id,
+    }
+    # Idempotent: re-linking the same pair returns the existing link, never a duplicate.
+    dup = next((a for a in existing if a.group_address_id == group_address_id), None)
+    if dup is not None:
+        return {
+            **base,
+            "link_id": dup.id,
+            "is_sending": dup.is_sending,
+            "already_linked": True,
+            **annotations,
+        }
+    link_id = project.link_com_object_to_ga(co.db_id, group_address_id, is_sending)
+    if link_id is None:
+        return None
+    return {
+        **base,
+        "link_id": link_id,
+        "is_sending": is_sending,
+        "already_linked": False,
+        **annotations,
+    }
 
 
 def param_change_result(
@@ -958,6 +1108,28 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return _items(ctx.run_locked(_read))
 
     @tool
+    def find_potential_com_objects(node_id: int) -> dict[str, Any]:
+        """List EVERY com-object the device's application DECLARES — a superset of the ones currently
+        active (project_list_com_objects) — so you can see which objects a function could add before
+        switching its parameters (for group-address planning).
+
+        Returns {items, count}; each item has {ref_id, number, name, function_text, dpt, object_size}
+        from the STATIC declaration: names/function texts are templates (no parameter or module
+        substitution) and ``number`` is the base (a module instance offsets it). This is NOT a
+        reachability proof — a declared object may never be activatable in a given configuration, and
+        the parameter values that activate each one are NOT included. For the active, linkable objects
+        (with db_id/flags) and their links, use project_list_com_objects."""
+
+        def _read() -> list[dict[str, Any]]:
+            device = _require_device(node_id)
+            dyn = device.dynamic_ui
+            if dyn is None:
+                raise ToolError(f"device {node_id} has no application loaded")
+            return dyn.declared_com_objects()
+
+        return _items(ctx.run_locked(_read))
+
+    @tool
     def project_get_com_object(node_id: int, com_object_ref_id: str) -> dict[str, Any]:
         """Read a project com-object. Use node_id from project_list_devices and pass the object's
         ref_id from project_list_com_objects as com_object_ref_id. Returns {ref_id, db_id, linkable,
@@ -1047,8 +1219,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Read a device's nested parameter UI using node_id from project_list_devices. Group
         headings distinguish repeated labels for different channels, buttons or display levels.
         Returns {items, count}; count is the number of top-level nodes. Node fields depend on kind:
-        - "tab"/"block": {kind, name, children, id?}, with children using the same node shapes. ``id``
-          is the stable container id (present when the container has one); pass it as ``subtree_id``.
+        - "tab"/"block": {kind, id, name, children, ref?}, with children using the same node shapes.
+          ``id`` is a UNIQUE index path (pass it verbatim as ``subtree_id``); ``ref`` is the raw
+          module/block id, which REPEATS across module instances and must not be used to address one.
         - "parameter": {kind, ref_id, label, value, default_value, access, widget}.
         - "button": {kind, id, text, online, read_only}; other nodes contain only kind.
         To stay compact, an enum ``widget`` here carries only ``choice_count`` (plus ``value_label``
@@ -1071,27 +1244,30 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id)
-            scope: list[Any] = list(device.get_ui())
+            roots: list[Any] = list(device.get_ui())
             if subtree_id is not None:
-                found = _find_subtree(scope, subtree_id)
+                found = _find_subtree(roots, subtree_id)
                 if found is None:
                     raise ToolError(
-                        f"no tab/block with id {subtree_id!r} on device {node_id}; call "
+                        f"no tab/block at id {subtree_id!r} on device {node_id}; call "
                         "project_parameter_tree(outline=True) for the current ids "
                         "(ids change after a structural edit)"
                     )
-                scope = [found]
+                # Serialize the subtree under its own absolute path so nested ids round-trip.
+                scoped: list[tuple[str, Any]] = [(subtree_id, found)]
+            else:
+                scoped = [(str(i), n) for i, n in enumerate(roots)]
             use_outline = outline
             total: int | None = None
             # A plain call on a large device falls back to the outline so one read is never huge.
             if not outline and subtree_id is None:
-                total = sum(_count_leaves(n)[0] for n in scope)
+                total = sum(_count_leaves(n)[0] for _, n in scoped)
                 if total > _TREE_AUTO_OUTLINE_PARAMS:
                     use_outline = True
             if use_outline:
-                rows = [d for n in scope if (d := _outline_node(n)) is not None]
+                rows = [d for p, n in scoped if (d := _outline_node(n, p)) is not None]
             else:
-                rows = [_ui_node(n, include_choices=False) for n in scope]
+                rows = [_ui_node(n, False, p) for p, n in scoped]
             env: dict[str, Any] = {
                 "items": rows,
                 "count": len(rows),
@@ -1118,6 +1294,37 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(
                 f"no parameter {parameter_ref_id!r} on device {node_id}; "
                 "call project_list_parameters for valid ref_ids"
+            )
+
+        return ctx.run_locked(_read)
+
+    @tool
+    def project_resolve_parameter(
+        node_id: int,
+        label: str,
+        subtree_id: str | None = None,
+        value_label: str | None = None,
+    ) -> dict[str, Any]:
+        """Resolve a parameter by its human ``label`` to the ``ref_id`` that project_set_parameter
+        needs, so a caller can avoid the long XML ref ids.
+
+        ``label`` is matched EXACTLY (case-insensitive) among the device's currently ACTIVE
+        parameters, within a scope. Labels are NOT unique (a device repeats a label per channel), so:
+        - pass ``subtree_id`` (a container ``id`` from project_parameter_tree(outline=True)) to scope
+          the match to one channel/block — strongly recommended on a large device;
+        - a label that matches several parameters raises with the candidate ref_ids (narrow the
+          scope); a label that matches none raises too. It never guesses.
+        With ``value_label`` (an enum choice's text) the result also carries ``resolved_value``, the
+        raw value to pass to project_set_parameter.
+
+        Returns {ref_id, label, value, access, resolved_value?}. This resolves only — pass ``ref_id``
+        (and ``resolved_value``) to project_set_parameter to change it. Re-resolve after a structural
+        change (ids and active parameters move)."""
+
+        def _read() -> dict[str, Any]:
+            device = _require_device(node_id)
+            return resolve_in_scope(
+                list(device.get_ui()), subtree_id, label, value_label
             )
 
         return ctx.run_locked(_read)
@@ -1856,10 +2063,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         intended sending GA; keep one sending GA per object. Returns {link_id, node_id,
         com_object_ref_id, com_object_db_id, group_address_id, is_sending, already_linked} plus, when
         relevant, ``dpt_mismatch`` ({com_object, group_address} — the GA keeps its own DPT, so the
-        objects will not interwork) and ``other_sending_group_address_ids`` (the object already sends
-        to these, so it now has several sending GAs). Linking the same pair again is idempotent
-        (``already_linked: true``, no duplicate). Pass link_id as project_unlink_com_object's
-        assignment_id. Program the device to apply the link on the bus."""
+        DPT metadata differs; verify compatibility) and ``other_sending_group_address_ids`` (the
+        object already sends to these, so it now has several sending GAs). Linking the same pair again
+        is idempotent (``already_linked: true``, no duplicate). Pass link_id as
+        project_unlink_com_object's assignment_id. Program the device to apply the link on the bus."""
         require_project(ctx)
 
         def _link() -> dict[str, Any]:
@@ -1875,52 +2082,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     f"com-object {com_object_ref_id!r} is not instantiated in the project and "
                     "cannot be linked (only com-objects with linkable=true can be linked)"
                 )
-            existing = list(project.get_links_for_com_object(co.db_id))
-            co_dpt = getattr(co, "dpt", None)
-            ga_before = project.get_group_address(group_address_id)
-            ga_dpt_before = ga_before.datapoint_type if ga_before else None
-            annotations = _link_annotations(
-                getattr(co_dpt, "token", None),
-                getattr(co_dpt, "code", None),
-                ga_dpt_before,
-                is_sending,
-                existing,
-                group_address_id,
+            result = perform_link(
+                project, node_id, com_object_ref_id, co, group_address_id, is_sending
             )
-            # Idempotent: re-linking the same pair returns the existing link, never a duplicate.
-            dup = next(
-                (a for a in existing if a.group_address_id == group_address_id), None
-            )
-            if dup is not None:
-                return {
-                    "link_id": dup.id,
-                    "node_id": node_id,
-                    "com_object_ref_id": com_object_ref_id,
-                    "com_object_db_id": co.db_id,
-                    "group_address_id": group_address_id,
-                    "is_sending": dup.is_sending,
-                    "already_linked": True,
-                    **annotations,
-                }
-            link_id = project.link_com_object_to_ga(
-                co.db_id, group_address_id, is_sending
-            )
-            if link_id is None:
+            if result is None:
                 raise ToolError(
                     f"could not link com-object to group address {group_address_id} "
                     "(check the group address id exists; a group address with Security On "
                     "only takes devices commissioned securely)"
                 )
-            return {
-                "link_id": link_id,
-                "node_id": node_id,
-                "com_object_ref_id": com_object_ref_id,
-                "com_object_db_id": co.db_id,
-                "group_address_id": group_address_id,
-                "is_sending": is_sending,
-                "already_linked": False,
-                **annotations,
-            }
+            return result
 
         return ctx.run_locked(_link)
 
