@@ -1,0 +1,176 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor connection 1.0\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Gateway"
+msgstr "ゲートウェイ"
+
+msgid "Connect"
+msgstr "接続"
+
+msgid "Disconnect"
+msgstr "接続を解除する"
+
+msgid "Use Serial Number for Downloads"
+msgstr "ダウンロードにシリアル番号を使用"
+
+msgid "Discovered Gateways"
+msgstr "検出されたゲートウェイ"
+
+msgid "Diagnostics"
+msgstr "診断"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "プログラミング・モードのデバイスを確認"
+
+msgid "Devices in Programming Mode"
+msgstr "プログラミング・モードのデバイス"
+
+msgid "Rescan"
+msgstr "再スキャン"
+
+msgid "Searching the bus…"
+msgstr "バスを検索中…"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "デバイスのプログラミング・ボタンを押してプログラミング・モードにしてから、再スキャンしてください。"
+
+msgid "No device is in programming mode."
+msgstr "プログラミング・モードのデバイスはありません。"
+
+msgid "The scan could not be completed: {error}"
+msgstr "スキャンを完了できませんでした：{error}"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "インターフェイスがスキャン要求を確認しませんでした（バスがビジー、またはインターフェイスが過負荷）。もう一度お試しください。"
+
+msgid "{count} device(s) in programming mode"
+msgstr "プログラミング・モードのデバイス：{count} 台"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "スキャンに応答しましたが、詳細の読み込みに失敗しました：{error}"
+
+msgid "In this project: {name}"
+msgstr "このプロジェクト内：{name}"
+
+msgid "Not in this project"
+msgstr "このプロジェクトにはありません"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "未プログラムのデバイス（工場出荷時のアドレス 15.15.255）"
+
+msgid "Select in Project"
+msgstr "プロジェクトで選択"
+
+msgid "Manufacturer"
+msgstr "メーカー"
+
+msgid "Product (Catalog)"
+msgstr "製品（カタログ）"
+
+msgid "Application"
+msgstr "アプリケーション"
+
+msgid "Application Version"
+msgstr "アプリケーション・バージョン"
+
+msgid "Mask Version"
+msgstr "マスクバージョン"
+
+msgid "Serial Number"
+msgstr "シリアル番号"
+
+msgid "Order Number"
+msgstr "注文番号"
+
+msgid "Hardware Type"
+msgstr "ハードウェアタイプ"
+
+msgid "Status"
+msgstr "状態"
+
+msgid "No fault"
+msgstr "異常なし"
+
+msgid "Programming mode active"
+msgstr "プログラミング・モード有効"
+
+msgid "No gateways found"
+msgstr "ゲートウェイが見つかりません"
+
+msgid "Manual Connection"
+msgstr "手動接続"
+
+msgid "Connected: {ip}"
+msgstr "接続済み：{ip}"
+
+msgid "Connected to {ip}"
+msgstr "{ip} に接続しました"
+
+msgid "Disconnected"
+msgstr "未接続"
+
+msgid "Connecting…"
+msgstr "接続中…"
+
+msgid "Connection failed"
+msgstr "接続に失敗しました"
+
+msgid "Scan"
+msgstr "スキャン"
+
+msgid "Settings"
+msgstr "設定"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "マルチキャスト・ルーティングを使用（トンネリングではなく）"
+
+msgid "Gateway IP"
+msgstr "ゲートウェイ IP"
+
+msgid "Multicast Group"
+msgstr "マルチキャスト・グループ"
+
+msgid "Apply"
+msgstr "適用"
+
+msgid "Bus monitor: {ip}"
+msgstr "バス・モニター：{ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "ゲートウェイはバス・モニター・モードで接続されています。バス・モニターを停止するまで、送信もダウンロードもできません。"
+
+msgid "Not possible while the bus monitor is running"
+msgstr "バス・モニターの実行中は実行できません"
+
+msgid "Stop Bus Monitor"
+msgstr "バス・モニターを停止"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "インターフェイスには KNX IP Secure が必要ですが、プロジェクトにも読み込まれたキーリングにもそのパスワードがありません。"
+
+msgid "Error: {error}"
+msgstr "エラー：{error}"
+
+msgid "Unknown error"
+msgstr "不明なエラー"
+
+msgid "Name: {name}"
+msgstr "名前：{name}"
+
+msgid "KNX Address: {address}"
+msgstr "KNX アドレス：{address}"
+
+msgid "Core Version: {version}"
+msgstr "コア・バージョン：{version}"
+
+msgid "Services: {services}"
+msgstr "サービス：{services}"
+
+msgid "Retry"
+msgstr "再試行"

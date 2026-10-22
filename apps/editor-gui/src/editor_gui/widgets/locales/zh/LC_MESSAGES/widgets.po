@@ -1,0 +1,281 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "（图像）"
+
+msgid "Search…"
+msgstr "搜索…"
+
+msgid "{name} (locked)"
+msgstr "{name}（已锁定）"
+
+msgid "Create Group Addresses ({count})"
+msgstr "创建组地址（{count}）"
+
+msgid "All"
+msgstr "全部"
+
+msgid "None"
+msgstr "无"
+
+msgid "Copy Links ({count})"
+msgstr "复制链接（{count}）"
+
+msgid "Paste Links ({count})"
+msgstr "粘贴链接（{count}）"
+
+msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr "将复制的链接和标志按顺序分配给勾选的对象（第 1 个对第 1 个，第 2 个对第 2 个，…），替换每个目标的当前链接。"
+
+msgid "Merge"
+msgstr "合并"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr "保留每个目标的现有链接，仅添加复制的链接。"
+
+msgid "Copy Links"
+msgstr "复制链接"
+
+msgid "Default (Inherit)"
+msgstr "默认（继承）"
+
+msgid "Edit Description…"
+msgstr "编辑说明…"
+
+msgid "Edit Description"
+msgstr "编辑说明"
+
+msgid "OK"
+msgstr "确定"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Paste Links"
+msgstr "粘贴链接"
+
+msgid "Copy Addresses as Text"
+msgstr "将地址复制为文本"
+
+msgid "Create Group Addresses"
+msgstr "创建组地址"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  序号（{n:02} 补零）"
+
+msgid "Name Template"
+msgstr "名称模板"
+
+msgid "Start Address"
+msgstr "起始地址"
+
+msgid "automatic"
+msgstr "自动"
+
+msgid "Sending Group Address"
+msgstr "发送组地址"
+
+msgid "Receiving Group Address"
+msgstr "接收组地址"
+
+msgid "sent"
+msgstr "已发送"
+
+msgid "received"
+msgstr "已接收"
+
+msgid "sent & received"
+msgstr "已发送和接收"
+
+msgid "older"
+msgstr "较早"
+
+msgid "Link Group Address"
+msgstr "链接组地址"
+
+msgid "New Group Address"
+msgstr "新建组地址"
+
+msgid "Address"
+msgstr "地址"
+
+msgid "Name"
+msgstr "名称"
+
+msgid "Create & Link"
+msgstr "创建并链接"
+
+msgid "Name template"
+msgstr "名称模板"
+
+msgid "Placeholders"
+msgstr "占位符"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  建筑\n{floor}  楼层\n{room}  房间\n{device}  设备名称或说明\n{devicename}  设备名称\n{devicedescription}  设备说明\n{product}  产品\n{manufacturer}  厂家\n{order}  订货号\n{address}  物理地址\n{object}  对象名称\n{ganame}  对象名称\n{function}  功能\n{number}  对象编号\n{dpt}  数据点类型"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr "已从默认值（{default}）更改 — 右键单击以重置"
+
+msgid "Reset to Default"
+msgstr "重置为默认值"
+
+msgid "<differs>"
+msgstr "<不同>"
+
+msgid "Off"
+msgstr "关"
+
+msgid "On"
+msgstr "开"
+
+msgid "Standard"
+msgstr "标准"
+
+msgid "Advanced"
+msgstr "高级"
+
+msgid "Theme Colors"
+msgstr "主题颜色"
+
+msgid "Standard Colors"
+msgstr "标准颜色"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "一 二 三 四 五 六 日"
+
+msgid "General"
+msgstr "常规"
+
+msgid "Enter a number."
+msgstr "请输入数字。"
+
+msgid "Enter a whole number."
+msgstr "请输入整数。"
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "请输入 {minimum} 到 {maximum} 之间的值。"
+
+msgid "Enter at most {count} characters."
+msgstr "最多输入 {count} 个字符。"
+
+msgid "Enter a value."
+msgstr "请输入值。"
+
+msgid "This value cannot be sent with this data type."
+msgstr "此值无法以此数据类型发送。"
+
+msgid "No value can be entered for this data type."
+msgstr "此数据类型无法输入值。"
+
+msgid "Edit…"
+msgstr "编辑…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "文本最多可占 {count} 个字节。"
+
+msgid "Value {number}"
+msgstr "值 {number}"
+
+msgid "Edit Value"
+msgstr "编辑值"
+
+msgid "Size Column to Fit"
+msgstr "调整列宽以适应内容"
+
+msgid "Size All Columns to Fit"
+msgstr "调整所有列宽以适应内容"
+
+msgid "Reset Column Order"
+msgstr "重置列顺序"
+
+msgid "Reset Column Visibility"
+msgstr "重置列可见性"
+
+msgid "Reset All Columns"
+msgstr "重置所有列"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "长度"
+
+msgid "Prio"
+msgstr "优先级"
+
+msgid "Group Addresses"
+msgstr "组地址"
+
+msgid "(empty)"
+msgstr "（空）"
+
+msgid "Options"
+msgstr "选项"
+
+msgid "Columns"
+msgstr "列"
+
+msgid "Grey Out Zeros"
+msgstr "零值灰显"
+
+msgid "Uppercase Hex"
+msgstr "十六进制大写"
+
+msgid "Show ASCII"
+msgstr "显示 ASCII"
+
+msgid "Copy"
+msgstr "复制"
+
+msgid "Copy {count} B"
+msgstr "复制 {count} B"
+
+msgid "Go To:"
+msgstr "转到："
+
+msgid "{count} difference(s)"
+msgstr "{count} 处差异"
+
+msgid "no differences"
+msgstr "无差异"
+
+msgid "Parameter:"
+msgstr "参数："
+
+msgid "search…"
+msgstr "搜索…"
+
+msgid "Low"
+msgstr "低"
+
+msgid "High"
+msgstr "高"
+
+msgid "Alert"
+msgstr "警报"
+
+msgid "Hours"
+msgstr "小时"
+
+msgid "Minutes"
+msgstr "分钟"
+
+msgid "Seconds"
+msgstr "秒"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "毫秒"

@@ -28,6 +28,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TypeGuard, cast
 
+from editor_gui.languages import LANGUAGES, culture
+
 DEFAULT_BASE_URL = "https://onlinecatalog.knx.org"
 MASTER_DATA_URL = "https://update.knx.org/data/XML/project-23/knx_master.xml"
 _CACHE_FILE = "online_catalog_manufacturers.json"
@@ -41,17 +43,12 @@ _INDEX_SAVE_EVERY = (
 )
 _TIMEOUT_SECONDS = 30.0
 
-# Country/language choices for online product downloads (label -> KNX language id used as the
-# DownloadProduct LanguageIds). Kept short and covering the common KNX markets.
-# The catalog language of each language of the editor; the first is the fallback.
-APP_LANGUAGES: dict[str, str] = {"en": "en-US", "de": "de-DE", "nl": "nl-NL"}
-
 
 def download_languages(locale: str) -> list[str]:
     """The languages products are downloaded in for the editor language ``locale``: that one
     first, then the editor's other languages, so the texts are there after switching."""
-    first = APP_LANGUAGES.get(locale.split("-")[0].lower(), APP_LANGUAGES["en"])
-    return [first, *(code for code in APP_LANGUAGES.values() if code != first)]
+    first = culture(locale)
+    return [first, *(lang.culture for lang in LANGUAGES if lang.culture != first)]
 
 
 class OnlineCatalogError(Exception):

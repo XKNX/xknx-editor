@@ -1,0 +1,65 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor signing 1.0\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Signing"
+msgstr "署名"
+
+msgid "Signing Key…"
+msgstr "署名キー…"
+
+msgid "A signing key is set (exports are signed)."
+msgstr "署名キーが設定されています（エクスポートは署名されます）。"
+
+msgid "Placeholder key in use — signatures are not ETS-valid."
+msgstr "プレースホルダー・キーを使用中 — 署名はETSで有効ではありません。"
+
+msgid "Modulus (hex)"
+msgstr "モジュラス（hex）"
+
+msgid "Private Exponent (hex)"
+msgstr "秘密指数（hex）"
+
+msgid "Public Exponent (hex)"
+msgstr "公開指数（hex）"
+
+msgid "Extract from Knx.Ets.XmlSigning.dll…"
+msgstr "Knx.Ets.XmlSigning.dllから抽出…"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Reset to Placeholder"
+msgstr "プレースホルダーにリセット"
+
+msgid "All DLLs"
+msgstr "全てのDLL"
+
+msgid "All Files"
+msgstr "全てのファイル"
+
+msgid "Select \"Knx.Ets.XmlSigning.dll\" from your ETS installation (e.g. C:\\Program Files (x86)\\ETS6)."
+msgstr "ETSのインストール先から「Knx.Ets.XmlSigning.dll」を選択してください（例：C:\\Program Files (x86)\\ETS6）。"
+
+msgid "Extracting key from the assembly…"
+msgstr "アセンブリからキーを抽出中…"
+
+msgid "Signing key saved."
+msgstr "署名キーを保存しました。"
+
+msgid "Reverted to the placeholder key."
+msgstr "プレースホルダー・キーに戻しました。"
+
+msgid "No .NET runtime found. Install the .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) to extract the key, or paste it manually below."
+msgstr ".NETランタイムが見つかりません。キーを抽出するには.NET SDKをインストールしてください（macOS：`brew install dotnet-sdk`、Fedora：`sudo dnf install dotnet-sdk-8.0`）。または、下にキーを手動で貼り付けてください。"
+
+msgid "The key is read from your own licensed ETS assembly and stored per-user, never in the project."
+msgstr "キーはお使いのライセンス済みETSアセンブリから読み込まれ、ユーザーごとに保存されます。プロジェクトには保存されません。"
+
+msgid "Based on OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."
+msgstr "OpenKNXproducer（github.com/OpenKNX/OpenKNXproducer）に基づいています。"

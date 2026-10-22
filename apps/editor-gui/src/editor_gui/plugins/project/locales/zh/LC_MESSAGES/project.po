@@ -1,0 +1,2147 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor project 1.0\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device"
+msgstr "设备"
+
+msgid "Manufacturer"
+msgstr "厂家"
+
+msgid "Devices"
+msgstr "设备"
+
+msgid "Configure"
+msgstr "配置"
+
+msgid "History"
+msgstr "历史"
+
+msgid "Editor"
+msgstr "编辑器"
+
+msgid "Group Addresses"
+msgstr "组地址"
+
+msgid "Buildings"
+msgstr "建筑"
+
+msgid "Project"
+msgstr "项目"
+
+msgid "Project Log"
+msgstr "项目日志"
+
+msgid "Mass Linker"
+msgstr "批量链接"
+
+msgid "Object <> GA"
+msgstr "对象 <> GA"
+
+msgid "Object <> Object"
+msgstr "对象 <> 对象"
+
+msgid "Log"
+msgstr "日志"
+
+msgid "Open a project to use the Mass Linker."
+msgstr "请打开项目以使用批量链接。"
+
+msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
+msgstr "按列表顺序配对（第 1 个对第 1 个，…）。较长一侧多出的条目将被忽略。可通过右键菜单调整列表顺序。"
+
+msgid "Link group objects to existing group addresses."
+msgstr "将组对象链接到现有组地址。"
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "使用“{add_device}”或“{add_objects}”添加对象。"
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "为每一行选择一个组地址，或使用“{match}”或“{sequential}”全部填充。"
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "“{link_all}”链接所有已选择组地址的行。"
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "通过各自新的组地址将对象相互链接：源发送，目标接收。"
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "使用“{add_device}”或“{add_objects}”添加源对象。"
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "为每一行选择一个目标对象。地址和名称为建议值，可以修改。"
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "“{link_all}”创建组地址并进行链接。"
+
+msgid "Link All"
+msgstr "全部链接"
+
+msgid "Chronological record of every mass-link operation in this session."
+msgstr "本次会话中所有批量链接操作的时间顺序记录。"
+
+msgid "Source (objects)"
+msgstr "源（对象）"
+
+msgid "Target (Group Addresses)"
+msgstr "目标（组地址）"
+
+msgid "Target (objects)"
+msgstr "目标（对象）"
+
+msgid "Preview & Link"
+msgstr "预览并链接"
+
+msgid "Add Group Objects…"
+msgstr "添加组对象…"
+
+msgid "Add Group Addresses…"
+msgstr "添加组地址…"
+
+msgid "Add Selected"
+msgstr "添加所选"
+
+msgid "Clear"
+msgstr "清除"
+
+msgid "Remove"
+msgstr "移除"
+
+msgid "Move up"
+msgstr "上移"
+
+msgid "Move Down"
+msgstr "下移"
+
+msgid "{count} items"
+msgstr "{count} 个条目"
+
+msgid "{count} pairs"
+msgstr "{count} 对"
+
+msgid "{count} unpaired (ignored)"
+msgstr "{count} 个未配对（已忽略）"
+
+msgid "Link"
+msgstr "链接"
+
+msgid "GA Name ({source}, {target}, {n})"
+msgstr "GA 名称（{source}，{target}，{n}）"
+
+msgid "Start Address"
+msgstr "起始地址"
+
+msgid "Filter…"
+msgstr "过滤…"
+
+msgid "Add Group Objects"
+msgstr "添加组对象"
+
+msgid "Add Group Addresses"
+msgstr "添加组地址"
+
+msgid "Mass Linker Result"
+msgstr "批量链接结果"
+
+msgid "Linked {count} object(s) to group addresses"
+msgstr "已将 {count} 个对象链接到组地址"
+
+msgid "Linked {count} object pair(s) via new group addresses"
+msgstr "已通过新的组地址链接 {count} 对对象"
+
+msgid "{count} error(s)"
+msgstr "{count} 个错误"
+
+msgid "Clear All"
+msgstr "全部清除"
+
+msgid "No operations yet."
+msgstr "尚无操作。"
+
+msgid "Group Object"
+msgstr "组对象"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Target Group Address"
+msgstr "目标组地址"
+
+msgid "Target Group Object"
+msgstr "目标组对象"
+
+msgid "Group Address"
+msgstr "组地址"
+
+msgid "Group Address Name"
+msgstr "组地址名称"
+
+msgid "(none)"
+msgstr "（无）"
+
+msgid "Matching DPT Only"
+msgstr "仅匹配的 DPT"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "仅显示具有该对象主数据点类型的组地址，以及没有数据点类型的组地址（链接时采用对象的类型）。"
+
+msgid "no DPT"
+msgstr "无 DPT"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "仅显示具有相同主数据点类型的对象，以及没有数据点类型的对象。"
+
+msgid "Select a device in the tree first."
+msgstr "请先在树中选择一个设备。"
+
+msgid "{device} has no group objects."
+msgstr "{device} 没有组对象。"
+
+msgid "All objects of {device} are in the list already."
+msgstr "{device} 的所有对象均已在列表中。"
+
+msgid "+ Selected Device"
+msgstr "+ 所选设备"
+
+msgid "Select All"
+msgstr "全选"
+
+msgid "No objects yet — add the selected device or pick objects."
+msgstr "尚无对象——请添加所选设备或选择对象。"
+
+msgid "From"
+msgstr "从"
+
+msgid "Assign Sequential"
+msgstr "按顺序分配"
+
+msgid "Match by Name"
+msgstr "按名称匹配"
+
+msgid "Link All ({count})"
+msgstr "全部链接（{count}）"
+
+msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
+msgstr "{ready} 就绪 · {amb} 不明确 · {bad} 不兼容 · {none} 未匹配"
+
+msgid "Only Problems"
+msgstr "仅显示问题"
+
+msgid "Ready to link."
+msgstr "可以链接。"
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "请检查组地址：有多个匹配，或数据点类型未知。"
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "数据点类型不匹配；此行不会链接。"
+
+msgid "No group address chosen yet."
+msgstr "尚未选择组地址。"
+
+msgid "OK"
+msgstr "确定"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Tools"
+msgstr "工具"
+
+msgid "Open a project to use the tools."
+msgstr "请打开项目以使用这些工具。"
+
+msgid "No devices in this project."
+msgstr "此项目中没有设备。"
+
+msgid "Extended Copy"
+msgstr "扩展复制"
+
+msgid "Replace Device"
+msgstr "更换设备"
+
+msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
+msgstr "将设备更换为另一型号（项目中已有的模板设备），并保留其组地址链接。组对象按编号和大小匹配；无法匹配的将会报告。参数不会转移。"
+
+msgid "Device to Replace"
+msgstr "要更换的设备"
+
+msgid "Replace with (Template)"
+msgstr "更换为（模板）"
+
+msgid "Group Object Mapping (by Number)"
+msgstr "组对象映射（按编号）"
+
+msgid "{count} object(s) will be re-mapped"
+msgstr "将重新映射 {count} 个对象"
+
+msgid "Replaced; re-mapped {count} group object(s)"
+msgstr "已更换；已重新映射 {count} 个组对象"
+
+msgid "Shift Addresses"
+msgstr "移动地址"
+
+msgid "Labels"
+msgstr "标签"
+
+msgid "Topology Check"
+msgstr "拓扑检查"
+
+msgid "Project Diff"
+msgstr "项目比较"
+
+msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "将打开的项目与另一个项目文件（.knxproj 或 .xknx）进行比较：哪些设备和组地址被添加、移除或更改。另一个项目为只读；不会修改任何内容。"
+
+msgid "Choose Project to Compare…"
+msgstr "选择要比较的项目…"
+
+msgid "Choose Project to Compare"
+msgstr "选择要比较的项目"
+
+msgid "KNX project (*.knxproj *.xknx)"
+msgstr "KNX 项目 (*.knxproj *.xknx)"
+
+msgid "compared with {name}"
+msgstr "与 {name} 比较"
+
+msgid "No differences in devices or group addresses."
+msgstr "设备或组地址没有差异。"
+
+msgid "{count} difference(s)"
+msgstr "{count} 处差异"
+
+msgid "Add Device Certificate"
+msgstr "添加设备证书"
+
+msgid "Device Certificate"
+msgstr "设备证书"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "此设备已在使用此项目中的自有密钥。仅在恢复出厂设置后才需要再次使用其证书。"
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "此设备仍在使用其出厂密钥：首次安全下载需要其证书。"
+
+msgid "Stored Certificate: {serial}"
+msgstr "已存储的证书：{serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "输入其标签或证书上的 FDSK（36 个字符）："
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "如需替换，请输入新的 FDSK（36 个字符）："
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "移除已存储的证书？恢复出厂设置后，只能使用其标签上的代码才能再次访问该设备。"
+
+msgid "Device Certificate…"
+msgstr "设备证书…"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "缺少设备证书（FDSK）。"
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "这不是有效的 FDSK；请检查。"
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "此证书属于系列号为 {serial} 的设备。"
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "请先设置项目密码：它用于保护设备密钥。"
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "另一个项目受密码保护。请输入密码以进行比较："
+
+msgid "Compare"
+msgstr "比较"
+
+msgid "Wrong password, please try again."
+msgstr "密码错误，请重试。"
+
+msgid "Duplicate a device several times. Optionally rewrite the copy name (find/replace) and create a group address for each of its objects."
+msgstr "将一个设备复制多次。可选择改写副本名称（查找/替换），并为其每个对象创建一个组地址。"
+
+msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
+msgstr "通过给物理地址的设备部分加上偏移量来重新编号设备，例如为新设备留出空位。组地址保持不变。"
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "选择字段和输出方式：CSV、可打印的标签页（Avery）或整页图例。HTML 输出将在浏览器中打开，以便打印或另存为 PDF。"
+
+msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
+msgstr "只读检查：列出物理地址缺失、格式错误或重复的设备。"
+
+msgid "Source Device"
+msgstr "源设备"
+
+msgid "Copies"
+msgstr "副本数"
+
+msgid "Find in Name"
+msgstr "在名称中查找"
+
+msgid "Replace with"
+msgstr "替换为"
+
+msgid "Create Group Addresses for Each Copy"
+msgstr "为每个副本创建组地址"
+
+msgid "Copy Name: {name}"
+msgstr "副本名称：{name}"
+
+msgid "Copy"
+msgstr "复制"
+
+msgid "Created {count} copy/copies"
+msgstr "已创建 {count} 个副本"
+
+msgid "Shifts the device part of each individual address. Group addresses are not shifted."
+msgstr "移动每个物理地址的设备部分。组地址不会移动。"
+
+msgid "Offset"
+msgstr "偏移"
+
+msgid "Filter devices…"
+msgstr "过滤设备…"
+
+msgid "All"
+msgstr "全部"
+
+msgid "None"
+msgstr "无"
+
+msgid "{sel} of {total} selected"
+msgstr "已选择 {sel}/{total}"
+
+msgid "(out of range)"
+msgstr "（超出范围）"
+
+msgid "{count} address(es) will change"
+msgstr "将更改 {count} 个地址"
+
+msgid "Shifted {count} address(es)"
+msgstr "已移动 {count} 个地址"
+
+msgid "Individual Addresses"
+msgstr "物理地址"
+
+msgid "This project has no group addresses."
+msgstr "此项目没有组地址。"
+
+msgid "Shift Group Addresses"
+msgstr "移动组地址"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "通过给组地址的原始值加上偏移量来重新编号，例如留出空位。组对象链接随各地址一起移动。如果任何移动会发生冲突或超出有效范围，则不写入任何内容。"
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "偏移量加到 16 位原始值上，因此当地址越过边界时，主组/中间组可能会改变。"
+
+msgid "Shifted {count} group address(es)"
+msgstr "已移动 {count} 个组地址"
+
+msgid "Export CSV…"
+msgstr "导出 CSV…"
+
+msgid "Exported to {path}"
+msgstr "已导出到 {path}"
+
+msgid "Fields"
+msgstr "字段"
+
+msgid "Output"
+msgstr "输出"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Label Sheet"
+msgstr "标签页"
+
+msgid "Legend (Full Page)"
+msgstr "图例（整页）"
+
+msgid "Sheet"
+msgstr "标签纸"
+
+msgid "Custom Grid"
+msgstr "自定义网格"
+
+msgid "Columns"
+msgstr "列"
+
+msgid "Rows"
+msgstr "行"
+
+msgid "Label W x H (mm)"
+msgstr "标签 宽 x 高 (mm)"
+
+msgid "Margin Top / Left (mm)"
+msgstr "上/左边距 (mm)"
+
+msgid "Gap X / Y (mm)"
+msgstr "间距 X / Y (mm)"
+
+msgid "Export HTML…"
+msgstr "导出 HTML…"
+
+msgid "Select at least one field."
+msgstr "请至少选择一个字段。"
+
+msgid "No topology issues found."
+msgstr "未发现拓扑问题。"
+
+msgid "{count} issue(s)"
+msgstr "{count} 个问题"
+
+msgid "Click a finding to jump to the device."
+msgstr "点击某项结果可跳转到该设备。"
+
+msgid "No buildings/rooms in this project"
+msgstr "此项目中没有建筑/房间"
+
+msgid "+ Function"
+msgstr "+ 功能"
+
+msgid "+ Space"
+msgstr "+ 空间"
+
+msgid "+ Sub-space"
+msgstr "+ 子空间"
+
+msgid "New Space"
+msgstr "新空间"
+
+msgid "Name"
+msgstr "名称"
+
+msgid "Type"
+msgstr "类型"
+
+msgid "Create"
+msgstr "创建"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Delete Space"
+msgstr "删除空间"
+
+msgid "Move to"
+msgstr "移动到"
+
+msgid "(Top Level)"
+msgstr "（顶层）"
+
+msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
+msgstr "删除此空间及其中的所有内容？设备只会被取消分配，不会被删除。"
+
+msgid "Assign Device"
+msgstr "分配设备"
+
+msgid "Assign a Device to This Space"
+msgstr "将设备分配到此空间"
+
+msgid "No unassigned devices"
+msgstr "没有未分配的设备"
+
+msgid "Remove from Space"
+msgstr "从空间中移除"
+
+msgid "Without Space"
+msgstr "无空间"
+
+msgid "Building"
+msgstr "建筑"
+
+msgid "Building Part"
+msgstr "建筑局部"
+
+msgid "Floor"
+msgstr "楼层"
+
+msgid "Room"
+msgstr "房间"
+
+msgid "Corridor"
+msgstr "走廊"
+
+msgid "Stairway"
+msgstr "楼梯"
+
+msgid "Distribution Board"
+msgstr "配电箱"
+
+msgid "New Function"
+msgstr "新功能"
+
+msgid "Rename"
+msgstr "重命名"
+
+msgid "Rename Function"
+msgstr "重命名功能"
+
+msgid "Assign Group Address"
+msgstr "分配组地址"
+
+msgid "Role (Optional)"
+msgstr "角色（可选）"
+
+msgid "Custom"
+msgstr "自定义"
+
+msgid "Switchable Light"
+msgstr "可控灯光"
+
+msgid "Dimmable Light"
+msgstr "可调节灯光"
+
+msgid "Sun Protection"
+msgstr "遮阳"
+
+msgid "Heating (Switching Variable)"
+msgstr "供暖（开关量调节值）"
+
+msgid "Heating (Continuous Variable)"
+msgstr "供暖（连续调节值）"
+
+msgid "Switchable Socket"
+msgstr "可控插座"
+
+msgid "No project"
+msgstr "无项目"
+
+msgid "Installation"
+msgstr "安装"
+
+msgid "Group Address Style"
+msgstr "组地址格式"
+
+msgid "Created by"
+msgstr "创建者"
+
+msgid "Tool Version"
+msgstr "工具版本"
+
+msgid "Schema Version"
+msgstr "架构版本"
+
+msgid "Last Modified"
+msgstr "最后修改"
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "Project ID"
+msgstr "项目 ID"
+
+msgid "Original Project ID"
+msgstr "原始项目 ID"
+
+msgid "Master Data (Signed)"
+msgstr "主数据（已签名）"
+
+msgid "Validation File"
+msgstr "验证文件"
+
+msgid "Project Certificate"
+msgstr "项目证书"
+
+msgid "none"
+msgstr "无"
+
+msgid "present ({size} bytes)"
+msgstr "存在（{size} 字节）"
+
+msgid "Password"
+msgstr "密码"
+
+msgid "Protected"
+msgstr "受保护"
+
+msgid "Not protected"
+msgstr "未受保护"
+
+msgid "Set Password"
+msgstr "设置密码"
+
+msgid "Change Password"
+msgstr "更改密码"
+
+msgid "Remove Password"
+msgstr "移除密码"
+
+msgid "Project Password"
+msgstr "项目密码"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "项目及其导出文件受此密码保护；打开或导入时需要输入密码。密码更改无法撤消。"
+
+msgid "Repeat Password"
+msgstr "重复密码"
+
+msgid "The passwords do not match."
+msgstr "密码不匹配。"
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "包含 KNX Secure 设备的项目需要密码：它保护项目及其导出文件中的设备密钥。"
+
+msgid "No project log entries"
+msgstr "没有项目日志条目"
+
+msgid "Date"
+msgstr "日期"
+
+msgid "User"
+msgstr "用户"
+
+msgid "Comment"
+msgstr "备注"
+
+msgid "Filter log"
+msgstr "过滤日志"
+
+msgid "Decrypt Comments"
+msgstr "解密备注"
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "从 Knx.Ets.Common.dll 提取…"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "ETS 会加密日志备注。请从您自己的 ETS 安装中的 Knx.Ets.Common.dll 提取解密密钥以读取备注；不会向任何地方发送数据。"
+
+msgid "Comments are encrypted"
+msgstr "备注已加密"
+
+msgid "Comments decrypted"
+msgstr "备注已解密"
+
+msgid "Extracting key…"
+msgstr "正在提取密钥…"
+
+msgid "Key extracted; comments decrypted"
+msgstr "已提取密钥；备注已解密"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr "未找到 .NET 运行时（请安装 .NET SDK，或在装有 ETS 的 Windows 上运行）。"
+
+msgid "KNX Common Assembly"
+msgstr "KNX Common 程序集"
+
+msgid "All Files"
+msgstr "所有文件"
+
+msgid "Based on OpenKNXproducer"
+msgstr "基于 OpenKNXproducer"
+
+msgid "Order Number"
+msgstr "订货号"
+
+msgid "Description"
+msgstr "说明"
+
+msgid "Parameters ({count})"
+msgstr "参数（{count}）"
+
+msgid "Group Objects ({count})"
+msgstr "组对象（{count}）"
+
+msgid "Channels ({count})"
+msgstr "通道（{count}）"
+
+msgid "DALI (Bus)"
+msgstr "DALI（总线）"
+
+msgid "Assigned Objects"
+msgstr "已分配的对象"
+
+msgid "Object"
+msgstr "对象"
+
+msgid "S"
+msgstr "S"
+
+msgid "S = Sending. This object sends its value to the group address; the others only receive it."
+msgstr "S = 发送。此对象将其值发送到组地址；其他对象仅接收。"
+
+msgid "Click to open this device in the editor"
+msgstr "点击以在编辑器中打开此设备"
+
+msgid "No devices"
+msgstr "无设备"
+
+msgid "Loading application program…"
+msgstr "正在加载应用程序…"
+
+msgid "This product has no application program."
+msgstr "此产品没有应用程序。"
+
+msgid "Individual Address"
+msgstr "物理地址"
+
+msgid "Program Device"
+msgstr "编程设备"
+
+msgid "Test Programming"
+msgstr "测试编程"
+
+msgid "Unload Application Program"
+msgstr "卸载应用程序"
+
+msgid "This unloads the application program of the device at {address}. The device stops working until its application program is downloaded again."
+msgstr "这将卸载地址为 {address} 的设备的应用程序。在重新下载其应用程序之前，该设备将停止工作。"
+
+msgid "This unloads the application program of the device at {address} and then resets its individual address to 15.15.255; for that, its programming button has to be pressed. The device stops working until it is commissioned again."
+msgstr "这将卸载地址为 {address} 的设备的应用程序，然后将其物理地址复位为 15.15.255；为此必须按下其编程按钮。在重新调试之前，该设备将停止工作。"
+
+msgid "Overwrite Address"
+msgstr "覆盖地址"
+
+msgid "Manufacturer's Plugin Not Available"
+msgstr "厂家插件不可用"
+
+msgid "Serial Number Already Used"
+msgstr "系列号已被使用"
+
+msgid "Download"
+msgstr "下载"
+
+msgid "Full"
+msgstr "全部"
+
+msgid "Application Program"
+msgstr "应用程序"
+
+msgid "Unload"
+msgstr "卸载"
+
+msgid "Unload Application and Address"
+msgstr "卸载应用和地址"
+
+msgid "Partial: Parameters"
+msgstr "部分：参数"
+
+msgid "Partial: Group Communication"
+msgstr "部分：组通讯"
+
+msgid "Overwrite Individual Address"
+msgstr "覆盖物理地址"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "这会将物理地址 {address} 写入按下编程按钮的设备。继续吗？"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "这会用 {address} 覆盖当前地址下设备的物理地址。无需按下其编程按钮。"
+
+msgid "Current Individual Address"
+msgstr "当前物理地址"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "输入设备当前的物理地址，例如 1.1.5。"
+
+msgid "The device already has the individual address {address}."
+msgstr "设备已具有物理地址 {address}。"
+
+msgid "Individual Address via Serial Number"
+msgstr "通过系列号设置物理地址"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "这会将物理地址 {address} 写入系列号为 {serial} 的设备。无需按下其编程按钮。"
+
+msgid "Use Serial Number"
+msgstr "使用系列号"
+
+msgid "The serial number is already associated with device {device}."
+msgstr "该系列号已关联到设备 {device}。"
+
+msgid "Serial Number"
+msgstr "系列号"
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "以 12 位十六进制数字输入系列号，例如 0083:7AA2039C。"
+
+msgid "Manufacturer Info"
+msgstr "厂家信息"
+
+msgid "Application"
+msgstr "应用"
+
+msgid "Application Version"
+msgstr "应用版本"
+
+msgid "Read from Device"
+msgstr "从设备读取"
+
+msgid "Restart"
+msgstr "重启"
+
+msgid "Reset…"
+msgstr "复位…"
+
+msgid "Master Reset"
+msgstr "主复位"
+
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "破坏性操作：设备将通过总线复位，必须重新调试。在 KNX Secure 模式下，这会停用设备安全性。"
+
+msgid "Reset Type"
+msgstr "复位类型"
+
+msgid "I understand this resets the device"
+msgstr "我了解这会复位设备"
+
+msgid "Reset Device"
+msgstr "复位设备"
+
+msgid "Factory Reset"
+msgstr "恢复出厂设置"
+
+msgid "Factory Reset (Keep Address)"
+msgstr "恢复出厂设置（保留地址）"
+
+msgid "Reset Individual Address"
+msgstr "复位物理地址"
+
+msgid "Delete Application Program"
+msgstr "删除应用程序"
+
+msgid "Reset Parameters"
+msgstr "复位参数"
+
+msgid "Reset Group Address Links"
+msgstr "复位组地址链接"
+
+msgid "Confirmed Restart"
+msgstr "带确认的重启"
+
+msgid "Set an individual address and connect to the bus first"
+msgstr "请先设置物理地址并连接到总线"
+
+msgid "The reported value matches {devices} in this project."
+msgstr "报告的值与此项目中的 {devices} 相符。"
+
+msgid "Mask Version"
+msgstr "掩码版本"
+
+msgid "Order Info"
+msgstr "订货信息"
+
+msgid "Hardware Type"
+msgstr "硬件类型"
+
+msgid "Status"
+msgstr "状态"
+
+msgid "no fault reported"
+msgstr "未报告故障"
+
+msgid "differs from project V{version} — program to apply"
+msgstr "与项目 V{version} 不同——需编程以应用"
+
+msgid "Product"
+msgstr "产品"
+
+msgid "Product Ref"
+msgstr "产品引用"
+
+msgid "Program Ref"
+msgstr "程序引用"
+
+msgid "IP Configuration"
+msgstr "IP 配置"
+
+msgid "Assignment"
+msgstr "分配方式"
+
+msgid "IP Address"
+msgstr "IP 地址"
+
+msgid "Subnet Mask"
+msgstr "子网掩码"
+
+msgid "Default Gateway"
+msgstr "默认网关"
+
+msgid "MAC Address"
+msgstr "MAC 地址"
+
+msgid "Download PDF Manual"
+msgstr "下载 PDF 手册"
+
+msgid "Searching Manual…"
+msgstr "正在搜索手册…"
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "查找此设备的手册（通过 KNX 设备数据库，否则通过厂家搜索）并在浏览器中打开。尽力而为——如果找不到直接文档，则打开 KNX 设备搜索。"
+
+msgid "Update to V{version}"
+msgstr "更新到 V{version}"
+
+msgid "Change Application Program"
+msgstr "更改应用程序"
+
+msgid "Update Application Program Version"
+msgstr "更新应用程序版本"
+
+msgid "Update"
+msgstr "更新"
+
+msgid "Updating the application program…"
+msgstr "正在更新应用程序…"
+
+msgid "Changing the application program…"
+msgstr "正在更改应用程序…"
+
+msgid "Changing the application program failed"
+msgstr "更改应用程序失败"
+
+msgid "Updating the application program failed"
+msgstr "更新应用程序失败"
+
+msgid "Copied"
+msgstr "已复制"
+
+msgid "Click to copy"
+msgstr "点击复制"
+
+msgid "Filter parameters…"
+msgstr "过滤参数…"
+
+msgid "Apply Changes to All {count} Identical Devices"
+msgstr "将更改应用到全部 {count} 个相同设备"
+
+msgid "Apply Changes to All Channels"
+msgstr "将更改应用到所有通道"
+
+msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr "正在编辑 {count} 个设备——更改适用于所有设备，不同的值显示为 <不同>"
+
+msgid "Hardware"
+msgstr "硬件"
+
+msgid "Firmware"
+msgstr "固件"
+
+msgid "Com Flags ({count})"
+msgstr "通讯标志（{count}）"
+
+msgid "Load Procedures ({count})"
+msgstr "加载过程（{count}）"
+
+msgid "Preview Memory"
+msgstr "预览存储器"
+
+msgid "Memory Preview"
+msgstr "存储器预览"
+
+msgid "Load Reference File"
+msgstr "加载参考文件"
+
+msgid "Save Memory Dump"
+msgstr "保存存储器转储"
+
+msgid "Save…"
+msgstr "保存…"
+
+msgid "Diff…"
+msgstr "比较…"
+
+msgid "Clear Diff"
+msgstr "清除比较"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "存储器转储 (*.bin)"
+
+msgid "{count} bytes"
+msgstr "{count} 字节"
+
+msgid "No memory segments."
+msgstr "没有存储器段。"
+
+msgid "Cannot encode memory image: {error}"
+msgstr "无法生成存储器映像：{error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "无法读取或写入文件：{error}"
+
+msgid "Programming Test Result"
+msgstr "编程测试结果"
+
+msgid "Evaluation failed"
+msgstr "评估失败"
+
+msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
+msgstr "只读测试：检查下载功能生成的映像是否与设备上已编程的内容相同。不会向设备写入任何内容。"
+
+msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
+msgstr "无法运行：项目自打开以来已被更改。此测试将生成的映像与设备的已编程状态进行比较，而该状态只与打开时的项目相符。请撤消本次会话中的更改后再测试。"
+
+msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
+msgstr "无法运行：没有 KNX 连接。请连接到网关（“连接”菜单），并确保设备可通过其物理地址访问。"
+
+msgid "Match: the generated image is identical to what is on the device"
+msgstr "匹配：生成的映像与设备上的内容完全相同"
+
+msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
+msgstr "不匹配：有 {bytes} 个字节在 {locations} 个位置与设备不同"
+
+msgid "{matched} matched, {changed} would change"
+msgstr "{matched} 个匹配，{changed} 个将更改"
+
+msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
+msgstr "仅适用于 ETS 6 设备：此测试将设备与按 ETS 6 方式生成的映像进行比较。最后用 ETS 5 编程的设备使用不同的字节布局，会显示大量错误的差异——结果仅对最后用 ETS 6 编程的设备有意义。"
+
+msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
+msgstr "结构性差异（整个表不同）可能表示设备最后是用 ETS 5 编程的，其字节布局不同。仅值的差异通常表示设备保存的是不同的配置。"
+
+msgid "Location"
+msgstr "位置"
+
+msgid "Size"
+msgstr "大小"
+
+msgid "Changed"
+msgstr "已更改"
+
+msgid "match"
+msgstr "匹配"
+
+msgid "would change"
+msgstr "将更改"
+
+msgid "device-managed"
+msgstr "设备管理"
+
+msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
+msgstr "由设备在运行时自行设置的系统字节（例如应用在下载后复位的下载检测字节）。此处的差异属于预期情况，并不表示下载有误。"
+
+msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
+msgstr "另有 {bytes} 个设备管理的运行时字节（预期，无害）"
+
+msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
+msgstr "没有配置差异：设备已具有此配置。下面的差异无害（见说明）。"
+
+msgid "sets default"
+msgstr "设为默认值"
+
+msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
+msgstr "此字节因相邻参数而被写入；不同的位不受任何有效参数控制，仅被复位为应用默认值。设备保存的是较旧的值（例如来自先前的配置或模式），编程时将予以规范化。无害。"
+
+msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr "另有 {bytes} 个字节复位为应用默认值（设备保存的是较旧的值；无害，编程时将予以规范化）"
+
+msgid "Export Ist/Soll…"
+msgstr "导出实际/目标…"
+
+msgid "Export Path:"
+msgstr "导出路径："
+
+msgid "Export Programming Test Result"
+msgstr "导出编程测试结果"
+
+msgid "memory {address}"
+msgstr "存储器 {address}"
+
+msgid "object {object} property {property}"
+msgstr "对象 {object} 属性 {property}"
+
+msgid "Filter devices (name, address)…"
+msgstr "过滤设备（名称、地址）…"
+
+msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
+msgstr "没有设备。请打开或导入项目（“文件”菜单），或在此处右击以添加区域。"
+
+msgid "Filter group addresses (address, name)…"
+msgstr "过滤组地址（地址、名称）…"
+
+msgid "Filter rooms, devices, functions…"
+msgstr "过滤房间、设备、功能…"
+
+msgid "Area {area}"
+msgstr "区域 {area}"
+
+msgid "{name} (Area {area})"
+msgstr "{name}（区域 {area}）"
+
+msgid "Line {area}.{line}"
+msgstr "支线 {area}.{line}"
+
+msgid "{name} (Line {area}.{line})"
+msgstr "{name}（支线 {area}.{line}）"
+
+msgid "Unassigned ({count})"
+msgstr "未分配（{count}）"
+
+msgid "Add Area"
+msgstr "添加区域"
+
+msgid "Add Line"
+msgstr "添加支线"
+
+msgid "Copy Address"
+msgstr "复制地址"
+
+msgid "Duplicate"
+msgstr "创建副本"
+
+msgid "Copy Configuration"
+msgstr "复制配置"
+
+msgid "Compare with…"
+msgstr "比较…"
+
+msgid "Compare Devices"
+msgstr "比较设备"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "请打开至少包含两个设备的项目以进行比较。"
+
+msgid "Only Differences"
+msgstr "仅显示差异"
+
+msgid "Filter devices by address, name or description…"
+msgstr "按地址、名称或说明过滤设备…"
+
+msgid "{count} differences"
+msgstr "{count} 处差异"
+
+msgid "Parameters"
+msgstr "参数"
+
+msgid "Group Objects"
+msgstr "组对象"
+
+msgid "No differences"
+msgstr "无差异"
+
+msgid "Field"
+msgstr "字段"
+
+msgid "Device A"
+msgstr "设备 A"
+
+msgid "Device B"
+msgstr "设备 B"
+
+msgid "Paste Configuration"
+msgstr "粘贴配置"
+
+msgid "Paste configuration onto '{name}':"
+msgstr "将配置粘贴到“{name}”："
+
+msgid "Paste configuration onto {count} selected devices:"
+msgstr "将配置粘贴到 {count} 个所选设备："
+
+msgid "Duplicate '{name}':"
+msgstr "创建“{name}”的副本："
+
+msgid "Group Address Links"
+msgstr "组地址链接"
+
+msgid "Paste"
+msgstr "粘贴"
+
+msgid "Delete Device"
+msgstr "删除设备"
+
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "删除“{name}”？其组对象和组地址链接将被移除，其物理地址将被释放。此操作可以撤消。"
+
+msgid "New Area"
+msgstr "新区域"
+
+msgid "New Line"
+msgstr "新支线"
+
+msgid "Number"
+msgstr "编号"
+
+msgid "Add"
+msgstr "添加"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Load"
+msgstr "加载"
+
+msgid "Copy Log"
+msgstr "复制日志"
+
+msgid "New Group Address"
+msgstr "新建组地址"
+
+msgid "New Main Group"
+msgstr "新建主组"
+
+msgid "New Middle Group"
+msgstr "新建中间组"
+
+msgid "New Folder"
+msgstr "新文件夹"
+
+msgid "Rename Folder"
+msgstr "重命名文件夹"
+
+msgid "Delete Folder"
+msgstr "删除文件夹"
+
+msgid "Main group name (the next free number is assigned automatically)"
+msgstr "主组名称（自动分配下一个空闲编号）"
+
+msgid "Middle group name (the next free number is assigned automatically)"
+msgstr "中间组名称（自动分配下一个空闲编号）"
+
+msgid "Delete this folder and every group address in it? This can be undone."
+msgstr "删除此文件夹及其中的所有组地址？此操作可以撤消。"
+
+msgid "Rename Group Address"
+msgstr "重命名组地址"
+
+msgid "Change Address…"
+msgstr "更改地址…"
+
+msgid "New group address (links are kept):"
+msgstr "新的组地址（保留链接）："
+
+msgid "Invalid address or already in use."
+msgstr "地址无效或已被使用。"
+
+msgid "Security"
+msgstr "安全性"
+
+msgid "Automatic"
+msgstr "自动"
+
+msgid "Secured"
+msgstr "安全"
+
+msgid "Not Secured"
+msgstr "非安全"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "安全组地址只能链接到以安全方式调试的设备。"
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "并非所有链接到此组地址的设备都以安全方式调试，因此无法将其设为安全。"
+
+msgid "Set Datapoint Type"
+msgstr "设置数据点类型"
+
+msgid "Address"
+msgstr "地址"
+
+msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
+msgstr "数据点类型（例如 DPST-1-1）；留空以清除"
+
+msgid "Project: {name}"
+msgstr "项目：{name}"
+
+msgid "(unsaved)"
+msgstr "（未保存）"
+
+msgid "No history"
+msgstr "无历史记录"
+
+msgid "Restore"
+msgstr "还原"
+
+msgid "Add device: {name}"
+msgstr "添加设备：{name}"
+
+msgid "Remove device: {name}"
+msgstr "移除设备：{name}"
+
+msgid "Address: {old} -> {new}"
+msgstr "地址：{old} -> {new}"
+
+msgid "Name: {old} -> {new}"
+msgstr "名称：{old} -> {new}"
+
+msgid "Parameter: {old} -> {new}"
+msgstr "参数：{old} -> {new}"
+
+msgid "DPT: {old} -> {new}"
+msgstr "DPT：{old} -> {new}"
+
+msgid "Flag: {flag} -> {state}"
+msgstr "标志：{flag} -> {state}"
+
+msgid "Group address {address} created"
+msgstr "已创建组地址 {address}"
+
+msgid "Group address {address} removed"
+msgstr "已移除组地址 {address}"
+
+msgid "Group address: {old} -> {new}"
+msgstr "组地址：{old} -> {new}"
+
+msgid "Group object linked to group address"
+msgstr "组对象已链接到组地址"
+
+msgid "Group object unlinked from group address"
+msgstr "组对象已与组地址断开链接"
+
+msgid "Area {number} created"
+msgstr "已创建区域 {number}"
+
+msgid "Area {number} removed"
+msgstr "已移除区域 {number}"
+
+msgid "Area: {old} -> {new}"
+msgstr "区域：{old} -> {new}"
+
+msgid "Line {number} created"
+msgstr "已创建支线 {number}"
+
+msgid "Line {number} removed"
+msgstr "已移除支线 {number}"
+
+msgid "Line: {old} -> {new}"
+msgstr "支线：{old} -> {new}"
+
+msgid "This action can only be performed when the individual address of the device is already downloaded."
+msgstr "仅当设备的物理地址已下载后，才能执行此操作。"
+
+msgid "Button {0} executed. "
+msgstr "按钮 {0} 已执行。 "
+
+msgid "A parameter script is running for this device."
+msgstr "此设备正在运行参数脚本。"
+
+msgid "The Device has no valid address or is not linked to an area or line."
+msgstr "设备没有有效地址，或未分配到区域或支线。"
+
+msgid "Parameter Script"
+msgstr "参数脚本"
+
+msgid "Executing Script"
+msgstr "正在执行脚本"
+
+msgid "Script not responding"
+msgstr "脚本无响应"
+
+msgid "Force Stop"
+msgstr "强制停止"
+
+msgid "The script was stopped."
+msgstr "脚本已停止。"
+
+msgid "Canceling…"
+msgstr "正在取消…"
+
+msgid "No connection to the bus."
+msgstr "未连接到总线。"
+
+msgid "Parameter value cannot be set, because validation failed."
+msgstr "由于验证失败，因此无法设置参数值。"
+
+msgid "Operations"
+msgstr "操作"
+
+msgid "Active"
+msgstr "活动"
+
+msgid "Cancel All"
+msgstr "全部取消"
+
+msgid "Clear History"
+msgstr "清除历史"
+
+msgid "No operations."
+msgstr "无操作。"
+
+msgid "Device Info"
+msgstr "设备信息"
+
+msgid "Device Info (With Group Communication)"
+msgstr "设备信息（含组通讯）"
+
+msgid "Reading"
+msgstr "正在读取"
+
+msgid "General"
+msgstr "常规"
+
+msgid "Group Communication"
+msgstr "组通讯"
+
+msgid "Device Manufacturer"
+msgstr "设备厂家"
+
+msgid "Firmware Version"
+msgstr "固件版本"
+
+msgid "Programming Mode"
+msgstr "编程模式"
+
+msgid "Load State"
+msgstr "加载状态"
+
+msgid "Address Table Load State"
+msgstr "地址表加载状态"
+
+msgid "Association Table Load State"
+msgstr "关联表加载状态"
+
+msgid "Group Object Table Load State"
+msgstr "组对象表加载状态"
+
+msgid "Reading the tables failed: {error}"
+msgstr "读取表失败：{error}"
+
+msgid "On"
+msgstr "开"
+
+msgid "Off"
+msgstr "关"
+
+msgid "Unloaded"
+msgstr "已卸载"
+
+msgid "Loaded"
+msgstr "已加载"
+
+msgid "Loading"
+msgstr "正在加载"
+
+msgid "Error"
+msgstr "错误"
+
+msgid "Unloading"
+msgstr "正在卸载"
+
+msgid "Load Completing"
+msgstr "正在完成加载"
+
+msgid "Yes"
+msgstr "是"
+
+msgid "No"
+msgstr "否"
+
+msgid "Also read the group communication?"
+msgstr "同时读取组通讯？"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "设备上的应用不在产品目录中，因此无法定位其表"
+
+msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
+msgstr "此设备只能使用厂家插件进行编程，而此处没有该插件。"
+
+msgid "Parameters in the Manufacturer's Plugin"
+msgstr "厂家插件中的参数"
+
+msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
+msgstr "厂家在其自有的插件对话框中设置此设备的参数，XKNX Editor 无法运行该对话框，因此无法在此处更改这些参数。下载时将原样写入其当前值；组对象可照常链接。"
+
+msgid "Edit parameters anyway"
+msgstr "仍然编辑参数"
+
+msgid "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+msgstr "厂家使用其自有的插件对话框配置此设备；在该对话框中所做的设置不会在此显示。"
+
+msgid "The manufacturer programs this device with its own plugin; the standard download is used here."
+msgstr "厂家使用其自有的插件对此设备编程；此处使用标准下载。"
+
+msgid "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+msgstr "厂家使用其自有的插件管理此设备的部分数据，而此处没有该插件。"
+
+msgid "The manufacturer plugin is not available here:"
+msgstr "此处没有厂家插件："
+
+msgid "Only it can program the device."
+msgstr "只有该插件才能对设备编程。"
+
+msgid "Settings made in its dialog are not shown."
+msgstr "在其对话框中所做的设置不会显示。"
+
+msgid "The standard download is used instead."
+msgstr "此处改用标准下载。"
+
+msgid "Part of the device data is not available."
+msgstr "部分设备数据不可用。"
+
+msgid "This device is also configured with separate software from the manufacturer."
+msgstr "此设备还需使用厂家的单独软件进行配置。"
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "此设备包含 XKNX Editor 无法运行的厂家配置应用（“{name}”）。仍可对设备的标准参数进行编程，但无法使用该应用提供的附加功能。"
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "此设备包含无法在 XKNX Editor 中直接运行的厂家配置应用（“{name}”），但该应用已被移植，因此其最重要的功能可在此使用（参见 DALI 选项卡）。"
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "厂家仅允许使用其插件对此设备编程，但此处没有该插件。不使用插件编程可能导致设备配置错误或处于错误状态。"
+
+msgid "Program Without the Manufacturer's Plugin Anyway"
+msgstr "不使用厂家插件仍然编程"
+
+msgid "Downloading"
+msgstr "正在下载"
+
+msgid "Please press the programming button"
+msgstr "请按下编程按钮"
+
+msgid "Waiting for confirmation"
+msgstr "正在等待确认"
+
+msgid "The application program currently loaded in the device is different from the projected application program"
+msgstr "设备中当前加载的应用程序与项目中的应用程序不同"
+
+msgid "Do you want to overwrite the application program (this may take several minutes)?"
+msgstr "是否覆盖应用程序（可能需要几分钟）？"
+
+msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
+msgstr "设备中当前加载的应用程序与项目中的应用程序不符。可尝试完整下载而不是部分下载。"
+
+msgid "Incompatible mask version: {found} instead of {expected}"
+msgstr "掩码版本不兼容：{found}，应为 {expected}"
+
+msgid "Waiting"
+msgstr "等待中"
+
+msgid "Finished"
+msgstr "已完成"
+
+msgid "Canceled"
+msgstr "已取消"
+
+msgid "Cancelled by user."
+msgstr "已被用户取消。"
+
+msgid "Started by an MCP client."
+msgstr "由 MCP 客户端启动。"
+
+msgid "failed"
+msgstr "失败"
+
+msgid "No details available"
+msgstr "没有可用的详细信息"
+
+msgid "Connection: {connection}"
+msgstr "连接：{connection}"
+
+msgid "Start: {time}"
+msgstr "开始：{time}"
+
+msgid "End: {time}"
+msgstr "结束：{time}"
+
+msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
+msgstr "此设备的产品数据缺失，其应用程序不在产品目录中。请导入其产品以编辑该设备。"
+
+msgid "DIN Rail Mounting"
+msgstr "DIN 导轨安装"
+
+msgid "Bus Current"
+msgstr "总线电流"
+
+msgid "Read Value"
+msgstr "读取值"
+
+msgid "Write Value…"
+msgstr "写入值…"
+
+msgid "Write Value"
+msgstr "写入值"
+
+msgid "Data Type"
+msgstr "数据类型"
+
+msgid "Value"
+msgstr "值"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "请设置组地址的数据类型以写入值。"
+
+msgid "Write"
+msgstr "写入"
+
+msgid "Not connected to the bus."
+msgstr "未连接到总线。"
+
+msgid "Export Group Addresses…"
+msgstr "导出组地址…"
+
+msgid "Import Group Addresses…"
+msgstr "导入组地址…"
+
+msgid "Import Group Addresses"
+msgstr "导入组地址"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "组地址文件（XML、CSV）"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "已添加 {added} 个组地址，已更新 {updated} 个。"
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "有 {count} 个组地址无法放入组中。"
+
+msgid "The file could not be imported: {error}"
+msgstr "无法导入该文件：{error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "该文件使用{file}组地址，而项目使用{project}组地址。"
+
+msgid "3-level"
+msgstr "三级"
+
+msgid "2-level"
+msgstr "二级"
+
+msgid "free"
+msgstr "自由"
+
+msgid "Export"
+msgstr "导出"
+
+msgid "Import"
+msgstr "导入"
+
+msgid "Plain"
+msgstr "不加密"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "停用安全调试"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "这些组地址随后将以明文通信："
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "设备的组对象将从这些安全组地址中移除："
+
+msgid "Deactivate"
+msgstr "停用"
+
+msgid "Secure Commissioning"
+msgstr "安全调试"
+
+msgid "Add Device Certificate…"
+msgstr "添加设备证书…"
+
+msgid "Activated"
+msgstr "已激活"
+
+msgid "Deactivated"
+msgstr "已停用"
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "需要安全通信的组对象将被放到明文组地址上。"
+
+msgid "Later"
+msgstr "稍后"
+
+msgid "Don't Ask When Adding Devices"
+msgstr "添加设备时不再询问"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "显示密码"
+
+msgid "Secure Tunneling"
+msgstr "安全隧道"
+
+msgid "Commissioning Password"
+msgstr "调试密码"
+
+msgid "Authentication Code"
+msgstr "认证码"
+
+msgid "Interface"
+msgstr "接口"
+
+msgid "Routing"
+msgstr "路由"
+
+msgid "Tunnel {address}"
+msgstr "隧道 {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "密码需要 1 到 20 个 Latin-1 字符。"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "IP Backbone Security"
+msgstr "IP 主干安全"
+
+msgid "Device Certificates"
+msgstr "设备证书"
+
+msgid "Manage…"
+msgstr "管理…"
+
+msgid "The project has no device certificates."
+msgstr "项目中没有设备证书。"
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "{device} 的安全表无法容纳此链接。"
+
+msgid "Point-to-Point and Broadcast"
+msgstr "点对点和广播"
+
+msgid "Blocked"
+msgstr "已阻止"
+
+msgid "Routed"
+msgstr "已转发"
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "请连接 KNX 接口以调试 DALI 总线。"
+
+msgid "Scan Bus"
+msgstr "扫描总线"
+
+msgid "All ECGs On"
+msgstr "所有镇流器开"
+
+msgid "All Off"
+msgstr "全部关"
+
+msgid "New Installation…"
+msgstr "新建安装…"
+
+msgid "Post Installation…"
+msgstr "后续安装…"
+
+msgid "Running: {task}"
+msgstr "正在运行：{task}"
+
+msgid "scanning the bus"
+msgstr "扫描总线"
+
+msgid "switching all ECGs"
+msgstr "切换所有镇流器"
+
+msgid "blinking"
+msgstr "闪烁"
+
+msgid "stopping the blinking"
+msgstr "停止闪烁"
+
+msgid "new installation"
+msgstr "新建安装"
+
+msgid "post installation"
+msgstr "后续安装"
+
+msgid "programming the groups"
+msgstr "编程群组"
+
+msgid "programming the scenes"
+msgstr "编程场景"
+
+msgid "{count} found"
+msgstr "找到 {count} 个"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "使用“扫描总线”读取 DALI 总线。"
+
+msgid "Firmware {version}"
+msgstr "固件 {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "确认 DALI 编程"
+
+msgid "Continue"
+msgstr "继续"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "新建安装将重新扫描 DALI 总线，并重新分配每个镇流器的\n短地址。此操作无法撤消。是否继续？"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "后续安装将扫描总线上的新镇流器并更新其寻址。\n这会更改设备。是否继续？"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "将群组分配写入 DALI 总线。这会将群组应用到\n网关及其镇流器。是否继续？"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "将场景值写入 DALI 总线。是否继续？"
+
+msgid "{count} ECG(s) present"
+msgstr "存在 {count} 个镇流器"
+
+msgid "Group"
+msgstr "群组"
+
+msgid "Long Address"
+msgstr "长地址"
+
+msgid "Alarm"
+msgstr "警报"
+
+msgid "Blink"
+msgstr "闪烁"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "Program Groups…"
+msgstr "编程群组…"
+
+msgid "Scenes"
+msgstr "场景"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "请在上方将镇流器分配到群组以定义场景。"
+
+msgid "Scene"
+msgstr "场景"
+
+msgid "Scene {number}"
+msgstr "场景 {number}"
+
+msgid "Group {number}"
+msgstr "群组 {number}"
+
+msgid "Program Scenes…"
+msgstr "编程场景…"
+
+msgid "Single"
+msgstr "单个"
+
+msgid "Unassigned"
+msgstr "未分配"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "流程 {number}  （{count} 个步骤）"
+
+msgid "Kind"
+msgstr "种类"
+
+msgid "Applies To"
+msgstr "适用于"
+
+msgid "Details"
+msgstr "详细信息"
+
+msgid "Scope: {scope}"
+msgstr "范围：{scope}"
+
+msgid "Additional Individual Addresses"
+msgstr "附加物理地址"
+
+msgid "Additional Individual Address"
+msgstr "附加物理地址"
+
+msgid "Assign Missing Addresses"
+msgstr "分配缺失地址"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "支线没有为所有必要的额外地址提供足够的地址。"
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "请输入 1 到 255 之间的设备号，或设备所在支线中的完整物理地址。"
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "附加地址必须位于设备所在支线 {line} 中。"
+
+msgid "The individual address {address} is already used in this line."
+msgstr "物理地址 {address} 已在此支线中使用。"
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "设备“{0}”的附加地址已从“{1}”更改为“{2}”。"
+
+msgid "Change additional address names"
+msgstr "更改附加地址名称"
+
+msgid "Change additional address descriptions"
+msgstr "更改附加地址描述"
+
+msgid "Assign additional addresses"
+msgstr "分配附加地址"
+
+msgid "Change additional addresses"
+msgstr "更改附加地址"
+
+msgid "Add device {name}"
+msgstr "添加设备 {name}"
+
+msgid "Set {ref} = {value}"
+msgstr "设置 {ref} = {value}"
+
+msgid "Change"
+msgstr "更改"
+
+msgid "Create area {address}"
+msgstr "创建区域 {address}"
+
+msgid "Create line {address}"
+msgstr "创建支线 {address}"
+
+msgid "Add segment"
+msgstr "添加段"
+
+msgid "Create group address {address}"
+msgstr "创建组地址 {address}"
+
+msgid "Import group addresses"
+msgstr "导入组地址"
+
+msgid "Import group addresses from {file}"
+msgstr "从 {file} 导入组地址"
+
+msgid "Link group object"
+msgstr "链接组对象"
+
+msgid "Unlink group object"
+msgstr "取消链接组对象"
+
+msgid "Rename area to {name}"
+msgstr "将区域重命名为 {name}"
+
+msgid "Rename project to {name}"
+msgstr "将项目重命名为 {name}"
+
+msgid "Rename line to {name}"
+msgstr "将支线重命名为 {name}"
+
+msgid "Rename device to {name}"
+msgstr "将设备重命名为 {name}"
+
+msgid "Move device"
+msgstr "移动设备"
+
+msgid "Set flag"
+msgstr "设置标志"
+
+msgid "Set datapoint type"
+msgstr "设置数据点类型"
+
+msgid "Set priority"
+msgstr "设置优先级"
+
+msgid "Set description"
+msgstr "设置说明"
+
+msgid "Set sending group address"
+msgstr "设置发送组地址"
+
+msgid "Add installation"
+msgstr "添加安装"
+
+msgid "Remove device"
+msgstr "移除设备"
+
+msgid "Remove area"
+msgstr "移除区域"
+
+msgid "Remove line"
+msgstr "移除支线"
+
+msgid "Remove segment"
+msgstr "移除段"
+
+msgid "Remove group address"
+msgstr "移除组地址"
+
+msgid "Remove function"
+msgstr "移除功能"
+
+msgid "Remove group address from function"
+msgstr "从功能中移除组地址"
+
+msgid "Remove building part"
+msgstr "移除建筑局部"
+
+msgid "Remove group range"
+msgstr "移除组范围"
+
+msgid "Update application program"
+msgstr "更新应用程序"
+
+msgid "Change application program"
+msgstr "更改应用程序"
+
+msgid "Update group objects"
+msgstr "更新组对象"
+
+msgid "Update module instances"
+msgstr "更新模块实例"
+
+msgid "Set group address security"
+msgstr "设置组地址安全性"
+
+msgid "Set secure commissioning"
+msgstr "设置安全调试"
+
+msgid "Rename group address to {name}"
+msgstr "将组地址重命名为 {name}"
+
+msgid "Change group address"
+msgstr "更改组地址"
+
+msgid "Set device certificates"
+msgstr "设置设备证书"
+
+msgid "Set device description"
+msgstr "设置设备说明"
+
+msgid "Create function {name}"
+msgstr "创建功能 {name}"
+
+msgid "Rename function to {name}"
+msgstr "将功能重命名为 {name}"
+
+msgid "Set function type"
+msgstr "设置功能类型"
+
+msgid "Add group address to function"
+msgstr "将组地址添加到功能"
+
+msgid "Create building part {name}"
+msgstr "创建建筑局部 {name}"
+
+msgid "Rename building part to {name}"
+msgstr "将建筑局部重命名为 {name}"
+
+msgid "Set building part number"
+msgstr "设置建筑局部编号"
+
+msgid "Set building part description"
+msgstr "设置建筑局部说明"
+
+msgid "Set building part type"
+msgstr "设置建筑局部类型"
+
+msgid "Move building part"
+msgstr "移动建筑局部"
+
+msgid "Assign device to building part"
+msgstr "将设备分配到建筑局部"
+
+msgid "Set commissioning state"
+msgstr "设置调试状态"
+
+msgid "Create group range {name}"
+msgstr "创建组范围 {name}"
+
+msgid "Rename group range to {name}"
+msgstr "将组范围重命名为 {name}"
+
+msgid "{device}: no individual address"
+msgstr "{device}：无物理地址"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}：地址格式错误“{address}”"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}：地址重复 {address}"
+
+msgid "added"
+msgstr "已添加"
+
+msgid "removed"
+msgstr "已移除"
+
+msgid "changed"
+msgstr "已更改"

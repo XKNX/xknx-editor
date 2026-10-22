@@ -1415,3 +1415,15 @@ msgstr "Nederlands"
 
 msgid "{name} ({native})"
 msgstr "{name} ({native})"
+
+msgid "Spanish"
+msgstr "Spaans"
+
+msgid "Greek"
+msgstr "Grieks"
+
+msgid "Simplified Chinese"
+msgstr "Vereenvoudigd Chinees"
+
+msgid "Japanese"
+msgstr "Japans"

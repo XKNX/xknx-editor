@@ -1,0 +1,281 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "(εικόνα)"
+
+msgid "Search…"
+msgstr "Αναζήτηση…"
+
+msgid "{name} (locked)"
+msgstr "{name} (κλειδωμένο)"
+
+msgid "Create Group Addresses ({count})"
+msgstr "Δημιουργία Διευθύνσεων Ομάδων ({count})"
+
+msgid "All"
+msgstr "Όλα"
+
+msgid "None"
+msgstr "Κανένα"
+
+msgid "Copy Links ({count})"
+msgstr "Αντιγραφή Συνδέσεων ({count})"
+
+msgid "Paste Links ({count})"
+msgstr "Επικόλληση Συνδέσεων ({count})"
+
+msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr "Αντιστοιχίζει τις αντιγραμμένες συνδέσεις και τα flags στα επιλεγμένα αντικείμενα με τη σειρά (1ο στο 1ο, 2ο στο 2ο, …), αντικαθιστώντας τις τρέχουσες συνδέσεις κάθε προορισμού."
+
+msgid "Merge"
+msgstr "Συνένωση"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr "Διατήρηση των υπαρχουσών συνδέσεων κάθε προορισμού και προσθήκη μόνο των αντιγραμμένων."
+
+msgid "Copy Links"
+msgstr "Αντιγραφή Συνδέσεων"
+
+msgid "Default (Inherit)"
+msgstr "Προεπιλογή (Κληρονομείται)"
+
+msgid "Edit Description…"
+msgstr "Επεξεργασία Περιγραφής…"
+
+msgid "Edit Description"
+msgstr "Επεξεργασία Περιγραφής"
+
+msgid "OK"
+msgstr "ΟΚ"
+
+msgid "Cancel"
+msgstr "Άκυρο"
+
+msgid "Paste Links"
+msgstr "Επικόλληση Συνδέσεων"
+
+msgid "Copy Addresses as Text"
+msgstr "Αντιγραφή Διευθύνσεων ως Κείμενο"
+
+msgid "Create Group Addresses"
+msgstr "Δημιουργία Διευθύνσεων Ομάδων"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  Αύξων αριθμός ({n:02} με μηδενικά μπροστά)"
+
+msgid "Name Template"
+msgstr "Πρότυπο Ονόματος"
+
+msgid "Start Address"
+msgstr "Διεύθυνση Έναρξης"
+
+msgid "automatic"
+msgstr "αυτόματη"
+
+msgid "Sending Group Address"
+msgstr "Διεύθυνση Ομάδας Αποστολής"
+
+msgid "Receiving Group Address"
+msgstr "Διεύθυνση Ομάδας Λήψης"
+
+msgid "sent"
+msgstr "εστάλη"
+
+msgid "received"
+msgstr "ελήφθη"
+
+msgid "sent & received"
+msgstr "εστάλη & ελήφθη"
+
+msgid "older"
+msgstr "παλαιότερο"
+
+msgid "Link Group Address"
+msgstr "Σύνδεση Διεύθυνσης Ομάδας"
+
+msgid "New Group Address"
+msgstr "Νέα Διεύθυνση Ομάδας"
+
+msgid "Address"
+msgstr "Διεύθυνση"
+
+msgid "Name"
+msgstr "Όνομα"
+
+msgid "Create & Link"
+msgstr "Δημιουργία & Σύνδεση"
+
+msgid "Name template"
+msgstr "Πρότυπο ονόματος"
+
+msgid "Placeholders"
+msgstr "Σύμβολα κράτησης θέσης"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  Κτίριο\n{floor}  Όροφος\n{room}  Δωμάτιο\n{device}  Όνομα ή περιγραφή συσκευής\n{devicename}  Όνομα συσκευής\n{devicedescription}  Περιγραφή συσκευής\n{product}  Προϊόν\n{manufacturer}  Κατασκευαστής\n{order}  Αριθμός παραγγελίας\n{address}  Ατομική διεύθυνση\n{object}  Όνομα αντικειμένου\n{ganame}  Όνομα αντικειμένου\n{function}  Λειτουργία\n{number}  Αριθμός αντικειμένου\n{dpt}  Τύπος datapoint"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr "Άλλαξε από την προεπιλογή ({default}) — δεξί κλικ για επαναφορά"
+
+msgid "Reset to Default"
+msgstr "Επαναφορά στην Προεπιλογή"
+
+msgid "<differs>"
+msgstr "<διαφέρει>"
+
+msgid "Off"
+msgstr "Απενεργοποιημένο"
+
+msgid "On"
+msgstr "Ενεργοποιημένο"
+
+msgid "Standard"
+msgstr "Τυποποιημένο"
+
+msgid "Advanced"
+msgstr "Για Προχωρημένους"
+
+msgid "Theme Colors"
+msgstr "Χρώματα Θέματος"
+
+msgid "Standard Colors"
+msgstr "Τυπικά Χρώματα"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Δε Τρ Τε Πε Πα Σα Κυ"
+
+msgid "General"
+msgstr "Γενικά"
+
+msgid "Enter a number."
+msgstr "Εισαγάγετε έναν αριθμό."
+
+msgid "Enter a whole number."
+msgstr "Εισαγάγετε έναν ακέραιο αριθμό."
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "Εισαγάγετε μια τιμή από {minimum} έως {maximum}."
+
+msgid "Enter at most {count} characters."
+msgstr "Εισαγάγετε έως {count} χαρακτήρες."
+
+msgid "Enter a value."
+msgstr "Εισαγάγετε μια τιμή."
+
+msgid "This value cannot be sent with this data type."
+msgstr "Αυτή η τιμή δεν μπορεί να σταλεί με αυτόν τον τύπο δεδομένων."
+
+msgid "No value can be entered for this data type."
+msgstr "Δεν μπορεί να εισαχθεί τιμή για αυτόν τον τύπο δεδομένων."
+
+msgid "Edit…"
+msgstr "Επεξεργασία…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "Το κείμενο μπορεί να έχει έως {count} byte."
+
+msgid "Value {number}"
+msgstr "Τιμή {number}"
+
+msgid "Edit Value"
+msgstr "Επεξεργασία Τιμής"
+
+msgid "Size Column to Fit"
+msgstr "Προσαρμογή Πλάτους Στήλης"
+
+msgid "Size All Columns to Fit"
+msgstr "Προσαρμογή Πλάτους Όλων των Στηλών"
+
+msgid "Reset Column Order"
+msgstr "Επαναφορά Σειράς Στηλών"
+
+msgid "Reset Column Visibility"
+msgstr "Επαναφορά Ορατότητας Στηλών"
+
+msgid "Reset All Columns"
+msgstr "Επαναφορά Όλων των Στηλών"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "Μήκος"
+
+msgid "Prio"
+msgstr "Προτερ."
+
+msgid "Group Addresses"
+msgstr "Διευθύνσεις Ομάδων"
+
+msgid "(empty)"
+msgstr "(κενό)"
+
+msgid "Options"
+msgstr "Επιλογές"
+
+msgid "Columns"
+msgstr "Στήλες"
+
+msgid "Grey Out Zeros"
+msgstr "Γκρίζα Μηδενικά"
+
+msgid "Uppercase Hex"
+msgstr "Κεφαλαία Hex"
+
+msgid "Show ASCII"
+msgstr "Εμφάνιση ASCII"
+
+msgid "Copy"
+msgstr "Αντιγραφή"
+
+msgid "Copy {count} B"
+msgstr "Αντιγραφή {count} B"
+
+msgid "Go To:"
+msgstr "Μετάβαση σε:"
+
+msgid "{count} difference(s)"
+msgstr "{count} διαφορά(-ές)"
+
+msgid "no differences"
+msgstr "καμία διαφορά"
+
+msgid "Parameter:"
+msgstr "Παράμετρος:"
+
+msgid "search…"
+msgstr "αναζήτηση…"
+
+msgid "Low"
+msgstr "Χαμηλή"
+
+msgid "High"
+msgstr "Υψηλή"
+
+msgid "Alert"
+msgstr "Συναγερμός"
+
+msgid "Hours"
+msgstr "Ώρες"
+
+msgid "Minutes"
+msgstr "Λεπτά"
+
+msgid "Seconds"
+msgstr "Δευτερόλεπτα"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "Χιλιοστά του δευτερολέπτου"

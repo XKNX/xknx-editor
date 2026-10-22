@@ -49,6 +49,7 @@ from editor_gui.instances import (
     same_file,
     with_project,
 )
+from editor_gui.languages import LANGUAGES, supported
 from editor_gui.log_file import log_dir
 from editor_gui.master_data import MasterDataInfo, load_master, master_xml_bytes
 from editor_gui.myknx_oauth import (
@@ -112,7 +113,13 @@ from editor_gui.widgets.dialog import (
     tab_page,
 )
 from editor_gui.widgets.dpi import px, px_vec2
-from editor_gui.widgets.fonts import bold, fitted_heading, heading, load_fonts
+from editor_gui.widgets.fonts import (
+    bold,
+    fitted_heading,
+    follow_language,
+    heading,
+    load_fonts,
+)
 from editor_gui.widgets.parameter_widgets import set_highlight_changes
 from editor_gui.widgets.password_form import NewPasswordForm
 from editor_gui.widgets.tables import (
@@ -5014,10 +5021,11 @@ class KnxGuiApp:
         """UI language selector (next to Help). Overrides the auto-detected OS locale; persisted."""
         current = get_locale()
         if imgui.begin_menu(S.MENU_LANGUAGE):
-            for code, native, name in _UI_LANGUAGES:
-                label = name()
-                if label != native:
-                    label = S.LANGUAGE_ITEM.format(name=label, native=native)
+            for language in LANGUAGES:
+                label = language.name()
+                if label != language.native:
+                    label = S.LANGUAGE_ITEM.format(name=label, native=language.native)
+                code = language.code
                 if (
                     imgui.menu_item(f"{label}##{code}", "", code == current)[0]
                     and code != current
@@ -5704,16 +5712,6 @@ def create_dockable_windows(app: KnxGuiApp) -> list[hello_imgui.DockableWindow]:
     return windows
 
 
-# UI languages offered in the Language menu: locale code, the name in the language itself and the
-# name in the current language. Catalogs live under each plugin's locales/<code>/LC_MESSAGES; "en"
-# is the untranslated source.
-_UI_LANGUAGES: list[tuple[str, str, Callable[[], str]]] = [
-    ("en", "English", lambda: S.LANGUAGE_ENGLISH),
-    ("de", "Deutsch", lambda: S.LANGUAGE_GERMAN),
-    ("nl", "Nederlands", lambda: S.LANGUAGE_DUTCH),
-]
-
-
 _STRONG_TITLE_SCALE = 1.2
 
 
@@ -5774,7 +5772,7 @@ def _detect_locale() -> str:
         locale.setlocale(locale.LC_ALL, "")
         lang, _ = locale.getlocale()
         if lang:
-            return lang.split("_")[0]
+            return supported(lang)
     except (ValueError, locale.Error):
         pass
 
@@ -5912,12 +5910,17 @@ def _main() -> None:
     runner_params.callbacks.before_exit = app.shutdown
     runner_params.callbacks.post_render_dockable_windows = app.render_overlays
 
-    # Dev watchdog for uncached per-frame DB reads (set XKNX_DEBUG_DB_FRAMES=1): once per frame it
-    # compares the render-thread query count against the project revision and logs a warning if
-    # queries keep firing while nothing changed — the signature of a panel render() that reads the DB
-    # without revision caching (see the revision-cached reads in ProjectService). No cost when off.
-    if frame_db_profiler.enabled:
-        runner_params.callbacks.pre_new_frame = app.watch_db_frame
+    # Before each frame: the fonts follow the UI language (the Chinese or Japanese font first), and
+    # the dev watchdog for uncached per-frame DB reads (set XKNX_DEBUG_DB_FRAMES=1) compares the
+    # render-thread query count against the project revision and logs a warning if queries keep
+    # firing while nothing changed — the signature of a panel render() that reads the DB without
+    # revision caching (see the revision-cached reads in ProjectService). No cost when off.
+    def pre_new_frame() -> None:
+        follow_language()
+        if frame_db_profiler.enabled:
+            app.watch_db_frame()
+
+    runner_params.callbacks.pre_new_frame = pre_new_frame
 
     # Renderer backend: default is OpenGL3. In a VM (UTM/QEMU) or on Windows-on-ARM there is no
     # working OpenGL, but Windows always has a Direct3D software rasterizer (WARP). XKNX_RENDERER

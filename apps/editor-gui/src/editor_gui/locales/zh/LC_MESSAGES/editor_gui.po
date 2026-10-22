@@ -1,0 +1,1364 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor editor_gui 1.0\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "XKNX Editor"
+msgstr "XKNX Editor"
+
+msgid "{project} - {app}"
+msgstr "{project} - {app}"
+
+msgid "Help"
+msgstr "帮助"
+
+msgid "Feedback"
+msgstr "反馈"
+
+msgid "About"
+msgstr "关于"
+
+msgid "Language"
+msgstr "语言"
+
+msgid "No matches"
+msgstr "无匹配项"
+
+msgid "Version {version}"
+msgstr "版本 {version}"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
+msgstr "一款用于楼宇自动化安装项目的桌面编辑器，基于开源 xknx 库，并以 kewde 的 xknxtoolkit 为基础。与 KNX 协会无关联，也未获其认可。"
+
+msgid "Network Location"
+msgstr "网络位置"
+
+msgid "This location is on a network drive:\n{home}\n\nKNX project files use a database that cannot run reliably on network shares. The editor can work on a local copy instead and write it back to the network location when you close the project."
+msgstr "此位置位于网络驱动器上：\n{home}\n\nKNX 项目文件使用的数据库无法在网络共享上可靠运行。编辑器可以改为在本地副本上工作，并在关闭项目时将其写回网络位置。"
+
+msgid "Use a Local Copy"
+msgstr "使用本地副本"
+
+msgid "Working on a local copy; written back to {home} when you close the project."
+msgstr "正在本地副本上工作；关闭项目时写回 {home}。"
+
+msgid "Add"
+msgstr "添加"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "New Project"
+msgstr "新建项目"
+
+msgid "Project Name"
+msgstr "项目名称"
+
+msgid "Group Address Style"
+msgstr "组地址格式"
+
+msgid "Free"
+msgstr "自由"
+
+msgid "Two-level"
+msgstr "二级"
+
+msgid "Three-level"
+msgstr "三级"
+
+msgid "Create…"
+msgstr "创建…"
+
+msgid "Copy"
+msgstr "复制"
+
+msgid "Clear"
+msgstr "清除"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "All Files"
+msgstr "所有文件"
+
+msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
+msgstr "项目：{name}  ·  {devices} 个设备  ·  {gas} 个组地址"
+
+msgid "No project open"
+msgstr "未打开项目"
+
+msgid "Programming {address}…"
+msgstr "正在编程 {address}…"
+
+msgid "Reading {address}…"
+msgstr "正在读取 {address}…"
+
+msgid "Testing {address}…"
+msgstr "正在测试 {address}…"
+
+msgid "Programming complete"
+msgstr "编程完成"
+
+msgid "Programming failed"
+msgstr "编程失败"
+
+msgid "No KNX connection"
+msgstr "无 KNX 连接"
+
+msgid "KNX Master v{version} ({date})"
+msgstr "KNX Master v{version}（{date}）"
+
+msgid "File"
+msgstr "文件"
+
+msgid "Open Project (.knxproj/.xknx)"
+msgstr "打开项目（.knxproj/.xknx）"
+
+msgid "Save As…"
+msgstr "另存为…"
+
+msgid "Saved as {name}"
+msgstr "已另存为 {name}"
+
+msgid "Open Recent"
+msgstr "最近打开"
+
+msgid "Settings…"
+msgstr "配置…"
+
+msgid "MCP Server"
+msgstr "MCP 服务器"
+
+msgid "Settings"
+msgstr "配置"
+
+msgid "Gateway"
+msgstr "网关"
+
+msgid "MCP"
+msgstr "MCP"
+
+msgid "Catalog"
+msgstr "产品目录"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "使用组播路由（而不是隧道）"
+
+msgid "Gateway IP"
+msgstr "网关 IP"
+
+msgid "Multicast Group"
+msgstr "组播组"
+
+msgid "Run the MCP server so an LLM can drive the editor over Streamable HTTP. It shares this app's catalog database."
+msgstr "运行 MCP 服务器，使 LLM 可以通过 Streamable HTTP 操控编辑器。它与本应用共享产品目录数据库。"
+
+msgid "MCP Host"
+msgstr "MCP 主机"
+
+msgid "MCP Port"
+msgstr "MCP 端口"
+
+msgid "Bearer Token (Optional)"
+msgstr "Bearer 令牌（可选）"
+
+msgid "Server: Running"
+msgstr "服务器：运行中"
+
+msgid "Server: Stopped"
+msgstr "服务器：已停止"
+
+msgid "Port {port} is already in use by another program, so the MCP server cannot start. Choose another port, or end the other program."
+msgstr "端口 {port} 已被其他程序占用，因此 MCP 服务器无法启动。请选择其他端口，或结束其他程序。"
+
+msgid "The MCP server could not start: {error}"
+msgstr "MCP 服务器无法启动：{error}"
+
+msgid "Start Server"
+msgstr "启动服务器"
+
+msgid "Stop Server"
+msgstr "停止服务器"
+
+msgid "AI MCP"
+msgstr "AI MCP"
+
+msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
+msgstr "此编辑器可通过内置 MCP 服务器由 AI 助手（Claude、Codex…）控制：它通过 Streamable HTTP 将产品目录和项目作为工具提供。请在下方启动服务器，然后在您的 AI 工具中注册其端点。"
+
+msgid "MCP Endpoint"
+msgstr "MCP 端点"
+
+msgid "Example: register the MCP server in your AI tool (adjust host/port):"
+msgstr "示例：在您的 AI 工具中注册 MCP 服务器（请调整主机/端口）："
+
+msgid "Use host 0.0.0.0 to make the server reachable from other devices on the network; 127.0.0.1/localhost only allows this machine."
+msgstr "使用主机 0.0.0.0 可使网络中的其他设备访问服务器；127.0.0.1/localhost 仅允许本机访问。"
+
+msgid "claude mcp add --transport http xknx-editor {url}"
+msgstr "claude mcp add --transport http xknx-editor {url}"
+
+msgid "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+msgstr "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+
+msgid "codex mcp add xknx-editor --url {url}"
+msgstr "codex mcp add xknx-editor --url {url}"
+
+msgid "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+msgstr "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+
+msgid "Copied"
+msgstr "已复制"
+
+msgid "Download Language"
+msgstr "下载语言"
+
+msgid "MCP running"
+msgstr "MCP 运行中"
+
+msgid "Welcome"
+msgstr "欢迎"
+
+msgid "Create a new project or open an existing one to get started."
+msgstr "创建新项目或打开现有项目以开始使用。"
+
+msgid "Recent Projects"
+msgstr "最近的项目"
+
+msgid "Recover from Bus…"
+msgstr "从总线恢复…"
+
+msgid "Export .knxproj…"
+msgstr "导出 .knxproj…"
+
+msgid "Export to ETS 5 ProjectStore"
+msgstr "导出到 ETS 5 ProjectStore"
+
+msgid "Export Group Addresses…"
+msgstr "导出组地址…"
+
+msgid "Import Group Addresses…"
+msgstr "导入组地址…"
+
+msgid "Exported {count} group address(es)"
+msgstr "已导出 {count} 个组地址"
+
+msgid "Export Group Addresses"
+msgstr "导出组地址"
+
+msgid "Output Format"
+msgstr "输出格式"
+
+msgid "CSV Format"
+msgstr "CSV 格式"
+
+msgid "3/1 - three columns, Main/Middle/Sub group separated"
+msgstr "3/1 - 三列，主组/中间组/子组分开"
+
+msgid "1/3 - Group address name/Main - Middle - Sub group"
+msgstr "1/3 - 组地址名称/主组 - 中间组 - 子组"
+
+msgid "1/1 - Name/Address"
+msgstr "1/1 - 名称/地址"
+
+msgid "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
+msgstr "3/3 - 主组 - 中间组 - 子组名称/主组 - 中间组 - 子组地址"
+
+msgid "Export with Header Line"
+msgstr "带表头行导出"
+
+msgid "CSV Separator"
+msgstr "CSV 分隔符"
+
+msgid "Tabulator"
+msgstr "制表符"
+
+msgid "Comma"
+msgstr "逗号"
+
+msgid "Semicolon"
+msgstr "分号"
+
+msgid "Export"
+msgstr "导出"
+
+msgid "Group Address Export (*.csv)"
+msgstr "组地址导出（*.csv）"
+
+msgid "Exported to {path} ({size}) as {schema}"
+msgstr "已导出到 {path}（{size}），格式为 {schema}"
+
+msgid "Export Complete"
+msgstr "导出完成"
+
+msgid "Successfully created {name}"
+msgstr "已成功创建 {name}"
+
+msgid "File Size"
+msgstr "文件大小"
+
+msgid "Project"
+msgstr "项目"
+
+msgid "Format"
+msgstr "格式"
+
+msgid "Devices"
+msgstr "设备"
+
+msgid "Buildings"
+msgstr "建筑"
+
+msgid "Group Addresses"
+msgstr "组地址"
+
+msgid "Group Object Links"
+msgstr "组对象链接"
+
+msgid "Areas / Lines"
+msgstr "区域/支线"
+
+msgid "Floors / Rooms"
+msgstr "楼层/房间"
+
+msgid "Functions"
+msgstr "功能"
+
+msgid "KNX Master Version"
+msgstr "KNX Master 版本"
+
+msgid "Exported at"
+msgstr "导出时间"
+
+msgid "Manufacturer Data (M Folders)"
+msgstr "厂家数据（M 文件夹）"
+
+msgid "Signed"
+msgstr "已签名"
+
+msgid "Certificate"
+msgstr "证书"
+
+msgid "yes"
+msgstr "是"
+
+msgid "no"
+msgstr "否"
+
+msgid "Open Folder"
+msgstr "打开文件夹"
+
+msgid "Good to Know"
+msgstr "须知"
+
+msgid "Your project opened fine and everything you need to work with is here. A few extra details from the original file are shown a bit more simply:"
+msgstr "您的项目已正常打开，工作所需的一切都在这里。原始文件中的一些额外细节以更简化的方式显示："
+
+msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
+msgstr "此项目来自一个包含一些本编辑器不使用的额外细节的文件。导出时将省略这些内容："
+
+msgid "The original file had {count} installations. They were combined into one."
+msgstr "原始文件包含 {count} 个安装。它们已合并为一个。"
+
+msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr "有 {count} 个设备未分配到支线。它们保留在项目中并会包含在导出中，但目前还无法在此编辑。"
+
+msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr "有 {count} 个组对象在原始文件中带有额外说明。自定义名称和功能已保留，只是该说明不在此显示。"
+
+msgid "For example: {examples}"
+msgstr "例如：{examples}"
+
+msgid "{count} IP or function setting(s) from the original file are not used here."
+msgstr "原始文件中有 {count} 项 IP 或功能设置在此未使用。"
+
+msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr "有 {count} 条支线使用了多个段。在 schema 14/20 导出中，它们仅在支线级别显示。"
+
+msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
+msgstr "有 {count} 条支线在不同安装中具有相同地址。合并时每组仅保留一条。"
+
+msgid "Exporting {name} — this can take a while for large projects."
+msgstr "正在导出 {name} — 对于大型项目，这可能需要一段时间。"
+
+msgid "Collecting the manufacturer data…"
+msgstr "正在收集厂家数据…"
+
+msgid "Writing the archive…"
+msgstr "正在写入归档…"
+
+msgid "Getting the certificate from MyKNX…"
+msgstr "正在从 MyKNX 获取证书…"
+
+msgid "Cancelling…"
+msgstr "正在取消…"
+
+msgid "Export cancelled, no file was written"
+msgstr "导出已取消，未写入任何文件"
+
+msgid "Export Failed"
+msgstr "导出失败"
+
+msgid "The project could not be exported to {name}."
+msgstr "无法将项目导出到 {name}。"
+
+msgid "MyKNX did not issue the certificate for the project:"
+msgstr "MyKNX 未为该项目颁发证书："
+
+msgid "To export without it, choose 'Export Without Certificate' or the 'License with a Dongle' tab in the Sign Export window."
+msgstr "如需不带证书导出，请在“签名导出”窗口中选择“不带证书导出”或“使用加密狗授权”选项卡。"
+
+msgid "{name} cannot be imported."
+msgstr "无法导入 {name}。"
+
+msgid "The file was written, but it refers to product data that is not in the catalog: {references}. Add these products to the catalog and export again."
+msgstr "文件已写入，但它引用了产品目录中没有的产品数据：{references}。请将这些产品添加到产品目录后重新导出。"
+
+msgid "Sign Export"
+msgstr "签名导出"
+
+msgid "ETS 6: needs a licensed .knxproj through a MyKNX login or a dongle.\nETS 5: just use 'Export Without Certificate'."
+msgstr "ETS 6：需要通过 MyKNX 登录或加密狗获得授权的 .knxproj。\nETS 5：只需使用“不带证书导出”。"
+
+msgid "Sign with MyKNX Login"
+msgstr "使用 MyKNX 登录签名"
+
+msgid "License with a Dongle"
+msgstr "使用加密狗授权"
+
+msgid "ETS must not be running on any computer with this MyKNX account while you log in and export here."
+msgstr "在此登录和导出期间，任何使用此 MyKNX 账户的计算机上都不得运行 ETS。"
+
+msgid "MyKNX Username"
+msgstr "MyKNX 用户名"
+
+msgid "MyKNX Password"
+msgstr "MyKNX 密码"
+
+msgid "Log in"
+msgstr "登录"
+
+msgid "Complete sign-in in your browser. Code: {code}"
+msgstr "请在浏览器中完成登录。代码：{code}"
+
+msgid "Login failed (HTTP 401). Either the password is wrong, or this account uses two-factor authentication - the server does not say which."
+msgstr "登录失败（HTTP 401）。可能是密码错误，也可能是此账户使用了双重身份验证——服务器不会说明是哪种情况。"
+
+msgid "Re-enter Credentials"
+msgstr "重新输入凭据"
+
+msgid "Start 2FA Sign-In"
+msgstr "开始 2FA 登录"
+
+msgid "MyKNX OAuth Credentials (2FA)"
+msgstr "MyKNX OAuth 凭据（2FA）"
+
+msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
+msgstr "仅适用于启用了双重身份验证的账户。普通登录被拒绝时，2FA 登录会自动在浏览器中打开。请输入 OAuth 客户端 ID/密钥，或从已安装的 ETS 中提取：从 ETS 程序文件夹中选择“Knx.Ets.MyKnx.dll”（例如 C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll）。\n\n或者，如果您安装了任何已授权的 ETS，可完全跳过在线签名，改用本地项目存储——参见“使用加密狗授权”选项卡。"
+
+msgid "Client ID"
+msgstr "客户端 ID"
+
+msgid "Client Secret"
+msgstr "客户端密钥"
+
+msgid "Extract from ETS…"
+msgstr "从 ETS 提取…"
+
+msgid "Extracting…"
+msgstr "正在提取…"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "All files"
+msgstr "所有文件"
+
+msgid "Logging in…"
+msgstr "正在登录…"
+
+msgid "License"
+msgstr "许可证"
+
+msgid "No licenses found on this account"
+msgstr "此账户上未找到许可证"
+
+msgid "no online certificate"
+msgstr "无在线证书"
+
+msgid "expired"
+msgstr "已过期"
+
+msgid "None of these licenses can sign online. Only ETS6 (or a cloud-enabled ETS app) licenses produce a certificate; ETS5/older licenses cannot. Use 'License with a dongle' instead."
+msgstr "这些许可证都无法在线签名。只有 ETS6（或支持云的 ETS 应用）许可证才能生成证书；ETS5 及更早的许可证不能。请改用“使用加密狗授权”。"
+
+msgid "Login failed: {error}"
+msgstr "登录失败：{error}"
+
+msgid "Format Version"
+msgstr "格式版本"
+
+msgid "Remove device(s) & re-export"
+msgstr "移除设备并重新导出"
+
+msgid "Removed {count} incompatible device(s); re-exporting"
+msgstr "已移除 {count} 个不兼容的设备；正在重新导出"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
+msgstr "此文件无法导入所选的 ETS 版本：这些厂家的产品数据仅适用于较新的 ETS（例如 ETS 5 导出中的 ETS 6 产品），因此 ETS 会拒绝整个项目。请移除受影响的设备，或为较新的 ETS 导出。"
+
+msgid "ETS 6 (schema 23)"
+msgstr "ETS 6（schema 23）"
+
+msgid "ETS 5 (schema 20)"
+msgstr "ETS 5（schema 20）"
+
+msgid "Signing Key…"
+msgstr "签名密钥…"
+
+msgid "Signing Key"
+msgstr "签名密钥"
+
+msgid "Folder signature uses a placeholder key. Enter a valid signature under 'Signing Key…' or use the 'License with a Dongle' way."
+msgstr "文件夹签名使用的是占位密钥。请在“签名密钥…”下输入有效签名，或使用“使用加密狗授权”方式。"
+
+msgid "Export to ProjectStore"
+msgstr "导出到 ProjectStore"
+
+msgid "Select the {ets} ProjectStore folder"
+msgstr "选择 {ets} ProjectStore 文件夹"
+
+msgid "Select the ETS installer.guid file"
+msgstr "选择 ETS installer.guid 文件"
+
+msgid "ETS installer id"
+msgstr "ETS 安装程序 ID"
+
+msgid "Project Already in the Store"
+msgstr "项目已在存储中"
+
+msgid "A project folder '{pid}' already exists in this ETS ProjectStore. Overwrite it, or add it as a separate copy?"
+msgstr "此 ETS ProjectStore 中已存在项目文件夹“{pid}”。要覆盖它，还是将其添加为单独的副本？"
+
+msgid "Overwrite"
+msgstr "覆盖"
+
+msgid "Add Copy"
+msgstr "添加副本"
+
+msgid "XKNX Export"
+msgstr "XKNX 导出"
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store:\n1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n3. Restart ETS 6 - the project appears in the project overview.\n4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed:\nChoose 'Export Without Certificate' (with ETS 5 as version) and an active signing key to save a .knxproj, then import that file into ETS 5.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "通过您自己已授权的 ETS 重新授权项目，ETS 会使用您的加密狗许可证对副本重新签名：\n\nETS 6 - 使用本地项目存储：\n1. 单击“导出到 ProjectStore”。它会将项目的“P-XXXX”文件夹直接写入您的 ETS 6 项目存储。如果此计算机上未安装 ETS，系统会要求您选择存储文件夹（或任意文件夹，之后再手动复制过去）。\n2. 导出需要 C:\\ProgramData\\KNX\\ETS6\\Installer 中的“installer.guid”。如果无法自动找到，系统会要求您选择该文件。\n3. 重启 ETS 6——项目会出现在项目概览中。\n4. 在概览中复制该项目（复制）。副本会使用您的许可证重新签名——打开它，然后正常使用或导出。\n\nETS 5 - 无需项目存储：\n选择“不带证书导出”（版本选择 ETS 5）并使用有效的签名密钥保存 .knxproj，然后将该文件导入 ETS 5。\n\n此操作受您许可证的每个项目设备数量限制。"
+
+msgid "Sign & Export"
+msgstr "签名并导出"
+
+msgid "Export Without Certificate"
+msgstr "不带证书导出"
+
+msgid "Export ETS Project"
+msgstr "导出 ETS 项目"
+
+msgid "Load .knxprod…"
+msgstr "加载 .knxprod…"
+
+msgid "Load OpenKNX from URL or Folder…"
+msgstr "从 URL 或文件夹加载 OpenKNX…"
+
+msgid "Load OpenKNX from URL or Files…"
+msgstr "从 URL 或文件加载 OpenKNX…"
+
+msgid "Load OpenKNX from URL or Folder"
+msgstr "从 URL 或文件夹加载 OpenKNX"
+
+msgid "Load OpenKNX from URL or Files"
+msgstr "从 URL 或文件加载 OpenKNX"
+
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+msgstr "粘贴 OpenKNX GitHub 发布 URL（发布页面即可，会自动找到 .zip 资源）。也可使用 .knxprod 或 KNX 产品 XML 的直接链接。\n\n示例：\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+
+msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "或选择包含产品文件（.knxprod、OpenKNX 发布 .zip 或 KNX 产品 XML）的本地文件夹，以全部导入。"
+
+msgid "Choose Folder…"
+msgstr "选择文件夹…"
+
+msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "或从此计算机上传产品文件（.knxprod、OpenKNX 发布 .zip 或 KNX 产品 XML），以全部导入。"
+
+msgid "Choose Files…"
+msgstr "选择文件…"
+
+msgid "Load"
+msgstr "加载"
+
+msgid "Downloading and importing…"
+msgstr "正在下载并导入…"
+
+msgid "Nothing new imported (already in the catalog)"
+msgstr "未导入新内容（已在产品目录中）"
+
+msgid "Import from URL failed: {error}"
+msgstr "从 URL 导入失败：{error}"
+
+msgid "Choose a Folder with KNX Product Files"
+msgstr "选择包含 KNX 产品文件的文件夹"
+
+msgid "Importing from folder…"
+msgstr "正在从文件夹导入…"
+
+msgid "Nothing new imported from folder (no product files found, or already in the catalog)"
+msgstr "未从文件夹导入新内容（未找到产品文件，或已在产品目录中）"
+
+msgid "Import from folder failed: {error}"
+msgstr "从文件夹导入失败：{error}"
+
+msgid "Choose KNX Product Files"
+msgstr "选择 KNX 产品文件"
+
+msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
+msgstr "KNX 产品文件（*.knxprod、*.zip、*.xml）"
+
+msgid "Importing files…"
+msgstr "正在导入文件…"
+
+msgid "Nothing new imported from the files (no product files, or already in the catalog)"
+msgstr "未从文件导入新内容（没有产品文件，或已在产品目录中）"
+
+msgid "Import of the files failed: {error}"
+msgstr "文件导入失败：{error}"
+
+msgid "Exit"
+msgstr "退出"
+
+msgid "Edit"
+msgstr "编辑"
+
+msgid "View"
+msgstr "视图"
+
+msgid "Restore Default Layout"
+msgstr "恢复默认布局"
+
+msgid "Show All"
+msgstr "显示全部"
+
+msgid "Hide All"
+msgstr "全部隐藏"
+
+msgid "Highlight Changes"
+msgstr "突出显示修改"
+
+msgid "Context Help"
+msgstr "上下文帮助"
+
+msgid "Status Bar"
+msgstr "状态栏"
+
+msgid "FPS in Status Bar"
+msgstr "在状态栏中显示 FPS"
+
+msgid "Enable Idling"
+msgstr "启用空闲模式"
+
+msgid "FPS: {fps:.1f}{idling}"
+msgstr "FPS：{fps:.1f}{idling}"
+
+msgid " (Idling)"
+msgstr " （空闲）"
+
+msgid "Theme"
+msgstr "主题"
+
+msgid "Customize Theme…"
+msgstr "自定义主题…"
+
+msgid "Customize Theme"
+msgstr "自定义主题"
+
+msgid "Sizes"
+msgstr "尺寸"
+
+msgid "Colors"
+msgstr "颜色"
+
+msgid "Rendering"
+msgstr "渲染"
+
+msgid "Adjustments"
+msgstr "调整"
+
+msgid "Theme Default"
+msgstr "主题默认值"
+
+msgid "Reset to Theme"
+msgstr "重置为主题值"
+
+msgid "Rounding"
+msgstr "圆角"
+
+msgid "Scrollbar Rounding Ratio"
+msgstr "滚动条圆角比例"
+
+msgid "Opacity"
+msgstr "不透明度"
+
+msgid "Hue"
+msgstr "色调"
+
+msgid "Saturation"
+msgstr "饱和度"
+
+msgid "Brightness of Controls"
+msgstr "控件亮度"
+
+msgid "Brightness of Backgrounds"
+msgstr "背景亮度"
+
+msgid "Brightness of Text"
+msgstr "文本亮度"
+
+msgid "Brightness of Input Fields"
+msgstr "输入框亮度"
+
+msgid "Spacing"
+msgstr "间距"
+
+msgid "Borders"
+msgstr "边框"
+
+msgid "Alignment"
+msgstr "对齐"
+
+msgid "Window Padding"
+msgstr "窗口内边距"
+
+msgid "Field Padding"
+msgstr "字段内边距"
+
+msgid "Cell Padding"
+msgstr "单元格内边距"
+
+msgid "Item Spacing"
+msgstr "项间距"
+
+msgid "Item Inner Spacing"
+msgstr "项内部间距"
+
+msgid "Extra Touch Padding"
+msgstr "额外触控内边距"
+
+msgid "Indent"
+msgstr "缩进"
+
+msgid "Scrollbar Width"
+msgstr "滚动条宽度"
+
+msgid "Minimum Slider Grip Size"
+msgstr "滑块手柄最小尺寸"
+
+msgid "Windows"
+msgstr "窗口"
+
+msgid "Child Windows"
+msgstr "子窗口"
+
+msgid "Popups"
+msgstr "弹出窗口"
+
+msgid "Fields"
+msgstr "字段"
+
+msgid "Tabs"
+msgstr "选项卡"
+
+msgid "Tab Bar"
+msgstr "选项卡栏"
+
+msgid "Scrollbars"
+msgstr "滚动条"
+
+msgid "Slider Grips"
+msgstr "滑块手柄"
+
+msgid "Window Title"
+msgstr "窗口标题"
+
+msgid "Button Text"
+msgstr "按钮文本"
+
+msgid "List Entry Text"
+msgstr "列表项文本"
+
+msgid "Separator Text"
+msgstr "分隔符文本"
+
+msgid "Font Scale"
+msgstr "字体缩放"
+
+msgid "Anti-Aliased Lines"
+msgstr "抗锯齿线条"
+
+msgid "Anti-Aliased Fills"
+msgstr "抗锯齿填充"
+
+msgid "Curve Tessellation Tolerance"
+msgstr "曲线细分容差"
+
+msgid "Maximum Circle Tessellation Error"
+msgstr "圆形细分最大误差"
+
+msgid "Global Opacity"
+msgstr "全局不透明度"
+
+msgid "Opacity of Disabled Items"
+msgstr "禁用项不透明度"
+
+msgid "Show ImGui Demo Window"
+msgstr "显示 ImGui 演示窗口"
+
+msgid "Filter colors"
+msgstr "过滤颜色"
+
+msgid "Undo"
+msgstr "撤消"
+
+msgid "Redo"
+msgstr "恢复"
+
+msgid "Open KNX Product Archive"
+msgstr "打开 KNX 产品归档"
+
+msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
+msgstr "KNX 产品（*.knxprod、*.vd1-*.vd5）"
+
+msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
+msgstr "不直接导入旧版 ETS 产品数据库（.vd1-.vd5）。\n\n请先使用 ETS5/ETS6 附带的转换工具将文件转换为 .knxprod（在 ETS 中打开产品文件，或使用其命令行转换器），然后在此导入生成的 .knxprod。"
+
+msgid "ETS Project (*.knxproj)"
+msgstr "ETS 项目（*.knxproj）"
+
+msgid "ETS 6 Project (*.knxproj)"
+msgstr "ETS 6 项目（*.knxproj）"
+
+msgid "ETS 5 Project (*.knxproj)"
+msgstr "ETS 5 项目（*.knxproj）"
+
+msgid "Group Address Exports (*.xml, *.csv)"
+msgstr "组地址导出（*.xml、*.csv）"
+
+msgid "Group Address Export (*.xml)"
+msgstr "组地址导出（*.xml）"
+
+msgid "Open XKNX Project"
+msgstr "打开 XKNX 项目"
+
+msgid "Save XKNX Project"
+msgstr "保存 XKNX 项目"
+
+msgid "Save Project As"
+msgstr "项目另存为"
+
+msgid "Replace File"
+msgstr "替换文件"
+
+msgid "{name} already exists."
+msgstr "{name} 已存在。"
+
+msgid "It is in {dir}. Replacing it overwrites its current content; this cannot be undone."
+msgstr "它位于 {dir} 中。替换将覆盖其当前内容；此操作无法撤消。"
+
+msgid "Replace"
+msgstr "替换"
+
+msgid "XKNX Project (*.xknx)"
+msgstr "XKNX 项目（*.xknx）"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml, *.csv)"
+msgstr "项目（*.xknx、*.knxproj、*.xml、*.csv）"
+
+msgid "Working…"
+msgstr "正在处理…"
+
+msgid "Importing project — this can take a while for large projects."
+msgstr "正在导入项目 — 对于大型项目，这可能需要一段时间。"
+
+msgid "{done}/{total} devices"
+msgstr "{done}/{total} 个设备"
+
+msgid "Loading product catalog…"
+msgstr "正在加载产品目录…"
+
+msgid "Imported {count} product version(s) from {name}:"
+msgstr "已从 {name} 导入 {count} 个产品版本："
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "DIN rail"
+msgstr "DIN 导轨"
+
+msgid "Flush-mounted"
+msgstr "嵌入式安装"
+
+msgid "Registered: {info}"
+msgstr "已注册：{info}"
+
+msgid "Manufacturer"
+msgstr "厂家"
+
+msgid "Product"
+msgstr "产品"
+
+msgid "Order no."
+msgstr "订货号"
+
+msgid "Application"
+msgstr "应用"
+
+msgid "Version"
+msgstr "版本"
+
+msgid "Mask"
+msgstr "掩码"
+
+msgid "Hardware"
+msgstr "硬件"
+
+msgid "Registered"
+msgstr "已注册"
+
+msgid "{name} was already in the catalog, nothing new imported"
+msgstr "{name} 已在产品目录中，未导入新内容"
+
+msgid "Product Catalog Import"
+msgstr "产品目录导入"
+
+msgid "Opening project…"
+msgstr "正在打开项目…"
+
+msgid "Importing group addresses…"
+msgstr "正在导入组地址…"
+
+msgid "Switching language…"
+msgstr "正在切换语言…"
+
+msgid "Project Password"
+msgstr "项目密码"
+
+msgid "This ETS project is password protected. Enter its password:"
+msgstr "此 ETS 项目受密码保护。请输入其密码："
+
+msgid "Wrong password, please try again."
+msgstr "密码错误，请重试。"
+
+msgid "This project is protected with a password. Enter it to open the project:"
+msgstr "此项目受密码保护。请输入密码以打开项目："
+
+msgid "This project contains KNX Secure keys. Set a project password to protect them; the project can then only be opened with it."
+msgstr "此项目包含 KNX Secure 密钥。请设置项目密码以保护这些密钥；之后只能使用该密码打开项目。"
+
+msgid "Password"
+msgstr "密码"
+
+msgid "Repeat Password"
+msgstr "重复密码"
+
+msgid "The passwords do not match."
+msgstr "密码不匹配。"
+
+msgid "Protecting the project with the password…"
+msgstr "正在使用密码保护项目…"
+
+msgid "OK"
+msgstr "确定"
+
+msgid "Check for Updates"
+msgstr "检查更新"
+
+msgid "Check for Updates on Startup"
+msgstr "启动时检查更新"
+
+msgid "Update Available"
+msgstr "有更新"
+
+msgid "Version {latest} is available. You have {current}."
+msgstr "版本 {latest} 可用。您的版本是 {current}。"
+
+msgid "You are up to date (version {version})."
+msgstr "已是最新版本（版本 {version}）。"
+
+msgid "Download"
+msgstr "下载"
+
+msgid "Install Update"
+msgstr "安装更新"
+
+msgid "Install Update downloads the installer, closes XKNX Editor and starts it again with the open project."
+msgstr "“安装更新”会下载安装程序，关闭 XKNX Editor，然后使用打开的项目重新启动它。"
+
+msgid "Downloading the update…"
+msgstr "正在下载更新…"
+
+msgid "{done} of {total} MB"
+msgstr "{done} / {total} MB"
+
+msgid "Skip This Version"
+msgstr "跳过此版本"
+
+msgid "Later"
+msgstr "稍后"
+
+msgid "Release Notes:"
+msgstr "发行说明："
+
+msgid "License: GPL-2.0-only"
+msgstr "许可证：GPL-2.0-only"
+
+msgid "Website:"
+msgstr "网站："
+
+msgid "Open Config Folder"
+msgstr "打开配置文件夹"
+
+msgid "Open Cache Folder"
+msgstr "打开缓存文件夹"
+
+msgid "Open Log Folder"
+msgstr "打开日志文件夹"
+
+msgid "Compact Project…"
+msgstr "压缩项目…"
+
+msgid "Compact Project"
+msgstr "压缩项目"
+
+msgid "Analysing project…"
+msgstr "正在分析项目…"
+
+msgid "Compacting project…"
+msgstr "正在压缩项目…"
+
+msgid "Analysing devices"
+msgstr "正在分析设备"
+
+msgid "Analysing product data ({manufacturer})"
+msgstr "正在分析产品数据（{manufacturer}）"
+
+msgid "Removing unused product data ({manufacturer})"
+msgstr "正在移除未使用的产品数据（{manufacturer}）"
+
+msgid "Saving product data"
+msgstr "正在保存产品数据"
+
+msgid "Compacting project file"
+msgstr "正在压缩项目文件"
+
+msgid "The following product data is not used by any device in this project and will be removed:"
+msgstr "以下产品数据未被此项目中的任何设备使用，将被移除："
+
+msgid "All product data in this project is used by its devices, nothing to remove. The project file can still be compacted to free unused space."
+msgstr "此项目中的所有产品数据都被其设备使用，无需移除。仍可压缩项目文件以释放未使用的空间。"
+
+msgid "Application Programs"
+msgstr "应用程序"
+
+msgid "Device Types (Products)"
+msgstr "设备类型（产品）"
+
+msgid "Manufacturers"
+msgstr "厂家"
+
+msgid "Catalog Entries"
+msgstr "产品目录条目"
+
+msgid "Help and Plug-in Files"
+msgstr "帮助和插件文件"
+
+msgid "Details"
+msgstr "详细信息"
+
+msgid "Current File Size"
+msgstr "当前文件大小"
+
+msgid "Estimated Size Afterwards"
+msgstr "预计压缩后大小"
+
+msgid "This cannot be undone. Removed product data has to be imported again if these products are added to the project later."
+msgstr "此操作无法撤消。如果以后将这些产品添加到项目中，必须重新导入已移除的产品数据。"
+
+msgid "Compact"
+msgstr "压缩"
+
+msgid "Project Compacted"
+msgstr "项目已压缩"
+
+msgid "The project file was compacted."
+msgstr "项目文件已压缩。"
+
+msgid "Size before"
+msgstr "压缩前大小"
+
+msgid "Size after"
+msgstr "压缩后大小"
+
+msgid "Compacting cancelled, the project was not changed"
+msgstr "压缩已取消，项目未更改"
+
+msgid "Remove Unused Product Data"
+msgstr "移除未使用的产品数据"
+
+msgid "(only in the export, the project stays unchanged)"
+msgstr "（仅在导出中，项目保持不变）"
+
+msgid "Hide Tab Bar"
+msgstr "隐藏选项卡栏"
+
+msgid "Open {url}"
+msgstr "打开 {url}"
+
+msgid "Copy Link"
+msgstr "复制链接"
+
+msgid "Enter the password for access to the editor."
+msgstr "请输入访问编辑器的密码。"
+
+msgid "Sign In"
+msgstr "登录"
+
+msgid "Wrong password."
+msgstr "密码错误。"
+
+msgid "Disconnected. Reconnecting…"
+msgstr "连接已断开。正在重新连接…"
+
+msgid "Access denied. Please sign in again."
+msgstr "访问被拒绝。请重新登录。"
+
+msgid "Upload from This Computer…"
+msgstr "从此计算机上传…"
+
+msgid "Or drop files here."
+msgstr "或将文件拖放到此处。"
+
+msgid "Files on the Server"
+msgstr "服务器上的文件"
+
+msgid "No files yet."
+msgstr "尚无文件。"
+
+msgid "Open"
+msgstr "打开"
+
+msgid "Select"
+msgstr "选择"
+
+msgid "File Name"
+msgstr "文件名"
+
+msgid "Folder Name"
+msgstr "文件夹名称"
+
+msgid "File Type"
+msgstr "文件类型"
+
+msgid "Download to This Computer"
+msgstr "下载到此计算机"
+
+msgid "Uploading {name}…"
+msgstr "正在上传 {name}…"
+
+msgid "Upload failed: {error}"
+msgstr "上传失败：{error}"
+
+msgid "Show"
+msgstr "显示"
+
+msgid "Folder on the Server"
+msgstr "服务器上的文件夹"
+
+msgid "View only: another browser controls the editor."
+msgstr "仅查看：另一个浏览器正在控制编辑器。"
+
+msgid "Take Control"
+msgstr "接管控制"
+
+msgid "Name"
+msgstr "名称"
+
+msgid "Size"
+msgstr "大小"
+
+msgid "Modified"
+msgstr "修改时间"
+
+msgid "The browser did not open it by itself."
+msgstr "浏览器未自行打开它。"
+
+msgid "Download started: {name}"
+msgstr "已开始下载：{name}"
+
+msgid "Choose File…"
+msgstr "选择文件…"
+
+msgid "{name} is ready."
+msgstr "{name} 已就绪。"
+
+msgid "Open Link"
+msgstr "打开链接"
+
+msgid "Checking for updates…"
+msgstr "正在检查更新…"
+
+msgid "The check for updates failed: {error}"
+msgstr "检查更新失败：{error}"
+
+msgid "The project has no group addresses to export."
+msgstr "项目中没有可导出的组地址。"
+
+msgid "Clear Cache…"
+msgstr "清除缓存…"
+
+msgid "Clear Cache"
+msgstr "清除缓存"
+
+msgid "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
+msgstr "缓存中包含 {size} 的已解析产品数据以及为 AI 工具获取的文档。所有内容会在需要时重新生成；之后仅每个产品的首次使用会耗时更长。"
+
+msgid "Cache cleared, {size} freed"
+msgstr "缓存已清除，释放了 {size}"
+
+msgid "Zoom In"
+msgstr "放大"
+
+msgid "Zoom Out"
+msgstr "缩小"
+
+msgid "Reset Zoom"
+msgstr "重置缩放"
+
+msgid "Cut"
+msgstr "剪切"
+
+msgid "Paste"
+msgstr "粘贴"
+
+msgid "Select All"
+msgstr "全选"
+
+msgid "Long-press in the field below and choose Paste."
+msgstr "在下方字段中长按并选择“粘贴”。"
+
+msgid "Too many wrong passwords. Please try again in a few minutes."
+msgstr "密码错误次数过多。请几分钟后重试。"
+
+msgid "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
+msgstr "端口 {port} 已被其他程序占用，因此浏览器界面无法在该端口启动。请使用其他端口（例如 --web={example}）启动，或不指定端口以自动选择空闲端口。"
+
+msgid "Open in Browser"
+msgstr "在浏览器中打开"
+
+msgid "Stop XKNX Editor"
+msgstr "停止 XKNX Editor"
+
+msgid "XKNX Editor Already Running"
+msgstr "XKNX Editor 已在运行"
+
+msgid "XKNX Editor is already running on this computer. Switch to it, or start another one, e.g. to work on a second project or with another bus connection."
+msgstr "XKNX Editor 已在此计算机上运行。切换到该实例，或再启动一个，例如用于处理第二个项目或使用其他总线连接。"
+
+msgid "Window"
+msgstr "窗口"
+
+msgid "Browser UI ({url})"
+msgstr "浏览器界面（{url}）"
+
+msgid "{kind}: {project}"
+msgstr "{kind}：{project}"
+
+msgid "Switch to It"
+msgstr "切换到该实例"
+
+msgid "Start Another"
+msgstr "再启动一个"
+
+msgid "That XKNX Editor has ended in the meantime."
+msgstr "该 XKNX Editor 已在此期间结束。"
+
+msgid "Project Already Open"
+msgstr "项目已打开"
+
+msgid "{name} is already open in another XKNX Editor. Editing it in two editors at once can overwrite changes."
+msgstr "{name} 已在另一个 XKNX Editor 中打开。在两个编辑器中同时编辑可能会覆盖更改。"
+
+msgid "Open Anyway"
+msgstr "仍然打开"
+
+msgid "C"
+msgstr "C"
+
+msgid "R"
+msgstr "R"
+
+msgid "W"
+msgstr "W"
+
+msgid "T"
+msgstr "T"
+
+msgid "U"
+msgstr "U"
+
+msgid "I"
+msgstr "I"
+
+msgid "Communication"
+msgstr "通讯"
+
+msgid "Read"
+msgstr "读取"
+
+msgid "Write"
+msgstr "写入"
+
+msgid "Transmit"
+msgstr "传送"
+
+msgid "Update"
+msgstr "更新"
+
+msgid "Read on Init"
+msgstr "初始化读取"
+
+msgid "English"
+msgstr "英语"
+
+msgid "German"
+msgstr "德语"
+
+msgid "Dutch"
+msgstr "荷兰语"
+
+msgid "{name} ({native})"
+msgstr "{name}（{native}）"
+
+msgid "Spanish"
+msgstr "西班牙语"
+
+msgid "Greek"
+msgstr "希腊语"
+
+msgid "Simplified Chinese"
+msgstr "简体中文"
+
+msgid "Japanese"
+msgstr "日语"

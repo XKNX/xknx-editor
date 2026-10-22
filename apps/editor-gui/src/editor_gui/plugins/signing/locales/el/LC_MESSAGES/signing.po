@@ -1,0 +1,65 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor signing 1.0\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Signing"
+msgstr "Υπογραφή"
+
+msgid "Signing Key…"
+msgstr "Κλειδί Υπογραφής…"
+
+msgid "A signing key is set (exports are signed)."
+msgstr "Έχει οριστεί κλειδί υπογραφής (οι εξαγωγές υπογράφονται)."
+
+msgid "Placeholder key in use — signatures are not ETS-valid."
+msgstr "Χρησιμοποιείται κλειδί κράτησης θέσης — οι υπογραφές δεν είναι έγκυρες για το ETS."
+
+msgid "Modulus (hex)"
+msgstr "Modulus (hex)"
+
+msgid "Private Exponent (hex)"
+msgstr "Ιδιωτικός Εκθέτης (hex)"
+
+msgid "Public Exponent (hex)"
+msgstr "Δημόσιος Εκθέτης (hex)"
+
+msgid "Extract from Knx.Ets.XmlSigning.dll…"
+msgstr "Εξαγωγή από Knx.Ets.XmlSigning.dll…"
+
+msgid "Save"
+msgstr "Αποθήκευση"
+
+msgid "Reset to Placeholder"
+msgstr "Επαναφορά σε Κλειδί Κράτησης Θέσης"
+
+msgid "All DLLs"
+msgstr "Όλα τα DLL"
+
+msgid "All Files"
+msgstr "Όλα τα αρχεία"
+
+msgid "Select \"Knx.Ets.XmlSigning.dll\" from your ETS installation (e.g. C:\\Program Files (x86)\\ETS6)."
+msgstr "Επιλέξτε το \"Knx.Ets.XmlSigning.dll\" από την εγκατάσταση ETS σας (π.χ. C:\\Program Files (x86)\\ETS6)."
+
+msgid "Extracting key from the assembly…"
+msgstr "Εξαγωγή κλειδιού από το assembly…"
+
+msgid "Signing key saved."
+msgstr "Το κλειδί υπογραφής αποθηκεύτηκε."
+
+msgid "Reverted to the placeholder key."
+msgstr "Έγινε επαναφορά στο κλειδί κράτησης θέσης."
+
+msgid "No .NET runtime found. Install the .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) to extract the key, or paste it manually below."
+msgstr "Δεν βρέθηκε .NET runtime. Εγκαταστήστε το .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) για να εξαγάγετε το κλειδί ή επικολλήστε το χειροκίνητα παρακάτω."
+
+msgid "The key is read from your own licensed ETS assembly and stored per-user, never in the project."
+msgstr "Το κλειδί διαβάζεται από το δικό σας αδειοδοτημένο assembly του ETS και αποθηκεύεται ανά χρήστη, ποτέ στο έργο."
+
+msgid "Based on OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."
+msgstr "Βασίζεται στο OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."

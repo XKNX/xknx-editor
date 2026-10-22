@@ -1,0 +1,41 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor health 1.0\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Health"
+msgstr "Έλεγχος Κατάστασης"
+
+msgid "No project open"
+msgstr "Δεν υπάρχει ανοιχτό έργο"
+
+msgid "No issues found"
+msgstr "Δεν βρέθηκαν προβλήματα"
+
+msgid "{errors} errors, {warnings} warnings"
+msgstr "{errors} σφάλματα, {warnings} προειδοποιήσεις"
+
+msgid "{device}: no individual address"
+msgstr "{device}: χωρίς ατομική διεύθυνση"
+
+msgid "Duplicate individual address {address} ({device})"
+msgstr "Διπλότυπη ατομική διεύθυνση {address} ({device})"
+
+msgid "{count} device(s) skipped: application not in catalog"
+msgstr "{count} συσκευή(-ές) παραλείφθηκαν: η εφαρμογή δεν υπάρχει στον κατάλογο"
+
+msgid "{device}: {count} unlinked group object(s)"
+msgstr "{device}: {count} μη συνδεδεμένο(-α) αντικείμενο(-α) επικοινωνίας"
+
+msgid "{address} {name}: no datapoint type"
+msgstr "{address} {name}: χωρίς τύπο datapoint"
+
+msgid "{address} {name}: no sending group object"
+msgstr "{address} {name}: κανένα αντικείμενο επικοινωνίας αποστολής"
+
+msgid "{address} {name}: {count} sending group objects"
+msgstr "{address} {name}: {count} αντικείμενα επικοινωνίας αποστολής"

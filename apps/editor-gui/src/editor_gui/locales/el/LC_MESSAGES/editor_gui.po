@@ -1,0 +1,1364 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor editor_gui 1.0\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "XKNX Editor"
+msgstr "XKNX Editor"
+
+msgid "{project} - {app}"
+msgstr "{project} - {app}"
+
+msgid "Help"
+msgstr "Βοήθεια"
+
+msgid "Feedback"
+msgstr "Σχόλια"
+
+msgid "About"
+msgstr "Σχετικά"
+
+msgid "Language"
+msgstr "Γλώσσα"
+
+msgid "No matches"
+msgstr "Δεν βρέθηκαν αποτελέσματα"
+
+msgid "Version {version}"
+msgstr "Έκδοση {version}"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
+msgstr "Ένας επεξεργαστής για υπολογιστή για έργα εγκαταστάσεων αυτοματισμού κτιρίων, βασισμένος στη βιβλιοθήκη ανοιχτού κώδικα xknx και στο xknxtoolkit του kewde. Δεν συνδέεται με την KNX Association ούτε υποστηρίζεται από αυτήν."
+
+msgid "Network Location"
+msgstr "Τοποθεσία Δικτύου"
+
+msgid "This location is on a network drive:\n{home}\n\nKNX project files use a database that cannot run reliably on network shares. The editor can work on a local copy instead and write it back to the network location when you close the project."
+msgstr "Αυτή η τοποθεσία βρίσκεται σε μονάδα δικτύου:\n{home}\n\nΤα αρχεία έργων KNX χρησιμοποιούν μια βάση δεδομένων που δεν μπορεί να λειτουργήσει αξιόπιστα σε κοινόχρηστους φακέλους δικτύου. Ο επεξεργαστής μπορεί αντί αυτού να εργαστεί σε ένα τοπικό αντίγραφο και να το αποθηκεύσει πίσω στην τοποθεσία δικτύου όταν κλείσετε το έργο."
+
+msgid "Use a Local Copy"
+msgstr "Χρήση Τοπικού Αντιγράφου"
+
+msgid "Working on a local copy; written back to {home} when you close the project."
+msgstr "Εργασία σε τοπικό αντίγραφο· θα αποθηκευτεί πίσω στο {home} όταν κλείσετε το έργο."
+
+msgid "Add"
+msgstr "Προσθήκη"
+
+msgid "Close"
+msgstr "Κλείσιμο"
+
+msgid "Cancel"
+msgstr "Άκυρο"
+
+msgid "New Project"
+msgstr "Νέο Έργο"
+
+msgid "Project Name"
+msgstr "Όνομα Έργου"
+
+msgid "Group Address Style"
+msgstr "Δομή Διευθύνσεων Ομάδας"
+
+msgid "Free"
+msgstr "Ελεύθερη"
+
+msgid "Two-level"
+msgstr "Δύο επιπέδων"
+
+msgid "Three-level"
+msgstr "Τριών επιπέδων"
+
+msgid "Create…"
+msgstr "Δημιουργία…"
+
+msgid "Copy"
+msgstr "Αντιγραφή"
+
+msgid "Clear"
+msgstr "Εκκαθάριση"
+
+msgid "Stop"
+msgstr "Διακοπή"
+
+msgid "All Files"
+msgstr "Όλα τα αρχεία"
+
+msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
+msgstr "Έργο: {name}  ·  {devices} συσκευές  ·  {gas} διευθ. ομάδων"
+
+msgid "No project open"
+msgstr "Δεν υπάρχει ανοιχτό έργο"
+
+msgid "Programming {address}…"
+msgstr "Προγραμματισμός {address}…"
+
+msgid "Reading {address}…"
+msgstr "Ανάγνωση {address}…"
+
+msgid "Testing {address}…"
+msgstr "Έλεγχος {address}…"
+
+msgid "Programming complete"
+msgstr "Ο προγραμματισμός ολοκληρώθηκε"
+
+msgid "Programming failed"
+msgstr "Ο προγραμματισμός απέτυχε"
+
+msgid "No KNX connection"
+msgstr "Δεν υπάρχει σύνδεση KNX"
+
+msgid "KNX Master v{version} ({date})"
+msgstr "KNX Master v{version} ({date})"
+
+msgid "File"
+msgstr "Αρχείο"
+
+msgid "Open Project (.knxproj/.xknx)"
+msgstr "Άνοιγμα Έργου (.knxproj/.xknx)"
+
+msgid "Save As…"
+msgstr "Αποθήκευση ως…"
+
+msgid "Saved as {name}"
+msgstr "Αποθηκεύτηκε ως {name}"
+
+msgid "Open Recent"
+msgstr "Άνοιγμα Πρόσφατου"
+
+msgid "Settings…"
+msgstr "Ρυθμίσεις…"
+
+msgid "MCP Server"
+msgstr "Διακομιστής MCP"
+
+msgid "Settings"
+msgstr "Ρυθμίσεις"
+
+msgid "Gateway"
+msgstr "Gateway"
+
+msgid "MCP"
+msgstr "MCP"
+
+msgid "Catalog"
+msgstr "Κατάλογος"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Χρήση δρομολόγησης multicast (αντί για tunnelling)"
+
+msgid "Gateway IP"
+msgstr "IP Gateway"
+
+msgid "Multicast Group"
+msgstr "Ομάδα Multicast"
+
+msgid "Run the MCP server so an LLM can drive the editor over Streamable HTTP. It shares this app's catalog database."
+msgstr "Εκκινήστε τον διακομιστή MCP ώστε ένα LLM να μπορεί να χειρίζεται τον επεξεργαστή μέσω Streamable HTTP. Χρησιμοποιεί τη βάση δεδομένων καταλόγου αυτής της εφαρμογής."
+
+msgid "MCP Host"
+msgstr "Host MCP"
+
+msgid "MCP Port"
+msgstr "Θύρα MCP"
+
+msgid "Bearer Token (Optional)"
+msgstr "Bearer Token (Προαιρετικό)"
+
+msgid "Server: Running"
+msgstr "Διακομιστής: Σε λειτουργία"
+
+msgid "Server: Stopped"
+msgstr "Διακομιστής: Σταματημένος"
+
+msgid "Port {port} is already in use by another program, so the MCP server cannot start. Choose another port, or end the other program."
+msgstr "Η θύρα {port} χρησιμοποιείται ήδη από άλλο πρόγραμμα, οπότε ο διακομιστής MCP δεν μπορεί να ξεκινήσει. Επιλέξτε άλλη θύρα ή τερματίστε το άλλο πρόγραμμα."
+
+msgid "The MCP server could not start: {error}"
+msgstr "Ο διακομιστής MCP δεν μπόρεσε να ξεκινήσει: {error}"
+
+msgid "Start Server"
+msgstr "Εκκίνηση Διακομιστή"
+
+msgid "Stop Server"
+msgstr "Διακοπή Διακομιστή"
+
+msgid "AI MCP"
+msgstr "AI MCP"
+
+msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
+msgstr "Αυτός ο επεξεργαστής μπορεί να ελέγχεται από έναν βοηθό τεχνητής νοημοσύνης (Claude, Codex, …) μέσω του ενσωματωμένου διακομιστή MCP: παρέχει τον κατάλογο και το έργο ως εργαλεία μέσω Streamable HTTP. Εκκινήστε τον διακομιστή παρακάτω και, στη συνέχεια, καταχωρίστε το endpoint του στο εργαλείο AI σας."
+
+msgid "MCP Endpoint"
+msgstr "Endpoint MCP"
+
+msgid "Example: register the MCP server in your AI tool (adjust host/port):"
+msgstr "Παράδειγμα: καταχώριση του διακομιστή MCP στο εργαλείο AI σας (προσαρμόστε host/θύρα):"
+
+msgid "Use host 0.0.0.0 to make the server reachable from other devices on the network; 127.0.0.1/localhost only allows this machine."
+msgstr "Χρησιμοποιήστε τον host 0.0.0.0 ώστε ο διακομιστής να είναι προσβάσιμος από άλλες συσκευές στο δίκτυο· το 127.0.0.1/localhost επιτρέπει μόνο αυτόν τον υπολογιστή."
+
+msgid "claude mcp add --transport http xknx-editor {url}"
+msgstr "claude mcp add --transport http xknx-editor {url}"
+
+msgid "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+msgstr "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+
+msgid "codex mcp add xknx-editor --url {url}"
+msgstr "codex mcp add xknx-editor --url {url}"
+
+msgid "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+msgstr "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+
+msgid "Copied"
+msgstr "Αντιγράφηκε"
+
+msgid "Download Language"
+msgstr "Γλώσσα Λήψης Προϊόντων"
+
+msgid "MCP running"
+msgstr "MCP σε λειτουργία"
+
+msgid "Welcome"
+msgstr "Καλώς Ήρθατε"
+
+msgid "Create a new project or open an existing one to get started."
+msgstr "Δημιουργήστε ένα νέο έργο ή ανοίξτε ένα υπάρχον για να ξεκινήσετε."
+
+msgid "Recent Projects"
+msgstr "Πρόσφατα Έργα"
+
+msgid "Recover from Bus…"
+msgstr "Ανάκτηση από το Bus…"
+
+msgid "Export .knxproj…"
+msgstr "Εξαγωγή .knxproj…"
+
+msgid "Export to ETS 5 ProjectStore"
+msgstr "Εξαγωγή σε ETS 5 ProjectStore"
+
+msgid "Export Group Addresses…"
+msgstr "Εξαγωγή Διευθύνσεων Ομάδων…"
+
+msgid "Import Group Addresses…"
+msgstr "Εισαγωγή Διευθύνσεων Ομάδων…"
+
+msgid "Exported {count} group address(es)"
+msgstr "Εξήχθησαν {count} διεύθυνση(-εις) ομάδας"
+
+msgid "Export Group Addresses"
+msgstr "Εξαγωγή Διευθύνσεων Ομάδων"
+
+msgid "Output Format"
+msgstr "Μορφή Εξόδου"
+
+msgid "CSV Format"
+msgstr "Μορφή CSV"
+
+msgid "3/1 - three columns, Main/Middle/Sub group separated"
+msgstr "3/1 - τρεις στήλες, Κύρια/Μεσαία/Υπό ομάδα ξεχωριστά"
+
+msgid "1/3 - Group address name/Main - Middle - Sub group"
+msgstr "1/3 - Όνομα διεύθυνσης ομάδας/Κύρια - Μεσαία - Υπό ομάδα"
+
+msgid "1/1 - Name/Address"
+msgstr "1/1 - Όνομα/Διεύθυνση"
+
+msgid "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
+msgstr "3/3 - Όνομα Κύριας - Μεσαίας - Υπό ομάδας /Διεύθυνση Κύριας - Μεσαίας - Υπό ομάδας"
+
+msgid "Export with Header Line"
+msgstr "Εξαγωγή με Γραμμή Επικεφαλίδας"
+
+msgid "CSV Separator"
+msgstr "Διαχωριστής CSV"
+
+msgid "Tabulator"
+msgstr "Στηλοθέτης"
+
+msgid "Comma"
+msgstr "Κόμμα"
+
+msgid "Semicolon"
+msgstr "Ερωτηματικό (;)"
+
+msgid "Export"
+msgstr "Εξαγωγή"
+
+msgid "Group Address Export (*.csv)"
+msgstr "Εξαγωγή Διευθύνσεων Ομάδων (*.csv)"
+
+msgid "Exported to {path} ({size}) as {schema}"
+msgstr "Εξήχθη στο {path} ({size}) ως {schema}"
+
+msgid "Export Complete"
+msgstr "Η Εξαγωγή Ολοκληρώθηκε"
+
+msgid "Successfully created {name}"
+msgstr "Το {name} δημιουργήθηκε με επιτυχία"
+
+msgid "File Size"
+msgstr "Μέγεθος Αρχείου"
+
+msgid "Project"
+msgstr "Έργο"
+
+msgid "Format"
+msgstr "Μορφή"
+
+msgid "Devices"
+msgstr "Συσκευές"
+
+msgid "Buildings"
+msgstr "Κτίρια"
+
+msgid "Group Addresses"
+msgstr "Διευθύνσεις Ομάδων"
+
+msgid "Group Object Links"
+msgstr "Συνδέσεις Αντικειμένων Επικοινωνίας"
+
+msgid "Areas / Lines"
+msgstr "Περιοχές / Γραμμές"
+
+msgid "Floors / Rooms"
+msgstr "Όροφοι / Δωμάτια"
+
+msgid "Functions"
+msgstr "Λειτουργίες"
+
+msgid "KNX Master Version"
+msgstr "Έκδοση KNX Master"
+
+msgid "Exported at"
+msgstr "Εξήχθη στις"
+
+msgid "Manufacturer Data (M Folders)"
+msgstr "Δεδομένα Κατασκευαστή (Φάκελοι M)"
+
+msgid "Signed"
+msgstr "Υπογεγραμμένο"
+
+msgid "Certificate"
+msgstr "Πιστοποιητικό"
+
+msgid "yes"
+msgstr "ναι"
+
+msgid "no"
+msgstr "όχι"
+
+msgid "Open Folder"
+msgstr "Άνοιγμα Φακέλου"
+
+msgid "Good to Know"
+msgstr "Καλό να Ξέρετε"
+
+msgid "Your project opened fine and everything you need to work with is here. A few extra details from the original file are shown a bit more simply:"
+msgstr "Το έργο σας άνοιξε κανονικά και ό,τι χρειάζεστε για να εργαστείτε είναι εδώ. Μερικές επιπλέον λεπτομέρειες από το αρχικό αρχείο εμφανίζονται λίγο πιο απλά:"
+
+msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
+msgstr "Αυτό το έργο προέρχεται από ένα αρχείο με μερικές επιπλέον λεπτομέρειες που αυτός ο επεξεργαστής δεν χρησιμοποιεί. Η εξαγωγή τις παραλείπει:"
+
+msgid "The original file had {count} installations. They were combined into one."
+msgstr "Το αρχικό αρχείο είχε {count} εγκαταστάσεις. Συνδυάστηκαν σε μία."
+
+msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr "{count} συσκευή(-ές) δεν είναι αντιστοιχισμένες σε γραμμή. Διατηρούνται στο έργο και περιλαμβάνονται στην εξαγωγή, αλλά δεν μπορούν ακόμη να επεξεργαστούν εδώ."
+
+msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr "{count} αντικείμενο(-α) επικοινωνίας είχαν μια επιπλέον περιγραφή στο αρχικό αρχείο. Το προσαρμοσμένο όνομα και η λειτουργία διατηρούνται· μόνο αυτή η περιγραφή δεν εμφανίζεται εδώ."
+
+msgid "For example: {examples}"
+msgstr "Για παράδειγμα: {examples}"
+
+msgid "{count} IP or function setting(s) from the original file are not used here."
+msgstr "{count} ρύθμιση(-εις) IP ή λειτουργίας από το αρχικό αρχείο δεν χρησιμοποιούνται εδώ."
+
+msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr "{count} γραμμή(-ές) χρησιμοποιούν πολλά τμήματα. Σε εξαγωγή με σχήμα 14/20 εμφανίζονται μόνο σε επίπεδο γραμμής."
+
+msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
+msgstr "{count} γραμμή(-ές) είχαν την ίδια διεύθυνση σε διαφορετικές εγκαταστάσεις. Κατά τον συνδυασμό διατηρήθηκε μία από την καθεμία."
+
+msgid "Exporting {name} — this can take a while for large projects."
+msgstr "Εξαγωγή του {name} — αυτό μπορεί να διαρκέσει λίγο σε μεγάλα έργα."
+
+msgid "Collecting the manufacturer data…"
+msgstr "Συλλογή των δεδομένων κατασκευαστή…"
+
+msgid "Writing the archive…"
+msgstr "Εγγραφή του αρχείου…"
+
+msgid "Getting the certificate from MyKNX…"
+msgstr "Λήψη του πιστοποιητικού από το MyKNX…"
+
+msgid "Cancelling…"
+msgstr "Ακύρωση…"
+
+msgid "Export cancelled, no file was written"
+msgstr "Η εξαγωγή ακυρώθηκε, δεν γράφτηκε κανένα αρχείο"
+
+msgid "Export Failed"
+msgstr "Η Εξαγωγή Απέτυχε"
+
+msgid "The project could not be exported to {name}."
+msgstr "Δεν ήταν δυνατή η εξαγωγή του έργου στο {name}."
+
+msgid "MyKNX did not issue the certificate for the project:"
+msgstr "Το MyKNX δεν εξέδωσε το πιστοποιητικό για το έργο:"
+
+msgid "To export without it, choose 'Export Without Certificate' or the 'License with a Dongle' tab in the Sign Export window."
+msgstr "Για εξαγωγή χωρίς αυτό, επιλέξτε «Εξαγωγή Χωρίς Πιστοποιητικό» ή την καρτέλα «Άδεια με Dongle» στο παράθυρο «Υπογραφή Εξαγωγής»."
+
+msgid "{name} cannot be imported."
+msgstr "Δεν είναι δυνατή η εισαγωγή του {name}."
+
+msgid "The file was written, but it refers to product data that is not in the catalog: {references}. Add these products to the catalog and export again."
+msgstr "Το αρχείο γράφτηκε, αλλά αναφέρεται σε δεδομένα προϊόντων που δεν υπάρχουν στον κατάλογο: {references}. Προσθέστε αυτά τα προϊόντα στον κατάλογο και κάντε ξανά εξαγωγή."
+
+msgid "Sign Export"
+msgstr "Υπογραφή Εξαγωγής"
+
+msgid "ETS 6: needs a licensed .knxproj through a MyKNX login or a dongle.\nETS 5: just use 'Export Without Certificate'."
+msgstr "ETS 6: απαιτεί αδειοδοτημένο .knxproj μέσω σύνδεσης MyKNX ή dongle.\nETS 5: απλώς χρησιμοποιήστε την «Εξαγωγή Χωρίς Πιστοποιητικό»."
+
+msgid "Sign with MyKNX Login"
+msgstr "Υπογραφή με Σύνδεση MyKNX"
+
+msgid "License with a Dongle"
+msgstr "Άδεια με Dongle"
+
+msgid "ETS must not be running on any computer with this MyKNX account while you log in and export here."
+msgstr "Το ETS δεν πρέπει να εκτελείται σε κανέναν υπολογιστή με αυτόν τον λογαριασμό MyKNX όσο συνδέεστε και κάνετε εξαγωγή εδώ."
+
+msgid "MyKNX Username"
+msgstr "Όνομα Χρήστη MyKNX"
+
+msgid "MyKNX Password"
+msgstr "Κωδικός MyKNX"
+
+msgid "Log in"
+msgstr "Σύνδεση"
+
+msgid "Complete sign-in in your browser. Code: {code}"
+msgstr "Ολοκληρώστε τη σύνδεση στο πρόγραμμα περιήγησής σας. Κωδικός: {code}"
+
+msgid "Login failed (HTTP 401). Either the password is wrong, or this account uses two-factor authentication - the server does not say which."
+msgstr "Η σύνδεση απέτυχε (HTTP 401). Είτε ο κωδικός είναι λάθος είτε αυτός ο λογαριασμός χρησιμοποιεί έλεγχο ταυτότητας δύο παραγόντων - ο διακομιστής δεν αναφέρει ποιο από τα δύο."
+
+msgid "Re-enter Credentials"
+msgstr "Επανεισαγωγή Διαπιστευτηρίων"
+
+msgid "Start 2FA Sign-In"
+msgstr "Έναρξη Σύνδεσης 2FA"
+
+msgid "MyKNX OAuth Credentials (2FA)"
+msgstr "Διαπιστευτήρια OAuth MyKNX (2FA)"
+
+msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
+msgstr "Απαιτούνται μόνο για λογαριασμούς με έλεγχο ταυτότητας δύο παραγόντων. Η σύνδεση 2FA ανοίγει αυτόματα στο πρόγραμμα περιήγησης όταν απορρίπτεται μια κανονική σύνδεση. Εισαγάγετε το OAuth client id/secret ή εξαγάγετέ τα από το εγκατεστημένο ETS σας: επιλέξτε το 'Knx.Ets.MyKnx.dll' από τον φάκελο προγράμματος του ETS (π.χ. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nΕναλλακτικά, αν έχετε εγκατεστημένο οποιοδήποτε αδειοδοτημένο ETS, παραλείψτε εντελώς την online υπογραφή και χρησιμοποιήστε αντί αυτού το τοπικό project store - δείτε την καρτέλα «Άδεια με Dongle»."
+
+msgid "Client ID"
+msgstr "Client ID"
+
+msgid "Client Secret"
+msgstr "Client Secret"
+
+msgid "Extract from ETS…"
+msgstr "Εξαγωγή από ETS…"
+
+msgid "Extracting…"
+msgstr "Εξαγωγή…"
+
+msgid "Save"
+msgstr "Αποθήκευση"
+
+msgid "All files"
+msgstr "Όλα τα αρχεία"
+
+msgid "Logging in…"
+msgstr "Σύνδεση…"
+
+msgid "License"
+msgstr "Άδεια"
+
+msgid "No licenses found on this account"
+msgstr "Δεν βρέθηκαν άδειες σε αυτόν τον λογαριασμό"
+
+msgid "no online certificate"
+msgstr "χωρίς online πιστοποιητικό"
+
+msgid "expired"
+msgstr "έληξε"
+
+msgid "None of these licenses can sign online. Only ETS6 (or a cloud-enabled ETS app) licenses produce a certificate; ETS5/older licenses cannot. Use 'License with a dongle' instead."
+msgstr "Καμία από αυτές τις άδειες δεν μπορεί να υπογράψει online. Μόνο άδειες ETS6 (ή εφαρμογής ETS με δυνατότητα cloud) παράγουν πιστοποιητικό· οι άδειες ETS5/παλαιότερες όχι. Χρησιμοποιήστε αντί αυτού την «Άδεια με Dongle»."
+
+msgid "Login failed: {error}"
+msgstr "Η σύνδεση απέτυχε: {error}"
+
+msgid "Format Version"
+msgstr "Έκδοση Μορφής"
+
+msgid "Remove device(s) & re-export"
+msgstr "Αφαίρεση συσκευής(-ών) & νέα εξαγωγή"
+
+msgid "Removed {count} incompatible device(s); re-exporting"
+msgstr "Αφαιρέθηκαν {count} μη συμβατή(-ές) συσκευή(-ές)· νέα εξαγωγή"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
+msgstr "Αυτό το αρχείο ΔΕΝ θα εισαχθεί στην επιλεγμένη έκδοση ETS: τα δεδομένα προϊόντων αυτών των κατασκευαστών υπάρχουν μόνο για νεότερο ETS (π.χ. ένα προϊόν ETS 6 σε εξαγωγή ETS 5), οπότε το ETS απορρίπτει ολόκληρο το έργο. Αφαιρέστε τις επηρεαζόμενες συσκευές ή κάντε εξαγωγή για το νεότερο ETS."
+
+msgid "ETS 6 (schema 23)"
+msgstr "ETS 6 (σχήμα 23)"
+
+msgid "ETS 5 (schema 20)"
+msgstr "ETS 5 (σχήμα 20)"
+
+msgid "Signing Key…"
+msgstr "Κλειδί Υπογραφής…"
+
+msgid "Signing Key"
+msgstr "Κλειδί Υπογραφής"
+
+msgid "Folder signature uses a placeholder key. Enter a valid signature under 'Signing Key…' or use the 'License with a Dongle' way."
+msgstr "Η υπογραφή φακέλου χρησιμοποιεί κλειδί κράτησης θέσης. Εισαγάγετε έγκυρη υπογραφή στο «Κλειδί Υπογραφής…» ή χρησιμοποιήστε τον τρόπο «Άδεια με Dongle»."
+
+msgid "Export to ProjectStore"
+msgstr "Εξαγωγή σε ProjectStore"
+
+msgid "Select the {ets} ProjectStore folder"
+msgstr "Επιλέξτε τον φάκελο ProjectStore του {ets}"
+
+msgid "Select the ETS installer.guid file"
+msgstr "Επιλέξτε το αρχείο installer.guid του ETS"
+
+msgid "ETS installer id"
+msgstr "ID εγκατάστασης ETS"
+
+msgid "Project Already in the Store"
+msgstr "Το Έργο Υπάρχει Ήδη στο Store"
+
+msgid "A project folder '{pid}' already exists in this ETS ProjectStore. Overwrite it, or add it as a separate copy?"
+msgstr "Ένας φάκελος έργου '{pid}' υπάρχει ήδη σε αυτό το ETS ProjectStore. Να αντικατασταθεί ή να προστεθεί ως ξεχωριστό αντίγραφο;"
+
+msgid "Overwrite"
+msgstr "Αντικατάσταση"
+
+msgid "Add Copy"
+msgstr "Προσθήκη Αντιγράφου"
+
+msgid "XKNX Export"
+msgstr "Εξαγωγή XKNX"
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store:\n1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n3. Restart ETS 6 - the project appears in the project overview.\n4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed:\nChoose 'Export Without Certificate' (with ETS 5 as version) and an active signing key to save a .knxproj, then import that file into ETS 5.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Αδειοδοτήστε ξανά το έργο μέσω του δικού σας αδειοδοτημένου ETS, το οποίο υπογράφει εκ νέου το αντίγραφο με την άδεια dongle σας:\n\nETS 6 - χρησιμοποιήστε το τοπικό project store:\n1. Κάντε κλικ στο «Εξαγωγή σε ProjectStore». Γράφει τον φάκελο 'P-XXXX' του έργου απευθείας στο project store του ETS 6. Αν το ETS δεν είναι εγκατεστημένο σε αυτόν τον υπολογιστή, θα σας ζητηθεί ο φάκελος του store (ή οποιοσδήποτε φάκελος, τον οποίο στη συνέχεια αντιγράφετε χειροκίνητα).\n2. Η εξαγωγή χρειάζεται το 'installer.guid' σας από το C:\\ProgramData\\KNX\\ETS6\\Installer. Αν δεν μπορεί να βρεθεί αυτόματα, θα σας ζητηθεί να το επιλέξετε.\n3. Επανεκκινήστε το ETS 6 - το έργο εμφανίζεται στην επισκόπηση έργων.\n4. Δημιουργήστε εκεί ένα αντίγραφό του (Αντιγραφή στην επισκόπηση). Το αντίγραφο υπογράφεται εκ νέου με την άδειά σας - ανοίξτε το και, στη συνέχεια, χρησιμοποιήστε το ή εξαγάγετέ το κανονικά.\n\nETS 5 - δεν απαιτείται project store:\nΕπιλέξτε «Εξαγωγή Χωρίς Πιστοποιητικό» (με ETS 5 ως έκδοση) και ενεργό κλειδί υπογραφής για να αποθηκεύσετε ένα .knxproj και, στη συνέχεια, εισαγάγετε αυτό το αρχείο στο ETS 5.\n\nΑυτό περιορίζεται από το όριο συσκευών ανά έργο της άδειάς σας."
+
+msgid "Sign & Export"
+msgstr "Υπογραφή & Εξαγωγή"
+
+msgid "Export Without Certificate"
+msgstr "Εξαγωγή Χωρίς Πιστοποιητικό"
+
+msgid "Export ETS Project"
+msgstr "Εξαγωγή Έργου ETS"
+
+msgid "Load .knxprod…"
+msgstr "Φόρτωση .knxprod…"
+
+msgid "Load OpenKNX from URL or Folder…"
+msgstr "Φόρτωση OpenKNX από URL ή Φάκελο…"
+
+msgid "Load OpenKNX from URL or Files…"
+msgstr "Φόρτωση OpenKNX από URL ή Αρχεία…"
+
+msgid "Load OpenKNX from URL or Folder"
+msgstr "Φόρτωση OpenKNX από URL ή Φάκελο"
+
+msgid "Load OpenKNX from URL or Files"
+msgstr "Φόρτωση OpenKNX από URL ή Αρχεία"
+
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+msgstr "Επικολλήστε μια διεύθυνση URL έκδοσης OpenKNX στο GitHub (λειτουργεί και η σελίδα της έκδοσης — το αρχείο .zip εντοπίζεται αυτόματα). Λειτουργεί επίσης ένας απευθείας σύνδεσμος .knxprod ή XML προϊόντος KNX.\n\nΠαραδείγματα:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+
+msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Ή επιλέξτε έναν τοπικό φάκελο με αρχεία προϊόντων (.knxprod, .zip έκδοσης OpenKNX ή XML προϊόντος KNX) για να τα εισαγάγετε όλα."
+
+msgid "Choose Folder…"
+msgstr "Επιλογή Φακέλου…"
+
+msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Ή ανεβάστε αρχεία προϊόντων (.knxprod, .zip έκδοσης OpenKNX ή XML προϊόντος KNX) από αυτόν τον υπολογιστή για να τα εισαγάγετε όλα."
+
+msgid "Choose Files…"
+msgstr "Επιλογή Αρχείων…"
+
+msgid "Load"
+msgstr "Φόρτωση"
+
+msgid "Downloading and importing…"
+msgstr "Λήψη και εισαγωγή…"
+
+msgid "Nothing new imported (already in the catalog)"
+msgstr "Δεν εισήχθη τίποτα νέο (υπάρχει ήδη στον κατάλογο)"
+
+msgid "Import from URL failed: {error}"
+msgstr "Η εισαγωγή από URL απέτυχε: {error}"
+
+msgid "Choose a Folder with KNX Product Files"
+msgstr "Επιλέξτε Φάκελο με Αρχεία Προϊόντων KNX"
+
+msgid "Importing from folder…"
+msgstr "Εισαγωγή από φάκελο…"
+
+msgid "Nothing new imported from folder (no product files found, or already in the catalog)"
+msgstr "Δεν εισήχθη τίποτα νέο από τον φάκελο (δεν βρέθηκαν αρχεία προϊόντων ή υπάρχουν ήδη στον κατάλογο)"
+
+msgid "Import from folder failed: {error}"
+msgstr "Η εισαγωγή από φάκελο απέτυχε: {error}"
+
+msgid "Choose KNX Product Files"
+msgstr "Επιλέξτε Αρχεία Προϊόντων KNX"
+
+msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
+msgstr "Αρχεία Προϊόντων KNX (*.knxprod, *.zip, *.xml)"
+
+msgid "Importing files…"
+msgstr "Εισαγωγή αρχείων…"
+
+msgid "Nothing new imported from the files (no product files, or already in the catalog)"
+msgstr "Δεν εισήχθη τίποτα νέο από τα αρχεία (δεν υπάρχουν αρχεία προϊόντων ή υπάρχουν ήδη στον κατάλογο)"
+
+msgid "Import of the files failed: {error}"
+msgstr "Η εισαγωγή των αρχείων απέτυχε: {error}"
+
+msgid "Exit"
+msgstr "Έξοδος"
+
+msgid "Edit"
+msgstr "Επεξεργασία"
+
+msgid "View"
+msgstr "Προβολή"
+
+msgid "Restore Default Layout"
+msgstr "Επαναφορά Προεπιλεγμένης Διάταξης"
+
+msgid "Show All"
+msgstr "Εμφάνιση Όλων"
+
+msgid "Hide All"
+msgstr "Απόκρυψη Όλων"
+
+msgid "Highlight Changes"
+msgstr "Επισήμανση Αλλαγών"
+
+msgid "Context Help"
+msgstr "Πλαίσιο Βοήθειας"
+
+msgid "Status Bar"
+msgstr "Γραμμή Κατάστασης"
+
+msgid "FPS in Status Bar"
+msgstr "FPS στη Γραμμή Κατάστασης"
+
+msgid "Enable Idling"
+msgstr "Ενεργοποίηση Αδράνειας"
+
+msgid "FPS: {fps:.1f}{idling}"
+msgstr "FPS: {fps:.1f}{idling}"
+
+msgid " (Idling)"
+msgstr " (Αδράνεια)"
+
+msgid "Theme"
+msgstr "Θέμα"
+
+msgid "Customize Theme…"
+msgstr "Προσαρμογή Θέματος…"
+
+msgid "Customize Theme"
+msgstr "Προσαρμογή Θέματος"
+
+msgid "Sizes"
+msgstr "Μεγέθη"
+
+msgid "Colors"
+msgstr "Χρώματα"
+
+msgid "Rendering"
+msgstr "Απόδοση"
+
+msgid "Adjustments"
+msgstr "Προσαρμογές"
+
+msgid "Theme Default"
+msgstr "Προεπιλογή Θέματος"
+
+msgid "Reset to Theme"
+msgstr "Επαναφορά στο Θέμα"
+
+msgid "Rounding"
+msgstr "Στρογγύλευση"
+
+msgid "Scrollbar Rounding Ratio"
+msgstr "Αναλογία Στρογγύλευσης Γραμμών Κύλισης"
+
+msgid "Opacity"
+msgstr "Αδιαφάνεια"
+
+msgid "Hue"
+msgstr "Απόχρωση"
+
+msgid "Saturation"
+msgstr "Κορεσμός"
+
+msgid "Brightness of Controls"
+msgstr "Φωτεινότητα Στοιχείων Ελέγχου"
+
+msgid "Brightness of Backgrounds"
+msgstr "Φωτεινότητα Φόντων"
+
+msgid "Brightness of Text"
+msgstr "Φωτεινότητα Κειμένου"
+
+msgid "Brightness of Input Fields"
+msgstr "Φωτεινότητα Πεδίων Εισαγωγής"
+
+msgid "Spacing"
+msgstr "Αποστάσεις"
+
+msgid "Borders"
+msgstr "Περιγράμματα"
+
+msgid "Alignment"
+msgstr "Στοίχιση"
+
+msgid "Window Padding"
+msgstr "Εσωτερικό Περιθώριο Παραθύρου"
+
+msgid "Field Padding"
+msgstr "Εσωτερικό Περιθώριο Πεδίου"
+
+msgid "Cell Padding"
+msgstr "Εσωτερικό Περιθώριο Κελιού"
+
+msgid "Item Spacing"
+msgstr "Απόσταση Στοιχείων"
+
+msgid "Item Inner Spacing"
+msgstr "Εσωτερική Απόσταση Στοιχείων"
+
+msgid "Extra Touch Padding"
+msgstr "Επιπλέον Περιθώριο Αφής"
+
+msgid "Indent"
+msgstr "Εσοχή"
+
+msgid "Scrollbar Width"
+msgstr "Πλάτος Γραμμών Κύλισης"
+
+msgid "Minimum Slider Grip Size"
+msgstr "Ελάχιστο Μέγεθος Λαβής Ρυθμιστικού"
+
+msgid "Windows"
+msgstr "Παράθυρα"
+
+msgid "Child Windows"
+msgstr "Θυγατρικά Παράθυρα"
+
+msgid "Popups"
+msgstr "Αναδυόμενα"
+
+msgid "Fields"
+msgstr "Πεδία"
+
+msgid "Tabs"
+msgstr "Καρτέλες"
+
+msgid "Tab Bar"
+msgstr "Γραμμή Καρτελών"
+
+msgid "Scrollbars"
+msgstr "Γραμμές Κύλισης"
+
+msgid "Slider Grips"
+msgstr "Λαβές Ρυθμιστικών"
+
+msgid "Window Title"
+msgstr "Τίτλος Παραθύρου"
+
+msgid "Button Text"
+msgstr "Κείμενο Κουμπιών"
+
+msgid "List Entry Text"
+msgstr "Κείμενο Καταχωρίσεων Λίστας"
+
+msgid "Separator Text"
+msgstr "Κείμενο Διαχωριστικών"
+
+msgid "Font Scale"
+msgstr "Κλίμακα Γραμματοσειράς"
+
+msgid "Anti-Aliased Lines"
+msgstr "Εξομάλυνση Γραμμών"
+
+msgid "Anti-Aliased Fills"
+msgstr "Εξομάλυνση Γεμισμάτων"
+
+msgid "Curve Tessellation Tolerance"
+msgstr "Ανοχή Διαίρεσης Καμπυλών"
+
+msgid "Maximum Circle Tessellation Error"
+msgstr "Μέγιστο Σφάλμα Διαίρεσης Κύκλων"
+
+msgid "Global Opacity"
+msgstr "Συνολική Αδιαφάνεια"
+
+msgid "Opacity of Disabled Items"
+msgstr "Αδιαφάνεια Απενεργοποιημένων Στοιχείων"
+
+msgid "Show ImGui Demo Window"
+msgstr "Εμφάνιση Παραθύρου Επίδειξης ImGui"
+
+msgid "Filter colors"
+msgstr "Φιλτράρισμα χρωμάτων"
+
+msgid "Undo"
+msgstr "Αναίρεση"
+
+msgid "Redo"
+msgstr "Επανάληψη"
+
+msgid "Open KNX Product Archive"
+msgstr "Άνοιγμα Αρχείου Προϊόντων KNX"
+
+msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
+msgstr "Προϊόν KNX (*.knxprod, *.vd1-*.vd5)"
+
+msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
+msgstr "Οι παλαιότερες βάσεις δεδομένων προϊόντων ETS (.vd1-.vd5) δεν εισάγονται απευθείας.\n\nΜετατρέψτε πρώτα το αρχείο σε .knxprod με τα εργαλεία μετατροπής που συνοδεύουν το ETS5/ETS6 - ανοίξτε το αρχείο προϊόντος στο ETS ή χρησιμοποιήστε τον μετατροπέα γραμμής εντολών του - και, στη συνέχεια, εισαγάγετε εδώ το .knxprod που προκύπτει."
+
+msgid "ETS Project (*.knxproj)"
+msgstr "Έργο ETS (*.knxproj)"
+
+msgid "ETS 6 Project (*.knxproj)"
+msgstr "Έργο ETS 6 (*.knxproj)"
+
+msgid "ETS 5 Project (*.knxproj)"
+msgstr "Έργο ETS 5 (*.knxproj)"
+
+msgid "Group Address Exports (*.xml, *.csv)"
+msgstr "Εξαγωγές Διευθύνσεων Ομάδων (*.xml, *.csv)"
+
+msgid "Group Address Export (*.xml)"
+msgstr "Εξαγωγή Διευθύνσεων Ομάδων (*.xml)"
+
+msgid "Open XKNX Project"
+msgstr "Άνοιγμα Έργου XKNX"
+
+msgid "Save XKNX Project"
+msgstr "Αποθήκευση Έργου XKNX"
+
+msgid "Save Project As"
+msgstr "Αποθήκευση Έργου ως"
+
+msgid "Replace File"
+msgstr "Αντικατάσταση Αρχείου"
+
+msgid "{name} already exists."
+msgstr "Το {name} υπάρχει ήδη."
+
+msgid "It is in {dir}. Replacing it overwrites its current content; this cannot be undone."
+msgstr "Βρίσκεται στο {dir}. Η αντικατάσταση θα αντικαταστήσει το τρέχον περιεχόμενό του· αυτό δεν μπορεί να αναιρεθεί."
+
+msgid "Replace"
+msgstr "Αντικατάσταση"
+
+msgid "XKNX Project (*.xknx)"
+msgstr "Έργο XKNX (*.xknx)"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml, *.csv)"
+msgstr "Έργα (*.xknx, *.knxproj, *.xml, *.csv)"
+
+msgid "Working…"
+msgstr "Παρακαλώ περιμένετε…"
+
+msgid "Importing project — this can take a while for large projects."
+msgstr "Εισαγωγή έργου — αυτό μπορεί να διαρκέσει λίγο σε μεγάλα έργα."
+
+msgid "{done}/{total} devices"
+msgstr "{done}/{total} συσκευές"
+
+msgid "Loading product catalog…"
+msgstr "Φόρτωση καταλόγου προϊόντων…"
+
+msgid "Imported {count} product version(s) from {name}:"
+msgstr "Εισήχθησαν {count} έκδοση(-εις) προϊόντος από το {name}:"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "DIN rail"
+msgstr "Ράγα DIN"
+
+msgid "Flush-mounted"
+msgstr "Χωνευτή"
+
+msgid "Registered: {info}"
+msgstr "Καταχωρισμένη: {info}"
+
+msgid "Manufacturer"
+msgstr "Κατασκευαστής"
+
+msgid "Product"
+msgstr "Προϊόν"
+
+msgid "Order no."
+msgstr "Αρ. Παραγγελίας"
+
+msgid "Application"
+msgstr "Εφαρμογή"
+
+msgid "Version"
+msgstr "Έκδοση"
+
+msgid "Mask"
+msgstr "Μάσκα"
+
+msgid "Hardware"
+msgstr "Υλικό"
+
+msgid "Registered"
+msgstr "Καταχωρισμένη"
+
+msgid "{name} was already in the catalog, nothing new imported"
+msgstr "Το {name} υπήρχε ήδη στον κατάλογο, δεν εισήχθη τίποτα νέο"
+
+msgid "Product Catalog Import"
+msgstr "Εισαγωγή Καταλόγου Προϊόντων"
+
+msgid "Opening project…"
+msgstr "Άνοιγμα έργου…"
+
+msgid "Importing group addresses…"
+msgstr "Εισαγωγή διευθύνσεων ομάδων…"
+
+msgid "Switching language…"
+msgstr "Αλλαγή γλώσσας…"
+
+msgid "Project Password"
+msgstr "Κωδικός Έργου"
+
+msgid "This ETS project is password protected. Enter its password:"
+msgstr "Αυτό το έργο ETS προστατεύεται με κωδικό. Εισαγάγετε τον κωδικό του:"
+
+msgid "Wrong password, please try again."
+msgstr "Λάθος κωδικός, δοκιμάστε ξανά."
+
+msgid "This project is protected with a password. Enter it to open the project:"
+msgstr "Αυτό το έργο προστατεύεται με κωδικό. Εισαγάγετέ τον για να ανοίξετε το έργο:"
+
+msgid "This project contains KNX Secure keys. Set a project password to protect them; the project can then only be opened with it."
+msgstr "Αυτό το έργο περιέχει κλειδιά KNX Secure. Ορίστε έναν κωδικό έργου για να τα προστατέψετε· στη συνέχεια το έργο θα ανοίγει μόνο με αυτόν."
+
+msgid "Password"
+msgstr "Κωδικός"
+
+msgid "Repeat Password"
+msgstr "Επανάληψη Κωδικού"
+
+msgid "The passwords do not match."
+msgstr "Οι κωδικοί δεν ταιριάζουν."
+
+msgid "Protecting the project with the password…"
+msgstr "Προστασία του έργου με τον κωδικό…"
+
+msgid "OK"
+msgstr "ΟΚ"
+
+msgid "Check for Updates"
+msgstr "Έλεγχος για Ενημερώσεις"
+
+msgid "Check for Updates on Startup"
+msgstr "Έλεγχος για Ενημερώσεις κατά την Εκκίνηση"
+
+msgid "Update Available"
+msgstr "Διαθέσιμη Ενημέρωση"
+
+msgid "Version {latest} is available. You have {current}."
+msgstr "Η έκδοση {latest} είναι διαθέσιμη. Έχετε την {current}."
+
+msgid "You are up to date (version {version})."
+msgstr "Έχετε την πιο πρόσφατη έκδοση ({version})."
+
+msgid "Download"
+msgstr "Λήψη"
+
+msgid "Install Update"
+msgstr "Εγκατάσταση Ενημέρωσης"
+
+msgid "Install Update downloads the installer, closes XKNX Editor and starts it again with the open project."
+msgstr "Η «Εγκατάσταση Ενημέρωσης» κατεβάζει το πρόγραμμα εγκατάστασης, κλείνει το XKNX Editor και το εκκινεί ξανά με το ανοιχτό έργο."
+
+msgid "Downloading the update…"
+msgstr "Λήψη της ενημέρωσης…"
+
+msgid "{done} of {total} MB"
+msgstr "{done} από {total} MB"
+
+msgid "Skip This Version"
+msgstr "Παράλειψη Αυτής της Έκδοσης"
+
+msgid "Later"
+msgstr "Αργότερα"
+
+msgid "Release Notes:"
+msgstr "Σημειώσεις Έκδοσης:"
+
+msgid "License: GPL-2.0-only"
+msgstr "Άδεια: GPL-2.0-only"
+
+msgid "Website:"
+msgstr "Ιστότοπος:"
+
+msgid "Open Config Folder"
+msgstr "Άνοιγμα Φακέλου Ρυθμίσεων"
+
+msgid "Open Cache Folder"
+msgstr "Άνοιγμα Φακέλου Cache"
+
+msgid "Open Log Folder"
+msgstr "Άνοιγμα Φακέλου Καταγραφής"
+
+msgid "Compact Project…"
+msgstr "Συμπίεση Έργου…"
+
+msgid "Compact Project"
+msgstr "Συμπίεση Έργου"
+
+msgid "Analysing project…"
+msgstr "Ανάλυση έργου…"
+
+msgid "Compacting project…"
+msgstr "Συμπίεση έργου…"
+
+msgid "Analysing devices"
+msgstr "Ανάλυση συσκευών"
+
+msgid "Analysing product data ({manufacturer})"
+msgstr "Ανάλυση δεδομένων προϊόντων ({manufacturer})"
+
+msgid "Removing unused product data ({manufacturer})"
+msgstr "Αφαίρεση αχρησιμοποίητων δεδομένων προϊόντων ({manufacturer})"
+
+msgid "Saving product data"
+msgstr "Αποθήκευση δεδομένων προϊόντων"
+
+msgid "Compacting project file"
+msgstr "Συμπίεση αρχείου έργου"
+
+msgid "The following product data is not used by any device in this project and will be removed:"
+msgstr "Τα παρακάτω δεδομένα προϊόντων δεν χρησιμοποιούνται από καμία συσκευή σε αυτό το έργο και θα αφαιρεθούν:"
+
+msgid "All product data in this project is used by its devices, nothing to remove. The project file can still be compacted to free unused space."
+msgstr "Όλα τα δεδομένα προϊόντων σε αυτό το έργο χρησιμοποιούνται από τις συσκευές του, δεν υπάρχει τίποτα για αφαίρεση. Το αρχείο έργου μπορεί πάντως να συμπιεστεί για να ελευθερωθεί αχρησιμοποίητος χώρος."
+
+msgid "Application Programs"
+msgstr "Προγράμματα Εφαρμογής"
+
+msgid "Device Types (Products)"
+msgstr "Τύποι Συσκευών (Προϊόντα)"
+
+msgid "Manufacturers"
+msgstr "Κατασκευαστές"
+
+msgid "Catalog Entries"
+msgstr "Καταχωρίσεις Καταλόγου"
+
+msgid "Help and Plug-in Files"
+msgstr "Αρχεία Βοήθειας και Plug-in"
+
+msgid "Details"
+msgstr "Λεπτομέρειες"
+
+msgid "Current File Size"
+msgstr "Τρέχον Μέγεθος Αρχείου"
+
+msgid "Estimated Size Afterwards"
+msgstr "Εκτιμώμενο Μέγεθος Μετά"
+
+msgid "This cannot be undone. Removed product data has to be imported again if these products are added to the project later."
+msgstr "Αυτό δεν μπορεί να αναιρεθεί. Τα δεδομένα προϊόντων που αφαιρούνται πρέπει να εισαχθούν ξανά, αν αυτά τα προϊόντα προστεθούν αργότερα στο έργο."
+
+msgid "Compact"
+msgstr "Συμπίεση"
+
+msgid "Project Compacted"
+msgstr "Το Έργο Συμπιέστηκε"
+
+msgid "The project file was compacted."
+msgstr "Το αρχείο έργου συμπιέστηκε."
+
+msgid "Size before"
+msgstr "Μέγεθος πριν"
+
+msgid "Size after"
+msgstr "Μέγεθος μετά"
+
+msgid "Compacting cancelled, the project was not changed"
+msgstr "Η συμπίεση ακυρώθηκε, το έργο δεν άλλαξε"
+
+msgid "Remove Unused Product Data"
+msgstr "Αφαίρεση Αχρησιμοποίητων Δεδομένων Προϊόντων"
+
+msgid "(only in the export, the project stays unchanged)"
+msgstr "(μόνο στην εξαγωγή, το έργο παραμένει αμετάβλητο)"
+
+msgid "Hide Tab Bar"
+msgstr "Απόκρυψη Γραμμής Καρτελών"
+
+msgid "Open {url}"
+msgstr "Άνοιγμα {url}"
+
+msgid "Copy Link"
+msgstr "Αντιγραφή Συνδέσμου"
+
+msgid "Enter the password for access to the editor."
+msgstr "Εισαγάγετε τον κωδικό για πρόσβαση στον επεξεργαστή."
+
+msgid "Sign In"
+msgstr "Είσοδος"
+
+msgid "Wrong password."
+msgstr "Λάθος κωδικός."
+
+msgid "Disconnected. Reconnecting…"
+msgstr "Η σύνδεση διακόπηκε. Επανασύνδεση…"
+
+msgid "Access denied. Please sign in again."
+msgstr "Η πρόσβαση απορρίφθηκε. Συνδεθείτε ξανά."
+
+msgid "Upload from This Computer…"
+msgstr "Αποστολή από Αυτόν τον Υπολογιστή…"
+
+msgid "Or drop files here."
+msgstr "Ή αποθέστε αρχεία εδώ."
+
+msgid "Files on the Server"
+msgstr "Αρχεία στον Διακομιστή"
+
+msgid "No files yet."
+msgstr "Δεν υπάρχουν ακόμη αρχεία."
+
+msgid "Open"
+msgstr "Άνοιγμα"
+
+msgid "Select"
+msgstr "Επιλογή"
+
+msgid "File Name"
+msgstr "Όνομα Αρχείου"
+
+msgid "Folder Name"
+msgstr "Όνομα Φακέλου"
+
+msgid "File Type"
+msgstr "Τύπος Αρχείου"
+
+msgid "Download to This Computer"
+msgstr "Λήψη σε Αυτόν τον Υπολογιστή"
+
+msgid "Uploading {name}…"
+msgstr "Αποστολή {name}…"
+
+msgid "Upload failed: {error}"
+msgstr "Η αποστολή απέτυχε: {error}"
+
+msgid "Show"
+msgstr "Προβολή"
+
+msgid "Folder on the Server"
+msgstr "Φάκελος στον Διακομιστή"
+
+msgid "View only: another browser controls the editor."
+msgstr "Μόνο προβολή: ένα άλλο πρόγραμμα περιήγησης ελέγχει τον επεξεργαστή."
+
+msgid "Take Control"
+msgstr "Ανάληψη Ελέγχου"
+
+msgid "Name"
+msgstr "Όνομα"
+
+msgid "Size"
+msgstr "Μέγεθος"
+
+msgid "Modified"
+msgstr "Τροποποίηση"
+
+msgid "The browser did not open it by itself."
+msgstr "Το πρόγραμμα περιήγησης δεν το άνοιξε από μόνο του."
+
+msgid "Download started: {name}"
+msgstr "Η λήψη ξεκίνησε: {name}"
+
+msgid "Choose File…"
+msgstr "Επιλογή Αρχείου…"
+
+msgid "{name} is ready."
+msgstr "Το {name} είναι έτοιμο."
+
+msgid "Open Link"
+msgstr "Άνοιγμα Συνδέσμου"
+
+msgid "Checking for updates…"
+msgstr "Έλεγχος για ενημερώσεις…"
+
+msgid "The check for updates failed: {error}"
+msgstr "Ο έλεγχος για ενημερώσεις απέτυχε: {error}"
+
+msgid "The project has no group addresses to export."
+msgstr "Το έργο δεν έχει διευθύνσεις ομάδων για εξαγωγή."
+
+msgid "Clear Cache…"
+msgstr "Εκκαθάριση Cache…"
+
+msgid "Clear Cache"
+msgstr "Εκκαθάριση Cache"
+
+msgid "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
+msgstr "Η cache περιέχει {size} επεξεργασμένων δεδομένων προϊόντων και τεκμηρίωσης που ανακτήθηκε για τα εργαλεία AI. Όλα δημιουργούνται ξανά όταν χρειαστούν· στη συνέχεια μόνο η πρώτη χρήση κάθε προϊόντος διαρκεί περισσότερο."
+
+msgid "Cache cleared, {size} freed"
+msgstr "Η cache εκκαθαρίστηκε, ελευθερώθηκαν {size}"
+
+msgid "Zoom In"
+msgstr "Μεγέθυνση"
+
+msgid "Zoom Out"
+msgstr "Σμίκρυνση"
+
+msgid "Reset Zoom"
+msgstr "Επαναφορά Ζουμ"
+
+msgid "Cut"
+msgstr "Αποκοπή"
+
+msgid "Paste"
+msgstr "Επικόλληση"
+
+msgid "Select All"
+msgstr "Επιλογή Όλων"
+
+msgid "Long-press in the field below and choose Paste."
+msgstr "Πατήστε παρατεταμένα στο παρακάτω πεδίο και επιλέξτε Επικόλληση."
+
+msgid "Too many wrong passwords. Please try again in a few minutes."
+msgstr "Πάρα πολλοί λανθασμένοι κωδικοί. Δοκιμάστε ξανά σε λίγα λεπτά."
+
+msgid "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
+msgstr "Η θύρα {port} χρησιμοποιείται ήδη από άλλο πρόγραμμα, οπότε το περιβάλλον browser δεν μπορεί να ξεκινήσει εκεί. Εκκινήστε το με άλλη θύρα (π.χ. --web={example}) ή χωρίς θύρα για να χρησιμοποιηθεί μια ελεύθερη."
+
+msgid "Open in Browser"
+msgstr "Άνοιγμα στο Πρόγραμμα Περιήγησης"
+
+msgid "Stop XKNX Editor"
+msgstr "Τερματισμός XKNX Editor"
+
+msgid "XKNX Editor Already Running"
+msgstr "Το XKNX Editor Εκτελείται Ήδη"
+
+msgid "XKNX Editor is already running on this computer. Switch to it, or start another one, e.g. to work on a second project or with another bus connection."
+msgstr "Το XKNX Editor εκτελείται ήδη σε αυτόν τον υπολογιστή. Μεταβείτε σε αυτό ή εκκινήστε ένα ακόμη, π.χ. για εργασία σε δεύτερο έργο ή με άλλη σύνδεση bus."
+
+msgid "Window"
+msgstr "Παράθυρο"
+
+msgid "Browser UI ({url})"
+msgstr "Περιβάλλον Browser ({url})"
+
+msgid "{kind}: {project}"
+msgstr "{kind}: {project}"
+
+msgid "Switch to It"
+msgstr "Μετάβαση σε Αυτό"
+
+msgid "Start Another"
+msgstr "Εκκίνηση Άλλου"
+
+msgid "That XKNX Editor has ended in the meantime."
+msgstr "Αυτό το XKNX Editor έχει τερματιστεί στο μεταξύ."
+
+msgid "Project Already Open"
+msgstr "Το Έργο Είναι Ήδη Ανοιχτό"
+
+msgid "{name} is already open in another XKNX Editor. Editing it in two editors at once can overwrite changes."
+msgstr "Το {name} είναι ήδη ανοιχτό σε άλλο XKNX Editor. Η επεξεργασία του σε δύο επεξεργαστές ταυτόχρονα μπορεί να αντικαταστήσει αλλαγές."
+
+msgid "Open Anyway"
+msgstr "Άνοιγμα Παρ’ Όλα Αυτά"
+
+msgid "C"
+msgstr "Επικ"
+
+msgid "R"
+msgstr "Ανα"
+
+msgid "W"
+msgstr "Εγγ"
+
+msgid "T"
+msgstr "Μετ"
+
+msgid "U"
+msgstr "Ενη"
+
+msgid "I"
+msgstr "ΑκΕ"
+
+msgid "Communication"
+msgstr "Επικοινωνία"
+
+msgid "Read"
+msgstr "Ανάγνωση"
+
+msgid "Write"
+msgstr "Εγγραφή"
+
+msgid "Transmit"
+msgstr "Μετάδοση"
+
+msgid "Update"
+msgstr "Ενημέρωση"
+
+msgid "Read on Init"
+msgstr "Ανάγνωση Κατά την Έναρξη"
+
+msgid "English"
+msgstr "Αγγλικά"
+
+msgid "German"
+msgstr "Γερμανικά"
+
+msgid "Dutch"
+msgstr "Ολλανδικά"
+
+msgid "{name} ({native})"
+msgstr "{name} ({native})"
+
+msgid "Spanish"
+msgstr "Ισπανικά"
+
+msgid "Greek"
+msgstr "Ελληνικά"
+
+msgid "Simplified Chinese"
+msgstr "Απλοποιημένα Κινέζικα"
+
+msgid "Japanese"
+msgstr "Γιαπωνέζικα"

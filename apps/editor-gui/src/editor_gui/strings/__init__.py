@@ -2102,5 +2102,21 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     def LANGUAGE_ITEM(self) -> str:
         return _("{name} ({native})")
 
+    @property
+    def LANGUAGE_SPANISH(self) -> str:
+        return _("Spanish")
+
+    @property
+    def LANGUAGE_GREEK(self) -> str:
+        return _("Greek")
+
+    @property
+    def LANGUAGE_CHINESE(self) -> str:
+        return _("Simplified Chinese")
+
+    @property
+    def LANGUAGE_JAPANESE(self) -> str:
+        return _("Japanese")
+
 
 S = _CombinedStrings()
