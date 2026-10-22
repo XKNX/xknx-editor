@@ -329,6 +329,24 @@ class ProjectStrings:
         return _("Only Problems")
 
     @property
+    def ML_STATUS_READY(self) -> str:
+        return _("Ready to link.")
+
+    @property
+    def ML_STATUS_AMBIGUOUS(self) -> str:
+        return _(
+            "Check the group address: several match, or a datapoint type is unknown."
+        )
+
+    @property
+    def ML_STATUS_INCOMPATIBLE(self) -> str:
+        return _("The datapoint types do not match; this row is not linked.")
+
+    @property
+    def ML_STATUS_UNMATCHED(self) -> str:
+        return _("No group address chosen yet.")
+
+    @property
     def ML_OK(self) -> str:
         return _("OK")
 

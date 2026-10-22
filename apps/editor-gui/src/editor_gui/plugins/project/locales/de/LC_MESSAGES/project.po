@@ -2135,3 +2135,15 @@ msgstr "Alle verknüpfen"
 
 msgid "Object"
 msgstr "Objekt"
+
+msgid "Ready to link."
+msgstr "Bereit zum Verknüpfen."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Gruppenadresse prüfen: mehrere passen oder ein Datenpunkttyp ist unbekannt."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "Die Datenpunkttypen passen nicht; diese Zeile wird nicht verknüpft."
+
+msgid "No group address chosen yet."
+msgstr "Noch keine Gruppenadresse gewählt."

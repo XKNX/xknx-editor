@@ -399,7 +399,7 @@ class MassLinkerPanel:
         linkable = [
             r
             for r in self._rows1
-            if r.target_ga is not None and r.status != "incompatible"
+            if r.target_ga in by_id and r.status != "incompatible"
         ]
         imgui.begin_disabled(not linkable)
         if imgui.button(S.ML_LINK_ALL.format(count=len(linkable)), imgui.ImVec2(-1, 0)):
@@ -441,7 +441,7 @@ class MassLinkerPanel:
             color, glyph = _STATUS_STYLE.get(row.status, _STATUS_STYLE["unmatched"])
             imgui.text_colored(color, glyph)
             if imgui.is_item_hovered():
-                imgui.set_tooltip(row.status)
+                imgui.set_tooltip(_status_tip(row.status))
             imgui.table_set_column_index(1)
             imgui.text_unformatted(row.device_name)
             imgui.table_set_column_index(2)
@@ -495,7 +495,12 @@ class MassLinkerPanel:
     def _refresh_statuses(self, by_id: dict[int, _FlatGa]) -> None:
         """Recompute the status of assigned rows from the current tree; a target that was deleted
         meanwhile is cleared so it can't be linked to a dead id. Unassigned rows keep their status
-        (unmatched/incompatible) from the last pairing until the user re-pairs."""
+        (unmatched/incompatible) from the last pairing until the user re-pairs.
+
+        No group addresses at all means the project is busy (e.g. rebuilding its devices after a
+        language switch) and cannot be read right now: the targets stay until it can."""
+        if not by_id:
+            return
         for row in self._rows1:
             if row.target_ga is None:
                 continue
@@ -1019,6 +1024,15 @@ def _desc(text: str) -> None:
     imgui.text_disabled(text)
     imgui.pop_text_wrap_pos()
     imgui.spacing()
+
+
+def _status_tip(status: str) -> str:
+    """What a row's status mark means."""
+    return {
+        "ready": S.ML_STATUS_READY,
+        "ambiguous": S.ML_STATUS_AMBIGUOUS,
+        "incompatible": S.ML_STATUS_INCOMPATIBLE,
+    }.get(status, S.ML_STATUS_UNMATCHED)
 
 
 def _remove_button(label: str) -> bool:

@@ -1989,3 +1989,15 @@ msgstr "Alles koppelen"
 
 msgid "Object"
 msgstr "Object"
+
+msgid "Ready to link."
+msgstr "Klaar om te koppelen."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Controleer het groepsadres: meerdere passen of een datapunttype is onbekend."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "De datapunttypes passen niet; deze rij wordt niet gekoppeld."
+
+msgid "No group address chosen yet."
+msgstr "Nog geen groepsadres gekozen."
