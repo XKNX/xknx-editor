@@ -112,6 +112,15 @@ class TestParse:
         assert not withdrawn.downloadable
         assert withdrawn.download_block_reason == "not offered in any market"
 
+    def test_catalog_items_of_an_empty_market_list_are_not_downloadable(self) -> None:
+        # A manufacturer no market lists at all: the server refuses each of its items.
+        index = json.dumps(
+            {"Entries": [{"Id": "CI-1", "CatalogItemName": "A"}], "Markets": []}
+        )
+        (item,) = parse_catalog_items(index.encode())
+        assert not item.downloadable
+        assert item.download_block_reason == "not offered in any market"
+
     def test_catalog_items_without_markets_stay_downloadable(self) -> None:
         index = json.dumps({"Entries": [{"Id": "CI-1", "CatalogItemName": "A"}]})
         assert parse_catalog_items(index.encode())[0].downloadable
