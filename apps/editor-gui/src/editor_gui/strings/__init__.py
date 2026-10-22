@@ -527,7 +527,7 @@ class MenuStrings:
 
     @property
     def EXPORT_SUMMARY_GROUP_OBJECT_LINKS(self) -> str:
-        return _("Group-Object Links")
+        return _("Group Object Links")
 
     @property
     def EXPORT_SUMMARY_TOPOLOGY(self) -> str:
@@ -615,7 +615,7 @@ class MenuStrings:
     @property
     def IMPORT_NOTE_COM_OBJECT_TEXT_OVERRIDES(self) -> str:
         return _(
-            "{count} com-object(s) had an extra description in the original file. "
+            "{count} group object(s) had an extra description in the original file. "
             "The custom name and function are kept; only that description is not shown here."
         )
 

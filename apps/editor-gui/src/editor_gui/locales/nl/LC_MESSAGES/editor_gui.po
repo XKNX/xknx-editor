@@ -104,8 +104,8 @@ msgstr "Gebouwen"
 msgid "Group Addresses"
 msgstr "Groepsadressen"
 
-msgid "Group-Object Links"
-msgstr "Groepsobject-koppelingen"
+msgid "Group Object Links"
+msgstr "Groepobject-koppelingen"
 
 msgid "Areas / Lines"
 msgstr "Bereiken / lijnen"
@@ -555,8 +555,8 @@ msgstr "Het originele bestand bevatte {count} installaties. Deze zijn samengevoe
 msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
 msgstr "{count} apparaat(en) zijn niet aan een lijn toegewezen. Ze blijven in het project en worden bij de export meegenomen, maar kunnen hier nog niet worden bewerkt."
 
-msgid "{count} com-object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
-msgstr "{count} communicatieobject(en) hadden in het originele bestand een extra beschrijving. De eigen naam en functie blijven behouden; alleen die beschrijving wordt hier niet getoond."
+msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr "{count} groepobject(en) hadden in het originele bestand een extra beschrijving. De eigen naam en functie blijven behouden; alleen die beschrijving wordt hier niet getoond."
 
 msgid "For example: {examples}"
 msgstr "Bijvoorbeeld: {examples}"

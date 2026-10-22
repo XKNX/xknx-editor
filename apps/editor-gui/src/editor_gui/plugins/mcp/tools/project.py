@@ -5,7 +5,7 @@
 Every tool body runs on the imgui main thread via ``ctx.run_on_ui`` because the project/catalog
 services are not thread-safe (see :mod:`editor_gui.plugins.mcp.context`).
 
-ID conventions: ``node_id`` (int, from project_list_devices) identifies a device; a com-object is
+ID conventions: ``node_id`` (int, from project_list_devices) identifies a device; a group object is
 addressed by ``(node_id, com_object_ref_id)`` where ``com_object_ref_id`` is the ``ref_id`` from
 project_list_com_objects. Group addresses use the integer ``group_address_id``; the ``address``
 string (e.g. ``"1/2/3"``) follows the project's group_address_style (see project_info).
@@ -46,7 +46,7 @@ if TYPE_CHECKING:
 # Slow, file/parse-heavy operations get a generous main-thread budget (they briefly hold the frame).
 _SLOW = 300.0
 
-# The com-object flags a client may override (also the schema enum for project_set_com_object_flag).
+# The group object flags a client may override (also the schema enum for project_set_com_object_flag).
 Flag = Literal["communication", "read", "write", "transmit", "update", "read_on_init"]
 _FLAGS = ("communication", "read", "write", "transmit", "update", "read_on_init")
 
@@ -65,7 +65,7 @@ def _com_object_dict(co: ComObject) -> dict[str, Any]:
     return {
         "ref_id": co.id,
         "db_id": co.db_id,
-        # Only com-objects with a project row (db_id set) can be linked to a group address. Objects
+        # Only group objects with a project row (db_id set) can be linked to a group address. Objects
         # that are visible in the application but not instantiated in this project have db_id=None.
         "linkable": co.db_id is not None,
         "name": com_object_display_name(co) or co.name,
@@ -434,7 +434,7 @@ def _count_leaves(node: Any) -> tuple[int, int]:
 
 def _outline_node(node: Any, path: str = "0") -> dict[str, Any] | None:
     """A container (tab/block) as an outline entry: id (the unique index path, see :func:`_ui_node`),
-    heading, subtree leaf counts and nested containers only — no parameter/com-object leaves. ``None``
+    heading, subtree leaf counts and nested containers only — no parameter/group object leaves. ``None``
     for a non-container node."""
     from xknxeditor.prod.parser_v2.ui import UiParameterBlock, UiTab
 
@@ -501,7 +501,7 @@ def _link_annotations(
     group_address_id: int,
 ) -> dict[str, Any]:
     """Feedback a link should surface but the service only logs: a DPT mismatch (the GA keeps its
-    own DPT, so a differing com-object DPT is a real wiring issue) and, for a sending link, the other
+    own DPT, so a differing group object DPT is a real wiring issue) and, for a sending link, the other
     group addresses the object already sends to (one sending GA per object is the norm). DPTs are
     compared as tokens (reliable) but reported dotted, as everywhere else."""
     out: dict[str, Any] = {}
@@ -531,9 +531,9 @@ def perform_link(
     group_address_id: int,
     is_sending: bool,
 ) -> dict[str, Any] | None:
-    """Create a com-object -> group-address link and build a feedback result: idempotent dedup
+    """Create a group object -> group-address link and build a feedback result: idempotent dedup
     (``already_linked``, no duplicate row), ``dpt_mismatch`` and ``other_sending_group_address_ids``
-    (see :func:`_link_annotations`). ``co`` is the resolved com-object (``db_id`` set). Returns None
+    (see :func:`_link_annotations`). ``co`` is the resolved group object (``db_id`` set). Returns None
     when the service refuses the link (unknown GA / security), so the caller raises its own error.
     Shared by project_link_com_object and the batch link op so both give the same feedback."""
     existing = list(project.get_links_for_com_object(co.db_id))
@@ -608,7 +608,7 @@ def param_change_result(
     ]
     if side_effects:
         result["changed"] = side_effects
-    # Links the edit's com-object reconcile dropped (a function/mode change deactivating linked
+    # Links the edit's group object reconcile dropped (a function/mode change deactivating linked
     # objects), captured by the service before deletion.
     lost = list(getattr(device, "last_lost_links", []) or [])
     if lost:
@@ -1150,7 +1150,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_list_com_objects(node_id: int) -> dict[str, Any]:
-        """List a project device's visible com-objects using node_id from project_list_devices.
+        """List a project device's visible group objects using node_id from project_list_devices.
         Returns {items, count}; each item has {ref_id, db_id, linkable, name, number, dpt, dpt_name,
         object_size, flags}. flags contains communication, read, write, transmit, update, read_on_init.
         Pass ref_id as com_object_ref_id with the same node_id. Linking and flag edits require
@@ -1164,7 +1164,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def find_potential_com_objects(node_id: int) -> dict[str, Any]:
-        """List EVERY com-object the device's application DECLARES — a superset of the ones currently
+        """List EVERY group object the device's application DECLARES — a superset of the ones currently
         active (project_list_com_objects) — so you can see which objects a function could add before
         switching its parameters (for group-address planning).
 
@@ -1186,7 +1186,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_get_com_object(node_id: int, com_object_ref_id: str) -> dict[str, Any]:
-        """Read a project com-object. Use node_id from project_list_devices and pass the object's
+        """Read a project group object. Use node_id from project_list_devices and pass the object's
         ref_id from project_list_com_objects as com_object_ref_id. Returns {ref_id, db_id, linkable,
         name, number, dpt, dpt_name, object_size, flags}; flags contains communication, read, write,
         transmit, update, read_on_init. linkable=true is required for linking and flag edits."""
@@ -1196,7 +1196,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             co = device.find_com_object(com_object_ref_id)
             if co is None:
                 raise ToolError(
-                    f"no com-object {com_object_ref_id!r} on device {node_id}; "
+                    f"no group object {com_object_ref_id!r} on device {node_id}; "
                     "call project_list_com_objects for valid ref_ids"
                 )
             return _com_object_dict(co)
@@ -1207,7 +1207,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_get_com_object_links(
         node_id: int, com_object_ref_id: str
     ) -> dict[str, Any]:
-        """Read a com-object's group-address links in the project. Pass ref_id from
+        """Read a group object's group-address links in the project. Pass ref_id from
         project_list_com_objects as com_object_ref_id with the same node_id.
         Returns {items, count}; each item has {assignment_id, group_address_id, address, name,
         is_sending}. Pass assignment_id to project_unlink_com_object. items is empty when the object
@@ -1219,7 +1219,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             co = device.find_com_object(com_object_ref_id)
             if co is None:
                 raise ToolError(
-                    f"no com-object {com_object_ref_id!r} on device {node_id}; "
+                    f"no group object {com_object_ref_id!r} on device {node_id}; "
                     "call project_list_com_objects for valid ref_ids"
                 )
             if co.db_id is None:
@@ -1292,7 +1292,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         then ``outline`` is true and ``parameter_count`` gives the full size. To avoid pulling a big
         tree whole:
         - ``outline=True`` returns ONLY the container skeleton — each tab/block as
-          {kind, id, name, parameter_count, com_object_count, children} with no parameter/com-object
+          {kind, id, name, parameter_count, com_object_count, children} with no parameter/group object
           leaves. Read this to see the structure and pick a section.
         - ``subtree_id="<id>"`` returns only that one tab/block's subtree (optionally also with
           ``outline=True``). Scoped reads REQUIRE ``tree_token`` from the SAME read the id came
@@ -1459,7 +1459,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_get_ga_assignments(group_address_id: int) -> dict[str, Any]:
-        """Read a group address's project com-object links. Pass id from
+        """Read a group address's project group object links. Pass id from
         project_list_group_addresses as group_address_id. Returns {items, count}; each item has
         {id, com_object_db_id, group_address_id, is_sending, node_id, individual_address,
         com_object_ref_id, com_object_name}. Device/object details are null when unresolved.
@@ -1467,7 +1467,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         for object tools. This reads project links without checking the bus."""
 
         def _read() -> list[dict[str, Any]]:
-            # map com-object db_id -> (device, com-object) so each assignment can name its owner
+            # map group object db_id -> (device, group object) so each assignment can name its owner
             owner: dict[int, tuple[Device, ComObject]] = {}
             for dev in project.devices:
                 for co in dev.get_visible_com_objects():
@@ -1563,11 +1563,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         node_id_a: int, node_id_b: int, only_differences: bool = True
     ) -> dict[str, Any]:
         """Compare two devices (node_ids from project_list_devices) across header, parameters and
-        com-objects. Items are keyed so two instances of the SAME application line up (parameters by
-        application-relative ref, com-objects by object number). Returns {node_id_a, node_id_b,
+        group objects. Items are keyed so two instances of the SAME application line up (parameters by
+        application-relative ref, group objects by object number). Returns {node_id_a, node_id_b,
         difference_count, header, parameters, com_objects}; each section is a list of rows
         {key, label, kind, a, b} where kind is added|removed|changed|same and a/b are the values on
-        each device (\"\" when the item is absent there). Com-object rows additionally carry
+        each device (\"\" when the item is absent there). Group object rows additionally carry
         a_links/b_links: the group addresses each device links as [{address, sending}] (sending
         first). This lets a caller tell a structural difference (object linked on one side only, or
         different flags/DPT) from a mere room-mapped GA difference (same structure, both linked
@@ -1899,7 +1899,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_set_com_object_flag(
         node_id: int, com_object_ref_id: str, flag: Flag, value: bool
     ) -> dict[str, Any]:
-        """Override a project com-object flag: communication/read/write/transmit/update/read_on_init.
+        """Override a project group object flag: communication/read/write/transmit/update/read_on_init.
         Pass ref_id from project_list_com_objects as com_object_ref_id with the same node_id;
         the object must have linkable=true. Undoable with project_undo; program the device to apply
         the change on the bus.
@@ -1912,11 +1912,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             co = device.find_com_object(com_object_ref_id)
             if co is None:
                 raise ToolError(
-                    f"no com-object {com_object_ref_id!r} on device {node_id}"
+                    f"no group object {com_object_ref_id!r} on device {node_id}"
                 )
             if co.db_id is None:
                 raise ToolError(
-                    f"com-object {com_object_ref_id!r} is not instantiated in the project "
+                    f"group object {com_object_ref_id!r} is not instantiated in the project "
                     "(not linkable/editable)"
                 )
             project.set_flag(device, com_object_ref_id, flag, value)
@@ -1948,7 +1948,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         AFTER the edit (may be a normalized form of ``requested``, or null with ``active=false`` if
         the edit deactivated the parameter), ``changed`` lists other parameters a calculation changed
         as a side effect, and ``lost_links`` lists group-address links this change dropped by
-        deactivating their com-objects ({com_object_ref_id, group_address_id, address}). A rejected
+        deactivating their group objects ({com_object_ref_id, group_address_id, address}). A rejected
         value raises with the reason and does NOT take effect on a later edit."""
 
         def _set() -> dict[str, Any]:
@@ -2035,7 +2035,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         (e.g. "1/2/3"); omit it for the next free address. Returns {group_address_id, address, name},
         or only {group_address_id} if the created row cannot be read. Pass group_address_id to group
         address and linking tools. Undoable with project_undo; hardware changes require linking
-        com-objects and programming their devices."""
+        group objects and programming their devices."""
         require_project(ctx)
 
         def _create() -> dict[str, Any]:
@@ -2135,7 +2135,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         group_address_id: int,
         is_sending: bool = False,
     ) -> dict[str, Any]:
-        """Create an undoable project link between a device com-object and a group address. Use
+        """Create an undoable project link between a device group object and a group address. Use
         ``com_object_ref_id`` = the object's ``ref_id`` from project_list_com_objects for ``node_id``
         (it must have linkable=true), and ``group_address_id`` = an ``id`` from
         project_list_group_addresses.
@@ -2158,20 +2158,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             co = device.find_com_object(com_object_ref_id)
             if co is None:
                 raise ToolError(
-                    f"no com-object {com_object_ref_id!r} on device {node_id}; "
+                    f"no group object {com_object_ref_id!r} on device {node_id}; "
                     "call project_list_com_objects for valid ref_ids"
                 )
             if co.db_id is None:
                 raise ToolError(
-                    f"com-object {com_object_ref_id!r} is not instantiated in the project and "
-                    "cannot be linked (only com-objects with linkable=true can be linked)"
+                    f"group object {com_object_ref_id!r} is not instantiated in the project and "
+                    "cannot be linked (only group objects with linkable=true can be linked)"
                 )
             result = perform_link(
                 project, node_id, com_object_ref_id, co, group_address_id, is_sending
             )
             if result is None:
                 raise ToolError(
-                    f"could not link com-object to group address {group_address_id} "
+                    f"could not link group object to group address {group_address_id} "
                     "(check the group address id exists; a group address with Security On "
                     "only takes devices commissioned securely)"
                 )

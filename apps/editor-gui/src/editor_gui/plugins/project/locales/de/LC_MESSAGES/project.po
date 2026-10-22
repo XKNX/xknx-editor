@@ -89,7 +89,7 @@ msgid "Parameters ({count})"
 msgstr "Parameter ({count})"
 
 msgid "Group Objects ({count})"
-msgstr "Gruppenobjekte ({count})"
+msgstr "Kommunikationsobjekte ({count})"
 
 msgid "Assigned Objects"
 msgstr "Zugewiesene Objekte"
@@ -440,10 +440,10 @@ msgstr "Gruppenadresse {address} entfernt"
 msgid "Group address: {old} -> {new}"
 msgstr "Gruppenadresse: {old} -> {new}"
 
-msgid "Com object linked to group address"
+msgid "Group object linked to group address"
 msgstr "Kommunikationsobjekt mit Gruppenadresse verknüpft"
 
-msgid "Com object unlinked from group address"
+msgid "Group object unlinked from group address"
 msgstr "Kommunikationsobjekt von Gruppenadresse getrennt"
 
 msgid "Area {number} created"
@@ -564,7 +564,7 @@ msgstr "Startadresse"
 msgid "Filter…"
 msgstr "Filter…"
 
-msgid "Add Communication Objects"
+msgid "Add Group Objects"
 msgstr "Kommunikationsobjekte hinzufügen"
 
 msgid "Add Group Addresses"
@@ -675,7 +675,7 @@ msgid "Click a finding to jump to the device."
 msgstr "Auf einen Befund klicken, um zum Gerät zu springen."
 
 msgid ""
-"Link many communication objects to existing group addresses at once. 1) Add "
+"Link many group objects to existing group addresses at once. 1) Add "
 "objects: '+ Selected device' (all objects of the device selected in the "
 "tree) or 'Add objects…'. 2) Set each row's target address in its dropdown — "
 "or fill them fast with 'Assign sequential' (next free addresses from the "
@@ -691,7 +691,7 @@ msgstr ""
 "gesetztem Ziel."
 
 msgid ""
-"Link communication objects to each other. 1) Add the source objects. 2) Pick"
+"Link group objects to each other. 1) Add the source objects. 2) Pick"
 " a partner object per row. Each pair gets a NEW group address (source sends,"
 " target receives): the address and name are suggested (first free address, "
 "name template below) but can be edited per row. 3) 'Link all' creates and "
@@ -757,7 +757,7 @@ msgid ""
 "size; unmatched ones are reported. Parameters are not carried over."
 msgstr ""
 "Ein Gerät durch ein anderes Modell ersetzen (eine Vorlage aus dem Projekt) "
-"und dabei die Gruppenadress-Verknüpfungen behalten. Gruppenobjekte werden "
+"und dabei die Gruppenadress-Verknüpfungen behalten. Kommunikationsobjekte werden "
 "nach Nummer und Größe zugeordnet; nicht zuordenbare werden gemeldet. "
 "Parameter werden nicht übernommen."
 
@@ -768,14 +768,14 @@ msgid "Replace with (Template)"
 msgstr "Ersetzen durch (Vorlage)"
 
 msgid "Group Object Mapping (by Number)"
-msgstr "Gruppenobjekt-Zuordnung (nach Nummer)"
+msgstr "Kommunikationsobjekt-Zuordnung (nach Nummer)"
 
 msgid "{count} object(s) will be re-mapped"
 msgstr "{count} Objekt(e) werden neu zugeordnet"
 
 
 msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "Ersetzt; {count} Gruppenobjekt(e) neu zugeordnet"
+msgstr "Ersetzt; {count} Kommunikationsobjekt(e) neu zugeordnet"
 
 msgid "Device"
 msgstr "Gerät"
@@ -1193,7 +1193,7 @@ msgid "Association Table Load State"
 msgstr "Ladezustand Assoziationstabelle"
 
 msgid "Group Object Table Load State"
-msgstr "Ladezustand Gruppenobjekttabelle"
+msgstr "Ladezustand Kommunikationsobjekttabelle"
 
 msgid "Reading the tables failed: {error}"
 msgstr "Lesen der Tabellen fehlgeschlagen: {error}"
@@ -1475,7 +1475,7 @@ msgstr "Kommentare entschlüsseln"
 msgid "Default Gateway"
 msgstr "Standard-Gateway"
 
-msgid "Delete '{name}'? Its com-objects and group-address links are removed and its individual address is freed. This can be undone."
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "'{name}' löschen? Seine Kommunikationsobjekte und Gruppenadress-Verknüpfungen werden entfernt und seine physikalische Adresse wird freigegeben. Dies kann rückgängig gemacht werden."
 
 msgid "Delete Device"
@@ -1575,7 +1575,7 @@ msgstr "Projektvergleich"
 msgid "Project Log"
 msgstr "Projektprotokoll"
 
-msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Com-object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
 msgstr "Gruppenadressen umnummerieren, indem ein Versatz auf ihren Rohwert addiert wird, z. B. um Lücken zu schaffen. Die Verknüpfungen der Kommunikationsobjekte wandern mit jeder Adresse mit. Es wird nichts geschrieben, wenn eine Verschiebung kollidieren oder den gültigen Bereich verlassen würde."
 
 msgid "Rows"
@@ -1750,7 +1750,7 @@ msgid "These group addresses will then communicate in the clear:"
 msgstr "Diese Gruppenadressen kommunizieren dann unverschlüsselt:"
 
 msgid "The device's group objects will be removed from these secured group addresses:"
-msgstr "Die Gruppenobjekte des Geräts werden von diesen gesicherten Gruppenadressen entfernt:"
+msgstr "Die Kommunikationsobjekte des Geräts werden von diesen gesicherten Gruppenadressen entfernt:"
 
 msgid "Deactivate"
 msgstr "Deaktivieren"
@@ -1774,7 +1774,7 @@ msgid "Not every device linked to this group address is commissioned securely, s
 msgstr "Nicht alle mit dieser Gruppenadresse verknüpften Geräte werden sicher in Betrieb genommen, daher kann sie nicht gesichert werden."
 
 msgid "A group object that requires secure communication would end up on a group address in the clear."
-msgstr "Ein Gruppenobjekt, das sichere Kommunikation erfordert, käme auf eine unverschlüsselte Gruppenadresse."
+msgstr "Ein Kommunikationsobjekt, das sichere Kommunikation erfordert, käme auf eine unverschlüsselte Gruppenadresse."
 
 msgid "Later"
 msgstr "Später"
@@ -1855,7 +1855,7 @@ msgid "Filter devices by address, name or description…"
 msgstr "Geräte nach Adresse, Name oder Beschreibung filtern…"
 
 msgid "Group Objects"
-msgstr "Gruppenobjekte"
+msgstr "Kommunikationsobjekte"
 
 msgid "No differences"
 msgstr "Keine Unterschiede"
@@ -2080,7 +2080,7 @@ msgid "Parameters in the Manufacturer's Plugin"
 msgstr "Parameter im Plugin des Herstellers"
 
 msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
-msgstr "Der Hersteller stellt die Parameter dieses Geräts in einem eigenen Plugin-Dialog ein, den XKNX Editor nicht ausführen kann; sie können deshalb hier nicht geändert werden. Ein Download schreibt ihre aktuellen Werte unverändert; die Gruppenobjekte lassen sich wie gewohnt verknüpfen."
+msgstr "Der Hersteller stellt die Parameter dieses Geräts in einem eigenen Plugin-Dialog ein, den XKNX Editor nicht ausführen kann; sie können deshalb hier nicht geändert werden. Ein Download schreibt ihre aktuellen Werte unverändert; die Kommunikationsobjekte lassen sich wie gewohnt verknüpfen."
 
 msgid "Edit parameters anyway"
 msgstr "Parameter trotzdem bearbeiten"
@@ -2100,13 +2100,13 @@ msgstr "Nur Objekte mit demselben Hauptdatenpunkttyp und solche ohne einen."
 msgid "Select a device in the tree first."
 msgstr "Zuerst ein Gerät im Baum auswählen."
 
-msgid "{device} has no communication objects."
+msgid "{device} has no group objects."
 msgstr "{device} hat keine Kommunikationsobjekte."
 
 msgid "All objects of {device} are in the list already."
 msgstr "Alle Objekte von {device} sind bereits in der Liste."
 
-msgid "Link communication objects to existing group addresses."
+msgid "Link group objects to existing group addresses."
 msgstr "Kommunikationsobjekte mit bestehenden Gruppenadressen verknüpfen."
 
 msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."

@@ -19,7 +19,7 @@ msgstr "Geladen: {path}"
 msgid "Found {count} application(s)"
 msgstr "{count} Applikation(en) gefunden"
 
-msgid "({count} com objects)"
+msgid "({count} group objects)"
 msgstr "({count} Kommunikationsobjekte)"
 
 msgid "Fetch Online Catalog"

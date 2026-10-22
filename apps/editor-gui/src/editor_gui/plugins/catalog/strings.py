@@ -25,7 +25,7 @@ class CatalogStrings:
 
     @property
     def ARCHIVE_COM_OBJECTS(self) -> str:
-        return _("({count} com objects)")
+        return _("({count} group objects)")
 
     @property
     def BTN_ONLINE_CATALOG(self) -> str:

@@ -108,7 +108,7 @@ class BuildCancelled(Exception):
 @dataclass(frozen=True)
 class UpdateApplicationResult:
     """Outcome of an application update: the version updated to and how many parameter/
-    com-object rows carried over vs were dropped as incompatible."""
+    group object rows carried over vs were dropped as incompatible."""
 
     new_version: int
     kept: int
@@ -187,7 +187,7 @@ def _parameter_instance_refs(
     """Wrap ``(ref_id, value)`` overrides as parameter instance refs for a fresh ``Device``.
 
     A device built with these resolves its dynamic UI against the given values, so the
-    activated (param-driven) com-object set matches the configuration rather than the raw
+    activated (param-driven) group object set matches the configuration rather than the raw
     application defaults. Empty when there are no overrides (the default set is kept)."""
     if not parameters:
         return []
@@ -217,7 +217,7 @@ def _row_values(obj: Any) -> tuple[Any, ...]:
 def _instance_refs(
     row: Any, app_program_id: str
 ) -> tuple[list[ParameterInstanceRef], list[Any], list[ComObjectInstanceRef]]:
-    """The parameter, module and com-object instance refs a device of ``row`` is built with."""
+    """The parameter, module and group object instance refs a device of ``row`` is built with."""
     from xknxeditor.namespaces.intermediate import ParameterInstanceRef as _PIR
     from xknxeditor.namespaces.intermediate.module_instance_t import (
         ModuleInstance as _MI,
@@ -263,7 +263,7 @@ def _module_instance_changes(
 
 
 def _device_source_key(row: Any) -> tuple[Any, ...]:
-    """Everything a device is built from: its program, parameters, module instances, com objects."""
+    """Everything a device is built from: its program, parameters, module instances, group objects."""
     return (
         row.hardware2program_ref_id,
         getattr(row, "application_program_ref_id", None),
@@ -274,7 +274,7 @@ def _device_source_key(row: Any) -> tuple[Any, ...]:
 
 
 def _qualified_com_object_ref(co_row: Any, app_program_id: str) -> str:
-    """The app-prefixed, per-instance-qualified com-object ref that the dynamic UI emits.
+    """The app-prefixed, per-instance-qualified group object ref that the dynamic UI emits.
 
     Thin adapter over :func:`xknxeditor.proj.core.identity.qualified_com_object_ref` for callers that
     hold a persisted-row object (ORM ``ComObject`` or a stored-row namespace) rather than the raw
@@ -288,7 +288,7 @@ def _qualified_com_object_ref(co_row: Any, app_program_id: str) -> str:
 
 @dataclass(frozen=True)
 class _ComObjectOverrides:
-    """A device's stored com-object row: its id and per-instance overrides."""
+    """A device's stored group object row: its id and per-instance overrides."""
 
     ref: str
     db_id: int
@@ -452,7 +452,7 @@ def _history_label(event_type: str, data: dict[str, Any]) -> str:
     if event_type == "Composite":
         if data.get("label"):
             return str(data["label"])
-        # A composite is a parameter change plus the com-object re-instantiation it triggered; label
+        # A composite is a parameter change plus the group object re-instantiation it triggered; label
         # it by its first sub-event (the SetParameter) so the history reads naturally.
         for sub in data.get("events", []):
             if sub.get("data"):
@@ -469,9 +469,9 @@ def _history_label(event_type: str, data: dict[str, Any]) -> str:
     if event_type == "ImportGroupAddresses":
         return str(data.get("label") or "Import group addresses")
     if event_type == "LinkComObject":
-        return "Link com-object"
+        return "Link group object"
     if event_type == "UnlinkComObject":
-        return "Unlink com-object"
+        return "Unlink group object"
     if event_type == "RenameArea":
         return f"Rename area to {data.get('name', '')!r}"
     if event_type == "SetProjectName":
@@ -579,7 +579,7 @@ class DeviceConfigClipboard:
 
     ``params`` are (ref_id, value) parameter overrides. ``links`` are
     (com_object_number, com_object_size, group_address_id, is_sending) tuples, re-attached to a
-    target's com-objects matched by number (guarded by object size)."""
+    target's group objects matched by number (guarded by object size)."""
 
     app_id: str
     source_label: str
@@ -858,7 +858,7 @@ class ProjectService:
         self._focus_editor_requested = False
         # Cross-panel "please bring the Group Addresses tab to front" request.
         self._focus_group_addresses_requested = False
-        # Re-instantiate a device's persisted com-objects on a function/mode parameter change, scoped
+        # Re-instantiate a device's persisted group objects on a function/mode parameter change, scoped
         # to exactly the objects that parameter controls (its ChooseWhenNode branches). Only the
         # objects the parameter governs are added/removed; channels and globals stay as configured.
         # (An earlier blanket before/after diff of the whole unpruned set was destructive — it
@@ -1441,7 +1441,7 @@ class ProjectService:
             self._devices_cache_version = self._version
 
     def _refresh_device(self, node_id: int) -> None:
-        """Rebuild a single device's cached view in place (its com-objects changed), instead of
+        """Rebuild a single device's cached view in place (its group objects changed), instead of
         discarding the whole device cache. A full structural rebuild re-evaluates every device's
         DynamicUI (``_build_device`` warms it per device), which is very slow on large projects; a
         function/mode change only affects the one edited device, so refresh just that entry. Caller
@@ -2229,8 +2229,8 @@ class ProjectService:
     @io_guarded(list)
     @revision_cached
     def device_links(self) -> list["DeviceLinkInfo"]:
-        """Every group-address link with its device (``node_id``) and its com-object's flags, read in
-        one query: for views over the whole project, where a read per com-object is far too slow."""
+        """Every group-address link with its device (``node_id``) and its group object's flags, read in
+        one query: for views over the whole project, where a read per group object is far too slow."""
         if self._pid is None:
             return []
         return self._svc.device_links(self._pid)
@@ -2238,7 +2238,7 @@ class ProjectService:
     @io_guarded(list)
     @revision_cached_by_args
     def get_links_for_com_object(self, com_object_db_id: int) -> list[Assignment]:
-        """A device com-object's group-address links (the per-com-object direction, for the editor's
+        """A device group object's group-address links (the per-group object direction, for the editor's
         Group Objects view). ``com_object_db_id`` is ``ComObject.db_id``."""
         if self._pid is None:
             return []
@@ -3330,7 +3330,7 @@ class ProjectService:
         """Record a device's commissioning state (loaded ticks / serial / last download / MAC
         address).
 
-        Called after programming a device. Non-structural: the device's parameter/com-object UI is
+        Called after programming a device. Non-structural: the device's parameter/group object UI is
         unchanged, so the expensive device cache is preserved (only the revision bumps)."""
         if self._pid is None:
             return
@@ -3727,7 +3727,7 @@ class ProjectService:
         # A module-scoped parameter override (…_M-100_MI-1_P-…) only routes into its module scope
         # once that scope has been materialized — building with parameter_instance_refs alone leaves
         # module channels on their raw application default, so the override is silently ignored and
-        # the persisted com-object set is stale (its refs no longer exist once the override applies,
+        # the persisted group object set is stale (its refs no longer exist once the override applies,
         # so _build_device prunes those channels on reload). Discover the module instances from a
         # first build, then rebuild with them so overrides take effect and the persisted set is
         # symmetric with _build_device. Non-module devices see an empty list and skip the second pass.
@@ -3900,7 +3900,7 @@ class ProjectService:
         skip_invalid: bool = False,
     ) -> "ChangeSet":
         """Apply parameter edits to a live device and persist them, including calculated values
-        and the com-object changes they cause, as one undo step."""
+        and the group object changes they cause, as one undo step."""
         if self._pid is None:
             return {}
         old_active = (
@@ -3936,7 +3936,7 @@ class ProjectService:
         return changes
 
     def parameter_driven_com_objects(self, device: Device) -> set[str]:
-        """The active com-object set a later :meth:`commit_param_changes` diffs against."""
+        """The active group object set a later :meth:`commit_param_changes` diffs against."""
         if not self._co_reconcile_enabled:
             return set[str]()
         return device.active_parameter_driven_com_object_ref_ids()
@@ -3969,7 +3969,7 @@ class ProjectService:
     def finish_script_changes(
         self, node_id: int, old_active: set[str], *, generation: int | None = None
     ) -> None:
-        """After a parameter script: reconcile com-objects and rebuild the device from the project."""
+        """After a parameter script: reconcile group objects and rebuild the device from the project."""
         if generation is not None and generation != self._generation:
             return
         device = self.find_device_by_node_id(node_id)
@@ -4033,7 +4033,7 @@ class ProjectService:
         self._bump(structural=False)
 
     def _removed_links(self, device: Device, target: set[str]) -> list[dict[str, Any]]:
-        """Links the reconcile is about to drop: group-address links of the com-objects present now
+        """Links the reconcile is about to drop: group-address links of the group objects present now
         but not in ``target``. Captured before ``set_parameters`` deletes them, so a caller can report
         what a function/mode change cost. The removed set is small (only the deactivated objects)."""
         removed_ids = {co.id for co in device.com_objects} - target
@@ -4103,7 +4103,7 @@ class ProjectService:
     def _com_object_target(
         self, device: Device, old_active: set[str]
     ) -> set[str] | None:
-        """The com-object set after a parameter change, or ``None`` when it is unchanged.
+        """The group object set after a parameter change, or ``None`` when it is unchanged.
 
         Reconcile on the DELTA of the parameter-driven active set (chain-AND) across the change —
         never the absolute set: ADD objects that became active (``(new_active - old_active) -
@@ -4120,7 +4120,7 @@ class ProjectService:
         if target == current:
             return None
         self._log.info(
-            "sync com-objects",
+            "sync group objects",
             device=device.node_id,
             added=sorted(add),
             removed=sorted(remove),
@@ -4190,7 +4190,7 @@ class ProjectService:
         self._bump(structural=False)
 
     def remove_device(self, node_id: int) -> None:
-        """Delete a device (and its com-objects/links) from the project."""
+        """Delete a device (and its group objects/links) from the project."""
         if self._pid is None:
             return
         self._svc.remove_device(self._pid, node_id)
@@ -4327,9 +4327,9 @@ class ProjectService:
         *,
         replace_matching: bool,
     ) -> int:
-        """Attach captured links to a device's com-objects, matched by number (guarded by object
-        size). When ``replace_matching``, a matched com-object's existing links are removed first.
-        Returns how many com-objects were (re)linked."""
+        """Attach captured links to a device's group objects, matched by number (guarded by object
+        size). When ``replace_matching``, a matched group object's existing links are removed first.
+        Returns how many group objects were (re)linked."""
         by_number = {
             co.number: co
             for co in device.get_visible_com_objects()
@@ -4504,7 +4504,7 @@ class ProjectService:
             return
         self._svc.set_com_object_flag(self._pid, co.db_id, column, value)
         # In place instead of a full rebuild (which would reset the Configure panel's tree/edit
-        # state): reflect on the live com-object and push the com-object's full override set into the
+        # state): reflect on the live group object and push the group object's full override set into the
         # live dynamic UI — exactly what a rebuild reconstructs from the DB — then bump non-structurally
         # so revision-keyed panels (Health/Cockpit) refresh.
         setattr(co.flags, flag_name, value)
@@ -4530,7 +4530,7 @@ class ProjectService:
             return
         token = normalize_datapoint_type(value) if value else None
         self._svc.set_com_object_datapoint_type(self._pid, co.db_id, token)
-        # Reflect on the live com-object. With a value, update the override and the resolved display
+        # Reflect on the live group object. With a value, update the override and the resolved display
         # DPT in place (non-structural bump keeps the Configure tree/edit state). On a clear, the
         # default DPT is only known after a rebuild, so bump structurally to pull it from the catalog.
         co.datapoint_type_override = token
@@ -4683,7 +4683,7 @@ class ProjectService:
         self._bump(structural=False)
 
     def set_group_address_address(self, ga_id: int, address: str) -> bool:
-        """Renumber a group address (ETS-style change-address): its com-object links move with it.
+        """Renumber a group address (ETS-style change-address): its group object links move with it.
         ``address`` is a style-formatted string (e.g. ``"1/2/3"``). Returns False on an invalid
         address or when another group address already uses it."""
         if self._pid is None:
@@ -4818,7 +4818,7 @@ class ProjectService:
         return link_id
 
     def _com_object_dpt_token(self, co_db_id: int) -> str | None:
-        """The ETS DPT token of a com-object (resolved via the cached device view-models)."""
+        """The ETS DPT token of a group object (resolved via the cached device view-models)."""
         for d in self.devices:
             for co in d.com_objects:
                 if co.db_id == co_db_id:
@@ -4843,7 +4843,7 @@ class ProjectService:
             return token
         if ga.datapoint_type != token:
             self._log.warning(
-                "linked com-object DPT differs from group address DPT; keeping existing",
+                "linked group object DPT differs from group address DPT; keeping existing",
                 group_address=ga.address,
                 existing=ga.datapoint_type,
                 com_object=token,
@@ -5014,8 +5014,8 @@ class ProjectService:
         self, peek: "tuple[str, dict[str, Any]] | None", *, undo: bool
     ) -> None:
         """Refresh views after an undo/redo. A plain parameter change is applied *in place* on the
-        affected device (like a live edit); a composite param+com-object change rebuilds only that one
-        device (its com-object rows changed in the DB) — both instant, instead of discarding and
+        affected device (like a live edit); a composite param+group object change rebuilds only that one
+        device (its group object rows changed in the DB) — both instant, instead of discarding and
         re-parsing every device's dynamic UI. Anything else falls back to a full structural rebuild."""
         if peek is not None and self._devices_cache is not None:
             event_type, data = peek

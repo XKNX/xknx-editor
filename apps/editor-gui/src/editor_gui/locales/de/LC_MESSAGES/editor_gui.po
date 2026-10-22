@@ -452,7 +452,7 @@ msgstr "Die Originaldatei hatte {count} Anlagen. Sie wurden zu einer zusammengef
 msgid "{count} device(s) had no place in the original file, so they were left out."
 msgstr "{count} Gerät(e) hatten in der Originaldatei keinen Platz und wurden weggelassen."
 
-msgid "{count} com-object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
 msgstr "{count} Kommunikationsobjekt(e) hatten in der Originaldatei eine zusätzliche Beschreibung. Der eigene Name und die Funktion bleiben erhalten; nur diese Beschreibung wird hier nicht angezeigt."
 
 msgid "{count} IP or function setting(s) from the original file are not used here."
@@ -503,8 +503,8 @@ msgstr "Gebäude"
 msgid "Group Addresses"
 msgstr "Gruppenadressen"
 
-msgid "Group-Object Links"
-msgstr "Gruppenobjekt-Verknüpfungen"
+msgid "Group Object Links"
+msgstr "Kommunikationsobjekt-Verknüpfungen"
 
 msgid "Areas / Lines"
 msgstr "Bereiche / Linien"

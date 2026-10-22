@@ -10,7 +10,7 @@ from imgui_bundle import imgui
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 
 _TEXT = (
-    "Delete '1.0.33  Heating Actuator 8-fold, 4SU MDRC, 24/230VAC'? Its com-objects and "
+    "Delete '1.0.33  Heating Actuator 8-fold, 4SU MDRC, 24/230VAC'? Its group objects and "
     "group-address links are removed and its individual address is freed. This can be undone."
 )
 

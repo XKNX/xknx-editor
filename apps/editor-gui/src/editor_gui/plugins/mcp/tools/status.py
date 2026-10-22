@@ -2,7 +2,7 @@
 # pyright: reportUnusedFunction=false
 """A single aggregate status/capability tool — a reliable first call for an LLM.
 
-Combines project/connection/keyring/capture state and the enums (download scopes, com-object flags,
+Combines project/connection/keyring/capture state and the enums (download scopes, group object flags,
 group-address style) an agent needs to form valid calls, instead of scattering them across many
 tools and runtime validation.
 """
@@ -25,7 +25,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def status() -> dict[str, Any]:
         """One-call overview: project, connection, keyring, capture state, plus valid enums.
 
-        Call this first. ``capabilities`` lists the download scopes, com-object flags, and (when a
+        Call this first. ``capabilities`` lists the download scopes, group object flags, and (when a
         project is open) the group-address style that other tools accept."""
         from xknxeditor.download.scope import DownloadScope
 

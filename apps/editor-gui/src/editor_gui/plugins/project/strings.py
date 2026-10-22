@@ -76,7 +76,7 @@ class ProjectStrings:
 
     @property
     def ML_GUIDE_GA_CO(self) -> str:
-        return _("Link communication objects to existing group addresses.")
+        return _("Link group objects to existing group addresses.")
 
     @property
     def ML_GUIDE_GA_CO_1(self) -> str:
@@ -195,7 +195,7 @@ class ProjectStrings:
 
     @property
     def ML_PICK_OBJECTS_TITLE(self) -> str:
-        return _("Add Communication Objects")
+        return _("Add Group Objects")
 
     @property
     def ML_PICK_GAS_TITLE(self) -> str:
@@ -284,7 +284,7 @@ class ProjectStrings:
 
     @property
     def ML_NOTE_NO_OBJECTS(self) -> str:
-        return _("{device} has no communication objects.")
+        return _("{device} has no group objects.")
 
     @property
     def ML_NOTE_ALL_LISTED(self) -> str:
@@ -648,7 +648,7 @@ class ProjectStrings:
     def TOOLS_SHIFT_GA_DESC(self) -> str:
         return _(
             "Renumber group addresses by adding an offset to their raw value, e.g. to open "
-            "gaps. Com-object links move with each address. Nothing is written if any move "
+            "gaps. Group object links move with each address. Nothing is written if any move "
             "would collide or leave the valid range."
         )
 
@@ -1945,7 +1945,7 @@ class ProjectStrings:
     @property
     def DEVICE_DELETE_CONFIRM(self) -> str:
         return _(
-            "Delete '{name}'? Its com-objects and group-address links are removed and its "
+            "Delete '{name}'? Its group objects and group-address links are removed and its "
             "individual address is freed. This can be undone."
         )
 
@@ -2147,11 +2147,11 @@ class ProjectStrings:
 
     @property
     def HISTORY_CO_LINKED(self) -> str:
-        return _("Com object linked to group address")
+        return _("Group object linked to group address")
 
     @property
     def HISTORY_CO_UNLINKED(self) -> str:
-        return _("Com object unlinked from group address")
+        return _("Group object unlinked from group address")
 
     @property
     def HISTORY_AREA_CREATE(self) -> str:

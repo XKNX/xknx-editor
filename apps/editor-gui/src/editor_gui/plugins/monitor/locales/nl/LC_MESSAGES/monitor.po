@@ -189,7 +189,7 @@ msgid "Group Monitor"
 msgstr "Groepsmonitor"
 
 msgid "Group Objects"
-msgstr "Groepsobjecten"
+msgstr "Groepobjecten"
 
 msgid "{count} telegrams"
 msgstr "{count} telegrammen"
