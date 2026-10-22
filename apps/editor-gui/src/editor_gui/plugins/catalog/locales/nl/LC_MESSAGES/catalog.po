@@ -34,8 +34,8 @@ msgstr "Programmaversie"
 msgid "Search products, order number…"
 msgstr "Producten, bestelnummer zoeken…"
 
-msgid "Product Index: {mfrs} manufacturers, {products} products"
-msgstr "Productindex: {mfrs} fabrikanten, {products} producten"
+msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
+msgstr "Productindex ({date}): {mfrs} fabrikanten, {products} producten"
 
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Nog geen productindex - haal de online catalogus op om te bouwen"

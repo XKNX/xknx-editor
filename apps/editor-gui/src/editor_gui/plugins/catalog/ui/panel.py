@@ -3,6 +3,7 @@ from __future__ import annotations
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
@@ -11,13 +12,16 @@ from editor_gui import file_dialogs
 from editor_gui.device_info import application_version_text
 from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.plugins.catalog.strings import S
+from editor_gui.regional import regional_format
 from editor_gui.strings import get_locale
 from editor_gui.widgets.backgrounds import fill_content_background
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.flow import fits_beside
 from editor_gui.widgets.tree import leaf_rows, tree_node
+from editor_gui.widgets.value_pickers import format_date
 
 if TYPE_CHECKING:
     from editor_gui.plugins.catalog.online_catalog import (
@@ -125,6 +129,18 @@ def _version_text(product: ProductSummary) -> str:
     if product.application_version is None:
         return "-"
     return application_version_text(product.application_version)
+
+
+def fetched_date(fetched_at: str | None) -> str:
+    """When the product index was fetched (stored in UTC), as a local date in the regional short
+    date format; "-" when unknown."""
+    if not fetched_at:
+        return "-"
+    try:
+        moment = datetime.fromisoformat(fetched_at).astimezone()
+    except ValueError:
+        return "-"
+    return format_date(moment.date().isoformat(), True, regional_format())
 
 
 class CatalogPanel:
@@ -829,13 +845,21 @@ class CatalogPanel:
             return
         status = self._get_online_index_status()
         if status.products:
-            imgui.text_disabled(
-                S.ONLINE_INDEX_STATUS.format(
-                    mfrs=status.manufacturers, products=status.products
-                )
+            text = S.ONLINE_INDEX_STATUS.format(
+                date=fetched_date(status.fetched_at),
+                mfrs=status.manufacturers,
+                products=status.products,
             )
         else:
-            imgui.text_disabled(S.ONLINE_INDEX_NONE)
+            text = S.ONLINE_INDEX_NONE
+        # Beside the fetch button when it fits, else on its own line, wrapped (narrow screens).
+        if not fits_beside(imgui.calc_text_size(text).x):
+            imgui.new_line()
+        imgui.push_style_color(
+            imgui.Col_.text, imgui.get_style_color_vec4(imgui.Col_.text_disabled)
+        )
+        imgui.text_wrapped(text)
+        imgui.pop_style_color()
 
     def _recompute_flat(self, query: str) -> None:
         """Refresh the cached flat search results for ``query`` (only called on query change)."""

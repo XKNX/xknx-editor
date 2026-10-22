@@ -69,7 +69,7 @@ class CatalogStrings:
 
     @property
     def ONLINE_INDEX_STATUS(self) -> str:
-        return _("Product Index: {mfrs} manufacturers, {products} products")
+        return _("Product Index ({date}): {mfrs} manufacturers, {products} products")
 
     @property
     def ONLINE_INDEX_NONE(self) -> str:

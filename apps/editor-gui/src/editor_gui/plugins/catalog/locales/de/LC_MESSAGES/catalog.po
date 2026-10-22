@@ -96,8 +96,8 @@ msgstr "Programmversion"
 msgid "Search products, order number…"
 msgstr "Produkte, Bestellnummer suchen…"
 
-msgid "Product Index: {mfrs} manufacturers, {products} products"
-msgstr "Produktindex: {mfrs} Hersteller, {products} Produkte"
+msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
+msgstr "Produktindex ({date}): {mfrs} Hersteller, {products} Produkte"
 
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Noch kein Produktindex - Online-Katalog abrufen zum Aufbauen"
