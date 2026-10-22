@@ -910,9 +910,11 @@ class CatalogPanel:
         counts = filters.counts()
         if counts is not None and counts[0] != counts[1]:
             text = S.ONLINE_FILTERED_COUNT.format(shown=counts[0], total=counts[1])
+            # Beside the checkbox the text keeps the checkbox label's line.
             if fits_beside(imgui.calc_text_size(text).x):
                 imgui.same_line()
-            imgui.align_text_to_frame_padding()
+            else:
+                imgui.align_text_to_frame_padding()
             imgui.text_disabled(text)
 
     def _recompute_flat(self, query: str) -> None:
