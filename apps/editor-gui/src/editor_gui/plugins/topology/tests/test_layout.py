@@ -1,4 +1,4 @@
-"""The device boxes of the topology map carry each device's description for their icon."""
+"""The device boxes of the topology map show each device's description in their tooltip."""
 
 from __future__ import annotations
 
@@ -16,16 +16,15 @@ def _panel(devices: list[Device]) -> TopologyPanel:
     return TopologyPanel(lambda: devices, lambda: [], lambda _id: None, lambda: True)
 
 
-def test_physical_boxes_carry_the_description() -> None:
+def test_physical_tooltips_end_with_the_description() -> None:
     devices = [_device(1, "1.1.1", "  Under the stairs  "), _device(2, "1.1.2")]
     layout = _panel(devices)._build_physical_layout(devices)  # pyright: ignore[reportPrivateUsage]
-    assert [(d.node_id, d.description) for d in layout.devices] == [
-        (1, "Under the stairs"),
-        (2, ""),
-    ]
+    first, second = layout.devices
+    assert first.tooltip.endswith("\n\nUnder the stairs")
+    assert "\n\n" not in second.tooltip
 
 
-def test_building_boxes_carry_the_description() -> None:
+def test_building_tooltips_end_with_the_description() -> None:
     devices = [_device(1, "1.1.1", "In the cabinet")]
     space = SimpleNamespace(
         name="Building",
@@ -39,4 +38,7 @@ def test_building_boxes_carry_the_description() -> None:
         children=[],
     )
     layout = _panel(devices)._build_building_layout([space])  # pyright: ignore[reportPrivateUsage]
-    assert [d.description for d in layout.devices] == ["In the cabinet", "Not resolved"]
+    assert [d.tooltip.split("\n\n")[-1] for d in layout.devices] == [
+        "In the cabinet",
+        "Not resolved",
+    ]
