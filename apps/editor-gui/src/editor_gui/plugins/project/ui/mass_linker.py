@@ -209,6 +209,15 @@ def match_by_name(name: str, existing: list[tuple[int, str]]) -> int | None:
     return contains
 
 
+def _hint(text: str) -> None:
+    """A greyed hint, wrapped to the panel so it stays readable in narrow layouts."""
+    imgui.push_style_color(
+        imgui.Col_.text, imgui.get_style_color_vec4(imgui.Col_.text_disabled)
+    )
+    imgui.text_wrapped(text)
+    imgui.pop_style_color()
+
+
 @dataclass
 class _Row:
     """One source com-object with its chosen target (a group-address id or a target com-object)."""
@@ -307,7 +316,7 @@ class MassLinkerPanel:
             self._reset()  # dropped project: queued db-ids are now stale
         self._was_open = open_now
         if not open_now:
-            imgui.text_disabled(S.ML_NO_PROJECT)
+            _hint(S.ML_NO_PROJECT)
             return
         if imgui.begin_tab_bar("##mass_linker_tabs"):
             if imgui.begin_tab_item(S.ML_TAB_GA_CO)[0]:
@@ -408,7 +417,7 @@ class MassLinkerPanel:
 
     def _render_ga_table(self, flat: list[_FlatGa], by_id: dict[int, _FlatGa]) -> None:
         if not self._rows1:
-            imgui.text_disabled(S.ML_TABLE_EMPTY)
+            _hint(S.ML_TABLE_EMPTY)
             return
         flags = (
             imgui.TableFlags_.borders_inner_h
@@ -653,7 +662,7 @@ class MassLinkerPanel:
 
     def _render_co_table(self, suggestions: dict[int, tuple[str, str]]) -> None:
         if not self._rows2:
-            imgui.text_disabled(S.ML_TABLE_EMPTY)
+            _hint(S.ML_TABLE_EMPTY)
             return
         flags = (
             imgui.TableFlags_.borders_inner_h
@@ -999,7 +1008,7 @@ class MassLinkerPanel:
             self._log_entries.clear()
         imgui.separator()
         if not self._log_entries:
-            imgui.text_disabled(S.ML_LOG_EMPTY)
+            _hint(S.ML_LOG_EMPTY)
             return
         if imgui.begin_child("##ml_log"):
             for entry in reversed(self._log_entries):
