@@ -154,8 +154,8 @@ msgstr "Lijn: {old} -> {new}"
 msgid "Mass Linker"
 msgstr "Massakoppeling"
 
-msgid "GA <> Object"
-msgstr "GA <> Object"
+msgid "Object <> GA"
+msgstr "Object <> GA"
 
 msgid "Object <> Object"
 msgstr "Object <> Object"
@@ -1938,3 +1938,51 @@ msgstr "De fabrikant stelt de parameters van dit apparaat in met een eigen plug-
 
 msgid "Edit parameters anyway"
 msgstr "Parameters toch bewerken"
+
+msgid "Matching DPT Only"
+msgstr "Alleen passend DPT"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Alleen groepsadressen met het hoofddatapunttype van het object, en die zonder (zij nemen bij het koppelen het type van het object over)."
+
+msgid "no DPT"
+msgstr "geen DPT"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Alleen objecten met hetzelfde hoofddatapunttype, en die zonder."
+
+msgid "Select a device in the tree first."
+msgstr "Selecteer eerst een apparaat in de boom."
+
+msgid "{device} has no communication objects."
+msgstr "{device} heeft geen communicatieobjecten."
+
+msgid "All objects of {device} are in the list already."
+msgstr "Alle objecten van {device} staan al in de lijst."
+
+msgid "Link communication objects to existing group addresses."
+msgstr "Communicatieobjecten aan bestaande groepsadressen koppelen."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Objecten toevoegen met \"{add_device}\" of \"{add_objects}\"."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Kies per rij een groepsadres, of vul alle met \"{match}\" of \"{sequential}\"."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "\"{link_all}\" koppelt elke rij die er een heeft."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Objecten aan elkaar koppelen via telkens een nieuw groepsadres: de bron zendt, het doel ontvangt."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "De bronobjecten toevoegen met \"{add_device}\" of \"{add_objects}\"."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Kies per rij een doelobject. Adres en naam worden voorgesteld en zijn aan te passen."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "\"{link_all}\" maakt de groepsadressen aan en koppelt ze."
+
+msgid "Link All"
+msgstr "Alles koppelen"

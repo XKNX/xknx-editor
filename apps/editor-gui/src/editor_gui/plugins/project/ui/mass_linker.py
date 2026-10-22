@@ -3,7 +3,7 @@
 Instead of two positional lists, each object is a table row and its target is set explicitly
 per row, so the order of rows never matters:
 
-- **GA <> Object**: rows are com-objects; each row picks an existing group address (inline combo).
+- **Object <> GA**: rows are com-objects; each row picks an existing group address (inline combo).
   Helpers fill the targets fast: "assign sequential from <address>" and "match by name".
 - **Object <> Object**: rows are source com-objects; each row picks a target com-object. Every
   pair gets a freshly created group address (name template + optional start address).
@@ -16,6 +16,7 @@ plugin over ``ProjectService``), so the logic is testable without a UI.
 
 from __future__ import annotations
 
+import time
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
@@ -23,7 +24,7 @@ from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
-from editor_gui.device import device_label
+from editor_gui.device import address_order, device_label
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.widgets.checkbox import checkbox
@@ -39,6 +40,8 @@ if TYPE_CHECKING:
     from xknxeditor.proj.core.service import GroupRangeInfo
 
 LinkResult = tuple[int, list[str]]  # (linked count, error messages)
+# How long a note beside the row count stays.
+_NOTE_SECONDS = 4.0
 
 
 def _dpt_label(co: ComObject) -> str:
@@ -90,6 +93,15 @@ def _status_of(
     if obj_major is None or ga_major is None:
         return "ambiguous"
     return "ready" if obj_major == ga_major else "incompatible"
+
+
+def _dpt_label_from_token(token: str | None) -> str:
+    """Compact label of a group-address DPT token ('DPST-10-1' -> '10.1', 'DPT-1' -> '1'), as the
+    objects' DPT column shows it; empty when unknown."""
+    if not token:
+        return ""
+    parts = token.replace("DPST-", "").replace("DPT-", "").split("-")
+    return ".".join(parts) if all(part.isdigit() for part in parts) else ""
 
 
 def _dpt_major_from_token(token: str | None) -> int | None:
@@ -210,6 +222,9 @@ class _Row:
         ""  # object<->object: per-pair GA address override (empty = suggested)
     )
     ga_name: str = ""  # object<->object: per-pair GA name override (empty = suggested)
+    target_device: str = (
+        ""  # object<->object: the target object's device (address and name)
+    )
 
     @property
     def label(self) -> str:
@@ -229,6 +244,7 @@ class _FlatGa:
     text: str
     name: str
     major: int | None = None
+    dpt: str = ""  # compact DPT label ('10.1'), empty when the address has none
 
 
 class MassLinkerPanel:
@@ -256,7 +272,7 @@ class MassLinkerPanel:
         # added object shows the group address it is ALREADY linked to instead of "no target".
         self._get_links_for_co = get_links_for_co
 
-        self._rows1: list[_Row] = []  # GA <> Object rows
+        self._rows1: list[_Row] = []  # Object <> GA rows
         self._rows2: list[_Row] = []  # Object <> Object rows
         self._seq_start = ""  # "assign sequential from" address (tab 1)
         self._name_template = "{source}"
@@ -272,11 +288,16 @@ class MassLinkerPanel:
         self._pick_obj_selected: set[int] = set()
         self._pick_filter = ""
         self._tgt_filter = ""  # shared search filter for the per-row target combo
+        # The target combo lists only group addresses of the object's DPT (or without one).
+        self._dpt_only = True
         self._problems_only = False  # table filter: hide rows that are already ready
         # Defer open_popup() to render()'s root scope (must match begin_popup_modal's id scope).
         self._open_obj_pending = False
         self._open_result_pending = False
         self._pending_remove: tuple[int, int] | None = None  # (tab, row index)
+        # A short note beside the row count (e.g. why '+ Selected Device' added nothing), shown
+        # until the given time.
+        self._notice: tuple[str, float] | None = None
 
     # -- rendering ---------------------------------------------------------
 
@@ -312,10 +333,18 @@ class MassLinkerPanel:
         self._rows1.clear()
         self._rows2.clear()
 
-    # -- GA <> Object tab --------------------------------------------------
+    # -- Object <> GA tab --------------------------------------------------
 
     def _render_ga_co_tab(self) -> None:
-        _desc(S.ML_DESC_GA_CO)
+        names = _button_names()
+        _guide(
+            S.ML_GUIDE_GA_CO,
+            [
+                S.ML_GUIDE_GA_CO_1.format(**names),
+                S.ML_GUIDE_GA_CO_2.format(**names),
+                S.ML_GUIDE_GA_CO_3.format(**names),
+            ],
+        )
         self._row_toolbar(self._rows1)
         flat = self._flat_gas()
         by_id = {g.ga_id: g for g in flat}
@@ -336,10 +365,22 @@ class MassLinkerPanel:
                     none=counts["unmatched"],
                 )
             )
-            imgui.same_line()
+            _continue_row(_checkbox_width(S.ML_SHOW_PROBLEMS))
             _, self._problems_only = checkbox(S.ML_SHOW_PROBLEMS, self._problems_only)
 
-        table_h = max(imgui.get_content_region_avail().y - px(96.0), px(120.0))
+        # Room below for the buttons, more where they wrap onto further lines (a phone).
+        below = (
+            px(96.0)
+            + _extra_lines(
+                [
+                    _button_width(S.ML_MATCH_NAME),
+                    _field_width(px(120.0), S.ML_SEQ_FROM),
+                    _button_width(S.ML_ASSIGN_SEQ),
+                ]
+            )
+            * imgui.get_frame_height_with_spacing()
+        )
+        table_h = max(imgui.get_content_region_avail().y - below, px(120.0))
         if imgui.begin_child("##ml1_table", imgui.ImVec2(0.0, table_h)):
             self._render_ga_table(flat, by_id)
         imgui.end_child()
@@ -348,10 +389,10 @@ class MassLinkerPanel:
         # Re-pair by name (DPT-constrained) or link to a contiguous existing block from a start.
         if imgui.button(S.ML_MATCH_NAME):
             self._match_all(flat)
-        imgui.same_line()
+        _continue_row(_field_width(px(120.0), S.ML_SEQ_FROM))
         imgui.set_next_item_width(px(120.0))
         _, self._seq_start = imgui.input_text(S.ML_SEQ_FROM, self._seq_start)
-        imgui.same_line()
+        _continue_row(_button_width(S.ML_ASSIGN_SEQ))
         if imgui.button(S.ML_ASSIGN_SEQ):
             self._assign_sequential(flat, by_id)
         # Link everything with a target that isn't blocked by a DPT conflict.
@@ -375,7 +416,7 @@ class MassLinkerPanel:
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.reorderable
         )
-        if not begin_data_table("##ml1", 6, flags):
+        if not begin_data_table("##ml1", 6, flags, scroll_when_narrow=True):
             return
         imgui.table_setup_column("##st", imgui.TableColumnFlags_.width_fixed, px(22.0))
         imgui.table_setup_column(
@@ -420,15 +461,25 @@ class MassLinkerPanel:
         cur = by_id.get(row.target_ga) if row.target_ga is not None else None
         label = f"{cur.text}  {cur.name}" if cur else S.ML_TARGET_NONE
         imgui.set_next_item_width(-1)
-        if begin_combo(f"##tga{i}", label):
+        if begin_combo(f"##tga{i}", label, imgui.ComboFlags_.height_large):
             self._tgt_filter = filter_box(
                 f"##tgaflt{i}", S.ML_FILTER_HINT, self._tgt_filter
             )
+            _, self._dpt_only = checkbox(S.ML_MATCHING_DPT_ONLY, self._dpt_only)
+            if imgui.is_item_hovered():
+                imgui.set_tooltip(S.ML_MATCHING_DPT_TIP)
             flt = self._tgt_filter.strip().lower()
             if imgui.selectable(S.ML_TARGET_NONE, row.target_ga is None)[0]:
                 self._set_target(row, None, by_id)
+            obj_major = _obj_major(row.co)
             for g in flat:
-                text = f"{g.text}  {g.name}"
+                if self._dpt_only:
+                    # Same main type; an address without one takes the object's when linked.
+                    if None not in (obj_major, g.major) and g.major != obj_major:
+                        continue
+                    text = f"{g.text}  {g.name}"
+                else:
+                    text = f"{g.text}  {g.name}  ({g.dpt or S.ML_GA_NO_DPT})"
                 if flt and flt not in text.lower():
                     continue
                 if imgui.selectable(f"{text}##g{g.ga_id}", g.ga_id == row.target_ga)[0]:
@@ -489,10 +540,29 @@ class MassLinkerPanel:
     # -- Object <> Object tab ----------------------------------------------
 
     def _render_co_co_tab(self) -> None:
-        _desc(S.ML_DESC_CO_CO)
+        names = _button_names()
+        _guide(
+            S.ML_GUIDE_CO_CO,
+            [
+                S.ML_GUIDE_CO_CO_1.format(**names),
+                S.ML_GUIDE_CO_CO_2.format(**names),
+                S.ML_GUIDE_CO_CO_3.format(**names),
+            ],
+        )
         self._row_toolbar(self._rows2)
         suggestions = self._co_suggestions()
-        table_h = max(imgui.get_content_region_avail().y - px(116.0), px(120.0))
+        # Room below for the fields, more where they wrap onto a further line (a phone).
+        below = (
+            px(116.0)
+            + _extra_lines(
+                [
+                    _field_width(px(220.0), S.ML_NAME_TEMPLATE),
+                    _field_width(px(140.0), S.ML_START_ADDRESS),
+                ]
+            )
+            * imgui.get_frame_height_with_spacing()
+        )
+        table_h = max(imgui.get_content_region_avail().y - below, px(120.0))
         if imgui.begin_child("##ml2_table", imgui.ImVec2(0.0, table_h)):
             self._render_co_table(suggestions)
         imgui.end_child()
@@ -502,7 +572,7 @@ class MassLinkerPanel:
         _, self._name_template = imgui.input_text(
             S.ML_NAME_TEMPLATE, self._name_template
         )
-        imgui.same_line()
+        _continue_row(_field_width(px(140.0), S.ML_START_ADDRESS))
         imgui.set_next_item_width(px(140.0))
         _, self._co_start = imgui.input_text(S.ML_START_ADDRESS, self._co_start)
         paired = [r for r in self._rows2 if r.target_co is not None]
@@ -586,7 +656,7 @@ class MassLinkerPanel:
             | imgui.TableFlags_.resizable
             | imgui.TableFlags_.reorderable
         )
-        if not begin_data_table("##ml2", 6, flags):
+        if not begin_data_table("##ml2", 6, flags, scroll_when_narrow=True):
             return
         imgui.table_setup_column(
             S.ML_COL_OBJECT, imgui.TableColumnFlags_.width_stretch, 0.34
@@ -640,41 +710,89 @@ class MassLinkerPanel:
     def _target_co_combo(
         self, i: int, row: _Row, candidates: list[tuple[str, ComObject]]
     ) -> None:
+        """The partner object: every device's objects under a header with the device's address and
+        name, devices in address order. The filter matches the device or the object."""
         label = (
-            _co_text(row.target_co) if row.target_co is not None else S.ML_TARGET_NONE
+            f"{row.target_device}  ·  {_co_text(row.target_co)}"
+            if row.target_co is not None
+            else S.ML_TARGET_NONE
         )
         imgui.set_next_item_width(-1)
-        if begin_combo(f"##tco{i}", label):
-            self._tgt_filter = filter_box(
-                f"##tcoflt{i}", S.ML_FILTER_HINT, self._tgt_filter
-            )
-            flt = self._tgt_filter.strip().lower()
-            for dev_name, co in candidates:
-                if co.db_id == row.co.db_id:
-                    continue  # can't link an object to itself
-                text = f"{dev_name}  {_co_text(co)}"
-                if flt and flt not in text.lower():
+        opened = begin_combo(f"##tco{i}", label, imgui.ComboFlags_.height_large)
+        if row.target_co is not None and imgui.is_item_hovered():
+            imgui.set_tooltip(label)  # device and object, cut off in a narrow column
+        if not opened:
+            return
+        self._tgt_filter = filter_box(
+            f"##tcoflt{i}", S.ML_FILTER_HINT, self._tgt_filter
+        )
+        _, self._dpt_only = checkbox(S.ML_MATCHING_DPT_ONLY, self._dpt_only)
+        if imgui.is_item_hovered():
+            imgui.set_tooltip(S.ML_MATCHING_DPT_OBJECT_TIP)
+        flt = self._tgt_filter.strip().lower()
+        obj_major = _obj_major(row.co)
+        # One entry per line: a device header (no object) or an object under the last header.
+        entries: list[tuple[str, ComObject | None]] = []
+        header = ""
+        for dev_label, co in candidates:
+            if co.db_id == row.co.db_id:
+                continue  # can't link an object to itself
+            co_major = _obj_major(co)
+            if (
+                self._dpt_only
+                and None not in (obj_major, co_major)
+                and co_major != obj_major
+            ):
+                continue
+            text = _co_text(co)
+            if flt and flt not in dev_label.lower() and flt not in text.lower():
+                continue
+            if dev_label != header:
+                header = dev_label
+                entries.append((dev_label, None))
+            entries.append((text, co))
+        if imgui.selectable(S.ML_TARGET_NONE, row.target_co is None)[0]:
+            row.target_co = None
+            row.target_device = ""
+        clipper = imgui.ListClipper()
+        clipper.begin(len(entries))
+        while clipper.step():
+            for k in range(clipper.display_start, clipper.display_end):
+                text, co = entries[k]
+                if co is None:
+                    imgui.text_disabled(text)
                     continue
-                sel = row.target_co is not None and row.target_co.db_id == co.db_id
-                if imgui.selectable(f"{text}##c{co.db_id}", sel)[0]:
+                selected = row.target_co is not None and row.target_co.db_id == co.db_id
+                imgui.indent()
+                if imgui.selectable(f"{text}##c{co.db_id}", selected)[0]:
                     row.target_co = co
-            imgui.end_combo()
+                    row.target_device = _device_of(entries, k)
+                imgui.unindent()
+        imgui.end_combo()
 
     # -- shared rows -------------------------------------------------------
 
     def _row_toolbar(self, rows: list[_Row]) -> None:
         if imgui.button(S.ML_ADD_DEVICE):
             self._add_selected_device(rows)
-        imgui.same_line()
+        _continue_row(_button_width(S.ML_ADD_OBJECTS))
         if imgui.button(S.ML_ADD_OBJECTS):
             self._open_object_picker(rows)
-        imgui.same_line()
+        _continue_row(_button_width(S.ML_CLEAR_ALL))
         imgui.begin_disabled(not rows)
         if imgui.button(S.ML_CLEAR_ALL):
             rows.clear()
         imgui.end_disabled()
-        imgui.same_line()
-        imgui.text_disabled(S.ML_COUNT.format(count=len(rows)))
+        count = S.ML_COUNT.format(count=len(rows))
+        _continue_row(imgui.calc_text_size(count).x)
+        imgui.text_disabled(count)
+        if self._notice is not None:
+            text, until = self._notice
+            if time.monotonic() < until:
+                _continue_row(imgui.calc_text_size(text).x)
+                imgui.text_colored(_STATUS_STYLE["ambiguous"][0], text)
+            else:
+                self._notice = None
 
     def _apply_pending_remove(self) -> None:
         if self._pending_remove is None:
@@ -686,18 +804,32 @@ class MassLinkerPanel:
             rows.pop(i)
 
     def _add_selected_device(self, rows: list[_Row]) -> None:
+        """Add the selected device's objects, or say briefly why nothing was added."""
         node_id = self._get_selected_node_id()
-        if node_id is None:
+        dev = (
+            next((d for d in self._get_devices() if d.node_id == node_id), None)
+            if node_id is not None
+            else None
+        )
+        if dev is None:
+            self._note(S.ML_NOTE_NO_DEVICE)
             return
-        dev = next((d for d in self._get_devices() if d.node_id == node_id), None)
-        if dev is not None:
-            self._append_objects(rows, dev)
+        if not any(co.db_id is not None for co in dev.get_visible_com_objects()):
+            self._note(S.ML_NOTE_NO_OBJECTS.format(device=device_label(dev)))
+        elif not self._append_objects(rows, dev):
+            self._note(S.ML_NOTE_ALL_LISTED.format(device=device_label(dev)))
 
-    def _append_objects(self, rows: list[_Row], device: Device) -> None:
+    def _note(self, text: str) -> None:
+        self._notice = (text, time.monotonic() + _NOTE_SECONDS)
+
+    def _append_objects(self, rows: list[_Row], device: Device) -> int:
+        """Add the device's objects not in ``rows`` yet; returns how many were added."""
         existing = {r.co.db_id for r in rows}
+        added = 0
         for co in device.get_visible_com_objects():
             if co.db_id is not None and co.db_id not in existing:
-                row = _Row(device.name, co)
+                added += 1
+                row = _Row(device_label(device), co)
                 # Pre-fill the target from the object's existing link so an already-linked object
                 # shows its group address instead of "no target" (autopair only fills the rest).
                 row.target_ga = self._existing_target_ga(co.db_id)
@@ -705,6 +837,7 @@ class MassLinkerPanel:
                 existing.add(co.db_id)
         if rows is self._rows1:
             self._autopair_rows(self._flat_gas(), only_empty=True)
+        return added
 
     def _existing_target_ga(self, co_db_id: int) -> int | None:
         """The group address this com-object is already linked to (sending link preferred), or None."""
@@ -717,11 +850,17 @@ class MassLinkerPanel:
         return (sending or links[0]).group_address_id
 
     def _all_objects(self) -> list[tuple[str, ComObject]]:
+        """Every device's objects with the device's address and name, devices in address order
+        and objects by number."""
         out: list[tuple[str, ComObject]] = []
-        for device in self._get_devices():
-            for co in device.get_visible_com_objects():
+        devices = sorted(
+            self._get_devices(), key=lambda d: address_order(d.individual_address)
+        )
+        for device in devices:
+            label = device_label(device)
+            for co in sorted(device.get_visible_com_objects(), key=lambda c: c.number):
                 if co.db_id is not None:
-                    out.append((device.name, co))
+                    out.append((label, co))
         return out
 
     def _flat_gas(self) -> list[_FlatGa]:
@@ -738,6 +877,7 @@ class MassLinkerPanel:
                         ga.text,
                         ga.name,
                         _dpt_major_from_token(ga.datapoint_type),
+                        _dpt_label_from_token(ga.datapoint_type),
                     )
                 )
 
@@ -806,7 +946,7 @@ class MassLinkerPanel:
         for device in self._get_devices():
             for co in device.get_visible_com_objects():
                 if co.db_id in self._pick_obj_selected and co.db_id not in existing:
-                    self._pick_into.append(_Row(device.name, co))
+                    self._pick_into.append(_Row(device_label(device), co))
                     existing.add(co.db_id)
         into = self._pick_into
         self._pick_into = None
@@ -879,3 +1019,83 @@ def _desc(text: str) -> None:
     imgui.text_disabled(text)
     imgui.pop_text_wrap_pos()
     imgui.spacing()
+
+
+def _continue_row(width: float) -> None:
+    """Continue the row when an item ``width`` wide still fits, else start a new line (a narrow
+    window, a phone)."""
+    imgui.same_line()
+    if imgui.get_content_region_avail().x < width:
+        imgui.new_line()
+
+
+def _extra_lines(widths: list[float]) -> int:
+    """How many more lines than one a row of items this wide takes in the current window, when
+    each item that does not fit starts a new line (see :func:`_continue_row`)."""
+    room = imgui.get_content_region_avail().x
+    spacing = imgui.get_style().item_spacing.x
+    lines, used = 0, -1.0
+    for width in widths:
+        if used < 0 or used + spacing + width > room:
+            lines += 1
+            used = width
+        else:
+            used += spacing + width
+    return max(0, lines - 1)
+
+
+def _button_width(label: str) -> float:
+    return imgui.calc_text_size(label).x + 2 * imgui.get_style().frame_padding.x
+
+
+def _checkbox_width(label: str) -> float:
+    style = imgui.get_style()
+    return (
+        imgui.get_frame_height()
+        + style.item_inner_spacing.x
+        + imgui.calc_text_size(label).x
+    )
+
+
+def _field_width(width: float, label: str) -> float:
+    """An input of ``width`` with its label beside it."""
+    return (
+        width + imgui.get_style().item_inner_spacing.x + imgui.calc_text_size(label).x
+    )
+
+
+def _guide(intro: str, steps: list[str]) -> None:
+    """What a tab is for, then its steps, each numbered on a line of its own; a step that wraps
+    stays indented under its text."""
+    imgui.push_style_color(
+        imgui.Col_.text, imgui.get_style().color_(imgui.Col_.text_disabled)
+    )
+    imgui.text_wrapped(intro)
+    indent = imgui.calc_text_size("9.").x + imgui.get_style().item_spacing.x
+    for number, step in enumerate(steps, 1):
+        start = imgui.get_cursor_pos_x()
+        imgui.text_unformatted(f"{number}.")
+        imgui.same_line(start + indent)
+        imgui.text_wrapped(step)
+    imgui.pop_style_color()
+    imgui.spacing()
+
+
+def _button_names() -> dict[str, str]:
+    """The buttons the guides refer to, by the names they show."""
+    return {
+        "add_device": S.ML_ADD_DEVICE,
+        "add_objects": S.ML_ADD_OBJECTS,
+        "match": S.ML_MATCH_NAME,
+        "sequential": S.ML_ASSIGN_SEQ,
+        "link_all": S.ML_LINK_ALL_NAME,
+    }
+
+
+def _device_of(entries: list[tuple[str, ComObject | None]], index: int) -> str:
+    """The device header above the object entry at ``index``."""
+    for k in range(index, -1, -1):
+        text, co = entries[k]
+        if co is None:
+            return text
+    return ""

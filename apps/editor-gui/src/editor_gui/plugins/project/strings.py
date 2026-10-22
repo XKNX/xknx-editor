@@ -53,7 +53,7 @@ class ProjectStrings:
 
     @property
     def ML_TAB_GA_CO(self) -> str:
-        return _("GA <> Object")
+        return _("Object <> GA")
 
     @property
     def ML_TAB_CO_CO(self) -> str:
@@ -75,23 +75,47 @@ class ProjectStrings:
         )
 
     @property
-    def ML_DESC_GA_CO(self) -> str:
+    def ML_GUIDE_GA_CO(self) -> str:
+        return _("Link communication objects to existing group addresses.")
+
+    @property
+    def ML_GUIDE_GA_CO_1(self) -> str:
+        return _('Add objects with "{add_device}" or "{add_objects}".')
+
+    @property
+    def ML_GUIDE_GA_CO_2(self) -> str:
         return _(
-            "Link many communication objects to existing group addresses at once. "
-            "1) Add objects: '+ Selected device' (all objects of the device selected in the tree) "
-            "or 'Add objects…'. 2) Set each row's target address in its dropdown — or fill them "
-            "fast with 'Assign sequential' (next free addresses from the given start) or "
-            "'Match by name'. 3) 'Link all' links every row that has a target."
+            'Pick a group address per row, or fill all with "{match}" or "{sequential}".'
         )
 
     @property
-    def ML_DESC_CO_CO(self) -> str:
+    def ML_GUIDE_GA_CO_3(self) -> str:
+        return _('"{link_all}" links every row that has one.')
+
+    @property
+    def ML_GUIDE_CO_CO(self) -> str:
         return _(
-            "Link communication objects to each other. 1) Add the source objects. 2) Pick a "
-            "partner object per row. Each pair gets a NEW group address (source sends, target "
-            "receives): the address and name are suggested (first free address, name template "
-            "below) but can be edited per row. 3) 'Link all' creates and links them."
+            "Link objects to each other through a new group address each: the source sends, "
+            "the target receives."
         )
+
+    @property
+    def ML_GUIDE_CO_CO_1(self) -> str:
+        return _('Add the source objects with "{add_device}" or "{add_objects}".')
+
+    @property
+    def ML_GUIDE_CO_CO_2(self) -> str:
+        return _(
+            "Pick a target object per row. Address and name are suggested and can be changed."
+        )
+
+    @property
+    def ML_GUIDE_CO_CO_3(self) -> str:
+        return _('"{link_all}" creates the group addresses and links them.')
+
+    @property
+    def ML_LINK_ALL_NAME(self) -> str:
+        return _("Link All")
 
     @property
     def ML_DESC_LOG(self) -> str:
@@ -232,6 +256,39 @@ class ProjectStrings:
     @property
     def ML_TARGET_NONE(self) -> str:
         return _("(none)")
+
+    @property
+    def ML_MATCHING_DPT_ONLY(self) -> str:
+        return _("Matching DPT Only")
+
+    @property
+    def ML_MATCHING_DPT_TIP(self) -> str:
+        return _(
+            "Only group addresses with the object's main datapoint type, and those without one "
+            "(they take the object's type when linked)."
+        )
+
+    @property
+    def ML_GA_NO_DPT(self) -> str:
+        return _("no DPT")
+
+    @property
+    def ML_MATCHING_DPT_OBJECT_TIP(self) -> str:
+        return _(
+            "Only objects with the same main datapoint type, and those without one."
+        )
+
+    @property
+    def ML_NOTE_NO_DEVICE(self) -> str:
+        return _("Select a device in the tree first.")
+
+    @property
+    def ML_NOTE_NO_OBJECTS(self) -> str:
+        return _("{device} has no communication objects.")
+
+    @property
+    def ML_NOTE_ALL_LISTED(self) -> str:
+        return _("All objects of {device} are in the list already.")
 
     @property
     def ML_ADD_DEVICE(self) -> str:

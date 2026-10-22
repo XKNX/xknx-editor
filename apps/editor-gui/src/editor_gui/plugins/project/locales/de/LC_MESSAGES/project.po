@@ -490,8 +490,8 @@ msgstr ""
 msgid "Mass Linker"
 msgstr "Massenverknüpfung"
 
-msgid "GA <> Object"
-msgstr "GA <> Objekt"
+msgid "Object <> GA"
+msgstr "Objekt <> GA"
 
 msgid "Object <> Object"
 msgstr "Objekt <> Objekt"
@@ -2084,3 +2084,51 @@ msgstr "Der Hersteller stellt die Parameter dieses Geräts in einem eigenen Plug
 
 msgid "Edit parameters anyway"
 msgstr "Parameter trotzdem bearbeiten"
+
+msgid "Matching DPT Only"
+msgstr "Nur passender DPT"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Nur Gruppenadressen mit dem Hauptdatenpunkttyp des Objekts und solche ohne einen (sie übernehmen beim Verknüpfen den Typ des Objekts)."
+
+msgid "no DPT"
+msgstr "kein DPT"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Nur Objekte mit demselben Hauptdatenpunkttyp und solche ohne einen."
+
+msgid "Select a device in the tree first."
+msgstr "Zuerst ein Gerät im Baum auswählen."
+
+msgid "{device} has no communication objects."
+msgstr "{device} hat keine Kommunikationsobjekte."
+
+msgid "All objects of {device} are in the list already."
+msgstr "Alle Objekte von {device} sind bereits in der Liste."
+
+msgid "Link communication objects to existing group addresses."
+msgstr "Kommunikationsobjekte mit bestehenden Gruppenadressen verknüpfen."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Objekte mit \"{add_device}\" oder \"{add_objects}\" hinzufügen."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Pro Zeile eine Gruppenadresse wählen oder alle mit \"{match}\" oder \"{sequential}\" füllen."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "\"{link_all}\" verknüpft jede Zeile, die eine hat."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Objekte über je eine neue Gruppenadresse miteinander verknüpfen: die Quelle sendet, das Ziel empfängt."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Die Quellobjekte mit \"{add_device}\" oder \"{add_objects}\" hinzufügen."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Pro Zeile ein Zielobjekt wählen. Adresse und Name werden vorgeschlagen und lassen sich ändern."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "\"{link_all}\" legt die Gruppenadressen an und verknüpft sie."
+
+msgid "Link All"
+msgstr "Alle verknüpfen"
