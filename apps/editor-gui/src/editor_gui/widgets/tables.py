@@ -60,6 +60,9 @@ def begin_data_table(
     Where the window is narrow (a phone), a table that scrolls keeps its usual width and
     scrolls sideways; with ``scroll_when_narrow`` one that does not scroll does so too, filling
     the rest of the window then."""
+    if not flags & imgui.TableFlags_.no_pad_outer_x:
+        # The first header and cell keep the same distance to the left edge as between columns.
+        flags |= imgui.TableFlags_.pad_outer_x
     inner_width = 0.0
     width = px(_NARROW_TABLE)
     scrolls = bool(flags & imgui.TableFlags_.scroll_y) or scroll_when_narrow
