@@ -1555,3 +1555,111 @@ async def test_parameters_of_a_plugin_dialog_device_cannot_be_changed(
         )
         assert batch["applied"] is False
         assert "plugin dialog" in str(batch)
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_direct_addressing_by_device_and_group_address(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        products = await _data(client, "catalog_list_products")
+        product_ref = products["items"][0]["product_ref_id"]
+        dev_res = await _data(client, "project_add_device", product_ref_id=product_ref)
+        node_id = dev_res["node_id"]
+
+        # Newly created device gets 1.1.1 by default in new project
+        dev_initial = await _data(client, "project_get_device", device_address="1.1.1")
+        assert dev_initial["node_id"] == node_id
+        assert dev_initial["individual_address"] == "1.1.1"
+
+        # Change individual address
+        await _data(
+            client,
+            "project_set_individual_address",
+            node_id=node_id,
+            address="1.1.10",
+        )
+
+        # Test project_get_device by device_address
+        dev = await _data(client, "project_get_device", device_address="1.1.10")
+        assert dev["node_id"] == node_id
+        assert dev["individual_address"] == "1.1.10"
+
+        # Test project_list_parameters by device_address
+        params = await _data(client, "project_list_parameters", device_address="1.1.10")
+        assert params["count"] > 0
+
+        # Test project_list_com_objects by device_address
+        cos = await _data(client, "project_list_com_objects", device_address="1.1.10")
+        assert cos["count"] > 0
+        linkable_co = next(c for c in cos["items"] if c["linkable"])
+
+        # Create group address
+        ga_res = await _data(
+            client, "project_create_group_address", address="1/1/1", name="Light 1"
+        )
+        ga_id = ga_res["group_address_id"]
+
+        # Test project_get_group_address by string
+        ga = await _data(client, "project_get_group_address", group_address="1/1/1")
+        assert ga["id"] == ga_id
+        assert ga["address"] == "1/1/1"
+
+        # Link com object using device_address and group_address strings
+        link_res = await _data(
+            client,
+            "project_link_com_object",
+            device_address="1.1.10",
+            group_address="1/1/1",
+            com_object_ref_id=linkable_co["ref_id"],
+        )
+        assert link_res["device_address"] == "1.1.10"
+        assert link_res["group_address"] == "1/1/1"
+        assert not link_res["already_linked"]
+
+        # Check assignments using group_address
+        assignments = await _data(
+            client, "project_get_ga_assignments", group_address="1/1/1"
+        )
+        assert assignments["count"] == 1
+        assert assignments["items"][0]["individual_address"] == "1.1.10"
+
+        # Unlink using device_address, com_object_ref_id, and group_address
+        unlinked = await _data(
+            client,
+            "project_unlink_com_object",
+            device_address="1.1.10",
+            group_address="1/1/1",
+            com_object_ref_id=linkable_co["ref_id"],
+        )
+        assert unlinked["status"] == "unlinked"
+
+        # Test batch operations using device_address and group_address
+        batch_res = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "rename_device",
+                    "params": {"device_address": "1.1.10", "name": "Kitchen Sensor"},
+                },
+                {
+                    "op": "rename_group_address",
+                    "params": {
+                        "group_address": "1/1/1",
+                        "name": "Kitchen Ceiling Light",
+                    },
+                },
+                {
+                    "op": "link_com_object",
+                    "params": {
+                        "device_address": "1.1.10",
+                        "group_address": "1/1/1",
+                        "com_object_ref_id": linkable_co["ref_id"],
+                    },
+                },
+            ],
+        )
+        assert batch_res["ok"] == 3
+        assert batch_res["failed"] == 0

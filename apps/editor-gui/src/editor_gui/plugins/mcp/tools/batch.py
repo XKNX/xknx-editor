@@ -33,16 +33,58 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     tool = make_tool(mcp, ctx)
     project = ctx.api.project
 
-    def _device(node_id: Any) -> Any:
-        device = project.find_device_by_node_id(node_id)
-        if device is None:
-            raise ValueError(f"no device with node_id {node_id}")
-        return device
+    def _device(p: dict[str, Any]) -> Any:
+        if "node_id" in p and p["node_id"] is not None:
+            device = project.find_device_by_node_id(p["node_id"])
+            if device is None:
+                raise ValueError(f"no device with node_id {p['node_id']}")
+            return device
+        if "device_address" in p and p["device_address"] is not None:
+            target = str(p["device_address"]).strip()
+            device = project.find_device_by_address(target)
+            if device is None:
+                raise ValueError(f"no device with address {p['device_address']!r}")
+            return device
+        raise ValueError("operation requires 'node_id' or 'device_address'")
 
-    def _parameters_device(node_id: Any) -> Any:
-        device = _device(node_id)
+    def _ga(p: dict[str, Any]) -> Any:
+        if "group_address_id" in p and p["group_address_id"] is not None:
+            g = project.get_group_address(p["group_address_id"])
+            if g is None:
+                raise ValueError(f"no group address with id {p['group_address_id']}")
+            return g
+        if "group_address" in p and p["group_address"] is not None:
+            target = str(p["group_address"]).strip()
+            target_raw = None
+            try:
+                from xknx.telegram.address import GroupAddress as _XknxGA
+
+                target_raw = _XknxGA(target).raw
+            except Exception:
+                pass
+            g = next(
+                (
+                    ga
+                    for ga in project.group_addresses
+                    if ga.address == target
+                    or (
+                        target_raw is not None
+                        and getattr(ga, "raw", None) == target_raw
+                    )
+                ),
+                None,
+            )
+            if g is None:
+                raise ValueError(
+                    f"no group address with address {p['group_address']!r}"
+                )
+            return g
+        raise ValueError("operation requires 'group_address_id' or 'group_address'")
+
+    def _parameters_device(p: dict[str, Any]) -> Any:
+        device = _device(p)
         if parameters_in_plugin(device):
-            raise ValueError(PLUGIN_PARAMETERS_ERROR.format(node_id=node_id))
+            raise ValueError(PLUGIN_PARAMETERS_ERROR.format(node_id=device.node_id))
         return device
 
     def _op_add_device(p: dict[str, Any]) -> dict[str, Any]:
@@ -72,21 +114,27 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         # set_device_individual_address returns False on reject; verify the device actually
         # carries the new address (mirrors the standalone project_set_individual_address) so a
         # rejected address is reported as an error, not a false "ok".
-        node_id = p["node_id"]
+        device = _device(p)
+        node_id = device.node_id
         project.set_device_individual_address(
-            node_id, _device(node_id).individual_address, p["address"]
+            node_id, device.individual_address, p["address"]
         )
-        if _device(node_id).individual_address != p["address"]:
+        if device.individual_address != p["address"]:
             raise ValueError(
                 f"could not set individual address {p['address']!r} (invalid or already in use)"
             )
-        return {"node_id": node_id, "address": p["address"]}
+        return {
+            "node_id": node_id,
+            "device_address": p["address"],
+            "address": p["address"],
+        }
 
     def _op_set_parameter(p: dict[str, Any]) -> dict[str, Any]:
         # edit_params (not set_param): applies and reconciles as one undo step and raises on reject
         # WITHOUT the GUI's stash-and-retry, so a rejected batch set never silently takes effect on a
         # later edit. Returns the effective read-back value + calculated side effects.
-        device = _parameters_device(p["node_id"])
+        device = _parameters_device(p)
+        node_id = device.node_id
         ref = p.get("parameter_ref_id")
         value = p.get("value")
         # Apply-time semantic addressing: resolve {label, subtree_id, value_label} NOW, against the
@@ -103,7 +151,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 p.get("subtree_id"),
                 label,
                 p.get("value_label"),
-                node_id=p["node_id"],
+                node_id=node_id,
                 tree_token=p.get("tree_token"),
             )
             ref = resolved["ref_id"]
@@ -113,30 +161,77 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ValueError("set_parameter needs value (or value_label with a label)")
         changes = project.edit_params(device, [(ref, value)], mode="edit")
         return {
-            "node_id": p["node_id"],
+            "node_id": node_id,
+            "device_address": device.individual_address,
             **param_change_result(device, ref, value, changes),
         }
 
     def _op_link_com_object(p: dict[str, Any]) -> dict[str, Any]:
         # Same feedback as the standalone project_link_com_object (idempotent dedup, dpt_mismatch,
         # sending). None means the service refused the link; surface it as an error.
-        node_id = p["node_id"]
+        device = _device(p)
+        node_id = device.node_id
+        ga = _ga(p)
+        ga_id = ga.id
         ref = p["com_object_ref_id"]
-        co = _device(node_id).find_com_object(ref)
+        co = device.find_com_object(ref)
         if co is None:
             raise ValueError(f"no com-object {ref!r} on device {node_id}")
         if co.db_id is None:
             raise ValueError(f"com-object {ref!r} is not linkable (not instantiated)")
         result = perform_link(
-            project, node_id, ref, co, p["group_address_id"], p.get("is_sending", False)
+            project, node_id, ref, co, ga_id, p.get("is_sending", False)
         )
         if result is None:
             raise ValueError(
-                f"could not link com-object to group address {p['group_address_id']} "
-                "(check the group address id exists; a Security-On group address only takes "
+                f"could not link com-object to group address {ga_id} "
+                "(check the group address exists; a Security-On group address only takes "
                 "securely commissioned devices)"
             )
+        result["device_address"] = device.individual_address
+        result["group_address"] = ga.address
         return result
+
+    def _op_unlink_com_object(p: dict[str, Any]) -> dict[str, Any]:
+        target_id = p.get("assignment_id")
+        if target_id is None:
+            device = _device(p)
+            ref = p.get("com_object_ref_id")
+            if not ref:
+                raise ValueError(
+                    "unlink needs assignment_id, or com_object_ref_id with group_address"
+                )
+            co = device.find_com_object(ref)
+            if co is None or co.db_id is None:
+                raise ValueError(
+                    f"no instantiated com-object {ref!r} on device {device.node_id}"
+                )
+            ga = _ga(p)
+            links = list(project.get_links_for_com_object(co.db_id))
+            found = next(
+                (link for link in links if link.group_address_id == ga.id), None
+            )
+            if found is None:
+                raise ValueError(
+                    f"no link found between com-object {ref!r} and group address {ga.address!r}"
+                )
+            target_id = found.id
+        project.unlink_com_object_from_ga(target_id)
+        return {"assignment_id": target_id}
+
+    _DEVICE_OPS = {
+        "rename_device",
+        "set_individual_address",
+        "set_parameter",
+        "set_com_object_flag",
+        "link_com_object",
+    }
+    _GA_OPS = {
+        "rename_group_address",
+        "set_group_address_dpt",
+        "remove_group_address",
+        "link_com_object",
+    }
 
     # op name -> (required params, handler). Handlers raise ValueError on bad input.
     handlers: dict[
@@ -144,24 +239,30 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     ] = {
         "add_device": (("product_ref_id",), _op_add_device),
         "rename_device": (
-            ("node_id", "name"),
+            ("name",),
             lambda p: (
-                project.set_device_name(
-                    p["node_id"], _device(p["node_id"]).name, p["name"]
-                ),
-                {"node_id": p["node_id"]},
-            )[1],
+                (dev := _device(p)),
+                project.set_device_name(dev.node_id, dev.name, p["name"]),
+                {
+                    "node_id": dev.node_id,
+                    "device_address": dev.individual_address,
+                    "name": p["name"],
+                },
+            )[2],
         ),
-        "set_individual_address": (("node_id", "address"), _op_set_individual_address),
-        "set_parameter": (("node_id",), _op_set_parameter),
+        "set_individual_address": (("address",), _op_set_individual_address),
+        "set_parameter": ((), _op_set_parameter),
         "set_com_object_flag": (
-            ("node_id", "com_object_ref_id", "flag", "value"),
+            ("com_object_ref_id", "flag", "value"),
             lambda p: (
-                project.set_flag(
-                    _device(p["node_id"]), p["com_object_ref_id"], p["flag"], p["value"]
-                ),
-                {"node_id": p["node_id"], "com_object_ref_id": p["com_object_ref_id"]},
-            )[1],
+                (dev := _device(p)),
+                project.set_flag(dev, p["com_object_ref_id"], p["flag"], p["value"]),
+                {
+                    "node_id": dev.node_id,
+                    "device_address": dev.individual_address,
+                    "com_object_ref_id": p["com_object_ref_id"],
+                },
+            )[2],
         ),
         "create_group_address": (
             (),
@@ -172,36 +273,44 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             },
         ),
         "rename_group_address": (
-            ("group_address_id", "name"),
+            ("name",),
             lambda p: (
-                project.rename_group_address(p["group_address_id"], p["name"]),
-                {"group_address_id": p["group_address_id"]},
-            )[1],
+                (g := _ga(p)),
+                project.rename_group_address(g.id, p["name"]),
+                {
+                    "group_address_id": g.id,
+                    "group_address": g.address,
+                    "name": p["name"],
+                },
+            )[2],
         ),
         "set_group_address_dpt": (
-            ("group_address_id",),
+            (),
             lambda p: (
-                project.set_group_address_dpt(p["group_address_id"], p.get("dpt")),
-                {"group_address_id": p["group_address_id"]},
-            )[1],
+                (g := _ga(p)),
+                project.set_group_address_dpt(g.id, p.get("dpt")),
+                {
+                    "group_address_id": g.id,
+                    "group_address": g.address,
+                    "dpt": p.get("dpt"),
+                },
+            )[2],
         ),
         "remove_group_address": (
-            ("group_address_id",),
+            (),
             lambda p: (
-                project.remove_group_address(p["group_address_id"]),
-                {"group_address_id": p["group_address_id"]},
-            )[1],
+                (g := _ga(p)),
+                project.remove_group_address(g.id),
+                {"group_address_id": g.id, "group_address": g.address},
+            )[2],
         ),
         "link_com_object": (
-            ("node_id", "com_object_ref_id", "group_address_id"),
+            ("com_object_ref_id",),
             _op_link_com_object,
         ),
         "unlink_com_object": (
-            ("assignment_id",),
-            lambda p: (
-                project.unlink_com_object_from_ga(p["assignment_id"]),
-                {"assignment_id": p["assignment_id"]},
-            )[1],
+            (),
+            _op_unlink_com_object,
         ),
         "create_area": (
             ("area_number",),
@@ -231,6 +340,29 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             }
         required, _ = handlers[name]
         missing = [k for k in required if k not in params]
+        if (
+            name in _DEVICE_OPS
+            and "node_id" not in params
+            and "device_address" not in params
+        ):
+            missing.append("node_id or device_address")
+        if (
+            name in _GA_OPS
+            and "group_address_id" not in params
+            and "group_address" not in params
+        ):
+            missing.append("group_address_id or group_address")
+        if name == "unlink_com_object":
+            has_id = "assignment_id" in params
+            has_explicit = (
+                ("node_id" in params or "device_address" in params)
+                and "com_object_ref_id" in params
+                and ("group_address_id" in params or "group_address" in params)
+            )
+            if not has_id and not has_explicit:
+                missing.append(
+                    "assignment_id (or com_object_ref_id with group_address and device)"
+                )
         if missing:
             return {
                 "index": index,

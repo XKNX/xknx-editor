@@ -620,13 +620,61 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     tool = make_tool(mcp, ctx)
     project = ctx.api.project
 
-    def _require_device(node_id: int) -> Device:
-        device = project.find_device_by_node_id(node_id)
-        if device is None:
-            raise ToolError(
-                f"no device with node_id {node_id}; call project_list_devices for valid ids"
+    def _require_device(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> Device:
+        if node_id is not None:
+            device = project.find_device_by_node_id(node_id)
+            if device is None:
+                raise ToolError(
+                    f"no device with node_id {node_id}; call project_list_devices for valid ids"
+                )
+            return device
+        if device_address is not None:
+            target = str(device_address).strip()
+            device = project.find_device_by_address(target)
+            if device is None:
+                raise ToolError(
+                    f"no device with address {device_address!r}; call project_list_devices for valid addresses"
+                )
+            return device
+        raise ToolError("either node_id or device_address must be provided")
+
+    def _require_ga(
+        group_address_id: int | None = None, group_address: str | None = None
+    ) -> Any:
+        if group_address_id is not None:
+            g = project.get_group_address(group_address_id)
+            if g is None:
+                raise ToolError(f"no group address with id {group_address_id}")
+            return g
+        if group_address is not None:
+            target = str(group_address).strip()
+            target_raw: int | None = None
+            try:
+                from xknx.telegram.address import GroupAddress as _XknxGA
+
+                target_raw = _XknxGA(target).raw
+            except Exception:
+                pass
+            g = next(
+                (
+                    ga
+                    for ga in project.group_addresses
+                    if ga.address == target
+                    or (
+                        target_raw is not None
+                        and getattr(ga, "raw", None) == target_raw
+                    )
+                ),
+                None,
             )
-        return device
+            if g is None:
+                raise ToolError(
+                    f"no group address with address {group_address!r}; call project_list_group_addresses for valid addresses"
+                )
+            return g
+        raise ToolError("either group_address_id or group_address must be provided")
 
     # --- application update ("Update Application Program") ------------
 
@@ -664,7 +712,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return _items(ctx.run_locked(_read, timeout=_SLOW))
 
     @tool
-    def project_update_application(node_id: int) -> dict[str, Any]:
+    def project_update_application(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
         """Update a device to the local catalog version of the SAME application program that
         replaces the current one ("Update Application Program Version"). Parameter values carry over
         by ParameterRef number, group objects of the same size by ComObjectRef number with their
@@ -677,14 +727,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         require_project(ctx)
 
         def _do() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
             result = project.update_application(device)
             if result is None:
                 raise ToolError(
-                    f"no newer application version available for device {node_id}"
+                    f"no newer application version available for device {dev_id}"
                 )
             return {
-                "node_id": node_id,
+                "node_id": dev_id,
+                "device_address": device.individual_address,
                 "new_version": result.new_version,
                 "kept": result.kept,
                 "dropped": result.dropped,
@@ -695,17 +747,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_do, timeout=_SLOW)
 
     @tool
-    def project_list_application_programs(node_id: int) -> dict[str, Any]:
+    def project_list_application_programs(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
         """The application programs a device can be changed to with project_change_application:
         the other programs of its hardware in the local catalog, older and newer.
 
-        Use node_id from project_list_devices. Returns {items, count}; each item has
+        Use node_id from project_list_devices or device_address. Returns {items, count}; each item has
         {hardware2program_ref_id, application_id, name, version}. Pass hardware2program_ref_id to
-        project_change_application for the same node_id. This lookup is read-only."""
+        project_change_application for the same device. This lookup is read-only."""
         require_project(ctx)
 
         def _read() -> list[dict[str, Any]]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             return [
                 {
                     "hardware2program_ref_id": program.id,
@@ -720,10 +774,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_change_application(
-        node_id: int, hardware2program_ref_id: str
+        hardware2program_ref_id: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
     ) -> dict[str, Any]:
         """Change a device's project application to another program of its hardware. Use node_id
-        from project_list_devices and hardware2program_ref_id from project_list_application_programs
+        or device_address and hardware2program_ref_id from project_list_application_programs
         for that device. Parameters, group-object links and flags reset to the new application's
         defaults; address, name and serial number stay.
 
@@ -732,7 +788,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         require_project(ctx)
 
         def _do() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
             program = next(
                 (
                     p
@@ -744,17 +801,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             if program is None:
                 raise ToolError(
                     f"{hardware2program_ref_id!r} is not an application program device "
-                    f"{node_id} can be changed to; see project_list_application_programs"
+                    f"{dev_id} can be changed to; see project_list_application_programs"
                 )
             if not project.change_application(device, program):
                 raise ToolError(
                     f"application {program.application_id!r} not resolvable"
                 )
             return {
-                "node_id": node_id,
+                "node_id": dev_id,
+                "device_address": device.individual_address,
                 "application_id": program.application_id,
                 "version": program.application_version,
-                "note": "project changed; program the device to apply it on the bus",
+                "note": "project updated; program the device (connection_program_device, "
+                "scope FULL) to apply the change on the bus",
             }
 
         return ctx.run_locked(_do, timeout=_SLOW)
@@ -816,11 +875,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_add_device_certificate(
-        code: str, node_id: int | None = None
+        code: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
     ) -> dict[str, Any]:
         """Add a KNX Data Secure device certificate: ``code`` is the FDSK from the device label
         (36 characters, groups separated by "-"). A device with the certificate's serial number is
-        then commissioned securely with it. With ``node_id`` the certificate is for that device:
+        then commissioned securely with it. With ``node_id`` or ``device_address`` the certificate is for that device:
         one without a serial number takes the certificate's, one with another is refused. Needs a
         password-protected project."""
         from editor_gui.device_info import serial_from_project, serial_to_project
@@ -834,14 +895,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(f"not a valid FDSK: {exc}") from exc
 
         def _add() -> dict[str, Any]:
-            device = _require_device(node_id) if node_id is not None else None
+            device = (
+                _require_device(node_id, device_address)
+                if (node_id is not None or device_address is not None)
+                else None
+            )
             if device is not None:
                 info = project.get_device_info(device.node_id)
                 current = serial_from_project(info.serial_number) if info else None
                 if current is not None and current != serial:
                     raise ToolError(
                         f"the certificate is for serial number {serial.hex().upper()}, "
-                        f"device {node_id} has {current.hex().upper()}"
+                        f"device {device.node_id} has {current.hex().upper()}"
                     )
             try:
                 project.add_device_certificate(code)
@@ -857,11 +922,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_set_secure_commissioning(
-        node_id: int, activated: bool
+        activated: bool,
+        node_id: int | None = None,
+        device_address: str | None = None,
     ) -> dict[str, Any]:
         """Activate or deactivate a KNX Data Secure device's secure commissioning (one undo step).
-        Activated, the device gets a Tool Key (needs a password-protected project) and is
-        commissioned with its device certificate. Deactivated, it is programmed in the clear: its
+        Accepts node_id or device_address. Activated, the device gets a Tool Key (needs a password-protected
+        project) and is commissioned with its device certificate. Deactivated, it is programmed in the clear: its
         "Auto" group addresses communicate in the clear and its links to group addresses with
         Security "On" are removed (the result lists both)."""
         from xknxeditor.proj import ProjectPasswordRequired
@@ -869,16 +936,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         require_project(ctx)
 
         def _set() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
             if project.secure_commissioning(device) is None:
-                raise ToolError(f"device {node_id} does not support KNX Data Secure")
+                raise ToolError(f"device {dev_id} does not support KNX Data Secure")
             impact = None if activated else project.secure_commissioning_impact(device)
             try:
                 project.set_secure_commissioning(device, activated)
             except ProjectPasswordRequired as exc:
                 raise ToolError("set a project password first") from exc
             return {
-                "node_id": node_id,
+                "node_id": dev_id,
+                "device_address": device.individual_address,
                 "secure_commissioning": activated,
                 "unsecured_group_address_ids": impact.unsecured if impact else [],
                 "removed_link_ids": impact.removed_links if impact else [],
@@ -888,7 +957,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_get_ip_secure(
-        node_id: int, include_passwords: bool = False
+        node_id: int | None = None,
+        device_address: str | None = None,
+        include_passwords: bool = False,
     ) -> dict[str, Any]:
         """The KNX IP Secure settings of a secure IP device commissioned securely: whether its
         tunnels are secured and its bus interfaces (kind, user id, tunnelling address). With
@@ -897,13 +968,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         require_project(ctx)
 
         def _get() -> dict[str, Any]:
-            settings = project.ip_secure_settings(_require_device(node_id))
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
+            settings = project.ip_secure_settings(device)
             if settings is None:
                 raise ToolError(
-                    f"device {node_id} is no KNX IP Secure device commissioned securely"
+                    f"device {dev_id} is no KNX IP Secure device commissioned securely"
                 )
             result: dict[str, Any] = {
-                "node_id": node_id,
+                "node_id": dev_id,
+                "device_address": device.individual_address,
                 "secure_tunnelling": settings.secure_tunnelling,
                 "interfaces": [
                     {
@@ -925,7 +999,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_set_ip_secure(
-        node_id: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
         commissioning_password: str | None = None,
         authentication_code: str | None = None,
         interface_ref_id: str | None = None,
@@ -943,10 +1018,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError("give interface_ref_id and interface_password together")
 
         def _set() -> dict[str, str]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
             if project.ip_secure_settings(device) is None:
                 raise ToolError(
-                    f"device {node_id} is no KNX IP Secure device commissioned securely"
+                    f"device {dev_id} is no KNX IP Secure device commissioned securely"
                 )
             try:
                 project.set_ip_secure_settings(
@@ -962,7 +1038,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 raise ToolError("set a project password first") from exc
             except ValueError as exc:
                 raise ToolError(f"not accepted: {exc}") from exc
-            return {"status": "changed", "node_id": str(node_id)}
+            return {"status": "changed", "node_id": str(dev_id)}
 
         return ctx.run_locked(_set)
 
@@ -1118,18 +1194,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return _items(ctx.run_locked(_read))
 
     @tool
-    def project_get_device(node_id: int) -> dict[str, Any]:
-        """Read a project device using node_id from project_list_devices. Returns
-        {node_id, name, individual_address, description}, plus {product_ref_id, hardware2program_ref_id,
-        order_number, hardware_name, product_name, manufacturer_name, additional_addresses} when
-        catalog metadata is available. individual_address is null when unset. additional_addresses
-        lists the device's additional individual addresses (the tunnelling addresses of an IP
-        interface) as {index, address, name, description}; index is 1-based (the AddressIndex of a
-        tunnelling interface), address an "a.l.d" string or null for an entry without one."""
+    def project_get_device(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Read a project device using node_id from project_list_devices or device_address (e.g. '1.0.30').
+        Returns {node_id, name, individual_address, description}, plus catalog metadata when available."""
 
         def _read() -> dict[str, Any]:
-            device = _require_device(node_id)
-            info = project.get_device_info(node_id)
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
+            info = project.get_device_info(dev_id)
             data = _device_dict(device)
             if info is not None:
                 data |= {
@@ -1149,54 +1223,53 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_read)
 
     @tool
-    def project_list_com_objects(node_id: int) -> dict[str, Any]:
-        """List a project device's visible com-objects using node_id from project_list_devices.
-        Returns {items, count}; each item has {ref_id, db_id, linkable, name, number, dpt, dpt_name,
-        object_size, flags}. flags contains communication, read, write, transmit, update, read_on_init.
+    def project_list_com_objects(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """List a project device's visible com-objects using node_id from project_list_devices or
+        device_address (e.g. '1.0.30'). Returns {items, count}; each item has {ref_id, db_id, linkable,
+        name, number, dpt, dpt_name, object_size, flags}. flags contains communication, read, write, transmit, update, read_on_init.
         Pass ref_id as com_object_ref_id with the same node_id. Linking and flag edits require
         linkable=true (db_id set)."""
 
         def _read() -> list[dict[str, Any]]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             return [_com_object_dict(co) for co in device.get_visible_com_objects()]
 
         return _items(ctx.run_locked(_read))
 
     @tool
-    def find_potential_com_objects(node_id: int) -> dict[str, Any]:
+    def find_potential_com_objects(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
         """List EVERY com-object the device's application DECLARES — a superset of the ones currently
         active (project_list_com_objects) — so you can see which objects a function could add before
-        switching its parameters (for group-address planning).
-
-        Returns {items, count}; each item has {ref_id, number, name, function_text, dpt, object_size}
-        from the STATIC declaration: names/function texts are templates (no parameter or module
-        substitution) and ``number`` is the base (a module instance offsets it). This is NOT a
-        reachability proof — a declared object may never be activatable in a given configuration, and
-        the parameter values that activate each one are NOT included. For the active, linkable objects
-        (with db_id/flags) and their links, use project_list_com_objects."""
+        switching its parameters (for group-address planning). Accepts node_id or device_address ('1.0.30')."""
 
         def _read() -> list[dict[str, Any]]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             dyn = device.dynamic_ui
             if dyn is None:
-                raise ToolError(f"device {node_id} has no application loaded")
+                raise ToolError(f"device {device.node_id} has no application loaded")
             return dyn.declared_com_objects()
 
         return _items(ctx.run_locked(_read))
 
     @tool
-    def project_get_com_object(node_id: int, com_object_ref_id: str) -> dict[str, Any]:
-        """Read a project com-object. Use node_id from project_list_devices and pass the object's
-        ref_id from project_list_com_objects as com_object_ref_id. Returns {ref_id, db_id, linkable,
-        name, number, dpt, dpt_name, object_size, flags}; flags contains communication, read, write,
-        transmit, update, read_on_init. linkable=true is required for linking and flag edits."""
+    def project_get_com_object(
+        com_object_ref_id: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Read a project com-object using node_id or device_address, and com_object_ref_id.
+        Returns {ref_id, db_id, linkable, name, number, dpt, dpt_name, object_size, flags}."""
 
         def _read() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             co = device.find_com_object(com_object_ref_id)
             if co is None:
                 raise ToolError(
-                    f"no com-object {com_object_ref_id!r} on device {node_id}; "
+                    f"no com-object {com_object_ref_id!r} on device {device.node_id}; "
                     "call project_list_com_objects for valid ref_ids"
                 )
             return _com_object_dict(co)
@@ -1205,21 +1278,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_get_com_object_links(
-        node_id: int, com_object_ref_id: str
+        com_object_ref_id: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
     ) -> dict[str, Any]:
-        """Read a com-object's group-address links in the project. Pass ref_id from
-        project_list_com_objects as com_object_ref_id with the same node_id.
-        Returns {items, count}; each item has {assignment_id, group_address_id, address, name,
-        is_sending}. Pass assignment_id to project_unlink_com_object. items is empty when the object
-        is not instantiated or has no links; address and name are null if the group address is absent.
-        These project links do not verify what is currently programmed on the bus."""
+        """Read a com-object's group-address links in the project using node_id or device_address,
+        and com_object_ref_id."""
 
         def _read() -> list[dict[str, Any]]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             co = device.find_com_object(com_object_ref_id)
             if co is None:
                 raise ToolError(
-                    f"no com-object {com_object_ref_id!r} on device {node_id}; "
+                    f"no com-object {com_object_ref_id!r} on device {device.node_id}; "
                     "call project_list_com_objects for valid ref_ids"
                 )
             if co.db_id is None:
@@ -1242,20 +1313,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_list_parameters(
-        node_id: int, search: str | None = None
+        node_id: int | None = None,
+        device_address: str | None = None,
+        search: str | None = None,
     ) -> dict[str, Any]:
         """A device's visible application parameters with current value and default.
-        Returns {items, count}; each item has ref_id, label, value, default_value, access, widget.
-        To keep the list compact, an enum ``widget`` carries only ``choice_count`` (plus
-        ``value_label`` on the item for the current value), NOT the full choice list — call
-        project_get_parameter for a single parameter's complete ``choices``. Optional ``search``
-        keeps only items whose label contains it (case-insensitive) — use it on a large device
-        instead of pulling every parameter.
-
-        Pass an item's ``ref_id`` to project_set_parameter as its ``parameter_ref_id`` argument."""
+        Use node_id or device_address. Optional search filters by label."""
 
         def _read() -> list[dict[str, Any]]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             rows = [
                 _parameter_dict(p, include_choices=False)
                 for p in _collect_ui_parameters(device.get_ui())
@@ -1269,12 +1335,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_parameter_tree(
-        node_id: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
         outline: bool = False,
         subtree_id: str | None = None,
         tree_token: str | None = None,
     ) -> dict[str, Any]:
-        """Read a device's nested parameter UI using node_id from project_list_devices. Group
+        """Read a device's nested parameter UI using node_id or device_address. Group
         headings distinguish repeated labels for different channels, buttons or display levels.
         Returns {items, count, outline, tree_token}; count is the number of top-level nodes. Node
         fields depend on kind:
@@ -1307,9 +1374,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         This reads project configuration."""
 
         def _read() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
             roots: list[Any] = list(device.get_ui())
-            current_token = _tree_fingerprint(node_id, roots)
+            current_token = _tree_fingerprint(dev_id, roots)
             if subtree_id is not None:
                 if tree_token is None:
                     raise ToolError(
@@ -1318,13 +1386,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     )
                 if tree_token != current_token:
                     raise ToolError(
-                        f"stale tree_token for device {node_id} (current {current_token!r} != "
+                        f"stale tree_token for device {dev_id} (current {current_token!r} != "
                         f"{tree_token!r}); re-read project_parameter_tree to refresh"
                     )
                 found = _find_subtree(roots, subtree_id)
                 if found is None:
                     raise ToolError(
-                        f"no tab/block at id {subtree_id!r} on device {node_id}; call "
+                        f"no tab/block at id {subtree_id!r} on device {dev_id}; call "
                         "project_parameter_tree(outline=True) for the current ids"
                     )
                 scoped: list[tuple[str, Any]] = [(subtree_id, found)]
@@ -1346,6 +1414,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "count": len(rows),
                 "outline": use_outline,
                 "tree_token": current_token,
+                "node_id": dev_id,
+                "device_address": device.individual_address,
             }
             if use_outline and not outline and total is not None:
                 env["parameter_count"] = total
@@ -1354,19 +1424,24 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_read)
 
     @tool
-    def project_get_parameter(node_id: int, parameter_ref_id: str) -> dict[str, Any]:
-        """Read a project application parameter. Use node_id from project_list_devices and pass
+    def project_get_parameter(
+        parameter_ref_id: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Read a project application parameter. Use node_id or device_address, and pass
         ref_id from project_list_parameters or project_parameter_tree as parameter_ref_id.
         Returns {ref_id, label, value, default_value, access, widget}; for an enum, widget includes
         the full ``choices`` (value/label/id) — the allowed values for project_set_parameter."""
 
         def _read() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
             for p in _collect_ui_parameters(device.get_ui()):
                 if p.ref_id == parameter_ref_id:
                     return _parameter_dict(p)
             raise ToolError(
-                f"no parameter {parameter_ref_id!r} on device {node_id}; "
+                f"no parameter {parameter_ref_id!r} on device {dev_id}; "
                 "call project_list_parameters for valid ref_ids"
             )
 
@@ -1374,14 +1449,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_resolve_parameter(
-        node_id: int,
         label: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
         subtree_id: str | None = None,
         value_label: str | None = None,
         tree_token: str | None = None,
     ) -> dict[str, Any]:
         """Resolve a parameter by its human ``label`` to the ``ref_id`` that project_set_parameter
-        needs, so a caller can avoid the long XML ref ids.
+        needs, so a caller can avoid the long XML ref ids. Accepts node_id or device_address.
 
         ``label`` is matched EXACTLY (case-insensitive) among the device's currently ACTIVE
         parameters, within a scope. Labels are NOT unique (a device repeats a label per channel), so:
@@ -1401,13 +1477,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         (and ``resolved_value``) to project_set_parameter to change it."""
 
         def _read() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
             return resolve_in_scope(
                 list(device.get_ui()),
                 subtree_id,
                 label,
                 value_label,
-                node_id=node_id,
+                node_id=dev_id,
                 tree_token=tree_token,
             )
 
@@ -1434,14 +1511,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return _items(ctx.run_locked(_read))
 
     @tool
-    def project_get_group_address(group_address_id: int) -> dict[str, Any]:
-        """Read a project group address. Pass id from project_list_group_addresses as
-        group_address_id. Returns {id, address, name, datapoint_type, description, data_secure}."""
+    def project_get_group_address(
+        group_address_id: int | None = None, group_address: str | None = None
+    ) -> dict[str, Any]:
+        """Read a project group address using group_address_id or group_address string (e.g. '10/1/2').
+        Returns {id, address, name, datapoint_type, description, data_secure}."""
 
         def _read() -> dict[str, Any]:
-            g = project.get_group_address(group_address_id)
-            if g is None:
-                raise ToolError(f"no group address with id {group_address_id}")
+            g = _require_ga(group_address_id, group_address)
             return _ga_dict(g)
 
         return ctx.run_locked(_read)
@@ -1458,23 +1535,23 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return {"address": address}
 
     @tool
-    def project_get_ga_assignments(group_address_id: int) -> dict[str, Any]:
-        """Read a group address's project com-object links. Pass id from
-        project_list_group_addresses as group_address_id. Returns {items, count}; each item has
-        {id, com_object_db_id, group_address_id, is_sending, node_id, individual_address,
-        com_object_ref_id, com_object_name}. Device/object details are null when unresolved.
-        Pass id as assignment_id to project_unlink_com_object, or use node_id with com_object_ref_id
-        for object tools. This reads project links without checking the bus."""
+    def project_get_ga_assignments(
+        group_address_id: int | None = None, group_address: str | None = None
+    ) -> dict[str, Any]:
+        """Read a group address's project com-object links using group_address_id or group_address string
+        (e.g. '10/1/2'). Returns {items, count}; each item has {id, com_object_db_id, group_address_id,
+        is_sending, node_id, individual_address, com_object_ref_id, com_object_name}."""
 
         def _read() -> list[dict[str, Any]]:
-            # map com-object db_id -> (device, com-object) so each assignment can name its owner
+            g = _require_ga(group_address_id, group_address)
+            target_ga_id = g.id
             owner: dict[int, tuple[Device, ComObject]] = {}
             for dev in project.devices:
                 for co in dev.get_visible_com_objects():
                     if co.db_id is not None:
                         owner[co.db_id] = (dev, co)
             result: list[dict[str, Any]] = []
-            for a in project.get_assignments_for_ga(group_address_id):
+            for a in project.get_assignments_for_ga(target_ga_id):
                 dev_co = owner.get(a.com_object_id)
                 dev, co = dev_co if dev_co else (None, None)
                 result.append(
@@ -1485,8 +1562,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                         "is_sending": a.is_sending,
                         "node_id": dev.node_id if dev else None,
                         "individual_address": dev.individual_address if dev else None,
-                        "com_object_ref_id": co.id if co else None,
-                        "com_object_name": com_object_display_name(co) if co else None,
+                        "com_object_ref_id": getattr(co, "id", None),
+                        "com_object_name": (
+                            com_object_display_name(co) if co else None
+                        ),
                     }
                 )
             return result
@@ -1541,28 +1620,36 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_set_device_space(
-        node_id: int, space_id: int | None = None
+        node_id: int | None = None,
+        device_address: str | None = None,
+        space_id: int | None = None,
     ) -> dict[str, Any]:
-        """Place a device in a room/space, or remove it from any space with space_id=null. Use a
-        space ``id`` from project_spaces and a ``node_id`` from project_list_devices. Undoable project
-        edit. Returns {node_id, space_id}."""
+        """Place a device in a room/space, or remove it from any space with space_id=null. Accepts
+        node_id or device_address, and a space id from project_spaces. Undoable project
+        edit. Returns {node_id, device_address, space_id}."""
         require_project(ctx)
 
         def _set() -> dict[str, Any]:
-            if project.find_device_by_node_id(node_id) is None:
-                raise ToolError(
-                    f"no device with node_id {node_id}; call project_list_devices for valid ids"
-                )
-            project.set_device_space(node_id, space_id)
-            return {"node_id": node_id, "space_id": space_id}
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
+            project.set_device_space(dev_id, space_id)
+            return {
+                "node_id": dev_id,
+                "device_address": device.individual_address,
+                "space_id": space_id,
+            }
 
         return ctx.run_locked(_set)
 
     @tool
     def project_compare_devices(
-        node_id_a: int, node_id_b: int, only_differences: bool = True
+        node_id_a: int | None = None,
+        node_id_b: int | None = None,
+        device_address_a: str | None = None,
+        device_address_b: str | None = None,
+        only_differences: bool = True,
     ) -> dict[str, Any]:
-        """Compare two devices (node_ids from project_list_devices) across header, parameters and
+        """Compare two devices (by node_id or device_address) across header, parameters and
         com-objects. Items are keyed so two instances of the SAME application line up (parameters by
         application-relative ref, com-objects by object number). Returns {node_id_a, node_id_b,
         difference_count, header, parameters, com_objects}; each section is a list of rows
@@ -1610,14 +1697,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             return out
 
         def _compare() -> dict[str, Any]:
-            dev_a = project.find_device_by_node_id(node_id_a)
-            dev_b = project.find_device_by_node_id(node_id_b)
-            for nid, dev in ((node_id_a, dev_a), (node_id_b, dev_b)):
-                if dev is None:
-                    raise ToolError(
-                        f"no device with node_id {nid}; call project_list_devices for valid ids"
-                    )
-            assert dev_a is not None and dev_b is not None
+            dev_a = _require_device(node_id_a, device_address_a)
+            dev_b = _require_device(node_id_b, device_address_b)
 
             def get_links(db_id: int) -> list[tuple[int, bool]]:
                 return [
@@ -1633,8 +1714,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             snap_b = snapshot_device(dev_b, get_links, get_address)
             result = diff_devices(snap_a, snap_b)
             return {
-                "node_id_a": node_id_a,
-                "node_id_b": node_id_b,
+                "node_id_a": dev_a.node_id,
+                "node_id_b": dev_b.node_id,
+                "device_address_a": dev_a.individual_address,
+                "device_address_b": dev_b.individual_address,
                 "difference_count": result.difference_count,
                 "header": _rows(result.header),
                 "parameters": _rows(result.parameters),
@@ -1761,31 +1844,41 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_add, timeout=_SLOW)
 
     @tool
-    def project_rename_device(node_id: int, name: str) -> dict[str, Any]:
-        """Rename a project device using node_id from project_list_devices. Undoable with
+    def project_rename_device(
+        name: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Rename a project device using node_id or device_address. Undoable with
         project_undo. Returns {node_id, name, individual_address, description}."""
 
         def _rename() -> dict[str, Any]:
-            device = _require_device(node_id)
-            project.set_device_name(node_id, device.name, name)
-            return _device_dict(_require_device(node_id))
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
+            project.set_device_name(dev_id, device.name, name)
+            return _device_dict(_require_device(dev_id))
 
         return ctx.run_locked(_rename)
 
     @tool
-    def project_set_individual_address(node_id: int, address: str) -> dict[str, Any]:
-        """Set a project device's individual address, e.g. "1.1.5", using node_id from
-        project_list_devices. The target area/line must exist in project_topology and the address
+    def project_set_individual_address(
+        address: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Set a project device's individual address, e.g. "1.1.5", using node_id or device_address.
+        The target area/line must exist in project_topology and the address
         must be unused in the project. Returns {node_id, name, individual_address, description}.
         Undoable with project_undo. This does not check or write the bus; use
         connection_assign_individual_address to assign it to hardware."""
 
         def _set() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
             project.set_device_individual_address(
-                node_id, device.individual_address, address
+                dev_id, device.individual_address, address
             )
-            updated = _require_device(node_id)
+            updated = _require_device(dev_id)
             if updated.individual_address != address:
                 raise ToolError(
                     f"could not set individual address {address!r} (invalid or already in use)"
@@ -1796,14 +1889,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_set_additional_address(
-        node_id: int,
         index: int,
         address: str | None,
+        node_id: int | None = None,
+        device_address: str | None = None,
         name: str | None = None,
         description: str | None = None,
     ) -> dict[str, Any]:
         """Set an additional individual address of a project device (a tunnelling address of an
-        IP interface) using node_id from project_list_devices. index is 1-based (see
+        IP interface) using node_id or device_address. index is 1-based (see
         additional_addresses in project_get_device; entries up to it are created). address is an
         "a.l.d" string in the device's own line, or a device number 1-255; null or "" clears it.
         It must not be used by a device or another additional address of the line. name and
@@ -1815,24 +1909,25 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         require_project(ctx)
 
         def _set() -> dict[str, Any]:
-            _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
             try:
-                project.set_additional_address(node_id, index, address)
+                project.set_additional_address(dev_id, index, address)
                 if name is not None:
-                    project.set_additional_address_name(node_id, index, name)
+                    project.set_additional_address_name(dev_id, index, name)
                 if description is not None:
                     project.set_additional_address_description(
-                        node_id, index, description
+                        dev_id, index, description
                     )
             except IndexError as exc:
                 raise ToolError(f"invalid index {index}; use 1 to 255") from exc
             except AdditionalAddressError as exc:
                 raise ToolError(str(exc)) from exc
             return {
-                "node_id": node_id,
+                "node_id": dev_id,
                 "additional_addresses": [
                     _additional_address_dict(entry)
-                    for entry in project.additional_addresses(node_id)
+                    for entry in project.additional_addresses(dev_id)
                 ],
             }
 
@@ -1840,10 +1935,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_assign_additional_addresses(
-        node_id: int, count: int | None = None
+        node_id: int | None = None,
+        device_address: str | None = None,
+        count: int | None = None,
     ) -> dict[str, Any]:
         """Assign the missing additional individual addresses of a project device (the
-        tunnelling addresses of an IP interface) using node_id from project_list_devices: entries
+        tunnelling addresses of an IP interface) using node_id or device_address: entries
         are created up to count (default: as many as the device's application has) and every
         entry without an address gets one, the highest free device numbers of the device's line
         counting down from 255. One undo step (project_undo). Fails when the line has too few free
@@ -1854,13 +1951,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         require_project(ctx)
 
         def _assign() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
             try:
                 entries = project.assign_additional_addresses(device, count)
             except AdditionalAddressError as exc:
                 raise ToolError(str(exc)) from exc
             return {
-                "node_id": node_id,
+                "node_id": dev_id,
                 "additional_addresses": [
                     _additional_address_dict(entry) for entry in entries
                 ],
@@ -1869,8 +1967,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_assign)
 
     @tool
-    def project_set_serial_number(node_id: int, serial_number: str) -> dict[str, Any]:
-        """Store a device's KNX serial number in the project using node_id from project_list_devices.
+    def project_set_serial_number(
+        serial_number: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Store a device's KNX serial number in the project using node_id or device_address.
         serial_number takes 12 hex digits (e.g. "0083:7AA2039C"); an empty string clears it.
         Returns {node_id, serial_number}. Undoable with project_undo; this records metadata without
         writing hardware. connection_program_device can use it with use_serial_number=true."""
@@ -1887,20 +1989,25 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
 
         def _set() -> dict[str, Any]:
-            _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
             project.set_device_commissioning(
-                node_id, serial_number=serial_to_project(serial) if serial else ""
+                dev_id, serial_number=serial_to_project(serial) if serial else ""
             )
-            return {"node_id": node_id, "serial_number": serial_text(serial)}
+            return {"node_id": dev_id, "serial_number": serial_text(serial)}
 
         return ctx.run_locked(_set)
 
     @tool
     def project_set_com_object_flag(
-        node_id: int, com_object_ref_id: str, flag: Flag, value: bool
+        com_object_ref_id: str,
+        flag: Flag,
+        value: bool,
+        node_id: int | None = None,
+        device_address: str | None = None,
     ) -> dict[str, Any]:
         """Override a project com-object flag: communication/read/write/transmit/update/read_on_init.
-        Pass ref_id from project_list_com_objects as com_object_ref_id with the same node_id;
+        Pass ref_id from project_list_com_objects as com_object_ref_id with node_id or device_address;
         the object must have linkable=true. Undoable with project_undo; program the device to apply
         the change on the bus.
 
@@ -1908,11 +2015,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         {ref_id} if the updated object cannot be found. flags contains the six named flags."""
 
         def _set() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
             co = device.find_com_object(com_object_ref_id)
             if co is None:
                 raise ToolError(
-                    f"no com-object {com_object_ref_id!r} on device {node_id}"
+                    f"no com-object {com_object_ref_id!r} on device {dev_id}"
                 )
             if co.db_id is None:
                 raise ToolError(
@@ -1920,7 +2028,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "(not linkable/editable)"
                 )
             project.set_flag(device, com_object_ref_id, flag, value)
-            updated = _require_device(node_id).find_com_object(com_object_ref_id)
+            updated = _require_device(dev_id).find_com_object(com_object_ref_id)
             return (
                 _com_object_dict(updated)
                 if updated is not None
@@ -1931,11 +2039,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_set_parameter(
-        node_id: int, parameter_ref_id: str, value: str
+        parameter_ref_id: str,
+        value: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
     ) -> dict[str, Any]:
         """Set an application parameter. Pass the parameter's `ref_id` (from project_list_parameters,
-        or project_parameter_tree) as the `parameter_ref_id` argument; use a `value` permitted by that
-        parameter's `widget`.
+        or project_parameter_tree) as the `parameter_ref_id` argument with node_id or device_address;
+        use a `value` permitted by that parameter's `widget`.
 
         When you configure a device's push-button / display function (e.g. a glass push button, room
         controller), ALWAYS also set its display symbols and key labels/name — do not leave them at
@@ -1952,15 +2063,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         value raises with the reason and does NOT take effect on a later edit."""
 
         def _set() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
             if parameters_in_plugin(device):
-                raise ToolError(PLUGIN_PARAMETERS_ERROR.format(node_id=node_id))
+                raise ToolError(PLUGIN_PARAMETERS_ERROR.format(node_id=dev_id))
             if not any(
                 p.ref_id == parameter_ref_id
                 for p in _collect_ui_parameters(device.get_ui())
             ):
                 raise ToolError(
-                    f"no parameter {parameter_ref_id!r} on device {node_id}; "
+                    f"no parameter {parameter_ref_id!r} on device {dev_id}; "
                     "call project_list_parameters for valid ref_ids"
                 )
             # edit_params (not set_param): applies and reconciles as one undo step and raises on
@@ -2053,112 +2165,118 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_rename_group_address(
-        group_address_id: int, name: str
+        name: str,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
     ) -> dict[str, Any]:
-        """Rename a project group address. Pass id from project_list_group_addresses as
-        group_address_id. Undoable with project_undo. Returns {id, address, name}."""
+        """Rename a project group address using group_address_id or group_address string."""
 
         def _rename() -> dict[str, Any]:
-            project.rename_group_address(group_address_id, name)
-            g = project.get_group_address(group_address_id)
-            if g is None:
-                raise ToolError(f"no group address with id {group_address_id}")
-            return {"id": g.id, "address": g.address, "name": g.name}
+            g = _require_ga(group_address_id, group_address)
+            ga_id = g.id
+            project.rename_group_address(ga_id, name)
+            updated = project.get_group_address(ga_id)
+            if updated is None:
+                raise ToolError(f"no group address with id {ga_id}")
+            return {"id": updated.id, "address": updated.address, "name": updated.name}
 
         return ctx.run_locked(_rename)
 
     @tool
     def project_set_group_address_dpt(
-        group_address_id: int, dpt: str | None
+        dpt: str | None = None,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
     ) -> dict[str, Any]:
-        """Set a project group address's datapoint type, or clear it with dpt=null. Pass id from
-        project_list_group_addresses as group_address_id. dpt accepts dotted codes such as "1.001"
-        or ETS tokens such as "DPST-1-1" and is stored as an ETS token.
-        Returns {id, address, datapoint_type}. Undoable with project_undo; this updates project
-        metadata used for value encoding/decoding without programming hardware."""
+        """Set a project group address's datapoint type, or clear it with dpt=null, using group_address_id
+        or group_address string (e.g. '10/1/2')."""
 
         def _set() -> dict[str, Any]:
+            g = _require_ga(group_address_id, group_address)
+            ga_id = g.id
             try:
-                project.set_group_address_dpt(group_address_id, dpt)
+                project.set_group_address_dpt(ga_id, dpt)
             except ValueError as e:
                 raise ToolError(str(e)) from e
-            g = project.get_group_address(group_address_id)
-            if g is None:
-                raise ToolError(f"no group address with id {group_address_id}")
+            updated = project.get_group_address(ga_id)
+            if updated is None:
+                raise ToolError(f"no group address with id {ga_id}")
             return {
-                "id": g.id,
-                "address": g.address,
-                "datapoint_type": g.datapoint_type,
+                "id": updated.id,
+                "address": updated.address,
+                "datapoint_type": updated.datapoint_type,
             }
 
         return ctx.run_locked(_set)
 
     @tool
     def project_set_group_address_security(
-        group_address_id: int, mode: str
+        mode: str,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
     ) -> dict[str, Any]:
-        """Set a group address' KNX Data Secure mode: "On" (secured, generates a key; every
-        linked device must be commissioned securely), "Off" (not secured), or "Auto" (secured
-        while every linked device is commissioned securely). A password-protected project is
-        needed to store a generated key."""
+        """Set a group address' KNX Data Secure mode using group_address_id or group_address string."""
         from xknxeditor.proj import GroupAddressSecurityError, ProjectPasswordRequired
 
         if mode not in ("Auto", "On", "Off"):
             raise ToolError('mode must be "Auto", "On" or "Off"')
 
         def _set() -> dict[str, Any]:
+            g = _require_ga(group_address_id, group_address)
+            ga_id = g.id
             try:
-                project.set_group_address_security(group_address_id, mode)
+                project.set_group_address_security(ga_id, mode)
             except ProjectPasswordRequired as e:
                 raise ToolError("set a project password first") from e
             except GroupAddressSecurityError as e:
                 raise ToolError(str(e)) from e
-            g = project.get_group_address(group_address_id)
-            if g is None:
-                raise ToolError(f"no group address with id {group_address_id}")
-            return {"id": g.id, "address": g.address, "secured": g.data_secure}
+            updated = project.get_group_address(ga_id)
+            if updated is None:
+                raise ToolError(f"no group address with id {ga_id}")
+            return {
+                "id": updated.id,
+                "address": updated.address,
+                "secured": updated.data_secure,
+            }
 
         return ctx.run_locked(_set)
 
     @tool
-    def project_remove_group_address(group_address_id: int) -> dict[str, str]:
-        """Remove a project group address and its links. Pass id from project_list_group_addresses
-        as group_address_id. Undoable with project_undo; program affected devices to remove links on
-        the bus. Returns {status: "removed", group_address_id}, with group_address_id as a string."""
-        ctx.run_locked(lambda: project.remove_group_address(group_address_id))
-        return {"status": "removed", "group_address_id": str(group_address_id)}
+    def project_remove_group_address(
+        group_address_id: int | None = None, group_address: str | None = None
+    ) -> dict[str, str]:
+        """Remove a project group address and its links using group_address_id or group_address string."""
+        g = _require_ga(group_address_id, group_address)
+        ga_id = g.id
+        ctx.run_locked(lambda: project.remove_group_address(ga_id))
+        return {
+            "status": "removed",
+            "group_address_id": str(ga_id),
+            "group_address": g.address,
+        }
 
     @tool
     def project_link_com_object(
-        node_id: int,
         com_object_ref_id: str,
-        group_address_id: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
         is_sending: bool = False,
     ) -> dict[str, Any]:
-        """Create an undoable project link between a device com-object and a group address. Use
-        ``com_object_ref_id`` = the object's ``ref_id`` from project_list_com_objects for ``node_id``
-        (it must have linkable=true), and ``group_address_id`` = an ``id`` from
-        project_list_group_addresses.
-
-        ``is_sending`` (default False) marks which group address an object with SEVERAL links sends to
-        (it orders the associations, sending GA first); it does NOT change the object's flags, and for
-        a single link it has no byte effect — the send/receive direction comes from the object's own
-        flags. For a transmitting object (push-button/sensor output) linked to several GAs, mark its
-        intended sending GA; keep one sending GA per object. Returns {link_id, node_id,
-        com_object_ref_id, com_object_db_id, group_address_id, is_sending, already_linked} plus, when
-        relevant, ``dpt_mismatch`` ({com_object, group_address} — the GA keeps its own DPT, so the
-        DPT metadata differs; verify compatibility) and ``other_sending_group_address_ids`` (the
-        object already sends to these, so it now has several sending GAs). Linking the same pair again
-        is idempotent (``already_linked: true``, no duplicate). Pass link_id as
-        project_unlink_com_object's assignment_id. Program the device to apply the link on the bus."""
+        """Create an undoable project link between a device com-object and a group address.
+        Accepts node_id or device_address (e.g. '1.0.30'), and group_address_id or group_address (e.g. '10/1/2')."""
         require_project(ctx)
 
         def _link() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
+            ga = _require_ga(group_address_id, group_address)
+            ga_id = ga.id
             co = device.find_com_object(com_object_ref_id)
             if co is None:
                 raise ToolError(
-                    f"no com-object {com_object_ref_id!r} on device {node_id}; "
+                    f"no com-object {com_object_ref_id!r} on device {dev_id}; "
                     "call project_list_com_objects for valid ref_ids"
                 )
             if co.db_id is None:
@@ -2167,26 +2285,59 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "cannot be linked (only com-objects with linkable=true can be linked)"
                 )
             result = perform_link(
-                project, node_id, com_object_ref_id, co, group_address_id, is_sending
+                project, dev_id, com_object_ref_id, co, ga_id, is_sending
             )
             if result is None:
                 raise ToolError(
-                    f"could not link com-object to group address {group_address_id} "
-                    "(check the group address id exists; a group address with Security On "
+                    f"could not link com-object to group address {ga_id} "
+                    "(check the group address exists; a group address with Security On "
                     "only takes devices commissioned securely)"
                 )
+            result["device_address"] = device.individual_address
+            result["group_address"] = ga.address
             return result
 
         return ctx.run_locked(_link)
 
     @tool
-    def project_unlink_com_object(assignment_id: int) -> dict[str, str]:
-        """Remove an undoable project link by ``assignment_id`` — use an ``id`` from
-        project_get_ga_assignments, an ``assignment_id`` from project_get_com_object_links, or a
-        ``link_id`` from project_link_com_object. Program the device to apply the removal on the bus.
-        Returns {status, assignment_id}."""
-        ctx.run_locked(lambda: project.unlink_com_object_from_ga(assignment_id))
-        return {"status": "unlinked", "assignment_id": str(assignment_id)}
+    def project_unlink_com_object(
+        assignment_id: int | None = None,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        com_object_ref_id: str | None = None,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
+    ) -> dict[str, str]:
+        """Remove an undoable project link by ``assignment_id``, OR directly by specifying
+        ``node_id``/``device_address``, ``com_object_ref_id``, and ``group_address_id``/``group_address``."""
+
+        def _unlink() -> dict[str, str]:
+            target_id = assignment_id
+            if target_id is None:
+                device = _require_device(node_id, device_address)
+                if not com_object_ref_id:
+                    raise ToolError(
+                        "unlink needs assignment_id, or com_object_ref_id with group_address"
+                    )
+                co = device.find_com_object(com_object_ref_id)
+                if co is None or co.db_id is None:
+                    raise ToolError(
+                        f"no instantiated com-object {com_object_ref_id!r} on device {device.node_id}"
+                    )
+                ga = _require_ga(group_address_id, group_address)
+                links = list(project.get_links_for_com_object(co.db_id))
+                found = next(
+                    (link for link in links if link.group_address_id == ga.id), None
+                )
+                if found is None:
+                    raise ToolError(
+                        f"no link found between com-object {com_object_ref_id!r} and group address {ga.address!r}"
+                    )
+                target_id = found.id
+            project.unlink_com_object_from_ga(target_id)
+            return {"status": "unlinked", "assignment_id": str(target_id)}
+
+        return ctx.run_locked(_unlink)
 
     # --- undo / redo / history --------------------------------------------
 
