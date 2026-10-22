@@ -72,7 +72,10 @@ class LinkView:
         # Group addresses whose devices outside the scope are shown one by one.
         self._expanded: set[int] = set()
         self._zoom = 1.0
+        # Fit the zoom to the canvas once (at first and on Fit); another part shown keeps the zoom
+        # and starts at the top.
         self._fit_pending = True
+        self._top_pending = False
         self._drag = DragToMove()
         self._rooms_key: tuple[int, int] | None = None
         self._rooms: list[tuple[str, list[int]]] = []
@@ -123,7 +126,7 @@ class LinkView:
         if imgui.button(S.TOPOLOGY_BACK):
             self._scope = self._history.pop()
             self._expanded.clear()
-            self._fit_pending = True
+            self._top_pending = True
         imgui.end_disabled()
         imgui.same_line()
         if imgui.button(S.TOPOLOGY_FIT):
@@ -136,7 +139,7 @@ class LinkView:
         self._history.append(self._scope)
         self._scope = scope
         self._expanded.clear()
-        self._fit_pending = True
+        self._top_pending = True
 
     def _scope_label(self, scope: Scope, hubs: list[Hub]) -> str:
         if scope.kind == "all":
@@ -216,7 +219,10 @@ class LinkView:
             # Wider than the canvas: the group addresses in the middle come into view.
             imgui.set_scroll_x(max(0.0, (_WIDTH * self._zoom * px(1.0) - avail) / 2))
             imgui.set_scroll_y(0.0)
-            self._fit_pending = False
+            self._fit_pending = self._top_pending = False
+        elif self._top_pending:
+            imgui.set_scroll_y(0.0)
+            self._top_pending = False
         self._zoom = zoom_with_wheel(self._zoom)
         clicked = self._drag.update()
         self._draw(layout, self._scope, hubs, clicked)
