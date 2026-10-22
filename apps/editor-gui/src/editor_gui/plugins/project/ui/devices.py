@@ -68,13 +68,13 @@ class DevicesPanel:
         on_device_info: Callable[[int], None] | None = None,
         on_compare: Callable[[int], None] | None = None,
         on_select_element: Callable[[str, int], None] = lambda _k, _i: None,
+        get_selected_topology: Callable[[], tuple[str, int] | None] = lambda: None,
     ) -> None:
         self._get_devices = get_devices
-        # Selecting an area or a line (its comment shows in the Comment tab).
+        # Selecting an area or a line (its details and comment show in place of the device's),
+        # and the one selected: highlighted instead of the device until a device is selected.
         self._on_select_element = on_select_element
-        # The area or line selected in this tree: (kind, id, the device selected then). It is
-        # highlighted instead of the device until another device is selected.
-        self._element: tuple[str, int, int | None] | None = None
+        self._get_selected_topology = get_selected_topology
         self._on_device_info = on_device_info
         self._on_compare = on_compare
         self._get_unloaded_devices = get_unloaded_devices
@@ -171,8 +171,7 @@ class DevicesPanel:
         single = self._get_selected_node_id()
         if single is not None:
             selected_ids.add(single)
-        element = self._element
-        target = element[:2] if element is not None and element[2] == single else None
+        target = self._get_selected_topology()
         if target is not None:
             selected_ids = set[int]()
 
@@ -313,13 +312,11 @@ class DevicesPanel:
             imgui.end_popup()
 
     def _select_element(self, kind: str, element_id: int) -> None:
-        self._element = (kind, element_id, self._get_selected_node_id())
         self._on_select_element(kind, element_id)
 
     def _handle_device_click(self, device: Device, ordered_ids: list[int]) -> None:
         """Selection: plain click = single, Ctrl = toggle, Shift = range (additive with
         Ctrl). Falls back to single-select when the multi-select callback is not wired."""
-        self._element = None
         if self._on_select_devices is None:
             self._on_select_device(device)
             return

@@ -83,6 +83,7 @@ from editor_gui.plugins.mcp import McpServerPlugin
 from editor_gui.plugins.monitor import MonitorPlugin
 from editor_gui.plugins.project import ProjectPlugin, ProjectService
 from editor_gui.plugins.project.knxproj_manufacturer import collect_manufacturer_bundle
+from editor_gui.plugins.project.strings import S as PROJECT_S
 from editor_gui.plugins.project.ui.spaces import space_type_label
 from editor_gui.plugins.recover import RecoverPlugin
 from editor_gui.plugins.signing import SigningPlugin
@@ -3337,15 +3338,21 @@ class KnxGuiApp:
         self._run_bg(S.PROGRESS_LOAD_KNXPROD, worker)
 
     def _sync_device_section(self) -> None:
-        """While a space is selected in the Buildings tree, the Device tab shows it, titled with
-        its type (Building, Floor, …), and the Manufacturer tab is hidden and left out of the
-        menus; selecting a device again restores both."""
+        """While a space is selected in the Buildings tree, or an area or a line in the Devices
+        tree, the Device tab shows it, titled with its type (Building, Floor, …, Area, Line), and
+        the Manufacturer tab is hidden and left out of the menus; selecting a device again
+        restores both."""
         space = self._project_plugin.selected_space()
-        title = (
-            space_type_label(space.space_type) or _DOCK_LABELS["device"]()
-            if space is not None
-            else _DOCK_LABELS["device"]()
-        )
+        topology = self._project_plugin.selected_topology() if space is None else None
+        if space is not None:
+            title = space_type_label(space.space_type) or _DOCK_LABELS["device"]()
+        elif topology is not None:
+            title = (
+                PROJECT_S.PANEL_AREA if topology[0] == "area" else PROJECT_S.PANEL_LINE
+            )
+        else:
+            title = _DOCK_LABELS["device"]()
+        other = space is not None or topology is not None
         for window in hello_imgui.get_runner_params().docking_params.dockable_windows:
             name = _dock_window_name(window)
             if name == "device":
@@ -3353,13 +3360,13 @@ class KnxGuiApp:
                 if window.label != label:
                     window.label = label
             elif name == "manufacturer":
-                window.include_in_view_menu = space is None
-                if space is not None and window.is_visible:
+                window.include_in_view_menu = not other
+                if other and window.is_visible:
                     # Shown again, a tab comes last: the section's order is put back then.
                     self._manufacturer_tabs = _section_tab_names(window.label)
                     window.is_visible = False
                     self._manufacturer_hidden = True
-                elif space is None and self._manufacturer_hidden:
+                elif not other and self._manufacturer_hidden:
                     window.is_visible = True
                     self._manufacturer_hidden = False
                     if self._manufacturer_tabs:

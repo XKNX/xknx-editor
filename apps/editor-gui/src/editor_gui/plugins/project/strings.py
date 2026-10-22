@@ -20,6 +20,38 @@ class ProjectStrings:
         return _("Comment")
 
     @property
+    def PANEL_AREA(self) -> str:
+        return _("Area")
+
+    @property
+    def PANEL_LINE(self) -> str:
+        return _("Line")
+
+    @property
+    def TOPOLOGY_ADDRESS_INVALID(self) -> str:
+        return _("The address is a number from 0 to 15.")
+
+    @property
+    def TOPOLOGY_ADDRESS_IN_USE(self) -> str:
+        return _("Address {address} is already in use.")
+
+    @property
+    def HISTORY_EV_SET_AREA_DESCRIPTION(self) -> str:
+        return _("Set area description")
+
+    @property
+    def HISTORY_EV_SET_LINE_DESCRIPTION(self) -> str:
+        return _("Set line description")
+
+    @property
+    def HISTORY_EV_SET_AREA_ADDRESS(self) -> str:
+        return _("Set area address")
+
+    @property
+    def HISTORY_EV_SET_LINE_ADDRESS(self) -> str:
+        return _("Set line address")
+
+    @property
     def COMMENT_INSTALLATION_HINTS(self) -> str:
         return _("Installation Hints")
 

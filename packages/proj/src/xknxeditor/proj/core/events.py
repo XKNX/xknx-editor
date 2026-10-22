@@ -2298,6 +2298,86 @@ def _comment_element(session: Session, kind: str, element_id: int) -> Any:
     return None if model is None else session.get(model, element_id)
 
 
+def _topology_element(
+    session: Session, kind: str, element_id: int
+) -> Area | Line | None:
+    model = Area if kind == "area" else Line if kind == "line" else None
+    return None if model is None else session.get(model, element_id)
+
+
+@_register
+@dataclass
+class SetTopologyDescription(Event):
+    """The description of an area or a line (``kind`` "area" or "line")."""
+
+    event_type: ClassVar[str] = "SetTopologyDescription"
+
+    kind: str
+    element_id: int
+    description: str
+    old_description: str | None = None
+
+    def apply(self, session: Session) -> None:
+        element = _topology_element(session, self.kind, self.element_id)
+        if element is not None:
+            self.old_description = element.description
+            element.description = self.description
+
+    def revert(self, session: Session) -> None:
+        element = _topology_element(session, self.kind, self.element_id)
+        if element is not None and self.old_description is not None:
+            element.description = self.old_description
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "kind": self.kind,
+            "element_id": self.element_id,
+            "description": self.description,
+            "old_description": self.old_description,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetTopologyDescription:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetTopologyAddress(Event):
+    """The address of an area or a line (``kind`` "area" or "line"): the individual addresses of
+    its devices change with it."""
+
+    event_type: ClassVar[str] = "SetTopologyAddress"
+
+    kind: str
+    element_id: int
+    address: int
+    old_address: int | None = None
+
+    def apply(self, session: Session) -> None:
+        element = _topology_element(session, self.kind, self.element_id)
+        if element is not None:
+            self.old_address = element.address
+            element.address = self.address
+
+    def revert(self, session: Session) -> None:
+        element = _topology_element(session, self.kind, self.element_id)
+        if element is not None and self.old_address is not None:
+            element.address = self.old_address
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "kind": self.kind,
+            "element_id": self.element_id,
+            "address": self.address,
+            "old_address": self.old_address,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetTopologyAddress:
+        return cls(**data)
+
+
 @_register
 @dataclass
 class SetComment(Event):
