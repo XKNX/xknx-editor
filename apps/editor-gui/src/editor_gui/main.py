@@ -3338,21 +3338,19 @@ class KnxGuiApp:
         self._run_bg(S.PROGRESS_LOAD_KNXPROD, worker)
 
     def _sync_device_section(self) -> None:
-        """While a space is selected in the Buildings tree, or an area or a line in the Devices
-        tree, the Device tab shows it, titled with its type (Building, Floor, …, Area, Line), and
-        the Manufacturer tab is hidden and left out of the menus; selecting a device again
-        restores both."""
+        """While a space is selected in the Buildings tree, an area or a line in the Devices tree,
+        or a group range or group address, the Device tab shows it, titled with its type
+        (Building, Floor, …, Area, Line, Main Group, …), and the Manufacturer tab is hidden and
+        left out of the menus; selecting a device again restores both."""
         space = self._project_plugin.selected_space()
-        topology = self._project_plugin.selected_topology() if space is None else None
+        element = self._project_plugin.selected_element() if space is None else None
         if space is not None:
             title = space_type_label(space.space_type) or _DOCK_LABELS["device"]()
-        elif topology is not None:
-            title = (
-                PROJECT_S.PANEL_AREA if topology[0] == "area" else PROJECT_S.PANEL_LINE
-            )
+        elif element is not None:
+            title = _ELEMENT_TITLES[element.title_kind]()
         else:
             title = _DOCK_LABELS["device"]()
-        other = space is not None or topology is not None
+        other = space is not None or element is not None
         for window in hello_imgui.get_runner_params().docking_params.dockable_windows:
             name = _dock_window_name(window)
             if name == "device":
@@ -5741,6 +5739,16 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
 
 
 _DOCK_LABELS: "dict[str, Callable[[], str]]" = _dock_label_getters()
+
+# The Device tab's title while it shows an area, line, group range or group address.
+_ELEMENT_TITLES: "dict[str, Callable[[], str]]" = {
+    "area": lambda: PROJECT_S.PANEL_AREA,
+    "line": lambda: PROJECT_S.PANEL_LINE,
+    "main_group": lambda: PROJECT_S.PANEL_MAIN_GROUP,
+    "middle_group": lambda: PROJECT_S.PANEL_MIDDLE_GROUP,
+    "group_range": lambda: PROJECT_S.PANEL_GROUP_RANGE,
+    "group_address": lambda: PROJECT_S.PANEL_GROUP_ADDRESS,
+}
 
 # Initial tab order per dock space, by stable panel name (order only matters within each space).
 _DOCK_TAB_ORDER = [

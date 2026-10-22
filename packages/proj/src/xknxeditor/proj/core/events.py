@@ -2380,6 +2380,102 @@ class SetTopologyAddress(Event):
 
 @_register
 @dataclass
+class SetGroupDescription(Event):
+    """The description of a group range or a group address (``kind`` "group_range" or
+    "group_address")."""
+
+    event_type: ClassVar[str] = "SetGroupDescription"
+
+    kind: str
+    element_id: int
+    description: str
+    old_description: str | None = None
+
+    def _element(self, session: Session) -> GroupRange | GroupAddress | None:
+        model = GroupRange if self.kind == "group_range" else GroupAddress
+        return session.get(model, self.element_id)
+
+    def apply(self, session: Session) -> None:
+        element = self._element(session)
+        if element is not None:
+            self.old_description = element.description
+            element.description = self.description
+
+    def revert(self, session: Session) -> None:
+        element = self._element(session)
+        if element is not None and self.old_description is not None:
+            element.description = self.old_description
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "kind": self.kind,
+            "element_id": self.element_id,
+            "description": self.description,
+            "old_description": self.old_description,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetGroupDescription:
+        return cls(**data)
+
+
+def _range_subtree(group_range: GroupRange) -> list[GroupRange]:
+    ranges = [group_range]
+    for child in group_range.children:
+        ranges += _range_subtree(child)
+    return ranges
+
+
+@_register
+@dataclass
+class SetGroupRangeAddress(Event):
+    """Give a main or middle group another number: the range, the ranges below it and all their
+    group addresses move by ``offset`` (in raw address units). The devices linked to those group
+    addresses get their group communication marked as not loaded, as for one renumbered group
+    address."""
+
+    event_type: ClassVar[str] = "SetGroupRangeAddress"
+
+    range_id: int
+    offset: int
+    # Devices whose group communication was loaded before (the addresses are in their tables).
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+
+    def _shift(self, session: Session, offset: int) -> set[int]:
+        group_range = session.get(GroupRange, self.range_id)
+        if group_range is None:
+            return set()
+        devices: set[int] = set()
+        for node in _range_subtree(group_range):
+            node.range_start += offset
+            node.range_end += offset
+            for ga in node.group_addresses:
+                ga.address += offset
+                devices |= _devices_on(session, ga.id)
+        return devices
+
+    def apply(self, session: Session) -> None:
+        devices = self._shift(session, self.offset)
+        self.cleared = _clear_communication_loaded(session, devices)
+
+    def revert(self, session: Session) -> None:
+        self._shift(session, -self.offset)
+        _restore_communication_loaded(session, self.cleared)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "range_id": self.range_id,
+            "offset": self.offset,
+            "cleared": self.cleared,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetGroupRangeAddress:
+        return cls(**data)
+
+
+@_register
+@dataclass
 class SetComment(Event):
     """An element's comment, or a device's installation hints (``field`` "installation_hints");
     both are RTF. ``kind`` is a ``COMMENT_KINDS`` name; the project ignores ``element_id``."""

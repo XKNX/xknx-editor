@@ -174,3 +174,30 @@ def test_area_and_line_description_and_address(tmp_path: Path) -> None:
     svc.undo(pid)
     svc.undo(pid)
     assert svc.topology(pid, 0).areas[-1].description == ""
+
+
+def test_group_description_and_renumbering_a_group(tmp_path: Path) -> None:
+    svc, pid, _area, _line, _device = _project(tmp_path)
+    ga = svc.create_group_address(pid, 0, (1 << 11) | (2 << 8) | 3, "Light")  # 1/2/3
+    other = svc.create_group_address(pid, 0, (4 << 11) | 1, "Blind")  # 4/0/1
+    main = next(r for r in svc.group_ranges(pid, 0) if r.address == "1")
+    middle = main.children[0]
+    svc.set_group_description(pid, "group_address", ga, "Ceiling")
+    svc.set_group_description(pid, "group_range", middle.id, "Lights")
+    assert svc.group_address(pid, ga).description == "Ceiling"
+    main = next(r for r in svc.group_ranges(pid, 0) if r.id == main.id)
+    assert main.children[0].description == "Lights"
+
+    # The middle group 1/2 becomes 1/5, then the main group 1 becomes 6: 1/2/3 -> 6/5/3.
+    svc.set_group_range_number(pid, middle.id, 5)
+    assert svc.group_address(pid, ga).text == "1/5/3"
+    svc.set_group_range_number(pid, main.id, 6)
+    assert svc.group_address(pid, ga).text == "6/5/3"
+    with pytest.raises(ValueError):
+        svc.set_group_range_number(pid, main.id, 4)  # main group 4 is in use
+    with pytest.raises(ValueError):
+        svc.set_group_range_number(pid, middle.id, 8)
+    assert svc.group_address(pid, other).text == "4/0/1"
+    svc.undo(pid)
+    svc.undo(pid)
+    assert svc.group_address(pid, ga).text == "1/2/3"

@@ -94,6 +94,8 @@ from xknxeditor.proj.core.events import (
     SetGroupAddressAddress,
     SetGroupAddressDatapointType,
     SetGroupAddressSecurity,
+    SetGroupDescription,
+    SetGroupRangeAddress,
     SetParameter,
     SetProjectName,
     SetSpaceDescription,
@@ -200,6 +202,7 @@ class GroupRangeInfo:
     group_addresses: list[GroupAddressInfo]
     # The folder's style-formatted number (main group "0", middle group "0/1"); empty for Free.
     address: str = ""
+    description: str = ""
 
 
 @dataclass(frozen=True)
@@ -2535,6 +2538,55 @@ class ProjectService:
             SetTopologyAddress(kind=kind, element_id=element_id, address=address)
         )
 
+    def set_group_description(
+        self, project_id: str, kind: str, element_id: int, description: str
+    ) -> None:
+        """The description of a group range or a group address (``kind`` "group_range" or
+        "group_address"); undoable."""
+        self._state(project_id).store.append(
+            SetGroupDescription(
+                kind=kind, element_id=element_id, description=description
+            )
+        )
+
+    def set_group_range_number(
+        self, project_id: str, range_id: int, number: int
+    ) -> None:
+        """Give a main group (0 to 31) or a middle group (0 to 7) another number; its group
+        addresses move with it. Undoable.
+
+        Raises ``ValueError`` for a number out of range, one in use by another group beside it, or
+        a project in the Free style (its groups have no number); ``KeyError`` for an unknown
+        range."""
+        state = self._state(project_id)
+        group_range = state.session.get(GroupRange, range_id)
+        if group_range is None:
+            raise KeyError(f"No group range {range_id}")
+        style = self._style(state)
+        if style is GroupAddressStyle.FREE:
+            raise ValueError("groups of the Free style have no number")
+        parent = group_range.parent
+        if parent is None:
+            if not 0 <= number <= 31:
+                raise ValueError(f"main group {number} is not between 0 and 31")
+            start = number << 11
+        else:
+            if not 0 <= number <= 7:
+                raise ValueError(f"middle group {number} is not between 0 and 7")
+            start = (parent.range_start & ~0x7FF) | (number << 8)
+        offset = start - group_range.range_start
+        if offset == 0:
+            return
+        end = group_range.range_end + offset
+        siblings = state.session.query(GroupRange).filter(
+            GroupRange.installation_id == group_range.installation_id,
+            GroupRange.parent_id == group_range.parent_id,
+            GroupRange.id != group_range.id,
+        )
+        if any(s.range_start <= end and start <= s.range_end for s in siblings):
+            raise ValueError(f"group {number} is in use")
+        state.store.append(SetGroupRangeAddress(range_id=range_id, offset=offset))
+
     def comment(
         self, project_id: str, kind: str, element_id: int, field: str = "comment"
     ) -> str | None:
@@ -3271,6 +3323,7 @@ class ProjectService:
         return GroupRangeInfo(
             id=group_range.id,
             name=group_range.name,
+            description=group_range.description,
             range_start=group_range.range_start,
             range_end=group_range.range_end,
             children=[
