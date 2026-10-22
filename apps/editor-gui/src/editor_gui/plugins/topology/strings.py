@@ -23,7 +23,7 @@ class TopologyStrings:
 
     @property
     def TOPOLOGY_HINT(self) -> str:
-        return _("Ctrl/Cmd+scroll to zoom. Click a device to open it.")
+        return _("Drag to move, Ctrl/Cmd+scroll to zoom. Click a device to open it.")
 
     @property
     def TOPOLOGY_MODE_PHYSICAL(self) -> str:
@@ -40,9 +40,22 @@ class TopologyStrings:
     @property
     def TOPOLOGY_SHOW_LINKS_HINT(self) -> str:
         return _(
-            "Each group address is a hub node; devices link to it (sender into the hub, hub out to "
-            "receivers). Hover a device to see its group addresses, or a hub to see every device "
-            "on it. Click a device to open it."
+            "Which devices talk to which over their group addresses: sending devices on the left, "
+            "receiving devices on the right."
+        )
+
+    @property
+    def TOPOLOGY_LINKS_HINT(self) -> str:
+        return _(
+            "Click to follow a device or group address, double-click to open a device. Drag to "
+            "move, Ctrl/Cmd+scroll to zoom."
+        )
+
+    @property
+    def TOPOLOGY_LINKS_HINT_TOUCH(self) -> str:
+        return _(
+            "Tap to follow a device or group address, double-tap to open a device. Zoom with two "
+            "fingers."
         )
 
     @property
@@ -50,16 +63,70 @@ class TopologyStrings:
         return _("No linked devices to show.")
 
     @property
-    def TOPOLOGY_FILTER_ROOM(self) -> str:
-        return _("Room")
+    def TOPOLOGY_SCOPE(self) -> str:
+        return _("Show")
 
     @property
-    def TOPOLOGY_FILTER_GROUP(self) -> str:
-        return _("Group")
+    def TOPOLOGY_SCOPE_CHOOSE(self) -> str:
+        return _("Choose…")
 
     @property
-    def TOPOLOGY_FILTER_ALL(self) -> str:
-        return _("All")
+    def TOPOLOGY_CHOOSE_SCOPE(self) -> str:
+        return _(
+            "Choose above what to show: the whole project, a room or a main group."
+        )
+
+    @property
+    def TOPOLOGY_SCOPE_ALL(self) -> str:
+        return _("Whole Project")
+
+    @property
+    def TOPOLOGY_SCOPE_ROOMS(self) -> str:
+        return _("Rooms")
+
+    @property
+    def TOPOLOGY_SCOPE_MAINS(self) -> str:
+        return _("Main Groups")
+
+    @property
+    def TOPOLOGY_SCOPE_DEVICE(self) -> str:
+        return _("Device: {device}")
+
+    @property
+    def TOPOLOGY_SCOPE_GA(self) -> str:
+        return _("Group Address: {address}")
+
+    @property
+    def TOPOLOGY_BACK(self) -> str:
+        return _("Back")
+
+    @property
+    def TOPOLOGY_FIT(self) -> str:
+        return _("Fit")
+
+    @property
+    def TOPOLOGY_COL_SENDERS(self) -> str:
+        return _("Sending")
+
+    @property
+    def TOPOLOGY_COL_GROUP_ADDRESSES(self) -> str:
+        return _("Group Addresses")
+
+    @property
+    def TOPOLOGY_COL_RECEIVERS(self) -> str:
+        return _("Receiving")
+
+    @property
+    def TOPOLOGY_MORE(self) -> str:
+        return _("+ {count} more")
+
+    @property
+    def TOPOLOGY_MORE_TIP(self) -> str:
+        return _("{count} more devices outside the selection. Click to show them.")
+
+    @property
+    def TOPOLOGY_GA_TIP(self) -> str:
+        return _("{address}\n{senders} sending, {receivers} receiving")
 
     @property
     def TOPOLOGY_AREA(self) -> str:
