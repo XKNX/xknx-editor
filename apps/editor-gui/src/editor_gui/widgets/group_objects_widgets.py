@@ -244,11 +244,11 @@ class GroupObjectsTable:
 
         imgui.table_setup_column("#", imgui.TableColumnFlags_.width_fixed, px(64.0))
         stretch = imgui.TableColumnFlags_.width_stretch
-        imgui.table_setup_column(S.GROUP_OBJECTS_COL_NAME, stretch, 0.28)
-        imgui.table_setup_column(S.GROUP_OBJECTS_COL_DPT, stretch, 0.1)
-        imgui.table_setup_column(S.GROUP_OBJECTS_COL_LENGTH, stretch, 0.1)
-        imgui.table_setup_column(S.GROUP_OBJECTS_COL_PRIO, stretch, 0.08)
-        imgui.table_setup_column(S.GROUP_OBJECTS_COL_GROUP_ADDRESSES, stretch, 0.44)
+        imgui.table_setup_column(S.GROUP_OBJECTS_COL_NAME, stretch, 0.278)
+        imgui.table_setup_column(S.GROUP_OBJECTS_COL_DPT, stretch, 0.131)
+        imgui.table_setup_column(S.GROUP_OBJECTS_COL_LENGTH, stretch, 0.067)
+        imgui.table_setup_column(S.GROUP_OBJECTS_COL_PRIO, stretch, 0.096)
+        imgui.table_setup_column(S.GROUP_OBJECTS_COL_GROUP_ADDRESSES, stretch, 0.428)
         for _attr, letter, _name in FLAG_LABELS:
             imgui.table_setup_column(
                 letter, imgui.TableColumnFlags_.width_fixed, px(22.0)

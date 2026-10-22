@@ -2,8 +2,8 @@
 
 Read-only. *Physical* mode shows Area -> Line -> Device (from individual addresses); *Building*
 mode shows Building/Room -> Device (from the location tree). Ctrl+mouse-wheel zooms; a box shows
-the device's address, name and application (and an icon showing its description), and clicking it
-selects the device."""
+the device's address, name and application (a shield when it is secured; the tooltip adds its
+description), and clicking it selects the device."""
 
 from __future__ import annotations
 
@@ -21,9 +21,7 @@ from editor_gui.widgets.backgrounds import child_background, content_background
 from editor_gui.widgets.checkbox import radio_button
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.description import (
-    ICON_DESCRIPTION,
     ICON_SECURE,
-    description_tooltip,
     is_secure_device,
     secure_tooltip,
     wrapped_tooltip,
@@ -40,7 +38,7 @@ _TEXT_PAD = 5.0
 _COL_MIN_W = (120.0, 150.0, 260.0)
 _COL_MAX_W = (240.0, 260.0, 480.0)
 _ELLIPSIS = "…"
-# Space between a device's label and its description icon.
+# Space between a device's label and its shield.
 _ICON_GAP = 6.0
 # Link-graph node box (unscaled): the width a device label is fitted into, and the clear space
 # kept around each box so the force layout, once spread, leaves no two boxes overlapping.
@@ -62,8 +60,7 @@ class _DevBox:
     node_id: int
     label: str
     tooltip: str
-    description: str = ""
-    # Commissioned with KNX Data Secure: a shield before the description icon.
+    # Commissioned with KNX Data Secure: a shield at the end of the box.
     secure: bool = False
 
 
@@ -664,7 +661,6 @@ class TopologyPanel:
                             d.node_id,
                             _device_label(d),
                             _device_tooltip(d),
-                            d.description.strip(),
                             is_secure_device(d.node_id),
                         )
                     )
@@ -723,19 +719,16 @@ class TopologyPanel:
                     dev = dev_by_id.get(sd.id)
                     if dev is not None:
                         label, tooltip = _device_label(dev), _device_tooltip(dev)
-                        description = dev.description
                     else:
                         ia = sd.individual_address or "-"
-                        description = sd.description or ""
                         label = f"{ia}  {sd.name}"
-                        tooltip = _with_description(sd.name or ia, description)
+                        tooltip = _with_description(sd.name or ia, sd.description or "")
                     layout.devices.append(
                         _DevBox(
                             y,
                             sd.id,
                             label,
                             tooltip,
-                            description.strip(),
                             is_secure_device(sd.id),
                         )
                     )
@@ -756,15 +749,9 @@ class TopologyPanel:
         """Width of ``text`` in unscaled pixels."""
         return imgui.calc_text_size(text).x / px(1.0)
 
-    def _icon_room(self, icon: str = ICON_DESCRIPTION) -> float:
-        """Width a device box keeps for an icon, in unscaled pixels."""
-        return _ICON_GAP + self._text_width(icon)
-
     def _icons_room(self, d: _DevBox) -> float:
-        """Width a device box keeps for its shield and description icon, in unscaled pixels."""
-        return (self._icon_room(ICON_SECURE) if d.secure else 0.0) + (
-            self._icon_room() if d.description else 0.0
-        )
+        """Width a device box keeps for its shield, in unscaled pixels."""
+        return _ICON_GAP + self._text_width(ICON_SECURE) if d.secure else 0.0
 
     def _column_widths(self, layout: _Layout) -> list[float]:
         columns = (
@@ -810,6 +797,9 @@ class TopologyPanel:
         dev_col = imgui.get_color_u32(imgui.ImVec4(0.18, 0.18, 0.2, 1.0))
         border_col = imgui.get_color_u32(imgui.ImVec4(0.4, 0.4, 0.45, 1.0))
         text_col = imgui.get_color_u32(imgui.ImVec4(0.9, 0.9, 0.9, 1.0))
+        # The boxes are dark in every theme: the shield is dimmed, and lighter while hovered.
+        icon_col = imgui.get_color_u32(imgui.ImVec4(0.6, 0.6, 0.62, 1.0))
+        icon_hover_col = imgui.get_color_u32(imgui.ImVec4(1.0, 1.0, 1.0, 1.0))
 
         def box(x: float, y: float, w: float, fill: int, label: str) -> None:
             p0 = imgui.ImVec2(origin.x + x * z, origin.y + y * z)
@@ -840,10 +830,7 @@ class TopologyPanel:
         hovered = imgui.is_window_hovered()
         mouse = imgui.get_mouse_pos()
         clicked = imgui.is_mouse_clicked(0)
-        icon_room = self._icon_room()
-        icon_w = self._text_width(ICON_DESCRIPTION)
         secure_w = self._text_width(ICON_SECURE)
-        style = imgui.get_style()
         for d in layout.devices:
             label_w = widths[2] - self._icons_room(d)
             box(xs[2], d.y, widths[2], dev_col, self._fit(d.label, label_w))
@@ -854,42 +841,20 @@ class TopologyPanel:
                 and bx <= mouse.x <= bx + widths[2] * z
                 and by <= mouse.y <= by + _BOX_H * z
             )
-            icon_hovered = False
             secure_hovered = False
             if d.secure:
-                # Before the description icon (or at the end of the box without one).
-                end = widths[2] - _TEXT_PAD - (icon_room if d.description else 0.0)
-                sx = bx + (end - secure_w) * z
-                secure_hovered = (
-                    box_hovered
-                    and sx - _ICON_GAP / 2 * z
-                    <= mouse.x
-                    < bx + (end + _ICON_GAP / 2) * z
-                )
-                color = imgui.Col_.text if secure_hovered else imgui.Col_.text_disabled
+                # At the end of the box.
+                sx = bx + (widths[2] - _TEXT_PAD - secure_w) * z
+                secure_hovered = box_hovered and mouse.x >= sx - _ICON_GAP / 2 * z
                 dl.add_text(
                     font,
                     font_size,
                     imgui.ImVec2(sx, by + 4 * z),
-                    imgui.get_color_u32(style.color_(color)),
+                    icon_hover_col if secure_hovered else icon_col,
                     ICON_SECURE,
                 )
-            if d.description:
-                # At the end of the box, showing the description while hovered.
-                ix = bx + (widths[2] - _TEXT_PAD - icon_w) * z
-                icon_hovered = box_hovered and mouse.x >= ix - _ICON_GAP / 2 * z
-                color = imgui.Col_.text if icon_hovered else imgui.Col_.text_disabled
-                dl.add_text(
-                    font,
-                    font_size,
-                    imgui.ImVec2(ix, by + 4 * z),
-                    imgui.get_color_u32(style.color_(color)),
-                    ICON_DESCRIPTION,
-                )
             if box_hovered:
-                if icon_hovered:
-                    description_tooltip(d.description)
-                elif secure_hovered:
+                if secure_hovered:
                     imgui.set_tooltip(secure_tooltip())
                 else:
                     wrapped_tooltip(d.tooltip)
