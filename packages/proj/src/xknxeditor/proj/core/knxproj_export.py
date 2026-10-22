@@ -108,6 +108,7 @@ from xknxeditor.proj.models import (
     Project,
     Space,
     Trade,
+    installation_hints,
 )
 
 logger = logging.getLogger(__name__)
@@ -1889,8 +1890,9 @@ class _Writer:
             Name=device.name,
             ProductRefId=device.product_ref_id,
             Hardware2ProgramRefId=device.hardware2program_ref_id,
-            Description=device.description or None,
             Comment=device.comment or None,
+            Description=device.description or None,
+            InstallationHints=installation_hints(device) or None,
             LastModified=device.last_modified or None,
             # Commissioning state ("loaded" ticks + serial / last download). Emit the flags
             # only when set; an absent attribute means "not loaded" (matching genuine exports and
@@ -1916,7 +1918,8 @@ class _Writer:
         # attribute and produce invalid XML.
         if self._schema == self._source_schema:
             for key, value in (device.extra_attributes or {}).items():
-                di.set(key, value)
+                if key != "InstallationHints":
+                    di.set(key, value)
         # Genuine exports order the device's children ParameterInstanceRefs, then
         # ComObjectInstanceRefs.
         # NOTE: unlike ComObjectInstanceRef (a RELIDREF), ParameterInstanceRef/@RefId is the FULL

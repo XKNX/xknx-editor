@@ -65,6 +65,7 @@ from xknxeditor.proj.core.ga_export import write_ga_csv as _write_ga_csv
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.ip_secure import PASSWORD_ACCESS_TYPES
 from xknxeditor.proj.core.project_secrets import check_project_password
+from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
 from xknxeditor.proj.core.skeleton import MEDIUM_TP
 
 if TYPE_CHECKING:
@@ -503,6 +504,11 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "SetGroupAddressAddress": lambda d: S.HISTORY_EV_SET_GA_ADDRESS,
     "SetDeviceCertificates": lambda d: S.HISTORY_EV_SET_CERTIFICATES,
     "SetDeviceDescription": lambda d: S.HISTORY_EV_SET_DEVICE_DESCRIPTION,
+    "SetComment": lambda d: (
+        S.HISTORY_EV_SET_INSTALLATION_HINTS
+        if d.get("field") == "installation_hints"
+        else S.HISTORY_EV_SET_COMMENT
+    ),
     "CreateFunction": lambda d: S.HISTORY_EV_CREATE_FUNCTION.format(
         name=_quoted(d, "name")
     ),
@@ -891,6 +897,11 @@ class ProjectService:
         # A space selected in the Buildings tree: its details replace the device's until a device
         # is selected again.
         self._selected_space_id: int | None = None
+        # The element the Comment panel shows: (kind, id) of what was selected last in a tree; the
+        # kinds are those of the project's comments (device, space, area, line, group_address, ...).
+        self._comment_target: tuple[str, int] | None = None
+        # (kind, id, field) -> (revision, stored comment or None without such an element).
+        self._comment_cache: dict[tuple[str, int, str], tuple[int, str | None]] = {}
         # Multi-selection: the full set of selected device node ids (the primary above is
         # the last-clicked one, kept for all single-device consumers). Empty = single/none.
         self._selected_node_ids: set[int] = set()
@@ -1456,6 +1467,8 @@ class ProjectService:
         self._ip_secure_cache.clear()
         self._selected_node_id = None
         self._selected_space_id = None
+        self._comment_target = None
+        self._comment_cache.clear()
         self._selected_node_ids = set()
         self._dynui_lru.clear()
         self._app_cache.clear()
@@ -2090,6 +2103,7 @@ class ProjectService:
         new_id = device.node_id if device is not None else None
         # Selecting a device (also the one already selected) shows its details again.
         self._selected_space_id = None
+        self._comment_target = ("device", new_id) if new_id is not None else None
         if new_id != self._selected_node_id:
             self._selected_node_id = new_id
             # Any single-device select (command palette, Health/Cockpit navigate) collapses the
@@ -2228,7 +2242,7 @@ class ProjectService:
                 name=g.name,
                 datapoint_type=g.datapoint_type,
                 description=g.description,
-                comment=g.comment,
+                comment=plain_text(parse_rich_text(g.comment)),
                 data_secure=g.data_secure,
                 raw=g.address,
             )
@@ -2252,7 +2266,7 @@ class ProjectService:
             name=g.name,
             datapoint_type=g.datapoint_type,
             description=g.description,
-            comment=g.comment,
+            comment=plain_text(parse_rich_text(g.comment)),
             data_secure=g.data_secure,
             raw=g.address,
         )
@@ -4987,6 +5001,41 @@ class ProjectService:
     @selected_space_id.setter
     def selected_space_id(self, space_id: int | None) -> None:
         self._selected_space_id = space_id
+        if space_id is not None:
+            self._comment_target = ("space", space_id)
+
+    @property
+    def comment_target(self) -> tuple[str, int] | None:
+        """``(kind, id)`` of the element selected last in a tree, whose comment the Comment panel
+        shows; None when nothing is selected."""
+        return self._comment_target
+
+    def select_comment_target(self, kind: str, element_id: int) -> None:
+        """An element without its own details panel (area, line, group range, group address,
+        function) was selected: the Comment panel shows its comment."""
+        self._comment_target = (kind, element_id)
+
+    def comment(self, kind: str, element_id: int, field: str = "comment") -> str | None:
+        """An element's comment (RTF as stored) or a device's installation hints (``field``
+        "installation_hints"); None when the element does not exist (any more)."""
+        if self._pid is None:
+            return None
+        key = (kind, element_id, field)
+        cached = self._comment_cache.get(key)
+        if cached is not None and cached[0] == self._version:
+            return cached[1]
+        value = self._svc.comment(self._pid, kind, element_id, field)
+        self._comment_cache[key] = (self._version, value)
+        return value
+
+    def set_comment(
+        self, kind: str, element_id: int, value: str, field: str = "comment"
+    ) -> None:
+        """Store an element's comment or a device's installation hints (RTF); undoable."""
+        if self._pid is None or self.comment(kind, element_id, field) in (None, value):
+            return
+        self._svc.set_comment(self._pid, kind, element_id, value, field)
+        self._bump(structural=False)
 
     def find_space(self, space_id: int) -> "SpaceInfo | None":
         """The space ``space_id`` of the building tree."""
@@ -5074,7 +5123,7 @@ class ProjectService:
                     )
                     self._bump(structural=False)
                     return
-            elif event_type == "SetDeviceAdditionalAddresses":
+            elif event_type in ("SetDeviceAdditionalAddresses", "SetComment"):
                 # Read from the project on every revision; no device structure changes.
                 self._bump(structural=False)
                 return

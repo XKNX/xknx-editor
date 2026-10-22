@@ -5415,7 +5415,7 @@ class KnxGuiApp:
 
 
 # Bumped whenever the default docking layout changes, so a stored layout is replaced once.
-_LAYOUT_VERSION = 16
+_LAYOUT_VERSION = 17
 
 
 _SECTIONS = ("RightSpace", "DeviceSpace", "LeftSpace", "BottomSpace")
@@ -5632,6 +5632,7 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
         "editor": lambda: _proj.PANEL_EDITOR,
         "device": lambda: _proj.PANEL_DEVICE,
         "manufacturer": lambda: _proj.PANEL_MANUFACTURER,
+        "comment": lambda: _proj.PANEL_COMMENT,
         "mass_linker": lambda: _proj.PANEL_MASS_LINKER,
         "tools": lambda: _proj.PANEL_TOOLS,
         "history": lambda: _proj.PANEL_HISTORY,
@@ -5662,6 +5663,7 @@ _DOCK_TAB_ORDER = [
     "cockpit",
     "device",
     "manufacturer",
+    "comment",
     "operations",
     "history",
     "health",
