@@ -289,3 +289,12 @@ msgstr "suchen…"
 
 msgid "automatic"
 msgstr "automatisch"
+
+msgid "Low"
+msgstr "Niedrig"
+
+msgid "High"
+msgstr "Hoch"
+
+msgid "Alert"
+msgstr "Alarm"

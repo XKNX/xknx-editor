@@ -1367,3 +1367,51 @@ msgstr "{name} is al geopend in een andere XKNX Editor. Als het in twee editors 
 
 msgid "Open Anyway"
 msgstr "Toch openen"
+
+msgid "C"
+msgstr "C"
+
+msgid "R"
+msgstr "R"
+
+msgid "W"
+msgstr "W"
+
+msgid "T"
+msgstr "T"
+
+msgid "U"
+msgstr "U"
+
+msgid "I"
+msgstr "I"
+
+msgid "Communication"
+msgstr "Communicatie"
+
+msgid "Read"
+msgstr "Lezen"
+
+msgid "Write"
+msgstr "Schrijven"
+
+msgid "Transmit"
+msgstr "Zenden"
+
+msgid "Update"
+msgstr "Update"
+
+msgid "Read on Init"
+msgstr "Lees Bij Init"
+
+msgid "English"
+msgstr "Engels"
+
+msgid "German"
+msgstr "Duits"
+
+msgid "Dutch"
+msgstr "Nederlands"
+
+msgid "{name} ({native})"
+msgstr "{name} ({native})"

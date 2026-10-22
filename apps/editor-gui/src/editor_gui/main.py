@@ -5014,8 +5014,14 @@ class KnxGuiApp:
         """UI language selector (next to Help). Overrides the auto-detected OS locale; persisted."""
         current = get_locale()
         if imgui.begin_menu(S.MENU_LANGUAGE):
-            for code, label in _UI_LANGUAGES:
-                if imgui.menu_item(label, "", code == current)[0] and code != current:
+            for code, native, name in _UI_LANGUAGES:
+                label = name()
+                if label != native:
+                    label = S.LANGUAGE_ITEM.format(name=label, native=native)
+                if (
+                    imgui.menu_item(f"{label}##{code}", "", code == current)[0]
+                    and code != current
+                ):
                     self._switch_language(code)
             imgui.end_menu()
 
@@ -5698,12 +5704,13 @@ def create_dockable_windows(app: KnxGuiApp) -> list[hello_imgui.DockableWindow]:
     return windows
 
 
-# UI languages offered in the Language menu (locale code, native label). Catalogs live under each
-# plugin's locales/<code>/LC_MESSAGES; "en" is the untranslated source.
-_UI_LANGUAGES: list[tuple[str, str]] = [
-    ("en", "English"),
-    ("de", "Deutsch"),
-    ("nl", "Nederlands"),
+# UI languages offered in the Language menu: locale code, the name in the language itself and the
+# name in the current language. Catalogs live under each plugin's locales/<code>/LC_MESSAGES; "en"
+# is the untranslated source.
+_UI_LANGUAGES: list[tuple[str, str, Callable[[], str]]] = [
+    ("en", "English", lambda: S.LANGUAGE_ENGLISH),
+    ("de", "Deutsch", lambda: S.LANGUAGE_GERMAN),
+    ("nl", "Nederlands", lambda: S.LANGUAGE_DUTCH),
 ]
 
 

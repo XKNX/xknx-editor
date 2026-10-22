@@ -378,5 +378,17 @@ class WidgetStrings(BaseStrings):
     def HEX_PARAMETER_SEARCH(self) -> str:
         return _("search…")
 
+    @property
+    def GROUP_OBJECTS_PRIORITY_LOW(self) -> str:
+        return _("Low")
+
+    @property
+    def GROUP_OBJECTS_PRIORITY_HIGH(self) -> str:
+        return _("High")
+
+    @property
+    def GROUP_OBJECTS_PRIORITY_ALERT(self) -> str:
+        return _("Alert")
+
 
 S = WidgetStrings()

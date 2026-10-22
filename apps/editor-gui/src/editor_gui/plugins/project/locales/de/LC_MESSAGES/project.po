@@ -2147,3 +2147,177 @@ msgstr "Die Datenpunkttypen passen nicht; diese Zeile wird nicht verknüpft."
 
 msgid "No group address chosen yet."
 msgstr "Noch keine Gruppenadresse gewählt."
+
+msgid "Add device {name}"
+msgstr "Gerät {name} hinzufügen"
+
+msgid "Set {ref} = {value}"
+msgstr "{ref} = {value} setzen"
+
+msgid "Change"
+msgstr "Änderung"
+
+msgid "Create area {address}"
+msgstr "Bereich {address} anlegen"
+
+msgid "Create line {address}"
+msgstr "Linie {address} anlegen"
+
+msgid "Add segment"
+msgstr "Segment hinzufügen"
+
+msgid "Create group address {address}"
+msgstr "Gruppenadresse {address} anlegen"
+
+msgid "Import group addresses"
+msgstr "Gruppenadressen importieren"
+
+msgid "Import group addresses from {file}"
+msgstr "Gruppenadressen aus {file} importieren"
+
+msgid "Link group object"
+msgstr "Kommunikationsobjekt verknüpfen"
+
+msgid "Unlink group object"
+msgstr "Verknüpfung des Kommunikationsobjekts aufheben"
+
+msgid "Rename area to {name}"
+msgstr "Bereich in {name} umbenennen"
+
+msgid "Rename project to {name}"
+msgstr "Projekt in {name} umbenennen"
+
+msgid "Rename line to {name}"
+msgstr "Linie in {name} umbenennen"
+
+msgid "Rename device to {name}"
+msgstr "Gerät in {name} umbenennen"
+
+msgid "Move device"
+msgstr "Gerät verschieben"
+
+msgid "Set flag"
+msgstr "Flag setzen"
+
+msgid "Set datapoint type"
+msgstr "Datenpunkttyp festlegen"
+
+msgid "Set priority"
+msgstr "Priorität festlegen"
+
+msgid "Set description"
+msgstr "Beschreibung festlegen"
+
+msgid "Set sending group address"
+msgstr "Sendende Gruppenadresse festlegen"
+
+msgid "Add installation"
+msgstr "Installation hinzufügen"
+
+msgid "Remove device"
+msgstr "Gerät entfernen"
+
+msgid "Remove area"
+msgstr "Bereich entfernen"
+
+msgid "Remove line"
+msgstr "Linie entfernen"
+
+msgid "Remove segment"
+msgstr "Segment entfernen"
+
+msgid "Remove group address"
+msgstr "Gruppenadresse entfernen"
+
+msgid "Remove function"
+msgstr "Funktion entfernen"
+
+msgid "Remove group address from function"
+msgstr "Gruppenadresse aus Funktion entfernen"
+
+msgid "Remove building part"
+msgstr "Gebäudeteil entfernen"
+
+msgid "Remove group range"
+msgstr "Gruppenbereich entfernen"
+
+msgid "Update application program"
+msgstr "Applikationsprogramm aktualisieren"
+
+msgid "Change application program"
+msgstr "Applikationsprogramm ändern"
+
+msgid "Update group objects"
+msgstr "Kommunikationsobjekte aktualisieren"
+
+msgid "Update module instances"
+msgstr "Modulinstanzen aktualisieren"
+
+msgid "Set group address security"
+msgstr "Sicherheit der Gruppenadresse festlegen"
+
+msgid "Set secure commissioning"
+msgstr "Sichere Inbetriebnahme festlegen"
+
+msgid "Rename group address to {name}"
+msgstr "Gruppenadresse in {name} umbenennen"
+
+msgid "Change group address"
+msgstr "Gruppenadresse ändern"
+
+msgid "Set device certificates"
+msgstr "Gerätezertifikate festlegen"
+
+msgid "Set device description"
+msgstr "Gerätebeschreibung festlegen"
+
+msgid "Create function {name}"
+msgstr "Funktion {name} anlegen"
+
+msgid "Rename function to {name}"
+msgstr "Funktion in {name} umbenennen"
+
+msgid "Set function type"
+msgstr "Funktionstyp festlegen"
+
+msgid "Add group address to function"
+msgstr "Gruppenadresse zur Funktion hinzufügen"
+
+msgid "Create building part {name}"
+msgstr "Gebäudeteil {name} anlegen"
+
+msgid "Rename building part to {name}"
+msgstr "Gebäudeteil in {name} umbenennen"
+
+msgid "Set building part number"
+msgstr "Nummer des Gebäudeteils festlegen"
+
+msgid "Set building part description"
+msgstr "Beschreibung des Gebäudeteils festlegen"
+
+msgid "Set building part type"
+msgstr "Typ des Gebäudeteils festlegen"
+
+msgid "Move building part"
+msgstr "Gebäudeteil verschieben"
+
+msgid "Assign device to building part"
+msgstr "Gerät einem Gebäudeteil zuordnen"
+
+msgid "Set commissioning state"
+msgstr "Inbetriebnahmestatus festlegen"
+
+msgid "Create group range {name}"
+msgstr "Gruppenbereich {name} anlegen"
+
+msgid "Rename group range to {name}"
+msgstr "Gruppenbereich in {name} umbenennen"
+
+msgid "{device}: no individual address"
+msgstr "{device}: keine physikalische Adresse"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: ungültige Adresse '{address}'"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: doppelte Adresse {address}"

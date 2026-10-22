@@ -1178,7 +1178,7 @@ class ConnectionPlugin:
                 if self._error_message:
                     imgui.text_wrapped(self._error_message)
                 imgui.separator()
-                self._render_gateway_picker(retry_label="Retry")
+                self._render_gateway_picker(retry_label=S.MENU_RETRY)
             else:
                 self._render_gateway_picker(retry_label=S.MENU_CONNECT)
             imgui.separator()

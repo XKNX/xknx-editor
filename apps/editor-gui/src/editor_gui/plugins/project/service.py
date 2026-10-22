@@ -444,11 +444,94 @@ def _changes_structure(data: dict[str, Any]) -> bool:
     return any(sub.get("type") in _STRUCTURAL_EVENTS for sub in data.get("events", []))
 
 
+def _quoted(data: dict[str, Any], key: str) -> str:
+    return repr(data.get(key, ""))
+
+
+# Labels of the events without their own text; each takes the event data.
+_HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
+    "AddDevice": lambda d: S.HISTORY_EV_ADD_DEVICE.format(name=_quoted(d, "name")),
+    "SetParameter": lambda d: S.HISTORY_EV_SET_PARAMETER.format(
+        ref=d.get("ref_id", ""), value=_quoted(d, "value")
+    ),
+    "CreateArea": lambda d: S.HISTORY_EV_CREATE_AREA.format(address=d.get("address")),
+    "CreateLine": lambda d: S.HISTORY_EV_CREATE_LINE.format(address=d.get("address")),
+    "CreateSegment": lambda d: S.HISTORY_EV_ADD_SEGMENT,
+    "CreateGroupAddress": lambda d: S.HISTORY_EV_CREATE_GA.format(
+        address=d.get("address")
+    ),
+    "ImportGroupAddresses": lambda d: str(d.get("label") or S.HISTORY_EV_IMPORT_GAS),
+    "LinkComObject": lambda d: S.HISTORY_EV_LINK,
+    "UnlinkComObject": lambda d: S.HISTORY_EV_UNLINK,
+    "RenameArea": lambda d: S.HISTORY_EV_RENAME_AREA.format(name=_quoted(d, "name")),
+    "SetProjectName": lambda d: S.HISTORY_EV_RENAME_PROJECT.format(
+        name=_quoted(d, "name")
+    ),
+    "RenameLine": lambda d: S.HISTORY_EV_RENAME_LINE.format(name=_quoted(d, "name")),
+    "SetDeviceName": lambda d: S.HISTORY_EV_RENAME_DEVICE.format(
+        name=_quoted(d, "name")
+    ),
+    "MoveDevice": lambda d: S.HISTORY_EV_MOVE_DEVICE,
+    "SetDeviceAdditionalAddresses": lambda d: str(
+        d.get("label") or S.HISTORY_ADDITIONAL_ADDRESSES
+    ),
+    "SetComObjectFlag": lambda d: S.HISTORY_EV_SET_FLAG,
+    "SetComObjectDatapointType": lambda d: S.HISTORY_EV_SET_DPT,
+    "SetComObjectPriority": lambda d: S.HISTORY_EV_SET_PRIORITY,
+    "SetComObjectDescription": lambda d: S.HISTORY_EV_SET_DESCRIPTION,
+    "SetComObjectSending": lambda d: S.HISTORY_EV_SET_SENDING,
+    "SetGroupAddressDatapointType": lambda d: S.HISTORY_EV_SET_DPT,
+    "AddInstallation": lambda d: S.HISTORY_EV_ADD_INSTALLATION,
+    "RemoveDevice": lambda d: S.HISTORY_EV_REMOVE_DEVICE,
+    "RemoveArea": lambda d: S.HISTORY_EV_REMOVE_AREA,
+    "RemoveLine": lambda d: S.HISTORY_EV_REMOVE_LINE,
+    "RemoveSegment": lambda d: S.HISTORY_EV_REMOVE_SEGMENT,
+    "RemoveGroupAddress": lambda d: S.HISTORY_EV_REMOVE_GA,
+    "RemoveFunction": lambda d: S.HISTORY_EV_REMOVE_FUNCTION,
+    "RemoveFunctionGroupAddress": lambda d: S.HISTORY_EV_REMOVE_FUNCTION_GA,
+    "RemoveSpace": lambda d: S.HISTORY_EV_REMOVE_SPACE,
+    "RemoveGroupRange": lambda d: S.HISTORY_EV_REMOVE_GROUP_RANGE,
+    "UpdateDeviceApplication": lambda d: S.HISTORY_EV_UPDATE_APP,
+    "ChangeDeviceApplication": lambda d: S.HISTORY_EV_CHANGE_APP,
+    "SyncDeviceComObjects": lambda d: S.HISTORY_EV_SYNC_COM_OBJECTS,
+    "SyncDeviceModuleInstances": lambda d: S.HISTORY_EV_SYNC_MODULES,
+    "SetGroupAddressSecurity": lambda d: S.HISTORY_EV_SET_GA_SECURITY,
+    "SetDeviceSecureCommissioning": lambda d: S.HISTORY_EV_SET_SECURE_COMMISSIONING,
+    "RenameGroupAddress": lambda d: S.HISTORY_EV_RENAME_GA.format(
+        name=_quoted(d, "name")
+    ),
+    "SetGroupAddressAddress": lambda d: S.HISTORY_EV_SET_GA_ADDRESS,
+    "SetDeviceCertificates": lambda d: S.HISTORY_EV_SET_CERTIFICATES,
+    "SetDeviceDescription": lambda d: S.HISTORY_EV_SET_DEVICE_DESCRIPTION,
+    "CreateFunction": lambda d: S.HISTORY_EV_CREATE_FUNCTION.format(
+        name=_quoted(d, "name")
+    ),
+    "CreateFunctionWithGroupAddresses": lambda d: S.HISTORY_EV_CREATE_FUNCTION.format(
+        name=_quoted(d, "name")
+    ),
+    "RenameFunction": lambda d: S.HISTORY_EV_RENAME_FUNCTION.format(
+        name=_quoted(d, "name")
+    ),
+    "SetFunctionType": lambda d: S.HISTORY_EV_SET_FUNCTION_TYPE,
+    "AddFunctionGroupAddress": lambda d: S.HISTORY_EV_ADD_FUNCTION_GA,
+    "CreateSpace": lambda d: S.HISTORY_EV_CREATE_SPACE.format(name=_quoted(d, "name")),
+    "RenameSpace": lambda d: S.HISTORY_EV_RENAME_SPACE.format(name=_quoted(d, "name")),
+    "SetSpaceNumber": lambda d: S.HISTORY_EV_SET_SPACE_NUMBER,
+    "SetSpaceDescription": lambda d: S.HISTORY_EV_SET_SPACE_DESCRIPTION,
+    "SetSpaceType": lambda d: S.HISTORY_EV_SET_SPACE_TYPE,
+    "MoveSpace": lambda d: S.HISTORY_EV_MOVE_SPACE,
+    "SetDeviceSpace": lambda d: S.HISTORY_EV_SET_DEVICE_SPACE,
+    "SetDeviceCommissioning": lambda d: S.HISTORY_EV_SET_COMMISSIONING,
+    "CreateGroupRange": lambda d: S.HISTORY_EV_CREATE_GROUP_RANGE.format(
+        name=_quoted(d, "name")
+    ),
+    "RenameGroupRange": lambda d: S.HISTORY_EV_RENAME_GROUP_RANGE.format(
+        name=_quoted(d, "name")
+    ),
+}
+
+
 def _history_label(event_type: str, data: dict[str, Any]) -> str:
-    if event_type == "AddDevice":
-        return f"Add device {data.get('name', '')!r}"
-    if event_type == "SetParameter":
-        return f"Set {data.get('ref_id', '')} = {data.get('value', '')!r}"
     if event_type == "Composite":
         if data.get("label"):
             return str(data["label"])
@@ -457,49 +540,12 @@ def _history_label(event_type: str, data: dict[str, Any]) -> str:
         for sub in data.get("events", []):
             if sub.get("data"):
                 return _history_label(str(sub.get("type", "")), sub["data"])
-        return "Change"
-    if event_type == "CreateArea":
-        return f"Create area {data.get('address')}"
-    if event_type == "CreateLine":
-        return f"Create line {data.get('address')}"
-    if event_type == "CreateSegment":
-        return "Add segment"
-    if event_type == "CreateGroupAddress":
-        return f"Create group address {data.get('address')}"
-    if event_type == "ImportGroupAddresses":
-        return str(data.get("label") or "Import group addresses")
-    if event_type == "LinkComObject":
-        return "Link group object"
-    if event_type == "UnlinkComObject":
-        return "Unlink group object"
-    if event_type == "RenameArea":
-        return f"Rename area to {data.get('name', '')!r}"
-    if event_type == "SetProjectName":
-        return f"Rename project to {data.get('name', '')!r}"
-    if event_type == "RenameLine":
-        return f"Rename line to {data.get('name', '')!r}"
-    if event_type == "SetDeviceName":
-        return f"Rename device to {data.get('name', '')!r}"
-    if event_type == "MoveDevice":
-        return "Move device"
-    if event_type == "SetDeviceAdditionalAddresses":
-        return str(data.get("label") or S.HISTORY_ADDITIONAL_ADDRESSES)
-    if event_type == "SetComObjectFlag":
-        return "Set flag"
-    if event_type == "SetComObjectDatapointType":
-        return "Set data type"
-    if event_type == "SetComObjectPriority":
-        return "Set priority"
-    if event_type == "SetComObjectDescription":
-        return "Set description"
-    if event_type == "SetComObjectSending":
-        return "Set sending"
-    if event_type == "SetGroupAddressDatapointType":
-        return "Set datapoint type"
+        return S.HISTORY_EV_CHANGE
+    label = _HISTORY_LABELS.get(event_type)
+    if label is not None:
+        return label(data)
     if event_type.startswith("Remove"):
-        return f"Remove {event_type[len('Remove') :].lower()}"
-    if event_type == "AddInstallation":
-        return "Add installation"
+        return S.HISTORY_EV_REMOVE
     return event_type
 
 
@@ -4777,7 +4823,7 @@ class ProjectService:
             self._pid,
             _INSTALLATION,
             export,
-            label=f"Import group addresses from {path.name}",
+            label=S.HISTORY_EV_IMPORT_GAS_FROM.format(file=path.name),
         )
         self._bump(structural=False)
         return event.added, event.updated, event.skipped

@@ -292,3 +292,12 @@ msgstr "zoeken…"
 
 msgid "automatic"
 msgstr "automatisch"
+
+msgid "Low"
+msgstr "Laag"
+
+msgid "High"
+msgstr "Hoog"
+
+msgid "Alert"
+msgstr "Alarm"

@@ -253,5 +253,9 @@ class ConnectionStrings:
     def GATEWAY_SERVICES(self) -> str:
         return _("Services: {services}")
 
+    @property
+    def MENU_RETRY(self) -> str:
+        return _("Retry")
+
 
 S = ConnectionStrings()

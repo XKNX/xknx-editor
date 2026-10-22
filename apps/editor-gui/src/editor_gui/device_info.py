@@ -21,6 +21,7 @@ from xknx.profile.const import (
     ResourceObjectType,
 )
 
+from editor_gui.device import flag_letter
 from xknxeditor.download.errors import DownloadError, MemoryReadNotAnswered
 from xknxeditor.download.load_state import LoadState
 
@@ -38,7 +39,7 @@ if TYPE_CHECKING:
 
 _APPLICATION_ID = re.compile(r"(M-[0-9A-F]{4})_A-([0-9A-F]{4})-([0-9A-F]{2})")
 # Group object flags in display order: read, write, communication, transmit, update, init.
-_FLAG_LETTERS = "RWCTUI"
+_FLAG_ORDER = ("read", "write", "communication", "transmit", "update", "read_on_init")
 
 
 @dataclass(frozen=True, slots=True)
@@ -157,8 +158,8 @@ def flags_text(group_object: DecodedGroupObject) -> str:
         group_object.read_on_init,
     )
     return "".join(
-        letter if state else "-"
-        for letter, state in zip(_FLAG_LETTERS, states, strict=True)
+        flag_letter(attr) if state else "-"
+        for attr, state in zip(_FLAG_ORDER, states, strict=True)
     )
 
 

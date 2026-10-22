@@ -18,7 +18,9 @@ from editor_gui.device import (
     ComObjectFlags,
     Device,
     com_object_display_name,
+    flag_letter,
 )
+from editor_gui.widgets.group_objects_widgets import priority_text
 
 if TYPE_CHECKING:
     from xknxeditor.prod.parser_v2.ui import UiParameter
@@ -117,7 +119,8 @@ def _rows[T](
 
 def _co_text(cell: CoCell) -> str:
     """One-line summary of a com-object cell for the diff column."""
-    parts = [p for p in (cell.dpt, cell.flags, cell.priority) if p]
+    priority = priority_text(cell.priority) if cell.priority else ""
+    parts = [p for p in (cell.dpt, cell.flags, priority) if p]
     if cell.links:
         parts.append("-> " + " ".join(addr for addr, _ in cell.links))
     return "  ·  ".join(parts)
@@ -208,7 +211,8 @@ _FLAG_LETTERS = (
 def _flag_letters(flags: ComObjectFlags) -> str:
     """``C R - T -`` style flag summary; an unset flag shows ``-``."""
     return " ".join(
-        letter if getattr(flags, attr, False) else "-" for attr, letter in _FLAG_LETTERS
+        flag_letter(attr) if getattr(flags, attr, False) else "-"
+        for attr, _letter in _FLAG_LETTERS
     )
 
 

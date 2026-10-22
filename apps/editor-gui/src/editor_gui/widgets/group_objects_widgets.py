@@ -14,6 +14,8 @@ from editor_gui.device import (
     ComObject,
     Device,
     com_object_display_name,
+    flag_letter,
+    flag_name,
 )
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import begin_combo
@@ -68,6 +70,16 @@ def _dim(color: imgui.ImVec4) -> imgui.ImVec4:
 _PICKER_WIDTH = 460.0
 # Valid per-instance ComObjectInstanceRef @Priority values (ComObjectPriority_t).
 _PRIORITIES = ("Low", "High", "Alert")
+
+
+def priority_text(priority: str) -> str:
+    """The shown name of a group object priority (stored as Low, High or Alert)."""
+    names = {
+        "Low": S.GROUP_OBJECTS_PRIORITY_LOW,
+        "High": S.GROUP_OBJECTS_PRIORITY_HIGH,
+        "Alert": S.GROUP_OBJECTS_PRIORITY_ALERT,
+    }
+    return names.get(priority, priority)
 
 
 def _clamp_int(text: str, lo: int, hi: int) -> int:
@@ -249,9 +261,9 @@ class GroupObjectsTable:
         imgui.table_setup_column(S.GROUP_OBJECTS_COL_LENGTH, stretch, 0.067)
         imgui.table_setup_column(S.GROUP_OBJECTS_COL_PRIO, stretch, 0.096)
         imgui.table_setup_column(S.GROUP_OBJECTS_COL_GROUP_ADDRESSES, stretch, 0.428)
-        for _attr, letter, _name in FLAG_LABELS:
+        for attr, _letter, _name in FLAG_LABELS:
             imgui.table_setup_column(
-                letter, imgui.TableColumnFlags_.width_fixed, px(22.0)
+                flag_letter(attr), imgui.TableColumnFlags_.width_fixed, px(22.0)
             )
         data_table_headers()
 
@@ -437,7 +449,7 @@ class GroupObjectsTable:
         if self._on_set_priority is not None:
             self._render_priority_combo(device, com_object)
         else:
-            imgui.text_disabled(com_object.priority)
+            imgui.text_disabled(priority_text(com_object.priority))
 
         imgui.table_set_column_index(5)
         db_id = com_object.db_id
@@ -492,7 +504,8 @@ class GroupObjectsTable:
         if db_id is not None:
             self._render_add(device, com_object, db_id, links, get_all_group_addresses)
 
-        for col, (attr, _letter, full_name) in enumerate(FLAG_LABELS, start=6):
+        for col, (attr, _letter, _name) in enumerate(FLAG_LABELS, start=6):
+            full_name = flag_name(attr)
             imgui.table_set_column_index(col)
             current = getattr(com_object.flags, attr)
             is_locked = (
@@ -542,13 +555,16 @@ class GroupObjectsTable:
         current = com_object.priority
         imgui.set_next_item_width(-1.0)
         if not begin_combo(
-            f"##prio_{com_object.id}", current or S.GROUP_OBJECTS_DPT_DEFAULT
+            f"##prio_{com_object.id}",
+            priority_text(current) if current else S.GROUP_OBJECTS_DPT_DEFAULT,
         ):
             return
         if imgui.selectable(S.GROUP_OBJECTS_DPT_DEFAULT, not current)[0]:
             self._on_set_priority(device, com_object.id, None)
         for priority in _PRIORITIES:
-            if imgui.selectable(priority, priority == current)[0]:
+            if imgui.selectable(
+                f"{priority_text(priority)}##{priority}", priority == current
+            )[0]:
                 self._on_set_priority(device, com_object.id, priority)
         imgui.end_combo()
 

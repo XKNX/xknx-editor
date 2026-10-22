@@ -2001,3 +2001,177 @@ msgstr "De datapunttypes passen niet; deze rij wordt niet gekoppeld."
 
 msgid "No group address chosen yet."
 msgstr "Nog geen groepsadres gekozen."
+
+msgid "Add device {name}"
+msgstr "Apparaat {name} toevoegen"
+
+msgid "Set {ref} = {value}"
+msgstr "{ref} = {value} instellen"
+
+msgid "Change"
+msgstr "Wijziging"
+
+msgid "Create area {address}"
+msgstr "Gebied {address} aanmaken"
+
+msgid "Create line {address}"
+msgstr "Lijn {address} aanmaken"
+
+msgid "Add segment"
+msgstr "Segment toevoegen"
+
+msgid "Create group address {address}"
+msgstr "Groepsadres {address} aanmaken"
+
+msgid "Import group addresses"
+msgstr "Groepsadressen importeren"
+
+msgid "Import group addresses from {file}"
+msgstr "Groepsadressen uit {file} importeren"
+
+msgid "Link group object"
+msgstr "Groepobject koppelen"
+
+msgid "Unlink group object"
+msgstr "Groepobject ontkoppelen"
+
+msgid "Rename area to {name}"
+msgstr "Gebied hernoemen naar {name}"
+
+msgid "Rename project to {name}"
+msgstr "Project hernoemen naar {name}"
+
+msgid "Rename line to {name}"
+msgstr "Lijn hernoemen naar {name}"
+
+msgid "Rename device to {name}"
+msgstr "Apparaat hernoemen naar {name}"
+
+msgid "Move device"
+msgstr "Apparaat verplaatsen"
+
+msgid "Set flag"
+msgstr "Vlag instellen"
+
+msgid "Set datapoint type"
+msgstr "Datapunttype instellen"
+
+msgid "Set priority"
+msgstr "Prioriteit instellen"
+
+msgid "Set description"
+msgstr "Beschrijving instellen"
+
+msgid "Set sending group address"
+msgstr "Zendend groepsadres instellen"
+
+msgid "Add installation"
+msgstr "Installatie toevoegen"
+
+msgid "Remove device"
+msgstr "Apparaat verwijderen"
+
+msgid "Remove area"
+msgstr "Gebied verwijderen"
+
+msgid "Remove line"
+msgstr "Lijn verwijderen"
+
+msgid "Remove segment"
+msgstr "Segment verwijderen"
+
+msgid "Remove group address"
+msgstr "Groepsadres verwijderen"
+
+msgid "Remove function"
+msgstr "Functie verwijderen"
+
+msgid "Remove group address from function"
+msgstr "Groepsadres uit functie verwijderen"
+
+msgid "Remove building part"
+msgstr "Gebouwdeel verwijderen"
+
+msgid "Remove group range"
+msgstr "Groepsbereik verwijderen"
+
+msgid "Update application program"
+msgstr "Applicatieprogramma bijwerken"
+
+msgid "Change application program"
+msgstr "Applicatieprogramma wijzigen"
+
+msgid "Update group objects"
+msgstr "Groepobjecten bijwerken"
+
+msgid "Update module instances"
+msgstr "Module-instanties bijwerken"
+
+msgid "Set group address security"
+msgstr "Beveiliging van groepsadres instellen"
+
+msgid "Set secure commissioning"
+msgstr "Beveiligde inbedrijfstelling instellen"
+
+msgid "Rename group address to {name}"
+msgstr "Groepsadres hernoemen naar {name}"
+
+msgid "Change group address"
+msgstr "Groepsadres wijzigen"
+
+msgid "Set device certificates"
+msgstr "Apparaatcertificaten instellen"
+
+msgid "Set device description"
+msgstr "Apparaatbeschrijving instellen"
+
+msgid "Create function {name}"
+msgstr "Functie {name} aanmaken"
+
+msgid "Rename function to {name}"
+msgstr "Functie hernoemen naar {name}"
+
+msgid "Set function type"
+msgstr "Functietype instellen"
+
+msgid "Add group address to function"
+msgstr "Groepsadres aan functie toevoegen"
+
+msgid "Create building part {name}"
+msgstr "Gebouwdeel {name} aanmaken"
+
+msgid "Rename building part to {name}"
+msgstr "Gebouwdeel hernoemen naar {name}"
+
+msgid "Set building part number"
+msgstr "Nummer van gebouwdeel instellen"
+
+msgid "Set building part description"
+msgstr "Beschrijving van gebouwdeel instellen"
+
+msgid "Set building part type"
+msgstr "Type van gebouwdeel instellen"
+
+msgid "Move building part"
+msgstr "Gebouwdeel verplaatsen"
+
+msgid "Assign device to building part"
+msgstr "Apparaat aan gebouwdeel toewijzen"
+
+msgid "Set commissioning state"
+msgstr "Inbedrijfstellingsstatus instellen"
+
+msgid "Create group range {name}"
+msgstr "Groepsbereik {name} aanmaken"
+
+msgid "Rename group range to {name}"
+msgstr "Groepsbereik hernoemen naar {name}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: geen individueel adres"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: ongeldig adres '{address}'"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: dubbel adres {address}"

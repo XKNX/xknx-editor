@@ -3088,5 +3088,241 @@ class ProjectStrings:
     def ADDITIONAL_ADDRESS_INDEX(self) -> str:
         return "#"
 
+    @property
+    def HISTORY_EV_ADD_DEVICE(self) -> str:
+        return _("Add device {name}")
+
+    @property
+    def HISTORY_EV_SET_PARAMETER(self) -> str:
+        return _("Set {ref} = {value}")
+
+    @property
+    def HISTORY_EV_CHANGE(self) -> str:
+        return _("Change")
+
+    @property
+    def HISTORY_EV_CREATE_AREA(self) -> str:
+        return _("Create area {address}")
+
+    @property
+    def HISTORY_EV_CREATE_LINE(self) -> str:
+        return _("Create line {address}")
+
+    @property
+    def HISTORY_EV_ADD_SEGMENT(self) -> str:
+        return _("Add segment")
+
+    @property
+    def HISTORY_EV_CREATE_GA(self) -> str:
+        return _("Create group address {address}")
+
+    @property
+    def HISTORY_EV_IMPORT_GAS(self) -> str:
+        return _("Import group addresses")
+
+    @property
+    def HISTORY_EV_IMPORT_GAS_FROM(self) -> str:
+        return _("Import group addresses from {file}")
+
+    @property
+    def HISTORY_EV_LINK(self) -> str:
+        return _("Link group object")
+
+    @property
+    def HISTORY_EV_UNLINK(self) -> str:
+        return _("Unlink group object")
+
+    @property
+    def HISTORY_EV_RENAME_AREA(self) -> str:
+        return _("Rename area to {name}")
+
+    @property
+    def HISTORY_EV_RENAME_PROJECT(self) -> str:
+        return _("Rename project to {name}")
+
+    @property
+    def HISTORY_EV_RENAME_LINE(self) -> str:
+        return _("Rename line to {name}")
+
+    @property
+    def HISTORY_EV_RENAME_DEVICE(self) -> str:
+        return _("Rename device to {name}")
+
+    @property
+    def HISTORY_EV_MOVE_DEVICE(self) -> str:
+        return _("Move device")
+
+    @property
+    def HISTORY_EV_SET_FLAG(self) -> str:
+        return _("Set flag")
+
+    @property
+    def HISTORY_EV_SET_DPT(self) -> str:
+        return _("Set datapoint type")
+
+    @property
+    def HISTORY_EV_SET_PRIORITY(self) -> str:
+        return _("Set priority")
+
+    @property
+    def HISTORY_EV_SET_DESCRIPTION(self) -> str:
+        return _("Set description")
+
+    @property
+    def HISTORY_EV_SET_SENDING(self) -> str:
+        return _("Set sending group address")
+
+    @property
+    def HISTORY_EV_ADD_INSTALLATION(self) -> str:
+        return _("Add installation")
+
+    @property
+    def HISTORY_EV_REMOVE_DEVICE(self) -> str:
+        return _("Remove device")
+
+    @property
+    def HISTORY_EV_REMOVE_AREA(self) -> str:
+        return _("Remove area")
+
+    @property
+    def HISTORY_EV_REMOVE_LINE(self) -> str:
+        return _("Remove line")
+
+    @property
+    def HISTORY_EV_REMOVE_SEGMENT(self) -> str:
+        return _("Remove segment")
+
+    @property
+    def HISTORY_EV_REMOVE_GA(self) -> str:
+        return _("Remove group address")
+
+    @property
+    def HISTORY_EV_REMOVE_FUNCTION(self) -> str:
+        return _("Remove function")
+
+    @property
+    def HISTORY_EV_REMOVE_FUNCTION_GA(self) -> str:
+        return _("Remove group address from function")
+
+    @property
+    def HISTORY_EV_REMOVE_SPACE(self) -> str:
+        return _("Remove building part")
+
+    @property
+    def HISTORY_EV_REMOVE_GROUP_RANGE(self) -> str:
+        return _("Remove group range")
+
+    @property
+    def HISTORY_EV_REMOVE(self) -> str:
+        return _("Remove")
+
+    @property
+    def HISTORY_EV_UPDATE_APP(self) -> str:
+        return _("Update application program")
+
+    @property
+    def HISTORY_EV_CHANGE_APP(self) -> str:
+        return _("Change application program")
+
+    @property
+    def HISTORY_EV_SYNC_COM_OBJECTS(self) -> str:
+        return _("Update group objects")
+
+    @property
+    def HISTORY_EV_SYNC_MODULES(self) -> str:
+        return _("Update module instances")
+
+    @property
+    def HISTORY_EV_SET_GA_SECURITY(self) -> str:
+        return _("Set group address security")
+
+    @property
+    def HISTORY_EV_SET_SECURE_COMMISSIONING(self) -> str:
+        return _("Set secure commissioning")
+
+    @property
+    def HISTORY_EV_RENAME_GA(self) -> str:
+        return _("Rename group address to {name}")
+
+    @property
+    def HISTORY_EV_SET_GA_ADDRESS(self) -> str:
+        return _("Change group address")
+
+    @property
+    def HISTORY_EV_SET_CERTIFICATES(self) -> str:
+        return _("Set device certificates")
+
+    @property
+    def HISTORY_EV_SET_DEVICE_DESCRIPTION(self) -> str:
+        return _("Set device description")
+
+    @property
+    def HISTORY_EV_CREATE_FUNCTION(self) -> str:
+        return _("Create function {name}")
+
+    @property
+    def HISTORY_EV_RENAME_FUNCTION(self) -> str:
+        return _("Rename function to {name}")
+
+    @property
+    def HISTORY_EV_SET_FUNCTION_TYPE(self) -> str:
+        return _("Set function type")
+
+    @property
+    def HISTORY_EV_ADD_FUNCTION_GA(self) -> str:
+        return _("Add group address to function")
+
+    @property
+    def HISTORY_EV_CREATE_SPACE(self) -> str:
+        return _("Create building part {name}")
+
+    @property
+    def HISTORY_EV_RENAME_SPACE(self) -> str:
+        return _("Rename building part to {name}")
+
+    @property
+    def HISTORY_EV_SET_SPACE_NUMBER(self) -> str:
+        return _("Set building part number")
+
+    @property
+    def HISTORY_EV_SET_SPACE_DESCRIPTION(self) -> str:
+        return _("Set building part description")
+
+    @property
+    def HISTORY_EV_SET_SPACE_TYPE(self) -> str:
+        return _("Set building part type")
+
+    @property
+    def HISTORY_EV_MOVE_SPACE(self) -> str:
+        return _("Move building part")
+
+    @property
+    def HISTORY_EV_SET_DEVICE_SPACE(self) -> str:
+        return _("Assign device to building part")
+
+    @property
+    def HISTORY_EV_SET_COMMISSIONING(self) -> str:
+        return _("Set commissioning state")
+
+    @property
+    def HISTORY_EV_CREATE_GROUP_RANGE(self) -> str:
+        return _("Create group range {name}")
+
+    @property
+    def HISTORY_EV_RENAME_GROUP_RANGE(self) -> str:
+        return _("Rename group range to {name}")
+
+    @property
+    def TOOLS_TOPOLOGY_NO_ADDRESS(self) -> str:
+        return _("{device}: no individual address")
+
+    @property
+    def TOOLS_TOPOLOGY_MALFORMED(self) -> str:
+        return _("{device}: malformed address '{address}'")
+
+    @property
+    def TOOLS_TOPOLOGY_DUPLICATE(self) -> str:
+        return _("{device}: duplicate address {address}")
+
 
 S = ProjectStrings()

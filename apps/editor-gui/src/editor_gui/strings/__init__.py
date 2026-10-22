@@ -2038,5 +2038,69 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     def PROJECT_OPEN_ANYWAY(self) -> str:
         return _("Open Anyway")
 
+    @property
+    def FLAG_LETTER_COMMUNICATION(self) -> str:
+        return _("C")
+
+    @property
+    def FLAG_LETTER_READ(self) -> str:
+        return _("R")
+
+    @property
+    def FLAG_LETTER_WRITE(self) -> str:
+        return _("W")
+
+    @property
+    def FLAG_LETTER_TRANSMIT(self) -> str:
+        return _("T")
+
+    @property
+    def FLAG_LETTER_UPDATE(self) -> str:
+        return _("U")
+
+    @property
+    def FLAG_LETTER_READ_ON_INIT(self) -> str:
+        return _("I")
+
+    @property
+    def FLAG_NAME_COMMUNICATION(self) -> str:
+        return _("Communication")
+
+    @property
+    def FLAG_NAME_READ(self) -> str:
+        return _("Read")
+
+    @property
+    def FLAG_NAME_WRITE(self) -> str:
+        return _("Write")
+
+    @property
+    def FLAG_NAME_TRANSMIT(self) -> str:
+        return _("Transmit")
+
+    @property
+    def FLAG_NAME_UPDATE(self) -> str:
+        return _("Update")
+
+    @property
+    def FLAG_NAME_READ_ON_INIT(self) -> str:
+        return _("Read on Init")
+
+    @property
+    def LANGUAGE_ENGLISH(self) -> str:
+        return _("English")
+
+    @property
+    def LANGUAGE_GERMAN(self) -> str:
+        return _("German")
+
+    @property
+    def LANGUAGE_DUTCH(self) -> str:
+        return _("Dutch")
+
+    @property
+    def LANGUAGE_ITEM(self) -> str:
+        return _("{name} ({native})")
+
 
 S = _CombinedStrings()

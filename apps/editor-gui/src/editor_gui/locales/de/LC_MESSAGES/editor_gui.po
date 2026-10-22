@@ -1462,3 +1462,51 @@ msgstr "{name} ist bereits in einem anderen XKNX Editor geöffnet. Wird es in zw
 
 msgid "Open Anyway"
 msgstr "Trotzdem öffnen"
+
+msgid "C"
+msgstr "K"
+
+msgid "R"
+msgstr "L"
+
+msgid "W"
+msgstr "S"
+
+msgid "T"
+msgstr "Ü"
+
+msgid "U"
+msgstr "A"
+
+msgid "I"
+msgstr "I"
+
+msgid "Communication"
+msgstr "Kommunikation"
+
+msgid "Read"
+msgstr "Lesen"
+
+msgid "Write"
+msgstr "Schreiben"
+
+msgid "Transmit"
+msgstr "Übertragen"
+
+msgid "Update"
+msgstr "Aktualisieren"
+
+msgid "Read on Init"
+msgstr "Lesen bei Init"
+
+msgid "English"
+msgstr "Englisch"
+
+msgid "German"
+msgstr "Deutsch"
+
+msgid "Dutch"
+msgstr "Niederländisch"
+
+msgid "{name} ({native})"
+msgstr "{name} ({native})"

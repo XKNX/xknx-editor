@@ -171,3 +171,6 @@ msgstr "Core-versie: {version}"
 
 msgid "Services: {services}"
 msgstr "Diensten: {services}"
+
+msgid "Retry"
+msgstr "Opnieuw proberen"
