@@ -52,8 +52,8 @@ msgstr "（在本地产品目录中）"
 msgid "Search products, order number…"
 msgstr "搜索产品、订货号…"
 
-msgid "Product Index: {mfrs} manufacturers, {products} products"
-msgstr "产品索引：{mfrs} 个厂家，{products} 个产品"
+msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
+msgstr "产品索引（{date}）：{mfrs} 个厂家，{products} 个产品"
 
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "尚无产品索引——获取在线产品目录以建立索引"

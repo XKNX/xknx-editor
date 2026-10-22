@@ -52,8 +52,8 @@ msgstr "(i lokalt katalog)"
 msgid "Search products, order number…"
 msgstr "Søg efter produkter, ordrenummer…"
 
-msgid "Product Index: {mfrs} manufacturers, {products} products"
-msgstr "Produktindeks: {mfrs} producenter, {products} produkter"
+msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
+msgstr "Produktindeks ({date}): {mfrs} producenter, {products} produkter"
 
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Intet produktindeks endnu - hent onlinekataloget for at opbygge det"

@@ -52,8 +52,8 @@ msgstr "(v místním katalogu)"
 msgid "Search products, order number…"
 msgstr "Hledat produkty, objednací číslo…"
 
-msgid "Product Index: {mfrs} manufacturers, {products} products"
-msgstr "Index produktů: výrobci {mfrs}, produkty {products}"
+msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
+msgstr "Index produktů ({date}): výrobci {mfrs}, produkty {products}"
 
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Index produktů zatím neexistuje – pro jeho vytvoření načtěte online katalog"

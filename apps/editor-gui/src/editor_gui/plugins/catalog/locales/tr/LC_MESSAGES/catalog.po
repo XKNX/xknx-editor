@@ -52,8 +52,8 @@ msgstr "(yerel katalogda)"
 msgid "Search products, order number…"
 msgstr "Ürün, sipariş numarası ara…"
 
-msgid "Product Index: {mfrs} manufacturers, {products} products"
-msgstr "Ürün Dizini: {mfrs} üretici, {products} ürün"
+msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
+msgstr "Ürün Dizini ({date}): {mfrs} üretici, {products} ürün"
 
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Henüz Ürün Dizini yok - oluşturmak için çevrimiçi kataloğu getirin"

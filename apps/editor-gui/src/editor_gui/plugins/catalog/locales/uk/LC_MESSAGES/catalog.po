@@ -52,8 +52,8 @@ msgstr "(у локальному каталозі)"
 msgid "Search products, order number…"
 msgstr "Пошук продуктів, номера для замовлення…"
 
-msgid "Product Index: {mfrs} manufacturers, {products} products"
-msgstr "Індекс продуктів: виробників {mfrs}, продуктів {products}"
+msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
+msgstr "Індекс продуктів ({date}): виробників {mfrs}, продуктів {products}"
 
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Індексу продуктів ще немає - отримайте онлайн-каталог, щоб створити його"

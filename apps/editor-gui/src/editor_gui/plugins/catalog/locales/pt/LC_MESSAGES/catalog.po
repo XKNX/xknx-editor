@@ -52,8 +52,8 @@ msgstr "(no catálogo local)"
 msgid "Search products, order number…"
 msgstr "Pesquisar produtos, número de ordem…"
 
-msgid "Product Index: {mfrs} manufacturers, {products} products"
-msgstr "Índice de Produtos: {mfrs} fabricantes, {products} produtos"
+msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
+msgstr "Índice de Produtos ({date}): {mfrs} fabricantes, {products} produtos"
 
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Ainda não há Índice de Produtos - obtenha o catálogo online para o criar"

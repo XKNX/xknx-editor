@@ -52,8 +52,8 @@ msgstr "(στον τοπικό κατάλογο)"
 msgid "Search products, order number…"
 msgstr "Αναζήτηση προϊόντων, αριθμού παραγγελίας…"
 
-msgid "Product Index: {mfrs} manufacturers, {products} products"
-msgstr "Ευρετήριο Προϊόντων: {mfrs} κατασκευαστές, {products} προϊόντα"
+msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
+msgstr "Ευρετήριο Προϊόντων ({date}): {mfrs} κατασκευαστές, {products} προϊόντα"
 
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Δεν υπάρχει ακόμη Ευρετήριο Προϊόντων - κάντε λήψη του online καταλόγου για να δημιουργηθεί"
