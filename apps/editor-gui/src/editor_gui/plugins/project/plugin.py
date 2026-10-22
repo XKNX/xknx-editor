@@ -33,6 +33,7 @@ from editor_gui.plugins.project.program_queue import (
 )
 from editor_gui.plugins.project.service import (
     DeviceConfigClipboard,
+    ElementDetails,
     additional_address_error_text,
 )
 from editor_gui.plugins.project.strings import S
@@ -55,6 +56,7 @@ from editor_gui.plugins.project.ui.device_certificate import (
 )
 from editor_gui.plugins.project.ui.device_compare import DeviceComparePanel
 from editor_gui.plugins.project.ui.devices import Area, Line
+from editor_gui.plugins.project.ui.element_details import ElementDetailsPanel
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
 from editor_gui.plugins.project.ui.preflight_result import PreflightResultWindow
@@ -70,10 +72,6 @@ from editor_gui.plugins.project.ui.read_device_dialog import ReadDeviceDialog
 from editor_gui.plugins.project.ui.secure_commissioning import SecureCommissioningDialog
 from editor_gui.plugins.project.ui.space_details import SpaceDetailsPanel
 from editor_gui.plugins.project.ui.tools import apply_name_swap, shifted_ia
-from editor_gui.plugins.project.ui.topology_details import (
-    TopologyDetailsPanel,
-    TopologyElement,
-)
 from editor_gui.widgets import ButtonActions
 from editor_gui.widgets.dialog import begin_tool_window
 from editor_gui.widgets.dpt_value import GroupValueBus
@@ -217,7 +215,7 @@ class ProjectPlugin:
             get_unloaded_devices=lambda: api.project.unloaded_devices,
             on_device_info=self._open_read_dialog,
             on_compare=self._open_compare,
-            on_select_element=api.project.select_topology,
+            on_select_element=api.project.select_element,
             get_selected_topology=lambda: api.project.selected_topology,
         )
         self._compare_panel = DeviceComparePanel(
@@ -327,7 +325,7 @@ class ProjectPlugin:
 
         self._group_addresses_panel = GroupAddressesPanel(
             get_range_tree=api.project.get_group_range_tree,
-            on_select_element=api.project.select_comment_target,
+            on_select_element=api.project.select_element,
             get_assignments_for_ga=api.project.get_assignments_for_ga,
             get_devices=lambda: api.project.devices,
             on_create_ga=self._on_create_ga,
@@ -348,10 +346,10 @@ class ProjectPlugin:
             get_latest_value=get_latest_value,
         )
 
-        self._topology_details = TopologyDetailsPanel(
-            on_rename=self._rename_topology,
-            on_set_description=api.project.set_topology_description,
-            on_set_address=api.project.set_topology_address,
+        self._element_details = ElementDetailsPanel(
+            on_rename=api.project.rename_element,
+            on_set_description=api.project.set_element_description,
+            on_set_address=api.project.set_element_address,
         )
         self._space_details = SpaceDetailsPanel(
             on_rename=api.project.rename_space,
@@ -637,22 +635,13 @@ class ProjectPlugin:
     def _select_space(self, space_id: int) -> None:
         self._api.project.selected_space_id = space_id
 
-    def selected_topology(self) -> "tuple[str, TopologyElement, str, int] | None":
-        """The area or line selected in the Devices tree (its details replace the device's):
-        ``(kind, element, the area's address before a line's, its address)``."""
-        selected = self._api.project.selected_topology
-        if selected is None:
-            return None
-        details = self._api.project.topology_details(*selected)
-        return None if details is None else (selected[0], *details)
-
-    def _rename_topology(
-        self, kind: str, element: "TopologyElement", name: str
-    ) -> None:
-        if kind == "area":
-            self._api.project.rename_area(element.id, element.name, name)
-        else:
-            self._api.project.rename_line(element.id, element.name, name)
+    def selected_element(self) -> "ElementDetails | None":
+        """The area, line, group range or group address selected (its details replace the
+        device's), if any."""
+        selected = self._api.project.selected_element
+        return (
+            None if selected is None else self._api.project.element_details(*selected)
+        )
 
     def selected_space(self) -> "SpaceInfo | None":
         """The space selected in the Buildings tree (its details replace the device's), if any."""
@@ -2364,9 +2353,9 @@ class ProjectPlugin:
         if space is not None:
             self._space_details.render(space)
             return
-        topology = self.selected_topology()
-        if topology is not None:
-            self._topology_details.render(*topology)
+        element = self.selected_element()
+        if element is not None:
+            self._element_details.render(element)
             return
         self._sync_selected_device_from_editor()
         self._configure_panel.render_device()

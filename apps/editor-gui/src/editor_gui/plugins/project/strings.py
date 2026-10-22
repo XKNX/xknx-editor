@@ -52,6 +52,42 @@ class ProjectStrings:
         return _("Set line address")
 
     @property
+    def PANEL_MAIN_GROUP(self) -> str:
+        return _("Main Group")
+
+    @property
+    def PANEL_MIDDLE_GROUP(self) -> str:
+        return _("Middle Group")
+
+    @property
+    def PANEL_GROUP_RANGE(self) -> str:
+        return _("Group Range")
+
+    @property
+    def PANEL_GROUP_ADDRESS(self) -> str:
+        return _("Group Address")
+
+    @property
+    def GROUP_MAIN_NUMBER_INVALID(self) -> str:
+        return _("The main group is a number from 0 to 31.")
+
+    @property
+    def GROUP_MIDDLE_NUMBER_INVALID(self) -> str:
+        return _("The middle group is a number from 0 to 7.")
+
+    @property
+    def HISTORY_EV_SET_GA_DESCRIPTION(self) -> str:
+        return _("Set group address description")
+
+    @property
+    def HISTORY_EV_SET_GROUP_RANGE_DESCRIPTION(self) -> str:
+        return _("Set group range description")
+
+    @property
+    def HISTORY_EV_SET_GROUP_RANGE_ADDRESS(self) -> str:
+        return _("Set group range address")
+
+    @property
     def COMMENT_INSTALLATION_HINTS(self) -> str:
         return _("Installation Hints")
 

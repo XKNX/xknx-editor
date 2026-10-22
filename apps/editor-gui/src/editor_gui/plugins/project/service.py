@@ -514,6 +514,12 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
         if d.get("kind") == "area"
         else S.HISTORY_EV_SET_LINE_ADDRESS
     ),
+    "SetGroupDescription": lambda d: (
+        S.HISTORY_EV_SET_GA_DESCRIPTION
+        if d.get("kind") == "group_address"
+        else S.HISTORY_EV_SET_GROUP_RANGE_DESCRIPTION
+    ),
+    "SetGroupRangeAddress": lambda d: S.HISTORY_EV_SET_GROUP_RANGE_ADDRESS,
     "SetComment": lambda d: (
         S.HISTORY_EV_SET_INSTALLATION_HINTS
         if d.get("field") == "installation_hints"
@@ -563,6 +569,35 @@ def _history_label(event_type: str, data: dict[str, Any]) -> str:
     if event_type.startswith("Remove"):
         return S.HISTORY_EV_REMOVE
     return event_type
+
+
+@dataclass(frozen=True)
+class ElementDetails:
+    """What the details of a selected area, line, group range or group address show. ``title_kind``
+    names it in the tab ("area", "line", "main_group", "middle_group", "group_range",
+    "group_address"); a line's address shows after its area's (``prefix`` "1."), a middle group's
+    after its main group's ("1/")."""
+
+    kind: str
+    element_id: int
+    title_kind: str
+    name: str
+    description: str
+    prefix: str
+    address: str
+    editable: bool = True
+
+
+def _find_range(
+    nodes: "list[GroupRangeInfo]", range_id: int, depth: int
+) -> "tuple[GroupRangeInfo, int] | None":
+    for node in nodes:
+        if node.id == range_id:
+            return node, depth
+        found = _find_range(node.children, range_id, depth + 1)
+        if found is not None:
+            return found
+    return None
 
 
 @dataclass
@@ -909,9 +944,10 @@ class ProjectService:
         # A space selected in the Buildings tree: its details replace the device's until a device
         # is selected again.
         self._selected_space_id: int | None = None
-        # An area or a line selected in the Devices tree: ("area" | "line", id). Its details replace
-        # the device's until a device or a space is selected.
-        self._selected_topology: tuple[str, int] | None = None
+        # An area or a line selected in the Devices tree, or a group range or group address in the
+        # Group Addresses tree: (kind, id). Its details replace the device's until a device or a
+        # space is selected.
+        self._selected_element: tuple[str, int] | None = None
         # The element the Comment panel shows: (kind, id) of what was selected last in a tree; the
         # kinds are those of the project's comments (device, space, area, line, group_address, ...).
         self._comment_target: tuple[str, int] | None = None
@@ -1483,7 +1519,7 @@ class ProjectService:
         self._selected_node_id = None
         self._selected_space_id = None
         self._comment_target = None
-        self._selected_topology = None
+        self._selected_element = None
         self._comment_cache.clear()
         self._selected_node_ids = set()
         self._dynui_lru.clear()
@@ -2120,7 +2156,7 @@ class ProjectService:
         # Selecting a device (also the one already selected) shows its details again.
         self._selected_space_id = None
         self._comment_target = ("device", new_id) if new_id is not None else None
-        self._selected_topology = None
+        self._selected_element = None
         if new_id != self._selected_node_id:
             self._selected_node_id = new_id
             # Any single-device select (command palette, Health/Cockpit navigate) collapses the
@@ -5026,17 +5062,26 @@ class ProjectService:
         self._selected_space_id = space_id
         if space_id is not None:
             self._comment_target = ("space", space_id)
-            self._selected_topology = None
+            self._selected_element = None
+
+    @property
+    def selected_element(self) -> tuple[str, int] | None:
+        """``(kind, id)`` of the area, line, group range or group address selected, if one rather
+        than a device or a space is."""
+        return self._selected_element
 
     @property
     def selected_topology(self) -> tuple[str, int] | None:
-        """``("area" | "line", id)`` of the area or line selected in the Devices tree, if one
-        rather than a device or a space is."""
-        return self._selected_topology
+        """The selected element if it is an area or a line."""
+        element = self._selected_element
+        return (
+            element if element is not None and element[0] in ("area", "line") else None
+        )
 
-    def select_topology(self, kind: str, element_id: int) -> None:
-        """An area or a line was selected: its details show in place of the device's."""
-        self._selected_topology = (kind, element_id)
+    def select_element(self, kind: str, element_id: int) -> None:
+        """An area, line, group range or group address was selected: its details show in place of
+        the device's, its comment in the Comment tab."""
+        self._selected_element = (kind, element_id)
         self._selected_space_id = None
         self._comment_target = (kind, element_id)
 
@@ -5055,18 +5100,125 @@ class ProjectService:
             None,
         )
 
-    def topology_details(
-        self, kind: str, element_id: int
-    ) -> "tuple[_Area | _Line, str, int] | None":
-        """An area or a line with what its address shows: the area's address before a line's
-        ("1.") and its own address; None when it does not exist (any more)."""
-        element = self.find_topology(kind, element_id)
-        if isinstance(element, _Area):
-            return element, "", element.area_number
-        if isinstance(element, _Line):
-            area = self.find_topology("area", element.area_id)
-            prefix = f"{area.area_number}." if isinstance(area, _Area) else ""
-            return element, prefix, element.line_number
+    def element_details(self, kind: str, element_id: int) -> "ElementDetails | None":
+        """What the details of an area, line, group range or group address show; None when it does
+        not exist (any more)."""
+        if kind in ("area", "line"):
+            element = self.find_topology(kind, element_id)
+            if isinstance(element, _Area):
+                return ElementDetails(
+                    kind,
+                    element_id,
+                    "area",
+                    element.name,
+                    element.description,
+                    "",
+                    str(element.area_number),
+                )
+            if isinstance(element, _Line):
+                area = self.find_topology("area", element.area_id)
+                prefix = f"{area.area_number}." if isinstance(area, _Area) else ""
+                return ElementDetails(
+                    kind,
+                    element_id,
+                    "line",
+                    element.name,
+                    element.description,
+                    prefix,
+                    str(element.line_number),
+                )
+            return None
+        if kind == "group_address":
+            ga = self.get_group_address(element_id)
+            if ga is None:
+                return None
+            return ElementDetails(
+                kind,
+                element_id,
+                "group_address",
+                ga.name,
+                ga.description,
+                "",
+                ga.address,
+            )
+        if kind == "group_range":
+            found = _find_range(self.get_group_range_tree(), element_id, 0)
+            if found is None:
+                return None
+            node, depth = found
+            if not node.address:  # Free style: groups without a number
+                return ElementDetails(
+                    kind,
+                    element_id,
+                    "group_range",
+                    node.name,
+                    node.description,
+                    "",
+                    f"{node.range_start}\u2013{node.range_end}",
+                    editable=False,
+                )
+            prefix, _, number = node.address.rpartition("/")
+            return ElementDetails(
+                kind,
+                element_id,
+                "middle_group" if depth else "main_group",
+                node.name,
+                node.description,
+                f"{prefix}/" if prefix else "",
+                number,
+            )
+        return None
+
+    def rename_element(self, kind: str, element_id: int, name: str) -> None:
+        details = self.element_details(kind, element_id)
+        if details is None or details.name == name:
+            return
+        if kind == "area":
+            self.rename_area(element_id, details.name, name)
+        elif kind == "line":
+            self.rename_line(element_id, details.name, name)
+        elif kind == "group_range":
+            self.rename_group_range(element_id, name)
+        elif kind == "group_address":
+            self.rename_group_address(element_id, name)
+
+    def set_element_description(
+        self, kind: str, element_id: int, description: str
+    ) -> None:
+        if kind in ("area", "line"):
+            self.set_topology_description(kind, element_id, description)
+            return
+        details = self.element_details(kind, element_id)
+        if self._pid is None or details is None or details.description == description:
+            return
+        self._svc.set_group_description(self._pid, kind, element_id, description)
+        self._bump(structural=False)
+
+    def set_element_address(self, kind: str, element_id: int, text: str) -> str | None:
+        """Give the element another address; the reason it cannot be, or None."""
+        if kind in ("area", "line"):
+            return self.set_topology_address(kind, element_id, text)
+        details = self.element_details(kind, element_id)
+        if self._pid is None or details is None or details.address == text.strip():
+            return None
+        if kind == "group_address":
+            ok = self.set_group_address_address(element_id, text.strip())
+            return None if ok else S.GA_RENUMBER_FAILED
+        middle = details.title_kind == "middle_group"
+        invalid = (
+            S.GROUP_MIDDLE_NUMBER_INVALID if middle else S.GROUP_MAIN_NUMBER_INVALID
+        )
+        try:
+            number = int(text.strip())
+        except ValueError:
+            return invalid
+        if not 0 <= number <= (7 if middle else 31):
+            return invalid
+        try:
+            self._svc.set_group_range_number(self._pid, element_id, number)
+        except ValueError:
+            return S.TOPOLOGY_ADDRESS_IN_USE.format(address=f"{details.prefix}{number}")
+        self._bump()
         return None
 
     def set_topology_description(
@@ -5229,6 +5381,7 @@ class ProjectService:
                 "SetDeviceAdditionalAddresses",
                 "SetComment",
                 "SetTopologyDescription",
+                "SetGroupDescription",
             ):
                 # Read from the project on every revision; no device structure changes.
                 self._bump(structural=False)

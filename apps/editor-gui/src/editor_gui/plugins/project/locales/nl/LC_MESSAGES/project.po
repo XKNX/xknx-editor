@@ -2211,3 +2211,27 @@ msgstr "Gebiedsadres instellen"
 
 msgid "Set line address"
 msgstr "Lijnadres instellen"
+
+msgid "Main Group"
+msgstr "Hoofdgroep"
+
+msgid "Middle Group"
+msgstr "Middengroep"
+
+msgid "Group Range"
+msgstr "Groepsbereik"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "De hoofdgroep is een getal van 0 tot 31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "De middengroep is een getal van 0 tot 7."
+
+msgid "Set group address description"
+msgstr "Groepsadresbeschrijving instellen"
+
+msgid "Set group range description"
+msgstr "Groepsbereikbeschrijving instellen"
+
+msgid "Set group range address"
+msgstr "Groepsbereikadres instellen"
