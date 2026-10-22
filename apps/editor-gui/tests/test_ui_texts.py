@@ -151,3 +151,23 @@ def test_every_panel_title_follows_the_language() -> None:
     assert set(_DOCK_TAB_ORDER) <= set(_DOCK_LABELS), set(_DOCK_TAB_ORDER) - set(
         _DOCK_LABELS
     )
+
+
+def test_the_language_menu_is_alphabetical_as_it_reads() -> None:
+    from editor_gui.main import _language_items
+    from editor_gui.strings import get_locale, set_locale
+
+    previous = get_locale()
+    try:
+        set_locale("de")
+        labels = [label for _code, label in _language_items()]
+        assert labels == [
+            "Deutsch",
+            "Englisch (English)",
+            "Niederländisch (Nederlands)",
+        ]
+        set_locale("en")
+        labels = [label for _code, label in _language_items()]
+        assert labels == ["Dutch (Nederlands)", "English", "German (Deutsch)"]
+    finally:
+        set_locale(previous)
