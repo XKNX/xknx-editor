@@ -463,8 +463,10 @@ class KnxGuiApp:
         # FPS and the idling toggle at the end of the status bar.
         self._show_status_fps = False
         self._show_status_bar = True
-        # The Manufacturer tab was hidden for a selected space (see _sync_device_section).
+        # The Manufacturer tab was hidden for a selected space (see _sync_device_section), and the
+        # tabs of its section in their order then.
         self._manufacturer_hidden = False
+        self._manufacturer_tabs: list[str] = []
         # Overwrite guard: the portable file dialog does not confirm replacing an existing file on
         # macOS (it wraps AppleScript's "choose file name"), so we ask here. Requests queue as
         # (target, action) pairs so a second dialog resolving mid-confirmation cannot drop the first.
@@ -3339,11 +3341,17 @@ class KnxGuiApp:
             elif name == "manufacturer":
                 window.include_in_view_menu = space is None
                 if space is not None and window.is_visible:
+                    # Shown again, a tab comes last: the section's order is put back then.
+                    self._manufacturer_tabs = _section_tab_names(window.label)
                     window.is_visible = False
                     self._manufacturer_hidden = True
                 elif space is None and self._manufacturer_hidden:
                     window.is_visible = True
                     self._manufacturer_hidden = False
+                    if self._manufacturer_tabs:
+                        self._tab_order = self._manufacturer_tabs
+                        self._tab_order_from = imgui.get_frame_count() + 2
+                        self._tab_order_until = imgui.get_frame_count() + 300
 
     def _render_status_bar(self) -> None:
         """The status bar along the bottom of the window, below the docked panels: a thin line on
@@ -5528,6 +5536,21 @@ def _restore_wide_layout(
         bool(layout.get("expanded", False)), layout.get("ratios") or {}
     )
     params.layout_reset = True
+
+
+def _section_tab_names(label: str) -> list[str]:
+    """The stable names of the tabs in the section of the window ``label``, in their order."""
+    window = imgui.internal.find_window_by_name(label)
+    # The bindings type these as non-optional, but they can be None.
+    node = window.dock_node if window is not None else None  # pyright: ignore[reportUnnecessaryComparison]
+    bar = node.tab_bar if node is not None else None  # pyright: ignore[reportUnnecessaryComparison]
+    if bar is None:  # pyright: ignore[reportUnnecessaryComparison]
+        return []
+    return [
+        tab.window.name.split("###")[-1]
+        for tab in bar.tabs
+        if tab.window is not None  # pyright: ignore[reportUnnecessaryComparison]
+    ]
 
 
 def _forget_tab_order(params: hello_imgui.DockingParams) -> None:
