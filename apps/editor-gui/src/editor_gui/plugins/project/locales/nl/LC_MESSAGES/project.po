@@ -2187,3 +2187,27 @@ msgstr "Opmerking instellen"
 
 msgid "Set installation hints"
 msgstr "Installatietips instellen"
+
+msgid "Area"
+msgstr "Gebied"
+
+msgid "Line"
+msgstr "Lijn"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Het adres is een getal van 0 tot 15."
+
+msgid "Address {address} is already in use."
+msgstr "Adres {address} is al in gebruik."
+
+msgid "Set area description"
+msgstr "Gebiedsbeschrijving instellen"
+
+msgid "Set line description"
+msgstr "Lijnbeschrijving instellen"
+
+msgid "Set area address"
+msgstr "Gebiedsadres instellen"
+
+msgid "Set line address"
+msgstr "Lijnadres instellen"

@@ -2333,3 +2333,27 @@ msgstr "Kommentar festlegen"
 
 msgid "Set installation hints"
 msgstr "Installationshinweise festlegen"
+
+msgid "Area"
+msgstr "Bereich"
+
+msgid "Line"
+msgstr "Linie"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Die Adresse ist eine Zahl von 0 bis 15."
+
+msgid "Address {address} is already in use."
+msgstr "Die Adresse {address} ist bereits belegt."
+
+msgid "Set area description"
+msgstr "Bereichsbeschreibung festlegen"
+
+msgid "Set line description"
+msgstr "Linienbeschreibung festlegen"
+
+msgid "Set area address"
+msgstr "Bereichsadresse festlegen"
+
+msgid "Set line address"
+msgstr "Linienadresse festlegen"

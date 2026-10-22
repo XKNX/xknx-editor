@@ -504,6 +504,16 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "SetGroupAddressAddress": lambda d: S.HISTORY_EV_SET_GA_ADDRESS,
     "SetDeviceCertificates": lambda d: S.HISTORY_EV_SET_CERTIFICATES,
     "SetDeviceDescription": lambda d: S.HISTORY_EV_SET_DEVICE_DESCRIPTION,
+    "SetTopologyDescription": lambda d: (
+        S.HISTORY_EV_SET_AREA_DESCRIPTION
+        if d.get("kind") == "area"
+        else S.HISTORY_EV_SET_LINE_DESCRIPTION
+    ),
+    "SetTopologyAddress": lambda d: (
+        S.HISTORY_EV_SET_AREA_ADDRESS
+        if d.get("kind") == "area"
+        else S.HISTORY_EV_SET_LINE_ADDRESS
+    ),
     "SetComment": lambda d: (
         S.HISTORY_EV_SET_INSTALLATION_HINTS
         if d.get("field") == "installation_hints"
@@ -560,6 +570,7 @@ class _Area:
     id: int
     area_number: int
     name: str
+    description: str = ""
 
 
 @dataclass
@@ -568,6 +579,7 @@ class _Line:
     area_id: int
     line_number: int
     name: str
+    description: str = ""
 
 
 @dataclass
@@ -897,6 +909,9 @@ class ProjectService:
         # A space selected in the Buildings tree: its details replace the device's until a device
         # is selected again.
         self._selected_space_id: int | None = None
+        # An area or a line selected in the Devices tree: ("area" | "line", id). Its details replace
+        # the device's until a device or a space is selected.
+        self._selected_topology: tuple[str, int] | None = None
         # The element the Comment panel shows: (kind, id) of what was selected last in a tree; the
         # kinds are those of the project's comments (device, space, area, line, group_address, ...).
         self._comment_target: tuple[str, int] | None = None
@@ -1468,6 +1483,7 @@ class ProjectService:
         self._selected_node_id = None
         self._selected_space_id = None
         self._comment_target = None
+        self._selected_topology = None
         self._comment_cache.clear()
         self._selected_node_ids = set()
         self._dynui_lru.clear()
@@ -2104,6 +2120,7 @@ class ProjectService:
         # Selecting a device (also the one already selected) shows its details again.
         self._selected_space_id = None
         self._comment_target = ("device", new_id) if new_id is not None else None
+        self._selected_topology = None
         if new_id != self._selected_node_id:
             self._selected_node_id = new_id
             # Any single-device select (command palette, Health/Cockpit navigate) collapses the
@@ -2200,13 +2217,19 @@ class ProjectService:
             return
         installation = self._svc.topology(self._pid, _INSTALLATION)
         self._areas_cache = [
-            _Area(id=a.id, area_number=a.address, name=a.name)
+            _Area(
+                id=a.id, area_number=a.address, name=a.name, description=a.description
+            )
             for a in installation.areas
         ]
         self._lines_cache = {
             a.id: [
                 _Line(
-                    id=ln.id, area_id=ln.area_id, line_number=ln.address, name=ln.name
+                    id=ln.id,
+                    area_id=ln.area_id,
+                    line_number=ln.address,
+                    name=ln.name,
+                    description=ln.description,
                 )
                 for ln in a.lines
             ]
@@ -5003,6 +5026,85 @@ class ProjectService:
         self._selected_space_id = space_id
         if space_id is not None:
             self._comment_target = ("space", space_id)
+            self._selected_topology = None
+
+    @property
+    def selected_topology(self) -> tuple[str, int] | None:
+        """``("area" | "line", id)`` of the area or line selected in the Devices tree, if one
+        rather than a device or a space is."""
+        return self._selected_topology
+
+    def select_topology(self, kind: str, element_id: int) -> None:
+        """An area or a line was selected: its details show in place of the device's."""
+        self._selected_topology = (kind, element_id)
+        self._selected_space_id = None
+        self._comment_target = (kind, element_id)
+
+    def find_topology(self, kind: str, element_id: int) -> "_Area | _Line | None":
+        """The area or line ``element_id``; None when it does not exist (any more)."""
+        if kind == "area":
+            return next((a for a in self.get_areas() if a.id == element_id), None)
+        self._ensure_topology_cache()
+        return next(
+            (
+                ln
+                for lines in (self._lines_cache or {}).values()
+                for ln in lines
+                if ln.id == element_id
+            ),
+            None,
+        )
+
+    def topology_details(
+        self, kind: str, element_id: int
+    ) -> "tuple[_Area | _Line, str, int] | None":
+        """An area or a line with what its address shows: the area's address before a line's
+        ("1.") and its own address; None when it does not exist (any more)."""
+        element = self.find_topology(kind, element_id)
+        if isinstance(element, _Area):
+            return element, "", element.area_number
+        if isinstance(element, _Line):
+            area = self.find_topology("area", element.area_id)
+            prefix = f"{area.area_number}." if isinstance(area, _Area) else ""
+            return element, prefix, element.line_number
+        return None
+
+    def set_topology_description(
+        self, kind: str, element_id: int, description: str
+    ) -> None:
+        element = self.find_topology(kind, element_id)
+        if self._pid is None or element is None or element.description == description:
+            return
+        self._svc.set_topology_description(self._pid, kind, element_id, description)
+        self._bump(structural=False)
+
+    def set_topology_address(self, kind: str, element_id: int, text: str) -> str | None:
+        """Give an area or a line another address (its devices' addresses change with it); the
+        reason it cannot be, or None."""
+        if self._pid is None:
+            return None
+        try:
+            address = int(text.strip())
+        except ValueError:
+            return S.TOPOLOGY_ADDRESS_INVALID
+        if not 0 <= address <= 15:
+            return S.TOPOLOGY_ADDRESS_INVALID
+        element = self.find_topology(kind, element_id)
+        current = (
+            None
+            if element is None
+            else element.area_number
+            if isinstance(element, _Area)
+            else element.line_number
+        )
+        if current is None or current == address:
+            return None
+        try:
+            self._svc.set_topology_address(self._pid, kind, element_id, address)
+        except ValueError:
+            return S.TOPOLOGY_ADDRESS_IN_USE.format(address=address)
+        self._bump()
+        return None
 
     @property
     def comment_target(self) -> tuple[str, int] | None:
@@ -5123,7 +5225,11 @@ class ProjectService:
                     )
                     self._bump(structural=False)
                     return
-            elif event_type in ("SetDeviceAdditionalAddresses", "SetComment"):
+            elif event_type in (
+                "SetDeviceAdditionalAddresses",
+                "SetComment",
+                "SetTopologyDescription",
+            ):
                 # Read from the project on every revision; no device structure changes.
                 self._bump(structural=False)
                 return

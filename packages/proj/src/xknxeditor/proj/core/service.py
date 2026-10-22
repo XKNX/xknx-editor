@@ -99,6 +99,8 @@ from xknxeditor.proj.core.events import (
     SetSpaceDescription,
     SetSpaceNumber,
     SetSpaceType,
+    SetTopologyAddress,
+    SetTopologyDescription,
     SyncDeviceComObjects,
     SyncDeviceModuleInstances,
     UnlinkComObject,
@@ -2482,6 +2484,55 @@ class ProjectService:
     ) -> None:
         self._state(project_id).store.append(
             SetDeviceDescription(device_id=device_id, description=description)
+        )
+
+    def set_topology_description(
+        self, project_id: str, kind: str, element_id: int, description: str
+    ) -> None:
+        """The description of an area or a line (``kind`` "area" or "line"); undoable."""
+        self._state(project_id).store.append(
+            SetTopologyDescription(
+                kind=kind, element_id=element_id, description=description
+            )
+        )
+
+    def set_topology_address(
+        self, project_id: str, kind: str, element_id: int, address: int
+    ) -> None:
+        """The address of an area or a line (``kind`` "area" or "line"), 0 to 15 and not that of
+        another one beside it; its devices' individual addresses change with it. Undoable.
+
+        Raises ``ValueError`` for an address out of range or in use, ``KeyError`` for an unknown
+        element."""
+        state = self._state(project_id)
+        if not 0 <= address <= 15:
+            raise ValueError(f"address {address} is not between 0 and 15")
+        if kind == "area":
+            area = state.session.get(Area, element_id)
+            if area is None:
+                raise KeyError(f"No area {element_id}")
+            siblings = [
+                a.address
+                for a in state.session.query(Area).filter(
+                    Area.installation_id == area.installation_id, Area.id != area.id
+                )
+            ]
+        elif kind == "line":
+            line = state.session.get(Line, element_id)
+            if line is None:
+                raise KeyError(f"No line {element_id}")
+            siblings = [
+                ln.address
+                for ln in state.session.query(Line).filter(
+                    Line.area_id == line.area_id, Line.id != line.id
+                )
+            ]
+        else:
+            raise KeyError(f"No {kind} {element_id}")
+        if address in siblings:
+            raise ValueError(f"address {address} is in use")
+        state.store.append(
+            SetTopologyAddress(kind=kind, element_id=element_id, address=address)
         )
 
     def comment(

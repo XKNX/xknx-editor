@@ -7,6 +7,7 @@ import zipfile
 from pathlib import Path
 from xml.etree import ElementTree as ET
 
+import pytest
 from sqlalchemy.orm import Session
 
 from xknxeditor.proj import ProjectService, export_knxproj
@@ -140,3 +141,36 @@ def test_the_import_keeps_formatted_comments() -> None:
     )
     assert extras.grouprange_comment[(1, 2047)] == _RTF
     assert extras.ga_comment[1] == _RTF
+
+
+def test_area_and_line_description_and_address(tmp_path: Path) -> None:
+    svc, pid, area, line, device = _project(tmp_path)
+    svc.set_topology_description(pid, "line", line, "Workshop")
+    svc.set_topology_description(pid, "area", area, "Ground floor")
+    topo = {a.id: a for a in svc.topology(pid, 0).areas}
+    assert topo[area].description == "Ground floor"
+    assert (
+        next(ln for ln in topo[area].lines if ln.id == line).description == "Workshop"
+    )
+
+    # The line moves to 2.3: its device's individual address with it.
+    svc.set_topology_address(pid, "line", line, 3)
+    assert svc.device(pid, device).individual_address == "2.3.5"
+    with pytest.raises(ValueError):
+        svc.set_topology_address(pid, "line", line, 16)
+    other = svc.create_line(pid, area, 4, "Other")
+    assert other is not None
+    with pytest.raises(ValueError):
+        svc.set_topology_address(pid, "line", other, 3)
+    with pytest.raises(ValueError):
+        svc.set_topology_address(pid, "area", area, 1)  # the skeleton's area 1
+    svc.set_topology_address(pid, "area", area, 7)
+    assert svc.device(pid, device).individual_address == "7.3.5"
+
+    svc.undo(pid)
+    svc.undo(pid)  # the line created
+    svc.undo(pid)
+    assert svc.device(pid, device).individual_address == "2.1.5"
+    svc.undo(pid)
+    svc.undo(pid)
+    assert svc.topology(pid, 0).areas[-1].description == ""
