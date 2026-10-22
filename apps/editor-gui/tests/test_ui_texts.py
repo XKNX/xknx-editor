@@ -151,3 +151,32 @@ def test_every_panel_title_follows_the_language() -> None:
     assert set(_DOCK_TAB_ORDER) <= set(_DOCK_LABELS), set(_DOCK_TAB_ORDER) - set(
         _DOCK_LABELS
     )
+
+
+def test_the_language_menu_is_alphabetical_as_it_reads() -> None:
+    from editor_gui.main import _language_items
+    from editor_gui.strings import get_locale, set_locale
+
+    previous = get_locale()
+    try:
+        set_locale("de")
+        labels = [label for _code, label in _language_items()]
+        assert labels == [
+            "Chinesisch, vereinfacht (中文(中国))",
+            "Deutsch",
+            "Englisch (English)",
+            "Griechisch (Ελληνικά)",
+            "Japanisch (日本語)",
+            "Niederländisch (Nederlands)",
+            "Spanisch (español)",
+        ]
+        set_locale("es")
+        labels = [label for _code, label in _language_items()]
+        # Sorted without accents and case: "Español" comes after "Chino" and before "Griego".
+        assert labels[:3] == [
+            "Alemán (Deutsch)",
+            "Chino Simplificado (中文(中国))",
+            "Español (español)",
+        ]
+    finally:
+        set_locale(previous)

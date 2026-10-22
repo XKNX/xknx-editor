@@ -8,6 +8,7 @@ import sys
 import tempfile
 import threading
 import time
+import unicodedata
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
@@ -5021,11 +5022,7 @@ class KnxGuiApp:
         """UI language selector (next to Help). Overrides the auto-detected OS locale; persisted."""
         current = get_locale()
         if imgui.begin_menu(S.MENU_LANGUAGE):
-            for language in LANGUAGES:
-                label = language.name()
-                if label != language.native:
-                    label = S.LANGUAGE_ITEM.format(name=label, native=language.native)
-                code = language.code
+            for code, label in _language_items():
                 if (
                     imgui.menu_item(f"{label}##{code}", "", code == current)[0]
                     and code != current
@@ -5711,6 +5708,23 @@ def create_dockable_windows(app: KnxGuiApp) -> list[hello_imgui.DockableWindow]:
         if _dock_window_name(w) in ("buildings", "device"):
             w.focus_window_at_next_frame = True
     return windows
+
+
+def _language_items() -> list[tuple[str, str]]:
+    """The Language menu's ``(code, label)`` entries, alphabetical as they read: by the name in the
+    current language, ignoring case and accents."""
+    items: list[tuple[str, str]] = []
+    for language in LANGUAGES:
+        label = language.name()
+        if label != language.native:
+            label = S.LANGUAGE_ITEM.format(name=label, native=language.native)
+        items.append((language.code, label))
+
+    def key(item: tuple[str, str]) -> str:
+        letters = unicodedata.normalize("NFKD", item[1].casefold())
+        return "".join(c for c in letters if not unicodedata.combining(c))
+
+    return sorted(items, key=key)
 
 
 _STRONG_TITLE_SCALE = 1.2
