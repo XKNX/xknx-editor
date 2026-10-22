@@ -29,7 +29,7 @@ msgid "{count} device(s) skipped: application not in catalog"
 msgstr "{count} Gerät(e) übersprungen: Applikation nicht im Katalog"
 
 msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: {count} nicht verknüpfte(s) Kommunikationsobjekt(e)"
+msgstr "{device}: {count} nicht verbundene(s) Kommunikationsobjekt(e)"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: kein Datenpunkttyp"

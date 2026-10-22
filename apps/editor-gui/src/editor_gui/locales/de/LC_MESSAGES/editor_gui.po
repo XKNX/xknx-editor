@@ -206,7 +206,7 @@ msgid "Undo"
 msgstr "Rückgängig"
 
 msgid "Redo"
-msgstr "Wiederholen"
+msgstr "Wiederherstellen"
 
 msgid "Open KNX Product Archive"
 msgstr "KNX-Produktarchiv öffnen"
@@ -249,13 +249,13 @@ msgid "Opening project…"
 msgstr "Projekt wird geöffnet…"
 
 msgid "Project Password"
-msgstr "Projektkennwort"
+msgstr "Projektpasswort"
 
 msgid "This ETS project is password protected. Enter its password:"
-msgstr "Dieses ETS-Projekt ist kennwortgeschützt. Geben Sie das Kennwort ein:"
+msgstr "Dieses ETS-Projekt ist passwortgeschützt. Geben Sie das Passwort ein:"
 
 msgid "Wrong password, please try again."
-msgstr "Falsches Kennwort, bitte erneut versuchen."
+msgstr "Falsches Passwort, bitte erneut versuchen."
 
 msgid "OK"
 msgstr "OK"
@@ -504,7 +504,7 @@ msgid "Group Addresses"
 msgstr "Gruppenadressen"
 
 msgid "Group Object Links"
-msgstr "Kommunikationsobjekt-Verknüpfungen"
+msgstr "Kommunikationsobjekt-Verbindungen"
 
 msgid "Areas / Lines"
 msgstr "Bereiche / Linien"
@@ -767,7 +767,7 @@ msgid "Project Name"
 msgstr "Projektname"
 
 msgid "Group Address Style"
-msgstr "Gruppenadress-Darstellung"
+msgstr "Gruppenadressansicht"
 
 msgid "Free"
 msgstr "Frei"

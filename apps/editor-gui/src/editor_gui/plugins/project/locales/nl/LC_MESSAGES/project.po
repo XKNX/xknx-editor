@@ -128,10 +128,10 @@ msgid "Group address: {old} -> {new}"
 msgstr "Groepsadres: {old} -> {new}"
 
 msgid "Group object linked to group address"
-msgstr "Groepobject gekoppeld aan groepsadres"
+msgstr "Groepsobject gekoppeld aan groepsadres"
 
 msgid "Group object unlinked from group address"
-msgstr "Groepobject ontkoppeld van groepsadres"
+msgstr "Groepsobject ontkoppeld van groepsadres"
 
 msgid "Area {number} created"
 msgstr "Gebied {number} aangemaakt"
@@ -182,7 +182,7 @@ msgid "Preview & Link"
 msgstr "Voorbeeld & koppelen"
 
 msgid "Add Group Objects…"
-msgstr "Groepobjecten toevoegen…"
+msgstr "Groepsobjecten toevoegen…"
 
 msgid "Add Group Addresses…"
 msgstr "Groepsadressen toevoegen…"
@@ -224,7 +224,7 @@ msgid "Filter…"
 msgstr "Filter…"
 
 msgid "Add Group Objects"
-msgstr "Groepobjecten toevoegen"
+msgstr "Groepsobjecten toevoegen"
 
 msgid "Add Group Addresses"
 msgstr "Groepsadressen toevoegen"
@@ -336,7 +336,7 @@ msgid "Click a finding to jump to the device."
 msgstr "Klik op een bevinding om naar het apparaat te springen."
 
 msgid "Add group objects on the left and existing group addresses in the middle, then click Link: the 1st object links to the 1st address, and so on."
-msgstr "Voeg links groepobjecten toe en in het midden bestaande groepsadressen, klik dan Koppelen: 1e object naar 1e adres, enz."
+msgstr "Voeg links groepsobjecten toe en in het midden bestaande groepsadressen, klik dan Koppelen: 1e object naar 1e adres, enz."
 
 msgid "Add objects on both sides. Each pair gets a new group address that links them (the source sends, the target receives). Set the address name/number below."
 msgstr "Voeg aan beide zijden objecten toe. Elk paar krijgt een nieuw groepsadres dat ze koppelt (bron zendt, doel ontvangt). Stel naam/nummer hieronder in."
@@ -372,7 +372,7 @@ msgid "Replace Device"
 msgstr "Apparaat vervangen"
 
 msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
-msgstr "Vervang een apparaat door een ander model (een sjabloonapparaat in het project) met behoud van de groepsadreskoppelingen. Groepobjecten worden gematcht op nummer en grootte; niet-gematchte worden gemeld. Parameters worden niet overgenomen."
+msgstr "Vervang een apparaat door een ander model (een sjabloonapparaat in het project) met behoud van de groepsadreskoppelingen. Groepsobjecten worden gematcht op nummer en grootte; niet-gematchte worden gemeld. Parameters worden niet overgenomen."
 
 msgid "Device to Replace"
 msgstr "Te vervangen apparaat"
@@ -381,14 +381,14 @@ msgid "Replace with (Template)"
 msgstr "Vervangen door (sjabloon)"
 
 msgid "Group Object Mapping (by Number)"
-msgstr "Groepobject-toewijzing (op nummer)"
+msgstr "Groepsobject-toewijzing (op nummer)"
 
 msgid "{count} object(s) will be re-mapped"
 msgstr "{count} object(en) worden opnieuw toegewezen"
 
 
 msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "Vervangen; {count} groepobject(en) opnieuw toegewezen"
+msgstr "Vervangen; {count} groepsobject(en) opnieuw toegewezen"
 
 msgid "Product"
 msgstr "Product"
@@ -511,7 +511,7 @@ msgid "Building"
 msgstr "Gebouw"
 
 msgid "Building Part"
-msgstr "Gebouwdeel"
+msgstr "Gebouwonderdeel"
 
 msgid "Corridor"
 msgstr "Gang"
@@ -742,7 +742,7 @@ msgid "Association Table Load State"
 msgstr "Laadstatus associatietabel"
 
 msgid "Group Object Table Load State"
-msgstr "Laadstatus groepobjecttabel"
+msgstr "Laadstatus groepsobjecttabel"
 
 msgid "Reading the tables failed: {error}"
 msgstr "Lezen van de tabellen mislukt: {error}"
@@ -1031,7 +1031,7 @@ msgid "Default Gateway"
 msgstr "Standaardgateway"
 
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
-msgstr "'{name}' verwijderen? De groepobjecten en groepsadreskoppelingen ervan worden verwijderd en het fysieke adres wordt vrijgegeven. Dit kan ongedaan worden gemaakt."
+msgstr "'{name}' verwijderen? De groepsobjecten en groepsadreskoppelingen ervan worden verwijderd en het fysieke adres wordt vrijgegeven. Dit kan ongedaan worden gemaakt."
 
 msgid "Delete Device"
 msgstr "Apparaat verwijderen"
@@ -1169,7 +1169,7 @@ msgid "Group Addresses"
 msgstr "Groepsadressen"
 
 msgid "Group Objects ({count})"
-msgstr "Groepobjecten ({count})"
+msgstr "Groepsobjecten ({count})"
 
 
 msgid "IP Address"
@@ -1212,10 +1212,10 @@ msgid "Link All ({count})"
 msgstr "Alles koppelen ({count})"
 
 msgid "Link group objects to each other. 1) Add the source objects. 2) Pick a partner object per row. Each pair gets a NEW group address (source sends, target receives): the address and name are suggested (first free address, name template below) but can be edited per row. 3) 'Link all' creates and links them."
-msgstr "Groepobjecten aan elkaar koppelen. 1) Voeg de bronobjecten toe. 2) Kies per rij een partnerobject. Elk paar krijgt een NIEUW groepsadres (bron zendt, doel ontvangt): adres en naam worden voorgesteld (eerste vrije adres, naamsjabloon hieronder), maar zijn per rij te bewerken. 3) 'Alles koppelen' maakt ze aan en koppelt ze."
+msgstr "Groepsobjecten aan elkaar koppelen. 1) Voeg de bronobjecten toe. 2) Kies per rij een partnerobject. Elk paar krijgt een NIEUW groepsadres (bron zendt, doel ontvangt): adres en naam worden voorgesteld (eerste vrije adres, naamsjabloon hieronder), maar zijn per rij te bewerken. 3) 'Alles koppelen' maakt ze aan en koppelt ze."
 
 msgid "Link many group objects to existing group addresses at once. 1) Add objects: '+ Selected device' (all objects of the device selected in the tree) or 'Add objects…'. 2) Set each row's target address in its dropdown — or fill them fast with 'Assign sequential' (next free addresses from the given start) or 'Match by name'. 3) 'Link all' links every row that has a target."
-msgstr "Veel groepobjecten in één keer aan bestaande groepsadressen koppelen. 1) Objecten toevoegen: '+ Geselecteerd apparaat' (alle objecten van het in de boom geselecteerde apparaat) of 'Objecten toevoegen…'. 2) Stel per rij het doeladres in via de keuzelijst — of vul ze snel met 'Opeenvolgend toewijzen' (volgende vrije adressen vanaf het opgegeven begin) of 'Op naam toewijzen'. 3) 'Alles koppelen' koppelt elke rij die een doel heeft."
+msgstr "Veel groepsobjecten in één keer aan bestaande groepsadressen koppelen. 1) Objecten toevoegen: '+ Geselecteerd apparaat' (alle objecten van het in de boom geselecteerde apparaat) of 'Objecten toevoegen…'. 2) Stel per rij het doeladres in via de keuzelijst — of vul ze snel met 'Opeenvolgend toewijzen' (volgende vrije adressen vanaf het opgegeven begin) of 'Op naam toewijzen'. 3) 'Alles koppelen' koppelt elke rij die een doel heeft."
 
 msgid "Load Procedures ({count})"
 msgstr "Laadprocedures ({count})"
@@ -1272,7 +1272,7 @@ msgid "No project log entries"
 msgstr "Geen items in het projectlogboek"
 
 msgid "Group Object"
-msgstr "Groepobject"
+msgstr "Groepsobject"
 
 msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
 msgstr "Alleen voor ETS 6-apparaten: deze test vergelijkt het apparaat met een geheugenbeeld dat op de manier van ETS 6 is gegenereerd. Een apparaat dat het laatst met ETS 5 is geprogrammeerd, gebruikt een andere byte-indeling en toont grote onterechte verschillen - het resultaat is alleen zinvol voor een apparaat dat het laatst met ETS 6 is geprogrammeerd."
@@ -1335,7 +1335,7 @@ msgid "Rename Group Address"
 msgstr "Groepsadres hernoemen"
 
 msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
-msgstr "Groepsadressen hernummeren door een verschuiving op te tellen bij hun ruwe waarde, bijv. om ruimte te maken. Koppelingen van groepobjecten gaan met elk adres mee. Er wordt niets geschreven als een verschuiving zou botsen of buiten het geldige bereik zou vallen."
+msgstr "Groepsadressen hernummeren door een verschuiving op te tellen bij hun ruwe waarde, bijv. om ruimte te maken. Koppelingen van groepsobjecten gaan met elk adres mee. Er wordt niets geschreven als een verschuiving zou botsen of buiten het geldige bereik zou vallen."
 
 msgid "Rows"
 msgstr "Rijen"
@@ -1395,7 +1395,7 @@ msgid "Target Group Address"
 msgstr "Doelgroepsadres"
 
 msgid "Target Group Object"
-msgstr "Doel-groepobject"
+msgstr "Doel-groepsobject"
 
 msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
 msgstr "De verschuiving wordt opgeteld bij de ruwe 16-bitwaarde, waardoor de hoofd-/middengroep kan veranderen wanneer adressen een grens overschrijden."
@@ -1605,7 +1605,7 @@ msgid "These group addresses will then communicate in the clear:"
 msgstr "Deze groepsadressen communiceren dan onversleuteld:"
 
 msgid "The device's group objects will be removed from these secured group addresses:"
-msgstr "De groepobjecten van het apparaat worden van deze beveiligde groepsadressen verwijderd:"
+msgstr "De groepsobjecten van het apparaat worden van deze beveiligde groepsadressen verwijderd:"
 
 msgid "Deactivate"
 msgstr "Deactiveren"
@@ -1629,7 +1629,7 @@ msgid "Not every device linked to this group address is commissioned securely, s
 msgstr "Niet alle apparaten die aan dit groepsadres zijn gekoppeld worden beveiligd in bedrijf gesteld, daarom kan het niet worden beveiligd."
 
 msgid "A group object that requires secure communication would end up on a group address in the clear."
-msgstr "Een groepobject dat beveiligde communicatie vereist, zou op een onversleuteld groepsadres terechtkomen."
+msgstr "Een groepsobject dat beveiligde communicatie vereist, zou op een onversleuteld groepsadres terechtkomen."
 
 msgid "Later"
 msgstr "Later"
@@ -1709,7 +1709,7 @@ msgid "Filter devices by address, name or description…"
 msgstr "Apparaten filteren op adres, naam of beschrijving…"
 
 msgid "Group Objects"
-msgstr "Groepobjecten"
+msgstr "Groepsobjecten"
 
 msgid "No differences"
 msgstr "Geen verschillen"
@@ -1934,7 +1934,7 @@ msgid "Parameters in the Manufacturer's Plugin"
 msgstr "Parameters in de plug-in van de fabrikant"
 
 msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
-msgstr "De fabrikant stelt de parameters van dit apparaat in met een eigen plug-in-dialoog, die XKNX Editor niet kan uitvoeren; ze kunnen hier daarom niet worden gewijzigd. Een download schrijft hun huidige waarden ongewijzigd; de groepobjecten kunnen zoals gewoonlijk worden gekoppeld."
+msgstr "De fabrikant stelt de parameters van dit apparaat in met een eigen plug-in-dialoog, die XKNX Editor niet kan uitvoeren; ze kunnen hier daarom niet worden gewijzigd. Een download schrijft hun huidige waarden ongewijzigd; de groepsobjecten kunnen zoals gewoonlijk worden gekoppeld."
 
 msgid "Edit parameters anyway"
 msgstr "Parameters toch bewerken"
@@ -1955,13 +1955,13 @@ msgid "Select a device in the tree first."
 msgstr "Selecteer eerst een apparaat in de boom."
 
 msgid "{device} has no group objects."
-msgstr "{device} heeft geen groepobjecten."
+msgstr "{device} heeft geen groepsobjecten."
 
 msgid "All objects of {device} are in the list already."
 msgstr "Alle objecten van {device} staan al in de lijst."
 
 msgid "Link group objects to existing group addresses."
-msgstr "Groepobjecten aan bestaande groepsadressen koppelen."
+msgstr "Groepsobjecten aan bestaande groepsadressen koppelen."
 
 msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
 msgstr "Objecten toevoegen met \"{add_device}\" of \"{add_objects}\"."
@@ -2030,10 +2030,10 @@ msgid "Import group addresses from {file}"
 msgstr "Groepsadressen uit {file} importeren"
 
 msgid "Link group object"
-msgstr "Groepobject koppelen"
+msgstr "Groepsobject koppelen"
 
 msgid "Unlink group object"
-msgstr "Groepobject ontkoppelen"
+msgstr "Groepsobject ontkoppelen"
 
 msgid "Rename area to {name}"
 msgstr "Gebied hernoemen naar {name}"
@@ -2090,7 +2090,7 @@ msgid "Remove group address from function"
 msgstr "Groepsadres uit functie verwijderen"
 
 msgid "Remove building part"
-msgstr "Gebouwdeel verwijderen"
+msgstr "Gebouwonderdeel verwijderen"
 
 msgid "Remove group range"
 msgstr "Groepsbereik verwijderen"
@@ -2102,7 +2102,7 @@ msgid "Change application program"
 msgstr "Applicatieprogramma wijzigen"
 
 msgid "Update group objects"
-msgstr "Groepobjecten bijwerken"
+msgstr "Groepsobjecten bijwerken"
 
 msgid "Update module instances"
 msgstr "Module-instanties bijwerken"
@@ -2138,25 +2138,25 @@ msgid "Add group address to function"
 msgstr "Groepsadres aan functie toevoegen"
 
 msgid "Create building part {name}"
-msgstr "Gebouwdeel {name} aanmaken"
+msgstr "Gebouwonderdeel {name} aanmaken"
 
 msgid "Rename building part to {name}"
-msgstr "Gebouwdeel hernoemen naar {name}"
+msgstr "Gebouwonderdeel hernoemen naar {name}"
 
 msgid "Set building part number"
-msgstr "Nummer van gebouwdeel instellen"
+msgstr "Nummer van gebouwonderdeel instellen"
 
 msgid "Set building part description"
-msgstr "Beschrijving van gebouwdeel instellen"
+msgstr "Beschrijving van gebouwonderdeel instellen"
 
 msgid "Set building part type"
-msgstr "Type van gebouwdeel instellen"
+msgstr "Type van gebouwonderdeel instellen"
 
 msgid "Move building part"
-msgstr "Gebouwdeel verplaatsen"
+msgstr "Gebouwonderdeel verplaatsen"
 
 msgid "Assign device to building part"
-msgstr "Apparaat aan gebouwdeel toewijzen"
+msgstr "Apparaat aan gebouwonderdeel toewijzen"
 
 msgid "Set commissioning state"
 msgstr "Inbedrijfstellingsstatus instellen"

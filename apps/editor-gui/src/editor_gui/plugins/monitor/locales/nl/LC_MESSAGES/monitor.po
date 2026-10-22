@@ -44,7 +44,7 @@ msgid "Building Function"
 msgstr "Gebouwfunctie"
 
 msgid "Building Part"
-msgstr "Gebouwdeel"
+msgstr "Gebouwonderdeel"
 
 
 msgid "Destination Address"
@@ -189,7 +189,7 @@ msgid "Group Monitor"
 msgstr "Groepsmonitor"
 
 msgid "Group Objects"
-msgstr "Groepobjecten"
+msgstr "Groepsobjecten"
 
 msgid "{count} telegrams"
 msgstr "{count} telegrammen"

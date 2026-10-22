@@ -29,13 +29,13 @@ msgid "{count} device(s) skipped: application not in catalog"
 msgstr "{count} apparaat/apparaten overgeslagen: applicatie niet in catalogus"
 
 msgid "{device}: {count} unlinked group object(s)"
-msgstr "{device}: {count} niet gekoppeld(e) groepobject(en)"
+msgstr "{device}: {count} niet gekoppeld(e) groepsobject(en)"
 
 msgid "{address} {name}: no datapoint type"
 msgstr "{address} {name}: geen datapunttype"
 
 msgid "{address} {name}: no sending group object"
-msgstr "{address} {name}: geen zendend groepobject"
+msgstr "{address} {name}: geen zendend groepsobject"
 
 msgid "{address} {name}: {count} sending group objects"
-msgstr "{address} {name}: {count} zendende groepobjecten"
+msgstr "{address} {name}: {count} zendende groepsobjecten"
