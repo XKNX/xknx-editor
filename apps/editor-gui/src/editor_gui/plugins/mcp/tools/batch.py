@@ -124,15 +124,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ref = p["com_object_ref_id"]
         co = _device(node_id).find_com_object(ref)
         if co is None:
-            raise ValueError(f"no group object {ref!r} on device {node_id}")
+            raise ValueError(f"no com-object {ref!r} on device {node_id}")
         if co.db_id is None:
-            raise ValueError(f"group object {ref!r} is not linkable (not instantiated)")
+            raise ValueError(f"com-object {ref!r} is not linkable (not instantiated)")
         result = perform_link(
             project, node_id, ref, co, p["group_address_id"], p.get("is_sending", False)
         )
         if result is None:
             raise ValueError(
-                f"could not link group object to group address {p['group_address_id']} "
+                f"could not link com-object to group address {p['group_address_id']} "
                 "(check the group address id exists; a Security-On group address only takes "
                 "securely commissioned devices)"
             )

@@ -246,7 +246,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - GROUP_COMMUNICATION: the group-address link tables (address/association/group-object).
         - PARAMETERS_AND_GROUP_COMMUNICATION: both of the above — the scope for a change that touches
           parameters AND links (e.g. changing a push-button function type AND relinking its objects).
-        - APPLICATION: the complete application load — parameters, group object table, AND the
+        - APPLICATION: the complete application load — parameters, com-object table, AND the
           group-address link tables (like FULL, without the standalone address-assignment step).
         - FULL: the full application load; for a device not yet answering it can also assign the
           project address first (optionally via ``use_serial_number``).

@@ -106,7 +106,7 @@ class HealthService:
                 out.append(
                     Finding(
                         Severity.INFO,
-                        "group object",
+                        "com-object",
                         f"{d.name}: {unlinked} unlinked group object(s)",
                         d.node_id,
                     )
