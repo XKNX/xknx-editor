@@ -45,8 +45,6 @@ _TEXT_PAD = 8.0
 _MORE_W = 96.0
 _X = (_PAD, _PAD + _COL_W + _GAP, _PAD + 2 * (_COL_W + _GAP))
 _WIDTH = 2 * _PAD + 3 * _COL_W + 2 * _GAP
-# Without a choice, a project with at most this many linking group addresses is shown whole.
-_SMALL_PROJECT = 80
 # "Fit" zooms out at most this far.
 _FIT_MIN = 0.7
 _ELLIPSIS = "…"
@@ -68,7 +66,8 @@ class LinkView:
         self._get_group_names = get_group_names
         self._on_open = on_open
         self._device_tooltip = device_tooltip
-        self._scope: Scope | None = None
+        # The whole project first; a room, a main group, a device or a group address on choice.
+        self._scope = Scope("all")
         self._history: list[Scope] = []
         # Group addresses whose devices outside the scope are shown one by one.
         self._expanded: set[int] = set()
@@ -86,7 +85,7 @@ class LinkView:
     def render_toolbar(self) -> None:
         """The choice of what to show, Back and Fit, in one row."""
         hubs = self._get_hubs()
-        scope = self._current_scope(hubs)
+        scope = self._scope
         imgui.align_text_to_frame_padding()
         imgui.text_disabled(S.TOPOLOGY_SCOPE)
         imgui.same_line()
@@ -100,8 +99,7 @@ class LinkView:
         )
         room = imgui.get_content_region_avail().x - buttons
         imgui.set_next_item_width(max(px(100.0), min(px(320.0), room)))
-        preview = self._scope_label(scope, hubs) if scope else S.TOPOLOGY_SCOPE_CHOOSE
-        if begin_combo("##topo_scope", preview):
+        if begin_combo("##topo_scope", self._scope_label(scope, hubs)):
             if imgui.selectable(S.TOPOLOGY_SCOPE_ALL, scope == Scope("all"))[0]:
                 self._show(Scope("all"))
             rooms = [label for label, _ids in self._room_order()]
@@ -131,18 +129,11 @@ class LinkView:
         if imgui.button(S.TOPOLOGY_FIT):
             self._fit_pending = True
 
-    def _current_scope(self, hubs: list[Hub]) -> Scope | None:
-        if self._scope is None and _linking(hubs) <= _SMALL_PROJECT:
-            return Scope("all")
-        return self._scope
-
     def _show(self, scope: Scope) -> None:
         """Show ``scope``; Back returns to what was shown before."""
-        current = self._current_scope(self._get_hubs())
-        if scope == current:
+        if scope == self._scope:
             return
-        if current is not None:
-            self._history.append(current)
+        self._history.append(self._scope)
         self._scope = scope
         self._expanded.clear()
         self._fit_pending = True
@@ -213,11 +204,7 @@ class LinkView:
     def render_canvas(self) -> None:
         """The diagram, inside the scrolling canvas window."""
         hubs = self._get_hubs()
-        scope = self._current_scope(hubs)
-        if scope is None:
-            imgui.text_disabled(S.TOPOLOGY_CHOOSE_SCOPE)
-            return
-        layout = self._flow(scope, hubs)
+        layout = self._flow(self._scope, hubs)
         if not layout.nodes:
             imgui.text_disabled(S.TOPOLOGY_NO_LINKS)
             return
@@ -232,7 +219,7 @@ class LinkView:
             self._fit_pending = False
         self._zoom = zoom_with_wheel(self._zoom)
         clicked = self._drag.update()
-        self._draw(layout, scope, hubs, clicked)
+        self._draw(layout, self._scope, hubs, clicked)
 
     def _draw(
         self, layout: FlowLayout, scope: Scope, hubs: list[Hub], clicked: bool
@@ -473,8 +460,3 @@ class LinkView:
                 self._fitted.clear()
             self._fitted[key] = fitted
         return fitted
-
-
-def _linking(hubs: list[Hub]) -> int:
-    """How many group addresses link two or more devices."""
-    return sum(1 for hub in hubs if len(hub[3]) > 1)

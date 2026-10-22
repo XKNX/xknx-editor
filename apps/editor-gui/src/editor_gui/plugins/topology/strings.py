@@ -67,16 +67,6 @@ class TopologyStrings:
         return _("Show")
 
     @property
-    def TOPOLOGY_SCOPE_CHOOSE(self) -> str:
-        return _("Choose…")
-
-    @property
-    def TOPOLOGY_CHOOSE_SCOPE(self) -> str:
-        return _(
-            "Choose above what to show: the whole project, a room or a main group."
-        )
-
-    @property
     def TOPOLOGY_SCOPE_ALL(self) -> str:
         return _("Whole Project")
 
