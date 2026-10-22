@@ -181,8 +181,8 @@ msgstr "Doel (objecten)"
 msgid "Preview & Link"
 msgstr "Voorbeeld & koppelen"
 
-msgid "Add Objects…"
-msgstr "Objecten toevoegen…"
+msgid "Add Group Objects…"
+msgstr "Groepobjecten toevoegen…"
 
 msgid "Add Group Addresses…"
 msgstr "Groepsadressen toevoegen…"
@@ -1271,8 +1271,8 @@ msgstr "Geen project"
 msgid "No project log entries"
 msgstr "Geen items in het projectlogboek"
 
-msgid "Object"
-msgstr "Object"
+msgid "Group Object"
+msgstr "Groepobject"
 
 msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
 msgstr "Alleen voor ETS 6-apparaten: deze test vergelijkt het apparaat met een geheugenbeeld dat op de manier van ETS 6 is gegenereerd. Een apparaat dat het laatst met ETS 5 is geprogrammeerd, gebruikt een andere byte-indeling en toont grote onterechte verschillen - het resultaat is alleen zinvol voor een apparaat dat het laatst met ETS 6 is geprogrammeerd."
@@ -1394,8 +1394,8 @@ msgstr "Systeembyte die het apparaat tijdens runtime zelf instelt (bijv. een dow
 msgid "Target Group Address"
 msgstr "Doelgroepsadres"
 
-msgid "Target Object"
-msgstr "Doelobject"
+msgid "Target Group Object"
+msgstr "Doel-groepobject"
 
 msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
 msgstr "De verschuiving wordt opgeteld bij de ruwe 16-bitwaarde, waardoor de hoofd-/middengroep kan veranderen wanneer adressen een grens overschrijden."
@@ -1986,3 +1986,6 @@ msgstr "\"{link_all}\" maakt de groepsadressen aan en koppelt ze."
 
 msgid "Link All"
 msgstr "Alles koppelen"
+
+msgid "Object"
+msgstr "Object"

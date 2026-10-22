@@ -522,8 +522,8 @@ msgstr "Ziel (Objekte)"
 msgid "Preview & Link"
 msgstr "Vorschau & Verknüpfen"
 
-msgid "Add Objects…"
-msgstr "Objekte hinzufügen…"
+msgid "Add Group Objects…"
+msgstr "Kommunikationsobjekte hinzufügen…"
 
 msgid "Add Group Addresses…"
 msgstr "Gruppenadressen hinzufügen…"
@@ -780,8 +780,8 @@ msgstr "Ersetzt; {count} Kommunikationsobjekt(e) neu zugeordnet"
 msgid "Device"
 msgstr "Gerät"
 
-msgid "Object"
-msgstr "Objekt"
+msgid "Group Object"
+msgstr "Kommunikationsobjekt"
 
 msgid "DPT"
 msgstr "DPT"
@@ -789,8 +789,8 @@ msgstr "DPT"
 msgid "Target Group Address"
 msgstr "Ziel-Gruppenadresse"
 
-msgid "Target Object"
-msgstr "Zielobjekt"
+msgid "Target Group Object"
+msgstr "Ziel-Kommunikationsobjekt"
 
 msgid "Group Address"
 msgstr "Gruppenadresse"
@@ -2132,3 +2132,6 @@ msgstr "\"{link_all}\" legt die Gruppenadressen an und verknüpft sie."
 
 msgid "Link All"
 msgstr "Alle verknüpfen"
+
+msgid "Object"
+msgstr "Objekt"

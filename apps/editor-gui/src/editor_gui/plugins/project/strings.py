@@ -139,7 +139,7 @@ class ProjectStrings:
 
     @property
     def ML_ADD_OBJECTS(self) -> str:
-        return _("Add Objects…")
+        return _("Add Group Objects…")
 
     @property
     def ML_ADD_GAS(self) -> str:
@@ -231,7 +231,7 @@ class ProjectStrings:
 
     @property
     def ML_COL_OBJECT(self) -> str:
-        return _("Object")
+        return _("Group Object")
 
     @property
     def ML_COL_DPT(self) -> str:
@@ -243,7 +243,7 @@ class ProjectStrings:
 
     @property
     def ML_COL_TARGET_CO(self) -> str:
-        return _("Target Object")
+        return _("Target Group Object")
 
     @property
     def ML_COL_GA_ADDR(self) -> str:
