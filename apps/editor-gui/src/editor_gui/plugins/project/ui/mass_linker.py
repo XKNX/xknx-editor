@@ -451,7 +451,7 @@ class MassLinkerPanel:
             imgui.table_set_column_index(4)
             self._target_ga_combo(i, row, flat, by_id)
             imgui.table_set_column_index(5)
-            if imgui.small_button(f"x##rm1{i}"):
+            if _remove_button(f"x##rm1{i}"):
                 self._pending_remove = (1, i)
         imgui.end_table()
 
@@ -690,7 +690,7 @@ class MassLinkerPanel:
             imgui.table_set_column_index(4)
             self._ga_field(f"##ganame{i}", row, "ga_name", sugg_name)
             imgui.table_set_column_index(5)
-            if imgui.small_button(f"x##rm2{i}"):
+            if _remove_button(f"x##rm2{i}"):
                 self._pending_remove = (2, i)
         imgui.end_table()
 
@@ -1019,6 +1019,13 @@ def _desc(text: str) -> None:
     imgui.text_disabled(text)
     imgui.pop_text_wrap_pos()
     imgui.spacing()
+
+
+def _remove_button(label: str) -> bool:
+    """A square button as high as the row's drop-downs and fields, so its "x" sits on their
+    text line (a small button has no frame padding and sits lower)."""
+    side = imgui.get_frame_height()
+    return imgui.button(label, imgui.ImVec2(side, side))
 
 
 def _continue_row(width: float) -> None:
