@@ -40,7 +40,7 @@ if TYPE_CHECKING:
     from xknxeditor.proj.core.service import GroupRangeInfo
 
 LinkResult = tuple[int, list[str]]  # (linked count, error messages)
-# How long a note beside the row count stays.
+# How long a note under the row buttons stays.
 _NOTE_SECONDS = 4.0
 
 
@@ -295,7 +295,7 @@ class MassLinkerPanel:
         self._open_obj_pending = False
         self._open_result_pending = False
         self._pending_remove: tuple[int, int] | None = None  # (tab, row index)
-        # A short note beside the row count (e.g. why '+ Selected Device' added nothing), shown
+        # A short note under the row buttons (e.g. why '+ Selected Device' added nothing), shown
         # until the given time.
         self._notice: tuple[str, float] | None = None
 
@@ -789,7 +789,7 @@ class MassLinkerPanel:
         if self._notice is not None:
             text, until = self._notice
             if time.monotonic() < until:
-                _continue_row(imgui.calc_text_size(text).x)
+                # On its own line under the buttons, where it is seen after the click.
                 imgui.text_colored(_STATUS_STYLE["ambiguous"][0], text)
             else:
                 self._notice = None
