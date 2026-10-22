@@ -27,6 +27,10 @@ _CJK_FONTS = {
     "jp": ("fonts/NotoSansJP-Regular.otf", "fonts/NotoSansJP-Bold.otf"),
 }
 
+# Letters the regular Droid Sans face lacks, drawn with a nearly identical glyph it has: the
+# Romanian t with a comma below as the t with a cedilla (the bold face has both).
+_SIMILAR_GLYPHS = ((0x021A, 0x0162), (0x021B, 0x0163))
+
 _default: imgui.ImFont | None = None
 _bold: imgui.ImFont | None = None
 _italic: imgui.ImFont | None = None
@@ -47,6 +51,10 @@ def load_fonts() -> None:
     # Droid Sans has no italic face: the regular one, slanted.
     _italic = _load_variant(_DEFAULT_FONT, _FREETYPE_OBLIQUE)
     _merge_cjk(order, bold=False, flags=_FREETYPE_OBLIQUE)
+    for font in (_default, _italic):
+        if font is not None:
+            for missing, similar in _SIMILAR_GLYPHS:
+                font.add_remap_char(missing, similar)
     _cjk_order = order
 
 
