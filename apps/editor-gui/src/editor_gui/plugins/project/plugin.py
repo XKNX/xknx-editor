@@ -47,6 +47,7 @@ from editor_gui.plugins.project.ui import (
     SpacesPanel,
     ToolsPanel,
 )
+from editor_gui.plugins.project.ui.comment import CommentPanel
 from editor_gui.plugins.project.ui.dali_commissioning import DaliCommissioningPanel
 from editor_gui.plugins.project.ui.device_certificate import (
     CertificateState,
@@ -212,6 +213,7 @@ class ProjectPlugin:
             get_unloaded_devices=lambda: api.project.unloaded_devices,
             on_device_info=self._open_read_dialog,
             on_compare=self._open_compare,
+            on_select_element=api.project.select_comment_target,
         )
         self._compare_panel = DeviceComparePanel(
             get_devices=lambda: api.project.devices,
@@ -320,6 +322,7 @@ class ProjectPlugin:
 
         self._group_addresses_panel = GroupAddressesPanel(
             get_range_tree=api.project.get_group_range_tree,
+            on_select_element=api.project.select_comment_target,
             get_assignments_for_ga=api.project.get_assignments_for_ga,
             get_devices=lambda: api.project.devices,
             on_create_ga=self._on_create_ga,
@@ -370,6 +373,7 @@ class ProjectPlugin:
             count_paste_targets=self._count_paste_targets,
             on_device_info=self._open_read_dialog,
             on_compare=self._open_compare,
+            on_select_element=api.project.select_comment_target,
         )
 
         self._project_info_panel = ProjectInfoPanel(
@@ -387,6 +391,7 @@ class ProjectPlugin:
             get_traces=api.project.get_project_traces,
         )
 
+        self._comment_panel = CommentPanel(api.project)
         self._history_panel = HistoryPanel(
             get_entries=self._get_history_entries,
             get_cursor=lambda: api.project.cursor,
@@ -456,6 +461,12 @@ class ProjectPlugin:
                 label=S.PANEL_MANUFACTURER,
                 dock="DeviceSpace",
                 render=self._render_manufacturer,
+            ),
+            PanelDefinition(
+                name="comment",
+                label=S.PANEL_COMMENT,
+                dock="DeviceSpace",
+                render=self._comment_panel.render,
             ),
             PanelDefinition(
                 name="mass_linker",
@@ -2370,6 +2381,7 @@ class ProjectPlugin:
         self._group_addresses_panel.start_import()
 
     def render_overlays(self) -> None:
+        self._comment_panel.tick()
         self._group_addresses_panel.render_import()
         self._read_device_dialog.render()
         self._certificate_dialog.render()

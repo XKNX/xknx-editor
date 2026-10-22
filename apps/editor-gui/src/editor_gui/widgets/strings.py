@@ -390,5 +390,53 @@ class WidgetStrings(BaseStrings):
     def GROUP_OBJECTS_PRIORITY_ALERT(self) -> str:
         return _("Alert")
 
+    @property
+    def RICH_TEXT_BOLD(self) -> str:
+        return _("Bold")
+
+    @property
+    def RICH_TEXT_ITALIC(self) -> str:
+        return _("Italic")
+
+    @property
+    def RICH_TEXT_UNDERLINE(self) -> str:
+        return _("Underline")
+
+    @property
+    def RICH_TEXT_CUT(self) -> str:
+        return _("Cut")
+
+    @property
+    def RICH_TEXT_COPY(self) -> str:
+        return _("Copy")
+
+    @property
+    def RICH_TEXT_PASTE(self) -> str:
+        return _("Paste")
+
+    @property
+    def SHORTCUT_BOLD(self) -> str:
+        return "Ctrl+B"
+
+    @property
+    def SHORTCUT_ITALIC(self) -> str:
+        return "Ctrl+I"
+
+    @property
+    def SHORTCUT_UNDERLINE(self) -> str:
+        return "Ctrl+U"
+
+    @property
+    def SHORTCUT_CUT(self) -> str:
+        return "Ctrl+X"
+
+    @property
+    def SHORTCUT_COPY(self) -> str:
+        return "Ctrl+C"
+
+    @property
+    def SHORTCUT_PASTE(self) -> str:
+        return "Ctrl+V"
+
 
 S = WidgetStrings()

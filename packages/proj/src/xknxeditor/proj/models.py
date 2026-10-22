@@ -314,6 +314,9 @@ class Device(_SourcePuid, Base):
     # Descriptive metadata carried over from the imported .knxproj (for display without a catalog).
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
     comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # The DeviceInstance ``InstallationHints`` (RTF, like ``comment``). Projects saved before this
+    # column existed keep it in ``extra_attributes``; read it with ``installation_hints()``.
+    installation_hints: Mapped[str] = mapped_column(Text, nullable=False, default="")
     # The DeviceInstance ``LastModified`` timestamp, carried over verbatim (nullable, like
     # ``last_download``). Emitted as-is on export.
     last_modified: Mapped[str | None] = mapped_column(String)
@@ -366,6 +369,14 @@ class Device(_SourcePuid, Base):
     trade_links: Mapped[list["TradeDevice"]] = relationship(
         back_populates="device",
         viewonly=True,
+    )
+
+
+def installation_hints(device: Device) -> str:
+    """The device's installation hints (RTF), also from a project saved before they had their own
+    column."""
+    return device.installation_hints or (device.extra_attributes or {}).get(
+        "InstallationHints", ""
     )
 
 

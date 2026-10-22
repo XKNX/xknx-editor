@@ -77,6 +77,7 @@ from xknxeditor.proj.core.events import (
     RenameGroupRange,
     RenameLine,
     RenameSpace,
+    SetComment,
     SetComObjectDatapointType,
     SetComObjectDescription,
     SetComObjectFlag,
@@ -103,6 +104,7 @@ from xknxeditor.proj.core.events import (
     UnlinkComObject,
     UpdateDeviceApplication,
     additional_address_entries,
+    stored_comment,
 )
 from xknxeditor.proj.core.fdsk import Fdsk, InvalidFdskError, parse_fdsk
 from xknxeditor.proj.core.function_detect import classify_function
@@ -2480,6 +2482,26 @@ class ProjectService:
     ) -> None:
         self._state(project_id).store.append(
             SetDeviceDescription(device_id=device_id, description=description)
+        )
+
+    def comment(
+        self, project_id: str, kind: str, element_id: int, field: str = "comment"
+    ) -> str | None:
+        """An element's comment (RTF as stored), or a device's installation hints for ``field``
+        "installation_hints"; ``kind`` is a ``COMMENT_KINDS`` name. None without such an element."""
+        return stored_comment(self._state(project_id).session, kind, element_id, field)
+
+    def set_comment(
+        self,
+        project_id: str,
+        kind: str,
+        element_id: int,
+        comment: str,
+        field: str = "comment",
+    ) -> None:
+        """Set an element's comment, or a device's installation hints (both RTF); undoable."""
+        self._state(project_id).store.append(
+            SetComment(kind=kind, element_id=element_id, comment=comment, field=field)
         )
 
     def sync_device_com_objects(

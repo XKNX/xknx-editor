@@ -298,3 +298,18 @@ msgstr "Hoch"
 
 msgid "Alert"
 msgstr "Alarm"
+
+msgid "Bold"
+msgstr "Fett"
+
+msgid "Italic"
+msgstr "Kursiv"
+
+msgid "Underline"
+msgstr "Unterstreichen"
+
+msgid "Cut"
+msgstr "Ausschneiden"
+
+msgid "Paste"
+msgstr "Einfügen"

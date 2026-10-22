@@ -38,6 +38,8 @@ from xknxeditor.proj.models import (
     Project,
     Segment,
     Space,
+    Trade,
+    installation_hints,
 )
 
 EVENT_TYPES: dict[str, type[Event]] = {}
@@ -2258,6 +2260,101 @@ class SetDeviceDescription(Event):
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> SetDeviceDescription:
+        return cls(**data)
+
+
+# The elements that carry a comment, by the kind name ``SetComment`` uses.
+COMMENT_KINDS: dict[str, type[Any]] = {
+    "project": Project,
+    "area": Area,
+    "line": Line,
+    "device": Device,
+    "space": Space,
+    "function": Function,
+    "trade": Trade,
+    "group_range": GroupRange,
+    "group_address": GroupAddress,
+}
+
+
+def stored_comment(
+    session: Session, kind: str, element_id: int, field: str
+) -> str | None:
+    """The comment (RTF as stored) of an element, or a device's installation hints for ``field``
+    "installation_hints"; None when there is no such element."""
+    if kind == "project":
+        # Only the column: the project row also holds the product archives (tens of MB).
+        return session.query(Project.comment).limit(1).scalar()
+    element = _comment_element(session, kind, element_id)
+    if element is None:
+        return None
+    if field == "installation_hints":
+        return installation_hints(cast(Device, element))
+    return cast(str, element.comment or "")
+
+
+def _comment_element(session: Session, kind: str, element_id: int) -> Any:
+    model = COMMENT_KINDS.get(kind)
+    return None if model is None else session.get(model, element_id)
+
+
+@_register
+@dataclass
+class SetComment(Event):
+    """An element's comment, or a device's installation hints (``field`` "installation_hints");
+    both are RTF. ``kind`` is a ``COMMENT_KINDS`` name; the project ignores ``element_id``."""
+
+    event_type: ClassVar[str] = "SetComment"
+
+    kind: str
+    element_id: int
+    comment: str
+    field: str = "comment"
+    old_comment: str | None = None
+
+    def apply(self, session: Session) -> None:
+        self.old_comment = stored_comment(
+            session, self.kind, self.element_id, self.field
+        )
+        self._set(session, self.comment)
+
+    def revert(self, session: Session) -> None:
+        if self.old_comment is not None:
+            self._set(session, self.old_comment)
+
+    def _set(self, session: Session, value: str) -> None:
+        if self.kind == "project":
+            session.query(Project).update(
+                {Project.comment: value}, synchronize_session="fetch"
+            )
+            return
+        element = _comment_element(session, self.kind, self.element_id)
+        if element is None:
+            return
+        if self.field != "installation_hints":
+            element.comment = value
+            return
+        device = cast(Device, element)
+        device.installation_hints = value
+        if device.extra_attributes and "InstallationHints" in device.extra_attributes:
+            # Kept there by projects saved before the column existed; the column wins now.
+            device.extra_attributes = {
+                k: v
+                for k, v in device.extra_attributes.items()
+                if k != "InstallationHints"
+            }
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "kind": self.kind,
+            "element_id": self.element_id,
+            "comment": self.comment,
+            "field": self.field,
+            "old_comment": self.old_comment,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetComment:
         return cls(**data)
 
 

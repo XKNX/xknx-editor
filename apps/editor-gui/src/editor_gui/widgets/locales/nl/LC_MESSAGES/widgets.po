@@ -301,3 +301,18 @@ msgstr "Hoog"
 
 msgid "Alert"
 msgstr "Alarm"
+
+msgid "Bold"
+msgstr "Vet gedrukt"
+
+msgid "Italic"
+msgstr "Cursief"
+
+msgid "Underline"
+msgstr "Onderlijn"
+
+msgid "Cut"
+msgstr "Knippen"
+
+msgid "Paste"
+msgstr "Plakken"

@@ -16,6 +16,18 @@ class ProjectStrings:
         return _("Manufacturer")
 
     @property
+    def PANEL_COMMENT(self) -> str:
+        return _("Comment")
+
+    @property
+    def COMMENT_INSTALLATION_HINTS(self) -> str:
+        return _("Installation Hints")
+
+    @property
+    def COMMENT_NOTHING_SELECTED(self) -> str:
+        return _("Select an element in a tree to see its comment.")
+
+    @property
     def PANEL_DEVICES(self) -> str:
         return _("Devices")
 
@@ -3255,6 +3267,14 @@ class ProjectStrings:
     @property
     def HISTORY_EV_SET_DEVICE_DESCRIPTION(self) -> str:
         return _("Set device description")
+
+    @property
+    def HISTORY_EV_SET_COMMENT(self) -> str:
+        return _("Set comment")
+
+    @property
+    def HISTORY_EV_SET_INSTALLATION_HINTS(self) -> str:
+        return _("Set installation hints")
 
     @property
     def HISTORY_EV_CREATE_FUNCTION(self) -> str:

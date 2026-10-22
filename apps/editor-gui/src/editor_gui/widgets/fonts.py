@@ -1,4 +1,5 @@
-"""The default font plus bold (headlines) and italic (placeholders) variants of it."""
+"""The default font plus bold (headlines), italic (placeholders) and bold italic (formatted
+comments) variants of it."""
 
 from __future__ import annotations
 
@@ -34,13 +35,14 @@ _SIMILAR_GLYPHS = ((0x021A, 0x0162), (0x021B, 0x0163))
 _default: imgui.ImFont | None = None
 _bold: imgui.ImFont | None = None
 _italic: imgui.ImFont | None = None
+_bold_italic: imgui.ImFont | None = None
 _cjk_order: tuple[str, ...] = ()
 
 
 def load_fonts() -> None:
     """Load the default fonts and the bold and italic variants; the ``load_additional_fonts``
     callback."""
-    global _default, _bold, _italic, _cjk_order
+    global _default, _bold, _italic, _bold_italic, _cjk_order
     order = _wanted_cjk_order()
     _default = hello_imgui.load_font_ttf_with_font_awesome_icons(
         _DEFAULT_FONT, _FONT_SIZE
@@ -51,6 +53,8 @@ def load_fonts() -> None:
     # Droid Sans has no italic face: the regular one, slanted.
     _italic = _load_variant(_DEFAULT_FONT, _FREETYPE_OBLIQUE)
     _merge_cjk(order, bold=False, flags=_FREETYPE_OBLIQUE)
+    _bold_italic = _load_variant(_BOLD_FONT, _FREETYPE_OBLIQUE)
+    _merge_cjk(order, bold=True, flags=_FREETYPE_OBLIQUE)
     for font in (_default, _italic):
         if font is not None:
             for missing, similar in _SIMILAR_GLYPHS:
@@ -64,7 +68,7 @@ def follow_language() -> None:
     if not _cjk_order or _wanted_cjk_order() == _cjk_order:
         return
     fonts = imgui.get_io().fonts
-    for font in (_default, _bold, _italic):
+    for font in (_default, _bold, _italic, _bold_italic):
         if font is not None:
             fonts.remove_font(font)
     # The regular font is the first one again, which ImGui takes as the default font.
@@ -134,3 +138,13 @@ def italic() -> Generator[None]:
         yield
     finally:
         imgui.pop_font()
+
+
+def styled_font(bold: bool, italic: bool) -> imgui.ImFont | None:
+    """The font for text in bold and/or italic; None for the regular font (or a variant that could
+    not be loaded)."""
+    if bold and italic:
+        return _bold_italic or _bold
+    if bold:
+        return _bold
+    return _italic if italic else None

@@ -2175,3 +2175,15 @@ msgstr "{device}: ongeldig adres '{address}'"
 
 msgid "{device}: duplicate address {address}"
 msgstr "{device}: dubbel adres {address}"
+
+msgid "Installation Hints"
+msgstr "Installatietips"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Selecteer een element in een boom om de opmerking ervan te zien."
+
+msgid "Set comment"
+msgstr "Opmerking instellen"
+
+msgid "Set installation hints"
+msgstr "Installatietips instellen"

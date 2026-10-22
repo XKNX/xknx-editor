@@ -67,8 +67,14 @@ class DevicesPanel:
         get_unloaded_devices: Callable[[], list[UnloadedDevice]] = lambda: [],
         on_device_info: Callable[[int], None] | None = None,
         on_compare: Callable[[int], None] | None = None,
+        on_select_element: Callable[[str, int], None] = lambda _k, _i: None,
     ) -> None:
         self._get_devices = get_devices
+        # Selecting an area or a line (its comment shows in the Comment tab).
+        self._on_select_element = on_select_element
+        # The area or line selected in this tree: (kind, id, the device selected then). It is
+        # highlighted instead of the device until another device is selected.
+        self._element: tuple[str, int, int | None] | None = None
         self._on_device_info = on_device_info
         self._on_compare = on_compare
         self._get_unloaded_devices = get_unloaded_devices
@@ -160,10 +166,15 @@ class DevicesPanel:
             | imgui.TreeNodeFlags_.span_avail_width
         )
         # Highlight every selected device (multi-select); include the single primary for safety.
+        # An area or line selected after them takes the highlight.
         selected_ids = set(self._get_selected_node_ids())
         single = self._get_selected_node_id()
         if single is not None:
             selected_ids.add(single)
+        element = self._element
+        target = element[:2] if element is not None and element[2] == single else None
+        if target is not None:
+            selected_ids = set[int]()
 
         def _leaf(device: TreeDevice) -> int:
             flags = leaf_flags
@@ -193,14 +204,21 @@ class DevicesPanel:
             ):
                 continue  # while filtering, hide areas with no matching device
             area_label = self._format_area_label(area)
+            # A click selects the area, the arrow and a double click open it.
             area_flags = (
                 imgui.TreeNodeFlags_.default_open
                 | imgui.TreeNodeFlags_.span_avail_width
+                | imgui.TreeNodeFlags_.open_on_arrow
+                | imgui.TreeNodeFlags_.open_on_double_click
             )
+            if target == ("area", area.id):
+                area_flags |= imgui.TreeNodeFlags_.selected
             if flt:
                 imgui.set_next_item_open(True, imgui.Cond_.always)
             # The context menu belongs to the node whether it is open or closed.
             area_open = tree_node(f"{area_label}##area_{area.id}", area_flags)
+            if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+                self._select_element("area", area.id)
             self._render_area_context_menu(area, lines)
             if area_open:
                 for line in lines:
@@ -215,10 +233,16 @@ class DevicesPanel:
                     line_flags = (
                         imgui.TreeNodeFlags_.default_open
                         | imgui.TreeNodeFlags_.span_avail_width
+                        | imgui.TreeNodeFlags_.open_on_arrow
+                        | imgui.TreeNodeFlags_.open_on_double_click
                     )
+                    if target == ("line", line.id):
+                        line_flags |= imgui.TreeNodeFlags_.selected
                     if flt:
                         imgui.set_next_item_open(True, imgui.Cond_.always)
                     line_open = tree_node(f"{line_label}##line_{line.id}", line_flags)
+                    if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+                        self._select_element("line", line.id)
                     self._render_line_context_menu(line)
                     self._render_line_drop_target(area, line)
                     if line_open:
@@ -288,9 +312,14 @@ class DevicesPanel:
                 self._open_delete_device_popup = True
             imgui.end_popup()
 
+    def _select_element(self, kind: str, element_id: int) -> None:
+        self._element = (kind, element_id, self._get_selected_node_id())
+        self._on_select_element(kind, element_id)
+
     def _handle_device_click(self, device: Device, ordered_ids: list[int]) -> None:
         """Selection: plain click = single, Ctrl = toggle, Shift = range (additive with
         Ctrl). Falls back to single-select when the multi-select callback is not wired."""
+        self._element = None
         if self._on_select_devices is None:
             self._on_select_device(device)
             return
