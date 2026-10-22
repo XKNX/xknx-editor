@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING
 
 from editor_gui.concurrency import io_guarded
 from editor_gui.languages import product_language, product_text_languages
+from editor_gui.plugins.catalog.filters import OnlineFilters
 from xknxeditor.prod import Application
 
 # The settings file the download language was stored in (see _forget_stored_language).
@@ -78,6 +79,8 @@ class CatalogService:
         # The online products last listed per manufacturer, for their text languages on download.
         self._browsed: dict[int, list[OnlineCatalogItem]] = {}
         _forget_stored_language()
+        # The market and product language the online catalog shows products for.
+        self.online_filters = OnlineFilters(self._online_client)
 
     @property
     def online_languages(self) -> list[str]:
@@ -238,13 +241,14 @@ class CatalogService:
     def search_online_products(
         self, query: str, limit: int = 300
     ) -> tuple[list[OnlineCatalogItem], int]:
-        """Flat cross-manufacturer product search over the cached index; (results, total)."""
+        """Flat cross-manufacturer product search over the cached index, of the products the
+        market and language filters show; (results, total)."""
         from editor_gui.plugins.catalog.online_catalog import search_index
 
         index = self._online_client.cached_index()
         if not index:
             return [], 0
-        return search_index(index, query, limit)
+        return search_index(index, query, limit, self.online_filters.predicate())
 
     def download_online_products(
         self, catalog_item_ids: list[str], language_ids: list[str] | None = None

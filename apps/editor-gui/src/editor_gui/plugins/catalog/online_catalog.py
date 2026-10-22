@@ -51,6 +51,43 @@ def download_languages(locale: str) -> list[str]:
     return [first, *(lang.culture for lang in LANGUAGES if lang.culture != first)]
 
 
+# The market of each country the online catalog has one for (ISO 3166 code -> its market's name).
+MARKET_REGIONS: dict[str, str] = {
+    "AE": "United Arab Emirates", "AR": "Argentina", "AT": "Austria", "AU": "Australia",
+    "BE": "Belgium", "BH": "Bahrain", "BN": "Brunei", "BR": "Brazil", "BY": "Belarus",
+    "CH": "Switzerland", "CL": "Chile", "CN": "China", "CO": "Colombia", "CZ": "Czech Republic",
+    "DE": "Germany", "DK": "Denmark", "EE": "Estonia", "ES": "Spain", "FI": "Finland",
+    "FR": "France", "GB": "United Kingdom", "GR": "Greece", "HK": "Hong Kong", "HR": "Croatia",
+    "HU": "Hungary", "ID": "Indonesia", "IE": "Ireland", "IN": "India", "IS": "Iceland",
+    "IT": "Italy", "JP": "Japan", "KH": "Cambodia", "KR": "Korea", "KW": "Kuwait",
+    "KZ": "Kazakhstan", "LA": "Laos", "LB": "Lebanon", "LI": "Liechtenstein", "LT": "Lithuania",
+    "LU": "Luxemburg", "LV": "Latvia", "MM": "Myanmar", "MO": "Macau", "MX": "Mexico",
+    "MY": "Malaysia", "NL": "Netherlands", "NO": "Norway", "NZ": "New Zealand", "PH": "Philippines",
+    "PL": "Poland", "PT": "Portugal", "QA": "Qatar", "RO": "Romania", "RS": "Serbia",
+    "RU": "Russia", "SA": "Saudi Arabia", "SE": "Sweden", "SG": "Singapore", "SI": "Slovenia",
+    "SK": "Slovakia", "TH": "Thailand", "TL": "Timor-Leste", "TR": "Turkey", "TW": "Taiwan",
+    "UA": "Ukraine", "US": "USA", "UY": "Uruguay", "VN": "Vietnam", "ZA": "South Africa",
+}  # fmt: skip
+
+
+def market_for_region(markets: Iterable[OnlineMarket], region: str) -> str | None:
+    """The id of the market of the country ``region`` ("DE"), when the catalog has one."""
+    name = MARKET_REGIONS.get(region.upper())
+    return next((m.id for m in markets if m.name == name), None) if name else None
+
+
+def offered(item: OnlineCatalogItem, market: str | None, language: str | None) -> bool:
+    """Whether ``item`` is offered in ``market`` (an id; None for all markets) and has texts in
+    ``language`` ("de-DE", any region; None for all). Unknown markets or languages count as
+    offered, so an older index hides nothing."""
+    if market is not None and item.markets is not None and market not in item.markets:
+        return False
+    if language is not None and item.languages:
+        base = language.split("-")[0].lower()
+        return any(code.split("-")[0].lower() == base for code in item.languages)
+    return True
+
+
 def with_variants(wanted: list[str], offered: Iterable[str]) -> list[str]:
     """``wanted`` language ids plus the variants of the same languages a product ``offered``
     ("de-DE" also asks for "de" and "de-AT" when the product has those), each behind its language."""
@@ -557,14 +594,18 @@ def _item_from_dict(d: dict[str, object]) -> OnlineCatalogItem:
 
 
 def search_index(
-    index: dict[int, list[OnlineCatalogItem]], query: str, limit: int = 300
+    index: dict[int, list[OnlineCatalogItem]],
+    query: str,
+    limit: int = 300,
+    keep: Callable[[OnlineCatalogItem], bool] | None = None,
 ) -> tuple[list[OnlineCatalogItem], int]:
     """Flat cross-manufacturer product search over a built index.
 
     Matches ``query`` (case-insensitive) against order number, name and application program name.
     Returns ``(results, total_matches)``; ``results`` is capped at ``limit`` and ordered so the
     most relevant come first (order-number prefix > order-number contains > name/other). ``total``
-    is the full match count before capping, so the UI can say "showing 300 of N"."""
+    is the full match count before capping, so the UI can say "showing 300 of N". ``keep`` leaves
+    out the items it rejects (the market and language filters)."""
     key = query.strip().lower()
     if not key:
         return [], 0
@@ -588,6 +629,7 @@ def search_index(
         if key in item.order_number.lower()
         or key in item.name.lower()
         or key in item.application_program_name.lower()
+        if keep is None or keep(item)
     ]
     matches.sort(key=lambda i: (rank(i), i.order_number.lower(), i.name.lower()))
     return matches[:limit], len(matches)

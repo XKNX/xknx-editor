@@ -198,3 +198,15 @@ msgstr "此设备支持 KNX Data Secure。请设置项目密码以进行安全�
 
 msgid "Search…"
 msgstr "搜索…"
+
+msgid "Market:"
+msgstr "市场："
+
+msgid "All Markets"
+msgstr "所有市场"
+
+msgid "Only Products in {language}"
+msgstr "仅限{language}产品"
+
+msgid "{shown} of {total} products shown"
+msgstr "显示 {total} 个产品中的 {shown} 个"

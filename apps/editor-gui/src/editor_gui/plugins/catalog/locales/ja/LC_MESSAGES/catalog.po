@@ -198,3 +198,15 @@ msgstr "このデバイスは KNX Data Secure に対応しています。安全�
 
 msgid "Search…"
 msgstr "検索…"
+
+msgid "Market:"
+msgstr "マーケット："
+
+msgid "All Markets"
+msgstr "すべてのマーケット"
+
+msgid "Only Products in {language}"
+msgstr "{language}の製品のみ"
+
+msgid "{shown} of {total} products shown"
+msgstr "{total} 件中 {shown} 件の製品を表示"

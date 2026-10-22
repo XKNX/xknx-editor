@@ -198,3 +198,15 @@ msgstr "Este dispositivo es compatible con KNX Data Secure. Establezca una contr
 
 msgid "Search…"
 msgstr "Buscar…"
+
+msgid "Market:"
+msgstr "Mercado:"
+
+msgid "All Markets"
+msgstr "Todos los Mercados"
+
+msgid "Only Products in {language}"
+msgstr "Solo Productos en {language}"
+
+msgid "{shown} of {total} products shown"
+msgstr "{shown} de {total} productos mostrados"

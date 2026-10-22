@@ -198,3 +198,15 @@ msgstr "Denne enhed understøtter KNX Data Secure. Angiv en projektadgangskode f
 
 msgid "Search…"
 msgstr "Søg…"
+
+msgid "Market:"
+msgstr "Marked:"
+
+msgid "All Markets"
+msgstr "Alle markeder"
+
+msgid "Only Products in {language}"
+msgstr "Kun produkter på {language}"
+
+msgid "{shown} of {total} products shown"
+msgstr "{shown} af {total} produkter vist"

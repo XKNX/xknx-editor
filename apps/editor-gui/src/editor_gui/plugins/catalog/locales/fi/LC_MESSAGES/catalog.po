@@ -198,3 +198,15 @@ msgstr "Tämä laite tukee KNX Data Secure -suojausta. Aseta projektille salasan
 
 msgid "Search…"
 msgstr "Etsi…"
+
+msgid "Market:"
+msgstr "Markkina:"
+
+msgid "All Markets"
+msgstr "Kaikki markkinat"
+
+msgid "Only Products in {language}"
+msgstr "Vain tuotteet, kieli: {language}"
+
+msgid "{shown} of {total} products shown"
+msgstr "{shown}/{total} tuotetta näytetään"

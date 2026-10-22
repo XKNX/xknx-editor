@@ -36,6 +36,7 @@ class CatalogPlugin:
             build_online_index=self._build_online_index,
             get_online_index_status=api.catalog.online_index_status,
             search_online_products=api.catalog.search_online_products,
+            online_filters=api.catalog.online_filters,
             add_online_item=self._add_online_item_to_project,
             can_add_to_project=lambda: api.project.is_open,
             plan_delete_product=self._plan_delete_product,

@@ -198,3 +198,15 @@ msgstr "Bu cihaz KNX Data Secure destekler. Cihazı güvenli şekilde devreye al
 
 msgid "Search…"
 msgstr "Ara…"
+
+msgid "Market:"
+msgstr "Pazar:"
+
+msgid "All Markets"
+msgstr "Tüm Pazarlar"
+
+msgid "Only Products in {language}"
+msgstr "Yalnızca {language} Ürünler"
+
+msgid "{shown} of {total} products shown"
+msgstr "{total} üründen {shown} tanesi gösteriliyor"

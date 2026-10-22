@@ -198,3 +198,15 @@ msgstr "Αυτή η συσκευή υποστηρίζει KNX Data Secure. Ορ�
 
 msgid "Search…"
 msgstr "Αναζήτηση…"
+
+msgid "Market:"
+msgstr "Αγορά:"
+
+msgid "All Markets"
+msgstr "Όλες οι Αγορές"
+
+msgid "Only Products in {language}"
+msgstr "Μόνο Προϊόντα στα {language}"
+
+msgid "{shown} of {total} products shown"
+msgstr "Εμφανίζονται {shown} από {total} προϊόντα"

@@ -198,3 +198,15 @@ msgstr "Den här apparaten stöder KNX Data Secure. Ange ett projektlösenord f�
 
 msgid "Search…"
 msgstr "Sök…"
+
+msgid "Market:"
+msgstr "Marknad:"
+
+msgid "All Markets"
+msgstr "Alla marknader"
+
+msgid "Only Products in {language}"
+msgstr "Endast produkter på {language}"
+
+msgid "{shown} of {total} products shown"
+msgstr "{shown} av {total} produkter visas"

@@ -198,3 +198,15 @@ msgstr "To urządzenie obsługuje KNX Data Secure. Aby uruchomić je w trybie be
 
 msgid "Search…"
 msgstr "Szukaj…"
+
+msgid "Market:"
+msgstr "Rynek:"
+
+msgid "All Markets"
+msgstr "Wszystkie rynki"
+
+msgid "Only Products in {language}"
+msgstr "Tylko produkty w języku: {language}"
+
+msgid "{shown} of {total} products shown"
+msgstr "Wyświetlono {shown} z {total} produktów"

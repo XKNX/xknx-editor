@@ -198,3 +198,15 @@ msgstr "Цей пристрій підтримує KNX Data Secure. Задайт
 
 msgid "Search…"
 msgstr "Пошук…"
+
+msgid "Market:"
+msgstr "Ринок:"
+
+msgid "All Markets"
+msgstr "Усі ринки"
+
+msgid "Only Products in {language}"
+msgstr "Лише продукти мовою: {language}"
+
+msgid "{shown} of {total} products shown"
+msgstr "Показано {shown} з {total} продуктів"

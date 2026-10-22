@@ -198,3 +198,15 @@ msgstr "Questo dispositivo supporta KNX Data Secure. Impostare una password di p
 
 msgid "Search…"
 msgstr "Cerca…"
+
+msgid "Market:"
+msgstr "Mercato:"
+
+msgid "All Markets"
+msgstr "Tutti i mercati"
+
+msgid "Only Products in {language}"
+msgstr "Solo prodotti in {language}"
+
+msgid "{shown} of {total} products shown"
+msgstr "{shown} di {total} prodotti mostrati"

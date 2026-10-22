@@ -198,3 +198,15 @@ msgstr "Este dispositivo suporta KNX Data Secure. Defina uma senha de projeto pa
 
 msgid "Search…"
 msgstr "Pesquisar…"
+
+msgid "Market:"
+msgstr "Mercado:"
+
+msgid "All Markets"
+msgstr "Todos os Mercados"
+
+msgid "Only Products in {language}"
+msgstr "Apenas Produtos em {language}"
+
+msgid "{shown} of {total} products shown"
+msgstr "{shown} de {total} produtos mostrados"

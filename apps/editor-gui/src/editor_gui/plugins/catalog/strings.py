@@ -274,5 +274,21 @@ class CatalogStrings:
     def LOCAL_SEARCH_HINT(self) -> str:
         return _("Search…")
 
+    @property
+    def ONLINE_MARKET(self) -> str:
+        return _("Market:")
+
+    @property
+    def ONLINE_ALL_MARKETS(self) -> str:
+        return _("All Markets")
+
+    @property
+    def ONLINE_ONLY_PRODUCT_LANGUAGE(self) -> str:
+        return _("Only Products in {language}")
+
+    @property
+    def ONLINE_FILTERED_COUNT(self) -> str:
+        return _("{shown} of {total} products shown")
+
 
 S = CatalogStrings()

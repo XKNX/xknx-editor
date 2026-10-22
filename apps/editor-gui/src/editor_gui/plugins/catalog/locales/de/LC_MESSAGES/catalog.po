@@ -203,3 +203,15 @@ msgstr "In welchen Raum soll {name}?"
 
 msgid "Add Device to Project"
 msgstr "Gerät zum Projekt hinzufügen"
+
+msgid "Market:"
+msgstr "Markt:"
+
+msgid "All Markets"
+msgstr "Alle Märkte"
+
+msgid "Only Products in {language}"
+msgstr "Nur Produkte in {language}"
+
+msgid "{shown} of {total} products shown"
+msgstr "{shown} von {total} Produkten angezeigt"
