@@ -280,25 +280,80 @@ def resolve_parameter_ref(
     return out
 
 
+def _tree_fingerprint(node_id: int, roots: list[Any]) -> str:
+    """A short, structural fingerprint of a device's UI tree: node_id + the (path, container-raw-id,
+    child parameter ref_ids) of every container, in a deterministic order. Captures the mapping that
+    a scoped operation depends on; stays stable across ordinary value edits (ref_ids and container
+    identity do not change on a value change). Hash prefix is enough — collisions would mean two
+    distinct structures with the same path layout AND the same ref_ids per container."""
+    import hashlib
+
+    from xknxeditor.prod.parser_v2.ui import (
+        UiParameter,
+        UiParameterBlock,
+        UiTab,
+    )
+
+    parts: list[str] = [f"n={node_id}"]
+
+    def walk(node: Any, path: str) -> None:
+        if not isinstance(node, (UiTab, UiParameterBlock)):
+            return
+        refs: list[str] = []
+        for i, ch in enumerate(node.children):
+            if isinstance(ch, UiParameter):
+                refs.append(ch.ref_id)
+            walk(ch, f"{path}.{i}")
+        raw = node.id or ""
+        parts.append(f"{path}:{raw}:{','.join(refs)}")
+
+    for i, root in enumerate(roots):
+        walk(root, str(i))
+    digest = hashlib.sha1("|".join(parts).encode()).hexdigest()[:16]
+    return digest
+
+
 def resolve_in_scope(
     roots: list[Any],
     subtree_id: str | None,
     label: str,
     value_label: str | None = None,
+    *,
+    node_id: int | None = None,
+    tree_token: str | None = None,
 ) -> dict[str, Any]:
-    """:func:`resolve_parameter_ref` within an optional ``subtree_id`` scope of ``roots`` (a container
-    id from the outline). Raises ValueError for an unknown scope or an ambiguous/unknown label.
-    Shared by project_resolve_parameter and the batch tool's apply-time resolution."""
-    scope = roots
+    """:func:`resolve_parameter_ref` within an optional ``subtree_id`` scope of ``roots``. Raises
+    ValueError for a stale scope token, an unknown scope, or an ambiguous/unknown label. Shared by
+    project_resolve_parameter and the batch tool's apply-time resolution.
+
+    When ``subtree_id`` is given, ``tree_token`` is checked against the CURRENT tree's fingerprint:
+    a path can keep existing after a structural change but point to a different container — a bare
+    path cannot detect that silently, so a scoped mutation requires the token obtained from the same
+    tree read. The check runs HERE (not at batch entry) so earlier ops in the same batch that reshape
+    the tree invalidate later scoped ops of the same batch rather than silently retargeting them."""
     if subtree_id is not None:
+        if tree_token is None:
+            raise ValueError(
+                "a scoped (subtree_id) operation requires tree_token from the same "
+                "project_parameter_tree response; re-read it to get a fresh token"
+            )
+        if node_id is None:
+            raise ValueError("internal: tree_token validation needs node_id")
+        current = _tree_fingerprint(node_id, roots)
+        if current != tree_token:
+            raise ValueError(
+                f"stale tree_token: the device's tree has changed since it was obtained "
+                f"(current {current!r} != {tree_token!r}); re-read project_parameter_tree and "
+                "pass the fresh tree_token and subtree_id"
+            )
         found = _find_subtree(roots, subtree_id)
         if found is None:
             raise ValueError(
                 f"no tab/block at id {subtree_id!r}; call project_parameter_tree(outline=True) "
                 "for the current ids"
             )
-        scope = [found]
-    return resolve_parameter_ref(scope, label, value_label)
+        return resolve_parameter_ref([found], label, value_label)
+    return resolve_parameter_ref(roots, label, value_label)
 
 
 def _ui_node(
@@ -1214,11 +1269,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_parameter_tree(
-        node_id: int, outline: bool = False, subtree_id: str | None = None
+        node_id: int,
+        outline: bool = False,
+        subtree_id: str | None = None,
+        tree_token: str | None = None,
     ) -> dict[str, Any]:
         """Read a device's nested parameter UI using node_id from project_list_devices. Group
         headings distinguish repeated labels for different channels, buttons or display levels.
-        Returns {items, count}; count is the number of top-level nodes. Node fields depend on kind:
+        Returns {items, count, outline, tree_token}; count is the number of top-level nodes. Node
+        fields depend on kind:
         - "tab"/"block": {kind, id, name, children, ref?}, with children using the same node shapes.
           ``id`` is a UNIQUE index path (pass it verbatim as ``subtree_id``); ``ref`` is the raw
           module/block id, which REPEATS across module instances and must not be used to address one.
@@ -1236,8 +1295,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
           {kind, id, name, parameter_count, com_object_count, children} with no parameter/com-object
           leaves. Read this to see the structure and pick a section.
         - ``subtree_id="<id>"`` returns only that one tab/block's subtree (optionally also with
-          ``outline=True``). An unknown id raises — ids go stale after a structural change, so
-          re-read the outline then. project_list_parameters(search=...) finds a parameter by label.
+          ``outline=True``). Scoped reads REQUIRE ``tree_token`` from the SAME read the id came
+          from — a path can keep existing after a structural change but point to a different
+          container, and the token detects that. A stale token raises; re-read without the subtree
+          to get a fresh one. project_list_parameters(search=...) finds a parameter by label.
+        - ``tree_token`` is a short fingerprint of the device's current structure. Pass it back to
+          any scoped read/mutation (``subtree_id``, project_resolve_parameter, batch set_parameter)
+          to prove the structure has not changed since the id was obtained.
 
         Pass a parameter's ref_id as parameter_ref_id to project_get_parameter/project_set_parameter.
         This reads project configuration."""
@@ -1245,15 +1309,24 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         def _read() -> dict[str, Any]:
             device = _require_device(node_id)
             roots: list[Any] = list(device.get_ui())
+            current_token = _tree_fingerprint(node_id, roots)
             if subtree_id is not None:
+                if tree_token is None:
+                    raise ToolError(
+                        "a scoped (subtree_id) read requires tree_token from the same "
+                        "project_parameter_tree response; re-read without subtree_id first"
+                    )
+                if tree_token != current_token:
+                    raise ToolError(
+                        f"stale tree_token for device {node_id} (current {current_token!r} != "
+                        f"{tree_token!r}); re-read project_parameter_tree to refresh"
+                    )
                 found = _find_subtree(roots, subtree_id)
                 if found is None:
                     raise ToolError(
                         f"no tab/block at id {subtree_id!r} on device {node_id}; call "
-                        "project_parameter_tree(outline=True) for the current ids "
-                        "(ids change after a structural edit)"
+                        "project_parameter_tree(outline=True) for the current ids"
                     )
-                # Serialize the subtree under its own absolute path so nested ids round-trip.
                 scoped: list[tuple[str, Any]] = [(subtree_id, found)]
             else:
                 scoped = [(str(i), n) for i, n in enumerate(roots)]
@@ -1272,6 +1345,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "items": rows,
                 "count": len(rows),
                 "outline": use_outline,
+                "tree_token": current_token,
             }
             if use_outline and not outline and total is not None:
                 env["parameter_count"] = total
@@ -1304,6 +1378,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         label: str,
         subtree_id: str | None = None,
         value_label: str | None = None,
+        tree_token: str | None = None,
     ) -> dict[str, Any]:
         """Resolve a parameter by its human ``label`` to the ``ref_id`` that project_set_parameter
         needs, so a caller can avoid the long XML ref ids.
@@ -1317,14 +1392,23 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         With ``value_label`` (an enum choice's text) the result also carries ``resolved_value``, the
         raw value to pass to project_set_parameter.
 
+        A scoped call (with ``subtree_id``) REQUIRES ``tree_token`` from the SAME
+        project_parameter_tree response the id came from. A path can keep existing after a
+        structural change but point to a different container, which would silently retarget the
+        write; the token guards against that. A stale token raises; re-read the tree to refresh.
+
         Returns {ref_id, label, value, access, resolved_value?}. This resolves only — pass ``ref_id``
-        (and ``resolved_value``) to project_set_parameter to change it. Re-resolve after a structural
-        change (ids and active parameters move)."""
+        (and ``resolved_value``) to project_set_parameter to change it."""
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id)
             return resolve_in_scope(
-                list(device.get_ui()), subtree_id, label, value_label
+                list(device.get_ui()),
+                subtree_id,
+                label,
+                value_label,
+                node_id=node_id,
+                tree_token=tree_token,
             )
 
         return ctx.run_locked(_read)

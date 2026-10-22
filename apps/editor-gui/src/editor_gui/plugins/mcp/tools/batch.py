@@ -99,7 +99,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "set_parameter needs parameter_ref_id, or a label to resolve"
                 )
             resolved = resolve_in_scope(
-                list(device.get_ui()), p.get("subtree_id"), label, p.get("value_label")
+                list(device.get_ui()),
+                p.get("subtree_id"),
+                label,
+                p.get("value_label"),
+                node_id=p["node_id"],
+                tree_token=p.get("tree_token"),
             )
             ref = resolved["ref_id"]
             if value is None:
@@ -257,12 +262,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - add_device: product_ref_id [name] -> {node_id}; uses the first matching catalog product.
         - rename_device: node_id, name -> {node_id}.
         - set_individual_address: node_id, address -> {node_id, address}.
-        - set_parameter: node_id, (parameter_ref_id | label [subtree_id] [value_label]), value? ->
-          {node_id, ref_id, requested, value, active, changed?, lost_links?}. Address the parameter
-          by parameter_ref_id, or by label (resolved AT THIS OP'S TURN within subtree_id, so a child
-          a prior op in the batch just activated resolves; value_label gives an enum's value). value
-          is read back after the edit; changed lists calculated side effects; lost_links lists links a
-          function/mode change dropped.
+        - set_parameter: node_id, (parameter_ref_id | label [subtree_id tree_token] [value_label]),
+          value? -> {node_id, ref_id, requested, value, active, changed?, lost_links?}. Address the
+          parameter by parameter_ref_id, or by label (resolved AT THIS OP'S TURN within subtree_id,
+          so a child a prior op in the batch just activated resolves; a SCOPED label requires
+          tree_token from the project_parameter_tree response its subtree_id came from, so an op
+          whose scope an earlier batch op invalidated fails explicitly instead of silently retargeting;
+          value_label gives an enum's value). value is read back after the edit; changed lists
+          calculated side effects; lost_links lists links a function/mode change dropped.
         - set_com_object_flag: node_id, com_object_ref_id, flag, value -> {node_id, com_object_ref_id}.
         - create_group_address: [address, name] -> {group_address_id}.
         - rename_group_address: group_address_id, name -> {group_address_id}.

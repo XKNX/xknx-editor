@@ -1,15 +1,51 @@
 from __future__ import annotations
 
+import contextlib
 import re
 
 _NAME_PLACEHOLDER = re.compile(r"\{\{0(?::[^}]*)?\}\}")
+_ARG_PLACEHOLDER = re.compile(r"\{\{([^}]+)\}\}")
+_MODIFIER = re.compile(r"\b(Format|Offset)\s*=\s*(\S+)")
 
 
 def apply_text_args(text: str, text_args: dict[str, str]) -> str:
-    """Replace {{ArgName}}/{{ArgName:fmt}} placeholders using module text args."""
-    for name, value in text_args.items():
-        text = re.sub(r"\{\{" + re.escape(name) + r"(?::[^}]*)?\}\}", value, text)
-    return text
+    """Replace ``{{Name}}`` / ``{{Name Format=Alpha|Decimal Offset=N}}`` placeholders.
+
+    ``Format`` / ``Offset`` mirror the modifiers accepted by applications in dynamic text:
+    an integer argument value is shifted by ``Offset`` and rendered as a letter
+    (``Format=Alpha``, 0=A) or as a decimal (``Format=Decimal``, which is also the default
+    when only ``Offset`` is set). A non-integer value is emitted raw (``Alpha`` falls back
+    on parse failure). Argument-name lookup is case-sensitive. Placeholders whose name is
+    not in ``text_args`` are left for a later :func:`fill_name` pass, which handles the
+    internal ``{{0}}`` / ``{{0:fallback}}`` form.
+    """
+
+    def replace(match: re.Match[str]) -> str:
+        inner = match.group(1).strip()
+        head, _, rest = inner.partition(" ")
+        name = head.split(":", 1)[0]
+        if name not in text_args:
+            return match.group(0)
+        value = text_args[name]
+        fmt: str | None = None
+        offset = 0
+        for mod in _MODIFIER.finditer(rest):
+            if mod.group(1) == "Format":
+                fmt = mod.group(2)
+            else:
+                with contextlib.suppress(ValueError):
+                    offset = int(mod.group(2))
+        if fmt is None and offset == 0:
+            return value
+        try:
+            shifted = int(value) + offset
+        except ValueError:
+            return value
+        if fmt == "Alpha":
+            return chr(ord("A") + shifted)
+        return str(shifted)
+
+    return _ARG_PLACEHOLDER.sub(replace, text)
 
 
 def fill_name(template: str, name_value: str, *, keep_whitespace: bool = False) -> str:

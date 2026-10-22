@@ -266,18 +266,34 @@ async def test_parameter_tree_outline_and_subtree(tmp_path: Path) -> None:
             for nd in outline["items"]
         )
 
-        # A container id from the outline scopes the read to just that subtree.
+        # A container id from the outline scopes the read to just that subtree. Scoped reads need
+        # tree_token from the same response — without it the server refuses rather than guessing.
         ids = _ids(outline["items"])
         assert ids, "outline should expose at least one container id"
+        with pytest.raises(Exception, match="requires tree_token"):
+            await _data(
+                client,
+                "project_parameter_tree",
+                node_id=node_id,
+                subtree_id=ids[0],
+            )
         sub = await _data(
-            client, "project_parameter_tree", node_id=node_id, subtree_id=ids[0]
+            client,
+            "project_parameter_tree",
+            node_id=node_id,
+            subtree_id=ids[0],
+            tree_token=outline["tree_token"],
         )
         assert 0 < _params_in(sub["items"]) <= _params_in(full["items"])
 
         # An unknown id is a clear error, not an empty result.
         with pytest.raises(Exception, match="no tab/block at id"):
             await _data(
-                client, "project_parameter_tree", node_id=node_id, subtree_id="nope"
+                client,
+                "project_parameter_tree",
+                node_id=node_id,
+                subtree_id="nope",
+                tree_token=outline["tree_token"],
             )
 
         # list_parameters search filters by label.
@@ -467,6 +483,169 @@ async def test_resolve_parameter_by_label(tmp_path: Path) -> None:
                 value_label=enum_item["value_label"],
             )
             assert res2["resolved_value"] == enum_item["value"]
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_tree_token_detects_stale_scope(tmp_path: Path) -> None:
+    """A scoped resolve/write refuses a tree_token that no longer matches the device structure, so
+    a path that silently points to a different container after a structural change cannot retarget
+    the write. Codex's finding: index paths are positional and survive a reshape with a different
+    meaning; the token guards against that."""
+    # A parameter whose value change reshapes the tree in Gira: toggling it activates/deactivates
+    # 29 downstream params in the same module instance, re-indexing the siblings.
+    parent = "M-0008_A-7072-21-5CC3-O000A_MD-1_M-200_MI-1_P-149_R-142"
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        node_id = (
+            await _data(client, "project_add_device", product_ref_id=product_ref)
+        )["node_id"]
+
+        outline = await _data(
+            client, "project_parameter_tree", node_id=node_id, outline=True
+        )
+        token_a = outline["tree_token"]
+        ids = _ids(outline["items"])
+        assert ids
+        sid = ids[-1]
+
+        # Reshape the tree: changing the parent's value adds / removes active sub-parameters.
+        await _data(
+            client,
+            "project_set_parameter",
+            node_id=node_id,
+            parameter_ref_id=parent,
+            value="3",
+        )
+        outline_b = await _data(
+            client, "project_parameter_tree", node_id=node_id, outline=True
+        )
+        token_b = outline_b["tree_token"]
+        assert token_a != token_b, "a reshape must change the tree_token"
+
+        # The stale token on the SAME subtree_id is rejected by every scoped entry.
+        with pytest.raises(Exception, match="stale tree_token"):
+            await _data(
+                client,
+                "project_parameter_tree",
+                node_id=node_id,
+                subtree_id=sid,
+                tree_token=token_a,
+            )
+        with pytest.raises(Exception, match="stale tree_token"):
+            await _data(
+                client,
+                "project_resolve_parameter",
+                node_id=node_id,
+                label="whatever",
+                subtree_id=sid,
+                tree_token=token_a,
+            )
+        bad = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "set_parameter",
+                    "params": {
+                        "node_id": node_id,
+                        "label": "whatever",
+                        "subtree_id": sid,
+                        "tree_token": token_a,
+                        "value": "0",
+                    },
+                }
+            ],
+        )
+        assert bad["failed"] == 1
+        assert "stale tree_token" in bad["results"][0]["error"]
+
+        # A scoped call WITHOUT a token is also refused — the server never falls back to a bare path.
+        with pytest.raises(Exception, match="requires tree_token"):
+            await _data(
+                client,
+                "project_resolve_parameter",
+                node_id=node_id,
+                label="whatever",
+                subtree_id=sid,
+            )
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_tree_token_survives_ordinary_edit(tmp_path: Path) -> None:
+    """Ordinary (non-structural) value changes keep the mapping intact, so the tree_token stays
+    valid — otherwise every edit would force a re-read."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        node_id = (
+            await _data(client, "project_add_device", product_ref_id=product_ref)
+        )["node_id"]
+
+        outline = await _data(
+            client, "project_parameter_tree", node_id=node_id, outline=True
+        )
+        token = outline["tree_token"]
+        # Pick a parameter whose set does NOT reshape the tree (its own ref_id stays active).
+        params = (await _data(client, "project_list_parameters", node_id=node_id))[
+            "items"
+        ]
+        stable = next(
+            (
+                p
+                for p in params
+                if p.get("widget", {}).get("type") == "number"
+                and p.get("value") is not None
+            ),
+            params[0],
+        )
+        await _data(
+            client,
+            "project_set_parameter",
+            node_id=node_id,
+            parameter_ref_id=stable["ref_id"],
+            value=stable["value"],
+        )
+        again = await _data(
+            client, "project_parameter_tree", node_id=node_id, outline=True
+        )
+        assert again["tree_token"] == token
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_tree_token_is_per_device(tmp_path: Path) -> None:
+    """A tree_token from one device does not pass the check on another device, even for the same
+    path, because the device node_id goes into the fingerprint."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        a = (await _data(client, "project_add_device", product_ref_id=product_ref))[
+            "node_id"
+        ]
+        b = (await _data(client, "project_add_device", product_ref_id=product_ref))[
+            "node_id"
+        ]
+        o_a = await _data(client, "project_parameter_tree", node_id=a, outline=True)
+        with pytest.raises(Exception, match="stale tree_token"):
+            await _data(
+                client,
+                "project_parameter_tree",
+                node_id=b,
+                subtree_id=_ids(o_a["items"])[0],
+                tree_token=o_a["tree_token"],
+            )
 
 
 @pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")

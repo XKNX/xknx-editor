@@ -114,7 +114,13 @@ def test_parameters_outside_pages_get_a_general_page() -> None:
 
 
 def test_duplicate_keys_are_made_unique() -> None:
-    pages = build_pages([_block("B-1", "A"), _block("B-1", "B")], "1")
+    pages = build_pages(
+        [
+            _block("B-1", "A", _param("P-1", "x")),
+            _block("B-1", "B", _param("P-2", "y")),
+        ],
+        "1",
+    )
     assert len({p.key for p in pages}) == 2
 
 
@@ -195,3 +201,27 @@ def test_channels_with_no_parameters_are_dropped_from_the_page_tree() -> None:
     assert "Empty" not in labels  # empty channel dropped
     assert "Common" in labels  # real parameters kept
     assert "Outputs" in labels  # channel leading to a parameter page kept
+
+
+def test_parameter_blocks_with_no_parameters_are_dropped_from_the_page_tree() -> None:
+    # A device may carry empty placeholder ParameterBlocks beside its real pages (e.g. ABB
+    # AE/S4 "Blank 1"/"Blank 2": the only parameters they reference are Dummy-type with
+    # Access="None", so the block emits with no children). Such a block is not a parameter
+    # page and must not appear.
+    tree: list[UiNode] = [
+        _block("B-1", "Common", _param("P-1", "Startup delay")),
+        _block("B-2", "Blank 1"),  # no children
+        _block("B-3", "Blank 2"),  # no children
+        _block(
+            "B-4",
+            "Parent with sub-page",
+            _block("B-5", "Nested", _param("P-2", "Mode")),
+        ),
+    ]
+    labels = [p.label for p in build_pages(tree, "d")]
+    assert "Blank 1" not in labels
+    assert "Blank 2" not in labels
+    assert "Common" in labels  # real parameter page kept
+    assert (
+        "Parent with sub-page" in labels
+    )  # kept because it leads to a selectable child

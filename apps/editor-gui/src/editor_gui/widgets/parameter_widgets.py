@@ -881,6 +881,12 @@ def _split_pages(
                 inner, sub = _split_pages(node.children, key, seen)
             else:
                 inner, sub = node.children, []
+            # A parameter block that shows nothing and leads to no sub-page is not a parameter
+            # page. Some devices carry empty placeholder blocks (ABB AE/S4 "Blank 1"/"Blank 2":
+            # the only parameters they reference are Dummy-type with Access="None", so the block
+            # emits with no children). ETS does not list them; dropping them here matches.
+            if not _has_content(inner) and _first_selectable(tuple(sub)) is None:
+                continue
             pages.append(
                 ParameterPage(
                     key=_unique_key(key, seen),
