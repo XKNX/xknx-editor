@@ -311,7 +311,7 @@ msgid "Flags"
 msgstr "フラグ"
 
 msgid "Prio"
-msgstr "プリオ"
+msgstr "優先"
 
 msgid "Source Address"
 msgstr "送信元アドレス"
@@ -332,7 +332,7 @@ msgid "Building Function"
 msgstr "建物の機能"
 
 msgid "Hop Count"
-msgstr "ホップ カウント"
+msgstr "ホップカウント"
 
 msgid "Telegram Type"
 msgstr "テレグラム・タイプ"

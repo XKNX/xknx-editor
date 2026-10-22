@@ -812,7 +812,7 @@ msgid "Download"
 msgstr "下载"
 
 msgid "Full"
-msgstr "全部"
+msgstr "完整"
 
 msgid "Application Program"
 msgstr "应用程序"
@@ -1115,7 +1115,7 @@ msgid "would change"
 msgstr "将更改"
 
 msgid "device-managed"
-msgstr "设备管理"
+msgstr "由设备管理"
 
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "由设备在运行时自行设置的系统字节（例如应用在下载后复位的下载检测字节）。此处的差异属于预期情况，并不表示下载有误。"

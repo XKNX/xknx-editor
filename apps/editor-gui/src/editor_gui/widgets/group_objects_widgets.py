@@ -261,10 +261,13 @@ class GroupObjectsTable:
         imgui.table_setup_column(S.GROUP_OBJECTS_COL_LENGTH, stretch, 0.067)
         imgui.table_setup_column(S.GROUP_OBJECTS_COL_PRIO, stretch, 0.096)
         imgui.table_setup_column(S.GROUP_OBJECTS_COL_GROUP_ADDRESSES, stretch, 0.428)
+        # One letter per flag in most languages; some use a short abbreviation, which the column
+        # widens for.
+        padding = 2 * imgui.get_style().cell_padding.x
         for attr, _letter, _name in FLAG_LABELS:
-            imgui.table_setup_column(
-                flag_letter(attr), imgui.TableColumnFlags_.width_fixed, px(22.0)
-            )
+            letter = flag_letter(attr)
+            width = max(px(22.0), imgui.calc_text_size(letter).x + padding)
+            imgui.table_setup_column(letter, imgui.TableColumnFlags_.width_fixed, width)
         data_table_headers()
 
         for com_obj in com_objects:

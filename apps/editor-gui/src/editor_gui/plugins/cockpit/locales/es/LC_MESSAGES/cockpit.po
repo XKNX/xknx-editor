@@ -17,7 +17,7 @@ msgid "Filter devices…"
 msgstr "Filtrar dispositivos…"
 
 msgid "Needs Attention Only"
-msgstr "Solo Requieren Atención"
+msgstr "Solo los que Requieren Atención"
 
 msgid "{count} device(s) not in catalog"
 msgstr "{count} dispositivo(s) no incluido(s) en el catálogo"

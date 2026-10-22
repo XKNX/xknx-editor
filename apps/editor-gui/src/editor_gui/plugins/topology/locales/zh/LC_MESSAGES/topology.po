@@ -62,7 +62,7 @@ msgid "Back"
 msgstr "返回"
 
 msgid "Fit"
-msgstr "适应"
+msgstr "适应窗口"
 
 msgid "Sending"
 msgstr "发送"

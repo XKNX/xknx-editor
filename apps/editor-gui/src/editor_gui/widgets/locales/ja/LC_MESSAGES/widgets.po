@@ -209,7 +209,7 @@ msgid "Length"
 msgstr "長さ"
 
 msgid "Prio"
-msgstr "プリオ"
+msgstr "優先"
 
 msgid "Group Addresses"
 msgstr "グループ・アドレス"

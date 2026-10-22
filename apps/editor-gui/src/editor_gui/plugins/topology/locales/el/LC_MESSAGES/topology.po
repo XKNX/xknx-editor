@@ -65,13 +65,13 @@ msgid "Fit"
 msgstr "Προσαρμογή"
 
 msgid "Sending"
-msgstr "Αποστολή"
+msgstr "Αποστολείς"
 
 msgid "Group Addresses"
 msgstr "Διευθύνσεις Ομάδων"
 
 msgid "Receiving"
-msgstr "Λήψη"
+msgstr "Δέκτες"
 
 msgid "Areas"
 msgstr "Περιοχές"

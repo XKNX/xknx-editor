@@ -1556,7 +1556,7 @@ msgid "The manufacturer plugin is not available here:"
 msgstr "El plugin del fabricante no está disponible aquí:"
 
 msgid "Only it can program the device."
-msgstr "Solo él puede programar el dispositivo."
+msgstr "Solo el plugin puede programar el dispositivo."
 
 msgid "Settings made in its dialog are not shown."
 msgstr "Los ajustes realizados en su diálogo no se muestran."

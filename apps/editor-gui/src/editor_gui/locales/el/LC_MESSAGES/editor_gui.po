@@ -269,7 +269,7 @@ msgid "1/1 - Name/Address"
 msgstr "1/1 - Όνομα/Διεύθυνση"
 
 msgid "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
-msgstr "3/3 - Όνομα Κύριας - Μεσαίας - Υπό ομάδας /Διεύθυνση Κύριας - Μεσαίας - Υπό ομάδας"
+msgstr "3/3 - Όνομα Κύριας - Μεσαίας - Υπό ομάδας/Διεύθυνση Κύριας - Μεσαίας - Υπό ομάδας"
 
 msgid "Export with Header Line"
 msgstr "Εξαγωγή με Γραμμή Επικεφαλίδας"
@@ -659,7 +659,7 @@ msgid "Highlight Changes"
 msgstr "Επισήμανση Αλλαγών"
 
 msgid "Context Help"
-msgstr "Πλαίσιο Βοήθειας"
+msgstr "Βοήθεια Περιβάλλοντος"
 
 msgid "Status Bar"
 msgstr "Γραμμή Κατάστασης"

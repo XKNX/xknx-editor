@@ -107,7 +107,7 @@ msgid "Add Selected"
 msgstr "選択項目を追加"
 
 msgid "Clear"
-msgstr "削除"
+msgstr "クリア"
 
 msgid "Remove"
 msgstr "削除する"
@@ -962,7 +962,7 @@ msgid "IP Address"
 msgstr "IPアドレス"
 
 msgid "Subnet Mask"
-msgstr "サブネット マスク"
+msgstr "サブネットマスク"
 
 msgid "Default Gateway"
 msgstr "デフォルトゲートウェイ"
@@ -1115,7 +1115,7 @@ msgid "would change"
 msgstr "変更予定"
 
 msgid "device-managed"
-msgstr "デバイス管理"
+msgstr "デバイスが管理"
 
 msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
 msgstr "デバイスが実行時に自ら設定するシステム・バイトです（例：ダウンロード後にアプリケーションがリセットするダウンロード検出バイト）。ここでの差異は想定どおりであり、ダウンロードの不良を示すものではありません。"
@@ -1415,7 +1415,7 @@ msgid "A parameter script is running for this device."
 msgstr "このデバイスでパラメータ・スクリプトが実行中です。"
 
 msgid "The Device has no valid address or is not linked to an area or line."
-msgstr "デバイスに有効なアドレスがないか、エリアまたはラインにリンクされていません。"
+msgstr "デバイスに有効なアドレスがないか、エリアまたはラインに割り当てられていません。"
 
 msgid "Parameter Script"
 msgstr "パラメータ・スクリプト"
@@ -2138,10 +2138,10 @@ msgid "{device}: duplicate address {address}"
 msgstr "{device}：重複アドレス{address}"
 
 msgid "added"
-msgstr "追加しました"
+msgstr "追加"
 
 msgid "removed"
-msgstr "削除しました"
+msgstr "削除"
 
 msgid "changed"
-msgstr "変更しました"
+msgstr "変更"
