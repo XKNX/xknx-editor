@@ -1,16 +1,24 @@
 """Parameter pages of applications converted from the older product format (``PreEts4Style``).
 
 In that format a page is a heading in one list of parameters ordered by display order: a parameter
-belongs to the page in front of it. The converted dynamic section keeps the pages as blocks, but
-may leave a page empty and put its parameters into a hidden block (``Access="None"``) beside it,
-e.g. the rocker pages of the Gira Tastsensor 3 Basis. Such a parameter is shown on the visible page
-beside the hidden block with the greatest display order not above its own, and the page lists its
-parameters in display order (an internal parameter like "GP_ConvertibleVersion" of the ABB
-valve drives too: it is shown at the end of the "D: Function" page).
+belongs to the page in front of it (the page whose heading display order is the greatest not above
+the parameter's own). ``ParameterBlock``s carry no display order themselves - the heading
+``ParameterRef``'s does. The converted dynamic section keeps the pages as blocks but does not always
+nest the parameters under the right one: it may leave a page empty and put its parameters in a
+hidden block beside it (e.g. the rocker pages of the Gira Tastsensor 3 Basis), or leave a parameter
+on the channel page whose display order belongs to an empty sub-page (e.g. the "Use threshold" of
+the ABB AE/S4 analogue inputs belongs to the empty "Threshold" page).
+
+This runs after the selector-chain re-home (``dynamic._rehome_to_pages``), which handles the pages
+expressed through the dynamic section's dependencies. What is left is filled by display order:
+a hidden block's parameters move onto the page in front of them, and a parameter whose display order
+belongs to a page the re-home left EMPTY is drawn onto that page. A page the re-home already
+populated keeps its parameters; display order never reshuffles them.
 """
 
 from __future__ import annotations
 
+import bisect
 from collections.abc import Callable, Sequence
 from dataclasses import replace
 
@@ -22,19 +30,26 @@ DisplayOrder = Callable[[str], int | None]
 
 
 def place_hidden_parameters(
-    nodes: Sequence[UiNode], display_order: DisplayOrder
+    nodes: Sequence[UiNode],
+    display_order: DisplayOrder,
+    pinned: frozenset[str] = frozenset(),
 ) -> list[UiNode]:
-    """Move the visible parameters of hidden blocks onto the visible pages beside them.
+    """Place by display order what the selector-chain re-home did not: the visible parameters of
+    hidden blocks move onto the page in front of them, and a parameter whose display order belongs
+    to an empty page beside it is drawn onto that page.
 
     ``display_order`` returns a ParameterRef's display order, or ``None`` when it has none (the
-    parameter then stays where it is). Nodes without hidden blocks beside visible pages are
-    returned unchanged.
+    parameter then stays put). ``pinned`` holds ParameterRef ids already placed on their page by the
+    re-home; they are left where they are. Nodes with no parameter to relocate are returned
+    unchanged.
     """
-    return _place(list(nodes), display_order)
+    return _place(list(nodes), display_order, pinned)
 
 
-def _place(nodes: list[UiNode], display_order: DisplayOrder) -> list[UiNode]:
-    nodes = [_with_placed_children(node, display_order) for node in nodes]
+def _place(
+    nodes: list[UiNode], display_order: DisplayOrder, pinned: frozenset[str]
+) -> list[UiNode]:
+    nodes = [_with_placed_children(node, display_order, pinned) for node in nodes]
     pages: list[tuple[int, int]] = []
     for index, node in enumerate(nodes):
         if (
@@ -48,44 +63,73 @@ def _place(nodes: list[UiNode], display_order: DisplayOrder) -> list[UiNode]:
                 pages.append((order, index))
     if not pages:
         return nodes
+    pages.sort()
+    page_orders = [order for order, _ in pages]
+    # Pages the selector-chain re-home left without any parameter. Only these draw a parameter off
+    # a visible page by display order, so a page the re-home already populated keeps its parameters.
+    empty_pages = {
+        index
+        for _, index in pages
+        if isinstance(block := nodes[index], UiParameterBlock)
+        and not _visible_parameters(block.children)
+    }
+
+    def target_index(order: int) -> int | None:
+        position = bisect.bisect_right(page_orders, order) - 1
+        return pages[position][1] if position >= 0 else None
+
     moved: dict[int, list[tuple[int, UiParameter]]] = {}
-    for node in nodes:
-        if not (isinstance(node, UiParameterBlock) and node.hidden):
+    taken: set[int] = set()
+
+    def consider(
+        parameter: UiParameter, current_index: int | None, *, into_empty_only: bool
+    ) -> None:
+        if parameter.ref_id in pinned:
+            return  # already placed by the selector-chain re-home
+        order = display_order(parameter.ref_id)
+        if order is None:
+            return
+        index = target_index(order)
+        if index is None or index == current_index:
+            return  # no page in front of it, or already on the right page
+        if into_empty_only and index not in empty_pages:
+            return  # do not pull it off a visible page onto an already-populated one
+        moved.setdefault(index, []).append((order, parameter))
+        taken.add(id(parameter))
+
+    for index, node in enumerate(nodes):
+        if not isinstance(node, UiParameterBlock):
             continue
-        for parameter in _visible_parameters(node.children):
-            order = display_order(parameter.ref_id)
-            if order is None:
-                continue
-            target = max(
-                (
-                    (page_order, index)
-                    for page_order, index in pages
-                    if page_order <= order
-                ),
-                default=None,
-            )
-            if target is not None:
-                moved.setdefault(target[1], []).append((order, parameter))
+        if node.hidden:
+            # the hidden block's parameters belong to the pages beside it
+            for parameter in _visible_parameters(node.children):
+                consider(parameter, None, into_empty_only=False)
+        elif not node.inline and node.param_ref_id is not None:
+            # a parameter on a visible page whose display order belongs to an empty page beside it
+            for child in node.children:
+                if isinstance(child, UiParameter) and child.access != Access.NONE:
+                    consider(child, index, into_empty_only=True)
     if not moved:
         return nodes
-    taken = {id(parameter) for items in moved.values() for _, parameter in items}
     result: list[UiNode] = []
     for index, node in enumerate(nodes):
-        if isinstance(node, UiParameterBlock) and node.hidden:
-            node = replace(node, children=_without(node.children, taken))
-        elif index in moved:
-            assert isinstance(node, UiParameterBlock)
-            node = replace(
-                node,
-                children=_in_display_order(node.children, moved[index], display_order),
-            )
+        if isinstance(node, UiParameterBlock):
+            children = _without(node.children, taken)
+            if index in moved:
+                children = _in_display_order(children, moved[index], display_order)
+            if children is not node.children:
+                node = replace(node, children=children)
         result.append(node)
     return result
 
 
-def _with_placed_children(node: UiNode, display_order: DisplayOrder) -> UiNode:
+def _with_placed_children(
+    node: UiNode, display_order: DisplayOrder, pinned: frozenset[str]
+) -> UiNode:
     if isinstance(node, UiTab | UiParameterBlock) and node.children:
-        return replace(node, children=tuple(_place(list(node.children), display_order)))
+        return replace(
+            node, children=tuple(_place(list(node.children), display_order, pinned))
+        )
     return node
 
 

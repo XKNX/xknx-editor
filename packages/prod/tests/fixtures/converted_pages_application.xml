@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData>
+    <Manufacturer RefId="M-00FA">
+      <ApplicationPrograms>
+        <ApplicationProgram Id="M-00FA_A-0003-01-0000" ApplicationNumber="3" ApplicationVersion="1"
+            ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="Converted"
+            LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+            PreEts4Style="true" DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+          <Static>
+            <ParameterTypes>
+              <ParameterType Id="M-00FA_A-0003-01-0000_PT-N" Name="N">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" />
+              </ParameterType>
+            </ParameterTypes>
+            <Parameters>
+              <Parameter Id="M-00FA_A-0003-01-0000_P-ctrl" Name="CtrlHead" ParameterType="M-00FA_A-0003-01-0000_PT-N" Text="Controller" Value="0" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-meas" Name="MeasHead" ParameterType="M-00FA_A-0003-01-0000_PT-N" Text="Measurement" Value="0" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-chan" Name="ChanHead" ParameterType="M-00FA_A-0003-01-0000_PT-N" Text="Channel" Value="0" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-thr" Name="ThrHead" ParameterType="M-00FA_A-0003-01-0000_PT-N" Text="Threshold" Value="0" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-c" Name="Cparam" ParameterType="M-00FA_A-0003-01-0000_PT-N" Text="Ctrl setting" Value="0" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-x" Name="Xparam" ParameterType="M-00FA_A-0003-01-0000_PT-N" Text="Detection" Value="0" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-w" Name="Wparam" ParameterType="M-00FA_A-0003-01-0000_PT-N" Text="Scan rate" Value="0" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-v" Name="Vparam" ParameterType="M-00FA_A-0003-01-0000_PT-N" Text="Filter" Value="0" />
+              <Parameter Id="M-00FA_A-0003-01-0000_P-z" Name="Zparam" ParameterType="M-00FA_A-0003-01-0000_PT-N" Text="Use threshold" Value="0" />
+            </Parameters>
+            <ParameterRefs>
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-ctrl_R" RefId="M-00FA_A-0003-01-0000_P-ctrl" DisplayOrder="10" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-meas_R" RefId="M-00FA_A-0003-01-0000_P-meas" DisplayOrder="20" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-chan_R" RefId="M-00FA_A-0003-01-0000_P-chan" DisplayOrder="1000" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-thr_R" RefId="M-00FA_A-0003-01-0000_P-thr" DisplayOrder="1100" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-c_R" RefId="M-00FA_A-0003-01-0000_P-c" DisplayOrder="11" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-x_R" RefId="M-00FA_A-0003-01-0000_P-x" DisplayOrder="15" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-w_R" RefId="M-00FA_A-0003-01-0000_P-w" DisplayOrder="1001" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-v_R" RefId="M-00FA_A-0003-01-0000_P-v" DisplayOrder="25" />
+              <ParameterRef Id="M-00FA_A-0003-01-0000_P-z_R" RefId="M-00FA_A-0003-01-0000_P-z" DisplayOrder="1200" />
+            </ParameterRefs>
+          </Static>
+          <Dynamic>
+            <ChannelIndependentBlock>
+              <ParameterBlock Id="M-00FA_A-0003-01-0000_PB-ctrl" Text="Controller" ParamRefId="M-00FA_A-0003-01-0000_P-ctrl_R">
+                <ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-c_R" />
+                <choose ParamRefId="M-00FA_A-0003-01-0000_P-meas_R">
+                  <when default="true">
+                    <ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-x_R" />
+                  </when>
+                </choose>
+              </ParameterBlock>
+              <ParameterBlock Id="M-00FA_A-0003-01-0000_PB-meas" Text="Measurement" ParamRefId="M-00FA_A-0003-01-0000_P-meas_R" />
+              <ParameterBlock Id="M-00FA_A-0003-01-0000_PB-chan" Text="Channel" ParamRefId="M-00FA_A-0003-01-0000_P-chan_R">
+                <ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-w_R" />
+                <ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-v_R" />
+                <ParameterRefRef RefId="M-00FA_A-0003-01-0000_P-z_R" />
+              </ParameterBlock>
+              <ParameterBlock Id="M-00FA_A-0003-01-0000_PB-thr" Text="Threshold" ParamRefId="M-00FA_A-0003-01-0000_P-thr_R" />
+            </ChannelIndependentBlock>
+          </Dynamic>
+        </ApplicationProgram>
+      </ApplicationPrograms>
+    </Manufacturer>
+  </ManufacturerData>
+</KNX>

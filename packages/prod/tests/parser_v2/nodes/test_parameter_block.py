@@ -16,11 +16,11 @@ def _eval(access: Access) -> list[object]:
     return list(node.eval(EvalContext(GlobalState())))
 
 
-def test_read_access_marks_the_block_read_only() -> None:
+def test_read_access_does_not_restrict_the_block() -> None:
+    # A block's own Access does not gate its parameters' editability (that is each parameter's
+    # own access); a Read-access block is shown like any other.
     (block,) = _eval(Access.READ)
-    assert isinstance(block, UiParameterBlock) and block.read_only
-    (block,) = _eval(Access.READ_WRITE)
-    assert isinstance(block, UiParameterBlock) and not block.read_only
+    assert isinstance(block, UiParameterBlock) and not block.hidden
 
 
 def test_no_access_hides_the_block_but_keeps_it_evaluated() -> None:

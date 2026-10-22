@@ -261,13 +261,18 @@ class DynamicTreeBuilder:
 
         def walk(elem: object, selector: str | None) -> None:
             if isinstance(elem, ComObjectParameterBlock):
+                ctx = selector
                 if elem.param_ref_id:
                     page_params.add(elem.param_ref_id)
                     # A block heading's owning page comes from where the block is placed.
                     if selector is not None:
                         placement.setdefault(elem.param_ref_id, selector)
+                    # A parameter placed directly in this block belongs to it - not to the choose
+                    # that gates the block from outside. So descend with the block as the context;
+                    # a deeper choose inside the block still overrides it for its own children.
+                    ctx = elem.param_ref_id
                 for child in elem.choice:
-                    walk(child, selector)
+                    walk(child, ctx)
             elif isinstance(
                 elem, (DependentChannelChoose, ChannelChoose, ComObjectParameterChoose)
             ):
@@ -614,6 +619,27 @@ def _as_int(value: object) -> int | None:
     return int(number) if number.is_integer() else None
 
 
+def _param_page_ids(
+    nodes: Sequence[UiNode],
+    page: str | None = None,
+    acc: dict[str, str | None] | None = None,
+) -> dict[str, str | None]:
+    """Map each parameter's ref id to the id of the ParameterBlock it currently sits under (``None``
+    when directly under a tab or the root). Used to tell which parameters a re-home moved."""
+    from .ui import UiParameter, UiParameterBlock, UiTab
+
+    if acc is None:
+        acc = {}
+    for node in nodes:
+        if isinstance(node, UiParameter):
+            acc[node.ref_id] = page
+        elif isinstance(node, UiParameterBlock):
+            _param_page_ids(node.children, node.id, acc)
+        elif isinstance(node, UiTab):
+            _param_page_ids(node.children, page, acc)
+    return acc
+
+
 def _rehome_to_pages(
     nodes: list[UiNode],
     page_for: Callable[[str], str | None],
@@ -821,12 +847,25 @@ class DynamicUI:
             active = frozenset(self._state.active_param_refs() or set())
             self._active_snapshot = (result, active)
         self._prune_inactive_channels()
-        if self._app.pre_ets4_style:
-            self._ui = place_hidden_parameters(self._ui, self._display_order)
-        # Final presentation step: move each parameter onto the page its selector chain names,
-        # rather than the block it is nested under in the raw XML. State/activeness are already
-        # settled above, so this only reorders the displayed tree.
+        # Final presentation step: assign each parameter to its page. State/activeness are already
+        # settled above, so this only reorders the displayed tree. A parameter's page is named by
+        # its selector chain where the chain places it on a different page than the block it is
+        # nested under in the raw XML.
+        before = _param_page_ids(self._ui)
         self._ui = _rehome_to_pages(self._ui, self._page_for, self._display_order)
+        if self._app.pre_ets4_style:
+            # Converted-from-older-format applications also carry a display order: a parameter the
+            # selector chain did not move belongs to the page heading in front of it by display
+            # order (e.g. a threshold setting left inline on its channel). Re-bucket those, keeping
+            # the ones the re-home already placed on their page.
+            rehomed = frozenset(
+                ref
+                for ref, page in _param_page_ids(self._ui).items()
+                if before.get(ref) != page
+            )
+            self._ui = place_hidden_parameters(
+                self._ui, self._display_order, pinned=rehomed
+            )
 
     def ui(self) -> list[UiNode]:
         if self._ui is None:
@@ -926,6 +965,42 @@ class DynamicUI:
         rather than the parameter-driven visible set, which can over-activate objects
         of channel modes the device is not in."""
         return self._state.com_obj_instance_ref_ids()
+
+    def declared_com_objects(self) -> list[dict[str, object]]:
+        """Every com-object the application DECLARES (application- and module-level), read from the
+        static index — a SUPERSET of the currently active objects, for planning before switching a
+        function. Values are the static declarations: ``name``/``function_text`` are templates (no
+        parameter or module-argument substitution) and ``number`` is the base (a module instance
+        offsets it). This is NOT a reachability proof — a declared object may never be activatable in
+        a given configuration; the active, linkable set is the UI's own com-objects."""
+        from .nodes.com_object_ref_ref import dpt_codes
+
+        out: list[dict[str, object]] = []
+        for ref_id, cor in self._idx.com_object_refs.items():
+            co = self._idx.com_objects.get(cor.ref_id)
+            size = cor.object_size or (co.object_size if co else None)
+            out.append(
+                {
+                    "ref_id": ref_id,
+                    "number": co.number if co else 0,
+                    "name": cor.text
+                    or (co.text if co else None)
+                    or cor.name
+                    or (co.name if co else None)
+                    or "",
+                    "function_text": cor.function_text
+                    or (co.function_text if co else None)
+                    or "",
+                    "dpt": list(
+                        dpt_codes(
+                            cor.datapoint_type or [],
+                            co.datapoint_type if co else [],
+                        )
+                    ),
+                    "object_size": size.value if size is not None else "",
+                }
+            )
+        return out
 
     def segment_base_addrs(self) -> dict[str, int]:
         return {
