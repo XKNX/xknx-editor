@@ -1463,3 +1463,21 @@ msgstr "Turks"
 
 msgid "Ukrainian"
 msgstr "Oekraïens"
+
+msgid "Preferred Product Language"
+msgstr "Voorkeur Producttaal"
+
+msgid "Hungarian"
+msgstr "Hongaars"
+
+msgid "Romanian"
+msgstr "Roemeens"
+
+msgid "Slovak"
+msgstr "Slovaaks"
+
+msgid "Slovenian"
+msgstr "Sloveens"
+
+msgid "Icelandic"
+msgstr "Ijslands"

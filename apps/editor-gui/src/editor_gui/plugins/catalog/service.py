@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from editor_gui.concurrency import io_guarded
+from editor_gui.languages import product_language, product_text_languages
 from xknxeditor.prod import Application
 
 # The settings file the download language was stored in (see _forget_stored_language).
@@ -81,11 +82,15 @@ class CatalogService:
     @property
     def online_languages(self) -> list[str]:
         """The languages products are downloaded in (KNX language ids such as ``de-DE``): the
-        editor's language first, then its other languages."""
+        preferred product language first, then the editor's languages."""
         from editor_gui.plugins.catalog.online_catalog import download_languages
         from editor_gui.strings import get_locale
 
-        return [self._language] if self._language else download_languages(get_locale())
+        if self._language:
+            return [self._language]
+        # The preferred product language first, then the editor's languages.
+        first = product_language()
+        return [first, *(c for c in download_languages(get_locale()) if c != first)]
 
     @property
     def online_language(self) -> str:
@@ -323,29 +328,23 @@ class CatalogService:
 
     @io_guarded(lambda: None)
     def get_application(self, application_id: str) -> Application | None:
-        # Localize device labels (parameter/tab/block names) to the current UI language when the
-        # .knxprod ships that language; get_locale() returns e.g. "de", matched to "de-DE".
-        from editor_gui.strings import get_locale
-
-        return self._service.get_application(application_id, get_locale())
+        # Localize device labels (parameter/tab/block names) to the preferred product language,
+        # else the UI language, when the .knxprod ships it.
+        return self._service.get_application(application_id, product_text_languages())
 
     @io_guarded(lambda: None)
     def application_source(self, application_id: str) -> str | None:
         """What ``application_id`` is read from, in the current language; ``None`` when it is not
         in the catalog."""
-        from editor_gui.strings import get_locale
-
         source = self._service.application_source(application_id)
-        return None if source is None else f"{source}|{get_locale()}"
+        return None if source is None else f"{source}|{product_text_languages()}"
 
     def unloaded_application(
         self, application_id: str, name: str, version: str, manufacturer_id: str
     ) -> Application:
         """``application_id`` known by its name and versions, parsed in the current language when
         first used (on any thread)."""
-        from editor_gui.strings import get_locale
-
-        language = get_locale()
+        language = product_text_languages()
 
         def load() -> ApplicationProgram:
             return self._service.load_application_program(application_id, language)

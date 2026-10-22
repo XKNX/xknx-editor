@@ -50,7 +50,14 @@ from editor_gui.instances import (
     same_file,
     with_project,
 )
-from editor_gui.languages import LANGUAGES, supported
+from editor_gui.languages import (
+    LANGUAGES,
+    PRODUCT_LANGUAGES,
+    chosen_product_language,
+    product_language,
+    set_product_language,
+    supported,
+)
 from editor_gui.log_file import log_dir
 from editor_gui.master_data import MasterDataInfo, load_master, master_xml_bytes
 from editor_gui.myknx_oauth import (
@@ -5019,7 +5026,8 @@ class KnxGuiApp:
         imgui.end()
 
     def _render_language_menu(self) -> None:
-        """UI language selector (next to Help). Overrides the auto-detected OS locale; persisted."""
+        """UI language selector (next to Help). Overrides the auto-detected OS locale; persisted.
+        Below it, the preferred product language for the texts of product data."""
         current = get_locale()
         if imgui.begin_menu(S.MENU_LANGUAGE):
             for code, label in _language_items():
@@ -5028,13 +5036,50 @@ class KnxGuiApp:
                     and code != current
                 ):
                     self._switch_language(code)
+            imgui.separator()
+            if imgui.begin_menu(S.MENU_PRODUCT_LANGUAGE):
+                preferred = product_language()
+                for code, label in _product_language_items():
+                    if (
+                        imgui.menu_item(
+                            f"{label}##product_{code}", "", code == preferred
+                        )[0]
+                        and code != preferred
+                    ):
+                        self._switch_product_language(code)
+                imgui.end_menu()
             imgui.end_menu()
 
     def _switch_language(self, code: str) -> None:
-        """Show the UI in ``code`` from now on and remember it. Cancelling the device rebuild
-        returns to the language before."""
-        previous = get_locale()
-        self._apply_language(code)
+        """Show the UI in ``code`` from now on and remember it; the preferred product language
+        follows it. Cancelling the device rebuild returns to the languages before."""
+        previous, previous_product = get_locale(), chosen_product_language()
+        self._apply_language(code, None)
+
+        def undo() -> None:
+            set_locale(previous)
+            set_product_language(previous_product)
+            self._ui_executor.submit(
+                lambda: self._apply_language(previous, previous_product)
+            )
+
+        self._rebuild_in_language(undo)
+
+    def _switch_product_language(self, code: str) -> None:
+        """Prefer product texts in ``code`` from now on and remember it; the UI language stays.
+        Cancelling the device rebuild returns to the product language before."""
+        previous = chosen_product_language()
+        self._apply_product_language(code)
+
+        def undo() -> None:
+            set_product_language(previous)
+            self._ui_executor.submit(lambda: self._apply_product_language(previous))
+
+        self._rebuild_in_language(undo)
+
+    def _rebuild_in_language(self, undo: Callable[[], None]) -> None:
+        """Rebuild the devices in the languages just set, behind the progress bar; ``undo`` brings
+        back the languages before when the rebuild is cancelled."""
         cancel = threading.Event()
 
         # Device labels are parsed per language; re-resolve + rebuild the device views in
@@ -5058,9 +5103,8 @@ class KnxGuiApp:
             finally:
                 self._project_service.build_progress = None
             if not done:
-                # Back to the language before; its devices are all reused, not built again.
-                set_locale(previous)
-                self._ui_executor.submit(lambda: self._apply_language(previous))
+                # Back to the languages before; their devices are all reused, not built again.
+                undo()
                 _ = self._project_service.devices
 
         def _cancel() -> None:
@@ -5071,13 +5115,21 @@ class KnxGuiApp:
         if self._progress_running:
             self._progress_cancel = _cancel
 
-    def _apply_language(self, code: str) -> None:
+    def _apply_language(self, code: str, product: str | None) -> None:
         set_locale(code)
+        set_product_language(product)
         data = load_settings("app")
         data["locale"] = code
+        data["product_language"] = product
         save_settings("app", data)
         # Re-translate the docked panel/tab titles in place (kept identity via ###name).
         self._refresh_dock_titles()
+
+    def _apply_product_language(self, code: str | None) -> None:
+        set_product_language(code)
+        data = load_settings("app")
+        data["product_language"] = code
+        save_settings("app", data)
 
     def _render_view_menu(self) -> None:
         """View menu: the default layout, which panels are shown, and the status bar."""
@@ -5719,12 +5771,25 @@ def _language_items() -> list[tuple[str, str]]:
         if label != language.native:
             label = S.LANGUAGE_ITEM.format(name=label, native=language.native)
         items.append((language.code, label))
+    return sorted(items, key=lambda item: _alphabetical(item[1]))
 
-    def key(item: tuple[str, str]) -> str:
-        letters = unicodedata.normalize("NFKD", item[1].casefold())
-        return "".join(c for c in letters if not unicodedata.combining(c))
 
-    return sorted(items, key=key)
+def _alphabetical(text: str) -> str:
+    """``text`` for sorting as it reads: without case and accents."""
+    letters = unicodedata.normalize("NFKD", text.casefold())
+    return "".join(c for c in letters if not unicodedata.combining(c))
+
+
+def _product_language_items() -> list[tuple[str, str]]:
+    """The Preferred Product Language menu's ``(culture, label)`` entries, alphabetical as they
+    read, like the languages above them."""
+    items: list[tuple[str, str]] = []
+    for language in PRODUCT_LANGUAGES:
+        label = language.name()
+        if label != language.native:
+            label = S.LANGUAGE_ITEM.format(name=label, native=language.native)
+        items.append((language.culture, label))
+    return sorted(items, key=lambda item: _alphabetical(item[1]))
 
 
 _STRONG_TITLE_SCALE = 1.2
@@ -5828,8 +5893,11 @@ def _main() -> None:
     # Applies the OS locale, whose regional formats are used in every UI language. A persisted
     # choice (Language menu) wins over the auto-detected OS language.
     os_language = _detect_locale()
-    saved = load_settings("app").get("locale")
+    settings = load_settings("app")
+    saved = settings.get("locale")
     set_locale(saved if isinstance(saved, str) and saved else os_language)
+    product = settings.get("product_language")
+    set_product_language(product if isinstance(product, str) else None)
 
     # App icon: hello_imgui loads assets/app_settings/icon.png as the window/app icon.
     hello_imgui.set_assets_folder(str(Path(__file__).parent / "assets"))

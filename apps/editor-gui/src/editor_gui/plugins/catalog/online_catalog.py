@@ -85,13 +85,15 @@ class OnlineCatalogSection:
     translations: tuple[tuple[str, str], ...] = ()  # (language such as "de-DE", name)
 
     def name_in(self, locale: str) -> str:
-        """The name in ``locale`` ("de" or "de-DE"), else the default name."""
-        language = locale.lower()
-        for wanted in (language, language.split("-")[0]):
-            for code, text in self.translations:
-                code = code.lower()
-                if text and wanted in (code, code.split("-")[0]):
-                    return text
+        """The name in ``locale`` ("de" or "de-DE", or several in order of preference, comma
+        separated), else the default name."""
+        for language in locale.lower().split(","):
+            language = language.strip()
+            for wanted in (language, language.split("-")[0]):
+                for code, text in self.translations:
+                    code = code.lower()
+                    if text and wanted in (code, code.split("-")[0]):
+                        return text
         return self.name
 
 

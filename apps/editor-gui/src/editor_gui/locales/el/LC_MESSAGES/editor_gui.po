@@ -1398,3 +1398,21 @@ msgstr "Τούρκικα"
 
 msgid "Ukrainian"
 msgstr "Ουκρανικά"
+
+msgid "Preferred Product Language"
+msgstr "Προτιμώμενη Γλώσσα Προϊόντων"
+
+msgid "Hungarian"
+msgstr "Ουγγρικά"
+
+msgid "Romanian"
+msgstr "Ρουμάνικα"
+
+msgid "Slovak"
+msgstr "Σλοβάκικα"
+
+msgid "Slovenian"
+msgstr "Σλοβένικα"
+
+msgid "Icelandic"
+msgstr "Ισλανδικά"

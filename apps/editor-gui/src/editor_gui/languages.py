@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from editor_gui.strings import S
+from editor_gui.strings import S, get_locale
 
 
 @dataclass(frozen=True)
@@ -54,3 +54,49 @@ def culture(code: str) -> str:
     """The product data language of the user interface language ``code``, e.g. "de-DE"."""
     wanted = supported(code)
     return next(language.culture for language in LANGUAGES if language.code == wanted)
+
+
+@dataclass(frozen=True)
+class ProductLanguage:
+    culture: str  # the language of product data texts, e.g. "sk-SK"
+    native: str  # the name in the language itself
+    name: Callable[[], str]  # the name in the current language
+
+
+# The languages product data comes in: those of the user interface and five more.
+PRODUCT_LANGUAGES: tuple[ProductLanguage, ...] = (
+    *(ProductLanguage(lang.culture, lang.native, lang.name) for lang in LANGUAGES),
+    ProductLanguage("hu-HU", "magyar", lambda: S.LANGUAGE_HUNGARIAN),
+    ProductLanguage("ro-RO", "română", lambda: S.LANGUAGE_ROMANIAN),
+    ProductLanguage("sk-SK", "slovenčina", lambda: S.LANGUAGE_SLOVAK),
+    ProductLanguage("sl-SI", "slovenščina", lambda: S.LANGUAGE_SLOVENIAN),
+    ProductLanguage("is-IS", "íslenska", lambda: S.LANGUAGE_ICELANDIC),
+)
+
+# The preferred product language chosen in the Language menu; None follows the UI language.
+_product_language: str | None = None
+
+
+def chosen_product_language() -> str | None:
+    """The product language chosen in the menu, or None when it follows the UI language."""
+    return _product_language
+
+
+def product_language() -> str:
+    """The preferred product language (e.g. "sk-SK"): the chosen one, else the UI language's."""
+    return _product_language or culture(get_locale())
+
+
+def set_product_language(code: str | None) -> None:
+    """Prefer product texts in ``code`` ("sk-SK"); None follows the UI language."""
+    global _product_language
+    known = {lang.culture for lang in PRODUCT_LANGUAGES}
+    _product_language = code if code in known else None
+
+
+def product_text_languages() -> str:
+    """The languages product texts are shown in, in order of preference and comma separated: the
+    preferred product language, then the UI language ("sk-SK,cs-CZ"). A product that has neither
+    shows its own default language."""
+    first, second = product_language(), culture(get_locale())
+    return first if first == second else f"{first},{second}"

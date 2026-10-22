@@ -1398,3 +1398,21 @@ msgstr "Tyrkisk"
 
 msgid "Ukrainian"
 msgstr "Ukrainsk"
+
+msgid "Preferred Product Language"
+msgstr "Foretrukket produktsprog"
+
+msgid "Hungarian"
+msgstr "Ungarsk"
+
+msgid "Romanian"
+msgstr "Rumænsk"
+
+msgid "Slovak"
+msgstr "Slovakisk"
+
+msgid "Slovenian"
+msgstr "Slovensk"
+
+msgid "Icelandic"
+msgstr "Islandsk"

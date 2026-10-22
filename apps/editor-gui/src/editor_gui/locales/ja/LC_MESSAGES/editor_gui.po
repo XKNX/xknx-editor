@@ -1398,3 +1398,21 @@ msgstr "トルコ語"
 
 msgid "Ukrainian"
 msgstr "ウクライナ語"
+
+msgid "Preferred Product Language"
+msgstr "製品ご希望の言語"
+
+msgid "Hungarian"
+msgstr "ハンガリー語"
+
+msgid "Romanian"
+msgstr "ルーマニア語"
+
+msgid "Slovak"
+msgstr "スロバキア語"
+
+msgid "Slovenian"
+msgstr "スロベニア語"
+
+msgid "Icelandic"
+msgstr "アイスランド語"

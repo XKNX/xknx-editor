@@ -1398,3 +1398,21 @@ msgstr "土耳其语"
 
 msgid "Ukrainian"
 msgstr "乌克兰语"
+
+msgid "Preferred Product Language"
+msgstr "首选的产品语言"
+
+msgid "Hungarian"
+msgstr "匈牙利语"
+
+msgid "Romanian"
+msgstr "罗马尼亚文"
+
+msgid "Slovak"
+msgstr "斯洛伐克语"
+
+msgid "Slovenian"
+msgstr "斯洛文尼亚语"
+
+msgid "Icelandic"
+msgstr "冰岛语"

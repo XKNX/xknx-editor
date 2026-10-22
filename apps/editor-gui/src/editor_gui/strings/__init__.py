@@ -2167,4 +2167,28 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     def LANGUAGE_UKRAINIAN(self) -> str:
         return _("Ukrainian")
 
+    @property
+    def MENU_PRODUCT_LANGUAGE(self) -> str:
+        return _("Preferred Product Language")
+
+    @property
+    def LANGUAGE_HUNGARIAN(self) -> str:
+        return _("Hungarian")
+
+    @property
+    def LANGUAGE_ROMANIAN(self) -> str:
+        return _("Romanian")
+
+    @property
+    def LANGUAGE_SLOVAK(self) -> str:
+        return _("Slovak")
+
+    @property
+    def LANGUAGE_SLOVENIAN(self) -> str:
+        return _("Slovenian")
+
+    @property
+    def LANGUAGE_ICELANDIC(self) -> str:
+        return _("Icelandic")
+
 S = _CombinedStrings()

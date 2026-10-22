@@ -11,9 +11,9 @@ from imgui_bundle import imgui
 from editor_gui import file_dialogs
 from editor_gui.device_info import application_version_text
 from editor_gui.hardware_text import bus_current_text, rail_text
+from editor_gui.languages import product_text_languages
 from editor_gui.plugins.catalog.strings import S
 from editor_gui.regional import regional_format
-from editor_gui.strings import get_locale
 from editor_gui.widgets.backgrounds import fill_content_background
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -674,7 +674,7 @@ class CatalogPanel:
     ) -> _SectionNode:
         """The products matching ``query`` filed into their sections, kept while the products,
         the filter and the language stay the same."""
-        locale = get_locale()
+        locale = product_text_languages()
         cached = self._online_trees.get(manufacturer_id)
         if cached is not None and cached[0] is items and cached[1] == (query, locale):
             return cached[2]
@@ -696,7 +696,7 @@ class CatalogPanel:
         open_all: bool,
     ) -> None:
         """A section's sections below it, as tree nodes, then its products."""
-        locale = get_locale()
+        locale = product_text_languages()
         for child in node.children.values():
             assert child.section is not None
             if open_all:

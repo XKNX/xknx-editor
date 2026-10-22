@@ -1398,3 +1398,21 @@ msgstr "Turco"
 
 msgid "Ukrainian"
 msgstr "Ucraniano"
+
+msgid "Preferred Product Language"
+msgstr "Idioma de Producto Preferido"
+
+msgid "Hungarian"
+msgstr "Húngaro"
+
+msgid "Romanian"
+msgstr "Rumano"
+
+msgid "Slovak"
+msgstr "Eslovaco"
+
+msgid "Slovenian"
+msgstr "Esloveno"
+
+msgid "Icelandic"
+msgstr "Islandés"

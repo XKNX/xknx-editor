@@ -1398,3 +1398,21 @@ msgstr "Turkiska"
 
 msgid "Ukrainian"
 msgstr "Ukrainska"
+
+msgid "Preferred Product Language"
+msgstr "Önskat produktspråk"
+
+msgid "Hungarian"
+msgstr "Ungerska"
+
+msgid "Romanian"
+msgstr "Rumänska"
+
+msgid "Slovak"
+msgstr "Slovakiska"
+
+msgid "Slovenian"
+msgstr "Slovenska"
+
+msgid "Icelandic"
+msgstr "Isländska"
