@@ -1,0 +1,200 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor catalog 1.0\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Catalog"
+msgstr "Katalog"
+
+msgid "Failed to load archive"
+msgstr "Archiv se nepodařilo načíst"
+
+msgid "Loaded: {path}"
+msgstr "Načteno: {path}"
+
+msgid "Found {count} application(s)"
+msgstr "Nalezené aplikace: {count}"
+
+msgid "({count} group objects)"
+msgstr "(skupinové objekty: {count})"
+
+msgid "Fetch Online Catalog"
+msgstr "Načíst online katalog"
+
+msgid "Loading manufacturer list…"
+msgstr "Načítání seznamu výrobců…"
+
+msgid "Online catalog not reachable"
+msgstr "Online katalog není dostupný"
+
+msgid "{count} matches"
+msgstr "Shody: {count}"
+
+msgid "Loading products…"
+msgstr "Načítání produktů…"
+
+msgid "No downloadable products"
+msgstr "Žádné produkty ke stažení"
+
+msgid "Downloading {name}…"
+msgstr "Stahování {name}…"
+
+msgid "(plugin required)"
+msgstr "(vyžaduje plugin)"
+
+msgid "(in local catalog)"
+msgstr "(v místním katalogu)"
+
+msgid "Search products, order number…"
+msgstr "Hledat produkty, objednací číslo…"
+
+msgid "Product Index: {mfrs} manufacturers, {products} products"
+msgstr "Index produktů: výrobci {mfrs}, produkty {products}"
+
+msgid "No Product Index yet - fetch the online catalog to build it"
+msgstr "Index produktů zatím neexistuje – pro jeho vytvoření načtěte online katalog"
+
+msgid "Building Product Index… {done}/{total} manufacturers"
+msgstr "Vytváření indexu produktů… výrobci {done}/{total}"
+
+msgid "Cancel"
+msgstr "Zrušit"
+
+msgid "Fetch the online catalog to search across all manufacturers."
+msgstr "Načtěte online katalog, abyste mohli hledat u všech výrobců."
+
+msgid "Showing {shown} of {total} matches - refine the search"
+msgstr "Zobrazeno {shown} z {total} shod – upřesněte hledání"
+
+msgid "Product Details"
+msgstr "Podrobnosti produktu"
+
+msgid "Name"
+msgstr "Název"
+
+msgid "Order Number"
+msgstr "Objednací číslo"
+
+msgid "Manufacturer"
+msgstr "Výrobce"
+
+msgid "Application"
+msgstr "Aplikace"
+
+msgid "Program Version"
+msgstr "Verze programu"
+
+msgid "Application ID"
+msgstr "ID aplikace"
+
+msgid "DIN Rail Mounting"
+msgstr "Montáž na lištu DIN"
+
+msgid "Bus Current"
+msgstr "Proud ze sběrnice"
+
+msgid "Yes"
+msgstr "Ano"
+
+msgid "No"
+msgstr "Ne"
+
+msgid "Product Ref"
+msgstr "Reference produktu"
+
+msgid "Add Device"
+msgstr "Přidat zařízení"
+
+msgid "Room"
+msgstr "Místnost"
+
+msgid "(no room)"
+msgstr "(bez místnosti)"
+
+msgid "Add Device to Project"
+msgstr "Přidat zařízení do projektu"
+
+msgid "Which room should {name} go into?"
+msgstr "Do které místnosti má být {name} umístěno?"
+
+msgid "Open or create a project first to add a device."
+msgstr "Pro přidání zařízení nejprve otevřete nebo vytvořte projekt."
+
+msgid "This product has no usable application program."
+msgstr "Tento produkt nemá žádný použitelný aplikační program."
+
+msgid "Added device: {name}"
+msgstr "Přidáno zařízení: {name}"
+
+msgid "Add to project?"
+msgstr "Přidat do projektu?"
+
+msgid "“{name}” was added to the local catalog. Add it to the project now?"
+msgstr "„{name}“ bylo přidáno do místního katalogu. Přidat ho nyní do projektu?"
+
+msgid "Add to Project"
+msgstr "Přidat do projektu"
+
+msgid "Not Now"
+msgstr "Nyní ne"
+
+msgid "Local"
+msgstr "Místní"
+
+msgid "Online"
+msgstr "Online"
+
+msgid "No products imported yet — import a .knxprod or use the Online tab."
+msgstr "Zatím nebyly importovány žádné produkty – importujte soubor .knxprod nebo použijte kartu Online."
+
+msgid "Fetch {count} Missing Application(s) Online"
+msgstr "Načíst online chybějící aplikace ({count})"
+
+msgid "Fetching missing applications…"
+msgstr "Načítání chybějících aplikací…"
+
+msgid "Delete"
+msgstr "Odstranit"
+
+msgid "Delete from Local Catalog"
+msgstr "Odstranit z místního katalogu"
+
+msgid "Are you sure you want to delete the selected device? This cannot be undone."
+msgstr "Opravdu chcete vybrané zařízení odstranit? Tuto akci nelze vrátit zpět."
+
+msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
+msgstr "Zařízení v otevřeném projektu, která používají tento produkt: {count}. Nelze je načíst, dokud nebude produkt znovu importován."
+
+msgid "Deleting {name}…"
+msgstr "Odstraňování {name}…"
+
+msgid "Deleted from the local catalog: {name}"
+msgstr "Odstraněno z místního katalogu: {name}"
+
+msgid "Export .knxprod…"
+msgstr "Exportovat .knxprod…"
+
+msgid "Export .knxprod"
+msgstr "Exportovat .knxprod"
+
+msgid "KNX product (*.knxprod)"
+msgstr "Produkt KNX (*.knxprod)"
+
+msgid "Exported {name}"
+msgstr "Exportováno: {name}"
+
+msgid "Could not export {name}: {error}"
+msgstr "{name} nelze exportovat: {error}"
+
+msgid "No stored archive for {name}"
+msgstr "Pro {name} není uložen žádný archiv"
+
+msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
+msgstr "Toto zařízení podporuje KNX Data Secure. Pro jeho zabezpečené uvedení do provozu nastavte heslo projektu; bez hesla bude přidáno a uvedeno do provozu nešifrovaně."
+
+msgid "Search…"
+msgstr "Hledat…"

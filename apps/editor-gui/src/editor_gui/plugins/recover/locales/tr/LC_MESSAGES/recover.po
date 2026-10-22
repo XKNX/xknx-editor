@@ -1,0 +1,125 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor recover 1.0\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Recover Project from Bus"
+msgstr "Projeyi Bus'tan Kurtar"
+
+msgid "From Address"
+msgstr "Başlangıç Adresi"
+
+msgid "To Address"
+msgstr "Bitiş Adresi"
+
+msgid "Scan"
+msgstr "Tara"
+
+msgid "Stop"
+msgstr "Durdur"
+
+msgid "Add to Open Project as Read"
+msgstr "Açık Projeye Okunmuş Olarak Ekle"
+
+msgid "Recover Selected"
+msgstr "Seçilenleri Kurtar"
+
+msgid "Create New Project"
+msgstr "Yeni Proje Oluştur"
+
+msgid "Add to Open Project"
+msgstr "Açık Projeye Ekle"
+
+msgid "Verify (Read-Only)"
+msgstr "Doğrula (Salt Okunur)"
+
+msgid "Export Snapshot"
+msgstr "Anlık Görüntüyü Dışa Aktar"
+
+msgid "Verifying (re-reading and comparing)…"
+msgstr "Doğrulanıyor (yeniden okunuyor ve karşılaştırılıyor)…"
+
+msgid "%(count)d group address(es) have no sender or multiple senders."
+msgstr "%(count)d grup adresinin göndericisi yok veya birden fazla göndericisi var."
+
+msgid "Address"
+msgstr "Adres"
+
+msgid "Mask"
+msgstr "Maske"
+
+msgid "Product / Application"
+msgstr "Ürün / Uygulama"
+
+msgid "Status"
+msgstr "Durum"
+
+msgid "Set an address range and scan the bus."
+msgstr "Bir adres aralığı belirleyin ve bus'ı tarayın."
+
+msgid "Scanning the bus…"
+msgstr "Bus taranıyor…"
+
+msgid "Scanning %(address)s  (%(done)d/%(total)d, %(found)d found)"
+msgstr "Taranıyor: %(address)s  (%(done)d/%(total)d, %(found)d bulundu)"
+
+msgid "Loading missing products from online catalog: %(what)s"
+msgstr "Eksik ürünler çevrimiçi katalogdan yükleniyor: %(what)s"
+
+msgid "Reading devices…"
+msgstr "Cihazlar okunuyor…"
+
+msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+msgstr "Okunuyor: %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+
+msgid "group communication tables"
+msgstr "grup iletişimi tabloları"
+
+msgid "parameter memory"
+msgstr "parametre belleği"
+
+msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
+msgstr "%(devices)d cihaz kurtarıldı: %(group_addresses)d grup adresi, %(links)d bağlantı, kurtarılamayan %(unknown)d parametre."
+
+msgid "Recovered"
+msgstr "Kurtarıldı"
+
+msgid "Added %(count)d device(s) to the open project (%(target)s)."
+msgstr "Açık projeye %(count)d cihaz eklendi (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device(s)."
+msgstr "%(count)d cihazla yeni proje oluşturuldu: %(target)s."
+
+msgid "Not connected to a KNX bus."
+msgstr "Bir KNX bus'ına bağlı değil."
+
+msgid "Open or create a project to add recovered devices."
+msgstr "Kurtarılan cihazları eklemek için bir proje açın veya oluşturun."
+
+msgid "matched"
+msgstr "eşleşti"
+
+msgid "confirm product/version, then tick"
+msgstr "ürünü/sürümü onaylayın, ardından işaretleyin"
+
+msgid "not in catalog - import via Catalog"
+msgstr "katalogda değil - Katalog üzerinden içe aktarın"
+
+msgid "unprogrammed"
+msgstr "programlanmamış"
+
+msgid "recovered"
+msgstr "kurtarıldı"
+
+msgid "already in project - skipped"
+msgstr "zaten projede - atlandı"
+
+msgid "error"
+msgstr "hata"
+
+msgid "%d parameters could not be recovered"
+msgstr "%d parametre kurtarılamadı"

@@ -1,0 +1,1400 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor editor_gui 1.0\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "XKNX Editor"
+msgstr "XKNX Editor"
+
+msgid "{project} - {app}"
+msgstr "{project} - {app}"
+
+msgid "Help"
+msgstr "Yardım"
+
+msgid "Feedback"
+msgstr "Geri Bildirim"
+
+msgid "About"
+msgstr "Hakkında"
+
+msgid "Language"
+msgstr "Dil"
+
+msgid "No matches"
+msgstr "Eşleşme yok"
+
+msgid "Version {version}"
+msgstr "Sürüm {version}"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
+msgstr "Bina otomasyonu kurulum projeleri için açık kaynaklı xknx kütüphanesi üzerine kurulmuş ve kewde'nin xknxtoolkit projesine dayanan bir masaüstü düzenleyici. KNX Association ile bağlantılı değildir ve onun tarafından desteklenmemektedir."
+
+msgid "Network Location"
+msgstr "Ağ Konumu"
+
+msgid "This location is on a network drive:\n{home}\n\nKNX project files use a database that cannot run reliably on network shares. The editor can work on a local copy instead and write it back to the network location when you close the project."
+msgstr "Bu konum bir ağ sürücüsünde:\n{home}\n\nKNX proje dosyaları, ağ paylaşımlarında güvenilir şekilde çalışamayan bir veritabanı kullanır. Düzenleyici bunun yerine yerel bir kopya üzerinde çalışabilir ve projeyi kapattığınızda kopyayı ağ konumuna geri yazabilir."
+
+msgid "Use a Local Copy"
+msgstr "Yerel Kopya Kullan"
+
+msgid "Working on a local copy; written back to {home} when you close the project."
+msgstr "Yerel bir kopya üzerinde çalışılıyor; projeyi kapattığınızda şuraya geri yazılır: {home}"
+
+msgid "Add"
+msgstr "Ekle"
+
+msgid "Close"
+msgstr "Kapat"
+
+msgid "Cancel"
+msgstr "İptal et"
+
+msgid "New Project"
+msgstr "Yeni Proje"
+
+msgid "Project Name"
+msgstr "Proje Adı"
+
+msgid "Group Address Style"
+msgstr "Grup Adresi Stili"
+
+msgid "Free"
+msgstr "Serbest"
+
+msgid "Two-level"
+msgstr "İki Seviyeli"
+
+msgid "Three-level"
+msgstr "Üç Seviyeli"
+
+msgid "Create…"
+msgstr "Oluştur…"
+
+msgid "Copy"
+msgstr "Kopyala"
+
+msgid "Clear"
+msgstr "Temizle"
+
+msgid "Stop"
+msgstr "Durdur"
+
+msgid "All Files"
+msgstr "Tüm Dosyalar"
+
+msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
+msgstr "Proje: {name}  ·  {devices} cihaz  ·  {gas} GA"
+
+msgid "No project open"
+msgstr "Açık proje yok"
+
+msgid "Programming {address}…"
+msgstr "Programlanıyor: {address}…"
+
+msgid "Reading {address}…"
+msgstr "Okunuyor: {address}…"
+
+msgid "Testing {address}…"
+msgstr "Test ediliyor: {address}…"
+
+msgid "Programming complete"
+msgstr "Programlama tamamlandı"
+
+msgid "Programming failed"
+msgstr "Programlama başarısız"
+
+msgid "No KNX connection"
+msgstr "KNX bağlantısı yok"
+
+msgid "KNX Master v{version} ({date})"
+msgstr "KNX Master v{version} ({date})"
+
+msgid "File"
+msgstr "Dosya"
+
+msgid "Open Project (.knxproj/.xknx)"
+msgstr "Proje Aç (.knxproj/.xknx)"
+
+msgid "Save As…"
+msgstr "Farklı Kaydet…"
+
+msgid "Saved as {name}"
+msgstr "Farklı kaydedildi: {name}"
+
+msgid "Open Recent"
+msgstr "Son Kullanılanlar"
+
+msgid "Settings…"
+msgstr "Ayarlar…"
+
+msgid "MCP Server"
+msgstr "MCP Sunucusu"
+
+msgid "Settings"
+msgstr "Ayarlar"
+
+msgid "Gateway"
+msgstr "Ağ Geçidi"
+
+msgid "MCP"
+msgstr "MCP"
+
+msgid "Catalog"
+msgstr "Katalog"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Multicast yönlendirme kullan (tünelleme yerine)"
+
+msgid "Gateway IP"
+msgstr "Ağ Geçidi IP"
+
+msgid "Multicast Group"
+msgstr "Multicast Grubu"
+
+msgid "Run the MCP server so an LLM can drive the editor over Streamable HTTP. It shares this app's catalog database."
+msgstr "Bir LLM'nin düzenleyiciyi Streamable HTTP üzerinden yönetebilmesi için MCP sunucusunu çalıştırın. Sunucu bu uygulamanın katalog veritabanını paylaşır."
+
+msgid "MCP Host"
+msgstr "MCP Host"
+
+msgid "MCP Port"
+msgstr "MCP Portu"
+
+msgid "Bearer Token (Optional)"
+msgstr "Bearer Token (İsteğe Bağlı)"
+
+msgid "Server: Running"
+msgstr "Sunucu: Çalışıyor"
+
+msgid "Server: Stopped"
+msgstr "Sunucu: Durduruldu"
+
+msgid "Port {port} is already in use by another program, so the MCP server cannot start. Choose another port, or end the other program."
+msgstr "Port {port} başka bir program tarafından kullanılıyor, bu nedenle MCP sunucusu başlatılamıyor. Başka bir port seçin veya diğer programı kapatın."
+
+msgid "The MCP server could not start: {error}"
+msgstr "MCP sunucusu başlatılamadı: {error}"
+
+msgid "Start Server"
+msgstr "Sunucuyu Başlat"
+
+msgid "Stop Server"
+msgstr "Sunucuyu Durdur"
+
+msgid "AI MCP"
+msgstr "YZ MCP"
+
+msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
+msgstr "Bu düzenleyici yerleşik MCP sunucusu aracılığıyla bir yapay zekâ asistanı (Claude, Codex, …) tarafından kontrol edilebilir: sunucu, katalog ve projeyi Streamable HTTP üzerinden araçlar olarak sunar. Aşağıdan sunucuyu başlatın, ardından uç noktasını yapay zekâ aracınıza kaydedin."
+
+msgid "MCP Endpoint"
+msgstr "MCP Uç Noktası"
+
+msgid "Example: register the MCP server in your AI tool (adjust host/port):"
+msgstr "Örnek: MCP sunucusunu yapay zekâ aracınıza kaydedin (host/port'u uyarlayın):"
+
+msgid "Use host 0.0.0.0 to make the server reachable from other devices on the network; 127.0.0.1/localhost only allows this machine."
+msgstr "Sunucuya ağdaki diğer cihazlardan erişilebilmesi için 0.0.0.0 host'unu kullanın; 127.0.0.1/localhost yalnızca bu bilgisayara izin verir."
+
+msgid "claude mcp add --transport http xknx-editor {url}"
+msgstr "claude mcp add --transport http xknx-editor {url}"
+
+msgid "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+msgstr "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+
+msgid "codex mcp add xknx-editor --url {url}"
+msgstr "codex mcp add xknx-editor --url {url}"
+
+msgid "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+msgstr "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+
+msgid "Copied"
+msgstr "Kopyalandı"
+
+msgid "Download Language"
+msgstr "İndirme Dili"
+
+msgid "MCP running"
+msgstr "MCP çalışıyor"
+
+msgid "Welcome"
+msgstr "Hoş Geldiniz"
+
+msgid "Create a new project or open an existing one to get started."
+msgstr "Başlamak için yeni bir proje oluşturun veya mevcut bir projeyi açın."
+
+msgid "Recent Projects"
+msgstr "Son Projeler"
+
+msgid "Recover from Bus…"
+msgstr "Bus'tan Kurtar…"
+
+msgid "Export .knxproj…"
+msgstr ".knxproj Dışa Aktar…"
+
+msgid "Export to ETS 5 ProjectStore"
+msgstr "ETS 5 ProjectStore'a Dışa Aktar"
+
+msgid "Export Group Addresses…"
+msgstr "Grup Adreslerini Dışa Aktar…"
+
+msgid "Import Group Addresses…"
+msgstr "Grup Adreslerini İçe Aktar…"
+
+msgid "Exported {count} group address(es)"
+msgstr "Dışa aktarılan grup adresi: {count}"
+
+msgid "Export Group Addresses"
+msgstr "Grup Adreslerini Dışa Aktar"
+
+msgid "Output Format"
+msgstr "Çıktı Formatı"
+
+msgid "CSV Format"
+msgstr "CSV Formatı"
+
+msgid "3/1 - three columns, Main/Middle/Sub group separated"
+msgstr "3/1 - üç kolon, Ana/Orta/Alt grup ayrılmış"
+
+msgid "1/3 - Group address name/Main - Middle - Sub group"
+msgstr "1/3 - Grup adresi adı/Ana - Orta - Alt grup"
+
+msgid "1/1 - Name/Address"
+msgstr "1/1 - Ad/Adres"
+
+msgid "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
+msgstr "3/3 - Ana - Orta - Alt grup adı/Ana - Orta - Alt grup adresi"
+
+msgid "Export with Header Line"
+msgstr "Başlık Satırı ile Dışa Aktar"
+
+msgid "CSV Separator"
+msgstr "CSV Ayırıcı"
+
+msgid "Tabulator"
+msgstr "Sekme"
+
+msgid "Comma"
+msgstr "Virgül"
+
+msgid "Semicolon"
+msgstr "Noktalı virgül"
+
+msgid "Export"
+msgstr "Dışa Aktar"
+
+msgid "Group Address Export (*.csv)"
+msgstr "Grup Adresi Dışa Aktarma Dosyası (*.csv)"
+
+msgid "Exported to {path} ({size}) as {schema}"
+msgstr "Dışa aktarıldı: {path} ({size}), şema: {schema}"
+
+msgid "Export Complete"
+msgstr "Dışa Aktarma Tamamlandı"
+
+msgid "Successfully created {name}"
+msgstr "Başarıyla oluşturuldu: {name}"
+
+msgid "File Size"
+msgstr "Dosya Boyutu"
+
+msgid "Project"
+msgstr "Proje"
+
+msgid "Format"
+msgstr "Format"
+
+msgid "Devices"
+msgstr "Cihazlar"
+
+msgid "Buildings"
+msgstr "Binalar"
+
+msgid "Group Addresses"
+msgstr "Grup Adresleri"
+
+msgid "Group Object Links"
+msgstr "Grup Nesnesi Bağlantıları"
+
+msgid "Areas / Lines"
+msgstr "Alanlar / Linyeler"
+
+msgid "Floors / Rooms"
+msgstr "Katlar / Odalar"
+
+msgid "Functions"
+msgstr "Fonksiyonlar"
+
+msgid "KNX Master Version"
+msgstr "KNX Master Sürümü"
+
+msgid "Exported at"
+msgstr "Dışa Aktarılma Zamanı"
+
+msgid "Manufacturer Data (M Folders)"
+msgstr "Üretici Verileri (M Klasörleri)"
+
+msgid "Signed"
+msgstr "İmzalı"
+
+msgid "Certificate"
+msgstr "Sertifika"
+
+msgid "yes"
+msgstr "evet"
+
+msgid "no"
+msgstr "hayır"
+
+msgid "Open Folder"
+msgstr "Klasörü Aç"
+
+msgid "Good to Know"
+msgstr "Bilmekte Fayda Var"
+
+msgid "Your project opened fine and everything you need to work with is here. A few extra details from the original file are shown a bit more simply:"
+msgstr "Projeniz sorunsuz açıldı ve çalışmak için gereken her şey burada. Orijinal dosyadaki birkaç ek ayrıntı biraz daha basit gösteriliyor:"
+
+msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
+msgstr "Bu proje, bu düzenleyicinin kullanmadığı birkaç ek ayrıntı içeren bir dosyadan geldi. Dışa aktarma işlemi bunları dışarıda bırakır:"
+
+msgid "The original file had {count} installations. They were combined into one."
+msgstr "Orijinal dosyada {count} kurulum vardı. Bunlar tek bir kurulumda birleştirildi."
+
+msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr "{count} cihaz bir linyeye atanmamış. Bu cihazlar projede tutulur ve dışa aktarmaya dahil edilir, ancak burada henüz düzenlenemez."
+
+msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr "{count} grup nesnesinin orijinal dosyada ek bir tanımı vardı. Özel ad ve fonksiyon korunur; yalnızca bu tanım burada gösterilmez."
+
+msgid "For example: {examples}"
+msgstr "Örneğin: {examples}"
+
+msgid "{count} IP or function setting(s) from the original file are not used here."
+msgstr "Orijinal dosyadaki {count} IP veya fonksiyon ayarı burada kullanılmıyor."
+
+msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr "{count} linye birden fazla segment kullanıyor. Şema 14/20 dışa aktarmasında bunlar yalnızca linye seviyesinde gösterilir."
+
+msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
+msgstr "{count} linye farklı kurulumlarda aynı adrese sahipti. Birleştirme sırasında her birinden biri tutuldu."
+
+msgid "Exporting {name} — this can take a while for large projects."
+msgstr "Dışa aktarılıyor: {name} — bu işlem büyük projelerde biraz zaman alabilir."
+
+msgid "Collecting the manufacturer data…"
+msgstr "Üretici verileri toplanıyor…"
+
+msgid "Writing the archive…"
+msgstr "Arşiv yazılıyor…"
+
+msgid "Getting the certificate from MyKNX…"
+msgstr "Sertifika MyKNX'ten alınıyor…"
+
+msgid "Cancelling…"
+msgstr "İptal ediliyor…"
+
+msgid "Export cancelled, no file was written"
+msgstr "Dışa aktarma iptal edildi, dosya yazılmadı"
+
+msgid "Export Failed"
+msgstr "Dışa Aktarma Başarısız"
+
+msgid "The project could not be exported to {name}."
+msgstr "Proje şuraya dışa aktarılamadı: {name}."
+
+msgid "MyKNX did not issue the certificate for the project:"
+msgstr "MyKNX proje için sertifika düzenlemedi:"
+
+msgid "To export without it, choose 'Export Without Certificate' or the 'License with a Dongle' tab in the Sign Export window."
+msgstr "Sertifika olmadan dışa aktarmak için \"Dışa Aktarmayı İmzala\" penceresinde \"Sertifikasız Dışa Aktar\" seçeneğini veya \"Dongle ile Lisansla\" sekmesini seçin."
+
+msgid "{name} cannot be imported."
+msgstr "{name} içe aktarılamıyor."
+
+msgid "The file was written, but it refers to product data that is not in the catalog: {references}. Add these products to the catalog and export again."
+msgstr "Dosya yazıldı, ancak katalogda olmayan ürün verilerine başvuruyor: {references}. Bu ürünleri kataloğa ekleyin ve yeniden dışa aktarın."
+
+msgid "Sign Export"
+msgstr "Dışa Aktarmayı İmzala"
+
+msgid "ETS 6: needs a licensed .knxproj through a MyKNX login or a dongle.\nETS 5: just use 'Export Without Certificate'."
+msgstr "ETS 6: MyKNX oturumu veya dongle ile lisanslanmış bir .knxproj gerekir.\nETS 5: yalnızca 'Sertifikasız Dışa Aktar' seçeneğini kullanın."
+
+msgid "Sign with MyKNX Login"
+msgstr "MyKNX Oturumuyla İmzala"
+
+msgid "License with a Dongle"
+msgstr "Dongle ile Lisansla"
+
+msgid "ETS must not be running on any computer with this MyKNX account while you log in and export here."
+msgstr "Burada oturum açıp dışa aktarma yaparken bu MyKNX hesabıyla hiçbir bilgisayarda ETS çalışmamalıdır."
+
+msgid "MyKNX Username"
+msgstr "MyKNX Kullanıcı Adı"
+
+msgid "MyKNX Password"
+msgstr "MyKNX Parolası"
+
+msgid "Log in"
+msgstr "Oturum Aç"
+
+msgid "Complete sign-in in your browser. Code: {code}"
+msgstr "Oturum açmayı tarayıcınızda tamamlayın. Kod: {code}"
+
+msgid "Login failed (HTTP 401). Either the password is wrong, or this account uses two-factor authentication - the server does not say which."
+msgstr "Oturum açılamadı (HTTP 401). Ya parola yanlış ya da bu hesap iki faktörlü kimlik doğrulama kullanıyor - sunucu hangisi olduğunu belirtmiyor."
+
+msgid "Re-enter Credentials"
+msgstr "Kimlik Bilgilerini Yeniden Gir"
+
+msgid "Start 2FA Sign-In"
+msgstr "2FA Oturumu Başlat"
+
+msgid "MyKNX OAuth Credentials (2FA)"
+msgstr "MyKNX OAuth Kimlik Bilgileri (2FA)"
+
+msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
+msgstr "Yalnızca iki faktörlü kimlik doğrulama kullanan hesaplar için gereklidir. Normal oturum açma reddedildiğinde 2FA oturumu tarayıcınızda otomatik olarak açılır. OAuth istemci kimliğini/gizli anahtarını girin veya bunları kurulu ETS'nizden çıkarın: ETS program klasöründen 'Knx.Ets.MyKnx.dll' dosyasını seçin (ör. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatif olarak, lisanslı herhangi bir ETS kuruluysa çevrimiçi imzalamayı tamamen atlayın ve bunun yerine yerel proje deposunu kullanın - 'Dongle ile Lisansla' sekmesine bakın."
+
+msgid "Client ID"
+msgstr "İstemci Kimliği"
+
+msgid "Client Secret"
+msgstr "İstemci Gizli Anahtarı"
+
+msgid "Extract from ETS…"
+msgstr "ETS'den Çıkar…"
+
+msgid "Extracting…"
+msgstr "Çıkarılıyor…"
+
+msgid "Save"
+msgstr "Kaydet"
+
+msgid "All files"
+msgstr "Tüm Dosyalar"
+
+msgid "Logging in…"
+msgstr "Oturum açılıyor…"
+
+msgid "License"
+msgstr "Lisans"
+
+msgid "No licenses found on this account"
+msgstr "Bu hesapta lisans bulunamadı"
+
+msgid "no online certificate"
+msgstr "çevrimiçi sertifika yok"
+
+msgid "expired"
+msgstr "süresi dolmuş"
+
+msgid "None of these licenses can sign online. Only ETS6 (or a cloud-enabled ETS app) licenses produce a certificate; ETS5/older licenses cannot. Use 'License with a dongle' instead."
+msgstr "Bu lisansların hiçbiri çevrimiçi imzalayamaz. Yalnızca ETS6 (veya bulut özellikli bir ETS uygulaması) lisansları sertifika üretir; ETS5/daha eski lisanslar üretemez. Bunun yerine 'Dongle ile Lisansla' seçeneğini kullanın."
+
+msgid "Login failed: {error}"
+msgstr "Oturum açılamadı: {error}"
+
+msgid "Format Version"
+msgstr "Format Sürümü"
+
+msgid "Remove device(s) & re-export"
+msgstr "Cihazları Kaldır ve Yeniden Dışa Aktar"
+
+msgid "Removed {count} incompatible device(s); re-exporting"
+msgstr "{count} uyumsuz cihaz kaldırıldı; yeniden dışa aktarılıyor"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
+msgstr "Bu dosya seçilen ETS sürümüne İÇE AKTARILAMAZ: bu üreticilerin ürün verileri yalnızca daha yeni bir ETS için mevcut (ör. ETS 5 dışa aktarmasında bir ETS 6 ürünü), bu nedenle ETS projenin tamamını reddeder. Etkilenen cihazları kaldırın veya daha yeni ETS için dışa aktarın."
+
+msgid "ETS 6 (schema 23)"
+msgstr "ETS 6 (şema 23)"
+
+msgid "ETS 5 (schema 20)"
+msgstr "ETS 5 (şema 20)"
+
+msgid "Signing Key…"
+msgstr "İmza Anahtarı…"
+
+msgid "Signing Key"
+msgstr "İmza Anahtarı"
+
+msgid "Folder signature uses a placeholder key. Enter a valid signature under 'Signing Key…' or use the 'License with a Dongle' way."
+msgstr "Klasör imzası yer tutucu bir anahtar kullanıyor. 'İmza Anahtarı…' altında geçerli bir imza girin veya 'Dongle ile Lisansla' yolunu kullanın."
+
+msgid "Export to ProjectStore"
+msgstr "ProjectStore'a Dışa Aktar"
+
+msgid "Select the {ets} ProjectStore folder"
+msgstr "{ets} ProjectStore klasörünü seçin"
+
+msgid "Select the ETS installer.guid file"
+msgstr "ETS installer.guid dosyasını seçin"
+
+msgid "ETS installer id"
+msgstr "ETS kurulum kimliği"
+
+msgid "Project Already in the Store"
+msgstr "Proje Zaten Depoda"
+
+msgid "A project folder '{pid}' already exists in this ETS ProjectStore. Overwrite it, or add it as a separate copy?"
+msgstr "Bu ETS ProjectStore'da '{pid}' proje klasörü zaten mevcut. Üzerine yazılsın mı, yoksa ayrı bir kopya olarak mı eklensin?"
+
+msgid "Overwrite"
+msgstr "Üzerine yaz"
+
+msgid "Add Copy"
+msgstr "Kopya Ekle"
+
+msgid "XKNX Export"
+msgstr "XKNX Dışa Aktarma"
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store:\n1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n3. Restart ETS 6 - the project appears in the project overview.\n4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed:\nChoose 'Export Without Certificate' (with ETS 5 as version) and an active signing key to save a .knxproj, then import that file into ETS 5.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Projeyi, kopyayı dongle lisansınızla yeniden imzalayan kendi lisanslı ETS'niz üzerinden yeniden lisanslayın:\n\nETS 6 - yerel proje deposunu kullanın:\n1. 'ProjectStore'a Dışa Aktar' düğmesine tıklayın. Bu, projenin 'P-XXXX' klasörünü doğrudan ETS 6 proje deponuza yazar. ETS bu bilgisayarda kurulu değilse depo klasörü (veya daha sonra elle kopyalayacağınız herhangi bir klasör) sorulur.\n2. Dışa aktarma için C:\\ProgramData\\KNX\\ETS6\\Installer içindeki 'installer.guid' dosyanız gerekir. Otomatik olarak bulunamazsa bu dosyayı seçmeniz istenir.\n3. ETS 6'yı yeniden başlatın - proje, proje genel bakışında görünür.\n4. Orada projenin bir kopyasını oluşturun (genel bakışta Kopyala). Kopya lisansınızla yeniden imzalanır - kopyayı açın, ardından normal şekilde kullanın veya dışa aktarın.\n\nETS 5 - proje deposu gerekmez:\nBir .knxproj kaydetmek için 'Sertifikasız Dışa Aktar' seçeneğini (sürüm olarak ETS 5 ile) ve etkin bir imza anahtarını seçin, ardından bu dosyayı ETS 5'e içe aktarın.\n\nBu işlem lisansınızın proje başına cihaz sınırıyla kısıtlıdır."
+
+msgid "Sign & Export"
+msgstr "İmzala ve Dışa Aktar"
+
+msgid "Export Without Certificate"
+msgstr "Sertifikasız Dışa Aktar"
+
+msgid "Export ETS Project"
+msgstr "ETS Projesini Dışa Aktar"
+
+msgid "Load .knxprod…"
+msgstr ".knxprod Yükle…"
+
+msgid "Load OpenKNX from URL or Folder…"
+msgstr "OpenKNX'i URL'den veya Klasörden Yükle…"
+
+msgid "Load OpenKNX from URL or Files…"
+msgstr "OpenKNX'i URL'den veya Dosyalardan Yükle…"
+
+msgid "Load OpenKNX from URL or Folder"
+msgstr "OpenKNX'i URL'den veya Klasörden Yükle"
+
+msgid "Load OpenKNX from URL or Files"
+msgstr "OpenKNX'i URL'den veya Dosyalardan Yükle"
+
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+msgstr "Bir OpenKNX GitHub sürüm URL'si yapıştırın (sürüm sayfası da çalışır — .zip dosyası otomatik bulunur). Doğrudan bir .knxprod veya KNX ürün XML bağlantısı da çalışır.\n\nÖrnekler:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+
+msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Veya tümünü içe aktarmak için ürün dosyaları (.knxprod, OpenKNX sürüm .zip dosyası veya KNX ürün XML) içeren yerel bir klasör seçin."
+
+msgid "Choose Folder…"
+msgstr "Klasör Seç…"
+
+msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Veya tümünü içe aktarmak için ürün dosyalarını (.knxprod, OpenKNX sürüm .zip dosyası veya KNX ürün XML) bu bilgisayardan karşıya yükleyin."
+
+msgid "Choose Files…"
+msgstr "Dosya Seç…"
+
+msgid "Load"
+msgstr "Yükle"
+
+msgid "Downloading and importing…"
+msgstr "İndiriliyor ve içe aktarılıyor…"
+
+msgid "Nothing new imported (already in the catalog)"
+msgstr "Yeni bir şey içe aktarılmadı (zaten katalogda)"
+
+msgid "Import from URL failed: {error}"
+msgstr "URL'den içe aktarma başarısız: {error}"
+
+msgid "Choose a Folder with KNX Product Files"
+msgstr "KNX Ürün Dosyaları İçeren Bir Klasör Seçin"
+
+msgid "Importing from folder…"
+msgstr "Klasörden içe aktarılıyor…"
+
+msgid "Nothing new imported from folder (no product files found, or already in the catalog)"
+msgstr "Klasörden yeni bir şey içe aktarılmadı (ürün dosyası bulunamadı veya zaten katalogda)"
+
+msgid "Import from folder failed: {error}"
+msgstr "Klasörden içe aktarma başarısız: {error}"
+
+msgid "Choose KNX Product Files"
+msgstr "KNX Ürün Dosyalarını Seçin"
+
+msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
+msgstr "KNX Ürün Dosyaları (*.knxprod, *.zip, *.xml)"
+
+msgid "Importing files…"
+msgstr "Dosyalar içe aktarılıyor…"
+
+msgid "Nothing new imported from the files (no product files, or already in the catalog)"
+msgstr "Dosyalardan yeni bir şey içe aktarılmadı (ürün dosyası yok veya zaten katalogda)"
+
+msgid "Import of the files failed: {error}"
+msgstr "Dosyalar içe aktarılamadı: {error}"
+
+msgid "Exit"
+msgstr "Çıkış"
+
+msgid "Edit"
+msgstr "Düzenle"
+
+msgid "View"
+msgstr "Görünüm"
+
+msgid "Restore Default Layout"
+msgstr "Varsayılan Düzeni Geri Yükle"
+
+msgid "Show All"
+msgstr "Hepsini Göster"
+
+msgid "Hide All"
+msgstr "Hepsini Gizle"
+
+msgid "Highlight Changes"
+msgstr "Değişiklikleri Vurgula"
+
+msgid "Context Help"
+msgstr "Bağlamsal Yardım"
+
+msgid "Status Bar"
+msgstr "Durum Çubuğu"
+
+msgid "FPS in Status Bar"
+msgstr "Durum Çubuğunda FPS"
+
+msgid "Enable Idling"
+msgstr "Boşta Modunu Etkinleştir"
+
+msgid "FPS: {fps:.1f}{idling}"
+msgstr "FPS: {fps:.1f}{idling}"
+
+msgid " (Idling)"
+msgstr " (Boşta)"
+
+msgid "Theme"
+msgstr "Tema"
+
+msgid "Customize Theme…"
+msgstr "Temayı Özelleştir…"
+
+msgid "Customize Theme"
+msgstr "Temayı Özelleştir"
+
+msgid "Sizes"
+msgstr "Boyutlar"
+
+msgid "Colors"
+msgstr "Renkler"
+
+msgid "Rendering"
+msgstr "İşleme"
+
+msgid "Adjustments"
+msgstr "Ayarlamalar"
+
+msgid "Theme Default"
+msgstr "Tema Varsayılanı"
+
+msgid "Reset to Theme"
+msgstr "Temaya Sıfırla"
+
+msgid "Rounding"
+msgstr "Yuvarlama"
+
+msgid "Scrollbar Rounding Ratio"
+msgstr "Kaydırma Çubuğu Yuvarlama Oranı"
+
+msgid "Opacity"
+msgstr "Opaklık"
+
+msgid "Hue"
+msgstr "Renk Tonu"
+
+msgid "Saturation"
+msgstr "Doygunluk"
+
+msgid "Brightness of Controls"
+msgstr "Kontrollerin Parlaklığı"
+
+msgid "Brightness of Backgrounds"
+msgstr "Arka Planların Parlaklığı"
+
+msgid "Brightness of Text"
+msgstr "Metnin Parlaklığı"
+
+msgid "Brightness of Input Fields"
+msgstr "Giriş Alanlarının Parlaklığı"
+
+msgid "Spacing"
+msgstr "Aralıklar"
+
+msgid "Borders"
+msgstr "Kenarlıklar"
+
+msgid "Alignment"
+msgstr "Hizalama"
+
+msgid "Window Padding"
+msgstr "Pencere İç Boşluğu"
+
+msgid "Field Padding"
+msgstr "Alan İç Boşluğu"
+
+msgid "Cell Padding"
+msgstr "Hücre İç Boşluğu"
+
+msgid "Item Spacing"
+msgstr "Öğe Aralığı"
+
+msgid "Item Inner Spacing"
+msgstr "Öğe İç Aralığı"
+
+msgid "Extra Touch Padding"
+msgstr "Ek Dokunma Boşluğu"
+
+msgid "Indent"
+msgstr "Girinti"
+
+msgid "Scrollbar Width"
+msgstr "Kaydırma Çubuğu Genişliği"
+
+msgid "Minimum Slider Grip Size"
+msgstr "Minimum Kaydırıcı Tutamacı Boyutu"
+
+msgid "Windows"
+msgstr "Pencereler"
+
+msgid "Child Windows"
+msgstr "Alt Pencereler"
+
+msgid "Popups"
+msgstr "Açılır Pencereler"
+
+msgid "Fields"
+msgstr "Alanlar"
+
+msgid "Tabs"
+msgstr "Sekmeler"
+
+msgid "Tab Bar"
+msgstr "Sekme Çubuğu"
+
+msgid "Scrollbars"
+msgstr "Kaydırma Çubukları"
+
+msgid "Slider Grips"
+msgstr "Kaydırıcı Tutamaçları"
+
+msgid "Window Title"
+msgstr "Pencere Başlığı"
+
+msgid "Button Text"
+msgstr "Düğme Metni"
+
+msgid "List Entry Text"
+msgstr "Liste Öğesi Metni"
+
+msgid "Separator Text"
+msgstr "Ayırıcı Metni"
+
+msgid "Font Scale"
+msgstr "Yazı Tipi Ölçeği"
+
+msgid "Anti-Aliased Lines"
+msgstr "Kenar Yumuşatmalı Çizgiler"
+
+msgid "Anti-Aliased Fills"
+msgstr "Kenar Yumuşatmalı Dolgular"
+
+msgid "Curve Tessellation Tolerance"
+msgstr "Eğri Mozaikleme Toleransı"
+
+msgid "Maximum Circle Tessellation Error"
+msgstr "Maksimum Daire Mozaikleme Hatası"
+
+msgid "Global Opacity"
+msgstr "Genel Opaklık"
+
+msgid "Opacity of Disabled Items"
+msgstr "Devre Dışı Öğelerin Opaklığı"
+
+msgid "Show ImGui Demo Window"
+msgstr "ImGui Demo Penceresini Göster"
+
+msgid "Filter colors"
+msgstr "Renkleri filtrele"
+
+msgid "Undo"
+msgstr "Geri al"
+
+msgid "Redo"
+msgstr "Yeniden yap"
+
+msgid "Open KNX Product Archive"
+msgstr "KNX Ürün Arşivini Aç"
+
+msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
+msgstr "KNX Ürünü (*.knxprod, *.vd1-*.vd5)"
+
+msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
+msgstr "Eski ETS ürün veritabanları (.vd1-.vd5) doğrudan içe aktarılmaz.\n\nDosyayı önce ETS5/ETS6 ile birlikte gelen dönüştürme araçlarıyla .knxprod biçimine dönüştürün - ürün dosyasını ETS'de açın veya komut satırı dönüştürücüsünü kullanın - ardından elde edilen .knxprod dosyasını buraya içe aktarın."
+
+msgid "ETS Project (*.knxproj)"
+msgstr "ETS Projesi (*.knxproj)"
+
+msgid "ETS 6 Project (*.knxproj)"
+msgstr "ETS 6 Projesi (*.knxproj)"
+
+msgid "ETS 5 Project (*.knxproj)"
+msgstr "ETS 5 Projesi (*.knxproj)"
+
+msgid "Group Address Exports (*.xml, *.csv)"
+msgstr "Grup Adresi Dışa Aktarma Dosyaları (*.xml, *.csv)"
+
+msgid "Group Address Export (*.xml)"
+msgstr "Grup Adresi Dışa Aktarma Dosyası (*.xml)"
+
+msgid "Open XKNX Project"
+msgstr "XKNX Projesi Aç"
+
+msgid "Save XKNX Project"
+msgstr "XKNX Projesini Kaydet"
+
+msgid "Save Project As"
+msgstr "Projeyi Farklı Kaydet"
+
+msgid "Replace File"
+msgstr "Dosyayı Değiştir"
+
+msgid "{name} already exists."
+msgstr "{name} zaten mevcut."
+
+msgid "It is in {dir}. Replacing it overwrites its current content; this cannot be undone."
+msgstr "Dosya şurada: {dir}. Değiştirmek mevcut içeriğinin üzerine yazar; bu işlem geri alınamaz."
+
+msgid "Replace"
+msgstr "Değiştir"
+
+msgid "XKNX Project (*.xknx)"
+msgstr "XKNX Projesi (*.xknx)"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml, *.csv)"
+msgstr "Projeler (*.xknx, *.knxproj, *.xml, *.csv)"
+
+msgid "Working…"
+msgstr "Lütfen bekleyin…"
+
+msgid "Importing project — this can take a while for large projects."
+msgstr "Proje içe aktarılıyor — bu işlem büyük projelerde biraz zaman alabilir."
+
+msgid "{done}/{total} devices"
+msgstr "{done}/{total} cihaz"
+
+msgid "Loading product catalog…"
+msgstr "Ürün kataloğu yükleniyor…"
+
+msgid "Imported {count} product version(s) from {name}:"
+msgstr "{name} dosyasından {count} ürün sürümü içe aktarıldı:"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "DIN rail"
+msgstr "DIN ray"
+
+msgid "Flush-mounted"
+msgstr "Sıva altı"
+
+msgid "Registered: {info}"
+msgstr "Kayıtlı: {info}"
+
+msgid "Manufacturer"
+msgstr "Üretici"
+
+msgid "Product"
+msgstr "Ürün"
+
+msgid "Order no."
+msgstr "Sipariş no."
+
+msgid "Application"
+msgstr "Uygulama"
+
+msgid "Version"
+msgstr "Sürüm"
+
+msgid "Mask"
+msgstr "Maske"
+
+msgid "Hardware"
+msgstr "Donanım"
+
+msgid "Registered"
+msgstr "Kayıtlı"
+
+msgid "{name} was already in the catalog, nothing new imported"
+msgstr "{name} zaten katalogdaydı, yeni bir şey içe aktarılmadı"
+
+msgid "Product Catalog Import"
+msgstr "Ürün Kataloğu İçe Aktarma"
+
+msgid "Opening project…"
+msgstr "Proje açılıyor…"
+
+msgid "Importing group addresses…"
+msgstr "Grup adresleri içe aktarılıyor…"
+
+msgid "Switching language…"
+msgstr "Dil değiştiriliyor…"
+
+msgid "Project Password"
+msgstr "Proje Parolası"
+
+msgid "This ETS project is password protected. Enter its password:"
+msgstr "Bu ETS projesi parola korumalı. Parolasını girin:"
+
+msgid "Wrong password, please try again."
+msgstr "Yanlış parola, lütfen tekrar deneyin."
+
+msgid "This project is protected with a password. Enter it to open the project:"
+msgstr "Bu proje parolayla korunuyor. Projeyi açmak için parolayı girin:"
+
+msgid "This project contains KNX Secure keys. Set a project password to protect them; the project can then only be opened with it."
+msgstr "Bu proje KNX Secure anahtarları içeriyor. Anahtarları korumak için bir proje parolası belirleyin; proje bundan sonra yalnızca bu parolayla açılabilir."
+
+msgid "Password"
+msgstr "Parola"
+
+msgid "Repeat Password"
+msgstr "Parolayı Tekrarla"
+
+msgid "The passwords do not match."
+msgstr "Parola uyuşmuyor."
+
+msgid "Protecting the project with the password…"
+msgstr "Proje parolayla korunuyor…"
+
+msgid "OK"
+msgstr "Tamam"
+
+msgid "Check for Updates"
+msgstr "Güncellemeleri Kontrol Et"
+
+msgid "Check for Updates on Startup"
+msgstr "Başlangıçta Güncellemeleri Kontrol Et"
+
+msgid "Update Available"
+msgstr "Güncelleme Mevcut"
+
+msgid "Version {latest} is available. You have {current}."
+msgstr "{latest} sürümü mevcut. Sizdeki sürüm: {current}."
+
+msgid "You are up to date (version {version})."
+msgstr "Güncelsiniz (sürüm {version})."
+
+msgid "Download"
+msgstr "İndir"
+
+msgid "Install Update"
+msgstr "Güncellemeyi Kur"
+
+msgid "Install Update downloads the installer, closes XKNX Editor and starts it again with the open project."
+msgstr "\"Güncellemeyi Kur\", kurulum programını indirir, XKNX Editor'ü kapatır ve açık projeyle yeniden başlatır."
+
+msgid "Downloading the update…"
+msgstr "Güncelleme indiriliyor…"
+
+msgid "{done} of {total} MB"
+msgstr "{done} / {total} MB"
+
+msgid "Skip This Version"
+msgstr "Bu Sürümü Atla"
+
+msgid "Later"
+msgstr "Daha Sonra"
+
+msgid "Release Notes:"
+msgstr "Sürüm Notları:"
+
+msgid "License: GPL-2.0-only"
+msgstr "Lisans: GPL-2.0-only"
+
+msgid "Website:"
+msgstr "Web sitesi:"
+
+msgid "Open Config Folder"
+msgstr "Yapılandırma Klasörünü Aç"
+
+msgid "Open Cache Folder"
+msgstr "Önbellek Klasörünü Aç"
+
+msgid "Open Log Folder"
+msgstr "Günlük Klasörünü Aç"
+
+msgid "Compact Project…"
+msgstr "Projeyi Sıkıştır…"
+
+msgid "Compact Project"
+msgstr "Projeyi Sıkıştır"
+
+msgid "Analysing project…"
+msgstr "Proje analiz ediliyor…"
+
+msgid "Compacting project…"
+msgstr "Proje sıkıştırılıyor…"
+
+msgid "Analysing devices"
+msgstr "Cihazlar analiz ediliyor"
+
+msgid "Analysing product data ({manufacturer})"
+msgstr "Ürün verileri analiz ediliyor ({manufacturer})"
+
+msgid "Removing unused product data ({manufacturer})"
+msgstr "Kullanılmayan ürün verileri kaldırılıyor ({manufacturer})"
+
+msgid "Saving product data"
+msgstr "Ürün verileri kaydediliyor"
+
+msgid "Compacting project file"
+msgstr "Proje dosyası sıkıştırılıyor"
+
+msgid "The following product data is not used by any device in this project and will be removed:"
+msgstr "Aşağıdaki ürün verileri bu projedeki hiçbir cihaz tarafından kullanılmıyor ve kaldırılacak:"
+
+msgid "All product data in this project is used by its devices, nothing to remove. The project file can still be compacted to free unused space."
+msgstr "Bu projedeki tüm ürün verileri cihazları tarafından kullanılıyor, kaldırılacak bir şey yok. Proje dosyası yine de kullanılmayan alanı boşaltmak için sıkıştırılabilir."
+
+msgid "Application Programs"
+msgstr "Uygulama Programları"
+
+msgid "Device Types (Products)"
+msgstr "Cihaz Tipleri (Ürünler)"
+
+msgid "Manufacturers"
+msgstr "Üreticiler"
+
+msgid "Catalog Entries"
+msgstr "Katalog Girdileri"
+
+msgid "Help and Plug-in Files"
+msgstr "Yardım ve Eklenti Dosyaları"
+
+msgid "Details"
+msgstr "Detaylar"
+
+msgid "Current File Size"
+msgstr "Mevcut Dosya Boyutu"
+
+msgid "Estimated Size Afterwards"
+msgstr "Tahmini Sonraki Boyut"
+
+msgid "This cannot be undone. Removed product data has to be imported again if these products are added to the project later."
+msgstr "Bu işlem geri alınamaz. Bu ürünler daha sonra projeye yeniden eklenirse kaldırılan ürün verilerinin yeniden içe aktarılması gerekir."
+
+msgid "Compact"
+msgstr "Sıkıştır"
+
+msgid "Project Compacted"
+msgstr "Proje Sıkıştırıldı"
+
+msgid "The project file was compacted."
+msgstr "Proje dosyası sıkıştırıldı."
+
+msgid "Size before"
+msgstr "Önceki boyut"
+
+msgid "Size after"
+msgstr "Sonraki boyut"
+
+msgid "Compacting cancelled, the project was not changed"
+msgstr "Sıkıştırma iptal edildi, proje değiştirilmedi"
+
+msgid "Remove Unused Product Data"
+msgstr "Kullanılmayan Ürün Verilerini Kaldır"
+
+msgid "(only in the export, the project stays unchanged)"
+msgstr "(yalnızca dışa aktarılan dosyada, proje değişmeden kalır)"
+
+msgid "Hide Tab Bar"
+msgstr "Sekme Çubuğunu Gizle"
+
+msgid "Open {url}"
+msgstr "Aç: {url}"
+
+msgid "Copy Link"
+msgstr "Bağlantıyı Kopyala"
+
+msgid "Enter the password for access to the editor."
+msgstr "Düzenleyiciye erişim için parolayı girin."
+
+msgid "Sign In"
+msgstr "Oturum Aç"
+
+msgid "Wrong password."
+msgstr "Yanlış parola."
+
+msgid "Disconnected. Reconnecting…"
+msgstr "Bağlantı kesildi. Yeniden bağlanılıyor…"
+
+msgid "Access denied. Please sign in again."
+msgstr "Erişim reddedildi. Lütfen yeniden oturum açın."
+
+msgid "Upload from This Computer…"
+msgstr "Bu Bilgisayardan Karşıya Yükle…"
+
+msgid "Or drop files here."
+msgstr "Veya dosyaları buraya bırakın."
+
+msgid "Files on the Server"
+msgstr "Sunucudaki Dosyalar"
+
+msgid "No files yet."
+msgstr "Henüz dosya yok."
+
+msgid "Open"
+msgstr "Aç"
+
+msgid "Select"
+msgstr "Seç"
+
+msgid "File Name"
+msgstr "Dosya adı"
+
+msgid "Folder Name"
+msgstr "Klasör adı"
+
+msgid "File Type"
+msgstr "Dosya Tipi"
+
+msgid "Download to This Computer"
+msgstr "Bu Bilgisayara İndir"
+
+msgid "Uploading {name}…"
+msgstr "Karşıya yükleniyor: {name}…"
+
+msgid "Upload failed: {error}"
+msgstr "Karşıya yükleme başarısız: {error}"
+
+msgid "Show"
+msgstr "Göster"
+
+msgid "Folder on the Server"
+msgstr "Sunucudaki Klasör"
+
+msgid "View only: another browser controls the editor."
+msgstr "Yalnızca görüntüleme: düzenleyiciyi başka bir tarayıcı kontrol ediyor."
+
+msgid "Take Control"
+msgstr "Kontrolü Al"
+
+msgid "Name"
+msgstr "Ad"
+
+msgid "Size"
+msgstr "Boyut"
+
+msgid "Modified"
+msgstr "Değiştirilme Tarihi"
+
+msgid "The browser did not open it by itself."
+msgstr "Tarayıcı bunu kendiliğinden açmadı."
+
+msgid "Download started: {name}"
+msgstr "İndirme başladı: {name}"
+
+msgid "Choose File…"
+msgstr "Dosya Seç…"
+
+msgid "{name} is ready."
+msgstr "{name} hazır."
+
+msgid "Open Link"
+msgstr "Bağlantıyı Aç"
+
+msgid "Checking for updates…"
+msgstr "Güncellemeler kontrol ediliyor…"
+
+msgid "The check for updates failed: {error}"
+msgstr "Güncelleme kontrolü başarısız: {error}"
+
+msgid "The project has no group addresses to export."
+msgstr "Projede dışa aktarılacak grup adresi yok."
+
+msgid "Clear Cache…"
+msgstr "Önbelleği Temizle…"
+
+msgid "Clear Cache"
+msgstr "Önbelleği Temizle"
+
+msgid "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
+msgstr "Önbellek, işlenmiş ürün verileri ve yapay zekâ araçları için getirilen belgelerden oluşan {size} veri içeriyor. Bunların tümü gerektiğinde yeniden oluşturulur; sonrasında yalnızca her ürünün ilk kullanımı daha uzun sürer."
+
+msgid "Cache cleared, {size} freed"
+msgstr "Önbellek temizlendi, boşaltılan alan: {size}"
+
+msgid "Zoom In"
+msgstr "Yakınlaştır"
+
+msgid "Zoom Out"
+msgstr "Uzaklaştır"
+
+msgid "Reset Zoom"
+msgstr "Yakınlaştırmayı Sıfırla"
+
+msgid "Cut"
+msgstr "Kes"
+
+msgid "Paste"
+msgstr "Yapıştır"
+
+msgid "Select All"
+msgstr "Tümünü Seç"
+
+msgid "Long-press in the field below and choose Paste."
+msgstr "Aşağıdaki alana uzun basın ve Yapıştır'ı seçin."
+
+msgid "Too many wrong passwords. Please try again in a few minutes."
+msgstr "Çok fazla yanlış parola girildi. Lütfen birkaç dakika sonra tekrar deneyin."
+
+msgid "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
+msgstr "Port {port} başka bir program tarafından kullanılıyor, bu nedenle tarayıcı arayüzü orada başlatılamıyor. Başka bir portla (ör. --web={example}) veya boş bir port alması için port belirtmeden başlatın."
+
+msgid "Open in Browser"
+msgstr "Tarayıcıda Aç"
+
+msgid "Stop XKNX Editor"
+msgstr "XKNX Editor'ü Durdur"
+
+msgid "XKNX Editor Already Running"
+msgstr "XKNX Editor Zaten Çalışıyor"
+
+msgid "XKNX Editor is already running on this computer. Switch to it, or start another one, e.g. to work on a second project or with another bus connection."
+msgstr "XKNX Editor bu bilgisayarda zaten çalışıyor. Ona geçin veya başka bir tane başlatın, ör. ikinci bir proje üzerinde ya da başka bir bus bağlantısıyla çalışmak için."
+
+msgid "Window"
+msgstr "Pencere"
+
+msgid "Browser UI ({url})"
+msgstr "Tarayıcı Arayüzü ({url})"
+
+msgid "{kind}: {project}"
+msgstr "{kind}: {project}"
+
+msgid "Switch to It"
+msgstr "Ona Geç"
+
+msgid "Start Another"
+msgstr "Başka Birini Başlat"
+
+msgid "That XKNX Editor has ended in the meantime."
+msgstr "O XKNX Editor bu arada kapandı."
+
+msgid "Project Already Open"
+msgstr "Proje Zaten Açık"
+
+msgid "{name} is already open in another XKNX Editor. Editing it in two editors at once can overwrite changes."
+msgstr "{name} başka bir XKNX Editor'de zaten açık. Projeyi aynı anda iki düzenleyicide düzenlemek değişikliklerin üzerine yazılmasına neden olabilir."
+
+msgid "Open Anyway"
+msgstr "Yine de Aç"
+
+msgid "C"
+msgstr "C"
+
+msgid "R"
+msgstr "R"
+
+msgid "W"
+msgstr "W"
+
+msgid "T"
+msgstr "T"
+
+msgid "U"
+msgstr "U"
+
+msgid "I"
+msgstr "I"
+
+msgid "Communication"
+msgstr "İletişim"
+
+msgid "Read"
+msgstr "Oku"
+
+msgid "Write"
+msgstr "Yaz"
+
+msgid "Transmit"
+msgstr "Gender"
+
+msgid "Update"
+msgstr "Güncelle"
+
+msgid "Read on Init"
+msgstr "Başlangıçta Oku"
+
+msgid "English"
+msgstr "İngilizce"
+
+msgid "German"
+msgstr "Almanca"
+
+msgid "Dutch"
+msgstr "Felemenkçe"
+
+msgid "{name} ({native})"
+msgstr "{name} ({native})"
+
+msgid "Spanish"
+msgstr "İspanyolca"
+
+msgid "Greek"
+msgstr "Yunanca"
+
+msgid "Simplified Chinese"
+msgstr "Basitleştirilmiş Çince"
+
+msgid "Japanese"
+msgstr "Japonca"
+
+msgid "Czech"
+msgstr "Çekçe"
+
+msgid "Danish"
+msgstr "Danca"
+
+msgid "Finnish"
+msgstr "Fince"
+
+msgid "French"
+msgstr "Fransızca"
+
+msgid "Italian"
+msgstr "İtalyanca"
+
+msgid "Norwegian"
+msgstr "Norveççe"
+
+msgid "Polish"
+msgstr "Lehçe"
+
+msgid "Portuguese"
+msgstr "Portekizce"
+
+msgid "Russian"
+msgstr "Rusça"
+
+msgid "Swedish"
+msgstr "İsveççe"
+
+msgid "Turkish"
+msgstr "Türkçe"
+
+msgid "Ukrainian"
+msgstr "Ukraynaca"

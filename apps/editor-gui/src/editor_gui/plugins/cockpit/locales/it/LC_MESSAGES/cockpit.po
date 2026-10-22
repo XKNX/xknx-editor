@@ -1,0 +1,71 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor cockpit 1.0\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device Overview"
+msgstr "Panoramica dispositivi"
+
+msgid "No project open"
+msgstr "Nessun progetto aperto"
+
+msgid "Filter devices…"
+msgstr "Filtra dispositivi…"
+
+msgid "Needs Attention Only"
+msgstr "Solo da verificare"
+
+msgid "{count} device(s) not in catalog"
+msgstr "Dispositivi non nel catalogo: {count}"
+
+msgid "Address"
+msgstr "Indirizzo"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Product"
+msgstr "Prodotto"
+
+msgid "Status"
+msgstr "Stato"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Loaded"
+msgstr "Caricato"
+
+msgid "loaded"
+msgstr "caricato"
+
+msgid "not loaded"
+msgstr "non caricato"
+
+msgid "partial ({done}/{total})"
+msgstr "parziale ({done}/{total})"
+
+msgid "Individual Address"
+msgstr "Indirizzo individuale"
+
+msgid "Application Program"
+msgstr "Programma Applicativo"
+
+msgid "Communication Part"
+msgstr "Parte di comunicazione"
+
+msgid "Medium Config"
+msgstr "Config. mezzo"
+
+msgid "Parameters"
+msgstr "Parametri"
+
+msgid "Serial: {serial}"
+msgstr "Numero seriale: {serial}"
+
+msgid "Last Download: {when}"
+msgstr "Ultimo scaricamento: {when}"

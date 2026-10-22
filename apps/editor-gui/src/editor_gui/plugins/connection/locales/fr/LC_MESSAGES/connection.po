@@ -1,0 +1,176 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor connection 1.0\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Gateway"
+msgstr "Passerelle"
+
+msgid "Connect"
+msgstr "Connecter"
+
+msgid "Disconnect"
+msgstr "Déconnecter"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Utiliser le numéro de série pour les téléchargements"
+
+msgid "Discovered Gateways"
+msgstr "Passerelles détectées"
+
+msgid "Diagnostics"
+msgstr "Diagnostics"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "Rechercher les participants en mode programmation"
+
+msgid "Devices in Programming Mode"
+msgstr "Participants en mode programmation"
+
+msgid "Rescan"
+msgstr "Rechercher à nouveau"
+
+msgid "Searching the bus…"
+msgstr "Recherche sur le bus…"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Appuyez sur le bouton de programmation d'un participant pour le mettre en mode programmation, puis relancez la recherche."
+
+msgid "No device is in programming mode."
+msgstr "Aucun participant n'est en mode programmation."
+
+msgid "The scan could not be completed: {error}"
+msgstr "La recherche n'a pas pu aboutir : {error}"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "L'interface n'a pas confirmé la demande de recherche (bus occupé ou interface surchargée). Veuillez réessayer."
+
+msgid "{count} device(s) in programming mode"
+msgstr "{count} participant(s) en mode programmation"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "A répondu à la recherche, mais la lecture de ses détails a échoué : {error}"
+
+msgid "In this project: {name}"
+msgstr "Dans ce projet : {name}"
+
+msgid "Not in this project"
+msgstr "Absent de ce projet"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Participant non programmé (adresse d'usine 15.15.255)"
+
+msgid "Select in Project"
+msgstr "Sélectionner dans le projet"
+
+msgid "Manufacturer"
+msgstr "Fabricant"
+
+msgid "Product (Catalog)"
+msgstr "Produit (catalogue)"
+
+msgid "Application"
+msgstr "Application"
+
+msgid "Application Version"
+msgstr "Version de l'Application"
+
+msgid "Mask Version"
+msgstr "Version de masque"
+
+msgid "Serial Number"
+msgstr "Numéro de Série"
+
+msgid "Order Number"
+msgstr "Numéro de commande"
+
+msgid "Hardware Type"
+msgstr "Type matériel"
+
+msgid "Status"
+msgstr "Statut"
+
+msgid "No fault"
+msgstr "Aucun défaut"
+
+msgid "Programming mode active"
+msgstr "Mode programmation actif"
+
+msgid "No gateways found"
+msgstr "Aucune passerelle trouvée"
+
+msgid "Manual Connection"
+msgstr "Connexion manuelle"
+
+msgid "Connected: {ip}"
+msgstr "Connecté : {ip}"
+
+msgid "Connected to {ip}"
+msgstr "Connecté à {ip}"
+
+msgid "Disconnected"
+msgstr "Déconnecté"
+
+msgid "Connecting…"
+msgstr "Connexion…"
+
+msgid "Connection failed"
+msgstr "Échec de la connexion"
+
+msgid "Scan"
+msgstr "Scanner"
+
+msgid "Settings"
+msgstr "Réglages"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Utiliser le routage multicast (au lieu du tunnel)"
+
+msgid "Gateway IP"
+msgstr "IP de la passerelle"
+
+msgid "Multicast Group"
+msgstr "Groupe multicast"
+
+msgid "Apply"
+msgstr "Appliquer"
+
+msgid "Bus monitor: {ip}"
+msgstr "Moniteur de bus : {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "La passerelle est connectée en mode moniteur de bus. Rien ne peut être envoyé ni téléchargé tant que le moniteur de bus n'est pas arrêté."
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Impossible tant que le moniteur de bus est actif"
+
+msgid "Stop Bus Monitor"
+msgstr "Arrêter le moniteur de bus"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "L'interface exige KNX IP Secure, mais ni le projet ni un trousseau de clés chargé ne contient ses mots de passe."
+
+msgid "Error: {error}"
+msgstr "Erreur : {error}"
+
+msgid "Unknown error"
+msgstr "Erreur inconnue"
+
+msgid "Name: {name}"
+msgstr "Nom : {name}"
+
+msgid "KNX Address: {address}"
+msgstr "Adresse KNX : {address}"
+
+msgid "Core Version: {version}"
+msgstr "Version du noyau : {version}"
+
+msgid "Services: {services}"
+msgstr "Services : {services}"
+
+msgid "Retry"
+msgstr "Réessayer"

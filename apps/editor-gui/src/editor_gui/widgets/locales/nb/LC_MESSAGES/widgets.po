@@ -1,0 +1,281 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: nb\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "(bilde)"
+
+msgid "Search…"
+msgstr "Søk…"
+
+msgid "{name} (locked)"
+msgstr "{name} (låst)"
+
+msgid "Create Group Addresses ({count})"
+msgstr "Opprett gruppeadresser ({count})"
+
+msgid "All"
+msgstr "Alle"
+
+msgid "None"
+msgstr "Ingen"
+
+msgid "Copy Links ({count})"
+msgstr "Kopier koblinger ({count})"
+
+msgid "Paste Links ({count})"
+msgstr "Lim inn koblinger ({count})"
+
+msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr "Tilordner de kopierte koblingene og flaggene til de avkryssede objektene i rekkefølge (1. til 1., 2. til 2., …) og erstatter de nåværende koblingene til hvert mål."
+
+msgid "Merge"
+msgstr "Slå sammen"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr "Behold de eksisterende koblingene til hvert mål og legg bare til de kopierte."
+
+msgid "Copy Links"
+msgstr "Kopier koblinger"
+
+msgid "Default (Inherit)"
+msgstr "Standard (arvet)"
+
+msgid "Edit Description…"
+msgstr "Rediger beskrivelse…"
+
+msgid "Edit Description"
+msgstr "Rediger beskrivelse"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Avbryt"
+
+msgid "Paste Links"
+msgstr "Lim inn koblinger"
+
+msgid "Copy Addresses as Text"
+msgstr "Kopier adresser som tekst"
+
+msgid "Create Group Addresses"
+msgstr "Opprett gruppeadresser"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  Fortløpende indeks ({n:02} fyller ut med nuller)"
+
+msgid "Name Template"
+msgstr "Navnemal"
+
+msgid "Start Address"
+msgstr "Startadresse"
+
+msgid "automatic"
+msgstr "automatisk"
+
+msgid "Sending Group Address"
+msgstr "Sendende gruppeadresse"
+
+msgid "Receiving Group Address"
+msgstr "Mottakende gruppeadresse"
+
+msgid "sent"
+msgstr "sendt"
+
+msgid "received"
+msgstr "mottatt"
+
+msgid "sent & received"
+msgstr "sendt og mottatt"
+
+msgid "older"
+msgstr "eldre"
+
+msgid "Link Group Address"
+msgstr "Koble gruppeadresse"
+
+msgid "New Group Address"
+msgstr "Ny gruppeadresse"
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "Name"
+msgstr "Navn"
+
+msgid "Create & Link"
+msgstr "Opprett og koble"
+
+msgid "Name template"
+msgstr "Navnemal"
+
+msgid "Placeholders"
+msgstr "Plassholdere"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  Bygning\n{floor}  Etasje\n{room}  Rom\n{device}  Enhetsnavn eller -beskrivelse\n{devicename}  Enhetsnavn\n{devicedescription}  Enhetsbeskrivelse\n{product}  Produkt\n{manufacturer}  Produsent\n{order}  Artikkelnummer\n{address}  Individuell adresse\n{object}  Objektnavn\n{ganame}  Objektnavn\n{function}  Funksjon\n{number}  Objektnummer\n{dpt}  Datapunkttype"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr "Endret fra standardverdi ({default}) — høyreklikk for å tilbakestille"
+
+msgid "Reset to Default"
+msgstr "Tilbakestill til standardverdi"
+
+msgid "<differs>"
+msgstr "<ulike>"
+
+msgid "Off"
+msgstr "Av"
+
+msgid "On"
+msgstr "På"
+
+msgid "Standard"
+msgstr "Standard"
+
+msgid "Advanced"
+msgstr "Avansert"
+
+msgid "Theme Colors"
+msgstr "Temafarger"
+
+msgid "Standard Colors"
+msgstr "Standardfarger"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Ma Ti On To Fr Lø Sø"
+
+msgid "General"
+msgstr "Generelt"
+
+msgid "Enter a number."
+msgstr "Skriv inn et tall."
+
+msgid "Enter a whole number."
+msgstr "Skriv inn et heltall."
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "Skriv inn en verdi fra {minimum} til {maximum}."
+
+msgid "Enter at most {count} characters."
+msgstr "Skriv inn maks {count} tegn."
+
+msgid "Enter a value."
+msgstr "Skriv inn en verdi."
+
+msgid "This value cannot be sent with this data type."
+msgstr "Denne verdien kan ikke sendes med denne datatypen."
+
+msgid "No value can be entered for this data type."
+msgstr "Ingen verdi kan angis for denne datatypen."
+
+msgid "Edit…"
+msgstr "Rediger…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "Teksten kan være på maks {count} byte."
+
+msgid "Value {number}"
+msgstr "Verdi {number}"
+
+msgid "Edit Value"
+msgstr "Rediger verdi"
+
+msgid "Size Column to Fit"
+msgstr "Tilpass kolonnebredde"
+
+msgid "Size All Columns to Fit"
+msgstr "Tilpass alle kolonnebredder"
+
+msgid "Reset Column Order"
+msgstr "Tilbakestill kolonnerekkefølge"
+
+msgid "Reset Column Visibility"
+msgstr "Tilbakestill kolonnesynlighet"
+
+msgid "Reset All Columns"
+msgstr "Tilbakestill alle kolonner"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "Lengde"
+
+msgid "Prio"
+msgstr "Prio"
+
+msgid "Group Addresses"
+msgstr "Gruppeadresser"
+
+msgid "(empty)"
+msgstr "(tom)"
+
+msgid "Options"
+msgstr "Alternativer"
+
+msgid "Columns"
+msgstr "Kolonner"
+
+msgid "Grey Out Zeros"
+msgstr "Grå ut nuller"
+
+msgid "Uppercase Hex"
+msgstr "Hex med store bokstaver"
+
+msgid "Show ASCII"
+msgstr "Vis ASCII"
+
+msgid "Copy"
+msgstr "Kopier"
+
+msgid "Copy {count} B"
+msgstr "Kopier {count} B"
+
+msgid "Go To:"
+msgstr "Gå til:"
+
+msgid "{count} difference(s)"
+msgstr "{count} forskjell(er)"
+
+msgid "no differences"
+msgstr "ingen forskjeller"
+
+msgid "Parameter:"
+msgstr "Parameter:"
+
+msgid "search…"
+msgstr "søk…"
+
+msgid "Low"
+msgstr "Lav"
+
+msgid "High"
+msgstr "Høy"
+
+msgid "Alert"
+msgstr "Alarm"
+
+msgid "Hours"
+msgstr "Timer"
+
+msgid "Minutes"
+msgstr "Minutter"
+
+msgid "Seconds"
+msgstr "Sekunder"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "Millisekunder"

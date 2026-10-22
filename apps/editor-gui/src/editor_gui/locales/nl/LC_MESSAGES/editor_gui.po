@@ -1427,3 +1427,39 @@ msgstr "Vereenvoudigd Chinees"
 
 msgid "Japanese"
 msgstr "Japans"
+
+msgid "Czech"
+msgstr "Tsjechisch"
+
+msgid "Danish"
+msgstr "Deens"
+
+msgid "Finnish"
+msgstr "Fins"
+
+msgid "French"
+msgstr "Frans"
+
+msgid "Italian"
+msgstr "Italiaans"
+
+msgid "Norwegian"
+msgstr "Noors"
+
+msgid "Polish"
+msgstr "Pools"
+
+msgid "Portuguese"
+msgstr "Portuguees"
+
+msgid "Russian"
+msgstr "Russisch"
+
+msgid "Swedish"
+msgstr "Zweeds"
+
+msgid "Turkish"
+msgstr "Turks"
+
+msgid "Ukrainian"
+msgstr "Oekraïens"

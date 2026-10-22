@@ -1,0 +1,176 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor connection 1.0\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Gateway"
+msgstr "Brána"
+
+msgid "Connect"
+msgstr "Připojit"
+
+msgid "Disconnect"
+msgstr "Odpojit"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Použít sériové číslo pro nahrávání"
+
+msgid "Discovered Gateways"
+msgstr "Nalezené brány"
+
+msgid "Diagnostics"
+msgstr "Diagnostika"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "Vyhledat zařízení v programovacím režimu"
+
+msgid "Devices in Programming Mode"
+msgstr "Zařízení v programovacím režimu"
+
+msgid "Rescan"
+msgstr "Hledat znovu"
+
+msgid "Searching the bus…"
+msgstr "Prohledávání sběrnice…"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Stiskněte programovací tlačítko na zařízení, abyste ho přepnuli do programovacího režimu, a poté hledejte znovu."
+
+msgid "No device is in programming mode."
+msgstr "Žádné zařízení není v programovacím režimu."
+
+msgid "The scan could not be completed: {error}"
+msgstr "Vyhledávání nelze dokončit: {error}"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "Rozhraní nepotvrdilo požadavek na vyhledávání (sběrnice obsazená nebo rozhraní přetížené). Zkuste to prosím znovu."
+
+msgid "{count} device(s) in programming mode"
+msgstr "Zařízení v programovacím režimu: {count}"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "Na vyhledávání odpovědělo, ale čtení podrobností selhalo: {error}"
+
+msgid "In this project: {name}"
+msgstr "V tomto projektu: {name}"
+
+msgid "Not in this project"
+msgstr "Není v tomto projektu"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Nenaprogramované zařízení (výchozí adresa z výroby 15.15.255)"
+
+msgid "Select in Project"
+msgstr "Vybrat v projektu"
+
+msgid "Manufacturer"
+msgstr "Výrobce"
+
+msgid "Product (Catalog)"
+msgstr "Produkt (katalog)"
+
+msgid "Application"
+msgstr "Aplikace"
+
+msgid "Application Version"
+msgstr "Verze aplikace"
+
+msgid "Mask Version"
+msgstr "Verze masky"
+
+msgid "Serial Number"
+msgstr "Sériové číslo"
+
+msgid "Order Number"
+msgstr "Objednací číslo"
+
+msgid "Hardware Type"
+msgstr "Typ hardwaru"
+
+msgid "Status"
+msgstr "Stav"
+
+msgid "No fault"
+msgstr "Bez chyby"
+
+msgid "Programming mode active"
+msgstr "Programovací režim aktivní"
+
+msgid "No gateways found"
+msgstr "Nenalezeny žádné brány"
+
+msgid "Manual Connection"
+msgstr "Ruční připojení"
+
+msgid "Connected: {ip}"
+msgstr "Připojeno: {ip}"
+
+msgid "Connected to {ip}"
+msgstr "Připojeno k {ip}"
+
+msgid "Disconnected"
+msgstr "Odpojeno"
+
+msgid "Connecting…"
+msgstr "Připojování…"
+
+msgid "Connection failed"
+msgstr "Připojení selhalo"
+
+msgid "Scan"
+msgstr "Hledat"
+
+msgid "Settings"
+msgstr "Nastavení"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Použít multicastové směrování (místo tunelování)"
+
+msgid "Gateway IP"
+msgstr "IP brány"
+
+msgid "Multicast Group"
+msgstr "Skupina multicast"
+
+msgid "Apply"
+msgstr "Použít"
+
+msgid "Bus monitor: {ip}"
+msgstr "Sběrnicový monitor: {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Brána je připojena v režimu sběrnicového monitoru. Dokud nebude sběrnicový monitor zastaven, nelze nic odesílat ani nahrávat."
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Není možné, dokud běží sběrnicový monitor"
+
+msgid "Stop Bus Monitor"
+msgstr "Zastavit sběrnicový monitor"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "Rozhraní vyžaduje KNX IP Secure, ale jeho hesla neobsahuje projekt ani načtený svazek klíčů."
+
+msgid "Error: {error}"
+msgstr "Chyba: {error}"
+
+msgid "Unknown error"
+msgstr "Neznámá chyba"
+
+msgid "Name: {name}"
+msgstr "Název: {name}"
+
+msgid "KNX Address: {address}"
+msgstr "Adresa KNX: {address}"
+
+msgid "Core Version: {version}"
+msgstr "Verze jádra: {version}"
+
+msgid "Services: {services}"
+msgstr "Služby: {services}"
+
+msgid "Retry"
+msgstr "Zkusit znovu"

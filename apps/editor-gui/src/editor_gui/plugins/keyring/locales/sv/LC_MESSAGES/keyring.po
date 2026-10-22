@@ -1,0 +1,86 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor keyring 1.0\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Show Window"
+msgstr "Visa fönster"
+
+msgid "No keyring loaded"
+msgstr "Ingen nyckelring inläst"
+
+msgid "Import Keyring…"
+msgstr "Importera nyckelring…"
+
+msgid "Export Keyring…"
+msgstr "Exportera nyckelring…"
+
+msgid "Export"
+msgstr "Exportera"
+
+msgid "Set the password for the exported keyring:"
+msgstr "Ange lösenordet för den exporterade nyckelringen:"
+
+msgid "KNX Keyring (*.knxkeys)"
+msgstr "KNX-nyckelring (*.knxkeys)"
+
+msgid "All Files"
+msgstr "Alla filer"
+
+msgid "Load"
+msgstr "Ladda"
+
+msgid "Cancel"
+msgstr "Avbryt"
+
+msgid "Close"
+msgstr "Stäng"
+
+msgid "{project} — created by {by}"
+msgstr "{project} — skapad av {by}"
+
+msgid "Backbone"
+msgstr "Backbone"
+
+msgid "Interfaces ({count})"
+msgstr "Gränssnitt ({count})"
+
+msgid "Group Address Keys ({count})"
+msgstr "Gruppadressnycklar ({count})"
+
+msgid "Devices ({count})"
+msgstr "Apparater ({count})"
+
+msgid "Export Keyring from Project…"
+msgstr "Exportera nyckelring från projektet…"
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "Address"
+msgstr "Adress"
+
+msgid "Host"
+msgstr "Värd"
+
+msgid "User"
+msgstr "Användare"
+
+msgid "Key"
+msgstr "Nyckel"
+
+msgid "In Project"
+msgstr "I projektet"
+
+msgid "Tool Key"
+msgstr "Verktygsnyckel"
+
+msgid "{address}   key {key}"
+msgstr "{address}   nyckel {key}"

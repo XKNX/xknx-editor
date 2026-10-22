@@ -1,0 +1,86 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor keyring 1.0\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Show Window"
+msgstr "Pencereyi Göster"
+
+msgid "No keyring loaded"
+msgstr "Yüklü anahtarlık yok"
+
+msgid "Import Keyring…"
+msgstr "Anahtarlığı İçe Aktar…"
+
+msgid "Export Keyring…"
+msgstr "Anahtarlığı Dışa Aktar…"
+
+msgid "Export"
+msgstr "Dışa Aktar"
+
+msgid "Set the password for the exported keyring:"
+msgstr "Dışa aktarılan anahtarlığın parolasını belirleyin:"
+
+msgid "KNX Keyring (*.knxkeys)"
+msgstr "KNX Anahtarlığı (*.knxkeys)"
+
+msgid "All Files"
+msgstr "Tüm Dosyalar"
+
+msgid "Load"
+msgstr "Yükle"
+
+msgid "Cancel"
+msgstr "İptal et"
+
+msgid "Close"
+msgstr "Kapat"
+
+msgid "{project} — created by {by}"
+msgstr "{project} — oluşturan: {by}"
+
+msgid "Backbone"
+msgstr "Omurga"
+
+msgid "Interfaces ({count})"
+msgstr "Arabirimler ({count})"
+
+msgid "Group Address Keys ({count})"
+msgstr "Grup Adresi Anahtarları ({count})"
+
+msgid "Devices ({count})"
+msgstr "Cihazlar ({count})"
+
+msgid "Export Keyring from Project…"
+msgstr "Anahtarlığı Projeden Dışa Aktar…"
+
+msgid "Type"
+msgstr "Tip"
+
+msgid "Address"
+msgstr "Adres"
+
+msgid "Host"
+msgstr "Ana Bilgisayar"
+
+msgid "User"
+msgstr "Kullanıcı"
+
+msgid "Key"
+msgstr "Anahtar"
+
+msgid "In Project"
+msgstr "Projede"
+
+msgid "Tool Key"
+msgstr "Araç Anahtarı"
+
+msgid "{address}   key {key}"
+msgstr "{address}   anahtar {key}"

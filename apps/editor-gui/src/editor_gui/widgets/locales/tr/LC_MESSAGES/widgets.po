@@ -1,0 +1,281 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "(görüntü)"
+
+msgid "Search…"
+msgstr "Ara…"
+
+msgid "{name} (locked)"
+msgstr "{name} (kilitli)"
+
+msgid "Create Group Addresses ({count})"
+msgstr "Grup Adresleri Oluştur ({count})"
+
+msgid "All"
+msgstr "Tümü"
+
+msgid "None"
+msgstr "Hiçbiri"
+
+msgid "Copy Links ({count})"
+msgstr "Bağlantıları Kopyala ({count})"
+
+msgid "Paste Links ({count})"
+msgstr "Bağlantıları Yapıştır ({count})"
+
+msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr "Kopyalanan bağlantıları ve bayrakları işaretli nesnelere sırayla (1. ile 1., 2. ile 2., …) atar ve her hedefin mevcut bağlantılarının yerini alır."
+
+msgid "Merge"
+msgstr "Birleştir"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr "Her hedefin mevcut bağlantılarını koru ve yalnızca kopyalananları ekle."
+
+msgid "Copy Links"
+msgstr "Bağlantıları Kopyala"
+
+msgid "Default (Inherit)"
+msgstr "Varsayılan (Devralınan)"
+
+msgid "Edit Description…"
+msgstr "Tanımı Düzenle…"
+
+msgid "Edit Description"
+msgstr "Tanımı Düzenle"
+
+msgid "OK"
+msgstr "Tamam"
+
+msgid "Cancel"
+msgstr "İptal et"
+
+msgid "Paste Links"
+msgstr "Bağlantıları Yapıştır"
+
+msgid "Copy Addresses as Text"
+msgstr "Adresleri Metin Olarak Kopyala"
+
+msgid "Create Group Addresses"
+msgstr "Grup Adresleri Oluştur"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  Sıralı dizin ({n:02} sıfırla doldurur)"
+
+msgid "Name Template"
+msgstr "Ad Şablonu"
+
+msgid "Start Address"
+msgstr "Başlangıç Adresi"
+
+msgid "automatic"
+msgstr "otomatik"
+
+msgid "Sending Group Address"
+msgstr "Gönderen Grup Adresi"
+
+msgid "Receiving Group Address"
+msgstr "Alıcı Grup Adresi"
+
+msgid "sent"
+msgstr "gönderildi"
+
+msgid "received"
+msgstr "alındı"
+
+msgid "sent & received"
+msgstr "gönderildi ve alındı"
+
+msgid "older"
+msgstr "daha eski"
+
+msgid "Link Group Address"
+msgstr "Grup Adresi Bağla"
+
+msgid "New Group Address"
+msgstr "Yeni Grup Adresi"
+
+msgid "Address"
+msgstr "Adres"
+
+msgid "Name"
+msgstr "Ad"
+
+msgid "Create & Link"
+msgstr "Oluştur ve Bağla"
+
+msgid "Name template"
+msgstr "Ad şablonu"
+
+msgid "Placeholders"
+msgstr "Yer Tutucular"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  Bina\n{floor}  Kat\n{room}  Oda\n{device}  Cihaz adı veya tanımı\n{devicename}  Cihaz adı\n{devicedescription}  Cihaz tanımı\n{product}  Ürün\n{manufacturer}  Üretici\n{order}  Sipariş numarası\n{address}  Bireysel adres\n{object}  Nesne adı\n{ganame}  Nesne adı\n{function}  Fonksiyon\n{number}  Nesne numarası\n{dpt}  Veri tipi"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr "Varsayılandan ({default}) farklı — sıfırlamak için sağ tıklayın"
+
+msgid "Reset to Default"
+msgstr "Varsayılana Sıfırla"
+
+msgid "<differs>"
+msgstr "<farklı>"
+
+msgid "Off"
+msgstr "Kapalı"
+
+msgid "On"
+msgstr "Açık"
+
+msgid "Standard"
+msgstr "Standart"
+
+msgid "Advanced"
+msgstr "Gelişmiş"
+
+msgid "Theme Colors"
+msgstr "Tema Renkleri"
+
+msgid "Standard Colors"
+msgstr "Standart Renkler"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Pt Sa Ça Pe Cu Ct Pz"
+
+msgid "General"
+msgstr "Genel"
+
+msgid "Enter a number."
+msgstr "Bir sayı girin."
+
+msgid "Enter a whole number."
+msgstr "Bir tam sayı girin."
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "{minimum} ile {maximum} arasında bir değer girin."
+
+msgid "Enter at most {count} characters."
+msgstr "En fazla {count} karakter girin."
+
+msgid "Enter a value."
+msgstr "Bir değer girin."
+
+msgid "This value cannot be sent with this data type."
+msgstr "Bu değer bu veri tipiyle gönderilemez."
+
+msgid "No value can be entered for this data type."
+msgstr "Bu veri tipi için değer girilemez."
+
+msgid "Edit…"
+msgstr "Düzenle…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "Metin en fazla {count} bayt olabilir."
+
+msgid "Value {number}"
+msgstr "Değer {number}"
+
+msgid "Edit Value"
+msgstr "Değeri Düzenle"
+
+msgid "Size Column to Fit"
+msgstr "Kolonu Sığdır"
+
+msgid "Size All Columns to Fit"
+msgstr "Tüm Kolonları Sığdır"
+
+msgid "Reset Column Order"
+msgstr "Kolon Sırasını Sıfırla"
+
+msgid "Reset Column Visibility"
+msgstr "Kolon Görünürlüğünü Sıfırla"
+
+msgid "Reset All Columns"
+msgstr "Tüm Kolonları Sıfırla"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "Uzunluk"
+
+msgid "Prio"
+msgstr "Öncelik"
+
+msgid "Group Addresses"
+msgstr "Grup Adresleri"
+
+msgid "(empty)"
+msgstr "(boş)"
+
+msgid "Options"
+msgstr "Seçenekler"
+
+msgid "Columns"
+msgstr "Kolonlar"
+
+msgid "Grey Out Zeros"
+msgstr "Sıfırları Soluklaştır"
+
+msgid "Uppercase Hex"
+msgstr "Büyük Harf Hex"
+
+msgid "Show ASCII"
+msgstr "ASCII Göster"
+
+msgid "Copy"
+msgstr "Kopyala"
+
+msgid "Copy {count} B"
+msgstr "{count} B Kopyala"
+
+msgid "Go To:"
+msgstr "Git:"
+
+msgid "{count} difference(s)"
+msgstr "{count} fark"
+
+msgid "no differences"
+msgstr "fark yok"
+
+msgid "Parameter:"
+msgstr "Parametre:"
+
+msgid "search…"
+msgstr "ara…"
+
+msgid "Low"
+msgstr "Düşük"
+
+msgid "High"
+msgstr "Yüksek"
+
+msgid "Alert"
+msgstr "Alarm"
+
+msgid "Hours"
+msgstr "Saat"
+
+msgid "Minutes"
+msgstr "Dakika"
+
+msgid "Seconds"
+msgstr "Saniye"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "Milisaniye"

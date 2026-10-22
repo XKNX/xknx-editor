@@ -1,0 +1,41 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor health 1.0\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Health"
+msgstr "Durum Kontrolü"
+
+msgid "No project open"
+msgstr "Açık proje yok"
+
+msgid "No issues found"
+msgstr "Sorun bulunamadı"
+
+msgid "{errors} errors, {warnings} warnings"
+msgstr "{errors} hata, {warnings} uyarı"
+
+msgid "{device}: no individual address"
+msgstr "{device}: bireysel adres yok"
+
+msgid "Duplicate individual address {address} ({device})"
+msgstr "Yinelenen bireysel adres {address} ({device})"
+
+msgid "{count} device(s) skipped: application not in catalog"
+msgstr "Atlanan cihaz: {count} (uygulama katalogda değil)"
+
+msgid "{device}: {count} unlinked group object(s)"
+msgstr "{device}: bağlanmamış grup nesnesi: {count}"
+
+msgid "{address} {name}: no datapoint type"
+msgstr "{address} {name}: veri tipi yok"
+
+msgid "{address} {name}: no sending group object"
+msgstr "{address} {name}: gönderen grup nesnesi yok"
+
+msgid "{address} {name}: {count} sending group objects"
+msgstr "{address} {name}: {count} gönderen grup nesnesi"

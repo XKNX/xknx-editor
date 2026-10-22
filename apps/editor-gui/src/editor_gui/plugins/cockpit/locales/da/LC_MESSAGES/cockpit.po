@@ -1,0 +1,71 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor cockpit 1.0\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device Overview"
+msgstr "Enhedsoversigt"
+
+msgid "No project open"
+msgstr "Intet projekt åbent"
+
+msgid "Filter devices…"
+msgstr "Filtrer enheder…"
+
+msgid "Needs Attention Only"
+msgstr "Kun dem, der kræver handling"
+
+msgid "{count} device(s) not in catalog"
+msgstr "{count} enhed(er) ikke i kataloget"
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "Name"
+msgstr "Navn"
+
+msgid "Product"
+msgstr "Produkt"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Loaded"
+msgstr "Indlæst"
+
+msgid "loaded"
+msgstr "indlæst"
+
+msgid "not loaded"
+msgstr "ikke indlæst"
+
+msgid "partial ({done}/{total})"
+msgstr "delvist ({done}/{total})"
+
+msgid "Individual Address"
+msgstr "Individuel adresse"
+
+msgid "Application Program"
+msgstr "Applikationsprogram"
+
+msgid "Communication Part"
+msgstr "Kommunikationsdel"
+
+msgid "Medium Config"
+msgstr "Mediekonfiguration"
+
+msgid "Parameters"
+msgstr "Parametre"
+
+msgid "Serial: {serial}"
+msgstr "Serienummer: {serial}"
+
+msgid "Last Download: {when}"
+msgstr "Seneste download: {when}"

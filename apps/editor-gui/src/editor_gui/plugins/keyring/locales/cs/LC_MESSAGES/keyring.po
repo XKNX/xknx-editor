@@ -1,0 +1,86 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor keyring 1.0\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Show Window"
+msgstr "Zobrazit okno"
+
+msgid "No keyring loaded"
+msgstr "Není načten žádný svazek klíčů"
+
+msgid "Import Keyring…"
+msgstr "Importovat svazek klíčů…"
+
+msgid "Export Keyring…"
+msgstr "Exportovat svazek klíčů…"
+
+msgid "Export"
+msgstr "Exportovat"
+
+msgid "Set the password for the exported keyring:"
+msgstr "Nastavte heslo pro exportovaný svazek klíčů:"
+
+msgid "KNX Keyring (*.knxkeys)"
+msgstr "Svazek klíčů KNX (*.knxkeys)"
+
+msgid "All Files"
+msgstr "Všechny soubory"
+
+msgid "Load"
+msgstr "Načíst"
+
+msgid "Cancel"
+msgstr "Zrušit"
+
+msgid "Close"
+msgstr "Zavřít"
+
+msgid "{project} — created by {by}"
+msgstr "{project} — vytvořil {by}"
+
+msgid "Backbone"
+msgstr "Páteř"
+
+msgid "Interfaces ({count})"
+msgstr "Rozhraní ({count})"
+
+msgid "Group Address Keys ({count})"
+msgstr "Klíče skupinových adres ({count})"
+
+msgid "Devices ({count})"
+msgstr "Zařízení ({count})"
+
+msgid "Export Keyring from Project…"
+msgstr "Exportovat svazek klíčů z projektu…"
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "Host"
+msgstr "Hostitel"
+
+msgid "User"
+msgstr "Uživatel"
+
+msgid "Key"
+msgstr "Klíč"
+
+msgid "In Project"
+msgstr "V projektu"
+
+msgid "Tool Key"
+msgstr "Klíč nástroje"
+
+msgid "{address}   key {key}"
+msgstr "{address}   klíč {key}"

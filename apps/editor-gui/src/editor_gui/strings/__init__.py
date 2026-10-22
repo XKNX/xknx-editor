@@ -2119,4 +2119,52 @@ class _CombinedStrings(BaseStrings, MenuStrings):
         return _("Japanese")
 
 
+    @property
+    def LANGUAGE_CZECH(self) -> str:
+        return _("Czech")
+
+    @property
+    def LANGUAGE_DANISH(self) -> str:
+        return _("Danish")
+
+    @property
+    def LANGUAGE_FINNISH(self) -> str:
+        return _("Finnish")
+
+    @property
+    def LANGUAGE_FRENCH(self) -> str:
+        return _("French")
+
+    @property
+    def LANGUAGE_ITALIAN(self) -> str:
+        return _("Italian")
+
+    @property
+    def LANGUAGE_NORWEGIAN(self) -> str:
+        return _("Norwegian")
+
+    @property
+    def LANGUAGE_POLISH(self) -> str:
+        return _("Polish")
+
+    @property
+    def LANGUAGE_PORTUGUESE(self) -> str:
+        return _("Portuguese")
+
+    @property
+    def LANGUAGE_RUSSIAN(self) -> str:
+        return _("Russian")
+
+    @property
+    def LANGUAGE_SWEDISH(self) -> str:
+        return _("Swedish")
+
+    @property
+    def LANGUAGE_TURKISH(self) -> str:
+        return _("Turkish")
+
+    @property
+    def LANGUAGE_UKRAINIAN(self) -> str:
+        return _("Ukrainian")
+
 S = _CombinedStrings()

@@ -1,0 +1,176 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor connection 1.0\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Gateway"
+msgstr "Ağ Geçidi"
+
+msgid "Connect"
+msgstr "Bağlan"
+
+msgid "Disconnect"
+msgstr "Bağlantıyı kes"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Yüklemelerde Seri Numarasını Kullan"
+
+msgid "Discovered Gateways"
+msgstr "Bulunan Ağ Geçitleri"
+
+msgid "Diagnostics"
+msgstr "Tanılama"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "Programlama Modundaki Cihazları Ara"
+
+msgid "Devices in Programming Mode"
+msgstr "Programlama Modundaki Cihazlar"
+
+msgid "Rescan"
+msgstr "Yeniden Ara"
+
+msgid "Searching the bus…"
+msgstr "Bus taranıyor…"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Bir cihazı programlama moduna almak için programlama düğmesine basın, ardından yeniden arayın."
+
+msgid "No device is in programming mode."
+msgstr "Programlama modunda cihaz yok."
+
+msgid "The scan could not be completed: {error}"
+msgstr "Tarama tamamlanamadı: {error}"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "Arabirim tarama isteğini onaylamadı (bus meşgul veya arabirim aşırı yüklü). Lütfen tekrar deneyin."
+
+msgid "{count} device(s) in programming mode"
+msgstr "Programlama modundaki cihaz sayısı: {count}"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "Taramaya yanıt verdi, ancak ayrıntılar okunamadı: {error}"
+
+msgid "In this project: {name}"
+msgstr "Bu projede: {name}"
+
+msgid "Not in this project"
+msgstr "Bu projede değil"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Programlanmamış cihaz (fabrika varsayılan adresi 15.15.255)"
+
+msgid "Select in Project"
+msgstr "Projede Seç"
+
+msgid "Manufacturer"
+msgstr "Üretici"
+
+msgid "Product (Catalog)"
+msgstr "Ürün (Katalog)"
+
+msgid "Application"
+msgstr "Uygulama"
+
+msgid "Application Version"
+msgstr "Uygulama Versiyonu"
+
+msgid "Mask Version"
+msgstr "Maske Sürümü"
+
+msgid "Serial Number"
+msgstr "Seri Numarası"
+
+msgid "Order Number"
+msgstr "Sipariş Numarası"
+
+msgid "Hardware Type"
+msgstr "Donanım Tipi"
+
+msgid "Status"
+msgstr "Durum"
+
+msgid "No fault"
+msgstr "Hata yok"
+
+msgid "Programming mode active"
+msgstr "Programlama modu etkin"
+
+msgid "No gateways found"
+msgstr "Ağ geçidi bulunamadı"
+
+msgid "Manual Connection"
+msgstr "Manuel Bağlantı"
+
+msgid "Connected: {ip}"
+msgstr "Bağlı: {ip}"
+
+msgid "Connected to {ip}"
+msgstr "Bağlandı: {ip}"
+
+msgid "Disconnected"
+msgstr "Bağlı değil"
+
+msgid "Connecting…"
+msgstr "Bağlanıyor…"
+
+msgid "Connection failed"
+msgstr "Bağlantı başarısız"
+
+msgid "Scan"
+msgstr "Tara"
+
+msgid "Settings"
+msgstr "Ayarlar"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Multicast yönlendirme kullan (tünelleme yerine)"
+
+msgid "Gateway IP"
+msgstr "Ağ Geçidi IP"
+
+msgid "Multicast Group"
+msgstr "Multicast Grubu"
+
+msgid "Apply"
+msgstr "Uygula"
+
+msgid "Bus monitor: {ip}"
+msgstr "Bus izleme: {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Ağ geçidi bus izleme modunda bağlı. Bus izleme durdurulana kadar hiçbir şey gönderilemez veya yüklenemez."
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Bus izleme çalışırken mümkün değil"
+
+msgid "Stop Bus Monitor"
+msgstr "Bus İzlemeyi Durdur"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "Arabirim KNX IP Secure gerektiriyor, ancak ne proje ne de yüklü bir anahtarlık bunun parolalarını içeriyor."
+
+msgid "Error: {error}"
+msgstr "Hata: {error}"
+
+msgid "Unknown error"
+msgstr "Bilinmeyen hata"
+
+msgid "Name: {name}"
+msgstr "Ad: {name}"
+
+msgid "KNX Address: {address}"
+msgstr "KNX adresi: {address}"
+
+msgid "Core Version: {version}"
+msgstr "Core sürümü: {version}"
+
+msgid "Services: {services}"
+msgstr "Hizmetler: {services}"
+
+msgid "Retry"
+msgstr "Yeniden Dene"

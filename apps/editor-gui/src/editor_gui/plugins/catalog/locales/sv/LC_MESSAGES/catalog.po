@@ -1,0 +1,200 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor catalog 1.0\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Catalog"
+msgstr "Katalog"
+
+msgid "Failed to load archive"
+msgstr "Det gick inte att läsa in arkivet"
+
+msgid "Loaded: {path}"
+msgstr "Inläst: {path}"
+
+msgid "Found {count} application(s)"
+msgstr "{count} applikation(er) hittades"
+
+msgid "({count} group objects)"
+msgstr "({count} gruppobjekt)"
+
+msgid "Fetch Online Catalog"
+msgstr "Hämta onlinekatalog"
+
+msgid "Loading manufacturer list…"
+msgstr "Läser in tillverkarlista…"
+
+msgid "Online catalog not reachable"
+msgstr "Onlinekatalogen kan inte nås"
+
+msgid "{count} matches"
+msgstr "{count} träffar"
+
+msgid "Loading products…"
+msgstr "Läser in produkter…"
+
+msgid "No downloadable products"
+msgstr "Inga nedladdningsbara produkter"
+
+msgid "Downloading {name}…"
+msgstr "Laddar ner {name}…"
+
+msgid "(plugin required)"
+msgstr "(plugin krävs)"
+
+msgid "(in local catalog)"
+msgstr "(i lokal katalog)"
+
+msgid "Search products, order number…"
+msgstr "Sök produkter, beställningsnummer…"
+
+msgid "Product Index: {mfrs} manufacturers, {products} products"
+msgstr "Produktindex: {mfrs} tillverkare, {products} produkter"
+
+msgid "No Product Index yet - fetch the online catalog to build it"
+msgstr "Inget produktindex ännu - hämta onlinekatalogen för att bygga det"
+
+msgid "Building Product Index… {done}/{total} manufacturers"
+msgstr "Bygger produktindex… {done}/{total} tillverkare"
+
+msgid "Cancel"
+msgstr "Avbryt"
+
+msgid "Fetch the online catalog to search across all manufacturers."
+msgstr "Hämta onlinekatalogen för att söka bland alla tillverkare."
+
+msgid "Showing {shown} of {total} matches - refine the search"
+msgstr "Visar {shown} av {total} träffar - förfina sökningen"
+
+msgid "Product Details"
+msgstr "Produktinformation"
+
+msgid "Name"
+msgstr "Namn"
+
+msgid "Order Number"
+msgstr "Beställningsnummer"
+
+msgid "Manufacturer"
+msgstr "Tillverkare"
+
+msgid "Application"
+msgstr "Applikation"
+
+msgid "Program Version"
+msgstr "Programversion"
+
+msgid "Application ID"
+msgstr "Applikations-ID"
+
+msgid "DIN Rail Mounting"
+msgstr "DIN-skenemontage"
+
+msgid "Bus Current"
+msgstr "Busström"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "No"
+msgstr "Nej"
+
+msgid "Product Ref"
+msgstr "Produktreferens"
+
+msgid "Add Device"
+msgstr "Lägg till apparat"
+
+msgid "Room"
+msgstr "Rum"
+
+msgid "(no room)"
+msgstr "(inget rum)"
+
+msgid "Add Device to Project"
+msgstr "Lägg till apparat i projektet"
+
+msgid "Which room should {name} go into?"
+msgstr "Vilket rum ska {name} placeras i?"
+
+msgid "Open or create a project first to add a device."
+msgstr "Öppna eller skapa ett projekt först för att lägga till en apparat."
+
+msgid "This product has no usable application program."
+msgstr "Den här produkten har inget användbart applikationsprogram."
+
+msgid "Added device: {name}"
+msgstr "Apparat tillagd: {name}"
+
+msgid "Add to project?"
+msgstr "Lägga till i projektet?"
+
+msgid "“{name}” was added to the local catalog. Add it to the project now?"
+msgstr "”{name}” lades till i den lokala katalogen. Vill du lägga till den i projektet nu?"
+
+msgid "Add to Project"
+msgstr "Lägg till i projektet"
+
+msgid "Not Now"
+msgstr "Inte nu"
+
+msgid "Local"
+msgstr "Lokal"
+
+msgid "Online"
+msgstr "Online"
+
+msgid "No products imported yet — import a .knxprod or use the Online tab."
+msgstr "Inga produkter importerade ännu — importera en .knxprod eller använd fliken Online."
+
+msgid "Fetch {count} Missing Application(s) Online"
+msgstr "Hämta {count} saknade applikation(er) online"
+
+msgid "Fetching missing applications…"
+msgstr "Hämtar saknade applikationer…"
+
+msgid "Delete"
+msgstr "Ta bort"
+
+msgid "Delete from Local Catalog"
+msgstr "Ta bort från lokal katalog"
+
+msgid "Are you sure you want to delete the selected device? This cannot be undone."
+msgstr "Vill du verkligen ta bort den valda apparaten? Detta kan inte ångras."
+
+msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
+msgstr "{count} apparat(er) i det öppna projektet använder den här produkten. De kan inte läsas in förrän produkten har importerats igen."
+
+msgid "Deleting {name}…"
+msgstr "Tar bort {name}…"
+
+msgid "Deleted from the local catalog: {name}"
+msgstr "Borttagen från den lokala katalogen: {name}"
+
+msgid "Export .knxprod…"
+msgstr "Exportera .knxprod…"
+
+msgid "Export .knxprod"
+msgstr "Exportera .knxprod"
+
+msgid "KNX product (*.knxprod)"
+msgstr "KNX-produkt (*.knxprod)"
+
+msgid "Exported {name}"
+msgstr "{name} exporterad"
+
+msgid "Could not export {name}: {error}"
+msgstr "Det gick inte att exportera {name}: {error}"
+
+msgid "No stored archive for {name}"
+msgstr "Inget sparat arkiv för {name}"
+
+msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
+msgstr "Den här apparaten stöder KNX Data Secure. Ange ett projektlösenord för att ta den i drift säkert; utan lösenord läggs den till och tas i drift okrypterat."
+
+msgid "Search…"
+msgstr "Sök…"

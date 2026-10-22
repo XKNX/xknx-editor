@@ -1,0 +1,2147 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor project 1.0\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device"
+msgstr "Устройство"
+
+msgid "Manufacturer"
+msgstr "Производитель"
+
+msgid "Devices"
+msgstr "Устройства"
+
+msgid "Configure"
+msgstr "Настроить"
+
+msgid "History"
+msgstr "История"
+
+msgid "Editor"
+msgstr "Редактор"
+
+msgid "Group Addresses"
+msgstr "Групповые адреса"
+
+msgid "Buildings"
+msgstr "Здания"
+
+msgid "Project"
+msgstr "Проект"
+
+msgid "Project Log"
+msgstr "Журнал проекта"
+
+msgid "Mass Linker"
+msgstr "Массовое связывание"
+
+msgid "Object <> GA"
+msgstr "Объект <> ГА"
+
+msgid "Object <> Object"
+msgstr "Объект <> Объект"
+
+msgid "Log"
+msgstr "Журнал"
+
+msgid "Open a project to use the Mass Linker."
+msgstr "Откройте проект, чтобы использовать массовое связывание."
+
+msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
+msgstr "Пары составляются по порядку в списках (1-й с 1-м, …). Лишние элементы более длинного списка игнорируются. Порядок списка можно изменить через контекстное меню."
+
+msgid "Link group objects to existing group addresses."
+msgstr "Связать групповые объекты с существующими групповыми адресами."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Добавьте объекты с помощью «{add_device}» или «{add_objects}»."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Выберите групповой адрес для каждой строки или заполните все с помощью «{match}» или «{sequential}»."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "«{link_all}» связывает каждую строку, в которой он выбран."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Связать объекты друг с другом через новый групповой адрес для каждой пары: источник отправляет, цель принимает."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Добавьте исходные объекты с помощью «{add_device}» или «{add_objects}»."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Выберите целевой объект для каждой строки. Адрес и имя предлагаются автоматически и могут быть изменены."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "«{link_all}» создаёт групповые адреса и связывает их."
+
+msgid "Link All"
+msgstr "Связать все"
+
+msgid "Chronological record of every mass-link operation in this session."
+msgstr "Хронологическая запись всех операций массового связывания в этом сеансе."
+
+msgid "Source (objects)"
+msgstr "Источник (объекты)"
+
+msgid "Target (Group Addresses)"
+msgstr "Цель (групповые адреса)"
+
+msgid "Target (objects)"
+msgstr "Цель (объекты)"
+
+msgid "Preview & Link"
+msgstr "Просмотр и связывание"
+
+msgid "Add Group Objects…"
+msgstr "Добавить групповые объекты…"
+
+msgid "Add Group Addresses…"
+msgstr "Добавить групповые адреса…"
+
+msgid "Add Selected"
+msgstr "Добавить выбранные"
+
+msgid "Clear"
+msgstr "Очистить"
+
+msgid "Remove"
+msgstr "Удалить"
+
+msgid "Move up"
+msgstr "Переместить вверх"
+
+msgid "Move Down"
+msgstr "Переместить вниз"
+
+msgid "{count} items"
+msgstr "Элементов: {count}"
+
+msgid "{count} pairs"
+msgstr "Пар: {count}"
+
+msgid "{count} unpaired (ignored)"
+msgstr "Без пары (игнорируются): {count}"
+
+msgid "Link"
+msgstr "Связать"
+
+msgid "GA Name ({source}, {target}, {n})"
+msgstr "Имя ГА ({source}, {target}, {n})"
+
+msgid "Start Address"
+msgstr "Начальный адрес"
+
+msgid "Filter…"
+msgstr "Фильтр…"
+
+msgid "Add Group Objects"
+msgstr "Добавить групповые объекты"
+
+msgid "Add Group Addresses"
+msgstr "Добавить групповые адреса"
+
+msgid "Mass Linker Result"
+msgstr "Результат массового связывания"
+
+msgid "Linked {count} object(s) to group addresses"
+msgstr "Связано объектов с групповыми адресами: {count}"
+
+msgid "Linked {count} object pair(s) via new group addresses"
+msgstr "Связано пар объектов через новые групповые адреса: {count}"
+
+msgid "{count} error(s)"
+msgstr "Ошибок: {count}"
+
+msgid "Clear All"
+msgstr "Очистить всё"
+
+msgid "No operations yet."
+msgstr "Операций пока нет."
+
+msgid "Group Object"
+msgstr "Групповой объект"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Target Group Address"
+msgstr "Целевой групповой адрес"
+
+msgid "Target Group Object"
+msgstr "Целевой групповой объект"
+
+msgid "Group Address"
+msgstr "Групповой адрес"
+
+msgid "Group Address Name"
+msgstr "Имя группового адреса"
+
+msgid "(none)"
+msgstr "(нет)"
+
+msgid "Matching DPT Only"
+msgstr "Только совпадающий DPT"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Только групповые адреса с основным типом данных объекта и адреса без типа (при связывании они получают тип объекта)."
+
+msgid "no DPT"
+msgstr "нет DPT"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Только объекты с тем же основным типом данных и объекты без типа."
+
+msgid "Select a device in the tree first."
+msgstr "Сначала выберите устройство в дереве."
+
+msgid "{device} has no group objects."
+msgstr "У {device} нет групповых объектов."
+
+msgid "All objects of {device} are in the list already."
+msgstr "Все объекты {device} уже есть в списке."
+
+msgid "+ Selected Device"
+msgstr "+ Выбранное устройство"
+
+msgid "Select All"
+msgstr "Выбрать все"
+
+msgid "No objects yet — add the selected device or pick objects."
+msgstr "Объектов пока нет — добавьте выбранное устройство или выберите объекты."
+
+msgid "From"
+msgstr "От"
+
+msgid "Assign Sequential"
+msgstr "Назначить последовательно"
+
+msgid "Match by Name"
+msgstr "Сопоставить по имени"
+
+msgid "Link All ({count})"
+msgstr "Связать все ({count})"
+
+msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
+msgstr "{ready} готово · {amb} неоднозначно · {bad} несовместимо · {none} без пары"
+
+msgid "Only Problems"
+msgstr "Только проблемы"
+
+msgid "Ready to link."
+msgstr "Готово к связыванию."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Проверьте групповой адрес: подходят несколько или тип данных неизвестен."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "Типы данных не совпадают; эта строка не связывается."
+
+msgid "No group address chosen yet."
+msgstr "Групповой адрес ещё не выбран."
+
+msgid "OK"
+msgstr "ОК"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Tools"
+msgstr "Инструменты"
+
+msgid "Open a project to use the tools."
+msgstr "Откройте проект, чтобы использовать инструменты."
+
+msgid "No devices in this project."
+msgstr "В этом проекте нет устройств."
+
+msgid "Extended Copy"
+msgstr "Расширенное копирование"
+
+msgid "Replace Device"
+msgstr "Заменить устройство"
+
+msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
+msgstr "Заменить устройство другой моделью (устройством-шаблоном, уже имеющимся в проекте) с сохранением связей с групповыми адресами. Групповые объекты сопоставляются по номеру и размеру; несопоставленные выводятся в отчёте. Параметры не переносятся."
+
+msgid "Device to Replace"
+msgstr "Заменяемое устройство"
+
+msgid "Replace with (Template)"
+msgstr "Заменить на (шаблон)"
+
+msgid "Group Object Mapping (by Number)"
+msgstr "Сопоставление групповых объектов (по номеру)"
+
+msgid "{count} object(s) will be re-mapped"
+msgstr "Будет переназначено объектов: {count}"
+
+msgid "Replaced; re-mapped {count} group object(s)"
+msgstr "Заменено; переназначено групповых объектов: {count}"
+
+msgid "Shift Addresses"
+msgstr "Сдвинуть адреса"
+
+msgid "Labels"
+msgstr "Этикетки"
+
+msgid "Topology Check"
+msgstr "Проверка топологии"
+
+msgid "Project Diff"
+msgstr "Сравнение проектов"
+
+msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Сравнить открытый проект с другим файлом проекта (.knxproj или .xknx): какие устройства и групповые адреса были добавлены, удалены или изменены. Другой проект только читается; ничего не изменяется."
+
+msgid "Choose Project to Compare…"
+msgstr "Выбрать проект для сравнения…"
+
+msgid "Choose Project to Compare"
+msgstr "Выбрать проект для сравнения"
+
+msgid "KNX project (*.knxproj *.xknx)"
+msgstr "Проект KNX (*.knxproj *.xknx)"
+
+msgid "compared with {name}"
+msgstr "в сравнении с {name}"
+
+msgid "No differences in devices or group addresses."
+msgstr "Нет различий в устройствах и групповых адресах."
+
+msgid "{count} difference(s)"
+msgstr "Различий: {count}"
+
+msgid "Add Device Certificate"
+msgstr "Добавить сертификат устройства"
+
+msgid "Device Certificate"
+msgstr "Сертификат устройства"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "Это устройство уже использует собственный ключ из этого проекта. Его сертификат понадобится снова только после сброса к заводским настройкам."
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "Это устройство ещё использует заводской ключ: для первой защищённой загрузки нужен его сертификат."
+
+msgid "Stored Certificate: {serial}"
+msgstr "Сохранённый сертификат: {serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Введите FDSK с этикетки или сертификата (36 символов):"
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "Чтобы заменить его, введите новый FDSK (36 символов):"
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "Удалить сохранённый сертификат? После сброса к заводским настройкам устройство будет доступно только с кодом с его этикетки."
+
+msgid "Device Certificate…"
+msgstr "Сертификат устройства…"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "Отсутствует сертификат устройства (FDSK)."
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "Это недействительный FDSK; проверьте его."
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "Этот сертификат принадлежит устройству с серийным номером {serial}."
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "Сначала задайте пароль проекта: он защищает ключи устройств."
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "Другой проект защищён паролем. Введите его для сравнения:"
+
+msgid "Compare"
+msgstr "Сравнить"
+
+msgid "Wrong password, please try again."
+msgstr "Неверный пароль, повторите попытку."
+
+msgid "Duplicate a device several times. Optionally rewrite the copy name (find/replace) and create a group address for each of its objects."
+msgstr "Многократно дублировать устройство. При необходимости изменить имя копии (найти/заменить) и создать групповой адрес для каждого из его объектов."
+
+msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
+msgstr "Перенумеровать устройства, добавив смещение к части устройства их индивидуальных адресов, напр. чтобы освободить место для новых устройств. Групповые адреса не затрагиваются."
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "Выберите поля и вывод: CSV, листы этикеток для печати (Avery) или легенду на всю страницу. Вывод HTML открывается в браузере для печати или сохранения в PDF."
+
+msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
+msgstr "Проверка только для чтения: выводит устройства с отсутствующим, неправильным или повторяющимся индивидуальным адресом."
+
+msgid "Source Device"
+msgstr "Исходное устройство"
+
+msgid "Copies"
+msgstr "Копии"
+
+msgid "Find in Name"
+msgstr "Найти в имени"
+
+msgid "Replace with"
+msgstr "Заменить на"
+
+msgid "Create Group Addresses for Each Copy"
+msgstr "Создать групповые адреса для каждой копии"
+
+msgid "Copy Name: {name}"
+msgstr "Имя копии: {name}"
+
+msgid "Copy"
+msgstr "Копировать"
+
+msgid "Created {count} copy/copies"
+msgstr "Создано копий: {count}"
+
+msgid "Shifts the device part of each individual address. Group addresses are not shifted."
+msgstr "Сдвигает часть устройства каждого индивидуального адреса. Групповые адреса не сдвигаются."
+
+msgid "Offset"
+msgstr "Смещение"
+
+msgid "Filter devices…"
+msgstr "Фильтр устройств…"
+
+msgid "All"
+msgstr "Все"
+
+msgid "None"
+msgstr "Нет"
+
+msgid "{sel} of {total} selected"
+msgstr "Выбрано {sel} из {total}"
+
+msgid "(out of range)"
+msgstr "(вне диапазона)"
+
+msgid "{count} address(es) will change"
+msgstr "Будет изменено адресов: {count}"
+
+msgid "Shifted {count} address(es)"
+msgstr "Сдвинуто адресов: {count}"
+
+msgid "Individual Addresses"
+msgstr "Индивидуальные адреса"
+
+msgid "This project has no group addresses."
+msgstr "В этом проекте нет групповых адресов."
+
+msgid "Shift Group Addresses"
+msgstr "Сдвинуть групповые адреса"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Перенумеровать групповые адреса, добавив смещение к их необработанному значению, напр. чтобы освободить место. Связи групповых объектов перемещаются вместе с каждым адресом. Ничего не записывается, если какой-либо сдвиг приведёт к конфликту или выходу за допустимый диапазон."
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "Смещение добавляется к необработанному 16-битному значению, поэтому главная/средняя группа может измениться, когда адреса переходят границу."
+
+msgid "Shifted {count} group address(es)"
+msgstr "Сдвинуто групповых адресов: {count}"
+
+msgid "Export CSV…"
+msgstr "Экспорт CSV…"
+
+msgid "Exported to {path}"
+msgstr "Экспортировано в {path}"
+
+msgid "Fields"
+msgstr "Поля"
+
+msgid "Output"
+msgstr "Вывод"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Label Sheet"
+msgstr "Лист этикеток"
+
+msgid "Legend (Full Page)"
+msgstr "Легенда (вся страница)"
+
+msgid "Sheet"
+msgstr "Лист"
+
+msgid "Custom Grid"
+msgstr "Своя сетка"
+
+msgid "Columns"
+msgstr "Столбцы"
+
+msgid "Rows"
+msgstr "Строки"
+
+msgid "Label W x H (mm)"
+msgstr "Этикетка Ш x В (мм)"
+
+msgid "Margin Top / Left (mm)"
+msgstr "Поле сверху / слева (мм)"
+
+msgid "Gap X / Y (mm)"
+msgstr "Промежуток X / Y (мм)"
+
+msgid "Export HTML…"
+msgstr "Экспорт HTML…"
+
+msgid "Select at least one field."
+msgstr "Выберите хотя бы одно поле."
+
+msgid "No topology issues found."
+msgstr "Проблем топологии не найдено."
+
+msgid "{count} issue(s)"
+msgstr "Проблем: {count}"
+
+msgid "Click a finding to jump to the device."
+msgstr "Щёлкните по результату, чтобы перейти к устройству."
+
+msgid "No buildings/rooms in this project"
+msgstr "В этом проекте нет зданий/комнат"
+
+msgid "+ Function"
+msgstr "+ Функция"
+
+msgid "+ Space"
+msgstr "+ Зона"
+
+msgid "+ Sub-space"
+msgstr "+ Подзона"
+
+msgid "New Space"
+msgstr "Новая зона"
+
+msgid "Name"
+msgstr "Имя"
+
+msgid "Type"
+msgstr "Тип"
+
+msgid "Create"
+msgstr "Создать"
+
+msgid "Delete"
+msgstr "Удалить"
+
+msgid "Delete Space"
+msgstr "Удалить зону"
+
+msgid "Move to"
+msgstr "Переместить в"
+
+msgid "(Top Level)"
+msgstr "(верхний уровень)"
+
+msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
+msgstr "Удалить эту зону и всё её содержимое? Устройства только отвязываются, но не удаляются."
+
+msgid "Assign Device"
+msgstr "Назначить устройство"
+
+msgid "Assign a Device to This Space"
+msgstr "Назначить устройство этой зоне"
+
+msgid "No unassigned devices"
+msgstr "Нет неназначенных устройств"
+
+msgid "Remove from Space"
+msgstr "Убрать из зоны"
+
+msgid "Without Space"
+msgstr "Без зоны"
+
+msgid "Building"
+msgstr "Здание"
+
+msgid "Building Part"
+msgstr "Часть здания"
+
+msgid "Floor"
+msgstr "Этаж"
+
+msgid "Room"
+msgstr "Комната"
+
+msgid "Corridor"
+msgstr "Коридор"
+
+msgid "Stairway"
+msgstr "Лестница"
+
+msgid "Distribution Board"
+msgstr "Распределительный щит"
+
+msgid "New Function"
+msgstr "Новая функция"
+
+msgid "Rename"
+msgstr "Переименовать"
+
+msgid "Rename Function"
+msgstr "Переименовать функцию"
+
+msgid "Assign Group Address"
+msgstr "Назначить групповой адрес"
+
+msgid "Role (Optional)"
+msgstr "Роль (необязательно)"
+
+msgid "Custom"
+msgstr "Пользовательский"
+
+msgid "Switchable Light"
+msgstr "Переключаемый свет"
+
+msgid "Dimmable Light"
+msgstr "Диммируемый свет"
+
+msgid "Sun Protection"
+msgstr "Солнцезащита"
+
+msgid "Heating (Switching Variable)"
+msgstr "Отопление (переключающая управляющая величина)"
+
+msgid "Heating (Continuous Variable)"
+msgstr "Отопление (непрерывная управляющая величина)"
+
+msgid "Switchable Socket"
+msgstr "Переключаемая розетка"
+
+msgid "No project"
+msgstr "Нет проекта"
+
+msgid "Installation"
+msgstr "Инсталляция"
+
+msgid "Group Address Style"
+msgstr "Стиль отображения группового адреса"
+
+msgid "Created by"
+msgstr "Создан"
+
+msgid "Tool Version"
+msgstr "Версия инструмента"
+
+msgid "Schema Version"
+msgstr "Версия схемы"
+
+msgid "Last Modified"
+msgstr "Последняя модификация"
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "Project ID"
+msgstr "ID проекта"
+
+msgid "Original Project ID"
+msgstr "Исходный ID проекта"
+
+msgid "Master Data (Signed)"
+msgstr "Основные данные (подписаны)"
+
+msgid "Validation File"
+msgstr "Файл проверки"
+
+msgid "Project Certificate"
+msgstr "Сертификат проекта"
+
+msgid "none"
+msgstr "нет"
+
+msgid "present ({size} bytes)"
+msgstr "есть ({size} байт)"
+
+msgid "Password"
+msgstr "Пароль"
+
+msgid "Protected"
+msgstr "Защищён"
+
+msgid "Not protected"
+msgstr "Не защищён"
+
+msgid "Set Password"
+msgstr "Установить пароль"
+
+msgid "Change Password"
+msgstr "Изменить пароль"
+
+msgid "Remove Password"
+msgstr "Удалить пароль"
+
+msgid "Project Password"
+msgstr "Пароль проекта"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "Проект и его экспорт защищены этим паролем; при открытии или импорте он запрашивается. Смену пароля нельзя отменить."
+
+msgid "Repeat Password"
+msgstr "Повторите пароль"
+
+msgid "The passwords do not match."
+msgstr "Пароли не совпадают."
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "Проекту с устройствами KNX Secure нужен пароль: он защищает их ключи в проекте и в его экспорте."
+
+msgid "No project log entries"
+msgstr "Нет записей в журнале проекта"
+
+msgid "Date"
+msgstr "Дата"
+
+msgid "User"
+msgstr "Пользователь"
+
+msgid "Comment"
+msgstr "Комментарий"
+
+msgid "Filter log"
+msgstr "Фильтр журнала"
+
+msgid "Decrypt Comments"
+msgstr "Расшифровать комментарии"
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "Извлечь из Knx.Ets.Common.dll…"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "ETS шифрует комментарии журнала. Чтобы прочитать их, извлеките ключ расшифровки из Knx.Ets.Common.dll вашей собственной установки ETS; никакие данные никуда не отправляются."
+
+msgid "Comments are encrypted"
+msgstr "Комментарии зашифрованы"
+
+msgid "Comments decrypted"
+msgstr "Комментарии расшифрованы"
+
+msgid "Extracting key…"
+msgstr "Извлечение ключа…"
+
+msgid "Key extracted; comments decrypted"
+msgstr "Ключ извлечён; комментарии расшифрованы"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr "Среда выполнения .NET не найдена (установите .NET SDK или запустите в Windows с ETS)."
+
+msgid "KNX Common Assembly"
+msgstr "Сборка KNX Common"
+
+msgid "All Files"
+msgstr "Все файлы"
+
+msgid "Based on OpenKNXproducer"
+msgstr "На основе OpenKNXproducer"
+
+msgid "Order Number"
+msgstr "Номер заказа"
+
+msgid "Description"
+msgstr "Описание"
+
+msgid "Parameters ({count})"
+msgstr "Параметры ({count})"
+
+msgid "Group Objects ({count})"
+msgstr "Групповые объекты ({count})"
+
+msgid "Channels ({count})"
+msgstr "Каналы ({count})"
+
+msgid "DALI (Bus)"
+msgstr "DALI (шина)"
+
+msgid "Assigned Objects"
+msgstr "Назначенные объекты"
+
+msgid "Object"
+msgstr "Объект"
+
+msgid "S"
+msgstr "П"
+
+msgid "S = Sending. This object sends its value to the group address; the others only receive it."
+msgstr "П = Передающий. Этот объект отправляет своё значение на групповой адрес; остальные только принимают его."
+
+msgid "Click to open this device in the editor"
+msgstr "Щёлкните, чтобы открыть это устройство в редакторе"
+
+msgid "No devices"
+msgstr "Нет устройств"
+
+msgid "Loading application program…"
+msgstr "Загрузка прикладной программы…"
+
+msgid "This product has no application program."
+msgstr "У этого продукта нет прикладной программы."
+
+msgid "Individual Address"
+msgstr "Индивидуальный адрес"
+
+msgid "Program Device"
+msgstr "Программировать устройство"
+
+msgid "Test Programming"
+msgstr "Тестовое программирование"
+
+msgid "Unload Application Program"
+msgstr "Выгрузить прикладную программу"
+
+msgid "This unloads the application program of the device at {address}. The device stops working until its application program is downloaded again."
+msgstr "Прикладная программа устройства с адресом {address} будет выгружена. Устройство перестанет работать, пока его прикладная программа не будет загружена снова."
+
+msgid "This unloads the application program of the device at {address} and then resets its individual address to 15.15.255; for that, its programming button has to be pressed. The device stops working until it is commissioned again."
+msgstr "Прикладная программа устройства с адресом {address} будет выгружена, а затем его индивидуальный адрес будет сброшен на 15.15.255; для этого нужно нажать его кнопку программирования. Устройство перестанет работать, пока не будет снова введено в эксплуатацию."
+
+msgid "Overwrite Address"
+msgstr "Перезаписать адрес"
+
+msgid "Manufacturer's Plugin Not Available"
+msgstr "Плагин производителя недоступен"
+
+msgid "Serial Number Already Used"
+msgstr "Серийный номер уже используется"
+
+msgid "Download"
+msgstr "Загрузка"
+
+msgid "Full"
+msgstr "Полная"
+
+msgid "Application Program"
+msgstr "Прикладная программа"
+
+msgid "Unload"
+msgstr "Выгрузить"
+
+msgid "Unload Application and Address"
+msgstr "Выгрузить программу и адрес"
+
+msgid "Partial: Parameters"
+msgstr "Частично: параметры"
+
+msgid "Partial: Group Communication"
+msgstr "Частично: групповая коммуникация"
+
+msgid "Overwrite Individual Address"
+msgstr "Перезаписать индивидуальный адрес"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "Индивидуальный адрес {address} будет записан в устройство, на котором нажата кнопка программирования. Продолжить?"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "Индивидуальный адрес устройства по его текущему адресу будет перезаписан на {address}. Нажимать его кнопку программирования не требуется."
+
+msgid "Current Individual Address"
+msgstr "Текущий индивидуальный адрес"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "Введите текущий индивидуальный адрес устройства, напр. 1.1.5."
+
+msgid "The device already has the individual address {address}."
+msgstr "Устройство уже имеет индивидуальный адрес {address}."
+
+msgid "Individual Address via Serial Number"
+msgstr "Индивидуальный адрес по серийному номеру"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "Индивидуальный адрес {address} будет записан в устройство с серийным номером {serial}. Нажимать его кнопку программирования не требуется."
+
+msgid "Use Serial Number"
+msgstr "Использовать серийный номер"
+
+msgid "The serial number is already associated with device {device}."
+msgstr "Серийный номер уже связан с устройством {device}."
+
+msgid "Serial Number"
+msgstr "Серийный номер"
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "Введите серийный номер в виде 12 шестнадцатеричных цифр, напр. 0083:7AA2039C."
+
+msgid "Manufacturer Info"
+msgstr "Сведения о производителе"
+
+msgid "Application"
+msgstr "Прикладная программа"
+
+msgid "Application Version"
+msgstr "Версия прикладной программы"
+
+msgid "Read from Device"
+msgstr "Прочитать из устройства"
+
+msgid "Restart"
+msgstr "Перезапустить"
+
+msgid "Reset…"
+msgstr "Сброс…"
+
+msgid "Master Reset"
+msgstr "Общий сброс"
+
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "Необратимо: устройство сбрасывается по шине и должно быть снова введено в эксплуатацию. В режиме KNX Secure при этом отключается защита устройства."
+
+msgid "Reset Type"
+msgstr "Тип сброса"
+
+msgid "I understand this resets the device"
+msgstr "Я понимаю, что это сбросит устройство"
+
+msgid "Reset Device"
+msgstr "Сбросить устройство"
+
+msgid "Factory Reset"
+msgstr "Сброс к заводским настройкам"
+
+msgid "Factory Reset (Keep Address)"
+msgstr "Сброс к заводским настройкам (сохранить адрес)"
+
+msgid "Reset Individual Address"
+msgstr "Сбросить индивидуальный адрес"
+
+msgid "Delete Application Program"
+msgstr "Удалить прикладную программу"
+
+msgid "Reset Parameters"
+msgstr "Сбросить параметры"
+
+msgid "Reset Group Address Links"
+msgstr "Сбросить связи с групповыми адресами"
+
+msgid "Confirmed Restart"
+msgstr "Подтверждённый перезапуск"
+
+msgid "Set an individual address and connect to the bus first"
+msgstr "Сначала задайте индивидуальный адрес и подключитесь к шине"
+
+msgid "The reported value matches {devices} in this project."
+msgstr "Полученное значение соответствует {devices} в этом проекте."
+
+msgid "Mask Version"
+msgstr "Версия маски"
+
+msgid "Order Info"
+msgstr "Сведения о заказе"
+
+msgid "Hardware Type"
+msgstr "Тип аппаратных средств"
+
+msgid "Status"
+msgstr "Статус"
+
+msgid "no fault reported"
+msgstr "ошибок не сообщается"
+
+msgid "differs from project V{version} — program to apply"
+msgstr "отличается от проекта V{version} — запрограммируйте для применения"
+
+msgid "Product"
+msgstr "Продукт"
+
+msgid "Product Ref"
+msgstr "Ссылка на продукт"
+
+msgid "Program Ref"
+msgstr "Ссылка на программу"
+
+msgid "IP Configuration"
+msgstr "Конфигурация IP"
+
+msgid "Assignment"
+msgstr "Назначение"
+
+msgid "IP Address"
+msgstr "IP-адрес"
+
+msgid "Subnet Mask"
+msgstr "Маска подсети"
+
+msgid "Default Gateway"
+msgstr "Шлюз по умолчанию"
+
+msgid "MAC Address"
+msgstr "MAC-адрес"
+
+msgid "Download PDF Manual"
+msgstr "Скачать руководство PDF"
+
+msgid "Searching Manual…"
+msgstr "Поиск руководства…"
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "Найти руководство этого устройства (через базу данных устройств KNX, иначе поиском у производителя) и открыть его в браузере. Без гарантии — если прямой документ не найден, открывается поиск устройств KNX."
+
+msgid "Update to V{version}"
+msgstr "Обновить до V{version}"
+
+msgid "Change Application Program"
+msgstr "Замена прикладной программы"
+
+msgid "Update Application Program Version"
+msgstr "Обновление версии прикладной программы"
+
+msgid "Update"
+msgstr "Обновить"
+
+msgid "Updating the application program…"
+msgstr "Обновление прикладной программы…"
+
+msgid "Changing the application program…"
+msgstr "Замена прикладной программы…"
+
+msgid "Changing the application program failed"
+msgstr "Не удалось заменить прикладную программу"
+
+msgid "Updating the application program failed"
+msgstr "Не удалось обновить прикладную программу"
+
+msgid "Copied"
+msgstr "Скопировано"
+
+msgid "Click to copy"
+msgstr "Щёлкните, чтобы скопировать"
+
+msgid "Filter parameters…"
+msgstr "Фильтр параметров…"
+
+msgid "Apply Changes to All {count} Identical Devices"
+msgstr "Применить изменения ко всем идентичным устройствам ({count})"
+
+msgid "Apply Changes to All Channels"
+msgstr "Применить изменения ко всем каналам"
+
+msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr "Редактирование устройств: {count} — изменения применяются ко всем, расходящиеся значения показаны как <различается>"
+
+msgid "Hardware"
+msgstr "Аппаратные средства"
+
+msgid "Firmware"
+msgstr "Микропрограмма"
+
+msgid "Com Flags ({count})"
+msgstr "Флаги объектов ({count})"
+
+msgid "Load Procedures ({count})"
+msgstr "Процедуры загрузки ({count})"
+
+msgid "Preview Memory"
+msgstr "Просмотр памяти"
+
+msgid "Memory Preview"
+msgstr "Просмотр памяти"
+
+msgid "Load Reference File"
+msgstr "Загрузить эталонный файл"
+
+msgid "Save Memory Dump"
+msgstr "Сохранить дамп памяти"
+
+msgid "Save…"
+msgstr "Сохранить…"
+
+msgid "Diff…"
+msgstr "Сравнить…"
+
+msgid "Clear Diff"
+msgstr "Сбросить сравнение"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "Дампы памяти (*.bin)"
+
+msgid "{count} bytes"
+msgstr "{count} байт"
+
+msgid "No memory segments."
+msgstr "Нет сегментов памяти."
+
+msgid "Cannot encode memory image: {error}"
+msgstr "Не удаётся сформировать образ памяти: {error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "Не удалось прочитать или записать файл: {error}"
+
+msgid "Programming Test Result"
+msgstr "Результат тестового программирования"
+
+msgid "Evaluation failed"
+msgstr "Ошибка оценки"
+
+msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
+msgstr "Тест только для чтения: проверяет, что функция загрузки формирует тот же образ, что уже запрограммирован в устройстве. В устройство ничего не записывается."
+
+msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
+msgstr "Невозможно выполнить: проект был изменён после открытия. Этот тест сравнивает сформированный образ с запрограммированным состоянием устройства, которое соответствует только проекту в момент открытия. Отмените изменения в этом сеансе, чтобы выполнить тест."
+
+msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
+msgstr "Невозможно выполнить: нет подключения KNX. Подключитесь к шлюзу (меню «Подключение») и убедитесь, что устройство доступно по своему индивидуальному адресу."
+
+msgid "Match: the generated image is identical to what is on the device"
+msgstr "Совпадение: сформированный образ идентичен содержимому устройства"
+
+msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
+msgstr "Несовпадение: различающихся байтов: {bytes}, мест: {locations}"
+
+msgid "{matched} matched, {changed} would change"
+msgstr "Совпадает: {matched}, будет изменено: {changed}"
+
+msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
+msgstr "Только для устройств ETS 6: этот тест сравнивает устройство с образом, сформированным так же, как в ETS 6. Устройство, последний раз запрограммированное в ETS 5, использует другую раскладку байтов и покажет большие ложные различия — результат имеет смысл только для устройства, последний раз запрограммированного в ETS 6."
+
+msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
+msgstr "Структурные различия (отличаются целые таблицы) могут означать, что устройство последний раз программировалось в ETS 5, раскладка байтов которого другая. Различия только в значениях обычно означают, что в устройстве другая конфигурация."
+
+msgid "Location"
+msgstr "Адрес"
+
+msgid "Size"
+msgstr "Размер"
+
+msgid "Changed"
+msgstr "Изменено"
+
+msgid "match"
+msgstr "совпадает"
+
+msgid "would change"
+msgstr "будет изменено"
+
+msgid "device-managed"
+msgstr "управляется устройством"
+
+msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
+msgstr "Системный байт, который устройство само устанавливает во время работы (напр. байт распознавания загрузки, сбрасываемый приложением после загрузки). Различие здесь ожидаемо и не указывает на неудачную загрузку."
+
+msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
+msgstr "плюс байты времени выполнения, управляемые устройством: {bytes} (ожидаемо, безопасно)"
+
+msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
+msgstr "Нет различий в конфигурации: устройство уже содержит эту конфигурацию. Различия ниже безопасны (см. примечания)."
+
+msgid "sets default"
+msgstr "задаёт значение по умолчанию"
+
+msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
+msgstr "Этот байт записывается из-за соседнего параметра; отличающийся бит не управляется ни одним активным параметром и лишь сбрасывается на значение по умолчанию прикладной программы. Устройство содержит более старое значение (напр. от прежней конфигурации или режима), которое будет приведено в норму при программировании. Безопасно."
+
+msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr "плюс байты, сбрасываемые на значение по умолчанию прикладной программы: {bytes} (устройство содержит более старое значение; безопасно, будет приведено в норму при программировании)"
+
+msgid "Export Ist/Soll…"
+msgstr "Экспорт факт/план…"
+
+msgid "Export Path:"
+msgstr "Путь экспорта:"
+
+msgid "Export Programming Test Result"
+msgstr "Экспорт результата тестового программирования"
+
+msgid "memory {address}"
+msgstr "память {address}"
+
+msgid "object {object} property {property}"
+msgstr "объект {object} свойство {property}"
+
+msgid "Filter devices (name, address)…"
+msgstr "Фильтр устройств (имя, адрес)…"
+
+msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
+msgstr "Нет устройств. Откройте или импортируйте проект (меню «Файл») или щёлкните здесь правой кнопкой мыши, чтобы добавить область."
+
+msgid "Filter group addresses (address, name)…"
+msgstr "Фильтр групповых адресов (адрес, имя)…"
+
+msgid "Filter rooms, devices, functions…"
+msgstr "Фильтр комнат, устройств, функций…"
+
+msgid "Area {area}"
+msgstr "Область {area}"
+
+msgid "{name} (Area {area})"
+msgstr "{name} (область {area})"
+
+msgid "Line {area}.{line}"
+msgstr "Линия {area}.{line}"
+
+msgid "{name} (Line {area}.{line})"
+msgstr "{name} (линия {area}.{line})"
+
+msgid "Unassigned ({count})"
+msgstr "Не назначено ({count})"
+
+msgid "Add Area"
+msgstr "Добавить область"
+
+msgid "Add Line"
+msgstr "Добавить линию"
+
+msgid "Copy Address"
+msgstr "Копировать адрес"
+
+msgid "Duplicate"
+msgstr "Дублировать"
+
+msgid "Copy Configuration"
+msgstr "Копировать конфигурацию"
+
+msgid "Compare with…"
+msgstr "Сравнить с…"
+
+msgid "Compare Devices"
+msgstr "Сравнить устройства"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "Откройте проект как минимум с двумя устройствами для сравнения."
+
+msgid "Only Differences"
+msgstr "Только различия"
+
+msgid "Filter devices by address, name or description…"
+msgstr "Фильтр устройств по адресу, имени или описанию…"
+
+msgid "{count} differences"
+msgstr "Различий: {count}"
+
+msgid "Parameters"
+msgstr "Параметры"
+
+msgid "Group Objects"
+msgstr "Групповые объекты"
+
+msgid "No differences"
+msgstr "Нет различий"
+
+msgid "Field"
+msgstr "Поле"
+
+msgid "Device A"
+msgstr "Устройство A"
+
+msgid "Device B"
+msgstr "Устройство B"
+
+msgid "Paste Configuration"
+msgstr "Вставить конфигурацию"
+
+msgid "Paste configuration onto '{name}':"
+msgstr "Вставить конфигурацию в «{name}»:"
+
+msgid "Paste configuration onto {count} selected devices:"
+msgstr "Вставить конфигурацию в выбранные устройства ({count}):"
+
+msgid "Duplicate '{name}':"
+msgstr "Дублировать «{name}»:"
+
+msgid "Group Address Links"
+msgstr "Связи с групповыми адресами"
+
+msgid "Paste"
+msgstr "Вставить"
+
+msgid "Delete Device"
+msgstr "Удалить устройство"
+
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "Удалить «{name}»? Его групповые объекты и связи с групповыми адресами будут удалены, а индивидуальный адрес освобождён. Это действие можно отменить."
+
+msgid "New Area"
+msgstr "Новая область"
+
+msgid "New Line"
+msgstr "Новая линия"
+
+msgid "Number"
+msgstr "Номер"
+
+msgid "Add"
+msgstr "Добавить"
+
+msgid "Save"
+msgstr "Сохранить"
+
+msgid "Load"
+msgstr "Загрузить"
+
+msgid "Copy Log"
+msgstr "Копировать журнал"
+
+msgid "New Group Address"
+msgstr "Новый групповой адрес"
+
+msgid "New Main Group"
+msgstr "Новая главная группа"
+
+msgid "New Middle Group"
+msgstr "Новая средняя группа"
+
+msgid "New Folder"
+msgstr "Новая папка"
+
+msgid "Rename Folder"
+msgstr "Переименовать папку"
+
+msgid "Delete Folder"
+msgstr "Удалить папку"
+
+msgid "Main group name (the next free number is assigned automatically)"
+msgstr "Имя главной группы (следующий свободный номер назначается автоматически)"
+
+msgid "Middle group name (the next free number is assigned automatically)"
+msgstr "Имя средней группы (следующий свободный номер назначается автоматически)"
+
+msgid "Delete this folder and every group address in it? This can be undone."
+msgstr "Удалить эту папку и все групповые адреса в ней? Это действие можно отменить."
+
+msgid "Rename Group Address"
+msgstr "Переименовать групповой адрес"
+
+msgid "Change Address…"
+msgstr "Изменить адрес…"
+
+msgid "New group address (links are kept):"
+msgstr "Новый групповой адрес (связи сохраняются):"
+
+msgid "Invalid address or already in use."
+msgstr "Недопустимый адрес или он уже используется."
+
+msgid "Security"
+msgstr "Защита"
+
+msgid "Automatic"
+msgstr "Автоматически"
+
+msgid "Secured"
+msgstr "Защищено"
+
+msgid "Not Secured"
+msgstr "Не защищено"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "Защищённый групповой адрес можно связать только с устройствами, вводимыми в эксплуатацию с защитой."
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "Не все устройства, связанные с этим групповым адресом, вводятся в эксплуатацию с защитой, поэтому его нельзя защитить."
+
+msgid "Set Datapoint Type"
+msgstr "Задать тип данных"
+
+msgid "Address"
+msgstr "Адрес"
+
+msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
+msgstr "Тип данных (напр. DPST-1-1); пусто — очистить"
+
+msgid "Project: {name}"
+msgstr "Проект: {name}"
+
+msgid "(unsaved)"
+msgstr "(не сохранён)"
+
+msgid "No history"
+msgstr "Нет истории"
+
+msgid "Restore"
+msgstr "Восстановить"
+
+msgid "Add device: {name}"
+msgstr "Добавлено устройство: {name}"
+
+msgid "Remove device: {name}"
+msgstr "Удалено устройство: {name}"
+
+msgid "Address: {old} -> {new}"
+msgstr "Адрес: {old} -> {new}"
+
+msgid "Name: {old} -> {new}"
+msgstr "Имя: {old} -> {new}"
+
+msgid "Parameter: {old} -> {new}"
+msgstr "Параметр: {old} -> {new}"
+
+msgid "DPT: {old} -> {new}"
+msgstr "DPT: {old} -> {new}"
+
+msgid "Flag: {flag} -> {state}"
+msgstr "Флаг: {flag} -> {state}"
+
+msgid "Group address {address} created"
+msgstr "Групповой адрес {address} создан"
+
+msgid "Group address {address} removed"
+msgstr "Групповой адрес {address} удалён"
+
+msgid "Group address: {old} -> {new}"
+msgstr "Групповой адрес: {old} -> {new}"
+
+msgid "Group object linked to group address"
+msgstr "Групповой объект связан с групповым адресом"
+
+msgid "Group object unlinked from group address"
+msgstr "Групповой объект отвязан от группового адреса"
+
+msgid "Area {number} created"
+msgstr "Область {number} создана"
+
+msgid "Area {number} removed"
+msgstr "Область {number} удалена"
+
+msgid "Area: {old} -> {new}"
+msgstr "Область: {old} -> {new}"
+
+msgid "Line {number} created"
+msgstr "Линия {number} создана"
+
+msgid "Line {number} removed"
+msgstr "Линия {number} удалена"
+
+msgid "Line: {old} -> {new}"
+msgstr "Линия: {old} -> {new}"
+
+msgid "This action can only be performed when the individual address of the device is already downloaded."
+msgstr "Это действие может быть выполнено только тогда, когда уже загружен индивидуальный адрес устройства."
+
+msgid "Button {0} executed. "
+msgstr "Кнопка {0} выполнена. "
+
+msgid "A parameter script is running for this device."
+msgstr "Для этого устройства выполняется скрипт параметров."
+
+msgid "The Device has no valid address or is not linked to an area or line."
+msgstr "Устройство не имеет действительного адреса или не связано с областью или линией."
+
+msgid "Parameter Script"
+msgstr "Скрипт параметра"
+
+msgid "Executing Script"
+msgstr "Выполнение скрипта"
+
+msgid "Script not responding"
+msgstr "Скрипт не отвечает"
+
+msgid "Force Stop"
+msgstr "Принудительно остановить"
+
+msgid "The script was stopped."
+msgstr "Скрипт остановлен."
+
+msgid "Canceling…"
+msgstr "Отмена…"
+
+msgid "No connection to the bus."
+msgstr "Нет подключения к шине."
+
+msgid "Parameter value cannot be set, because validation failed."
+msgstr "Невозможно задать значение параметра в связи со сбоем проверки."
+
+msgid "Operations"
+msgstr "Операции"
+
+msgid "Active"
+msgstr "Активные"
+
+msgid "Cancel All"
+msgstr "Отменить все"
+
+msgid "Clear History"
+msgstr "Очистить историю"
+
+msgid "No operations."
+msgstr "Нет операций."
+
+msgid "Device Info"
+msgstr "Информация об устройстве"
+
+msgid "Device Info (With Group Communication)"
+msgstr "Информация об устройстве (с групповой коммуникацией)"
+
+msgid "Reading"
+msgstr "Чтение"
+
+msgid "General"
+msgstr "Общие"
+
+msgid "Group Communication"
+msgstr "Групповая коммуникация"
+
+msgid "Device Manufacturer"
+msgstr "Производитель устройства"
+
+msgid "Firmware Version"
+msgstr "Версия микропрограммы"
+
+msgid "Programming Mode"
+msgstr "Режим программирования"
+
+msgid "Load State"
+msgstr "Состояние загрузки"
+
+msgid "Address Table Load State"
+msgstr "Состояние загрузки адресной таблицы"
+
+msgid "Association Table Load State"
+msgstr "Состояние загрузки таблицы связей"
+
+msgid "Group Object Table Load State"
+msgstr "Состояние загрузки таблицы объектов"
+
+msgid "Reading the tables failed: {error}"
+msgstr "Не удалось прочитать таблицы: {error}"
+
+msgid "On"
+msgstr "Вкл"
+
+msgid "Off"
+msgstr "Выкл"
+
+msgid "Unloaded"
+msgstr "Выгружено"
+
+msgid "Loaded"
+msgstr "Загружено"
+
+msgid "Loading"
+msgstr "Загружается"
+
+msgid "Error"
+msgstr "Ошибка"
+
+msgid "Unloading"
+msgstr "Выгружается"
+
+msgid "Load Completing"
+msgstr "Завершение загрузки"
+
+msgid "Yes"
+msgstr "Да"
+
+msgid "No"
+msgstr "Нет"
+
+msgid "Also read the group communication?"
+msgstr "Прочитать также групповую коммуникацию?"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "Прикладной программы устройства нет в каталоге, поэтому его таблицы не удаётся найти"
+
+msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
+msgstr "Это устройство можно запрограммировать только с помощью плагина производителя, который здесь недоступен."
+
+msgid "Parameters in the Manufacturer's Plugin"
+msgstr "Параметры в плагине производителя"
+
+msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
+msgstr "Производитель задаёт параметры этого устройства в собственном диалоге плагина, который XKNX Editor не может запустить, поэтому их нельзя изменить здесь. Загрузка записывает их текущие значения без изменений; групповые объекты можно связывать как обычно."
+
+msgid "Edit parameters anyway"
+msgstr "Всё равно редактировать параметры"
+
+msgid "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+msgstr "Производитель настраивает это устройство в собственном диалоге плагина; сделанные там установки здесь не отображаются."
+
+msgid "The manufacturer programs this device with its own plugin; the standard download is used here."
+msgstr "Производитель программирует это устройство собственным плагином; здесь используется стандартная загрузка."
+
+msgid "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+msgstr "Производитель хранит часть данных этого устройства в собственном плагине, который здесь недоступен."
+
+msgid "The manufacturer plugin is not available here:"
+msgstr "Плагин производителя здесь недоступен:"
+
+msgid "Only it can program the device."
+msgstr "Только он может программировать устройство."
+
+msgid "Settings made in its dialog are not shown."
+msgstr "Установки из его диалога не отображаются."
+
+msgid "The standard download is used instead."
+msgstr "Вместо этого используется стандартная загрузка."
+
+msgid "Part of the device data is not available."
+msgstr "Часть данных устройства недоступна."
+
+msgid "This device is also configured with separate software from the manufacturer."
+msgstr "Это устройство также настраивается отдельным программным обеспечением производителя."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "Это устройство включает приложение настройки производителя («{name}»), которое XKNX Editor не может запустить. Стандартные параметры устройства по-прежнему можно программировать, но не дополнительные функции этого приложения."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "Это устройство включает приложение настройки производителя («{name}»), которое нельзя запустить непосредственно в XKNX Editor, — но оно было перенесено, поэтому его важнейшие функции доступны здесь (см. вкладку DALI)."
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "Производитель разрешает программировать это устройство только с помощью своего плагина, который здесь недоступен. Программирование без плагина может оставить устройство неправильно настроенным или в состоянии ошибки."
+
+msgid "Program Without the Manufacturer's Plugin Anyway"
+msgstr "Всё равно программировать без плагина производителя"
+
+msgid "Downloading"
+msgstr "Загрузка"
+
+msgid "Please press the programming button"
+msgstr "Нажмите кнопку программирования"
+
+msgid "Waiting for confirmation"
+msgstr "Ожидание подтверждения"
+
+msgid "The application program currently loaded in the device is different from the projected application program"
+msgstr "Прикладная программа, загруженная в настоящее время в устройство, отличается от запроектированной прикладной программы"
+
+msgid "Do you want to overwrite the application program (this may take several minutes)?"
+msgstr "Вы хотите перезаписать прикладную программу (это может занять несколько минут)?"
+
+msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
+msgstr "Прикладная программа, загруженная в устройство, не соответствует запроектированной прикладной программе. Попробуйте выполнить полную загрузку вместо частичной."
+
+msgid "Incompatible mask version: {found} instead of {expected}"
+msgstr "Несовместимая версия маски: {found} вместо {expected}"
+
+msgid "Waiting"
+msgstr "В ожидании"
+
+msgid "Finished"
+msgstr "Завершено"
+
+msgid "Canceled"
+msgstr "Отменено"
+
+msgid "Cancelled by user."
+msgstr "Отменено пользователем."
+
+msgid "Started by an MCP client."
+msgstr "Запущено клиентом MCP."
+
+msgid "failed"
+msgstr "не удалось"
+
+msgid "No details available"
+msgstr "Подробные сведения недоступны"
+
+msgid "Connection: {connection}"
+msgstr "Подключение: {connection}"
+
+msgid "Start: {time}"
+msgstr "Начало: {time}"
+
+msgid "End: {time}"
+msgstr "Конец: {time}"
+
+msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
+msgstr "Отсутствуют данные продукта этого устройства — его прикладной программы нет в каталоге. Импортируйте его продукт, чтобы редактировать устройство."
+
+msgid "DIN Rail Mounting"
+msgstr "Монтаж на DIN-рейку"
+
+msgid "Bus Current"
+msgstr "Ток шины"
+
+msgid "Read Value"
+msgstr "Прочитать значение"
+
+msgid "Write Value…"
+msgstr "Записать значение…"
+
+msgid "Write Value"
+msgstr "Записать значение"
+
+msgid "Data Type"
+msgstr "Тип данных"
+
+msgid "Value"
+msgstr "Значение"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "Задайте тип данных группового адреса, чтобы записать значение."
+
+msgid "Write"
+msgstr "Записать"
+
+msgid "Not connected to the bus."
+msgstr "Нет подключения к шине."
+
+msgid "Export Group Addresses…"
+msgstr "Экспорт групповых адресов…"
+
+msgid "Import Group Addresses…"
+msgstr "Импорт групповых адресов…"
+
+msgid "Import Group Addresses"
+msgstr "Импорт групповых адресов"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "Файлы групповых адресов (XML, CSV)"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "Групповых адресов добавлено: {added}, обновлено: {updated}."
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "Групповые адреса, которые не удалось поместить в группу: {count}."
+
+msgid "The file could not be imported: {error}"
+msgstr "Не удалось импортировать файл: {error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "В файле используются {file} групповые адреса, а в проекте — {project}."
+
+msgid "3-level"
+msgstr "3-уровневые"
+
+msgid "2-level"
+msgstr "2-уровневые"
+
+msgid "free"
+msgstr "свободные"
+
+msgid "Export"
+msgstr "Экспорт"
+
+msgid "Import"
+msgstr "Импорт"
+
+msgid "Plain"
+msgstr "Открытые"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "Отключить защиту пусконаладки"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "Тогда эти групповые адреса будут обмениваться данными без шифрования:"
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "Групповые объекты устройства будут удалены из этих защищённых групповых адресов:"
+
+msgid "Deactivate"
+msgstr "Отключить"
+
+msgid "Secure Commissioning"
+msgstr "Защита пусконаладки"
+
+msgid "Add Device Certificate…"
+msgstr "Добавить сертификат устройства…"
+
+msgid "Activated"
+msgstr "Активировано"
+
+msgid "Deactivated"
+msgstr "Деактивировано"
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "Групповой объект, требующий защищённой связи, оказался бы на незашифрованном групповом адресе."
+
+msgid "Later"
+msgstr "Позже"
+
+msgid "Don't Ask When Adding Devices"
+msgstr "Не спрашивать при добавлении устройств"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "Показать пароли"
+
+msgid "Secure Tunneling"
+msgstr "Защита туннелирования"
+
+msgid "Commissioning Password"
+msgstr "Пароль пусконаладки"
+
+msgid "Authentication Code"
+msgstr "Код аутентификации"
+
+msgid "Interface"
+msgstr "Интерфейс"
+
+msgid "Routing"
+msgstr "Маршрутизация"
+
+msgid "Tunnel {address}"
+msgstr "Туннель {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "Пароль должен содержать от 1 до 20 символов Latin-1."
+
+msgid "Close"
+msgstr "Закрыть"
+
+msgid "IP Backbone Security"
+msgstr "Защита IP-магистрали"
+
+msgid "Device Certificates"
+msgstr "Сертификаты устройств"
+
+msgid "Manage…"
+msgstr "Управление…"
+
+msgid "The project has no device certificates."
+msgstr "В проекте нет сертификатов устройств."
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "Таблицы защиты {device} не могут вместить эту связь."
+
+msgid "Point-to-Point and Broadcast"
+msgstr "Точка-точка и широковещательные"
+
+msgid "Blocked"
+msgstr "Заблокировано"
+
+msgid "Routed"
+msgstr "Пересылается"
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "Для ввода шины DALI в эксплуатацию подключитесь к интерфейсу KNX."
+
+msgid "Scan Bus"
+msgstr "Сканировать шину"
+
+msgid "All ECGs On"
+msgstr "Все ЭПРА вкл."
+
+msgid "All Off"
+msgstr "Все выкл."
+
+msgid "New Installation…"
+msgstr "Новая инсталляция…"
+
+msgid "Post Installation…"
+msgstr "Доустановка…"
+
+msgid "Running: {task}"
+msgstr "Выполняется: {task}"
+
+msgid "scanning the bus"
+msgstr "сканирование шины"
+
+msgid "switching all ECGs"
+msgstr "переключение всех ЭПРА"
+
+msgid "blinking"
+msgstr "мигание"
+
+msgid "stopping the blinking"
+msgstr "остановка мигания"
+
+msgid "new installation"
+msgstr "новая инсталляция"
+
+msgid "post installation"
+msgstr "доустановка"
+
+msgid "programming the groups"
+msgstr "программирование групп"
+
+msgid "programming the scenes"
+msgstr "программирование сцен"
+
+msgid "{count} found"
+msgstr "Найдено: {count}"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "«Сканировать шину» считывает шину DALI."
+
+msgid "Firmware {version}"
+msgstr "Микропрограмма {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "Подтверждение программирования DALI"
+
+msgid "Continue"
+msgstr "Продолжить"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "Новая инсталляция снова сканирует шину DALI и ПЕРЕНАЗНАЧАЕТ короткий\nадрес каждого ЭПРА. Это действие нельзя отменить. Продолжить?"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "Доустановка ищет на шине новые ЭПРА и обновляет их адресацию.\nЭто изменяет устройство. Продолжить?"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "Записать распределение по группам на шину DALI. Группы будут применены к\nшлюзу и его ЭПРА. Продолжить?"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "Записать значения сцен на шину DALI. Продолжить?"
+
+msgid "{count} ECG(s) present"
+msgstr "ЭПРА в наличии: {count}"
+
+msgid "Group"
+msgstr "Группа"
+
+msgid "Long Address"
+msgstr "Длинный адрес"
+
+msgid "Alarm"
+msgstr "Тревога"
+
+msgid "Blink"
+msgstr "Мигать"
+
+msgid "Stop"
+msgstr "Стоп"
+
+msgid "Program Groups…"
+msgstr "Программировать группы…"
+
+msgid "Scenes"
+msgstr "Сцены"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "Чтобы задать сцены, назначьте ЭПРА группам выше."
+
+msgid "Scene"
+msgstr "Сцена"
+
+msgid "Scene {number}"
+msgstr "Сцена {number}"
+
+msgid "Group {number}"
+msgstr "Группа {number}"
+
+msgid "Program Scenes…"
+msgstr "Программировать сцены…"
+
+msgid "Single"
+msgstr "Отдельно"
+
+msgid "Unassigned"
+msgstr "Не назначено"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "Процедура {number}  (шагов: {count})"
+
+msgid "Kind"
+msgstr "Вид"
+
+msgid "Applies To"
+msgstr "Применяется к"
+
+msgid "Details"
+msgstr "Детали"
+
+msgid "Scope: {scope}"
+msgstr "Область действия: {scope}"
+
+msgid "Additional Individual Addresses"
+msgstr "Дополнительные индивидуальные адреса"
+
+msgid "Additional Individual Address"
+msgstr "Дополнительный индивидуальный адрес"
+
+msgid "Assign Missing Addresses"
+msgstr "Назначить недостающие адреса"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "В линии не предусмотрено достаточное количество адресов для всех необходимых дополнительных адресов."
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "Введите номер устройства от 1 до 255 или полный индивидуальный адрес в линии устройства."
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "Дополнительный адрес должен находиться в линии устройства {line}."
+
+msgid "The individual address {address} is already used in this line."
+msgstr "Индивидуальный адрес {address} уже используется в этой линии."
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "Дополнительный адрес устройства «{0}» изменён с «{1}» на «{2}»."
+
+msgid "Change additional address names"
+msgstr "Изменить названия дополнительных адресов"
+
+msgid "Change additional address descriptions"
+msgstr "Изменить описания дополнительных адресов"
+
+msgid "Assign additional addresses"
+msgstr "Назначить дополнительные адреса"
+
+msgid "Change additional addresses"
+msgstr "Изменить дополнительные адреса"
+
+msgid "Add device {name}"
+msgstr "Добавить устройство {name}"
+
+msgid "Set {ref} = {value}"
+msgstr "Задать {ref} = {value}"
+
+msgid "Change"
+msgstr "Изменение"
+
+msgid "Create area {address}"
+msgstr "Создать область {address}"
+
+msgid "Create line {address}"
+msgstr "Создать линию {address}"
+
+msgid "Add segment"
+msgstr "Добавить сегмент"
+
+msgid "Create group address {address}"
+msgstr "Создать групповой адрес {address}"
+
+msgid "Import group addresses"
+msgstr "Импорт групповых адресов"
+
+msgid "Import group addresses from {file}"
+msgstr "Импорт групповых адресов из {file}"
+
+msgid "Link group object"
+msgstr "Связать групповой объект"
+
+msgid "Unlink group object"
+msgstr "Отвязать групповой объект"
+
+msgid "Rename area to {name}"
+msgstr "Переименовать область в {name}"
+
+msgid "Rename project to {name}"
+msgstr "Переименовать проект в {name}"
+
+msgid "Rename line to {name}"
+msgstr "Переименовать линию в {name}"
+
+msgid "Rename device to {name}"
+msgstr "Переименовать устройство в {name}"
+
+msgid "Move device"
+msgstr "Переместить устройство"
+
+msgid "Set flag"
+msgstr "Установить флаг"
+
+msgid "Set datapoint type"
+msgstr "Задать тип данных"
+
+msgid "Set priority"
+msgstr "Задать приоритет"
+
+msgid "Set description"
+msgstr "Задать описание"
+
+msgid "Set sending group address"
+msgstr "Задать передающий групповой адрес"
+
+msgid "Add installation"
+msgstr "Добавить инсталляцию"
+
+msgid "Remove device"
+msgstr "Удалить устройство"
+
+msgid "Remove area"
+msgstr "Удалить область"
+
+msgid "Remove line"
+msgstr "Удалить линию"
+
+msgid "Remove segment"
+msgstr "Удалить сегмент"
+
+msgid "Remove group address"
+msgstr "Удалить групповой адрес"
+
+msgid "Remove function"
+msgstr "Удалить функцию"
+
+msgid "Remove group address from function"
+msgstr "Удалить групповой адрес из функции"
+
+msgid "Remove building part"
+msgstr "Удалить часть здания"
+
+msgid "Remove group range"
+msgstr "Удалить диапазон групп"
+
+msgid "Update application program"
+msgstr "Обновить прикладную программу"
+
+msgid "Change application program"
+msgstr "Замена прикладной программы"
+
+msgid "Update group objects"
+msgstr "Обновить групповые объекты"
+
+msgid "Update module instances"
+msgstr "Обновить экземпляры модулей"
+
+msgid "Set group address security"
+msgstr "Задать защиту группового адреса"
+
+msgid "Set secure commissioning"
+msgstr "Задать защиту пусконаладки"
+
+msgid "Rename group address to {name}"
+msgstr "Переименовать групповой адрес в {name}"
+
+msgid "Change group address"
+msgstr "Изменить групповой адрес"
+
+msgid "Set device certificates"
+msgstr "Задать сертификаты устройств"
+
+msgid "Set device description"
+msgstr "Задать описание устройства"
+
+msgid "Create function {name}"
+msgstr "Создать функцию {name}"
+
+msgid "Rename function to {name}"
+msgstr "Переименовать функцию в {name}"
+
+msgid "Set function type"
+msgstr "Задать тип функции"
+
+msgid "Add group address to function"
+msgstr "Добавить групповой адрес в функцию"
+
+msgid "Create building part {name}"
+msgstr "Создать часть здания {name}"
+
+msgid "Rename building part to {name}"
+msgstr "Переименовать часть здания в {name}"
+
+msgid "Set building part number"
+msgstr "Задать номер части здания"
+
+msgid "Set building part description"
+msgstr "Задать описание части здания"
+
+msgid "Set building part type"
+msgstr "Задать тип части здания"
+
+msgid "Move building part"
+msgstr "Переместить часть здания"
+
+msgid "Assign device to building part"
+msgstr "Назначить устройство части здания"
+
+msgid "Set commissioning state"
+msgstr "Задать состояние пусконаладки"
+
+msgid "Create group range {name}"
+msgstr "Создать диапазон групп {name}"
+
+msgid "Rename group range to {name}"
+msgstr "Переименовать диапазон групп в {name}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: нет индивидуального адреса"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: неправильный адрес «{address}»"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: повторяющийся адрес {address}"
+
+msgid "added"
+msgstr "добавлено"
+
+msgid "removed"
+msgstr "удалено"
+
+msgid "changed"
+msgstr "изменено"

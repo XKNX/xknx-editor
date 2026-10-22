@@ -1,0 +1,38 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor logger 1.0\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Logs"
+msgstr "Logi"
+
+msgid "Filter…"
+msgstr "Filtruj…"
+
+msgid "Time"
+msgstr "Czas"
+
+msgid "Level"
+msgstr "Poziom"
+
+msgid "Message"
+msgstr "Wiadomość"
+
+msgid "Copy Log"
+msgstr "Kopiuj log"
+
+msgid "Debug"
+msgstr "Debug"
+
+msgid "Info"
+msgstr "Informacje"
+
+msgid "Warning"
+msgstr "Ostrzeżenie"
+
+msgid "Error"
+msgstr "Błąd"

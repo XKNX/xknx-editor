@@ -1334,7 +1334,7 @@ msgid "Transmit"
 msgstr "送信する"
 
 msgid "Update"
-msgstr "更新"
+msgstr "更新する"
 
 msgid "Read on Init"
 msgstr "最初から読み込む"
@@ -1362,3 +1362,39 @@ msgstr "中国語（簡体字）"
 
 msgid "Japanese"
 msgstr "日本語"
+
+msgid "Czech"
+msgstr "チェコ語"
+
+msgid "Danish"
+msgstr "デンマーク語"
+
+msgid "Finnish"
+msgstr "フィンランド語"
+
+msgid "French"
+msgstr "フランス語"
+
+msgid "Italian"
+msgstr "イタリア語"
+
+msgid "Norwegian"
+msgstr "ノルウェー語"
+
+msgid "Polish"
+msgstr "ポーランド語"
+
+msgid "Portuguese"
+msgstr "ポルトガル語"
+
+msgid "Russian"
+msgstr "ロシア語"
+
+msgid "Swedish"
+msgstr "スウェーデン語"
+
+msgid "Turkish"
+msgstr "トルコ語"
+
+msgid "Ukrainian"
+msgstr "ウクライナ語"

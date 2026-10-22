@@ -1,0 +1,200 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor catalog 1.0\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Catalog"
+msgstr "Katalog"
+
+msgid "Failed to load archive"
+msgstr "Nie udało się załadować archiwum"
+
+msgid "Loaded: {path}"
+msgstr "Załadowano: {path}"
+
+msgid "Found {count} application(s)"
+msgstr "Znalezione aplikacje: {count}"
+
+msgid "({count} group objects)"
+msgstr "(obiekty grupy: {count})"
+
+msgid "Fetch Online Catalog"
+msgstr "Pobierz katalog online"
+
+msgid "Loading manufacturer list…"
+msgstr "Ładowanie listy producentów…"
+
+msgid "Online catalog not reachable"
+msgstr "Katalog online jest niedostępny"
+
+msgid "{count} matches"
+msgstr "Trafienia: {count}"
+
+msgid "Loading products…"
+msgstr "Ładowanie produktów…"
+
+msgid "No downloadable products"
+msgstr "Brak produktów do pobrania"
+
+msgid "Downloading {name}…"
+msgstr "Pobieranie {name}…"
+
+msgid "(plugin required)"
+msgstr "(wymagana wtyczka)"
+
+msgid "(in local catalog)"
+msgstr "(w katalogu lokalnym)"
+
+msgid "Search products, order number…"
+msgstr "Szukaj produktów, numeru zamówienia…"
+
+msgid "Product Index: {mfrs} manufacturers, {products} products"
+msgstr "Indeks produktów — producenci: {mfrs}, produkty: {products}"
+
+msgid "No Product Index yet - fetch the online catalog to build it"
+msgstr "Brak indeksu produktów - zostanie utworzony po pobraniu katalogu online"
+
+msgid "Building Product Index… {done}/{total} manufacturers"
+msgstr "Tworzenie indeksu produktów… {done}/{total} producentów"
+
+msgid "Cancel"
+msgstr "Anuluj"
+
+msgid "Fetch the online catalog to search across all manufacturers."
+msgstr "Aby wyszukiwać u wszystkich producentów, należy pobrać katalog online."
+
+msgid "Showing {shown} of {total} matches - refine the search"
+msgstr "Wyświetlono {shown} z {total} trafień - należy zawęzić wyszukiwanie"
+
+msgid "Product Details"
+msgstr "Szczegóły produktu"
+
+msgid "Name"
+msgstr "Nazwa"
+
+msgid "Order Number"
+msgstr "Numer zamówienia"
+
+msgid "Manufacturer"
+msgstr "Producent"
+
+msgid "Application"
+msgstr "Aplikacja"
+
+msgid "Program Version"
+msgstr "Wersja programu"
+
+msgid "Application ID"
+msgstr "ID aplikacji"
+
+msgid "DIN Rail Mounting"
+msgstr "Montaż na szynie DIN"
+
+msgid "Bus Current"
+msgstr "Prąd magistrali"
+
+msgid "Yes"
+msgstr "Tak"
+
+msgid "No"
+msgstr "Nie"
+
+msgid "Product Ref"
+msgstr "Referencja produktu"
+
+msgid "Add Device"
+msgstr "Dodaj urządzenie"
+
+msgid "Room"
+msgstr "Pokój"
+
+msgid "(no room)"
+msgstr "(brak pokoju)"
+
+msgid "Add Device to Project"
+msgstr "Dodaj urządzenie do projektu"
+
+msgid "Which room should {name} go into?"
+msgstr "Do którego pokoju dodać {name}?"
+
+msgid "Open or create a project first to add a device."
+msgstr "Aby dodać urządzenie, należy najpierw otworzyć lub utworzyć projekt."
+
+msgid "This product has no usable application program."
+msgstr "Ten produkt nie ma programu aplikacyjnego, którego można użyć."
+
+msgid "Added device: {name}"
+msgstr "Dodano urządzenie: {name}"
+
+msgid "Add to project?"
+msgstr "Dodać do projektu?"
+
+msgid "“{name}” was added to the local catalog. Add it to the project now?"
+msgstr "„{name}” dodano do katalogu lokalnego. Dodać go teraz do projektu?"
+
+msgid "Add to Project"
+msgstr "Dodaj do projektu"
+
+msgid "Not Now"
+msgstr "Nie teraz"
+
+msgid "Local"
+msgstr "Lokalny"
+
+msgid "Online"
+msgstr "Online"
+
+msgid "No products imported yet — import a .knxprod or use the Online tab."
+msgstr "Nie zaimportowano jeszcze żadnych produktów — należy zaimportować plik .knxprod lub użyć karty Online."
+
+msgid "Fetch {count} Missing Application(s) Online"
+msgstr "Pobierz brakujące aplikacje online ({count})"
+
+msgid "Fetching missing applications…"
+msgstr "Pobieranie brakujących aplikacji…"
+
+msgid "Delete"
+msgstr "Usuń"
+
+msgid "Delete from Local Catalog"
+msgstr "Usuń z katalogu lokalnego"
+
+msgid "Are you sure you want to delete the selected device? This cannot be undone."
+msgstr "Czy na pewno usunąć wybrane urządzenie? Tej operacji nie można cofnąć."
+
+msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
+msgstr "Urządzenia w otwartym projekcie, które używają tego produktu: {count}. Nie można ich załadować, dopóki produkt nie zostanie ponownie zaimportowany."
+
+msgid "Deleting {name}…"
+msgstr "Usuwanie {name}…"
+
+msgid "Deleted from the local catalog: {name}"
+msgstr "Usunięto z katalogu lokalnego: {name}"
+
+msgid "Export .knxprod…"
+msgstr "Eksportuj .knxprod…"
+
+msgid "Export .knxprod"
+msgstr "Eksport .knxprod"
+
+msgid "KNX product (*.knxprod)"
+msgstr "Produkt KNX (*.knxprod)"
+
+msgid "Exported {name}"
+msgstr "Wyeksportowano {name}"
+
+msgid "Could not export {name}: {error}"
+msgstr "Nie można wyeksportować {name}: {error}"
+
+msgid "No stored archive for {name}"
+msgstr "Brak zapisanego archiwum dla {name}"
+
+msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
+msgstr "To urządzenie obsługuje KNX Data Secure. Aby uruchomić je w trybie bezpiecznym, należy ustawić hasło projektu; bez hasła zostanie dodane i uruchomione bez szyfrowania."
+
+msgid "Search…"
+msgstr "Szukaj…"

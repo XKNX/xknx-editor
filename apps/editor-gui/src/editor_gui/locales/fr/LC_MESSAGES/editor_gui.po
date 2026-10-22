@@ -1,0 +1,1400 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor editor_gui 1.0\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "XKNX Editor"
+msgstr "XKNX Editor"
+
+msgid "{project} - {app}"
+msgstr "{project} - {app}"
+
+msgid "Help"
+msgstr "Aide"
+
+msgid "Feedback"
+msgstr "Commentaires"
+
+msgid "About"
+msgstr "À propos"
+
+msgid "Language"
+msgstr "Langue"
+
+msgid "No matches"
+msgstr "Aucun résultat"
+
+msgid "Version {version}"
+msgstr "Version {version}"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
+msgstr "Un éditeur de bureau pour les projets d'installation d'automatisation du bâtiment, construit sur la bibliothèque open source xknx et basé sur xknxtoolkit de kewde. Non affilié à la KNX Association ni approuvé par elle."
+
+msgid "Network Location"
+msgstr "Emplacement réseau"
+
+msgid "This location is on a network drive:\n{home}\n\nKNX project files use a database that cannot run reliably on network shares. The editor can work on a local copy instead and write it back to the network location when you close the project."
+msgstr "Cet emplacement se trouve sur un lecteur réseau :\n{home}\n\nLes fichiers de projet KNX utilisent une base de données qui ne peut pas fonctionner de manière fiable sur des partages réseau. L'éditeur peut travailler sur une copie locale et la réécrire à l'emplacement réseau lors de la fermeture du projet."
+
+msgid "Use a Local Copy"
+msgstr "Utiliser une copie locale"
+
+msgid "Working on a local copy; written back to {home} when you close the project."
+msgstr "Travail sur une copie locale ; elle sera réécrite dans {home} à la fermeture du projet."
+
+msgid "Add"
+msgstr "Ajouter"
+
+msgid "Close"
+msgstr "Fermer"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "New Project"
+msgstr "Nouveau projet"
+
+msgid "Project Name"
+msgstr "Nom du projet"
+
+msgid "Group Address Style"
+msgstr "Style d'Adresse de Groupe"
+
+msgid "Free"
+msgstr "Libre"
+
+msgid "Two-level"
+msgstr "Deux niveaux"
+
+msgid "Three-level"
+msgstr "Trois niveaux"
+
+msgid "Create…"
+msgstr "Créer…"
+
+msgid "Copy"
+msgstr "Copier"
+
+msgid "Clear"
+msgstr "Effacer"
+
+msgid "Stop"
+msgstr "Arrêter"
+
+msgid "All Files"
+msgstr "Tous les fichiers"
+
+msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
+msgstr "Projet : {name}  ·  {devices} participants  ·  {gas} AG"
+
+msgid "No project open"
+msgstr "Aucun projet ouvert"
+
+msgid "Programming {address}…"
+msgstr "Programmation de {address}…"
+
+msgid "Reading {address}…"
+msgstr "Lecture de {address}…"
+
+msgid "Testing {address}…"
+msgstr "Test de {address}…"
+
+msgid "Programming complete"
+msgstr "Programmation terminée"
+
+msgid "Programming failed"
+msgstr "Échec de la programmation"
+
+msgid "No KNX connection"
+msgstr "Aucune connexion KNX"
+
+msgid "KNX Master v{version} ({date})"
+msgstr "KNX Master v{version} ({date})"
+
+msgid "File"
+msgstr "Fichier"
+
+msgid "Open Project (.knxproj/.xknx)"
+msgstr "Ouvrir un projet (.knxproj/.xknx)"
+
+msgid "Save As…"
+msgstr "Sauvegarder sous…"
+
+msgid "Saved as {name}"
+msgstr "Sauvegardé sous {name}"
+
+msgid "Open Recent"
+msgstr "Ouvrir un projet récent"
+
+msgid "Settings…"
+msgstr "Réglages…"
+
+msgid "MCP Server"
+msgstr "Serveur MCP"
+
+msgid "Settings"
+msgstr "Réglages"
+
+msgid "Gateway"
+msgstr "Passerelle"
+
+msgid "MCP"
+msgstr "MCP"
+
+msgid "Catalog"
+msgstr "Catalogue"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Utiliser le routage multicast (au lieu du tunnel)"
+
+msgid "Gateway IP"
+msgstr "IP de la passerelle"
+
+msgid "Multicast Group"
+msgstr "Groupe multicast"
+
+msgid "Run the MCP server so an LLM can drive the editor over Streamable HTTP. It shares this app's catalog database."
+msgstr "Exécuter le serveur MCP pour qu'un LLM puisse piloter l'éditeur via Streamable HTTP. Il partage la base de données du catalogue de cette application."
+
+msgid "MCP Host"
+msgstr "Hôte MCP"
+
+msgid "MCP Port"
+msgstr "Port MCP"
+
+msgid "Bearer Token (Optional)"
+msgstr "Jeton Bearer (facultatif)"
+
+msgid "Server: Running"
+msgstr "Serveur : en cours d'exécution"
+
+msgid "Server: Stopped"
+msgstr "Serveur : arrêté"
+
+msgid "Port {port} is already in use by another program, so the MCP server cannot start. Choose another port, or end the other program."
+msgstr "Le port {port} est déjà utilisé par un autre programme ; le serveur MCP ne peut donc pas démarrer. Choisissez un autre port ou fermez l'autre programme."
+
+msgid "The MCP server could not start: {error}"
+msgstr "Le serveur MCP n'a pas pu démarrer : {error}"
+
+msgid "Start Server"
+msgstr "Démarrer le serveur"
+
+msgid "Stop Server"
+msgstr "Arrêter le serveur"
+
+msgid "AI MCP"
+msgstr "IA MCP"
+
+msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
+msgstr "Cet éditeur peut être piloté par un assistant IA (Claude, Codex, …) via le serveur MCP intégré : il expose le catalogue et le projet sous forme d'outils via Streamable HTTP. Démarrez le serveur ci-dessous, puis enregistrez son point de terminaison dans votre outil d'IA."
+
+msgid "MCP Endpoint"
+msgstr "Point de terminaison MCP"
+
+msgid "Example: register the MCP server in your AI tool (adjust host/port):"
+msgstr "Exemple : enregistrer le serveur MCP dans votre outil d'IA (adaptez l'hôte/le port) :"
+
+msgid "Use host 0.0.0.0 to make the server reachable from other devices on the network; 127.0.0.1/localhost only allows this machine."
+msgstr "Utilisez l'hôte 0.0.0.0 pour rendre le serveur accessible depuis d'autres appareils du réseau ; 127.0.0.1/localhost n'autorise que cet ordinateur."
+
+msgid "claude mcp add --transport http xknx-editor {url}"
+msgstr "claude mcp add --transport http xknx-editor {url}"
+
+msgid "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+msgstr "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+
+msgid "codex mcp add xknx-editor --url {url}"
+msgstr "codex mcp add xknx-editor --url {url}"
+
+msgid "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+msgstr "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+
+msgid "Copied"
+msgstr "Copié"
+
+msgid "Download Language"
+msgstr "Langue de téléchargement"
+
+msgid "MCP running"
+msgstr "MCP actif"
+
+msgid "Welcome"
+msgstr "Bienvenue"
+
+msgid "Create a new project or open an existing one to get started."
+msgstr "Créez un nouveau projet ou ouvrez un projet existant pour commencer."
+
+msgid "Recent Projects"
+msgstr "Projets récents"
+
+msgid "Recover from Bus…"
+msgstr "Récupérer depuis le bus…"
+
+msgid "Export .knxproj…"
+msgstr "Exporter en .knxproj…"
+
+msgid "Export to ETS 5 ProjectStore"
+msgstr "Exporter vers le ProjectStore ETS 5"
+
+msgid "Export Group Addresses…"
+msgstr "Exporter les adresses de groupe…"
+
+msgid "Import Group Addresses…"
+msgstr "Importer des adresses de groupe…"
+
+msgid "Exported {count} group address(es)"
+msgstr "{count} adresse(s) de groupe exportée(s)"
+
+msgid "Export Group Addresses"
+msgstr "Exporter les Adresses de Groupe"
+
+msgid "Output Format"
+msgstr "Format de Sortie"
+
+msgid "CSV Format"
+msgstr "Format CSV"
+
+msgid "3/1 - three columns, Main/Middle/Sub group separated"
+msgstr "3/1 - trois colonnes, principal/médian/sous-groupe séparés"
+
+msgid "1/3 - Group address name/Main - Middle - Sub group"
+msgstr "1/3 - nom adresse de groupe/Principal - Médian - Sous-groupe"
+
+msgid "1/1 - Name/Address"
+msgstr "1/1 - Nom/Adresse"
+
+msgid "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
+msgstr "3/3 - Nom groupe Principal - Médian - Sous-groupe/Adresse de groupe Principal - Médian - Sous-groupe"
+
+msgid "Export with Header Line"
+msgstr "Exporter avec en-tête"
+
+msgid "CSV Separator"
+msgstr "Séparateur CSV"
+
+msgid "Tabulator"
+msgstr "Tabulateur"
+
+msgid "Comma"
+msgstr "Virgule"
+
+msgid "Semicolon"
+msgstr "Point-virgule"
+
+msgid "Export"
+msgstr "Exporter"
+
+msgid "Group Address Export (*.csv)"
+msgstr "Export d'adresses de groupe (*.csv)"
+
+msgid "Exported to {path} ({size}) as {schema}"
+msgstr "Exporté vers {path} ({size}) en {schema}"
+
+msgid "Export Complete"
+msgstr "Exportation terminée"
+
+msgid "Successfully created {name}"
+msgstr "{name} créé avec succès"
+
+msgid "File Size"
+msgstr "Taille du fichier"
+
+msgid "Project"
+msgstr "Projet"
+
+msgid "Format"
+msgstr "Format"
+
+msgid "Devices"
+msgstr "Participants"
+
+msgid "Buildings"
+msgstr "Bâtiments"
+
+msgid "Group Addresses"
+msgstr "Adresses de Groupe"
+
+msgid "Group Object Links"
+msgstr "Liaisons des objets de groupe"
+
+msgid "Areas / Lines"
+msgstr "Zones / lignes"
+
+msgid "Floors / Rooms"
+msgstr "Étages / pièces"
+
+msgid "Functions"
+msgstr "Fonctions"
+
+msgid "KNX Master Version"
+msgstr "Version KNX Master"
+
+msgid "Exported at"
+msgstr "Exporté le"
+
+msgid "Manufacturer Data (M Folders)"
+msgstr "Données fabricant (dossiers M)"
+
+msgid "Signed"
+msgstr "Signé"
+
+msgid "Certificate"
+msgstr "Certificat"
+
+msgid "yes"
+msgstr "oui"
+
+msgid "no"
+msgstr "non"
+
+msgid "Open Folder"
+msgstr "Ouvrir le dossier"
+
+msgid "Good to Know"
+msgstr "Bon à savoir"
+
+msgid "Your project opened fine and everything you need to work with is here. A few extra details from the original file are shown a bit more simply:"
+msgstr "Votre projet s'est ouvert correctement et tout ce dont vous avez besoin pour travailler est là. Quelques détails supplémentaires du fichier d'origine sont présentés de manière un peu plus simple :"
+
+msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
+msgstr "Ce projet provient d'un fichier contenant quelques détails supplémentaires que cet éditeur n'utilise pas. L'exportation les omet :"
+
+msgid "The original file had {count} installations. They were combined into one."
+msgstr "Le fichier d'origine comportait {count} installations. Elles ont été regroupées en une seule."
+
+msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr "{count} participant(s) ne sont affectés à aucune ligne. Ils sont conservés dans le projet et inclus lors de l'exportation, mais ne peuvent pas encore être modifiés ici."
+
+msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr "{count} objet(s) de groupe avaient une description supplémentaire dans le fichier d'origine. Le nom personnalisé et la fonction sont conservés ; seule cette description n'est pas affichée ici."
+
+msgid "For example: {examples}"
+msgstr "Par exemple : {examples}"
+
+msgid "{count} IP or function setting(s) from the original file are not used here."
+msgstr "{count} réglage(s) IP ou de fonction du fichier d'origine ne sont pas utilisés ici."
+
+msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr "{count} ligne(s) utilisent plusieurs segments. Dans une exportation au schéma 14/20, elles ne sont affichées qu'au niveau de la ligne."
+
+msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
+msgstr "{count} ligne(s) avaient la même adresse dans différentes installations. Une de chaque a été conservée lors du regroupement."
+
+msgid "Exporting {name} — this can take a while for large projects."
+msgstr "Exportation de {name} — cela peut prendre un certain temps pour les grands projets."
+
+msgid "Collecting the manufacturer data…"
+msgstr "Collecte des données fabricant…"
+
+msgid "Writing the archive…"
+msgstr "Écriture de l'archive…"
+
+msgid "Getting the certificate from MyKNX…"
+msgstr "Obtention du certificat auprès de MyKNX…"
+
+msgid "Cancelling…"
+msgstr "Annulation…"
+
+msgid "Export cancelled, no file was written"
+msgstr "Exportation annulée, aucun fichier n'a été écrit"
+
+msgid "Export Failed"
+msgstr "Échec de l'exportation"
+
+msgid "The project could not be exported to {name}."
+msgstr "Le projet n'a pas pu être exporté vers {name}."
+
+msgid "MyKNX did not issue the certificate for the project:"
+msgstr "MyKNX n'a pas délivré le certificat pour le projet :"
+
+msgid "To export without it, choose 'Export Without Certificate' or the 'License with a Dongle' tab in the Sign Export window."
+msgstr "Pour exporter sans certificat, choisissez « Exporter sans certificat » ou l'onglet « Licence avec un dongle » dans la fenêtre Signer l'exportation."
+
+msgid "{name} cannot be imported."
+msgstr "{name} ne peut pas être importé."
+
+msgid "The file was written, but it refers to product data that is not in the catalog: {references}. Add these products to the catalog and export again."
+msgstr "Le fichier a été écrit, mais il fait référence à des données produit absentes du catalogue : {references}. Ajoutez ces produits au catalogue et exportez à nouveau."
+
+msgid "Sign Export"
+msgstr "Signer l'exportation"
+
+msgid "ETS 6: needs a licensed .knxproj through a MyKNX login or a dongle.\nETS 5: just use 'Export Without Certificate'."
+msgstr "ETS 6 : nécessite un fichier .knxproj sous licence via une connexion MyKNX ou un dongle.\nETS 5 : utilisez simplement « Exporter sans certificat »."
+
+msgid "Sign with MyKNX Login"
+msgstr "Signer avec une connexion MyKNX"
+
+msgid "License with a Dongle"
+msgstr "Licence avec un dongle"
+
+msgid "ETS must not be running on any computer with this MyKNX account while you log in and export here."
+msgstr "ETS ne doit être en cours d'exécution sur aucun ordinateur avec ce compte MyKNX pendant que vous vous connectez et exportez ici."
+
+msgid "MyKNX Username"
+msgstr "Nom d'utilisateur MyKNX"
+
+msgid "MyKNX Password"
+msgstr "Mot de passe MyKNX"
+
+msgid "Log in"
+msgstr "Se connecter"
+
+msgid "Complete sign-in in your browser. Code: {code}"
+msgstr "Terminez la connexion dans votre navigateur. Code : {code}"
+
+msgid "Login failed (HTTP 401). Either the password is wrong, or this account uses two-factor authentication - the server does not say which."
+msgstr "Échec de la connexion (HTTP 401). Soit le mot de passe est incorrect, soit ce compte utilise l'authentification à deux facteurs - le serveur ne précise pas lequel des deux."
+
+msgid "Re-enter Credentials"
+msgstr "Saisir à nouveau les identifiants"
+
+msgid "Start 2FA Sign-In"
+msgstr "Démarrer la connexion 2FA"
+
+msgid "MyKNX OAuth Credentials (2FA)"
+msgstr "Identifiants OAuth MyKNX (2FA)"
+
+msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
+msgstr "Nécessaire uniquement pour les comptes avec authentification à deux facteurs. La connexion 2FA s'ouvre automatiquement dans votre navigateur lorsqu'une connexion normale est refusée. Saisissez l'ID client/le secret OAuth, ou extrayez-les de votre ETS installé : sélectionnez « Knx.Ets.MyKnx.dll » dans le dossier du programme ETS (p. ex. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nSi vous avez un ETS sous licence installé, vous pouvez aussi ignorer complètement la signature en ligne et utiliser à la place le ProjectStore local - voir l'onglet « Licence avec un dongle »."
+
+msgid "Client ID"
+msgstr "ID client"
+
+msgid "Client Secret"
+msgstr "Secret client"
+
+msgid "Extract from ETS…"
+msgstr "Extraire d'ETS…"
+
+msgid "Extracting…"
+msgstr "Extraction…"
+
+msgid "Save"
+msgstr "Sauvegarder"
+
+msgid "All files"
+msgstr "Tous les fichiers"
+
+msgid "Logging in…"
+msgstr "Connexion…"
+
+msgid "License"
+msgstr "Licence"
+
+msgid "No licenses found on this account"
+msgstr "Aucune licence trouvée sur ce compte"
+
+msgid "no online certificate"
+msgstr "aucun certificat en ligne"
+
+msgid "expired"
+msgstr "expiré"
+
+msgid "None of these licenses can sign online. Only ETS6 (or a cloud-enabled ETS app) licenses produce a certificate; ETS5/older licenses cannot. Use 'License with a dongle' instead."
+msgstr "Aucune de ces licences ne peut signer en ligne. Seules les licences ETS6 (ou d'une application ETS compatible cloud) produisent un certificat ; les licences ETS5 ou plus anciennes ne le peuvent pas. Utilisez plutôt « Licence avec un dongle »."
+
+msgid "Login failed: {error}"
+msgstr "Échec de la connexion : {error}"
+
+msgid "Format Version"
+msgstr "Version du format"
+
+msgid "Remove device(s) & re-export"
+msgstr "Enlever le(s) participant(s) et réexporter"
+
+msgid "Removed {count} incompatible device(s); re-exporting"
+msgstr "{count} participant(s) incompatible(s) enlevé(s) ; réexportation"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
+msgstr "Ce fichier ne pourra PAS être importé dans la version d'ETS choisie : les données produit de ces fabricants n'existent que pour un ETS plus récent (p. ex. un produit ETS 6 dans une exportation ETS 5), si bien qu'ETS rejette l'ensemble du projet. Enlevez le(s) participant(s) concerné(s) ou exportez pour l'ETS plus récent."
+
+msgid "ETS 6 (schema 23)"
+msgstr "ETS 6 (schéma 23)"
+
+msgid "ETS 5 (schema 20)"
+msgstr "ETS 5 (schéma 20)"
+
+msgid "Signing Key…"
+msgstr "Clé de signature…"
+
+msgid "Signing Key"
+msgstr "Clé de signature"
+
+msgid "Folder signature uses a placeholder key. Enter a valid signature under 'Signing Key…' or use the 'License with a Dongle' way."
+msgstr "La signature des dossiers utilise une clé fictive. Saisissez une signature valide sous « Clé de signature… » ou utilisez la méthode « Licence avec un dongle »."
+
+msgid "Export to ProjectStore"
+msgstr "Exporter vers le ProjectStore"
+
+msgid "Select the {ets} ProjectStore folder"
+msgstr "Sélectionnez le dossier ProjectStore de {ets}"
+
+msgid "Select the ETS installer.guid file"
+msgstr "Sélectionnez le fichier installer.guid d'ETS"
+
+msgid "ETS installer id"
+msgstr "ID d'installation ETS"
+
+msgid "Project Already in the Store"
+msgstr "Projet déjà présent dans le store"
+
+msgid "A project folder '{pid}' already exists in this ETS ProjectStore. Overwrite it, or add it as a separate copy?"
+msgstr "Un dossier de projet « {pid} » existe déjà dans ce ProjectStore ETS. L'écraser, ou l'ajouter comme copie distincte ?"
+
+msgid "Overwrite"
+msgstr "Écraser"
+
+msgid "Add Copy"
+msgstr "Ajouter une copie"
+
+msgid "XKNX Export"
+msgstr "Exportation XKNX"
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store:\n1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n3. Restart ETS 6 - the project appears in the project overview.\n4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed:\nChoose 'Export Without Certificate' (with ETS 5 as version) and an active signing key to save a .knxproj, then import that file into ETS 5.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Faites relicencier le projet par votre propre ETS sous licence, qui re-signe la copie avec votre licence dongle :\n\nETS 6 - utilisez le ProjectStore local :\n1. Cliquez sur « Exporter vers le ProjectStore ». Le dossier « P-XXXX » du projet est écrit directement dans votre ProjectStore ETS 6. Si ETS n'est pas installé sur cet ordinateur, le dossier du store vous est demandé (ou n'importe quel dossier que vous copiez ensuite manuellement).\n2. L'exportation nécessite votre fichier « installer.guid » situé dans C:\\ProgramData\\KNX\\ETS6\\Installer. S'il ne peut pas être trouvé automatiquement, il vous est demandé de le sélectionner.\n3. Redémarrez ETS 6 - le projet apparaît dans la vue d'ensemble des projets.\n4. Faites-en une copie à cet endroit (Copier dans la vue d'ensemble). La copie est re-signée avec votre licence - ouvrez-la, puis utilisez-la ou exportez-la normalement.\n\nETS 5 - aucun ProjectStore n'est nécessaire :\nChoisissez « Exporter sans certificat » (avec ETS 5 comme version) et une clé de signature active pour sauvegarder un fichier .knxproj, puis importez ce fichier dans ETS 5.\n\nCette méthode est limitée par le nombre de participants par projet de votre licence."
+
+msgid "Sign & Export"
+msgstr "Signer et exporter"
+
+msgid "Export Without Certificate"
+msgstr "Exporter sans certificat"
+
+msgid "Export ETS Project"
+msgstr "Exporter le projet ETS"
+
+msgid "Load .knxprod…"
+msgstr "Charger un fichier .knxprod…"
+
+msgid "Load OpenKNX from URL or Folder…"
+msgstr "Charger OpenKNX depuis une URL ou un dossier…"
+
+msgid "Load OpenKNX from URL or Files…"
+msgstr "Charger OpenKNX depuis une URL ou des fichiers…"
+
+msgid "Load OpenKNX from URL or Folder"
+msgstr "Charger OpenKNX depuis une URL ou un dossier"
+
+msgid "Load OpenKNX from URL or Files"
+msgstr "Charger OpenKNX depuis une URL ou des fichiers"
+
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+msgstr "Collez l'URL d'une release GitHub OpenKNX (la page de la release fonctionne — l'asset .zip est trouvé automatiquement). Un lien direct vers un fichier .knxprod ou XML de produit KNX fonctionne aussi.\n\nExemples :\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+
+msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Ou choisissez un dossier local contenant des fichiers produit (.knxprod, .zip de release OpenKNX ou XML de produit KNX) pour tous les importer."
+
+msgid "Choose Folder…"
+msgstr "Choisir un dossier…"
+
+msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Ou téléversez des fichiers produit (.knxprod, .zip de release OpenKNX ou XML de produit KNX) depuis cet ordinateur pour tous les importer."
+
+msgid "Choose Files…"
+msgstr "Choisir des fichiers…"
+
+msgid "Load"
+msgstr "Charger"
+
+msgid "Downloading and importing…"
+msgstr "Téléchargement et importation…"
+
+msgid "Nothing new imported (already in the catalog)"
+msgstr "Rien de nouveau importé (déjà dans le catalogue)"
+
+msgid "Import from URL failed: {error}"
+msgstr "Échec de l'importation depuis l'URL : {error}"
+
+msgid "Choose a Folder with KNX Product Files"
+msgstr "Choisir un dossier contenant des fichiers produit KNX"
+
+msgid "Importing from folder…"
+msgstr "Importation depuis le dossier…"
+
+msgid "Nothing new imported from folder (no product files found, or already in the catalog)"
+msgstr "Rien de nouveau importé depuis le dossier (aucun fichier produit trouvé, ou déjà dans le catalogue)"
+
+msgid "Import from folder failed: {error}"
+msgstr "Échec de l'importation depuis le dossier : {error}"
+
+msgid "Choose KNX Product Files"
+msgstr "Choisir des fichiers produit KNX"
+
+msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
+msgstr "Fichiers produit KNX (*.knxprod, *.zip, *.xml)"
+
+msgid "Importing files…"
+msgstr "Importation des fichiers…"
+
+msgid "Nothing new imported from the files (no product files, or already in the catalog)"
+msgstr "Rien de nouveau importé depuis les fichiers (aucun fichier produit, ou déjà dans le catalogue)"
+
+msgid "Import of the files failed: {error}"
+msgstr "Échec de l'importation des fichiers : {error}"
+
+msgid "Exit"
+msgstr "Quitter"
+
+msgid "Edit"
+msgstr "Éditer"
+
+msgid "View"
+msgstr "Vue"
+
+msgid "Restore Default Layout"
+msgstr "Restaurer la disposition par défaut"
+
+msgid "Show All"
+msgstr "Afficher tout"
+
+msgid "Hide All"
+msgstr "Masquer tout"
+
+msgid "Highlight Changes"
+msgstr "Surligner les changements"
+
+msgid "Context Help"
+msgstr "Aide contextuelle"
+
+msgid "Status Bar"
+msgstr "Barre d'état"
+
+msgid "FPS in Status Bar"
+msgstr "FPS dans la barre d'état"
+
+msgid "Enable Idling"
+msgstr "Activer le mode veille"
+
+msgid "FPS: {fps:.1f}{idling}"
+msgstr "FPS : {fps:.1f}{idling}"
+
+msgid " (Idling)"
+msgstr " (veille)"
+
+msgid "Theme"
+msgstr "Thème"
+
+msgid "Customize Theme…"
+msgstr "Personnaliser le thème…"
+
+msgid "Customize Theme"
+msgstr "Personnaliser le thème"
+
+msgid "Sizes"
+msgstr "Tailles"
+
+msgid "Colors"
+msgstr "Couleurs"
+
+msgid "Rendering"
+msgstr "Rendu"
+
+msgid "Adjustments"
+msgstr "Ajustements"
+
+msgid "Theme Default"
+msgstr "Valeur du thème"
+
+msgid "Reset to Theme"
+msgstr "Rétablir le thème"
+
+msgid "Rounding"
+msgstr "Arrondi"
+
+msgid "Scrollbar Rounding Ratio"
+msgstr "Taux d'arrondi des barres de défilement"
+
+msgid "Opacity"
+msgstr "Opacité"
+
+msgid "Hue"
+msgstr "Teinte"
+
+msgid "Saturation"
+msgstr "Saturation"
+
+msgid "Brightness of Controls"
+msgstr "Luminosité des commandes"
+
+msgid "Brightness of Backgrounds"
+msgstr "Luminosité des arrière-plans"
+
+msgid "Brightness of Text"
+msgstr "Luminosité du texte"
+
+msgid "Brightness of Input Fields"
+msgstr "Luminosité des champs de saisie"
+
+msgid "Spacing"
+msgstr "Espacement"
+
+msgid "Borders"
+msgstr "Bordures"
+
+msgid "Alignment"
+msgstr "Alignement"
+
+msgid "Window Padding"
+msgstr "Marge intérieure des fenêtres"
+
+msgid "Field Padding"
+msgstr "Marge intérieure des champs"
+
+msgid "Cell Padding"
+msgstr "Marge intérieure des cellules"
+
+msgid "Item Spacing"
+msgstr "Espacement des éléments"
+
+msgid "Item Inner Spacing"
+msgstr "Espacement intérieur des éléments"
+
+msgid "Extra Touch Padding"
+msgstr "Marge tactile supplémentaire"
+
+msgid "Indent"
+msgstr "Retrait"
+
+msgid "Scrollbar Width"
+msgstr "Largeur des barres de défilement"
+
+msgid "Minimum Slider Grip Size"
+msgstr "Taille minimale des poignées de curseur"
+
+msgid "Windows"
+msgstr "Fenêtres"
+
+msgid "Child Windows"
+msgstr "Fenêtres enfants"
+
+msgid "Popups"
+msgstr "Fenêtres contextuelles"
+
+msgid "Fields"
+msgstr "Champs"
+
+msgid "Tabs"
+msgstr "Onglets"
+
+msgid "Tab Bar"
+msgstr "Barre d'onglets"
+
+msgid "Scrollbars"
+msgstr "Barres de défilement"
+
+msgid "Slider Grips"
+msgstr "Poignées de curseur"
+
+msgid "Window Title"
+msgstr "Titre de fenêtre"
+
+msgid "Button Text"
+msgstr "Texte des boutons"
+
+msgid "List Entry Text"
+msgstr "Texte des entrées de liste"
+
+msgid "Separator Text"
+msgstr "Texte des séparateurs"
+
+msgid "Font Scale"
+msgstr "Échelle de police"
+
+msgid "Anti-Aliased Lines"
+msgstr "Lignes anticrénelées"
+
+msgid "Anti-Aliased Fills"
+msgstr "Remplissages anticrénelés"
+
+msgid "Curve Tessellation Tolerance"
+msgstr "Tolérance de tessellation des courbes"
+
+msgid "Maximum Circle Tessellation Error"
+msgstr "Erreur maximale de tessellation des cercles"
+
+msgid "Global Opacity"
+msgstr "Opacité globale"
+
+msgid "Opacity of Disabled Items"
+msgstr "Opacité des éléments désactivés"
+
+msgid "Show ImGui Demo Window"
+msgstr "Afficher la fenêtre de démo ImGui"
+
+msgid "Filter colors"
+msgstr "Filtrer les couleurs"
+
+msgid "Undo"
+msgstr "Annuler"
+
+msgid "Redo"
+msgstr "Refaire"
+
+msgid "Open KNX Product Archive"
+msgstr "Ouvrir une archive de produit KNX"
+
+msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
+msgstr "Produit KNX (*.knxprod, *.vd1-*.vd5)"
+
+msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
+msgstr "Les anciennes bases de données de produits ETS (.vd1-.vd5) ne sont pas importées directement.\n\nConvertissez d'abord le fichier en .knxprod avec les outils de conversion fournis avec ETS5/ETS6 - ouvrez le fichier produit dans ETS, ou utilisez son convertisseur en ligne de commande - puis importez ici le fichier .knxprod obtenu."
+
+msgid "ETS Project (*.knxproj)"
+msgstr "Projet ETS (*.knxproj)"
+
+msgid "ETS 6 Project (*.knxproj)"
+msgstr "Projet ETS 6 (*.knxproj)"
+
+msgid "ETS 5 Project (*.knxproj)"
+msgstr "Projet ETS 5 (*.knxproj)"
+
+msgid "Group Address Exports (*.xml, *.csv)"
+msgstr "Exportations d'adresses de groupe (*.xml, *.csv)"
+
+msgid "Group Address Export (*.xml)"
+msgstr "Export d'adresses de groupe (*.xml)"
+
+msgid "Open XKNX Project"
+msgstr "Ouvrir un projet XKNX"
+
+msgid "Save XKNX Project"
+msgstr "Sauvegarder le projet XKNX"
+
+msgid "Save Project As"
+msgstr "Sauvegarder le projet sous"
+
+msgid "Replace File"
+msgstr "Remplacer le fichier"
+
+msgid "{name} already exists."
+msgstr "{name} existe déjà."
+
+msgid "It is in {dir}. Replacing it overwrites its current content; this cannot be undone."
+msgstr "Il se trouve dans {dir}. Le remplacer écrase son contenu actuel ; cette action est irréversible."
+
+msgid "Replace"
+msgstr "Remplacer"
+
+msgid "XKNX Project (*.xknx)"
+msgstr "Projet XKNX (*.xknx)"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml, *.csv)"
+msgstr "Projets (*.xknx, *.knxproj, *.xml, *.csv)"
+
+msgid "Working…"
+msgstr "Veuillez patienter…"
+
+msgid "Importing project — this can take a while for large projects."
+msgstr "Importation du projet — cela peut prendre un certain temps pour les grands projets."
+
+msgid "{done}/{total} devices"
+msgstr "{done}/{total} participants"
+
+msgid "Loading product catalog…"
+msgstr "Chargement du catalogue de produits…"
+
+msgid "Imported {count} product version(s) from {name}:"
+msgstr "{count} version(s) de produit importée(s) depuis {name} :"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "DIN rail"
+msgstr "Rail DIN"
+
+msgid "Flush-mounted"
+msgstr "Encastré"
+
+msgid "Registered: {info}"
+msgstr "Enregistré : {info}"
+
+msgid "Manufacturer"
+msgstr "Fabricant"
+
+msgid "Product"
+msgstr "Produit"
+
+msgid "Order no."
+msgstr "N° de commande"
+
+msgid "Application"
+msgstr "Application"
+
+msgid "Version"
+msgstr "Version"
+
+msgid "Mask"
+msgstr "Masque"
+
+msgid "Hardware"
+msgstr "Matériel"
+
+msgid "Registered"
+msgstr "Enregistré"
+
+msgid "{name} was already in the catalog, nothing new imported"
+msgstr "{name} était déjà dans le catalogue, rien de nouveau importé"
+
+msgid "Product Catalog Import"
+msgstr "Importation du catalogue de produits"
+
+msgid "Opening project…"
+msgstr "Ouverture du projet…"
+
+msgid "Importing group addresses…"
+msgstr "Importation des adresses de groupe…"
+
+msgid "Switching language…"
+msgstr "Changement de langue…"
+
+msgid "Project Password"
+msgstr "Mot de Passe du Projet"
+
+msgid "This ETS project is password protected. Enter its password:"
+msgstr "Ce projet ETS est protégé par un mot de passe. Saisissez son mot de passe :"
+
+msgid "Wrong password, please try again."
+msgstr "Mot de passe incorrect, veuillez réessayer."
+
+msgid "This project is protected with a password. Enter it to open the project:"
+msgstr "Ce projet est protégé par un mot de passe. Saisissez-le pour ouvrir le projet :"
+
+msgid "This project contains KNX Secure keys. Set a project password to protect them; the project can then only be opened with it."
+msgstr "Ce projet contient des clés KNX Secure. Définissez un mot de passe de projet pour les protéger ; le projet ne pourra alors être ouvert qu'avec celui-ci."
+
+msgid "Password"
+msgstr "Mot de passe"
+
+msgid "Repeat Password"
+msgstr "Répéter le mot de passe"
+
+msgid "The passwords do not match."
+msgstr "Les mots de passe ne correspondent pas."
+
+msgid "Protecting the project with the password…"
+msgstr "Protection du projet par le mot de passe…"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Check for Updates"
+msgstr "Vérifier les mises à jour"
+
+msgid "Check for Updates on Startup"
+msgstr "Vérifier les mises à jour au démarrage"
+
+msgid "Update Available"
+msgstr "Mise à jour disponible"
+
+msgid "Version {latest} is available. You have {current}."
+msgstr "La version {latest} est disponible. Vous avez la version {current}."
+
+msgid "You are up to date (version {version})."
+msgstr "Vous êtes à jour (version {version})."
+
+msgid "Download"
+msgstr "Télécharger"
+
+msgid "Install Update"
+msgstr "Installer la mise à jour"
+
+msgid "Install Update downloads the installer, closes XKNX Editor and starts it again with the open project."
+msgstr "« Installer la mise à jour » télécharge le programme d'installation, ferme XKNX Editor et le redémarre avec le projet ouvert."
+
+msgid "Downloading the update…"
+msgstr "Téléchargement de la mise à jour…"
+
+msgid "{done} of {total} MB"
+msgstr "{done} sur {total} MB"
+
+msgid "Skip This Version"
+msgstr "Ignorer cette version"
+
+msgid "Later"
+msgstr "Plus tard"
+
+msgid "Release Notes:"
+msgstr "Notes de version :"
+
+msgid "License: GPL-2.0-only"
+msgstr "Licence : GPL-2.0-only"
+
+msgid "Website:"
+msgstr "Site web :"
+
+msgid "Open Config Folder"
+msgstr "Ouvrir le dossier de configuration"
+
+msgid "Open Cache Folder"
+msgstr "Ouvrir le dossier du cache"
+
+msgid "Open Log Folder"
+msgstr "Ouvrir le dossier des journaux"
+
+msgid "Compact Project…"
+msgstr "Compacter le projet…"
+
+msgid "Compact Project"
+msgstr "Compacter le projet"
+
+msgid "Analysing project…"
+msgstr "Analyse du projet…"
+
+msgid "Compacting project…"
+msgstr "Compactage du projet…"
+
+msgid "Analysing devices"
+msgstr "Analyse des participants"
+
+msgid "Analysing product data ({manufacturer})"
+msgstr "Analyse des données produit ({manufacturer})"
+
+msgid "Removing unused product data ({manufacturer})"
+msgstr "Suppression des données produit inutilisées ({manufacturer})"
+
+msgid "Saving product data"
+msgstr "Sauvegarde des données produit"
+
+msgid "Compacting project file"
+msgstr "Compactage du fichier de projet"
+
+msgid "The following product data is not used by any device in this project and will be removed:"
+msgstr "Les données produit suivantes ne sont utilisées par aucun participant de ce projet et seront supprimées :"
+
+msgid "All product data in this project is used by its devices, nothing to remove. The project file can still be compacted to free unused space."
+msgstr "Toutes les données produit de ce projet sont utilisées par ses participants, rien à supprimer. Le fichier de projet peut néanmoins être compacté pour libérer l'espace inutilisé."
+
+msgid "Application Programs"
+msgstr "Programmes d'application"
+
+msgid "Device Types (Products)"
+msgstr "Types de participants (produits)"
+
+msgid "Manufacturers"
+msgstr "Fabricants"
+
+msgid "Catalog Entries"
+msgstr "Entrées du catalogue"
+
+msgid "Help and Plug-in Files"
+msgstr "Fichiers d'aide et de plug-in"
+
+msgid "Details"
+msgstr "Détails"
+
+msgid "Current File Size"
+msgstr "Taille actuelle du fichier"
+
+msgid "Estimated Size Afterwards"
+msgstr "Taille estimée après"
+
+msgid "This cannot be undone. Removed product data has to be imported again if these products are added to the project later."
+msgstr "Cette action est irréversible. Les données produit supprimées devront être réimportées si ces produits sont ajoutés ultérieurement au projet."
+
+msgid "Compact"
+msgstr "Compacter"
+
+msgid "Project Compacted"
+msgstr "Projet compacté"
+
+msgid "The project file was compacted."
+msgstr "Le fichier de projet a été compacté."
+
+msgid "Size before"
+msgstr "Taille avant"
+
+msgid "Size after"
+msgstr "Taille après"
+
+msgid "Compacting cancelled, the project was not changed"
+msgstr "Compactage annulé, le projet n'a pas été modifié"
+
+msgid "Remove Unused Product Data"
+msgstr "Enlever les données produit inutilisées"
+
+msgid "(only in the export, the project stays unchanged)"
+msgstr "(uniquement dans l'exportation, le projet reste inchangé)"
+
+msgid "Hide Tab Bar"
+msgstr "Masquer la barre d'onglets"
+
+msgid "Open {url}"
+msgstr "Ouvrir {url}"
+
+msgid "Copy Link"
+msgstr "Copier le lien"
+
+msgid "Enter the password for access to the editor."
+msgstr "Saisissez le mot de passe d'accès à l'éditeur."
+
+msgid "Sign In"
+msgstr "Se connecter"
+
+msgid "Wrong password."
+msgstr "Mauvais mot de passe."
+
+msgid "Disconnected. Reconnecting…"
+msgstr "Déconnecté. Reconnexion…"
+
+msgid "Access denied. Please sign in again."
+msgstr "Accès refusé. Veuillez vous reconnecter."
+
+msgid "Upload from This Computer…"
+msgstr "Téléverser depuis cet ordinateur…"
+
+msgid "Or drop files here."
+msgstr "Ou déposez des fichiers ici."
+
+msgid "Files on the Server"
+msgstr "Fichiers sur le serveur"
+
+msgid "No files yet."
+msgstr "Aucun fichier pour l'instant."
+
+msgid "Open"
+msgstr "Ouvrir"
+
+msgid "Select"
+msgstr "Sélectionner"
+
+msgid "File Name"
+msgstr "Nom du fichier"
+
+msgid "Folder Name"
+msgstr "Nom du dossier"
+
+msgid "File Type"
+msgstr "Type de fichier"
+
+msgid "Download to This Computer"
+msgstr "Télécharger sur cet ordinateur"
+
+msgid "Uploading {name}…"
+msgstr "Téléversement de {name}…"
+
+msgid "Upload failed: {error}"
+msgstr "Échec du téléversement : {error}"
+
+msgid "Show"
+msgstr "Afficher"
+
+msgid "Folder on the Server"
+msgstr "Dossier sur le serveur"
+
+msgid "View only: another browser controls the editor."
+msgstr "Lecture seule : un autre navigateur contrôle l'éditeur."
+
+msgid "Take Control"
+msgstr "Prendre le contrôle"
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "Size"
+msgstr "Taille"
+
+msgid "Modified"
+msgstr "Modifié"
+
+msgid "The browser did not open it by itself."
+msgstr "Le navigateur ne l'a pas ouvert de lui-même."
+
+msgid "Download started: {name}"
+msgstr "Téléchargement démarré : {name}"
+
+msgid "Choose File…"
+msgstr "Choisir un fichier…"
+
+msgid "{name} is ready."
+msgstr "{name} est prêt."
+
+msgid "Open Link"
+msgstr "Ouvrir le lien"
+
+msgid "Checking for updates…"
+msgstr "Recherche de mises à jour…"
+
+msgid "The check for updates failed: {error}"
+msgstr "La recherche de mises à jour a échoué : {error}"
+
+msgid "The project has no group addresses to export."
+msgstr "Le projet ne contient aucune adresse de groupe à exporter."
+
+msgid "Clear Cache…"
+msgstr "Vider le cache…"
+
+msgid "Clear Cache"
+msgstr "Vider le cache"
+
+msgid "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
+msgstr "Le cache contient {size} de données produit analysées et de documentation récupérée pour les outils d'IA. Tout est recréé si nécessaire ; seule la première utilisation de chaque produit prend ensuite plus de temps."
+
+msgid "Cache cleared, {size} freed"
+msgstr "Cache vidé, {size} libérés"
+
+msgid "Zoom In"
+msgstr "Zoomer"
+
+msgid "Zoom Out"
+msgstr "Dézoomer"
+
+msgid "Reset Zoom"
+msgstr "Réinitialiser le zoom"
+
+msgid "Cut"
+msgstr "Couper"
+
+msgid "Paste"
+msgstr "Coller"
+
+msgid "Select All"
+msgstr "Tout sélectionner"
+
+msgid "Long-press in the field below and choose Paste."
+msgstr "Appuyez longuement dans le champ ci-dessous et choisissez Coller."
+
+msgid "Too many wrong passwords. Please try again in a few minutes."
+msgstr "Trop de mots de passe erronés. Veuillez réessayer dans quelques minutes."
+
+msgid "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
+msgstr "Le port {port} est déjà utilisé par un autre programme ; l'interface navigateur ne peut donc pas y démarrer. Démarrez-la avec un autre port (p. ex. --web={example}) ou sans port pour en prendre un libre."
+
+msgid "Open in Browser"
+msgstr "Ouvrir dans le navigateur"
+
+msgid "Stop XKNX Editor"
+msgstr "Arrêter XKNX Editor"
+
+msgid "XKNX Editor Already Running"
+msgstr "XKNX Editor déjà en cours d'exécution"
+
+msgid "XKNX Editor is already running on this computer. Switch to it, or start another one, e.g. to work on a second project or with another bus connection."
+msgstr "XKNX Editor est déjà en cours d'exécution sur cet ordinateur. Basculez vers celui-ci, ou démarrez-en un autre, p. ex. pour travailler sur un deuxième projet ou avec une autre connexion au bus."
+
+msgid "Window"
+msgstr "Fenêtre"
+
+msgid "Browser UI ({url})"
+msgstr "Interface navigateur ({url})"
+
+msgid "{kind}: {project}"
+msgstr "{kind} : {project}"
+
+msgid "Switch to It"
+msgstr "Y basculer"
+
+msgid "Start Another"
+msgstr "En démarrer un autre"
+
+msgid "That XKNX Editor has ended in the meantime."
+msgstr "Cet XKNX Editor s'est terminé entre-temps."
+
+msgid "Project Already Open"
+msgstr "Projet déjà ouvert"
+
+msgid "{name} is already open in another XKNX Editor. Editing it in two editors at once can overwrite changes."
+msgstr "{name} est déjà ouvert dans un autre XKNX Editor. Le modifier dans deux éditeurs à la fois peut écraser des modifications."
+
+msgid "Open Anyway"
+msgstr "Ouvrir quand même"
+
+msgid "C"
+msgstr "C"
+
+msgid "R"
+msgstr "R"
+
+msgid "W"
+msgstr "W"
+
+msgid "T"
+msgstr "T"
+
+msgid "U"
+msgstr "U"
+
+msgid "I"
+msgstr "I"
+
+msgid "Communication"
+msgstr "Communication"
+
+msgid "Read"
+msgstr "Lire"
+
+msgid "Write"
+msgstr "Écrire"
+
+msgid "Transmit"
+msgstr "Transmission"
+
+msgid "Update"
+msgstr "Mettre à jour"
+
+msgid "Read on Init"
+msgstr "Lire à l'initialisation"
+
+msgid "English"
+msgstr "Anglais"
+
+msgid "German"
+msgstr "Allemand"
+
+msgid "Dutch"
+msgstr "Néerlandais"
+
+msgid "{name} ({native})"
+msgstr "{name} ({native})"
+
+msgid "Spanish"
+msgstr "Espagnol"
+
+msgid "Greek"
+msgstr "Grec"
+
+msgid "Simplified Chinese"
+msgstr "Chinois simplifié"
+
+msgid "Japanese"
+msgstr "Japonais"
+
+msgid "Czech"
+msgstr "Tchèque"
+
+msgid "Danish"
+msgstr "Danois"
+
+msgid "Finnish"
+msgstr "Finnois"
+
+msgid "French"
+msgstr "Français"
+
+msgid "Italian"
+msgstr "Italien"
+
+msgid "Norwegian"
+msgstr "Norvégien"
+
+msgid "Polish"
+msgstr "Polonais"
+
+msgid "Portuguese"
+msgstr "Portugais"
+
+msgid "Russian"
+msgstr "Russe"
+
+msgid "Swedish"
+msgstr "Suédois"
+
+msgid "Turkish"
+msgstr "Turc"
+
+msgid "Ukrainian"
+msgstr "Ukrainien"

@@ -1,0 +1,1400 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor editor_gui 1.0\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "XKNX Editor"
+msgstr "XKNX Editor"
+
+msgid "{project} - {app}"
+msgstr "{project} - {app}"
+
+msgid "Help"
+msgstr "Ohje"
+
+msgid "Feedback"
+msgstr "Palaute"
+
+msgid "About"
+msgstr "Tietoja"
+
+msgid "Language"
+msgstr "Kieli"
+
+msgid "No matches"
+msgstr "Ei osumia"
+
+msgid "Version {version}"
+msgstr "Versio {version}"
+
+msgid "A desktop editor for building-automation installation projects, built on the open-source xknx library and based on xknxtoolkit by kewde. Not affiliated with or endorsed by the KNX Association."
+msgstr "Työpöytäeditori rakennusautomaation asennusprojekteille. Se perustuu avoimen lähdekoodin xknx-kirjastoon ja kewden xknxtoolkitiin. Ei sidoksissa KNX Associationiin eikä sen hyväksymä."
+
+msgid "Network Location"
+msgstr "Verkkosijainti"
+
+msgid "This location is on a network drive:\n{home}\n\nKNX project files use a database that cannot run reliably on network shares. The editor can work on a local copy instead and write it back to the network location when you close the project."
+msgstr "Tämä sijainti on verkkoasemalla:\n{home}\n\nKNX-projektitiedostot käyttävät tietokantaa, joka ei toimi luotettavasti verkkojaoissa. Editori voi sen sijaan työskennellä paikallisella kopiolla ja kirjoittaa sen takaisin verkkosijaintiin, kun suljet projektin."
+
+msgid "Use a Local Copy"
+msgstr "Käytä paikallista kopiota"
+
+msgid "Working on a local copy; written back to {home} when you close the project."
+msgstr "Työskennellään paikallisella kopiolla; se kirjoitetaan takaisin sijaintiin {home}, kun suljet projektin."
+
+msgid "Add"
+msgstr "Lisää"
+
+msgid "Close"
+msgstr "Sulje"
+
+msgid "Cancel"
+msgstr "Peruuta"
+
+msgid "New Project"
+msgstr "Uusi Projekti"
+
+msgid "Project Name"
+msgstr "Projektin nimi"
+
+msgid "Group Address Style"
+msgstr "Ryhmäosoitteiden tyyli"
+
+msgid "Free"
+msgstr "Vapaa"
+
+msgid "Two-level"
+msgstr "Kaksitasoinen"
+
+msgid "Three-level"
+msgstr "Kolmitasoinen"
+
+msgid "Create…"
+msgstr "Luo…"
+
+msgid "Copy"
+msgstr "Kopioi"
+
+msgid "Clear"
+msgstr "Tyhjennä"
+
+msgid "Stop"
+msgstr "Pysäytä"
+
+msgid "All Files"
+msgstr "Kaikki tiedostot"
+
+msgid "Project: {name}  ·  {devices} devices  ·  {gas} GAs"
+msgstr "Projekti: {name}  ·  laitteita {devices}  ·  ryhmäosoitteita {gas}"
+
+msgid "No project open"
+msgstr "Ei avointa projektia"
+
+msgid "Programming {address}…"
+msgstr "Ohjelmoidaan {address}…"
+
+msgid "Reading {address}…"
+msgstr "Luetaan {address}…"
+
+msgid "Testing {address}…"
+msgstr "Testataan {address}…"
+
+msgid "Programming complete"
+msgstr "Ohjelmointi valmis"
+
+msgid "Programming failed"
+msgstr "Ohjelmointi epäonnistui"
+
+msgid "No KNX connection"
+msgstr "Ei KNX-yhteyttä"
+
+msgid "KNX Master v{version} ({date})"
+msgstr "KNX Master v{version} ({date})"
+
+msgid "File"
+msgstr "Tiedosto"
+
+msgid "Open Project (.knxproj/.xknx)"
+msgstr "Avaa projekti (.knxproj/.xknx)"
+
+msgid "Save As…"
+msgstr "Talleta nimellä…"
+
+msgid "Saved as {name}"
+msgstr "Talletettu nimellä {name}"
+
+msgid "Open Recent"
+msgstr "Viimeisimmät"
+
+msgid "Settings…"
+msgstr "Asetukset…"
+
+msgid "MCP Server"
+msgstr "MCP-palvelin"
+
+msgid "Settings"
+msgstr "Asetukset"
+
+msgid "Gateway"
+msgstr "Yhdyskäytävä"
+
+msgid "MCP"
+msgstr "MCP"
+
+msgid "Catalog"
+msgstr "Luettelo"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Käytä multicast-reititystä (tunneloinnin sijaan)"
+
+msgid "Gateway IP"
+msgstr "Yhdyskäytävän IP"
+
+msgid "Multicast Group"
+msgstr "Multicast-ryhmä"
+
+msgid "Run the MCP server so an LLM can drive the editor over Streamable HTTP. It shares this app's catalog database."
+msgstr "Käynnistä MCP-palvelin, jotta LLM voi ohjata editoria Streamable HTTP:n kautta. Se käyttää tämän sovelluksen luettelotietokantaa."
+
+msgid "MCP Host"
+msgstr "MCP-isäntä"
+
+msgid "MCP Port"
+msgstr "MCP-portti"
+
+msgid "Bearer Token (Optional)"
+msgstr "Bearer-tunnus (valinnainen)"
+
+msgid "Server: Running"
+msgstr "Palvelin: käynnissä"
+
+msgid "Server: Stopped"
+msgstr "Palvelin: pysäytetty"
+
+msgid "Port {port} is already in use by another program, so the MCP server cannot start. Choose another port, or end the other program."
+msgstr "Portti {port} on jo toisen ohjelman käytössä, joten MCP-palvelin ei voi käynnistyä. Valitse toinen portti tai lopeta toinen ohjelma."
+
+msgid "The MCP server could not start: {error}"
+msgstr "MCP-palvelin ei voinut käynnistyä: {error}"
+
+msgid "Start Server"
+msgstr "Käynnistä palvelin"
+
+msgid "Stop Server"
+msgstr "Pysäytä palvelin"
+
+msgid "AI MCP"
+msgstr "Tekoäly-MCP"
+
+msgid "This editor is controllable by an AI assistant (Claude, Codex, …) through the built-in MCP server: it exposes the catalog and project as tools over Streamable HTTP. Start the server below, then register its endpoint in your AI tool."
+msgstr "Tätä editoria voi ohjata tekoälyavustaja (Claude, Codex, …) sisäänrakennetun MCP-palvelimen kautta: se tarjoaa luettelon ja projektin työkaluina Streamable HTTP:n kautta. Käynnistä palvelin alla ja rekisteröi sen päätepiste tekoälytyökaluusi."
+
+msgid "MCP Endpoint"
+msgstr "MCP-päätepiste"
+
+msgid "Example: register the MCP server in your AI tool (adjust host/port):"
+msgstr "Esimerkki: rekisteröi MCP-palvelin tekoälytyökaluusi (säädä isäntä/portti):"
+
+msgid "Use host 0.0.0.0 to make the server reachable from other devices on the network; 127.0.0.1/localhost only allows this machine."
+msgstr "Käytä isäntää 0.0.0.0, jotta palvelin on tavoitettavissa verkon muista laitteista; 127.0.0.1/localhost sallii vain tämän koneen."
+
+msgid "claude mcp add --transport http xknx-editor {url}"
+msgstr "claude mcp add --transport http xknx-editor {url}"
+
+msgid "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+msgstr "claude mcp add --transport http xknx-editor {url} --header \"Authorization: Bearer {token}\""
+
+msgid "codex mcp add xknx-editor --url {url}"
+msgstr "codex mcp add xknx-editor --url {url}"
+
+msgid "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+msgstr "export XKNX_MCP_TOKEN='{token}'\ncodex mcp add xknx-editor --url {url} --bearer-token-env-var XKNX_MCP_TOKEN"
+
+msgid "Copied"
+msgstr "Kopioitu"
+
+msgid "Download Language"
+msgstr "Tuotetietojen latauskieli"
+
+msgid "MCP running"
+msgstr "MCP käynnissä"
+
+msgid "Welcome"
+msgstr "Tervetuloa"
+
+msgid "Create a new project or open an existing one to get started."
+msgstr "Aloita luomalla uusi projekti tai avaamalla olemassa oleva."
+
+msgid "Recent Projects"
+msgstr "Viimeisimmät projektit"
+
+msgid "Recover from Bus…"
+msgstr "Palauta väylältä…"
+
+msgid "Export .knxproj…"
+msgstr "Vie .knxproj…"
+
+msgid "Export to ETS 5 ProjectStore"
+msgstr "Vie ETS 5 ProjectStoreen"
+
+msgid "Export Group Addresses…"
+msgstr "Vie ryhmäosoitteet…"
+
+msgid "Import Group Addresses…"
+msgstr "Tuo ryhmäosoitteita…"
+
+msgid "Exported {count} group address(es)"
+msgstr "Vietyjä ryhmäosoitteita: {count}"
+
+msgid "Export Group Addresses"
+msgstr "Vie Ryhmäosoitteet"
+
+msgid "Output Format"
+msgstr "Esitysmuoto"
+
+msgid "CSV Format"
+msgstr "CSV-muoto"
+
+msgid "3/1 - three columns, Main/Middle/Sub group separated"
+msgstr "3/1 - kolme saraketta, Pää-/Keski-/Alaryhmä erillään"
+
+msgid "1/3 - Group address name/Main - Middle - Sub group"
+msgstr "1/3 - Ryhmäosoitteen nimi/Pää - Keski - Alaryhmä"
+
+msgid "1/1 - Name/Address"
+msgstr "1/1 - Nimi/Osoite"
+
+msgid "3/3 - Main - Middle - Sub group name/Main - Middle - Sub group address"
+msgstr "3/3 - Pää - Keski - Alaryhmän nimi/Pää - Keski - Alaryhmän osoite"
+
+msgid "Export with Header Line"
+msgstr "Vie otsikkorivin kanssa"
+
+msgid "CSV Separator"
+msgstr "CSV-erotin"
+
+msgid "Tabulator"
+msgstr "Sarkain"
+
+msgid "Comma"
+msgstr "Pilkku"
+
+msgid "Semicolon"
+msgstr "Puolipiste"
+
+msgid "Export"
+msgstr "Vie"
+
+msgid "Group Address Export (*.csv)"
+msgstr "Ryhmäosoitteiden vienti (*.csv)"
+
+msgid "Exported to {path} ({size}) as {schema}"
+msgstr "Viety: {path} ({size}), muoto {schema}"
+
+msgid "Export Complete"
+msgstr "Vienti valmis"
+
+msgid "Successfully created {name}"
+msgstr "Luotu onnistuneesti: {name}"
+
+msgid "File Size"
+msgstr "Tiedoston koko"
+
+msgid "Project"
+msgstr "Projekti"
+
+msgid "Format"
+msgstr "Muoto"
+
+msgid "Devices"
+msgstr "Laitteet"
+
+msgid "Buildings"
+msgstr "Rakennukset"
+
+msgid "Group Addresses"
+msgstr "Ryhmäosoitteet"
+
+msgid "Group Object Links"
+msgstr "Ryhmäobjektien linkit"
+
+msgid "Areas / Lines"
+msgstr "Alueet / linjat"
+
+msgid "Floors / Rooms"
+msgstr "Kerrokset / huoneet"
+
+msgid "Functions"
+msgstr "Toiminnot"
+
+msgid "KNX Master Version"
+msgstr "KNX Master -versio"
+
+msgid "Exported at"
+msgstr "Viety"
+
+msgid "Manufacturer Data (M Folders)"
+msgstr "Valmistajan tiedot (M-kansiot)"
+
+msgid "Signed"
+msgstr "Allekirjoitettu"
+
+msgid "Certificate"
+msgstr "Sertifikaatti"
+
+msgid "yes"
+msgstr "kyllä"
+
+msgid "no"
+msgstr "ei"
+
+msgid "Open Folder"
+msgstr "Avaa kansio"
+
+msgid "Good to Know"
+msgstr "Hyvä tietää"
+
+msgid "Your project opened fine and everything you need to work with is here. A few extra details from the original file are shown a bit more simply:"
+msgstr "Projektisi avautui ongelmitta, ja kaikki työskentelyyn tarvittava on täällä. Muutama alkuperäisen tiedoston lisätieto näytetään hieman yksinkertaisemmin:"
+
+msgid "This project came from a file with a few extra details this editor does not use. The export leaves these out:"
+msgstr "Tämä projekti on peräisin tiedostosta, jossa on muutama lisätieto, jota tämä editori ei käytä. Vienti jättää ne pois:"
+
+msgid "The original file had {count} installations. They were combined into one."
+msgstr "Alkuperäisessä tiedostossa oli {count} asennusta. Ne yhdistettiin yhdeksi."
+
+msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
+msgstr "Laitteita, joita ei ole kohdistettu linjaan: {count}. Ne säilyvät projektissa ja sisältyvät vientiin, mutta niitä ei voi vielä muokata täällä."
+
+msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr "Ryhmäobjekteja, joilla oli alkuperäisessä tiedostossa lisäkuvaus: {count}. Mukautettu nimi ja toiminto säilyvät; vain tätä kuvausta ei näytetä täällä."
+
+msgid "For example: {examples}"
+msgstr "Esimerkiksi: {examples}"
+
+msgid "{count} IP or function setting(s) from the original file are not used here."
+msgstr "Alkuperäisen tiedoston IP- tai toimintoasetuksia, joita ei käytetä täällä: {count}."
+
+msgid "{count} line(s) use several segments. In a schema 14/20 export they are shown at line level only."
+msgstr "Linjoja, jotka käyttävät useita segmenttejä: {count}. Skeeman 14/20 viennissä ne näytetään vain linjatasolla."
+
+msgid "{count} line(s) had the same address in different installations. One of each was kept when combining."
+msgstr "Linjoja, joilla oli sama osoite eri asennuksissa: {count}. Yhdistettäessä kustakin säilytettiin yksi."
+
+msgid "Exporting {name} — this can take a while for large projects."
+msgstr "Viedään {name} — tämä voi kestää suurissa projekteissa jonkin aikaa."
+
+msgid "Collecting the manufacturer data…"
+msgstr "Kerätään valmistajan tietoja…"
+
+msgid "Writing the archive…"
+msgstr "Kirjoitetaan arkistoa…"
+
+msgid "Getting the certificate from MyKNX…"
+msgstr "Haetaan sertifikaattia MyKNX:stä…"
+
+msgid "Cancelling…"
+msgstr "Peruutetaan…"
+
+msgid "Export cancelled, no file was written"
+msgstr "Vienti peruutettu, tiedostoa ei kirjoitettu"
+
+msgid "Export Failed"
+msgstr "Vienti epäonnistui"
+
+msgid "The project could not be exported to {name}."
+msgstr "Projektia ei voitu viedä tiedostoon {name}."
+
+msgid "MyKNX did not issue the certificate for the project:"
+msgstr "MyKNX ei myöntänyt sertifikaattia projektille:"
+
+msgid "To export without it, choose 'Export Without Certificate' or the 'License with a Dongle' tab in the Sign Export window."
+msgstr "Jos haluat viedä ilman sitä, valitse Allekirjoita vienti -ikkunassa ”Vie ilman sertifikaattia” tai välilehti ”Lisensoi donglella”."
+
+msgid "{name} cannot be imported."
+msgstr "Tiedostoa {name} ei voi tuoda."
+
+msgid "The file was written, but it refers to product data that is not in the catalog: {references}. Add these products to the catalog and export again."
+msgstr "Tiedosto kirjoitettiin, mutta se viittaa tuotetietoihin, jotka eivät ole luettelossa: {references}. Lisää nämä tuotteet luetteloon ja vie uudelleen."
+
+msgid "Sign Export"
+msgstr "Allekirjoita vienti"
+
+msgid "ETS 6: needs a licensed .knxproj through a MyKNX login or a dongle.\nETS 5: just use 'Export Without Certificate'."
+msgstr "ETS 6: tarvitsee lisensoidun .knxproj-tiedoston MyKNX-kirjautumisen tai donglen kautta.\nETS 5: käytä vain 'Vie ilman sertifikaattia'."
+
+msgid "Sign with MyKNX Login"
+msgstr "Allekirjoita MyKNX-kirjautumisella"
+
+msgid "License with a Dongle"
+msgstr "Lisensoi donglella"
+
+msgid "ETS must not be running on any computer with this MyKNX account while you log in and export here."
+msgstr "ETS ei saa olla käynnissä millään tietokoneella tällä MyKNX-tilillä sillä aikaa, kun kirjaudut ja viet täällä."
+
+msgid "MyKNX Username"
+msgstr "MyKNX-käyttäjänimi"
+
+msgid "MyKNX Password"
+msgstr "MyKNX-salasana"
+
+msgid "Log in"
+msgstr "Kirjaudu"
+
+msgid "Complete sign-in in your browser. Code: {code}"
+msgstr "Viimeistele kirjautuminen selaimessa. Koodi: {code}"
+
+msgid "Login failed (HTTP 401). Either the password is wrong, or this account uses two-factor authentication - the server does not say which."
+msgstr "Kirjautuminen epäonnistui (HTTP 401). Joko salasana on väärä tai tili käyttää kaksivaiheista tunnistautumista - palvelin ei kerro kumpi."
+
+msgid "Re-enter Credentials"
+msgstr "Anna tunnukset uudelleen"
+
+msgid "Start 2FA Sign-In"
+msgstr "Aloita 2FA-kirjautuminen"
+
+msgid "MyKNX OAuth Credentials (2FA)"
+msgstr "MyKNX OAuth -tunnukset (2FA)"
+
+msgid "Needed only for accounts with two-factor authentication. The 2FA sign-in opens in your browser automatically when a normal login is rejected. Enter the OAuth client id/secret, or extract them from your installed ETS: pick 'Knx.Ets.MyKnx.dll' from the ETS program folder (e.g. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nAlternatively, if you have any licensed ETS installed, skip online signing entirely and use the local project store instead - see the 'License with a Dongle' tab."
+msgstr "Tarvitaan vain tileille, joilla on kaksivaiheinen tunnistautuminen. 2FA-kirjautuminen avautuu selaimessa automaattisesti, kun tavallinen kirjautuminen hylätään. Anna OAuth-asiakkaan tunnus/salaisuus tai pura ne asennetusta ETS:stä: valitse 'Knx.Ets.MyKnx.dll' ETS-ohjelmakansiosta (esim. C:\\Program Files (x86)\\ETS6\\Knx.Ets.MyKnx.dll).\n\nVaihtoehtoisesti, jos sinulla on asennettuna jokin lisensoitu ETS, ohita verkkoallekirjoitus kokonaan ja käytä sen sijaan paikallista projektisäilöä - katso välilehti 'Lisensoi donglella'."
+
+msgid "Client ID"
+msgstr "Asiakastunnus"
+
+msgid "Client Secret"
+msgstr "Asiakassalaisuus"
+
+msgid "Extract from ETS…"
+msgstr "Pura ETS:stä…"
+
+msgid "Extracting…"
+msgstr "Puretaan…"
+
+msgid "Save"
+msgstr "Talleta"
+
+msgid "All files"
+msgstr "Kaikki tiedostot"
+
+msgid "Logging in…"
+msgstr "Kirjaudutaan…"
+
+msgid "License"
+msgstr "Lisenssi"
+
+msgid "No licenses found on this account"
+msgstr "Tältä tililtä ei löytynyt lisenssejä"
+
+msgid "no online certificate"
+msgstr "ei verkkosertifikaattia"
+
+msgid "expired"
+msgstr "vanhentunut"
+
+msgid "None of these licenses can sign online. Only ETS6 (or a cloud-enabled ETS app) licenses produce a certificate; ETS5/older licenses cannot. Use 'License with a dongle' instead."
+msgstr "Mikään näistä lisensseistä ei voi allekirjoittaa verkossa. Vain ETS6-lisenssit (tai pilvipalvelua tukevan ETS-sovelluksen lisenssit) tuottavat sertifikaatin; ETS5- tai vanhemmat lisenssit eivät. Käytä sen sijaan 'Lisensoi donglella'."
+
+msgid "Login failed: {error}"
+msgstr "Kirjautuminen epäonnistui: {error}"
+
+msgid "Format Version"
+msgstr "Muodon versio"
+
+msgid "Remove device(s) & re-export"
+msgstr "Poista laitteet ja vie uudelleen"
+
+msgid "Removed {count} incompatible device(s); re-exporting"
+msgstr "Poistettuja yhteensopimattomia laitteita: {count}; viedään uudelleen"
+
+msgid "This file will NOT import into the chosen ETS version: the product data of these manufacturers only exists for a newer ETS (e.g. an ETS 6 product in an ETS 5 export), so ETS rejects the whole project. Remove the affected device(s) or export for the newer ETS."
+msgstr "Tätä tiedostoa EI voi tuoda valittuun ETS-versioon: näiden valmistajien tuotetiedot ovat olemassa vain uudemmalle ETS:lle (esim. ETS 6 -tuote ETS 5 -viennissä), joten ETS hylkää koko projektin. Poista kyseiset laitteet tai vie uudemmalle ETS:lle."
+
+msgid "ETS 6 (schema 23)"
+msgstr "ETS 6 (skeema 23)"
+
+msgid "ETS 5 (schema 20)"
+msgstr "ETS 5 (skeema 20)"
+
+msgid "Signing Key…"
+msgstr "Allekirjoitusavain…"
+
+msgid "Signing Key"
+msgstr "Allekirjoitusavain"
+
+msgid "Folder signature uses a placeholder key. Enter a valid signature under 'Signing Key…' or use the 'License with a Dongle' way."
+msgstr "Kansion allekirjoitus käyttää paikkamerkkiavainta. Anna kelvollinen allekirjoitus kohdassa 'Allekirjoitusavain…' tai käytä 'Lisensoi donglella' -tapaa."
+
+msgid "Export to ProjectStore"
+msgstr "Vie ProjectStoreen"
+
+msgid "Select the {ets} ProjectStore folder"
+msgstr "Valitse {ets} ProjectStore -kansio"
+
+msgid "Select the ETS installer.guid file"
+msgstr "Valitse ETS:n installer.guid-tiedosto"
+
+msgid "ETS installer id"
+msgstr "ETS-asennuksen tunnus"
+
+msgid "Project Already in the Store"
+msgstr "Projekti on jo säilössä"
+
+msgid "A project folder '{pid}' already exists in this ETS ProjectStore. Overwrite it, or add it as a separate copy?"
+msgstr "Projektikansio '{pid}' on jo olemassa tässä ETS ProjectStoressa. Korvataanko se, vai lisätäänkö se erillisenä kopiona?"
+
+msgid "Overwrite"
+msgstr "Korvaa"
+
+msgid "Add Copy"
+msgstr "Lisää kopio"
+
+msgid "XKNX Export"
+msgstr "XKNX-vienti"
+
+msgid "Re-license the project through your own licensed ETS, which re-signs the copy with your dongle license:\n\nETS 6 - use the local project store:\n1. Click 'Export to ProjectStore'. It writes the project's 'P-XXXX' folder straight into your ETS 6 project store. If ETS is not installed on this computer, you are asked for the store folder (or any folder you then copy over manually).\n2. The export needs your 'installer.guid' from C:\\ProgramData\\KNX\\ETS6\\Installer. If it cannot be found automatically, you are asked to select it.\n3. Restart ETS 6 - the project appears in the project overview.\n4. Make a copy of it there (Copy in the overview). The copy is re-signed with your license - open it, then use or export it normally.\n\nETS 5 - no project store is needed:\nChoose 'Export Without Certificate' (with ETS 5 as version) and an active signing key to save a .knxproj, then import that file into ETS 5.\n\nThis is bounded by the device-per-project limit of your license."
+msgstr "Lisensoi projekti uudelleen omalla lisensoidulla ETS:lläsi, joka allekirjoittaa kopion uudelleen dongle-lisenssilläsi:\n\nETS 6 - käytä paikallista projektisäilöä:\n1. Napsauta 'Vie ProjectStoreen'. Se kirjoittaa projektin 'P-XXXX'-kansion suoraan ETS 6 -projektisäilöösi. Jos ETS ei ole asennettuna tähän tietokoneeseen, sinulta kysytään säilökansiota (tai mitä tahansa kansiota, jonka kopioit sitten manuaalisesti).\n2. Vienti tarvitsee 'installer.guid'-tiedostosi kansiosta C:\\ProgramData\\KNX\\ETS6\\Installer. Jos sitä ei löydy automaattisesti, sinua pyydetään valitsemaan se.\n3. Käynnistä ETS 6 uudelleen - projekti näkyy projektien yleiskatsauksessa.\n4. Tee siitä siellä kopio (Kopioi yleiskatsauksessa). Kopio allekirjoitetaan uudelleen lisenssilläsi - avaa se ja käytä tai vie sitä sitten normaalisti.\n\nETS 5 - projektisäilöä ei tarvita:\nValitse 'Vie ilman sertifikaattia' (versioksi ETS 5) aktiivisella allekirjoitusavaimella tallentaaksesi .knxproj-tiedoston, ja tuo sitten tiedosto ETS 5:een.\n\nTätä rajoittaa lisenssisi laitteita projektia kohden -raja."
+
+msgid "Sign & Export"
+msgstr "Allekirjoita ja vie"
+
+msgid "Export Without Certificate"
+msgstr "Vie ilman sertifikaattia"
+
+msgid "Export ETS Project"
+msgstr "Vie ETS-projekti"
+
+msgid "Load .knxprod…"
+msgstr "Lataa .knxprod…"
+
+msgid "Load OpenKNX from URL or Folder…"
+msgstr "Lataa OpenKNX URL-osoitteesta tai kansiosta…"
+
+msgid "Load OpenKNX from URL or Files…"
+msgstr "Lataa OpenKNX URL-osoitteesta tai tiedostoista…"
+
+msgid "Load OpenKNX from URL or Folder"
+msgstr "Lataa OpenKNX URL-osoitteesta tai kansiosta"
+
+msgid "Load OpenKNX from URL or Files"
+msgstr "Lataa OpenKNX URL-osoitteesta tai tiedostoista"
+
+msgid "Paste an OpenKNX GitHub release URL (the release page works — the .zip asset is found automatically). A direct .knxprod or KNX product XML link also works.\n\nExamples:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+msgstr "Liitä OpenKNX:n GitHub-julkaisun URL-osoite (julkaisusivu käy — .zip-tiedosto löydetään automaattisesti). Myös suora .knxprod- tai KNX-tuote-XML-linkki käy.\n\nEsimerkkejä:\n  https://github.com/OpenKNX/OAM-RaumController/releases/tag/v5.4.3\n  https://github.com/OpenKNX/OAM-RaumController/releases/latest"
+
+msgid "Or choose a local folder with product files (.knxprod, OpenKNX release .zip, or KNX product XML) to import all of them."
+msgstr "Tai valitse paikallinen kansio, jossa on tuotetiedostoja (.knxprod, OpenKNX-julkaisun .zip tai KNX-tuote-XML), tuodaksesi ne kaikki."
+
+msgid "Choose Folder…"
+msgstr "Valitse kansio…"
+
+msgid "Or upload product files (.knxprod, OpenKNX release .zip, or KNX product XML) from this computer to import all of them."
+msgstr "Tai lähetä tuotetiedostoja (.knxprod, OpenKNX-julkaisun .zip tai KNX-tuote-XML) tältä tietokoneelta tuodaksesi ne kaikki."
+
+msgid "Choose Files…"
+msgstr "Valitse tiedostot…"
+
+msgid "Load"
+msgstr "Lataa"
+
+msgid "Downloading and importing…"
+msgstr "Ladataan ja tuodaan…"
+
+msgid "Nothing new imported (already in the catalog)"
+msgstr "Mitään uutta ei tuotu (jo luettelossa)"
+
+msgid "Import from URL failed: {error}"
+msgstr "Tuonti URL-osoitteesta epäonnistui: {error}"
+
+msgid "Choose a Folder with KNX Product Files"
+msgstr "Valitse kansio, jossa on KNX-tuotetiedostoja"
+
+msgid "Importing from folder…"
+msgstr "Tuodaan kansiosta…"
+
+msgid "Nothing new imported from folder (no product files found, or already in the catalog)"
+msgstr "Kansiosta ei tuotu mitään uutta (tuotetiedostoja ei löytynyt tai ne ovat jo luettelossa)"
+
+msgid "Import from folder failed: {error}"
+msgstr "Tuonti kansiosta epäonnistui: {error}"
+
+msgid "Choose KNX Product Files"
+msgstr "Valitse KNX-tuotetiedostot"
+
+msgid "KNX Product Files (*.knxprod, *.zip, *.xml)"
+msgstr "KNX-tuotetiedostot (*.knxprod, *.zip, *.xml)"
+
+msgid "Importing files…"
+msgstr "Tuodaan tiedostoja…"
+
+msgid "Nothing new imported from the files (no product files, or already in the catalog)"
+msgstr "Tiedostoista ei tuotu mitään uutta (ei tuotetiedostoja tai ne ovat jo luettelossa)"
+
+msgid "Import of the files failed: {error}"
+msgstr "Tiedostojen tuonti epäonnistui: {error}"
+
+msgid "Exit"
+msgstr "Lopeta"
+
+msgid "Edit"
+msgstr "Muokkaa"
+
+msgid "View"
+msgstr "Näytä"
+
+msgid "Restore Default Layout"
+msgstr "Palauta oletusasettelu"
+
+msgid "Show All"
+msgstr "Näytä Kaikki"
+
+msgid "Hide All"
+msgstr "Piilota kaikki"
+
+msgid "Highlight Changes"
+msgstr "Korosta muutokset"
+
+msgid "Context Help"
+msgstr "Kontekstiohje"
+
+msgid "Status Bar"
+msgstr "Tilarivi"
+
+msgid "FPS in Status Bar"
+msgstr "FPS tilarivillä"
+
+msgid "Enable Idling"
+msgstr "Ota joutokäynti käyttöön"
+
+msgid "FPS: {fps:.1f}{idling}"
+msgstr "FPS: {fps:.1f}{idling}"
+
+msgid " (Idling)"
+msgstr " (joutokäynti)"
+
+msgid "Theme"
+msgstr "Teema"
+
+msgid "Customize Theme…"
+msgstr "Mukauta teemaa…"
+
+msgid "Customize Theme"
+msgstr "Mukauta teemaa"
+
+msgid "Sizes"
+msgstr "Koot"
+
+msgid "Colors"
+msgstr "Värit"
+
+msgid "Rendering"
+msgstr "Piirto"
+
+msgid "Adjustments"
+msgstr "Säädöt"
+
+msgid "Theme Default"
+msgstr "Teeman oletus"
+
+msgid "Reset to Theme"
+msgstr "Palauta teeman arvoihin"
+
+msgid "Rounding"
+msgstr "Pyöristys"
+
+msgid "Scrollbar Rounding Ratio"
+msgstr "Vierityspalkkien pyöristyssuhde"
+
+msgid "Opacity"
+msgstr "Peittävyys"
+
+msgid "Hue"
+msgstr "Sävy"
+
+msgid "Saturation"
+msgstr "Kylläisyys"
+
+msgid "Brightness of Controls"
+msgstr "Ohjainten kirkkaus"
+
+msgid "Brightness of Backgrounds"
+msgstr "Taustojen kirkkaus"
+
+msgid "Brightness of Text"
+msgstr "Tekstin kirkkaus"
+
+msgid "Brightness of Input Fields"
+msgstr "Syöttökenttien kirkkaus"
+
+msgid "Spacing"
+msgstr "Välit"
+
+msgid "Borders"
+msgstr "Reunat"
+
+msgid "Alignment"
+msgstr "Tasaus"
+
+msgid "Window Padding"
+msgstr "Ikkunan sisämarginaali"
+
+msgid "Field Padding"
+msgstr "Kentän sisämarginaali"
+
+msgid "Cell Padding"
+msgstr "Solun sisämarginaali"
+
+msgid "Item Spacing"
+msgstr "Elementtien väli"
+
+msgid "Item Inner Spacing"
+msgstr "Elementin sisäinen väli"
+
+msgid "Extra Touch Padding"
+msgstr "Lisäväli kosketukselle"
+
+msgid "Indent"
+msgstr "Sisennys"
+
+msgid "Scrollbar Width"
+msgstr "Vierityspalkkien leveys"
+
+msgid "Minimum Slider Grip Size"
+msgstr "Liukusäätimen kahvan vähimmäiskoko"
+
+msgid "Windows"
+msgstr "Ikkunat"
+
+msgid "Child Windows"
+msgstr "Aliikkunat"
+
+msgid "Popups"
+msgstr "Ponnahdusikkunat"
+
+msgid "Fields"
+msgstr "Kentät"
+
+msgid "Tabs"
+msgstr "Välilehdet"
+
+msgid "Tab Bar"
+msgstr "Välilehtipalkki"
+
+msgid "Scrollbars"
+msgstr "Vierityspalkit"
+
+msgid "Slider Grips"
+msgstr "Liukusäätimien kahvat"
+
+msgid "Window Title"
+msgstr "Ikkunan otsikko"
+
+msgid "Button Text"
+msgstr "Painikkeen teksti"
+
+msgid "List Entry Text"
+msgstr "Luettelorivin teksti"
+
+msgid "Separator Text"
+msgstr "Erottimen teksti"
+
+msgid "Font Scale"
+msgstr "Fonttikoon skaalaus"
+
+msgid "Anti-Aliased Lines"
+msgstr "Viivojen reunanpehmennys"
+
+msgid "Anti-Aliased Fills"
+msgstr "Täyttöjen reunanpehmennys"
+
+msgid "Curve Tessellation Tolerance"
+msgstr "Käyrien tessellaatiotoleranssi"
+
+msgid "Maximum Circle Tessellation Error"
+msgstr "Ympyröiden tessellaation enimmäisvirhe"
+
+msgid "Global Opacity"
+msgstr "Yleinen peittävyys"
+
+msgid "Opacity of Disabled Items"
+msgstr "Käytöstä poistettujen elementtien peittävyys"
+
+msgid "Show ImGui Demo Window"
+msgstr "Näytä ImGui-esittelyikkuna"
+
+msgid "Filter colors"
+msgstr "Suodata värejä"
+
+msgid "Undo"
+msgstr "Peru"
+
+msgid "Redo"
+msgstr "Tee uudelleen"
+
+msgid "Open KNX Product Archive"
+msgstr "Avaa KNX-tuotearkisto"
+
+msgid "KNX Product (*.knxprod, *.vd1-*.vd5)"
+msgstr "KNX-tuote (*.knxprod, *.vd1-*.vd5)"
+
+msgid "Legacy ETS product databases (.vd1-.vd5) are not imported directly.\n\nConvert the file to .knxprod first with the conversion tools that ship with ETS5/ETS6 - open the product file in ETS, or use its command-line converter - then import the resulting .knxprod here."
+msgstr "Vanhoja ETS-tuotetietokantoja (.vd1-.vd5) ei tuoda suoraan.\n\nMuunna tiedosto ensin .knxprod-muotoon ETS5/ETS6:n mukana tulevilla muunnostyökaluilla - avaa tuotetiedosto ETS:ssä tai käytä sen komentorivimuunninta - ja tuo sitten syntynyt .knxprod tänne."
+
+msgid "ETS Project (*.knxproj)"
+msgstr "ETS-projekti (*.knxproj)"
+
+msgid "ETS 6 Project (*.knxproj)"
+msgstr "ETS 6 -projekti (*.knxproj)"
+
+msgid "ETS 5 Project (*.knxproj)"
+msgstr "ETS 5 -projekti (*.knxproj)"
+
+msgid "Group Address Exports (*.xml, *.csv)"
+msgstr "Ryhmäosoitteiden viennit (*.xml, *.csv)"
+
+msgid "Group Address Export (*.xml)"
+msgstr "Ryhmäosoitteiden vienti (*.xml)"
+
+msgid "Open XKNX Project"
+msgstr "Avaa XKNX-projekti"
+
+msgid "Save XKNX Project"
+msgstr "Talleta XKNX-projekti"
+
+msgid "Save Project As"
+msgstr "Talleta projekti nimellä"
+
+msgid "Replace File"
+msgstr "Korvaa tiedosto"
+
+msgid "{name} already exists."
+msgstr "{name} on jo olemassa."
+
+msgid "It is in {dir}. Replacing it overwrites its current content; this cannot be undone."
+msgstr "Se on kansiossa {dir}. Korvaaminen korvaa sen nykyisen sisällön; tätä ei voi kumota."
+
+msgid "Replace"
+msgstr "Korvaa"
+
+msgid "XKNX Project (*.xknx)"
+msgstr "XKNX-projekti (*.xknx)"
+
+msgid "Projects (*.xknx, *.knxproj, *.xml, *.csv)"
+msgstr "Projektit (*.xknx, *.knxproj, *.xml, *.csv)"
+
+msgid "Working…"
+msgstr "Odota…"
+
+msgid "Importing project — this can take a while for large projects."
+msgstr "Tuodaan projektia — tämä voi kestää suurissa projekteissa jonkin aikaa."
+
+msgid "{done}/{total} devices"
+msgstr "{done}/{total} laitetta"
+
+msgid "Loading product catalog…"
+msgstr "Ladataan tuoteluetteloa…"
+
+msgid "Imported {count} product version(s) from {name}:"
+msgstr "Tiedostosta {name} tuotiin tuoteversioita ({count}):"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "DIN rail"
+msgstr "DIN-kisko"
+
+msgid "Flush-mounted"
+msgstr "Uppoasennus"
+
+msgid "Registered: {info}"
+msgstr "Rekisteröity: {info}"
+
+msgid "Manufacturer"
+msgstr "Valmistaja"
+
+msgid "Product"
+msgstr "Tuote"
+
+msgid "Order no."
+msgstr "Tilausnro"
+
+msgid "Application"
+msgstr "Sovellus"
+
+msgid "Version"
+msgstr "Versio"
+
+msgid "Mask"
+msgstr "Maski"
+
+msgid "Hardware"
+msgstr "Laitteisto"
+
+msgid "Registered"
+msgstr "Rekisteröity"
+
+msgid "{name} was already in the catalog, nothing new imported"
+msgstr "{name} oli jo luettelossa, mitään uutta ei tuotu"
+
+msgid "Product Catalog Import"
+msgstr "Tuoteluettelon tuonti"
+
+msgid "Opening project…"
+msgstr "Avataan projektia…"
+
+msgid "Importing group addresses…"
+msgstr "Tuodaan ryhmäosoitteita…"
+
+msgid "Switching language…"
+msgstr "Vaihdetaan kieltä…"
+
+msgid "Project Password"
+msgstr "Projektin salasana"
+
+msgid "This ETS project is password protected. Enter its password:"
+msgstr "Tämä ETS-projekti on suojattu salasanalla. Anna sen salasana:"
+
+msgid "Wrong password, please try again."
+msgstr "Väärä salasana, yritä uudelleen."
+
+msgid "This project is protected with a password. Enter it to open the project:"
+msgstr "Tämä projekti on suojattu salasanalla. Anna se avataksesi projektin:"
+
+msgid "This project contains KNX Secure keys. Set a project password to protect them; the project can then only be opened with it."
+msgstr "Tämä projekti sisältää KNX Secure -avaimia. Aseta projektille salasana niiden suojaamiseksi; projektin voi sen jälkeen avata vain sillä."
+
+msgid "Password"
+msgstr "Salasana"
+
+msgid "Repeat Password"
+msgstr "Toista salasana"
+
+msgid "The passwords do not match."
+msgstr "Salasanat eivät täsmää."
+
+msgid "Protecting the project with the password…"
+msgstr "Suojataan projektia salasanalla…"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Check for Updates"
+msgstr "Tarkista päivitykset"
+
+msgid "Check for Updates on Startup"
+msgstr "Tarkista päivitykset käynnistettäessä"
+
+msgid "Update Available"
+msgstr "Päivitys saatavilla"
+
+msgid "Version {latest} is available. You have {current}."
+msgstr "Versio {latest} on saatavilla. Sinulla on {current}."
+
+msgid "You are up to date (version {version})."
+msgstr "Käytössäsi on uusin versio ({version})."
+
+msgid "Download"
+msgstr "Lataa"
+
+msgid "Install Update"
+msgstr "Asenna päivitys"
+
+msgid "Install Update downloads the installer, closes XKNX Editor and starts it again with the open project."
+msgstr "Asenna päivitys lataa asennusohjelman, sulkee XKNX Editorin ja käynnistää sen uudelleen avoimen projektin kanssa."
+
+msgid "Downloading the update…"
+msgstr "Ladataan päivitystä…"
+
+msgid "{done} of {total} MB"
+msgstr "{done}/{total} MB"
+
+msgid "Skip This Version"
+msgstr "Ohita tämä versio"
+
+msgid "Later"
+msgstr "Myöhemmin"
+
+msgid "Release Notes:"
+msgstr "Julkaisutiedot:"
+
+msgid "License: GPL-2.0-only"
+msgstr "Lisenssi: GPL-2.0-only"
+
+msgid "Website:"
+msgstr "Verkkosivusto:"
+
+msgid "Open Config Folder"
+msgstr "Avaa asetuskansio"
+
+msgid "Open Cache Folder"
+msgstr "Avaa välimuistikansio"
+
+msgid "Open Log Folder"
+msgstr "Avaa lokikansio"
+
+msgid "Compact Project…"
+msgstr "Tiivistä projekti…"
+
+msgid "Compact Project"
+msgstr "Tiivistä projekti"
+
+msgid "Analysing project…"
+msgstr "Analysoidaan projektia…"
+
+msgid "Compacting project…"
+msgstr "Tiivistetään projektia…"
+
+msgid "Analysing devices"
+msgstr "Analysoidaan laitteita"
+
+msgid "Analysing product data ({manufacturer})"
+msgstr "Analysoidaan tuotetietoja ({manufacturer})"
+
+msgid "Removing unused product data ({manufacturer})"
+msgstr "Poistetaan käyttämättömiä tuotetietoja ({manufacturer})"
+
+msgid "Saving product data"
+msgstr "Talletetaan tuotetietoja"
+
+msgid "Compacting project file"
+msgstr "Tiivistetään projektitiedostoa"
+
+msgid "The following product data is not used by any device in this project and will be removed:"
+msgstr "Seuraavia tuotetietoja ei käytä mikään tämän projektin laite, ja ne poistetaan:"
+
+msgid "All product data in this project is used by its devices, nothing to remove. The project file can still be compacted to free unused space."
+msgstr "Projektin laitteet käyttävät kaikkia sen tuotetietoja, joten poistettavaa ei ole. Projektitiedoston voi silti tiivistää käyttämättömän tilan vapauttamiseksi."
+
+msgid "Application Programs"
+msgstr "Sovellusohjelmat"
+
+msgid "Device Types (Products)"
+msgstr "Laitetyypit (tuotteet)"
+
+msgid "Manufacturers"
+msgstr "Valmistajat"
+
+msgid "Catalog Entries"
+msgstr "Luettelon merkinnät"
+
+msgid "Help and Plug-in Files"
+msgstr "Ohje- ja laajennustiedostot"
+
+msgid "Details"
+msgstr "Yksityiskohdat"
+
+msgid "Current File Size"
+msgstr "Nykyinen tiedostokoko"
+
+msgid "Estimated Size Afterwards"
+msgstr "Arvioitu koko jälkeenpäin"
+
+msgid "This cannot be undone. Removed product data has to be imported again if these products are added to the project later."
+msgstr "Tätä ei voi kumota. Poistetut tuotetiedot on tuotava uudelleen, jos nämä tuotteet lisätään myöhemmin projektiin."
+
+msgid "Compact"
+msgstr "Tiivistä"
+
+msgid "Project Compacted"
+msgstr "Projekti tiivistetty"
+
+msgid "The project file was compacted."
+msgstr "Projektitiedosto tiivistettiin."
+
+msgid "Size before"
+msgstr "Koko ennen"
+
+msgid "Size after"
+msgstr "Koko jälkeen"
+
+msgid "Compacting cancelled, the project was not changed"
+msgstr "Tiivistys peruutettu, projektia ei muutettu"
+
+msgid "Remove Unused Product Data"
+msgstr "Poista käyttämättömät tuotetiedot"
+
+msgid "(only in the export, the project stays unchanged)"
+msgstr "(vain viennissä, projekti pysyy muuttumattomana)"
+
+msgid "Hide Tab Bar"
+msgstr "Piilota välilehtipalkki"
+
+msgid "Open {url}"
+msgstr "Avaa {url}"
+
+msgid "Copy Link"
+msgstr "Kopioi linkki"
+
+msgid "Enter the password for access to the editor."
+msgstr "Anna editorin käyttöoikeuden salasana."
+
+msgid "Sign In"
+msgstr "Kirjaudu"
+
+msgid "Wrong password."
+msgstr "Väärä salasana."
+
+msgid "Disconnected. Reconnecting…"
+msgstr "Yhteys katkesi. Yhdistetään uudelleen…"
+
+msgid "Access denied. Please sign in again."
+msgstr "Pääsy estetty. Kirjaudu uudelleen."
+
+msgid "Upload from This Computer…"
+msgstr "Lähetä tästä tietokoneesta…"
+
+msgid "Or drop files here."
+msgstr "Tai pudota tiedostot tähän."
+
+msgid "Files on the Server"
+msgstr "Palvelimen tiedostot"
+
+msgid "No files yet."
+msgstr "Ei vielä tiedostoja."
+
+msgid "Open"
+msgstr "Avaa"
+
+msgid "Select"
+msgstr "Valitse"
+
+msgid "File Name"
+msgstr "Tiedoston nimi"
+
+msgid "Folder Name"
+msgstr "Kansion nimi"
+
+msgid "File Type"
+msgstr "Tiedostotyyppi"
+
+msgid "Download to This Computer"
+msgstr "Lataa tähän tietokoneeseen"
+
+msgid "Uploading {name}…"
+msgstr "Lähetetään: {name}…"
+
+msgid "Upload failed: {error}"
+msgstr "Lähetys epäonnistui: {error}"
+
+msgid "Show"
+msgstr "Näytä"
+
+msgid "Folder on the Server"
+msgstr "Palvelimen kansio"
+
+msgid "View only: another browser controls the editor."
+msgstr "Vain katselu: toinen selain ohjaa editoria."
+
+msgid "Take Control"
+msgstr "Ota ohjaus"
+
+msgid "Name"
+msgstr "Nimi"
+
+msgid "Size"
+msgstr "Koko"
+
+msgid "Modified"
+msgstr "Muokattu"
+
+msgid "The browser did not open it by itself."
+msgstr "Selain ei avannut sitä itse."
+
+msgid "Download started: {name}"
+msgstr "Lataus aloitettu: {name}"
+
+msgid "Choose File…"
+msgstr "Valitse tiedosto…"
+
+msgid "{name} is ready."
+msgstr "{name} on valmis."
+
+msgid "Open Link"
+msgstr "Avaa linkki"
+
+msgid "Checking for updates…"
+msgstr "Tarkistetaan päivityksiä…"
+
+msgid "The check for updates failed: {error}"
+msgstr "Päivitysten tarkistus epäonnistui: {error}"
+
+msgid "The project has no group addresses to export."
+msgstr "Projektissa ei ole vietäviä ryhmäosoitteita."
+
+msgid "Clear Cache…"
+msgstr "Tyhjennä välimuisti…"
+
+msgid "Clear Cache"
+msgstr "Tyhjennä välimuisti"
+
+msgid "The cache holds {size} of parsed product data and of documentation fetched for the AI tools. All of it is made again when needed; afterwards only the first use of each product takes longer."
+msgstr "Välimuistissa on {size} jäsennettyjä tuotetietoja ja tekoälytyökaluja varten haettua dokumentaatiota. Kaikki luodaan uudelleen tarvittaessa; sen jälkeen vain kunkin tuotteen ensimmäinen käyttö kestää kauemmin."
+
+msgid "Cache cleared, {size} freed"
+msgstr "Välimuisti tyhjennetty, vapautettu {size}"
+
+msgid "Zoom In"
+msgstr "Lähennä"
+
+msgid "Zoom Out"
+msgstr "Loitonna"
+
+msgid "Reset Zoom"
+msgstr "Palauta zoomaus"
+
+msgid "Cut"
+msgstr "Leikkaa"
+
+msgid "Paste"
+msgstr "Liitä"
+
+msgid "Select All"
+msgstr "Valitse kaikki"
+
+msgid "Long-press in the field below and choose Paste."
+msgstr "Paina pitkään alla olevaa kenttää ja valitse Liitä."
+
+msgid "Too many wrong passwords. Please try again in a few minutes."
+msgstr "Liian monta väärää salasanaa. Yritä uudelleen muutaman minuutin kuluttua."
+
+msgid "Port {port} is already in use by another program, so the browser UI cannot start there. Start it with another port (e.g. --web={example}) or without a port to take a free one."
+msgstr "Portti {port} on jo toisen ohjelman käytössä, joten selainkäyttöliittymä ei voi käynnistyä siinä. Käynnistä se toisella portilla (esim. --web={example}) tai ilman porttia, jolloin valitaan vapaa portti."
+
+msgid "Open in Browser"
+msgstr "Avaa selaimessa"
+
+msgid "Stop XKNX Editor"
+msgstr "Lopeta XKNX Editor"
+
+msgid "XKNX Editor Already Running"
+msgstr "XKNX Editor on jo käynnissä"
+
+msgid "XKNX Editor is already running on this computer. Switch to it, or start another one, e.g. to work on a second project or with another bus connection."
+msgstr "XKNX Editor on jo käynnissä tässä tietokoneessa. Siirry siihen tai käynnistä toinen, esim. toisen projektin tai toisen väyläyhteyden käyttöön."
+
+msgid "Window"
+msgstr "Ikkuna"
+
+msgid "Browser UI ({url})"
+msgstr "Selainkäyttöliittymä ({url})"
+
+msgid "{kind}: {project}"
+msgstr "{kind}: {project}"
+
+msgid "Switch to It"
+msgstr "Siirry siihen"
+
+msgid "Start Another"
+msgstr "Käynnistä toinen"
+
+msgid "That XKNX Editor has ended in the meantime."
+msgstr "Tuo XKNX Editor on sillä välin suljettu."
+
+msgid "Project Already Open"
+msgstr "Projekti on jo auki"
+
+msgid "{name} is already open in another XKNX Editor. Editing it in two editors at once can overwrite changes."
+msgstr "{name} on jo auki toisessa XKNX Editorissa. Jos sitä muokataan kahdessa editorissa yhtä aikaa, muutoksia voi korvautua."
+
+msgid "Open Anyway"
+msgstr "Avaa silti"
+
+msgid "C"
+msgstr "Y"
+
+msgid "R"
+msgstr "L"
+
+msgid "W"
+msgstr "K"
+
+msgid "T"
+msgstr "S"
+
+msgid "U"
+msgstr "P"
+
+msgid "I"
+msgstr "V"
+
+msgid "Communication"
+msgstr "Yhteys"
+
+msgid "Read"
+msgstr "Lue"
+
+msgid "Write"
+msgstr "Kirjoita"
+
+msgid "Transmit"
+msgstr "Siirrä"
+
+msgid "Update"
+msgstr "Päivitä"
+
+msgid "Read on Init"
+msgstr "Lue Alustus"
+
+msgid "English"
+msgstr "Englanti"
+
+msgid "German"
+msgstr "Saksa"
+
+msgid "Dutch"
+msgstr "Hollanti"
+
+msgid "{name} ({native})"
+msgstr "{name} ({native})"
+
+msgid "Spanish"
+msgstr "Espanja"
+
+msgid "Greek"
+msgstr "Kreikka"
+
+msgid "Simplified Chinese"
+msgstr "Yleiskiina"
+
+msgid "Japanese"
+msgstr "Japani"
+
+msgid "Czech"
+msgstr "Tšekki"
+
+msgid "Danish"
+msgstr "Tanska"
+
+msgid "Finnish"
+msgstr "Suomi"
+
+msgid "French"
+msgstr "Ranska"
+
+msgid "Italian"
+msgstr "Italia"
+
+msgid "Norwegian"
+msgstr "Norja"
+
+msgid "Polish"
+msgstr "Puola"
+
+msgid "Portuguese"
+msgstr "Portugali"
+
+msgid "Russian"
+msgstr "Venäjä"
+
+msgid "Swedish"
+msgstr "Ruotsi"
+
+msgid "Turkish"
+msgstr "Turkki"
+
+msgid "Ukrainian"
+msgstr "Ukraina"

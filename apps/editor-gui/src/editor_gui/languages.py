@@ -24,14 +24,29 @@ LANGUAGES: tuple[Language, ...] = (
     Language("el", "el-GR", "Ελληνικά", lambda: S.LANGUAGE_GREEK),
     Language("zh", "zh-CN", "中文(中国)", lambda: S.LANGUAGE_CHINESE),
     Language("ja", "ja-JP", "日本語", lambda: S.LANGUAGE_JAPANESE),
+    Language("cs", "cs-CZ", "čeština", lambda: S.LANGUAGE_CZECH),
+    Language("da", "da-DK", "dansk", lambda: S.LANGUAGE_DANISH),
+    Language("fi", "fi-FI", "suomi", lambda: S.LANGUAGE_FINNISH),
+    Language("fr", "fr-FR", "français", lambda: S.LANGUAGE_FRENCH),
+    Language("it", "it-IT", "italiano", lambda: S.LANGUAGE_ITALIAN),
+    Language("nb", "nb-NO", "norsk bokmål", lambda: S.LANGUAGE_NORWEGIAN),
+    Language("pl", "pl-PL", "polski", lambda: S.LANGUAGE_POLISH),
+    Language("pt", "pt-PT", "português", lambda: S.LANGUAGE_PORTUGUESE),
+    Language("ru", "ru-RU", "русский", lambda: S.LANGUAGE_RUSSIAN),
+    Language("sv", "sv-SE", "svenska", lambda: S.LANGUAGE_SWEDISH),
+    Language("tr", "tr-TR", "Türkçe", lambda: S.LANGUAGE_TURKISH),
+    Language("uk", "uk-UA", "українська", lambda: S.LANGUAGE_UKRAINIAN),
 )
 # The translated languages: every UI text has a translation in each of them.
 TRANSLATED: tuple[str, ...] = tuple(language.code for language in LANGUAGES[1:])
+# Other codes the operating system may give for a language: Norwegian as "no" or "nn".
+_ALIASES = {"no": "nb", "nn": "nb"}
 
 
 def supported(code: str) -> str:
     """``code`` ("de", "de-DE", "de_DE") as a language of the user interface, else English."""
     wanted = code.replace("_", "-").split("-")[0].lower()
+    wanted = _ALIASES.get(wanted, wanted)
     return wanted if any(language.code == wanted for language in LANGUAGES) else "en"
 
 

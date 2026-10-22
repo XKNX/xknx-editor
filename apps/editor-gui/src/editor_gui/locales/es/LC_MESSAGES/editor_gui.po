@@ -1362,3 +1362,39 @@ msgstr "Chino Simplificado"
 
 msgid "Japanese"
 msgstr "Japonés"
+
+msgid "Czech"
+msgstr "Checo"
+
+msgid "Danish"
+msgstr "Danés"
+
+msgid "Finnish"
+msgstr "Finés"
+
+msgid "French"
+msgstr "Francés"
+
+msgid "Italian"
+msgstr "Italiano"
+
+msgid "Norwegian"
+msgstr "Noruego"
+
+msgid "Polish"
+msgstr "Polaco"
+
+msgid "Portuguese"
+msgstr "Portugués"
+
+msgid "Russian"
+msgstr "Ruso"
+
+msgid "Swedish"
+msgstr "Sueco"
+
+msgid "Turkish"
+msgstr "Turco"
+
+msgid "Ukrainian"
+msgstr "Ucraniano"

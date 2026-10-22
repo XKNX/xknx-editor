@@ -1362,3 +1362,39 @@ msgstr "Απλοποιημένα Κινέζικα"
 
 msgid "Japanese"
 msgstr "Γιαπωνέζικα"
+
+msgid "Czech"
+msgstr "Τσέχικα"
+
+msgid "Danish"
+msgstr "Δανέζικα"
+
+msgid "Finnish"
+msgstr "Φινλανδικά"
+
+msgid "French"
+msgstr "Γαλλικά"
+
+msgid "Italian"
+msgstr "Ιταλικά"
+
+msgid "Norwegian"
+msgstr "Νορβηγικά"
+
+msgid "Polish"
+msgstr "Πολωνικά"
+
+msgid "Portuguese"
+msgstr "Πορτογαλικά"
+
+msgid "Russian"
+msgstr "Ρωσικά"
+
+msgid "Swedish"
+msgstr "Σουηδικά"
+
+msgid "Turkish"
+msgstr "Τούρκικα"
+
+msgid "Ukrainian"
+msgstr "Ουκρανικά"

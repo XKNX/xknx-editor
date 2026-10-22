@@ -1,0 +1,281 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "(изображение)"
+
+msgid "Search…"
+msgstr "Поиск…"
+
+msgid "{name} (locked)"
+msgstr "{name} (заблокировано)"
+
+msgid "Create Group Addresses ({count})"
+msgstr "Создать групповые адреса ({count})"
+
+msgid "All"
+msgstr "Все"
+
+msgid "None"
+msgstr "Нет"
+
+msgid "Copy Links ({count})"
+msgstr "Копировать связи ({count})"
+
+msgid "Paste Links ({count})"
+msgstr "Вставить связи ({count})"
+
+msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr "Назначает скопированные связи и флаги отмеченным объектам по порядку (1-й к 1-му, 2-й ко 2-му, …), заменяя текущие связи каждого целевого объекта."
+
+msgid "Merge"
+msgstr "Объединить"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr "Сохранить существующие связи целевых объектов и только добавить скопированные."
+
+msgid "Copy Links"
+msgstr "Копировать связи"
+
+msgid "Default (Inherit)"
+msgstr "По умолчанию (наследуется)"
+
+msgid "Edit Description…"
+msgstr "Редактировать описание…"
+
+msgid "Edit Description"
+msgstr "Редактировать описание"
+
+msgid "OK"
+msgstr "ОК"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Paste Links"
+msgstr "Вставить связи"
+
+msgid "Copy Addresses as Text"
+msgstr "Копировать адреса как текст"
+
+msgid "Create Group Addresses"
+msgstr "Создать групповые адреса"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  Порядковый индекс ({n:02} дополняет нулями)"
+
+msgid "Name Template"
+msgstr "Шаблон имени"
+
+msgid "Start Address"
+msgstr "Начальный адрес"
+
+msgid "automatic"
+msgstr "автоматически"
+
+msgid "Sending Group Address"
+msgstr "Передающий групповой адрес"
+
+msgid "Receiving Group Address"
+msgstr "Принимающий групповой адрес"
+
+msgid "sent"
+msgstr "отправлено"
+
+msgid "received"
+msgstr "получено"
+
+msgid "sent & received"
+msgstr "отправлено и получено"
+
+msgid "older"
+msgstr "старше"
+
+msgid "Link Group Address"
+msgstr "Связать с групповым адресом"
+
+msgid "New Group Address"
+msgstr "Новый групповой адрес"
+
+msgid "Address"
+msgstr "Адрес"
+
+msgid "Name"
+msgstr "Имя"
+
+msgid "Create & Link"
+msgstr "Создать и связать"
+
+msgid "Name template"
+msgstr "Шаблон имени"
+
+msgid "Placeholders"
+msgstr "Заполнители"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  Здание\n{floor}  Этаж\n{room}  Комната\n{device}  Имя или описание устройства\n{devicename}  Имя устройства\n{devicedescription}  Описание устройства\n{product}  Продукт\n{manufacturer}  Производитель\n{order}  Номер заказа\n{address}  Индивидуальный адрес\n{object}  Имя объекта\n{ganame}  Имя объекта\n{function}  Функция\n{number}  Номер объекта\n{dpt}  Тип данных"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr "Изменено относительно значения по умолчанию ({default}) — щёлкните правой кнопкой мыши для сброса"
+
+msgid "Reset to Default"
+msgstr "Сбросить на значение по умолчанию"
+
+msgid "<differs>"
+msgstr "<различается>"
+
+msgid "Off"
+msgstr "Выкл"
+
+msgid "On"
+msgstr "Вкл"
+
+msgid "Standard"
+msgstr "Стандартный"
+
+msgid "Advanced"
+msgstr "Расширенный"
+
+msgid "Theme Colors"
+msgstr "Цвета темы"
+
+msgid "Standard Colors"
+msgstr "Стандартные цвета"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Пн Вт Ср Чт Пт Сб Вс"
+
+msgid "General"
+msgstr "Общие"
+
+msgid "Enter a number."
+msgstr "Введите число."
+
+msgid "Enter a whole number."
+msgstr "Введите целое число."
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "Введите значение от {minimum} до {maximum}."
+
+msgid "Enter at most {count} characters."
+msgstr "Введите не более {count} символов."
+
+msgid "Enter a value."
+msgstr "Введите значение."
+
+msgid "This value cannot be sent with this data type."
+msgstr "Это значение нельзя отправить с этим типом данных."
+
+msgid "No value can be entered for this data type."
+msgstr "Для этого типа данных нельзя ввести значение."
+
+msgid "Edit…"
+msgstr "Редактировать…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "Текст может занимать не более {count} байт."
+
+msgid "Value {number}"
+msgstr "Значение {number}"
+
+msgid "Edit Value"
+msgstr "Редактировать значение"
+
+msgid "Size Column to Fit"
+msgstr "Подогнать ширину столбца"
+
+msgid "Size All Columns to Fit"
+msgstr "Подогнать ширину всех столбцов"
+
+msgid "Reset Column Order"
+msgstr "Сбросить порядок столбцов"
+
+msgid "Reset Column Visibility"
+msgstr "Сбросить видимость столбцов"
+
+msgid "Reset All Columns"
+msgstr "Сбросить все столбцы"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "Длина"
+
+msgid "Prio"
+msgstr "Приоритет"
+
+msgid "Group Addresses"
+msgstr "Групповые адреса"
+
+msgid "(empty)"
+msgstr "(пусто)"
+
+msgid "Options"
+msgstr "Опции"
+
+msgid "Columns"
+msgstr "Столбцы"
+
+msgid "Grey Out Zeros"
+msgstr "Выделять нули серым"
+
+msgid "Uppercase Hex"
+msgstr "Hex прописными буквами"
+
+msgid "Show ASCII"
+msgstr "Показать ASCII"
+
+msgid "Copy"
+msgstr "Копировать"
+
+msgid "Copy {count} B"
+msgstr "Копировать {count} Б"
+
+msgid "Go To:"
+msgstr "Перейти к:"
+
+msgid "{count} difference(s)"
+msgstr "Различий: {count}"
+
+msgid "no differences"
+msgstr "нет различий"
+
+msgid "Parameter:"
+msgstr "Параметр:"
+
+msgid "search…"
+msgstr "поиск…"
+
+msgid "Low"
+msgstr "Низкий"
+
+msgid "High"
+msgstr "Высокий"
+
+msgid "Alert"
+msgstr "Тревога"
+
+msgid "Hours"
+msgstr "Часы"
+
+msgid "Minutes"
+msgstr "Минуты"
+
+msgid "Seconds"
+msgstr "Секунды"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "Миллисекунды"

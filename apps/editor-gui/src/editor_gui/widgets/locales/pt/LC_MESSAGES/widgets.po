@@ -1,0 +1,281 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "(imagem)"
+
+msgid "Search…"
+msgstr "Pesquisar…"
+
+msgid "{name} (locked)"
+msgstr "{name} (bloqueado)"
+
+msgid "Create Group Addresses ({count})"
+msgstr "Criar Endereços de Grupo ({count})"
+
+msgid "All"
+msgstr "Todos"
+
+msgid "None"
+msgstr "Nenhum"
+
+msgid "Copy Links ({count})"
+msgstr "Copiar Vinculações ({count})"
+
+msgid "Paste Links ({count})"
+msgstr "Colar Vinculações ({count})"
+
+msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr "Atribui as vinculações e os sinalizadores copiados aos objetos marcados por ordem (1.º ao 1.º, 2.º ao 2.º, …), substituindo as vinculações atuais de cada destino."
+
+msgid "Merge"
+msgstr "Combinar"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr "Manter as vinculações existentes de cada destino e apenas adicionar as copiadas."
+
+msgid "Copy Links"
+msgstr "Copiar Vinculações"
+
+msgid "Default (Inherit)"
+msgstr "Por Omissão (Herdado)"
+
+msgid "Edit Description…"
+msgstr "Editar Descrição…"
+
+msgid "Edit Description"
+msgstr "Editar Descrição"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Paste Links"
+msgstr "Colar Vinculações"
+
+msgid "Copy Addresses as Text"
+msgstr "Copiar Endereços como Texto"
+
+msgid "Create Group Addresses"
+msgstr "Criar Endereços de Grupo"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  Índice sequencial ({n:02} preenche com zeros)"
+
+msgid "Name Template"
+msgstr "Modelo de Nome"
+
+msgid "Start Address"
+msgstr "Endereço Inicial"
+
+msgid "automatic"
+msgstr "automático"
+
+msgid "Sending Group Address"
+msgstr "Endereço de Grupo Emissor"
+
+msgid "Receiving Group Address"
+msgstr "Endereço de Grupo Recetor"
+
+msgid "sent"
+msgstr "enviado"
+
+msgid "received"
+msgstr "recebido"
+
+msgid "sent & received"
+msgstr "enviado e recebido"
+
+msgid "older"
+msgstr "mais antigo"
+
+msgid "Link Group Address"
+msgstr "Vincular Endereço de Grupo"
+
+msgid "New Group Address"
+msgstr "Novo Endereço de Grupo"
+
+msgid "Address"
+msgstr "Endereço"
+
+msgid "Name"
+msgstr "Nome"
+
+msgid "Create & Link"
+msgstr "Criar e Vincular"
+
+msgid "Name template"
+msgstr "Modelo de nome"
+
+msgid "Placeholders"
+msgstr "Marcadores de Posição"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  Edifício\n{floor}  Piso\n{room}  Compartimento\n{device}  Nome ou descrição do dispositivo\n{devicename}  Nome do dispositivo\n{devicedescription}  Descrição do dispositivo\n{product}  Produto\n{manufacturer}  Fabricante\n{order}  Número de ordem\n{address}  Endereço individual\n{object}  Nome do objeto\n{ganame}  Nome do objeto\n{function}  Função\n{number}  Número do objeto\n{dpt}  Tipo de datapoint"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr "Alterado em relação ao valor por omissão ({default}) — clique com o botão direito para repor"
+
+msgid "Reset to Default"
+msgstr "Repor Valor por Omissão"
+
+msgid "<differs>"
+msgstr "<difere>"
+
+msgid "Off"
+msgstr "Desligado"
+
+msgid "On"
+msgstr "Ligado"
+
+msgid "Standard"
+msgstr "Padrão"
+
+msgid "Advanced"
+msgstr "Avançado"
+
+msgid "Theme Colors"
+msgstr "Cores do Tema"
+
+msgid "Standard Colors"
+msgstr "Cores Padrão"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Seg Ter Qua Qui Sex Sáb Dom"
+
+msgid "General"
+msgstr "Geral"
+
+msgid "Enter a number."
+msgstr "Introduza um número."
+
+msgid "Enter a whole number."
+msgstr "Introduza um número inteiro."
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "Introduza um valor de {minimum} a {maximum}."
+
+msgid "Enter at most {count} characters."
+msgstr "Introduza no máximo {count} caracteres."
+
+msgid "Enter a value."
+msgstr "Introduza um valor."
+
+msgid "This value cannot be sent with this data type."
+msgstr "Este valor não pode ser enviado com este tipo de dado."
+
+msgid "No value can be entered for this data type."
+msgstr "Não é possível introduzir nenhum valor para este tipo de dado."
+
+msgid "Edit…"
+msgstr "Editar…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "O texto pode ter no máximo {count} bytes."
+
+msgid "Value {number}"
+msgstr "Valor {number}"
+
+msgid "Edit Value"
+msgstr "Editar Valor"
+
+msgid "Size Column to Fit"
+msgstr "Ajustar Largura da Coluna"
+
+msgid "Size All Columns to Fit"
+msgstr "Ajustar Largura de Todas as Colunas"
+
+msgid "Reset Column Order"
+msgstr "Repor Ordem das Colunas"
+
+msgid "Reset Column Visibility"
+msgstr "Repor Visibilidade das Colunas"
+
+msgid "Reset All Columns"
+msgstr "Repor Todas as Colunas"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "Comprimento"
+
+msgid "Prio"
+msgstr "Prior."
+
+msgid "Group Addresses"
+msgstr "Endereços de Grupo"
+
+msgid "(empty)"
+msgstr "(vazio)"
+
+msgid "Options"
+msgstr "Opções"
+
+msgid "Columns"
+msgstr "Colunas"
+
+msgid "Grey Out Zeros"
+msgstr "Esbater Zeros"
+
+msgid "Uppercase Hex"
+msgstr "Hex em Maiúsculas"
+
+msgid "Show ASCII"
+msgstr "Mostrar ASCII"
+
+msgid "Copy"
+msgstr "Copiar"
+
+msgid "Copy {count} B"
+msgstr "Copiar {count} B"
+
+msgid "Go To:"
+msgstr "Ir Para:"
+
+msgid "{count} difference(s)"
+msgstr "{count} diferença(s)"
+
+msgid "no differences"
+msgstr "sem diferenças"
+
+msgid "Parameter:"
+msgstr "Parâmetro:"
+
+msgid "search…"
+msgstr "pesquisar…"
+
+msgid "Low"
+msgstr "Baixo"
+
+msgid "High"
+msgstr "Alto"
+
+msgid "Alert"
+msgstr "Alarme"
+
+msgid "Hours"
+msgstr "Horas"
+
+msgid "Minutes"
+msgstr "Minutos"
+
+msgid "Seconds"
+msgstr "Segundos"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "Milissegundos"

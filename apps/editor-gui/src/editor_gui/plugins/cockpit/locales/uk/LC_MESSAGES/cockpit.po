@@ -1,0 +1,71 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor cockpit 1.0\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device Overview"
+msgstr "Огляд пристроїв"
+
+msgid "No project open"
+msgstr "Немає відкритого проєкту"
+
+msgid "Filter devices…"
+msgstr "Фільтрувати пристрої…"
+
+msgid "Needs Attention Only"
+msgstr "Лише потребують уваги"
+
+msgid "{count} device(s) not in catalog"
+msgstr "Пристроїв не в каталозі: {count}"
+
+msgid "Address"
+msgstr "Адреса"
+
+msgid "Name"
+msgstr "Ім'я"
+
+msgid "Product"
+msgstr "Продукт"
+
+msgid "Status"
+msgstr "Статус"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Loaded"
+msgstr "Завантажено"
+
+msgid "loaded"
+msgstr "завантажено"
+
+msgid "not loaded"
+msgstr "не завантажено"
+
+msgid "partial ({done}/{total})"
+msgstr "частково ({done}/{total})"
+
+msgid "Individual Address"
+msgstr "Індивідуальна адреса"
+
+msgid "Application Program"
+msgstr "Прикладна програма"
+
+msgid "Communication Part"
+msgstr "Комунікаційна частина"
+
+msgid "Medium Config"
+msgstr "Конфігурація середовища"
+
+msgid "Parameters"
+msgstr "Параметри"
+
+msgid "Serial: {serial}"
+msgstr "Серійний номер: {serial}"
+
+msgid "Last Download: {when}"
+msgstr "Останнє завантаження: {when}"

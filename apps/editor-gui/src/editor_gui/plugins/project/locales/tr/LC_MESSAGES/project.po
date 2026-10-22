@@ -1,0 +1,2147 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor project 1.0\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device"
+msgstr "Cihaz"
+
+msgid "Manufacturer"
+msgstr "Üretici"
+
+msgid "Devices"
+msgstr "Cihazlar"
+
+msgid "Configure"
+msgstr "Yapılandır"
+
+msgid "History"
+msgstr "Tarihçe"
+
+msgid "Editor"
+msgstr "Düzenleyici"
+
+msgid "Group Addresses"
+msgstr "Grup Adresleri"
+
+msgid "Buildings"
+msgstr "Binalar"
+
+msgid "Project"
+msgstr "Proje"
+
+msgid "Project Log"
+msgstr "Proje Geçmişi"
+
+msgid "Mass Linker"
+msgstr "Toplu Bağlayıcı"
+
+msgid "Object <> GA"
+msgstr "Nesne <> GA"
+
+msgid "Object <> Object"
+msgstr "Nesne <> Nesne"
+
+msgid "Log"
+msgstr "Günlük"
+
+msgid "Open a project to use the Mass Linker."
+msgstr "Toplu Bağlayıcıyı kullanmak için bir proje açın."
+
+msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
+msgstr "Çiftler liste sırasına göre eşleştirilir (1. ile 1., …). Uzun taraftaki fazla öğeler yok sayılır. Bir listenin sırasını sağ tıklama menüsünden değiştirin."
+
+msgid "Link group objects to existing group addresses."
+msgstr "Grup nesnelerini mevcut grup adreslerine bağlayın."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Nesneleri \"{add_device}\" veya \"{add_objects}\" ile ekleyin."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Her satır için bir grup adresi seçin veya tümünü \"{match}\" ya da \"{sequential}\" ile doldurun."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "\"{link_all}\", grup adresi olan her satırı bağlar."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Nesneleri her biri için yeni bir grup adresi üzerinden birbirine bağlayın: kaynak gönderir, hedef alır."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Kaynak nesneleri \"{add_device}\" veya \"{add_objects}\" ile ekleyin."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Her satır için bir hedef nesne seçin. Adres ve ad önerilir ve değiştirilebilir."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "\"{link_all}\", grup adreslerini oluşturur ve bağlar."
+
+msgid "Link All"
+msgstr "Tümünü Bağla"
+
+msgid "Chronological record of every mass-link operation in this session."
+msgstr "Bu oturumdaki tüm toplu bağlama işlemlerinin kronolojik kaydı."
+
+msgid "Source (objects)"
+msgstr "Kaynak (nesneler)"
+
+msgid "Target (Group Addresses)"
+msgstr "Hedef (Grup Adresleri)"
+
+msgid "Target (objects)"
+msgstr "Hedef (nesneler)"
+
+msgid "Preview & Link"
+msgstr "Önizle ve Bağla"
+
+msgid "Add Group Objects…"
+msgstr "Grup Nesnesi Ekle…"
+
+msgid "Add Group Addresses…"
+msgstr "Grup Adresi Ekle…"
+
+msgid "Add Selected"
+msgstr "Seçileni Ekle"
+
+msgid "Clear"
+msgstr "Temizle"
+
+msgid "Remove"
+msgstr "Kaldır"
+
+msgid "Move up"
+msgstr "Yukarı Taşı"
+
+msgid "Move Down"
+msgstr "Aşağı Taşı"
+
+msgid "{count} items"
+msgstr "{count} öğe"
+
+msgid "{count} pairs"
+msgstr "{count} çift"
+
+msgid "{count} unpaired (ignored)"
+msgstr "{count} eşleşmemiş (yok sayıldı)"
+
+msgid "Link"
+msgstr "Bağla"
+
+msgid "GA Name ({source}, {target}, {n})"
+msgstr "GA Adı ({source}, {target}, {n})"
+
+msgid "Start Address"
+msgstr "Başlangıç Adresi"
+
+msgid "Filter…"
+msgstr "Filtrele…"
+
+msgid "Add Group Objects"
+msgstr "Grup Nesnesi Ekle"
+
+msgid "Add Group Addresses"
+msgstr "Grup Adreslerini Ekle"
+
+msgid "Mass Linker Result"
+msgstr "Toplu Bağlama Sonucu"
+
+msgid "Linked {count} object(s) to group addresses"
+msgstr "{count} nesne grup adreslerine bağlandı"
+
+msgid "Linked {count} object pair(s) via new group addresses"
+msgstr "{count} nesne çifti yeni grup adresleri üzerinden bağlandı"
+
+msgid "{count} error(s)"
+msgstr "{count} hata"
+
+msgid "Clear All"
+msgstr "Tümünü Temizle"
+
+msgid "No operations yet."
+msgstr "Henüz işlem yok."
+
+msgid "Group Object"
+msgstr "Grup Nesnesi"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Target Group Address"
+msgstr "Hedef Grup Adresi"
+
+msgid "Target Group Object"
+msgstr "Hedef Grup Nesnesi"
+
+msgid "Group Address"
+msgstr "Grup Adresi"
+
+msgid "Group Address Name"
+msgstr "Grup Adresi Adı"
+
+msgid "(none)"
+msgstr "(yok)"
+
+msgid "Matching DPT Only"
+msgstr "Yalnızca Uyan DPT"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Yalnızca nesnenin ana veri tipine sahip grup adresleri ve veri tipi olmayanlar (bağlandıklarında nesnenin tipini alırlar)."
+
+msgid "no DPT"
+msgstr "DPT yok"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Yalnızca aynı ana veri tipine sahip nesneler ve veri tipi olmayanlar."
+
+msgid "Select a device in the tree first."
+msgstr "Önce ağaçta bir cihaz seçin."
+
+msgid "{device} has no group objects."
+msgstr "{device} cihazının grup nesnesi yok."
+
+msgid "All objects of {device} are in the list already."
+msgstr "{device} cihazının tüm nesneleri zaten listede."
+
+msgid "+ Selected Device"
+msgstr "+ Seçili Cihaz"
+
+msgid "Select All"
+msgstr "Tümünü Seç"
+
+msgid "No objects yet — add the selected device or pick objects."
+msgstr "Henüz nesne yok — seçili cihazı ekleyin veya nesne seçin."
+
+msgid "From"
+msgstr "Başlangıç"
+
+msgid "Assign Sequential"
+msgstr "Sıralı Ata"
+
+msgid "Match by Name"
+msgstr "Ada Göre Eşleştir"
+
+msgid "Link All ({count})"
+msgstr "Tümünü Bağla ({count})"
+
+msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
+msgstr "{ready} hazır · {amb} belirsiz · {bad} uyumsuz · {none} eşleşmemiş"
+
+msgid "Only Problems"
+msgstr "Yalnızca Sorunlar"
+
+msgid "Ready to link."
+msgstr "Bağlamaya hazır."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Grup adresini kontrol edin: birden fazla eşleşme var veya bir veri tipi bilinmiyor."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "Veri tipleri uyuşmuyor; bu satır bağlanmaz."
+
+msgid "No group address chosen yet."
+msgstr "Henüz grup adresi seçilmedi."
+
+msgid "OK"
+msgstr "Tamam"
+
+msgid "Cancel"
+msgstr "İptal et"
+
+msgid "Tools"
+msgstr "Araçlar"
+
+msgid "Open a project to use the tools."
+msgstr "Araçları kullanmak için bir proje açın."
+
+msgid "No devices in this project."
+msgstr "Bu projede cihaz yok."
+
+msgid "Extended Copy"
+msgstr "Gelişmiş Kopya"
+
+msgid "Replace Device"
+msgstr "Cihazı Yenisiyle Değiştir"
+
+msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
+msgstr "Bir cihazı grup adresi bağlantılarını koruyarak başka bir modelle (projede zaten bulunan bir şablon cihazla) değiştirin. Grup nesneleri numara ve boyuta göre eşleştirilir; eşleşmeyenler bildirilir. Parametreler aktarılmaz."
+
+msgid "Device to Replace"
+msgstr "Değiştirilecek Cihaz"
+
+msgid "Replace with (Template)"
+msgstr "Yerine Gelecek Cihaz (Şablon)"
+
+msgid "Group Object Mapping (by Number)"
+msgstr "Grup Nesnesi Eşlemesi (Numaraya Göre)"
+
+msgid "{count} object(s) will be re-mapped"
+msgstr "Yeniden eşlenecek nesne: {count}"
+
+msgid "Replaced; re-mapped {count} group object(s)"
+msgstr "Değiştirildi; yeniden eşlenen grup nesnesi: {count}"
+
+msgid "Shift Addresses"
+msgstr "Adresleri Kaydır"
+
+msgid "Labels"
+msgstr "Etiketler"
+
+msgid "Topology Check"
+msgstr "Topoloji Kontrolü"
+
+msgid "Project Diff"
+msgstr "Proje Karşılaştırma"
+
+msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Açık projeyi başka bir proje dosyasıyla (.knxproj veya .xknx) karşılaştırın: hangi cihazlar ve grup adresleri eklendi, kaldırıldı veya değiştirildi. Diğer proje yalnızca okunur; hiçbir şey değiştirilmez."
+
+msgid "Choose Project to Compare…"
+msgstr "Karşılaştırılacak Projeyi Seç…"
+
+msgid "Choose Project to Compare"
+msgstr "Karşılaştırılacak Projeyi Seç"
+
+msgid "KNX project (*.knxproj *.xknx)"
+msgstr "KNX projesi (*.knxproj *.xknx)"
+
+msgid "compared with {name}"
+msgstr "karşılaştırılan: {name}"
+
+msgid "No differences in devices or group addresses."
+msgstr "Cihazlarda veya grup adreslerinde fark yok."
+
+msgid "{count} difference(s)"
+msgstr "{count} fark"
+
+msgid "Add Device Certificate"
+msgstr "Cihaz Sertifikası Ekle"
+
+msgid "Device Certificate"
+msgstr "Cihaz Sertifikası"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "Bu cihaz zaten bu projedeki kendi anahtarını kullanıyor. Sertifikası yalnızca fabrika ayarlarına sıfırlamadan sonra yeniden gerekir."
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "Bu cihaz hâlâ fabrika anahtarını kullanıyor: ilk güvenli yüklemesi için sertifikası gerekir."
+
+msgid "Stored Certificate: {serial}"
+msgstr "Kayıtlı Sertifika: {serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Etiketindeki veya sertifikasındaki FDSK'yi girin (36 karakter):"
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "Değiştirmek için yeni FDSK'yi girin (36 karakter):"
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "Kayıtlı sertifika kaldırılsın mı? Fabrika ayarlarına sıfırlamadan sonra cihaza yalnızca etiketindeki kodla yeniden erişilebilir."
+
+msgid "Device Certificate…"
+msgstr "Cihaz Sertifikası…"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "Cihaz sertifikası (FDSK) eksik."
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "Bu geçerli bir FDSK değil; lütfen kontrol edin."
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "Bu sertifika şu seri numaralı cihaza ait: {serial}."
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "Önce bir proje parolası belirleyin: cihaz anahtarlarını korur."
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "Diğer proje parolayla korunuyor. Karşılaştırmak için parolayı girin:"
+
+msgid "Compare"
+msgstr "Karşılaştır"
+
+msgid "Wrong password, please try again."
+msgstr "Yanlış parola, lütfen tekrar deneyin."
+
+msgid "Duplicate a device several times. Optionally rewrite the copy name (find/replace) and create a group address for each of its objects."
+msgstr "Bir cihazı birden çok kez çoğaltın. İsteğe bağlı olarak kopya adını yeniden yazın (bul/değiştir) ve her nesnesi için bir grup adresi oluşturun."
+
+msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
+msgstr "Bireysel adreslerinin cihaz bölümüne bir ofset ekleyerek cihazları yeniden numaralandırın, ör. yeni cihazlar için boşluk açmak üzere. Grup adreslerine dokunulmaz."
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "Alanları ve bir çıktı seçin: CSV, yazdırılabilir etiket sayfaları (Avery) veya tam sayfa bir açıklama. HTML çıktısı yazdırmak veya PDF olarak kaydetmek için tarayıcınızda açılır."
+
+msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
+msgstr "Salt okunur tarama: bireysel adresi eksik, hatalı veya yinelenen cihazları listeler."
+
+msgid "Source Device"
+msgstr "Kaynak Cihaz"
+
+msgid "Copies"
+msgstr "Kopya Sayısı"
+
+msgid "Find in Name"
+msgstr "Adda Bul"
+
+msgid "Replace with"
+msgstr "İle değiştir"
+
+msgid "Create Group Addresses for Each Copy"
+msgstr "Her Kopya için Grup Adresi Oluştur"
+
+msgid "Copy Name: {name}"
+msgstr "Kopya adı: {name}"
+
+msgid "Copy"
+msgstr "Kopyala"
+
+msgid "Created {count} copy/copies"
+msgstr "Oluşturulan kopya: {count}"
+
+msgid "Shifts the device part of each individual address. Group addresses are not shifted."
+msgstr "Her bireysel adresin cihaz bölümünü kaydırır. Grup adresleri kaydırılmaz."
+
+msgid "Offset"
+msgstr "Ofset"
+
+msgid "Filter devices…"
+msgstr "Cihazları filtrele…"
+
+msgid "All"
+msgstr "Tümü"
+
+msgid "None"
+msgstr "Hiçbiri"
+
+msgid "{sel} of {total} selected"
+msgstr "{sel} / {total} seçili"
+
+msgid "(out of range)"
+msgstr "(aralık dışında)"
+
+msgid "{count} address(es) will change"
+msgstr "Değişecek adres: {count}"
+
+msgid "Shifted {count} address(es)"
+msgstr "Kaydırılan adres: {count}"
+
+msgid "Individual Addresses"
+msgstr "Bireysel Adresler"
+
+msgid "This project has no group addresses."
+msgstr "Bu projede grup adresi yok."
+
+msgid "Shift Group Addresses"
+msgstr "Grup Adreslerini Kaydır"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Ham değerlerine bir ofset ekleyerek grup adreslerini yeniden numaralandırın, ör. boşluk açmak için. Grup nesnesi bağlantıları her adresle birlikte taşınır. Herhangi bir kaydırma çakışırsa veya geçerli aralığın dışına çıkarsa hiçbir şey yazılmaz."
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "Ofset 16 bit ham değere eklenir; bu nedenle adresler bir sınırı geçtiğinde ana/orta grup değişebilir."
+
+msgid "Shifted {count} group address(es)"
+msgstr "Kaydırılan grup adresi: {count}"
+
+msgid "Export CSV…"
+msgstr "CSV Dışa Aktar…"
+
+msgid "Exported to {path}"
+msgstr "Dışa aktarıldı: {path}"
+
+msgid "Fields"
+msgstr "Alanlar"
+
+msgid "Output"
+msgstr "Çıktı"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Label Sheet"
+msgstr "Etiket Sayfası"
+
+msgid "Legend (Full Page)"
+msgstr "Açıklama (Tam Sayfa)"
+
+msgid "Sheet"
+msgstr "Sayfa"
+
+msgid "Custom Grid"
+msgstr "Özel Izgara"
+
+msgid "Columns"
+msgstr "Kolonlar"
+
+msgid "Rows"
+msgstr "Satırlar"
+
+msgid "Label W x H (mm)"
+msgstr "Etiket G x Y (mm)"
+
+msgid "Margin Top / Left (mm)"
+msgstr "Kenar Boşluğu Üst / Sol (mm)"
+
+msgid "Gap X / Y (mm)"
+msgstr "Aralık X / Y (mm)"
+
+msgid "Export HTML…"
+msgstr "HTML Dışa Aktar…"
+
+msgid "Select at least one field."
+msgstr "En az bir alan seçin."
+
+msgid "No topology issues found."
+msgstr "Topoloji sorunu bulunamadı."
+
+msgid "{count} issue(s)"
+msgstr "{count} sorun"
+
+msgid "Click a finding to jump to the device."
+msgstr "Cihaza gitmek için bir bulguya tıklayın."
+
+msgid "No buildings/rooms in this project"
+msgstr "Bu projede bina/oda yok"
+
+msgid "+ Function"
+msgstr "+ Fonksiyon"
+
+msgid "+ Space"
+msgstr "+ Mekan"
+
+msgid "+ Sub-space"
+msgstr "+ Alt Mekan"
+
+msgid "New Space"
+msgstr "Yeni Mekan"
+
+msgid "Name"
+msgstr "Ad"
+
+msgid "Type"
+msgstr "Tip"
+
+msgid "Create"
+msgstr "Oluştur"
+
+msgid "Delete"
+msgstr "Sil"
+
+msgid "Delete Space"
+msgstr "Mekanı Sil"
+
+msgid "Move to"
+msgstr "Şuraya Taşı"
+
+msgid "(Top Level)"
+msgstr "(En Üst Seviye)"
+
+msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
+msgstr "Bu mekan ve içindeki her şey silinsin mi? Cihazlar yalnızca atamadan çıkarılır, silinmez."
+
+msgid "Assign Device"
+msgstr "Cihaz Ata"
+
+msgid "Assign a Device to This Space"
+msgstr "Bu Mekana Bir Cihaz Ata"
+
+msgid "No unassigned devices"
+msgstr "Atanmamış cihaz yok"
+
+msgid "Remove from Space"
+msgstr "Mekandan Kaldır"
+
+msgid "Without Space"
+msgstr "Mekansız"
+
+msgid "Building"
+msgstr "Bina"
+
+msgid "Building Part"
+msgstr "Bina Bölümü"
+
+msgid "Floor"
+msgstr "Kat"
+
+msgid "Room"
+msgstr "Oda"
+
+msgid "Corridor"
+msgstr "Koridor"
+
+msgid "Stairway"
+msgstr "Merdiven"
+
+msgid "Distribution Board"
+msgstr "Dağıtım Panosu"
+
+msgid "New Function"
+msgstr "Yeni Fonksiyon"
+
+msgid "Rename"
+msgstr "Yeniden adlandır"
+
+msgid "Rename Function"
+msgstr "Fonksiyonu Yeniden Adlandır"
+
+msgid "Assign Group Address"
+msgstr "Grup Adresi Ata"
+
+msgid "Role (Optional)"
+msgstr "Rol (İsteğe Bağlı)"
+
+msgid "Custom"
+msgstr "Özel"
+
+msgid "Switchable Light"
+msgstr "Anahtarlanabilen aydınlatma"
+
+msgid "Dimmable Light"
+msgstr "Dimmerlenebilen aydınlatma"
+
+msgid "Sun Protection"
+msgstr "Güneş koruması"
+
+msgid "Heating (Switching Variable)"
+msgstr "Isıtma (Anahtarlamalı Kontrol Değeri)"
+
+msgid "Heating (Continuous Variable)"
+msgstr "Isıtma (Sürekli Kontrol Değeri)"
+
+msgid "Switchable Socket"
+msgstr "Anahtarlanabilen Priz"
+
+msgid "No project"
+msgstr "Proje yok"
+
+msgid "Installation"
+msgstr "Kurulum"
+
+msgid "Group Address Style"
+msgstr "Grup Adresi Stili"
+
+msgid "Created by"
+msgstr "Oluşturan"
+
+msgid "Tool Version"
+msgstr "Araç Sürümü"
+
+msgid "Schema Version"
+msgstr "Şema Sürümü"
+
+msgid "Last Modified"
+msgstr "Son değiştirilme"
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "Project ID"
+msgstr "Proje ID'si"
+
+msgid "Original Project ID"
+msgstr "Orijinal Proje ID'si"
+
+msgid "Master Data (Signed)"
+msgstr "Ana Veriler (İmzalı)"
+
+msgid "Validation File"
+msgstr "Doğrulama Dosyası"
+
+msgid "Project Certificate"
+msgstr "Proje Sertifikası"
+
+msgid "none"
+msgstr "yok"
+
+msgid "present ({size} bytes)"
+msgstr "mevcut ({size} bayt)"
+
+msgid "Password"
+msgstr "Parola"
+
+msgid "Protected"
+msgstr "Korumalı"
+
+msgid "Not protected"
+msgstr "Korumasız"
+
+msgid "Set Password"
+msgstr "Parola Oluştur"
+
+msgid "Change Password"
+msgstr "Parola Değiştir"
+
+msgid "Remove Password"
+msgstr "Parolayı Kaldır"
+
+msgid "Project Password"
+msgstr "Proje Parolası"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "Proje ve dışa aktarılan dosyaları bu parolayla korunur; açılırken veya içe aktarılırken parola sorulur. Parola değişikliği geri alınamaz."
+
+msgid "Repeat Password"
+msgstr "Parolayı Tekrarla"
+
+msgid "The passwords do not match."
+msgstr "Parola uyuşmuyor."
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "KNX Secure cihazlar içeren bir proje parola gerektirir: parola, cihazların anahtarlarını projede ve dışa aktarılan dosyalarda korur."
+
+msgid "No project log entries"
+msgstr "Proje geçmişinde kayıt yok"
+
+msgid "Date"
+msgstr "Tarih"
+
+msgid "User"
+msgstr "Kullanıcı"
+
+msgid "Comment"
+msgstr "Yorum"
+
+msgid "Filter log"
+msgstr "Geçmişi filtrele"
+
+msgid "Decrypt Comments"
+msgstr "Yorumların Şifresini Çöz"
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "Knx.Ets.Common.dll Dosyasından Çıkar…"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "ETS, geçmişteki yorumları şifreler. Okumak için şifre çözme anahtarını kendi ETS kurulumunuzdaki Knx.Ets.Common.dll dosyasından çıkarın; hiçbir yere bir şey gönderilmez."
+
+msgid "Comments are encrypted"
+msgstr "Yorumlar şifreli"
+
+msgid "Comments decrypted"
+msgstr "Yorumların şifresi çözüldü"
+
+msgid "Extracting key…"
+msgstr "Anahtar çıkarılıyor…"
+
+msgid "Key extracted; comments decrypted"
+msgstr "Anahtar çıkarıldı; yorumların şifresi çözüldü"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr ".NET çalışma zamanı bulunamadı (.NET SDK'yı kurun veya Windows'ta ETS ile çalıştırın)."
+
+msgid "KNX Common Assembly"
+msgstr "KNX Common Assembly"
+
+msgid "All Files"
+msgstr "Tüm Dosyalar"
+
+msgid "Based on OpenKNXproducer"
+msgstr "OpenKNXproducer tabanlı"
+
+msgid "Order Number"
+msgstr "Sipariş Numarası"
+
+msgid "Description"
+msgstr "Tanım"
+
+msgid "Parameters ({count})"
+msgstr "Parametreler ({count})"
+
+msgid "Group Objects ({count})"
+msgstr "Grup Nesneleri ({count})"
+
+msgid "Channels ({count})"
+msgstr "Kanallar ({count})"
+
+msgid "DALI (Bus)"
+msgstr "DALI (Bus)"
+
+msgid "Assigned Objects"
+msgstr "Atanmış Nesneler"
+
+msgid "Object"
+msgstr "Nesne"
+
+msgid "S"
+msgstr "G"
+
+msgid "S = Sending. This object sends its value to the group address; the others only receive it."
+msgstr "G = Gönderen. Bu nesne değerini grup adresine gönderir; diğerleri yalnızca alır."
+
+msgid "Click to open this device in the editor"
+msgstr "Bu cihazı düzenleyicide açmak için tıklayın"
+
+msgid "No devices"
+msgstr "Cihaz yok"
+
+msgid "Loading application program…"
+msgstr "Uygulama programı yükleniyor…"
+
+msgid "This product has no application program."
+msgstr "Bu ürünün uygulama programı yok."
+
+msgid "Individual Address"
+msgstr "Bireysel Adres"
+
+msgid "Program Device"
+msgstr "Cihazı Programla"
+
+msgid "Test Programming"
+msgstr "Programlamayı Test Et"
+
+msgid "Unload Application Program"
+msgstr "Uygulama Programını Boşalt"
+
+msgid "This unloads the application program of the device at {address}. The device stops working until its application program is downloaded again."
+msgstr "Bu işlem {address} adresindeki cihazın uygulama programını boşaltır. Uygulama programı yeniden yüklenene kadar cihaz çalışmaz."
+
+msgid "This unloads the application program of the device at {address} and then resets its individual address to 15.15.255; for that, its programming button has to be pressed. The device stops working until it is commissioned again."
+msgstr "Bu işlem {address} adresindeki cihazın uygulama programını boşaltır ve ardından bireysel adresini 15.15.255 olarak sıfırlar; bunun için cihazın programlama düğmesine basılmalıdır. Cihaz yeniden devreye alınana kadar çalışmaz."
+
+msgid "Overwrite Address"
+msgstr "Adresin Üzerine Yaz"
+
+msgid "Manufacturer's Plugin Not Available"
+msgstr "Üreticinin Eklentisi Mevcut Değil"
+
+msgid "Serial Number Already Used"
+msgstr "Seri Numarası Zaten Kullanılıyor"
+
+msgid "Download"
+msgstr "Yükle"
+
+msgid "Full"
+msgstr "Tam"
+
+msgid "Application Program"
+msgstr "Uygulama Programı"
+
+msgid "Unload"
+msgstr "Boşalt"
+
+msgid "Unload Application and Address"
+msgstr "Uygulama ve Adresi Boşalt"
+
+msgid "Partial: Parameters"
+msgstr "Kısmi: Parametreler"
+
+msgid "Partial: Group Communication"
+msgstr "Kısmi: Grup İletişimi"
+
+msgid "Overwrite Individual Address"
+msgstr "Bireysel adresin üzerine yaz"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "Bu işlem {address} bireysel adresini programlama düğmesine basılan cihaza yazar. Devam edilsin mi?"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "Bu işlem, cihazın mevcut adresindeki bireysel adresin üzerine {address} yazar. Programlama düğmesine basılması gerekmez."
+
+msgid "Current Individual Address"
+msgstr "Mevcut Bireysel Adres"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "Cihazın mevcut bireysel adresini girin, ör. 1.1.5."
+
+msgid "The device already has the individual address {address}."
+msgstr "Cihazın bireysel adresi zaten {address}."
+
+msgid "Individual Address via Serial Number"
+msgstr "Seri Numarasıyla Bireysel Adres"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "Bu işlem {address} bireysel adresini {serial} seri numaralı cihaza yazar. Programlama düğmesine basılması gerekmez."
+
+msgid "Use Serial Number"
+msgstr "Seri Numarasını Kullan"
+
+msgid "The serial number is already associated with device {device}."
+msgstr "Seri numarası zaten şu cihazla ilişkili: {device}."
+
+msgid "Serial Number"
+msgstr "Seri Numarası"
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "Seri numarasını 12 onaltılık basamak olarak girin, ör. 0083:7AA2039C."
+
+msgid "Manufacturer Info"
+msgstr "Üretici Bilgisi"
+
+msgid "Application"
+msgstr "Uygulama"
+
+msgid "Application Version"
+msgstr "Uygulama Versiyonu"
+
+msgid "Read from Device"
+msgstr "Cihazdan Oku"
+
+msgid "Restart"
+msgstr "Yeniden başlat"
+
+msgid "Reset…"
+msgstr "Sıfırla…"
+
+msgid "Master Reset"
+msgstr "Ana Sıfırlama"
+
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "Yıkıcı işlem: cihaz bus üzerinden sıfırlanır ve yeniden devreye alınmalıdır. KNX Secure modunda bu işlem cihaz güvenliğini devre dışı bırakır."
+
+msgid "Reset Type"
+msgstr "Sıfırlama Tipi"
+
+msgid "I understand this resets the device"
+msgstr "Bunun cihazı sıfırlayacağını anlıyorum"
+
+msgid "Reset Device"
+msgstr "Cihazı Sıfırla"
+
+msgid "Factory Reset"
+msgstr "Fabrika Ayarlarına Sıfırla"
+
+msgid "Factory Reset (Keep Address)"
+msgstr "Fabrika Ayarlarına Sıfırla (Adresi Koru)"
+
+msgid "Reset Individual Address"
+msgstr "Bireysel Adresi Sıfırla"
+
+msgid "Delete Application Program"
+msgstr "Uygulama Programını Sil"
+
+msgid "Reset Parameters"
+msgstr "Parametreleri Sıfırla"
+
+msgid "Reset Group Address Links"
+msgstr "Grup Adresi Bağlantılarını Sıfırla"
+
+msgid "Confirmed Restart"
+msgstr "Onaylı Yeniden Başlatma"
+
+msgid "Set an individual address and connect to the bus first"
+msgstr "Önce bir bireysel adres belirleyin ve bus'a bağlanın"
+
+msgid "The reported value matches {devices} in this project."
+msgstr "Bildirilen değer bu projedeki şununla eşleşiyor: {devices}."
+
+msgid "Mask Version"
+msgstr "Maske Sürümü"
+
+msgid "Order Info"
+msgstr "Sipariş Bilgisi"
+
+msgid "Hardware Type"
+msgstr "Donanım Tipi"
+
+msgid "Status"
+msgstr "Durum"
+
+msgid "no fault reported"
+msgstr "hata bildirilmedi"
+
+msgid "differs from project V{version} — program to apply"
+msgstr "proje V{version} ile farklı — uygulamak için programlayın"
+
+msgid "Product"
+msgstr "Ürün"
+
+msgid "Product Ref"
+msgstr "Ürün Ref."
+
+msgid "Program Ref"
+msgstr "Program Ref."
+
+msgid "IP Configuration"
+msgstr "IP Yapılandırması"
+
+msgid "Assignment"
+msgstr "Atama"
+
+msgid "IP Address"
+msgstr "IP Adresi"
+
+msgid "Subnet Mask"
+msgstr "Alt Ağ Maskesi"
+
+msgid "Default Gateway"
+msgstr "Varsayılan Ağ Geçidi"
+
+msgid "MAC Address"
+msgstr "MAC Adresi"
+
+msgid "Download PDF Manual"
+msgstr "PDF Kılavuzu İndir"
+
+msgid "Searching Manual…"
+msgstr "Kılavuz Aranıyor…"
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "Bu cihazın kılavuzunu bulun (KNX cihaz veritabanı üzerinden, yoksa üretici araması ile) ve tarayıcınızda açın. Garantisiz - doğrudan bir belge bulunamazsa KNX cihaz aramasını açar."
+
+msgid "Update to V{version}"
+msgstr "V{version} Sürümüne Güncelle"
+
+msgid "Change Application Program"
+msgstr "Uygulama Programını Değiştir"
+
+msgid "Update Application Program Version"
+msgstr "Uygulama Program Sürümünü Güncelle"
+
+msgid "Update"
+msgstr "Güncelle"
+
+msgid "Updating the application program…"
+msgstr "Uygulama programı güncelleniyor…"
+
+msgid "Changing the application program…"
+msgstr "Uygulama programı değiştiriliyor…"
+
+msgid "Changing the application program failed"
+msgstr "Uygulama programı değiştirilemedi"
+
+msgid "Updating the application program failed"
+msgstr "Uygulama programı güncellenemedi"
+
+msgid "Copied"
+msgstr "Kopyalandı"
+
+msgid "Click to copy"
+msgstr "Kopyalamak için tıklayın"
+
+msgid "Filter parameters…"
+msgstr "Parametreleri filtrele…"
+
+msgid "Apply Changes to All {count} Identical Devices"
+msgstr "Değişiklikleri Tüm {count} Özdeş Cihaza Uygula"
+
+msgid "Apply Changes to All Channels"
+msgstr "Değişiklikleri Tüm Kanallara Uygula"
+
+msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr "{count} cihaz düzenleniyor — değişiklikler tümüne uygulanır, farklı değerler <farklı> olarak gösterilir"
+
+msgid "Hardware"
+msgstr "Donanım"
+
+msgid "Firmware"
+msgstr "Ürün Yazılımı"
+
+msgid "Com Flags ({count})"
+msgstr "Nesne Bayrakları ({count})"
+
+msgid "Load Procedures ({count})"
+msgstr "Yükleme Prosedürleri ({count})"
+
+msgid "Preview Memory"
+msgstr "Bellek Önizlemesi"
+
+msgid "Memory Preview"
+msgstr "Bellek Önizlemesi"
+
+msgid "Load Reference File"
+msgstr "Referans Dosyası Yükle"
+
+msgid "Save Memory Dump"
+msgstr "Bellek Dökümünü Kaydet"
+
+msgid "Save…"
+msgstr "Kaydet…"
+
+msgid "Diff…"
+msgstr "Karşılaştır…"
+
+msgid "Clear Diff"
+msgstr "Karşılaştırmayı Kaldır"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "Bellek Dökümleri (*.bin)"
+
+msgid "{count} bytes"
+msgstr "{count} bayt"
+
+msgid "No memory segments."
+msgstr "Bellek segmenti yok."
+
+msgid "Cannot encode memory image: {error}"
+msgstr "Bellek görüntüsü oluşturulamıyor: {error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "Dosya okunamadı veya yazılamadı: {error}"
+
+msgid "Programming Test Result"
+msgstr "Programlama Testi Sonucu"
+
+msgid "Evaluation failed"
+msgstr "Değerlendirme başarısız"
+
+msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
+msgstr "Salt okunur test: yükleme işlevinin, cihazda zaten programlı olanla aynı görüntüyü oluşturup oluşturmadığını kontrol eder. Cihaza hiçbir şey yazılmaz."
+
+msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
+msgstr "Çalıştırılamıyor: proje açıldığından beri değiştirildi. Bu test, oluşturulan görüntüyü cihazın programlanmış durumuyla karşılaştırır; bu durum yalnızca projenin açıldığı haliyle eşleşir. Test etmek için bu oturumdaki değişikliklerinizi geri alın."
+
+msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
+msgstr "Çalıştırılamıyor: KNX bağlantısı yok. Bir ağ geçidine bağlanın (Bağlantı menüsü) ve cihaza bireysel adresinden erişilebildiğinden emin olun."
+
+msgid "Match: the generated image is identical to what is on the device"
+msgstr "Eşleşme: oluşturulan görüntü cihazdakiyle aynı"
+
+msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
+msgstr "Uyuşmazlık: {locations} konumda {bytes} bayt cihazdan farklı"
+
+msgid "{matched} matched, {changed} would change"
+msgstr "{matched} eşleşti, {changed} değişecek"
+
+msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
+msgstr "Yalnızca ETS 6 cihazları için: bu test cihazı ETS 6 yöntemiyle oluşturulmuş bir görüntüyle karşılaştırır. En son ETS 5 ile programlanmış bir cihaz farklı bir bayt düzeni kullanır ve büyük yanlış farklar gösterir - sonuç yalnızca en son ETS 6 ile programlanmış bir cihaz için anlamlıdır."
+
+msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
+msgstr "Yapısal farklar (tablonun tamamı farklı) cihazın en son, bayt düzeni farklı olan ETS 5 ile programlandığı anlamına gelebilir. Yalnızca değerlerdeki farklar genellikle cihazın farklı bir yapılandırma taşıdığı anlamına gelir."
+
+msgid "Location"
+msgstr "Konum"
+
+msgid "Size"
+msgstr "Boyut"
+
+msgid "Changed"
+msgstr "Değişti"
+
+msgid "match"
+msgstr "eşleşme"
+
+msgid "would change"
+msgstr "değişecek"
+
+msgid "device-managed"
+msgstr "cihaz yönetimli"
+
+msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
+msgstr "Cihazın çalışma zamanında kendisinin ayarladığı sistem baytı (ör. uygulamanın bir yüklemeden sonra sıfırladığı yükleme algılama baytı). Buradaki bir fark beklenir ve hatalı bir yüklemeye işaret etmez."
+
+msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
+msgstr "artı {bytes} cihaz yönetimli çalışma zamanı baytı (beklenen, zararsız)"
+
+msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
+msgstr "Yapılandırılmış fark yok: cihaz bu yapılandırmayı zaten taşıyor. Aşağıdaki farklar zararsızdır (notlara bakın)."
+
+msgid "sets default"
+msgstr "varsayılanı ayarlar"
+
+msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
+msgstr "Bu bayt komşu bir parametre için yazılır; farklı olan bit hiçbir etkin parametre tarafından kontrol edilmez ve yalnızca uygulama varsayılanına sıfırlanır. Cihaz, programlamanın normalleştireceği eski bir değer taşıyor (ör. önceki bir yapılandırmadan veya moddan). Zararsız."
+
+msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr "artı uygulama varsayılanına sıfırlanan {bytes} bayt (cihaz eski bir değer taşıyor; zararsız, programlamada normalleştirilir)"
+
+msgid "Export Ist/Soll…"
+msgstr "Mevcut/Hedef Dışa Aktar…"
+
+msgid "Export Path:"
+msgstr "Dışa Aktarma Yolu:"
+
+msgid "Export Programming Test Result"
+msgstr "Programlama Testi Sonucunu Dışa Aktar"
+
+msgid "memory {address}"
+msgstr "bellek {address}"
+
+msgid "object {object} property {property}"
+msgstr "nesne {object} özellik {property}"
+
+msgid "Filter devices (name, address)…"
+msgstr "Cihazları filtrele (ad, adres)…"
+
+msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
+msgstr "Cihaz yok. Bir proje açın veya içe aktarın (Dosya menüsü) ya da alan eklemek için buraya sağ tıklayın."
+
+msgid "Filter group addresses (address, name)…"
+msgstr "Grup adreslerini filtrele (adres, ad)…"
+
+msgid "Filter rooms, devices, functions…"
+msgstr "Odaları, cihazları, fonksiyonları filtrele…"
+
+msgid "Area {area}"
+msgstr "Alan {area}"
+
+msgid "{name} (Area {area})"
+msgstr "{name} (Alan {area})"
+
+msgid "Line {area}.{line}"
+msgstr "Linye {area}.{line}"
+
+msgid "{name} (Line {area}.{line})"
+msgstr "{name} (Linye {area}.{line})"
+
+msgid "Unassigned ({count})"
+msgstr "Atanmamış ({count})"
+
+msgid "Add Area"
+msgstr "Alan Ekle"
+
+msgid "Add Line"
+msgstr "Linye Ekle"
+
+msgid "Copy Address"
+msgstr "Adresi Kopyala"
+
+msgid "Duplicate"
+msgstr "Kopya Oluştur"
+
+msgid "Copy Configuration"
+msgstr "Yapılandırmayı Kopyala"
+
+msgid "Compare with…"
+msgstr "Şununla Karşılaştır…"
+
+msgid "Compare Devices"
+msgstr "Cihaz Karşılaştırma"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "Karşılaştırmak için en az iki cihaz içeren bir proje açın."
+
+msgid "Only Differences"
+msgstr "Yalnızca Farklar"
+
+msgid "Filter devices by address, name or description…"
+msgstr "Cihazları adrese, ada veya tanıma göre filtrele…"
+
+msgid "{count} differences"
+msgstr "{count} fark"
+
+msgid "Parameters"
+msgstr "Parametreler"
+
+msgid "Group Objects"
+msgstr "Grup Nesneleri"
+
+msgid "No differences"
+msgstr "Fark yok"
+
+msgid "Field"
+msgstr "Alan"
+
+msgid "Device A"
+msgstr "Cihaz A"
+
+msgid "Device B"
+msgstr "Cihaz B"
+
+msgid "Paste Configuration"
+msgstr "Yapılandırmayı Yapıştır"
+
+msgid "Paste configuration onto '{name}':"
+msgstr "Yapılandırmayı '{name}' cihazına yapıştır:"
+
+msgid "Paste configuration onto {count} selected devices:"
+msgstr "Yapılandırmayı seçili {count} cihaza yapıştır:"
+
+msgid "Duplicate '{name}':"
+msgstr "'{name}' kopyasını oluştur:"
+
+msgid "Group Address Links"
+msgstr "Grup Adresi Bağlantıları"
+
+msgid "Paste"
+msgstr "Yapıştır"
+
+msgid "Delete Device"
+msgstr "Cihazı Sil"
+
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "'{name}' silinsin mi? Grup nesneleri ve grup adresi bağlantıları kaldırılır, bireysel adresi serbest bırakılır. Bu işlem geri alınabilir."
+
+msgid "New Area"
+msgstr "Yeni Alan"
+
+msgid "New Line"
+msgstr "Yeni Linye"
+
+msgid "Number"
+msgstr "Numara"
+
+msgid "Add"
+msgstr "Ekle"
+
+msgid "Save"
+msgstr "Kaydet"
+
+msgid "Load"
+msgstr "Yükle"
+
+msgid "Copy Log"
+msgstr "Günlüğü Kopyala"
+
+msgid "New Group Address"
+msgstr "Yeni Grup Adresi"
+
+msgid "New Main Group"
+msgstr "Yeni Ana Grup"
+
+msgid "New Middle Group"
+msgstr "Yeni Orta Grup"
+
+msgid "New Folder"
+msgstr "Yeni Klasör"
+
+msgid "Rename Folder"
+msgstr "Klasörü Yeniden Adlandır"
+
+msgid "Delete Folder"
+msgstr "Klasörü Sil"
+
+msgid "Main group name (the next free number is assigned automatically)"
+msgstr "Ana grup adı (sonraki boş numara otomatik atanır)"
+
+msgid "Middle group name (the next free number is assigned automatically)"
+msgstr "Orta grup adı (sonraki boş numara otomatik atanır)"
+
+msgid "Delete this folder and every group address in it? This can be undone."
+msgstr "Bu klasör ve içindeki tüm grup adresleri silinsin mi? Bu işlem geri alınabilir."
+
+msgid "Rename Group Address"
+msgstr "Grup Adresini Yeniden Adlandır"
+
+msgid "Change Address…"
+msgstr "Adresi Değiştir…"
+
+msgid "New group address (links are kept):"
+msgstr "Yeni grup adresi (bağlantılar korunur):"
+
+msgid "Invalid address or already in use."
+msgstr "Geçersiz adres veya zaten kullanılıyor."
+
+msgid "Security"
+msgstr "Güvenlik"
+
+msgid "Automatic"
+msgstr "Otomatik"
+
+msgid "Secured"
+msgstr "Güvenli"
+
+msgid "Not Secured"
+msgstr "Güvenli Değil"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "Güvenli bir grup adresi yalnızca güvenli şekilde devreye alınan cihazlara bağlanabilir."
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "Bu grup adresine bağlı cihazların tümü güvenli şekilde devreye alınmıyor; bu nedenle grup adresi güvenli yapılamaz."
+
+msgid "Set Datapoint Type"
+msgstr "Veri Tipini Belirle"
+
+msgid "Address"
+msgstr "Adres"
+
+msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
+msgstr "Veri tipi (ör. DPST-1-1); temizlemek için boş bırakın"
+
+msgid "Project: {name}"
+msgstr "Proje: {name}"
+
+msgid "(unsaved)"
+msgstr "(kaydedilmedi)"
+
+msgid "No history"
+msgstr "Tarihçe yok"
+
+msgid "Restore"
+msgstr "Geri Yükle"
+
+msgid "Add device: {name}"
+msgstr "Cihaz ekle: {name}"
+
+msgid "Remove device: {name}"
+msgstr "Cihaz kaldır: {name}"
+
+msgid "Address: {old} -> {new}"
+msgstr "Adres: {old} -> {new}"
+
+msgid "Name: {old} -> {new}"
+msgstr "Ad: {old} -> {new}"
+
+msgid "Parameter: {old} -> {new}"
+msgstr "Parametre: {old} -> {new}"
+
+msgid "DPT: {old} -> {new}"
+msgstr "DPT: {old} -> {new}"
+
+msgid "Flag: {flag} -> {state}"
+msgstr "Bayrak: {flag} -> {state}"
+
+msgid "Group address {address} created"
+msgstr "Grup adresi oluşturuldu: {address}"
+
+msgid "Group address {address} removed"
+msgstr "Grup adresi kaldırıldı: {address}"
+
+msgid "Group address: {old} -> {new}"
+msgstr "Grup adresi: {old} -> {new}"
+
+msgid "Group object linked to group address"
+msgstr "Grup nesnesi grup adresine bağlandı"
+
+msgid "Group object unlinked from group address"
+msgstr "Grup nesnesinin grup adresiyle bağlantısı kesildi"
+
+msgid "Area {number} created"
+msgstr "Alan oluşturuldu: {number}"
+
+msgid "Area {number} removed"
+msgstr "Alan kaldırıldı: {number}"
+
+msgid "Area: {old} -> {new}"
+msgstr "Alan: {old} -> {new}"
+
+msgid "Line {number} created"
+msgstr "Linye oluşturuldu: {number}"
+
+msgid "Line {number} removed"
+msgstr "Linye kaldırıldı: {number}"
+
+msgid "Line: {old} -> {new}"
+msgstr "Linye: {old} -> {new}"
+
+msgid "This action can only be performed when the individual address of the device is already downloaded."
+msgstr "Bu eylem yalnızca cihazın bireysel adresi daha önce yüklendiğinde gerçekleştirilebilir."
+
+msgid "Button {0} executed. "
+msgstr "{0} düğmesi çalıştırıldı. "
+
+msgid "A parameter script is running for this device."
+msgstr "Bu cihaz için bir parametre komut dosyası çalışıyor."
+
+msgid "The Device has no valid address or is not linked to an area or line."
+msgstr "Cihazın geçerli adresi yok veya bir alana veya linyeye bağlı değil."
+
+msgid "Parameter Script"
+msgstr "Parametre Komut Dosyası"
+
+msgid "Executing Script"
+msgstr "Komut Dosyası Yürütülüyor"
+
+msgid "Script not responding"
+msgstr "Komut dosyası yanıt vermiyor"
+
+msgid "Force Stop"
+msgstr "Zorla Durdur"
+
+msgid "The script was stopped."
+msgstr "Komut dosyası durduruldu."
+
+msgid "Canceling…"
+msgstr "İptal ediliyor…"
+
+msgid "No connection to the bus."
+msgstr "Bus bağlantısı yok."
+
+msgid "Parameter value cannot be set, because validation failed."
+msgstr "Doğrulama başarısız olduğu için parametre değeri ayarlanamıyor."
+
+msgid "Operations"
+msgstr "İşlemler"
+
+msgid "Active"
+msgstr "Aktif"
+
+msgid "Cancel All"
+msgstr "Tümünü İptal Et"
+
+msgid "Clear History"
+msgstr "Geçmişi Sil"
+
+msgid "No operations."
+msgstr "İşlem yok."
+
+msgid "Device Info"
+msgstr "Cihaz Bilgisi"
+
+msgid "Device Info (With Group Communication)"
+msgstr "Cihaz Bilgisi (Grup İletişimi ile)"
+
+msgid "Reading"
+msgstr "Okunuyor"
+
+msgid "General"
+msgstr "Genel"
+
+msgid "Group Communication"
+msgstr "Grup İletişimi"
+
+msgid "Device Manufacturer"
+msgstr "Cihaz Üreticisi"
+
+msgid "Firmware Version"
+msgstr "Yazılım Versiyonu"
+
+msgid "Programming Mode"
+msgstr "Programlama Modu"
+
+msgid "Load State"
+msgstr "Yükleme Durumu"
+
+msgid "Address Table Load State"
+msgstr "Adres Tablosu Yüklenme Durumu"
+
+msgid "Association Table Load State"
+msgstr "Birleştirme Tablosu Yükleme Durumu"
+
+msgid "Group Object Table Load State"
+msgstr "Grup Nesnesi Tablosu Yükleme Durumu"
+
+msgid "Reading the tables failed: {error}"
+msgstr "Tablolar okunamadı: {error}"
+
+msgid "On"
+msgstr "Açık"
+
+msgid "Off"
+msgstr "Kapalı"
+
+msgid "Unloaded"
+msgstr "Boşaltıldı"
+
+msgid "Loaded"
+msgstr "Yüklendi"
+
+msgid "Loading"
+msgstr "Yükleniyor"
+
+msgid "Error"
+msgstr "Hata"
+
+msgid "Unloading"
+msgstr "Boşaltılıyor"
+
+msgid "Load Completing"
+msgstr "Yükleme Tamamlanıyor"
+
+msgid "Yes"
+msgstr "Evet"
+
+msgid "No"
+msgstr "Hayır"
+
+msgid "Also read the group communication?"
+msgstr "Grup iletişimi de okunsun mu?"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "Cihazdaki uygulama katalogda değil, bu nedenle tabloları bulunamıyor"
+
+msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
+msgstr "Bu cihaz yalnızca üreticinin eklentisiyle programlanabilir; bu eklenti burada mevcut değil."
+
+msgid "Parameters in the Manufacturer's Plugin"
+msgstr "Üreticinin Eklentisindeki Parametreler"
+
+msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
+msgstr "Üretici bu cihazın parametrelerini, XKNX Editor'ün çalıştıramadığı kendi eklenti iletişim kutusunda ayarlar; bu nedenle parametreler burada değiştirilemez. Bir yükleme, mevcut değerlerini değiştirmeden yazar; grup nesneleri her zamanki gibi bağlanabilir."
+
+msgid "Edit parameters anyway"
+msgstr "Parametreleri yine de düzenle"
+
+msgid "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+msgstr "Üretici bu cihazı kendi eklenti iletişim kutusuyla yapılandırır; orada yapılan ayarlar burada gösterilmez."
+
+msgid "The manufacturer programs this device with its own plugin; the standard download is used here."
+msgstr "Üretici bu cihazı kendi eklentisiyle programlar; burada standart yükleme kullanılır."
+
+msgid "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+msgstr "Üretici bu cihazın verilerinin bir kısmını burada mevcut olmayan kendi eklentisiyle yönetir."
+
+msgid "The manufacturer plugin is not available here:"
+msgstr "Üretici eklentisi burada mevcut değil:"
+
+msgid "Only it can program the device."
+msgstr "Cihazı yalnızca eklenti programlayabilir."
+
+msgid "Settings made in its dialog are not shown."
+msgstr "Eklentinin iletişim kutusunda yapılan ayarlar gösterilmez."
+
+msgid "The standard download is used instead."
+msgstr "Bunun yerine standart yükleme kullanılır."
+
+msgid "Part of the device data is not available."
+msgstr "Cihaz verilerinin bir kısmı mevcut değil."
+
+msgid "This device is also configured with separate software from the manufacturer."
+msgstr "Bu cihaz ayrıca üreticinin ayrı bir yazılımıyla yapılandırılır."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "Bu cihaz, XKNX Editor'ün çalıştıramadığı bir üretici yapılandırma uygulaması (“{name}”) içeriyor. Cihazın standart parametreleri yine programlanabilir, ancak bu uygulamanın sağladığı ek işlevler programlanamaz."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "Bu cihaz, doğrudan XKNX Editor'de çalıştırılamayan bir üretici yapılandırma uygulaması (“{name}”) içeriyor — ancak uygulama uyarlandığı için en önemli işlevleri burada kullanılabilir (DALI sekmesine bakın)."
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "Üretici bu cihazın yalnızca kendi eklentisiyle programlanmasına izin veriyor; bu eklenti burada mevcut değil. Eklenti olmadan programlamak cihazı hatalı yapılandırılmış veya hata durumunda bırakabilir."
+
+msgid "Program Without the Manufacturer's Plugin Anyway"
+msgstr "Yine de Üreticinin Eklentisi Olmadan Programla"
+
+msgid "Downloading"
+msgstr "Yükleniyor"
+
+msgid "Please press the programming button"
+msgstr "Lütfen programlama düğmesine basın"
+
+msgid "Waiting for confirmation"
+msgstr "Onay bekleniyor"
+
+msgid "The application program currently loaded in the device is different from the projected application program"
+msgstr "Cihazda yüklü olan uygulama programı, öngörülen uygulama programından farklı"
+
+msgid "Do you want to overwrite the application program (this may take several minutes)?"
+msgstr "Uygulama programının üzerine yazmak istiyor musunuz (bu işlem birkaç dakika sürecektir)?"
+
+msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
+msgstr "Cihazda yüklü olan uygulama programı öngörülen uygulama programıyla uyuşmuyor. Kısmi yükleme yerine tam yüklemeyi deneyebilirsiniz."
+
+msgid "Incompatible mask version: {found} instead of {expected}"
+msgstr "Uyumsuz maske sürümü: {expected} yerine {found}"
+
+msgid "Waiting"
+msgstr "Bekliyor"
+
+msgid "Finished"
+msgstr "Bitti"
+
+msgid "Canceled"
+msgstr "İptal edildi"
+
+msgid "Cancelled by user."
+msgstr "Kullanıcı tarafından iptal edildi."
+
+msgid "Started by an MCP client."
+msgstr "Bir MCP istemcisi tarafından başlatıldı."
+
+msgid "failed"
+msgstr "başarısız"
+
+msgid "No details available"
+msgstr "Ayrıntı yok"
+
+msgid "Connection: {connection}"
+msgstr "Bağlantı: {connection}"
+
+msgid "Start: {time}"
+msgstr "Başlangıç: {time}"
+
+msgid "End: {time}"
+msgstr "Bitiş: {time}"
+
+msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
+msgstr "Bu cihazın ürün verileri eksik - uygulama programı katalogda değil. Cihazı düzenlemek için ürününü içe aktarın."
+
+msgid "DIN Rail Mounting"
+msgstr "DIN Ray Montajı"
+
+msgid "Bus Current"
+msgstr "Bus Akımı"
+
+msgid "Read Value"
+msgstr "Değer Oku"
+
+msgid "Write Value…"
+msgstr "Değer Yaz…"
+
+msgid "Write Value"
+msgstr "Değer Yaz"
+
+msgid "Data Type"
+msgstr "Veri Tipi"
+
+msgid "Value"
+msgstr "Değer"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "Değer yazmak için grup adresinin veri tipini belirleyin."
+
+msgid "Write"
+msgstr "Yaz"
+
+msgid "Not connected to the bus."
+msgstr "Bus'a bağlı değil."
+
+msgid "Export Group Addresses…"
+msgstr "Grup Adreslerini Dışa Aktar…"
+
+msgid "Import Group Addresses…"
+msgstr "Grup Adreslerini İçe Aktar…"
+
+msgid "Import Group Addresses"
+msgstr "Grup Adreslerini İçe Aktar"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "Grup Adresi Dosyaları (XML, CSV)"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "{added} grup adresi eklendi, {updated} güncellendi."
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "{count} grup adresi bir gruba yerleştirilemedi."
+
+msgid "The file could not be imported: {error}"
+msgstr "Dosya içe aktarılamadı: {error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "Dosya {file} grup adresleri kullanıyor, ancak proje {project} grup adresleri kullanıyor."
+
+msgid "3-level"
+msgstr "3 seviyeli"
+
+msgid "2-level"
+msgstr "2 seviyeli"
+
+msgid "free"
+msgstr "serbest"
+
+msgid "Export"
+msgstr "Dışa Aktar"
+
+msgid "Import"
+msgstr "İçe Aktar"
+
+msgid "Plain"
+msgstr "Şifresiz"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "Güvenli Devreye Almayı Devre Dışı Bırak"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "Bu grup adresleri bundan sonra şifrelenmeden iletişim kurar:"
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "Cihazın grup nesneleri şu güvenli grup adreslerinden kaldırılacak:"
+
+msgid "Deactivate"
+msgstr "Devre Dışı Bırak"
+
+msgid "Secure Commissioning"
+msgstr "Güvenli Devreye Alma"
+
+msgid "Add Device Certificate…"
+msgstr "Cihaz Sertifikası Ekle…"
+
+msgid "Activated"
+msgstr "Etkinleştirildi"
+
+msgid "Deactivated"
+msgstr "Devre dışı bırakıldı"
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "Güvenli iletişim gerektiren bir grup nesnesi şifrelenmemiş bir grup adresine düşerdi."
+
+msgid "Later"
+msgstr "Daha Sonra"
+
+msgid "Don't Ask When Adding Devices"
+msgstr "Cihaz Eklerken Sorma"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "Parolaları Göster"
+
+msgid "Secure Tunneling"
+msgstr "Güvenli Tünelleme"
+
+msgid "Commissioning Password"
+msgstr "Devreye Alma Parolası"
+
+msgid "Authentication Code"
+msgstr "Doğrulama Kodu"
+
+msgid "Interface"
+msgstr "Arabirim"
+
+msgid "Routing"
+msgstr "Yönlendirme"
+
+msgid "Tunnel {address}"
+msgstr "Tünel {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "Parola 1 ile 20 arasında Latin-1 karakterinden oluşmalıdır."
+
+msgid "Close"
+msgstr "Kapat"
+
+msgid "IP Backbone Security"
+msgstr "IP Omurga Güvenliği"
+
+msgid "Device Certificates"
+msgstr "Cihaz Sertifikaları"
+
+msgid "Manage…"
+msgstr "Yönet…"
+
+msgid "The project has no device certificates."
+msgstr "Projede cihaz sertifikası yok."
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "{device} cihazının güvenlik tabloları bu bağlantıyı alamıyor."
+
+msgid "Point-to-Point and Broadcast"
+msgstr "Noktadan Noktaya ve Yayın"
+
+msgid "Blocked"
+msgstr "Engellendi"
+
+msgid "Routed"
+msgstr "Yönlendirildi"
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "DALI bus'ını devreye almak için bir KNX arabirimine bağlanın."
+
+msgid "Scan Bus"
+msgstr "Bus'ı Tara"
+
+msgid "All ECGs On"
+msgstr "Tüm Balastları Aç"
+
+msgid "All Off"
+msgstr "Tümünü Kapat"
+
+msgid "New Installation…"
+msgstr "Yeni Tesisat…"
+
+msgid "Post Installation…"
+msgstr "Sonradan Tesisat…"
+
+msgid "Running: {task}"
+msgstr "Çalışıyor: {task}"
+
+msgid "scanning the bus"
+msgstr "bus taranıyor"
+
+msgid "switching all ECGs"
+msgstr "tüm balastlar anahtarlanıyor"
+
+msgid "blinking"
+msgstr "yanıp sönme"
+
+msgid "stopping the blinking"
+msgstr "yanıp sönme durduruluyor"
+
+msgid "new installation"
+msgstr "yeni tesisat"
+
+msgid "post installation"
+msgstr "sonradan tesisat"
+
+msgid "programming the groups"
+msgstr "gruplar programlanıyor"
+
+msgid "programming the scenes"
+msgstr "sahneler programlanıyor"
+
+msgid "{count} found"
+msgstr "{count} bulundu"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "DALI bus'ını okumak için 'Bus'ı Tara' komutunu kullanın."
+
+msgid "Firmware {version}"
+msgstr "Ürün yazılımı {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "DALI Programlamasını Onayla"
+
+msgid "Continue"
+msgstr "Devam"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "Yeni tesisat DALI bus'ını yeniden tarar ve HER balastın kısa\nadresini YENİDEN ATAR. Bu işlem geri alınamaz. Devam edilsin mi?"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "Sonradan tesisat, bus'ta yeni balastları arar ve adreslemelerini günceller.\nBu işlem cihazı değiştirir. Devam edilsin mi?"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "Grup atamasını DALI bus'ına yaz. Bu işlem grupları ağ geçidine\nve balastlarına uygular. Devam edilsin mi?"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "Sahne değerlerini DALI bus'ına yaz. Devam edilsin mi?"
+
+msgid "{count} ECG(s) present"
+msgstr "Mevcut balast: {count}"
+
+msgid "Group"
+msgstr "Grup"
+
+msgid "Long Address"
+msgstr "Uzun Adres"
+
+msgid "Alarm"
+msgstr "Alarm"
+
+msgid "Blink"
+msgstr "Yanıp Söndür"
+
+msgid "Stop"
+msgstr "Durdur"
+
+msgid "Program Groups…"
+msgstr "Grupları Programla…"
+
+msgid "Scenes"
+msgstr "Sahneler"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "Sahne tanımlamak için yukarıda balastları gruplara atayın."
+
+msgid "Scene"
+msgstr "Sahne"
+
+msgid "Scene {number}"
+msgstr "Sahne {number}"
+
+msgid "Group {number}"
+msgstr "Grup {number}"
+
+msgid "Program Scenes…"
+msgstr "Sahneleri Programla…"
+
+msgid "Single"
+msgstr "Tekil"
+
+msgid "Unassigned"
+msgstr "Atanmamış"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "Prosedür {number}  ({count} adım)"
+
+msgid "Kind"
+msgstr "Tür"
+
+msgid "Applies To"
+msgstr "Uygulandığı Yer"
+
+msgid "Details"
+msgstr "Detaylar"
+
+msgid "Scope: {scope}"
+msgstr "Kapsam: {scope}"
+
+msgid "Additional Individual Addresses"
+msgstr "Ek Bireysel Adresler"
+
+msgid "Additional Individual Address"
+msgstr "Ek Bireysel Adres"
+
+msgid "Assign Missing Addresses"
+msgstr "Eksik Adresleri Ata"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "Linye, gerekli tüm ek adresler için yeterli adres sağlamıyor."
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "1 ile 255 arasında bir cihaz numarası veya cihazın linyesinde tam bir bireysel adres girin."
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "Ek adres cihazın linyesinde olmalıdır: {line}."
+
+msgid "The individual address {address} is already used in this line."
+msgstr "{address} bireysel adresi bu linyede zaten kullanılıyor."
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "'{0}' cihazının ek adresi değiştirildi: '{1}' -> '{2}'."
+
+msgid "Change additional address names"
+msgstr "Ek adres adlarını değiştir"
+
+msgid "Change additional address descriptions"
+msgstr "Ek adres açıklamalarını değiştir"
+
+msgid "Assign additional addresses"
+msgstr "Ek adresleri ata"
+
+msgid "Change additional addresses"
+msgstr "Ek adresleri değiştir"
+
+msgid "Add device {name}"
+msgstr "Cihaz ekle: {name}"
+
+msgid "Set {ref} = {value}"
+msgstr "Ayarla: {ref} = {value}"
+
+msgid "Change"
+msgstr "Değişiklik"
+
+msgid "Create area {address}"
+msgstr "Alan oluştur: {address}"
+
+msgid "Create line {address}"
+msgstr "Linye oluştur: {address}"
+
+msgid "Add segment"
+msgstr "Segment Ekle"
+
+msgid "Create group address {address}"
+msgstr "Grup adresi oluştur: {address}"
+
+msgid "Import group addresses"
+msgstr "Grup adreslerini içe aktar"
+
+msgid "Import group addresses from {file}"
+msgstr "Grup adreslerini içe aktar: {file}"
+
+msgid "Link group object"
+msgstr "Grup nesnesini bağla"
+
+msgid "Unlink group object"
+msgstr "Grup nesnesinin bağlantısını kes"
+
+msgid "Rename area to {name}"
+msgstr "Alanı yeniden adlandır: {name}"
+
+msgid "Rename project to {name}"
+msgstr "Projeyi yeniden adlandır: {name}"
+
+msgid "Rename line to {name}"
+msgstr "Linyeyi yeniden adlandır: {name}"
+
+msgid "Rename device to {name}"
+msgstr "Cihazı yeniden adlandır: {name}"
+
+msgid "Move device"
+msgstr "Cihaz Taşı"
+
+msgid "Set flag"
+msgstr "Bayrak ayarla"
+
+msgid "Set datapoint type"
+msgstr "Veri tipini belirle"
+
+msgid "Set priority"
+msgstr "Önceliği belirle"
+
+msgid "Set description"
+msgstr "Tanımı belirle"
+
+msgid "Set sending group address"
+msgstr "Gönderen grup adresini belirle"
+
+msgid "Add installation"
+msgstr "Kurulum ekle"
+
+msgid "Remove device"
+msgstr "Cihazı kaldır"
+
+msgid "Remove area"
+msgstr "Alanı kaldır"
+
+msgid "Remove line"
+msgstr "Linyeyi kaldır"
+
+msgid "Remove segment"
+msgstr "Segmenti kaldır"
+
+msgid "Remove group address"
+msgstr "Grup adresini kaldır"
+
+msgid "Remove function"
+msgstr "Fonksiyonu kaldır"
+
+msgid "Remove group address from function"
+msgstr "Grup adresini fonksiyondan kaldır"
+
+msgid "Remove building part"
+msgstr "Bina bölümünü kaldır"
+
+msgid "Remove group range"
+msgstr "Grup aralığını kaldır"
+
+msgid "Update application program"
+msgstr "Uygulama programını güncelle"
+
+msgid "Change application program"
+msgstr "Uygulama Programını Değiştir"
+
+msgid "Update group objects"
+msgstr "Grup nesnelerini güncelle"
+
+msgid "Update module instances"
+msgstr "Modül örneklerini güncelle"
+
+msgid "Set group address security"
+msgstr "Grup adresi güvenliğini belirle"
+
+msgid "Set secure commissioning"
+msgstr "Güvenli devreye almayı belirle"
+
+msgid "Rename group address to {name}"
+msgstr "Grup adresini yeniden adlandır: {name}"
+
+msgid "Change group address"
+msgstr "Grup adresini değiştir"
+
+msgid "Set device certificates"
+msgstr "Cihaz sertifikalarını belirle"
+
+msgid "Set device description"
+msgstr "Cihaz tanımını belirle"
+
+msgid "Create function {name}"
+msgstr "Fonksiyon oluştur: {name}"
+
+msgid "Rename function to {name}"
+msgstr "Fonksiyonu yeniden adlandır: {name}"
+
+msgid "Set function type"
+msgstr "Fonksiyon tipini belirle"
+
+msgid "Add group address to function"
+msgstr "Fonksiyona grup adresi ekle"
+
+msgid "Create building part {name}"
+msgstr "Bina bölümü oluştur: {name}"
+
+msgid "Rename building part to {name}"
+msgstr "Bina bölümünü yeniden adlandır: {name}"
+
+msgid "Set building part number"
+msgstr "Bina bölümü numarasını belirle"
+
+msgid "Set building part description"
+msgstr "Bina bölümü tanımını belirle"
+
+msgid "Set building part type"
+msgstr "Bina bölümü tipini belirle"
+
+msgid "Move building part"
+msgstr "Bina Bölümünü Taşı"
+
+msgid "Assign device to building part"
+msgstr "Cihazı bina bölümüne ata"
+
+msgid "Set commissioning state"
+msgstr "Devreye alma durumunu belirle"
+
+msgid "Create group range {name}"
+msgstr "Grup aralığı oluştur: {name}"
+
+msgid "Rename group range to {name}"
+msgstr "Grup aralığını yeniden adlandır: {name}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: bireysel adres yok"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: hatalı adres '{address}'"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: yinelenen adres {address}"
+
+msgid "added"
+msgstr "eklendi"
+
+msgid "removed"
+msgstr "kaldırıldı"
+
+msgid "changed"
+msgstr "değiştirildi"
