@@ -5646,6 +5646,7 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
         "tools": lambda: _proj.PANEL_TOOLS,
         "history": lambda: _proj.PANEL_HISTORY,
         "project_info": lambda: _proj.PANEL_PROJECT_INFO,
+        "project_log": lambda: _proj.PANEL_PROJECT_LOG,
         "operations": lambda: _proj.PANEL_OPERATIONS,
         "catalog": lambda: _cat.PANEL_CATALOG,
         "topology": lambda: _topology.PANEL_TOPOLOGY,

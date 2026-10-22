@@ -142,3 +142,12 @@ def test_technical_texts_are_still_used() -> None:
             if text is not None:
                 shown.add(text)
     assert set(TECHNICAL) <= shown, set(TECHNICAL) - shown
+
+
+def test_every_panel_title_follows_the_language() -> None:
+    """A language switch renames the panel tabs; each panel needs its translated title for that."""
+    from editor_gui.main import _DOCK_LABELS, _DOCK_TAB_ORDER
+
+    assert set(_DOCK_TAB_ORDER) <= set(_DOCK_LABELS), set(_DOCK_TAB_ORDER) - set(
+        _DOCK_LABELS
+    )
