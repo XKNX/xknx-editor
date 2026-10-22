@@ -37,7 +37,13 @@ class _TeeStream:
 
     def write(self, data: str) -> int:
         for stream in self._streams:
-            stream.write(data)
+            try:
+                stream.write(data)
+            except UnicodeEncodeError:
+                # A console in a legacy code page cannot show every character (e.g. Chinese text);
+                # it gets a replacement character, the log file keeps the text.
+                encoding = getattr(stream, "encoding", None) or "ascii"
+                stream.write(data.encode(encoding, "replace").decode(encoding))
         return len(data)
 
     def flush(self) -> None:
