@@ -37,11 +37,16 @@ class HealthService:
     def __init__(self, project: ProjectService) -> None:
         self._project = project
         self._cache: list[Finding] | None = None
-        self._cache_key: tuple[int, str] | None = None
+        self._cache_key: tuple[int, int, str] | None = None
 
     def findings(self) -> list[Finding]:
-        """Current health findings, recomputed only when the project or the language changed."""
-        key = (self._project.revision, get_locale())
+        """Current health findings, recomputed only when the project or the language changed.
+
+        While a background task holds the project (opening it, a language switch rebuilding the
+        devices) its reads are empty placeholders, so the last findings stay until it is done."""
+        if self._project.loading:
+            return self._cache or []
+        key = (self._project.revision, id(self._project.devices), get_locale())
         if self._cache is None or self._cache_key != key:
             self._cache = self._compute()
             self._cache_key = key
