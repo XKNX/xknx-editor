@@ -279,3 +279,18 @@ msgstr "x 10 ms"
 
 msgid "Milliseconds"
 msgstr "Millisekunnit"
+
+msgid "Bold"
+msgstr "Lihavoitu"
+
+msgid "Italic"
+msgstr "Kursivoitu"
+
+msgid "Underline"
+msgstr "Alleviivaus"
+
+msgid "Cut"
+msgstr "Leikkaa"
+
+msgid "Paste"
+msgstr "Liitä"

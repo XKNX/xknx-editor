@@ -279,3 +279,18 @@ msgstr "x 10 ms"
 
 msgid "Milliseconds"
 msgstr "Millisekunder"
+
+msgid "Bold"
+msgstr "Fet"
+
+msgid "Italic"
+msgstr "Kursiv"
+
+msgid "Underline"
+msgstr "Understryka"
+
+msgid "Cut"
+msgstr "Klipp ut"
+
+msgid "Paste"
+msgstr "Klistra in"

@@ -279,3 +279,18 @@ msgstr "x 10 ms"
 
 msgid "Milliseconds"
 msgstr "ミリ秒"
+
+msgid "Bold"
+msgstr "太字"
+
+msgid "Italic"
+msgstr "イタリック"
+
+msgid "Underline"
+msgstr "アンダーライン"
+
+msgid "Cut"
+msgstr "切り取る"
+
+msgid "Paste"
+msgstr "貼り付ける"

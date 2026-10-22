@@ -2145,3 +2145,39 @@ msgstr "已移除"
 
 msgid "changed"
 msgstr "已更改"
+
+msgid "Installation Hints"
+msgstr "安装提示"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "在树中选择一个元素以查看其备注。"
+
+msgid "Set comment"
+msgstr "设置备注"
+
+msgid "Set installation hints"
+msgstr "设置安装提示"
+
+msgid "Area"
+msgstr "区域"
+
+msgid "Line"
+msgstr "支线"
+
+msgid "The address is a number from 0 to 15."
+msgstr "地址是 0 到 15 之间的数字。"
+
+msgid "Address {address} is already in use."
+msgstr "地址 {address} 已被使用。"
+
+msgid "Set area description"
+msgstr "设置区域说明"
+
+msgid "Set line description"
+msgstr "设置支线说明"
+
+msgid "Set area address"
+msgstr "设置区域地址"
+
+msgid "Set line address"
+msgstr "设置支线地址"

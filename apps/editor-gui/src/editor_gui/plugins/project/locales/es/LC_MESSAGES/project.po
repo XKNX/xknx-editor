@@ -2145,3 +2145,39 @@ msgstr "eliminado"
 
 msgid "changed"
 msgstr "modificado"
+
+msgid "Installation Hints"
+msgstr "Consejos de Instalación"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Seleccione un elemento en un árbol para ver su comentario."
+
+msgid "Set comment"
+msgstr "Establecer comentario"
+
+msgid "Set installation hints"
+msgstr "Establecer consejos de instalación"
+
+msgid "Area"
+msgstr "Área"
+
+msgid "Line"
+msgstr "Línea"
+
+msgid "The address is a number from 0 to 15."
+msgstr "La dirección es un número de 0 a 15."
+
+msgid "Address {address} is already in use."
+msgstr "La dirección {address} ya está en uso."
+
+msgid "Set area description"
+msgstr "Establecer descripción del área"
+
+msgid "Set line description"
+msgstr "Establecer descripción de la línea"
+
+msgid "Set area address"
+msgstr "Establecer dirección del área"
+
+msgid "Set line address"
+msgstr "Establecer dirección de la línea"

@@ -2145,3 +2145,39 @@ msgstr "borttagen"
 
 msgid "changed"
 msgstr "ändrad"
+
+msgid "Installation Hints"
+msgstr "Installationstips"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Välj ett element i ett träd för att se dess kommentar."
+
+msgid "Set comment"
+msgstr "Ange kommentar"
+
+msgid "Set installation hints"
+msgstr "Ange installationstips"
+
+msgid "Area"
+msgstr "Område"
+
+msgid "Line"
+msgstr "Linje"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Adressen är ett tal från 0 till 15."
+
+msgid "Address {address} is already in use."
+msgstr "Adressen {address} används redan."
+
+msgid "Set area description"
+msgstr "Ange områdets beskrivning"
+
+msgid "Set line description"
+msgstr "Ange linjens beskrivning"
+
+msgid "Set area address"
+msgstr "Ange områdets adress"
+
+msgid "Set line address"
+msgstr "Ange linjens adress"

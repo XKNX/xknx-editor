@@ -2145,3 +2145,39 @@ msgstr "odebráno"
 
 msgid "changed"
 msgstr "změněno"
+
+msgid "Installation Hints"
+msgstr "Rady pro instalaci"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Vyberte prvek ve stromu, abyste viděli jeho komentář."
+
+msgid "Set comment"
+msgstr "Nastavit komentář"
+
+msgid "Set installation hints"
+msgstr "Nastavit rady pro instalaci"
+
+msgid "Area"
+msgstr "Oblast"
+
+msgid "Line"
+msgstr "Linie"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Adresa je číslo od 0 do 15."
+
+msgid "Address {address} is already in use."
+msgstr "Adresa {address} je již použita."
+
+msgid "Set area description"
+msgstr "Nastavit popis oblasti"
+
+msgid "Set line description"
+msgstr "Nastavit popis linie"
+
+msgid "Set area address"
+msgstr "Nastavit adresu oblasti"
+
+msgid "Set line address"
+msgstr "Nastavit adresu linie"

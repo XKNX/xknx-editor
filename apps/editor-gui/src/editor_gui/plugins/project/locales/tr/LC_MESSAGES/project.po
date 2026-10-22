@@ -2145,3 +2145,39 @@ msgstr "kaldırıldı"
 
 msgid "changed"
 msgstr "değiştirildi"
+
+msgid "Installation Hints"
+msgstr "Kurulum İpuçları"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Yorumunu görmek için ağaçta bir öğe seçin."
+
+msgid "Set comment"
+msgstr "Yorumu belirle"
+
+msgid "Set installation hints"
+msgstr "Kurulum ipuçlarını belirle"
+
+msgid "Area"
+msgstr "Alan"
+
+msgid "Line"
+msgstr "Linye"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Adres 0 ile 15 arasında bir sayıdır."
+
+msgid "Address {address} is already in use."
+msgstr "{address} adresi zaten kullanılıyor."
+
+msgid "Set area description"
+msgstr "Alan tanımını belirle"
+
+msgid "Set line description"
+msgstr "Linye tanımını belirle"
+
+msgid "Set area address"
+msgstr "Alan adresini belirle"
+
+msgid "Set line address"
+msgstr "Linye adresini belirle"

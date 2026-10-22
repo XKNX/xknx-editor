@@ -2145,3 +2145,39 @@ msgstr "αφαιρέθηκε"
 
 msgid "changed"
 msgstr "άλλαξε"
+
+msgid "Installation Hints"
+msgstr "Συμβουλές Εγκατάστασης"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Επιλέξτε ένα στοιχείο σε ένα δέντρο για να δείτε το σχόλιό του."
+
+msgid "Set comment"
+msgstr "Ορισμός σχολίου"
+
+msgid "Set installation hints"
+msgstr "Ορισμός συμβουλών εγκατάστασης"
+
+msgid "Area"
+msgstr "Περιοχή"
+
+msgid "Line"
+msgstr "Γραμμή"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Η διεύθυνση είναι ένας αριθμός από 0 έως 15."
+
+msgid "Address {address} is already in use."
+msgstr "Η διεύθυνση {address} χρησιμοποιείται ήδη."
+
+msgid "Set area description"
+msgstr "Ορισμός περιγραφής περιοχής"
+
+msgid "Set line description"
+msgstr "Ορισμός περιγραφής γραμμής"
+
+msgid "Set area address"
+msgstr "Ορισμός διεύθυνσης περιοχής"
+
+msgid "Set line address"
+msgstr "Ορισμός διεύθυνσης γραμμής"

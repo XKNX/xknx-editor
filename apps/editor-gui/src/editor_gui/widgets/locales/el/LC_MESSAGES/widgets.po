@@ -279,3 +279,18 @@ msgstr "x 10 ms"
 
 msgid "Milliseconds"
 msgstr "Χιλιοστά του δευτερολέπτου"
+
+msgid "Bold"
+msgstr "Έντονη γραφή"
+
+msgid "Italic"
+msgstr "Πλάγια γραφή"
+
+msgid "Underline"
+msgstr "Υπογράμμιση"
+
+msgid "Cut"
+msgstr "Αποκοπή"
+
+msgid "Paste"
+msgstr "Επικόλληση"

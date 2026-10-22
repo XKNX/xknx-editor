@@ -2145,3 +2145,39 @@ msgstr "supprimé"
 
 msgid "changed"
 msgstr "modifié"
+
+msgid "Installation Hints"
+msgstr "Astuces d'installation"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Sélectionnez un élément dans une arborescence pour voir son commentaire."
+
+msgid "Set comment"
+msgstr "Définir le commentaire"
+
+msgid "Set installation hints"
+msgstr "Définir les astuces d'installation"
+
+msgid "Area"
+msgstr "Zone"
+
+msgid "Line"
+msgstr "Ligne"
+
+msgid "The address is a number from 0 to 15."
+msgstr "L'adresse est un nombre de 0 à 15."
+
+msgid "Address {address} is already in use."
+msgstr "L'adresse {address} est déjà utilisée."
+
+msgid "Set area description"
+msgstr "Définir la description de la zone"
+
+msgid "Set line description"
+msgstr "Définir la description de la ligne"
+
+msgid "Set area address"
+msgstr "Définir l'adresse de la zone"
+
+msgid "Set line address"
+msgstr "Définir l'adresse de la ligne"

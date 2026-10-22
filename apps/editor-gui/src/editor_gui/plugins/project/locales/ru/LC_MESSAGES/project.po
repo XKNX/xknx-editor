@@ -2145,3 +2145,39 @@ msgstr "удалено"
 
 msgid "changed"
 msgstr "изменено"
+
+msgid "Installation Hints"
+msgstr "Советы по установке"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Выберите элемент в дереве, чтобы увидеть его комментарий."
+
+msgid "Set comment"
+msgstr "Задать комментарий"
+
+msgid "Set installation hints"
+msgstr "Задать советы по установке"
+
+msgid "Area"
+msgstr "Область"
+
+msgid "Line"
+msgstr "Линия"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Адрес — это число от 0 до 15."
+
+msgid "Address {address} is already in use."
+msgstr "Адрес {address} уже используется."
+
+msgid "Set area description"
+msgstr "Задать описание области"
+
+msgid "Set line description"
+msgstr "Задать описание линии"
+
+msgid "Set area address"
+msgstr "Задать адрес области"
+
+msgid "Set line address"
+msgstr "Задать адрес линии"

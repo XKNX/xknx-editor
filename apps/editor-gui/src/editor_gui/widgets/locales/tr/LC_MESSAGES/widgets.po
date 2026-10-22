@@ -279,3 +279,18 @@ msgstr "x 10 ms"
 
 msgid "Milliseconds"
 msgstr "Milisaniye"
+
+msgid "Bold"
+msgstr "Kalın"
+
+msgid "Italic"
+msgstr "İtalik"
+
+msgid "Underline"
+msgstr "Altını çiz"
+
+msgid "Cut"
+msgstr "Kes"
+
+msgid "Paste"
+msgstr "Yapıştır"

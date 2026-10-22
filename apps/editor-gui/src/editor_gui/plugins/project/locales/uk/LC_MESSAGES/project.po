@@ -2145,3 +2145,39 @@ msgstr "видалено"
 
 msgid "changed"
 msgstr "змінено"
+
+msgid "Installation Hints"
+msgstr "Підказки інсталяції"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Виберіть елемент у дереві, щоб побачити його коментар."
+
+msgid "Set comment"
+msgstr "Задати коментар"
+
+msgid "Set installation hints"
+msgstr "Задати підказки інсталяції"
+
+msgid "Area"
+msgstr "Область"
+
+msgid "Line"
+msgstr "Лінія"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Адреса — це число від 0 до 15."
+
+msgid "Address {address} is already in use."
+msgstr "Адреса {address} уже використовується."
+
+msgid "Set area description"
+msgstr "Задати опис області"
+
+msgid "Set line description"
+msgstr "Задати опис лінії"
+
+msgid "Set area address"
+msgstr "Задати адресу області"
+
+msgid "Set line address"
+msgstr "Задати адресу лінії"

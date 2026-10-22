@@ -2145,3 +2145,39 @@ msgstr "fjernet"
 
 msgid "changed"
 msgstr "ændret"
+
+msgid "Installation Hints"
+msgstr "Tip til installationen"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Vælg et element i et træ for at se dets bemærkning."
+
+msgid "Set comment"
+msgstr "Angiv bemærkning"
+
+msgid "Set installation hints"
+msgstr "Angiv tip til installationen"
+
+msgid "Area"
+msgstr "Område"
+
+msgid "Line"
+msgstr "Linje"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Adressen er et tal fra 0 til 15."
+
+msgid "Address {address} is already in use."
+msgstr "Adressen {address} er allerede i brug."
+
+msgid "Set area description"
+msgstr "Angiv områdets beskrivelse"
+
+msgid "Set line description"
+msgstr "Angiv linjens beskrivelse"
+
+msgid "Set area address"
+msgstr "Angiv områdets adresse"
+
+msgid "Set line address"
+msgstr "Angiv linjens adresse"

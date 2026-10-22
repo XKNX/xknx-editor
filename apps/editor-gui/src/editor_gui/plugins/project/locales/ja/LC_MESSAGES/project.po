@@ -2145,3 +2145,39 @@ msgstr "削除"
 
 msgid "changed"
 msgstr "変更"
+
+msgid "Installation Hints"
+msgstr "インストール・ヒント"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "ツリーで要素を選択すると、そのコメントが表示されます。"
+
+msgid "Set comment"
+msgstr "コメントを設定"
+
+msgid "Set installation hints"
+msgstr "インストール・ヒントを設定"
+
+msgid "Area"
+msgstr "エリア"
+
+msgid "Line"
+msgstr "ライン"
+
+msgid "The address is a number from 0 to 15."
+msgstr "アドレスは 0 から 15 までの数値です。"
+
+msgid "Address {address} is already in use."
+msgstr "アドレス {address} は既に使用されています。"
+
+msgid "Set area description"
+msgstr "エリアの説明を設定"
+
+msgid "Set line description"
+msgstr "ラインの説明を設定"
+
+msgid "Set area address"
+msgstr "エリアのアドレスを設定"
+
+msgid "Set line address"
+msgstr "ラインのアドレスを設定"

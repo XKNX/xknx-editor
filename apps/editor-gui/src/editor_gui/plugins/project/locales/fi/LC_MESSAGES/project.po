@@ -2145,3 +2145,39 @@ msgstr "poistettu"
 
 msgid "changed"
 msgstr "muutettu"
+
+msgid "Installation Hints"
+msgstr "Asennusvihjeitä"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Valitse elementti puusta nähdäksesi sen kommentin."
+
+msgid "Set comment"
+msgstr "Aseta kommentti"
+
+msgid "Set installation hints"
+msgstr "Aseta asennusvihjeet"
+
+msgid "Area"
+msgstr "Alue"
+
+msgid "Line"
+msgstr "Linja"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Osoite on luku väliltä 0–15."
+
+msgid "Address {address} is already in use."
+msgstr "Osoite {address} on jo käytössä."
+
+msgid "Set area description"
+msgstr "Aseta alueen kuvaus"
+
+msgid "Set line description"
+msgstr "Aseta linjan kuvaus"
+
+msgid "Set area address"
+msgstr "Aseta alueen osoite"
+
+msgid "Set line address"
+msgstr "Aseta linjan osoite"
