@@ -365,6 +365,20 @@ class LinkInfo:
     is_sending: bool
 
 
+@dataclass(frozen=True)
+class DeviceLinkInfo:
+    """A group-address link with the device of its com-object and the com-object's effective flags."""
+
+    device_id: int
+    group_address_id: int
+    is_sending: bool
+    communication: bool
+    read: bool
+    write: bool
+    transmit: bool
+    update: bool
+
+
 def _address_order(device: Device) -> tuple[int, int, int, int, int]:
     """Numeric individual-address order; devices without an address come last by id."""
     if device.address is None:
@@ -2879,6 +2893,38 @@ class ProjectService:
             .order_by(ComObjectLink.id)
             .all()
         )
+
+    def device_links(self, project_id: str) -> list[DeviceLinkInfo]:
+        """Every group-address link of the project with its device and flags, in one query."""
+        rows = (
+            self._state(project_id)
+            .session.query(
+                ComObject.device_id,
+                ComObjectLink.group_address_id,
+                ComObjectLink.is_sending,
+                ComObject.communication_flag,
+                ComObject.read_flag,
+                ComObject.write_flag,
+                ComObject.transmit_flag,
+                ComObject.update_flag,
+            )
+            .join(ComObjectLink, ComObjectLink.com_object_id == ComObject.id)
+            .order_by(ComObjectLink.id)
+            .all()
+        )
+        return [
+            DeviceLinkInfo(
+                device_id=device_id,
+                group_address_id=ga_id,
+                is_sending=bool(sending),
+                communication=bool(communication),
+                read=bool(read),
+                write=bool(write),
+                transmit=bool(transmit),
+                update=bool(update),
+            )
+            for device_id, ga_id, sending, communication, read, write, transmit, update in rows
+        ]
 
     def group_addresses(self, project_id: str) -> list[GroupAddressInfo]:
         state = self._state(project_id)

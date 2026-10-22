@@ -86,6 +86,7 @@ if TYPE_CHECKING:
         AdditionalAddressInfo,
         DeviceInfo,
         DeviceKeys,
+        DeviceLinkInfo,
         GroupRangeInfo,
         IpSecrets,
         SecureCommissioningImpact,
@@ -2224,6 +2225,15 @@ class ProjectService:
             )
             for link in self._svc.group_address_links(self._pid, ga_id)
         ]
+
+    @io_guarded(list)
+    @revision_cached
+    def device_links(self) -> list["DeviceLinkInfo"]:
+        """Every group-address link with its device (``node_id``) and its com-object's flags, read in
+        one query: for views over the whole project, where a read per com-object is far too slow."""
+        if self._pid is None:
+            return []
+        return self._svc.device_links(self._pid)
 
     @io_guarded(list)
     @revision_cached_by_args
