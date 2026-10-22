@@ -34,8 +34,8 @@ _CACHE_FILE = "online_catalog_manufacturers.json"
 _INDEX_CACHE_FILE = "online_catalog_index.json"
 # Raised when the cached items' meaning changes, so an older cache is rebuilt (2: market check,
 # 3: plugin and incomplete-information flags no longer block, 4: an empty market list offers
-# nothing).
-_INDEX_FORMAT = 4
+# nothing, 5: each item's text languages).
+_INDEX_FORMAT = 5
 _INDEX_SAVE_EVERY = (
     10  # persist the growing index every N manufacturers, for resumability
 )
@@ -52,6 +52,21 @@ def download_languages(locale: str) -> list[str]:
     first, then the editor's other languages, so the texts are there after switching."""
     first = APP_LANGUAGES.get(locale.split("-")[0].lower(), APP_LANGUAGES["en"])
     return [first, *(code for code in APP_LANGUAGES.values() if code != first)]
+
+
+def with_variants(wanted: list[str], offered: Iterable[str]) -> list[str]:
+    """``wanted`` language ids plus the variants of the same languages a product ``offered``
+    ("de-DE" also asks for "de" and "de-AT" when the product has those), each behind its language."""
+    offered = list(offered)
+    result: list[str] = []
+    for language in wanted:
+        base = language.split("-")[0].lower()
+        for code in (language, *offered):
+            if code.split("-")[0].lower() == base and code.lower() not in {
+                r.lower() for r in result
+            }:
+                result.append(code)
+    return result
 
 
 class OnlineCatalogError(Exception):
@@ -100,6 +115,8 @@ class OnlineCatalogItem:
     )
     # The sections filing the product, from the top one down (empty when none does).
     sections: tuple[OnlineCatalogSection, ...] = ()
+    # The languages its texts come in, as the manufacturer labels them ("de-DE", "de", "es-MX").
+    languages: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -382,10 +399,31 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
                     ),
                     download_block_reason=block_reason,
                     sections=sections.get(cid, ()),
+                    languages=_entry_languages(entry),
                 )
             )
     items.sort(key=lambda i: i.name.lower())
     return items
+
+
+def _entry_languages(entry: dict[str, object]) -> tuple[str, ...]:
+    """The languages of an index entry's texts: its default languages and its translations."""
+    codes: list[str] = []
+    translations = _ci_get(entry, "Translations")
+    candidates: list[object] = [
+        _ci_get(entry, "ProductDefaultLanguage"),
+        _ci_get(entry, "CatalogItemDefaultLanguage"),
+    ]
+    if isinstance(translations, list):
+        candidates += [
+            _ci_get(t, "Language")
+            for t in cast(list[object], translations)
+            if _is_dict(t)
+        ]
+    for code in candidates:
+        if isinstance(code, str) and code and code not in codes:
+            codes.append(code)
+    return tuple(codes)
 
 
 def _item_to_dict(item: OnlineCatalogItem) -> dict[str, object]:
@@ -400,6 +438,7 @@ def _item_to_dict(item: OnlineCatalogItem) -> dict[str, object]:
         "ver": item.application_version,
         "appname": item.application_program_name,
         "dl_reason": item.download_block_reason,
+        "langs": list(item.languages),
     }
 
 
@@ -415,6 +454,7 @@ def _item_from_dict(d: dict[str, object]) -> OnlineCatalogItem:
         application_version=ver if isinstance(ver, int) else None,
         application_program_name=str(d.get("appname") or ""),
         download_block_reason=str(d.get("dl_reason") or ""),
+        languages=tuple(str(c) for c in cast(list[object], d.get("langs") or [])),
     )
 
 

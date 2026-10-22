@@ -243,11 +243,26 @@ class CatalogService:
         """Download a ``.knxprod`` for the given catalog items and import it; returns the new
         product versions.
 
-        Defaults to the editor's languages (:attr:`online_languages`)."""
-        data = self._online_client.download_product(
-            catalog_item_ids, language_ids or self.online_languages
-        )
+        Defaults to the editor's languages (:attr:`online_languages`), with the variants of them
+        the products offer (a manufacturer may label its texts "de" or "es-MX")."""
+        from editor_gui.plugins.catalog.online_catalog import with_variants
+
+        if language_ids is None:
+            language_ids = with_variants(
+                self.online_languages, self._offered_languages(catalog_item_ids)
+            )
+        data = self._online_client.download_product(catalog_item_ids, language_ids)
         return self._import_knxprod_bytes(data)
+
+    def _offered_languages(self, catalog_item_ids: list[str]) -> list[str]:
+        """The text languages of the given catalog items, as the cached index lists them."""
+        wanted = set(catalog_item_ids)
+        offered: list[str] = []
+        for items in (self._online_client.cached_index() or {}).values():
+            for item in items:
+                if item.id in wanted:
+                    offered += [c for c in item.languages if c not in offered]
+        return offered
 
     @io_guarded(list)
     def hardware_programs(self, hardware_id: str) -> list[ProgramSummary]:
