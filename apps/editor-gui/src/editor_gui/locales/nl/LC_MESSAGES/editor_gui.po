@@ -105,7 +105,7 @@ msgid "Group Addresses"
 msgstr "Groepsadressen"
 
 msgid "Group Object Links"
-msgstr "Groepobject-koppelingen"
+msgstr "Groepsobject-koppelingen"
 
 msgid "Areas / Lines"
 msgstr "Bereiken / lijnen"
@@ -556,7 +556,7 @@ msgid "{count} device(s) aren't assigned to a line. They're kept in the project 
 msgstr "{count} apparaat(en) zijn niet aan een lijn toegewezen. Ze blijven in het project en worden bij de export meegenomen, maar kunnen hier nog niet worden bewerkt."
 
 msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
-msgstr "{count} groepobject(en) hadden in het originele bestand een extra beschrijving. De eigen naam en functie blijven behouden; alleen die beschrijving wordt hier niet getoond."
+msgstr "{count} groepsobject(en) hadden in het originele bestand een extra beschrijving. De eigen naam en functie blijven behouden; alleen die beschrijving wordt hier niet getoond."
 
 msgid "For example: {examples}"
 msgstr "Bijvoorbeeld: {examples}"

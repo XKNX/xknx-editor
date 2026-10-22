@@ -26,30 +26,30 @@ msgid "None"
 msgstr "Keine"
 
 msgid "Copy Links ({count})"
-msgstr "Verknüpfungen kopieren ({count})"
+msgstr "Verbindungen kopieren ({count})"
 
 msgid "Paste Links ({count})"
-msgstr "Verknüpfungen einfügen ({count})"
+msgstr "Verbindungen einfügen ({count})"
 
 msgid ""
 "Assigns the copied links and flags to the checked objects in order (1st to "
 "1st, 2nd to 2nd, …), replacing each target's current links."
 msgstr ""
-"Weist die kopierten Verknüpfungen und Flags den angehakten Objekten der Reihe "
-"nach zu (1. zu 1., 2. zu 2., …) und ersetzt deren aktuelle Verknüpfungen."
+"Weist die kopierten Verbindungen und Flags den angehakten Objekten der Reihe "
+"nach zu (1. zu 1., 2. zu 2., …) und ersetzt deren aktuelle Verbindungen."
 
 msgid "Merge"
 msgstr "Zusammenführen"
 
 msgid "Keep each target's existing links and only add the copied ones."
 msgstr ""
-"Bestehende Verknüpfungen der Ziele behalten und nur die kopierten hinzufügen."
+"Bestehende Verbindungen der Ziele behalten und nur die kopierten hinzufügen."
 
 msgid "Copy Links"
-msgstr "Verknüpfungen kopieren"
+msgstr "Verbindungen kopieren"
 
 msgid "Paste Links"
-msgstr "Verknüpfungen einfügen"
+msgstr "Verbindungen einfügen"
 
 msgid "Copy Addresses as Text"
 msgstr "Adressen als Text kopieren"
@@ -114,10 +114,10 @@ msgid "Name"
 msgstr "Name"
 
 msgid "Create & Link"
-msgstr "Erstellen & verknüpfen"
+msgstr "Erstellen & verbinden"
 
 msgid "Link Group Address"
-msgstr "Gruppenadresse verknüpfen"
+msgstr "Gruppenadresse verbinden"
 
 msgid "<differs>"
 msgstr "<unterschiedlich>"

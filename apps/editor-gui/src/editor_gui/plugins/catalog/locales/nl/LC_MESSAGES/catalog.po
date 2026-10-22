@@ -17,7 +17,7 @@ msgid "Found {count} application(s)"
 msgstr "{count} applicatie(s) gevonden"
 
 msgid "({count} group objects)"
-msgstr "({count} groepobjecten)"
+msgstr "({count} groepsobjecten)"
 
 msgid "Online Catalog"
 msgstr "Onlinecatalogus"

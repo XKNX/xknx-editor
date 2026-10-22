@@ -23,7 +23,7 @@ msgid "Building View"
 msgstr "Gebäudeansicht"
 
 msgid "Links"
-msgstr "Verknüpfungen"
+msgstr "Verbindungen"
 
 msgid "Physical"
 msgstr "Physikalisch"
@@ -50,7 +50,7 @@ msgid "Each group address is a hub node; devices link to it (sender into the hub
 msgstr "Jede Gruppenadresse ist ein Knoten; Geräte sind mit ihr verbunden (Sender in den Knoten, Knoten hinaus zu den Empfängern). Über ein Gerät fahren zeigt seine Gruppenadressen, über einen Knoten alle Geräte daran. Ein Klick auf ein Gerät öffnet es."
 
 msgid "No linked devices to show."
-msgstr "Keine verknüpften Geräte vorhanden."
+msgstr "Keine verbundenen Geräte vorhanden."
 
 msgid "Room"
 msgstr "Raum"
