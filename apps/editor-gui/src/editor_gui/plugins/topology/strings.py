@@ -117,6 +117,26 @@ class TopologyStrings:
         return _("Receiving")
 
     @property
+    def TOPOLOGY_COL_AREAS(self) -> str:
+        return _("Areas")
+
+    @property
+    def TOPOLOGY_COL_LINES(self) -> str:
+        return _("Lines")
+
+    @property
+    def TOPOLOGY_COL_DEVICES(self) -> str:
+        return _("Devices")
+
+    @property
+    def TOPOLOGY_COL_BUILDINGS(self) -> str:
+        return _("Buildings")
+
+    @property
+    def TOPOLOGY_COL_ROOMS(self) -> str:
+        return _("Rooms")
+
+    @property
     def TOPOLOGY_MORE(self) -> str:
         return _("+ {count} more")
 

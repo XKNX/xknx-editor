@@ -141,3 +141,15 @@ msgstr "{count} weitere Geräte außerhalb der Auswahl. Klicken, um sie anzuzeig
 
 msgid "{address}\n{senders} sending, {receivers} receiving"
 msgstr "{address}\n{senders} sendend, {receivers} empfangend"
+
+msgid "Areas"
+msgstr "Bereiche"
+
+msgid "Lines"
+msgstr "Linien"
+
+msgid "Devices"
+msgstr "Geräte"
+
+msgid "Buildings"
+msgstr "Gebäude"

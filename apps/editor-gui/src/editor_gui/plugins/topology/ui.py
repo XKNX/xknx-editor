@@ -16,7 +16,12 @@ from imgui_bundle import imgui
 
 from editor_gui import web
 from editor_gui.device import Device, address_order, device_label
-from editor_gui.plugins.topology.canvas import DragToMove, zoom_with_wheel
+from editor_gui.plugins.topology.canvas import (
+    DragToMove,
+    Palette,
+    crisp_zoom,
+    zoom_with_wheel,
+)
 from editor_gui.plugins.topology.links_view import LinkView
 from editor_gui.plugins.topology.strings import S
 from editor_gui.widgets.backgrounds import child_background, content_background
@@ -29,13 +34,15 @@ from editor_gui.widgets.description import (
 )
 from editor_gui.widgets.dpi import px
 
-# Unscaled layout metrics (multiplied by the zoom factor at draw time).
-_ROW_H = 32.0
-_BOX_H = 24.0
-_LEFT = 10.0
+# Unscaled layout metrics (multiplied by the zoom factor at draw time), as in the Links view.
+_ROW_H = 30.0
+_BOX_H = 22.0
+_LEFT = 16.0
+# The column titles above the boxes.
+_TITLE_H = 40.0
 # Room between the columns for the brackets joining a parent to its children.
-_COL_GAP = 40.0
-_TEXT_PAD = 5.0
+_COL_GAP = 56.0
+_TEXT_PAD = 8.0
 # Each column is as wide as its longest label, within these bounds; longer labels end in "…".
 _COL_MIN_W = (120.0, 150.0, 260.0)
 _COL_MAX_W = (240.0, 260.0, 480.0)
@@ -86,6 +93,8 @@ class TopologyPanel:
         self._zoom = 1.0
         # One of the mutually exclusive views: "physical", "building" or "links".
         self._mode = "physical"
+        # The tree view drawn last, to place a newly shown one.
+        self._shown_mode: str | None = None
         self._drag = DragToMove()
         # (label, width in unscaled pixels) -> the label cut to fit that width
         self._fitted: dict[tuple[str, float], str] = {}
@@ -144,6 +153,8 @@ class TopologyPanel:
                 self._draw(layout, self._drag.update())
             elif links is not None:
                 links.render_canvas()
+                # The canvas scrolled for the links: a tree view shown next is placed anew.
+                self._shown_mode = "links"
         imgui.end_child()
 
     def _render_hint(self) -> None:
@@ -341,36 +352,57 @@ class TopologyPanel:
         xs = [_LEFT]
         for w in widths[:-1]:
             xs.append(xs[-1] + w + _COL_GAP)
-        z = self._zoom * px(1.0)
+        # The font at a whole pixel size, so that the text stays sharp.
+        zoom = crisp_zoom(self._zoom)
+        z = zoom * px(1.0)
         origin = imgui.get_cursor_screen_pos()
         dl = imgui.get_window_draw_list()
         font = imgui.get_font()
-        font_size = imgui.get_font_size() * self._zoom
-        line_col = imgui.get_color_u32(imgui.ImVec4(0.5, 0.5, 0.5, 0.6))
-        group_col = imgui.get_color_u32(imgui.ImVec4(0.22, 0.34, 0.5, 1.0))
-        sub_col = imgui.get_color_u32(imgui.ImVec4(0.28, 0.38, 0.3, 1.0))
-        dev_col = imgui.get_color_u32(imgui.ImVec4(0.18, 0.18, 0.2, 1.0))
-        border_col = imgui.get_color_u32(imgui.ImVec4(0.4, 0.4, 0.45, 1.0))
-        text_col = imgui.get_color_u32(imgui.ImVec4(0.9, 0.9, 0.9, 1.0))
-        # The boxes are dark in every theme: the shield is dimmed, and lighter while hovered.
-        icon_col = imgui.get_color_u32(imgui.ImVec4(0.6, 0.6, 0.62, 1.0))
-        icon_hover_col = imgui.get_color_u32(imgui.ImVec4(1.0, 1.0, 1.0, 1.0))
+        font_size = imgui.get_font_size() * zoom
+        if self._shown_mode != self._mode:
+            # Newly shown on a canvas narrower than the diagram (a phone): start at the second
+            # column, so the devices are in view beside their lines or rooms. The canvas scrolls
+            # only once it knows the diagram's width (from the frame before).
+            total = (xs[2] + widths[2] + _LEFT) * z
+            if total <= imgui.get_content_region_avail().x:
+                imgui.set_scroll_x(0.0)
+                self._shown_mode = self._mode
+            elif imgui.get_scroll_max_x() > 0:
+                imgui.set_scroll_x((xs[1] - _LEFT) * z)
+                self._shown_mode = self._mode
+        palette = Palette()
+        clip_top = imgui.get_window_pos().y
+        clip_bottom = clip_top + imgui.get_window_size().y
 
-        def box(x: float, y: float, w: float, fill: int, label: str) -> None:
-            p0 = imgui.ImVec2(origin.x + x * z, origin.y + y * z)
-            p1 = imgui.ImVec2(origin.x + (x + w) * z, origin.y + (y + _BOX_H) * z)
-            dl.add_rect_filled(p0, p1, fill, px(4.0))
-            dl.add_rect(p0, p1, border_col, px(4.0))
+        def at(x: float, y: float) -> imgui.ImVec2:
+            return imgui.ImVec2(origin.x + x * z, origin.y + (_TITLE_H + y) * z)
+
+        def mid(x: float, y: float) -> imgui.ImVec2:
+            return at(x, y + _BOX_H / 2)
+
+        def visible(top: imgui.ImVec2, bottom: imgui.ImVec2) -> bool:
+            return bottom.y >= clip_top and top.y <= clip_bottom
+
+        titles = (
+            (S.TOPOLOGY_COL_BUILDINGS, S.TOPOLOGY_COL_ROOMS, S.TOPOLOGY_COL_DEVICES)
+            if self._mode == "building"
+            else (S.TOPOLOGY_COL_AREAS, S.TOPOLOGY_COL_LINES, S.TOPOLOGY_COL_DEVICES)
+        )
+        for x, title in zip(xs, titles, strict=True):
             dl.add_text(
                 font,
                 font_size,
-                imgui.ImVec2(p0.x + 5 * z, p0.y + 4 * z),
-                text_col,
-                label,
+                imgui.ImVec2(origin.x + (x + 4) * z, origin.y + 12 * z),
+                palette.muted,
+                title,
             )
 
-        def at(x: float, y: float) -> imgui.ImVec2:
-            return imgui.ImVec2(origin.x + x * z, origin.y + (y + _BOX_H / 2) * z)
+        # A hue per area (building), shared by its lines (rooms) and the brackets below them.
+        group_hue = {y: i for i, (_label, y) in enumerate(layout.groups)}
+        sub_hue: dict[float, int] = {}
+        for column, y0, y1 in layout.links:
+            if column == 0:
+                sub_hue[y1] = group_hue.get(y0, 0)
 
         # One bracket per parent: a stroke from its box to a spine running along its children, and
         # a short stroke from the spine into each child.
@@ -378,42 +410,78 @@ class TopologyPanel:
         for column, y0, y1 in layout.links:
             brackets.setdefault((column, y0), []).append(y1)
         for (column, y0), children in brackets.items():
+            top, bottom = min([*children, y0]), max([*children, y0])
+            if not visible(mid(0, top), mid(0, bottom)):
+                continue
+            hue = group_hue.get(y0, 0) if column == 0 else sub_hue.get(y0, 0)
+            col = palette.hue(hue, 0.55)
             x0 = xs[column] + widths[column]
             x1 = xs[column + 1]
             spine = (x0 + x1) / 2
-            dl.add_line(at(x0, y0), at(spine, y0), line_col, px(1.5))
-            top, bottom = min([*children, y0]), max([*children, y0])
+            dl.add_line(mid(x0, y0), mid(spine, y0), col, px(1.5))
             if bottom > top:
-                dl.add_line(at(spine, top), at(spine, bottom), line_col, px(1.5))
+                dl.add_line(mid(spine, top), mid(spine, bottom), col, px(1.5))
             for y1 in children:
-                dl.add_line(at(spine, y1), at(x1, y1), line_col, px(1.5))
+                dl.add_line(mid(spine, y1), mid(x1, y1), col, px(1.5))
+
+        def pill(x: float, y: float, w: float, hue: int, label: str) -> None:
+            p0 = at(x, y)
+            p1 = imgui.ImVec2(p0.x + w * z, p0.y + _BOX_H * z)
+            if not visible(p0, p1):
+                return
+            rounding = _BOX_H / 2 * z
+            dl.add_rect_filled(p0, p1, palette.hue(hue, 0.16), rounding)
+            dl.add_rect(p0, p1, palette.hue(hue, 1.0), rounding)
+            dl.add_text(
+                font,
+                font_size,
+                imgui.ImVec2(p0.x + _TEXT_PAD * z, p0.y + 3 * z),
+                palette.text,
+                self._fit(label, w),
+            )
+
         for label, y in layout.groups:
-            box(xs[0], y, widths[0], group_col, self._fit(label, widths[0]))
+            pill(xs[0], y, widths[0], group_hue[y], label)
         for label, y in layout.subs:
-            box(xs[1], y, widths[1], sub_col, self._fit(label, widths[1]))
+            pill(xs[1], y, widths[1], sub_hue.get(y, 0), label)
         hovered = imgui.is_window_hovered()
         mouse = imgui.get_mouse_pos()
         secure_w = self._text_width(ICON_SECURE)
         for d in layout.devices:
-            label_w = widths[2] - self._icons_room(d)
-            box(xs[2], d.y, widths[2], dev_col, self._fit(d.label, label_w))
-            bx = origin.x + xs[2] * z
-            by = origin.y + d.y * z
+            p0 = at(xs[2], d.y)
+            p1 = imgui.ImVec2(p0.x + widths[2] * z, p0.y + _BOX_H * z)
+            if not visible(p0, p1):
+                continue
             box_hovered = (
-                hovered
-                and bx <= mouse.x <= bx + widths[2] * z
-                and by <= mouse.y <= by + _BOX_H * z
+                hovered and p0.x <= mouse.x <= p1.x and p0.y <= mouse.y <= p1.y
+            )
+            rounding = 4.0 * z
+            dl.add_rect_filled(p0, p1, palette.box, rounding)
+            dl.add_rect(
+                p0,
+                p1,
+                palette.text if box_hovered else palette.border,
+                rounding,
+                thickness=2.0 if box_hovered else 1.0,
+            )
+            label_w = widths[2] - self._icons_room(d)
+            dl.add_text(
+                font,
+                font_size,
+                imgui.ImVec2(p0.x + _TEXT_PAD * z, p0.y + 3 * z),
+                palette.text,
+                self._fit(d.label, label_w),
             )
             secure_hovered = False
             if d.secure:
                 # At the end of the box.
-                sx = bx + (widths[2] - _TEXT_PAD - secure_w) * z
+                sx = p0.x + (widths[2] - _TEXT_PAD - secure_w) * z
                 secure_hovered = box_hovered and mouse.x >= sx - _ICON_GAP / 2 * z
                 dl.add_text(
                     font,
                     font_size,
-                    imgui.ImVec2(sx, by + 4 * z),
-                    icon_hover_col if secure_hovered else icon_col,
+                    imgui.ImVec2(sx, p0.y + 3 * z),
+                    palette.text if secure_hovered else palette.muted,
                     ICON_SECURE,
                 )
             if box_hovered:
@@ -423,8 +491,8 @@ class TopologyPanel:
                     wrapped_tooltip(d.tooltip)
                 if clicked:
                     self._on_select(d.node_id)
-        total_w = (xs[2] + widths[2] + _COL_GAP) * z
-        total_h = (layout.rows * _ROW_H + _ROW_H) * z
+        total_w = (xs[2] + widths[2] + _LEFT) * z
+        total_h = (_TITLE_H + layout.rows * _ROW_H + _LEFT) * z
         imgui.dummy(imgui.ImVec2(total_w, total_h))
 
 

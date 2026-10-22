@@ -8,14 +8,18 @@ that one with everything linked to it, Back returns; hovering highlights a node'
 
 from __future__ import annotations
 
-import colorsys
 from collections.abc import Callable
 from typing import Any
 
 from imgui_bundle import imgui
 
 from editor_gui.device import Device, device_label
-from editor_gui.plugins.topology.canvas import DragToMove, zoom_with_wheel
+from editor_gui.plugins.topology.canvas import (
+    DragToMove,
+    Palette,
+    crisp_zoom,
+    zoom_with_wheel,
+)
 from editor_gui.plugins.topology.flow import (
     ROW,
     FlowLayout,
@@ -27,7 +31,6 @@ from editor_gui.plugins.topology.flow import (
     main_of,
 )
 from editor_gui.plugins.topology.strings import S
-from editor_gui.widgets.backgrounds import content_background
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.description import wrapped_tooltip
 from editor_gui.widgets.dpi import px
@@ -234,14 +237,16 @@ class LinkView:
     def _draw(
         self, layout: FlowLayout, scope: Scope, hubs: list[Hub], clicked: bool
     ) -> None:
-        z = self._zoom * px(1.0)
+        # The font at a whole pixel size, so that the text stays sharp.
+        zoom = crisp_zoom(self._zoom)
+        z = zoom * px(1.0)
         origin = imgui.get_cursor_screen_pos()
         dl = imgui.get_window_draw_list()
         font = imgui.get_font()
-        font_size = imgui.get_font_size() * self._zoom
+        font_size = imgui.get_font_size() * zoom
         clip_top = imgui.get_window_pos().y
         clip_bottom = clip_top + imgui.get_window_size().y
-        palette = _Palette()
+        palette = Palette()
 
         def to_screen(x: float, y: float) -> imgui.ImVec2:
             return imgui.ImVec2(origin.x + x * z, origin.y + (_TITLE_H + y) * z)
@@ -352,7 +357,7 @@ class LinkView:
                 p0, p1, palette.text if lit_more else palette.border, _BOX_H / 2 * z
             )
             label = S.TOPOLOGY_MORE.format(count=more.count)
-            width = imgui.calc_text_size(label).x * self._zoom
+            width = imgui.calc_text_size(label).x * zoom
             dl.add_text(
                 font,
                 font_size,
@@ -397,7 +402,7 @@ class LinkView:
         dl: imgui.ImDrawList,
         font: imgui.ImFont,
         font_size: float,
-        palette: _Palette,
+        palette: Palette,
         n: FlowNode,
         p0: imgui.ImVec2,
         z: float,
@@ -473,44 +478,3 @@ class LinkView:
 def _linking(hubs: list[Hub]) -> int:
     """How many group addresses link two or more devices."""
     return sum(1 for hub in hubs if len(hub[3]) > 1)
-
-
-class _Palette:
-    """The diagram's colours for the current theme: one hue per main group."""
-
-    def __init__(self) -> None:
-        bg = content_background()
-        self.light = 0.2126 * bg.x + 0.7152 * bg.y + 0.0722 * bg.z >= 0.5
-        style = imgui.get_style()
-        self._text = style.color_(imgui.Col_.text)
-        self._muted = style.color_(imgui.Col_.text_disabled)
-        self.text = imgui.get_color_u32(self._text)
-        self.muted = imgui.get_color_u32(self._muted)
-        if self.light:
-            self.box = imgui.get_color_u32(imgui.ImVec4(1.0, 1.0, 1.0, 1.0))
-            self.box_outside = imgui.get_color_u32(imgui.ImVec4(0.93, 0.94, 0.95, 1.0))
-            self.border = imgui.get_color_u32(imgui.ImVec4(0.47, 0.51, 0.57, 1.0))
-            self.border_outside = imgui.get_color_u32(
-                imgui.ImVec4(0.75, 0.77, 0.8, 1.0)
-            )
-        else:
-            self.box = imgui.get_color_u32(imgui.ImVec4(0.17, 0.18, 0.2, 1.0))
-            self.box_outside = imgui.get_color_u32(imgui.ImVec4(0.13, 0.14, 0.15, 1.0))
-            self.border = imgui.get_color_u32(imgui.ImVec4(0.45, 0.48, 0.53, 1.0))
-            self.border_outside = imgui.get_color_u32(
-                imgui.ImVec4(0.3, 0.32, 0.35, 1.0)
-            )
-        self._hues: dict[int, tuple[float, float, float]] = {}
-
-    def hue(self, main: int, alpha: float) -> int:
-        rgb = self._hues.get(main)
-        if rgb is None:
-            lightness = 0.42 if self.light else 0.64
-            rgb = colorsys.hls_to_rgb((main * 0.137) % 1.0, lightness, 0.62)
-            self._hues[main] = rgb
-        return imgui.get_color_u32(imgui.ImVec4(rgb[0], rgb[1], rgb[2], alpha))
-
-    def text_alpha(self, alpha: float) -> int:
-        return imgui.get_color_u32(
-            imgui.ImVec4(self._text.x, self._text.y, self._text.z, self._text.w * alpha)
-        )

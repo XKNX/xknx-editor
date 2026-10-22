@@ -144,3 +144,15 @@ msgstr "{count} andere apparaten buiten de selectie. Klik om ze te tonen."
 
 msgid "{address}\n{senders} sending, {receivers} receiving"
 msgstr "{address}\n{senders} zendend, {receivers} ontvangend"
+
+msgid "Areas"
+msgstr "Gebieden"
+
+msgid "Lines"
+msgstr "Lijnen"
+
+msgid "Devices"
+msgstr "Apparaten"
+
+msgid "Buildings"
+msgstr "Gebouwen"
