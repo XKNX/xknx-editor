@@ -732,8 +732,9 @@ class OnlineCatalogClient:
         force: bool = False,
     ) -> OnlineIndexStatus:
         """Build/refresh the full product index. Resumable: unless ``force``, manufacturers already
-        in the cache are skipped, so an aborted build continues where it stopped. Persists every
-        few manufacturers so a cancel keeps its progress. ``should_cancel`` stops the loop early."""
+        in the cache are skipped, so an aborted build continues where it stopped; those cached
+        without their markets are fetched again. Persists every few manufacturers so a cancel
+        keeps its progress. ``should_cancel`` stops the loop early."""
         ids = parse_manufacturer_ids(
             _http_get(f"{self._base_url}/Download/Manufacturers")
         )
@@ -750,7 +751,7 @@ class OnlineCatalogClient:
         for done, mid in enumerate(ids, start=1):
             if should_cancel is not None and should_cancel():
                 break
-            if mid not in index:
+            if mid not in index or any(i.markets is None for i in index[mid]):
                 try:
                     data = self.download_index(mid)
                     index[mid] = parse_catalog_items(data)
