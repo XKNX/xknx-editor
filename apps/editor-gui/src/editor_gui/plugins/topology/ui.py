@@ -455,7 +455,8 @@ class TopologyPanel:
             box_hovered = (
                 hovered and p0.x <= mouse.x <= p1.x and p0.y <= mouse.y <= p1.y
             )
-            rounding = 4.0 * z
+            # The theme's corner rounding (as on buttons and fields), zoomed with the diagram.
+            rounding = imgui.get_style().frame_rounding * z / px(1.0)
             dl.add_rect_filled(p0, p1, palette.box, rounding)
             dl.add_rect(
                 p0,

@@ -422,7 +422,8 @@ class LinkView:
                     self._fit(n.name, room + 2 * _TEXT_PAD),
                 )
             return
-        rounding = 4.0 * z
+        # The theme's corner rounding (as on buttons and fields), zoomed with the diagram.
+        rounding = imgui.get_style().frame_rounding * z / px(1.0)
         dl.add_rect_filled(
             p0, p1, palette.box if n.inside else palette.box_outside, rounding
         )
