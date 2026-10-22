@@ -2118,7 +2118,6 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     def LANGUAGE_JAPANESE(self) -> str:
         return _("Japanese")
 
-
     @property
     def LANGUAGE_CZECH(self) -> str:
         return _("Czech")
@@ -2190,5 +2189,6 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     @property
     def LANGUAGE_ICELANDIC(self) -> str:
         return _("Icelandic")
+
 
 S = _CombinedStrings()
