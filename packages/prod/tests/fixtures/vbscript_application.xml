@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<KNX xmlns="http://knx.org/xml/project/20" CreatedBy="test" ToolVersion="1">
+  <ManufacturerData>
+    <Manufacturer RefId="M-00FA">
+      <ApplicationPrograms>
+        <ApplicationProgram Id="M-00FA_A-0002-01-0000" ApplicationNumber="2" ApplicationVersion="1"
+            ProgramType="ApplicationProgram" MaskVersion="MV-07B0" Name="VbCalc"
+            LoadProcedureStyle="MergedProcedure" PeiType="0" DefaultLanguage="en-US"
+            DynamicTableManagement="false" Linkable="false" MinEtsVersion="5.0">
+          <Static>
+            <ParameterTypes>
+              <ParameterType Id="M-00FA_A-0002-01-0000_PT-MS" Name="Ms">
+                <TypeTime SizeInBit="32" Unit="Milliseconds" minInclusive="0" maxInclusive="600000" />
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0002-01-0000_PT-W" Name="Word">
+                <TypeNumber SizeInBit="16" Type="unsignedInt" minInclusive="0" maxInclusive="65535" />
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0002-01-0000_PT-B" Name="Byte">
+                <TypeNumber SizeInBit="8" Type="unsignedInt" minInclusive="0" maxInclusive="255" />
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0002-01-0000_PT-YN" Name="YesNo">
+                <TypeRestriction Base="Value" SizeInBit="8">
+                  <Enumeration Text="No" Value="0" Id="M-00FA_A-0002-01-0000_PT-YN_EN-0" />
+                  <Enumeration Text="Yes" Value="1" Id="M-00FA_A-0002-01-0000_PT-YN_EN-1" />
+                </TypeRestriction>
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0002-01-0000_PT-F" Name="Float">
+                <TypeFloat Encoding="IEEE-754 Single" minInclusive="-100" maxInclusive="100" />
+              </ParameterType>
+              <ParameterType Id="M-00FA_A-0002-01-0000_PT-T" Name="Text">
+                <TypeText SizeInBit="160" />
+              </ParameterType>
+            </ParameterTypes>
+            <Parameters>
+              <Parameter Id="M-00FA_A-0002-01-0000_P-1" Name="Delay" ParameterType="M-00FA_A-0002-01-0000_PT-MS" Text="Delay" Value="1000" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-2" Name="DelayRaw" ParameterType="M-00FA_A-0002-01-0000_PT-W" Text="Delay raw" Value="356" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-3" Name="Lock" ParameterType="M-00FA_A-0002-01-0000_PT-YN" Text="Lock" Value="0" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-4" Name="Invert" ParameterType="M-00FA_A-0002-01-0000_PT-YN" Text="Invert" Value="0" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-5" Name="Flags" ParameterType="M-00FA_A-0002-01-0000_PT-B" Text="Flags" Value="240" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-6" Name="Offset" ParameterType="M-00FA_A-0002-01-0000_PT-F" Text="Offset" Value="1.5" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-7" Name="Label" ParameterType="M-00FA_A-0002-01-0000_PT-T" Text="Label" Value="" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-8" Name="Mode" ParameterType="M-00FA_A-0002-01-0000_PT-B" Text="Mode" Value="0" />
+              <Parameter Id="M-00FA_A-0002-01-0000_P-9" Name="Result" ParameterType="M-00FA_A-0002-01-0000_PT-B" Text="Result" Value="0" />
+            </Parameters>
+            <ParameterRefs>
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-1_R-1" RefId="M-00FA_A-0002-01-0000_P-1" />
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-2_R-2" RefId="M-00FA_A-0002-01-0000_P-2" />
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-3_R-3" RefId="M-00FA_A-0002-01-0000_P-3" />
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-4_R-4" RefId="M-00FA_A-0002-01-0000_P-4" />
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-5_R-5" RefId="M-00FA_A-0002-01-0000_P-5" />
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-6_R-6" RefId="M-00FA_A-0002-01-0000_P-6" />
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-7_R-7" RefId="M-00FA_A-0002-01-0000_P-7" />
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-8_R-8" RefId="M-00FA_A-0002-01-0000_P-8" />
+              <ParameterRef Id="M-00FA_A-0002-01-0000_P-9_R-9" RefId="M-00FA_A-0002-01-0000_P-9" />
+            </ParameterRefs>
+            <ParameterCalculations>
+              <ParameterCalculation Id="M-00FA_A-0002-01-0000_PC-1" Name="DelayCode" Language="VBScript">
+                <LRTransformation><![CDATA[Dim Base, Shift, Mant
+Base = 5
+Shift = 0
+If ms < 300 Then ms = 300
+Mant = ms / Base
+While Mant > 127 And Shift < 24
+  Shift = Shift + 1
+  Mant = ms / (Base * 2 ^ Shift)
+Wend
+raw = Shift * 2 ^ 8 + CInt(Mant)
+]]></LRTransformation>
+                <RLTransformation><![CDATA[Dim Shift
+Shift = Int((raw And &hFF00) / 2 ^ 8)
+ms = (raw And &hFF) * (5 * 2 ^ Shift)
+]]></RLTransformation>
+                <LParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-1_R-1" AliasName="ms" /></LParameters>
+                <RParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-2_R-2" AliasName="raw" /></RParameters>
+              </ParameterCalculation>
+              <ParameterCalculation Id="M-00FA_A-0002-01-0000_PC-2" Name="FlagBits" Language="VBScript">
+                <LRTransformation><![CDATA[flags = flags And &hFC ' keep the other bits
+If lock Then flags = flags Or 1
+If invert = 1 Then flags = flags Or 2 End If
+]]></LRTransformation>
+                <RLTransformation><![CDATA[lock = flags And 1
+invert = (flags And 2) \ 2
+]]></RLTransformation>
+                <LParameters>
+                  <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-3_R-3" AliasName="lock" />
+                  <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-4_R-4" AliasName="invert" />
+                </LParameters>
+                <RParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-5_R-5" AliasName="flags" /></RParameters>
+              </ParameterCalculation>
+              <ParameterCalculation Id="M-00FA_A-0002-01-0000_PC-3" Name="OffsetText" Language="VBScript">
+                <LRTransformation><![CDATA[label = "Offset " & (offset / 2) & " K"]]></LRTransformation>
+                <RLTransformation></RLTransformation>
+                <LParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-6_R-6" AliasName="offset" /></LParameters>
+                <RParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-7_R-7" AliasName="label" /></RParameters>
+              </ParameterCalculation>
+              <ParameterCalculation Id="M-00FA_A-0002-01-0000_PC-4" Name="Modes" Language="VBScript">
+                <LRTransformation><![CDATA[Select Case mode
+Case 0, 1
+  result = mode * 10
+Case 2
+  result = CInt("two")
+Case 3
+  On Error Resume Next
+  result = CInt("three")
+  result = 99
+Case Else
+  result = 255
+End Select
+]]></LRTransformation>
+                <RLTransformation></RLTransformation>
+                <LParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-8_R-8" AliasName="mode" /></LParameters>
+                <RParameters><ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-9_R-9" AliasName="result" /></RParameters>
+              </ParameterCalculation>
+            </ParameterCalculations>
+          </Static>
+          <Dynamic>
+            <ChannelIndependentBlock>
+              <ParameterBlock Id="M-00FA_A-0002-01-0000_PB-1" Text="Main">
+                <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-1_R-1" />
+                <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-2_R-2" />
+                <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-3_R-3" />
+                <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-4_R-4" />
+                <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-5_R-5" />
+                <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-6_R-6" />
+                <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-7_R-7" />
+                <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-8_R-8" />
+                <ParameterRefRef RefId="M-00FA_A-0002-01-0000_P-9_R-9" />
+              </ParameterBlock>
+            </ChannelIndependentBlock>
+          </Dynamic>
+        </ApplicationProgram>
+      </ApplicationPrograms>
+    </Manufacturer>
+  </ManufacturerData>
+</KNX>
