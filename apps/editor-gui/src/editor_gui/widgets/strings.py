@@ -105,6 +105,10 @@ class WidgetStrings(BaseStrings):
         return _("Start Address")
 
     @property
+    def GROUP_OBJECTS_BATCH_START_HINT(self) -> str:
+        return _("automatic")
+
+    @property
     def GROUP_OBJECTS_BATCH_CANCEL(self) -> str:
         return _("Cancel")
 

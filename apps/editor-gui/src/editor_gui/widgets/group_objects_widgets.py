@@ -361,7 +361,7 @@ class GroupObjectsTable:
         imgui.text_disabled(S.GROUP_OBJECTS_BATCH_START)
         imgui.set_next_item_width(-1)
         _, self._batch_start = imgui.input_text_with_hint(
-            "##batch_start", "auto", self._batch_start
+            "##batch_start", S.GROUP_OBJECTS_BATCH_START_HINT, self._batch_start
         )
         clicked = dialog_buttons(
             S.GROUP_OBJECTS_AUTO_CREATE.format(count=len(selected)),

@@ -289,3 +289,6 @@ msgstr "Parameter:"
 
 msgid "search…"
 msgstr "zoeken…"
+
+msgid "automatic"
+msgstr "automatisch"
