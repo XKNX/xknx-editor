@@ -74,6 +74,8 @@ class CatalogService:
         )
         # A download language chosen for this session (over MCP), else the editor's languages.
         self._language: str | None = None
+        # The online products last listed per manufacturer, for their text languages on download.
+        self._browsed: dict[int, list[OnlineCatalogItem]] = {}
         _forget_stored_language()
 
     @property
@@ -203,7 +205,9 @@ class CatalogService:
 
     def online_catalog_items(self, manufacturer_id: int) -> list[OnlineCatalogItem]:
         """Downloadable products a manufacturer offers in the online catalog (hits the network)."""
-        return self._online_client.catalog_items(manufacturer_id)
+        items = self._online_client.catalog_items(manufacturer_id)
+        self._browsed[manufacturer_id] = items
+        return items
 
     def online_index(self) -> dict[int, list[OnlineCatalogItem]] | None:
         """The full cached product index (all manufacturers), or None if never built. No network."""
@@ -255,10 +259,15 @@ class CatalogService:
         return self._import_knxprod_bytes(data)
 
     def _offered_languages(self, catalog_item_ids: list[str]) -> list[str]:
-        """The text languages of the given catalog items, as the cached index lists them."""
+        """The text languages of the given catalog items, as the cached index or the products
+        listed while browsing give them."""
         wanted = set(catalog_item_ids)
         offered: list[str] = []
-        for items in (self._online_client.cached_index() or {}).values():
+        listed = [
+            *(self._online_client.cached_index() or {}).values(),
+            *self._browsed.values(),
+        ]
+        for items in listed:
             for item in items:
                 if item.id in wanted:
                     offered += [c for c in item.languages if c not in offered]
