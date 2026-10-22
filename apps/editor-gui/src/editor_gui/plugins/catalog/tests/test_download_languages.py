@@ -53,8 +53,13 @@ class _Client:
         self.items = items
         self.requested: list[str] = []
 
-    def cached_index(self) -> dict[int, list[OnlineCatalogItem]]:
-        return {7: self.items}
+    def cached_index(self) -> dict[int, list[OnlineCatalogItem]] | None:
+        return {7: self.items} if self.items else None
+
+    def catalog_items(self, manufacturer_id: int) -> list[OnlineCatalogItem]:
+        return [
+            OnlineCatalogItem("CI-2", "Dimmer", "D1", True, languages=("de", "en-US"))
+        ]
 
     def download_product(self, ids: list[str], languages: list[str]) -> bytes:
         self.requested = languages
@@ -69,9 +74,22 @@ def test_a_download_asks_for_the_variants_the_product_has() -> None:
     service: Any = CatalogService.__new__(CatalogService)
     service._online_client = client
     service._language = "es-ES"
+    service._browsed = {}
     service._import_knxprod_bytes = lambda data: []
     service.download_online_products(["CI-1"])
     assert client.requested == ["es-ES", "es-MX"]
     # Languages chosen explicitly are requested as they are.
     service.download_online_products(["CI-1"], ["fr-FR"])
     assert client.requested == ["fr-FR"]
+
+
+def test_a_product_listed_while_browsing_is_known_without_the_index() -> None:
+    client = _Client([])
+    service: Any = CatalogService.__new__(CatalogService)
+    service._online_client = client
+    service._language = "de-DE"
+    service._browsed = {}
+    service._import_knxprod_bytes = lambda data: []
+    service.online_catalog_items(9)
+    service.download_online_products(["CI-2"])
+    assert client.requested == ["de-DE", "de"]
