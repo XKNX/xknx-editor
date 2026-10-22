@@ -93,3 +93,17 @@ def test_a_product_listed_while_browsing_is_known_without_the_index() -> None:
     service.online_catalog_items(9)
     service.download_online_products(["CI-2"])
     assert client.requested == ["de-DE", "de"]
+
+
+def test_the_index_status_shows_the_local_fetch_date() -> None:
+    from datetime import datetime
+
+    from editor_gui.plugins.catalog.ui.panel import fetched_date
+    from editor_gui.regional import regional_format
+    from editor_gui.widgets.value_pickers import format_date
+
+    stamp = "2026-10-22T12:00:00+00:00"
+    local = datetime.fromisoformat(stamp).astimezone().date().isoformat()
+    assert fetched_date(stamp) == format_date(local, True, regional_format())
+    assert fetched_date(None) == "-"
+    assert fetched_date("not a date") == "-"
