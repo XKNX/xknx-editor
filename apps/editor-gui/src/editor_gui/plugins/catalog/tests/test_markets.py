@@ -92,3 +92,28 @@ def test_an_index_cached_without_markets_reports_them_unknown(tmp_path: Path) ->
     assert client.cached_markets() is None
     (item,) = (client.cached_index() or {})[7]
     assert item.markets is None
+
+
+def test_a_refresh_fetches_manufacturers_cached_without_markets(
+    tmp_path: Path, monkeypatch
+) -> None:
+    test_an_index_cached_without_markets_reports_them_unknown(tmp_path)
+    client = OnlineCatalogClient(tmp_path)
+    monkeypatch.setattr(
+        "editor_gui.plugins.catalog.online_catalog._http_get",
+        lambda url: (
+            b'<ArrayOfunsignedShort xmlns="http://schemas.microsoft.com/2003/10/'
+            b'Serialization/Arrays"><unsignedShort>7</unsignedShort></ArrayOfunsignedShort>'
+        ),
+    )
+    fetched: list[int] = []
+    monkeypatch.setattr(
+        client, "download_index", lambda mid: fetched.append(mid) or _INDEX
+    )
+    client.refresh_index()
+    assert fetched == [7]
+    items = {i.id: i for i in (client.cached_index() or {})[7]}
+    assert items["CI-1"].markets == ("M-DE", "M-AT")
+    # Cached with their markets, they are skipped again.
+    client.refresh_index()
+    assert fetched == [7]
