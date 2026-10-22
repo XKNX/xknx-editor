@@ -109,6 +109,27 @@ def test_initialized_real_gira_header_survives_full_image() -> None:
     assert r._relative_runs(control) == []
 
 
+def test_segment_data_and_mask_shorter_than_the_segment() -> None:
+    # Data (and its mask) may cover only the start of a segment; the encoder pads it to its size.
+    app, ui = seeded_application((4, 0, b"AB"))
+    assert app.program.static.code is not None
+    declaration = app.program.static.code.relative_segment[0]
+    declaration.size = 4
+    declaration.mask = b"\xff\x00"
+    padded = cast(
+        DynamicUI,
+        SimpleNamespace(
+            segment_base_addrs=ui.segment_base_addrs,
+            encode_to_memory_masked=lambda: {
+                declaration.id: (b"AB\x00\x00", b"\x00\x00\xff\x00")
+            },
+            encode_to_typed_properties=lambda: {},
+        ),
+    )
+    image = build_image(app, ui=padded)
+    assert image.object_segments == {4: b"AB\x00\x00"}
+
+
 def test_relative_objects_offsets_and_complete_object_data() -> None:
     app, ui = seeded_application((4, 0, b"AAAA"), (5, 0, b"BBBB"), (4, 4, b"CCCC"))
     image = build_image(app, ui=ui)

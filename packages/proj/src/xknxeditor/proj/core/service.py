@@ -99,6 +99,7 @@ from xknxeditor.proj.core.events import (
     SetSpaceNumber,
     SetSpaceType,
     SyncDeviceComObjects,
+    SyncDeviceModuleInstances,
     UnlinkComObject,
     UpdateDeviceApplication,
     additional_address_entries,
@@ -2494,12 +2495,24 @@ class ProjectService:
         com_object_target: list[tuple[str, str | None]] | None = None,
         app_program_id: str = "",
         label: str | None = None,
+        module_instances: Sequence[tuple[str, str]] | None = None,
+        removed_module_instances: Sequence[str] | None = None,
     ) -> None:
-        """Persist several parameter values, optionally with a com-object reconcile, as one undo step."""
+        """Persist several parameter values, optionally with a com-object reconcile and the module
+        instances the change created (``(instance_id, ref_id)``) and ended (saved instance ids), as
+        one undo step."""
         events: list[Event] = [
             SetParameter(device_id=device_id, ref_id=ref_id, value=value)
             for ref_id, value in changes
         ]
+        if module_instances or removed_module_instances:
+            events.append(
+                SyncDeviceModuleInstances(
+                    device_id=device_id,
+                    instances=[[i, r] for i, r in module_instances or ()],
+                    remove=list(removed_module_instances or ()),
+                )
+            )
         if com_object_target is not None:
             events.append(
                 SyncDeviceComObjects(

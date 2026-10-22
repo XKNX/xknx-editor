@@ -180,6 +180,7 @@ def _run_one(
                 host=host,
                 jscript=jscript,
                 abort=abort,
+                values=idx.message_values(),
                 deadline=_SCRIPT_DEADLINE,
             )
             result = ctx.invoke(
@@ -187,7 +188,9 @@ def _run_one(
             )
             computed = _as_dict(result.readback[0])
         elif inline:
-            computed = _run_inline(inline, inputs, output, host, jscript, abort)
+            computed = _run_inline(
+                inline, inputs, output, host, jscript, abort, idx.message_values()
+            )
         else:
             return
     except ScriptAborted:
@@ -220,6 +223,7 @@ def _run_inline(
     host: dict[str, Any],
     jscript: Any,
     abort: AbortToken | None,
+    values: dict[str, str],
 ) -> dict[str, Any]:
     names = {**output, **inputs}
     decls = "".join(
@@ -239,6 +243,7 @@ def _run_inline(
         host=host,
         jscript=jscript,
         abort=abort,
+        values=values,
         deadline=_SCRIPT_DEADLINE,
     )
     value = ctx.invoke("__xk_outputs", []).value
@@ -277,6 +282,7 @@ def run_validations(
                 host={"a.message": idx.message_text},
                 jscript=jscript,
                 abort=abort,
+                values=idx.message_values(),
                 deadline=_SCRIPT_DEADLINE,
             )
             result = ctx.invoke(

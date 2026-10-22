@@ -118,3 +118,18 @@ def test_build_image_from_fixture() -> None:
     for segment in image.segments:
         assert segment.data
         assert segment.address >= 0
+
+
+def test_build_image_without_a_dynamic_section() -> None:
+    # An application without parameters (e.g. an interface) has nothing to encode but still loads.
+    from copy import deepcopy
+
+    from xknxeditor.prod import Application
+
+    original = next(iter(load(_FIXTURE).applications.values()))
+    program = deepcopy(original.program)
+    program.dynamic = None
+    application = Application(program, original.version, original.manufacturer_id)
+    assert application.dynamic_ui() is None
+    image = build_image(application)
+    assert isinstance(image, DownloadImage)

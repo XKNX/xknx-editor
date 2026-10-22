@@ -153,6 +153,16 @@ def test_get_message_global() -> None:
     assert ctx.invoke("h", []).value == "msg 7"
 
 
+def test_application_program_object() -> None:
+    # The named object behind the global getMessage, called as ApplicationProgram.getMessage(n).
+    ctx = ScriptContext(
+        get_message=True,
+        host={"a.message": lambda i: f"msg {i}"},
+        script="function h() { return ApplicationProgram.getMessage(1) + '|' + ApplicationProgram.GetMessage(2); }",
+    )
+    assert ctx.invoke("h", []).value == "msg 1|msg 2"
+
+
 def test_progress_and_with_undo() -> None:
     calls: list[str] = []
 
@@ -311,3 +321,12 @@ def test_parameterless_host_methods_run_on_read() -> None:
     value = ctx.invoke("h", [{"$host": "online"}, {"$host": "progress"}]).value
     assert value == "undefined,number,unknown,unknown,boolean,undefined"
     assert calls == ["connect", "disconnect", "connect", "disconnect"]
+
+
+def test_values_are_globals_the_script_may_redefine() -> None:
+    # A product's message names are global variables holding the message text.
+    ctx = ScriptContext(
+        values={"outputSelectionError": "Output in Use", "taken": "host"},
+        script="var taken = 'script'; function h() { return outputSelectionError + '|' + taken; }",
+    )
+    assert ctx.invoke("h", []).value == "Output in Use|script"

@@ -118,6 +118,19 @@ def test_number_invalid_returns_none() -> None:
     assert _encode_value("abc", 8, _number()) is None
 
 
+def test_number_outside_its_range_is_written_while_it_fits() -> None:
+    # A product's own value may lie outside the type's range (a hidden parameter's default of 1
+    # for a 129..129 type): written as given, as long as it fits the size.
+    only_129 = ParameterTypeTypeNumber(
+        size_in_bit=8,
+        type_value=ParameterTypeTypeNumberType.UNSIGNED_INT,
+        min_inclusive=129,
+        max_inclusive=129,
+    )
+    assert _encode_value("1", 8, only_129) == 0x01
+    assert _encode_value("256", 8, only_129) is None
+
+
 def test_float_dpt9() -> None:
     # 21.0 -> 0.01 * 1050 * 2^1; encoded 0x0C1A
     tc = _float(ParameterTypeTypeFloatEncoding.DPT_9)

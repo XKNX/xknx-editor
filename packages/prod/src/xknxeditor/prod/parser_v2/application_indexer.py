@@ -121,7 +121,12 @@ class ApplicationIndexer:
             self._index_validations(s.parameter_validations.parameter_validation)
         if s.allocators is not None:
             self.app_allocators = {
-                a.id: Allocator(id=a.id, start=a.start, max_inclusive=a.max_inclusive)
+                a.id: Allocator(
+                    id=a.id,
+                    start=a.start,
+                    max_inclusive=a.max_inclusive,
+                    error_message_ref=a.error_message_ref,
+                )
                 for a in s.allocators.allocator
             }
 
@@ -168,6 +173,11 @@ class ApplicationIndexer:
         pr = self.parameter_refs.get(ref_id)
         base = self.parameters.get(pr.ref_id) if pr is not None else None
         return getattr(base, "name", None)
+
+    def message_values(self) -> dict[str, str]:
+        """Each message's text under its name: scripts read them as global variables (a
+        validation returns ``outputSelectionError`` for the message of that name)."""
+        return {m.name: m.text for m in self.messages.values() if m.name and m.text}
 
     def message_text(self, key: object) -> str | None:
         """Message text by number (``M-<n>``) or by name."""
@@ -333,7 +343,12 @@ class ApplicationIndexer:
             )
         if md.static.allocators is not None:
             self.allocators[md.id] = {
-                a.id: Allocator(id=a.id, start=a.start, max_inclusive=a.max_inclusive)
+                a.id: Allocator(
+                    id=a.id,
+                    start=a.start,
+                    max_inclusive=a.max_inclusive,
+                    error_message_ref=a.error_message_ref,
+                )
                 for a in md.static.allocators.allocator
             }
         if md.arguments is not None:

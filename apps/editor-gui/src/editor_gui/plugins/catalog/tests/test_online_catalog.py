@@ -48,6 +48,24 @@ class TestParse:
     def test_manufacturer_names(self) -> None:
         assert parse_manufacturer_names(_MASTER_XML) == {1: "Siemens", 2: "ABB"}
 
+    @pytest.mark.parametrize(
+        "flag",
+        [
+            {"CatalogLifeType": 2},
+            {"NoDownloadWithoutPlugin": True},
+            {"DownloadInfoIncomplete": True},
+        ],
+    )
+    def test_catalog_items_the_server_still_serves(
+        self, flag: dict[str, object]
+    ) -> None:
+        # End-of-life, plugin and incomplete-information flags concern the device, not the
+        # catalog download: the server serves these products.
+        index = json.dumps(
+            {"Entries": [{"Id": "CI-1", "CatalogItemName": "A", **flag}]}
+        )
+        assert parse_catalog_items(index.encode())[0].downloadable
+
     def test_catalog_items_parsed_and_gated(self) -> None:
         index = json.dumps(
             {
@@ -74,6 +92,38 @@ class TestParse:
         assert items[0].name == "Alpha dimmer" and not items[0].downloadable
         assert items[1].name == "Zeta switch" and items[1].downloadable
         assert items[1].order_number == "2000"
+
+    def test_catalog_items_no_market_offers_are_not_downloadable(self) -> None:
+        # The server refuses items no market lists ("NotInAnyMarket").
+        index = json.dumps(
+            {
+                "Entries": [
+                    {"Id": "CI-1", "CatalogItemName": "Offered"},
+                    {"Id": "CI-2", "CatalogItemName": "Withdrawn"},
+                ],
+                "Markets": [
+                    {"DefaultName": "Germany", "CatalogIds": ["CI-1"]},
+                    {"DefaultName": "Austria", "CatalogIds": []},
+                ],
+            }
+        ).encode()
+        offered, withdrawn = parse_catalog_items(index)
+        assert offered.downloadable and not offered.download_block_reason
+        assert not withdrawn.downloadable
+        assert withdrawn.download_block_reason == "not offered in any market"
+
+    def test_catalog_items_of_an_empty_market_list_are_not_downloadable(self) -> None:
+        # A manufacturer no market lists at all: the server refuses each of its items.
+        index = json.dumps(
+            {"Entries": [{"Id": "CI-1", "CatalogItemName": "A"}], "Markets": []}
+        )
+        (item,) = parse_catalog_items(index.encode())
+        assert not item.downloadable
+        assert item.download_block_reason == "not offered in any market"
+
+    def test_catalog_items_without_markets_stay_downloadable(self) -> None:
+        index = json.dumps({"Entries": [{"Id": "CI-1", "CatalogItemName": "A"}]})
+        assert parse_catalog_items(index.encode())[0].downloadable
 
     def test_catalog_items_captures_manufacturer_and_version(self) -> None:
         # ApplicationIdentifier is the online index's list form: [_, mfr, _, appNo, version].
@@ -136,6 +186,35 @@ class TestClient:
         assert json.loads(
             (tmp_path / "online_catalog_manufacturers.json").read_text("utf-8")
         ) == [{"id": 7, "name": "Berker"}, {"id": 1, "name": "Siemens"}]
+
+    def test_names_from_the_apps_master_data(self, tmp_path, monkeypatch) -> None:
+        urls: list[str] = []
+
+        def get(url: str) -> bytes:
+            urls.append(url)
+            return _MANUFACTURERS_XML
+
+        monkeypatch.setattr(oc, "_http_get", get)
+        client = OnlineCatalogClient(tmp_path, master_xml=lambda: _MASTER_XML)
+        names = {m.id: m.name for m in client.refresh_manufacturers()}
+        assert names == {1: "Siemens", 2: "ABB", 10: "M-0010"}
+        assert oc.MASTER_DATA_URL not in urls
+
+    def test_names_cached_last_time_when_the_master_is_unavailable(
+        self, tmp_path, monkeypatch
+    ) -> None:
+        def get(url: str) -> bytes:
+            if url == oc.MASTER_DATA_URL:
+                raise OnlineCatalogError("404 Not Found")
+            return _MANUFACTURERS_XML
+
+        monkeypatch.setattr(oc, "_http_get", get)
+        client = OnlineCatalogClient(tmp_path, master_xml=lambda: None)
+        with pytest.raises(OnlineCatalogError):
+            client.refresh_manufacturers()  # nothing cached yet
+        client._save_cache([OnlineManufacturer(1, "Siemens")])
+        names = {m.id: m.name for m in client.refresh_manufacturers()}
+        assert names == {1: "Siemens", 2: "M-0002", 10: "M-0010"}
 
 
 class TestSearchIndex:
@@ -218,6 +297,14 @@ class TestIndexCache:
         status = c2.refresh_index()
         assert calls == []
         assert status.products == 3
+
+    def test_cache_of_an_older_format_is_rebuilt(self, tmp_path) -> None:
+        # Older caches lack the market check: they are ignored, so the index is built again.
+        (tmp_path / "online_catalog_index.json").write_text(
+            json.dumps({"fetched_at": "2026-10-17T15:56:00+00:00", "index": {"1": []}}),
+            "utf-8",
+        )
+        assert OnlineCatalogClient(tmp_path).cached_index() is None
 
     def test_search_via_cached_index(self, tmp_path, monkeypatch) -> None:
         monkeypatch.setattr(oc, "_http_get", lambda url: _MANUFACTURERS_XML)

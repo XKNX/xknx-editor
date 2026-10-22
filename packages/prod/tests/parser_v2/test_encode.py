@@ -6,8 +6,10 @@ from pathlib import Path
 
 import pytest
 
+from xknxeditor.namespaces.intermediate.segment_base_t import SegmentBase
 from xknxeditor.prod import load
 from xknxeditor.prod.parser_v2.dynamic import DynamicUI
+from xknxeditor.prod.parser_v2.encode import MemWrite, _write_param, segment_seed
 
 _FIXTURE = (
     Path(__file__).parent.parent / "fixtures" / "gira_2gang_button_interface.knxprod"
@@ -110,3 +112,24 @@ def test_param_map_value_matches_encoded_byte(dui: DynamicUI) -> None:
         assert seg[offset] == 4, (
             f"encoded byte at offset {offset} is {seg[offset]:#04x}, expected 0x04"
         )
+
+
+def test_segment_seed_pads_data_to_the_declared_size() -> None:
+    # Data may cover only the start of a segment; parameters behind it are still in the segment.
+    seg = SegmentBase(id="AS-1", size=6, data=bytes([1, 2]))
+    assert segment_seed(seg) == bytearray([1, 2, 0, 0, 0, 0])
+    assert segment_seed(SegmentBase(id="AS-2", size=3)) == bytearray(3)
+    # Data longer than the declared size is kept whole.
+    longer = SegmentBase(id="AS-3", size=1, data=bytes([7, 8]))
+    assert segment_seed(longer) == bytearray([7, 8])
+
+
+def test_parameter_outside_its_segment_is_left_out() -> None:
+    # A product can place a parameter past its segment (e.g. the last channel of a module
+    # repeat); the device holds only the segment, so it is left out instead of written past it.
+    buf = bytearray(4)
+    inside = MemWrite("RS-1", 3, 0, "P-1", "PT-1", "7")
+    assert _write_param(buf, inside, 8, 7)
+    outside = MemWrite("RS-1", 4, 0, "P-2", "PT-1", "1")
+    assert not _write_param(buf, outside, 8, 1)
+    assert buf == bytearray([0, 0, 0, 7])

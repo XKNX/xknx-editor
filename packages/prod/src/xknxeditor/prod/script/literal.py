@@ -1,8 +1,10 @@
 """Read the ``context`` texts of calculations, validations and buttons.
 
-Products write them as JSON, or as JavaScript object literals, e.g. ``{ empty: 0}``. The same
-lenient forms as the reference tool's JSON reader are accepted: unquoted property names, single
-quoted strings, comments, trailing commas, ``NaN``/``Infinity``, ``undefined`` and hex numbers.
+Products write them as JSON, or as JavaScript object literals, e.g. ``{ empty: 0}``. The reference
+tool reads them with Newtonsoft.Json (``JObject``), so its lenient forms are accepted: unquoted
+property names, single quoted strings, comments, trailing commas, empty array elements
+(``undefined``), ``NaN``/``Infinity``, ``undefined``, and hex (``0x1F``) and octal (``017``)
+numbers. Escapes are only those Newtonsoft knows; anything else is rejected.
 """
 
 from __future__ import annotations
@@ -14,7 +16,7 @@ from typing import Any
 
 _SPACE = re.compile(r"(?:\s+|//[^\n]*|/\*.*?\*/)*", re.S)
 _NUMBER = re.compile(
-    r"[+-]?(?:0[xX][0-9a-fA-F]+|(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?|Infinity|NaN)"
+    r"0[xX][0-9a-fA-F]+|-?Infinity|NaN|-?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?"
 )
 _NAME = re.compile(r"[A-Za-z_$][\w$]*")
 _ESCAPES = {
@@ -23,8 +25,6 @@ _ESCAPES = {
     "n": "\n",
     "r": "\r",
     "t": "\t",
-    "v": "\v",
-    "0": "\0",
 }
 _WORDS: dict[str, Any] = {"true": True, "false": False, "null": None, "undefined": None}
 
@@ -111,6 +111,10 @@ class _Parser:
         self.expect("[")
         out: list[Any] = []
         while self.peek() != "]":
+            if self.peek() == ",":
+                out.append(None)  # an empty element is undefined
+                self.pos += 1
+                continue
             out.append(self.value())
             if self.peek() != ",":
                 break
@@ -159,7 +163,9 @@ def _number(token: str) -> int | float:
     if body == "Infinity":
         return sign * math.inf
     if body[:2] in ("0x", "0X"):
-        return sign * int(body, 16)
+        return int(body, 16)
+    if re.fullmatch(r"0\d+", token):
+        return int(token, 8)  # a leading zero is octal; 8 or 9 in it is invalid
     value = float(body)
     if value.is_integer() and not re.search(r"[.eE]", body):
         return sign * int(body)

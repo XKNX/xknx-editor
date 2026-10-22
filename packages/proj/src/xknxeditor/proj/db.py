@@ -82,7 +82,75 @@ def ensure_sqlite_writable(path: Path) -> None:
 # Bump when adding a non-additive migration below. Additive column adds are handled generically and
 # do not require a bump. Stamped into the file's ``PRAGMA user_version`` so future migrations can
 # branch on the version a file was last written with.
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
+
+
+def _merge_duplicate_com_objects(conn: Any) -> int:
+    """Version 2: a com object its product references at two places of the parameter tree was
+    saved twice. Merge each such pair into the oldest row: it keeps its values and takes the
+    other's where it has none, and every group-address link moves onto it (a link both carry stays
+    once, sending if either sent). Returns how many rows were removed."""
+    groups = conn.execute(
+        text(
+            "SELECT device_id, ref_id, instance_ref_id, GROUP_CONCAT(id) FROM com_objects "
+            "GROUP BY device_id, ref_id, instance_ref_id HAVING COUNT(*) > 1"
+        )
+    ).all()
+    if not groups:
+        return 0
+    columns = [
+        row[1]
+        for row in conn.execute(text('PRAGMA table_info("com_objects")'))
+        if row[1] not in ("id", "device_id", "ref_id", "instance_ref_id")
+    ]
+    removed = 0
+    for _device, _ref, _instance, ids in groups:
+        keep, *others = sorted(int(i) for i in str(ids).split(","))
+        for other in others:
+            for column in columns:
+                conn.execute(
+                    text(
+                        f'UPDATE com_objects SET "{column}" = (SELECT "{column}" FROM com_objects '
+                        f'WHERE id = :other) WHERE id = :keep AND "{column}" IS NULL'
+                    ),
+                    {"keep": keep, "other": other},
+                )
+            for link_id, ga_id, sending in conn.execute(
+                text(
+                    "SELECT id, group_address_id, is_sending FROM com_object_links "
+                    "WHERE com_object_id = :other"
+                ),
+                {"other": other},
+            ).all():
+                kept = conn.execute(
+                    text(
+                        "SELECT id FROM com_object_links "
+                        "WHERE com_object_id = :keep AND group_address_id = :ga"
+                    ),
+                    {"keep": keep, "ga": ga_id},
+                ).first()
+                if kept is None:
+                    conn.execute(
+                        text(
+                            "UPDATE com_object_links SET com_object_id = :keep WHERE id = :id"
+                        ),
+                        {"keep": keep, "id": link_id},
+                    )
+                else:
+                    if sending:
+                        conn.execute(
+                            text(
+                                "UPDATE com_object_links SET is_sending = 1 WHERE id = :id"
+                            ),
+                            {"id": kept[0]},
+                        )
+                    conn.execute(
+                        text("DELETE FROM com_object_links WHERE id = :id"),
+                        {"id": link_id},
+                    )
+            conn.execute(text("DELETE FROM com_objects WHERE id = :id"), {"id": other})
+            removed += 1
+    return removed
 
 
 def url_for(path: Path) -> str:
@@ -182,6 +250,10 @@ def _migrate(engine: Engine) -> None:
                 )
                 added.append(f"{table.name}.{column.name}")
         current = conn.execute(text("PRAGMA user_version")).scalar()
+        if (current or 0) < 2 and "com_objects" in tables:
+            merged = _merge_duplicate_com_objects(conn)
+            if merged:
+                logger.info("merged %d duplicate com-object rows", merged)
         if added or current != SCHEMA_VERSION:
             conn.execute(text(f"PRAGMA user_version = {SCHEMA_VERSION}"))
             logger.debug(

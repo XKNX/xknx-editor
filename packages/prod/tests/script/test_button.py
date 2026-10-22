@@ -54,6 +54,12 @@ def test_offline_button_writes_with_calculations(ui: DynamicUI) -> None:
     assert ui.get_value(_ref(4)) == "11"
 
 
+def test_host_members_ignore_case(ui: DynamicUI) -> None:
+    # The host objects are .NET objects in the reference tool, reached case-insensitively.
+    changes = run_offline_button(ui, _button("caselessButton", '{"n": 2}'))
+    assert changes[_ref(1)] == ("1", "3")
+
+
 def test_failing_button_rolls_back(ui: DynamicUI) -> None:
     with pytest.raises(ScriptError) as err:
         run_offline_button(ui, _button("failingButton"))
@@ -90,6 +96,12 @@ def test_module_scope_lookup(ui: DynamicUI) -> None:
         f"{MI2}_P-1_R-1": ("0", "20"),
         f"{MI2}_P-2_R-2": ("0", "120"),
     }
+
+
+def test_module_lookup_by_application_relative_id(ui: DynamicUI) -> None:
+    # "MD-1_P-1_R-1" gets the application prefix and resolves in the button's module instance.
+    changes = run_offline_button(ui, _button("moduleIdButton", mi=MI2))
+    assert changes[f"{MI2}_P-1_R-1"] == ("0", "33")
 
 
 def test_lookups_and_device_members(ui: DynamicUI) -> None:

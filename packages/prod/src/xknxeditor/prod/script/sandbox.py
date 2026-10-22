@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import threading
 import time
 from collections.abc import Callable, Mapping, Sequence
@@ -106,7 +107,9 @@ class ScriptContext:
         on_log: Callable[[str, str], None] | None = None,
         jscript: JScriptEnv | bool = True,
         deadline: float | None = None,
+        values: Mapping[str, str] | None = None,
     ) -> None:
+        """``values`` become global variables ahead of ``script`` (which may redefine them)."""
         from .compat import runtime
 
         self._abort = abort or AbortToken()
@@ -134,6 +137,14 @@ class ScriptContext:
             self._eval(runtime.prelude() + "\n;void 0;")
         for prelude in preludes:
             self._eval(prelude)
+        if values:
+            self._eval(
+                "".join(
+                    f"this[{json.dumps(name)}] = {json.dumps(text)};"
+                    for name, text in values.items()
+                )
+                + "void 0;"
+            )
         if script:
             self.load(script)
 

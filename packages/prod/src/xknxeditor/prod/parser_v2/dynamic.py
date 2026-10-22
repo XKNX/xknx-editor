@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import logging
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import TYPE_CHECKING
@@ -37,8 +38,10 @@ from xknxeditor.namespaces.intermediate.property_union_t import PropertyUnion
 from ..errors import EncodingError
 from ..script.errors import ParameterValidationError
 from ..script.values import check_value
+from .allocator import AllocatorOverflow
 from .application_indexer import ApplicationIndexer
 from .calculation import (
+    VALIDATION_FAILED,
     CalculationScope,
     ChangeSet,
     Journal,
@@ -66,6 +69,7 @@ from .encode import (
     encode_to_properties,
     encode_to_typed_properties,
     resolve_param_values,
+    segment_seed,
     type_size_in_bit,
     validate_parameter_value,
     written_bit_mask,
@@ -1012,8 +1016,7 @@ class DynamicUI:
         the whole read.
         """
         return {
-            sid: len(seg.data) if seg.data else seg.size
-            for sid, seg in self._idx.code_segments.items()
+            sid: len(segment_seed(seg)) for sid, seg in self._idx.code_segments.items()
         }
 
     def encode_to_memory(self) -> dict[str, bytes]:
@@ -1237,6 +1240,9 @@ class DynamicUI:
                 raise ValueError(
                     f"parameter ref {ref_id!r} is not active in the current UI state"
                 )
+        # The settle below also runs the Assigns of what the value turns on; a rejection returns
+        # to this state, as the journal undoes only the values the change wrote.
+        before = copy.deepcopy(self._state) if strict else None
         journal = self._journal()
         try:
             if validate:
@@ -1251,12 +1257,33 @@ class DynamicUI:
                 raise_errors=raise_calc_errors,
                 abort=self.script_abort,
             )
+            self._invalidate()
+            if strict:
+                # A value that leaves an allocator too few numbers (e.g. more channels than it
+                # holds) is rejected with the allocator's message, as a failed validation. The
+                # settle is the one the next read needs anyway.
+                self._build_ui(capture_active=True)
+        except AllocatorOverflow as exc:
+            journal.rollback()
+            if before is not None:
+                self._state = before
+            self._invalidate()
+            raise self._overflow_rejection(exc, ref_id) from exc
         except BaseException:
             journal.rollback()
             self._invalidate()
             raise
-        self._invalidate()
         return journal.changes()
+
+    def _overflow_rejection(
+        self, exc: AllocatorOverflow, ref_id: str
+    ) -> ParameterValidationError:
+        """The rejection of an edit an allocator has too few numbers for, with its message."""
+        message = self._idx.messages.get(exc.message_ref or "")
+        return ParameterValidationError(
+            (message.text if message is not None else None) or VALIDATION_FAILED,
+            ref_id=ref_id,
+        )
 
     def _calc_scope(self, scope: ParameterState) -> CalculationScope:
         def get(local_ref: str) -> str | None:
@@ -1340,6 +1367,7 @@ class DynamicUI:
         so one rejected edit does not discard the rest); otherwise the batch is all-or-nothing."""
         if skip_invalid:
             return self._edit_best_effort(edits, validate=validate)
+        before = copy.deepcopy(self._state)  # see _change
         journal = self._journal()
         groups: dict[int, tuple[ParameterState, list[str]]] = {}
         try:
@@ -1358,11 +1386,18 @@ class DynamicUI:
                     raise_errors=True,
                     abort=self.script_abort,
                 )
+            # Evaluated inside the batch, so an allocator overflow rejects it (see _change).
+            self._invalidate()
+            self._build_ui(capture_active=True)
+        except AllocatorOverflow as exc:
+            journal.rollback()
+            self._state = before
+            self._invalidate()
+            raise self._overflow_rejection(exc, edits[-1][0]) from exc
         except BaseException:
             journal.rollback()
             self._invalidate()
             raise
-        self._invalidate()
         return journal.changes()
 
     def _edit_best_effort(
@@ -1469,7 +1504,12 @@ class DynamicUI:
                     local = idx.refs_by_number.get(owner, {}).get(number)
             else:
                 text = str(key)
-                for cand in (text, f"{owner or self._app.id}_{text}"):
+                # Full, owner-relative ("P-1_R-1") or application-relative ("MD-1_P-1_R-1").
+                for cand in (
+                    text,
+                    f"{owner or self._app.id}_{text}",
+                    f"{self._app.id}_{text}",
+                ):
                     if cand in idx.parameter_refs and idx.ref_owner.get(cand) == owner:
                         local = cand
                         break

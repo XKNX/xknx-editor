@@ -3,6 +3,7 @@ from __future__ import annotations
 import base64
 import binascii
 import ipaddress
+import logging
 import math
 import re
 import struct
@@ -76,11 +77,18 @@ from xknxeditor.namespaces.intermediate.parameter_type_t_type_time import (
 )
 from xknxeditor.namespaces.intermediate.property_parameter_t import PropertyParameter
 from xknxeditor.namespaces.intermediate.property_union_t import PropertyUnion
+from xknxeditor.namespaces.intermediate.segment_base_t import SegmentBase
 from xknxeditor.namespaces.intermediate.union_parameter_t import UnionParameter
 
 from ..errors import EncodingError
 from .application_indexer import ApplicationIndexer
 from .state import GlobalState, ModuleState
+
+log = logging.getLogger(__name__)
+# Out-of-range values already reported, (value, id of its type), so a repeated encode stays quiet.
+_out_of_range_logged: set[tuple[str, int]] = set()
+# Parameters already reported as placed outside their segment.
+_outside_segment_logged: set[str] = set()
 
 
 class MemWrite(NamedTuple):
@@ -179,6 +187,15 @@ def type_size_in_bit(tc: object, *, for_property: bool = False) -> int | None:
     return getattr(tc, "size_in_bit", None)
 
 
+def segment_seed(seg: SegmentBase) -> bytearray:
+    """A code segment's starting bytes: its ``Data``, zero-padded to its declared ``Size`` (``Data``
+    may cover only the start of the segment)."""
+    data = seg.data or b""
+    out = bytearray(max(seg.size or 0, len(data)))
+    out[: len(data)] = data
+    return out
+
+
 def _write_bits(
     buf: bytearray, offset: int, bit_offset: int, size_in_bit: int, value: int
 ) -> None:
@@ -191,6 +208,25 @@ def _write_bits(
             buf[pos // 8] |= bit_mask
         else:
             buf[pos // 8] &= ~bit_mask
+
+
+def _write_param(buf: bytearray, w: MemWrite, size_in_bit: int, value: int) -> bool:
+    """Write a parameter's bits. One a product places past its segment's end (e.g. the last
+    channel of a module repeat) is left out, as the device holds only the segment's size."""
+    end_bit = w.offset * 8 + w.bit_offset + size_in_bit
+    if end_bit > len(buf) * 8:
+        if w.param_id not in _outside_segment_logged:
+            _outside_segment_logged.add(w.param_id)
+            log.warning(
+                "parameter %s at offset %d lies outside segment %s (%d bytes), not written",
+                w.param_id,
+                w.offset,
+                w.seg_id,
+                len(buf),
+            )
+        return False
+    _write_bits(buf, w.offset, w.bit_offset, size_in_bit, value)
+    return True
 
 
 def _encode_value(
@@ -215,7 +251,21 @@ def _encode_value(
     try:
         str_value = validate_parameter_value(str_value, tc)
     except ValueError:
-        return None
+        # Values set in the editor are checked before; one outside the type's range here is the
+        # product's own (e.g. a hidden parameter's default), written as given while it fits.
+        if not (
+            isinstance(tc, ParameterTypeTypeNumber)
+            and _fits_in_bits(str_value, size_in_bit)
+        ):
+            return None
+        if (str_value, id(tc)) not in _out_of_range_logged:
+            _out_of_range_logged.add((str_value, id(tc)))
+            log.warning(
+                "parameter value %r outside %s..%s, written as given",
+                str_value,
+                tc.min_inclusive,
+                tc.max_inclusive,
+            )
     if isinstance(tc, (ParameterTypeTypeNumber, ParameterTypeTypeTime)):
         # A time value is stored as a plain integer in the type's unit.
         return _apply_byte_order(
@@ -285,6 +335,15 @@ def _encode_restriction(
     return _apply_byte_order(
         _encode_number(str_value, size_in_bit), size_in_bit, little_endian
     )
+
+
+def _fits_in_bits(str_value: str, size_in_bit: int) -> bool:
+    """Whether the integer ``str_value`` is representable in ``size_in_bit`` bits, signed or not."""
+    try:
+        v = int(str_value, 0) if str_value[:2].lower() == "0x" else int(str_value)
+    except ValueError:
+        return False
+    return -(1 << (size_in_bit - 1)) <= v < (1 << size_in_bit)
 
 
 def _encode_number(str_value: str, size_in_bit: int) -> int | None:
@@ -1054,14 +1113,13 @@ def encode_to_memory(
 ) -> dict[str, bytes]:
     """Pack parameter values into per-segment byte buffers.
 
-    Yields {segment_id: bytes} for each segment, seeded from seg.data when set.
+    Yields {segment_id: bytes} for each segment, seeded by :func:`segment_seed`.
     Layout: bit_offset 0 is a byte's MSB; values are big-endian.
     """
     writes = collect_writes(app, idx, overrides, state)
     little_endian = _program_little_endian(app)
     bufs: dict[str, bytearray] = {
-        seg_id: bytearray(seg.data) if seg.data else bytearray(seg.size)
-        for seg_id, seg in idx.code_segments.items()
+        seg_id: segment_seed(seg) for seg_id, seg in idx.code_segments.items()
     }
     for w in writes.mem:
         buf = bufs.get(w.seg_id)
@@ -1080,7 +1138,7 @@ def encode_to_memory(
         if plan is None:
             continue
         encoded, write_bits = plan
-        _write_bits(buf, w.offset, w.bit_offset, write_bits, encoded)
+        _write_param(buf, w, write_bits, encoded)
     return {seg_id: bytes(buf) for seg_id, buf in bufs.items()}
 
 
@@ -1102,8 +1160,7 @@ def encode_to_memory_masked(
     writes = collect_writes(app, idx, overrides, state, inactive_ranges=True)
     little_endian = _program_little_endian(app)
     bufs: dict[str, bytearray] = {
-        seg_id: bytearray(seg.data) if seg.data else bytearray(seg.size)
-        for seg_id, seg in idx.code_segments.items()
+        seg_id: segment_seed(seg) for seg_id, seg in idx.code_segments.items()
     }
     masks: dict[str, bytearray] = {
         seg_id: bytearray(len(buf)) for seg_id, buf in bufs.items()
@@ -1135,7 +1192,8 @@ def encode_to_memory_masked(
         if plan is None:
             continue
         encoded, write_bits = plan
-        _write_bits(buf, w.offset, w.bit_offset, write_bits, encoded)
+        if not _write_param(buf, w, write_bits, encoded):
+            continue
         start_bit = w.offset * 8 + w.bit_offset
         end_bit = start_bit + write_bits - 1
         mask = masks[w.seg_id]
@@ -1193,7 +1251,7 @@ def written_bit_mask(
     """
     writes = collect_writes(app, idx, overrides, state)
     masks: dict[str, bytearray] = {
-        seg_id: bytearray(seg.size if not seg.data else len(seg.data))
+        seg_id: bytearray(len(segment_seed(seg)))
         for seg_id, seg in idx.code_segments.items()
     }
     for w in writes.mem:

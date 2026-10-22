@@ -32,6 +32,10 @@ DEFAULT_BASE_URL = "https://onlinecatalog.knx.org"
 MASTER_DATA_URL = "https://update.knx.org/data/XML/project-23/knx_master.xml"
 _CACHE_FILE = "online_catalog_manufacturers.json"
 _INDEX_CACHE_FILE = "online_catalog_index.json"
+# Raised when the cached items' meaning changes, so an older cache is rebuilt (2: market check,
+# 3: plugin and incomplete-information flags no longer block, 4: an empty market list offers
+# nothing).
+_INDEX_FORMAT = 4
 _INDEX_SAVE_EVERY = (
     10  # persist the growing index every N manufacturers, for resumability
 )
@@ -248,18 +252,12 @@ def _app_version(app_ident: object) -> int | None:
 def _download_block_reason(entry: dict[str, object]) -> str:
     """Why the online catalog refuses to serve this product's ``.knxprod`` (empty = downloadable).
 
-    The index entry carries download-gating flags; the server additionally rejects end-of-life /
-    not-in-any-market products at download time (DownloadNotAllowedException in the decompiled ETS),
-    so flag those up front too when the index exposes them."""
-    if bool(_ci_get(entry, "NoDownloadWithoutPlugin")):
-        return "requires an ETS plugin"
+    The server refuses products no market offers ("NotInAnyMarket", see
+    :func:`parse_catalog_items`). It still serves end-of-life products (``CatalogLifeType``) and
+    those flagged ``NoDownloadWithoutPlugin`` or ``DownloadInfoIncomplete``: those flags concern
+    programming the device, not the catalog download."""
     if bool(_ci_get(entry, "RequiresExternalSoftware")):
         return "requires external software"
-    if bool(_ci_get(entry, "DownloadInfoIncomplete")):
-        return "download information is incomplete"
-    life = _ci_get(entry, "CatalogLifeType")
-    if life == 2 or str(life or "").casefold() == "endoflife":
-        return "product is end-of-life"
     return ""
 
 
@@ -306,13 +304,32 @@ def _section_paths(
     return paths
 
 
+def _market_catalog_ids(data: dict[str, object]) -> set[str] | None:
+    """The catalog items some market offers, or None when the index has no market list.
+
+    An empty list offers nothing: the server refuses all of that manufacturer's items."""
+    markets = _ci_get(data, "Markets")
+    if not isinstance(markets, list):
+        return None
+    ids: set[str] = set()
+    for market in cast(list[object], markets):
+        if _is_dict(market):
+            catalog_ids = _ci_get(market, "CatalogIds")
+            if isinstance(catalog_ids, list):
+                ids.update(
+                    i for i in cast(list[object], catalog_ids) if isinstance(i, str)
+                )
+    return ids
+
+
 def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
     """Parse a ``Download/Index/{mfr}`` response into downloadable catalog items.
 
     The index is Newtonsoft-JSON ``IndexFileData`` with an ``Entries`` array; each entry carries an
     ``Id``, ``CatalogItemName``/``ProductName``, ``OrderNumber`` and download-gating flags
     (``NoDownloadWithoutPlugin``, ``DownloadInfoIncomplete``, ``RequiresExternalSoftware``), and
-    the catalog ``Sections`` file the entries. Sorted by display name.
+    the catalog ``Sections`` file the entries. Entries no ``Markets`` entry lists are not
+    downloadable. Sorted by display name.
     """
     try:
         data = json.loads(index_bytes)
@@ -330,6 +347,7 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
 
     entries = _ci_get(data, "Entries") if _is_dict(data) else None
     sections = _section_paths(data) if _is_dict(data) else {}
+    in_market = _market_catalog_ids(data) if _is_dict(data) else None
     items: list[OnlineCatalogItem] = []
     if isinstance(entries, list):
         for entry in cast(list[object], entries):
@@ -345,6 +363,9 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
             )
             order = _ci_get(entry, "OrderNumber") or ""
             block_reason = _download_block_reason(entry)
+            if not block_reason and in_market is not None and cid not in in_market:
+                # The server refuses these with "NotInAnyMarket".
+                block_reason = "not offered in any market"
             items.append(
                 OnlineCatalogItem(
                     id=cid,
@@ -441,10 +462,18 @@ class OnlineCatalogClient:
     (for per-frame UI use); ``refresh_manufacturers`` hits the network and replaces the cache.
     """
 
-    def __init__(self, cache_dir: Path, base_url: str = DEFAULT_BASE_URL) -> None:
+    def __init__(
+        self,
+        cache_dir: Path,
+        base_url: str = DEFAULT_BASE_URL,
+        master_xml: Callable[[], bytes | None] | None = None,
+    ) -> None:
+        """``master_xml`` gives the master data the app already has, for the manufacturer names;
+        without it (or when it gives None) they are downloaded."""
         self._cache_path = cache_dir / _CACHE_FILE
         self._index_path = cache_dir / _INDEX_CACHE_FILE
         self._base_url = base_url
+        self._master_xml = master_xml
         self._lock = threading.Lock()
         # Full product index (all manufacturers), kept in memory once loaded so per-frame UI reads
         # are cheap; persisted to disk (slim fields only) so it survives restarts.
@@ -515,12 +544,29 @@ class OnlineCatalogClient:
         ids = parse_manufacturer_ids(
             _http_get(f"{self._base_url}/Download/Manufacturers")
         )
-        names = parse_manufacturer_names(_http_get(MASTER_DATA_URL))
+        names = self._manufacturer_names()
         manufacturers = [
             OnlineManufacturer(mid, names.get(mid, f"M-{mid:04d}")) for mid in ids
         ]
         self._save_cache(manufacturers)
         return manufacturers
+
+    def _manufacturer_names(self) -> dict[int, str]:
+        """Names from the app's master data, else the downloaded one, else the names cached last
+        time (the update server can be down while the catalog service works)."""
+        local = self._master_xml() if self._master_xml is not None else None
+        if local:
+            try:
+                return parse_manufacturer_names(local)
+            except (OnlineCatalogError, ET.ParseError):
+                pass
+        try:
+            return parse_manufacturer_names(_http_get(MASTER_DATA_URL))
+        except (OnlineCatalogError, ET.ParseError):
+            cached = self._load_cache()
+            if not cached:
+                raise
+            return {m.id: m.name for m in cached}
 
     # --- full product index (all manufacturers) --------------------------
 
@@ -596,6 +642,8 @@ class OnlineCatalogClient:
     ) -> tuple[dict[int, list[OnlineCatalogItem]] | None, str | None]:
         try:
             raw = json.loads(self._index_path.read_text(encoding="utf-8"))
+            if raw.get("format") != _INDEX_FORMAT:
+                return None, None
             entries = raw["index"]
             index = {
                 int(mid): [_item_from_dict(d) for d in items]
@@ -611,6 +659,7 @@ class OnlineCatalogClient:
         try:
             self._index_path.parent.mkdir(parents=True, exist_ok=True)
             payload = {
+                "format": _INDEX_FORMAT,
                 "fetched_at": fetched_at,
                 "index": {
                     str(mid): [_item_to_dict(i) for i in items]

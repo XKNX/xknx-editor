@@ -16,6 +16,14 @@ def test_rewrites_keep_line_numbers() -> None:
     assert "__xk.get(o,k)" in out
 
 
+def test_long_condition_chains() -> None:
+    # A product's condition can chain well over a hundred terms; each nests one level to the left.
+    terms = " || ".join(f"(p{i} == 1 && q{i} == 0)" for i in range(170))
+    out = transform(f"if ({terms}) {{ x = 1; }}").code
+    assert out.count("&&") == 170
+    assert out.count("||") == 169
+
+
 def test_catch_parameter_is_function_scoped() -> None:
     out = transform("function f() { try { x(); } catch (e) { return e; } }").code
     assert "catch (__xk_e" in out

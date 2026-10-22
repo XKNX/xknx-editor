@@ -936,6 +936,85 @@ class SyncDeviceComObjects(Event):
 
 @_register
 @dataclass
+class SyncDeviceModuleInstances(Event):
+    """Bring a device's saved module instances in line with a parameter change: add the instances it
+    created (``[instance_id, ref_id]`` each) and remove those it ended (``remove``, saved instance
+    ids). Rows carrying what an import captured (arguments, repeat index) are never removed, and
+    parameter values are separate rows that stay, so an instance that comes back gets them again."""
+
+    event_type: ClassVar[str] = "SyncDeviceModuleInstances"
+
+    device_id: int
+    instances: list[list[str]] = field(default_factory=list[list[str]])
+    remove: list[str] = field(default_factory=list[str])
+    added_ids: list[int] = field(default_factory=list[int])
+    removed: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
+
+    def apply(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is None:
+            return
+        gone = set(self.remove)
+        self.removed = []
+        for row in list(device.module_instances):
+            if row.instance_id in gone and not row.arguments and not row.repeat_index:
+                self.removed.append(
+                    {"id": row.id, "instance_id": row.instance_id, "ref_id": row.ref_id}
+                )
+                session.delete(row)
+        session.flush()
+        kept = {
+            mi.instance_id
+            for mi in device.module_instances
+            if mi.id not in {r["id"] for r in self.removed}
+        }
+        rows: list[ModuleInstance] = []
+        for instance_id, ref_id in self.instances:
+            if instance_id in kept:
+                continue
+            row = ModuleInstance(
+                device_id=self.device_id, instance_id=instance_id, ref_id=ref_id
+            )
+            if len(rows) < len(self.added_ids):
+                row.id = self.added_ids[len(rows)]
+            session.add(row)
+            rows.append(row)
+        session.flush()
+        self.added_ids = [row.id for row in rows]
+
+    def revert(self, session: Session) -> None:
+        for row_id in self.added_ids:
+            row = session.get(ModuleInstance, row_id)
+            if row is not None:
+                session.delete(row)
+        session.flush()
+        for snap in self.removed:
+            session.add(
+                ModuleInstance(
+                    id=snap["id"],
+                    device_id=self.device_id,
+                    instance_id=snap["instance_id"],
+                    ref_id=snap["ref_id"],
+                )
+            )
+        session.flush()
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "device_id": self.device_id,
+            "instances": self.instances,
+            "remove": self.remove,
+            "added_ids": self.added_ids,
+            "removed": self.removed,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SyncDeviceModuleInstances:
+        return cls(**data)
+
+
+@_register
+@dataclass
 class SetParameter(Event):
     event_type: ClassVar[str] = "SetParameter"
 

@@ -354,6 +354,12 @@ class Device:
         instantiated = self._dynamic_ui.instantiated_com_object_ref_ids()
         if instantiated:
             ui_cos = [co for co in ui_cos if co.ref_id in instantiated]
+        # A product may reference one object at several places of its parameter tree; it is still
+        # one object.
+        first: dict[str, UiComObject] = {}
+        for co in ui_cos:
+            first.setdefault(co.ref_id, co)
+        ui_cos = list(first.values())
         result: list[ComObject] = []
         for ui_co in ui_cos:
             supported = [lookup_or_make_dpt(code) for code in ui_co.dpt_codes]
