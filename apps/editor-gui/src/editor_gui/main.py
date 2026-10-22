@@ -104,6 +104,7 @@ from editor_gui.widgets.description import set_secure_devices
 from editor_gui.widgets.dialog import (
     begin_dialog,
     dialog_buttons,
+    dialog_room,
     end_dialog,
     floating_window_border,
     focus_when_appearing,
@@ -4095,8 +4096,22 @@ class KnxGuiApp:
             imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.92, 0.33, 0.33, 1.0))
             imgui.text_wrapped(S.EXPORT_SUMMARY_INCOMPAT)
             imgui.pop_style_color()
-            for _nid, label in self._export_summary_incompat_rows:
-                imgui.bullet_text(label)
+            # Only the list scrolls when it is long: the dialog with its buttons stays on screen.
+            listed = self._export_summary_incompat_rows
+            line_h = imgui.get_text_line_height_with_spacing()
+            height = min(len(listed) * line_h, dialog_room(3 * line_h / px(1.0)))
+            imgui.push_style_color(
+                imgui.Col_.child_bg, imgui.ImVec4(0.0, 0.0, 0.0, 0.0)
+            )
+            if imgui.begin_child(
+                "##export_incompat_devices",
+                imgui.ImVec2(0.0, height),
+                imgui.ChildFlags_.auto_resize_x,
+            ):
+                for _nid, label in listed:
+                    imgui.bullet_text(label)
+            imgui.end_child()
+            imgui.pop_style_color()
         if incompatible:
             labels = [
                 S.EXPORT_INCOMPAT_REMOVE,

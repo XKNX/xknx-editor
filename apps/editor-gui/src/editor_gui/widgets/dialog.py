@@ -216,6 +216,23 @@ def tab_page(str_id: str, height: float = 0.0) -> Generator[None]:
         draw.path_stroke(imgui.get_color_u32(imgui.Col_.border))
 
 
+def dialog_room(minimum: float = 60.0) -> float:
+    """The height a part of the current dialog may take from the cursor down, so that the dialog
+    with its row of :func:`dialog_buttons` below still fits the screen; at least ``minimum``
+    (unscaled pixels)."""
+    style = imgui.get_style()
+    screen = max(imgui.get_main_viewport().size.y - 2 * px(_SCREEN_MARGIN), px(120))
+    # The gap below the part, spacing, separator and spacing above the buttons, the buttons, and
+    # the bottom padding of the window.
+    buttons = (
+        4 * style.item_spacing.y
+        + style.separator_size
+        + imgui.get_frame_height()
+        + style.window_padding.y
+    )
+    return max(px(minimum), screen - imgui.get_cursor_pos_y() - buttons)
+
+
 def dialog_buttons(
     *labels: str,
     enabled: Sequence[bool] | None = None,
