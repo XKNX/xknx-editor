@@ -2181,3 +2181,27 @@ msgstr "Aseta alueen osoite"
 
 msgid "Set line address"
 msgstr "Aseta linjan osoite"
+
+msgid "Main Group"
+msgstr "Pääryhmä"
+
+msgid "Middle Group"
+msgstr "Keskiryhmä"
+
+msgid "Group Range"
+msgstr "Ryhmäalue"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "Pääryhmä on luku väliltä 0–31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "Keskiryhmä on luku väliltä 0–7."
+
+msgid "Set group address description"
+msgstr "Aseta ryhmäosoitteen kuvaus"
+
+msgid "Set group range description"
+msgstr "Aseta ryhmäalueen kuvaus"
+
+msgid "Set group range address"
+msgstr "Aseta ryhmäalueen osoite"

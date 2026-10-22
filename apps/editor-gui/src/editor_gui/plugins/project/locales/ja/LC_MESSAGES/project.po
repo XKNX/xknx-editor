@@ -2181,3 +2181,27 @@ msgstr "エリアのアドレスを設定"
 
 msgid "Set line address"
 msgstr "ラインのアドレスを設定"
+
+msgid "Main Group"
+msgstr "メイン・グループ"
+
+msgid "Middle Group"
+msgstr "ミドル・グループ"
+
+msgid "Group Range"
+msgstr "グループ範囲"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "メイン・グループは 0 から 31 までの数値です。"
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "ミドル・グループは 0 から 7 までの数値です。"
+
+msgid "Set group address description"
+msgstr "グループ・アドレスの説明を設定"
+
+msgid "Set group range description"
+msgstr "グループ範囲の説明を設定"
+
+msgid "Set group range address"
+msgstr "グループ範囲のアドレスを設定"

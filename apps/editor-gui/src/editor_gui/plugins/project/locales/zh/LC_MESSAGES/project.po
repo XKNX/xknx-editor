@@ -2181,3 +2181,27 @@ msgstr "设置区域地址"
 
 msgid "Set line address"
 msgstr "设置支线地址"
+
+msgid "Main Group"
+msgstr "主组"
+
+msgid "Middle Group"
+msgstr "中间组"
+
+msgid "Group Range"
+msgstr "组范围"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "主组是 0 到 31 之间的数字。"
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "中间组是 0 到 7 之间的数字。"
+
+msgid "Set group address description"
+msgstr "设置组地址说明"
+
+msgid "Set group range description"
+msgstr "设置组范围说明"
+
+msgid "Set group range address"
+msgstr "设置组范围地址"

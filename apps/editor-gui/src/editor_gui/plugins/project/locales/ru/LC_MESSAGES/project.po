@@ -2181,3 +2181,27 @@ msgstr "Задать адрес области"
 
 msgid "Set line address"
 msgstr "Задать адрес линии"
+
+msgid "Main Group"
+msgstr "Главная группа"
+
+msgid "Middle Group"
+msgstr "Средняя группа"
+
+msgid "Group Range"
+msgstr "Диапазон групп"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "Главная группа — это число от 0 до 31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "Средняя группа — это число от 0 до 7."
+
+msgid "Set group address description"
+msgstr "Задать описание группового адреса"
+
+msgid "Set group range description"
+msgstr "Задать описание диапазона групп"
+
+msgid "Set group range address"
+msgstr "Задать адрес диапазона групп"

@@ -2181,3 +2181,27 @@ msgstr "Alan adresini belirle"
 
 msgid "Set line address"
 msgstr "Linye adresini belirle"
+
+msgid "Main Group"
+msgstr "Ana Grup"
+
+msgid "Middle Group"
+msgstr "Orta Grup"
+
+msgid "Group Range"
+msgstr "Grup Aralığı"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "Ana grup 0 ile 31 arasında bir sayıdır."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "Orta grup 0 ile 7 arasında bir sayıdır."
+
+msgid "Set group address description"
+msgstr "Grup adresi tanımını belirle"
+
+msgid "Set group range description"
+msgstr "Grup aralığı tanımını belirle"
+
+msgid "Set group range address"
+msgstr "Grup aralığı adresini belirle"

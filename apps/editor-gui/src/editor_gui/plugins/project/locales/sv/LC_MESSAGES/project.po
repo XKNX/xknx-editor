@@ -2181,3 +2181,27 @@ msgstr "Ange områdets adress"
 
 msgid "Set line address"
 msgstr "Ange linjens adress"
+
+msgid "Main Group"
+msgstr "Huvudgrupp"
+
+msgid "Middle Group"
+msgstr "Mellangrupp"
+
+msgid "Group Range"
+msgstr "Gruppintervall"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "Huvudgruppen är ett tal från 0 till 31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "Mellangruppen är ett tal från 0 till 7."
+
+msgid "Set group address description"
+msgstr "Ange gruppadressens beskrivning"
+
+msgid "Set group range description"
+msgstr "Ange gruppintervallets beskrivning"
+
+msgid "Set group range address"
+msgstr "Ange gruppintervallets adress"

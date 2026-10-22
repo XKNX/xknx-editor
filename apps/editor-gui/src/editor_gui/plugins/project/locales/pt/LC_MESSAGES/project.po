@@ -2181,3 +2181,27 @@ msgstr "Definir endereço da área"
 
 msgid "Set line address"
 msgstr "Definir endereço da linha"
+
+msgid "Main Group"
+msgstr "Grupo Principal"
+
+msgid "Middle Group"
+msgstr "Grupo Intermédio"
+
+msgid "Group Range"
+msgstr "Intervalo de Grupos"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "O grupo principal é um número de 0 a 31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "O grupo intermédio é um número de 0 a 7."
+
+msgid "Set group address description"
+msgstr "Definir descrição do endereço de grupo"
+
+msgid "Set group range description"
+msgstr "Definir descrição do intervalo de grupos"
+
+msgid "Set group range address"
+msgstr "Definir endereço do intervalo de grupos"
