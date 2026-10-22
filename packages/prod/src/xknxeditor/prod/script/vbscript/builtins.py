@@ -7,6 +7,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Final
 
+from . import fmath
 from .errors import (
     INVALID_CALL,
     INVALID_USE_OF_NULL,
@@ -258,7 +259,7 @@ def _exp(a: list[Value], c: Culture) -> Value:
     if a[0] is NULL:
         raise _null_error("Exp")
     try:
-        return make_double(math.exp(to_double(a[0], c)))
+        return make_double(fmath.exp(to_double(a[0], c)))
     except OverflowError:
         raise VBRuntimeError(OVERFLOW, "Exp") from None
 
@@ -270,7 +271,7 @@ def _log(a: list[Value], c: Culture) -> Value:
     x = to_double(a[0], c)
     if x <= 0:
         raise _invalid("Log")
-    return math.log(x)
+    return fmath.log(x)
 
 
 def _math(name: str, func: Callable[[float], float]) -> None:
@@ -282,10 +283,10 @@ def _math(name: str, func: Callable[[float], float]) -> None:
     BUILTINS[name.lower()] = Builtin(name, 1, 1, call)
 
 
-_math("Atn", math.atan)
-_math("Cos", math.cos)
-_math("Sin", math.sin)
-_math("Tan", math.tan)
+_math("Atn", fmath.atan)
+_math("Cos", fmath.cos)
+_math("Sin", fmath.sin)
+_math("Tan", fmath.tan)
 
 
 def _radix_text(a: list[Value], c: Culture, name: str, fmt: str) -> Value:

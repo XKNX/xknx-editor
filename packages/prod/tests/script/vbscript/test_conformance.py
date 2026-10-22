@@ -13,6 +13,10 @@ from .corpus import Probe, probes, run_probe
 GOLDEN = Path(__file__).parent / "golden" / "vbscript.json"
 
 _TRIG = "the 32-bit engine reduces a large argument of a trigonometric function less precisely"
+_SIN_ROUNDING = (
+    "the engine's sine of 2.5 is one bit below the correctly rounded value, which the "
+    "interpreter computes on every OS"
+)
 _UNSUPPORTED = (
     "arrays, For Each and With are not supported (no parameter calculation uses them)"
 )
@@ -22,6 +26,7 @@ KNOWN_DIFFERENCES: dict[str, str] = {
     "fn:Cos(big)": _TRIG,
     "fn:Sin(big)": _TRIG,
     "fn:Tan(big)": _TRIG,
+    **{f"fn:Sin({a})": _SIN_ROUNDING for a in ("D", "sD", "half")},
     **{
         f"stmt:{name}:{a}": _UNSUPPORTED
         for name in ("for each", "dim array", "redim", "with")

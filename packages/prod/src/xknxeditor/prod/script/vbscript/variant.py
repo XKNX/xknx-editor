@@ -15,6 +15,7 @@ from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Final
 
+from . import fmath
 from .errors import (
     DIVISION_BY_ZERO,
     INVALID_CALL,
@@ -679,7 +680,7 @@ def power(a: Value, b: Value, culture: Culture) -> Value:
     if x < 0 and not y.is_integer():
         raise VBRuntimeError(INVALID_CALL)
     try:
-        r = math.pow(x, y)
+        r = fmath.power(x, y)
     except OverflowError:
         raise VBRuntimeError(OVERFLOW) from None
     except ValueError:
