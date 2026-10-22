@@ -208,5 +208,5 @@ msgstr "Tous les marchés"
 msgid "Only Products in {language}"
 msgstr "Uniquement les produits en {language}"
 
-msgid "{shown} of {total} products shown"
-msgstr "{shown} produits affichés sur {total}"
+msgid "{shown} of {total} shown"
+msgstr "{shown} affichés sur {total}"

@@ -208,5 +208,5 @@ msgstr "Όλες οι Αγορές"
 msgid "Only Products in {language}"
 msgstr "Μόνο Προϊόντα στα {language}"
 
-msgid "{shown} of {total} products shown"
-msgstr "Εμφανίζονται {shown} από {total} προϊόντα"
+msgid "{shown} of {total} shown"
+msgstr "Εμφανίζονται {shown} από {total}"

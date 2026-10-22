@@ -208,5 +208,5 @@ msgstr "Kaikki markkinat"
 msgid "Only Products in {language}"
 msgstr "Vain tuotteet, kieli: {language}"
 
-msgid "{shown} of {total} products shown"
-msgstr "{shown}/{total} tuotetta näytetään"
+msgid "{shown} of {total} shown"
+msgstr "{shown}/{total} näytetään"

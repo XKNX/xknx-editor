@@ -208,5 +208,5 @@ msgstr "Alla marknader"
 msgid "Only Products in {language}"
 msgstr "Endast produkter på {language}"
 
-msgid "{shown} of {total} products shown"
-msgstr "{shown} av {total} produkter visas"
+msgid "{shown} of {total} shown"
+msgstr "{shown} av {total} visas"

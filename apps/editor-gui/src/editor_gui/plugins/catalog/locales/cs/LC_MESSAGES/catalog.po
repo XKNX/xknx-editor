@@ -208,5 +208,5 @@ msgstr "Všechny trhy"
 msgid "Only Products in {language}"
 msgstr "Pouze produkty v jazyce: {language}"
 
-msgid "{shown} of {total} products shown"
-msgstr "Zobrazeno {shown} z {total} produktů"
+msgid "{shown} of {total} shown"
+msgstr "Zobrazeno {shown} z {total}"

@@ -208,5 +208,5 @@ msgstr "すべてのマーケット"
 msgid "Only Products in {language}"
 msgstr "{language}の製品のみ"
 
-msgid "{shown} of {total} products shown"
-msgstr "{total} 件中 {shown} 件の製品を表示"
+msgid "{shown} of {total} shown"
+msgstr "{total} 件中 {shown} 件を表示"

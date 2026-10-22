@@ -208,5 +208,5 @@ msgstr "Alle markeder"
 msgid "Only Products in {language}"
 msgstr "Kun produkter på {language}"
 
-msgid "{shown} of {total} products shown"
-msgstr "{shown} af {total} produkter vist"
+msgid "{shown} of {total} shown"
+msgstr "{shown} af {total} vist"

@@ -288,7 +288,7 @@ class CatalogStrings:
 
     @property
     def ONLINE_FILTERED_COUNT(self) -> str:
-        return _("{shown} of {total} products shown")
+        return _("{shown} of {total} shown")
 
 
 S = CatalogStrings()

@@ -208,5 +208,5 @@ msgstr "Tüm Pazarlar"
 msgid "Only Products in {language}"
 msgstr "Yalnızca {language} Ürünler"
 
-msgid "{shown} of {total} products shown"
-msgstr "{total} üründen {shown} tanesi gösteriliyor"
+msgid "{shown} of {total} shown"
+msgstr "{total} içinden {shown} gösteriliyor"
