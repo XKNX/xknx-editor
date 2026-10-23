@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<!--
+  Unraid container template for the XKNX Editor browser UI. It runs the image built from
+  docker/Dockerfile (target web) and published by .github/workflows/docker-image.yml; keep the
+  port, paths and variables in step with docker/README.md. Community Applications finds it through
+  ca_profile.xml at the repository root, and installed copies update from TemplateURL.
+-->
+<Container version="2">
+  <Name>XKNX-Editor</Name>
+  <Repository>ghcr.io/xknx/xknx-editor-web:latest</Repository>
+  <Registry>https://github.com/XKNX/xknx-editor/pkgs/container/xknx-editor-web</Registry>
+  <Network>bridge</Network>
+  <Shell>bash</Shell>
+  <Privileged>false</Privileged>
+  <Support>https://github.com/XKNX/xknx-editor/issues</Support>
+  <Project>https://github.com/XKNX/xknx-editor</Project>
+  <ReadMe>https://github.com/XKNX/xknx-editor/blob/main/unraid/README.md</ReadMe>
+  <TemplateURL>https://raw.githubusercontent.com/XKNX/xknx-editor/main/unraid/xknx-editor.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/XKNX/xknx-editor/main/homeassistant/xknx-editor/icon.png</Icon>
+  <WebUI>http://[IP]:[PORT:8080]/</WebUI>
+  <Overview>XKNX Editor in your browser: open, edit and export KNX projects (.knxproj), browse the product catalog and program KNX devices over a KNXnet/IP interface. It is the same editor as the desktop app, drawn by the browser itself.
+
+Open the Web UI and sign in with the password set below. Projects you open and save, exported .knxproj files and other files go to the Projects folder; the app settings and the imported product catalog stay in the App Data folder.
+
+KNX bus access: tunnelling to an interface by its IP address works with the default Bridge network. Gateway discovery and KNX routing use multicast, which only reaches the container with the Host network type.
+
+Signed exports (optional): exporting a project that other tools accept as signed needs a key extracted from an installation of the KNX authoring tool you own; the key is never shipped. In the editor, open Signing and upload Knx.Ets.XmlSigning.dll with its sibling assemblies, or copy them into the Projects folder and pick them there.</Overview>
+  <Category>HomeAutomation: Tools:</Category>
+  <ExtraSearchTerms>KNX knxproj xknx knxprod building automation</ExtraSearchTerms>
+  <License>GPLv2</License>
+  <Config Name="Web UI Port" Target="8080" Default="8080" Mode="tcp" Description="Port of the web UI on the server." Type="Port" Display="always" Required="true" Mask="false">8080</Config>
+  <Config Name="Web Password" Target="XKNX_WEB_PASSWORD" Default="" Mode="" Description="Password every browser signs in with. The web UI is reachable from the whole network and can program the installation, so choose a strong one." Type="Variable" Display="always" Required="true" Mask="true"/>
+  <Config Name="App Data" Target="/data" Default="/mnt/user/appdata/xknx-editor/data" Mode="rw" Description="App settings, the imported product catalog, the product data cache and the logs." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/xknx-editor/data</Config>
+  <Config Name="Projects" Target="/projects" Default="/mnt/user/appdata/xknx-editor/projects" Mode="rw" Description="The folder the editor opens and saves files in: projects, exported .knxproj files and assemblies for signing-key extraction. Point it to a share to reach the files from other computers." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/xknx-editor/projects</Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="User ID the editor runs as, so the files it saves belong to this user (99 is Unraid's nobody). 0 runs it as root." Type="Variable" Display="advanced" Required="false" Mask="false">99</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Group ID the editor runs as (100 is Unraid's users)." Type="Variable" Display="advanced" Required="false" Mask="false">100</Config>
+  <Config Name="UMASK" Target="UMASK" Default="000" Mode="" Description="Permissions of new files; 000 lets every user of the shares change them." Type="Variable" Display="advanced" Required="false" Mask="false">000</Config>
+</Container>

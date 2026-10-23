@@ -114,7 +114,16 @@ ENTRYPOINT ["/usr/bin/tini", "--"]
 # /projects is the browser's file folder — the projects you open and save, exported .knxproj files
 # (including signed ones), and any ETS assemblies you drop in for signing-key extraction. Bind-mount
 # a host folder at /projects to put files in and take exports out.
+#
+# web-run.sh starts the editor as root, or as PUID/PGID when they are set (see the script). The
+# product data cache and the logs live under /data too, so an image update keeps them and a
+# non-root user can write them. They stay out of the ha target, whose /data goes into HA backups.
 FROM app AS web
+ENV XDG_CACHE_HOME=/data/cache \
+    XDG_STATE_HOME=/data/state
+COPY docker/web-run.sh /web-run.sh
+RUN chmod +x /web-run.sh
+ENTRYPOINT ["/usr/bin/tini", "--", "/web-run.sh"]
 VOLUME /projects
 HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
     CMD code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/ || true); case "$code" in 200|403) exit 0;; *) exit 1;; esac
