@@ -1091,7 +1091,8 @@ class KnxGuiApp:
         self._log.debug("project file dialog opened")
 
     def _can_launch_file_dialog(self) -> bool:
-        if sys.platform != "linux":
+        # The browser view draws its own file dialogs; only a desktop on Linux needs a helper.
+        if sys.platform != "linux" or web.active_hub is not None:
             return True
         if self._file_dialogs_available is None:
             helper = _find_linux_file_dialog_helper()
