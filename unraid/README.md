@@ -22,12 +22,20 @@ Open the container's **WebUI** and sign in with the password.
 | --- | --- | --- |
 | Web UI Port | `8080` | the port of the web UI on the server |
 | Web Password | — (required) | the password every browser signs in with (`XKNX_WEB_PASSWORD`) |
-| App Data | `/mnt/user/appdata/xknx-editor/data` | app settings and the imported product catalog (`/data`) |
+| App Data | `/mnt/user/appdata/xknx-editor/data` | app settings, the imported product catalog, the product data cache and the logs (`/data`) |
 | Projects | `/mnt/user/appdata/xknx-editor/projects` | the folder the editor opens and saves files in (`/projects`) |
+| PUID, PGID (advanced) | `99`, `100` | the user and group the editor runs as: Unraid's `nobody` and `users` |
+| UMASK (advanced) | `000` | permissions of new files: every user of the shares may change them |
 
 The web UI is reachable from the whole network and can program the installation, so choose a strong
 password and don't expose the port to the internet. To reach projects and exports from other
 computers, point **Projects** to a share, e.g. `/mnt/user/knx`.
+
+With PUID and PGID, the files the editor saves belong to `nobody:users` like other files on the
+shares, so they can be changed and deleted from other computers. At start, the container hands
+**App Data** to that user, and **Projects** too while it is empty. A **Projects** folder that
+already holds files keeps its owner; if the editor can't write to it, the container log says so, and
+**Tools -> New Permissions** on its share fixes it.
 
 ## KNX bus access
 

@@ -15,7 +15,7 @@ signing-key extraction. The KNX authoring assembly is never shipped — you prov
 
 | Path | Holds |
 | --- | --- |
-| `/data` | app settings and the imported product catalog (keep on a named volume) |
+| `/data` | app settings, the imported product catalog, the product data cache and the logs (keep on a named volume) |
 | `/projects` | the browser's file folder: projects you open and save, exported `.knxproj` files (including signed ones), and any ETS assemblies you drop in for signing-key extraction |
 
 ## Plain image
@@ -33,9 +33,34 @@ Open `http://<host>:8080/` and sign in with the password.
 
 - **Password is required.** The image binds every interface, so without `XKNX_WEB_PASSWORD` (or a
   trusted reverse proxy, see below) the editor refuses to start. Pick a strong one.
-- **`/data`** holds settings and the catalog — a named volume keeps them across upgrades.
+- **`/data`** holds settings, the catalog, the cache and the logs — a named volume keeps them across
+  upgrades. The cache (`/data/cache`) can be deleted at any time; it is made again when needed.
 - **`/projects`** is where the editor opens and saves files in the browser. Bind-mount a host folder
   (here `/host/xknx`) so you can drop files in and collect exports from the host.
+
+### File ownership
+
+By default the editor runs as root, so the files it writes to `/projects` belong to root on the host.
+To run it as your own user instead, pass its IDs:
+
+```bash
+docker run -d --name xknx-editor   -p 8080:8080   -e XKNX_WEB_PASSWORD='choose-a-strong-password'   -e PUID="$(id -u)" -e PGID="$(id -g)"   -v xknx-editor-data:/data   -v /host/xknx:/projects   ghcr.io/xknx/xknx-editor-web:latest
+```
+
+| Variable | Meaning |
+| --- | --- |
+| `PUID` | user ID to run the editor as; unset or `0` runs it as root |
+| `PGID` | its group ID (default: `PUID`) |
+| `UMASK` | permissions of new files, e.g. `002` so the group may change them too (default `022`) |
+
+- At start, `/data` is handed to that user, also a volume from an earlier version (once).
+- `/projects` is only handed over while it is empty, e.g. a host folder Docker just created. A folder
+  with files keeps its owner, and the log warns if the user can't write to it: change its owner on
+  the host once, e.g. `sudo chown -R 1000:1000 /host/xknx`.
+- With rootless Docker or Podman, leave them unset: root in the container already is your user on
+  the host.
+- `docker run --user` works as well, but then `/data` and `/projects` must already be writable for
+  that user.
 
 ### Signing-key extraction
 
