@@ -576,6 +576,33 @@ def perform_link(
     }
 
 
+def require_editable_param(device: Any, ref_id: str) -> Any:
+    """The visible, user-editable UI parameter with ``ref_id`` on ``device``, else raises ToolError.
+
+    MCP writes must target what the GUI shows as editable:
+    - absent from the rendered UI (deactivated, Access.NONE, module instance not materialised) → reject;
+    - present but Access.READ (plugin-wrapped or ParameterRef override) → reject.
+    This is deliberately stricter than the core evaluator's active-set check (an Access.NONE
+    parameter is still internally "active" because the mark fires before the Access gate), and it is
+    checked AFTER semantic resolution so a batch op whose scope an earlier op changed sees the
+    current access. Internal paths (write_parameter, calculations, raw restore) stay unaffected —
+    they go through DynamicUI directly and do not use this helper."""
+    for p in _collect_ui_parameters(device.get_ui()):
+        if p.ref_id == ref_id:
+            access_name = getattr(p.access, "name", str(p.access))
+            if access_name != "READ_WRITE":
+                raise ToolError(
+                    f"parameter {ref_id!r} on device {device.node_id} is {access_name} "
+                    "(not user-editable); its value is set internally"
+                )
+            return p
+    raise ToolError(
+        f"parameter {ref_id!r} is not visible on device {device.node_id} "
+        "(not instantiated or deactivated by the current configuration); "
+        "call project_list_parameters for the currently editable parameters"
+    )
+
+
 def param_change_result(
     device: Any,
     parameter_ref_id: str,
@@ -620,13 +647,69 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     tool = make_tool(mcp, ctx)
     project = ctx.api.project
 
-    def _require_device(node_id: int) -> Device:
+    def _require_device(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> Device:
+        """Resolve a device by its internal node_id OR its individual address (e.g. "1.0.30"). Exactly
+        one must be given; the int form stays the primary id, the string form saves the extra
+        project_list_devices lookup when the agent already knows the address."""
+        if (node_id is None) == (device_address is None):
+            raise ToolError(
+                "pass exactly one of node_id (int) or device_address (str, e.g. '1.0.30')"
+            )
+        if device_address is not None:
+            matches = [
+                d for d in project.devices if d.individual_address == device_address
+            ]
+            if not matches:
+                raise ToolError(
+                    f"no device with individual_address {device_address!r}; "
+                    "call project_list_devices for the configured addresses"
+                )
+            if len(matches) > 1:
+                nids = sorted(d.node_id for d in matches)
+                raise ToolError(
+                    f"individual_address {device_address!r} is ambiguous "
+                    f"(node_ids: {nids}); pass node_id explicitly"
+                )
+            return matches[0]
+        assert node_id is not None  # proven by the exactly-one check above
         device = project.find_device_by_node_id(node_id)
         if device is None:
             raise ToolError(
                 f"no device with node_id {node_id}; call project_list_devices for valid ids"
             )
         return device
+
+    def _require_group_address_id(
+        group_address_id: int | None = None, group_address: str | None = None
+    ) -> int:
+        """Resolve a group address id by its internal id OR its printed address (e.g. "10/1/2" in
+        the project's style). Exactly one must be given. Keeps callers off the extra
+        project_list_group_addresses round-trip in the common case."""
+        if (group_address_id is None) == (group_address is None):
+            raise ToolError(
+                "pass exactly one of group_address_id (int) or group_address (str, e.g. '10/1/2')"
+            )
+        if group_address is not None:
+            matches = [g for g in project.group_addresses if g.address == group_address]
+            if not matches:
+                raise ToolError(
+                    f"no group address {group_address!r}; call project_list_group_addresses "
+                    "or create it with project_create_group_address first"
+                )
+            if len(matches) > 1:
+                ids = sorted(g.id for g in matches)
+                raise ToolError(
+                    f"group_address {group_address!r} is ambiguous "
+                    f"(ids: {ids}); pass group_address_id explicitly"
+                )
+            return matches[0].id
+        return int(group_address_id)  # type: ignore[arg-type]
+
+    def _device_from(node_id: int | None, device_address: str | None) -> Device:
+        """Device resolver call site shared by the tools that accept either addressing form."""
+        return _require_device(node_id, device_address)
 
     # --- application update ("Update Application Program") ------------
 
@@ -1119,18 +1202,21 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return _items(ctx.run_locked(_read))
 
     @tool
-    def project_get_device(node_id: int) -> dict[str, Any]:
-        """Read a project device using node_id from project_list_devices. Returns
-        {node_id, name, individual_address, description}, plus {product_ref_id, hardware2program_ref_id,
-        order_number, hardware_name, product_name, manufacturer_name, additional_addresses} when
-        catalog metadata is available. individual_address is null when unset. additional_addresses
-        lists the device's additional individual addresses (the tunnelling addresses of an IP
-        interface) as {index, address, name, description}; index is 1-based (the AddressIndex of a
-        tunnelling interface), address an "a.l.d" string or null for an entry without one."""
+    def project_get_device(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Read a project device. Identify it by ``node_id`` OR ``device_address`` (an individual
+        address like "1.0.30"); pass exactly one. Returns {node_id, name, individual_address,
+        description}, plus {product_ref_id, hardware2program_ref_id, order_number, hardware_name,
+        product_name, manufacturer_name, additional_addresses} when catalog metadata is available.
+        individual_address is null when unset. additional_addresses lists the device's additional
+        individual addresses (the tunnelling addresses of an IP interface) as {index, address, name,
+        description}; index is 1-based (the AddressIndex of a tunnelling interface), address an
+        "a.l.d" string or null for an entry without one."""
 
         def _read() -> dict[str, Any]:
-            device = _require_device(node_id)
-            info = project.get_device_info(node_id)
+            device = _require_device(node_id, device_address)
+            info = project.get_device_info(device.node_id)
             data = _device_dict(device)
             if info is not None:
                 data |= {
@@ -1150,24 +1236,30 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_read)
 
     @tool
-    def project_list_com_objects(node_id: int) -> dict[str, Any]:
-        """List a project device's visible com-objects using node_id from project_list_devices.
+    def project_list_com_objects(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """List a project device's visible com-objects. Identify the device by ``node_id`` OR
+        ``device_address`` (an individual address like "1.0.30"); pass exactly one.
         Returns {items, count}; each item has {ref_id, db_id, linkable, name, number, dpt, dpt_name,
         object_size, flags}. flags contains communication, read, write, transmit, update, read_on_init.
-        Pass ref_id as com_object_ref_id with the same node_id. Linking and flag edits require
+        Pass ref_id as com_object_ref_id with the same device. Linking and flag edits require
         linkable=true (db_id set)."""
 
         def _read() -> list[dict[str, Any]]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             return [_com_object_dict(co) for co in device.get_visible_com_objects()]
 
         return _items(ctx.run_locked(_read))
 
     @tool
-    def find_potential_com_objects(node_id: int) -> dict[str, Any]:
+    def find_potential_com_objects(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
         """List EVERY com-object the device's application DECLARES — a superset of the ones currently
         active (project_list_com_objects) — so you can see which objects a function could add before
-        switching its parameters (for group-address planning).
+        switching its parameters (for group-address planning). Identify the device by ``node_id`` OR
+        ``device_address`` (an individual address like "1.0.30"); pass exactly one.
 
         Returns {items, count}; each item has {ref_id, number, name, function_text, dpt, object_size}
         from the STATIC declaration: names/function texts are templates (no parameter or module
@@ -1177,27 +1269,32 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         (with db_id/flags) and their links, use project_list_com_objects."""
 
         def _read() -> list[dict[str, Any]]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             dyn = device.dynamic_ui
             if dyn is None:
-                raise ToolError(f"device {node_id} has no application loaded")
+                raise ToolError(f"device {device.node_id} has no application loaded")
             return dyn.declared_com_objects()
 
         return _items(ctx.run_locked(_read))
 
     @tool
-    def project_get_com_object(node_id: int, com_object_ref_id: str) -> dict[str, Any]:
-        """Read a project com-object. Use node_id from project_list_devices and pass the object's
-        ref_id from project_list_com_objects as com_object_ref_id. Returns {ref_id, db_id, linkable,
-        name, number, dpt, dpt_name, object_size, flags}; flags contains communication, read, write,
-        transmit, update, read_on_init. linkable=true is required for linking and flag edits."""
+    def project_get_com_object(
+        com_object_ref_id: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Read a project com-object. Identify the device by ``node_id`` OR ``device_address`` (an
+        individual address like "1.0.30"); pass exactly one. Pass the object's ref_id from
+        project_list_com_objects as com_object_ref_id. Returns {ref_id, db_id, linkable, name, number,
+        dpt, dpt_name, object_size, flags}; flags contains communication, read, write, transmit,
+        update, read_on_init. linkable=true is required for linking and flag edits."""
 
         def _read() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             co = device.find_com_object(com_object_ref_id)
             if co is None:
                 raise ToolError(
-                    f"no com-object {com_object_ref_id!r} on device {node_id}; "
+                    f"no com-object {com_object_ref_id!r} on device {device.node_id}; "
                     "call project_list_com_objects for valid ref_ids"
                 )
             return _com_object_dict(co)
@@ -1206,21 +1303,24 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_get_com_object_links(
-        node_id: int, com_object_ref_id: str
+        com_object_ref_id: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
     ) -> dict[str, Any]:
-        """Read a com-object's group-address links in the project. Pass ref_id from
-        project_list_com_objects as com_object_ref_id with the same node_id.
+        """Read a com-object's group-address links in the project. Identify the device by ``node_id``
+        OR ``device_address`` (an individual address like "1.0.30"); pass exactly one. Pass ref_id
+        from project_list_com_objects as com_object_ref_id.
         Returns {items, count}; each item has {assignment_id, group_address_id, address, name,
         is_sending}. Pass assignment_id to project_unlink_com_object. items is empty when the object
         is not instantiated or has no links; address and name are null if the group address is absent.
         These project links do not verify what is currently programmed on the bus."""
 
         def _read() -> list[dict[str, Any]]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             co = device.find_com_object(com_object_ref_id)
             if co is None:
                 raise ToolError(
-                    f"no com-object {com_object_ref_id!r} on device {node_id}; "
+                    f"no com-object {com_object_ref_id!r} on device {device.node_id}; "
                     "call project_list_com_objects for valid ref_ids"
                 )
             if co.db_id is None:
@@ -1243,9 +1343,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_list_parameters(
-        node_id: int, search: str | None = None
+        node_id: int | None = None,
+        device_address: str | None = None,
+        search: str | None = None,
     ) -> dict[str, Any]:
-        """A device's visible application parameters with current value and default.
+        """A device's visible application parameters with current value and default. Identify the
+        device by ``node_id`` OR ``device_address`` (an individual address like "1.0.30"); pass
+        exactly one.
         Returns {items, count}; each item has ref_id, label, value, default_value, access, widget.
         To keep the list compact, an enum ``widget`` carries only ``choice_count`` (plus
         ``value_label`` on the item for the current value), NOT the full choice list — call
@@ -1256,7 +1360,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         Pass an item's ``ref_id`` to project_set_parameter as its ``parameter_ref_id`` argument."""
 
         def _read() -> list[dict[str, Any]]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             rows = [
                 _parameter_dict(p, include_choices=False)
                 for p in _collect_ui_parameters(device.get_ui())
@@ -1270,12 +1374,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_parameter_tree(
-        node_id: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
         outline: bool = False,
         subtree_id: str | None = None,
         tree_token: str | None = None,
     ) -> dict[str, Any]:
-        """Read a device's nested parameter UI using node_id from project_list_devices. Group
+        """Read a device's nested parameter UI. Identify the device by ``node_id`` OR
+        ``device_address`` (an individual address like "1.0.30"); pass exactly one. Group
         headings distinguish repeated labels for different channels, buttons or display levels.
         Returns {items, count, outline, tree_token}; count is the number of top-level nodes. Node
         fields depend on kind:
@@ -1308,9 +1414,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         This reads project configuration."""
 
         def _read() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            resolved_node_id = device.node_id
             roots: list[Any] = list(device.get_ui())
-            current_token = _tree_fingerprint(node_id, roots)
+            current_token = _tree_fingerprint(resolved_node_id, roots)
             if subtree_id is not None:
                 if tree_token is None:
                     raise ToolError(
@@ -1319,13 +1426,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     )
                 if tree_token != current_token:
                     raise ToolError(
-                        f"stale tree_token for device {node_id} (current {current_token!r} != "
-                        f"{tree_token!r}); re-read project_parameter_tree to refresh"
+                        f"stale tree_token for device {resolved_node_id} (current "
+                        f"{current_token!r} != {tree_token!r}); re-read project_parameter_tree "
+                        "to refresh"
                     )
                 found = _find_subtree(roots, subtree_id)
                 if found is None:
                     raise ToolError(
-                        f"no tab/block at id {subtree_id!r} on device {node_id}; call "
+                        f"no tab/block at id {subtree_id!r} on device {resolved_node_id}; call "
                         "project_parameter_tree(outline=True) for the current ids"
                     )
                 scoped: list[tuple[str, Any]] = [(subtree_id, found)]
@@ -1355,19 +1463,24 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_read)
 
     @tool
-    def project_get_parameter(node_id: int, parameter_ref_id: str) -> dict[str, Any]:
-        """Read a project application parameter. Use node_id from project_list_devices and pass
-        ref_id from project_list_parameters or project_parameter_tree as parameter_ref_id.
+    def project_get_parameter(
+        parameter_ref_id: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Read a project application parameter. Identify the device by ``node_id`` OR
+        ``device_address`` (an individual address like "1.0.30"); pass exactly one. Pass ref_id from
+        project_list_parameters or project_parameter_tree as parameter_ref_id.
         Returns {ref_id, label, value, default_value, access, widget}; for an enum, widget includes
         the full ``choices`` (value/label/id) — the allowed values for project_set_parameter."""
 
         def _read() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             for p in _collect_ui_parameters(device.get_ui()):
                 if p.ref_id == parameter_ref_id:
                     return _parameter_dict(p)
             raise ToolError(
-                f"no parameter {parameter_ref_id!r} on device {node_id}; "
+                f"no parameter {parameter_ref_id!r} on device {device.node_id}; "
                 "call project_list_parameters for valid ref_ids"
             )
 
@@ -1375,14 +1488,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_resolve_parameter(
-        node_id: int,
         label: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
         subtree_id: str | None = None,
         value_label: str | None = None,
         tree_token: str | None = None,
     ) -> dict[str, Any]:
         """Resolve a parameter by its human ``label`` to the ``ref_id`` that project_set_parameter
-        needs, so a caller can avoid the long XML ref ids.
+        needs, so a caller can avoid the long XML ref ids. Identify the device by ``node_id`` OR
+        ``device_address`` (an individual address like "1.0.30"); pass exactly one.
 
         ``label`` is matched EXACTLY (case-insensitive) among the device's currently ACTIVE
         parameters, within a scope. Labels are NOT unique (a device repeats a label per channel), so:
@@ -1402,13 +1517,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         (and ``resolved_value``) to project_set_parameter to change it."""
 
         def _read() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             return resolve_in_scope(
                 list(device.get_ui()),
                 subtree_id,
                 label,
                 value_label,
-                node_id=node_id,
+                node_id=device.node_id,
                 tree_token=tree_token,
             )
 
@@ -1932,11 +2047,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_set_parameter(
-        node_id: int, parameter_ref_id: str, value: str
+        parameter_ref_id: str,
+        value: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
     ) -> dict[str, Any]:
-        """Set an application parameter. Pass the parameter's `ref_id` (from project_list_parameters,
-        or project_parameter_tree) as the `parameter_ref_id` argument; use a `value` permitted by that
-        parameter's `widget`.
+        """Set an application parameter. Identify the device by ``node_id`` OR ``device_address`` (an
+        individual address like "1.0.30"); pass exactly one. Pass the parameter's `ref_id` (from
+        project_list_parameters, or project_parameter_tree) as the `parameter_ref_id` argument; use a
+        `value` permitted by that parameter's `widget`.
 
         When you configure a device's push-button / display function (e.g. a glass push button, room
         controller), ALWAYS also set its display symbols and key labels/name — do not leave them at
@@ -1953,17 +2072,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         value raises with the reason and does NOT take effect on a later edit."""
 
         def _set() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             if parameters_in_plugin(device):
-                raise ToolError(PLUGIN_PARAMETERS_ERROR.format(node_id=node_id))
-            if not any(
-                p.ref_id == parameter_ref_id
-                for p in _collect_ui_parameters(device.get_ui())
-            ):
-                raise ToolError(
-                    f"no parameter {parameter_ref_id!r} on device {node_id}; "
-                    "call project_list_parameters for valid ref_ids"
-                )
+                raise ToolError(PLUGIN_PARAMETERS_ERROR.format(node_id=device.node_id))
+            # Reject NON-editable targets (absent / Access.NONE / Access.READ); matches what the GUI
+            # lets a user change. The core engine's active-set guard alone would still accept hidden-
+            # but-internally-active and read-only parameters.
+            require_editable_param(device, parameter_ref_id)
             # edit_params (not set_param): applies and reconciles as one undo step and raises on
             # reject WITHOUT the GUI's stash-and-retry, so a rejected MCP set never silently takes
             # effect on a later edit.
@@ -2131,15 +2246,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_link_com_object(
-        node_id: int,
         com_object_ref_id: str,
-        group_address_id: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
         is_sending: bool = False,
     ) -> dict[str, Any]:
-        """Create an undoable project link between a device com-object and a group address. Use
-        ``com_object_ref_id`` = the object's ``ref_id`` from project_list_com_objects for ``node_id``
-        (it must have linkable=true), and ``group_address_id`` = an ``id`` from
-        project_list_group_addresses.
+        """Create an undoable project link between a device com-object and a group address. The
+        device is identified by ``node_id`` (from project_list_devices) OR ``device_address`` (an
+        individual address like "1.0.30"); the group address by ``group_address_id`` (from
+        project_list_group_addresses) OR ``group_address`` (a printed address like "10/1/2" in the
+        project's style). Pass exactly one of each pair. ``com_object_ref_id`` is the object's
+        ``ref_id`` from project_list_com_objects (linkable=true).
 
         ``is_sending`` (default False) marks which group address an object with SEVERAL links sends to
         (it orders the associations, sending GA first); it does NOT change the object's flags, and for
@@ -2155,11 +2274,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         require_project(ctx)
 
         def _link() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            ga_id = _require_group_address_id(group_address_id, group_address)
             co = device.find_com_object(com_object_ref_id)
             if co is None:
                 raise ToolError(
-                    f"no com-object {com_object_ref_id!r} on device {node_id}; "
+                    f"no com-object {com_object_ref_id!r} on device {device.node_id}; "
                     "call project_list_com_objects for valid ref_ids"
                 )
             if co.db_id is None:
@@ -2168,11 +2288,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "cannot be linked (only com-objects with linkable=true can be linked)"
                 )
             result = perform_link(
-                project, node_id, com_object_ref_id, co, group_address_id, is_sending
+                project, device.node_id, com_object_ref_id, co, ga_id, is_sending
             )
             if result is None:
                 raise ToolError(
-                    f"could not link com-object to group address {group_address_id} "
+                    f"could not link com-object to group address {ga_id} "
                     "(check the group address id exists; a group address with Security On "
                     "only takes devices commissioned securely)"
                 )
