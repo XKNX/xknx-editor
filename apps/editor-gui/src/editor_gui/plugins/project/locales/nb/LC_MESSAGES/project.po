@@ -2283,3 +2283,21 @@ msgstr "Denne gatewayens idriftsettingsprotokoll er ikke verifisert mot et oppta
 
 msgid "{count} ECG(s) present on line {line}"
 msgstr "{count} ECG-er til stede på linje {line}"
+
+msgid "Program DCA State"
+msgstr "Programmer DCA-tilstand"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Sender DALI-enhetsinnstillingene til gatewayen som egenskapsverdier."
+
+msgid "Add to {section}:"
+msgstr "Legg til i {section}:"
+
+msgid "No entries."
+msgstr "Ingen oppføringer."
+
+msgid "Entry"
+msgstr "Oppføring"
+
+msgid "Store plugin data {name}"
+msgstr "Lagre plugindata {name}"

@@ -465,6 +465,9 @@ def _quoted(data: dict[str, Any], key: str) -> str:
 # Labels of the events without their own text; each takes the event data.
 _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "AddDevice": lambda d: S.HISTORY_EV_ADD_DEVICE.format(name=_quoted(d, "name")),
+    "UpsertDeviceBinaryData": lambda d: S.HISTORY_EV_STORE_PLUGIN_DATA.format(
+        name=_quoted(d, "name")
+    ),
     "SetParameter": lambda d: S.HISTORY_EV_SET_PARAMETER.format(
         ref=d.get("ref_id", ""), value=_quoted(d, "value")
     ),

@@ -2283,3 +2283,21 @@ msgstr "Tämän yhdyskäytävän käyttöönottoprotokollaa ei ole varmistettu k
 
 msgid "{count} ECG(s) present on line {line}"
 msgstr "{count} ECG(:tä) linjalla {line}"
+
+msgid "Program DCA State"
+msgstr "Ohjelmoi DCA-tila"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Lähettää DALI-laitteiden asetukset yhdyskäytävälle ominaisuusarvoina."
+
+msgid "Add to {section}:"
+msgstr "Lisää kohteeseen {section}:"
+
+msgid "No entries."
+msgstr "Ei merkintöjä."
+
+msgid "Entry"
+msgstr "Merkintä"
+
+msgid "Store plugin data {name}"
+msgstr "Tallenna plugin-tiedot {name}"

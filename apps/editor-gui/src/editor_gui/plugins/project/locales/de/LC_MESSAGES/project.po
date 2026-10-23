@@ -2468,3 +2468,21 @@ msgstr "DALI-Kanal"
 
 msgid "Channel {n}"
 msgstr "Kanal {n}"
+
+msgid "Program DCA State"
+msgstr "DCA-Zustand programmieren"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Sendet die DALI-Geräteeinstellungen als Eigenschaftswerte an das Gateway."
+
+msgid "Add to {section}:"
+msgstr "Zu {section} hinzufügen:"
+
+msgid "No entries."
+msgstr "Keine Einträge."
+
+msgid "Entry"
+msgstr "Eintrag"
+
+msgid "Store plugin data {name}"
+msgstr "Plugin-Daten {name} speichern"

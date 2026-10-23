@@ -2283,3 +2283,21 @@ msgstr "Protokol uvedení této gateway do provozu nebyl ověřen vůči záznam
 
 msgid "{count} ECG(s) present on line {line}"
 msgstr "{count} ECG na lince {line}"
+
+msgid "Program DCA State"
+msgstr "Naprogramovat stav DCA"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Odešle nastavení zařízení DALI do brány jako hodnoty vlastností."
+
+msgid "Add to {section}:"
+msgstr "Přidat do {section}:"
+
+msgid "No entries."
+msgstr "Žádné položky."
+
+msgid "Entry"
+msgstr "Položka"
+
+msgid "Store plugin data {name}"
+msgstr "Uložit data pluginu {name}"

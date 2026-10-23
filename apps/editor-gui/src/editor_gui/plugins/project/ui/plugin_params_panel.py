@@ -89,12 +89,12 @@ class PluginParamsPanel:
         # the device actually carries a vendor BLOB. One-click upload of the plug-in's
         # property-image to the gateway, bypassing the generic Parameters download.
         if self._on_program_dca is not None and _has_vendor_blob(device):
-            if imgui.button(f"Program DCA state##dca_{device.individual_address}"):
+            if imgui.button(
+                f"{S.PLUGIN_PARAMS_PROGRAM_DCA}##dca_{device.individual_address}"
+            ):
                 self._on_program_dca(device)
             imgui.same_line()
-            imgui.text_disabled(
-                "Sends the DaliDevice property-image via A_PropertyValue_Write."
-            )
+            imgui.text_disabled(S.PLUGIN_PARAMS_PROGRAM_DCA_HINT)
         imgui.set_next_item_width(px(320.0))
         _, self._filter = imgui.input_text(
             S.PLUGIN_PARAMS_FILTER, self._filter, imgui.InputTextFlags_.none
@@ -179,7 +179,9 @@ class PluginParamsPanel:
         closed.discard(section.section)
 
         key = (device.individual_address or "?", section.section)
-        imgui.text_disabled(f"Add a {binding.display_label[:-1].lower()}:")
+        imgui.text_disabled(
+            S.PLUGIN_PARAMS_ADD_TO.format(section=binding.display_label)
+        )
         type_id = ""
         if binding.item_types and self._on_add_item is not None:
             labels = [lbl for _tid, lbl in binding.item_types]
@@ -188,7 +190,7 @@ class PluginParamsPanel:
                 type_idx = 0
             imgui.set_next_item_width(px(360.0))
             type_changed, type_idx = imgui.combo(
-                f"Type##add_{section.section}", type_idx, labels
+                f"{S.PLUGIN_PARAMS_TYPE}##add_{section.section}", type_idx, labels
             )
             if type_changed:
                 self._new_type_idx[key] = type_idx
@@ -197,11 +199,13 @@ class PluginParamsPanel:
         if binding.needs_name:
             name = self._new_name.get(key, "")
             imgui.set_next_item_width(px(240.0))
-            name_changed, name = imgui.input_text(f"Name##add_{section.section}", name)
+            name_changed, name = imgui.input_text(
+                f"{S.PLUGIN_PARAMS_NAME}##add_{section.section}", name
+            )
             if name_changed:
                 self._new_name[key] = name
         if self._on_add_item is not None and imgui.button(
-            f"Add##add_{section.section}"
+            f"{S.PLUGIN_PARAMS_ADD}##add_{section.section}"
         ):
             final_name = (name or "").strip() or f"{binding.display_label} new"
             self._on_add_item(device, binding, type_id, final_name)
@@ -210,7 +214,7 @@ class PluginParamsPanel:
         imgui.separator()
 
         if not rows:
-            imgui.text_disabled("No items.")
+            imgui.text_disabled(S.PLUGIN_PARAMS_NO_ENTRIES)
             return
         flags = (
             imgui.TableFlags_.borders
@@ -219,8 +223,12 @@ class PluginParamsPanel:
         )
         if not imgui.begin_table(f"##coll_{section.section}", 3, flags):
             return
-        imgui.table_setup_column("Item", imgui.TableColumnFlags_.width_stretch, 0.5)
-        imgui.table_setup_column("Details", imgui.TableColumnFlags_.width_stretch, 0.4)
+        imgui.table_setup_column(
+            S.PLUGIN_PARAMS_COL_ENTRY, imgui.TableColumnFlags_.width_stretch, 0.5
+        )
+        imgui.table_setup_column(
+            S.PLUGIN_PARAMS_COL_DETAILS, imgui.TableColumnFlags_.width_stretch, 0.4
+        )
         imgui.table_setup_column("", imgui.TableColumnFlags_.width_fixed, px(72.0))
         imgui.table_headers_row()
         for row in rows:
@@ -234,7 +242,9 @@ class PluginParamsPanel:
             if (
                 item_id
                 and self._on_remove_item is not None
-                and imgui.button(f"Remove##{section.section}_{row.label}")
+                and imgui.button(
+                    f"{S.PLUGIN_PARAMS_REMOVE}##{section.section}_{row.label}"
+                )
             ):
                 self._on_remove_item(device, binding, item_id)
                 self._sections_cache.pop(device.individual_address, None)

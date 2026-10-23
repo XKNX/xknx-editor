@@ -2283,3 +2283,21 @@ msgstr "此网关的调试协议尚未与捕获记录对比验证;写入可能�
 
 msgid "{count} ECG(s) present on line {line}"
 msgstr "线路 {line} 上存在 {count} 个 ECG"
+
+msgid "Program DCA State"
+msgstr "编程 DCA 状态"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "将 DALI 设备设置作为属性值发送到网关。"
+
+msgid "Add to {section}:"
+msgstr "添加到 {section}："
+
+msgid "No entries."
+msgstr "没有条目。"
+
+msgid "Entry"
+msgstr "条目"
+
+msgid "Store plugin data {name}"
+msgstr "存储插件数据 {name}"
