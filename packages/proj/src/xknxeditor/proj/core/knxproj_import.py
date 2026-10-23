@@ -23,12 +23,14 @@ import base64
 import io
 import logging
 import re
+import threading
 import zipfile
 import zlib
-from collections.abc import Callable
+from collections.abc import Callable, Generator
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import IO, Any, Protocol
+from typing import IO, Any, Protocol, cast
 from uuid import uuid4
 from xml.etree import ElementTree as ET
 from zipfile import BadZipFile
@@ -596,14 +598,79 @@ class _RawExtras:
         self.losses: list[ImportLoss] = []
 
 
+# Placeholder addresses of the devices without one while xknxproject reads them, far outside the
+# range of real device addresses.
+_PLACEHOLDER_ADDRESS = 1_000_000
+_placeholder_lock = threading.Lock()
+
+
+@contextmanager
+def _read_devices_without_address(found: set[str]) -> Generator[None]:
+    """Let xknxproject read the devices without an individual address like the others (it skips
+    them, with their parameters, group objects and module instances): each one has a placeholder
+    address while it is read, and its id is added to ``found``."""
+    from xknxproject.loader.project_loader import (
+        _TopologyLoader,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    original = _TopologyLoader._create_device  # pyright: ignore[reportPrivateUsage]
+
+    def create(
+        self: _TopologyLoader, device_element: ET.Element, line: XMLLine
+    ) -> DeviceInstance | None:
+        if device_element.get("Address") is not None or not device_element.get("Id"):
+            return original(self, device_element, line)
+        device_element.set("Address", str(_PLACEHOLDER_ADDRESS + len(found)))
+        try:
+            device = original(self, device_element, line)
+        finally:
+            del device_element.attrib["Address"]
+        if device is not None:
+            found.add(device.identifier)
+        return device
+
+    with _placeholder_lock:
+        _TopologyLoader._create_device = create  # pyright: ignore[reportPrivateUsage]
+        try:
+            yield
+        finally:
+            _TopologyLoader._create_device = original  # pyright: ignore[reportPrivateUsage]
+
+
+def _parse_project(contents: Any, language: str | None) -> tuple[XMLParser, set[str]]:
+    """Parse with xknxproject, the devices without an individual address included (their ids are
+    returned); when that fails, without them, which then come from the raw XML only."""
+    found: set[str] = set()
+    parser = XMLParser(contents)
+    try:
+        with _read_devices_without_address(found):
+            parser.parse(language)
+    except Exception as e:
+        if not found:
+            raise
+        logger.warning(
+            "could not read the devices without individual address, imported without their "
+            "configuration: %s: %s",
+            type(e).__name__,
+            e,
+        )
+        parser = XMLParser(contents)
+        parser.parse(language)
+        return parser, set()
+    for device in parser.devices:
+        if device.identifier in found:
+            unaddressed = cast("Any", device)
+            unaddressed.address = None
+            unaddressed.individual_address = ""
+    return parser, found
+
+
 def _parse(
     source: Path | str, password: str | None, language: str | None
 ) -> tuple[XMLParser, _RawExtras]:
     with extract(Path(source), password) as contents:
-        parser = XMLParser(contents)
-        parser.parse(
-            language
-        )  # populates parser.* ; the returned dict drops the ref ids we need
+        # populates parser.* ; the returned dict drops the ref ids we need
+        parser, read_without_address = _parse_project(contents, language)
         # xknxproject exposes neither per-device <BinaryData> (where DCAs persist state, e.g. the MDT
         # DALI "DaliGC16-Backup-Store") nor the <ModuleInstances> Arguments/RepeatIndex needed to
         # re-emit module-based devices on export, so read both from the raw installation XML while the
@@ -626,6 +693,14 @@ def _parse(
         extras.project_files = _best_effort(
             "project files", lambda: _capture_project_files(contents), None
         )
+        # Those xknxproject read are devices like the others now.
+        extras.addressless_devices = {
+            key: kept
+            for key, devices in extras.addressless_devices.items()
+            if (
+                kept := [d for d in devices if d.identifier not in read_without_address]
+            )
+        }
         if extras.addressless_devices:
             _best_effort(
                 "products of devices without address",
