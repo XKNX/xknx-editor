@@ -397,6 +397,7 @@ class ProjectPlugin:
             on_device_info=self._open_read_dialog,
             on_compare=self._open_compare,
             on_select_element=api.project.select_comment_target,
+            get_selected_node_id=self._selected_node_id,
         )
 
         self._project_info_panel = ProjectInfoPanel(
