@@ -398,6 +398,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         operations: list[dict[str, Any]],
         atomic: bool = True,
         dry_run: bool = False,
+        deferred: bool = True,
     ) -> dict[str, Any]:
         """Apply project edits in order. Each operations entry is {"op": name, "params": {...}}.
         These are undoable project steps; applying changes to hardware requires connection tools.
@@ -409,8 +410,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - rename_device: (node_id | device_address), name -> {node_id, device_address, name}.
         - set_individual_address: (node_id | device_address), address -> {node_id, device_address, address}.
         - set_parameter: (node_id | device_address), (parameter_ref_id | label [channel] [subtree_id tree_token] [value_label]),
-          value? -> {node_id, device_address, ref_id, requested, value, active, changed?, lost_links?}. Address the
-          parameter by parameter_ref_id, or semantically by label (resolved AT THIS OP'S TURN within channel or subtree_id,
+          value? -> {node_id, device_address, ref_id, requested, value, active, changed?, lost_links?, activated_com_objects, unlocked_parameters}.
+          Address the parameter by parameter_ref_id, or semantically by label (resolved AT THIS OP'S TURN within channel or subtree_id,
           so a child a prior op in the batch just activated resolves; channel scopes by name e.g. 'A' without needing tree_token;
           value_label gives an enum's value). value is read back after the edit; changed lists
           calculated side effects; lost_links lists links a function/mode change dropped.
@@ -439,9 +440,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         edits or validating referenced entities/values. Returns {dry_run, valid, results}; each result
         has {index, op, valid}, plus issue when invalid. index is zero-based.
 
+        deferred=true (default) enables multi-pass deferred validation: operations that fail because
+        a prerequisite (e.g. parent switch activating a child parameter, or a function activating a
+        com-object) has not yet run in the batch are deferred and retried in subsequent passes once
+        other operations succeed. Setting deferred=false enforces strict single-pass order.
+
         With dry_run=false, returns {applied, atomic, rolled_back, ok, failed, results}. Each result
         has {index, op, status}, plus result on "ok" or error on "error"; "skipped" has neither.
-        atomic=true (default) stops on the first reported error and rewinds applied project edits;
+        atomic=true (default) stops on the first unresolvable error and rewinds applied project edits;
         later operations are skipped. atomic=false continues, so applied=true can coexist with
         failures. ok counts successful handler returns even after rollback; inspect rolled_back and
         each result. Handlers can return without changing anything, so re-read critical edits."""
@@ -457,43 +463,99 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         def _apply() -> dict[str, Any]:
             start_cursor = project.cursor
-            results: list[dict[str, Any]] = []
-            failed = False
+            # Pre-validate schemas and required parameters
+            validated: list[tuple[int, dict[str, Any]]] = []
+            results: dict[int, dict[str, Any]] = {}
             for i, op in enumerate(operations):
-                if failed and atomic:
-                    results.append(
-                        {"index": i, "op": op.get("op"), "status": "skipped"}
-                    )
-                    continue
                 check = _validate(op, i)
                 if not check["valid"]:
-                    results.append(
-                        {
+                    results[i] = {
+                        "index": i,
+                        "op": op.get("op"),
+                        "status": "error",
+                        "error": check["issue"],
+                    }
+                else:
+                    validated.append((i, op))
+
+            # If any schema validation failed and atomic, skip remaining and return immediately
+            if results and atomic:
+                for i, op in validated:
+                    results[i] = {
+                        "index": i,
+                        "op": op.get("op"),
+                        "status": "skipped",
+                    }
+                return {
+                    "applied": False,
+                    "atomic": atomic,
+                    "rolled_back": False,
+                    "ok": 0,
+                    "failed": sum(1 for r in results.values() if r["status"] == "error"),
+                    "results": [results[i] for i in range(len(operations))],
+                }
+
+            # Multi-pass execution for validated operations
+            pending = list(validated)
+            last_errors: dict[int, str] = {}
+
+            while pending:
+                next_pending: list[tuple[int, dict[str, Any]]] = []
+                progress = False
+
+                for i, op in pending:
+                    handler = handlers[op["op"]][1]
+                    try:
+                        result = handler(op.get("params", {}) or {})
+                        results[i] = {
                             "index": i,
-                            "op": op.get("op"),
-                            "status": "error",
-                            "error": check["issue"],
+                            "op": op["op"],
+                            "status": "ok",
+                            "result": result,
                         }
-                    )
-                    failed = True
-                    continue
-                handler = handlers[op["op"]][1]
-                try:
-                    result = handler(op.get("params", {}) or {})
-                    results.append(
-                        {"index": i, "op": op["op"], "status": "ok", "result": result}
-                    )
-                except Exception as exc:
-                    results.append(
-                        {
+                        progress = True
+                    except Exception as exc:
+                        last_errors[i] = str(exc)
+                        if deferred:
+                            next_pending.append((i, op))
+                        else:
+                            results[i] = {
+                                "index": i,
+                                "op": op["op"],
+                                "status": "error",
+                                "error": str(exc),
+                            }
+                            if atomic:
+                                break
+
+                if not deferred:
+                    if atomic and any(r["status"] == "error" for r in results.values()):
+                        for j, unhandled_op in validated:
+                            if j not in results:
+                                results[j] = {
+                                    "index": j,
+                                    "op": unhandled_op.get("op"),
+                                    "status": "skipped",
+                                }
+                    break
+
+                if not next_pending:
+                    break
+
+                if not progress:
+                    # Stalled: a full pass made zero progress. Remaining ops cannot be resolved.
+                    for i, op in next_pending:
+                        results[i] = {
                             "index": i,
                             "op": op["op"],
                             "status": "error",
-                            "error": str(exc),
+                            "error": last_errors.get(i, "operation failed"),
                         }
-                    )
-                    failed = True
+                    break
 
+                pending = next_pending
+
+            failed = any(r["status"] == "error" for r in results.values())
             rolled_back = False
             if failed and atomic:
                 # Rewind every step this batch applied.
@@ -505,9 +567,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "applied": not (failed and atomic),
                 "atomic": atomic,
                 "rolled_back": rolled_back,
-                "ok": sum(1 for r in results if r["status"] == "ok"),
-                "failed": sum(1 for r in results if r["status"] == "error"),
-                "results": results,
+                "ok": sum(1 for r in results.values() if r["status"] == "ok"),
+                "failed": sum(1 for r in results.values() if r["status"] == "error"),
+                "results": [results[i] for i in range(len(operations))],
             }
 
         return ctx.run_locked(_apply, timeout=_SLOW)

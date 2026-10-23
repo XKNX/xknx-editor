@@ -690,7 +690,7 @@ async def test_batch_activates_child_in_order(tmp_path: Path) -> None:
         with pytest.raises(Exception, match=r"no parameter|not active"):
             await _set(child, cval)
 
-        def _batch(order: list[tuple[str, str]]) -> Any:
+        def _batch(order: list[tuple[str, str]], **kwargs: Any) -> Any:
             return _data(
                 client,
                 "project_batch",
@@ -705,15 +705,21 @@ async def test_batch_activates_child_in_order(tmp_path: Path) -> None:
                     }
                     for ref, val in order
                 ],
+                **kwargs,
             )
 
         # Ordered parent->child: the switch op activates the child before its op runs.
         ok = await _batch([(parent, "1"), (child, cval)])
         assert ok["ok"] == 2 and ok["failed"] == 0 and not ok["rolled_back"]
 
-        # Reverse order child->parent: the child op runs while still inactive -> fail + rollback.
+        # Reverse order child->parent: with default deferred=True, multi-pass retries child after parent activates it.
         await _set(parent, "0")
-        bad = await _batch([(child, cval), (parent, "1")])
+        deferred_ok = await _batch([(child, cval), (parent, "1")])
+        assert deferred_ok["ok"] == 2 and deferred_ok["failed"] == 0 and not deferred_ok["rolled_back"]
+
+        # With deferred=False (strict single-pass), reverse order child->parent fails and rolls back.
+        await _set(parent, "0")
+        bad = await _batch([(child, cval), (parent, "1")], deferred=False)
         assert bad["failed"] >= 1 and bad["rolled_back"] is True
         assert bad["results"][0]["status"] == "error"
 
