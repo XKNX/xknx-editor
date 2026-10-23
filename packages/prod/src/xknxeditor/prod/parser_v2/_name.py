@@ -3,8 +3,8 @@ from __future__ import annotations
 import contextlib
 import re
 
-_NAME_PLACEHOLDER = re.compile(r"\{\{0(?::[^}]*)?\}\}")
-_ARG_PLACEHOLDER = re.compile(r"\{\{([^}]+)\}\}")
+_NAME_PLACEHOLDER = re.compile(r"\{\{0(?::[^{}]*)?\}\}")
+_ARG_PLACEHOLDER = re.compile(r"\{\{([^{}]+)\}\}")
 _MODIFIER = re.compile(r"\b(Format|Offset)\s*=\s*(\S+)")
 
 
@@ -18,6 +18,9 @@ def apply_text_args(text: str, text_args: dict[str, str]) -> str:
     on parse failure). Argument-name lookup is case-sensitive. Placeholders whose name is
     not in ``text_args`` are left for a later :func:`fill_name` pass, which handles the
     internal ``{{0}}`` / ``{{0:fallback}}`` form.
+
+    The placeholder regex refuses to match across nested braces, so nested forms like
+    ``{{0:Channel {{ChannelNum}}}}`` are resolved inside-out across iterations.
     """
 
     def replace(match: re.Match[str]) -> str:
@@ -45,7 +48,14 @@ def apply_text_args(text: str, text_args: dict[str, str]) -> str:
             return chr(ord("A") + shifted)
         return str(shifted)
 
-    return _ARG_PLACEHOLDER.sub(replace, text)
+    # Iterate until the string stops changing so inner placeholders surface after each pass.
+    # Bound the loop against pathological inputs.
+    for _ in range(16):
+        new_text = _ARG_PLACEHOLDER.sub(replace, text)
+        if new_text == text:
+            break
+        text = new_text
+    return text
 
 
 def fill_name(template: str, name_value: str, *, keep_whitespace: bool = False) -> str:
@@ -63,7 +73,7 @@ def fill_name(template: str, name_value: str, *, keep_whitespace: bool = False) 
         return s[colon + 1 : -2] if colon != -1 else ""
 
     text = _NAME_PLACEHOLDER.sub(replace, template)
-    text = re.sub(r"\{\{[^}]+\}\}", "", text)
+    text = re.sub(r"\{\{[^{}]+\}\}", "", text)
     if keep_whitespace:
         return text.rstrip()
     return re.sub(r"\s+", " ", text).strip()

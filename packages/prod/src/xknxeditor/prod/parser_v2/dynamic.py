@@ -953,6 +953,21 @@ class DynamicUI:
         self.ui()
         return [(iid, rid) for iid, rid, _ in self._state.module_instances()]
 
+    def get_module_instance_arguments(self) -> dict[str, list[tuple[str, str]]]:
+        """After eval, the arguments of each top-level module instance as a project stores them:
+        ``(argument ref id relative to the application, value)``, numbers resolved (allocators and
+        base values applied)."""
+        self.ui()
+        result: dict[str, list[tuple[str, str]]] = {}
+        for iid, _, args in self._state.module_instances():
+            values: list[tuple[str, str]] = []
+            for ref_id, arg in args.items():
+                value = getattr(arg, "value", None)
+                if value is not None:
+                    values.append((ref_id, str(value)))
+            result[iid] = values
+        return result
+
     def set_com_obj_instance_ref(self, ref_id: str, coir: ComObjectInstanceRef) -> None:
         self._state.set_com_obj_instance_ref(ref_id, coir)
         self._invalidate()
@@ -1233,10 +1248,14 @@ class DynamicUI:
         else:
             value = validate_parameter_value(value, tc)
         if require_active:
-            if strict:
-                self.ui()
+            # Settle the tree so active_param_refs() reflects the CURRENT configuration — the
+            # non-strict path (script set_parameter_ref) used to skip this and relied on a truthiness
+            # fallthrough when the active set was still empty.
+            self.ui()
             active = self._state.active_param_refs()
-            if active and ref_id not in active:
+            # Reject when the ref is not active; a settled device with an EMPTY active set must not
+            # bypass the guard (the older truthiness fallthrough did).
+            if ref_id not in active:
                 raise ValueError(
                     f"parameter ref {ref_id!r} is not active in the current UI state"
                 )
@@ -1342,7 +1361,9 @@ class DynamicUI:
             raise ParameterValidationError(text or str(exc), ref_id=ref_id) from exc
         self.ui()
         active = self._state.active_param_refs()
-        if active and ref_id not in active:
+        # Reject when the ref is not active; a settled device with an EMPTY active set must not
+        # bypass the guard (an older truthiness fallthrough did).
+        if ref_id not in active:
             raise ValueError(
                 f"parameter ref {ref_id!r} is not active in the current UI state"
             )

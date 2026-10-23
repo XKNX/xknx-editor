@@ -23,7 +23,7 @@ msgid "Building View"
 msgstr "Gebäudeansicht"
 
 msgid "Links"
-msgstr "Verknüpfungen"
+msgstr "Verbindungen"
 
 msgid "Physical"
 msgstr "Physikalisch"
@@ -50,7 +50,7 @@ msgid "Each group address is a hub node; devices link to it (sender into the hub
 msgstr "Jede Gruppenadresse ist ein Knoten; Geräte sind mit ihr verbunden (Sender in den Knoten, Knoten hinaus zu den Empfängern). Über ein Gerät fahren zeigt seine Gruppenadressen, über einen Knoten alle Geräte daran. Ein Klick auf ein Gerät öffnet es."
 
 msgid "No linked devices to show."
-msgstr "Keine verknüpften Geräte vorhanden."
+msgstr "Keine verbundenen Geräte vorhanden."
 
 msgid "Room"
 msgstr "Raum"
@@ -81,3 +81,75 @@ msgstr "Adresse: {address}"
 
 msgid "Application: {application}"
 msgstr "Applikation: {application}"
+
+msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
+msgstr "Welche Geräte über ihre Gruppenadressen miteinander sprechen: sendende Geräte links, empfangende Geräte rechts."
+
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "Klicken, um einem Gerät oder einer Gruppenadresse zu folgen, Doppelklick öffnet ein Gerät. Ziehen zum Verschieben, {key}+Scrollen zum Zoomen."
+
+msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
+msgstr "Antippen, um einem Gerät oder einer Gruppenadresse zu folgen, doppelt antippen öffnet ein Gerät. Mit zwei Fingern zoomen."
+
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Ziehen zum Verschieben, {key}+Scrollen zum Zoomen. Klicke ein Gerät, um es zu öffnen."
+
+msgid "Show"
+msgstr "Anzeigen"
+
+msgid "Choose…"
+msgstr "Auswählen…"
+
+msgid "Choose above what to show: the whole project, a room or a main group."
+msgstr "Oben auswählen, was angezeigt werden soll: das ganze Projekt, ein Raum oder eine Hauptgruppe."
+
+msgid "Whole Project"
+msgstr "Ganzes Projekt"
+
+msgid "Rooms"
+msgstr "Räume"
+
+msgid "Main Groups"
+msgstr "Hauptgruppen"
+
+msgid "Device: {device}"
+msgstr "Gerät: {device}"
+
+msgid "Group Address: {address}"
+msgstr "Gruppenadresse: {address}"
+
+msgid "Back"
+msgstr "Zurück"
+
+msgid "Fit"
+msgstr "Einpassen"
+
+msgid "Sending"
+msgstr "Sendend"
+
+msgid "Group Addresses"
+msgstr "Gruppenadressen"
+
+msgid "Receiving"
+msgstr "Empfangend"
+
+msgid "+ {count} more"
+msgstr "+ {count} weitere"
+
+msgid "{count} more devices outside the selection. Click to show them."
+msgstr "{count} weitere Geräte außerhalb der Auswahl. Klicken, um sie anzuzeigen."
+
+msgid "{address}\n{senders} sending, {receivers} receiving"
+msgstr "{address}\n{senders} sendend, {receivers} empfangend"
+
+msgid "Areas"
+msgstr "Bereiche"
+
+msgid "Lines"
+msgstr "Linien"
+
+msgid "Devices"
+msgstr "Geräte"
+
+msgid "Buildings"
+msgstr "Gebäude"

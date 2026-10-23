@@ -1,0 +1,176 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor connection 1.0\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Gateway"
+msgstr "Gateway"
+
+msgid "Connect"
+msgstr "Σύνδεση"
+
+msgid "Disconnect"
+msgstr "Αποσύνδεση"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Χρήση Σειριακού Αριθμού για Φορτίσεις"
+
+msgid "Discovered Gateways"
+msgstr "Εντοπισμένα Gateway"
+
+msgid "Diagnostics"
+msgstr "Διαγνωστικά"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "Έλεγχος για Συσκευές σε Κατάσταση Προγραμματισμού"
+
+msgid "Devices in Programming Mode"
+msgstr "Συσκευές σε Κατάσταση Προγραμματισμού"
+
+msgid "Rescan"
+msgstr "Νέα Σάρωση"
+
+msgid "Searching the bus…"
+msgstr "Αναζήτηση στο bus…"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Πατήστε το πλήκτρο προγραμματισμού μιας συσκευής για να τη θέσετε σε κατάσταση προγραμματισμού και, στη συνέχεια, σαρώστε ξανά."
+
+msgid "No device is in programming mode."
+msgstr "Καμία συσκευή δεν είναι σε κατάσταση προγραμματισμού."
+
+msgid "The scan could not be completed: {error}"
+msgstr "Η σάρωση δεν ολοκληρώθηκε: {error}"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "Η θύρα επικοινωνίας δεν επιβεβαίωσε το αίτημα σάρωσης (bus απασχολημένο ή θύρα υπερφορτωμένη). Δοκιμάστε ξανά."
+
+msgid "{count} device(s) in programming mode"
+msgstr "{count} συσκευή(-ές) σε κατάσταση προγραμματισμού"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "Απάντησε στη σάρωση, αλλά η ανάγνωση των λεπτομερειών απέτυχε: {error}"
+
+msgid "In this project: {name}"
+msgstr "Σε αυτό το έργο: {name}"
+
+msgid "Not in this project"
+msgstr "Δεν υπάρχει σε αυτό το έργο"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Μη προγραμματισμένη συσκευή (εργοστασιακή διεύθυνση 15.15.255)"
+
+msgid "Select in Project"
+msgstr "Επιλογή στο Έργο"
+
+msgid "Manufacturer"
+msgstr "Κατασκευαστής"
+
+msgid "Product (Catalog)"
+msgstr "Προϊόν (Κατάλογος)"
+
+msgid "Application"
+msgstr "Εφαρμογή"
+
+msgid "Application Version"
+msgstr "Έκδοση Εφαρμογής"
+
+msgid "Mask Version"
+msgstr "Έκδοση Μάσκας"
+
+msgid "Serial Number"
+msgstr "Σειριακός Αριθμός"
+
+msgid "Order Number"
+msgstr "Αριθμός Παραγγελίας"
+
+msgid "Hardware Type"
+msgstr "Τύπος Υλικού"
+
+msgid "Status"
+msgstr "Κατάσταση"
+
+msgid "No fault"
+msgstr "Κανένα σφάλμα"
+
+msgid "Programming mode active"
+msgstr "Κατάσταση προγραμματισμού ενεργή"
+
+msgid "No gateways found"
+msgstr "Δεν βρέθηκαν gateway"
+
+msgid "Manual Connection"
+msgstr "Χειροκίνητη Σύνδεση"
+
+msgid "Connected: {ip}"
+msgstr "Συνδέθηκε: {ip}"
+
+msgid "Connected to {ip}"
+msgstr "Συνδέθηκε με {ip}"
+
+msgid "Disconnected"
+msgstr "Αποσυνδέθηκε"
+
+msgid "Connecting…"
+msgstr "Σύνδεση…"
+
+msgid "Connection failed"
+msgstr "Η σύνδεση απέτυχε"
+
+msgid "Scan"
+msgstr "Σάρωση"
+
+msgid "Settings"
+msgstr "Ρυθμίσεις"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Χρήση δρομολόγησης multicast (αντί για tunnelling)"
+
+msgid "Gateway IP"
+msgstr "IP Gateway"
+
+msgid "Multicast Group"
+msgstr "Ομάδα Multicast"
+
+msgid "Apply"
+msgstr "Εφαρμογή"
+
+msgid "Bus monitor: {ip}"
+msgstr "Παρακολούθηση bus: {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Το gateway είναι συνδεδεμένο σε λειτουργία παρακολούθησης bus. Δεν είναι δυνατή η αποστολή ή η φόρτιση μέχρι να σταματήσει η παρακολούθηση bus."
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Δεν είναι δυνατό όσο εκτελείται η παρακολούθηση bus"
+
+msgid "Stop Bus Monitor"
+msgstr "Διακοπή Παρακολούθησης Bus"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "Η θύρα επικοινωνίας απαιτεί KNX IP Secure, αλλά ούτε το έργο ούτε κάποιο φορτωμένο keyring περιέχει τους κωδικούς της."
+
+msgid "Error: {error}"
+msgstr "Σφάλμα: {error}"
+
+msgid "Unknown error"
+msgstr "Άγνωστο σφάλμα"
+
+msgid "Name: {name}"
+msgstr "Όνομα: {name}"
+
+msgid "KNX Address: {address}"
+msgstr "Διεύθυνση KNX: {address}"
+
+msgid "Core Version: {version}"
+msgstr "Έκδοση Core: {version}"
+
+msgid "Services: {services}"
+msgstr "Υπηρεσίες: {services}"
+
+msgid "Retry"
+msgstr "Επανάληψη"

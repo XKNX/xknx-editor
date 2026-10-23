@@ -112,19 +112,19 @@ class CockpitPanel:
         imgui.table_setup_column(
             S.COCKPIT_COL_ADDRESS,
             imgui.TableColumnFlags_.width_fixed | imgui.TableColumnFlags_.default_sort,
-            px(70.0),
+            px(54.0),
         )
         imgui.table_setup_column(
-            S.COCKPIT_COL_NAME, imgui.TableColumnFlags_.width_stretch, 0.4
+            S.COCKPIT_COL_NAME, imgui.TableColumnFlags_.width_stretch, 0.403
         )
         imgui.table_setup_column(
-            S.COCKPIT_COL_PRODUCT, imgui.TableColumnFlags_.width_stretch, 0.4
+            S.COCKPIT_COL_PRODUCT, imgui.TableColumnFlags_.width_stretch, 0.403
         )
         imgui.table_setup_column(
-            S.COCKPIT_COL_LOADED, imgui.TableColumnFlags_.width_fixed, px(90.0)
+            S.COCKPIT_COL_LOADED, imgui.TableColumnFlags_.width_fixed, px(66.0)
         )
         imgui.table_setup_column(
-            S.COCKPIT_COL_STATUS, imgui.TableColumnFlags_.width_stretch, 0.2
+            S.COCKPIT_COL_STATUS, imgui.TableColumnFlags_.width_stretch, 0.194
         )
         data_table_headers()
         rows = [r for r in self._sorted_rows() if self._matches(r, needle)]

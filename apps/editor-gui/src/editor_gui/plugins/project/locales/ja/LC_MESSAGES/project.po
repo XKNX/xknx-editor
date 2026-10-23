@@ -1,0 +1,2303 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor project 1.0\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device"
+msgstr "デバイス"
+
+msgid "Manufacturer"
+msgstr "メーカー"
+
+msgid "Devices"
+msgstr "デバイス"
+
+msgid "Configure"
+msgstr "構成"
+
+msgid "History"
+msgstr "履歴"
+
+msgid "Editor"
+msgstr "エディター"
+
+msgid "Group Addresses"
+msgstr "グループ・アドレス"
+
+msgid "Buildings"
+msgstr "構造"
+
+msgid "Project"
+msgstr "プロジェクト"
+
+msgid "Project Log"
+msgstr "プロジェクト・ログ"
+
+msgid "Mass Linker"
+msgstr "一括リンク"
+
+msgid "Object <> GA"
+msgstr "オブジェクト <> GA"
+
+msgid "Object <> Object"
+msgstr "オブジェクト <> オブジェクト"
+
+msgid "Log"
+msgstr "ログ"
+
+msgid "Open a project to use the Mass Linker."
+msgstr "一括リンクを使用するには、プロジェクトを開いてください。"
+
+msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
+msgstr "ペアはリストの順序で組み合わされます（1 番目同士、…）。長い側の余った項目は無視されます。リストの順序は右クリック・メニューで変更できます。"
+
+msgid "Link group objects to existing group addresses."
+msgstr "グループ・オブジェクトを既存のグループ・アドレスにリンクします。"
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "「{add_device}」または「{add_objects}」でオブジェクトを追加します。"
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "行ごとにグループ・アドレスを選択するか、「{match}」または「{sequential}」ですべての行を埋めます。"
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "「{link_all}」は、グループ・アドレスが選択されているすべての行をリンクします。"
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "オブジェクト同士を、それぞれ新しいグループ・アドレスを介してリンクします：ソースが送信し、ターゲットが受信します。"
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "「{add_device}」または「{add_objects}」でソース・オブジェクトを追加します。"
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "行ごとにターゲット・オブジェクトを選択します。アドレスと名前は提案され、変更できます。"
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "「{link_all}」でグループ・アドレスを作成してリンクします。"
+
+msgid "Link All"
+msgstr "すべてリンク"
+
+msgid "Chronological record of every mass-link operation in this session."
+msgstr "このセッションでのすべての一括リンク操作の時系列記録です。"
+
+msgid "Source (objects)"
+msgstr "ソース（オブジェクト）"
+
+msgid "Target (Group Addresses)"
+msgstr "ターゲット（グループ・アドレス）"
+
+msgid "Target (objects)"
+msgstr "ターゲット（オブジェクト）"
+
+msgid "Preview & Link"
+msgstr "プレビューとリンク"
+
+msgid "Add Group Objects…"
+msgstr "グループ・オブジェクトを追加…"
+
+msgid "Add Group Addresses…"
+msgstr "グループ・アドレスを追加…"
+
+msgid "Add Selected"
+msgstr "選択項目を追加"
+
+msgid "Clear"
+msgstr "クリア"
+
+msgid "Remove"
+msgstr "削除する"
+
+msgid "Move up"
+msgstr "上へ移動"
+
+msgid "Move Down"
+msgstr "下へ移動"
+
+msgid "{count} items"
+msgstr "{count} 項目"
+
+msgid "{count} pairs"
+msgstr "{count} ペア"
+
+msgid "{count} unpaired (ignored)"
+msgstr "ペアなし {count} 件（無視）"
+
+msgid "Link"
+msgstr "リンク"
+
+msgid "GA Name ({source}, {target}, {n})"
+msgstr "GA 名（{source}、{target}、{n}）"
+
+msgid "Start Address"
+msgstr "開始アドレス"
+
+msgid "Filter…"
+msgstr "フィルター…"
+
+msgid "Add Group Objects"
+msgstr "グループ・オブジェクトを追加"
+
+msgid "Add Group Addresses"
+msgstr "グループ・アドレスを追加"
+
+msgid "Mass Linker Result"
+msgstr "一括リンクの結果"
+
+msgid "Linked {count} object(s) to group addresses"
+msgstr "{count} 個のオブジェクトをグループ・アドレスにリンクしました"
+
+msgid "Linked {count} object pair(s) via new group addresses"
+msgstr "{count} 組のオブジェクト・ペアを新しいグループ・アドレスでリンクしました"
+
+msgid "{count} error(s)"
+msgstr "エラー {count} 件"
+
+msgid "Clear All"
+msgstr "すべて削除"
+
+msgid "No operations yet."
+msgstr "まだ操作はありません。"
+
+msgid "Group Object"
+msgstr "グループ・オブジェクト"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Target Group Address"
+msgstr "ターゲット・グループ・アドレス"
+
+msgid "Target Group Object"
+msgstr "ターゲット・グループ・オブジェクト"
+
+msgid "Group Address"
+msgstr "グループ・アドレス"
+
+msgid "Group Address Name"
+msgstr "グループ・アドレス名"
+
+msgid "(none)"
+msgstr "（なし）"
+
+msgid "Matching DPT Only"
+msgstr "一致する DPT のみ"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "オブジェクトのメイン・データポイントタイプを持つグループ・アドレスと、データポイントタイプのないグループ・アドレス（リンク時にオブジェクトのタイプを引き継ぎます）のみ。"
+
+msgid "no DPT"
+msgstr "DPT なし"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "同じメイン・データポイントタイプを持つオブジェクトと、データポイントタイプのないオブジェクトのみ。"
+
+msgid "Select a device in the tree first."
+msgstr "先にツリーでデバイスを選択してください。"
+
+msgid "{device} has no group objects."
+msgstr "{device} にはグループ・オブジェクトがありません。"
+
+msgid "All objects of {device} are in the list already."
+msgstr "{device} のすべてのオブジェクトはすでにリストにあります。"
+
+msgid "+ Selected Device"
+msgstr "+ 選択したデバイス"
+
+msgid "Select All"
+msgstr "すべて選択"
+
+msgid "No objects yet — add the selected device or pick objects."
+msgstr "まだオブジェクトがありません。選択したデバイスを追加するか、オブジェクトを選択してください。"
+
+msgid "From"
+msgstr "開始"
+
+msgid "Assign Sequential"
+msgstr "順番に割り当て"
+
+msgid "Match by Name"
+msgstr "名前で照合"
+
+msgid "Link All ({count})"
+msgstr "すべてリンク（{count}）"
+
+msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
+msgstr "準備完了 {ready} · あいまい {amb} · 非互換 {bad} · 未照合 {none}"
+
+msgid "Only Problems"
+msgstr "問題のみ"
+
+msgid "Ready to link."
+msgstr "リンクの準備ができています。"
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "グループ・アドレスを確認してください：複数が一致するか、データポイントタイプが不明です。"
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "データポイントタイプが一致しないため、この行はリンクされません。"
+
+msgid "No group address chosen yet."
+msgstr "グループ・アドレスがまだ選択されていません。"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Tools"
+msgstr "ツール"
+
+msgid "Open a project to use the tools."
+msgstr "ツールを使用するには、プロジェクトを開いてください。"
+
+msgid "No devices in this project."
+msgstr "このプロジェクトにはデバイスがありません。"
+
+msgid "Extended Copy"
+msgstr "拡張コピー"
+
+msgid "Replace Device"
+msgstr "デバイスを置換する"
+
+msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
+msgstr "デバイスを別のモデル（プロジェクト内にあるテンプレート・デバイス）に置き換え、グループ・アドレスのリンクを保持します。グループ・オブジェクトは番号とサイズで照合され、一致しないものは報告されます。パラメータは引き継がれません。"
+
+msgid "Device to Replace"
+msgstr "置換するデバイス"
+
+msgid "Replace with (Template)"
+msgstr "置換先（テンプレート）"
+
+msgid "Group Object Mapping (by Number)"
+msgstr "グループ・オブジェクトの対応付け（番号順）"
+
+msgid "{count} object(s) will be re-mapped"
+msgstr "{count} 個のオブジェクトが再対応付けされます"
+
+msgid "Replaced; re-mapped {count} group object(s)"
+msgstr "置換しました。{count} 個のグループ・オブジェクトを再対応付けしました"
+
+msgid "Shift Addresses"
+msgstr "アドレスをシフト"
+
+msgid "Labels"
+msgstr "ラベル"
+
+msgid "Topology Check"
+msgstr "トポロジー・チェック"
+
+msgid "Project Diff"
+msgstr "プロジェクト比較"
+
+msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "開いているプロジェクトを別のプロジェクト・ファイル（.knxproj または .xknx）と比較し、追加・削除・変更されたデバイスとグループ・アドレスを表示します。比較先のプロジェクトは読み取り専用で、何も変更されません。"
+
+msgid "Choose Project to Compare…"
+msgstr "比較するプロジェクトを選択…"
+
+msgid "Choose Project to Compare"
+msgstr "比較するプロジェクトを選択"
+
+msgid "KNX project (*.knxproj *.xknx)"
+msgstr "KNX プロジェクト (*.knxproj *.xknx)"
+
+msgid "compared with {name}"
+msgstr "{name} と比較"
+
+msgid "No differences in devices or group addresses."
+msgstr "デバイスやグループ・アドレスに差異はありません。"
+
+msgid "{count} difference(s)"
+msgstr "{count} 件の差異"
+
+msgid "Add Device Certificate"
+msgstr "デバイス証明書を追加"
+
+msgid "Device Certificate"
+msgstr "デバイス証明書"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "このデバイスはすでにこのプロジェクトの独自キーを使用しています。証明書が再び必要になるのは、工場出荷時リセットの後だけです。"
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "このデバイスはまだ工場出荷時のキーを使用しています：最初の安全なダウンロードには証明書が必要です。"
+
+msgid "Stored Certificate: {serial}"
+msgstr "保存済みの証明書：{serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "ラベルまたは証明書に記載された FDSK を入力してください（36 文字）："
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "置き換えるには、新しい FDSK を入力してください（36 文字）："
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "保存済みの証明書を削除しますか？削除すると、工場出荷時リセットの後はラベルのコードでしかデバイスに再びアクセスできなくなります。"
+
+msgid "Device Certificate…"
+msgstr "デバイス証明書…"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "デバイス証明書（FDSK）がありません。"
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "有効な FDSK ではありません。確認してください。"
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "この証明書は、シリアル番号 {serial} のデバイスのものです。"
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "先にプロジェクト・パスワードを設定してください：パスワードはデバイス・キーを保護します。"
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "もう一方のプロジェクトはパスワードで保護されています。比較するにはパスワードを入力してください："
+
+msgid "Compare"
+msgstr "比較"
+
+msgid "Wrong password, please try again."
+msgstr "パスワードが間違っています。もう一度お試しください。"
+
+msgid "Duplicate a device several times. Optionally rewrite the copy name (find/replace) and create a group address for each of its objects."
+msgstr "デバイスを複数回複製します。必要に応じて、コピーの名前を書き換え（検索／置換）、各オブジェクトにグループ・アドレスを作成できます。"
+
+msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
+msgstr "個別アドレスのデバイス部にオフセットを加算してデバイスの番号を振り直します（例：新しいデバイス用に空きを作る）。グループ・アドレスは変更されません。"
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "フィールドと出力形式を選択します：CSV、印刷用ラベル・シート（Avery）、または全ページの凡例。HTML 出力はブラウザーで開き、印刷または PDF として保存できます。"
+
+msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
+msgstr "読み取り専用のチェック：個別アドレスが欠落、不正、または重複しているデバイスを一覧表示します。"
+
+msgid "Source Device"
+msgstr "ソース・デバイス"
+
+msgid "Copies"
+msgstr "コピー数"
+
+msgid "Find in Name"
+msgstr "名前内を検索"
+
+msgid "Replace with"
+msgstr "置換後"
+
+msgid "Create Group Addresses for Each Copy"
+msgstr "コピーごとにグループ・アドレスを作成"
+
+msgid "Copy Name: {name}"
+msgstr "コピー名：{name}"
+
+msgid "Copy"
+msgstr "コピー"
+
+msgid "Created {count} copy/copies"
+msgstr "{count} 個のコピーを作成しました"
+
+msgid "Shifts the device part of each individual address. Group addresses are not shifted."
+msgstr "各個別アドレスのデバイス部をシフトします。グループ・アドレスはシフトされません。"
+
+msgid "Offset"
+msgstr "オフセット"
+
+msgid "Filter devices…"
+msgstr "デバイスをフィルター…"
+
+msgid "All"
+msgstr "全て"
+
+msgid "None"
+msgstr "なし"
+
+msgid "{sel} of {total} selected"
+msgstr "{total} 件中 {sel} 件を選択"
+
+msgid "(out of range)"
+msgstr "（範囲外）"
+
+msgid "{count} address(es) will change"
+msgstr "{count} 件のアドレスが変更されます"
+
+msgid "Shifted {count} address(es)"
+msgstr "{count} 件のアドレスをシフトしました"
+
+msgid "Individual Addresses"
+msgstr "個別アドレス"
+
+msgid "This project has no group addresses."
+msgstr "このプロジェクトにはグループ・アドレスがありません。"
+
+msgid "Shift Group Addresses"
+msgstr "グループ・アドレスをシフト"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "生の値にオフセットを加算してグループ・アドレスの番号を振り直します（例：空きを作る）。グループ・オブジェクトのリンクは各アドレスと一緒に移動します。いずれかの移動が衝突するか有効範囲を超える場合は、何も書き込まれません。"
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "オフセットは 16 ビットの生の値に加算されるため、アドレスが境界をまたぐとメイン／ミドル・グループが変わることがあります。"
+
+msgid "Shifted {count} group address(es)"
+msgstr "{count} 件のグループ・アドレスをシフトしました"
+
+msgid "Export CSV…"
+msgstr "CSV をエクスポート…"
+
+msgid "Exported to {path}"
+msgstr "{path} にエクスポートしました"
+
+msgid "Fields"
+msgstr "フィールド"
+
+msgid "Output"
+msgstr "出力"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Label Sheet"
+msgstr "ラベル・シート"
+
+msgid "Legend (Full Page)"
+msgstr "凡例（全ページ）"
+
+msgid "Sheet"
+msgstr "シート"
+
+msgid "Custom Grid"
+msgstr "カスタム・グリッド"
+
+msgid "Columns"
+msgstr "列"
+
+msgid "Rows"
+msgstr "行"
+
+msgid "Label W x H (mm)"
+msgstr "ラベル 幅 x 高さ (mm)"
+
+msgid "Margin Top / Left (mm)"
+msgstr "余白 上 / 左 (mm)"
+
+msgid "Gap X / Y (mm)"
+msgstr "間隔 X / Y (mm)"
+
+msgid "Export HTML…"
+msgstr "HTML をエクスポート…"
+
+msgid "Select at least one field."
+msgstr "少なくとも 1 つのフィールドを選択してください。"
+
+msgid "No topology issues found."
+msgstr "トポロジーの問題は見つかりませんでした。"
+
+msgid "{count} issue(s)"
+msgstr "{count} 件の問題"
+
+msgid "Click a finding to jump to the device."
+msgstr "項目をクリックするとデバイスに移動します。"
+
+msgid "No buildings/rooms in this project"
+msgstr "このプロジェクトには構造／部屋がありません"
+
+msgid "+ Function"
+msgstr "+ 機能"
+
+msgid "+ Space"
+msgstr "+ スペース"
+
+msgid "+ Sub-space"
+msgstr "+ サブスペース"
+
+msgid "New Space"
+msgstr "新しいスペース"
+
+msgid "Name"
+msgstr "名前"
+
+msgid "Type"
+msgstr "タイプ"
+
+msgid "Create"
+msgstr "作成"
+
+msgid "Delete"
+msgstr "削除"
+
+msgid "Delete Space"
+msgstr "スペースを削除"
+
+msgid "Move to"
+msgstr "移動先"
+
+msgid "(Top Level)"
+msgstr "（最上位）"
+
+msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
+msgstr "このスペースとその中のすべてを削除しますか？デバイスは割り当てが解除されるだけで、削除はされません。"
+
+msgid "Assign Device"
+msgstr "デバイスを割り当て"
+
+msgid "Assign a Device to This Space"
+msgstr "このスペースにデバイスを割り当て"
+
+msgid "No unassigned devices"
+msgstr "未割り当てのデバイスはありません"
+
+msgid "Remove from Space"
+msgstr "スペースから削除"
+
+msgid "Without Space"
+msgstr "スペースなし"
+
+msgid "Building"
+msgstr "構造"
+
+msgid "Building Part"
+msgstr "構造の一部"
+
+msgid "Floor"
+msgstr "フロア"
+
+msgid "Room"
+msgstr "部屋"
+
+msgid "Corridor"
+msgstr "廊下"
+
+msgid "Stairway"
+msgstr "階段"
+
+msgid "Distribution Board"
+msgstr "配電盤"
+
+msgid "New Function"
+msgstr "新しい機能"
+
+msgid "Rename"
+msgstr "名前を変更"
+
+msgid "Rename Function"
+msgstr "機能の名前を変更"
+
+msgid "Assign Group Address"
+msgstr "グループ・アドレスを割り当て"
+
+msgid "Role (Optional)"
+msgstr "役割（オプション）"
+
+msgid "Custom"
+msgstr "カスタム"
+
+msgid "Switchable Light"
+msgstr "切り替え可能なライト"
+
+msgid "Dimmable Light"
+msgstr "調光ライト"
+
+msgid "Sun Protection"
+msgstr "日よけ"
+
+msgid "Heating (Switching Variable)"
+msgstr "暖房（スイッチング制御）"
+
+msgid "Heating (Continuous Variable)"
+msgstr "暖房（連続制御）"
+
+msgid "Switchable Socket"
+msgstr "切り替え可能なコンセント"
+
+msgid "No project"
+msgstr "プロジェクトなし"
+
+msgid "Installation"
+msgstr "インストレーション"
+
+msgid "Group Address Style"
+msgstr "グループ・アドレス・スタイル"
+
+msgid "Created by"
+msgstr "作成者"
+
+msgid "Tool Version"
+msgstr "ツール・バージョン"
+
+msgid "Schema Version"
+msgstr "スキーマ・バージョン"
+
+msgid "Last Modified"
+msgstr "最終更新日"
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "Project ID"
+msgstr "プロジェクトID"
+
+msgid "Original Project ID"
+msgstr "元のプロジェクトID"
+
+msgid "Master Data (Signed)"
+msgstr "マスター・データ（署名付き）"
+
+msgid "Validation File"
+msgstr "検証ファイル"
+
+msgid "Project Certificate"
+msgstr "プロジェクト証明書"
+
+msgid "none"
+msgstr "なし"
+
+msgid "present ({size} bytes)"
+msgstr "あり（{size} バイト）"
+
+msgid "Password"
+msgstr "パスワード"
+
+msgid "Protected"
+msgstr "保護あり"
+
+msgid "Not protected"
+msgstr "保護なし"
+
+msgid "Set Password"
+msgstr "パスワードを設定する"
+
+msgid "Change Password"
+msgstr "パスワードを変更する"
+
+msgid "Remove Password"
+msgstr "パスワードを削除"
+
+msgid "Project Password"
+msgstr "プロジェクト・パスワード"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "プロジェクトとそのエクスポートはこのパスワードで保護され、開くときやインポートするときに入力を求められます。パスワードの変更は元に戻せません。"
+
+msgid "Repeat Password"
+msgstr "パスワードを再入力"
+
+msgid "The passwords do not match."
+msgstr "パスワードが一致しません。"
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "KNX Secure デバイスを含むプロジェクトにはパスワードが必要です：パスワードはプロジェクトおよびそのエクスポート内のデバイスのキーを保護します。"
+
+msgid "No project log entries"
+msgstr "プロジェクト・ログのエントリはありません"
+
+msgid "Date"
+msgstr "日付"
+
+msgid "User"
+msgstr "ユーザー"
+
+msgid "Comment"
+msgstr "コメント"
+
+msgid "Filter log"
+msgstr "ログをフィルター"
+
+msgid "Decrypt Comments"
+msgstr "コメントを復号"
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "Knx.Ets.Common.dll から抽出…"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "ETS はログのコメントを暗号化しています。コメントを読むには、ご自身の ETS インストールの Knx.Ets.Common.dll から復号キーを抽出してください。データはどこにも送信されません。"
+
+msgid "Comments are encrypted"
+msgstr "コメントは暗号化されています"
+
+msgid "Comments decrypted"
+msgstr "コメントを復号しました"
+
+msgid "Extracting key…"
+msgstr "キーを抽出中…"
+
+msgid "Key extracted; comments decrypted"
+msgstr "キーを抽出し、コメントを復号しました"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr ".NET ランタイムが見つかりません（.NET SDK をインストールするか、ETS がインストールされた Windows で実行してください）。"
+
+msgid "KNX Common Assembly"
+msgstr "KNX Common Assembly"
+
+msgid "All Files"
+msgstr "全てのファイル"
+
+msgid "Based on OpenKNXproducer"
+msgstr "OpenKNXproducer ベース"
+
+msgid "Order Number"
+msgstr "注文番号"
+
+msgid "Description"
+msgstr "説明"
+
+msgid "Parameters ({count})"
+msgstr "パラメータ（{count}）"
+
+msgid "Group Objects ({count})"
+msgstr "グループ・オブジェクト（{count}）"
+
+msgid "Channels ({count})"
+msgstr "チャンネル（{count}）"
+
+msgid "DALI (Bus)"
+msgstr "DALI（バス）"
+
+msgid "Assigned Objects"
+msgstr "割り当て済みオブジェクト"
+
+msgid "Object"
+msgstr "オブジェクト"
+
+msgid "S"
+msgstr "S"
+
+msgid "S = Sending. This object sends its value to the group address; the others only receive it."
+msgstr "S = 送信。このオブジェクトは値をグループ・アドレスに送信し、他のオブジェクトは受信のみ行います。"
+
+msgid "Click to open this device in the editor"
+msgstr "クリックするとこのデバイスをエディターで開きます"
+
+msgid "No devices"
+msgstr "デバイスなし"
+
+msgid "Loading application program…"
+msgstr "アプリケーションプログラムを読み込み中…"
+
+msgid "This product has no application program."
+msgstr "この製品にはアプリケーションプログラムがありません。"
+
+msgid "Individual Address"
+msgstr "個別アドレス"
+
+msgid "Program Device"
+msgstr "デバイスをプログラム"
+
+msgid "Test Programming"
+msgstr "プログラミングをテスト"
+
+msgid "Unload Application Program"
+msgstr "アプリケーションプログラムをアンロード"
+
+msgid "This unloads the application program of the device at {address}. The device stops working until its application program is downloaded again."
+msgstr "{address} のデバイスのアプリケーションプログラムをアンロードします。アプリケーションプログラムが再度ダウンロードされるまで、デバイスは動作しません。"
+
+msgid "This unloads the application program of the device at {address} and then resets its individual address to 15.15.255; for that, its programming button has to be pressed. The device stops working until it is commissioned again."
+msgstr "{address} のデバイスのアプリケーションプログラムをアンロードし、その後個別アドレスを 15.15.255 にリセットします。そのためには、デバイスのプログラミング・ボタンを押す必要があります。再度コミッショニングされるまで、デバイスは動作しません。"
+
+msgid "Overwrite Address"
+msgstr "アドレスを上書き"
+
+msgid "Manufacturer's Plugin Not Available"
+msgstr "メーカーのプラグインが利用できません"
+
+msgid "Serial Number Already Used"
+msgstr "シリアル番号はすでに使用されています"
+
+msgid "Download"
+msgstr "ダウンロード"
+
+msgid "Full"
+msgstr "完全"
+
+msgid "Application Program"
+msgstr "アプリケーションプログラム"
+
+msgid "Unload"
+msgstr "アンロード"
+
+msgid "Unload Application and Address"
+msgstr "アプリケーションとアドレスをアンロードする"
+
+msgid "Partial: Parameters"
+msgstr "部分：パラメータ"
+
+msgid "Partial: Group Communication"
+msgstr "部分：グループ通信"
+
+msgid "Overwrite Individual Address"
+msgstr "個別アドレスを上書きする"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "プログラミング・ボタンが押されているデバイスに個別アドレス {address} を書き込みます。続行しますか？"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "現在のアドレスにあるデバイスの個別アドレスを {address} で上書きします。プログラミング・ボタンを押す必要はありません。"
+
+msgid "Current Individual Address"
+msgstr "現在の個別アドレス"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "デバイスの現在の個別アドレスを入力してください（例：1.1.5）。"
+
+msgid "The device already has the individual address {address}."
+msgstr "デバイスにはすでに個別アドレス {address} が設定されています。"
+
+msgid "Individual Address via Serial Number"
+msgstr "シリアル番号による個別アドレス"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "シリアル番号 {serial} のデバイスに個別アドレス {address} を書き込みます。プログラミング・ボタンを押す必要はありません。"
+
+msgid "Use Serial Number"
+msgstr "シリアル番号を使用"
+
+msgid "The serial number is already associated with device {device}."
+msgstr "このシリアル番号はすでにデバイス {device} に関連付けられています。"
+
+msgid "Serial Number"
+msgstr "シリアル番号"
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "シリアル番号を 16 進数 12 桁で入力してください（例：0083:7AA2039C）。"
+
+msgid "Manufacturer Info"
+msgstr "メーカー情報"
+
+msgid "Application"
+msgstr "アプリケーション"
+
+msgid "Application Version"
+msgstr "アプリケーション・バージョン"
+
+msgid "Read from Device"
+msgstr "デバイスから読み込む"
+
+msgid "Restart"
+msgstr "再起動"
+
+msgid "Reset…"
+msgstr "リセット…"
+
+msgid "Master Reset"
+msgstr "マスター・リセット"
+
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "破壊的な操作：デバイスはバス経由でリセットされ、再度コミッショニングする必要があります。KNX Secure モードでは、デバイスのセキュリティが無効になります。"
+
+msgid "Reset Type"
+msgstr "リセット・タイプ"
+
+msgid "I understand this resets the device"
+msgstr "このデバイスがリセットされることを理解しました"
+
+msgid "Reset Device"
+msgstr "デバイスをリセットする"
+
+msgid "Factory Reset"
+msgstr "工場出荷時リセット"
+
+msgid "Factory Reset (Keep Address)"
+msgstr "工場出荷時リセット（アドレスを保持）"
+
+msgid "Reset Individual Address"
+msgstr "個別アドレスをリセット"
+
+msgid "Delete Application Program"
+msgstr "アプリケーションプログラムを削除"
+
+msgid "Reset Parameters"
+msgstr "パラメータをリセット"
+
+msgid "Reset Group Address Links"
+msgstr "グループ・アドレスのリンクをリセット"
+
+msgid "Confirmed Restart"
+msgstr "確認付き再起動"
+
+msgid "Set an individual address and connect to the bus first"
+msgstr "先に個別アドレスを設定し、バスに接続してください"
+
+msgid "The reported value matches {devices} in this project."
+msgstr "報告された値は、このプロジェクトの {devices} と一致します。"
+
+msgid "Mask Version"
+msgstr "マスクバージョン"
+
+msgid "Order Info"
+msgstr "注文情報"
+
+msgid "Hardware Type"
+msgstr "ハードウェアタイプ"
+
+msgid "Status"
+msgstr "状態"
+
+msgid "no fault reported"
+msgstr "異常は報告されていません"
+
+msgid "differs from project V{version} — program to apply"
+msgstr "プロジェクトの V{version} と異なります — 反映するにはプログラムしてください"
+
+msgid "Product"
+msgstr "製品"
+
+msgid "Product Ref"
+msgstr "製品参照"
+
+msgid "Program Ref"
+msgstr "プログラム参照"
+
+msgid "IP Configuration"
+msgstr "IP 設定"
+
+msgid "Assignment"
+msgstr "割り当て"
+
+msgid "IP Address"
+msgstr "IPアドレス"
+
+msgid "Subnet Mask"
+msgstr "サブネットマスク"
+
+msgid "Default Gateway"
+msgstr "デフォルトゲートウェイ"
+
+msgid "MAC Address"
+msgstr "MACアドレス"
+
+msgid "Download PDF Manual"
+msgstr "PDF マニュアルをダウンロード"
+
+msgid "Searching Manual…"
+msgstr "マニュアルを検索中…"
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "このデバイスのマニュアルを（KNX デバイス・データベース、見つからない場合はメーカー検索で）探し、ブラウザーで開きます。ベストエフォート：直接のドキュメントが見つからない場合は、KNX デバイス検索を開きます。"
+
+msgid "Update to V{version}"
+msgstr "V{version} に更新"
+
+msgid "Change Application Program"
+msgstr "アプリケーションプログラムを変更"
+
+msgid "Update Application Program Version"
+msgstr "アプリケーションプログラムのバージョンを更新"
+
+msgid "Update"
+msgstr "更新"
+
+msgid "Updating the application program…"
+msgstr "アプリケーションプログラムを更新中…"
+
+msgid "Changing the application program…"
+msgstr "アプリケーションプログラムを変更中…"
+
+msgid "Changing the application program failed"
+msgstr "アプリケーションプログラムの変更に失敗しました"
+
+msgid "Updating the application program failed"
+msgstr "アプリケーションプログラムの更新に失敗しました"
+
+msgid "Copied"
+msgstr "コピーしました"
+
+msgid "Click to copy"
+msgstr "クリックしてコピー"
+
+msgid "Filter parameters…"
+msgstr "パラメータをフィルター…"
+
+msgid "Apply Changes to All {count} Identical Devices"
+msgstr "同一の全 {count} 台のデバイスに変更を適用"
+
+msgid "Apply Changes to All Channels"
+msgstr "すべてのチャンネルに変更を適用"
+
+msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr "{count} 台のデバイスを編集中 — 変更はすべてに適用され、異なる値は <異なる値> と表示されます"
+
+msgid "Hardware"
+msgstr "ハードウェア"
+
+msgid "Firmware"
+msgstr "ファームウェア"
+
+msgid "Com Flags ({count})"
+msgstr "通信フラグ（{count}）"
+
+msgid "Load Procedures ({count})"
+msgstr "ロード手順（{count}）"
+
+msgid "Preview Memory"
+msgstr "メモリのプレビュー"
+
+msgid "Memory Preview"
+msgstr "メモリ・プレビュー"
+
+msgid "Load Reference File"
+msgstr "参照ファイルを読み込む"
+
+msgid "Save Memory Dump"
+msgstr "メモリ・ダンプを保存"
+
+msgid "Save…"
+msgstr "保存…"
+
+msgid "Diff…"
+msgstr "比較…"
+
+msgid "Clear Diff"
+msgstr "比較をクリア"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "メモリ・ダンプ (*.bin)"
+
+msgid "{count} bytes"
+msgstr "{count} バイト"
+
+msgid "No memory segments."
+msgstr "メモリ・セグメントがありません。"
+
+msgid "Cannot encode memory image: {error}"
+msgstr "メモリ・イメージをエンコードできません：{error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "ファイルを読み書きできませんでした：{error}"
+
+msgid "Programming Test Result"
+msgstr "プログラミング・テストの結果"
+
+msgid "Evaluation failed"
+msgstr "評価に失敗しました"
+
+msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
+msgstr "読み取り専用テスト：ダウンロード機能が、デバイスにすでにプログラムされているものと同じイメージを生成するかを確認します。デバイスには何も書き込まれません。"
+
+msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
+msgstr "実行できません：プロジェクトは開いた後に変更されています。このテストは生成されたイメージをデバイスのプログラム状態と比較しますが、それが一致するのは開いた時点のプロジェクトだけです。テストするには、このセッションでの変更を元に戻してください。"
+
+msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
+msgstr "実行できません：KNX 接続がありません。ゲートウェイに接続し（［接続］メニュー）、デバイスがその個別アドレスで到達可能であることを確認してください。"
+
+msgid "Match: the generated image is identical to what is on the device"
+msgstr "一致：生成されたイメージはデバイス上のものと同一です"
+
+msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
+msgstr "不一致：{locations} か所で {bytes} バイトがデバイスと異なります"
+
+msgid "{matched} matched, {changed} would change"
+msgstr "一致 {matched}、変更予定 {changed}"
+
+msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
+msgstr "ETS 6 デバイス専用：このテストは、ETS 6 方式で生成したイメージとデバイスを比較します。最後に ETS 5 でプログラムされたデバイスはバイト配置が異なるため、大きな誤った差異が表示されます。結果に意味があるのは、最後に ETS 6 でプログラムされたデバイスだけです。"
+
+msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
+msgstr "構造的な差異（テーブル全体が異なる）は、デバイスが最後に ETS 5 でプログラムされたことを意味する場合があります（バイト配置が異なります）。値のみの差異は通常、デバイスが別の構成を保持していることを意味します。"
+
+msgid "Location"
+msgstr "場所"
+
+msgid "Size"
+msgstr "サイズ"
+
+msgid "Changed"
+msgstr "変更済み"
+
+msgid "match"
+msgstr "一致"
+
+msgid "would change"
+msgstr "変更予定"
+
+msgid "device-managed"
+msgstr "デバイスが管理"
+
+msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
+msgstr "デバイスが実行時に自ら設定するシステム・バイトです（例：ダウンロード後にアプリケーションがリセットするダウンロード検出バイト）。ここでの差異は想定どおりであり、ダウンロードの不良を示すものではありません。"
+
+msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
+msgstr "さらに、デバイス管理の実行時バイト {bytes} 個（想定どおり、問題なし）"
+
+msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
+msgstr "構成上の差異はありません：デバイスはすでにこの構成を保持しています。以下の差異は問題ありません（注記を参照）。"
+
+msgid "sets default"
+msgstr "デフォルトを設定"
+
+msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
+msgstr "このバイトは隣接するパラメータのために書き込まれます。異なるビットはどの有効なパラメータにも制御されておらず、アプリケーションのデフォルトにリセットされるだけです。デバイスは古い値（例：以前の構成やモードのもの）を保持しており、プログラミングによって正規化されます。問題ありません。"
+
+msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr "さらに、アプリケーションのデフォルトにリセットされるバイト {bytes} 個（デバイスは古い値を保持しています。問題なし、プログラミング時に正規化されます）"
+
+msgid "Export Ist/Soll…"
+msgstr "現状／目標をエクスポート…"
+
+msgid "Export Path:"
+msgstr "エクスポート・パス："
+
+msgid "Export Programming Test Result"
+msgstr "プログラミング・テストの結果をエクスポート"
+
+msgid "memory {address}"
+msgstr "メモリ {address}"
+
+msgid "object {object} property {property}"
+msgstr "オブジェクト {object} プロパティ {property}"
+
+msgid "Filter devices (name, address)…"
+msgstr "デバイスをフィルター（名前、アドレス）…"
+
+msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
+msgstr "デバイスがありません。プロジェクトを開くかインポートする（［ファイル］メニュー）か、ここを右クリックしてエリアを追加してください。"
+
+msgid "Filter group addresses (address, name)…"
+msgstr "グループ・アドレスをフィルター（アドレス、名前）…"
+
+msgid "Filter rooms, devices, functions…"
+msgstr "部屋、デバイス、機能をフィルター…"
+
+msgid "Area {area}"
+msgstr "エリア {area}"
+
+msgid "{name} (Area {area})"
+msgstr "{name}（エリア {area}）"
+
+msgid "Line {area}.{line}"
+msgstr "ライン {area}.{line}"
+
+msgid "{name} (Line {area}.{line})"
+msgstr "{name}（ライン {area}.{line}）"
+
+msgid "Unassigned ({count})"
+msgstr "未割り当て（{count}）"
+
+msgid "Add Area"
+msgstr "エリアを追加する"
+
+msgid "Add Line"
+msgstr "ラインを追加する"
+
+msgid "Copy Address"
+msgstr "アドレスをコピー"
+
+msgid "Duplicate"
+msgstr "複製する"
+
+msgid "Copy Configuration"
+msgstr "構成をコピー"
+
+msgid "Compare with…"
+msgstr "比較対象を選択…"
+
+msgid "Compare Devices"
+msgstr "デバイスを比較する"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "比較するには、2 台以上のデバイスがあるプロジェクトを開いてください。"
+
+msgid "Only Differences"
+msgstr "差異のみ"
+
+msgid "Filter devices by address, name or description…"
+msgstr "アドレス、名前、説明でデバイスをフィルター…"
+
+msgid "{count} differences"
+msgstr "{count} 件の差異"
+
+msgid "Parameters"
+msgstr "パラメータ"
+
+msgid "Group Objects"
+msgstr "グループ・オブジェクト"
+
+msgid "No differences"
+msgstr "差異なし"
+
+msgid "Field"
+msgstr "フィールド"
+
+msgid "Device A"
+msgstr "デバイス A"
+
+msgid "Device B"
+msgstr "デバイス B"
+
+msgid "Paste Configuration"
+msgstr "構成を貼り付け"
+
+msgid "Paste configuration onto '{name}':"
+msgstr "構成を「{name}」に貼り付け："
+
+msgid "Paste configuration onto {count} selected devices:"
+msgstr "選択した {count} 台のデバイスに構成を貼り付け："
+
+msgid "Duplicate '{name}':"
+msgstr "「{name}」を複製："
+
+msgid "Group Address Links"
+msgstr "グループ・アドレスのリンク"
+
+msgid "Paste"
+msgstr "貼り付ける"
+
+msgid "Delete Device"
+msgstr "デバイスを削除"
+
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "「{name}」を削除しますか？グループ・オブジェクトとグループ・アドレスのリンクが削除され、個別アドレスが解放されます。この操作は元に戻せます。"
+
+msgid "New Area"
+msgstr "新しいエリア"
+
+msgid "New Line"
+msgstr "新しいライン"
+
+msgid "Number"
+msgstr "番号"
+
+msgid "Add"
+msgstr "追加"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Load"
+msgstr "読み込む"
+
+msgid "Copy Log"
+msgstr "ログをコピー"
+
+msgid "New Group Address"
+msgstr "新しいグループ・アドレス"
+
+msgid "New Main Group"
+msgstr "新しいメイン・グループ"
+
+msgid "New Middle Group"
+msgstr "新しいミドル・グループ"
+
+msgid "New Folder"
+msgstr "新しいフォルダー"
+
+msgid "Rename Folder"
+msgstr "フォルダー名を変更"
+
+msgid "Delete Folder"
+msgstr "フォルダーを削除"
+
+msgid "Main group name (the next free number is assigned automatically)"
+msgstr "メイン・グループ名（次の空き番号が自動的に割り当てられます）"
+
+msgid "Middle group name (the next free number is assigned automatically)"
+msgstr "ミドル・グループ名（次の空き番号が自動的に割り当てられます）"
+
+msgid "Delete this folder and every group address in it? This can be undone."
+msgstr "このフォルダーとその中のすべてのグループ・アドレスを削除しますか？この操作は元に戻せます。"
+
+msgid "Rename Group Address"
+msgstr "グループ・アドレスの名前を変更"
+
+msgid "Change Address…"
+msgstr "アドレスを変更…"
+
+msgid "New group address (links are kept):"
+msgstr "新しいグループ・アドレス（リンクは保持されます）："
+
+msgid "Invalid address or already in use."
+msgstr "無効なアドレスか、すでに使用されています。"
+
+msgid "Security"
+msgstr "セキュリティ"
+
+msgid "Automatic"
+msgstr "自動"
+
+msgid "Secured"
+msgstr "安全"
+
+msgid "Not Secured"
+msgstr "安全でない"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "安全なグループ・アドレスは、安全にコミッショニングされたデバイスにのみリンクできます。"
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "このグループ・アドレスにリンクされたデバイスの一部が安全にコミッショニングされていないため、安全にできません。"
+
+msgid "Set Datapoint Type"
+msgstr "データポイントタイプを設定"
+
+msgid "Address"
+msgstr "アドレス"
+
+msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
+msgstr "データポイントタイプ（例：DPST-1-1）。空にするとクリアします"
+
+msgid "Project: {name}"
+msgstr "プロジェクト：{name}"
+
+msgid "(unsaved)"
+msgstr "（未保存）"
+
+msgid "No history"
+msgstr "履歴なし"
+
+msgid "Restore"
+msgstr "復元"
+
+msgid "Add device: {name}"
+msgstr "デバイスを追加：{name}"
+
+msgid "Remove device: {name}"
+msgstr "デバイスを削除：{name}"
+
+msgid "Address: {old} -> {new}"
+msgstr "アドレス：{old} -> {new}"
+
+msgid "Name: {old} -> {new}"
+msgstr "名前：{old} -> {new}"
+
+msgid "Parameter: {old} -> {new}"
+msgstr "パラメータ：{old} -> {new}"
+
+msgid "DPT: {old} -> {new}"
+msgstr "DPT：{old} -> {new}"
+
+msgid "Flag: {flag} -> {state}"
+msgstr "フラグ：{flag} -> {state}"
+
+msgid "Group address {address} created"
+msgstr "グループ・アドレス {address} を作成しました"
+
+msgid "Group address {address} removed"
+msgstr "グループ・アドレス {address} を削除しました"
+
+msgid "Group address: {old} -> {new}"
+msgstr "グループ・アドレス：{old} -> {new}"
+
+msgid "Group object linked to group address"
+msgstr "グループ・オブジェクトをグループ・アドレスにリンクしました"
+
+msgid "Group object unlinked from group address"
+msgstr "グループ・オブジェクトとグループ・アドレスのリンクを解除しました"
+
+msgid "Area {number} created"
+msgstr "エリア {number} を作成しました"
+
+msgid "Area {number} removed"
+msgstr "エリア {number} を削除しました"
+
+msgid "Area: {old} -> {new}"
+msgstr "エリア：{old} -> {new}"
+
+msgid "Line {number} created"
+msgstr "ライン {number} を作成しました"
+
+msgid "Line {number} removed"
+msgstr "ライン {number} を削除しました"
+
+msgid "Line: {old} -> {new}"
+msgstr "ライン：{old} -> {new}"
+
+msgid "This action can only be performed when the individual address of the device is already downloaded."
+msgstr "この操作は、デバイスの個別アドレスがすでにダウンロードされている場合にのみ実行できます。"
+
+msgid "Button {0} executed. "
+msgstr "ボタン {0} は実行されました。 "
+
+msgid "A parameter script is running for this device."
+msgstr "このデバイスでパラメータ・スクリプトが実行中です。"
+
+msgid "The Device has no valid address or is not linked to an area or line."
+msgstr "デバイスに有効なアドレスがないか、エリアまたはラインに割り当てられていません。"
+
+msgid "Parameter Script"
+msgstr "パラメータ・スクリプト"
+
+msgid "Executing Script"
+msgstr "スクリプトを実行中"
+
+msgid "Script not responding"
+msgstr "スクリプトが応答しません"
+
+msgid "Force Stop"
+msgstr "強制終了"
+
+msgid "The script was stopped."
+msgstr "スクリプトは停止されました。"
+
+msgid "Canceling…"
+msgstr "キャンセル中…"
+
+msgid "No connection to the bus."
+msgstr "バスに接続されていません。"
+
+msgid "Parameter value cannot be set, because validation failed."
+msgstr "検証に失敗したため、パラメータ値を設定できません。"
+
+msgid "Operations"
+msgstr "操作"
+
+msgid "Active"
+msgstr "有効"
+
+msgid "Cancel All"
+msgstr "すべてキャンセル"
+
+msgid "Clear History"
+msgstr "履歴を消去する"
+
+msgid "No operations."
+msgstr "操作はありません。"
+
+msgid "Device Info"
+msgstr "デバイス情報"
+
+msgid "Device Info (With Group Communication)"
+msgstr "デバイス情報（グループ通信付き）"
+
+msgid "Reading"
+msgstr "読み込み中"
+
+msgid "General"
+msgstr "全般"
+
+msgid "Group Communication"
+msgstr "グループ通信"
+
+msgid "Device Manufacturer"
+msgstr "デバイス・メーカー"
+
+msgid "Firmware Version"
+msgstr "ファームウェア・バージョン"
+
+msgid "Programming Mode"
+msgstr "プログラミング・モード"
+
+msgid "Load State"
+msgstr "ロード状態"
+
+msgid "Address Table Load State"
+msgstr "アドレス・テーブル・ロード状態"
+
+msgid "Association Table Load State"
+msgstr "関連テーブル・ロード状態"
+
+msgid "Group Object Table Load State"
+msgstr "グループ・オブジェクト・テーブル・ロード状態"
+
+msgid "Reading the tables failed: {error}"
+msgstr "テーブルの読み込みに失敗しました：{error}"
+
+msgid "On"
+msgstr "オン"
+
+msgid "Off"
+msgstr "オフ"
+
+msgid "Unloaded"
+msgstr "アンロード済み"
+
+msgid "Loaded"
+msgstr "ロード済み"
+
+msgid "Loading"
+msgstr "ロード中"
+
+msgid "Error"
+msgstr "エラー"
+
+msgid "Unloading"
+msgstr "アンロード中"
+
+msgid "Load Completing"
+msgstr "ロード完了処理中"
+
+msgid "Yes"
+msgstr "はい"
+
+msgid "No"
+msgstr "いいえ"
+
+msgid "Also read the group communication?"
+msgstr "グループ通信も読み込みますか？"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "デバイス上のアプリケーションがカタログにないため、テーブルの位置を特定できません"
+
+msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
+msgstr "このデバイスはメーカーのプラグインでしかプログラムできませんが、ここではそのプラグインを利用できません。"
+
+msgid "Parameters in the Manufacturer's Plugin"
+msgstr "メーカーのプラグイン内のパラメータ"
+
+msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
+msgstr "メーカーはこのデバイスのパラメータを独自のプラグイン・ダイアログで設定しますが、XKNX Editor はそれを実行できないため、ここでは変更できません。ダウンロードでは現在の値がそのまま書き込まれます。グループ・オブジェクトは通常どおりリンクできます。"
+
+msgid "Edit parameters anyway"
+msgstr "それでもパラメータを編集"
+
+msgid "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+msgstr "メーカーはこのデバイスを独自のプラグイン・ダイアログで設定します。そこで行った設定はここには表示されません。"
+
+msgid "The manufacturer programs this device with its own plugin; the standard download is used here."
+msgstr "メーカーはこのデバイスを独自のプラグインでプログラムします。ここでは標準のダウンロードが使用されます。"
+
+msgid "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+msgstr "メーカーはこのデバイスのデータの一部を独自のプラグインで管理していますが、ここではそのプラグインを利用できません。"
+
+msgid "The manufacturer plugin is not available here:"
+msgstr "メーカーのプラグインはここでは利用できません："
+
+msgid "Only it can program the device."
+msgstr "プラグインだけがデバイスをプログラムできます。"
+
+msgid "Settings made in its dialog are not shown."
+msgstr "そのダイアログで行った設定は表示されません。"
+
+msgid "The standard download is used instead."
+msgstr "代わりに標準のダウンロードが使用されます。"
+
+msgid "Part of the device data is not available."
+msgstr "デバイス・データの一部を利用できません。"
+
+msgid "This device is also configured with separate software from the manufacturer."
+msgstr "このデバイスは、メーカーの別のソフトウェアでも設定されます。"
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "このデバイスには、XKNX Editorでは実行できないメーカー設定アプリ（“{name}”）が含まれています。デバイスの標準パラメータは引き続きプログラムできますが、このアプリが提供する追加機能はプログラムできません。"
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "このデバイスには、XKNX Editorで直接実行できないメーカー設定アプリ（“{name}”）が含まれています。ただし移植済みのため、主要な機能はここで使用できます（DALIタブを参照）。"
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "メーカーはこのデバイスのプログラムを自社のプラグインでのみ許可していますが、そのプラグインはここでは利用できません。プラグインなしでプログラムすると、デバイスが誤って設定されたり、エラー状態になったりする可能性があります。"
+
+msgid "Program Without the Manufacturer's Plugin Anyway"
+msgstr "メーカーのプラグインなしでプログラムを続行"
+
+msgid "Downloading"
+msgstr "ダウンロード中"
+
+msgid "Please press the programming button"
+msgstr "プログラミング・ボタンを押してください"
+
+msgid "Waiting for confirmation"
+msgstr "確認を待っています"
+
+msgid "The application program currently loaded in the device is different from the projected application program"
+msgstr "現在デバイスにロードされているアプリケーションプログラムは、プロジェクトのアプリケーションプログラムと異なります"
+
+msgid "Do you want to overwrite the application program (this may take several minutes)?"
+msgstr "アプリケーションプログラムを上書きしますか（数分かかるかもしれません）？"
+
+msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
+msgstr "現在デバイスにロードされているアプリケーションプログラムは、プロジェクトのアプリケーションプログラムと一致しません。部分ダウンロードの代わりに完全ダウンロードをお試しください。"
+
+msgid "Incompatible mask version: {found} instead of {expected}"
+msgstr "互換性のないマスクバージョン：{found}（想定：{expected}）"
+
+msgid "Waiting"
+msgstr "待機中"
+
+msgid "Finished"
+msgstr "完了"
+
+msgid "Canceled"
+msgstr "キャンセル済み"
+
+msgid "Cancelled by user."
+msgstr "ユーザーにキャンセルされました。"
+
+msgid "Started by an MCP client."
+msgstr "MCPクライアントによって開始されました。"
+
+msgid "failed"
+msgstr "失敗"
+
+msgid "No details available"
+msgstr "詳細はありません"
+
+msgid "Connection: {connection}"
+msgstr "接続：{connection}"
+
+msgid "Start: {time}"
+msgstr "開始：{time}"
+
+msgid "End: {time}"
+msgstr "終了：{time}"
+
+msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
+msgstr "このデバイスの製品データがありません。アプリケーションプログラムがカタログにありません。デバイスを編集するには、製品をインポートしてください。"
+
+msgid "DIN Rail Mounting"
+msgstr "DINレール・マウント"
+
+msgid "Bus Current"
+msgstr "バス電流"
+
+msgid "Read Value"
+msgstr "値の読み込み"
+
+msgid "Write Value…"
+msgstr "値の書き込み…"
+
+msgid "Write Value"
+msgstr "値の書き込み"
+
+msgid "Data Type"
+msgstr "データ・タイプ"
+
+msgid "Value"
+msgstr "値"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "値を書き込むには、グループ・アドレスのデータ・タイプを設定してください。"
+
+msgid "Write"
+msgstr "書き込み"
+
+msgid "Not connected to the bus."
+msgstr "バスに接続されていません。"
+
+msgid "Export Group Addresses…"
+msgstr "グループ・アドレスをエクスポート…"
+
+msgid "Import Group Addresses…"
+msgstr "グループ・アドレスをインポート…"
+
+msgid "Import Group Addresses"
+msgstr "グループ・アドレスをインポート"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "グループ・アドレス・ファイル（XML、CSV）"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "{added}件のグループ・アドレスを追加、{updated}件を更新しました。"
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "{count}件のグループ・アドレスをグループに配置できませんでした。"
+
+msgid "The file could not be imported: {error}"
+msgstr "ファイルをインポートできませんでした：{error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "ファイルは{file}のグループ・アドレスを使用していますが、プロジェクトは{project}のグループ・アドレスを使用しています。"
+
+msgid "3-level"
+msgstr "3レベル"
+
+msgid "2-level"
+msgstr "2レベル"
+
+msgid "free"
+msgstr "フリー"
+
+msgid "Export"
+msgstr "エクスポート"
+
+msgid "Import"
+msgstr "インポート"
+
+msgid "Plain"
+msgstr "暗号化なし"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "安全なコミッショニングを無効にする"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "これらのグループ・アドレスは暗号化されずに通信するようになります："
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "デバイスのグループ・オブジェクトは、これらのセキュアなグループ・アドレスから削除されます："
+
+msgid "Deactivate"
+msgstr "無効化"
+
+msgid "Secure Commissioning"
+msgstr "安全なコミッショニング"
+
+msgid "Add Device Certificate…"
+msgstr "デバイス証明書を追加…"
+
+msgid "Activated"
+msgstr "有効"
+
+msgid "Deactivated"
+msgstr "無効"
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "セキュア通信が必要なグループ・オブジェクトが、暗号化されていないグループ・アドレスに割り当てられることになります。"
+
+msgid "Later"
+msgstr "後で"
+
+msgid "Don't Ask When Adding Devices"
+msgstr "デバイスを追加する際に確認しない"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "パスワードを表示"
+
+msgid "Secure Tunneling"
+msgstr "セキュアなトンネリング"
+
+msgid "Commissioning Password"
+msgstr "コミッショニング・パスワード"
+
+msgid "Authentication Code"
+msgstr "認証コード"
+
+msgid "Interface"
+msgstr "インターフェイス"
+
+msgid "Routing"
+msgstr "ルーティング"
+
+msgid "Tunnel {address}"
+msgstr "トンネル {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "パスワードは1～20文字のLatin-1文字で指定してください。"
+
+msgid "Close"
+msgstr "閉じる"
+
+msgid "IP Backbone Security"
+msgstr "IPバックボーン・セキュリティ"
+
+msgid "Device Certificates"
+msgstr "デバイス証明書"
+
+msgid "Manage…"
+msgstr "管理…"
+
+msgid "The project has no device certificates."
+msgstr "プロジェクトにデバイス証明書がありません。"
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "{device}のセキュリティ・テーブルにはこのリンクを格納できません。"
+
+msgid "Point-to-Point and Broadcast"
+msgstr "ポイント・ツー・ポイントとブロードキャスト"
+
+msgid "Blocked"
+msgstr "ブロック"
+
+msgid "Routed"
+msgstr "転送"
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "DALIバスをコミッショニングするには、KNXインターフェイスに接続してください。"
+
+msgid "Scan Bus"
+msgstr "バスをスキャン"
+
+msgid "All ECGs On"
+msgstr "全ECGオン"
+
+msgid "All Off"
+msgstr "全てオフ"
+
+msgid "New Installation…"
+msgstr "新しいインストール…"
+
+msgid "Post Installation…"
+msgstr "追加インストール…"
+
+msgid "Running: {task}"
+msgstr "実行中：{task}"
+
+msgid "scanning the bus"
+msgstr "バスをスキャン中"
+
+msgid "switching all ECGs"
+msgstr "全ECGを切り替え中"
+
+msgid "blinking"
+msgstr "点滅中"
+
+msgid "stopping the blinking"
+msgstr "点滅を停止中"
+
+msgid "new installation"
+msgstr "新しいインストール"
+
+msgid "post installation"
+msgstr "追加インストール"
+
+msgid "programming the groups"
+msgstr "グループをプログラム中"
+
+msgid "programming the scenes"
+msgstr "シーンをプログラム中"
+
+msgid "{count} found"
+msgstr "{count}件検出"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "「バスをスキャン」でDALIバスを読み込みます。"
+
+msgid "Firmware {version}"
+msgstr "ファームウェア {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "DALIプログラミングの確認"
+
+msgid "Continue"
+msgstr "続ける"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "新しいインストールではDALIバスを再スキャンし、全ての安定器の\nショートアドレスを再割り当てします。元に戻すことはできません。続けますか？"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "追加インストールではバス上の新しい安定器を検索し、アドレス指定を更新します。\nデバイスが変更されます。続けますか？"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "グループ割り当てをDALIバスに書き込みます。グループがゲートウェイと\nその安定器に適用されます。続けますか？"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "シーン値をDALIバスに書き込みます。続けますか？"
+
+msgid "{count} ECG(s) present"
+msgstr "{count}台のECGが存在"
+
+msgid "Group"
+msgstr "グループ"
+
+msgid "Long Address"
+msgstr "ロングアドレス"
+
+msgid "Alarm"
+msgstr "アラーム"
+
+msgid "Blink"
+msgstr "点滅"
+
+msgid "Stop"
+msgstr "ストップ"
+
+msgid "Program Groups…"
+msgstr "グループをプログラム…"
+
+msgid "Scenes"
+msgstr "シーン"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "シーンを定義するには、上でECGをグループに割り当ててください。"
+
+msgid "Scene"
+msgstr "シーン"
+
+msgid "Scene {number}"
+msgstr "シーン {number}"
+
+msgid "Group {number}"
+msgstr "グループ {number}"
+
+msgid "Program Scenes…"
+msgstr "シーンをプログラム…"
+
+msgid "Single"
+msgstr "単独"
+
+msgid "Unassigned"
+msgstr "未割り当て"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "手順 {number}（{count}ステップ）"
+
+msgid "Kind"
+msgstr "種類"
+
+msgid "Applies To"
+msgstr "適用先"
+
+msgid "Details"
+msgstr "詳細"
+
+msgid "Scope: {scope}"
+msgstr "範囲：{scope}"
+
+msgid "Additional Individual Addresses"
+msgstr "追加の個別アドレス"
+
+msgid "Additional Individual Address"
+msgstr "追加の個別アドレス"
+
+msgid "Assign Missing Addresses"
+msgstr "不足しているアドレスを割り当て"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "追加が必要な全ての追加アドレスに対して、ラインには十分なアドレスがありません。"
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "1～255のデバイス番号、またはデバイスのライン内の完全な個別アドレスを入力してください。"
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "追加のアドレスはデバイスのライン{line}内にある必要があります。"
+
+msgid "The individual address {address} is already used in this line."
+msgstr "個別アドレス{address}はこのラインですでに使用されています。"
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "デバイス「{0}」の追加アドレスを「{1}」から「{2}」に変更しました。"
+
+msgid "Change additional address names"
+msgstr "追加のアドレス名を変更する"
+
+msgid "Change additional address descriptions"
+msgstr "追加アドレスの説明を変更する"
+
+msgid "Assign additional addresses"
+msgstr "追加のアドレスを割り当てる"
+
+msgid "Change additional addresses"
+msgstr "追加のアドレスを変更する"
+
+msgid "Add device {name}"
+msgstr "デバイス{name}を追加"
+
+msgid "Set {ref} = {value}"
+msgstr "{ref} = {value} を設定"
+
+msgid "Change"
+msgstr "変更"
+
+msgid "Create area {address}"
+msgstr "エリア{address}を作成"
+
+msgid "Create line {address}"
+msgstr "ライン{address}を作成"
+
+msgid "Add segment"
+msgstr "セグメントを追加"
+
+msgid "Create group address {address}"
+msgstr "グループ・アドレス{address}を作成"
+
+msgid "Import group addresses"
+msgstr "グループ・アドレスをインポート"
+
+msgid "Import group addresses from {file}"
+msgstr "{file}からグループ・アドレスをインポート"
+
+msgid "Link group object"
+msgstr "グループ・オブジェクトをリンク"
+
+msgid "Unlink group object"
+msgstr "グループ・オブジェクトのリンクを解除"
+
+msgid "Rename area to {name}"
+msgstr "エリア名を{name}に変更"
+
+msgid "Rename project to {name}"
+msgstr "プロジェクト名を{name}に変更"
+
+msgid "Rename line to {name}"
+msgstr "ライン名を{name}に変更"
+
+msgid "Rename device to {name}"
+msgstr "デバイス名を{name}に変更"
+
+msgid "Move device"
+msgstr "デバイスを移動する"
+
+msgid "Set flag"
+msgstr "フラグを設定"
+
+msgid "Set datapoint type"
+msgstr "データポイントタイプを設定"
+
+msgid "Set priority"
+msgstr "優先を設定"
+
+msgid "Set description"
+msgstr "説明を設定"
+
+msgid "Set sending group address"
+msgstr "送信グループ・アドレスを設定"
+
+msgid "Add installation"
+msgstr "インストレーションを追加"
+
+msgid "Remove device"
+msgstr "デバイスを削除"
+
+msgid "Remove area"
+msgstr "エリアを削除"
+
+msgid "Remove line"
+msgstr "ラインを削除"
+
+msgid "Remove segment"
+msgstr "セグメントを削除"
+
+msgid "Remove group address"
+msgstr "グループ・アドレスを削除"
+
+msgid "Remove function"
+msgstr "機能を削除"
+
+msgid "Remove group address from function"
+msgstr "機能からグループ・アドレスを削除"
+
+msgid "Remove building part"
+msgstr "構造の一部を削除"
+
+msgid "Remove group range"
+msgstr "グループ範囲を削除"
+
+msgid "Update application program"
+msgstr "アプリケーションプログラムを更新"
+
+msgid "Change application program"
+msgstr "アプリケーションプログラムを変更"
+
+msgid "Update group objects"
+msgstr "グループ・オブジェクトを更新"
+
+msgid "Update module instances"
+msgstr "モジュール・インスタンスを更新"
+
+msgid "Set group address security"
+msgstr "グループ・アドレスのセキュリティを設定"
+
+msgid "Set secure commissioning"
+msgstr "安全なコミッショニングを設定"
+
+msgid "Rename group address to {name}"
+msgstr "グループ・アドレス名を{name}に変更"
+
+msgid "Change group address"
+msgstr "グループ・アドレスを変更"
+
+msgid "Set device certificates"
+msgstr "デバイス証明書を設定"
+
+msgid "Set device description"
+msgstr "デバイスの説明を設定"
+
+msgid "Create function {name}"
+msgstr "機能{name}を作成"
+
+msgid "Rename function to {name}"
+msgstr "機能名を{name}に変更"
+
+msgid "Set function type"
+msgstr "機能タイプを設定"
+
+msgid "Add group address to function"
+msgstr "機能にグループ・アドレスを追加"
+
+msgid "Create building part {name}"
+msgstr "構造の一部{name}を作成"
+
+msgid "Rename building part to {name}"
+msgstr "構造の一部の名前を{name}に変更"
+
+msgid "Set building part number"
+msgstr "構造の一部の番号を設定"
+
+msgid "Set building part description"
+msgstr "構造の一部の説明を設定"
+
+msgid "Set building part type"
+msgstr "構造の一部のタイプを設定"
+
+msgid "Move building part"
+msgstr "構造の一部を移動する"
+
+msgid "Assign device to building part"
+msgstr "デバイスを構造の一部に割り当て"
+
+msgid "Set commissioning state"
+msgstr "コミッショニング状態を設定"
+
+msgid "Create group range {name}"
+msgstr "グループ範囲{name}を作成"
+
+msgid "Rename group range to {name}"
+msgstr "グループ範囲名を{name}に変更"
+
+msgid "{device}: no individual address"
+msgstr "{device}：個別アドレスがありません"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}：不正なアドレス'{address}'"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}：重複アドレス{address}"
+
+msgid "added"
+msgstr "追加"
+
+msgid "removed"
+msgstr "削除"
+
+msgid "changed"
+msgstr "変更"
+
+msgid "Installation Hints"
+msgstr "インストール・ヒント"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "ツリーで要素を選択すると、そのコメントが表示されます。"
+
+msgid "Set comment"
+msgstr "コメントを設定"
+
+msgid "Set installation hints"
+msgstr "インストール・ヒントを設定"
+
+msgid "Area"
+msgstr "エリア"
+
+msgid "Line"
+msgstr "ライン"
+
+msgid "The address is a number from 0 to 15."
+msgstr "アドレスは 0 から 15 までの数値です。"
+
+msgid "Address {address} is already in use."
+msgstr "アドレス {address} は既に使用されています。"
+
+msgid "Set area description"
+msgstr "エリアの説明を設定"
+
+msgid "Set line description"
+msgstr "ラインの説明を設定"
+
+msgid "Set area address"
+msgstr "エリアのアドレスを設定"
+
+msgid "Set line address"
+msgstr "ラインのアドレスを設定"
+
+msgid "Main Group"
+msgstr "メイン・グループ"
+
+msgid "Middle Group"
+msgstr "ミドル・グループ"
+
+msgid "Group Range"
+msgstr "グループ範囲"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "メイン・グループは 0 から 31 までの数値です。"
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "ミドル・グループは 0 から 7 までの数値です。"
+
+msgid "Set group address description"
+msgstr "グループ・アドレスの説明を設定"
+
+msgid "Set group range description"
+msgstr "グループ範囲の説明を設定"
+
+msgid "Set group range address"
+msgstr "グループ範囲のアドレスを設定"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "チャンネル {n}"
+
+msgid "Colour Temp (K)"
+msgstr "色温度 (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Siemens DALI バスを読み取るには KNX インターフェースに接続してください。"
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "DALI チャンネル"
+
+msgid "DALI commissioning"
+msgstr "DALI コミッショニング"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "DALI コミッショニングはバス上のゲートウェイに書き込みますが、プロジェクトのパラメーターは更新しません。DCA 側で編集した後は .knxproj を再エクスポートしてください。"
+
+msgid "Default"
+msgstr "デフォルト"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "メーカー製プラグインがここで利用できないパラメーター向けの編集可能な代替手段です。階層はパラメーター名の接頭辞から再構築されるため、ラベルやグループ分けは概略的な場合があります。編集はプロジェクトに書き込まれ、通常のダウンロードで転送されます。"
+
+msgid "Min Dim"
+msgstr "最小調光"
+
+msgid "No parameter matches the filter."
+msgstr "フィルターに一致するパラメーターはありません。"
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "このデバイスのプラグインマッピングはまだ提供されていません。メーカー製プラグインのパラメーターはここからは参照できません。"
+
+msgid "Parameter"
+msgstr "パラメーター"
+
+msgid "Plugin Config"
+msgstr "プラグイン設定"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "「DALI バスを読み取る」を押してゲートウェイ上の ECG を一覧表示します。"
+
+msgid "Random Address"
+msgstr "ランダムアドレス"
+
+msgid "Read DALI Bus"
+msgstr "DALI バスを読み取る"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "読み取り専用のスナップショットです。グループ割り当て、シーン、ファームウェアの書き込みは未対応で、メーカー製プラグインに残されています。"
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "読み取り専用ビューです。階層はパラメーター名の接頭辞から可能な範囲で再構築されており、名前やグループ分けは概略的な場合があります。値の書き込みは未対応です。"
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "オブジェクト {object_index} から DALI バスを読み取り中…"
+
+msgid "Short Address"
+msgstr "ショートアドレス"
+
+msgid "Slot"
+msgstr "スロット"
+
+msgid "The application has no static parameters."
+msgstr "このアプリケーションには静的パラメーターがありません。"
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "このゲートウェイのコミッショニング・プロトコルはキャプチャに対して検証されていません。書き込みが誤動作する場合があります。慎重に進めてください。"
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "ライン {line} に ECG が {count} 台あります"
+
+msgid "Program DCA State"
+msgstr "DCA状態をプログラム"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "DALIデバイスの設定をプロパティ値としてゲートウェイに送信します。"
+
+msgid "Add to {section}:"
+msgstr "{section}に追加:"
+
+msgid "No entries."
+msgstr "項目がありません。"
+
+msgid "Entry"
+msgstr "項目"
+
+msgid "Store plugin data {name}"
+msgstr "プラグインデータ{name}を保存"

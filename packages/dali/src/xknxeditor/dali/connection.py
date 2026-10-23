@@ -10,19 +10,22 @@ from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
 
 from xknxeditor.dali.properties import (
     DEFAULT_OBJECT_INDEX_BASE,
-    ELEMENT_SIZE,
     FIRMWARE_OBJECT_INDEX,
     POLL_DONE,
     POLL_ERROR,
     DeviceCommand,
     PropertyType,
+    element_size_for,
     object_index,
 )
 from xknxeditor.dali.structs import Command, ExtCommand
+
+if TYPE_CHECKING:
+    from xknxeditor.dali.profiles import DaliProfile
 
 # A_PropertyValue_Read/Write encode the element count in 4 bits -> at most 15 elements per telegram.
 _MAX_PROPERTY_ELEMENTS = 15
@@ -56,10 +59,12 @@ class Programmer(Protocol):
 
 
 class MdtDaliConnection:
-    """Property-level access to one DALI channel of a Type-A gateway (MDT / Theben).
+    """Property-level access to one DALI channel of a Type-A gateway (MDT / Theben / IPAS).
 
-    ``object_index_base`` is the KNX object index of channel 0 (vendor-specific: MDT = 6, Theben = 7);
-    see :mod:`xknxeditor.dali.profiles`.
+    ``object_index_base`` is the KNX object index of channel 0 (vendor-specific: MDT = 6,
+    Theben/IPAS = 7); see :mod:`xknxeditor.dali.profiles`. ``profile`` carries vendor
+    overrides (e.g. Theben's 10-byte Group_Status) used by :func:`element_size_for`; pass
+    the active ``DaliProfile`` so reads/writes decode the right record size.
     """
 
     def __init__(
@@ -67,10 +72,12 @@ class MdtDaliConnection:
         programmer: Programmer,
         channel: int = 0,
         object_index_base: int = DEFAULT_OBJECT_INDEX_BASE,
+        profile: DaliProfile | None = None,
     ) -> None:
         self._prog = programmer
         self.channel = channel
         self.object_index = object_index(channel, object_index_base)
+        self.profile = profile
 
     async def read_firmware(self) -> tuple[int, int, int] | None:
         """Read the 3-byte Hawk firmware version (object 0, property 25); None if unavailable."""
@@ -84,11 +91,13 @@ class MdtDaliConnection:
     async def read_table(self, prop: PropertyType, count: int) -> bytes:
         """Read ``count`` elements of ``prop``, chunking across APDUs.
 
-        A_PropertyValue_Read encodes the element count in 4 bits, so at most 15 elements can be
-        requested per telegram; a 64-element table needs several reads. Also stops early if the
-        device caps a response below the requested count.
+        A_PropertyValue_Read encodes the element count in 4 bits, so at most 15 elements
+        can be requested per telegram; a 64-element table needs several reads. Also stops
+        early if the device caps a response below the requested count. Element size comes
+        from :func:`element_size_for` so vendor overrides (e.g. Theben's 10-byte
+        Group_Status) apply.
         """
-        size = ELEMENT_SIZE[prop]
+        size = element_size_for(prop, self.profile)
         out = b""
         start = 1
         remaining = count
@@ -99,15 +108,37 @@ class MdtDaliConnection:
             )
             got = len(chunk) // size
             if got == 0:
-                out += chunk  # device returned less than one element; stop
-                break
+                # Device returned less than one element: the response is a short/partial
+                # read and continuing would mis-align subsequent elements. Raise so
+                # callers (notably the commissioner) treat the table as incomplete rather
+                # than silently filling with unassigned slots.
+                if remaining == count:
+                    raise DaliCommissioningError(
+                        f"empty response for property {int(prop)} on object "
+                        f"{self.object_index}"
+                    )
+                raise DaliCommissioningError(
+                    f"short read for property {int(prop)}: expected {remaining} more "
+                    f"elements of {size} bytes, got {len(chunk)} bytes"
+                )
             out += chunk[: got * size]
             start += got
             remaining -= got
         return out
 
     async def write_table(self, prop: PropertyType, data: bytes, count: int) -> None:
-        """Write ``count`` elements of ``prop`` (the programmer fragments across APDUs)."""
+        """Write ``count`` elements of ``prop`` (the programmer fragments across APDUs).
+
+        Validates ``data`` against the per-profile element size up front so a payload
+        built from the wrong record width (e.g. MDT's 8-byte slot into a Theben P64's
+        10-byte Group_Status) fails here instead of being silently misaligned on-wire.
+        """
+        size = element_size_for(prop, self.profile)
+        if len(data) != count * size:
+            raise DaliCommissioningError(
+                f"write payload size mismatch for property {int(prop)}: expected "
+                f"{count * size} bytes ({count} elements of {size}), got {len(data)}"
+            )
         await self._prog.write_property(
             self.object_index, prop, data, count=count, start_index=1
         )

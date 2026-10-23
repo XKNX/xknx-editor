@@ -104,7 +104,7 @@ msgstr "Gebouwen"
 msgid "Group Addresses"
 msgstr "Groepsadressen"
 
-msgid "Group-Object Links"
+msgid "Group Object Links"
 msgstr "Groepsobject-koppelingen"
 
 msgid "Areas / Lines"
@@ -555,8 +555,8 @@ msgstr "Het originele bestand bevatte {count} installaties. Deze zijn samengevoe
 msgid "{count} device(s) aren't assigned to a line. They're kept in the project and included on export, but can't be edited here yet."
 msgstr "{count} apparaat(en) zijn niet aan een lijn toegewezen. Ze blijven in het project en worden bij de export meegenomen, maar kunnen hier nog niet worden bewerkt."
 
-msgid "{count} com-object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
-msgstr "{count} communicatieobject(en) hadden in het originele bestand een extra beschrijving. De eigen naam en functie blijven behouden; alleen die beschrijving wordt hier niet getoond."
+msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgstr "{count} groepsobject(en) hadden in het originele bestand een extra beschrijving. De eigen naam en functie blijven behouden; alleen die beschrijving wordt hier niet getoond."
 
 msgid "For example: {examples}"
 msgstr "Bijvoorbeeld: {examples}"
@@ -1367,3 +1367,120 @@ msgstr "{name} is al geopend in een andere XKNX Editor. Als het in twee editors 
 
 msgid "Open Anyway"
 msgstr "Toch openen"
+
+msgid "C"
+msgstr "C"
+
+msgid "R"
+msgstr "R"
+
+msgid "W"
+msgstr "W"
+
+msgid "T"
+msgstr "T"
+
+msgid "U"
+msgstr "U"
+
+msgid "I"
+msgstr "I"
+
+msgid "Communication"
+msgstr "Communicatie"
+
+msgid "Read"
+msgstr "Lezen"
+
+msgid "Write"
+msgstr "Schrijven"
+
+msgid "Transmit"
+msgstr "Zenden"
+
+msgid "Update"
+msgstr "Update"
+
+msgid "Read on Init"
+msgstr "Lees Bij Init"
+
+msgid "English"
+msgstr "Engels"
+
+msgid "German"
+msgstr "Duits"
+
+msgid "Dutch"
+msgstr "Nederlands"
+
+msgid "{name} ({native})"
+msgstr "{name} ({native})"
+
+msgid "Spanish"
+msgstr "Spaans"
+
+msgid "Greek"
+msgstr "Grieks"
+
+msgid "Simplified Chinese"
+msgstr "Vereenvoudigd Chinees"
+
+msgid "Japanese"
+msgstr "Japans"
+
+msgid "Czech"
+msgstr "Tsjechisch"
+
+msgid "Danish"
+msgstr "Deens"
+
+msgid "Finnish"
+msgstr "Fins"
+
+msgid "French"
+msgstr "Frans"
+
+msgid "Italian"
+msgstr "Italiaans"
+
+msgid "Norwegian"
+msgstr "Noors"
+
+msgid "Polish"
+msgstr "Pools"
+
+msgid "Portuguese"
+msgstr "Portuguees"
+
+msgid "Russian"
+msgstr "Russisch"
+
+msgid "Swedish"
+msgstr "Zweeds"
+
+msgid "Turkish"
+msgstr "Turks"
+
+msgid "Ukrainian"
+msgstr "Oekraïens"
+
+msgid "Preferred Product Language"
+msgstr "Voorkeur Producttaal"
+
+msgid "Hungarian"
+msgstr "Hongaars"
+
+msgid "Romanian"
+msgstr "Roemeens"
+
+msgid "Slovak"
+msgstr "Slovaaks"
+
+msgid "Slovenian"
+msgstr "Sloveens"
+
+msgid "Icelandic"
+msgstr "Ijslands"
+
+msgid "Ctrl"
+msgstr "Ctrl"

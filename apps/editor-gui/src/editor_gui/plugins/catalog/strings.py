@@ -25,7 +25,7 @@ class CatalogStrings:
 
     @property
     def ARCHIVE_COM_OBJECTS(self) -> str:
-        return _("({count} com objects)")
+        return _("({count} group objects)")
 
     @property
     def BTN_ONLINE_CATALOG(self) -> str:
@@ -69,7 +69,7 @@ class CatalogStrings:
 
     @property
     def ONLINE_INDEX_STATUS(self) -> str:
-        return _("Product Index: {mfrs} manufacturers, {products} products")
+        return _("Product Index ({date}): {mfrs} manufacturers, {products} products")
 
     @property
     def ONLINE_INDEX_NONE(self) -> str:
@@ -273,6 +273,22 @@ class CatalogStrings:
     @property
     def LOCAL_SEARCH_HINT(self) -> str:
         return _("Search…")
+
+    @property
+    def ONLINE_MARKET(self) -> str:
+        return _("Market:")
+
+    @property
+    def ONLINE_ALL_MARKETS(self) -> str:
+        return _("All Markets")
+
+    @property
+    def ONLINE_ONLY_PRODUCT_LANGUAGE(self) -> str:
+        return _("Only Products in {language}")
+
+    @property
+    def ONLINE_FILTERED_COUNT(self) -> str:
+        return _("{shown} of {total} shown")
 
 
 S = CatalogStrings()

@@ -145,6 +145,42 @@ async def test_write_scenes_builds_tables_and_syncs() -> None:
     ]
 
 
+async def test_write_scenes_merges_untouched_slots() -> None:
+    comm, prog = _setup()
+    # Pre-seed existing scene tables: fade 5 for scene 2, knx-map 42 for scene 2,
+    # and a scene-2 value record that must survive an edit of scene 0.
+    existing_assign = bytearray(16)
+    existing_assign[2] = 5
+    prog.set_read(PropertyType.SCENE_ASSIGN, bytes(existing_assign))
+    existing_knx = bytearray(16)
+    existing_knx[2] = 42
+    prog.queue_read(PropertyType.SCENE_KNX_MAP, bytes((0, 16)))  # size = 16
+    prog.set_read(PropertyType.SCENE_KNX_MAP, bytes(existing_knx))
+    scene2_rec = bytes((2, 20, 128, 0, 0, 0, 0, 0))
+    prog.set_read(PropertyType.SCENE_GROUP_VALUE, scene2_rec + b"\xff" * 8)
+    prog.queue_read(PropertyType.COMMAND, bytes((0, 0, 0)))  # SCENE_SYNC done
+
+    await comm.write_scenes(
+        [Scene(index=0, fade_time=3, knx_scene=7, values=[SceneValue(0, 16, 254)])]
+    )
+    (assign,) = prog.writes_for(PropertyType.SCENE_ASSIGN)
+    assign_bytes = bytes(assign["data"])  # type: ignore[arg-type]
+    assert assign_bytes[0] == 3  # new fade for scene 0
+    assert assign_bytes[2] == 5  # untouched fade for scene 2 preserved
+
+    (values,) = prog.writes_for(PropertyType.SCENE_GROUP_VALUE)
+    val_bytes = bytes(values["data"])  # type: ignore[arg-type]
+    # kept record for scene 2 appears before the new scene-0 record, terminator at the end
+    assert val_bytes[:8] == scene2_rec
+    assert val_bytes[8:16] == bytes((0, 16, 254, 0, 0, 0, 0, 0))
+    assert val_bytes[-8:] == b"\xff" * 8
+
+    knx_writes = prog.writes_for(PropertyType.SCENE_KNX_MAP)
+    knx_data = bytes(knx_writes[-1]["data"])  # type: ignore[arg-type]
+    assert knx_data[0] == 7  # new knx scene for 0
+    assert knx_data[2] == 42  # untouched scene 2 preserved
+
+
 async def test_write_ecg_props_writes_full_padded_table() -> None:
     comm, prog = _setup()
     await comm.write_ecg_props([EcgProp(8, 2, 5, 0), EcgProp(6, 0, 16, 1)])

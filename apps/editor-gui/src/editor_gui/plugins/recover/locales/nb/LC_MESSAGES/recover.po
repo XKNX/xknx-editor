@@ -1,0 +1,125 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor recover 1.0\n"
+"Language: nb\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Recover Project from Bus"
+msgstr "Gjenopprett prosjekt fra bussen"
+
+msgid "From Address"
+msgstr "Fra adresse"
+
+msgid "To Address"
+msgstr "Til adresse"
+
+msgid "Scan"
+msgstr "Skann"
+
+msgid "Stop"
+msgstr "Stopp"
+
+msgid "Add to Open Project as Read"
+msgstr "Legg til i åpent prosjekt som lest"
+
+msgid "Recover Selected"
+msgstr "Gjenopprett valgte"
+
+msgid "Create New Project"
+msgstr "Opprett nytt prosjekt"
+
+msgid "Add to Open Project"
+msgstr "Legg til i åpent prosjekt"
+
+msgid "Verify (Read-Only)"
+msgstr "Verifiser (skrivebeskyttet)"
+
+msgid "Export Snapshot"
+msgstr "Eksporter øyeblikksbilde"
+
+msgid "Verifying (re-reading and comparing)…"
+msgstr "Verifiserer (leser på nytt og sammenligner)…"
+
+msgid "%(count)d group address(es) have no sender or multiple senders."
+msgstr "%(count)d gruppeadresse(r) har ingen eller flere avsendere."
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "Mask"
+msgstr "Maske"
+
+msgid "Product / Application"
+msgstr "Produkt / applikasjon"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "Set an address range and scan the bus."
+msgstr "Angi et adresseområde og skann bussen."
+
+msgid "Scanning the bus…"
+msgstr "Skanner bussen…"
+
+msgid "Scanning %(address)s  (%(done)d/%(total)d, %(found)d found)"
+msgstr "Skanner %(address)s  (%(done)d/%(total)d, %(found)d funnet)"
+
+msgid "Loading missing products from online catalog: %(what)s"
+msgstr "Laster manglende produkter fra nettkatalogen: %(what)s"
+
+msgid "Reading devices…"
+msgstr "Leser enheter…"
+
+msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+msgstr "Leser %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+
+msgid "group communication tables"
+msgstr "gruppekommunikasjonstabeller"
+
+msgid "parameter memory"
+msgstr "parameterminne"
+
+msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
+msgstr "Gjenopprettet %(devices)d enhet(er): %(group_addresses)d gruppeadresser, %(links)d koblinger, %(unknown)d parameter(e) kunne ikke gjenopprettes."
+
+msgid "Recovered"
+msgstr "Gjenopprettet"
+
+msgid "Added %(count)d device(s) to the open project (%(target)s)."
+msgstr "La til %(count)d enhet(er) i det åpne prosjektet (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device(s)."
+msgstr "Opprettet nytt prosjekt %(target)s med %(count)d enhet(er)."
+
+msgid "Not connected to a KNX bus."
+msgstr "Ikke koblet til en KNX-buss."
+
+msgid "Open or create a project to add recovered devices."
+msgstr "Åpne eller opprett et prosjekt for å legge til gjenopprettede enheter."
+
+msgid "matched"
+msgstr "samsvarer"
+
+msgid "confirm product/version, then tick"
+msgstr "bekreft produkt/versjon, og kryss deretter av"
+
+msgid "not in catalog - import via Catalog"
+msgstr "ikke i katalogen - importer via Katalog"
+
+msgid "unprogrammed"
+msgstr "uprogrammert"
+
+msgid "recovered"
+msgstr "gjenopprettet"
+
+msgid "already in project - skipped"
+msgstr "allerede i prosjektet - hoppet over"
+
+msgid "error"
+msgstr "feil"
+
+msgid "%d parameters could not be recovered"
+msgstr "%d parametre kunne ikke gjenopprettes"

@@ -53,7 +53,10 @@ INSTRUCTIONS = (
     "\n"
     "IDENTIFIERS (source of truth → where to get it):\n"
     "- node_id (int): a device — from project_list_devices. Distinct from the individual address "
-    'string like "1.1.5".\n'
+    'string like "1.1.5". Most device-scoped tools (project_get/list/set_parameter, parameter_tree, '
+    "resolve_parameter, list/get/get_links/find_potential_com_objects, link_com_object) also accept "
+    "``device_address`` (an individual address string) in place of node_id — exactly one of each "
+    "pair, agent's choice. Saves a project_list_devices round-trip when the address is known.\n"
     "- com_object_ref_id (str): a device's com-object — the `ref_id` from project_list_com_objects. "
     "Only com-objects with `linkable: true` can be linked. (`db_id` is the internal row id; "
     "project_get_ga_assignments reports it as `com_object_db_id`.)\n"
@@ -61,13 +64,15 @@ INSTRUCTIONS = (
     "or project_parameter_tree (both give current value, default, and for an enum the current "
     "`value_label` + `choice_count`). For the FULL allowed values (every enum choice, or the numeric "
     "range), call project_get_parameter for that one ref_id. To avoid the long ref ids, "
-    "project_resolve_parameter(node_id, label, subtree_id=…, value_label=…, tree_token=…) maps a "
-    "human label (scoped to a container id) to its ref_id and an enum value_label to its raw value; "
-    "it errors on an ambiguous or unknown label rather than guessing. A scoped call REQUIRES "
-    "tree_token from the project_parameter_tree response the subtree_id came from — index paths can "
-    "silently point to a different container after a structural change, and the token guards against "
-    "that; a stale token raises so you re-read.\n"
+    "project_resolve_parameter(label, node_id|device_address, subtree_id=…, value_label=…, "
+    "tree_token=…) maps a human label (scoped to a container id) to its ref_id and an enum "
+    "value_label to its raw value; it errors on an ambiguous or unknown label rather than guessing. "
+    "A scoped call REQUIRES tree_token from the project_parameter_tree response the subtree_id came "
+    "from — index paths can silently point to a different container after a structural change, and "
+    "the token guards against that; a stale token raises so you re-read.\n"
     "- group_address_id (int): from project_list_group_addresses / project_get_group_address. "
+    "project_link_com_object and the batch tool also accept ``group_address`` (a printed address "
+    'like "10/1/2" in the project\'s style) instead; pass exactly one. '
     "assignment id (int, to unlink): from project_get_ga_assignments.\n"
     "- product_ref_id (str): from catalog_list_products (filter it — the catalog is large).\n"
     '- GA strings like "1/2/3" parse per project_info.group_address_style (ThreeLevel/TwoLevel/Free).\n'

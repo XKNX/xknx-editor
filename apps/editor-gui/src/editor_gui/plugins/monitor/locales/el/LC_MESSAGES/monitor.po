@@ -1,0 +1,392 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor monitor 1.0\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Monitor"
+msgstr "Παρακολούθηση"
+
+msgid "No group addresses (open or import a project)"
+msgstr "Δεν υπάρχουν διευθύνσεις ομάδων (ανοίξτε ή εισαγάγετε ένα έργο)"
+
+msgid "Not Connected"
+msgstr "Μη Συνδεδεμένο"
+
+msgid "value (e.g. on / 21.5 / 50)"
+msgstr "τιμή (π.χ. on / 21.5 / 50)"
+
+msgid "Value:"
+msgstr "Τιμή:"
+
+msgid "Filter by address or name…"
+msgstr "Φιλτράρισμα κατά διεύθυνση ή όνομα…"
+
+msgid "Write"
+msgstr "Εγγραφή"
+
+msgid "Read"
+msgstr "Ανάγνωση"
+
+msgid "Group Objects"
+msgstr "Αντικείμενα Επικοινωνίας"
+
+msgid "Bus Monitor"
+msgstr "Παρακολούθηση Bus"
+
+msgid "Group Monitor"
+msgstr "Παρακολούθηση Ομάδων"
+
+msgid "Bus Activity"
+msgstr "Δραστηριότητα Bus"
+
+msgid "Clear"
+msgstr "Εκκαθάριση"
+
+msgid "Show Extended Information"
+msgstr "Εμφάνιση Εκτεταμένων Πληροφοριών"
+
+msgid "Hide Extended Information"
+msgstr "Απόκρυψη Εκτεταμένων Πληροφοριών"
+
+msgid "{count} teleg."
+msgstr "{count} teleg."
+
+msgid "Load: {rate} t/s"
+msgstr "Φορτίο: {rate} t/s"
+
+msgid "Group Address:"
+msgstr "Διεύθυνση Ομάδας:"
+
+msgid "e.g. 1/2/3"
+msgstr "π.χ. 1/2/3"
+
+msgid "Enter a group address of the project to send to it."
+msgstr "Εισαγάγετε μια διεύθυνση ομάδας του έργου για αποστολή σε αυτήν."
+
+msgid "Start"
+msgstr "Έναρξη"
+
+msgid "Stop"
+msgstr "Διακοπή"
+
+msgid "Import"
+msgstr "Εισαγωγή"
+
+msgid "Export"
+msgstr "Εξαγωγή"
+
+msgid "Print"
+msgstr "Εκτύπωση"
+
+msgid "Replay Telegrams"
+msgstr "Αναπαραγωγή Τηλεγραφημάτων"
+
+msgid "Stop Replay"
+msgstr "Διακοπή Αναπαραγωγής"
+
+msgid "Start recording the group telegrams"
+msgstr "Έναρξη καταγραφής των τηλεγραφημάτων ομάδας"
+
+msgid "Start recording the connection's communication other than group telegrams, including every frame this app sends"
+msgstr "Έναρξη καταγραφής της επικοινωνίας της σύνδεσης εκτός των τηλεγραφημάτων ομάδας, συμπεριλαμβανομένου κάθε πλαισίου που στέλνει αυτή η εφαρμογή"
+
+msgid "Connect the interface in bus monitor mode and record every frame"
+msgstr "Σύνδεση της θύρας επικοινωνίας σε λειτουργία παρακολούθησης bus και καταγραφή κάθε πλαισίου"
+
+msgid "Stop recording"
+msgstr "Διακοπή καταγραφής"
+
+msgid "Close the bus monitor connection and restore the normal connection"
+msgstr "Κλείσιμο της σύνδεσης παρακολούθησης bus και επαναφορά της κανονικής σύνδεσης"
+
+msgid "Remove all telegrams"
+msgstr "Αφαίρεση όλων των τηλεγραφημάτων"
+
+msgid "Load a recording"
+msgstr "Φόρτωση καταγραφής"
+
+msgid "Save the telegrams to a file"
+msgstr "Αποθήκευση των τηλεγραφημάτων σε αρχείο"
+
+msgid "Print the telegrams as a PDF document"
+msgstr "Εκτύπωση των τηλεγραφημάτων ως έγγραφο PDF"
+
+msgid "Send the selected group telegrams (all if none is selected) again with their original timing"
+msgstr "Επαναποστολή των επιλεγμένων τηλεγραφημάτων ομάδας (όλων, αν δεν έχει επιλεγεί κανένα) με τον αρχικό τους χρονισμό"
+
+msgid "Cancel the replay"
+msgstr "Ακύρωση της αναπαραγωγής"
+
+msgid "Copy"
+msgstr "Αντιγραφή"
+
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Αντιγραφή των επιλεγμένων τηλεγραφημάτων (όλων των εμφανιζόμενων, αν δεν έχει επιλεγεί κανένα) στο πρόχειρο ({shortcut}). Με διπλό κλικ σε ένα τηλεγράφημα επιλέγεται η συσκευή προέλευσής του."
+
+msgid "Rec."
+msgstr "Καταγρ."
+
+msgid "Stopped"
+msgstr "Σταματημένο"
+
+msgid "Replaying {done}/{total}"
+msgstr "Αναπαραγωγή {done}/{total}"
+
+msgid "Connecting in bus monitor mode…"
+msgstr "Σύνδεση σε λειτουργία παρακολούθησης bus…"
+
+msgid "Closing the bus monitor connection…"
+msgstr "Κλείσιμο της σύνδεσης παρακολούθησης bus…"
+
+msgid "Bus monitor mode: the normal connection is closed. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Λειτουργία παρακολούθησης bus: η κανονική σύνδεση είναι κλειστή. Δεν είναι δυνατή η αποστολή ή η φόρτιση μέχρι να σταματήσει η παρακολούθηση bus."
+
+msgid "Start Bus Monitor"
+msgstr "Έναρξη Παρακολούθησης Bus"
+
+msgid "The bus monitor connects the interface in bus monitor mode. The normal connection is closed while the bus monitor runs: nothing can be sent or downloaded in that time. Stopping the bus monitor restores the normal connection.\n\nStart the bus monitor?"
+msgstr "Η παρακολούθηση bus συνδέει τη θύρα επικοινωνίας σε λειτουργία παρακολούθησης bus. Η κανονική σύνδεση κλείνει όσο εκτελείται η παρακολούθηση bus: σε αυτό το διάστημα δεν είναι δυνατή η αποστολή ή η φόρτιση. Με τη διακοπή της παρακολούθησης bus αποκαθίσταται η κανονική σύνδεση.\n\nΈναρξη παρακολούθησης bus;"
+
+msgid "The bus monitor is not supported for this connection type. It needs a tunnelling connection."
+msgstr "Η παρακολούθηση bus δεν υποστηρίζεται για αυτόν τον τύπο σύνδεσης. Απαιτεί σύνδεση tunnelling."
+
+msgid "The interface does not support bus monitor mode."
+msgstr "Η θύρα επικοινωνίας δεν υποστηρίζει τη λειτουργία παρακολούθησης bus."
+
+msgid "The interface rejected bus monitor mode: another client holds a connection to it."
+msgstr "Η θύρα επικοινωνίας απέρριψε τη λειτουργία παρακολούθησης bus: άλλος client διατηρεί σύνδεση με αυτήν."
+
+msgid "The bus monitor connection could not be established."
+msgstr "Δεν ήταν δυνατή η δημιουργία της σύνδεσης παρακολούθησης bus."
+
+msgid "The normal connection is restored."
+msgstr "Η κανονική σύνδεση αποκαταστάθηκε."
+
+msgid "Unsaved Telegrams"
+msgstr "Μη Αποθηκευμένα Τηλεγραφήματα"
+
+msgid "The telegrams have not been exported. Clear them anyway?"
+msgstr "Τα τηλεγραφήματα δεν έχουν εξαχθεί. Να διαγραφούν παρ' όλα αυτά;"
+
+msgid "The telegrams have not been exported. Loading a recording replaces them and stops the recording. Continue?"
+msgstr "Τα τηλεγραφήματα δεν έχουν εξαχθεί. Η φόρτωση μιας καταγραφής τα αντικαθιστά και διακόπτει την καταγραφή. Συνέχεια;"
+
+msgid "Loading a recording replaces the telegrams and stops the recording. Continue?"
+msgstr "Η φόρτωση μιας καταγραφής αντικαθιστά τα τηλεγραφήματα και διακόπτει την καταγραφή. Συνέχεια;"
+
+msgid "Yes"
+msgstr "Ναι"
+
+msgid "No"
+msgstr "Όχι"
+
+msgid "OK"
+msgstr "ΟΚ"
+
+msgid "Cancel"
+msgstr "Άκυρο"
+
+msgid "Export Telegrams"
+msgstr "Εξαγωγή Τηλεγραφημάτων"
+
+msgid "Print Telegrams"
+msgstr "Εκτύπωση Τηλεγραφημάτων"
+
+msgid "Which telegrams?"
+msgstr "Ποια τηλεγραφήματα;"
+
+msgid "All Telegrams ({count})"
+msgstr "Όλα τα Τηλεγραφήματα ({count})"
+
+msgid "Selected Telegrams ({count})"
+msgstr "Επιλεγμένα Τηλεγραφήματα ({count})"
+
+msgid "Filtered Telegrams ({count})"
+msgstr "Φιλτραρισμένα Τηλεγραφήματα ({count})"
+
+msgid "Telegram recordings"
+msgstr "Καταγραφές τηλεγραφημάτων"
+
+msgid "All files"
+msgstr "Όλα τα αρχεία"
+
+msgid "{count} telegrams exported to {path}"
+msgstr "{count} τηλεγραφήματα εξήχθησαν στο {path}"
+
+msgid "Export failed: {error}"
+msgstr "Η εξαγωγή απέτυχε: {error}"
+
+msgid "{count} entries loaded from {path}"
+msgstr "{count} εγγραφές φορτώθηκαν από το {path}"
+
+msgid "Loading failed: {error}"
+msgstr "Η φόρτωση απέτυχε: {error}"
+
+msgid "{count} telegrams in another frame format were skipped"
+msgstr "Παραλείφθηκαν {count} τηλεγραφήματα σε άλλη μορφή πλαισίου"
+
+msgid "Printing failed: {error}"
+msgstr "Η εκτύπωση απέτυχε: {error}"
+
+msgid "Page {page}"
+msgstr "Σελίδα {page}"
+
+msgid "{count} Data Secure telegrams are not replayed"
+msgstr "{count} τηλεγραφήματα Data Secure δεν αναπαράγονται"
+
+msgid "There are no group telegrams to replay"
+msgstr "Δεν υπάρχουν τηλεγραφήματα ομάδας για αναπαραγωγή"
+
+msgid "Replay finished: {count} telegrams sent"
+msgstr "Η αναπαραγωγή ολοκληρώθηκε: στάλθηκαν {count} τηλεγραφήματα"
+
+msgid "Replay cancelled: {count} telegrams sent"
+msgstr "Η αναπαραγωγή ακυρώθηκε: στάλθηκαν {count} τηλεγραφήματα"
+
+msgid "from bus"
+msgstr "από το bus"
+
+msgid "to bus"
+msgstr "στο bus"
+
+msgid "Connection event"
+msgstr "Συμβάν σύνδεσης"
+
+msgid "Invalid frame"
+msgstr "Μη έγκυρο πλαίσιο"
+
+msgid "Comment"
+msgstr "Σχόλιο"
+
+msgid "Recording was started, Host={host}, Connection={connection}, Mode={mode}"
+msgstr "Η καταγραφή ξεκίνησε, Host={host}, Σύνδεση={connection}, Λειτουργία={mode}"
+
+msgid "Recording was stopped"
+msgstr "Η καταγραφή διακόπηκε"
+
+msgid "Connection was established"
+msgstr "Η σύνδεση δημιουργήθηκε"
+
+msgid "Connection was lost"
+msgstr "Η σύνδεση χάθηκε"
+
+msgid "System"
+msgstr "Σύστημα"
+
+msgid "Normal"
+msgstr "Κανονική"
+
+msgid "Urgent"
+msgstr "Επείγουσα"
+
+msgid "Low"
+msgstr "Χαμηλή"
+
+msgid "Standard"
+msgstr "Τυποποιημένο"
+
+msgid "Extended"
+msgstr "Εκτεταμένο"
+
+msgid "#"
+msgstr "#"
+
+msgid "Date"
+msgstr "Ημερομηνία"
+
+msgid "Time"
+msgstr "Ώρα"
+
+msgid "Service"
+msgstr "Υπηρεσία"
+
+msgid "Flags"
+msgstr "Flags"
+
+msgid "Prio"
+msgstr "Προτερ."
+
+msgid "Source Address"
+msgstr "Διεύθυνση Προέλευσης"
+
+msgid "Source Name"
+msgstr "Όνομα Προέλευσης"
+
+msgid "Destination Address"
+msgstr "Διεύθυνση Προορισμού"
+
+msgid "Destination Name"
+msgstr "Όνομα Προορισμού"
+
+msgid "Building Part"
+msgstr "Τμήμα Κτιρίου"
+
+msgid "Building Function"
+msgstr "Λειτουργία Κτιρίου"
+
+msgid "Hop Count"
+msgstr "Hop Count"
+
+msgid "Telegram Type"
+msgstr "Τύπος Τηλεγραφήματος"
+
+msgid "Telegram Type (Short)"
+msgstr "Τύπος Τηλεγραφήματος (Σύντομος)"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Value"
+msgstr "Τιμή"
+
+msgid "Iack"
+msgstr "Iack"
+
+msgid "Raw Data"
+msgstr "Ανεπεξέργαστα Δεδομένα"
+
+msgid "Raw Value"
+msgstr "Ανεπεξέργαστη Τιμή"
+
+msgid "Message Code"
+msgstr "Κωδικός Μηνύματος"
+
+msgid "Repeated"
+msgstr "Επαναλαμβανόμενο"
+
+msgid "Security"
+msgstr "Ασφάλεια"
+
+msgid "Frame Format"
+msgstr "Μορφή Πλαισίου"
+
+msgid "System Broadcast"
+msgstr "System Broadcast"
+
+msgid "Interface"
+msgstr "Θύρα Επικοινωνίας"
+
+msgid "MediumInfo"
+msgstr "Πληροφορίες Μέσου"
+
+msgid "Source Description"
+msgstr "Περιγραφή Προέλευσης"
+
+msgid "Destination Description"
+msgstr "Περιγραφή Προορισμού"
+
+msgid "Address"
+msgstr "Διεύθυνση"
+
+msgid "Name"
+msgstr "Όνομα"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."

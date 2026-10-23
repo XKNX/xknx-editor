@@ -1,0 +1,2303 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor project 1.0\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device"
+msgstr "Laite"
+
+msgid "Manufacturer"
+msgstr "Valmistaja"
+
+msgid "Devices"
+msgstr "Laitteet"
+
+msgid "Configure"
+msgstr "Määritä"
+
+msgid "History"
+msgstr "Historia"
+
+msgid "Editor"
+msgstr "Editori"
+
+msgid "Group Addresses"
+msgstr "Ryhmäosoitteet"
+
+msgid "Buildings"
+msgstr "Rakennukset"
+
+msgid "Project"
+msgstr "Projekti"
+
+msgid "Project Log"
+msgstr "Projektin Loki"
+
+msgid "Mass Linker"
+msgstr "Massalinkitys"
+
+msgid "Object <> GA"
+msgstr "Objekti <> ryhmäosoite"
+
+msgid "Object <> Object"
+msgstr "Objekti <> objekti"
+
+msgid "Log"
+msgstr "Loki"
+
+msgid "Open a project to use the Mass Linker."
+msgstr "Avaa projekti, jotta voit käyttää massalinkitystä."
+
+msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
+msgstr "Parit muodostetaan luettelojärjestyksessä (1. ja 1. jne.). Pidemmän puolen ylimääräiset kohteet ohitetaan. Muuta luettelon järjestystä sen hiiren kakkospainikkeen valikosta."
+
+msgid "Link group objects to existing group addresses."
+msgstr "Linkitä ryhmäobjekteja olemassa oleviin ryhmäosoitteisiin."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Lisää objekteja toiminnolla \"{add_device}\" tai \"{add_objects}\"."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Valitse ryhmäosoite riveittäin tai täytä kaikki toiminnolla \"{match}\" tai \"{sequential}\"."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "\"{link_all}\" linkittää jokaisen rivin, jolla sellainen on."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Linkitä objekteja toisiinsa kunkin oman uuden ryhmäosoitteen kautta: lähde lähettää, kohde vastaanottaa."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Lisää lähdeobjektit toiminnolla \"{add_device}\" tai \"{add_objects}\"."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Valitse kohdeobjekti riveittäin. Osoite ja nimi ehdotetaan, ja niitä voi muuttaa."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "\"{link_all}\" luo ryhmäosoitteet ja linkittää ne."
+
+msgid "Link All"
+msgstr "Linkitä kaikki"
+
+msgid "Chronological record of every mass-link operation in this session."
+msgstr "Tämän istunnon kaikkien massalinkitysten aikajärjestyksessä oleva kirjaus."
+
+msgid "Source (objects)"
+msgstr "Lähde (objektit)"
+
+msgid "Target (Group Addresses)"
+msgstr "Kohde (ryhmäosoitteet)"
+
+msgid "Target (objects)"
+msgstr "Kohde (objektit)"
+
+msgid "Preview & Link"
+msgstr "Esikatselu ja linkitys"
+
+msgid "Add Group Objects…"
+msgstr "Lisää ryhmäobjekteja…"
+
+msgid "Add Group Addresses…"
+msgstr "Lisää ryhmäosoitteita…"
+
+msgid "Add Selected"
+msgstr "Lisää valitut"
+
+msgid "Clear"
+msgstr "Tyhjennä"
+
+msgid "Remove"
+msgstr "Poista"
+
+msgid "Move up"
+msgstr "Siirrä ylös"
+
+msgid "Move Down"
+msgstr "Siirrä alas"
+
+msgid "{count} items"
+msgstr "Kohteita: {count}"
+
+msgid "{count} pairs"
+msgstr "Pareja: {count}"
+
+msgid "{count} unpaired (ignored)"
+msgstr "Ilman paria (ohitetaan): {count}"
+
+msgid "Link"
+msgstr "Linkitä"
+
+msgid "GA Name ({source}, {target}, {n})"
+msgstr "Ryhmäosoitteen nimi ({source}, {target}, {n})"
+
+msgid "Start Address"
+msgstr "Alkuosoite"
+
+msgid "Filter…"
+msgstr "Suodata…"
+
+msgid "Add Group Objects"
+msgstr "Lisää ryhmäobjekteja"
+
+msgid "Add Group Addresses"
+msgstr "Lisää Ryhmäosoitteet"
+
+msgid "Mass Linker Result"
+msgstr "Massalinkityksen tulos"
+
+msgid "Linked {count} object(s) to group addresses"
+msgstr "Ryhmäosoitteisiin linkitettyjä objekteja: {count}"
+
+msgid "Linked {count} object pair(s) via new group addresses"
+msgstr "Uusien ryhmäosoitteiden kautta linkitettyjä objektipareja: {count}"
+
+msgid "{count} error(s)"
+msgstr "Virheitä: {count}"
+
+msgid "Clear All"
+msgstr "Tyhjennä kaikki"
+
+msgid "No operations yet."
+msgstr "Ei vielä toimintoja."
+
+msgid "Group Object"
+msgstr "Ryhmäobjekti"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Target Group Address"
+msgstr "Kohderyhmäosoite"
+
+msgid "Target Group Object"
+msgstr "Kohderyhmäobjekti"
+
+msgid "Group Address"
+msgstr "Ryhmäosoite"
+
+msgid "Group Address Name"
+msgstr "Ryhmäosoitteen nimi"
+
+msgid "(none)"
+msgstr "(ei mitään)"
+
+msgid "Matching DPT Only"
+msgstr "Vain sopiva DPT"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Vain ryhmäosoitteet, joilla on objektin päätietopisteen tyyppi, sekä ne, joilla tyyppiä ei ole (ne saavat objektin tyypin linkitettäessä)."
+
+msgid "no DPT"
+msgstr "ei DPT:tä"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Vain objektit, joilla on sama päätietopisteen tyyppi, sekä ne, joilla tyyppiä ei ole."
+
+msgid "Select a device in the tree first."
+msgstr "Valitse ensin laite puusta."
+
+msgid "{device} has no group objects."
+msgstr "Laitteella {device} ei ole ryhmäobjekteja."
+
+msgid "All objects of {device} are in the list already."
+msgstr "Kaikki laitteen {device} objektit ovat jo luettelossa."
+
+msgid "+ Selected Device"
+msgstr "+ Valittu laite"
+
+msgid "Select All"
+msgstr "Valitse kaikki"
+
+msgid "No objects yet — add the selected device or pick objects."
+msgstr "Ei vielä objekteja — lisää valittu laite tai valitse objekteja."
+
+msgid "From"
+msgstr "Alkaen"
+
+msgid "Assign Sequential"
+msgstr "Määritä järjestyksessä"
+
+msgid "Match by Name"
+msgstr "Yhdistä nimen mukaan"
+
+msgid "Link All ({count})"
+msgstr "Linkitä kaikki ({count})"
+
+msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
+msgstr "{ready} valmis · {amb} monitulkintainen · {bad} yhteensopimaton · {none} ilman paria"
+
+msgid "Only Problems"
+msgstr "Vain ongelmat"
+
+msgid "Ready to link."
+msgstr "Valmis linkitettäväksi."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Tarkista ryhmäosoite: useita sopii, tai tietopisteen tyyppi on tuntematon."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "Tietopisteen tyypit eivät sovi yhteen; tätä riviä ei linkitetä."
+
+msgid "No group address chosen yet."
+msgstr "Ryhmäosoitetta ei ole vielä valittu."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Peruuta"
+
+msgid "Tools"
+msgstr "Työkalut"
+
+msgid "Open a project to use the tools."
+msgstr "Avaa projekti, jotta voit käyttää työkaluja."
+
+msgid "No devices in this project."
+msgstr "Tässä projektissa ei ole laitteita."
+
+msgid "Extended Copy"
+msgstr "Laajennettu Kopiointi"
+
+msgid "Replace Device"
+msgstr "Vaihda laite"
+
+msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
+msgstr "Vaihda laite toiseen malliin (projektissa jo olevaan mallilaitteeseen) säilyttäen sen ryhmäosoitelinkit. Ryhmäobjektit yhdistetään numeron ja koon mukaan; yhdistämättä jääneet raportoidaan. Parametreja ei siirretä."
+
+msgid "Device to Replace"
+msgstr "Vaihdettava laite"
+
+msgid "Replace with (Template)"
+msgstr "Vaihda tilalle (malli)"
+
+msgid "Group Object Mapping (by Number)"
+msgstr "Ryhmäobjektien vastaavuus (numeron mukaan)"
+
+msgid "{count} object(s) will be re-mapped"
+msgstr "Uudelleen kohdistettavia objekteja: {count}"
+
+msgid "Replaced; re-mapped {count} group object(s)"
+msgstr "Vaihdettu; uudelleen kohdistettuja ryhmäobjekteja: {count}"
+
+msgid "Shift Addresses"
+msgstr "Siirrä osoitteita"
+
+msgid "Labels"
+msgstr "Tarrat"
+
+msgid "Topology Check"
+msgstr "Topologian Tarkastus"
+
+msgid "Project Diff"
+msgstr "Projektien vertailu"
+
+msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Vertaa avointa projektia toiseen projektitiedostoon (.knxproj tai .xknx): mitä laitteita ja ryhmäosoitteita on lisätty, poistettu tai muutettu. Toista projektia vain luetaan; mitään ei muuteta."
+
+msgid "Choose Project to Compare…"
+msgstr "Valitse verrattava projekti…"
+
+msgid "Choose Project to Compare"
+msgstr "Valitse verrattava projekti"
+
+msgid "KNX project (*.knxproj *.xknx)"
+msgstr "KNX-projekti (*.knxproj *.xknx)"
+
+msgid "compared with {name}"
+msgstr "verrattu: {name}"
+
+msgid "No differences in devices or group addresses."
+msgstr "Laitteissa tai ryhmäosoitteissa ei ole eroja."
+
+msgid "{count} difference(s)"
+msgstr "Eroja: {count}"
+
+msgid "Add Device Certificate"
+msgstr "Lisää Laitesertifikaatti"
+
+msgid "Device Certificate"
+msgstr "Laitesertifikaatti"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "Tämä laite käyttää jo omaa avaintaan tästä projektista. Sen sertifikaattia tarvitaan uudelleen vasta tehdasasetusten palautuksen jälkeen."
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "Tämä laite käyttää vielä tehdasavaintaan: sen ensimmäinen suojattu lataus tarvitsee sen sertifikaatin."
+
+msgid "Stored Certificate: {serial}"
+msgstr "Tallennettu sertifikaatti: {serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Anna FDSK laitteen tarrasta tai sertifikaatista (36 merkkiä):"
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "Korvaa se antamalla uusi FDSK (36 merkkiä):"
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "Poistetaanko tallennettu sertifikaatti? Tehdasasetusten palautuksen jälkeen laitteeseen saadaan silloin yhteys vain sen tarrassa olevalla koodilla."
+
+msgid "Device Certificate…"
+msgstr "Laitesertifikaatti…"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "Laitesertifikaatti (FDSK) puuttuu."
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "Tämä ei ole kelvollinen FDSK; tarkista se."
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "Tämä sertifikaatti kuuluu laitteelle, jonka sarjanumero on {serial}."
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "Aseta ensin projektin salasana: se suojaa laiteavaimet."
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "Toinen projekti on suojattu salasanalla. Anna se vertailua varten:"
+
+msgid "Compare"
+msgstr "Vertaa"
+
+msgid "Wrong password, please try again."
+msgstr "Väärä salasana, yritä uudelleen."
+
+msgid "Duplicate a device several times. Optionally rewrite the copy name (find/replace) and create a group address for each of its objects."
+msgstr "Monista laite useita kertoja. Voit myös muokata kopion nimeä (etsi/korvaa) ja luoda ryhmäosoitteen jokaiselle sen objektille."
+
+msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
+msgstr "Numeroi laitteet uudelleen lisäämällä siirtymä niiden yksilöllisten osoitteiden laiteosaan, esim. jättääksesi väliä uusille laitteille. Ryhmäosoitteisiin ei kosketa."
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "Valitse kentät ja tuloste: CSV, tulostettavat tarra-arkit (Avery) tai koko sivun selite. HTML-tuloste avautuu selaimessa tulostettavaksi tai PDF-tiedostoksi tallennettavaksi."
+
+msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
+msgstr "Vain luku -tarkistus: luettelee laitteet, joiden yksilöllinen osoite puuttuu, on virheellinen tai päällekkäinen."
+
+msgid "Source Device"
+msgstr "Lähdelaite"
+
+msgid "Copies"
+msgstr "Kopiot"
+
+msgid "Find in Name"
+msgstr "Etsi nimestä"
+
+msgid "Replace with"
+msgstr "Korvaa kohteella"
+
+msgid "Create Group Addresses for Each Copy"
+msgstr "Luo ryhmäosoitteet jokaiselle kopiolle"
+
+msgid "Copy Name: {name}"
+msgstr "Kopion nimi: {name}"
+
+msgid "Copy"
+msgstr "Kopioi"
+
+msgid "Created {count} copy/copies"
+msgstr "Luotuja kopioita: {count}"
+
+msgid "Shifts the device part of each individual address. Group addresses are not shifted."
+msgstr "Siirtää jokaisen yksilöllisen osoitteen laiteosaa. Ryhmäosoitteita ei siirretä."
+
+msgid "Offset"
+msgstr "Siirtymä"
+
+msgid "Filter devices…"
+msgstr "Suodata laitteita…"
+
+msgid "All"
+msgstr "Kaikki"
+
+msgid "None"
+msgstr "Ei mitään"
+
+msgid "{sel} of {total} selected"
+msgstr "{sel}/{total} valittu"
+
+msgid "(out of range)"
+msgstr "(alueen ulkopuolella)"
+
+msgid "{count} address(es) will change"
+msgstr "Muuttuvia osoitteita: {count}"
+
+msgid "Shifted {count} address(es)"
+msgstr "Siirrettyjä osoitteita: {count}"
+
+msgid "Individual Addresses"
+msgstr "Yksilölliset Osoitteet"
+
+msgid "This project has no group addresses."
+msgstr "Tässä projektissa ei ole ryhmäosoitteita."
+
+msgid "Shift Group Addresses"
+msgstr "Siirrä ryhmäosoitteita"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Numeroi ryhmäosoitteet uudelleen lisäämällä siirtymä niiden raaka-arvoon, esim. jättääksesi väliä. Ryhmäobjektien linkit siirtyvät kunkin osoitteen mukana. Mitään ei kirjoiteta, jos jokin siirto aiheuttaisi päällekkäisyyden tai menisi sallitun alueen ulkopuolelle."
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "Siirtymä lisätään 16-bittiseen raaka-arvoon, joten pää- tai keskiryhmä voi muuttua, kun osoitteet ylittävät rajan."
+
+msgid "Shifted {count} group address(es)"
+msgstr "Siirrettyjä ryhmäosoitteita: {count}"
+
+msgid "Export CSV…"
+msgstr "Vie CSV…"
+
+msgid "Exported to {path}"
+msgstr "Viety: {path}"
+
+msgid "Fields"
+msgstr "Kentät"
+
+msgid "Output"
+msgstr "Tuloste"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Label Sheet"
+msgstr "Tarra-arkki"
+
+msgid "Legend (Full Page)"
+msgstr "Selite (koko sivu)"
+
+msgid "Sheet"
+msgstr "Arkki"
+
+msgid "Custom Grid"
+msgstr "Mukautettu ruudukko"
+
+msgid "Columns"
+msgstr "Sarakkeet"
+
+msgid "Rows"
+msgstr "Rivit"
+
+msgid "Label W x H (mm)"
+msgstr "Tarra L x K (mm)"
+
+msgid "Margin Top / Left (mm)"
+msgstr "Marginaali ylä / vasen (mm)"
+
+msgid "Gap X / Y (mm)"
+msgstr "Väli X / Y (mm)"
+
+msgid "Export HTML…"
+msgstr "Vie HTML…"
+
+msgid "Select at least one field."
+msgstr "Valitse vähintään yksi kenttä."
+
+msgid "No topology issues found."
+msgstr "Topologiaongelmia ei löytynyt."
+
+msgid "{count} issue(s)"
+msgstr "Ongelmia: {count}"
+
+msgid "Click a finding to jump to the device."
+msgstr "Siirry laitteeseen napsauttamalla havaintoa."
+
+msgid "No buildings/rooms in this project"
+msgstr "Tässä projektissa ei ole rakennuksia/huoneita"
+
+msgid "+ Function"
+msgstr "+ Toiminto"
+
+msgid "+ Space"
+msgstr "+ Tila"
+
+msgid "+ Sub-space"
+msgstr "+ Alitila"
+
+msgid "New Space"
+msgstr "Uusi tila"
+
+msgid "Name"
+msgstr "Nimi"
+
+msgid "Type"
+msgstr "Tyyppi"
+
+msgid "Create"
+msgstr "Luo"
+
+msgid "Delete"
+msgstr "Poista"
+
+msgid "Delete Space"
+msgstr "Poista tila"
+
+msgid "Move to"
+msgstr "Siirrä"
+
+msgid "(Top Level)"
+msgstr "(ylin taso)"
+
+msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
+msgstr "Poistetaanko tämä tila ja kaikki sen sisältö? Laitteiden kohdistus vain poistetaan, laitteita ei poisteta."
+
+msgid "Assign Device"
+msgstr "Kohdista laite"
+
+msgid "Assign a Device to This Space"
+msgstr "Kohdista laite tähän tilaan"
+
+msgid "No unassigned devices"
+msgstr "Ei kohdistamattomia laitteita"
+
+msgid "Remove from Space"
+msgstr "Poista tilasta"
+
+msgid "Without Space"
+msgstr "Ilman tilaa"
+
+msgid "Building"
+msgstr "Rakennus"
+
+msgid "Building Part"
+msgstr "Rakennuksen osa"
+
+msgid "Floor"
+msgstr "Kerros"
+
+msgid "Room"
+msgstr "Huone"
+
+msgid "Corridor"
+msgstr "Käytävä"
+
+msgid "Stairway"
+msgstr "Portaat"
+
+msgid "Distribution Board"
+msgstr "Sähkökeskus"
+
+msgid "New Function"
+msgstr "Uusi toiminto"
+
+msgid "Rename"
+msgstr "Nimeä uudelleen"
+
+msgid "Rename Function"
+msgstr "Nimeä toiminto uudelleen"
+
+msgid "Assign Group Address"
+msgstr "Kohdista ryhmäosoite"
+
+msgid "Role (Optional)"
+msgstr "Rooli (valinnainen)"
+
+msgid "Custom"
+msgstr "Mukautettu"
+
+msgid "Switchable Light"
+msgstr "Kytkettävä valo"
+
+msgid "Dimmable Light"
+msgstr "Himmennettävä valo"
+
+msgid "Sun Protection"
+msgstr "Aurinkosuoja"
+
+msgid "Heating (Switching Variable)"
+msgstr "Lämmitys (kytkevä ohjaussuure)"
+
+msgid "Heating (Continuous Variable)"
+msgstr "Lämmitys (jatkuva ohjaussuure)"
+
+msgid "Switchable Socket"
+msgstr "Kytkettävä pistorasia"
+
+msgid "No project"
+msgstr "Ei projektia"
+
+msgid "Installation"
+msgstr "Asennus"
+
+msgid "Group Address Style"
+msgstr "Ryhmäosoitteiden tyyli"
+
+msgid "Created by"
+msgstr "Tekijä"
+
+msgid "Tool Version"
+msgstr "Työkalun versio"
+
+msgid "Schema Version"
+msgstr "Skeeman versio"
+
+msgid "Last Modified"
+msgstr "Viimeksi muokattu"
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "Project ID"
+msgstr "Projektin tunnus"
+
+msgid "Original Project ID"
+msgstr "Alkuperäinen projektin tunnus"
+
+msgid "Master Data (Signed)"
+msgstr "Perustiedot (allekirjoitettu)"
+
+msgid "Validation File"
+msgstr "Validointitiedosto"
+
+msgid "Project Certificate"
+msgstr "Projektisertifikaatti"
+
+msgid "none"
+msgstr "ei mitään"
+
+msgid "present ({size} bytes)"
+msgstr "olemassa ({size} tavua)"
+
+msgid "Password"
+msgstr "Salasana"
+
+msgid "Protected"
+msgstr "Suojattu"
+
+msgid "Not protected"
+msgstr "Ei suojattu"
+
+msgid "Set Password"
+msgstr "Aseta salasana"
+
+msgid "Change Password"
+msgstr "Vaihda Salasana"
+
+msgid "Remove Password"
+msgstr "Poista salasana"
+
+msgid "Project Password"
+msgstr "Projektin salasana"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "Projekti ja sen viennit suojataan tällä salasanalla; se kysytään niitä avattaessa tai tuotaessa. Salasanan vaihtoa ei voi kumota."
+
+msgid "Repeat Password"
+msgstr "Toista salasana"
+
+msgid "The passwords do not match."
+msgstr "Salasanat eivät täsmää."
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "Projekti, jossa on KNX Secure -laitteita, tarvitsee salasanan: se suojaa niiden avaimet projektissa ja sen vienneissä."
+
+msgid "No project log entries"
+msgstr "Projektin lokissa ei ole merkintöjä"
+
+msgid "Date"
+msgstr "Päivämäärä"
+
+msgid "User"
+msgstr "Käyttäjä"
+
+msgid "Comment"
+msgstr "Kommentti"
+
+msgid "Filter log"
+msgstr "Suodata lokia"
+
+msgid "Decrypt Comments"
+msgstr "Pura kommenttien salaus"
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "Pura Knx.Ets.Common.dll-tiedostosta…"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "ETS salaa lokin kommentit. Pura salauksen purkuavain oman ETS-asennuksesi Knx.Ets.Common.dll-tiedostosta lukeaksesi ne; mitään ei lähetetä minnekään."
+
+msgid "Comments are encrypted"
+msgstr "Kommentit on salattu"
+
+msgid "Comments decrypted"
+msgstr "Kommenttien salaus purettu"
+
+msgid "Extracting key…"
+msgstr "Puretaan avainta…"
+
+msgid "Key extracted; comments decrypted"
+msgstr "Avain purettu; kommenttien salaus purettu"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr ".NET-ajonaikaista ympäristöä ei löytynyt (asenna .NET SDK tai käytä Windowsissa ETS:n kanssa)."
+
+msgid "KNX Common Assembly"
+msgstr "KNX Common -kokoonpano"
+
+msgid "All Files"
+msgstr "Kaikki tiedostot"
+
+msgid "Based on OpenKNXproducer"
+msgstr "Perustuu OpenKNXproduceriin"
+
+msgid "Order Number"
+msgstr "Tilausnumero"
+
+msgid "Description"
+msgstr "Kuvaus"
+
+msgid "Parameters ({count})"
+msgstr "Parametrit ({count})"
+
+msgid "Group Objects ({count})"
+msgstr "Ryhmäobjektit ({count})"
+
+msgid "Channels ({count})"
+msgstr "Kanavat ({count})"
+
+msgid "DALI (Bus)"
+msgstr "DALI (väylä)"
+
+msgid "Assigned Objects"
+msgstr "Kohdistetut objektit"
+
+msgid "Object"
+msgstr "Objekti"
+
+msgid "S"
+msgstr "L"
+
+msgid "S = Sending. This object sends its value to the group address; the others only receive it."
+msgstr "L = Lähettävä. Tämä objekti lähettää arvonsa ryhmäosoitteeseen; muut vain vastaanottavat sen."
+
+msgid "Click to open this device in the editor"
+msgstr "Avaa tämä laite editorissa napsauttamalla"
+
+msgid "No devices"
+msgstr "Ei laitteita"
+
+msgid "Loading application program…"
+msgstr "Ladataan sovellusohjelmaa…"
+
+msgid "This product has no application program."
+msgstr "Tällä tuotteella ei ole sovellusohjelmaa."
+
+msgid "Individual Address"
+msgstr "Yksilöllinen osoite"
+
+msgid "Program Device"
+msgstr "Ohjelmoi laite"
+
+msgid "Test Programming"
+msgstr "Testaa ohjelmointi"
+
+msgid "Unload Application Program"
+msgstr "Pura sovellusohjelma"
+
+msgid "This unloads the application program of the device at {address}. The device stops working until its application program is downloaded again."
+msgstr "Tämä purkaa osoitteessa {address} olevan laitteen sovellusohjelman. Laite lakkaa toimimasta, kunnes sen sovellusohjelma ladataan uudelleen."
+
+msgid "This unloads the application program of the device at {address} and then resets its individual address to 15.15.255; for that, its programming button has to be pressed. The device stops working until it is commissioned again."
+msgstr "Tämä purkaa osoitteessa {address} olevan laitteen sovellusohjelman ja palauttaa sitten sen yksilölliseksi osoitteeksi 15.15.255; tätä varten sen ohjelmointipainiketta on painettava. Laite lakkaa toimimasta, kunnes se otetaan uudelleen käyttöön."
+
+msgid "Overwrite Address"
+msgstr "Korvaa osoite"
+
+msgid "Manufacturer's Plugin Not Available"
+msgstr "Valmistajan laajennus ei ole käytettävissä"
+
+msgid "Serial Number Already Used"
+msgstr "Sarjanumero on jo käytössä"
+
+msgid "Download"
+msgstr "Lataa"
+
+msgid "Full"
+msgstr "Täysi"
+
+msgid "Application Program"
+msgstr "Sovellusohjelma"
+
+msgid "Unload"
+msgstr "Pura"
+
+msgid "Unload Application and Address"
+msgstr "Pura Sovellus ja Osoite"
+
+msgid "Partial: Parameters"
+msgstr "Osittainen: parametrit"
+
+msgid "Partial: Group Communication"
+msgstr "Osittainen: ryhmäkommunikointi"
+
+msgid "Overwrite Individual Address"
+msgstr "Korvaa yksilöllinen osoite"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "Tämä kirjoittaa yksilöllisen osoitteen {address} laitteeseen, jonka ohjelmointipainiketta painetaan. Jatketaanko?"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "Tämä korvaa laitteen yksilöllisen osoitteen sen nykyisessä osoitteessa arvolla {address}. Sen ohjelmointipainiketta ei tarvitse painaa."
+
+msgid "Current Individual Address"
+msgstr "Nykyinen yksilöllinen osoite"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "Anna laitteen nykyinen yksilöllinen osoite, esim. 1.1.5."
+
+msgid "The device already has the individual address {address}."
+msgstr "Laitteella on jo yksilöllinen osoite {address}."
+
+msgid "Individual Address via Serial Number"
+msgstr "Yksilöllinen osoite sarjanumeron avulla"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "Tämä kirjoittaa yksilöllisen osoitteen {address} laitteeseen, jonka sarjanumero on {serial}. Sen ohjelmointipainiketta ei tarvitse painaa."
+
+msgid "Use Serial Number"
+msgstr "Käytä SN"
+
+msgid "The serial number is already associated with device {device}."
+msgstr "Sarjanumero on jo liitetty laitteeseen {device}."
+
+msgid "Serial Number"
+msgstr "Sarjanumero"
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "Anna sarjanumero 12 heksadesimaalinumerona, esim. 0083:7AA2039C."
+
+msgid "Manufacturer Info"
+msgstr "Valmistajan tiedot"
+
+msgid "Application"
+msgstr "Sovellus"
+
+msgid "Application Version"
+msgstr "Sovelluksen Versio"
+
+msgid "Read from Device"
+msgstr "Lue laitteesta"
+
+msgid "Restart"
+msgstr "Käynnistä uudelleen"
+
+msgid "Reset…"
+msgstr "Nollaa…"
+
+msgid "Master Reset"
+msgstr "Pääpalautus"
+
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "Tuhoava: laite nollataan väylän kautta ja se on otettava uudelleen käyttöön. KNX Secure -tilassa tämä poistaa laitteen suojauksen käytöstä."
+
+msgid "Reset Type"
+msgstr "Nollauksen tyyppi"
+
+msgid "I understand this resets the device"
+msgstr "Ymmärrän, että tämä nollaa laitteen"
+
+msgid "Reset Device"
+msgstr "Nollaa laite"
+
+msgid "Factory Reset"
+msgstr "Tehdasasetusten palautus"
+
+msgid "Factory Reset (Keep Address)"
+msgstr "Tehdasasetusten palautus (säilytä osoite)"
+
+msgid "Reset Individual Address"
+msgstr "Nollaa yksilöllinen osoite"
+
+msgid "Delete Application Program"
+msgstr "Poista sovellusohjelma"
+
+msgid "Reset Parameters"
+msgstr "Nollaa parametrit"
+
+msgid "Reset Group Address Links"
+msgstr "Nollaa ryhmäosoitelinkit"
+
+msgid "Confirmed Restart"
+msgstr "Kuitattu uudelleenkäynnistys"
+
+msgid "Set an individual address and connect to the bus first"
+msgstr "Aseta ensin yksilöllinen osoite ja yhdistä väylään"
+
+msgid "The reported value matches {devices} in this project."
+msgstr "Ilmoitettu arvo vastaa tämän projektin kohdetta: {devices}."
+
+msgid "Mask Version"
+msgstr "Maski Versio"
+
+msgid "Order Info"
+msgstr "Tilaustiedot"
+
+msgid "Hardware Type"
+msgstr "Laitteiston Tyyppi"
+
+msgid "Status"
+msgstr "Tila"
+
+msgid "no fault reported"
+msgstr "vikaa ei ilmoitettu"
+
+msgid "differs from project V{version} — program to apply"
+msgstr "poikkeaa projektin versiosta V{version} — ohjelmoi käyttöön"
+
+msgid "Product"
+msgstr "Tuote"
+
+msgid "Product Ref"
+msgstr "Tuoteviite"
+
+msgid "Program Ref"
+msgstr "Ohjelmaviite"
+
+msgid "IP Configuration"
+msgstr "IP-konfiguraatio"
+
+msgid "Assignment"
+msgstr "Määritys"
+
+msgid "IP Address"
+msgstr "IP-osoite"
+
+msgid "Subnet Mask"
+msgstr "Aliverkon peite"
+
+msgid "Default Gateway"
+msgstr "Oletusyhdyskäytävä"
+
+msgid "MAC Address"
+msgstr "MAC-osoite"
+
+msgid "Download PDF Manual"
+msgstr "Lataa PDF-käyttöohje"
+
+msgid "Searching Manual…"
+msgstr "Etsitään käyttöohjetta…"
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "Etsi tämän laitteen käyttöohje (KNX-laitetietokannasta, muuten valmistajahaulla) ja avaa se selaimessa. Paras yritys - avaa KNX-laitehaun, jos suoraa asiakirjaa ei löydy."
+
+msgid "Update to V{version}"
+msgstr "Päivitä versioon V{version}"
+
+msgid "Change Application Program"
+msgstr "Vaihda Sovellusohjelma"
+
+msgid "Update Application Program Version"
+msgstr "Päivitä sovellusohjelman versio"
+
+msgid "Update"
+msgstr "Päivitä"
+
+msgid "Updating the application program…"
+msgstr "Päivitetään sovellusohjelmaa…"
+
+msgid "Changing the application program…"
+msgstr "Vaihdetaan sovellusohjelmaa…"
+
+msgid "Changing the application program failed"
+msgstr "Sovellusohjelman vaihto epäonnistui"
+
+msgid "Updating the application program failed"
+msgstr "Sovellusohjelman päivitys epäonnistui"
+
+msgid "Copied"
+msgstr "Kopioitu"
+
+msgid "Click to copy"
+msgstr "Kopioi napsauttamalla"
+
+msgid "Filter parameters…"
+msgstr "Suodata parametreja…"
+
+msgid "Apply Changes to All {count} Identical Devices"
+msgstr "Käytä muutoksia kaikkiin samanlaisiin laitteisiin ({count})"
+
+msgid "Apply Changes to All Channels"
+msgstr "Käytä muutoksia kaikkiin kanaviin"
+
+msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr "Muokataan laitteita: {count} — muutokset koskevat kaikkia, poikkeavat arvot näkyvät muodossa <poikkeaa>"
+
+msgid "Hardware"
+msgstr "Laitteisto"
+
+msgid "Firmware"
+msgstr "Laiteohjelmisto"
+
+msgid "Com Flags ({count})"
+msgstr "Objektien merkit ({count})"
+
+msgid "Load Procedures ({count})"
+msgstr "Latausmenettelyt ({count})"
+
+msgid "Preview Memory"
+msgstr "Esikatsele muistia"
+
+msgid "Memory Preview"
+msgstr "Muistin esikatselu"
+
+msgid "Load Reference File"
+msgstr "Lataa vertailutiedosto"
+
+msgid "Save Memory Dump"
+msgstr "Talleta muistivedos"
+
+msgid "Save…"
+msgstr "Talleta…"
+
+msgid "Diff…"
+msgstr "Vertaa…"
+
+msgid "Clear Diff"
+msgstr "Poista vertailu"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "Muistivedokset (*.bin)"
+
+msgid "{count} bytes"
+msgstr "{count} tavua"
+
+msgid "No memory segments."
+msgstr "Ei muistisegmenttejä."
+
+msgid "Cannot encode memory image: {error}"
+msgstr "Muistikuvaa ei voi muodostaa: {error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "Tiedostoa ei voitu lukea tai kirjoittaa: {error}"
+
+msgid "Programming Test Result"
+msgstr "Ohjelmointitestin tulos"
+
+msgid "Evaluation failed"
+msgstr "Arviointi epäonnistui"
+
+msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
+msgstr "Vain luku -testi: tarkistaa, että lataustoiminto muodostaa saman kuvan kuin laitteeseen on jo ohjelmoitu. Laitteeseen ei kirjoiteta mitään."
+
+msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
+msgstr "Ei voi suorittaa: projektia on muutettu sen avaamisen jälkeen. Tämä testi vertaa muodostettua kuvaa laitteen ohjelmoituun tilaan, joka vastaa vain projektia sellaisena kuin se avattiin. Kumoa tämän istunnon muutokset testataksesi."
+
+msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
+msgstr "Ei voi suorittaa: ei KNX-yhteyttä. Yhdistä yhdyskäytävään (Yhteys-valikko) ja varmista, että laite on tavoitettavissa yksilöllisessä osoitteessaan."
+
+msgid "Match: the generated image is identical to what is on the device"
+msgstr "Vastaa: muodostettu kuva on identtinen laitteessa olevan kanssa"
+
+msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
+msgstr "Poikkeama: {bytes} tavua eroaa laitteesta {locations} kohdassa"
+
+msgid "{matched} matched, {changed} would change"
+msgstr "{matched} vastaa, {changed} muuttuisi"
+
+msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
+msgstr "Vain ETS 6 -laitteille: tämä testi vertaa laitetta kuvaan, joka on muodostettu ETS 6:n tavalla. Viimeksi ETS 5:llä ohjelmoidussa laitteessa on erilainen tavujärjestely, ja se näyttää suuria virheellisiä eroja - tulos on merkityksellinen vain viimeksi ETS 6:lla ohjelmoidulle laitteelle."
+
+msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
+msgstr "Rakenteelliset erot (kokonaiset taulukot eroavat) voivat tarkoittaa, että laite on viimeksi ohjelmoitu ETS 5:llä, jonka tavujärjestely on erilainen. Pelkät arvoerot tarkoittavat yleensä, että laitteessa on eri konfiguraatio."
+
+msgid "Location"
+msgstr "Sijainti"
+
+msgid "Size"
+msgstr "Koko"
+
+msgid "Changed"
+msgstr "Muuttunut"
+
+msgid "match"
+msgstr "vastaa"
+
+msgid "would change"
+msgstr "muuttuisi"
+
+msgid "device-managed"
+msgstr "laitteen hallitsema"
+
+msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
+msgstr "Järjestelmätavu, jonka laite asettaa itse ajon aikana (esim. lataustunnistustavu, jonka sovellus nollaa latauksen jälkeen). Ero tässä on odotettu eikä viittaa epäonnistuneeseen lataukseen."
+
+msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
+msgstr "lisäksi {bytes} laitteen hallitsemaa ajonaikaista tavua (odotettu, vaaraton)"
+
+msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
+msgstr "Ei määritettyjä eroja: laitteessa on jo tämä konfiguraatio. Alla olevat erot ovat vaarattomia (katso huomautukset)."
+
+msgid "sets default"
+msgstr "asettaa oletusarvon"
+
+msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
+msgstr "Tämä tavu kirjoitetaan viereisen parametrin vuoksi; poikkeavaa bittiä ei ohjaa mikään aktiivinen parametri, ja se vain palautetaan sovelluksen oletusarvoon. Laitteessa on vanhempi arvo (esim. aiemmasta konfiguraatiosta tai tilasta), jonka ohjelmointi normalisoi. Vaaraton."
+
+msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr "lisäksi {bytes} tavua palautetaan sovelluksen oletusarvoon (laitteessa on vanhempi arvo; vaaraton, normalisoidaan ohjelmoitaessa)"
+
+msgid "Export Ist/Soll…"
+msgstr "Vie tosi/tavoite…"
+
+msgid "Export Path:"
+msgstr "Vientipolku:"
+
+msgid "Export Programming Test Result"
+msgstr "Vie ohjelmointitestin tulos"
+
+msgid "memory {address}"
+msgstr "muisti {address}"
+
+msgid "object {object} property {property}"
+msgstr "objekti {object} ominaisuus {property}"
+
+msgid "Filter devices (name, address)…"
+msgstr "Suodata laitteita (nimi, osoite)…"
+
+msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
+msgstr "Ei laitteita. Avaa tai tuo projekti (Tiedosto-valikko) tai lisää alue napsauttamalla tätä hiiren kakkospainikkeella."
+
+msgid "Filter group addresses (address, name)…"
+msgstr "Suodata ryhmäosoitteita (osoite, nimi)…"
+
+msgid "Filter rooms, devices, functions…"
+msgstr "Suodata huoneita, laitteita, toimintoja…"
+
+msgid "Area {area}"
+msgstr "Alue {area}"
+
+msgid "{name} (Area {area})"
+msgstr "{name} (alue {area})"
+
+msgid "Line {area}.{line}"
+msgstr "Linja {area}.{line}"
+
+msgid "{name} (Line {area}.{line})"
+msgstr "{name} (linja {area}.{line})"
+
+msgid "Unassigned ({count})"
+msgstr "Kohdistamattomat ({count})"
+
+msgid "Add Area"
+msgstr "Lisää Alue"
+
+msgid "Add Line"
+msgstr "Lisää Linja"
+
+msgid "Copy Address"
+msgstr "Kopioi osoite"
+
+msgid "Duplicate"
+msgstr "Luo kopio"
+
+msgid "Copy Configuration"
+msgstr "Kopioi konfiguraatio"
+
+msgid "Compare with…"
+msgstr "Vertaa…"
+
+msgid "Compare Devices"
+msgstr "Vertaa Laitteet"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "Avaa projekti, jossa on vähintään kaksi laitetta verrattavaksi."
+
+msgid "Only Differences"
+msgstr "Vain erot"
+
+msgid "Filter devices by address, name or description…"
+msgstr "Suodata laitteita osoitteen, nimen tai kuvauksen mukaan…"
+
+msgid "{count} differences"
+msgstr "Eroja: {count}"
+
+msgid "Parameters"
+msgstr "Parametrit"
+
+msgid "Group Objects"
+msgstr "Ryhmäobjektit"
+
+msgid "No differences"
+msgstr "Ei eroja"
+
+msgid "Field"
+msgstr "Kenttä"
+
+msgid "Device A"
+msgstr "Laite A"
+
+msgid "Device B"
+msgstr "Laite B"
+
+msgid "Paste Configuration"
+msgstr "Liitä konfiguraatio"
+
+msgid "Paste configuration onto '{name}':"
+msgstr "Liitä konfiguraatio kohteeseen '{name}':"
+
+msgid "Paste configuration onto {count} selected devices:"
+msgstr "Liitä konfiguraatio valittuihin laitteisiin ({count}):"
+
+msgid "Duplicate '{name}':"
+msgstr "Luo kopio kohteesta '{name}':"
+
+msgid "Group Address Links"
+msgstr "Ryhmäosoitelinkit"
+
+msgid "Paste"
+msgstr "Liitä"
+
+msgid "Delete Device"
+msgstr "Poista laite"
+
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "Poistetaanko '{name}'? Sen ryhmäobjektit ja ryhmäosoitelinkit poistetaan ja sen yksilöllinen osoite vapautetaan. Tämän voi kumota."
+
+msgid "New Area"
+msgstr "Uusi alue"
+
+msgid "New Line"
+msgstr "Uusi linja"
+
+msgid "Number"
+msgstr "Numero"
+
+msgid "Add"
+msgstr "Lisää"
+
+msgid "Save"
+msgstr "Talleta"
+
+msgid "Load"
+msgstr "Lataa"
+
+msgid "Copy Log"
+msgstr "Kopioi loki"
+
+msgid "New Group Address"
+msgstr "Uusi ryhmäosoite"
+
+msgid "New Main Group"
+msgstr "Uusi pääryhmä"
+
+msgid "New Middle Group"
+msgstr "Uusi keskiryhmä"
+
+msgid "New Folder"
+msgstr "Uusi kansio"
+
+msgid "Rename Folder"
+msgstr "Nimeä kansio uudelleen"
+
+msgid "Delete Folder"
+msgstr "Poista kansio"
+
+msgid "Main group name (the next free number is assigned automatically)"
+msgstr "Pääryhmän nimi (seuraava vapaa numero annetaan automaattisesti)"
+
+msgid "Middle group name (the next free number is assigned automatically)"
+msgstr "Keskiryhmän nimi (seuraava vapaa numero annetaan automaattisesti)"
+
+msgid "Delete this folder and every group address in it? This can be undone."
+msgstr "Poistetaanko tämä kansio ja kaikki sen ryhmäosoitteet? Tämän voi kumota."
+
+msgid "Rename Group Address"
+msgstr "Nimeä ryhmäosoite uudelleen"
+
+msgid "Change Address…"
+msgstr "Muuta osoitetta…"
+
+msgid "New group address (links are kept):"
+msgstr "Uusi ryhmäosoite (linkit säilyvät):"
+
+msgid "Invalid address or already in use."
+msgstr "Virheellinen osoite tai jo käytössä."
+
+msgid "Security"
+msgstr "Turvallisuus"
+
+msgid "Automatic"
+msgstr "Automaattinen"
+
+msgid "Secured"
+msgstr "Suojattu"
+
+msgid "Not Secured"
+msgstr "Ei suojattu"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "Suojatun ryhmäosoitteen voi linkittää vain laitteisiin, jotka otetaan käyttöön suojatusti."
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "Kaikkia tähän ryhmäosoitteeseen linkitettyjä laitteita ei oteta käyttöön suojatusti, joten sitä ei voi suojata."
+
+msgid "Set Datapoint Type"
+msgstr "Aseta tietopisteen tyyppi"
+
+msgid "Address"
+msgstr "Osoite"
+
+msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
+msgstr "Tietopisteen tyyppi (esim. DPST-1-1); tyhjä poistaa"
+
+msgid "Project: {name}"
+msgstr "Projekti: {name}"
+
+msgid "(unsaved)"
+msgstr "(talletamaton)"
+
+msgid "No history"
+msgstr "Ei historiaa"
+
+msgid "Restore"
+msgstr "Palauta"
+
+msgid "Add device: {name}"
+msgstr "Lisää laite: {name}"
+
+msgid "Remove device: {name}"
+msgstr "Poista laite: {name}"
+
+msgid "Address: {old} -> {new}"
+msgstr "Osoite: {old} -> {new}"
+
+msgid "Name: {old} -> {new}"
+msgstr "Nimi: {old} -> {new}"
+
+msgid "Parameter: {old} -> {new}"
+msgstr "Parametri: {old} -> {new}"
+
+msgid "DPT: {old} -> {new}"
+msgstr "DPT: {old} -> {new}"
+
+msgid "Flag: {flag} -> {state}"
+msgstr "Merkki: {flag} -> {state}"
+
+msgid "Group address {address} created"
+msgstr "Ryhmäosoite {address} luotu"
+
+msgid "Group address {address} removed"
+msgstr "Ryhmäosoite {address} poistettu"
+
+msgid "Group address: {old} -> {new}"
+msgstr "Ryhmäosoite: {old} -> {new}"
+
+msgid "Group object linked to group address"
+msgstr "Ryhmäobjekti linkitetty ryhmäosoitteeseen"
+
+msgid "Group object unlinked from group address"
+msgstr "Ryhmäobjektin linkki ryhmäosoitteeseen poistettu"
+
+msgid "Area {number} created"
+msgstr "Alue {number} luotu"
+
+msgid "Area {number} removed"
+msgstr "Alue {number} poistettu"
+
+msgid "Area: {old} -> {new}"
+msgstr "Alue: {old} -> {new}"
+
+msgid "Line {number} created"
+msgstr "Linja {number} luotu"
+
+msgid "Line {number} removed"
+msgstr "Linja {number} poistettu"
+
+msgid "Line: {old} -> {new}"
+msgstr "Linja: {old} -> {new}"
+
+msgid "This action can only be performed when the individual address of the device is already downloaded."
+msgstr "Tämän toimenpiteen voi suorittaa vain, jos laitteen yksilöllinen osoite on jo ladattu."
+
+msgid "Button {0} executed. "
+msgstr "Painike {0} suoritettu. "
+
+msgid "A parameter script is running for this device."
+msgstr "Tälle laitteelle on käynnissä parametrikomentosarja."
+
+msgid "The Device has no valid address or is not linked to an area or line."
+msgstr "Laitteella ei ole voimassa olevaa osoitetta, tai sitä ei ole linkitetty alueeseen tai linjaan."
+
+msgid "Parameter Script"
+msgstr "Parametrikomentosarja"
+
+msgid "Executing Script"
+msgstr "Suoritetaan komentosarjaa"
+
+msgid "Script not responding"
+msgstr "Komentosarja ei vastaa"
+
+msgid "Force Stop"
+msgstr "Pakota lopetus"
+
+msgid "The script was stopped."
+msgstr "Komentosarja pysäytettiin."
+
+msgid "Canceling…"
+msgstr "Peruutetaan…"
+
+msgid "No connection to the bus."
+msgstr "Ei yhteyttä väylään."
+
+msgid "Parameter value cannot be set, because validation failed."
+msgstr "Parametriarvoa ei voi asettaa, koska vahvistus epäonnistui."
+
+msgid "Operations"
+msgstr "Toiminnot"
+
+msgid "Active"
+msgstr "Aktiivinen"
+
+msgid "Cancel All"
+msgstr "Peruuta kaikki"
+
+msgid "Clear History"
+msgstr "Tyhjennä historia"
+
+msgid "No operations."
+msgstr "Ei toimintoja."
+
+msgid "Device Info"
+msgstr "Laitteen Tiedot"
+
+msgid "Device Info (With Group Communication)"
+msgstr "Laitetiedot (ryhmäkommunikoinnin kanssa)"
+
+msgid "Reading"
+msgstr "Luetaan"
+
+msgid "General"
+msgstr "Yleistä"
+
+msgid "Group Communication"
+msgstr "Ryhmäkommunikointi"
+
+msgid "Device Manufacturer"
+msgstr "Laitevalmistaja"
+
+msgid "Firmware Version"
+msgstr "Laiteohjelmiston Versio"
+
+msgid "Programming Mode"
+msgstr "Ohjelmointitila"
+
+msgid "Load State"
+msgstr "Lataustila"
+
+msgid "Address Table Load State"
+msgstr "Osoitetaulukon lataustila"
+
+msgid "Association Table Load State"
+msgstr "Liitostaulukon lataustila"
+
+msgid "Group Object Table Load State"
+msgstr "Ryhmäobjektitaulukon lataustila"
+
+msgid "Reading the tables failed: {error}"
+msgstr "Taulukoiden lukeminen epäonnistui: {error}"
+
+msgid "On"
+msgstr "Päällä"
+
+msgid "Off"
+msgstr "Pois"
+
+msgid "Unloaded"
+msgstr "Purettu"
+
+msgid "Loaded"
+msgstr "Ladattu"
+
+msgid "Loading"
+msgstr "Ladataan"
+
+msgid "Error"
+msgstr "Virhe"
+
+msgid "Unloading"
+msgstr "Puretaan"
+
+msgid "Load Completing"
+msgstr "Lataus valmistumassa"
+
+msgid "Yes"
+msgstr "Kyllä"
+
+msgid "No"
+msgstr "Ei"
+
+msgid "Also read the group communication?"
+msgstr "Luetaanko myös ryhmäkommunikointi?"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "Laitteen sovellus ei ole luettelossa, joten sen taulukoita ei löydetä"
+
+msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
+msgstr "Tämän laitteen voi ohjelmoida vain valmistajan laajennuksella, joka ei ole käytettävissä täällä."
+
+msgid "Parameters in the Manufacturer's Plugin"
+msgstr "Parametrit valmistajan laajennuksessa"
+
+msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
+msgstr "Valmistaja asettaa tämän laitteen parametrit omassa laajennusikkunassaan, jota XKNX Editor ei voi suorittaa, joten niitä ei voi muuttaa täällä. Lataus kirjoittaa niiden nykyiset arvot muuttamattomina; ryhmäobjektit voi linkittää tavalliseen tapaan."
+
+msgid "Edit parameters anyway"
+msgstr "Muokkaa parametreja silti"
+
+msgid "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+msgstr "Valmistaja konfiguroi tämän laitteen omalla laajennusikkunallaan; siellä tehtyjä asetuksia ei näytetä täällä."
+
+msgid "The manufacturer programs this device with its own plugin; the standard download is used here."
+msgstr "Valmistaja ohjelmoi tämän laitteen omalla laajennuksellaan; täällä käytetään vakiolatausta."
+
+msgid "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+msgstr "Valmistaja hallitsee osaa tämän laitteen tiedoista omalla laajennuksellaan, joka ei ole käytettävissä täällä."
+
+msgid "The manufacturer plugin is not available here:"
+msgstr "Valmistajan laajennus ei ole käytettävissä täällä:"
+
+msgid "Only it can program the device."
+msgstr "Vain se voi ohjelmoida laitteen."
+
+msgid "Settings made in its dialog are not shown."
+msgstr "Sen ikkunassa tehtyjä asetuksia ei näytetä."
+
+msgid "The standard download is used instead."
+msgstr "Sen sijaan käytetään vakiolatausta."
+
+msgid "Part of the device data is not available."
+msgstr "Osa laitteen tiedoista ei ole käytettävissä."
+
+msgid "This device is also configured with separate software from the manufacturer."
+msgstr "Tämä laite konfiguroidaan lisäksi valmistajan erillisellä ohjelmistolla."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "Tämä laite sisältää valmistajan konfigurointisovelluksen (”{name}”), jota XKNX Editor ei voi suorittaa. Laitteen vakioparametrit voi silti ohjelmoida, mutta ei sovelluksen tarjoamia lisätoimintoja."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "Tämä laite sisältää valmistajan konfigurointisovelluksen (”{name}”), jota ei voi suorittaa suoraan XKNX Editorissa — se on kuitenkin siirretty, joten sen tärkeimmät toiminnot ovat käytettävissä täällä (katso DALI-välilehti)."
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "Valmistaja sallii tämän laitteen ohjelmoinnin vain laajennuksellaan, joka ei ole käytettävissä täällä. Ohjelmointi ilman laajennusta voi jättää laitteen väärin konfiguroiduksi tai virhetilaan."
+
+msgid "Program Without the Manufacturer's Plugin Anyway"
+msgstr "Ohjelmoi silti ilman valmistajan laajennusta"
+
+msgid "Downloading"
+msgstr "Ladataan"
+
+msgid "Please press the programming button"
+msgstr "Paina ohjelmointipainiketta"
+
+msgid "Waiting for confirmation"
+msgstr "Odotetaan kuittausta"
+
+msgid "The application program currently loaded in the device is different from the projected application program"
+msgstr "Laitteessa tällä hetkellä ladattu sovellusohjelma on erilainen kuin siihen projisoitu sovellusohjelma"
+
+msgid "Do you want to overwrite the application program (this may take several minutes)?"
+msgstr "Haluatko korvata sovellusohjelman (tämä voi viedä muutaman minuutin)?"
+
+msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
+msgstr "Laitteeseen ladattu sovellusohjelma ei vastaa projisoitua sovellusohjelmaa. Voit kokeilla osittaisen latauksen sijaan täyttä latausta."
+
+msgid "Incompatible mask version: {found} instead of {expected}"
+msgstr "Yhteensopimaton maskiversio: {found}, odotettiin {expected}"
+
+msgid "Waiting"
+msgstr "Odottaa"
+
+msgid "Finished"
+msgstr "Valmis"
+
+msgid "Canceled"
+msgstr "Peruutettu"
+
+msgid "Cancelled by user."
+msgstr "Peruttu käyttäjän toimesta."
+
+msgid "Started by an MCP client."
+msgstr "MCP-asiakkaan käynnistämä."
+
+msgid "failed"
+msgstr "epäonnistui"
+
+msgid "No details available"
+msgstr "Ei yksityiskohtia käytettävissä"
+
+msgid "Connection: {connection}"
+msgstr "Yhteys: {connection}"
+
+msgid "Start: {time}"
+msgstr "Alku: {time}"
+
+msgid "End: {time}"
+msgstr "Loppu: {time}"
+
+msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
+msgstr "Tämän laitteen tuotetiedot puuttuvat - sen sovellusohjelma ei ole luettelossa. Tuo sen tuote, jotta voit muokata laitetta."
+
+msgid "DIN Rail Mounting"
+msgstr "DIN-kiskokiinnitys"
+
+msgid "Bus Current"
+msgstr "Väylävirta"
+
+msgid "Read Value"
+msgstr "Lue arvo"
+
+msgid "Write Value…"
+msgstr "Kirjoita arvo…"
+
+msgid "Write Value"
+msgstr "Kirjoita arvo"
+
+msgid "Data Type"
+msgstr "Tietotyyppi"
+
+msgid "Value"
+msgstr "Arvo"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "Aseta ryhmäosoitteen tietotyyppi, jotta voit kirjoittaa arvon."
+
+msgid "Write"
+msgstr "Kirjoita"
+
+msgid "Not connected to the bus."
+msgstr "Ei yhteyttä väylään."
+
+msgid "Export Group Addresses…"
+msgstr "Vie ryhmäosoitteet…"
+
+msgid "Import Group Addresses…"
+msgstr "Tuo ryhmäosoitteita…"
+
+msgid "Import Group Addresses"
+msgstr "Tuo Ryhmäosoitteet"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "Ryhmäosoitetiedostot (XML, CSV)"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "Ryhmäosoitteita lisätty: {added}, päivitetty: {updated}."
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "Ryhmäosoitteita, joita ei voitu sijoittaa ryhmään: {count}."
+
+msgid "The file could not be imported: {error}"
+msgstr "Tiedostoa ei voitu tuoda: {error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "Tiedosto käyttää {file} ryhmäosoitteita, mutta projekti käyttää {project} ryhmäosoitteita."
+
+msgid "3-level"
+msgstr "3-tasoisia"
+
+msgid "2-level"
+msgstr "2-tasoisia"
+
+msgid "free"
+msgstr "vapaita"
+
+msgid "Export"
+msgstr "Vie"
+
+msgid "Import"
+msgstr "Tuo"
+
+msgid "Plain"
+msgstr "Salaamaton"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "Poista turvallinen käyttöönotto käytöstä"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "Nämä ryhmäosoitteet viestivät silloin salaamattomina:"
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "Laitteen ryhmäobjektit poistetaan näistä suojatuista ryhmäosoitteista:"
+
+msgid "Deactivate"
+msgstr "Poista käytöstä"
+
+msgid "Secure Commissioning"
+msgstr "Turvallinen käyttöönotto"
+
+msgid "Add Device Certificate…"
+msgstr "Lisää laitesertifikaatti…"
+
+msgid "Activated"
+msgstr "Aktivoitu"
+
+msgid "Deactivated"
+msgstr "Deaktivoitu"
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "Suojattua viestintää vaativa ryhmäobjekti päätyisi salaamattomaan ryhmäosoitteeseen."
+
+msgid "Later"
+msgstr "Myöhemmin"
+
+msgid "Don't Ask When Adding Devices"
+msgstr "Älä kysy, kun laitteita lisätään"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "Näytä salasanat"
+
+msgid "Secure Tunneling"
+msgstr "Turvallinen tunnelointi"
+
+msgid "Commissioning Password"
+msgstr "Käyttöönottosalasana"
+
+msgid "Authentication Code"
+msgstr "Todennuskoodi"
+
+msgid "Interface"
+msgstr "Rajapinta"
+
+msgid "Routing"
+msgstr "Reititys"
+
+msgid "Tunnel {address}"
+msgstr "Tunneli {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "Salasanassa on oltava 1–20 Latin-1-merkkiä."
+
+msgid "Close"
+msgstr "Sulje"
+
+msgid "IP Backbone Security"
+msgstr "IP-runkoverkon suojaus"
+
+msgid "Device Certificates"
+msgstr "Laitesertifikaatit"
+
+msgid "Manage…"
+msgstr "Hallitse…"
+
+msgid "The project has no device certificates."
+msgstr "Projektissa ei ole laitesertifikaatteja."
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "Laitteen {device} suojaustaulukoihin ei mahdu tätä linkkiä."
+
+msgid "Point-to-Point and Broadcast"
+msgstr "Pisteestä pisteeseen ja yleislähetys"
+
+msgid "Blocked"
+msgstr "Estetty"
+
+msgid "Routed"
+msgstr "Reititetty"
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "Yhdistä KNX-rajapintaan DALI-väylän käyttöönottoa varten."
+
+msgid "Scan Bus"
+msgstr "Scannaa väylä"
+
+msgid "All ECGs On"
+msgstr "Kaikki liitäntälaitteet päälle"
+
+msgid "All Off"
+msgstr "Kaikki pois"
+
+msgid "New Installation…"
+msgstr "Uusi asennus…"
+
+msgid "Post Installation…"
+msgstr "Jälkiasennus…"
+
+msgid "Running: {task}"
+msgstr "Käynnissä: {task}"
+
+msgid "scanning the bus"
+msgstr "väylää scannataan"
+
+msgid "switching all ECGs"
+msgstr "kaikkia liitäntälaitteita kytketään"
+
+msgid "blinking"
+msgstr "vilkutus"
+
+msgid "stopping the blinking"
+msgstr "vilkutusta lopetetaan"
+
+msgid "new installation"
+msgstr "uusi asennus"
+
+msgid "post installation"
+msgstr "jälkiasennus"
+
+msgid "programming the groups"
+msgstr "ryhmiä ohjelmoidaan"
+
+msgid "programming the scenes"
+msgstr "tilanteita ohjelmoidaan"
+
+msgid "{count} found"
+msgstr "Löytyi: {count}"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "”Scannaa väylä” lukee DALI-väylän."
+
+msgid "Firmware {version}"
+msgstr "Laiteohjelmisto {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "Vahvista DALI-ohjelmointi"
+
+msgid "Continue"
+msgstr "Jatka"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "Uusi asennus scannaa DALI-väylän uudelleen ja ANTAA UUDEN lyhyen\nosoitteen jokaiselle liitäntälaitteelle. Tätä ei voi kumota. Jatketaanko?"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "Jälkiasennus etsii väylältä uusia liitäntälaitteita ja päivittää niiden osoitteet.\nTämä muuttaa laitetta. Jatketaanko?"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "Kirjoita ryhmäjako DALI-väylään. Tämä siirtää ryhmät\nyhdyskäytävään ja sen liitäntälaitteisiin. Jatketaanko?"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "Kirjoita tilannearvot DALI-väylään. Jatketaanko?"
+
+msgid "{count} ECG(s) present"
+msgstr "Liitäntälaitteita: {count}"
+
+msgid "Group"
+msgstr "Ryhmä"
+
+msgid "Long Address"
+msgstr "Pitkä osoite"
+
+msgid "Alarm"
+msgstr "Hälytys"
+
+msgid "Blink"
+msgstr "Vilkuta"
+
+msgid "Stop"
+msgstr "Pysäytä"
+
+msgid "Program Groups…"
+msgstr "Ohjelmoi ryhmät…"
+
+msgid "Scenes"
+msgstr "Tilanteet"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "Kohdista liitäntälaitteet yllä ryhmiin tilanteiden määrittämiseksi."
+
+msgid "Scene"
+msgstr "Tilanne"
+
+msgid "Scene {number}"
+msgstr "Tilanne {number}"
+
+msgid "Group {number}"
+msgstr "Ryhmä {number}"
+
+msgid "Program Scenes…"
+msgstr "Ohjelmoi tilanteet…"
+
+msgid "Single"
+msgstr "Yksittäinen"
+
+msgid "Unassigned"
+msgstr "Kohdistamaton"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "Menettely {number}  ({count} vaihetta)"
+
+msgid "Kind"
+msgstr "Laji"
+
+msgid "Applies To"
+msgstr "Koskee"
+
+msgid "Details"
+msgstr "Yksityiskohdat"
+
+msgid "Scope: {scope}"
+msgstr "Laajuus: {scope}"
+
+msgid "Additional Individual Addresses"
+msgstr "Ylimääräiset yksilölliset osoitteet"
+
+msgid "Additional Individual Address"
+msgstr "Ylimääräinen yksilöllinen osoite"
+
+msgid "Assign Missing Addresses"
+msgstr "Anna puuttuvat osoitteet"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "Linja ei tarjoa tarpeeksi osoitteita kaikille tarvittaville lisäosoitteille."
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "Anna laitenumero väliltä 1–255 tai täydellinen yksilöllinen osoite laitteen linjalla."
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "Lisäosoitteen on oltava laitteen linjalla {line}."
+
+msgid "The individual address {address} is already used in this line."
+msgstr "Yksilöllinen osoite {address} on jo käytössä tällä linjalla."
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "Muutettu laitteen '{0}' lisäosoite '{1}' osoitteeksi '{2}'."
+
+msgid "Change additional address names"
+msgstr "Muuta lisäosoitenimiä"
+
+msgid "Change additional address descriptions"
+msgstr "Muuta lisäosoitekuvauksia"
+
+msgid "Assign additional addresses"
+msgstr "Anna lisäosoitteet"
+
+msgid "Change additional addresses"
+msgstr "Muuta lisäosoitteita"
+
+msgid "Add device {name}"
+msgstr "Lisää laite {name}"
+
+msgid "Set {ref} = {value}"
+msgstr "Aseta {ref} = {value}"
+
+msgid "Change"
+msgstr "Muutos"
+
+msgid "Create area {address}"
+msgstr "Luo alue {address}"
+
+msgid "Create line {address}"
+msgstr "Luo linja {address}"
+
+msgid "Add segment"
+msgstr "Lisää Segmentti"
+
+msgid "Create group address {address}"
+msgstr "Luo ryhmäosoite {address}"
+
+msgid "Import group addresses"
+msgstr "Tuo Ryhmäosoitteet"
+
+msgid "Import group addresses from {file}"
+msgstr "Tuo ryhmäosoitteet: {file}"
+
+msgid "Link group object"
+msgstr "Linkitä ryhmäobjekti"
+
+msgid "Unlink group object"
+msgstr "Poista ryhmäobjektin linkki"
+
+msgid "Rename area to {name}"
+msgstr "Nimeä alue uudelleen: {name}"
+
+msgid "Rename project to {name}"
+msgstr "Nimeä projekti uudelleen: {name}"
+
+msgid "Rename line to {name}"
+msgstr "Nimeä linja uudelleen: {name}"
+
+msgid "Rename device to {name}"
+msgstr "Nimeä laite uudelleen: {name}"
+
+msgid "Move device"
+msgstr "Siirrä Laite"
+
+msgid "Set flag"
+msgstr "Aseta merkki"
+
+msgid "Set datapoint type"
+msgstr "Aseta tietopisteen tyyppi"
+
+msgid "Set priority"
+msgstr "Aseta prioriteetti"
+
+msgid "Set description"
+msgstr "Aseta kuvaus"
+
+msgid "Set sending group address"
+msgstr "Aseta lähettävä ryhmäosoite"
+
+msgid "Add installation"
+msgstr "Lisää asennus"
+
+msgid "Remove device"
+msgstr "Poista laite"
+
+msgid "Remove area"
+msgstr "Poista alue"
+
+msgid "Remove line"
+msgstr "Poista linja"
+
+msgid "Remove segment"
+msgstr "Poista segmentti"
+
+msgid "Remove group address"
+msgstr "Poista ryhmäosoite"
+
+msgid "Remove function"
+msgstr "Poista toiminto"
+
+msgid "Remove group address from function"
+msgstr "Poista ryhmäosoite toiminnosta"
+
+msgid "Remove building part"
+msgstr "Poista rakennuksen osa"
+
+msgid "Remove group range"
+msgstr "Poista ryhmäalue"
+
+msgid "Update application program"
+msgstr "Päivitä sovellusohjelma"
+
+msgid "Change application program"
+msgstr "Vaihda Sovellusohjelma"
+
+msgid "Update group objects"
+msgstr "Päivitä ryhmäobjektit"
+
+msgid "Update module instances"
+msgstr "Päivitä moduulien instanssit"
+
+msgid "Set group address security"
+msgstr "Aseta ryhmäosoitteen suojaus"
+
+msgid "Set secure commissioning"
+msgstr "Aseta turvallinen käyttöönotto"
+
+msgid "Rename group address to {name}"
+msgstr "Nimeä ryhmäosoite uudelleen: {name}"
+
+msgid "Change group address"
+msgstr "Muuta ryhmäosoitetta"
+
+msgid "Set device certificates"
+msgstr "Aseta laitesertifikaatit"
+
+msgid "Set device description"
+msgstr "Aseta laitteen kuvaus"
+
+msgid "Create function {name}"
+msgstr "Luo toiminto {name}"
+
+msgid "Rename function to {name}"
+msgstr "Nimeä toiminto uudelleen: {name}"
+
+msgid "Set function type"
+msgstr "Aseta toiminnon tyyppi"
+
+msgid "Add group address to function"
+msgstr "Lisää ryhmäosoite toimintoon"
+
+msgid "Create building part {name}"
+msgstr "Luo rakennuksen osa {name}"
+
+msgid "Rename building part to {name}"
+msgstr "Nimeä rakennuksen osa uudelleen: {name}"
+
+msgid "Set building part number"
+msgstr "Aseta rakennuksen osan numero"
+
+msgid "Set building part description"
+msgstr "Aseta rakennuksen osan kuvaus"
+
+msgid "Set building part type"
+msgstr "Aseta rakennuksen osan tyyppi"
+
+msgid "Move building part"
+msgstr "Siirrä Rakennuksen Osa"
+
+msgid "Assign device to building part"
+msgstr "Kohdista laite rakennuksen osaan"
+
+msgid "Set commissioning state"
+msgstr "Aseta käyttöönoton tila"
+
+msgid "Create group range {name}"
+msgstr "Luo ryhmäalue {name}"
+
+msgid "Rename group range to {name}"
+msgstr "Nimeä ryhmäalue uudelleen: {name}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: ei yksilöllistä osoitetta"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: virheellinen osoite '{address}'"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: päällekkäinen osoite {address}"
+
+msgid "added"
+msgstr "lisätty"
+
+msgid "removed"
+msgstr "poistettu"
+
+msgid "changed"
+msgstr "muutettu"
+
+msgid "Installation Hints"
+msgstr "Asennusvihjeitä"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Valitse elementti puusta nähdäksesi sen kommentin."
+
+msgid "Set comment"
+msgstr "Aseta kommentti"
+
+msgid "Set installation hints"
+msgstr "Aseta asennusvihjeet"
+
+msgid "Area"
+msgstr "Alue"
+
+msgid "Line"
+msgstr "Linja"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Osoite on luku väliltä 0–15."
+
+msgid "Address {address} is already in use."
+msgstr "Osoite {address} on jo käytössä."
+
+msgid "Set area description"
+msgstr "Aseta alueen kuvaus"
+
+msgid "Set line description"
+msgstr "Aseta linjan kuvaus"
+
+msgid "Set area address"
+msgstr "Aseta alueen osoite"
+
+msgid "Set line address"
+msgstr "Aseta linjan osoite"
+
+msgid "Main Group"
+msgstr "Pääryhmä"
+
+msgid "Middle Group"
+msgstr "Keskiryhmä"
+
+msgid "Group Range"
+msgstr "Ryhmäalue"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "Pääryhmä on luku väliltä 0–31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "Keskiryhmä on luku väliltä 0–7."
+
+msgid "Set group address description"
+msgstr "Aseta ryhmäosoitteen kuvaus"
+
+msgid "Set group range description"
+msgstr "Aseta ryhmäalueen kuvaus"
+
+msgid "Set group range address"
+msgstr "Aseta ryhmäalueen osoite"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "Kanava {n}"
+
+msgid "Colour Temp (K)"
+msgstr "Värilämpötila (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Yhdistä KNX-rajapintaan lukeaksesi Siemens DALI -väylän."
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "DALI-kanava"
+
+msgid "DALI commissioning"
+msgstr "DALI-käyttöönotto"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "DALI-käyttöönotto kirjoittaa yhdyskäytävän väylälle, mutta ei päivitä projektin parametreja; vie .knxproj uudelleen DCA-puolen muokkauksen jälkeen."
+
+msgid "Default"
+msgstr "Oletus"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Muokattavissa oleva varavaihtoehto parametreille, joiden valmistajan plugin ei ole tässä käytettävissä. Hierarkia rakennetaan parametrinimien etuliitteistä; otsikot ja ryhmittelyt voivat olla karkeita. Muutokset kirjoitetaan projektiin ja siirretään tavallisella latauksella."
+
+msgid "Min Dim"
+msgstr "Vähimm. himmennys"
+
+msgid "No parameter matches the filter."
+msgstr "Yksikään parametri ei vastaa suodatinta."
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Tälle laitteelle ei ole vielä plugin-määritystä. Valmistajan pluginin parametrit eivät ole täältä tavoitettavissa."
+
+msgid "Parameter"
+msgstr "Parametri"
+
+msgid "Plugin Config"
+msgstr "Plugin-asetukset"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Paina ”Lue DALI-väylä” luetellaksesi yhdyskäytävän ECG:t."
+
+msgid "Random Address"
+msgstr "Satunnainen osoite"
+
+msgid "Read DALI Bus"
+msgstr "Lue DALI-väylä"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Vain luku -tilannekuva. Ryhmämäärityksien, kohtausten tai laiteohjelmiston kirjoitus ei ole vielä käytettävissä ja säilyy valmistajan pluginissa."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Vain luku -näkymä. Hierarkia on parhaan kyvyn mukaan parametrinimien etuliitteistä rakennettu; nimet ja ryhmittelyt voivat olla karkeita. Arvojen kirjoitus ei ole vielä käytettävissä."
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Luetaan DALI-väylää objektista {object_index}…"
+
+msgid "Short Address"
+msgstr "Lyhyt osoite"
+
+msgid "Slot"
+msgstr "Paikka"
+
+msgid "The application has no static parameters."
+msgstr "Sovelluksella ei ole staattisia parametreja."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Tämän yhdyskäytävän käyttöönottoprotokollaa ei ole varmistettu kaappaukseen; kirjoitukset saattavat toimia väärin. Etene varoen."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{count} ECG(:tä) linjalla {line}"
+
+msgid "Program DCA State"
+msgstr "Ohjelmoi DCA-tila"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Lähettää DALI-laitteiden asetukset yhdyskäytävälle ominaisuusarvoina."
+
+msgid "Add to {section}:"
+msgstr "Lisää kohteeseen {section}:"
+
+msgid "No entries."
+msgstr "Ei merkintöjä."
+
+msgid "Entry"
+msgstr "Merkintä"
+
+msgid "Store plugin data {name}"
+msgstr "Tallenna plugin-tiedot {name}"

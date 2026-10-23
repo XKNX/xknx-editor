@@ -87,6 +87,16 @@ def data_table_headers() -> None:
     table_header_menu()
 
 
+def text_table_height(rows: int) -> float:
+    """The height of a scrolling table showing its header and ``rows`` rows of one text line, no
+    more, and the sideways scrollbar where :func:`begin_data_table` makes it scroll sideways."""
+    style = imgui.get_style()
+    height = (rows + 1) * (imgui.get_text_line_height() + 2 * style.cell_padding.y)
+    if imgui.get_content_region_avail().x < px(_NARROW_TABLE):
+        height += style.scrollbar_size
+    return height
+
+
 def table_header_menu() -> None:
     """For a table begun with :func:`begin_data_table` whose header row is drawn otherwise (cell
     by cell), right after it: the menu a right click on the column headers opens: size the

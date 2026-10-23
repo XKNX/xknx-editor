@@ -1,0 +1,2303 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor project 1.0\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device"
+msgstr "Συσκευή"
+
+msgid "Manufacturer"
+msgstr "Κατασκευαστής"
+
+msgid "Devices"
+msgstr "Συσκευές"
+
+msgid "Configure"
+msgstr "Διαμόρφωση"
+
+msgid "History"
+msgstr "Ιστορικό"
+
+msgid "Editor"
+msgstr "Επεξεργαστής"
+
+msgid "Group Addresses"
+msgstr "Διευθύνσεις Ομάδων"
+
+msgid "Buildings"
+msgstr "Κτίρια"
+
+msgid "Project"
+msgstr "Έργο"
+
+msgid "Project Log"
+msgstr "Ημερολόγιο Έργου"
+
+msgid "Mass Linker"
+msgstr "Μαζική Σύνδεση"
+
+msgid "Object <> GA"
+msgstr "Αντικείμενο <> ΔΟ"
+
+msgid "Object <> Object"
+msgstr "Αντικείμενο <> Αντικείμενο"
+
+msgid "Log"
+msgstr "Καταγραφή"
+
+msgid "Open a project to use the Mass Linker."
+msgstr "Ανοίξτε ένα έργο για να χρησιμοποιήσετε τη Μαζική Σύνδεση."
+
+msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
+msgstr "Τα ζεύγη σχηματίζονται με βάση τη σειρά της λίστας (1ο με 1ο, …). Τα πλεονάζοντα στοιχεία της μεγαλύτερης πλευράς αγνοούνται. Αλλάξτε τη σειρά μιας λίστας από το μενού δεξιού κλικ."
+
+msgid "Link group objects to existing group addresses."
+msgstr "Σύνδεση αντικειμένων επικοινωνίας με υπάρχουσες διευθύνσεις ομάδων."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Προσθέστε αντικείμενα με \"{add_device}\" ή \"{add_objects}\"."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Επιλέξτε μια διεύθυνση ομάδας ανά γραμμή ή συμπληρώστε όλες με \"{match}\" ή \"{sequential}\"."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "Το \"{link_all}\" συνδέει κάθε γραμμή που έχει διεύθυνση."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Σύνδεση αντικειμένων μεταξύ τους μέσω μιας νέας διεύθυνσης ομάδας το καθένα: η προέλευση στέλνει, ο προορισμός λαμβάνει."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Προσθέστε τα αντικείμενα προέλευσης με \"{add_device}\" ή \"{add_objects}\"."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Επιλέξτε ένα αντικείμενο προορισμού ανά γραμμή. Η διεύθυνση και το όνομα προτείνονται και μπορούν να αλλάξουν."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "Το \"{link_all}\" δημιουργεί τις διευθύνσεις ομάδων και τις συνδέει."
+
+msgid "Link All"
+msgstr "Σύνδεση Όλων"
+
+msgid "Chronological record of every mass-link operation in this session."
+msgstr "Χρονολογική καταγραφή κάθε μαζικής σύνδεσης σε αυτήν τη συνεδρία."
+
+msgid "Source (objects)"
+msgstr "Προέλευση (αντικείμενα)"
+
+msgid "Target (Group Addresses)"
+msgstr "Προορισμός (Διευθύνσεις Ομάδων)"
+
+msgid "Target (objects)"
+msgstr "Προορισμός (αντικείμενα)"
+
+msgid "Preview & Link"
+msgstr "Προεπισκόπηση & Σύνδεση"
+
+msgid "Add Group Objects…"
+msgstr "Προσθήκη Αντικειμένων Επικοινωνίας…"
+
+msgid "Add Group Addresses…"
+msgstr "Προσθήκη Διευθύνσεων Ομάδων…"
+
+msgid "Add Selected"
+msgstr "Προσθήκη Επιλεγμένων"
+
+msgid "Clear"
+msgstr "Εκκαθάριση"
+
+msgid "Remove"
+msgstr "Αφαίρεση"
+
+msgid "Move up"
+msgstr "Μετακίνηση Πάνω"
+
+msgid "Move Down"
+msgstr "Μετακίνηση Κάτω"
+
+msgid "{count} items"
+msgstr "{count} στοιχεία"
+
+msgid "{count} pairs"
+msgstr "{count} ζεύγη"
+
+msgid "{count} unpaired (ignored)"
+msgstr "{count} χωρίς ζεύγος (αγνοούνται)"
+
+msgid "Link"
+msgstr "Σύνδεση"
+
+msgid "GA Name ({source}, {target}, {n})"
+msgstr "Όνομα ΔΟ ({source}, {target}, {n})"
+
+msgid "Start Address"
+msgstr "Διεύθυνση Έναρξης"
+
+msgid "Filter…"
+msgstr "Φίλτρο…"
+
+msgid "Add Group Objects"
+msgstr "Προσθήκη Αντικειμένων Επικοινωνίας"
+
+msgid "Add Group Addresses"
+msgstr "Προσθήκη Διευθύνσεων Ομάδων"
+
+msgid "Mass Linker Result"
+msgstr "Αποτέλεσμα Μαζικής Σύνδεσης"
+
+msgid "Linked {count} object(s) to group addresses"
+msgstr "Συνδέθηκαν {count} αντικείμενο(-α) με διευθύνσεις ομάδων"
+
+msgid "Linked {count} object pair(s) via new group addresses"
+msgstr "Συνδέθηκαν {count} ζεύγος(-η) αντικειμένων μέσω νέων διευθύνσεων ομάδων"
+
+msgid "{count} error(s)"
+msgstr "{count} σφάλμα(-τα)"
+
+msgid "Clear All"
+msgstr "Εκκαθάριση Όλων"
+
+msgid "No operations yet."
+msgstr "Δεν υπάρχουν ακόμη ενέργειες."
+
+msgid "Group Object"
+msgstr "Αντικείμενο Επικοινωνίας"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Target Group Address"
+msgstr "Διεύθυνση Ομάδας Προορισμού"
+
+msgid "Target Group Object"
+msgstr "Αντικείμενο Επικοινωνίας Προορισμού"
+
+msgid "Group Address"
+msgstr "Διεύθυνση Ομάδας"
+
+msgid "Group Address Name"
+msgstr "Όνομα Διεύθυνσης Ομάδας"
+
+msgid "(none)"
+msgstr "(καμία)"
+
+msgid "Matching DPT Only"
+msgstr "Μόνο Αντίστοιχο DPT"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Μόνο διευθύνσεις ομάδων με τον κύριο τύπο datapoint του αντικειμένου, και όσες δεν έχουν (παίρνουν τον τύπο του αντικειμένου κατά τη σύνδεση)."
+
+msgid "no DPT"
+msgstr "χωρίς DPT"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Μόνο αντικείμενα με τον ίδιο κύριο τύπο datapoint, και όσα δεν έχουν."
+
+msgid "Select a device in the tree first."
+msgstr "Επιλέξτε πρώτα μια συσκευή στο δέντρο."
+
+msgid "{device} has no group objects."
+msgstr "Η συσκευή {device} δεν έχει αντικείμενα επικοινωνίας."
+
+msgid "All objects of {device} are in the list already."
+msgstr "Όλα τα αντικείμενα της συσκευής {device} βρίσκονται ήδη στη λίστα."
+
+msgid "+ Selected Device"
+msgstr "+ Επιλεγμένη Συσκευή"
+
+msgid "Select All"
+msgstr "Επιλογή Όλων"
+
+msgid "No objects yet — add the selected device or pick objects."
+msgstr "Δεν υπάρχουν ακόμη αντικείμενα — προσθέστε την επιλεγμένη συσκευή ή επιλέξτε αντικείμενα."
+
+msgid "From"
+msgstr "Από"
+
+msgid "Assign Sequential"
+msgstr "Διαδοχική Ανάθεση"
+
+msgid "Match by Name"
+msgstr "Αντιστοίχιση κατά Όνομα"
+
+msgid "Link All ({count})"
+msgstr "Σύνδεση Όλων ({count})"
+
+msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
+msgstr "{ready} έτοιμα · {amb} ασαφή · {bad} μη συμβατά · {none} χωρίς αντιστοίχιση"
+
+msgid "Only Problems"
+msgstr "Μόνο Προβλήματα"
+
+msgid "Ready to link."
+msgstr "Έτοιμο για σύνδεση."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Ελέγξτε τη διεύθυνση ομάδας: ταιριάζουν περισσότερες ή κάποιος τύπος datapoint είναι άγνωστος."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "Οι τύποι datapoint δεν ταιριάζουν· αυτή η γραμμή δεν συνδέεται."
+
+msgid "No group address chosen yet."
+msgstr "Δεν έχει επιλεγεί ακόμη διεύθυνση ομάδας."
+
+msgid "OK"
+msgstr "ΟΚ"
+
+msgid "Cancel"
+msgstr "Άκυρο"
+
+msgid "Tools"
+msgstr "Εργαλεία"
+
+msgid "Open a project to use the tools."
+msgstr "Ανοίξτε ένα έργο για να χρησιμοποιήσετε τα εργαλεία."
+
+msgid "No devices in this project."
+msgstr "Δεν υπάρχουν συσκευές σε αυτό το έργο."
+
+msgid "Extended Copy"
+msgstr "Εκτεταμένη Αντιγραφή"
+
+msgid "Replace Device"
+msgstr "Αντικατάσταση Συσκευής"
+
+msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
+msgstr "Αντικατάσταση μιας συσκευής με άλλο μοντέλο (μια συσκευή-πρότυπο που υπάρχει ήδη στο έργο), διατηρώντας τις συνδέσεις διευθύνσεων ομάδων. Τα αντικείμενα επικοινωνίας αντιστοιχίζονται κατά αριθμό και μέγεθος· όσα δεν αντιστοιχίζονται αναφέρονται. Οι παράμετροι δεν μεταφέρονται."
+
+msgid "Device to Replace"
+msgstr "Συσκευή προς Αντικατάσταση"
+
+msgid "Replace with (Template)"
+msgstr "Αντικατάσταση με (Πρότυπο)"
+
+msgid "Group Object Mapping (by Number)"
+msgstr "Αντιστοίχιση Αντικειμένων Επικοινωνίας (κατά Αριθμό)"
+
+msgid "{count} object(s) will be re-mapped"
+msgstr "{count} αντικείμενο(-α) θα αντιστοιχιστούν εκ νέου"
+
+msgid "Replaced; re-mapped {count} group object(s)"
+msgstr "Αντικαταστάθηκε· αντιστοιχίστηκαν εκ νέου {count} αντικείμενο(-α) επικοινωνίας"
+
+msgid "Shift Addresses"
+msgstr "Μετατόπιση Διευθύνσεων"
+
+msgid "Labels"
+msgstr "Ετικέτες"
+
+msgid "Topology Check"
+msgstr "Έλεγχος Τοπολογίας"
+
+msgid "Project Diff"
+msgstr "Σύγκριση Έργων"
+
+msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Σύγκριση του ανοιχτού έργου με άλλο αρχείο έργου (.knxproj ή .xknx): ποιες συσκευές και διευθύνσεις ομάδων προστέθηκαν, αφαιρέθηκαν ή άλλαξαν. Το άλλο έργο είναι μόνο για ανάγνωση· δεν τροποποιείται τίποτα."
+
+msgid "Choose Project to Compare…"
+msgstr "Επιλογή Έργου για Σύγκριση…"
+
+msgid "Choose Project to Compare"
+msgstr "Επιλογή Έργου για Σύγκριση"
+
+msgid "KNX project (*.knxproj *.xknx)"
+msgstr "Έργο KNX (*.knxproj *.xknx)"
+
+msgid "compared with {name}"
+msgstr "σε σύγκριση με {name}"
+
+msgid "No differences in devices or group addresses."
+msgstr "Δεν υπάρχουν διαφορές σε συσκευές ή διευθύνσεις ομάδων."
+
+msgid "{count} difference(s)"
+msgstr "{count} διαφορά(-ές)"
+
+msgid "Add Device Certificate"
+msgstr "Προσθήκη Πιστοποιητικού Συσκευής"
+
+msgid "Device Certificate"
+msgstr "Πιστοποιητικό Συσκευής"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "Αυτή η συσκευή χρησιμοποιεί ήδη το δικό της κλειδί από αυτό το έργο. Το πιστοποιητικό της χρειάζεται ξανά μόνο μετά από επαναφορά εργοστασιακών ρυθμίσεων."
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "Αυτή η συσκευή χρησιμοποιεί ακόμη το εργοστασιακό της κλειδί: η πρώτη ασφαλής φόρτιση χρειάζεται το πιστοποιητικό της."
+
+msgid "Stored Certificate: {serial}"
+msgstr "Αποθηκευμένο Πιστοποιητικό: {serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Εισαγάγετε το FDSK από την ετικέτα ή το πιστοποιητικό της (36 χαρακτήρες):"
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "Για αντικατάσταση, εισαγάγετε το νέο FDSK (36 χαρακτήρες):"
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "Να αφαιρεθεί το αποθηκευμένο πιστοποιητικό; Μετά από επαναφορά εργοστασιακών ρυθμίσεων, η συσκευή θα είναι προσβάσιμη ξανά μόνο με τον κωδικό από την ετικέτα της."
+
+msgid "Device Certificate…"
+msgstr "Πιστοποιητικό Συσκευής…"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "Λείπει το πιστοποιητικό συσκευής (FDSK)."
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "Αυτό δεν είναι έγκυρο FDSK· ελέγξτε το."
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "Αυτό το πιστοποιητικό ανήκει στη συσκευή με σειριακό αριθμό {serial}."
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "Ορίστε πρώτα κωδικό έργου: προστατεύει τα κλειδιά των συσκευών."
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "Το άλλο έργο προστατεύεται με κωδικό. Εισαγάγετέ τον για σύγκριση:"
+
+msgid "Compare"
+msgstr "Σύγκριση"
+
+msgid "Wrong password, please try again."
+msgstr "Λάθος κωδικός, δοκιμάστε ξανά."
+
+msgid "Duplicate a device several times. Optionally rewrite the copy name (find/replace) and create a group address for each of its objects."
+msgstr "Πολλαπλή αντιγραφή μιας συσκευής. Προαιρετικά, αλλαγή του ονόματος αντιγράφου (εύρεση/αντικατάσταση) και δημιουργία διεύθυνσης ομάδας για κάθε αντικείμενό της."
+
+msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
+msgstr "Επαναρίθμηση συσκευών με πρόσθεση μιας μετατόπισης στο τμήμα συσκευής των ατομικών τους διευθύνσεων, π.χ. για να δημιουργηθούν κενά για νέες συσκευές. Οι διευθύνσεις ομάδων δεν αλλάζουν."
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "Επιλέξτε τα πεδία και μια έξοδο: CSV, εκτυπώσιμα φύλλα ετικετών (Avery) ή υπόμνημα πλήρους σελίδας. Η έξοδος HTML ανοίγει στο πρόγραμμα περιήγησης για εκτύπωση ή αποθήκευση ως PDF."
+
+msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
+msgstr "Έλεγχος μόνο για ανάγνωση: εμφανίζει συσκευές με ατομική διεύθυνση που λείπει, είναι λανθασμένη ή διπλότυπη."
+
+msgid "Source Device"
+msgstr "Συσκευή Προέλευσης"
+
+msgid "Copies"
+msgstr "Αντίγραφα"
+
+msgid "Find in Name"
+msgstr "Εύρεση στο Όνομα"
+
+msgid "Replace with"
+msgstr "Αντικατάσταση με"
+
+msgid "Create Group Addresses for Each Copy"
+msgstr "Δημιουργία Διευθύνσεων Ομάδων για Κάθε Αντίγραφο"
+
+msgid "Copy Name: {name}"
+msgstr "Όνομα Αντιγράφου: {name}"
+
+msgid "Copy"
+msgstr "Αντιγραφή"
+
+msgid "Created {count} copy/copies"
+msgstr "Δημιουργήθηκαν {count} αντίγραφο(-α)"
+
+msgid "Shifts the device part of each individual address. Group addresses are not shifted."
+msgstr "Μετατοπίζει το τμήμα συσκευής κάθε ατομικής διεύθυνσης. Οι διευθύνσεις ομάδων δεν μετατοπίζονται."
+
+msgid "Offset"
+msgstr "Μετατόπιση"
+
+msgid "Filter devices…"
+msgstr "Φιλτράρισμα συσκευών…"
+
+msgid "All"
+msgstr "Όλες"
+
+msgid "None"
+msgstr "Καμία"
+
+msgid "{sel} of {total} selected"
+msgstr "{sel} από {total} επιλεγμένα"
+
+msgid "(out of range)"
+msgstr "(εκτός εύρους)"
+
+msgid "{count} address(es) will change"
+msgstr "{count} διεύθυνση(-εις) θα αλλάξουν"
+
+msgid "Shifted {count} address(es)"
+msgstr "Μετατοπίστηκαν {count} διεύθυνση(-εις)"
+
+msgid "Individual Addresses"
+msgstr "Ατομικές Διευθύνσεις"
+
+msgid "This project has no group addresses."
+msgstr "Αυτό το έργο δεν έχει διευθύνσεις ομάδων."
+
+msgid "Shift Group Addresses"
+msgstr "Μετατόπιση Διευθύνσεων Ομάδων"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Επαναρίθμηση διευθύνσεων ομάδων με πρόσθεση μιας μετατόπισης στην ανεπεξέργαστη τιμή τους, π.χ. για να δημιουργηθούν κενά. Οι συνδέσεις των αντικειμένων επικοινωνίας μετακινούνται μαζί με κάθε διεύθυνση. Δεν γράφεται τίποτα αν κάποια μετακίνηση θα προκαλούσε σύγκρουση ή θα έβγαινε εκτός του έγκυρου εύρους."
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "Η μετατόπιση προστίθεται στην ανεπεξέργαστη τιμή 16 bit, επομένως μπορεί να αλλάξει η κύρια/μεσαία ομάδα όταν οι διευθύνσεις περνούν ένα όριο."
+
+msgid "Shifted {count} group address(es)"
+msgstr "Μετατοπίστηκαν {count} διεύθυνση(-εις) ομάδας"
+
+msgid "Export CSV…"
+msgstr "Εξαγωγή CSV…"
+
+msgid "Exported to {path}"
+msgstr "Εξήχθη στο {path}"
+
+msgid "Fields"
+msgstr "Πεδία"
+
+msgid "Output"
+msgstr "Έξοδος"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Label Sheet"
+msgstr "Φύλλο Ετικετών"
+
+msgid "Legend (Full Page)"
+msgstr "Υπόμνημα (Πλήρης Σελίδα)"
+
+msgid "Sheet"
+msgstr "Φύλλο"
+
+msgid "Custom Grid"
+msgstr "Προσαρμοσμένο Πλέγμα"
+
+msgid "Columns"
+msgstr "Στήλες"
+
+msgid "Rows"
+msgstr "Γραμμές"
+
+msgid "Label W x H (mm)"
+msgstr "Ετικέτα Π x Υ (mm)"
+
+msgid "Margin Top / Left (mm)"
+msgstr "Περιθώριο Πάνω / Αριστερά (mm)"
+
+msgid "Gap X / Y (mm)"
+msgstr "Διάκενο X / Y (mm)"
+
+msgid "Export HTML…"
+msgstr "Εξαγωγή HTML…"
+
+msgid "Select at least one field."
+msgstr "Επιλέξτε τουλάχιστον ένα πεδίο."
+
+msgid "No topology issues found."
+msgstr "Δεν βρέθηκαν προβλήματα τοπολογίας."
+
+msgid "{count} issue(s)"
+msgstr "{count} πρόβλημα(-τα)"
+
+msgid "Click a finding to jump to the device."
+msgstr "Κάντε κλικ σε ένα εύρημα για μετάβαση στη συσκευή."
+
+msgid "No buildings/rooms in this project"
+msgstr "Δεν υπάρχουν κτίρια/δωμάτια σε αυτό το έργο"
+
+msgid "+ Function"
+msgstr "+ Λειτουργία"
+
+msgid "+ Space"
+msgstr "+ Χώρος"
+
+msgid "+ Sub-space"
+msgstr "+ Υποχώρος"
+
+msgid "New Space"
+msgstr "Νέος Χώρος"
+
+msgid "Name"
+msgstr "Όνομα"
+
+msgid "Type"
+msgstr "Τύπος"
+
+msgid "Create"
+msgstr "Δημιουργία"
+
+msgid "Delete"
+msgstr "Διαγραφή"
+
+msgid "Delete Space"
+msgstr "Διαγραφή Χώρου"
+
+msgid "Move to"
+msgstr "Μετακίνηση σε"
+
+msgid "(Top Level)"
+msgstr "(Ανώτατο Επίπεδο)"
+
+msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
+msgstr "Να διαγραφεί αυτός ο χώρος και όλο το περιεχόμενό του; Οι συσκευές απλώς αποσυνδέονται από τον χώρο, δεν διαγράφονται."
+
+msgid "Assign Device"
+msgstr "Ανάθεση Συσκευής"
+
+msgid "Assign a Device to This Space"
+msgstr "Ανάθεση Συσκευής σε Αυτόν τον Χώρο"
+
+msgid "No unassigned devices"
+msgstr "Δεν υπάρχουν μη ανατεθειμένες συσκευές"
+
+msgid "Remove from Space"
+msgstr "Αφαίρεση από τον Χώρο"
+
+msgid "Without Space"
+msgstr "Χωρίς Χώρο"
+
+msgid "Building"
+msgstr "Κτίριο"
+
+msgid "Building Part"
+msgstr "Τμήμα Κτιρίου"
+
+msgid "Floor"
+msgstr "Όροφος"
+
+msgid "Room"
+msgstr "Δωμάτιο"
+
+msgid "Corridor"
+msgstr "Διάδρομος"
+
+msgid "Stairway"
+msgstr "Σκάλα"
+
+msgid "Distribution Board"
+msgstr "Πίνακας Διανομής"
+
+msgid "New Function"
+msgstr "Νέα Λειτουργία"
+
+msgid "Rename"
+msgstr "Μετονομασία"
+
+msgid "Rename Function"
+msgstr "Μετονομασία Λειτουργίας"
+
+msgid "Assign Group Address"
+msgstr "Ανάθεση Διεύθυνσης Ομάδας"
+
+msgid "Role (Optional)"
+msgstr "Ρόλος (Προαιρετικός)"
+
+msgid "Custom"
+msgstr "Προσαρμοσμένο"
+
+msgid "Switchable Light"
+msgstr "Διακοπτόμενος Φωτισμός"
+
+msgid "Dimmable Light"
+msgstr "Φωτισμός με Dimmer"
+
+msgid "Sun Protection"
+msgstr "Προστασία από Ήλιο"
+
+msgid "Heating (Switching Variable)"
+msgstr "Θέρμανση (Μεταβλητή Ζεύξης)"
+
+msgid "Heating (Continuous Variable)"
+msgstr "Θέρμανση (Συνεχής Μεταβλητή)"
+
+msgid "Switchable Socket"
+msgstr "Διακοπτόμενη Πρίζα"
+
+msgid "No project"
+msgstr "Δεν υπάρχει έργο"
+
+msgid "Installation"
+msgstr "Εγκατάσταση"
+
+msgid "Group Address Style"
+msgstr "Δομή Διευθύνσεων Ομάδας"
+
+msgid "Created by"
+msgstr "Δημιουργήθηκε από"
+
+msgid "Tool Version"
+msgstr "Έκδοση Εργαλείου"
+
+msgid "Schema Version"
+msgstr "Έκδοση Σχήματος"
+
+msgid "Last Modified"
+msgstr "Τελευταία Τροποποίηση"
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "Project ID"
+msgstr "ID Έργου"
+
+msgid "Original Project ID"
+msgstr "Αρχικό ID Έργου"
+
+msgid "Master Data (Signed)"
+msgstr "Βασικά Δεδομένα (Υπογεγραμμένα)"
+
+msgid "Validation File"
+msgstr "Αρχείο Επικύρωσης"
+
+msgid "Project Certificate"
+msgstr "Πιστοποιητικό Έργου"
+
+msgid "none"
+msgstr "δεν υπάρχει"
+
+msgid "present ({size} bytes)"
+msgstr "υπάρχει ({size} bytes)"
+
+msgid "Password"
+msgstr "Κωδικός"
+
+msgid "Protected"
+msgstr "Προστατευμένο"
+
+msgid "Not protected"
+msgstr "Μη προστατευμένο"
+
+msgid "Set Password"
+msgstr "Ορισμός Κωδικού"
+
+msgid "Change Password"
+msgstr "Αλλαγή Κωδικού"
+
+msgid "Remove Password"
+msgstr "Αφαίρεση Κωδικού"
+
+msgid "Project Password"
+msgstr "Κωδικός Έργου"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "Το έργο και οι εξαγωγές του προστατεύονται με αυτόν τον κωδικό· ζητείται κατά το άνοιγμα ή την εισαγωγή τους. Η αλλαγή κωδικού δεν αναιρείται."
+
+msgid "Repeat Password"
+msgstr "Επανάληψη Κωδικού"
+
+msgid "The passwords do not match."
+msgstr "Οι κωδικοί δεν ταιριάζουν."
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "Ένα έργο με συσκευές KNX Secure χρειάζεται κωδικό: προστατεύει τα κλειδιά τους στο έργο και στις εξαγωγές του."
+
+msgid "No project log entries"
+msgstr "Δεν υπάρχουν εγγραφές στο ημερολόγιο έργου"
+
+msgid "Date"
+msgstr "Ημερομηνία"
+
+msgid "User"
+msgstr "Χρήστης"
+
+msgid "Comment"
+msgstr "Σχόλιο"
+
+msgid "Filter log"
+msgstr "Φιλτράρισμα ημερολογίου"
+
+msgid "Decrypt Comments"
+msgstr "Αποκρυπτογράφηση Σχολίων"
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "Εξαγωγή από το Knx.Ets.Common.dll…"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "Το ETS κρυπτογραφεί τα σχόλια του ημερολογίου. Εξαγάγετε το κλειδί αποκρυπτογράφησης από το Knx.Ets.Common.dll της δικής σας εγκατάστασης ETS για να τα διαβάσετε· δεν αποστέλλεται τίποτα πουθενά."
+
+msgid "Comments are encrypted"
+msgstr "Τα σχόλια είναι κρυπτογραφημένα"
+
+msgid "Comments decrypted"
+msgstr "Τα σχόλια αποκρυπτογραφήθηκαν"
+
+msgid "Extracting key…"
+msgstr "Εξαγωγή κλειδιού…"
+
+msgid "Key extracted; comments decrypted"
+msgstr "Το κλειδί εξήχθη· τα σχόλια αποκρυπτογραφήθηκαν"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr "Δεν βρέθηκε περιβάλλον εκτέλεσης .NET (εγκαταστήστε το .NET SDK ή εκτελέστε σε Windows με ETS)."
+
+msgid "KNX Common Assembly"
+msgstr "KNX Common Assembly"
+
+msgid "All Files"
+msgstr "Όλα τα αρχεία"
+
+msgid "Based on OpenKNXproducer"
+msgstr "Βασισμένο στο OpenKNXproducer"
+
+msgid "Order Number"
+msgstr "Αριθμός Παραγγελίας"
+
+msgid "Description"
+msgstr "Περιγραφή"
+
+msgid "Parameters ({count})"
+msgstr "Παράμετροι ({count})"
+
+msgid "Group Objects ({count})"
+msgstr "Αντικείμενα Επικοινωνίας ({count})"
+
+msgid "Channels ({count})"
+msgstr "Κανάλια ({count})"
+
+msgid "DALI (Bus)"
+msgstr "DALI (Bus)"
+
+msgid "Assigned Objects"
+msgstr "Ανατεθειμένα Αντικείμενα"
+
+msgid "Object"
+msgstr "Αντικείμενο"
+
+msgid "S"
+msgstr "S"
+
+msgid "S = Sending. This object sends its value to the group address; the others only receive it."
+msgstr "S = Αποστολή. Αυτό το αντικείμενο στέλνει την τιμή του στη διεύθυνση ομάδας· τα υπόλοιπα μόνο τη λαμβάνουν."
+
+msgid "Click to open this device in the editor"
+msgstr "Κάντε κλικ για να ανοίξετε αυτή τη συσκευή στον επεξεργαστή"
+
+msgid "No devices"
+msgstr "Δεν υπάρχουν συσκευές"
+
+msgid "Loading application program…"
+msgstr "Φόρτωση προγράμματος εφαρμογής…"
+
+msgid "This product has no application program."
+msgstr "Αυτό το προϊόν δεν έχει πρόγραμμα εφαρμογής."
+
+msgid "Individual Address"
+msgstr "Ατομική Διεύθυνση"
+
+msgid "Program Device"
+msgstr "Προγραμματισμός Συσκευής"
+
+msgid "Test Programming"
+msgstr "Δοκιμή Προγραμματισμού"
+
+msgid "Unload Application Program"
+msgstr "Αποφόρτιση Προγράμματος Εφαρμογής"
+
+msgid "This unloads the application program of the device at {address}. The device stops working until its application program is downloaded again."
+msgstr "Αυτό αποφορτίζει το πρόγραμμα εφαρμογής της συσκευής στη διεύθυνση {address}. Η συσκευή σταματά να λειτουργεί μέχρι να φορτιστεί ξανά το πρόγραμμα εφαρμογής της."
+
+msgid "This unloads the application program of the device at {address} and then resets its individual address to 15.15.255; for that, its programming button has to be pressed. The device stops working until it is commissioned again."
+msgstr "Αυτό αποφορτίζει το πρόγραμμα εφαρμογής της συσκευής στη διεύθυνση {address} και στη συνέχεια επαναφέρει την ατομική της διεύθυνση σε 15.15.255· για αυτό πρέπει να πατηθεί το πλήκτρο προγραμματισμού της. Η συσκευή σταματά να λειτουργεί μέχρι να τεθεί ξανά σε λειτουργία."
+
+msgid "Overwrite Address"
+msgstr "Αντικατάσταση Διεύθυνσης"
+
+msgid "Manufacturer's Plugin Not Available"
+msgstr "Το Plugin του Κατασκευαστή Δεν Είναι Διαθέσιμο"
+
+msgid "Serial Number Already Used"
+msgstr "Ο Σειριακός Αριθμός Χρησιμοποιείται Ήδη"
+
+msgid "Download"
+msgstr "Φόρτιση"
+
+msgid "Full"
+msgstr "Πλήρης"
+
+msgid "Application Program"
+msgstr "Πρόγραμμα Εφαρμογής"
+
+msgid "Unload"
+msgstr "Αποφόρτιση"
+
+msgid "Unload Application and Address"
+msgstr "Αποφόρτιση Εφαρμογής και Διεύθυνσης"
+
+msgid "Partial: Parameters"
+msgstr "Μερική: Παράμετροι"
+
+msgid "Partial: Group Communication"
+msgstr "Μερική: Επικοινωνία Ομάδων"
+
+msgid "Overwrite Individual Address"
+msgstr "Αντικατάσταση Ατομικής Διεύθυνσης"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "Αυτό γράφει την ατομική διεύθυνση {address} στη συσκευή της οποίας είναι πατημένο το πλήκτρο προγραμματισμού. Συνέχεια;"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "Αυτό αντικαθιστά την ατομική διεύθυνση της συσκευής στην τρέχουσα διεύθυνσή της με {address}. Δεν χρειάζεται να πατηθεί το πλήκτρο προγραμματισμού της."
+
+msgid "Current Individual Address"
+msgstr "Τρέχουσα Ατομική Διεύθυνση"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "Εισαγάγετε την τρέχουσα ατομική διεύθυνση της συσκευής, π.χ. 1.1.5."
+
+msgid "The device already has the individual address {address}."
+msgstr "Η συσκευή έχει ήδη την ατομική διεύθυνση {address}."
+
+msgid "Individual Address via Serial Number"
+msgstr "Ατομική Διεύθυνση μέσω Σειριακού Αριθμού"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "Αυτό γράφει την ατομική διεύθυνση {address} στη συσκευή με σειριακό αριθμό {serial}. Δεν χρειάζεται να πατηθεί το πλήκτρο προγραμματισμού της."
+
+msgid "Use Serial Number"
+msgstr "Χρήση Σειρ.Αρ."
+
+msgid "The serial number is already associated with device {device}."
+msgstr "Ο σειριακός αριθμός έχει ήδη συσχετιστεί με τη συσκευή {device}."
+
+msgid "Serial Number"
+msgstr "Σειριακός Αριθμός"
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "Εισαγάγετε τον σειριακό αριθμό ως 12 δεκαεξαδικά ψηφία, π.χ. 0083:7AA2039C."
+
+msgid "Manufacturer Info"
+msgstr "Πληροφορίες Κατασκευαστή"
+
+msgid "Application"
+msgstr "Εφαρμογή"
+
+msgid "Application Version"
+msgstr "Έκδοση Εφαρμογής"
+
+msgid "Read from Device"
+msgstr "Ανάγνωση από τη Συσκευή"
+
+msgid "Restart"
+msgstr "Επανεκκίνηση"
+
+msgid "Reset…"
+msgstr "Επαναφορά…"
+
+msgid "Master Reset"
+msgstr "Master Reset"
+
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "Καταστροφική ενέργεια: η συσκευή επαναφέρεται μέσω του bus και πρέπει να τεθεί ξανά σε λειτουργία. Σε λειτουργία KNX Secure αυτό απενεργοποιεί την ασφάλεια της συσκευής."
+
+msgid "Reset Type"
+msgstr "Τύπος Επαναφοράς"
+
+msgid "I understand this resets the device"
+msgstr "Κατανοώ ότι αυτό επαναφέρει τη συσκευή"
+
+msgid "Reset Device"
+msgstr "Επαναφορά Συσκευής"
+
+msgid "Factory Reset"
+msgstr "Επαναφορά Εργοστασιακών Ρυθμίσεων"
+
+msgid "Factory Reset (Keep Address)"
+msgstr "Επαναφορά Εργοστασιακών Ρυθμίσεων (Διατήρηση Διεύθυνσης)"
+
+msgid "Reset Individual Address"
+msgstr "Επαναφορά Ατομικής Διεύθυνσης"
+
+msgid "Delete Application Program"
+msgstr "Διαγραφή Προγράμματος Εφαρμογής"
+
+msgid "Reset Parameters"
+msgstr "Επαναφορά Παραμέτρων"
+
+msgid "Reset Group Address Links"
+msgstr "Επαναφορά Συνδέσεων Διευθύνσεων Ομάδων"
+
+msgid "Confirmed Restart"
+msgstr "Επιβεβαιωμένη Επανεκκίνηση"
+
+msgid "Set an individual address and connect to the bus first"
+msgstr "Ορίστε πρώτα μια ατομική διεύθυνση και συνδεθείτε στο bus"
+
+msgid "The reported value matches {devices} in this project."
+msgstr "Η αναφερόμενη τιμή αντιστοιχεί σε {devices} σε αυτό το έργο."
+
+msgid "Mask Version"
+msgstr "Έκδοση Μάσκας"
+
+msgid "Order Info"
+msgstr "Πληροφορίες Παραγγελίας"
+
+msgid "Hardware Type"
+msgstr "Τύπος Υλικού"
+
+msgid "Status"
+msgstr "Κατάσταση"
+
+msgid "no fault reported"
+msgstr "δεν αναφέρθηκε σφάλμα"
+
+msgid "differs from project V{version} — program to apply"
+msgstr "διαφέρει από το έργο V{version} — προγραμματίστε για εφαρμογή"
+
+msgid "Product"
+msgstr "Προϊόν"
+
+msgid "Product Ref"
+msgstr "Αναφ. Προϊόντος"
+
+msgid "Program Ref"
+msgstr "Αναφ. Προγράμματος"
+
+msgid "IP Configuration"
+msgstr "Διαμόρφωση IP"
+
+msgid "Assignment"
+msgstr "Ανάθεση"
+
+msgid "IP Address"
+msgstr "Διεύθυνση IP"
+
+msgid "Subnet Mask"
+msgstr "Μάσκα Υποδικτύου"
+
+msgid "Default Gateway"
+msgstr "Προεπιλεγμένη Πύλη"
+
+msgid "MAC Address"
+msgstr "Διεύθυνση MAC"
+
+msgid "Download PDF Manual"
+msgstr "Λήψη Εγχειριδίου PDF"
+
+msgid "Searching Manual…"
+msgstr "Αναζήτηση Εγχειριδίου…"
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "Εύρεση του εγχειριδίου αυτής της συσκευής (μέσω της βάσης δεδομένων συσκευών KNX, αλλιώς με αναζήτηση στον κατασκευαστή) και άνοιγμά του στο πρόγραμμα περιήγησης. Χωρίς εγγύηση - ανοίγει την αναζήτηση συσκευών KNX αν δεν βρεθεί άμεσο έγγραφο."
+
+msgid "Update to V{version}"
+msgstr "Ενημέρωση σε V{version}"
+
+msgid "Change Application Program"
+msgstr "Αλλαγή Προγράμματος Εφαρμογής"
+
+msgid "Update Application Program Version"
+msgstr "Ενημέρωση Έκδοσης Προγράμματος Εφαρμογής"
+
+msgid "Update"
+msgstr "Ενημέρωση"
+
+msgid "Updating the application program…"
+msgstr "Ενημέρωση του προγράμματος εφαρμογής…"
+
+msgid "Changing the application program…"
+msgstr "Αλλαγή του προγράμματος εφαρμογής…"
+
+msgid "Changing the application program failed"
+msgstr "Η αλλαγή του προγράμματος εφαρμογής απέτυχε"
+
+msgid "Updating the application program failed"
+msgstr "Η ενημέρωση του προγράμματος εφαρμογής απέτυχε"
+
+msgid "Copied"
+msgstr "Αντιγράφηκε"
+
+msgid "Click to copy"
+msgstr "Κάντε κλικ για αντιγραφή"
+
+msgid "Filter parameters…"
+msgstr "Φιλτράρισμα παραμέτρων…"
+
+msgid "Apply Changes to All {count} Identical Devices"
+msgstr "Εφαρμογή Αλλαγών σε Όλες τις {count} Ίδιες Συσκευές"
+
+msgid "Apply Changes to All Channels"
+msgstr "Εφαρμογή Αλλαγών σε Όλα τα Κανάλια"
+
+msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr "Επεξεργασία {count} συσκευών — οι αλλαγές ισχύουν για όλες, οι διαφορετικές τιμές εμφανίζουν <διαφέρει>"
+
+msgid "Hardware"
+msgstr "Υλικό"
+
+msgid "Firmware"
+msgstr "Firmware"
+
+msgid "Com Flags ({count})"
+msgstr "Flags Αντικειμένων ({count})"
+
+msgid "Load Procedures ({count})"
+msgstr "Διαδικασίες Φόρτωσης ({count})"
+
+msgid "Preview Memory"
+msgstr "Προεπισκόπηση Μνήμης"
+
+msgid "Memory Preview"
+msgstr "Προεπισκόπηση Μνήμης"
+
+msgid "Load Reference File"
+msgstr "Φόρτωση Αρχείου Αναφοράς"
+
+msgid "Save Memory Dump"
+msgstr "Αποθήκευση Αντιγράφου Μνήμης"
+
+msgid "Save…"
+msgstr "Αποθήκευση…"
+
+msgid "Diff…"
+msgstr "Σύγκριση…"
+
+msgid "Clear Diff"
+msgstr "Κατάργηση Σύγκρισης"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "Αντίγραφα Μνήμης (*.bin)"
+
+msgid "{count} bytes"
+msgstr "{count} bytes"
+
+msgid "No memory segments."
+msgstr "Δεν υπάρχουν τμήματα μνήμης."
+
+msgid "Cannot encode memory image: {error}"
+msgstr "Δεν είναι δυνατή η δημιουργία της εικόνας μνήμης: {error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "Δεν ήταν δυνατή η ανάγνωση ή η εγγραφή του αρχείου: {error}"
+
+msgid "Programming Test Result"
+msgstr "Αποτέλεσμα Δοκιμής Προγραμματισμού"
+
+msgid "Evaluation failed"
+msgstr "Η αξιολόγηση απέτυχε"
+
+msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
+msgstr "Δοκιμή μόνο για ανάγνωση: ελέγχει ότι η λειτουργία φόρτισης δημιουργεί την ίδια εικόνα με αυτή που είναι ήδη προγραμματισμένη στη συσκευή. Δεν γράφεται τίποτα στη συσκευή."
+
+msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
+msgstr "Δεν είναι δυνατή η εκτέλεση: το έργο άλλαξε από τη στιγμή που άνοιξε. Αυτή η δοκιμή συγκρίνει την παραγόμενη εικόνα με την προγραμματισμένη κατάσταση της συσκευής, η οποία αντιστοιχεί μόνο στο έργο όπως άνοιξε. Αναιρέστε τις αλλαγές σας σε αυτήν τη συνεδρία για να εκτελέσετε τη δοκιμή."
+
+msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
+msgstr "Δεν είναι δυνατή η εκτέλεση: δεν υπάρχει σύνδεση KNX. Συνδεθείτε σε ένα gateway (μενού Σύνδεση) και βεβαιωθείτε ότι η συσκευή είναι προσβάσιμη στην ατομική της διεύθυνση."
+
+msgid "Match: the generated image is identical to what is on the device"
+msgstr "Ταύτιση: η παραγόμενη εικόνα είναι ίδια με αυτή στη συσκευή"
+
+msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
+msgstr "Απόκλιση: {bytes} byte διαφέρουν από τη συσκευή σε {locations} θέση(-εις)"
+
+msgid "{matched} matched, {changed} would change"
+msgstr "{matched} ταυτίζονται, {changed} θα άλλαζαν"
+
+msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
+msgstr "Μόνο για συσκευές ETS 6: αυτή η δοκιμή συγκρίνει τη συσκευή με μια εικόνα που δημιουργείται με τον τρόπο του ETS 6. Μια συσκευή που προγραμματίστηκε τελευταία με ETS 5 χρησιμοποιεί διαφορετική διάταξη byte και θα εμφανίσει μεγάλες ψευδείς διαφορές - το αποτέλεσμα έχει νόημα μόνο για συσκευή που προγραμματίστηκε τελευταία με ETS 6."
+
+msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
+msgstr "Δομικές διαφορές (διαφέρουν ολόκληροι πίνακες) μπορεί να σημαίνουν ότι η συσκευή προγραμματίστηκε τελευταία με ETS 5, του οποίου η διάταξη byte διαφέρει. Διαφορές μόνο σε τιμές συνήθως σημαίνουν ότι η συσκευή έχει διαφορετική διαμόρφωση."
+
+msgid "Location"
+msgstr "Θέση"
+
+msgid "Size"
+msgstr "Μέγεθος"
+
+msgid "Changed"
+msgstr "Αλλαγμένο"
+
+msgid "match"
+msgstr "ταύτιση"
+
+msgid "would change"
+msgstr "θα άλλαζε"
+
+msgid "device-managed"
+msgstr "διαχείριση από τη συσκευή"
+
+msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
+msgstr "Byte συστήματος που ορίζει η ίδια η συσκευή κατά τη λειτουργία (π.χ. ένα byte ανίχνευσης φόρτισης που επαναφέρει η εφαρμογή μετά από μια φόρτιση). Μια διαφορά εδώ είναι αναμενόμενη και δεν υποδηλώνει εσφαλμένη φόρτιση."
+
+msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
+msgstr "συν {bytes} byte λειτουργίας υπό διαχείριση της συσκευής (αναμενόμενο, ακίνδυνο)"
+
+msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
+msgstr "Δεν υπάρχουν διαφορές διαμόρφωσης: η συσκευή έχει ήδη αυτήν τη διαμόρφωση. Οι παρακάτω διαφορές είναι ακίνδυνες (δείτε τις σημειώσεις)."
+
+msgid "sets default"
+msgstr "ορίζει προεπιλογή"
+
+msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
+msgstr "Αυτό το byte γράφεται λόγω μιας γειτονικής παραμέτρου· το διαφορετικό bit δεν ελέγχεται από καμία ενεργή παράμετρο και απλώς επαναφέρεται στην προεπιλογή της εφαρμογής. Η συσκευή έχει μια παλαιότερη τιμή (π.χ. από προηγούμενη διαμόρφωση ή λειτουργία), την οποία ο προγραμματισμός θα κανονικοποιήσει. Ακίνδυνο."
+
+msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr "συν {bytes} byte που επαναφέρονται στην προεπιλογή της εφαρμογής (η συσκευή έχει παλαιότερη τιμή· ακίνδυνο, θα κανονικοποιηθεί κατά τον προγραμματισμό)"
+
+msgid "Export Ist/Soll…"
+msgstr "Εξαγωγή Ist/Soll…"
+
+msgid "Export Path:"
+msgstr "Διαδρομή Εξαγωγής:"
+
+msgid "Export Programming Test Result"
+msgstr "Εξαγωγή Αποτελέσματος Δοκιμής Προγραμματισμού"
+
+msgid "memory {address}"
+msgstr "μνήμη {address}"
+
+msgid "object {object} property {property}"
+msgstr "αντικείμενο {object} ιδιότητα {property}"
+
+msgid "Filter devices (name, address)…"
+msgstr "Φιλτράρισμα συσκευών (όνομα, διεύθυνση)…"
+
+msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
+msgstr "Δεν υπάρχουν συσκευές. Ανοίξτε ή εισαγάγετε ένα έργο (μενού Αρχείο) ή κάντε δεξί κλικ εδώ για να προσθέσετε μια περιοχή."
+
+msgid "Filter group addresses (address, name)…"
+msgstr "Φιλτράρισμα διευθύνσεων ομάδων (διεύθυνση, όνομα)…"
+
+msgid "Filter rooms, devices, functions…"
+msgstr "Φιλτράρισμα δωματίων, συσκευών, λειτουργιών…"
+
+msgid "Area {area}"
+msgstr "Περιοχή {area}"
+
+msgid "{name} (Area {area})"
+msgstr "{name} (Περιοχή {area})"
+
+msgid "Line {area}.{line}"
+msgstr "Γραμμή {area}.{line}"
+
+msgid "{name} (Line {area}.{line})"
+msgstr "{name} (Γραμμή {area}.{line})"
+
+msgid "Unassigned ({count})"
+msgstr "Μη ανατεθειμένα ({count})"
+
+msgid "Add Area"
+msgstr "Προσθήκη Περιοχής"
+
+msgid "Add Line"
+msgstr "Προσθήκη Γραμμής"
+
+msgid "Copy Address"
+msgstr "Αντιγραφή Διεύθυνσης"
+
+msgid "Duplicate"
+msgstr "Δημιουργία Διπλοτύπου"
+
+msgid "Copy Configuration"
+msgstr "Αντιγραφή Διαμόρφωσης"
+
+msgid "Compare with…"
+msgstr "Σύγκριση με…"
+
+msgid "Compare Devices"
+msgstr "Σύγκριση Συσκευών"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "Ανοίξτε ένα έργο με τουλάχιστον δύο συσκευές για σύγκριση."
+
+msgid "Only Differences"
+msgstr "Μόνο Διαφορές"
+
+msgid "Filter devices by address, name or description…"
+msgstr "Φιλτράρισμα συσκευών κατά διεύθυνση, όνομα ή περιγραφή…"
+
+msgid "{count} differences"
+msgstr "{count} διαφορές"
+
+msgid "Parameters"
+msgstr "Παράμετροι"
+
+msgid "Group Objects"
+msgstr "Αντικείμενα Επικοινωνίας"
+
+msgid "No differences"
+msgstr "Δεν υπάρχουν διαφορές"
+
+msgid "Field"
+msgstr "Πεδίο"
+
+msgid "Device A"
+msgstr "Συσκευή A"
+
+msgid "Device B"
+msgstr "Συσκευή B"
+
+msgid "Paste Configuration"
+msgstr "Επικόλληση Διαμόρφωσης"
+
+msgid "Paste configuration onto '{name}':"
+msgstr "Επικόλληση διαμόρφωσης στο '{name}':"
+
+msgid "Paste configuration onto {count} selected devices:"
+msgstr "Επικόλληση διαμόρφωσης σε {count} επιλεγμένες συσκευές:"
+
+msgid "Duplicate '{name}':"
+msgstr "Αντιγραφή του '{name}':"
+
+msgid "Group Address Links"
+msgstr "Συνδέσεις Διευθύνσεων Ομάδων"
+
+msgid "Paste"
+msgstr "Επικόλληση"
+
+msgid "Delete Device"
+msgstr "Διαγραφή Συσκευής"
+
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "Να διαγραφεί το '{name}'; Τα αντικείμενα επικοινωνίας του και οι συνδέσεις διευθύνσεων ομάδων αφαιρούνται και η ατομική του διεύθυνση αποδεσμεύεται. Η ενέργεια μπορεί να αναιρεθεί."
+
+msgid "New Area"
+msgstr "Νέα Περιοχή"
+
+msgid "New Line"
+msgstr "Νέα Γραμμή"
+
+msgid "Number"
+msgstr "Αριθμός"
+
+msgid "Add"
+msgstr "Προσθήκη"
+
+msgid "Save"
+msgstr "Αποθήκευση"
+
+msgid "Load"
+msgstr "Φόρτωση"
+
+msgid "Copy Log"
+msgstr "Αντιγραφή Καταγραφής"
+
+msgid "New Group Address"
+msgstr "Νέα Διεύθυνση Ομάδας"
+
+msgid "New Main Group"
+msgstr "Νέα Κύρια Ομάδα"
+
+msgid "New Middle Group"
+msgstr "Νέα Μεσαία Ομάδα"
+
+msgid "New Folder"
+msgstr "Νέος Φάκελος"
+
+msgid "Rename Folder"
+msgstr "Μετονομασία Φακέλου"
+
+msgid "Delete Folder"
+msgstr "Διαγραφή Φακέλου"
+
+msgid "Main group name (the next free number is assigned automatically)"
+msgstr "Όνομα κύριας ομάδας (ο επόμενος ελεύθερος αριθμός ανατίθεται αυτόματα)"
+
+msgid "Middle group name (the next free number is assigned automatically)"
+msgstr "Όνομα μεσαίας ομάδας (ο επόμενος ελεύθερος αριθμός ανατίθεται αυτόματα)"
+
+msgid "Delete this folder and every group address in it? This can be undone."
+msgstr "Να διαγραφεί αυτός ο φάκελος και κάθε διεύθυνση ομάδας που περιέχει; Η ενέργεια μπορεί να αναιρεθεί."
+
+msgid "Rename Group Address"
+msgstr "Μετονομασία Διεύθυνσης Ομάδας"
+
+msgid "Change Address…"
+msgstr "Αλλαγή Διεύθυνσης…"
+
+msgid "New group address (links are kept):"
+msgstr "Νέα διεύθυνση ομάδας (οι συνδέσεις διατηρούνται):"
+
+msgid "Invalid address or already in use."
+msgstr "Μη έγκυρη διεύθυνση ή χρησιμοποιείται ήδη."
+
+msgid "Security"
+msgstr "Ασφάλεια"
+
+msgid "Automatic"
+msgstr "Αυτόματη"
+
+msgid "Secured"
+msgstr "Ασφαλές"
+
+msgid "Not Secured"
+msgstr "Μη Ασφαλές"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "Μια ασφαλής διεύθυνση ομάδας μπορεί να συνδεθεί μόνο με συσκευές που τίθενται σε λειτουργία με ασφάλεια."
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "Δεν τίθενται όλες οι συσκευές που είναι συνδεδεμένες με αυτήν τη διεύθυνση ομάδας σε λειτουργία με ασφάλεια, επομένως δεν μπορεί να γίνει ασφαλής."
+
+msgid "Set Datapoint Type"
+msgstr "Ορισμός Τύπου Datapoint"
+
+msgid "Address"
+msgstr "Διεύθυνση"
+
+msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
+msgstr "Τύπος datapoint (π.χ. DPST-1-1)· κενό για διαγραφή"
+
+msgid "Project: {name}"
+msgstr "Έργο: {name}"
+
+msgid "(unsaved)"
+msgstr "(μη αποθηκευμένο)"
+
+msgid "No history"
+msgstr "Δεν υπάρχει ιστορικό"
+
+msgid "Restore"
+msgstr "Επαναφορά"
+
+msgid "Add device: {name}"
+msgstr "Προσθήκη συσκευής: {name}"
+
+msgid "Remove device: {name}"
+msgstr "Αφαίρεση συσκευής: {name}"
+
+msgid "Address: {old} -> {new}"
+msgstr "Διεύθυνση: {old} -> {new}"
+
+msgid "Name: {old} -> {new}"
+msgstr "Όνομα: {old} -> {new}"
+
+msgid "Parameter: {old} -> {new}"
+msgstr "Παράμετρος: {old} -> {new}"
+
+msgid "DPT: {old} -> {new}"
+msgstr "DPT: {old} -> {new}"
+
+msgid "Flag: {flag} -> {state}"
+msgstr "Flag: {flag} -> {state}"
+
+msgid "Group address {address} created"
+msgstr "Δημιουργήθηκε η διεύθυνση ομάδας {address}"
+
+msgid "Group address {address} removed"
+msgstr "Αφαιρέθηκε η διεύθυνση ομάδας {address}"
+
+msgid "Group address: {old} -> {new}"
+msgstr "Διεύθυνση ομάδας: {old} -> {new}"
+
+msgid "Group object linked to group address"
+msgstr "Το αντικείμενο επικοινωνίας συνδέθηκε με διεύθυνση ομάδας"
+
+msgid "Group object unlinked from group address"
+msgstr "Το αντικείμενο επικοινωνίας αποσυνδέθηκε από διεύθυνση ομάδας"
+
+msgid "Area {number} created"
+msgstr "Δημιουργήθηκε η περιοχή {number}"
+
+msgid "Area {number} removed"
+msgstr "Αφαιρέθηκε η περιοχή {number}"
+
+msgid "Area: {old} -> {new}"
+msgstr "Περιοχή: {old} -> {new}"
+
+msgid "Line {number} created"
+msgstr "Δημιουργήθηκε η γραμμή {number}"
+
+msgid "Line {number} removed"
+msgstr "Αφαιρέθηκε η γραμμή {number}"
+
+msgid "Line: {old} -> {new}"
+msgstr "Γραμμή: {old} -> {new}"
+
+msgid "This action can only be performed when the individual address of the device is already downloaded."
+msgstr "Αυτή η ενέργεια μπορεί να εκτελεστεί μόνο όταν η ατομική διεύθυνση της συσκευής είναι ήδη φορτισμένη."
+
+msgid "Button {0} executed. "
+msgstr "Το κουμπί {0} εκτελέστηκε. "
+
+msgid "A parameter script is running for this device."
+msgstr "Εκτελείται μια δέσμη ενεργειών παραμέτρου για αυτή τη συσκευή."
+
+msgid "The Device has no valid address or is not linked to an area or line."
+msgstr "Η συσκευή δεν έχει έγκυρη διεύθυνση ή δεν είναι συνδεδεμένη σε μια περιοχή ή γραμμή."
+
+msgid "Parameter Script"
+msgstr "Δέσμη Ενεργειών Παραμέτρου"
+
+msgid "Executing Script"
+msgstr "Εκτέλεση Δέσμης Ενεργειών"
+
+msgid "Script not responding"
+msgstr "Η δέσμη ενεργειών δεν αποκρίνεται"
+
+msgid "Force Stop"
+msgstr "Αναγκαστική Διακοπή"
+
+msgid "The script was stopped."
+msgstr "Η δέσμη ενεργειών διακόπηκε."
+
+msgid "Canceling…"
+msgstr "Ακύρωση…"
+
+msgid "No connection to the bus."
+msgstr "Δεν υπάρχει σύνδεση με το bus."
+
+msgid "Parameter value cannot be set, because validation failed."
+msgstr "Δεν μπορεί να οριστεί η τιμή της παραμέτρου, επειδή απέτυχε η επικύρωση."
+
+msgid "Operations"
+msgstr "Εργασίες"
+
+msgid "Active"
+msgstr "Ενεργές"
+
+msgid "Cancel All"
+msgstr "Ακύρωση Όλων"
+
+msgid "Clear History"
+msgstr "Εκκαθάριση Ιστορικού"
+
+msgid "No operations."
+msgstr "Δεν υπάρχουν εργασίες."
+
+msgid "Device Info"
+msgstr "Πληροφορίες Συσκευής"
+
+msgid "Device Info (With Group Communication)"
+msgstr "Πληροφορίες Συσκευής (Με Επικοινωνία Ομάδων)"
+
+msgid "Reading"
+msgstr "Ανάγνωση σε εξέλιξη"
+
+msgid "General"
+msgstr "Γενικά"
+
+msgid "Group Communication"
+msgstr "Επικοινωνία Ομάδων"
+
+msgid "Device Manufacturer"
+msgstr "Κατασκευαστής Συσκευής"
+
+msgid "Firmware Version"
+msgstr "Έκδοση Firmware"
+
+msgid "Programming Mode"
+msgstr "Λειτουργία Προγραμματισμού"
+
+msgid "Load State"
+msgstr "Κατάσταση Φόρτισης"
+
+msgid "Address Table Load State"
+msgstr "Κατάσταση Φόρτισης Πίνακα Διευθύνσεων"
+
+msgid "Association Table Load State"
+msgstr "Κατάσταση Φόρτισης Πίνακα Συνδέσεων"
+
+msgid "Group Object Table Load State"
+msgstr "Κατάσταση Φόρτισης Πίνακα Αντικειμένων Επικοινωνίας"
+
+msgid "Reading the tables failed: {error}"
+msgstr "Η ανάγνωση των πινάκων απέτυχε: {error}"
+
+msgid "On"
+msgstr "Ενεργοποιημένο"
+
+msgid "Off"
+msgstr "Απενεργοποιημένο"
+
+msgid "Unloaded"
+msgstr "Αποφορτισμένο"
+
+msgid "Loaded"
+msgstr "Φορτισμένο"
+
+msgid "Loading"
+msgstr "Φόρτιση σε εξέλιξη"
+
+msgid "Error"
+msgstr "Σφάλμα"
+
+msgid "Unloading"
+msgstr "Αποφόρτιση σε εξέλιξη"
+
+msgid "Load Completing"
+msgstr "Ολοκλήρωση Φόρτισης"
+
+msgid "Yes"
+msgstr "Ναι"
+
+msgid "No"
+msgstr "Όχι"
+
+msgid "Also read the group communication?"
+msgstr "Να διαβαστεί και η επικοινωνία ομάδων;"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "Η εφαρμογή της συσκευής δεν υπάρχει στον κατάλογο, επομένως οι πίνακές της δεν μπορούν να εντοπιστούν"
+
+msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
+msgstr "Αυτή η συσκευή μπορεί να προγραμματιστεί μόνο με το plugin του κατασκευαστή, το οποίο δεν είναι διαθέσιμο εδώ."
+
+msgid "Parameters in the Manufacturer's Plugin"
+msgstr "Παράμετροι στο Plugin του Κατασκευαστή"
+
+msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
+msgstr "Ο κατασκευαστής ορίζει τις παραμέτρους αυτής της συσκευής στο δικό του παράθυρο plugin, το οποίο το XKNX Editor δεν μπορεί να εκτελέσει, επομένως δεν μπορούν να αλλάξουν εδώ. Μια φόρτιση γράφει τις τρέχουσες τιμές τους αμετάβλητες· τα αντικείμενα επικοινωνίας συνδέονται κανονικά."
+
+msgid "Edit parameters anyway"
+msgstr "Επεξεργασία παραμέτρων παρ' όλα αυτά"
+
+msgid "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+msgstr "Ο κατασκευαστής διαμορφώνει αυτή τη συσκευή με το δικό του παράθυρο plugin· οι ρυθμίσεις που γίνονται εκεί δεν εμφανίζονται εδώ."
+
+msgid "The manufacturer programs this device with its own plugin; the standard download is used here."
+msgstr "Ο κατασκευαστής προγραμματίζει αυτή τη συσκευή με το δικό του plugin· εδώ χρησιμοποιείται η τυπική φόρτιση."
+
+msgid "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+msgstr "Ο κατασκευαστής διαχειρίζεται μέρος των δεδομένων αυτής της συσκευής με το δικό του plugin, το οποίο δεν είναι διαθέσιμο εδώ."
+
+msgid "The manufacturer plugin is not available here:"
+msgstr "Το plugin του κατασκευαστή δεν είναι διαθέσιμο εδώ:"
+
+msgid "Only it can program the device."
+msgstr "Μόνο αυτό μπορεί να προγραμματίσει τη συσκευή."
+
+msgid "Settings made in its dialog are not shown."
+msgstr "Οι ρυθμίσεις του παραθύρου του δεν εμφανίζονται."
+
+msgid "The standard download is used instead."
+msgstr "Αντί γι' αυτό χρησιμοποιείται η τυπική φόρτιση."
+
+msgid "Part of the device data is not available."
+msgstr "Μέρος των δεδομένων της συσκευής δεν είναι διαθέσιμο."
+
+msgid "This device is also configured with separate software from the manufacturer."
+msgstr "Αυτή η συσκευή διαμορφώνεται επιπλέον με ξεχωριστό λογισμικό του κατασκευαστή."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "Αυτή η συσκευή περιλαμβάνει μια εφαρμογή διαμόρφωσης του κατασκευαστή (“{name}”) την οποία το XKNX Editor δεν μπορεί να εκτελέσει. Οι τυπικές παράμετροι της συσκευής μπορούν ακόμη να προγραμματιστούν, όχι όμως οι πρόσθετες λειτουργίες που παρέχει αυτή η εφαρμογή."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "Αυτή η συσκευή περιλαμβάνει μια εφαρμογή διαμόρφωσης του κατασκευαστή (“{name}”) που δεν μπορεί να εκτελεστεί απευθείας στο XKNX Editor — έχει όμως μεταφερθεί, ώστε οι σημαντικότερες λειτουργίες της να είναι διαθέσιμες εδώ (δείτε την καρτέλα DALI)."
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "Ο κατασκευαστής επιτρέπει τον προγραμματισμό αυτής της συσκευής μόνο με το δικό του plugin, το οποίο δεν είναι διαθέσιμο εδώ. Ο προγραμματισμός χωρίς το plugin μπορεί να αφήσει τη συσκευή με λανθασμένη διαμόρφωση ή σε κατάσταση σφάλματος."
+
+msgid "Program Without the Manufacturer's Plugin Anyway"
+msgstr "Προγραμματισμός Παρ’ Όλα Αυτά Χωρίς το Plugin του Κατασκευαστή"
+
+msgid "Downloading"
+msgstr "Φόρτιση"
+
+msgid "Please press the programming button"
+msgstr "Πατήστε το πλήκτρο προγραμματισμού"
+
+msgid "Waiting for confirmation"
+msgstr "Αναμονή για επιβεβαίωση"
+
+msgid "The application program currently loaded in the device is different from the projected application program"
+msgstr "Το φορτισμένο πρόγραμμα εφαρμογής της συσκευής είναι διαφορετικό από το προβλεπόμενο πρόγραμμα εφαρμογής"
+
+msgid "Do you want to overwrite the application program (this may take several minutes)?"
+msgstr "Θέλετε να αντικαταστήσετε το πρόγραμμα εφαρμογής (αυτό μπορεί να διαρκέσει αρκετά λεπτά);"
+
+msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
+msgstr "Το πρόγραμμα εφαρμογής που είναι φορτισμένο αυτή τη στιγμή στη συσκευή δεν συμφωνεί με το προβλεπόμενο πρόγραμμα εφαρμογής. Μπορείτε να δοκιμάσετε πλήρη αντί για μερική φόρτιση."
+
+msgid "Incompatible mask version: {found} instead of {expected}"
+msgstr "Μη συμβατή έκδοση μάσκας: {found} αντί για {expected}"
+
+msgid "Waiting"
+msgstr "Σε αναμονή"
+
+msgid "Finished"
+msgstr "Ολοκληρώθηκε"
+
+msgid "Canceled"
+msgstr "Ακυρώθηκε"
+
+msgid "Cancelled by user."
+msgstr "Ακυρώθηκε από τον χρήστη."
+
+msgid "Started by an MCP client."
+msgstr "Ξεκίνησε από πελάτη MCP."
+
+msgid "failed"
+msgstr "απέτυχε"
+
+msgid "No details available"
+msgstr "Δεν υπάρχουν λεπτομέρειες διαθέσιμες"
+
+msgid "Connection: {connection}"
+msgstr "Σύνδεση: {connection}"
+
+msgid "Start: {time}"
+msgstr "Έναρξη: {time}"
+
+msgid "End: {time}"
+msgstr "Λήξη: {time}"
+
+msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
+msgstr "Τα δεδομένα προϊόντος αυτής της συσκευής λείπουν - το πρόγραμμα εφαρμογής της δεν υπάρχει στον κατάλογο. Εισαγάγετε το προϊόν της για να επεξεργαστείτε τη συσκευή."
+
+msgid "DIN Rail Mounting"
+msgstr "Εγκατάσταση σε ράγα DIN"
+
+msgid "Bus Current"
+msgstr "Ρεύμα Bus"
+
+msgid "Read Value"
+msgstr "Ανάγνωση Τιμής"
+
+msgid "Write Value…"
+msgstr "Εγγραφή Τιμής…"
+
+msgid "Write Value"
+msgstr "Εγγραφή Τιμής"
+
+msgid "Data Type"
+msgstr "Τύπος Δεδομένων"
+
+msgid "Value"
+msgstr "Τιμή"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "Ορίστε τον τύπο δεδομένων της διεύθυνσης ομάδας για να εγγράψετε μια τιμή."
+
+msgid "Write"
+msgstr "Εγγραφή"
+
+msgid "Not connected to the bus."
+msgstr "Δεν υπάρχει σύνδεση με το bus."
+
+msgid "Export Group Addresses…"
+msgstr "Εξαγωγή Διευθύνσεων Ομάδων…"
+
+msgid "Import Group Addresses…"
+msgstr "Εισαγωγή Διευθύνσεων Ομάδων…"
+
+msgid "Import Group Addresses"
+msgstr "Εισαγωγή Διευθύνσεων Ομάδων"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "Αρχεία Διευθύνσεων Ομάδων (XML, CSV)"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "Προστέθηκαν {added} διευθύνσεις ομάδων, ενημερώθηκαν {updated}."
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "{count} διευθύνσεις ομάδων δεν ήταν δυνατό να τοποθετηθούν σε ομάδα."
+
+msgid "The file could not be imported: {error}"
+msgstr "Δεν ήταν δυνατή η εισαγωγή του αρχείου: {error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "Το αρχείο χρησιμοποιεί δομή διευθύνσεων ομάδων «{file}», ενώ το έργο χρησιμοποιεί δομή «{project}»."
+
+msgid "3-level"
+msgstr "3 επιπέδων"
+
+msgid "2-level"
+msgstr "2 επιπέδων"
+
+msgid "free"
+msgstr "ελεύθερη"
+
+msgid "Export"
+msgstr "Εξαγωγή"
+
+msgid "Import"
+msgstr "Εισαγωγή"
+
+msgid "Plain"
+msgstr "Χωρίς Κρυπτογράφηση"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "Απενεργοποίηση Ασφαλούς Θέσης σε Λειτουργία KNX"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "Αυτές οι διευθύνσεις ομάδων θα επικοινωνούν στη συνέχεια χωρίς κρυπτογράφηση:"
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "Τα αντικείμενα επικοινωνίας της συσκευής θα αφαιρεθούν από αυτές τις ασφαλείς διευθύνσεις ομάδων:"
+
+msgid "Deactivate"
+msgstr "Απενεργοποίηση"
+
+msgid "Secure Commissioning"
+msgstr "Ασφαλής θέση σε λειτουργία KNX"
+
+msgid "Add Device Certificate…"
+msgstr "Προσθήκη Πιστοποιητικού Συσκευής…"
+
+msgid "Activated"
+msgstr "Ενεργοποιημένη"
+
+msgid "Deactivated"
+msgstr "Απενεργοποιημένη"
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "Ένα αντικείμενο επικοινωνίας που απαιτεί ασφαλή επικοινωνία θα κατέληγε σε μη κρυπτογραφημένη διεύθυνση ομάδας."
+
+msgid "Later"
+msgstr "Αργότερα"
+
+msgid "Don't Ask When Adding Devices"
+msgstr "Χωρίς Ερώτηση κατά την Προσθήκη Συσκευών"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "Εμφάνιση Κωδικών"
+
+msgid "Secure Tunneling"
+msgstr "Ασφαλές Tunnelling"
+
+msgid "Commissioning Password"
+msgstr "Κωδικός Θέσης σε Λειτουργία"
+
+msgid "Authentication Code"
+msgstr "Κωδικός Ταυτοποίησης"
+
+msgid "Interface"
+msgstr "Θύρα Επικοινωνίας"
+
+msgid "Routing"
+msgstr "Δρομολόγηση"
+
+msgid "Tunnel {address}"
+msgstr "Tunnel {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "Ο κωδικός χρειάζεται 1 έως 20 χαρακτήρες Latin-1."
+
+msgid "Close"
+msgstr "Κλείσιμο"
+
+msgid "IP Backbone Security"
+msgstr "Ασφάλεια Κεντρικής Γραμμής IP"
+
+msgid "Device Certificates"
+msgstr "Πιστοποιητικά Συσκευών"
+
+msgid "Manage…"
+msgstr "Διαχείριση…"
+
+msgid "The project has no device certificates."
+msgstr "Το έργο δεν έχει πιστοποιητικά συσκευών."
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "Οι πίνακες ασφαλείας της συσκευής {device} δεν μπορούν να χωρέσουν αυτή τη σύνδεση."
+
+msgid "Point-to-Point and Broadcast"
+msgstr "Σημείο προς Σημείο και Broadcast"
+
+msgid "Blocked"
+msgstr "Αποκλεισμένο"
+
+msgid "Routed"
+msgstr "Προωθημένο"
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "Συνδεθείτε σε μια θύρα επικοινωνίας KNX για να θέσετε σε λειτουργία το bus DALI."
+
+msgid "Scan Bus"
+msgstr "Σάρωση Bus"
+
+msgid "All ECGs On"
+msgstr "Ενεργοποίηση Όλων των ECG"
+
+msgid "All Off"
+msgstr "Απενεργοποίηση Όλων"
+
+msgid "New Installation…"
+msgstr "Νέα Εγκατάσταση…"
+
+msgid "Post Installation…"
+msgstr "Μεταγενέστερη Εγκατάσταση…"
+
+msgid "Running: {task}"
+msgstr "Σε εξέλιξη: {task}"
+
+msgid "scanning the bus"
+msgstr "σάρωση του bus"
+
+msgid "switching all ECGs"
+msgstr "μεταγωγή όλων των ECG"
+
+msgid "blinking"
+msgstr "αναβόσβημα"
+
+msgid "stopping the blinking"
+msgstr "διακοπή του αναβοσβήματος"
+
+msgid "new installation"
+msgstr "νέα εγκατάσταση"
+
+msgid "post installation"
+msgstr "μεταγενέστερη εγκατάσταση"
+
+msgid "programming the groups"
+msgstr "προγραμματισμός των ομάδων"
+
+msgid "programming the scenes"
+msgstr "προγραμματισμός των σκηνών"
+
+msgid "{count} found"
+msgstr "Βρέθηκαν {count}"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "Χρησιμοποιήστε τη «Σάρωση Bus» για να διαβάσετε το bus DALI."
+
+msgid "Firmware {version}"
+msgstr "Firmware {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "Επιβεβαίωση Προγραμματισμού DALI"
+
+msgid "Continue"
+msgstr "Συνέχεια"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "Η νέα εγκατάσταση σαρώνει ξανά το bus DALI και ΕΚΧΩΡΕΙ ΕΚ ΝΕΟΥ τη σύντομη\nδιεύθυνση κάθε στραγγαλιστή. Αυτό δεν μπορεί να αναιρεθεί. Συνέχεια;"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "Η μεταγενέστερη εγκατάσταση αναζητά στο bus νέους στραγγαλιστές και ενημερώνει τη διευθυνσιοδότησή τους.\nΑυτό αλλάζει τη συσκευή. Συνέχεια;"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "Εγγραφή της αντιστοίχισης ομάδων στο bus DALI. Αυτό εφαρμόζει τις ομάδες στο\ngateway και στους στραγγαλιστές του. Συνέχεια;"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "Εγγραφή των τιμών σκηνών στο bus DALI. Συνέχεια;"
+
+msgid "{count} ECG(s) present"
+msgstr "Υπάρχουν {count} ECG"
+
+msgid "Group"
+msgstr "Ομάδα"
+
+msgid "Long Address"
+msgstr "Μακρά Διεύθυνση"
+
+msgid "Alarm"
+msgstr "Συναγερμός"
+
+msgid "Blink"
+msgstr "Αναβόσβημα"
+
+msgid "Stop"
+msgstr "Διακοπή"
+
+msgid "Program Groups…"
+msgstr "Προγραμματισμός Ομάδων…"
+
+msgid "Scenes"
+msgstr "Σκηνές"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "Αντιστοιχίστε τα ECG σε ομάδες παραπάνω για να ορίσετε σκηνές."
+
+msgid "Scene"
+msgstr "Σκηνή"
+
+msgid "Scene {number}"
+msgstr "Σκηνή {number}"
+
+msgid "Group {number}"
+msgstr "Ομάδα {number}"
+
+msgid "Program Scenes…"
+msgstr "Προγραμματισμός Σκηνών…"
+
+msgid "Single"
+msgstr "Μεμονωμένο"
+
+msgid "Unassigned"
+msgstr "Χωρίς Αντιστοίχιση"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "Διαδικασία {number}  ({count} βήματα)"
+
+msgid "Kind"
+msgstr "Είδος"
+
+msgid "Applies To"
+msgstr "Ισχύει για"
+
+msgid "Details"
+msgstr "Λεπτομέρειες"
+
+msgid "Scope: {scope}"
+msgstr "Εύρος: {scope}"
+
+msgid "Additional Individual Addresses"
+msgstr "Επιπλέον Ατομικές Διευθύνσεις"
+
+msgid "Additional Individual Address"
+msgstr "Επιπλέον Ατομική Διεύθυνση"
+
+msgid "Assign Missing Addresses"
+msgstr "Εκχώρηση Διευθύνσεων που Λείπουν"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "Η γραμμή δεν παρέχει αρκετές διευθύνσεις για όλες τις απαραίτητες πρόσθετες διευθύνσεις."
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "Εισαγάγετε αριθμό συσκευής από 1 έως 255 ή πλήρη ατομική διεύθυνση στη γραμμή της συσκευής."
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "Μια επιπλέον διεύθυνση πρέπει να βρίσκεται στη γραμμή {line} της συσκευής."
+
+msgid "The individual address {address} is already used in this line."
+msgstr "Η ατομική διεύθυνση {address} χρησιμοποιείται ήδη σε αυτή τη γραμμή."
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "Η επιπλέον διεύθυνση της συσκευής '{0}' άλλαξε από '{1}' σε '{2}'."
+
+msgid "Change additional address names"
+msgstr "Αλλαγή ονομάτων επιπλέον διευθύνσεων"
+
+msgid "Change additional address descriptions"
+msgstr "Αλλαγή περιγραφών επιπλέον διευθύνσεων"
+
+msgid "Assign additional addresses"
+msgstr "Εκχώρηση επιπλέον διευθύνσεων"
+
+msgid "Change additional addresses"
+msgstr "Αλλαγή επιπλέον διευθύνσεων"
+
+msgid "Add device {name}"
+msgstr "Προσθήκη συσκευής {name}"
+
+msgid "Set {ref} = {value}"
+msgstr "Ορισμός {ref} = {value}"
+
+msgid "Change"
+msgstr "Αλλαγή"
+
+msgid "Create area {address}"
+msgstr "Δημιουργία περιοχής {address}"
+
+msgid "Create line {address}"
+msgstr "Δημιουργία γραμμής {address}"
+
+msgid "Add segment"
+msgstr "Προσθήκη τμήματος"
+
+msgid "Create group address {address}"
+msgstr "Δημιουργία διεύθυνσης ομάδας {address}"
+
+msgid "Import group addresses"
+msgstr "Εισαγωγή διευθύνσεων ομάδων"
+
+msgid "Import group addresses from {file}"
+msgstr "Εισαγωγή διευθύνσεων ομάδων από {file}"
+
+msgid "Link group object"
+msgstr "Σύνδεση αντικειμένου επικοινωνίας"
+
+msgid "Unlink group object"
+msgstr "Αποσύνδεση αντικειμένου επικοινωνίας"
+
+msgid "Rename area to {name}"
+msgstr "Μετονομασία περιοχής σε {name}"
+
+msgid "Rename project to {name}"
+msgstr "Μετονομασία έργου σε {name}"
+
+msgid "Rename line to {name}"
+msgstr "Μετονομασία γραμμής σε {name}"
+
+msgid "Rename device to {name}"
+msgstr "Μετονομασία συσκευής σε {name}"
+
+msgid "Move device"
+msgstr "Μετακίνηση συσκευής"
+
+msgid "Set flag"
+msgstr "Ορισμός flag"
+
+msgid "Set datapoint type"
+msgstr "Ορισμός τύπου datapoint"
+
+msgid "Set priority"
+msgstr "Ορισμός προτεραιότητας"
+
+msgid "Set description"
+msgstr "Ορισμός περιγραφής"
+
+msgid "Set sending group address"
+msgstr "Ορισμός διεύθυνσης ομάδας αποστολής"
+
+msgid "Add installation"
+msgstr "Προσθήκη εγκατάστασης"
+
+msgid "Remove device"
+msgstr "Αφαίρεση συσκευής"
+
+msgid "Remove area"
+msgstr "Αφαίρεση περιοχής"
+
+msgid "Remove line"
+msgstr "Αφαίρεση γραμμής"
+
+msgid "Remove segment"
+msgstr "Αφαίρεση τμήματος"
+
+msgid "Remove group address"
+msgstr "Αφαίρεση διεύθυνσης ομάδας"
+
+msgid "Remove function"
+msgstr "Αφαίρεση λειτουργίας"
+
+msgid "Remove group address from function"
+msgstr "Αφαίρεση διεύθυνσης ομάδας από λειτουργία"
+
+msgid "Remove building part"
+msgstr "Αφαίρεση τμήματος κτιρίου"
+
+msgid "Remove group range"
+msgstr "Αφαίρεση εύρους ομάδων"
+
+msgid "Update application program"
+msgstr "Ενημέρωση προγράμματος εφαρμογής"
+
+msgid "Change application program"
+msgstr "Αλλαγή προγράμματος εφαρμογής"
+
+msgid "Update group objects"
+msgstr "Ενημέρωση αντικειμένων επικοινωνίας"
+
+msgid "Update module instances"
+msgstr "Ενημέρωση στιγμιοτύπων μονάδων"
+
+msgid "Set group address security"
+msgstr "Ορισμός ασφάλειας διεύθυνσης ομάδας"
+
+msgid "Set secure commissioning"
+msgstr "Ορισμός ασφαλούς θέσης σε λειτουργία"
+
+msgid "Rename group address to {name}"
+msgstr "Μετονομασία διεύθυνσης ομάδας σε {name}"
+
+msgid "Change group address"
+msgstr "Αλλαγή διεύθυνσης ομάδας"
+
+msgid "Set device certificates"
+msgstr "Ορισμός πιστοποιητικών συσκευών"
+
+msgid "Set device description"
+msgstr "Ορισμός περιγραφής συσκευής"
+
+msgid "Create function {name}"
+msgstr "Δημιουργία λειτουργίας {name}"
+
+msgid "Rename function to {name}"
+msgstr "Μετονομασία λειτουργίας σε {name}"
+
+msgid "Set function type"
+msgstr "Ορισμός τύπου λειτουργίας"
+
+msgid "Add group address to function"
+msgstr "Προσθήκη διεύθυνσης ομάδας σε λειτουργία"
+
+msgid "Create building part {name}"
+msgstr "Δημιουργία τμήματος κτιρίου {name}"
+
+msgid "Rename building part to {name}"
+msgstr "Μετονομασία τμήματος κτιρίου σε {name}"
+
+msgid "Set building part number"
+msgstr "Ορισμός αριθμού τμήματος κτιρίου"
+
+msgid "Set building part description"
+msgstr "Ορισμός περιγραφής τμήματος κτιρίου"
+
+msgid "Set building part type"
+msgstr "Ορισμός τύπου τμήματος κτιρίου"
+
+msgid "Move building part"
+msgstr "Μετακίνηση τμήματος κτιρίου"
+
+msgid "Assign device to building part"
+msgstr "Αντιστοίχιση συσκευής σε τμήμα κτιρίου"
+
+msgid "Set commissioning state"
+msgstr "Ορισμός κατάστασης θέσης σε λειτουργία"
+
+msgid "Create group range {name}"
+msgstr "Δημιουργία εύρους ομάδων {name}"
+
+msgid "Rename group range to {name}"
+msgstr "Μετονομασία εύρους ομάδων σε {name}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: χωρίς ατομική διεύθυνση"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: μη έγκυρη διεύθυνση '{address}'"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: διπλή διεύθυνση {address}"
+
+msgid "added"
+msgstr "προστέθηκε"
+
+msgid "removed"
+msgstr "αφαιρέθηκε"
+
+msgid "changed"
+msgstr "άλλαξε"
+
+msgid "Installation Hints"
+msgstr "Συμβουλές Εγκατάστασης"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Επιλέξτε ένα στοιχείο σε ένα δέντρο για να δείτε το σχόλιό του."
+
+msgid "Set comment"
+msgstr "Ορισμός σχολίου"
+
+msgid "Set installation hints"
+msgstr "Ορισμός συμβουλών εγκατάστασης"
+
+msgid "Area"
+msgstr "Περιοχή"
+
+msgid "Line"
+msgstr "Γραμμή"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Η διεύθυνση είναι ένας αριθμός από 0 έως 15."
+
+msgid "Address {address} is already in use."
+msgstr "Η διεύθυνση {address} χρησιμοποιείται ήδη."
+
+msgid "Set area description"
+msgstr "Ορισμός περιγραφής περιοχής"
+
+msgid "Set line description"
+msgstr "Ορισμός περιγραφής γραμμής"
+
+msgid "Set area address"
+msgstr "Ορισμός διεύθυνσης περιοχής"
+
+msgid "Set line address"
+msgstr "Ορισμός διεύθυνσης γραμμής"
+
+msgid "Main Group"
+msgstr "Κύρια Ομάδα"
+
+msgid "Middle Group"
+msgstr "Μεσαία Ομάδα"
+
+msgid "Group Range"
+msgstr "Εύρος Ομάδων"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "Η κύρια ομάδα είναι ένας αριθμός από 0 έως 31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "Η μεσαία ομάδα είναι ένας αριθμός από 0 έως 7."
+
+msgid "Set group address description"
+msgstr "Ορισμός περιγραφής διεύθυνσης ομάδας"
+
+msgid "Set group range description"
+msgstr "Ορισμός περιγραφής εύρους ομάδων"
+
+msgid "Set group range address"
+msgstr "Ορισμός διεύθυνσης εύρους ομάδων"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "Κανάλι {n}"
+
+msgid "Colour Temp (K)"
+msgstr "Θερμοκρασία χρώματος (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Συνδεθείτε σε διεπαφή KNX για να διαβάσετε τον δίαυλο Siemens DALI."
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "Κανάλι DALI"
+
+msgid "DALI commissioning"
+msgstr "Έναρξη λειτουργίας DALI"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "Η έναρξη λειτουργίας DALI γράφει στο gateway μέσω του διαύλου, αλλά δεν ενημερώνει τις παραμέτρους του έργου· εξάγετε ξανά το .knxproj μετά από επεξεργασία στην πλευρά DCA."
+
+msgid "Default"
+msgstr "Προεπιλογή"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Επεξεργάσιμη εναλλακτική για παραμέτρους των οποίων το plugin του κατασκευαστή δεν είναι διαθέσιμο εδώ. Η ιεραρχία ανακατασκευάζεται από τα προθέματα των ονομάτων παραμέτρων· οι ετικέτες και οι ομαδοποιήσεις ενδέχεται να είναι προσεγγιστικές. Οι αλλαγές γράφονται στο έργο και μεταφέρονται με κανονική λήψη."
+
+msgid "Min Dim"
+msgstr "Ελάχ. ρύθμιση φωτεινότητας"
+
+msgid "No parameter matches the filter."
+msgstr "Καμία παράμετρος δεν αντιστοιχεί στο φίλτρο."
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Δεν υπάρχει ακόμη αντιστοίχιση plugin για αυτή τη συσκευή. Οι παράμετροι του plugin του κατασκευαστή παραμένουν μη προσβάσιμες από εδώ."
+
+msgid "Parameter"
+msgstr "Παράμετρος"
+
+msgid "Plugin Config"
+msgstr "Ρύθμιση plugin"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Πατήστε «Ανάγνωση διαύλου DALI» για να εμφανιστούν τα ECG στο gateway."
+
+msgid "Random Address"
+msgstr "Τυχαία διεύθυνση"
+
+msgid "Read DALI Bus"
+msgstr "Ανάγνωση διαύλου DALI"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Στιγμιότυπο μόνο για ανάγνωση. Η εγγραφή αντιστοιχίσεων ομάδας, σκηνών ή firmware δεν είναι ακόμη διαθέσιμη και παραμένει στο plugin του κατασκευαστή."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Προβολή μόνο για ανάγνωση. Η ιεραρχία αποτελεί κατά το δυνατόν καλύτερη ανακατασκευή από τα προθέματα ονομάτων παραμέτρων· τα ονόματα και οι ομαδοποιήσεις ενδέχεται να είναι προσεγγιστικά. Η εγγραφή τιμών δεν είναι ακόμη διαθέσιμη."
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Ανάγνωση διαύλου DALI από το αντικείμενο {object_index}…"
+
+msgid "Short Address"
+msgstr "Σύντομη διεύθυνση"
+
+msgid "Slot"
+msgstr "Υποδοχή"
+
+msgid "The application has no static parameters."
+msgstr "Η εφαρμογή δεν διαθέτει στατικές παραμέτρους."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Το πρωτόκολλο έναρξης λειτουργίας αυτού του gateway δεν έχει επαληθευτεί έναντι καταγραφής· οι εγγραφές ενδέχεται να έχουν ακατάλληλη συμπεριφορά. Προχωρήστε με προσοχή."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{count} ECG παρόντα στη γραμμή {line}"
+
+msgid "Program DCA State"
+msgstr "Προγραμματισμός κατάστασης DCA"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Στέλνει τις ρυθμίσεις των συσκευών DALI στην πύλη ως τιμές ιδιοτήτων."
+
+msgid "Add to {section}:"
+msgstr "Προσθήκη σε {section}:"
+
+msgid "No entries."
+msgstr "Καμία καταχώριση."
+
+msgid "Entry"
+msgstr "Καταχώριση"
+
+msgid "Store plugin data {name}"
+msgstr "Αποθήκευση δεδομένων plugin {name}"

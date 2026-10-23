@@ -1,0 +1,47 @@
+{
+  "app_id_prefixes": ["M-00C8_A-7405"],
+  "title": "B.E.G. DA64-230/KNX REG DALI-2",
+  "note": "Flat parameter names ending in the ECG/scene index. Scene sequence has its own prefix (SceneSequence<N>); ECG-centric parameters just append the ECG number.",
+  "sections": [
+    {
+      "regex": "^SceneSequence([0-9]+)",
+      "label": "Scene Sequence {1}"
+    },
+    {
+      "regex": "^DeviceType([0-9]+)",
+      "label": "ECG {1} - Device Type"
+    },
+    {
+      "regex": "^SwitchOn(?:Value|Delay)([0-9]+)",
+      "label": "ECG {1} - Switch On"
+    },
+    {
+      "regex": "^SwitchOff(?:Delay|ByRelative)([0-9]+)",
+      "label": "ECG {1} - Switch Off"
+    },
+    {
+      "regex": "^DimmingToAbs([0-9]+)",
+      "label": "ECG {1} - Absolute Dim"
+    },
+    {
+      "regex": "^(?:Activate|Deactivate)ForcedOperationAndSendValue([0-9]+)",
+      "label": "ECG {1} - Forced Operation"
+    },
+    {
+      "regex": "^(?:InversionOfLock|BehaviourOn(?:Lock|Unlock)(?:Value)?)([0-9]+)",
+      "label": "ECG {1} - Lock Behaviour"
+    },
+    {
+      "regex": "^Staircase(?:Timer|PreWarning)?([0-9]+)",
+      "label": "ECG {1} - Staircase"
+    },
+    {
+      "regex": "^AfterStaircaseTimerValue([0-9]+)",
+      "label": "ECG {1} - Staircase"
+    },
+    {
+      "regex": "^(?:PreWarningDuration|PreWarningValue)([0-9]+)",
+      "label": "ECG {1} - Pre-Warning"
+    }
+  ]
+}

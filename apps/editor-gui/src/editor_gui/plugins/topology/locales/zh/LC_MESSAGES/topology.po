@@ -1,0 +1,113 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor topology 1.0\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Topology"
+msgstr "拓扑"
+
+msgid "No project open"
+msgstr "未打开项目"
+
+msgid "Unassigned"
+msgstr "未分配"
+
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "拖动以移动，{key}+滚轮缩放。单击设备将其打开。"
+
+msgid "Physical"
+msgstr "物理"
+
+msgid "Building"
+msgstr "建筑"
+
+msgid "Links"
+msgstr "链接"
+
+msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
+msgstr "哪些设备通过其组地址相互通信：左侧为发送设备，右侧为接收设备。"
+
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "单击以跟踪设备或组地址，双击以打开设备。拖动以移动，{key}+滚轮缩放。"
+
+msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
+msgstr "点按以跟踪设备或组地址，点按两次以打开设备。用两指缩放。"
+
+msgid "No linked devices to show."
+msgstr "没有可显示的已链接设备。"
+
+msgid "Show"
+msgstr "显示"
+
+msgid "Whole Project"
+msgstr "整个项目"
+
+msgid "Rooms"
+msgstr "房间"
+
+msgid "Main Groups"
+msgstr "主组"
+
+msgid "Device: {device}"
+msgstr "设备：{device}"
+
+msgid "Group Address: {address}"
+msgstr "组地址：{address}"
+
+msgid "Back"
+msgstr "返回"
+
+msgid "Fit"
+msgstr "适应窗口"
+
+msgid "Sending"
+msgstr "发送"
+
+msgid "Group Addresses"
+msgstr "组地址"
+
+msgid "Receiving"
+msgstr "接收"
+
+msgid "Areas"
+msgstr "区域"
+
+msgid "Lines"
+msgstr "支线"
+
+msgid "Devices"
+msgstr "设备"
+
+msgid "Buildings"
+msgstr "建筑"
+
+msgid "+ {count} more"
+msgstr "+ 另外 {count} 个"
+
+msgid "{count} more devices outside the selection. Click to show them."
+msgstr "选择范围外还有 {count} 个设备。单击以显示。"
+
+msgid "{address}\n{senders} sending, {receivers} receiving"
+msgstr "{address}\n{senders} 个发送，{receivers} 个接收"
+
+msgid "Area {area}"
+msgstr "区域 {area}"
+
+msgid "L {line}"
+msgstr "L {line}"
+
+msgid "Zoom with two fingers. Tap a device to open it."
+msgstr "用两指缩放。点按设备将其打开。"
+
+msgid "(unnamed)"
+msgstr "（未命名）"
+
+msgid "Address: {address}"
+msgstr "地址：{address}"
+
+msgid "Application: {application}"
+msgstr "应用：{application}"

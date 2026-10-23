@@ -61,7 +61,7 @@ import re
 import time
 import xml.etree.ElementTree as ET
 import zipfile
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -108,6 +108,7 @@ from xknxeditor.proj.models import (
     Project,
     Space,
     Trade,
+    installation_hints,
 )
 
 logger = logging.getLogger(__name__)
@@ -713,6 +714,8 @@ def export_knxproj(
     remove_unused_products: bool = False,
     password: str | None = None,
     cancelled: Callable[[], bool] | None = None,
+    module_arguments: Mapping[int, Mapping[str, Sequence[tuple[str, str]]]]
+    | None = None,
 ) -> ExportResult:
     """Read the project at ``source`` (a ``.xknx``) and write a ``.knxproj`` archive to ``dest``.
 
@@ -764,6 +767,9 @@ def export_knxproj(
         returns true :class:`ExportCancelled` is raised. The archive is written to a temporary
         file that replaces ``dest`` only when it is complete, so a cancelled or failed export
         leaves ``dest`` as it was.
+      module_arguments: The arguments of module instances the project has none stored for (a device
+        added in the editor), by device id and instance id: ``(argument ref id, value)`` each. An
+        importer numbers the instance's group objects from them.
     """
     ns = _ns_for(schema)  # validate the requested schema early
     logger.debug(
@@ -843,7 +849,7 @@ def export_knxproj(
             project_name_out = project.name
             created_by, tool_version = _SCHEMA_TOOLS[schema]
             audit, missing_refs, signed, certificate = _Writer(
-                ns, created_by, tool_version
+                ns, created_by, tool_version, module_arguments=module_arguments
             ).write_archive(
                 Path(dest),
                 project,
@@ -1262,8 +1268,17 @@ class _SourceRefs:
 class _Writer:
     """Builds the ``.knxproj`` XML for one target namespace (schema 14, 20, 22 or 23)."""
 
-    def __init__(self, ns: str, created_by: str, tool_version: str) -> None:
+    def __init__(
+        self,
+        ns: str,
+        created_by: str,
+        tool_version: str,
+        *,
+        module_arguments: Mapping[int, Mapping[str, Sequence[tuple[str, str]]]]
+        | None = None,
+    ) -> None:
         self._ns = ns
+        self._module_arguments = module_arguments or {}
         self._created_by = created_by
         self._tool_version = tool_version
         # Ids and Puids of the written elements, set per archive in write_archive.
@@ -1889,8 +1904,9 @@ class _Writer:
             Name=device.name,
             ProductRefId=device.product_ref_id,
             Hardware2ProgramRefId=device.hardware2program_ref_id,
-            Description=device.description or None,
             Comment=device.comment or None,
+            Description=device.description or None,
+            InstallationHints=installation_hints(device) or None,
             LastModified=device.last_modified or None,
             # Commissioning state ("loaded" ticks + serial / last download). Emit the flags
             # only when set; an absent attribute means "not loaded" (matching genuine exports and
@@ -1916,7 +1932,8 @@ class _Writer:
         # attribute and produce invalid XML.
         if self._schema == self._source_schema:
             for key, value in (device.extra_attributes or {}).items():
-                di.set(key, value)
+                if key != "InstallationHints":
+                    di.set(key, value)
         # Genuine exports order the device's children ParameterInstanceRefs, then
         # ComObjectInstanceRefs.
         # NOTE: unlike ComObjectInstanceRef (a RELIDREF), ParameterInstanceRef/@RefId is the FULL
@@ -2202,17 +2219,29 @@ class _Writer:
         if not device.module_instances:
             return
         container = self._el(di, "ModuleInstances")
+        computed = {
+            _relidref(instance_id): arguments
+            for instance_id, arguments in self._module_arguments.get(
+                device.id, {}
+            ).items()
+        }
         for mi in device.module_instances:
+            arguments = mi.arguments or [
+                {"ref_id": ref_id, "value": value}
+                for ref_id, value in computed.get(_relidref(mi.instance_id), ())
+            ]
             module = self._el(
                 container,
                 "ModuleInstance",
-                Id=mi.instance_id,
-                RefId=re.sub(r"_MI-\d+$", "", mi.instance_id),
+                # Relative, like the group object refs that name the instance; a device added in
+                # the editor stores the full id.
+                Id=_relidref(mi.instance_id),
+                RefId=_relidref(re.sub(r"_MI-\d+$", "", mi.instance_id)),
                 RepeatIndex=mi.repeat_index or None,
             )
-            if mi.arguments:
+            if arguments:
                 args = self._el(module, "Arguments")
-                for arg in mi.arguments:
+                for arg in arguments:
                     self._el(
                         args,
                         "Argument",

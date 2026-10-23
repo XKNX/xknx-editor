@@ -14,7 +14,7 @@ msgid "Configure"
 msgstr "Konfigurieren"
 
 msgid "History"
-msgstr "Verlauf"
+msgstr "Historie"
 
 msgid "Editor"
 msgstr "Editor"
@@ -38,7 +38,7 @@ msgid "Name"
 msgstr "Name"
 
 msgid "Group Address Style"
-msgstr "Gruppenadress-Darstellung"
+msgstr "Gruppenadressansicht"
 
 msgid "Created by"
 msgstr "Erstellt von"
@@ -89,7 +89,7 @@ msgid "Parameters ({count})"
 msgstr "Parameter ({count})"
 
 msgid "Group Objects ({count})"
-msgstr "Gruppenobjekte ({count})"
+msgstr "Kommunikationsobjekte ({count})"
 
 msgid "Assigned Objects"
 msgstr "Zugewiesene Objekte"
@@ -405,7 +405,7 @@ msgid "(unsaved)"
 msgstr "(nicht gespeichert)"
 
 msgid "No history"
-msgstr "Kein Verlauf"
+msgstr "Keine Historie"
 
 msgid "Restore"
 msgstr "Wiederherstellen"
@@ -440,10 +440,10 @@ msgstr "Gruppenadresse {address} entfernt"
 msgid "Group address: {old} -> {new}"
 msgstr "Gruppenadresse: {old} -> {new}"
 
-msgid "Com object linked to group address"
-msgstr "Kommunikationsobjekt mit Gruppenadresse verknüpft"
+msgid "Group object linked to group address"
+msgstr "Kommunikationsobjekt mit Gruppenadresse verbunden"
 
-msgid "Com object unlinked from group address"
+msgid "Group object unlinked from group address"
 msgstr "Kommunikationsobjekt von Gruppenadresse getrennt"
 
 msgid "Area {number} created"
@@ -490,8 +490,8 @@ msgstr ""
 msgid "Mass Linker"
 msgstr "Massenverknüpfung"
 
-msgid "GA <> Object"
-msgstr "GA <> Objekt"
+msgid "Object <> GA"
+msgstr "Objekt <> GA"
 
 msgid "Object <> Object"
 msgstr "Objekt <> Objekt"
@@ -520,10 +520,10 @@ msgid "Target (objects)"
 msgstr "Ziel (Objekte)"
 
 msgid "Preview & Link"
-msgstr "Vorschau & Verknüpfen"
+msgstr "Vorschau & Verbinden"
 
-msgid "Add Objects…"
-msgstr "Objekte hinzufügen…"
+msgid "Add Group Objects…"
+msgstr "Kommunikationsobjekte hinzufügen…"
 
 msgid "Add Group Addresses…"
 msgstr "Gruppenadressen hinzufügen…"
@@ -553,7 +553,7 @@ msgid "{count} unpaired (ignored)"
 msgstr "{count} ohne Paar (ignoriert)"
 
 msgid "Link"
-msgstr "Verknüpfen"
+msgstr "Verbinden"
 
 msgid "GA Name ({source}, {target}, {n})"
 msgstr "GA-Name ({source}, {target}, {n})"
@@ -564,17 +564,17 @@ msgstr "Startadresse"
 msgid "Filter…"
 msgstr "Filter…"
 
-msgid "Add Communication Objects"
+msgid "Add Group Objects"
 msgstr "Kommunikationsobjekte hinzufügen"
 
 msgid "Add Group Addresses"
 msgstr "Gruppenadressen hinzufügen"
 
 msgid "Linked {count} object(s) to group addresses"
-msgstr "{count} Objekt(e) mit Gruppenadressen verknüpft"
+msgstr "{count} Objekt(e) mit Gruppenadressen verbunden"
 
 msgid "Linked {count} object pair(s) via new group addresses"
-msgstr "{count} Objektpaar(e) über neue Gruppenadressen verknüpft"
+msgstr "{count} Objektpaar(e) über neue Gruppenadressen verbunden"
 
 msgid "{count} error(s)"
 msgstr "{count} Fehler"
@@ -675,7 +675,7 @@ msgid "Click a finding to jump to the device."
 msgstr "Auf einen Befund klicken, um zum Gerät zu springen."
 
 msgid ""
-"Link many communication objects to existing group addresses at once. 1) Add "
+"Link many group objects to existing group addresses at once. 1) Add "
 "objects: '+ Selected device' (all objects of the device selected in the "
 "tree) or 'Add objects…'. 2) Set each row's target address in its dropdown — "
 "or fill them fast with 'Assign sequential' (next free addresses from the "
@@ -683,25 +683,25 @@ msgid ""
 "target."
 msgstr ""
 "Viele Kommunikationsobjekte auf einmal mit bestehenden Gruppenadressen "
-"verknüpfen. 1) Objekte hinzufügen: '+ Ausgewähltes Gerät' (alle Objekte des "
+"verbinden. 1) Objekte hinzufügen: '+ Ausgewähltes Gerät' (alle Objekte des "
 "im Baum ausgewählten Geräts) oder 'Objekte hinzufügen…'. 2) Pro Zeile die "
 "Ziel-Gruppenadresse im Dropdown wählen — oder schnell füllen mit "
 "'Sequentiell zuweisen' (nächste freie Adressen ab dem angegebenen Start) "
-"oder 'Nach Name zuordnen'. 3) 'Alle verknüpfen' verknüpft jede Zeile mit "
+"oder 'Nach Name zuordnen'. 3) 'Alle verbinden' verbindet jede Zeile mit "
 "gesetztem Ziel."
 
 msgid ""
-"Link communication objects to each other. 1) Add the source objects. 2) Pick"
+"Link group objects to each other. 1) Add the source objects. 2) Pick"
 " a partner object per row. Each pair gets a NEW group address (source sends,"
 " target receives): the address and name are suggested (first free address, "
 "name template below) but can be edited per row. 3) 'Link all' creates and "
 "links them."
 msgstr ""
-"Kommunikationsobjekte miteinander verknüpfen. 1) Quellobjekte hinzufügen. 2)"
+"Kommunikationsobjekte miteinander verbinden. 1) Quellobjekte hinzufügen. 2)"
 " Pro Zeile ein Partnerobjekt wählen. Jedes Paar bekommt eine NEUE "
 "Gruppenadresse (Quelle sendet, Ziel empfängt): Adresse und Name werden "
 "vorgeschlagen (erste freie Adresse, Namensvorlage unten), sind aber pro Zeile"
-" editierbar. 3) 'Alle verknüpfen' erzeugt und verknüpft."
+" editierbar. 3) 'Alle verbinden' erzeugt und verbindet sie."
 
 msgid "Chronological record of every mass-link operation in this session."
 msgstr ""
@@ -757,7 +757,7 @@ msgid ""
 "size; unmatched ones are reported. Parameters are not carried over."
 msgstr ""
 "Ein Gerät durch ein anderes Modell ersetzen (eine Vorlage aus dem Projekt) "
-"und dabei die Gruppenadress-Verknüpfungen behalten. Gruppenobjekte werden "
+"und dabei die Gruppenadress-Verbindungen behalten. Kommunikationsobjekte werden "
 "nach Nummer und Größe zugeordnet; nicht zuordenbare werden gemeldet. "
 "Parameter werden nicht übernommen."
 
@@ -768,20 +768,20 @@ msgid "Replace with (Template)"
 msgstr "Ersetzen durch (Vorlage)"
 
 msgid "Group Object Mapping (by Number)"
-msgstr "Gruppenobjekt-Zuordnung (nach Nummer)"
+msgstr "Kommunikationsobjekt-Zuordnung (nach Nummer)"
 
 msgid "{count} object(s) will be re-mapped"
 msgstr "{count} Objekt(e) werden neu zugeordnet"
 
 
 msgid "Replaced; re-mapped {count} group object(s)"
-msgstr "Ersetzt; {count} Gruppenobjekt(e) neu zugeordnet"
+msgstr "Ersetzt; {count} Kommunikationsobjekt(e) neu zugeordnet"
 
 msgid "Device"
 msgstr "Gerät"
 
-msgid "Object"
-msgstr "Objekt"
+msgid "Group Object"
+msgstr "Kommunikationsobjekt"
 
 msgid "DPT"
 msgstr "DPT"
@@ -789,8 +789,8 @@ msgstr "DPT"
 msgid "Target Group Address"
 msgstr "Ziel-Gruppenadresse"
 
-msgid "Target Object"
-msgstr "Zielobjekt"
+msgid "Target Group Object"
+msgstr "Ziel-Kommunikationsobjekt"
 
 msgid "Group Address"
 msgstr "Gruppenadresse"
@@ -821,7 +821,7 @@ msgid "Match by Name"
 msgstr "Nach Name zuordnen"
 
 msgid "Link All ({count})"
-msgstr "Alle verknüpfen ({count})"
+msgstr "Alle verbinden ({count})"
 
 msgid ""
 "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
@@ -940,7 +940,7 @@ msgid "Reset Device"
 msgstr "Gerät zurücksetzen"
 
 msgid "Reset Group Address Links"
-msgstr "Gruppenadress-Verknüpfungen zurücksetzen"
+msgstr "Gruppenadress-Verbindungen zurücksetzen"
 
 msgid "Reset Individual Address"
 msgstr "Physikalische Adresse zurücksetzen"
@@ -1073,7 +1073,7 @@ msgid "Parameters"
 msgstr "Parameter"
 
 msgid "Group Address Links"
-msgstr "Gruppenadress-Verknüpfungen"
+msgstr "Gruppenadress-Verbindungen"
 
 msgid "Paste"
 msgstr "Einfügen"
@@ -1124,7 +1124,7 @@ msgid "Cancel All"
 msgstr "Alle abbrechen"
 
 msgid "Clear History"
-msgstr "Verlauf löschen"
+msgstr "Historie löschen"
 
 msgid "No operations."
 msgstr "Keine Vorgänge."
@@ -1133,10 +1133,10 @@ msgid "Downloading"
 msgstr "Wird heruntergeladen"
 
 msgid "Waiting"
-msgstr "Wartend"
+msgstr "Anstehend"
 
 msgid "Finished"
-msgstr "Beendet"
+msgstr "Abgeschlossen"
 
 msgid "Canceled"
 msgstr "Abgebrochen"
@@ -1193,7 +1193,7 @@ msgid "Association Table Load State"
 msgstr "Ladezustand Assoziationstabelle"
 
 msgid "Group Object Table Load State"
-msgstr "Ladezustand Gruppenobjekttabelle"
+msgstr "Ladezustand Kommunikationsobjekttabelle"
 
 msgid "Reading the tables failed: {error}"
 msgstr "Lesen der Tabellen fehlgeschlagen: {error}"
@@ -1475,8 +1475,8 @@ msgstr "Kommentare entschlüsseln"
 msgid "Default Gateway"
 msgstr "Standard-Gateway"
 
-msgid "Delete '{name}'? Its com-objects and group-address links are removed and its individual address is freed. This can be undone."
-msgstr "'{name}' löschen? Seine Kommunikationsobjekte und Gruppenadress-Verknüpfungen werden entfernt und seine physikalische Adresse wird freigegeben. Dies kann rückgängig gemacht werden."
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "'{name}' löschen? Seine Kommunikationsobjekte und Gruppenadress-Verbindungen werden entfernt und seine physikalische Adresse wird freigegeben. Dies kann rückgängig gemacht werden."
 
 msgid "Delete Device"
 msgstr "Gerät löschen"
@@ -1552,7 +1552,7 @@ msgid "Margin Top / Left (mm)"
 msgstr "Rand oben / links (mm)"
 
 msgid "New group address (links are kept):"
-msgstr "Neue Gruppenadresse (Verknüpfungen bleiben erhalten):"
+msgstr "Neue Gruppenadresse (Verbindungen bleiben erhalten):"
 
 msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
 msgstr "Keine .NET-Laufzeitumgebung gefunden (installieren Sie das .NET SDK oder starten Sie unter Windows mit ETS)."
@@ -1575,8 +1575,8 @@ msgstr "Projektvergleich"
 msgid "Project Log"
 msgstr "Projektprotokoll"
 
-msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Com-object links move with each address. Nothing is written if any move would collide or leave the valid range."
-msgstr "Gruppenadressen umnummerieren, indem ein Versatz auf ihren Rohwert addiert wird, z. B. um Lücken zu schaffen. Die Verknüpfungen der Kommunikationsobjekte wandern mit jeder Adresse mit. Es wird nichts geschrieben, wenn eine Verschiebung kollidieren oder den gültigen Bereich verlassen würde."
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Gruppenadressen umnummerieren, indem ein Versatz auf ihren Rohwert addiert wird, z. B. um Lücken zu schaffen. Die Verbindungen der Kommunikationsobjekte wandern mit jeder Adresse mit. Es wird nichts geschrieben, wenn eine Verschiebung kollidieren oder den gültigen Bereich verlassen würde."
 
 msgid "Rows"
 msgstr "Zeilen"
@@ -1750,7 +1750,7 @@ msgid "These group addresses will then communicate in the clear:"
 msgstr "Diese Gruppenadressen kommunizieren dann unverschlüsselt:"
 
 msgid "The device's group objects will be removed from these secured group addresses:"
-msgstr "Die Gruppenobjekte des Geräts werden von diesen gesicherten Gruppenadressen entfernt:"
+msgstr "Die Kommunikationsobjekte des Geräts werden von diesen gesicherten Gruppenadressen entfernt:"
 
 msgid "Deactivate"
 msgstr "Deaktivieren"
@@ -1768,13 +1768,13 @@ msgid "Deactivated"
 msgstr "Deaktiviert"
 
 msgid "A secured group address can only be linked to devices that are commissioned securely."
-msgstr "Eine gesicherte Gruppenadresse kann nur mit Geräten verknüpft werden, die sicher in Betrieb genommen werden."
+msgstr "Eine gesicherte Gruppenadresse kann nur mit Geräten verbunden werden, die sicher in Betrieb genommen werden."
 
 msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
-msgstr "Nicht alle mit dieser Gruppenadresse verknüpften Geräte werden sicher in Betrieb genommen, daher kann sie nicht gesichert werden."
+msgstr "Nicht alle mit dieser Gruppenadresse verbundenen Geräte werden sicher in Betrieb genommen, daher kann sie nicht gesichert werden."
 
 msgid "A group object that requires secure communication would end up on a group address in the clear."
-msgstr "Ein Gruppenobjekt, das sichere Kommunikation erfordert, käme auf eine unverschlüsselte Gruppenadresse."
+msgstr "Ein Kommunikationsobjekt, das sichere Kommunikation erfordert, käme auf eine unverschlüsselte Gruppenadresse."
 
 msgid "Later"
 msgstr "Später"
@@ -1825,7 +1825,7 @@ msgid "The project has no device certificates."
 msgstr "Das Projekt hat keine Gerätezertifikate."
 
 msgid "The security tables of {device} cannot hold this link."
-msgstr "Die Sicherheitstabellen von {device} fassen diese Verknüpfung nicht."
+msgstr "Die Sicherheitstabellen von {device} fassen diese Verbindung nicht."
 
 msgid "Point-to-Point and Broadcast"
 msgstr "Punkt-zu-Punkt und Broadcast"
@@ -1855,7 +1855,7 @@ msgid "Filter devices by address, name or description…"
 msgstr "Geräte nach Adresse, Name oder Beschreibung filtern…"
 
 msgid "Group Objects"
-msgstr "Gruppenobjekte"
+msgstr "Kommunikationsobjekte"
 
 msgid "No differences"
 msgstr "Keine Unterschiede"
@@ -1886,6 +1886,22 @@ msgstr "Ein Teil der Gerätedaten ist nicht verfügbar."
 
 msgid "Connect to a KNX interface to commission the DALI bus."
 msgstr "Für die Inbetriebnahme des DALI-Busses mit einer KNX-Schnittstelle verbinden."
+
+msgid ""
+"This gateway's commissioning protocol has not been verified against a "
+"capture; writes may misbehave. Proceed with care."
+msgstr ""
+"Das Inbetriebnahme-Protokoll dieses Gateways wurde nicht gegen eine "
+"Aufzeichnung verifiziert; Schreibvorgänge können fehlerhaft sein. Mit "
+"Vorsicht fortfahren."
+
+msgid ""
+"DALI commissioning writes the gateway on the bus but does not update the "
+"project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr ""
+"Die DALI-Inbetriebnahme beschreibt das Gateway auf dem Bus, aktualisiert "
+"aber nicht die Projekt-Parameter; nach einer DCA-seitigen Änderung die "
+".knxproj erneut exportieren."
 
 msgid "Scan Bus"
 msgstr "Bus scannen"
@@ -2080,7 +2096,393 @@ msgid "Parameters in the Manufacturer's Plugin"
 msgstr "Parameter im Plugin des Herstellers"
 
 msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
-msgstr "Der Hersteller stellt die Parameter dieses Geräts in einem eigenen Plugin-Dialog ein, den XKNX Editor nicht ausführen kann; sie können deshalb hier nicht geändert werden. Ein Download schreibt ihre aktuellen Werte unverändert; die Gruppenobjekte lassen sich wie gewohnt verknüpfen."
+msgstr "Der Hersteller stellt die Parameter dieses Geräts in einem eigenen Plugin-Dialog ein, den XKNX Editor nicht ausführen kann; sie können deshalb hier nicht geändert werden. Ein Download schreibt ihre aktuellen Werte unverändert; die Kommunikationsobjekte lassen sich wie gewohnt verbinden."
 
 msgid "Edit parameters anyway"
 msgstr "Parameter trotzdem bearbeiten"
+
+msgid "Matching DPT Only"
+msgstr "Nur passender DPT"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Nur Gruppenadressen mit dem Hauptdatenpunkttyp des Objekts und solche ohne einen (sie übernehmen beim Verbinden den Typ des Objekts)."
+
+msgid "no DPT"
+msgstr "kein DPT"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Nur Objekte mit demselben Hauptdatenpunkttyp und solche ohne einen."
+
+msgid "Select a device in the tree first."
+msgstr "Zuerst ein Gerät im Baum auswählen."
+
+msgid "{device} has no group objects."
+msgstr "{device} hat keine Kommunikationsobjekte."
+
+msgid "All objects of {device} are in the list already."
+msgstr "Alle Objekte von {device} sind bereits in der Liste."
+
+msgid "Link group objects to existing group addresses."
+msgstr "Kommunikationsobjekte mit bestehenden Gruppenadressen verbinden."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Objekte mit \"{add_device}\" oder \"{add_objects}\" hinzufügen."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Pro Zeile eine Gruppenadresse wählen oder alle mit \"{match}\" oder \"{sequential}\" füllen."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "\"{link_all}\" verbindet jede Zeile, die eine hat."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Objekte über je eine neue Gruppenadresse miteinander verbinden: die Quelle sendet, das Ziel empfängt."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Die Quellobjekte mit \"{add_device}\" oder \"{add_objects}\" hinzufügen."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Pro Zeile ein Zielobjekt wählen. Adresse und Name werden vorgeschlagen und lassen sich ändern."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "\"{link_all}\" legt die Gruppenadressen an und verbindet sie."
+
+msgid "Link All"
+msgstr "Alle verbinden"
+
+msgid "Object"
+msgstr "Objekt"
+
+msgid "Ready to link."
+msgstr "Bereit zum Verbinden."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Gruppenadresse prüfen: mehrere passen oder ein Datenpunkttyp ist unbekannt."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "Die Datenpunkttypen passen nicht; diese Zeile wird nicht verbunden."
+
+msgid "No group address chosen yet."
+msgstr "Noch keine Gruppenadresse gewählt."
+
+msgid "Add device {name}"
+msgstr "Gerät {name} hinzufügen"
+
+msgid "Set {ref} = {value}"
+msgstr "{ref} = {value} setzen"
+
+msgid "Change"
+msgstr "Änderung"
+
+msgid "Create area {address}"
+msgstr "Bereich {address} anlegen"
+
+msgid "Create line {address}"
+msgstr "Linie {address} anlegen"
+
+msgid "Add segment"
+msgstr "Segment hinzufügen"
+
+msgid "Create group address {address}"
+msgstr "Gruppenadresse {address} anlegen"
+
+msgid "Import group addresses"
+msgstr "Gruppenadressen importieren"
+
+msgid "Import group addresses from {file}"
+msgstr "Gruppenadressen aus {file} importieren"
+
+msgid "Link group object"
+msgstr "Kommunikationsobjekt verbinden"
+
+msgid "Unlink group object"
+msgstr "Verbindung des Kommunikationsobjekts trennen"
+
+msgid "Rename area to {name}"
+msgstr "Bereich in {name} umbenennen"
+
+msgid "Rename project to {name}"
+msgstr "Projekt in {name} umbenennen"
+
+msgid "Rename line to {name}"
+msgstr "Linie in {name} umbenennen"
+
+msgid "Rename device to {name}"
+msgstr "Gerät in {name} umbenennen"
+
+msgid "Move device"
+msgstr "Gerät verschieben"
+
+msgid "Set flag"
+msgstr "Flag setzen"
+
+msgid "Set datapoint type"
+msgstr "Datenpunkttyp festlegen"
+
+msgid "Set priority"
+msgstr "Priorität festlegen"
+
+msgid "Set description"
+msgstr "Beschreibung festlegen"
+
+msgid "Set sending group address"
+msgstr "Sendende Gruppenadresse festlegen"
+
+msgid "Add installation"
+msgstr "Installation hinzufügen"
+
+msgid "Remove device"
+msgstr "Gerät entfernen"
+
+msgid "Remove area"
+msgstr "Bereich entfernen"
+
+msgid "Remove line"
+msgstr "Linie entfernen"
+
+msgid "Remove segment"
+msgstr "Segment entfernen"
+
+msgid "Remove group address"
+msgstr "Gruppenadresse entfernen"
+
+msgid "Remove function"
+msgstr "Funktion entfernen"
+
+msgid "Remove group address from function"
+msgstr "Gruppenadresse aus Funktion entfernen"
+
+msgid "Remove building part"
+msgstr "Gebäudeteil entfernen"
+
+msgid "Remove group range"
+msgstr "Gruppenbereich entfernen"
+
+msgid "Update application program"
+msgstr "Applikationsprogramm aktualisieren"
+
+msgid "Change application program"
+msgstr "Applikationsprogramm ändern"
+
+msgid "Update group objects"
+msgstr "Kommunikationsobjekte aktualisieren"
+
+msgid "Update module instances"
+msgstr "Modulinstanzen aktualisieren"
+
+msgid "Set group address security"
+msgstr "Sicherheit der Gruppenadresse festlegen"
+
+msgid "Set secure commissioning"
+msgstr "Sichere Inbetriebnahme festlegen"
+
+msgid "Rename group address to {name}"
+msgstr "Gruppenadresse in {name} umbenennen"
+
+msgid "Change group address"
+msgstr "Gruppenadresse ändern"
+
+msgid "Set device certificates"
+msgstr "Gerätezertifikate festlegen"
+
+msgid "Set device description"
+msgstr "Gerätebeschreibung festlegen"
+
+msgid "Create function {name}"
+msgstr "Funktion {name} anlegen"
+
+msgid "Rename function to {name}"
+msgstr "Funktion in {name} umbenennen"
+
+msgid "Set function type"
+msgstr "Funktionstyp festlegen"
+
+msgid "Add group address to function"
+msgstr "Gruppenadresse zur Funktion hinzufügen"
+
+msgid "Create building part {name}"
+msgstr "Gebäudeteil {name} anlegen"
+
+msgid "Rename building part to {name}"
+msgstr "Gebäudeteil in {name} umbenennen"
+
+msgid "Set building part number"
+msgstr "Nummer des Gebäudeteils festlegen"
+
+msgid "Set building part description"
+msgstr "Beschreibung des Gebäudeteils festlegen"
+
+msgid "Set building part type"
+msgstr "Typ des Gebäudeteils festlegen"
+
+msgid "Move building part"
+msgstr "Gebäudeteil verschieben"
+
+msgid "Assign device to building part"
+msgstr "Gerät einem Gebäudeteil zuordnen"
+
+msgid "Set commissioning state"
+msgstr "Inbetriebnahmestatus festlegen"
+
+msgid "Create group range {name}"
+msgstr "Gruppenbereich {name} anlegen"
+
+msgid "Rename group range to {name}"
+msgstr "Gruppenbereich in {name} umbenennen"
+
+msgid "{device}: no individual address"
+msgstr "{device}: keine physikalische Adresse"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: ungültige Adresse '{address}'"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: doppelte Adresse {address}"
+
+msgid "Installation Hints"
+msgstr "Installationshinweise"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Wählen Sie ein Element in einem Baum aus, um seinen Kommentar zu sehen."
+
+msgid "Set comment"
+msgstr "Kommentar festlegen"
+
+msgid "Set installation hints"
+msgstr "Installationshinweise festlegen"
+
+msgid "Area"
+msgstr "Bereich"
+
+msgid "Line"
+msgstr "Linie"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Die Adresse ist eine Zahl von 0 bis 15."
+
+msgid "Address {address} is already in use."
+msgstr "Die Adresse {address} ist bereits belegt."
+
+msgid "Set area description"
+msgstr "Bereichsbeschreibung festlegen"
+
+msgid "Set line description"
+msgstr "Linienbeschreibung festlegen"
+
+msgid "Set area address"
+msgstr "Bereichsadresse festlegen"
+
+msgid "Set line address"
+msgstr "Linienadresse festlegen"
+
+msgid "Main Group"
+msgstr "Hauptgruppe"
+
+msgid "Middle Group"
+msgstr "Mittelgruppe"
+
+msgid "Group Range"
+msgstr "Gruppenbereich"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "Die Hauptgruppe ist eine Zahl von 0 bis 31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "Die Mittelgruppe ist eine Zahl von 0 bis 7."
+
+msgid "Set group address description"
+msgstr "Gruppenadressbeschreibung festlegen"
+
+msgid "Set group range description"
+msgstr "Gruppenbereichsbeschreibung festlegen"
+
+msgid "Set group range address"
+msgstr "Gruppenbereichsadresse festlegen"
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Mit einer KNX-Schnittstelle verbinden, um den Siemens-DALI-Bus zu lesen."
+
+msgid "Read DALI Bus"
+msgstr "DALI-Bus lesen"
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "DALI-Bus wird aus Objekt {object_index} gelesen…"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Mit „DALI-Bus lesen“ die EVGs des Gateways auflisten."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{count} EVG(s) auf Linie {line} vorhanden"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Nur-Lese-Schnappschuss. Das Schreiben von Gruppenzuordnung, Szenen oder Firmware ist noch nicht verfügbar und bleibt beim Hersteller-Plugin."
+
+msgid "Short Address"
+msgstr "Kurzadresse"
+
+msgid "Random Address"
+msgstr "Zufallsadresse"
+
+msgid "Min Dim"
+msgstr "Min. Dimmwert"
+
+msgid "Colour Temp (K)"
+msgstr "Farbtemp. (K)"
+
+msgid "Slot"
+msgstr "Slot"
+
+msgid "Plugin Config"
+msgstr "Plugin-Konfiguration"
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Für dieses Gerät ist noch keine Plugin-Zuordnung hinterlegt. Die Parameter des Hersteller-Plugins bleiben hier unerreichbar."
+
+msgid "The application has no static parameters."
+msgstr "Die Applikation hat keine statischen Parameter."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Nur-Lesen-Ansicht. Die Hierarchie ist eine Best-effort-Rekonstruktion aus Parameternamen-Prefixen; Namen und Gruppen können grob sein. Werteschreiben ist noch nicht verfügbar."
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "No parameter matches the filter."
+msgstr "Kein Parameter entspricht dem Filter."
+
+msgid "Parameter"
+msgstr "Parameter"
+
+msgid "Default"
+msgstr "Vorgabe"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Editierbare Ersatzansicht für Parameter, deren Hersteller-Plugin hier nicht verfügbar ist. Die Hierarchie ist aus Parameternamen-Prefixen rekonstruiert; Labels und Gruppen können grob sein. Änderungen werden im Projekt gespeichert und mit einem normalen Download übertragen."
+
+msgid "DALI commissioning"
+msgstr "DALI-Inbetriebnahme"
+
+msgid "DALI Channel"
+msgstr "DALI-Kanal"
+
+msgid "Channel {n}"
+msgstr "Kanal {n}"
+
+msgid "Program DCA State"
+msgstr "DCA-Zustand programmieren"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Sendet die DALI-Geräteeinstellungen als Eigenschaftswerte an das Gateway."
+
+msgid "Add to {section}:"
+msgstr "Zu {section} hinzufügen:"
+
+msgid "No entries."
+msgstr "Keine Einträge."
+
+msgid "Entry"
+msgstr "Eintrag"
+
+msgid "Store plugin data {name}"
+msgstr "Plugin-Daten {name} speichern"

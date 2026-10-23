@@ -1,0 +1,392 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor monitor 1.0\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Monitor"
+msgstr "Seuranta"
+
+msgid "No group addresses (open or import a project)"
+msgstr "Ei ryhmäosoitteita (avaa tai tuo projekti)"
+
+msgid "Not Connected"
+msgstr "Ei yhteyttä"
+
+msgid "value (e.g. on / 21.5 / 50)"
+msgstr "arvo (esim. on / 21.5 / 50)"
+
+msgid "Value:"
+msgstr "Arvo:"
+
+msgid "Filter by address or name…"
+msgstr "Suodata osoitteen tai nimen mukaan…"
+
+msgid "Write"
+msgstr "Kirjoita"
+
+msgid "Read"
+msgstr "Lue"
+
+msgid "Group Objects"
+msgstr "Ryhmäobjektit"
+
+msgid "Bus Monitor"
+msgstr "Väylän Seuranta"
+
+msgid "Group Monitor"
+msgstr "Ryhmäseuranta"
+
+msgid "Bus Activity"
+msgstr "Väylän toiminta"
+
+msgid "Clear"
+msgstr "Tyhjennä"
+
+msgid "Show Extended Information"
+msgstr "Näytä laajennetut tiedot"
+
+msgid "Hide Extended Information"
+msgstr "Piilota laajennetut tiedot"
+
+msgid "{count} teleg."
+msgstr "{count} teleg."
+
+msgid "Load: {rate} t/s"
+msgstr "Kuorma: {rate} sähkettä/s"
+
+msgid "Group Address:"
+msgstr "Ryhmäosoite:"
+
+msgid "e.g. 1/2/3"
+msgstr "esim. 1/2/3"
+
+msgid "Enter a group address of the project to send to it."
+msgstr "Anna projektin ryhmäosoite, johon lähetetään."
+
+msgid "Start"
+msgstr "Käynnistä"
+
+msgid "Stop"
+msgstr "Pysäytä"
+
+msgid "Import"
+msgstr "Tuo"
+
+msgid "Export"
+msgstr "Vie"
+
+msgid "Print"
+msgstr "Tulosta"
+
+msgid "Replay Telegrams"
+msgstr "Toista sähkeet"
+
+msgid "Stop Replay"
+msgstr "Lopeta toisto"
+
+msgid "Start recording the group telegrams"
+msgstr "Aloita ryhmäsähkeiden tallennus"
+
+msgid "Start recording the connection's communication other than group telegrams, including every frame this app sends"
+msgstr "Aloita yhteyden muun kuin ryhmäsähkeliikenteen tallennus, mukaan lukien jokainen tämän sovelluksen lähettämä kehys"
+
+msgid "Connect the interface in bus monitor mode and record every frame"
+msgstr "Yhdistä rajapinta väylän seurantatilassa ja tallenna jokainen kehys"
+
+msgid "Stop recording"
+msgstr "Lopeta tallennus"
+
+msgid "Close the bus monitor connection and restore the normal connection"
+msgstr "Sulje väylän seurannan yhteys ja palauta normaali yhteys"
+
+msgid "Remove all telegrams"
+msgstr "Poista kaikki sähkeet"
+
+msgid "Load a recording"
+msgstr "Lataa tallenne"
+
+msgid "Save the telegrams to a file"
+msgstr "Talleta sähkeet tiedostoon"
+
+msgid "Print the telegrams as a PDF document"
+msgstr "Tulosta sähkeet PDF-asiakirjana"
+
+msgid "Send the selected group telegrams (all if none is selected) again with their original timing"
+msgstr "Lähetä valitut ryhmäsähkeet (kaikki, jos mitään ei ole valittu) uudelleen alkuperäisellä ajoituksellaan"
+
+msgid "Cancel the replay"
+msgstr "Peruuta toisto"
+
+msgid "Copy"
+msgstr "Kopioi"
+
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Kopioi valitut sähkeet (kaikki näytetyt, jos mitään ei ole valittu) leikepöydälle ({shortcut}). Kaksoisnapsauta sähkettä valitaksesi sen lähdelaitteen."
+
+msgid "Rec."
+msgstr "Tall."
+
+msgid "Stopped"
+msgstr "Pysäytetty"
+
+msgid "Replaying {done}/{total}"
+msgstr "Toistetaan {done}/{total}"
+
+msgid "Connecting in bus monitor mode…"
+msgstr "Yhdistetään väylän seurantatilassa…"
+
+msgid "Closing the bus monitor connection…"
+msgstr "Suljetaan väylän seurannan yhteyttä…"
+
+msgid "Bus monitor mode: the normal connection is closed. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Väylän seurantatila: normaali yhteys on suljettu. Mitään ei voi lähettää tai ladata ennen kuin väylän seuranta lopetetaan."
+
+msgid "Start Bus Monitor"
+msgstr "Käynnistä väylän seuranta"
+
+msgid "The bus monitor connects the interface in bus monitor mode. The normal connection is closed while the bus monitor runs: nothing can be sent or downloaded in that time. Stopping the bus monitor restores the normal connection.\n\nStart the bus monitor?"
+msgstr "Väylän seuranta yhdistää rajapinnan väylän seurantatilassa. Normaali yhteys on suljettuna väylän seurannan ajan: sinä aikana mitään ei voi lähettää tai ladata. Kun väylän seuranta lopetetaan, normaali yhteys palautetaan.\n\nKäynnistetäänkö väylän seuranta?"
+
+msgid "The bus monitor is not supported for this connection type. It needs a tunnelling connection."
+msgstr "Väylän seurantaa ei tueta tällä yhteystyypillä. Se vaatii tunnelointiyhteyden."
+
+msgid "The interface does not support bus monitor mode."
+msgstr "Rajapinta ei tue väylän seurantatilaa."
+
+msgid "The interface rejected bus monitor mode: another client holds a connection to it."
+msgstr "Rajapinta hylkäsi väylän seurantatilan: toisella asiakkaalla on yhteys siihen."
+
+msgid "The bus monitor connection could not be established."
+msgstr "Väylän seurannan yhteyttä ei voitu muodostaa."
+
+msgid "The normal connection is restored."
+msgstr "Normaali yhteys on palautettu."
+
+msgid "Unsaved Telegrams"
+msgstr "Talletamattomat sähkeet"
+
+msgid "The telegrams have not been exported. Clear them anyway?"
+msgstr "Sähkeitä ei ole viety. Tyhjennetäänkö ne silti?"
+
+msgid "The telegrams have not been exported. Loading a recording replaces them and stops the recording. Continue?"
+msgstr "Sähkeitä ei ole viety. Tallenteen lataaminen korvaa ne ja lopettaa tallennuksen. Jatketaanko?"
+
+msgid "Loading a recording replaces the telegrams and stops the recording. Continue?"
+msgstr "Tallenteen lataaminen korvaa sähkeet ja lopettaa tallennuksen. Jatketaanko?"
+
+msgid "Yes"
+msgstr "Kyllä"
+
+msgid "No"
+msgstr "Ei"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Peruuta"
+
+msgid "Export Telegrams"
+msgstr "Vie sähkeet"
+
+msgid "Print Telegrams"
+msgstr "Tulosta sähkeet"
+
+msgid "Which telegrams?"
+msgstr "Mitkä sähkeet?"
+
+msgid "All Telegrams ({count})"
+msgstr "Kaikki sähkeet ({count})"
+
+msgid "Selected Telegrams ({count})"
+msgstr "Valitut sähkeet ({count})"
+
+msgid "Filtered Telegrams ({count})"
+msgstr "Suodatetut sähkeet ({count})"
+
+msgid "Telegram recordings"
+msgstr "Sähketallenteet"
+
+msgid "All files"
+msgstr "Kaikki tiedostot"
+
+msgid "{count} telegrams exported to {path}"
+msgstr "Sähkeitä vietiin {count}: {path}"
+
+msgid "Export failed: {error}"
+msgstr "Vienti epäonnistui: {error}"
+
+msgid "{count} entries loaded from {path}"
+msgstr "Merkintöjä ladattiin {count}: {path}"
+
+msgid "Loading failed: {error}"
+msgstr "Lataus epäonnistui: {error}"
+
+msgid "{count} telegrams in another frame format were skipped"
+msgstr "Ohitettiin {count} sähkettä, joiden kehysmuoto on toinen"
+
+msgid "Printing failed: {error}"
+msgstr "Tulostus epäonnistui: {error}"
+
+msgid "Page {page}"
+msgstr "Sivu {page}"
+
+msgid "{count} Data Secure telegrams are not replayed"
+msgstr "Data Secure -sähkeitä ei toisteta: {count}"
+
+msgid "There are no group telegrams to replay"
+msgstr "Toistettavia ryhmäsähkeitä ei ole"
+
+msgid "Replay finished: {count} telegrams sent"
+msgstr "Toisto valmis: {count} sähkettä lähetetty"
+
+msgid "Replay cancelled: {count} telegrams sent"
+msgstr "Toisto peruutettu: {count} sähkettä lähetetty"
+
+msgid "from bus"
+msgstr "väylältä"
+
+msgid "to bus"
+msgstr "väylään"
+
+msgid "Connection event"
+msgstr "Yhteystapahtuma"
+
+msgid "Invalid frame"
+msgstr "Virheellinen kehys"
+
+msgid "Comment"
+msgstr "Kommentti"
+
+msgid "Recording was started, Host={host}, Connection={connection}, Mode={mode}"
+msgstr "Tallennus aloitettiin, isäntä={host}, yhteys={connection}, tila={mode}"
+
+msgid "Recording was stopped"
+msgstr "Tallennus pysäytettiin"
+
+msgid "Connection was established"
+msgstr "Yhteys muodostettiin"
+
+msgid "Connection was lost"
+msgstr "Yhteys katkesi"
+
+msgid "System"
+msgstr "Järjestelmä"
+
+msgid "Normal"
+msgstr "Normaali"
+
+msgid "Urgent"
+msgstr "Kiireellinen"
+
+msgid "Low"
+msgstr "Matala"
+
+msgid "Standard"
+msgstr "Standardi"
+
+msgid "Extended"
+msgstr "Laajennettu"
+
+msgid "#"
+msgstr "#"
+
+msgid "Date"
+msgstr "Päivämäärä"
+
+msgid "Time"
+msgstr "Aika"
+
+msgid "Service"
+msgstr "Palvelu"
+
+msgid "Flags"
+msgstr "Merkit"
+
+msgid "Prio"
+msgstr "Prior"
+
+msgid "Source Address"
+msgstr "Lähdeosoite"
+
+msgid "Source Name"
+msgstr "Lähteen nimi"
+
+msgid "Destination Address"
+msgstr "Kohdeosoite"
+
+msgid "Destination Name"
+msgstr "Kohteen nimi"
+
+msgid "Building Part"
+msgstr "Rakennuksen osa"
+
+msgid "Building Function"
+msgstr "Rakennuksen toiminto"
+
+msgid "Hop Count"
+msgstr "Hyppyjen määrä"
+
+msgid "Telegram Type"
+msgstr "Sähkeen tyyppi"
+
+msgid "Telegram Type (Short)"
+msgstr "Sähkeen tyyppi (lyhyt)"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Value"
+msgstr "Arvo"
+
+msgid "Iack"
+msgstr "Ivahv"
+
+msgid "Raw Data"
+msgstr "Raakadata"
+
+msgid "Raw Value"
+msgstr "Muotoilematon arvo"
+
+msgid "Message Code"
+msgstr "Viestikoodi"
+
+msgid "Repeated"
+msgstr "Toistettu"
+
+msgid "Security"
+msgstr "Turvallisuus"
+
+msgid "Frame Format"
+msgstr "Kehyksen muoto"
+
+msgid "System Broadcast"
+msgstr "Järjestelmän yleislähetys"
+
+msgid "Interface"
+msgstr "Rajapinta"
+
+msgid "MediumInfo"
+msgstr "MediaInfo"
+
+msgid "Source Description"
+msgstr "Lähteen kuvaus"
+
+msgid "Destination Description"
+msgstr "Kohteen kuvaus"
+
+msgid "Address"
+msgstr "Osoite"
+
+msgid "Name"
+msgstr "Nimi"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."

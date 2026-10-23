@@ -18,6 +18,9 @@ from editor_gui.plugins.monitor.service import MonitorService
 from editor_gui.plugins.monitor.strings import S
 from editor_gui.plugins.monitor.ui import MonitorPanel
 from editor_gui.regional import regional_format
+from editor_gui.settings import load_settings, save_settings
+
+_SETTINGS = "monitor"
 
 
 class MonitorPlugin:
@@ -29,6 +32,11 @@ class MonitorPlugin:
         self._api = api
         self._service = MonitorService(api.connection)
         self._service.set_logger(Logger(api.log, "monitor"))
+        # Restore the persisted max-records cap (set in the Group Monitor toolbar).
+        stored = load_settings(_SETTINGS).get("max_records")
+        if isinstance(stored, int) and stored > 0:
+            self._service.set_max_records(stored)
+        self._service.on_max_records_changed = self._save_max_records
         self._index = ProjectIndex()
         self._formats: tuple[int, dict[str, DptFormat]] = (0, {})
         self._panel = MonitorPanel(
@@ -73,6 +81,11 @@ class MonitorPlugin:
         )
         if device is not None:
             self._api.project.selected_device = device
+
+    def _save_max_records(self, value: int) -> None:
+        data = load_settings(_SETTINGS)
+        data["max_records"] = value
+        save_settings(_SETTINGS, data)
 
     def _project_index(self) -> ProjectIndex:
         """Names, DPTs and building structure of the open project, rebuilt when it changes."""

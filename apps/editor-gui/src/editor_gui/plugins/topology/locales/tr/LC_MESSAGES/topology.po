@@ -1,0 +1,113 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor topology 1.0\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Topology"
+msgstr "Topoloji"
+
+msgid "No project open"
+msgstr "Açık proje yok"
+
+msgid "Unassigned"
+msgstr "Atanmamış"
+
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Taşımak için sürükleyin, yakınlaştırmak için {key}+kaydırma. Açmak için bir cihaza tıklayın."
+
+msgid "Physical"
+msgstr "Fiziksel"
+
+msgid "Building"
+msgstr "Bina"
+
+msgid "Links"
+msgstr "Bağlantılar"
+
+msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
+msgstr "Hangi cihazların grup adresleri üzerinden hangileriyle iletişim kurduğu: gönderen cihazlar solda, alıcı cihazlar sağda."
+
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "Bir cihazı veya grup adresini izlemek için tıklayın, bir cihazı açmak için çift tıklayın. Taşımak için sürükleyin, yakınlaştırmak için {key}+kaydırma."
+
+msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
+msgstr "Bir cihazı veya grup adresini izlemek için dokunun, bir cihazı açmak için çift dokunun. İki parmakla yakınlaştırın."
+
+msgid "No linked devices to show."
+msgstr "Gösterilecek bağlı cihaz yok."
+
+msgid "Show"
+msgstr "Göster"
+
+msgid "Whole Project"
+msgstr "Tüm Proje"
+
+msgid "Rooms"
+msgstr "Odalar"
+
+msgid "Main Groups"
+msgstr "Ana Gruplar"
+
+msgid "Device: {device}"
+msgstr "Cihaz: {device}"
+
+msgid "Group Address: {address}"
+msgstr "Grup Adresi: {address}"
+
+msgid "Back"
+msgstr "Geri"
+
+msgid "Fit"
+msgstr "Sığdır"
+
+msgid "Sending"
+msgstr "Gönderen"
+
+msgid "Group Addresses"
+msgstr "Grup Adresleri"
+
+msgid "Receiving"
+msgstr "Alıcı"
+
+msgid "Areas"
+msgstr "Alanlar"
+
+msgid "Lines"
+msgstr "Linyeler"
+
+msgid "Devices"
+msgstr "Cihazlar"
+
+msgid "Buildings"
+msgstr "Binalar"
+
+msgid "+ {count} more"
+msgstr "+ {count} tane daha"
+
+msgid "{count} more devices outside the selection. Click to show them."
+msgstr "Seçimin dışında {count} cihaz daha var. Göstermek için tıklayın."
+
+msgid "{address}\n{senders} sending, {receivers} receiving"
+msgstr "{address}\n{senders} gönderen, {receivers} alıcı"
+
+msgid "Area {area}"
+msgstr "Alan {area}"
+
+msgid "L {line}"
+msgstr "L {line}"
+
+msgid "Zoom with two fingers. Tap a device to open it."
+msgstr "İki parmakla yakınlaştırın. Açmak için bir cihaza dokunun."
+
+msgid "(unnamed)"
+msgstr "(adsız)"
+
+msgid "Address: {address}"
+msgstr "Adres: {address}"
+
+msgid "Application: {application}"
+msgstr "Uygulama: {application}"

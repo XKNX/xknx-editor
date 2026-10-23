@@ -3,6 +3,7 @@ from __future__ import annotations
 import threading
 from collections.abc import Callable
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
@@ -10,16 +11,23 @@ from imgui_bundle import imgui
 from editor_gui import file_dialogs
 from editor_gui.device_info import application_version_text
 from editor_gui.hardware_text import bus_current_text, rail_text
+from editor_gui.languages import product_text_languages
 from editor_gui.plugins.catalog.strings import S
+from editor_gui.regional import regional_format
 from editor_gui.strings import get_locale
 from editor_gui.widgets.backgrounds import fill_content_background
+from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.flow import checkbox_width, fits_beside, same_line_if_fits
+from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.tree import leaf_rows, tree_node
+from editor_gui.widgets.value_pickers import format_date
 
 if TYPE_CHECKING:
+    from editor_gui.plugins.catalog.filters import OnlineFilters
     from editor_gui.plugins.catalog.online_catalog import (
         OnlineCatalogItem,
         OnlineCatalogSection,
@@ -127,6 +135,18 @@ def _version_text(product: ProductSummary) -> str:
     return application_version_text(product.application_version)
 
 
+def fetched_date(fetched_at: str | None) -> str:
+    """When the product index was fetched (stored in UTC), as a local date in the regional short
+    date format; "-" when unknown."""
+    if not fetched_at:
+        return "-"
+    try:
+        moment = datetime.fromisoformat(fetched_at).astimezone()
+    except ValueError:
+        return "-"
+    return format_date(moment.date().isoformat(), True, regional_format())
+
+
 class CatalogPanel:
     def __init__(
         self,
@@ -149,6 +169,7 @@ class CatalogPanel:
             [str, int], tuple[list[OnlineCatalogItem], int]
         ]
         | None = None,
+        online_filters: OnlineFilters | None = None,
         add_online_item: Callable[[str], None] | None = None,
         can_add_to_project: Callable[[], bool] | None = None,
         plan_delete_product: Callable[[ProductSummary], int | None] | None = None,
@@ -187,9 +208,10 @@ class CatalogPanel:
         self._online_items: dict[int, list[OnlineCatalogItem]] = {}
         # (frame, versions in the local catalog by order number) of the last lookup.
         self._local_versions: tuple[int, dict[str, set[int | None]]] = (-1, {})
-        # Manufacturer id -> (products, (filter, language), section tree) of the tree last built.
+        # Manufacturer id -> (products, (search text, language, market and language filters),
+        # section tree) of the tree last built.
         self._online_trees: dict[
-            int, tuple[list[OnlineCatalogItem], tuple[str, str], _SectionNode]
+            int, tuple[list[OnlineCatalogItem], tuple[object, ...], _SectionNode]
         ] = {}
         self._online_items_loading: set[int] = set()
         self._online_downloading: set[str] = set()
@@ -202,6 +224,9 @@ class CatalogPanel:
         self._build_online_index = build_online_index
         self._get_online_index_status = get_online_index_status
         self._search_online_products = search_online_products
+        self._online_filters = online_filters
+        # The filters the flat search results were computed with.
+        self._flat_filters: object = None
         self._index_building = False
         self._index_progress: tuple[int, int] = (0, 0)
         self._index_cancel = False
@@ -233,7 +258,7 @@ class CatalogPanel:
     def render(self) -> None:
         self._render_missing_apps_banner()
         # Local vs Online as tabs instead of stacked sections, so each gets the full panel height.
-        if imgui.begin_tab_bar("##catalog_tabs"):
+        if begin_tab_bar("##catalog_tabs"):
             if imgui.begin_tab_item(S.TAB_LOCAL)[0]:
                 self._render_local_catalog()
                 imgui.end_tab_item()
@@ -577,6 +602,7 @@ class CatalogPanel:
             imgui.same_line()
             imgui.text_colored(imgui.ImVec4(1.0, 0.4, 0.4, 1.0), S.ONLINE_FAILED)
         self._render_index_controls()
+        self._render_online_filters()
 
         leaf_flags = (
             imgui.TreeNodeFlags_.leaf
@@ -593,9 +619,11 @@ class CatalogPanel:
         )
         query = self._online_search.lower().strip()
         fill_content_background()
+        filters = self._online_filters.key() if self._online_filters else None
         if (
-            query != self._flat_query
+            query != self._flat_query or filters != self._flat_filters
         ):  # None sentinel (after a build) always forces a recompute
+            self._flat_filters = filters
             self._recompute_flat(query)
         if query:
             self._render_flat_results(leaf_flags)
@@ -658,17 +686,21 @@ class CatalogPanel:
     ) -> _SectionNode:
         """The products matching ``query`` filed into their sections, kept while the products,
         the filter and the language stay the same."""
-        locale = get_locale()
+        locale = product_text_languages()
+        filters = self._online_filters
+        state = (query, locale, filters.key() if filters else None)
         cached = self._online_trees.get(manufacturer_id)
-        if cached is not None and cached[0] is items and cached[1] == (query, locale):
+        if cached is not None and cached[0] is items and cached[1] == state:
             return cached[2]
+        keep = filters.predicate() if filters else None
         shown = [
             i
             for i in items
-            if not query or query in i.name.lower() or query in i.order_number.lower()
+            if (not query or query in i.name.lower() or query in i.order_number.lower())
+            and (keep is None or keep(i))
         ]
         tree = section_tree(shown, locale)
-        self._online_trees[manufacturer_id] = (items, (query, locale), tree)
+        self._online_trees[manufacturer_id] = (items, state, tree)
         return tree
 
     def _render_section(
@@ -680,7 +712,7 @@ class CatalogPanel:
         open_all: bool,
     ) -> None:
         """A section's sections below it, as tree nodes, then its products."""
-        locale = get_locale()
+        locale = product_text_languages()
         for child in node.children.values():
             assert child.section is not None
             if open_all:
@@ -829,13 +861,62 @@ class CatalogPanel:
             return
         status = self._get_online_index_status()
         if status.products:
-            imgui.text_disabled(
-                S.ONLINE_INDEX_STATUS.format(
-                    mfrs=status.manufacturers, products=status.products
-                )
+            text = S.ONLINE_INDEX_STATUS.format(
+                date=fetched_date(status.fetched_at),
+                mfrs=status.manufacturers,
+                products=status.products,
             )
         else:
-            imgui.text_disabled(S.ONLINE_INDEX_NONE)
+            text = S.ONLINE_INDEX_NONE
+        # Beside the fetch button when it fits, else on its own line, wrapped (narrow screens).
+        if not fits_beside(imgui.calc_text_size(text).x):
+            imgui.new_line()
+        imgui.push_style_color(
+            imgui.Col_.text, imgui.get_style_color_vec4(imgui.Col_.text_disabled)
+        )
+        imgui.text_wrapped(text)
+        imgui.pop_style_color()
+
+    def _render_online_filters(self) -> None:
+        """The market and the product language the products are shown for, with how many of the
+        index's products that leaves; the row wraps on narrow screens."""
+        filters = self._online_filters
+        if filters is None:
+            return
+        markets = filters.markets()
+        if markets:
+            locale = get_locale()
+            names = [S.ONLINE_ALL_MARKETS]
+            names += [m.name_in(locale) for m in markets]
+            ids = [None, *(m.id for m in markets)]
+            current = ids.index(filters.market) if filters.market in ids else 0
+            imgui.align_text_to_frame_padding()
+            imgui.text_unformatted(S.ONLINE_MARKET)
+            imgui.same_line()
+            imgui.set_next_item_width(px(180.0))
+            changed, chosen = combo("##online_market", current, names, 16)
+            if changed:
+                filters.set_market(ids[chosen])
+            label = S.ONLINE_ONLY_PRODUCT_LANGUAGE.format(
+                language=filters.product_language_name()
+            )
+            same_line_if_fits(checkbox_width(label))
+        else:
+            label = S.ONLINE_ONLY_PRODUCT_LANGUAGE.format(
+                language=filters.product_language_name()
+            )
+        changed, only = checkbox(label, filters.only_product_language, centred=True)
+        if changed:
+            filters.set_only_product_language(only)
+        counts = filters.counts()
+        if counts is not None and counts[0] != counts[1]:
+            text = S.ONLINE_FILTERED_COUNT.format(shown=counts[0], total=counts[1])
+            # Beside the checkbox the text keeps the checkbox label's line.
+            if fits_beside(imgui.calc_text_size(text).x):
+                imgui.same_line()
+            else:
+                imgui.align_text_to_frame_padding()
+            imgui.text_disabled(text)
 
     def _recompute_flat(self, query: str) -> None:
         """Refresh the cached flat search results for ``query`` (only called on query change)."""

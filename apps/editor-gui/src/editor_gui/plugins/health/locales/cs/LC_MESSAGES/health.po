@@ -1,0 +1,41 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor health 1.0\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Health"
+msgstr "Kontrola stavu"
+
+msgid "No project open"
+msgstr "Není otevřen žádný projekt"
+
+msgid "No issues found"
+msgstr "Nenalezeny žádné problémy"
+
+msgid "{errors} errors, {warnings} warnings"
+msgstr "Chyby: {errors}, varování: {warnings}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: bez individuální adresy"
+
+msgid "Duplicate individual address {address} ({device})"
+msgstr "Duplicitní individuální adresa {address} ({device})"
+
+msgid "{count} device(s) skipped: application not in catalog"
+msgstr "Přeskočená zařízení: {count} – aplikace není v katalogu"
+
+msgid "{device}: {count} unlinked group object(s)"
+msgstr "{device}: nepropojené skupinové objekty: {count}"
+
+msgid "{address} {name}: no datapoint type"
+msgstr "{address} {name}: bez typu datového bodu"
+
+msgid "{address} {name}: no sending group object"
+msgstr "{address} {name}: žádný vysílající skupinový objekt"
+
+msgid "{address} {name}: {count} sending group objects"
+msgstr "{address} {name}: vysílající skupinové objekty: {count}"

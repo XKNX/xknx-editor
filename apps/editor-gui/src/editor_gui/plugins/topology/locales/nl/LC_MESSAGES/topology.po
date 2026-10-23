@@ -84,3 +84,75 @@ msgstr "Adres: {address}"
 
 msgid "Application: {application}"
 msgstr "Applicatie: {application}"
+
+msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
+msgstr "Welke apparaten via hun groepsadressen met elkaar praten: zendende apparaten links, ontvangende apparaten rechts."
+
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "Klik om een apparaat of groepsadres te volgen, dubbelklik om een apparaat te openen. Sleep om te verschuiven, {key}+scrollen om te zoomen."
+
+msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
+msgstr "Tik om een apparaat of groepsadres te volgen, dubbeltik om een apparaat te openen. Zoom met twee vingers."
+
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Sleep om te verschuiven, {key}+scrollen om te zoomen. Klik op een apparaat om het te openen."
+
+msgid "Show"
+msgstr "Tonen"
+
+msgid "Choose…"
+msgstr "Kiezen…"
+
+msgid "Choose above what to show: the whole project, a room or a main group."
+msgstr "Kies hierboven wat getoond wordt: het hele project, een ruimte of een hoofdgroep."
+
+msgid "Whole Project"
+msgstr "Hele project"
+
+msgid "Rooms"
+msgstr "Ruimtes"
+
+msgid "Main Groups"
+msgstr "Hoofdgroepen"
+
+msgid "Device: {device}"
+msgstr "Apparaat: {device}"
+
+msgid "Group Address: {address}"
+msgstr "Groepsadres: {address}"
+
+msgid "Back"
+msgstr "Terug"
+
+msgid "Fit"
+msgstr "Passend maken"
+
+msgid "Sending"
+msgstr "Zendend"
+
+msgid "Group Addresses"
+msgstr "Groepsadressen"
+
+msgid "Receiving"
+msgstr "Ontvangend"
+
+msgid "+ {count} more"
+msgstr "+ {count} meer"
+
+msgid "{count} more devices outside the selection. Click to show them."
+msgstr "{count} andere apparaten buiten de selectie. Klik om ze te tonen."
+
+msgid "{address}\n{senders} sending, {receivers} receiving"
+msgstr "{address}\n{senders} zendend, {receivers} ontvangend"
+
+msgid "Areas"
+msgstr "Gebieden"
+
+msgid "Lines"
+msgstr "Lijnen"
+
+msgid "Devices"
+msgstr "Apparaten"
+
+msgid "Buildings"
+msgstr "Gebouwen"

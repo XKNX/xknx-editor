@@ -1,0 +1,125 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor recover 1.0\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Recover Project from Bus"
+msgstr "Recuperar Proyecto desde el Bus"
+
+msgid "From Address"
+msgstr "Desde Dirección"
+
+msgid "To Address"
+msgstr "Hasta Dirección"
+
+msgid "Scan"
+msgstr "Buscar"
+
+msgid "Stop"
+msgstr "Detener"
+
+msgid "Add to Open Project as Read"
+msgstr "Añadir al Proyecto Abierto como Leído"
+
+msgid "Recover Selected"
+msgstr "Recuperar Seleccionados"
+
+msgid "Create New Project"
+msgstr "Crear Nuevo Proyecto"
+
+msgid "Add to Open Project"
+msgstr "Añadir al Proyecto Abierto"
+
+msgid "Verify (Read-Only)"
+msgstr "Verificar (Solo Lectura)"
+
+msgid "Export Snapshot"
+msgstr "Exportar Instantánea"
+
+msgid "Verifying (re-reading and comparing)…"
+msgstr "Verificando (releyendo y comparando)…"
+
+msgid "%(count)d group address(es) have no sender or multiple senders."
+msgstr "%(count)d dirección(es) de grupo no tienen emisor o tienen varios emisores."
+
+msgid "Address"
+msgstr "Dirección"
+
+msgid "Mask"
+msgstr "Máscara"
+
+msgid "Product / Application"
+msgstr "Producto / Aplicación"
+
+msgid "Status"
+msgstr "Estado"
+
+msgid "Set an address range and scan the bus."
+msgstr "Establezca un rango de direcciones y escanee el bus."
+
+msgid "Scanning the bus…"
+msgstr "Escaneando el bus…"
+
+msgid "Scanning %(address)s  (%(done)d/%(total)d, %(found)d found)"
+msgstr "Escaneando %(address)s  (%(done)d/%(total)d, %(found)d encontrados)"
+
+msgid "Loading missing products from online catalog: %(what)s"
+msgstr "Cargando los productos que faltan desde el catálogo online: %(what)s"
+
+msgid "Reading devices…"
+msgstr "Leyendo dispositivos…"
+
+msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+msgstr "Leyendo %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+
+msgid "group communication tables"
+msgstr "tablas de comunicación de grupo"
+
+msgid "parameter memory"
+msgstr "memoria de parámetros"
+
+msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
+msgstr "%(devices)d dispositivo(s) recuperado(s): %(group_addresses)d direcciones de grupo, %(links)d enlaces, %(unknown)d parámetro(s) no recuperable(s)."
+
+msgid "Recovered"
+msgstr "Recuperado"
+
+msgid "Added %(count)d device(s) to the open project (%(target)s)."
+msgstr "%(count)d dispositivo(s) añadido(s) al proyecto abierto (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device(s)."
+msgstr "Creado el nuevo proyecto %(target)s con %(count)d dispositivo(s)."
+
+msgid "Not connected to a KNX bus."
+msgstr "Sin conexión con un bus KNX."
+
+msgid "Open or create a project to add recovered devices."
+msgstr "Abra o cree un proyecto para añadir los dispositivos recuperados."
+
+msgid "matched"
+msgstr "coincide"
+
+msgid "confirm product/version, then tick"
+msgstr "confirme producto/versión y luego marque"
+
+msgid "not in catalog - import via Catalog"
+msgstr "no está en el catálogo - importar mediante Catálogo"
+
+msgid "unprogrammed"
+msgstr "sin programar"
+
+msgid "recovered"
+msgstr "recuperado"
+
+msgid "already in project - skipped"
+msgstr "ya está en el proyecto - omitido"
+
+msgid "error"
+msgstr "error"
+
+msgid "%d parameters could not be recovered"
+msgstr "No se pudieron recuperar %d parámetros"

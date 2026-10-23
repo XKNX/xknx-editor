@@ -1,0 +1,63 @@
+{
+  "app_id_prefixes": ["M-0001_A-9808"],
+  "title": "Siemens DALI Switch/Dim Actuator N 525E, 8-fold",
+  "note": "Older Siemens actuator with a flat German parameter namespace: one global group plus one group per output channel.",
+  "sections": [
+    {
+      "regex": "^Status ",
+      "label": "Status Feedback"
+    },
+    {
+      "regex": "^Dimmzeit ",
+      "label": "Dim Times"
+    },
+    {
+      "regex": "^Einschaltdauer",
+      "label": "Switch-On Duration"
+    },
+    {
+      "regex": "^Einschalten auf",
+      "label": "Switch-On Behaviour"
+    },
+    {
+      "regex": "^Ueber Dimmen",
+      "label": "Over-Dimming"
+    },
+    {
+      "regex": "^Über Wertsetzen",
+      "label": "Value Setting"
+    },
+    {
+      "regex": "^Betriebsart",
+      "label": "Operating Mode"
+    },
+    {
+      "regex": "^Nachtbetrieb",
+      "label": "Night Mode"
+    },
+    {
+      "regex": "^8bit-Szenen",
+      "label": "8-bit Scenes"
+    },
+    {
+      "regex": "^(?:Min|Max)",
+      "label": "Limits"
+    },
+    {
+      "regex": "^Busausfall",
+      "label": "Bus Failure"
+    },
+    {
+      "regex": "^Buswiederkehr",
+      "label": "Bus Recovery"
+    },
+    {
+      "regex": "^Z-Wert",
+      "label": "Z Value"
+    },
+    {
+      "regex": "^VK",
+      "label": "Internal (VK)"
+    }
+  ]
+}

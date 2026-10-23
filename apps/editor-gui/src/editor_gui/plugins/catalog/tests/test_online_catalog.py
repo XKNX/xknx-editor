@@ -262,6 +262,7 @@ class TestIndexCache:
                         "ApplicationProgramName": "App",
                     }
                 ],
+                "Markets": [{"Id": "M-DE", "CatalogIds": [f"CI-{mid}"]}],
             }
         ).encode()
 
@@ -372,8 +373,7 @@ class TestHttpErrorDetail:
 
 class TestDownloadProductUnwrap:
     """The DownloadProduct response is a ZIP wrapping the real archive as 'products.knxprod' (plus
-    id-mapping.xml) - verified against the decompiled ETS downloader. The inner .knxprod must be
-    extracted before import (#51)."""
+    id-mapping.xml). The inner .knxprod must be extracted before import (#51)."""
 
     def _zip(self, entries: dict[str, bytes]) -> bytes:
         import io

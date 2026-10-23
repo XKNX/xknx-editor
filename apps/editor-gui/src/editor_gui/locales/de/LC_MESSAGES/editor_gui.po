@@ -206,7 +206,7 @@ msgid "Undo"
 msgstr "Rückgängig"
 
 msgid "Redo"
-msgstr "Wiederholen"
+msgstr "Wiederherstellen"
 
 msgid "Open KNX Product Archive"
 msgstr "KNX-Produktarchiv öffnen"
@@ -249,13 +249,13 @@ msgid "Opening project…"
 msgstr "Projekt wird geöffnet…"
 
 msgid "Project Password"
-msgstr "Projektkennwort"
+msgstr "Projektpasswort"
 
 msgid "This ETS project is password protected. Enter its password:"
-msgstr "Dieses ETS-Projekt ist kennwortgeschützt. Geben Sie das Kennwort ein:"
+msgstr "Dieses ETS-Projekt ist passwortgeschützt. Geben Sie das Passwort ein:"
 
 msgid "Wrong password, please try again."
-msgstr "Falsches Kennwort, bitte erneut versuchen."
+msgstr "Falsches Passwort, bitte erneut versuchen."
 
 msgid "OK"
 msgstr "OK"
@@ -452,7 +452,7 @@ msgstr "Die Originaldatei hatte {count} Anlagen. Sie wurden zu einer zusammengef
 msgid "{count} device(s) had no place in the original file, so they were left out."
 msgstr "{count} Gerät(e) hatten in der Originaldatei keinen Platz und wurden weggelassen."
 
-msgid "{count} com-object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
+msgid "{count} group object(s) had an extra description in the original file. The custom name and function are kept; only that description is not shown here."
 msgstr "{count} Kommunikationsobjekt(e) hatten in der Originaldatei eine zusätzliche Beschreibung. Der eigene Name und die Funktion bleiben erhalten; nur diese Beschreibung wird hier nicht angezeigt."
 
 msgid "{count} IP or function setting(s) from the original file are not used here."
@@ -503,8 +503,8 @@ msgstr "Gebäude"
 msgid "Group Addresses"
 msgstr "Gruppenadressen"
 
-msgid "Group-Object Links"
-msgstr "Gruppenobjekt-Verknüpfungen"
+msgid "Group Object Links"
+msgstr "Kommunikationsobjekt-Verbindungen"
 
 msgid "Areas / Lines"
 msgstr "Bereiche / Linien"
@@ -767,7 +767,7 @@ msgid "Project Name"
 msgstr "Projektname"
 
 msgid "Group Address Style"
-msgstr "Gruppenadress-Darstellung"
+msgstr "Gruppenadressansicht"
 
 msgid "Free"
 msgstr "Frei"
@@ -1462,3 +1462,120 @@ msgstr "{name} ist bereits in einem anderen XKNX Editor geöffnet. Wird es in zw
 
 msgid "Open Anyway"
 msgstr "Trotzdem öffnen"
+
+msgid "C"
+msgstr "K"
+
+msgid "R"
+msgstr "L"
+
+msgid "W"
+msgstr "S"
+
+msgid "T"
+msgstr "Ü"
+
+msgid "U"
+msgstr "A"
+
+msgid "I"
+msgstr "I"
+
+msgid "Communication"
+msgstr "Kommunikation"
+
+msgid "Read"
+msgstr "Lesen"
+
+msgid "Write"
+msgstr "Schreiben"
+
+msgid "Transmit"
+msgstr "Übertragen"
+
+msgid "Update"
+msgstr "Aktualisieren"
+
+msgid "Read on Init"
+msgstr "Lesen bei Init"
+
+msgid "English"
+msgstr "Englisch"
+
+msgid "German"
+msgstr "Deutsch"
+
+msgid "Dutch"
+msgstr "Niederländisch"
+
+msgid "{name} ({native})"
+msgstr "{name} ({native})"
+
+msgid "Spanish"
+msgstr "Spanisch"
+
+msgid "Greek"
+msgstr "Griechisch"
+
+msgid "Simplified Chinese"
+msgstr "Chinesisch, vereinfacht"
+
+msgid "Japanese"
+msgstr "Japanisch"
+
+msgid "Czech"
+msgstr "Tschechisch"
+
+msgid "Danish"
+msgstr "Dänisch"
+
+msgid "Finnish"
+msgstr "Finnisch"
+
+msgid "French"
+msgstr "Französisch"
+
+msgid "Italian"
+msgstr "Italienisch"
+
+msgid "Norwegian"
+msgstr "Norwegisch"
+
+msgid "Polish"
+msgstr "Polnisch"
+
+msgid "Portuguese"
+msgstr "Portugiesisch"
+
+msgid "Russian"
+msgstr "Russisch"
+
+msgid "Swedish"
+msgstr "Schwedisch"
+
+msgid "Turkish"
+msgstr "Türkisch"
+
+msgid "Ukrainian"
+msgstr "Ukrainisch"
+
+msgid "Preferred Product Language"
+msgstr "Bevorzugte Produktsprache"
+
+msgid "Hungarian"
+msgstr "Ungarisch"
+
+msgid "Romanian"
+msgstr "Rumänisch"
+
+msgid "Slovak"
+msgstr "Slowakisch"
+
+msgid "Slovenian"
+msgstr "Slowenisch"
+
+msgid "Icelandic"
+msgstr "Isländisch"
+
+msgid "Ctrl"
+msgstr "Strg"

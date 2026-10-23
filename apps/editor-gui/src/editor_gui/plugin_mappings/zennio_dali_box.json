@@ -1,0 +1,55 @@
+{
+  "app_id_prefixes": ["M-0071_A-3391"],
+  "title": "Zennio DALI BOX Interface 64 X2",
+  "note": "Array-indexing namespace. ms[N] = motion sensor, bin[N] = binary input, DCA* = DCA-side parameters.",
+  "sections": [
+    {
+      "regex": "^ch\\[\\{\\{ChannelNum\\}\\}\\]\\.ecg\\[([0-9]+)\\]\\.",
+      "label": "Channel - ECG {1}"
+    },
+    {
+      "regex": "^ch\\[\\{\\{ChannelNum\\}\\}\\]\\.",
+      "label": "Channel - General"
+    },
+    {
+      "regex": "^ms\\[([0-9]+)\\]\\.presence\\.",
+      "label": "Motion Sensor {1} - Presence"
+    },
+    {
+      "regex": "^ms\\[([0-9]+)\\]\\.ch\\[([0-9]+)\\]\\.send\\[([0-9]+)\\]\\.",
+      "label": "Motion Sensor {1} - Channel {2} - Send {3}"
+    },
+    {
+      "regex": "^ms\\[([0-9]+)\\]\\.ch\\[([0-9]+)\\]\\.",
+      "label": "Motion Sensor {1} - Channel {2}"
+    },
+    {
+      "regex": "^ms\\[([0-9]+)\\]\\.",
+      "label": "Motion Sensor {1}"
+    },
+    {
+      "regex": "^bin\\[([0-9]+)\\]\\.push\\.pushButton\\[([0-9]+)\\]\\.",
+      "label": "Binary Input {1} - Push Button {2}"
+    },
+    {
+      "regex": "^bin\\[([0-9]+)\\]\\.push\\[([0-9]+)\\]\\.",
+      "label": "Binary Input {1} - Push {2}"
+    },
+    {
+      "regex": "^bin\\[([0-9]+)\\]\\.push\\.",
+      "label": "Binary Input {1} - Push"
+    },
+    {
+      "regex": "^bin\\[([0-9]+)\\]\\.sensor\\.",
+      "label": "Binary Input {1} - Sensor"
+    },
+    {
+      "regex": "^bin\\[([0-9]+)\\]\\.",
+      "label": "Binary Input {1}"
+    },
+    {
+      "regex": "^DCA",
+      "label": "DCA Parameters"
+    }
+  ]
+}

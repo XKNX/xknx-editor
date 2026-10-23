@@ -120,6 +120,34 @@ FLAG_LABELS = [
 ]
 
 
+def flag_letter(attr: str) -> str:
+    """The flag's column letter in the current language (C R W T U I in English)."""
+    from editor_gui.strings import S
+
+    return {
+        "communication": S.FLAG_LETTER_COMMUNICATION,
+        "read": S.FLAG_LETTER_READ,
+        "write": S.FLAG_LETTER_WRITE,
+        "transmit": S.FLAG_LETTER_TRANSMIT,
+        "update": S.FLAG_LETTER_UPDATE,
+        "read_on_init": S.FLAG_LETTER_READ_ON_INIT,
+    }[attr]
+
+
+def flag_name(attr: str) -> str:
+    """The flag's name in the current language."""
+    from editor_gui.strings import S
+
+    return {
+        "communication": S.FLAG_NAME_COMMUNICATION,
+        "read": S.FLAG_NAME_READ,
+        "write": S.FLAG_NAME_WRITE,
+        "transmit": S.FLAG_NAME_TRANSMIT,
+        "update": S.FLAG_NAME_UPDATE,
+        "read_on_init": S.FLAG_NAME_READ_ON_INIT,
+    }[attr]
+
+
 def flag_diff_letters(
     flags: ComObjectFlags, direction: PinDir
 ) -> list[tuple[str, bool]]:
@@ -239,6 +267,13 @@ class Device:
     )
     com_object_instance_refs: list[ComObjectInstanceRef] = field(
         default_factory=list["ComObjectInstanceRef"], repr=False, compare=False
+    )
+    # Per-device raw blobs the ETS plug-in stores alongside parameters (e.g. the Siemens
+    # N141/03 DCA ``BLOB_PARA`` holds the full sensor commissioning tree). Direct references
+    # to the SQLAlchemy-mapped ``DeviceBinaryData`` rows so a mutation on ``.data`` lands in
+    # the session and persists on commit.
+    binary_data: list[Any] = field(
+        default_factory=list["Any"], repr=False, compare=False
     )
     _dynamic_ui: DynamicUI | None = field(
         default=None, repr=False, compare=False, init=False
@@ -562,6 +597,14 @@ class Device:
         if dyn is None:
             return []
         return dyn.get_module_instances()
+
+    def get_module_instance_arguments(self) -> dict[str, list[tuple[str, str]]]:
+        """The arguments of each top-level module instance, by instance id (see
+        :meth:`DynamicUI.get_module_instance_arguments`)."""
+        dyn = self._ensure_dynamic_ui()
+        if dyn is None:
+            return {}
+        return dyn.get_module_instance_arguments()
 
     def find_com_object(self, co_id: str) -> ComObject | None:
         for co in self.com_objects:

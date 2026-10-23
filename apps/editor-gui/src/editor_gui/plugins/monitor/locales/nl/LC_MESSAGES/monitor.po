@@ -44,7 +44,7 @@ msgid "Building Function"
 msgstr "Gebouwfunctie"
 
 msgid "Building Part"
-msgstr "Gebouwdeel"
+msgstr "Gebouwonderdeel"
 
 
 msgid "Destination Address"
@@ -191,11 +191,8 @@ msgstr "Groepsmonitor"
 msgid "Group Objects"
 msgstr "Groepsobjecten"
 
-msgid "{count} telegrams"
-msgstr "{count} telegrammen"
-
-msgid "{count} telegram"
-msgstr "{count} telegram"
+msgid "{count} teleg."
+msgstr "{count} teleg."
 
 msgid "Enter a group address of the project to send to it."
 msgstr "Voer een groepsadres van het project in om ernaar te verzenden."
@@ -359,8 +356,8 @@ msgstr "Het afspelen annuleren"
 msgid "Copy"
 msgstr "Kopiëren"
 
-msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
-msgstr "De geselecteerde telegrammen (alle getoonde als er geen is geselecteerd) naar het klembord kopiëren (Ctrl+C). Dubbelklik op een telegram om het bronapparaat te selecteren."
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "De geselecteerde telegrammen (alle getoonde als er geen is geselecteerd) naar het klembord kopiëren ({shortcut}). Dubbelklik op een telegram om het bronapparaat te selecteren."
 
 msgid "Invalid frame"
 msgstr "Ongeldig frame"
@@ -391,3 +388,9 @@ msgstr "Adres"
 
 msgid "Name"
 msgstr "Naam"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Maximum aantal telegrammen dat deze monitor bewaart. Het oudste tiende deel wordt weggegooid zodra de limiet is overschreden."

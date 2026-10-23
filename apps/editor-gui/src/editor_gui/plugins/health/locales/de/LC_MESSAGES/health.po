@@ -18,3 +18,24 @@ msgstr "Keine Probleme gefunden"
 
 msgid "{errors} errors, {warnings} warnings"
 msgstr "{errors} Fehler, {warnings} Warnungen"
+
+msgid "{device}: no individual address"
+msgstr "{device}: keine physikalische Adresse"
+
+msgid "Duplicate individual address {address} ({device})"
+msgstr "Doppelte physikalische Adresse {address} ({device})"
+
+msgid "{count} device(s) skipped: application not in catalog"
+msgstr "{count} Gerät(e) übersprungen: Applikation nicht im Katalog"
+
+msgid "{device}: {count} unlinked group object(s)"
+msgstr "{device}: {count} nicht verbundene(s) Kommunikationsobjekt(e)"
+
+msgid "{address} {name}: no datapoint type"
+msgstr "{address} {name}: kein Datenpunkttyp"
+
+msgid "{address} {name}: no sending group object"
+msgstr "{address} {name}: kein sendendes Kommunikationsobjekt"
+
+msgid "{address} {name}: {count} sending group objects"
+msgstr "{address} {name}: {count} sendende Kommunikationsobjekte"

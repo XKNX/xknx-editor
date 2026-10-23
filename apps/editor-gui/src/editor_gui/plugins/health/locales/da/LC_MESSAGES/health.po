@@ -1,0 +1,41 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor health 1.0\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Health"
+msgstr "Tilstandskontrol"
+
+msgid "No project open"
+msgstr "Intet projekt åbent"
+
+msgid "No issues found"
+msgstr "Ingen problemer fundet"
+
+msgid "{errors} errors, {warnings} warnings"
+msgstr "{errors} fejl, {warnings} advarsler"
+
+msgid "{device}: no individual address"
+msgstr "{device}: ingen individuel adresse"
+
+msgid "Duplicate individual address {address} ({device})"
+msgstr "Dobbelt individuel adresse {address} ({device})"
+
+msgid "{count} device(s) skipped: application not in catalog"
+msgstr "{count} enhed(er) sprunget over: applikation ikke i kataloget"
+
+msgid "{device}: {count} unlinked group object(s)"
+msgstr "{device}: {count} ikke-sammenkædede gruppeobjekt(er)"
+
+msgid "{address} {name}: no datapoint type"
+msgstr "{address} {name}: ingen datapunkttype"
+
+msgid "{address} {name}: no sending group object"
+msgstr "{address} {name}: intet sendende gruppeobjekt"
+
+msgid "{address} {name}: {count} sending group objects"
+msgstr "{address} {name}: {count} sendende gruppeobjekter"

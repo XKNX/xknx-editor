@@ -46,14 +46,17 @@ from xknxeditor.dali.structs import (
     GroupDyn,
     GroupFailure,
     GroupStatus,
-    SceneAssign,
     SceneItemValue,
-    SceneKnxMap,
     TemplateProp,
     decode_table,
     encode_table,
     encode_template_members,
 )
+
+# Upper bound for the Scene_GroupValue table read-back. The DCA caps it at 128 records
+# (16 scenes * 8 targets), terminator included; anything beyond that would be a device
+# error we would catch on the write.
+_MAX_SCENE_VALUE_RECORDS = 128
 
 
 class MdtDaliCommissioner:
@@ -164,6 +167,10 @@ class MdtDaliCommissioner:
         it is first seeded from the device's CURRENT mapping (a fresh EVG_PROP read) and the caller's
         ``assignments`` are overlaid on top — otherwise unlisted slots would be silently wiped to
         unassigned. Returns True when the device read-back matches the requested (ets, group) mapping.
+
+        Raises :class:`DaliCommissioningError` if the post-write verification fails — a
+        silent ``False`` return would be swallowed by the service-layer completion
+        callback and the user would see "DALI commissioning done" when it actually failed.
         """
         by_slot = {a.slot: a for a in assignments}
         current = decode_table(
@@ -185,7 +192,12 @@ class MdtDaliCommissioner:
             PropertyType.COMMISSION_SYNC, encode_table(elements), MAX_ECG
         )
         await self._c.run_command(DeviceCommand.PLUGIN_SYNC, timeout=180.0)
-        return await self._verify(by_slot)
+        if not await self._verify(by_slot):
+            raise DaliCommissioningError(
+                "commissioning verify mismatch: device read-back does not match the "
+                "requested (ets, group) assignments"
+            )
+        return True
 
     async def _verify(self, by_slot: dict[int, EcgAssignment]) -> bool:
         """Re-read EVG_PROP and confirm every requested slot's ets-index AND group match."""
@@ -206,11 +218,43 @@ class MdtDaliCommissioner:
     # --- P4: scenes --------------------------------------------------------
 
     async def write_scenes(self, scenes: Sequence[Scene]) -> None:
-        """Write scene fade times, per-target values, and the KNX scene map, then apply."""
-        assign = encode_table(
-            [SceneAssign(_scene_fade(scenes, i)).encode() for i in range(MAX_SCENES)]
-        )
-        records: list[bytes] = []
+        """Merge-write scene fade times, per-target values, and the KNX scene map, then apply.
+
+        Reads the current scene tables first and only overwrites the slots touched by ``scenes``,
+        so programming a single edited scene does not erase fade times, KNX-scene numbers or value
+        records of the untouched ones.
+        """
+        touched = {s.index for s in scenes}
+
+        # SCENE_ASSIGN: preserve fade times for slots the caller did not touch.
+        try:
+            current_assign = await self._c.read_table(
+                PropertyType.SCENE_ASSIGN, MAX_SCENES
+            )
+        except DaliCommissioningError:
+            current_assign = b"\x00" * MAX_SCENES
+        assign_bytes = bytearray(current_assign.ljust(MAX_SCENES, b"\x00")[:MAX_SCENES])
+        for s in scenes:
+            if 0 <= s.index < MAX_SCENES:
+                assign_bytes[s.index] = s.fade_time & 0xFF
+        assign = bytes(assign_bytes)
+
+        # SCENE_GROUP_VALUE: keep records of untouched scenes, replace records of touched ones.
+        kept: list[bytes] = []
+        try:
+            current_values = await self._c.read_table(
+                PropertyType.SCENE_GROUP_VALUE, _MAX_SCENE_VALUE_RECORDS
+            )
+            for i in range(0, len(current_values), 8):
+                rec = current_values[i : i + 8]
+                if len(rec) < 8 or rec == SCENE_TERMINATOR:
+                    break
+                if rec[0] not in touched:
+                    kept.append(bytes(rec))
+        except DaliCommissioningError:
+            kept = []
+
+        records: list[bytes] = list(kept)
         for scene in scenes:
             for v in sorted(scene.values, key=lambda x: x.target_index):
                 records.append(
@@ -220,7 +264,7 @@ class MdtDaliCommissioner:
                 )
         records.append(SCENE_TERMINATOR)
 
-        await self._maybe_write_knx_map(scenes)
+        await self._maybe_write_knx_map(scenes, touched)
         await asyncio.sleep(0.5)
         await self._c.write_table(PropertyType.SCENE_ASSIGN, assign, MAX_SCENES)
         await asyncio.sleep(0.5)
@@ -229,17 +273,29 @@ class MdtDaliCommissioner:
         )
         await self._c.run_command(DeviceCommand.SCENE_SYNC, timeout=180.0)
 
-    async def _maybe_write_knx_map(self, scenes: Sequence[Scene]) -> None:
-        """Write the KNX scene-number map if the firmware supports it (table size probe)."""
+    async def _maybe_write_knx_map(
+        self, scenes: Sequence[Scene], touched: set[int]
+    ) -> None:
+        """Write the KNX scene-number map if the firmware supports it (table size probe).
+
+        Preserves untouched slots by merging ``scenes`` onto the current table instead of
+        rewriting it from zero.
+        """
         try:
             size = await self._c.read_table_size(PropertyType.SCENE_KNX_MAP)
         except DaliCommissioningError:
             return  # firmware without KNX scene map
         if size is None:
             return  # property absent/unsupported (short response) -> don't write it
-        knx_map = encode_table(
-            [SceneKnxMap(_scene_knx(scenes, i)).encode() for i in range(MAX_SCENES)]
-        )
+        try:
+            current = await self._c.read_table(PropertyType.SCENE_KNX_MAP, MAX_SCENES)
+        except DaliCommissioningError:
+            current = b"\x00" * MAX_SCENES
+        buf = bytearray(current.ljust(MAX_SCENES, b"\x00")[:MAX_SCENES])
+        for s in scenes:
+            if 0 <= s.index < MAX_SCENES:
+                buf[s.index] = s.knx_scene & 0xFF
+        knx_map = bytes(buf)
         if size == 0:
             await self._c.write_table_size(PropertyType.SCENE_KNX_MAP, MAX_SCENES)
         await self._c.write_table(PropertyType.SCENE_KNX_MAP, knx_map, MAX_SCENES)
@@ -398,20 +454,6 @@ class MdtDaliCommissioner:
     async def abort(self) -> None:
         """Abort a running installation/command."""
         await self._c.send_command(DeviceCommand.ABORT)
-
-
-def _scene_fade(scenes: Sequence[Scene], index: int) -> int:
-    for s in scenes:
-        if s.index == index:
-            return s.fade_time
-    return 0
-
-
-def _scene_knx(scenes: Sequence[Scene], index: int) -> int:
-    for s in scenes:
-        if s.index == index:
-            return s.knx_scene
-    return 0
 
 
 __all__ = ["MdtDaliCommissioner"]

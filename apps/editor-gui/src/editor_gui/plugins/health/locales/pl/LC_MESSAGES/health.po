@@ -1,0 +1,41 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor health 1.0\n"
+"Language: pl\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Health"
+msgstr "Kontrola stanu"
+
+msgid "No project open"
+msgstr "Brak otwartego projektu"
+
+msgid "No issues found"
+msgstr "Nie znaleziono problemów"
+
+msgid "{errors} errors, {warnings} warnings"
+msgstr "Błędy: {errors}, ostrzeżenia: {warnings}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: brak adresu indywidualnego"
+
+msgid "Duplicate individual address {address} ({device})"
+msgstr "Zduplikowany adres indywidualny {address} ({device})"
+
+msgid "{count} device(s) skipped: application not in catalog"
+msgstr "Pominięte urządzenia ({count}): brak aplikacji w katalogu"
+
+msgid "{device}: {count} unlinked group object(s)"
+msgstr "{device}: niepołączone obiekty grupy: {count}"
+
+msgid "{address} {name}: no datapoint type"
+msgstr "{address} {name}: brak typu punktu danych"
+
+msgid "{address} {name}: no sending group object"
+msgstr "{address} {name}: brak nadającego obiektu grupy"
+
+msgid "{address} {name}: {count} sending group objects"
+msgstr "{address} {name}: nadające obiekty grupy: {count}"

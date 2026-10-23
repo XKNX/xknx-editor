@@ -12,13 +12,14 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
-from editor_gui.device import collect_ui_parameters
+from editor_gui.device import collect_ui_parameters as _collect_ui_parameters
 from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 from editor_gui.plugins.mcp.tools.project import (
     PLUGIN_PARAMETERS_ERROR,
     param_change_result,
     perform_link,
+    require_editable_param,
     resolve_in_scope,
 )
 from editor_gui.plugins.project.service import DeviceProduct
@@ -35,52 +36,60 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     project = ctx.api.project
 
     def _device(p: dict[str, Any]) -> Any:
-        if "node_id" in p and p["node_id"] is not None:
-            device = project.find_device_by_node_id(p["node_id"])
-            if device is None:
-                raise ValueError(f"no device with node_id {p['node_id']}")
-            return device
-        if "device_address" in p and p["device_address"] is not None:
-            target = str(p["device_address"]).strip()
-            device = project.find_device_by_address(target)
-            if device is None:
-                raise ValueError(f"no device with address {p['device_address']!r}")
-            return device
-        raise ValueError("operation requires 'node_id' or 'device_address'")
+        """Resolve the batch op's device by node_id OR device_address (e.g. '1.0.30'). Exactly one
+        must be present in ``p``, so a caller can address a device by its individual address and
+        skip the project_list_devices round-trip."""
+        node_id = p.get("node_id")
+        device_address = p.get("device_address")
+        if (node_id is None) == (device_address is None):
+            raise ValueError(
+                "pass exactly one of node_id (int) or device_address (str, e.g. '1.0.30')"
+            )
+        if device_address is not None:
+            target = str(device_address).strip()
+            matches = [d for d in project.devices if d.individual_address == target]
+            if not matches:
+                raise ValueError(
+                    f"no device with individual_address {device_address!r}"
+                )
+            if len(matches) > 1:
+                nids = sorted(d.node_id for d in matches)
+                raise ValueError(
+                    f"individual_address {device_address!r} is ambiguous (node_ids: {nids})"
+                )
+            return matches[0]
+        assert node_id is not None  # proven by the exactly-one check above
+        device = project.find_device_by_node_id(node_id)
+        if device is None:
+            raise ValueError(f"no device with node_id {node_id}")
+        return device
+
+    def _group_address_id(p: dict[str, Any]) -> int:
+        """Resolve a GA id by group_address_id OR group_address (printed form). Exactly one."""
+        gid = p.get("group_address_id")
+        g = p.get("group_address")
+        if (gid is None) == (g is None):
+            raise ValueError(
+                "pass exactly one of group_address_id (int) or group_address (str, e.g. '10/1/2')"
+            )
+        if g is not None:
+            target = str(g).strip()
+            matches = [a for a in project.group_addresses if a.address == target]
+            if not matches:
+                raise ValueError(f"no group address {g!r}")
+            if len(matches) > 1:
+                ids = sorted(a.id for a in matches)
+                raise ValueError(f"group_address {g!r} is ambiguous (ids: {ids})")
+            return matches[0].id
+        assert gid is not None  # proven by the exactly-one check above
+        return int(gid)
 
     def _ga(p: dict[str, Any]) -> Any:
-        if "group_address_id" in p and p["group_address_id"] is not None:
-            g = project.get_group_address(p["group_address_id"])
-            if g is None:
-                raise ValueError(f"no group address with id {p['group_address_id']}")
-            return g
-        if "group_address" in p and p["group_address"] is not None:
-            target = str(p["group_address"]).strip()
-            target_raw = None
-            try:
-                from xknx.telegram.address import GroupAddress as _XknxGA
-
-                target_raw = _XknxGA(target).raw
-            except Exception:
-                pass
-            g = next(
-                (
-                    ga
-                    for ga in project.group_addresses
-                    if ga.address == target
-                    or (
-                        target_raw is not None
-                        and getattr(ga, "raw", None) == target_raw
-                    )
-                ),
-                None,
-            )
-            if g is None:
-                raise ValueError(
-                    f"no group address with address {p['group_address']!r}"
-                )
-            return g
-        raise ValueError("operation requires 'group_address_id' or 'group_address'")
+        ga_id = _group_address_id(p)
+        ga = project.get_group_address(ga_id)
+        if ga is None:
+            raise ValueError(f"no group address with id {ga_id}")
+        return ga
 
     def _parameters_device(p: dict[str, Any]) -> Any:
         device = _device(p)
@@ -120,7 +129,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         project.set_device_individual_address(
             node_id, device.individual_address, p["address"]
         )
-        if device.individual_address != p["address"]:
+        if _device({"node_id": node_id}).individual_address != p["address"]:
             raise ValueError(
                 f"could not set individual address {p['address']!r} (invalid or already in use)"
             )
@@ -161,8 +170,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 value = resolved.get("resolved_value")
         if value is None:
             raise ValueError("set_parameter needs value (or value_label with a label)")
+        # Reject NON-editable targets AFTER resolution: a label op whose scope an earlier batch op
+        # just reshaped is checked against the current access, same as the standalone setter.
+        require_editable_param(device, ref)
         prior_co_ids = {co.id for co in device.get_visible_com_objects()}
-        prior_param_ids = {p.ref_id for p in collect_ui_parameters(device.get_ui())}
+        prior_param_ids = {p.ref_id for p in _collect_ui_parameters(device.get_ui())}
         changes = project.edit_params(device, [(ref, value)], mode="edit")
         current_device = project.find_device_by_node_id(node_id) or device
         if hasattr(device, "last_lost_links"):
@@ -185,14 +197,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         # sending). None means the service refused the link; surface it as an error.
         device = _device(p)
         node_id = device.node_id
-        ga = _ga(p)
-        ga_id = ga.id
         ref = p["com_object_ref_id"]
         co = device.find_com_object(ref)
         if co is None:
-            raise ValueError(f"no com-object {ref!r} on device {node_id}")
+            raise ValueError(f"no com-object {ref!r} on device {device.node_id}")
         if co.db_id is None:
             raise ValueError(f"com-object {ref!r} is not linkable (not instantiated)")
+        ga_id = _group_address_id(p)
+        ga = project.get_group_address(ga_id)
         result = perform_link(
             project, node_id, ref, co, ga_id, p.get("is_sending", False)
         )
@@ -203,7 +215,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "securely commissioned devices)"
             )
         result["device_address"] = device.individual_address
-        result["group_address"] = ga.address
+        if ga:
+            result["group_address"] = ga.address
         return result
 
     def _op_unlink_com_object(p: dict[str, Any]) -> dict[str, Any]:
@@ -247,7 +260,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         "link_com_object",
     }
 
-    # op name -> (required params, handler). Handlers raise ValueError on bad input.
+    # op name -> (required params, handler). Handlers raise ValueError on bad input. The device
+    # identifier (node_id | device_address) is NOT in `required` because the op itself picks the
+    # right form and errors clearly; same for group_address_id | group_address on link.
     handlers: dict[
         str, tuple[tuple[str, ...], Callable[[dict[str, Any]], dict[str, Any]]]
     ] = {
@@ -405,6 +420,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         A batch may require multiple project_undo calls. IDs must be known before the call; later
         operations cannot reference earlier results.
 
+        Device-scoped ops accept either ``node_id`` (int) OR ``device_address`` (str, e.g. "1.0.30");
+        GA-scoped ops accept either ``group_address_id`` (int) OR ``group_address`` (str, e.g.
+        "10/1/2"). Pass exactly one of each pair. Below "device" / "ga" stand for either form.
+
         Supported ops with required params (optional params in brackets) and success result fields:
         - add_device: product_ref_id [name] -> {node_id}; uses the first matching catalog product.
         - rename_device: (node_id | device_address), name -> {node_id, device_address, name}.
@@ -491,7 +510,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "atomic": atomic,
                     "rolled_back": False,
                     "ok": 0,
-                    "failed": sum(1 for r in results.values() if r["status"] == "error"),
+                    "failed": sum(
+                        1 for r in results.values() if r["status"] == "error"
+                    ),
                     "results": [results[i] for i in range(len(operations))],
                 }
 

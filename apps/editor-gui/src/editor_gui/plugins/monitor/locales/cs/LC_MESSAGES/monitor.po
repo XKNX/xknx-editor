@@ -1,0 +1,392 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor monitor 1.0\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Monitor"
+msgstr "Monitor"
+
+msgid "No group addresses (open or import a project)"
+msgstr "Žádné skupinové adresy (otevřete nebo importujte projekt)"
+
+msgid "Not Connected"
+msgstr "Nepřipojeno"
+
+msgid "value (e.g. on / 21.5 / 50)"
+msgstr "hodnota (např. on / 21.5 / 50)"
+
+msgid "Value:"
+msgstr "Hodnota:"
+
+msgid "Filter by address or name…"
+msgstr "Filtrovat podle adresy nebo názvu…"
+
+msgid "Write"
+msgstr "Psát"
+
+msgid "Read"
+msgstr "Číst"
+
+msgid "Group Objects"
+msgstr "Skupinové objekty"
+
+msgid "Bus Monitor"
+msgstr "Sběrnicový monitor"
+
+msgid "Group Monitor"
+msgstr "Skupinový monitor"
+
+msgid "Bus Activity"
+msgstr "Aktivita sběrnice"
+
+msgid "Clear"
+msgstr "Vymazat"
+
+msgid "Show Extended Information"
+msgstr "Zobrazit rozšířené informace"
+
+msgid "Hide Extended Information"
+msgstr "Skrýt rozšířené informace"
+
+msgid "{count} teleg."
+msgstr "{count} teleg."
+
+msgid "Load: {rate} t/s"
+msgstr "Zatížení: {rate} t/s"
+
+msgid "Group Address:"
+msgstr "Skupinová adresa:"
+
+msgid "e.g. 1/2/3"
+msgstr "např. 1/2/3"
+
+msgid "Enter a group address of the project to send to it."
+msgstr "Zadejte skupinovou adresu projektu, na kterou se má odeslat."
+
+msgid "Start"
+msgstr "Start"
+
+msgid "Stop"
+msgstr "Zastavit"
+
+msgid "Import"
+msgstr "Importovat"
+
+msgid "Export"
+msgstr "Exportovat"
+
+msgid "Print"
+msgstr "Tisk"
+
+msgid "Replay Telegrams"
+msgstr "Přehrát telegramy"
+
+msgid "Stop Replay"
+msgstr "Zastavit přehrávání"
+
+msgid "Start recording the group telegrams"
+msgstr "Spustit záznam skupinových telegramů"
+
+msgid "Start recording the connection's communication other than group telegrams, including every frame this app sends"
+msgstr "Spustit záznam komunikace spojení kromě skupinových telegramů, včetně všech rámců, které tato aplikace odesílá"
+
+msgid "Connect the interface in bus monitor mode and record every frame"
+msgstr "Připojit rozhraní v režimu sběrnicového monitoru a zaznamenávat každý rámec"
+
+msgid "Stop recording"
+msgstr "Zastavit záznam"
+
+msgid "Close the bus monitor connection and restore the normal connection"
+msgstr "Ukončit spojení sběrnicového monitoru a obnovit normální připojení"
+
+msgid "Remove all telegrams"
+msgstr "Odstranit všechny telegramy"
+
+msgid "Load a recording"
+msgstr "Načíst záznam"
+
+msgid "Save the telegrams to a file"
+msgstr "Uložit telegramy do souboru"
+
+msgid "Print the telegrams as a PDF document"
+msgstr "Vytisknout telegramy jako dokument PDF"
+
+msgid "Send the selected group telegrams (all if none is selected) again with their original timing"
+msgstr "Znovu odeslat vybrané skupinové telegramy (všechny, pokud není nic vybráno) s jejich původním časováním"
+
+msgid "Cancel the replay"
+msgstr "Zrušit přehrávání"
+
+msgid "Copy"
+msgstr "Kopírovat"
+
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Kopírovat vybrané telegramy (všechny zobrazené, pokud není nic vybráno) do schránky ({shortcut}). Dvojklikem na telegram vyberete jeho zdrojové zařízení."
+
+msgid "Rec."
+msgstr "Zázn."
+
+msgid "Stopped"
+msgstr "Zastaveno"
+
+msgid "Replaying {done}/{total}"
+msgstr "Přehrávání {done}/{total}"
+
+msgid "Connecting in bus monitor mode…"
+msgstr "Připojování v režimu sběrnicového monitoru…"
+
+msgid "Closing the bus monitor connection…"
+msgstr "Ukončování spojení sběrnicového monitoru…"
+
+msgid "Bus monitor mode: the normal connection is closed. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Režim sběrnicového monitoru: normální připojení je ukončeno. Dokud nebude sběrnicový monitor zastaven, nelze nic odesílat ani nahrávat."
+
+msgid "Start Bus Monitor"
+msgstr "Spustit sběrnicový monitor"
+
+msgid "The bus monitor connects the interface in bus monitor mode. The normal connection is closed while the bus monitor runs: nothing can be sent or downloaded in that time. Stopping the bus monitor restores the normal connection.\n\nStart the bus monitor?"
+msgstr "Sběrnicový monitor připojí rozhraní v režimu sběrnicového monitoru. Po dobu běhu sběrnicového monitoru je normální připojení ukončeno: v této době nelze nic odesílat ani nahrávat. Zastavením sběrnicového monitoru se normální připojení obnoví.\n\nSpustit sběrnicový monitor?"
+
+msgid "The bus monitor is not supported for this connection type. It needs a tunnelling connection."
+msgstr "Sběrnicový monitor není pro tento typ připojení podporován. Vyžaduje tunelovací připojení."
+
+msgid "The interface does not support bus monitor mode."
+msgstr "Rozhraní nepodporuje režim sběrnicového monitoru."
+
+msgid "The interface rejected bus monitor mode: another client holds a connection to it."
+msgstr "Rozhraní odmítlo režim sběrnicového monitoru: jiný klient s ním udržuje spojení."
+
+msgid "The bus monitor connection could not be established."
+msgstr "Spojení sběrnicového monitoru se nepodařilo navázat."
+
+msgid "The normal connection is restored."
+msgstr "Normální připojení je obnoveno."
+
+msgid "Unsaved Telegrams"
+msgstr "Neuložené telegramy"
+
+msgid "The telegrams have not been exported. Clear them anyway?"
+msgstr "Telegramy nebyly exportovány. Přesto je vymazat?"
+
+msgid "The telegrams have not been exported. Loading a recording replaces them and stops the recording. Continue?"
+msgstr "Telegramy nebyly exportovány. Načtení záznamu je nahradí a zastaví záznam. Pokračovat?"
+
+msgid "Loading a recording replaces the telegrams and stops the recording. Continue?"
+msgstr "Načtení záznamu nahradí telegramy a zastaví záznam. Pokračovat?"
+
+msgid "Yes"
+msgstr "Ano"
+
+msgid "No"
+msgstr "Ne"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Zrušit"
+
+msgid "Export Telegrams"
+msgstr "Exportovat telegramy"
+
+msgid "Print Telegrams"
+msgstr "Tisknout telegramy"
+
+msgid "Which telegrams?"
+msgstr "Které telegramy?"
+
+msgid "All Telegrams ({count})"
+msgstr "Všechny telegramy ({count})"
+
+msgid "Selected Telegrams ({count})"
+msgstr "Vybrané telegramy ({count})"
+
+msgid "Filtered Telegrams ({count})"
+msgstr "Filtrované telegramy ({count})"
+
+msgid "Telegram recordings"
+msgstr "Záznamy telegramů"
+
+msgid "All files"
+msgstr "Všechny soubory"
+
+msgid "{count} telegrams exported to {path}"
+msgstr "Telegramy exportované do {path}: {count}"
+
+msgid "Export failed: {error}"
+msgstr "Export selhal: {error}"
+
+msgid "{count} entries loaded from {path}"
+msgstr "Položky načtené z {path}: {count}"
+
+msgid "Loading failed: {error}"
+msgstr "Načítání selhalo: {error}"
+
+msgid "{count} telegrams in another frame format were skipped"
+msgstr "Přeskočené telegramy v jiném formátu rámce: {count}"
+
+msgid "Printing failed: {error}"
+msgstr "Tisk selhal: {error}"
+
+msgid "Page {page}"
+msgstr "Strana {page}"
+
+msgid "{count} Data Secure telegrams are not replayed"
+msgstr "Telegramy Data Secure, které se nepřehrají: {count}"
+
+msgid "There are no group telegrams to replay"
+msgstr "Nejsou k dispozici žádné skupinové telegramy k přehrání"
+
+msgid "Replay finished: {count} telegrams sent"
+msgstr "Přehrávání dokončeno: odeslané telegramy: {count}"
+
+msgid "Replay cancelled: {count} telegrams sent"
+msgstr "Přehrávání zrušeno: odeslané telegramy: {count}"
+
+msgid "from bus"
+msgstr "ze sběrnice"
+
+msgid "to bus"
+msgstr "na sběrnici"
+
+msgid "Connection event"
+msgstr "Událost připojení"
+
+msgid "Invalid frame"
+msgstr "Neplatný rámec"
+
+msgid "Comment"
+msgstr "Komentář"
+
+msgid "Recording was started, Host={host}, Connection={connection}, Mode={mode}"
+msgstr "Záznam byl spuštěn, Host={host}, Připojení={connection}, Režim={mode}"
+
+msgid "Recording was stopped"
+msgstr "Záznam byl zastaven"
+
+msgid "Connection was established"
+msgstr "Spojení bylo navázáno"
+
+msgid "Connection was lost"
+msgstr "Spojení bylo přerušeno"
+
+msgid "System"
+msgstr "Systém"
+
+msgid "Normal"
+msgstr "Normální"
+
+msgid "Urgent"
+msgstr "Naléhavá"
+
+msgid "Low"
+msgstr "Nízká"
+
+msgid "Standard"
+msgstr "Standardní"
+
+msgid "Extended"
+msgstr "Rozšířený"
+
+msgid "#"
+msgstr "#"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Time"
+msgstr "Čas"
+
+msgid "Service"
+msgstr "Služba"
+
+msgid "Flags"
+msgstr "Příznaky"
+
+msgid "Prio"
+msgstr "Priorita"
+
+msgid "Source Address"
+msgstr "Zdrojová adresa"
+
+msgid "Source Name"
+msgstr "Název zdroje"
+
+msgid "Destination Address"
+msgstr "Adresa místa určení"
+
+msgid "Destination Name"
+msgstr "Název místa určení"
+
+msgid "Building Part"
+msgstr "Část budovy"
+
+msgid "Building Function"
+msgstr "Funkce budovy"
+
+msgid "Hop Count"
+msgstr "Počet skoků"
+
+msgid "Telegram Type"
+msgstr "Typ telegramu"
+
+msgid "Telegram Type (Short)"
+msgstr "Typ telegramu (krátce)"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Value"
+msgstr "Hodnota"
+
+msgid "Iack"
+msgstr "Přímé potvrzení"
+
+msgid "Raw Data"
+msgstr "Nezpracovaná data"
+
+msgid "Raw Value"
+msgstr "Nezpracovaná hodnota"
+
+msgid "Message Code"
+msgstr "Kód zprávy"
+
+msgid "Repeated"
+msgstr "Opakovaný"
+
+msgid "Security"
+msgstr "Zabezpečení"
+
+msgid "Frame Format"
+msgstr "Formát rámce"
+
+msgid "System Broadcast"
+msgstr "Systémový broadcast"
+
+msgid "Interface"
+msgstr "Rozhraní"
+
+msgid "MediumInfo"
+msgstr "Informace o médiu"
+
+msgid "Source Description"
+msgstr "Popis zdroje"
+
+msgid "Destination Description"
+msgstr "Popis místa určení"
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "Name"
+msgstr "Název"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."

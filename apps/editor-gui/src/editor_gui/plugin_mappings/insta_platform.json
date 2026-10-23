@@ -1,0 +1,108 @@
+{
+  "app_id_prefixes": [
+    "M-0008_A-C030",
+    "M-0009_A-E80A",
+    "M-008E_A-C031",
+    "M-000A_A-C02F"
+  ],
+  "title": "Insta DALI plug-in platform (Gira, Hager, STEINEL, Insta)",
+  "note": "Shared OEM namespace: _Allg_* general per line, _CTM_S<N>_<idx>_* colour-temperature machine, _HCL_S<N>_<idx>_* human-centric lighting, _IBN_* commissioning. S<N> = DALI line; the group index comes next.",
+  "sections": [
+    {
+      "regex": "^_Allg_S([0-9]+)_Szenen_",
+      "label": "Line {1} - Scenes (General)"
+    },
+    {
+      "regex": "^_Allg_S([0-9]+)_DALI RM_",
+      "label": "Line {1} - DALI Feedback"
+    },
+    {
+      "regex": "^_Allg_S([0-9]+)_",
+      "label": "Line {1} - General"
+    },
+    {
+      "regex": "^_Allg_Sx_",
+      "label": "Line - General (Common)"
+    },
+    {
+      "regex": "^_Allg_IBN_",
+      "label": "General - Commissioning"
+    },
+    {
+      "regex": "^_Allg_",
+      "label": "General"
+    },
+    {
+      "regex": "^_K_([A-Z]+)_DALI RM_",
+      "label": "Channel {1} - DALI Feedback"
+    },
+    {
+      "regex": "^_K_([A-Z]+)_",
+      "label": "Channel {1}"
+    },
+    {
+      "regex": "^_CTM_S([0-9]+)_([0-9]+)_",
+      "label": "Line {1} - Colour-Temperature Scene {2}"
+    },
+    {
+      "regex": "^_CTM_",
+      "label": "Colour-Temperature Scenes"
+    },
+    {
+      "regex": "^_HCL_S([0-9]+)_([0-9]+)_",
+      "label": "Line {1} - HCL Profile {2}"
+    },
+    {
+      "regex": "^_HCL_",
+      "label": "Human-Centric Lighting"
+    },
+    {
+      "regex": "^_IBN_S([0-9]+)_",
+      "label": "Line {1} - Commissioning"
+    },
+    {
+      "regex": "^_IBN_Gruppenzuordnungen_",
+      "label": "Commissioning - Group Assignments"
+    },
+    {
+      "regex": "^_IBN_Sensoren",
+      "label": "Commissioning - Sensors"
+    },
+    {
+      "regex": "^_IBN_",
+      "label": "Commissioning"
+    },
+    {
+      "regex": "^p([0-9]+)",
+      "label": "Internal Parameters"
+    },
+    {
+      "regex": "^(?:eb?|tb?|tbt|g|gb)[0-9]+",
+      "label": "Scene / Group Internals"
+    },
+    {
+      "regex": "^Calc",
+      "label": "Calculated"
+    },
+    {
+      "regex": "^Grid",
+      "label": "Grid Templates"
+    },
+    {
+      "regex": "^Button",
+      "label": "Buttons"
+    },
+    {
+      "regex": "^Szene",
+      "label": "Scenes"
+    },
+    {
+      "regex": "^Z",
+      "label": "Rows"
+    },
+    {
+      "regex": "^Leerzeile",
+      "label": "Blank Lines"
+    }
+  ]
+}

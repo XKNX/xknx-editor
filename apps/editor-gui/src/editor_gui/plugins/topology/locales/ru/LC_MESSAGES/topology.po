@@ -1,0 +1,113 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor topology 1.0\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Topology"
+msgstr "Топология"
+
+msgid "No project open"
+msgstr "Проект не открыт"
+
+msgid "Unassigned"
+msgstr "Не назначено"
+
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Перетаскивайте для перемещения, {key}+прокрутка для масштабирования. Щёлкните по устройству, чтобы открыть его."
+
+msgid "Physical"
+msgstr "Физическая"
+
+msgid "Building"
+msgstr "Здание"
+
+msgid "Links"
+msgstr "Связи"
+
+msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
+msgstr "Какие устройства обмениваются данными через свои групповые адреса: передающие устройства слева, принимающие справа."
+
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "Щелчок — следовать за устройством или групповым адресом, двойной щелчок — открыть устройство. Перетаскивайте для перемещения, {key}+прокрутка для масштабирования."
+
+msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
+msgstr "Касание — следовать за устройством или групповым адресом, двойное касание — открыть устройство. Масштабируйте двумя пальцами."
+
+msgid "No linked devices to show."
+msgstr "Нет связанных устройств для отображения."
+
+msgid "Show"
+msgstr "Показать"
+
+msgid "Whole Project"
+msgstr "Весь проект"
+
+msgid "Rooms"
+msgstr "Комнаты"
+
+msgid "Main Groups"
+msgstr "Главные группы"
+
+msgid "Device: {device}"
+msgstr "Устройство: {device}"
+
+msgid "Group Address: {address}"
+msgstr "Групповой адрес: {address}"
+
+msgid "Back"
+msgstr "Назад"
+
+msgid "Fit"
+msgstr "Вписать"
+
+msgid "Sending"
+msgstr "Передающие"
+
+msgid "Group Addresses"
+msgstr "Групповые адреса"
+
+msgid "Receiving"
+msgstr "Принимающие"
+
+msgid "Areas"
+msgstr "Области"
+
+msgid "Lines"
+msgstr "Линии"
+
+msgid "Devices"
+msgstr "Устройства"
+
+msgid "Buildings"
+msgstr "Здания"
+
+msgid "+ {count} more"
+msgstr "+ ещё {count}"
+
+msgid "{count} more devices outside the selection. Click to show them."
+msgstr "Ещё устройств вне выбора: {count}. Щёлкните, чтобы показать их."
+
+msgid "{address}\n{senders} sending, {receivers} receiving"
+msgstr "{address}\nпередающих: {senders}, принимающих: {receivers}"
+
+msgid "Area {area}"
+msgstr "Область {area}"
+
+msgid "L {line}"
+msgstr "Л {line}"
+
+msgid "Zoom with two fingers. Tap a device to open it."
+msgstr "Масштабируйте двумя пальцами. Коснитесь устройства, чтобы открыть его."
+
+msgid "(unnamed)"
+msgstr "(без имени)"
+
+msgid "Address: {address}"
+msgstr "Адрес: {address}"
+
+msgid "Application: {application}"
+msgstr "Прикладная программа: {application}"

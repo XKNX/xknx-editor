@@ -127,11 +127,11 @@ msgstr "Groepsadres {address} verwijderd"
 msgid "Group address: {old} -> {new}"
 msgstr "Groepsadres: {old} -> {new}"
 
-msgid "Com object linked to group address"
-msgstr "Com object gekoppeld aan groepsadres"
+msgid "Group object linked to group address"
+msgstr "Groepsobject gekoppeld aan groepsadres"
 
-msgid "Com object unlinked from group address"
-msgstr "Com object ontkoppeld van groepsadres"
+msgid "Group object unlinked from group address"
+msgstr "Groepsobject ontkoppeld van groepsadres"
 
 msgid "Area {number} created"
 msgstr "Gebied {number} aangemaakt"
@@ -154,8 +154,8 @@ msgstr "Lijn: {old} -> {new}"
 msgid "Mass Linker"
 msgstr "Massakoppeling"
 
-msgid "GA <> Object"
-msgstr "GA <> Object"
+msgid "Object <> GA"
+msgstr "Object <> GA"
 
 msgid "Object <> Object"
 msgstr "Object <> Object"
@@ -181,8 +181,8 @@ msgstr "Doel (objecten)"
 msgid "Preview & Link"
 msgstr "Voorbeeld & koppelen"
 
-msgid "Add Objects…"
-msgstr "Objecten toevoegen…"
+msgid "Add Group Objects…"
+msgstr "Groepsobjecten toevoegen…"
 
 msgid "Add Group Addresses…"
 msgstr "Groepsadressen toevoegen…"
@@ -223,8 +223,8 @@ msgstr "Startadres"
 msgid "Filter…"
 msgstr "Filter…"
 
-msgid "Add Communication Objects"
-msgstr "Communicatieobjecten toevoegen"
+msgid "Add Group Objects"
+msgstr "Groepsobjecten toevoegen"
 
 msgid "Add Group Addresses"
 msgstr "Groepsadressen toevoegen"
@@ -335,8 +335,8 @@ msgstr "{count} adres(sen) worden gewijzigd"
 msgid "Click a finding to jump to the device."
 msgstr "Klik op een bevinding om naar het apparaat te springen."
 
-msgid "Add communication objects on the left and existing group addresses in the middle, then click Link: the 1st object links to the 1st address, and so on."
-msgstr "Voeg links communicatieobjecten toe en in het midden bestaande groepsadressen, klik dan Koppelen: 1e object naar 1e adres, enz."
+msgid "Add group objects on the left and existing group addresses in the middle, then click Link: the 1st object links to the 1st address, and so on."
+msgstr "Voeg links groepsobjecten toe en in het midden bestaande groepsadressen, klik dan Koppelen: 1e object naar 1e adres, enz."
 
 msgid "Add objects on both sides. Each pair gets a new group address that links them (the source sends, the target receives). Set the address name/number below."
 msgstr "Voeg aan beide zijden objecten toe. Elk paar krijgt een nieuw groepsadres dat ze koppelt (bron zendt, doel ontvangt). Stel naam/nummer hieronder in."
@@ -511,7 +511,7 @@ msgid "Building"
 msgstr "Gebouw"
 
 msgid "Building Part"
-msgstr "Gebouwdeel"
+msgstr "Gebouwonderdeel"
 
 msgid "Corridor"
 msgstr "Gang"
@@ -1030,8 +1030,8 @@ msgstr "Opmerkingen ontsleutelen"
 msgid "Default Gateway"
 msgstr "Standaardgateway"
 
-msgid "Delete '{name}'? Its com-objects and group-address links are removed and its individual address is freed. This can be undone."
-msgstr "'{name}' verwijderen? De communicatieobjecten en groepsadreskoppelingen ervan worden verwijderd en het fysieke adres wordt vrijgegeven. Dit kan ongedaan worden gemaakt."
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "'{name}' verwijderen? De groepsobjecten en groepsadreskoppelingen ervan worden verwijderd en het fysieke adres wordt vrijgegeven. Dit kan ongedaan worden gemaakt."
 
 msgid "Delete Device"
 msgstr "Apparaat verwijderen"
@@ -1211,11 +1211,11 @@ msgstr "Legenda (volledige pagina)"
 msgid "Link All ({count})"
 msgstr "Alles koppelen ({count})"
 
-msgid "Link communication objects to each other. 1) Add the source objects. 2) Pick a partner object per row. Each pair gets a NEW group address (source sends, target receives): the address and name are suggested (first free address, name template below) but can be edited per row. 3) 'Link all' creates and links them."
-msgstr "Communicatieobjecten aan elkaar koppelen. 1) Voeg de bronobjecten toe. 2) Kies per rij een partnerobject. Elk paar krijgt een NIEUW groepsadres (bron zendt, doel ontvangt): adres en naam worden voorgesteld (eerste vrije adres, naamsjabloon hieronder), maar zijn per rij te bewerken. 3) 'Alles koppelen' maakt ze aan en koppelt ze."
+msgid "Link group objects to each other. 1) Add the source objects. 2) Pick a partner object per row. Each pair gets a NEW group address (source sends, target receives): the address and name are suggested (first free address, name template below) but can be edited per row. 3) 'Link all' creates and links them."
+msgstr "Groepsobjecten aan elkaar koppelen. 1) Voeg de bronobjecten toe. 2) Kies per rij een partnerobject. Elk paar krijgt een NIEUW groepsadres (bron zendt, doel ontvangt): adres en naam worden voorgesteld (eerste vrije adres, naamsjabloon hieronder), maar zijn per rij te bewerken. 3) 'Alles koppelen' maakt ze aan en koppelt ze."
 
-msgid "Link many communication objects to existing group addresses at once. 1) Add objects: '+ Selected device' (all objects of the device selected in the tree) or 'Add objects…'. 2) Set each row's target address in its dropdown — or fill them fast with 'Assign sequential' (next free addresses from the given start) or 'Match by name'. 3) 'Link all' links every row that has a target."
-msgstr "Veel communicatieobjecten in één keer aan bestaande groepsadressen koppelen. 1) Objecten toevoegen: '+ Geselecteerd apparaat' (alle objecten van het in de boom geselecteerde apparaat) of 'Objecten toevoegen…'. 2) Stel per rij het doeladres in via de keuzelijst — of vul ze snel met 'Opeenvolgend toewijzen' (volgende vrije adressen vanaf het opgegeven begin) of 'Op naam toewijzen'. 3) 'Alles koppelen' koppelt elke rij die een doel heeft."
+msgid "Link many group objects to existing group addresses at once. 1) Add objects: '+ Selected device' (all objects of the device selected in the tree) or 'Add objects…'. 2) Set each row's target address in its dropdown — or fill them fast with 'Assign sequential' (next free addresses from the given start) or 'Match by name'. 3) 'Link all' links every row that has a target."
+msgstr "Veel groepsobjecten in één keer aan bestaande groepsadressen koppelen. 1) Objecten toevoegen: '+ Geselecteerd apparaat' (alle objecten van het in de boom geselecteerde apparaat) of 'Objecten toevoegen…'. 2) Stel per rij het doeladres in via de keuzelijst — of vul ze snel met 'Opeenvolgend toewijzen' (volgende vrije adressen vanaf het opgegeven begin) of 'Op naam toewijzen'. 3) 'Alles koppelen' koppelt elke rij die een doel heeft."
 
 msgid "Load Procedures ({count})"
 msgstr "Laadprocedures ({count})"
@@ -1271,8 +1271,8 @@ msgstr "Geen project"
 msgid "No project log entries"
 msgstr "Geen items in het projectlogboek"
 
-msgid "Object"
-msgstr "Object"
+msgid "Group Object"
+msgstr "Groepsobject"
 
 msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
 msgstr "Alleen voor ETS 6-apparaten: deze test vergelijkt het apparaat met een geheugenbeeld dat op de manier van ETS 6 is gegenereerd. Een apparaat dat het laatst met ETS 5 is geprogrammeerd, gebruikt een andere byte-indeling en toont grote onterechte verschillen - het resultaat is alleen zinvol voor een apparaat dat het laatst met ETS 6 is geprogrammeerd."
@@ -1334,8 +1334,8 @@ msgstr "Alleen-lezen test: controleert of de downloadfunctie hetzelfde geheugenb
 msgid "Rename Group Address"
 msgstr "Groepsadres hernoemen"
 
-msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Com-object links move with each address. Nothing is written if any move would collide or leave the valid range."
-msgstr "Groepsadressen hernummeren door een verschuiving op te tellen bij hun ruwe waarde, bijv. om ruimte te maken. Koppelingen van communicatieobjecten gaan met elk adres mee. Er wordt niets geschreven als een verschuiving zou botsen of buiten het geldige bereik zou vallen."
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Groepsadressen hernummeren door een verschuiving op te tellen bij hun ruwe waarde, bijv. om ruimte te maken. Koppelingen van groepsobjecten gaan met elk adres mee. Er wordt niets geschreven als een verschuiving zou botsen of buiten het geldige bereik zou vallen."
 
 msgid "Rows"
 msgstr "Rijen"
@@ -1394,8 +1394,8 @@ msgstr "Systeembyte die het apparaat tijdens runtime zelf instelt (bijv. een dow
 msgid "Target Group Address"
 msgstr "Doelgroepsadres"
 
-msgid "Target Object"
-msgstr "Doelobject"
+msgid "Target Group Object"
+msgstr "Doel-groepsobject"
 
 msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
 msgstr "De verschuiving wordt opgeteld bij de ruwe 16-bitwaarde, waardoor de hoofd-/middengroep kan veranderen wanneer adressen een grens overschrijden."
@@ -1741,6 +1741,21 @@ msgstr "Een deel van de apparaatgegevens ontbreekt."
 msgid "Connect to a KNX interface to commission the DALI bus."
 msgstr "Maak verbinding met een KNX-interface om de DALI-bus in bedrijf te stellen."
 
+msgid ""
+"This gateway's commissioning protocol has not been verified against a "
+"capture; writes may misbehave. Proceed with care."
+msgstr ""
+"Het inbedrijfstellingsprotocol van deze gateway is niet geverifieerd tegen "
+"een opname; schrijfbewerkingen kunnen onjuist zijn. Voorzichtig doorgaan."
+
+msgid ""
+"DALI commissioning writes the gateway on the bus but does not update the "
+"project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr ""
+"DALI-inbedrijfstelling schrijft de gateway op de bus, maar werkt de "
+"projectparameters niet bij; exporteer de .knxproj opnieuw na een "
+"DCA-wijziging."
+
 msgid "Scan Bus"
 msgstr "Bus scannen"
 
@@ -1938,3 +1953,389 @@ msgstr "De fabrikant stelt de parameters van dit apparaat in met een eigen plug-
 
 msgid "Edit parameters anyway"
 msgstr "Parameters toch bewerken"
+
+msgid "Matching DPT Only"
+msgstr "Alleen passend DPT"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Alleen groepsadressen met het hoofddatapunttype van het object, en die zonder (zij nemen bij het koppelen het type van het object over)."
+
+msgid "no DPT"
+msgstr "geen DPT"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Alleen objecten met hetzelfde hoofddatapunttype, en die zonder."
+
+msgid "Select a device in the tree first."
+msgstr "Selecteer eerst een apparaat in de boom."
+
+msgid "{device} has no group objects."
+msgstr "{device} heeft geen groepsobjecten."
+
+msgid "All objects of {device} are in the list already."
+msgstr "Alle objecten van {device} staan al in de lijst."
+
+msgid "Link group objects to existing group addresses."
+msgstr "Groepsobjecten aan bestaande groepsadressen koppelen."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Objecten toevoegen met \"{add_device}\" of \"{add_objects}\"."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Kies per rij een groepsadres, of vul alle met \"{match}\" of \"{sequential}\"."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "\"{link_all}\" koppelt elke rij die er een heeft."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Objecten aan elkaar koppelen via telkens een nieuw groepsadres: de bron zendt, het doel ontvangt."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "De bronobjecten toevoegen met \"{add_device}\" of \"{add_objects}\"."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Kies per rij een doelobject. Adres en naam worden voorgesteld en zijn aan te passen."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "\"{link_all}\" maakt de groepsadressen aan en koppelt ze."
+
+msgid "Link All"
+msgstr "Alles koppelen"
+
+msgid "Object"
+msgstr "Object"
+
+msgid "Ready to link."
+msgstr "Klaar om te koppelen."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Controleer het groepsadres: meerdere passen of een datapunttype is onbekend."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "De datapunttypes passen niet; deze rij wordt niet gekoppeld."
+
+msgid "No group address chosen yet."
+msgstr "Nog geen groepsadres gekozen."
+
+msgid "Add device {name}"
+msgstr "Apparaat {name} toevoegen"
+
+msgid "Set {ref} = {value}"
+msgstr "{ref} = {value} instellen"
+
+msgid "Change"
+msgstr "Wijziging"
+
+msgid "Create area {address}"
+msgstr "Gebied {address} aanmaken"
+
+msgid "Create line {address}"
+msgstr "Lijn {address} aanmaken"
+
+msgid "Add segment"
+msgstr "Segment toevoegen"
+
+msgid "Create group address {address}"
+msgstr "Groepsadres {address} aanmaken"
+
+msgid "Import group addresses"
+msgstr "Groepsadressen importeren"
+
+msgid "Import group addresses from {file}"
+msgstr "Groepsadressen uit {file} importeren"
+
+msgid "Link group object"
+msgstr "Groepsobject koppelen"
+
+msgid "Unlink group object"
+msgstr "Groepsobject ontkoppelen"
+
+msgid "Rename area to {name}"
+msgstr "Gebied hernoemen naar {name}"
+
+msgid "Rename project to {name}"
+msgstr "Project hernoemen naar {name}"
+
+msgid "Rename line to {name}"
+msgstr "Lijn hernoemen naar {name}"
+
+msgid "Rename device to {name}"
+msgstr "Apparaat hernoemen naar {name}"
+
+msgid "Move device"
+msgstr "Apparaat verplaatsen"
+
+msgid "Set flag"
+msgstr "Vlag instellen"
+
+msgid "Set datapoint type"
+msgstr "Datapunttype instellen"
+
+msgid "Set priority"
+msgstr "Prioriteit instellen"
+
+msgid "Set description"
+msgstr "Beschrijving instellen"
+
+msgid "Set sending group address"
+msgstr "Zendend groepsadres instellen"
+
+msgid "Add installation"
+msgstr "Installatie toevoegen"
+
+msgid "Remove device"
+msgstr "Apparaat verwijderen"
+
+msgid "Remove area"
+msgstr "Gebied verwijderen"
+
+msgid "Remove line"
+msgstr "Lijn verwijderen"
+
+msgid "Remove segment"
+msgstr "Segment verwijderen"
+
+msgid "Remove group address"
+msgstr "Groepsadres verwijderen"
+
+msgid "Remove function"
+msgstr "Functie verwijderen"
+
+msgid "Remove group address from function"
+msgstr "Groepsadres uit functie verwijderen"
+
+msgid "Remove building part"
+msgstr "Gebouwonderdeel verwijderen"
+
+msgid "Remove group range"
+msgstr "Groepsbereik verwijderen"
+
+msgid "Update application program"
+msgstr "Applicatieprogramma bijwerken"
+
+msgid "Change application program"
+msgstr "Applicatieprogramma wijzigen"
+
+msgid "Update group objects"
+msgstr "Groepsobjecten bijwerken"
+
+msgid "Update module instances"
+msgstr "Module-instanties bijwerken"
+
+msgid "Set group address security"
+msgstr "Beveiliging van groepsadres instellen"
+
+msgid "Set secure commissioning"
+msgstr "Beveiligde inbedrijfstelling instellen"
+
+msgid "Rename group address to {name}"
+msgstr "Groepsadres hernoemen naar {name}"
+
+msgid "Change group address"
+msgstr "Groepsadres wijzigen"
+
+msgid "Set device certificates"
+msgstr "Apparaatcertificaten instellen"
+
+msgid "Set device description"
+msgstr "Apparaatbeschrijving instellen"
+
+msgid "Create function {name}"
+msgstr "Functie {name} aanmaken"
+
+msgid "Rename function to {name}"
+msgstr "Functie hernoemen naar {name}"
+
+msgid "Set function type"
+msgstr "Functietype instellen"
+
+msgid "Add group address to function"
+msgstr "Groepsadres aan functie toevoegen"
+
+msgid "Create building part {name}"
+msgstr "Gebouwonderdeel {name} aanmaken"
+
+msgid "Rename building part to {name}"
+msgstr "Gebouwonderdeel hernoemen naar {name}"
+
+msgid "Set building part number"
+msgstr "Nummer van gebouwonderdeel instellen"
+
+msgid "Set building part description"
+msgstr "Beschrijving van gebouwonderdeel instellen"
+
+msgid "Set building part type"
+msgstr "Type van gebouwonderdeel instellen"
+
+msgid "Move building part"
+msgstr "Gebouwonderdeel verplaatsen"
+
+msgid "Assign device to building part"
+msgstr "Apparaat aan gebouwonderdeel toewijzen"
+
+msgid "Set commissioning state"
+msgstr "Inbedrijfstellingsstatus instellen"
+
+msgid "Create group range {name}"
+msgstr "Groepsbereik {name} aanmaken"
+
+msgid "Rename group range to {name}"
+msgstr "Groepsbereik hernoemen naar {name}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: geen individueel adres"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: ongeldig adres '{address}'"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: dubbel adres {address}"
+
+msgid "Installation Hints"
+msgstr "Installatietips"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Selecteer een element in een boom om de opmerking ervan te zien."
+
+msgid "Set comment"
+msgstr "Opmerking instellen"
+
+msgid "Set installation hints"
+msgstr "Installatietips instellen"
+
+msgid "Area"
+msgstr "Gebied"
+
+msgid "Line"
+msgstr "Lijn"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Het adres is een getal van 0 tot 15."
+
+msgid "Address {address} is already in use."
+msgstr "Adres {address} is al in gebruik."
+
+msgid "Set area description"
+msgstr "Gebiedsbeschrijving instellen"
+
+msgid "Set line description"
+msgstr "Lijnbeschrijving instellen"
+
+msgid "Set area address"
+msgstr "Gebiedsadres instellen"
+
+msgid "Set line address"
+msgstr "Lijnadres instellen"
+
+msgid "Main Group"
+msgstr "Hoofdgroep"
+
+msgid "Middle Group"
+msgstr "Middengroep"
+
+msgid "Group Range"
+msgstr "Groepsbereik"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "De hoofdgroep is een getal van 0 tot 31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "De middengroep is een getal van 0 tot 7."
+
+msgid "Set group address description"
+msgstr "Groepsadresbeschrijving instellen"
+
+msgid "Set group range description"
+msgstr "Groepsbereikbeschrijving instellen"
+
+msgid "Set group range address"
+msgstr "Groepsbereikadres instellen"
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Verbind met een KNX-interface om de Siemens DALI-bus te lezen."
+
+msgid "Read DALI Bus"
+msgstr "DALI-bus lezen"
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "DALI-bus wordt uit object {object_index} gelezen…"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Klik op 'DALI-bus lezen' om de EVG's van de gateway op te sommen."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{count} EVG(s) aanwezig op lijn {line}"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Alleen-lezen moment. Groepstoewijzing, scènes of firmware schrijven is nog niet beschikbaar en blijft in de fabrikantplug-in."
+
+msgid "Short Address"
+msgstr "Kortadres"
+
+msgid "Random Address"
+msgstr "Willekeurig adres"
+
+msgid "Min Dim"
+msgstr "Min. dim"
+
+msgid "Colour Temp (K)"
+msgstr "Kleurtemp. (K)"
+
+msgid "Slot"
+msgstr "Slot"
+
+msgid "Plugin Config"
+msgstr "Plug-inconfiguratie"
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Voor dit apparaat is nog geen plug-intoewijzing beschikbaar. De parameters van de fabrikantplug-in blijven hier onbereikbaar."
+
+msgid "The application has no static parameters."
+msgstr "De applicatie heeft geen statische parameters."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Alleen-lezen weergave. De hiërarchie is een best-effort reconstructie uit prefixen van parameternamen; namen en groepen kunnen grof zijn. Schrijven van waarden is nog niet beschikbaar."
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "No parameter matches the filter."
+msgstr "Geen parameter voldoet aan het filter."
+
+msgid "Parameter"
+msgstr "Parameter"
+
+msgid "Default"
+msgstr "Standaard"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Bewerkbare terugval voor parameters waarvoor de fabrikantplug-in hier niet beschikbaar is. De hiërarchie is gereconstrueerd uit parameternaam-prefixen; labels en groepen kunnen grof zijn. Wijzigingen worden in het project opgeslagen en bij een normale download overgedragen."
+
+msgid "DALI commissioning"
+msgstr "DALI-inbedrijfstelling"
+
+msgid "DALI Channel"
+msgstr "DALI-kanaal"
+
+msgid "Channel {n}"
+msgstr "Kanaal {n}"
+
+msgid "Program DCA State"
+msgstr "DCA-status programmeren"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Verstuurt de DALI-apparaatinstellingen als eigenschapswaarden naar de gateway."
+
+msgid "Add to {section}:"
+msgstr "Toevoegen aan {section}:"
+
+msgid "No entries."
+msgstr "Geen items."
+
+msgid "Entry"
+msgstr "Item"
+
+msgid "Store plugin data {name}"
+msgstr "Plug-ingegevens {name} opslaan"

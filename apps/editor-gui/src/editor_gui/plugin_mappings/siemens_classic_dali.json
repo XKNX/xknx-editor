@@ -1,0 +1,132 @@
+{
+  "app_id_prefixes": ["M-0001_A-9837", "M-0001_A-9834"],
+  "title": "Siemens KNX/DALI Gateway (classic plug-in: N 141/03, N 141/21)",
+  "blob_reader": "siemens_dali",
+  "note": "Parameter prefixes are matched after an optional 'cN' or 'cN.M' channel/line prefix (captured as {channel} and {line}). The patterns are heuristic; names come from the plug-in's decompile.",
+  "sections": [
+    {
+      "regex": "^c([0-9]+)\\.([0-9]+)dalLinEcg_",
+      "label": "Channel {1} - Line {2} - ECGs"
+    },
+    {
+      "regex": "^c([0-9]+)\\.([0-9]+)dalLinGro_",
+      "label": "Channel {1} - Line {2} - Groups"
+    },
+    {
+      "regex": "^c([0-9]+)\\.([0-9]+)dalLinEme_",
+      "label": "Channel {1} - Line {2} - Emergency"
+    },
+    {
+      "regex": "^c([0-9]+)\\.([0-9]+)dalLinBro_",
+      "label": "Channel {1} - Line {2} - Broadcast"
+    },
+    {
+      "regex": "^c([0-9]+)\\.([0-9]+)dalLin_",
+      "label": "Channel {1} - Line {2} - DALI"
+    },
+    {
+      "regex": "^c([0-9]+)\\.([0-9]+)dal2LinBinFun_",
+      "label": "Channel {1} - Line {2} - Binary Input Functions"
+    },
+    {
+      "regex": "^c([0-9]+)\\.([0-9]+)dal2LinBin_",
+      "label": "Channel {1} - Line {2} - Binary Inputs"
+    },
+    {
+      "regex": "^c([0-9]+)\\.([0-9]+)\\.([0-9]+)dal2LinPreTyp",
+      "label": "Channel {1} - Line {2} - Presence Sensor {3}"
+    },
+    {
+      "regex": "^c([0-9]+)\\.([0-9]+)dal2LinPre_",
+      "label": "Channel {1} - Line {2} - Presence Sensors (Summary)"
+    },
+    {
+      "regex": "^c([0-9]+)\\.([0-9]+)dal2LinBri_",
+      "label": "Channel {1} - Line {2} - Brightness Sensors"
+    },
+    {
+      "regex": "^c([0-9]+)\\.([0-9]+)dal2LinBri_",
+      "label": "Channel {1} - Line {2} - Brightness Sensors"
+    },
+    {
+      "regex": "^c([0-9]+)\\.([0-9]+)dalMinReg_",
+      "label": "Channel {1} - Line {2} - Energy Measurement"
+    },
+    {
+      "regex": "^c([0-9]+)lig2ChaSla_",
+      "label": "Channel {1} - Light Control (2-point) Slaves"
+    },
+    {
+      "regex": "^c([0-9]+)lig2Cha_",
+      "label": "Channel {1} - Light Control (2-point)"
+    },
+    {
+      "regex": "^c([0-9]+)ligCha_",
+      "label": "Channel {1} - Light Control"
+    },
+    {
+      "regex": "^c([0-9]+)timChaFun_",
+      "label": "Channel {1} - Time Switch Functions"
+    },
+    {
+      "regex": "^c([0-9]+)timCha_",
+      "label": "Channel {1} - Time Switch"
+    },
+    {
+      "regex": "^c([0-9]+)effEffFun_",
+      "label": "Channel {1} - Effect Functions"
+    },
+    {
+      "regex": "^c([0-9]+)effEff_",
+      "label": "Channel {1} - Effects"
+    },
+    {
+      "regex": "^c([0-9]+)sce_",
+      "label": "Channel {1} - Scenes"
+    },
+    {
+      "regex": "^c([0-9]+)eff_",
+      "label": "Channel {1} - Effects (General)"
+    },
+    {
+      "regex": "^c([0-9]+)nig_",
+      "label": "Channel {1} - Night Mode"
+    },
+    {
+      "regex": "^c([0-9]+)man_",
+      "label": "Channel {1} - Manual Operation"
+    },
+    {
+      "regex": "^c([0-9]+)eme_",
+      "label": "Channel {1} - Emergency"
+    },
+    {
+      "regex": "^c([0-9]+)devLin_",
+      "label": "Channel {1} - Device Line"
+    },
+    {
+      "regex": "^c([0-9]+)dev_",
+      "label": "Channel {1} - Device"
+    },
+    {
+      "regex": "^c([0-9]+)dalLin_",
+      "label": "Channel {1} - DALI Line (General)"
+    },
+    {
+      "regex": "^c([0-9]+)dal_",
+      "label": "Channel {1} - DALI (General)"
+    },
+    {
+      "regex": "^c([0-9]+)rtcTyp_",
+      "label": "Channel {1} - Real-Time Clock"
+    },
+    {
+      "regex": "^c([0-9]+)_",
+      "label": "Channel {1} - General"
+    },
+    {
+      "regex": "^Revision$",
+      "label": "Revision"
+    }
+  ]
+}

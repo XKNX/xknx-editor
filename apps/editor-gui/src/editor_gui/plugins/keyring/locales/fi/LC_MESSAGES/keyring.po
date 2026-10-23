@@ -1,0 +1,86 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor keyring 1.0\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Show Window"
+msgstr "Näytä ikkuna"
+
+msgid "No keyring loaded"
+msgstr "Avainnippua ei ole ladattu"
+
+msgid "Import Keyring…"
+msgstr "Tuo avainnippu…"
+
+msgid "Export Keyring…"
+msgstr "Vie avainnippu…"
+
+msgid "Export"
+msgstr "Vie"
+
+msgid "Set the password for the exported keyring:"
+msgstr "Aseta viedyn avainnipun salasana:"
+
+msgid "KNX Keyring (*.knxkeys)"
+msgstr "KNX-avainnippu (*.knxkeys)"
+
+msgid "All Files"
+msgstr "Kaikki tiedostot"
+
+msgid "Load"
+msgstr "Lataa"
+
+msgid "Cancel"
+msgstr "Peruuta"
+
+msgid "Close"
+msgstr "Sulje"
+
+msgid "{project} — created by {by}"
+msgstr "{project} — luonut {by}"
+
+msgid "Backbone"
+msgstr "Runkoverkko"
+
+msgid "Interfaces ({count})"
+msgstr "Rajapinnat ({count})"
+
+msgid "Group Address Keys ({count})"
+msgstr "Ryhmäosoitteiden avaimet ({count})"
+
+msgid "Devices ({count})"
+msgstr "Laitteet ({count})"
+
+msgid "Export Keyring from Project…"
+msgstr "Vie avainnippu projektista…"
+
+msgid "Type"
+msgstr "Tyyppi"
+
+msgid "Address"
+msgstr "Osoite"
+
+msgid "Host"
+msgstr "Isäntä"
+
+msgid "User"
+msgstr "Käyttäjä"
+
+msgid "Key"
+msgstr "Avain"
+
+msgid "In Project"
+msgstr "Projektissa"
+
+msgid "Tool Key"
+msgstr "Työkaluavain"
+
+msgid "{address}   key {key}"
+msgstr "{address}   avain {key}"

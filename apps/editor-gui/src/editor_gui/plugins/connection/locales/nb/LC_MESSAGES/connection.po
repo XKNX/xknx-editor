@@ -1,0 +1,176 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor connection 1.0\n"
+"Language: nb\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Gateway"
+msgstr "Gateway"
+
+msgid "Connect"
+msgstr "Koble til"
+
+msgid "Disconnect"
+msgstr "Koble fra"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Bruk serienummer ved nedlasting"
+
+msgid "Discovered Gateways"
+msgstr "Funne gatewayer"
+
+msgid "Diagnostics"
+msgstr "Diagnostikk"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "Søk etter enheter i programmeringsmodus"
+
+msgid "Devices in Programming Mode"
+msgstr "Enheter i programmeringsmodus"
+
+msgid "Rescan"
+msgstr "Søk på nytt"
+
+msgid "Searching the bus…"
+msgstr "Søker på bussen…"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Trykk på programmeringsknappen på en enhet for å sette den i programmeringsmodus, og søk deretter på nytt."
+
+msgid "No device is in programming mode."
+msgstr "Ingen enhet er i programmeringsmodus."
+
+msgid "The scan could not be completed: {error}"
+msgstr "Søket kunne ikke fullføres: {error}"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "Grensesnittet bekreftet ikke søkeforespørselen (bussen er opptatt eller grensesnittet er overbelastet). Prøv igjen."
+
+msgid "{count} device(s) in programming mode"
+msgstr "{count} enhet(er) i programmeringsmodus"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "Svarte på søket, men lesing av detaljene mislyktes: {error}"
+
+msgid "In this project: {name}"
+msgstr "I dette prosjektet: {name}"
+
+msgid "Not in this project"
+msgstr "Ikke i dette prosjektet"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Uprogrammert enhet (fabrikkadresse 15.15.255)"
+
+msgid "Select in Project"
+msgstr "Velg i prosjektet"
+
+msgid "Manufacturer"
+msgstr "Produsent"
+
+msgid "Product (Catalog)"
+msgstr "Produkt (katalog)"
+
+msgid "Application"
+msgstr "Applikasjon"
+
+msgid "Application Version"
+msgstr "Applikasjonsversjon"
+
+msgid "Mask Version"
+msgstr "Maskeversjon"
+
+msgid "Serial Number"
+msgstr "Serienummer"
+
+msgid "Order Number"
+msgstr "Artikkelnummer"
+
+msgid "Hardware Type"
+msgstr "Hardvaretype"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "No fault"
+msgstr "Ingen feil"
+
+msgid "Programming mode active"
+msgstr "Programmeringsmodus aktiv"
+
+msgid "No gateways found"
+msgstr "Ingen gatewayer funnet"
+
+msgid "Manual Connection"
+msgstr "Manuell tilkobling"
+
+msgid "Connected: {ip}"
+msgstr "Tilkoblet: {ip}"
+
+msgid "Connected to {ip}"
+msgstr "Koblet til {ip}"
+
+msgid "Disconnected"
+msgstr "Frakoblet"
+
+msgid "Connecting…"
+msgstr "Kobler til…"
+
+msgid "Connection failed"
+msgstr "Tilkoblingen mislyktes"
+
+msgid "Scan"
+msgstr "Skann"
+
+msgid "Settings"
+msgstr "Innstillinger"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Bruk multicast-ruting (i stedet for tunneling)"
+
+msgid "Gateway IP"
+msgstr "Gateway-IP"
+
+msgid "Multicast Group"
+msgstr "Multicast-gruppe"
+
+msgid "Apply"
+msgstr "Bruk"
+
+msgid "Bus monitor: {ip}"
+msgstr "Busmonitor: {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Gatewayen er tilkoblet i busmonitormodus. Ingenting kan sendes eller lastes ned før busmonitoren er stoppet."
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Ikke mulig mens busmonitoren kjører"
+
+msgid "Stop Bus Monitor"
+msgstr "Stopp busmonitor"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "Grensesnittet krever KNX IP Secure, men verken prosjektet eller en lastet nøkkelring har passordene."
+
+msgid "Error: {error}"
+msgstr "Feil: {error}"
+
+msgid "Unknown error"
+msgstr "Ukjent feil"
+
+msgid "Name: {name}"
+msgstr "Navn: {name}"
+
+msgid "KNX Address: {address}"
+msgstr "KNX-adresse: {address}"
+
+msgid "Core Version: {version}"
+msgstr "Core-versjon: {version}"
+
+msgid "Services: {services}"
+msgstr "Tjenester: {services}"
+
+msgid "Retry"
+msgstr "Prøv på nytt"

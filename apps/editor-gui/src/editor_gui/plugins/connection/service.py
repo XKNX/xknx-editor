@@ -1255,9 +1255,8 @@ class ConnectionService:
             self._log.warning("A bus operation is already running", device=device.name)
             return None
         security = self._security_for(device)
-        object_index_base = dali_object_index_base(
-            device.app.id if device.app is not None else None
-        )
+        app_id = device.app.id if device.app is not None else None
+        object_index_base = dali_object_index_base(app_id)
         future = self.run_async(
             run_dali_operation(
                 self._connected_xknx,
@@ -1266,6 +1265,7 @@ class ConnectionService:
                 channel,
                 op,
                 object_index_base=object_index_base,
+                app_id=app_id,
             )
         )
         if future is not None:
@@ -1288,7 +1288,106 @@ class ConnectionService:
                 "DALI commissioning failed", address=address, error=str(exc)
             )
             return
+        # Defensive against future helpers that keep returning False instead of raising:
+        # treat a boolean result as a verification signal so the user is not told the run
+        # succeeded when it did not. (``commission()`` now raises
+        # ``DaliCommissioningError``; this guard catches any other callable that still
+        # returns a bool.)
+        try:
+            result = future.result()
+        except Exception as e:
+            self._log.error("DALI commissioning failed", address=address, error=str(e))
+            return
+        if result is False:
+            self._log.error(
+                "DALI commissioning failed", address=address, error="verify mismatch"
+            )
+            return
         self._log.info("DALI commissioning done", address=address)
+
+    def run_siemens_dali(
+        self,
+        device: Device,
+        op: Callable[[Any], Coroutine[Any, Any, Any]],
+    ) -> Future[Any] | None:
+        """Run one Siemens N141/03 DALI operation (currently read-only scan).
+
+        ``op`` receives a raw :class:`~xknxeditor.dali.connection.Programmer` and returns a
+        coroutine (e.g. ``lambda p: scan_n141_03(p, line=0)``). Shares the exclusive bus slot with
+        the other point-to-point operations.
+        """
+        if self.not_connected("siemens_dali_commissioning"):
+            return None
+        if not device.individual_address:
+            self._log.warning("Device has no individual address", device=device.name)
+            return None
+        from editor_gui.programming_dali import run_siemens_dali_operation
+
+        if not self.begin_operation("siemens_dali", device.individual_address):
+            self._log.warning("A bus operation is already running", device=device.name)
+            return None
+        security = self._security_for(device)
+        future = self.run_async(
+            run_siemens_dali_operation(
+                self._connected_xknx,
+                device.individual_address,
+                security,
+                op,
+            )
+        )
+        if future is None:
+            # ``run_async`` returning None means no event loop is running; release the slot
+            # we just acquired so the next attempt can start.
+            self._clear_busy()
+            return None
+        future.add_done_callback(
+            functools.partial(self._log_dali_result, address=device.individual_address)
+        )
+        return future
+
+    def run_siemens_dca_program(
+        self,
+        device: Device,
+        blob_xml: bytes,
+    ) -> Future[int] | None:
+        """Push the Siemens N141/03 DCA ``DaliDevice`` property-image onto the device.
+
+        Returns a Future with the number of property writes that succeeded. The DCA
+        property-table is derived from the project's BLOB_PARA; the port lives in
+        :mod:`editor_gui.plugin_blob_readers.siemens_dali.download`.
+        """
+        if self.not_connected("siemens_dca_program"):
+            return None
+        if not device.individual_address:
+            self._log.warning("Device has no individual address", device=device.name)
+            return None
+        if not self.begin_operation("siemens_dca", device.individual_address):
+            self._log.warning("A bus operation is already running", device=device.name)
+            return None
+        security = self._security_for(device)
+        from editor_gui.plugin_blob_readers.siemens_dali.download import (
+            program_dalidevice,
+        )
+        from editor_gui.programming_dali import run_siemens_dali_operation
+
+        async def _runner(programmer: Any) -> int:
+            return await program_dalidevice(programmer, blob_xml)
+
+        future = self.run_async(
+            run_siemens_dali_operation(
+                self._connected_xknx,
+                device.individual_address,
+                security,
+                _runner,
+            )
+        )
+        if future is None:
+            self._clear_busy()
+            return None
+        future.add_done_callback(
+            functools.partial(self._log_dali_result, address=device.individual_address)
+        )
+        return future
 
     def run_async(self, coro: Coroutine[Any, Any, Any]) -> Future[Any] | None:
         if self._loop is None:

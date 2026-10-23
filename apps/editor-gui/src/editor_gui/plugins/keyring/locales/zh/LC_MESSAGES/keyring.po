@@ -1,0 +1,86 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor keyring 1.0\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Show Window"
+msgstr "显示窗口"
+
+msgid "No keyring loaded"
+msgstr "未加载密钥环"
+
+msgid "Import Keyring…"
+msgstr "导入密钥环…"
+
+msgid "Export Keyring…"
+msgstr "导出密钥环…"
+
+msgid "Export"
+msgstr "导出"
+
+msgid "Set the password for the exported keyring:"
+msgstr "设置导出密钥环的密码："
+
+msgid "KNX Keyring (*.knxkeys)"
+msgstr "KNX 密钥环 (*.knxkeys)"
+
+msgid "All Files"
+msgstr "所有文件"
+
+msgid "Load"
+msgstr "加载"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "{project} — created by {by}"
+msgstr "{project} — 创建者：{by}"
+
+msgid "Backbone"
+msgstr "主干"
+
+msgid "Interfaces ({count})"
+msgstr "接口（{count}）"
+
+msgid "Group Address Keys ({count})"
+msgstr "组地址密钥（{count}）"
+
+msgid "Devices ({count})"
+msgstr "设备（{count}）"
+
+msgid "Export Keyring from Project…"
+msgstr "从项目导出密钥环…"
+
+msgid "Type"
+msgstr "类型"
+
+msgid "Address"
+msgstr "地址"
+
+msgid "Host"
+msgstr "主机"
+
+msgid "User"
+msgstr "用户"
+
+msgid "Key"
+msgstr "密钥"
+
+msgid "In Project"
+msgstr "在项目中"
+
+msgid "Tool Key"
+msgstr "工具密钥"
+
+msgid "{address}   key {key}"
+msgstr "{address}   密钥 {key}"

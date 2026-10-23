@@ -189,13 +189,10 @@ msgid "Group Monitor"
 msgstr "Gruppenmonitor"
 
 msgid "Group Objects"
-msgstr "Gruppenobjekte"
+msgstr "Kommunikationsobjekte"
 
-msgid "{count} telegrams"
-msgstr "{count} Telegramme"
-
-msgid "{count} telegram"
-msgstr "{count} Telegramm"
+msgid "{count} teleg."
+msgstr "{count} Teleg."
 
 msgid "Enter a group address of the project to send to it."
 msgstr "Geben Sie eine Gruppenadresse des Projekts ein, um an sie zu senden."
@@ -359,8 +356,8 @@ msgstr "Die Wiedergabe abbrechen"
 msgid "Copy"
 msgstr "Kopieren"
 
-msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
-msgstr "Die ausgewählten Telegramme (alle angezeigten, wenn keines ausgewählt ist) in die Zwischenablage kopieren (Strg+C). Doppelklick auf ein Telegramm wählt sein Quellgerät aus."
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Die ausgewählten Telegramme (alle angezeigten, wenn keines ausgewählt ist) in die Zwischenablage kopieren ({shortcut}). Doppelklick auf ein Telegramm wählt sein Quellgerät aus."
 
 msgid "Invalid frame"
 msgstr "Ungültiger Rahmen"
@@ -391,3 +388,9 @@ msgstr "Adresse"
 
 msgid "Name"
 msgstr "Name"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Maximale Anzahl Telegramme, die dieser Monitor behält. Das älteste Zehntel wird verworfen, sobald die Grenze überschritten ist."

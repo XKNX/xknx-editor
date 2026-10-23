@@ -1,0 +1,392 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor monitor 1.0\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Monitor"
+msgstr "Moniteur"
+
+msgid "No group addresses (open or import a project)"
+msgstr "Aucune adresse de groupe (ouvrez ou importez un projet)"
+
+msgid "Not Connected"
+msgstr "Non connecté"
+
+msgid "value (e.g. on / 21.5 / 50)"
+msgstr "valeur (p. ex. on / 21.5 / 50)"
+
+msgid "Value:"
+msgstr "Valeur :"
+
+msgid "Filter by address or name…"
+msgstr "Filtrer par adresse ou nom…"
+
+msgid "Write"
+msgstr "Écrire"
+
+msgid "Read"
+msgstr "Lire"
+
+msgid "Group Objects"
+msgstr "Objets de Groupe"
+
+msgid "Bus Monitor"
+msgstr "Moniteur de bus"
+
+msgid "Group Monitor"
+msgstr "Moniteur de groupes"
+
+msgid "Bus Activity"
+msgstr "Activité du bus"
+
+msgid "Clear"
+msgstr "Effacer"
+
+msgid "Show Extended Information"
+msgstr "Afficher les informations étendues"
+
+msgid "Hide Extended Information"
+msgstr "Masquer les informations étendues"
+
+msgid "{count} teleg."
+msgstr "{count} teleg."
+
+msgid "Load: {rate} t/s"
+msgstr "Charge : {rate} t/s"
+
+msgid "Group Address:"
+msgstr "Adresse de Groupe :"
+
+msgid "e.g. 1/2/3"
+msgstr "p. ex. 1/2/3"
+
+msgid "Enter a group address of the project to send to it."
+msgstr "Saisissez une adresse de groupe du projet pour y envoyer une valeur."
+
+msgid "Start"
+msgstr "Démarrer"
+
+msgid "Stop"
+msgstr "Arrêter"
+
+msgid "Import"
+msgstr "Importer"
+
+msgid "Export"
+msgstr "Exporter"
+
+msgid "Print"
+msgstr "Imprimer"
+
+msgid "Replay Telegrams"
+msgstr "Rejouer télégrammes"
+
+msgid "Stop Replay"
+msgstr "Arrêter la relecture"
+
+msgid "Start recording the group telegrams"
+msgstr "Démarrer l'enregistrement des télégrammes de groupe"
+
+msgid "Start recording the connection's communication other than group telegrams, including every frame this app sends"
+msgstr "Démarrer l'enregistrement de la communication de la connexion hors télégrammes de groupe, y compris chaque trame envoyée par cette application"
+
+msgid "Connect the interface in bus monitor mode and record every frame"
+msgstr "Connecter l'interface en mode moniteur de bus et enregistrer chaque trame"
+
+msgid "Stop recording"
+msgstr "Arrêter l'enregistrement"
+
+msgid "Close the bus monitor connection and restore the normal connection"
+msgstr "Fermer la connexion du moniteur de bus et rétablir la connexion normale"
+
+msgid "Remove all telegrams"
+msgstr "Enlever tous les télégrammes"
+
+msgid "Load a recording"
+msgstr "Charger un enregistrement"
+
+msgid "Save the telegrams to a file"
+msgstr "Sauvegarder les télégrammes dans un fichier"
+
+msgid "Print the telegrams as a PDF document"
+msgstr "Imprimer les télégrammes en document PDF"
+
+msgid "Send the selected group telegrams (all if none is selected) again with their original timing"
+msgstr "Renvoyer les télégrammes de groupe sélectionnés (tous si aucun n'est sélectionné) avec leur chronologie d'origine"
+
+msgid "Cancel the replay"
+msgstr "Annuler la relecture"
+
+msgid "Copy"
+msgstr "Copier"
+
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Copier les télégrammes sélectionnés (tous ceux affichés si aucun n'est sélectionné) dans le presse-papiers ({shortcut}). Double-cliquez sur un télégramme pour sélectionner son participant source."
+
+msgid "Rec."
+msgstr "Enr."
+
+msgid "Stopped"
+msgstr "Arrêté"
+
+msgid "Replaying {done}/{total}"
+msgstr "Relecture {done}/{total}"
+
+msgid "Connecting in bus monitor mode…"
+msgstr "Connexion en mode moniteur de bus…"
+
+msgid "Closing the bus monitor connection…"
+msgstr "Fermeture de la connexion du moniteur de bus…"
+
+msgid "Bus monitor mode: the normal connection is closed. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Mode moniteur de bus : la connexion normale est fermée. Rien ne peut être envoyé ni téléchargé tant que le moniteur de bus n'est pas arrêté."
+
+msgid "Start Bus Monitor"
+msgstr "Démarrer le moniteur de bus"
+
+msgid "The bus monitor connects the interface in bus monitor mode. The normal connection is closed while the bus monitor runs: nothing can be sent or downloaded in that time. Stopping the bus monitor restores the normal connection.\n\nStart the bus monitor?"
+msgstr "Le moniteur de bus connecte l'interface en mode moniteur de bus. La connexion normale est fermée tant que le moniteur de bus est actif : rien ne peut être envoyé ni téléchargé pendant ce temps. L'arrêt du moniteur de bus rétablit la connexion normale.\n\nDémarrer le moniteur de bus ?"
+
+msgid "The bus monitor is not supported for this connection type. It needs a tunnelling connection."
+msgstr "Le moniteur de bus n'est pas pris en charge pour ce type de connexion. Il nécessite une connexion en tunnel."
+
+msgid "The interface does not support bus monitor mode."
+msgstr "L'interface ne prend pas en charge le mode moniteur de bus."
+
+msgid "The interface rejected bus monitor mode: another client holds a connection to it."
+msgstr "L'interface a refusé le mode moniteur de bus : un autre client y est déjà connecté."
+
+msgid "The bus monitor connection could not be established."
+msgstr "La connexion du moniteur de bus n'a pas pu être établie."
+
+msgid "The normal connection is restored."
+msgstr "La connexion normale est rétablie."
+
+msgid "Unsaved Telegrams"
+msgstr "Télégrammes non sauvegardés"
+
+msgid "The telegrams have not been exported. Clear them anyway?"
+msgstr "Les télégrammes n'ont pas été exportés. Les effacer quand même ?"
+
+msgid "The telegrams have not been exported. Loading a recording replaces them and stops the recording. Continue?"
+msgstr "Les télégrammes n'ont pas été exportés. Le chargement d'un enregistrement les remplace et arrête l'enregistrement. Continuer ?"
+
+msgid "Loading a recording replaces the telegrams and stops the recording. Continue?"
+msgstr "Le chargement d'un enregistrement remplace les télégrammes et arrête l'enregistrement. Continuer ?"
+
+msgid "Yes"
+msgstr "Oui"
+
+msgid "No"
+msgstr "Non"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Annuler"
+
+msgid "Export Telegrams"
+msgstr "Exporter les télégrammes"
+
+msgid "Print Telegrams"
+msgstr "Imprimer les télégrammes"
+
+msgid "Which telegrams?"
+msgstr "Quels télégrammes ?"
+
+msgid "All Telegrams ({count})"
+msgstr "Tous les télégrammes ({count})"
+
+msgid "Selected Telegrams ({count})"
+msgstr "Télégrammes sélectionnés ({count})"
+
+msgid "Filtered Telegrams ({count})"
+msgstr "Télégrammes filtrés ({count})"
+
+msgid "Telegram recordings"
+msgstr "Enregistrements de télégrammes"
+
+msgid "All files"
+msgstr "Tous les fichiers"
+
+msgid "{count} telegrams exported to {path}"
+msgstr "{count} télégrammes exportés vers {path}"
+
+msgid "Export failed: {error}"
+msgstr "Échec de l'exportation : {error}"
+
+msgid "{count} entries loaded from {path}"
+msgstr "{count} entrées chargées depuis {path}"
+
+msgid "Loading failed: {error}"
+msgstr "Échec du chargement : {error}"
+
+msgid "{count} telegrams in another frame format were skipped"
+msgstr "{count} télégrammes dans un autre format de trame ont été ignorés"
+
+msgid "Printing failed: {error}"
+msgstr "Échec de l'impression : {error}"
+
+msgid "Page {page}"
+msgstr "Page {page}"
+
+msgid "{count} Data Secure telegrams are not replayed"
+msgstr "{count} télégrammes Data Secure ne sont pas rejoués"
+
+msgid "There are no group telegrams to replay"
+msgstr "Aucun télégramme de groupe à rejouer"
+
+msgid "Replay finished: {count} telegrams sent"
+msgstr "Relecture terminée : {count} télégrammes envoyés"
+
+msgid "Replay cancelled: {count} telegrams sent"
+msgstr "Relecture annulée : {count} télégrammes envoyés"
+
+msgid "from bus"
+msgstr "à partir du bus"
+
+msgid "to bus"
+msgstr "vers le bus"
+
+msgid "Connection event"
+msgstr "Événement de connexion"
+
+msgid "Invalid frame"
+msgstr "Trame invalide"
+
+msgid "Comment"
+msgstr "Commentaire"
+
+msgid "Recording was started, Host={host}, Connection={connection}, Mode={mode}"
+msgstr "Enregistrement démarré, Hôte={host}, Connexion={connection}, Mode={mode}"
+
+msgid "Recording was stopped"
+msgstr "L'enregistrement a été arrêté"
+
+msgid "Connection was established"
+msgstr "Connexion établie"
+
+msgid "Connection was lost"
+msgstr "Connexion perdue"
+
+msgid "System"
+msgstr "Système"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Urgent"
+msgstr "Urgent"
+
+msgid "Low"
+msgstr "Bas"
+
+msgid "Standard"
+msgstr "Standard"
+
+msgid "Extended"
+msgstr "Étendu"
+
+msgid "#"
+msgstr "n°"
+
+msgid "Date"
+msgstr "Date"
+
+msgid "Time"
+msgstr "Heure"
+
+msgid "Service"
+msgstr "Service"
+
+msgid "Flags"
+msgstr "Flags"
+
+msgid "Prio"
+msgstr "Prio"
+
+msgid "Source Address"
+msgstr "Adresse de la source"
+
+msgid "Source Name"
+msgstr "Nom de la source"
+
+msgid "Destination Address"
+msgstr "Adresse de la destination"
+
+msgid "Destination Name"
+msgstr "Nom de la destination"
+
+msgid "Building Part"
+msgstr "Partie de Bâtiment"
+
+msgid "Building Function"
+msgstr "Fonction bâtiments"
+
+msgid "Hop Count"
+msgstr "Hop Count"
+
+msgid "Telegram Type"
+msgstr "Type de télégramme"
+
+msgid "Telegram Type (Short)"
+msgstr "Type de télégramme (court)"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Value"
+msgstr "Valeur"
+
+msgid "Iack"
+msgstr "Acquittement"
+
+msgid "Raw Data"
+msgstr "Données brutes"
+
+msgid "Raw Value"
+msgstr "Valeur brute"
+
+msgid "Message Code"
+msgstr "Code de message"
+
+msgid "Repeated"
+msgstr "Répété"
+
+msgid "Security"
+msgstr "Sécurité"
+
+msgid "Frame Format"
+msgstr "Format de trame"
+
+msgid "System Broadcast"
+msgstr "Diffusion système"
+
+msgid "Interface"
+msgstr "Interface"
+
+msgid "MediumInfo"
+msgstr "Informations relatives au support"
+
+msgid "Source Description"
+msgstr "Description de la source"
+
+msgid "Destination Description"
+msgstr "Description de la destination"
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "Name"
+msgstr "Nom"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."

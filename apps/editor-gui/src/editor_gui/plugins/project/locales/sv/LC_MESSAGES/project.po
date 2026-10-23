@@ -1,0 +1,2303 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor project 1.0\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device"
+msgstr "Apparat"
+
+msgid "Manufacturer"
+msgstr "Tillverkare"
+
+msgid "Devices"
+msgstr "Apparater"
+
+msgid "Configure"
+msgstr "Konfigurera"
+
+msgid "History"
+msgstr "Historik"
+
+msgid "Editor"
+msgstr "Redigerare"
+
+msgid "Group Addresses"
+msgstr "Gruppadresser"
+
+msgid "Buildings"
+msgstr "Byggnader"
+
+msgid "Project"
+msgstr "Projekt"
+
+msgid "Project Log"
+msgstr "Projektlogg"
+
+msgid "Mass Linker"
+msgstr "Masskoppling"
+
+msgid "Object <> GA"
+msgstr "Objekt <> GA"
+
+msgid "Object <> Object"
+msgstr "Objekt <> Objekt"
+
+msgid "Log"
+msgstr "Logg"
+
+msgid "Open a project to use the Mass Linker."
+msgstr "Öppna ett projekt för att använda masskopplingen."
+
+msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
+msgstr "Par bildas efter listordning (1:a med 1:a, …). Överskjutande poster på den längre sidan ignoreras. Ändra ordningen i en lista via dess högerklicksmeny."
+
+msgid "Link group objects to existing group addresses."
+msgstr "Förbind gruppobjekt med befintliga gruppadresser."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Lägg till objekt med \"{add_device}\" eller \"{add_objects}\"."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Välj en gruppadress per rad, eller fyll alla med \"{match}\" eller \"{sequential}\"."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "\"{link_all}\" förbinder varje rad som har en."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Förbind objekt med varandra via en ny gruppadress vardera: källan skickar, målet tar emot."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Lägg till källobjekten med \"{add_device}\" eller \"{add_objects}\"."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Välj ett målobjekt per rad. Adress och namn föreslås och kan ändras."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "\"{link_all}\" skapar gruppadresserna och förbinder dem."
+
+msgid "Link All"
+msgstr "Förbind alla"
+
+msgid "Chronological record of every mass-link operation in this session."
+msgstr "Kronologisk logg över alla masskopplingar i den här sessionen."
+
+msgid "Source (objects)"
+msgstr "Källa (objekt)"
+
+msgid "Target (Group Addresses)"
+msgstr "Mål (gruppadresser)"
+
+msgid "Target (objects)"
+msgstr "Mål (objekt)"
+
+msgid "Preview & Link"
+msgstr "Förhandsgranska och förbind"
+
+msgid "Add Group Objects…"
+msgstr "Lägg till gruppobjekt…"
+
+msgid "Add Group Addresses…"
+msgstr "Lägg till gruppadresser…"
+
+msgid "Add Selected"
+msgstr "Lägg till markerade"
+
+msgid "Clear"
+msgstr "Rensa"
+
+msgid "Remove"
+msgstr "Ta bort"
+
+msgid "Move up"
+msgstr "Flytta upp"
+
+msgid "Move Down"
+msgstr "Flytta ner"
+
+msgid "{count} items"
+msgstr "{count} poster"
+
+msgid "{count} pairs"
+msgstr "{count} par"
+
+msgid "{count} unpaired (ignored)"
+msgstr "{count} utan par (ignoreras)"
+
+msgid "Link"
+msgstr "Förbind"
+
+msgid "GA Name ({source}, {target}, {n})"
+msgstr "GA-namn ({source}, {target}, {n})"
+
+msgid "Start Address"
+msgstr "Startadress"
+
+msgid "Filter…"
+msgstr "Filtrera…"
+
+msgid "Add Group Objects"
+msgstr "Lägg till gruppobjekt"
+
+msgid "Add Group Addresses"
+msgstr "Lägg till gruppadresser"
+
+msgid "Mass Linker Result"
+msgstr "Resultat av masskoppling"
+
+msgid "Linked {count} object(s) to group addresses"
+msgstr "{count} objekt förbundna med gruppadresser"
+
+msgid "Linked {count} object pair(s) via new group addresses"
+msgstr "{count} objektpar förbundna via nya gruppadresser"
+
+msgid "{count} error(s)"
+msgstr "{count} fel"
+
+msgid "Clear All"
+msgstr "Rensa allt"
+
+msgid "No operations yet."
+msgstr "Inga åtgärder ännu."
+
+msgid "Group Object"
+msgstr "Gruppobjekt"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Target Group Address"
+msgstr "Målgruppadress"
+
+msgid "Target Group Object"
+msgstr "Målgruppobjekt"
+
+msgid "Group Address"
+msgstr "Gruppadress"
+
+msgid "Group Address Name"
+msgstr "Gruppadressnamn"
+
+msgid "(none)"
+msgstr "(inga)"
+
+msgid "Matching DPT Only"
+msgstr "Endast matchande DPT"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Endast gruppadresser med objektets huvuddatapunkttyp, och de utan någon (de får objektets typ när de förbinds)."
+
+msgid "no DPT"
+msgstr "ingen DPT"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Endast objekt med samma huvuddatapunkttyp, och de utan någon."
+
+msgid "Select a device in the tree first."
+msgstr "Markera en apparat i trädet först."
+
+msgid "{device} has no group objects."
+msgstr "{device} har inga gruppobjekt."
+
+msgid "All objects of {device} are in the list already."
+msgstr "Alla objekt i {device} finns redan i listan."
+
+msgid "+ Selected Device"
+msgstr "+ Markerad apparat"
+
+msgid "Select All"
+msgstr "Markera alla"
+
+msgid "No objects yet — add the selected device or pick objects."
+msgstr "Inga objekt ännu — lägg till den markerade apparaten eller välj objekt."
+
+msgid "From"
+msgstr "Från"
+
+msgid "Assign Sequential"
+msgstr "Tilldela i följd"
+
+msgid "Match by Name"
+msgstr "Matcha efter namn"
+
+msgid "Link All ({count})"
+msgstr "Förbind alla ({count})"
+
+msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
+msgstr "{ready} klara · {amb} tvetydiga · {bad} inkompatibla · {none} utan par"
+
+msgid "Only Problems"
+msgstr "Endast problem"
+
+msgid "Ready to link."
+msgstr "Klar att förbinda."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Kontrollera gruppadressen: flera matchar, eller en datapunkttyp är okänd."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "Datapunkttyperna matchar inte; den här raden förbinds inte."
+
+msgid "No group address chosen yet."
+msgstr "Ingen gruppadress vald ännu."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Avbryt"
+
+msgid "Tools"
+msgstr "Verktyg"
+
+msgid "Open a project to use the tools."
+msgstr "Öppna ett projekt för att använda verktygen."
+
+msgid "No devices in this project."
+msgstr "Inga apparater i det här projektet."
+
+msgid "Extended Copy"
+msgstr "Utvidgad kopiera"
+
+msgid "Replace Device"
+msgstr "Ersätt apparat"
+
+msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
+msgstr "Byt ut en apparat mot en annan modell (en mallapparat som redan finns i projektet) och behåll dess gruppadresskopplingar. Gruppobjekt matchas efter nummer och storlek; de som inte matchar rapporteras. Parametrar förs inte över."
+
+msgid "Device to Replace"
+msgstr "Apparat att ersätta"
+
+msgid "Replace with (Template)"
+msgstr "Ersätt med (mall)"
+
+msgid "Group Object Mapping (by Number)"
+msgstr "Gruppobjektmappning (efter nummer)"
+
+msgid "{count} object(s) will be re-mapped"
+msgstr "{count} objekt mappas om"
+
+msgid "Replaced; re-mapped {count} group object(s)"
+msgstr "Ersatt; {count} gruppobjekt ommappade"
+
+msgid "Shift Addresses"
+msgstr "Flytta adresser"
+
+msgid "Labels"
+msgstr "Etiketter"
+
+msgid "Topology Check"
+msgstr "Topologikontroll"
+
+msgid "Project Diff"
+msgstr "Projektjämförelse"
+
+msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Jämför det öppna projektet med en annan projektfil (.knxproj eller .xknx): vilka apparater och gruppadresser som har lagts till, tagits bort eller ändrats. Det andra projektet är skrivskyddat; inget ändras."
+
+msgid "Choose Project to Compare…"
+msgstr "Välj projekt att jämföra…"
+
+msgid "Choose Project to Compare"
+msgstr "Välj projekt att jämföra"
+
+msgid "KNX project (*.knxproj *.xknx)"
+msgstr "KNX-projekt (*.knxproj *.xknx)"
+
+msgid "compared with {name}"
+msgstr "jämfört med {name}"
+
+msgid "No differences in devices or group addresses."
+msgstr "Inga skillnader i apparater eller gruppadresser."
+
+msgid "{count} difference(s)"
+msgstr "{count} skillnad(er)"
+
+msgid "Add Device Certificate"
+msgstr "Lägg till apparatcertifikat"
+
+msgid "Device Certificate"
+msgstr "Apparatcertifikat"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "Den här apparaten använder redan sin egen nyckel från det här projektet. Dess certifikat behövs först igen efter en fabriksåterställning."
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "Den här apparaten använder fortfarande sin fabriksnyckel: dess första säkra programmering kräver certifikatet."
+
+msgid "Stored Certificate: {serial}"
+msgstr "Sparat certifikat: {serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Ange FDSK från dess etikett eller certifikat (36 tecken):"
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "Ange den nya FDSK för att ersätta den (36 tecken):"
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "Ta bort det sparade certifikatet? Efter en fabriksåterställning kan apparaten då bara nås igen med koden från dess etikett."
+
+msgid "Device Certificate…"
+msgstr "Apparatcertifikat…"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "Apparatcertifikatet (FDSK) saknas."
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "Detta är ingen giltig FDSK; kontrollera den."
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "Det här certifikatet tillhör apparaten med serienummer {serial}."
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "Ange ett projektlösenord först: det skyddar apparatnycklarna."
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "Det andra projektet är skyddat med ett lösenord. Ange det för att jämföra:"
+
+msgid "Compare"
+msgstr "Jämför"
+
+msgid "Wrong password, please try again."
+msgstr "Fel lösenord, försök igen."
+
+msgid "Duplicate a device several times. Optionally rewrite the copy name (find/replace) and create a group address for each of its objects."
+msgstr "Duplicera en apparat flera gånger. Skriv om kopians namn (sök/ersätt) och skapa en gruppadress för vart och ett av dess objekt om du vill."
+
+msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
+msgstr "Numrera om apparater genom att lägga till en förskjutning till apparatdelen av deras individuella adresser, t.ex. för att skapa luckor för nya apparater. Gruppadresser påverkas inte."
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "Välj fälten och ett utdataformat: en CSV, utskrivbara etikettark (Avery) eller en helsidesförteckning. HTML-utdata öppnas i webbläsaren för utskrift eller för att sparas som PDF."
+
+msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
+msgstr "Skrivskyddad kontroll: listar apparater med saknad, felaktig eller dubblerad individuell adress."
+
+msgid "Source Device"
+msgstr "Källapparat"
+
+msgid "Copies"
+msgstr "Kopior"
+
+msgid "Find in Name"
+msgstr "Sök i namn"
+
+msgid "Replace with"
+msgstr "Ersätt med"
+
+msgid "Create Group Addresses for Each Copy"
+msgstr "Skapa gruppadresser för varje kopia"
+
+msgid "Copy Name: {name}"
+msgstr "Kopians namn: {name}"
+
+msgid "Copy"
+msgstr "Kopiera"
+
+msgid "Created {count} copy/copies"
+msgstr "{count} kopia/kopior skapade"
+
+msgid "Shifts the device part of each individual address. Group addresses are not shifted."
+msgstr "Flyttar apparatdelen av varje individuell adress. Gruppadresser flyttas inte."
+
+msgid "Offset"
+msgstr "Förskjutning"
+
+msgid "Filter devices…"
+msgstr "Filtrera apparater…"
+
+msgid "All"
+msgstr "Alla"
+
+msgid "None"
+msgstr "Ingen"
+
+msgid "{sel} of {total} selected"
+msgstr "{sel} av {total} markerade"
+
+msgid "(out of range)"
+msgstr "(utanför intervallet)"
+
+msgid "{count} address(es) will change"
+msgstr "{count} adress(er) ändras"
+
+msgid "Shifted {count} address(es)"
+msgstr "{count} adress(er) flyttade"
+
+msgid "Individual Addresses"
+msgstr "Individuella adresser"
+
+msgid "This project has no group addresses."
+msgstr "Det här projektet har inga gruppadresser."
+
+msgid "Shift Group Addresses"
+msgstr "Flytta gruppadresser"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Numrera om gruppadresser genom att lägga till en förskjutning till deras råvärde, t.ex. för att skapa luckor. Gruppobjektens kopplingar följer med varje adress. Inget skrivs om någon flytt skulle krocka eller hamna utanför det giltiga intervallet."
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "Förskjutningen läggs till det råa 16-bitarsvärdet, så huvud-/mellangruppen kan ändras när adresser passerar en gräns."
+
+msgid "Shifted {count} group address(es)"
+msgstr "{count} gruppadress(er) flyttade"
+
+msgid "Export CSV…"
+msgstr "Exportera CSV…"
+
+msgid "Exported to {path}"
+msgstr "Exporterad till {path}"
+
+msgid "Fields"
+msgstr "Fält"
+
+msgid "Output"
+msgstr "Utdata"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Label Sheet"
+msgstr "Etikettark"
+
+msgid "Legend (Full Page)"
+msgstr "Förteckning (helsida)"
+
+msgid "Sheet"
+msgstr "Ark"
+
+msgid "Custom Grid"
+msgstr "Eget rutnät"
+
+msgid "Columns"
+msgstr "Kolumner"
+
+msgid "Rows"
+msgstr "Rader"
+
+msgid "Label W x H (mm)"
+msgstr "Etikett B x H (mm)"
+
+msgid "Margin Top / Left (mm)"
+msgstr "Marginal överst / vänster (mm)"
+
+msgid "Gap X / Y (mm)"
+msgstr "Avstånd X / Y (mm)"
+
+msgid "Export HTML…"
+msgstr "Exportera HTML…"
+
+msgid "Select at least one field."
+msgstr "Välj minst ett fält."
+
+msgid "No topology issues found."
+msgstr "Inga topologiproblem hittades."
+
+msgid "{count} issue(s)"
+msgstr "{count} problem"
+
+msgid "Click a finding to jump to the device."
+msgstr "Klicka på ett fynd för att gå till apparaten."
+
+msgid "No buildings/rooms in this project"
+msgstr "Inga byggnader/rum i det här projektet"
+
+msgid "+ Function"
+msgstr "+ Funktion"
+
+msgid "+ Space"
+msgstr "+ Utrymme"
+
+msgid "+ Sub-space"
+msgstr "+ Delutrymme"
+
+msgid "New Space"
+msgstr "Nytt utrymme"
+
+msgid "Name"
+msgstr "Namn"
+
+msgid "Type"
+msgstr "Typ"
+
+msgid "Create"
+msgstr "Skapa"
+
+msgid "Delete"
+msgstr "Ta bort"
+
+msgid "Delete Space"
+msgstr "Ta bort utrymme"
+
+msgid "Move to"
+msgstr "Flytta till"
+
+msgid "(Top Level)"
+msgstr "(översta nivån)"
+
+msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
+msgstr "Ta bort det här utrymmet och allt i det? Apparater kopplas bara bort, de tas inte bort."
+
+msgid "Assign Device"
+msgstr "Tilldela apparat"
+
+msgid "Assign a Device to This Space"
+msgstr "Tilldela en apparat till det här utrymmet"
+
+msgid "No unassigned devices"
+msgstr "Inga otilldelade apparater"
+
+msgid "Remove from Space"
+msgstr "Ta bort från utrymme"
+
+msgid "Without Space"
+msgstr "Utan utrymme"
+
+msgid "Building"
+msgstr "Byggnad"
+
+msgid "Building Part"
+msgstr "Byggnadsdel"
+
+msgid "Floor"
+msgstr "Våning"
+
+msgid "Room"
+msgstr "Rum"
+
+msgid "Corridor"
+msgstr "Korridor"
+
+msgid "Stairway"
+msgstr "Trappuppgång"
+
+msgid "Distribution Board"
+msgstr "Fördelningscentral"
+
+msgid "New Function"
+msgstr "Ny funktion"
+
+msgid "Rename"
+msgstr "Byt namn"
+
+msgid "Rename Function"
+msgstr "Byt namn på funktion"
+
+msgid "Assign Group Address"
+msgstr "Tilldela gruppadress"
+
+msgid "Role (Optional)"
+msgstr "Roll (valfritt)"
+
+msgid "Custom"
+msgstr "Special"
+
+msgid "Switchable Light"
+msgstr "Till/Från-belysning"
+
+msgid "Dimmable Light"
+msgstr "Dimringsbar belysning"
+
+msgid "Sun Protection"
+msgstr "Solskydd"
+
+msgid "Heating (Switching Variable)"
+msgstr "Värme (till/från-styrsignal)"
+
+msgid "Heating (Continuous Variable)"
+msgstr "Värme (kontinuerlig styrsignal)"
+
+msgid "Switchable Socket"
+msgstr "Styrbart uttag"
+
+msgid "No project"
+msgstr "Inget projekt"
+
+msgid "Installation"
+msgstr "Installation"
+
+msgid "Group Address Style"
+msgstr "Gruppadresstruktur"
+
+msgid "Created by"
+msgstr "Skapad av"
+
+msgid "Tool Version"
+msgstr "Verktygsversion"
+
+msgid "Schema Version"
+msgstr "Schemaversion"
+
+msgid "Last Modified"
+msgstr "Senast ändrad"
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "Project ID"
+msgstr "Projekt-ID"
+
+msgid "Original Project ID"
+msgstr "Ursprungligt projekt-ID"
+
+msgid "Master Data (Signed)"
+msgstr "Masterdata (signerade)"
+
+msgid "Validation File"
+msgstr "Valideringsfil"
+
+msgid "Project Certificate"
+msgstr "Projektcertifikat"
+
+msgid "none"
+msgstr "ingen"
+
+msgid "present ({size} bytes)"
+msgstr "finns ({size} byte)"
+
+msgid "Password"
+msgstr "Lösenord"
+
+msgid "Protected"
+msgstr "Skyddat"
+
+msgid "Not protected"
+msgstr "Inte skyddat"
+
+msgid "Set Password"
+msgstr "Ställ in lösenord"
+
+msgid "Change Password"
+msgstr "Ändra lösenord"
+
+msgid "Remove Password"
+msgstr "Ta bort lösenord"
+
+msgid "Project Password"
+msgstr "Projektlösenord"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "Projektet och dess exporter skyddas med detta lösenord; det efterfrågas när de öppnas eller importeras. En lösenordsändring kan inte ångras."
+
+msgid "Repeat Password"
+msgstr "Upprepa lösenord"
+
+msgid "The passwords do not match."
+msgstr "Lösenorden överensstämmer inte."
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "Ett projekt med KNX Secure-apparater behöver ett lösenord: det skyddar deras nycklar i projektet och i dess exporter."
+
+msgid "No project log entries"
+msgstr "Inga poster i projektloggen"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "User"
+msgstr "Användare"
+
+msgid "Comment"
+msgstr "Kommentar"
+
+msgid "Filter log"
+msgstr "Filtrera logg"
+
+msgid "Decrypt Comments"
+msgstr "Dekryptera kommentarer"
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "Extrahera från Knx.Ets.Common.dll…"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "ETS krypterar kommentarerna i loggen. Extrahera dekrypteringsnyckeln från Knx.Ets.Common.dll i din egen ETS-installation för att läsa dem; inget skickas någonstans."
+
+msgid "Comments are encrypted"
+msgstr "Kommentarerna är krypterade"
+
+msgid "Comments decrypted"
+msgstr "Kommentarerna dekrypterade"
+
+msgid "Extracting key…"
+msgstr "Extraherar nyckel…"
+
+msgid "Key extracted; comments decrypted"
+msgstr "Nyckeln extraherad; kommentarerna dekrypterade"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr "Ingen .NET-körmiljö hittades (installera .NET SDK eller kör på Windows med ETS)."
+
+msgid "KNX Common Assembly"
+msgstr "KNX Common Assembly"
+
+msgid "All Files"
+msgstr "Alla filer"
+
+msgid "Based on OpenKNXproducer"
+msgstr "Baserad på OpenKNXproducer"
+
+msgid "Order Number"
+msgstr "Beställningsnummer"
+
+msgid "Description"
+msgstr "Beskrivning"
+
+msgid "Parameters ({count})"
+msgstr "Parametrar ({count})"
+
+msgid "Group Objects ({count})"
+msgstr "Gruppobjekt ({count})"
+
+msgid "Channels ({count})"
+msgstr "Kanaler ({count})"
+
+msgid "DALI (Bus)"
+msgstr "DALI (buss)"
+
+msgid "Assigned Objects"
+msgstr "Tilldelade objekt"
+
+msgid "Object"
+msgstr "Objekt"
+
+msgid "S"
+msgstr "S"
+
+msgid "S = Sending. This object sends its value to the group address; the others only receive it."
+msgstr "S = Sändande. Det här objektet skickar sitt värde till gruppadressen; de andra tar bara emot det."
+
+msgid "Click to open this device in the editor"
+msgstr "Klicka för att öppna den här apparaten i redigeraren"
+
+msgid "No devices"
+msgstr "Inga apparater"
+
+msgid "Loading application program…"
+msgstr "Läser in applikationsprogram…"
+
+msgid "This product has no application program."
+msgstr "Den här produkten har inget applikationsprogram."
+
+msgid "Individual Address"
+msgstr "Individuell adress"
+
+msgid "Program Device"
+msgstr "Programmera apparat"
+
+msgid "Test Programming"
+msgstr "Testa programmering"
+
+msgid "Unload Application Program"
+msgstr "Avprogrammera applikationsprogram"
+
+msgid "This unloads the application program of the device at {address}. The device stops working until its application program is downloaded again."
+msgstr "Detta avprogrammerar applikationsprogrammet i apparaten på {address}. Apparaten slutar fungera tills dess applikationsprogram har programmerats igen."
+
+msgid "This unloads the application program of the device at {address} and then resets its individual address to 15.15.255; for that, its programming button has to be pressed. The device stops working until it is commissioned again."
+msgstr "Detta avprogrammerar applikationsprogrammet i apparaten på {address} och återställer sedan dess individuella adress till 15.15.255; för det måste dess programmeringsknapp tryckas in. Apparaten slutar fungera tills den har tagits i drift igen."
+
+msgid "Overwrite Address"
+msgstr "Skriv över adress"
+
+msgid "Manufacturer's Plugin Not Available"
+msgstr "Tillverkarens plugin är inte tillgängligt"
+
+msgid "Serial Number Already Used"
+msgstr "Serienumret används redan"
+
+msgid "Download"
+msgstr "Programmera"
+
+msgid "Full"
+msgstr "Fullständig"
+
+msgid "Application Program"
+msgstr "Applikationsprogram"
+
+msgid "Unload"
+msgstr "Avprogrammera"
+
+msgid "Unload Application and Address"
+msgstr "Avprogrammera applikation och adress"
+
+msgid "Partial: Parameters"
+msgstr "Delvis: parametrar"
+
+msgid "Partial: Group Communication"
+msgstr "Delvis: gruppkommunikation"
+
+msgid "Overwrite Individual Address"
+msgstr "Skriv över individuell adress"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "Detta skriver den individuella adressen {address} till apparaten vars programmeringsknapp är intryckt. Fortsätta?"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "Detta skriver över den individuella adressen för apparaten på dess nuvarande adress med {address}. Dess programmeringsknapp behöver inte tryckas in."
+
+msgid "Current Individual Address"
+msgstr "Nuvarande individuell adress"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "Ange apparatens nuvarande individuella adress, t.ex. 1.1.5."
+
+msgid "The device already has the individual address {address}."
+msgstr "Apparaten har redan den individuella adressen {address}."
+
+msgid "Individual Address via Serial Number"
+msgstr "Individuell adress via serienummer"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "Detta skriver den individuella adressen {address} till apparaten med serienumret {serial}. Dess programmeringsknapp behöver inte tryckas in."
+
+msgid "Use Serial Number"
+msgstr "Använd serienummer"
+
+msgid "The serial number is already associated with device {device}."
+msgstr "Serienumret är redan kopplat till apparaten {device}."
+
+msgid "Serial Number"
+msgstr "Serienummer"
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "Ange serienumret som 12 hexadecimala siffror, t.ex. 0083:7AA2039C."
+
+msgid "Manufacturer Info"
+msgstr "Tillverkarinformation"
+
+msgid "Application"
+msgstr "Applikation"
+
+msgid "Application Version"
+msgstr "Applikationsversion"
+
+msgid "Read from Device"
+msgstr "Läs från apparat"
+
+msgid "Restart"
+msgstr "Starta om"
+
+msgid "Reset…"
+msgstr "Återställ…"
+
+msgid "Master Reset"
+msgstr "Huvudåterställning"
+
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "Destruktivt: apparaten återställs via bussen och måste tas i drift igen. I KNX Secure-läge inaktiveras apparatens säkerhet."
+
+msgid "Reset Type"
+msgstr "Återställningstyp"
+
+msgid "I understand this resets the device"
+msgstr "Jag förstår att detta återställer apparaten"
+
+msgid "Reset Device"
+msgstr "Återställ apparat"
+
+msgid "Factory Reset"
+msgstr "Fabriksåterställning"
+
+msgid "Factory Reset (Keep Address)"
+msgstr "Fabriksåterställning (behåll adress)"
+
+msgid "Reset Individual Address"
+msgstr "Återställ individuell adress"
+
+msgid "Delete Application Program"
+msgstr "Ta bort applikationsprogram"
+
+msgid "Reset Parameters"
+msgstr "Återställ parametrar"
+
+msgid "Reset Group Address Links"
+msgstr "Återställ gruppadresskopplingar"
+
+msgid "Confirmed Restart"
+msgstr "Bekräftad omstart"
+
+msgid "Set an individual address and connect to the bus first"
+msgstr "Ange en individuell adress och anslut till bussen först"
+
+msgid "The reported value matches {devices} in this project."
+msgstr "Det rapporterade värdet matchar {devices} i det här projektet."
+
+msgid "Mask Version"
+msgstr "Maskversion"
+
+msgid "Order Info"
+msgstr "Beställningsinfo"
+
+msgid "Hardware Type"
+msgstr "Hårdvarutyp"
+
+msgid "Status"
+msgstr "Status"
+
+msgid "no fault reported"
+msgstr "inget fel rapporterat"
+
+msgid "differs from project V{version} — program to apply"
+msgstr "skiljer sig från projektets V{version} — programmera för att tillämpa"
+
+msgid "Product"
+msgstr "Produkt"
+
+msgid "Product Ref"
+msgstr "Produktref."
+
+msgid "Program Ref"
+msgstr "Programref."
+
+msgid "IP Configuration"
+msgstr "IP-konfiguration"
+
+msgid "Assignment"
+msgstr "Tilldelning"
+
+msgid "IP Address"
+msgstr "IP-adress"
+
+msgid "Subnet Mask"
+msgstr "Subnätmask"
+
+msgid "Default Gateway"
+msgstr "Standardgateway"
+
+msgid "MAC Address"
+msgstr "MAC-adress"
+
+msgid "Download PDF Manual"
+msgstr "Ladda ner PDF-manual"
+
+msgid "Searching Manual…"
+msgstr "Söker manual…"
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "Hitta den här apparatens manual (via KNX-apparatdatabasen, annars en tillverkarsökning) och öppna den i webbläsaren. Utan garanti - öppnar KNX-apparatsökningen om inget direkt dokument hittas."
+
+msgid "Update to V{version}"
+msgstr "Uppdatera till V{version}"
+
+msgid "Change Application Program"
+msgstr "Byt applikationsprogram"
+
+msgid "Update Application Program Version"
+msgstr "Uppdatera applikationsprogramversion"
+
+msgid "Update"
+msgstr "Uppdatera"
+
+msgid "Updating the application program…"
+msgstr "Uppdaterar applikationsprogrammet…"
+
+msgid "Changing the application program…"
+msgstr "Byter applikationsprogrammet…"
+
+msgid "Changing the application program failed"
+msgstr "Det gick inte att byta applikationsprogrammet"
+
+msgid "Updating the application program failed"
+msgstr "Det gick inte att uppdatera applikationsprogrammet"
+
+msgid "Copied"
+msgstr "Kopierat"
+
+msgid "Click to copy"
+msgstr "Klicka för att kopiera"
+
+msgid "Filter parameters…"
+msgstr "Filtrera parametrar…"
+
+msgid "Apply Changes to All {count} Identical Devices"
+msgstr "Tillämpa ändringar på alla {count} identiska apparater"
+
+msgid "Apply Changes to All Channels"
+msgstr "Tillämpa ändringar på alla kanaler"
+
+msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr "Redigerar {count} apparater — ändringar gäller alla, avvikande värden visar <skiljer sig>"
+
+msgid "Hardware"
+msgstr "Hårdvara"
+
+msgid "Firmware"
+msgstr "Firmware"
+
+msgid "Com Flags ({count})"
+msgstr "Kom-flaggor ({count})"
+
+msgid "Load Procedures ({count})"
+msgstr "Laddningsprocedurer ({count})"
+
+msgid "Preview Memory"
+msgstr "Förhandsgranska minne"
+
+msgid "Memory Preview"
+msgstr "Minnesförhandsgranskning"
+
+msgid "Load Reference File"
+msgstr "Läs in referensfil"
+
+msgid "Save Memory Dump"
+msgstr "Spara minnesdump"
+
+msgid "Save…"
+msgstr "Spara…"
+
+msgid "Diff…"
+msgstr "Jämför…"
+
+msgid "Clear Diff"
+msgstr "Rensa jämförelse"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "Minnesdumpar (*.bin)"
+
+msgid "{count} bytes"
+msgstr "{count} byte"
+
+msgid "No memory segments."
+msgstr "Inga minnessegment."
+
+msgid "Cannot encode memory image: {error}"
+msgstr "Det går inte att skapa minnesavbildningen: {error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "Filen kunde inte läsas eller skrivas: {error}"
+
+msgid "Programming Test Result"
+msgstr "Resultat av programmeringstest"
+
+msgid "Evaluation failed"
+msgstr "Utvärderingen misslyckades"
+
+msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
+msgstr "Skrivskyddat test: kontrollerar att programmeringsfunktionen genererar samma avbildning som den som redan är programmerad i apparaten. Inget skrivs till apparaten."
+
+msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
+msgstr "Kan inte köras: projektet har ändrats sedan det öppnades. Det här testet jämför den genererade avbildningen med apparatens programmerade tillstånd, som bara matchar projektet så som det öppnades. Ångra dina ändringar i den här sessionen för att testa."
+
+msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
+msgstr "Kan inte köras: ingen KNX-anslutning. Anslut till en gateway (menyn Anslutning) och se till att apparaten kan nås på sin individuella adress."
+
+msgid "Match: the generated image is identical to what is on the device"
+msgstr "Överensstämmer: den genererade avbildningen är identisk med den i apparaten"
+
+msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
+msgstr "Avvikelse: {bytes} byte skiljer sig från apparaten på {locations} ställe(n)"
+
+msgid "{matched} matched, {changed} would change"
+msgstr "{matched} överensstämmer, {changed} skulle ändras"
+
+msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
+msgstr "Endast för ETS 6-apparater: det här testet jämför apparaten med en avbildning som genererats på ETS 6-sättet. En apparat som senast programmerades med ETS 5 använder en annan bytelayout och visar stora falska skillnader - resultatet är bara meningsfullt för en apparat som senast programmerades med ETS 6."
+
+msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
+msgstr "Strukturella skillnader (hela tabeller skiljer sig) kan betyda att apparaten senast programmerades med ETS 5, vars bytelayout skiljer sig. Skillnader enbart i värden betyder oftast att apparaten har en annan konfiguration."
+
+msgid "Location"
+msgstr "Adress"
+
+msgid "Size"
+msgstr "Storlek"
+
+msgid "Changed"
+msgstr "Ändrad"
+
+msgid "match"
+msgstr "överensstämmer"
+
+msgid "would change"
+msgstr "skulle ändras"
+
+msgid "device-managed"
+msgstr "apparatstyrd"
+
+msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
+msgstr "Systembyte som apparaten själv sätter under drift (t.ex. en byte för programmeringsdetektering som applikationen återställer efter en programmering). En skillnad här är förväntad och tyder inte på en felaktig programmering."
+
+msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
+msgstr "plus {bytes} apparatstyrd(a) körtidsbyte (förväntat, ofarligt)"
+
+msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
+msgstr "Inga konfigurerade skillnader: apparaten har redan den här konfigurationen. Skillnaderna nedan är ofarliga (se anmärkningar)."
+
+msgid "sets default"
+msgstr "sätter standard"
+
+msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
+msgstr "Den här byten skrivs för en angränsande parameter; den avvikande biten styrs inte av någon aktiv parameter och återställs bara till applikationens standardvärde. Apparaten har ett äldre värde (t.ex. från en tidigare konfiguration eller ett tidigare läge) som programmeringen normaliserar. Ofarligt."
+
+msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr "plus {bytes} byte som återställs till applikationens standardvärde (apparaten har ett äldre värde; ofarligt, normaliseras vid programmering)"
+
+msgid "Export Ist/Soll…"
+msgstr "Exportera Ist/Soll…"
+
+msgid "Export Path:"
+msgstr "Exportsökväg:"
+
+msgid "Export Programming Test Result"
+msgstr "Exportera resultat av programmeringstest"
+
+msgid "memory {address}"
+msgstr "minne {address}"
+
+msgid "object {object} property {property}"
+msgstr "objekt {object} egenskap {property}"
+
+msgid "Filter devices (name, address)…"
+msgstr "Filtrera apparater (namn, adress)…"
+
+msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
+msgstr "Inga apparater. Öppna eller importera ett projekt (menyn Fil) eller högerklicka här för att lägga till ett område."
+
+msgid "Filter group addresses (address, name)…"
+msgstr "Filtrera gruppadresser (adress, namn)…"
+
+msgid "Filter rooms, devices, functions…"
+msgstr "Filtrera rum, apparater, funktioner…"
+
+msgid "Area {area}"
+msgstr "Område {area}"
+
+msgid "{name} (Area {area})"
+msgstr "{name} (område {area})"
+
+msgid "Line {area}.{line}"
+msgstr "Linje {area}.{line}"
+
+msgid "{name} (Line {area}.{line})"
+msgstr "{name} (linje {area}.{line})"
+
+msgid "Unassigned ({count})"
+msgstr "Ej tilldelade ({count})"
+
+msgid "Add Area"
+msgstr "Lägg till område"
+
+msgid "Add Line"
+msgstr "Lägg till linje"
+
+msgid "Copy Address"
+msgstr "Kopiera adress"
+
+msgid "Duplicate"
+msgstr "Duplicera"
+
+msgid "Copy Configuration"
+msgstr "Kopiera konfiguration"
+
+msgid "Compare with…"
+msgstr "Jämför med…"
+
+msgid "Compare Devices"
+msgstr "Jämför apparater"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "Öppna ett projekt med minst två apparater för att jämföra."
+
+msgid "Only Differences"
+msgstr "Endast skillnader"
+
+msgid "Filter devices by address, name or description…"
+msgstr "Filtrera apparater efter adress, namn eller beskrivning…"
+
+msgid "{count} differences"
+msgstr "{count} skillnader"
+
+msgid "Parameters"
+msgstr "Parametrar"
+
+msgid "Group Objects"
+msgstr "Gruppobjekt"
+
+msgid "No differences"
+msgstr "Inga skillnader"
+
+msgid "Field"
+msgstr "Fält"
+
+msgid "Device A"
+msgstr "Apparat A"
+
+msgid "Device B"
+msgstr "Apparat B"
+
+msgid "Paste Configuration"
+msgstr "Klistra in konfiguration"
+
+msgid "Paste configuration onto '{name}':"
+msgstr "Klistra in konfiguration i '{name}':"
+
+msgid "Paste configuration onto {count} selected devices:"
+msgstr "Klistra in konfiguration i {count} markerade apparater:"
+
+msgid "Duplicate '{name}':"
+msgstr "Duplicera '{name}':"
+
+msgid "Group Address Links"
+msgstr "Gruppadresskopplingar"
+
+msgid "Paste"
+msgstr "Klistra in"
+
+msgid "Delete Device"
+msgstr "Ta bort apparat"
+
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "Ta bort '{name}'? Dess gruppobjekt och gruppadresskopplingar tas bort och dess individuella adress frigörs. Detta kan ångras."
+
+msgid "New Area"
+msgstr "Nytt område"
+
+msgid "New Line"
+msgstr "Ny linje"
+
+msgid "Number"
+msgstr "Nummer"
+
+msgid "Add"
+msgstr "Lägg till"
+
+msgid "Save"
+msgstr "Spara"
+
+msgid "Load"
+msgstr "Ladda"
+
+msgid "Copy Log"
+msgstr "Kopiera logg"
+
+msgid "New Group Address"
+msgstr "Ny gruppadress"
+
+msgid "New Main Group"
+msgstr "Ny huvudgrupp"
+
+msgid "New Middle Group"
+msgstr "Ny mellangrupp"
+
+msgid "New Folder"
+msgstr "Ny mapp"
+
+msgid "Rename Folder"
+msgstr "Byt namn på mapp"
+
+msgid "Delete Folder"
+msgstr "Ta bort mapp"
+
+msgid "Main group name (the next free number is assigned automatically)"
+msgstr "Huvudgruppens namn (nästa lediga nummer tilldelas automatiskt)"
+
+msgid "Middle group name (the next free number is assigned automatically)"
+msgstr "Mellangruppens namn (nästa lediga nummer tilldelas automatiskt)"
+
+msgid "Delete this folder and every group address in it? This can be undone."
+msgstr "Ta bort den här mappen och alla gruppadresser i den? Detta kan ångras."
+
+msgid "Rename Group Address"
+msgstr "Byt namn på gruppadress"
+
+msgid "Change Address…"
+msgstr "Ändra adress…"
+
+msgid "New group address (links are kept):"
+msgstr "Ny gruppadress (kopplingar behålls):"
+
+msgid "Invalid address or already in use."
+msgstr "Ogiltig adress eller används redan."
+
+msgid "Security"
+msgstr "Säkerhet"
+
+msgid "Automatic"
+msgstr "Automatisk"
+
+msgid "Secured"
+msgstr "Säkrad"
+
+msgid "Not Secured"
+msgstr "Inte säkrad"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "En säkrad gruppadress kan bara förbindas med apparater som tas i drift säkert."
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "Inte alla apparater som är förbundna med den här gruppadressen tas i drift säkert, så den kan inte säkras."
+
+msgid "Set Datapoint Type"
+msgstr "Ange datapunkttyp"
+
+msgid "Address"
+msgstr "Adress"
+
+msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
+msgstr "Datapunkttyp (t.ex. DPST-1-1); tomt för att rensa"
+
+msgid "Project: {name}"
+msgstr "Projekt: {name}"
+
+msgid "(unsaved)"
+msgstr "(osparat)"
+
+msgid "No history"
+msgstr "Ingen historik"
+
+msgid "Restore"
+msgstr "Återställ"
+
+msgid "Add device: {name}"
+msgstr "Lägg till apparat: {name}"
+
+msgid "Remove device: {name}"
+msgstr "Ta bort apparat: {name}"
+
+msgid "Address: {old} -> {new}"
+msgstr "Adress: {old} -> {new}"
+
+msgid "Name: {old} -> {new}"
+msgstr "Namn: {old} -> {new}"
+
+msgid "Parameter: {old} -> {new}"
+msgstr "Parameter: {old} -> {new}"
+
+msgid "DPT: {old} -> {new}"
+msgstr "DPT: {old} -> {new}"
+
+msgid "Flag: {flag} -> {state}"
+msgstr "Flagga: {flag} -> {state}"
+
+msgid "Group address {address} created"
+msgstr "Gruppadress {address} skapad"
+
+msgid "Group address {address} removed"
+msgstr "Gruppadress {address} borttagen"
+
+msgid "Group address: {old} -> {new}"
+msgstr "Gruppadress: {old} -> {new}"
+
+msgid "Group object linked to group address"
+msgstr "Gruppobjekt förbundet med gruppadress"
+
+msgid "Group object unlinked from group address"
+msgstr "Gruppobjekt bortkopplat från gruppadress"
+
+msgid "Area {number} created"
+msgstr "Område {number} skapat"
+
+msgid "Area {number} removed"
+msgstr "Område {number} borttaget"
+
+msgid "Area: {old} -> {new}"
+msgstr "Område: {old} -> {new}"
+
+msgid "Line {number} created"
+msgstr "Linje {number} skapad"
+
+msgid "Line {number} removed"
+msgstr "Linje {number} borttagen"
+
+msgid "Line: {old} -> {new}"
+msgstr "Linje: {old} -> {new}"
+
+msgid "This action can only be performed when the individual address of the device is already downloaded."
+msgstr "Den här åtgärden kan endast utföras när apparatens individuella adress redan är programmerad."
+
+msgid "Button {0} executed. "
+msgstr "Knapp {0} körd. "
+
+msgid "A parameter script is running for this device."
+msgstr "Ett parameterskript körs för den här apparaten."
+
+msgid "The Device has no valid address or is not linked to an area or line."
+msgstr "Apparaten har ingen giltig adress eller är inte kopplad till ett område eller en linje."
+
+msgid "Parameter Script"
+msgstr "Parameterskript"
+
+msgid "Executing Script"
+msgstr "Kör skript"
+
+msgid "Script not responding"
+msgstr "Skriptet svarar inte"
+
+msgid "Force Stop"
+msgstr "Tvinga stopp"
+
+msgid "The script was stopped."
+msgstr "Skriptet stoppades."
+
+msgid "Canceling…"
+msgstr "Avbryter…"
+
+msgid "No connection to the bus."
+msgstr "Ingen anslutning till bussen."
+
+msgid "Parameter value cannot be set, because validation failed."
+msgstr "Parametervärde kan inte ställas in eftersom validering misslyckades."
+
+msgid "Operations"
+msgstr "Åtgärder"
+
+msgid "Active"
+msgstr "Aktiv"
+
+msgid "Cancel All"
+msgstr "Avbryt alla"
+
+msgid "Clear History"
+msgstr "Rensa historik"
+
+msgid "No operations."
+msgstr "Inga åtgärder."
+
+msgid "Device Info"
+msgstr "Apparatinfo"
+
+msgid "Device Info (With Group Communication)"
+msgstr "Apparatinfo (med gruppkommunikation)"
+
+msgid "Reading"
+msgstr "Läser"
+
+msgid "General"
+msgstr "Allmänt"
+
+msgid "Group Communication"
+msgstr "Gruppkommunikation"
+
+msgid "Device Manufacturer"
+msgstr "Apparattillverkare"
+
+msgid "Firmware Version"
+msgstr "Firmware-version"
+
+msgid "Programming Mode"
+msgstr "Programmeringsläge"
+
+msgid "Load State"
+msgstr "Programmeringstillstånd"
+
+msgid "Address Table Load State"
+msgstr "Programmeringstillstånd Adresstabell"
+
+msgid "Association Table Load State"
+msgstr "Programmeringstillstånd Förbindelsetabell"
+
+msgid "Group Object Table Load State"
+msgstr "Programmeringstillstånd Gruppobjekttabell"
+
+msgid "Reading the tables failed: {error}"
+msgstr "Det gick inte att läsa tabellerna: {error}"
+
+msgid "On"
+msgstr "Till"
+
+msgid "Off"
+msgstr "Från"
+
+msgid "Unloaded"
+msgstr "Avprogrammerad"
+
+msgid "Loaded"
+msgstr "Inläst"
+
+msgid "Loading"
+msgstr "Läses in"
+
+msgid "Error"
+msgstr "Fel"
+
+msgid "Unloading"
+msgstr "Avprogrammeras"
+
+msgid "Load Completing"
+msgstr "Inläsning slutförs"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "No"
+msgstr "Nej"
+
+msgid "Also read the group communication?"
+msgstr "Läsa gruppkommunikationen också?"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "Applikationen i apparaten finns inte i katalogen, så dess tabeller kan inte hittas"
+
+msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
+msgstr "Den här apparaten kan bara programmeras med tillverkarens plugin, som inte är tillgängligt här."
+
+msgid "Parameters in the Manufacturer's Plugin"
+msgstr "Parametrar i tillverkarens plugin"
+
+msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
+msgstr "Tillverkaren ställer in den här apparatens parametrar i sin egen plugin-dialog, som XKNX Editor inte kan köra, så de kan inte ändras här. En programmering skriver deras nuvarande värden oförändrade; gruppobjekten kan förbindas som vanligt."
+
+msgid "Edit parameters anyway"
+msgstr "Redigera parametrar ändå"
+
+msgid "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+msgstr "Tillverkaren konfigurerar den här apparaten med sin egen plugin-dialog; inställningar som görs där visas inte här."
+
+msgid "The manufacturer programs this device with its own plugin; the standard download is used here."
+msgstr "Tillverkaren programmerar den här apparaten med sitt eget plugin; här används standardprogrammeringen."
+
+msgid "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+msgstr "Tillverkaren hanterar en del av den här apparatens data med sitt eget plugin, som inte är tillgängligt här."
+
+msgid "The manufacturer plugin is not available here:"
+msgstr "Tillverkarens plugin är inte tillgängligt här:"
+
+msgid "Only it can program the device."
+msgstr "Bara det kan programmera apparaten."
+
+msgid "Settings made in its dialog are not shown."
+msgstr "Inställningar som görs i dess dialog visas inte."
+
+msgid "The standard download is used instead."
+msgstr "Standardprogrammeringen används i stället."
+
+msgid "Part of the device data is not available."
+msgstr "En del av apparatens data är inte tillgänglig."
+
+msgid "This device is also configured with separate software from the manufacturer."
+msgstr "Den här apparaten konfigureras också med separat programvara från tillverkaren."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "Den här apparaten innehåller en konfigurationsapp från tillverkaren (”{name}”) som XKNX Editor inte kan köra. Apparatens standardparametrar kan fortfarande programmeras, men inte de extra funktioner som appen tillhandahåller."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "Den här apparaten innehåller en konfigurationsapp från tillverkaren (”{name}”) som inte kan köras direkt i XKNX Editor — men den har porterats, så dess viktigaste funktioner kan användas här (se fliken DALI)."
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "Tillverkaren tillåter att den här apparaten bara programmeras med sitt plugin, som inte är tillgängligt här. Om den programmeras utan pluginet kan apparaten bli felkonfigurerad eller hamna i ett feltillstånd."
+
+msgid "Program Without the Manufacturer's Plugin Anyway"
+msgstr "Programmera ändå utan tillverkarens plugin"
+
+msgid "Downloading"
+msgstr "Programmering"
+
+msgid "Please press the programming button"
+msgstr "Tryck på programmeringsknappen"
+
+msgid "Waiting for confirmation"
+msgstr "Väntar på bekräftelse"
+
+msgid "The application program currently loaded in the device is different from the projected application program"
+msgstr "Applikationsprogrammet som för närvarande är laddat i apparaten skiljer sig från förväntat applikationsprogram"
+
+msgid "Do you want to overwrite the application program (this may take several minutes)?"
+msgstr "Vill du skriva över applikationsprogrammet (det kan ta flera minuter)?"
+
+msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
+msgstr "Applikationsprogrammet som är laddat i apparaten överensstämmer inte med det projekterade applikationsprogrammet. Du kan försöka med en fullständig i stället för en delvis programmering."
+
+msgid "Incompatible mask version: {found} instead of {expected}"
+msgstr "Inkompatibel maskversion: {found} i stället för {expected}"
+
+msgid "Waiting"
+msgstr "Väntande"
+
+msgid "Finished"
+msgstr "Avslutad"
+
+msgid "Canceled"
+msgstr "Avbruten"
+
+msgid "Cancelled by user."
+msgstr "Avbruten av användaren."
+
+msgid "Started by an MCP client."
+msgstr "Startad av en MCP-klient."
+
+msgid "failed"
+msgstr "misslyckad"
+
+msgid "No details available"
+msgstr "Inga detaljer tillgängliga"
+
+msgid "Connection: {connection}"
+msgstr "Anslutning: {connection}"
+
+msgid "Start: {time}"
+msgstr "Start: {time}"
+
+msgid "End: {time}"
+msgstr "Slut: {time}"
+
+msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
+msgstr "Produktdata för den här apparaten saknas - dess applikationsprogram finns inte i katalogen. Importera produkten för att redigera apparaten."
+
+msgid "DIN Rail Mounting"
+msgstr "DIN-skenemontage"
+
+msgid "Bus Current"
+msgstr "Busström"
+
+msgid "Read Value"
+msgstr "Läs värde"
+
+msgid "Write Value…"
+msgstr "Skriv värde…"
+
+msgid "Write Value"
+msgstr "Skriv värde"
+
+msgid "Data Type"
+msgstr "Datatyp"
+
+msgid "Value"
+msgstr "Värde"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "Ange gruppadressens datatyp för att skriva ett värde."
+
+msgid "Write"
+msgstr "Skriv"
+
+msgid "Not connected to the bus."
+msgstr "Inte ansluten till bussen."
+
+msgid "Export Group Addresses…"
+msgstr "Exportera gruppadresser…"
+
+msgid "Import Group Addresses…"
+msgstr "Importera gruppadresser…"
+
+msgid "Import Group Addresses"
+msgstr "Importera gruppadresser"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "Gruppadressfiler (XML, CSV)"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "{added} gruppadresser tillagda, {updated} uppdaterade."
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "{count} gruppadresser kunde inte placeras i en grupp."
+
+msgid "The file could not be imported: {error}"
+msgstr "Filen kunde inte importeras: {error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "Filen använder {file} gruppadresser, men projektet använder {project} gruppadresser."
+
+msgid "3-level"
+msgstr "3-nivåers"
+
+msgid "2-level"
+msgstr "2-nivåers"
+
+msgid "free"
+msgstr "fria"
+
+msgid "Export"
+msgstr "Exportera"
+
+msgid "Import"
+msgstr "Importera"
+
+msgid "Plain"
+msgstr "Okrypterad"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "Inaktivera säker drifttagning"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "De här gruppadresserna kommunicerar då okrypterat:"
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "Apparatens gruppobjekt tas bort från de här säkrade gruppadresserna:"
+
+msgid "Deactivate"
+msgstr "Inaktivera"
+
+msgid "Secure Commissioning"
+msgstr "Säker drifttagning"
+
+msgid "Add Device Certificate…"
+msgstr "Lägg till apparatcertifikat…"
+
+msgid "Activated"
+msgstr "Aktiverad"
+
+msgid "Deactivated"
+msgstr "Inaktiverad"
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "Ett gruppobjekt som kräver säker kommunikation skulle hamna på en okrypterad gruppadress."
+
+msgid "Later"
+msgstr "Senare"
+
+msgid "Don't Ask When Adding Devices"
+msgstr "Fråga inte när apparater läggs till"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "Visa lösenord"
+
+msgid "Secure Tunneling"
+msgstr "Säker tunneling"
+
+msgid "Commissioning Password"
+msgstr "Drifttagningslösenord"
+
+msgid "Authentication Code"
+msgstr "Autentiseringskod"
+
+msgid "Interface"
+msgstr "Gränssnitt"
+
+msgid "Routing"
+msgstr "Routing"
+
+msgid "Tunnel {address}"
+msgstr "Tunnel {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "Ett lösenord måste ha 1 till 20 Latin-1-tecken."
+
+msgid "Close"
+msgstr "Stäng"
+
+msgid "IP Backbone Security"
+msgstr "IP-backbone-säkerhet"
+
+msgid "Device Certificates"
+msgstr "Apparatcertifikat"
+
+msgid "Manage…"
+msgstr "Hantera…"
+
+msgid "The project has no device certificates."
+msgstr "Projektet har inga apparatcertifikat."
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "Säkerhetstabellerna i {device} rymmer inte den här kopplingen."
+
+msgid "Point-to-Point and Broadcast"
+msgstr "Punkt-till-punkt och broadcast"
+
+msgid "Blocked"
+msgstr "Spärrad"
+
+msgid "Routed"
+msgstr "Vidarebefordrad"
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "Anslut till ett KNX-gränssnitt för att ta DALI-bussen i drift."
+
+msgid "Scan Bus"
+msgstr "Avsök bussen"
+
+msgid "All ECGs On"
+msgstr "Alla driftdon till"
+
+msgid "All Off"
+msgstr "Alla från"
+
+msgid "New Installation…"
+msgstr "Nyinstallation…"
+
+msgid "Post Installation…"
+msgstr "Efterinstallation…"
+
+msgid "Running: {task}"
+msgstr "Körs: {task}"
+
+msgid "scanning the bus"
+msgstr "avsöker bussen"
+
+msgid "switching all ECGs"
+msgstr "kopplar alla driftdon"
+
+msgid "blinking"
+msgstr "blinkar"
+
+msgid "stopping the blinking"
+msgstr "stoppar blinkningen"
+
+msgid "new installation"
+msgstr "ny installation"
+
+msgid "post installation"
+msgstr "efterinstallation"
+
+msgid "programming the groups"
+msgstr "programmerar grupperna"
+
+msgid "programming the scenes"
+msgstr "programmerar scenerna"
+
+msgid "{count} found"
+msgstr "{count} hittade"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "Använd ”Avsök bussen” för att läsa DALI-bussen."
+
+msgid "Firmware {version}"
+msgstr "Firmware {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "Bekräfta DALI-programmering"
+
+msgid "Continue"
+msgstr "Fortsätt"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "Nyinstallation avsöker DALI-bussen igen och TILLDELAR OM kortadressen\nför varje driftdon. Detta kan inte ångras. Fortsätta?"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "Efterinstallation söker på bussen efter nya driftdon och uppdaterar deras adressering.\nDetta ändrar apparaten. Fortsätta?"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "Skriv grupptilldelningen till DALI-bussen. Detta överför grupperna till\ngatewayen och dess driftdon. Fortsätta?"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "Skriv scenvärdena till DALI-bussen. Fortsätta?"
+
+msgid "{count} ECG(s) present"
+msgstr "{count} driftdon finns"
+
+msgid "Group"
+msgstr "Grupp"
+
+msgid "Long Address"
+msgstr "Lång adress"
+
+msgid "Alarm"
+msgstr "Alarm"
+
+msgid "Blink"
+msgstr "Blinka"
+
+msgid "Stop"
+msgstr "Stoppa"
+
+msgid "Program Groups…"
+msgstr "Programmera grupper…"
+
+msgid "Scenes"
+msgstr "Scener"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "Tilldela driftdonen ovan till grupper för att definiera scener."
+
+msgid "Scene"
+msgstr "Scen"
+
+msgid "Scene {number}"
+msgstr "Scen {number}"
+
+msgid "Group {number}"
+msgstr "Grupp {number}"
+
+msgid "Program Scenes…"
+msgstr "Programmera scener…"
+
+msgid "Single"
+msgstr "Enskild"
+
+msgid "Unassigned"
+msgstr "Ej tilldelad"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "Procedur {number}  ({count} steg)"
+
+msgid "Kind"
+msgstr "Sort"
+
+msgid "Applies To"
+msgstr "Gäller för"
+
+msgid "Details"
+msgstr "Detaljer"
+
+msgid "Scope: {scope}"
+msgstr "Omfång: {scope}"
+
+msgid "Additional Individual Addresses"
+msgstr "Extra individuella adresser"
+
+msgid "Additional Individual Address"
+msgstr "Extra individuell adress"
+
+msgid "Assign Missing Addresses"
+msgstr "Tilldela saknade adresser"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "Linjen ger inte tillräckligt med adresser för alla nödvändiga extra adresser."
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "Ange ett apparatnummer från 1 till 255 eller en fullständig individuell adress i apparatens linje."
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "En extra adress måste ligga i apparatens linje {line}."
+
+msgid "The individual address {address} is already used in this line."
+msgstr "Den individuella adressen {address} används redan i den här linjen."
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "Ändrade extra-adress för apparat '{0}' från '{1}' till '{2}'."
+
+msgid "Change additional address names"
+msgstr "Ändra ytterligare adressnamn"
+
+msgid "Change additional address descriptions"
+msgstr "Ändra ytterligare adressbeskrivningar"
+
+msgid "Assign additional addresses"
+msgstr "Tilldela extra adresser"
+
+msgid "Change additional addresses"
+msgstr "Ändra extra adresser"
+
+msgid "Add device {name}"
+msgstr "Lägg till apparat {name}"
+
+msgid "Set {ref} = {value}"
+msgstr "Ställ in {ref} = {value}"
+
+msgid "Change"
+msgstr "Ändring"
+
+msgid "Create area {address}"
+msgstr "Skapa område {address}"
+
+msgid "Create line {address}"
+msgstr "Skapa linje {address}"
+
+msgid "Add segment"
+msgstr "Lägg till segment"
+
+msgid "Create group address {address}"
+msgstr "Skapa gruppadress {address}"
+
+msgid "Import group addresses"
+msgstr "Importera gruppadresser"
+
+msgid "Import group addresses from {file}"
+msgstr "Importera gruppadresser från {file}"
+
+msgid "Link group object"
+msgstr "Förbind gruppobjekt"
+
+msgid "Unlink group object"
+msgstr "Koppla bort gruppobjekt"
+
+msgid "Rename area to {name}"
+msgstr "Byt namn på område till {name}"
+
+msgid "Rename project to {name}"
+msgstr "Byt namn på projekt till {name}"
+
+msgid "Rename line to {name}"
+msgstr "Byt namn på linje till {name}"
+
+msgid "Rename device to {name}"
+msgstr "Byt namn på apparat till {name}"
+
+msgid "Move device"
+msgstr "Flytta apparat"
+
+msgid "Set flag"
+msgstr "Ställ in flagga"
+
+msgid "Set datapoint type"
+msgstr "Ange datapunkttyp"
+
+msgid "Set priority"
+msgstr "Ange prioritet"
+
+msgid "Set description"
+msgstr "Ange beskrivning"
+
+msgid "Set sending group address"
+msgstr "Ange sändande gruppadress"
+
+msgid "Add installation"
+msgstr "Lägg till installation"
+
+msgid "Remove device"
+msgstr "Ta bort apparat"
+
+msgid "Remove area"
+msgstr "Ta bort område"
+
+msgid "Remove line"
+msgstr "Ta bort linje"
+
+msgid "Remove segment"
+msgstr "Ta bort segment"
+
+msgid "Remove group address"
+msgstr "Ta bort gruppadress"
+
+msgid "Remove function"
+msgstr "Ta bort funktion"
+
+msgid "Remove group address from function"
+msgstr "Ta bort gruppadress från funktion"
+
+msgid "Remove building part"
+msgstr "Ta bort byggnadsdel"
+
+msgid "Remove group range"
+msgstr "Ta bort gruppintervall"
+
+msgid "Update application program"
+msgstr "Uppdatera applikationsprogram"
+
+msgid "Change application program"
+msgstr "Byt applikationsprogram"
+
+msgid "Update group objects"
+msgstr "Uppdatera gruppobjekt"
+
+msgid "Update module instances"
+msgstr "Uppdatera modulinstanser"
+
+msgid "Set group address security"
+msgstr "Ange gruppadressens säkerhet"
+
+msgid "Set secure commissioning"
+msgstr "Ange säker drifttagning"
+
+msgid "Rename group address to {name}"
+msgstr "Byt namn på gruppadress till {name}"
+
+msgid "Change group address"
+msgstr "Ändra gruppadress"
+
+msgid "Set device certificates"
+msgstr "Ange apparatcertifikat"
+
+msgid "Set device description"
+msgstr "Ange apparatbeskrivning"
+
+msgid "Create function {name}"
+msgstr "Skapa funktion {name}"
+
+msgid "Rename function to {name}"
+msgstr "Byt namn på funktion till {name}"
+
+msgid "Set function type"
+msgstr "Ange funktionstyp"
+
+msgid "Add group address to function"
+msgstr "Lägg till gruppadress i funktion"
+
+msgid "Create building part {name}"
+msgstr "Skapa byggnadsdel {name}"
+
+msgid "Rename building part to {name}"
+msgstr "Byt namn på byggnadsdel till {name}"
+
+msgid "Set building part number"
+msgstr "Ange byggnadsdelens nummer"
+
+msgid "Set building part description"
+msgstr "Ange byggnadsdelens beskrivning"
+
+msgid "Set building part type"
+msgstr "Ange byggnadsdelens typ"
+
+msgid "Move building part"
+msgstr "Flytta byggnadsdel"
+
+msgid "Assign device to building part"
+msgstr "Tilldela apparat till byggnadsdel"
+
+msgid "Set commissioning state"
+msgstr "Ange drifttagningsstatus"
+
+msgid "Create group range {name}"
+msgstr "Skapa gruppintervall {name}"
+
+msgid "Rename group range to {name}"
+msgstr "Byt namn på gruppintervall till {name}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: ingen individuell adress"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: felaktig adress '{address}'"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: dubblerad adress {address}"
+
+msgid "added"
+msgstr "tillagd"
+
+msgid "removed"
+msgstr "borttagen"
+
+msgid "changed"
+msgstr "ändrad"
+
+msgid "Installation Hints"
+msgstr "Installationstips"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Välj ett element i ett träd för att se dess kommentar."
+
+msgid "Set comment"
+msgstr "Ange kommentar"
+
+msgid "Set installation hints"
+msgstr "Ange installationstips"
+
+msgid "Area"
+msgstr "Område"
+
+msgid "Line"
+msgstr "Linje"
+
+msgid "The address is a number from 0 to 15."
+msgstr "Adressen är ett tal från 0 till 15."
+
+msgid "Address {address} is already in use."
+msgstr "Adressen {address} används redan."
+
+msgid "Set area description"
+msgstr "Ange områdets beskrivning"
+
+msgid "Set line description"
+msgstr "Ange linjens beskrivning"
+
+msgid "Set area address"
+msgstr "Ange områdets adress"
+
+msgid "Set line address"
+msgstr "Ange linjens adress"
+
+msgid "Main Group"
+msgstr "Huvudgrupp"
+
+msgid "Middle Group"
+msgstr "Mellangrupp"
+
+msgid "Group Range"
+msgstr "Gruppintervall"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "Huvudgruppen är ett tal från 0 till 31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "Mellangruppen är ett tal från 0 till 7."
+
+msgid "Set group address description"
+msgstr "Ange gruppadressens beskrivning"
+
+msgid "Set group range description"
+msgstr "Ange gruppintervallets beskrivning"
+
+msgid "Set group range address"
+msgstr "Ange gruppintervallets adress"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "Kanal {n}"
+
+msgid "Colour Temp (K)"
+msgstr "Färgtemperatur (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Anslut till ett KNX-gränssnitt för att läsa Siemens DALI-bussen."
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "DALI-kanal"
+
+msgid "DALI commissioning"
+msgstr "DALI-driftsättning"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "DALI-driftsättning skriver gatewayen på bussen men uppdaterar inte projektparametrarna; exportera .knxproj på nytt efter en ändring på DCA-sidan."
+
+msgid "Default"
+msgstr "Standard"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Redigerbart alternativ för parametrar där tillverkarens plugin inte är tillgängligt här. Hierarkin rekonstrueras från parameternamnens prefix; etiketter och grupperingar kan vara ungefärliga. Ändringar skrivs till projektet och överförs med en vanlig nedladdning."
+
+msgid "Min Dim"
+msgstr "Min. dimring"
+
+msgid "No parameter matches the filter."
+msgstr "Ingen parameter matchar filtret."
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Det finns ännu ingen plugin-mappning för den här enheten. Parametrarna i tillverkarens plugin förblir oåtkomliga härifrån."
+
+msgid "Parameter"
+msgstr "Parameter"
+
+msgid "Plugin Config"
+msgstr "Plugin-konfiguration"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Tryck på ”Läs DALI-buss” för att visa ECG:er på gatewayen."
+
+msgid "Random Address"
+msgstr "Slumpmässig adress"
+
+msgid "Read DALI Bus"
+msgstr "Läs DALI-buss"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Skrivskyddad ögonblicksbild. Skrivning av grupptilldelningar, scener eller firmware är ännu inte tillgänglig och ligger kvar i tillverkarens plugin."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Skrivskyddad vy. Hierarkin är en bästa möjliga rekonstruktion från parameternamnens prefix; namn och grupperingar kan vara ungefärliga. Skrivning av värden är ännu inte tillgänglig."
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Läser DALI-bussen från objekt {object_index}…"
+
+msgid "Short Address"
+msgstr "Kort adress"
+
+msgid "Slot"
+msgstr "Plats"
+
+msgid "The application has no static parameters."
+msgstr "Applikationen har inga statiska parametrar."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Driftsättningsprotokollet för den här gatewayen har inte verifierats mot en inspelning; skrivningar kan uppföra sig fel. Fortsätt försiktigt."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{count} ECG:er finns på linje {line}"
+
+msgid "Program DCA State"
+msgstr "Programmera DCA-tillstånd"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Skickar DALI-enhetsinställningarna till gatewayen som egenskapsvärden."
+
+msgid "Add to {section}:"
+msgstr "Lägg till i {section}:"
+
+msgid "No entries."
+msgstr "Inga poster."
+
+msgid "Entry"
+msgstr "Post"
+
+msgid "Store plugin data {name}"
+msgstr "Spara plugindata {name}"

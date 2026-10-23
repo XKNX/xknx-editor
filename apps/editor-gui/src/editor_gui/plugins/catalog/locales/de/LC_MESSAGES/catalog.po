@@ -19,7 +19,7 @@ msgstr "Geladen: {path}"
 msgid "Found {count} application(s)"
 msgstr "{count} Applikation(en) gefunden"
 
-msgid "({count} com objects)"
+msgid "({count} group objects)"
 msgstr "({count} Kommunikationsobjekte)"
 
 msgid "Fetch Online Catalog"
@@ -96,8 +96,8 @@ msgstr "Programmversion"
 msgid "Search products, order number…"
 msgstr "Produkte, Bestellnummer suchen…"
 
-msgid "Product Index: {mfrs} manufacturers, {products} products"
-msgstr "Produktindex: {mfrs} Hersteller, {products} Produkte"
+msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
+msgstr "Produktindex ({date}): {mfrs} Hersteller, {products} Produkte"
 
 msgid "No Product Index yet - fetch the online catalog to build it"
 msgstr "Noch kein Produktindex - Online-Katalog abrufen zum Aufbauen"
@@ -203,3 +203,15 @@ msgstr "In welchen Raum soll {name}?"
 
 msgid "Add Device to Project"
 msgstr "Gerät zum Projekt hinzufügen"
+
+msgid "Market:"
+msgstr "Markt:"
+
+msgid "All Markets"
+msgstr "Alle Märkte"
+
+msgid "Only Products in {language}"
+msgstr "Nur Produkte in {language}"
+
+msgid "{shown} of {total} shown"
+msgstr "{shown} von {total} angezeigt"

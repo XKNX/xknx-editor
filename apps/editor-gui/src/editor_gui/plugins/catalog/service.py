@@ -8,6 +8,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING
 
 from editor_gui.concurrency import io_guarded
+from editor_gui.languages import product_language, product_text_languages
+from editor_gui.plugins.catalog.filters import OnlineFilters
 from xknxeditor.prod import Application
 
 # The settings file the download language was stored in (see _forget_stored_language).
@@ -74,16 +76,24 @@ class CatalogService:
         )
         # A download language chosen for this session (over MCP), else the editor's languages.
         self._language: str | None = None
+        # The online products last listed per manufacturer, for their text languages on download.
+        self._browsed: dict[int, list[OnlineCatalogItem]] = {}
         _forget_stored_language()
+        # The market and product language the online catalog shows products for.
+        self.online_filters = OnlineFilters(self._online_client)
 
     @property
     def online_languages(self) -> list[str]:
         """The languages products are downloaded in (KNX language ids such as ``de-DE``): the
-        editor's language first, then its other languages."""
+        preferred product language first, then the editor's languages."""
         from editor_gui.plugins.catalog.online_catalog import download_languages
         from editor_gui.strings import get_locale
 
-        return [self._language] if self._language else download_languages(get_locale())
+        if self._language:
+            return [self._language]
+        # The preferred product language first, then the editor's languages.
+        first = product_language()
+        return [first, *(c for c in download_languages(get_locale()) if c != first)]
 
     @property
     def online_language(self) -> str:
@@ -203,7 +213,9 @@ class CatalogService:
 
     def online_catalog_items(self, manufacturer_id: int) -> list[OnlineCatalogItem]:
         """Downloadable products a manufacturer offers in the online catalog (hits the network)."""
-        return self._online_client.catalog_items(manufacturer_id)
+        items = self._online_client.catalog_items(manufacturer_id)
+        self._browsed[manufacturer_id] = items
+        return items
 
     def online_index(self) -> dict[int, list[OnlineCatalogItem]] | None:
         """The full cached product index (all manufacturers), or None if never built. No network."""
@@ -229,13 +241,14 @@ class CatalogService:
     def search_online_products(
         self, query: str, limit: int = 300
     ) -> tuple[list[OnlineCatalogItem], int]:
-        """Flat cross-manufacturer product search over the cached index; (results, total)."""
+        """Flat cross-manufacturer product search over the cached index, of the products the
+        market and language filters show; (results, total)."""
         from editor_gui.plugins.catalog.online_catalog import search_index
 
         index = self._online_client.cached_index()
         if not index:
             return [], 0
-        return search_index(index, query, limit)
+        return search_index(index, query, limit, self.online_filters.predicate())
 
     def download_online_products(
         self, catalog_item_ids: list[str], language_ids: list[str] | None = None
@@ -243,11 +256,31 @@ class CatalogService:
         """Download a ``.knxprod`` for the given catalog items and import it; returns the new
         product versions.
 
-        Defaults to the editor's languages (:attr:`online_languages`)."""
-        data = self._online_client.download_product(
-            catalog_item_ids, language_ids or self.online_languages
-        )
+        Defaults to the editor's languages (:attr:`online_languages`), with the variants of them
+        the products offer (a manufacturer may label its texts "de" or "es-MX")."""
+        from editor_gui.plugins.catalog.online_catalog import with_variants
+
+        if language_ids is None:
+            language_ids = with_variants(
+                self.online_languages, self._offered_languages(catalog_item_ids)
+            )
+        data = self._online_client.download_product(catalog_item_ids, language_ids)
         return self._import_knxprod_bytes(data)
+
+    def _offered_languages(self, catalog_item_ids: list[str]) -> list[str]:
+        """The text languages of the given catalog items, as the cached index or the products
+        listed while browsing give them."""
+        wanted = set(catalog_item_ids)
+        offered: list[str] = []
+        listed = [
+            *(self._online_client.cached_index() or {}).values(),
+            *self._browsed.values(),
+        ]
+        for items in listed:
+            for item in items:
+                if item.id in wanted:
+                    offered += [c for c in item.languages if c not in offered]
+        return offered
 
     @io_guarded(list)
     def hardware_programs(self, hardware_id: str) -> list[ProgramSummary]:
@@ -299,29 +332,23 @@ class CatalogService:
 
     @io_guarded(lambda: None)
     def get_application(self, application_id: str) -> Application | None:
-        # Localize device labels (parameter/tab/block names) to the current UI language when the
-        # .knxprod ships that language; get_locale() returns e.g. "de", matched to "de-DE".
-        from editor_gui.strings import get_locale
-
-        return self._service.get_application(application_id, get_locale())
+        # Localize device labels (parameter/tab/block names) to the preferred product language,
+        # else the UI language, when the .knxprod ships it.
+        return self._service.get_application(application_id, product_text_languages())
 
     @io_guarded(lambda: None)
     def application_source(self, application_id: str) -> str | None:
         """What ``application_id`` is read from, in the current language; ``None`` when it is not
         in the catalog."""
-        from editor_gui.strings import get_locale
-
         source = self._service.application_source(application_id)
-        return None if source is None else f"{source}|{get_locale()}"
+        return None if source is None else f"{source}|{product_text_languages()}"
 
     def unloaded_application(
         self, application_id: str, name: str, version: str, manufacturer_id: str
     ) -> Application:
         """``application_id`` known by its name and versions, parsed in the current language when
         first used (on any thread)."""
-        from editor_gui.strings import get_locale
-
-        language = get_locale()
+        language = product_text_languages()
 
         def load() -> ApplicationProgram:
             return self._service.load_application_program(application_id, language)

@@ -31,11 +31,21 @@ from xknxeditor.dali.model import (
     Scene,
     SceneValue,
 )
+from xknxeditor.dali.profiles import profile_for
 
-# Type of the injected runner: (device, op) -> started?  (op gets a commissioner, returns a coro.)
+# Type of the injected runner: (device, op, channel) -> started?  (op gets a commissioner.)
 DaliRunner = Callable[
-    [Device, Callable[[MdtDaliCommissioner], Awaitable[object]]], bool
+    [Device, Callable[[MdtDaliCommissioner], Awaitable[object]], int], bool
 ]
+
+# Persist the commissioning result into the project blob for one channel:
+# (device, scan, assignments, scenes, channel).
+DaliPersist = Callable[
+    [Device, DaliBusState, "list[EcgAssignment]", "list[Scene]", int], None
+]
+
+# Number of DALI bus channels a device has: (device) -> count (1 for a 1x64 gateway).
+DaliChannelCount = Callable[[Device], int]
 
 # Group combo entries: real groups 0-15, then "single" and "unassigned".
 
@@ -124,21 +134,40 @@ class _DeviceUi:
     scene_edits: dict[int, dict[int, int]] = field(
         default_factory=dict[int, "dict[int, int]"]
     )  # scene index -> {group -> level}
+    # Set by a successful groups/scenes write on the asyncio thread; render() picks it up on the
+    # GUI thread and persists the backup blob into the project (project edits are not thread-safe).
+    persist_pending: bool = False
 
 
 @dataclass
 class DaliCommissioningPanel:
-    """Stateful "DALI (Bus)" tab body. One instance owned by the project plugin."""
+    """Stateful "DALI (Bus)" tab body. One instance owned by the project plugin.
+
+    A gateway can carry more than one DALI bus channel (a 2x64 gateway has two). Each channel is
+    an independent bus with its own scan/edits/blob, so state is keyed per ``(individual address,
+    channel)`` and the user picks the active channel with a selector when there is more than one.
+    """
 
     _run: DaliRunner
+    _persist: DaliPersist | None = None
+    _channel_count: DaliChannelCount | None = None
     _ui: dict[str, _DeviceUi] = field(default_factory=dict[str, "_DeviceUi"])
+    _active_channel: dict[str, int] = field(default_factory=dict[str, int])
     _lock: threading.Lock = field(default_factory=threading.Lock)
     _pending: str = (
         ""  # "" | "new" | "post" | "groups" | "scenes" — awaiting confirmation
     )
 
-    def _state(self, ia: str) -> _DeviceUi:
-        return self._ui.setdefault(ia, _DeviceUi())
+    def _channels(self, device: Device) -> int:
+        if self._channel_count is None:
+            return 1
+        return max(1, self._channel_count(device))
+
+    def _current_channel(self, ia: str) -> int:
+        return self._active_channel.get(ia, 0)
+
+    def _state(self, ia: str, channel: int) -> _DeviceUi:
+        return self._ui.setdefault(f"{ia}#{channel}", _DeviceUi())
 
     # --- op runner + thread-safe result stash ------------------------------
 
@@ -151,21 +180,24 @@ class DaliCommissioningPanel:
         store_scan: bool = False,
     ) -> None:
         ia = device.individual_address
+        channel = self._current_channel(ia)
         with self._lock:
-            state = self._state(ia)
+            state = self._state(ia, channel)
             if state.busy:
                 return
             state.busy = label
             state.error = ""
             state.progress = ""
-        wrapped = self._wrap(ia, op, store_scan)
-        if not self._run(device, wrapped):
+        wrapped = self._wrap(ia, channel, label, op, store_scan)
+        if not self._run(device, wrapped, channel):
             with self._lock:
-                self._state(ia).busy = ""
+                self._state(ia, channel).busy = ""
 
     def _wrap(
         self,
         ia: str,
+        channel: int,
+        label: str,
         op: Callable[[MdtDaliCommissioner], Awaitable[object]],
         store_scan: bool,
     ) -> Callable[[MdtDaliCommissioner], Awaitable[object]]:
@@ -174,38 +206,87 @@ class DaliCommissioningPanel:
                 result = await op(commissioner)
             except Exception as exc:  # surface any bus/protocol error in the UI
                 with self._lock:  # set error AND release busy in one acquisition
-                    st = self._state(ia)
+                    st = self._state(ia, channel)
                     st.error = f"{type(exc).__name__}: {exc}"
                     st.busy = ""
                 raise
             # Store the result and clear busy atomically, so a follow-up op that starts the instant
             # busy clears cannot have its state overwritten by this (older) result.
             with self._lock:
-                st = self._state(ia)
+                st = self._state(ia, channel)
                 if store_scan and isinstance(result, DaliBusState):
                     st.scan = result
                     st.group_edits.clear()  # fresh bus state -> drop stale group edits
+                if label in ("program-groups", "program-scenes"):
+                    # A write landed on the bus; flag the GUI thread to persist the project blob.
+                    st.persist_pending = True
                 st.busy = ""
             return result
 
         return runner
 
-    def _note_progress(self, ia: str, text: str) -> None:
+    def _note_progress(self, ia: str, channel: int, text: str) -> None:
         with self._lock:
-            self._state(ia).progress = text
+            self._state(ia, channel).progress = text
+
+    def _persist_backup(self, device: Device, channel: int, state: _DeviceUi) -> None:
+        """Hand the current commissioning state to the project persistence callback.
+
+        Runs on the GUI thread (from ``render``) after a groups/scenes write landed on the
+        bus. The blob holds the whole channel, so it is rebuilt from the full scan + edits
+        every time, not just the slice that was last written.
+        """
+        if self._persist is None or state.scan is None:
+            return
+        assignments = _assignments_from(state.scan, state.group_edits)
+        scenes = _scenes_from(state.scene_edits)
+        self._persist(device, state.scan, assignments, scenes, channel)
 
     # --- rendering ---------------------------------------------------------
 
     def render(self, device: Device, connected: bool) -> None:
         ia = device.individual_address
+        channels = self._channels(device)
+        channel = self._current_channel(ia)
         with self._lock:
-            state = self._state(ia)
+            state = self._state(ia, channel)
             busy, error, progress = state.busy, state.error, state.progress
             scan = state.scan
+            persist_pending = state.persist_pending
+            state.persist_pending = False
+
+        app_id = device.app.id if device.app is not None else None
+        profile = profile_for(app_id)
+        # Persist the project blob for any recognised Type-A gateway: MDT (gc16) is fully
+        # modelled; Theben/IPAS (e64pro) get their group assignments patched into the existing
+        # vendor blob with everything else preserved byte-exact.
+        can_persist = self._persist is not None and profile is not None
+        if persist_pending and can_persist and scan is not None:
+            self._persist_backup(device, channel, state)
 
         if not connected:
             imgui.text_disabled(S.DALI_CONNECT_HINT)
             return
+
+        if profile is not None and profile.unverified:
+            imgui.text_colored(
+                imgui.ImVec4(1.0, 0.75, 0.2, 1.0), S.DALI_UNVERIFIED_WARNING
+            )
+        if not can_persist:
+            imgui.text_disabled(S.DALI_PROJECT_NOT_UPDATED)
+
+        # Channel selector for multi-bus gateways (a 2x64 has two independent DALI buses).
+        if channels > 1:
+            imgui.begin_disabled(bool(busy))
+            changed, new_channel = combo(
+                S.DALI_CHANNEL,
+                channel,
+                [S.DALI_CHANNEL_N.format(n=i + 1) for i in range(channels)],
+            )
+            imgui.end_disabled()
+            if changed and new_channel != channel:
+                self._active_channel[ia] = new_channel
+                return  # re-render next frame with the newly selected channel's state
 
         imgui.begin_disabled(bool(busy))
         if imgui.button(S.DALI_SCAN):
@@ -242,10 +323,12 @@ class DaliCommissioningPanel:
         self._render_scenes(scan, state, busy=bool(busy))
 
     def _install_progress(self, ia: str) -> Callable[[object], None]:
+        channel = self._current_channel(ia)
+
         def cb(readback: object) -> None:
             found = getattr(readback, "param1", None)
             if found is not None:
-                self._note_progress(ia, S.DALI_FOUND.format(count=found))
+                self._note_progress(ia, channel, S.DALI_FOUND.format(count=found))
 
         return cb
 
@@ -292,7 +375,7 @@ class DaliCommissioningPanel:
             )
 
     def _start_program_groups(self, device: Device, ia: str) -> None:
-        st = self._state(ia)
+        st = self._state(ia, self._current_channel(ia))
         if st.scan is None:
             return
         assignments = _assignments_from(st.scan, st.group_edits)
@@ -301,7 +384,8 @@ class DaliCommissioningPanel:
         self._start(device, "program-groups", lambda c: c.commission(assignments))
 
     def _start_program_scenes(self, device: Device, ia: str) -> None:
-        scenes = _scenes_from(self._state(ia).scene_edits)
+        st = self._state(ia, self._current_channel(ia))
+        scenes = _scenes_from(st.scene_edits)
         if not scenes:
             return
         self._start(device, "program-scenes", lambda c: c.write_scenes(scenes))

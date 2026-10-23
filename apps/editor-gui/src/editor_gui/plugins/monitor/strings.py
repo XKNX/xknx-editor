@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from editor_gui.strings import create_translator
+from editor_gui.strings import create_translator, shortcut
 
 _locale_dir = Path(__file__).parent / "locales"
 _ = create_translator("monitor", _locale_dir)
@@ -71,15 +71,26 @@ class MonitorStrings:
 
     @property
     def MONITOR_TELEGRAM_COUNT(self) -> str:
-        return _("{count} telegrams")
+        return _("{count} teleg.")
 
     @property
     def MONITOR_TELEGRAM_COUNT_ONE(self) -> str:
-        return _("{count} telegram")
+        return _("{count} teleg.")
 
     @property
     def MONITOR_BUS_LOAD(self) -> str:
         return _("Load: {rate} t/s")
+
+    @property
+    def MONITOR_MAX_RECORDS(self) -> str:
+        return _("Max")
+
+    @property
+    def MONITOR_MAX_RECORDS_HINT(self) -> str:
+        return _(
+            "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap "
+            "is exceeded."
+        )
 
     # --- command bar ---------------------------------------------------------
 
@@ -183,8 +194,8 @@ class MonitorStrings:
     def TOOL_COPY_HINT(self) -> str:
         return _(
             "Copy the selected telegrams (all shown if none is selected) to the clipboard "
-            "(Ctrl+C). Double-click a telegram to select its source device."
-        )
+            "({shortcut}). Double-click a telegram to select its source device."
+        ).format(shortcut=shortcut("C"))
 
     @property
     def STATUS_RECORDING(self) -> str:

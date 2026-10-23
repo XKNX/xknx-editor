@@ -1,14 +1,23 @@
 """MDT DALI gateway (GC16/Hawk) KNX property + command identifiers.
 
-Reverse-engineered from the MDT DALI DCA (``MDT-DaliDcaPlus.dll``). The gateway is commissioned over
-KNX Interface-Object Property access (A_PropertyValue_Read/Write): the property id equals the DCA's
-``PropertyType`` enum value, on interface **object index ``6 + dali_channel``** (firmware is on
-object 0, property 25). See :mod:`xknxeditor.dali.structs` for the per-element byte layouts.
+The gateway is commissioned over KNX Interface-Object Property access
+(A_PropertyValue_Read/Write): the property id equals the configuration app's ``PropertyType``
+enum value, on interface **object index ``6 + dali_channel``** (firmware is on object 0,
+property 25). See :mod:`xknxeditor.dali.structs` for the per-element byte layouts.
+
+Per-vendor byte-size overrides live on :class:`xknxeditor.dali.profiles.DaliProfile`
+(``element_size_overrides``). Call :func:`element_size_for` with the active profile to
+pick the right size; the module-level ``ELEMENT_SIZE`` map remains the MDT default used
+when no profile is known.
 """
 
 from __future__ import annotations
 
 from enum import IntEnum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from xknxeditor.dali.profiles import DaliProfile
 
 # Interface object holding the DALI commissioning properties for channel 0; +1 per further channel.
 # The base is vendor-specific (MDT = 6, Theben = 7); see :mod:`xknxeditor.dali.profiles`.
@@ -22,7 +31,7 @@ def object_index(dali_channel: int = 0, base: int = DEFAULT_OBJECT_INDEX_BASE) -
 
 
 class PropertyType(IntEnum):
-    """KNX property ids on the gateway's DALI object (value == DCA ``PropertyType``)."""
+    """KNX property ids on the gateway's DALI object."""
 
     HAWK_FIRMWARE = 25  # on FIRMWARE_OBJECT_INDEX (0), not the DALI object
     FIRMWARE = 65
@@ -42,7 +51,7 @@ class PropertyType(IntEnum):
     SCENE_KNX_MAP = 228
 
 
-# Bytes per table element (DCA ``DeviceConnection.ByteCount``).
+# Bytes per table element.
 ELEMENT_SIZE: dict[PropertyType, int] = {
     PropertyType.EVG_PROP: 4,
     PropertyType.EVG_STATIC: 8,
@@ -61,8 +70,22 @@ ELEMENT_SIZE: dict[PropertyType, int] = {
 }
 
 
+def element_size_for(prop: PropertyType, profile: DaliProfile | None = None) -> int:
+    """Element size for ``prop`` under ``profile``, with the vendor's overrides applied.
+
+    Theben P64 V2 and IPAS DaliControl e64 Pro encode ``GROUP_STATUS`` as 10 bytes per
+    element instead of the MDT default of 8; without this lookup the connection layer
+    would read truncated records and the commissioning table would be interpreted wrong.
+    """
+    if profile is not None:
+        for pid_int, size in profile.element_size_overrides:
+            if pid_int == int(prop):
+                return size
+    return ELEMENT_SIZE[prop]
+
+
 class DeviceCommand(IntEnum):
-    """DCA ``DeviceCommand`` (byte 0 of the 3-byte COMMAND property)."""
+    """Device command (byte 0 of the 3-byte COMMAND property)."""
 
     NONE = 0
     NEW_INSTALLATION = 1

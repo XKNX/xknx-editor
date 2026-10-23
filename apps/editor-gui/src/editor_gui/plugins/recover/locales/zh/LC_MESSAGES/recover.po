@@ -1,0 +1,125 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor recover 1.0\n"
+"Language: zh\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Recover Project from Bus"
+msgstr "从总线恢复项目"
+
+msgid "From Address"
+msgstr "起始地址"
+
+msgid "To Address"
+msgstr "结束地址"
+
+msgid "Scan"
+msgstr "扫描"
+
+msgid "Stop"
+msgstr "停止"
+
+msgid "Add to Open Project as Read"
+msgstr "添加到打开的项目（已读取）"
+
+msgid "Recover Selected"
+msgstr "恢复所选项"
+
+msgid "Create New Project"
+msgstr "创建新项目"
+
+msgid "Add to Open Project"
+msgstr "添加到打开的项目"
+
+msgid "Verify (Read-Only)"
+msgstr "验证（只读）"
+
+msgid "Export Snapshot"
+msgstr "导出快照"
+
+msgid "Verifying (re-reading and comparing)…"
+msgstr "正在验证（重新读取并比较）…"
+
+msgid "%(count)d group address(es) have no sender or multiple senders."
+msgstr "%(count)d 个组地址没有发送者或有多个发送者。"
+
+msgid "Address"
+msgstr "地址"
+
+msgid "Mask"
+msgstr "掩码"
+
+msgid "Product / Application"
+msgstr "产品/应用"
+
+msgid "Status"
+msgstr "状态"
+
+msgid "Set an address range and scan the bus."
+msgstr "请设置地址范围并扫描总线。"
+
+msgid "Scanning the bus…"
+msgstr "正在扫描总线…"
+
+msgid "Scanning %(address)s  (%(done)d/%(total)d, %(found)d found)"
+msgstr "正在扫描 %(address)s  （%(done)d/%(total)d，已找到 %(found)d 个）"
+
+msgid "Loading missing products from online catalog: %(what)s"
+msgstr "正在从在线产品目录加载缺失的产品：%(what)s"
+
+msgid "Reading devices…"
+msgstr "正在读取设备…"
+
+msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+msgstr "正在读取 %(address)s  （%(done)d/%(total)d）  -  %(stage)s"
+
+msgid "group communication tables"
+msgstr "组通讯表"
+
+msgid "parameter memory"
+msgstr "参数存储器"
+
+msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
+msgstr "已恢复 %(devices)d 个设备：%(group_addresses)d 个组地址，%(links)d 个链接，%(unknown)d 个参数无法恢复。"
+
+msgid "Recovered"
+msgstr "已恢复"
+
+msgid "Added %(count)d device(s) to the open project (%(target)s)."
+msgstr "已将 %(count)d 个设备添加到打开的项目（%(target)s）。"
+
+msgid "Created new project %(target)s with %(count)d device(s)."
+msgstr "已创建新项目 %(target)s，包含 %(count)d 个设备。"
+
+msgid "Not connected to a KNX bus."
+msgstr "未连接到 KNX 总线。"
+
+msgid "Open or create a project to add recovered devices."
+msgstr "请打开或创建项目以添加恢复的设备。"
+
+msgid "matched"
+msgstr "已匹配"
+
+msgid "confirm product/version, then tick"
+msgstr "请确认产品/版本，然后勾选"
+
+msgid "not in catalog - import via Catalog"
+msgstr "不在产品目录中，请通过产品目录导入"
+
+msgid "unprogrammed"
+msgstr "未编程"
+
+msgid "recovered"
+msgstr "已恢复"
+
+msgid "already in project - skipped"
+msgstr "已在项目中，已跳过"
+
+msgid "error"
+msgstr "错误"
+
+msgid "%d parameters could not be recovered"
+msgstr "%d 个参数无法恢复"

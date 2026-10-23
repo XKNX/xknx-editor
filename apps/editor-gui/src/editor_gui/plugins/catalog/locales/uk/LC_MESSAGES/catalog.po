@@ -1,0 +1,212 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor catalog 1.0\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Catalog"
+msgstr "Каталог"
+
+msgid "Failed to load archive"
+msgstr "Не вдалося завантажити архів"
+
+msgid "Loaded: {path}"
+msgstr "Завантажено: {path}"
+
+msgid "Found {count} application(s)"
+msgstr "Знайдено прикладних програм: {count}"
+
+msgid "({count} group objects)"
+msgstr "(групових об'єктів: {count})"
+
+msgid "Fetch Online Catalog"
+msgstr "Отримати онлайн-каталог"
+
+msgid "Loading manufacturer list…"
+msgstr "Завантаження списку виробників…"
+
+msgid "Online catalog not reachable"
+msgstr "Онлайн-каталог недоступний"
+
+msgid "{count} matches"
+msgstr "Збігів: {count}"
+
+msgid "Loading products…"
+msgstr "Завантаження продуктів…"
+
+msgid "No downloadable products"
+msgstr "Немає продуктів для завантаження"
+
+msgid "Downloading {name}…"
+msgstr "Завантаження {name}…"
+
+msgid "(plugin required)"
+msgstr "(потрібен плагін)"
+
+msgid "(in local catalog)"
+msgstr "(у локальному каталозі)"
+
+msgid "Search products, order number…"
+msgstr "Пошук продуктів, номера для замовлення…"
+
+msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
+msgstr "Індекс продуктів ({date}): виробників {mfrs}, продуктів {products}"
+
+msgid "No Product Index yet - fetch the online catalog to build it"
+msgstr "Індексу продуктів ще немає - отримайте онлайн-каталог, щоб створити його"
+
+msgid "Building Product Index… {done}/{total} manufacturers"
+msgstr "Створення індексу продуктів… {done}/{total} виробників"
+
+msgid "Cancel"
+msgstr "Скасувати"
+
+msgid "Fetch the online catalog to search across all manufacturers."
+msgstr "Отримайте онлайн-каталог, щоб шукати серед усіх виробників."
+
+msgid "Showing {shown} of {total} matches - refine the search"
+msgstr "Показано {shown} з {total} збігів - уточніть пошук"
+
+msgid "Product Details"
+msgstr "Відомості про продукт"
+
+msgid "Name"
+msgstr "Ім'я"
+
+msgid "Order Number"
+msgstr "Номер для замовлення"
+
+msgid "Manufacturer"
+msgstr "Виробник"
+
+msgid "Application"
+msgstr "Додаток"
+
+msgid "Program Version"
+msgstr "Версія програми"
+
+msgid "Application ID"
+msgstr "ID прикладної програми"
+
+msgid "DIN Rail Mounting"
+msgstr "Монтаж на DIN-рейку"
+
+msgid "Bus Current"
+msgstr "Струм шини"
+
+msgid "Yes"
+msgstr "Так"
+
+msgid "No"
+msgstr "Ні"
+
+msgid "Product Ref"
+msgstr "Посилання на продукт"
+
+msgid "Add Device"
+msgstr "Додати пристрій"
+
+msgid "Room"
+msgstr "Кімната"
+
+msgid "(no room)"
+msgstr "(без кімнати)"
+
+msgid "Add Device to Project"
+msgstr "Додати пристрій до проєкту"
+
+msgid "Which room should {name} go into?"
+msgstr "До якої кімнати додати {name}?"
+
+msgid "Open or create a project first to add a device."
+msgstr "Щоб додати пристрій, спочатку відкрийте або створіть проєкт."
+
+msgid "This product has no usable application program."
+msgstr "Цей продукт не має придатної прикладної програми."
+
+msgid "Added device: {name}"
+msgstr "Додано пристрій: {name}"
+
+msgid "Add to project?"
+msgstr "Додати до проєкту?"
+
+msgid "“{name}” was added to the local catalog. Add it to the project now?"
+msgstr "«{name}» додано до локального каталогу. Додати його до проєкту зараз?"
+
+msgid "Add to Project"
+msgstr "Додати до проєкту"
+
+msgid "Not Now"
+msgstr "Не зараз"
+
+msgid "Local"
+msgstr "Локальний"
+
+msgid "Online"
+msgstr "Онлайн"
+
+msgid "No products imported yet — import a .knxprod or use the Online tab."
+msgstr "Продуктів ще не імпортовано — імпортуйте .knxprod або скористайтеся вкладкою «Онлайн»."
+
+msgid "Fetch {count} Missing Application(s) Online"
+msgstr "Отримати онлайн відсутні прикладні програми ({count})"
+
+msgid "Fetching missing applications…"
+msgstr "Отримання відсутніх прикладних програм…"
+
+msgid "Delete"
+msgstr "Видалити"
+
+msgid "Delete from Local Catalog"
+msgstr "Видалити з локального каталогу"
+
+msgid "Are you sure you want to delete the selected device? This cannot be undone."
+msgstr "Видалити вибраний пристрій? Цю дію неможливо скасувати."
+
+msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
+msgstr "Пристроїв у відкритому проєкті, що використовують цей продукт: {count}. Їх неможливо завантажити, доки продукт не буде імпортовано знову."
+
+msgid "Deleting {name}…"
+msgstr "Видалення {name}…"
+
+msgid "Deleted from the local catalog: {name}"
+msgstr "Видалено з локального каталогу: {name}"
+
+msgid "Export .knxprod…"
+msgstr "Експортувати .knxprod…"
+
+msgid "Export .knxprod"
+msgstr "Експортувати .knxprod"
+
+msgid "KNX product (*.knxprod)"
+msgstr "Продукт KNX (*.knxprod)"
+
+msgid "Exported {name}"
+msgstr "Експортовано {name}"
+
+msgid "Could not export {name}: {error}"
+msgstr "Не вдалося експортувати {name}: {error}"
+
+msgid "No stored archive for {name}"
+msgstr "Немає збереженого архіву для {name}"
+
+msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
+msgstr "Цей пристрій підтримує KNX Data Secure. Задайте пароль проєкту, щоб виконати захищене налагодження; без пароля його буде додано й налагоджено без шифрування."
+
+msgid "Search…"
+msgstr "Пошук…"
+
+msgid "Market:"
+msgstr "Ринок:"
+
+msgid "All Markets"
+msgstr "Усі ринки"
+
+msgid "Only Products in {language}"
+msgstr "Лише продукти мовою: {language}"
+
+msgid "{shown} of {total} shown"
+msgstr "Показано {shown} з {total}"

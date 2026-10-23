@@ -13,6 +13,9 @@ from types import SimpleNamespace
 
 from editor_gui.plugins.project.plugin import ProjectPlugin
 from editor_gui.plugins.project.ui.mass_linker import (
+    MassLinkerPanel,
+    _FlatGa,  # pyright: ignore[reportPrivateUsage]
+    _Row,  # pyright: ignore[reportPrivateUsage]
     first_free_values,
     match_by_name,
     sequential_targets,
@@ -239,3 +242,36 @@ def test_autopair_edge_cases_from_review():
     assert autopair("on", 1, [(1, "on/off switch", 1)]) == (None, "unmatched")
     # several equally valid compatible targets -> ambiguous (assigns the first).
     assert autopair("Light", 1, [(1, "Light", 1), (2, "Light", 1)]) == (1, "ambiguous")
+
+
+def _panel_with_target(ga_id: int) -> MassLinkerPanel:
+    panel = MassLinkerPanel(
+        get_devices=list,
+        get_range_tree=list,
+        is_open=lambda: True,
+        on_link_ga_co=lambda pairs: (0, []),
+        on_link_co_co=lambda pairs: (0, []),
+        get_selected_node_id=lambda: None,
+        group_style=lambda: GroupAddressStyle.THREE_LEVEL,
+    )
+    co = SimpleNamespace(dpt=SimpleNamespace(major=1, minor=1), name="Light")
+    row = _Row("1.1.1  Device", co)  # type: ignore[arg-type]
+    row.target_ga = ga_id
+    panel._rows1.append(row)  # pyright: ignore[reportPrivateUsage]
+    return panel
+
+
+def test_targets_stay_while_the_group_addresses_cannot_be_read():
+    # A busy project (e.g. rebuilding its devices after a language switch) returns no group
+    # addresses for a while; that must not clear the rows' targets.
+    panel = _panel_with_target(7)
+    panel._refresh_statuses({})  # pyright: ignore[reportPrivateUsage]
+    assert panel._rows1[0].target_ga == 7  # pyright: ignore[reportPrivateUsage]
+
+
+def test_a_deleted_target_is_cleared():
+    panel = _panel_with_target(7)
+    other = _FlatGa(8, 0x0808, "1/0/8", "Other", 1)
+    panel._refresh_statuses({8: other})  # pyright: ignore[reportPrivateUsage]
+    row = panel._rows1[0]  # pyright: ignore[reportPrivateUsage]
+    assert (row.target_ga, row.status) == (None, "unmatched")

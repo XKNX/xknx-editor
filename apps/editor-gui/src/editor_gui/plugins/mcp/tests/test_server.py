@@ -326,7 +326,12 @@ async def test_set_parameter_result_and_no_silent_retry(tmp_path: Path) -> None:
         params = (await _data(client, "project_list_parameters", node_id=node_id))[
             "items"
         ]
-        enums = [p for p in params if p.get("widget", {}).get("type") == "enum"]
+        enums = [
+            p
+            for p in params
+            if p.get("widget", {}).get("type") == "enum"
+            and p.get("access") == "READ_WRITE"
+        ]
         if not enums:
             pytest.skip("fixture has no enum parameter to exercise reject/accept")
         a = enums[0]
@@ -483,6 +488,199 @@ async def test_resolve_parameter_by_label(tmp_path: Path) -> None:
                 value_label=enum_item["value_label"],
             )
             assert res2["resolved_value"] == enum_item["value"]
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_set_parameter_requires_editable_target(tmp_path: Path) -> None:
+    """A write targets a VISIBLE and user-editable parameter (Access.READ_WRITE). An Access.READ
+    parameter is read-only in the GUI; MCP must mirror that and reject the write at both entry
+    points (standalone and batch). Codex-identified correctness gap: the old presence-only check
+    accepted READ, and the batch path had no check at all."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        node_id = (
+            await _data(client, "project_add_device", product_ref_id=product_ref)
+        )["node_id"]
+
+        params = (await _data(client, "project_list_parameters", node_id=node_id))[
+            "items"
+        ]
+        read_only = next((p for p in params if p.get("access") == "READ"), None)
+        writable = next((p for p in params if p.get("access") == "READ_WRITE"), None)
+        assert read_only and writable, (
+            "fixture should expose both READ and READ_WRITE parameters"
+        )
+
+        # READ is rejected by the standalone setter with a clear message.
+        with pytest.raises(Exception, match="not user-editable"):
+            await _data(
+                client,
+                "project_set_parameter",
+                node_id=node_id,
+                parameter_ref_id=read_only["ref_id"],
+                value=str(read_only.get("value") or "0"),
+            )
+        # The read-only value is unchanged.
+        after = await _data(
+            client,
+            "project_get_parameter",
+            node_id=node_id,
+            parameter_ref_id=read_only["ref_id"],
+        )
+        assert after["value"] == read_only["value"]
+
+        # The same ref via the batch path is also rejected now, with full rollback.
+        bad = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "set_parameter",
+                    "params": {
+                        "node_id": node_id,
+                        "parameter_ref_id": read_only["ref_id"],
+                        "value": str(read_only.get("value") or "0"),
+                    },
+                }
+            ],
+        )
+        assert bad["failed"] == 1
+        assert "not user-editable" in bad["results"][0]["error"]
+
+        # A READ_WRITE parameter still works (regression check).
+        ok = await _data(
+            client,
+            "project_set_parameter",
+            node_id=node_id,
+            parameter_ref_id=writable["ref_id"],
+            value=str(writable["value"]),
+        )
+        assert ok["active"] is True
+
+        # An unknown ref is rejected with the "not visible" message.
+        with pytest.raises(Exception, match="not visible on device"):
+            await _data(
+                client,
+                "project_set_parameter",
+                node_id=node_id,
+                parameter_ref_id="M-0008_A-7072-21-5CC3-O000A_P-99999_R-99999",
+                value="0",
+            )
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_tools_accept_device_address_and_group_address_strings(
+    tmp_path: Path,
+) -> None:
+    """Device-scoped tools accept device_address (e.g. "1.1.1") instead of node_id, and
+    project_link_com_object + the batch GA ops accept group_address (e.g. "0/0/1") instead of
+    group_address_id. Saves two round-trips (list_devices + list_group_addresses) per call. Exactly
+    one of each pair must be given; neither / both / unknown raises clearly."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        node_id = (
+            await _data(client, "project_add_device", product_ref_id=product_ref)
+        )["node_id"]
+        addr = (await _data(client, "project_get_device", node_id=node_id))[
+            "individual_address"
+        ]
+        assert addr, "a fresh device should have a configured individual address"
+
+        # 1) project_get_device, project_list_com_objects, project_list_parameters accept the str.
+        by_addr = await _data(client, "project_get_device", device_address=addr)
+        assert by_addr["node_id"] == node_id
+        by_addr_cos = await _data(
+            client, "project_list_com_objects", device_address=addr
+        )
+        by_id_cos = await _data(client, "project_list_com_objects", node_id=node_id)
+        assert by_addr_cos["count"] == by_id_cos["count"]
+        by_addr_params = await _data(
+            client, "project_list_parameters", device_address=addr
+        )
+        assert by_addr_params["count"] > 0
+
+        # 2) Neither / both forms raise.
+        with pytest.raises(Exception, match="exactly one"):
+            await _data(client, "project_get_device")
+        with pytest.raises(Exception, match="exactly one"):
+            await _data(
+                client, "project_get_device", node_id=node_id, device_address=addr
+            )
+        with pytest.raises(Exception, match="no device with individual_address"):
+            await _data(client, "project_get_device", device_address="99.99.99")
+
+        # 3) project_link_com_object accepts BOTH device_address and group_address.
+        co = next(co for co in by_id_cos["items"] if co["linkable"])
+        ga_addr = "0/0/9"
+        g_id = (await _data(client, "project_create_group_address", address=ga_addr))[
+            "group_address_id"
+        ]
+        linked = await _data(
+            client,
+            "project_link_com_object",
+            device_address=addr,
+            com_object_ref_id=co["ref_id"],
+            group_address=ga_addr,
+            is_sending=True,
+        )
+        assert linked["already_linked"] is False
+        assert linked["group_address_id"] == g_id
+        # Idempotency via the string form.
+        again = await _data(
+            client,
+            "project_link_com_object",
+            device_address=addr,
+            com_object_ref_id=co["ref_id"],
+            group_address=ga_addr,
+        )
+        assert again["already_linked"] is True
+
+        # 4) batch set_parameter + link_com_object accept the string forms too.
+        enum_param = next(
+            (
+                p
+                for p in by_addr_params["items"]
+                if p.get("widget", {}).get("type") == "enum"
+                and p.get("value") is not None
+            ),
+            None,
+        )
+        if enum_param is not None:
+            res = await _data(
+                client,
+                "project_batch",
+                operations=[
+                    {
+                        "op": "set_parameter",
+                        "params": {
+                            "device_address": addr,
+                            "parameter_ref_id": enum_param["ref_id"],
+                            "value": enum_param["value"],
+                        },
+                    }
+                ],
+            )
+            assert res["ok"] == 1 and res["results"][0]["result"]["node_id"] == node_id
+
+        # 5) Unknown GA by string raises on link.
+        with pytest.raises(Exception, match="no group address"):
+            await _data(
+                client,
+                "project_link_com_object",
+                node_id=node_id,
+                com_object_ref_id=co["ref_id"],
+                group_address="99/9/999",
+            )
 
 
 @pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
@@ -687,7 +885,7 @@ async def test_batch_activates_child_in_order(tmp_path: Path) -> None:
 
         # With the parent off the child is inactive: a direct set is rejected (the single tool
         # reports it as an unknown parameter since it is absent from the UI).
-        with pytest.raises(Exception, match=r"no parameter|not active"):
+        with pytest.raises(Exception, match=r"not visible on device|not active"):
             await _set(child, cval)
 
         def _batch(order: list[tuple[str, str]], **kwargs: Any) -> Any:

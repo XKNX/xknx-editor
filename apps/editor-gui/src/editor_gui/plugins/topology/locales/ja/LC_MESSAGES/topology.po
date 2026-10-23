@@ -1,0 +1,113 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor topology 1.0\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Topology"
+msgstr "トポロジー"
+
+msgid "No project open"
+msgstr "開いているプロジェクトがありません"
+
+msgid "Unassigned"
+msgstr "未割り当て"
+
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "ドラッグで移動、{key}+スクロールでズーム。デバイスをクリックすると開きます。"
+
+msgid "Physical"
+msgstr "物理"
+
+msgid "Building"
+msgstr "構造"
+
+msgid "Links"
+msgstr "リンク"
+
+msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
+msgstr "どのデバイスがグループ・アドレスを介してどのデバイスと通信しているか：送信デバイスは左、受信デバイスは右です。"
+
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "クリックでデバイスまたはグループ・アドレスをたどり、ダブルクリックでデバイスを開きます。ドラッグで移動、{key}+スクロールでズーム。"
+
+msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
+msgstr "タップでデバイスまたはグループ・アドレスをたどり、ダブルタップでデバイスを開きます。2本指でズームします。"
+
+msgid "No linked devices to show."
+msgstr "表示するリンク済みデバイスがありません。"
+
+msgid "Show"
+msgstr "表示"
+
+msgid "Whole Project"
+msgstr "プロジェクト全体"
+
+msgid "Rooms"
+msgstr "部屋"
+
+msgid "Main Groups"
+msgstr "メイン・グループ"
+
+msgid "Device: {device}"
+msgstr "デバイス：{device}"
+
+msgid "Group Address: {address}"
+msgstr "グループ・アドレス：{address}"
+
+msgid "Back"
+msgstr "戻る"
+
+msgid "Fit"
+msgstr "全体表示"
+
+msgid "Sending"
+msgstr "送信側"
+
+msgid "Group Addresses"
+msgstr "グループ・アドレス"
+
+msgid "Receiving"
+msgstr "受信側"
+
+msgid "Areas"
+msgstr "エリア"
+
+msgid "Lines"
+msgstr "ライン"
+
+msgid "Devices"
+msgstr "デバイス"
+
+msgid "Buildings"
+msgstr "構造"
+
+msgid "+ {count} more"
+msgstr "+ 他{count}件"
+
+msgid "{count} more devices outside the selection. Click to show them."
+msgstr "選択範囲外のデバイスがあと{count}台あります。クリックすると表示します。"
+
+msgid "{address}\n{senders} sending, {receivers} receiving"
+msgstr "{address}\n送信{senders}、受信{receivers}"
+
+msgid "Area {area}"
+msgstr "エリア {area}"
+
+msgid "L {line}"
+msgstr "L {line}"
+
+msgid "Zoom with two fingers. Tap a device to open it."
+msgstr "2本指でズーム。デバイスをタップすると開きます。"
+
+msgid "(unnamed)"
+msgstr "（名前なし）"
+
+msgid "Address: {address}"
+msgstr "アドレス：{address}"
+
+msgid "Application: {application}"
+msgstr "アプリケーション：{application}"

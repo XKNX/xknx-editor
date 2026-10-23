@@ -14,6 +14,7 @@ from imgui_bundle import hello_imgui, imgui
 from editor_gui.plugins.project.device_info_view import Toned
 from editor_gui.plugins.project.program_queue import OperationState, QueueItem
 from editor_gui.plugins.project.strings import S
+from editor_gui.widgets.tabs import begin_tab_bar
 from xknxeditor.download.scope import DownloadScope
 
 # Seconds a script may ignore Cancel before Force stop is offered.
@@ -58,7 +59,7 @@ class ProgramQueuePanel:
         if active != self._was_active:
             self._was_active = active
             self._select = active
-        if not imgui.begin_tab_bar("##operations_tabs"):
+        if not begin_tab_bar("##operations_tabs"):
             return
         select, self._select = self._select, None
         if imgui.begin_tab_item(

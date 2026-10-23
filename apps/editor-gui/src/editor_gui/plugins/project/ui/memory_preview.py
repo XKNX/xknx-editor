@@ -10,6 +10,7 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.widgets import HexView
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.dialog import begin_tool_window
+from editor_gui.widgets.tabs import begin_tab_bar
 from xknxeditor.prod.errors import EncodingError
 
 _ERROR_COLOR = imgui.ImVec4(1.0, 0.42, 0.42, 1.0)
@@ -77,7 +78,7 @@ class MemoryPreviewWindow:
                 )
             elif not segments:
                 imgui.text_disabled(S.MEMORY_NO_SEGMENTS)
-            elif imgui.begin_tab_bar("##segs"):
+            elif begin_tab_bar("##segs"):
                 for i, (seg_id, data) in enumerate(segments):
                     label = f"{seg_id} ({len(data)}B)##seg{i}"
                     if imgui.begin_tab_item(label)[0]:

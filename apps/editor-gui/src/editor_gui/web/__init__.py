@@ -445,6 +445,10 @@ def enable_web_mode(
             selected = (
                 state.get_text().encode("utf-8")[start:end].decode("utf-8", "replace")
             )
+        if wanted and not selected:
+            from editor_gui.widgets.rich_text_edit import active_selection
+
+            selected = active_selection()
         if selected != selection_shown[0]:
             selection_shown[0] = selected
             hub.set_selection(selected)

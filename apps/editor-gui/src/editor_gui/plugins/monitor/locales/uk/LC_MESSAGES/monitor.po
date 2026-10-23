@@ -1,0 +1,392 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor monitor 1.0\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Monitor"
+msgstr "Монітор"
+
+msgid "No group addresses (open or import a project)"
+msgstr "Немає групових адрес (відкрийте або імпортуйте проєкт)"
+
+msgid "Not Connected"
+msgstr "Не з'єднано"
+
+msgid "value (e.g. on / 21.5 / 50)"
+msgstr "значення (напр. on / 21.5 / 50)"
+
+msgid "Value:"
+msgstr "Значення:"
+
+msgid "Filter by address or name…"
+msgstr "Фільтр за адресою або ім'ям…"
+
+msgid "Write"
+msgstr "Записати"
+
+msgid "Read"
+msgstr "Прочитати"
+
+msgid "Group Objects"
+msgstr "Групові об'єкти"
+
+msgid "Bus Monitor"
+msgstr "Монітор шини"
+
+msgid "Group Monitor"
+msgstr "Монітор груп"
+
+msgid "Bus Activity"
+msgstr "Активність шини"
+
+msgid "Clear"
+msgstr "Очистити"
+
+msgid "Show Extended Information"
+msgstr "Показати розширену інформацію"
+
+msgid "Hide Extended Information"
+msgstr "Приховати розширену інформацію"
+
+msgid "{count} teleg."
+msgstr "{count} teleg."
+
+msgid "Load: {rate} t/s"
+msgstr "Навантаження: {rate} т/с"
+
+msgid "Group Address:"
+msgstr "Групова адреса:"
+
+msgid "e.g. 1/2/3"
+msgstr "напр. 1/2/3"
+
+msgid "Enter a group address of the project to send to it."
+msgstr "Введіть групову адресу проєкту, щоб надіслати на неї."
+
+msgid "Start"
+msgstr "Старт"
+
+msgid "Stop"
+msgstr "Стоп"
+
+msgid "Import"
+msgstr "Імпорт"
+
+msgid "Export"
+msgstr "Експорт"
+
+msgid "Print"
+msgstr "Друк"
+
+msgid "Replay Telegrams"
+msgstr "Повторити телеграми"
+
+msgid "Stop Replay"
+msgstr "Зупинити повтор"
+
+msgid "Start recording the group telegrams"
+msgstr "Почати запис групових телеграм"
+
+msgid "Start recording the connection's communication other than group telegrams, including every frame this app sends"
+msgstr "Почати запис обміну даними з'єднання, крім групових телеграм, включно з кожним фреймом, який надсилає ця програма"
+
+msgid "Connect the interface in bus monitor mode and record every frame"
+msgstr "Під'єднати інтерфейс у режимі монітора шини та записувати кожен фрейм"
+
+msgid "Stop recording"
+msgstr "Зупинити запис"
+
+msgid "Close the bus monitor connection and restore the normal connection"
+msgstr "Закрити з'єднання монітора шини та відновити звичайне з'єднання"
+
+msgid "Remove all telegrams"
+msgstr "Видалити всі телеграми"
+
+msgid "Load a recording"
+msgstr "Завантажити запис"
+
+msgid "Save the telegrams to a file"
+msgstr "Зберегти телеграми у файл"
+
+msgid "Print the telegrams as a PDF document"
+msgstr "Надрукувати телеграми як документ PDF"
+
+msgid "Send the selected group telegrams (all if none is selected) again with their original timing"
+msgstr "Надіслати вибрані групові телеграми (усі, якщо нічого не вибрано) ще раз з їхніми початковими інтервалами"
+
+msgid "Cancel the replay"
+msgstr "Скасувати повтор"
+
+msgid "Copy"
+msgstr "Копіювати"
+
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Копіювати вибрані телеграми (усі показані, якщо нічого не вибрано) до буфера обміну ({shortcut}). Подвійне клацання на телеграмі вибирає пристрій-джерело."
+
+msgid "Rec."
+msgstr "Зап."
+
+msgid "Stopped"
+msgstr "Зупинено"
+
+msgid "Replaying {done}/{total}"
+msgstr "Повтор {done}/{total}"
+
+msgid "Connecting in bus monitor mode…"
+msgstr "З'єднання в режимі монітора шини…"
+
+msgid "Closing the bus monitor connection…"
+msgstr "Закриття з'єднання монітора шини…"
+
+msgid "Bus monitor mode: the normal connection is closed. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Режим монітора шини: звичайне з'єднання закрито. Нічого не можна надіслати чи завантажити, доки монітор шини не зупинено."
+
+msgid "Start Bus Monitor"
+msgstr "Запустити монітор шини"
+
+msgid "The bus monitor connects the interface in bus monitor mode. The normal connection is closed while the bus monitor runs: nothing can be sent or downloaded in that time. Stopping the bus monitor restores the normal connection.\n\nStart the bus monitor?"
+msgstr "Монітор шини під'єднує інтерфейс у режимі монітора шини. Поки працює монітор шини, звичайне з'єднання закрито: у цей час нічого не можна надіслати чи завантажити. Після зупинки монітора шини звичайне з'єднання відновлюється.\n\nЗапустити монітор шини?"
+
+msgid "The bus monitor is not supported for this connection type. It needs a tunnelling connection."
+msgstr "Монітор шини не підтримується для цього типу з'єднання. Потрібне тунельне з'єднання."
+
+msgid "The interface does not support bus monitor mode."
+msgstr "Інтерфейс не підтримує режим моніторингу шини."
+
+msgid "The interface rejected bus monitor mode: another client holds a connection to it."
+msgstr "Інтерфейс відхилив режим монітора шини: інший клієнт утримує з'єднання з ним."
+
+msgid "The bus monitor connection could not be established."
+msgstr "Не вдалося встановити з'єднання монітора шини."
+
+msgid "The normal connection is restored."
+msgstr "Звичайне з'єднання відновлено."
+
+msgid "Unsaved Telegrams"
+msgstr "Незбережені телеграми"
+
+msgid "The telegrams have not been exported. Clear them anyway?"
+msgstr "Телеграми не експортовано. Все одно очистити їх?"
+
+msgid "The telegrams have not been exported. Loading a recording replaces them and stops the recording. Continue?"
+msgstr "Телеграми не експортовано. Завантаження запису замінить їх і зупинить запис. Продовжити?"
+
+msgid "Loading a recording replaces the telegrams and stops the recording. Continue?"
+msgstr "Завантаження запису замінить телеграми й зупинить запис. Продовжити?"
+
+msgid "Yes"
+msgstr "Так"
+
+msgid "No"
+msgstr "Ні"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Скасувати"
+
+msgid "Export Telegrams"
+msgstr "Експорт телеграм"
+
+msgid "Print Telegrams"
+msgstr "Друк телеграм"
+
+msgid "Which telegrams?"
+msgstr "Які телеграми?"
+
+msgid "All Telegrams ({count})"
+msgstr "Усі телеграми ({count})"
+
+msgid "Selected Telegrams ({count})"
+msgstr "Вибрані телеграми ({count})"
+
+msgid "Filtered Telegrams ({count})"
+msgstr "Відфільтровані телеграми ({count})"
+
+msgid "Telegram recordings"
+msgstr "Записи телеграм"
+
+msgid "All files"
+msgstr "Всі файли"
+
+msgid "{count} telegrams exported to {path}"
+msgstr "Експортовано телеграм до {path}: {count}"
+
+msgid "Export failed: {error}"
+msgstr "Помилка експорту: {error}"
+
+msgid "{count} entries loaded from {path}"
+msgstr "Завантажено записів із {path}: {count}"
+
+msgid "Loading failed: {error}"
+msgstr "Помилка завантаження: {error}"
+
+msgid "{count} telegrams in another frame format were skipped"
+msgstr "Пропущено телеграм в іншому форматі фрейму: {count}"
+
+msgid "Printing failed: {error}"
+msgstr "Помилка друку: {error}"
+
+msgid "Page {page}"
+msgstr "Сторінка {page}"
+
+msgid "{count} Data Secure telegrams are not replayed"
+msgstr "Телеграми Data Secure не повторюються: {count}"
+
+msgid "There are no group telegrams to replay"
+msgstr "Немає групових телеграм для повтору"
+
+msgid "Replay finished: {count} telegrams sent"
+msgstr "Повтор завершено: надіслано телеграм: {count}"
+
+msgid "Replay cancelled: {count} telegrams sent"
+msgstr "Повтор скасовано: надіслано телеграм: {count}"
+
+msgid "from bus"
+msgstr "з шини"
+
+msgid "to bus"
+msgstr "на шину"
+
+msgid "Connection event"
+msgstr "Подія з'єднання"
+
+msgid "Invalid frame"
+msgstr "Неприпустимий фрейм"
+
+msgid "Comment"
+msgstr "Коментар"
+
+msgid "Recording was started, Host={host}, Connection={connection}, Mode={mode}"
+msgstr "Запис розпочато, Хост={host}, З'єднання={connection}, Режим={mode}"
+
+msgid "Recording was stopped"
+msgstr "Запис було зупинено"
+
+msgid "Connection was established"
+msgstr "З'єднання встановлено"
+
+msgid "Connection was lost"
+msgstr "З'єднання втрачено"
+
+msgid "System"
+msgstr "Система"
+
+msgid "Normal"
+msgstr "Звичайний"
+
+msgid "Urgent"
+msgstr "Терміновий"
+
+msgid "Low"
+msgstr "Низький"
+
+msgid "Standard"
+msgstr "Стандартний"
+
+msgid "Extended"
+msgstr "Розширений"
+
+msgid "#"
+msgstr "#"
+
+msgid "Date"
+msgstr "Дата"
+
+msgid "Time"
+msgstr "Час"
+
+msgid "Service"
+msgstr "Сервіс"
+
+msgid "Flags"
+msgstr "Прапорці"
+
+msgid "Prio"
+msgstr "Пріоритет"
+
+msgid "Source Address"
+msgstr "Адреса джерела"
+
+msgid "Source Name"
+msgstr "Ім'я джерела"
+
+msgid "Destination Address"
+msgstr "Адреса призначення"
+
+msgid "Destination Name"
+msgstr "Ім'я призначення"
+
+msgid "Building Part"
+msgstr "Частина будівлі"
+
+msgid "Building Function"
+msgstr "Функція будівлі"
+
+msgid "Hop Count"
+msgstr "Лічильник переходів"
+
+msgid "Telegram Type"
+msgstr "Тип телеграми"
+
+msgid "Telegram Type (Short)"
+msgstr "Тип телеграми (коротко)"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Value"
+msgstr "Значення"
+
+msgid "Iack"
+msgstr "IAck"
+
+msgid "Raw Data"
+msgstr "Необроблені дані"
+
+msgid "Raw Value"
+msgstr "Необроблене значення"
+
+msgid "Message Code"
+msgstr "Код повідомлення"
+
+msgid "Repeated"
+msgstr "Повтор"
+
+msgid "Security"
+msgstr "Захист (Security)"
+
+msgid "Frame Format"
+msgstr "Формат фрейму"
+
+msgid "System Broadcast"
+msgstr "Системне широкомовлення"
+
+msgid "Interface"
+msgstr "Інтерфейс"
+
+msgid "MediumInfo"
+msgstr "Інформація про середовище передачі даних"
+
+msgid "Source Description"
+msgstr "Опис джерела"
+
+msgid "Destination Description"
+msgstr "Опис призначення"
+
+msgid "Address"
+msgstr "Адреса"
+
+msgid "Name"
+msgstr "Ім'я"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."

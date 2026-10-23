@@ -83,8 +83,10 @@ def test_reverting_param_restores_original_bytes(dui: DynamicUI) -> None:
 def test_multiple_param_changes(dui: DynamicUI) -> None:
     mem_before = dui.encode_to_memory()
 
+    # Setting _DELAY_REF_ID to "2" deactivates _DELAY_SEC_REF_ID; set the inactive one via
+    # write_parameter, which explicitly permits inactive writes (the user-edit path rejects them).
     dui.set_parameter_ref(_DELAY_REF_ID, "2")
-    dui.set_parameter_ref(_DELAY_SEC_REF_ID, "30")
+    dui.write_parameter(_DELAY_SEC_REF_ID, "30")
 
     mem_after = dui.encode_to_memory()
     assert mem_before[_SEG_ID] != mem_after[_SEG_ID]

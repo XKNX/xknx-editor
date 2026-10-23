@@ -140,6 +140,27 @@ def _program_little_endian(app: ApplicationProgram) -> bool:
     return order is not None and order.value == "LittleEndian"
 
 
+def _program_text_encoding(app: ApplicationProgram) -> str:
+    """The text encoding the application wants its ``Text`` parameters packed in.
+
+    Read from the static options' ``TextParameterEncoding`` attribute. ETS schemas
+    expose ``utf-8``/``iso-8859-1``/``us-ascii``; the attribute is optional and defaults
+    to Latin-1 (ISO-8859-1), which was the pre-ETS6 code page. We only need to tell apart
+    utf-8 from the single-byte codepages — the ``str.encode`` codec names are the schema's
+    tokens lowercased.
+    """
+    options = getattr(app.static, "options", None)
+    raw = getattr(options, "text_parameter_encoding", None)
+    if raw is None:
+        return "latin-1"
+    token = str(getattr(raw, "value", raw) or "").lower().strip()
+    if token in ("utf-8", "utf8"):
+        return "utf-8"
+    if token in ("us-ascii", "ascii"):
+        return "ascii"
+    return "latin-1"
+
+
 # Bit-widths of the value types that have no ``size_in_bit`` field of their own because
 # their encoding fixes the width (see ``type_size_in_bit``).
 _FLOAT_ENCODING_SIZE_IN_BIT = {
@@ -236,6 +257,7 @@ def _encode_value(
     *,
     little_endian: bool = False,
     for_property: bool = False,
+    text_encoding: str = "latin-1",
 ) -> int | None:
     """Encode a parameter value string into the integer that ``_write_bits`` packs.
 
@@ -281,7 +303,7 @@ def _encode_value(
         )
 
     if isinstance(tc, ParameterTypeTypeText):
-        return _encode_text(str_value, size_in_bit)
+        return _encode_text(str_value, size_in_bit, text_encoding)
 
     if isinstance(tc, ParameterTypeTypeDate):
         return _encode_date(str_value, tc)
@@ -441,13 +463,17 @@ def _encode_float(
     return None
 
 
-def _encode_text(str_value: str, size_in_bit: int) -> int:
-    """Code-page (Latin-1) text, truncated and zero-padded to the field width.
+def _encode_text(str_value: str, size_in_bit: int, encoding: str = "latin-1") -> int:
+    """Text parameter payload, truncated and zero-padded to the field width.
 
-    Zero padding also provides the null terminator implicitly (the KNX standard
-    relies on the zero-initialised buffer for termination).
+    The ``encoding`` comes from the application's static ``TextParameterEncoding`` option
+    (``_program_text_encoding``) — ``utf-8`` for modern products, ``latin-1`` (ISO-8859-1)
+    for older code-page apps. A character the chosen codec cannot represent falls back to
+    ``?`` so the write doesn't abort on a stray glyph. Zero padding also provides the null
+    terminator implicitly (the KNX standard relies on the zero-initialised buffer for
+    termination).
     """
-    encoded = str_value.encode("latin-1", errors="replace")
+    encoded = str_value.encode(encoding, errors="replace")
     n_bytes = size_in_bit // 8
     padded = encoded[:n_bytes].ljust(n_bytes, b"\x00")
     return int.from_bytes(padded, "big")
@@ -1081,6 +1107,7 @@ def _plan_memory_write(
     parameter_type: str,
     *,
     little_endian: bool,
+    text_encoding: str = "latin-1",
 ) -> tuple[int, int] | None:
     """Plan one memory cell write: return ``(value_to_pack, bits_to_write)`` or ``None``
     to skip the cell (unknown type width).
@@ -1093,7 +1120,13 @@ def _plan_memory_write(
     size_in_bit = type_size_in_bit(tc)
     if size_in_bit is None:
         return None
-    encoded = _encode_value(value, size_in_bit, tc, little_endian=little_endian)
+    encoded = _encode_value(
+        value,
+        size_in_bit,
+        tc,
+        little_endian=little_endian,
+        text_encoding=text_encoding,
+    )
     if encoded is None:
         raise EncodingError(
             f"cannot encode parameter {param_id} value {value!r} as {parameter_type}"
@@ -1118,6 +1151,7 @@ def encode_to_memory(
     """
     writes = collect_writes(app, idx, overrides, state)
     little_endian = _program_little_endian(app)
+    text_encoding = _program_text_encoding(app)
     bufs: dict[str, bytearray] = {
         seg_id: segment_seed(seg) for seg_id, seg in idx.code_segments.items()
     }
@@ -1134,6 +1168,7 @@ def encode_to_memory(
             w.param_id,
             w.parameter_type,
             little_endian=little_endian,
+            text_encoding=text_encoding,
         )
         if plan is None:
             continue
@@ -1159,6 +1194,7 @@ def encode_to_memory_masked(
     """
     writes = collect_writes(app, idx, overrides, state, inactive_ranges=True)
     little_endian = _program_little_endian(app)
+    text_encoding = _program_text_encoding(app)
     bufs: dict[str, bytearray] = {
         seg_id: segment_seed(seg) for seg_id, seg in idx.code_segments.items()
     }
@@ -1188,6 +1224,7 @@ def encode_to_memory_masked(
             w.param_id,
             w.parameter_type,
             little_endian=little_endian,
+            text_encoding=text_encoding,
         )
         if plan is None:
             continue
@@ -1635,6 +1672,7 @@ def _encode_properties[K](
 ) -> dict[K, bytes]:
     writes = collect_writes(app, idx, overrides, state, inactive_ranges=True)
     little_endian = _program_little_endian(app)
+    text_encoding = _program_text_encoding(app)
     bufs: dict[K, bytearray] = {}
     for w in writes.prop:
         pt = idx.parameter_types.get(w.parameter_type)
@@ -1651,7 +1689,12 @@ def _encode_properties[K](
             buf.extend(bytearray(max(0, needed - len(buf))))
             continue
         encoded = _encode_value(
-            w.value, size_in_bit, tc, little_endian=little_endian, for_property=True
+            w.value,
+            size_in_bit,
+            tc,
+            little_endian=little_endian,
+            for_property=True,
+            text_encoding=text_encoding,
         )
         if encoded is None:
             raise EncodingError(

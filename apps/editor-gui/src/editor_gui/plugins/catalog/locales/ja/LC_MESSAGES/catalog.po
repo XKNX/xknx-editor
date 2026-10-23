@@ -1,0 +1,212 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor catalog 1.0\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Catalog"
+msgstr "カタログ"
+
+msgid "Failed to load archive"
+msgstr "アーカイブを読み込めませんでした"
+
+msgid "Loaded: {path}"
+msgstr "読み込み済み：{path}"
+
+msgid "Found {count} application(s)"
+msgstr "{count} 件のアプリケーションが見つかりました"
+
+msgid "({count} group objects)"
+msgstr "（{count} 個のグループ・オブジェクト）"
+
+msgid "Fetch Online Catalog"
+msgstr "オンライン・カタログを取得"
+
+msgid "Loading manufacturer list…"
+msgstr "メーカー一覧を読み込み中…"
+
+msgid "Online catalog not reachable"
+msgstr "オンライン・カタログに接続できません"
+
+msgid "{count} matches"
+msgstr "{count} 件一致"
+
+msgid "Loading products…"
+msgstr "製品を読み込み中…"
+
+msgid "No downloadable products"
+msgstr "ダウンロード可能な製品がありません"
+
+msgid "Downloading {name}…"
+msgstr "{name} をダウンロード中…"
+
+msgid "(plugin required)"
+msgstr "（プラグインが必要）"
+
+msgid "(in local catalog)"
+msgstr "（ローカル・カタログ内）"
+
+msgid "Search products, order number…"
+msgstr "製品、注文番号を検索…"
+
+msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
+msgstr "製品インデックス（{date}）：メーカー {mfrs} 社、製品 {products} 件"
+
+msgid "No Product Index yet - fetch the online catalog to build it"
+msgstr "製品インデックスがまだありません。オンライン・カタログを取得して作成してください"
+
+msgid "Building Product Index… {done}/{total} manufacturers"
+msgstr "製品インデックスを作成中… メーカー {done}/{total}"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Fetch the online catalog to search across all manufacturers."
+msgstr "オンライン・カタログを取得すると、全メーカーを横断して検索できます。"
+
+msgid "Showing {shown} of {total} matches - refine the search"
+msgstr "{total} 件中 {shown} 件を表示 - 検索条件を絞り込んでください"
+
+msgid "Product Details"
+msgstr "製品詳細"
+
+msgid "Name"
+msgstr "名前"
+
+msgid "Order Number"
+msgstr "注文番号"
+
+msgid "Manufacturer"
+msgstr "メーカー"
+
+msgid "Application"
+msgstr "アプリケーション"
+
+msgid "Program Version"
+msgstr "プログラム・バージョン"
+
+msgid "Application ID"
+msgstr "アプリケーションID"
+
+msgid "DIN Rail Mounting"
+msgstr "DINレール・マウント"
+
+msgid "Bus Current"
+msgstr "バス電流"
+
+msgid "Yes"
+msgstr "はい"
+
+msgid "No"
+msgstr "いいえ"
+
+msgid "Product Ref"
+msgstr "製品参照"
+
+msgid "Add Device"
+msgstr "デバイスを追加する"
+
+msgid "Room"
+msgstr "部屋"
+
+msgid "(no room)"
+msgstr "（部屋なし）"
+
+msgid "Add Device to Project"
+msgstr "プロジェクトにデバイスを追加"
+
+msgid "Which room should {name} go into?"
+msgstr "{name} をどの部屋に配置しますか？"
+
+msgid "Open or create a project first to add a device."
+msgstr "デバイスを追加するには、先にプロジェクトを開くか作成してください。"
+
+msgid "This product has no usable application program."
+msgstr "この製品には使用可能なアプリケーションプログラムがありません。"
+
+msgid "Added device: {name}"
+msgstr "デバイスを追加しました：{name}"
+
+msgid "Add to project?"
+msgstr "プロジェクトに追加しますか？"
+
+msgid "“{name}” was added to the local catalog. Add it to the project now?"
+msgstr "「{name}」をローカル・カタログに追加しました。今すぐプロジェクトに追加しますか？"
+
+msgid "Add to Project"
+msgstr "プロジェクトに追加"
+
+msgid "Not Now"
+msgstr "後で"
+
+msgid "Local"
+msgstr "ローカル"
+
+msgid "Online"
+msgstr "オンライン"
+
+msgid "No products imported yet — import a .knxprod or use the Online tab."
+msgstr "まだ製品がインポートされていません。.knxprod をインポートするか、［オンライン］タブを使用してください。"
+
+msgid "Fetch {count} Missing Application(s) Online"
+msgstr "不足しているアプリケーション {count} 件をオンラインで取得"
+
+msgid "Fetching missing applications…"
+msgstr "不足しているアプリケーションを取得中…"
+
+msgid "Delete"
+msgstr "削除"
+
+msgid "Delete from Local Catalog"
+msgstr "ローカル・カタログから削除"
+
+msgid "Are you sure you want to delete the selected device? This cannot be undone."
+msgstr "選択したデバイスを削除してもよろしいですか？この操作は元に戻せません。"
+
+msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
+msgstr "開いているプロジェクトの {count} 台のデバイスがこの製品を使用しています。製品を再度インポートするまで、これらのデバイスは読み込めません。"
+
+msgid "Deleting {name}…"
+msgstr "{name} を削除中…"
+
+msgid "Deleted from the local catalog: {name}"
+msgstr "ローカル・カタログから削除しました：{name}"
+
+msgid "Export .knxprod…"
+msgstr ".knxprod をエクスポート…"
+
+msgid "Export .knxprod"
+msgstr ".knxprod をエクスポート"
+
+msgid "KNX product (*.knxprod)"
+msgstr "KNX 製品 (*.knxprod)"
+
+msgid "Exported {name}"
+msgstr "{name} をエクスポートしました"
+
+msgid "Could not export {name}: {error}"
+msgstr "{name} をエクスポートできませんでした：{error}"
+
+msgid "No stored archive for {name}"
+msgstr "{name} の保存済みアーカイブがありません"
+
+msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
+msgstr "このデバイスは KNX Data Secure に対応しています。安全にコミッショニングするには、プロジェクト・パスワードを設定してください。設定しない場合、デバイスは追加され、暗号化なしでコミッショニングされます。"
+
+msgid "Search…"
+msgstr "検索…"
+
+msgid "Market:"
+msgstr "マーケット："
+
+msgid "All Markets"
+msgstr "すべてのマーケット"
+
+msgid "Only Products in {language}"
+msgstr "{language}の製品のみ"
+
+msgid "{shown} of {total} shown"
+msgstr "{total} 件中 {shown} 件を表示"

@@ -67,8 +67,14 @@ class DevicesPanel:
         get_unloaded_devices: Callable[[], list[UnloadedDevice]] = lambda: [],
         on_device_info: Callable[[int], None] | None = None,
         on_compare: Callable[[int], None] | None = None,
+        on_select_element: Callable[[str, int], None] = lambda _k, _i: None,
+        get_selected_topology: Callable[[], tuple[str, int] | None] = lambda: None,
     ) -> None:
         self._get_devices = get_devices
+        # Selecting an area or a line (its details and comment show in place of the device's),
+        # and the one selected: highlighted instead of the device until a device is selected.
+        self._on_select_element = on_select_element
+        self._get_selected_topology = get_selected_topology
         self._on_device_info = on_device_info
         self._on_compare = on_compare
         self._get_unloaded_devices = get_unloaded_devices
@@ -160,10 +166,14 @@ class DevicesPanel:
             | imgui.TreeNodeFlags_.span_avail_width
         )
         # Highlight every selected device (multi-select); include the single primary for safety.
+        # An area or line selected after them takes the highlight.
         selected_ids = set(self._get_selected_node_ids())
         single = self._get_selected_node_id()
         if single is not None:
             selected_ids.add(single)
+        target = self._get_selected_topology()
+        if target is not None:
+            selected_ids = set[int]()
 
         def _leaf(device: TreeDevice) -> int:
             flags = leaf_flags
@@ -193,14 +203,21 @@ class DevicesPanel:
             ):
                 continue  # while filtering, hide areas with no matching device
             area_label = self._format_area_label(area)
+            # A click selects the area, the arrow and a double click open it.
             area_flags = (
                 imgui.TreeNodeFlags_.default_open
                 | imgui.TreeNodeFlags_.span_avail_width
+                | imgui.TreeNodeFlags_.open_on_arrow
+                | imgui.TreeNodeFlags_.open_on_double_click
             )
+            if target == ("area", area.id):
+                area_flags |= imgui.TreeNodeFlags_.selected
             if flt:
                 imgui.set_next_item_open(True, imgui.Cond_.always)
             # The context menu belongs to the node whether it is open or closed.
             area_open = tree_node(f"{area_label}##area_{area.id}", area_flags)
+            if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+                self._select_element("area", area.id)
             self._render_area_context_menu(area, lines)
             if area_open:
                 for line in lines:
@@ -215,10 +232,16 @@ class DevicesPanel:
                     line_flags = (
                         imgui.TreeNodeFlags_.default_open
                         | imgui.TreeNodeFlags_.span_avail_width
+                        | imgui.TreeNodeFlags_.open_on_arrow
+                        | imgui.TreeNodeFlags_.open_on_double_click
                     )
+                    if target == ("line", line.id):
+                        line_flags |= imgui.TreeNodeFlags_.selected
                     if flt:
                         imgui.set_next_item_open(True, imgui.Cond_.always)
                     line_open = tree_node(f"{line_label}##line_{line.id}", line_flags)
+                    if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+                        self._select_element("line", line.id)
                     self._render_line_context_menu(line)
                     self._render_line_drop_target(area, line)
                     if line_open:
@@ -287,6 +310,9 @@ class DevicesPanel:
                 self._delete_target_device = device
                 self._open_delete_device_popup = True
             imgui.end_popup()
+
+    def _select_element(self, kind: str, element_id: int) -> None:
+        self._on_select_element(kind, element_id)
 
     def _handle_device_click(self, device: Device, ordered_ids: list[int]) -> None:
         """Selection: plain click = single, Ctrl = toggle, Shift = range (additive with

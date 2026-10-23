@@ -1,0 +1,113 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor topology 1.0\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Topology"
+msgstr "Topologie"
+
+msgid "No project open"
+msgstr "Není otevřen žádný projekt"
+
+msgid "Unassigned"
+msgstr "nepřiřazeno"
+
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Tažením posunete, {key}+kolečko mění zvětšení. Kliknutím na zařízení ho otevřete."
+
+msgid "Physical"
+msgstr "Fyzická"
+
+msgid "Building"
+msgstr "Budova"
+
+msgid "Links"
+msgstr "Propojení"
+
+msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
+msgstr "Která zařízení spolu komunikují přes své skupinové adresy: vysílající zařízení vlevo, přijímající vpravo."
+
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "Kliknutím sledujete zařízení nebo skupinovou adresu, dvojklikem otevřete zařízení. Tažením posunete, {key}+kolečko mění zvětšení."
+
+msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
+msgstr "Klepnutím sledujete zařízení nebo skupinovou adresu, dvojitým klepnutím otevřete zařízení. Zvětšení dvěma prsty."
+
+msgid "No linked devices to show."
+msgstr "Žádná propojená zařízení k zobrazení."
+
+msgid "Show"
+msgstr "Zobrazit"
+
+msgid "Whole Project"
+msgstr "Celý projekt"
+
+msgid "Rooms"
+msgstr "Místnosti"
+
+msgid "Main Groups"
+msgstr "Hlavní skupiny"
+
+msgid "Device: {device}"
+msgstr "Zařízení: {device}"
+
+msgid "Group Address: {address}"
+msgstr "Skupinová adresa: {address}"
+
+msgid "Back"
+msgstr "Zpět"
+
+msgid "Fit"
+msgstr "Přizpůsobit"
+
+msgid "Sending"
+msgstr "Vysílající"
+
+msgid "Group Addresses"
+msgstr "Skupinové adresy"
+
+msgid "Receiving"
+msgstr "Přijímající"
+
+msgid "Areas"
+msgstr "Oblasti"
+
+msgid "Lines"
+msgstr "Linie"
+
+msgid "Devices"
+msgstr "Zařízení"
+
+msgid "Buildings"
+msgstr "Budovy"
+
+msgid "+ {count} more"
+msgstr "+ další: {count}"
+
+msgid "{count} more devices outside the selection. Click to show them."
+msgstr "Další zařízení mimo výběr: {count}. Kliknutím je zobrazíte."
+
+msgid "{address}\n{senders} sending, {receivers} receiving"
+msgstr "{address}\nvysílající: {senders}, přijímající: {receivers}"
+
+msgid "Area {area}"
+msgstr "Oblast {area}"
+
+msgid "L {line}"
+msgstr "L {line}"
+
+msgid "Zoom with two fingers. Tap a device to open it."
+msgstr "Zvětšení dvěma prsty. Klepnutím na zařízení ho otevřete."
+
+msgid "(unnamed)"
+msgstr "(bez názvu)"
+
+msgid "Address: {address}"
+msgstr "Adresa: {address}"
+
+msgid "Application: {application}"
+msgstr "Aplikace: {application}"

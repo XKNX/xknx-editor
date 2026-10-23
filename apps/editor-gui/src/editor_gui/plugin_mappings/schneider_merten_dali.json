@@ -1,0 +1,59 @@
+{
+  "app_id_prefixes": ["M-0064_A-7313", "M-000C_A-7309"],
+  "title": "Schneider / Merten KNX DALI Gateway Basic (shared OEM plug-in)",
+  "note": "SpaceLogic KNX DALI Gateway Basic REG-K and Merten KNX DALI Gateway Basic share the same OEM parameter namespace. GRP<N>- = group, DEV- = device, DCA<N>- = DCA channel, ECG<N> = ECG.",
+  "sections": [
+    {
+      "regex": "^GRP([0-9]+)-SW-",
+      "label": "Group {1} - Switch/Dim"
+    },
+    {
+      "regex": "^GRP([0-9]+)-AS-",
+      "label": "Group {1} - Auto Switch"
+    },
+    {
+      "regex": "^GRP([0-9]+)-",
+      "label": "Group {1}"
+    },
+    {
+      "regex": "^DCA([0-9]+)-CC-",
+      "label": "DCA Channel {1} - Colour Control"
+    },
+    {
+      "regex": "^DCA([0-9]+)-",
+      "label": "DCA Channel {1}"
+    },
+    {
+      "regex": "^DCE([0-9]+)-",
+      "label": "DCE Channel {1}"
+    },
+    {
+      "regex": "^ECG([0-9]+)",
+      "label": "ECG {1}"
+    },
+    {
+      "regex": "^Dev-CC-",
+      "label": "Device - Colour Control"
+    },
+    {
+      "regex": "^DEV-",
+      "label": "Device"
+    },
+    {
+      "regex": "^#PROP-TEMPLATE",
+      "label": "Property Templates"
+    },
+    {
+      "regex": "^Prozent ([0-9]+)-([0-9]+) Schritt ([0-9]+)",
+      "label": "Percentage {1}-{2} Step {3}"
+    },
+    {
+      "regex": "^Time ([0-9]+) ",
+      "label": "Time {1}"
+    },
+    {
+      "regex": "^CBT",
+      "label": "CBT"
+    }
+  ]
+}

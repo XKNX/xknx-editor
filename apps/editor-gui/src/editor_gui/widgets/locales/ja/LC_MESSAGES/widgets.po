@@ -1,0 +1,296 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "（画像）"
+
+msgid "Search…"
+msgstr "検索…"
+
+msgid "{name} (locked)"
+msgstr "{name}（ロック済み）"
+
+msgid "Create Group Addresses ({count})"
+msgstr "グループ・アドレスを作成（{count}）"
+
+msgid "All"
+msgstr "全て"
+
+msgid "None"
+msgstr "なし"
+
+msgid "Copy Links ({count})"
+msgstr "リンクをコピー（{count}）"
+
+msgid "Paste Links ({count})"
+msgstr "リンクを貼り付け（{count}）"
+
+msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr "コピーしたリンクとフラグを、チェックしたオブジェクトに順番に割り当て（1番目を1番目に、2番目を2番目に、…）、各対象の現在のリンクを置き換えます。"
+
+msgid "Merge"
+msgstr "マージする"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr "各対象の既存のリンクを保持し、コピーしたリンクのみを追加します。"
+
+msgid "Copy Links"
+msgstr "リンクをコピー"
+
+msgid "Default (Inherit)"
+msgstr "デフォルト（継承）"
+
+msgid "Edit Description…"
+msgstr "説明を編集…"
+
+msgid "Edit Description"
+msgstr "説明を編集"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "キャンセル"
+
+msgid "Paste Links"
+msgstr "リンクを貼り付け"
+
+msgid "Copy Addresses as Text"
+msgstr "アドレスをテキストとしてコピー"
+
+msgid "Create Group Addresses"
+msgstr "グループ・アドレスを作成"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  連番インデックス（{n:02}でゼロ埋め）"
+
+msgid "Name Template"
+msgstr "名前テンプレート"
+
+msgid "Start Address"
+msgstr "開始アドレス"
+
+msgid "automatic"
+msgstr "自動"
+
+msgid "Sending Group Address"
+msgstr "送信グループ・アドレス"
+
+msgid "Receiving Group Address"
+msgstr "受信グループ・アドレス"
+
+msgid "sent"
+msgstr "送信"
+
+msgid "received"
+msgstr "受信"
+
+msgid "sent & received"
+msgstr "送受信"
+
+msgid "older"
+msgstr "以前"
+
+msgid "Link Group Address"
+msgstr "グループ・アドレスをリンクする"
+
+msgid "New Group Address"
+msgstr "新しいグループ・アドレス"
+
+msgid "Address"
+msgstr "アドレス"
+
+msgid "Name"
+msgstr "名前"
+
+msgid "Create & Link"
+msgstr "作成＆リンク"
+
+msgid "Name template"
+msgstr "名前テンプレート"
+
+msgid "Placeholders"
+msgstr "プレースホルダー"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  構造\n{floor}  フロア\n{room}  部屋\n{device}  デバイス名または説明\n{devicename}  デバイス名\n{devicedescription}  デバイスの説明\n{product}  製品\n{manufacturer}  メーカー\n{order}  注文番号\n{address}  個別アドレス\n{object}  オブジェクト名\n{ganame}  オブジェクト名\n{function}  機能\n{number}  オブジェクト番号\n{dpt}  データポイントタイプ"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr "デフォルト（{default}）から変更されています — 右クリックでリセット"
+
+msgid "Reset to Default"
+msgstr "デフォルトにリセット"
+
+msgid "<differs>"
+msgstr "<異なる値>"
+
+msgid "Off"
+msgstr "オフ"
+
+msgid "On"
+msgstr "オン"
+
+msgid "Standard"
+msgstr "標準"
+
+msgid "Advanced"
+msgstr "詳細設定"
+
+msgid "Theme Colors"
+msgstr "テーマの色"
+
+msgid "Standard Colors"
+msgstr "標準の色"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "月 火 水 木 金 土 日"
+
+msgid "General"
+msgstr "全般"
+
+msgid "Enter a number."
+msgstr "数値を入力してください。"
+
+msgid "Enter a whole number."
+msgstr "整数を入力してください。"
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "{minimum}～{maximum}の値を入力してください。"
+
+msgid "Enter at most {count} characters."
+msgstr "{count}文字以内で入力してください。"
+
+msgid "Enter a value."
+msgstr "値を入力してください。"
+
+msgid "This value cannot be sent with this data type."
+msgstr "この値はこのデータ・タイプでは送信できません。"
+
+msgid "No value can be entered for this data type."
+msgstr "このデータ・タイプには値を入力できません。"
+
+msgid "Edit…"
+msgstr "編集…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "テキストは最大{count}バイトまでです。"
+
+msgid "Value {number}"
+msgstr "値 {number}"
+
+msgid "Edit Value"
+msgstr "値を編集"
+
+msgid "Size Column to Fit"
+msgstr "列幅を自動調整"
+
+msgid "Size All Columns to Fit"
+msgstr "全ての列幅を自動調整"
+
+msgid "Reset Column Order"
+msgstr "列の順序をリセット"
+
+msgid "Reset Column Visibility"
+msgstr "列の表示をリセット"
+
+msgid "Reset All Columns"
+msgstr "全ての列をリセット"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "長さ"
+
+msgid "Prio"
+msgstr "優先"
+
+msgid "Group Addresses"
+msgstr "グループ・アドレス"
+
+msgid "(empty)"
+msgstr "（空）"
+
+msgid "Options"
+msgstr "オプション"
+
+msgid "Columns"
+msgstr "列"
+
+msgid "Grey Out Zeros"
+msgstr "ゼロをグレー表示"
+
+msgid "Uppercase Hex"
+msgstr "16進数を大文字で表示"
+
+msgid "Show ASCII"
+msgstr "ASCIIを表示"
+
+msgid "Copy"
+msgstr "コピー"
+
+msgid "Copy {count} B"
+msgstr "{count} Bをコピー"
+
+msgid "Go To:"
+msgstr "移動先："
+
+msgid "{count} difference(s)"
+msgstr "{count} 件の差異"
+
+msgid "no differences"
+msgstr "差異なし"
+
+msgid "Parameter:"
+msgstr "パラメータ："
+
+msgid "search…"
+msgstr "検索…"
+
+msgid "Low"
+msgstr "低"
+
+msgid "High"
+msgstr "高"
+
+msgid "Alert"
+msgstr "アラーム"
+
+msgid "Hours"
+msgstr "時間"
+
+msgid "Minutes"
+msgstr "分"
+
+msgid "Seconds"
+msgstr "秒"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "ミリ秒"
+
+msgid "Bold"
+msgstr "太字"
+
+msgid "Italic"
+msgstr "イタリック"
+
+msgid "Underline"
+msgstr "アンダーライン"
+
+msgid "Cut"
+msgstr "切り取る"
+
+msgid "Paste"
+msgstr "貼り付ける"

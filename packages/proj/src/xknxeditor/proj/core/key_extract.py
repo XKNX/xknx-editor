@@ -37,6 +37,10 @@ _EXTRACT_TRACE_CS = Path(__file__).with_name("_extract_trace.cs")
 _EXTRACT_OAUTH_CS = Path(__file__).with_name("_extract_oauth.cs")
 _TIMEOUT = 120.0
 
+#: A directory of prebuilt extractors (``<key>/xknxkeyx.dll``). When set (the container ships them),
+#: the .NET runtime runs them directly, so no SDK is needed to compile the reflection program.
+_PREBUILT_DIR = os.environ.get("XKNX_KEYEXTRACT_DIR")
+
 #: The assembly file that carries the signing key.
 DLL_NAME = "Knx.Ets.XmlSigning.dll"
 
@@ -186,8 +190,23 @@ def _build_dotnet_exe(
     return proj_dir / "bin" / "Release" / tfm / "xknxkeyx.dll"
 
 
+def _dotnet_app(
+    source: Path, key: str, package_refs: dict[str, str] | None = None
+) -> Path:
+    """The extractor assembly to run with ``dotnet``.
+
+    When ``XKNX_KEYEXTRACT_DIR`` holds prebuilt extractors (the container publishes them so only the
+    .NET runtime is needed, not the SDK), use the one for ``key``; otherwise compile ``source`` on
+    demand (the desktop path, which needs the SDK)."""
+    if _PREBUILT_DIR:
+        prebuilt = Path(_PREBUILT_DIR) / key / "xknxkeyx.dll"
+        if prebuilt.is_file():
+            return prebuilt
+    return _build_dotnet_exe(source, f"xknx_keyextract_{key}", package_refs)
+
+
 def _extract_via_dotnet(dll: Path) -> tuple[int, int, int]:
-    app = _build_dotnet_exe(_EXTRACT_CS, "xknx_keyextract_dotnet")
+    app = _dotnet_app(_EXTRACT_CS, "sign")
     # Run from the DLL's directory so its sibling assemblies resolve.
     proc = _run(["dotnet", str(app), str(dll)], cwd=str(dll.parent))
     if proc.returncode != 0:
@@ -295,7 +314,7 @@ def _parse_oauth_output(text: str) -> tuple[str, str]:
 
 
 def _extract_oauth_via_dotnet(dll: Path) -> tuple[str, str]:
-    app = _build_dotnet_exe(_EXTRACT_OAUTH_CS, "xknx_oauthextract_dotnet")
+    app = _dotnet_app(_EXTRACT_OAUTH_CS, "oauth")
     proc = _run(["dotnet", str(app), str(dll)], cwd=str(dll.parent))
     if proc.returncode != 0:
         raise KeyExtractionError(f"extractor failed:\n{proc.stderr or proc.stdout}")
@@ -398,9 +417,7 @@ def _parse_trace_output(text: str) -> tuple[bytes, bytes, str]:
 def _extract_trace_via_dotnet(dll: Path) -> tuple[bytes, bytes, str]:
     from xknxeditor.proj.core.trace_crypto import TRACE_SENTINEL
 
-    app = _build_dotnet_exe(
-        _EXTRACT_TRACE_CS, "xknx_traceextract_dotnet", _TRACE_PACKAGES
-    )
+    app = _dotnet_app(_EXTRACT_TRACE_CS, "trace", _TRACE_PACKAGES)
     proc = _run(
         [
             "dotnet",

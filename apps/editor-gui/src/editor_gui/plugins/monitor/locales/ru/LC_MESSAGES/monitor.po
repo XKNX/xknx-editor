@@ -1,0 +1,392 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor monitor 1.0\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Monitor"
+msgstr "Мониторинг"
+
+msgid "No group addresses (open or import a project)"
+msgstr "Нет групповых адресов (откройте или импортируйте проект)"
+
+msgid "Not Connected"
+msgstr "Не подключено"
+
+msgid "value (e.g. on / 21.5 / 50)"
+msgstr "значение (напр. on / 21.5 / 50)"
+
+msgid "Value:"
+msgstr "Значение:"
+
+msgid "Filter by address or name…"
+msgstr "Фильтр по адресу или имени…"
+
+msgid "Write"
+msgstr "Записать"
+
+msgid "Read"
+msgstr "Читать"
+
+msgid "Group Objects"
+msgstr "Групповые объекты"
+
+msgid "Bus Monitor"
+msgstr "Мониторинг шин"
+
+msgid "Group Monitor"
+msgstr "Групповой мониторинг"
+
+msgid "Bus Activity"
+msgstr "Активность шины"
+
+msgid "Clear"
+msgstr "Очистить"
+
+msgid "Show Extended Information"
+msgstr "Показать расширенные сведения"
+
+msgid "Hide Extended Information"
+msgstr "Скрыть расширенные сведения"
+
+msgid "{count} teleg."
+msgstr "{count} teleg."
+
+msgid "Load: {rate} t/s"
+msgstr "Нагрузка: {rate} т/с"
+
+msgid "Group Address:"
+msgstr "Групповой адрес:"
+
+msgid "e.g. 1/2/3"
+msgstr "напр. 1/2/3"
+
+msgid "Enter a group address of the project to send to it."
+msgstr "Введите групповой адрес проекта, чтобы отправить на него."
+
+msgid "Start"
+msgstr "Старт"
+
+msgid "Stop"
+msgstr "Стоп"
+
+msgid "Import"
+msgstr "Импорт"
+
+msgid "Export"
+msgstr "Экспорт"
+
+msgid "Print"
+msgstr "Печать"
+
+msgid "Replay Telegrams"
+msgstr "Воспроизвести телеграммы"
+
+msgid "Stop Replay"
+msgstr "Остановить воспроизведение"
+
+msgid "Start recording the group telegrams"
+msgstr "Начать запись групповых телеграмм"
+
+msgid "Start recording the connection's communication other than group telegrams, including every frame this app sends"
+msgstr "Начать запись обмена данными соединения, кроме групповых телеграмм, включая все кадры, отправляемые этим приложением"
+
+msgid "Connect the interface in bus monitor mode and record every frame"
+msgstr "Подключить интерфейс в режиме мониторинга шин и записывать каждый кадр"
+
+msgid "Stop recording"
+msgstr "Остановить запись"
+
+msgid "Close the bus monitor connection and restore the normal connection"
+msgstr "Закрыть соединение мониторинга шин и восстановить обычное соединение"
+
+msgid "Remove all telegrams"
+msgstr "Удалить все телеграммы"
+
+msgid "Load a recording"
+msgstr "Загрузить запись"
+
+msgid "Save the telegrams to a file"
+msgstr "Сохранить телеграммы в файл"
+
+msgid "Print the telegrams as a PDF document"
+msgstr "Напечатать телеграммы как документ PDF"
+
+msgid "Send the selected group telegrams (all if none is selected) again with their original timing"
+msgstr "Снова отправить выбранные групповые телеграммы (все, если ничего не выбрано) с исходными интервалами"
+
+msgid "Cancel the replay"
+msgstr "Отменить воспроизведение"
+
+msgid "Copy"
+msgstr "Копировать"
+
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Копировать выбранные телеграммы (все показанные, если ничего не выбрано) в буфер обмена ({shortcut}). Двойной щелчок по телеграмме выбирает её устройство-источник."
+
+msgid "Rec."
+msgstr "Зап."
+
+msgid "Stopped"
+msgstr "Остановлено"
+
+msgid "Replaying {done}/{total}"
+msgstr "Воспроизведение {done}/{total}"
+
+msgid "Connecting in bus monitor mode…"
+msgstr "Подключение в режиме мониторинга шин…"
+
+msgid "Closing the bus monitor connection…"
+msgstr "Закрытие соединения мониторинга шин…"
+
+msgid "Bus monitor mode: the normal connection is closed. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Режим мониторинга шин: обычное соединение закрыто. Пока мониторинг шин не остановлен, ничего нельзя отправить или загрузить."
+
+msgid "Start Bus Monitor"
+msgstr "Запустить мониторинг шин"
+
+msgid "The bus monitor connects the interface in bus monitor mode. The normal connection is closed while the bus monitor runs: nothing can be sent or downloaded in that time. Stopping the bus monitor restores the normal connection.\n\nStart the bus monitor?"
+msgstr "Мониторинг шин подключает интерфейс в режиме мониторинга шин. Пока он работает, обычное соединение закрыто: в это время ничего нельзя отправить или загрузить. После остановки мониторинга шин обычное соединение восстанавливается.\n\nЗапустить мониторинг шин?"
+
+msgid "The bus monitor is not supported for this connection type. It needs a tunnelling connection."
+msgstr "Мониторинг шин не поддерживается для этого типа подключения. Для него требуется туннельное подключение."
+
+msgid "The interface does not support bus monitor mode."
+msgstr "Интерфейс не поддерживает режим мониторинга шин."
+
+msgid "The interface rejected bus monitor mode: another client holds a connection to it."
+msgstr "Интерфейс отклонил режим мониторинга шин: к нему подключён другой клиент."
+
+msgid "The bus monitor connection could not be established."
+msgstr "Не удалось установить соединение мониторинга шин."
+
+msgid "The normal connection is restored."
+msgstr "Обычное соединение восстановлено."
+
+msgid "Unsaved Telegrams"
+msgstr "Несохранённые телеграммы"
+
+msgid "The telegrams have not been exported. Clear them anyway?"
+msgstr "Телеграммы не экспортированы. Всё равно очистить?"
+
+msgid "The telegrams have not been exported. Loading a recording replaces them and stops the recording. Continue?"
+msgstr "Телеграммы не экспортированы. Загрузка записи заменит их и остановит запись. Продолжить?"
+
+msgid "Loading a recording replaces the telegrams and stops the recording. Continue?"
+msgstr "Загрузка записи заменит телеграммы и остановит запись. Продолжить?"
+
+msgid "Yes"
+msgstr "Да"
+
+msgid "No"
+msgstr "Нет"
+
+msgid "OK"
+msgstr "ОК"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Export Telegrams"
+msgstr "Экспорт телеграмм"
+
+msgid "Print Telegrams"
+msgstr "Печать телеграмм"
+
+msgid "Which telegrams?"
+msgstr "Какие телеграммы?"
+
+msgid "All Telegrams ({count})"
+msgstr "Все телеграммы ({count})"
+
+msgid "Selected Telegrams ({count})"
+msgstr "Выбранные телеграммы ({count})"
+
+msgid "Filtered Telegrams ({count})"
+msgstr "Отфильтрованные телеграммы ({count})"
+
+msgid "Telegram recordings"
+msgstr "Записи телеграмм"
+
+msgid "All files"
+msgstr "Все файлы"
+
+msgid "{count} telegrams exported to {path}"
+msgstr "Экспортировано телеграмм: {count} в {path}"
+
+msgid "Export failed: {error}"
+msgstr "Ошибка экспорта: {error}"
+
+msgid "{count} entries loaded from {path}"
+msgstr "Загружено записей: {count} из {path}"
+
+msgid "Loading failed: {error}"
+msgstr "Ошибка загрузки: {error}"
+
+msgid "{count} telegrams in another frame format were skipped"
+msgstr "Пропущено телеграмм в другом формате кадра: {count}"
+
+msgid "Printing failed: {error}"
+msgstr "Ошибка печати: {error}"
+
+msgid "Page {page}"
+msgstr "Страница {page}"
+
+msgid "{count} Data Secure telegrams are not replayed"
+msgstr "Телеграммы Data Secure не воспроизводятся: {count}"
+
+msgid "There are no group telegrams to replay"
+msgstr "Нет групповых телеграмм для воспроизведения"
+
+msgid "Replay finished: {count} telegrams sent"
+msgstr "Воспроизведение завершено: отправлено телеграмм: {count}"
+
+msgid "Replay cancelled: {count} telegrams sent"
+msgstr "Воспроизведение отменено: отправлено телеграмм: {count}"
+
+msgid "from bus"
+msgstr "из шины"
+
+msgid "to bus"
+msgstr "к шине"
+
+msgid "Connection event"
+msgstr "Событие соединения"
+
+msgid "Invalid frame"
+msgstr "Недействительный кадр"
+
+msgid "Comment"
+msgstr "Комментарий"
+
+msgid "Recording was started, Host={host}, Connection={connection}, Mode={mode}"
+msgstr "Запись начата, хост={host}, соединение={connection}, режим={mode}"
+
+msgid "Recording was stopped"
+msgstr "Запись была остановлена"
+
+msgid "Connection was established"
+msgstr "Соединение установлено"
+
+msgid "Connection was lost"
+msgstr "Соединение потеряно"
+
+msgid "System"
+msgstr "Система"
+
+msgid "Normal"
+msgstr "Нормальный"
+
+msgid "Urgent"
+msgstr "Срочный"
+
+msgid "Low"
+msgstr "Низкий"
+
+msgid "Standard"
+msgstr "Стандартный"
+
+msgid "Extended"
+msgstr "Расширенный"
+
+msgid "#"
+msgstr "#"
+
+msgid "Date"
+msgstr "Дата"
+
+msgid "Time"
+msgstr "Время"
+
+msgid "Service"
+msgstr "Служба"
+
+msgid "Flags"
+msgstr "Флаги"
+
+msgid "Prio"
+msgstr "Приоритет"
+
+msgid "Source Address"
+msgstr "Адрес источника"
+
+msgid "Source Name"
+msgstr "Имя источника"
+
+msgid "Destination Address"
+msgstr "Адрес точки назначения"
+
+msgid "Destination Name"
+msgstr "Имя точки назначения"
+
+msgid "Building Part"
+msgstr "Часть здания"
+
+msgid "Building Function"
+msgstr "Функция здания"
+
+msgid "Hop Count"
+msgstr "Количество переходов"
+
+msgid "Telegram Type"
+msgstr "Тип телеграммы"
+
+msgid "Telegram Type (Short)"
+msgstr "Тип телеграммы (кратко)"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Value"
+msgstr "Значение"
+
+msgid "Iack"
+msgstr "Iack"
+
+msgid "Raw Data"
+msgstr "Необработанные данные"
+
+msgid "Raw Value"
+msgstr "Необработанное значение"
+
+msgid "Message Code"
+msgstr "Код сообщения"
+
+msgid "Repeated"
+msgstr "Повторный"
+
+msgid "Security"
+msgstr "Защита"
+
+msgid "Frame Format"
+msgstr "Формат кадра"
+
+msgid "System Broadcast"
+msgstr "Системное широковещание"
+
+msgid "Interface"
+msgstr "Интерфейс"
+
+msgid "MediumInfo"
+msgstr "Информация о среде"
+
+msgid "Source Description"
+msgstr "Описание источника"
+
+msgid "Destination Description"
+msgstr "Описание точки назначения"
+
+msgid "Address"
+msgstr "Адрес"
+
+msgid "Name"
+msgstr "Имя"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."

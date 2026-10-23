@@ -16,6 +16,86 @@ class ProjectStrings:
         return _("Manufacturer")
 
     @property
+    def PANEL_COMMENT(self) -> str:
+        return _("Comment")
+
+    @property
+    def PANEL_AREA(self) -> str:
+        return _("Area")
+
+    @property
+    def PANEL_LINE(self) -> str:
+        return _("Line")
+
+    @property
+    def TOPOLOGY_ADDRESS_INVALID(self) -> str:
+        return _("The address is a number from 0 to 15.")
+
+    @property
+    def TOPOLOGY_ADDRESS_IN_USE(self) -> str:
+        return _("Address {address} is already in use.")
+
+    @property
+    def HISTORY_EV_SET_AREA_DESCRIPTION(self) -> str:
+        return _("Set area description")
+
+    @property
+    def HISTORY_EV_SET_LINE_DESCRIPTION(self) -> str:
+        return _("Set line description")
+
+    @property
+    def HISTORY_EV_SET_AREA_ADDRESS(self) -> str:
+        return _("Set area address")
+
+    @property
+    def HISTORY_EV_SET_LINE_ADDRESS(self) -> str:
+        return _("Set line address")
+
+    @property
+    def PANEL_MAIN_GROUP(self) -> str:
+        return _("Main Group")
+
+    @property
+    def PANEL_MIDDLE_GROUP(self) -> str:
+        return _("Middle Group")
+
+    @property
+    def PANEL_GROUP_RANGE(self) -> str:
+        return _("Group Range")
+
+    @property
+    def PANEL_GROUP_ADDRESS(self) -> str:
+        return _("Group Address")
+
+    @property
+    def GROUP_MAIN_NUMBER_INVALID(self) -> str:
+        return _("The main group is a number from 0 to 31.")
+
+    @property
+    def GROUP_MIDDLE_NUMBER_INVALID(self) -> str:
+        return _("The middle group is a number from 0 to 7.")
+
+    @property
+    def HISTORY_EV_SET_GA_DESCRIPTION(self) -> str:
+        return _("Set group address description")
+
+    @property
+    def HISTORY_EV_SET_GROUP_RANGE_DESCRIPTION(self) -> str:
+        return _("Set group range description")
+
+    @property
+    def HISTORY_EV_SET_GROUP_RANGE_ADDRESS(self) -> str:
+        return _("Set group range address")
+
+    @property
+    def COMMENT_INSTALLATION_HINTS(self) -> str:
+        return _("Installation Hints")
+
+    @property
+    def COMMENT_NOTHING_SELECTED(self) -> str:
+        return _("Select an element in a tree to see its comment.")
+
+    @property
     def PANEL_DEVICES(self) -> str:
         return _("Devices")
 
@@ -53,7 +133,7 @@ class ProjectStrings:
 
     @property
     def ML_TAB_GA_CO(self) -> str:
-        return _("GA <> Object")
+        return _("Object <> GA")
 
     @property
     def ML_TAB_CO_CO(self) -> str:
@@ -75,23 +155,47 @@ class ProjectStrings:
         )
 
     @property
-    def ML_DESC_GA_CO(self) -> str:
+    def ML_GUIDE_GA_CO(self) -> str:
+        return _("Link group objects to existing group addresses.")
+
+    @property
+    def ML_GUIDE_GA_CO_1(self) -> str:
+        return _('Add objects with "{add_device}" or "{add_objects}".')
+
+    @property
+    def ML_GUIDE_GA_CO_2(self) -> str:
         return _(
-            "Link many communication objects to existing group addresses at once. "
-            "1) Add objects: '+ Selected device' (all objects of the device selected in the tree) "
-            "or 'Add objects…'. 2) Set each row's target address in its dropdown — or fill them "
-            "fast with 'Assign sequential' (next free addresses from the given start) or "
-            "'Match by name'. 3) 'Link all' links every row that has a target."
+            'Pick a group address per row, or fill all with "{match}" or "{sequential}".'
         )
 
     @property
-    def ML_DESC_CO_CO(self) -> str:
+    def ML_GUIDE_GA_CO_3(self) -> str:
+        return _('"{link_all}" links every row that has one.')
+
+    @property
+    def ML_GUIDE_CO_CO(self) -> str:
         return _(
-            "Link communication objects to each other. 1) Add the source objects. 2) Pick a "
-            "partner object per row. Each pair gets a NEW group address (source sends, target "
-            "receives): the address and name are suggested (first free address, name template "
-            "below) but can be edited per row. 3) 'Link all' creates and links them."
+            "Link objects to each other through a new group address each: the source sends, "
+            "the target receives."
         )
+
+    @property
+    def ML_GUIDE_CO_CO_1(self) -> str:
+        return _('Add the source objects with "{add_device}" or "{add_objects}".')
+
+    @property
+    def ML_GUIDE_CO_CO_2(self) -> str:
+        return _(
+            "Pick a target object per row. Address and name are suggested and can be changed."
+        )
+
+    @property
+    def ML_GUIDE_CO_CO_3(self) -> str:
+        return _('"{link_all}" creates the group addresses and links them.')
+
+    @property
+    def ML_LINK_ALL_NAME(self) -> str:
+        return _("Link All")
 
     @property
     def ML_DESC_LOG(self) -> str:
@@ -115,7 +219,7 @@ class ProjectStrings:
 
     @property
     def ML_ADD_OBJECTS(self) -> str:
-        return _("Add Objects…")
+        return _("Add Group Objects…")
 
     @property
     def ML_ADD_GAS(self) -> str:
@@ -171,7 +275,7 @@ class ProjectStrings:
 
     @property
     def ML_PICK_OBJECTS_TITLE(self) -> str:
-        return _("Add Communication Objects")
+        return _("Add Group Objects")
 
     @property
     def ML_PICK_GAS_TITLE(self) -> str:
@@ -207,7 +311,7 @@ class ProjectStrings:
 
     @property
     def ML_COL_OBJECT(self) -> str:
-        return _("Object")
+        return _("Group Object")
 
     @property
     def ML_COL_DPT(self) -> str:
@@ -219,7 +323,7 @@ class ProjectStrings:
 
     @property
     def ML_COL_TARGET_CO(self) -> str:
-        return _("Target Object")
+        return _("Target Group Object")
 
     @property
     def ML_COL_GA_ADDR(self) -> str:
@@ -232,6 +336,39 @@ class ProjectStrings:
     @property
     def ML_TARGET_NONE(self) -> str:
         return _("(none)")
+
+    @property
+    def ML_MATCHING_DPT_ONLY(self) -> str:
+        return _("Matching DPT Only")
+
+    @property
+    def ML_MATCHING_DPT_TIP(self) -> str:
+        return _(
+            "Only group addresses with the object's main datapoint type, and those without one "
+            "(they take the object's type when linked)."
+        )
+
+    @property
+    def ML_GA_NO_DPT(self) -> str:
+        return _("no DPT")
+
+    @property
+    def ML_MATCHING_DPT_OBJECT_TIP(self) -> str:
+        return _(
+            "Only objects with the same main datapoint type, and those without one."
+        )
+
+    @property
+    def ML_NOTE_NO_DEVICE(self) -> str:
+        return _("Select a device in the tree first.")
+
+    @property
+    def ML_NOTE_NO_OBJECTS(self) -> str:
+        return _("{device} has no group objects.")
+
+    @property
+    def ML_NOTE_ALL_LISTED(self) -> str:
+        return _("All objects of {device} are in the list already.")
 
     @property
     def ML_ADD_DEVICE(self) -> str:
@@ -270,6 +407,24 @@ class ProjectStrings:
     @property
     def ML_SHOW_PROBLEMS(self) -> str:
         return _("Only Problems")
+
+    @property
+    def ML_STATUS_READY(self) -> str:
+        return _("Ready to link.")
+
+    @property
+    def ML_STATUS_AMBIGUOUS(self) -> str:
+        return _(
+            "Check the group address: several match, or a datapoint type is unknown."
+        )
+
+    @property
+    def ML_STATUS_INCOMPATIBLE(self) -> str:
+        return _("The datapoint types do not match; this row is not linked.")
+
+    @property
+    def ML_STATUS_UNMATCHED(self) -> str:
+        return _("No group address chosen yet.")
 
     @property
     def ML_OK(self) -> str:
@@ -591,7 +746,7 @@ class ProjectStrings:
     def TOOLS_SHIFT_GA_DESC(self) -> str:
         return _(
             "Renumber group addresses by adding an offset to their raw value, e.g. to open "
-            "gaps. Com-object links move with each address. Nothing is written if any move "
+            "gaps. Group object links move with each address. Nothing is written if any move "
             "would collide or leave the valid range."
         )
 
@@ -1091,6 +1246,151 @@ class ProjectStrings:
     @property
     def EDITOR_TAB_DALI(self) -> str:
         return _("DALI (Bus)")
+
+    @property
+    def EDITOR_TAB_SIEMENS_DALI(self) -> str:
+        return _("DALI (Siemens)")
+
+    @property
+    def EDITOR_TAB_PLUGIN_PARAMS(self) -> str:
+        return _("Plugin Config")
+
+    @property
+    def PLUGIN_PARAMS_NO_MAPPING(self) -> str:
+        return _(
+            "No plugin mapping is available for this device yet. The vendor plugin's "
+            "parameters stay unreachable from here."
+        )
+
+    @property
+    def PLUGIN_PARAMS_EMPTY(self) -> str:
+        return _("The application has no static parameters.")
+
+    @property
+    def PLUGIN_PARAMS_READONLY_NOTE(self) -> str:
+        return _(
+            "Read-only view. The hierarchy is a best-effort reconstruction from parameter name "
+            "prefixes; names and groupings may be rough. Writing values is not available yet."
+        )
+
+    @property
+    def PLUGIN_PARAMS_EDIT_NOTE(self) -> str:
+        return _(
+            "Editable fallback for parameters whose manufacturer plugin is not available here. "
+            "The hierarchy is reconstructed from parameter name prefixes; labels and groupings "
+            "may be rough. Edits are written to the project and transferred by a normal download."
+        )
+
+    @property
+    def PLUGIN_PARAMS_FILTER(self) -> str:
+        return _("##plugin_params_filter")
+
+    @property
+    def PLUGIN_PARAMS_FILTER_EMPTY(self) -> str:
+        return _("No parameter matches the filter.")
+
+    @property
+    def PLUGIN_PARAMS_COL_NAME(self) -> str:
+        return _("Parameter")
+
+    @property
+    def PLUGIN_PARAMS_COL_VALUE(self) -> str:
+        return _("Value")
+
+    @property
+    def PLUGIN_PARAMS_COL_DEFAULT(self) -> str:
+        return _("Default")
+
+    @property
+    def PLUGIN_PARAMS_PROGRAM_DCA(self) -> str:
+        return _("Program DCA State")
+
+    @property
+    def PLUGIN_PARAMS_PROGRAM_DCA_HINT(self) -> str:
+        return _("Sends the DALI device settings to the gateway as property values.")
+
+    @property
+    def PLUGIN_PARAMS_ADD_TO(self) -> str:
+        return _("Add to {section}:")
+
+    @property
+    def PLUGIN_PARAMS_TYPE(self) -> str:
+        return _("Type")
+
+    @property
+    def PLUGIN_PARAMS_NAME(self) -> str:
+        return _("Name")
+
+    @property
+    def PLUGIN_PARAMS_ADD(self) -> str:
+        return _("Add")
+
+    @property
+    def PLUGIN_PARAMS_NO_ENTRIES(self) -> str:
+        return _("No entries.")
+
+    @property
+    def PLUGIN_PARAMS_COL_ENTRY(self) -> str:
+        return _("Entry")
+
+    @property
+    def PLUGIN_PARAMS_COL_DETAILS(self) -> str:
+        return _("Details")
+
+    @property
+    def PLUGIN_PARAMS_REMOVE(self) -> str:
+        return _("Remove")
+
+    @property
+    def SIEMENS_DALI_CONNECT_FIRST(self) -> str:
+        return _("Connect to a KNX interface to read the Siemens DALI bus.")
+
+    @property
+    def SIEMENS_DALI_SCAN_BUS(self) -> str:
+        return _("Read DALI Bus")
+
+    @property
+    def SIEMENS_DALI_SCANNING(self) -> str:
+        return _("Reading the DALI bus from object {object_index}…")
+
+    @property
+    def SIEMENS_DALI_NO_SCAN(self) -> str:
+        return _("Press 'Read DALI Bus' to list the ECGs on the gateway.")
+
+    @property
+    def SIEMENS_DALI_PRESENT_COUNT(self) -> str:
+        return _("{count} ECG(s) present on line {line}")
+
+    @property
+    def SIEMENS_DALI_READ_ONLY_NOTE(self) -> str:
+        return _(
+            "Read-only snapshot. Writing group assignments, scenes or firmware is not "
+            "available yet and remains in the manufacturer's plugin."
+        )
+
+    @property
+    def SIEMENS_DALI_COL_SLOT(self) -> str:
+        return _("Slot")
+
+    @property
+    def SIEMENS_DALI_COL_SHORT_ADDRESS(self) -> str:
+        return _("Short Address")
+
+    @property
+    def SIEMENS_DALI_COL_TYPE(self) -> str:
+        return _("Type")
+
+    @property
+    def SIEMENS_DALI_COL_RANDOM(self) -> str:
+        return _("Random Address")
+
+    @property
+    def SIEMENS_DALI_COL_MIN_DIM(self) -> str:
+        return _("Min Dim")
+
+    @property
+    def SIEMENS_DALI_COL_COLOUR(self) -> str:
+        return _("Colour Temp (K)")
 
     @property
     def GA_NO_PROJECT(self) -> str:
@@ -1888,7 +2188,7 @@ class ProjectStrings:
     @property
     def DEVICE_DELETE_CONFIRM(self) -> str:
         return _(
-            "Delete '{name}'? Its com-objects and group-address links are removed and its "
+            "Delete '{name}'? Its group objects and group-address links are removed and its "
             "individual address is freed. This can be undone."
         )
 
@@ -2090,11 +2390,11 @@ class ProjectStrings:
 
     @property
     def HISTORY_CO_LINKED(self) -> str:
-        return _("Com object linked to group address")
+        return _("Group object linked to group address")
 
     @property
     def HISTORY_CO_UNLINKED(self) -> str:
-        return _("Com object unlinked from group address")
+        return _("Group object unlinked from group address")
 
     @property
     def HISTORY_AREA_CREATE(self) -> str:
@@ -2768,6 +3068,32 @@ class ProjectStrings:
         return _("Connect to a KNX interface to commission the DALI bus.")
 
     @property
+    def DALI_UNVERIFIED_WARNING(self) -> str:
+        return _(
+            "This gateway's commissioning protocol has not been verified against a "
+            "capture; writes may misbehave. Proceed with care."
+        )
+
+    @property
+    def DALI_PROJECT_NOT_UPDATED(self) -> str:
+        return _(
+            "DALI commissioning writes the gateway on the bus but does not update "
+            "the project parameters; re-export the .knxproj after a DCA-side edit."
+        )
+
+    @property
+    def DALI_PERSIST_LABEL(self) -> str:
+        return _("DALI commissioning")
+
+    @property
+    def DALI_CHANNEL(self) -> str:
+        return _("DALI Channel")
+
+    @property
+    def DALI_CHANNEL_N(self) -> str:
+        return _("Channel {n}")
+
+    @property
     def DALI_SCAN(self) -> str:
         return _("Scan Bus")
 
@@ -3012,6 +3338,254 @@ class ProjectStrings:
     @property
     def ADDITIONAL_ADDRESS_INDEX(self) -> str:
         return "#"
+
+    @property
+    def HISTORY_EV_ADD_DEVICE(self) -> str:
+        return _("Add device {name}")
+
+    @property
+    def HISTORY_EV_STORE_PLUGIN_DATA(self) -> str:
+        return _("Store plugin data {name}")
+
+    @property
+    def HISTORY_EV_SET_PARAMETER(self) -> str:
+        return _("Set {ref} = {value}")
+
+    @property
+    def HISTORY_EV_CHANGE(self) -> str:
+        return _("Change")
+
+    @property
+    def HISTORY_EV_CREATE_AREA(self) -> str:
+        return _("Create area {address}")
+
+    @property
+    def HISTORY_EV_CREATE_LINE(self) -> str:
+        return _("Create line {address}")
+
+    @property
+    def HISTORY_EV_ADD_SEGMENT(self) -> str:
+        return _("Add segment")
+
+    @property
+    def HISTORY_EV_CREATE_GA(self) -> str:
+        return _("Create group address {address}")
+
+    @property
+    def HISTORY_EV_IMPORT_GAS(self) -> str:
+        return _("Import group addresses")
+
+    @property
+    def HISTORY_EV_IMPORT_GAS_FROM(self) -> str:
+        return _("Import group addresses from {file}")
+
+    @property
+    def HISTORY_EV_LINK(self) -> str:
+        return _("Link group object")
+
+    @property
+    def HISTORY_EV_UNLINK(self) -> str:
+        return _("Unlink group object")
+
+    @property
+    def HISTORY_EV_RENAME_AREA(self) -> str:
+        return _("Rename area to {name}")
+
+    @property
+    def HISTORY_EV_RENAME_PROJECT(self) -> str:
+        return _("Rename project to {name}")
+
+    @property
+    def HISTORY_EV_RENAME_LINE(self) -> str:
+        return _("Rename line to {name}")
+
+    @property
+    def HISTORY_EV_RENAME_DEVICE(self) -> str:
+        return _("Rename device to {name}")
+
+    @property
+    def HISTORY_EV_MOVE_DEVICE(self) -> str:
+        return _("Move device")
+
+    @property
+    def HISTORY_EV_SET_FLAG(self) -> str:
+        return _("Set flag")
+
+    @property
+    def HISTORY_EV_SET_DPT(self) -> str:
+        return _("Set datapoint type")
+
+    @property
+    def HISTORY_EV_SET_PRIORITY(self) -> str:
+        return _("Set priority")
+
+    @property
+    def HISTORY_EV_SET_DESCRIPTION(self) -> str:
+        return _("Set description")
+
+    @property
+    def HISTORY_EV_SET_SENDING(self) -> str:
+        return _("Set sending group address")
+
+    @property
+    def HISTORY_EV_ADD_INSTALLATION(self) -> str:
+        return _("Add installation")
+
+    @property
+    def HISTORY_EV_REMOVE_DEVICE(self) -> str:
+        return _("Remove device")
+
+    @property
+    def HISTORY_EV_REMOVE_AREA(self) -> str:
+        return _("Remove area")
+
+    @property
+    def HISTORY_EV_REMOVE_LINE(self) -> str:
+        return _("Remove line")
+
+    @property
+    def HISTORY_EV_REMOVE_SEGMENT(self) -> str:
+        return _("Remove segment")
+
+    @property
+    def HISTORY_EV_REMOVE_GA(self) -> str:
+        return _("Remove group address")
+
+    @property
+    def HISTORY_EV_REMOVE_FUNCTION(self) -> str:
+        return _("Remove function")
+
+    @property
+    def HISTORY_EV_REMOVE_FUNCTION_GA(self) -> str:
+        return _("Remove group address from function")
+
+    @property
+    def HISTORY_EV_REMOVE_SPACE(self) -> str:
+        return _("Remove building part")
+
+    @property
+    def HISTORY_EV_REMOVE_GROUP_RANGE(self) -> str:
+        return _("Remove group range")
+
+    @property
+    def HISTORY_EV_REMOVE(self) -> str:
+        return _("Remove")
+
+    @property
+    def HISTORY_EV_UPDATE_APP(self) -> str:
+        return _("Update application program")
+
+    @property
+    def HISTORY_EV_CHANGE_APP(self) -> str:
+        return _("Change application program")
+
+    @property
+    def HISTORY_EV_SYNC_COM_OBJECTS(self) -> str:
+        return _("Update group objects")
+
+    @property
+    def HISTORY_EV_SYNC_MODULES(self) -> str:
+        return _("Update module instances")
+
+    @property
+    def HISTORY_EV_SET_GA_SECURITY(self) -> str:
+        return _("Set group address security")
+
+    @property
+    def HISTORY_EV_SET_SECURE_COMMISSIONING(self) -> str:
+        return _("Set secure commissioning")
+
+    @property
+    def HISTORY_EV_RENAME_GA(self) -> str:
+        return _("Rename group address to {name}")
+
+    @property
+    def HISTORY_EV_SET_GA_ADDRESS(self) -> str:
+        return _("Change group address")
+
+    @property
+    def HISTORY_EV_SET_CERTIFICATES(self) -> str:
+        return _("Set device certificates")
+
+    @property
+    def HISTORY_EV_SET_DEVICE_DESCRIPTION(self) -> str:
+        return _("Set device description")
+
+    @property
+    def HISTORY_EV_SET_COMMENT(self) -> str:
+        return _("Set comment")
+
+    @property
+    def HISTORY_EV_SET_INSTALLATION_HINTS(self) -> str:
+        return _("Set installation hints")
+
+    @property
+    def HISTORY_EV_CREATE_FUNCTION(self) -> str:
+        return _("Create function {name}")
+
+    @property
+    def HISTORY_EV_RENAME_FUNCTION(self) -> str:
+        return _("Rename function to {name}")
+
+    @property
+    def HISTORY_EV_SET_FUNCTION_TYPE(self) -> str:
+        return _("Set function type")
+
+    @property
+    def HISTORY_EV_ADD_FUNCTION_GA(self) -> str:
+        return _("Add group address to function")
+
+    @property
+    def HISTORY_EV_CREATE_SPACE(self) -> str:
+        return _("Create building part {name}")
+
+    @property
+    def HISTORY_EV_RENAME_SPACE(self) -> str:
+        return _("Rename building part to {name}")
+
+    @property
+    def HISTORY_EV_SET_SPACE_NUMBER(self) -> str:
+        return _("Set building part number")
+
+    @property
+    def HISTORY_EV_SET_SPACE_DESCRIPTION(self) -> str:
+        return _("Set building part description")
+
+    @property
+    def HISTORY_EV_SET_SPACE_TYPE(self) -> str:
+        return _("Set building part type")
+
+    @property
+    def HISTORY_EV_MOVE_SPACE(self) -> str:
+        return _("Move building part")
+
+    @property
+    def HISTORY_EV_SET_DEVICE_SPACE(self) -> str:
+        return _("Assign device to building part")
+
+    @property
+    def HISTORY_EV_SET_COMMISSIONING(self) -> str:
+        return _("Set commissioning state")
+
+    @property
+    def HISTORY_EV_CREATE_GROUP_RANGE(self) -> str:
+        return _("Create group range {name}")
+
+    @property
+    def HISTORY_EV_RENAME_GROUP_RANGE(self) -> str:
+        return _("Rename group range to {name}")
+
+    @property
+    def TOOLS_TOPOLOGY_NO_ADDRESS(self) -> str:
+        return _("{device}: no individual address")
+
+    @property
+    def TOOLS_TOPOLOGY_MALFORMED(self) -> str:
+        return _("{device}: malformed address '{address}'")
+
+    @property
+    def TOOLS_TOPOLOGY_DUPLICATE(self) -> str:
+        return _("{device}: duplicate address {address}")
 
 
 S = ProjectStrings()

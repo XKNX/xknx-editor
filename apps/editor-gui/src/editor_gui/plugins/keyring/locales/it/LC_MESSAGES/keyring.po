@@ -1,0 +1,86 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor keyring 1.0\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Show Window"
+msgstr "Mostra finestra"
+
+msgid "No keyring loaded"
+msgstr "Nessun keyring caricato"
+
+msgid "Import Keyring…"
+msgstr "Importa keyring…"
+
+msgid "Export Keyring…"
+msgstr "Esporta keyring…"
+
+msgid "Export"
+msgstr "Esporta"
+
+msgid "Set the password for the exported keyring:"
+msgstr "Impostare la password per il keyring esportato:"
+
+msgid "KNX Keyring (*.knxkeys)"
+msgstr "Keyring KNX (*.knxkeys)"
+
+msgid "All Files"
+msgstr "Tutti i file"
+
+msgid "Load"
+msgstr "Carica"
+
+msgid "Cancel"
+msgstr "Annulla"
+
+msgid "Close"
+msgstr "Chiudi"
+
+msgid "{project} — created by {by}"
+msgstr "{project} — creato da {by}"
+
+msgid "Backbone"
+msgstr "Dorsale"
+
+msgid "Interfaces ({count})"
+msgstr "Interfacce ({count})"
+
+msgid "Group Address Keys ({count})"
+msgstr "Chiavi indirizzi di gruppo ({count})"
+
+msgid "Devices ({count})"
+msgstr "Dispositivi ({count})"
+
+msgid "Export Keyring from Project…"
+msgstr "Esporta keyring dal progetto…"
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "Address"
+msgstr "Indirizzo"
+
+msgid "Host"
+msgstr "Host"
+
+msgid "User"
+msgstr "Utente"
+
+msgid "Key"
+msgstr "Chiave"
+
+msgid "In Project"
+msgstr "Nel progetto"
+
+msgid "Tool Key"
+msgstr "Chiave tool"
+
+msgid "{address}   key {key}"
+msgstr "{address}   chiave {key}"

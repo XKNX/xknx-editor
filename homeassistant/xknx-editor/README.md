@@ -6,6 +6,11 @@ commission devices on a KNXnet/IP gateway.
 
 ## Install
 
+[![Add the repository to your Home Assistant](https://my.home-assistant.io/badges/supervisor_add_addon_repository.svg)](https://my.home-assistant.io/redirect/supervisor_add_addon_repository/?repository_url=https%3A%2F%2Fgithub.com%2FXKNX%2Fxknx-editor)
+
+The button opens your Home Assistant with this repository filled in; confirm it and go on with step 3.
+Or add it by hand:
+
 1. In Home Assistant go to **Settings -> Add-ons -> Add-on Store**.
 2. Open the three-dot menu (top right) -> **Repositories** and add:
    `https://github.com/XKNX/xknx-editor`

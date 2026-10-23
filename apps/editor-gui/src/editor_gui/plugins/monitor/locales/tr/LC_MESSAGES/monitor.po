@@ -1,0 +1,392 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor monitor 1.0\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Monitor"
+msgstr "Monitör"
+
+msgid "No group addresses (open or import a project)"
+msgstr "Grup adresi yok (bir proje açın veya içe aktarın)"
+
+msgid "Not Connected"
+msgstr "Bağlı Değil"
+
+msgid "value (e.g. on / 21.5 / 50)"
+msgstr "değer (ör. on / 21.5 / 50)"
+
+msgid "Value:"
+msgstr "Değer:"
+
+msgid "Filter by address or name…"
+msgstr "Adrese veya ada göre filtrele…"
+
+msgid "Write"
+msgstr "Yaz"
+
+msgid "Read"
+msgstr "Oku"
+
+msgid "Group Objects"
+msgstr "Grup Nesneleri"
+
+msgid "Bus Monitor"
+msgstr "Bus İzleme"
+
+msgid "Group Monitor"
+msgstr "Grup İzleme"
+
+msgid "Bus Activity"
+msgstr "Bus Etkinliği"
+
+msgid "Clear"
+msgstr "Temizle"
+
+msgid "Show Extended Information"
+msgstr "Genişletilmiş Bilgileri Göster"
+
+msgid "Hide Extended Information"
+msgstr "Genişletilmiş Bilgileri Gizle"
+
+msgid "{count} teleg."
+msgstr "{count} teleg."
+
+msgid "Load: {rate} t/s"
+msgstr "Yük: {rate} t/s"
+
+msgid "Group Address:"
+msgstr "Grup Adresi:"
+
+msgid "e.g. 1/2/3"
+msgstr "ör. 1/2/3"
+
+msgid "Enter a group address of the project to send to it."
+msgstr "Göndermek için projedeki bir grup adresini girin."
+
+msgid "Start"
+msgstr "Başlat"
+
+msgid "Stop"
+msgstr "Durdur"
+
+msgid "Import"
+msgstr "İçe Aktar"
+
+msgid "Export"
+msgstr "Dışa Aktar"
+
+msgid "Print"
+msgstr "Yazdır"
+
+msgid "Replay Telegrams"
+msgstr "Telegramları Tekrar Oynat"
+
+msgid "Stop Replay"
+msgstr "Tekrar Oynatmayı Durdur"
+
+msgid "Start recording the group telegrams"
+msgstr "Grup telegramlarının kaydını başlat"
+
+msgid "Start recording the connection's communication other than group telegrams, including every frame this app sends"
+msgstr "Bağlantının grup telegramları dışındaki iletişiminin kaydını başlat (bu uygulamanın gönderdiği tüm çerçeveler dahil)"
+
+msgid "Connect the interface in bus monitor mode and record every frame"
+msgstr "Arabirimi bus izleme modunda bağla ve her çerçeveyi kaydet"
+
+msgid "Stop recording"
+msgstr "Kaydı durdur"
+
+msgid "Close the bus monitor connection and restore the normal connection"
+msgstr "Bus izleme bağlantısını kapat ve normal bağlantıyı yeniden kur"
+
+msgid "Remove all telegrams"
+msgstr "Tüm telegramları kaldır"
+
+msgid "Load a recording"
+msgstr "Bir kayıt yükle"
+
+msgid "Save the telegrams to a file"
+msgstr "Telegramları bir dosyaya kaydet"
+
+msgid "Print the telegrams as a PDF document"
+msgstr "Telegramları PDF belgesi olarak yazdır"
+
+msgid "Send the selected group telegrams (all if none is selected) again with their original timing"
+msgstr "Seçili grup telegramlarını (hiçbiri seçili değilse tümünü) özgün zamanlamalarıyla yeniden gönder"
+
+msgid "Cancel the replay"
+msgstr "Tekrar oynatmayı iptal et"
+
+msgid "Copy"
+msgstr "Kopyala"
+
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Seçili telegramları (hiçbiri seçili değilse gösterilenlerin tümünü) panoya kopyala ({shortcut}). Kaynak cihazını seçmek için bir telegrama çift tıklayın."
+
+msgid "Rec."
+msgstr "Kayıt"
+
+msgid "Stopped"
+msgstr "Durduruldu"
+
+msgid "Replaying {done}/{total}"
+msgstr "Tekrar oynatılıyor {done}/{total}"
+
+msgid "Connecting in bus monitor mode…"
+msgstr "Bus izleme modunda bağlanıyor…"
+
+msgid "Closing the bus monitor connection…"
+msgstr "Bus izleme bağlantısı kapatılıyor…"
+
+msgid "Bus monitor mode: the normal connection is closed. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Bus izleme modu: normal bağlantı kapalı. Bus izleme durdurulana kadar hiçbir şey gönderilemez veya yüklenemez."
+
+msgid "Start Bus Monitor"
+msgstr "Bus İzlemeyi Başlat"
+
+msgid "The bus monitor connects the interface in bus monitor mode. The normal connection is closed while the bus monitor runs: nothing can be sent or downloaded in that time. Stopping the bus monitor restores the normal connection.\n\nStart the bus monitor?"
+msgstr "Bus izleme, arabirimi bus izleme modunda bağlar. Bus izleme çalışırken normal bağlantı kapalıdır: bu süre içinde hiçbir şey gönderilemez veya yüklenemez. Bus izleme durdurulduğunda normal bağlantı yeniden kurulur.\n\nBus izleme başlatılsın mı?"
+
+msgid "The bus monitor is not supported for this connection type. It needs a tunnelling connection."
+msgstr "Bus izleme bu bağlantı tipinde desteklenmiyor. Tünelleme bağlantısı gerektirir."
+
+msgid "The interface does not support bus monitor mode."
+msgstr "Arabirim, bus izleme modunu desteklemiyor."
+
+msgid "The interface rejected bus monitor mode: another client holds a connection to it."
+msgstr "Arabirim bus izleme modunu reddetti: başka bir istemci arabirime bağlı."
+
+msgid "The bus monitor connection could not be established."
+msgstr "Bus izleme bağlantısı kurulamadı."
+
+msgid "The normal connection is restored."
+msgstr "Normal bağlantı yeniden kuruldu."
+
+msgid "Unsaved Telegrams"
+msgstr "Kaydedilmemiş Telegramlar"
+
+msgid "The telegrams have not been exported. Clear them anyway?"
+msgstr "Telegramlar dışa aktarılmadı. Yine de temizlensin mi?"
+
+msgid "The telegrams have not been exported. Loading a recording replaces them and stops the recording. Continue?"
+msgstr "Telegramlar dışa aktarılmadı. Bir kaydın yüklenmesi onların yerini alır ve kaydı durdurur. Devam edilsin mi?"
+
+msgid "Loading a recording replaces the telegrams and stops the recording. Continue?"
+msgstr "Bir kaydın yüklenmesi telegramların yerini alır ve kaydı durdurur. Devam edilsin mi?"
+
+msgid "Yes"
+msgstr "Evet"
+
+msgid "No"
+msgstr "Hayır"
+
+msgid "OK"
+msgstr "Tamam"
+
+msgid "Cancel"
+msgstr "İptal et"
+
+msgid "Export Telegrams"
+msgstr "Telegramları Dışa Aktar"
+
+msgid "Print Telegrams"
+msgstr "Telegramları Yazdır"
+
+msgid "Which telegrams?"
+msgstr "Hangi telegramlar?"
+
+msgid "All Telegrams ({count})"
+msgstr "Tüm Telegramlar ({count})"
+
+msgid "Selected Telegrams ({count})"
+msgstr "Seçili Telegramlar ({count})"
+
+msgid "Filtered Telegrams ({count})"
+msgstr "Filtrelenmiş Telegramlar ({count})"
+
+msgid "Telegram recordings"
+msgstr "Telegram kayıtları"
+
+msgid "All files"
+msgstr "Tüm Dosyalar"
+
+msgid "{count} telegrams exported to {path}"
+msgstr "{count} telegram dışa aktarıldı: {path}"
+
+msgid "Export failed: {error}"
+msgstr "Dışa aktarma başarısız: {error}"
+
+msgid "{count} entries loaded from {path}"
+msgstr "{count} kayıt yüklendi: {path}"
+
+msgid "Loading failed: {error}"
+msgstr "Yükleme başarısız: {error}"
+
+msgid "{count} telegrams in another frame format were skipped"
+msgstr "Başka bir çerçeve formatındaki {count} telegram atlandı"
+
+msgid "Printing failed: {error}"
+msgstr "Yazdırma başarısız: {error}"
+
+msgid "Page {page}"
+msgstr "Sayfa {page}"
+
+msgid "{count} Data Secure telegrams are not replayed"
+msgstr "{count} Data Secure telegramı tekrar oynatılmaz"
+
+msgid "There are no group telegrams to replay"
+msgstr "Tekrar oynatılacak grup telegramı yok"
+
+msgid "Replay finished: {count} telegrams sent"
+msgstr "Tekrar oynatma bitti: {count} telegram gönderildi"
+
+msgid "Replay cancelled: {count} telegrams sent"
+msgstr "Tekrar oynatma iptal edildi: {count} telegram gönderildi"
+
+msgid "from bus"
+msgstr "bustan"
+
+msgid "to bus"
+msgstr "bus'a"
+
+msgid "Connection event"
+msgstr "Bağlantı olayı"
+
+msgid "Invalid frame"
+msgstr "Geçersiz çerçeve"
+
+msgid "Comment"
+msgstr "Yorum"
+
+msgid "Recording was started, Host={host}, Connection={connection}, Mode={mode}"
+msgstr "Kayıt başlatıldı, Host={host}, Bağlantı={connection}, Mod={mode}"
+
+msgid "Recording was stopped"
+msgstr "Kayıt durduruldu"
+
+msgid "Connection was established"
+msgstr "Bağlantı kuruldu"
+
+msgid "Connection was lost"
+msgstr "Bağlantı kesildi"
+
+msgid "System"
+msgstr "Sistem"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Urgent"
+msgstr "Acil"
+
+msgid "Low"
+msgstr "Düşük"
+
+msgid "Standard"
+msgstr "Standart"
+
+msgid "Extended"
+msgstr "Genişletilmiş"
+
+msgid "#"
+msgstr "#"
+
+msgid "Date"
+msgstr "Tarih"
+
+msgid "Time"
+msgstr "Zaman"
+
+msgid "Service"
+msgstr "Servis"
+
+msgid "Flags"
+msgstr "Bayraklar"
+
+msgid "Prio"
+msgstr "Öncelik"
+
+msgid "Source Address"
+msgstr "Kaynak Adresi"
+
+msgid "Source Name"
+msgstr "Kaynak Adı"
+
+msgid "Destination Address"
+msgstr "Hedef Adres"
+
+msgid "Destination Name"
+msgstr "Hedef Adı"
+
+msgid "Building Part"
+msgstr "Bina Bölümü"
+
+msgid "Building Function"
+msgstr "Bina Fonksiyonu"
+
+msgid "Hop Count"
+msgstr "Atlama Sayısı"
+
+msgid "Telegram Type"
+msgstr "Telegram Tipi"
+
+msgid "Telegram Type (Short)"
+msgstr "Telegram Tipi (Kısa)"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Value"
+msgstr "Değer"
+
+msgid "Iack"
+msgstr "Iack"
+
+msgid "Raw Data"
+msgstr "Ham Veri"
+
+msgid "Raw Value"
+msgstr "Ham Değer"
+
+msgid "Message Code"
+msgstr "Mesaj Kodu"
+
+msgid "Repeated"
+msgstr "Tekrarlı"
+
+msgid "Security"
+msgstr "Güvenlik"
+
+msgid "Frame Format"
+msgstr "Frame Formatı"
+
+msgid "System Broadcast"
+msgstr "Sistem Yayını"
+
+msgid "Interface"
+msgstr "Arabirim"
+
+msgid "MediumInfo"
+msgstr "OrtamBilgi"
+
+msgid "Source Description"
+msgstr "Kaynak Tanımı"
+
+msgid "Destination Description"
+msgstr "Hedef Tanımı"
+
+msgid "Address"
+msgstr "Adres"
+
+msgid "Name"
+msgstr "Ad"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."

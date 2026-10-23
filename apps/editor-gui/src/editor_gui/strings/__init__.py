@@ -1,6 +1,7 @@
 """App-wide and per-plugin i18n string registry."""
 
 import gettext
+import sys
 from pathlib import Path
 
 _current_locale: str = "en"
@@ -36,6 +37,28 @@ def create_translator(domain: str, locale_dir: Path):
 
 _base_locale_dir = Path(__file__).parent.parent / "locales"
 _ = create_translator("editor_gui", _base_locale_dir)
+
+
+def _on_mac() -> bool:
+    """Whether shortcuts are those of a Mac; in the browser view the browser's platform counts."""
+    from editor_gui import web
+
+    hub = web.active_hub
+    return hub.client_mac if hub is not None else sys.platform == "darwin"
+
+
+def modifier_key() -> str:
+    """The key shortcuts are held with, as the platform names it: Cmd on a Mac, else Ctrl."""
+    if _on_mac():
+        return "Cmd"
+    # Translators: the Ctrl key as shortcut labels name it, e.g. "Ctrl+Z".
+    return _("Ctrl")
+
+
+def shortcut(key: str, *, mac: str | None = None) -> str:
+    """A key combination as the platform writes it: ``Ctrl+key``, or on a Mac ``Cmd+key`` (``mac``
+    replaces ``key`` there)."""
+    return f"{modifier_key()}+{mac if mac and _on_mac() else key}"
 
 
 class BaseStrings:
@@ -200,23 +223,35 @@ class BaseStrings:
 
     @property
     def SHORTCUT_UNDO(self) -> str:
-        return "Ctrl+Z"
+        return shortcut("Z")
 
     @property
     def SHORTCUT_REDO(self) -> str:
-        return "Ctrl+Y"
+        return shortcut("Y", mac="Shift+Z")
 
     @property
     def SHORTCUT_NEW(self) -> str:
-        return "Ctrl+N"
+        return shortcut("N")
 
     @property
     def SHORTCUT_OPEN(self) -> str:
-        return "Ctrl+O"
+        return shortcut("O")
 
     @property
     def SHORTCUT_EXPORT(self) -> str:
-        return "Ctrl+S"
+        return shortcut("E")
+
+    @property
+    def SHORTCUT_ZOOM_IN(self) -> str:
+        return shortcut("+")
+
+    @property
+    def SHORTCUT_ZOOM_OUT(self) -> str:
+        return shortcut("-")
+
+    @property
+    def SHORTCUT_ZOOM_RESET(self) -> str:
+        return shortcut("0")
 
 
 class MenuStrings:
@@ -527,7 +562,7 @@ class MenuStrings:
 
     @property
     def EXPORT_SUMMARY_GROUP_OBJECT_LINKS(self) -> str:
-        return _("Group-Object Links")
+        return _("Group Object Links")
 
     @property
     def EXPORT_SUMMARY_TOPOLOGY(self) -> str:
@@ -615,7 +650,7 @@ class MenuStrings:
     @property
     def IMPORT_NOTE_COM_OBJECT_TEXT_OVERRIDES(self) -> str:
         return _(
-            "{count} com-object(s) had an extra description in the original file. "
+            "{count} group object(s) had an extra description in the original file. "
             "The custom name and function are kept; only that description is not shown here."
         )
 
@@ -2037,6 +2072,158 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     @property
     def PROJECT_OPEN_ANYWAY(self) -> str:
         return _("Open Anyway")
+
+    @property
+    def FLAG_LETTER_COMMUNICATION(self) -> str:
+        return _("C")
+
+    @property
+    def FLAG_LETTER_READ(self) -> str:
+        return _("R")
+
+    @property
+    def FLAG_LETTER_WRITE(self) -> str:
+        return _("W")
+
+    @property
+    def FLAG_LETTER_TRANSMIT(self) -> str:
+        return _("T")
+
+    @property
+    def FLAG_LETTER_UPDATE(self) -> str:
+        return _("U")
+
+    @property
+    def FLAG_LETTER_READ_ON_INIT(self) -> str:
+        return _("I")
+
+    @property
+    def FLAG_NAME_COMMUNICATION(self) -> str:
+        return _("Communication")
+
+    @property
+    def FLAG_NAME_READ(self) -> str:
+        return _("Read")
+
+    @property
+    def FLAG_NAME_WRITE(self) -> str:
+        return _("Write")
+
+    @property
+    def FLAG_NAME_TRANSMIT(self) -> str:
+        return _("Transmit")
+
+    @property
+    def FLAG_NAME_UPDATE(self) -> str:
+        return _("Update")
+
+    @property
+    def FLAG_NAME_READ_ON_INIT(self) -> str:
+        return _("Read on Init")
+
+    @property
+    def LANGUAGE_ENGLISH(self) -> str:
+        return _("English")
+
+    @property
+    def LANGUAGE_GERMAN(self) -> str:
+        return _("German")
+
+    @property
+    def LANGUAGE_DUTCH(self) -> str:
+        return _("Dutch")
+
+    @property
+    def LANGUAGE_ITEM(self) -> str:
+        return _("{name} ({native})")
+
+    @property
+    def LANGUAGE_SPANISH(self) -> str:
+        return _("Spanish")
+
+    @property
+    def LANGUAGE_GREEK(self) -> str:
+        return _("Greek")
+
+    @property
+    def LANGUAGE_CHINESE(self) -> str:
+        return _("Simplified Chinese")
+
+    @property
+    def LANGUAGE_JAPANESE(self) -> str:
+        return _("Japanese")
+
+    @property
+    def LANGUAGE_CZECH(self) -> str:
+        return _("Czech")
+
+    @property
+    def LANGUAGE_DANISH(self) -> str:
+        return _("Danish")
+
+    @property
+    def LANGUAGE_FINNISH(self) -> str:
+        return _("Finnish")
+
+    @property
+    def LANGUAGE_FRENCH(self) -> str:
+        return _("French")
+
+    @property
+    def LANGUAGE_ITALIAN(self) -> str:
+        return _("Italian")
+
+    @property
+    def LANGUAGE_NORWEGIAN(self) -> str:
+        return _("Norwegian")
+
+    @property
+    def LANGUAGE_POLISH(self) -> str:
+        return _("Polish")
+
+    @property
+    def LANGUAGE_PORTUGUESE(self) -> str:
+        return _("Portuguese")
+
+    @property
+    def LANGUAGE_RUSSIAN(self) -> str:
+        return _("Russian")
+
+    @property
+    def LANGUAGE_SWEDISH(self) -> str:
+        return _("Swedish")
+
+    @property
+    def LANGUAGE_TURKISH(self) -> str:
+        return _("Turkish")
+
+    @property
+    def LANGUAGE_UKRAINIAN(self) -> str:
+        return _("Ukrainian")
+
+    @property
+    def MENU_PRODUCT_LANGUAGE(self) -> str:
+        return _("Preferred Product Language")
+
+    @property
+    def LANGUAGE_HUNGARIAN(self) -> str:
+        return _("Hungarian")
+
+    @property
+    def LANGUAGE_ROMANIAN(self) -> str:
+        return _("Romanian")
+
+    @property
+    def LANGUAGE_SLOVAK(self) -> str:
+        return _("Slovak")
+
+    @property
+    def LANGUAGE_SLOVENIAN(self) -> str:
+        return _("Slovenian")
+
+    @property
+    def LANGUAGE_ICELANDIC(self) -> str:
+        return _("Icelandic")
 
 
 S = _CombinedStrings()

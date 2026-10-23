@@ -1,0 +1,2303 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor project 1.0\n"
+"Language: es\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device"
+msgstr "Dispositivo"
+
+msgid "Manufacturer"
+msgstr "Fabricante"
+
+msgid "Devices"
+msgstr "Dispositivos"
+
+msgid "Configure"
+msgstr "Configurar"
+
+msgid "History"
+msgstr "Historial"
+
+msgid "Editor"
+msgstr "Editor"
+
+msgid "Group Addresses"
+msgstr "Direcciones de Grupo"
+
+msgid "Buildings"
+msgstr "Edificios"
+
+msgid "Project"
+msgstr "Proyecto"
+
+msgid "Project Log"
+msgstr "Registro del Proyecto"
+
+msgid "Mass Linker"
+msgstr "Enlace Masivo"
+
+msgid "Object <> GA"
+msgstr "Objeto <> Dir. de Grupo"
+
+msgid "Object <> Object"
+msgstr "Objeto <> Objeto"
+
+msgid "Log"
+msgstr "Registro"
+
+msgid "Open a project to use the Mass Linker."
+msgstr "Abra un proyecto para usar el Enlace Masivo."
+
+msgid "Pairs are matched by list order (1st with 1st, …). Surplus items on the longer side are ignored. Reorder a list via its right-click menu."
+msgstr "Los pares se forman por orden de lista (1.º con 1.º, …). Los elementos sobrantes del lado más largo se ignoran. Reordene una lista mediante su menú contextual."
+
+msgid "Link group objects to existing group addresses."
+msgstr "Enlace objetos de grupo a direcciones de grupo existentes."
+
+msgid "Add objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Añada objetos con \"{add_device}\" o \"{add_objects}\"."
+
+msgid "Pick a group address per row, or fill all with \"{match}\" or \"{sequential}\"."
+msgstr "Elija una dirección de grupo por fila, o rellene todas con \"{match}\" o \"{sequential}\"."
+
+msgid "\"{link_all}\" links every row that has one."
+msgstr "\"{link_all}\" enlaza cada fila que tenga una."
+
+msgid "Link objects to each other through a new group address each: the source sends, the target receives."
+msgstr "Enlace objetos entre sí mediante una nueva dirección de grupo cada vez: el origen envía, el destino recibe."
+
+msgid "Add the source objects with \"{add_device}\" or \"{add_objects}\"."
+msgstr "Añada los objetos de origen con \"{add_device}\" o \"{add_objects}\"."
+
+msgid "Pick a target object per row. Address and name are suggested and can be changed."
+msgstr "Elija un objeto de destino por fila. La dirección y el nombre se sugieren y pueden cambiarse."
+
+msgid "\"{link_all}\" creates the group addresses and links them."
+msgstr "\"{link_all}\" crea las direcciones de grupo y las enlaza."
+
+msgid "Link All"
+msgstr "Enlazar Todo"
+
+msgid "Chronological record of every mass-link operation in this session."
+msgstr "Registro cronológico de cada operación de enlace masivo en esta sesión."
+
+msgid "Source (objects)"
+msgstr "Origen (Objetos)"
+
+msgid "Target (Group Addresses)"
+msgstr "Destino (Direcciones de Grupo)"
+
+msgid "Target (objects)"
+msgstr "Destino (Objetos)"
+
+msgid "Preview & Link"
+msgstr "Vista Previa y Enlace"
+
+msgid "Add Group Objects…"
+msgstr "Añadir Objetos de Grupo…"
+
+msgid "Add Group Addresses…"
+msgstr "Añadir Direcciones de Grupo…"
+
+msgid "Add Selected"
+msgstr "Añadir Seleccionados"
+
+msgid "Clear"
+msgstr "Borrar"
+
+msgid "Remove"
+msgstr "Eliminar"
+
+msgid "Move up"
+msgstr "Mover Arriba"
+
+msgid "Move Down"
+msgstr "Mover Abajo"
+
+msgid "{count} items"
+msgstr "{count} elementos"
+
+msgid "{count} pairs"
+msgstr "{count} pares"
+
+msgid "{count} unpaired (ignored)"
+msgstr "{count} sin pareja (ignorados)"
+
+msgid "Link"
+msgstr "Enlazar"
+
+msgid "GA Name ({source}, {target}, {n})"
+msgstr "Nombre de Dir. de Grupo ({source}, {target}, {n})"
+
+msgid "Start Address"
+msgstr "Dirección de Inicio"
+
+msgid "Filter…"
+msgstr "Filtrar…"
+
+msgid "Add Group Objects"
+msgstr "Añadir Objetos de Grupo"
+
+msgid "Add Group Addresses"
+msgstr "Añadir Direcciones de Grupo"
+
+msgid "Mass Linker Result"
+msgstr "Resultado del Enlace Masivo"
+
+msgid "Linked {count} object(s) to group addresses"
+msgstr "{count} objeto(s) enlazado(s) a direcciones de grupo"
+
+msgid "Linked {count} object pair(s) via new group addresses"
+msgstr "{count} par(es) de objetos enlazado(s) mediante nuevas direcciones de grupo"
+
+msgid "{count} error(s)"
+msgstr "{count} error(es)"
+
+msgid "Clear All"
+msgstr "Borrar Todo"
+
+msgid "No operations yet."
+msgstr "Aún no hay operaciones."
+
+msgid "Group Object"
+msgstr "Objeto de Grupo"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Target Group Address"
+msgstr "Dirección de Grupo de Destino"
+
+msgid "Target Group Object"
+msgstr "Objeto de Grupo de Destino"
+
+msgid "Group Address"
+msgstr "Dirección de Grupo"
+
+msgid "Group Address Name"
+msgstr "Nombre de la Dirección de Grupo"
+
+msgid "(none)"
+msgstr "(ninguno)"
+
+msgid "Matching DPT Only"
+msgstr "Solo DPT Coincidente"
+
+msgid "Only group addresses with the object's main datapoint type, and those without one (they take the object's type when linked)."
+msgstr "Solo direcciones de grupo con el tipo de punto de datos principal del objeto, y las que no tienen ninguno (adoptan el tipo del objeto al enlazarse)."
+
+msgid "no DPT"
+msgstr "sin DPT"
+
+msgid "Only objects with the same main datapoint type, and those without one."
+msgstr "Solo objetos con el mismo tipo de punto de datos principal, y los que no tienen ninguno."
+
+msgid "Select a device in the tree first."
+msgstr "Seleccione primero un dispositivo en el árbol."
+
+msgid "{device} has no group objects."
+msgstr "{device} no tiene objetos de grupo."
+
+msgid "All objects of {device} are in the list already."
+msgstr "Todos los objetos de {device} ya están en la lista."
+
+msgid "+ Selected Device"
+msgstr "+ Dispositivo Seleccionado"
+
+msgid "Select All"
+msgstr "Seleccionar Todo"
+
+msgid "No objects yet — add the selected device or pick objects."
+msgstr "Aún no hay objetos — añada el dispositivo seleccionado o elija objetos."
+
+msgid "From"
+msgstr "Desde"
+
+msgid "Assign Sequential"
+msgstr "Asignar Secuencialmente"
+
+msgid "Match by Name"
+msgstr "Coincidir por Nombre"
+
+msgid "Link All ({count})"
+msgstr "Enlazar Todo ({count})"
+
+msgid "{ready} ready · {amb} ambiguous · {bad} incompatible · {none} unmatched"
+msgstr "{ready} listos · {amb} ambiguos · {bad} incompatibles · {none} sin coincidencia"
+
+msgid "Only Problems"
+msgstr "Solo Problemas"
+
+msgid "Ready to link."
+msgstr "Listo para enlazar."
+
+msgid "Check the group address: several match, or a datapoint type is unknown."
+msgstr "Compruebe la dirección de grupo: coinciden varias, o un tipo de punto de datos es desconocido."
+
+msgid "The datapoint types do not match; this row is not linked."
+msgstr "Los tipos de punto de datos no coinciden; esta fila no se enlaza."
+
+msgid "No group address chosen yet."
+msgstr "Aún no se ha elegido ninguna dirección de grupo."
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Tools"
+msgstr "Herramientas"
+
+msgid "Open a project to use the tools."
+msgstr "Abra un proyecto para usar las herramientas."
+
+msgid "No devices in this project."
+msgstr "No hay dispositivos en este proyecto."
+
+msgid "Extended Copy"
+msgstr "Copia Ampliada"
+
+msgid "Replace Device"
+msgstr "Reemplazar Dispositivo"
+
+msgid "Swap a device for another model (a template device already in the project), keeping its group-address links. Group objects are matched by number and size; unmatched ones are reported. Parameters are not carried over."
+msgstr "Sustituye un dispositivo por otro modelo (un dispositivo plantilla ya presente en el proyecto), conservando sus enlaces a direcciones de grupo. Los objetos de grupo se asignan por número y tamaño; los que no coinciden se notifican. Los parámetros no se transfieren."
+
+msgid "Device to Replace"
+msgstr "Dispositivo a Reemplazar"
+
+msgid "Replace with (Template)"
+msgstr "Reemplazar con (Plantilla)"
+
+msgid "Group Object Mapping (by Number)"
+msgstr "Asignación de Objetos de Grupo (por Número)"
+
+msgid "{count} object(s) will be re-mapped"
+msgstr "Se reasignarán {count} objeto(s)"
+
+msgid "Replaced; re-mapped {count} group object(s)"
+msgstr "Reemplazado; {count} objeto(s) de grupo reasignado(s)"
+
+msgid "Shift Addresses"
+msgstr "Desplazar Direcciones"
+
+msgid "Labels"
+msgstr "Etiquetas"
+
+msgid "Topology Check"
+msgstr "Comprobación de la Topología"
+
+msgid "Project Diff"
+msgstr "Comparación de Proyectos"
+
+msgid "Compare the open project with another project file (.knxproj or .xknx): which devices and group addresses were added, removed or changed. The other project is read-only; nothing is modified."
+msgstr "Compare el proyecto abierto con otro archivo de proyecto (.knxproj o .xknx): qué dispositivos y direcciones de grupo se añadieron, eliminaron o modificaron. El otro proyecto es de solo lectura; no se modifica nada."
+
+msgid "Choose Project to Compare…"
+msgstr "Elegir Proyecto para Comparar…"
+
+msgid "Choose Project to Compare"
+msgstr "Elegir Proyecto para Comparar"
+
+msgid "KNX project (*.knxproj *.xknx)"
+msgstr "Proyecto KNX (*.knxproj *.xknx)"
+
+msgid "compared with {name}"
+msgstr "comparado con {name}"
+
+msgid "No differences in devices or group addresses."
+msgstr "No hay diferencias en dispositivos ni direcciones de grupo."
+
+msgid "{count} difference(s)"
+msgstr "{count} diferencia(s)"
+
+msgid "Add Device Certificate"
+msgstr "Añadir Certificado de Dispositivo"
+
+msgid "Device Certificate"
+msgstr "Certificado de Dispositivo"
+
+msgid "This device already uses its own key from this project. Its certificate is only needed again after a factory reset."
+msgstr "Este dispositivo ya usa su propia clave de este proyecto. Su certificado solo vuelve a ser necesario tras un restablecimiento de fábrica."
+
+msgid "This device still uses its factory key: its first secure download needs its certificate."
+msgstr "Este dispositivo aún usa su clave de fábrica: su primera programación segura necesita su certificado."
+
+msgid "Stored Certificate: {serial}"
+msgstr "Certificado guardado: {serial}"
+
+msgid "Enter the FDSK from its label or certificate (36 characters):"
+msgstr "Introduzca el FDSK de su etiqueta o certificado (36 caracteres):"
+
+msgid "To replace it, enter the new FDSK (36 characters):"
+msgstr "Para reemplazarlo, introduzca el nuevo FDSK (36 caracteres):"
+
+msgid "Remove the stored certificate? After a factory reset, the device can then only be reached again with the code from its label."
+msgstr "¿Eliminar el certificado guardado? Tras un restablecimiento de fábrica, el dispositivo solo podrá volver a alcanzarse con el código de su etiqueta."
+
+msgid "Device Certificate…"
+msgstr "Certificado de Dispositivo…"
+
+msgid "The device certificate (FDSK) is missing."
+msgstr "Falta el certificado del dispositivo (FDSK)."
+
+msgid "This is not a valid FDSK; please check it."
+msgstr "Este no es un FDSK válido; compruébelo."
+
+msgid "This certificate belongs to the device with serial number {serial}."
+msgstr "Este certificado pertenece al dispositivo con número de serie {serial}."
+
+msgid "Set a project password first: it protects the device keys."
+msgstr "Establezca primero una contraseña de proyecto: protege las claves de los dispositivos."
+
+msgid "The other project is protected with a password. Enter it to compare:"
+msgstr "El otro proyecto está protegido con contraseña. Introdúzcala para comparar:"
+
+msgid "Compare"
+msgstr "Comparar"
+
+msgid "Wrong password, please try again."
+msgstr "Contraseña incorrecta, inténtelo de nuevo."
+
+msgid "Duplicate a device several times. Optionally rewrite the copy name (find/replace) and create a group address for each of its objects."
+msgstr "Duplica un dispositivo varias veces. Opcionalmente, reescribe el nombre de la copia (buscar/reemplazar) y crea una dirección de grupo para cada uno de sus objetos."
+
+msgid "Renumber devices by adding an offset to the device part of their individual addresses, e.g. to open gaps for new devices. Group addresses are untouched."
+msgstr "Renumera dispositivos sumando un decalaje a la parte de dispositivo de sus direcciones individuales, p. ej. para dejar huecos para nuevos dispositivos. Las direcciones de grupo no se modifican."
+
+msgid "Pick the fields and an output: a CSV, printable label sheets (Avery), or a full-page legend. HTML output opens in your browser to print or save as PDF."
+msgstr "Elija los campos y una salida: un CSV, hojas de etiquetas imprimibles (Avery) o una leyenda a página completa. La salida HTML se abre en su navegador para imprimirla o guardarla como PDF."
+
+msgid "Read-only scan: lists devices with a missing, malformed or duplicate individual address."
+msgstr "Análisis de solo lectura: lista los dispositivos con una dirección individual ausente, mal formada o duplicada."
+
+msgid "Source Device"
+msgstr "Dispositivo de Origen"
+
+msgid "Copies"
+msgstr "Copias"
+
+msgid "Find in Name"
+msgstr "Buscar en el Nombre"
+
+msgid "Replace with"
+msgstr "Reemplazar con"
+
+msgid "Create Group Addresses for Each Copy"
+msgstr "Crear Direcciones de Grupo para Cada Copia"
+
+msgid "Copy Name: {name}"
+msgstr "Nombre de la copia: {name}"
+
+msgid "Copy"
+msgstr "Copiar"
+
+msgid "Created {count} copy/copies"
+msgstr "{count} copia(s) creada(s)"
+
+msgid "Shifts the device part of each individual address. Group addresses are not shifted."
+msgstr "Desplaza la parte de dispositivo de cada dirección individual. Las direcciones de grupo no se desplazan."
+
+msgid "Offset"
+msgstr "Decalaje"
+
+msgid "Filter devices…"
+msgstr "Filtrar dispositivos…"
+
+msgid "All"
+msgstr "Todos"
+
+msgid "None"
+msgstr "Ninguno"
+
+msgid "{sel} of {total} selected"
+msgstr "{sel} de {total} seleccionados"
+
+msgid "(out of range)"
+msgstr "(fuera de rango)"
+
+msgid "{count} address(es) will change"
+msgstr "Cambiarán {count} dirección(es)"
+
+msgid "Shifted {count} address(es)"
+msgstr "{count} dirección(es) desplazada(s)"
+
+msgid "Individual Addresses"
+msgstr "Direcciones Individuales"
+
+msgid "This project has no group addresses."
+msgstr "Este proyecto no tiene direcciones de grupo."
+
+msgid "Shift Group Addresses"
+msgstr "Desplazar Direcciones de Grupo"
+
+msgid "Renumber group addresses by adding an offset to their raw value, e.g. to open gaps. Group object links move with each address. Nothing is written if any move would collide or leave the valid range."
+msgstr "Renumera las direcciones de grupo sumando un decalaje a su valor bruto, p. ej. para dejar huecos. Los enlaces de los objetos de grupo se mueven con cada dirección. No se escribe nada si algún desplazamiento colisiona o sale del rango válido."
+
+msgid "The offset is added to the raw 16-bit value, so it may change the main/middle group as addresses cross a boundary."
+msgstr "El decalaje se suma al valor bruto de 16 bits, por lo que puede cambiar el grupo principal/intermedio cuando las direcciones cruzan un límite."
+
+msgid "Shifted {count} group address(es)"
+msgstr "{count} dirección(es) de grupo desplazada(s)"
+
+msgid "Export CSV…"
+msgstr "Exportar CSV…"
+
+msgid "Exported to {path}"
+msgstr "Exportado a {path}"
+
+msgid "Fields"
+msgstr "Campos"
+
+msgid "Output"
+msgstr "Salida"
+
+msgid "CSV"
+msgstr "CSV"
+
+msgid "Label Sheet"
+msgstr "Hoja de Etiquetas"
+
+msgid "Legend (Full Page)"
+msgstr "Leyenda (Página Completa)"
+
+msgid "Sheet"
+msgstr "Hoja"
+
+msgid "Custom Grid"
+msgstr "Cuadrícula Personalizada"
+
+msgid "Columns"
+msgstr "Columnas"
+
+msgid "Rows"
+msgstr "Filas"
+
+msgid "Label W x H (mm)"
+msgstr "Etiqueta An x Al (mm)"
+
+msgid "Margin Top / Left (mm)"
+msgstr "Margen Sup. / Izq. (mm)"
+
+msgid "Gap X / Y (mm)"
+msgstr "Separación X / Y (mm)"
+
+msgid "Export HTML…"
+msgstr "Exportar HTML…"
+
+msgid "Select at least one field."
+msgstr "Seleccione al menos un campo."
+
+msgid "No topology issues found."
+msgstr "No se encontraron problemas de topología."
+
+msgid "{count} issue(s)"
+msgstr "{count} problema(s)"
+
+msgid "Click a finding to jump to the device."
+msgstr "Haga clic en un hallazgo para ir al dispositivo."
+
+msgid "No buildings/rooms in this project"
+msgstr "No hay edificios/estancias en este proyecto"
+
+msgid "+ Function"
+msgstr "+ Función"
+
+msgid "+ Space"
+msgstr "+ Espacio"
+
+msgid "+ Sub-space"
+msgstr "+ Subespacio"
+
+msgid "New Space"
+msgstr "Nuevo Espacio"
+
+msgid "Name"
+msgstr "Nombre"
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "Create"
+msgstr "Crear"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "Delete Space"
+msgstr "Eliminar Espacio"
+
+msgid "Move to"
+msgstr "Mover a"
+
+msgid "(Top Level)"
+msgstr "(Nivel Superior)"
+
+msgid "Delete this space and everything in it? Devices are only unassigned, not deleted."
+msgstr "¿Eliminar este espacio y todo su contenido? Los dispositivos solo se desasignan, no se eliminan."
+
+msgid "Assign Device"
+msgstr "Asignar Dispositivo"
+
+msgid "Assign a Device to This Space"
+msgstr "Asignar un Dispositivo a Este Espacio"
+
+msgid "No unassigned devices"
+msgstr "No hay dispositivos sin asignar"
+
+msgid "Remove from Space"
+msgstr "Quitar del Espacio"
+
+msgid "Without Space"
+msgstr "Sin Espacio"
+
+msgid "Building"
+msgstr "Edificio"
+
+msgid "Building Part"
+msgstr "Parte del Edificio"
+
+msgid "Floor"
+msgstr "Planta"
+
+msgid "Room"
+msgstr "Estancia"
+
+msgid "Corridor"
+msgstr "Pasillo"
+
+msgid "Stairway"
+msgstr "Escalera"
+
+msgid "Distribution Board"
+msgstr "Cuadro de Distribución"
+
+msgid "New Function"
+msgstr "Nueva Función"
+
+msgid "Rename"
+msgstr "Renombrar"
+
+msgid "Rename Function"
+msgstr "Renombrar Función"
+
+msgid "Assign Group Address"
+msgstr "Asignar Dirección de Grupo"
+
+msgid "Role (Optional)"
+msgstr "Rol (Opcional)"
+
+msgid "Custom"
+msgstr "Personalizado"
+
+msgid "Switchable Light"
+msgstr "Luz Conmutable"
+
+msgid "Dimmable Light"
+msgstr "Luz Regulable"
+
+msgid "Sun Protection"
+msgstr "Protección Solar"
+
+msgid "Heating (Switching Variable)"
+msgstr "Calefacción (Variable de Conmutación)"
+
+msgid "Heating (Continuous Variable)"
+msgstr "Calefacción (Variable Continua)"
+
+msgid "Switchable Socket"
+msgstr "Enchufe Conmutable"
+
+msgid "No project"
+msgstr "Sin proyecto"
+
+msgid "Installation"
+msgstr "Instalación"
+
+msgid "Group Address Style"
+msgstr "Estilo de Direcciones de Grupo"
+
+msgid "Created by"
+msgstr "Creado por"
+
+msgid "Tool Version"
+msgstr "Versión de la Herramienta"
+
+msgid "Schema Version"
+msgstr "Versión del Esquema"
+
+msgid "Last Modified"
+msgstr "Última Modificación"
+
+msgid "GUID"
+msgstr "GUID"
+
+msgid "Project ID"
+msgstr "ID del Proyecto"
+
+msgid "Original Project ID"
+msgstr "ID del Proyecto Original"
+
+msgid "Master Data (Signed)"
+msgstr "Datos Maestros (Firmados)"
+
+msgid "Validation File"
+msgstr "Archivo de Validación"
+
+msgid "Project Certificate"
+msgstr "Certificado del Proyecto"
+
+msgid "none"
+msgstr "ninguno"
+
+msgid "present ({size} bytes)"
+msgstr "presente ({size} bytes)"
+
+msgid "Password"
+msgstr "Contraseña"
+
+msgid "Protected"
+msgstr "Protegido"
+
+msgid "Not protected"
+msgstr "No protegido"
+
+msgid "Set Password"
+msgstr "Establecer Contraseña"
+
+msgid "Change Password"
+msgstr "Cambiar Contraseña"
+
+msgid "Remove Password"
+msgstr "Quitar Contraseña"
+
+msgid "Project Password"
+msgstr "Contraseña del Proyecto"
+
+msgid "The project and its exports are protected with this password; opening or importing them asks for it. A password change cannot be undone."
+msgstr "El proyecto y sus exportaciones están protegidos con esta contraseña; al abrirlos o importarlos se solicita. Un cambio de contraseña no se puede deshacer."
+
+msgid "Repeat Password"
+msgstr "Repetir Contraseña"
+
+msgid "The passwords do not match."
+msgstr "Las contraseñas no coinciden."
+
+msgid "A project with KNX Secure devices needs a password: it protects their keys in the project and in its exports."
+msgstr "Un proyecto con dispositivos KNX Secure necesita una contraseña: protege sus claves en el proyecto y en sus exportaciones."
+
+msgid "No project log entries"
+msgstr "No hay entradas en el registro del proyecto"
+
+msgid "Date"
+msgstr "Fecha"
+
+msgid "User"
+msgstr "Usuario"
+
+msgid "Comment"
+msgstr "Comentario"
+
+msgid "Filter log"
+msgstr "Filtrar registro"
+
+msgid "Decrypt Comments"
+msgstr "Descifrar Comentarios"
+
+msgid "Extract from Knx.Ets.Common.dll…"
+msgstr "Extraer de Knx.Ets.Common.dll…"
+
+msgid "ETS encrypts the log comments. Extract the decryption key from your own ETS installation's Knx.Ets.Common.dll to read them; nothing is sent anywhere."
+msgstr "ETS cifra los comentarios del registro. Extraiga la clave de descifrado del archivo Knx.Ets.Common.dll de su propia instalación de ETS para leerlos; no se envía nada a ninguna parte."
+
+msgid "Comments are encrypted"
+msgstr "Los comentarios están cifrados"
+
+msgid "Comments decrypted"
+msgstr "Comentarios descifrados"
+
+msgid "Extracting key…"
+msgstr "Extrayendo clave…"
+
+msgid "Key extracted; comments decrypted"
+msgstr "Clave extraída; comentarios descifrados"
+
+msgid "No .NET runtime found (install the .NET SDK, or run on Windows with ETS)."
+msgstr "No se encontró ningún runtime de .NET (instale el SDK de .NET o ejecútelo en Windows con ETS)."
+
+msgid "KNX Common Assembly"
+msgstr "Ensamblado KNX Common"
+
+msgid "All Files"
+msgstr "Todos los Archivos"
+
+msgid "Based on OpenKNXproducer"
+msgstr "Basado en OpenKNXproducer"
+
+msgid "Order Number"
+msgstr "Número de Pedido"
+
+msgid "Description"
+msgstr "Descripción"
+
+msgid "Parameters ({count})"
+msgstr "Parámetros ({count})"
+
+msgid "Group Objects ({count})"
+msgstr "Objetos de Grupo ({count})"
+
+msgid "Channels ({count})"
+msgstr "Canales ({count})"
+
+msgid "DALI (Bus)"
+msgstr "DALI (Bus)"
+
+msgid "Assigned Objects"
+msgstr "Objetos Asignados"
+
+msgid "Object"
+msgstr "Objeto"
+
+msgid "S"
+msgstr "E"
+
+msgid "S = Sending. This object sends its value to the group address; the others only receive it."
+msgstr "E = Emisor. Este objeto envía su valor a la dirección de grupo; los demás solo lo reciben."
+
+msgid "Click to open this device in the editor"
+msgstr "Haga clic para abrir este dispositivo en el editor"
+
+msgid "No devices"
+msgstr "No hay dispositivos"
+
+msgid "Loading application program…"
+msgstr "Cargando programa de aplicación…"
+
+msgid "This product has no application program."
+msgstr "Este producto no tiene programa de aplicación."
+
+msgid "Individual Address"
+msgstr "Dirección Individual"
+
+msgid "Program Device"
+msgstr "Programar Dispositivo"
+
+msgid "Test Programming"
+msgstr "Probar Programación"
+
+msgid "Unload Application Program"
+msgstr "Desprogramar Programa de Aplicación"
+
+msgid "This unloads the application program of the device at {address}. The device stops working until its application program is downloaded again."
+msgstr "Esto desprograma el programa de aplicación del dispositivo en {address}. El dispositivo deja de funcionar hasta que se vuelva a programar su programa de aplicación."
+
+msgid "This unloads the application program of the device at {address} and then resets its individual address to 15.15.255; for that, its programming button has to be pressed. The device stops working until it is commissioned again."
+msgstr "Esto desprograma el programa de aplicación del dispositivo en {address} y luego restablece su dirección individual a 15.15.255; para ello hay que pulsar su botón de programación. El dispositivo deja de funcionar hasta que se vuelva a poner en marcha."
+
+msgid "Overwrite Address"
+msgstr "Sobrescribir Dirección"
+
+msgid "Manufacturer's Plugin Not Available"
+msgstr "Plugin del Fabricante No Disponible"
+
+msgid "Serial Number Already Used"
+msgstr "Número de Serie Ya en Uso"
+
+msgid "Download"
+msgstr "Programar"
+
+msgid "Full"
+msgstr "Completo"
+
+msgid "Application Program"
+msgstr "Programa de Aplicación"
+
+msgid "Unload"
+msgstr "Desprogramar"
+
+msgid "Unload Application and Address"
+msgstr "Desprogramar Aplicación y Dirección"
+
+msgid "Partial: Parameters"
+msgstr "Parcial: Parámetros"
+
+msgid "Partial: Group Communication"
+msgstr "Parcial: Comunicación de Grupos"
+
+msgid "Overwrite Individual Address"
+msgstr "Sobrescribir Dirección Individual"
+
+msgid "This writes the individual address {address} to the device whose programming button is pressed. Continue?"
+msgstr "Esto escribe la dirección individual {address} en el dispositivo cuyo botón de programación está pulsado. ¿Continuar?"
+
+msgid "This overwrites the individual address of the device at its current address with {address}. Its programming button does not need to be pressed."
+msgstr "Esto sobrescribe la dirección individual del dispositivo en su dirección actual con {address}. No es necesario pulsar su botón de programación."
+
+msgid "Current Individual Address"
+msgstr "Dirección Individual Actual"
+
+msgid "Enter the device's current individual address, e.g. 1.1.5."
+msgstr "Introduzca la dirección individual actual del dispositivo, p. ej. 1.1.5."
+
+msgid "The device already has the individual address {address}."
+msgstr "El dispositivo ya tiene la dirección individual {address}."
+
+msgid "Individual Address via Serial Number"
+msgstr "Dirección Individual mediante Número de Serie"
+
+msgid "This writes the individual address {address} to the device with the serial number {serial}. Its programming button does not need to be pressed."
+msgstr "Esto escribe la dirección individual {address} en el dispositivo con el número de serie {serial}. No es necesario pulsar su botón de programación."
+
+msgid "Use Serial Number"
+msgstr "Utilizar SN"
+
+msgid "The serial number is already associated with device {device}."
+msgstr "El número de serie ya está asociado al dispositivo {device}."
+
+msgid "Serial Number"
+msgstr "Número de Serie"
+
+msgid "Enter the serial number as 12 hexadecimal digits, e.g. 0083:7AA2039C."
+msgstr "Introduzca el número de serie como 12 dígitos hexadecimales, p. ej. 0083:7AA2039C."
+
+msgid "Manufacturer Info"
+msgstr "Información del Fabricante"
+
+msgid "Application"
+msgstr "Aplicación"
+
+msgid "Application Version"
+msgstr "Versión de la Aplicación"
+
+msgid "Read from Device"
+msgstr "Leer del Dispositivo"
+
+msgid "Restart"
+msgstr "Reiniciar"
+
+msgid "Reset…"
+msgstr "Restablecer…"
+
+msgid "Master Reset"
+msgstr "Restablecimiento Maestro"
+
+msgid "Destructive: the device is reset over the bus and must be commissioned again. In KNX Secure mode this deactivates device security."
+msgstr "Destructivo: el dispositivo se restablece a través del bus y debe ponerse en marcha de nuevo. En modo KNX Secure esto desactiva la seguridad del dispositivo."
+
+msgid "Reset Type"
+msgstr "Tipo de Restablecimiento"
+
+msgid "I understand this resets the device"
+msgstr "Entiendo que esto restablece el dispositivo"
+
+msgid "Reset Device"
+msgstr "Restablecer Dispositivo"
+
+msgid "Factory Reset"
+msgstr "Restablecimiento de Fábrica"
+
+msgid "Factory Reset (Keep Address)"
+msgstr "Restablecimiento de Fábrica (Conservar Dirección)"
+
+msgid "Reset Individual Address"
+msgstr "Restablecer Dirección Individual"
+
+msgid "Delete Application Program"
+msgstr "Eliminar Programa de Aplicación"
+
+msgid "Reset Parameters"
+msgstr "Restablecer Parámetros"
+
+msgid "Reset Group Address Links"
+msgstr "Restablecer Enlaces de Direcciones de Grupo"
+
+msgid "Confirmed Restart"
+msgstr "Reinicio Confirmado"
+
+msgid "Set an individual address and connect to the bus first"
+msgstr "Primero establezca una dirección individual y conéctese al bus"
+
+msgid "The reported value matches {devices} in this project."
+msgstr "El valor notificado coincide con {devices} de este proyecto."
+
+msgid "Mask Version"
+msgstr "Versión de Máscara"
+
+msgid "Order Info"
+msgstr "Información de Pedido"
+
+msgid "Hardware Type"
+msgstr "Tipo de Hardware"
+
+msgid "Status"
+msgstr "Estado"
+
+msgid "no fault reported"
+msgstr "sin errores notificados"
+
+msgid "differs from project V{version} — program to apply"
+msgstr "difiere del proyecto V{version} — programar para aplicar"
+
+msgid "Product"
+msgstr "Producto"
+
+msgid "Product Ref"
+msgstr "Ref. de Producto"
+
+msgid "Program Ref"
+msgstr "Ref. de Programa"
+
+msgid "IP Configuration"
+msgstr "Configuración IP"
+
+msgid "Assignment"
+msgstr "Asignación"
+
+msgid "IP Address"
+msgstr "Dirección IP"
+
+msgid "Subnet Mask"
+msgstr "Máscara de Subred"
+
+msgid "Default Gateway"
+msgstr "Pasarela Predeterminada"
+
+msgid "MAC Address"
+msgstr "Dirección MAC"
+
+msgid "Download PDF Manual"
+msgstr "Descargar Manual PDF"
+
+msgid "Searching Manual…"
+msgstr "Buscando Manual…"
+
+msgid "Find this device's manual (via the KNX device database, else a manufacturer search) and open it in your browser. Best effort - opens the KNX device search if no direct document is found."
+msgstr "Busca el manual de este dispositivo (en la base de datos de dispositivos KNX o, si no, mediante una búsqueda del fabricante) y lo abre en su navegador. Sin garantías - abre la búsqueda de dispositivos KNX si no se encuentra ningún documento directo."
+
+msgid "Update to V{version}"
+msgstr "Actualizar a V{version}"
+
+msgid "Change Application Program"
+msgstr "Cambiar Programa de Aplicación"
+
+msgid "Update Application Program Version"
+msgstr "Actualizar Versión del Programa de Aplicación"
+
+msgid "Update"
+msgstr "Actualizar"
+
+msgid "Updating the application program…"
+msgstr "Actualizando el programa de aplicación…"
+
+msgid "Changing the application program…"
+msgstr "Cambiando el programa de aplicación…"
+
+msgid "Changing the application program failed"
+msgstr "Error al cambiar el programa de aplicación"
+
+msgid "Updating the application program failed"
+msgstr "Error al actualizar el programa de aplicación"
+
+msgid "Copied"
+msgstr "Copiado"
+
+msgid "Click to copy"
+msgstr "Haga clic para copiar"
+
+msgid "Filter parameters…"
+msgstr "Filtrar parámetros…"
+
+msgid "Apply Changes to All {count} Identical Devices"
+msgstr "Aplicar Cambios a los {count} Dispositivos Idénticos"
+
+msgid "Apply Changes to All Channels"
+msgstr "Aplicar Cambios a Todos los Canales"
+
+msgid "Editing {count} devices — edits apply to all, diverging values show <differs>"
+msgstr "Editando {count} dispositivos — los cambios se aplican a todos, los valores divergentes muestran <distinto>"
+
+msgid "Hardware"
+msgstr "Hardware"
+
+msgid "Firmware"
+msgstr "Firmware"
+
+msgid "Com Flags ({count})"
+msgstr "Indicadores Com ({count})"
+
+msgid "Load Procedures ({count})"
+msgstr "Procedimientos de Carga ({count})"
+
+msgid "Preview Memory"
+msgstr "Vista Previa de Memoria"
+
+msgid "Memory Preview"
+msgstr "Vista Previa de la Memoria"
+
+msgid "Load Reference File"
+msgstr "Cargar Archivo de Referencia"
+
+msgid "Save Memory Dump"
+msgstr "Guardar Volcado de Memoria"
+
+msgid "Save…"
+msgstr "Guardar…"
+
+msgid "Diff…"
+msgstr "Comparar…"
+
+msgid "Clear Diff"
+msgstr "Borrar Comparación"
+
+msgid "Memory Dumps (*.bin)"
+msgstr "Volcados de Memoria (*.bin)"
+
+msgid "{count} bytes"
+msgstr "{count} bytes"
+
+msgid "No memory segments."
+msgstr "No hay segmentos de memoria."
+
+msgid "Cannot encode memory image: {error}"
+msgstr "No se puede codificar la imagen de memoria: {error}"
+
+msgid "The file could not be read or written: {error}"
+msgstr "No se pudo leer o escribir el archivo: {error}"
+
+msgid "Programming Test Result"
+msgstr "Resultado de la Prueba de Programación"
+
+msgid "Evaluation failed"
+msgstr "Error en la evaluación"
+
+msgid "Read-only test: checks that the download function generates the same image as what is already programmed on the device. Nothing is written to the device."
+msgstr "Prueba de solo lectura: comprueba que la función de programación genera la misma imagen que la ya programada en el dispositivo. No se escribe nada en el dispositivo."
+
+msgid "Cannot run: the project was changed since it was opened. This test compares the generated image against the device's programmed state, which only matches the project as it was opened. Undo your changes in this session to test."
+msgstr "No se puede ejecutar: el proyecto se ha modificado desde que se abrió. Esta prueba compara la imagen generada con el estado programado del dispositivo, que solo coincide con el proyecto tal como se abrió. Deshaga sus cambios en esta sesión para realizar la prueba."
+
+msgid "Cannot run: no KNX connection. Connect to a gateway (Connection menu) and make sure the device is reachable at its individual address."
+msgstr "No se puede ejecutar: no hay conexión KNX. Conéctese a una pasarela (menú Conexión) y asegúrese de que el dispositivo es accesible en su dirección individual."
+
+msgid "Match: the generated image is identical to what is on the device"
+msgstr "Coincide: la imagen generada es idéntica a la del dispositivo"
+
+msgid "Mismatch: {bytes} byte(s) differ from the device in {locations} location(s)"
+msgstr "No coincide: {bytes} byte(s) difieren del dispositivo en {locations} ubicación(es)"
+
+msgid "{matched} matched, {changed} would change"
+msgstr "{matched} coinciden, {changed} cambiarían"
+
+msgid "Only for ETS 6 devices: this test compares the device against an image generated the ETS 6 way. A device last programmed with ETS 5 uses a different byte layout and will show large false differences - the result is only meaningful for a device last programmed with ETS 6."
+msgstr "Solo para dispositivos de ETS 6: esta prueba compara el dispositivo con una imagen generada al modo de ETS 6. Un dispositivo programado por última vez con ETS 5 usa una disposición de bytes distinta y mostrará grandes diferencias falsas - el resultado solo es significativo para un dispositivo programado por última vez con ETS 6."
+
+msgid "Structural differences (whole tables differ) can mean the device was last programmed with ETS 5, whose byte layout differs. Differences in values only usually mean the device holds a different configuration."
+msgstr "Las diferencias estructurales (tablas enteras distintas) pueden indicar que el dispositivo se programó por última vez con ETS 5, cuya disposición de bytes es distinta. Las diferencias solo en valores suelen indicar que el dispositivo tiene una configuración distinta."
+
+msgid "Location"
+msgstr "Ubicación"
+
+msgid "Size"
+msgstr "Tamaño"
+
+msgid "Changed"
+msgstr "Cambiado"
+
+msgid "match"
+msgstr "coincide"
+
+msgid "would change"
+msgstr "cambiaría"
+
+msgid "device-managed"
+msgstr "gestionado por el dispositivo"
+
+msgid "System byte the device sets itself at runtime (e.g. a download detection byte reset by the application after a download). A difference here is expected and does not indicate a bad download."
+msgstr "Byte de sistema que el propio dispositivo establece en tiempo de ejecución (p. ej. un byte de detección de programación que la aplicación restablece tras una programación). Una diferencia aquí es esperable y no indica una programación defectuosa."
+
+msgid "plus {bytes} device-managed runtime byte(s) (expected, benign)"
+msgstr "más {bytes} byte(s) de tiempo de ejecución gestionados por el dispositivo (esperado, inofensivo)"
+
+msgid "No configured differences: the device already carries this configuration. The differences below are benign (see notes)."
+msgstr "Sin diferencias configuradas: el dispositivo ya tiene esta configuración. Las diferencias siguientes son inofensivas (vea las notas)."
+
+msgid "sets default"
+msgstr "establece valor por defecto"
+
+msgid "This byte is written for a neighbouring parameter; the differing bit is not driven by any active parameter and is only reset to the application default. The device holds an older value (e.g. from a previous configuration or mode) that programming will normalise. Benign."
+msgstr "Este byte se escribe para un parámetro vecino; el bit distinto no lo controla ningún parámetro activo y solo se restablece al valor por defecto de la aplicación. El dispositivo tiene un valor antiguo (p. ej. de una configuración o modo anterior) que la programación normalizará. Inofensivo."
+
+msgid "plus {bytes} byte(s) reset to the application default (the device holds an older value; benign, will be normalised on programming)"
+msgstr "más {bytes} byte(s) restablecidos al valor por defecto de la aplicación (el dispositivo tiene un valor antiguo; inofensivo, se normalizará al programar)"
+
+msgid "Export Ist/Soll…"
+msgstr "Exportar Real/Teórico…"
+
+msgid "Export Path:"
+msgstr "Ruta de Exportación:"
+
+msgid "Export Programming Test Result"
+msgstr "Exportar Resultado de la Prueba de Programación"
+
+msgid "memory {address}"
+msgstr "memoria {address}"
+
+msgid "object {object} property {property}"
+msgstr "objeto {object} propiedad {property}"
+
+msgid "Filter devices (name, address)…"
+msgstr "Filtrar dispositivos (nombre, dirección)…"
+
+msgid "No devices. Open or import a project (File menu), or right-click here to add an area."
+msgstr "No hay dispositivos. Abra o importe un proyecto (menú Archivo), o haga clic con el botón derecho aquí para añadir un área."
+
+msgid "Filter group addresses (address, name)…"
+msgstr "Filtrar direcciones de grupo (dirección, nombre)…"
+
+msgid "Filter rooms, devices, functions…"
+msgstr "Filtrar estancias, dispositivos, funciones…"
+
+msgid "Area {area}"
+msgstr "Área {area}"
+
+msgid "{name} (Area {area})"
+msgstr "{name} (Área {area})"
+
+msgid "Line {area}.{line}"
+msgstr "Línea {area}.{line}"
+
+msgid "{name} (Line {area}.{line})"
+msgstr "{name} (Línea {area}.{line})"
+
+msgid "Unassigned ({count})"
+msgstr "Sin asignar ({count})"
+
+msgid "Add Area"
+msgstr "Añadir Área"
+
+msgid "Add Line"
+msgstr "Añadir Línea"
+
+msgid "Copy Address"
+msgstr "Copiar Dirección"
+
+msgid "Duplicate"
+msgstr "Duplicar"
+
+msgid "Copy Configuration"
+msgstr "Copiar Configuración"
+
+msgid "Compare with…"
+msgstr "Comparar con…"
+
+msgid "Compare Devices"
+msgstr "Comparar Dispositivos"
+
+msgid "Open a project with at least two devices to compare."
+msgstr "Abra un proyecto con al menos dos dispositivos para comparar."
+
+msgid "Only Differences"
+msgstr "Solo Diferencias"
+
+msgid "Filter devices by address, name or description…"
+msgstr "Filtrar dispositivos por dirección, nombre o descripción…"
+
+msgid "{count} differences"
+msgstr "{count} diferencias"
+
+msgid "Parameters"
+msgstr "Parámetros"
+
+msgid "Group Objects"
+msgstr "Objetos de Grupo"
+
+msgid "No differences"
+msgstr "Sin diferencias"
+
+msgid "Field"
+msgstr "Campo"
+
+msgid "Device A"
+msgstr "Dispositivo A"
+
+msgid "Device B"
+msgstr "Dispositivo B"
+
+msgid "Paste Configuration"
+msgstr "Pegar Configuración"
+
+msgid "Paste configuration onto '{name}':"
+msgstr "Pegar configuración en '{name}':"
+
+msgid "Paste configuration onto {count} selected devices:"
+msgstr "Pegar configuración en {count} dispositivos seleccionados:"
+
+msgid "Duplicate '{name}':"
+msgstr "Duplicar '{name}':"
+
+msgid "Group Address Links"
+msgstr "Enlaces de Direcciones de Grupo"
+
+msgid "Paste"
+msgstr "Pegar"
+
+msgid "Delete Device"
+msgstr "Eliminar Dispositivo"
+
+msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
+msgstr "¿Eliminar '{name}'? Se eliminan sus objetos de grupo y sus enlaces a direcciones de grupo, y se libera su dirección individual. Esto se puede deshacer."
+
+msgid "New Area"
+msgstr "Nueva Área"
+
+msgid "New Line"
+msgstr "Nueva Línea"
+
+msgid "Number"
+msgstr "Número"
+
+msgid "Add"
+msgstr "Añadir"
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "Load"
+msgstr "Cargar"
+
+msgid "Copy Log"
+msgstr "Copiar Registro"
+
+msgid "New Group Address"
+msgstr "Nueva Dirección de Grupo"
+
+msgid "New Main Group"
+msgstr "Nuevo Grupo Principal"
+
+msgid "New Middle Group"
+msgstr "Nuevo Grupo Intermedio"
+
+msgid "New Folder"
+msgstr "Nueva Carpeta"
+
+msgid "Rename Folder"
+msgstr "Renombrar Carpeta"
+
+msgid "Delete Folder"
+msgstr "Eliminar Carpeta"
+
+msgid "Main group name (the next free number is assigned automatically)"
+msgstr "Nombre del grupo principal (se asigna automáticamente el siguiente número libre)"
+
+msgid "Middle group name (the next free number is assigned automatically)"
+msgstr "Nombre del grupo intermedio (se asigna automáticamente el siguiente número libre)"
+
+msgid "Delete this folder and every group address in it? This can be undone."
+msgstr "¿Eliminar esta carpeta y todas las direcciones de grupo que contiene? Esto se puede deshacer."
+
+msgid "Rename Group Address"
+msgstr "Renombrar Dirección de Grupo"
+
+msgid "Change Address…"
+msgstr "Cambiar Dirección…"
+
+msgid "New group address (links are kept):"
+msgstr "Nueva dirección de grupo (los enlaces se conservan):"
+
+msgid "Invalid address or already in use."
+msgstr "Dirección no válida o ya en uso."
+
+msgid "Security"
+msgstr "Seguridad"
+
+msgid "Automatic"
+msgstr "Automático"
+
+msgid "Secured"
+msgstr "Asegurado"
+
+msgid "Not Secured"
+msgstr "No Asegurado"
+
+msgid "A secured group address can only be linked to devices that are commissioned securely."
+msgstr "Una dirección de grupo asegurada solo puede enlazarse a dispositivos puestos en marcha de forma segura."
+
+msgid "Not every device linked to this group address is commissioned securely, so it cannot be secured."
+msgstr "No todos los dispositivos enlazados a esta dirección de grupo están puestos en marcha de forma segura, por lo que no puede asegurarse."
+
+msgid "Set Datapoint Type"
+msgstr "Establecer Tipo de Punto de Datos"
+
+msgid "Address"
+msgstr "Dirección"
+
+msgid "Datapoint type (e.g. DPST-1-1); empty to clear"
+msgstr "Tipo de punto de datos (p. ej. DPST-1-1); vacío para borrar"
+
+msgid "Project: {name}"
+msgstr "Proyecto: {name}"
+
+msgid "(unsaved)"
+msgstr "(sin guardar)"
+
+msgid "No history"
+msgstr "Sin historial"
+
+msgid "Restore"
+msgstr "Restaurar"
+
+msgid "Add device: {name}"
+msgstr "Añadir dispositivo: {name}"
+
+msgid "Remove device: {name}"
+msgstr "Eliminar dispositivo: {name}"
+
+msgid "Address: {old} -> {new}"
+msgstr "Dirección: {old} -> {new}"
+
+msgid "Name: {old} -> {new}"
+msgstr "Nombre: {old} -> {new}"
+
+msgid "Parameter: {old} -> {new}"
+msgstr "Parámetro: {old} -> {new}"
+
+msgid "DPT: {old} -> {new}"
+msgstr "DPT: {old} -> {new}"
+
+msgid "Flag: {flag} -> {state}"
+msgstr "Indicador: {flag} -> {state}"
+
+msgid "Group address {address} created"
+msgstr "Dirección de grupo {address} creada"
+
+msgid "Group address {address} removed"
+msgstr "Dirección de grupo {address} eliminada"
+
+msgid "Group address: {old} -> {new}"
+msgstr "Dirección de grupo: {old} -> {new}"
+
+msgid "Group object linked to group address"
+msgstr "Objeto de grupo enlazado a la dirección de grupo"
+
+msgid "Group object unlinked from group address"
+msgstr "Objeto de grupo desenlazado de la dirección de grupo"
+
+msgid "Area {number} created"
+msgstr "Área {number} creada"
+
+msgid "Area {number} removed"
+msgstr "Área {number} eliminada"
+
+msgid "Area: {old} -> {new}"
+msgstr "Área: {old} -> {new}"
+
+msgid "Line {number} created"
+msgstr "Línea {number} creada"
+
+msgid "Line {number} removed"
+msgstr "Línea {number} eliminada"
+
+msgid "Line: {old} -> {new}"
+msgstr "Línea: {old} -> {new}"
+
+msgid "This action can only be performed when the individual address of the device is already downloaded."
+msgstr "Esta acción solo se puede realizar cuando la dirección individual del dispositivo ya está programada."
+
+msgid "Button {0} executed. "
+msgstr "Botón {0} ejecutado. "
+
+msgid "A parameter script is running for this device."
+msgstr "Se está ejecutando un script de parámetros para este dispositivo."
+
+msgid "The Device has no valid address or is not linked to an area or line."
+msgstr "El dispositivo no tiene una dirección válida o no está vinculado a un área o línea."
+
+msgid "Parameter Script"
+msgstr "Script de parámetros"
+
+msgid "Executing Script"
+msgstr "Ejecución del script"
+
+msgid "Script not responding"
+msgstr "El script no responde"
+
+msgid "Force Stop"
+msgstr "Forzar Detención"
+
+msgid "The script was stopped."
+msgstr "El script se ha detenido."
+
+msgid "Canceling…"
+msgstr "Cancelando…"
+
+msgid "No connection to the bus."
+msgstr "Sin conexión con el bus."
+
+msgid "Parameter value cannot be set, because validation failed."
+msgstr "No puede definirse el valor en los parámetros porque la validación ha fallado."
+
+msgid "Operations"
+msgstr "Operaciones"
+
+msgid "Active"
+msgstr "Activo"
+
+msgid "Cancel All"
+msgstr "Cancelar Todo"
+
+msgid "Clear History"
+msgstr "Borrar Historial"
+
+msgid "No operations."
+msgstr "No hay operaciones."
+
+msgid "Device Info"
+msgstr "Información de Dispositivo"
+
+msgid "Device Info (With Group Communication)"
+msgstr "Información de Dispositivo (con Comunicación de Grupos)"
+
+msgid "Reading"
+msgstr "Leyendo"
+
+msgid "General"
+msgstr "General"
+
+msgid "Group Communication"
+msgstr "Comunicación de Grupos"
+
+msgid "Device Manufacturer"
+msgstr "Fabricante"
+
+msgid "Firmware Version"
+msgstr "Versión de Firmware"
+
+msgid "Programming Mode"
+msgstr "Modo Programación"
+
+msgid "Load State"
+msgstr "Estado de Programación"
+
+msgid "Address Table Load State"
+msgstr "Estado de Programación de la Tabla de Direcciones"
+
+msgid "Association Table Load State"
+msgstr "Estado de Programación de la Tabla de Asociaciones"
+
+msgid "Group Object Table Load State"
+msgstr "Estado de Programación de la Tabla de Objetos de Grupo"
+
+msgid "Reading the tables failed: {error}"
+msgstr "Error al leer las tablas: {error}"
+
+msgid "On"
+msgstr "Encendido"
+
+msgid "Off"
+msgstr "Apagado"
+
+msgid "Unloaded"
+msgstr "Desprogramado"
+
+msgid "Loaded"
+msgstr "Cargado"
+
+msgid "Loading"
+msgstr "Cargando"
+
+msgid "Error"
+msgstr "Error"
+
+msgid "Unloading"
+msgstr "Desprogramando"
+
+msgid "Load Completing"
+msgstr "Completando Carga"
+
+msgid "Yes"
+msgstr "Sí"
+
+msgid "No"
+msgstr "No"
+
+msgid "Also read the group communication?"
+msgstr "¿Leer también la comunicación de grupos?"
+
+msgid "The application on the device is not in the catalog, so its tables cannot be located"
+msgstr "La aplicación del dispositivo no está en el catálogo, por lo que no se pueden localizar sus tablas"
+
+msgid "This device can only be programmed with the manufacturer's plugin, which is not available here."
+msgstr "Este dispositivo solo puede programarse con el plugin del fabricante, que no está disponible aquí."
+
+msgid "Parameters in the Manufacturer's Plugin"
+msgstr "Parámetros en el Plugin del Fabricante"
+
+msgid "The manufacturer sets this device's parameters in its own plugin dialog, which XKNX Editor cannot run, so they cannot be changed here. A download writes their current values unchanged; the group objects can be linked as usual."
+msgstr "El fabricante establece los parámetros de este dispositivo en su propio diálogo de plugin, que XKNX Editor no puede ejecutar, por lo que no pueden cambiarse aquí. Una programación escribe sus valores actuales sin cambios; los objetos de grupo pueden enlazarse como de costumbre."
+
+msgid "Edit parameters anyway"
+msgstr "Editar parámetros de todos modos"
+
+msgid "The manufacturer configures this device with its own plugin dialog; settings made there are not shown here."
+msgstr "El fabricante configura este dispositivo con su propio diálogo de plugin; los ajustes realizados allí no se muestran aquí."
+
+msgid "The manufacturer programs this device with its own plugin; the standard download is used here."
+msgstr "El fabricante programa este dispositivo con su propio plugin; aquí se usa la programación estándar."
+
+msgid "The manufacturer keeps part of this device's data with its own plugin, which is not available here."
+msgstr "El fabricante gestiona parte de los datos de este dispositivo con su propio plugin, que no está disponible aquí."
+
+msgid "The manufacturer plugin is not available here:"
+msgstr "El plugin del fabricante no está disponible aquí:"
+
+msgid "Only it can program the device."
+msgstr "Solo el plugin puede programar el dispositivo."
+
+msgid "Settings made in its dialog are not shown."
+msgstr "Los ajustes realizados en su diálogo no se muestran."
+
+msgid "The standard download is used instead."
+msgstr "En su lugar se usa la programación estándar."
+
+msgid "Part of the device data is not available."
+msgstr "Parte de los datos del dispositivo no está disponible."
+
+msgid "This device is also configured with separate software from the manufacturer."
+msgstr "Este dispositivo también se configura con un software independiente del fabricante."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that XKNX Editor can't run. The device's standard parameters can still be programmed, but not the extra functionality that app provides."
+msgstr "Este dispositivo incluye una aplicación de configuración del fabricante (“{name}”) que XKNX Editor no puede ejecutar. Los parámetros estándar del dispositivo se pueden programar igualmente, pero no la funcionalidad adicional que aporta esa aplicación."
+
+msgid "This device includes a manufacturer configuration app (“{name}”) that can't be run directly in XKNX Editor — but it has been ported, so its most important functions are usable here (see the DALI tab)."
+msgstr "Este dispositivo incluye una aplicación de configuración del fabricante (“{name}”) que no se puede ejecutar directamente en XKNX Editor — pero se ha portado, de modo que sus funciones más importantes se pueden usar aquí (véase la pestaña DALI)."
+
+msgid "The manufacturer allows programming this device only with its plugin, which is not available here. Programming it without the plugin may leave the device misconfigured or in an error state."
+msgstr "El fabricante solo permite programar este dispositivo con su plugin, que no está disponible aquí. Programarlo sin el plugin puede dejar el dispositivo mal configurado o en estado de error."
+
+msgid "Program Without the Manufacturer's Plugin Anyway"
+msgstr "Programar Igualmente sin el Plugin del Fabricante"
+
+msgid "Downloading"
+msgstr "Programando"
+
+msgid "Please press the programming button"
+msgstr "Pulse el botón de programación"
+
+msgid "Waiting for confirmation"
+msgstr "Esperando confirmación"
+
+msgid "The application program currently loaded in the device is different from the projected application program"
+msgstr "El programa de aplicación actualmente cargado en el dispositivo es diferente del programa de aplicación proyectado"
+
+msgid "Do you want to overwrite the application program (this may take several minutes)?"
+msgstr "¿Desea sobrescribir el programa de aplicación (esto puede tardar varios minutos)?"
+
+msgid "The application program currently loaded in the device does not comply with the projected application program. You may try a full instead of a partial download."
+msgstr "El programa de aplicación cargado actualmente en el dispositivo no se corresponde con el programa de aplicación proyectado. Puede intentar una programación completa en lugar de una parcial."
+
+msgid "Incompatible mask version: {found} instead of {expected}"
+msgstr "Versión de máscara incompatible: {found} en lugar de {expected}"
+
+msgid "Waiting"
+msgstr "Esperando"
+
+msgid "Finished"
+msgstr "Finalizado"
+
+msgid "Canceled"
+msgstr "Cancelado"
+
+msgid "Cancelled by user."
+msgstr "Cancelado por el usuario."
+
+msgid "Started by an MCP client."
+msgstr "Iniciado por un cliente MCP."
+
+msgid "failed"
+msgstr "Sin éxito"
+
+msgid "No details available"
+msgstr "No hay detalles disponibles"
+
+msgid "Connection: {connection}"
+msgstr "Conexión: {connection}"
+
+msgid "Start: {time}"
+msgstr "Inicio: {time}"
+
+msgid "End: {time}"
+msgstr "Fin: {time}"
+
+msgid "The product data of this device is missing - its application program is not in the catalog. Import its product to edit the device."
+msgstr "Faltan los datos de producto de este dispositivo: su programa de aplicación no está en el catálogo. Importe su producto para editar el dispositivo."
+
+msgid "DIN Rail Mounting"
+msgstr "Montaje en Carril DIN"
+
+msgid "Bus Current"
+msgstr "Corriente del Bus"
+
+msgid "Read Value"
+msgstr "Leer Valor"
+
+msgid "Write Value…"
+msgstr "Escribir Valor…"
+
+msgid "Write Value"
+msgstr "Escribir Valor"
+
+msgid "Data Type"
+msgstr "Tipo de Datos"
+
+msgid "Value"
+msgstr "Valor"
+
+msgid "Set the data type of the group address to write a value."
+msgstr "Establezca el tipo de datos de la dirección de grupo para escribir un valor."
+
+msgid "Write"
+msgstr "Escribir"
+
+msgid "Not connected to the bus."
+msgstr "Sin conexión con el bus."
+
+msgid "Export Group Addresses…"
+msgstr "Exportar Direcciones de Grupo…"
+
+msgid "Import Group Addresses…"
+msgstr "Importar Direcciones de Grupo…"
+
+msgid "Import Group Addresses"
+msgstr "Importar Direcciones de Grupo"
+
+msgid "Group Address Files (XML, CSV)"
+msgstr "Archivos de Direcciones de Grupo (XML, CSV)"
+
+msgid "{added} group addresses added, {updated} updated."
+msgstr "{added} direcciones de grupo añadidas, {updated} actualizadas."
+
+msgid "{count} group addresses could not be placed in a group."
+msgstr "{count} direcciones de grupo no se pudieron asignar a ningún grupo."
+
+msgid "The file could not be imported: {error}"
+msgstr "No se pudo importar el archivo: {error}"
+
+msgid "The file uses {file} group addresses, but the project uses {project} group addresses."
+msgstr "El archivo usa direcciones de grupo {file}, pero el proyecto usa direcciones de grupo {project}."
+
+msgid "3-level"
+msgstr "de 3 niveles"
+
+msgid "2-level"
+msgstr "de 2 niveles"
+
+msgid "free"
+msgstr "libres"
+
+msgid "Export"
+msgstr "Exportar"
+
+msgid "Import"
+msgstr "Importar"
+
+msgid "Plain"
+msgstr "Sin cifrar"
+
+msgid "Deactivate Secure Commissioning"
+msgstr "Desactivar puesta en marcha segura"
+
+msgid "These group addresses will then communicate in the clear:"
+msgstr "Estas direcciones de grupo se comunicarán entonces sin cifrar:"
+
+msgid "The device's group objects will be removed from these secured group addresses:"
+msgstr "Los objetos de grupo del dispositivo se eliminarán de estas direcciones de grupo aseguradas:"
+
+msgid "Deactivate"
+msgstr "Desactivar"
+
+msgid "Secure Commissioning"
+msgstr "Puesta en marcha segura"
+
+msgid "Add Device Certificate…"
+msgstr "Añadir Certificado de Dispositivo…"
+
+msgid "Activated"
+msgstr "Activada"
+
+msgid "Deactivated"
+msgstr "Desactivada"
+
+msgid "A group object that requires secure communication would end up on a group address in the clear."
+msgstr "Un objeto de grupo que requiere comunicación segura quedaría en una dirección de grupo sin cifrar."
+
+msgid "Later"
+msgstr "Más Tarde"
+
+msgid "Don't Ask When Adding Devices"
+msgstr "No Preguntar al Añadir Dispositivos"
+
+msgid "KNX IP Secure"
+msgstr "KNX IP Secure"
+
+msgid "Show Passwords"
+msgstr "Mostrar Contraseñas"
+
+msgid "Secure Tunneling"
+msgstr "Tunnelling Seguro"
+
+msgid "Commissioning Password"
+msgstr "Contraseña de Puesta en Marcha"
+
+msgid "Authentication Code"
+msgstr "Código de Autenticación"
+
+msgid "Interface"
+msgstr "Interfaz"
+
+msgid "Routing"
+msgstr "Enrutamiento"
+
+msgid "Tunnel {address}"
+msgstr "Túnel {address}"
+
+msgid "A password needs 1 to 20 Latin-1 characters."
+msgstr "Una contraseña necesita de 1 a 20 caracteres Latin-1."
+
+msgid "Close"
+msgstr "Cerrar"
+
+msgid "IP Backbone Security"
+msgstr "Seguridad de la Red Troncal IP"
+
+msgid "Device Certificates"
+msgstr "Certificados de Dispositivo"
+
+msgid "Manage…"
+msgstr "Gestionar…"
+
+msgid "The project has no device certificates."
+msgstr "El proyecto no tiene certificados de dispositivo."
+
+msgid "The security tables of {device} cannot hold this link."
+msgstr "Las tablas de seguridad de {device} no pueden alojar este enlace."
+
+msgid "Point-to-Point and Broadcast"
+msgstr "Punto a Punto y Broadcast"
+
+msgid "Blocked"
+msgstr "Bloqueado"
+
+msgid "Routed"
+msgstr "Enrutado"
+
+msgid "Connect to a KNX interface to commission the DALI bus."
+msgstr "Conéctese a una interfaz KNX para poner en marcha el bus DALI."
+
+msgid "Scan Bus"
+msgstr "Escanear Bus"
+
+msgid "All ECGs On"
+msgstr "Encender Todos los ECG"
+
+msgid "All Off"
+msgstr "Apagar Todos"
+
+msgid "New Installation…"
+msgstr "Nueva Instalación…"
+
+msgid "Post Installation…"
+msgstr "Instalación Posterior…"
+
+msgid "Running: {task}"
+msgstr "En curso: {task}"
+
+msgid "scanning the bus"
+msgstr "escaneando el bus"
+
+msgid "switching all ECGs"
+msgstr "conmutando todos los ECG"
+
+msgid "blinking"
+msgstr "parpadeo"
+
+msgid "stopping the blinking"
+msgstr "deteniendo el parpadeo"
+
+msgid "new installation"
+msgstr "nueva instalación"
+
+msgid "post installation"
+msgstr "instalación posterior"
+
+msgid "programming the groups"
+msgstr "programando los grupos"
+
+msgid "programming the scenes"
+msgstr "programando las escenas"
+
+msgid "{count} found"
+msgstr "{count} encontrados"
+
+msgid "Use 'Scan Bus' to read the DALI bus."
+msgstr "Use 'Escanear Bus' para leer el bus DALI."
+
+msgid "Firmware {version}"
+msgstr "Firmware {version}"
+
+msgid "Confirm DALI Programming"
+msgstr "Confirmar Programación DALI"
+
+msgid "Continue"
+msgstr "Continuar"
+
+msgid "New installation scans the DALI bus again and REASSIGNS the short\naddress of every ballast. This cannot be undone. Continue?"
+msgstr "La nueva instalación escanea de nuevo el bus DALI y REASIGNA la dirección\ncorta de cada balasto. Esto no se puede deshacer. ¿Continuar?"
+
+msgid "Post installation scans the bus for new ballasts and updates their addressing.\nThis changes the device. Continue?"
+msgstr "La instalación posterior busca nuevos balastos en el bus y actualiza su direccionamiento.\nEsto modifica el dispositivo. ¿Continuar?"
+
+msgid "Write the group assignment to the DALI bus. This applies the groups to the\ngateway and its ballasts. Continue?"
+msgstr "Escribir la asignación de grupos en el bus DALI. Esto aplica los grupos a la\npasarela y a sus balastos. ¿Continuar?"
+
+msgid "Write the scene values to the DALI bus. Continue?"
+msgstr "Escribir los valores de escena en el bus DALI. ¿Continuar?"
+
+msgid "{count} ECG(s) present"
+msgstr "{count} ECG presentes"
+
+msgid "Group"
+msgstr "Grupo"
+
+msgid "Long Address"
+msgstr "Dirección Larga"
+
+msgid "Alarm"
+msgstr "Alarma"
+
+msgid "Blink"
+msgstr "Parpadear"
+
+msgid "Stop"
+msgstr "Detener"
+
+msgid "Program Groups…"
+msgstr "Programar Grupos…"
+
+msgid "Scenes"
+msgstr "Escenas"
+
+msgid "Assign the ECGs to groups above to define scenes."
+msgstr "Asigne los ECG a grupos arriba para definir escenas."
+
+msgid "Scene"
+msgstr "Escena"
+
+msgid "Scene {number}"
+msgstr "Escena {number}"
+
+msgid "Group {number}"
+msgstr "Grupo {number}"
+
+msgid "Program Scenes…"
+msgstr "Programar Escenas…"
+
+msgid "Single"
+msgstr "Individual"
+
+msgid "Unassigned"
+msgstr "Sin asignar"
+
+msgid "Procedure {number}  ({count} steps)"
+msgstr "Procedimiento {number}  ({count} pasos)"
+
+msgid "Kind"
+msgstr "Tipo"
+
+msgid "Applies To"
+msgstr "Se Aplica a"
+
+msgid "Details"
+msgstr "Detalles"
+
+msgid "Scope: {scope}"
+msgstr "Ámbito: {scope}"
+
+msgid "Additional Individual Addresses"
+msgstr "Direcciones Individuales Adicionales"
+
+msgid "Additional Individual Address"
+msgstr "Dirección Individual Adicional"
+
+msgid "Assign Missing Addresses"
+msgstr "Asignar Direcciones que Faltan"
+
+msgid "The line does not provide enough addresses for all necessary additional addresses."
+msgstr "La línea no proporciona suficientes direcciones para todas las direcciones adicionales necesarias."
+
+msgid "Enter a device number from 1 to 255 or a full individual address in the device's line."
+msgstr "Introduzca un número de dispositivo de 1 a 255 o una dirección individual completa en la línea del dispositivo."
+
+msgid "An additional address must be in the device's line {line}."
+msgstr "Una dirección adicional debe estar en la línea {line} del dispositivo."
+
+msgid "The individual address {address} is already used in this line."
+msgstr "La dirección individual {address} ya se usa en esta línea."
+
+msgid "Changed additional address of device '{0}' from '{1}' to '{2}'."
+msgstr "Dirección adicional del dispositivo '{0}' cambiada de '{1}' a '{2}'."
+
+msgid "Change additional address names"
+msgstr "Cambiar nombres de direcciones adicionales"
+
+msgid "Change additional address descriptions"
+msgstr "Cambiar descripciones de direcciones adicionales"
+
+msgid "Assign additional addresses"
+msgstr "Asignar direcciones adicionales"
+
+msgid "Change additional addresses"
+msgstr "Cambiar direcciones adicionales"
+
+msgid "Add device {name}"
+msgstr "Añadir dispositivo {name}"
+
+msgid "Set {ref} = {value}"
+msgstr "Establecer {ref} = {value}"
+
+msgid "Change"
+msgstr "Cambio"
+
+msgid "Create area {address}"
+msgstr "Crear área {address}"
+
+msgid "Create line {address}"
+msgstr "Crear línea {address}"
+
+msgid "Add segment"
+msgstr "Añadir segmento"
+
+msgid "Create group address {address}"
+msgstr "Crear dirección de grupo {address}"
+
+msgid "Import group addresses"
+msgstr "Importar direcciones de grupo"
+
+msgid "Import group addresses from {file}"
+msgstr "Importar direcciones de grupo desde {file}"
+
+msgid "Link group object"
+msgstr "Enlazar objeto de grupo"
+
+msgid "Unlink group object"
+msgstr "Desenlazar objeto de grupo"
+
+msgid "Rename area to {name}"
+msgstr "Renombrar área a {name}"
+
+msgid "Rename project to {name}"
+msgstr "Renombrar proyecto a {name}"
+
+msgid "Rename line to {name}"
+msgstr "Renombrar línea a {name}"
+
+msgid "Rename device to {name}"
+msgstr "Renombrar dispositivo a {name}"
+
+msgid "Move device"
+msgstr "Mover dispositivo"
+
+msgid "Set flag"
+msgstr "Establecer indicador"
+
+msgid "Set datapoint type"
+msgstr "Establecer tipo de punto de datos"
+
+msgid "Set priority"
+msgstr "Establecer prioridad"
+
+msgid "Set description"
+msgstr "Establecer descripción"
+
+msgid "Set sending group address"
+msgstr "Establecer dirección de grupo de envío"
+
+msgid "Add installation"
+msgstr "Añadir instalación"
+
+msgid "Remove device"
+msgstr "Eliminar dispositivo"
+
+msgid "Remove area"
+msgstr "Eliminar área"
+
+msgid "Remove line"
+msgstr "Eliminar línea"
+
+msgid "Remove segment"
+msgstr "Eliminar segmento"
+
+msgid "Remove group address"
+msgstr "Eliminar dirección de grupo"
+
+msgid "Remove function"
+msgstr "Eliminar función"
+
+msgid "Remove group address from function"
+msgstr "Eliminar dirección de grupo de la función"
+
+msgid "Remove building part"
+msgstr "Eliminar parte del edificio"
+
+msgid "Remove group range"
+msgstr "Eliminar rango de grupos"
+
+msgid "Update application program"
+msgstr "Actualizar programa de aplicación"
+
+msgid "Change application program"
+msgstr "Cambiar programa de aplicación"
+
+msgid "Update group objects"
+msgstr "Actualizar objetos de grupo"
+
+msgid "Update module instances"
+msgstr "Actualizar instancias de módulo"
+
+msgid "Set group address security"
+msgstr "Establecer seguridad de la dirección de grupo"
+
+msgid "Set secure commissioning"
+msgstr "Establecer puesta en marcha segura"
+
+msgid "Rename group address to {name}"
+msgstr "Renombrar dirección de grupo a {name}"
+
+msgid "Change group address"
+msgstr "Cambiar dirección de grupo"
+
+msgid "Set device certificates"
+msgstr "Establecer certificados de dispositivo"
+
+msgid "Set device description"
+msgstr "Establecer descripción del dispositivo"
+
+msgid "Create function {name}"
+msgstr "Crear función {name}"
+
+msgid "Rename function to {name}"
+msgstr "Renombrar función a {name}"
+
+msgid "Set function type"
+msgstr "Establecer tipo de función"
+
+msgid "Add group address to function"
+msgstr "Añadir dirección de grupo a la función"
+
+msgid "Create building part {name}"
+msgstr "Crear parte del edificio {name}"
+
+msgid "Rename building part to {name}"
+msgstr "Renombrar parte del edificio a {name}"
+
+msgid "Set building part number"
+msgstr "Establecer número de la parte del edificio"
+
+msgid "Set building part description"
+msgstr "Establecer descripción de la parte del edificio"
+
+msgid "Set building part type"
+msgstr "Establecer tipo de la parte del edificio"
+
+msgid "Move building part"
+msgstr "Mover parte del edificio"
+
+msgid "Assign device to building part"
+msgstr "Asignar dispositivo a parte del edificio"
+
+msgid "Set commissioning state"
+msgstr "Establecer estado de puesta en marcha"
+
+msgid "Create group range {name}"
+msgstr "Crear rango de grupos {name}"
+
+msgid "Rename group range to {name}"
+msgstr "Renombrar rango de grupos a {name}"
+
+msgid "{device}: no individual address"
+msgstr "{device}: sin dirección individual"
+
+msgid "{device}: malformed address '{address}'"
+msgstr "{device}: dirección mal formada '{address}'"
+
+msgid "{device}: duplicate address {address}"
+msgstr "{device}: dirección duplicada {address}"
+
+msgid "added"
+msgstr "añadido"
+
+msgid "removed"
+msgstr "eliminado"
+
+msgid "changed"
+msgstr "modificado"
+
+msgid "Installation Hints"
+msgstr "Consejos de Instalación"
+
+msgid "Select an element in a tree to see its comment."
+msgstr "Seleccione un elemento en un árbol para ver su comentario."
+
+msgid "Set comment"
+msgstr "Establecer comentario"
+
+msgid "Set installation hints"
+msgstr "Establecer consejos de instalación"
+
+msgid "Area"
+msgstr "Área"
+
+msgid "Line"
+msgstr "Línea"
+
+msgid "The address is a number from 0 to 15."
+msgstr "La dirección es un número de 0 a 15."
+
+msgid "Address {address} is already in use."
+msgstr "La dirección {address} ya está en uso."
+
+msgid "Set area description"
+msgstr "Establecer descripción del área"
+
+msgid "Set line description"
+msgstr "Establecer descripción de la línea"
+
+msgid "Set area address"
+msgstr "Establecer dirección del área"
+
+msgid "Set line address"
+msgstr "Establecer dirección de la línea"
+
+msgid "Main Group"
+msgstr "Grupo Principal"
+
+msgid "Middle Group"
+msgstr "Grupo Intermedio"
+
+msgid "Group Range"
+msgstr "Rango de Grupos"
+
+msgid "The main group is a number from 0 to 31."
+msgstr "El grupo principal es un número de 0 a 31."
+
+msgid "The middle group is a number from 0 to 7."
+msgstr "El grupo intermedio es un número de 0 a 7."
+
+msgid "Set group address description"
+msgstr "Establecer descripción de la dirección de grupo"
+
+msgid "Set group range description"
+msgstr "Establecer descripción del rango de grupos"
+
+msgid "Set group range address"
+msgstr "Establecer dirección del rango de grupos"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "Canal {n}"
+
+msgid "Colour Temp (K)"
+msgstr "Temperatura de color (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Conéctate a una interfaz KNX para leer el bus Siemens DALI."
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "Canal DALI"
+
+msgid "DALI commissioning"
+msgstr "Puesta en servicio DALI"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "La puesta en servicio DALI escribe en la pasarela del bus pero no actualiza los parámetros del proyecto; vuelve a exportar el .knxproj después de una edición en el DCA."
+
+msgid "Default"
+msgstr "Predeterminado"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Alternativa editable para parámetros cuyo plugin del fabricante no está disponible aquí. La jerarquía se reconstruye a partir de los prefijos de los nombres de parámetros; las etiquetas y agrupaciones pueden ser aproximadas. Las ediciones se escriben en el proyecto y se transfieren mediante una descarga normal."
+
+msgid "Min Dim"
+msgstr "Atenuación mín."
+
+msgid "No parameter matches the filter."
+msgstr "Ningún parámetro coincide con el filtro."
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Aún no hay mapeo de plugin disponible para este dispositivo. Los parámetros del plugin del fabricante siguen siendo inaccesibles desde aquí."
+
+msgid "Parameter"
+msgstr "Parámetro"
+
+msgid "Plugin Config"
+msgstr "Configuración del plugin"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Pulsa «Leer bus DALI» para listar los ECG en la pasarela."
+
+msgid "Random Address"
+msgstr "Dirección aleatoria"
+
+msgid "Read DALI Bus"
+msgstr "Leer bus DALI"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Instantánea de solo lectura. Aún no está disponible aquí la escritura de asignaciones de grupo, escenas o firmware y sigue en el plugin del fabricante."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Vista de solo lectura. La jerarquía es una reconstrucción aproximada a partir de los prefijos de los nombres de parámetros; los nombres y las agrupaciones pueden ser aproximados. La escritura de valores aún no está disponible."
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Leyendo el bus DALI desde el objeto {object_index}…"
+
+msgid "Short Address"
+msgstr "Dirección corta"
+
+msgid "Slot"
+msgstr "Ranura"
+
+msgid "The application has no static parameters."
+msgstr "La aplicación no tiene parámetros estáticos."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "El protocolo de puesta en servicio de esta pasarela no se ha verificado con una captura; las escrituras pueden comportarse mal. Procede con cuidado."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{count} ECG presentes en la línea {line}"
+
+msgid "Program DCA State"
+msgstr "Programar estado de DCA"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Envía los ajustes de los dispositivos DALI a la pasarela como valores de propiedades."
+
+msgid "Add to {section}:"
+msgstr "Añadir a {section}:"
+
+msgid "No entries."
+msgstr "No hay entradas."
+
+msgid "Entry"
+msgstr "Entrada"
+
+msgid "Store plugin data {name}"
+msgstr "Guardar datos del plugin {name}"

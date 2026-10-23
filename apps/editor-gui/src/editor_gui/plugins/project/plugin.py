@@ -33,6 +33,7 @@ from editor_gui.plugins.project.program_queue import (
 )
 from editor_gui.plugins.project.service import (
     DeviceConfigClipboard,
+    ElementDetails,
     additional_address_error_text,
 )
 from editor_gui.plugins.project.strings import S
@@ -47,6 +48,7 @@ from editor_gui.plugins.project.ui import (
     SpacesPanel,
     ToolsPanel,
 )
+from editor_gui.plugins.project.ui.comment import CommentPanel
 from editor_gui.plugins.project.ui.dali_commissioning import DaliCommissioningPanel
 from editor_gui.plugins.project.ui.device_certificate import (
     CertificateState,
@@ -54,8 +56,10 @@ from editor_gui.plugins.project.ui.device_certificate import (
 )
 from editor_gui.plugins.project.ui.device_compare import DeviceComparePanel
 from editor_gui.plugins.project.ui.devices import Area, Line
+from editor_gui.plugins.project.ui.element_details import ElementDetailsPanel
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
+from editor_gui.plugins.project.ui.plugin_params_panel import PluginParamsPanel
 from editor_gui.plugins.project.ui.preflight_result import PreflightResultWindow
 from editor_gui.plugins.project.ui.program_queue import ProgramQueuePanel
 from editor_gui.plugins.project.ui.project_diff import (
@@ -67,6 +71,7 @@ from editor_gui.plugins.project.ui.project_diff import (
 )
 from editor_gui.plugins.project.ui.read_device_dialog import ReadDeviceDialog
 from editor_gui.plugins.project.ui.secure_commissioning import SecureCommissioningDialog
+from editor_gui.plugins.project.ui.siemens_dali import SiemensDaliPanel
 from editor_gui.plugins.project.ui.space_details import SpaceDetailsPanel
 from editor_gui.plugins.project.ui.tools import apply_name_swap, shifted_ia
 from editor_gui.widgets import ButtonActions
@@ -88,8 +93,10 @@ if TYPE_CHECKING:
 
     from editor_gui.device import ComObject, Device, UnloadedDevice
     from editor_gui.device_info import DeviceInfo
+    from editor_gui.plugin_params import CollectionBinding
     from editor_gui.plugins.project.ui.configure import ProgramRequest
     from xknxeditor.catalog import ProgramSummary
+    from xknxeditor.dali import DaliBusState, EcgAssignment, Scene
     from xknxeditor.download.image import GroupCommunication
     from xknxeditor.download.ip_secure import IpSecureConfig
     from xknxeditor.download.scope import DownloadScope
@@ -212,6 +219,8 @@ class ProjectPlugin:
             get_unloaded_devices=lambda: api.project.unloaded_devices,
             on_device_info=self._open_read_dialog,
             on_compare=self._open_compare,
+            on_select_element=api.project.select_element,
+            get_selected_topology=lambda: api.project.selected_topology,
         )
         self._compare_panel = DeviceComparePanel(
             get_devices=lambda: api.project.devices,
@@ -283,6 +292,8 @@ class ProjectPlugin:
             next_free_sub=self._next_free_sub,
             get_ga_range_tree=api.project.get_group_range_tree,
             render_dali=self._render_dali_tab,
+            render_siemens_dali=self._render_siemens_dali_tab,
+            render_plugin_params=self._render_plugin_params_tab,
             on_navigate_ga=self._navigate_to_group_address,
             on_paste_links=self._paste_com_object_links,
             ga_menu=self._group_object_ga_menu,
@@ -316,10 +327,20 @@ class ProjectPlugin:
             find_serial_owner=self._serial_owner,
             find_product=api.catalog.find_product,
         )
-        self._dali_panel = DaliCommissioningPanel(self._run_dali)
+        self._dali_panel = DaliCommissioningPanel(
+            self._run_dali, self._persist_dali_backup, self._dali_channel_count
+        )
+        self._siemens_dali_panel = SiemensDaliPanel(self._run_siemens_dali)
+        self._plugin_params_panel = PluginParamsPanel(
+            self._handle_param_change,
+            self._handle_add_collection_item,
+            self._handle_remove_collection_item,
+            self._handle_program_dca,
+        )
 
         self._group_addresses_panel = GroupAddressesPanel(
             get_range_tree=api.project.get_group_range_tree,
+            on_select_element=api.project.select_element,
             get_assignments_for_ga=api.project.get_assignments_for_ga,
             get_devices=lambda: api.project.devices,
             on_create_ga=self._on_create_ga,
@@ -340,6 +361,11 @@ class ProjectPlugin:
             get_latest_value=get_latest_value,
         )
 
+        self._element_details = ElementDetailsPanel(
+            on_rename=api.project.rename_element,
+            on_set_description=api.project.set_element_description,
+            on_set_address=api.project.set_element_address,
+        )
         self._space_details = SpaceDetailsPanel(
             on_rename=api.project.rename_space,
             on_set_description=api.project.set_space_description,
@@ -370,6 +396,8 @@ class ProjectPlugin:
             count_paste_targets=self._count_paste_targets,
             on_device_info=self._open_read_dialog,
             on_compare=self._open_compare,
+            on_select_element=api.project.select_comment_target,
+            get_selected_node_id=self._selected_node_id,
         )
 
         self._project_info_panel = ProjectInfoPanel(
@@ -387,6 +415,7 @@ class ProjectPlugin:
             get_traces=api.project.get_project_traces,
         )
 
+        self._comment_panel = CommentPanel(api.project)
         self._history_panel = HistoryPanel(
             get_entries=self._get_history_entries,
             get_cursor=lambda: api.project.cursor,
@@ -456,6 +485,12 @@ class ProjectPlugin:
                 label=S.PANEL_MANUFACTURER,
                 dock="DeviceSpace",
                 render=self._render_manufacturer,
+            ),
+            PanelDefinition(
+                name="comment",
+                label=S.PANEL_COMMENT,
+                dock="DeviceSpace",
+                render=self._comment_panel.render,
             ),
             PanelDefinition(
                 name="mass_linker",
@@ -615,6 +650,14 @@ class ProjectPlugin:
 
     def _select_space(self, space_id: int) -> None:
         self._api.project.selected_space_id = space_id
+
+    def selected_element(self) -> "ElementDetails | None":
+        """The area, line, group range or group address selected (its details replace the
+        device's), if any."""
+        selected = self._api.project.selected_element
+        return (
+            None if selected is None else self._api.project.element_details(*selected)
+        )
 
     def selected_space(self) -> "SpaceInfo | None":
         """The space selected in the Buildings tree (its details replace the device's), if any."""
@@ -871,9 +914,211 @@ class ProjectPlugin:
         """Render the DALI commissioning tab body (MDT DALI devices), passing bus-connected state."""
         self._dali_panel.render(device, connected=self._api.connection.xknx is not None)
 
-    def _run_dali(self, device: "Device", op: "Any") -> bool:
+    def _run_dali(self, device: "Device", op: "Any", channel: int = 0) -> bool:
         """Start a DALI commissioning coroutine over the bus; True if it was accepted (bus free)."""
-        return self._api.connection.run_dali(device, op) is not None
+        return self._api.connection.run_dali(device, op, channel=channel) is not None
+
+    def _dali_channel_count(self, device: "Device") -> int:
+        """How many DALI bus channels this gateway has (1 for a 1x64, 2 for a 2x64)."""
+        from editor_gui.programming_dali import dali_channel_count
+
+        info = self._api.project.get_device_info(device.node_id)
+        order = getattr(info, "order_number", "") if info is not None else ""
+        return dali_channel_count(order if isinstance(order, str) else "")
+
+    def _persist_dali_backup(
+        self,
+        device: "Device",
+        scan: "DaliBusState",
+        assignments: "list[EcgAssignment]",
+        scenes: "list[Scene]",
+        channel: int,
+    ) -> None:
+        """Write a DALI channel's state back into the project blob after a bus commissioning run.
+
+        MDT (gc16) blobs are fully modelled: the scan + edits are merged onto the existing
+        ``DaliGC16-Backup-Store`` (``.N`` for channel N+1), preserving templates/descriptions.
+        Theben/IPAS (e64pro) blobs use a wider schema we do not model, so only the group
+        assignments are patched into the existing ``Dalie64-Backup-Store`` and every other
+        element is preserved byte-exact; if no such blob exists yet it is left untouched.
+        """
+        from xknxeditor.dali import (
+            merge_commissioning_blob,
+            patch_assignments_in_blob,
+            profile_for,
+        )
+        from xknxeditor.dali.profiles import backup_blob_name
+
+        app_id = device.app.id if device.app is not None else None
+        profile = profile_for(app_id)
+        if profile is None:
+            return
+        name = backup_blob_name(profile.backup_blob_base, channel)
+        existing = self._api.project.device_binary_data(device, name)
+        if profile.key == "mdt":
+            metadata = self._api.project.get_project_metadata()
+            blob = merge_commissioning_blob(
+                existing=existing,
+                state=scan,
+                assignments=assignments,
+                scenes=scenes,
+                individual_address=device.individual_address,
+                project_name=metadata.name if metadata is not None else "",
+            )
+        elif existing is not None:
+            # e64pro: patch group assignments into the vendor's blob, preserve the rest.
+            blob = patch_assignments_in_blob(existing, assignments)
+        else:
+            return  # e64pro device with no existing blob: cannot synthesize the wide schema
+        self._api.project.persist_dali_backup(
+            device, name, blob, label=S.DALI_PERSIST_LABEL
+        )
+
+    def _render_siemens_dali_tab(self, device: "Device") -> None:
+        """Render the Siemens N141/03 DALI read-only snapshot tab body."""
+        self._siemens_dali_panel.render(
+            device, connected=self._api.connection.xknx is not None
+        )
+
+    def _run_siemens_dali(self, device: "Device", op: "Any") -> bool:
+        """Start a Siemens DALI read coroutine over the bus; True if the bus slot was free."""
+        return self._api.connection.run_siemens_dali(device, op) is not None
+
+    def _render_plugin_params_tab(self, device: "Device") -> None:
+        """Render the generic sectioned view of the device's raw plugin parameters."""
+        self._plugin_params_panel.render(device)
+
+    def _handle_add_collection_item(
+        self,
+        device: "Device",
+        binding: "CollectionBinding",
+        type_id: str,
+        name: str,
+    ) -> None:
+        """Generic Add dispatcher. Picks the vendor-specific writer based on the active
+        row's ref_id prefix (``siemens_blob:`` for N141/03 today)."""
+        from sqlalchemy.orm import Session
+
+        from editor_gui.plugin_blob_readers.siemens_dali.writer import (
+            EditError,
+            add_item,
+        )
+
+        entry = next(
+            (
+                e
+                for e in getattr(device, "binary_data", []) or []
+                if e.data and "BLOB_PARA" in (e.name or "")
+            ),
+            None,
+        )
+        if entry is None:
+            self._api.log.warning(
+                "add collection item: device has no BLOB_PARA",
+                plugin="project",
+                device=device.individual_address,
+            )
+            return
+        try:
+            entry.data = add_item(entry.data, binding, type_id, name)
+        except EditError as exc:
+            self._api.log.warning(
+                "add collection item rejected",
+                plugin="project",
+                device=device.individual_address,
+                container=binding.container_tag,
+                error=str(exc),
+            )
+            return
+        session = Session.object_session(entry)
+        if session is not None:
+            session.commit()
+        self._api.log.info(
+            "collection item added",
+            plugin="project",
+            device=device.individual_address,
+            container=binding.container_tag,
+            name=name,
+            type=type_id,
+        )
+
+    def _handle_remove_collection_item(
+        self,
+        device: "Device",
+        binding: "CollectionBinding",
+        item_id: str,
+    ) -> None:
+        from sqlalchemy.orm import Session
+
+        from editor_gui.plugin_blob_readers.siemens_dali.writer import (
+            EditError,
+            remove_item,
+        )
+
+        entry = next(
+            (
+                e
+                for e in getattr(device, "binary_data", []) or []
+                if e.data and "BLOB_PARA" in (e.name or "")
+            ),
+            None,
+        )
+        if entry is None:
+            self._api.log.warning(
+                "remove collection item: device has no BLOB_PARA",
+                plugin="project",
+                device=device.individual_address,
+            )
+            return
+        try:
+            entry.data = remove_item(entry.data, binding, item_id)
+        except EditError as exc:
+            self._api.log.warning(
+                "remove collection item rejected",
+                plugin="project",
+                device=device.individual_address,
+                container=binding.container_tag,
+                item=item_id,
+                error=str(exc),
+            )
+            return
+        session = Session.object_session(entry)
+        if session is not None:
+            session.commit()
+        self._api.log.info(
+            "collection item removed",
+            plugin="project",
+            device=device.individual_address,
+            container=binding.container_tag,
+            item=item_id,
+        )
+
+    def _handle_program_dca(self, device: "Device") -> None:
+        """Program the Siemens N141/03 DaliDevice property-image onto the device over the
+        live bus. The project plugin forwards this to ``ConnectionService``; the actual
+        write pass lives in ``plugin_blob_readers.siemens_dali.download``."""
+        entry = next(
+            (
+                e
+                for e in getattr(device, "binary_data", []) or []
+                if e.data and "BLOB_PARA" in (e.name or "")
+            ),
+            None,
+        )
+        if entry is None:
+            self._api.log.warning(
+                "program DCA: no BLOB_PARA on device",
+                plugin="project",
+                device=device.individual_address,
+            )
+            return
+        future = self._api.connection.run_siemens_dca_program(device, entry.data)
+        if future is None:
+            self._api.log.warning(
+                "program DCA: cannot start (bus busy or not connected)",
+                plugin="project",
+                device=device.individual_address,
+            )
 
     def _read_device_info(self, device: "Device") -> None:
         self._open_read_dialog(device.node_id)
@@ -1507,6 +1752,12 @@ class ProjectPlugin:
     def _handle_param_change(
         self, device: "Device", param_id: str, new_value: str
     ) -> None:
+        # BLOB-backed rows (Siemens N141 DCA plug-in state) take a dedicated write path:
+        # locate the DeviceBinaryData entry, call the vendor writer, replace the compressed
+        # payload. The standard set_param only knows ParameterRef ids.
+        if param_id.startswith("siemens_blob:"):
+            self._apply_siemens_blob_edit(device, param_id, new_value)
+            return
         try:
             self._api.project.set_param(device, param_id, new_value)
         except ValueError as exc:
@@ -1516,6 +1767,53 @@ class ProjectPlugin:
                 param=param_id,
                 error=str(exc),
             )
+
+    def _apply_siemens_blob_edit(
+        self, device: "Device", ref_id: str, new_value: str
+    ) -> None:
+        from sqlalchemy.orm import Session
+
+        from editor_gui.plugin_blob_readers.siemens_dali.writer import (
+            EditError,
+            apply_edit,
+        )
+
+        entries = [
+            e for e in getattr(device, "binary_data", []) or [] if e.data is not None
+        ]
+        if not entries:
+            self._api.log.warning(
+                "siemens blob edit: device has no binary_data entry",
+                plugin="project",
+                device=device.individual_address,
+                ref=ref_id,
+            )
+            return
+        # The Siemens plug-in writes a single BLOB_PARA per device; pick it up by name.
+        entry = next((e for e in entries if "BLOB_PARA" in (e.name or "")), entries[0])
+        try:
+            new_blob = apply_edit(entry.data, ref_id, new_value)
+        except EditError as exc:
+            self._api.log.warning(
+                "siemens blob edit rejected",
+                plugin="project",
+                device=device.individual_address,
+                ref=ref_id,
+                error=str(exc),
+            )
+            return
+        entry.data = new_blob
+        # Persist the mutation on the ORM session that owns this entry; without an explicit
+        # commit the change would survive in memory but be dropped on project close.
+        session = Session.object_session(entry)
+        if session is not None:
+            session.commit()
+        self._api.log.info(
+            "siemens blob edit applied",
+            plugin="project",
+            device=device.individual_address,
+            ref=ref_id,
+        )
 
     def _handle_button(self, device: "Device", button: "UiButton") -> None:
         self._api.log.info(
@@ -2326,6 +2624,10 @@ class ProjectPlugin:
         if space is not None:
             self._space_details.render(space)
             return
+        element = self.selected_element()
+        if element is not None:
+            self._element_details.render(element)
+            return
         self._sync_selected_device_from_editor()
         self._configure_panel.render_device()
 
@@ -2370,6 +2672,7 @@ class ProjectPlugin:
         self._group_addresses_panel.start_import()
 
     def render_overlays(self) -> None:
+        self._comment_panel.tick()
         self._group_addresses_panel.render_import()
         self._read_device_dialog.render()
         self._certificate_dialog.render()

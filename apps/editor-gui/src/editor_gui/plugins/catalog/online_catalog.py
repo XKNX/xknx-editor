@@ -28,30 +28,79 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TypeGuard, cast
 
+from editor_gui.languages import LANGUAGES, culture
+
 DEFAULT_BASE_URL = "https://onlinecatalog.knx.org"
 MASTER_DATA_URL = "https://update.knx.org/data/XML/project-23/knx_master.xml"
 _CACHE_FILE = "online_catalog_manufacturers.json"
 _INDEX_CACHE_FILE = "online_catalog_index.json"
 # Raised when the cached items' meaning changes, so an older cache is rebuilt (2: market check,
 # 3: plugin and incomplete-information flags no longer block, 4: an empty market list offers
-# nothing).
-_INDEX_FORMAT = 4
+# nothing, 5: each item's text languages).
+_INDEX_FORMAT = 5
 _INDEX_SAVE_EVERY = (
     10  # persist the growing index every N manufacturers, for resumability
 )
 _TIMEOUT_SECONDS = 30.0
 
-# Country/language choices for online product downloads (label -> KNX language id used as the
-# DownloadProduct LanguageIds). Kept short and covering the common KNX markets.
-# The catalog language of each language of the editor; the first is the fallback.
-APP_LANGUAGES: dict[str, str] = {"en": "en-US", "de": "de-DE", "nl": "nl-NL"}
-
 
 def download_languages(locale: str) -> list[str]:
     """The languages products are downloaded in for the editor language ``locale``: that one
     first, then the editor's other languages, so the texts are there after switching."""
-    first = APP_LANGUAGES.get(locale.split("-")[0].lower(), APP_LANGUAGES["en"])
-    return [first, *(code for code in APP_LANGUAGES.values() if code != first)]
+    first = culture(locale)
+    return [first, *(lang.culture for lang in LANGUAGES if lang.culture != first)]
+
+
+# The market of each country the online catalog has one for (ISO 3166 code -> its market's name).
+MARKET_REGIONS: dict[str, str] = {
+    "AE": "United Arab Emirates", "AR": "Argentina", "AT": "Austria", "AU": "Australia",
+    "BE": "Belgium", "BH": "Bahrain", "BN": "Brunei", "BR": "Brazil", "BY": "Belarus",
+    "CH": "Switzerland", "CL": "Chile", "CN": "China", "CO": "Colombia", "CZ": "Czech Republic",
+    "DE": "Germany", "DK": "Denmark", "EE": "Estonia", "ES": "Spain", "FI": "Finland",
+    "FR": "France", "GB": "United Kingdom", "GR": "Greece", "HK": "Hong Kong", "HR": "Croatia",
+    "HU": "Hungary", "ID": "Indonesia", "IE": "Ireland", "IN": "India", "IS": "Iceland",
+    "IT": "Italy", "JP": "Japan", "KH": "Cambodia", "KR": "Korea", "KW": "Kuwait",
+    "KZ": "Kazakhstan", "LA": "Laos", "LB": "Lebanon", "LI": "Liechtenstein", "LT": "Lithuania",
+    "LU": "Luxemburg", "LV": "Latvia", "MM": "Myanmar", "MO": "Macau", "MX": "Mexico",
+    "MY": "Malaysia", "NL": "Netherlands", "NO": "Norway", "NZ": "New Zealand", "PH": "Philippines",
+    "PL": "Poland", "PT": "Portugal", "QA": "Qatar", "RO": "Romania", "RS": "Serbia",
+    "RU": "Russia", "SA": "Saudi Arabia", "SE": "Sweden", "SG": "Singapore", "SI": "Slovenia",
+    "SK": "Slovakia", "TH": "Thailand", "TL": "Timor-Leste", "TR": "Turkey", "TW": "Taiwan",
+    "UA": "Ukraine", "US": "USA", "UY": "Uruguay", "VN": "Vietnam", "ZA": "South Africa",
+}  # fmt: skip
+
+
+def market_for_region(markets: Iterable[OnlineMarket], region: str) -> str | None:
+    """The id of the market of the country ``region`` ("DE"), when the catalog has one."""
+    name = MARKET_REGIONS.get(region.upper())
+    return next((m.id for m in markets if m.name == name), None) if name else None
+
+
+def offered(item: OnlineCatalogItem, market: str | None, language: str | None) -> bool:
+    """Whether ``item`` is offered in ``market`` (an id; None for all markets) and has texts in
+    ``language`` ("de-DE", any region; None for all). Unknown markets or languages count as
+    offered, so an older index hides nothing."""
+    if market is not None and item.markets is not None and market not in item.markets:
+        return False
+    if language is not None and item.languages:
+        base = language.split("-")[0].lower()
+        return any(code.split("-")[0].lower() == base for code in item.languages)
+    return True
+
+
+def with_variants(wanted: list[str], offered: Iterable[str]) -> list[str]:
+    """``wanted`` language ids plus the variants of the same languages a product ``offered``
+    ("de-DE" also asks for "de" and "de-AT" when the product has those), each behind its language."""
+    offered = list(offered)
+    result: list[str] = []
+    for language in wanted:
+        base = language.split("-")[0].lower()
+        for code in (language, *offered):
+            if code.split("-")[0].lower() == base and code.lower() not in {
+                r.lower() for r in result
+            }:
+                result.append(code)
+    return result
 
 
 class OnlineCatalogError(Exception):
@@ -73,14 +122,34 @@ class OnlineCatalogSection:
     translations: tuple[tuple[str, str], ...] = ()  # (language such as "de-DE", name)
 
     def name_in(self, locale: str) -> str:
-        """The name in ``locale`` ("de" or "de-DE"), else the default name."""
-        language = locale.lower()
+        """The name in ``locale`` ("de" or "de-DE", or several in order of preference, comma
+        separated), else the default name."""
+        return _name_in(self.name, self.translations, locale)
+
+
+@dataclass(frozen=True)
+class OnlineMarket:
+    """A market (a country) of the online catalog, which offers some of a manufacturer's products."""
+
+    id: str
+    name: str  # in the catalog's default language
+    translations: tuple[tuple[str, str], ...] = ()  # (language such as "de-DE", name)
+
+    def name_in(self, locale: str) -> str:
+        """The name in ``locale`` ("de" or "de-DE", or several in order of preference, comma
+        separated), else the default name."""
+        return _name_in(self.name, self.translations, locale)
+
+
+def _name_in(name: str, translations: tuple[tuple[str, str], ...], locale: str) -> str:
+    for language in locale.lower().split(","):
+        language = language.strip()
         for wanted in (language, language.split("-")[0]):
-            for code, text in self.translations:
+            for code, text in translations:
                 code = code.lower()
                 if text and wanted in (code, code.split("-")[0]):
                     return text
-        return self.name
+    return name
 
 
 @dataclass(frozen=True)
@@ -100,6 +169,10 @@ class OnlineCatalogItem:
     )
     # The sections filing the product, from the top one down (empty when none does).
     sections: tuple[OnlineCatalogSection, ...] = ()
+    # The languages its texts come in, as the manufacturer labels them ("de-DE", "de", "es-MX").
+    languages: tuple[str, ...] = ()
+    # The ids of the markets offering it; None when the manufacturer's index lists no markets.
+    markets: tuple[str, ...] | None = None
 
 
 @dataclass(frozen=True)
@@ -304,6 +377,57 @@ def _section_paths(
     return paths
 
 
+def parse_markets(index_bytes: bytes) -> list[OnlineMarket]:
+    """The markets a ``Download/Index/{mfr}`` response lists, with their translated names."""
+    try:
+        data = json.loads(index_bytes)
+    except ValueError as exc:
+        raise OnlineCatalogError(f"index is not valid JSON: {exc}") from exc
+    markets = _ci_get(data, "Markets") if _is_dict(data) else None
+    found: list[OnlineMarket] = []
+    for market in cast(list[object], markets) if isinstance(markets, list) else []:
+        if not _is_dict(market):
+            continue
+        mid = _ci_get(market, "Id")
+        if not (isinstance(mid, str) and mid):
+            continue
+        translations = _ci_get(market, "Translations")
+        found.append(
+            OnlineMarket(
+                id=mid,
+                name=str(_ci_get(market, "DefaultName") or mid),
+                translations=tuple(
+                    (str(_ci_get(t, "Language") or ""), str(_ci_get(t, "Text") or ""))
+                    for t in (
+                        cast(list[object], translations)
+                        if isinstance(translations, list)
+                        else []
+                    )
+                    if _is_dict(t)
+                ),
+            )
+        )
+    return found
+
+
+def _markets_by_item(data: dict[str, object]) -> dict[str, tuple[str, ...]] | None:
+    """The ids of the markets offering each catalog item, or None without a market list."""
+    markets = _ci_get(data, "Markets")
+    if not isinstance(markets, list):
+        return None
+    by_item: dict[str, list[str]] = {}
+    for market in cast(list[object], markets):
+        if not _is_dict(market):
+            continue
+        mid = _ci_get(market, "Id")
+        catalog_ids = _ci_get(market, "CatalogIds")
+        if isinstance(mid, str) and isinstance(catalog_ids, list):
+            for cid in cast(list[object], catalog_ids):
+                if isinstance(cid, str):
+                    by_item.setdefault(cid, []).append(mid)
+    return {cid: tuple(ids) for cid, ids in by_item.items()}
+
+
 def _market_catalog_ids(data: dict[str, object]) -> set[str] | None:
     """The catalog items some market offers, or None when the index has no market list.
 
@@ -348,6 +472,7 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
     entries = _ci_get(data, "Entries") if _is_dict(data) else None
     sections = _section_paths(data) if _is_dict(data) else {}
     in_market = _market_catalog_ids(data) if _is_dict(data) else None
+    markets = _markets_by_item(data) if _is_dict(data) else None
     items: list[OnlineCatalogItem] = []
     if isinstance(entries, list):
         for entry in cast(list[object], entries):
@@ -382,10 +507,52 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
                     ),
                     download_block_reason=block_reason,
                     sections=sections.get(cid, ()),
+                    languages=_entry_languages(entry),
+                    markets=None if markets is None else markets.get(cid, ()),
                 )
             )
     items.sort(key=lambda i: i.name.lower())
     return items
+
+
+def _entry_languages(entry: dict[str, object]) -> tuple[str, ...]:
+    """The languages of an index entry's texts: its default languages and its translations."""
+    codes: list[str] = []
+    translations = _ci_get(entry, "Translations")
+    candidates: list[object] = [
+        _ci_get(entry, "ProductDefaultLanguage"),
+        _ci_get(entry, "CatalogItemDefaultLanguage"),
+    ]
+    if isinstance(translations, list):
+        candidates += [
+            _ci_get(t, "Language")
+            for t in cast(list[object], translations)
+            if _is_dict(t)
+        ]
+    for code in candidates:
+        if isinstance(code, str) and code and code not in codes:
+            codes.append(code)
+    return tuple(codes)
+
+
+def _markets_from_cache(stored: object) -> dict[str, OnlineMarket] | None:
+    """The markets of a cached index; None when it does not list them."""
+    if not _is_dict(stored):
+        return None
+    markets: dict[str, OnlineMarket] = {}
+    for mid, entry in stored.items():
+        if not _is_dict(entry):
+            continue
+        pairs = entry.get("tr")
+        translations = tuple(
+            (str(pair[0]), str(pair[1]))
+            for pair in (
+                cast(list[list[object]], pairs) if isinstance(pairs, list) else []
+            )
+            if len(pair) == 2
+        )
+        markets[mid] = OnlineMarket(mid, str(entry.get("name") or mid), translations)
+    return markets
 
 
 def _item_to_dict(item: OnlineCatalogItem) -> dict[str, object]:
@@ -400,6 +567,8 @@ def _item_to_dict(item: OnlineCatalogItem) -> dict[str, object]:
         "ver": item.application_version,
         "appname": item.application_program_name,
         "dl_reason": item.download_block_reason,
+        "langs": list(item.languages),
+        **({} if item.markets is None else {"mk": list(item.markets)}),
     }
 
 
@@ -415,18 +584,28 @@ def _item_from_dict(d: dict[str, object]) -> OnlineCatalogItem:
         application_version=ver if isinstance(ver, int) else None,
         application_program_name=str(d.get("appname") or ""),
         download_block_reason=str(d.get("dl_reason") or ""),
+        languages=tuple(str(c) for c in cast(list[object], d.get("langs") or [])),
+        markets=(
+            tuple(str(m) for m in cast(list[object], d["mk"]))
+            if isinstance(d.get("mk"), list)
+            else None
+        ),
     )
 
 
 def search_index(
-    index: dict[int, list[OnlineCatalogItem]], query: str, limit: int = 300
+    index: dict[int, list[OnlineCatalogItem]],
+    query: str,
+    limit: int = 300,
+    keep: Callable[[OnlineCatalogItem], bool] | None = None,
 ) -> tuple[list[OnlineCatalogItem], int]:
     """Flat cross-manufacturer product search over a built index.
 
     Matches ``query`` (case-insensitive) against order number, name and application program name.
     Returns ``(results, total_matches)``; ``results`` is capped at ``limit`` and ordered so the
     most relevant come first (order-number prefix > order-number contains > name/other). ``total``
-    is the full match count before capping, so the UI can say "showing 300 of N"."""
+    is the full match count before capping, so the UI can say "showing 300 of N". ``keep`` leaves
+    out the items it rejects (the market and language filters)."""
     key = query.strip().lower()
     if not key:
         return [], 0
@@ -450,6 +629,7 @@ def search_index(
         if key in item.order_number.lower()
         or key in item.name.lower()
         or key in item.application_program_name.lower()
+        if keep is None or keep(item)
     ]
     matches.sort(key=lambda i: (rank(i), i.order_number.lower(), i.name.lower()))
     return matches[:limit], len(matches)
@@ -481,6 +661,8 @@ class OnlineCatalogClient:
         self._index: dict[int, list[OnlineCatalogItem]] | None = None
         self._index_fetched_at: str | None = None
         self._index_loaded = False
+        # The markets of all manufacturers by id; None when the cache does not list them.
+        self._markets: dict[str, OnlineMarket] | None = None
 
     def _load_cache(self) -> list[OnlineManufacturer] | None:
         try:
@@ -528,7 +710,7 @@ class OnlineCatalogClient:
         Mirrors the ``POST Download/DownloadProduct`` endpoint with a JSON body
         ``{"CatalogIds": [...], "LanguageIds": [...]}``. The response is a ZIP that WRAPS the actual
         ``.knxprod`` as an entry named ``products.knxprod`` (alongside an ``id-mapping.xml``), so the
-        inner archive is extracted before returning (verified against the decompiled ETS downloader).
+        inner archive is extracted before returning.
         """
         if not catalog_item_ids:
             raise OnlineCatalogError("no catalog item ids given")
@@ -575,7 +757,7 @@ class OnlineCatalogClient:
         Never touches the network. The returned dict must not be mutated by callers."""
         with self._index_lock:
             if not self._index_loaded:
-                self._index, self._index_fetched_at = self._load_index()
+                self._index, self._index_fetched_at, self._markets = self._load_index()
                 self._index_loaded = True
             return self._index
 
@@ -592,26 +774,30 @@ class OnlineCatalogClient:
         force: bool = False,
     ) -> OnlineIndexStatus:
         """Build/refresh the full product index. Resumable: unless ``force``, manufacturers already
-        in the cache are skipped, so an aborted build continues where it stopped. Persists every
-        few manufacturers so a cancel keeps its progress. ``should_cancel`` stops the loop early."""
+        in the cache are skipped, so an aborted build continues where it stopped; those cached
+        without their markets are fetched again. Persists every few manufacturers so a cancel
+        keeps its progress. ``should_cancel`` stops the loop early."""
         ids = parse_manufacturer_ids(
             _http_get(f"{self._base_url}/Download/Manufacturers")
         )
         with self._index_lock:
             if not self._index_loaded:
-                self._index, self._index_fetched_at = self._load_index()
+                self._index, self._index_fetched_at, self._markets = self._load_index()
                 self._index_loaded = True
             index: dict[int, list[OnlineCatalogItem]] = dict(self._index or {})
+            markets: dict[str, OnlineMarket] = dict(self._markets or {})
         if force:
-            index = {}
+            index, markets = {}, {}
         total = len(ids)
         since_save = 0
         for done, mid in enumerate(ids, start=1):
             if should_cancel is not None and should_cancel():
                 break
-            if mid not in index:
+            if mid not in index or any(i.markets is None for i in index[mid]):
                 try:
-                    index[mid] = parse_catalog_items(self.download_index(mid))
+                    data = self.download_index(mid)
+                    index[mid] = parse_catalog_items(data)
+                    markets.update((m.id, m) for m in parse_markets(data))
                 except OnlineCatalogError:
                     # Transient error: leave this manufacturer uncached so a later (resumable)
                     # build retries it, instead of caching [] and skipping it forever.
@@ -620,45 +806,67 @@ class OnlineCatalogClient:
                     continue
                 since_save += 1
                 if since_save >= _INDEX_SAVE_EVERY:
-                    self._publish_index(index)
+                    self._publish_index(index, markets)
                     since_save = 0
             if progress_cb is not None:
                 progress_cb(done, total)
-        self._publish_index(index)
+        self._publish_index(index, markets)
         return OnlineIndexStatus(
             len(index), sum(len(v) for v in index.values()), self._index_fetched_at
         )
 
-    def _publish_index(self, index: dict[int, list[OnlineCatalogItem]]) -> None:
+    def _publish_index(
+        self,
+        index: dict[int, list[OnlineCatalogItem]],
+        markets: dict[str, OnlineMarket],
+    ) -> None:
         fetched_at = datetime.now(UTC).isoformat(timespec="seconds")
         with self._index_lock:
             self._index = dict(index)
+            self._markets = dict(markets)
             self._index_fetched_at = fetched_at
             self._index_loaded = True
-        self._save_index(index, fetched_at)
+        self._save_index(index, fetched_at, markets)
+
+    def cached_markets(self) -> list[OnlineMarket] | None:
+        """The markets of the cached index, sorted by default name; None when the cache does not
+        list them (an index fetched before they were kept). Never touches the network."""
+        self.cached_index()
+        with self._index_lock:
+            if self._markets is None:
+                return None
+            return sorted(self._markets.values(), key=lambda m: m.name.lower())
 
     def _load_index(
         self,
-    ) -> tuple[dict[int, list[OnlineCatalogItem]] | None, str | None]:
+    ) -> tuple[
+        dict[int, list[OnlineCatalogItem]] | None,
+        str | None,
+        dict[str, OnlineMarket] | None,
+    ]:
         try:
             raw = json.loads(self._index_path.read_text(encoding="utf-8"))
             if raw.get("format") != _INDEX_FORMAT:
-                return None, None
+                return None, None, None
             entries = raw["index"]
             index = {
                 int(mid): [_item_from_dict(d) for d in items]
                 for mid, items in entries.items()
             }
-            return index, raw.get("fetched_at")
+            markets = _markets_from_cache(raw.get("markets"))
+            return index, raw.get("fetched_at"), markets
         except (OSError, ValueError, KeyError, TypeError):
-            return None, None
+            return None, None, None
 
     def _save_index(
-        self, index: dict[int, list[OnlineCatalogItem]], fetched_at: str
+        self,
+        index: dict[int, list[OnlineCatalogItem]],
+        fetched_at: str,
+        markets: dict[str, OnlineMarket] | None = None,
     ) -> None:
         try:
             self._index_path.parent.mkdir(parents=True, exist_ok=True)
-            payload = {
+            payload: dict[str, object] = {
                 "format": _INDEX_FORMAT,
                 "fetched_at": fetched_at,
                 "index": {
@@ -666,6 +874,11 @@ class OnlineCatalogClient:
                     for mid, items in index.items()
                 },
             }
+            if markets is not None:
+                payload["markets"] = {
+                    mid: {"name": m.name, "tr": [list(pair) for pair in m.translations]}
+                    for mid, m in markets.items()
+                }
             self._index_path.write_text(
                 json.dumps(payload, ensure_ascii=False), encoding="utf-8"
             )
