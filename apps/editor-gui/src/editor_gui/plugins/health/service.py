@@ -9,6 +9,10 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING
 
+from editor_gui.device import device_label
+from editor_gui.plugins.health.strings import S
+from editor_gui.strings import get_locale
+
 if TYPE_CHECKING:
     from editor_gui.device import Device
     from editor_gui.plugins.project.service import ProjectService
@@ -33,14 +37,19 @@ class HealthService:
     def __init__(self, project: ProjectService) -> None:
         self._project = project
         self._cache: list[Finding] | None = None
-        self._cache_revision = -1
+        self._cache_key: tuple[int, int, str] | None = None
 
     def findings(self) -> list[Finding]:
-        """Current health findings, recomputed only when the project changed."""
-        rev = self._project.revision
-        if self._cache is None or self._cache_revision != rev:
+        """Current health findings, recomputed only when the project or the language changed.
+
+        While a background task holds the project (opening it, a language switch rebuilding the
+        devices) its reads are empty placeholders, so the last findings stay until it is done."""
+        if self._project.loading:
+            return self._cache or []
+        key = (self._project.revision, id(self._project.devices), get_locale())
+        if self._cache is None or self._cache_key != key:
             self._cache = self._compute()
-            self._cache_revision = rev
+            self._cache_key = key
         return self._cache
 
     def _compute(self) -> list[Finding]:
@@ -64,7 +73,7 @@ class HealthService:
                     Finding(
                         Severity.WARNING,
                         "address",
-                        f"{d.name}: no individual address",
+                        S.HEALTH_NO_ADDRESS.format(device=device_label(d)),
                         d.node_id,
                     )
                 )
@@ -74,7 +83,9 @@ class HealthService:
                     Finding(
                         Severity.ERROR,
                         "address",
-                        f"Duplicate individual address {ia} ({d.name})",
+                        S.HEALTH_DUPLICATE_ADDRESS.format(
+                            address=ia, device=d.display_name
+                        ),
                         d.node_id,
                     )
                 )
@@ -89,7 +100,7 @@ class HealthService:
             Finding(
                 Severity.WARNING,
                 "catalog",
-                f"{len(refs)} device(s) skipped: application not in catalog",
+                S.HEALTH_SKIPPED.format(count=len(refs)),
             )
         ]
 
@@ -107,7 +118,9 @@ class HealthService:
                     Finding(
                         Severity.INFO,
                         "com-object",
-                        f"{d.name}: {unlinked} unlinked communication object(s)",
+                        S.HEALTH_UNLINKED.format(
+                            device=device_label(d), count=unlinked
+                        ),
                         d.node_id,
                     )
                 )
@@ -121,7 +134,7 @@ class HealthService:
                     Finding(
                         Severity.WARNING,
                         "group-address",
-                        f"{ga.address} {ga.name}: no datapoint type",
+                        S.HEALTH_NO_DPT.format(address=ga.address, name=ga.name),
                         ga_id=ga.id,
                     )
                 )
@@ -133,7 +146,7 @@ class HealthService:
                         Finding(
                             Severity.WARNING,
                             "group-address",
-                            f"{ga.address} {ga.name}: no sending object",
+                            S.HEALTH_NO_SENDER.format(address=ga.address, name=ga.name),
                             ga_id=ga.id,
                         )
                     )
@@ -142,7 +155,9 @@ class HealthService:
                         Finding(
                             Severity.WARNING,
                             "group-address",
-                            f"{ga.address} {ga.name}: {senders} sending objects",
+                            S.HEALTH_SENDERS.format(
+                                address=ga.address, name=ga.name, count=senders
+                            ),
                             ga_id=ga.id,
                         )
                     )

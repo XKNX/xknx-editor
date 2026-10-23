@@ -31,5 +31,21 @@ class LoggerStrings(BaseStrings):
     def COPY_LOG(self) -> str:
         return _("Copy Log")
 
+    @property
+    def LEVEL_DEBUG(self) -> str:
+        return _("Debug")
+
+    @property
+    def LEVEL_INFO(self) -> str:
+        return _("Info")
+
+    @property
+    def LEVEL_WARNING(self) -> str:
+        return _("Warning")
+
+    @property
+    def LEVEL_ERROR(self) -> str:
+        return _("Error")
+
 
 S = LoggerStrings()

@@ -262,6 +262,7 @@ class TestIndexCache:
                         "ApplicationProgramName": "App",
                     }
                 ],
+                "Markets": [{"Id": "M-DE", "CatalogIds": [f"CI-{mid}"]}],
             }
         ).encode()
 

@@ -23,6 +23,7 @@ from editor_gui.widgets.dpt_value import GroupValueBus
 from editor_gui.widgets.tables import begin_data_table, table_header_menu
 from editor_gui.widgets.text_util import text_clipped_tooltip
 from editor_gui.widgets.tree import leaf_rows, tree_node
+from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
 
 if TYPE_CHECKING:
     from editor_gui.device import Device
@@ -55,6 +56,7 @@ class GroupAddressesPanel:
         on_remove_range: Callable[[int], None] | None = None,
         group_style: "Callable[[], GroupAddressStyle] | None" = None,
         on_select_device_id: Callable[[int], None] | None = None,
+        on_select_element: Callable[[str, int], None] = lambda _k, _i: None,
         bus: GroupValueBus | None = None,
         on_import: Callable[[Path], tuple[int, int, int]] | None = None,
         on_export: Callable[[], None] | None = None,
@@ -62,6 +64,11 @@ class GroupAddressesPanel:
         | None = None,
     ) -> None:
         self._get_range_tree = get_range_tree
+        # Selecting a group range or address (its comment shows in the Comment tab).
+        self._on_select_element = on_select_element
+        # The group range selected in this tree: highlighted instead of the group address until a
+        # group address is selected again.
+        self._selected_range_id: int | None = None
         self._get_assignments_for_ga = get_assignments_for_ga
         self._get_devices = get_devices
         self._on_create_ga = on_create_ga
@@ -127,7 +134,9 @@ class GroupAddressesPanel:
             requested = self._take_requested_ga()
             if requested is not None:
                 self._selected_ga_id = requested
+                self._selected_range_id = None
                 self._reveal_ga_id = requested
+                self._on_select_element("group_address", requested)
 
         if imgui.begin_popup_context_window("##ga_context"):
             self._render_create_menu_items()
@@ -307,8 +316,18 @@ class GroupAddressesPanel:
         ):
             # Force-open the folders on the path to a GA we were asked to reveal.
             imgui.set_next_item_open(True, imgui.Cond_.always)
-        # Collapsed by default; a filter still force-opens matching ranges (above).
-        open_node = tree_node(label)
+        # Collapsed by default; a filter still force-opens matching ranges (above). A click selects
+        # the range, the arrow and a double click open it.
+        flags = (
+            imgui.TreeNodeFlags_.open_on_arrow
+            | imgui.TreeNodeFlags_.open_on_double_click
+        )
+        if node.id == self._selected_range_id:
+            flags |= imgui.TreeNodeFlags_.selected
+        open_node = tree_node(label, flags)
+        if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+            self._selected_range_id = node.id
+            self._on_select_element("group_range", node.id)
         self._render_range_context_menu(node, is_root)
         if not open_node:
             return
@@ -323,7 +342,7 @@ class GroupAddressesPanel:
         for ga in node.group_addresses:
             if flt and not self._ga_matches(ga, flt):
                 continue
-            selected = ga.id == self._selected_ga_id
+            selected = ga.id == self._selected_ga_id and self._selected_range_id is None
             name = f"{ga.text}  {ga.name}"
             # Full-width row so the whole line is the click / right-click target and the name stays
             # fully visible; the last value seen on the bus is drawn after it (dimmed accent) and
@@ -335,9 +354,13 @@ class GroupAddressesPanel:
             )[0]
             if clicked:
                 self._selected_ga_id = ga.id
+                self._selected_range_id = None
+                self._on_select_element("group_address", ga.id)
+            if ga.id == self._selected_ga_id:
+                # Kept current: the comment and description can change while it is selected.
                 self._selected_ga_text = name
                 self._selected_ga_description = ga.description
-                self._selected_ga_comment = ga.comment
+                self._selected_ga_comment = plain_text(parse_rich_text(ga.comment))
             if ga.id == self._reveal_ga_id:
                 imgui.set_scroll_here_y()
             # Context menu while the selectable is still the last item, so it binds to the row.

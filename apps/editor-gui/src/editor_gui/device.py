@@ -120,6 +120,34 @@ FLAG_LABELS = [
 ]
 
 
+def flag_letter(attr: str) -> str:
+    """The flag's column letter in the current language (C R W T U I in English)."""
+    from editor_gui.strings import S
+
+    return {
+        "communication": S.FLAG_LETTER_COMMUNICATION,
+        "read": S.FLAG_LETTER_READ,
+        "write": S.FLAG_LETTER_WRITE,
+        "transmit": S.FLAG_LETTER_TRANSMIT,
+        "update": S.FLAG_LETTER_UPDATE,
+        "read_on_init": S.FLAG_LETTER_READ_ON_INIT,
+    }[attr]
+
+
+def flag_name(attr: str) -> str:
+    """The flag's name in the current language."""
+    from editor_gui.strings import S
+
+    return {
+        "communication": S.FLAG_NAME_COMMUNICATION,
+        "read": S.FLAG_NAME_READ,
+        "write": S.FLAG_NAME_WRITE,
+        "transmit": S.FLAG_NAME_TRANSMIT,
+        "update": S.FLAG_NAME_UPDATE,
+        "read_on_init": S.FLAG_NAME_READ_ON_INIT,
+    }[attr]
+
+
 def flag_diff_letters(
     flags: ComObjectFlags, direction: PinDir
 ) -> list[tuple[str, bool]]:

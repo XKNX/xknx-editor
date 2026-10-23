@@ -159,7 +159,9 @@ def topology_findings(
     for node_id, name, ia in devices:
         label = name or f"#{node_id}"
         if not ia:
-            findings.append((node_id, "warning", f"{label}: no individual address"))
+            findings.append(
+                (node_id, "warning", S.TOOLS_TOPOLOGY_NO_ADDRESS.format(device=label))
+            )
             continue
         parts = ia.split(".")
         valid = len(parts) == 3 and all(p.isdigit() for p in parts)
@@ -167,10 +169,22 @@ def topology_findings(
             area, line, dev = (int(p) for p in parts)
             valid = 0 <= area <= 15 and 0 <= line <= 15 and 0 <= dev <= 255
         if not valid:
-            findings.append((node_id, "error", f"{label}: malformed address '{ia}'"))
+            findings.append(
+                (
+                    node_id,
+                    "error",
+                    S.TOOLS_TOPOLOGY_MALFORMED.format(device=label, address=ia),
+                )
+            )
             continue
         if ia in seen:
-            findings.append((node_id, "error", f"{label}: duplicate address {ia}"))
+            findings.append(
+                (
+                    node_id,
+                    "error",
+                    S.TOOLS_TOPOLOGY_DUPLICATE.format(device=label, address=ia),
+                )
+            )
         seen[ia] = node_id
     return findings
 

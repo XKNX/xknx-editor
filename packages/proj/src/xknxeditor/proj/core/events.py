@@ -38,6 +38,8 @@ from xknxeditor.proj.models import (
     Project,
     Segment,
     Space,
+    Trade,
+    installation_hints,
 )
 
 EVENT_TYPES: dict[str, type[Event]] = {}
@@ -2258,6 +2260,277 @@ class SetDeviceDescription(Event):
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> SetDeviceDescription:
+        return cls(**data)
+
+
+# The elements that carry a comment, by the kind name ``SetComment`` uses.
+COMMENT_KINDS: dict[str, type[Any]] = {
+    "project": Project,
+    "area": Area,
+    "line": Line,
+    "device": Device,
+    "space": Space,
+    "function": Function,
+    "trade": Trade,
+    "group_range": GroupRange,
+    "group_address": GroupAddress,
+}
+
+
+def stored_comment(
+    session: Session, kind: str, element_id: int, field: str
+) -> str | None:
+    """The comment (RTF as stored) of an element, or a device's installation hints for ``field``
+    "installation_hints"; None when there is no such element."""
+    if kind == "project":
+        # Only the column: the project row also holds the product archives (tens of MB).
+        return session.query(Project.comment).limit(1).scalar()
+    element = _comment_element(session, kind, element_id)
+    if element is None:
+        return None
+    if field == "installation_hints":
+        return installation_hints(cast(Device, element))
+    return cast(str, element.comment or "")
+
+
+def _comment_element(session: Session, kind: str, element_id: int) -> Any:
+    model = COMMENT_KINDS.get(kind)
+    return None if model is None else session.get(model, element_id)
+
+
+def _topology_element(
+    session: Session, kind: str, element_id: int
+) -> Area | Line | None:
+    model = Area if kind == "area" else Line if kind == "line" else None
+    return None if model is None else session.get(model, element_id)
+
+
+@_register
+@dataclass
+class SetTopologyDescription(Event):
+    """The description of an area or a line (``kind`` "area" or "line")."""
+
+    event_type: ClassVar[str] = "SetTopologyDescription"
+
+    kind: str
+    element_id: int
+    description: str
+    old_description: str | None = None
+
+    def apply(self, session: Session) -> None:
+        element = _topology_element(session, self.kind, self.element_id)
+        if element is not None:
+            self.old_description = element.description
+            element.description = self.description
+
+    def revert(self, session: Session) -> None:
+        element = _topology_element(session, self.kind, self.element_id)
+        if element is not None and self.old_description is not None:
+            element.description = self.old_description
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "kind": self.kind,
+            "element_id": self.element_id,
+            "description": self.description,
+            "old_description": self.old_description,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetTopologyDescription:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetTopologyAddress(Event):
+    """The address of an area or a line (``kind`` "area" or "line"): the individual addresses of
+    its devices change with it."""
+
+    event_type: ClassVar[str] = "SetTopologyAddress"
+
+    kind: str
+    element_id: int
+    address: int
+    old_address: int | None = None
+
+    def apply(self, session: Session) -> None:
+        element = _topology_element(session, self.kind, self.element_id)
+        if element is not None:
+            self.old_address = element.address
+            element.address = self.address
+
+    def revert(self, session: Session) -> None:
+        element = _topology_element(session, self.kind, self.element_id)
+        if element is not None and self.old_address is not None:
+            element.address = self.old_address
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "kind": self.kind,
+            "element_id": self.element_id,
+            "address": self.address,
+            "old_address": self.old_address,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetTopologyAddress:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetGroupDescription(Event):
+    """The description of a group range or a group address (``kind`` "group_range" or
+    "group_address")."""
+
+    event_type: ClassVar[str] = "SetGroupDescription"
+
+    kind: str
+    element_id: int
+    description: str
+    old_description: str | None = None
+
+    def _element(self, session: Session) -> GroupRange | GroupAddress | None:
+        model = GroupRange if self.kind == "group_range" else GroupAddress
+        return session.get(model, self.element_id)
+
+    def apply(self, session: Session) -> None:
+        element = self._element(session)
+        if element is not None:
+            self.old_description = element.description
+            element.description = self.description
+
+    def revert(self, session: Session) -> None:
+        element = self._element(session)
+        if element is not None and self.old_description is not None:
+            element.description = self.old_description
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "kind": self.kind,
+            "element_id": self.element_id,
+            "description": self.description,
+            "old_description": self.old_description,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetGroupDescription:
+        return cls(**data)
+
+
+def _range_subtree(group_range: GroupRange) -> list[GroupRange]:
+    ranges = [group_range]
+    for child in group_range.children:
+        ranges += _range_subtree(child)
+    return ranges
+
+
+@_register
+@dataclass
+class SetGroupRangeAddress(Event):
+    """Give a main or middle group another number: the range, the ranges below it and all their
+    group addresses move by ``offset`` (in raw address units). The devices linked to those group
+    addresses get their group communication marked as not loaded, as for one renumbered group
+    address."""
+
+    event_type: ClassVar[str] = "SetGroupRangeAddress"
+
+    range_id: int
+    offset: int
+    # Devices whose group communication was loaded before (the addresses are in their tables).
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+
+    def _shift(self, session: Session, offset: int) -> set[int]:
+        group_range = session.get(GroupRange, self.range_id)
+        if group_range is None:
+            return set()
+        devices: set[int] = set()
+        for node in _range_subtree(group_range):
+            node.range_start += offset
+            node.range_end += offset
+            for ga in node.group_addresses:
+                ga.address += offset
+                devices |= _devices_on(session, ga.id)
+        return devices
+
+    def apply(self, session: Session) -> None:
+        devices = self._shift(session, self.offset)
+        self.cleared = _clear_communication_loaded(session, devices)
+
+    def revert(self, session: Session) -> None:
+        self._shift(session, -self.offset)
+        _restore_communication_loaded(session, self.cleared)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "range_id": self.range_id,
+            "offset": self.offset,
+            "cleared": self.cleared,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetGroupRangeAddress:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetComment(Event):
+    """An element's comment, or a device's installation hints (``field`` "installation_hints");
+    both are RTF. ``kind`` is a ``COMMENT_KINDS`` name; the project ignores ``element_id``."""
+
+    event_type: ClassVar[str] = "SetComment"
+
+    kind: str
+    element_id: int
+    comment: str
+    field: str = "comment"
+    old_comment: str | None = None
+
+    def apply(self, session: Session) -> None:
+        self.old_comment = stored_comment(
+            session, self.kind, self.element_id, self.field
+        )
+        self._set(session, self.comment)
+
+    def revert(self, session: Session) -> None:
+        if self.old_comment is not None:
+            self._set(session, self.old_comment)
+
+    def _set(self, session: Session, value: str) -> None:
+        if self.kind == "project":
+            session.query(Project).update(
+                {Project.comment: value}, synchronize_session="fetch"
+            )
+            return
+        element = _comment_element(session, self.kind, self.element_id)
+        if element is None:
+            return
+        if self.field != "installation_hints":
+            element.comment = value
+            return
+        device = cast(Device, element)
+        device.installation_hints = value
+        if device.extra_attributes and "InstallationHints" in device.extra_attributes:
+            # Kept there by projects saved before the column existed; the column wins now.
+            device.extra_attributes = {
+                k: v
+                for k, v in device.extra_attributes.items()
+                if k != "InstallationHints"
+            }
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "kind": self.kind,
+            "element_id": self.element_id,
+            "comment": self.comment,
+            "field": self.field,
+            "old_comment": self.old_comment,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetComment:
         return cls(**data)
 
 

@@ -7,15 +7,27 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.strings import S as APP_S
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.flow import button_width, same_line_if_fits
 from editor_gui.widgets.password_form import NewPasswordForm
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from xknxeditor.proj.core.addressing import GroupAddressStyle
 
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ProjectInfo
+
+
+def _style_text(style: str) -> str:
+    """The shown name of a group address style (stored as Free, TwoLevel or ThreeLevel)."""
+    names = {
+        GroupAddressStyle.FREE.value: APP_S.NEW_PROJECT_STYLE_FREE,
+        GroupAddressStyle.TWO_LEVEL.value: APP_S.NEW_PROJECT_STYLE_TWO_LEVEL,
+        GroupAddressStyle.THREE_LEVEL.value: APP_S.NEW_PROJECT_STYLE_THREE_LEVEL,
+    }
+    return names.get(style, style)
 
 
 class ProjectInfoPanel:
@@ -54,7 +66,7 @@ class ProjectInfoPanel:
             return
         rows = [
             (S.PROJECT_INFO_INSTALLATION, info.installation_name),
-            (S.PROJECT_INFO_GA_STYLE, info.group_address_style),
+            (S.PROJECT_INFO_GA_STYLE, _style_text(info.group_address_style)),
             (S.PROJECT_INFO_CREATED_BY, info.created_by),
             (S.PROJECT_INFO_TOOL_VERSION, info.tool_version),
             (S.PROJECT_INFO_SCHEMA_VERSION, info.schema_version),

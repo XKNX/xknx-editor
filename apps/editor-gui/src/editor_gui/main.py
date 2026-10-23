@@ -8,6 +8,7 @@ import sys
 import tempfile
 import threading
 import time
+import unicodedata
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
@@ -74,6 +75,7 @@ from editor_gui.plugins.mcp import McpServerPlugin
 from editor_gui.plugins.monitor import MonitorPlugin
 from editor_gui.plugins.project import ProjectPlugin, ProjectService
 from editor_gui.plugins.project.knxproj_manufacturer import collect_manufacturer_bundle
+from editor_gui.plugins.project.strings import S as PROJECT_S
 from editor_gui.plugins.project.ui.spaces import space_type_label
 from editor_gui.plugins.recover import RecoverPlugin
 from editor_gui.plugins.signing import SigningPlugin
@@ -104,6 +106,7 @@ from editor_gui.widgets.description import set_secure_devices
 from editor_gui.widgets.dialog import (
     begin_dialog,
     dialog_buttons,
+    dialog_room,
     end_dialog,
     floating_window_border,
     focus_when_appearing,
@@ -461,8 +464,10 @@ class KnxGuiApp:
         # FPS and the idling toggle at the end of the status bar.
         self._show_status_fps = False
         self._show_status_bar = True
-        # The Manufacturer tab was hidden for a selected space (see _sync_device_section).
+        # The Manufacturer tab was hidden for a selected space (see _sync_device_section), and the
+        # tabs of its section in their order then.
         self._manufacturer_hidden = False
+        self._manufacturer_tabs: list[str] = []
         # Overwrite guard: the portable file dialog does not confirm replacing an existing file on
         # macOS (it wraps AppleScript's "choose file name"), so we ask here. Requests queue as
         # (target, action) pairs so a second dialog resolving mid-confirmation cannot drop the first.
@@ -3319,15 +3324,19 @@ class KnxGuiApp:
         self._run_bg(S.PROGRESS_LOAD_KNXPROD, worker)
 
     def _sync_device_section(self) -> None:
-        """While a space is selected in the Buildings tree, the Device tab shows it, titled with
-        its type (Building, Floor, …), and the Manufacturer tab is hidden and left out of the
-        menus; selecting a device again restores both."""
+        """While a space is selected in the Buildings tree, an area or a line in the Devices tree,
+        or a group range or group address, the Device tab shows it, titled with its type
+        (Building, Floor, …, Area, Line, Main Group, …), and the Manufacturer tab is hidden and
+        left out of the menus; selecting a device again restores both."""
         space = self._project_plugin.selected_space()
-        title = (
-            space_type_label(space.space_type) or _DOCK_LABELS["device"]()
-            if space is not None
-            else _DOCK_LABELS["device"]()
-        )
+        element = self._project_plugin.selected_element() if space is None else None
+        if space is not None:
+            title = space_type_label(space.space_type) or _DOCK_LABELS["device"]()
+        elif element is not None:
+            title = _ELEMENT_TITLES[element.title_kind]()
+        else:
+            title = _DOCK_LABELS["device"]()
+        other = space is not None or element is not None
         for window in hello_imgui.get_runner_params().docking_params.dockable_windows:
             name = _dock_window_name(window)
             if name == "device":
@@ -3335,13 +3344,19 @@ class KnxGuiApp:
                 if window.label != label:
                     window.label = label
             elif name == "manufacturer":
-                window.include_in_view_menu = space is None
-                if space is not None and window.is_visible:
+                window.include_in_view_menu = not other
+                if other and window.is_visible:
+                    # Shown again, a tab comes last: the section's order is put back then.
+                    self._manufacturer_tabs = _section_tab_names(window.label)
                     window.is_visible = False
                     self._manufacturer_hidden = True
-                elif space is None and self._manufacturer_hidden:
+                elif not other and self._manufacturer_hidden:
                     window.is_visible = True
                     self._manufacturer_hidden = False
+                    if self._manufacturer_tabs:
+                        self._tab_order = self._manufacturer_tabs
+                        self._tab_order_from = imgui.get_frame_count() + 2
+                        self._tab_order_until = imgui.get_frame_count() + 300
 
     def _render_status_bar(self) -> None:
         """The status bar along the bottom of the window, below the docked panels: a thin line on
@@ -4095,8 +4110,22 @@ class KnxGuiApp:
             imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.92, 0.33, 0.33, 1.0))
             imgui.text_wrapped(S.EXPORT_SUMMARY_INCOMPAT)
             imgui.pop_style_color()
-            for _nid, label in self._export_summary_incompat_rows:
-                imgui.bullet_text(label)
+            # Only the list scrolls when it is long: the dialog with its buttons stays on screen.
+            listed = self._export_summary_incompat_rows
+            line_h = imgui.get_text_line_height_with_spacing()
+            height = min(len(listed) * line_h, dialog_room(3 * line_h / px(1.0)))
+            imgui.push_style_color(
+                imgui.Col_.child_bg, imgui.ImVec4(0.0, 0.0, 0.0, 0.0)
+            )
+            if imgui.begin_child(
+                "##export_incompat_devices",
+                imgui.ImVec2(0.0, height),
+                imgui.ChildFlags_.auto_resize_x,
+            ):
+                for _nid, label in listed:
+                    imgui.bullet_text(label)
+            imgui.end_child()
+            imgui.pop_style_color()
         if incompatible:
             labels = [
                 S.EXPORT_INCOMPAT_REMOVE,
@@ -4999,8 +5028,11 @@ class KnxGuiApp:
         """UI language selector (next to Help). Overrides the auto-detected OS locale; persisted."""
         current = get_locale()
         if imgui.begin_menu(S.MENU_LANGUAGE):
-            for code, label in _UI_LANGUAGES:
-                if imgui.menu_item(label, "", code == current)[0] and code != current:
+            for code, label in _language_items():
+                if (
+                    imgui.menu_item(f"{label}##{code}", "", code == current)[0]
+                    and code != current
+                ):
                     self._switch_language(code)
             imgui.end_menu()
 
@@ -5396,7 +5428,7 @@ class KnxGuiApp:
 
 
 # Bumped whenever the default docking layout changes, so a stored layout is replaced once.
-_LAYOUT_VERSION = 16
+_LAYOUT_VERSION = 17
 
 
 _SECTIONS = ("RightSpace", "DeviceSpace", "LeftSpace", "BottomSpace")
@@ -5511,6 +5543,21 @@ def _restore_wide_layout(
     params.layout_reset = True
 
 
+def _section_tab_names(label: str) -> list[str]:
+    """The stable names of the tabs in the section of the window ``label``, in their order."""
+    window = imgui.internal.find_window_by_name(label)
+    # The bindings type these as non-optional, but they can be None.
+    node = window.dock_node if window is not None else None  # pyright: ignore[reportUnnecessaryComparison]
+    bar = node.tab_bar if node is not None else None  # pyright: ignore[reportUnnecessaryComparison]
+    if bar is None:  # pyright: ignore[reportUnnecessaryComparison]
+        return []
+    return [
+        tab.window.name.split("###")[-1]
+        for tab in bar.tabs
+        if tab.window is not None  # pyright: ignore[reportUnnecessaryComparison]
+    ]
+
+
 def _forget_tab_order(params: hello_imgui.DockingParams) -> None:
     """Let the tabs of a rebuilt layout come in the order of the dockable windows: imgui keeps
     the place a window's tab had in a section whose id the rebuilt layout uses again. Before
@@ -5613,10 +5660,12 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
         "editor": lambda: _proj.PANEL_EDITOR,
         "device": lambda: _proj.PANEL_DEVICE,
         "manufacturer": lambda: _proj.PANEL_MANUFACTURER,
+        "comment": lambda: _proj.PANEL_COMMENT,
         "mass_linker": lambda: _proj.PANEL_MASS_LINKER,
         "tools": lambda: _proj.PANEL_TOOLS,
         "history": lambda: _proj.PANEL_HISTORY,
         "project_info": lambda: _proj.PANEL_PROJECT_INFO,
+        "project_log": lambda: _proj.PANEL_PROJECT_LOG,
         "operations": lambda: _proj.PANEL_OPERATIONS,
         "catalog": lambda: _cat.PANEL_CATALOG,
         "topology": lambda: _topology.PANEL_TOPOLOGY,
@@ -5632,6 +5681,16 @@ def _dock_label_getters() -> "dict[str, Callable[[], str]]":
 
 _DOCK_LABELS: "dict[str, Callable[[], str]]" = _dock_label_getters()
 
+# The Device tab's title while it shows an area, line, group range or group address.
+_ELEMENT_TITLES: "dict[str, Callable[[], str]]" = {
+    "area": lambda: PROJECT_S.PANEL_AREA,
+    "line": lambda: PROJECT_S.PANEL_LINE,
+    "main_group": lambda: PROJECT_S.PANEL_MAIN_GROUP,
+    "middle_group": lambda: PROJECT_S.PANEL_MIDDLE_GROUP,
+    "group_range": lambda: PROJECT_S.PANEL_GROUP_RANGE,
+    "group_address": lambda: PROJECT_S.PANEL_GROUP_ADDRESS,
+}
+
 # Initial tab order per dock space, by stable panel name (order only matters within each space).
 _DOCK_TAB_ORDER = [
     "buildings",
@@ -5642,6 +5701,7 @@ _DOCK_TAB_ORDER = [
     "cockpit",
     "device",
     "manufacturer",
+    "comment",
     "operations",
     "history",
     "health",
@@ -5683,13 +5743,31 @@ def create_dockable_windows(app: KnxGuiApp) -> list[hello_imgui.DockableWindow]:
     return windows
 
 
-# UI languages offered in the Language menu (locale code, native label). Catalogs live under each
-# plugin's locales/<code>/LC_MESSAGES; "en" is the untranslated source.
-_UI_LANGUAGES: list[tuple[str, str]] = [
-    ("en", "English"),
-    ("de", "Deutsch"),
-    ("nl", "Nederlands"),
+# UI languages offered in the Language menu: locale code, the name in the language itself and the
+# name in the current language. Catalogs live under each plugin's locales/<code>/LC_MESSAGES; "en"
+# is the untranslated source.
+_UI_LANGUAGES: list[tuple[str, str, Callable[[], str]]] = [
+    ("en", "English", lambda: S.LANGUAGE_ENGLISH),
+    ("de", "Deutsch", lambda: S.LANGUAGE_GERMAN),
+    ("nl", "Nederlands", lambda: S.LANGUAGE_DUTCH),
 ]
+
+
+def _language_items() -> list[tuple[str, str]]:
+    """The Language menu's ``(code, label)`` entries, alphabetical as they read: by the name in the
+    current language, ignoring case and accents."""
+    items: list[tuple[str, str]] = []
+    for code, native, name in _UI_LANGUAGES:
+        label = name()
+        if label != native:
+            label = S.LANGUAGE_ITEM.format(name=label, native=native)
+        items.append((code, label))
+
+    def key(item: tuple[str, str]) -> str:
+        letters = unicodedata.normalize("NFKD", item[1].casefold())
+        return "".join(c for c in letters if not unicodedata.combining(c))
+
+    return sorted(items, key=key)
 
 
 _STRONG_TITLE_SCALE = 1.2

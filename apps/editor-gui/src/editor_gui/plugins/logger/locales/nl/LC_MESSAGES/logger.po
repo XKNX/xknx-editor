@@ -27,3 +27,15 @@ msgstr "Bericht"
 
 msgid "Copy Log"
 msgstr "Logboek kopiëren"
+
+msgid "Debug"
+msgstr "Debug"
+
+msgid "Info"
+msgstr "Info"
+
+msgid "Warning"
+msgstr "Waarschuwing"
+
+msgid "Error"
+msgstr "Fout"

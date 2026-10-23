@@ -144,7 +144,13 @@ class SpacesPanel:
         count_paste_targets: Callable[[int], int] | None = None,
         on_device_info: Callable[[int], None] | None = None,
         on_compare: Callable[[int], None] | None = None,
+        on_select_element: Callable[[str, int], None] = lambda _k, _i: None,
     ) -> None:
+        # Selecting a function (its comment shows in the Comment tab).
+        self._on_select_element = on_select_element
+        # The function selected in this tree: highlighted instead of the space until a space or a
+        # device is selected here.
+        self._selected_function: int | None = None
         self._get_space_tree = get_space_tree
         self._on_select_device_id = on_select_device_id
         self._on_create_function = on_create_function
@@ -236,7 +242,7 @@ class SpacesPanel:
         selected = (
             self._get_selected_space_id() if self._get_selected_space_id else None
         )
-        if space.id == selected:
+        if space.id == selected and self._selected_function is None:
             flags |= imgui.TreeNodeFlags_.selected
         open_node = tree_node(f"{space_label(space)}##sp{space.id}", flags)
         if (
@@ -244,6 +250,7 @@ class SpacesPanel:
             and imgui.is_item_clicked()
             and not imgui.is_item_toggled_open()
         ):
+            self._selected_function = None
             self._on_select_space(space.id)
         # The context menu and the space's own popups must run whether the node is expanded or not
         # (a collapsed node can still be moved/deleted), so render them before the return.
@@ -518,6 +525,7 @@ class SpacesPanel:
             False,
             imgui.SelectableFlags_.allow_overlap,
         )[0]:
+            self._selected_function = None
             self._on_select_device_id(device.id)
         hovered = imgui.is_item_hovered()  # capture before the context menu below
         has_menu = (
@@ -583,7 +591,17 @@ class SpacesPanel:
     def _render_function(self, function: "FunctionInfo") -> None:
         label = function.name or function.usage_text or function.function_type
         type_label = _function_type_label(function.function_type)
-        open_node = tree_node(f"ƒ {label}  [{type_label}]##fn{function.id}")
+        # A click selects the function, the arrow and a double click open it.
+        flags = (
+            imgui.TreeNodeFlags_.open_on_arrow
+            | imgui.TreeNodeFlags_.open_on_double_click
+        )
+        if self._selected_function == function.id:
+            flags |= imgui.TreeNodeFlags_.selected
+        open_node = tree_node(f"ƒ {label}  [{type_label}]##fn{function.id}", flags)
+        if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+            self._selected_function = function.id
+            self._on_select_element("function", function.id)
         editable = self._on_rename_function is not None
         if editable and imgui.begin_popup_context_item(f"##fnctx{function.id}"):
             if imgui.menu_item(S.SPACES_FN_RENAME, "", False)[0]:

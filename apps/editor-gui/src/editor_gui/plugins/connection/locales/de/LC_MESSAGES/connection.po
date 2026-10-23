@@ -171,3 +171,6 @@ msgstr "Core-Version: {version}"
 
 msgid "Services: {services}"
 msgstr "Dienste: {services}"
+
+msgid "Retry"
+msgstr "Wiederholen"

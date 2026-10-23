@@ -77,6 +77,7 @@ from xknxeditor.proj.core.events import (
     RenameGroupRange,
     RenameLine,
     RenameSpace,
+    SetComment,
     SetComObjectDatapointType,
     SetComObjectDescription,
     SetComObjectFlag,
@@ -93,16 +94,21 @@ from xknxeditor.proj.core.events import (
     SetGroupAddressAddress,
     SetGroupAddressDatapointType,
     SetGroupAddressSecurity,
+    SetGroupDescription,
+    SetGroupRangeAddress,
     SetParameter,
     SetProjectName,
     SetSpaceDescription,
     SetSpaceNumber,
     SetSpaceType,
+    SetTopologyAddress,
+    SetTopologyDescription,
     SyncDeviceComObjects,
     SyncDeviceModuleInstances,
     UnlinkComObject,
     UpdateDeviceApplication,
     additional_address_entries,
+    stored_comment,
 )
 from xknxeditor.proj.core.fdsk import Fdsk, InvalidFdskError, parse_fdsk
 from xknxeditor.proj.core.function_detect import classify_function
@@ -196,6 +202,7 @@ class GroupRangeInfo:
     group_addresses: list[GroupAddressInfo]
     # The folder's style-formatted number (main group "0", middle group "0/1"); empty for Free.
     address: str = ""
+    description: str = ""
 
 
 @dataclass(frozen=True)
@@ -363,6 +370,20 @@ class LinkInfo:
     com_object_id: int
     group_address_id: int
     is_sending: bool
+
+
+@dataclass(frozen=True)
+class DeviceLinkInfo:
+    """A group-address link with the device of its com-object and the com-object's effective flags."""
+
+    device_id: int
+    group_address_id: int
+    is_sending: bool
+    communication: bool
+    read: bool
+    write: bool
+    transmit: bool
+    update: bool
 
 
 def _address_order(device: Device) -> tuple[int, int, int, int, int]:
@@ -2468,6 +2489,124 @@ class ProjectService:
             SetDeviceDescription(device_id=device_id, description=description)
         )
 
+    def set_topology_description(
+        self, project_id: str, kind: str, element_id: int, description: str
+    ) -> None:
+        """The description of an area or a line (``kind`` "area" or "line"); undoable."""
+        self._state(project_id).store.append(
+            SetTopologyDescription(
+                kind=kind, element_id=element_id, description=description
+            )
+        )
+
+    def set_topology_address(
+        self, project_id: str, kind: str, element_id: int, address: int
+    ) -> None:
+        """The address of an area or a line (``kind`` "area" or "line"), 0 to 15 and not that of
+        another one beside it; its devices' individual addresses change with it. Undoable.
+
+        Raises ``ValueError`` for an address out of range or in use, ``KeyError`` for an unknown
+        element."""
+        state = self._state(project_id)
+        if not 0 <= address <= 15:
+            raise ValueError(f"address {address} is not between 0 and 15")
+        if kind == "area":
+            area = state.session.get(Area, element_id)
+            if area is None:
+                raise KeyError(f"No area {element_id}")
+            siblings = [
+                a.address
+                for a in state.session.query(Area).filter(
+                    Area.installation_id == area.installation_id, Area.id != area.id
+                )
+            ]
+        elif kind == "line":
+            line = state.session.get(Line, element_id)
+            if line is None:
+                raise KeyError(f"No line {element_id}")
+            siblings = [
+                ln.address
+                for ln in state.session.query(Line).filter(
+                    Line.area_id == line.area_id, Line.id != line.id
+                )
+            ]
+        else:
+            raise KeyError(f"No {kind} {element_id}")
+        if address in siblings:
+            raise ValueError(f"address {address} is in use")
+        state.store.append(
+            SetTopologyAddress(kind=kind, element_id=element_id, address=address)
+        )
+
+    def set_group_description(
+        self, project_id: str, kind: str, element_id: int, description: str
+    ) -> None:
+        """The description of a group range or a group address (``kind`` "group_range" or
+        "group_address"); undoable."""
+        self._state(project_id).store.append(
+            SetGroupDescription(
+                kind=kind, element_id=element_id, description=description
+            )
+        )
+
+    def set_group_range_number(
+        self, project_id: str, range_id: int, number: int
+    ) -> None:
+        """Give a main group (0 to 31) or a middle group (0 to 7) another number; its group
+        addresses move with it. Undoable.
+
+        Raises ``ValueError`` for a number out of range, one in use by another group beside it, or
+        a project in the Free style (its groups have no number); ``KeyError`` for an unknown
+        range."""
+        state = self._state(project_id)
+        group_range = state.session.get(GroupRange, range_id)
+        if group_range is None:
+            raise KeyError(f"No group range {range_id}")
+        style = self._style(state)
+        if style is GroupAddressStyle.FREE:
+            raise ValueError("groups of the Free style have no number")
+        parent = group_range.parent
+        if parent is None:
+            if not 0 <= number <= 31:
+                raise ValueError(f"main group {number} is not between 0 and 31")
+            start = number << 11
+        else:
+            if not 0 <= number <= 7:
+                raise ValueError(f"middle group {number} is not between 0 and 7")
+            start = (parent.range_start & ~0x7FF) | (number << 8)
+        offset = start - group_range.range_start
+        if offset == 0:
+            return
+        end = group_range.range_end + offset
+        siblings = state.session.query(GroupRange).filter(
+            GroupRange.installation_id == group_range.installation_id,
+            GroupRange.parent_id == group_range.parent_id,
+            GroupRange.id != group_range.id,
+        )
+        if any(s.range_start <= end and start <= s.range_end for s in siblings):
+            raise ValueError(f"group {number} is in use")
+        state.store.append(SetGroupRangeAddress(range_id=range_id, offset=offset))
+
+    def comment(
+        self, project_id: str, kind: str, element_id: int, field: str = "comment"
+    ) -> str | None:
+        """An element's comment (RTF as stored), or a device's installation hints for ``field``
+        "installation_hints"; ``kind`` is a ``COMMENT_KINDS`` name. None without such an element."""
+        return stored_comment(self._state(project_id).session, kind, element_id, field)
+
+    def set_comment(
+        self,
+        project_id: str,
+        kind: str,
+        element_id: int,
+        comment: str,
+        field: str = "comment",
+    ) -> None:
+        """Set an element's comment, or a device's installation hints (both RTF); undoable."""
+        self._state(project_id).store.append(
+            SetComment(kind=kind, element_id=element_id, comment=comment, field=field)
+        )
+
     def sync_device_com_objects(
         self,
         project_id: str,
@@ -2880,6 +3019,38 @@ class ProjectService:
             .all()
         )
 
+    def device_links(self, project_id: str) -> list[DeviceLinkInfo]:
+        """Every group-address link of the project with its device and flags, in one query."""
+        rows = (
+            self._state(project_id)
+            .session.query(
+                ComObject.device_id,
+                ComObjectLink.group_address_id,
+                ComObjectLink.is_sending,
+                ComObject.communication_flag,
+                ComObject.read_flag,
+                ComObject.write_flag,
+                ComObject.transmit_flag,
+                ComObject.update_flag,
+            )
+            .join(ComObjectLink, ComObjectLink.com_object_id == ComObject.id)
+            .order_by(ComObjectLink.id)
+            .all()
+        )
+        return [
+            DeviceLinkInfo(
+                device_id=device_id,
+                group_address_id=ga_id,
+                is_sending=bool(sending),
+                communication=bool(communication),
+                read=bool(read),
+                write=bool(write),
+                transmit=bool(transmit),
+                update=bool(update),
+            )
+            for device_id, ga_id, sending, communication, read, write, transmit, update in rows
+        ]
+
     def group_addresses(self, project_id: str) -> list[GroupAddressInfo]:
         state = self._state(project_id)
         style = self._style(state)
@@ -3152,6 +3323,7 @@ class ProjectService:
         return GroupRangeInfo(
             id=group_range.id,
             name=group_range.name,
+            description=group_range.description,
             range_start=group_range.range_start,
             range_end=group_range.range_end,
             children=[

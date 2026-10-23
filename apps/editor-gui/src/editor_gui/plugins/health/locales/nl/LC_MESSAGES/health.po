@@ -18,3 +18,24 @@ msgstr "Geen problemen gevonden"
 
 msgid "{errors} errors, {warnings} warnings"
 msgstr "{errors} fouten, {warnings} waarschuwingen"
+
+msgid "{device}: no individual address"
+msgstr "{device}: geen individueel adres"
+
+msgid "Duplicate individual address {address} ({device})"
+msgstr "Dubbel individueel adres {address} ({device})"
+
+msgid "{count} device(s) skipped: application not in catalog"
+msgstr "{count} apparaat/apparaten overgeslagen: applicatie niet in catalogus"
+
+msgid "{device}: {count} unlinked group object(s)"
+msgstr "{device}: {count} niet gekoppeld(e) groepsobject(en)"
+
+msgid "{address} {name}: no datapoint type"
+msgstr "{address} {name}: geen datapunttype"
+
+msgid "{address} {name}: no sending group object"
+msgstr "{address} {name}: geen zendend groepsobject"
+
+msgid "{address} {name}: {count} sending group objects"
+msgstr "{address} {name}: {count} zendende groepsobjecten"

@@ -391,6 +391,31 @@ def test_link_derives_datapoint_type_as_single_undo(tmp_path: Path):
     assert svc.group_address(pid, ga).datapoint_type is None
 
 
+def test_device_links_carry_the_device_and_effective_flags(tmp_path: Path):
+    svc, pid = _new(tmp_path)
+    seg = _backbone_segment(svc, pid)
+    svc.add_device(
+        pid, seg, PRODUCT, address=1, name="D", com_objects=[("O-1_R-1", None)]
+    )
+    device = svc.devices(pid)[0]
+    co = device.com_objects[0]
+    g1 = svc.create_group_address(pid, 0, 1, "G1")
+    g2 = svc.create_group_address(pid, 0, 2, "G2")
+    svc.link_com_object(pid, co.id, g1, sending=True)
+    svc.link_com_object(pid, co.id, g2)
+    for flag in ("communication_flag", "transmit_flag", "write_flag"):
+        svc.set_com_object_flag(pid, co.id, flag, True)
+
+    links = svc.device_links(pid)
+    assert [(ln.device_id, ln.group_address_id, ln.is_sending) for ln in links] == [
+        (device.id, g1, True),
+        (device.id, g2, False),
+    ]
+    assert all(
+        ln.communication and ln.transmit and ln.write and not ln.read for ln in links
+    )
+
+
 def test_link_sending_first_then_reassign(tmp_path: Path):
     svc, pid = _new(tmp_path)
     seg = _backbone_segment(svc, pid)

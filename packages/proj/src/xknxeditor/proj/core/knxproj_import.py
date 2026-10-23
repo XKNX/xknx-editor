@@ -110,6 +110,7 @@ _DEVICE_MANAGED_ATTRS = frozenset(
         "Hardware2ProgramRefId",
         "Description",
         "Comment",
+        "InstallationHints",
         "LastModified",
         "SerialNumber",
         "LastDownload",
@@ -563,6 +564,10 @@ class _RawExtras:
         self.line_comment: dict[tuple[int, int], str] = {}
         # (RangeStart, RangeEnd) -> GroupRange @Description.
         self.grouprange_description: dict[tuple[int, int], str] = {}
+        # (RangeStart, RangeEnd) -> GroupRange @Comment, as stored (xknxproject strips the RTF).
+        self.grouprange_comment: dict[tuple[int, int], str] = {}
+        # GroupAddress raw address -> @Comment, as stored (xknxproject strips the RTF).
+        self.ga_comment: dict[int, str] = {}
         # Raw group-address values whose <GroupAddress> carries ``Central="true"``.
         self.central_ga: set[int] = set()
         # Raw group-address values whose <GroupAddress> carries ``Global="true"``.
@@ -571,6 +576,8 @@ class _RawExtras:
         self.ga_security: dict[int, dict[str, str]] = {}
         # DeviceInstance @Id -> DeviceInstance @Comment.
         self.device_comment: dict[str, str] = {}
+        # DeviceInstance @Id -> DeviceInstance @InstallationHints.
+        self.device_installation_hints: dict[str, str] = {}
         # Space @Id -> Space @Comment.
         self.space_comment: dict[str, str] = {}
         # Space @Id -> non-displayed Space attributes xknxproject drops (DefaultLine, Context).
@@ -761,6 +768,8 @@ def _read_one_device_extras(
     comment = device.get("Comment")
     if comment:
         extras.device_comment[device_id] = comment
+    if hints := device.get("InstallationHints"):
+        extras.device_installation_hints[device_id] = hints
     extra = _device_extra_attributes(device)
     if extra:
         extras.device_extra_attributes[device_id] = extra
@@ -954,6 +963,8 @@ def _read_coupler_extras(root: ET.Element, extras: _RawExtras) -> None:
                     extras.unfiltered_ranges.add((start, end))
                 if description := elem.get("Description"):
                     extras.grouprange_description[(start, end)] = description
+                if comment := elem.get("Comment"):
+                    extras.grouprange_comment[(start, end)] = comment
         elif name == "GroupAddress":
             addr = _int_attr(elem, "Address")
             if addr is not None:
@@ -963,6 +974,8 @@ def _read_coupler_extras(root: ET.Element, extras: _RawExtras) -> None:
                     extras.central_ga.add(addr)
                 if _is_true(elem.get("Global")):
                     extras.global_ga.add(addr)
+                if comment := elem.get("Comment"):
+                    extras.ga_comment[addr] = comment
                 security = {
                     k: v
                     for k in ("Security", "Key", "Context")
@@ -1733,6 +1746,9 @@ def _build_device(
         or None,
         description=xdevice.description,
         comment=state.extras.device_comment.get(xdevice.identifier, ""),
+        installation_hints=state.extras.device_installation_hints.get(
+            xdevice.identifier, ""
+        ),
         last_modified=getattr(xdevice, "last_modified", None),
         source_id=xdevice.identifier,
         puid=getattr(xdevice, "project_uid", None),
@@ -1932,7 +1948,8 @@ def _build_group_addresses(
             name=xga.name,
             datapoint_type=_dpt(xga.dpt),
             description=xga.description,
-            comment=xga.comment,
+            # Read from the raw XML: xknxproject drops the formatting (RTF) of comments.
+            comment=state.extras.ga_comment.get(xga.raw_address, xga.comment),
             data_secure=bool(xga.data_secure_key),
             # ``Central`` read from the raw XML by address (xknxproject does not surface it).
             central=xga.raw_address in state.extras.central_ga,
@@ -1972,7 +1989,10 @@ def _build_ranges(
             range_start=xr.range_start,
             range_end=xr.range_end,
             name=xr.name,
-            comment=getattr(xr, "comment", "") or "",
+            # Read from the raw XML: xknxproject drops the formatting (RTF) of comments.
+            comment=state.extras.grouprange_comment.get(
+                (xr.range_start, xr.range_end), getattr(xr, "comment", "") or ""
+            ),
             # ``Description`` read from the raw XML by (start, end); xknxproject does not surface it.
             description=state.extras.grouprange_description.get(
                 (xr.range_start, xr.range_end), ""

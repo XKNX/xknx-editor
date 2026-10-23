@@ -93,7 +93,7 @@ msgid ""
 "%(links)d links, %(unknown)d parameter(s) not recoverable."
 msgstr ""
 "%(devices)d Gerät(e) wiederhergestellt: %(group_addresses)d Gruppenadressen,"
-" %(links)d Verknüpfungen, %(unknown)d Parameter nicht wiederherstellbar."
+" %(links)d Verbindungen, %(unknown)d Parameter nicht wiederherstellbar."
 
 msgid "Recovered"
 msgstr "Wiederhergestellt"

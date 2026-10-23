@@ -33,6 +33,7 @@ from editor_gui.plugins.project.program_queue import (
 )
 from editor_gui.plugins.project.service import (
     DeviceConfigClipboard,
+    ElementDetails,
     additional_address_error_text,
 )
 from editor_gui.plugins.project.strings import S
@@ -47,6 +48,7 @@ from editor_gui.plugins.project.ui import (
     SpacesPanel,
     ToolsPanel,
 )
+from editor_gui.plugins.project.ui.comment import CommentPanel
 from editor_gui.plugins.project.ui.dali_commissioning import DaliCommissioningPanel
 from editor_gui.plugins.project.ui.device_certificate import (
     CertificateState,
@@ -54,6 +56,7 @@ from editor_gui.plugins.project.ui.device_certificate import (
 )
 from editor_gui.plugins.project.ui.device_compare import DeviceComparePanel
 from editor_gui.plugins.project.ui.devices import Area, Line
+from editor_gui.plugins.project.ui.element_details import ElementDetailsPanel
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
 from editor_gui.plugins.project.ui.preflight_result import PreflightResultWindow
@@ -212,6 +215,8 @@ class ProjectPlugin:
             get_unloaded_devices=lambda: api.project.unloaded_devices,
             on_device_info=self._open_read_dialog,
             on_compare=self._open_compare,
+            on_select_element=api.project.select_element,
+            get_selected_topology=lambda: api.project.selected_topology,
         )
         self._compare_panel = DeviceComparePanel(
             get_devices=lambda: api.project.devices,
@@ -320,6 +325,7 @@ class ProjectPlugin:
 
         self._group_addresses_panel = GroupAddressesPanel(
             get_range_tree=api.project.get_group_range_tree,
+            on_select_element=api.project.select_element,
             get_assignments_for_ga=api.project.get_assignments_for_ga,
             get_devices=lambda: api.project.devices,
             on_create_ga=self._on_create_ga,
@@ -340,6 +346,11 @@ class ProjectPlugin:
             get_latest_value=get_latest_value,
         )
 
+        self._element_details = ElementDetailsPanel(
+            on_rename=api.project.rename_element,
+            on_set_description=api.project.set_element_description,
+            on_set_address=api.project.set_element_address,
+        )
         self._space_details = SpaceDetailsPanel(
             on_rename=api.project.rename_space,
             on_set_description=api.project.set_space_description,
@@ -370,6 +381,7 @@ class ProjectPlugin:
             count_paste_targets=self._count_paste_targets,
             on_device_info=self._open_read_dialog,
             on_compare=self._open_compare,
+            on_select_element=api.project.select_comment_target,
         )
 
         self._project_info_panel = ProjectInfoPanel(
@@ -387,6 +399,7 @@ class ProjectPlugin:
             get_traces=api.project.get_project_traces,
         )
 
+        self._comment_panel = CommentPanel(api.project)
         self._history_panel = HistoryPanel(
             get_entries=self._get_history_entries,
             get_cursor=lambda: api.project.cursor,
@@ -456,6 +469,12 @@ class ProjectPlugin:
                 label=S.PANEL_MANUFACTURER,
                 dock="DeviceSpace",
                 render=self._render_manufacturer,
+            ),
+            PanelDefinition(
+                name="comment",
+                label=S.PANEL_COMMENT,
+                dock="DeviceSpace",
+                render=self._comment_panel.render,
             ),
             PanelDefinition(
                 name="mass_linker",
@@ -615,6 +634,14 @@ class ProjectPlugin:
 
     def _select_space(self, space_id: int) -> None:
         self._api.project.selected_space_id = space_id
+
+    def selected_element(self) -> "ElementDetails | None":
+        """The area, line, group range or group address selected (its details replace the
+        device's), if any."""
+        selected = self._api.project.selected_element
+        return (
+            None if selected is None else self._api.project.element_details(*selected)
+        )
 
     def selected_space(self) -> "SpaceInfo | None":
         """The space selected in the Buildings tree (its details replace the device's), if any."""
@@ -2326,6 +2353,10 @@ class ProjectPlugin:
         if space is not None:
             self._space_details.render(space)
             return
+        element = self.selected_element()
+        if element is not None:
+            self._element_details.render(element)
+            return
         self._sync_selected_device_from_editor()
         self._configure_panel.render_device()
 
@@ -2370,6 +2401,7 @@ class ProjectPlugin:
         self._group_addresses_panel.start_import()
 
     def render_overlays(self) -> None:
+        self._comment_panel.tick()
         self._group_addresses_panel.render_import()
         self._read_device_dialog.render()
         self._certificate_dialog.render()

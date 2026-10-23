@@ -44,7 +44,7 @@ msgid "Building Function"
 msgstr "Gebouwfunctie"
 
 msgid "Building Part"
-msgstr "Gebouwdeel"
+msgstr "Gebouwonderdeel"
 
 
 msgid "Destination Address"

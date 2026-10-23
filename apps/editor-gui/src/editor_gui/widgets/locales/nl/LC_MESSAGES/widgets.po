@@ -289,3 +289,30 @@ msgstr "Parameter:"
 
 msgid "search…"
 msgstr "zoeken…"
+
+msgid "automatic"
+msgstr "automatisch"
+
+msgid "Low"
+msgstr "Laag"
+
+msgid "High"
+msgstr "Hoog"
+
+msgid "Alert"
+msgstr "Alarm"
+
+msgid "Bold"
+msgstr "Vet gedrukt"
+
+msgid "Italic"
+msgstr "Cursief"
+
+msgid "Underline"
+msgstr "Onderlijn"
+
+msgid "Cut"
+msgstr "Knippen"
+
+msgid "Paste"
+msgstr "Plakken"

@@ -23,7 +23,13 @@ _DEFAULT_COLOR = (0.85, 0.85, 0.85)
 _LEVEL_RANK = {"debug": 0, "info": 1, "warning": 2, "error": 3, "critical": 4}
 # (label, minimum rank) options for the level filter dropdown. "Debug" (rank 0) is the lowest, so it
 # shows every record incl. the package traces; the levels above it hide progressively more.
-_LEVEL_OPTIONS = [("Debug", 0), ("Info", 1), ("Warning", 2), ("Error", 3)]
+# The level filter: the shown name and the lowest level rank it shows.
+_LEVEL_OPTIONS: list[tuple[Callable[[], str], int]] = [
+    (lambda: S.LEVEL_DEBUG, 0),
+    (lambda: S.LEVEL_INFO, 1),
+    (lambda: S.LEVEL_WARNING, 2),
+    (lambda: S.LEVEL_ERROR, 3),
+]
 
 
 class LogPanel:
@@ -103,7 +109,7 @@ class LogPanel:
         same_line_if_fits(px(100))
         imgui.set_next_item_width(px(100))
         _, self._min_level_idx = combo(
-            "##loglevel", self._min_level_idx, [label for label, _ in _LEVEL_OPTIONS]
+            "##loglevel", self._min_level_idx, [label() for label, _ in _LEVEL_OPTIONS]
         )
         same_line_if_fits(button_width(S.COPY_LOG))
         # Rows are plain text (not selectable), so offer an explicit copy-all-to-clipboard.

@@ -65,6 +65,7 @@ from xknxeditor.proj.core.ga_export import write_ga_csv as _write_ga_csv
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.ip_secure import PASSWORD_ACCESS_TYPES
 from xknxeditor.proj.core.project_secrets import check_project_password
+from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
 from xknxeditor.proj.core.skeleton import MEDIUM_TP
 
 if TYPE_CHECKING:
@@ -86,6 +87,7 @@ if TYPE_CHECKING:
         AdditionalAddressInfo,
         DeviceInfo,
         DeviceKeys,
+        DeviceLinkInfo,
         GroupRangeInfo,
         IpSecrets,
         SecureCommissioningImpact,
@@ -443,11 +445,115 @@ def _changes_structure(data: dict[str, Any]) -> bool:
     return any(sub.get("type") in _STRUCTURAL_EVENTS for sub in data.get("events", []))
 
 
+def _quoted(data: dict[str, Any], key: str) -> str:
+    return repr(data.get(key, ""))
+
+
+# Labels of the events without their own text; each takes the event data.
+_HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
+    "AddDevice": lambda d: S.HISTORY_EV_ADD_DEVICE.format(name=_quoted(d, "name")),
+    "SetParameter": lambda d: S.HISTORY_EV_SET_PARAMETER.format(
+        ref=d.get("ref_id", ""), value=_quoted(d, "value")
+    ),
+    "CreateArea": lambda d: S.HISTORY_EV_CREATE_AREA.format(address=d.get("address")),
+    "CreateLine": lambda d: S.HISTORY_EV_CREATE_LINE.format(address=d.get("address")),
+    "CreateSegment": lambda d: S.HISTORY_EV_ADD_SEGMENT,
+    "CreateGroupAddress": lambda d: S.HISTORY_EV_CREATE_GA.format(
+        address=d.get("address")
+    ),
+    "ImportGroupAddresses": lambda d: str(d.get("label") or S.HISTORY_EV_IMPORT_GAS),
+    "LinkComObject": lambda d: S.HISTORY_EV_LINK,
+    "UnlinkComObject": lambda d: S.HISTORY_EV_UNLINK,
+    "RenameArea": lambda d: S.HISTORY_EV_RENAME_AREA.format(name=_quoted(d, "name")),
+    "SetProjectName": lambda d: S.HISTORY_EV_RENAME_PROJECT.format(
+        name=_quoted(d, "name")
+    ),
+    "RenameLine": lambda d: S.HISTORY_EV_RENAME_LINE.format(name=_quoted(d, "name")),
+    "SetDeviceName": lambda d: S.HISTORY_EV_RENAME_DEVICE.format(
+        name=_quoted(d, "name")
+    ),
+    "MoveDevice": lambda d: S.HISTORY_EV_MOVE_DEVICE,
+    "SetDeviceAdditionalAddresses": lambda d: str(
+        d.get("label") or S.HISTORY_ADDITIONAL_ADDRESSES
+    ),
+    "SetComObjectFlag": lambda d: S.HISTORY_EV_SET_FLAG,
+    "SetComObjectDatapointType": lambda d: S.HISTORY_EV_SET_DPT,
+    "SetComObjectPriority": lambda d: S.HISTORY_EV_SET_PRIORITY,
+    "SetComObjectDescription": lambda d: S.HISTORY_EV_SET_DESCRIPTION,
+    "SetComObjectSending": lambda d: S.HISTORY_EV_SET_SENDING,
+    "SetGroupAddressDatapointType": lambda d: S.HISTORY_EV_SET_DPT,
+    "AddInstallation": lambda d: S.HISTORY_EV_ADD_INSTALLATION,
+    "RemoveDevice": lambda d: S.HISTORY_EV_REMOVE_DEVICE,
+    "RemoveArea": lambda d: S.HISTORY_EV_REMOVE_AREA,
+    "RemoveLine": lambda d: S.HISTORY_EV_REMOVE_LINE,
+    "RemoveSegment": lambda d: S.HISTORY_EV_REMOVE_SEGMENT,
+    "RemoveGroupAddress": lambda d: S.HISTORY_EV_REMOVE_GA,
+    "RemoveFunction": lambda d: S.HISTORY_EV_REMOVE_FUNCTION,
+    "RemoveFunctionGroupAddress": lambda d: S.HISTORY_EV_REMOVE_FUNCTION_GA,
+    "RemoveSpace": lambda d: S.HISTORY_EV_REMOVE_SPACE,
+    "RemoveGroupRange": lambda d: S.HISTORY_EV_REMOVE_GROUP_RANGE,
+    "UpdateDeviceApplication": lambda d: S.HISTORY_EV_UPDATE_APP,
+    "ChangeDeviceApplication": lambda d: S.HISTORY_EV_CHANGE_APP,
+    "SyncDeviceComObjects": lambda d: S.HISTORY_EV_SYNC_COM_OBJECTS,
+    "SyncDeviceModuleInstances": lambda d: S.HISTORY_EV_SYNC_MODULES,
+    "SetGroupAddressSecurity": lambda d: S.HISTORY_EV_SET_GA_SECURITY,
+    "SetDeviceSecureCommissioning": lambda d: S.HISTORY_EV_SET_SECURE_COMMISSIONING,
+    "RenameGroupAddress": lambda d: S.HISTORY_EV_RENAME_GA.format(
+        name=_quoted(d, "name")
+    ),
+    "SetGroupAddressAddress": lambda d: S.HISTORY_EV_SET_GA_ADDRESS,
+    "SetDeviceCertificates": lambda d: S.HISTORY_EV_SET_CERTIFICATES,
+    "SetDeviceDescription": lambda d: S.HISTORY_EV_SET_DEVICE_DESCRIPTION,
+    "SetTopologyDescription": lambda d: (
+        S.HISTORY_EV_SET_AREA_DESCRIPTION
+        if d.get("kind") == "area"
+        else S.HISTORY_EV_SET_LINE_DESCRIPTION
+    ),
+    "SetTopologyAddress": lambda d: (
+        S.HISTORY_EV_SET_AREA_ADDRESS
+        if d.get("kind") == "area"
+        else S.HISTORY_EV_SET_LINE_ADDRESS
+    ),
+    "SetGroupDescription": lambda d: (
+        S.HISTORY_EV_SET_GA_DESCRIPTION
+        if d.get("kind") == "group_address"
+        else S.HISTORY_EV_SET_GROUP_RANGE_DESCRIPTION
+    ),
+    "SetGroupRangeAddress": lambda d: S.HISTORY_EV_SET_GROUP_RANGE_ADDRESS,
+    "SetComment": lambda d: (
+        S.HISTORY_EV_SET_INSTALLATION_HINTS
+        if d.get("field") == "installation_hints"
+        else S.HISTORY_EV_SET_COMMENT
+    ),
+    "CreateFunction": lambda d: S.HISTORY_EV_CREATE_FUNCTION.format(
+        name=_quoted(d, "name")
+    ),
+    "CreateFunctionWithGroupAddresses": lambda d: S.HISTORY_EV_CREATE_FUNCTION.format(
+        name=_quoted(d, "name")
+    ),
+    "RenameFunction": lambda d: S.HISTORY_EV_RENAME_FUNCTION.format(
+        name=_quoted(d, "name")
+    ),
+    "SetFunctionType": lambda d: S.HISTORY_EV_SET_FUNCTION_TYPE,
+    "AddFunctionGroupAddress": lambda d: S.HISTORY_EV_ADD_FUNCTION_GA,
+    "CreateSpace": lambda d: S.HISTORY_EV_CREATE_SPACE.format(name=_quoted(d, "name")),
+    "RenameSpace": lambda d: S.HISTORY_EV_RENAME_SPACE.format(name=_quoted(d, "name")),
+    "SetSpaceNumber": lambda d: S.HISTORY_EV_SET_SPACE_NUMBER,
+    "SetSpaceDescription": lambda d: S.HISTORY_EV_SET_SPACE_DESCRIPTION,
+    "SetSpaceType": lambda d: S.HISTORY_EV_SET_SPACE_TYPE,
+    "MoveSpace": lambda d: S.HISTORY_EV_MOVE_SPACE,
+    "SetDeviceSpace": lambda d: S.HISTORY_EV_SET_DEVICE_SPACE,
+    "SetDeviceCommissioning": lambda d: S.HISTORY_EV_SET_COMMISSIONING,
+    "CreateGroupRange": lambda d: S.HISTORY_EV_CREATE_GROUP_RANGE.format(
+        name=_quoted(d, "name")
+    ),
+    "RenameGroupRange": lambda d: S.HISTORY_EV_RENAME_GROUP_RANGE.format(
+        name=_quoted(d, "name")
+    ),
+}
+
+
 def _history_label(event_type: str, data: dict[str, Any]) -> str:
-    if event_type == "AddDevice":
-        return f"Add device {data.get('name', '')!r}"
-    if event_type == "SetParameter":
-        return f"Set {data.get('ref_id', '')} = {data.get('value', '')!r}"
     if event_type == "Composite":
         if data.get("label"):
             return str(data["label"])
@@ -456,50 +562,42 @@ def _history_label(event_type: str, data: dict[str, Any]) -> str:
         for sub in data.get("events", []):
             if sub.get("data"):
                 return _history_label(str(sub.get("type", "")), sub["data"])
-        return "Change"
-    if event_type == "CreateArea":
-        return f"Create area {data.get('address')}"
-    if event_type == "CreateLine":
-        return f"Create line {data.get('address')}"
-    if event_type == "CreateSegment":
-        return "Add segment"
-    if event_type == "CreateGroupAddress":
-        return f"Create group address {data.get('address')}"
-    if event_type == "ImportGroupAddresses":
-        return str(data.get("label") or "Import group addresses")
-    if event_type == "LinkComObject":
-        return "Link com-object"
-    if event_type == "UnlinkComObject":
-        return "Unlink com-object"
-    if event_type == "RenameArea":
-        return f"Rename area to {data.get('name', '')!r}"
-    if event_type == "SetProjectName":
-        return f"Rename project to {data.get('name', '')!r}"
-    if event_type == "RenameLine":
-        return f"Rename line to {data.get('name', '')!r}"
-    if event_type == "SetDeviceName":
-        return f"Rename device to {data.get('name', '')!r}"
-    if event_type == "MoveDevice":
-        return "Move device"
-    if event_type == "SetDeviceAdditionalAddresses":
-        return str(data.get("label") or S.HISTORY_ADDITIONAL_ADDRESSES)
-    if event_type == "SetComObjectFlag":
-        return "Set flag"
-    if event_type == "SetComObjectDatapointType":
-        return "Set data type"
-    if event_type == "SetComObjectPriority":
-        return "Set priority"
-    if event_type == "SetComObjectDescription":
-        return "Set description"
-    if event_type == "SetComObjectSending":
-        return "Set sending"
-    if event_type == "SetGroupAddressDatapointType":
-        return "Set datapoint type"
+        return S.HISTORY_EV_CHANGE
+    label = _HISTORY_LABELS.get(event_type)
+    if label is not None:
+        return label(data)
     if event_type.startswith("Remove"):
-        return f"Remove {event_type[len('Remove') :].lower()}"
-    if event_type == "AddInstallation":
-        return "Add installation"
+        return S.HISTORY_EV_REMOVE
     return event_type
+
+
+@dataclass(frozen=True)
+class ElementDetails:
+    """What the details of a selected area, line, group range or group address show. ``title_kind``
+    names it in the tab ("area", "line", "main_group", "middle_group", "group_range",
+    "group_address"); a line's address shows after its area's (``prefix`` "1."), a middle group's
+    after its main group's ("1/")."""
+
+    kind: str
+    element_id: int
+    title_kind: str
+    name: str
+    description: str
+    prefix: str
+    address: str
+    editable: bool = True
+
+
+def _find_range(
+    nodes: "list[GroupRangeInfo]", range_id: int, depth: int
+) -> "tuple[GroupRangeInfo, int] | None":
+    for node in nodes:
+        if node.id == range_id:
+            return node, depth
+        found = _find_range(node.children, range_id, depth + 1)
+        if found is not None:
+            return found
+    return None
 
 
 @dataclass
@@ -507,6 +605,7 @@ class _Area:
     id: int
     area_number: int
     name: str
+    description: str = ""
 
 
 @dataclass
@@ -515,6 +614,7 @@ class _Line:
     area_id: int
     line_number: int
     name: str
+    description: str = ""
 
 
 @dataclass
@@ -844,6 +944,15 @@ class ProjectService:
         # A space selected in the Buildings tree: its details replace the device's until a device
         # is selected again.
         self._selected_space_id: int | None = None
+        # An area or a line selected in the Devices tree, or a group range or group address in the
+        # Group Addresses tree: (kind, id). Its details replace the device's until a device or a
+        # space is selected.
+        self._selected_element: tuple[str, int] | None = None
+        # The element the Comment panel shows: (kind, id) of what was selected last in a tree; the
+        # kinds are those of the project's comments (device, space, area, line, group_address, ...).
+        self._comment_target: tuple[str, int] | None = None
+        # (kind, id, field) -> (revision, stored comment or None without such an element).
+        self._comment_cache: dict[tuple[str, int, str], tuple[int, str | None]] = {}
         # Multi-selection: the full set of selected device node ids (the primary above is
         # the last-clicked one, kept for all single-device consumers). Empty = single/none.
         self._selected_node_ids: set[int] = set()
@@ -1409,6 +1518,9 @@ class ProjectService:
         self._ip_secure_cache.clear()
         self._selected_node_id = None
         self._selected_space_id = None
+        self._comment_target = None
+        self._selected_element = None
+        self._comment_cache.clear()
         self._selected_node_ids = set()
         self._dynui_lru.clear()
         self._app_cache.clear()
@@ -2043,6 +2155,8 @@ class ProjectService:
         new_id = device.node_id if device is not None else None
         # Selecting a device (also the one already selected) shows its details again.
         self._selected_space_id = None
+        self._comment_target = ("device", new_id) if new_id is not None else None
+        self._selected_element = None
         if new_id != self._selected_node_id:
             self._selected_node_id = new_id
             # Any single-device select (command palette, Health/Cockpit navigate) collapses the
@@ -2139,13 +2253,19 @@ class ProjectService:
             return
         installation = self._svc.topology(self._pid, _INSTALLATION)
         self._areas_cache = [
-            _Area(id=a.id, area_number=a.address, name=a.name)
+            _Area(
+                id=a.id, area_number=a.address, name=a.name, description=a.description
+            )
             for a in installation.areas
         ]
         self._lines_cache = {
             a.id: [
                 _Line(
-                    id=ln.id, area_id=ln.area_id, line_number=ln.address, name=ln.name
+                    id=ln.id,
+                    area_id=ln.area_id,
+                    line_number=ln.address,
+                    name=ln.name,
+                    description=ln.description,
                 )
                 for ln in a.lines
             ]
@@ -2181,7 +2301,7 @@ class ProjectService:
                 name=g.name,
                 datapoint_type=g.datapoint_type,
                 description=g.description,
-                comment=g.comment,
+                comment=plain_text(parse_rich_text(g.comment)),
                 data_secure=g.data_secure,
                 raw=g.address,
             )
@@ -2205,7 +2325,7 @@ class ProjectService:
             name=g.name,
             datapoint_type=g.datapoint_type,
             description=g.description,
-            comment=g.comment,
+            comment=plain_text(parse_rich_text(g.comment)),
             data_secure=g.data_secure,
             raw=g.address,
         )
@@ -2224,6 +2344,15 @@ class ProjectService:
             )
             for link in self._svc.group_address_links(self._pid, ga_id)
         ]
+
+    @io_guarded(list)
+    @revision_cached
+    def device_links(self) -> list["DeviceLinkInfo"]:
+        """Every group-address link with its device (``node_id``) and its com-object's flags, read in
+        one query: for views over the whole project, where a read per com-object is far too slow."""
+        if self._pid is None:
+            return []
+        return self._svc.device_links(self._pid)
 
     @io_guarded(list)
     @revision_cached_by_args
@@ -4767,7 +4896,7 @@ class ProjectService:
             self._pid,
             _INSTALLATION,
             export,
-            label=f"Import group addresses from {path.name}",
+            label=S.HISTORY_EV_IMPORT_GAS_FROM.format(file=path.name),
         )
         self._bump(structural=False)
         return event.added, event.updated, event.skipped
@@ -4931,6 +5060,236 @@ class ProjectService:
     @selected_space_id.setter
     def selected_space_id(self, space_id: int | None) -> None:
         self._selected_space_id = space_id
+        if space_id is not None:
+            self._comment_target = ("space", space_id)
+            self._selected_element = None
+
+    @property
+    def selected_element(self) -> tuple[str, int] | None:
+        """``(kind, id)`` of the area, line, group range or group address selected, if one rather
+        than a device or a space is."""
+        return self._selected_element
+
+    @property
+    def selected_topology(self) -> tuple[str, int] | None:
+        """The selected element if it is an area or a line."""
+        element = self._selected_element
+        return (
+            element if element is not None and element[0] in ("area", "line") else None
+        )
+
+    def select_element(self, kind: str, element_id: int) -> None:
+        """An area, line, group range or group address was selected: its details show in place of
+        the device's, its comment in the Comment tab."""
+        self._selected_element = (kind, element_id)
+        self._selected_space_id = None
+        self._comment_target = (kind, element_id)
+
+    def find_topology(self, kind: str, element_id: int) -> "_Area | _Line | None":
+        """The area or line ``element_id``; None when it does not exist (any more)."""
+        if kind == "area":
+            return next((a for a in self.get_areas() if a.id == element_id), None)
+        self._ensure_topology_cache()
+        return next(
+            (
+                ln
+                for lines in (self._lines_cache or {}).values()
+                for ln in lines
+                if ln.id == element_id
+            ),
+            None,
+        )
+
+    def element_details(self, kind: str, element_id: int) -> "ElementDetails | None":
+        """What the details of an area, line, group range or group address show; None when it does
+        not exist (any more)."""
+        if kind in ("area", "line"):
+            element = self.find_topology(kind, element_id)
+            if isinstance(element, _Area):
+                return ElementDetails(
+                    kind,
+                    element_id,
+                    "area",
+                    element.name,
+                    element.description,
+                    "",
+                    str(element.area_number),
+                )
+            if isinstance(element, _Line):
+                area = self.find_topology("area", element.area_id)
+                prefix = f"{area.area_number}." if isinstance(area, _Area) else ""
+                return ElementDetails(
+                    kind,
+                    element_id,
+                    "line",
+                    element.name,
+                    element.description,
+                    prefix,
+                    str(element.line_number),
+                )
+            return None
+        if kind == "group_address":
+            ga = self.get_group_address(element_id)
+            if ga is None:
+                return None
+            return ElementDetails(
+                kind,
+                element_id,
+                "group_address",
+                ga.name,
+                ga.description,
+                "",
+                ga.address,
+            )
+        if kind == "group_range":
+            found = _find_range(self.get_group_range_tree(), element_id, 0)
+            if found is None:
+                return None
+            node, depth = found
+            if not node.address:  # Free style: groups without a number
+                return ElementDetails(
+                    kind,
+                    element_id,
+                    "group_range",
+                    node.name,
+                    node.description,
+                    "",
+                    f"{node.range_start}\u2013{node.range_end}",
+                    editable=False,
+                )
+            prefix, _, number = node.address.rpartition("/")
+            return ElementDetails(
+                kind,
+                element_id,
+                "middle_group" if depth else "main_group",
+                node.name,
+                node.description,
+                f"{prefix}/" if prefix else "",
+                number,
+            )
+        return None
+
+    def rename_element(self, kind: str, element_id: int, name: str) -> None:
+        details = self.element_details(kind, element_id)
+        if details is None or details.name == name:
+            return
+        if kind == "area":
+            self.rename_area(element_id, details.name, name)
+        elif kind == "line":
+            self.rename_line(element_id, details.name, name)
+        elif kind == "group_range":
+            self.rename_group_range(element_id, name)
+        elif kind == "group_address":
+            self.rename_group_address(element_id, name)
+
+    def set_element_description(
+        self, kind: str, element_id: int, description: str
+    ) -> None:
+        if kind in ("area", "line"):
+            self.set_topology_description(kind, element_id, description)
+            return
+        details = self.element_details(kind, element_id)
+        if self._pid is None or details is None or details.description == description:
+            return
+        self._svc.set_group_description(self._pid, kind, element_id, description)
+        self._bump(structural=False)
+
+    def set_element_address(self, kind: str, element_id: int, text: str) -> str | None:
+        """Give the element another address; the reason it cannot be, or None."""
+        if kind in ("area", "line"):
+            return self.set_topology_address(kind, element_id, text)
+        details = self.element_details(kind, element_id)
+        if self._pid is None or details is None or details.address == text.strip():
+            return None
+        if kind == "group_address":
+            ok = self.set_group_address_address(element_id, text.strip())
+            return None if ok else S.GA_RENUMBER_FAILED
+        middle = details.title_kind == "middle_group"
+        invalid = (
+            S.GROUP_MIDDLE_NUMBER_INVALID if middle else S.GROUP_MAIN_NUMBER_INVALID
+        )
+        try:
+            number = int(text.strip())
+        except ValueError:
+            return invalid
+        if not 0 <= number <= (7 if middle else 31):
+            return invalid
+        try:
+            self._svc.set_group_range_number(self._pid, element_id, number)
+        except ValueError:
+            return S.TOPOLOGY_ADDRESS_IN_USE.format(address=f"{details.prefix}{number}")
+        self._bump()
+        return None
+
+    def set_topology_description(
+        self, kind: str, element_id: int, description: str
+    ) -> None:
+        element = self.find_topology(kind, element_id)
+        if self._pid is None or element is None or element.description == description:
+            return
+        self._svc.set_topology_description(self._pid, kind, element_id, description)
+        self._bump(structural=False)
+
+    def set_topology_address(self, kind: str, element_id: int, text: str) -> str | None:
+        """Give an area or a line another address (its devices' addresses change with it); the
+        reason it cannot be, or None."""
+        if self._pid is None:
+            return None
+        try:
+            address = int(text.strip())
+        except ValueError:
+            return S.TOPOLOGY_ADDRESS_INVALID
+        if not 0 <= address <= 15:
+            return S.TOPOLOGY_ADDRESS_INVALID
+        element = self.find_topology(kind, element_id)
+        current = (
+            None
+            if element is None
+            else element.area_number
+            if isinstance(element, _Area)
+            else element.line_number
+        )
+        if current is None or current == address:
+            return None
+        try:
+            self._svc.set_topology_address(self._pid, kind, element_id, address)
+        except ValueError:
+            return S.TOPOLOGY_ADDRESS_IN_USE.format(address=address)
+        self._bump()
+        return None
+
+    @property
+    def comment_target(self) -> tuple[str, int] | None:
+        """``(kind, id)`` of the element selected last in a tree, whose comment the Comment panel
+        shows; None when nothing is selected."""
+        return self._comment_target
+
+    def select_comment_target(self, kind: str, element_id: int) -> None:
+        """An element without its own details panel (area, line, group range, group address,
+        function) was selected: the Comment panel shows its comment."""
+        self._comment_target = (kind, element_id)
+
+    def comment(self, kind: str, element_id: int, field: str = "comment") -> str | None:
+        """An element's comment (RTF as stored) or a device's installation hints (``field``
+        "installation_hints"); None when the element does not exist (any more)."""
+        if self._pid is None:
+            return None
+        key = (kind, element_id, field)
+        cached = self._comment_cache.get(key)
+        if cached is not None and cached[0] == self._version:
+            return cached[1]
+        value = self._svc.comment(self._pid, kind, element_id, field)
+        self._comment_cache[key] = (self._version, value)
+        return value
+
+    def set_comment(
+        self, kind: str, element_id: int, value: str, field: str = "comment"
+    ) -> None:
+        """Store an element's comment or a device's installation hints (RTF); undoable."""
+        if self._pid is None or self.comment(kind, element_id, field) in (None, value):
+            return
+        self._svc.set_comment(self._pid, kind, element_id, value, field)
+        self._bump(structural=False)
 
     def find_space(self, space_id: int) -> "SpaceInfo | None":
         """The space ``space_id`` of the building tree."""
@@ -5018,7 +5377,12 @@ class ProjectService:
                     )
                     self._bump(structural=False)
                     return
-            elif event_type == "SetDeviceAdditionalAddresses":
+            elif event_type in (
+                "SetDeviceAdditionalAddresses",
+                "SetComment",
+                "SetTopologyDescription",
+                "SetGroupDescription",
+            ):
                 # Read from the project on every revision; no device structure changes.
                 self._bump(structural=False)
                 return
