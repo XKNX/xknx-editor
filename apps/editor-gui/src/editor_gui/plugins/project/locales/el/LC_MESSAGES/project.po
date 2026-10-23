@@ -2205,3 +2205,81 @@ msgstr "Ορισμός περιγραφής εύρους ομάδων"
 
 msgid "Set group range address"
 msgstr "Ορισμός διεύθυνσης εύρους ομάδων"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "Κανάλι {n}"
+
+msgid "Colour Temp (K)"
+msgstr "Θερμοκρασία χρώματος (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Συνδεθείτε σε διεπαφή KNX για να διαβάσετε τον δίαυλο Siemens DALI."
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "Κανάλι DALI"
+
+msgid "DALI commissioning"
+msgstr "Έναρξη λειτουργίας DALI"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "Η έναρξη λειτουργίας DALI γράφει στο gateway μέσω του διαύλου, αλλά δεν ενημερώνει τις παραμέτρους του έργου· εξάγετε ξανά το .knxproj μετά από επεξεργασία στην πλευρά DCA."
+
+msgid "Default"
+msgstr "Προεπιλογή"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Επεξεργάσιμη εναλλακτική για παραμέτρους των οποίων το plugin του κατασκευαστή δεν είναι διαθέσιμο εδώ. Η ιεραρχία ανακατασκευάζεται από τα προθέματα των ονομάτων παραμέτρων· οι ετικέτες και οι ομαδοποιήσεις ενδέχεται να είναι προσεγγιστικές. Οι αλλαγές γράφονται στο έργο και μεταφέρονται με κανονική λήψη."
+
+msgid "Min Dim"
+msgstr "Ελάχ. ρύθμιση φωτεινότητας"
+
+msgid "No parameter matches the filter."
+msgstr "Καμία παράμετρος δεν αντιστοιχεί στο φίλτρο."
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Δεν υπάρχει ακόμη αντιστοίχιση plugin για αυτή τη συσκευή. Οι παράμετροι του plugin του κατασκευαστή παραμένουν μη προσβάσιμες από εδώ."
+
+msgid "Parameter"
+msgstr "Παράμετρος"
+
+msgid "Plugin Config"
+msgstr "Ρύθμιση plugin"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Πατήστε «Ανάγνωση διαύλου DALI» για να εμφανιστούν τα ECG στο gateway."
+
+msgid "Random Address"
+msgstr "Τυχαία διεύθυνση"
+
+msgid "Read DALI Bus"
+msgstr "Ανάγνωση διαύλου DALI"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Στιγμιότυπο μόνο για ανάγνωση. Η εγγραφή αντιστοιχίσεων ομάδας, σκηνών ή firmware δεν είναι ακόμη διαθέσιμη και παραμένει στο plugin του κατασκευαστή."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Προβολή μόνο για ανάγνωση. Η ιεραρχία αποτελεί κατά το δυνατόν καλύτερη ανακατασκευή από τα προθέματα ονομάτων παραμέτρων· τα ονόματα και οι ομαδοποιήσεις ενδέχεται να είναι προσεγγιστικά. Η εγγραφή τιμών δεν είναι ακόμη διαθέσιμη."
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Ανάγνωση διαύλου DALI από το αντικείμενο {object_index}…"
+
+msgid "Short Address"
+msgstr "Σύντομη διεύθυνση"
+
+msgid "Slot"
+msgstr "Υποδοχή"
+
+msgid "The application has no static parameters."
+msgstr "Η εφαρμογή δεν διαθέτει στατικές παραμέτρους."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Το πρωτόκολλο έναρξης λειτουργίας αυτού του gateway δεν έχει επαληθευτεί έναντι καταγραφής· οι εγγραφές ενδέχεται να έχουν ακατάλληλη συμπεριφορά. Προχωρήστε με προσοχή."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{count} ECG παρόντα στη γραμμή {line}"

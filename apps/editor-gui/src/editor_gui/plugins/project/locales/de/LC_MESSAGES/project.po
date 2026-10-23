@@ -1887,6 +1887,22 @@ msgstr "Ein Teil der Gerätedaten ist nicht verfügbar."
 msgid "Connect to a KNX interface to commission the DALI bus."
 msgstr "Für die Inbetriebnahme des DALI-Busses mit einer KNX-Schnittstelle verbinden."
 
+msgid ""
+"This gateway's commissioning protocol has not been verified against a "
+"capture; writes may misbehave. Proceed with care."
+msgstr ""
+"Das Inbetriebnahme-Protokoll dieses Gateways wurde nicht gegen eine "
+"Aufzeichnung verifiziert; Schreibvorgänge können fehlerhaft sein. Mit "
+"Vorsicht fortfahren."
+
+msgid ""
+"DALI commissioning writes the gateway on the bus but does not update the "
+"project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr ""
+"Die DALI-Inbetriebnahme beschreibt das Gateway auf dem Bus, aktualisiert "
+"aber nicht die Projekt-Parameter; nach einer DCA-seitigen Änderung die "
+".knxproj erneut exportieren."
+
 msgid "Scan Bus"
 msgstr "Bus scannen"
 
@@ -2381,3 +2397,74 @@ msgstr "Gruppenbereichsbeschreibung festlegen"
 
 msgid "Set group range address"
 msgstr "Gruppenbereichsadresse festlegen"
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Mit einer KNX-Schnittstelle verbinden, um den Siemens-DALI-Bus zu lesen."
+
+msgid "Read DALI Bus"
+msgstr "DALI-Bus lesen"
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "DALI-Bus wird aus Objekt {object_index} gelesen…"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Mit „DALI-Bus lesen“ die EVGs des Gateways auflisten."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{count} EVG(s) auf Linie {line} vorhanden"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Nur-Lese-Schnappschuss. Das Schreiben von Gruppenzuordnung, Szenen oder Firmware ist noch nicht verfügbar und bleibt beim Hersteller-Plugin."
+
+msgid "Short Address"
+msgstr "Kurzadresse"
+
+msgid "Random Address"
+msgstr "Zufallsadresse"
+
+msgid "Min Dim"
+msgstr "Min. Dimmwert"
+
+msgid "Colour Temp (K)"
+msgstr "Farbtemp. (K)"
+
+msgid "Slot"
+msgstr "Slot"
+
+msgid "Plugin Config"
+msgstr "Plugin-Konfiguration"
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Für dieses Gerät ist noch keine Plugin-Zuordnung hinterlegt. Die Parameter des Hersteller-Plugins bleiben hier unerreichbar."
+
+msgid "The application has no static parameters."
+msgstr "Die Applikation hat keine statischen Parameter."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Nur-Lesen-Ansicht. Die Hierarchie ist eine Best-effort-Rekonstruktion aus Parameternamen-Prefixen; Namen und Gruppen können grob sein. Werteschreiben ist noch nicht verfügbar."
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "No parameter matches the filter."
+msgstr "Kein Parameter entspricht dem Filter."
+
+msgid "Parameter"
+msgstr "Parameter"
+
+msgid "Default"
+msgstr "Vorgabe"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Editierbare Ersatzansicht für Parameter, deren Hersteller-Plugin hier nicht verfügbar ist. Die Hierarchie ist aus Parameternamen-Prefixen rekonstruiert; Labels und Gruppen können grob sein. Änderungen werden im Projekt gespeichert und mit einem normalen Download übertragen."
+
+msgid "DALI commissioning"
+msgstr "DALI-Inbetriebnahme"
+
+msgid "DALI Channel"
+msgstr "DALI-Kanal"
+
+msgid "Channel {n}"
+msgstr "Kanal {n}"

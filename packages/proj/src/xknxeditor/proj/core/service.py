@@ -107,6 +107,7 @@ from xknxeditor.proj.core.events import (
     SyncDeviceModuleInstances,
     UnlinkComObject,
     UpdateDeviceApplication,
+    UpsertDeviceBinaryData,
     additional_address_entries,
     stored_comment,
 )
@@ -2628,6 +2629,37 @@ class ProjectService:
                 app_program_id=app_program_id,
             )
         )
+
+    def upsert_device_binary_data(
+        self,
+        project_id: str,
+        device_id: int,
+        name: str,
+        data: bytes,
+        *,
+        ref_id: str = "",
+        do_not_copy: bool = False,
+        label: str | None = None,
+    ) -> None:
+        """Upsert a device's ``BinaryData`` row (keyed by ``name``) as one undo step.
+
+        Used by DALI DCA write-backs that persist a channel's state blob into the project so
+        a later .knxproj export carries what the user programmed. Replaces an existing row
+        with the same ``name`` (preserving its id so an undo restores the previous content);
+        creates a new row when none exists yet.
+        """
+        event = UpsertDeviceBinaryData(
+            device_id=device_id,
+            name=name,
+            data=data,
+            ref_id=ref_id,
+            do_not_copy=do_not_copy,
+        )
+        store = self._state(project_id).store
+        if label is None:
+            store.append(event)
+        else:
+            store.append(CompositeEvent(events=[event], label=label))
 
     def set_parameters(
         self,

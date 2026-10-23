@@ -2205,3 +2205,81 @@ msgstr "Задати опис діапазону груп"
 
 msgid "Set group range address"
 msgstr "Задати адресу діапазону груп"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "Канал {n}"
+
+msgid "Colour Temp (K)"
+msgstr "Колірна температура (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Підключіться до інтерфейсу KNX, щоб прочитати шину Siemens DALI."
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "Канал DALI"
+
+msgid "DALI commissioning"
+msgstr "Введення DALI в експлуатацію"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "Введення DALI в експлуатацію записує шлюз через шину, але не оновлює параметри проєкту; після правки на боці DCA повторно експортуйте .knxproj."
+
+msgid "Default"
+msgstr "За замовчуванням"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Редагований резервний варіант для параметрів, плагін виробника яких тут недоступний. Ієрархія відтворюється з префіксів імен параметрів; підписи та групування можуть бути приблизними. Зміни записуються у проєкт і переносяться звичайним завантаженням."
+
+msgid "Min Dim"
+msgstr "Мін. димування"
+
+msgid "No parameter matches the filter."
+msgstr "Жоден параметр не відповідає фільтру."
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Для цього пристрою поки немає відповідності плагіна. Параметри плагіна виробника залишаються недоступними звідси."
+
+msgid "Parameter"
+msgstr "Параметр"
+
+msgid "Plugin Config"
+msgstr "Налаштування плагіна"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Натисніть «Прочитати шину DALI», щоб побачити ECG на шлюзі."
+
+msgid "Random Address"
+msgstr "Випадкова адреса"
+
+msgid "Read DALI Bus"
+msgstr "Прочитати шину DALI"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Знімок лише для читання. Запис призначень груп, сцен або прошивки поки недоступний і залишається у плагіні виробника."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Перегляд лише для читання. Ієрархія — найкраща можлива реконструкція з префіксів імен параметрів; імена та групування можуть бути приблизними. Запис значень поки недоступний."
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Читання шини DALI з об'єкта {object_index}…"
+
+msgid "Short Address"
+msgstr "Коротка адреса"
+
+msgid "Slot"
+msgstr "Слот"
+
+msgid "The application has no static parameters."
+msgstr "У застосунку немає статичних параметрів."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Протокол введення цього шлюзу в експлуатацію не перевірено за записом; записи можуть поводитися некоректно. Дійте обережно."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{count} ECG на лінії {line}"

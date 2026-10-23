@@ -1,0 +1,55 @@
+{
+  "app_id_prefixes": ["M-0006_A-C017"],
+  "title": "Berker KNX-DALI Gateway",
+  "note": "German flat parameter namespace. Allg_* = global, G<N>_* / E<N>_* / Szene<N>_* = per-group/ECG/scene. R3_* appears both as a prefix and a mid-token (ETS3 download helper markers).",
+  "sections": [
+    {
+      "regex": "^Allg_R3 ",
+      "label": "General - ETS3 Compatibility"
+    },
+    {
+      "regex": "^Allg_",
+      "label": "General"
+    },
+    {
+      "regex": "^R3_Allg_",
+      "label": "General (R3)"
+    },
+    {
+      "regex": "^G([0-9]+)_",
+      "label": "Group {1}"
+    },
+    {
+      "regex": "^E([0-9]+)_",
+      "label": "ECG {1}"
+    },
+    {
+      "regex": "^R([0-9]+)_",
+      "label": "Row {1}"
+    },
+    {
+      "regex": "^Szene([0-9]+)",
+      "label": "Scene {1}"
+    },
+    {
+      "regex": "^EVG ",
+      "label": "ECG Configuration"
+    },
+    {
+      "regex": "^Eff",
+      "label": "Effects"
+    },
+    {
+      "regex": "^Notl",
+      "label": "Emergency Lighting"
+    },
+    {
+      "regex": "^Parametergruppe ",
+      "label": "Parameter Groups"
+    },
+    {
+      "regex": "^Helligkeitswerte",
+      "label": "Brightness Values"
+    }
+  ]
+}

@@ -2205,3 +2205,81 @@ msgstr "Nastavit popis skupinového rozsahu"
 
 msgid "Set group range address"
 msgstr "Nastavit adresu skupinového rozsahu"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "Kanál {n}"
+
+msgid "Colour Temp (K)"
+msgstr "Barevná teplota (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Pro čtení sběrnice Siemens DALI se připojte ke KNX rozhraní."
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "DALI kanál"
+
+msgid "DALI commissioning"
+msgstr "Uvedení DALI do provozu"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "Uvedení DALI do provozu zapíše gateway na sběrnici, ale neaktualizuje parametry projektu; po úpravě v DCA znovu exportujte .knxproj."
+
+msgid "Default"
+msgstr "Výchozí"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Editovatelná alternativa pro parametry, jejichž výrobcovský plugin zde není k dispozici. Hierarchie je rekonstruována z prefixů názvů parametrů; popisky a seskupení mohou být přibližné. Změny se zapisují do projektu a přenášejí běžným stažením."
+
+msgid "Min Dim"
+msgstr "Min. stmívání"
+
+msgid "No parameter matches the filter."
+msgstr "Filtru neodpovídá žádný parametr."
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Pro toto zařízení zatím není k dispozici mapování pluginu. Parametry pluginu výrobce odsud zůstávají nedostupné."
+
+msgid "Parameter"
+msgstr "Parametr"
+
+msgid "Plugin Config"
+msgstr "Konfigurace pluginu"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Stiskněte „Číst sběrnici DALI“ pro výpis ECG na gatewayi."
+
+msgid "Random Address"
+msgstr "Náhodná adresa"
+
+msgid "Read DALI Bus"
+msgstr "Číst sběrnici DALI"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Snímek jen pro čtení. Zápis skupinových přiřazení, scén nebo firmwaru zde zatím není k dispozici a zůstává v pluginu výrobce."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Pohled jen pro čtení. Hierarchie je rekonstruována z prefixů názvů parametrů; názvy a seskupení mohou být přibližné. Zápis hodnot zatím není k dispozici."
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Čtení sběrnice DALI z objektu {object_index}…"
+
+msgid "Short Address"
+msgstr "Krátká adresa"
+
+msgid "Slot"
+msgstr "Slot"
+
+msgid "The application has no static parameters."
+msgstr "Aplikace nemá žádné statické parametry."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Protokol uvedení této gateway do provozu nebyl ověřen vůči záznamu; zápisy se mohou chovat chybně. Postupujte opatrně."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{count} ECG na lince {line}"

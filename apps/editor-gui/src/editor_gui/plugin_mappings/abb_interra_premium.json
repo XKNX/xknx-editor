@@ -1,0 +1,59 @@
+{
+  "app_id_prefixes": ["M-0007_A-A0AC", "M-0002_A-A0AC", "M-0107_A-2080"],
+  "title": "ABB / Interra Premium DALI chassis (DG/S Premium, Interra DALI Gateway)",
+  "note": "Shared P.C[channel].* namespace. Interra reuses the ABB protocol plus a PV.C[channel].* preview space. Section order: specific child nodes (Z[]..G[], Z[]..S[]) before parents.",
+  "sections": [
+    {
+      "regex": "^P\\.C\\[([0-9]+)\\]\\.Z\\[([0-9]+)\\]\\.S\\[([0-9]+)\\]\\.",
+      "label": "Channel {1} - Zone {2} - Scene {3}"
+    },
+    {
+      "regex": "^P\\.C\\[([0-9]+)\\]\\.Z\\[([0-9]+)\\]\\.G\\[([0-9]+)\\]\\.",
+      "label": "Channel {1} - Zone {2} - Group {3}"
+    },
+    {
+      "regex": "^P\\.C\\[([0-9]+)\\]\\.Z\\[([0-9]+)\\]\\.",
+      "label": "Channel {1} - Zone {2}"
+    },
+    {
+      "regex": "^P\\.C\\[([0-9]+)\\]\\.G\\[([0-9]+)\\]\\.STS\\.",
+      "label": "Channel {1} - Group {2} - Status"
+    },
+    {
+      "regex": "^P\\.C\\[([0-9]+)\\]\\.G\\[([0-9]+)\\]\\.",
+      "label": "Channel {1} - Group {2}"
+    },
+    {
+      "regex": "^P\\.C\\[([0-9]+)\\]\\.B\\[([0-9]+)\\]\\.",
+      "label": "Channel {1} - Ballast {2}"
+    },
+    {
+      "regex": "^P\\.C\\[([0-9]+)\\]\\.E\\[([0-9]+)\\]\\.",
+      "label": "Channel {1} - Emergency {2}"
+    },
+    {
+      "regex": "^P\\.C\\[([0-9]+)\\]\\.T\\[([0-9]+)\\]\\.",
+      "label": "Channel {1} - Scene Template {2}"
+    },
+    {
+      "regex": "^P\\.C\\[([0-9]+)\\]\\.A\\.STS\\.",
+      "label": "Channel {1} - All - Status"
+    },
+    {
+      "regex": "^P\\.C\\[([0-9]+)\\]\\.A\\.OUT\\.",
+      "label": "Channel {1} - All - Output"
+    },
+    {
+      "regex": "^P\\.C\\[([0-9]+)\\]\\.A\\.",
+      "label": "Channel {1} - All"
+    },
+    {
+      "regex": "^P\\.C\\[([0-9]+)\\]\\.",
+      "label": "Channel {1}"
+    },
+    {
+      "regex": "^PV\\.C\\[([0-9]+)\\]\\.",
+      "label": "Channel {1} - Preview"
+    }
+  ]
+}

@@ -27,6 +27,7 @@ from xknxeditor.proj.models import (
     ComObjectLink,
     Device,
     DeviceAdditionalAddress,
+    DeviceBinaryData,
     Function,
     FunctionGroupAddress,
     GroupAddress,
@@ -961,7 +962,13 @@ class SyncDeviceModuleInstances(Event):
         for row in list(device.module_instances):
             if row.instance_id in gone and not row.arguments and not row.repeat_index:
                 self.removed.append(
-                    {"id": row.id, "instance_id": row.instance_id, "ref_id": row.ref_id}
+                    {
+                        "id": row.id,
+                        "instance_id": row.instance_id,
+                        "ref_id": row.ref_id,
+                        "repeat_index": row.repeat_index,
+                        "arguments": [dict(a) for a in row.arguments],
+                    }
                 )
                 session.delete(row)
         session.flush()
@@ -997,6 +1004,8 @@ class SyncDeviceModuleInstances(Event):
                     device_id=self.device_id,
                     instance_id=snap["instance_id"],
                     ref_id=snap["ref_id"],
+                    repeat_index=snap.get("repeat_index", ""),
+                    arguments=[dict(a) for a in snap.get("arguments", [])],
                 )
             )
         session.flush()
@@ -3552,3 +3561,119 @@ def _smallest_range(ranges: list[GroupRange], address: int) -> GroupRange | None
         ):
             best = gr
     return best
+
+
+@_register
+@dataclass
+class UpsertDeviceBinaryData(Event):
+    """Insert or replace a device's binary-data entry (keyed by ``name``), as one undo step.
+
+    Used by DALI DCA write-backs that persist a channel's state blob into the project. The
+    event records the previous row (verbatim) so revert restores it; if no row existed, revert
+    deletes the one this event created.
+    """
+
+    event_type: ClassVar[str] = "UpsertDeviceBinaryData"
+
+    device_id: int
+    name: str
+    data: bytes = b""
+    ref_id: str = ""
+    do_not_copy: bool = False
+    row_id: int | None = None
+    previous: dict[str, Any] | None = None
+
+    def apply(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is None:
+            return
+        row = next(
+            (r for r in device.binary_data if r.name == self.name),
+            None,
+        )
+        if row is None:
+            new_row = DeviceBinaryData(
+                device_id=self.device_id,
+                name=self.name,
+                data=self.data,
+                ref_id=self.ref_id,
+                do_not_copy=self.do_not_copy,
+            )
+            if self.row_id is not None:
+                new_row.id = self.row_id
+            session.add(new_row)
+            session.flush()
+            self.row_id = new_row.id
+            self.previous = None
+            return
+        self.previous = {
+            "id": row.id,
+            "data": row.data,
+            "ref_id": row.ref_id,
+            "do_not_copy": row.do_not_copy,
+        }
+        self.row_id = row.id
+        row.data = self.data
+        row.ref_id = self.ref_id
+        row.do_not_copy = self.do_not_copy
+        session.flush()
+
+    def revert(self, session: Session) -> None:
+        if self.row_id is None:
+            return
+        row = session.get(DeviceBinaryData, self.row_id)
+        if self.previous is None:
+            if row is not None:
+                session.delete(row)
+                session.flush()
+            return
+        if row is None:
+            return
+        prev = self.previous
+        row.data = cast(bytes, prev["data"])
+        row.ref_id = cast(str, prev["ref_id"])
+        row.do_not_copy = cast(bool, prev["do_not_copy"])
+        session.flush()
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "device_id": self.device_id,
+            "name": self.name,
+            "data": {"__bytes_b64__": base64.b64encode(self.data).decode("ascii")},
+            "ref_id": self.ref_id,
+            "do_not_copy": self.do_not_copy,
+            "row_id": self.row_id,
+            "previous": _encode_previous(self.previous),
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> UpsertDeviceBinaryData:
+        payload = dict(data)
+        raw = payload.get("data")
+        if isinstance(raw, dict) and "__bytes_b64__" in raw:
+            payload["data"] = base64.b64decode(cast(str, raw["__bytes_b64__"]))
+        prev = payload.get("previous")
+        payload["previous"] = _decode_previous(prev)
+        return cls(**payload)
+
+
+def _encode_previous(previous: dict[str, Any] | None) -> dict[str, Any] | None:
+    if previous is None:
+        return None
+    out = dict(previous)
+    data = out.get("data")
+    if isinstance(data, bytes):
+        out["data"] = {"__bytes_b64__": base64.b64encode(data).decode("ascii")}
+    return out
+
+
+def _decode_previous(previous: Any) -> dict[str, Any] | None:
+    if not isinstance(previous, dict):
+        return None
+    out: dict[str, Any] = {
+        str(k): v for k, v in cast("dict[Any, Any]", previous).items()
+    }
+    data = out.get("data")
+    if isinstance(data, dict) and "__bytes_b64__" in data:
+        out["data"] = base64.b64decode(cast(str, data["__bytes_b64__"]))
+    return out

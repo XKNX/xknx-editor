@@ -2205,3 +2205,81 @@ msgstr "Ange gruppintervallets beskrivning"
 
 msgid "Set group range address"
 msgstr "Ange gruppintervallets adress"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "Kanal {n}"
+
+msgid "Colour Temp (K)"
+msgstr "Färgtemperatur (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Anslut till ett KNX-gränssnitt för att läsa Siemens DALI-bussen."
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "DALI-kanal"
+
+msgid "DALI commissioning"
+msgstr "DALI-driftsättning"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "DALI-driftsättning skriver gatewayen på bussen men uppdaterar inte projektparametrarna; exportera .knxproj på nytt efter en ändring på DCA-sidan."
+
+msgid "Default"
+msgstr "Standard"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Redigerbart alternativ för parametrar där tillverkarens plugin inte är tillgängligt här. Hierarkin rekonstrueras från parameternamnens prefix; etiketter och grupperingar kan vara ungefärliga. Ändringar skrivs till projektet och överförs med en vanlig nedladdning."
+
+msgid "Min Dim"
+msgstr "Min. dimring"
+
+msgid "No parameter matches the filter."
+msgstr "Ingen parameter matchar filtret."
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Det finns ännu ingen plugin-mappning för den här enheten. Parametrarna i tillverkarens plugin förblir oåtkomliga härifrån."
+
+msgid "Parameter"
+msgstr "Parameter"
+
+msgid "Plugin Config"
+msgstr "Plugin-konfiguration"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Tryck på ”Läs DALI-buss” för att visa ECG:er på gatewayen."
+
+msgid "Random Address"
+msgstr "Slumpmässig adress"
+
+msgid "Read DALI Bus"
+msgstr "Läs DALI-buss"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Skrivskyddad ögonblicksbild. Skrivning av grupptilldelningar, scener eller firmware är ännu inte tillgänglig och ligger kvar i tillverkarens plugin."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Skrivskyddad vy. Hierarkin är en bästa möjliga rekonstruktion från parameternamnens prefix; namn och grupperingar kan vara ungefärliga. Skrivning av värden är ännu inte tillgänglig."
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Läser DALI-bussen från objekt {object_index}…"
+
+msgid "Short Address"
+msgstr "Kort adress"
+
+msgid "Slot"
+msgstr "Plats"
+
+msgid "The application has no static parameters."
+msgstr "Applikationen har inga statiska parametrar."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Driftsättningsprotokollet för den här gatewayen har inte verifierats mot en inspelning; skrivningar kan uppföra sig fel. Fortsätt försiktigt."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{count} ECG:er finns på linje {line}"

@@ -2205,3 +2205,81 @@ msgstr "Establecer descripción del rango de grupos"
 
 msgid "Set group range address"
 msgstr "Establecer dirección del rango de grupos"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "Canal {n}"
+
+msgid "Colour Temp (K)"
+msgstr "Temperatura de color (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Conéctate a una interfaz KNX para leer el bus Siemens DALI."
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "Canal DALI"
+
+msgid "DALI commissioning"
+msgstr "Puesta en servicio DALI"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "La puesta en servicio DALI escribe en la pasarela del bus pero no actualiza los parámetros del proyecto; vuelve a exportar el .knxproj después de una edición en el DCA."
+
+msgid "Default"
+msgstr "Predeterminado"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Alternativa editable para parámetros cuyo plugin del fabricante no está disponible aquí. La jerarquía se reconstruye a partir de los prefijos de los nombres de parámetros; las etiquetas y agrupaciones pueden ser aproximadas. Las ediciones se escriben en el proyecto y se transfieren mediante una descarga normal."
+
+msgid "Min Dim"
+msgstr "Atenuación mín."
+
+msgid "No parameter matches the filter."
+msgstr "Ningún parámetro coincide con el filtro."
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Aún no hay mapeo de plugin disponible para este dispositivo. Los parámetros del plugin del fabricante siguen siendo inaccesibles desde aquí."
+
+msgid "Parameter"
+msgstr "Parámetro"
+
+msgid "Plugin Config"
+msgstr "Configuración del plugin"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Pulsa «Leer bus DALI» para listar los ECG en la pasarela."
+
+msgid "Random Address"
+msgstr "Dirección aleatoria"
+
+msgid "Read DALI Bus"
+msgstr "Leer bus DALI"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Instantánea de solo lectura. Aún no está disponible aquí la escritura de asignaciones de grupo, escenas o firmware y sigue en el plugin del fabricante."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Vista de solo lectura. La jerarquía es una reconstrucción aproximada a partir de los prefijos de los nombres de parámetros; los nombres y las agrupaciones pueden ser aproximados. La escritura de valores aún no está disponible."
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Leyendo el bus DALI desde el objeto {object_index}…"
+
+msgid "Short Address"
+msgstr "Dirección corta"
+
+msgid "Slot"
+msgstr "Ranura"
+
+msgid "The application has no static parameters."
+msgstr "La aplicación no tiene parámetros estáticos."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "El protocolo de puesta en servicio de esta pasarela no se ha verificado con una captura; las escrituras pueden comportarse mal. Procede con cuidado."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{count} ECG presentes en la línea {line}"

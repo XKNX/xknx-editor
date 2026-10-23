@@ -315,6 +315,10 @@ class _DeviceInputs:
     download_plugin_required: bool
     configuration_app: str | None
     com_objects: tuple[_ComObjectOverrides, ...]
+    # Raw plug-in blobs attached to the device row (e.g. the Siemens N141/03 DCA
+    # ``BLOB_PARA``). Carried through so :func:`_compute_device` can hand the live
+    # SQLAlchemy-mapped rows to the ``Device`` without re-querying.
+    binary_data: tuple[Any, ...] = ()
 
 
 def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
@@ -330,6 +334,7 @@ def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
         parameter_instance_refs=inputs.parameter_instance_refs,
         module_instances=inputs.module_instances,
         com_object_instance_refs=inputs.com_object_instance_refs,
+        binary_data=list(inputs.binary_data),
     )
     device.download_plugin_required = inputs.download_plugin_required
     device.configuration_app = inputs.configuration_app
@@ -1776,6 +1781,7 @@ class ProjectService:
                 parameter_instance_refs=pirs,
                 module_instances=mis,
                 com_object_instance_refs=coirs,
+                binary_data=list(getattr(row, "binary_data", []) or []),
                 visible=snapshot.visible,
             )
         except (IndexError, ValueError) as e:
@@ -1957,6 +1963,7 @@ class ProjectService:
             download_plugin_required=self._requires_download_plugin(
                 row.hardware2program_ref_id
             ),
+            binary_data=tuple(getattr(row, "binary_data", []) or []),
             configuration_app=next(
                 (
                     a.name
@@ -3036,6 +3043,36 @@ class ProjectService:
         with self._io_lock:
             self._svc.set_unicast_broadcast_blocking(self._pid, device.node_id, mode)
         self._bump(structural=False)
+
+    def persist_dali_backup(
+        self,
+        device: Device,
+        name: str,
+        data: bytes,
+        *,
+        label: str | None = None,
+    ) -> None:
+        """Persist a DALI DCA backup blob into the device's ``BinaryData`` as one undo step.
+
+        ``name`` is the BinaryData entry name (e.g. ``DaliGC16-Backup-Store``); ``data`` the
+        raw UTF-16 XML. Refreshes the device so a later read sees the new blob, then bumps the
+        revision.
+        """
+        if self._pid is None:
+            return
+        with self._io_lock:
+            self._svc.upsert_device_binary_data(
+                self._pid, device.node_id, name, data, label=label
+            )
+        self._refresh_device(device.node_id)
+        self._bump(structural=False)
+
+    def device_binary_data(self, device: Device, name: str) -> bytes | None:
+        """The raw bytes of the device's ``BinaryData`` entry named ``name``, or ``None``."""
+        for row in device.binary_data:
+            if getattr(row, "name", None) == name:
+                return bytes(getattr(row, "data", b"") or b"")
+        return None
 
     def download_routing_blocking(self, device: Device) -> bool | None:
         """Whether a download blocks point-to-point and broadcast messages on both sides of the
@@ -4174,7 +4211,11 @@ class ProjectService:
             module_instances=new_instances,
             removed_module_instances=ended_instances,
         )
-        if target is not None or new_instances:
+        # Rebuild the device so that subsequent reads of ``parameter_instance_refs`` and
+        # ``module_instances`` reflect the just-committed state. Without this, panels that
+        # drop their caches but re-read the Device's ORM collections (e.g. the Plugin
+        # Config view) would see stale values until the next structural change.
+        if values or target is not None or new_instances or ended_instances:
             self._refresh_device(device.node_id)
         self._bump(structural=False)
 

@@ -1,0 +1,47 @@
+{
+  "app_id_prefixes": ["M-00C9_A-1089"],
+  "title": "Elsner KNX DALI L4 bc 16A",
+  "note": "German uppercase namespace. DALI_PA_<X>_ = DALI output channel X (A, B, C, D). Sub-keys SZENE_<N>_ for scenes and FARBSTEUERUNG for colour control.",
+  "sections": [
+    {
+      "regex": "^DALI_PA_([A-D])_SZENE_([0-9]+)_",
+      "label": "Output {1} - Scene {2}"
+    },
+    {
+      "regex": "^DALI_PA_([A-D])_FARBSTEUERUNG",
+      "label": "Output {1} - Colour Control"
+    },
+    {
+      "regex": "^DALI_PA_([A-D])_",
+      "label": "Output {1}"
+    },
+    {
+      "regex": "^DALI_PA_([A-D])$",
+      "label": "Output {1}"
+    },
+    {
+      "regex": "^DALI_",
+      "label": "DALI General"
+    },
+    {
+      "regex": "^Allgemeine Einstellungen",
+      "label": "General Settings"
+    },
+    {
+      "regex": "^Helligkeitssteuerung",
+      "label": "Brightness Control"
+    },
+    {
+      "regex": "^Farbsteuerung",
+      "label": "Colour Control"
+    },
+    {
+      "regex": "^Szenen",
+      "label": "Scenes"
+    },
+    {
+      "regex": "^Allgemein",
+      "label": "General"
+    }
+  ]
+}

@@ -2205,3 +2205,81 @@ msgstr "Ustaw opis zakresu grup"
 
 msgid "Set group range address"
 msgstr "Ustaw adres zakresu grup"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "Kanał {n}"
+
+msgid "Colour Temp (K)"
+msgstr "Temperatura barwowa (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Połącz się z interfejsem KNX, aby odczytać magistralę Siemens DALI."
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "Kanał DALI"
+
+msgid "DALI commissioning"
+msgstr "Uruchomienie DALI"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "Uruchomienie DALI zapisuje bramkę na magistrali, ale nie aktualizuje parametrów projektu; po edycji po stronie DCA ponownie wyeksportuj .knxproj."
+
+msgid "Default"
+msgstr "Domyślne"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Edytowalna alternatywa dla parametrów, których wtyczka producenta nie jest tu dostępna. Hierarchia jest odtwarzana z prefiksów nazw parametrów; etykiety i grupowanie mogą być przybliżone. Zmiany zapisywane są w projekcie i przenoszone zwykłym pobieraniem."
+
+msgid "Min Dim"
+msgstr "Min. ściemnianie"
+
+msgid "No parameter matches the filter."
+msgstr "Żaden parametr nie pasuje do filtra."
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Dla tego urządzenia nie ma jeszcze mapowania wtyczki. Parametry wtyczki producenta pozostają niedostępne stąd."
+
+msgid "Parameter"
+msgstr "Parametr"
+
+msgid "Plugin Config"
+msgstr "Konfiguracja wtyczki"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Naciśnij „Odczytaj magistralę DALI”, aby wyświetlić ECG na bramce."
+
+msgid "Random Address"
+msgstr "Adres losowy"
+
+msgid "Read DALI Bus"
+msgstr "Odczytaj magistralę DALI"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Migawka tylko do odczytu. Zapis przypisań grup, scen lub firmware'u nie jest jeszcze dostępny i pozostaje we wtyczce producenta."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Widok tylko do odczytu. Hierarchia jest możliwie najlepszą rekonstrukcją z prefiksów nazw parametrów; nazwy i grupowanie mogą być przybliżone. Zapis wartości nie jest jeszcze dostępny."
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Odczyt magistrali DALI z obiektu {object_index}…"
+
+msgid "Short Address"
+msgstr "Adres krótki"
+
+msgid "Slot"
+msgstr "Slot"
+
+msgid "The application has no static parameters."
+msgstr "Aplikacja nie ma parametrów statycznych."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Protokół uruchomienia tej bramki nie został zweryfikowany na podstawie przechwycenia; zapisy mogą działać nieprawidłowo. Postępuj ostrożnie."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{count} ECG obecnych na linii {line}"

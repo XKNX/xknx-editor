@@ -37,7 +37,8 @@ if TYPE_CHECKING:
     from xknxeditor.catalog import ProductSummary, ProgramSummary
     from xknxeditor.proj.core.addressing import GroupAddressStyle
     from xknxeditor.proj.core.service import DeviceInfo
-from editor_gui.programming_dali import is_dali_dca_app
+from editor_gui.plugin_params import mapping_for
+from editor_gui.programming_dali import is_dali_dca_app, is_siemens_n141_03
 from editor_gui.settings import load_settings, save_settings
 from editor_gui.widgets import (
     ButtonActions,
@@ -287,6 +288,8 @@ class ConfigurePanel:
         get_selected_node_ids: Callable[[], set[int]] | None = None,
         on_param_change_selected: Callable[[list[int], str, str], None] | None = None,
         render_dali: Callable[[Device], None] | None = None,
+        render_siemens_dali: Callable[[Device], None] | None = None,
+        render_plugin_params: Callable[[Device], None] | None = None,
         on_navigate_ga: Callable[[int], None] | None = None,
         on_paste_links: Callable[[int, list[tuple[int, bool]], bool], None]
         | None = None,
@@ -437,6 +440,8 @@ class ConfigurePanel:
         self._render_dali = (
             render_dali  # DALI commissioning tab body (MDT DALI devices only)
         )
+        self._render_siemens_dali = render_siemens_dali
+        self._render_plugin_params = render_plugin_params
         self._param_filter: str = ""
         self._module_filter: str = ""  # "Channels" tab (module-instance table) filter
         self._lv_seq: int = 0  # per-frame counter for unique _render_label_value ids
@@ -1168,6 +1173,31 @@ class ConfigurePanel:
                 and imgui.begin_tab_item(f"{S.EDITOR_TAB_DALI}###editor_tab_dali")[0]
             ):
                 self._render_dali(device)
+                imgui.end_tab_item()
+
+            # "DALI (Siemens)" tab: read-only bus snapshot for Siemens KNX/DALI Gateway plus N 141/03.
+            if (
+                self._render_siemens_dali is not None
+                and device.app is not None
+                and is_siemens_n141_03(device.app.id)
+                and imgui.begin_tab_item(
+                    f"{S.EDITOR_TAB_SIEMENS_DALI}###editor_tab_siemens_dali"
+                )[0]
+            ):
+                self._render_siemens_dali(device)
+                imgui.end_tab_item()
+
+            # "Plugin Config" tab: sectioned view of the raw application parameters for devices
+            # whose vendor mapping file is bundled under editor_gui/plugin_mappings/.
+            if (
+                self._render_plugin_params is not None
+                and device.app is not None
+                and mapping_for(device.app.id) is not None
+                and imgui.begin_tab_item(
+                    f"{S.EDITOR_TAB_PLUGIN_PARAMS}###editor_tab_plugin_params"
+                )[0]
+            ):
+                self._render_plugin_params(device)
                 imgui.end_tab_item()
 
             imgui.end_tab_bar()

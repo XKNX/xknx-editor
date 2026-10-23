@@ -2205,3 +2205,81 @@ msgstr "Aseta ryhmäalueen kuvaus"
 
 msgid "Set group range address"
 msgstr "Aseta ryhmäalueen osoite"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "Kanava {n}"
+
+msgid "Colour Temp (K)"
+msgstr "Värilämpötila (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Yhdistä KNX-rajapintaan lukeaksesi Siemens DALI -väylän."
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "DALI-kanava"
+
+msgid "DALI commissioning"
+msgstr "DALI-käyttöönotto"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "DALI-käyttöönotto kirjoittaa yhdyskäytävän väylälle, mutta ei päivitä projektin parametreja; vie .knxproj uudelleen DCA-puolen muokkauksen jälkeen."
+
+msgid "Default"
+msgstr "Oletus"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Muokattavissa oleva varavaihtoehto parametreille, joiden valmistajan plugin ei ole tässä käytettävissä. Hierarkia rakennetaan parametrinimien etuliitteistä; otsikot ja ryhmittelyt voivat olla karkeita. Muutokset kirjoitetaan projektiin ja siirretään tavallisella latauksella."
+
+msgid "Min Dim"
+msgstr "Vähimm. himmennys"
+
+msgid "No parameter matches the filter."
+msgstr "Yksikään parametri ei vastaa suodatinta."
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Tälle laitteelle ei ole vielä plugin-määritystä. Valmistajan pluginin parametrit eivät ole täältä tavoitettavissa."
+
+msgid "Parameter"
+msgstr "Parametri"
+
+msgid "Plugin Config"
+msgstr "Plugin-asetukset"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Paina ”Lue DALI-väylä” luetellaksesi yhdyskäytävän ECG:t."
+
+msgid "Random Address"
+msgstr "Satunnainen osoite"
+
+msgid "Read DALI Bus"
+msgstr "Lue DALI-väylä"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Vain luku -tilannekuva. Ryhmämäärityksien, kohtausten tai laiteohjelmiston kirjoitus ei ole vielä käytettävissä ja säilyy valmistajan pluginissa."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Vain luku -näkymä. Hierarkia on parhaan kyvyn mukaan parametrinimien etuliitteistä rakennettu; nimet ja ryhmittelyt voivat olla karkeita. Arvojen kirjoitus ei ole vielä käytettävissä."
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "Luetaan DALI-väylää objektista {object_index}…"
+
+msgid "Short Address"
+msgstr "Lyhyt osoite"
+
+msgid "Slot"
+msgstr "Paikka"
+
+msgid "The application has no static parameters."
+msgstr "Sovelluksella ei ole staattisia parametreja."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Tämän yhdyskäytävän käyttöönottoprotokollaa ei ole varmistettu kaappaukseen; kirjoitukset saattavat toimia väärin. Etene varoen."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{count} ECG(:tä) linjalla {line}"

@@ -2205,3 +2205,81 @@ msgstr "グループ範囲の説明を設定"
 
 msgid "Set group range address"
 msgstr "グループ範囲のアドレスを設定"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "チャンネル {n}"
+
+msgid "Colour Temp (K)"
+msgstr "色温度 (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Siemens DALI バスを読み取るには KNX インターフェースに接続してください。"
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "DALI チャンネル"
+
+msgid "DALI commissioning"
+msgstr "DALI コミッショニング"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "DALI コミッショニングはバス上のゲートウェイに書き込みますが、プロジェクトのパラメーターは更新しません。DCA 側で編集した後は .knxproj を再エクスポートしてください。"
+
+msgid "Default"
+msgstr "デフォルト"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "メーカー製プラグインがここで利用できないパラメーター向けの編集可能な代替手段です。階層はパラメーター名の接頭辞から再構築されるため、ラベルやグループ分けは概略的な場合があります。編集はプロジェクトに書き込まれ、通常のダウンロードで転送されます。"
+
+msgid "Min Dim"
+msgstr "最小調光"
+
+msgid "No parameter matches the filter."
+msgstr "フィルターに一致するパラメーターはありません。"
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "このデバイスのプラグインマッピングはまだ提供されていません。メーカー製プラグインのパラメーターはここからは参照できません。"
+
+msgid "Parameter"
+msgstr "パラメーター"
+
+msgid "Plugin Config"
+msgstr "プラグイン設定"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "「DALI バスを読み取る」を押してゲートウェイ上の ECG を一覧表示します。"
+
+msgid "Random Address"
+msgstr "ランダムアドレス"
+
+msgid "Read DALI Bus"
+msgstr "DALI バスを読み取る"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "読み取り専用のスナップショットです。グループ割り当て、シーン、ファームウェアの書き込みは未対応で、メーカー製プラグインに残されています。"
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "読み取り専用ビューです。階層はパラメーター名の接頭辞から可能な範囲で再構築されており、名前やグループ分けは概略的な場合があります。値の書き込みは未対応です。"
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "オブジェクト {object_index} から DALI バスを読み取り中…"
+
+msgid "Short Address"
+msgstr "ショートアドレス"
+
+msgid "Slot"
+msgstr "スロット"
+
+msgid "The application has no static parameters."
+msgstr "このアプリケーションには静的パラメーターがありません。"
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "このゲートウェイのコミッショニング・プロトコルはキャプチャに対して検証されていません。書き込みが誤動作する場合があります。慎重に進めてください。"
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "ライン {line} に ECG が {count} 台あります"

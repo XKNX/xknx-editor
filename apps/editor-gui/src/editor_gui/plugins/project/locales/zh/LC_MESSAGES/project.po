@@ -2205,3 +2205,81 @@ msgstr "设置组范围说明"
 
 msgid "Set group range address"
 msgstr "设置组范围地址"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "通道 {n}"
+
+msgid "Colour Temp (K)"
+msgstr "色温 (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "连接到 KNX 接口以读取 Siemens DALI 总线。"
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "DALI 通道"
+
+msgid "DALI commissioning"
+msgstr "DALI 调试"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "DALI 调试会通过总线写入网关,但不会更新项目参数;在 DCA 侧编辑后请重新导出 .knxproj。"
+
+msgid "Default"
+msgstr "默认"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "针对此处无法使用厂家插件的参数的可编辑备用方案。层级结构根据参数名前缀重建;标签和分组可能较为粗略。编辑会写入项目,并通过常规下载传输。"
+
+msgid "Min Dim"
+msgstr "最小调光"
+
+msgid "No parameter matches the filter."
+msgstr "没有参数匹配筛选条件。"
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "该设备尚无插件映射。此处仍无法访问厂家插件的参数。"
+
+msgid "Parameter"
+msgstr "参数"
+
+msgid "Plugin Config"
+msgstr "插件配置"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "按下「读取 DALI 总线」以列出网关上的 ECG。"
+
+msgid "Random Address"
+msgstr "随机地址"
+
+msgid "Read DALI Bus"
+msgstr "读取 DALI 总线"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "只读快照。写入组分配、场景或固件尚不可用,仍需在厂家插件中进行。"
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "只读视图。层级结构根据参数名前缀尽力重建;名称和分组可能较为粗略。值的写入尚不可用。"
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "正在从对象 {object_index} 读取 DALI 总线…"
+
+msgid "Short Address"
+msgstr "短地址"
+
+msgid "Slot"
+msgstr "插槽"
+
+msgid "The application has no static parameters."
+msgstr "应用程序没有静态参数。"
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "此网关的调试协议尚未与捕获记录对比验证;写入可能表现异常。请谨慎操作。"
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "线路 {line} 上存在 {count} 个 ECG"

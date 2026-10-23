@@ -1248,6 +1248,111 @@ class ProjectStrings:
         return _("DALI (Bus)")
 
     @property
+    def EDITOR_TAB_SIEMENS_DALI(self) -> str:
+        return _("DALI (Siemens)")
+
+    @property
+    def EDITOR_TAB_PLUGIN_PARAMS(self) -> str:
+        return _("Plugin Config")
+
+    @property
+    def PLUGIN_PARAMS_NO_MAPPING(self) -> str:
+        return _(
+            "No plugin mapping is available for this device yet. The vendor plugin's "
+            "parameters stay unreachable from here."
+        )
+
+    @property
+    def PLUGIN_PARAMS_EMPTY(self) -> str:
+        return _("The application has no static parameters.")
+
+    @property
+    def PLUGIN_PARAMS_READONLY_NOTE(self) -> str:
+        return _(
+            "Read-only view. The hierarchy is a best-effort reconstruction from parameter name "
+            "prefixes; names and groupings may be rough. Writing values is not available yet."
+        )
+
+    @property
+    def PLUGIN_PARAMS_EDIT_NOTE(self) -> str:
+        return _(
+            "Editable fallback for parameters whose manufacturer plugin is not available here. "
+            "The hierarchy is reconstructed from parameter name prefixes; labels and groupings "
+            "may be rough. Edits are written to the project and transferred by a normal download."
+        )
+
+    @property
+    def PLUGIN_PARAMS_FILTER(self) -> str:
+        return _("##plugin_params_filter")
+
+    @property
+    def PLUGIN_PARAMS_FILTER_EMPTY(self) -> str:
+        return _("No parameter matches the filter.")
+
+    @property
+    def PLUGIN_PARAMS_COL_NAME(self) -> str:
+        return _("Parameter")
+
+    @property
+    def PLUGIN_PARAMS_COL_VALUE(self) -> str:
+        return _("Value")
+
+    @property
+    def PLUGIN_PARAMS_COL_DEFAULT(self) -> str:
+        return _("Default")
+
+    @property
+    def SIEMENS_DALI_CONNECT_FIRST(self) -> str:
+        return _("Connect to a KNX interface to read the Siemens DALI bus.")
+
+    @property
+    def SIEMENS_DALI_SCAN_BUS(self) -> str:
+        return _("Read DALI Bus")
+
+    @property
+    def SIEMENS_DALI_SCANNING(self) -> str:
+        return _("Reading the DALI bus from object {object_index}…")
+
+    @property
+    def SIEMENS_DALI_NO_SCAN(self) -> str:
+        return _("Press 'Read DALI Bus' to list the ECGs on the gateway.")
+
+    @property
+    def SIEMENS_DALI_PRESENT_COUNT(self) -> str:
+        return _("{count} ECG(s) present on line {line}")
+
+    @property
+    def SIEMENS_DALI_READ_ONLY_NOTE(self) -> str:
+        return _(
+            "Read-only snapshot. Writing group assignments, scenes or firmware is not "
+            "available yet and remains in the manufacturer's plugin."
+        )
+
+    @property
+    def SIEMENS_DALI_COL_SLOT(self) -> str:
+        return _("Slot")
+
+    @property
+    def SIEMENS_DALI_COL_SHORT_ADDRESS(self) -> str:
+        return _("Short Address")
+
+    @property
+    def SIEMENS_DALI_COL_TYPE(self) -> str:
+        return _("Type")
+
+    @property
+    def SIEMENS_DALI_COL_RANDOM(self) -> str:
+        return _("Random Address")
+
+    @property
+    def SIEMENS_DALI_COL_MIN_DIM(self) -> str:
+        return _("Min Dim")
+
+    @property
+    def SIEMENS_DALI_COL_COLOUR(self) -> str:
+        return _("Colour Temp (K)")
+
+    @property
     def GA_NO_PROJECT(self) -> str:
         return _("No project")
 
@@ -2921,6 +3026,32 @@ class ProjectStrings:
     @property
     def DALI_CONNECT_HINT(self) -> str:
         return _("Connect to a KNX interface to commission the DALI bus.")
+
+    @property
+    def DALI_UNVERIFIED_WARNING(self) -> str:
+        return _(
+            "This gateway's commissioning protocol has not been verified against a "
+            "capture; writes may misbehave. Proceed with care."
+        )
+
+    @property
+    def DALI_PROJECT_NOT_UPDATED(self) -> str:
+        return _(
+            "DALI commissioning writes the gateway on the bus but does not update "
+            "the project parameters; re-export the .knxproj after a DCA-side edit."
+        )
+
+    @property
+    def DALI_PERSIST_LABEL(self) -> str:
+        return _("DALI commissioning")
+
+    @property
+    def DALI_CHANNEL(self) -> str:
+        return _("DALI Channel")
+
+    @property
+    def DALI_CHANNEL_N(self) -> str:
+        return _("Channel {n}")
 
     @property
     def DALI_SCAN(self) -> str:

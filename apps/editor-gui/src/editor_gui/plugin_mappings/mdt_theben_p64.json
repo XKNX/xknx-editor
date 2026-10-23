@@ -1,0 +1,63 @@
+{
+  "app_id_prefixes": ["M-0083_A-0153", "M-0048_A-DA11", "M-00EF_A-DA11"],
+  "title": "MDT / Theben / IPAS DALI P64 chassis (shared OEM plug-in)",
+  "note": "The MDT DALI Control Pro64 Gateway, Theben DALI-Gateway P64 KNX and IPAS DaliControl e64 Pro share the same OEM parameter namespace (``DEV-``, ``GRP<N>-``, ``ECG<N>-``, ``PB<N>-``, ``MD<N>-``, ``GI-``, ``DCA<N>-``, ``DCE<N>-``, ``DCM<N>-``, ``DCD-``, ``PROP-``). All DCA state lives in ParameterRefs + ModuleInstances; no BLOB_PARA is used.",
+  "sections": [
+    {
+      "regex": "^DCA([0-9]+)-CC-",
+      "label": "DCA Channel {1} - Colour Control"
+    },
+    {
+      "regex": "^DCA([0-9]+)-",
+      "label": "DCA Channel {1}"
+    },
+    {
+      "regex": "^DPB([0-9]+)-",
+      "label": "Device Push-Button {1}"
+    },
+    {
+      "regex": "^PB([0-9]+)-",
+      "label": "Push-Button {1}"
+    },
+    {
+      "regex": "^MD([0-9]+)-",
+      "label": "Motion Detector {1}"
+    },
+    {
+      "regex": "^GI-",
+      "label": "General Input"
+    },
+    {
+      "regex": "^DEV-",
+      "label": "Device"
+    },
+    {
+      "regex": "^FKT",
+      "label": "Function"
+    },
+    {
+      "regex": "^IP",
+      "label": "IP Settings"
+    },
+    {
+      "regex": "^CBT",
+      "label": "CBT"
+    },
+    {
+      "regex": "^TYPE ([0-9]+) PARAMETER",
+      "label": "Type {1} Parameters"
+    },
+    {
+      "regex": "^Prozent ([0-9]+)-([0-9]+) Schritt ([0-9]+)",
+      "label": "Percentage {1}-{2} Step {3}"
+    },
+    {
+      "regex": "^Value([0-9]+)-([0-9]+)",
+      "label": "Value {1}-{2}"
+    },
+    {
+      "regex": "^PROP-TEMPLATE",
+      "label": "Property Templates"
+    }
+  ]
+}

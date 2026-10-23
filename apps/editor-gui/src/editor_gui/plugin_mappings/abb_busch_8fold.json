@@ -1,0 +1,39 @@
+{
+  "app_id_prefixes": ["M-0007_A-A018"],
+  "title": "ABB Busch-Jaeger 6197/40 DALI Gateway 8-fold",
+  "note": "This 8-fold Busch chassis uses a different (German, flat) namespace than the Premium DG/S line. Patterns anchor on the common prefix words.",
+  "sections": [
+    {
+      "regex": "^Kanal ([0-9]+) ",
+      "label": "Channel {1}"
+    },
+    {
+      "regex": "^Szene ([0-9]+)",
+      "label": "Scene {1}"
+    },
+    {
+      "regex": "^Normal ",
+      "label": "Normal Operation"
+    },
+    {
+      "regex": "^Dynamik ",
+      "label": "Dynamic Operation"
+    },
+    {
+      "regex": "^Fadetime",
+      "label": "Fade Time"
+    },
+    {
+      "regex": "^Download zulassen",
+      "label": "Download Permission"
+    },
+    {
+      "regex": "^Betriebsart",
+      "label": "Operating Mode"
+    },
+    {
+      "regex": "^Empty Line",
+      "label": "Empty Lines"
+    }
+  ]
+}

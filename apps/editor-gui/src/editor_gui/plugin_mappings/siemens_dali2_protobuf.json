@@ -1,0 +1,95 @@
+{
+  "app_id_prefixes": ["M-0001_A-9A1B", "M-0001_A-9A1C"],
+  "title": "Siemens KNX/DALI Gateway DALI-2 (protobuf plug-in: N 141/14, N 141/32)",
+  "note": "The DALI-2 Siemens plug-in uses protobuf-style dotted names (DaliLine.N.Scene.*, DaliScene.N.Ch.M.*, EffectCtrl.N.Step.M.*). Patterns are matched in order; the longest wins so Standby.N.Region.M. matches before the plain Standby.N.*.",
+  "sections": [
+    {
+      "regex": "^BrightnessSens\\.([0-9]+)\\.",
+      "label": "Brightness Sensor {1}"
+    },
+    {
+      "regex": "^Pir\\.([0-9]+)\\.",
+      "label": "PIR Sensor {1}"
+    },
+    {
+      "regex": "^DaliLine\\.([0-9]+)\\.Scene\\.",
+      "label": "DALI Line {1} - Scenes"
+    },
+    {
+      "regex": "^DaliLine\\.([0-9]+)\\.EcgMapping\\.",
+      "label": "DALI Line {1} - ECG Mapping"
+    },
+    {
+      "regex": "^DaliLine\\.([0-9]+)\\.",
+      "label": "DALI Line {1}"
+    },
+    {
+      "regex": "^DaliScene\\.([0-9]+)\\.Ch\\.([0-9]+)\\.",
+      "label": "Scene {1} - Channel {2}"
+    },
+    {
+      "regex": "^DaliScene\\.([0-9]+)\\.",
+      "label": "Scene {1}"
+    },
+    {
+      "regex": "^DirectOperation\\.([0-9]+)\\.",
+      "label": "Direct Operation {1}"
+    },
+    {
+      "regex": "^Standby\\.([0-9]+)\\.Region\\.([0-9]+)\\.",
+      "label": "Standby {1} - Region {2}"
+    },
+    {
+      "regex": "^Standby\\.([0-9]+)\\.Mapping\\.",
+      "label": "Standby {1} - Mapping"
+    },
+    {
+      "regex": "^Standby\\.([0-9]+)\\.",
+      "label": "Standby {1}"
+    },
+    {
+      "regex": "^EffectCtrl\\.([0-9]+)\\.Step\\.([0-9]+)\\.",
+      "label": "Effect {1} - Step {2}"
+    },
+    {
+      "regex": "^EffectCtrl\\.([0-9]+)\\.",
+      "label": "Effect {1}"
+    },
+    {
+      "regex": "^Scheduler\\.([0-9]+)\\.ScheduledAction\\.([0-9]+)\\.",
+      "label": "Scheduler {1} - Action {2}"
+    },
+    {
+      "regex": "^Scheduler\\.([0-9]+)\\.",
+      "label": "Scheduler {1}"
+    },
+    {
+      "regex": "^Lc([0-9]+)p\\.([0-9]+)\\.Scene\\.",
+      "label": "Light Control Preset {1}.{2} - Scenes"
+    },
+    {
+      "regex": "^Lc([0-9]+)p\\.([0-9]+)\\.",
+      "label": "Light Control Preset {1}.{2}"
+    },
+    {
+      "regex": "^LcSteady\\.([0-9]+)\\.Controller\\.Scene\\.",
+      "label": "Light Control Steady {1} - Controller Scenes"
+    },
+    {
+      "regex": "^LcSteady\\.([0-9]+)\\.",
+      "label": "Light Control Steady {1}"
+    },
+    {
+      "regex": "^Sw\\.([0-9]+)\\.Override\\.([0-9]+)\\.",
+      "label": "Switch {1} - Override {2}"
+    },
+    {
+      "regex": "^Sw\\.([0-9]+)\\.",
+      "label": "Switch {1}"
+    },
+    {
+      "regex": "^DPT$",
+      "label": "DPT"
+    }
+  ]
+}

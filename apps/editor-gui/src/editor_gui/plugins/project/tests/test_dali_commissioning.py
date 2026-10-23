@@ -16,7 +16,11 @@ from editor_gui.plugins.project.ui.dali_commissioning import (
     _assignments_from,
     _scenes_from,
 )
-from editor_gui.programming_dali import dali_object_index_base, is_dali_dca_app
+from editor_gui.programming_dali import (
+    dali_channel_count,
+    dali_object_index_base,
+    is_dali_dca_app,
+)
 from xknxeditor.dali.model import (
     DaliBusState,
     EcgAssignment,
@@ -41,6 +45,15 @@ def test_object_index_base_is_vendor_specific() -> None:
     assert dali_object_index_base("M-0001_A-0154") == 6  # unknown -> default
 
 
+def test_channel_count_from_order_number() -> None:
+    assert dali_channel_count("SCN-DA641.04") == 1  # 1x64 gateway
+    assert dali_channel_count("SCN-DA642.04") == 2  # 2x64 gateway
+    assert dali_channel_count("scn-da642") == 2  # case-insensitive
+    assert dali_channel_count("Something Else") == 1  # unknown -> single channel
+    assert dali_channel_count("") == 1
+    assert dali_channel_count(None) == 1
+
+
 def _device() -> Any:
     return SimpleNamespace(individual_address="1.1.1", name="Gateway")
 
@@ -49,7 +62,7 @@ def _runner(commissioner: Any, *, started: bool = True):
     """A fake ConnectionService.run_dali: executes the wrapped coroutine (like the async loop would),
     swallowing exceptions (the real future captures them), and reports whether it was accepted."""
 
-    def run(device: Any, wrapped: Any) -> bool:
+    def run(device: Any, wrapped: Any, channel: int = 0) -> bool:
         if started:
             with contextlib.suppress(Exception):  # the real future captures the error
                 asyncio.run(wrapped(commissioner))
@@ -65,7 +78,7 @@ def test_scan_stashes_result_and_clears_busy() -> None:
 
     panel._start(_device(), "scan", lambda c: c.scan(), store_scan=True)
 
-    state = panel._state("1.1.1")
+    state = panel._state("1.1.1", 0)
     assert state.busy == ""  # released
     assert state.error == ""
     assert state.scan is bus
@@ -79,7 +92,7 @@ def test_error_is_surfaced_and_busy_released() -> None:
     panel = DaliCommissioningPanel(_runner(commissioner))
     panel._start(_device(), "commission", boom)
 
-    state = panel._state("1.1.1")
+    state = panel._state("1.1.1", 0)
     assert state.busy == ""
     assert "no ack" in state.error
 
@@ -87,7 +100,7 @@ def test_error_is_surfaced_and_busy_released() -> None:
 def test_not_started_when_runner_rejects() -> None:
     panel = DaliCommissioningPanel(_runner(SimpleNamespace(), started=False))
     panel._start(_device(), "scan", lambda c: c.scan(), store_scan=True)
-    assert panel._state("1.1.1").busy == ""  # rolled back when the bus was busy
+    assert panel._state("1.1.1", 0).busy == ""  # rolled back when the bus was busy
 
 
 async def _coro(value: Any) -> Any:
@@ -128,8 +141,8 @@ def test_new_scan_clears_stale_group_edits() -> None:
     bus = DaliBusState(channel=0, ecgs=[EcgState(slot=0, present=True, group_index=5)])
     commissioner = SimpleNamespace(scan=lambda: _coro(bus))
     panel = DaliCommissioningPanel(_runner(commissioner))
-    panel._state("1.1.1").group_edits[0] = 9  # stale edit from a prior scan
+    panel._state("1.1.1", 0).group_edits[0] = 9  # stale edit from a prior scan
 
     panel._start(_device(), "scan", lambda c: c.scan(), store_scan=True)
 
-    assert panel._state("1.1.1").group_edits == {}  # dropped on fresh bus state
+    assert panel._state("1.1.1", 0).group_edits == {}  # dropped on fresh bus state

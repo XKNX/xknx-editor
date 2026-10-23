@@ -2205,3 +2205,81 @@ msgstr "Grup aralığı tanımını belirle"
 
 msgid "Set group range address"
 msgstr "Grup aralığı adresini belirle"
+
+msgid "##plugin_params_filter"
+msgstr "##plugin_params_filter"
+
+msgid "Channel {n}"
+msgstr "Kanal {n}"
+
+msgid "Colour Temp (K)"
+msgstr "Renk sıcaklığı (K)"
+
+msgid "Connect to a KNX interface to read the Siemens DALI bus."
+msgstr "Siemens DALI veri yolunu okumak için bir KNX arayüzüne bağlanın."
+
+msgid "DALI (Siemens)"
+msgstr "DALI (Siemens)"
+
+msgid "DALI Channel"
+msgstr "DALI kanalı"
+
+msgid "DALI commissioning"
+msgstr "DALI devreye alma"
+
+msgid "DALI commissioning writes the gateway on the bus but does not update the project parameters; re-export the .knxproj after a DCA-side edit."
+msgstr "DALI devreye alma, ağ geçidini veri yolu üzerinden yazar ancak proje parametrelerini güncellemez; DCA tarafındaki bir düzenlemeden sonra .knxproj dosyasını yeniden dışa aktarın."
+
+msgid "Default"
+msgstr "Varsayılan"
+
+msgid "Editable fallback for parameters whose manufacturer plugin is not available here. The hierarchy is reconstructed from parameter name prefixes; labels and groupings may be rough. Edits are written to the project and transferred by a normal download."
+msgstr "Üretici eklentisi burada bulunmayan parametreler için düzenlenebilir yedek seçenek. Hiyerarşi parametre adı önekleri üzerinden yeniden oluşturulur; etiketler ve gruplamalar yaklaşık olabilir. Düzenlemeler projeye yazılır ve normal indirme ile aktarılır."
+
+msgid "Min Dim"
+msgstr "Min. karartma"
+
+msgid "No parameter matches the filter."
+msgstr "Hiçbir parametre filtreyle eşleşmiyor."
+
+msgid "No plugin mapping is available for this device yet. The vendor plugin's parameters stay unreachable from here."
+msgstr "Bu cihaz için henüz eklenti eşlemesi yok. Üreticinin eklenti parametrelerine buradan ulaşılamaz."
+
+msgid "Parameter"
+msgstr "Parametre"
+
+msgid "Plugin Config"
+msgstr "Eklenti yapılandırması"
+
+msgid "Press 'Read DALI Bus' to list the ECGs on the gateway."
+msgstr "Ağ geçidindeki ECG'leri listelemek için «DALI veri yolunu oku»'ya basın."
+
+msgid "Random Address"
+msgstr "Rastgele adres"
+
+msgid "Read DALI Bus"
+msgstr "DALI veri yolunu oku"
+
+msgid "Read-only snapshot. Writing group assignments, scenes or firmware is not available yet and remains in the manufacturer's plugin."
+msgstr "Salt okunur anlık görüntü. Grup atamaları, sahneler veya ürün yazılımı yazımı henüz mevcut değildir ve üretici eklentisinde kalmaktadır."
+
+msgid "Read-only view. The hierarchy is a best-effort reconstruction from parameter name prefixes; names and groupings may be rough. Writing values is not available yet."
+msgstr "Salt okunur görünüm. Hiyerarşi, parametre adı öneklerinden mümkün olan en iyi yeniden yapılandırmadır; adlar ve gruplamalar yaklaşık olabilir. Değer yazma henüz kullanılamaz."
+
+msgid "Reading the DALI bus from object {object_index}…"
+msgstr "{object_index} nesnesinden DALI veri yolu okunuyor…"
+
+msgid "Short Address"
+msgstr "Kısa adres"
+
+msgid "Slot"
+msgstr "Yuva"
+
+msgid "The application has no static parameters."
+msgstr "Uygulamanın statik parametresi yok."
+
+msgid "This gateway's commissioning protocol has not been verified against a capture; writes may misbehave. Proceed with care."
+msgstr "Bu ağ geçidinin devreye alma protokolü bir yakalamaya karşı doğrulanmadı; yazmalar hatalı davranabilir. Dikkatli ilerleyin."
+
+msgid "{count} ECG(s) present on line {line}"
+msgstr "{line} hattında {count} ECG mevcut"
