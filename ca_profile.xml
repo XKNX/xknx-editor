@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!--
+  Unraid Community Applications profile of this repository. Community Applications requires it at
+  the repository root (like repository.yaml for the Home Assistant add-on); the container template
+  is unraid/xknx-editor.xml.
+-->
+<CommunityApplications>
+  <Profile>
+The XKNX project maintains the XKNX Editor, a KNX project editor built on the open-source xknx library. This repository provides its browser UI as a container: open, edit and export KNX projects, browse the product catalog and program KNX devices over a KNXnet/IP interface.
+
+Report problems and ask questions in the [GitHub issues](https://github.com/XKNX/xknx-editor/issues).
+  </Profile>
+  <Icon>https://raw.githubusercontent.com/XKNX/xknx-editor/main/homeassistant/xknx-editor/icon.png</Icon>
+  <WebPage>https://github.com/XKNX/xknx-editor</WebPage>
+</CommunityApplications>

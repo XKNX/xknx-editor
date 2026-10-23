@@ -5,7 +5,7 @@ Two images are built from [`docker/Dockerfile`](./Dockerfile) by
 
 | Image | For | Entry |
 | --- | --- | --- |
-| `ghcr.io/xknx/xknx-editor-web` | plain `docker run` / Compose / any orchestrator | binds `0.0.0.0:8080`, needs a password |
+| `ghcr.io/xknx/xknx-editor-web` | plain `docker run` / Compose / any orchestrator, and the Unraid template | binds `0.0.0.0:8080`, needs a password; Unraid: see [`unraid`](../unraid) |
 | `ghcr.io/xknx/xknx-editor-ha` | the Home Assistant add-on (behind Ingress) | see [`homeassistant/xknx-editor`](../homeassistant/xknx-editor) |
 
 Both run the editor's browser UI (`--web`) with no desktop and carry the .NET SDK used for
