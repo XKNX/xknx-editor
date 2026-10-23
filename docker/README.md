@@ -146,6 +146,20 @@ services:
 To run as a non-root user (dataset-permission hygiene), add `user: "568:568"` (the `apps` UID/GID)
 and make those datasets owned by it — the app only writes `/data`, `/projects` and `/tmp`.
 
+## Verifying an image
+
+Every published image carries a signed build provenance: the GitHub Actions workflow of this
+repository built it from the commit in its `org.opencontainers.image.revision` label. Check it with
+the [GitHub CLI](https://cli.github.com/):
+
+```bash
+gh attestation verify oci://ghcr.io/xknx/xknx-editor-web:latest -R XKNX/xknx-editor
+```
+
+The attestations are listed under the repository's
+[Attestations](https://github.com/XKNX/xknx-editor/attestations). Images up to version 0.6.1 have
+no signed attestation yet.
+
 ## Building locally
 
 ```bash
