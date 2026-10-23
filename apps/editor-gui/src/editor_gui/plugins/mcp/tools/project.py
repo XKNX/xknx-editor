@@ -434,16 +434,10 @@ def resolve_in_scope(
 
     want = label.strip().casefold()
     matches = [
-        (p, anc)
-        for p, anc in param_pairs
-        if (p.label or "").strip().casefold() == want
+        (p, anc) for p, anc in param_pairs if (p.label or "").strip().casefold() == want
     ]
     if not matches:
-        scope_str = (
-            f"in channel {channel!r}"
-            if channel
-            else "in this scope"
-        )
+        scope_str = f"in channel {channel!r}" if channel else "in this scope"
         raise ValueError(f"no active parameter labelled {label!r} {scope_str}")
     if len(matches) > 1:
         cands = ", ".join(sorted(p.ref_id for p, _ in matches))
@@ -754,6 +748,547 @@ def param_change_result(
         result["unlocked_parameters"] = []
 
     return result
+
+
+def _session_diff(project: Any, only_differences: bool = True) -> dict[str, Any]:
+    from xknxeditor.proj.core.addressing import format_ga
+
+    is_dirty = project.edited_since_open()
+    diff_params: list[dict[str, Any]] = []
+    gas_added: list[dict[str, Any]] = []
+    gas_removed: list[dict[str, Any]] = []
+    gas_modified: list[dict[str, Any]] = []
+    links_added: list[dict[str, Any]] = []
+    links_removed: list[dict[str, Any]] = []
+    devices_added: list[dict[str, Any]] = []
+    devices_removed: list[dict[str, Any]] = []
+    devices_modified: list[dict[str, Any]] = []
+
+    if is_dirty and project._pid is not None:
+        history = project._svc.history(project._pid)
+        baseline_keys = project._history_baseline
+        effective_events = [
+            e
+            for e in history
+            if not e.reverted
+            and (e.id, e.event_type, repr(e.data)) not in baseline_keys
+            and e.event_type != "SetDeviceCommissioning"
+        ]
+
+        # Flatten composite events
+        flat_events: list[tuple[str, dict[str, Any]]] = []
+        for e in effective_events:
+            if e.event_type == "Composite":
+                for sub in e.data.get("events", []):
+                    flat_events.append((sub.get("type", ""), sub.get("data", {})))
+            else:
+                flat_events.append((e.event_type, e.data))
+
+        # 1. Parameter changes: track by (device_id, ref_id)
+        param_history: dict[tuple[int, str], list[tuple[str | None, str]]] = {}
+        for ev_type, data in flat_events:
+            if ev_type == "SetParameter":
+                dev_id = int(data.get("device_id", 0))
+                ref_id = str(data.get("ref_id", ""))
+                val = str(data.get("value", ""))
+                old_val = data.get("old_value")
+                old_val_str = str(old_val) if old_val is not None else None
+                key = (dev_id, ref_id)
+                if key not in param_history:
+                    param_history[key] = []
+                param_history[key].append((old_val_str, val))
+
+        # Check reverted baseline events (undo on pre-session state)
+        reverted_baseline = [
+            e
+            for e in history
+            if e.reverted
+            and (e.id, e.event_type, repr(e.data)) in baseline_keys
+            and e.event_type != "SetDeviceCommissioning"
+        ]
+        for e in reverted_baseline:
+            ev_list = (
+                e.data.get("events", [])
+                if e.event_type == "Composite"
+                else [{"type": e.event_type, "data": e.data}]
+            )
+            for sub in ev_list:
+                if sub.get("type") == "SetParameter":
+                    sdata = sub.get("data", {})
+                    dev_id = int(sdata.get("device_id", 0))
+                    ref_id = str(sdata.get("ref_id", ""))
+                    curr_val = sdata.get("old_value")
+                    base_val = sdata.get("value")
+                    key = (dev_id, ref_id)
+                    if key not in param_history:
+                        param_history[key] = []
+                    param_history[key].append(
+                        (
+                            str(base_val) if base_val is not None else None,
+                            str(curr_val) if curr_val is not None else "",
+                        )
+                    )
+
+        for (dev_id, ref_id), changes in param_history.items():
+            first_old = changes[0][0]
+            last_new = changes[-1][1]
+            if first_old != last_new:
+                device = project.find_device_by_node_id(dev_id)
+                dev_addr = device.individual_address if device else None
+                dev_name = device.name if device else f"Device {dev_id}"
+                param_label = ref_id
+                channel = None
+                value_label = None
+                if device is not None:
+                    try:
+                        for p, anc in _collect_ui_parameters_with_ancestry(
+                            list(device.get_ui())
+                        ):
+                            if p.ref_id == ref_id:
+                                param_label = p.name or ref_id
+                                channel = anc[0] if anc else None
+                                value_label = _enum_value_label(p.widget, last_new)
+                                break
+                    except Exception:
+                        pass
+                item: dict[str, Any] = {
+                    "device_address": dev_addr,
+                    "device_name": dev_name,
+                    "node_id": dev_id,
+                    "ref_id": ref_id,
+                    "label": param_label,
+                    "old_value": first_old,
+                    "new_value": last_new,
+                }
+                if channel:
+                    item["channel"] = channel
+                if value_label:
+                    item["new_value_label"] = value_label
+                diff_params.append(item)
+
+        # 2. Group addresses
+        seen_created_gas: set[int] = set()
+        for ev_type, data in flat_events:
+            if ev_type == "CreateGroupAddress":
+                ga_id = data.get("ga_id")
+                if ga_id is not None and ga_id not in seen_created_gas:
+                    seen_created_gas.add(ga_id)
+                    ga = project.get_group_address(ga_id)
+                    if ga is not None:
+                        gas_added.append(
+                            {
+                                "address": ga.address,
+                                "name": ga.name,
+                                "datapoint_type": ga.datapoint_type,
+                            }
+                        )
+            elif ev_type == "SetGroupAddressDatapointType":
+                ga_id = data.get("ga_id")
+                if ga_id is not None and ga_id not in seen_created_gas:
+                    ga = project.get_group_address(ga_id)
+                    gas_modified.append(
+                        {
+                            "address": ga.address if ga else str(ga_id),
+                            "old_datapoint_type": data.get("old_datapoint_type"),
+                            "new_datapoint_type": data.get("datapoint_type"),
+                        }
+                    )
+            elif ev_type == "RenameGroupAddress":
+                ga_id = data.get("ga_id")
+                if ga_id is not None and ga_id not in seen_created_gas:
+                    ga = project.get_group_address(ga_id)
+                    gas_modified.append(
+                        {
+                            "address": ga.address if ga else str(ga_id),
+                            "old_name": data.get("old_name"),
+                            "new_name": data.get("name"),
+                        }
+                    )
+            elif ev_type == "RemoveGroupAddress":
+                raw_addr = data.get("address")
+                addr_str = (
+                    format_ga(raw_addr, project.group_address_style)
+                    if raw_addr is not None
+                    else str(data.get("ga_id", ""))
+                )
+                gas_removed.append(
+                    {
+                        "address": addr_str,
+                        "name": data.get("name"),
+                    }
+                )
+
+        # 3. Links
+        for ev_type, data in flat_events:
+            if ev_type == "LinkComObject":
+                co_id = data.get("com_object_id")
+                ga_id = data.get("group_address_id")
+                ga = project.get_group_address(ga_id) if ga_id is not None else None
+                co_obj = None
+                dev_obj = None
+                if co_id is not None:
+                    for d in project.devices:
+                        for co in d.com_objects:
+                            if co.db_id == co_id:
+                                co_obj = co
+                                dev_obj = d
+                                break
+                        if co_obj is not None:
+                            break
+                if co_obj is not None and ga is not None and dev_obj is not None:
+                    links = list(project.get_links_for_com_object(co_id))
+                    if any(lnk.group_address_id == ga_id for lnk in links):
+                        links_added.append(
+                            {
+                                "device_address": dev_obj.individual_address,
+                                "device_name": dev_obj.name,
+                                "com_object_ref_id": co_obj.id,
+                                "com_object_name": com_object_display_name(co_obj)
+                                or co_obj.name,
+                                "com_object_number": co_obj.number,
+                                "group_address": ga.address,
+                                "is_sending": data.get("is_sending", False),
+                            }
+                        )
+            elif ev_type == "UnlinkComObject":
+                links_removed.append(
+                    {
+                        "link_id": data.get("link_id"),
+                        "com_object_id": data.get("com_object_id"),
+                        "group_address_id": data.get("group_address_id"),
+                    }
+                )
+
+        # 4. Devices
+        for ev_type, data in flat_events:
+            if ev_type == "AddDevice":
+                dev_id = data.get("device_id")
+                dev = (
+                    project.find_device_by_node_id(dev_id)
+                    if dev_id is not None
+                    else None
+                )
+                if dev is not None:
+                    devices_added.append(
+                        {
+                            "node_id": dev.node_id,
+                            "individual_address": dev.individual_address,
+                            "name": dev.name,
+                        }
+                    )
+            elif ev_type == "RemoveDevice":
+                devices_removed.append(
+                    {
+                        "name": data.get("name"),
+                        "individual_address": data.get("address"),
+                    }
+                )
+            elif ev_type in ("SetDeviceName", "MoveDevice"):
+                dev_id = data.get("device_id")
+                dev = (
+                    project.find_device_by_node_id(dev_id)
+                    if dev_id is not None
+                    else None
+                )
+                if dev is not None:
+                    devices_modified.append(
+                        {
+                            "node_id": dev.node_id,
+                            "individual_address": dev.individual_address,
+                            "name": dev.name,
+                            "change": ev_type,
+                        }
+                    )
+
+    summary: dict[str, Any] = {
+        "parameters_changed": len(diff_params),
+        "group_addresses_added": len(gas_added),
+        "group_addresses_removed": len(gas_removed),
+        "group_addresses_modified": len(gas_modified),
+        "links_added": len(links_added),
+        "links_removed": len(links_removed),
+        "devices_added": len(devices_added),
+        "devices_removed": len(devices_removed),
+        "devices_modified": len(devices_modified),
+    }
+
+    if not only_differences:
+        summary["total_elements"] = {
+            "devices": len(project.devices),
+            "group_addresses": len(project.group_addresses),
+        }
+
+    has_differences = any(isinstance(v, int) and v > 0 for v in summary.values())
+
+    return {
+        "mode": "session",
+        "compare_against": None,
+        "is_dirty": is_dirty or has_differences,
+        "summary": summary,
+        "differences": {
+            "parameters": diff_params,
+            "group_addresses": {
+                "added": gas_added,
+                "removed": gas_removed,
+                "modified": gas_modified,
+            },
+            "links": {
+                "added": links_added,
+                "removed": links_removed,
+            },
+            "devices": {
+                "added": devices_added,
+                "removed": devices_removed,
+                "modified": devices_modified,
+            },
+        },
+    }
+
+
+def _file_diff(
+    project: Any, compare_path_str: str, only_differences: bool = True
+) -> dict[str, Any]:
+    import tempfile
+    from pathlib import Path
+
+    from sqlalchemy.orm import Session
+
+    from xknxeditor.proj import import_knxproj
+    from xknxeditor.proj.core.addressing import format_ga
+    from xknxeditor.proj.db import make_engine, url_for
+    from xknxeditor.proj.models import (
+        ComObject as DbCO,
+    )
+    from xknxeditor.proj.models import (
+        ComObjectLink as DbLink,
+    )
+    from xknxeditor.proj.models import (
+        Device as DbDevice,
+    )
+    from xknxeditor.proj.models import (
+        GroupAddress as DbGA,
+    )
+    from xknxeditor.proj.models import (
+        Parameter as DbParam,
+    )
+
+    path = Path(compare_path_str)
+    if not path.is_file():
+        raise ToolError(f"file not found: {compare_path_str}")
+
+    suffix = path.suffix.lower()
+
+    def _extract_data(session: Session) -> dict[str, Any]:
+        devices = session.query(DbDevice).all()
+        dev_by_id: dict[int, tuple[str, str]] = {}
+        dev_map: dict[str, str] = {}
+        for d in devices:
+            seg = d.segment
+            line = seg.line if seg else None
+            area = line.area if line else None
+            if area and line and d.address is not None:
+                ia = f"{area.address}.{line.address}.{d.address}"
+            else:
+                ia = None
+            key = ia if ia else f"dev_{d.id}"
+            dev_by_id[d.id] = (key, d.name)
+            dev_map[key] = d.name
+
+        gas = session.query(DbGA).all()
+        ga_by_id: dict[int, tuple[int, str, str | None]] = {}
+        ga_map: dict[int, tuple[str, str | None]] = {}
+        for g in gas:
+            ga_by_id[g.id] = (g.address, g.name, g.datapoint_type)
+            ga_map[g.address] = (g.name, g.datapoint_type)
+
+        params = session.query(DbParam).all()
+        param_map: dict[tuple[str, str], str] = {}
+        for p in params:
+            d_info = dev_by_id.get(p.device_id)
+            if d_info:
+                param_map[(d_info[0], p.ref_id)] = p.value
+
+        links = session.query(DbLink).all()
+        cos_by_id = {
+            co.id: (co.ref_id, co.device_id) for co in session.query(DbCO).all()
+        }
+        link_set: set[tuple[str, str, int, bool]] = set()
+        for lnk in links:
+            co_info = cos_by_id.get(lnk.com_object_id)
+            ga_info = ga_by_id.get(lnk.group_address_id)
+            if co_info and ga_info:
+                d_info = dev_by_id.get(co_info[1])
+                if d_info:
+                    link_set.add((d_info[0], co_info[0], ga_info[0], lnk.is_sending))
+
+        return {
+            "devices": dev_map,
+            "gas": ga_map,
+            "params": param_map,
+            "links": link_set,
+        }
+
+    def _compare(target_db: Path) -> dict[str, Any]:
+        curr_session: Session = project._svc._state(project._pid).session
+        curr_data = _extract_data(curr_session)
+
+        engine = make_engine(url_for(target_db))
+        with Session(engine) as comp_session:
+            comp_data = _extract_data(comp_session)
+        engine.dispose()
+
+        # Compare Devices
+        devices_added: list[dict[str, Any]] = []
+        devices_removed: list[dict[str, Any]] = []
+        devices_modified: list[dict[str, Any]] = []
+        for dev_key, dev_name in curr_data["devices"].items():
+            if dev_key not in comp_data["devices"]:
+                devices_added.append({"address": dev_key, "name": dev_name})
+            elif comp_data["devices"][dev_key] != dev_name:
+                devices_modified.append(
+                    {
+                        "address": dev_key,
+                        "old_name": comp_data["devices"][dev_key],
+                        "new_name": dev_name,
+                    }
+                )
+        for dev_key, dev_name in comp_data["devices"].items():
+            if dev_key not in curr_data["devices"]:
+                devices_removed.append({"address": dev_key, "name": dev_name})
+
+        # Compare Group Addresses
+        gas_added: list[dict[str, Any]] = []
+        gas_removed: list[dict[str, Any]] = []
+        gas_modified: list[dict[str, Any]] = []
+        for ga_addr, (ga_name, ga_dpt) in curr_data["gas"].items():
+            addr_str = format_ga(ga_addr, project.group_address_style)
+            if ga_addr not in comp_data["gas"]:
+                gas_added.append(
+                    {"address": addr_str, "name": ga_name, "datapoint_type": ga_dpt}
+                )
+            else:
+                old_name, old_dpt = comp_data["gas"][ga_addr]
+                if old_name != ga_name or old_dpt != ga_dpt:
+                    gas_modified.append(
+                        {
+                            "address": addr_str,
+                            "old_name": old_name,
+                            "new_name": ga_name,
+                            "old_datapoint_type": old_dpt,
+                            "new_datapoint_type": ga_dpt,
+                        }
+                    )
+        for ga_addr, (ga_name, ga_dpt) in comp_data["gas"].items():
+            if ga_addr not in curr_data["gas"]:
+                gas_removed.append(
+                    {
+                        "address": format_ga(ga_addr, project.group_address_style),
+                        "name": ga_name,
+                        "datapoint_type": ga_dpt,
+                    }
+                )
+
+        # Compare Parameters
+        diff_params: list[dict[str, Any]] = []
+        all_param_keys = set(curr_data["params"]).union(comp_data["params"])
+        for dev_key, ref_id in sorted(all_param_keys):
+            curr_val = curr_data["params"].get((dev_key, ref_id))
+            comp_val = comp_data["params"].get((dev_key, ref_id))
+            if curr_val != comp_val:
+                dev_name = curr_data["devices"].get(dev_key) or comp_data[
+                    "devices"
+                ].get(dev_key)
+                diff_params.append(
+                    {
+                        "device_address": dev_key,
+                        "device_name": dev_name,
+                        "ref_id": ref_id,
+                        "current_value": curr_val,
+                        "baseline_value": comp_val,
+                    }
+                )
+
+        # Compare Links
+        links_added: list[dict[str, Any]] = []
+        links_removed: list[dict[str, Any]] = []
+        for dev_key, co_ref, ga_addr, is_sending in (
+            curr_data["links"] - comp_data["links"]
+        ):
+            links_added.append(
+                {
+                    "device_address": dev_key,
+                    "com_object_ref_id": co_ref,
+                    "group_address": format_ga(ga_addr, project.group_address_style),
+                    "is_sending": is_sending,
+                }
+            )
+        for dev_key, co_ref, ga_addr, is_sending in (
+            comp_data["links"] - curr_data["links"]
+        ):
+            links_removed.append(
+                {
+                    "device_address": dev_key,
+                    "com_object_ref_id": co_ref,
+                    "group_address": format_ga(ga_addr, project.group_address_style),
+                    "is_sending": is_sending,
+                }
+            )
+
+        summary: dict[str, Any] = {
+            "parameters_changed": len(diff_params),
+            "group_addresses_added": len(gas_added),
+            "group_addresses_removed": len(gas_removed),
+            "group_addresses_modified": len(gas_modified),
+            "links_added": len(links_added),
+            "links_removed": len(links_removed),
+            "devices_added": len(devices_added),
+            "devices_removed": len(devices_removed),
+            "devices_modified": len(devices_modified),
+        }
+
+        if not only_differences:
+            summary["total_elements"] = {
+                "devices": len(curr_data["devices"]),
+                "group_addresses": len(curr_data["gas"]),
+            }
+
+        has_differences = any(isinstance(v, int) and v > 0 for v in summary.values())
+
+        return {
+            "mode": "file",
+            "compare_against": str(path),
+            "is_dirty": has_differences,
+            "summary": summary,
+            "differences": {
+                "parameters": diff_params,
+                "group_addresses": {
+                    "added": gas_added,
+                    "removed": gas_removed,
+                    "modified": gas_modified,
+                },
+                "links": {
+                    "added": links_added,
+                    "removed": links_removed,
+                },
+                "devices": {
+                    "added": devices_added,
+                    "removed": devices_removed,
+                    "modified": devices_modified,
+                },
+            },
+        }
+
+    if suffix == ".knxproj":
+        with tempfile.TemporaryDirectory() as tmp_str:
+            target_db = Path(tmp_str) / "compare.xknx"
+            import_knxproj(path, target_db)
+            return _compare(target_db)
+    elif suffix == ".xknx":
+        return _compare(path)
+    else:
+        raise ToolError(
+            f"unsupported file format {suffix!r}; compare_against must be a .knxproj or .xknx file"
+        )
 
 
 def register(mcp: FastMCP, ctx: McpContext) -> None:
@@ -2269,15 +2804,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 )
 
             if not any(
-                p.ref_id == target_ref
-                for p in _collect_ui_parameters(device.get_ui())
+                p.ref_id == target_ref for p in _collect_ui_parameters(device.get_ui())
             ):
                 raise ToolError(
                     f"no parameter {target_ref!r} on device {dev_id}; "
                     "call project_list_parameters for valid ref_ids"
                 )
             prior_co_ids = {co.id for co in device.get_visible_com_objects()}
-            prior_param_ids = {p.ref_id for p in _collect_ui_parameters(device.get_ui())}
+            prior_param_ids = {
+                p.ref_id for p in _collect_ui_parameters(device.get_ui())
+            }
             # edit_params (not set_param): applies and reconciles as one undo step and raises on
             # reject WITHOUT the GUI's stash-and-retry, so a rejected MCP set never silently takes
             # effect on a later edit.
@@ -2585,3 +3121,23 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         outside this history. Returns {status: "jumped", event_id}, with event_id as a string."""
         ctx.run_locked(lambda: project.jump_to(event_id))
         return {"status": "jumped", "event_id": str(event_id)}
+
+    @tool
+    def project_diff(
+        compare_against: str | None = None,
+        only_differences: bool = True,
+    ) -> dict[str, Any]:
+        """Show changes made in the current session (dirty state since opening/saving),
+        OR compare the current project against an external project file (.knxproj or .xknx).
+
+        Args:
+            compare_against: Optional path to a .knxproj or .xknx file. If omitted,
+                             diffs the current uncommitted session edits against the open project baseline.
+            only_differences: If True (default), omits unchanged elements to keep the diff concise.
+        """
+        require_project(ctx)
+        if compare_against:
+            return ctx.run_locked(
+                lambda: _file_diff(project, compare_against, only_differences)
+            )
+        return ctx.run_locked(lambda: _session_diff(project, only_differences))

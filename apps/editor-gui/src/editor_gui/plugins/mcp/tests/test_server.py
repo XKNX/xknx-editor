@@ -715,7 +715,11 @@ async def test_batch_activates_child_in_order(tmp_path: Path) -> None:
         # Reverse order child->parent: with default deferred=True, multi-pass retries child after parent activates it.
         await _set(parent, "0")
         deferred_ok = await _batch([(child, cval), (parent, "1")])
-        assert deferred_ok["ok"] == 2 and deferred_ok["failed"] == 0 and not deferred_ok["rolled_back"]
+        assert (
+            deferred_ok["ok"] == 2
+            and deferred_ok["failed"] == 0
+            and not deferred_ok["rolled_back"]
+        )
 
         # With deferred=False (strict single-pass), reverse order child->parent fails and rolls back.
         await _set(parent, "0")
@@ -1765,10 +1769,7 @@ async def test_semantic_addressing_with_channel_and_direct_set(tmp_path: Path) -
         # Find an enum parameter with label
         target = None
         for p in params_res["items"]:
-            if (
-                p.get("label")
-                and p.get("widget", {}).get("type") == "enum"
-            ):
+            if p.get("label") and p.get("widget", {}).get("type") == "enum":
                 target = p
                 break
         assert target is not None
@@ -1782,9 +1783,7 @@ async def test_semantic_addressing_with_channel_and_direct_set(tmp_path: Path) -
         )
         choices = detail.get("widget", {}).get("choices", [])
         assert len(choices) > 1
-        alt_choice = next(
-            c for c in choices if str(c["value"]) != str(target["value"])
-        )
+        alt_choice = next(c for c in choices if str(c["value"]) != str(target["value"]))
         alt_val = str(alt_choice["value"])
         alt_text = alt_choice["label"]
 
@@ -1882,7 +1881,9 @@ async def test_set_parameter_feedback_activated_cos_and_unlocked_params(
                 if activated is not None:
                     break
 
-        assert activated is not None, "Expected at least one parameter change to activate KOs or parameters"
+        assert activated is not None, (
+            "Expected at least one parameter change to activate KOs or parameters"
+        )
         if activated["activated_com_objects"]:
             first_co = activated["activated_com_objects"][0]
             assert "ref_id" in first_co
@@ -1896,3 +1897,149 @@ async def test_set_parameter_feedback_activated_cos_and_unlocked_params(
             assert "label" in first_up
             assert "value" in first_up
             assert "widget" in first_up
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_project_diff_session(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+
+        # Clean project initially
+        clean_diff = await _data(client, "project_diff")
+        assert clean_diff["mode"] == "session"
+        assert clean_diff["is_dirty"] is False
+        assert clean_diff["summary"]["parameters_changed"] == 0
+        assert clean_diff["summary"]["group_addresses_added"] == 0
+        assert clean_diff["summary"]["links_added"] == 0
+
+        # Import product and add device
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        products = await _data(client, "catalog_list_products")
+        product_ref = products["items"][0]["product_ref_id"]
+        dev_res = await _data(client, "project_add_device", product_ref_id=product_ref)
+        node_id = dev_res["node_id"]
+
+        # Create GA
+        ga_res = await _data(
+            client, "project_create_group_address", address="1/2/3", name="Test GA"
+        )
+        assert ga_res["address"] == "1/2/3"
+
+        # Change a parameter
+        params_res = await _data(client, "project_list_parameters", node_id=node_id)
+        target = next(
+            p for p in params_res["items"] if p.get("widget", {}).get("type") == "enum"
+        )
+        pref_id = target["ref_id"]
+        detail = await _data(
+            client,
+            "project_get_parameter",
+            node_id=node_id,
+            parameter_ref_id=pref_id,
+        )
+        choices = detail.get("widget", {}).get("choices", [])
+        alt_choice = next(c for c in choices if str(c["value"]) != str(target["value"]))
+        new_val = str(alt_choice["value"])
+        await _data(
+            client,
+            "project_set_parameter",
+            node_id=node_id,
+            parameter_ref_id=pref_id,
+            value=new_val,
+        )
+
+        # Link com-object
+        cos_res = await _data(client, "project_list_com_objects", node_id=node_id)
+        linkable_cos = [co for co in cos_res["items"] if co.get("linkable")]
+        assert linkable_cos, "Expected at least one linkable com-object"
+        co_ref = linkable_cos[0]["ref_id"]
+        await _data(
+            client,
+            "project_link_com_object",
+            node_id=node_id,
+            com_object_ref_id=co_ref,
+            group_address="1/2/3",
+        )
+
+        # Diff should show all edits
+        diff = await _data(client, "project_diff")
+        assert diff["mode"] == "session"
+        assert diff["is_dirty"] is True
+        assert diff["summary"]["group_addresses_added"] == 1
+        assert diff["summary"]["links_added"] == 1
+        assert diff["summary"]["parameters_changed"] >= 1
+        assert diff["differences"]["group_addresses"]["added"][0]["address"] == "1/2/3"
+        assert diff["differences"]["links"]["added"][0]["group_address"] == "1/2/3"
+        assert any(p["ref_id"] == pref_id for p in diff["differences"]["parameters"])
+
+        # Undo the link, parameter and GA
+        await _data(client, "project_undo")  # undo link
+        await _data(client, "project_undo")  # undo param
+        await _data(client, "project_undo")  # undo GA
+        undone_diff = await _data(client, "project_diff")
+        assert undone_diff["summary"]["group_addresses_added"] == 0
+        assert undone_diff["summary"]["links_added"] == 0
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_project_diff_file(tmp_path: Path) -> None:
+    import shutil
+
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        baseline_path = tmp_path / "baseline.xknx"
+        current_path = tmp_path / "current.xknx"
+        await _data(client, "project_new", path=str(current_path))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        products = await _data(client, "catalog_list_products")
+        product_ref = products["items"][0]["product_ref_id"]
+        dev_res = await _data(client, "project_add_device", product_ref_id=product_ref)
+        node_id = dev_res["node_id"]
+
+        # Make a copy as baseline
+        shutil.copyfile(current_path, baseline_path)
+
+        # Diff before new changes against baseline should have 0 diff
+        diff0 = await _data(client, "project_diff", compare_against=str(baseline_path))
+        assert diff0["mode"] == "file"
+        assert diff0["is_dirty"] is False
+        assert diff0["summary"]["parameters_changed"] == 0
+        assert diff0["summary"]["group_addresses_added"] == 0
+
+        # Now add a GA and modify a parameter in current
+        await _data(
+            client,
+            "project_create_group_address",
+            address="2/3/4",
+            name="Baseline Diff GA",
+        )
+        params_res = await _data(client, "project_list_parameters", node_id=node_id)
+        target = next(
+            p for p in params_res["items"] if p.get("widget", {}).get("type") == "enum"
+        )
+        pref_id = target["ref_id"]
+        detail = await _data(
+            client,
+            "project_get_parameter",
+            node_id=node_id,
+            parameter_ref_id=pref_id,
+        )
+        choices = detail.get("widget", {}).get("choices", [])
+        alt_choice = next(c for c in choices if str(c["value"]) != str(target["value"]))
+        new_val = str(alt_choice["value"])
+        await _data(
+            client,
+            "project_set_parameter",
+            node_id=node_id,
+            parameter_ref_id=pref_id,
+            value=new_val,
+        )
+
+        # Diff against baseline
+        diff1 = await _data(client, "project_diff", compare_against=str(baseline_path))
+        assert diff1["mode"] == "file"
+        assert diff1["is_dirty"] is True
+        assert diff1["summary"]["group_addresses_added"] == 1
+        assert diff1["differences"]["group_addresses"]["added"][0]["address"] == "2/3/4"
+        assert diff1["summary"]["parameters_changed"] >= 1
