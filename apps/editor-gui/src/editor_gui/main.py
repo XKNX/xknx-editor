@@ -484,6 +484,9 @@ class KnxGuiApp:
         # tabs of its section in their order then.
         self._manufacturer_hidden = False
         self._manufacturer_tabs: list[str] = []
+        # The window whose tab stays selected in its section while the Manufacturer tab comes
+        # back (imgui selects a tab added to a section), until the frame given.
+        self._kept_tab: tuple[str, int] | None = None
         # Overwrite guard: the portable file dialog does not confirm replacing an existing file on
         # macOS (it wraps AppleScript's "choose file name"), so we ask here. Requests queue as
         # (target, action) pairs so a second dialog resolving mid-confirmation cannot drop the first.
@@ -3370,12 +3373,40 @@ class KnxGuiApp:
                     window.is_visible = False
                     self._manufacturer_hidden = True
                 elif not other and self._manufacturer_hidden:
+                    selected = _selected_tab_window(self._manufacturer_tabs)
+                    if selected is not None:
+                        self._kept_tab = (selected, imgui.get_frame_count() + 10)
+                    # Not focused when it appears: imgui selects the focused window's tab.
+                    window.imgui_window_flags |= (
+                        imgui.WindowFlags_.no_focus_on_appearing
+                    )
                     window.is_visible = True
                     self._manufacturer_hidden = False
                     if self._manufacturer_tabs:
                         self._tab_order = self._manufacturer_tabs
                         self._tab_order_from = imgui.get_frame_count() + 2
                         self._tab_order_until = imgui.get_frame_count() + 300
+
+    def _keep_selected_tab(self) -> None:
+        """Keep the tab that was selected in the Manufacturer tab's section selected while that
+        tab comes back."""
+        if self._kept_tab is None:
+            return
+        label, until = self._kept_tab
+        if imgui.get_frame_count() > until:
+            self._kept_tab = None
+            return
+        window = imgui.internal.find_window_by_name(label)
+        # The bindings type these as non-optional, but they can be None.
+        node = window.dock_node if window is not None else None  # pyright: ignore[reportUnnecessaryComparison]
+        bar = node.tab_bar if node is not None else None  # pyright: ignore[reportUnnecessaryComparison]
+        if bar is None:  # pyright: ignore[reportUnnecessaryComparison]
+            return
+        for tab in bar.tabs:
+            if tab.window is not None and tab.window.name == label:  # pyright: ignore[reportUnnecessaryComparison]
+                if bar.selected_tab_id != tab.id_:
+                    imgui.internal.tab_bar_queue_focus(bar, tab)
+                return
 
     def _render_status_bar(self) -> None:
         """The status bar along the bottom of the window, below the docked panels: a thin line on
@@ -4602,6 +4633,7 @@ class KnxGuiApp:
         self._settle_tab_order()
         self._project_service.take_rechecked_devices()
         self._sync_device_section()
+        self._keep_selected_tab()
         self._render_status_bar()
         render_section_menus()
         set_window_title(self._window_title())
@@ -5622,6 +5654,23 @@ def _section_tab_names(label: str) -> list[str]:
         for tab in bar.tabs
         if tab.window is not None  # pyright: ignore[reportUnnecessaryComparison]
     ]
+
+
+def _selected_tab_window(names: list[str]) -> str | None:
+    """The window name of the selected tab in the section of the tabs ``names`` (stable names)."""
+    for w in hello_imgui.get_runner_params().docking_params.dockable_windows:
+        if _dock_window_name(w) not in names:
+            continue
+        window = imgui.internal.find_window_by_name(w.label)
+        # The bindings type these as non-optional, but they can be None.
+        node = window.dock_node if window is not None else None  # pyright: ignore[reportUnnecessaryComparison]
+        bar = node.tab_bar if node is not None else None  # pyright: ignore[reportUnnecessaryComparison]
+        if bar is None:  # pyright: ignore[reportUnnecessaryComparison]
+            continue
+        for tab in bar.tabs:
+            if tab.id_ == bar.selected_tab_id and tab.window is not None:  # pyright: ignore[reportUnnecessaryComparison]
+                return tab.window.name
+    return None
 
 
 def _forget_tab_order(params: hello_imgui.DockingParams) -> None:
