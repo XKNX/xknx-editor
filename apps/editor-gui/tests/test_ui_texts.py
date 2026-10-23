@@ -68,9 +68,6 @@ _WORD = re.compile(r"[A-Za-z]{3,}")
 # Text that is the same in every language, with the reason.
 TECHNICAL = {
     "http://{}:{}/mcp": "the MCP server's address",
-    "Ctrl++": "keyboard shortcut",
-    "Ctrl+-": "keyboard shortcut",
-    "Ctrl+0": "keyboard shortcut",
     "DPST-1-1": "example of a datapoint type token",
 }
 
