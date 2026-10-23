@@ -1,0 +1,12 @@
+# Codecov settings. Coverage is measured and uploaded by the "Tests" job of
+# .github/workflows/ci.yml, but pull requests are not checked yet: no status checks,
+# no comment and no line annotations.
+coverage:
+  status:
+    project: off
+    patch: off
+
+comment: false
+
+github_checks:
+  annotations: false
