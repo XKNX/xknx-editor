@@ -34,6 +34,25 @@ dev = [
 testpaths = ["packages", "apps"]
 asyncio_mode = "auto"
 
+[tool.coverage.run]
+# Measured in CI with `pytest --cov` and uploaded to Codecov: the packages and the app,
+# without the generated XML bindings (files/, intermediate/) and the tests.
+source = [
+    "packages/catalog/src",
+    "packages/dali/src",
+    "packages/datasecure/src",
+    "packages/download/src",
+    "packages/namespaces/src",
+    "packages/prod/src",
+    "packages/proj/src",
+    "packages/recover/src",
+    "apps/editor-gui/src",
+]
+omit = ["*/files/*", "*/intermediate/*", "*/tests/*"]
+relative_files = true
+# sys.monitoring (Python 3.12+): same result as the default tracer, in about 60 % of the time
+core = "sysmon"
+
 [tool.uv.workspace]
 members = ["packages/*", "apps/*"]
 
