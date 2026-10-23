@@ -1,0 +1,29 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor timeline 1.0\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Timeline"
+msgstr "Часова шкала"
+
+msgid "No project open"
+msgstr "Немає відкритого проєкту"
+
+msgid "Filter group addresses…"
+msgstr "Фільтрувати групові адреси…"
+
+msgid "Tick group addresses on the left to plot their values over time."
+msgstr "Позначте групові адреси ліворуч, щоб побудувати графік їхніх значень у часі."
+
+msgid "No numeric values captured yet for the selected addresses."
+msgstr "Для вибраних адрес ще не отримано числових значень."
+
+msgid "Window"
+msgstr "Інтервал"
+
+msgid "All"
+msgstr "Все"

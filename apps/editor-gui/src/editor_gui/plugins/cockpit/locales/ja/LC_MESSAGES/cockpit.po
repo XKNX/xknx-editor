@@ -1,0 +1,71 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor cockpit 1.0\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device Overview"
+msgstr "デバイス概要"
+
+msgid "No project open"
+msgstr "開いているプロジェクトがありません"
+
+msgid "Filter devices…"
+msgstr "デバイスをフィルター…"
+
+msgid "Needs Attention Only"
+msgstr "要対応のみ"
+
+msgid "{count} device(s) not in catalog"
+msgstr "カタログにないデバイス：{count} 台"
+
+msgid "Address"
+msgstr "アドレス"
+
+msgid "Name"
+msgstr "名前"
+
+msgid "Product"
+msgstr "製品"
+
+msgid "Status"
+msgstr "状態"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Loaded"
+msgstr "ロード済み"
+
+msgid "loaded"
+msgstr "ロード済み"
+
+msgid "not loaded"
+msgstr "未ロード"
+
+msgid "partial ({done}/{total})"
+msgstr "一部（{done}/{total}）"
+
+msgid "Individual Address"
+msgstr "個別アドレス"
+
+msgid "Application Program"
+msgstr "アプリケーションプログラム"
+
+msgid "Communication Part"
+msgstr "通信部"
+
+msgid "Medium Config"
+msgstr "メディア構成"
+
+msgid "Parameters"
+msgstr "パラメータ"
+
+msgid "Serial: {serial}"
+msgstr "シリアル番号：{serial}"
+
+msgid "Last Download: {when}"
+msgstr "最終ダウンロード：{when}"

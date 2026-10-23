@@ -1,0 +1,71 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor cockpit 1.0\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device Overview"
+msgstr "Přehled zařízení"
+
+msgid "No project open"
+msgstr "Není otevřen žádný projekt"
+
+msgid "Filter devices…"
+msgstr "Filtrovat zařízení…"
+
+msgid "Needs Attention Only"
+msgstr "Jen vyžadující pozornost"
+
+msgid "{count} device(s) not in catalog"
+msgstr "Zařízení mimo katalog: {count}"
+
+msgid "Address"
+msgstr "Adresa"
+
+msgid "Name"
+msgstr "Název"
+
+msgid "Product"
+msgstr "Produkt"
+
+msgid "Status"
+msgstr "Stav"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Loaded"
+msgstr "Načteno"
+
+msgid "loaded"
+msgstr "načteno"
+
+msgid "not loaded"
+msgstr "nenačteno"
+
+msgid "partial ({done}/{total})"
+msgstr "částečně ({done}/{total})"
+
+msgid "Individual Address"
+msgstr "Individuální adresa"
+
+msgid "Application Program"
+msgstr "Aplikační program"
+
+msgid "Communication Part"
+msgstr "Komunikační část"
+
+msgid "Medium Config"
+msgstr "Konfigurace média"
+
+msgid "Parameters"
+msgstr "Parametry"
+
+msgid "Serial: {serial}"
+msgstr "Sériové číslo: {serial}"
+
+msgid "Last Download: {when}"
+msgstr "Poslední nahrání: {when}"

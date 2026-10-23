@@ -1,0 +1,113 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor topology 1.0\n"
+"Language: it\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Topology"
+msgstr "Topologia"
+
+msgid "No project open"
+msgstr "Nessun progetto aperto"
+
+msgid "Unassigned"
+msgstr "Non assegnati"
+
+msgid "Drag to move, Ctrl/Cmd+scroll to zoom. Click a device to open it."
+msgstr "Trascinare per spostare, Ctrl/Cmd+rotellina per lo zoom. Fare clic su un dispositivo per aprirlo."
+
+msgid "Physical"
+msgstr "Fisica"
+
+msgid "Building"
+msgstr "Edificio"
+
+msgid "Links"
+msgstr "Collegamenti"
+
+msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
+msgstr "Quali dispositivi comunicano tra loro tramite i rispettivi indirizzi di gruppo: dispositivi trasmittenti a sinistra, dispositivi riceventi a destra."
+
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, Ctrl/Cmd+scroll to zoom."
+msgstr "Fare clic per seguire un dispositivo o un indirizzo di gruppo, doppio clic per aprire un dispositivo. Trascinare per spostare, Ctrl/Cmd+rotellina per lo zoom."
+
+msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
+msgstr "Toccare per seguire un dispositivo o un indirizzo di gruppo, doppio tocco per aprire un dispositivo. Zoom con due dita."
+
+msgid "No linked devices to show."
+msgstr "Nessun dispositivo collegato da mostrare."
+
+msgid "Show"
+msgstr "Mostra"
+
+msgid "Whole Project"
+msgstr "Intero progetto"
+
+msgid "Rooms"
+msgstr "Stanze"
+
+msgid "Main Groups"
+msgstr "Gruppi principali"
+
+msgid "Device: {device}"
+msgstr "Dispositivo: {device}"
+
+msgid "Group Address: {address}"
+msgstr "Indirizzo di gruppo: {address}"
+
+msgid "Back"
+msgstr "Indietro"
+
+msgid "Fit"
+msgstr "Adatta"
+
+msgid "Sending"
+msgstr "Trasmittenti"
+
+msgid "Group Addresses"
+msgstr "Indirizzi di Gruppo"
+
+msgid "Receiving"
+msgstr "Riceventi"
+
+msgid "Areas"
+msgstr "Aree"
+
+msgid "Lines"
+msgstr "Linee"
+
+msgid "Devices"
+msgstr "Dispositivi"
+
+msgid "Buildings"
+msgstr "Edifici"
+
+msgid "+ {count} more"
+msgstr "+ altri {count}"
+
+msgid "{count} more devices outside the selection. Click to show them."
+msgstr "Altri {count} dispositivi fuori dalla selezione. Fare clic per mostrarli."
+
+msgid "{address}\n{senders} sending, {receivers} receiving"
+msgstr "{address}\n{senders} trasmittenti, {receivers} riceventi"
+
+msgid "Area {area}"
+msgstr "Area {area}"
+
+msgid "L {line}"
+msgstr "L {line}"
+
+msgid "Zoom with two fingers. Tap a device to open it."
+msgstr "Zoom con due dita. Toccare un dispositivo per aprirlo."
+
+msgid "(unnamed)"
+msgstr "(senza nome)"
+
+msgid "Address: {address}"
+msgstr "Indirizzo: {address}"
+
+msgid "Application: {application}"
+msgstr "Applicazione: {application}"

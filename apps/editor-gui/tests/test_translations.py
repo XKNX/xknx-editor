@@ -1,4 +1,4 @@
-"""Every text passed to ``_()`` in a strings module has a German and Dutch translation.
+"""Every text passed to ``_()`` in a strings module has a translation in every UI language.
 
 Reads the compiled catalogs, so a .po that was changed but not compiled fails too.
 """
@@ -11,9 +11,10 @@ import struct
 from pathlib import Path
 
 import pytest
+from editor_gui.languages import TRANSLATED
 
 _ROOT = Path(__file__).resolve().parents[1] / "src" / "editor_gui"
-_LANGUAGES = ("de", "nl")
+_LANGUAGES = TRANSLATED
 
 
 def _modules() -> list[tuple[Path, str, Path]]:

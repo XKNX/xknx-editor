@@ -1,0 +1,212 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor catalog 1.0\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Catalog"
+msgstr "Katalog"
+
+msgid "Failed to load archive"
+msgstr "Arşiv yüklenemedi"
+
+msgid "Loaded: {path}"
+msgstr "Yüklendi: {path}"
+
+msgid "Found {count} application(s)"
+msgstr "Bulunan uygulama sayısı: {count}"
+
+msgid "({count} group objects)"
+msgstr "({count} grup nesnesi)"
+
+msgid "Fetch Online Catalog"
+msgstr "Çevrimiçi Kataloğu Getir"
+
+msgid "Loading manufacturer list…"
+msgstr "Üretici listesi yükleniyor…"
+
+msgid "Online catalog not reachable"
+msgstr "Çevrimiçi katalog erişilemiyor"
+
+msgid "{count} matches"
+msgstr "{count} eşleşme"
+
+msgid "Loading products…"
+msgstr "Ürünler yükleniyor…"
+
+msgid "No downloadable products"
+msgstr "İndirilebilir ürün yok"
+
+msgid "Downloading {name}…"
+msgstr "İndiriliyor: {name}…"
+
+msgid "(plugin required)"
+msgstr "(eklenti gerekli)"
+
+msgid "(in local catalog)"
+msgstr "(yerel katalogda)"
+
+msgid "Search products, order number…"
+msgstr "Ürün, sipariş numarası ara…"
+
+msgid "Product Index ({date}): {mfrs} manufacturers, {products} products"
+msgstr "Ürün Dizini ({date}): {mfrs} üretici, {products} ürün"
+
+msgid "No Product Index yet - fetch the online catalog to build it"
+msgstr "Henüz Ürün Dizini yok - oluşturmak için çevrimiçi kataloğu getirin"
+
+msgid "Building Product Index… {done}/{total} manufacturers"
+msgstr "Ürün Dizini oluşturuluyor… {done}/{total} üretici"
+
+msgid "Cancel"
+msgstr "İptal et"
+
+msgid "Fetch the online catalog to search across all manufacturers."
+msgstr "Tüm üreticilerde arama yapmak için çevrimiçi kataloğu getirin."
+
+msgid "Showing {shown} of {total} matches - refine the search"
+msgstr "{total} eşleşmeden {shown} tanesi gösteriliyor - aramayı daraltın"
+
+msgid "Product Details"
+msgstr "Ürün Ayrıntıları"
+
+msgid "Name"
+msgstr "Ad"
+
+msgid "Order Number"
+msgstr "Sipariş Numarası"
+
+msgid "Manufacturer"
+msgstr "Üretici"
+
+msgid "Application"
+msgstr "Uygulama"
+
+msgid "Program Version"
+msgstr "Program Sürümü"
+
+msgid "Application ID"
+msgstr "Uygulama Kimliği"
+
+msgid "DIN Rail Mounting"
+msgstr "DIN Ray Montajı"
+
+msgid "Bus Current"
+msgstr "Bus Akımı"
+
+msgid "Yes"
+msgstr "Evet"
+
+msgid "No"
+msgstr "Hayır"
+
+msgid "Product Ref"
+msgstr "Ürün Referansı"
+
+msgid "Add Device"
+msgstr "Cihaz Ekle"
+
+msgid "Room"
+msgstr "Oda"
+
+msgid "(no room)"
+msgstr "(oda yok)"
+
+msgid "Add Device to Project"
+msgstr "Cihazı Projeye Ekle"
+
+msgid "Which room should {name} go into?"
+msgstr "{name} hangi odaya eklensin?"
+
+msgid "Open or create a project first to add a device."
+msgstr "Cihaz eklemek için önce bir proje açın veya oluşturun."
+
+msgid "This product has no usable application program."
+msgstr "Bu ürünün kullanılabilir bir uygulama programı yok."
+
+msgid "Added device: {name}"
+msgstr "Cihaz eklendi: {name}"
+
+msgid "Add to project?"
+msgstr "Projeye eklensin mi?"
+
+msgid "“{name}” was added to the local catalog. Add it to the project now?"
+msgstr "“{name}” yerel kataloğa eklendi. Şimdi projeye eklensin mi?"
+
+msgid "Add to Project"
+msgstr "Projeye Ekle"
+
+msgid "Not Now"
+msgstr "Şimdi Değil"
+
+msgid "Local"
+msgstr "Yerel"
+
+msgid "Online"
+msgstr "Çevrimiçi"
+
+msgid "No products imported yet — import a .knxprod or use the Online tab."
+msgstr "Henüz içe aktarılmış ürün yok — bir .knxprod içe aktarın veya Çevrimiçi sekmesini kullanın."
+
+msgid "Fetch {count} Missing Application(s) Online"
+msgstr "Eksik {count} Uygulamayı Çevrimiçi Getir"
+
+msgid "Fetching missing applications…"
+msgstr "Eksik uygulamalar getiriliyor…"
+
+msgid "Delete"
+msgstr "Sil"
+
+msgid "Delete from Local Catalog"
+msgstr "Yerel Katalogdan Sil"
+
+msgid "Are you sure you want to delete the selected device? This cannot be undone."
+msgstr "Seçili cihazı silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+
+msgid "{count} device(s) in the open project use this product. They can't be loaded until the product is imported again."
+msgstr "Açık projedeki {count} cihaz bu ürünü kullanıyor. Ürün yeniden içe aktarılana kadar bu cihazlar yüklenemez."
+
+msgid "Deleting {name}…"
+msgstr "Siliniyor: {name}…"
+
+msgid "Deleted from the local catalog: {name}"
+msgstr "Yerel katalogdan silindi: {name}"
+
+msgid "Export .knxprod…"
+msgstr ".knxprod Olarak Dışa Aktar…"
+
+msgid "Export .knxprod"
+msgstr ".knxprod Dışa Aktar"
+
+msgid "KNX product (*.knxprod)"
+msgstr "KNX ürünü (*.knxprod)"
+
+msgid "Exported {name}"
+msgstr "Dışa aktarıldı: {name}"
+
+msgid "Could not export {name}: {error}"
+msgstr "{name} dışa aktarılamadı: {error}"
+
+msgid "No stored archive for {name}"
+msgstr "Kayıtlı arşiv yok: {name}"
+
+msgid "This device supports KNX Data Secure. Set a project password to commission it securely; without one it is added and commissioned in the clear."
+msgstr "Bu cihaz KNX Data Secure destekler. Cihazı güvenli şekilde devreye almak için bir proje parolası belirleyin; parola olmadan cihaz eklenir ve şifrelenmeden devreye alınır."
+
+msgid "Search…"
+msgstr "Ara…"
+
+msgid "Market:"
+msgstr "Pazar:"
+
+msgid "All Markets"
+msgstr "Tüm Pazarlar"
+
+msgid "Only Products in {language}"
+msgstr "Yalnızca {language} Ürünler"
+
+msgid "{shown} of {total} shown"
+msgstr "{total} içinden {shown} gösteriliyor"

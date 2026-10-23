@@ -1,0 +1,125 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor recover 1.0\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Recover Project from Bus"
+msgstr "Ανάκτηση Έργου από το Bus"
+
+msgid "From Address"
+msgstr "Από Διεύθυνση"
+
+msgid "To Address"
+msgstr "Έως Διεύθυνση"
+
+msgid "Scan"
+msgstr "Σάρωση"
+
+msgid "Stop"
+msgstr "Διακοπή"
+
+msgid "Add to Open Project as Read"
+msgstr "Προσθήκη στο Ανοιχτό Έργο ως Αναγνωσμένο"
+
+msgid "Recover Selected"
+msgstr "Ανάκτηση Επιλεγμένων"
+
+msgid "Create New Project"
+msgstr "Δημιουργία Νέου Έργου"
+
+msgid "Add to Open Project"
+msgstr "Προσθήκη στο Ανοιχτό Έργο"
+
+msgid "Verify (Read-Only)"
+msgstr "Επαλήθευση (Μόνο Ανάγνωση)"
+
+msgid "Export Snapshot"
+msgstr "Εξαγωγή Στιγμιότυπου"
+
+msgid "Verifying (re-reading and comparing)…"
+msgstr "Επαλήθευση (εκ νέου ανάγνωση και σύγκριση)…"
+
+msgid "%(count)d group address(es) have no sender or multiple senders."
+msgstr "%(count)d διεύθυνση(-εις) ομάδας δεν έχουν αποστολέα ή έχουν πολλούς αποστολείς."
+
+msgid "Address"
+msgstr "Διεύθυνση"
+
+msgid "Mask"
+msgstr "Μάσκα"
+
+msgid "Product / Application"
+msgstr "Προϊόν / Εφαρμογή"
+
+msgid "Status"
+msgstr "Κατάσταση"
+
+msgid "Set an address range and scan the bus."
+msgstr "Ορίστε ένα εύρος διευθύνσεων και σαρώστε το bus."
+
+msgid "Scanning the bus…"
+msgstr "Σάρωση του bus…"
+
+msgid "Scanning %(address)s  (%(done)d/%(total)d, %(found)d found)"
+msgstr "Σάρωση %(address)s  (%(done)d/%(total)d, βρέθηκαν %(found)d)"
+
+msgid "Loading missing products from online catalog: %(what)s"
+msgstr "Φόρτωση προϊόντων που λείπουν από τον online κατάλογο: %(what)s"
+
+msgid "Reading devices…"
+msgstr "Ανάγνωση συσκευών…"
+
+msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+msgstr "Ανάγνωση %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+
+msgid "group communication tables"
+msgstr "πίνακες επικοινωνίας ομάδων"
+
+msgid "parameter memory"
+msgstr "μνήμη παραμέτρων"
+
+msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
+msgstr "Ανακτήθηκαν %(devices)d συσκευή(-ές): %(group_addresses)d διευθύνσεις ομάδων, %(links)d συνδέσεις, %(unknown)d παράμετρος(-οι) δεν ήταν δυνατό να ανακτηθούν."
+
+msgid "Recovered"
+msgstr "Ανακτήθηκε"
+
+msgid "Added %(count)d device(s) to the open project (%(target)s)."
+msgstr "Προστέθηκαν %(count)d συσκευή(-ές) στο ανοιχτό έργο (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device(s)."
+msgstr "Δημιουργήθηκε νέο έργο %(target)s με %(count)d συσκευή(-ές)."
+
+msgid "Not connected to a KNX bus."
+msgstr "Δεν υπάρχει σύνδεση με bus KNX."
+
+msgid "Open or create a project to add recovered devices."
+msgstr "Ανοίξτε ή δημιουργήστε ένα έργο για να προσθέσετε ανακτημένες συσκευές."
+
+msgid "matched"
+msgstr "αντιστοιχεί"
+
+msgid "confirm product/version, then tick"
+msgstr "επιβεβαιώστε προϊόν/έκδοση και, στη συνέχεια, επιλέξτε"
+
+msgid "not in catalog - import via Catalog"
+msgstr "δεν υπάρχει στον κατάλογο - εισαγωγή μέσω Καταλόγου"
+
+msgid "unprogrammed"
+msgstr "μη προγραμματισμένη"
+
+msgid "recovered"
+msgstr "ανακτήθηκε"
+
+msgid "already in project - skipped"
+msgstr "ήδη στο έργο - παραλείφθηκε"
+
+msgid "error"
+msgstr "σφάλμα"
+
+msgid "%d parameters could not be recovered"
+msgstr "%d παράμετροι δεν ήταν δυνατό να ανακτηθούν"

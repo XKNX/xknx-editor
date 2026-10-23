@@ -1,0 +1,389 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor monitor 1.0\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Monitor"
+msgstr "Övervakare"
+
+msgid "No group addresses (open or import a project)"
+msgstr "Inga gruppadresser (öppna eller importera ett projekt)"
+
+msgid "Not Connected"
+msgstr "Ej ansluten"
+
+msgid "value (e.g. on / 21.5 / 50)"
+msgstr "värde (t.ex. on / 21.5 / 50)"
+
+msgid "Value:"
+msgstr "Värde:"
+
+msgid "Filter by address or name…"
+msgstr "Filtrera efter adress eller namn…"
+
+msgid "Write"
+msgstr "Skriv"
+
+msgid "Read"
+msgstr "Läs"
+
+msgid "Group Objects"
+msgstr "Gruppobjekt"
+
+msgid "Bus Monitor"
+msgstr "Bussövervakare"
+
+msgid "Group Monitor"
+msgstr "Gruppövervakare"
+
+msgid "Bus Activity"
+msgstr "Bussaktivitet"
+
+msgid "Clear"
+msgstr "Rensa"
+
+msgid "Show Extended Information"
+msgstr "Visa utökad information"
+
+msgid "Hide Extended Information"
+msgstr "Dölj utökad information"
+
+msgid "{count} telegrams"
+msgstr "{count} telegram"
+
+msgid "{count} telegram"
+msgstr "{count} telegram"
+
+msgid "Load: {rate} t/s"
+msgstr "Last: {rate} t/s"
+
+msgid "Group Address:"
+msgstr "Gruppadress:"
+
+msgid "e.g. 1/2/3"
+msgstr "t.ex. 1/2/3"
+
+msgid "Enter a group address of the project to send to it."
+msgstr "Ange en gruppadress i projektet för att skicka till den."
+
+msgid "Start"
+msgstr "Starta"
+
+msgid "Stop"
+msgstr "Stoppa"
+
+msgid "Import"
+msgstr "Importera"
+
+msgid "Export"
+msgstr "Exportera"
+
+msgid "Print"
+msgstr "Skriv ut"
+
+msgid "Replay Telegrams"
+msgstr "Spela upp telegram"
+
+msgid "Stop Replay"
+msgstr "Stoppa uppspelning"
+
+msgid "Start recording the group telegrams"
+msgstr "Börja spela in grupptelegrammen"
+
+msgid "Start recording the connection's communication other than group telegrams, including every frame this app sends"
+msgstr "Börja spela in anslutningens kommunikation utöver grupptelegram, inklusive varje ram som den här appen skickar"
+
+msgid "Connect the interface in bus monitor mode and record every frame"
+msgstr "Anslut gränssnittet i bussövervakarläge och spela in varje ram"
+
+msgid "Stop recording"
+msgstr "Stoppa inspelningen"
+
+msgid "Close the bus monitor connection and restore the normal connection"
+msgstr "Stäng bussövervakaranslutningen och återställ den normala anslutningen"
+
+msgid "Remove all telegrams"
+msgstr "Ta bort alla telegram"
+
+msgid "Load a recording"
+msgstr "Läs in en inspelning"
+
+msgid "Save the telegrams to a file"
+msgstr "Spara telegrammen i en fil"
+
+msgid "Print the telegrams as a PDF document"
+msgstr "Skriv ut telegrammen som ett PDF-dokument"
+
+msgid "Send the selected group telegrams (all if none is selected) again with their original timing"
+msgstr "Skicka de markerade grupptelegrammen (alla om inget är markerat) igen med sin ursprungliga tidsföljd"
+
+msgid "Cancel the replay"
+msgstr "Avbryt uppspelningen"
+
+msgid "Copy"
+msgstr "Kopiera"
+
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
+msgstr "Kopiera de markerade telegrammen (alla som visas om inget är markerat) till urklipp (Ctrl+C). Dubbelklicka på ett telegram för att markera dess källapparat."
+
+msgid "Rec."
+msgstr "Insp."
+
+msgid "Stopped"
+msgstr "Stoppad"
+
+msgid "Replaying {done}/{total}"
+msgstr "Spelar upp {done}/{total}"
+
+msgid "Connecting in bus monitor mode…"
+msgstr "Ansluter i bussövervakarläge…"
+
+msgid "Closing the bus monitor connection…"
+msgstr "Stänger bussövervakaranslutningen…"
+
+msgid "Bus monitor mode: the normal connection is closed. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Bussövervakarläge: den normala anslutningen är stängd. Inget kan skickas eller programmeras förrän bussövervakaren har stoppats."
+
+msgid "Start Bus Monitor"
+msgstr "Starta bussövervakare"
+
+msgid "The bus monitor connects the interface in bus monitor mode. The normal connection is closed while the bus monitor runs: nothing can be sent or downloaded in that time. Stopping the bus monitor restores the normal connection.\n\nStart the bus monitor?"
+msgstr "Bussövervakaren ansluter gränssnittet i bussövervakarläge. Den normala anslutningen är stängd medan bussövervakaren körs: under den tiden kan inget skickas eller programmeras. När bussövervakaren stoppas återställs den normala anslutningen.\n\nStarta bussövervakaren?"
+
+msgid "The bus monitor is not supported for this connection type. It needs a tunnelling connection."
+msgstr "Bussövervakaren stöds inte för den här anslutningstypen. Den kräver en tunneling-anslutning."
+
+msgid "The interface does not support bus monitor mode."
+msgstr "Gränssnittet stöder inte bussövervakarläge."
+
+msgid "The interface rejected bus monitor mode: another client holds a connection to it."
+msgstr "Gränssnittet avvisade bussövervakarläge: en annan klient har en anslutning till det."
+
+msgid "The bus monitor connection could not be established."
+msgstr "Bussövervakaranslutningen kunde inte upprättas."
+
+msgid "The normal connection is restored."
+msgstr "Den normala anslutningen är återställd."
+
+msgid "Unsaved Telegrams"
+msgstr "Osparade telegram"
+
+msgid "The telegrams have not been exported. Clear them anyway?"
+msgstr "Telegrammen har inte exporterats. Vill du rensa dem ändå?"
+
+msgid "The telegrams have not been exported. Loading a recording replaces them and stops the recording. Continue?"
+msgstr "Telegrammen har inte exporterats. Om du läser in en inspelning ersätts de och inspelningen stoppas. Fortsätta?"
+
+msgid "Loading a recording replaces the telegrams and stops the recording. Continue?"
+msgstr "Om du läser in en inspelning ersätts telegrammen och inspelningen stoppas. Fortsätta?"
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "No"
+msgstr "Nej"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Avbryt"
+
+msgid "Export Telegrams"
+msgstr "Exportera telegram"
+
+msgid "Print Telegrams"
+msgstr "Skriv ut telegram"
+
+msgid "Which telegrams?"
+msgstr "Vilka telegram?"
+
+msgid "All Telegrams ({count})"
+msgstr "Alla telegram ({count})"
+
+msgid "Selected Telegrams ({count})"
+msgstr "Markerade telegram ({count})"
+
+msgid "Filtered Telegrams ({count})"
+msgstr "Filtrerade telegram ({count})"
+
+msgid "Telegram recordings"
+msgstr "Telegraminspelningar"
+
+msgid "All files"
+msgstr "Alla filer"
+
+msgid "{count} telegrams exported to {path}"
+msgstr "{count} telegram exporterade till {path}"
+
+msgid "Export failed: {error}"
+msgstr "Exporten misslyckades: {error}"
+
+msgid "{count} entries loaded from {path}"
+msgstr "{count} poster inlästa från {path}"
+
+msgid "Loading failed: {error}"
+msgstr "Inläsningen misslyckades: {error}"
+
+msgid "{count} telegrams in another frame format were skipped"
+msgstr "{count} telegram i ett annat telegramformat hoppades över"
+
+msgid "Printing failed: {error}"
+msgstr "Utskriften misslyckades: {error}"
+
+msgid "Page {page}"
+msgstr "Sida {page}"
+
+msgid "{count} Data Secure telegrams are not replayed"
+msgstr "{count} Data Secure-telegram spelas inte upp"
+
+msgid "There are no group telegrams to replay"
+msgstr "Det finns inga grupptelegram att spela upp"
+
+msgid "Replay finished: {count} telegrams sent"
+msgstr "Uppspelningen klar: {count} telegram skickade"
+
+msgid "Replay cancelled: {count} telegrams sent"
+msgstr "Uppspelningen avbruten: {count} telegram skickade"
+
+msgid "from bus"
+msgstr "från buss"
+
+msgid "to bus"
+msgstr "till buss"
+
+msgid "Connection event"
+msgstr "Anslutningshändelse"
+
+msgid "Invalid frame"
+msgstr "Ogiltig ram"
+
+msgid "Comment"
+msgstr "Kommentar"
+
+msgid "Recording was started, Host={host}, Connection={connection}, Mode={mode}"
+msgstr "Inspelningen startades, Host={host}, Anslutning={connection}, Läge={mode}"
+
+msgid "Recording was stopped"
+msgstr "Inspelningen stoppades"
+
+msgid "Connection was established"
+msgstr "Anslutningen upprättades"
+
+msgid "Connection was lost"
+msgstr "Anslutningen bröts"
+
+msgid "System"
+msgstr "System"
+
+msgid "Normal"
+msgstr "Normal"
+
+msgid "Urgent"
+msgstr "Brådskande"
+
+msgid "Low"
+msgstr "Låg"
+
+msgid "Standard"
+msgstr "Standard"
+
+msgid "Extended"
+msgstr "Utvidgad"
+
+msgid "#"
+msgstr "#"
+
+msgid "Date"
+msgstr "Datum"
+
+msgid "Time"
+msgstr "Tid"
+
+msgid "Service"
+msgstr "Tjänst"
+
+msgid "Flags"
+msgstr "Flaggor"
+
+msgid "Prio"
+msgstr "Prio"
+
+msgid "Source Address"
+msgstr "Källadress"
+
+msgid "Source Name"
+msgstr "Källnamn"
+
+msgid "Destination Address"
+msgstr "Måladress"
+
+msgid "Destination Name"
+msgstr "Målnamn"
+
+msgid "Building Part"
+msgstr "Byggnadsdel"
+
+msgid "Building Function"
+msgstr "Byggnadsfunktion"
+
+msgid "Hop Count"
+msgstr "Routingräknare"
+
+msgid "Telegram Type"
+msgstr "Telegramtyp"
+
+msgid "Telegram Type (Short)"
+msgstr "Telegramtyp (kort)"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Value"
+msgstr "Värde"
+
+msgid "Iack"
+msgstr "Iack"
+
+msgid "Raw Data"
+msgstr "Rådata"
+
+msgid "Raw Value"
+msgstr "Obearbetat värde"
+
+msgid "Message Code"
+msgstr "Meddelandekod"
+
+msgid "Repeated"
+msgstr "Upprepad"
+
+msgid "Security"
+msgstr "Säkerhet"
+
+msgid "Frame Format"
+msgstr "Telegramformat"
+
+msgid "System Broadcast"
+msgstr "Systembroadcast"
+
+msgid "Interface"
+msgstr "Gränssnitt"
+
+msgid "MediumInfo"
+msgstr "Mediuminfo"
+
+msgid "Source Description"
+msgstr "Källbeskrivning"
+
+msgid "Destination Description"
+msgstr "Målbeskrivning"
+
+msgid "Address"
+msgstr "Adress"
+
+msgid "Name"
+msgstr "Namn"

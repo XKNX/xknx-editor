@@ -1,0 +1,29 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor timeline 1.0\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Timeline"
+msgstr "Časový průběh"
+
+msgid "No project open"
+msgstr "Není otevřen žádný projekt"
+
+msgid "Filter group addresses…"
+msgstr "Filtrovat skupinové adresy…"
+
+msgid "Tick group addresses on the left to plot their values over time."
+msgstr "Zaškrtněte skupinové adresy vlevo a zobrazte průběh jejich hodnot v čase."
+
+msgid "No numeric values captured yet for the selected addresses."
+msgstr "Pro vybrané adresy zatím nebyly zachyceny žádné číselné hodnoty."
+
+msgid "Window"
+msgstr "Okno"
+
+msgid "All"
+msgstr "Vše"

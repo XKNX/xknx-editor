@@ -1,0 +1,86 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor keyring 1.0\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Show Window"
+msgstr "Vis vindue"
+
+msgid "No keyring loaded"
+msgstr "Ingen nøglering indlæst"
+
+msgid "Import Keyring…"
+msgstr "Importer nøglering…"
+
+msgid "Export Keyring…"
+msgstr "Eksporter nøglering…"
+
+msgid "Export"
+msgstr "Eksporter"
+
+msgid "Set the password for the exported keyring:"
+msgstr "Angiv adgangskoden til den eksporterede nøglering:"
+
+msgid "KNX Keyring (*.knxkeys)"
+msgstr "KNX-nøglering (*.knxkeys)"
+
+msgid "All Files"
+msgstr "Alle filer"
+
+msgid "Load"
+msgstr "Indlæs"
+
+msgid "Cancel"
+msgstr "Annuller"
+
+msgid "Close"
+msgstr "Luk"
+
+msgid "{project} — created by {by}"
+msgstr "{project} — oprettet af {by}"
+
+msgid "Backbone"
+msgstr "Rygrad"
+
+msgid "Interfaces ({count})"
+msgstr "Interfaces ({count})"
+
+msgid "Group Address Keys ({count})"
+msgstr "Gruppeadressenøgler ({count})"
+
+msgid "Devices ({count})"
+msgstr "Enheder ({count})"
+
+msgid "Export Keyring from Project…"
+msgstr "Eksporter nøglering fra projekt…"
+
+msgid "Type"
+msgstr "Type"
+
+msgid "Address"
+msgstr "Adresse"
+
+msgid "Host"
+msgstr "Vært"
+
+msgid "User"
+msgstr "Bruger"
+
+msgid "Key"
+msgstr "Nøgle"
+
+msgid "In Project"
+msgstr "I projekt"
+
+msgid "Tool Key"
+msgstr "Værktøjsnøgle"
+
+msgid "{address}   key {key}"
+msgstr "{address}   nøgle {key}"

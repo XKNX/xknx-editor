@@ -1,0 +1,65 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor signing 1.0\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Signing"
+msgstr "Assinatura"
+
+msgid "Signing Key…"
+msgstr "Chave de Assinatura…"
+
+msgid "A signing key is set (exports are signed)."
+msgstr "Está definida uma chave de assinatura (as exportações são assinadas)."
+
+msgid "Placeholder key in use — signatures are not ETS-valid."
+msgstr "Chave de marcador de posição em uso — as assinaturas não são válidas para o ETS."
+
+msgid "Modulus (hex)"
+msgstr "Módulo (hex)"
+
+msgid "Private Exponent (hex)"
+msgstr "Expoente Privado (hex)"
+
+msgid "Public Exponent (hex)"
+msgstr "Expoente Público (hex)"
+
+msgid "Extract from Knx.Ets.XmlSigning.dll…"
+msgstr "Extrair de Knx.Ets.XmlSigning.dll…"
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "Reset to Placeholder"
+msgstr "Repor Marcador de Posição"
+
+msgid "All DLLs"
+msgstr "Todas as DLLs"
+
+msgid "All Files"
+msgstr "Todos os Ficheiros"
+
+msgid "Select \"Knx.Ets.XmlSigning.dll\" from your ETS installation (e.g. C:\\Program Files (x86)\\ETS6)."
+msgstr "Selecione \"Knx.Ets.XmlSigning.dll\" da sua instalação do ETS (p. ex. C:\\Program Files (x86)\\ETS6)."
+
+msgid "Extracting key from the assembly…"
+msgstr "A extrair a chave da assembly…"
+
+msgid "Signing key saved."
+msgstr "Chave de assinatura guardada."
+
+msgid "Reverted to the placeholder key."
+msgstr "Revertido para a chave de marcador de posição."
+
+msgid "No .NET runtime found. Install the .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) to extract the key, or paste it manually below."
+msgstr "Nenhum runtime .NET encontrado. Instale o .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) para extrair a chave ou cole-a manualmente abaixo."
+
+msgid "The key is read from your own licensed ETS assembly and stored per-user, never in the project."
+msgstr "A chave é lida da sua própria assembly licenciada do ETS e guardada por utilizador, nunca no projeto."
+
+msgid "Based on OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."
+msgstr "Baseado no OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."

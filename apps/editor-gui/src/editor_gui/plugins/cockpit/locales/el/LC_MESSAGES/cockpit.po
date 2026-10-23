@@ -1,0 +1,71 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor cockpit 1.0\n"
+"Language: el\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device Overview"
+msgstr "Επισκόπηση Συσκευών"
+
+msgid "No project open"
+msgstr "Δεν υπάρχει ανοιχτό έργο"
+
+msgid "Filter devices…"
+msgstr "Φιλτράρισμα συσκευών…"
+
+msgid "Needs Attention Only"
+msgstr "Μόνο Όσα Χρειάζονται Ενέργεια"
+
+msgid "{count} device(s) not in catalog"
+msgstr "{count} συσκευή(-ές) εκτός καταλόγου"
+
+msgid "Address"
+msgstr "Διεύθυνση"
+
+msgid "Name"
+msgstr "Όνομα"
+
+msgid "Product"
+msgstr "Προϊόν"
+
+msgid "Status"
+msgstr "Κατάσταση"
+
+msgid "OK"
+msgstr "ΟΚ"
+
+msgid "Loaded"
+msgstr "Φορτώθηκε"
+
+msgid "loaded"
+msgstr "φορτώθηκε"
+
+msgid "not loaded"
+msgstr "δεν φορτώθηκε"
+
+msgid "partial ({done}/{total})"
+msgstr "μερικώς ({done}/{total})"
+
+msgid "Individual Address"
+msgstr "Ατομική Διεύθυνση"
+
+msgid "Application Program"
+msgstr "Πρόγραμμα Εφαρμογής"
+
+msgid "Communication Part"
+msgstr "Τμήμα Επικοινωνίας"
+
+msgid "Medium Config"
+msgstr "Διαμόρφωση Μέσου"
+
+msgid "Parameters"
+msgstr "Παράμετροι"
+
+msgid "Serial: {serial}"
+msgstr "Σειριακός Αριθμός: {serial}"
+
+msgid "Last Download: {when}"
+msgstr "Τελευταία Φόρτιση: {when}"

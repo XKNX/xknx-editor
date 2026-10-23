@@ -2102,5 +2102,93 @@ class _CombinedStrings(BaseStrings, MenuStrings):
     def LANGUAGE_ITEM(self) -> str:
         return _("{name} ({native})")
 
+    @property
+    def LANGUAGE_SPANISH(self) -> str:
+        return _("Spanish")
+
+    @property
+    def LANGUAGE_GREEK(self) -> str:
+        return _("Greek")
+
+    @property
+    def LANGUAGE_CHINESE(self) -> str:
+        return _("Simplified Chinese")
+
+    @property
+    def LANGUAGE_JAPANESE(self) -> str:
+        return _("Japanese")
+
+    @property
+    def LANGUAGE_CZECH(self) -> str:
+        return _("Czech")
+
+    @property
+    def LANGUAGE_DANISH(self) -> str:
+        return _("Danish")
+
+    @property
+    def LANGUAGE_FINNISH(self) -> str:
+        return _("Finnish")
+
+    @property
+    def LANGUAGE_FRENCH(self) -> str:
+        return _("French")
+
+    @property
+    def LANGUAGE_ITALIAN(self) -> str:
+        return _("Italian")
+
+    @property
+    def LANGUAGE_NORWEGIAN(self) -> str:
+        return _("Norwegian")
+
+    @property
+    def LANGUAGE_POLISH(self) -> str:
+        return _("Polish")
+
+    @property
+    def LANGUAGE_PORTUGUESE(self) -> str:
+        return _("Portuguese")
+
+    @property
+    def LANGUAGE_RUSSIAN(self) -> str:
+        return _("Russian")
+
+    @property
+    def LANGUAGE_SWEDISH(self) -> str:
+        return _("Swedish")
+
+    @property
+    def LANGUAGE_TURKISH(self) -> str:
+        return _("Turkish")
+
+    @property
+    def LANGUAGE_UKRAINIAN(self) -> str:
+        return _("Ukrainian")
+
+    @property
+    def MENU_PRODUCT_LANGUAGE(self) -> str:
+        return _("Preferred Product Language")
+
+    @property
+    def LANGUAGE_HUNGARIAN(self) -> str:
+        return _("Hungarian")
+
+    @property
+    def LANGUAGE_ROMANIAN(self) -> str:
+        return _("Romanian")
+
+    @property
+    def LANGUAGE_SLOVAK(self) -> str:
+        return _("Slovak")
+
+    @property
+    def LANGUAGE_SLOVENIAN(self) -> str:
+        return _("Slovenian")
+
+    @property
+    def LANGUAGE_ICELANDIC(self) -> str:
+        return _("Icelandic")
+
 
 S = _CombinedStrings()

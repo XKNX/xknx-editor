@@ -1,0 +1,176 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor connection 1.0\n"
+"Language: pt\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Gateway"
+msgstr "Gateway"
+
+msgid "Connect"
+msgstr "Conectar"
+
+msgid "Disconnect"
+msgstr "Desconectar"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Utilizar o Número de Série para Downloads"
+
+msgid "Discovered Gateways"
+msgstr "Gateways Detetados"
+
+msgid "Diagnostics"
+msgstr "Diagnósticos"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "Procurar Dispositivos em Modo de Programação"
+
+msgid "Devices in Programming Mode"
+msgstr "Dispositivos em Modo de Programação"
+
+msgid "Rescan"
+msgstr "Procurar Novamente"
+
+msgid "Searching the bus…"
+msgstr "A pesquisar o bus…"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Prima o botão de programação de um dispositivo para o colocar em modo de programação e depois procure novamente."
+
+msgid "No device is in programming mode."
+msgstr "Nenhum dispositivo está em modo de programação."
+
+msgid "The scan could not be completed: {error}"
+msgstr "Não foi possível concluir a pesquisa: {error}"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "A interface não confirmou o pedido de pesquisa (bus ocupado ou interface sobrecarregada). Tente novamente."
+
+msgid "{count} device(s) in programming mode"
+msgstr "{count} dispositivo(s) em modo de programação"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "Respondeu à pesquisa, mas a leitura dos detalhes falhou: {error}"
+
+msgid "In this project: {name}"
+msgstr "Neste projeto: {name}"
+
+msgid "Not in this project"
+msgstr "Não está neste projeto"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Dispositivo não programado (endereço de fábrica 15.15.255)"
+
+msgid "Select in Project"
+msgstr "Selecionar no Projeto"
+
+msgid "Manufacturer"
+msgstr "Fabricante"
+
+msgid "Product (Catalog)"
+msgstr "Produto (Catálogo)"
+
+msgid "Application"
+msgstr "Aplicação"
+
+msgid "Application Version"
+msgstr "Versão da Aplicação"
+
+msgid "Mask Version"
+msgstr "Versão de Máscara"
+
+msgid "Serial Number"
+msgstr "Número de Série"
+
+msgid "Order Number"
+msgstr "Número de Ordem"
+
+msgid "Hardware Type"
+msgstr "Tipo de Hardware"
+
+msgid "Status"
+msgstr "Estado"
+
+msgid "No fault"
+msgstr "Sem falhas"
+
+msgid "Programming mode active"
+msgstr "Modo de programação ativo"
+
+msgid "No gateways found"
+msgstr "Nenhum gateway encontrado"
+
+msgid "Manual Connection"
+msgstr "Conexão Manual"
+
+msgid "Connected: {ip}"
+msgstr "Conectado: {ip}"
+
+msgid "Connected to {ip}"
+msgstr "Conectado a {ip}"
+
+msgid "Disconnected"
+msgstr "Desconectado"
+
+msgid "Connecting…"
+msgstr "A conectar…"
+
+msgid "Connection failed"
+msgstr "Falha na conexão"
+
+msgid "Scan"
+msgstr "Procurar"
+
+msgid "Settings"
+msgstr "Configurações"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Utilizar routing multicast (em vez de tunneling)"
+
+msgid "Gateway IP"
+msgstr "IP do Gateway"
+
+msgid "Multicast Group"
+msgstr "Grupo Multicast"
+
+msgid "Apply"
+msgstr "Aplicar"
+
+msgid "Bus monitor: {ip}"
+msgstr "Monitor de bus: {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "O gateway está conectado em modo de monitor de bus. Não é possível enviar nem baixar nada até o monitor de bus ser parado."
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Não é possível enquanto o monitor de bus estiver em execução"
+
+msgid "Stop Bus Monitor"
+msgstr "Parar Monitor de Bus"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "A interface requer KNX IP Secure, mas nem o projeto nem um keyring carregado contêm as respetivas senhas."
+
+msgid "Error: {error}"
+msgstr "Erro: {error}"
+
+msgid "Unknown error"
+msgstr "Erro desconhecido"
+
+msgid "Name: {name}"
+msgstr "Nome: {name}"
+
+msgid "KNX Address: {address}"
+msgstr "Endereço KNX: {address}"
+
+msgid "Core Version: {version}"
+msgstr "Versão do Core: {version}"
+
+msgid "Services: {services}"
+msgstr "Serviços: {services}"
+
+msgid "Retry"
+msgstr "Tentar Novamente"

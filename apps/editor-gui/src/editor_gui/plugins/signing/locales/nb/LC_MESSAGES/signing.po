@@ -1,0 +1,65 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor signing 1.0\n"
+"Language: nb\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Signing"
+msgstr "Signering"
+
+msgid "Signing Key…"
+msgstr "Signeringsnøkkel…"
+
+msgid "A signing key is set (exports are signed)."
+msgstr "En signeringsnøkkel er angitt (eksporter blir signert)."
+
+msgid "Placeholder key in use — signatures are not ETS-valid."
+msgstr "Plassholdernøkkel i bruk — signaturene er ikke gyldige for ETS."
+
+msgid "Modulus (hex)"
+msgstr "Modulus (hex)"
+
+msgid "Private Exponent (hex)"
+msgstr "Privat eksponent (hex)"
+
+msgid "Public Exponent (hex)"
+msgstr "Offentlig eksponent (hex)"
+
+msgid "Extract from Knx.Ets.XmlSigning.dll…"
+msgstr "Hent ut fra Knx.Ets.XmlSigning.dll…"
+
+msgid "Save"
+msgstr "Lagre"
+
+msgid "Reset to Placeholder"
+msgstr "Tilbakestill til plassholder"
+
+msgid "All DLLs"
+msgstr "Alle DLL-er"
+
+msgid "All Files"
+msgstr "Alle filer"
+
+msgid "Select \"Knx.Ets.XmlSigning.dll\" from your ETS installation (e.g. C:\\Program Files (x86)\\ETS6)."
+msgstr "Velg «Knx.Ets.XmlSigning.dll» fra ETS-installasjonen din (f.eks. C:\\Program Files (x86)\\ETS6)."
+
+msgid "Extracting key from the assembly…"
+msgstr "Henter ut nøkkel fra assemblyen…"
+
+msgid "Signing key saved."
+msgstr "Signeringsnøkkel lagret."
+
+msgid "Reverted to the placeholder key."
+msgstr "Tilbakestilt til plassholdernøkkelen."
+
+msgid "No .NET runtime found. Install the .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) to extract the key, or paste it manually below."
+msgstr "Fant ingen .NET-kjøretid. Installer .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) for å hente ut nøkkelen, eller lim den inn manuelt nedenfor."
+
+msgid "The key is read from your own licensed ETS assembly and stored per-user, never in the project."
+msgstr "Nøkkelen leses fra din egen lisensierte ETS-assembly og lagres per bruker, aldri i prosjektet."
+
+msgid "Based on OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."
+msgstr "Basert på OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."

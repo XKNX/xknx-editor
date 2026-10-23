@@ -1,0 +1,176 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor connection 1.0\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Gateway"
+msgstr "Шлюз"
+
+msgid "Connect"
+msgstr "Подключить"
+
+msgid "Disconnect"
+msgstr "Отсоединить"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Использовать серийный номер для загрузки"
+
+msgid "Discovered Gateways"
+msgstr "Найденные шлюзы"
+
+msgid "Diagnostics"
+msgstr "Диагностирование"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "Найти устройства в режиме программирования"
+
+msgid "Devices in Programming Mode"
+msgstr "Устройства в режиме программирования"
+
+msgid "Rescan"
+msgstr "Повторить поиск"
+
+msgid "Searching the bus…"
+msgstr "Поиск на шине…"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Нажмите кнопку программирования на устройстве, чтобы перевести его в режим программирования, затем повторите поиск."
+
+msgid "No device is in programming mode."
+msgstr "Нет устройств в режиме программирования."
+
+msgid "The scan could not be completed: {error}"
+msgstr "Не удалось завершить поиск: {error}"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "Интерфейс не подтвердил запрос поиска (шина занята или интерфейс перегружен). Повторите попытку."
+
+msgid "{count} device(s) in programming mode"
+msgstr "Устройств в режиме программирования: {count}"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "Ответило на поиск, но прочитать сведения не удалось: {error}"
+
+msgid "In this project: {name}"
+msgstr "В этом проекте: {name}"
+
+msgid "Not in this project"
+msgstr "Нет в этом проекте"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Непрограммированное устройство (заводской адрес 15.15.255)"
+
+msgid "Select in Project"
+msgstr "Выбрать в проекте"
+
+msgid "Manufacturer"
+msgstr "Производитель"
+
+msgid "Product (Catalog)"
+msgstr "Продукт (каталог)"
+
+msgid "Application"
+msgstr "Прикладная программа"
+
+msgid "Application Version"
+msgstr "Версия прикладной программы"
+
+msgid "Mask Version"
+msgstr "Версия маски"
+
+msgid "Serial Number"
+msgstr "Серийный номер"
+
+msgid "Order Number"
+msgstr "Номер заказа"
+
+msgid "Hardware Type"
+msgstr "Тип аппаратных средств"
+
+msgid "Status"
+msgstr "Статус"
+
+msgid "No fault"
+msgstr "Нет ошибок"
+
+msgid "Programming mode active"
+msgstr "Режим программирования активен"
+
+msgid "No gateways found"
+msgstr "Шлюзы не найдены"
+
+msgid "Manual Connection"
+msgstr "Ручное подключение"
+
+msgid "Connected: {ip}"
+msgstr "Подключено: {ip}"
+
+msgid "Connected to {ip}"
+msgstr "Подключено к {ip}"
+
+msgid "Disconnected"
+msgstr "Не подключено"
+
+msgid "Connecting…"
+msgstr "Подключение…"
+
+msgid "Connection failed"
+msgstr "Ошибка подключения"
+
+msgid "Scan"
+msgstr "Сканировать"
+
+msgid "Settings"
+msgstr "Установки"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Использовать многоадресную маршрутизацию (вместо туннелирования)"
+
+msgid "Gateway IP"
+msgstr "IP шлюза"
+
+msgid "Multicast Group"
+msgstr "Группа multicast"
+
+msgid "Apply"
+msgstr "Применить"
+
+msgid "Bus monitor: {ip}"
+msgstr "Мониторинг шин: {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Шлюз подключён в режиме мониторинга шин. Пока мониторинг шин не остановлен, ничего нельзя отправить или загрузить."
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Невозможно, пока работает мониторинг шин"
+
+msgid "Stop Bus Monitor"
+msgstr "Остановить мониторинг шин"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "Интерфейс требует KNX IP Secure, но ни проект, ни загруженная связка ключей не содержат его паролей."
+
+msgid "Error: {error}"
+msgstr "Ошибка: {error}"
+
+msgid "Unknown error"
+msgstr "Неизвестная ошибка"
+
+msgid "Name: {name}"
+msgstr "Имя: {name}"
+
+msgid "KNX Address: {address}"
+msgstr "Адрес KNX: {address}"
+
+msgid "Core Version: {version}"
+msgstr "Версия ядра: {version}"
+
+msgid "Services: {services}"
+msgstr "Службы: {services}"
+
+msgid "Retry"
+msgstr "Повтор"

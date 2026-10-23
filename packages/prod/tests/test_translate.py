@@ -65,3 +65,22 @@ def test_apply_translations_unknown_language_is_noop() -> None:
         for k, v in _index_by_id(knx.manufacturer_data.manufacturer[0]).items()  # type: ignore[union-attr]
     }
     assert texts_before == texts_after
+
+
+def test_pick_language_follows_a_preference_list() -> None:
+    langs = [_lang("en-US"), _lang("cs-CZ"), _lang("de")]
+    # Slovak preferred, Czech next: the first one the product has.
+    assert _pick_language(langs, "sk-SK,cs-CZ") is langs[1]
+    assert _pick_language(langs, "sk-SK,it-IT") is None
+    # A full identifier also finds the language without a region, or in another one.
+    assert _pick_language(langs, "de-DE") is langs[2]
+    assert _pick_language([_lang("es-MX")], "es-ES") is not None
+
+
+def test_a_preferred_language_the_product_is_written_in_keeps_its_own_texts() -> None:
+    langs = [_lang("de-DE"), _lang("fr-FR")]
+    # Written in English, translated to German: English first means its own texts.
+    assert _pick_language(langs, "en-US,de-DE", "en-US") is None
+    # Slovak missing, English is the product's own language: its own texts again.
+    assert _pick_language(langs, "sk-SK,en-US", "en-US") is None
+    assert _pick_language(langs, "sk-SK,fr-FR", "en-US") is langs[1]

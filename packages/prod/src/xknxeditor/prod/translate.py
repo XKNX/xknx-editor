@@ -16,6 +16,9 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from xknxeditor.namespaces.intermediate.knx import Knx
     from xknxeditor.namespaces.intermediate.language_data_t import LanguageData
+    from xknxeditor.namespaces.intermediate.manufacturer_data_t_manufacturer import (
+        ManufacturerDataManufacturer,
+    )
 
 # metadata["name"] (KNX PascalCase, e.g. "Text") -> python field name (e.g. "text"), cached per type.
 _FIELD_MAP_CACHE: dict[type, dict[str, str]] = {}
@@ -24,8 +27,10 @@ _FIELD_MAP_CACHE: dict[type, dict[str, str]] = {}
 def apply_translations(knx: Knx, language: str) -> None:
     """Overlay ``language``'s translations onto the application IR in place.
 
-    ``language`` may be a full KNX identifier ("de-DE") or a prefix ("de"); the best matching
-    ``<Language>`` block per manufacturer is used. A no-op when nothing matches."""
+    ``language`` may be a full KNX identifier ("de-DE") or a prefix ("de"), or several in order of
+    preference, comma separated ("sk-SK,cs-CZ"); the best matching ``<Language>`` block per
+    manufacturer is used. A language the product is written in keeps its own texts, as does a
+    product that has none of them."""
     md = knx.manufacturer_data
     if md is None:
         return
@@ -33,7 +38,9 @@ def apply_translations(knx: Knx, language: str) -> None:
         langs = manufacturer.languages
         if langs is None or not langs.language:
             continue
-        chosen = _pick_language(langs.language, language)
+        chosen = _pick_language(
+            langs.language, language, _default_language(manufacturer)
+        )
         if chosen is None:
             continue
         index = _index_by_id(manufacturer)
@@ -49,20 +56,52 @@ def apply_translations(knx: Knx, language: str) -> None:
                         setattr(target, field_name, translation.text)
 
 
-def _pick_language(languages: list[LanguageData], wanted: str) -> LanguageData | None:
-    """Best match for ``wanted``: exact identifier, else a region variant ("de" -> "de-DE")."""
+def _pick_language(
+    languages: list[LanguageData], wanted: str, default: str = ""
+) -> LanguageData | None:
+    """Best match for ``wanted``: the block of the first of its comma separated languages the
+    product has. ``None`` when that first one is ``default``, the language the product is written
+    in (its own texts are used then), or when the product has none of them."""
+    for one in (w.strip() for w in wanted.split(",")):
+        if default and _same_language(one, default):
+            return None
+        chosen = _pick_one(languages, one)
+        if chosen is not None:
+            return chosen
+    return None
+
+
+def _same_language(a: str, b: str) -> bool:
+    return a.lower() == b.lower() or a.lower().split("-")[0] == b.lower().split("-")[0]
+
+
+def _default_language(manufacturer: ManufacturerDataManufacturer) -> str:
+    """The language a manufacturer's application program is written in ("" when not given)."""
+    programs = manufacturer.application_programs
+    if programs is None:
+        return ""
+    return next(
+        (
+            p.default_language
+            for p in programs.application_program
+            if p.default_language
+        ),
+        "",
+    )
+
+
+def _pick_one(languages: list[LanguageData], wanted: str) -> LanguageData | None:
+    """Best match for ``wanted``: exact identifier, else the same language in another region or
+    without one ("de-DE" -> "de", "de-AT"; "de" -> "de-DE")."""
     wanted_l = wanted.lower()
     exact = next(
         (lang for lang in languages if lang.identifier.lower() == wanted_l), None
     )
     if exact is not None:
         return exact
+    base = wanted_l.split("-")[0]
     return next(
-        (
-            lang
-            for lang in languages
-            if lang.identifier.lower().startswith(wanted_l + "-")
-        ),
+        (lang for lang in languages if lang.identifier.lower().split("-")[0] == base),
         None,
     )
 

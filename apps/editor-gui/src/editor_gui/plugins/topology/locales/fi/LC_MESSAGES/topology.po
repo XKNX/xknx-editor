@@ -1,0 +1,113 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor topology 1.0\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Topology"
+msgstr "Topologia"
+
+msgid "No project open"
+msgstr "Ei avointa projektia"
+
+msgid "Unassigned"
+msgstr "kohdistamaton"
+
+msgid "Drag to move, Ctrl/Cmd+scroll to zoom. Click a device to open it."
+msgstr "Siirrä vetämällä, zoomaa Ctrl/Cmd+vierityksellä. Avaa laite napsauttamalla sitä."
+
+msgid "Physical"
+msgstr "Fyysinen"
+
+msgid "Building"
+msgstr "Rakennus"
+
+msgid "Links"
+msgstr "Linkit"
+
+msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
+msgstr "Mitkä laitteet viestivät keskenään ryhmäosoitteidensa kautta: lähettävät laitteet vasemmalla, vastaanottavat laitteet oikealla."
+
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, Ctrl/Cmd+scroll to zoom."
+msgstr "Seuraa laitetta tai ryhmäosoitetta napsauttamalla, avaa laite kaksoisnapsauttamalla. Siirrä vetämällä, zoomaa Ctrl/Cmd+vierityksellä."
+
+msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
+msgstr "Seuraa laitetta tai ryhmäosoitetta napauttamalla, avaa laite kaksoisnapautuksella. Zoomaa kahdella sormella."
+
+msgid "No linked devices to show."
+msgstr "Ei näytettäviä linkitettyjä laitteita."
+
+msgid "Show"
+msgstr "Näytä"
+
+msgid "Whole Project"
+msgstr "Koko projekti"
+
+msgid "Rooms"
+msgstr "Huoneet"
+
+msgid "Main Groups"
+msgstr "Pääryhmät"
+
+msgid "Device: {device}"
+msgstr "Laite: {device}"
+
+msgid "Group Address: {address}"
+msgstr "Ryhmäosoite: {address}"
+
+msgid "Back"
+msgstr "Takaisin"
+
+msgid "Fit"
+msgstr "Sovita"
+
+msgid "Sending"
+msgstr "Lähettävät"
+
+msgid "Group Addresses"
+msgstr "Ryhmäosoitteet"
+
+msgid "Receiving"
+msgstr "Vastaanottavat"
+
+msgid "Areas"
+msgstr "Alueet"
+
+msgid "Lines"
+msgstr "Linjat"
+
+msgid "Devices"
+msgstr "Laitteet"
+
+msgid "Buildings"
+msgstr "Rakennukset"
+
+msgid "+ {count} more"
+msgstr "+ {count} lisää"
+
+msgid "{count} more devices outside the selection. Click to show them."
+msgstr "Valinnan ulkopuolella on {count} laitetta lisää. Näytä ne napsauttamalla."
+
+msgid "{address}\n{senders} sending, {receivers} receiving"
+msgstr "{address}\nlähettäviä {senders}, vastaanottavia {receivers}"
+
+msgid "Area {area}"
+msgstr "Alue {area}"
+
+msgid "L {line}"
+msgstr "L {line}"
+
+msgid "Zoom with two fingers. Tap a device to open it."
+msgstr "Zoomaa kahdella sormella. Avaa laite napauttamalla sitä."
+
+msgid "(unnamed)"
+msgstr "(nimetön)"
+
+msgid "Address: {address}"
+msgstr "Osoite: {address}"
+
+msgid "Application: {application}"
+msgstr "Sovellus: {application}"

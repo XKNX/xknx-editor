@@ -1,0 +1,125 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor recover 1.0\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Recover Project from Bus"
+msgstr "Відновити проєкт із шини"
+
+msgid "From Address"
+msgstr "Від адреси"
+
+msgid "To Address"
+msgstr "До адреси"
+
+msgid "Scan"
+msgstr "Сканування"
+
+msgid "Stop"
+msgstr "Стоп"
+
+msgid "Add to Open Project as Read"
+msgstr "Додати до відкритого проєкту як прочитане"
+
+msgid "Recover Selected"
+msgstr "Відновити вибрані"
+
+msgid "Create New Project"
+msgstr "Створити новий проєкт"
+
+msgid "Add to Open Project"
+msgstr "Додати до відкритого проєкту"
+
+msgid "Verify (Read-Only)"
+msgstr "Перевірити (лише читання)"
+
+msgid "Export Snapshot"
+msgstr "Експортувати знімок"
+
+msgid "Verifying (re-reading and comparing)…"
+msgstr "Перевірка (повторне читання та порівняння)…"
+
+msgid "%(count)d group address(es) have no sender or multiple senders."
+msgstr "Групових адрес без відправника або з кількома відправниками: %(count)d."
+
+msgid "Address"
+msgstr "Адреса"
+
+msgid "Mask"
+msgstr "Маска"
+
+msgid "Product / Application"
+msgstr "Продукт / прикладна програма"
+
+msgid "Status"
+msgstr "Статус"
+
+msgid "Set an address range and scan the bus."
+msgstr "Задайте діапазон адрес і проскануйте шину."
+
+msgid "Scanning the bus…"
+msgstr "Сканування шини…"
+
+msgid "Scanning %(address)s  (%(done)d/%(total)d, %(found)d found)"
+msgstr "Сканування %(address)s  (%(done)d/%(total)d, знайдено %(found)d)"
+
+msgid "Loading missing products from online catalog: %(what)s"
+msgstr "Завантаження відсутніх продуктів з онлайн-каталогу: %(what)s"
+
+msgid "Reading devices…"
+msgstr "Читання пристроїв…"
+
+msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+msgstr "Читання %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+
+msgid "group communication tables"
+msgstr "таблиці групових зв'язків"
+
+msgid "parameter memory"
+msgstr "пам'ять параметрів"
+
+msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
+msgstr "Відновлено пристроїв: %(devices)d; групових адрес: %(group_addresses)d, зв'язків: %(links)d, невідновлюваних параметрів: %(unknown)d."
+
+msgid "Recovered"
+msgstr "Відновлено"
+
+msgid "Added %(count)d device(s) to the open project (%(target)s)."
+msgstr "Додано пристроїв до відкритого проєкту (%(target)s): %(count)d."
+
+msgid "Created new project %(target)s with %(count)d device(s)."
+msgstr "Створено новий проєкт %(target)s; пристроїв: %(count)d."
+
+msgid "Not connected to a KNX bus."
+msgstr "Немає з'єднання з шиною KNX."
+
+msgid "Open or create a project to add recovered devices."
+msgstr "Відкрийте або створіть проєкт, щоб додати відновлені пристрої."
+
+msgid "matched"
+msgstr "збігається"
+
+msgid "confirm product/version, then tick"
+msgstr "підтвердьте продукт/версію, потім позначте"
+
+msgid "not in catalog - import via Catalog"
+msgstr "немає в каталозі - імпортуйте через «Каталог»"
+
+msgid "unprogrammed"
+msgstr "не запрограмовано"
+
+msgid "recovered"
+msgstr "відновлено"
+
+msgid "already in project - skipped"
+msgstr "уже в проєкті - пропущено"
+
+msgid "error"
+msgstr "помилка"
+
+msgid "%d parameters could not be recovered"
+msgstr "Не вдалося відновити параметрів: %d"

@@ -1415,3 +1415,69 @@ msgstr "Nederlands"
 
 msgid "{name} ({native})"
 msgstr "{name} ({native})"
+
+msgid "Spanish"
+msgstr "Spaans"
+
+msgid "Greek"
+msgstr "Grieks"
+
+msgid "Simplified Chinese"
+msgstr "Vereenvoudigd Chinees"
+
+msgid "Japanese"
+msgstr "Japans"
+
+msgid "Czech"
+msgstr "Tsjechisch"
+
+msgid "Danish"
+msgstr "Deens"
+
+msgid "Finnish"
+msgstr "Fins"
+
+msgid "French"
+msgstr "Frans"
+
+msgid "Italian"
+msgstr "Italiaans"
+
+msgid "Norwegian"
+msgstr "Noors"
+
+msgid "Polish"
+msgstr "Pools"
+
+msgid "Portuguese"
+msgstr "Portuguees"
+
+msgid "Russian"
+msgstr "Russisch"
+
+msgid "Swedish"
+msgstr "Zweeds"
+
+msgid "Turkish"
+msgstr "Turks"
+
+msgid "Ukrainian"
+msgstr "Oekraïens"
+
+msgid "Preferred Product Language"
+msgstr "Voorkeur Producttaal"
+
+msgid "Hungarian"
+msgstr "Hongaars"
+
+msgid "Romanian"
+msgstr "Roemeens"
+
+msgid "Slovak"
+msgstr "Slovaaks"
+
+msgid "Slovenian"
+msgstr "Sloveens"
+
+msgid "Icelandic"
+msgstr "Ijslands"

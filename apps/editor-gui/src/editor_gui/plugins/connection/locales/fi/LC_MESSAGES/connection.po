@@ -1,0 +1,176 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor connection 1.0\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Gateway"
+msgstr "Yhdyskäytävä"
+
+msgid "Connect"
+msgstr "Yhdistä"
+
+msgid "Disconnect"
+msgstr "Katkaise"
+
+msgid "Use Serial Number for Downloads"
+msgstr "Käytä sarjanumeroa latauksissa"
+
+msgid "Discovered Gateways"
+msgstr "Löydetyt yhdyskäytävät"
+
+msgid "Diagnostics"
+msgstr "Diagnostiikka"
+
+msgid "Check for Devices in Programming Mode"
+msgstr "Etsi ohjelmointitilassa olevia laitteita"
+
+msgid "Devices in Programming Mode"
+msgstr "Ohjelmointitilassa olevat laitteet"
+
+msgid "Rescan"
+msgstr "Etsi uudelleen"
+
+msgid "Searching the bus…"
+msgstr "Etsitään väylältä…"
+
+msgid "Press the programming button on a device to put it into programming mode, then rescan."
+msgstr "Paina laitteen ohjelmointipainiketta, jotta se siirtyy ohjelmointitilaan, ja etsi sitten uudelleen."
+
+msgid "No device is in programming mode."
+msgstr "Yksikään laite ei ole ohjelmointitilassa."
+
+msgid "The scan could not be completed: {error}"
+msgstr "Hakua ei voitu suorittaa loppuun: {error}"
+
+msgid "The interface did not confirm the scan request (bus busy or interface overloaded). Please try again."
+msgstr "Rajapinta ei kuitannut hakupyyntöä (väylä varattu tai rajapinta ylikuormittunut). Yritä uudelleen."
+
+msgid "{count} device(s) in programming mode"
+msgstr "Laitteita ohjelmointitilassa: {count}"
+
+msgid "Answered the scan, but reading its details failed: {error}"
+msgstr "Vastasi hakuun, mutta sen tietojen lukeminen epäonnistui: {error}"
+
+msgid "In this project: {name}"
+msgstr "Tässä projektissa: {name}"
+
+msgid "Not in this project"
+msgstr "Ei tässä projektissa"
+
+msgid "Unprogrammed device (factory default address 15.15.255)"
+msgstr "Ohjelmoimaton laite (tehdasasetusten osoite 15.15.255)"
+
+msgid "Select in Project"
+msgstr "Valitse projektissa"
+
+msgid "Manufacturer"
+msgstr "Valmistaja"
+
+msgid "Product (Catalog)"
+msgstr "Tuote (luettelo)"
+
+msgid "Application"
+msgstr "Sovellus"
+
+msgid "Application Version"
+msgstr "Sovelluksen Versio"
+
+msgid "Mask Version"
+msgstr "Maski Versio"
+
+msgid "Serial Number"
+msgstr "Sarjanumero"
+
+msgid "Order Number"
+msgstr "Tilausnumero"
+
+msgid "Hardware Type"
+msgstr "Laitteiston Tyyppi"
+
+msgid "Status"
+msgstr "Tila"
+
+msgid "No fault"
+msgstr "Ei vikaa"
+
+msgid "Programming mode active"
+msgstr "Ohjelmointitila aktiivinen"
+
+msgid "No gateways found"
+msgstr "Yhdyskäytäviä ei löytynyt"
+
+msgid "Manual Connection"
+msgstr "Manuaalinen yhteys"
+
+msgid "Connected: {ip}"
+msgstr "Yhdistetty: {ip}"
+
+msgid "Connected to {ip}"
+msgstr "Yhdistetty: {ip}"
+
+msgid "Disconnected"
+msgstr "Ei yhteyttä"
+
+msgid "Connecting…"
+msgstr "Yhdistetään…"
+
+msgid "Connection failed"
+msgstr "Yhteys epäonnistui"
+
+msgid "Scan"
+msgstr "Scannaa"
+
+msgid "Settings"
+msgstr "Asetukset"
+
+msgid "Use multicast routing (instead of tunneling)"
+msgstr "Käytä multicast-reititystä (tunneloinnin sijaan)"
+
+msgid "Gateway IP"
+msgstr "Yhdyskäytävän IP"
+
+msgid "Multicast Group"
+msgstr "Multicast-ryhmä"
+
+msgid "Apply"
+msgstr "Käytä"
+
+msgid "Bus monitor: {ip}"
+msgstr "Väylän seuranta: {ip}"
+
+msgid "The gateway is connected in bus monitor mode. Nothing can be sent or downloaded until the bus monitor is stopped."
+msgstr "Yhdyskäytävä on yhdistetty väylän seurantatilassa. Mitään ei voi lähettää tai ladata ennen kuin väylän seuranta lopetetaan."
+
+msgid "Not possible while the bus monitor is running"
+msgstr "Ei mahdollista, kun väylän seuranta on käynnissä"
+
+msgid "Stop Bus Monitor"
+msgstr "Lopeta väylän seuranta"
+
+msgid "The interface requires KNX IP Secure, but neither the project nor a loaded keyring has its passwords."
+msgstr "Rajapinta vaatii KNX IP Secure -suojauksen, mutta sen salasanoja ei ole projektissa eikä ladatussa avainnipussa."
+
+msgid "Error: {error}"
+msgstr "Virhe: {error}"
+
+msgid "Unknown error"
+msgstr "Tuntematon virhe"
+
+msgid "Name: {name}"
+msgstr "Nimi: {name}"
+
+msgid "KNX Address: {address}"
+msgstr "KNX-osoite: {address}"
+
+msgid "Core Version: {version}"
+msgstr "Core-versio: {version}"
+
+msgid "Services: {services}"
+msgstr "Palvelut: {services}"
+
+msgid "Retry"
+msgstr "Yritä uudelleen"

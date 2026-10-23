@@ -1,0 +1,125 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor recover 1.0\n"
+"Language: ru\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Recover Project from Bus"
+msgstr "Восстановить проект с шины"
+
+msgid "From Address"
+msgstr "От адреса"
+
+msgid "To Address"
+msgstr "До адреса"
+
+msgid "Scan"
+msgstr "Сканировать"
+
+msgid "Stop"
+msgstr "Стоп"
+
+msgid "Add to Open Project as Read"
+msgstr "Добавить в открытый проект как прочитанные"
+
+msgid "Recover Selected"
+msgstr "Восстановить выбранные"
+
+msgid "Create New Project"
+msgstr "Создать новый проект"
+
+msgid "Add to Open Project"
+msgstr "Добавить в открытый проект"
+
+msgid "Verify (Read-Only)"
+msgstr "Проверить (только чтение)"
+
+msgid "Export Snapshot"
+msgstr "Экспорт снимка"
+
+msgid "Verifying (re-reading and comparing)…"
+msgstr "Проверка (повторное чтение и сравнение)…"
+
+msgid "%(count)d group address(es) have no sender or multiple senders."
+msgstr "Групповые адреса без отправителя или с несколькими отправителями: %(count)d."
+
+msgid "Address"
+msgstr "Адрес"
+
+msgid "Mask"
+msgstr "Маска"
+
+msgid "Product / Application"
+msgstr "Продукт / прикладная программа"
+
+msgid "Status"
+msgstr "Статус"
+
+msgid "Set an address range and scan the bus."
+msgstr "Задайте диапазон адресов и выполните поиск на шине."
+
+msgid "Scanning the bus…"
+msgstr "Поиск на шине…"
+
+msgid "Scanning %(address)s  (%(done)d/%(total)d, %(found)d found)"
+msgstr "Поиск %(address)s  (%(done)d/%(total)d, найдено: %(found)d)"
+
+msgid "Loading missing products from online catalog: %(what)s"
+msgstr "Загрузка недостающих продуктов из онлайн-каталога: %(what)s"
+
+msgid "Reading devices…"
+msgstr "Чтение устройств…"
+
+msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+msgstr "Чтение %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+
+msgid "group communication tables"
+msgstr "таблицы групповой коммуникации"
+
+msgid "parameter memory"
+msgstr "память параметров"
+
+msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
+msgstr "Восстановлено устройств: %(devices)d; групповых адресов: %(group_addresses)d, связей: %(links)d, невосстановимых параметров: %(unknown)d."
+
+msgid "Recovered"
+msgstr "Восстановлено"
+
+msgid "Added %(count)d device(s) to the open project (%(target)s)."
+msgstr "Добавлено устройств в открытый проект: %(count)d (%(target)s)."
+
+msgid "Created new project %(target)s with %(count)d device(s)."
+msgstr "Создан новый проект %(target)s, устройств: %(count)d."
+
+msgid "Not connected to a KNX bus."
+msgstr "Нет подключения к шине KNX."
+
+msgid "Open or create a project to add recovered devices."
+msgstr "Откройте или создайте проект, чтобы добавить восстановленные устройства."
+
+msgid "matched"
+msgstr "совпадает"
+
+msgid "confirm product/version, then tick"
+msgstr "подтвердите продукт/версию, затем отметьте"
+
+msgid "not in catalog - import via Catalog"
+msgstr "нет в каталоге — импортируйте через «Каталог»"
+
+msgid "unprogrammed"
+msgstr "не запрограммировано"
+
+msgid "recovered"
+msgstr "восстановлено"
+
+msgid "already in project - skipped"
+msgstr "уже в проекте — пропущено"
+
+msgid "error"
+msgstr "ошибка"
+
+msgid "%d parameters could not be recovered"
+msgstr "Не удалось восстановить параметры: %d"

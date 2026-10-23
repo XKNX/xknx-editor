@@ -1,0 +1,125 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor recover 1.0\n"
+"Language: ja\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Recover Project from Bus"
+msgstr "バスからプロジェクトを復元"
+
+msgid "From Address"
+msgstr "開始アドレス"
+
+msgid "To Address"
+msgstr "終了アドレス"
+
+msgid "Scan"
+msgstr "スキャン"
+
+msgid "Stop"
+msgstr "ストップ"
+
+msgid "Add to Open Project as Read"
+msgstr "読み込み済みとして開いているプロジェクトに追加"
+
+msgid "Recover Selected"
+msgstr "選択項目を復元"
+
+msgid "Create New Project"
+msgstr "新しいプロジェクトを作成する"
+
+msgid "Add to Open Project"
+msgstr "開いているプロジェクトに追加"
+
+msgid "Verify (Read-Only)"
+msgstr "検証（読み取り専用）"
+
+msgid "Export Snapshot"
+msgstr "スナップショットをエクスポート"
+
+msgid "Verifying (re-reading and comparing)…"
+msgstr "検証中（再読み込みと比較）…"
+
+msgid "%(count)d group address(es) have no sender or multiple senders."
+msgstr "%(count)d件のグループ・アドレスに送信元がないか、複数の送信元があります。"
+
+msgid "Address"
+msgstr "アドレス"
+
+msgid "Mask"
+msgstr "マスク"
+
+msgid "Product / Application"
+msgstr "製品／アプリケーション"
+
+msgid "Status"
+msgstr "状態"
+
+msgid "Set an address range and scan the bus."
+msgstr "アドレス範囲を設定してバスをスキャンしてください。"
+
+msgid "Scanning the bus…"
+msgstr "バスをスキャン中…"
+
+msgid "Scanning %(address)s  (%(done)d/%(total)d, %(found)d found)"
+msgstr "%(address)sをスキャン中（%(done)d/%(total)d、%(found)d件検出）"
+
+msgid "Loading missing products from online catalog: %(what)s"
+msgstr "オンライン・カタログから不足している製品を読み込み中：%(what)s"
+
+msgid "Reading devices…"
+msgstr "デバイスを読み込み中…"
+
+msgid "Reading %(address)s  (%(done)d/%(total)d)  -  %(stage)s"
+msgstr "%(address)sを読み込み中（%(done)d/%(total)d） - %(stage)s"
+
+msgid "group communication tables"
+msgstr "グループ通信テーブル"
+
+msgid "parameter memory"
+msgstr "パラメータ・メモリ"
+
+msgid "Recovered %(devices)d device(s): %(group_addresses)d group addresses, %(links)d links, %(unknown)d parameter(s) not recoverable."
+msgstr "%(devices)d台のデバイスを復元しました：グループ・アドレス%(group_addresses)d件、リンク%(links)d件、復元できないパラメータ%(unknown)d件。"
+
+msgid "Recovered"
+msgstr "復元済み"
+
+msgid "Added %(count)d device(s) to the open project (%(target)s)."
+msgstr "開いているプロジェクト（%(target)s）に%(count)d台のデバイスを追加しました。"
+
+msgid "Created new project %(target)s with %(count)d device(s)."
+msgstr "%(count)d台のデバイスで新しいプロジェクト%(target)sを作成しました。"
+
+msgid "Not connected to a KNX bus."
+msgstr "KNXバスに接続されていません。"
+
+msgid "Open or create a project to add recovered devices."
+msgstr "復元したデバイスを追加するには、プロジェクトを開くか作成してください。"
+
+msgid "matched"
+msgstr "一致"
+
+msgid "confirm product/version, then tick"
+msgstr "製品／バージョンを確認してからチェック"
+
+msgid "not in catalog - import via Catalog"
+msgstr "カタログにありません - カタログからインポート"
+
+msgid "unprogrammed"
+msgstr "未プログラム"
+
+msgid "recovered"
+msgstr "復元済み"
+
+msgid "already in project - skipped"
+msgstr "プロジェクトに既存 - スキップ"
+
+msgid "error"
+msgstr "エラー"
+
+msgid "%d parameters could not be recovered"
+msgstr "%d個のパラメータを復元できませんでした"

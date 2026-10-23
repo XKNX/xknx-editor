@@ -51,6 +51,26 @@ def regional_format() -> RegionalFormat:
     )
 
 
+@cache
+def os_region() -> str:
+    """The country of the operating system's regional settings as an ISO 3166 code ("DE"), or ""
+    when it cannot be read."""
+    if sys.platform == "win32":
+        import ctypes
+
+        buffer = ctypes.create_unicode_buffer(16)
+        found = ctypes.windll.kernel32.GetLocaleInfoEx(
+            None, _LOCALE_SISO3166CTRYNAME, buffer, 16
+        )
+        return buffer.value.upper() if found else ""
+    import locale
+    import os
+
+    name = locale.getlocale(locale.LC_TIME)[0] or os.environ.get("LANG", "")
+    parts = name.split(".")[0].replace("-", "_").split("_")
+    return parts[1].upper() if len(parts) > 1 and len(parts[1]) == 2 else ""
+
+
 def _table_format() -> RegionalFormat:
     from xknxeditor.prod.script.compat.runtime import (
         date_names,
@@ -120,3 +140,4 @@ _LOCALE_STHOUSAND = 0x0F
 _LOCALE_SSHORTDATE = 0x1F
 _LOCALE_SMONTHNAME1 = 0x38
 _LOCALE_SMONTHDAY = 0x78
+_LOCALE_SISO3166CTRYNAME = 0x5A

@@ -1,0 +1,71 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor cockpit 1.0\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Device Overview"
+msgstr "Cihaz Genel Bakışı"
+
+msgid "No project open"
+msgstr "Açık proje yok"
+
+msgid "Filter devices…"
+msgstr "Cihazları filtrele…"
+
+msgid "Needs Attention Only"
+msgstr "Yalnızca İşlem Gerekenler"
+
+msgid "{count} device(s) not in catalog"
+msgstr "Katalogda olmayan cihaz: {count}"
+
+msgid "Address"
+msgstr "Adres"
+
+msgid "Name"
+msgstr "Ad"
+
+msgid "Product"
+msgstr "Ürün"
+
+msgid "Status"
+msgstr "Durum"
+
+msgid "OK"
+msgstr "Tamam"
+
+msgid "Loaded"
+msgstr "Yüklendi"
+
+msgid "loaded"
+msgstr "yüklendi"
+
+msgid "not loaded"
+msgstr "yüklenmedi"
+
+msgid "partial ({done}/{total})"
+msgstr "kısmen ({done}/{total})"
+
+msgid "Individual Address"
+msgstr "Bireysel Adres"
+
+msgid "Application Program"
+msgstr "Uygulama Programı"
+
+msgid "Communication Part"
+msgstr "İletişim Bölümü"
+
+msgid "Medium Config"
+msgstr "Ortam Yapılandırması"
+
+msgid "Parameters"
+msgstr "Parametreler"
+
+msgid "Serial: {serial}"
+msgstr "Seri numarası: {serial}"
+
+msgid "Last Download: {when}"
+msgstr "Son yükleme: {when}"

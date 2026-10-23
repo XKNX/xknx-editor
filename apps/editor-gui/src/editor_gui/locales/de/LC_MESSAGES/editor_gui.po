@@ -1510,3 +1510,69 @@ msgstr "Niederländisch"
 
 msgid "{name} ({native})"
 msgstr "{name} ({native})"
+
+msgid "Spanish"
+msgstr "Spanisch"
+
+msgid "Greek"
+msgstr "Griechisch"
+
+msgid "Simplified Chinese"
+msgstr "Chinesisch, vereinfacht"
+
+msgid "Japanese"
+msgstr "Japanisch"
+
+msgid "Czech"
+msgstr "Tschechisch"
+
+msgid "Danish"
+msgstr "Dänisch"
+
+msgid "Finnish"
+msgstr "Finnisch"
+
+msgid "French"
+msgstr "Französisch"
+
+msgid "Italian"
+msgstr "Italienisch"
+
+msgid "Norwegian"
+msgstr "Norwegisch"
+
+msgid "Polish"
+msgstr "Polnisch"
+
+msgid "Portuguese"
+msgstr "Portugiesisch"
+
+msgid "Russian"
+msgstr "Russisch"
+
+msgid "Swedish"
+msgstr "Schwedisch"
+
+msgid "Turkish"
+msgstr "Türkisch"
+
+msgid "Ukrainian"
+msgstr "Ukrainisch"
+
+msgid "Preferred Product Language"
+msgstr "Bevorzugte Produktsprache"
+
+msgid "Hungarian"
+msgstr "Ungarisch"
+
+msgid "Romanian"
+msgstr "Rumänisch"
+
+msgid "Slovak"
+msgstr "Slowakisch"
+
+msgid "Slovenian"
+msgstr "Slowenisch"
+
+msgid "Icelandic"
+msgstr "Isländisch"

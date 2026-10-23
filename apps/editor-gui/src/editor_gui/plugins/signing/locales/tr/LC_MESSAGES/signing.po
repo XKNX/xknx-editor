@@ -1,0 +1,65 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor signing 1.0\n"
+"Language: tr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Signing"
+msgstr "İmzalama"
+
+msgid "Signing Key…"
+msgstr "İmza Anahtarı…"
+
+msgid "A signing key is set (exports are signed)."
+msgstr "Bir imza anahtarı ayarlı (dışa aktarılan dosyalar imzalanır)."
+
+msgid "Placeholder key in use — signatures are not ETS-valid."
+msgstr "Yer tutucu anahtar kullanılıyor — imzalar ETS için geçerli değil."
+
+msgid "Modulus (hex)"
+msgstr "Modülüs (hex)"
+
+msgid "Private Exponent (hex)"
+msgstr "Özel Üs (hex)"
+
+msgid "Public Exponent (hex)"
+msgstr "Genel Üs (hex)"
+
+msgid "Extract from Knx.Ets.XmlSigning.dll…"
+msgstr "Knx.Ets.XmlSigning.dll Dosyasından Çıkar…"
+
+msgid "Save"
+msgstr "Kaydet"
+
+msgid "Reset to Placeholder"
+msgstr "Yer Tutucuya Sıfırla"
+
+msgid "All DLLs"
+msgstr "Tüm DLL'ler"
+
+msgid "All Files"
+msgstr "Tüm Dosyalar"
+
+msgid "Select \"Knx.Ets.XmlSigning.dll\" from your ETS installation (e.g. C:\\Program Files (x86)\\ETS6)."
+msgstr "ETS kurulumunuzdan \"Knx.Ets.XmlSigning.dll\" dosyasını seçin (ör. C:\\Program Files (x86)\\ETS6)."
+
+msgid "Extracting key from the assembly…"
+msgstr "Anahtar assembly'den çıkarılıyor…"
+
+msgid "Signing key saved."
+msgstr "İmza anahtarı kaydedildi."
+
+msgid "Reverted to the placeholder key."
+msgstr "Yer tutucu anahtara geri dönüldü."
+
+msgid "No .NET runtime found. Install the .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) to extract the key, or paste it manually below."
+msgstr ".NET çalışma zamanı bulunamadı. Anahtarı çıkarmak için .NET SDK'yı kurun (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) veya anahtarı aşağıya elle yapıştırın."
+
+msgid "The key is read from your own licensed ETS assembly and stored per-user, never in the project."
+msgstr "Anahtar, kendi lisanslı ETS assembly'nizden okunur ve kullanıcı başına saklanır, asla projede saklanmaz."
+
+msgid "Based on OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."
+msgstr "OpenKNXproducer tabanlı (github.com/OpenKNX/OpenKNXproducer)."

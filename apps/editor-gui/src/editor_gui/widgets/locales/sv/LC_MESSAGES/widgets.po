@@ -1,0 +1,296 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "(bild)"
+
+msgid "Search…"
+msgstr "Sök…"
+
+msgid "{name} (locked)"
+msgstr "{name} (låst)"
+
+msgid "Create Group Addresses ({count})"
+msgstr "Skapa gruppadresser ({count})"
+
+msgid "All"
+msgstr "Alla"
+
+msgid "None"
+msgstr "Ingen"
+
+msgid "Copy Links ({count})"
+msgstr "Kopiera kopplingar ({count})"
+
+msgid "Paste Links ({count})"
+msgstr "Klistra in kopplingar ({count})"
+
+msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr "Tilldelar de kopierade kopplingarna och flaggorna till de ikryssade objekten i ordning (1:a till 1:a, 2:a till 2:a, …) och ersätter varje måls nuvarande kopplingar."
+
+msgid "Merge"
+msgstr "Slå ihop"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr "Behåll varje måls befintliga kopplingar och lägg bara till de kopierade."
+
+msgid "Copy Links"
+msgstr "Kopiera kopplingar"
+
+msgid "Default (Inherit)"
+msgstr "Standard (ärvt)"
+
+msgid "Edit Description…"
+msgstr "Redigera beskrivning…"
+
+msgid "Edit Description"
+msgstr "Redigera beskrivning"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Avbryt"
+
+msgid "Paste Links"
+msgstr "Klistra in kopplingar"
+
+msgid "Copy Addresses as Text"
+msgstr "Kopiera adresser som text"
+
+msgid "Create Group Addresses"
+msgstr "Skapa gruppadresser"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  Löpande index ({n:02} fyller ut med nollor)"
+
+msgid "Name Template"
+msgstr "Namnmall"
+
+msgid "Start Address"
+msgstr "Startadress"
+
+msgid "automatic"
+msgstr "automatisk"
+
+msgid "Sending Group Address"
+msgstr "Sändande gruppadress"
+
+msgid "Receiving Group Address"
+msgstr "Mottagande gruppadress"
+
+msgid "sent"
+msgstr "skickat"
+
+msgid "received"
+msgstr "mottaget"
+
+msgid "sent & received"
+msgstr "skickat och mottaget"
+
+msgid "older"
+msgstr "äldre"
+
+msgid "Link Group Address"
+msgstr "Förbind gruppadress"
+
+msgid "New Group Address"
+msgstr "Ny gruppadress"
+
+msgid "Address"
+msgstr "Adress"
+
+msgid "Name"
+msgstr "Namn"
+
+msgid "Create & Link"
+msgstr "Skapa och förbind"
+
+msgid "Name template"
+msgstr "Namnmall"
+
+msgid "Placeholders"
+msgstr "Platshållare"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  Byggnad\n{floor}  Våning\n{room}  Rum\n{device}  Apparatnamn eller -beskrivning\n{devicename}  Apparatnamn\n{devicedescription}  Apparatbeskrivning\n{product}  Produkt\n{manufacturer}  Tillverkare\n{order}  Beställningsnummer\n{address}  Individuell adress\n{object}  Objektnamn\n{ganame}  Objektnamn\n{function}  Funktion\n{number}  Objektnummer\n{dpt}  Datapunkttyp"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr "Ändrat från standard ({default}) — högerklicka för att återställa"
+
+msgid "Reset to Default"
+msgstr "Återställ till standard"
+
+msgid "<differs>"
+msgstr "<skiljer sig>"
+
+msgid "Off"
+msgstr "Från"
+
+msgid "On"
+msgstr "Till"
+
+msgid "Standard"
+msgstr "Standard"
+
+msgid "Advanced"
+msgstr "Avancerat"
+
+msgid "Theme Colors"
+msgstr "Temafärger"
+
+msgid "Standard Colors"
+msgstr "Standardfärger"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Må Ti On To Fr Lö Sö"
+
+msgid "General"
+msgstr "Allmänt"
+
+msgid "Enter a number."
+msgstr "Ange ett tal."
+
+msgid "Enter a whole number."
+msgstr "Ange ett heltal."
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "Ange ett värde från {minimum} till {maximum}."
+
+msgid "Enter at most {count} characters."
+msgstr "Ange högst {count} tecken."
+
+msgid "Enter a value."
+msgstr "Ange ett värde."
+
+msgid "This value cannot be sent with this data type."
+msgstr "Det här värdet kan inte skickas med den här datatypen."
+
+msgid "No value can be entered for this data type."
+msgstr "Inget värde kan anges för den här datatypen."
+
+msgid "Edit…"
+msgstr "Redigera…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "Texten får vara högst {count} byte."
+
+msgid "Value {number}"
+msgstr "Värde {number}"
+
+msgid "Edit Value"
+msgstr "Redigera värde"
+
+msgid "Size Column to Fit"
+msgstr "Anpassa kolumnbredd"
+
+msgid "Size All Columns to Fit"
+msgstr "Anpassa alla kolumnbredder"
+
+msgid "Reset Column Order"
+msgstr "Återställ kolumnordning"
+
+msgid "Reset Column Visibility"
+msgstr "Återställ kolumnsynlighet"
+
+msgid "Reset All Columns"
+msgstr "Återställ alla kolumner"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "Längd"
+
+msgid "Prio"
+msgstr "Prio"
+
+msgid "Group Addresses"
+msgstr "Gruppadresser"
+
+msgid "(empty)"
+msgstr "(tom)"
+
+msgid "Options"
+msgstr "Alternativ"
+
+msgid "Columns"
+msgstr "Kolumner"
+
+msgid "Grey Out Zeros"
+msgstr "Gråa ut nollor"
+
+msgid "Uppercase Hex"
+msgstr "Hex med versaler"
+
+msgid "Show ASCII"
+msgstr "Visa ASCII"
+
+msgid "Copy"
+msgstr "Kopiera"
+
+msgid "Copy {count} B"
+msgstr "Kopiera {count} B"
+
+msgid "Go To:"
+msgstr "Gå till:"
+
+msgid "{count} difference(s)"
+msgstr "{count} skillnad(er)"
+
+msgid "no differences"
+msgstr "inga skillnader"
+
+msgid "Parameter:"
+msgstr "Parameter:"
+
+msgid "search…"
+msgstr "sök…"
+
+msgid "Low"
+msgstr "Låg"
+
+msgid "High"
+msgstr "Hög"
+
+msgid "Alert"
+msgstr "Alarm"
+
+msgid "Hours"
+msgstr "Timmar"
+
+msgid "Minutes"
+msgstr "Minuter"
+
+msgid "Seconds"
+msgstr "Sekunder"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "Millisekunder"
+
+msgid "Bold"
+msgstr "Fet"
+
+msgid "Italic"
+msgstr "Kursiv"
+
+msgid "Underline"
+msgstr "Understryka"
+
+msgid "Cut"
+msgstr "Klipp ut"
+
+msgid "Paste"
+msgstr "Klistra in"

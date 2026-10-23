@@ -1,0 +1,86 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor keyring 1.0\n"
+"Language: uk\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "KNX Secure"
+msgstr "KNX Secure"
+
+msgid "Show Window"
+msgstr "Показати вікно"
+
+msgid "No keyring loaded"
+msgstr "В'язку ключів не завантажено"
+
+msgid "Import Keyring…"
+msgstr "Імпортувати в'язку ключів…"
+
+msgid "Export Keyring…"
+msgstr "Експортувати в'язку ключів…"
+
+msgid "Export"
+msgstr "Експорт"
+
+msgid "Set the password for the exported keyring:"
+msgstr "Задайте пароль для експортованої в'язки ключів:"
+
+msgid "KNX Keyring (*.knxkeys)"
+msgstr "В'язка ключів KNX (*.knxkeys)"
+
+msgid "All Files"
+msgstr "Всі файли"
+
+msgid "Load"
+msgstr "Завантажити"
+
+msgid "Cancel"
+msgstr "Скасувати"
+
+msgid "Close"
+msgstr "Закрити"
+
+msgid "{project} — created by {by}"
+msgstr "{project} — створив {by}"
+
+msgid "Backbone"
+msgstr "Магістраль"
+
+msgid "Interfaces ({count})"
+msgstr "Інтерфейси ({count})"
+
+msgid "Group Address Keys ({count})"
+msgstr "Ключі групових адрес ({count})"
+
+msgid "Devices ({count})"
+msgstr "Пристрої ({count})"
+
+msgid "Export Keyring from Project…"
+msgstr "Експортувати в'язку ключів із проєкту…"
+
+msgid "Type"
+msgstr "Тип"
+
+msgid "Address"
+msgstr "Адреса"
+
+msgid "Host"
+msgstr "Хост"
+
+msgid "User"
+msgstr "Користувач"
+
+msgid "Key"
+msgstr "Ключ"
+
+msgid "In Project"
+msgstr "У проєкті"
+
+msgid "Tool Key"
+msgstr "Ключ інструмента"
+
+msgid "{address}   key {key}"
+msgstr "{address}   ключ {key}"

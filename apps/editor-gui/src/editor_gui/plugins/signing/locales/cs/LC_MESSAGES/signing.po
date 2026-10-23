@@ -1,0 +1,65 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor signing 1.0\n"
+"Language: cs\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Signing"
+msgstr "Podepisování"
+
+msgid "Signing Key…"
+msgstr "Podpisový klíč…"
+
+msgid "A signing key is set (exports are signed)."
+msgstr "Podpisový klíč je nastaven (exporty se podepisují)."
+
+msgid "Placeholder key in use — signatures are not ETS-valid."
+msgstr "Používá se zástupný klíč — podpisy nejsou platné pro ETS."
+
+msgid "Modulus (hex)"
+msgstr "Modulus (hex)"
+
+msgid "Private Exponent (hex)"
+msgstr "Soukromý exponent (hex)"
+
+msgid "Public Exponent (hex)"
+msgstr "Veřejný exponent (hex)"
+
+msgid "Extract from Knx.Ets.XmlSigning.dll…"
+msgstr "Extrahovat z Knx.Ets.XmlSigning.dll…"
+
+msgid "Save"
+msgstr "Uložit"
+
+msgid "Reset to Placeholder"
+msgstr "Vrátit na zástupný klíč"
+
+msgid "All DLLs"
+msgstr "Všechny DLL"
+
+msgid "All Files"
+msgstr "Všechny soubory"
+
+msgid "Select \"Knx.Ets.XmlSigning.dll\" from your ETS installation (e.g. C:\\Program Files (x86)\\ETS6)."
+msgstr "Vyberte \"Knx.Ets.XmlSigning.dll\" z vaší instalace ETS (např. C:\\Program Files (x86)\\ETS6)."
+
+msgid "Extracting key from the assembly…"
+msgstr "Extrahování klíče ze sestavení…"
+
+msgid "Signing key saved."
+msgstr "Podpisový klíč uložen."
+
+msgid "Reverted to the placeholder key."
+msgstr "Vráceno na zástupný klíč."
+
+msgid "No .NET runtime found. Install the .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`) to extract the key, or paste it manually below."
+msgstr "Nenalezeno běhové prostředí .NET. Pro extrakci klíče nainstalujte .NET SDK (macOS: `brew install dotnet-sdk`; Fedora: `sudo dnf install dotnet-sdk-8.0`), nebo ho vložte ručně níže."
+
+msgid "The key is read from your own licensed ETS assembly and stored per-user, never in the project."
+msgstr "Klíč se čte z vašeho vlastního licencovaného sestavení ETS a ukládá se pro každého uživatele zvlášť, nikdy do projektu."
+
+msgid "Based on OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."
+msgstr "Založeno na OpenKNXproducer (github.com/OpenKNX/OpenKNXproducer)."

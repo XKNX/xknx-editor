@@ -1,0 +1,296 @@
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xknx-editor widgets 1.0\n"
+"Language: fi\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "(image)"
+msgstr "(kuva)"
+
+msgid "Search…"
+msgstr "Etsi…"
+
+msgid "{name} (locked)"
+msgstr "{name} (lukittu)"
+
+msgid "Create Group Addresses ({count})"
+msgstr "Luo ryhmäosoitteet ({count})"
+
+msgid "All"
+msgstr "Kaikki"
+
+msgid "None"
+msgstr "Ei mitään"
+
+msgid "Copy Links ({count})"
+msgstr "Kopioi linkit ({count})"
+
+msgid "Paste Links ({count})"
+msgstr "Liitä linkit ({count})"
+
+msgid "Assigns the copied links and flags to the checked objects in order (1st to 1st, 2nd to 2nd, …), replacing each target's current links."
+msgstr "Kohdistaa kopioidut linkit ja merkit valituille objekteille järjestyksessä (1. 1:lle, 2. 2:lle, …) ja korvaa kunkin kohteen nykyiset linkit."
+
+msgid "Merge"
+msgstr "Yhdistä"
+
+msgid "Keep each target's existing links and only add the copied ones."
+msgstr "Säilytä kunkin kohteen olemassa olevat linkit ja lisää vain kopioidut."
+
+msgid "Copy Links"
+msgstr "Kopioi linkit"
+
+msgid "Default (Inherit)"
+msgstr "Oletus (peritty)"
+
+msgid "Edit Description…"
+msgstr "Muokkaa kuvausta…"
+
+msgid "Edit Description"
+msgstr "Muokkaa kuvausta"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "Cancel"
+msgstr "Peruuta"
+
+msgid "Paste Links"
+msgstr "Liitä linkit"
+
+msgid "Copy Addresses as Text"
+msgstr "Kopioi osoitteet tekstinä"
+
+msgid "Create Group Addresses"
+msgstr "Luo ryhmäosoitteet"
+
+msgid "{n}  Sequential index ({n:02} zero-pads)"
+msgstr "{n}  Juokseva indeksi ({n:02} täyttää nollilla)"
+
+msgid "Name Template"
+msgstr "Nimimalli"
+
+msgid "Start Address"
+msgstr "Alkuosoite"
+
+msgid "automatic"
+msgstr "automaattinen"
+
+msgid "Sending Group Address"
+msgstr "Lähettävä ryhmäosoite"
+
+msgid "Receiving Group Address"
+msgstr "Vastaanottava ryhmäosoite"
+
+msgid "sent"
+msgstr "lähetetty"
+
+msgid "received"
+msgstr "vastaanotettu"
+
+msgid "sent & received"
+msgstr "lähetetty ja vastaanotettu"
+
+msgid "older"
+msgstr "vanhempi"
+
+msgid "Link Group Address"
+msgstr "Linkitä ryhmäosoite"
+
+msgid "New Group Address"
+msgstr "Uusi ryhmäosoite"
+
+msgid "Address"
+msgstr "Osoite"
+
+msgid "Name"
+msgstr "Nimi"
+
+msgid "Create & Link"
+msgstr "Luo ja linkitä"
+
+msgid "Name template"
+msgstr "Nimimalli"
+
+msgid "Placeholders"
+msgstr "Paikkamerkit"
+
+msgid "{building}  Building\n{floor}  Floor\n{room}  Room\n{device}  Device name or description\n{devicename}  Device name\n{devicedescription}  Device description\n{product}  Product\n{manufacturer}  Manufacturer\n{order}  Order number\n{address}  Individual address\n{object}  Object name\n{ganame}  Object name\n{function}  Function\n{number}  Object number\n{dpt}  Datapoint type"
+msgstr "{building}  Rakennus\n{floor}  Kerros\n{room}  Huone\n{device}  Laitteen nimi tai kuvaus\n{devicename}  Laitteen nimi\n{devicedescription}  Laitteen kuvaus\n{product}  Tuote\n{manufacturer}  Valmistaja\n{order}  Tilausnumero\n{address}  Yksilöllinen osoite\n{object}  Objektin nimi\n{ganame}  Objektin nimi\n{function}  Toiminto\n{number}  Objektin numero\n{dpt}  Tietopisteen tyyppi"
+
+msgid "Changed from default ({default}) — right-click to reset"
+msgstr "Muutettu oletusarvosta ({default}) — palauta napsauttamalla hiiren kakkospainikkeella"
+
+msgid "Reset to Default"
+msgstr "Palauta oletusarvo"
+
+msgid "<differs>"
+msgstr "<poikkeaa>"
+
+msgid "Off"
+msgstr "Pois"
+
+msgid "On"
+msgstr "Päällä"
+
+msgid "Standard"
+msgstr "Standardi"
+
+msgid "Advanced"
+msgstr "Lisäasetukset"
+
+msgid "Theme Colors"
+msgstr "Teeman värit"
+
+msgid "Standard Colors"
+msgstr "Vakiovärit"
+
+msgid "Mo Tu We Th Fr Sa Su"
+msgstr "Ma Ti Ke To Pe La Su"
+
+msgid "General"
+msgstr "Yleistä"
+
+msgid "Enter a number."
+msgstr "Anna numero."
+
+msgid "Enter a whole number."
+msgstr "Anna kokonaisluku."
+
+msgid "Enter a value from {minimum} to {maximum}."
+msgstr "Anna arvo väliltä {minimum}–{maximum}."
+
+msgid "Enter at most {count} characters."
+msgstr "Anna enintään {count} merkkiä."
+
+msgid "Enter a value."
+msgstr "Anna arvo."
+
+msgid "This value cannot be sent with this data type."
+msgstr "Tätä arvoa ei voi lähettää tällä tietotyypillä."
+
+msgid "No value can be entered for this data type."
+msgstr "Tälle tietotyypille ei voi antaa arvoa."
+
+msgid "Edit…"
+msgstr "Muokkaa…"
+
+msgid "The text may take at most {count} bytes."
+msgstr "Tekstin enimmäispituus on {count} tavua."
+
+msgid "Value {number}"
+msgstr "Arvo {number}"
+
+msgid "Edit Value"
+msgstr "Muokkaa arvoa"
+
+msgid "Size Column to Fit"
+msgstr "Sovita sarakkeen leveys"
+
+msgid "Size All Columns to Fit"
+msgstr "Sovita kaikkien sarakkeiden leveys"
+
+msgid "Reset Column Order"
+msgstr "Palauta sarakkeiden järjestys"
+
+msgid "Reset Column Visibility"
+msgstr "Palauta sarakkeiden näkyvyys"
+
+msgid "Reset All Columns"
+msgstr "Palauta kaikki sarakkeet"
+
+msgid "DPT"
+msgstr "DPT"
+
+msgid "Length"
+msgstr "Pituus"
+
+msgid "Prio"
+msgstr "Prior"
+
+msgid "Group Addresses"
+msgstr "Ryhmäosoitteet"
+
+msgid "(empty)"
+msgstr "(tyhjä)"
+
+msgid "Options"
+msgstr "Valinnat"
+
+msgid "Columns"
+msgstr "Sarakkeet"
+
+msgid "Grey Out Zeros"
+msgstr "Himmennä nollat"
+
+msgid "Uppercase Hex"
+msgstr "Heksa isoilla kirjaimilla"
+
+msgid "Show ASCII"
+msgstr "Näytä ASCII"
+
+msgid "Copy"
+msgstr "Kopioi"
+
+msgid "Copy {count} B"
+msgstr "Kopioi {count} B"
+
+msgid "Go To:"
+msgstr "Siirry:"
+
+msgid "{count} difference(s)"
+msgstr "Eroja: {count}"
+
+msgid "no differences"
+msgstr "ei eroja"
+
+msgid "Parameter:"
+msgstr "Parametri:"
+
+msgid "search…"
+msgstr "etsi…"
+
+msgid "Low"
+msgstr "Matala"
+
+msgid "High"
+msgstr "Korkea"
+
+msgid "Alert"
+msgstr "Hälytys"
+
+msgid "Hours"
+msgstr "Tunnit"
+
+msgid "Minutes"
+msgstr "Minuutit"
+
+msgid "Seconds"
+msgstr "Sekunnit"
+
+msgid "x 100 ms"
+msgstr "x 100 ms"
+
+msgid "x 10 ms"
+msgstr "x 10 ms"
+
+msgid "Milliseconds"
+msgstr "Millisekunnit"
+
+msgid "Bold"
+msgstr "Lihavoitu"
+
+msgid "Italic"
+msgstr "Kursivoitu"
+
+msgid "Underline"
+msgstr "Alleviivaus"
+
+msgid "Cut"
+msgstr "Leikkaa"
+
+msgid "Paste"
+msgstr "Liitä"
