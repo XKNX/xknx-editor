@@ -66,6 +66,9 @@ jobs:
           target: web
           platforms: linux/amd64,linux/arm64
           push: ${{ steps.meta.outputs.push }}
+          # No provenance attestation: it is published as an extra "unknown/unknown" platform entry
+          # in the image index, which the package page lists next to the real architectures.
+          provenance: false
           tags: |
             ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/xknx-editor-web:latest
             ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/xknx-editor-web:${{ steps.meta.outputs.version }}
@@ -80,6 +83,9 @@ jobs:
           target: ha
           platforms: linux/amd64,linux/arm64
           push: ${{ steps.meta.outputs.push }}
+          # No provenance attestation: it is published as an extra "unknown/unknown" platform entry
+          # in the image index, which the package page lists next to the real architectures.
+          provenance: false
           tags: |
             ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/xknx-editor-ha:latest
             ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/xknx-editor-ha:${{ steps.meta.outputs.version }}
