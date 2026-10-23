@@ -24,6 +24,7 @@ dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
     "pytest-cov>=4.0",
+    "pytest-xdist>=3.6",
     "ruff>=0.4",
     "pyright>=1.1",
     "structlog>=24.0.0",  # injected logger type for xknxeditor-namespaces converter; no runtime dep there

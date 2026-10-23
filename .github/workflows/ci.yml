@@ -42,8 +42,9 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync
-      # Coverage of what [tool.coverage.run] in pyproject.toml lists
-      - run: uv run pytest --cov --cov-report=xml
+      # In parallel on all cores of the runner (pytest-xdist), with the coverage of what
+      # [tool.coverage.run] in pyproject.toml lists
+      - run: uv run pytest -n auto --cov --cov-report=xml
       # Only uploaded for now: .codecov.yml turns off the status checks and comments on PRs.
       # Not failing the job, e.g. for a pull request from a fork, which gets no OIDC token.
       - name: Upload coverage to Codecov
