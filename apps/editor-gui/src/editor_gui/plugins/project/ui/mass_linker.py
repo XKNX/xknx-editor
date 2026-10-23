@@ -32,6 +32,7 @@ from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.tabs import begin_tab_bar
 
 if TYPE_CHECKING:
     from editor_gui.device import ComObject, Device
@@ -318,7 +319,7 @@ class MassLinkerPanel:
         if not open_now:
             _hint(S.ML_NO_PROJECT)
             return
-        if imgui.begin_tab_bar("##mass_linker_tabs"):
+        if begin_tab_bar("##mass_linker_tabs"):
             if imgui.begin_tab_item(S.ML_TAB_GA_CO)[0]:
                 self._render_ga_co_tab()
                 imgui.end_tab_item()

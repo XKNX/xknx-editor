@@ -2283,3 +2283,21 @@ msgstr "Bu ağ geçidinin devreye alma protokolü bir yakalamaya karşı doğrul
 
 msgid "{count} ECG(s) present on line {line}"
 msgstr "{line} hattında {count} ECG mevcut"
+
+msgid "Program DCA State"
+msgstr "DCA durumunu programla"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "DALI cihaz ayarlarını özellik değerleri olarak ağ geçidine gönderir."
+
+msgid "Add to {section}:"
+msgstr "{section} bölümüne ekle:"
+
+msgid "No entries."
+msgstr "Kayıt yok."
+
+msgid "Entry"
+msgstr "Kayıt"
+
+msgid "Store plugin data {name}"
+msgstr "Eklenti verilerini kaydet: {name}"

@@ -135,7 +135,9 @@ from editor_gui.widgets.tables import (
     begin_data_table,
     data_table_headers,
     reset_all_tables,
+    text_table_height,
 )
+from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.text_util import fit_text, human_size, text_clipped_tooltip
 from editor_gui.widgets.tree import collapsing_header
 from editor_gui.window_title import bring_to_front, set_window_title, wake
@@ -1091,7 +1093,8 @@ class KnxGuiApp:
         self._log.debug("project file dialog opened")
 
     def _can_launch_file_dialog(self) -> bool:
-        if sys.platform != "linux":
+        # The browser view draws its own file dialogs; only a desktop on Linux needs a helper.
+        if sys.platform != "linux" or web.active_hub is not None:
             return True
         if self._file_dialogs_available is None:
             helper = _find_linux_file_dialog_helper()
@@ -1902,7 +1905,7 @@ class KnxGuiApp:
             + 2 * style.window_padding.y  # the tab page's own padding
         )
         with outlined_tabs():
-            if imgui.begin_tab_bar("##export_license"):
+            if begin_tab_bar("##export_license"):
                 if imgui.begin_tab_item(S.MYKNX_SIGN_TAB)[0]:
                     with tab_page("##myknx_page", tab_page_h):
                         selected_pid = self._render_myknx_login_tab(logging_in)
@@ -3842,7 +3845,7 @@ class KnxGuiApp:
             | imgui.TableFlags_.reorderable
             | imgui.TableFlags_.scroll_y
         )
-        height = min(px(380.0), (len(rows) + 2) * imgui.get_frame_height())
+        height = min(px(380.0), text_table_height(len(rows)))
         if not begin_data_table(
             "##product_import", len(columns), flags, imgui.ImVec2(0.0, height)
         ):

@@ -6,6 +6,7 @@ import threading
 from types import SimpleNamespace
 from typing import Any
 
+from editor_gui import web
 from editor_gui.main import (
     KnxGuiApp,
     _find_linux_file_dialog_helper,
@@ -71,6 +72,19 @@ def test_missing_linux_file_dialog_helper_is_reported_once(monkeypatch) -> None:
             },
         )
     ]
+
+
+def test_browser_view_needs_no_linux_file_dialog_helper(monkeypatch) -> None:
+    # Regression: in the Docker image (Linux, no zenity/kdialog) every file action stopped here
+    # although the browser view draws its own file dialogs.
+    log = _StubLog()
+    stub = SimpleNamespace(_file_dialogs_available=None, _log=log)
+    monkeypatch.setattr(sys, "platform", "linux")
+    monkeypatch.setattr("editor_gui.main._find_linux_file_dialog_helper", lambda: None)
+    monkeypatch.setattr(web, "active_hub", SimpleNamespace())
+
+    assert KnxGuiApp._can_launch_file_dialog(stub)  # type: ignore[arg-type]
+    assert log.errors == []
 
 
 def test_run_bg_logs_when_a_worker_is_busy() -> None:

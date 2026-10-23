@@ -2283,3 +2283,21 @@ msgstr "Il protocollo di messa in servizio di questo gateway non è stato verifi
 
 msgid "{count} ECG(s) present on line {line}"
 msgstr "{count} ECG presenti sulla linea {line}"
+
+msgid "Program DCA State"
+msgstr "Programma stato DCA"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Invia le impostazioni dei dispositivi DALI al gateway come valori di proprietà."
+
+msgid "Add to {section}:"
+msgstr "Aggiungi a {section}:"
+
+msgid "No entries."
+msgstr "Nessuna voce."
+
+msgid "Entry"
+msgstr "Voce"
+
+msgid "Store plugin data {name}"
+msgstr "Salva dati del plugin {name}"

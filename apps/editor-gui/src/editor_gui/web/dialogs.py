@@ -72,24 +72,37 @@ def _modified(timestamp: float) -> str:
     return f"{day} {moment:%H:%M}"
 
 
-def _download_wanted(title: str) -> bool:
-    """Whether "Download to This Computer" was ticked the last time in a dialog of this title
-    (saving a project on the server and exporting one are asked separately)."""
-    choices = load_settings("web").get("download")
+def _download_default(filters: list[tuple[str, list[str]]]) -> bool:
+    """Whether "Download to This Computer" starts ticked: not when a project is saved, which
+    stays on the server, but for exports."""
+    return not any("*.xknx" in patterns for _, patterns in filters[:1])
+
+
+def _download_wanted(title: str, default: bool) -> bool:
+    """Whether "Download to This Computer" starts ticked in a dialog of this title: as the user
+    left it there, when that differs from ``default`` (saving a project on the server and
+    exporting one are asked separately)."""
+    choices = load_settings("web").get("download_choices")
     if isinstance(choices, dict):
-        return bool(cast("dict[str, object]", choices).get(title, True))
-    return True
+        value = cast("dict[str, object]", choices).get(title)
+        if isinstance(value, bool):
+            return value
+    return default
 
 
-def _remember_download(title: str, value: bool) -> None:
+def _remember_download(title: str, value: bool, default: bool) -> None:
+    """Keep the choice of a dialog of this title when it differs from ``default``."""
     settings = load_settings("web")
-    stored = settings.get("download")
+    stored = settings.get("download_choices")
     choices = (
         dict(cast("dict[str, object]", stored)) if isinstance(stored, dict) else {}
     )
-    if choices.get(title) != value:
+    changed = choices.pop(title, None) is not None
+    if value != default:
         choices[title] = value
-        save_settings("web", {**settings, "download": choices})
+        changed = True
+    if changed:
+        save_settings("web", {**settings, "download_choices": choices})
 
 
 class _Item:
@@ -227,7 +240,8 @@ class WebDialog(_Item):
         self._status = ""
         self._entries: list[Entry] = []
         self._read_at = 0.0
-        self._download = _download_wanted(title)
+        self._download_default = _download_default(self.filters)
+        self._download = _download_wanted(title, self._download_default)
         hub.open_dialog(self)
 
     def ready(self, timeout: int = 20) -> bool:
@@ -421,7 +435,7 @@ class WebSaveFile(WebDialog):
         named = bool(self._name.strip())
         chosen = dialog_buttons(S.WEB_SAVE, S.BTN_CANCEL, enabled=[named, True])
         if named and (chosen == 0 or entered or double):
-            _remember_download(self.title, self._download)
+            _remember_download(self.title, self._download, self._download_default)
             self.answer(
                 {
                     "ok": True,
@@ -465,7 +479,7 @@ class WebSelectFolder(WebDialog):
         named = bool(self._name.strip())
         chosen = dialog_buttons(S.WEB_SELECT, S.BTN_CANCEL, enabled=[named, True])
         if named and (chosen == 0 or entered or double):
-            _remember_download(self.title, self._download)
+            _remember_download(self.title, self._download, self._download_default)
             self.answer(
                 {"ok": True, "name": self._name.strip(), "download": self._download}
             )

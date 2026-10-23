@@ -481,6 +481,32 @@ def test_save_dialog_adds_the_extension_and_downloads(
     assert offered == [target]
 
 
+def test_download_box_starts_unticked_when_saving_a_project(
+    hub: WebHub, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    import editor_gui.web.dialogs as dialogs
+
+    stored: dict[str, dict[str, Any]] = {}
+    monkeypatch.setattr(
+        dialogs, "load_settings", lambda name: dict(stored.get(name, {}))
+    )
+    monkeypatch.setattr(
+        dialogs, "save_settings", lambda name, data: stored.update({name: data})
+    )
+    project = ["XKNX Project (*.xknx)", "*.xknx"]
+    export = ["Project (*.knxproj)", "*.knxproj"]
+    assert not WebSaveFile(hub, "Save XKNX Project", "", project)._download
+    assert WebSaveFile(hub, "Export", "", export)._download
+    # A choice that differs from the default is kept per dialog, one back to it is dropped.
+    dialogs._remember_download("Save XKNX Project", True, False)
+    assert WebSaveFile(hub, "Save XKNX Project", "", project)._download
+    dialogs._remember_download("Save XKNX Project", False, False)
+    assert stored["web"]["download_choices"] == {}
+    # Choices stored before (also the untouched defaults) no longer count.
+    stored["web"] = {"download": {"Save XKNX Project": True}}
+    assert not WebSaveFile(hub, "Save XKNX Project", "", project)._download
+
+
 def test_cancelled_dialogs(hub: WebHub) -> None:
     save = WebSaveFile(hub, "Save")
     save.answer({"ok": False})

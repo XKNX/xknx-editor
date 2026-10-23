@@ -18,6 +18,7 @@ from editor_gui.widgets.dpt_value import DptValueInput
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits, text_width
 from editor_gui.widgets.tables import begin_data_table, data_table_headers
+from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
 if TYPE_CHECKING:
@@ -79,7 +80,7 @@ class MonitorPanel:
         self.set_monitor_extended(not self.monitor_extended)
 
     def render(self) -> None:
-        if not imgui.begin_tab_bar("##monitor_tabs"):
+        if not begin_tab_bar("##monitor_tabs"):
             return
         index = self._get_index()
         tabs = (

@@ -22,6 +22,7 @@ from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import checkbox_width, fits_beside, same_line_if_fits
+from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.tree import leaf_rows, tree_node
 from editor_gui.widgets.value_pickers import format_date
 
@@ -257,7 +258,7 @@ class CatalogPanel:
     def render(self) -> None:
         self._render_missing_apps_banner()
         # Local vs Online as tabs instead of stacked sections, so each gets the full panel height.
-        if imgui.begin_tab_bar("##catalog_tabs"):
+        if begin_tab_bar("##catalog_tabs"):
             if imgui.begin_tab_item(S.TAB_LOCAL)[0]:
                 self._render_local_catalog()
                 imgui.end_tab_item()

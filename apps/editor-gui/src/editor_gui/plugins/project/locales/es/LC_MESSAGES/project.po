@@ -2283,3 +2283,21 @@ msgstr "El protocolo de puesta en servicio de esta pasarela no se ha verificado 
 
 msgid "{count} ECG(s) present on line {line}"
 msgstr "{count} ECG presentes en la línea {line}"
+
+msgid "Program DCA State"
+msgstr "Programar estado de DCA"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Envía los ajustes de los dispositivos DALI a la pasarela como valores de propiedades."
+
+msgid "Add to {section}:"
+msgstr "Añadir a {section}:"
+
+msgid "No entries."
+msgstr "No hay entradas."
+
+msgid "Entry"
+msgstr "Entrada"
+
+msgid "Store plugin data {name}"
+msgstr "Guardar datos del plugin {name}"

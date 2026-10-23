@@ -1302,6 +1302,46 @@ class ProjectStrings:
         return _("Default")
 
     @property
+    def PLUGIN_PARAMS_PROGRAM_DCA(self) -> str:
+        return _("Program DCA State")
+
+    @property
+    def PLUGIN_PARAMS_PROGRAM_DCA_HINT(self) -> str:
+        return _("Sends the DALI device settings to the gateway as property values.")
+
+    @property
+    def PLUGIN_PARAMS_ADD_TO(self) -> str:
+        return _("Add to {section}:")
+
+    @property
+    def PLUGIN_PARAMS_TYPE(self) -> str:
+        return _("Type")
+
+    @property
+    def PLUGIN_PARAMS_NAME(self) -> str:
+        return _("Name")
+
+    @property
+    def PLUGIN_PARAMS_ADD(self) -> str:
+        return _("Add")
+
+    @property
+    def PLUGIN_PARAMS_NO_ENTRIES(self) -> str:
+        return _("No entries.")
+
+    @property
+    def PLUGIN_PARAMS_COL_ENTRY(self) -> str:
+        return _("Entry")
+
+    @property
+    def PLUGIN_PARAMS_COL_DETAILS(self) -> str:
+        return _("Details")
+
+    @property
+    def PLUGIN_PARAMS_REMOVE(self) -> str:
+        return _("Remove")
+
+    @property
     def SIEMENS_DALI_CONNECT_FIRST(self) -> str:
         return _("Connect to a KNX interface to read the Siemens DALI bus.")
 
@@ -3302,6 +3342,10 @@ class ProjectStrings:
     @property
     def HISTORY_EV_ADD_DEVICE(self) -> str:
         return _("Add device {name}")
+
+    @property
+    def HISTORY_EV_STORE_PLUGIN_DATA(self) -> str:
+        return _("Store plugin data {name}")
 
     @property
     def HISTORY_EV_SET_PARAMETER(self) -> str:

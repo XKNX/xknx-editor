@@ -2283,3 +2283,21 @@ msgstr "O protocolo de comissionamento deste gateway não foi verificado contra 
 
 msgid "{count} ECG(s) present on line {line}"
 msgstr "{count} ECG presentes na linha {line}"
+
+msgid "Program DCA State"
+msgstr "Programar estado DCA"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Envia as definições dos dispositivos DALI para o gateway como valores de propriedades."
+
+msgid "Add to {section}:"
+msgstr "Adicionar a {section}:"
+
+msgid "No entries."
+msgstr "Sem entradas."
+
+msgid "Entry"
+msgstr "Entrada"
+
+msgid "Store plugin data {name}"
+msgstr "Guardar dados do plugin {name}"

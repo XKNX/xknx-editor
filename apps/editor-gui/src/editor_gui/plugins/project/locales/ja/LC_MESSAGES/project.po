@@ -2283,3 +2283,21 @@ msgstr "このゲートウェイのコミッショニング・プロトコルは
 
 msgid "{count} ECG(s) present on line {line}"
 msgstr "ライン {line} に ECG が {count} 台あります"
+
+msgid "Program DCA State"
+msgstr "DCA状態をプログラム"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "DALIデバイスの設定をプロパティ値としてゲートウェイに送信します。"
+
+msgid "Add to {section}:"
+msgstr "{section}に追加:"
+
+msgid "No entries."
+msgstr "項目がありません。"
+
+msgid "Entry"
+msgstr "項目"
+
+msgid "Store plugin data {name}"
+msgstr "プラグインデータ{name}を保存"

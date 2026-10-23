@@ -2283,3 +2283,21 @@ msgstr "Το πρωτόκολλο έναρξης λειτουργίας αυτο
 
 msgid "{count} ECG(s) present on line {line}"
 msgstr "{count} ECG παρόντα στη γραμμή {line}"
+
+msgid "Program DCA State"
+msgstr "Προγραμματισμός κατάστασης DCA"
+
+msgid "Sends the DALI device settings to the gateway as property values."
+msgstr "Στέλνει τις ρυθμίσεις των συσκευών DALI στην πύλη ως τιμές ιδιοτήτων."
+
+msgid "Add to {section}:"
+msgstr "Προσθήκη σε {section}:"
+
+msgid "No entries."
+msgstr "Καμία καταχώριση."
+
+msgid "Entry"
+msgstr "Καταχώριση"
+
+msgid "Store plugin data {name}"
+msgstr "Αποθήκευση δεδομένων plugin {name}"

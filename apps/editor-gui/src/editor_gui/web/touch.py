@@ -3,9 +3,10 @@ touch screen where the mouse has nothing alike.
 
 - A tap clicks.
 - A swipe scrolls the list or panel under the finger, with momentum, in the direction it
-  started in (up and down, or sideways). Where nothing scrolls that
-  way, or the finger is on a scroll bar, a window's title or something that shows a resize
-  pointer (a splitter, a column border), it drags like the mouse (also a slider moved sideways).
+  started in (up and down, or sideways); sideways on a tab bar it moves the tabs. Where nothing
+  scrolls that way, or the finger is on a scroll bar, a window's title or something that shows a
+  resize pointer (a splitter, a column border), it drags like the mouse (also a slider moved
+  sideways).
 - Holding the finger still for a moment (the page tells when) and lifting it is a right-click,
   for the context menus; holding and then moving drags like the mouse (drag and drop, selecting
   text).
@@ -22,9 +23,12 @@ touch (larger hit areas) is :class:`TouchLook`."""
 from __future__ import annotations
 
 import math
+from collections.abc import Iterator
 from typing import Any, Protocol
 
 from imgui_bundle import imgui
+
+from editor_gui.widgets.tabs import shown_tab_bar_ids
 
 # How far a finger may move (app units) and still tap or hold.
 SLOP = 8.0
@@ -250,6 +254,47 @@ def _room(window: imgui.internal.Window, vertical: bool) -> float:
     return window.scroll_max.x if flags & sideways else 0.0
 
 
+_TAB_BAR = "tab bar:"
+
+
+def _tab_bar_room(tab_bar: imgui.internal.TabBar) -> float:
+    """How far a tab bar's tabs can be moved: as far as they reach past the bar."""
+    width = tab_bar.bar_rect.max.x - tab_bar.bar_rect.min.x
+    return max(0.0, tab_bar.width_all_tabs - width)
+
+
+def _tab_bars() -> Iterator[tuple[str, imgui.internal.TabBar]]:
+    """The tab bars a finger can be on, with their scroll targets: those of the sections
+    (docking) the windows are in, and the app's own ones."""
+    nodes: set[int] = set()
+    for window in imgui.get_current_context().windows:
+        node = window.dock_node
+        if (
+            node is None  # pyright: ignore[reportUnnecessaryComparison]
+            or node.id_ in nodes
+            or node.tab_bar is None  # pyright: ignore[reportUnnecessaryComparison]
+            or node.is_hidden_tab_bar()
+        ):
+            continue
+        nodes.add(node.id_)
+        yield f"{_TAB_BAR}dock:{node.id_}", node.tab_bar
+    for tab_bar_id in shown_tab_bar_ids():
+        tab_bar = imgui.internal.tab_bar_find_by_id(tab_bar_id)
+        if tab_bar is not None:  # pyright: ignore[reportUnnecessaryComparison]
+            yield f"{_TAB_BAR}{tab_bar_id}", tab_bar
+
+
+def _find_tab_bar(target: str) -> imgui.internal.TabBar | None:
+    """The tab bar a scroll target of :func:`_tab_bars` names, while it is there."""
+    name = target.removeprefix(_TAB_BAR)
+    if name.startswith("dock:"):
+        node = imgui.internal.dock_context_find_node_by_id(
+            imgui.get_current_context(), int(name.removeprefix("dock:"))
+        )
+        return node.tab_bar if node is not None else None  # pyright: ignore[reportUnnecessaryComparison]
+    return imgui.internal.tab_bar_find_by_id(int(name))
+
+
 class ImGuiTouchUi:
     """:class:`TouchUi` with ImGui's input queue and windows."""
 
@@ -285,6 +330,16 @@ class ImGuiTouchUi:
         if hovered and hovered == internal.get_active_id() and self._io.want_text_input:
             return None
         mouse = self._io.mouse_pos
+        # Sideways on a tab bar whose tabs do not all fit: the tabs move.
+        if not vertical:
+            for target, tab_bar in _tab_bars():
+                bar = tab_bar.bar_rect
+                if (
+                    bar.min.x <= mouse.x < bar.max.x
+                    and bar.min.y <= mouse.y < bar.max.y
+                    and tab_bar.curr_frame_visible >= imgui.get_frame_count() - 1
+                ):
+                    return target if _tab_bar_room(tab_bar) > 0.0 else None
         while window is not None:  # pyright: ignore[reportUnnecessaryComparison]
             if hovered and hovered in (
                 internal.get_window_scrollbar_id(window, internal.Axis.x),
@@ -309,6 +364,17 @@ class ImGuiTouchUi:
 
     def scroll(self, target: str, dx: float, dy: float) -> bool:
         internal = imgui.internal
+        if target.startswith(_TAB_BAR):
+            tab_bar = _find_tab_bar(target)
+            if tab_bar is None or not dx:  # pyright: ignore[reportUnnecessaryComparison]
+                return False
+            value = min(max(tab_bar.scrolling_target - dx, 0.0), _tab_bar_room(tab_bar))
+            if value == tab_bar.scrolling_target:
+                return False
+            # The tabs follow the finger at once, not in imgui's animation.
+            tab_bar.scrolling_target = tab_bar.scrolling_anim = value
+            tab_bar.scrolling_target_dist_to_visibility = 0.0
+            return True
         window = internal.find_window_by_name(target)
         if window is None:  # pyright: ignore[reportUnnecessaryComparison]
             return False

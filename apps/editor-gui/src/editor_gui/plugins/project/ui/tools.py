@@ -37,6 +37,7 @@ from editor_gui.plugins.project.ui.project_diff import (
 from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dpi import px, px_vec2
+from editor_gui.widgets.tabs import begin_tab_bar
 from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga
 
 if TYPE_CHECKING:
@@ -271,7 +272,7 @@ class ToolsPanel:
             return
         self._poll_label_dialog()
         self._poll_diff_dialog()
-        if imgui.begin_tab_bar("##tools_tabs"):
+        if begin_tab_bar("##tools_tabs"):
             if imgui.begin_tab_item(S.TOOLS_TAB_COPY)[0]:
                 self._render_copy_tab()
                 imgui.end_tab_item()

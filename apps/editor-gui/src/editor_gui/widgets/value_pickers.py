@@ -18,6 +18,7 @@ from imgui_bundle import imgui
 from editor_gui.regional import RegionalFormat, regional_format
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.strings import S
+from editor_gui.widgets.tabs import begin_tab_bar
 
 # Theme colours (top row of the palette) and the standard colours row.
 _THEME_COLORS = (
@@ -207,7 +208,7 @@ def _contrast(rgb: int) -> int:
 
 def _render_color_popup(current: int) -> int | None:
     picked: int | None = None
-    if imgui.begin_tab_bar("##color_tabs"):
+    if begin_tab_bar("##color_tabs"):
         if imgui.begin_tab_item(S.COLOR_STANDARD)[0]:
             imgui.text_disabled(S.COLOR_THEME_COLORS)
             for col, base in enumerate(_THEME_COLORS):
