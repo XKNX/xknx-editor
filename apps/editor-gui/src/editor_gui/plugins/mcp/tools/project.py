@@ -204,7 +204,76 @@ def _enum_value_label(widget: Any, value: Any) -> str | None:
     return None
 
 
-def _parameter_dict(p: Any, include_choices: bool = True) -> dict[str, Any]:
+def _matches_channel(channel_query: str, heading: str) -> bool:
+    import re
+
+    cq = channel_query.strip().casefold()
+    h = heading.strip().casefold()
+    if not cq or not h:
+        return False
+    if cq == h:
+        return True
+    tokens = [t.casefold() for t in re.split(r"[\s\-_:/]+", h) if t]
+    if cq in tokens:
+        return True
+    if len(cq) <= 2:
+        for t in tokens:
+            if t.endswith(cq) and len(t) > len(cq):
+                prefix = t[: -len(cq)]
+                if prefix in (
+                    "kanal",
+                    "channel",
+                    "ausgang",
+                    "eingang",
+                    "output",
+                    "input",
+                    "ch",
+                ):
+                    return True
+        return False
+    return cq in h
+
+
+def _collect_ui_parameters_with_ancestry(
+    nodes: Any,
+    current_ancestry: tuple[str, ...] = (),
+) -> list[tuple[Any, tuple[str, ...]]]:
+    from xknxeditor.prod.parser_v2.ui import UiParameter, UiParameterBlock, UiTab
+
+    result: list[tuple[Any, tuple[str, ...]]] = []
+    for node in nodes:
+        if isinstance(node, UiParameter):
+            result.append((node, current_ancestry))
+        elif isinstance(node, (UiTab, UiParameterBlock)):
+            heading = getattr(node, "text", None) or getattr(node, "name", None) or ""
+            next_ancestry = (
+                (*current_ancestry, heading) if heading else current_ancestry
+            )
+            result.extend(
+                _collect_ui_parameters_with_ancestry(node.children, next_ancestry)
+            )
+    return result
+
+
+def _parameter_dict(
+    p: Any,
+    include_choices: bool = True,
+    ancestry: tuple[str, ...] = (),
+    compact: bool = False,
+) -> dict[str, Any]:
+    if compact:
+        data: dict[str, Any] = {
+            "ref_id": p.ref_id,
+            "label": p.label,
+            "value": p.value,
+        }
+        if (label := _enum_value_label(p.widget, p.value)) is not None:
+            data["value_label"] = label
+        if ancestry:
+            data["channel"] = ancestry[0]
+            data["path"] = " / ".join(ancestry)
+        return data
+
     data = {
         "ref_id": p.ref_id,
         "label": p.label,
@@ -219,6 +288,9 @@ def _parameter_dict(p: Any, include_choices: bool = True) -> dict[str, Any]:
         and (label := _enum_value_label(p.widget, p.value)) is not None
     ):
         data["value_label"] = label
+    if ancestry:
+        data["channel"] = ancestry[0]
+        data["path"] = " / ".join(ancestry)
     return data
 
 
@@ -1316,18 +1388,44 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         node_id: int | None = None,
         device_address: str | None = None,
         search: str | None = None,
+        query: str | None = None,
+        channel: str | None = None,
+        modified_only: bool = False,
+        compact: bool = False,
     ) -> dict[str, Any]:
         """A device's visible application parameters with current value and default.
-        Use node_id or device_address. Optional search filters by label."""
+        Use node_id or device_address.
+        Filters:
+        - ``search`` / ``query``: filters by substring match on label (case-insensitive).
+        - ``channel``: filters parameters by channel or section (e.g. 'A', 'Kanal A', '1').
+        - ``modified_only``: if True, returns only parameters whose current value differs from default.
+        - ``compact``: if True, returns a lightweight dictionary omitting schema details and choice lists."""
 
         def _read() -> list[dict[str, Any]]:
             device = _require_device(node_id, device_address)
+            param_pairs = _collect_ui_parameters_with_ancestry(device.get_ui())
+
+            if channel:
+                param_pairs = [
+                    (p, anc)
+                    for p, anc in param_pairs
+                    if any(_matches_channel(channel, h) for h in anc)
+                ]
+
+            if modified_only:
+                param_pairs = [
+                    (p, anc)
+                    for p, anc in param_pairs
+                    if str(p.value) != str(p.default_value)
+                ]
+
             rows = [
-                _parameter_dict(p, include_choices=False)
-                for p in _collect_ui_parameters(device.get_ui())
+                _parameter_dict(p, include_choices=False, ancestry=anc, compact=compact)
+                for p, anc in param_pairs
             ]
-            if search:
-                needle = search.casefold()
+
+            needle = (query or search or "").casefold()
+            if needle:
                 rows = [r for r in rows if needle in str(r.get("label", "")).casefold()]
             return rows
 

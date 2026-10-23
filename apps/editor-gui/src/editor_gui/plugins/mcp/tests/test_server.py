@@ -1663,3 +1663,82 @@ async def test_direct_addressing_by_device_and_group_address(tmp_path: Path) -> 
         )
         assert batch_res["ok"] == 3
         assert batch_res["failed"] == 0
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_list_parameters_filters_and_compact(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        products = await _data(client, "catalog_list_products")
+        product_ref = products["items"][0]["product_ref_id"]
+        dev_res = await _data(client, "project_add_device", product_ref_id=product_ref)
+        node_id = dev_res["node_id"]
+
+        # 1. Compact projection
+        compact_res = await _data(
+            client, "project_list_parameters", node_id=node_id, compact=True
+        )
+        assert compact_res["count"] > 0
+        first_compact = compact_res["items"][0]
+        assert "ref_id" in first_compact
+        assert "label" in first_compact
+        assert "value" in first_compact
+        assert "widget" not in first_compact
+        assert "default_value" not in first_compact
+        assert "access" not in first_compact
+
+        # 2. Query filter
+        full_res = await _data(client, "project_list_parameters", node_id=node_id)
+        label = next((p["label"] for p in full_res["items"] if p.get("label")), "")
+        assert label
+        needle = label[: max(3, len(label) // 2)]
+        query_res = await _data(
+            client, "project_list_parameters", node_id=node_id, query=needle
+        )
+        assert 0 < query_res["count"] <= full_res["count"]
+        assert all(
+            needle.casefold() in str(p.get("label", "")).casefold()
+            for p in query_res["items"]
+        )
+
+        # 3. Modified only filter
+        before_mod = await _data(
+            client, "project_list_parameters", node_id=node_id, modified_only=True
+        )
+        assert before_mod["count"] == 0
+
+        # Change one parameter value using a valid alternative choice
+        enums = [
+            p for p in full_res["items"] if p.get("widget", {}).get("type") == "enum"
+        ]
+        assert enums
+        target_param = enums[0]
+        ref = target_param["ref_id"]
+        detail = await _data(
+            client,
+            "project_get_parameter",
+            node_id=node_id,
+            parameter_ref_id=ref,
+        )
+        choices = detail.get("widget", {}).get("choices", [])
+        alt_choice = next(
+            str(c["value"])
+            for c in choices
+            if str(c["value"]) != str(target_param["value"])
+        )
+
+        await _data(
+            client,
+            "project_set_parameter",
+            node_id=node_id,
+            parameter_ref_id=ref,
+            value=alt_choice,
+        )
+
+        after_mod = await _data(
+            client, "project_list_parameters", node_id=node_id, modified_only=True
+        )
+        assert after_mod["count"] >= 1
+        assert any(p["ref_id"] == ref for p in after_mod["items"])
