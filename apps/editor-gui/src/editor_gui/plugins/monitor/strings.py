@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from editor_gui.strings import create_translator
+from editor_gui.strings import create_translator, shortcut
 
 _locale_dir = Path(__file__).parent / "locales"
 _ = create_translator("monitor", _locale_dir)
@@ -183,8 +183,8 @@ class MonitorStrings:
     def TOOL_COPY_HINT(self) -> str:
         return _(
             "Copy the selected telegrams (all shown if none is selected) to the clipboard "
-            "(Ctrl+C). Double-click a telegram to select its source device."
-        )
+            "({shortcut}). Double-click a telegram to select its source device."
+        ).format(shortcut=shortcut("C"))
 
     @property
     def STATUS_RECORDING(self) -> str:

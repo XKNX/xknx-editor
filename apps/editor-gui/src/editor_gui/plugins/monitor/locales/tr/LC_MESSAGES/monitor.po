@@ -127,8 +127,8 @@ msgstr "Tekrar oynatmayı iptal et"
 msgid "Copy"
 msgstr "Kopyala"
 
-msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
-msgstr "Seçili telegramları (hiçbiri seçili değilse gösterilenlerin tümünü) panoya kopyala (Ctrl+C). Kaynak cihazını seçmek için bir telegrama çift tıklayın."
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Seçili telegramları (hiçbiri seçili değilse gösterilenlerin tümünü) panoya kopyala ({shortcut}). Kaynak cihazını seçmek için bir telegrama çift tıklayın."
 
 msgid "Rec."
 msgstr "Kayıt"

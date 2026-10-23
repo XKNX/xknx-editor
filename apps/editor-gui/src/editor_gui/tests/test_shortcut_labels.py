@@ -9,7 +9,9 @@ from types import SimpleNamespace
 import pytest
 
 from editor_gui import web
-from editor_gui.strings import S, shortcut
+from editor_gui.plugins.monitor.strings import S as MONITOR_S
+from editor_gui.strings import S, get_locale, set_locale, shortcut
+from editor_gui.widgets.strings import S as WIDGET_S
 
 
 @pytest.mark.parametrize(
@@ -37,3 +39,28 @@ def test_browser_labels_follow_the_browser(
     label = S.SHORTCUT_REDO
     assert label == expected
     assert shortcut("0").endswith("+0")
+
+
+def test_labels_in_texts_and_the_comment_editor(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(web, "active_hub", None)
+    monkeypatch.setattr(sys, "platform", "darwin")
+    assert "(Cmd+C)" in MONITOR_S.TOOL_COPY_HINT
+    assert (WIDGET_S.SHORTCUT_BOLD, WIDGET_S.SHORTCUT_PASTE) == ("Cmd+B", "Cmd+V")
+    monkeypatch.setattr(sys, "platform", "win32")
+    assert "(Ctrl+C)" in MONITOR_S.TOOL_COPY_HINT
+
+
+def test_ctrl_is_named_in_the_ui_language(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(web, "active_hub", None)
+    monkeypatch.setattr(sys, "platform", "win32")
+    previous = get_locale()
+    try:
+        set_locale("de")
+        assert (shortcut("E"), WIDGET_S.SHORTCUT_UNDERLINE) == ("Strg+E", "Strg+U")
+        assert "(Strg+C)" in MONITOR_S.TOOL_COPY_HINT
+        monkeypatch.setattr(sys, "platform", "darwin")
+        assert shortcut("E") == "Cmd+E"
+    finally:
+        set_locale(previous)

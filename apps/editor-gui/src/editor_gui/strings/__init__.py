@@ -46,7 +46,10 @@ def shortcut(key: str, *, mac: str | None = None) -> str:
 
     hub = web.active_hub
     on_mac = hub.client_mac if hub is not None else sys.platform == "darwin"
-    return f"Cmd+{mac or key}" if on_mac else f"Ctrl+{key}"
+    if on_mac:
+        return f"Cmd+{mac or key}"
+    # Translators: the Ctrl key as shortcut labels name it, e.g. "Ctrl+Z".
+    return f"{_('Ctrl')}+{key}"
 
 
 class BaseStrings:

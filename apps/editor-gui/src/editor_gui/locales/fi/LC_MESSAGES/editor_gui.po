@@ -1416,3 +1416,6 @@ msgstr "Slovenia"
 
 msgid "Icelandic"
 msgstr "Islanti"
+
+msgid "Ctrl"
+msgstr "Ctrl"

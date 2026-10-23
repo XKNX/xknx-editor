@@ -127,8 +127,8 @@ msgstr "Peruuta toisto"
 msgid "Copy"
 msgstr "Kopioi"
 
-msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
-msgstr "Kopioi valitut sähkeet (kaikki näytetyt, jos mitään ei ole valittu) leikepöydälle (Ctrl+C). Kaksoisnapsauta sähkettä valitaksesi sen lähdelaitteen."
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Kopioi valitut sähkeet (kaikki näytetyt, jos mitään ei ole valittu) leikepöydälle ({shortcut}). Kaksoisnapsauta sähkettä valitaksesi sen lähdelaitteen."
 
 msgid "Rec."
 msgstr "Tall."

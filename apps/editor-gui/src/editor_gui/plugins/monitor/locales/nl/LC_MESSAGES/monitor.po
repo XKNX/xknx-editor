@@ -359,8 +359,8 @@ msgstr "Het afspelen annuleren"
 msgid "Copy"
 msgstr "Kopiëren"
 
-msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
-msgstr "De geselecteerde telegrammen (alle getoonde als er geen is geselecteerd) naar het klembord kopiëren (Ctrl+C). Dubbelklik op een telegram om het bronapparaat te selecteren."
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "De geselecteerde telegrammen (alle getoonde als er geen is geselecteerd) naar het klembord kopiëren ({shortcut}). Dubbelklik op een telegram om het bronapparaat te selecteren."
 
 msgid "Invalid frame"
 msgstr "Ongeldig frame"
