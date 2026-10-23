@@ -113,6 +113,20 @@ Tunnelling to a gateway's IP works through the container network. Gateway auto-d
 routing use multicast, which a bridged container does not receive — use `--network host` if you need
 those, and keep the password set because the port is then on the host network.
 
+## Verifying an image
+
+Every published image carries a signed build provenance: the GitHub Actions workflow of this
+repository built it from the commit in its `org.opencontainers.image.revision` label. Check it with
+the [GitHub CLI](https://cli.github.com/):
+
+```bash
+gh attestation verify oci://ghcr.io/xknx/xknx-editor-web:latest -R XKNX/xknx-editor
+```
+
+The attestations are listed under the repository's
+[Attestations](https://github.com/XKNX/xknx-editor/attestations). Images up to version 0.6.1 have
+no signed attestation yet.
+
 ## Building locally
 
 ```bash
