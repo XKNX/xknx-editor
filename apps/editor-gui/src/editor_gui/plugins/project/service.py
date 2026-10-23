@@ -402,6 +402,14 @@ def _co_instance_ref_from_row(
     )
 
 
+def _same_file(a: Path, b: Path) -> bool:
+    """Whether ``a`` and ``b`` name the same file (also in another spelling or case)."""
+    try:
+        return os.path.samefile(a, b)
+    except OSError:
+        return a.resolve(strict=False) == b.resolve(strict=False)
+
+
 def _rejection_text(exc: ValueError) -> str:
     message = str(exc)
     return S.VALIDATION_FAILED if message == VALIDATION_FAILED else message
@@ -1273,6 +1281,10 @@ class ProjectService:
         if not new_path.suffix:
             new_path = new_path.with_suffix(".xknx")
         password = self.project_password
+        home = self._path
+        if home is not None and _same_file(new_path, home):
+            # Its own file: already saved, as every change is.
+            return new_path
         with self._io_lock:
             # Snapshot the live (working) file BEFORE teardown; teardown closes the engine (releases
             # the file/journal) and writes the OLD home back. The live data is in the working file,
@@ -1285,9 +1297,14 @@ class ProjectService:
                 else new_path
             )
             # Replace any stale destination db/mirror so the fresh copy wins (a leftover mirror for
-            # this home must not shadow the just-saved data).
-            self._remove_project_file(working)
-            shutil.copyfile(src, working)
+            # this home must not shadow the just-saved data). Copied beside it first, so a failed
+            # copy leaves both files as they were.
+            try:
+                self._copy_atomic(src, working)
+            except OSError:
+                if home is not None:
+                    self.open(home, password)
+                raise
         self.open(new_path, password)
         self._log.info("project saved as", path=str(new_path))
         return new_path

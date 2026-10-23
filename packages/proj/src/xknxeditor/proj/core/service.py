@@ -540,7 +540,10 @@ class ProjectService:
     def open(self, path: Path | str, password: str | None = None) -> str:
         """Open the project at ``path``. A password-protected project needs its ``password``:
         :class:`ProjectPasswordRequired` without one, :class:`InvalidProjectPassword` for a wrong
-        one. The password is ignored for an unprotected project."""
+        one. The password is ignored for an unprotected project. A missing or empty file raises
+        :class:`FileNotFoundError` and is left as it is, never made into an empty project."""
+        if not Path(path).is_file() or Path(path).stat().st_size == 0:
+            raise FileNotFoundError(f"{path} is missing or empty, not a project")
         engine = make_engine(url_for(Path(path)))
         session = Session(engine)
         try:
