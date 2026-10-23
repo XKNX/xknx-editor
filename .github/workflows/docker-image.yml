@@ -69,6 +69,11 @@ jobs:
           # No provenance attestation: it is published as an extra "unknown/unknown" platform entry
           # in the image index, which the package page lists next to the real architectures.
           provenance: false
+          # Which source, commit and version the image was built from, readable with docker inspect.
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
           tags: |
             ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/xknx-editor-web:latest
             ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/xknx-editor-web:${{ steps.meta.outputs.version }}
@@ -86,6 +91,11 @@ jobs:
           # No provenance attestation: it is published as an extra "unknown/unknown" platform entry
           # in the image index, which the package page lists next to the real architectures.
           provenance: false
+          # Which source, commit and version the image was built from, readable with docker inspect.
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.meta.outputs.version }}
           tags: |
             ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/xknx-editor-ha:latest
             ${{ env.REGISTRY }}/${{ steps.meta.outputs.owner }}/xknx-editor-ha:${{ steps.meta.outputs.version }}
