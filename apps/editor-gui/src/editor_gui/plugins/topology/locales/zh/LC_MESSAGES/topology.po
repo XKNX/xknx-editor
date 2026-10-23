@@ -16,8 +16,8 @@ msgstr "未打开项目"
 msgid "Unassigned"
 msgstr "未分配"
 
-msgid "Drag to move, Ctrl/Cmd+scroll to zoom. Click a device to open it."
-msgstr "拖动以移动，Ctrl/Cmd+滚轮缩放。单击设备将其打开。"
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "拖动以移动，{key}+滚轮缩放。单击设备将其打开。"
 
 msgid "Physical"
 msgstr "物理"
@@ -31,8 +31,8 @@ msgstr "链接"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "哪些设备通过其组地址相互通信：左侧为发送设备，右侧为接收设备。"
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, Ctrl/Cmd+scroll to zoom."
-msgstr "单击以跟踪设备或组地址，双击以打开设备。拖动以移动，Ctrl/Cmd+滚轮缩放。"
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "单击以跟踪设备或组地址，双击以打开设备。拖动以移动，{key}+滚轮缩放。"
 
 msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
 msgstr "点按以跟踪设备或组地址，点按两次以打开设备。用两指缩放。"

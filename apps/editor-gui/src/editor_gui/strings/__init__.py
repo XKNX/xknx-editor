@@ -39,17 +39,26 @@ _base_locale_dir = Path(__file__).parent.parent / "locales"
 _ = create_translator("editor_gui", _base_locale_dir)
 
 
-def shortcut(key: str, *, mac: str | None = None) -> str:
-    """A key combination as the platform writes it: ``Ctrl+key``, or on a Mac ``Cmd+key`` (``mac``
-    replaces ``key`` there). In the browser view the browser's platform counts."""
+def _on_mac() -> bool:
+    """Whether shortcuts are those of a Mac; in the browser view the browser's platform counts."""
     from editor_gui import web
 
     hub = web.active_hub
-    on_mac = hub.client_mac if hub is not None else sys.platform == "darwin"
-    if on_mac:
-        return f"Cmd+{mac or key}"
+    return hub.client_mac if hub is not None else sys.platform == "darwin"
+
+
+def modifier_key() -> str:
+    """The key shortcuts are held with, as the platform names it: Cmd on a Mac, else Ctrl."""
+    if _on_mac():
+        return "Cmd"
     # Translators: the Ctrl key as shortcut labels name it, e.g. "Ctrl+Z".
-    return f"{_('Ctrl')}+{key}"
+    return _("Ctrl")
+
+
+def shortcut(key: str, *, mac: str | None = None) -> str:
+    """A key combination as the platform writes it: ``Ctrl+key``, or on a Mac ``Cmd+key`` (``mac``
+    replaces ``key`` there)."""
+    return f"{modifier_key()}+{mac if mac and _on_mac() else key}"
 
 
 class BaseStrings:

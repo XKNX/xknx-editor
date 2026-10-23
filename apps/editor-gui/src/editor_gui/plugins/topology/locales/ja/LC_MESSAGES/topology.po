@@ -16,8 +16,8 @@ msgstr "開いているプロジェクトがありません"
 msgid "Unassigned"
 msgstr "未割り当て"
 
-msgid "Drag to move, Ctrl/Cmd+scroll to zoom. Click a device to open it."
-msgstr "ドラッグで移動、Ctrl/Cmd+スクロールでズーム。デバイスをクリックすると開きます。"
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "ドラッグで移動、{key}+スクロールでズーム。デバイスをクリックすると開きます。"
 
 msgid "Physical"
 msgstr "物理"
@@ -31,8 +31,8 @@ msgstr "リンク"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "どのデバイスがグループ・アドレスを介してどのデバイスと通信しているか：送信デバイスは左、受信デバイスは右です。"
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, Ctrl/Cmd+scroll to zoom."
-msgstr "クリックでデバイスまたはグループ・アドレスをたどり、ダブルクリックでデバイスを開きます。ドラッグで移動、Ctrl/Cmd+スクロールでズーム。"
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "クリックでデバイスまたはグループ・アドレスをたどり、ダブルクリックでデバイスを開きます。ドラッグで移動、{key}+スクロールでズーム。"
 
 msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
 msgstr "タップでデバイスまたはグループ・アドレスをたどり、ダブルタップでデバイスを開きます。2本指でズームします。"

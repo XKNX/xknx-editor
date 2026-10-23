@@ -16,8 +16,8 @@ msgstr "Немає відкритого проєкту"
 msgid "Unassigned"
 msgstr "Не призначено"
 
-msgid "Drag to move, Ctrl/Cmd+scroll to zoom. Click a device to open it."
-msgstr "Перетягніть, щоб переміщати, Ctrl/Cmd+прокрутка для масштабування. Клацніть пристрій, щоб відкрити його."
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Перетягніть, щоб переміщати, {key}+прокрутка для масштабування. Клацніть пристрій, щоб відкрити його."
 
 msgid "Physical"
 msgstr "Фізична"
@@ -31,8 +31,8 @@ msgstr "Зв'язки"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Які пристрої обмінюються даними між собою через групові адреси: передавальні пристрої ліворуч, приймальні праворуч."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, Ctrl/Cmd+scroll to zoom."
-msgstr "Клацніть, щоб простежити пристрій або групову адресу, подвійне клацання відкриває пристрій. Перетягніть, щоб переміщати, Ctrl/Cmd+прокрутка для масштабування."
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "Клацніть, щоб простежити пристрій або групову адресу, подвійне клацання відкриває пристрій. Перетягніть, щоб переміщати, {key}+прокрутка для масштабування."
 
 msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
 msgstr "Торкніться, щоб простежити пристрій або групову адресу, подвійний дотик відкриває пристрій. Масштабуйте двома пальцями."

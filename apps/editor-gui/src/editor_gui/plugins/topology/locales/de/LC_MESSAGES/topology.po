@@ -85,14 +85,14 @@ msgstr "Applikation: {application}"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Welche Geräte über ihre Gruppenadressen miteinander sprechen: sendende Geräte links, empfangende Geräte rechts."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, Ctrl/Cmd+scroll to zoom."
-msgstr "Klicken, um einem Gerät oder einer Gruppenadresse zu folgen, Doppelklick öffnet ein Gerät. Ziehen zum Verschieben, Strg/Cmd+Scrollen zum Zoomen."
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "Klicken, um einem Gerät oder einer Gruppenadresse zu folgen, Doppelklick öffnet ein Gerät. Ziehen zum Verschieben, {key}+Scrollen zum Zoomen."
 
 msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
 msgstr "Antippen, um einem Gerät oder einer Gruppenadresse zu folgen, doppelt antippen öffnet ein Gerät. Mit zwei Fingern zoomen."
 
-msgid "Drag to move, Ctrl/Cmd+scroll to zoom. Click a device to open it."
-msgstr "Ziehen zum Verschieben, Strg/Cmd+Scrollen zum Zoomen. Klicke ein Gerät, um es zu öffnen."
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Ziehen zum Verschieben, {key}+Scrollen zum Zoomen. Klicke ein Gerät, um es zu öffnen."
 
 msgid "Show"
 msgstr "Anzeigen"

@@ -16,8 +16,8 @@ msgstr "Ningún proyecto abierto"
 msgid "Unassigned"
 msgstr "sin asignar"
 
-msgid "Drag to move, Ctrl/Cmd+scroll to zoom. Click a device to open it."
-msgstr "Arrastre para mover, Ctrl/Cmd+rueda para hacer zoom. Haga clic en un dispositivo para abrirlo."
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Arrastre para mover, {key}+rueda para hacer zoom. Haga clic en un dispositivo para abrirlo."
 
 msgid "Physical"
 msgstr "Física"
@@ -31,8 +31,8 @@ msgstr "Enlaces"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Qué dispositivos se comunican con cuáles a través de sus direcciones de grupo: dispositivos emisores a la izquierda, dispositivos receptores a la derecha."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, Ctrl/Cmd+scroll to zoom."
-msgstr "Haga clic para seguir un dispositivo o una dirección de grupo, doble clic para abrir un dispositivo. Arrastre para mover, Ctrl/Cmd+rueda para hacer zoom."
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "Haga clic para seguir un dispositivo o una dirección de grupo, doble clic para abrir un dispositivo. Arrastre para mover, {key}+rueda para hacer zoom."
 
 msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
 msgstr "Toque para seguir un dispositivo o una dirección de grupo, toque dos veces para abrir un dispositivo. Haga zoom con dos dedos."
