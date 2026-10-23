@@ -953,6 +953,21 @@ class DynamicUI:
         self.ui()
         return [(iid, rid) for iid, rid, _ in self._state.module_instances()]
 
+    def get_module_instance_arguments(self) -> dict[str, list[tuple[str, str]]]:
+        """After eval, the arguments of each top-level module instance as a project stores them:
+        ``(argument ref id relative to the application, value)``, numbers resolved (allocators and
+        base values applied)."""
+        self.ui()
+        result: dict[str, list[tuple[str, str]]] = {}
+        for iid, _, args in self._state.module_instances():
+            values: list[tuple[str, str]] = []
+            for ref_id, arg in args.items():
+                value = getattr(arg, "value", None)
+                if value is not None:
+                    values.append((ref_id, str(value)))
+            result[iid] = values
+        return result
+
     def set_com_obj_instance_ref(self, ref_id: str, coir: ComObjectInstanceRef) -> None:
         self._state.set_com_obj_instance_ref(ref_id, coir)
         self._invalidate()

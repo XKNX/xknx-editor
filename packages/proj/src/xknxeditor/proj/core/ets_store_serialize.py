@@ -600,8 +600,8 @@ class _StoreBuilder:
             module = _attr(
                 container,
                 "ModInst",
-                Id=mi.instance_id,
-                RefId=mi.ref_id,
+                Id=relidref(mi.instance_id),
+                RefId=relidref(mi.ref_id),
                 RepeatIndex=mi.repeat_index or None,
             )
             if mi.arguments:

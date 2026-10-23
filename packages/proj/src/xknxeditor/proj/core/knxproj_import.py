@@ -1827,10 +1827,17 @@ def _build_module_instance(mi: object, module_args: ModuleArgs) -> ModuleInstanc
     index come from ``module_args`` (captured from the raw XML, keyed by the on-disk ``@Id`` which
     equals ``identifier``), so a module-based device survives export.
     """
-    repeat_index, arguments = module_args.get(mi.identifier, ("", []))  # type: ignore[attr-defined]
+    identifier = str(mi.identifier)  # type: ignore[attr-defined]
+    module_def_id = str(mi.module_def_id)  # type: ignore[attr-defined]
+    repeat_index, arguments = module_args.get(identifier, ("", []))
+    parts = identifier.split("_")
+    if len(parts) > 2 and parts[0].startswith("M-") and parts[1].startswith("A-"):
+        # Written with the application id by earlier versions: kept relative, as everywhere else.
+        identifier = "_".join(parts[2:])
+        module_def_id = parts[2]
     return ModuleInstance(
-        instance_id=mi.identifier,  # type: ignore[attr-defined]
-        ref_id=mi.module_def_id,  # type: ignore[attr-defined]
+        instance_id=identifier,
+        ref_id=module_def_id,
         repeat_index=repeat_index,
         arguments=arguments,
     )

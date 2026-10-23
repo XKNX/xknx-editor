@@ -1020,6 +1020,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 # The current signed master, cached with the app's master data.
                 fetch_master=True,
                 master_cache_dir=config_dir(),
+                module_arguments=project.module_arguments(),
             )
             if result.unverifiable_folders:
                 warnings.append(

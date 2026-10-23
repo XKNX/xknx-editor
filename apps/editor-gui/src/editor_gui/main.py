@@ -1318,6 +1318,7 @@ class KnxGuiApp:
         # Snapshot the program refs now (UI thread) together with `source`, so switching projects
         # mid-export can't pair project A's file with project B's manufacturer bundle.
         program_refs = self._project_service.program_refs()
+        module_arguments = self._project_service.module_arguments()
         remove_unused = self._export_remove_unused
         password = self._project_service.project_password
         # Set by the progress window's Cancel; the export stops at its next step.
@@ -1392,6 +1393,7 @@ class KnxGuiApp:
                     certificate_signer=certificate_signer,
                     remove_unused_products=remove_unused,
                     cancelled=cancel_requested.is_set,
+                    module_arguments=module_arguments,
                 )
                 used_schema = result.schema
                 self._last_export_path = dest

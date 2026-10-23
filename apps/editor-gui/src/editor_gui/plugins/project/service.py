@@ -3499,6 +3499,16 @@ class ProjectService:
                 refs.add(ref)
         return refs
 
+    @io_guarded(dict)
+    def module_arguments(self) -> dict[int, dict[str, list[tuple[str, str]]]]:
+        """The module instance arguments of the project's devices, by device id, for the
+        ``.knxproj`` export of instances that have none stored (devices added in the editor)."""
+        result: dict[int, dict[str, list[tuple[str, str]]]] = {}
+        for device in self.devices:
+            if device.module_instances:
+                result[device.node_id] = device.get_module_instance_arguments()
+        return result
+
     @io_guarded(list)
     def missing_program_refs(self) -> list[str]:
         """Hardware-program refs of devices whose application is NOT in the local catalog.
