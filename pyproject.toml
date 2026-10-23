@@ -49,10 +49,26 @@ source = [
     "packages/recover/src",
     "apps/editor-gui/src",
 ]
-omit = ["*/files/*", "*/intermediate/*", "*/tests/*"]
+omit = [
+    "*/files/*",
+    "*/intermediate/*",
+    "*/tests/*",
+    # tray icon backends of Windows and macOS: CI runs on Linux, whose backend is measured
+    "*/web/tray/windows.py",
+    "*/web/tray/macos.py",
+]
 relative_files = true
 # sys.monitoring (Python 3.12+): same result as the default tracer, in about 60 % of the time
 core = "sysmon"
+
+[tool.coverage.report]
+# Lines that never run by design
+exclude_also = [
+    "if TYPE_CHECKING:",
+    '@(typing\.)?overload',
+    "raise NotImplementedError",
+    'if __name__ == "__main__":',
+]
 
 [tool.uv.workspace]
 members = ["packages/*", "apps/*"]

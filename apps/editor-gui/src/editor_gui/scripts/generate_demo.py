@@ -36,38 +36,43 @@ def generate_demo(output_path: Path, catalog_path: Path) -> None:
         return
 
     catalog = CatalogService(catalog_path)
-    products = {
-        p.application_id: p for p in catalog.list_products() if p.application_id
-    }
+    try:
+        products = {
+            p.application_id: p for p in catalog.list_products() if p.application_id
+        }
 
-    svc = ProjectService()
-    pid = svc.create(output_path, "P-DEMO")
+        svc = ProjectService()
+        pid = svc.create(output_path, "P-DEMO")
 
-    # The baseline already seeds the 1.1 TP line where end devices belong; reuse it.
-    segment_id = _tp_segment(svc, pid)
-    print("Using seeded Area 1 / Line 1.1 (TP) for demo devices")
+        # The baseline already seeds the 1.1 TP line where end devices belong; reuse it.
+        segment_id = _tp_segment(svc, pid)
+        print("Using seeded Area 1 / Line 1.1 (TP) for demo devices")
 
-    for demo in DEMO_DEVICES:
-        product = products.get(demo.application_id)
-        app = catalog.get_application(demo.application_id)
-        if product is None or app is None:
-            print(f"Warning: {demo.application_id} not in catalog, skipping")
-            continue
-        octet = int(demo.individual_address.split(".")[2])
-        init_device = _Device(node_id=0, name=demo.name, app=app, individual_address="")
-        module_instances = init_device.get_module_instances()
-        svc.add_device(
-            pid,
-            segment_id,
-            product.product_ref_id,
-            address=octet,
-            name=demo.name,
-            hardware2program_ref_id=product.hardware2program_ref_id,
-            module_instances=module_instances if module_instances else None,
-        )
-        print(f"Added: {demo.name} ({demo.individual_address})")
+        for demo in DEMO_DEVICES:
+            product = products.get(demo.application_id)
+            app = catalog.get_application(demo.application_id)
+            if product is None or app is None:
+                print(f"Warning: {demo.application_id} not in catalog, skipping")
+                continue
+            octet = int(demo.individual_address.split(".")[2])
+            init_device = _Device(
+                node_id=0, name=demo.name, app=app, individual_address=""
+            )
+            module_instances = init_device.get_module_instances()
+            svc.add_device(
+                pid,
+                segment_id,
+                product.product_ref_id,
+                address=octet,
+                name=demo.name,
+                hardware2program_ref_id=product.hardware2program_ref_id,
+                module_instances=module_instances if module_instances else None,
+            )
+            print(f"Added: {demo.name} ({demo.individual_address})")
 
-    svc.close(pid)
+        svc.close(pid)
+    finally:
+        catalog.close()
     print(f"\nDemo project saved to: {output_path}")
 
 
