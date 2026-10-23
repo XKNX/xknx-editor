@@ -7,8 +7,7 @@ same contract from Python: ``build_<container>_properties`` from :mod:`propertie
 produces the ``{pid: bytes}`` map, and this module ships it to the device via the standard
 ``DMP_InterfaceObjectWrite_R`` procedure.
 
-Container ↔ Interface-Object-Index (odx) assignments come from
-``Parameters.decompiled.cs`` lines 13773-13902 (``ParametersType`` constructor).
+Container ↔ Interface-Object-Index (odx) assignments come from the vendor plug-in.
 
 Only ``DaliDevice`` (odx=11) is wired in this iteration — a strict MVP so we can validate
 the pipeline against hardware before porting the remaining containers.
@@ -44,8 +43,8 @@ CONTAINER_ODX: dict[str, int] = {
 class PropertyWrite:
     """One A_PropertyValue_Write to run: Interface-Object-Index + PID + payload.
 
-    The vendor's ``Property`` struct in ``Parameters.decompiled.cs`` carries both ``Size``
-    and ``NoE``; the plug-in supplies ``Size=1, NoE=1`` even for the line-fanout PIDs
+    The vendor's ``Property`` struct carries both ``Size`` and ``NoE``; the plug-in supplies
+    ``Size=1, NoE=1`` even for the line-fanout PIDs
     (``_DALIDEVICE_LINE_PIDS``) whose ``data`` is two bytes. We mirror that: ``count=1``
     on every write, and let the device unpack according to its own property-table.
     Switching ``count`` to ``len(data)`` for fanout PIDs is still an open question that

@@ -34,7 +34,7 @@ _NS = f"{{{_N141_NS}}}"
 
 
 # Per PID the ``DaliDevice`` properties: (xml tag suffix under <DaliDevice>, byte encoder).
-# Order matches ``DaliDeviceType.GetPropertyImage()`` in Parameters.decompiled.cs. The
+# Order matches ``DaliDeviceType.GetPropertyImage()``. The
 # property's ``Size`` byte in the KNX frame is implied by the encoder (1 for Byte/Enum/BI,
 # 2 for UShort, 3 for Date/Time); the ETS plug-in sends them with ``NoE=1``.
 #
@@ -105,8 +105,8 @@ _DALIDEVICE_LINE_PIDS: tuple[tuple[int, str, str], ...] = (
 )
 
 
-# Vendor defaults from ``Parameters.decompiled.cs`` constructors (DaliDeviceType +
-# DaliDeviceLineType). Values here mirror the C# field-initializer so a BLOB without the
+# Vendor defaults from the ``DaliDeviceType`` + DaliDeviceLineType constructors. Values here
+# mirror the C# field-initializer so a BLOB without the
 # element produces the same byte on the wire as the plug-in would. Keys match the leaf tag
 # suffix the properties table uses (so missing scalars + fanout fields both resolve).
 _DEFAULTS: dict[str, str] = {
@@ -164,14 +164,14 @@ _DEFAULTS: dict[str, str] = {
     "DaliDeviceNightModeImmidiateOn": "BI_FALSE",
     "DaliDeviceNightModeImmidiateOff": "BI_FALSE",
     "DaliDeviceBehaviourAfterFullDownload": "BEHAV_AFT_DOWNLOAD_ON",
-    # DaliDeviceLine per-line defaults (constructor at Parameters.decompiled.cs:2311).
+    # DaliDeviceLine per-line defaults.
     "DaliDeviceLineFailureLimitEcg": "1",
     "DaliDeviceLineLineMode": "LINEMODE_BROADCAST",
     "DaliDeviceLineEcgLineTestEnable": "BI_TRUE",
 }
 
 # ``DaliDeviceType`` always carries exactly two ``DaliDeviceLine`` instances (``_line =
-# new DaliDeviceLineType[2]`` at Parameters.decompiled.cs:2440).
+# new DaliDeviceLineType[2]``).
 _DALIDEVICE_LINE_COUNT = 2
 
 

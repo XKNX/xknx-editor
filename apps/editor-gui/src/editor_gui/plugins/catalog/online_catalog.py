@@ -710,7 +710,7 @@ class OnlineCatalogClient:
         Mirrors the ``POST Download/DownloadProduct`` endpoint with a JSON body
         ``{"CatalogIds": [...], "LanguageIds": [...]}``. The response is a ZIP that WRAPS the actual
         ``.knxprod`` as an entry named ``products.knxprod`` (alongside an ``id-mapping.xml``), so the
-        inner archive is extracted before returning (verified against the decompiled ETS downloader).
+        inner archive is extracted before returning.
         """
         if not catalog_item_ids:
             raise OnlineCatalogError("no catalog item ids given")

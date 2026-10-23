@@ -6,7 +6,7 @@ Siemens N141/03 Parameters sections — ``Byte``, ``UShort``, ``Date``, ``Time``
 ``BinaryInformation``. The property-table itself (``dict[int, bytes]``) is built per
 section in :mod:`properties` by calling these encoders in the vendor-defined order.
 
-Reference (decompiled, kept here as byte-for-byte provenance):
+Encoding table, kept here as byte-for-byte provenance:
 * ``Byte``                 → ``[value]``                                   (1 byte)
 * ``UShort``               → ``[value >> 8, value & 0xFF]``                (2 bytes, big-endian)
 * ``Date``                 → ``[day, month, year % 100]``                  (3 bytes)
@@ -63,7 +63,7 @@ def encode_time(value: time | datetime | str) -> bytes:
 
 def encode_enum(enum_name: str, value: str) -> bytes:
     """Enum values byte-encode as their **runtime** enum constant (``public enum X {
-    TOKEN = N, ... }`` in Parameters.decompiled.cs), not necessarily the XML list
+    TOKEN = N, ... }``), not necessarily the XML list
     position. ``ENUM_RUNTIME_VALUES`` carries the explicit mappings where they diverge;
     for every other enum, the list position in ``ENUM_TOKENS`` matches the runtime value
     (verified against the C# decompile)."""

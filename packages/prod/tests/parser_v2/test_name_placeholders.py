@@ -3,7 +3,7 @@
 The modifier grammar mirrors the one applications use to label repeated channels, buttons and
 communication objects (e.g. ``Row {{ChannelIdx Format=Alpha Offset=1}}`` renders ``Row A`` on
 channel 0, ``Row B`` on channel 1, ...). Reference values below come from invoking the real
-template renderer at runtime (see ``.references/_decompiled_641/_extracted/loader_v2_dyndata``).
+template renderer at runtime.
 """
 
 from __future__ import annotations

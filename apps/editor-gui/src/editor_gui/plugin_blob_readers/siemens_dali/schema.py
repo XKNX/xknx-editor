@@ -12,12 +12,11 @@ Two lookups together give every XML leaf in ``BLOB_PARA`` a typed meaning:
 offer Add/Remove without a per-type regex in the UI code. Each spec maps a container tag
 (e.g. ``SensorList``, ``Presence``, ``ConnectedEcgs``) to its item tag + the field that
 marks a slot as occupied + its identifier/name fields + an optional ``item_types`` catalog
-for an "Add" dropdown. The data is derived from the ``IList<X> _name = new X[N]`` lines in
-``Parameters.decompiled.cs`` plus the matching ``Type``/``AttributeList`` classes.
+for an "Add" dropdown. The data is derived from the vendor plug-in's ``IList<X> _name =
+new X[N]`` lines plus the matching ``Type``/``AttributeList`` classes.
 
-Both tables are generated from the decompiled ``XmlAttribn141_*Enum`` / ``*TypeAttributeList``
-classes; see the one-off extraction scripts under ``.references`` for the recipe. The names
-are kept verbatim so a future re-run can diff cleanly.
+Both tables are generated from the plug-in's ``XmlAttribn141_*Enum`` / ``*TypeAttributeList``
+classes. The names are kept verbatim so a future re-run can diff cleanly.
 """
 
 from __future__ import annotations
@@ -26,7 +25,7 @@ import re
 from dataclasses import dataclass
 
 # Non-positional runtime enum values: generated from ``public enum X { TOKEN=VAL, ... }``
-# in Parameters.decompiled.cs. The byte emitted on the wire is the runtime value, which is
+# declarations. The byte emitted on the wire is the runtime value, which is
 # NOT always the token's XML list position — e.g. ``AckBehavior.ACKBEHAV_ALL = 3``, not
 # 1. Only enums whose runtime value differs from the list position are listed here; the
 # encoder falls back to the list position for enums absent from this table.
@@ -546,7 +545,7 @@ SENSOR_TYPES: tuple[ItemTypeSpec, ...] = (*_PUSHBUTTON_4FOLD, *_COMBI_SENSORS)
 
 
 # --- Collection specs ---------------------------------------------------------------------
-# Derived from Parameters.decompiled.cs IList<X> _y = new X[N] declarations plus the
+# Derived from IList<X> _y = new X[N] declarations plus the
 # matching Type / AttributeList classes in ImportExportSchema. Only user-relevant
 # containers are modelled; the rest render as a flat read-only table in the generic
 # section view. Add/Remove is driven entirely by this table.
