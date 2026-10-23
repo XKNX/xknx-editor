@@ -1742,3 +1742,88 @@ async def test_list_parameters_filters_and_compact(tmp_path: Path) -> None:
         )
         assert after_mod["count"] >= 1
         assert any(p["ref_id"] == ref for p in after_mod["items"])
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_semantic_addressing_with_channel_and_direct_set(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        products = await _data(client, "catalog_list_products")
+        product_ref = products["items"][0]["product_ref_id"]
+        dev_res = await _data(client, "project_add_device", product_ref_id=product_ref)
+        node_id = dev_res["node_id"]
+
+        params_res = await _data(client, "project_list_parameters", node_id=node_id)
+        # Find an enum parameter with label
+        target = None
+        for p in params_res["items"]:
+            if (
+                p.get("label")
+                and p.get("widget", {}).get("type") == "enum"
+            ):
+                target = p
+                break
+        assert target is not None
+        target_label = target["label"]
+        channel = target.get("channel")
+        detail = await _data(
+            client,
+            "project_get_parameter",
+            node_id=node_id,
+            parameter_ref_id=target["ref_id"],
+        )
+        choices = detail.get("widget", {}).get("choices", [])
+        assert len(choices) > 1
+        alt_choice = next(
+            c for c in choices if str(c["value"]) != str(target["value"])
+        )
+        alt_val = str(alt_choice["value"])
+        alt_text = alt_choice["label"]
+
+        # 1. Resolve with label (+ channel if present)
+        resolved = await _data(
+            client,
+            "project_resolve_parameter",
+            node_id=node_id,
+            label=target_label,
+            channel=channel,
+            value_label=alt_text,
+        )
+        assert resolved["ref_id"] == target["ref_id"]
+        assert resolved["resolved_value"] == alt_val
+
+        # 2. Direct set using label and value_label (no parameter_ref_id)
+        set_res = await _data(
+            client,
+            "project_set_parameter",
+            device_address="1.1.1",
+            label=target_label,
+            channel=channel,
+            value_label=alt_text,
+        )
+        assert set_res["ref_id"] == target["ref_id"]
+        assert str(set_res["value"]) == alt_val
+
+        # 3. Direct set via project_batch using label and value
+        # Pick another choice or switch back to original
+        orig_val = str(target["value"])
+        batch_res = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "set_parameter",
+                    "params": {
+                        "device_address": "1.1.1",
+                        "label": target_label,
+                        "channel": channel,
+                        "value": orig_val,
+                    },
+                }
+            ],
+        )
+        assert batch_res["applied"] is True
+        assert batch_res["ok"] == 1
+        assert str(batch_res["results"][0]["result"]["value"]) == orig_val

@@ -151,6 +151,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 p.get("subtree_id"),
                 label,
                 p.get("value_label"),
+                channel=p.get("channel"),
                 node_id=node_id,
                 tree_token=p.get("tree_token"),
             )
@@ -392,26 +393,24 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         Supported ops with required params (optional params in brackets) and success result fields:
         - add_device: product_ref_id [name] -> {node_id}; uses the first matching catalog product.
-        - rename_device: node_id, name -> {node_id}.
-        - set_individual_address: node_id, address -> {node_id, address}.
-        - set_parameter: node_id, (parameter_ref_id | label [subtree_id tree_token] [value_label]),
-          value? -> {node_id, ref_id, requested, value, active, changed?, lost_links?}. Address the
-          parameter by parameter_ref_id, or by label (resolved AT THIS OP'S TURN within subtree_id,
-          so a child a prior op in the batch just activated resolves; a SCOPED label requires
-          tree_token from the project_parameter_tree response its subtree_id came from, so an op
-          whose scope an earlier batch op invalidated fails explicitly instead of silently retargeting;
+        - rename_device: (node_id | device_address), name -> {node_id, device_address, name}.
+        - set_individual_address: (node_id | device_address), address -> {node_id, device_address, address}.
+        - set_parameter: (node_id | device_address), (parameter_ref_id | label [channel] [subtree_id tree_token] [value_label]),
+          value? -> {node_id, device_address, ref_id, requested, value, active, changed?, lost_links?}. Address the
+          parameter by parameter_ref_id, or semantically by label (resolved AT THIS OP'S TURN within channel or subtree_id,
+          so a child a prior op in the batch just activated resolves; channel scopes by name e.g. 'A' without needing tree_token;
           value_label gives an enum's value). value is read back after the edit; changed lists
           calculated side effects; lost_links lists links a function/mode change dropped.
-        - set_com_object_flag: node_id, com_object_ref_id, flag, value -> {node_id, com_object_ref_id}.
+        - set_com_object_flag: (node_id | device_address), com_object_ref_id, flag, value -> {node_id, device_address, com_object_ref_id}.
         - create_group_address: [address, name] -> {group_address_id}.
-        - rename_group_address: group_address_id, name -> {group_address_id}.
-        - set_group_address_dpt: group_address_id [dpt; omitted/null clears] -> {group_address_id}.
-        - remove_group_address: group_address_id -> {group_address_id}.
-        - link_com_object: node_id, com_object_ref_id, group_address_id [is_sending=false] ->
-          {link_id, node_id, com_object_ref_id, com_object_db_id, group_address_id, is_sending,
+        - rename_group_address: (group_address_id | group_address), name -> {group_address_id, group_address, name}.
+        - set_group_address_dpt: (group_address_id | group_address) [dpt; omitted/null clears] -> {group_address_id, group_address, dpt}.
+        - remove_group_address: (group_address_id | group_address) -> {group_address_id, group_address}.
+        - link_com_object: (node_id | device_address), com_object_ref_id, (group_address_id | group_address) [is_sending=false] ->
+          {link_id, node_id, device_address, com_object_ref_id, com_object_db_id, group_address_id, group_address, is_sending,
           already_linked, dpt_mismatch?, other_sending_group_address_ids?} (same feedback as the
           standalone tool; idempotent).
-        - unlink_com_object: assignment_id -> {assignment_id}.
+        - unlink_com_object: assignment_id | ((node_id | device_address), com_object_ref_id, (group_address_id | group_address)) -> {assignment_id}.
         - create_area: area_number [name] -> {area_id}.
         - create_line: area_id, line_number [name] -> {line_id}.
 

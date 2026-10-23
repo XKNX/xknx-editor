@@ -391,18 +391,14 @@ def resolve_in_scope(
     label: str,
     value_label: str | None = None,
     *,
+    channel: str | None = None,
     node_id: int | None = None,
     tree_token: str | None = None,
 ) -> dict[str, Any]:
-    """:func:`resolve_parameter_ref` within an optional ``subtree_id`` scope of ``roots``. Raises
-    ValueError for a stale scope token, an unknown scope, or an ambiguous/unknown label. Shared by
-    project_resolve_parameter and the batch tool's apply-time resolution.
-
-    When ``subtree_id`` is given, ``tree_token`` is checked against the CURRENT tree's fingerprint:
-    a path can keep existing after a structural change but point to a different container — a bare
-    path cannot detect that silently, so a scoped mutation requires the token obtained from the same
-    tree read. The check runs HERE (not at batch entry) so earlier ops in the same batch that reshape
-    the tree invalidate later scoped ops of the same batch rather than silently retargeting them."""
+    """:func:`resolve_parameter_ref` within an optional ``subtree_id`` or ``channel`` scope of ``roots``.
+    Raises ValueError for a stale scope token, an unknown scope, or an ambiguous/unknown label. Shared by
+    project_resolve_parameter and the batch tool's apply-time resolution."""
+    search_roots = roots
     if subtree_id is not None:
         if tree_token is None:
             raise ValueError(
@@ -424,8 +420,55 @@ def resolve_in_scope(
                 f"no tab/block at id {subtree_id!r}; call project_parameter_tree(outline=True) "
                 "for the current ids"
             )
-        return resolve_parameter_ref([found], label, value_label)
-    return resolve_parameter_ref(roots, label, value_label)
+        search_roots = [found]
+
+    param_pairs = _collect_ui_parameters_with_ancestry(search_roots)
+    if channel:
+        param_pairs = [
+            (p, anc)
+            for p, anc in param_pairs
+            if any(_matches_channel(channel, h) for h in anc)
+        ]
+        if not param_pairs:
+            raise ValueError(f"no active parameters found in channel {channel!r}")
+
+    want = label.strip().casefold()
+    matches = [
+        (p, anc)
+        for p, anc in param_pairs
+        if (p.label or "").strip().casefold() == want
+    ]
+    if not matches:
+        scope_str = (
+            f"in channel {channel!r}"
+            if channel
+            else "in this scope"
+        )
+        raise ValueError(f"no active parameter labelled {label!r} {scope_str}")
+    if len(matches) > 1:
+        cands = ", ".join(sorted(p.ref_id for p, _ in matches))
+        scope_hint = (
+            "narrow the scope with channel or subtree_id"
+            if not channel
+            else "narrow the scope"
+        )
+        raise ValueError(
+            f"parameter label {label!r} is ambiguous ({len(matches)} matches: {cands}); "
+            f"{scope_hint}"
+        )
+    p, anc = matches[0]
+    out: dict[str, Any] = {
+        "ref_id": p.ref_id,
+        "label": p.label,
+        "value": p.value,
+        "access": getattr(p.access, "name", str(p.access)),
+    }
+    if anc:
+        out["channel"] = anc[0]
+        out["path"] = " / ".join(anc)
+    if value_label is not None:
+        out["resolved_value"] = _resolve_enum_value(p.widget, value_label, p.label)
+    return out
 
 
 def _ui_node(
@@ -1550,6 +1593,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         label: str,
         node_id: int | None = None,
         device_address: str | None = None,
+        channel: str | None = None,
         subtree_id: str | None = None,
         value_label: str | None = None,
         tree_token: str | None = None,
@@ -1559,20 +1603,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         ``label`` is matched EXACTLY (case-insensitive) among the device's currently ACTIVE
         parameters, within a scope. Labels are NOT unique (a device repeats a label per channel), so:
+        - pass ``channel`` (e.g. 'A', 'Kanal A', '1') to scope to a channel by name without needing
+          index paths or tokens;
         - pass ``subtree_id`` (a container ``id`` from project_parameter_tree(outline=True)) to scope
-          the match to one channel/block — strongly recommended on a large device;
+          the match to one channel/block;
         - a label that matches several parameters raises with the candidate ref_ids (narrow the
           scope); a label that matches none raises too. It never guesses.
         With ``value_label`` (an enum choice's text) the result also carries ``resolved_value``, the
         raw value to pass to project_set_parameter.
 
-        A scoped call (with ``subtree_id``) REQUIRES ``tree_token`` from the SAME
-        project_parameter_tree response the id came from. A path can keep existing after a
-        structural change but point to a different container, which would silently retarget the
-        write; the token guards against that. A stale token raises; re-read the tree to refresh.
-
-        Returns {ref_id, label, value, access, resolved_value?}. This resolves only — pass ``ref_id``
-        (and ``resolved_value``) to project_set_parameter to change it."""
+        Returns {ref_id, label, value, access, resolved_value?, channel?, path?}."""
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
@@ -1582,6 +1622,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 subtree_id,
                 label,
                 value_label,
+                channel=channel,
                 node_id=dev_id,
                 tree_token=tree_token,
             )
@@ -2137,21 +2178,26 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_set_parameter(
-        parameter_ref_id: str,
-        value: str,
+        parameter_ref_id: str | None = None,
+        value: str | None = None,
         node_id: int | None = None,
         device_address: str | None = None,
+        label: str | None = None,
+        channel: str | None = None,
+        subtree_id: str | None = None,
+        value_label: str | None = None,
+        tree_token: str | None = None,
     ) -> dict[str, Any]:
-        """Set an application parameter. Pass the parameter's `ref_id` (from project_list_parameters,
-        or project_parameter_tree) as the `parameter_ref_id` argument with node_id or device_address;
-        use a `value` permitted by that parameter's `widget`.
+        """Set an application parameter. Pass the parameter's `parameter_ref_id` (from project_list_parameters,
+        or project_parameter_tree) with node_id or device_address, and a `value` permitted by that
+        parameter's `widget`.
+
+        Alternatively, use semantic addressing: pass `label` (with optional `channel` or `subtree_id` scope)
+        instead of `parameter_ref_id`, and `value_label` (an enum choice's text) instead of raw `value`.
 
         When you configure a device's push-button / display function (e.g. a glass push button, room
         controller), ALWAYS also set its display symbols and key labels/name — do not leave them at
-        their defaults. Mirror an equivalent function on another button or device (read it with
-        project_parameter_tree and copy the symbol/label parameter values), or choose fitting symbols
-        yourself. Setting a function type usually reveals extra symbol/label parameters; re-read the
-        block with project_parameter_tree and set them too, so the button shows correctly on the device.
+        their defaults.
 
         Returns {ref_id, requested, value, active, changed?, lost_links?}: ``value`` is read back
         AFTER the edit (may be a normalized form of ``requested``, or null with ``active=false`` if
@@ -2165,21 +2211,51 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             dev_id = device.node_id
             if parameters_in_plugin(device):
                 raise ToolError(PLUGIN_PARAMETERS_ERROR.format(node_id=dev_id))
+
+            target_ref = parameter_ref_id
+            target_val = value
+
+            if not target_ref:
+                if not label:
+                    raise ToolError(
+                        "project_set_parameter needs parameter_ref_id or label"
+                    )
+                try:
+                    resolved = resolve_in_scope(
+                        list(device.get_ui()),
+                        subtree_id,
+                        label,
+                        value_label,
+                        channel=channel,
+                        node_id=dev_id,
+                        tree_token=tree_token,
+                    )
+                except ValueError as exc:
+                    raise ToolError(str(exc)) from exc
+                target_ref = resolved["ref_id"]
+                if target_val is None:
+                    target_val = resolved.get("resolved_value")
+
+            if target_val is None:
+                raise ToolError(
+                    "project_set_parameter needs value (or value_label with a label)"
+                )
+
             if not any(
-                p.ref_id == parameter_ref_id
+                p.ref_id == target_ref
                 for p in _collect_ui_parameters(device.get_ui())
             ):
                 raise ToolError(
-                    f"no parameter {parameter_ref_id!r} on device {dev_id}; "
+                    f"no parameter {target_ref!r} on device {dev_id}; "
                     "call project_list_parameters for valid ref_ids"
                 )
             # edit_params (not set_param): applies and reconciles as one undo step and raises on
             # reject WITHOUT the GUI's stash-and-retry, so a rejected MCP set never silently takes
             # effect on a later edit.
             changes = project.edit_params(
-                device, [(parameter_ref_id, value)], mode="edit"
+                device, [(target_ref, target_val)], mode="edit"
             )
-            return param_change_result(device, parameter_ref_id, value, changes)
+            return param_change_result(device, target_ref, target_val, changes)
 
         return ctx.run_locked(_set)
 
