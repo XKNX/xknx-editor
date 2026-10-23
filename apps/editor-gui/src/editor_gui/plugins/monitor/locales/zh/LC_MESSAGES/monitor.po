@@ -127,8 +127,8 @@ msgstr "取消回放"
 msgid "Copy"
 msgstr "复制"
 
-msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
-msgstr "将所选电报（未选择时为所有显示的电报）复制到剪贴板（Ctrl+C）。双击电报可选择其来源设备。"
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "将所选电报（未选择时为所有显示的电报）复制到剪贴板（{shortcut}）。双击电报可选择其来源设备。"
 
 msgid "Rec."
 msgstr "记录"

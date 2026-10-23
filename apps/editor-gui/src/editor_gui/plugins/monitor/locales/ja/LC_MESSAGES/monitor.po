@@ -127,8 +127,8 @@ msgstr "リプレイをキャンセル"
 msgid "Copy"
 msgstr "コピー"
 
-msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
-msgstr "選択したテレグラム（未選択の場合は表示中のすべて）をクリップボードにコピーします (Ctrl+C)。テレグラムをダブルクリックすると、その送信元デバイスを選択します。"
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "選択したテレグラム（未選択の場合は表示中のすべて）をクリップボードにコピーします ({shortcut})。テレグラムをダブルクリックすると、その送信元デバイスを選択します。"
 
 msgid "Rec."
 msgstr "記録"

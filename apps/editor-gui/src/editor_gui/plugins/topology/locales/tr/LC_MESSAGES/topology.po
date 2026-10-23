@@ -16,8 +16,8 @@ msgstr "Açık proje yok"
 msgid "Unassigned"
 msgstr "Atanmamış"
 
-msgid "Drag to move, Ctrl/Cmd+scroll to zoom. Click a device to open it."
-msgstr "Taşımak için sürükleyin, yakınlaştırmak için Ctrl/Cmd+kaydırma. Açmak için bir cihaza tıklayın."
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Taşımak için sürükleyin, yakınlaştırmak için {key}+kaydırma. Açmak için bir cihaza tıklayın."
 
 msgid "Physical"
 msgstr "Fiziksel"
@@ -31,8 +31,8 @@ msgstr "Bağlantılar"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Hangi cihazların grup adresleri üzerinden hangileriyle iletişim kurduğu: gönderen cihazlar solda, alıcı cihazlar sağda."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, Ctrl/Cmd+scroll to zoom."
-msgstr "Bir cihazı veya grup adresini izlemek için tıklayın, bir cihazı açmak için çift tıklayın. Taşımak için sürükleyin, yakınlaştırmak için Ctrl/Cmd+kaydırma."
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "Bir cihazı veya grup adresini izlemek için tıklayın, bir cihazı açmak için çift tıklayın. Taşımak için sürükleyin, yakınlaştırmak için {key}+kaydırma."
 
 msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
 msgstr "Bir cihazı veya grup adresini izlemek için dokunun, bir cihazı açmak için çift dokunun. İki parmakla yakınlaştırın."

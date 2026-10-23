@@ -127,8 +127,8 @@ msgstr "Annuller genafspilningen"
 msgid "Copy"
 msgstr "Kopier"
 
-msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
-msgstr "Kopier de valgte telegrammer (alle viste, hvis ingen er valgt) til udklipsholderen (Ctrl+C). Dobbeltklik på et telegram for at vælge dets kildeenhed."
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Kopier de valgte telegrammer (alle viste, hvis ingen er valgt) til udklipsholderen ({shortcut}). Dobbeltklik på et telegram for at vælge dets kildeenhed."
 
 msgid "Rec."
 msgstr "Opt."

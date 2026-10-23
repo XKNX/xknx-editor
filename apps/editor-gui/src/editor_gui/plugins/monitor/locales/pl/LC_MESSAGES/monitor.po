@@ -127,8 +127,8 @@ msgstr "Anuluj odtwarzanie"
 msgid "Copy"
 msgstr "Kopiuj"
 
-msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
-msgstr "Kopiuje wybrane telegramy (wszystkie wyświetlane, jeśli żaden nie jest wybrany) do schowka (Ctrl+C). Dwukrotne kliknięcie telegramu wybiera jego urządzenie źródłowe."
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Kopiuje wybrane telegramy (wszystkie wyświetlane, jeśli żaden nie jest wybrany) do schowka ({shortcut}). Dwukrotne kliknięcie telegramu wybiera jego urządzenie źródłowe."
 
 msgid "Rec."
 msgstr "Rej."

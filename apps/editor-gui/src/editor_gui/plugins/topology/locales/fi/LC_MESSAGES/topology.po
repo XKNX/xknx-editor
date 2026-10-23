@@ -16,8 +16,8 @@ msgstr "Ei avointa projektia"
 msgid "Unassigned"
 msgstr "kohdistamaton"
 
-msgid "Drag to move, Ctrl/Cmd+scroll to zoom. Click a device to open it."
-msgstr "Siirrä vetämällä, zoomaa Ctrl/Cmd+vierityksellä. Avaa laite napsauttamalla sitä."
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Siirrä vetämällä, zoomaa {key}+vierityksellä. Avaa laite napsauttamalla sitä."
 
 msgid "Physical"
 msgstr "Fyysinen"
@@ -31,8 +31,8 @@ msgstr "Linkit"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Mitkä laitteet viestivät keskenään ryhmäosoitteidensa kautta: lähettävät laitteet vasemmalla, vastaanottavat laitteet oikealla."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, Ctrl/Cmd+scroll to zoom."
-msgstr "Seuraa laitetta tai ryhmäosoitetta napsauttamalla, avaa laite kaksoisnapsauttamalla. Siirrä vetämällä, zoomaa Ctrl/Cmd+vierityksellä."
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "Seuraa laitetta tai ryhmäosoitetta napsauttamalla, avaa laite kaksoisnapsauttamalla. Siirrä vetämällä, zoomaa {key}+vierityksellä."
 
 msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
 msgstr "Seuraa laitetta tai ryhmäosoitetta napauttamalla, avaa laite kaksoisnapautuksella. Zoomaa kahdella sormella."

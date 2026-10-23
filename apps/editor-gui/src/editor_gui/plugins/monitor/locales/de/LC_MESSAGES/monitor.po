@@ -359,8 +359,8 @@ msgstr "Die Wiedergabe abbrechen"
 msgid "Copy"
 msgstr "Kopieren"
 
-msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
-msgstr "Die ausgewählten Telegramme (alle angezeigten, wenn keines ausgewählt ist) in die Zwischenablage kopieren (Strg+C). Doppelklick auf ein Telegramm wählt sein Quellgerät aus."
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Die ausgewählten Telegramme (alle angezeigten, wenn keines ausgewählt ist) in die Zwischenablage kopieren ({shortcut}). Doppelklick auf ein Telegramm wählt sein Quellgerät aus."
 
 msgid "Invalid frame"
 msgstr "Ungültiger Rahmen"

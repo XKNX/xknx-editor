@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from editor_gui.strings import create_translator
+from editor_gui.strings import create_translator, modifier_key
 
 _locale_dir = Path(__file__).parent / "locales"
 _ = create_translator("topology", _locale_dir)
@@ -23,7 +23,9 @@ class TopologyStrings:
 
     @property
     def TOPOLOGY_HINT(self) -> str:
-        return _("Drag to move, Ctrl/Cmd+scroll to zoom. Click a device to open it.")
+        return _(
+            "Drag to move, {key}+scroll to zoom. Click a device to open it."
+        ).format(key=modifier_key())
 
     @property
     def TOPOLOGY_MODE_PHYSICAL(self) -> str:
@@ -48,8 +50,8 @@ class TopologyStrings:
     def TOPOLOGY_LINKS_HINT(self) -> str:
         return _(
             "Click to follow a device or group address, double-click to open a device. Drag to "
-            "move, Ctrl/Cmd+scroll to zoom."
-        )
+            "move, {key}+scroll to zoom."
+        ).format(key=modifier_key())
 
     @property
     def TOPOLOGY_LINKS_HINT_TOUCH(self) -> str:

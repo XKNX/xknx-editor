@@ -1576,3 +1576,6 @@ msgstr "Slowenisch"
 
 msgid "Icelandic"
 msgstr "Isländisch"
+
+msgid "Ctrl"
+msgstr "Strg"

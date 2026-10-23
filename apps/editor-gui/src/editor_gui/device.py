@@ -591,6 +591,14 @@ class Device:
             return []
         return dyn.get_module_instances()
 
+    def get_module_instance_arguments(self) -> dict[str, list[tuple[str, str]]]:
+        """The arguments of each top-level module instance, by instance id (see
+        :meth:`DynamicUI.get_module_instance_arguments`)."""
+        dyn = self._ensure_dynamic_ui()
+        if dyn is None:
+            return {}
+        return dyn.get_module_instance_arguments()
+
     def find_com_object(self, co_id: str) -> ComObject | None:
         for co in self.com_objects:
             if co.id == co_id:

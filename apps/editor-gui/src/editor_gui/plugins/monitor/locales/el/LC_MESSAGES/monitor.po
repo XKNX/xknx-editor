@@ -127,8 +127,8 @@ msgstr "Ακύρωση της αναπαραγωγής"
 msgid "Copy"
 msgstr "Αντιγραφή"
 
-msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
-msgstr "Αντιγραφή των επιλεγμένων τηλεγραφημάτων (όλων των εμφανιζόμενων, αν δεν έχει επιλεγεί κανένα) στο πρόχειρο (Ctrl+C). Με διπλό κλικ σε ένα τηλεγράφημα επιλέγεται η συσκευή προέλευσής του."
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Αντιγραφή των επιλεγμένων τηλεγραφημάτων (όλων των εμφανιζόμενων, αν δεν έχει επιλεγεί κανένα) στο πρόχειρο ({shortcut}). Με διπλό κλικ σε ένα τηλεγράφημα επιλέγεται η συσκευή προέλευσής του."
 
 msgid "Rec."
 msgstr "Καταγρ."

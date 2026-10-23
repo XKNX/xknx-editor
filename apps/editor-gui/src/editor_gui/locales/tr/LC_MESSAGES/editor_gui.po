@@ -1416,3 +1416,6 @@ msgstr "Slovence"
 
 msgid "Icelandic"
 msgstr "İzlanda dili"
+
+msgid "Ctrl"
+msgstr "Ctrl"

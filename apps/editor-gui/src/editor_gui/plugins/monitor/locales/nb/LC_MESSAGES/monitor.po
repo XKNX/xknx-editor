@@ -127,8 +127,8 @@ msgstr "Avbryt avspillingen"
 msgid "Copy"
 msgstr "Kopier"
 
-msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
-msgstr "Kopier de valgte telegrammene (alle viste hvis ingen er valgt) til utklippstavlen (Ctrl+C). Dobbeltklikk på et telegram for å velge kildeenheten."
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Kopier de valgte telegrammene (alle viste hvis ingen er valgt) til utklippstavlen ({shortcut}). Dobbeltklikk på et telegram for å velge kildeenheten."
 
 msgid "Rec."
 msgstr "Opptak"

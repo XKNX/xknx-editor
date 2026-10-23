@@ -10,7 +10,7 @@ is available, and is skipped otherwise.
 import zlib
 from pathlib import Path
 from types import SimpleNamespace
-from typing import Any
+from typing import Any, cast
 from xml.etree import ElementTree as ET
 from zipfile import BadZipFile
 
@@ -820,3 +820,70 @@ def test_device_without_address_is_imported(
     assert device.individual_address_loaded
     assert device.parameters == [] and device.com_objects == []
     svc.close(pid)
+
+
+_CONFIGURED_WITHOUT_ADDRESS = """
+<Topology xmlns="http://knx.org/xml/project/23"><Area Address="1"><Line Address="1">
+  <DeviceInstance Id="P-1_DI-3" Name="Not addressed yet" ProductRefId="M-1_H-3_P-3"
+    Hardware2ProgramRefId="M-1_H-3_HP-3">
+    <ParameterInstanceRefs><ParameterInstanceRef RefId="P-1_R-1" Value="7" /></ParameterInstanceRefs>
+    <ComObjectInstanceRefs><ComObjectInstanceRef RefId="O-1_R-1" Links="GA-1" /></ComObjectInstanceRefs>
+    <ModuleInstances><ModuleInstance Id="MD-1_M-1_MI-1" RefId="MD-1_M-1" /></ModuleInstances>
+  </DeviceInstance>
+</Line></Area></Topology>
+"""
+
+
+def test_devices_without_address_are_read_with_their_configuration() -> None:
+    from xknxproject.loader.project_loader import (
+        _TopologyLoader,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    topology = ET.fromstring(_CONFIGURED_WITHOUT_ADDRESS)
+    found: set[str] = set()
+    with knxproj_import._read_devices_without_address(found):
+        (area,) = _TopologyLoader(cast("Any", SimpleNamespace(schema_version=23))).load(
+            topology
+        )
+    (device,) = area.lines[0].devices
+    assert found == {"P-1_DI-3"}
+    assert device.parameter_instance_refs["P-1_R-1"].value == "7"
+    assert [c.ref_id for c in device.com_object_instance_refs] == ["O-1_R-1"]
+    assert [m.identifier for m in device.module_instances] == ["MD-1_M-1_MI-1"]
+    # The placeholder address is gone again, and without the patch the device is skipped.
+    assert all(
+        d.get("Address") is None
+        for d in topology.iter()
+        if d.tag.endswith("}DeviceInstance")
+    )
+    (area,) = _TopologyLoader(cast("Any", SimpleNamespace(schema_version=23))).load(
+        topology
+    )
+    assert area.lines[0].devices == []
+
+
+def test_parse_falls_back_without_them_when_they_fail(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from xknxproject.loader.project_loader import (
+        _TopologyLoader,  # pyright: ignore[reportPrivateUsage]
+    )
+
+    attempts: list[int] = []
+
+    class _Parser:
+        def __init__(self, _contents: object) -> None:
+            self.devices: list[Any] = []
+
+        def parse(self, _language: str | None) -> None:
+            attempts.append(len(attempts))
+            _TopologyLoader(cast("Any", SimpleNamespace(schema_version=23))).load(
+                ET.fromstring(_CONFIGURED_WITHOUT_ADDRESS)
+            )
+            if len(attempts) == 1:
+                raise ValueError("application of the unaddressed device")
+
+    monkeypatch.setattr(knxproj_import, "XMLParser", _Parser)
+    _parser, found = knxproj_import._parse_project(object(), None)
+    assert attempts == [0, 1]
+    assert found == set()

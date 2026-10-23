@@ -127,8 +127,8 @@ msgstr "Скасувати повтор"
 msgid "Copy"
 msgstr "Копіювати"
 
-msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
-msgstr "Копіювати вибрані телеграми (усі показані, якщо нічого не вибрано) до буфера обміну (Ctrl+C). Подвійне клацання на телеграмі вибирає пристрій-джерело."
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Копіювати вибрані телеграми (усі показані, якщо нічого не вибрано) до буфера обміну ({shortcut}). Подвійне клацання на телеграмі вибирає пристрій-джерело."
 
 msgid "Rec."
 msgstr "Зап."

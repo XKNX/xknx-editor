@@ -1318,6 +1318,7 @@ class KnxGuiApp:
         # Snapshot the program refs now (UI thread) together with `source`, so switching projects
         # mid-export can't pair project A's file with project B's manufacturer bundle.
         program_refs = self._project_service.program_refs()
+        module_arguments = self._project_service.module_arguments()
         remove_unused = self._export_remove_unused
         password = self._project_service.project_password
         # Set by the progress window's Cancel; the export stops at its next step.
@@ -1392,6 +1393,7 @@ class KnxGuiApp:
                     certificate_signer=certificate_signer,
                     remove_unused_products=remove_unused,
                     cancelled=cancel_requested.is_set,
+                    module_arguments=module_arguments,
                 )
                 used_schema = result.schema
                 self._last_export_path = dest
@@ -3208,7 +3210,7 @@ class KnxGuiApp:
         elif ctrl and imgui.is_key_pressed(imgui.Key.o):
             self._open_project()
         elif (
-            ctrl and imgui.is_key_pressed(imgui.Key.s) and self._project_service.is_open
+            ctrl and imgui.is_key_pressed(imgui.Key.e) and self._project_service.is_open
         ):
             self._export_knxproj()
 
@@ -5168,16 +5170,18 @@ class KnxGuiApp:
         zoom = web.zoom()
         if zoom is not None:
             imgui.separator()
-            if imgui.menu_item(S.MENU_ZOOM_IN, "Ctrl++", False, zoom < web.ZOOMS[-1])[
-                0
-            ]:
+            if imgui.menu_item(
+                S.MENU_ZOOM_IN, S.SHORTCUT_ZOOM_IN, False, zoom < web.ZOOMS[-1]
+            )[0]:
                 web.zoom_step(1)
-            if imgui.menu_item(S.MENU_ZOOM_OUT, "Ctrl+-", False, zoom > web.ZOOMS[0])[
-                0
-            ]:
+            if imgui.menu_item(
+                S.MENU_ZOOM_OUT, S.SHORTCUT_ZOOM_OUT, False, zoom > web.ZOOMS[0]
+            )[0]:
                 web.zoom_step(-1)
             reset = f"{S.MENU_ZOOM_RESET} ({round(zoom * 100)} %)"
-            if imgui.menu_item(reset, "Ctrl+0", False, abs(zoom - 1.0) > 0.001)[0]:
+            if imgui.menu_item(
+                reset, S.SHORTCUT_ZOOM_RESET, False, abs(zoom - 1.0) > 0.001
+            )[0]:
                 web.zoom_step(0)
         imgui.separator()
         windows = [

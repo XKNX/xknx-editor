@@ -16,8 +16,8 @@ msgstr "Δεν υπάρχει ανοιχτό έργο"
 msgid "Unassigned"
 msgstr "Χωρίς αντιστοίχιση"
 
-msgid "Drag to move, Ctrl/Cmd+scroll to zoom. Click a device to open it."
-msgstr "Σύρετε για μετακίνηση, Ctrl/Cmd+κύλιση για μεγέθυνση. Κάντε κλικ σε μια συσκευή για να την ανοίξετε."
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Σύρετε για μετακίνηση, {key}+κύλιση για μεγέθυνση. Κάντε κλικ σε μια συσκευή για να την ανοίξετε."
 
 msgid "Physical"
 msgstr "Φυσική"
@@ -31,8 +31,8 @@ msgstr "Συνδέσεις"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Ποιες συσκευές επικοινωνούν με ποιες μέσω των διευθύνσεων ομάδων τους: συσκευές αποστολής αριστερά, συσκευές λήψης δεξιά."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, Ctrl/Cmd+scroll to zoom."
-msgstr "Κάντε κλικ για να ακολουθήσετε μια συσκευή ή διεύθυνση ομάδας, διπλό κλικ για να ανοίξετε μια συσκευή. Σύρετε για μετακίνηση, Ctrl/Cmd+κύλιση για μεγέθυνση."
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "Κάντε κλικ για να ακολουθήσετε μια συσκευή ή διεύθυνση ομάδας, διπλό κλικ για να ανοίξετε μια συσκευή. Σύρετε για μετακίνηση, {key}+κύλιση για μεγέθυνση."
 
 msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
 msgstr "Πατήστε για να ακολουθήσετε μια συσκευή ή διεύθυνση ομάδας, διπλό πάτημα για να ανοίξετε μια συσκευή. Μεγέθυνση με δύο δάχτυλα."

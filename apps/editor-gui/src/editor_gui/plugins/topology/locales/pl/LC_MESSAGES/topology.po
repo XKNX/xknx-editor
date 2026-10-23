@@ -16,8 +16,8 @@ msgstr "Brak otwartego projektu"
 msgid "Unassigned"
 msgstr "Nieprzypisane"
 
-msgid "Drag to move, Ctrl/Cmd+scroll to zoom. Click a device to open it."
-msgstr "Przeciągnij, aby przesunąć, Ctrl/Cmd+kółko, aby powiększyć. Kliknięcie urządzenia otwiera je."
+msgid "Drag to move, {key}+scroll to zoom. Click a device to open it."
+msgstr "Przeciągnij, aby przesunąć, {key}+kółko, aby powiększyć. Kliknięcie urządzenia otwiera je."
 
 msgid "Physical"
 msgstr "Fizyczna"
@@ -31,8 +31,8 @@ msgstr "Powiązania"
 msgid "Which devices talk to which over their group addresses: sending devices on the left, receiving devices on the right."
 msgstr "Które urządzenia komunikują się ze sobą przez adresy grupowe: urządzenia nadające po lewej, odbierające po prawej."
 
-msgid "Click to follow a device or group address, double-click to open a device. Drag to move, Ctrl/Cmd+scroll to zoom."
-msgstr "Kliknięcie śledzi urządzenie lub adres grupowy, dwukrotne kliknięcie otwiera urządzenie. Przeciągnij, aby przesunąć, Ctrl/Cmd+kółko, aby powiększyć."
+msgid "Click to follow a device or group address, double-click to open a device. Drag to move, {key}+scroll to zoom."
+msgstr "Kliknięcie śledzi urządzenie lub adres grupowy, dwukrotne kliknięcie otwiera urządzenie. Przeciągnij, aby przesunąć, {key}+kółko, aby powiększyć."
 
 msgid "Tap to follow a device or group address, double-tap to open a device. Zoom with two fingers."
 msgstr "Dotknięcie śledzi urządzenie lub adres grupowy, dwukrotne dotknięcie otwiera urządzenie. Powiększanie dwoma palcami."

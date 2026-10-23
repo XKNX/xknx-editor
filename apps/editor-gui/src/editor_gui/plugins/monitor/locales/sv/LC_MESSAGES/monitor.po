@@ -127,8 +127,8 @@ msgstr "Avbryt uppspelningen"
 msgid "Copy"
 msgstr "Kopiera"
 
-msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
-msgstr "Kopiera de markerade telegrammen (alla som visas om inget är markerat) till urklipp (Ctrl+C). Dubbelklicka på ett telegram för att markera dess källapparat."
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Kopiera de markerade telegrammen (alla som visas om inget är markerat) till urklipp ({shortcut}). Dubbelklicka på ett telegram för att markera dess källapparat."
 
 msgid "Rec."
 msgstr "Insp."

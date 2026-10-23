@@ -127,8 +127,8 @@ msgstr "Zrušit přehrávání"
 msgid "Copy"
 msgstr "Kopírovat"
 
-msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard (Ctrl+C). Double-click a telegram to select its source device."
-msgstr "Kopírovat vybrané telegramy (všechny zobrazené, pokud není nic vybráno) do schránky (Ctrl+C). Dvojklikem na telegram vyberete jeho zdrojové zařízení."
+msgid "Copy the selected telegrams (all shown if none is selected) to the clipboard ({shortcut}). Double-click a telegram to select its source device."
+msgstr "Kopírovat vybrané telegramy (všechny zobrazené, pokud není nic vybráno) do schránky ({shortcut}). Dvojklikem na telegram vyberete jeho zdrojové zařízení."
 
 msgid "Rec."
 msgstr "Zázn."

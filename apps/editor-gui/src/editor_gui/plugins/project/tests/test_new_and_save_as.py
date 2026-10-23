@@ -52,3 +52,17 @@ def test_save_as_over_existing_target(tmp_path: Path) -> None:
     proj.create_group_address(address="1/1/1", name="new")
     proj.save_as(tmp_path / "target.xknx")
     assert [g.address for g in proj.group_addresses] == ["1/1/1"]
+
+
+def test_save_as_onto_its_own_file_keeps_it(tmp_path: Path) -> None:
+    # Regression: the file was deleted before the copy from it, so the project was lost.
+    proj = _project(tmp_path)
+    path = tmp_path / "p.xknx"
+    proj.new(path)
+    proj.create_group_address(address="1/2/3", name="keep")
+    for target in (path, tmp_path / "p"):
+        assert proj.save_as(target) is not None
+        assert proj.path == path
+    proj.close()
+    proj.open(path)
+    assert [g.address for g in proj.group_addresses] == ["1/2/3"]

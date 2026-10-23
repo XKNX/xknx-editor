@@ -476,7 +476,7 @@
       hideChooser();
     } else if (!was) {
       lastMods = "";
-      send({ t: "caps", download: AUTO_DOWNLOAD });
+      send({ t: "caps", download: AUTO_DOWNLOAD, mac: IS_MAC });
       sendSize();
       send({ t: "focus", f: document.hasFocus() });
       keys.focus({ preventScroll: true });

@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from editor_gui.strings import BaseStrings, create_translator
+from editor_gui.strings import BaseStrings, create_translator, shortcut
 
 _locale_dir = Path(__file__).parent / "locales"
 _ = create_translator("widgets", _locale_dir)
@@ -416,27 +416,27 @@ class WidgetStrings(BaseStrings):
 
     @property
     def SHORTCUT_BOLD(self) -> str:
-        return "Ctrl+B"
+        return shortcut("B")
 
     @property
     def SHORTCUT_ITALIC(self) -> str:
-        return "Ctrl+I"
+        return shortcut("I")
 
     @property
     def SHORTCUT_UNDERLINE(self) -> str:
-        return "Ctrl+U"
+        return shortcut("U")
 
     @property
     def SHORTCUT_CUT(self) -> str:
-        return "Ctrl+X"
+        return shortcut("X")
 
     @property
     def SHORTCUT_COPY(self) -> str:
-        return "Ctrl+C"
+        return shortcut("C")
 
     @property
     def SHORTCUT_PASTE(self) -> str:
-        return "Ctrl+V"
+        return shortcut("V")
 
 
 S = WidgetStrings()
