@@ -18,6 +18,15 @@ signing-key extraction. The KNX authoring assembly is never shipped — you prov
 | `/data` | app settings, the imported product catalog, the product data cache and the logs (keep on a named volume) |
 | `/projects` | the browser's file folder: projects you open and save, exported `.knxproj` files (including signed ones), and any ETS assemblies you drop in for signing-key extraction |
 
+## Environment variables
+
+| Variable | Default | Effect |
+| --- | --- | --- |
+| `XKNX_WEB_PASSWORD` | — | Sign-in password. **Required** — the image binds every interface, so without it (and without a trusted proxy) the container refuses to start. |
+| `XKNX_WEB_TRUST_PROXY` | — | `1` when an authenticating reverse proxy is in front: no password, forwarded requests are accepted. |
+| `XKNX_WEB_PROXY_IP` | — | Answer only this address (your proxy's), rejecting everything else. Pair with `XKNX_WEB_TRUST_PROXY`. |
+| `XKNX_WEB_PORT` | `8080` | In-container bind port. On a bridge network just remap with `-p <host>:8080`; change this only for `--network host`, where there is no `-p`. |
+
 ## Plain image
 
 ```bash
@@ -78,15 +87,16 @@ Either way, include `Knx.Ets.XmlSigning.dll` with its sibling assemblies so depe
 
 ### Behind a reverse proxy
 
-If a proxy in front authenticates users and forwards to the container, start it with a trusted-proxy
-flag instead of a password:
+If a proxy in front authenticates users and forwards to the container, run it with trusted-proxy
+instead of a password, and restrict answering to the proxy's address:
 
 ```bash
 docker run -d --name xknx-editor \
   -p 127.0.0.1:8080:8080 \
+  -e XKNX_WEB_TRUST_PROXY=1 \
+  -e XKNX_WEB_PROXY_IP=172.18.0.2 \
   -v xknx-editor-data:/data -v /host/xknx:/projects \
-  ghcr.io/xknx/xknx-editor-web:latest \
-  python -m editor_gui.main --web=0.0.0.0:8080 --web-trust-proxy --web-no-browser --web-files=/projects
+  ghcr.io/xknx/xknx-editor-web:latest
 ```
 
 ### Compose
@@ -112,6 +122,29 @@ volumes:
 Tunnelling to a gateway's IP works through the container network. Gateway auto-discovery and KNX
 routing use multicast, which a bridged container does not receive — use `--network host` if you need
 those, and keep the password set because the port is then on the host network.
+
+## TrueNAS SCALE
+
+On TrueNAS SCALE 24.10+ (its apps run on Docker Compose) add it under **Apps → Discover Apps →
+Custom App** with this Compose YAML — no catalog entry needed. Create the two datasets first and
+point the volumes at them.
+
+```yaml
+services:
+  xknx-editor:
+    image: ghcr.io/xknx/xknx-editor-web:latest
+    ports:
+      - "8080:8080"
+    environment:
+      XKNX_WEB_PASSWORD: choose-a-strong-password
+    volumes:
+      - /mnt/<pool>/apps/xknx-editor/data:/data
+      - /mnt/<pool>/apps/xknx-editor/projects:/projects
+    restart: unless-stopped
+```
+
+To run as a non-root user (dataset-permission hygiene), add `user: "568:568"` (the `apps` UID/GID)
+and make those datasets owned by it — the app only writes `/data`, `/projects` and `/tmp`.
 
 ## Verifying an image
 

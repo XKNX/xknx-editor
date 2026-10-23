@@ -145,6 +145,7 @@ class SpacesPanel:
         on_device_info: Callable[[int], None] | None = None,
         on_compare: Callable[[int], None] | None = None,
         on_select_element: Callable[[str, int], None] = lambda _k, _i: None,
+        get_selected_node_id: Callable[[], int | None] | None = None,
     ) -> None:
         # Selecting a function (its comment shows in the Comment tab).
         self._on_select_element = on_select_element
@@ -172,6 +173,8 @@ class SpacesPanel:
         self._can_paste_config_cb = can_paste_config
         self._on_device_info = on_device_info
         self._on_compare = on_compare
+        # Node id of the globally selected device, so this tree highlights the matching leaf.
+        self._get_selected_node_id = get_selected_node_id
         self._config_dialog = DeviceConfigDialog(
             "spaces",
             on_paste_config or (lambda _n, _p, _l: None),
@@ -517,12 +520,16 @@ class SpacesPanel:
     ) -> None:
         detail = device.description
         leaf = self._device_label(device)
+        selected = (
+            self._get_selected_node_id is not None
+            and self._get_selected_node_id() == device.id
+        )
         # allow_overlap: the "Without space" section draws an "Assign device" button via
         # same_line() over this full-width selectable. Without the flag the selectable (submitted
         # first) claims the click and the button never fires.
         if imgui.selectable(
             f"{leaf}##spdev{device.id}",
-            False,
+            selected,
             imgui.SelectableFlags_.allow_overlap,
         )[0]:
             self._selected_function = None

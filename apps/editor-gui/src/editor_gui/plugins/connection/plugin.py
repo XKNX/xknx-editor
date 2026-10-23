@@ -46,6 +46,9 @@ _SETTINGS = "connection"
 
 # Delay before the one-shot autostart re-scan (macOS Local Network permission grant window).
 _AUTOSTART_RETRY_SECONDS = 30.0
+# Starting value for the configured controller IP, before any save/scan touches it. Used to tell
+# "the user has configured a controller IP" from "it is still the untouched placeholder".
+_DEFAULT_CONTROLLER_IP = "192.168.1.1"
 # Seconds between the attempts to reopen a lost connection.
 _REOPEN_SECONDS = 5.0
 # How often an interface that was just downloaded is asked what connection it requires.
@@ -95,7 +98,7 @@ class ConnectionPlugin:
         self._log = Logger(api.log, "connection")
         self._state = ConnectionState.DISCONNECTED
         self._error_message: str | None = None
-        self._controller_ip: str = "192.168.1.1"
+        self._controller_ip: str = _DEFAULT_CONTROLLER_IP
         self._connection_type: ConnectionType = ConnectionType.TUNNELING
         self._multicast_group: str = DEFAULT_MCAST_GRP
         self._selected_gateway: GatewayDescriptor | None = None
@@ -786,13 +789,33 @@ class ConnectionPlugin:
                 )
             if auto_connect and not self._gateways:
                 self._log.warning("no gateways found on the network")
+                # Fallback: try the configured IP as a tunneling connect right away. Either the
+                # user typed one in the settings or we connected to one before
+                # (``_preferred_gateway_ip``, written on every scan connect).
+                fallback_ip = self._preferred_gateway_ip or (
+                    self._controller_ip
+                    if self._controller_ip != _DEFAULT_CONTROLLER_IP
+                    else None
+                )
+                if (
+                    fallback_ip
+                    and self._state == ConnectionState.DISCONNECTED
+                    and not self.busmonitor_active
+                ):
+                    self._log.info(
+                        "no gateways discovered, trying configured IP",
+                        ip=fallback_ip,
+                    )
+                    self._controller_ip = fallback_ip
+                    self.connect()
                 if (
                     not self._autostart_retry_done
                     and self._state == ConnectionState.DISCONNECTED
                 ):
-                    # macOS: the first discovery only triggers the "Local Network" permission prompt
-                    # and returns nothing. Retry once after a delay so a granted permission takes
-                    # effect without restarting the app.
+                    # macOS: the first discovery only triggers the "Local Network" permission
+                    # prompt and returns nothing. Retry once after a delay so a granted permission
+                    # takes effect without restarting the app. The fallback above may already have
+                    # connected by then; the retry's own state guard then skips the scan.
                     self._autostart_retry_done = True
                     self._run_async(self._delayed_rescan(_AUTOSTART_RETRY_SECONDS))
             if (

@@ -125,9 +125,13 @@ COPY docker/web-run.sh /web-run.sh
 RUN chmod +x /web-run.sh
 ENTRYPOINT ["/usr/bin/tini", "--", "/web-run.sh"]
 VOLUME /projects
+# Serve on XKNX_WEB_PORT (default 8080). On a bridge network remap with `-p <host>:8080`; set
+# XKNX_WEB_PORT for a different in-container bind (e.g. --network host, where there is no `-p`).
+# web-run.sh requires XKNX_WEB_PASSWORD unless XKNX_WEB_TRUST_PROXY=1 (behind an authenticating
+# reverse proxy); XKNX_WEB_PROXY_IP then restricts answering to that proxy's address.
+ENV XKNX_WEB_PORT=8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=45s --retries=3 \
-    CMD code=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8080/ || true); case "$code" in 200|403) exit 0;; *) exit 1;; esac
-CMD ["python", "-m", "editor_gui.main", "--web=0.0.0.0:8080", "--web-no-browser", "--web-files=/projects"]
+    CMD code=$(curl -s -o /dev/null -w "%{http_code}" "http://127.0.0.1:${XKNX_WEB_PORT:-8080}/" || true); case "$code" in 200|403) exit 0;; *) exit 1;; esac
 
 # ---- ha: Home Assistant add-on image -------------------------------------------------------------
 # Home Assistant Ingress signs users in and reverse-proxies to us, so we trust the proxy (no
