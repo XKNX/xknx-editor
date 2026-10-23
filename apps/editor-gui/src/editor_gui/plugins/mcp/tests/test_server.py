@@ -1805,6 +1805,10 @@ async def test_semantic_addressing_with_channel_and_direct_set(tmp_path: Path) -
         )
         assert set_res["ref_id"] == target["ref_id"]
         assert str(set_res["value"]) == alt_val
+        assert "activated_com_objects" in set_res
+        assert isinstance(set_res["activated_com_objects"], list)
+        assert "unlocked_parameters" in set_res
+        assert isinstance(set_res["unlocked_parameters"], list)
 
         # 3. Direct set via project_batch using label and value
         # Pick another choice or switch back to original
@@ -1826,4 +1830,63 @@ async def test_semantic_addressing_with_channel_and_direct_set(tmp_path: Path) -
         )
         assert batch_res["applied"] is True
         assert batch_res["ok"] == 1
-        assert str(batch_res["results"][0]["result"]["value"]) == orig_val
+        res0 = batch_res["results"][0]["result"]
+        assert str(res0["value"]) == orig_val
+        assert "activated_com_objects" in res0
+        assert "unlocked_parameters" in res0
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_set_parameter_feedback_activated_cos_and_unlocked_params(
+    tmp_path: Path,
+) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        products = await _data(client, "catalog_list_products")
+        product_ref = products["items"][0]["product_ref_id"]
+        dev_res = await _data(client, "project_add_device", product_ref_id=product_ref)
+        node_id = dev_res["node_id"]
+
+        params_res = await _data(client, "project_list_parameters", node_id=node_id)
+        # Iterate over enum parameters until we find one that unlocks parameters or com-objects
+        activated = None
+        for p in params_res["items"]:
+            if p.get("widget", {}).get("type") == "enum":
+                detail = await _data(
+                    client,
+                    "project_get_parameter",
+                    node_id=node_id,
+                    parameter_ref_id=p["ref_id"],
+                )
+                choices = detail.get("widget", {}).get("choices", [])
+                for c in choices:
+                    if str(c["value"]) != str(p["value"]):
+                        res = await _data(
+                            client,
+                            "project_set_parameter",
+                            node_id=node_id,
+                            parameter_ref_id=p["ref_id"],
+                            value=str(c["value"]),
+                        )
+                        if res["activated_com_objects"] or res["unlocked_parameters"]:
+                            activated = res
+                            break
+                if activated is not None:
+                    break
+
+        assert activated is not None, "Expected at least one parameter change to activate KOs or parameters"
+        if activated["activated_com_objects"]:
+            first_co = activated["activated_com_objects"][0]
+            assert "ref_id" in first_co
+            assert "number" in first_co
+            assert "name" in first_co
+            assert "dpt" in first_co
+            assert "linkable" in first_co
+        if activated["unlocked_parameters"]:
+            first_up = activated["unlocked_parameters"][0]
+            assert "ref_id" in first_up
+            assert "label" in first_up
+            assert "value" in first_up
+            assert "widget" in first_up

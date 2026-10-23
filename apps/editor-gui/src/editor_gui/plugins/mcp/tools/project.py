@@ -696,6 +696,9 @@ def param_change_result(
     parameter_ref_id: str,
     requested: str,
     changes: dict[str, tuple[str | None, str | None]],
+    *,
+    prior_visible_co_ids: set[str] | None = None,
+    prior_active_param_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     """A trustworthy set-parameter result: the EFFECTIVE value read back after the edit, whether the
     parameter is still active, and the calculated side-effect changes — so a caller never has to
@@ -728,6 +731,28 @@ def param_change_result(
     lost = list(getattr(device, "last_lost_links", []) or [])
     if lost:
         result["lost_links"] = lost
+
+    if prior_visible_co_ids is not None:
+        activated_cos = [
+            _com_object_dict(co)
+            for co in device.get_visible_com_objects()
+            if co.id not in prior_visible_co_ids
+        ]
+        result["activated_com_objects"] = activated_cos
+    else:
+        result["activated_com_objects"] = []
+
+    if prior_active_param_ids is not None:
+        param_pairs = _collect_ui_parameters_with_ancestry(list(device.get_ui()))
+        unlocked = [
+            _parameter_dict(p, include_choices=True, ancestry=anc)
+            for p, anc in param_pairs
+            if p.ref_id not in prior_active_param_ids
+        ]
+        result["unlocked_parameters"] = unlocked
+    else:
+        result["unlocked_parameters"] = []
+
     return result
 
 
@@ -2199,11 +2224,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         controller), ALWAYS also set its display symbols and key labels/name — do not leave them at
         their defaults.
 
-        Returns {ref_id, requested, value, active, changed?, lost_links?}: ``value`` is read back
-        AFTER the edit (may be a normalized form of ``requested``, or null with ``active=false`` if
+        Returns {ref_id, requested, value, active, changed?, lost_links?, activated_com_objects, unlocked_parameters}:
+        ``value`` is read back AFTER the edit (may be a normalized form of ``requested``, or null with ``active=false`` if
         the edit deactivated the parameter), ``changed`` lists other parameters a calculation changed
-        as a side effect, and ``lost_links`` lists group-address links this change dropped by
-        deactivating their com-objects ({com_object_ref_id, group_address_id, address}). A rejected
+        as a side effect, ``lost_links`` lists group-address links this change dropped by
+        deactivating their com-objects ({com_object_ref_id, group_address_id, address}),
+        ``activated_com_objects`` lists com-objects newly visible after this edit, and
+        ``unlocked_parameters`` lists parameters newly active after this edit. A rejected
         value raises with the reason and does NOT take effect on a later edit."""
 
         def _set() -> dict[str, Any]:
@@ -2249,13 +2276,25 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     f"no parameter {target_ref!r} on device {dev_id}; "
                     "call project_list_parameters for valid ref_ids"
                 )
+            prior_co_ids = {co.id for co in device.get_visible_com_objects()}
+            prior_param_ids = {p.ref_id for p in _collect_ui_parameters(device.get_ui())}
             # edit_params (not set_param): applies and reconciles as one undo step and raises on
             # reject WITHOUT the GUI's stash-and-retry, so a rejected MCP set never silently takes
             # effect on a later edit.
             changes = project.edit_params(
                 device, [(target_ref, target_val)], mode="edit"
             )
-            return param_change_result(device, target_ref, target_val, changes)
+            current_device = project.find_device_by_node_id(dev_id) or device
+            if hasattr(device, "last_lost_links"):
+                current_device.last_lost_links = device.last_lost_links
+            return param_change_result(
+                current_device,
+                target_ref,
+                target_val,
+                changes,
+                prior_visible_co_ids=prior_co_ids,
+                prior_active_param_ids=prior_param_ids,
+            )
 
         return ctx.run_locked(_set)
 

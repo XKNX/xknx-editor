@@ -12,6 +12,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
+from editor_gui.device import collect_ui_parameters
 from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 from editor_gui.plugins.mcp.tools.project import (
@@ -160,11 +161,23 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 value = resolved.get("resolved_value")
         if value is None:
             raise ValueError("set_parameter needs value (or value_label with a label)")
+        prior_co_ids = {co.id for co in device.get_visible_com_objects()}
+        prior_param_ids = {p.ref_id for p in collect_ui_parameters(device.get_ui())}
         changes = project.edit_params(device, [(ref, value)], mode="edit")
+        current_device = project.find_device_by_node_id(node_id) or device
+        if hasattr(device, "last_lost_links"):
+            current_device.last_lost_links = device.last_lost_links
         return {
             "node_id": node_id,
-            "device_address": device.individual_address,
-            **param_change_result(device, ref, value, changes),
+            "device_address": current_device.individual_address,
+            **param_change_result(
+                current_device,
+                ref,
+                value,
+                changes,
+                prior_visible_co_ids=prior_co_ids,
+                prior_active_param_ids=prior_param_ids,
+            ),
         }
 
     def _op_link_com_object(p: dict[str, Any]) -> dict[str, Any]:
