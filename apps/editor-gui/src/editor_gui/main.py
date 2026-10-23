@@ -137,6 +137,7 @@ from editor_gui.widgets.tables import (
     reset_all_tables,
     text_table_height,
 )
+from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.text_util import fit_text, human_size, text_clipped_tooltip
 from editor_gui.widgets.tree import collapsing_header
 from editor_gui.window_title import bring_to_front, set_window_title, wake
@@ -1904,7 +1905,7 @@ class KnxGuiApp:
             + 2 * style.window_padding.y  # the tab page's own padding
         )
         with outlined_tabs():
-            if imgui.begin_tab_bar("##export_license"):
+            if begin_tab_bar("##export_license"):
                 if imgui.begin_tab_item(S.MYKNX_SIGN_TAB)[0]:
                     with tab_page("##myknx_page", tab_page_h):
                         selected_pid = self._render_myknx_login_tab(logging_in)

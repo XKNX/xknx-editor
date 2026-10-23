@@ -17,6 +17,7 @@ from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import begin_tool_window
 from editor_gui.widgets.dpi import label_column_width
 from editor_gui.widgets.filter_box import filter_box
+from editor_gui.widgets.tabs import begin_tab_bar
 from editor_gui.widgets.text_util import text_clipped_tooltip
 
 # Display names of the themes; one missing here (a newer imgui_bundle) shows its own name.
@@ -484,7 +485,7 @@ class ThemeWindow:
         self.open = bool(open_state)
         if expanded:
             tweaked = hello_imgui.get_runner_params().imgui_window_params.tweaked_theme
-            if imgui.begin_tab_bar("##theme_tabs"):
+            if begin_tab_bar("##theme_tabs"):
                 if imgui.begin_tab_item(S.MENU_THEME)[0]:
                     self._render_theme(tweaked)
                     imgui.end_tab_item()

@@ -65,6 +65,7 @@ from editor_gui.widgets.module_table import (
     build_module_tables,
     render_module_tables,
 )
+from editor_gui.widgets.tabs import begin_tab_bar
 
 _log = structlog.get_logger("configure")
 _PLUGIN_NOTICE_COLOR = imgui.ImVec4(0.95, 0.75, 0.35, 1.0)
@@ -1072,7 +1073,7 @@ class ConfigurePanel:
             _render_loading_application()
             return
 
-        if imgui.begin_tab_bar("##editor_tabs"):
+        if begin_tab_bar("##editor_tabs"):
             ui_nodes = device.get_ui()
             param_count, module_tables = self._ui_derived_tables(ui_nodes)
             # Stable "###" ids keep the selected tab (and each panel's expansion state) put when a
