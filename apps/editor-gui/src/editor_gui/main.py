@@ -135,6 +135,7 @@ from editor_gui.widgets.tables import (
     begin_data_table,
     data_table_headers,
     reset_all_tables,
+    text_table_height,
 )
 from editor_gui.widgets.text_util import fit_text, human_size, text_clipped_tooltip
 from editor_gui.widgets.tree import collapsing_header
@@ -3843,7 +3844,7 @@ class KnxGuiApp:
             | imgui.TableFlags_.reorderable
             | imgui.TableFlags_.scroll_y
         )
-        height = min(px(380.0), (len(rows) + 2) * imgui.get_frame_height())
+        height = min(px(380.0), text_table_height(len(rows)))
         if not begin_data_table(
             "##product_import", len(columns), flags, imgui.ImVec2(0.0, height)
         ):
