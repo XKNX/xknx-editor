@@ -52,11 +52,8 @@ msgstr "Εμφάνιση Εκτεταμένων Πληροφοριών"
 msgid "Hide Extended Information"
 msgstr "Απόκρυψη Εκτεταμένων Πληροφοριών"
 
-msgid "{count} telegrams"
-msgstr "{count} τηλεγραφήματα"
-
-msgid "{count} telegram"
-msgstr "{count} τηλεγράφημα"
+msgid "{count} teleg."
+msgstr "{count} teleg."
 
 msgid "Load: {rate} t/s"
 msgstr "Φορτίο: {rate} t/s"
@@ -387,3 +384,9 @@ msgstr "Διεύθυνση"
 
 msgid "Name"
 msgstr "Όνομα"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."

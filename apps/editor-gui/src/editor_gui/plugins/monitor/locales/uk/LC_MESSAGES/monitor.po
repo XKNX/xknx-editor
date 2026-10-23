@@ -52,11 +52,8 @@ msgstr "Показати розширену інформацію"
 msgid "Hide Extended Information"
 msgstr "Приховати розширену інформацію"
 
-msgid "{count} telegrams"
-msgstr "Телеграм: {count}"
-
-msgid "{count} telegram"
-msgstr "Телеграм: {count}"
+msgid "{count} teleg."
+msgstr "{count} teleg."
 
 msgid "Load: {rate} t/s"
 msgstr "Навантаження: {rate} т/с"
@@ -387,3 +384,9 @@ msgstr "Адреса"
 
 msgid "Name"
 msgstr "Ім'я"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."

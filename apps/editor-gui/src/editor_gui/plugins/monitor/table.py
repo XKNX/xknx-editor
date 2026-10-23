@@ -162,6 +162,8 @@ class TelegramView:
         self._pending_export: list[MonitorRecord] = []
         self._pending_export_all = False
         self._message: tuple[str, bool] | None = None
+        # Scratch buffer for the toolbar's "Max records" input. Only used on the Group Monitor.
+        self._max_records_buf = service.max_records
         self._replay_reported: tuple[int, bool] | None = None
         self._last_index = ProjectIndex()
         # Columns the user has not hidden, as of the last frame.
@@ -305,6 +307,31 @@ class TelegramView:
         else:
             imgui.text_colored(color, text)
 
+    def _render_max_records_input(self) -> None:
+        """A small int input that sets the shared cap on records every monitor keeps."""
+        label = S.MONITOR_MAX_RECORDS
+        label_w = text_width(label)
+        input_w = px(80.0)
+        # Keep buffer in sync when the cap was changed elsewhere (e.g. persisted on load).
+        current = self._service.max_records
+        if self._max_records_buf != current and not imgui.is_any_item_active():
+            self._max_records_buf = current
+        if self._toolbar_items:
+            same_line_if_fits(label_w + input_w + px(8.0))
+        self._toolbar_items += 1
+        imgui.align_text_to_frame_padding()
+        imgui.text_disabled(label)
+        imgui.same_line(0.0, px(4.0))
+        imgui.set_next_item_width(input_w)
+        _, self._max_records_buf = imgui.input_int(
+            "##mon_max_records", self._max_records_buf, 0, 0
+        )
+        imgui.set_item_tooltip(S.MONITOR_MAX_RECORDS_HINT)
+        # Commit on Enter or when the field loses focus, so each keystroke does not trim.
+        if imgui.is_item_deactivated_after_edit():
+            self._service.set_max_records(max(self._max_records_buf, 10))
+            self._max_records_buf = self._service.max_records
+
     def _render_toolbar(self) -> None:
         self._toolbar_items = 0
         channel = self._channel
@@ -369,6 +396,10 @@ class TelegramView:
                 S.MONITOR_TELEGRAM_COUNT_ONE if count == 1 else S.MONITOR_TELEGRAM_COUNT
             )
             self._toolbar_text(text.format(count=count))
+        # Only the Group Monitor hosts the shared max-records input; one is enough since every
+        # channel's cap tracks it.
+        if self.kind is MonitorKind.GROUP:
+            self._render_max_records_input()
         if self.filtering:
             done = self._pos * 100 // max(len(self._source), 1)
             self._toolbar_text(f"({done}%)")

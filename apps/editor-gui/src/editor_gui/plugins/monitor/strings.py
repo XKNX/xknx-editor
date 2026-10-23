@@ -71,15 +71,26 @@ class MonitorStrings:
 
     @property
     def MONITOR_TELEGRAM_COUNT(self) -> str:
-        return _("{count} telegrams")
+        return _("{count} teleg.")
 
     @property
     def MONITOR_TELEGRAM_COUNT_ONE(self) -> str:
-        return _("{count} telegram")
+        return _("{count} teleg.")
 
     @property
     def MONITOR_BUS_LOAD(self) -> str:
         return _("Load: {rate} t/s")
+
+    @property
+    def MONITOR_MAX_RECORDS(self) -> str:
+        return _("Max")
+
+    @property
+    def MONITOR_MAX_RECORDS_HINT(self) -> str:
+        return _(
+            "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap "
+            "is exceeded."
+        )
 
     # --- command bar ---------------------------------------------------------
 

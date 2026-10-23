@@ -52,11 +52,8 @@ msgstr "Zobrazit rozšířené informace"
 msgid "Hide Extended Information"
 msgstr "Skrýt rozšířené informace"
 
-msgid "{count} telegrams"
-msgstr "Telegramy: {count}"
-
-msgid "{count} telegram"
-msgstr "Telegram: {count}"
+msgid "{count} teleg."
+msgstr "{count} teleg."
 
 msgid "Load: {rate} t/s"
 msgstr "Zatížení: {rate} t/s"
@@ -387,3 +384,9 @@ msgstr "Adresa"
 
 msgid "Name"
 msgstr "Název"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."

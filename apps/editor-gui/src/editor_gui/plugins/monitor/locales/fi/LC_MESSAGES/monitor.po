@@ -52,11 +52,8 @@ msgstr "Näytä laajennetut tiedot"
 msgid "Hide Extended Information"
 msgstr "Piilota laajennetut tiedot"
 
-msgid "{count} telegrams"
-msgstr "Sähkeitä: {count}"
-
-msgid "{count} telegram"
-msgstr "Sähkeitä: {count}"
+msgid "{count} teleg."
+msgstr "{count} teleg."
 
 msgid "Load: {rate} t/s"
 msgstr "Kuorma: {rate} sähkettä/s"
@@ -387,3 +384,9 @@ msgstr "Osoite"
 
 msgid "Name"
 msgstr "Nimi"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."

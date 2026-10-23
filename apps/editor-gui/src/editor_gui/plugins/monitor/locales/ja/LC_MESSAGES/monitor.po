@@ -52,11 +52,8 @@ msgstr "拡張情報を表示"
 msgid "Hide Extended Information"
 msgstr "拡張情報を非表示"
 
-msgid "{count} telegrams"
-msgstr "テレグラム {count} 件"
-
-msgid "{count} telegram"
-msgstr "テレグラム {count} 件"
+msgid "{count} teleg."
+msgstr "{count} teleg."
 
 msgid "Load: {rate} t/s"
 msgstr "負荷：{rate} t/s"
@@ -387,3 +384,9 @@ msgstr "アドレス"
 
 msgid "Name"
 msgstr "名前"
+
+msgid "Max"
+msgstr "Max"
+
+msgid "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."
+msgstr "Maximum telegrams this monitor keeps. The oldest tenth is dropped when the cap is exceeded."

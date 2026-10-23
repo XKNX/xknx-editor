@@ -123,6 +123,21 @@ class TelegramLog:
     def generation(self) -> int:
         return self._generation
 
+    @property
+    def max_records(self) -> int:
+        return self._max
+
+    def set_max_records(self, value: int) -> None:
+        """Change the cap and trim down right away if the current log is longer."""
+        value = max(value, 10)
+        with self._lock:
+            if value == self._max:
+                return
+            self._max = value
+            if len(self._records) > self._max:
+                del self._records[: len(self._records) - self._max]
+                self._generation += 1
+
     def __len__(self) -> int:
         return len(self._records)
 
