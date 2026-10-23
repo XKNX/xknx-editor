@@ -192,6 +192,8 @@ class WebHub:
         self._actions_lock = threading.Lock()
         # Whether the controlling browser starts a download without a click (not Safari).
         self.auto_download = True
+        # Whether the controlling browser runs on a Mac (its shortcuts use Cmd).
+        self.client_mac = False
         # Shows a short note in the app (its toast), set by the app.
         self.notify: Callable[[str], None] | None = None
         # Reports an error the app went on after (where, what), set by the app.
@@ -687,6 +689,7 @@ class WebHub:
             self._controller_active = time.monotonic()
             if event.get("t") == "caps":
                 self.auto_download = bool(event.get("download", True))
+                self.client_mac = bool(event.get("mac", False))
                 continue
             if event.get("t") == "size":
                 self.size = (float(event["w"]), float(event["h"]))

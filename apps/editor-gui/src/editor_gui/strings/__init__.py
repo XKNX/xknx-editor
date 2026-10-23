@@ -1,6 +1,7 @@
 """App-wide and per-plugin i18n string registry."""
 
 import gettext
+import sys
 from pathlib import Path
 
 _current_locale: str = "en"
@@ -36,6 +37,16 @@ def create_translator(domain: str, locale_dir: Path):
 
 _base_locale_dir = Path(__file__).parent.parent / "locales"
 _ = create_translator("editor_gui", _base_locale_dir)
+
+
+def shortcut(key: str, *, mac: str | None = None) -> str:
+    """A key combination as the platform writes it: ``Ctrl+key``, or on a Mac ``Cmd+key`` (``mac``
+    replaces ``key`` there). In the browser view the browser's platform counts."""
+    from editor_gui import web
+
+    hub = web.active_hub
+    on_mac = hub.client_mac if hub is not None else sys.platform == "darwin"
+    return f"Cmd+{mac or key}" if on_mac else f"Ctrl+{key}"
 
 
 class BaseStrings:
@@ -200,23 +211,35 @@ class BaseStrings:
 
     @property
     def SHORTCUT_UNDO(self) -> str:
-        return "Ctrl+Z"
+        return shortcut("Z")
 
     @property
     def SHORTCUT_REDO(self) -> str:
-        return "Ctrl+Y"
+        return shortcut("Y", mac="Shift+Z")
 
     @property
     def SHORTCUT_NEW(self) -> str:
-        return "Ctrl+N"
+        return shortcut("N")
 
     @property
     def SHORTCUT_OPEN(self) -> str:
-        return "Ctrl+O"
+        return shortcut("O")
 
     @property
     def SHORTCUT_EXPORT(self) -> str:
-        return "Ctrl+S"
+        return shortcut("E")
+
+    @property
+    def SHORTCUT_ZOOM_IN(self) -> str:
+        return shortcut("+")
+
+    @property
+    def SHORTCUT_ZOOM_OUT(self) -> str:
+        return shortcut("-")
+
+    @property
+    def SHORTCUT_ZOOM_RESET(self) -> str:
+        return shortcut("0")
 
 
 class MenuStrings:

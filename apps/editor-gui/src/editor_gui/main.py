@@ -3210,7 +3210,7 @@ class KnxGuiApp:
         elif ctrl and imgui.is_key_pressed(imgui.Key.o):
             self._open_project()
         elif (
-            ctrl and imgui.is_key_pressed(imgui.Key.s) and self._project_service.is_open
+            ctrl and imgui.is_key_pressed(imgui.Key.e) and self._project_service.is_open
         ):
             self._export_knxproj()
 
@@ -5170,16 +5170,18 @@ class KnxGuiApp:
         zoom = web.zoom()
         if zoom is not None:
             imgui.separator()
-            if imgui.menu_item(S.MENU_ZOOM_IN, "Ctrl++", False, zoom < web.ZOOMS[-1])[
-                0
-            ]:
+            if imgui.menu_item(
+                S.MENU_ZOOM_IN, S.SHORTCUT_ZOOM_IN, False, zoom < web.ZOOMS[-1]
+            )[0]:
                 web.zoom_step(1)
-            if imgui.menu_item(S.MENU_ZOOM_OUT, "Ctrl+-", False, zoom > web.ZOOMS[0])[
-                0
-            ]:
+            if imgui.menu_item(
+                S.MENU_ZOOM_OUT, S.SHORTCUT_ZOOM_OUT, False, zoom > web.ZOOMS[0]
+            )[0]:
                 web.zoom_step(-1)
             reset = f"{S.MENU_ZOOM_RESET} ({round(zoom * 100)} %)"
-            if imgui.menu_item(reset, "Ctrl+0", False, abs(zoom - 1.0) > 0.001)[0]:
+            if imgui.menu_item(
+                reset, S.SHORTCUT_ZOOM_RESET, False, abs(zoom - 1.0) > 0.001
+            )[0]:
                 web.zoom_step(0)
         imgui.separator()
         windows = [
