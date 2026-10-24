@@ -12,14 +12,23 @@ from __future__ import annotations
 from types import SimpleNamespace
 
 import pytest
+from xknx.profile.const import ResourceObjectType
 
 from xknxeditor.download.errors import ImageError
+from xknxeditor.download.factory_image import (
+    FactoryImage,
+    FactoryLocation,
+    FactorySegment,
+)
 from xknxeditor.download.image import (
     GroupCommunication,
     MemorySegment,
+    _communication_by_link,
+    _group_communication_relative_segments,
     _group_communication_segments,
 )
 from xknxeditor.download.project_data import GroupObjectLink
+from xknxeditor.namespaces.intermediate.enable_t import Enable
 from xknxeditor.prod.parser_v2.ui.com_object import UiComObject
 
 _SEGMENT = "AS-0100"
@@ -323,3 +332,142 @@ def test_dynamic_tables_end_at_the_group_object_table() -> None:
     _dynamic_segments(17)
     with pytest.raises(ImageError, match="are free before the group object table"):
         _dynamic_segments(18)
+
+
+def _factory(
+    location: FactoryLocation, ref: int, pid: int, address: int
+) -> FactoryImage:
+    return FactoryImage(
+        (FactorySegment(location, ref, pid, address, 4, bytes(4), None),)
+    )
+
+
+def _m112_table(factory_image: FactoryImage | None) -> bytes:
+    application = _application("MV-0701")
+    objects = application.program.static.com_object_table.com_object
+    objects.append(SimpleNamespace(id="O-3", number=3))
+    for com_object in objects:
+        com_object.communication_flag = Enable.ENABLED
+    nodes = [
+        _com_object(0, read=False, write=True, transmit=False, update=True),
+        _com_object(1, read=True, write=True, transmit=True, update=True),
+        _com_object(2, read=True, write=False, transmit=False, update=True),
+    ]
+    seed = bytearray(_seed())
+    # Five records: object 3 is static-only, object 4 is a hole with no ComObject.
+    seed[0] = 5
+    seed[5 + 3 * 4] = 0xCF
+    seed[5 + 4 * 4] = 0xDF
+    segments = _group_communication_segments(
+        application,  # type: ignore[arg-type]
+        _UI(nodes),  # type: ignore[arg-type]
+        {_SEGMENT: _BASE},
+        {_SEGMENT: (bytes(seed), b"\x00" * len(seed))},
+        GroupCommunication(
+            device_address=0x1133,
+            links=(
+                GroupObjectLink(
+                    com_object_ref_id="O-1_R", group_address=0x090D, sending=True
+                ),
+            ),
+        ),
+        factory_image,
+    )
+    return next(segment for segment in segments if len(segment.data) == 256).data
+
+
+def test_m112_factory_table_keeps_each_objects_communication_flag() -> None:
+    """With the group object table in the factory image, every object keeps its own
+    communication flag, linked or not; a hole without a group object has none."""
+    by_link = _m112_table(None)
+    # The table sits at the com object table's address (segment base + offset 94).
+    own = _m112_table(_factory(FactoryLocation.MEMORY, 0, 0, _BASE + 94))
+    for number in (0, 2):
+        assert not by_link[5 + number * 4] & 0x04
+        assert own[5 + number * 4] == by_link[5 + number * 4] | 0x04
+    assert own[5 + 1 * 4] == by_link[5 + 1 * 4]
+    assert own[5 + 3 * 4] == 0xCF
+    assert own[5 + 4 * 4] == 0xDB
+
+
+def test_m112_factory_image_elsewhere_keeps_the_link_rule() -> None:
+    """A factory image without the table leaves the communication bit to the links."""
+    assert _m112_table(_factory(FactoryLocation.MEMORY, 0, 0, _BASE)) == _m112_table(
+        None
+    )
+
+
+def _system_b_table(factory_image: FactoryImage | None) -> bytes:
+    application = _application("MV-07B0")
+    objects = [
+        SimpleNamespace(id=f"O-{number}", number=number, communication_flag=flag)
+        for number, flag in (
+            (1, Enable.ENABLED),
+            (2, Enable.ENABLED),
+            (3, Enable.ENABLED),
+            (4, Enable.DISABLED),
+        )
+    ]
+    application.program.static.com_object_table.com_object = objects
+    nodes = [
+        _com_object(1, read=True, write=True, transmit=True, update=True),
+        _com_object(2, read=True, write=False, transmit=False, update=True),
+    ]
+    segments = _group_communication_relative_segments(
+        application,  # type: ignore[arg-type]
+        _UI(nodes),  # type: ignore[arg-type]
+        GroupCommunication(
+            device_address=0x1133,
+            links=(
+                GroupObjectLink(
+                    com_object_ref_id="O-1_R", group_address=0x090D, sending=True
+                ),
+            ),
+        ),
+        factory_image,
+    )
+    return next(
+        segment.data
+        for segment in segments
+        if segment.object_type == ResourceObjectType.OBJECT_GROUP_OBJECT_TABLE
+    )
+
+
+def test_system_b_factory_table_keeps_each_objects_communication_flag() -> None:
+    """MV-07B0 holds the table in object 3's relative memory: when the factory image has it,
+    unlinked and not instantiated objects keep their communication flag."""
+    by_link = _system_b_table(None)
+    own = _system_b_table(_factory(FactoryLocation.RELATIVE_MEMORY, 3, 7, 0))
+    # Count, then [flags][size] for objects 1..4.
+    assert by_link[:2] == own[:2] == b"\x00\x04"
+    assert own[2:4] == by_link[2:4]
+    assert not by_link[4] & 0x04
+    assert own[4:6] == bytes([by_link[4] | 0x04, by_link[5]])
+    assert by_link[6:10] == bytes(4)
+    # Object 3 is not instantiated: only its communication flag; object 4 has none.
+    assert own[6:10] == b"\x04\x00\x00\x00"
+
+
+@pytest.mark.parametrize(
+    ("factory_image", "by_link"),
+    [
+        (None, True),
+        # Another object's relative memory is not the table.
+        (_factory(FactoryLocation.RELATIVE_MEMORY, 4, 7, 0), True),
+        (_factory(FactoryLocation.RELATIVE_MEMORY, 3, 7, 0), False),
+        # Properties never hold the table.
+        (_factory(FactoryLocation.APP_PROPERTY, 3, 7, 0), True),
+    ],
+)
+def test_communication_follows_links_unless_the_factory_image_holds_the_table(
+    factory_image: FactoryImage | None, by_link: bool
+) -> None:
+    application = _application("MV-07B0")
+    assert (
+        _communication_by_link(
+            application,  # type: ignore[arg-type]
+            factory_image,
+            None,
+        )
+        is by_link
+    )

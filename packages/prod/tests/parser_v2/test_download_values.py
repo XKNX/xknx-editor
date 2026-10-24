@@ -25,10 +25,12 @@ from xknxeditor.prod.application import parse_application_xml
 from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 from xknxeditor.prod.parser_v2.dynamic import DynamicTreeBuilder, DynamicUI
 from xknxeditor.prod.parser_v2.encode import (
+    MaskedProperty,
     download_behavior,
     download_param_values,
     encode_to_memory,
     encode_to_typed_properties,
+    encode_to_typed_properties_masked,
 )
 from xknxeditor.prod.parser_v2.state import GlobalState
 
@@ -205,3 +207,46 @@ def test_inactive_parameters_follow_the_download_behavior(
     assert encoded.hex(" ") == data
     assert written.hex(" ") == mask
     assert ui.encode_to_typed_properties() == properties
+
+
+def test_masked_properties_cover_inactive_parameters_without_masking_them() -> None:
+    app, idx = _program("5.0", None)
+    state = _state(P2_R="7")
+    values = download_param_values(app, idx, state)
+    assert encode_to_typed_properties_masked(app, idx, values, state) == {
+        # Inactive under Background: written with the property's base.
+        (None, 11, 204, 0): MaskedProperty(b"\x00", b"\x00", b"\xff"),
+        (None, 11, 205, 0): MaskedProperty(b"\x07", b"\xff", b"\xff"),
+    }
+
+
+@pytest.mark.parametrize(
+    ("app_id", "bitwise"),
+    [("M-009E_A-1000-01-0000", True), ("M-0083_A-0001-01-0000", False)],
+)
+def test_parameters_cover_whole_bytes_except_for_listed_applications(
+    app_id: str, bitwise: bool
+) -> None:
+    app, idx = _app(
+        [
+            _param(
+                "P1",
+                PropertyParameter(
+                    object_type=11,
+                    property_id=204,
+                    occurrence=0,
+                    offset=0,
+                    bit_offset=2,
+                ),
+                value="5",
+            )
+        ],
+        pt_size=4,
+    )
+    app.id = app_id
+    ((data, mask, covered),) = encode_to_typed_properties_masked(
+        app, idx, {"P1": "5"}
+    ).values()
+    assert bin(mask[0]).count("1") == 4
+    assert data[0] & ~mask[0] == 0
+    assert covered == (mask if bitwise else b"\xff")

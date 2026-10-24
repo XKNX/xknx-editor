@@ -6,6 +6,7 @@ from types import SimpleNamespace
 from typing import cast
 
 import pytest
+from xknx.exceptions import ManagementConnectionRefused, ManagementConnectionTimeout
 from xknx.telegram.apci import (
     FunctionPropertyCommand,
     FunctionPropertyStateRead,
@@ -28,7 +29,10 @@ from xknxeditor.download.load_state import (
     LoadState,
     start_loading,
 )
-from xknxeditor.download.procedure import LoadProcedureRunner
+from xknxeditor.download.procedure import (
+    UNCONFIRMED_MASTER_RESET_COOLDOWN,
+    LoadProcedureRunner,
+)
 from xknxeditor.download.programmer import DeviceProgrammer
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import LdCtrlAbsSegment
@@ -995,6 +999,62 @@ async def test_restart_tears_down_and_next_control_reconnects() -> None:
     # opened for Connect, torn down by Restart, reopened for Load
     assert manager.opens == 2
     assert manager.closes >= 1
+
+
+@pytest.mark.parametrize(
+    "unanswered", [ManagementConnectionRefused, ManagementConnectionTimeout]
+)
+async def test_master_reset_without_response_continues_after_the_restart(
+    unanswered: type[Exception], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    # Some devices (Hager, mask 07B0, issue #130) restart on a Master Reset without answering
+    # it: the connection drops or the response never comes. The device is taken as restarting,
+    # the next control reconnects after the time a device may take without reporting one.
+    waits: list[float] = []
+
+    async def sleep(seconds: float) -> None:
+        waits.append(seconds)
+
+    monkeypatch.setattr("xknxeditor.download.procedure.asyncio.sleep", sleep)
+    runner, manager = _managed_runner(
+        LdCtrlConnect(),
+        LdCtrlMasterReset(erase_code=5, channel_number=0),
+        LdCtrlLoad(obj_type=_ADDRESS_TABLE_TYPE, occurrence=0),
+        LdCtrlDisconnect(),
+    )
+    manager.device.master_reset_unanswered = unanswered
+
+    await runner.run()
+
+    assert manager.device.master_reset == (5, 0)
+    assert runner.restarted
+    assert manager.opens == 2
+    assert waits and waits[-1] == pytest.approx(
+        UNCONFIRMED_MASTER_RESET_COOLDOWN, abs=0.5
+    )
+    assert manager.device.load_states[1] == LoadState.LOADING
+
+
+async def test_a_confirmed_master_reset_waits_its_process_time(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    waits: list[float] = []
+
+    async def sleep(seconds: float) -> None:
+        waits.append(seconds)
+
+    monkeypatch.setattr("xknxeditor.download.procedure.asyncio.sleep", sleep)
+    runner, manager = _managed_runner(
+        LdCtrlConnect(),
+        LdCtrlMasterReset(erase_code=5, channel_number=0),
+        LdCtrlLoad(obj_type=_ADDRESS_TABLE_TYPE, occurrence=0),
+    )
+    manager.device.master_reset_process_time = 12
+
+    await runner.run()
+
+    assert manager.opens == 2
+    assert waits and waits[-1] == pytest.approx(12, abs=0.5)
 
 
 async def test_runner_requires_programmer_or_manager() -> None:

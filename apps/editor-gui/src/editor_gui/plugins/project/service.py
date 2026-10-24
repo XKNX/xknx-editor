@@ -41,6 +41,7 @@ from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.history import HistoryEntry
 from editor_gui.settings import config_dir
+from xknxeditor.catalog.core.hardware import FactoryData
 from xknxeditor.namespaces.intermediate import (
     ComObjectInstanceRef,
     ParameterInstanceRef,
@@ -319,6 +320,8 @@ class _DeviceInputs:
     # ``BLOB_PARA``). Carried through so :func:`_compute_device` can hand the live
     # SQLAlchemy-mapped rows to the ``Device`` without re-querying.
     binary_data: tuple[Any, ...] = ()
+    # Gives the product's factory image (see Device.factory_image).
+    factory_image: Callable[[], FactoryData | None] | None = None
 
 
 def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
@@ -337,6 +340,7 @@ def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
         binary_data=list(inputs.binary_data),
     )
     device.download_plugin_required = inputs.download_plugin_required
+    device.factory_image = inputs.factory_image
     device.configuration_app = inputs.configuration_app
     for row in inputs.com_objects:
         co = device.find_com_object(row.ref)
@@ -1676,6 +1680,15 @@ class ProjectService:
             self._plugin_cache[program_ref] = cached
         return cached
 
+    def _factory_image_source(
+        self, program_ref: str | None
+    ) -> Callable[[], FactoryData | None] | None:
+        """Gives the factory image of the product ``program_ref`` loads, read when needed."""
+        if not program_ref:
+            return None
+        catalog = self._catalog
+        return lambda: catalog.factory_image(program_ref)
+
     def _build_device(self, row: Any) -> Device | None:
         """The device of ``row``: from its snapshot when nothing it was derived from changed, else
         evaluated from its application (and a new snapshot made)."""
@@ -1791,6 +1804,7 @@ class ProjectService:
             self._log.debug("device snapshot unusable", device_id=row.id, error=str(e))
             return None
         device.download_plugin_required = self._requires_download_plugin(program_ref)
+        device.factory_image = self._factory_image_source(program_ref)
         device.configuration_app = next(
             (a.name for a in self._configuration_apps() if a.applies_to(app.id)),
             None,
@@ -1967,6 +1981,7 @@ class ProjectService:
                 row.hardware2program_ref_id
             ),
             binary_data=tuple(getattr(row, "binary_data", []) or []),
+            factory_image=self._factory_image_source(row.hardware2program_ref_id),
             configuration_app=next(
                 (
                     a.name

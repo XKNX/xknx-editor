@@ -98,10 +98,9 @@ def build_group_object_table_b(
     """Return the System B group object table bytes.
 
     Layout ``[count:2 = highest_number]`` then one ``[flags:1][size code:1]``
-    record for every object number ``1..highest_number``. ``descriptors`` maps a
-    linked object's number to its ``(flags, size code)``; numbers absent from it
-    (unlinked or undefined) stay ``00 00``; only linked objects carry flags, per
-    the Group Object Table definition (Chapter 3/5/1 Resources, section 4.18).
+    record for every object number ``1..highest_number`` (Chapter 3/5/1 Resources,
+    section 4.18). ``descriptors`` maps an object's number to its ``(flags, size
+    code)``; numbers absent from it stay ``00 00``.
     """
     if not 0 <= highest_number <= 0xFFFF:
         raise ImageError(

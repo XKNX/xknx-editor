@@ -1,8 +1,11 @@
 """Hardware listing, filtering, and program lookups."""
 
+import base64
 import datetime
+import io
 from collections.abc import Sequence
 from dataclasses import dataclass
+from xml.etree import ElementTree
 
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
@@ -231,3 +234,46 @@ def get_program_source(db: Session, program_id: str) -> tuple[str, str] | None:
     if row is None:
         return None
     return row[0], row[1]
+
+
+@dataclass(frozen=True)
+class FactoryData:
+    """What devices of a hardware program leave the factory with, base64 decoded: the image
+    (``Hardware2Program/@LoadedImage``) and the stamp they show in that state (``@CheckSums``)."""
+
+    image: bytes | None
+    stamp: bytes | None = None
+
+
+def get_factory_image(db: Session, program_id: str) -> FactoryData | None:
+    """The image devices of a hardware program leave the factory with, and its stamp, or
+    ``None`` when the product has no image.
+
+    Read from the hardware XML of the ``.knxprod`` the program was imported from.
+    """
+    source = get_program_source(db, program_id)
+    if source is None:
+        return None
+    knxprod_path, manufacturer_id = source
+
+    from xknxeditor.prod.archive import Archive
+    from xknxeditor.prod.errors import ArchiveError
+
+    try:
+        with Archive(knxprod_path, require_catalog=False) as archive:
+            hardware_xml = archive.get_hardware_xml(manufacturer_id)
+    except (ArchiveError, KeyError, OSError):
+        return None
+    for _, element in ElementTree.iterparse(io.BytesIO(hardware_xml)):
+        if element.tag.rpartition("}")[2] != "Hardware2Program":
+            continue
+        if element.get("Id") == program_id:
+            image = element.get("LoadedImage")
+            if not image:
+                return None
+            stamp = element.get("CheckSums")
+            return FactoryData(
+                base64.b64decode(image), base64.b64decode(stamp) if stamp else None
+            )
+        element.clear()
+    return None

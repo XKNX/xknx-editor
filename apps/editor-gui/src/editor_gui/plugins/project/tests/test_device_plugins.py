@@ -24,6 +24,7 @@ def _device(extension: object | None, *, required: bool = False) -> Any:
     return SimpleNamespace(
         app=SimpleNamespace(program=program),
         download_plugin_required=required,
+        factory_image=None,
         configuration_app=None,
         individual_address="1.1.1",
         name="Dev",

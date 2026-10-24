@@ -52,6 +52,7 @@ from .calculation import (
 from .context import EvalCapture, EvalContext
 from .converted_pages import place_hidden_parameters
 from .encode import (
+    MaskedProperty,
     MemWrite,
     PropertyKey,
     PropWrite,
@@ -68,6 +69,7 @@ from .encode import (
     encode_to_memory_masked,
     encode_to_properties,
     encode_to_typed_properties,
+    encode_to_typed_properties_masked,
     resolve_param_values,
     segment_seed,
     type_size_in_bit,
@@ -138,6 +140,7 @@ __all__ = [
     "encode_to_memory_masked",
     "encode_to_properties",
     "encode_to_typed_properties",
+    "encode_to_typed_properties_masked",
     "resolve_param_values",
     "written_bit_mask",
 ]
@@ -1140,6 +1143,19 @@ class DynamicUI:
         self.ui()
         self.validate_parameter_values()
         return encode_to_typed_properties(
+            self._app,
+            self._idx,
+            download_param_values(self._app, self._idx, self._state),
+            self._state,
+        )
+
+    def encode_to_typed_properties_masked(
+        self,
+    ) -> dict[TypedPropertyKey, MaskedProperty]:
+        """:meth:`encode_to_typed_properties` with what the parameters cover."""
+        self.ui()
+        self.validate_parameter_values()
+        return encode_to_typed_properties_masked(
             self._app,
             self._idx,
             download_param_values(self._app, self._idx, self._state),

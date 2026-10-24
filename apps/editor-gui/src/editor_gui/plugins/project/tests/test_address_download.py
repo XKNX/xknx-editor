@@ -63,7 +63,10 @@ def _service(monkeypatch: pytest.MonkeyPatch) -> tuple[ConnectionService, list[A
 
 def _device(*, plugin_required: bool = False) -> Any:
     return SimpleNamespace(
-        individual_address="1.1.5", name="Dev", download_plugin_required=plugin_required
+        individual_address="1.1.5",
+        name="Dev",
+        download_plugin_required=plugin_required,
+        factory_image=None,
     )
 
 

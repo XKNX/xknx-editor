@@ -35,6 +35,9 @@ from typing import TYPE_CHECKING
 
 from xknx.profile.const import ResourceGenericPropertyId, ResourceObjectType
 
+from xknxeditor.namespaces.intermediate.hawk_configuration_data_t_features_feature_name import (
+    HawkConfigurationDataFeaturesFeatureName as MaskFeature,
+)
 from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import LdCtrlAbsSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_base_t import LdCtrlBase
 from xknxeditor.namespaces.intermediate.ld_ctrl_clear_lcfilter_table_t import (
@@ -94,6 +97,8 @@ from xknxeditor.namespaces.intermediate.ld_ctrl_unload_t import LdCtrlUnload
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_mem_t import LdCtrlWriteMem
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_prop_t import LdCtrlWriteProp
 from xknxeditor.namespaces.intermediate.ld_ctrl_write_rel_mem_t import LdCtrlWriteRelMem
+from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
+from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
 
 from . import gaps, load_state
 from .errors import (
@@ -106,6 +111,7 @@ from .errors import (
     UnsupportedProcedureError,
     VerificationError,
 )
+from .factory_image import FactoryLocation, FactorySegment, FactoryStamp, PropertyStamp
 from .group_communication import materialize_group_communication_controls
 from .ip_config import IP_PARAMETER_OBJECT, IP_PROPERTY_WIDTHS
 from .merge import resolve_download_controls
@@ -137,12 +143,27 @@ logger = logging.getLogger(__name__)
 # Default cooldown (seconds) to wait after a Restart before reconnecting.
 DEFAULT_RESTART_COOLDOWN = 3.0
 
+# Cooldown (seconds) after a Master Reset the device did not confirm: a device has to report its
+# Process Time only when it needs longer than this (KNX 3/5/2 section 3.7.1.2.2).
+UNCONFIRMED_MASTER_RESET_COOLDOWN = 5.0
+
 # Memory Control Block table property and its per-segment entry layout (KNX
 # Standard v3.0.0, Chapter 3/5/1 "Resources", section 4.2.27 "PID_MCB_TABLE"):
 # an 8 octet entry per segment, CRC-protected when bit 0 of octet 4 is clear, with
 # the segment CRC in octets 6..7 (big-endian).
 _PID_MCB_TABLE = ResourceGenericPropertyId.PID_MCB_TABLE
 _MCB_ENTRY_SIZE = 8
+
+# After a Master Reset that resets them, a device showing its factory stamp holds the factory
+# image: of everything but the group object table after erase code 5 (parameters) or 7 (factory
+# reset without the individual address), of the group object table after 6 (links) or 7.
+_FACTORY_OTHER = "other"
+_FACTORY_TABLE = "group object table"
+_FACTORY_ERASE_CODES = {_FACTORY_OTHER: (5, 7), _FACTORY_TABLE: (6, 7)}
+# A run of bytes that already hold the factory contents inside a write is left out only from
+# this length on (and never longer than the frame budget): shorter gaps cost more frames than
+# they save.
+_FACTORY_MIN_GAP = 31
 
 # The Router object's relative memory holds the group-address filter table (System B), carried
 # as the image's dedicated filter-table field.
@@ -467,6 +488,9 @@ class LoadProcedureRunner:
         self._packed_group_tables_cache: PackedGroupTables | None = None
         # Absolute addresses a preflight found the device rewriting at runtime.
         self._device_written: set[int] = set()
+        # The factory image segments a Master Reset left in place (see _register_factory):
+        # _FACTORY_TABLE for the group object table, _FACTORY_OTHER for the rest.
+        self._factory_registered: set[str] = set()
 
     async def run(self, progress: Callable[[int, int], None] | None = None) -> None:
         """Execute the Load Procedure, honouring the selected download scope.
@@ -481,6 +505,7 @@ class LoadProcedureRunner:
         self._prevalidate(in_scope)
         self._property_captures.clear()
         self._memory_captures.clear()
+        self._factory_registered.clear()
         self._enable_segment_write = True
         self._enable_verify_on_write_direct = True
         self._error_mappings.clear()
@@ -598,6 +623,7 @@ class LoadProcedureRunner:
         self._prevalidate(in_scope)
         self._property_captures.clear()
         self._memory_captures.clear()
+        self._factory_registered.clear()
         self._enable_segment_write = True
         self._enable_verify_on_write_direct = True
         self._error_mappings.clear()
@@ -710,10 +736,10 @@ class LoadProcedureRunner:
         else:
             address = control.address
             runs = self._memory_runs(address, control.size, control.address_space)
-        if control.inline_data is None:
-            return runs
-        inline = _inline_memory_data(control.inline_data, control.size)
-        return [(address, self._overlay_inline_memory(address, inline, runs))]
+        if control.inline_data is not None:
+            inline = _inline_memory_data(control.inline_data, control.size)
+            runs = [(address, self._overlay_inline_memory(address, inline, runs))]
+        return self._leave_factory_memory(control, index, runs)
 
     def _prevalidate(self, in_scope: list[object]) -> None:
         """Reject an unsupported control before any device state is changed.
@@ -1169,8 +1195,12 @@ class LoadProcedureRunner:
             await self._close()
             self._restart_at = time.monotonic()
             # Process Time is a 2 octet unsigned value in *seconds* (DPT 7.005,
-            # KNX 3/5/2 3.7.1.2.2), so use it directly - not milliseconds.
+            # KNX 3/5/2 3.7.1.2.2), so use it directly - not milliseconds. A device
+            # that restarted without confirming the reset reported none.
+            if process_time is None:
+                process_time = UNCONFIRMED_MASTER_RESET_COOLDOWN
             self._pending_cooldown = max(self._restart_cooldown, process_time)
+            await self._register_factory(control.erase_code)
             return
         if isinstance(control, LdCtrlUnload):
             index = await self._resolve_index(control)
@@ -1515,14 +1545,21 @@ class LoadProcedureRunner:
                 f"expected {expected.hex()} read {read_back.hex()}"
             )
 
-    def _property_write_data(self, index: int, control: LdCtrlWriteProp) -> bytes:
-        """Overlay image elements onto inline data, keeping device-owned CRCs zero."""
+    def _property_write_plan(
+        self, index: int, control: LdCtrlWriteProp
+    ) -> tuple[bytes, bytes | None]:
+        """The data ``control`` writes and the bits of it to write, ``None`` for all of it.
+
+        Image elements are laid over inline data, keeping device-owned CRCs zero. Every
+        download, a full one too, writes only the bits the inline data, captured elements and
+        parameters cover, and the device keeps the rest.
+        """
         if control.start_element == 0:
             # Element 0 of an array property is its number of valid elements, 2 octets; writing
             # 0 clears the array.
             return (control.inline_data or b"").ljust(2 * control.count, b"\x00")[
                 : 2 * control.count
-            ]
+            ], None
         object_type = (
             control.obj_type
             if control.obj_idx is None and control.obj_type is not None
@@ -1531,7 +1568,7 @@ class LoadProcedureRunner:
         if control.prop_id == 13 and object_type in (3, 4):
             if control.start_element != 1 or control.count != 1:
                 raise ImageError("application identity requires element 1, count 1")
-            return _application_id(self.application)
+            return _application_id(self.application), None
         width = self._property_widths.get(
             (index, control.prop_id), STANDARD_WRITE_WIDTHS.get(control.prop_id)
         )
@@ -1551,32 +1588,22 @@ class LoadProcedureRunner:
             raise UnsupportedProcedureError(
                 "PID7 is a read-only runtime table reference"
             )
-        inline = (control.inline_data or b"")[:size]
-        data = bytearray(inline.ljust(size, b"\x00"))
-        covered = bytearray(b"\x01" * len(inline) + bytes(size - len(inline)))
-        for n in range(control.count):
-            captured = self._property_captures.get(
-                (index, control.prop_id, control.start_element + n)
+        data, covered = self._property_image_data(
+            index, object_type, control, width, size
+        )
+        inline = control.inline_data or b""
+        if len(inline) >= size:
+            # Inline data that fills the write is the property's data where nothing in the
+            # image covers it, and the whole property is written. Shorter inline data is not
+            # used.
+            data = bytearray(
+                (byte & ~bits) | (image & bits)
+                for byte, image, bits in zip(inline[:size], data, covered, strict=True)
             )
-            if captured is not None:
-                if len(captured) != width:
-                    raise ImageError("captured property element width mismatch")
-                data[n * width : (n + 1) * width] = captured
-                covered[n * width : (n + 1) * width] = b"\x01" * width
-        for prop in self.image.properties:
-            if (
-                prop.property_id == control.prop_id
-                and self._image_property_applies(prop, index, control)
-                and control.start_element > 0
-            ):
-                start = (control.start_element - 1) * width
-                overlay = prop.data[start : start + size]
-                data[: len(overlay)] = overlay
-                covered[: len(overlay)] = b"\x01" * len(overlay)
-                break
-        if not all(covered):
-            raise ImageError(
-                f"incomplete property image for object {index} property {control.prop_id}: need {size}, got {sum(covered)}"
+            covered = bytearray(b"\xff" * size)
+        if control.prop_id != _PID_MCB_TABLE:
+            data, covered = self._leave_factory_property(
+                index, object_type, control, width, data, covered
             )
         if control.prop_id == _PID_MCB_TABLE:
             data = data[: control.count * _MCB_ENTRY_SIZE]
@@ -1585,8 +1612,371 @@ class LoadProcedureRunner:
             entries = bytearray(data)
             for start in range(0, len(entries), _MCB_ENTRY_SIZE):
                 entries[start + 6 : start + 8] = b"\x00\x00"
-            data = bytes(entries)
-        return bytes(data)
+            return bytes(entries), None
+        if all(bits == 0xFF for bits in covered):
+            return bytes(data), None
+        return bytes(data), bytes(covered)
+
+    def _property_image_data(
+        self,
+        index: int,
+        object_type: int | None,
+        control: LdCtrlWriteProp,
+        width: int,
+        size: int,
+    ) -> tuple[bytearray, bytearray]:
+        """The data the image holds for the elements ``control`` writes, and the bits of it
+        something covers (captured elements, parameters)."""
+        start = (control.start_element - 1) * width
+        # The property's base: what the device leaves the factory with, else zeros. The
+        # parameters' bits are laid over it; bytes no parameter writes keep it.
+        base = self._factory_property(index, object_type, control)
+        data = bytearray((base or b"")[start : start + size].ljust(size, b"\x00"))
+        covered = bytearray(size)
+        for n in range(control.count):
+            captured = self._property_captures.get(
+                (index, control.prop_id, control.start_element + n)
+            )
+            if captured is not None:
+                if len(captured) != width:
+                    raise ImageError("captured property element width mismatch")
+                data[n * width : (n + 1) * width] = captured
+                covered[n * width : (n + 1) * width] = b"\xff" * width
+        for prop in self.image.properties:
+            if prop.property_id == control.prop_id and self._image_property_applies(
+                prop, index, control
+            ):
+                overlay = prop.data[start : start + size]
+                mask = (
+                    prop.mask[start : start + size]
+                    if prop.mask is not None
+                    else b"\xff" * len(overlay)
+                )
+                for i, (value, bits) in enumerate(zip(overlay, mask, strict=False)):
+                    data[i] = (data[i] & ~bits) | (value & bits)
+                cover = (
+                    prop.covered[start : start + size]
+                    if prop.covered is not None
+                    else b"\xff" * len(overlay)
+                )
+                for i, bits in enumerate(cover):
+                    covered[i] |= bits
+                break
+        return data, covered
+
+    def _factory_property(
+        self,
+        index: int,
+        object_type: int | None,
+        control: LdCtrlWriteProp,
+    ) -> bytes | None:
+        """The factory contents of the property ``control`` writes (from element 1), if the
+        product has a factory image holding it."""
+        factory = self.image.factory_image
+        if factory is None:
+            return None
+        resources = bundled_mask_resources(self.application.program.mask_version)
+        first_app_object = (
+            resources.feature(MaskFeature.FIRST_APP_OBJECT_IDX)
+            if resources is not None
+            else None
+        )
+        return factory.property_data(
+            index,
+            object_type,
+            control.occurrence,
+            control.prop_id,
+            first_app_object,
+        )
+
+    async def _register_factory(self, erase_code: int) -> None:
+        """After a Master Reset with ``erase_code``, take the device to hold its factory image
+        where that code resets it, if it shows the product's factory stamp (or the product has
+        none). Writes of what the factory image already holds are then left out."""
+        factory = self.image.factory_image
+        if factory is None:
+            return
+        kinds = {
+            kind for kind, codes in _FACTORY_ERASE_CODES.items() if erase_code in codes
+        }
+        if not kinds or kinds <= self._factory_registered:
+            return
+        if factory.stamp is not None and not await self._stamp_matches(factory.stamp):
+            logger.warning(
+                "download: %s does not show its factory stamp after the Master Reset with "
+                "erase code %d; the factory contents are written too",
+                self._target(),
+                erase_code,
+            )
+            return
+        self._factory_registered |= kinds
+        logger.info(
+            "download: %s holds its factory image (%s) after the Master Reset with erase "
+            "code %d; writes of it are left out",
+            self._target(),
+            ", ".join(sorted(kinds)),
+            erase_code,
+        )
+
+    async def _stamp_matches(self, stamp: FactoryStamp) -> bool:
+        """Whether the device shows ``stamp``: its property values, or the CRCs in the memory
+        control blocks of its objects."""
+        programmer = await self._bus()
+        try:
+            for prop in stamp.properties:
+                index = await self._stamp_object(prop)
+                if index is None:
+                    return False
+                width = await programmer.read_property_element_size(
+                    index, prop.property_id
+                )
+                offset = prop.address & 0xFFFFFF
+                if width <= 0 or len(prop.data) % width or offset % width:
+                    return False
+                value = await programmer.read_property(
+                    index,
+                    prop.property_id,
+                    count=len(prop.data) // width,
+                    start_index=offset // width + 1,
+                )
+                if value != prop.data:
+                    return False
+            for obj in stamp.objects:
+                if not obj.segments:
+                    continue
+                blocks = await programmer.read_property(
+                    obj.object_index,
+                    _PID_MCB_TABLE,
+                    count=len(obj.segments),
+                    start_index=1,
+                )
+                if len(blocks) != _MCB_ENTRY_SIZE * len(obj.segments):
+                    return False
+                for n, (counts, crc) in enumerate(obj.segments):
+                    block = blocks[n * _MCB_ENTRY_SIZE : (n + 1) * _MCB_ENTRY_SIZE]
+                    if (not block[4] & 1) != counts or (
+                        counts and int.from_bytes(block[6:8], "big") != crc
+                    ):
+                        return False
+        except (PropertyAccessRejected, VerificationError) as error:
+            logger.info(
+                "download: factory stamp of %s not readable: %s", self._target(), error
+            )
+            return False
+        return True
+
+    async def _stamp_object(self, prop: PropertyStamp) -> int | None:
+        """The index of the object a stamped property belongs to."""
+        if prop.location is FactoryLocation.PROPERTY:
+            return prop.object_ref
+        if prop.location is FactoryLocation.APP_PROPERTY:
+            resources = bundled_mask_resources(self.application.program.mask_version)
+            first = (
+                resources.feature(MaskFeature.FIRST_APP_OBJECT_IDX)
+                if resources is not None
+                else None
+            )
+            return None if first is None else first + prop.object_ref
+        if prop.location is FactoryLocation.PROPERTY_BY_TYPE:
+            programmer = await self._bus()
+            return await programmer.locate_object(prop.object_ref, prop.address >> 24)
+        return None
+
+    def _factory_gap(self) -> int:
+        """From which length a run of factory contents inside a write is left out."""
+        apdu = self._negotiated_apdu or self._max_apdu_length
+        return max(1, min(_FACTORY_MIN_GAP, apdu - 7))
+
+    def _leave_factory_property(
+        self,
+        index: int,
+        object_type: int | None,
+        control: LdCtrlWriteProp,
+        width: int,
+        data: bytearray,
+        covered: bytearray,
+    ) -> tuple[bytearray, bytearray]:
+        """``data`` and the bits of it to write once a Master Reset left the factory image in
+        place: nothing where every covered byte already holds it, otherwise the property in one
+        piece, partly covered bytes and short gaps completed from the factory contents."""
+        if _FACTORY_OTHER not in self._factory_registered:
+            return data, covered
+        base = self._factory_property(index, object_type, control)
+        start = (control.start_element - 1) * width
+        size = len(data)
+        if base is None or len(base) < start + size:
+            return data, covered
+        factory = base[start : start + size]
+        if all(
+            not bits or byte == held
+            for byte, held, bits in zip(data, factory, covered, strict=True)
+        ):
+            logger.info(
+                "download: object %d property %d of %s holds its factory contents; "
+                "not written",
+                index,
+                control.prop_id,
+                self._target(),
+            )
+            return data, bytearray(size)
+        data, covered = bytearray(data), bytearray(covered)
+        for i, bits in enumerate(covered):
+            if bits and bits != 0xFF:
+                data[i] = (data[i] & bits) | (factory[i] & ~bits & 0xFF)
+                covered[i] = 0xFF
+        if width > 1:
+            # Whole elements: an element partly written gets the rest from the factory.
+            for element in range(0, size, width):
+                part = range(element, min(element + width, size))
+                if any(covered[i] for i in part):
+                    for i in part:
+                        if not covered[i]:
+                            data[i], covered[i] = factory[i], 0xFF
+            return data, covered
+        gap, i = self._factory_gap(), 0
+        while i < size:
+            if covered[i]:
+                i += 1
+                continue
+            end = i
+            while end < size and not covered[end]:
+                end += 1
+            # A short gap before more written bytes is filled; a long or trailing one is not.
+            if end < size and end - i < gap:
+                data[i:end] = factory[i:end]
+                covered[i:end] = b"\xff" * (end - i)
+            i = end
+        return data, covered
+
+    def _leave_factory_memory(
+        self,
+        control: LdCtrlWriteMem | LdCtrlWriteRelMem,
+        index: int | None,
+        runs: list[tuple[int, bytes]] | None,
+    ) -> list[tuple[int, bytes]] | None:
+        """``runs`` without the runs that only write what a Master Reset left in place."""
+        if not runs or not self._factory_registered:
+            return runs
+        references = self._factory_memory(control, index)
+        if not references:
+            return runs
+        start = min(address for address, _ in runs)
+        end = max(address + len(data) for address, data in runs)
+        buffer, written = bytearray(end - start), bytearray(end - start)
+        for address, data in runs:
+            buffer[address - start : address - start + len(data)] = data
+            written[address - start : address - start + len(data)] = b"\x01" * len(data)
+        for held_at, held in references:
+            lo, hi = max(start, held_at), min(end, held_at + len(held))
+            if lo < hi:
+                _leave_factory_runs(
+                    buffer,
+                    written,
+                    lo - start,
+                    held[lo - held_at : hi - held_at],
+                    self._factory_gap(),
+                )
+        result: list[tuple[int, bytes]] = []
+        i = 0
+        while i < len(written):
+            if not written[i]:
+                i += 1
+                continue
+            run_end = i
+            while run_end < len(written) and written[run_end]:
+                run_end += 1
+            result.append((start + i, bytes(buffer[i:run_end])))
+            i = run_end
+        if len(result) != len(runs) or sum(len(d) for _, d in result) != sum(
+            len(d) for _, d in runs
+        ):
+            logger.info(
+                "download: %s holds part of %s's memory as it left the factory; "
+                "those bytes are not written",
+                self._target(),
+                type(control).__name__,
+            )
+        return result
+
+    def _factory_memory(
+        self, control: LdCtrlWriteMem | LdCtrlWriteRelMem, index: int | None
+    ) -> list[tuple[int, bytes]]:
+        """The registered factory contents a memory write covers, as ``(address, data)`` in the
+        write's own addresses (relative to the object's table for a WriteRelMem)."""
+        factory = self.image.factory_image
+        if factory is None:
+            return []
+        relative = isinstance(control, LdCtrlWriteRelMem)
+        found: list[tuple[int, bytes]] = []
+        for segment in factory.segments:
+            if segment.data is None:
+                continue
+            if relative:
+                if index is None or not self._factory_relative_hit(segment, index):
+                    continue
+            elif segment.location is not FactoryLocation.MEMORY:
+                continue
+            kind = (
+                _FACTORY_TABLE
+                if self._factory_group_object_table(segment)
+                else _FACTORY_OTHER
+            )
+            if kind in self._factory_registered:
+                found.append((segment.offset, segment.data))
+        return found
+
+    def _factory_relative_hit(self, segment: FactorySegment, index: int) -> bool:
+        """Whether a relative factory segment belongs to the object at ``index``."""
+        if segment.location is FactoryLocation.RELATIVE_MEMORY:
+            return segment.object_ref == index
+        if segment.location is FactoryLocation.RELATIVE_MEMORY_BY_TYPE:
+            object_type = self._object_types.get(index)
+            if object_type != segment.object_ref:
+                return False
+            same_type = sorted(
+                i for i, t in self._object_types.items() if t == object_type
+            )
+            return same_type.index(index) == segment.occurrence
+        return False
+
+    def _factory_group_object_table(self, segment: FactorySegment) -> bool:
+        """Whether a factory segment is the group object table: at the mask's location of it,
+        or at the application's table address in memory."""
+        resources = bundled_mask_resources(self.application.program.mask_version)
+        location = (
+            resources.location(ResourceName.GROUP_OBJECT_TABLE) if resources else None
+        )
+        if (
+            location is not None
+            and location.address_space is ResourceAddrSpace.RELATIVE_MEMORY
+            and segment.location is FactoryLocation.RELATIVE_MEMORY
+        ):
+            return (
+                segment.object_ref == location.interface_object_ref
+                and segment.property_id == location.property_id
+                and segment.address == (location.start_address or 0)
+            )
+        if segment.location is not FactoryLocation.MEMORY:
+            return False
+        if (
+            location is not None
+            and location.address_space is ResourceAddrSpace.STANDARD_MEMORY
+            and segment.address == location.start_address
+        ):
+            return True
+        return segment.address == self._group_object_table_address()
+
+    def _group_object_table_address(self) -> int | None:
+        """The memory address of the application's group object table, if it has one."""
+        static = getattr(self.application.program, "static", None)
+        table = getattr(static, "com_object_table", None)
+        code = getattr(static, "code", None)
+        if table is None or table.code_segment is None or code is None:
+            return None
+        for segment in code.absolute_segment:
+            if segment.id == table.code_segment and segment.address is not None:
+                return segment.address + (table.offset or 0)
+        return None
 
     def _image_property_applies(
         self,
@@ -1768,7 +2158,20 @@ class LoadProcedureRunner:
         """Write addressed image elements and verify each property response."""
         index = await self._resolve_index(control, extended=True)
         await self._ensure_property_width(index, control)
-        data = self._property_write_data(index, control)
+        data, covered = self._property_write_plan(index, control)
+        if covered is not None:
+            if not any(covered):
+                logger.info(
+                    "download: no parameter of %s covers object %d property %d; not written",
+                    self._target(),
+                    index,
+                    control.prop_id,
+                )
+                return
+            current = await self._read_property_elements(
+                index, control.prop_id, control.count, control.start_element, data
+            )
+            data = _keep_uncovered(current, data, covered)
         programmer = await self._bus()
         tool_key = (
             control.obj_idx is None
@@ -2239,6 +2642,11 @@ class LoadProcedureRunner:
         if isinstance(control, LdCtrlDisconnect):
             await self._close()
             return
+        if isinstance(control, LdCtrlMasterReset):
+            # No reset in a preview: whether the device shows its factory stamp now decides
+            # which writes the download would leave out.
+            await self._register_factory(control.erase_code)
+            return
         if isinstance(control, LdCtrlWriteMem):
             _require_standard(control.address_space)
             runs = self._memory_write_runs(control)
@@ -2273,7 +2681,9 @@ class LoadProcedureRunner:
         if isinstance(control, LdCtrlWriteProp):
             index = await self._resolve_index(control, extended=True)
             await self._ensure_property_width(index, control)
-            planned = self._property_write_data(index, control)
+            planned, covered = self._property_write_plan(index, control)
+            if covered is not None and not any(covered):
+                return
             await self._diff_property(
                 index,
                 control.prop_id,
@@ -2281,6 +2691,7 @@ class LoadProcedureRunner:
                 control.start_element,
                 planned,
                 properties,
+                covered=covered,
             )
             return
         if isinstance(control, LdCtrlCompareMem):
@@ -2445,8 +2856,45 @@ class LoadProcedureRunner:
         start_element: int,
         planned: bytes,
         properties: list[PropertyDiff],
+        *,
+        covered: bytes | None = None,
     ) -> None:
-        """Read the current property value and record a diff against ``planned``."""
+        """Read the current property value and record a diff against ``planned``, of which
+        only the ``covered`` bits are written (``None``: all)."""
+        current = await self._read_property_elements(
+            object_index, property_id, count, start_element, planned
+        )
+        if covered is not None:
+            planned = _keep_uncovered(current, planned, covered)
+        target = (
+            self._extended_targets.get(object_index)
+            if await self._extended_fits(object_index, property_id)
+            else None
+        )
+        properties.append(
+            PropertyDiff(
+                object_index=(
+                    object_index
+                    if target is not None
+                    else await self._object_index(object_index)
+                ),
+                property_id=property_id,
+                current=current,
+                planned=bytes(planned),
+                object_type=target[0] if target is not None else None,
+            )
+        )
+
+    async def _read_property_elements(
+        self,
+        object_index: int,
+        property_id: int,
+        count: int,
+        start_element: int,
+        planned: bytes,
+    ) -> bytes:
+        """The device's current value of the ``count`` elements from ``start_element`` that
+        ``planned`` is written to, read in frames that fit one APDU."""
         programmer = await self._bus()
         width = len(planned) // count
         current = bytearray()
@@ -2483,15 +2931,40 @@ class LoadProcedureRunner:
                     start_index=start_element + offset,
                 )
             )
-        properties.append(
-            PropertyDiff(
-                object_index=device_index,
-                property_id=property_id,
-                current=bytes(current),
-                planned=bytes(planned),
-                object_type=target[0] if target is not None else None,
-            )
-        )
+        return bytes(current)
+
+
+def _leave_factory_runs(
+    data: bytearray, written: bytearray, offset: int, held: bytes, min_run: int
+) -> None:
+    """Clear ``written`` where ``data`` from ``offset`` on already equals ``held``: at the start
+    and the end of the range, and inside it for runs of at least ``min_run`` bytes. A byte not
+    written does not interrupt a run."""
+    leading, run_start = True, -1
+    for i, value in enumerate(held):
+        pos = offset + i
+        if written[pos] and data[pos] != value:
+            leading, run_start = False, -1
+            continue
+        if leading or min_run <= 1:
+            written[pos] = 0
+            continue
+        if run_start < 0:
+            run_start = i
+        if i - run_start + 1 >= min_run:
+            written[offset + run_start : pos + 1] = bytes(pos + 1 - offset - run_start)
+            leading, run_start = True, -1
+    if run_start >= 0:
+        written[offset + run_start : offset + len(held)] = bytes(len(held) - run_start)
+
+
+def _keep_uncovered(current: bytes, planned: bytes, covered: bytes) -> bytes:
+    """``planned`` with the bits outside ``covered`` taken from the device's ``current`` value
+    (a byte the device did not return keeps ``planned``)."""
+    merged = bytearray(planned)
+    for i, (value, bits) in enumerate(zip(current, covered, strict=False)):
+        merged[i] = (value & ~bits & 0xFF) | (planned[i] & bits)
+    return bytes(merged)
 
 
 # Memory address spaces this engine writes as a flat absolute A_Memory access. STANDARD is the
