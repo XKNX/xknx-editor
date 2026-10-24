@@ -990,8 +990,9 @@ async def test_property_element_slice_and_inline_padding_use_declared_width() ->
         _application(declaration, control), image, DeviceProgrammer(device)
     ).run()
     writes = [p for p in device.sent if isinstance(p, PropertyValueWrite)]
-    # Inline data that fills the write is written as it is, sliced to the declared width.
-    assert [(p.data, p.start_index, p.count) for p in writes] == [(b"xx", 2, 1)]
+    # The element is sliced at the declared width; a full load takes the image's data over
+    # the inline data that fills the write.
+    assert [(p.data, p.start_index, p.count) for p in writes] == [(b"CD", 2, 1)]
 
 
 async def test_short_inline_data_leaves_the_property_to_its_image() -> None:
@@ -1014,17 +1015,78 @@ async def test_short_inline_data_leaves_the_property_to_its_image() -> None:
     assert [(p.data, p.start_index, p.count) for p in writes] == [(b"ABCD", 1, 4)]
 
 
-@pytest.mark.parametrize(
-    ("scope", "written"),
-    [
-        # A full load writes the whole property: the element nothing covers gets its base.
-        (DownloadScope.FULL, b"\x00\x00CD"),
-        # Any other download keeps the device's value of the element nothing covers.
-        (DownloadScope.PARAMETERS, b"ABCD"),
-    ],
-)
-async def test_partial_property_capture_keeps_the_base_or_the_device_value(
-    scope: DownloadScope, written: bytes
+@pytest.mark.parametrize("scope", [DownloadScope.FULL, DownloadScope.PARAMETERS])
+async def test_inline_data_filling_the_write_is_kept_where_no_parameter_writes(
+    scope: DownloadScope,
+) -> None:
+    from xknxeditor.download.image import PropertyValue
+
+    from .test_procedure import _application
+
+    control = LdCtrlWriteProp(
+        obj_idx=4, prop_id=60, count=2, inline_data=b"xy", verify=True
+    )
+    # A parameter writes the second element only; a full load does the same as any other.
+    image = DownloadImage(
+        (),
+        (
+            PropertyValue(
+                4,
+                60,
+                0,
+                b"\x00B",
+                element_size=1,
+                mask=b"\x00\xff",
+                covered=b"\x00\xff",
+            ),
+        ),
+    )
+    device = FakeDevice()
+    device.property_element_sizes[4, 60] = 1
+    runner = LoadProcedureRunner(_application(control), image, DeviceProgrammer(device))
+    runner.scope = scope
+    await runner.run()
+    writes = [p for p in device.sent if isinstance(p, PropertyValueWrite)]
+    assert [p.data for p in writes] == [b"xB"]
+
+
+@pytest.mark.parametrize("scope", [DownloadScope.FULL, DownloadScope.PARAMETERS])
+async def test_property_without_inline_data_keeps_what_no_parameter_writes(
+    scope: DownloadScope,
+) -> None:
+    from xknxeditor.download.image import PropertyValue
+
+    from .test_procedure import _application
+
+    # The device keeps its value of what no parameter writes, also in a full load.
+    control = LdCtrlWriteProp(obj_idx=4, prop_id=60, count=2, verify=True)
+    image = DownloadImage(
+        (),
+        (
+            PropertyValue(
+                4,
+                60,
+                0,
+                b"\x00B",
+                element_size=1,
+                mask=b"\x00\xff",
+                covered=b"\x00\xff",
+            ),
+        ),
+    )
+    device = FakeDevice()
+    device.properties[4, 60] = b"QR"
+    device.property_element_sizes[4, 60] = 1
+    runner = LoadProcedureRunner(_application(control), image, DeviceProgrammer(device))
+    runner.scope = scope
+    await runner.run()
+    writes = [p for p in device.sent if isinstance(p, PropertyValueWrite)]
+    assert [p.data for p in writes] == [b"QB"]
+
+
+@pytest.mark.parametrize("scope", [DownloadScope.FULL, DownloadScope.PARAMETERS])
+async def test_partial_property_capture_keeps_the_device_value(
+    scope: DownloadScope,
 ) -> None:
     from xknxeditor.namespaces.intermediate.ld_ctrl_load_image_prop_t import (
         LdCtrlLoadImageProp,
@@ -1045,7 +1107,8 @@ async def test_partial_property_capture_keeps_the_base_or_the_device_value(
     runner.scope = scope
     await runner.run()
     writes = [p for p in device.sent if isinstance(p, PropertyValueWrite)]
-    assert [(p.data, p.start_index, p.count) for p in writes] == [(written, 1, 2)]
+    # The element nothing covers keeps the device's value, also in a full load.
+    assert [(p.data, p.start_index, p.count) for p in writes] == [(b"ABCD", 1, 2)]
 
 
 async def test_application_identity_resolves_type_addressed_control() -> None:

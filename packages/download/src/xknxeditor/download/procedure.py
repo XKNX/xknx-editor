@@ -1530,9 +1530,9 @@ class LoadProcedureRunner:
     ) -> tuple[bytes, bytes | None]:
         """The data ``control`` writes and the bits of it to write, ``None`` for all of it.
 
-        Image elements are laid over inline data, keeping device-owned CRCs zero. A full
-        application load writes the whole property; any other download writes only the bits
-        the inline data, captured elements and parameters cover, and the device keeps the rest.
+        Image elements are laid over inline data, keeping device-owned CRCs zero. Every
+        download, a full one too, writes only the bits the inline data, captured elements and
+        parameters cover, and the device keeps the rest.
         """
         if control.start_element == 0:
             # Element 0 of an array property is its number of valid elements, 2 octets; writing
@@ -1568,16 +1568,19 @@ class LoadProcedureRunner:
             raise UnsupportedProcedureError(
                 "PID7 is a read-only runtime table reference"
             )
+        data, covered = self._property_image_data(
+            index, object_type, control, width, size
+        )
         inline = control.inline_data or b""
         if len(inline) >= size:
-            # Inline data that fills the whole write is written as it is.
-            data, covered = bytearray(inline[:size]), bytearray(b"\xff" * size)
-        else:
-            # Shorter inline data is not used: the property comes from its base and the
-            # parameters.
-            data, covered = self._property_image_data(
-                index, object_type, control, width, size
+            # Inline data that fills the write is the property's data where nothing in the
+            # image covers it, and the whole property is written. Shorter inline data is not
+            # used.
+            data = bytearray(
+                (byte & ~bits) | (image & bits)
+                for byte, image, bits in zip(inline[:size], data, covered, strict=True)
             )
+            covered = bytearray(b"\xff" * size)
         if control.prop_id == _PID_MCB_TABLE:
             data = data[: control.count * _MCB_ENTRY_SIZE]
             if len(data) != control.count * _MCB_ENTRY_SIZE:
@@ -1586,7 +1589,7 @@ class LoadProcedureRunner:
             for start in range(0, len(entries), _MCB_ENTRY_SIZE):
                 entries[start + 6 : start + 8] = b"\x00\x00"
             return bytes(entries), None
-        if self._full_application_load or all(bits == 0xFF for bits in covered):
+        if all(bits == 0xFF for bits in covered):
             return bytes(data), None
         return bytes(data), bytes(covered)
 
@@ -1636,12 +1639,6 @@ class LoadProcedureRunner:
                     covered[i] |= bits
                 break
         return data, covered
-
-    @property
-    def _full_application_load(self) -> bool:
-        """Whether the download loads the whole application program: it writes every property
-        completely rather than only what the parameters cover."""
-        return self.scope in (DownloadScope.FULL, DownloadScope.APPLICATION)
 
     def _factory_property(
         self,
