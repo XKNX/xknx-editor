@@ -477,7 +477,9 @@ class LoadProcedureRunner:
         self._controls = (
             list(controls)
             if controls is not None
-            else resolve_download_controls(application, scope=scope)
+            else resolve_download_controls(
+                application, scope=scope, parameter_values=image.procedure_parameters
+            )
         )
         # Position of the control currently being executed, for diagnostics.
         self._position: tuple[int, int] | None = None
@@ -491,6 +493,8 @@ class LoadProcedureRunner:
         # The factory image segments a Master Reset left in place (see _register_factory):
         # _FACTORY_TABLE for the group object table, _FACTORY_OTHER for the rest.
         self._factory_registered: set[str] = set()
+        # The properties a preflight previews as procedure steps (see _procedure_steps).
+        self._procedure_steps: set[_PropertyKey] = set()
 
     async def run(self, progress: Callable[[int, int], None] | None = None) -> None:
         """Execute the Load Procedure, honouring the selected download scope.
@@ -624,6 +628,7 @@ class LoadProcedureRunner:
         self._property_captures.clear()
         self._memory_captures.clear()
         self._factory_registered.clear()
+        self._procedure_steps = _procedure_steps(in_scope)
         self._enable_segment_write = True
         self._enable_verify_on_write_direct = True
         self._error_mappings.clear()
@@ -2692,6 +2697,7 @@ class LoadProcedureRunner:
                 planned,
                 properties,
                 covered=covered,
+                procedure_step=_property_key(control) in self._procedure_steps,
             )
             return
         if isinstance(control, LdCtrlCompareMem):
@@ -2858,9 +2864,11 @@ class LoadProcedureRunner:
         properties: list[PropertyDiff],
         *,
         covered: bytes | None = None,
+        procedure_step: bool = False,
     ) -> None:
         """Read the current property value and record a diff against ``planned``, of which
-        only the ``covered`` bits are written (``None``: all)."""
+        only the ``covered`` bits are written (``None``: all); ``procedure_step`` marks it as a
+        step of the procedure (see :attr:`PropertyDiff.procedure_step`)."""
         current = await self._read_property_elements(
             object_index, property_id, count, start_element, planned
         )
@@ -2882,6 +2890,7 @@ class LoadProcedureRunner:
                 current=current,
                 planned=bytes(planned),
                 object_type=target[0] if target is not None else None,
+                procedure_step=procedure_step,
             )
         )
 
@@ -2932,6 +2941,33 @@ class LoadProcedureRunner:
                 )
             )
         return bytes(current)
+
+
+# A property as a load control addresses it: object index, object type, occurrence, PID and
+# start element.
+_PropertyKey = tuple[int | None, int | None, int, int, int]
+
+
+def _property_key(control: LdCtrlWriteProp) -> _PropertyKey:
+    return (
+        control.obj_idx,
+        control.obj_type,
+        control.occurrence,
+        control.prop_id,
+        control.start_element,
+    )
+
+
+def _procedure_steps(controls: Sequence[object]) -> set[_PropertyKey]:
+    """The properties ``controls`` write more than once with different inline data: steps of
+    the procedure (a download handshake such as ``01`` at the start and ``02`` before the
+    restart), not a setting the device keeps. Parameters give every write of a property the
+    same value, so only inline data can differ."""
+    values: dict[_PropertyKey, set[bytes]] = {}
+    for control in controls:
+        if isinstance(control, LdCtrlWriteProp) and control.inline_data is not None:
+            values.setdefault(_property_key(control), set()).add(control.inline_data)
+    return {key for key, data in values.items() if len(data) > 1}
 
 
 def _leave_factory_runs(

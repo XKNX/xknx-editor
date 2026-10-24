@@ -198,9 +198,17 @@ def _resolve_procedure(
         from xknxeditor.namespaces.intermediate.procedure_type_t import ProcedureType
 
         return resolve_download_controls(
-            application, master_raw, procedure_type=ProcedureType.UNLOAD
+            application,
+            master_raw,
+            procedure_type=ProcedureType.UNLOAD,
+            parameter_values=image.procedure_parameters,
         )
-    base = resolve_download_controls(application, master_raw, scope=scope)
+    base = resolve_download_controls(
+        application,
+        master_raw,
+        scope=scope,
+        parameter_values=image.procedure_parameters,
+    )
     return materialize_group_communication_controls(
         image, base, _object_types(application, master), scope
     )

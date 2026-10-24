@@ -27,6 +27,7 @@ from xknxeditor.prod.errors import EncodingError
 
 from .errors import ImageError
 from .factory_image import FactoryImage, FactoryLocation
+from .merge import procedure_parameter_refs
 from .project_data import (
     GroupObjectLink,
     SeedDevice,
@@ -346,6 +347,9 @@ class DownloadImage:
     # The contents the device leaves the factory with: the base of the properties the load
     # procedure writes.
     factory_image: FactoryImage | None = None
+    # The values of the active parameters a ``choose`` in the load procedure tests, by
+    # parameter ref id: they select the controls the procedure runs.
+    procedure_parameters: Mapping[str, str] = MappingProxyType({})
 
     def relative_segment(self, object_type: int) -> RelativeSegment | None:
         """Return the relative segment for an interface object type, if any."""
@@ -643,7 +647,23 @@ def build_image(
         application_segments=tuple(application_segments),
         security_tables=security,
         factory_image=factory_image,
+        procedure_parameters=MappingProxyType(_procedure_parameters(application, ui)),
     )
+
+
+def _procedure_parameters(application: Application, ui: DynamicUI) -> dict[str, str]:
+    """The current values of the active parameters a ``choose`` in the load procedure tests;
+    an inactive one has none, so its ``choose`` selects no controls."""
+    refs = procedure_parameter_refs(application)
+    if not refs:
+        return {}
+    active = ui.active_parameter_ref_ids()
+    values: dict[str, str] = {}
+    for ref in refs & active:
+        value = ui.get_value(ref)
+        if value is not None:
+            values[ref] = value
+    return values
 
 
 def _security_tables(

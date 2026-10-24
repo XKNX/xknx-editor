@@ -403,8 +403,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - config_bytes: bytes carrying a configured parameter value / a property write (flags, tables).
         - default_bytes: bytes merely reset to the application default (the device holds an older value)
           — benign.
-        - runtime_bytes: bytes the device firmware manages itself (e.g. a download counter) — benign,
-          and they typically never converge to zero even right after a successful download.
+        - runtime_bytes: bytes the device firmware manages itself (e.g. a download counter, or a
+          handshake property the procedure writes with different values, marked "(procedure step)"
+          in the summary) — benign, and they typically never converge to zero even right after a
+          successful download.
         So a non-zero ``changed_bytes`` with ``config_bytes == 0`` (``config_locations == 0``) means the
         device already carries the configuration; do not treat that as a pending change. changed_segments/
         changed_properties are counts and do not describe unload/restart or address-reset effects."""

@@ -107,3 +107,33 @@ def test_device_written_address_counts_as_runtime() -> None:
     assert classes.config_bytes == 0
     assert classes.runtime_bytes == 1
     assert classes.actionable is False
+
+
+def test_a_procedure_step_property_is_device_managed() -> None:
+    # A Berker 8014xxx0: the procedure writes object 5 property 51 with 01 and later 02 (a
+    # download handshake), so an unchanged device never holds either value.
+    steps = tuple(
+        PropertyDiff(
+            object_index=5,
+            property_id=51,
+            current=b"\x00",
+            planned=planned,
+            procedure_step=True,
+        )
+        for planned in (b"\x01", b"\x02")
+    )
+    report = PreflightReport(segments=(), properties=steps)
+    classes = classify_preflight(report, frozenset(), {})
+    assert (classes.config_bytes, classes.runtime_bytes) == (0, 2)
+    assert classes.config_locations == 0
+    assert classes.actionable is False
+    assert "(procedure step)" in report.summary()
+    assert PreflightResultWindow._property_category(steps[0]) == _CAT_RUNTIME
+    setting = PropertyDiff(
+        object_index=5, property_id=52, current=b"\x00", planned=b"\x01"
+    )
+    assert PreflightResultWindow._property_category(setting) == _CAT_CONFIG
+    same = PropertyDiff(
+        object_index=5, property_id=52, current=b"\x01", planned=b"\x01"
+    )
+    assert PreflightResultWindow._property_category(same) == _CAT_MATCH

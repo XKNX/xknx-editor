@@ -83,6 +83,10 @@ class PropertyDiff:
     planned: bytes
     # Set for a property addressed by object type over the extended property services.
     object_type: int | None = None
+    # A step of the procedure, not a setting: the procedure writes this property more than once
+    # with different values (e.g. a download handshake the device resets afterwards), so the
+    # device can never hold what one of the writes plans.
+    procedure_step: bool = False
 
     @property
     def object_label(self) -> str:
@@ -163,6 +167,7 @@ class PreflightReport:
             lines.append(
                 f"  object {prop.object_label} property {prop.property_id}: "
                 f"{prop.changed_bytes}/{len(prop.planned)} changed"
+                + (" (procedure step)" if prop.procedure_step else "")
             )
         unchanged = (len(self.segments) - len(changed_segments)) + (
             len(self.properties) - len(changed_properties)
