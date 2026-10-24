@@ -22,6 +22,7 @@ from editor_gui.device_plugins import device_plugins, parameters_in_plugin
 from editor_gui.hardware_text import bus_current_text, rail_text
 from editor_gui.os_open import open_url
 from editor_gui.plugins.project.strings import S
+from editor_gui.plugins.project.ui.status_field import status_combo
 from editor_gui.widgets.dpi import label_column_width, px, px_vec2
 from editor_gui.widgets.filter_box import filter_box
 from editor_gui.widgets.flow import button_width, same_line_if_fits
@@ -300,6 +301,8 @@ class ConfigurePanel:
         get_icon: Callable[[Device, str], Icon | None] | None = None,
         get_picture: Callable[[Device, str], Picture | None] | None = None,
         on_serial_number_change: Callable[[Device, bytes | None], None] | None = None,
+        get_status: Callable[[Device], str | None] | None = None,
+        on_status_change: Callable[[Device, str], None] | None = None,
         get_secure_commissioning: Callable[[Device], bool | None] | None = None,
         on_secure_commissioning_change: Callable[[Device, bool], None] | None = None,
         on_add_certificate: Callable[[Device], None] | None = None,
@@ -414,6 +417,8 @@ class ConfigurePanel:
         self._program_use_serial = False
         self._serial_buffer = ""
         self._on_serial_number_change = on_serial_number_change
+        self._get_status = get_status
+        self._on_status_change = on_status_change
         self._get_secure_commissioning = get_secure_commissioning
         self._on_secure_commissioning_change = on_secure_commissioning_change
         self._on_add_certificate = on_add_certificate
@@ -717,6 +722,9 @@ class ConfigurePanel:
             fields.append(
                 (S.CONFIGURE_SERIAL_NUMBER, lambda: self._serial_input(device))
             )
+        status = self._get_status(device) if self._get_status is not None else None
+        if status is not None:
+            fields.append((S.STATUS, lambda: self._status_input(device, status)))
         # The secure-commissioning and routing-blocking fields need the parsed application. Only
         # read them once it is loaded: for a snapshot device _ready() starts the background load
         # and returns False, so these fields appear when it is ready instead of parsing the whole
@@ -787,6 +795,11 @@ class ConfigurePanel:
             imgui.table_set_column_index(col + 1)
             render()
         imgui.end_table()
+
+    def _status_input(self, device: Device, status: str) -> None:
+        chosen = status_combo("##device_status", status)
+        if chosen is not None and self._on_status_change is not None:
+            self._on_status_change(device, chosen)
 
     def _name_input(self, device: Device) -> None:
         """The device name. Without a custom name the default one is shown in grey italics and

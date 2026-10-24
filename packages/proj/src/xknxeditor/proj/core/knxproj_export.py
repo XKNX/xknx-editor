@@ -97,6 +97,7 @@ from xknxeditor.proj.core.project_secrets import (
 )
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
+    UNDEFINED_STATUS,
     Area,
     ComObject,
     ComObjectLink,
@@ -1147,6 +1148,12 @@ class _ExportIds:
         return max(self._last_used, self._max_puid)
 
 
+def _status(status: str) -> str | None:
+    """A ``CompletionStatus`` attribute value: omitted for the default "Undefined", as genuine
+    projects leave it out."""
+    return None if status in ("", UNDEFINED_STATUS) else status
+
+
 def _local_id(source_id: str) -> str:
     """``source_id`` without its project prefix (``P-04BB-0_F-1_GF-0`` -> ``F-1_GF-0``); an id
     without one is returned as is."""
@@ -1466,6 +1473,7 @@ class _Writer:
             Name=project.name,
             GroupAddressStyle=project.group_address_style,
             Comment=project.comment or None,
+            CompletionStatus=_status(project.completion_status),
             LastUsedPuid=self._ids.last_used_puid,
             Guid=project_guid,
             LastModified=project.last_modified or now,
@@ -1475,6 +1483,8 @@ class _Writer:
         # only from project/21 on).
         for key, value in (project.extra_attributes or {}).items():
             schemas = _SCHEMA_SPECIFIC_INFO_ATTRS.get(key)
+            if key == "CompletionStatus":
+                continue  # written from its own column above
             if schemas is None or self._schema in schemas:
                 info.set(key, value)
         # ProjectInformation child collections captured verbatim on import, re-emitted in schema
@@ -1681,6 +1691,7 @@ class _Writer:
                 Name=self._topology_name(area.name),
                 Comment=area.comment or None,
                 Description=area.description or None,
+                CompletionStatus=_status(area.completion_status),
                 Puid=self._ids.puid(area, area.puid),
             )
             for line in sorted(area.lines, key=lambda x: x.address):
@@ -1706,6 +1717,7 @@ class _Writer:
                     Name=self._topology_name(line.name),
                     Comment=line.comment or None,
                     Description=line.description or None,
+                    CompletionStatus=_status(line.completion_status),
                     MediumTypeRefId=None if self._uses_segments else medium,
                     DomainAddress=None if self._uses_segments else line_domain,
                     Puid=self._ids.puid(line, line.puid),
@@ -1725,6 +1737,7 @@ class _Writer:
                             MasterSalt=segment.master_salt
                             if self._schema == "23"
                             else None,
+                            CompletionStatus=_status(segment.completion_status),
                             Puid=self._ids.puid(segment, segment.puid),
                         )
                         if first_segment_el is None:
@@ -1893,6 +1906,7 @@ class _Writer:
             Usage=space.usage or None,
             Description=space.description or None,
             Comment=space.comment or None,
+            CompletionStatus=_status(space.completion_status),
             DefaultLine=space.default_line or None,
             Context=space.context or None,
             Puid=self._ids.puid(space, space.puid),
@@ -1914,6 +1928,7 @@ class _Writer:
                 Type=fn.function_type or None,
                 Comment=fn.comment or None,
                 Description=fn.description or None,
+                CompletionStatus=_status(fn.completion_status),
                 Implements=fn.implements or None,
                 Number=fn.number or None,
                 DefaultGroupRange=fn.default_group_range or None,
@@ -1963,6 +1978,7 @@ class _Writer:
             Hardware2ProgramRefId=device.hardware2program_ref_id,
             Comment=device.comment or None,
             Description=device.description or None,
+            CompletionStatus=_status(device.completion_status),
             InstallationHints=installation_hints(device) or None,
             LastModified=device.last_modified or None,
             # Commissioning state ("loaded" ticks + serial / last download). Emit the flags
@@ -1989,7 +2005,7 @@ class _Writer:
         # attribute and produce invalid XML.
         if self._schema == self._source_schema:
             for key, value in (device.extra_attributes or {}).items():
-                if key != "InstallationHints":
+                if key not in ("InstallationHints", "CompletionStatus"):
                     di.set(key, value)
         # Genuine exports order the device's children ParameterInstanceRefs, then
         # ComObjectInstanceRefs.

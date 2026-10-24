@@ -2301,3 +2301,39 @@ msgstr "Καταχώριση"
 
 msgid "Store plugin data {name}"
 msgstr "Αποθήκευση δεδομένων plugin {name}"
+
+msgid "Unknown"
+msgstr "Άγνωστο"
+
+msgid "Editing"
+msgstr "Υπό επεξεργασία"
+
+msgid "Finished design"
+msgstr "Ολοκλήρωση σχεδιασμού"
+
+msgid "Finished commissioning"
+msgstr "Η θέση σε λειτουργία ολοκληρώθηκε"
+
+msgid "Tested"
+msgstr "Ελέγχθηκε"
+
+msgid "Accepted"
+msgstr "Έγινε αποδεκτό"
+
+msgid "Locked"
+msgstr "Κλειδωμένο"
+
+msgid "Function"
+msgstr "Λειτουργία"
+
+msgid "Use"
+msgstr "Χρήση"
+
+msgid "Set room use"
+msgstr "Ορισμός χρήσης χώρου"
+
+msgid "Set status to {status}"
+msgstr "Ορισμός κατάστασης σε {status}"
+
+msgid "Set function description"
+msgstr "Ορισμός περιγραφής λειτουργίας"

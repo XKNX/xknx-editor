@@ -306,6 +306,12 @@ class ProjectPlugin:
             get_icon=self._icon,
             get_picture=self._picture,
             on_serial_number_change=self._set_serial_number,
+            get_status=lambda device: api.project.completion_status(
+                "device", device.node_id
+            ),
+            on_status_change=lambda device, status: api.project.set_completion_status(
+                "device", device.node_id, status
+            ),
             get_secure_commissioning=api.project.secure_commissioning,
             on_secure_commissioning_change=self._change_secure_commissioning,
             on_add_certificate=self._ask_certificate_for,
@@ -365,11 +371,19 @@ class ProjectPlugin:
             on_rename=api.project.rename_element,
             on_set_description=api.project.set_element_description,
             on_set_address=api.project.set_element_address,
+            on_set_status=api.project.set_completion_status,
         )
         self._space_details = SpaceDetailsPanel(
             on_rename=api.project.rename_space,
             on_set_description=api.project.set_space_description,
             on_set_number=api.project.set_space_number,
+            on_set_usage=api.project.set_space_usage,
+            get_status=lambda space_id: api.project.completion_status(
+                "space", space_id
+            ),
+            on_set_status=lambda space_id, status: api.project.set_completion_status(
+                "space", space_id, status
+            ),
         )
         self._spaces_panel = SpacesPanel(
             get_space_tree=api.project.get_space_tree,
@@ -396,7 +410,8 @@ class ProjectPlugin:
             count_paste_targets=self._count_paste_targets,
             on_device_info=self._open_read_dialog,
             on_compare=self._open_compare,
-            on_select_element=api.project.select_comment_target,
+            # A function's details (name, description, status) show in the Device tab.
+            on_select_element=api.project.select_element,
             get_selected_node_id=self._selected_node_id,
         )
 
@@ -410,6 +425,10 @@ class ProjectPlugin:
             get_certificates=api.project.device_certificate_list,
             on_remove_certificate=api.project.remove_device_certificate,
             on_add_certificate=self._add_project_certificate,
+            get_status=lambda: api.project.completion_status("project", 0),
+            on_set_status=lambda status: api.project.set_completion_status(
+                "project", 0, status
+            ),
         )
         self._project_log_panel = ProjectLogPanel(
             get_traces=api.project.get_project_traces,

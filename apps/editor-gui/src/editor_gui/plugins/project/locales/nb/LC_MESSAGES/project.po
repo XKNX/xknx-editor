@@ -2301,3 +2301,39 @@ msgstr "Oppføring"
 
 msgid "Store plugin data {name}"
 msgstr "Lagre plugindata {name}"
+
+msgid "Unknown"
+msgstr "Ukjent"
+
+msgid "Editing"
+msgstr "Redigerer"
+
+msgid "Finished design"
+msgstr "Fullført utforming"
+
+msgid "Finished commissioning"
+msgstr "Idriftsettelse ferdig"
+
+msgid "Tested"
+msgstr "Testet"
+
+msgid "Accepted"
+msgstr "Akseptert"
+
+msgid "Locked"
+msgstr "Låst"
+
+msgid "Function"
+msgstr "Funksjon"
+
+msgid "Use"
+msgstr "Bruk"
+
+msgid "Set room use"
+msgstr "Angi rommets bruk"
+
+msgid "Set status to {status}"
+msgstr "Angi status til {status}"
+
+msgid "Set function description"
+msgstr "Angi funksjonsbeskrivelse"

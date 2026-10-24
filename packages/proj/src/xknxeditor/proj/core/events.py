@@ -2543,6 +2543,76 @@ class SetComment(Event):
         return cls(**data)
 
 
+# The elements whose "Status" (``CompletionStatus``) the editor shows and edits, by the kind name
+# ``SetCompletionStatus`` uses.
+STATUS_KINDS: dict[str, type[Any]] = {
+    "project": Project,
+    "area": Area,
+    "line": Line,
+    "device": Device,
+    "space": Space,
+    "function": Function,
+}
+
+
+def stored_completion_status(
+    session: Session, kind: str, element_id: int
+) -> str | None:
+    """The ``CompletionStatus`` of an element (a ``STATUS_KINDS`` name); None when there is no
+    such element. The project ignores ``element_id``."""
+    if kind == "project":
+        # Only the column: the project row also holds the product archives (tens of MB).
+        return session.query(Project.completion_status).limit(1).scalar()
+    model = STATUS_KINDS.get(kind)
+    element = None if model is None else session.get(model, element_id)
+    return None if element is None else cast(str, element.completion_status)
+
+
+@_register
+@dataclass
+class SetCompletionStatus(Event):
+    """An element's "Status" (``CompletionStatus``, one of ``COMPLETION_STATUSES``). ``kind`` is a
+    ``STATUS_KINDS`` name; the project ignores ``element_id``."""
+
+    event_type: ClassVar[str] = "SetCompletionStatus"
+
+    kind: str
+    element_id: int
+    status: str
+    old_status: str | None = None
+
+    def apply(self, session: Session) -> None:
+        self.old_status = stored_completion_status(session, self.kind, self.element_id)
+        self._set(session, self.status)
+
+    def revert(self, session: Session) -> None:
+        if self.old_status is not None:
+            self._set(session, self.old_status)
+
+    def _set(self, session: Session, value: str) -> None:
+        if self.kind == "project":
+            session.query(Project).update(
+                {Project.completion_status: value}, synchronize_session="fetch"
+            )
+            return
+        model = STATUS_KINDS.get(self.kind)
+        element = None if model is None else session.get(model, self.element_id)
+        if element is not None:
+            element.completion_status = value
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "kind": self.kind,
+            "element_id": self.element_id,
+            "status": self.status,
+            "old_status": self.old_status,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetCompletionStatus:
+        return cls(**data)
+
+
 @_register
 @dataclass
 class MoveDevice(Event):
@@ -2769,6 +2839,40 @@ class SetFunctionType(Event):
 
 @_register
 @dataclass
+class SetFunctionDescription(Event):
+    """Set a building function's description."""
+
+    event_type: ClassVar[str] = "SetFunctionDescription"
+
+    function_id: int
+    description: str
+    old_description: str | None = None
+
+    def apply(self, session: Session) -> None:
+        fn = session.get(Function, self.function_id)
+        if fn is not None:
+            self.old_description = fn.description
+            fn.description = self.description
+
+    def revert(self, session: Session) -> None:
+        fn = session.get(Function, self.function_id)
+        if fn is not None and self.old_description is not None:
+            fn.description = self.old_description
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "function_id": self.function_id,
+            "description": self.description,
+            "old_description": self.old_description,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetFunctionDescription:
+        return cls(**data)
+
+
+@_register
+@dataclass
 class AddFunctionGroupAddress(Event):
     """Assign a group address to a function under a role (empty role = unassigned)."""
 
@@ -2896,6 +3000,9 @@ class CreateSpace(Event):
     number: str = ""
     order: int = 0
     space_id: int | None = None
+    # A room's use: the master data's SpaceUsage id and its text (see ``SetSpaceUsage``).
+    usage: str = ""
+    usage_text: str = ""
 
     def apply(self, session: Session) -> None:
         space = Space(
@@ -2905,6 +3012,8 @@ class CreateSpace(Event):
             name=self.name,
             number=self.number,
             order=self.order,
+            usage=self.usage,
+            usage_text=self.usage_text,
         )
         if self.space_id is not None:
             space.id = self.space_id
@@ -2926,6 +3035,8 @@ class CreateSpace(Event):
             "number": self.number,
             "order": self.order,
             "space_id": self.space_id,
+            "usage": self.usage,
+            "usage_text": self.usage_text,
         }
 
     @classmethod
@@ -2996,6 +3107,48 @@ class SetSpaceNumber(Event):
 
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> SetSpaceNumber:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetSpaceUsage(Event):
+    """Set a room's use ("Use", ``@Usage``): a SpaceUsage id of the master data (e.g. ``SU-4``)
+    or "" for none, with its text."""
+
+    event_type: ClassVar[str] = "SetSpaceUsage"
+
+    space_id: int
+    usage: str
+    usage_text: str = ""
+    old_usage: str | None = None
+    old_usage_text: str | None = None
+
+    def apply(self, session: Session) -> None:
+        space = session.get(Space, self.space_id)
+        if space is not None:
+            self.old_usage = space.usage
+            self.old_usage_text = space.usage_text
+            space.usage = self.usage
+            space.usage_text = self.usage_text
+
+    def revert(self, session: Session) -> None:
+        space = session.get(Space, self.space_id)
+        if space is not None and self.old_usage is not None:
+            space.usage = self.old_usage
+            space.usage_text = self.old_usage_text or ""
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "space_id": self.space_id,
+            "usage": self.usage,
+            "usage_text": self.usage_text,
+            "old_usage": self.old_usage,
+            "old_usage_text": self.old_usage_text,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetSpaceUsage:
         return cls(**data)
 
 

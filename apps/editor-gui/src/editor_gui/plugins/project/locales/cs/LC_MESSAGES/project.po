@@ -2301,3 +2301,39 @@ msgstr "Položka"
 
 msgid "Store plugin data {name}"
 msgstr "Uložit data pluginu {name}"
+
+msgid "Unknown"
+msgstr "Neznámé"
+
+msgid "Editing"
+msgstr "Editace"
+
+msgid "Finished design"
+msgstr "Konečný návrh"
+
+msgid "Finished commissioning"
+msgstr "Závěrečné zprovoznění"
+
+msgid "Tested"
+msgstr "Odzkoušeno"
+
+msgid "Accepted"
+msgstr "Přijato"
+
+msgid "Locked"
+msgstr "Uzamčeno"
+
+msgid "Function"
+msgstr "Funkce"
+
+msgid "Use"
+msgstr "Využití"
+
+msgid "Set room use"
+msgstr "Nastavit využití místnosti"
+
+msgid "Set status to {status}"
+msgstr "Nastavit stav na {status}"
+
+msgid "Set function description"
+msgstr "Nastavit popis funkce"

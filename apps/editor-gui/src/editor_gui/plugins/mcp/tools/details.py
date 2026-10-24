@@ -45,9 +45,23 @@ CommentKind = Literal[
     "group_address",
 ]
 CommentField = Literal["comment", "installation_hints"]
-DescriptionKind = Literal["area", "line", "group_range", "group_address", "space"]
+DescriptionKind = Literal[
+    "area", "line", "group_range", "group_address", "space", "function"
+]
 NumberKind = Literal["area", "line", "group_range", "group_address", "space"]
-ElementKind = Literal["area", "line", "group_range", "group_address"]
+ElementKind = Literal["area", "line", "group_range", "group_address", "function"]
+StatusKind = Literal["project", "area", "line", "device", "space", "function"]
+# The CompletionStatus values (models.COMPLETION_STATUSES), shown as Unknown, Editing, Finished
+# design, Finished commissioning, Tested, Accepted and Locked.
+Status = Literal[
+    "Undefined",
+    "Editing",
+    "FinishedDesign",
+    "FinishedCommissioning",
+    "Tested",
+    "Accepted",
+    "Locked",
+]
 Priority = Literal["Low", "High", "Alert"]
 
 _FORMATS = ("bold", "italic", "underline")
@@ -122,11 +136,31 @@ def set_comment(
     return project.comment(kind, element_id, field) or ""
 
 
+def status_target(
+    project: ProjectService,
+    kind: str,
+    element_id: int | None,
+    device_address: str | None,
+) -> int:
+    """The id ``SetCompletionStatus`` takes for ``kind``: a device by its node_id OR its
+    individual address, the project as 0, any other element by its id; checked to exist."""
+    if kind == "device":
+        return require_device(project, element_id, device_address).node_id
+    if device_address is not None:
+        raise ToolError("device_address is only for kind device")
+    target = 0 if kind == "project" else element_id
+    if target is None:
+        raise ToolError(f"pass the element_id of the {kind}")
+    if project.completion_status(kind, target) is None:
+        raise ToolError(f"no {kind} with id {target}")
+    return target
+
+
 def set_description(
     project: ProjectService, kind: str, element_id: int, description: str
 ) -> None:
-    """Set the description of an area, line, group range, group address or space (one undo
-    step)."""
+    """Set the description of an area, line, group range, group address, space or function (one
+    undo step)."""
     if kind == "space":
         if project.find_space(element_id) is None:
             raise ToolError(f"no space with id {element_id}")
@@ -145,16 +179,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         details = project.element_details(kind, element_id)
         if details is None:
             raise ToolError(f"no {kind} with id {element_id}")
-        return {
+        result: dict[str, Any] = {
             "kind": kind,
             "element_id": element_id,
             "type": details.title_kind,
             "name": details.name,
             "description": details.description,
-            "address": f"{details.prefix}{details.address}",
-            "number": details.address,
-            "number_editable": details.editable,
         }
+        if details.has_address:
+            result["address"] = f"{details.prefix}{details.address}"
+            result["number"] = details.address
+            result["number_editable"] = details.editable
+        if details.status is not None:
+            result["status"] = details.status
+        return result
 
     @tool("read")
     def project_get_comment(
@@ -203,22 +241,72 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read")
     def project_get_element(kind: ElementKind, element_id: int) -> dict[str, Any]:
-        """Read the details of an area, line (ids from project_topology), group range or group
-        address (id from project_list_group_addresses). Returns {kind, element_id, type, name,
-        description, address, number, number_editable}: type is area, line, main_group,
-        middle_group, group_range (a group of the Free style) or group_address; address is the full
-        address ("1.2", "1/2", "1/2/3") and number its own part ("2"), which
-        project_set_number changes unless number_editable is false."""
+        """Read the details of an area, line (ids from project_topology), group range, group
+        address (id from project_list_group_addresses) or building function (id from
+        project_spaces). Returns {kind, element_id, type, name, description, address?, number?,
+        number_editable?, status?}: type is area, line, main_group, middle_group, group_range (a
+        group of the Free style), group_address or function; address is the full address ("1.2",
+        "1/2", "1/2/3") and number its own part ("2"), which project_set_number changes unless
+        number_editable is false (a function has none); status is the "Status" of an area, line or
+        function (see project_set_status)."""
         require_project(ctx)
         return ctx.run_locked(lambda: _element_dict(kind, element_id))
+
+    @tool("read")
+    def project_get_status(
+        kind: StatusKind,
+        element_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Read the "Status" (CompletionStatus) of the project (kind project, no id), an area or a
+        line (ids from project_topology), a device (element_id = its node_id, OR device_address,
+        an individual address like "1.0.30"), a space or a building function (ids from
+        project_spaces). Returns {kind, element_id, status}; status is one of Undefined (shown as
+        "Unknown"), Editing, FinishedDesign, FinishedCommissioning, Tested, Accepted, Locked."""
+        require_project(ctx)
+
+        def _read() -> dict[str, Any]:
+            target = status_target(project, kind, element_id, device_address)
+            return {
+                "kind": kind,
+                "element_id": target,
+                "status": project.completion_status(kind, target),
+            }
+
+        return ctx.run_locked(_read)
+
+    @tool("write")
+    def project_set_status(
+        status: Status,
+        kind: StatusKind,
+        element_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Set the "Status" (CompletionStatus) of the project, an area, a line, a device, a space
+        or a building function, as its Status drop-down does; the element as for
+        project_get_status. It documents how far the element is (planned, commissioned, tested,
+        accepted by the customer, locked) and is written to the exported project. Undoable with
+        project_undo. Returns {kind, element_id, status}."""
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            target = status_target(project, kind, element_id, device_address)
+            project.set_completion_status(kind, target, status)
+            return {
+                "kind": kind,
+                "element_id": target,
+                "status": project.completion_status(kind, target),
+            }
+
+        return ctx.run_locked(_set)
 
     @tool("write")
     def project_set_description(
         kind: DescriptionKind, element_id: int, description: str
     ) -> dict[str, Any]:
         """Set the description of an area, line (ids from project_topology), group range, group
-        address (id from project_list_group_addresses) or space (id from project_spaces). Undoable
-        with project_undo. Returns {kind, element_id, description}."""
+        address (id from project_list_group_addresses), space or building function (ids from
+        project_spaces). Undoable with project_undo. Returns {kind, element_id, description}."""
         require_project(ctx)
 
         def _set() -> dict[str, Any]:

@@ -2301,3 +2301,39 @@ msgstr "Kayıt"
 
 msgid "Store plugin data {name}"
 msgstr "Eklenti verilerini kaydet: {name}"
+
+msgid "Unknown"
+msgstr "Bilinmeyen"
+
+msgid "Editing"
+msgstr "Düzenleme"
+
+msgid "Finished design"
+msgstr "Tasarım bitti"
+
+msgid "Finished commissioning"
+msgstr "Devreye alma bitti"
+
+msgid "Tested"
+msgstr "Test edildi"
+
+msgid "Accepted"
+msgstr "Kabul edildi"
+
+msgid "Locked"
+msgstr "Kilitli"
+
+msgid "Function"
+msgstr "Fonksiyon"
+
+msgid "Use"
+msgstr "Kullanım"
+
+msgid "Set room use"
+msgstr "Oda kullanımını belirle"
+
+msgid "Set status to {status}"
+msgstr "Durumu {status} olarak belirle"
+
+msgid "Set function description"
+msgstr "Fonksiyon tanımını belirle"

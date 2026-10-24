@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.plugins.project.ui.status_field import status_combo
 from editor_gui.strings import S as APP_S
 from editor_gui.widgets.combo import begin_combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -42,8 +43,12 @@ class ProjectInfoPanel:
         get_certificates: Callable[[], list[tuple[bytes, str]]] | None = None,
         on_remove_certificate: Callable[[bytes], None] | None = None,
         on_add_certificate: Callable[[], None] | None = None,
+        get_status: Callable[[], str | None] = lambda: None,
+        on_set_status: Callable[[str], None] = lambda _s: None,
     ) -> None:
         self._get_project_info = get_project_info
+        self._get_status = get_status
+        self._on_set_status = on_set_status
         self._on_rename = on_rename
         self._on_set_password = on_set_password
         self._needs_password = needs_password
@@ -85,6 +90,7 @@ class ProjectInfoPanel:
         imgui.table_setup_column("", imgui.TableColumnFlags_.width_fixed, px(130.0))
         imgui.table_setup_column("", imgui.TableColumnFlags_.width_stretch, 1.0)
         self._render_name(info)
+        self._render_status()
         self._render_password(info)
         self._render_backbone_security()
         self._render_certificates_row()
@@ -118,6 +124,19 @@ class ProjectInfoPanel:
         # Renamed when the field is left; an empty name keeps the current one.
         if imgui.is_item_deactivated_after_edit():
             self._on_rename(self._name_buffer)
+
+    def _render_status(self) -> None:
+        status = self._get_status()
+        if status is None:
+            return
+        imgui.table_next_row()
+        imgui.table_set_column_index(0)
+        imgui.align_text_to_frame_padding()
+        imgui.text_disabled(S.STATUS)
+        imgui.table_set_column_index(1)
+        chosen = status_combo("##project_status", status)
+        if chosen is not None:
+            self._on_set_status(chosen)
 
     def _render_backbone_security(self) -> None:
         """The installation's KNX IP Secure routing (Automatic/Secured/Not secured)."""

@@ -49,6 +49,7 @@ from xknxeditor.proj.core.knxproj_export import (
     relidref,
 )
 from xknxeditor.proj.models import (
+    UNDEFINED_STATUS,
     ComObject,
     Device,
     GroupRange,
@@ -248,9 +249,8 @@ class _StoreBuilder:
         )
         function_count = sum(len(s.functions) for s in inst.spaces) if inst else 0
         # The project list reads its "Status" column from CompletionStatus; without it the project
-        # is listed as "Unknown". It is captured at import into extra_attributes (it is one of the
-        # ProjectInformation attributes xknxproject does not surface), so re-emit it from there and
-        # fall back to what ETS puts on a project that is simply being worked on.
+        # is listed as "Unknown". Write the project's own status, else "Editing", the status of a
+        # project that is simply being worked on.
         counts: dict[str, object] = (
             {"Birdy-DeviceCount": device_count}
             if self._format is StoreFormat.ETS5
@@ -271,7 +271,9 @@ class _StoreBuilder:
             LastModified=project.last_modified or now,
             ProjectStart=extra.get("ProjectStart") or now,
             Comment=project.comment or "",
-            CompletionStatus=extra.get("CompletionStatus") or "Editing",
+            CompletionStatus=project.completion_status
+            if project.completion_status not in ("", UNDEFINED_STATUS)
+            else "Editing",
             LastUsedPuid=self._counter,
             Guid=self.guid,
             **counts,

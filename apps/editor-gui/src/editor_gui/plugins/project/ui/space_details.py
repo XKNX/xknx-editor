@@ -1,5 +1,6 @@
 """The details of a space selected in the Buildings tree (a building, floor, room, …), shown in
-place of the device's: its name, description and number, each saved when its field is left."""
+place of the device's: its name, a room's use, its description, number and status, each saved when
+its field is left or its choice is made."""
 
 from __future__ import annotations
 
@@ -9,6 +10,7 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.plugins.project.ui.status_field import status_combo, usage_combo
 from editor_gui.widgets.dpi import label_column_width
 
 if TYPE_CHECKING:
@@ -21,10 +23,16 @@ class SpaceDetailsPanel:
         on_rename: Callable[[int, str], None],
         on_set_description: Callable[[int, str], None],
         on_set_number: Callable[[int, str], None],
+        on_set_usage: Callable[[int, str], None] = lambda _i, _u: None,
+        get_status: Callable[[int], str | None] = lambda _i: None,
+        on_set_status: Callable[[int, str], None] = lambda _i, _s: None,
     ) -> None:
         self._on_rename = on_rename
         self._on_set_description = on_set_description
         self._on_set_number = on_set_number
+        self._on_set_usage = on_set_usage
+        self._get_status = get_status
+        self._on_set_status = on_set_status
         self._space_id: int | None = None
         self._name = ""
         self._description = ""
@@ -37,7 +45,11 @@ class SpaceDetailsPanel:
             self._description = space.description
             self._number = space.number
         label_width = label_column_width(
-            S.CONFIGURE_NAME, S.CONFIGURE_DESCRIPTION, S.SPACE_NUMBER
+            S.CONFIGURE_NAME,
+            S.SPACE_USE,
+            S.CONFIGURE_DESCRIPTION,
+            S.SPACE_NUMBER,
+            S.STATUS,
         )
         if not imgui.begin_table("##space_details", 2):
             return
@@ -47,10 +59,21 @@ class SpaceDetailsPanel:
         imgui.table_setup_column("##field", imgui.TableColumnFlags_.width_stretch)
         self._row(S.CONFIGURE_NAME)
         self._name_field(space)
+        if space.space_type == "Room":
+            self._row(S.SPACE_USE)
+            usage = usage_combo("##space_usage", space.usage, space.usage_text)
+            if usage is not None:
+                self._on_set_usage(space.id, usage)
         self._row(S.CONFIGURE_DESCRIPTION)
         self._description_field(space)
         self._row(S.SPACE_NUMBER)
         self._number_field(space)
+        status = self._get_status(space.id)
+        if status is not None:
+            self._row(S.STATUS)
+            chosen = status_combo("##space_status", status)
+            if chosen is not None:
+                self._on_set_status(space.id, chosen)
         imgui.end_table()
 
     @staticmethod

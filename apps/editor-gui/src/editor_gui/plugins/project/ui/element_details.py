@@ -1,6 +1,7 @@
-"""The details of an area or a line selected in the Devices tree, or of a group range or group
-address in the Group Addresses tree, shown in place of the device's: its name, address and
-description, each saved when its field is left."""
+"""The details of an area or a line selected in the Devices tree, of a group range or group
+address in the Group Addresses tree, or of a function in the Buildings tree, shown in place of the
+device's: its name, address, description and status, each saved when its field is left or its
+choice is made."""
 
 from __future__ import annotations
 
@@ -10,6 +11,7 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
+from editor_gui.plugins.project.ui.status_field import status_combo
 from editor_gui.widgets.dpi import label_column_width
 
 if TYPE_CHECKING:
@@ -22,10 +24,12 @@ class ElementDetailsPanel:
         on_rename: Callable[[str, int, str], None],
         on_set_description: Callable[[str, int, str], None],
         on_set_address: Callable[[str, int, str], str | None],
+        on_set_status: Callable[[str, int, str], None] = lambda _k, _i, _s: None,
     ) -> None:
         self._on_rename = on_rename
         self._on_set_description = on_set_description
         self._on_set_address = on_set_address
+        self._on_set_status = on_set_status
         self._key: tuple[str, int] | None = None
         self._name = ""
         self._description = ""
@@ -40,7 +44,7 @@ class ElementDetailsPanel:
             self._address = details.address
             self._error = ""
         label_width = label_column_width(
-            S.CONFIGURE_NAME, S.CONFIGURE_DESCRIPTION, S.GA_ADDRESS
+            S.CONFIGURE_NAME, S.CONFIGURE_DESCRIPTION, S.GA_ADDRESS, S.STATUS
         )
         if not imgui.begin_table("##element_details", 2):
             return
@@ -50,10 +54,16 @@ class ElementDetailsPanel:
         imgui.table_setup_column("##field", imgui.TableColumnFlags_.width_stretch)
         self._row(S.CONFIGURE_NAME)
         self._name_field(details)
-        self._row(S.GA_ADDRESS)
-        self._address_field(details)
+        if details.has_address:
+            self._row(S.GA_ADDRESS)
+            self._address_field(details)
         self._row(S.CONFIGURE_DESCRIPTION)
         self._description_field(details)
+        if details.status is not None:
+            self._row(S.STATUS)
+            chosen = status_combo("##element_status", details.status)
+            if chosen is not None:
+                self._on_set_status(details.kind, details.element_id, chosen)
         imgui.end_table()
 
     @staticmethod

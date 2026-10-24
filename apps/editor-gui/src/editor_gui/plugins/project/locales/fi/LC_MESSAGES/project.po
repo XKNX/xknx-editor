@@ -2301,3 +2301,39 @@ msgstr "Merkintä"
 
 msgid "Store plugin data {name}"
 msgstr "Tallenna plugin-tiedot {name}"
+
+msgid "Unknown"
+msgstr "Tuntematon"
+
+msgid "Editing"
+msgstr "Muokkaus"
+
+msgid "Finished design"
+msgstr "Päätetty suunnittelu"
+
+msgid "Finished commissioning"
+msgstr "Valmis käyttöönotto"
+
+msgid "Tested"
+msgstr "Testattu"
+
+msgid "Accepted"
+msgstr "Hyväksytty"
+
+msgid "Locked"
+msgstr "Lukittu"
+
+msgid "Function"
+msgstr "Toiminto"
+
+msgid "Use"
+msgstr "Käyttö"
+
+msgid "Set room use"
+msgstr "Aseta huoneen käyttö"
+
+msgid "Set status to {status}"
+msgstr "Aseta tilaksi {status}"
+
+msgid "Set function description"
+msgstr "Aseta toiminnon kuvaus"

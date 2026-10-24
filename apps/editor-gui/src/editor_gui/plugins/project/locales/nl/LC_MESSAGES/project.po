@@ -2339,3 +2339,39 @@ msgstr "Item"
 
 msgid "Store plugin data {name}"
 msgstr "Plug-ingegevens {name} opslaan"
+
+msgid "Unknown"
+msgstr "Onbekend"
+
+msgid "Editing"
+msgstr "Bewerken"
+
+msgid "Finished design"
+msgstr "Ontwerpen beëindigd"
+
+msgid "Finished commissioning"
+msgstr "Inbedrijfname voltooid"
+
+msgid "Tested"
+msgstr "Getest"
+
+msgid "Accepted"
+msgstr "Aanvaard"
+
+msgid "Locked"
+msgstr "Vergrendeld"
+
+msgid "Function"
+msgstr "Functie"
+
+msgid "Use"
+msgstr "Gebruik"
+
+msgid "Set room use"
+msgstr "Ruimtegebruik instellen"
+
+msgid "Set status to {status}"
+msgstr "Status instellen op {status}"
+
+msgid "Set function description"
+msgstr "Functiebeschrijving instellen"

@@ -6,10 +6,12 @@ from typing import TYPE_CHECKING, Any
 
 from imgui_bundle import imgui
 
+from editor_gui.plugins.project.element_status import usage_options
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.devices import render_read_device_item
+from editor_gui.plugins.project.ui.status_field import USAGE_ROWS as _USAGE_ROWS
 from editor_gui.widgets.backgrounds import fill_content_background
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.description import render_description, render_device_marks
@@ -129,7 +131,7 @@ class SpacesPanel:
         on_add_function_ga: Callable[[int, int, str], object] | None = None,
         on_remove_function_ga: Callable[[int], None] | None = None,
         get_ga_range_tree: Callable[[], list[Any]] | None = None,
-        on_create_space: Callable[[int | None, str, str], object] | None = None,
+        on_create_space: Callable[[int | None, str, str, str], object] | None = None,
         get_selected_space_id: Callable[[], int | None] | None = None,
         on_select_space: Callable[[int], None] | None = None,
         on_set_space_type: Callable[[int, str], None] | None = None,
@@ -197,6 +199,7 @@ class SpacesPanel:
         # "New space" + "rename space" + "assign device" dialog state (shared; one popup at a time).
         self._new_space_name = ""
         self._new_space_type = 0  # index into _space_type_presets()
+        self._new_space_usage = 0  # index into usage_options(): "-"
         self._assign_filter = ""
         # A popup requested from inside a context menu must be opened one scope up, not inside the
         # context-menu popup: imgui.open_popup() and begin_popup() only match when called in the
@@ -211,6 +214,7 @@ class SpacesPanel:
             if imgui.small_button(S.SPACES_ADD_SPACE):
                 self._new_space_name = ""
                 self._new_space_type = 0  # top-level default: Building
+                self._new_space_usage = 0
                 imgui.open_popup(_new_space_dialog("root"))
             self._render_new_space_popup(None, _new_space_dialog("root"))
         if not tree:
@@ -315,6 +319,7 @@ class SpacesPanel:
         ):
             self._new_space_name = ""
             self._new_space_type = _default_child_type_index(space.space_type)
+            self._new_space_usage = 0
             self._pending_popup_id = _new_space_dialog(str(space.id))
         if self._on_set_space_type is not None and imgui.begin_menu(S.SPACES_TYPE):
             for label, code in _space_type_presets():
@@ -365,13 +370,24 @@ class SpacesPanel:
         _, self._new_space_type = combo(
             S.SPACES_SPACE_TYPE, self._new_space_type, [label for label, _ in presets]
         )
+        _, code = presets[self._new_space_type]
+        uses = usage_options()
+        if code == "Room":
+            # A room's use, "-" (none) by default.
+            imgui.set_next_item_width(px(220.0))
+            _, self._new_space_usage = combo(
+                S.SPACE_USE,
+                self._new_space_usage,
+                [text for _usage, text in uses],
+                _USAGE_ROWS,
+            )
         can_create = bool(self._new_space_name.strip())
         clicked = dialog_buttons(
             S.SPACES_SPACE_CREATE, S.ML_CANCEL, enabled=[can_create, True]
         )
         if clicked == 0:
-            _, code = presets[self._new_space_type]
-            self._on_create_space(parent_id, code, self._new_space_name.strip())
+            usage = uses[self._new_space_usage][0] if code == "Room" else ""
+            self._on_create_space(parent_id, code, self._new_space_name.strip(), usage)
             imgui.close_current_popup()
         elif clicked == 1:
             imgui.close_current_popup()

@@ -44,6 +44,7 @@ from xknxeditor.proj.core.event_store import EventStore, HistoryEntry
 from xknxeditor.proj.core.events import (
     COM_OBJECT_FLAGS,
     COM_OBJECT_PRIORITIES,
+    STATUS_KINDS,
     AddDevice,
     AddFunctionGroupAddress,
     AddInstallation,
@@ -83,6 +84,7 @@ from xknxeditor.proj.core.events import (
     SetComObjectFlag,
     SetComObjectPriority,
     SetComObjectSending,
+    SetCompletionStatus,
     SetDeviceAdditionalAddresses,
     SetDeviceCertificates,
     SetDeviceCommissioning,
@@ -90,6 +92,7 @@ from xknxeditor.proj.core.events import (
     SetDeviceName,
     SetDeviceSecureCommissioning,
     SetDeviceSpace,
+    SetFunctionDescription,
     SetFunctionType,
     SetGroupAddressAddress,
     SetGroupAddressDatapointType,
@@ -101,6 +104,7 @@ from xknxeditor.proj.core.events import (
     SetSpaceDescription,
     SetSpaceNumber,
     SetSpaceType,
+    SetSpaceUsage,
     SetTopologyAddress,
     SetTopologyDescription,
     SyncDeviceComObjects,
@@ -110,6 +114,7 @@ from xknxeditor.proj.core.events import (
     UpsertDeviceBinaryData,
     additional_address_entries,
     stored_comment,
+    stored_completion_status,
 )
 from xknxeditor.proj.core.fdsk import Fdsk, InvalidFdskError, parse_fdsk
 from xknxeditor.proj.core.function_detect import classify_function
@@ -139,6 +144,7 @@ from xknxeditor.proj.core.project_secrets import (
 from xknxeditor.proj.core.skeleton import MEDIUM_TP, seed_new_project
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
+    COMPLETION_STATUSES,
     Area,
     ComObject,
     ComObjectLink,
@@ -239,6 +245,7 @@ class FunctionInfo:
     function_type: str
     usage_text: str
     group_addresses: list[FunctionGroupAddressInfo]
+    description: str = ""
 
 
 @dataclass(frozen=True)
@@ -273,6 +280,8 @@ class SpaceInfo:
     children: list[SpaceInfo]
     devices: list[SpaceDeviceInfo]
     functions: list[FunctionInfo]
+    # The room's use: a SpaceUsage id of the master data (``SU-4``), "" for none.
+    usage: str = ""
 
 
 @dataclass(frozen=True)
@@ -1072,6 +1081,13 @@ class ProjectService:
             SetFunctionType(function_id=function_id, function_type=function_type)
         )
 
+    def set_function_description(
+        self, project_id: str, function_id: int, description: str
+    ) -> None:
+        self._state(project_id).store.append(
+            SetFunctionDescription(function_id=function_id, description=description)
+        )
+
     def add_function_group_address(
         self, project_id: str, function_id: int, group_address_id: int, role: str = ""
     ) -> int:
@@ -1224,9 +1240,12 @@ class ProjectService:
         space_type: str,
         name: str,
         parent_id: int | None = None,
+        usage: str = "",
+        usage_text: str = "",
     ) -> int:
         """Create a building space (building/floor/room/…) under ``parent_id`` (or at the top level
-        when ``None``). New siblings are appended after the existing ones; returns the new id."""
+        when ``None``), a room with its ``usage`` (a SpaceUsage id) and its text. New siblings are
+        appended after the existing ones; returns the new id."""
         state = self._state(project_id)
         inst = self._installation(state, installation)
         highest = (
@@ -1241,6 +1260,8 @@ class ProjectService:
             name=name,
             parent_id=parent_id,
             order=order,
+            usage=usage,
+            usage_text=usage_text,
         )
         state.store.append(event)
         assert event.space_id is not None
@@ -1253,6 +1274,14 @@ class ProjectService:
         """Set the number of a space, a free text."""
         self._state(project_id).store.append(
             SetSpaceNumber(space_id=space_id, number=number)
+        )
+
+    def set_space_usage(
+        self, project_id: str, space_id: int, usage: str, usage_text: str = ""
+    ) -> None:
+        """Set a room's use: a SpaceUsage id of the master data, or "" for none, with its text."""
+        self._state(project_id).store.append(
+            SetSpaceUsage(space_id=space_id, usage=usage, usage_text=usage_text)
         )
 
     def set_space_description(
@@ -2612,6 +2641,27 @@ class ProjectService:
             SetComment(kind=kind, element_id=element_id, comment=comment, field=field)
         )
 
+    def completion_status(
+        self, project_id: str, kind: str, element_id: int
+    ) -> str | None:
+        """An element's "Status" (``CompletionStatus``); ``kind`` is a ``STATUS_KINDS`` name. None
+        without such an element."""
+        return stored_completion_status(
+            self._state(project_id).session, kind, element_id
+        )
+
+    def set_completion_status(
+        self, project_id: str, kind: str, element_id: int, status: str
+    ) -> None:
+        """Set an element's "Status" to one of ``COMPLETION_STATUSES``; undoable."""
+        if status not in COMPLETION_STATUSES:
+            raise ValueError(f"unknown status {status!r}")
+        if kind not in STATUS_KINDS:
+            raise ValueError(f"no status for {kind!r}")
+        self._state(project_id).store.append(
+            SetCompletionStatus(kind=kind, element_id=element_id, status=status)
+        )
+
     def sync_device_com_objects(
         self,
         project_id: str,
@@ -3407,6 +3457,7 @@ class ProjectService:
                 self._function_info(fn, style)
                 for fn in sorted(space.functions, key=lambda f: (f.order, f.id))
             ],
+            usage=space.usage,
         )
 
     def _space_device_info(self, device: Device) -> SpaceDeviceInfo:
@@ -3437,6 +3488,7 @@ class ProjectService:
                 )
                 for link in function.group_addresses
             ],
+            description=function.description,
         )
 
     def _register(

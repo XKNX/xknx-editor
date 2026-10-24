@@ -2301,3 +2301,39 @@ msgstr "Запис"
 
 msgid "Store plugin data {name}"
 msgstr "Зберегти дані плагіна {name}"
+
+msgid "Unknown"
+msgstr "Невідомо"
+
+msgid "Editing"
+msgstr "Редагування"
+
+msgid "Finished design"
+msgstr "Завершено дизайн проєкту"
+
+msgid "Finished commissioning"
+msgstr "Завершено налагодження"
+
+msgid "Tested"
+msgstr "Протестовано"
+
+msgid "Accepted"
+msgstr "Прийнято"
+
+msgid "Locked"
+msgstr "Заблоковано"
+
+msgid "Function"
+msgstr "Функція"
+
+msgid "Use"
+msgstr "Призначення"
+
+msgid "Set room use"
+msgstr "Задати призначення приміщення"
+
+msgid "Set status to {status}"
+msgstr "Задати статус «{status}»"
+
+msgid "Set function description"
+msgstr "Задати опис функції"

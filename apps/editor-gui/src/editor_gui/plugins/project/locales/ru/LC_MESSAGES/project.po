@@ -2301,3 +2301,39 @@ msgstr "Запись"
 
 msgid "Store plugin data {name}"
 msgstr "Сохранить данные плагина {name}"
+
+msgid "Unknown"
+msgstr "Неопределенный"
+
+msgid "Editing"
+msgstr "Редактирование"
+
+msgid "Finished design"
+msgstr "Готовый дизайн"
+
+msgid "Finished commissioning"
+msgstr "Ввод в эксплуатацию завершен"
+
+msgid "Tested"
+msgstr "Протестировано"
+
+msgid "Accepted"
+msgstr "Принято"
+
+msgid "Locked"
+msgstr "Блокирован"
+
+msgid "Function"
+msgstr "Функция"
+
+msgid "Use"
+msgstr "Назначение"
+
+msgid "Set room use"
+msgstr "Задать назначение помещения"
+
+msgid "Set status to {status}"
+msgstr "Задать статус «{status}»"
+
+msgid "Set function description"
+msgstr "Задать описание функции"

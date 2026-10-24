@@ -2301,3 +2301,39 @@ msgstr "Post"
 
 msgid "Store plugin data {name}"
 msgstr "Gem plugindata {name}"
+
+msgid "Unknown"
+msgstr "Ukendt"
+
+msgid "Editing"
+msgstr "Redigeres"
+
+msgid "Finished design"
+msgstr "Færdigt design"
+
+msgid "Finished commissioning"
+msgstr "Indkøring afsluttet"
+
+msgid "Tested"
+msgstr "Testet"
+
+msgid "Accepted"
+msgstr "Accepteret"
+
+msgid "Locked"
+msgstr "Låst"
+
+msgid "Function"
+msgstr "Funktion"
+
+msgid "Use"
+msgstr "Brug"
+
+msgid "Set room use"
+msgstr "Angiv rummets brug"
+
+msgid "Set status to {status}"
+msgstr "Angiv status til {status}"
+
+msgid "Set function description"
+msgstr "Angiv funktionsbeskrivelse"

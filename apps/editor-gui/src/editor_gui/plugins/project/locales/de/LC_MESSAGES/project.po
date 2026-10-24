@@ -2486,3 +2486,39 @@ msgstr "Eintrag"
 
 msgid "Store plugin data {name}"
 msgstr "Plugin-Daten {name} speichern"
+
+msgid "Unknown"
+msgstr "Unbekannt"
+
+msgid "Editing"
+msgstr "In Bearbeitung"
+
+msgid "Finished design"
+msgstr "Planung abgeschlossen"
+
+msgid "Finished commissioning"
+msgstr "Inbetriebnahme abgeschlossen"
+
+msgid "Tested"
+msgstr "Getestet"
+
+msgid "Accepted"
+msgstr "Freigegeben"
+
+msgid "Locked"
+msgstr "Gesperrt"
+
+msgid "Function"
+msgstr "Funktion"
+
+msgid "Use"
+msgstr "Nutzung"
+
+msgid "Set room use"
+msgstr "Raumnutzung festlegen"
+
+msgid "Set status to {status}"
+msgstr "Status auf {status} festlegen"
+
+msgid "Set function description"
+msgstr "Funktionsbeschreibung festlegen"

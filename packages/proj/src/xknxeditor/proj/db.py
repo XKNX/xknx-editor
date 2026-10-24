@@ -18,7 +18,7 @@ import logging
 import os
 import threading
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import JSON, create_engine, event, inspect, text
 from sqlalchemy.engine import Engine
@@ -82,7 +82,42 @@ def ensure_sqlite_writable(path: Path) -> None:
 # Bump when adding a non-additive migration below. Additive column adds are handled generically and
 # do not require a bump. Stamped into the file's ``PRAGMA user_version`` so future migrations can
 # branch on the version a file was last written with.
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
+
+
+def _move_completion_status(conn: Any) -> int:
+    """Version 3: the project's and the devices' ``CompletionStatus`` moves from
+    ``extra_attributes`` (where the import used to keep it) into its own column. Returns how many
+    rows changed."""
+    moved = 0
+    for table in ("projects", "devices"):
+        rows = conn.execute(
+            text(
+                f'SELECT id, extra_attributes FROM "{table}" '
+                "WHERE extra_attributes LIKE '%CompletionStatus%'"
+            )
+        ).all()
+        for row_id, raw in rows:
+            loaded: object = json.loads(raw) if isinstance(raw, str) else raw
+            if not isinstance(loaded, dict):
+                continue
+            attributes = cast(dict[str, object], loaded)
+            status = attributes.pop("CompletionStatus", None)
+            if not isinstance(status, str):
+                continue
+            conn.execute(
+                text(
+                    f'UPDATE "{table}" SET completion_status = :status, '
+                    "extra_attributes = :attributes WHERE id = :id"
+                ),
+                {
+                    "status": status,
+                    "attributes": json.dumps(attributes) if attributes else None,
+                    "id": row_id,
+                },
+            )
+            moved += 1
+    return moved
 
 
 def _merge_duplicate_com_objects(conn: Any) -> int:
@@ -254,6 +289,10 @@ def _migrate(engine: Engine) -> None:
             merged = _merge_duplicate_com_objects(conn)
             if merged:
                 logger.info("merged %d duplicate com-object rows", merged)
+        if (current or 0) < 3 and {"projects", "devices"} <= tables:
+            moved = _move_completion_status(conn)
+            if moved:
+                logger.info("moved the completion status of %d rows", moved)
         if added or current != SCHEMA_VERSION:
             conn.execute(text(f"PRAGMA user_version = {SCHEMA_VERSION}"))
             logger.debug(

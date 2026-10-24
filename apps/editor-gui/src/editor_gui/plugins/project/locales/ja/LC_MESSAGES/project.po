@@ -2301,3 +2301,39 @@ msgstr "項目"
 
 msgid "Store plugin data {name}"
 msgstr "プラグインデータ{name}を保存"
+
+msgid "Unknown"
+msgstr "不明"
+
+msgid "Editing"
+msgstr "編集中"
+
+msgid "Finished design"
+msgstr "デザインを終了しました"
+
+msgid "Finished commissioning"
+msgstr "動作確認が終了しました"
+
+msgid "Tested"
+msgstr "テスト済み"
+
+msgid "Accepted"
+msgstr "承認済み"
+
+msgid "Locked"
+msgstr "ロックされている"
+
+msgid "Function"
+msgstr "機能"
+
+msgid "Use"
+msgstr "利用"
+
+msgid "Set room use"
+msgstr "部屋の用途を設定"
+
+msgid "Set status to {status}"
+msgstr "状態を{status}に設定"
+
+msgid "Set function description"
+msgstr "機能の説明を設定"

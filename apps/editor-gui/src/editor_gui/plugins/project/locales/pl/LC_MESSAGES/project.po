@@ -2301,3 +2301,39 @@ msgstr "Wpis"
 
 msgid "Store plugin data {name}"
 msgstr "Zapisz dane wtyczki {name}"
+
+msgid "Unknown"
+msgstr "Nieznane"
+
+msgid "Editing"
+msgstr "W trakcie edycji"
+
+msgid "Finished design"
+msgstr "Zakończono projektowanie"
+
+msgid "Finished commissioning"
+msgstr "Uruchamianie zakończone"
+
+msgid "Tested"
+msgstr "Przetestowany"
+
+msgid "Accepted"
+msgstr "Zaakceptowany"
+
+msgid "Locked"
+msgstr "Zablokowany"
+
+msgid "Function"
+msgstr "Funkcja"
+
+msgid "Use"
+msgstr "Przeznaczenie"
+
+msgid "Set room use"
+msgstr "Ustaw przeznaczenie pomieszczenia"
+
+msgid "Set status to {status}"
+msgstr "Ustaw status na {status}"
+
+msgid "Set function description"
+msgstr "Ustaw opis funkcji"

@@ -16,9 +16,12 @@ from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 from editor_gui.plugins.mcp.tools.details import (
     CommentKind,
+    Status,
+    StatusKind,
     comment_rich_text,
     set_comment,
     set_description,
+    status_target,
 )
 from editor_gui.plugins.mcp.tools.project import (
     PLUGIN_PARAMETERS_ERROR,
@@ -36,6 +39,8 @@ if TYPE_CHECKING:
 _SLOW = 300.0
 _FLAGS = ("communication", "read", "write", "transmit", "update", "read_on_init")
 _COMMENT_KINDS: tuple[str, ...] = get_args(CommentKind)
+_STATUS_KINDS: tuple[str, ...] = get_args(StatusKind)
+_STATUSES: tuple[str, ...] = get_args(Status)
 
 
 def register(mcp: FastMCP, ctx: McpContext) -> None:
@@ -247,6 +252,22 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         set_comment(project, kind, element_id, field, text)
         return {"kind": kind, "element_id": element_id, "field": field}
 
+    def _op_set_status(p: dict[str, Any]) -> dict[str, Any]:
+        kind = p["kind"]
+        if kind not in _STATUS_KINDS:
+            raise ValueError(f"kind must be one of: {', '.join(_STATUS_KINDS)}")
+        if p["status"] not in _STATUSES:
+            raise ValueError(f"status must be one of: {', '.join(_STATUSES)}")
+        element_id = p.get("element_id", p.get("node_id"))
+        target = status_target(
+            project,
+            kind,
+            None if element_id is None else int(element_id),
+            p.get("device_address"),
+        )
+        project.set_completion_status(kind, target, p["status"])
+        return {"kind": kind, "element_id": target, "status": p["status"]}
+
     def _op_set_com_object_flag(p: dict[str, Any]) -> dict[str, Any]:
         device = _device(p)
         project.set_flag(device, p["com_object_ref_id"], p["flag"], p["value"])
@@ -324,6 +345,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             },
         ),
         "set_comment": (("kind",), _op_set_comment),
+        "set_status": (("kind", "status"), _op_set_status),
         "set_description": (
             ("kind", "element_id", "description"),
             lambda p: (
@@ -422,7 +444,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - set_comment: kind [element_id] [field="comment"], text | paragraphs -> {kind, element_id,
           field}; kind, field, text and paragraphs as for project_set_comment.
         - set_description: kind, element_id, description -> {kind, element_id}; kind is area, line,
-          group_range, group_address or space.
+          group_range, group_address, space or function.
+        - set_status: kind, status, element_id (a device: node_id or device_address; the project:
+          none) -> {kind, element_id, status}; kind and status as for project_set_status.
 
         Use node_id from project_list_devices, product_ref_id from catalog_list_products, parameter
         ref_id from project_list_parameters as parameter_ref_id, and object ref_id from

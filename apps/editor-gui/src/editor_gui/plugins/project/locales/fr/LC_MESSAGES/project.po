@@ -2301,3 +2301,39 @@ msgstr "Entrée"
 
 msgid "Store plugin data {name}"
 msgstr "Enregistrer les données du plugin {name}"
+
+msgid "Unknown"
+msgstr "Inconnu"
+
+msgid "Editing"
+msgstr "Edition"
+
+msgid "Finished design"
+msgstr "Conception terminée"
+
+msgid "Finished commissioning"
+msgstr "Programmation terminée"
+
+msgid "Tested"
+msgstr "Testé"
+
+msgid "Accepted"
+msgstr "Accepté"
+
+msgid "Locked"
+msgstr "Bloqué"
+
+msgid "Function"
+msgstr "Fonction"
+
+msgid "Use"
+msgstr "Utilisation"
+
+msgid "Set room use"
+msgstr "Définir l'utilisation de la pièce"
+
+msgid "Set status to {status}"
+msgstr "Définir le statut sur {status}"
+
+msgid "Set function description"
+msgstr "Définir la description de la fonction"

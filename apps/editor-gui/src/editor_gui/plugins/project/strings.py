@@ -68,6 +68,10 @@ class ProjectStrings:
         return _("Group Address")
 
     @property
+    def PANEL_FUNCTION(self) -> str:
+        return _("Function")
+
+    @property
     def GROUP_MAIN_NUMBER_INVALID(self) -> str:
         return _("The main group is a number from 0 to 31.")
 
@@ -3284,6 +3288,42 @@ class ProjectStrings:
         return _("Number")
 
     @property
+    def SPACE_USE(self) -> str:
+        return _("Use")
+
+    @property
+    def STATUS(self) -> str:
+        return _("Status")
+
+    @property
+    def STATUS_UNDEFINED(self) -> str:
+        return _("Unknown")
+
+    @property
+    def STATUS_EDITING(self) -> str:
+        return _("Editing")
+
+    @property
+    def STATUS_FINISHED_DESIGN(self) -> str:
+        return _("Finished design")
+
+    @property
+    def STATUS_FINISHED_COMMISSIONING(self) -> str:
+        return _("Finished commissioning")
+
+    @property
+    def STATUS_TESTED(self) -> str:
+        return _("Tested")
+
+    @property
+    def STATUS_ACCEPTED(self) -> str:
+        return _("Accepted")
+
+    @property
+    def STATUS_LOCKED(self) -> str:
+        return _("Locked")
+
+    @property
     def CONFIGURE_ADDITIONAL_ADDRESSES(self) -> str:
         return _("Additional Individual Addresses")
 
@@ -3518,6 +3558,18 @@ class ProjectStrings:
     @property
     def HISTORY_EV_SET_INSTALLATION_HINTS(self) -> str:
         return _("Set installation hints")
+
+    @property
+    def HISTORY_EV_SET_STATUS(self) -> str:
+        return _("Set status to {status}")
+
+    @property
+    def HISTORY_EV_SET_SPACE_USE(self) -> str:
+        return _("Set room use")
+
+    @property
+    def HISTORY_EV_SET_FUNCTION_DESCRIPTION(self) -> str:
+        return _("Set function description")
 
     @property
     def HISTORY_EV_CREATE_FUNCTION(self) -> str:

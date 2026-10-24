@@ -2301,3 +2301,39 @@ msgstr "Voce"
 
 msgid "Store plugin data {name}"
 msgstr "Salva dati del plugin {name}"
+
+msgid "Unknown"
+msgstr "Sconosciuto"
+
+msgid "Editing"
+msgstr "Modifica"
+
+msgid "Finished design"
+msgstr "Progettazione terminata"
+
+msgid "Finished commissioning"
+msgstr "Messa in servizio terminata"
+
+msgid "Tested"
+msgstr "Testato"
+
+msgid "Accepted"
+msgstr "Accettato"
+
+msgid "Locked"
+msgstr "Bloccato"
+
+msgid "Function"
+msgstr "Funzione"
+
+msgid "Use"
+msgstr "Utilizzo"
+
+msgid "Set room use"
+msgstr "Imposta utilizzo della stanza"
+
+msgid "Set status to {status}"
+msgstr "Imposta stato su {status}"
+
+msgid "Set function description"
+msgstr "Imposta descrizione funzione"

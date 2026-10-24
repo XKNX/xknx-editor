@@ -5887,6 +5887,7 @@ _ELEMENT_TITLES: "dict[str, Callable[[], str]]" = {
     "middle_group": lambda: PROJECT_S.PANEL_MIDDLE_GROUP,
     "group_range": lambda: PROJECT_S.PANEL_GROUP_RANGE,
     "group_address": lambda: PROJECT_S.PANEL_GROUP_ADDRESS,
+    "function": lambda: PROJECT_S.PANEL_FUNCTION,
 }
 
 # Initial tab order per dock space, by stable panel name (order only matters within each space).

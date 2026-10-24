@@ -25,6 +25,20 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 
+# The values of ``CompletionStatus`` (the "Status" of the project, an area, a line, a segment, a
+# device, a space or a function), in the order the drop-down lists them; "Undefined" is the default
+# and is not written to an export.
+COMPLETION_STATUSES = (
+    "Undefined",
+    "Editing",
+    "FinishedDesign",
+    "FinishedCommissioning",
+    "Tested",
+    "Accepted",
+    "Locked",
+)
+UNDEFINED_STATUS = COMPLETION_STATUSES[0]
+
 
 class Base(DeclarativeBase):
     """Declarative base shared by every project ORM model."""
@@ -91,6 +105,11 @@ class Project(Base):
     last_used_puid: Mapped[int | None] = mapped_column(Integer)
     # The ProjectInformation free-text comment, carried over so a round-trip preserves it.
     comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # ProjectInformation @CompletionStatus, one of ``COMPLETION_STATUSES``. Projects saved before
+    # this column existed kept it in ``extra_attributes`` (moved here by the version 3 migration).
+    completion_status: Mapped[str] = mapped_column(
+        String, nullable=False, default=UNDEFINED_STATUS
+    )
     # ProjectInformation attributes xknxproject does not surface (ProjectStart, ProjectNumber,
     # ContractNumber, ProjectEnd, ProjectId, ProjectTracingPassword — valid in project/14, /20, /23),
     # captured verbatim and re-emitted. ``None`` when the source had none.
@@ -202,6 +221,9 @@ class Area(_SourceIdentity, Base):
     # Descriptive metadata carried over from the imported .knxproj.
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
     comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    completion_status: Mapped[str] = mapped_column(
+        String, nullable=False, default=UNDEFINED_STATUS
+    )
 
     installation: Mapped["Installation"] = relationship(back_populates="areas")
     lines: Mapped[list["Line"]] = relationship(
@@ -228,6 +250,9 @@ class Line(_SourceIdentity, Base):
     # Descriptive metadata carried over from the imported .knxproj.
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
     comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    completion_status: Mapped[str] = mapped_column(
+        String, nullable=False, default=UNDEFINED_STATUS
+    )
 
     area: Mapped["Area"] = relationship(back_populates="lines")
     segments: Mapped[list["Segment"]] = relationship(
@@ -260,6 +285,10 @@ class Segment(_SourceIdentity, Base):
     # The ``<BusAccess>`` attributes (``Name``, ``Parameter``): the bus access last used for this
     # segment (project/22+23 Segment, project/14+20 Line child), kept verbatim. None if absent.
     bus_access: Mapped[dict[str, str] | None] = mapped_column(JSON)
+    # The Segment @CompletionStatus (project/21+), kept for the export; the editor shows the line's.
+    completion_status: Mapped[str] = mapped_column(
+        String, nullable=False, default=UNDEFINED_STATUS
+    )
 
     line: Mapped["Line"] = relationship(back_populates="segments")
     devices: Mapped[list["Device"]] = relationship(
@@ -321,6 +350,11 @@ class Device(_SourcePuid, Base):
     # The DeviceInstance ``InstallationHints`` (RTF, like ``comment``). Projects saved before this
     # column existed keep it in ``extra_attributes``; read it with ``installation_hints()``.
     installation_hints: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    # The DeviceInstance @CompletionStatus. Projects saved before this column existed kept it in
+    # ``extra_attributes`` (moved here by the version 3 migration).
+    completion_status: Mapped[str] = mapped_column(
+        String, nullable=False, default=UNDEFINED_STATUS
+    )
     # The DeviceInstance ``LastModified`` timestamp, carried over verbatim (nullable, like
     # ``last_download``). Emitted as-is on export.
     last_modified: Mapped[str | None] = mapped_column(String)
@@ -658,6 +692,9 @@ class Space(_SourceIdentity, Base):
     usage_text: Mapped[str] = mapped_column(Text, nullable=False, default="")
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
     comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    completion_status: Mapped[str] = mapped_column(
+        String, nullable=False, default=UNDEFINED_STATUS
+    )
     # Non-displayed Space attributes xknxproject drops, round-tripped verbatim (``@DefaultLine`` id,
     # ``@Context``). Empty when the source had none.
     default_line: Mapped[str] = mapped_column(String, nullable=False, default="")
@@ -693,6 +730,9 @@ class Function(_SourceIdentity, Base):
     # Descriptive metadata carried over from the imported .knxproj.
     description: Mapped[str] = mapped_column(Text, nullable=False, default="")
     comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    completion_status: Mapped[str] = mapped_column(
+        String, nullable=False, default=UNDEFINED_STATUS
+    )
     # Non-displayed Function attributes xknxproject drops, round-tripped verbatim (``@Implements``,
     # ``@Number``, ``@DefaultGroupRange`` id, ``@Context``). Empty when the source had none.
     implements: Mapped[str] = mapped_column(String, nullable=False, default="")

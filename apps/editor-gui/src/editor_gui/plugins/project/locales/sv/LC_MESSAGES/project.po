@@ -2301,3 +2301,39 @@ msgstr "Post"
 
 msgid "Store plugin data {name}"
 msgstr "Spara plugindata {name}"
+
+msgid "Unknown"
+msgstr "Okänd"
+
+msgid "Editing"
+msgstr "Redigering"
+
+msgid "Finished design"
+msgstr "Avslutad projektering"
+
+msgid "Finished commissioning"
+msgstr "Avslutad drifttagning"
+
+msgid "Tested"
+msgstr "Testad"
+
+msgid "Accepted"
+msgstr "Godkänd"
+
+msgid "Locked"
+msgstr "Låst"
+
+msgid "Function"
+msgstr "Funktion"
+
+msgid "Use"
+msgstr "Användning"
+
+msgid "Set room use"
+msgstr "Ange rummets användning"
+
+msgid "Set status to {status}"
+msgstr "Ange status till {status}"
+
+msgid "Set function description"
+msgstr "Ange funktionsbeskrivning"

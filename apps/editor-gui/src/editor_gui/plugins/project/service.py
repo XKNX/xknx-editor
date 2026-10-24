@@ -38,6 +38,7 @@ from editor_gui.device_snapshot import (
     snapshot_state,
 )
 from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
+from editor_gui.plugins.project.element_status import status_label, usage_label
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.history import HistoryEntry
 from editor_gui.settings import config_dir
@@ -89,6 +90,7 @@ if TYPE_CHECKING:
         DeviceInfo,
         DeviceKeys,
         DeviceLinkInfo,
+        FunctionInfo,
         GroupRangeInfo,
         IpSecrets,
         SecureCommissioningImpact,
@@ -545,6 +547,11 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
         if d.get("field") == "installation_hints"
         else S.HISTORY_EV_SET_COMMENT
     ),
+    "SetCompletionStatus": lambda d: S.HISTORY_EV_SET_STATUS.format(
+        status=status_label(str(d.get("status", "")))
+    ),
+    "SetSpaceUsage": lambda d: S.HISTORY_EV_SET_SPACE_USE,
+    "SetFunctionDescription": lambda d: S.HISTORY_EV_SET_FUNCTION_DESCRIPTION,
     "CreateFunction": lambda d: S.HISTORY_EV_CREATE_FUNCTION.format(
         name=_quoted(d, "name")
     ),
@@ -593,10 +600,12 @@ def _history_label(event_type: str, data: dict[str, Any]) -> str:
 
 @dataclass(frozen=True)
 class ElementDetails:
-    """What the details of a selected area, line, group range or group address show. ``title_kind``
-    names it in the tab ("area", "line", "main_group", "middle_group", "group_range",
-    "group_address"); a line's address shows after its area's (``prefix`` "1."), a middle group's
-    after its main group's ("1/")."""
+    """What the details of a selected area, line, group range, group address or building function
+    show. ``title_kind`` names it in the tab ("area", "line", "main_group", "middle_group",
+    "group_range", "group_address", "function"); a line's address shows after its area's
+    (``prefix`` "1."), a middle group's after its main group's ("1/"). ``status`` is the element's
+    "Status" for the kinds that have one, else None; a function has no address
+    (``has_address``)."""
 
     kind: str
     element_id: int
@@ -606,6 +615,8 @@ class ElementDetails:
     prefix: str
     address: str
     editable: bool = True
+    status: str | None = None
+    has_address: bool = True
 
 
 def _find_range(
@@ -973,6 +984,8 @@ class ProjectService:
         self._comment_target: tuple[str, int] | None = None
         # (kind, id, field) -> (revision, stored comment or None without such an element).
         self._comment_cache: dict[tuple[str, int, str], tuple[int, str | None]] = {}
+        # (kind, id) -> (revision, stored status or None without such an element).
+        self._status_cache: dict[tuple[str, int], tuple[int, str | None]] = {}
         # Multi-selection: the full set of selected device node ids (the primary above is
         # the last-clicked one, kept for all single-device consumers). Empty = single/none.
         self._selected_node_ids: set[int] = set()
@@ -1550,6 +1563,7 @@ class ProjectService:
         self._comment_target = None
         self._selected_element = None
         self._comment_cache.clear()
+        self._status_cache.clear()
         self._selected_node_ids = set()
         self._dynui_lru.clear()
         self._app_cache.clear()
@@ -5134,12 +5148,19 @@ class ProjectService:
         return self._svc.unassigned_devices(self._pid, _INSTALLATION)
 
     def create_space(
-        self, parent_id: int | None, space_type: str, name: str
+        self, parent_id: int | None, space_type: str, name: str, usage: str = ""
     ) -> int | None:
+        """A new space; a room with its ``usage`` (a SpaceUsage id, "" for none)."""
         if self._pid is None:
             return None
         sid = self._svc.create_space(
-            self._pid, _INSTALLATION, space_type, name, parent_id
+            self._pid,
+            _INSTALLATION,
+            space_type,
+            name,
+            parent_id,
+            usage=usage,
+            usage_text=usage_label(usage) if usage else "",
         )
         self._bump(structural=False)
         return sid
@@ -5199,10 +5220,11 @@ class ProjectService:
         )
 
     def element_details(self, kind: str, element_id: int) -> "ElementDetails | None":
-        """What the details of an area, line, group range or group address show; None when it does
-        not exist (any more)."""
+        """What the details of an area, line, group range, group address or building function
+        show; None when it does not exist (any more)."""
         if kind in ("area", "line"):
             element = self.find_topology(kind, element_id)
+            status = self.completion_status(kind, element_id)
             if isinstance(element, _Area):
                 return ElementDetails(
                     kind,
@@ -5212,6 +5234,7 @@ class ProjectService:
                     element.description,
                     "",
                     str(element.area_number),
+                    status=status,
                 )
             if isinstance(element, _Line):
                 area = self.find_topology("area", element.area_id)
@@ -5224,8 +5247,24 @@ class ProjectService:
                     element.description,
                     prefix,
                     str(element.line_number),
+                    status=status,
                 )
             return None
+        if kind == "function":
+            function = self.find_function(element_id)
+            if function is None:
+                return None
+            return ElementDetails(
+                kind,
+                element_id,
+                "function",
+                function.name,
+                function.description,
+                "",
+                "",
+                status=self.completion_status(kind, element_id),
+                has_address=False,
+            )
         if kind == "group_address":
             ga = self.get_group_address(element_id)
             if ga is None:
@@ -5279,6 +5318,8 @@ class ProjectService:
             self.rename_group_range(element_id, name)
         elif kind == "group_address":
             self.rename_group_address(element_id, name)
+        elif kind == "function" and name:
+            self.rename_function(element_id, name)
 
     def set_element_description(
         self, kind: str, element_id: int, description: str
@@ -5289,7 +5330,10 @@ class ProjectService:
         details = self.element_details(kind, element_id)
         if self._pid is None or details is None or details.description == description:
             return
-        self._svc.set_group_description(self._pid, kind, element_id, description)
+        if kind == "function":
+            self._svc.set_function_description(self._pid, element_id, description)
+        else:
+            self._svc.set_group_description(self._pid, kind, element_id, description)
         self._bump(structural=False)
 
     def set_element_address(self, kind: str, element_id: int, text: str) -> str | None:
@@ -5389,6 +5433,29 @@ class ProjectService:
         self._svc.set_comment(self._pid, kind, element_id, value, field)
         self._bump(structural=False)
 
+    def completion_status(self, kind: str, element_id: int) -> str | None:
+        """The "Status" of the project (``kind`` "project"), an area, a line, a device (its
+        database id), a space or a function; None when it does not exist (any more)."""
+        if self._pid is None:
+            return None
+        key = (kind, element_id)
+        cached = self._status_cache.get(key)
+        if cached is not None and cached[0] == self._version:
+            return cached[1]
+        value = self._svc.completion_status(self._pid, kind, element_id)
+        self._status_cache[key] = (self._version, value)
+        return value
+
+    def set_completion_status(self, kind: str, element_id: int, status: str) -> None:
+        """Set an element's "Status" (one of ``COMPLETION_STATUSES``); undoable."""
+        if self._pid is None or self.completion_status(kind, element_id) in (
+            None,
+            status,
+        ):
+            return
+        self._svc.set_completion_status(self._pid, kind, element_id, status)
+        self._bump(structural=False)
+
     def find_space(self, space_id: int) -> "SpaceInfo | None":
         """The space ``space_id`` of the building tree."""
 
@@ -5396,6 +5463,21 @@ class ProjectService:
             for space in spaces:
                 if space.id == space_id:
                     return space
+                found = search(space.children)
+                if found is not None:
+                    return found
+            return None
+
+        return search(self.get_space_tree())
+
+    def find_function(self, function_id: int) -> "FunctionInfo | None":
+        """The building function ``function_id``."""
+
+        def search(spaces: "list[SpaceInfo]") -> "FunctionInfo | None":
+            for space in spaces:
+                for function in space.functions:
+                    if function.id == function_id:
+                        return function
                 found = search(space.children)
                 if found is not None:
                     return found
@@ -5413,6 +5495,16 @@ class ProjectService:
         if self._pid is None:
             return
         self._svc.set_space_description(self._pid, space_id, description)
+        self._bump(structural=False)
+
+    def set_space_usage(self, space_id: int, usage: str) -> None:
+        """Set a room's use: a SpaceUsage id of the master data, "" for none."""
+        space = self.find_space(space_id)
+        if self._pid is None or space is None or space.usage == usage:
+            return
+        self._svc.set_space_usage(
+            self._pid, space_id, usage, usage_label(usage) if usage else ""
+        )
         self._bump(structural=False)
 
     def set_space_type(self, space_id: int, space_type: str) -> None:
@@ -5478,6 +5570,7 @@ class ProjectService:
             elif event_type in (
                 "SetDeviceAdditionalAddresses",
                 "SetComment",
+                "SetCompletionStatus",
                 "SetTopologyDescription",
                 "SetGroupDescription",
             ):

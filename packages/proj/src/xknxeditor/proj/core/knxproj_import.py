@@ -71,6 +71,8 @@ from xknxeditor.proj.core.project_secrets import (
 )
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
+    COMPLETION_STATUSES,
+    UNDEFINED_STATUS,
     Area,
     ComObject,
     ComObjectLink,
@@ -112,6 +114,7 @@ _DEVICE_MANAGED_ATTRS = frozenset(
         "Hardware2ProgramRefId",
         "Description",
         "Comment",
+        "CompletionStatus",
         "InstallationHints",
         "LastModified",
         "SerialNumber",
@@ -593,6 +596,9 @@ class _RawExtras:
         self.function_ga_refs: dict[str, dict[str, dict[str, str]]] = {}
         # Installation <Trades> tree (Gewerke), captured verbatim.
         self.trades: list[_TradeEntry] = []
+        # @Id of an Area, Line, Segment, DeviceInstance, Space or Function -> its @CompletionStatus
+        # (only where the element carries one; projects leave out the default "Undefined").
+        self.completion_status: dict[str, str] = {}
         # Import-loss notes detected from the raw XML (see core.import_notes). Build-time losses
         # (dropped duplicate lines) are appended during topology construction.
         self.losses: list[ImportLoss] = []
@@ -802,6 +808,9 @@ def _read_device_extras(contents: _ProjectContents) -> _RawExtras:
     _best_effort("coupler extras", lambda: _read_coupler_extras(root, extras), None)
     _best_effort("locations extras", lambda: _read_locations_extras(root, extras), None)
     extras.trades = _best_effort("trades", lambda: _read_trades(root), [])
+    extras.completion_status = _best_effort(
+        "completion status", lambda: _read_completion_status(root), {}
+    )
     extras.losses = _best_effort(
         "import losses", lambda: _detect_import_losses(root, extras), []
     )
@@ -1135,6 +1144,31 @@ def _read_locations_extras(root: ET.Element, extras: _RawExtras) -> None:
             }
             if refs:
                 extras.function_ga_refs[key] = refs
+
+
+_STATUS_ELEMENTS = frozenset(
+    {"Area", "Line", "Segment", "DeviceInstance", "Space", "Function"}
+)
+
+
+def _read_completion_status(root: ET.Element) -> dict[str, str]:
+    """The ``@CompletionStatus`` ("Status") of every topology and building element that has one,
+    keyed by its ``@Id`` (xknxproject drops it); a function by its id without the project prefix,
+    as xknxproject identifies it (see :func:`_read_locations_extras`). Trades read theirs with the
+    trade tree, the project information its own."""
+    found: dict[str, str] = {}
+    for elem in root.iter():
+        name = _localname(elem.tag)
+        element_id = elem.get("Id")
+        status = elem.get("CompletionStatus")
+        if name not in _STATUS_ELEMENTS or not element_id or status is None:
+            continue
+        if status not in COMPLETION_STATUSES:
+            continue
+        if name == "Function" and "_" in element_id:
+            element_id = element_id.split("_", 1)[1]
+        found[element_id] = status
+    return found
 
 
 def _read_trades(root: ET.Element) -> list[_TradeEntry]:
@@ -1531,6 +1565,9 @@ def _build(
         len(parser.functions),
     )
     info = parser.project_info
+    # The status has its own column; the other ProjectInformation attributes stay verbatim.
+    info_attributes = dict(extras.project_extra_attributes)
+    project_status = info_attributes.pop("CompletionStatus", UNDEFINED_STATUS)
     project = Project(
         id=pid,
         name=info.name,
@@ -1541,7 +1578,10 @@ def _build(
         schema_version=info.schema_version,
         tool_version=info.tool_version,
         comment=extras.project_comment,
-        extra_attributes=extras.project_extra_attributes or None,
+        completion_status=project_status
+        if project_status in COMPLETION_STATUSES
+        else UNDEFINED_STATUS,
+        extra_attributes=info_attributes or None,
         info_subtrees=extras.project_info_subtrees or None,
         extra_subtrees=extras.project_subtrees or None,
         knx_master_xml=knx_master_xml,
@@ -1662,6 +1702,7 @@ def _build_topology(
                 name=xarea.name,
                 description=getattr(xarea, "description", "") or "",
                 comment=state.extras.area_comment.get(xarea.address, ""),
+                completion_status=_status(state, area_id),
             )
             installation.areas.append(area)
             areas_by_addr[xarea.address] = area
@@ -1683,6 +1724,7 @@ def _build_topology(
                 comment=state.extras.line_comment.get(
                     (xarea.address, xline.address), ""
                 ),
+                completion_status=_status(state, line_id),
                 # Coupler pass-through addresses (``AdditionalGroupAddresses``) read from the raw XML
                 # (keyed by area/line address), stored comma-separated. Empty when the line has none.
                 additional_group_addresses=",".join(
@@ -1699,6 +1741,11 @@ def _build_topology(
         state.extras.losses.append(
             ImportLoss(DROPPED_DUPLICATE_LINES, dropped_lines, detail="")
         )
+
+
+def _status(state: _ImportState, element_id: str) -> str:
+    """The ``CompletionStatus`` the element ``element_id`` (its raw ``@Id``) carried."""
+    return state.extras.completion_status.get(element_id, UNDEFINED_STATUS)
 
 
 def _build_line_segments(
@@ -1746,6 +1793,7 @@ def _build_line_segments(
             ),
             master_salt=desc.master_salt,
             bus_access=desc.bus_access or (line_bus_access if not segments else None),
+            completion_status=_status(state, desc.identity[0]),
         )
         line.segments.append(segment)
         segments.append(segment)
@@ -1824,6 +1872,7 @@ def _build_device(
         installation_hints=state.extras.device_installation_hints.get(
             xdevice.identifier, ""
         ),
+        completion_status=_status(state, xdevice.identifier),
         last_modified=getattr(xdevice, "last_modified", None),
         source_id=xdevice.identifier,
         puid=getattr(xdevice, "project_uid", None),
@@ -2136,6 +2185,7 @@ def _build_spaces(
             usage_text=func.usage_text,
             comment=comment,
             description=description,
+            completion_status=_status(state, func.identifier),
             implements=extra.get("Implements", ""),
             number=extra.get("Number", ""),
             default_group_range=extra.get("DefaultGroupRange", ""),
@@ -2177,6 +2227,7 @@ def _build_space(
         usage_text=xspace.usage_text,
         description=getattr(xspace, "description", "") or "",
         comment=state.extras.space_comment.get(xspace.identifier, ""),
+        completion_status=_status(state, xspace.identifier),
         default_line=state.extras.space_extra.get(xspace.identifier, {}).get(
             "DefaultLine", ""
         ),

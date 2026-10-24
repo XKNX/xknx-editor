@@ -29,7 +29,9 @@ from editor_gui.device import (
 )
 from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
+from editor_gui.plugins.project.element_status import usage_label, usage_options
 from editor_gui.plugins.project.service import DeviceProduct
+from editor_gui.plugins.project.space_usages import SPACE_USAGES
 from editor_gui.settings import config_dir
 
 # A device whose parameters only the manufacturer's plugin dialog sets.
@@ -152,15 +154,18 @@ def _function_dict(f: Any) -> dict[str, Any]:
 
 def _space_dict(s: Any) -> dict[str, Any]:
     """Recursively serialize a building/location tree node (space -> children/devices/functions).
-    Empty optional fields (number, usage_text, description) and empty device/function/children
-    lists are omitted to keep the tree compact."""
+    Empty optional fields (number, usage, usage_text, description) and empty device/function/
+    children lists are omitted to keep the tree compact."""
     return _prune(
         {
             "id": s.id,
             "name": s.name,
             "space_type": s.space_type,
             "number": s.number,
-            "usage_text": s.usage_text,
+            "usage": s.usage,
+            "usage_text": usage_label(s.usage, s.usage_text)
+            if s.usage
+            else s.usage_text,
             "description": s.description,
             "devices": [_space_device_dict(d) for d in s.devices],
             "functions": [_function_dict(f) for f in s.functions],
@@ -2030,16 +2035,21 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_create_space(
-        space_type: str, name: str, parent_id: int | None = None
+        space_type: str, name: str, parent_id: int | None = None, usage: str = ""
     ) -> dict[str, Any]:
         """Create a building/location space. ``space_type`` is one of Building, BuildingPart, Floor,
         Room, Corridor, Stairway, DistributionBoard. ``parent_id`` is a parent space ``id`` from
-        project_spaces (null = top level). Undoable project edit. Returns {space_id, parent_id,
-        space_type, name}."""
+        project_spaces (null = top level). A Room can get its ``usage`` (its "Use", an id from
+        project_list_space_usages; "" for none). Undoable project edit. Returns {space_id,
+        parent_id, space_type, name}."""
         require_project(ctx)
+        if usage and (space_type != "Room" or usage not in SPACE_USAGES):
+            raise ToolError(
+                "usage is for a Room only and must be an id from project_list_space_usages"
+            )
 
         def _create() -> dict[str, Any]:
-            sid = project.create_space(parent_id, space_type, name)
+            sid = project.create_space(parent_id, space_type, name, usage)
             if sid is None:
                 raise ToolError("could not create space (no project open)")
             return {
@@ -2050,6 +2060,39 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             }
 
         return ctx.run_locked(_create)
+
+    @tool("read")
+    def project_list_space_usages() -> dict[str, Any]:
+        """The uses a Room can have (its "Use" drop-down): the space usages of the KNX master data.
+        Returns {items, count}; each item has {usage, text}: the id for project_set_space_usage
+        and project_create_space, and its text in the editor's language, sorted by text."""
+        return _items(
+            [{"usage": usage, "text": text} for usage, text in usage_options() if usage]
+        )
+
+    @tool("write")
+    def project_set_space_usage(space_id: int, usage: str) -> dict[str, Any]:
+        """Set the "Use" of a Room (``id`` from project_spaces): an id from
+        project_list_space_usages, or "" for none. Undoable project edit. Returns {space_id,
+        usage, usage_text}."""
+        require_project(ctx)
+        if usage and usage not in SPACE_USAGES:
+            raise ToolError(f"unknown usage {usage!r}; see project_list_space_usages")
+
+        def _set() -> dict[str, Any]:
+            space = project.find_space(space_id)
+            if space is None:
+                raise ToolError(f"no space with id {space_id}")
+            if space.space_type != "Room":
+                raise ToolError("only a Room has a use")
+            project.set_space_usage(space_id, usage)
+            return {
+                "space_id": space_id,
+                "usage": usage,
+                "usage_text": usage_label(usage) if usage else "",
+            }
+
+        return ctx.run_locked(_set)
 
     @tool("write")
     def project_rename_space(space_id: int, name: str) -> dict[str, Any]:

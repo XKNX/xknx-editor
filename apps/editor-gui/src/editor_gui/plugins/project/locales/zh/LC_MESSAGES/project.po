@@ -2301,3 +2301,39 @@ msgstr "条目"
 
 msgid "Store plugin data {name}"
 msgstr "存储插件数据 {name}"
+
+msgid "Unknown"
+msgstr "未知"
+
+msgid "Editing"
+msgstr "编辑"
+
+msgid "Finished design"
+msgstr "已结束设计"
+
+msgid "Finished commissioning"
+msgstr "完成试运行"
+
+msgid "Tested"
+msgstr "已测试过"
+
+msgid "Accepted"
+msgstr "已接受"
+
+msgid "Locked"
+msgstr "已锁定"
+
+msgid "Function"
+msgstr "功能"
+
+msgid "Use"
+msgstr "使用"
+
+msgid "Set room use"
+msgstr "设置房间用途"
+
+msgid "Set status to {status}"
+msgstr "将状态设置为{status}"
+
+msgid "Set function description"
+msgstr "设置功能说明"
