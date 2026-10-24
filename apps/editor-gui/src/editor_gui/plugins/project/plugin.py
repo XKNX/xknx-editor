@@ -934,44 +934,18 @@ class ProjectPlugin:
         scenes: "list[Scene]",
         channel: int,
     ) -> None:
-        """Write a DALI channel's state back into the project blob after a bus commissioning run.
+        """Write a DALI channel's state back into the project blob after a bus commissioning
+        run (see :func:`editor_gui.programming_dali.persist_dali_backup`)."""
+        from editor_gui.programming_dali import persist_dali_backup
 
-        MDT (gc16) blobs are fully modelled: the scan + edits are merged onto the existing
-        ``DaliGC16-Backup-Store`` (``.N`` for channel N+1), preserving templates/descriptions.
-        Theben/IPAS (e64pro) blobs use a wider schema we do not model, so only the group
-        assignments are patched into the existing ``Dalie64-Backup-Store`` and every other
-        element is preserved byte-exact; if no such blob exists yet it is left untouched.
-        """
-        from xknxeditor.dali import (
-            merge_commissioning_blob,
-            patch_assignments_in_blob,
-            profile_for,
-        )
-        from xknxeditor.dali.profiles import backup_blob_name
-
-        app_id = device.app.id if device.app is not None else None
-        profile = profile_for(app_id)
-        if profile is None:
-            return
-        name = backup_blob_name(profile.backup_blob_base, channel)
-        existing = self._api.project.device_binary_data(device, name)
-        if profile.key == "mdt":
-            metadata = self._api.project.get_project_metadata()
-            blob = merge_commissioning_blob(
-                existing=existing,
-                state=scan,
-                assignments=assignments,
-                scenes=scenes,
-                individual_address=device.individual_address,
-                project_name=metadata.name if metadata is not None else "",
-            )
-        elif existing is not None:
-            # e64pro: patch group assignments into the vendor's blob, preserve the rest.
-            blob = patch_assignments_in_blob(existing, assignments)
-        else:
-            return  # e64pro device with no existing blob: cannot synthesize the wide schema
-        self._api.project.persist_dali_backup(
-            device, name, blob, label=S.DALI_PERSIST_LABEL
+        persist_dali_backup(
+            self._api.project,
+            device,
+            scan,
+            assignments,
+            scenes,
+            channel,
+            label=S.DALI_PERSIST_LABEL,
         )
 
     def _render_siemens_dali_tab(self, device: "Device") -> None:

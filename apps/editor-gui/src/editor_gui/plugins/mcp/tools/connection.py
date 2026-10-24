@@ -36,6 +36,27 @@ Scope = Literal[
 ]
 
 
+# The resets of a Master Reset and their erase codes (KNX Application Layer, A_Restart).
+MasterReset = Literal[
+    "FACTORY_RESET",
+    "FACTORY_RESET_KEEP_ADDRESS",
+    "RESET_ADDRESS",
+    "RESET_APPLICATION",
+    "RESET_PARAMETERS",
+    "RESET_LINKS",
+    "CONFIRMED_RESTART",
+]
+_ERASE_CODES: dict[str, int] = {
+    "FACTORY_RESET": 2,
+    "FACTORY_RESET_KEEP_ADDRESS": 7,
+    "RESET_ADDRESS": 3,
+    "RESET_APPLICATION": 4,
+    "RESET_PARAMETERS": 5,
+    "RESET_LINKS": 6,
+    "CONFIRMED_RESTART": 1,
+}
+
+
 def _resolve_scope(scope: str | None) -> Any:
     from xknxeditor.download.scope import DownloadScope
 
@@ -476,3 +497,50 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError("not connected")
         addresses = {str(a) for a in future.result(timeout=timeout)}
         return {"addresses": sorted(addresses, key=address_order)}
+
+    @tool
+    def connection_restart_device(
+        node_id: int, timeout: float = 30.0
+    ) -> dict[str, Any]:
+        """Restart the device (``node_id`` from project_list_devices) over the bus: a basic
+        restart, which changes nothing in the device. Needs an open connection and the device's
+        individual address; a securely commissioned device is restarted with its Tool Key. Returns
+        {status: "restarted", node_id}."""
+        _ensure_connected()
+        device = _device(node_id)
+        if not device.individual_address:
+            raise ToolError(f"device {node_id} has no individual address")
+        future = ctx.run_locked(lambda: service.restart_device(device))
+        if future is None:
+            raise ToolError(
+                "the restart could not be started (another bus operation runs)"
+            )
+        future.result(timeout=timeout)
+        return {"status": "restarted", "node_id": node_id}
+
+    @tool
+    def connection_master_reset_device(
+        node_id: int, reset: MasterReset, timeout: float = 30.0
+    ) -> dict[str, Any]:
+        """DESTRUCTIVE, not undoable: reset the device (``node_id`` from project_list_devices)
+        over the bus with a Master Reset. ``reset``: FACTORY_RESET (everything, also the
+        individual address; a secure device gets its FDSK back), FACTORY_RESET_KEEP_ADDRESS,
+        RESET_ADDRESS, RESET_APPLICATION, RESET_PARAMETERS, RESET_LINKS or CONFIRMED_RESTART. The
+        device has to be programmed again afterwards. Run it only when the user asked for this
+        reset of this device. Returns {status: "reset", node_id, reset}."""
+        _ensure_connected()
+        device = _device(node_id)
+        if not device.individual_address:
+            raise ToolError(f"device {node_id} has no individual address")
+        erase_code = _ERASE_CODES[reset]
+        future = ctx.run_locked(lambda: service.master_reset_device(device, erase_code))
+        if future is None:
+            raise ToolError(
+                "the reset could not be started (another bus operation runs)"
+            )
+        future.result(timeout=timeout)
+        if reset == "FACTORY_RESET":
+            # The device holds no Tool Key any more: its next secure download needs its
+            # certificate.
+            ctx.run_locked(lambda: ctx.api.project.record_factory_reset(device))
+        return {"status": "reset", "node_id": node_id, "reset": reset}
