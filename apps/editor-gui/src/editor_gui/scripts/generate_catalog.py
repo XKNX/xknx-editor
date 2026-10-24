@@ -9,31 +9,36 @@ from xknxeditor.catalog import CatalogService
 def generate_catalog(catalog_path: Path, knxprod_paths: list[Path]) -> None:
     print(f"Opening catalog: {catalog_path}")
     catalog = CatalogService(catalog_path)
-
-    total_added = 0
-    for knxprod_path in knxprod_paths:
-        if not knxprod_path.exists():
-            print(f"  Skipping (not found): {knxprod_path}")
-            continue
-
-        print(f"  Loading: {knxprod_path.name}")
-        before = {a.application_id for a in catalog.list_applications()}
-        try:
-            catalog.import_knxprod(knxprod_path.read_bytes())
-        except Exception as e:
-            print(f"    Error: {e}")
-            continue
-        added = sorted({a.application_id for a in catalog.list_applications()} - before)
-        if added:
-            print(f"    Added {len(added)} application(s)")
-            for app_id in added:
-                print(f"      - {app_id}")
-            total_added += len(added)
-        else:
-            print("    No new applications (already in catalog)")
+    try:
+        total_added = sum(_import(catalog, path) for path in knxprod_paths)
+    finally:
+        catalog.close()
 
     print(f"\nCatalog updated: {total_added} application(s) added")
     print(f"Saved to: {catalog_path}")
+
+
+def _import(catalog: CatalogService, knxprod_path: Path) -> int:
+    """Import one .knxprod; return the number of applications it added."""
+    if not knxprod_path.exists():
+        print(f"  Skipping (not found): {knxprod_path}")
+        return 0
+
+    print(f"  Loading: {knxprod_path.name}")
+    before = {a.application_id for a in catalog.list_applications()}
+    try:
+        catalog.import_knxprod(knxprod_path.read_bytes())
+    except Exception as e:
+        print(f"    Error: {e}")
+        return 0
+    added = sorted({a.application_id for a in catalog.list_applications()} - before)
+    if not added:
+        print("    No new applications (already in catalog)")
+        return 0
+    print(f"    Added {len(added)} application(s)")
+    for app_id in added:
+        print(f"      - {app_id}")
+    return len(added)
 
 
 def main() -> None:

@@ -237,7 +237,7 @@ msgid "{matched} matched, {changed} would change"
 msgstr "{matched} übereinstimmend, {changed} würden geändert"
 
 msgid "Location"
-msgstr "Adresse"
+msgstr "Ort"
 
 msgid "Size"
 msgstr "Größe"

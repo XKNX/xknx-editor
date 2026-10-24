@@ -24,6 +24,7 @@ dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
     "pytest-cov>=4.0",
+    "pytest-xdist>=3.6",
     "ruff>=0.4",
     "pyright>=1.1",
     "structlog>=24.0.0",  # injected logger type for xknxeditor-namespaces converter; no runtime dep there
@@ -33,6 +34,41 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["packages", "apps"]
 asyncio_mode = "auto"
+
+[tool.coverage.run]
+# Measured in CI with `pytest --cov` and uploaded to Codecov: the packages and the app,
+# without the generated XML bindings (files/, intermediate/) and the tests.
+source = [
+    "packages/catalog/src",
+    "packages/dali/src",
+    "packages/datasecure/src",
+    "packages/download/src",
+    "packages/namespaces/src",
+    "packages/prod/src",
+    "packages/proj/src",
+    "packages/recover/src",
+    "apps/editor-gui/src",
+]
+omit = [
+    "*/files/*",
+    "*/intermediate/*",
+    "*/tests/*",
+    # tray icon backends of Windows and macOS: CI runs on Linux, whose backend is measured
+    "*/web/tray/windows.py",
+    "*/web/tray/macos.py",
+]
+relative_files = true
+# sys.monitoring (Python 3.12+): same result as the default tracer, in about 60 % of the time
+core = "sysmon"
+
+[tool.coverage.report]
+# Lines that never run by design
+exclude_also = [
+    "if TYPE_CHECKING:",
+    '@(typing\.)?overload',
+    "raise NotImplementedError",
+    'if __name__ == "__main__":',
+]
 
 [tool.uv.workspace]
 members = ["packages/*", "apps/*"]

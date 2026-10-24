@@ -1100,7 +1100,7 @@ msgid "Structural differences (whole tables differ) can mean the device was last
 msgstr "Структурные различия (отличаются целые таблицы) могут означать, что устройство последний раз программировалось в ETS 5, раскладка байтов которого другая. Различия только в значениях обычно означают, что в устройстве другая конфигурация."
 
 msgid "Location"
-msgstr "Адрес"
+msgstr "Расположение"
 
 msgid "Size"
 msgstr "Размер"

@@ -53,9 +53,10 @@ These rules apply to every English text the GUI shows (the msgids in each `strin
 - **Sentence case** for everything else: option texts in radio buttons and drop-downs, checkbox texts, hints, tooltips, messages, toasts and log texts. They start with an upper case letter, and the rest stays as written ("Not accepted", "Nothing new imported (already in the catalog)").
 - **Ellipsis:** a button or menu item that opens a dialog or a file picker ends with "…" (the single character U+2026, not three dots), e.g. "Save…", "Load .knxprod…".
 - **Texts from data** (KNX master data, xknx field names) shown as labels go through `editor_gui.widgets.dpt_value.title_case`.
-- **Translations** (`locales/de` and `locales/nl`) follow the conventions of their own language, not these rules.
-  - When a msgid changes, update the entry in both `.po` files and compile them to `.mo` again.
-  - `apps/editor-gui/tests/test_translations.py` checks that every msgid is translated.
+- **Translations** (`locales/<language>`, one folder per UI language in `editor_gui.languages`) follow the conventions of their own language, not these rules.
+  - When a msgid changes, update the entry in the `.po` file of every language and compile them to `.mo` again.
+  - Compile with Babel, which needs no gettext installation (same on Windows, Linux and macOS): `uv run --with babel pybabel compile -d <locales dir> -D <domain>` compiles every language of a domain, `-l <language>` only one. The domain is the name of the `.po` file, e.g. `project` in `apps/editor-gui/src/editor_gui/plugins/project/locales`, or `editor_gui` in `apps/editor-gui/src/editor_gui/locales`.
+  - `apps/editor-gui/tests/test_translations.py` checks that every msgid is translated; `test_text_properties.py` that every text can be shown in every language, keeps the `{placeholders}` of the English text, and that a label per field (a dict) has no label twice.
 
 ## Adding a New Package
 
