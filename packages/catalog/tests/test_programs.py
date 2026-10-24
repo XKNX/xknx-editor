@@ -6,6 +6,7 @@ import sqlite3
 from pathlib import Path
 
 from xknxeditor.catalog import CatalogService
+from xknxeditor.catalog.core.hardware import FactoryData
 
 _FIXTURE = (
     Path(__file__).parents[3]
@@ -47,3 +48,50 @@ def test_coupler_capabilities(tmp_path: Path) -> None:
         )
         db.commit()
     assert service.coupler_capabilities(program) == {"SecurityProxy"}
+
+
+def test_factory_image_from_the_hardware_program(tmp_path: Path) -> None:
+    import base64
+    import re
+    import zipfile
+
+    service = CatalogService(tmp_path / "cat.xknxcatalog")
+    service.import_knxprod(_FIXTURE.read_bytes())
+    program = service.list_products()[0].hardware2program_ref_id
+    assert program is not None
+    assert service.get_factory_image(program) is None
+    assert service.get_factory_image("M-0000_H-unknown_HP-0000-00-0000") is None
+
+    source = service.get_program_source(program)
+    assert source is not None
+    stored = Path(source[0])
+    with zipfile.ZipFile(stored) as archive:
+        entries = {name: archive.read(name) for name in archive.namelist()}
+    hardware = entries["M-0008/Hardware.xml"].decode("utf-8")
+    image = base64.b64encode(b"\x01\x02\x03").decode()
+    stamp = base64.b64encode(b"\x04\x05").decode()
+
+    def write(attributes: str) -> None:
+        entries["M-0008/Hardware.xml"] = re.sub(
+            rf'(<Hardware2Program\b[^>]*\bId="{re.escape(program)}")',
+            rf"\1 {attributes}",
+            hardware,
+        ).encode("utf-8")
+        with zipfile.ZipFile(stored, "w") as archive:
+            for name, data in entries.items():
+                archive.writestr(name, data)
+
+    write(f'LoadedImage="{image}"')
+    assert service.get_factory_image(program) == FactoryData(b"\x01\x02\x03")
+    # The stamp of the factory state comes with the image.
+    write(f'LoadedImage="{image}" CheckSums="{stamp}"')
+    assert service.get_factory_image(program) == FactoryData(
+        b"\x01\x02\x03", b"\x04\x05"
+    )
+    # A stamp without an image is of no use.
+    write(f'CheckSums="{stamp}"')
+    assert service.get_factory_image(program) is None
+    write(f'LoadedImage="{image}"')
+
+    stored.unlink()
+    assert service.get_factory_image(program) is None

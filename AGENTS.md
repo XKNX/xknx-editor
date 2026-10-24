@@ -41,6 +41,11 @@ UV monorepo: `packages/` holds five core libraries; `apps/` holds applications.
 - Pyright strict mode; all public APIs must be fully typed
 - Ruff rules: E, W, F, I, UP, B, SIM, RUF — double quotes, 2-space indent, LF line endings
 
+## Tests
+
+- Test coverage is measured in CI and should keep growing. Whenever you change code, check the code you touched and the code around it (the rest of the function, class or module) for behaviour no test covers, and add tests where they are useful — also when the change itself needed none.
+- Prefer tests of behaviour over tests of implementation details; GUI code can be tested headless with an imgui context (see `apps/editor-gui/src/editor_gui/widgets/tests/test_dialog_placement.py`) or by calling methods on a stub (see `apps/editor-gui/src/editor_gui/tests/test_exit_confirm.py`).
+
 ## UI Texts
 
 These rules apply to every English text the GUI shows (the msgids in each `strings.py`):

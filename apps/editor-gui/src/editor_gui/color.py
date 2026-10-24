@@ -9,9 +9,25 @@ def color_from_vec4(c: imgui.ImVec4) -> int:
     return imgui.get_color_u32(c)
 
 
+def _dark_text() -> bool:
+    """Whether the theme draws dark text (a light theme)."""
+    text = imgui.get_style_color_vec4(imgui.Col_.text)
+    return 0.299 * text.x + 0.587 * text.y + 0.114 * text.z < 0.5
+
+
 def warning_red() -> imgui.ImVec4:
     """Red for warning text: light on dark themes, darker where the text is dark (light themes)."""
-    text = imgui.get_style_color_vec4(imgui.Col_.text)
-    if 0.299 * text.x + 0.587 * text.y + 0.114 * text.z < 0.5:
+    if _dark_text():
         return imgui.ImVec4(0.78, 0.1, 0.1, 1.0)
     return imgui.ImVec4(1.0, 0.4, 0.4, 1.0)
+
+
+def themed(on_dark: imgui.ImVec4, on_light: imgui.ImVec4) -> imgui.ImVec4:
+    """``on_light`` where the theme draws dark text (light themes), else ``on_dark``."""
+    return on_light if _dark_text() else on_dark
+
+
+def sending_green() -> imgui.ImVec4:
+    """Green for the sending group address: light on dark themes, darker where the text is dark
+    (light themes)."""
+    return themed(imgui.ImVec4(0.45, 0.8, 0.5, 1.0), imgui.ImVec4(0.1, 0.5, 0.2, 1.0))

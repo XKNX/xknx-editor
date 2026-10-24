@@ -2,10 +2,12 @@
 
 Every dialog opens centred on the main window, at most as large as it (it scrolls then), and
 stays centred while its content changes its size (wrapped text settles over the first frames,
-content loads later), until the user moves it. It has a title bar and does not remember a position it was moved to. Its buttons sit in one row of equal-width buttons: the actions left-aligned, the
-button that dismisses the dialog (Cancel, Close, No, ...) right-aligned and triggered by Escape.
-Tool windows open centred too while they float; they can be docked and keep their dock place and
-size.
+content loads later), until the user moves it. When the screen changes its size (a browser window
+resized, a phone turned), it is centred and fitted to it again. It has a title bar and does not
+remember a position it was moved to. Its buttons sit in one row of equal-width buttons: the actions
+left-aligned, the button that dismisses the dialog (Cancel, Close, No, ...) right-aligned and
+triggered by Escape. Tool windows open centred too while they float, and are centred again on a
+screen that changed its size; they can be docked and keep their dock place and size.
 """
 
 from __future__ import annotations
@@ -30,9 +32,11 @@ _SCREEN_MARGIN = 6.0
 
 @dataclass
 class _Placement:
-    """Where an open dialog is: its size, whether it is off centre and whether the user moved it."""
+    """Where an open dialog is: its size, whether it is off centre and whether the user moved it,
+    and the size of the screen it was placed on."""
 
     size: tuple[float, float]
+    screen: tuple[float, float]
     off_centre: bool = False
     moved: bool = False
 
@@ -41,11 +45,20 @@ class _Placement:
 _placements: dict[str, _Placement] = {}
 
 
+def _screen_size() -> tuple[float, float]:
+    size = imgui.get_main_viewport().size
+    return (size.x, size.y)
+
+
 def _center_next_window(title: str | None = None) -> None:
     """Centre the next window when it appears and, for the dialog ``title``, again whenever it got
-    off centre because its size changed, unless the user moved it."""
+    off centre because its size changed, unless the user moved it, and whenever the screen changed
+    its size (a browser window resized, a phone turned), also when the user moved it."""
     placement = _placements.get(title) if title is not None else None
-    recentre = placement is not None and placement.off_centre and not placement.moved
+    recentre = placement is not None and (
+        (placement.off_centre and not placement.moved)
+        or placement.screen != _screen_size()
+    )
     imgui.set_next_window_pos(
         imgui.get_main_viewport().get_center(),
         imgui.Cond_.always if recentre else imgui.Cond_.appearing,
@@ -65,8 +78,19 @@ def _fit_screen(title: str | None = None, width: float | None = None) -> int:
     )
     imgui.set_next_window_size_constraints(imgui.ImVec2(0.0, 0.0), room)
     placement = _placements.get(title) if title is not None else None
+    if placement is not None and placement.screen != _screen_size():
+        # Scrolling sideways, a window keeps the width its content had: on a screen that changed
+        # its size, the content (wrapped text) fits the window again first.
+        return 0
     wanted = width if width is not None else placement.size[0] if placement else 0.0
     return imgui.WindowFlags_.horizontal_scrollbar if wanted >= room.x - 1.0 else 0
+
+
+def _screen_room_width() -> float:
+    """The width a dialog can have on the screen, in unscaled pixels (as :func:`_fit_screen`)."""
+    viewport = imgui.get_main_viewport()
+    room = max(viewport.size.x - 2 * px(_SCREEN_MARGIN), px(160))
+    return room / px(1.0)
 
 
 def _near(a: tuple[float, float], b: tuple[float, float]) -> bool:
@@ -75,15 +99,23 @@ def _near(a: tuple[float, float], b: tuple[float, float]) -> bool:
 
 def _track_placement(title: str) -> None:
     """Note the current dialog's placement after it began: off centre when its size changed since
-    the last frame, moved when it is neither centred for its current nor for its last size."""
+    the last frame, moved when it is neither centred for its current nor for its last size. On a
+    screen that changed its size it was centred again (see :func:`_center_next_window`) and counts
+    as not moved."""
     pos, size = imgui.get_window_pos(), imgui.get_window_size()
     center = imgui.get_main_viewport().get_center()
     current = (size.x, size.y)
     centred_now = _near((pos.x, pos.y), (center.x - size.x / 2, center.y - size.y / 2))
     placement = _placements.get(title)
-    if placement is None or imgui.is_window_appearing():
+    if (
+        placement is None
+        or imgui.is_window_appearing()
+        or placement.screen != _screen_size()
+    ):
         # A dialog fitting its content is not placed yet in the frame it appears.
-        _placements[title] = _Placement(current, off_centre=not centred_now)
+        _placements[title] = _Placement(
+            current, _screen_size(), off_centre=not centred_now
+        )
         return
     centred_before = _near(
         (pos.x, pos.y),
@@ -124,9 +156,12 @@ def begin_dialog(
     Call :func:`end_dialog` when this returns ``True``. It stays centred while its size changes until
     the user moves it. ``width`` (unscaled pixels) fixes the
     width and the height follows the content; with ``height`` as well the dialog starts at that
-    size and can be resized. Without either it fits its content.
+    size and can be resized. Without either it fits its content. On a screen narrower than
+    ``width`` (a phone) the dialog gets the width there is, so its wrapped text reflows.
     """
     _center_next_window(title)
+    if width is not None:
+        width = min(width, _screen_room_width())
     flags |= _fit_screen(title, px(width) if width is not None else None)
     if width is not None and height is not None:
         imgui.set_next_window_size(px_vec2(width, height), imgui.Cond_.appearing)
@@ -293,16 +328,46 @@ def dialog_buttons(
     return clicked
 
 
+# The size of the screen each floating window was last shown on, by window title.
+_window_screens: dict[str, tuple[float, float]] = {}
+
+
+def follow_screen(title: str, width: float, height: float = 0.0) -> int:
+    """Keep the floating window ``title`` that is begun next within the screen (as a dialog): at
+    most as large as the main window, and when the screen changed its size since its last frame
+    (a browser window resized, a phone turned) centred again at its size of ``width`` x ``height``
+    (unscaled pixels; a height of 0 fits the content). Call it after the window's own placement and
+    pass the flags it returns to ``imgui.begin``. A docked window stays where it is docked."""
+    screen = _screen_size()
+    changed = _window_screens.get(title, screen) != screen
+    _window_screens[title] = screen
+    flags = _fit_screen(width=px(width))
+    window = imgui.internal.find_window_by_name(title)
+    # The bindings type these as non-optional, but they can be None.
+    docked = window is not None and window.dock_node is not None  # pyright: ignore[reportUnnecessaryComparison]
+    if changed and not docked:
+        imgui.set_next_window_pos(
+            imgui.get_main_viewport().get_center(),
+            imgui.Cond_.always,
+            imgui.ImVec2(0.5, 0.5),
+        )
+        imgui.set_next_window_size(px_vec2(width, height), imgui.Cond_.always)
+        # Scrolling sideways, a window keeps the width its content had.
+        flags = 0
+    return flags
+
+
 def begin_tool_window(
     title: str, p_open: bool | None, *, width: float, height: float, flags: int = 0
 ) -> tuple[bool, bool | None]:
     """Begin a movable, dockable, non-modal window.
 
-    It opens centred while it floats, first at ``width`` x ``height`` (unscaled pixels). Returns
-    ``imgui.begin``'s ``(expanded, open)``; call ``imgui.end()`` in any case.
+    It opens centred while it floats, first at ``width`` x ``height`` (unscaled pixels), and is
+    centred at that size again when the screen changes its size (see :func:`follow_screen`).
+    Returns ``imgui.begin``'s ``(expanded, open)``; call ``imgui.end()`` in any case.
     """
     _center_next_window()
     imgui.set_next_window_size(px_vec2(width, height), imgui.Cond_.first_use_ever)
-    flags |= _fit_screen(width=px(width))
+    flags |= follow_screen(title, width, height)
     with floating_window_border():
         return imgui.begin(title, p_open, flags)

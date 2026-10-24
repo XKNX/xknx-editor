@@ -1313,8 +1313,9 @@ class DeviceProgrammer:
         self.memory_auto_verify = False
         self._memory_verify_known = False
 
-    async def master_reset(self, erase_code: int, channel_number: int) -> int:
-        """Perform a Master Reset and return the device's process time in seconds.
+    async def master_reset(self, erase_code: int, channel_number: int) -> int | None:
+        """Perform a Master Reset and return the device's process time in seconds, or
+        None when the device restarted without confirming it.
 
         A Master Reset is an A_Restart with restart_type = 1, carrying an erase
         code and channel number (KNX Standard v3.0.0, 3/3/7 section 3.4.2.2; the
@@ -1323,11 +1324,30 @@ class DeviceProgrammer:
         with an error code and the process time the device needs before it is
         reachable again. A non-zero error code means the device refused the reset.
         The device restarts afterwards, tearing down the connection.
+
+        Existing implementations may not answer at all, or only perform a Basic
+        Restart (3/5/2 sections 3.7.2/3.7.3, footnotes 10 and 11): a device that
+        drops the connection or stays silent instead is taken as restarting, and
+        the load controls that follow verify it.
         """
-        telegram = await self.connection.request(
-            RestartMasterReset(erase_code=erase_code, channel_number=channel_number),
-            RestartMasterResetResponse,
-        )
+        try:
+            telegram = await self.connection.request(
+                RestartMasterReset(
+                    erase_code=erase_code, channel_number=channel_number
+                ),
+                RestartMasterResetResponse,
+            )
+        except ManagementConnectionError as exc:
+            logger.warning(
+                "master reset (erase code %d, channel %d) not confirmed, taking the "
+                "device as restarting: %s",
+                erase_code,
+                channel_number,
+                exc,
+            )
+            self.memory_auto_verify = False
+            self._memory_verify_known = False
+            return None
         logger.debug(
             "master_reset: erase_code=%d channel=%d", erase_code, channel_number
         )

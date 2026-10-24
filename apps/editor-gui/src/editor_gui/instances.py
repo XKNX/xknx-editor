@@ -25,6 +25,8 @@ from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import Any, cast
 
+import psutil
+
 from editor_gui.ports import bind_port
 
 logger = logging.getLogger(__name__)
@@ -105,7 +107,12 @@ def others(folder: Path | None = None) -> list[Instance]:
             continue
         if instance.pid == os.getpid():
             continue
-        if request(instance, {"cmd": "ping"}) is None:
+        # The entry of an editor that no longer runs is dropped without asking it: a request to a
+        # port nobody listens on waits for the whole timeout on Windows.
+        if (
+            not psutil.pid_exists(instance.pid)
+            or request(instance, {"cmd": "ping"}) is None
+        ):
             with contextlib.suppress(OSError):
                 path.unlink()
             continue

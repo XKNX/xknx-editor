@@ -79,6 +79,9 @@ class FakeDevice:
         # Error code and process time (ms) reported in the Master Reset response.
         self.master_reset_error_code = 0
         self.master_reset_process_time = 0
+        # Quirk emulation: a device that restarts on a Master Reset without answering it raises
+        # this (the connection it drops, or the timeout waiting for the response).
+        self.master_reset_unanswered: type[Exception] | None = None
         # Function property command/read state, keyed by (object, property).
         self.function_properties: dict[tuple[int, int], bytes] = {}
         self.function_property_return_code = 0
@@ -187,6 +190,8 @@ class FakeDevice:
         if isinstance(payload, RestartMasterReset):
             self.master_reset = (payload.erase_code, payload.channel_number)
             self.restarted = True
+            if self.master_reset_unanswered is not None:
+                raise self.master_reset_unanswered("no master reset response")
             return self._telegram(
                 RestartMasterResetResponse(
                     error_code=self.master_reset_error_code,

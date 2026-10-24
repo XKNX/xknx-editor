@@ -32,6 +32,7 @@ if TYPE_CHECKING:
 
 _RED = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
 _GREEN = imgui.ImVec4(0.4, 0.8, 0.4, 1.0)
+_UNKNOWN = "?"
 
 
 class ProjectLogPanel:
@@ -47,6 +48,12 @@ class ProjectLogPanel:
         self._error: str | None = None
         self._result: tuple[bytes, bytes, str] | None = None
         self._result_error: str | None = None
+        # The tool that extracts the key (see extraction_backend), once looked up.
+        self._backend: str | None = _UNKNOWN
+        # The rows shown: the log, filter and sorting they were made for, and the rows.
+        self._shown: (
+            tuple[list[ProjectTrace], tuple[str, int, bool], list[ProjectTrace]] | None
+        ) = None
 
     def render(self) -> None:
         self._poll_dialog()
@@ -61,9 +68,6 @@ class ProjectLogPanel:
         self._filter = filter_box(
             "##project_log_filter", S.PROJECT_LOG_FILTER_HINT, self._filter
         )
-
-        needle = self._filter.strip().lower()
-        rows = [t for t in traces if not needle or self._matches(t, needle)]
 
         flags = (
             imgui.TableFlags_.borders_inner
@@ -90,19 +94,23 @@ class ProjectLogPanel:
         )
         data_table_headers()
         self._read_sort()
-        rows.sort(key=self._sort_value, reverse=self._sort_desc)
+        rows = self._rows(traces, self._filter.strip().lower())
 
-        for t in rows:
-            comment = self._display(t)
-            imgui.table_next_row()
-            imgui.table_set_column_index(0)
-            imgui.text_unformatted(t.date or "-")
-            imgui.table_set_column_index(1)
-            imgui.text_unformatted(t.user_name or "-")
-            imgui.table_set_column_index(2)
-            imgui.text_unformatted(comment or "-")
-            if comment and imgui.is_item_hovered():
-                imgui.set_tooltip(comment)
+        # Only the rows in view are drawn: a project log can have thousands of entries.
+        clipper = imgui.ListClipper()
+        clipper.begin(len(rows))
+        while clipper.step():
+            for t in rows[clipper.display_start : clipper.display_end]:
+                comment = self._display(t)
+                imgui.table_next_row()
+                imgui.table_set_column_index(0)
+                imgui.text_unformatted(t.date or "-")
+                imgui.table_set_column_index(1)
+                imgui.text_unformatted(t.user_name or "-")
+                imgui.table_set_column_index(2)
+                imgui.text_unformatted(comment or "-")
+                if comment and imgui.is_item_hovered():
+                    imgui.set_tooltip(comment)
         imgui.end_table()
 
     # --- key extraction bar --------------------------------------------------------------
@@ -113,7 +121,10 @@ class ProjectLogPanel:
             return
         imgui.text_colored(_RED, S.PROJECT_LOG_ENCRYPTED)
         imgui.text_wrapped(S.PROJECT_LOG_DECRYPT_HINT)
-        backend = extraction_backend()
+        # Looked up once: finding the tools searches the PATH, too slow for every frame.
+        if self._backend is _UNKNOWN:
+            self._backend = extraction_backend()
+        backend = self._backend
         if backend is None:
             imgui.text_colored(_RED, S.PROJECT_LOG_NO_BACKEND)
         if self._extracting:
@@ -176,6 +187,20 @@ class ProjectLogPanel:
             self._result_error = None
 
     # --- table helpers -------------------------------------------------------------------
+
+    def _rows(self, traces: list[ProjectTrace], needle: str) -> list[ProjectTrace]:
+        """The rows shown, filtered by ``needle`` and sorted; worked out again only when the log,
+        the filter or the sorting changed."""
+        state = (needle, self._sort_key, self._sort_desc)
+        if (
+            self._shown is None
+            or self._shown[0] is not traces
+            or self._shown[1] != state
+        ):
+            rows = [t for t in traces if not needle or self._matches(t, needle)]
+            rows.sort(key=self._sort_value, reverse=self._sort_desc)
+            self._shown = (traces, state, rows)
+        return self._shown[2]
 
     @staticmethod
     def _display(t: ProjectTrace) -> str:

@@ -9,6 +9,7 @@ from typing import Any
 
 from imgui_bundle import imgui
 
+from editor_gui.color import sending_green, themed
 from editor_gui.device import (
     FLAG_LABELS,
     ComObject,
@@ -50,15 +51,17 @@ class _CopiedObject:
     flags: dict[str, bool] = field(default_factory=dict[str, bool])
 
 
-# Accent colour for the sending group address (shown emphasised).
-_SENDING_COLOR = imgui.ImVec4(0.45, 0.8, 0.5, 1.0)
 # Colour of the last value a group address was seen carrying, by what the object does with it
 # (its flags): amber = the object sends, blue = it receives, teal = both; grey-blue when the flags
 # say neither. An object's older value (a different address updated more recently) is dimmed.
-_SENT_COLOR = imgui.ImVec4(0.92, 0.74, 0.42, 1.0)
-_RECEIVED_COLOR = imgui.ImVec4(0.45, 0.7, 0.92, 1.0)
-_BOTH_COLOR = imgui.ImVec4(0.45, 0.82, 0.72, 1.0)
-_LIVE_COLOR = imgui.ImVec4(0.6, 0.6, 0.66, 1.0)
+# Each as (on dark themes, on light themes).
+_SENT_COLOR = (imgui.ImVec4(0.92, 0.74, 0.42, 1.0), imgui.ImVec4(0.62, 0.36, 0.0, 1.0))
+_RECEIVED_COLOR = (
+    imgui.ImVec4(0.45, 0.7, 0.92, 1.0),
+    imgui.ImVec4(0.1, 0.38, 0.7, 1.0),
+)
+_BOTH_COLOR = (imgui.ImVec4(0.45, 0.82, 0.72, 1.0), imgui.ImVec4(0.0, 0.5, 0.42, 1.0))
+_LIVE_COLOR = (imgui.ImVec4(0.6, 0.6, 0.66, 1.0), imgui.ImVec4(0.4, 0.4, 0.46, 1.0))
 
 
 def _dim(color: imgui.ImVec4) -> imgui.ImVec4:
@@ -98,12 +101,12 @@ def _value_role(com_object: ComObject) -> tuple[str, imgui.ImVec4]:
     sends = flags.transmit or flags.read
     receives = flags.write or flags.update
     if sends and receives:
-        return S.GROUP_OBJECTS_VALUE_SENT_RECEIVED, _BOTH_COLOR
+        return S.GROUP_OBJECTS_VALUE_SENT_RECEIVED, themed(*_BOTH_COLOR)
     if sends:
-        return S.GROUP_OBJECTS_VALUE_SENT, _SENT_COLOR
+        return S.GROUP_OBJECTS_VALUE_SENT, themed(*_SENT_COLOR)
     if receives:
-        return S.GROUP_OBJECTS_VALUE_RECEIVED, _RECEIVED_COLOR
-    return "", _LIVE_COLOR
+        return S.GROUP_OBJECTS_VALUE_RECEIVED, themed(*_RECEIVED_COLOR)
+    return "", themed(*_LIVE_COLOR)
 
 
 class GroupObjectsTable:
@@ -472,7 +475,8 @@ class GroupObjectsTable:
                 self._on_unlink(assignment_id)
             imgui.same_line()
             if is_sending:
-                imgui.text_colored(_SENDING_COLOR, text)
+                # The sending group address is emphasised.
+                imgui.text_colored(sending_green(), text)
             else:
                 imgui.text(text)
             if imgui.is_item_hovered():

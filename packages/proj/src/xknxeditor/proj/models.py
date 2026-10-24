@@ -63,20 +63,24 @@ class Project(Base):
     # Protection artifacts carried over verbatim from the imported .knxproj so an export is a
     # loadable project again: the signed knx_master.xml, the project's ".validation" file and its
     # "<pid>.certificate". Empty when the source project had none (e.g. a freshly created one).
-    knx_master_xml: Mapped[bytes | None] = mapped_column(LargeBinary, nullable=True)
+    # The large blobs (here and below) are loaded only when read: the project row is read often and
+    # an imported project's product data alone can be tens of megabytes.
+    knx_master_xml: Mapped[bytes | None] = mapped_column(
+        LargeBinary, nullable=True, deferred=True
+    )
     # The imported archive's manufacturer product data (``M-XXXX/*`` and ``M-XXXX.signature``
     # members), stored as a ZIP blob exactly as the source carried it. ETS re-issues product ids on
     # import, so resolving them through the catalog on export misses most folders; re-emitting these
     # original members keeps a re-exported ETS-imported project importable. ``None`` when the project
     # was not imported from a ``.knxproj`` (e.g. created from scratch) or carried no manufacturer data.
     imported_product_members: Mapped[bytes | None] = mapped_column(
-        LargeBinary, nullable=True
+        LargeBinary, nullable=True, deferred=True
     )
     # The other files of the imported archive's project folder (eg. attached user files or data of
     # device configuration apps), stored as a ZIP blob and written back on export. Excludes what the
     # export generates itself: project.xml, the installation files and BinaryData/*.
     imported_project_files: Mapped[bytes | None] = mapped_column(
-        LargeBinary, nullable=True
+        LargeBinary, nullable=True, deferred=True
     )
     knx_validation: Mapped[str] = mapped_column(Text, nullable=False, default="")
     knx_certificate: Mapped[str] = mapped_column(Text, nullable=False, default="")

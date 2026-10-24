@@ -41,6 +41,7 @@ from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.history import HistoryEntry
 from editor_gui.settings import config_dir
+from xknxeditor.catalog.core.hardware import FactoryData
 from xknxeditor.namespaces.intermediate import (
     ComObjectInstanceRef,
     ParameterInstanceRef,
@@ -319,6 +320,8 @@ class _DeviceInputs:
     # ``BLOB_PARA``). Carried through so :func:`_compute_device` can hand the live
     # SQLAlchemy-mapped rows to the ``Device`` without re-querying.
     binary_data: tuple[Any, ...] = ()
+    # Gives the product's factory image (see Device.factory_image).
+    factory_image: Callable[[], FactoryData | None] | None = None
 
 
 def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
@@ -337,6 +340,7 @@ def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
         binary_data=list(inputs.binary_data),
     )
     device.download_plugin_required = inputs.download_plugin_required
+    device.factory_image = inputs.factory_image
     device.configuration_app = inputs.configuration_app
     for row in inputs.com_objects:
         co = device.find_com_object(row.ref)
@@ -1676,6 +1680,15 @@ class ProjectService:
             self._plugin_cache[program_ref] = cached
         return cached
 
+    def _factory_image_source(
+        self, program_ref: str | None
+    ) -> Callable[[], FactoryData | None] | None:
+        """Gives the factory image of the product ``program_ref`` loads, read when needed."""
+        if not program_ref:
+            return None
+        catalog = self._catalog
+        return lambda: catalog.factory_image(program_ref)
+
     def _build_device(self, row: Any) -> Device | None:
         """The device of ``row``: from its snapshot when nothing it was derived from changed, else
         evaluated from its application (and a new snapshot made)."""
@@ -1791,6 +1804,7 @@ class ProjectService:
             self._log.debug("device snapshot unusable", device_id=row.id, error=str(e))
             return None
         device.download_plugin_required = self._requires_download_plugin(program_ref)
+        device.factory_image = self._factory_image_source(program_ref)
         device.configuration_app = next(
             (a.name for a in self._configuration_apps() if a.applies_to(app.id)),
             None,
@@ -1967,6 +1981,7 @@ class ProjectService:
                 row.hardware2program_ref_id
             ),
             binary_data=tuple(getattr(row, "binary_data", []) or []),
+            factory_image=self._factory_image_source(row.hardware2program_ref_id),
             configuration_app=next(
                 (
                     a.name
@@ -3270,26 +3285,38 @@ class ProjectService:
         self._revision_cache[cache_key] = (self.revision, state)
         return state
 
+    @io_guarded(lambda: None)
+    def has_project_log(self) -> bool | None:
+        """Whether the open project has entries in its log (only an imported project has, the
+        editor writes none); None while that cannot be read (an import is running)."""
+        return bool(self.get_project_traces())
+
     def get_project_traces(self) -> list[ProjectTrace]:
         """The project log (ProjectInformation/ProjectTraces), in document order.
 
         Comments are stored verbatim (they are encrypted on disk); ``comment_plain`` is filled with
         the decrypted text when a trace key has been installed (see :mod:`editor_gui.trace_key`).
+        Cached by revision and installed key: the Project Log reads it every frame.
         """
-        from xknxeditor.proj import decrypt_comment
+        from xknxeditor.proj import current_marker, decrypt_comment
 
         if self._pid is None:
             return []
-        p = self._svc.project(self._pid)
-        return [
+        cache_key = f"project_traces:{current_marker()}"
+        hit = self._revision_cache.get(cache_key)
+        if hit is not None and hit[0] == self.revision:
+            return cast("list[ProjectTrace]", hit[1])
+        traces = [
             ProjectTrace(
-                date=t.date,
-                user_name=t.user_name,
-                comment=t.comment,
-                comment_plain=decrypt_comment(t.comment),
+                date=date,
+                user_name=user_name,
+                comment=comment,
+                comment_plain=decrypt_comment(comment),
             )
-            for t in p.traces
+            for date, user_name, comment in self._svc.project_traces(self._pid)
         ]
+        self._revision_cache[cache_key] = (self.revision, traces)
+        return traces
 
     def get_import_notes(self) -> list["ImportLoss"]:
         """Lossy-import notes recorded when the current project was built from a ``.knxproj``

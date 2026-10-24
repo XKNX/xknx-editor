@@ -4,6 +4,10 @@ from __future__ import annotations
 
 import socket
 
+# How long to wait for a program answering on the port. A program listening on this computer is
+# answered by the system at once; for a free port Windows waits the whole time, at every start.
+_PROBE_TIMEOUT = 0.05
+
 
 class PortInUseError(OSError):
     """``port`` is already used by another program."""
@@ -20,7 +24,7 @@ def bind_port(host: str, port: int) -> socket.socket | None:
     if port:
         probe = {"0.0.0.0": "127.0.0.1", "::": "::1", "": "127.0.0.1"}.get(host, host)
         try:
-            with socket.create_connection((probe, port), timeout=0.3):
+            with socket.create_connection((probe, port), timeout=_PROBE_TIMEOUT):
                 return None
         except OSError:
             pass

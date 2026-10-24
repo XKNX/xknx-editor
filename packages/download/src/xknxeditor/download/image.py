@@ -19,10 +19,14 @@ from xknx.profile.const import ResourceObjectType
 from xknxeditor.namespaces.intermediate.application_program_static_t_code_relative_segment import (
     ApplicationProgramStaticCodeRelativeSegment,
 )
+from xknxeditor.namespaces.intermediate.enable_t import Enable
+from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
+from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
 from xknxeditor.prod import Application
 from xknxeditor.prod.errors import EncodingError
 
 from .errors import ImageError
+from .factory_image import FactoryImage, FactoryLocation
 from .project_data import (
     GroupObjectLink,
     SeedDevice,
@@ -33,6 +37,7 @@ from .project_data import (
 from .resources import (
     bcu1_association_table,
     bcu1_group_object_table,
+    bundled_mask_resources,
     m112_association_table,
     m112_group_object_table,
     property_mapped_lsms,
@@ -305,6 +310,12 @@ class PropertyValue:
     element_size: int | None = None
     # The object type of an object addressed by type rather than by index.
     object_type: int | None = None
+    # The bits of ``data`` a parameter value was written to; the others keep the property's base
+    # (the factory contents or zeros). ``None``: all of ``data``.
+    mask: bytes | None = None
+    # The bytes a parameter covers, active or not: a parameters-only download writes these and
+    # keeps the device's own value of the others. ``None``: all of ``data``.
+    covered: bytes | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -332,6 +343,9 @@ class DownloadImage:
     application_segments: tuple[ObjectMemorySegment, ...] = ()
     # The security tables, for a device with secured group addresses.
     security_tables: SecurityTables | None = None
+    # The contents the device leaves the factory with: the base of the properties the load
+    # procedure writes.
+    factory_image: FactoryImage | None = None
 
     def relative_segment(self, object_type: int) -> RelativeSegment | None:
         """Return the relative segment for an interface object type, if any."""
@@ -442,6 +456,7 @@ def build_image(
     device: SeedDevice | None = None,
     parameter_values: Mapping[str, str] | None = None,
     group_communication: GroupCommunication | None = None,
+    factory_image: FactoryImage | None = None,
 ) -> DownloadImage:
     """Assemble the download image for ``application``.
 
@@ -453,6 +468,8 @@ def build_image(
     result before encoding (e.g. individual tweaks). ``group_communication`` adds
     the address and association table segments (needed for a full or group
     communication download); the load procedure writes them only in scope.
+    ``factory_image`` (the product's ``LoadedImage``) is the base of the properties the
+    procedure writes.
     """
     if ui is None and device is not None:
         from xknxeditor.prod.parser_v2.dynamic import DynamicUI
@@ -554,13 +571,18 @@ def build_image(
         if memory_mapped:
             segments.extend(
                 _group_communication_segments(
-                    application, ui, base_addresses, encoded, group_communication
+                    application,
+                    ui,
+                    base_addresses,
+                    encoded,
+                    group_communication,
+                    factory_image,
                 )
             )
         else:
             relative_segments.extend(
                 _group_communication_relative_segments(
-                    application, ui, group_communication
+                    application, ui, group_communication, factory_image
                 )
             )
     # A coupler's filter table is a distinct interface object (the Router object), not one of the
@@ -576,7 +598,7 @@ def build_image(
     )
 
     try:
-        encoded_properties = ui.encode_to_typed_properties()
+        encoded_properties = ui.encode_to_typed_properties_masked()
     except EncodingError as exc:
         raise ImageError(f"cannot encode property image: {exc}") from exc
     properties = tuple(
@@ -585,10 +607,12 @@ def build_image(
             object_type=key[1],
             property_id=key[2],
             occurrence=key[3],
-            data=data,
+            data=prop.data,
+            mask=prop.mask,
+            covered=prop.covered,
         )
-        for key, data in encoded_properties.items()
-        if data
+        for key, prop in encoded_properties.items()
+        if prop.data
     )
 
     # Keep complete object data for offline validation. Never overwrite an earlier
@@ -618,6 +642,7 @@ def build_image(
         filter_table=filter_table,
         application_segments=tuple(application_segments),
         security_tables=security,
+        factory_image=factory_image,
     )
 
 
@@ -680,6 +705,7 @@ def _group_communication_segments(
     base_addresses: Mapping[str, int],
     encoded: Mapping[str, tuple[bytes, bytes]],
     gc: GroupCommunication,
+    factory_image: FactoryImage | None = None,
 ) -> list[MemorySegment]:
     """Build the address, association and com object table segments from links.
 
@@ -688,6 +714,8 @@ def _group_communication_segments(
     from the application's com object table). The com object table overlays each
     resolved com object's flags and size onto the segment seed. The table
     locations come from the application's static table definitions.
+    ``factory_image`` decides the communication bits (see
+    ``_communication_by_link``).
     """
     from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 
@@ -715,6 +743,12 @@ def _group_communication_segments(
         seed = encoded.get(com_object_table.code_segment)
         base = base_addresses.get(com_object_table.code_segment)
         if seed is not None and base is not None:
+            by_link = _communication_by_link(
+                application, factory_image, base + (com_object_table.offset or 0)
+            )
+            # The objects' own communication flags replace the link state when the
+            # factory image holds the table.
+            product_flags = None if by_link else _product_communication(application)
             active_numbers = {
                 number_of[ref_id]
                 for ref_id in ui.instantiated_com_object_ref_ids()
@@ -752,6 +786,7 @@ def _group_communication_segments(
                     referenced_numbers,
                     active_numbers or None,
                     com_object_table.offset or 0,
+                    product_flags,
                 )
                 seed_mask = bytearray(b"\xff" * len(data))
                 run_control = 0x010D - base
@@ -766,6 +801,7 @@ def _group_communication_segments(
                     linked_numbers,
                     table_numbers | referenced_numbers,
                     active_numbers or None,
+                    product_flags,
                 )
                 # GroupObjectTable_M112 sits on the manufacturer seed (header and
                 # data pointers). After AllocAbsDataSeg those seed octets must go
@@ -911,6 +947,7 @@ def _group_communication_relative_segments(
     application: Application,
     ui: DynamicUI,
     gc: GroupCommunication,
+    factory_image: FactoryImage | None = None,
 ) -> list[RelativeSegment]:
     """Build the System B group communication tables as relative segments.
 
@@ -946,11 +983,19 @@ def _group_communication_relative_segments(
 
     # Prefer explicit descriptors (recovered off the device) over UI resolution: a
     # recovered device can link objects the application's UI no longer activates.
-    descriptors = (
-        dict(gc.group_object_descriptors)
-        if gc.group_object_descriptors is not None
-        else _resolved_group_object_descriptors(ui, linked_numbers)
-    )
+    by_link = _communication_by_link(application, factory_image, None)
+    if gc.group_object_descriptors is not None:
+        descriptors = dict(gc.group_object_descriptors)
+    else:
+        descriptors = _resolved_group_object_descriptors(
+            ui, linked_numbers, by_link=by_link
+        )
+        if not by_link:
+            # An object the device does not instantiate keeps only its own
+            # communication flag.
+            for number, communication in _product_communication(application).items():
+                if communication and number not in descriptors:
+                    descriptors[number] = (_COMMUNICATION_BIT, 0)
     highest_number = max((c.number for c in indexer.com_objects.values()), default=0)
 
     address_data = build_group_address_table_b(group_addresses)
@@ -1030,13 +1075,61 @@ def _validate_table_capacity(
             )
 
 
+def _communication_by_link(
+    application: Application,
+    factory_image: FactoryImage | None,
+    table_address: int | None,
+) -> bool:
+    """Whether only active, linked objects get the communication bit.
+
+    That is the rule unless the product's factory image holds the group object table
+    (at the mask's resource location, or at ``table_address`` in memory): then every
+    object keeps its own communication flag.
+    """
+    if factory_image is None:
+        return True
+    resources = bundled_mask_resources(application.program.mask_version)
+    location = (
+        resources.location(ResourceName.GROUP_OBJECT_TABLE) if resources else None
+    )
+    for segment in factory_image.segments:
+        if (
+            location is not None
+            and location.address_space is ResourceAddrSpace.RELATIVE_MEMORY
+            and segment.location is FactoryLocation.RELATIVE_MEMORY
+            and segment.object_ref == location.interface_object_ref
+            and segment.property_id == location.property_id
+            and segment.address == (location.start_address or 0)
+        ):
+            return False
+        if segment.location is FactoryLocation.MEMORY and segment.address in (
+            table_address,
+            location.start_address
+            if location is not None
+            and location.address_space is ResourceAddrSpace.STANDARD_MEMORY
+            else None,
+        ):
+            return False
+    return True
+
+
+def _product_communication(application: Application) -> dict[int, bool]:
+    """The communication flag of each group object of the application, by number."""
+    table = application.program.static.com_object_table
+    return {
+        com_object.number: com_object.communication_flag is Enable.ENABLED
+        for com_object in (table.com_object if table is not None else ())
+    }
+
+
 def _resolved_group_object_descriptors(
-    ui: DynamicUI, linked_numbers: set[int]
+    ui: DynamicUI, linked_numbers: set[int], *, by_link: bool = True
 ) -> dict[int, tuple[int, int]]:
     """Map each active object's number to its ``(flag byte, size code)``.
 
     Walks the configured UI so flags and size come from the resolved com object
-    reference. Unlinked active objects retain all flags except communication.
+    reference. With ``by_link``, unlinked active objects retain all flags except
+    communication.
     """
     from xknxeditor.prod.parser_v2.ui import UiComObject, UiParameterBlock, UiTab
 
@@ -1051,7 +1144,8 @@ def _resolved_group_object_descriptors(
                 continue
             flags = com_object_flag_byte(
                 priority=node.priority or "Low",
-                communication=node.communication and node.number in linked_numbers,
+                communication=node.communication
+                and (not by_link or node.number in linked_numbers),
                 read=node.read,
                 write=node.write,
                 transmit=node.transmit,
@@ -1083,10 +1177,16 @@ def _bcu1_com_object_overlay(
     object_numbers: set[int],
     active_numbers: set[int] | None,
     table_offset: int,
+    product_flags: Mapping[int, bool] | None = None,
 ) -> tuple[bytes, bytes]:
-    """Write each object's flag into its 3-octet BCU1 record, leaving pointers."""
+    """Write each object's flag into its 3-octet BCU1 record, leaving pointers.
+
+    ``product_flags`` (the objects' own communication flags) replaces the link state as
+    the source of the communication bit."""
     data, mask = bytearray(seed), bytearray(len(seed))
-    visible = _resolved_group_object_descriptors(ui, linked_numbers)
+    visible = _resolved_group_object_descriptors(
+        ui, linked_numbers, by_link=product_flags is None
+    )
     for number in object_numbers:
         pos = table_offset + 1 + number * 3 + 2
         if pos >= len(data):
@@ -1096,7 +1196,7 @@ def _bcu1_com_object_overlay(
             active_numbers is not None and number not in active_numbers
         ):
             flags = data[pos] & ~_COMMUNICATION_BIT
-            if number in linked_numbers:
+            if _inactive_communication(number, linked_numbers, product_flags):
                 flags |= _COMMUNICATION_BIT
             data[pos] = flags
         else:
@@ -1111,6 +1211,7 @@ def _build_com_object_table(
     linked_numbers: set[int],
     object_numbers: set[int],
     active_numbers: set[int] | None = None,
+    product_flags: Mapping[int, bool] | None = None,
 ) -> tuple[bytes, bytes]:
     """Overlay each com object's flags onto the table seed.
 
@@ -1131,6 +1232,10 @@ def _build_com_object_table(
     say, "2x Tunable White" mode does not carry the individual per-channel objects
     that the raw parameter defaults would otherwise activate. When ``None`` (a device
     configured from scratch, with no saved instances) every visible object is active.
+
+    ``product_flags`` (the objects' own communication flags, used when the factory
+    image holds the table) replaces the link state as the source of the communication
+    bit, for active and other objects alike.
     """
     from xknxeditor.prod.parser_v2.ui import UiComObject, UiParameterBlock, UiTab
 
@@ -1148,7 +1253,8 @@ def _build_com_object_table(
                 continue
             flags = com_object_flag_byte(
                 priority=node.priority or "Low",
-                communication=node.communication and node.number in linked_numbers,
+                communication=node.communication
+                and (product_flags is not None or node.number in linked_numbers),
                 read=node.read,
                 write=node.write,
                 transmit=node.transmit,
@@ -1171,8 +1277,18 @@ def _build_com_object_table(
         if offset >= len(data):
             continue
         flags = seed[offset] & ~_COMMUNICATION_BIT
-        if number in linked_numbers:
+        if _inactive_communication(number, linked_numbers, product_flags):
             flags |= _COMMUNICATION_BIT
         data[offset] = flags
         mask[offset] = 0xFF
     return bytes(data), bytes(mask)
+
+
+def _inactive_communication(
+    number: int, linked_numbers: set[int], product_flags: Mapping[int, bool] | None
+) -> bool:
+    """The communication bit of an object the device does not instantiate: its own flag
+    when ``product_flags`` is given, else whether it is linked."""
+    if product_flags is not None:
+        return product_flags.get(number, False)
+    return number in linked_numbers

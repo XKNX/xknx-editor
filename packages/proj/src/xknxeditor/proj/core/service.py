@@ -152,6 +152,7 @@ from xknxeditor.proj.models import (
     Installation,
     Line,
     Project,
+    ProjectTrace,
     Segment,
     Space,
 )
@@ -2934,6 +2935,20 @@ class ProjectService:
         project = self._state(project_id).session.get(Project, project_id)
         assert project is not None
         return project
+
+    def project_traces(self, project_id: str) -> list[tuple[str, str, str]]:
+        """The project log entries as ``(date, user_name, comment)``, in document order: a project
+        can have thousands, read without building an object for each."""
+        rows = (
+            self._state(project_id)
+            .session.query(
+                ProjectTrace.date, ProjectTrace.user_name, ProjectTrace.comment
+            )
+            .filter(ProjectTrace.project_id == project_id)
+            .order_by(ProjectTrace.id)
+            .all()
+        )
+        return [(date, user, comment) for date, user, comment in rows]
 
     def installations(self, project_id: str) -> list[Installation]:
         return (

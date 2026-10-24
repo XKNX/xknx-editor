@@ -91,7 +91,7 @@ def seeded_application(
             encode_to_memory_masked=lambda: {
                 s.id: (s.data, b"\x00" * s.size) for s in declarations
             },
-            encode_to_typed_properties=lambda: {},
+            encode_to_typed_properties_masked=lambda: {},
         ),
     )
     return app, ui
@@ -123,7 +123,7 @@ def test_segment_data_and_mask_shorter_than_the_segment() -> None:
             encode_to_memory_masked=lambda: {
                 declaration.id: (b"AB\x00\x00", b"\x00\x00\xff\x00")
             },
-            encode_to_typed_properties=lambda: {},
+            encode_to_typed_properties_masked=lambda: {},
         ),
     )
     image = build_image(app, ui=padded)
@@ -990,11 +990,104 @@ async def test_property_element_slice_and_inline_padding_use_declared_width() ->
         _application(declaration, control), image, DeviceProgrammer(device)
     ).run()
     writes = [p for p in device.sent if isinstance(p, PropertyValueWrite)]
+    # The element is sliced at the declared width; a full load takes the image's data over
+    # the inline data that fills the write.
     assert [(p.data, p.start_index, p.count) for p in writes] == [(b"CD", 2, 1)]
 
 
-async def test_partial_property_capture_does_not_write_zero_filled_gaps() -> None:
-    from xknxeditor.download.errors import ImageError
+async def test_short_inline_data_leaves_the_property_to_its_image() -> None:
+    from xknxeditor.download.image import PropertyValue
+
+    from .test_procedure import _application
+
+    # Inline data shorter than the write (as the Hager applications carry: 10 zero octets
+    # for longer properties) is not used: the property comes from its image.
+    control = LdCtrlWriteProp(
+        obj_idx=4, prop_id=60, count=4, inline_data=bytes(2), verify=True
+    )
+    image = DownloadImage((), (PropertyValue(4, 60, 0, b"ABCD", element_size=1),))
+    device = FakeDevice()
+    device.property_element_sizes[4, 60] = 1
+    await LoadProcedureRunner(
+        _application(control), image, DeviceProgrammer(device)
+    ).run()
+    writes = [p for p in device.sent if isinstance(p, PropertyValueWrite)]
+    assert [(p.data, p.start_index, p.count) for p in writes] == [(b"ABCD", 1, 4)]
+
+
+@pytest.mark.parametrize("scope", [DownloadScope.FULL, DownloadScope.PARAMETERS])
+async def test_inline_data_filling_the_write_is_kept_where_no_parameter_writes(
+    scope: DownloadScope,
+) -> None:
+    from xknxeditor.download.image import PropertyValue
+
+    from .test_procedure import _application
+
+    control = LdCtrlWriteProp(
+        obj_idx=4, prop_id=60, count=2, inline_data=b"xy", verify=True
+    )
+    # A parameter writes the second element only; a full load does the same as any other.
+    image = DownloadImage(
+        (),
+        (
+            PropertyValue(
+                4,
+                60,
+                0,
+                b"\x00B",
+                element_size=1,
+                mask=b"\x00\xff",
+                covered=b"\x00\xff",
+            ),
+        ),
+    )
+    device = FakeDevice()
+    device.property_element_sizes[4, 60] = 1
+    runner = LoadProcedureRunner(_application(control), image, DeviceProgrammer(device))
+    runner.scope = scope
+    await runner.run()
+    writes = [p for p in device.sent if isinstance(p, PropertyValueWrite)]
+    assert [p.data for p in writes] == [b"xB"]
+
+
+@pytest.mark.parametrize("scope", [DownloadScope.FULL, DownloadScope.PARAMETERS])
+async def test_property_without_inline_data_keeps_what_no_parameter_writes(
+    scope: DownloadScope,
+) -> None:
+    from xknxeditor.download.image import PropertyValue
+
+    from .test_procedure import _application
+
+    # The device keeps its value of what no parameter writes, also in a full load.
+    control = LdCtrlWriteProp(obj_idx=4, prop_id=60, count=2, verify=True)
+    image = DownloadImage(
+        (),
+        (
+            PropertyValue(
+                4,
+                60,
+                0,
+                b"\x00B",
+                element_size=1,
+                mask=b"\x00\xff",
+                covered=b"\x00\xff",
+            ),
+        ),
+    )
+    device = FakeDevice()
+    device.properties[4, 60] = b"QR"
+    device.property_element_sizes[4, 60] = 1
+    runner = LoadProcedureRunner(_application(control), image, DeviceProgrammer(device))
+    runner.scope = scope
+    await runner.run()
+    writes = [p for p in device.sent if isinstance(p, PropertyValueWrite)]
+    assert [p.data for p in writes] == [b"QB"]
+
+
+@pytest.mark.parametrize("scope", [DownloadScope.FULL, DownloadScope.PARAMETERS])
+async def test_partial_property_capture_keeps_the_device_value(
+    scope: DownloadScope,
+) -> None:
     from xknxeditor.namespaces.intermediate.ld_ctrl_load_image_prop_t import (
         LdCtrlLoadImageProp,
     )
@@ -1008,12 +1101,14 @@ async def test_partial_property_capture_does_not_write_zero_filled_gaps() -> Non
         LdCtrlLoadImageProp(obj_idx=4, prop_id=60, start_element=2, count=1),
         LdCtrlWriteProp(obj_idx=4, prop_id=60, start_element=1, count=2, verify=True),
     ]
-    with pytest.raises(ImageError, match="incomplete property image"):
-        await LoadProcedureRunner(
-            _application(*controls), DownloadImage((), ()), DeviceProgrammer(device)
-        ).run()
-    assert not any(isinstance(p, PropertyValueWrite) for p in device.sent)
-    assert device.properties[4, 60] == b"ABCD"
+    runner = LoadProcedureRunner(
+        _application(*controls), DownloadImage((), ()), DeviceProgrammer(device)
+    )
+    runner.scope = scope
+    await runner.run()
+    writes = [p for p in device.sent if isinstance(p, PropertyValueWrite)]
+    # The element nothing covers keeps the device's value, also in a full load.
+    assert [(p.data, p.start_index, p.count) for p in writes] == [(b"ABCD", 1, 2)]
 
 
 async def test_application_identity_resolves_type_addressed_control() -> None:
