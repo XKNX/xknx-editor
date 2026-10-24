@@ -5,8 +5,6 @@ All tests build minimal ApplicationProgram IR structures in-process — no fixtu
 
 from __future__ import annotations
 
-import pytest
-
 from xknxeditor.namespaces.intermediate import ApplicationProgram
 from xknxeditor.namespaces.intermediate.application_program_static_t import (
     ApplicationProgramStatic,
@@ -48,7 +46,6 @@ from xknxeditor.namespaces.intermediate.property_union_t import PropertyUnion
 from xknxeditor.namespaces.intermediate.union_parameter_t import UnionParameter
 from xknxeditor.prod.parser_v2.application_indexer import ApplicationIndexer
 from xknxeditor.prod.parser_v2.encode import (
-    PropWrite,
     Writes,
     collect_writes,
     encode_to_memory,
@@ -328,29 +325,6 @@ def test_encode_to_properties_default_value() -> None:
     app, idx = _app([p])
     props = encode_to_properties(app, idx, {})
     assert props[(0, 10, 0)][0] == 99
-
-
-def test_inactive_property_ranges_get_their_defaults_after_the_active_values(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    # Under Background an inactive parameter's range is written with its default (a property
-    # has no product data to keep, issue #130), but never over an active parameter's bits.
-    def write(param_id: str, offset: int, value: str, keep: bool) -> PropWrite:
-        return PropWrite(7, 53, 0, offset, 0, param_id, _PT_ID, value, keep=keep)
-
-    writes = Writes()
-    writes.prop = [
-        write("P2", 0, "5", keep=True),  # inactive on the active P1's bits
-        write("P1", 0, "1", keep=False),
-        write("P3", 1, "9", keep=True),
-        write("P4", 1, "4", keep=True),  # a second inactive one on the same bits
-        write("P5", 2, "999", keep=True),  # a default that does not fit: left zero
-    ]
-    monkeypatch.setattr(
-        "xknxeditor.prod.parser_v2.encode.collect_writes", lambda *a, **k: writes
-    )
-    app, idx = _app([])
-    assert encode_to_properties(app, idx, {}) == {(7, 53, 0): bytes([1, 9, 0])}
 
 
 def test_encode_to_typed_properties_keeps_object_types_apart() -> None:

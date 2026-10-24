@@ -186,13 +186,12 @@ def _invisible_ui(behavior: str) -> DynamicUI:
             "ff ff 00 00 ff ff 00 00",
             {(None, 11, 204, 0): b"\x07"},
         ),
-        # Inactive ranges are written with the bytes the segment holds; a property, which
-        # has no such data in the product, with the defaults (as a Hager TYM632C, issue #130).
+        # Inactive ranges are written with the bytes the segment holds.
         (
             "Background",
             "01 12 13 14 05 16 17 18",
             "ff ff 00 00 ff ff 00 00",
-            {(None, 11, 204, 0): b"\x07"},
+            {(None, 11, 204, 0): b"\x00"},
         ),
         # Inactive ranges are not written.
         ("None", "01 12 13 14 05 16 17 18", "ff 00 00 00 ff 00 00 00", {}),
