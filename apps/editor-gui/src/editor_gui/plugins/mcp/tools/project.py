@@ -15,6 +15,7 @@ List tools return a ``{items, count}`` envelope; single-entity mutations return 
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -533,12 +534,16 @@ def perform_link(
     co: Any,
     group_address_id: int,
     is_sending: bool,
+    *,
+    hidden: bool = False,
 ) -> dict[str, Any] | None:
     """Create a com-object -> group-address link and build a feedback result: idempotent dedup
     (``already_linked``, no duplicate row), ``dpt_mismatch`` and ``other_sending_group_address_ids``
-    (see :func:`_link_annotations`). ``co`` is the resolved com-object (``db_id`` set). Returns None
-    when the service refuses the link (unknown GA / security), so the caller raises its own error.
-    Shared by project_link_com_object and the batch link op so both give the same feedback."""
+    (see :func:`_link_annotations`), and ``hidden: true`` when the device's parameters hide the
+    com-object (see :func:`com_object_hidden`). ``co`` is the resolved com-object (``db_id`` set).
+    Returns None when the service refuses the link (unknown GA / security), so the caller raises its
+    own error. Shared by project_link_com_object and the batch link op so both give the same
+    feedback."""
     existing = list(project.get_links_for_com_object(co.db_id))
     co_dpt = getattr(co, "dpt", None)
     ga_before = project.get_group_address(group_address_id)
@@ -557,6 +562,8 @@ def perform_link(
         "com_object_db_id": co.db_id,
         "group_address_id": group_address_id,
     }
+    if hidden:
+        base["hidden"] = True
     # Idempotent: re-linking the same pair returns the existing link, never a duplicate.
     dup = next((a for a in existing if a.group_address_id == group_address_id), None)
     if dup is not None:
@@ -577,6 +584,13 @@ def perform_link(
         "already_linked": False,
         **annotations,
     }
+
+
+def com_object_hidden(device: Device, com_object_ref_id: str) -> bool:
+    """Whether the device's parameters currently hide its com-object ``com_object_ref_id``: the
+    project keeps a link to it, but the device's application does not use the object until a
+    parameter shows it again."""
+    return all(co.id != com_object_ref_id for co in device.get_visible_com_objects())
 
 
 def link_id_between(
@@ -630,22 +644,83 @@ def require_editable_param(device: Any, ref_id: str) -> Any:
     )
 
 
+@dataclass(frozen=True, slots=True)
+class VisibleState:
+    """The parameters and com-objects a device shows, by ref id."""
+
+    parameters: frozenset[str]
+    com_objects: frozenset[str]
+
+
+def visible_state(device: Any) -> VisibleState:
+    """What ``device`` shows now, to tell what an edit shows or hides (see param_change_result)."""
+    return VisibleState(
+        frozenset(p.ref_id for p in _collect_ui_parameters(device.get_ui())),
+        frozenset(co.id for co in device.get_visible_com_objects()),
+    )
+
+
+def apply_parameter(
+    project: ProjectService, device: Device, parameter_ref_id: str, value: str
+) -> dict[str, Any]:
+    """Set a user-editable parameter as one undo step and return :func:`param_change_result`.
+
+    edit_params (not set_param) applies and reconciles as one undo step and raises on reject
+    WITHOUT the GUI's stash-and-retry, so a rejected MCP set never silently takes effect on a later
+    edit. Shared by project_set_parameter and the batch set_parameter op."""
+    # Reject NON-editable targets (absent / Access.NONE / Access.READ); matches what the GUI lets a
+    # user change. The core engine's active-set guard alone would still accept hidden-but-
+    # internally-active and read-only parameters.
+    require_editable_param(device, parameter_ref_id)
+    before = visible_state(device)
+    changes = project.edit_params(device, [(parameter_ref_id, value)], mode="edit")
+    # A change of the com-object set rebuilds the device; its new com-objects are on the new one,
+    # the links the change dropped on the edited one.
+    after = project.find_device_by_node_id(device.node_id) or device
+    return param_change_result(
+        after,
+        parameter_ref_id,
+        value,
+        changes,
+        before=before,
+        lost_links=list(getattr(device, "last_lost_links", []) or []),
+    )
+
+
+def _compact_parameter_dict(p: Any) -> dict[str, Any]:
+    data: dict[str, Any] = {"ref_id": p.ref_id, "label": p.label, "value": p.value}
+    if (label := _enum_value_label(p.widget, p.value)) is not None:
+        data["value_label"] = label
+    return data
+
+
 def param_change_result(
     device: Any,
     parameter_ref_id: str,
     requested: str,
     changes: dict[str, tuple[str | None, str | None]],
+    *,
+    before: VisibleState | None = None,
+    lost_links: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """A trustworthy set-parameter result: the EFFECTIVE value read back after the edit, whether the
     parameter is still active, and the calculated side-effect changes — so a caller never has to
     assume the requested value stuck (it may be normalized, or the parameter may have been
-    deactivated by a structural change). ``changes`` is the edit's calculation change set."""
+    deactivated by a structural change). ``changes`` is the edit's calculation change set.
+
+    With ``before`` (the device's :func:`visible_state` before the edit) the result also names
+    the parameters and com-objects the edit showed or hid. ``lost_links`` are the links the edit
+    dropped (default: the device's ``last_lost_links``)."""
     effective: str | None = None
     active = False
+    shown_parameters: list[dict[str, Any]] = []
+    visible_parameters: set[str] = set()
     for p in _collect_ui_parameters(device.get_ui()):
+        visible_parameters.add(p.ref_id)
         if p.ref_id == parameter_ref_id:
             effective, active = p.value, True
-            break
+        if before is not None and p.ref_id not in before.parameters:
+            shown_parameters.append(_compact_parameter_dict(p))
     if not active and parameter_ref_id in changes:
         # The edit deactivated the parameter itself (a structural change); report its stored value.
         effective = changes[parameter_ref_id][1]
@@ -664,9 +739,35 @@ def param_change_result(
         result["changed"] = side_effects
     # Links the edit's com-object reconcile dropped (a function/mode change deactivating linked
     # objects), captured by the service before deletion.
-    lost = list(getattr(device, "last_lost_links", []) or [])
+    lost = (
+        lost_links
+        if lost_links is not None
+        else list(getattr(device, "last_lost_links", []) or [])
+    )
     if lost:
         result["lost_links"] = lost
+    if before is not None:
+        hidden_parameters = sorted(before.parameters - visible_parameters)
+        objects = device.get_visible_com_objects()
+        shown_objects = [
+            {
+                "ref_id": co.id,
+                "number": co.number,
+                "name": com_object_display_name(co) or co.name,
+                "linkable": co.db_id is not None,
+            }
+            for co in objects
+            if co.id not in before.com_objects
+        ]
+        hidden_objects = sorted(before.com_objects - {co.id for co in objects})
+        for key, items in (
+            ("shown_parameters", shown_parameters),
+            ("hidden_parameters", hidden_parameters),
+            ("shown_com_objects", shown_objects),
+            ("hidden_com_objects", hidden_objects),
+        ):
+            if items:
+                result[key] = items
     return result
 
 
@@ -1408,19 +1509,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         def _read() -> list[dict[str, Any]]:
             device = _require_device(node_id, device_address)
             rows = [
-                _parameter_dict(p, include_choices=False)
+                _compact_parameter_dict(p)
+                if compact
+                else _parameter_dict(p, include_choices=False)
                 for p in _collect_ui_parameters(device.get_ui())
                 if not modified_only or p.value != p.default_value
             ]
-            if compact:
-                rows = [
-                    {
-                        key: row[key]
-                        for key in ("ref_id", "label", "value", "value_label")
-                        if key in row
-                    }
-                    for row in rows
-                ]
             if search:
                 needle = search.casefold()
                 rows = [r for r in rows if needle in str(r.get("label", "")).casefold()]
@@ -2148,28 +2242,23 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         yourself. Setting a function type usually reveals extra symbol/label parameters; re-read the
         block with project_parameter_tree and set them too, so the button shows correctly on the device.
 
-        Returns {ref_id, requested, value, active, changed?, lost_links?}: ``value`` is read back
+        Returns {ref_id, requested, value, active, changed?, lost_links?, shown_parameters?,
+        hidden_parameters?, shown_com_objects?, hidden_com_objects?}: ``value`` is read back
         AFTER the edit (may be a normalized form of ``requested``, or null with ``active=false`` if
         the edit deactivated the parameter), ``changed`` lists other parameters a calculation changed
         as a side effect, and ``lost_links`` lists group-address links this change dropped by
-        deactivating their com-objects ({com_object_ref_id, group_address_id, address}). A rejected
-        value raises with the reason and does NOT take effect on a later edit."""
+        deactivating their com-objects ({com_object_ref_id, group_address_id, address}).
+        ``shown_parameters`` ({ref_id, label, value, value_label?}) and ``shown_com_objects``
+        ({ref_id, number, name, linkable}) are what the edit made visible, ``hidden_parameters`` and
+        ``hidden_com_objects`` the ref_ids it hid — after a function/mode change, set and link those
+        instead of re-reading the whole device. A rejected value raises with the reason and does
+        NOT take effect on a later edit."""
 
         def _set() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
             if parameters_in_plugin(device):
                 raise ToolError(PLUGIN_PARAMETERS_ERROR.format(node_id=device.node_id))
-            # Reject NON-editable targets (absent / Access.NONE / Access.READ); matches what the GUI
-            # lets a user change. The core engine's active-set guard alone would still accept hidden-
-            # but-internally-active and read-only parameters.
-            require_editable_param(device, parameter_ref_id)
-            # edit_params (not set_param): applies and reconciles as one undo step and raises on
-            # reject WITHOUT the GUI's stash-and-retry, so a rejected MCP set never silently takes
-            # effect on a later edit.
-            changes = project.edit_params(
-                device, [(parameter_ref_id, value)], mode="edit"
-            )
-            return param_change_result(device, parameter_ref_id, value, changes)
+            return apply_parameter(project, device, parameter_ref_id, value)
 
         return ctx.run_locked(_set)
 
@@ -2458,9 +2547,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         com_object_ref_id, com_object_db_id, group_address_id, is_sending, already_linked} plus, when
         relevant, ``dpt_mismatch`` ({com_object, group_address} — the GA keeps its own DPT, so the
         DPT metadata differs; verify compatibility) and ``other_sending_group_address_ids`` (the
-        object already sends to these, so it now has several sending GAs). Linking the same pair again
-        is idempotent (``already_linked: true``, no duplicate). Pass link_id as
-        project_unlink_com_object's assignment_id. Program the device to apply the link on the bus."""
+        object already sends to these, so it now has several sending GAs), and ``hidden: true`` when
+        the device's parameters currently hide the object (the link is kept, but the application
+        does not use the object until a parameter shows it — check the activating parameter).
+        Linking the same pair again is idempotent (``already_linked: true``, no duplicate). Pass
+        link_id as project_unlink_com_object's assignment_id. Program the device to apply the link on
+        the bus."""
         require_project(ctx)
 
         def _link() -> dict[str, Any]:
@@ -2478,7 +2570,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "cannot be linked (only com-objects with linkable=true can be linked)"
                 )
             result = perform_link(
-                project, device.node_id, com_object_ref_id, co, ga_id, is_sending
+                project,
+                device.node_id,
+                com_object_ref_id,
+                co,
+                ga_id,
+                is_sending,
+                hidden=com_object_hidden(device, com_object_ref_id),
             )
             if result is None:
                 raise ToolError(
