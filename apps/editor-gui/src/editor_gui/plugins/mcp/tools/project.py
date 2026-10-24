@@ -15,6 +15,7 @@ List tools return a ``{items, count}`` envelope; single-entity mutations return 
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -530,19 +531,44 @@ def resolve_in_scope(
 
 def _satisfying_value_for_condition(cond: str, choices: list[str] | None = None) -> str:
     cleaned = cond.strip()
+    # Normalize relational operators with whitespace (e.g. "!= 0" -> "!=0", ">= 2" -> ">=2")
+    cleaned = re.sub(r"^([><!=]=?)\s+", r"\1", cleaned)
+
+    if cleaned.startswith("=="):
+        return cleaned[2:].strip()
     if cleaned.startswith("="):
         return cleaned[1:].strip()
+
+    # Space-separated alternative condition tokens (e.g. "1 2 3" or "!=0 !=1")
     parts = cleaned.split()
     if len(parts) > 1:
         return _satisfying_value_for_condition(parts[0], choices)
+
     if choices:
         from xknxeditor.prod.parser_v2.nodes.choose import satisfies
 
         for c in choices:
-            if satisfies(cond, c):
+            if satisfies(cleaned, c):
                 return c
-    if cleaned in (">0", "!=0"):
-        return "1"
+
+    if cleaned.startswith("!="):
+        try:
+            val = int(cleaned[2:])
+            return "1" if val == 0 else "0"
+        except ValueError:
+            pass
+    if cleaned.startswith(">="):
+        try:
+            int(cleaned[2:])
+            return cleaned[2:]
+        except ValueError:
+            pass
+    if cleaned.startswith("<="):
+        try:
+            int(cleaned[2:])
+            return cleaned[2:]
+        except ValueError:
+            pass
     if cleaned.startswith(">"):
         try:
             return str(int(cleaned[1:]) + 1)
@@ -826,23 +852,14 @@ def _scan_device_slots(
             if not choices_cand:
                 continue
             lbl = str(getattr(p, "label", None) or "").lower()
-            if any(
-                term in lbl
-                for term in (
-                    "zentral",
-                    "central",
-                    "sperr",
-                    "lock",
-                    "block",
-                    "meldung",
-                    "status",
-                    "zyklisch",
-                    "cyclic",
-                    "zeit",
-                    "time",
-                    "verzögerung",
-                    "delay",
-                )
+            # Known limitation: Heuristic exclusion and selector patterns are language-dependent (de/en).
+            # Word boundaries prevent false exclusions (e.g. 'zeit' in 'Zeitschaltuhr') while
+            # filtering secondary parameters like 'Entprellzeit', 'Dimmmode time', 'Timeout model', or 'Verzögerung'.
+            if re.search(
+                r"\b(zentral\w*|central\w*|sperr\w*|lock\w*|block\w*|meldung\w*|status\w*|"
+                r"zyklisch\w*|cyclic\w*|verzögerung\w*|delay\w*|timeout\w*|\w*time|\w*zeit)\b",
+                lbl,
+                re.IGNORECASE,
             ):
                 continue
 
@@ -852,14 +869,11 @@ def _scan_device_slots(
             elif len(choices_cand) == 2:
                 score += 1
 
-            if any(
-                term in lbl
-                for term in ("kanalfunktion", "channelfunction", "channel function")
-            ):
+            if re.search(r"\b(kanalfunktion|channel\s*function)\b", lbl, re.IGNORECASE):
                 score += 8
-            elif any(term in lbl for term in ("betriebsart", "mode")):
+            elif re.search(r"\b(betriebsart|mode)\b", lbl, re.IGNORECASE):
                 score += 6
-            elif any(term in lbl for term in ("funktion", "function")):
+            elif re.search(r"\b(funktion|function)\b", lbl, re.IGNORECASE):
                 score += 4
 
             if score > 0:

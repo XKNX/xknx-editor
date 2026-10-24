@@ -2519,3 +2519,102 @@ async def test_schema_resource_read(tmp_path: Path) -> None:
         assert "project_set_parameter" in tool_names
         assert "project_setup_parameters" in tool_names
         assert "project_find_free_slots" in tool_names
+
+
+def test_satisfying_value_normalization() -> None:
+    """_satisfying_value_for_condition normalizes relational operators with whitespace."""
+    from editor_gui.plugins.mcp.tools.project import _satisfying_value_for_condition
+
+    # Operator with whitespace
+    assert _satisfying_value_for_condition("!= 0") == "1"
+    assert _satisfying_value_for_condition(">= 2") == "2"
+    assert _satisfying_value_for_condition("<= 5") == "5"
+    assert _satisfying_value_for_condition("> 3") == "4"
+    assert _satisfying_value_for_condition("< 3") == "2"
+    assert _satisfying_value_for_condition("== 4") == "4"
+    assert _satisfying_value_for_condition("= 4") == "4"
+    assert _satisfying_value_for_condition("!= 1") == "0"
+    # Compact operators without whitespace
+    assert _satisfying_value_for_condition("!=0") == "1"
+    assert _satisfying_value_for_condition(">=2") == "2"
+    assert _satisfying_value_for_condition("<=5") == "5"
+    assert _satisfying_value_for_condition(">0") == "1"
+
+
+def test_scan_device_slots_secondary_parameters_exclusion() -> None:
+    """_scan_device_slots recognizes primary slot selectors like 'Betriebsart Zeitschaltuhr'
+    while excluding secondary parameters ('Entprellzeit', 'Verzögerung bei Betriebsart Treppenlicht',
+    'Timeout model', 'Dimmmode time')."""
+    from unittest.mock import MagicMock
+
+    from editor_gui.plugins.mcp.tools.project import _scan_device_slots
+    from xknxeditor.namespaces.intermediate import ParameterTypeTypeRestrictionBase
+    from xknxeditor.prod.parser_v2.ui import EnumChoice, EnumWidget, UiParameter, UiTab
+
+    widget = EnumWidget(
+        choices=(
+            EnumChoice(id="c0", value=0, label="Aus"),
+            EnumChoice(id="c1", value=1, label="Aktiviert"),
+            EnumChoice(id="c2", value=2, label="Erweitert"),
+        ),
+        base=ParameterTypeTypeRestrictionBase.VALUE,
+    )
+
+    # 1. Primary selector that contains 'zeit' as substring in compound word 'Zeitschaltuhr'
+    primary_p = UiParameter(
+        ref_id="P_PRIMARY",
+        label="Betriebsart Zeitschaltuhr",
+        value="1",
+        widget=widget,
+    )
+    tab1 = UiTab(children=(primary_p,), text="Kanal 1")
+    dev1 = MagicMock()
+    dev1.node_id = 1
+    dev1.individual_address = "1.1.1"
+    dev1.get_ui.return_value = [tab1]
+
+    res1 = _scan_device_slots(dev1)
+    assert len(res1["slots"]) == 1
+    assert res1["slots"][0]["selector_label"] == "Betriebsart Zeitschaltuhr"
+
+    # 2. Pure secondary parameters must NOT be identified as slot selectors
+    secondary_labels = [
+        "Entprellzeit",
+        "Verzögerung bei Betriebsart Treppenlicht",
+        "Timeout model",
+        "Dimmmode time",
+    ]
+    for idx, lbl in enumerate(secondary_labels):
+        p = UiParameter(
+            ref_id=f"P_SEC_{idx}",
+            label=lbl,
+            value="1",
+            widget=widget,
+        )
+        tab_sec = UiTab(children=(p,), text=f"Container {idx}")
+        dev_sec = MagicMock()
+        dev_sec.node_id = 10 + idx
+        dev_sec.individual_address = f"1.1.{10 + idx}"
+        dev_sec.get_ui.return_value = [tab_sec]
+
+        res_sec = _scan_device_slots(dev_sec)
+        assert len(res_sec["slots"]) == 0, f"Expected 0 slots for secondary parameter {lbl!r}, got {len(res_sec['slots'])}"
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_scan_device_slots_with_real_fixture(tmp_path: Path) -> None:
+    """project_find_free_slots scans channels on a real device fixture."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        device = await _data(client, "project_add_device", product_ref_id=product_ref)
+        node_id = device["node_id"]
+
+        slots_res = await _data(client, "project_find_free_slots", node_id=node_id)
+        assert slots_res["total_slots"] >= 2
+        assert slots_res["free_count"] + slots_res["used_count"] == slots_res["total_slots"]
+
