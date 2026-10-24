@@ -629,7 +629,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_delete, timeout=_SLOW)
 
-    @tool
+    @tool(read_only=True)
     def catalog_get_product_details(hardware2program_ref_id: str) -> dict[str, Any]:
         """The technical facts of a local catalog product version, using hardware2program_ref_id
         from catalog_list_products. Returns {hardware2program_ref_id, mask_version, is_secure,
@@ -657,7 +657,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool(destructive=True)
     def catalog_export_knxprod(
         hardware2program_ref_id: str, dest: str
     ) -> dict[str, Any]:

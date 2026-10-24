@@ -1272,7 +1272,7 @@ def param_change_result(
 
     if prior_visible_co_ids is not None:
         activated_cos = [
-            _com_object_dict(co)
+            com_object_dict(co)
             for co in device.get_visible_com_objects()
             if co.id not in prior_visible_co_ids
         ]
@@ -3578,7 +3578,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             current_device = project.find_device_by_node_id(dev_id) or device
 
             activated_cos = [
-                _com_object_dict(co)
+                com_object_dict(co)
                 for co in current_device.get_visible_com_objects()
                 if co.id not in prior_co_ids
             ]

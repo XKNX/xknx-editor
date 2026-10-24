@@ -498,7 +498,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         addresses = {str(a) for a in future.result(timeout=timeout)}
         return {"addresses": sorted(addresses, key=address_order)}
 
-    @tool
+    @tool(destructive=True, open_world=True)
     def connection_restart_device(
         node_id: int, timeout: float = 30.0
     ) -> dict[str, Any]:
@@ -518,7 +518,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         future.result(timeout=timeout)
         return {"status": "restarted", "node_id": node_id}
 
-    @tool
+    @tool(destructive=True, open_world=True)
     def connection_master_reset_device(
         node_id: int, reset: MasterReset, timeout: float = 30.0
     ) -> dict[str, Any]:

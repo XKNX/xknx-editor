@@ -2638,7 +2638,9 @@ def _normalize_tool(tool: Any) -> dict[str, Any]:
         data = {
             "name": getattr(tool, "name", ""),
             "description": getattr(tool, "description", None),
-            "inputSchema": getattr(tool, "inputSchema", getattr(tool, "parameters", {})),
+            "inputSchema": getattr(
+                tool, "inputSchema", getattr(tool, "parameters", {})
+            ),
             "annotations": getattr(tool, "annotations", None),
         }
     ann = data.get("annotations")
@@ -2708,9 +2710,13 @@ async def test_tools_golden_snapshot(tmp_path: Path) -> None:
             if added:
                 msg_parts.append(f"  Added tools ({len(added)}): {', '.join(added)}")
             if removed:
-                msg_parts.append(f"  Removed tools ({len(removed)}): {', '.join(removed)}")
+                msg_parts.append(
+                    f"  Removed tools ({len(removed)}): {', '.join(removed)}"
+                )
             if changed:
-                msg_parts.append(f"  Modified tools ({len(changed)}): {', '.join(changed)}")
+                msg_parts.append(
+                    f"  Modified tools ({len(changed)}): {', '.join(changed)}"
+                )
             msg_parts.append("\nTo update golden snapshot, run with UPDATE_GOLDEN=1.")
             pytest.fail("\n".join(msg_parts))
 
@@ -2792,7 +2798,9 @@ def test_scan_device_slots_secondary_parameters_exclusion() -> None:
         dev_sec.get_ui.return_value = [tab_sec]
 
         res_sec = _scan_device_slots(dev_sec)
-        assert len(res_sec["slots"]) == 0, f"Expected 0 slots for secondary parameter {lbl!r}, got {len(res_sec['slots'])}"
+        assert len(res_sec["slots"]) == 0, (
+            f"Expected 0 slots for secondary parameter {lbl!r}, got {len(res_sec['slots'])}"
+        )
 
 
 @pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
@@ -2810,16 +2818,22 @@ async def test_scan_device_slots_with_real_fixture(tmp_path: Path) -> None:
 
         slots_res = await _data(client, "project_find_free_slots", node_id=node_id)
         assert slots_res["total_slots"] >= 2
-        assert slots_res["free_count"] + slots_res["used_count"] == slots_res["total_slots"]
+        assert (
+            slots_res["free_count"] + slots_res["used_count"]
+            == slots_res["total_slots"]
+        )
 
 
 READ_ONLY_TOOLS = {
     "catalog_docs",
     "catalog_docs_cached",
     "catalog_get_application",
+    "catalog_get_product_details",
     "catalog_list_products",
     "catalog_online_items",
     "catalog_online_language",
+    "connection_dali_scan",
+    "connection_siemens_dali_scan",
     "connection_status",
     "find_potential_com_objects",
     "keyring_status",
@@ -2829,12 +2843,15 @@ READ_ONLY_TOOLS = {
     "network_state",
     "network_telegrams",
     "project_compare_devices",
+    "project_compare_projects",
     "project_devices_with_update",
     "project_diff",
     "project_find_free_slots",
     "project_get_com_object",
     "project_get_com_object_links",
+    "project_get_comment",
     "project_get_device",
+    "project_get_element",
     "project_get_ga_assignments",
     "project_get_group_address",
     "project_get_ip_secure",
@@ -2844,9 +2861,13 @@ READ_ONLY_TOOLS = {
     "project_list_application_programs",
     "project_list_com_objects",
     "project_list_devices",
+    "project_list_group_addresses",
+    "project_list_group_ranges",
+    "project_list_links",
     "project_list_parameters",
     "project_next_free_group_address",
     "project_parameter_tree",
+    "project_plugin_parameters",
     "project_resolve_parameter",
     "project_spaces",
     "project_status",
@@ -2856,8 +2877,15 @@ READ_ONLY_TOOLS = {
 
 DESTRUCTIVE_TOOLS = {
     "catalog_delete_product",
+    "catalog_export_knxprod",
     "connection_assign_individual_address",
+    "connection_dali_installation",
+    "connection_dali_program_groups",
+    "connection_dali_program_scenes",
+    "connection_master_reset_device",
     "connection_program_device",
+    "connection_restart_device",
+    "connection_siemens_dali_program",
     "keyring_clear",
     "keyring_export",
     "monitor_clear",
@@ -2870,9 +2898,15 @@ DESTRUCTIVE_TOOLS = {
     "project_export_knxproj",
     "project_new",
     "project_remove_area",
+    "project_remove_device",
+    "project_remove_function",
+    "project_remove_function_group_address",
     "project_remove_group_address",
+    "project_remove_group_range",
     "project_remove_line",
+    "project_remove_plugin_item",
     "project_remove_space",
+    "project_replace_device",
     "project_unlink_com_object",
     "project_update_application",
 }
@@ -2887,6 +2921,7 @@ NON_DESTRUCTIVE_WRITE_TOOLS = {
     "connection_configure",
     "connection_connect",
     "connection_connect_gateway",
+    "connection_dali_identify",
     "connection_disconnect",
     "connection_evaluate_device",
     "connection_read_programming_mode_devices",
@@ -2898,35 +2933,55 @@ NON_DESTRUCTIVE_WRITE_TOOLS = {
     "network_stop",
     "project_add_device",
     "project_add_device_certificate",
+    "project_add_function_group_address",
+    "project_add_plugin_item",
     "project_assign_additional_addresses",
     "project_close",
+    "project_copy_device",
+    "project_copy_device_configuration",
     "project_create_area",
+    "project_create_function",
     "project_create_group_address",
+    "project_create_group_addresses_for_com_objects",
+    "project_create_group_range",
     "project_create_line",
     "project_create_space",
+    "project_extended_copy",
     "project_import_knxproj",
     "project_jump_to",
     "project_link_com_object",
+    "project_link_com_objects",
     "project_move_space",
     "project_open",
     "project_redo",
     "project_rename_area",
     "project_rename_device",
+    "project_rename_function",
     "project_rename_group_address",
+    "project_rename_group_range",
     "project_rename_line",
     "project_rename_space",
     "project_set_additional_address",
     "project_set_com_object_flag",
+    "project_set_com_object_properties",
+    "project_set_comment",
+    "project_set_description",
     "project_set_device_space",
+    "project_set_function_type",
     "project_set_group_address_dpt",
     "project_set_group_address_security",
     "project_set_individual_address",
     "project_set_ip_secure",
+    "project_set_name",
+    "project_set_number",
     "project_set_parameter",
+    "project_set_plugin_parameter",
     "project_set_secure_commissioning",
     "project_set_serial_number",
     "project_set_space_type",
     "project_setup_parameters",
+    "project_shift_group_addresses",
+    "project_shift_individual_addresses",
     "project_undo",
 }
 
@@ -2939,11 +2994,20 @@ OPEN_WORLD_TOOLS = {
     "connection_assign_individual_address",
     "connection_connect",
     "connection_connect_gateway",
+    "connection_dali_identify",
+    "connection_dali_installation",
+    "connection_dali_program_groups",
+    "connection_dali_program_scenes",
+    "connection_dali_scan",
     "connection_disconnect",
     "connection_evaluate_device",
+    "connection_master_reset_device",
     "connection_program_device",
     "connection_read_programming_mode_devices",
+    "connection_restart_device",
     "connection_scan",
+    "connection_siemens_dali_program",
+    "connection_siemens_dali_scan",
     "monitor_read_value",
     "monitor_send_read",
     "monitor_send_write",
@@ -2957,7 +3021,9 @@ async def test_tool_annotations_classification(tmp_path: Path) -> None:
     async with Client(mcp) as client:
         tools = await client.list_tools()
         registered_names = {t.name for t in tools}
-        classified_names = READ_ONLY_TOOLS | DESTRUCTIVE_TOOLS | NON_DESTRUCTIVE_WRITE_TOOLS
+        classified_names = (
+            READ_ONLY_TOOLS | DESTRUCTIVE_TOOLS | NON_DESTRUCTIVE_WRITE_TOOLS
+        )
 
         # 1. No overlap between sets
         assert READ_ONLY_TOOLS.isdisjoint(DESTRUCTIVE_TOOLS)
@@ -2993,7 +3059,9 @@ async def test_tool_annotations_classification(tmp_path: Path) -> None:
         assert open_world_actual == OPEN_WORLD_TOOLS, (
             f"openWorldHint mismatch: diff={open_world_actual ^ OPEN_WORLD_TOOLS}"
         )
-        print(f"OPEN_WORLD_TOOLS: count={len(open_world_actual)}, tools={sorted(open_world_actual)}")
+        print(
+            f"OPEN_WORLD_TOOLS: count={len(open_world_actual)}, tools={sorted(open_world_actual)}"
+        )
 
         # 5. Check annotations on each tool
         for tool in tools:
@@ -3007,19 +3075,35 @@ async def test_tool_annotations_classification(tmp_path: Path) -> None:
                 ann_dict = {}
 
             if name in READ_ONLY_TOOLS:
-                assert ann_dict.get("readOnlyHint") is True, f"{name}: expected readOnlyHint=True, got {ann_dict}"
-                assert ann_dict.get("destructiveHint") is False, f"{name}: expected destructiveHint=False, got {ann_dict}"
+                assert ann_dict.get("readOnlyHint") is True, (
+                    f"{name}: expected readOnlyHint=True, got {ann_dict}"
+                )
+                assert ann_dict.get("destructiveHint") is False, (
+                    f"{name}: expected destructiveHint=False, got {ann_dict}"
+                )
             elif name in DESTRUCTIVE_TOOLS:
-                assert ann_dict.get("readOnlyHint") is False, f"{name}: expected readOnlyHint=False, got {ann_dict}"
-                assert ann_dict.get("destructiveHint") is True, f"{name}: expected destructiveHint=True, got {ann_dict}"
+                assert ann_dict.get("readOnlyHint") is False, (
+                    f"{name}: expected readOnlyHint=False, got {ann_dict}"
+                )
+                assert ann_dict.get("destructiveHint") is True, (
+                    f"{name}: expected destructiveHint=True, got {ann_dict}"
+                )
             else:
-                assert ann_dict.get("readOnlyHint") is False, f"{name}: expected readOnlyHint=False, got {ann_dict}"
-                assert ann_dict.get("destructiveHint") is False, f"{name}: expected destructiveHint=False, got {ann_dict}"
+                assert ann_dict.get("readOnlyHint") is False, (
+                    f"{name}: expected readOnlyHint=False, got {ann_dict}"
+                )
+                assert ann_dict.get("destructiveHint") is False, (
+                    f"{name}: expected destructiveHint=False, got {ann_dict}"
+                )
 
             if name in OPEN_WORLD_TOOLS:
-                assert ann_dict.get("openWorldHint") is True, f"{name}: expected openWorldHint=True, got {ann_dict}"
+                assert ann_dict.get("openWorldHint") is True, (
+                    f"{name}: expected openWorldHint=True, got {ann_dict}"
+                )
             else:
-                assert ann_dict.get("openWorldHint") is False, f"{name}: expected openWorldHint=False, got {ann_dict}"
+                assert ann_dict.get("openWorldHint") is False, (
+                    f"{name}: expected openWorldHint=False, got {ann_dict}"
+                )
 
 
 async def test_mcp_instruction_and_docstring_references(tmp_path: Path) -> None:
@@ -3027,7 +3111,9 @@ async def test_mcp_instruction_and_docstring_references(tmp_path: Path) -> None:
     and that INSTRUCTIONS length stays strictly below 1500 characters."""
     from editor_gui.plugins.mcp.server import INSTRUCTIONS
 
-    assert len(INSTRUCTIONS) <= 1500, f"INSTRUCTIONS length {len(INSTRUCTIONS)} exceeds 1500 chars limit"
+    assert len(INSTRUCTIONS) <= 1500, (
+        f"INSTRUCTIONS length {len(INSTRUCTIONS)} exceeds 1500 chars limit"
+    )
 
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
@@ -3039,7 +3125,9 @@ async def test_mcp_instruction_and_docstring_references(tmp_path: Path) -> None:
     # 1. Check INSTRUCTIONS
     for match in pattern.finditer(INSTRUCTIONS):
         tool_ref = match.group(0)
-        assert tool_ref in registered_names, f"Unknown tool {tool_ref!r} referenced in INSTRUCTIONS"
+        assert tool_ref in registered_names, (
+            f"Unknown tool {tool_ref!r} referenced in INSTRUCTIONS"
+        )
 
     # 2. Check each tool's description
     known_non_tools = {"project_password", "catalog_items", "catalog_item_ids"}
@@ -3052,5 +3140,6 @@ async def test_mcp_instruction_and_docstring_references(tmp_path: Path) -> None:
                 continue
             if tool_ref not in registered_names:
                 unknown_refs.append((tool.name, tool_ref))
-    assert not unknown_refs, f"Unknown tool references found in descriptions: {unknown_refs}"
-
+    assert not unknown_refs, (
+        f"Unknown tool references found in descriptions: {unknown_refs}"
+    )

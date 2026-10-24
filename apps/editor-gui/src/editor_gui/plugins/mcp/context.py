@@ -155,7 +155,9 @@ def make_tool(mcp: FastMCP, ctx: McpContext) -> Any:
         annotations: Any | None = None,
     ) -> Any:
         if annotations is not None and hasattr(annotations, "model_dump"):
-            tool_ann: dict[str, Any] = annotations.model_dump(by_alias=True, exclude_none=True)
+            tool_ann: dict[str, Any] = annotations.model_dump(
+                by_alias=True, exclude_none=True
+            )
         else:
             tool_ann = dict(annotations or {})
         if read_only:
@@ -179,7 +181,9 @@ def make_tool(mcp: FastMCP, ctx: McpContext) -> Any:
                     raise
                 except _EXPECTED_ERRORS as exc:
                     ctx.log.warning(
-                        "tool error", tool=fn.__name__, error=f"{type(exc).__name__}: {exc}"
+                        "tool error",
+                        tool=fn.__name__,
+                        error=f"{type(exc).__name__}: {exc}",
                     )
                     raise ToolError(f"{type(exc).__name__}: {exc}") from exc
 

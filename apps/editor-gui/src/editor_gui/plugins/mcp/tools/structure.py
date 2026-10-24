@@ -44,7 +44,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     # --- devices --------------------------------------------------------------
 
-    @tool
+    @tool(destructive=True)
     def project_remove_device(node_id: int) -> dict[str, Any]:
         """Remove a device (node_id from project_list_devices) from the project, with its group
         objects and their links. Undoable with project_undo; the device on the bus is unchanged.
@@ -172,7 +172,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         return function
 
-    @tool
+    @tool(destructive=True)
     def project_remove_function(function_id: int) -> dict[str, Any]:
         """Remove a building function (id from project_spaces). Undoable with project_undo.
         Returns {status: "removed", function_id}."""
@@ -231,7 +231,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_add)
 
-    @tool
+    @tool(destructive=True)
     def project_remove_function_group_address(link_id: int) -> dict[str, Any]:
         """Remove a group address from a building function: link_id is the ``id`` of the entry
         in the function's group_addresses (project_spaces) or a returned link_id. Undoable with
@@ -286,7 +286,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_create)
 
-    @tool
+    @tool(destructive=True)
     def project_remove_group_range(group_range_id: int) -> dict[str, Any]:
         """Remove a group address folder (main or middle group) with everything in it: its middle
         groups, their group addresses and the links of those. Undoable with project_undo.

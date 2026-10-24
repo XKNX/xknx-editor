@@ -152,7 +152,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "number_editable": details.editable,
         }
 
-    @tool
+    @tool(read_only=True)
     def project_get_comment(
         kind: CommentKind, element_id: int = 0, field: CommentField = "comment"
     ) -> dict[str, Any]:
@@ -197,7 +197,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool(read_only=True)
     def project_get_element(kind: ElementKind, element_id: int) -> dict[str, Any]:
         """Read the details of an area, line (ids from project_topology), group range or group
         address (id from project_list_group_addresses). Returns {kind, element_id, type, name,
@@ -317,7 +317,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool(read_only=True)
     def project_list_links(
         node_id: int | None = None, group_address_id: int | None = None
     ) -> dict[str, Any]:

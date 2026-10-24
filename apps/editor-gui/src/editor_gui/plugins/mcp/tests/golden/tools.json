@@ -178,6 +178,33 @@
   },
   {
     "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Save the .knxprod archive a local catalog product version was imported from to the\nfile ``dest`` (a path on the editor's machine), using hardware2program_ref_id from\ncatalog_list_products. The archive is copied as imported, so a manufacturer bundle is\nexported whole. Returns {hardware2program_ref_id, dest}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "dest": {
+          "type": "string"
+        },
+        "hardware2program_ref_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "hardware2program_ref_id",
+        "dest"
+      ],
+      "type": "object"
+    },
+    "name": "catalog_export_knxprod"
+  },
+  {
+    "annotations": {
       "destructiveHint": false,
       "idempotentHint": null,
       "openWorldHint": false,
@@ -198,6 +225,29 @@
       "type": "object"
     },
     "name": "catalog_get_application"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "The technical facts of a local catalog product version, using hardware2program_ref_id\nfrom catalog_list_products. Returns {hardware2program_ref_id, mask_version, is_secure,\nregistration_number, registration_date, mediums}; registration_date is ISO 8601, a value\nthe product does not state is null.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "hardware2program_ref_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "hardware2program_ref_id"
+      ],
+      "type": "object"
+    },
+    "name": "catalog_get_product_details"
   },
   {
     "annotations": {
@@ -480,6 +530,217 @@
       "readOnlyHint": false,
       "title": null
     },
+    "description": "Find a light on a DALI channel of an MDT or Theben gateway: ``action`` blink /\nstop_blink / on / off for the ECG at ``slot`` (0-63) or for the group ``group`` (0-15);\nwithout either, on / off switches every light of the channel (broadcast). Returns\n{node_id, channel, action, slot, group}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "action": {
+          "enum": [
+            "blink",
+            "stop_blink",
+            "on",
+            "off"
+          ],
+          "type": "string"
+        },
+        "channel": {
+          "default": 0,
+          "type": "integer"
+        },
+        "group": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "type": "integer"
+        },
+        "slot": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "timeout": {
+          "default": 30.0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "node_id",
+        "action"
+      ],
+      "type": "object"
+    },
+    "name": "connection_dali_identify"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "CHANGES THE DALI BUS: run a new installation (``installation=\"new\"``: every ECG of\nthe channel gets a new short address) or a post installation (\"post\": only ECGs without\none are added) on an MDT or Theben gateway, then read the channel. Run it only when the\nuser asked for it. Returns what connection_dali_scan returns.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "default": 0,
+          "type": "integer"
+        },
+        "installation": {
+          "enum": [
+            "new",
+            "post"
+          ],
+          "type": "string"
+        },
+        "node_id": {
+          "type": "integer"
+        },
+        "timeout": {
+          "default": 900.0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "node_id",
+        "installation"
+      ],
+      "type": "object"
+    },
+    "name": "connection_dali_installation"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "CHANGES THE DALI BUS: program the group of the ECGs of a channel of an MDT or Theben\ngateway. Needs a connection_dali_scan of the channel first: every present ECG keeps its\nnumber, ``groups`` changes the group of some: a list of {slot, group} with group 0-15,\n\"single\" or \"unassigned\"; the others keep the group of the scan. The channel's state is\nthen saved into the device's backup data in the project (one undo step). Returns {node_id,\nchannel, programmed, saved}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "default": 0,
+          "type": "integer"
+        },
+        "groups": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "node_id": {
+          "type": "integer"
+        },
+        "timeout": {
+          "default": 300.0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "node_id",
+        "groups"
+      ],
+      "type": "object"
+    },
+    "name": "connection_dali_program_groups"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "CHANGES THE DALI BUS: program scenes on a channel of an MDT or Theben gateway.\n``scenes`` is a list of {scene (0-15), levels: [{group (0-15), level (0-255)}]}; scene n\nis KNX scene n+1. After a connection_dali_scan of the channel, its state is then saved\ninto the device's backup data in the project (one undo step). Returns {node_id, channel,\nprogrammed, saved}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "default": 0,
+          "type": "integer"
+        },
+        "node_id": {
+          "type": "integer"
+        },
+        "scenes": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "array"
+        },
+        "timeout": {
+          "default": 300.0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "node_id",
+        "scenes"
+      ],
+      "type": "object"
+    },
+    "name": "connection_dali_program_scenes"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read the state of a DALI channel of an MDT or Theben DALI gateway (``node_id`` from\nproject_list_devices; ``channel`` 0, or 1 on a 2x64 gateway) over the bus; changes\nnothing. Returns {node_id, channel, firmware, ecgs, groups}: each present ECG has {slot\n(its DALI short address 0-63), ecg_number, group (0-15, \"single\", \"unassigned\" or null),\ntype, sub_type, long_address, min_value, alarm}; each group {index, ecg_count,\nlamp_failures, ecg_failures, run_hours}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "default": 0,
+          "type": "integer"
+        },
+        "node_id": {
+          "type": "integer"
+        },
+        "timeout": {
+          "default": 120.0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "node_id"
+      ],
+      "type": "object"
+    },
+    "name": "connection_dali_scan"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
     "description": "Disconnect from the bus. Returns the resulting connection state.",
     "inputSchema": {
       "additionalProperties": false,
@@ -536,6 +797,46 @@
       "type": "object"
     },
     "name": "connection_evaluate_device"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "DESTRUCTIVE, not undoable: reset the device (``node_id`` from project_list_devices)\nover the bus with a Master Reset. ``reset``: FACTORY_RESET (everything, also the\nindividual address; a secure device gets its FDSK back), FACTORY_RESET_KEEP_ADDRESS,\nRESET_ADDRESS, RESET_APPLICATION, RESET_PARAMETERS, RESET_LINKS or CONFIRMED_RESTART. The\ndevice has to be programmed again afterwards. Run it only when the user asked for this\nreset of this device. Returns {status: \"reset\", node_id, reset}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "node_id": {
+          "type": "integer"
+        },
+        "reset": {
+          "enum": [
+            "FACTORY_RESET",
+            "FACTORY_RESET_KEEP_ADDRESS",
+            "RESET_ADDRESS",
+            "RESET_APPLICATION",
+            "RESET_PARAMETERS",
+            "RESET_LINKS",
+            "CONFIRMED_RESTART"
+          ],
+          "type": "string"
+        },
+        "timeout": {
+          "default": 30.0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "node_id",
+        "reset"
+      ],
+      "type": "object"
+    },
+    "name": "connection_master_reset_device"
   },
   {
     "annotations": {
@@ -628,6 +929,33 @@
   },
   {
     "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Restart the device (``node_id`` from project_list_devices) over the bus: a basic\nrestart, which changes nothing in the device. Needs an open connection and the device's\nindividual address; a securely commissioned device is restarted with its Tool Key. Returns\n{status: \"restarted\", node_id}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "node_id": {
+          "type": "integer"
+        },
+        "timeout": {
+          "default": 30.0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "node_id"
+      ],
+      "type": "object"
+    },
+    "name": "connection_restart_device"
+  },
+  {
+    "annotations": {
       "destructiveHint": false,
       "idempotentHint": null,
       "openWorldHint": true,
@@ -646,6 +974,60 @@
       "type": "object"
     },
     "name": "connection_scan"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "CHANGES THE DEVICE: program the DALI device data the project holds for a Siemens\nKNX/DALI Gateway plus N 141/03 (its plugin data) onto the device, as the Program button of\nits plugin parameters does. Returns {node_id, writes}: the number of property writes that\nsucceeded.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "node_id": {
+          "type": "integer"
+        },
+        "timeout": {
+          "default": 300.0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "node_id"
+      ],
+      "type": "object"
+    },
+    "name": "connection_siemens_dali_program"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read the DALI line of a Siemens KNX/DALI Gateway plus N 141/03 (``node_id`` from\nproject_list_devices) over the bus; changes nothing. Returns {node_id, line, ecgs}; each\npresent ECG has {slot, short_address, random_address, type, min_physical_level}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "node_id": {
+          "type": "integer"
+        },
+        "timeout": {
+          "default": 120.0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "node_id"
+      ],
+      "type": "object"
+    },
+    "name": "connection_siemens_dali_scan"
   },
   {
     "annotations": {
@@ -1140,6 +1522,90 @@
       "readOnlyHint": false,
       "title": null
     },
+    "description": "Add a group address (id from project_list_group_addresses) to a building function (id\nfrom project_spaces), with an optional free-text ``role``. Undoable with project_undo.\nReturns {link_id, function_id, group_address_id, role}; pass link_id to\nproject_remove_function_group_address.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "function_id": {
+          "type": "integer"
+        },
+        "group_address_id": {
+          "type": "integer"
+        },
+        "role": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "required": [
+        "function_id",
+        "group_address_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_add_function_group_address"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Add an item to a plugin parameter list (a section with ``collection`` in\nproject_plugin_parameters), as its Add button does: ``item_type`` is one of the\ncollection's item_types ids when it has any, ``name`` is needed when needs_name is true.\nReturns {section, added, count}; count is the number of items afterwards.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "item_type": {
+          "default": "",
+          "type": "string"
+        },
+        "name": {
+          "default": "",
+          "type": "string"
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "section": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "section"
+      ],
+      "type": "object"
+    },
+    "name": "project_add_plugin_item"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
     "description": "Assign the missing additional individual addresses of a project device (the\ntunnelling addresses of an IP interface) using node_id or device_address: entries\nare created up to count (default: as many as the device's application has) and every\nentry without an address gets one, the highest free device numbers of the device's line\ncounting down from 255. One undo step (project_undo). Fails when the line has too few free\naddresses. Returns {node_id, additional_addresses}, each {index, address, name,\ndescription}.",
     "inputSchema": {
       "additionalProperties": false,
@@ -1190,7 +1656,7 @@
       "readOnlyHint": false,
       "title": null
     },
-    "description": "Apply project edits in order. Each operations entry is {\"op\": name, \"params\": {...}}.\nThese are undoable project steps; applying changes to hardware requires connection tools.\nA batch may require multiple project_undo calls. IDs must be known before the call; later\noperations cannot reference earlier results.\n\nDevice-scoped ops accept either ``node_id`` (int) OR ``device_address`` (str, e.g. \"1.0.30\");\nGA-scoped ops accept either ``group_address_id`` (int) OR ``group_address`` (str, e.g.\n\"10/1/2\"). Pass exactly one of each pair. Below \"device\" / \"ga\" stand for either form.\n\nSupported ops with required params (optional params in brackets) and success result fields:\n- add_device: product_ref_id [name] -> {node_id}; uses the first matching catalog product.\n- rename_device: (node_id | device_address), name -> {node_id, device_address, name}.\n- set_individual_address: (node_id | device_address), address -> {node_id, device_address, address}.\n- set_parameter: (node_id | device_address), (parameter_ref_id | label [channel] [subtree_id tree_token] [value_label]),\n  value? -> {node_id, device_address, ref_id, requested, value, active, changed?, lost_links?, activated_com_objects, unlocked_parameters}.\n  Address the parameter by parameter_ref_id, or semantically by label (resolved AT THIS OP'S TURN within channel or subtree_id,\n  so a child a prior op in the batch just activated resolves; channel scopes by name e.g. 'A' without needing tree_token;\n  value_label gives an enum's value). value is read back after the edit; changed lists\n  calculated side effects; lost_links lists links a function/mode change dropped.\n- set_com_object_flag: (node_id | device_address), com_object_ref_id, flag, value -> {node_id, device_address, com_object_ref_id}.\n- create_group_address: [address, name] -> {group_address_id}.\n- rename_group_address: (group_address_id | group_address), name -> {group_address_id, group_address, name}.\n- set_group_address_dpt: (group_address_id | group_address) [dpt; omitted/null clears] -> {group_address_id, group_address, dpt}.\n- remove_group_address: (group_address_id | group_address) -> {group_address_id, group_address}.\n- link_com_object: (node_id | device_address), com_object_ref_id, (group_address_id | group_address) [is_sending=false] ->\n  {link_id, node_id, device_address, com_object_ref_id, com_object_db_id, group_address_id, group_address, is_sending,\n  already_linked, dpt_mismatch?, other_sending_group_address_ids?} (same feedback as the\n  standalone tool; idempotent).\n- unlink_com_object: assignment_id | ((node_id | device_address), com_object_ref_id, (group_address_id | group_address)) -> {assignment_id}.\n- create_area: area_number [name] -> {area_id}.\n- create_line: area_id, line_number [name] -> {line_id}.\n\nUse node_id from project_list_devices, product_ref_id from catalog_list_products, parameter\nref_id from project_list_parameters as parameter_ref_id, and object ref_id from\nproject_list_com_objects as com_object_ref_id. Use id from project_create_group_address or\nproject_get_group_address as group_address_id; use area id from project_topology as area_id. For assignment_id, use id\nfrom project_get_ga_assignments, assignment_id from project_get_com_object_links or a returned\nlink_id. Linkable objects are required for linking; set is_sending=true for a transmitting\nlink. flag is communication/read/write/transmit/update/read_on_init.\n\ndry_run=true checks only operation names, required params and flag names, without applying\nedits or validating referenced entities/values. Returns {dry_run, valid, results}; each result\nhas {index, op, valid}, plus issue when invalid. index is zero-based.\n\ndeferred=true (default) enables multi-pass deferred validation: operations that fail because\na prerequisite (e.g. parent switch activating a child parameter, or a function activating a\ncom-object) has not yet run in the batch are deferred and retried in subsequent passes once\nother operations succeed. Setting deferred=false enforces strict single-pass order.\n\nWith dry_run=false, returns {applied, atomic, rolled_back, ok, failed, results}. Each result\nhas {index, op, status}, plus result on \"ok\" or error on \"error\"; \"skipped\" has neither.\natomic=true (default) stops on the first unresolvable error and rewinds applied project edits;\nlater operations are skipped. atomic=false continues, so applied=true can coexist with\nfailures. ok counts successful handler returns even after rollback; inspect rolled_back and\neach result. Handlers can return without changing anything, so re-read critical edits.",
+    "description": "Apply project edits in order. Each operations entry is {\"op\": name, \"params\": {...}}.\nThese are undoable project steps; applying changes to hardware requires connection tools.\nA batch may require multiple project_undo calls. IDs must be known before the call; later\noperations cannot reference earlier results.\n\nDevice-scoped ops accept either ``node_id`` (int) OR ``device_address`` (str, e.g. \"1.0.30\");\nGA-scoped ops accept either ``group_address_id`` (int) OR ``group_address`` (str, e.g.\n\"10/1/2\"). Pass exactly one of each pair. Below \"device\" / \"ga\" stand for either form.\n\nSupported ops with required params (optional params in brackets) and success result fields:\n- add_device: product_ref_id [name] -> {node_id}; uses the first matching catalog product.\n- rename_device: (node_id | device_address), [name] [description] (at least one) -> {node_id, device_address, name?, description?}.\n- set_individual_address: (node_id | device_address), address -> {node_id, device_address, address}.\n- set_parameter: (node_id | device_address), (parameter_ref_id | label [channel] [subtree_id tree_token] [value_label]),\n  value? -> {node_id, device_address, ref_id, requested, value, active, changed?, lost_links?, activated_com_objects, unlocked_parameters}.\n  Address the parameter by parameter_ref_id, or semantically by label (resolved AT THIS OP'S TURN within channel or subtree_id,\n  so a child a prior op in the batch just activated resolves; channel scopes by name e.g. 'A' without needing tree_token;\n  a SCOPED label requires tree_token from the project_parameter_tree response its subtree_id came from, so an op\n  whose scope an earlier batch op invalidated fails explicitly instead of silently retargeting;\n  value_label gives an enum's value). value is read back after the edit; changed lists\n  calculated side effects; lost_links lists links a function/mode change dropped.\n- setup_parameters: (node_id | device_address), parameters=[{path|label|parameter_ref_id, value, value_label?}] ->\n  {node_id, device_address, applied, planned_edits, changed}. Atomically resolves and applies the complete activation chain\n  for gating selector parameters (e.g. Choose/When blocks) and target parameters in a single step.\n- set_com_object_flag: (node_id | device_address), com_object_ref_id, flag, value -> {node_id, device_address, com_object_ref_id}.\n- create_group_address: [address, name] -> {group_address_id}.\n- rename_group_address: (group_address_id | group_address), name -> {group_address_id, group_address, name}.\n- rename_group_range: group_range_id, name -> {group_range_id}.\n- rename_function: function_id, name -> {function_id}.\n- set_group_address_dpt: (group_address_id | group_address) [dpt; omitted/null clears] -> {group_address_id, group_address, dpt}.\n- remove_group_address: (group_address_id | group_address) -> {group_address_id, group_address}.\n- link_com_object: (node_id | device_address), com_object_ref_id, (group_address_id | group_address) [is_sending=false] ->\n  {link_id, node_id, device_address, com_object_ref_id, com_object_db_id, group_address_id, group_address, is_sending,\n  already_linked, dpt_mismatch?, other_sending_group_address_ids?} (same feedback as the\n  standalone tool; idempotent).\n- unlink_com_object: assignment_id | ((node_id | device_address), com_object_ref_id, (group_address_id | group_address)) -> {assignment_id}.\n- create_area: area_number [name] -> {area_id}.\n- create_line: area_id, line_number [name] -> {line_id}.\n- set_comment: kind [element_id] [field=\"comment\"], text | paragraphs -> {kind, element_id,\n  field}; kind, field, text and paragraphs as for project_set_comment.\n- set_description: kind, element_id, description -> {kind, element_id}; kind is area, line,\n  group_range, group_address or space.\n\nUse node_id from project_list_devices, product_ref_id from catalog_list_products, parameter\nref_id from project_list_parameters as parameter_ref_id, and object ref_id from\nproject_list_com_objects as com_object_ref_id. Use id from project_list_group_addresses or\nproject_get_group_address as group_address_id; use id from project_list_group_ranges as group_range_id and a function\nid from project_spaces as function_id; use area id from project_topology as area_id. For assignment_id, use id\nfrom project_get_ga_assignments, assignment_id from project_get_com_object_links or a returned\nlink_id. Linkable objects are required for linking; set is_sending=true for a transmitting\nlink. flag is communication/read/write/transmit/update/read_on_init.\n\ndry_run=true checks only operation names, required params and flag names, without applying\nedits or validating referenced entities/values. Returns {dry_run, valid, results}; each result\nhas {index, op, valid}, plus issue when invalid. index is zero-based.\n\ndeferred=true (default) enables multi-pass deferred validation: operations that fail because\na prerequisite (e.g. parent switch activating a child parameter, or a function activating a\ncom-object) has not yet run in the batch are deferred and retried in subsequent passes once\nother operations succeed. Setting deferred=false enforces strict single-pass order.\n\nWith dry_run=false, returns {applied, atomic, rolled_back, ok, failed, results}. Each result\nhas {index, op, status}, plus result on \"ok\" or error on \"error\"; \"skipped\" has neither.\natomic=true (default) stops on the first unresolvable error and rewinds applied project edits;\nlater operations are skipped. atomic=false continues, so applied=true can coexist with\nfailures. ok counts successful handler returns even after rollback; inspect rolled_back and\neach result. Handlers can return without changing anything, so re-read critical edits.",
     "inputSchema": {
       "additionalProperties": false,
       "properties": {
@@ -1373,6 +1839,113 @@
       "destructiveHint": false,
       "idempotentHint": null,
       "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "The Tools window's project comparison: compare the open project with the project at\n``path`` (an .xknx or .knxproj file on the editor's machine, opened read-only; the open\nproject is not changed), ``password`` for a protected one. Returns {devices,\ngroup_addresses}, each a list of {key, kind, detail} with kind added, removed or changed\n(key: the individual or group address); or {error, needs_password} when the other project\ncannot be opened (needs_password: it needs a (different) password).",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "password": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "type": "object"
+    },
+    "name": "project_compare_projects"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Add ``count`` copies (1-100) of a device (node_id from project_list_devices), with the\nsame product and application. ``include_parameters`` carries the parameter values over,\n``include_links`` the group address links. The copies get no individual address. Undoable\nwith project_undo. Returns {node_ids} of the copies.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "default": 1,
+          "type": "integer"
+        },
+        "include_links": {
+          "default": false,
+          "type": "boolean"
+        },
+        "include_parameters": {
+          "default": true,
+          "type": "boolean"
+        },
+        "node_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "node_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_copy_device"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Copy a device's configuration onto other devices with the same application: its\nparameter values (``include_parameters``) and group address links (``include_links``),\nlike Copy and Paste Configuration in the device tree. Each target is one undo step.\nReturns {items, count}; each item has {node_id, ok, parameters_changed, links_mapped}, ok\nfalse for a target with another application.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "include_links": {
+          "default": true,
+          "type": "boolean"
+        },
+        "include_parameters": {
+          "default": true,
+          "type": "boolean"
+        },
+        "source_node_id": {
+          "type": "integer"
+        },
+        "target_node_ids": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "source_node_id",
+        "target_node_ids"
+      ],
+      "type": "object"
+    },
+    "name": "project_copy_device_configuration"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
       "readOnlyHint": false,
       "title": null
     },
@@ -1394,6 +1967,46 @@
       "type": "object"
     },
     "name": "project_create_area"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Add a building function to a space (id from project_spaces). function_type: FT-0\ncustom, FT-1 switchable light (default), FT-6 dimmable light, FT-7 sun protection, FT-8\nheating (switching), FT-9 heating (continuous), FT-10 socket. Undoable with project_undo.\nReturns {function_id, space_id, name, function_type}; the function shows in\nproject_spaces.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "function_type": {
+          "default": "FT-1",
+          "enum": [
+            "FT-0",
+            "FT-1",
+            "FT-6",
+            "FT-7",
+            "FT-8",
+            "FT-9",
+            "FT-10"
+          ],
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "space_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "space_id",
+        "name"
+      ],
+      "type": "object"
+    },
+    "name": "project_create_function"
   },
   {
     "annotations": {
@@ -1426,6 +2039,108 @@
       "type": "object"
     },
     "name": "project_create_group_address"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Create a group address for each of a device's group objects and link it (as the\nsending address when the object has none yet), like Create Group Addresses in the Group\nObjects tab. Identify the device by node_id OR device_address; com_object_ref_ids (ref_id\nfrom project_list_com_objects) limits it to those objects, else every visible one.\n``start_address`` numbers them from that address on, else each gets the next free one.\n``name_template`` names them (placeholders as in the GUI, e.g. {object}, {room}, {device},\n{n}); omitted, the program-wide template is used. Each step is undoable with project_undo.\nReturns {created, group_address_ids}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "com_object_ref_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name_template": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "start_address": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_create_group_addresses_for_com_objects"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Add a group address folder: a main group, or a middle group in the main group\n``parent_id`` (a group range id, see project_get_element), with the next free number.\nUndoable with project_undo. Returns {group_range_id, type, address, name}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "name": "project_create_group_range"
   },
   {
     "annotations": {
@@ -1601,6 +2316,45 @@
       "destructiveHint": false,
       "idempotentHint": null,
       "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "The Tools window's extended copy: add ``count`` copies (1-100) of a device (node_id from\nproject_list_devices) with its parameter values. ``find``/``replace`` rewrite each copy's\nname; ``create_group_addresses`` creates and links a group address for every group object\nof each copy. Each step is undoable with project_undo. Returns {copied, node_ids,\nerrors}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "default": 1,
+          "type": "integer"
+        },
+        "create_group_addresses": {
+          "default": false,
+          "type": "boolean"
+        },
+        "find": {
+          "default": "",
+          "type": "string"
+        },
+        "node_id": {
+          "type": "integer"
+        },
+        "replace": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "required": [
+        "node_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_extended_copy"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
       "readOnlyHint": true,
       "title": null
     },
@@ -1669,7 +2423,7 @@
       "readOnlyHint": true,
       "title": null
     },
-    "description": "Read a project com-object. Identify the device by ``node_id`` OR ``device_address`` (an\nindividual address like \"1.0.30\"); pass exactly one. Pass the object's ref_id from\nproject_list_com_objects as com_object_ref_id. Returns {ref_id, db_id, linkable, name, number,\ndpt, dpt_name, object_size, flags}; flags contains communication, read, write, transmit,\nupdate, read_on_init. linkable=true is required for linking and flag edits.",
+    "description": "Read a project com-object. Identify the device by ``node_id`` OR ``device_address`` (an\nindividual address like \"1.0.30\"); pass exactly one. Pass the object's ref_id from\nproject_list_com_objects as com_object_ref_id. Returns {ref_id, db_id, linkable, name, number,\ndpt, dpt_name, object_size, flags, description, priority}; flags contains communication,\nread, write, transmit, update, read_on_init. linkable=true is required for linking and flag edits.",
     "inputSchema": {
       "additionalProperties": false,
       "properties": {
@@ -1759,6 +2513,52 @@
       "readOnlyHint": true,
       "title": null
     },
+    "description": "Read the comment of a project element, or a device's installation hints\n(field=\"installation_hints\"). ``kind`` with its id: project (element_id ignored), area/line\n(id from project_topology), device (node_id), space/function (ids from project_spaces),\ntrade, group_range (id from the group range tree), group_address (id from\nproject_list_group_addresses). Returns {kind, element_id, field, text, paragraphs}: text is\nthe plain text (one line per paragraph), paragraphs the runs\n[{text, bold?, italic?, underline?}] of each paragraph.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "element_id": {
+          "default": 0,
+          "type": "integer"
+        },
+        "field": {
+          "default": "comment",
+          "enum": [
+            "comment",
+            "installation_hints"
+          ],
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "project",
+            "area",
+            "line",
+            "device",
+            "space",
+            "function",
+            "trade",
+            "group_range",
+            "group_address"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "type": "object"
+    },
+    "name": "project_get_comment"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
     "description": "Read a project device. Identify it by ``node_id`` OR ``device_address`` (an individual\naddress like \"1.0.30\"); pass exactly one. Returns {node_id, name, individual_address,\ndescription}, plus {product_ref_id, hardware2program_ref_id, order_number, hardware_name,\nproduct_name, manufacturer_name, additional_addresses} when catalog metadata is available.\nindividual_address is null when unset. additional_addresses lists the device's additional\nindividual addresses (the tunnelling addresses of an IP interface) as {index, address, name,\ndescription}; index is 1-based (the AddressIndex of a tunnelling interface), address an\n\"a.l.d\" string or null for an entry without one.",
     "inputSchema": {
       "additionalProperties": false,
@@ -1789,6 +2589,39 @@
       "type": "object"
     },
     "name": "project_get_device"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read the details of an area, line (ids from project_topology), group range or group\naddress (id from project_list_group_addresses). Returns {kind, element_id, type, name,\ndescription, address, number, number_editable}: type is area, line, main_group,\nmiddle_group, group_range (a group of the Free style) or group_address; address is the full\naddress (\"1.2\", \"1/2\", \"1/2/3\") and number its own part (\"2\"), which\nproject_set_number changes unless number_editable is false.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "element_id": {
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "area",
+            "line",
+            "group_range",
+            "group_address"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "element_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_get_element"
   },
   {
     "annotations": {
@@ -2174,6 +3007,33 @@
       "destructiveHint": false,
       "idempotentHint": null,
       "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "The Mass Linker's object-to-object links: for each pair create a group address and\nlink both group objects to it, the source sending and the target receiving. Each pair is\n{source_node_id, source_com_object_ref_id, target_node_id, target_com_object_ref_id,\naddress?, name?}: address (in the project's style) or empty for the next free one, name\nor empty for the source object's name. Each step is undoable with project_undo. Returns\n{linked, errors}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "pairs": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "pairs"
+      ],
+      "type": "object"
+    },
+    "name": "project_link_com_objects"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
       "readOnlyHint": true,
       "title": null
     },
@@ -2216,7 +3076,7 @@
       "readOnlyHint": true,
       "title": null
     },
-    "description": "List a project device's visible com-objects. Identify the device by ``node_id`` OR\n``device_address`` (an individual address like \"1.0.30\"); pass exactly one.\nReturns {items, count}; each item has {ref_id, db_id, linkable, name, number, dpt, dpt_name,\nobject_size, flags}. flags contains communication, read, write, transmit, update, read_on_init.\nPass ref_id as com_object_ref_id with the same device. Linking and flag edits require\nlinkable=true (db_id set).",
+    "description": "List a project device's visible com-objects. Identify the device by ``node_id`` OR\n``device_address`` (an individual address like \"1.0.30\"); pass exactly one.\nReturns {items, count}; each item has {ref_id, db_id, linkable, name, number, dpt, dpt_name,\nobject_size, flags, description, priority}. flags contains communication, read, write,\ntransmit, update, read_on_init.\nPass ref_id as com_object_ref_id with the same device. Linking and flag edits require\nlinkable=true (db_id set).",
     "inputSchema": {
       "additionalProperties": false,
       "properties": {
@@ -2274,6 +3134,101 @@
       "type": "object"
     },
     "name": "project_list_devices"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "List project group addresses, optionally filtering names by a case-insensitive substring.\nReturns {items, count}; each item has {id, address, name, datapoint_type, description,\ndata_secure}. Pass ``id`` as group_address_id to project tools. ``address`` is formatted in the\nproject's style; monitor tools accept a group-address string and normalize it (to ThreeLevel)\ninternally.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "name_contains": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_list_group_addresses"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "List the group-address folders (main and middle groups), optionally filtering names by\na case-insensitive substring. Returns {items, count}; each item has {id, address, name,\ndescription, parent_id, depth} (depth 0 = main group; name and description are \"\" when\nunset, parent_id is null for main groups). Pass ``id`` as group_range_id to\nproject_rename_group_range.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "name_contains": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_list_group_ranges"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "List the group-address links of the whole project in one call, optionally only those of\none device (node_id) and/or one group address (group_address_id). Returns {items, count};\neach item has {node_id, group_address_id, is_sending, flags}, flags being the group\nobject's effective communication, read, write, transmit and update flags. Use\nproject_get_com_object_links for the group objects of a device's links.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "group_address_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_list_links"
   },
   {
     "annotations": {
@@ -2532,6 +3487,56 @@
       "destructiveHint": false,
       "idempotentHint": null,
       "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "The parameters a device's manufacturer plugin manages, as its Plugin Parameters tab\nshows them (devices with such a tab only, e.g. the Siemens KNX/DALI Gateway plus\nN 141/03). Identify the device by node_id OR device_address; ``search`` keeps the\nsections or parameters whose name contains it. Returns {title, sections}: each section\nhas {section, parameters} and, for a list the user can add items to, {collection:\n{label, item_types, needs_name}}; each parameter has {ref_id, label, value,\ndefault_value, writable, choices?, item_id?} (item_id: for project_remove_plugin_item).",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "search": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_plugin_parameters"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
       "readOnlyHint": false,
       "title": null
     },
@@ -2565,6 +3570,75 @@
       "type": "object"
     },
     "name": "project_remove_area"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Remove a device (node_id from project_list_devices) from the project, with its group\nobjects and their links. Undoable with project_undo; the device on the bus is unchanged.\nReturns {status: \"removed\", node_id}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "node_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "node_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_remove_device"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Remove a building function (id from project_spaces). Undoable with project_undo.\nReturns {status: \"removed\", function_id}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "function_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "function_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_remove_function"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Remove a group address from a building function: link_id is the ``id`` of the entry\nin the function's group_addresses (project_spaces) or a returned link_id. Undoable with\nproject_undo. Returns {status: \"removed\", link_id}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "link_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "link_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_remove_function_group_address"
   },
   {
     "annotations": {
@@ -2613,6 +3687,29 @@
       "readOnlyHint": false,
       "title": null
     },
+    "description": "Remove a group address folder (main or middle group) with everything in it: its middle\ngroups, their group addresses and the links of those. Undoable with project_undo.\nReturns {status: \"removed\", group_range_id}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "group_range_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "group_range_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_remove_group_range"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
     "description": "Remove a project topology line and its devices. Use a line's id from project_topology as\nline_id. Undoable with project_undo; hardware is unchanged. Returns {status: \"removed\", line_id},\nwith line_id as a string.",
     "inputSchema": {
       "additionalProperties": false,
@@ -2627,6 +3724,55 @@
       "type": "object"
     },
     "name": "project_remove_line"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Remove an item (item_id from project_plugin_parameters) from a plugin parameter list,\nas its Remove button does. Returns {section, removed, count}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "item_id": {
+          "type": "string"
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "section": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "section",
+        "item_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_remove_plugin_item"
   },
   {
     "annotations": {
@@ -2686,10 +3832,21 @@
       "readOnlyHint": false,
       "title": null
     },
-    "description": "Rename a project device using node_id or device_address. Undoable with\nproject_undo. Returns {node_id, name, individual_address, description}.",
+    "description": "Rename a project device and/or set its description, using node_id from\nproject_list_devices or device_address. Pass ``name``, ``description`` or both; an omitted field is left\nunchanged. Undoable with project_undo. Returns {node_id, name, individual_address,\ndescription}.",
     "inputSchema": {
       "additionalProperties": false,
       "properties": {
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "device_address": {
           "anyOf": [
             {
@@ -2702,7 +3859,15 @@
           "default": null
         },
         "name": {
-          "type": "string"
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         },
         "node_id": {
           "anyOf": [
@@ -2716,12 +3881,36 @@
           "default": null
         }
       },
+      "type": "object"
+    },
+    "name": "project_rename_device"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Rename a building function (a function placed in a room). Pass a function ``id`` from\nproject_spaces as function_id. Undoable with project_undo. Returns {function_id, name}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "function_id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
       "required": [
+        "function_id",
         "name"
       ],
       "type": "object"
     },
-    "name": "project_rename_device"
+    "name": "project_rename_function"
   },
   {
     "annotations": {
@@ -2776,6 +3965,33 @@
       "readOnlyHint": false,
       "title": null
     },
+    "description": "Rename a group-address folder (main or middle group). Pass id from\nproject_list_group_ranges as group_range_id. Undoable with project_undo. Returns\n{id, address, name}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "group_range_id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "group_range_id",
+        "name"
+      ],
+      "type": "object"
+    },
+    "name": "project_rename_group_range"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
     "description": "Rename a project topology line, using a line's id from project_topology as line_id.\nUndoable with project_undo. Returns {line_id, name}.",
     "inputSchema": {
       "additionalProperties": false,
@@ -2821,6 +4037,33 @@
       "type": "object"
     },
     "name": "project_rename_space"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "The Tools window's replace device: replace the device ``node_id`` by a copy of the\ndevice ``template_node_id`` (both from project_list_devices). The copy gets the replaced\ndevice's name and individual address, and its group objects the group address links of\nthe replaced device's objects with the same number and size. Undoable with project_undo\n(several steps). Returns {mapped, errors}: mapped counts the objects whose links moved.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "node_id": {
+          "type": "integer"
+        },
+        "template_node_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "node_id",
+        "template_node_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_replace_device"
   },
   {
     "annotations": {
@@ -3013,7 +4256,7 @@
       "readOnlyHint": false,
       "title": null
     },
-    "description": "Override a com-object flag (low-level fallback; prefer project_batch with op=\"set_com_object_flag\").\nPass ref_id from project_list_com_objects as com_object_ref_id with node_id or device_address;\nthe object must have linkable=true. Undoable with project_undo; program the device to apply\nthe change on the bus.\n\nReturns {ref_id, db_id, linkable, name, number, dpt, dpt_name, object_size, flags}, or only\n{ref_id} if the updated object cannot be found. flags contains the six named flags.",
+    "description": "Override a com-object flag (low-level fallback; prefer project_batch with op=\"set_com_object_flag\").\nPass ref_id from project_list_com_objects as com_object_ref_id with node_id or device_address;\nthe object must have linkable=true. Undoable with project_undo; program the device to apply\nthe change on the bus.\n\nReturns {ref_id, db_id, linkable, name, number, dpt, dpt_name, object_size, flags,\ndescription, priority}, or only {ref_id} if the updated object cannot be found. flags\ncontains the six named flags.",
     "inputSchema": {
       "additionalProperties": false,
       "properties": {
@@ -3074,6 +4317,206 @@
       "readOnlyHint": false,
       "title": null
     },
+    "description": "Set the description, priority and/or datapoint type of a project group object. Identify\nthe device by ``node_id`` OR ``device_address``; pass ref_id from project_list_com_objects\nas com_object_ref_id (it must be linkable). An omitted field stays as it is; \"\" clears it\n(priority and datapoint type then follow the application again). datapoint_type is a dotted\ncode (\"5.001\") or a DPST token (\"DPST-5-1\"). Each change is one undo step (project_undo).\nReturns {ref_id, db_id, linkable, name, number, dpt, dpt_name, object_size, flags,\ndescription, priority}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "com_object_ref_id": {
+          "type": "string"
+        },
+        "datapoint_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "priority": {
+          "anyOf": [
+            {
+              "enum": [
+                "Low",
+                "High",
+                "Alert"
+              ],
+              "type": "string"
+            },
+            {
+              "const": "",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "com_object_ref_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_set_com_object_properties"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Set the comment of a project element, or a device's installation hints\n(field=\"installation_hints\"); kind and element_id as for project_get_comment. Pass exactly\none of ``text`` (plain, one paragraph per line; \"\" clears it) and ``paragraphs`` (a list of\nparagraphs, each a list of runs {text, bold?, italic?, underline?}) for formatted text.\nUndoable with project_undo. Returns what project_get_comment returns.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "element_id": {
+          "default": 0,
+          "type": "integer"
+        },
+        "field": {
+          "default": "comment",
+          "enum": [
+            "comment",
+            "installation_hints"
+          ],
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "project",
+            "area",
+            "line",
+            "device",
+            "space",
+            "function",
+            "trade",
+            "group_range",
+            "group_address"
+          ],
+          "type": "string"
+        },
+        "paragraphs": {
+          "anyOf": [
+            {
+              "items": {
+                "items": {
+                  "additionalProperties": true,
+                  "type": "object"
+                },
+                "type": "array"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "type": "object"
+    },
+    "name": "project_set_comment"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Set the description of an area, line (ids from project_topology), group range, group\naddress (id from project_list_group_addresses) or space (id from project_spaces). Undoable\nwith project_undo. Returns {kind, element_id, description}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "description": {
+          "type": "string"
+        },
+        "element_id": {
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "area",
+            "line",
+            "group_range",
+            "group_address",
+            "space"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "element_id",
+        "description"
+      ],
+      "type": "object"
+    },
+    "name": "project_set_description"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
     "description": "Place a device in a room/space, or remove it from any space with space_id=null. Accepts\nnode_id or device_address, and a space id from project_spaces. Undoable project\nedit. Returns {node_id, device_address, space_id}.",
     "inputSchema": {
       "additionalProperties": false,
@@ -3115,6 +4558,42 @@
       "type": "object"
     },
     "name": "project_set_device_space"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Change the type of a building function (id from project_spaces); the types as for\nproject_create_function. Undoable with project_undo. Returns {function_id,\nfunction_type}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "function_id": {
+          "type": "integer"
+        },
+        "function_type": {
+          "enum": [
+            "FT-0",
+            "FT-1",
+            "FT-6",
+            "FT-7",
+            "FT-8",
+            "FT-9",
+            "FT-10"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "function_id",
+        "function_type"
+      ],
+      "type": "object"
+    },
+    "name": "project_set_function_type"
   },
   {
     "annotations": {
@@ -3358,6 +4837,67 @@
       "readOnlyHint": false,
       "title": null
     },
+    "description": "Rename the open project (an empty name keeps the current one). Undoable with\nproject_undo. Returns {name}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "name": "project_set_name"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Give an element another number. area: its area number (0-15, its lines and devices\nmove with it); line: its line number in the area (0-15); group_range: the number of a main\n(0-31) or middle group (0-7); group_address: the whole address in the project's style\n(\"1/2/3\"), its links move with it; space: the space's number, a free text. Undoable with\nproject_undo. Returns project_get_element's fields, or {kind, element_id, number} for a\nspace.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "element_id": {
+          "type": "integer"
+        },
+        "kind": {
+          "enum": [
+            "area",
+            "line",
+            "group_range",
+            "group_address",
+            "space"
+          ],
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "element_id",
+        "number"
+      ],
+      "type": "object"
+    },
+    "name": "project_set_number"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
     "description": "Set a single application parameter (low-level fallback; prefer project_setup_parameters to auto-activate gating selectors). Identify the device by ``node_id`` OR ``device_address`` (an\nindividual address like \"1.0.30\"); pass exactly one. Pass the parameter's `ref_id` (from\nproject_list_parameters, or project_parameter_tree) as the `parameter_ref_id` argument; use a\n`value` permitted by that parameter's `widget`.\n\nAlternatively, use semantic addressing: pass `path` (e.g. 'Steuerung 1 / Funktion') or `label`\n(with optional `channel`, `path` or `subtree_id` scope) instead of `parameter_ref_id`, and\n`value_label` (an enum choice's text) instead of raw `value`.\n\nWhen you configure a device's push-button / display function (e.g. a glass push button, room\ncontroller), ALWAYS also set its display symbols and key labels/name \u2014 do not leave them at\ntheir defaults.\n\nReturns {ref_id, requested, value, active, changed?, lost_links?, activated_com_objects, unlocked_parameters}:\n``value`` is read back AFTER the edit (may be a normalized form of ``requested``, or null with ``active=false`` if\nthe edit deactivated the parameter), ``changed`` lists other parameters a calculation changed\nas a side effect, ``lost_links`` lists group-address links this change dropped by\ndeactivating their com-objects ({com_object_ref_id, group_address_id, address}),\n``activated_com_objects`` lists com-objects newly visible after this edit, and\n``unlocked_parameters`` lists parameters newly active after this edit. A rejected\nvalue raises with the reason and does NOT take effect on a later edit.",
     "inputSchema": {
       "additionalProperties": false,
@@ -3476,6 +5016,55 @@
       "type": "object"
     },
     "name": "project_set_parameter"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Set a plugin parameter (ref_id from project_plugin_parameters, writable ones only) as\nthe Plugin Parameters tab does; for a parameter with choices pass a choice's value.\nIdentify the device by node_id OR device_address. Returns {ref_id, value, changed}:\nvalue as the device holds it afterwards.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "ref_id": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "ref_id",
+        "value"
+      ],
+      "type": "object"
+    },
+    "name": "project_set_plugin_parameter"
   },
   {
     "annotations": {
@@ -3652,6 +5241,66 @@
       "destructiveHint": false,
       "idempotentHint": null,
       "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "The Tools window's group address shift: add ``offset`` to each group address (ids from\nproject_list_group_addresses); its links move with it. All or nothing: when an address\nwould leave the valid range or collide with another group address, nothing changes and\nerrors says why. Undoable with project_undo. Returns {changed, errors}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "group_address_ids": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "offset": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "group_address_ids",
+        "offset"
+      ],
+      "type": "object"
+    },
+    "name": "project_shift_group_addresses"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "The Tools window's address shift: add ``offset`` to the device number of the\nindividual address of each device (node_ids from project_list_devices). All or nothing:\nwhen an address would leave its line or collide with another device, nothing changes and\nerrors says why. Undoable with project_undo. Returns {changed, errors}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "node_ids": {
+          "items": {
+            "type": "integer"
+          },
+          "type": "array"
+        },
+        "offset": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "node_ids",
+        "offset"
+      ],
+      "type": "object"
+    },
+    "name": "project_shift_individual_addresses"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
       "readOnlyHint": true,
       "title": null
     },
@@ -3687,7 +5336,7 @@
       "readOnlyHint": true,
       "title": null
     },
-    "description": "Read the project topology. Returns {items, count}; each area item has\n{id, area_number, name, lines}, and each line has {id, line_number, name}. count counts areas.\nPass an area's id as area_id and a line's id as line_id to topology tools; these IDs differ\nfrom the area/line numbers used in individual addresses.",
+    "description": "Read the project topology. Returns {items, count}; each area item has\n{id, area_number, name, description, lines}, and each line has {id, line_number, name,\ndescription}. count counts areas.\nPass an area's id as area_id and a line's id as line_id to topology tools; these IDs differ\nfrom the area/line numbers used in individual addresses.",
     "inputSchema": {
       "additionalProperties": false,
       "properties": {},

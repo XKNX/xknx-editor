@@ -65,7 +65,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_copy, timeout=300.0)
 
-    @tool
+    @tool(destructive=True)
     def project_replace_device(node_id: int, template_node_id: int) -> dict[str, Any]:
         """The Tools window's replace device: replace the device ``node_id`` by a copy of the
         device ``template_node_id`` (both from project_list_devices). The copy gets the replaced
@@ -119,7 +119,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         )
 
-    @tool
+    @tool(read_only=True)
     def project_compare_projects(
         path: str, password: str | None = None
     ) -> dict[str, Any]:
@@ -281,7 +281,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             }
         return data
 
-    @tool
+    @tool(read_only=True)
     def project_plugin_parameters(
         node_id: int | None = None,
         device_address: str | None = None,
@@ -393,7 +393,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_add)
 
-    @tool
+    @tool(destructive=True)
     def project_remove_plugin_item(
         section: str,
         item_id: str,
