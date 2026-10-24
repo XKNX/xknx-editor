@@ -23,6 +23,7 @@ from editor_gui.plugins.mcp.tools import (
     monitor,
     network,
     project,
+    project_tools,
     status,
     structure,
 )
@@ -160,6 +161,7 @@ def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
         project,
         details,
         structure,
+        project_tools,
         batch,
         catalog,
         connection,

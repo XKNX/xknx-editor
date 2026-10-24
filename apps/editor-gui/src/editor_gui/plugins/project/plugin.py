@@ -255,7 +255,7 @@ class ProjectPlugin:
             application_ready=api.project.application_ready,
             get_selected_device=lambda: api.project.selected_device,
             set_selected_device=self._set_selected_device,
-            on_param_change=self._handle_param_change,
+            on_param_change=self.handle_param_change,
             get_selected_node_ids=lambda: api.project.selected_node_ids,
             on_param_change_selected=self._handle_param_change_selected,
             on_individual_address_change=self._handle_individual_address_change,
@@ -269,7 +269,7 @@ class ProjectPlugin:
             get_all_group_addresses=self._all_group_addresses,
             on_link_com_object=self._link_com_object,
             on_unlink_com_object=api.project.unlink_com_object_from_ga,
-            on_auto_create_gas=self._auto_create_gas,
+            on_auto_create_gas=self.auto_create_gas,
             get_device_info=api.project.get_device_info,
             on_program_device=self._program_device,
             on_eval_device=self._eval_device,
@@ -284,7 +284,7 @@ class ProjectPlugin:
             on_restart_device=self._restart_device,
             on_master_reset_device=self._master_reset_device,
             suggest_ga=self._suggest_ga_for_object,
-            get_name_template=self._ga_name_template,
+            get_name_template=self.ga_name_template,
             set_name_template=self._set_ga_name_template,
             get_latest_value=get_latest_value,
             on_create_and_link=self._create_and_link_ga,
@@ -332,9 +332,9 @@ class ProjectPlugin:
         )
         self._siemens_dali_panel = SiemensDaliPanel(self._run_siemens_dali)
         self._plugin_params_panel = PluginParamsPanel(
-            self._handle_param_change,
-            self._handle_add_collection_item,
-            self._handle_remove_collection_item,
+            self.handle_param_change,
+            self.add_plugin_collection_item,
+            self.remove_plugin_collection_item,
             self._handle_program_dca,
         )
 
@@ -427,7 +427,7 @@ class ProjectPlugin:
             get_range_tree=api.project.get_group_range_tree,
             is_open=lambda: api.project.is_open,
             on_link_ga_co=self._ml_link_ga_co,
-            on_link_co_co=self._ml_link_co_co,
+            on_link_co_co=self.mass_link_objects,
             get_selected_node_id=self._selected_node_id,
             group_style=lambda: api.project.group_address_style,
             get_links_for_co=api.project.get_links_for_com_object,
@@ -437,16 +437,16 @@ class ProjectPlugin:
             get_devices=lambda: api.project.devices,
             get_device_info=api.project.get_device_info,
             is_open=lambda: api.project.is_open,
-            on_extended_copy=self._tools_extended_copy,
-            on_shift_addresses=self._tools_shift_addresses,
+            on_extended_copy=self.tools_extended_copy,
+            on_shift_addresses=self.tools_shift_addresses,
             on_navigate=self._select_device_by_id,
-            on_replace_device=self._tools_replace_device,
+            on_replace_device=self.tools_replace_device,
             get_space_path=self._device_space_path,
             get_device_gas=self._device_gas,
             get_group_addresses=lambda: api.project.group_addresses,
             get_group_address_style=lambda: api.project.group_address_style,
-            on_shift_group_addresses=self._tools_shift_group_addresses,
-            on_diff_projects=self._tools_diff_projects,
+            on_shift_group_addresses=self.tools_shift_group_addresses,
+            on_diff_projects=self.tools_diff_projects,
         )
 
         self._panels = [
@@ -733,7 +733,7 @@ class ProjectPlugin:
         default template reproduces "Flur-Taster-TW 1-Switch"."""
         address = self._api.project.next_free_group_address() or ""
         values = self._ga_name_values(device, com_object)
-        return address, render_name_template(self._ga_name_template(), values)
+        return address, render_name_template(self.ga_name_template(), values)
 
     def _ga_name_values(self, device: "Device", com_object: Any) -> dict[str, object]:
         """Placeholder values for the group-address name template (see :mod:`ga_name_template`),
@@ -758,7 +758,7 @@ class ProjectPlugin:
             "dpt": getattr(getattr(com_object, "dpt", None), "name", "") or "",
         }
 
-    def _ga_name_template(self) -> str:
+    def ga_name_template(self) -> str:
         """The program-wide group-address name template (``app.json``), or the default."""
         from editor_gui.settings import load_settings
 
@@ -962,7 +962,7 @@ class ProjectPlugin:
         """Render the generic sectioned view of the device's raw plugin parameters."""
         self._plugin_params_panel.render(device)
 
-    def _handle_add_collection_item(
+    def add_plugin_collection_item(
         self,
         device: "Device",
         binding: "CollectionBinding",
@@ -1016,7 +1016,7 @@ class ProjectPlugin:
             type=type_id,
         )
 
-    def _handle_remove_collection_item(
+    def remove_plugin_collection_item(
         self,
         device: "Device",
         binding: "CollectionBinding",
@@ -1204,7 +1204,7 @@ class ProjectPlugin:
             linked_gas.add(ga_id)
             has_sender = has_sender or sending
 
-    def _auto_create_gas(
+    def auto_create_gas(
         self,
         device: "Device",
         com_objects: list[Any],
@@ -1294,7 +1294,7 @@ class ProjectPlugin:
         )
         return count, errors
 
-    def _ml_link_co_co(
+    def mass_link_objects(
         self,
         specs: list[tuple[Any, Any, str, str]],
     ) -> tuple[int, list[str]]:
@@ -1353,7 +1353,7 @@ class ProjectPlugin:
         )
         return count, errors
 
-    def _tools_extended_copy(
+    def tools_extended_copy(
         self, node_id: int, count: int, find: str, replace: str, create_gas: bool
     ) -> tuple[int, list[str]]:
         """Clone a device ``count`` times; optionally rewrite the copy name (find/replace) and
@@ -1377,14 +1377,14 @@ class ProjectPlugin:
                     self._api.project.set_device_name(nid, dev.name, new_name)
                     dev.name = new_name
             if create_gas:
-                self._auto_create_gas(dev, dev.get_visible_com_objects())
+                self.auto_create_gas(dev, dev.get_visible_com_objects())
             created += 1
         self._api.log.info(
             "extended copy", plugin="project", source=node_id, copies=created
         )
         return created, errors
 
-    def _tools_replace_device(
+    def tools_replace_device(
         self, target_node_id: int, template_node_id: int
     ) -> tuple[int, list[str]]:
         """Replace a device by a template (another project device), keeping its group-address
@@ -1453,7 +1453,7 @@ class ProjectPlugin:
         )
         return mapped, errors
 
-    def _tools_shift_addresses(
+    def tools_shift_addresses(
         self, node_ids: list[int], offset: int
     ) -> tuple[int, list[str]]:
         """Shift the device octet of each selected individual address by ``offset``.
@@ -1512,7 +1512,7 @@ class ProjectPlugin:
         )
         return changed, errors
 
-    def _tools_shift_group_addresses(
+    def tools_shift_group_addresses(
         self, ga_ids: list[int], offset: int
     ) -> tuple[int, list[str]]:
         """Shift the raw value of each selected group address by ``offset``.
@@ -1568,7 +1568,7 @@ class ProjectPlugin:
         )
         return changed, errors
 
-    def _tools_diff_projects(
+    def tools_diff_projects(
         self, other_path: str, password: str | None = None
     ) -> DiffOutcome:
         """Compare the open project against the project at ``other_path`` (.xknx or .knxproj),
@@ -1723,7 +1723,7 @@ class ProjectPlugin:
             self._baggages[source] = baggages
         return baggages
 
-    def _handle_param_change(
+    def handle_param_change(
         self, device: "Device", param_id: str, new_value: str
     ) -> None:
         # BLOB-backed rows (Siemens N141 DCA plug-in state) take a dedicated write path:

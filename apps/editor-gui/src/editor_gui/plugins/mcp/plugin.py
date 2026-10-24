@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from editor_gui.plugins.keyring.service import KeyringService
     from editor_gui.plugins.mcp.context import McpContext
     from editor_gui.plugins.monitor.service import MonitorService
+    from editor_gui.plugins.project.plugin import ProjectPlugin
 
 
 def _build_auth(token: str = "") -> Any:
@@ -73,6 +74,7 @@ class McpServerPlugin:
         connection_plugin: ConnectionPlugin,
         monitor: MonitorService,
         keyring: KeyringService,
+        project_plugin: ProjectPlugin | None = None,
     ) -> None:
         self._log = Logger(api.log, "mcp")
         self._context_args: dict[str, Any] = {
@@ -82,6 +84,7 @@ class McpServerPlugin:
             "monitor": monitor,
             "keyring": keyring,
             "log": self._log,
+            "project_plugin": project_plugin,
         }
         self._ctx: McpContext | None = None
         self._server: uvicorn.Server | None = None
