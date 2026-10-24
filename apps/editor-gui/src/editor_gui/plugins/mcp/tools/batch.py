@@ -374,7 +374,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Apply project edits in order. Each operations entry is {"op": name, "params": {...}}.
         These are undoable project steps; applying changes to hardware requires connection tools.
         A batch may require multiple project_undo calls. IDs must be known before the call; later
-        operations cannot reference earlier results.
+        operations cannot reference earlier results — but a printed ``group_address`` is resolved
+        when its op runs, so it can name a group address an earlier op of the batch created.
 
         Device-scoped ops accept either ``node_id`` (int) OR ``device_address`` (str, e.g. "1.0.30");
         GA-scoped ops accept either ``group_address_id`` (int) OR ``group_address`` (str, e.g.

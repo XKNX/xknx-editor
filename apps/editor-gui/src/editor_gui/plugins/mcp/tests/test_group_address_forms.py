@@ -37,6 +37,32 @@ async def _linkable(client: Client, node_id: int) -> str:
     return next(co["ref_id"] for co in objects if co["linkable"])
 
 
+async def test_a_batch_links_by_the_address_it_just_created(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        node_id = await _device(client, tmp_path)
+        ref = await _linkable(client, node_id)
+        result = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {"op": "create_group_address", "params": {"address": "0/0/5"}},
+                {
+                    "op": "link_com_object",
+                    "params": {
+                        "node_id": node_id,
+                        "com_object_ref_id": ref,
+                        "group_address": "0/0/5",
+                        "is_sending": True,
+                    },
+                },
+            ],
+        )
+        assert result["ok"] == 2
+        created = result["results"][0]["result"]["group_address_id"]
+        assert result["results"][1]["result"]["group_address_id"] == created
+
+
 async def test_group_address_tools_take_the_printed_address(tmp_path: Path) -> None:
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
