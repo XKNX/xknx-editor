@@ -230,8 +230,36 @@ def _matches_channel(channel_query: str, heading: str) -> bool:
                     "ch",
                 ):
                     return True
-        return False
     return cq in h
+
+
+def _matches_path(path_query: str, ancestry: tuple[str, ...]) -> bool:
+    import re
+
+    if not path_query or not ancestry:
+        return False
+    segments = [
+        s.strip().casefold()
+        for s in re.split(r"\s*[/\\>:]\s*", path_query)
+        if s.strip()
+    ]
+    if not segments:
+        return False
+    anc_headings = [h.strip().casefold() for h in ancestry]
+
+    # Subsequence matching: all query segments must match headings in order
+    anc_idx = 0
+    for seg in segments:
+        matched = False
+        while anc_idx < len(anc_headings):
+            h = anc_headings[anc_idx]
+            anc_idx += 1
+            if seg == h or seg in h or _matches_channel(seg, h):
+                matched = True
+                break
+        if not matched:
+            return False
+    return True
 
 
 def _collect_ui_parameters_with_ancestry(
@@ -294,7 +322,7 @@ def _parameter_dict(
     return data
 
 
-def _resolve_enum_value(widget: Any, value_label: str, param_label: str) -> str:
+def resolve_enum_value(widget: Any, value_label: str, param_label: str) -> str:
     """The raw value of the enum choice whose label is ``value_label`` (exact, case-insensitive);
     raises ValueError when the parameter is not an enum or the label matches no/several choices."""
     if widget is None or type(widget).__name__ != "EnumWidget":
@@ -313,6 +341,9 @@ def _resolve_enum_value(widget: Any, value_label: str, param_label: str) -> str:
             f"choice label {value_label!r} is ambiguous for {param_label!r}"
         )
     return str(hits[0].value)
+
+
+_resolve_enum_value = resolve_enum_value
 
 
 def resolve_parameter_ref(
@@ -388,16 +419,37 @@ def _tree_fingerprint(node_id: int, roots: list[Any]) -> str:
 def resolve_in_scope(
     roots: list[Any],
     subtree_id: str | None,
-    label: str,
+    label: str | None = None,
     value_label: str | None = None,
     *,
     channel: str | None = None,
+    path: str | None = None,
     node_id: int | None = None,
     tree_token: str | None = None,
 ) -> dict[str, Any]:
-    """:func:`resolve_parameter_ref` within an optional ``subtree_id`` or ``channel`` scope of ``roots``.
+    """:func:`resolve_parameter_ref` within an optional ``subtree_id``, ``channel`` or ``path`` scope of ``roots``.
     Raises ValueError for a stale scope token, an unknown scope, or an ambiguous/unknown label. Shared by
     project_resolve_parameter and the batch tool's apply-time resolution."""
+    import re
+
+    effective_label = (label or "").strip()
+    effective_path = (path or "").strip() if path else None
+
+    if not effective_label and effective_path:
+        # If no label was given, split the path: the last segment is the label, preceding segments are the ancestry scope.
+        segments = [
+            s.strip() for s in re.split(r"\s*[/\\>:]\s*", effective_path) if s.strip()
+        ]
+        if len(segments) >= 2:
+            effective_label = segments[-1]
+            effective_path = " / ".join(segments[:-1])
+        elif len(segments) == 1:
+            effective_label = segments[0]
+            effective_path = None
+
+    if not effective_label:
+        raise ValueError("label or path is required to resolve parameter")
+
     search_roots = roots
     if subtree_id is not None:
         if tree_token is None:
@@ -432,22 +484,33 @@ def resolve_in_scope(
         if not param_pairs:
             raise ValueError(f"no active parameters found in channel {channel!r}")
 
-    want = label.strip().casefold()
+    if effective_path:
+        param_pairs = [
+            (p, anc) for p, anc in param_pairs if _matches_path(effective_path, anc)
+        ]
+        if not param_pairs:
+            raise ValueError(
+                f"no active parameters found matching path {effective_path!r}"
+            )
+
+    want = effective_label.casefold()
     matches = [
         (p, anc) for p, anc in param_pairs if (p.label or "").strip().casefold() == want
     ]
     if not matches:
-        scope_str = f"in channel {channel!r}" if channel else "in this scope"
-        raise ValueError(f"no active parameter labelled {label!r} {scope_str}")
-    if len(matches) > 1:
-        cands = ", ".join(sorted(p.ref_id for p, _ in matches))
-        scope_hint = (
-            "narrow the scope with channel or subtree_id"
-            if not channel
-            else "narrow the scope"
+        scope_str = (
+            f"in path {effective_path!r}"
+            if effective_path
+            else (f"in channel {channel!r}" if channel else "in this scope")
         )
         raise ValueError(
-            f"parameter label {label!r} is ambiguous ({len(matches)} matches: {cands}); "
+            f"no active parameter labelled {effective_label!r} {scope_str}"
+        )
+    if len(matches) > 1:
+        cands = ", ".join(sorted(p.ref_id for p, _ in matches))
+        scope_hint = "narrow the scope with path, channel, or subtree_id"
+        raise ValueError(
+            f"parameter label {effective_label!r} is ambiguous ({len(matches)} matches: {cands}); "
             f"{scope_hint}"
         )
     p, anc = matches[0]
@@ -463,6 +526,431 @@ def resolve_in_scope(
     if value_label is not None:
         out["resolved_value"] = _resolve_enum_value(p.widget, value_label, p.label)
     return out
+
+
+def _satisfying_value_for_condition(cond: str, choices: list[str] | None = None) -> str:
+    cleaned = cond.strip()
+    if cleaned.startswith("="):
+        return cleaned[1:].strip()
+    parts = cleaned.split()
+    if len(parts) > 1:
+        return _satisfying_value_for_condition(parts[0], choices)
+    if choices:
+        from xknxeditor.prod.parser_v2.nodes.choose import satisfies
+
+        for c in choices:
+            if satisfies(cond, c):
+                return c
+    if cleaned in (">0", "!=0"):
+        return "1"
+    if cleaned.startswith(">"):
+        try:
+            return str(int(cleaned[1:]) + 1)
+        except ValueError:
+            pass
+    if cleaned.startswith("<"):
+        try:
+            return str(max(0, int(cleaned[1:]) - 1))
+        except ValueError:
+            pass
+    return cleaned
+
+
+def _walk_static_dynamic_tree(
+    node: Any,
+    gates: tuple[tuple[str, str], ...] = (),
+    ancestry: tuple[str, ...] = (),
+) -> list[dict[str, Any]]:
+    from xknxeditor.prod.parser_v2.nodes.channel import ChannelNode
+    from xknxeditor.prod.parser_v2.nodes.choose import ChooseWhenNode
+    from xknxeditor.prod.parser_v2.nodes.com_object_parameter_block import (
+        ComObjectParameterBlockNode,
+    )
+    from xknxeditor.prod.parser_v2.nodes.parameter_ref_ref import ParameterRefRefNode
+
+    results: list[dict[str, Any]] = []
+
+    def _walk(curr: Any, g: tuple[tuple[str, str], ...], anc: tuple[str, ...]) -> None:
+        if curr is None:
+            return
+        if isinstance(curr, ParameterRefRefNode):
+            pr = getattr(curr, "_param_ref", None)
+            p = getattr(curr, "_param", None)
+            elem = getattr(curr, "_elem", None)
+            ref_id = getattr(elem, "ref_id", None) or getattr(pr, "id", "")
+            lbl = (
+                getattr(pr, "text", None)
+                or getattr(p, "text", None)
+                or getattr(elem, "name", None)
+                or ""
+            )
+            results.append(
+                {
+                    "ref_id": ref_id,
+                    "label": lbl,
+                    "ancestry": anc,
+                    "path": " / ".join(anc),
+                    "gates": g,
+                    "node": curr,
+                }
+            )
+        elif isinstance(curr, ChooseWhenNode):
+            cond_map = getattr(curr, "_condition_to_nodes", {})
+            pref_id = getattr(curr, "_param_ref_id", "")
+            for cond, ch_list in cond_map.items():
+                next_g = (*g, (pref_id, cond))
+                for c in ch_list:
+                    _walk(c, next_g, anc)
+            defaults = getattr(curr, "_default_nodes", None)
+            if defaults:
+                for c in defaults:
+                    _walk(c, g, anc)
+        elif isinstance(curr, ChannelNode):
+            heading = getattr(curr, "_text", None) or getattr(curr, "_name", None) or ""
+            next_anc = (*anc, heading) if heading else anc
+            for c in getattr(curr, "_children", []):
+                _walk(c, g, next_anc)
+        elif isinstance(curr, ComObjectParameterBlockNode):
+            elem = getattr(curr, "_elem", None)
+            heading = (
+                getattr(curr, "_heading_text", None)
+                or getattr(elem, "text", None)
+                or getattr(elem, "name", None)
+                or ""
+            )
+            next_anc = (*anc, heading) if heading else anc
+            for c in getattr(curr, "_children", []):
+                _walk(c, g, next_anc)
+        elif hasattr(curr, "_children"):
+            elem = getattr(curr, "_elem", None)
+            heading = (
+                getattr(curr, "text", None)
+                or getattr(curr, "_text", None)
+                or getattr(curr, "_heading_text", None)
+                or getattr(curr, "_name", None)
+                or getattr(curr, "name", None)
+                or (getattr(elem, "text", None) if elem is not None else None)
+                or (getattr(elem, "name", None) if elem is not None else None)
+                or ""
+            )
+            next_anc = (*anc, str(heading)) if heading else anc
+            for c in getattr(curr, "_children", []):
+                _walk(c, g, next_anc)
+        elif hasattr(curr, "_subtree"):
+            elem = getattr(curr, "_elem", None)
+            heading = (
+                getattr(curr, "text", None)
+                or getattr(curr, "_text", None)
+                or getattr(curr, "_heading_text", None)
+                or getattr(curr, "_name", None)
+                or getattr(curr, "name", None)
+                or (getattr(elem, "text", None) if elem is not None else None)
+                or (getattr(elem, "name", None) if elem is not None else None)
+                or ""
+            )
+            next_anc = (*anc, str(heading)) if heading else anc
+            _walk(curr._subtree, g, next_anc)
+
+    _walk(node, gates, ancestry)
+    return results
+
+
+def find_activation_path(
+    device: Any,
+    target_ref_id: str | None = None,
+    label: str | None = None,
+    path: str | None = None,
+    value: str | None = None,
+    value_label: str | None = None,
+) -> list[tuple[str, str, str]]:
+    """Determine the sequence of parameter edits (parent gates + target) to activate and set a parameter."""
+    import re
+
+    from xknxeditor.prod.parser_v2.nodes.choose import satisfies
+
+    active_map = {p.ref_id: p for p in _collect_ui_parameters(device.get_ui())}
+
+    # 1. Check if already active
+    if target_ref_id and target_ref_id in active_map:
+        target_p = active_map[target_ref_id]
+        target_val = value
+        if target_val is None and value_label is not None:
+            target_val = _resolve_enum_value(
+                target_p.widget, value_label, target_p.label
+            )
+        if target_val is not None:
+            return [(target_ref_id, str(target_val), "target parameter")]
+        return []
+
+    if not target_ref_id and (label or path):
+        try:
+            resolved = resolve_in_scope(
+                list(device.get_ui()),
+                None,
+                label=label,
+                path=path,
+                node_id=device.node_id,
+                value_label=value_label,
+            )
+            target_ref_id = str(resolved["ref_id"])
+            target_val = resolved.get("resolved_value", value)
+            if target_val is not None:
+                return [(target_ref_id, str(target_val), "target parameter")]
+            return []
+        except ValueError:
+            pass  # not currently active; resolve through static activation graph
+
+    # 2. Target is not active yet; traverse the static dynamic tree
+    app = getattr(device, "app", None)
+    if app is None:
+        raise ToolError(f"device {device.node_id} has no application program loaded")
+    _, tree_builder = app.resolved()
+    static_tree = tree_builder.tree
+    entries = _walk_static_dynamic_tree(static_tree)
+
+    if target_ref_id:
+        cands = [e for e in entries if e["ref_id"] == target_ref_id]
+    else:
+        effective_label = (label or "").strip()
+        effective_path = (path or "").strip() if path else None
+        if not effective_label and effective_path:
+            segs = [
+                s.strip()
+                for s in re.split(r"\s*[/\\>:]\s*", effective_path)
+                if s.strip()
+            ]
+            if len(segs) >= 2:
+                effective_label = segs[-1]
+                effective_path = " / ".join(segs[:-1])
+            elif len(segs) == 1:
+                effective_label = segs[0]
+                effective_path = None
+        cands = [
+            e
+            for e in entries
+            if (
+                not effective_label
+                or str(e["label"]).lower() == effective_label.lower()
+            )
+            and (
+                not effective_path
+                or _matches_path(effective_path, tuple(e.get("ancestry", ())))
+            )
+        ]
+
+    if not cands:
+        ident = target_ref_id or path or label
+        raise ToolError(
+            f"no parameter found matching {ident!r} in device {device.node_id} application"
+        )
+
+    by_ref = {c["ref_id"]: c for c in cands}
+    if len(by_ref) > 1:
+        ref_list = ", ".join(sorted(by_ref.keys()))
+        raise ToolError(
+            f"ambiguous parameter target ({len(by_ref)} candidates: {ref_list}); "
+            "specify a more specific hierarchy path"
+        )
+    matched = next(iter(by_ref.values()))
+    target_ref_id = matched["ref_id"]
+
+    edits: list[tuple[str, str, str]] = []
+
+    # Satisfy each gate from root to leaf
+    for gate_ref, cond in matched["gates"]:
+        curr = active_map.get(gate_ref)
+        if curr is not None and satisfies(cond, curr.value):
+            continue
+        gate_choices: list[str] | None = None
+        if curr is not None:
+            w_choices: Any = getattr(curr.widget, "choices", None)
+            if w_choices:
+                gate_choices = [str(getattr(c, "value", "")) for c in w_choices]
+        s_val = _satisfying_value_for_condition(cond, gate_choices)
+        edits.append(
+            (
+                gate_ref,
+                s_val,
+                f"activation gate for {matched['label'] or target_ref_id}",
+            )
+        )
+
+    # Determine target value
+    target_val = value
+    if target_val is None and value_label is not None:
+        target_node: Any = matched.get("node")
+        pr: Any = getattr(target_node, "_param_ref", None)
+        pt: Any = getattr(pr, "parameter_type", None) or getattr(
+            getattr(target_node, "_param", None), "parameter_type", None
+        )
+        choices_list: list[Any] = list(getattr(pt, "choices", None) or [])
+        for ch in choices_list:
+            ch_text = str(getattr(ch, "text", "") or getattr(ch, "name", ""))
+            if ch_text.lower() == value_label.strip().lower():
+                target_val = str(getattr(ch, "value", ""))
+                break
+        if target_val is None:
+            raise ToolError(
+                f"unknown value_label {value_label!r} for parameter {target_ref_id!r}"
+            )
+
+    if target_val is not None and target_ref_id is not None:
+        edits.append((target_ref_id, str(target_val), "target value"))
+
+    return edits
+
+
+def _scan_device_slots(
+    device: Any,
+    slot_type: str | None = None,
+    function_filter: str | None = None,
+) -> dict[str, Any]:
+    """Scan a device for functional slots/channels and their primary configuration state."""
+    from xknxeditor.prod.parser_v2.ui import UiParameterBlock, UiTab
+
+    slots: list[dict[str, Any]] = []
+    seen_selectors: set[str] = set()
+
+    def _inspect_container(node: Any, ancestry: list[str]) -> None:
+        title = str(getattr(node, "text", None) or getattr(node, "name", None) or "")
+        curr_anc = [*ancestry, title] if title else ancestry
+        children: list[Any] = list(getattr(node, "children", []) or [])
+        params = [
+            ch for ch in children if hasattr(ch, "ref_id") and hasattr(ch, "widget")
+        ]
+
+        candidates: list[tuple[int, Any]] = []
+        for p in params:
+            widget: Any = getattr(p, "widget", None)
+            choices_cand: list[Any] = list(getattr(widget, "choices", None) or [])
+            if not choices_cand:
+                continue
+            lbl = str(getattr(p, "label", None) or "").lower()
+            if any(
+                term in lbl
+                for term in (
+                    "zentral",
+                    "central",
+                    "sperr",
+                    "lock",
+                    "block",
+                    "meldung",
+                    "status",
+                    "zyklisch",
+                    "cyclic",
+                    "zeit",
+                    "time",
+                    "verzögerung",
+                    "delay",
+                )
+            ):
+                continue
+
+            score = 0
+            if len(choices_cand) > 2:
+                score += 10
+            elif len(choices_cand) == 2:
+                score += 1
+
+            if any(
+                term in lbl
+                for term in ("kanalfunktion", "channelfunction", "channel function")
+            ):
+                score += 8
+            elif any(term in lbl for term in ("betriebsart", "mode")):
+                score += 6
+            elif any(term in lbl for term in ("funktion", "function")):
+                score += 4
+
+            if score > 0:
+                candidates.append((score, p))
+
+        selector: Any = None
+        if candidates:
+            candidates.sort(key=lambda item: item[0], reverse=True)
+            selector = candidates[0][1]
+
+        if selector is not None and selector.ref_id not in seen_selectors:
+            seen_selectors.add(selector.ref_id)
+            val = str(getattr(selector, "value", "") or "")
+            widget: Any = getattr(selector, "widget", None)
+            choices: list[Any] = list(getattr(widget, "choices", None) or [])
+            val_label: Any = getattr(selector, "value_label", None)
+            if not val_label and choices:
+                for c in choices:
+                    if str(getattr(c, "value", "")) == val:
+                        val_label = getattr(c, "label", None)
+                        break
+            val_label_str: str = str(val_label) if val_label is not None else val
+
+            is_free = val in ("0", "") or any(
+                term in val_label_str.lower()
+                for term in (
+                    "deaktiviert",
+                    "nicht aktiv",
+                    "keine funktion",
+                    "disabled",
+                    "off",
+                    "none",
+                    "unused",
+                    "unbenutzt",
+                )
+            )
+            status = "free" if is_free else "used"
+            supported: list[dict[str, str]] = [
+                {
+                    "value": str(getattr(c, "value", "")),
+                    "label": str(getattr(c, "label", "")),
+                }
+                for c in choices
+            ]
+            slot_name = title or (curr_anc[-1] if curr_anc else str(selector.label))
+            slot_path = " / ".join(curr_anc)
+
+            include = True
+            if slot_type:
+                st = slot_type.lower()
+                if st not in slot_name.lower() and st not in slot_path.lower():
+                    include = False
+
+            if include and function_filter:
+                ff = function_filter.lower()
+                if is_free:
+                    include = any(ff in c["label"].lower() for c in supported)
+                else:
+                    include = ff in val_label_str.lower()
+
+            if include:
+                slots.append(
+                    {
+                        "slot": slot_name,
+                        "path": slot_path,
+                        "status": status,
+                        "function": val_label_str,
+                        "selector_ref_id": selector.ref_id,
+                        "selector_label": selector.label,
+                        "supported_functions": supported,
+                    }
+                )
+
+        for ch in children:
+            if isinstance(ch, (UiTab, UiParameterBlock)):
+                _inspect_container(ch, curr_anc)
+
+    for root in list(device.get_ui()):
+        if isinstance(root, (UiTab, UiParameterBlock)):
+            _inspect_container(root, [])
+
+    free_count = sum(1 for s in slots if s["status"] == "free")
+    used_count = sum(1 for s in slots if s["status"] == "used")
+    return {
+        "node_id": device.node_id,
+        "device_address": device.individual_address,
+        "total_slots": len(slots),
+        "free_count": free_count,
+        "used_count": used_count,
+        "slots": slots,
+    }
 
 
 def _ui_node(
@@ -657,6 +1145,18 @@ def perform_link(
         existing,
         group_address_id,
     )
+    device = project.find_device_by_node_id(node_id)
+    is_effective = True
+    if device is not None:
+        visible_ids = {v.id for v in device.get_visible_com_objects()}
+        is_effective = getattr(co, "id", None) in visible_ids
+    annotations["is_effective"] = is_effective
+    if not is_effective:
+        annotations["ineffective_warning"] = (
+            f"com-object {com_object_ref_id!r} is instantiated but currently inactive/hidden "
+            "by the device's parameter settings (ineffective link); telegrams will not be "
+            "processed on the bus until its activating parameter is enabled"
+        )
     base: dict[str, Any] = {
         "node_id": node_id,
         "com_object_ref_id": com_object_ref_id,
@@ -2009,7 +2509,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     f"no com-object {com_object_ref_id!r} on device {device.node_id}; "
                     "call project_list_com_objects for valid ref_ids"
                 )
-            return _com_object_dict(co)
+            data = _com_object_dict(co)
+            visible_ids = {v.id for v in device.get_visible_com_objects()}
+            data["is_effective"] = getattr(co, "id", None) in visible_ids
+            return data
 
         return ctx.run_locked(_read)
 
@@ -2203,24 +2706,42 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_get_parameter(
-        parameter_ref_id: str,
+        parameter_ref_id: str | None = None,
         node_id: int | None = None,
         device_address: str | None = None,
+        label: str | None = None,
+        path: str | None = None,
+        channel: str | None = None,
     ) -> dict[str, Any]:
         """Read a project application parameter. Identify the device by ``node_id`` OR
-        ``device_address`` (an individual address like "1.0.30"); pass exactly one. Pass ref_id from
-        project_list_parameters or project_parameter_tree as parameter_ref_id.
+        ``device_address`` (an individual address like "1.0.30"); pass exactly one. Identify the parameter
+        by ``parameter_ref_id`` OR semantically by ``path`` (e.g. "Steuerung 1 / Funktion") or ``label``.
         Returns {ref_id, label, value, default_value, access, widget}; for an enum, widget includes
         the full ``choices`` (value/label/id) — the allowed values for project_set_parameter."""
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
+            target_ref = parameter_ref_id
+            if not target_ref:
+                if not label and not path:
+                    raise ToolError(
+                        "project_get_parameter needs parameter_ref_id, path, or label"
+                    )
+                resolved = resolve_in_scope(
+                    list(device.get_ui()),
+                    None,
+                    label=label,
+                    channel=channel,
+                    path=path,
+                    node_id=device.node_id,
+                )
+                target_ref = resolved["ref_id"]
 
             for p in _collect_ui_parameters(device.get_ui()):
-                if p.ref_id == parameter_ref_id:
+                if p.ref_id == target_ref:
                     return _parameter_dict(p)
             raise ToolError(
-                f"no parameter {parameter_ref_id!r} on device {device.node_id}; "
+                f"no parameter {target_ref!r} on device {device.node_id}; "
                 "call project_list_parameters for valid ref_ids"
             )
 
@@ -2228,20 +2749,21 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool
     def project_resolve_parameter(
-        label: str,
+        label: str | None = None,
         node_id: int | None = None,
         device_address: str | None = None,
         channel: str | None = None,
+        path: str | None = None,
         subtree_id: str | None = None,
         value_label: str | None = None,
         tree_token: str | None = None,
     ) -> dict[str, Any]:
-        """Resolve a parameter by its human ``label`` to the ``ref_id`` that project_set_parameter
-        needs, so a caller can avoid the long XML ref ids. Identify the device by ``node_id`` OR
-        ``device_address`` (an individual address like "1.0.30"); pass exactly one.
+        """Resolve a parameter by its human ``label`` or hierarchy ``path`` (e.g. "Steuerung 1 / Funktion")
+        to the ``ref_id`` that project_set_parameter needs, so a caller can avoid the long XML ref ids.
+        Identify the device by ``node_id`` OR ``device_address`` (an individual address like "1.0.30"); pass exactly one.
 
-        ``label`` is matched EXACTLY (case-insensitive) among the device's currently ACTIVE
-        parameters, within a scope. Labels are NOT unique (a device repeats a label per channel), so:
+        ``label`` or ``path`` is matched among the device's currently ACTIVE parameters, within an optional scope.
+        - pass ``path`` (e.g. 'Steuerung 1 / Funktion' or 'Seite 1 / Steuerung 1') to uniquely resolve across identical channel labels;
         - pass ``channel`` (e.g. 'A', 'Kanal A', '1') to scope to a channel by name without needing
           index paths or tokens;
         - pass ``subtree_id`` (a container ``id`` from project_parameter_tree(outline=True)) to scope
@@ -2258,9 +2780,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             return resolve_in_scope(
                 list(device.get_ui()),
                 subtree_id,
-                label,
-                value_label,
+                label=label,
+                value_label=value_label,
                 channel=channel,
+                path=path,
                 node_id=device.node_id,
                 tree_token=tree_token,
             )
@@ -2801,6 +3324,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         node_id: int | None = None,
         device_address: str | None = None,
         label: str | None = None,
+        path: str | None = None,
         channel: str | None = None,
         subtree_id: str | None = None,
         value_label: str | None = None,
@@ -2811,8 +3335,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         project_list_parameters, or project_parameter_tree) as the `parameter_ref_id` argument; use a
         `value` permitted by that parameter's `widget`.
 
-        Alternatively, use semantic addressing: pass `label` (with optional `channel` or `subtree_id` scope)
-        instead of `parameter_ref_id`, and `value_label` (an enum choice's text) instead of raw `value`.
+        Alternatively, use semantic addressing: pass `path` (e.g. 'Steuerung 1 / Funktion') or `label`
+        (with optional `channel`, `path` or `subtree_id` scope) instead of `parameter_ref_id`, and
+        `value_label` (an enum choice's text) instead of raw `value`.
 
         When you configure a device's push-button / display function (e.g. a glass push button, room
         controller), ALWAYS also set its display symbols and key labels/name — do not leave them at
@@ -2837,17 +3362,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             target_val = value
 
             if not target_ref:
-                if not label:
+                if not label and not path:
                     raise ToolError(
-                        "project_set_parameter needs parameter_ref_id or label"
+                        "project_set_parameter needs parameter_ref_id, path, or label"
                     )
                 try:
                     resolved = resolve_in_scope(
                         list(device.get_ui()),
                         subtree_id,
-                        label,
-                        value_label,
+                        label=label,
+                        value_label=value_label,
                         channel=channel,
+                        path=path,
                         node_id=dev_id,
                         tree_token=tree_token,
                     )
@@ -2857,9 +3383,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 if target_val is None:
                     target_val = resolved.get("resolved_value")
 
+            if target_val is None and value_label is not None and target_ref:
+                for p in _collect_ui_parameters(device.get_ui()):
+                    if p.ref_id == target_ref:
+                        try:
+                            target_val = resolve_enum_value(
+                                p.widget, value_label, p.label
+                            )
+                        except ValueError as exc:
+                            raise ToolError(str(exc)) from exc
+                        break
+
             if target_val is None:
                 raise ToolError(
-                    "project_set_parameter needs value (or value_label with a label)"
+                    "project_set_parameter needs value (or value_label with a label or parameter_ref_id)"
                 )
 
             # Reject NON-editable targets (absent / Access.NONE / Access.READ); matches what the GUI
@@ -2887,6 +3424,159 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
 
         return ctx.run_locked(_set)
+
+    @tool
+    def project_setup_parameters(
+        parameters: list[dict[str, Any]],
+        node_id: int | None = None,
+        device_address: str | None = None,
+        dry_run: bool = False,
+    ) -> dict[str, Any]:
+        """Setup and configure parameters on a device, automatically resolving and enabling
+        any required parent selector gates (Choose/When dependency chains) in the activation path.
+
+        This eliminates manual discovery and sequential toggling of gating switches when configuring
+        nested functions (e.g. channel mode, push-button actions, rocker settings). Each entry in
+        ``parameters`` specifies:
+        - target: ``ref_id``, ``path`` (e.g. 'Steuerung 1 / Funktion'), or ``label``
+        - value: ``value`` (raw value) or ``value_label`` (enum choice text)
+
+        If the target parameter is gated behind parent Choose/When conditions that are not yet active,
+        the activation path is resolved, parent selector parameters are scheduled with satisfying values,
+        and all edits are applied atomically in one transaction.
+
+        Returns {status, planned_edits, applied, changed, activated_com_objects, unlocked_parameters}.
+        If dry_run is True, returns planned_edits without applying the changes."""
+
+        def _setup() -> dict[str, Any]:
+            device = _require_device(node_id, device_address)
+            dev_id = device.node_id
+            if parameters_in_plugin(device):
+                raise ToolError(PLUGIN_PARAMETERS_ERROR.format(node_id=dev_id))
+
+            all_edits: list[tuple[str, str, str]] = []
+            seen_refs: set[str] = set()
+
+            for item in parameters:
+                target_ref = item.get("parameter_ref_id") or item.get("ref_id")
+                label = item.get("label")
+                path = item.get("path")
+                val = item.get("value")
+                val_str = str(val) if val is not None else None
+                val_label = item.get("value_label")
+
+                edits = find_activation_path(
+                    device,
+                    target_ref_id=target_ref,
+                    label=label,
+                    path=path,
+                    value=val_str,
+                    value_label=val_label,
+                )
+                for ref, value_to_set, reason in edits:
+                    if ref in seen_refs:
+                        all_edits = [
+                            (r, value_to_set if r == ref else v, desc)
+                            for r, v, desc in all_edits
+                        ]
+                    else:
+                        seen_refs.add(ref)
+                        all_edits.append((ref, value_to_set, reason))
+
+            planned = [
+                {"ref_id": ref, "value": val, "reason": reason}
+                for ref, val, reason in all_edits
+            ]
+
+            if dry_run:
+                return {
+                    "status": "planned",
+                    "applied": False,
+                    "planned_edits": planned,
+                    "node_id": dev_id,
+                    "device_address": device.individual_address,
+                }
+
+            if not all_edits:
+                return {
+                    "status": "no_changes",
+                    "applied": False,
+                    "planned_edits": [],
+                    "node_id": dev_id,
+                    "device_address": device.individual_address,
+                }
+
+            prior_co_ids = {co.id for co in device.get_visible_com_objects()}
+            prior_param_ids = {
+                p.ref_id for p in _collect_ui_parameters(device.get_ui())
+            }
+
+            edits_for_engine = [(ref, val) for ref, val, _ in all_edits]
+            changes = project.edit_params(device, edits_for_engine, mode="edit")
+            current_device = project.find_device_by_node_id(dev_id) or device
+
+            activated_cos = [
+                _com_object_dict(co)
+                for co in current_device.get_visible_com_objects()
+                if co.id not in prior_co_ids
+            ]
+            param_pairs = _collect_ui_parameters_with_ancestry(
+                list(current_device.get_ui())
+            )
+            unlocked = [
+                _parameter_dict(p, include_choices=True, ancestry=anc)
+                for p, anc in param_pairs
+                if p.ref_id not in prior_param_ids
+            ]
+
+            side_effects = [
+                {"ref_id": ref, "old": old, "new": new}
+                for ref, (old, new) in sorted(changes.items())
+                if ref not in seen_refs and old != new
+            ]
+
+            return {
+                "status": "applied",
+                "applied": True,
+                "node_id": dev_id,
+                "device_address": device.individual_address,
+                "planned_edits": planned,
+                "changed": side_effects,
+                "activated_com_objects": activated_cos,
+                "unlocked_parameters": unlocked,
+            }
+
+        return ctx.run_locked(_setup)
+
+    @tool
+    def project_find_free_slots(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        slot_type: str | None = None,
+        function_filter: str | None = None,
+    ) -> dict[str, Any]:
+        """Scan a multi-channel or modular device (actuators, touch panels, push-buttons, inputs)
+        for free and used channels, controls, or slots.
+
+        Identifies functional slots by inspecting UI containers and primary selector parameters
+        (e.g. 'Channel function', 'Funktion', 'Betriebsart').
+
+        Args:
+            node_id: Internal device node ID.
+            device_address: Individual address (e.g. '1.0.30'). Pass exactly one of node_id or device_address.
+            slot_type: Optional substring filter on slot name/path (e.g. 'Steuerung', 'Channel', 'Kanal').
+            function_filter: Optional filter to only return slots that currently have, or can be configured to,
+                             the specified function (e.g. 'Schalten', 'Dimmen', 'Jalousie').
+
+        Returns {node_id, device_address, total_slots, free_count, used_count, slots: [{slot, path, status, function, selector_ref_id, selector_label, supported_functions}]}."""
+
+        def _scan() -> dict[str, Any]:
+            device = _require_device(node_id, device_address)
+            return _scan_device_slots(
+                device, slot_type=slot_type, function_filter=function_filter
+            )
+
+        return ctx.run_locked(_scan)
 
     # --- topology mutations -----------------------------------------------
 

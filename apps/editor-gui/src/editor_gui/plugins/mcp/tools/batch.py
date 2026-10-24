@@ -17,9 +17,11 @@ from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 from editor_gui.plugins.mcp.tools.project import (
     PLUGIN_PARAMETERS_ERROR,
+    find_activation_path,
     param_change_result,
     perform_link,
     require_editable_param,
+    resolve_enum_value,
     resolve_in_scope,
 )
 from editor_gui.plugins.project.service import DeviceProduct
@@ -152,24 +154,35 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         # resolves (closes the parent->child dependency the plain ref form cannot express up front).
         if not ref:
             label = p.get("label")
-            if not label:
+            path = p.get("path")
+            if not label and not path:
                 raise ValueError(
-                    "set_parameter needs parameter_ref_id, or a label to resolve"
+                    "set_parameter needs parameter_ref_id, label, or path to resolve"
                 )
             resolved = resolve_in_scope(
                 list(device.get_ui()),
                 p.get("subtree_id"),
-                label,
-                p.get("value_label"),
+                label=label,
+                value_label=p.get("value_label"),
                 channel=p.get("channel"),
+                path=path,
                 node_id=node_id,
                 tree_token=p.get("tree_token"),
             )
             ref = resolved["ref_id"]
             if value is None:
                 value = resolved.get("resolved_value")
+        if value is None and p.get("value_label") is not None and ref:
+            for param_item in _collect_ui_parameters(device.get_ui()):
+                if param_item.ref_id == ref:
+                    value = resolve_enum_value(
+                        param_item.widget, str(p["value_label"]), param_item.label
+                    )
+                    break
         if value is None:
-            raise ValueError("set_parameter needs value (or value_label with a label)")
+            raise ValueError(
+                "set_parameter needs value (or value_label with a label or parameter_ref_id)"
+            )
         # Reject NON-editable targets AFTER resolution: a label op whose scope an earlier batch op
         # just reshaped is checked against the current access, same as the standalone setter.
         require_editable_param(device, ref)
@@ -246,10 +259,74 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         project.unlink_com_object_from_ga(target_id)
         return {"assignment_id": target_id}
 
+    def _op_setup_parameters(p: dict[str, Any]) -> dict[str, Any]:
+        from fastmcp.exceptions import ToolError
+
+        device = _parameters_device(p)
+        node_id = device.node_id
+        items = p.get("parameters", [])
+        if not items:
+            return {"node_id": node_id, "applied": False, "planned_edits": []}
+
+        all_edits: list[tuple[str, str, str]] = []
+        seen_refs: set[str] = set()
+        for item in items:
+            target_ref = item.get("parameter_ref_id") or item.get("ref_id")
+            label = item.get("label")
+            path = item.get("path")
+            val = item.get("value")
+            val_str = str(val) if val is not None else None
+            val_label = item.get("value_label")
+
+            try:
+                edits = find_activation_path(
+                    device,
+                    target_ref_id=target_ref,
+                    label=label,
+                    path=path,
+                    value=val_str,
+                    value_label=val_label,
+                )
+            except ToolError as exc:
+                raise ValueError(str(exc)) from exc
+
+            for ref, value_to_set, reason in edits:
+                if ref in seen_refs:
+                    all_edits = [
+                        (r, value_to_set if r == ref else v, desc)
+                        for r, v, desc in all_edits
+                    ]
+                else:
+                    seen_refs.add(ref)
+                    all_edits.append((ref, value_to_set, reason))
+
+        planned = [
+            {"ref_id": ref, "value": val, "reason": reason}
+            for ref, val, reason in all_edits
+        ]
+        if not all_edits:
+            return {"node_id": node_id, "applied": False, "planned_edits": []}
+
+        edits_for_engine = [(ref, val) for ref, val, _ in all_edits]
+        changes = project.edit_params(device, edits_for_engine, mode="edit")
+        side_effects = [
+            {"ref_id": ref, "old": old, "new": new}
+            for ref, (old, new) in sorted(changes.items())
+            if ref not in seen_refs and old != new
+        ]
+        return {
+            "node_id": node_id,
+            "device_address": device.individual_address,
+            "applied": True,
+            "planned_edits": planned,
+            "changed": side_effects,
+        }
+
     _DEVICE_OPS = {
         "rename_device",
         "set_individual_address",
         "set_parameter",
+        "setup_parameters",
         "set_com_object_flag",
         "link_com_object",
     }
@@ -281,6 +358,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ),
         "set_individual_address": (("address",), _op_set_individual_address),
         "set_parameter": ((), _op_set_parameter),
+        "setup_parameters": (("parameters",), _op_setup_parameters),
         "set_com_object_flag": (
             ("com_object_ref_id", "flag", "value"),
             lambda p: (

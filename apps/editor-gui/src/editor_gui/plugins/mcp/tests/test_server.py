@@ -8,6 +8,7 @@ run inline instead of on a real imgui thread), and drive the tools through FastM
 from __future__ import annotations
 
 import io
+import json
 import threading
 from collections.abc import Callable
 from pathlib import Path
@@ -2241,3 +2242,280 @@ async def test_project_diff_file(tmp_path: Path) -> None:
         assert diff1["summary"]["group_addresses_added"] == 1
         assert diff1["differences"]["group_addresses"]["added"][0]["address"] == "2/3/4"
         assert diff1["summary"]["parameters_changed"] >= 1
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_semantic_path_addressing(tmp_path: Path) -> None:
+    """Test resolving, reading and writing parameters using hierarchical paths."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        prod_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        dev = await _data(client, "project_add_device", product_ref_id=prod_ref)
+        node_id = dev["node_id"]
+
+        # Resolve parameter by hierarchy path
+        resolved = await _data(
+            client,
+            "project_resolve_parameter",
+            node_id=node_id,
+            path="Channel 1 / Channel function",
+        )
+        assert resolved["ref_id"]
+        assert resolved["label"] == "Channel function"
+        assert "Channel 1" in resolved.get("path", "")
+
+        # Read parameter by hierarchy path
+        param = await _data(
+            client,
+            "project_get_parameter",
+            node_id=node_id,
+            path="Channel 1 / Channel function",
+        )
+        assert param["ref_id"] == resolved["ref_id"]
+        assert param["label"] == "Channel function"
+
+        # Set parameter by hierarchy path
+        set_res = await _data(
+            client,
+            "project_set_parameter",
+            node_id=node_id,
+            path="Channel 1 / Channel function",
+            value="1",
+        )
+        assert set_res["active"] is True
+        assert set_res["ref_id"] == resolved["ref_id"]
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_ineffective_link_detection(tmp_path: Path) -> None:
+    """Test detection of ineffective com-object links when linked while inactive/hidden."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        prod_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        dev = await _data(client, "project_add_device", product_ref_id=prod_ref)
+        node_id = dev["node_id"]
+
+        ga = await _data(
+            client, "project_create_group_address", address="1/1/10", name="Test GA"
+        )
+        ga_id = ga["group_address_id"]
+
+        cos = (await _data(client, "project_list_com_objects", node_id=node_id))[
+            "items"
+        ]
+        co = cos[0]
+
+        link = await _data(
+            client,
+            "project_link_com_object",
+            node_id=node_id,
+            com_object_ref_id=co["ref_id"],
+            group_address_id=ga_id,
+        )
+        assert "is_effective" in link
+        # If effective, no warning; if ineffective, warning present
+        if not link["is_effective"]:
+            assert "ineffective_warning" in link
+
+        co_info = await _data(
+            client,
+            "project_get_com_object",
+            node_id=node_id,
+            com_object_ref_id=co["ref_id"],
+        )
+        assert "is_effective" in co_info
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_project_find_free_slots(tmp_path: Path) -> None:
+    """Test project_find_free_slots inspecting channels and functions."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        prod_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        dev = await _data(client, "project_add_device", product_ref_id=prod_ref)
+        node_id = dev["node_id"]
+
+        slots_info = await _data(client, "project_find_free_slots", node_id=node_id)
+        assert slots_info["node_id"] == node_id
+        assert "total_slots" in slots_info
+        assert "slots" in slots_info
+        assert len(slots_info["slots"]) == slots_info["total_slots"]
+        assert all(
+            "status" in s and "selector_ref_id" in s for s in slots_info["slots"]
+        )
+
+        # Test filtering by slot_type
+        filtered = await _data(
+            client, "project_find_free_slots", node_id=node_id, slot_type="Channel"
+        )
+        assert "slots" in filtered
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_project_setup_parameters(tmp_path: Path) -> None:
+    """Test project_setup_parameters and batch setup_parameters."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        prod_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        dev = await _data(client, "project_add_device", product_ref_id=prod_ref)
+        node_id = dev["node_id"]
+
+        # Setup parameters with dry_run
+        plan = await _data(
+            client,
+            "project_setup_parameters",
+            node_id=node_id,
+            parameters=[{"path": "Channel 1 / Channel function", "value": "1"}],
+            dry_run=True,
+        )
+        assert plan["status"] == "planned"
+        assert plan["applied"] is False
+        assert len(plan["planned_edits"]) >= 1
+
+        # Apply setup_parameters
+        res = await _data(
+            client,
+            "project_setup_parameters",
+            node_id=node_id,
+            parameters=[{"path": "Channel 1 / Channel function", "value": "1"}],
+        )
+        assert res["applied"] is True
+        assert len(res["planned_edits"]) >= 1
+
+        # Test via batch
+        batch_res = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "setup_parameters",
+                    "params": {
+                        "node_id": node_id,
+                        "parameters": [
+                            {"path": "Channel 2 / Channel function", "value": "1"}
+                        ],
+                    },
+                }
+            ],
+        )
+        assert batch_res["applied"] is True
+        assert batch_res["ok"] == 1
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_set_parameter_value_label_with_ref_id(tmp_path: Path) -> None:
+    """Test setting a parameter using parameter_ref_id and value_label without label/path."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        prod_ref = (await _data(client, "catalog_list_products"))["items"][0][
+            "product_ref_id"
+        ]
+        dev = await _data(client, "project_add_device", product_ref_id=prod_ref)
+        node_id = dev["node_id"]
+
+        params = (await _data(client, "project_list_parameters", node_id=node_id))[
+            "items"
+        ]
+        enum_param = next(
+            p
+            for p in params
+            if p.get("widget", {}).get("type") == "enum"
+            and p.get("access") == "READ_WRITE"
+        )
+        pref_id = enum_param["ref_id"]
+
+        param_details = await _data(
+            client,
+            "project_get_parameter",
+            node_id=node_id,
+            parameter_ref_id=pref_id,
+        )
+        choices = param_details["widget"]["choices"]
+        choice_label = choices[0]["label"]
+
+        # Call project_set_parameter with parameter_ref_id and value_label
+        res = await _data(
+            client,
+            "project_set_parameter",
+            node_id=node_id,
+            parameter_ref_id=pref_id,
+            value_label=choice_label,
+        )
+        assert res["active"] is True
+        assert res["value"] == str(choices[0]["value"])
+
+        # Call via batch set_parameter with parameter_ref_id and value_label
+        if len(choices) > 1:
+            alt_label = choices[1]["label"]
+            batch_res = await _data(
+                client,
+                "project_batch",
+                operations=[
+                    {
+                        "op": "set_parameter",
+                        "params": {
+                            "node_id": node_id,
+                            "parameter_ref_id": pref_id,
+                            "value_label": alt_label,
+                        },
+                    }
+                ],
+            )
+            assert batch_res["applied"] is True
+            assert batch_res["ok"] == 1
+
+
+def test_dump_schemas_export(tmp_path: Path) -> None:
+    """Test exporting MCP JSON schemas to a directory via library and via MCP tool."""
+    from editor_gui.plugins.mcp.dump_schemas import export_schemas
+
+    out_dir = tmp_path / "mcp_export"
+    paths = export_schemas([out_dir])
+    assert len(paths) == 1
+    assert out_dir.exists()
+    schemas = list(out_dir.glob("*.json"))
+    assert len(schemas) >= 100
+    assert (out_dir / "instructions.md").exists()
+    # Check that a sample schema is valid JSON
+    sample = json.loads(
+        (out_dir / "project_set_parameter.json").read_text(encoding="utf-8")
+    )
+    assert sample["name"] == "project_set_parameter"
+    assert "parameters" in sample
+
+
+async def test_schema_resource_read(tmp_path: Path) -> None:
+    """Test reading all tool schemas over MCP via the schema://tools resource."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        resources = await client.list_resources()
+        assert any(r.uri == "schema://tools" for r in resources)
+        contents = await client.read_resource("schema://tools")
+        assert len(contents) == 1
+        assert contents[0].mime_type == "application/json"
+        data = json.loads(contents[0].text)
+        assert isinstance(data, list)
+        assert len(data) >= 100
+        tool_names = {t["name"] for t in data}
+        assert "status" in tool_names
+        assert "project_set_parameter" in tool_names
+        assert "project_setup_parameters" in tool_names
+        assert "project_find_free_slots" in tool_names
