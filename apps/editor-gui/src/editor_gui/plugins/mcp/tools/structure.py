@@ -10,7 +10,10 @@ from typing import TYPE_CHECKING, Any, Literal
 from fastmcp.exceptions import ToolError
 
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
-from editor_gui.plugins.mcp.tools.project import require_device
+from editor_gui.plugins.mcp.tools.project import (
+    require_device,
+    require_group_address_id,
+)
 
 if TYPE_CHECKING:
     from fastmcp import FastMCP
@@ -44,7 +47,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     # --- devices --------------------------------------------------------------
 
-    @tool
+    @tool("destructive")
     def project_remove_device(node_id: int) -> dict[str, Any]:
         """Remove a device (node_id from project_list_devices) from the project, with its group
         objects and their links. Undoable with project_undo; the device on the bus is unchanged.
@@ -60,7 +63,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_remove)
 
-    @tool
+    @tool("write")
     def project_copy_device(
         node_id: int,
         count: int = 1,
@@ -91,7 +94,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_copy)
 
-    @tool
+    @tool("destructive")
     def project_copy_device_configuration(
         source_node_id: int,
         target_node_ids: list[int],
@@ -138,7 +141,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     # --- building functions ---------------------------------------------------
 
-    @tool
+    @tool("write")
     def project_create_function(
         space_id: int, name: str, function_type: FunctionType = "FT-1"
     ) -> dict[str, Any]:
@@ -172,7 +175,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         return function
 
-    @tool
+    @tool("destructive")
     def project_remove_function(function_id: int) -> dict[str, Any]:
         """Remove a building function (id from project_spaces). Undoable with project_undo.
         Returns {status: "removed", function_id}."""
@@ -185,7 +188,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_remove)
 
-    @tool
+    @tool("write")
     def project_set_function_type(
         function_id: int, function_type: FunctionType
     ) -> dict[str, Any]:
@@ -201,37 +204,39 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool("write")
     def project_add_function_group_address(
         function_id: int,
-        group_address_id: int,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
         role: str = "",
     ) -> dict[str, Any]:
-        """Add a group address (id from project_list_group_addresses) to a building function (id
-        from project_spaces), with an optional free-text ``role``. Undoable with project_undo.
-        Returns {link_id, function_id, group_address_id, role}; pass link_id to
+        """Add a group address to a building function (id from project_spaces), with an optional
+        free-text ``role``. Identify the group address by ``group_address_id`` (id from
+        project_list_group_addresses) OR ``group_address`` (a printed address like "10/1/2" in the
+        project's style); pass exactly one. Undoable with project_undo. Returns {link_id,
+        function_id, group_address_id, role}; pass link_id to
         project_remove_function_group_address."""
         require_project(ctx)
 
         def _add() -> dict[str, Any]:
             _require_function(function_id)
-            if project.get_group_address(group_address_id) is None:
-                raise ToolError(f"no group address with id {group_address_id}")
-            link_id = project.add_function_group_address(
-                function_id, group_address_id, role
-            )
+            ga_id = require_group_address_id(project, group_address_id, group_address)
+            if project.get_group_address(ga_id) is None:
+                raise ToolError(f"no group address with id {ga_id}")
+            link_id = project.add_function_group_address(function_id, ga_id, role)
             if link_id is None:
                 raise ToolError("the group address could not be added")
             return {
                 "link_id": link_id,
                 "function_id": function_id,
-                "group_address_id": group_address_id,
+                "group_address_id": ga_id,
                 "role": role,
             }
 
         return ctx.run_locked(_add)
 
-    @tool
+    @tool("destructive")
     def project_remove_function_group_address(link_id: int) -> dict[str, Any]:
         """Remove a group address from a building function: link_id is the ``id`` of the entry
         in the function's group_addresses (project_spaces) or a returned link_id. Undoable with
@@ -253,7 +258,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     # --- group ranges ---------------------------------------------------------
 
-    @tool
+    @tool("write")
     def project_create_group_range(
         name: str, parent_id: int | None = None
     ) -> dict[str, Any]:
@@ -286,7 +291,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_create)
 
-    @tool
+    @tool("destructive")
     def project_remove_group_range(group_range_id: int) -> dict[str, Any]:
         """Remove a group address folder (main or middle group) with everything in it: its middle
         groups, their group addresses and the links of those. Undoable with project_undo.

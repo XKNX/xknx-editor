@@ -69,6 +69,8 @@ Every new UI feature gets MCP access in the same change:
 - **Read and write:** whatever the user can see in the GUI, an MCP client can read; whatever the user can change, it can change too. Add or extend the tools in `apps/editor-gui/src/editor_gui/plugins/mcp/tools`, plus a `project_batch` op where bulk edits are likely.
 - **Same behaviour as the GUI:** use the service methods the GUI uses, so every edit is one undo step with the same checks and messages.
 - **Documented and tested:** describe parameters and results in the tool's docstring (the client only sees that), and test the tools in `apps/editor-gui/src/editor_gui/plugins/mcp/tests`.
+- **Kind declared:** register each tool with `@tool("read")`, `@tool("write")` or `@tool("destructive")`, plus `open_world=True` when it reaches the bus, the network or the internet; the kinds are defined at `ToolKind` in `plugins/mcp/context.py` and reach the client as MCP tool annotations.
+- **Addressing:** a tool on a device takes `node_id` OR `device_address`, a tool on a group address `group_address_id` OR `group_address` (its printed address).
 
 ## Adding a New Package
 

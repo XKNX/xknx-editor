@@ -13,9 +13,10 @@ from __future__ import annotations
 import functools
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, Any, Literal, Protocol, TypeVar
 
 from fastmcp.exceptions import ToolError
+from mcp.types import ToolAnnotations
 
 from editor_gui.plugins.catalog.online_catalog import OnlineCatalogError
 from xknxeditor.prod.errors import ArchiveError
@@ -30,6 +31,16 @@ if TYPE_CHECKING:
     from editor_gui.plugins.project.plugin import ProjectPlugin
 
 T = TypeVar("T")
+
+# What a tool does to its environment (the project, files, the catalog, the editor's settings and
+# connection, the devices on the bus), told to the client as MCP tool annotations:
+# - "read": changes nothing.
+# - "write": changes only what is easily set back: project edits project_undo reverts that add or
+#   change elements, additions to the catalog, the editor's settings, recording, the connection.
+# - "destructive": removes or replaces data (removing, unlinking, deleting, clearing, compacting,
+#   copying onto other devices, replacing the open project), writes files outside the project, or
+#   acts on devices on the bus (programming, addresses, restarts, resets, group writes, DALI).
+ToolKind = Literal["read", "write", "destructive"]
 
 # Substrings that mark an argument as secret; its value is never logged. A substring denylist (not an
 # exact name) so future args like ``auth_token`` or ``api_key`` are redacted without revisiting this.
@@ -126,36 +137,67 @@ class McpContext:
         return self.run_on_ui(_guarded, timeout=timeout)
 
 
-def make_tool(
-    mcp: FastMCP, ctx: McpContext
-) -> Callable[[Callable[..., T]], Callable[..., T]]:
-    """Return a decorator that registers a function as an MCP tool with uniform error translation.
+class ToolDecorator(Protocol):
+    """``@tool(kind, open_world=...)``: see :func:`make_tool`."""
+
+    def __call__(
+        self, kind: ToolKind, *, open_world: bool = False
+    ) -> Callable[[Callable[..., T]], Callable[..., T]]: ...
+
+
+def tool_annotations(kind: ToolKind, *, open_world: bool = False) -> ToolAnnotations:
+    """The MCP annotations of a tool of ``kind`` (see :data:`ToolKind`); ``open_world`` for a tool
+    that reaches the bus, the network or the internet."""
+    return ToolAnnotations(
+        read_only_hint=kind == "read",
+        destructive_hint=kind == "destructive",
+        open_world_hint=open_world,
+    )
+
+
+def make_tool(mcp: FastMCP, ctx: McpContext) -> ToolDecorator:
+    """Return ``tool``: ``@tool(kind)`` registers a function as an MCP tool with uniform error
+    translation, its annotations telling the client what it does (see :data:`ToolKind`).
 
     Expected service errors become :class:`ToolError` (a clean client-facing message); anything else
     propagates as an internal error.
     """
 
-    def decorator(fn: Callable[..., T]) -> Callable[..., T]:
-        @functools.wraps(fn)
-        def wrapper(*args: Any, **kwargs: Any) -> T:
-            # Log every tool call so the GUI log shows what the LLM is doing (secrets redacted).
-            logged = _redact_args(fn.__name__, kwargs)
-            ctx.log.info("tool call", tool=fn.__name__, args=logged)
-            try:
-                return fn(*args, **kwargs)
-            except ToolError as exc:
-                ctx.log.warning("tool error", tool=fn.__name__, error=str(exc))
-                raise
-            except _EXPECTED_ERRORS as exc:
-                ctx.log.warning(
-                    "tool error", tool=fn.__name__, error=f"{type(exc).__name__}: {exc}"
-                )
-                raise ToolError(f"{type(exc).__name__}: {exc}") from exc
+    def tool(
+        kind: ToolKind, *, open_world: bool = False
+    ) -> Callable[[Callable[..., T]], Callable[..., T]]:
+        # A bare ``@tool`` would pass the function as the kind and register nothing.
+        if kind not in ("read", "write", "destructive"):
+            raise TypeError(
+                f'tool kind must be "read", "write" or "destructive", not {kind!r}'
+            )
+        annotations = tool_annotations(kind, open_world=open_world)
 
-        mcp.tool(wrapper)
-        return wrapper
+        def decorator(fn: Callable[..., T]) -> Callable[..., T]:
+            @functools.wraps(fn)
+            def wrapper(*args: Any, **kwargs: Any) -> T:
+                # Log every tool call so the GUI log shows what the LLM is doing (secrets redacted).
+                logged = _redact_args(fn.__name__, kwargs)
+                ctx.log.info("tool call", tool=fn.__name__, args=logged)
+                try:
+                    return fn(*args, **kwargs)
+                except ToolError as exc:
+                    ctx.log.warning("tool error", tool=fn.__name__, error=str(exc))
+                    raise
+                except _EXPECTED_ERRORS as exc:
+                    ctx.log.warning(
+                        "tool error",
+                        tool=fn.__name__,
+                        error=f"{type(exc).__name__}: {exc}",
+                    )
+                    raise ToolError(f"{type(exc).__name__}: {exc}") from exc
 
-    return decorator
+            mcp.tool(wrapper, annotations=annotations)
+            return wrapper
+
+        return decorator
+
+    return tool
 
 
 def require_project(ctx: McpContext) -> None:

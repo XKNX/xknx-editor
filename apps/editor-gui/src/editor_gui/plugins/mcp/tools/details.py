@@ -15,7 +15,11 @@ from typing import TYPE_CHECKING, Any, Literal
 from fastmcp.exceptions import ToolError
 
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
-from editor_gui.plugins.mcp.tools.project import com_object_dict, require_device
+from editor_gui.plugins.mcp.tools.project import (
+    com_object_dict,
+    require_device,
+    require_group_address_id,
+)
 from xknxeditor.proj.core.rich_text import (
     RichText,
     Span,
@@ -152,7 +156,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "number_editable": details.editable,
         }
 
-    @tool
+    @tool("read")
     def project_get_comment(
         kind: CommentKind, element_id: int = 0, field: CommentField = "comment"
     ) -> dict[str, Any]:
@@ -175,7 +179,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool("write")
     def project_set_comment(
         kind: CommentKind,
         element_id: int = 0,
@@ -197,7 +201,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool("read")
     def project_get_element(kind: ElementKind, element_id: int) -> dict[str, Any]:
         """Read the details of an area, line (ids from project_topology), group range or group
         address (id from project_list_group_addresses). Returns {kind, element_id, type, name,
@@ -208,7 +212,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         require_project(ctx)
         return ctx.run_locked(lambda: _element_dict(kind, element_id))
 
-    @tool
+    @tool("write")
     def project_set_description(
         kind: DescriptionKind, element_id: int, description: str
     ) -> dict[str, Any]:
@@ -223,7 +227,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool("write")
     def project_set_number(
         kind: NumberKind, element_id: int, number: str
     ) -> dict[str, Any]:
@@ -253,7 +257,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool("write")
     def project_set_com_object_properties(
         com_object_ref_id: str,
         node_id: int | None = None,
@@ -304,7 +308,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool("write")
     def project_set_name(name: str) -> dict[str, Any]:
         """Rename the open project (an empty name keeps the current one). Undoable with
         project_undo. Returns {name}."""
@@ -317,18 +321,26 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool("read")
     def project_list_links(
-        node_id: int | None = None, group_address_id: int | None = None
+        node_id: int | None = None,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
     ) -> dict[str, Any]:
         """List the group-address links of the whole project in one call, optionally only those of
-        one device (node_id) and/or one group address (group_address_id). Returns {items, count};
+        one device (node_id) and/or one group address (group_address_id, or group_address: a
+        printed address like "10/1/2" in the project's style). Returns {items, count};
         each item has {node_id, group_address_id, is_sending, flags}, flags being the group
         object's effective communication, read, write, transmit and update flags. Use
         project_get_com_object_links for the group objects of a device's links."""
         require_project(ctx)
 
         def _read() -> list[dict[str, Any]]:
+            ga_id = (
+                None
+                if group_address_id is None and group_address is None
+                else require_group_address_id(project, group_address_id, group_address)
+            )
             return [
                 {
                     "node_id": link.device_id,
@@ -344,10 +356,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 }
                 for link in project.device_links()
                 if (node_id is None or link.device_id == node_id)
-                and (
-                    group_address_id is None
-                    or link.group_address_id == group_address_id
-                )
+                and (ga_id is None or link.group_address_id == ga_id)
             ]
 
         rows = ctx.run_locked(_read)

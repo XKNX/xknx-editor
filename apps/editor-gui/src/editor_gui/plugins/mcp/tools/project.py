@@ -15,6 +15,7 @@ List tools return a ``{items, count}`` envelope; single-entity mutations return 
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal
 
@@ -533,12 +534,16 @@ def perform_link(
     co: Any,
     group_address_id: int,
     is_sending: bool,
+    *,
+    hidden: bool = False,
 ) -> dict[str, Any] | None:
     """Create a com-object -> group-address link and build a feedback result: idempotent dedup
     (``already_linked``, no duplicate row), ``dpt_mismatch`` and ``other_sending_group_address_ids``
-    (see :func:`_link_annotations`). ``co`` is the resolved com-object (``db_id`` set). Returns None
-    when the service refuses the link (unknown GA / security), so the caller raises its own error.
-    Shared by project_link_com_object and the batch link op so both give the same feedback."""
+    (see :func:`_link_annotations`), and ``hidden: true`` when the device's parameters hide the
+    com-object (see :func:`com_object_hidden`). ``co`` is the resolved com-object (``db_id`` set).
+    Returns None when the service refuses the link (unknown GA / security), so the caller raises its
+    own error. Shared by project_link_com_object and the batch link op so both give the same
+    feedback."""
     existing = list(project.get_links_for_com_object(co.db_id))
     co_dpt = getattr(co, "dpt", None)
     ga_before = project.get_group_address(group_address_id)
@@ -557,6 +562,8 @@ def perform_link(
         "com_object_db_id": co.db_id,
         "group_address_id": group_address_id,
     }
+    if hidden:
+        base["hidden"] = True
     # Idempotent: re-linking the same pair returns the existing link, never a duplicate.
     dup = next((a for a in existing if a.group_address_id == group_address_id), None)
     if dup is not None:
@@ -577,6 +584,37 @@ def perform_link(
         "already_linked": False,
         **annotations,
     }
+
+
+def com_object_hidden(device: Device, com_object_ref_id: str) -> bool:
+    """Whether the device's parameters currently hide its com-object ``com_object_ref_id``: the
+    project keeps a link to it, but the device's application does not use the object until a
+    parameter shows it again."""
+    return all(co.id != com_object_ref_id for co in device.get_visible_com_objects())
+
+
+def link_id_between(
+    project: ProjectService,
+    device: Device,
+    com_object_ref_id: str,
+    group_address_id: int,
+) -> int:
+    """The id of the link between ``device``'s com-object ``com_object_ref_id`` and the group
+    address ``group_address_id``; raises ValueError when there is none."""
+    co = device.find_com_object(com_object_ref_id)
+    if co is None:
+        raise ValueError(
+            f"no com-object {com_object_ref_id!r} on device {device.node_id}; "
+            "call project_list_com_objects for valid ref_ids"
+        )
+    links = project.get_links_for_com_object(co.db_id) if co.db_id is not None else []
+    for link in links:
+        if link.group_address_id == group_address_id:
+            return link.id
+    raise ValueError(
+        f"com-object {com_object_ref_id!r} of device {device.node_id} is not linked to group "
+        f"address {group_address_id}"
+    )
 
 
 def require_editable_param(device: Any, ref_id: str) -> Any:
@@ -606,22 +644,83 @@ def require_editable_param(device: Any, ref_id: str) -> Any:
     )
 
 
+@dataclass(frozen=True, slots=True)
+class VisibleState:
+    """The parameters and com-objects a device shows, by ref id."""
+
+    parameters: frozenset[str]
+    com_objects: frozenset[str]
+
+
+def visible_state(device: Any) -> VisibleState:
+    """What ``device`` shows now, to tell what an edit shows or hides (see param_change_result)."""
+    return VisibleState(
+        frozenset(p.ref_id for p in _collect_ui_parameters(device.get_ui())),
+        frozenset(co.id for co in device.get_visible_com_objects()),
+    )
+
+
+def apply_parameter(
+    project: ProjectService, device: Device, parameter_ref_id: str, value: str
+) -> dict[str, Any]:
+    """Set a user-editable parameter as one undo step and return :func:`param_change_result`.
+
+    edit_params (not set_param) applies and reconciles as one undo step and raises on reject
+    WITHOUT the GUI's stash-and-retry, so a rejected MCP set never silently takes effect on a later
+    edit. Shared by project_set_parameter and the batch set_parameter op."""
+    # Reject NON-editable targets (absent / Access.NONE / Access.READ); matches what the GUI lets a
+    # user change. The core engine's active-set guard alone would still accept hidden-but-
+    # internally-active and read-only parameters.
+    require_editable_param(device, parameter_ref_id)
+    before = visible_state(device)
+    changes = project.edit_params(device, [(parameter_ref_id, value)], mode="edit")
+    # A change of the com-object set rebuilds the device; its new com-objects are on the new one,
+    # the links the change dropped on the edited one.
+    after = project.find_device_by_node_id(device.node_id) or device
+    return param_change_result(
+        after,
+        parameter_ref_id,
+        value,
+        changes,
+        before=before,
+        lost_links=list(getattr(device, "last_lost_links", []) or []),
+    )
+
+
+def _compact_parameter_dict(p: Any) -> dict[str, Any]:
+    data: dict[str, Any] = {"ref_id": p.ref_id, "label": p.label, "value": p.value}
+    if (label := _enum_value_label(p.widget, p.value)) is not None:
+        data["value_label"] = label
+    return data
+
+
 def param_change_result(
     device: Any,
     parameter_ref_id: str,
     requested: str,
     changes: dict[str, tuple[str | None, str | None]],
+    *,
+    before: VisibleState | None = None,
+    lost_links: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     """A trustworthy set-parameter result: the EFFECTIVE value read back after the edit, whether the
     parameter is still active, and the calculated side-effect changes — so a caller never has to
     assume the requested value stuck (it may be normalized, or the parameter may have been
-    deactivated by a structural change). ``changes`` is the edit's calculation change set."""
+    deactivated by a structural change). ``changes`` is the edit's calculation change set.
+
+    With ``before`` (the device's :func:`visible_state` before the edit) the result also names
+    the parameters and com-objects the edit showed or hid. ``lost_links`` are the links the edit
+    dropped (default: the device's ``last_lost_links``)."""
     effective: str | None = None
     active = False
+    shown_parameters: list[dict[str, Any]] = []
+    visible_parameters: set[str] = set()
     for p in _collect_ui_parameters(device.get_ui()):
+        visible_parameters.add(p.ref_id)
         if p.ref_id == parameter_ref_id:
             effective, active = p.value, True
-            break
+        if before is not None and p.ref_id not in before.parameters:
+            shown_parameters.append(_compact_parameter_dict(p))
     if not active and parameter_ref_id in changes:
         # The edit deactivated the parameter itself (a structural change); report its stored value.
         effective = changes[parameter_ref_id][1]
@@ -640,9 +739,35 @@ def param_change_result(
         result["changed"] = side_effects
     # Links the edit's com-object reconcile dropped (a function/mode change deactivating linked
     # objects), captured by the service before deletion.
-    lost = list(getattr(device, "last_lost_links", []) or [])
+    lost = (
+        lost_links
+        if lost_links is not None
+        else list(getattr(device, "last_lost_links", []) or [])
+    )
     if lost:
         result["lost_links"] = lost
+    if before is not None:
+        hidden_parameters = sorted(before.parameters - visible_parameters)
+        objects = device.get_visible_com_objects()
+        shown_objects = [
+            {
+                "ref_id": co.id,
+                "number": co.number,
+                "name": com_object_display_name(co) or co.name,
+                "linkable": co.db_id is not None,
+            }
+            for co in objects
+            if co.id not in before.com_objects
+        ]
+        hidden_objects = sorted(before.com_objects - {co.id for co in objects})
+        for key, items in (
+            ("shown_parameters", shown_parameters),
+            ("hidden_parameters", hidden_parameters),
+            ("shown_com_objects", shown_objects),
+            ("hidden_com_objects", hidden_objects),
+        ):
+            if items:
+                result[key] = items
     return result
 
 
@@ -681,6 +806,35 @@ def require_device(
     return device
 
 
+def require_group_address_id(
+    project: ProjectService,
+    group_address_id: int | None = None,
+    group_address: str | None = None,
+) -> int:
+    """Resolve a group address id by its internal id OR its printed address (e.g. "10/1/2" in
+    the project's style). Exactly one must be given. Keeps callers off the extra
+    project_list_group_addresses round-trip in the common case."""
+    if (group_address_id is None) == (group_address is None):
+        raise ToolError(
+            "pass exactly one of group_address_id (int) or group_address (str, e.g. '10/1/2')"
+        )
+    if group_address is not None:
+        matches = [g for g in project.group_addresses if g.address == group_address]
+        if not matches:
+            raise ToolError(
+                f"no group address {group_address!r}; call project_list_group_addresses "
+                "or create it with project_create_group_address first"
+            )
+        if len(matches) > 1:
+            ids = sorted(g.id for g in matches)
+            raise ToolError(
+                f"group_address {group_address!r} is ambiguous "
+                f"(ids: {ids}); pass group_address_id explicitly"
+            )
+        return matches[0].id
+    return int(group_address_id)  # type: ignore[arg-type]
+
+
 def register(mcp: FastMCP, ctx: McpContext) -> None:
     tool = make_tool(mcp, ctx)
     project = ctx.api.project
@@ -693,28 +847,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def _require_group_address_id(
         group_address_id: int | None = None, group_address: str | None = None
     ) -> int:
-        """Resolve a group address id by its internal id OR its printed address (e.g. "10/1/2" in
-        the project's style). Exactly one must be given. Keeps callers off the extra
-        project_list_group_addresses round-trip in the common case."""
-        if (group_address_id is None) == (group_address is None):
-            raise ToolError(
-                "pass exactly one of group_address_id (int) or group_address (str, e.g. '10/1/2')"
-            )
-        if group_address is not None:
-            matches = [g for g in project.group_addresses if g.address == group_address]
-            if not matches:
-                raise ToolError(
-                    f"no group address {group_address!r}; call project_list_group_addresses "
-                    "or create it with project_create_group_address first"
-                )
-            if len(matches) > 1:
-                ids = sorted(g.id for g in matches)
-                raise ToolError(
-                    f"group_address {group_address!r} is ambiguous "
-                    f"(ids: {ids}); pass group_address_id explicitly"
-                )
-            return matches[0].id
-        return int(group_address_id)  # type: ignore[arg-type]
+        return require_group_address_id(project, group_address_id, group_address)
 
     def _device_from(node_id: int | None, device_address: str | None) -> Device:
         """Device resolver call site shared by the tools that accept either addressing form."""
@@ -722,7 +855,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     # --- application update ("Update Application Program") ------------
 
-    @tool
+    @tool("read")
     def project_devices_with_update() -> dict[str, Any]:
         """List devices that project_update_application can update: the local catalog has a
         version of the same application program whose ReplacesVersions names the current one.
@@ -755,7 +888,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read, timeout=_SLOW))
 
-    @tool
+    @tool("destructive")
     def project_update_application(node_id: int) -> dict[str, Any]:
         """Update a device to the local catalog version of the SAME application program that
         replaces the current one ("Update Application Program Version"). Parameter values carry over
@@ -786,7 +919,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_do, timeout=_SLOW)
 
-    @tool
+    @tool("read")
     def project_list_application_programs(node_id: int) -> dict[str, Any]:
         """The application programs a device can be changed to with project_change_application:
         the other programs of its hardware in the local catalog, older and newer.
@@ -810,7 +943,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read, timeout=_SLOW))
 
-    @tool
+    @tool("destructive")
     def project_change_application(
         node_id: int, hardware2program_ref_id: str
     ) -> dict[str, Any]:
@@ -853,7 +986,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     # --- lifecycle --------------------------------------------------------
 
-    @tool
+    @tool("read")
     def project_status() -> dict[str, Any]:
         """Return {open, path}, with the editor-host path or null when no project is open.
         Most project_* tools need an open project."""
@@ -864,7 +997,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             }
         )
 
-    @tool
+    @tool("destructive")
     def project_new(path: str) -> dict[str, Any]:
         """Create a new empty KNX project (.xknx) at ``path`` (on the editor host) and open it. An
         existing file at ``path`` is replaced and the current project closed; file replacement is NOT
@@ -872,7 +1005,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ctx.run_locked(lambda: project.new(Path(path)), timeout=_SLOW)
         return {"open": True, "path": str(project.path) if project.path else None}
 
-    @tool
+    @tool("write")
     def project_open(path: str, password: str | None = None) -> dict[str, Any]:
         """Open an existing .xknx project at path on the editor host, closing the current project.
         Returns {open, path}. Switching projects is outside project_undo history.
@@ -881,7 +1014,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ctx.run_locked(lambda: project.open(Path(path), password), timeout=_SLOW)
         return {"open": True, "path": str(project.path) if project.path else None}
 
-    @tool
+    @tool("destructive")
     def project_import_knxproj(
         source: str,
         dest: str,
@@ -906,7 +1039,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
         return {"open": True, "path": str(project.path) if project.path else None}
 
-    @tool
+    @tool("write")
     def project_add_device_certificate(
         code: str, node_id: int | None = None
     ) -> dict[str, Any]:
@@ -947,7 +1080,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_add)
 
-    @tool
+    @tool("write")
     def project_set_secure_commissioning(
         node_id: int, activated: bool
     ) -> dict[str, Any]:
@@ -978,7 +1111,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool("read")
     def project_get_ip_secure(
         node_id: int, include_passwords: bool = False
     ) -> dict[str, Any]:
@@ -1015,7 +1148,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_get)
 
-    @tool
+    @tool("write")
     def project_set_ip_secure(
         node_id: int,
         commissioning_password: str | None = None,
@@ -1058,7 +1191,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool("destructive")
     def project_export_keyring(dest: str, password: str) -> dict[str, Any]:
         """Export the open project's key material as a keyring (``.knxkeys``) to ``dest``,
         encrypted with ``password``: the backbone key, the devices commissioned securely, the
@@ -1073,14 +1206,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         devices = ctx.run_locked(lambda: project.export_keyring(target, password))
         return {"path": str(target), "devices": devices}
 
-    @tool
+    @tool("write")
     def project_close() -> dict[str, str]:
         """Close the open project. Returns {status: "closed"}. Reopen it with project_open;
         closing is outside project_undo history."""
         ctx.run_locked(project.close)
         return {"status": "closed"}
 
-    @tool
+    @tool("destructive")
     def project_export_knxproj(dest: str) -> dict[str, str]:
         """Export the open project to a .knxproj archive at ``dest`` (with manufacturer bundle).
         Returns {status, dest} plus an optional ``warning``. ``status="incomplete"`` means
@@ -1134,7 +1267,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             out["warning"] = "ETS may reject the import — " + "; ".join(warnings)
         return out
 
-    @tool
+    @tool("destructive")
     def project_compact(dry_run: bool = True) -> dict[str, Any]:
         """Remove product data no device uses from the open project and compact its file.
 
@@ -1172,7 +1305,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "product_data_size_after": report.size_after,
         }
 
-    @tool
+    @tool("read")
     def project_info() -> dict[str, Any]:
         """Project metadata. Returns {id, name, group_address_style, guid, created_by, last_modified,
         schema_version, tool_version}. ``group_address_style`` (ThreeLevel/TwoLevel/Free) governs how
@@ -1194,7 +1327,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     # --- reads ------------------------------------------------------------
 
-    @tool
+    @tool("read")
     def project_list_devices(name_contains: str | None = None) -> dict[str, Any]:
         """List project devices, optionally filtering names by a case-insensitive substring.
         Returns {items, count}; each item has {node_id, name, individual_address, description}.
@@ -1210,7 +1343,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
+    @tool("read")
     def project_get_device(
         node_id: int | None = None, device_address: str | None = None
     ) -> dict[str, Any]:
@@ -1244,7 +1377,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool("read")
     def project_list_com_objects(
         node_id: int | None = None, device_address: str | None = None
     ) -> dict[str, Any]:
@@ -1262,7 +1395,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
+    @tool("read")
     def find_potential_com_objects(
         node_id: int | None = None, device_address: str | None = None
     ) -> dict[str, Any]:
@@ -1287,7 +1420,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
+    @tool("read")
     def project_get_com_object(
         com_object_ref_id: str,
         node_id: int | None = None,
@@ -1311,7 +1444,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool("read")
     def project_get_com_object_links(
         com_object_ref_id: str,
         node_id: int | None = None,
@@ -1351,11 +1484,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
+    @tool("read")
     def project_list_parameters(
         node_id: int | None = None,
         device_address: str | None = None,
         search: str | None = None,
+        modified_only: bool = False,
+        compact: bool = False,
     ) -> dict[str, Any]:
         """A device's visible application parameters with current value and default. Identify the
         device by ``node_id`` OR ``device_address`` (an individual address like "1.0.30"); pass
@@ -1365,15 +1500,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ``value_label`` on the item for the current value), NOT the full choice list — call
         project_get_parameter for a single parameter's complete ``choices``. Optional ``search``
         keeps only items whose label contains it (case-insensitive) — use it on a large device
-        instead of pulling every parameter.
+        instead of pulling every parameter. ``modified_only`` keeps only the parameters whose value
+        differs from their default (those the parameter view marks as changed). ``compact`` gives
+        each item only ref_id, label and value (plus value_label for an enum).
 
         Pass an item's ``ref_id`` to project_set_parameter as its ``parameter_ref_id`` argument."""
 
         def _read() -> list[dict[str, Any]]:
             device = _require_device(node_id, device_address)
             rows = [
-                _parameter_dict(p, include_choices=False)
+                _compact_parameter_dict(p)
+                if compact
+                else _parameter_dict(p, include_choices=False)
                 for p in _collect_ui_parameters(device.get_ui())
+                if not modified_only or p.value != p.default_value
             ]
             if search:
                 needle = search.casefold()
@@ -1382,7 +1522,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
+    @tool("read")
     def project_parameter_tree(
         node_id: int | None = None,
         device_address: str | None = None,
@@ -1472,7 +1612,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool("read")
     def project_get_parameter(
         parameter_ref_id: str,
         node_id: int | None = None,
@@ -1496,7 +1636,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool("read")
     def project_resolve_parameter(
         label: str,
         node_id: int | None = None,
@@ -1539,7 +1679,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool("read")
     def project_list_group_addresses(
         name_contains: str | None = None,
     ) -> dict[str, Any]:
@@ -1559,20 +1699,25 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
-    def project_get_group_address(group_address_id: int) -> dict[str, Any]:
-        """Read a project group address. Pass id from project_list_group_addresses as
-        group_address_id. Returns {id, address, name, datapoint_type, description, data_secure}."""
+    @tool("read")
+    def project_get_group_address(
+        group_address_id: int | None = None, group_address: str | None = None
+    ) -> dict[str, Any]:
+        """Read a project group address. Identify it by ``group_address_id`` (id from
+        project_list_group_addresses) OR ``group_address`` (a printed address like "10/1/2" in the
+        project's style); pass exactly one. Returns {id, address, name, datapoint_type, description,
+        data_secure}."""
 
         def _read() -> dict[str, Any]:
-            g = project.get_group_address(group_address_id)
+            ga_id = _require_group_address_id(group_address_id, group_address)
+            g = project.get_group_address(ga_id)
             if g is None:
-                raise ToolError(f"no group address with id {group_address_id}")
+                raise ToolError(f"no group address with id {ga_id}")
             return _ga_dict(g)
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool("read")
     def project_next_free_group_address() -> dict[str, Any]:
         """Return {address} for the next unused project group address, formatted per project_info's
         group_address_style. This does not reserve it or check the bus. Pass address to
@@ -1583,16 +1728,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError("no free group address available")
         return {"address": address}
 
-    @tool
-    def project_get_ga_assignments(group_address_id: int) -> dict[str, Any]:
-        """Read a group address's project com-object links. Pass id from
-        project_list_group_addresses as group_address_id. Returns {items, count}; each item has
+    @tool("read")
+    def project_get_ga_assignments(
+        group_address_id: int | None = None, group_address: str | None = None
+    ) -> dict[str, Any]:
+        """Read a group address's project com-object links. Identify it by ``group_address_id`` (id
+        from project_list_group_addresses) OR ``group_address`` (a printed address like "10/1/2" in
+        the project's style); pass exactly one. Returns {items, count}; each item has
         {id, com_object_db_id, group_address_id, is_sending, node_id, individual_address,
         com_object_ref_id, com_object_name}. Device/object details are null when unresolved.
         Pass id as assignment_id to project_unlink_com_object, or use node_id with com_object_ref_id
         for object tools. This reads project links without checking the bus."""
 
         def _read() -> list[dict[str, Any]]:
+            ga_id = _require_group_address_id(group_address_id, group_address)
             # map com-object db_id -> (device, com-object) so each assignment can name its owner
             owner: dict[int, tuple[Device, ComObject]] = {}
             for dev in project.devices:
@@ -1600,7 +1749,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     if co.db_id is not None:
                         owner[co.db_id] = (dev, co)
             result: list[dict[str, Any]] = []
-            for a in project.get_assignments_for_ga(group_address_id):
+            for a in project.get_assignments_for_ga(ga_id):
                 dev_co = owner.get(a.com_object_id)
                 dev, co = dev_co if dev_co else (None, None)
                 result.append(
@@ -1619,7 +1768,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
+    @tool("read")
     def project_topology() -> dict[str, Any]:
         """Read the project topology. Returns {items, count}; each area item has
         {id, area_number, name, description, lines}, and each line has {id, line_number, name,
@@ -1649,7 +1798,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
+    @tool("read")
     def project_spaces() -> dict[str, Any]:
         """Read the building/location tree (building -> floor -> room), each with its placed devices
         and functions. Use this to find a room's devices when device names are empty — the space names
@@ -1672,7 +1821,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool("write")
     def project_set_device_space(
         node_id: int, space_id: int | None = None
     ) -> dict[str, Any]:
@@ -1691,7 +1840,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool("read")
     def project_compare_devices(
         node_id_a: int, node_id_b: int, only_differences: bool = True
     ) -> dict[str, Any]:
@@ -1776,7 +1925,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_compare, timeout=_SLOW)
 
-    @tool
+    @tool("write")
     def project_create_space(
         space_type: str, name: str, parent_id: int | None = None
     ) -> dict[str, Any]:
@@ -1799,7 +1948,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_create)
 
-    @tool
+    @tool("write")
     def project_rename_space(space_id: int, name: str) -> dict[str, Any]:
         """Rename a space (``id`` from project_spaces). Undoable project edit. Returns
         {space_id, name}."""
@@ -1807,7 +1956,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ctx.run_locked(lambda: project.rename_space(space_id, name))
         return {"space_id": space_id, "name": name}
 
-    @tool
+    @tool("write")
     def project_set_space_type(space_id: int, space_type: str) -> dict[str, Any]:
         """Set a space's type (Building, BuildingPart, Floor, Room, Corridor, Stairway,
         DistributionBoard). ``id`` from project_spaces. Undoable project edit. Returns
@@ -1816,7 +1965,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ctx.run_locked(lambda: project.set_space_type(space_id, space_type))
         return {"space_id": space_id, "space_type": space_type}
 
-    @tool
+    @tool("write")
     def project_move_space(
         space_id: int, new_parent_id: int | None = None
     ) -> dict[str, Any]:
@@ -1827,7 +1976,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ctx.run_locked(lambda: project.move_space(space_id, new_parent_id))
         return {"space_id": space_id, "new_parent_id": new_parent_id}
 
-    @tool
+    @tool("destructive")
     def project_remove_space(space_id: int) -> dict[str, Any]:
         """Remove a space and its sub-spaces (``id`` from project_spaces); devices placed in them
         become unassigned. Undoable project edit. Returns {status, space_id}."""
@@ -1837,7 +1986,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     # --- device mutations -------------------------------------------------
 
-    @tool
+    @tool("write")
     def project_add_device(
         product_ref_id: str,
         name: str | None = None,
@@ -1893,7 +2042,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_add, timeout=_SLOW)
 
-    @tool
+    @tool("write")
     def project_rename_device(
         node_id: int, name: str | None = None, description: str | None = None
     ) -> dict[str, Any]:
@@ -1916,7 +2065,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_rename)
 
-    @tool
+    @tool("write")
     def project_set_individual_address(node_id: int, address: str) -> dict[str, Any]:
         """Set a project device's individual address, e.g. "1.1.5", using node_id from
         project_list_devices. The target area/line must exist in project_topology and the address
@@ -1938,7 +2087,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool("write")
     def project_set_additional_address(
         node_id: int,
         index: int,
@@ -1982,7 +2131,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool("write")
     def project_assign_additional_addresses(
         node_id: int, count: int | None = None
     ) -> dict[str, Any]:
@@ -2012,7 +2161,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_assign)
 
-    @tool
+    @tool("write")
     def project_set_serial_number(node_id: int, serial_number: str) -> dict[str, Any]:
         """Store a device's KNX serial number in the project using node_id from project_list_devices.
         serial_number takes 12 hex digits (e.g. "0083:7AA2039C"); an empty string clears it.
@@ -2039,7 +2188,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool("write")
     def project_set_com_object_flag(
         node_id: int, com_object_ref_id: str, flag: Flag, value: bool
     ) -> dict[str, Any]:
@@ -2074,7 +2223,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool("write")
     def project_set_parameter(
         parameter_ref_id: str,
         value: str,
@@ -2093,34 +2242,29 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         yourself. Setting a function type usually reveals extra symbol/label parameters; re-read the
         block with project_parameter_tree and set them too, so the button shows correctly on the device.
 
-        Returns {ref_id, requested, value, active, changed?, lost_links?}: ``value`` is read back
+        Returns {ref_id, requested, value, active, changed?, lost_links?, shown_parameters?,
+        hidden_parameters?, shown_com_objects?, hidden_com_objects?}: ``value`` is read back
         AFTER the edit (may be a normalized form of ``requested``, or null with ``active=false`` if
         the edit deactivated the parameter), ``changed`` lists other parameters a calculation changed
         as a side effect, and ``lost_links`` lists group-address links this change dropped by
-        deactivating their com-objects ({com_object_ref_id, group_address_id, address}). A rejected
-        value raises with the reason and does NOT take effect on a later edit."""
+        deactivating their com-objects ({com_object_ref_id, group_address_id, address}).
+        ``shown_parameters`` ({ref_id, label, value, value_label?}) and ``shown_com_objects``
+        ({ref_id, number, name, linkable}) are what the edit made visible, ``hidden_parameters`` and
+        ``hidden_com_objects`` the ref_ids it hid — after a function/mode change, set and link those
+        instead of re-reading the whole device. A rejected value raises with the reason and does
+        NOT take effect on a later edit."""
 
         def _set() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
             if parameters_in_plugin(device):
                 raise ToolError(PLUGIN_PARAMETERS_ERROR.format(node_id=device.node_id))
-            # Reject NON-editable targets (absent / Access.NONE / Access.READ); matches what the GUI
-            # lets a user change. The core engine's active-set guard alone would still accept hidden-
-            # but-internally-active and read-only parameters.
-            require_editable_param(device, parameter_ref_id)
-            # edit_params (not set_param): applies and reconciles as one undo step and raises on
-            # reject WITHOUT the GUI's stash-and-retry, so a rejected MCP set never silently takes
-            # effect on a later edit.
-            changes = project.edit_params(
-                device, [(parameter_ref_id, value)], mode="edit"
-            )
-            return param_change_result(device, parameter_ref_id, value, changes)
+            return apply_parameter(project, device, parameter_ref_id, value)
 
         return ctx.run_locked(_set)
 
     # --- topology mutations -----------------------------------------------
 
-    @tool
+    @tool("write")
     def project_create_area(area_number: int, name: str = "") -> dict[str, Any]:
         """Create a project topology area. Undoable with project_undo.
         Returns {area_id, area_number, name}; use area_id for project_create_line and area edits."""
@@ -2128,14 +2272,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         area_id = ctx.run_locked(lambda: project.create_area(area_number, name))
         return {"area_id": area_id, "area_number": area_number, "name": name}
 
-    @tool
+    @tool("write")
     def project_rename_area(area_id: int, name: str) -> dict[str, Any]:
         """Rename a project topology area, using an area's id from project_topology as area_id.
         Undoable with project_undo. Returns {area_id, name}."""
         ctx.run_locked(lambda: project.rename_area(area_id, "", name))
         return {"area_id": area_id, "name": name}
 
-    @tool
+    @tool("destructive")
     def project_remove_area(area_id: int) -> dict[str, str]:
         """Remove a project topology area and its lines/devices. Use an area's id from
         project_topology as area_id. Undoable with project_undo; hardware is unchanged.
@@ -2143,7 +2287,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ctx.run_locked(lambda: project.remove_area(area_id))
         return {"status": "removed", "area_id": str(area_id)}
 
-    @tool
+    @tool("write")
     def project_create_line(
         area_id: int, line_number: int, name: str = ""
     ) -> dict[str, Any]:
@@ -2155,14 +2299,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
         return {"line_id": line_id, "area_id": area_id, "line_number": line_number}
 
-    @tool
+    @tool("write")
     def project_rename_line(line_id: int, name: str) -> dict[str, Any]:
         """Rename a project topology line, using a line's id from project_topology as line_id.
         Undoable with project_undo. Returns {line_id, name}."""
         ctx.run_locked(lambda: project.rename_line(line_id, "", name))
         return {"line_id": line_id, "name": name}
 
-    @tool
+    @tool("destructive")
     def project_remove_line(line_id: int) -> dict[str, str]:
         """Remove a project topology line and its devices. Use a line's id from project_topology as
         line_id. Undoable with project_undo; hardware is unchanged. Returns {status: "removed", line_id},
@@ -2172,7 +2316,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     # --- group address mutations ------------------------------------------
 
-    @tool
+    @tool("write")
     def project_create_group_address(
         address: str | None = None, name: str = ""
     ) -> dict[str, Any]:
@@ -2196,18 +2340,23 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_create)
 
-    @tool
+    @tool("write")
     def project_rename_group_address(
-        group_address_id: int, name: str
+        name: str,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
     ) -> dict[str, Any]:
-        """Rename a project group address. Pass id from project_list_group_addresses as
-        group_address_id. Undoable with project_undo. Returns {id, address, name}."""
+        """Rename a project group address. Identify it by ``group_address_id`` (id from
+        project_list_group_addresses) OR ``group_address`` (a printed address like "10/1/2" in the
+        project's style); pass exactly one. Undoable with project_undo. Returns {id, address,
+        name}."""
 
         def _rename() -> dict[str, Any]:
-            project.rename_group_address(group_address_id, name)
-            g = project.get_group_address(group_address_id)
+            ga_id = _require_group_address_id(group_address_id, group_address)
+            project.rename_group_address(ga_id, name)
+            g = project.get_group_address(ga_id)
             if g is None:
-                raise ToolError(f"no group address with id {group_address_id}")
+                raise ToolError(f"no group address with id {ga_id}")
             return {"id": g.id, "address": g.address, "name": g.name}
 
         return ctx.run_locked(_rename)
@@ -2233,7 +2382,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         _walk(project.get_group_range_tree(), None, 0)
         return out
 
-    @tool
+    @tool("read")
     def project_list_group_ranges(name_contains: str | None = None) -> dict[str, Any]:
         """List the group-address folders (main and middle groups), optionally filtering names by
         a case-insensitive substring. Returns {items, count}; each item has {id, address, name,
@@ -2249,7 +2398,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
+    @tool("write")
     def project_rename_group_range(group_range_id: int, name: str) -> dict[str, Any]:
         """Rename a group-address folder (main or middle group). Pass id from
         project_list_group_ranges as group_range_id. Undoable with project_undo. Returns
@@ -2280,7 +2429,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         _walk(project.get_space_tree())
         return ids
 
-    @tool
+    @tool("write")
     def project_rename_function(function_id: int, name: str) -> dict[str, Any]:
         """Rename a building function (a function placed in a room). Pass a function ``id`` from
         project_spaces as function_id. Undoable with project_undo. Returns {function_id, name}."""
@@ -2294,24 +2443,28 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_rename)
 
-    @tool
+    @tool("write")
     def project_set_group_address_dpt(
-        group_address_id: int, dpt: str | None
+        dpt: str | None,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
     ) -> dict[str, Any]:
-        """Set a project group address's datapoint type, or clear it with dpt=null. Pass id from
-        project_list_group_addresses as group_address_id. dpt accepts dotted codes such as "1.001"
-        or ETS tokens such as "DPST-1-1" and is stored as an ETS token.
+        """Set a project group address's datapoint type, or clear it with dpt=null. Identify it by
+        ``group_address_id`` (id from project_list_group_addresses) OR ``group_address`` (a printed
+        address like "10/1/2" in the project's style); pass exactly one. dpt accepts dotted codes
+        such as "1.001" or DPST tokens such as "DPST-1-1" and is stored as a DPST token.
         Returns {id, address, datapoint_type}. Undoable with project_undo; this updates project
         metadata used for value encoding/decoding without programming hardware."""
 
         def _set() -> dict[str, Any]:
+            ga_id = _require_group_address_id(group_address_id, group_address)
             try:
-                project.set_group_address_dpt(group_address_id, dpt)
+                project.set_group_address_dpt(ga_id, dpt)
             except ValueError as e:
                 raise ToolError(str(e)) from e
-            g = project.get_group_address(group_address_id)
+            g = project.get_group_address(ga_id)
             if g is None:
-                raise ToolError(f"no group address with id {group_address_id}")
+                raise ToolError(f"no group address with id {ga_id}")
             return {
                 "id": g.id,
                 "address": g.address,
@@ -2320,42 +2473,57 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool("write")
     def project_set_group_address_security(
-        group_address_id: int, mode: str
+        mode: str,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
     ) -> dict[str, Any]:
         """Set a group address' KNX Data Secure mode: "On" (secured, generates a key; every
         linked device must be commissioned securely), "Off" (not secured), or "Auto" (secured
         while every linked device is commissioned securely). A password-protected project is
-        needed to store a generated key."""
+        needed to store a generated key. Identify the group address by ``group_address_id`` (id
+        from project_list_group_addresses) OR ``group_address`` (a printed address like "10/1/2"
+        in the project's style); pass exactly one. Returns {id, address, secured}."""
         from xknxeditor.proj import GroupAddressSecurityError, ProjectPasswordRequired
 
         if mode not in ("Auto", "On", "Off"):
             raise ToolError('mode must be "Auto", "On" or "Off"')
 
         def _set() -> dict[str, Any]:
+            ga_id = _require_group_address_id(group_address_id, group_address)
             try:
-                project.set_group_address_security(group_address_id, mode)
+                project.set_group_address_security(ga_id, mode)
             except ProjectPasswordRequired as e:
                 raise ToolError("set a project password first") from e
             except GroupAddressSecurityError as e:
                 raise ToolError(str(e)) from e
-            g = project.get_group_address(group_address_id)
+            g = project.get_group_address(ga_id)
             if g is None:
-                raise ToolError(f"no group address with id {group_address_id}")
+                raise ToolError(f"no group address with id {ga_id}")
             return {"id": g.id, "address": g.address, "secured": g.data_secure}
 
         return ctx.run_locked(_set)
 
-    @tool
-    def project_remove_group_address(group_address_id: int) -> dict[str, str]:
-        """Remove a project group address and its links. Pass id from project_list_group_addresses
-        as group_address_id. Undoable with project_undo; program affected devices to remove links on
-        the bus. Returns {status: "removed", group_address_id}, with group_address_id as a string."""
-        ctx.run_locked(lambda: project.remove_group_address(group_address_id))
-        return {"status": "removed", "group_address_id": str(group_address_id)}
+    @tool("destructive")
+    def project_remove_group_address(
+        group_address_id: int | None = None, group_address: str | None = None
+    ) -> dict[str, str]:
+        """Remove a project group address and its links. Identify it by ``group_address_id`` (id
+        from project_list_group_addresses) OR ``group_address`` (a printed address like "10/1/2" in
+        the project's style); pass exactly one. Undoable with project_undo; program affected devices
+        to remove links on the bus. Returns {status: "removed", group_address_id}, with
+        group_address_id as a string."""
 
-    @tool
+        def _remove() -> int:
+            ga_id = _require_group_address_id(group_address_id, group_address)
+            project.remove_group_address(ga_id)
+            return ga_id
+
+        ga_id = ctx.run_locked(_remove)
+        return {"status": "removed", "group_address_id": str(ga_id)}
+
+    @tool("write")
     def project_link_com_object(
         com_object_ref_id: str,
         node_id: int | None = None,
@@ -2379,9 +2547,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         com_object_ref_id, com_object_db_id, group_address_id, is_sending, already_linked} plus, when
         relevant, ``dpt_mismatch`` ({com_object, group_address} — the GA keeps its own DPT, so the
         DPT metadata differs; verify compatibility) and ``other_sending_group_address_ids`` (the
-        object already sends to these, so it now has several sending GAs). Linking the same pair again
-        is idempotent (``already_linked: true``, no duplicate). Pass link_id as
-        project_unlink_com_object's assignment_id. Program the device to apply the link on the bus."""
+        object already sends to these, so it now has several sending GAs), and ``hidden: true`` when
+        the device's parameters currently hide the object (the link is kept, but the application
+        does not use the object until a parameter shows it — check the activating parameter).
+        Linking the same pair again is idempotent (``already_linked: true``, no duplicate). Pass
+        link_id as project_unlink_com_object's assignment_id. Program the device to apply the link on
+        the bus."""
         require_project(ctx)
 
         def _link() -> dict[str, Any]:
@@ -2399,7 +2570,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "cannot be linked (only com-objects with linkable=true can be linked)"
                 )
             result = perform_link(
-                project, device.node_id, com_object_ref_id, co, ga_id, is_sending
+                project,
+                device.node_id,
+                com_object_ref_id,
+                co,
+                ga_id,
+                is_sending,
+                hidden=com_object_hidden(device, com_object_ref_id),
             )
             if result is None:
                 raise ToolError(
@@ -2411,29 +2588,64 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_link)
 
-    @tool
-    def project_unlink_com_object(assignment_id: int) -> dict[str, str]:
-        """Remove an undoable project link by ``assignment_id`` — use an ``id`` from
+    @tool("destructive")
+    def project_unlink_com_object(
+        assignment_id: int | None = None,
+        com_object_ref_id: str | None = None,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
+    ) -> dict[str, str]:
+        """Remove an undoable project link, either by ``assignment_id`` — an ``id`` from
         project_get_ga_assignments, an ``assignment_id`` from project_get_com_object_links, or a
-        ``link_id`` from project_link_com_object. Program the device to apply the removal on the bus.
+        ``link_id`` from project_link_com_object — OR by the linked pair: ``com_object_ref_id``
+        (ref_id from project_list_com_objects) of the device ``node_id`` OR ``device_address``, and
+        the group address ``group_address_id`` OR ``group_address`` (a printed address like
+        "10/1/2"), one of each pair. Program the device to apply the removal on the bus.
         Returns {status, assignment_id}."""
-        ctx.run_locked(lambda: project.unlink_com_object_from_ga(assignment_id))
-        return {"status": "unlinked", "assignment_id": str(assignment_id)}
+        by_pair = (
+            com_object_ref_id,
+            node_id,
+            device_address,
+            group_address_id,
+            group_address,
+        )
+        if (assignment_id is None) == all(v is None for v in by_pair):
+            raise ToolError(
+                "pass assignment_id, or com_object_ref_id with its device and group address"
+            )
+
+        def _unlink() -> int:
+            link_id = assignment_id
+            if link_id is None:
+                if com_object_ref_id is None:
+                    raise ToolError(
+                        "com_object_ref_id is needed to unlink by the linked pair"
+                    )
+                device = _require_device(node_id, device_address)
+                ga_id = _require_group_address_id(group_address_id, group_address)
+                link_id = link_id_between(project, device, com_object_ref_id, ga_id)
+            project.unlink_com_object_from_ga(link_id)
+            return link_id
+
+        link_id = ctx.run_locked(_unlink)
+        return {"status": "unlinked", "assignment_id": str(link_id)}
 
     # --- undo / redo / history --------------------------------------------
 
-    @tool
+    @tool("write")
     def project_undo() -> dict[str, bool]:
         """Undo the last undoable project edit. Returns {undone: bool}. Bus programming, address
         assignment, and file replacements are outside project history and are not reverted."""
         return {"undone": ctx.run_locked(project.undo)}
 
-    @tool
+    @tool("write")
     def project_redo() -> dict[str, bool]:
         """Redo the last undone project edit. Returns {redone: bool}."""
         return {"redone": ctx.run_locked(project.redo)}
 
-    @tool
+    @tool("read")
     def project_history() -> dict[str, Any]:
         """Project edit history. Returns {items, count}; each item has {id, label, reverted}. Pass an
         item's ``id`` as project_jump_to's ``event_id``."""
@@ -2446,7 +2658,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         )
 
-    @tool
+    @tool("read")
     def project_log(
         contains: str | None = None, offset: int = 0, limit: int = 200
     ) -> dict[str, Any]:
@@ -2485,7 +2697,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool("write")
     def project_jump_to(event_id: int) -> dict[str, str]:
         """Move the project undo/redo cursor to a history entry, passing id from project_history as
         event_id. This reverts or reapplies project edits; bus changes and file replacements are

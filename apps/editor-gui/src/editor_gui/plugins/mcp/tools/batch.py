@@ -22,9 +22,10 @@ from editor_gui.plugins.mcp.tools.details import (
 )
 from editor_gui.plugins.mcp.tools.project import (
     PLUGIN_PARAMETERS_ERROR,
-    param_change_result,
+    apply_parameter,
+    com_object_hidden,
+    link_id_between,
     perform_link,
-    require_editable_param,
     resolve_in_scope,
 )
 from editor_gui.plugins.project.service import DeviceProduct
@@ -135,9 +136,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return {"node_id": node_id, "address": p["address"]}
 
     def _op_set_parameter(p: dict[str, Any]) -> dict[str, Any]:
-        # edit_params (not set_param): applies and reconciles as one undo step and raises on reject
-        # WITHOUT the GUI's stash-and-retry, so a rejected batch set never silently takes effect on a
-        # later edit. Returns the effective read-back value + calculated side effects.
+        # As project_set_parameter (apply_parameter): one undo step, no silent retry of a rejected
+        # set, the effective read-back value + side effects + what the edit showed or hid.
         device = _parameters_device(p)
         ref = p.get("parameter_ref_id")
         value = p.get("value")
@@ -163,13 +163,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 value = resolved.get("resolved_value")
         if value is None:
             raise ValueError("set_parameter needs value (or value_label with a label)")
-        # Reject NON-editable targets AFTER resolution: a label op whose scope an earlier batch op
-        # just reshaped is checked against the current access, same as the standalone setter.
-        require_editable_param(device, ref)
-        changes = project.edit_params(device, [(ref, value)], mode="edit")
+        # The editable check runs AFTER resolution: a label op whose scope an earlier batch op just
+        # reshaped is checked against the current access, same as the standalone setter.
         return {
             "node_id": device.node_id,
-            **param_change_result(device, ref, value, changes),
+            **apply_parameter(project, device, ref, value),
         }
 
     def _op_link_com_object(p: dict[str, Any]) -> dict[str, Any]:
@@ -184,7 +182,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ValueError(f"com-object {ref!r} is not linkable (not instantiated)")
         ga_id = _group_address_id(p)
         result = perform_link(
-            project, device.node_id, ref, co, ga_id, p.get("is_sending", False)
+            project,
+            device.node_id,
+            ref,
+            co,
+            ga_id,
+            p.get("is_sending", False),
+            hidden=com_object_hidden(device, ref),
         )
         if result is None:
             raise ValueError(
@@ -193,6 +197,17 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "securely commissioned devices)"
             )
         return result
+
+    def _op_unlink_com_object(p: dict[str, Any]) -> dict[str, Any]:
+        # By the link's id, or by the linked pair (device, com_object_ref_id, ga).
+        if "assignment_id" in p:
+            link_id = int(p["assignment_id"])
+        else:
+            link_id = link_id_between(
+                project, _device(p), p["com_object_ref_id"], _group_address_id(p)
+            )
+        project.unlink_com_object_from_ga(link_id)
+        return {"assignment_id": link_id}
 
     def _op_rename_device(p: dict[str, Any]) -> dict[str, Any]:
         if "name" not in p and "description" not in p:
@@ -284,13 +299,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             ("com_object_ref_id",),
             _op_link_com_object,
         ),
-        "unlink_com_object": (
-            ("assignment_id",),
-            lambda p: (
-                project.unlink_com_object_from_ga(p["assignment_id"]),
-                {"assignment_id": p["assignment_id"]},
-            )[1],
-        ),
+        "unlink_com_object": ((), _op_unlink_com_object),
         "create_area": (
             ("area_number",),
             lambda p: {
@@ -336,6 +345,17 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "valid": False,
                 "issue": f"missing params: {', '.join(missing)}",
             }
+        if (
+            name == "unlink_com_object"
+            and "assignment_id" not in params
+            and "com_object_ref_id" not in params
+        ):
+            return {
+                "index": index,
+                "op": name,
+                "valid": False,
+                "issue": "missing params: assignment_id, or com_object_ref_id with device and ga",
+            }
         if name == "set_com_object_flag" and params.get("flag") not in _FLAGS:
             return {
                 "index": index,
@@ -345,7 +365,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             }
         return {"index": index, "op": name, "valid": True}
 
-    @tool
+    @tool("destructive")
     def project_batch(
         operations: list[dict[str, Any]],
         atomic: bool = True,
@@ -354,7 +374,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Apply project edits in order. Each operations entry is {"op": name, "params": {...}}.
         These are undoable project steps; applying changes to hardware requires connection tools.
         A batch may require multiple project_undo calls. IDs must be known before the call; later
-        operations cannot reference earlier results.
+        operations cannot reference earlier results — but a printed ``group_address`` is resolved
+        when its op runs, so it can name a group address an earlier op of the batch created.
 
         Device-scoped ops accept either ``node_id`` (int) OR ``device_address`` (str, e.g. "1.0.30");
         GA-scoped ops accept either ``group_address_id`` (int) OR ``group_address`` (str, e.g.
@@ -371,7 +392,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
           tree_token from the project_parameter_tree response its subtree_id came from, so an op
           whose scope an earlier batch op invalidated fails explicitly instead of silently retargeting;
           value_label gives an enum's value). value is read back after the edit; changed lists
-          calculated side effects; lost_links lists links a function/mode change dropped.
+          calculated side effects; lost_links lists links a function/mode change dropped;
+          shown_parameters, hidden_parameters, shown_com_objects and hidden_com_objects (when not
+          empty) are what the edit showed or hid, as for project_set_parameter.
         - set_com_object_flag: device, com_object_ref_id, flag, value -> {node_id, com_object_ref_id}.
         - create_group_address: [address, name] -> {group_address_id}.
         - rename_group_address: ga, name -> {group_address_id}.
@@ -381,9 +404,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - remove_group_address: ga -> {group_address_id}.
         - link_com_object: device, com_object_ref_id, ga [is_sending=false] ->
           {link_id, node_id, com_object_ref_id, com_object_db_id, group_address_id, is_sending,
-          already_linked, dpt_mismatch?, other_sending_group_address_ids?} (same feedback as the
-          standalone tool; idempotent).
-        - unlink_com_object: assignment_id -> {assignment_id}.
+          already_linked, dpt_mismatch?, other_sending_group_address_ids?, hidden?} (same feedback
+          as the standalone tool; idempotent).
+        - unlink_com_object: assignment_id, or device, com_object_ref_id, ga (the linked pair) ->
+          {assignment_id}.
         - create_area: area_number [name] -> {area_id}.
         - create_line: area_id, line_number [name] -> {line_id}.
         - set_comment: kind [element_id] [field="comment"], text | paragraphs -> {kind, element_id,

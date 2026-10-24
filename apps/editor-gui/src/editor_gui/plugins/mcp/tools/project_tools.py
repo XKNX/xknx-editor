@@ -34,7 +34,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def _result(count: int, errors: list[str], key: str) -> dict[str, Any]:
         return {key: count, "errors": errors}
 
-    @tool
+    @tool("write")
     def project_extended_copy(
         node_id: int,
         count: int = 1,
@@ -65,7 +65,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_copy, timeout=300.0)
 
-    @tool
+    @tool("destructive")
     def project_replace_device(node_id: int, template_node_id: int) -> dict[str, Any]:
         """The Tools window's replace device: replace the device ``node_id`` by a copy of the
         device ``template_node_id`` (both from project_list_devices). The copy gets the replaced
@@ -86,7 +86,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_replace, timeout=300.0)
 
-    @tool
+    @tool("write")
     def project_shift_individual_addresses(
         node_ids: list[int], offset: int
     ) -> dict[str, Any]:
@@ -102,7 +102,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         )
 
-    @tool
+    @tool("write")
     def project_shift_group_addresses(
         group_address_ids: list[int], offset: int
     ) -> dict[str, Any]:
@@ -119,7 +119,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         )
 
-    @tool
+    @tool("read")
     def project_compare_projects(
         path: str, password: str | None = None
     ) -> dict[str, Any]:
@@ -145,7 +145,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "group_addresses": _entries(outcome.result.group_addresses),
         }
 
-    @tool
+    @tool("write")
     def project_create_group_addresses_for_com_objects(
         com_object_ref_ids: list[str] | None = None,
         node_id: int | None = None,
@@ -192,7 +192,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_create, timeout=300.0)
 
-    @tool
+    @tool("write")
     def project_link_com_objects(pairs: list[dict[str, Any]]) -> dict[str, Any]:
         """The Mass Linker's object-to-object links: for each pair create a group address and
         link both group objects to it, the source sending and the target receiving. Each pair is
@@ -281,7 +281,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             }
         return data
 
-    @tool
+    @tool("read")
     def project_plugin_parameters(
         node_id: int | None = None,
         device_address: str | None = None,
@@ -321,7 +321,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(f"no plugin parameter section {section_name!r}")
         return found
 
-    @tool
+    @tool("write")
     def project_set_plugin_parameter(
         ref_id: str,
         value: str,
@@ -358,7 +358,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool("write")
     def project_add_plugin_item(
         section: str,
         name: str = "",
@@ -393,7 +393,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_add)
 
-    @tool
+    @tool("destructive")
     def project_remove_plugin_item(
         section: str,
         item_id: str,
