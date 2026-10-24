@@ -9,7 +9,7 @@ editor shows.
 from __future__ import annotations
 
 import contextlib
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING
 
 from xknx.profile.const import ResourceDevicePropertyId, ResourceGenericPropertyId
@@ -29,6 +29,7 @@ if TYPE_CHECKING:
     from xknx import XKNX
 
     from editor_gui.device import Device
+    from xknxeditor.catalog.core.hardware import FactoryData
     from xknxeditor.download.data_secure import DeviceSecurity
     from xknxeditor.download.download import DownloadResult
     from xknxeditor.download.image import DownloadImage, GroupCommunication
@@ -51,17 +52,24 @@ def _application(device: Device) -> Application:
 def _image_for(
     device: Device,
     group_communication: GroupCommunication | None = None,
-    factory_image: bytes | None = None,
+    factory_image: FactoryData | None = None,
 ) -> DownloadImage:
-    """The download image of ``device``; ``factory_image`` is its product's ``LoadedImage``."""
-    from xknxeditor.download.factory_image import FactoryImageError, parse_factory_image
+    """The download image of ``device``; ``factory_image`` is its product's ``LoadedImage``
+    and its stamp."""
+    from xknxeditor.download.factory_image import (
+        FactoryImageError,
+        parse_factory_image,
+        parse_factory_stamp,
+    )
 
     application = _application(device)
     ui = device.dynamic_ui
     if ui is None:
         raise DeviceProgrammingError("device has no dynamic application to program")
     try:
-        factory = parse_factory_image(factory_image)
+        factory = parse_factory_image(factory_image.image if factory_image else None)
+        if factory is not None and factory_image is not None:
+            factory = replace(factory, stamp=parse_factory_stamp(factory_image.stamp))
     except FactoryImageError as exc:
         raise DeviceProgrammingError(
             f"the product's factory image is invalid: {exc}"
@@ -399,7 +407,7 @@ async def eval_device(
     security: DeviceSecurity | None = None,
     ip_config: IpDeviceConfig | None = None,
     interface_max_apdu_length: int | None = None,
-    factory_image: bytes | None = None,
+    factory_image: FactoryData | None = None,
 ) -> PreflightReport:
     """Dry run: report what programming ``device`` would change, writing nothing.
 
@@ -440,7 +448,7 @@ async def download_device(
     routing_blocking: bool | None = None,
     memory_service_count: int | None = None,
     interface_max_apdu_length: int | None = None,
-    factory_image: bytes | None = None,
+    factory_image: FactoryData | None = None,
 ) -> DownloadResult:
     """Program ``device``: build its image and run the load procedure on the bus.
 

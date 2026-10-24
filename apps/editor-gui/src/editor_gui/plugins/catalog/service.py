@@ -29,6 +29,7 @@ if TYPE_CHECKING:
         ProductSummary,
         ProgramSummary,
     )
+    from xknxeditor.catalog.core.hardware import FactoryData
     from xknxeditor.namespaces.intermediate.application_program_t import (
         ApplicationProgram,
     )
@@ -65,8 +66,8 @@ class CatalogService:
         self._product_index: dict[str, ProductSummary] | None = None
         self._programs: dict[str, list[ProgramSummary]] = {}
         self._replaces: dict[str, list[int]] = {}
-        # Factory images (``LoadedImage``) by hardware program id, read once.
-        self._factory_images: dict[str, bytes | None] = {}
+        # Factory images (``LoadedImage`` and ``CheckSums``) by hardware program id, read once.
+        self._factory_images: dict[str, FactoryData | None] = {}
         # Shared with the project service so a background import can hold both while it writes.
         self._io_lock = io_lock or threading.RLock()
         # Manufacturer list from the KNX online catalog service (cached next to the db), named from
@@ -383,9 +384,9 @@ class CatalogService:
         hardware = self._service.get_hardware(hardware_id)
         return bool(hardware is not None and hardware.no_download_without_plugin)
 
-    def factory_image(self, hardware2program_id: str) -> bytes | None:
+    def factory_image(self, hardware2program_id: str) -> FactoryData | None:
         """The image devices of a hardware program leave the factory with (its
-        ``LoadedImage``), or ``None`` when the product has none. Not skipped while an import
+        ``LoadedImage``) and its stamp, or ``None`` when the product has no image. Not skipped while an import
         runs: a download must not go without it."""
         if hardware2program_id not in self._factory_images:
             self._factory_images[hardware2program_id] = self._service.get_factory_image(

@@ -14,6 +14,17 @@ The attribute holds a raw DEFLATE stream of a little-endian image:
 A property segment's start address is the byte offset of element 1; an object addressed by type
 keeps its occurrence in the address's top byte. Application properties count their objects from
 the mask's first application object (``FirstAppObjectIdx``).
+
+``Hardware2Program/@CheckSums`` holds the stamp a device carries in that state, little-endian:
+``UInt32`` version (``0x00010001``) and ``UInt32`` flavour, then
+
+- flavour 1: ``Int32`` number of objects; per object its index (a byte), an ``Int32`` number of
+  segments and per segment a ``Boolean`` (whether its CRC counts) and the ``UInt16`` CRC, in an
+  older layout followed by two more octets;
+- flavour 3: ``Int32`` number of properties; per property its location (kind, object reference,
+  property id and start address, as an image segment) and ``Int32``-length prefixed data.
+
+After a Master Reset a device that shows this stamp is taken to hold its factory image.
 """
 
 from __future__ import annotations
@@ -25,6 +36,9 @@ from enum import Enum
 
 _VERSION = 0x00010001
 _SEGMENT_HEADER = struct.Struct("<IHHII")
+_LOCATION = struct.Struct("<IHHI")
+_STAMP_OBJECT_CRCS = 1
+_STAMP_PROPERTY_VALUES = 3
 
 
 class FactoryLocation(Enum):
@@ -86,8 +100,38 @@ class FactorySegment:
 
 
 @dataclass(frozen=True, slots=True)
+class ObjectStamp:
+    """The memory control block CRCs of one object: per segment whether its CRC counts, and
+    the CRC."""
+
+    object_index: int
+    segments: tuple[tuple[bool, int], ...]
+
+
+@dataclass(frozen=True, slots=True)
+class PropertyStamp:
+    """The value of one property, at a location as an image segment gives it."""
+
+    location: FactoryLocation
+    object_ref: int
+    property_id: int
+    address: int
+    data: bytes
+
+
+@dataclass(frozen=True, slots=True)
+class FactoryStamp:
+    """What a device in its factory state shows: object CRCs or property values."""
+
+    objects: tuple[ObjectStamp, ...] = ()
+    properties: tuple[PropertyStamp, ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
 class FactoryImage:
     segments: tuple[FactorySegment, ...]
+    # The stamp of the factory state (``CheckSums``), if the product has one.
+    stamp: FactoryStamp | None = None
 
     def property_data(
         self,
@@ -167,3 +211,51 @@ def parse_factory_image(raw: bytes | None) -> FactoryImage | None:
     if pos != len(data):
         raise FactoryImageError("factory image has trailing data")
     return FactoryImage(tuple(segments))
+
+
+def parse_factory_stamp(raw: bytes | None) -> FactoryStamp | None:
+    """The stamp of a ``CheckSums`` attribute (its base64 decoded), or ``None`` for an empty one
+    or a flavour this engine does not check."""
+    if not raw:
+        return None
+    try:
+        version, flavour = struct.unpack_from("<II", raw, 0)
+        if version != _VERSION:
+            raise FactoryImageError(f"unknown factory stamp version {version:#010x}")
+        (count,) = struct.unpack_from("<i", raw, 8)
+        pos = 12
+        if flavour == _STAMP_OBJECT_CRCS:
+            # The older layout adds two octets to every CRC: told apart by the length.
+            wide = (len(raw) - 12 - count * 5) % 3 != 0
+            objects: list[ObjectStamp] = []
+            for _ in range(count):
+                index = raw[pos]
+                (segment_count,) = struct.unpack_from("<i", raw, pos + 1)
+                pos += 5
+                crcs: list[tuple[bool, int]] = []
+                for _ in range(segment_count):
+                    (crc,) = struct.unpack_from("<H", raw, pos + 1)
+                    crcs.append((raw[pos] != 0, crc))
+                    pos += 5 if wide else 3
+                objects.append(ObjectStamp(index, tuple(crcs)))
+            stamp = FactoryStamp(objects=tuple(objects))
+        elif flavour == _STAMP_PROPERTY_VALUES:
+            properties: list[PropertyStamp] = []
+            for _ in range(count):
+                kind, ref, pid, address = _LOCATION.unpack_from(raw, pos)
+                (size,) = struct.unpack_from("<i", raw, pos + _LOCATION.size)
+                pos += _LOCATION.size + 4
+                value = raw[pos : pos + size]
+                pos += size
+                location = _KINDS.get(kind)
+                if location is None or len(value) != size:
+                    raise FactoryImageError("factory stamp property truncated")
+                properties.append(PropertyStamp(location, ref, pid, address, value))
+            stamp = FactoryStamp(properties=tuple(properties))
+        else:
+            return None
+    except (struct.error, IndexError) as exc:
+        raise FactoryImageError(f"factory stamp truncated: {exc}") from exc
+    if pos != len(raw):
+        raise FactoryImageError("factory stamp has trailing data")
+    return stamp

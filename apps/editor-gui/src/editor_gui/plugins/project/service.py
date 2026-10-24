@@ -41,6 +41,7 @@ from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.history import HistoryEntry
 from editor_gui.settings import config_dir
+from xknxeditor.catalog.core.hardware import FactoryData
 from xknxeditor.namespaces.intermediate import (
     ComObjectInstanceRef,
     ParameterInstanceRef,
@@ -320,7 +321,7 @@ class _DeviceInputs:
     # SQLAlchemy-mapped rows to the ``Device`` without re-querying.
     binary_data: tuple[Any, ...] = ()
     # Gives the product's factory image (see Device.factory_image).
-    factory_image: Callable[[], bytes | None] | None = None
+    factory_image: Callable[[], FactoryData | None] | None = None
 
 
 def _compute_device(inputs: _DeviceInputs, app: Application) -> Device:
@@ -1681,7 +1682,7 @@ class ProjectService:
 
     def _factory_image_source(
         self, program_ref: str | None
-    ) -> Callable[[], bytes | None] | None:
+    ) -> Callable[[], FactoryData | None] | None:
         """Gives the factory image of the product ``program_ref`` loads, read when needed."""
         if not program_ref:
             return None

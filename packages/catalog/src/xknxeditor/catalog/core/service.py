@@ -31,6 +31,7 @@ from xknxeditor.catalog.core.delete import (
     plan_product_deletion,
 )
 from xknxeditor.catalog.core.hardware import (
+    FactoryData,
     HardwareFilters,
     ProgramSummary,
     get_factory_image,
@@ -231,9 +232,9 @@ class CatalogService:
         with Session(self._engine) as db:
             return get_program_source(db, program_id)
 
-    def get_factory_image(self, program_id: str) -> bytes | None:
+    def get_factory_image(self, program_id: str) -> FactoryData | None:
         """The image devices of a hardware program leave the factory with (its
-        ``LoadedImage``), or ``None`` when the product has none."""
+        ``LoadedImage``) and its stamp, or ``None`` when the product has no image."""
         with Session(self._engine) as db:
             return get_factory_image(db, program_id)
 

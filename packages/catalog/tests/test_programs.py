@@ -6,6 +6,7 @@ import sqlite3
 from pathlib import Path
 
 from xknxeditor.catalog import CatalogService
+from xknxeditor.catalog.core.hardware import FactoryData
 
 _FIXTURE = (
     Path(__file__).parents[3]
@@ -68,15 +69,29 @@ def test_factory_image_from_the_hardware_program(tmp_path: Path) -> None:
         entries = {name: archive.read(name) for name in archive.namelist()}
     hardware = entries["M-0008/Hardware.xml"].decode("utf-8")
     image = base64.b64encode(b"\x01\x02\x03").decode()
-    entries["M-0008/Hardware.xml"] = re.sub(
-        rf'(<Hardware2Program\b[^>]*\bId="{re.escape(program)}")',
-        rf'\1 LoadedImage="{image}"',
-        hardware,
-    ).encode("utf-8")
-    with zipfile.ZipFile(stored, "w") as archive:
-        for name, data in entries.items():
-            archive.writestr(name, data)
-    assert service.get_factory_image(program) == b"\x01\x02\x03"
+    stamp = base64.b64encode(b"\x04\x05").decode()
+
+    def write(attributes: str) -> None:
+        entries["M-0008/Hardware.xml"] = re.sub(
+            rf'(<Hardware2Program\b[^>]*\bId="{re.escape(program)}")',
+            rf"\1 {attributes}",
+            hardware,
+        ).encode("utf-8")
+        with zipfile.ZipFile(stored, "w") as archive:
+            for name, data in entries.items():
+                archive.writestr(name, data)
+
+    write(f'LoadedImage="{image}"')
+    assert service.get_factory_image(program) == FactoryData(b"\x01\x02\x03")
+    # The stamp of the factory state comes with the image.
+    write(f'LoadedImage="{image}" CheckSums="{stamp}"')
+    assert service.get_factory_image(program) == FactoryData(
+        b"\x01\x02\x03", b"\x04\x05"
+    )
+    # A stamp without an image is of no use.
+    write(f'CheckSums="{stamp}"')
+    assert service.get_factory_image(program) is None
+    write(f'LoadedImage="{image}"')
 
     stored.unlink()
     assert service.get_factory_image(program) is None

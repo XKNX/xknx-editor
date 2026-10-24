@@ -236,9 +236,18 @@ def get_program_source(db: Session, program_id: str) -> tuple[str, str] | None:
     return row[0], row[1]
 
 
-def get_factory_image(db: Session, program_id: str) -> bytes | None:
-    """The image devices of a hardware program leave the factory with
-    (``Hardware2Program/@LoadedImage``, base64 decoded), or ``None`` when the product has none.
+@dataclass(frozen=True)
+class FactoryData:
+    """What devices of a hardware program leave the factory with, base64 decoded: the image
+    (``Hardware2Program/@LoadedImage``) and the stamp they show in that state (``@CheckSums``)."""
+
+    image: bytes | None
+    stamp: bytes | None = None
+
+
+def get_factory_image(db: Session, program_id: str) -> FactoryData | None:
+    """The image devices of a hardware program leave the factory with, and its stamp, or
+    ``None`` when the product has no image.
 
     Read from the hardware XML of the ``.knxprod`` the program was imported from.
     """
@@ -260,6 +269,11 @@ def get_factory_image(db: Session, program_id: str) -> bytes | None:
             continue
         if element.get("Id") == program_id:
             image = element.get("LoadedImage")
-            return base64.b64decode(image) if image else None
+            if not image:
+                return None
+            stamp = element.get("CheckSums")
+            return FactoryData(
+                base64.b64decode(image), base64.b64decode(stamp) if stamp else None
+            )
         element.clear()
     return None
