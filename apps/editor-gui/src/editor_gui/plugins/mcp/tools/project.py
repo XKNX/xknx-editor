@@ -1875,7 +1875,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     ) -> int:
         """Resolve a group address id by its internal id OR its printed address (e.g. "10/1/2" in
         the project's style). Exactly one must be given. Keeps callers off the extra
-        project_list_group_addresses round-trip in the common case."""
+        round-trip in the common case."""
         if (group_address_id is None) == (group_address is None):
             raise ToolError(
                 "pass exactly one of group_address_id (int) or group_address (str, e.g. '10/1/2')"
@@ -1884,8 +1884,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             matches = [g for g in project.group_addresses if g.address == group_address]
             if not matches:
                 raise ToolError(
-                    f"no group address {group_address!r}; call project_list_group_addresses "
-                    "or create it with project_create_group_address first"
+                    f"no group address {group_address!r}; create it with project_create_group_address "
+                    "or project_batch first"
                 )
             if len(matches) > 1:
                 ids = sorted(g.id for g in matches)
@@ -2580,7 +2580,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         modified_only: bool = False,
         compact: bool = False,
     ) -> dict[str, Any]:
-        """A device's visible application parameters with current value and default. Identify the
+        """List visible parameters (to discover free channels/functions on multi-channel devices, prefer project_find_free_slots). Identify the
         device by ``node_id`` OR ``device_address`` (an individual address like "1.0.30"); pass
         exactly one.
         Returns {items, count}; each item has ref_id, label, value, default_value, access, widget.
@@ -3300,7 +3300,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         node_id: int | None = None,
         device_address: str | None = None,
     ) -> dict[str, Any]:
-        """Override a project com-object flag: communication/read/write/transmit/update/read_on_init.
+        """Override a com-object flag (low-level fallback; prefer project_batch with op="set_com_object_flag").
         Pass ref_id from project_list_com_objects as com_object_ref_id with node_id or device_address;
         the object must have linkable=true. Undoable with project_undo; program the device to apply
         the change on the bus.
@@ -3344,7 +3344,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         value_label: str | None = None,
         tree_token: str | None = None,
     ) -> dict[str, Any]:
-        """Set an application parameter. Identify the device by ``node_id`` OR ``device_address`` (an
+        """Set a single application parameter (low-level fallback; prefer project_setup_parameters to auto-activate gating selectors). Identify the device by ``node_id`` OR ``device_address`` (an
         individual address like "1.0.30"); pass exactly one. Pass the parameter's `ref_id` (from
         project_list_parameters, or project_parameter_tree) as the `parameter_ref_id` argument; use a
         `value` permitted by that parameter's `widget`.
@@ -3650,7 +3650,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_create_group_address(
         address: str | None = None, name: str = ""
     ) -> dict[str, Any]:
-        """Create a project group address. address follows project_info's group_address_style
+        """Create a single project group address (low-level fallback; prefer project_batch to create GAs and link atomically). address follows project_info's group_address_style
         (e.g. "1/2/3"); omit it for the next free address. Returns {group_address_id, address, name},
         or only {group_address_id} if the created row cannot be read. Pass group_address_id to group
         address and linking tools. Undoable with project_undo; hardware changes require linking
@@ -3752,7 +3752,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_remove_group_address(
         group_address_id: int | None = None, group_address: str | None = None
     ) -> dict[str, str]:
-        """Remove a project group address and its links using group_address_id or group_address string."""
+        """Remove a group address and its links (low-level fallback; prefer project_batch with op="remove_group_address"). Uses group_address_id or group_address string."""
         g = _require_ga(group_address_id, group_address)
         ga_id = g.id
         ctx.run_locked(lambda: project.remove_group_address(ga_id))
@@ -3771,10 +3771,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         group_address: str | None = None,
         is_sending: bool = False,
     ) -> dict[str, Any]:
-        """Create an undoable project link between a device com-object and a group address. The
+        """Create a single group-object link (low-level fallback; prefer project_batch to create GAs and link objects atomically). The
         device is identified by ``node_id`` (from project_list_devices) OR ``device_address`` (an
         individual address like "1.0.30"); the group address by ``group_address_id`` (from
-        project_list_group_addresses) OR ``group_address`` (a printed address like "10/1/2" in the
+        project_create_group_address or project_get_group_address) OR ``group_address`` (a printed address like "10/1/2" in the
         project's style). Pass exactly one of each pair. ``com_object_ref_id`` is the object's
         ``ref_id`` from project_list_com_objects (linkable=true).
 
@@ -3830,7 +3830,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         group_address_id: int | None = None,
         group_address: str | None = None,
     ) -> dict[str, str]:
-        """Remove an undoable project link by ``assignment_id``, OR directly by specifying
+        """Remove a group-object link (low-level fallback; prefer project_batch with op="unlink_com_object"). Remove by ``assignment_id``, OR directly by specifying
         ``node_id``/``device_address``, ``com_object_ref_id``, and ``group_address_id``/``group_address``."""
 
         def _unlink() -> dict[str, str]:

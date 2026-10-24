@@ -10,6 +10,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import re
 import threading
 from collections.abc import Callable
 from pathlib import Path
@@ -2875,5 +2876,39 @@ async def test_tool_annotations_classification(tmp_path: Path) -> None:
                 assert ann_dict.get("openWorldHint") is True, f"{name}: expected openWorldHint=True, got {ann_dict}"
             else:
                 assert ann_dict.get("openWorldHint") is False, f"{name}: expected openWorldHint=False, got {ann_dict}"
+
+
+async def test_mcp_instruction_and_docstring_references(tmp_path: Path) -> None:
+    """Verify that every tool referenced in INSTRUCTIONS and tool docstrings actually exists in list_tools(),
+    and that INSTRUCTIONS length stays strictly below 1500 characters."""
+    from editor_gui.plugins.mcp.server import INSTRUCTIONS
+
+    assert len(INSTRUCTIONS) <= 1500, f"INSTRUCTIONS length {len(INSTRUCTIONS)} exceeds 1500 chars limit"
+
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        tools = await client.list_tools()
+        registered_names = {t.name for t in tools}
+
+    pattern = re.compile(r"\b(project|catalog|connection|monitor|network)_[a-z0-9_]+\b")
+
+    # 1. Check INSTRUCTIONS
+    for match in pattern.finditer(INSTRUCTIONS):
+        tool_ref = match.group(0)
+        assert tool_ref in registered_names, f"Unknown tool {tool_ref!r} referenced in INSTRUCTIONS"
+
+    # 2. Check each tool's description
+    known_non_tools = {"project_password", "catalog_items", "catalog_item_ids"}
+    unknown_refs: list[tuple[str, str]] = []
+    for tool in tools:
+        desc = tool.description or ""
+        for match in pattern.finditer(desc):
+            tool_ref = match.group(0)
+            if tool_ref in known_non_tools:
+                continue
+            if tool_ref not in registered_names:
+                unknown_refs.append((tool.name, tool_ref))
+    assert not unknown_refs, f"Unknown tool references found in descriptions: {unknown_refs}"
+
 
 

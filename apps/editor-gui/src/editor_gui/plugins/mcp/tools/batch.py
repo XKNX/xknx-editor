@@ -527,8 +527,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         Use node_id from project_list_devices, product_ref_id from catalog_list_products, parameter
         ref_id from project_list_parameters as parameter_ref_id, and object ref_id from
-        project_list_com_objects as com_object_ref_id. Use id from project_list_group_addresses as
-        group_address_id; use area id from project_topology as area_id. For assignment_id, use id
+        project_list_com_objects as com_object_ref_id. Use id from project_create_group_address or
+        project_get_group_address as group_address_id; use area id from project_topology as area_id. For assignment_id, use id
         from project_get_ga_assignments, assignment_id from project_get_com_object_links or a returned
         link_id. Linkable objects are required for linking; set is_sending=true for a transmitting
         link. flag is communication/read/write/transmit/update/read_on_init.
