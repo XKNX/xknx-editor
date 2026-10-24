@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import io
 import json
+import re
 import threading
 import urllib.error
 import urllib.request
@@ -37,7 +38,7 @@ _INDEX_CACHE_FILE = "online_catalog_index.json"
 # Raised when the cached items' meaning changes, so an older cache is rebuilt (2: market check,
 # 3: plugin and incomplete-information flags no longer block, 4: an empty market list offers
 # nothing, 5: each item's text languages).
-_INDEX_FORMAT = 5
+_INDEX_FORMAT = 6
 _INDEX_SAVE_EVERY = (
     10  # persist the growing index every N manufacturers, for resumability
 )
@@ -173,6 +174,14 @@ class OnlineCatalogItem:
     languages: tuple[str, ...] = ()
     # The ids of the markets offering it; None when the manufacturer's index lists no markets.
     markets: tuple[str, ...] | None = None
+    # The display name per language ("de-DE", name), so the UI localizes it to the preferred
+    # product language; empty keeps the default name.
+    name_translations: tuple[tuple[str, str], ...] = ()
+
+    def name_in(self, locale: str) -> str:
+        """The display name in ``locale`` ("de" or "de-DE", or several in order of preference,
+        comma separated), else the default name."""
+        return _name_in(self.name, self.name_translations, locale)
 
 
 @dataclass(frozen=True)
@@ -453,7 +462,9 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
     ``Id``, ``CatalogItemName``/``ProductName``, ``OrderNumber`` and download-gating flags
     (``NoDownloadWithoutPlugin``, ``DownloadInfoIncomplete``, ``RequiresExternalSoftware``), and
     the catalog ``Sections`` file the entries. Entries no ``Markets`` entry lists are not
-    downloadable. Sorted by display name.
+    downloadable. Each item keeps its default display name and its name translations, so the UI
+    localizes it to the preferred product language (:meth:`OnlineCatalogItem.name_in`). Sorted by
+    default display name.
     """
     try:
         data = json.loads(index_bytes)
@@ -481,11 +492,7 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
             cid = _ci_get(entry, "Id")
             if not (isinstance(cid, str) and cid):
                 continue
-            name = (
-                _ci_get(entry, "CatalogItemName")
-                or _ci_get(entry, "ProductName")
-                or cid
-            )
+            default_name, translations = _entry_name(entry)
             order = _ci_get(entry, "OrderNumber") or ""
             block_reason = _download_block_reason(entry)
             if not block_reason and in_market is not None and cid not in in_market:
@@ -494,7 +501,7 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
             items.append(
                 OnlineCatalogItem(
                     id=cid,
-                    name=str(name),
+                    name=default_name or cid,
                     order_number=str(order),
                     downloadable=not block_reason,
                     manufacturer_id=mfr_id,
@@ -509,10 +516,35 @@ def parse_catalog_items(index_bytes: bytes) -> list[OnlineCatalogItem]:
                     sections=sections.get(cid, ()),
                     languages=_entry_languages(entry),
                     markets=None if markets is None else markets.get(cid, ()),
+                    name_translations=translations,
                 )
             )
     items.sort(key=lambda i: i.name.lower())
     return items
+
+
+def _entry_name(
+    entry: dict[str, object],
+) -> tuple[str, tuple[tuple[str, str], ...]]:
+    """An index entry's default display name and its name translations ``(language, name)``, so the
+    UI can localize it. The default is ``CatalogItemName``/``ProductName`` (empty when the entry
+    names neither, so the caller falls back to the id)."""
+    default = str(
+        _ci_get(entry, "CatalogItemName") or _ci_get(entry, "ProductName") or ""
+    )
+    translations: list[tuple[str, str]] = []
+    raw = _ci_get(entry, "Translations")
+    if isinstance(raw, list):
+        for t in cast(list[object], raw):
+            if not _is_dict(t):
+                continue
+            lang = _ci_get(t, "Language")
+            tr = _ci_get(t, "Translation")
+            if isinstance(lang, str) and _is_dict(tr):
+                text = _ci_get(tr, "CatalogItemName") or _ci_get(tr, "ProductName")
+                if isinstance(text, str) and text:
+                    translations.append((lang, text))
+    return default, tuple(translations)
 
 
 def _entry_languages(entry: dict[str, object]) -> tuple[str, ...]:
@@ -556,7 +588,8 @@ def _markets_from_cache(stored: object) -> dict[str, OnlineMarket] | None:
 
 
 def _item_to_dict(item: OnlineCatalogItem) -> dict[str, object]:
-    """Slim on-disk form of a catalog item (only what search/display needs; drops translations)."""
+    """Slim on-disk form of a catalog item (only what search/display needs; drops section
+    translations, keeps name translations so the display localizes without a re-fetch)."""
     return {
         "id": item.id,
         "name": item.name,
@@ -569,6 +602,11 @@ def _item_to_dict(item: OnlineCatalogItem) -> dict[str, object]:
         "dl_reason": item.download_block_reason,
         "langs": list(item.languages),
         **({} if item.markets is None else {"mk": list(item.markets)}),
+        **(
+            {}
+            if not item.name_translations
+            else {"ntr": [[c, t] for c, t in item.name_translations]}
+        ),
     }
 
 
@@ -590,7 +628,19 @@ def _item_from_dict(d: dict[str, object]) -> OnlineCatalogItem:
             if isinstance(d.get("mk"), list)
             else None
         ),
+        name_translations=tuple(
+            (str(pair[0]), str(pair[1]))
+            for pair in cast(list[list[object]], d.get("ntr") or [])
+            if len(pair) == 2
+        ),
     )
+
+
+def _squash(text: str) -> str:
+    """Lower-case and drop all whitespace, so a query matches regardless of spacing around a
+    separator: ``TXA207C-a2`` then finds the catalogue's ``TXA207C - a2``, and ``TXA 207C`` finds
+    ``TXA207C``."""
+    return re.sub(r"\s+", "", text.lower())
 
 
 def search_index(
@@ -601,38 +651,53 @@ def search_index(
 ) -> tuple[list[OnlineCatalogItem], int]:
     """Flat cross-manufacturer product search over a built index.
 
-    Matches ``query`` (case-insensitive) against order number, name and application program name.
-    Returns ``(results, total_matches)``; ``results`` is capped at ``limit`` and ordered so the
-    most relevant come first (order-number prefix > order-number contains > name/other). ``total``
-    is the full match count before capping, so the UI can say "showing 300 of N". ``keep`` leaves
-    out the items it rejects (the market and language filters)."""
-    key = query.strip().lower()
-    if not key:
-        return [], 0
+    The query is split into whitespace-separated tokens; an item matches when EVERY token is a
+    substring (case- and inner-whitespace-insensitive) of one of its searchable fields: order
+    number, name, application program name, or manufacturer name. So ``mdt akd`` finds MDT's
+    AKD controllers (``mdt`` in the manufacturer, ``akd`` in the order number), ``akd mdt`` finds
+    the same, and ``TXA207C-a2`` finds the catalogue's ``TXA207C - a2``.
 
-    def rank(item: OnlineCatalogItem) -> int:
-        order = item.order_number.lower()
-        if order == key:
+    Returns ``(results, total_matches)``; ``results`` is capped at ``limit`` and ordered so the
+    most relevant come first (order-number exact > order-number prefix > order-number contains >
+    name > other). ``keep`` leaves out the items it rejects (the market and language filters)."""
+    tokens = [token for token in (_squash(t) for t in query.split()) if token]
+    if not tokens:
+        return [], 0
+    joined = "".join(tokens)
+
+    def fields(item: OnlineCatalogItem) -> tuple[str, ...]:
+        # Index 0 is the order number and 1 the default name (``rank`` relies on that); the
+        # translated names follow so a query in the preferred product language still matches a
+        # product whose default name is in another language.
+        return (
+            _squash(item.order_number),
+            _squash(item.name),
+            _squash(item.application_program_name),
+            _squash(item.manufacturer_name),
+            *(_squash(text) for _, text in item.name_translations),
+        )
+
+    def rank(order: str, name: str) -> int:
+        if order == joined:
             return 0
-        if order.startswith(key):
+        if order.startswith(tokens[0]):
             return 1
-        if key in order:
+        if any(token in order for token in tokens):
             return 2
-        if item.name.lower().startswith(key):
+        if name.startswith(tokens[0]):
             return 3
         return 4
 
-    matches = [
-        item
-        for items in index.values()
-        for item in items
-        if key in item.order_number.lower()
-        or key in item.name.lower()
-        or key in item.application_program_name.lower()
-        if keep is None or keep(item)
-    ]
-    matches.sort(key=lambda i: (rank(i), i.order_number.lower(), i.name.lower()))
-    return matches[:limit], len(matches)
+    matches: list[tuple[int, OnlineCatalogItem]] = []
+    for items in index.values():
+        for item in items:
+            if keep is not None and not keep(item):
+                continue
+            searchable = fields(item)
+            if all(any(token in f for f in searchable) for token in tokens):
+                matches.append((rank(searchable[0], searchable[1]), item))
+    matches.sort(key=lambda m: (m[0], m[1].order_number.lower(), m[1].name.lower()))
+    return [item for _, item in matches[:limit]], len(matches)
 
 
 class OnlineCatalogClient:

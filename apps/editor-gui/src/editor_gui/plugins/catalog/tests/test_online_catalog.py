@@ -156,6 +156,36 @@ class TestParse:
         assert _app_version("bad") is None
         assert _app_version(None) is None
 
+    def test_catalog_items_keep_name_translations_for_localized_display(self) -> None:
+        # Hager's TXA207C defaults to French; the English name rides along as a translation so the
+        # UI localizes it to the preferred product language without a re-fetch.
+        index = json.dumps(
+            {
+                "Entries": [
+                    {
+                        "Id": "CI-1",
+                        "CatalogItemName": "Module de sortie",
+                        "CatalogItemDefaultLanguage": "fr-FR",
+                        "Translations": [
+                            {
+                                "Language": "en-US",
+                                "Translation": {"CatalogItemName": "Output module"},
+                            },
+                            {
+                                "Language": "fr-FR",
+                                "Translation": {"CatalogItemName": "Module de sortie"},
+                            },
+                        ],
+                    }
+                ]
+            }
+        ).encode()
+        item = parse_catalog_items(index)[0]
+        assert item.name == "Module de sortie"  # default name stays
+        assert item.name_in("en-US") == "Output module"
+        assert item.name_in("de-DE") == "Module de sortie"  # no German -> default
+        assert item.name_in("") == "Module de sortie"
+
     def test_catalog_items_invalid_json_raises(self) -> None:
         with pytest.raises(OnlineCatalogError):
             parse_catalog_items(b"not json")
@@ -163,6 +193,20 @@ class TestParse:
     def test_manufacturer_names_empty_raises(self) -> None:
         with pytest.raises(OnlineCatalogError):
             parse_manufacturer_names(b"<KNX><MasterData></MasterData></KNX>")
+
+    def test_item_dict_roundtrip_keeps_name_translations(self) -> None:
+        item = OnlineCatalogItem(
+            "a",
+            "Module de sortie",
+            "TXA207C",
+            True,
+            9,
+            "Hager",
+            name_translations=(("en-US", "Output module"),),
+        )
+        back = oc._item_from_dict(oc._item_to_dict(item))
+        assert back.name_translations == (("en-US", "Output module"),)
+        assert back.name_in("en") == "Output module"
 
 
 class TestClient:
@@ -245,6 +289,64 @@ class TestSearchIndex:
         big = {9: [OnlineCatalogItem(str(i), "node", "ON", True) for i in range(10)]}
         res, total = search_index(big, "node", limit=3)
         assert len(res) == 3 and total == 10
+
+    def test_whitespace_insensitive_order_number(self) -> None:
+        # The catalogue spells Hager's variant "TXA207C - a2" (spaces around the hyphen); a user
+        # types "TXA207C-a2". Both must find it (and "TXA 207C" finds "TXA207C").
+        index = {
+            1: [
+                OnlineCatalogItem(
+                    "x", "blind actuator", "TXA207C - a2", True, 9, "Hager"
+                ),
+                OnlineCatalogItem("y", "blind actuator", "TXA207C", True, 9, "Hager"),
+            ]
+        }
+        assert {i.id for i in search_index(index, "TXA207C-a2")[0]} == {"x"}
+        assert search_index(index, "TXA207C - a2")[0][0].id == "x"
+        assert {i.id for i in search_index(index, "TXA 207C")[0]} == {"x", "y"}
+
+    def test_translated_name_is_searchable(self) -> None:
+        # A product whose default name is French is still found by its English (preferred-language)
+        # name, because the translations are searchable too.
+        index = {
+            1: [
+                OnlineCatalogItem(
+                    "x",
+                    "Module de sortie",
+                    "TXA207C",
+                    True,
+                    9,
+                    "Hager",
+                    name_translations=(("en-US", "Output module"),),
+                )
+            ]
+        }
+        assert {i.id for i in search_index(index, "output module")[0]} == {"x"}
+
+    def test_manufacturer_plus_order_tokens(self) -> None:
+        # "mdt akd" must find MDT's AKD controllers: "mdt" lives in the manufacturer name, "akd"
+        # in the order number, different fields, so a single-substring search found nothing.
+        index = {
+            1: [
+                OnlineCatalogItem(
+                    "a",
+                    "AKD-0424R.02 LED",
+                    "AKD-0424R.02",
+                    True,
+                    131,
+                    "MDT technologies",
+                ),
+                OnlineCatalogItem(
+                    "b", "JAL-0410 blind", "JAL-0410", True, 131, "MDT technologies"
+                ),
+                OnlineCatalogItem("c", "clone AKD", "XX-AKD-9", True, 2, "Other"),
+            ]
+        }
+        assert {i.id for i in search_index(index, "mdt akd")[0]} == {"a"}
+        assert {i.id for i in search_index(index, "akd mdt")[0]} == {
+            "a"
+        }  # order-independent
+        assert {i.id for i in search_index(index, "mdt")[0]} == {"a", "b"}
 
 
 class TestIndexCache:

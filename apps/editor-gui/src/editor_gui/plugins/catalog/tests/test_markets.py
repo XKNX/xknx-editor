@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 
 from editor_gui.plugins.catalog.online_catalog import (
+    _INDEX_FORMAT,
     OnlineCatalogClient,
     parse_catalog_items,
     parse_markets,
@@ -81,7 +82,7 @@ def test_an_index_cached_without_markets_reports_them_unknown(tmp_path: Path) ->
     (tmp_path / "online_catalog_index.json").write_text(
         json.dumps(
             {
-                "format": 5,
+                "format": _INDEX_FORMAT,
                 "fetched_at": "2026-10-22T12:00:00+00:00",
                 "index": {"7": [{"id": "CI-1", "name": "A", "dl": True}]},
             }

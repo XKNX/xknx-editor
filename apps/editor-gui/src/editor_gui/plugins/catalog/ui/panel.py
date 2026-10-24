@@ -76,10 +76,12 @@ def _online_label(
     local: dict[str, set[int | None]],
     *,
     with_manufacturer: bool = False,
+    locale: str = "",
 ) -> str:
-    """An online product as listed: its name, order number and application version, its
-    manufacturer when asked for, and whether the local catalog has it already (``local``: the
-    versions there by lower-case order number)."""
+    """An online product as listed: its name (localized to ``locale`` when given), order number
+    and application version, its manufacturer when asked for, and whether the local catalog has it
+    already (``local``: the versions there by lower-case order number)."""
+    name = item.name_in(locale) if locale else item.name
     order = f"  ({item.order_number})" if item.order_number else ""
     ver = (
         f"  V{application_version_text(item.application_version)}"
@@ -98,7 +100,7 @@ def _online_label(
         or item.application_version in have
     )
     mark = f"  {S.ONLINE_ALREADY_IMPORTED}" if imported else ""
-    return f"{item.name}{order}{ver}{mfr}{mark}"
+    return f"{name}{order}{ver}{mfr}{mark}"
 
 
 def _section_name(node: _SectionNode, locale: str) -> str:
@@ -696,7 +698,12 @@ class CatalogPanel:
         shown = [
             i
             for i in items
-            if (not query or query in i.name.lower() or query in i.order_number.lower())
+            if (
+                not query
+                or query in i.name.lower()
+                or query in i.name_in(locale).lower()
+                or query in i.order_number.lower()
+            )
             and (keep is None or keep(i))
         ]
         tree = section_tree(shown, locale)
@@ -734,9 +741,11 @@ class CatalogPanel:
         downloading: set[str],
         local: dict[str, set[int | None]],
     ) -> None:
-        label = _online_label(item, local)
+        label = _online_label(item, local, locale=product_text_languages())
         if item.id in downloading:
-            imgui.text_disabled(S.ONLINE_DOWNLOADING.format(name=item.name))
+            imgui.text_disabled(
+                S.ONLINE_DOWNLOADING.format(name=item.name_in(product_text_languages()))
+            )
             return
         if not item.downloadable:
             imgui.text_disabled(f"{label}  {S.ONLINE_NOT_DOWNLOADABLE}")
@@ -801,12 +810,13 @@ class CatalogPanel:
                 self._pending_add_name = name
 
     def _online_item_name(self, item_id: str) -> str:
+        locale = product_text_languages()
         with self._online_lock:
             pools = [*self._online_items.values(), self._flat_results]
         for items in pools:
             for it in items:
                 if it.id == item_id:
-                    return it.name or item_id
+                    return it.name_in(locale) or item_id
         return item_id
 
     def _render_add_to_project_modal(self) -> None:
@@ -947,10 +957,13 @@ class CatalogPanel:
         with self._online_lock:
             downloading = set(self._online_downloading)
         local = self._local_versions_by_order()
+        locale = product_text_languages()
         for item in self._flat_results:
-            label = _online_label(item, local, with_manufacturer=True)
+            label = _online_label(item, local, with_manufacturer=True, locale=locale)
             if item.id in downloading:
-                imgui.text_disabled(S.ONLINE_DOWNLOADING.format(name=item.name))
+                imgui.text_disabled(
+                    S.ONLINE_DOWNLOADING.format(name=item.name_in(locale))
+                )
                 continue
             if not item.downloadable:
                 imgui.text_disabled(f"{label}  {S.ONLINE_NOT_DOWNLOADABLE}")
