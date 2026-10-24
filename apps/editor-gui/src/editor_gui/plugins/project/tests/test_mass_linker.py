@@ -159,7 +159,7 @@ def test_link_ga_co_skips_objects_without_db_id():
 
 def test_link_co_co_creates_ga_sets_dpt_links_both():
     proj = FakeProject()
-    count, errors = _plugin(proj)._ml_link_co_co(
+    count, errors = _plugin(proj).mass_link_objects(
         [(_co(1, "src", 1, 1), _co(2, "tgt"), "", "src->tgt")]
     )
     assert count == 1
@@ -182,7 +182,7 @@ def test_link_ga_co_skips_already_linked():
 
 def test_link_co_co_rejects_self_pair():
     proj = FakeProject()
-    count, errors = _plugin(proj)._ml_link_co_co([(_co(1), _co(1), "", "x")])
+    count, errors = _plugin(proj).mass_link_objects([(_co(1), _co(1), "", "x")])
     assert count == 0
     assert any("itself" in e for e in errors)
     assert proj.created == []
@@ -190,7 +190,7 @@ def test_link_co_co_rejects_self_pair():
 
 def test_link_co_co_uses_per_pair_address_and_name():
     proj = FakeProject()
-    _plugin(proj)._ml_link_co_co(
+    _plugin(proj).mass_link_objects(
         [(_co(1), _co(2), "1/1/1", "a"), (_co(3), _co(4), "1/1/2", "b")]
     )
     assert proj.created == [("1/1/1", "a"), ("1/1/2", "b")]
@@ -198,7 +198,7 @@ def test_link_co_co_uses_per_pair_address_and_name():
 
 def test_link_co_co_empty_address_is_auto():
     proj = FakeProject()
-    count, errors = _plugin(proj)._ml_link_co_co([(_co(1, "obj"), _co(2), "", "")])
+    count, errors = _plugin(proj).mass_link_objects([(_co(1, "obj"), _co(2), "", "")])
     assert count == 1
     assert errors == []
     assert proj.created == [
@@ -208,7 +208,7 @@ def test_link_co_co_empty_address_is_auto():
 
 def test_link_co_co_skips_duplicate_address_in_batch():
     proj = FakeProject()
-    count, errors = _plugin(proj)._ml_link_co_co(
+    count, errors = _plugin(proj).mass_link_objects(
         [(_co(1), _co(2), "1/1/1", "a"), (_co(3), _co(4), "1/1/1", "b")]
     )
     assert count == 1  # only the first; the duplicate is skipped, not half-applied

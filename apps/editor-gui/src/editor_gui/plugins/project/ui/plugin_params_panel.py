@@ -405,14 +405,18 @@ def _filter_rows(section: PluginSectionView, needle: str) -> list[_SectionRow]:
 
 
 def _row_item_id(row: _SectionRow) -> str:
+    return collection_item_id(row.label)
+
+
+def collection_item_id(label: str) -> str:
     """Best-effort id for a Collection row's Remove action — the id_field token encoded
     into the row label by the reader. Formats supported: ``#N: name`` → ``N``, bare
     label → the label as-is. Rows without an identifier end up with an empty id and the
     Remove button is hidden by the panel."""
-    m = _ROW_ID_RE.match(row.label)
+    m = _ROW_ID_RE.match(label)
     if m:
         return m.group(1)
-    return row.label.strip()
+    return label.strip()
 
 
 def _has_vendor_blob(device: Device) -> bool:

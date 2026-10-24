@@ -10,11 +10,17 @@ Atomic apply rolls back everything on the first failure by rewinding the undo cu
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, get_args
 
 from editor_gui.device import collect_ui_parameters as _collect_ui_parameters
 from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
+from editor_gui.plugins.mcp.tools.details import (
+    CommentKind,
+    comment_rich_text,
+    set_comment,
+    set_description,
+)
 from editor_gui.plugins.mcp.tools.project import (
     PLUGIN_PARAMETERS_ERROR,
     find_activation_path,
@@ -31,6 +37,7 @@ if TYPE_CHECKING:
 
 _SLOW = 300.0
 _FLAGS = ("communication", "read", "write", "transmit", "update", "read_on_init")
+_COMMENT_KINDS: tuple[str, ...] = get_args(CommentKind)
 
 
 def register(mcp: FastMCP, ctx: McpContext) -> None:
@@ -322,6 +329,38 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "changed": side_effects,
         }
 
+    def _op_rename_device(p: dict[str, Any]) -> dict[str, Any]:
+        if "name" not in p and "description" not in p:
+            raise ValueError("rename_device needs name, description or both")
+        device = _device(p)
+        if "name" in p:
+            project.set_device_name(device.node_id, device.name, p["name"])
+        if "description" in p:
+            project.set_device_description(
+                device.node_id, device.description or "", p["description"]
+            )
+        res: dict[str, Any] = {
+            "node_id": device.node_id,
+            "device_address": device.individual_address,
+        }
+        if "name" in p:
+            res["name"] = p["name"]
+        if "description" in p:
+            res["description"] = p["description"]
+        return res
+
+    def _op_set_comment(p: dict[str, Any]) -> dict[str, Any]:
+        kind = p["kind"]
+        if kind not in _COMMENT_KINDS:
+            raise ValueError(f"kind must be one of: {', '.join(_COMMENT_KINDS)}")
+        element_id = int(p.get("element_id", 0))
+        field = p.get("field", "comment")
+        if field not in ("comment", "installation_hints"):
+            raise ValueError("field must be comment or installation_hints")
+        text = comment_rich_text(p.get("text"), p.get("paragraphs"))
+        set_comment(project, kind, element_id, field, text)
+        return {"kind": kind, "element_id": element_id, "field": field}
+
     _DEVICE_OPS = {
         "rename_device",
         "set_individual_address",
@@ -344,18 +383,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         str, tuple[tuple[str, ...], Callable[[dict[str, Any]], dict[str, Any]]]
     ] = {
         "add_device": (("product_ref_id",), _op_add_device),
-        "rename_device": (
-            ("name",),
-            lambda p: (
-                (dev := _device(p)),
-                project.set_device_name(dev.node_id, dev.name, p["name"]),
-                {
-                    "node_id": dev.node_id,
-                    "device_address": dev.individual_address,
-                    "name": p["name"],
-                },
-            )[2],
-        ),
+        "rename_device": ((), _op_rename_device),
         "set_individual_address": (("address",), _op_set_individual_address),
         "set_parameter": ((), _op_set_parameter),
         "setup_parameters": (("parameters",), _op_setup_parameters),
@@ -390,6 +418,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "name": p["name"],
                 },
             )[2],
+        ),
+        "rename_group_range": (
+            ("group_range_id", "name"),
+            lambda p: (
+                project.rename_group_range(int(p["group_range_id"]), p["name"].strip()),
+                {"group_range_id": int(p["group_range_id"])},
+            )[1],
+        ),
+        "rename_function": (
+            ("function_id", "name"),
+            lambda p: (
+                project.rename_function(int(p["function_id"]), p["name"].strip()),
+                {"function_id": int(p["function_id"])},
+            )[1],
         ),
         "set_group_address_dpt": (
             (),
@@ -432,6 +474,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     p["area_id"], p["line_number"], p.get("name", "")
                 )
             },
+        ),
+        "set_comment": (("kind",), _op_set_comment),
+        "set_description": (
+            ("kind", "element_id", "description"),
+            lambda p: (
+                set_description(
+                    project, p["kind"], int(p["element_id"]), p["description"]
+                ),
+                {"kind": p["kind"], "element_id": int(p["element_id"])},
+            )[1],
         ),
     }
 
@@ -504,17 +556,24 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         Supported ops with required params (optional params in brackets) and success result fields:
         - add_device: product_ref_id [name] -> {node_id}; uses the first matching catalog product.
-        - rename_device: (node_id | device_address), name -> {node_id, device_address, name}.
+        - rename_device: (node_id | device_address), [name] [description] (at least one) -> {node_id, device_address, name?, description?}.
         - set_individual_address: (node_id | device_address), address -> {node_id, device_address, address}.
         - set_parameter: (node_id | device_address), (parameter_ref_id | label [channel] [subtree_id tree_token] [value_label]),
           value? -> {node_id, device_address, ref_id, requested, value, active, changed?, lost_links?, activated_com_objects, unlocked_parameters}.
           Address the parameter by parameter_ref_id, or semantically by label (resolved AT THIS OP'S TURN within channel or subtree_id,
           so a child a prior op in the batch just activated resolves; channel scopes by name e.g. 'A' without needing tree_token;
+          a SCOPED label requires tree_token from the project_parameter_tree response its subtree_id came from, so an op
+          whose scope an earlier batch op invalidated fails explicitly instead of silently retargeting;
           value_label gives an enum's value). value is read back after the edit; changed lists
           calculated side effects; lost_links lists links a function/mode change dropped.
+        - setup_parameters: (node_id | device_address), parameters=[{path|label|parameter_ref_id, value, value_label?}] ->
+          {node_id, device_address, applied, planned_edits, changed}. Atomically resolves and applies the complete activation chain
+          for gating selector parameters (e.g. Choose/When blocks) and target parameters in a single step.
         - set_com_object_flag: (node_id | device_address), com_object_ref_id, flag, value -> {node_id, device_address, com_object_ref_id}.
         - create_group_address: [address, name] -> {group_address_id}.
         - rename_group_address: (group_address_id | group_address), name -> {group_address_id, group_address, name}.
+        - rename_group_range: group_range_id, name -> {group_range_id}.
+        - rename_function: function_id, name -> {function_id}.
         - set_group_address_dpt: (group_address_id | group_address) [dpt; omitted/null clears] -> {group_address_id, group_address, dpt}.
         - remove_group_address: (group_address_id | group_address) -> {group_address_id, group_address}.
         - link_com_object: (node_id | device_address), com_object_ref_id, (group_address_id | group_address) [is_sending=false] ->
@@ -524,11 +583,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - unlink_com_object: assignment_id | ((node_id | device_address), com_object_ref_id, (group_address_id | group_address)) -> {assignment_id}.
         - create_area: area_number [name] -> {area_id}.
         - create_line: area_id, line_number [name] -> {line_id}.
+        - set_comment: kind [element_id] [field="comment"], text | paragraphs -> {kind, element_id,
+          field}; kind, field, text and paragraphs as for project_set_comment.
+        - set_description: kind, element_id, description -> {kind, element_id}; kind is area, line,
+          group_range, group_address or space.
 
         Use node_id from project_list_devices, product_ref_id from catalog_list_products, parameter
         ref_id from project_list_parameters as parameter_ref_id, and object ref_id from
-        project_list_com_objects as com_object_ref_id. Use id from project_create_group_address or
-        project_get_group_address as group_address_id; use area id from project_topology as area_id. For assignment_id, use id
+        project_list_com_objects as com_object_ref_id. Use id from project_list_group_addresses or
+        project_get_group_address as group_address_id; use id from project_list_group_ranges as group_range_id and a function
+        id from project_spaces as function_id; use area id from project_topology as area_id. For assignment_id, use id
         from project_get_ga_assignments, assignment_id from project_get_com_object_links or a returned
         link_id. Linkable objects are required for linking; set is_sending=true for a transmitting
         link. flag is communication/read/write/transmit/update/read_on_init.
