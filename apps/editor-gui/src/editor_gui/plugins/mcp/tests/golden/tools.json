@@ -1,0 +1,3852 @@
+[
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Delete all versions of a local catalog product using product_ref_id from\ncatalog_list_products. Also removes exclusively used programs, hardware, applications,\nsections, manufacturers and stored archives. This is irreversible with project_undo.\nReturns {product_ref_id, removed_programs, removed_applications, removed_hardware,\nremoved_sections, removed_manufacturers, removed_files, affected_devices}. The removed lists\ncontain IDs, except removed_files contains filenames. affected_devices counts open-project\ndevices that cannot be loaded until the product is reimported; hardware is unchanged.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "product_ref_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "product_ref_id"
+      ],
+      "type": "object"
+    },
+    "name": "catalog_delete_product"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Find device documentation for a topic such as \"dimming curve\". Supply product_ref_id\nfrom catalog_list_products to resolve product details, or pass manufacturer directly.\nReturns {query, manufacturer, order_number, document_url, references, note}; each reference\nhas {title, kind, url} and optionally hint.\n\ndocument_url is a best-effort manual link and may be null. Try it with catalog_docs_fetch,\nverify the exact order number and series/generation, then use references as fallbacks.\nRead only relevant sections (manuals are often large PDFs). The references are ordered\nbest-source-first and are fallbacks for each other (manufacturer site / KNX device database /\nweb search); if none is fetchable, ask the user to open a link and paste the relevant section\nrather than guessing. For configuration IDs and allowed values, use\nproject_list_parameters/project_list_com_objects.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "manufacturer": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "product_ref_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "query": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "type": "object"
+    },
+    "name": "catalog_docs"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "List documentation files cached on the editor host. Returns {items, count}; each item has\n{filename, url, size_bytes}. Pass url to catalog_docs_fetch to reuse a PDF or text/Markdown\nfile offline without searching or downloading again.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "catalog_docs_cached"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Read a PDF or text/Markdown manual incrementally using a URL from catalog_docs. Verify\nthe device's exact order number and series. GitHub blob URLs become raw-file URLs; downloads\nuse allowed documentation hosts. Files are cached on disk; refresh=true downloads again.\n\nPDF results always include {url, total_pages}, plus:\n- page=N (1-based, takes precedence over find): {page, text, truncated}.\n- find=\"term\": {find, pages}, with matching 1-based page numbers.\n- neither: {outline, hint}; outline entries have {title, page}, or the list is empty.\n\nText/Markdown results always include {url, content_type: \"text\", total_chars}; page is ignored.\n- find=\"term\": adds {find, match_count, matches}; matches has at most 50 {line, text} entries\n  with 1-based line numbers and snippets up to 200 characters; match_count counts all matches.\n- no find: adds {outline, text, truncated, hint}; outline entries have {level, title, line}.\n\nmax_chars caps returned page/document text. find is a case-insensitive substring search;\ntry German/English terms when needed. Use find when a PDF has no outline. Returns the source\nurl for verification; this does not change the project.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "find": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "max_chars": {
+          "default": 6000,
+          "type": "integer"
+        },
+        "page": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "refresh": {
+          "default": false,
+          "type": "boolean"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "url"
+      ],
+      "type": "object"
+    },
+    "name": "catalog_docs_fetch"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Download and import online products into the local catalog. catalog_item_ids must be a\nnonempty list of id values from downloadable catalog_online_items entries. Omitted or empty\nlanguage_ids uses the languages of catalog_online_language; otherwise use codes such as\n\"de-DE\".\nReturns {added_refs, added_versions}; added_refs lists distinct product refs for added versions;\neach added_versions item has {product_ref_id, hardware2program_ref_id, application_id,\napplication_version}. Pass product_ref_id and optional hardware2program_ref_id to\nproject_add_device. The import is outside project_undo history and does not program devices.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "catalog_item_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "language_ids": {
+          "anyOf": [
+            {
+              "items": {
+                "type": "string"
+              },
+              "type": "array"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "catalog_item_ids"
+      ],
+      "type": "object"
+    },
+    "name": "catalog_download_online_products"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Resolve a catalog application by `application_id` (from a catalog_list_products item's\n`application_id`). Returns {id, name}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "application_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "application_id"
+      ],
+      "type": "object"
+    },
+    "name": "catalog_get_application"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Import a .knxprod at path on the editor host into the local catalog, keeping existing\nversions. For a file on a remote client, use catalog_import_knxprod_bytes.\nReturns {added_refs, added_versions}: added_refs lists distinct product refs for added versions;\neach added_versions item has {product_ref_id, hardware2program_ref_id, application_id,\napplication_version}. Pass product_ref_id and optional hardware2program_ref_id to\nproject_add_device. Catalog imports are outside project_undo history and do not program\ndevices.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "type": "object"
+    },
+    "name": "catalog_import_knxprod"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Import a .knxprod from a remote client: pass its filename and base64 bytes as data_base64\n(decoded size at most 25 MB). Prefer catalog_import_knxprod for files on the editor host.\nReturns {added_refs, added_versions, filename, size_bytes}; filename is sanitized and\nsize_bytes is the decoded size. added_refs lists distinct product refs for added versions;\neach added_versions item has {product_ref_id, hardware2program_ref_id, application_id,\napplication_version}. Pass product_ref_id and optional hardware2program_ref_id to\nproject_add_device. This changes the local catalog, outside project_undo history.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "data_base64": {
+          "type": "string"
+        },
+        "filename": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "data_base64"
+      ],
+      "type": "object"
+    },
+    "name": "catalog_import_knxprod_bytes"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "List local catalog product versions. name_contains matches product names/order numbers;\nmanufacturer_contains matches manufacturer names. Both filters are case-insensitive.\nReturns {items, count}; each item has {product_ref_id, hardware2program_ref_id, name,\norder_number, application_id, application_version, manufacturer_id, manufacturer_name}.\nPass product_ref_id and optional hardware2program_ref_id to project_add_device; pass\napplication_id to catalog_get_application. Filter large catalogs to limit the response.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "manufacturer_contains": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name_contains": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "catalog_list_products"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "List a manufacturer's online catalog products over the network. Pass id from\ncatalog_refresh_online_manufacturers as manufacturer_id. Returns {items, count}; each item\nhas {id, name, order_number, downloadable}. Collect id values from downloadable items into\ncatalog_item_ids for catalog_download_online_products.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "manufacturer_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "manufacturer_id"
+      ],
+      "type": "object"
+    },
+    "name": "catalog_online_items"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Return {language, languages}: the languages online products are downloaded in, the\neditor's language first (e.g. \"de-DE\"), then its other languages.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "catalog_online_language"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Refresh the online manufacturer list over the network. Returns {items, count}; each item\nhas {id, name}. Pass id as manufacturer_id to catalog_online_items.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "catalog_refresh_online_manufacturers"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Download online products in code only (such as \"de-DE\") for the rest of the session,\ninstead of the editor's languages. Returns {language}, containing code. This setting is\noutside project_undo history.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "type": "object"
+    },
+    "name": "catalog_set_online_language"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Write the device's project individual address to the single device currently in\nprogramming mode. Needs an open connection and an unused project address set beforehand with\nproject_set_individual_address (this does not check address occupancy); exactly one device\nmust be in programming mode. This bus change is NOT undoable. ``timeout`` in seconds.\n\nIt runs in the editor's operations queue, labelled MCP, like connection_program_device with\nscope INDIVIDUAL_ADDRESS: it waits until a device is in programming mode (its programming\nbutton pressed), up to ``timeout``, and the user can cancel it. Returns\n{status, node_id, address}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "node_id": {
+          "type": "integer"
+        },
+        "timeout": {
+          "default": 30.0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "node_id"
+      ],
+      "type": "object"
+    },
+    "name": "connection_assign_individual_address"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Persist the gateway/connection settings. Empty or whitespace-only ``controller_ip`` /\n``multicast_group`` strings keep their previous value; non-empty strings replace them.\n``routing`` here is only the stored preference \u2014 connection_connect always uses tunnelling,\nconnection_connect_gateway prefers tunnelling and otherwise routing. Disconnect before\nchanging an active connection's target.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "controller_ip": {
+          "type": "string"
+        },
+        "multicast_group": {
+          "default": "",
+          "type": "string"
+        },
+        "routing": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "controller_ip"
+      ],
+      "type": "object"
+    },
+    "name": "connection_configure"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Connect using the configured gateway IP (tunneling). Waits until connected or fails.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "timeout": {
+          "default": 15.0,
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "name": "connection_connect"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Connect to a discovered gateway by IP (run connection_scan first). Waits for the result.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "ip": {
+          "type": "string"
+        },
+        "timeout": {
+          "default": 15.0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "ip"
+      ],
+      "type": "object"
+    },
+    "name": "connection_connect_gateway"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Disconnect from the bus. Returns the resulting connection state.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "connection_disconnect"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Preview what a download would change on an ALREADY-programmed device, without changing it.\n\nReads the live device point-to-point and diffs it against the generated image. Needs an open\nconnection and the device answering at its project individual address \u2014 a device that does not\nrespond (e.g. a virgin/unprogrammed one) fails, so skip this and program a NEW device directly\nwith scope FULL. ``scope`` defaults to FULL; the individual-address scopes are rejected.\n``timeout`` in seconds.\n\nReturns {node_id, changed_bytes, config_bytes, default_bytes, runtime_bytes, config_locations,\nchanged_segments, changed_properties, summary}. ``changed_bytes`` is the raw total; it is split\ninto three classes, and ONLY ``config_bytes`` is a real configuration change you would push:\n- config_bytes: bytes carrying a configured parameter value / a property write (flags, tables).\n- default_bytes: bytes merely reset to the application default (the device holds an older value)\n  \u2014 benign.\n- runtime_bytes: bytes the device firmware manages itself (e.g. a download counter) \u2014 benign,\n  and they typically never converge to zero even right after a successful download.\nSo a non-zero ``changed_bytes`` with ``config_bytes == 0`` (``config_locations == 0``) means the\ndevice already carries the configuration; do not treat that as a pending change. changed_segments/\nchanged_properties are counts and do not describe unload/restart or address-reset effects.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "node_id": {
+          "type": "integer"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "enum": [
+                "FULL",
+                "PARAMETERS",
+                "GROUP_COMMUNICATION",
+                "PARAMETERS_AND_GROUP_COMMUNICATION",
+                "APPLICATION",
+                "UNLOAD",
+                "UNLOAD_ALL",
+                "INDIVIDUAL_ADDRESS",
+                "OVERWRITE_INDIVIDUAL_ADDRESS"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "timeout": {
+          "default": 120.0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "node_id"
+      ],
+      "type": "object"
+    },
+    "name": "connection_evaluate_device"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Download the device (``node_id`` from project_list_devices) onto the bus (``timeout``\nseconds). Needs an open connection, a project individual address, and the device physically on\nthe bus; secure devices need a matching loaded keyring. Bus changes are NOT undoable with\nproject_undo, and a failure or timeout may leave partial changes.\n\nALREADY-programmed device: run connection_evaluate_device once to preview the diff, then\nprogram with the scope matching your change. NEW device: assign its address first\n(project_set_individual_address, then connection_assign_individual_address with the device in\nprogramming mode), then program with scope FULL.\n\n``scope`` (default FULL) selects which loadable parts run; the procedure may reload/restart\nthe device, so do not assume only changed bytes are written:\n- PARAMETERS: parameter values only.\n- GROUP_COMMUNICATION: the group-address link tables (address/association/group-object).\n- PARAMETERS_AND_GROUP_COMMUNICATION: both of the above \u2014 the scope for a change that touches\n  parameters AND links (e.g. changing a push-button function type AND relinking its objects).\n- APPLICATION: the complete application load \u2014 parameters, com-object table, AND the\n  group-address link tables (like FULL, without the standalone address-assignment step).\n- FULL: the full application load; for a device not yet answering it can also assign the\n  project address first (optionally via ``use_serial_number``).\n- UNLOAD: remove the application. UNLOAD_ALL also resets the single device in programming mode\n  to 15.15.255 \u2014 make sure that is the intended device.\n- INDIVIDUAL_ADDRESS: write ONLY the project address to the single device in programming mode\n  (waits until its programming button is pressed, up to ``timeout``); refused when another\n  device already uses the address. OVERWRITE_INDIVIDUAL_ADDRESS writes it to the device\n  currently answering at ``current_address`` (required), switching it to programming mode\n  remotely.\n\n``use_serial_number`` addresses the device by its project serial (project_set_serial_number)\ninstead of programming mode \u2014 for INDIVIDUAL_ADDRESS, or a FULL commissioning download of a\ndevice that does not answer at its address yet. A device whose hardware is\nNoDownloadWithoutPlugin is refused unless ``without_plugin=true``, set only after the user\nexplicitly confirmed programming it without the manufacturer's plugin.\n\nThe programming runs in the editor's operations queue, labelled MCP: the user sees it there\nand in its history, it waits behind operations already queued, and the user can cancel it\n(the call then fails with the cancel message). Returns {status, node_id}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "current_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "type": "integer"
+        },
+        "scope": {
+          "anyOf": [
+            {
+              "enum": [
+                "FULL",
+                "PARAMETERS",
+                "GROUP_COMMUNICATION",
+                "PARAMETERS_AND_GROUP_COMMUNICATION",
+                "APPLICATION",
+                "UNLOAD",
+                "UNLOAD_ALL",
+                "INDIVIDUAL_ADDRESS",
+                "OVERWRITE_INDIVIDUAL_ADDRESS"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "timeout": {
+          "default": 300.0,
+          "type": "number"
+        },
+        "use_serial_number": {
+          "default": false,
+          "type": "boolean"
+        },
+        "without_plugin": {
+          "default": false,
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "node_id"
+      ],
+      "type": "object"
+    },
+    "name": "connection_program_device"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Read the individual addresses of devices currently in programming mode (needs a connection).",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "timeout": {
+          "default": 5.0,
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "name": "connection_read_programming_mode_devices"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Discover KNX gateways on the network (``timeout`` in seconds).\n\nReturns ``{complete, count, gateways}``; ``complete`` is false if the timeout elapsed while a\nscan was still running (the gateway list may then be incomplete). Connect with\nconnection_connect_gateway(ip).",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "timeout": {
+          "default": 6.0,
+          "type": "number"
+        }
+      },
+      "type": "object"
+    },
+    "name": "connection_scan"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Current connection state and target.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "connection_status"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "List EVERY com-object the device's application DECLARES \u2014 a superset of the ones currently\nactive (project_list_com_objects) \u2014 so you can see which objects a function could add before\nswitching its parameters (for group-address planning). Identify the device by ``node_id`` OR\n``device_address`` (an individual address like \"1.0.30\"); pass exactly one.\n\nReturns {items, count}; each item has {ref_id, number, name, function_text, dpt, object_size}\nfrom the STATIC declaration: names/function texts are templates (no parameter or module\nsubstitution) and ``number`` is the base (a module instance offsets it). This is NOT a\nreachability proof \u2014 a declared object may never be activatable in a given configuration, and\nthe parameter values that activate each one are NOT included. For the active, linkable objects\n(with db_id/flags) and their links, use project_list_com_objects.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "find_potential_com_objects"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Discard the keyring held in memory. Returns {status: \"cleared\"}. The source file remains\navailable for keyring_load; project_undo cannot restore runtime keyring state.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "keyring_clear"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Export the loaded keyring to path on the editor host, re-encrypted and signed under\npassword with the same key material. Requires a loaded keyring. An existing destination\nfile is overwritten; this cannot be undone with project_undo. Returns {exported: true, path}.\nThis writes a file without changing keys on bus devices.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "password": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "password"
+      ],
+      "type": "object"
+    },
+    "name": "keyring_export"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Decrypt a .knxkeys file at path on the editor host and replace the keyring held in memory.\nRaises on a wrong password or invalid file. Returns {loaded: true, path}. This is runtime\nstate, outside project_undo history; it is not stored in the project or written to the bus.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "password": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "password"
+      ],
+      "type": "object"
+    },
+    "name": "keyring_load"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Return {loaded, path, project} for the in-memory keyring. path is its editor-host source\npath or null; project is the project name stored in the keyring, or null.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "keyring_status"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Clear cached latest values and the Group Monitor log; active recording continues.\nReturns {status: \"cleared\"}. Cleared data cannot be restored with project_undo.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "monitor_clear"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read the cached value last seen on a group-address string such as \"1/2/3\"; no bus request\nis sent. Returns {address, service, timestamp, payload}; service is \"Write\" or \"Response\",\ntimestamp is ISO-formatted, and payload is a raw payload string. Raises if no value was seen;\na cached value may be stale.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "monitor_latest"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Send a GroupValueRead to a group-address string (e.g. \"1/2/3\") and wait up to timeout\nseconds for a fresh value. Requires an open connection; raises on timeout. Any Write or\nResponse seen on that address since the request can satisfy the wait, including unrelated\ntraffic. Returns {address, service, timestamp, payload}; timestamp is ISO-formatted and payload\nis a raw payload string. This sends a bus read without editing the project.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "timeout": {
+          "default": 3.0,
+          "type": "number"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "monitor_read_value"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Queue a GroupValueRead to a group-address string such as \"1/2/3\". Requires an open\nconnection. Returns {status: \"queued\", address} without waiting for a reply; monitor_read_value\nwaits for a fresh value. When polling monitor_latest, check timestamp to avoid stale data.\nThis sends a bus read without editing the project.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "monitor_send_read"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": true,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Queue a GroupValueWrite to a group-address string such as \"1/2/3\". Requires an open\nconnection. value is encoded using dpt, or the address's project DPT when omitted; missing\nor unsupported DPTs and values that cannot be encoded raise an error.\nReturns {status: \"queued\", address}; this does not confirm delivery or device action.\nThis can actuate hardware and is not reversible with project_undo; it does not edit the\nproject. Inspect fresh bus feedback to verify the effect.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "dpt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "address",
+        "value"
+      ],
+      "type": "object"
+    },
+    "name": "monitor_send_write"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read the Group Monitor's recorded group telegrams, oldest first. limit selects the most\nrecent entries (<=0 means all). Returns {items, count}; each item has {timestamp, source,\ndestination, service, payload}. timestamp is ISO-formatted; service is \"Read\", \"Write\" or\n\"Response\"; payload is a raw payload string or null for reads. count is the returned count.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "default": 100,
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "name": "monitor_telegrams"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read raw cEMI frames from the Group Monitor and Bus Activity, merged oldest first.\nlimit selects the most recent frames (<=0 means all). Returns {items, count}; each item has\n{timestamp, source_type, monitor, msg_code, src_addr, dst_addr, hops, raw}. timestamp is\nISO-formatted, source_type is \"connection\", monitor is \"group_monitor\" or \"bus_activity\",\nand raw is space-separated hex. Non-data frames have empty addresses and null hops.\ncount is the returned count.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "default": 100,
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "name": "network_cemi_records"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Clear the Group Monitor and Bus Activity logs; active recording continues and cached\nlatest values remain. Returns {status: \"cleared\"}. Cleared logs cannot be restored with\nproject_undo.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "network_clear"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Enable recording in the Group Monitor and Bus Activity for the normal connection.\nExisting entries are kept; network_clear clears them. Returns {status: \"capturing\"}.\nThis enables local recording without opening a bus connection.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "network_start"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read recording state for the normal connection's Group Monitor and Bus Activity.\nReturns {state, recording, telegrams, cemi_records}; recording has {group_monitor, bus_activity}\nbooleans, and state is \"capturing\" while either records, otherwise \"stopped\". telegrams counts\nbuffered L_Data frames; cemi_records counts all buffered frames. Recording state does not\nestablish whether a bus connection is open.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "network_state"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Stop Group Monitor and Bus Activity recording while keeping buffered entries and the\nnormal bus connection unchanged. Returns {status: \"stopped\"}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "network_stop"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read decoded L_Data telegrams from the Group Monitor and Bus Activity, merged oldest first.\nlimit selects the most recent decodable entries (<=0 means all). Returns {items, count}; each\nitem has {timestamp, source_type, monitor, telegram}. timestamp is ISO-formatted, source_type\nis \"connection\", monitor is \"group_monitor\" or \"bus_activity\", and telegram is a display\nstring. count is the returned count.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "limit": {
+          "default": 100,
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "name": "network_telegrams"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Add a device to the project using product_ref_id from catalog_list_products.\nOptional hardware2program_ref_id from the same catalog listing selects its application;\nomitting it selects the newest catalog version. Undoable with project_undo; commissioning\nhardware requires separate connection tools.\n\nReturns {node_id, name, individual_address, description}, or only {node_id} if the created\ndevice cannot be loaded. Pass node_id to device tools.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "hardware2program_ref_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "product_ref_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "product_ref_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_add_device"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Add a KNX Data Secure device certificate: ``code`` is the FDSK from the device label\n(36 characters, groups separated by \"-\"). A device with the certificate's serial number is\nthen commissioned securely with it. With ``node_id`` or ``device_address`` the certificate is for that device:\none without a serial number takes the certificate's, one with another is refused. Needs a\npassword-protected project.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string"
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "type": "object"
+    },
+    "name": "project_add_device_certificate"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Assign the missing additional individual addresses of a project device (the\ntunnelling addresses of an IP interface) using node_id or device_address: entries\nare created up to count (default: as many as the device's application has) and every\nentry without an address gets one, the highest free device numbers of the device's line\ncounting down from 255. One undo step (project_undo). Fails when the line has too few free\naddresses. Returns {node_id, additional_addresses}, each {index, address, name,\ndescription}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_assign_additional_addresses"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Apply project edits in order. Each operations entry is {\"op\": name, \"params\": {...}}.\nThese are undoable project steps; applying changes to hardware requires connection tools.\nA batch may require multiple project_undo calls. IDs must be known before the call; later\noperations cannot reference earlier results.\n\nDevice-scoped ops accept either ``node_id`` (int) OR ``device_address`` (str, e.g. \"1.0.30\");\nGA-scoped ops accept either ``group_address_id`` (int) OR ``group_address`` (str, e.g.\n\"10/1/2\"). Pass exactly one of each pair. Below \"device\" / \"ga\" stand for either form.\n\nSupported ops with required params (optional params in brackets) and success result fields:\n- add_device: product_ref_id [name] -> {node_id}; uses the first matching catalog product.\n- rename_device: (node_id | device_address), name -> {node_id, device_address, name}.\n- set_individual_address: (node_id | device_address), address -> {node_id, device_address, address}.\n- set_parameter: (node_id | device_address), (parameter_ref_id | label [channel] [subtree_id tree_token] [value_label]),\n  value? -> {node_id, device_address, ref_id, requested, value, active, changed?, lost_links?, activated_com_objects, unlocked_parameters}.\n  Address the parameter by parameter_ref_id, or semantically by label (resolved AT THIS OP'S TURN within channel or subtree_id,\n  so a child a prior op in the batch just activated resolves; channel scopes by name e.g. 'A' without needing tree_token;\n  value_label gives an enum's value). value is read back after the edit; changed lists\n  calculated side effects; lost_links lists links a function/mode change dropped.\n- set_com_object_flag: (node_id | device_address), com_object_ref_id, flag, value -> {node_id, device_address, com_object_ref_id}.\n- create_group_address: [address, name] -> {group_address_id}.\n- rename_group_address: (group_address_id | group_address), name -> {group_address_id, group_address, name}.\n- set_group_address_dpt: (group_address_id | group_address) [dpt; omitted/null clears] -> {group_address_id, group_address, dpt}.\n- remove_group_address: (group_address_id | group_address) -> {group_address_id, group_address}.\n- link_com_object: (node_id | device_address), com_object_ref_id, (group_address_id | group_address) [is_sending=false] ->\n  {link_id, node_id, device_address, com_object_ref_id, com_object_db_id, group_address_id, group_address, is_sending,\n  already_linked, dpt_mismatch?, other_sending_group_address_ids?} (same feedback as the\n  standalone tool; idempotent).\n- unlink_com_object: assignment_id | ((node_id | device_address), com_object_ref_id, (group_address_id | group_address)) -> {assignment_id}.\n- create_area: area_number [name] -> {area_id}.\n- create_line: area_id, line_number [name] -> {line_id}.\n\nUse node_id from project_list_devices, product_ref_id from catalog_list_products, parameter\nref_id from project_list_parameters as parameter_ref_id, and object ref_id from\nproject_list_com_objects as com_object_ref_id. Use id from project_list_group_addresses as\ngroup_address_id; use area id from project_topology as area_id. For assignment_id, use id\nfrom project_get_ga_assignments, assignment_id from project_get_com_object_links or a returned\nlink_id. Linkable objects are required for linking; set is_sending=true for a transmitting\nlink. flag is communication/read/write/transmit/update/read_on_init.\n\ndry_run=true checks only operation names, required params and flag names, without applying\nedits or validating referenced entities/values. Returns {dry_run, valid, results}; each result\nhas {index, op, valid}, plus issue when invalid. index is zero-based.\n\ndeferred=true (default) enables multi-pass deferred validation: operations that fail because\na prerequisite (e.g. parent switch activating a child parameter, or a function activating a\ncom-object) has not yet run in the batch are deferred and retried in subsequent passes once\nother operations succeed. Setting deferred=false enforces strict single-pass order.\n\nWith dry_run=false, returns {applied, atomic, rolled_back, ok, failed, results}. Each result\nhas {index, op, status}, plus result on \"ok\" or error on \"error\"; \"skipped\" has neither.\natomic=true (default) stops on the first unresolvable error and rewinds applied project edits;\nlater operations are skipped. atomic=false continues, so applied=true can coexist with\nfailures. ok counts successful handler returns even after rollback; inspect rolled_back and\neach result. Handlers can return without changing anything, so re-read critical edits.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "atomic": {
+          "default": true,
+          "type": "boolean"
+        },
+        "deferred": {
+          "default": true,
+          "type": "boolean"
+        },
+        "dry_run": {
+          "default": false,
+          "type": "boolean"
+        },
+        "operations": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "operations"
+      ],
+      "type": "object"
+    },
+    "name": "project_batch"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Change a device's project application to another program of its hardware. Use node_id\nor device_address and hardware2program_ref_id from project_list_application_programs\nfor that device. Parameters, group-object links and flags reset to the new application's\ndefaults; address, name and serial number stay.\n\nUndoable with project_undo. Apply it on the bus with connection_program_device(scope=\"FULL\").\nReturns {node_id, application_id, version, note}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "hardware2program_ref_id": {
+          "type": "string"
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "hardware2program_ref_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_change_application"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Close the open project. Returns {status: \"closed\"}. Reopen it with project_open;\nclosing is outside project_undo history.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "project_close"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Remove product data no device uses from the open project and compact its file.\n\ndry_run=true (default) previews removal and estimates file_size_after. Applying compaction\nis irreversible with project_undo; removed product data must be imported again if needed.\nReturns {status, nothing_unused, file_size_before, file_size_after, removed,\nproduct_data_size_before, product_data_size_after}; sizes are bytes. status is \"analysed\" or\n\"compacted\". removed contains lists named application_programs, products, hardware,\ncatalog_items, baggages and manufacturers: IDs, except baggages contains archive paths.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "dry_run": {
+          "default": true,
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_compact"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Compare two devices (by node_id or device_address) across header, parameters and\ncom-objects. Items are keyed so two instances of the SAME application line up (parameters by\napplication-relative ref, com-objects by object number). Returns {node_id_a, node_id_b,\ndifference_count, header, parameters, com_objects}; each section is a list of rows\n{key, label, kind, a, b} where kind is added|removed|changed|same and a/b are the values on\neach device (\"\" when the item is absent there). Com-object rows additionally carry\na_links/b_links: the group addresses each device links as [{address, sending}] (sending\nfirst). This lets a caller tell a structural difference (object linked on one side only, or\ndifferent flags/DPT) from a mere room-mapped GA difference (same structure, both linked\nsending, only the address differs). With only_differences=true (default) the 'same' rows are\nomitted to keep the result small.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address_a": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "device_address_b": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id_a": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id_b": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "only_differences": {
+          "default": true,
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_compare_devices"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Create a project topology area. Undoable with project_undo.\nReturns {area_id, area_number, name}; use area_id for project_create_line and area edits.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "area_number": {
+          "type": "integer"
+        },
+        "name": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "required": [
+        "area_number"
+      ],
+      "type": "object"
+    },
+    "name": "project_create_area"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Create a project group address. address follows project_info's group_address_style\n(e.g. \"1/2/3\"); omit it for the next free address. Returns {group_address_id, address, name},\nor only {group_address_id} if the created row cannot be read. Pass group_address_id to group\naddress and linking tools. Undoable with project_undo; hardware changes require linking\ncom-objects and programming their devices.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_create_group_address"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Create a project topology line. Use an area's id from project_topology as area_id.\nUndoable with project_undo. Returns {line_id, area_id, line_number}; pass line_id to line edits.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "area_id": {
+          "type": "integer"
+        },
+        "line_number": {
+          "type": "integer"
+        },
+        "name": {
+          "default": "",
+          "type": "string"
+        }
+      },
+      "required": [
+        "area_id",
+        "line_number"
+      ],
+      "type": "object"
+    },
+    "name": "project_create_line"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Create a building/location space. ``space_type`` is one of Building, BuildingPart, Floor,\nRoom, Corridor, Stairway, DistributionBoard. ``parent_id`` is a parent space ``id`` from\nproject_spaces (null = top level). Undoable project edit. Returns {space_id, parent_id,\nspace_type, name}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "space_type": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "space_type",
+        "name"
+      ],
+      "type": "object"
+    },
+    "name": "project_create_space"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "List devices that project_update_application can update: the local catalog has a\nversion of the same application program whose ReplacesVersions names the current one.\n\nReturns {items, count}; each item has {node_id, individual_address, name, application_id,\ncurrent_version, available_version}. Pass an item's node_id to project_update_application\nto update the project; this lookup does not change the project or bus.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "project_devices_with_update"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Show changes made in the current session (dirty state since opening/saving),\nOR compare the current project against an external project file (.knxproj or .xknx).",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "compare_against": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional path to a .knxproj or .xknx file. If omitted,\n             diffs the current uncommitted session edits against the open project baseline."
+        },
+        "only_differences": {
+          "default": true,
+          "description": "If True (default), omits unchanged elements to keep the diff concise.",
+          "type": "boolean"
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_diff"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Export the open project's key material as a keyring (``.knxkeys``) to ``dest``,\nencrypted with ``password``: the backbone key, the devices commissioned securely, the\ntunnels of the KNX IP Secure devices and the keys of the secured group addresses (e.g. for\na secure tunnel of another tool).",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "dest": {
+          "type": "string"
+        },
+        "password": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "dest",
+        "password"
+      ],
+      "type": "object"
+    },
+    "name": "project_export_keyring"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Export the open project to a .knxproj archive at ``dest`` (with manufacturer bundle).\nReturns {status, dest} plus an optional ``warning``. ``status=\"incomplete\"`` means\nmanufacturer references are missing \u2014 ETS may reject the archive, so inspect the warning.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "dest": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "dest"
+      ],
+      "type": "object"
+    },
+    "name": "project_export_knxproj"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Scan a multi-channel or modular device (actuators, touch panels, push-buttons, inputs)\nfor free and used channels, controls, or slots.\n\nIdentifies functional slots by inspecting UI containers and primary selector parameters\n(e.g. 'Channel function', 'Funktion', 'Betriebsart').",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Individual address (e.g. '1.0.30'). Pass exactly one of node_id or device_address."
+        },
+        "function_filter": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional filter to only return slots that currently have, or can be configured to,\n             the specified function (e.g. 'Schalten', 'Dimmen', 'Jalousie')."
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Internal device node ID."
+        },
+        "slot_type": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional substring filter on slot name/path (e.g. 'Steuerung', 'Channel', 'Kanal')."
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_find_free_slots"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read a project com-object. Identify the device by ``node_id`` OR ``device_address`` (an\nindividual address like \"1.0.30\"); pass exactly one. Pass the object's ref_id from\nproject_list_com_objects as com_object_ref_id. Returns {ref_id, db_id, linkable, name, number,\ndpt, dpt_name, object_size, flags}; flags contains communication, read, write, transmit,\nupdate, read_on_init. linkable=true is required for linking and flag edits.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "com_object_ref_id": {
+          "type": "string"
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "com_object_ref_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_get_com_object"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read a com-object's group-address links in the project. Identify the device by ``node_id``\nOR ``device_address`` (an individual address like \"1.0.30\"); pass exactly one. Pass ref_id\nfrom project_list_com_objects as com_object_ref_id.\nReturns {items, count}; each item has {assignment_id, group_address_id, address, name,\nis_sending}. Pass assignment_id to project_unlink_com_object. items is empty when the object\nis not instantiated or has no links; address and name are null if the group address is absent.\nThese project links do not verify what is currently programmed on the bus.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "com_object_ref_id": {
+          "type": "string"
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "com_object_ref_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_get_com_object_links"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read a project device. Identify it by ``node_id`` OR ``device_address`` (an individual\naddress like \"1.0.30\"); pass exactly one. Returns {node_id, name, individual_address,\ndescription}, plus {product_ref_id, hardware2program_ref_id, order_number, hardware_name,\nproduct_name, manufacturer_name, additional_addresses} when catalog metadata is available.\nindividual_address is null when unset. additional_addresses lists the device's additional\nindividual addresses (the tunnelling addresses of an IP interface) as {index, address, name,\ndescription}; index is 1-based (the AddressIndex of a tunnelling interface), address an\n\"a.l.d\" string or null for an entry without one.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_get_device"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read a group address's project com-object links using group_address_id or group_address string\n(e.g. '10/1/2'). Returns {items, count}; each item has {id, com_object_db_id, group_address_id,\nis_sending, node_id, individual_address, com_object_ref_id, com_object_name}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "group_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "group_address_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_get_ga_assignments"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read a project group address using group_address_id or group_address string (e.g. '10/1/2').\nReturns {id, address, name, datapoint_type, description, data_secure}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "group_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "group_address_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_get_group_address"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "The KNX IP Secure settings of a secure IP device commissioned securely: whether its\ntunnels are secured and its bus interfaces (kind, user id, tunnelling address). With\n``include_passwords`` also its commissioning password, its authentication code and the\nbus interfaces' passwords - only when the user asks for them.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "include_passwords": {
+          "default": false,
+          "type": "boolean"
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_get_ip_secure"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read a project application parameter. Identify the device by ``node_id`` OR\n``device_address`` (an individual address like \"1.0.30\"); pass exactly one. Identify the parameter\nby ``parameter_ref_id`` OR semantically by ``path`` (e.g. \"Steuerung 1 / Funktion\") or ``label``.\nReturns {ref_id, label, value, default_value, access, widget}; for an enum, widget includes\nthe full ``choices`` (value/label/id) \u2014 the allowed values for project_set_parameter.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "parameter_ref_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_get_parameter"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Project edit history. Returns {items, count}; each item has {id, label, reverted}. Pass an\nitem's ``id`` as project_jump_to's ``event_id``.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "project_history"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Import a .knxproj (``source``) into a new .xknx project at ``dest`` and open it.\n\nBoth paths are on the editor host. ``password`` is required for encrypted projects; it\nthen protects the new project too. An archive with KNX Secure data but without a password\nneeds ``project_password`` to protect the new project. An existing file at ``dest`` is\nreplaced and bundled product data is imported into the local catalog; neither the file\nreplacement nor the catalog import is undoable with project_undo. Returns {open, path}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "dest": {
+          "type": "string"
+        },
+        "password": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "project_password": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "source": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "source",
+        "dest"
+      ],
+      "type": "object"
+    },
+    "name": "project_import_knxproj"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Project metadata. Returns {id, name, group_address_style, guid, created_by, last_modified,\nschema_version, tool_version}. ``group_address_style`` (ThreeLevel/TwoLevel/Free) governs how\ngroup-address strings parse.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "project_info"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Move the project undo/redo cursor to a history entry, passing id from project_history as\nevent_id. This reverts or reapplies project edits; bus changes and file replacements are\noutside this history. Returns {status: \"jumped\", event_id}, with event_id as a string.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "event_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "event_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_jump_to"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Create an undoable project link between a device com-object and a group address. The\ndevice is identified by ``node_id`` (from project_list_devices) OR ``device_address`` (an\nindividual address like \"1.0.30\"); the group address by ``group_address_id`` (from\nproject_list_group_addresses) OR ``group_address`` (a printed address like \"10/1/2\" in the\nproject's style). Pass exactly one of each pair. ``com_object_ref_id`` is the object's\n``ref_id`` from project_list_com_objects (linkable=true).\n\n``is_sending`` (default False) marks which group address an object with SEVERAL links sends to\n(it orders the associations, sending GA first); it does NOT change the object's flags, and for\na single link it has no byte effect \u2014 the send/receive direction comes from the object's own\nflags. For a transmitting object (push-button/sensor output) linked to several GAs, mark its\nintended sending GA; keep one sending GA per object. Returns {link_id, node_id,\ncom_object_ref_id, com_object_db_id, group_address_id, is_sending, already_linked} plus, when\nrelevant, ``dpt_mismatch`` ({com_object, group_address} \u2014 the GA keeps its own DPT, so the\nDPT metadata differs; verify compatibility) and ``other_sending_group_address_ids`` (the\nobject already sends to these, so it now has several sending GAs). Linking the same pair again\nis idempotent (``already_linked: true``, no duplicate). Pass link_id as\nproject_unlink_com_object's assignment_id. Program the device to apply the link on the bus.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "com_object_ref_id": {
+          "type": "string"
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "group_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "group_address_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "is_sending": {
+          "default": false,
+          "type": "boolean"
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "com_object_ref_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_link_com_object"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "The application programs a device can be changed to with project_change_application:\nthe other programs of its hardware in the local catalog, older and newer.\n\nUse node_id from project_list_devices or device_address. Returns {items, count}; each item has\n{hardware2program_ref_id, application_id, name, version}. Pass hardware2program_ref_id to\nproject_change_application for the same device. This lookup is read-only.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_list_application_programs"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "List a project device's visible com-objects. Identify the device by ``node_id`` OR\n``device_address`` (an individual address like \"1.0.30\"); pass exactly one.\nReturns {items, count}; each item has {ref_id, db_id, linkable, name, number, dpt, dpt_name,\nobject_size, flags}. flags contains communication, read, write, transmit, update, read_on_init.\nPass ref_id as com_object_ref_id with the same device. Linking and flag edits require\nlinkable=true (db_id set).",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_list_com_objects"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "List project devices, optionally filtering names by a case-insensitive substring.\nReturns {items, count}; each item has {node_id, name, individual_address, description}.\nPass node_id to device tools; individual_address is null when unset. This reads the project.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "name_contains": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_list_devices"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "A device's visible application parameters with current value and default. Identify the\ndevice by ``node_id`` OR ``device_address`` (an individual address like \"1.0.30\"); pass\nexactly one.\nReturns {items, count}; each item has ref_id, label, value, default_value, access, widget.\nTo keep the list compact, an enum ``widget`` carries only ``choice_count`` (plus\n``value_label`` on the item for the current value), NOT the full choice list \u2014 call\nproject_get_parameter for a single parameter's complete ``choices``.\n\nFilters:\n- ``search`` / ``query``: filters by substring match on label (case-insensitive).\n- ``channel``: filters parameters by channel or section (e.g. 'A', 'Kanal A', '1').\n- ``modified_only``: if True, returns only parameters whose current value differs from default.\n- ``compact``: if True, returns a lightweight dictionary omitting schema details and choice lists.\n\nPass an item's ``ref_id`` to project_set_parameter as its ``parameter_ref_id`` argument.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "compact": {
+          "default": false,
+          "type": "boolean"
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "modified_only": {
+          "default": false,
+          "type": "boolean"
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "query": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "search": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_list_parameters"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Move a space under a different parent space, or to the top level with new_parent_id=null.\nBoth ``id`` values come from project_spaces. Undoable project edit. Returns\n{space_id, new_parent_id}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "new_parent_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "space_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "space_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_move_space"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Create a new empty KNX project (.xknx) at ``path`` (on the editor host) and open it. An\nexisting file at ``path`` is replaced and the current project closed; file replacement is NOT\nundoable with project_undo. Returns {open, path}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "type": "object"
+    },
+    "name": "project_new"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Return {address} for the next unused project group address, formatted per project_info's\ngroup_address_style. This does not reserve it or check the bus. Pass address to\nproject_create_group_address to create it.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "project_next_free_group_address"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Open an existing .xknx project at path on the editor host, closing the current project.\nReturns {open, path}. Switching projects is outside project_undo history.\n\n``password`` is required for a password-protected project.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "password": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path"
+      ],
+      "type": "object"
+    },
+    "name": "project_open"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read a device's nested parameter UI. Identify the device by ``node_id`` OR\n``device_address`` (an individual address like \"1.0.30\"); pass exactly one. Group\nheadings distinguish repeated labels for different channels, buttons or display levels.\nReturns {items, count, outline, tree_token}; count is the number of top-level nodes. Node\nfields depend on kind:\n- \"tab\"/\"block\": {kind, id, name, children, ref?}, with children using the same node shapes.\n  ``id`` is a UNIQUE index path (pass it verbatim as ``subtree_id``); ``ref`` is the raw\n  module/block id, which REPEATS across module instances and must not be used to address one.\n- \"parameter\": {kind, ref_id, label, value, default_value, access, widget}.\n- \"button\": {kind, id, text, online, read_only}; other nodes contain only kind.\nTo stay compact, an enum ``widget`` here carries only ``choice_count`` (plus ``value_label``\nfor the current value), NOT the full choice list \u2014 call project_get_parameter for one\nparameter's complete ``choices``.\n\nThe response also carries ``outline`` (bool). On a LARGE device a plain call\n(no ``outline``/``subtree_id``) returns the outline automatically instead of a huge tree \u2014\nthen ``outline`` is true and ``parameter_count`` gives the full size. To avoid pulling a big\ntree whole:\n- ``outline=True`` returns ONLY the container skeleton \u2014 each tab/block as\n  {kind, id, name, parameter_count, com_object_count, children} with no parameter/com-object\n  leaves. Read this to see the structure and pick a section.\n- ``subtree_id=\"<id>\"`` returns only that one tab/block's subtree (optionally also with\n  ``outline=True``). Scoped reads REQUIRE ``tree_token`` from the SAME read the id came\n  from \u2014 a path can keep existing after a structural change but point to a different\n  container, and the token detects that. A stale token raises; re-read without the subtree\n  to get a fresh one. project_list_parameters(search=...) finds a parameter by label.\n- ``tree_token`` is a short fingerprint of the device's current structure. Pass it back to\n  any scoped read/mutation (``subtree_id``, project_resolve_parameter, batch set_parameter)\n  to prove the structure has not changed since the id was obtained.\n\nPass a parameter's ref_id as parameter_ref_id to project_get_parameter/project_set_parameter.\nThis reads project configuration.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "outline": {
+          "default": false,
+          "type": "boolean"
+        },
+        "subtree_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tree_token": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_parameter_tree"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Redo the last undone project edit. Returns {redone: bool}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "project_redo"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Remove a project topology area and its lines/devices. Use an area's id from\nproject_topology as area_id. Undoable with project_undo; hardware is unchanged.\nReturns {status: \"removed\", area_id}, with area_id as a string.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "area_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "area_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_remove_area"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Remove a project group address and its links using group_address_id or group_address string.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "group_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "group_address_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_remove_group_address"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Remove a project topology line and its devices. Use a line's id from project_topology as\nline_id. Undoable with project_undo; hardware is unchanged. Returns {status: \"removed\", line_id},\nwith line_id as a string.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "line_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "line_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_remove_line"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Remove a space and its sub-spaces (``id`` from project_spaces); devices placed in them\nbecome unassigned. Undoable project edit. Returns {status, space_id}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "space_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "space_id"
+      ],
+      "type": "object"
+    },
+    "name": "project_remove_space"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Rename a project topology area, using an area's id from project_topology as area_id.\nUndoable with project_undo. Returns {area_id, name}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "area_id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "area_id",
+        "name"
+      ],
+      "type": "object"
+    },
+    "name": "project_rename_area"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Rename a project device using node_id or device_address. Undoable with\nproject_undo. Returns {node_id, name, individual_address, description}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name": {
+          "type": "string"
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "name": "project_rename_device"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Rename a project group address using group_address_id or group_address string.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "group_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "group_address_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "name": "project_rename_group_address"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Rename a project topology line, using a line's id from project_topology as line_id.\nUndoable with project_undo. Returns {line_id, name}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "line_id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "line_id",
+        "name"
+      ],
+      "type": "object"
+    },
+    "name": "project_rename_line"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Rename a space (``id`` from project_spaces). Undoable project edit. Returns\n{space_id, name}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "space_id": {
+          "type": "integer"
+        }
+      },
+      "required": [
+        "space_id",
+        "name"
+      ],
+      "type": "object"
+    },
+    "name": "project_rename_space"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Resolve a parameter by its human ``label`` or hierarchy ``path`` (e.g. \"Steuerung 1 / Funktion\")\nto the ``ref_id`` that project_set_parameter needs, so a caller can avoid the long XML ref ids.\nIdentify the device by ``node_id`` OR ``device_address`` (an individual address like \"1.0.30\"); pass exactly one.\n\n``label`` or ``path`` is matched among the device's currently ACTIVE parameters, within an optional scope.\n- pass ``path`` (e.g. 'Steuerung 1 / Funktion' or 'Seite 1 / Steuerung 1') to uniquely resolve across identical channel labels;\n- pass ``channel`` (e.g. 'A', 'Kanal A', '1') to scope to a channel by name without needing\n  index paths or tokens;\n- pass ``subtree_id`` (a container ``id`` from project_parameter_tree(outline=True)) to scope\n  the match to one channel/block;\n- a label that matches several parameters raises with the candidate ref_ids (narrow the\n  scope); a label that matches none raises too. It never guesses.\nWith ``value_label`` (an enum choice's text) the result also carries ``resolved_value``, the\nraw value to pass to project_set_parameter.\n\nReturns {ref_id, label, value, access, resolved_value?, channel?, path?}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "subtree_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tree_token": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "value_label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_resolve_parameter"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Set an additional individual address of a project device (a tunnelling address of an\nIP interface) using node_id or device_address. index is 1-based (see\nadditional_addresses in project_get_device; entries up to it are created). address is an\n\"a.l.d\" string in the device's own line, or a device number 1-255; null or \"\" clears it.\nIt must not be used by a device or another additional address of the line. name and\ndescription, when given, are set too. Each change is one undo step (project_undo).\nReturns {node_id, additional_addresses}. This does not write the bus; a full download of\nthe device writes the addresses.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "description": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "index": {
+          "type": "integer"
+        },
+        "name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "index",
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "project_set_additional_address"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Override a project com-object flag: communication/read/write/transmit/update/read_on_init.\nPass ref_id from project_list_com_objects as com_object_ref_id with node_id or device_address;\nthe object must have linkable=true. Undoable with project_undo; program the device to apply\nthe change on the bus.\n\nReturns {ref_id, db_id, linkable, name, number, dpt, dpt_name, object_size, flags}, or only\n{ref_id} if the updated object cannot be found. flags contains the six named flags.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "com_object_ref_id": {
+          "type": "string"
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "flag": {
+          "enum": [
+            "communication",
+            "read",
+            "write",
+            "transmit",
+            "update",
+            "read_on_init"
+          ],
+          "type": "string"
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "value": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "com_object_ref_id",
+        "flag",
+        "value"
+      ],
+      "type": "object"
+    },
+    "name": "project_set_com_object_flag"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Place a device in a room/space, or remove it from any space with space_id=null. Accepts\nnode_id or device_address, and a space id from project_spaces. Undoable project\nedit. Returns {node_id, device_address, space_id}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "space_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_set_device_space"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Set a project group address's datapoint type, or clear it with dpt=null, using group_address_id\nor group_address string (e.g. '10/1/2').",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "dpt": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "group_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "group_address_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_set_group_address_dpt"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Set a group address' KNX Data Secure mode using group_address_id or group_address string.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "group_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "group_address_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "mode": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "mode"
+      ],
+      "type": "object"
+    },
+    "name": "project_set_group_address_security"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Set a project device's individual address, e.g. \"1.1.5\", using node_id or device_address.\nThe target area/line must exist in project_topology and the address\nmust be unused in the project. Returns {node_id, name, individual_address, description}.\nUndoable with project_undo. This does not check or write the bus; use\nconnection_assign_individual_address to assign it to hardware.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "address": {
+          "type": "string"
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "address"
+      ],
+      "type": "object"
+    },
+    "name": "project_set_individual_address"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Change a secure IP device's KNX IP Secure settings (the next download writes them):\nits commissioning password, its authentication code, the password of one bus interface\n(``interface_ref_id`` from project_get_ip_secure) or whether its tunnels are secured.\nPasswords have 1 to 20 Latin-1 characters.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "authentication_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "commissioning_password": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "interface_password": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "interface_ref_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "secure_tunnelling": {
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_set_ip_secure"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Set an application parameter. Identify the device by ``node_id`` OR ``device_address`` (an\nindividual address like \"1.0.30\"); pass exactly one. Pass the parameter's `ref_id` (from\nproject_list_parameters, or project_parameter_tree) as the `parameter_ref_id` argument; use a\n`value` permitted by that parameter's `widget`.\n\nAlternatively, use semantic addressing: pass `path` (e.g. 'Steuerung 1 / Funktion') or `label`\n(with optional `channel`, `path` or `subtree_id` scope) instead of `parameter_ref_id`, and\n`value_label` (an enum choice's text) instead of raw `value`.\n\nWhen you configure a device's push-button / display function (e.g. a glass push button, room\ncontroller), ALWAYS also set its display symbols and key labels/name \u2014 do not leave them at\ntheir defaults.\n\nReturns {ref_id, requested, value, active, changed?, lost_links?, activated_com_objects, unlocked_parameters}:\n``value`` is read back AFTER the edit (may be a normalized form of ``requested``, or null with ``active=false`` if\nthe edit deactivated the parameter), ``changed`` lists other parameters a calculation changed\nas a side effect, ``lost_links`` lists group-address links this change dropped by\ndeactivating their com-objects ({com_object_ref_id, group_address_id, address}),\n``activated_com_objects`` lists com-objects newly visible after this edit, and\n``unlocked_parameters`` lists parameters newly active after this edit. A rejected\nvalue raises with the reason and does NOT take effect on a later edit.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "channel": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "parameter_ref_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "path": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "subtree_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "tree_token": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "value": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "value_label": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_set_parameter"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Activate or deactivate a KNX Data Secure device's secure commissioning (one undo step).\nAccepts node_id or device_address. Activated, the device gets a Tool Key (needs a password-protected\nproject) and is commissioned with its device certificate. Deactivated, it is programmed in the clear: its\n\"Auto\" group addresses communicate in the clear and its links to group addresses with\nSecurity \"On\" are removed (the result lists both).",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "activated": {
+          "type": "boolean"
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "activated"
+      ],
+      "type": "object"
+    },
+    "name": "project_set_secure_commissioning"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Store a device's KNX serial number in the project using node_id or device_address.\nserial_number takes 12 hex digits (e.g. \"0083:7AA2039C\"); an empty string clears it.\nReturns {node_id, serial_number}. Undoable with project_undo; this records metadata without\nwriting hardware. connection_program_device can use it with use_serial_number=true.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "serial_number": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "serial_number"
+      ],
+      "type": "object"
+    },
+    "name": "project_set_serial_number"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Set a space's type (Building, BuildingPart, Floor, Room, Corridor, Stairway,\nDistributionBoard). ``id`` from project_spaces. Undoable project edit. Returns\n{space_id, space_type}.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "space_id": {
+          "type": "integer"
+        },
+        "space_type": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "space_id",
+        "space_type"
+      ],
+      "type": "object"
+    },
+    "name": "project_set_space_type"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Setup and configure parameters on a device, automatically resolving and enabling\nany required parent selector gates (Choose/When dependency chains) in the activation path.\n\nThis eliminates manual discovery and sequential toggling of gating switches when configuring\nnested functions (e.g. channel mode, push-button actions, rocker settings). Each entry in\n``parameters`` specifies:\n- target: ``ref_id``, ``path`` (e.g. 'Steuerung 1 / Funktion'), or ``label``\n- value: ``value`` (raw value) or ``value_label`` (enum choice text)\n\nIf the target parameter is gated behind parent Choose/When conditions that are not yet active,\nthe activation path is resolved, parent selector parameters are scheduled with satisfying values,\nand all edits are applied atomically in one transaction.\n\nReturns {status, planned_edits, applied, changed, activated_com_objects, unlocked_parameters}.\nIf dry_run is True, returns planned_edits without applying the changes.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "dry_run": {
+          "default": false,
+          "type": "boolean"
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "parameters": {
+          "items": {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "parameters"
+      ],
+      "type": "object"
+    },
+    "name": "project_setup_parameters"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read the building/location tree (building -> floor -> room), each with its placed devices\nand functions. Use this to find a room's devices when device names are empty \u2014 the space names\ncarry the location. Returns {items, count, unassigned_devices}; count counts top-level nodes.\nEach space has {id, name, space_type, number, usage_text, description, devices, functions,\nchildren}; a device has {node_id, name, individual_address, description, product_name,\nmanufacturer_name} (pass node_id to device tools). unassigned_devices lists devices placed in\nno space. Pass a space's id as project_set_device_space's space_id.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "project_spaces"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Return {open, path}, with the editor-host path or null when no project is open.\nMost project_* tools need an open project.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "project_status"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Read the project topology. Returns {items, count}; each area item has\n{id, area_number, name, lines}, and each line has {id, line_number, name}. count counts areas.\nPass an area's id as area_id and a line's id as line_id to topology tools; these IDs differ\nfrom the area/line numbers used in individual addresses.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "project_topology"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Undo the last undoable project edit. Returns {undone: bool}. Bus programming, address\nassignment, and file replacements are outside project history and are not reverted.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "project_undo"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Remove an undoable project link by ``assignment_id``, OR directly by specifying\n``node_id``/``device_address``, ``com_object_ref_id``, and ``group_address_id``/``group_address``.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "assignment_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "com_object_ref_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "group_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "group_address_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_unlink_com_object"
+  },
+  {
+    "annotations": {
+      "destructiveHint": true,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": false,
+      "title": null
+    },
+    "description": "Update a device to the local catalog version of the SAME application program that\nreplaces the current one (\"Update Application Program Version\"). Parameter values carry over\nby ParameterRef number, group objects of the same size by ComObjectRef number with their\nflags, priority, datapoint type and group-address links.\n\nThis is an undoable project edit (project_undo). To apply it on the bus, program the device\nafterwards with connection_program_device and scope=\"FULL\". Returns {node_id, new_version,\nkept, dropped, note}; kept and dropped are counts of carried-over vs discarded parameters and\ngroup objects.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "device_address": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "node_id": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_update_application"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "One-call overview: project, connection, keyring, capture state, plus valid enums.\n\nCall this first. ``capabilities`` lists the download scopes, com-object flags, and (when a\nproject is open) the group-address style that other tools accept.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "status"
+  }
+]

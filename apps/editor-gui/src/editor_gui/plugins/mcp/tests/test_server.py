@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import threading
 from collections.abc import Callable
 from pathlib import Path
@@ -2483,42 +2484,90 @@ async def test_set_parameter_value_label_with_ref_id(tmp_path: Path) -> None:
             assert batch_res["ok"] == 1
 
 
-def test_dump_schemas_export(tmp_path: Path) -> None:
-    """Test exporting MCP JSON schemas to a directory via library and via MCP tool."""
-    from editor_gui.plugins.mcp.dump_schemas import export_schemas
+def _normalize_tool(tool: Any) -> dict[str, Any]:
+    if hasattr(tool, "model_dump"):
+        data = tool.model_dump(by_alias=True)
+    elif isinstance(tool, dict):
+        data = tool
+    else:
+        data = {
+            "name": getattr(tool, "name", ""),
+            "description": getattr(tool, "description", None),
+            "inputSchema": getattr(tool, "inputSchema", getattr(tool, "parameters", {})),
+            "annotations": getattr(tool, "annotations", None),
+        }
+    ann = data.get("annotations")
+    if hasattr(ann, "model_dump"):
+        ann = ann.model_dump(by_alias=True)
+    elif not isinstance(ann, dict):
+        ann = None
 
-    out_dir = tmp_path / "mcp_export"
-    paths = export_schemas([out_dir])
-    assert len(paths) == 1
-    assert out_dir.exists()
-    schemas = list(out_dir.glob("*.json"))
-    assert len(schemas) >= 100
-    assert (out_dir / "instructions.md").exists()
-    # Check that a sample schema is valid JSON
-    sample = json.loads(
-        (out_dir / "project_set_parameter.json").read_text(encoding="utf-8")
-    )
-    assert sample["name"] == "project_set_parameter"
-    assert "parameters" in sample
+    schema = data.get("inputSchema")
+    if schema is None:
+        schema = data.get("parameters", {})
+
+    return {
+        "name": data.get("name"),
+        "description": data.get("description"),
+        "inputSchema": schema,
+        "annotations": ann,
+    }
 
 
-async def test_schema_resource_read(tmp_path: Path) -> None:
-    """Test reading all tool schemas over MCP via the schema://tools resource."""
+async def test_tools_golden_snapshot(tmp_path: Path) -> None:
+    """Compare in-process list_tools() against tests/golden/tools.json.
+
+    The golden file currently captures the 108 core MCP tools (without knowledge tools).
+    When the Knowledge project merges its tools, update this snapshot using UPDATE_GOLDEN=1.
+
+    Usage to update snapshot:
+        UPDATE_GOLDEN=1 uv run pytest apps/editor-gui/src/editor_gui/plugins/mcp/tests/test_server.py -k test_tools_golden_snapshot
+    """
+    golden_path = Path(__file__).parent / "golden" / "tools.json"
     mcp, _project = _build(tmp_path)
     async with Client(mcp) as client:
-        resources = await client.list_resources()
-        assert any(r.uri == "schema://tools" for r in resources)
-        contents = await client.read_resource("schema://tools")
-        assert len(contents) == 1
-        assert contents[0].mime_type == "application/json"
-        data = json.loads(contents[0].text)
-        assert isinstance(data, list)
-        assert len(data) >= 100
-        tool_names = {t["name"] for t in data}
-        assert "status" in tool_names
-        assert "project_set_parameter" in tool_names
-        assert "project_setup_parameters" in tool_names
-        assert "project_find_free_slots" in tool_names
+        tools = await client.list_tools()
+        normalized = sorted(
+            [_normalize_tool(t) for t in tools],
+            key=lambda x: str(x["name"]),
+        )
+        current_data = {t["name"]: t for t in normalized}
+
+        if os.environ.get("UPDATE_GOLDEN") == "1":
+            golden_path.parent.mkdir(parents=True, exist_ok=True)
+            golden_path.write_text(
+                json.dumps(normalized, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+            return
+
+        assert golden_path.exists(), (
+            f"Golden file {golden_path} does not exist. Run with UPDATE_GOLDEN=1 to create it."
+        )
+
+        golden_list = json.loads(golden_path.read_text(encoding="utf-8"))
+        golden_data = {t["name"]: t for t in golden_list}
+
+        current_names = set(current_data.keys())
+        golden_names = set(golden_data.keys())
+
+        added = sorted(current_names - golden_names)
+        removed = sorted(golden_names - current_names)
+        changed: list[str] = []
+        for name in sorted(current_names & golden_names):
+            if current_data[name] != golden_data[name]:
+                changed.append(name)
+
+        if added or removed or changed:
+            msg_parts = ["MCP tools snapshot mismatch against tests/golden/tools.json:"]
+            if added:
+                msg_parts.append(f"  Added tools ({len(added)}): {', '.join(added)}")
+            if removed:
+                msg_parts.append(f"  Removed tools ({len(removed)}): {', '.join(removed)}")
+            if changed:
+                msg_parts.append(f"  Modified tools ({len(changed)}): {', '.join(changed)}")
+            msg_parts.append("\nTo update golden snapshot, run with UPDATE_GOLDEN=1.")
+            pytest.fail("\n".join(msg_parts))
 
 
 def test_satisfying_value_normalization() -> None:

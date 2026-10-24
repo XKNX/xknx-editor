@@ -7,7 +7,6 @@ user clicking in the editor would.
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -157,19 +156,5 @@ def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
         module.register(mcp, ctx)
     if _SKILLS_DIR.is_dir():
         mcp.add_provider(SkillsDirectoryProvider(roots=_SKILLS_DIR))
-
-    @mcp.resource("schema://tools", mime_type="application/json")
-    async def get_tool_schemas() -> str:
-        """Export all registered FastMCP tool schemas as a JSON bundle."""
-        tools = await mcp.list_tools()
-        schemas = [
-            {
-                "name": t.name,
-                "description": t.description,
-                "parameters": t.parameters,
-            }
-            for t in tools
-        ]
-        return json.dumps(schemas, indent=2)
 
     return mcp
