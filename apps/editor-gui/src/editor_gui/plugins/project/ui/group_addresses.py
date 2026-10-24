@@ -11,6 +11,7 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui import file_dialogs
+from editor_gui.color import sending_green
 from editor_gui.device import com_object_display_name
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
@@ -32,8 +33,6 @@ if TYPE_CHECKING:
     from xknxeditor.proj.core.service import GroupRangeInfo
 
 
-# Accent colour for the sending marker, matching the Group Objects table.
-_SENDING_COLOR = imgui.ImVec4(0.45, 0.8, 0.5, 1.0)
 # Accent colour for the last value a group address was seen carrying on the bus.
 _LIVE_COLOR = imgui.ImVec4(0.45, 0.7, 0.9, 1.0)
 
@@ -734,7 +733,8 @@ class GroupAddressesPanel:
             imgui.table_set_column_index(2)
             if a.is_sending:
                 # Font-safe accent marker (DroidSans has no U+2192 arrow glyph).
-                imgui.text_colored(_SENDING_COLOR, "»")
+                # The sending marker, in the Group Objects table's colour.
+                imgui.text_colored(sending_green(), "»")
                 if imgui.is_item_hovered():
                     imgui.set_tooltip(S.GA_COL_SENDING_TOOLTIP)
         imgui.end_table()

@@ -9,6 +9,7 @@ from typing import Any
 
 from imgui_bundle import imgui
 
+from editor_gui.color import sending_green
 from editor_gui.device import (
     FLAG_LABELS,
     ComObject,
@@ -50,8 +51,6 @@ class _CopiedObject:
     flags: dict[str, bool] = field(default_factory=dict[str, bool])
 
 
-# Accent colour for the sending group address (shown emphasised).
-_SENDING_COLOR = imgui.ImVec4(0.45, 0.8, 0.5, 1.0)
 # Colour of the last value a group address was seen carrying, by what the object does with it
 # (its flags): amber = the object sends, blue = it receives, teal = both; grey-blue when the flags
 # say neither. An object's older value (a different address updated more recently) is dimmed.
@@ -472,7 +471,8 @@ class GroupObjectsTable:
                 self._on_unlink(assignment_id)
             imgui.same_line()
             if is_sending:
-                imgui.text_colored(_SENDING_COLOR, text)
+                # The sending group address is emphasised.
+                imgui.text_colored(sending_green(), text)
             else:
                 imgui.text(text)
             if imgui.is_item_hovered():
