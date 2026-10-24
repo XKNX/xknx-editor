@@ -990,7 +990,28 @@ async def test_property_element_slice_and_inline_padding_use_declared_width() ->
         _application(declaration, control), image, DeviceProgrammer(device)
     ).run()
     writes = [p for p in device.sent if isinstance(p, PropertyValueWrite)]
-    assert [(p.data, p.start_index, p.count) for p in writes] == [(b"CD", 2, 1)]
+    # Inline data that fills the write is written as it is, sliced to the declared width.
+    assert [(p.data, p.start_index, p.count) for p in writes] == [(b"xx", 2, 1)]
+
+
+async def test_short_inline_data_leaves_the_property_to_its_image() -> None:
+    from xknxeditor.download.image import PropertyValue
+
+    from .test_procedure import _application
+
+    # Inline data shorter than the write (as the Hager applications carry: 10 zero octets
+    # for longer properties) is not used: the property comes from its image.
+    control = LdCtrlWriteProp(
+        obj_idx=4, prop_id=60, count=4, inline_data=bytes(2), verify=True
+    )
+    image = DownloadImage((), (PropertyValue(4, 60, 0, b"ABCD", element_size=1),))
+    device = FakeDevice()
+    device.property_element_sizes[4, 60] = 1
+    await LoadProcedureRunner(
+        _application(control), image, DeviceProgrammer(device)
+    ).run()
+    writes = [p for p in device.sent if isinstance(p, PropertyValueWrite)]
+    assert [(p.data, p.start_index, p.count) for p in writes] == [(b"ABCD", 1, 4)]
 
 
 @pytest.mark.parametrize(

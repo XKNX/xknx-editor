@@ -1568,14 +1568,44 @@ class LoadProcedureRunner:
             raise UnsupportedProcedureError(
                 "PID7 is a read-only runtime table reference"
             )
+        inline = control.inline_data or b""
+        if len(inline) >= size:
+            # Inline data that fills the whole write is written as it is.
+            data, covered = bytearray(inline[:size]), bytearray(b"\xff" * size)
+        else:
+            # Shorter inline data is not used: the property comes from its base and the
+            # parameters.
+            data, covered = self._property_image_data(
+                index, object_type, control, width, size
+            )
+        if control.prop_id == _PID_MCB_TABLE:
+            data = data[: control.count * _MCB_ENTRY_SIZE]
+            if len(data) != control.count * _MCB_ENTRY_SIZE:
+                raise ImageError("incomplete MCB entry")
+            entries = bytearray(data)
+            for start in range(0, len(entries), _MCB_ENTRY_SIZE):
+                entries[start + 6 : start + 8] = b"\x00\x00"
+            return bytes(entries), None
+        if self._full_application_load or all(bits == 0xFF for bits in covered):
+            return bytes(data), None
+        return bytes(data), bytes(covered)
+
+    def _property_image_data(
+        self,
+        index: int,
+        object_type: int | None,
+        control: LdCtrlWriteProp,
+        width: int,
+        size: int,
+    ) -> tuple[bytearray, bytearray]:
+        """The data the image holds for the elements ``control`` writes, and the bits of it
+        something covers (captured elements, parameters)."""
         start = (control.start_element - 1) * width
         # The property's base: what the device leaves the factory with, else zeros. The
         # parameters' bits are laid over it; bytes no parameter writes keep it.
         base = self._factory_property(index, object_type, control)
         data = bytearray((base or b"")[start : start + size].ljust(size, b"\x00"))
-        inline = (control.inline_data or b"")[:size]
-        data[: len(inline)] = inline
-        covered = bytearray(b"\xff" * len(inline) + bytes(size - len(inline)))
+        covered = bytearray(size)
         for n in range(control.count):
             captured = self._property_captures.get(
                 (index, control.prop_id, control.start_element + n)
@@ -1605,17 +1635,7 @@ class LoadProcedureRunner:
                 for i, bits in enumerate(cover):
                     covered[i] |= bits
                 break
-        if control.prop_id == _PID_MCB_TABLE:
-            data = data[: control.count * _MCB_ENTRY_SIZE]
-            if len(data) != control.count * _MCB_ENTRY_SIZE:
-                raise ImageError("incomplete MCB entry")
-            entries = bytearray(data)
-            for start in range(0, len(entries), _MCB_ENTRY_SIZE):
-                entries[start + 6 : start + 8] = b"\x00\x00"
-            return bytes(entries), None
-        if self._full_application_load or all(bits == 0xFF for bits in covered):
-            return bytes(data), None
-        return bytes(data), bytes(covered)
+        return data, covered
 
     @property
     def _full_application_load(self) -> bool:
