@@ -3315,6 +3315,42 @@
       "destructiveHint": false,
       "idempotentHint": null,
       "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "The Project Log of a project imported from a .knxproj: who changed or downloaded what\nand when (the editor writes no entries; a project created here has none). Optionally only\nthe entries whose date, user or comment contains ``contains`` (case-insensitive), from the\n``offset``-th one on, at most ``limit``. Returns {items, count, total}; each item has\n{date, user_name, comment, decrypted}: comment is the text when it could be decrypted\n(decrypted=true), else as stored. total counts the matching entries.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "contains": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "limit": {
+          "default": 200,
+          "type": "integer"
+        },
+        "offset": {
+          "default": 0,
+          "type": "integer"
+        }
+      },
+      "type": "object"
+    },
+    "name": "project_log"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
       "readOnlyHint": false,
       "title": null
     },

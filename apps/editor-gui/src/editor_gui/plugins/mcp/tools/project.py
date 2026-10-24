@@ -4017,7 +4017,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         )
 
-    @tool
+    @tool(read_only=True)
     def project_log(
         contains: str | None = None, offset: int = 0, limit: int = 200
     ) -> dict[str, Any]:

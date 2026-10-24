@@ -2865,6 +2865,7 @@ READ_ONLY_TOOLS = {
     "project_list_group_ranges",
     "project_list_links",
     "project_list_parameters",
+    "project_log",
     "project_next_free_group_address",
     "project_parameter_tree",
     "project_plugin_parameters",
