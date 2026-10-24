@@ -41,6 +41,7 @@ if TYPE_CHECKING:
     from fastmcp import FastMCP
 
     from editor_gui.device import ComObject, Device
+    from editor_gui.plugins.project.service import ProjectService
     from xknxeditor.proj import CompactResult
 
 # Slow, file/parse-heavy operations get a generous main-thread budget (they briefly hold the frame).
@@ -61,7 +62,7 @@ def _flags_dict(co: ComObject) -> dict[str, bool]:
     return {name: getattr(f, name) for name in _FLAGS}
 
 
-def _com_object_dict(co: ComObject) -> dict[str, Any]:
+def com_object_dict(co: ComObject) -> dict[str, Any]:
     return {
         "ref_id": co.id,
         "db_id": co.db_id,
@@ -74,6 +75,8 @@ def _com_object_dict(co: ComObject) -> dict[str, Any]:
         "dpt_name": co.dpt.name,
         "object_size": co.object_size,
         "flags": _flags_dict(co),
+        "description": co.description,
+        "priority": co.priority,
     }
 
 
@@ -643,6 +646,41 @@ def param_change_result(
     return result
 
 
+def require_device(
+    project: ProjectService,
+    node_id: int | None = None,
+    device_address: str | None = None,
+) -> Device:
+    """Resolve a device by its internal node_id OR its individual address (e.g. "1.0.30"). Exactly
+    one must be given; the int form stays the primary id, the string form saves the extra
+    project_list_devices lookup when the agent already knows the address."""
+    if (node_id is None) == (device_address is None):
+        raise ToolError(
+            "pass exactly one of node_id (int) or device_address (str, e.g. '1.0.30')"
+        )
+    if device_address is not None:
+        matches = [d for d in project.devices if d.individual_address == device_address]
+        if not matches:
+            raise ToolError(
+                f"no device with individual_address {device_address!r}; "
+                "call project_list_devices for the configured addresses"
+            )
+        if len(matches) > 1:
+            nids = sorted(d.node_id for d in matches)
+            raise ToolError(
+                f"individual_address {device_address!r} is ambiguous "
+                f"(node_ids: {nids}); pass node_id explicitly"
+            )
+        return matches[0]
+    assert node_id is not None  # proven by the exactly-one check above
+    device = project.find_device_by_node_id(node_id)
+    if device is None:
+        raise ToolError(
+            f"no device with node_id {node_id}; call project_list_devices for valid ids"
+        )
+    return device
+
+
 def register(mcp: FastMCP, ctx: McpContext) -> None:
     tool = make_tool(mcp, ctx)
     project = ctx.api.project
@@ -650,36 +688,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def _require_device(
         node_id: int | None = None, device_address: str | None = None
     ) -> Device:
-        """Resolve a device by its internal node_id OR its individual address (e.g. "1.0.30"). Exactly
-        one must be given; the int form stays the primary id, the string form saves the extra
-        project_list_devices lookup when the agent already knows the address."""
-        if (node_id is None) == (device_address is None):
-            raise ToolError(
-                "pass exactly one of node_id (int) or device_address (str, e.g. '1.0.30')"
-            )
-        if device_address is not None:
-            matches = [
-                d for d in project.devices if d.individual_address == device_address
-            ]
-            if not matches:
-                raise ToolError(
-                    f"no device with individual_address {device_address!r}; "
-                    "call project_list_devices for the configured addresses"
-                )
-            if len(matches) > 1:
-                nids = sorted(d.node_id for d in matches)
-                raise ToolError(
-                    f"individual_address {device_address!r} is ambiguous "
-                    f"(node_ids: {nids}); pass node_id explicitly"
-                )
-            return matches[0]
-        assert node_id is not None  # proven by the exactly-one check above
-        device = project.find_device_by_node_id(node_id)
-        if device is None:
-            raise ToolError(
-                f"no device with node_id {node_id}; call project_list_devices for valid ids"
-            )
-        return device
+        return require_device(project, node_id, device_address)
 
     def _require_group_address_id(
         group_address_id: int | None = None, group_address: str | None = None
@@ -1242,13 +1251,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """List a project device's visible com-objects. Identify the device by ``node_id`` OR
         ``device_address`` (an individual address like "1.0.30"); pass exactly one.
         Returns {items, count}; each item has {ref_id, db_id, linkable, name, number, dpt, dpt_name,
-        object_size, flags}. flags contains communication, read, write, transmit, update, read_on_init.
+        object_size, flags, description, priority}. flags contains communication, read, write,
+        transmit, update, read_on_init.
         Pass ref_id as com_object_ref_id with the same device. Linking and flag edits require
         linkable=true (db_id set)."""
 
         def _read() -> list[dict[str, Any]]:
             device = _require_device(node_id, device_address)
-            return [_com_object_dict(co) for co in device.get_visible_com_objects()]
+            return [com_object_dict(co) for co in device.get_visible_com_objects()]
 
         return _items(ctx.run_locked(_read))
 
@@ -1286,8 +1296,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Read a project com-object. Identify the device by ``node_id`` OR ``device_address`` (an
         individual address like "1.0.30"); pass exactly one. Pass the object's ref_id from
         project_list_com_objects as com_object_ref_id. Returns {ref_id, db_id, linkable, name, number,
-        dpt, dpt_name, object_size, flags}; flags contains communication, read, write, transmit,
-        update, read_on_init. linkable=true is required for linking and flag edits."""
+        dpt, dpt_name, object_size, flags, description, priority}; flags contains communication,
+        read, write, transmit, update, read_on_init. linkable=true is required for linking and flag edits."""
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
@@ -1297,7 +1307,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     f"no com-object {com_object_ref_id!r} on device {device.node_id}; "
                     "call project_list_com_objects for valid ref_ids"
                 )
-            return _com_object_dict(co)
+            return com_object_dict(co)
 
         return ctx.run_locked(_read)
 
@@ -1612,7 +1622,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     @tool
     def project_topology() -> dict[str, Any]:
         """Read the project topology. Returns {items, count}; each area item has
-        {id, area_number, name, lines}, and each line has {id, line_number, name}. count counts areas.
+        {id, area_number, name, description, lines}, and each line has {id, line_number, name,
+        description}. count counts areas.
         Pass an area's id as area_id and a line's id as line_id to topology tools; these IDs differ
         from the area/line numbers used in individual addresses."""
 
@@ -1622,8 +1633,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "id": area.id,
                     "area_number": area.area_number,
                     "name": area.name,
+                    "description": area.description,
                     "lines": [
-                        {"id": ln.id, "line_number": ln.line_number, "name": ln.name}
+                        {
+                            "id": ln.id,
+                            "line_number": ln.line_number,
+                            "name": ln.name,
+                            "description": ln.description,
+                        }
                         for ln in project.get_lines(area.id)
                     ],
                 }
@@ -1877,13 +1894,24 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_add, timeout=_SLOW)
 
     @tool
-    def project_rename_device(node_id: int, name: str) -> dict[str, Any]:
-        """Rename a project device using node_id from project_list_devices. Undoable with
-        project_undo. Returns {node_id, name, individual_address, description}."""
+    def project_rename_device(
+        node_id: int, name: str | None = None, description: str | None = None
+    ) -> dict[str, Any]:
+        """Rename a project device and/or set its description, using node_id from
+        project_list_devices. Pass ``name``, ``description`` or both; an omitted field is left
+        unchanged. Undoable with project_undo. Returns {node_id, name, individual_address,
+        description}."""
+        if name is None and description is None:
+            raise ToolError("pass name, description or both")
 
         def _rename() -> dict[str, Any]:
             device = _require_device(node_id)
-            project.set_device_name(node_id, device.name, name)
+            if name is not None:
+                project.set_device_name(node_id, device.name, name)
+            if description is not None:
+                project.set_device_description(
+                    node_id, device.description or "", description
+                )
             return _device_dict(_require_device(node_id))
 
         return ctx.run_locked(_rename)
@@ -2020,8 +2048,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         the object must have linkable=true. Undoable with project_undo; program the device to apply
         the change on the bus.
 
-        Returns {ref_id, db_id, linkable, name, number, dpt, dpt_name, object_size, flags}, or only
-        {ref_id} if the updated object cannot be found. flags contains the six named flags."""
+        Returns {ref_id, db_id, linkable, name, number, dpt, dpt_name, object_size, flags,
+        description, priority}, or only {ref_id} if the updated object cannot be found. flags
+        contains the six named flags."""
 
         def _set() -> dict[str, Any]:
             device = _require_device(node_id)
@@ -2038,7 +2067,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             project.set_flag(device, com_object_ref_id, flag, value)
             updated = _require_device(node_id).find_com_object(com_object_ref_id)
             return (
-                _com_object_dict(updated)
+                com_object_dict(updated)
                 if updated is not None
                 else {"ref_id": com_object_ref_id}
             )
@@ -2180,6 +2209,88 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             if g is None:
                 raise ToolError(f"no group address with id {group_address_id}")
             return {"id": g.id, "address": g.address, "name": g.name}
+
+        return ctx.run_locked(_rename)
+
+    def _group_ranges() -> list[dict[str, Any]]:
+        """Flatten the group-range tree (main/middle groups) with parent ids."""
+        out: list[dict[str, Any]] = []
+
+        def _walk(nodes: list[Any], parent_id: int | None, depth: int) -> None:
+            for r in nodes:
+                out.append(
+                    {
+                        "id": r.id,
+                        "address": r.address or "",
+                        "name": r.name or "",
+                        "description": r.description or "",
+                        "parent_id": parent_id,
+                        "depth": depth,
+                    }
+                )
+                _walk(r.children, r.id, depth + 1)
+
+        _walk(project.get_group_range_tree(), None, 0)
+        return out
+
+    @tool
+    def project_list_group_ranges(name_contains: str | None = None) -> dict[str, Any]:
+        """List the group-address folders (main and middle groups), optionally filtering names by
+        a case-insensitive substring. Returns {items, count}; each item has {id, address, name,
+        description, parent_id, depth} (depth 0 = main group; name and description are "" when
+        unset, parent_id is null for main groups). Pass ``id`` as group_range_id to
+        project_rename_group_range."""
+
+        def _read() -> list[dict[str, Any]]:
+            needle = (name_contains or "").lower()
+            return [
+                r for r in _group_ranges() if not needle or needle in r["name"].lower()
+            ]
+
+        return _items(ctx.run_locked(_read))
+
+    @tool
+    def project_rename_group_range(group_range_id: int, name: str) -> dict[str, Any]:
+        """Rename a group-address folder (main or middle group). Pass id from
+        project_list_group_ranges as group_range_id. Undoable with project_undo. Returns
+        {id, address, name}."""
+        require_project(ctx)
+
+        def _rename() -> dict[str, Any]:
+            if not any(r["id"] == group_range_id for r in _group_ranges()):
+                raise ToolError(f"no group range with id {group_range_id}")
+            project.rename_group_range(group_range_id, name.strip())
+            found = next(r for r in _group_ranges() if r["id"] == group_range_id)
+            return {
+                "id": found["id"],
+                "address": found["address"],
+                "name": found["name"],
+            }
+
+        return ctx.run_locked(_rename)
+
+    def _function_ids() -> set[int]:
+        ids: set[int] = set()
+
+        def _walk(nodes: list[Any]) -> None:
+            for s in nodes:
+                ids.update(f.id for f in s.functions)
+                _walk(s.children)
+
+        _walk(project.get_space_tree())
+        return ids
+
+    @tool
+    def project_rename_function(function_id: int, name: str) -> dict[str, Any]:
+        """Rename a building function (a function placed in a room). Pass a function ``id`` from
+        project_spaces as function_id. Undoable with project_undo. Returns {function_id, name}."""
+        require_project(ctx)
+
+        def _rename() -> dict[str, Any]:
+            if function_id not in _function_ids():
+                raise ToolError(f"no function with id {function_id}")
+            project.rename_function(function_id, name.strip())
+            return {"function_id": function_id, "name": name.strip()}
 
         return ctx.run_locked(_rename)
 

@@ -27,6 +27,7 @@ if TYPE_CHECKING:
     from editor_gui.plugins.connection.plugin import ConnectionPlugin
     from editor_gui.plugins.keyring.service import KeyringService
     from editor_gui.plugins.monitor.service import MonitorService
+    from editor_gui.plugins.project.plugin import ProjectPlugin
 
 T = TypeVar("T")
 
@@ -97,6 +98,9 @@ class McpContext:
     monitor: MonitorService
     keyring: KeyringService
     log: Logger
+    # The project plugin, for the actions it composes (the Tools window, bulk group addresses);
+    # None where no GUI runs them (tests).
+    project_plugin: ProjectPlugin | None = None
 
     def run_locked(self, fn: Callable[[], T], *, timeout: float = 30.0) -> T:
         """Run ``fn`` on the UI thread while holding the shared project/catalog lock non-blocking.

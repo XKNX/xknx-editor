@@ -29,7 +29,7 @@ from editor_gui.widgets.strings import S
 from xknxeditor.proj.core.rich_text import (
     RichText,
     parse_rich_text,
-    rich_text_rtf,
+    rich_text_rtf_like,
 )
 
 # What was copied last from a rich text field: pasted again (same clipboard text) it keeps its
@@ -38,7 +38,6 @@ _copied: tuple[str, RichText] | None = None
 # The text selected in the rich text field being edited, for the web page's copy (see web).
 _selection = ""
 _TAB_SPACES = 4
-_HEADER_SETTINGS = re.compile(r"\\lang(\d+)\\fs(\d+)")
 
 
 def active_selection() -> str:
@@ -98,14 +97,7 @@ class RichTextEdit:
         text = self._doc.rich_text()
         if text == parse_rich_text(self._source):
             return None
-        settings = _HEADER_SETTINGS.search(self._source)
-        rtf = (
-            rich_text_rtf(
-                text, language=int(settings.group(1)), font_size=int(settings.group(2))
-            )
-            if settings
-            else rich_text_rtf(text)
-        )
+        rtf = rich_text_rtf_like(text, self._source)
         self._source = rtf
         return self._key, rtf
 

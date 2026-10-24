@@ -46,7 +46,7 @@ def _diff(path: Path, password: str | None) -> DiffOutcome:
     plugin._project_snapshot_current = lambda: ProjectSnapshot("current", {}, {})
     plugin._load_project_snapshot = load
     plugin._api = SimpleNamespace(log=SimpleNamespace(warning=warning))
-    return ProjectPlugin._tools_diff_projects(plugin, str(path), password)  # pyright: ignore[reportPrivateUsage]
+    return ProjectPlugin.tools_diff_projects(plugin, str(path), password)  # pyright: ignore[reportPrivateUsage]
 
 
 def _protected_archive(tmp_path: Path) -> Path:

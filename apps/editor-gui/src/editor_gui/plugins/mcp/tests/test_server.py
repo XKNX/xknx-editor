@@ -1753,3 +1753,147 @@ async def test_parameters_of_a_plugin_dialog_device_cannot_be_changed(
         )
         assert batch["applied"] is False
         assert "plugin dialog" in str(batch)
+
+
+async def test_rename_group_ranges_functions_and_device_descriptions(
+    tmp_path: Path,
+) -> None:
+    """Group ranges, functions and device descriptions are editable over MCP (issue #132)."""
+    mcp, project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+
+        # Group ranges: listed with their ids, renamed directly and via project_batch.
+        main = project.create_group_range(None, "Lihct")
+        assert main is not None
+        middle = project.create_group_range(main, "Dimmewert Status")
+        assert middle is not None
+        ranges = (await _data(client, "project_list_group_ranges"))["items"]
+        by_id = {r["id"]: r for r in ranges}
+        assert by_id[main]["depth"] == 0
+        assert by_id[middle]["parent_id"] == main
+        renamed = await _data(
+            client, "project_rename_group_range", group_range_id=main, name="Licht"
+        )
+        assert renamed["name"] == "Licht"
+        batch = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "rename_group_range",
+                    "params": {"group_range_id": middle, "name": "Dimmwert Status"},
+                }
+            ],
+        )
+        assert batch["ok"] == 1
+        dimm = (await _data(client, "project_list_group_ranges", name_contains="dimm"))[
+            "items"
+        ]
+        assert [(r["id"], r["name"]) for r in dimm] == [(middle, "Dimmwert Status")]
+
+        # An unnamed range keeps a fixed item shape; filtering and renaming to "" still work.
+        unnamed = project.create_group_range(main, "")
+        assert unnamed is not None
+        ranges = (await _data(client, "project_list_group_ranges"))["items"]
+        item = next(r for r in ranges if r["id"] == unnamed)
+        assert (item["name"], item["description"]) == ("", "")
+        assert (
+            await _data(client, "project_list_group_ranges", name_contains="licht")
+        )["count"] == 1
+        cleared = await _data(
+            client, "project_rename_group_range", group_range_id=middle, name=""
+        )
+        assert cleared["name"] == ""
+        await _data(client, "project_undo")
+
+        # Names are stripped like in the GUI.
+        padded = await _data(
+            client,
+            "project_rename_group_range",
+            group_range_id=main,
+            name="  Licht EG ",
+        )
+        assert padded["name"] == "Licht EG"
+
+        # Functions: the id comes from project_spaces.
+        room = (
+            await _data(
+                client, "project_create_space", space_type="Room", name="Wohnen"
+            )
+        )["space_id"]
+        function = project.create_function(room, "FT-1", "Wohenn Deckenlicht")
+        assert function is not None
+        result = await _data(
+            client,
+            "project_rename_function",
+            function_id=function,
+            name=" Wohnen Deckenlicht ",
+        )
+        assert result == {"function_id": function, "name": "Wohnen Deckenlicht"}
+
+        def _functions(nodes: list[dict[str, Any]]) -> list[str]:
+            out: list[str] = []
+            for node in nodes:
+                out += [f["name"] for f in node.get("functions", [])]
+                out += _functions(node.get("children", []))
+            return out
+
+        spaces = (await _data(client, "project_spaces"))["items"]
+        assert "Wohnen Deckenlicht" in _functions(spaces)
+        with pytest.raises(Exception, match="no function"):
+            await client.call_tool(
+                "project_rename_function", {"function_id": 999999, "name": "x"}
+            )
+        await _data(client, "project_undo")
+        spaces = (await _data(client, "project_spaces"))["items"]
+        assert "Wohenn Deckenlicht" in _functions(spaces)
+
+
+@pytest.mark.skipif(not _FIXTURE.exists(), reason="knxprod fixture missing")
+async def test_rename_device_sets_name_and_description(tmp_path: Path) -> None:
+    """project_rename_device and the rename_device batch op also set the description."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product = (await _data(client, "catalog_list_products"))["items"][0]
+        node_id = (
+            await _data(
+                client, "project_add_device", product_ref_id=product["product_ref_id"]
+            )
+        )["node_id"]
+
+        result = await _data(
+            client,
+            "project_rename_device",
+            node_id=node_id,
+            description="OGKind 1 (Terasse)",
+        )
+        assert result["description"] == "OGKind 1 (Terasse)"
+        result = await _data(
+            client,
+            "project_rename_device",
+            node_id=node_id,
+            name="Taster",
+            description="OG Kind 1 (Terrasse)",
+        )
+        assert (result["name"], result["description"]) == (
+            "Taster",
+            "OG Kind 1 (Terrasse)",
+        )
+        batch = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "rename_device",
+                    "params": {"node_id": node_id, "description": "Flur"},
+                }
+            ],
+        )
+        assert batch["ok"] == 1
+        device = await _data(client, "project_get_device", node_id=node_id)
+        assert (device["name"], device["description"]) == ("Taster", "Flur")
+        with pytest.raises(Exception, match="name, description or both"):
+            await client.call_tool("project_rename_device", {"node_id": node_id})

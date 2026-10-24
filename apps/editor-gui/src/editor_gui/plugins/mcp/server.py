@@ -17,11 +17,15 @@ from editor_gui.plugins.mcp.tools import (
     batch,
     catalog,
     connection,
+    dali,
+    details,
     keyring,
     monitor,
     network,
     project,
+    project_tools,
     status,
+    structure,
 )
 
 if TYPE_CHECKING:
@@ -155,9 +159,13 @@ def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
     for module in (
         status,
         project,
+        details,
+        structure,
+        project_tools,
         batch,
         catalog,
         connection,
+        dali,
         monitor,
         keyring,
         network,

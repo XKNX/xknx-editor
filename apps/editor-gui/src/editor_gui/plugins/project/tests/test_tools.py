@@ -100,7 +100,7 @@ def test_shift_orders_descending_for_positive_offset():
         for i in (1, 2, 3)
     ]
     proj = FakeShiftProject(devs)
-    changed, errors = _plugin(proj)._tools_shift_addresses([1, 2, 3], 1)
+    changed, errors = _plugin(proj).tools_shift_addresses([1, 2, 3], 1)
     assert changed == 3
     assert errors == []
     assert [nid for nid, _o, _n in proj.applied] == [3, 2, 1]
@@ -110,7 +110,7 @@ def test_shift_orders_descending_for_positive_offset():
 def test_shift_reports_out_of_range():
     devs = [SimpleNamespace(node_id=1, name="d", individual_address="1.1.255")]
     proj = FakeShiftProject(devs)
-    changed, errors = _plugin(proj)._tools_shift_addresses([1], 1)
+    changed, errors = _plugin(proj).tools_shift_addresses([1], 1)
     assert changed == 0
     assert len(errors) == 1
     assert proj.applied == []
@@ -123,7 +123,7 @@ def test_shift_aborts_on_collision_with_unselected_device():
         SimpleNamespace(node_id=2, name="b", individual_address="1.1.2"),
     ]
     proj = FakeShiftProject(devs)
-    changed, errors = _plugin(proj)._tools_shift_addresses([1], 1)
+    changed, errors = _plugin(proj).tools_shift_addresses([1], 1)
     assert changed == 0
     assert any("collide" in e for e in errors)
     assert proj.applied == []  # nothing written (all-or-nothing)
@@ -156,7 +156,7 @@ def test_shift_ga_orders_descending_for_positive_offset():
     base = 1 << 11
     gas = [_ga(1, base + 1), _ga(2, base + 2), _ga(3, base + 3)]
     proj = FakeShiftGaProject(gas)
-    changed, errors = _plugin(proj)._tools_shift_group_addresses([1, 2, 3], 1)
+    changed, errors = _plugin(proj).tools_shift_group_addresses([1, 2, 3], 1)
     assert changed == 3
     assert errors == []
     assert [gid for gid, _a in proj.applied] == [3, 2, 1]
@@ -166,7 +166,7 @@ def test_shift_ga_orders_descending_for_positive_offset():
 def test_shift_ga_reports_out_of_range():
     gas = [_ga(1, 0xFFFF)]
     proj = FakeShiftGaProject(gas)
-    changed, errors = _plugin(proj)._tools_shift_group_addresses([1], 1)
+    changed, errors = _plugin(proj).tools_shift_group_addresses([1], 1)
     assert changed == 0
     assert len(errors) == 1
     assert proj.applied == []
@@ -176,7 +176,7 @@ def test_shift_ga_aborts_on_collision_with_unselected():
     base = 1 << 11
     gas = [_ga(1, base + 1), _ga(2, base + 2)]  # only ga 1 is selected
     proj = FakeShiftGaProject(gas)
-    changed, errors = _plugin(proj)._tools_shift_group_addresses([1], 1)
+    changed, errors = _plugin(proj).tools_shift_group_addresses([1], 1)
     assert changed == 0
     assert any("collide" in e for e in errors)
     assert proj.applied == []
@@ -273,7 +273,7 @@ class FakeReplaceProject:
 
 def test_replace_device_keeps_links_and_reuses_address():
     proj = FakeReplaceProject()
-    mapped, errors = _plugin(proj)._tools_replace_device(1, 2)
+    mapped, errors = _plugin(proj).tools_replace_device(1, 2)
     assert mapped == 1
     assert errors == []
     assert proj.removed == [1]  # old device gone
@@ -287,7 +287,7 @@ def test_replace_device_keeps_links_and_reuses_address():
 
 def test_extended_copy_renames_each_copy():
     proj = FakeCopyProject()
-    created, errors = _plugin(proj)._tools_extended_copy(1, 2, "Src", "Copy", False)
+    created, errors = _plugin(proj).tools_extended_copy(1, 2, "Src", "Copy", False)
     assert created == 2
     assert errors == []
     # The swap is applied to each clone's own (unique) name, so the copies stay distinct
