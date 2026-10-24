@@ -1419,3 +1419,6 @@ msgstr "Islandês"
 
 msgid "Ctrl"
 msgstr "Ctrl"
+
+msgid "This stops XKNX Editor on the server. Until it is started there again, no browser can connect to it."
+msgstr "Isto para o XKNX Editor no servidor. Até ser iniciado lá novamente, nenhum navegador se poderá ligar a ele."

@@ -10,6 +10,8 @@ from dataclasses import asdict, replace
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 from editor_gui.instances import (
     BROWSER,
     DESKTOP,
@@ -33,10 +35,13 @@ def _registry(folder: Path, received: list[dict[str, Any]]) -> Registry:
     return registry
 
 
-def _as_other(folder: Path, registry: Registry, pid: int = 4242) -> Instance:
-    """The registry's entry as another process's (an editor only lists the others)."""
-    other = replace(registry.entry, pid=pid)
-    (folder / f"{pid}.json").write_text(json.dumps(asdict(other)), encoding="utf-8")
+def _as_other(folder: Path, registry: Registry) -> Instance:
+    """The registry's entry as another running process's (an editor only lists the others): the
+    one that started the tests."""
+    other = replace(registry.entry, pid=os.getppid())
+    (folder / f"{other.pid}.json").write_text(
+        json.dumps(asdict(other)), encoding="utf-8"
+    )
     return other
 
 
@@ -93,6 +98,25 @@ def test_the_open_project_is_shared(tmp_path: Path) -> None:
         spelled = os.path.relpath(project).upper() if os.name == "nt" else str(project)
         assert with_project(spelled, running) == running
         assert with_project(str(tmp_path / "Other.xknx"), running) == []
+    finally:
+        registry.close()
+
+
+def test_the_entry_of_an_editor_no_longer_running_is_dropped_without_asking(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    received: list[dict[str, Any]] = []
+    registry = _registry(tmp_path, received)
+    try:
+        other = _as_other(tmp_path, registry)
+        monkeypatch.setattr("editor_gui.instances.psutil.pid_exists", lambda pid: False)
+
+        def ask(*_: object) -> None:
+            raise AssertionError("asked an editor that no longer runs")
+
+        monkeypatch.setattr("editor_gui.instances.request", ask)
+        assert others(tmp_path) == []
+        assert not (tmp_path / f"{other.pid}.json").exists()
     finally:
         registry.close()
 

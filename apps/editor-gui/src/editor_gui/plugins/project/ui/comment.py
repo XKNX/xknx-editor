@@ -10,7 +10,6 @@ from imgui_bundle import imgui
 
 from editor_gui.plugins.project.strings import S
 from editor_gui.widgets.dpi import px
-from editor_gui.widgets.fonts import bold
 from editor_gui.widgets.rich_text_edit import RichTextEdit
 
 if TYPE_CHECKING:
@@ -34,17 +33,24 @@ class CommentPanel:
             return
         kind, element_id = target
         style = imgui.get_style()
-        # Each field gets the same share of the height; a headline and the buttons come with it.
-        extra = imgui.get_text_line_height_with_spacing() + imgui.get_frame_height()
-        extra += 2.0 * style.item_spacing.y
+        # Each field gets the same share of the height; its row with the title and the buttons
+        # comes with it.
+        extra = imgui.get_frame_height() + 2.0 * style.item_spacing.y
         if kind == "device":
             hints = self._project.comment(kind, element_id, _HINTS) or ""
-            height = (imgui.get_content_region_avail().y - 2.0 * extra) / 2.0
-            height = max(height - style.item_spacing.y, px(60.0))
+            # Below the first field as much room as below the second one, which also has the
+            # window's padding.
+            gap = style.window_padding.y
+            height = (imgui.get_content_region_avail().y - 2.0 * extra - gap) / 2.0
             self._field(
-                S.COMMENT_INSTALLATION_HINTS, self._hints, target, _HINTS, hints, height
+                S.COMMENT_INSTALLATION_HINTS,
+                self._hints,
+                target,
+                _HINTS,
+                hints,
+                max(height, px(60.0)),
             )
-            imgui.spacing()
+            imgui.set_cursor_pos_y(imgui.get_cursor_pos_y() + gap)
         else:
             self._apply(self._hints.tick())
         height = max(imgui.get_content_region_avail().y - extra, px(60.0))
@@ -59,9 +65,7 @@ class CommentPanel:
         stored: str,
         height: float,
     ) -> None:
-        with bold():
-            imgui.text_unformatted(title)
-        self._apply(editor.render((*target, field), stored, height))
+        self._apply(editor.render((*target, field), stored, height, title))
 
     def tick(self) -> None:
         """Every frame: store an edit whose tab was left."""

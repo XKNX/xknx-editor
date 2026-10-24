@@ -9,6 +9,7 @@ loses the focus, as one change.
 
 from __future__ import annotations
 
+import math
 from collections.abc import Hashable
 from dataclasses import dataclass
 
@@ -119,10 +120,10 @@ class RichTextEdit:
     # --- drawing ---------------------------------------------------------------------------
 
     def render(
-        self, key: Hashable, stored: str, height: float
+        self, key: Hashable, stored: str, height: float, title: str
     ) -> tuple[Hashable, str] | None:
-        """The field for ``stored`` (RTF) of element ``key``, ``height`` high (the formatting
-        buttons below it come on top)."""
+        """The field for ``stored`` (RTF) of element ``key``, ``height`` high, below a row with
+        its ``title`` and, on the right, the formatting buttons (that row comes on top)."""
         commit = None
         if key != self._key:
             commit = self._commit()
@@ -132,6 +133,11 @@ class RichTextEdit:
         self._last_frame = imgui.get_frame_count()
 
         imgui.begin_group()
+        # The buttons belong to the field (the group): a click on them keeps it focused.
+        imgui.align_text_to_frame_padding()
+        imgui.text_disabled(title)
+        imgui.same_line()
+        self._buttons()
         border = self._focused
         if border:
             imgui.push_style_color(
@@ -147,7 +153,6 @@ class RichTextEdit:
         if border:
             imgui.pop_style_var()
             imgui.pop_style_color()
-        self._buttons()
         imgui.end_group()
 
         inside = imgui.is_item_hovered(
@@ -368,7 +373,7 @@ class RichTextEdit:
             ime.viewport_id = imgui.get_window_viewport().id_
 
     def _buttons(self) -> None:
-        """Bold, italic and underline below the field, on its right."""
+        """Bold, italic and underline above the field, on its right."""
         style = imgui.get_style()
         size = imgui.get_frame_height()
         width = size * 1.25
@@ -402,16 +407,21 @@ class RichTextEdit:
                 imgui.set_tooltip(f"{tip} ({keys})")
             face = styled_font(flag == BOLD, flag == ITALIC) or font
             low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
-            glyph = face.get_font_baked(font_size).get_char_advance(ord("a"))
-            x = (low.x + high.x - glyph) / 2.0
-            y = (low.y + high.y - imgui.get_text_line_height()) / 2.0
+            # Centred by the letter as it is drawn (its advance has room after it), on whole
+            # pixels as imgui draws text, and the underline exactly below it: a filled row of
+            # whole pixels (a line is drawn through pixel centres, half a pixel off).
+            glyph = face.get_font_baked(font_size).find_glyph(ord("a"))
+            x = math.floor((low.x + high.x - glyph.x0 - glyph.x1) / 2.0)
+            y = math.floor((low.y + high.y - imgui.get_text_line_height()) / 2.0)
             color = imgui.get_color_u32(imgui.Col_.text)
             draw = imgui.get_window_draw_list()
             draw.add_text(face, font_size, imgui.ImVec2(x, y), color, "a")
             if flag == UNDERLINE:
-                under = y + font.get_font_baked(font_size).ascent + px(1.5)
-                draw.add_line(
-                    imgui.ImVec2(x, under), imgui.ImVec2(x + glyph, under), color, 1.0
+                under = round(y + font.get_font_baked(font_size).ascent + px(1.0))
+                draw.add_rect_filled(
+                    imgui.ImVec2(round(x + glyph.x0), under),
+                    imgui.ImVec2(round(x + glyph.x1), under + max(1, round(px(1.0)))),
+                    color,
                 )
 
     def _toggle(self, flag: int) -> None:

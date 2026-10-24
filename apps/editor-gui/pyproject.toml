@@ -13,6 +13,7 @@ dependencies = [
     "imgui-bundle>=1.92.900",
     "numpy>=2.5.4",
     "platformdirs>=4.13.5",
+    "psutil>=7",
     "pyobjc-framework-cocoa>=12.2.2; sys_platform == 'darwin'",
     "pypdf>=6.21.1",
     "python-multipart>=0.0.32",

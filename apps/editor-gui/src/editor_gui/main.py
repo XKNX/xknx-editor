@@ -118,6 +118,7 @@ from editor_gui.widgets.dialog import (
     end_dialog,
     floating_window_border,
     focus_when_appearing,
+    follow_screen,
     outlined_tabs,
     tab_page,
 )
@@ -455,6 +456,8 @@ class KnxGuiApp:
         self._ga_export_empty_requested = False
         # Clear Cache…: the confirmation, with the size the cache had when it was asked for.
         self._clear_cache_requested = False
+        # File > Exit in the browser view: it stops the server, so it is confirmed first.
+        self._exit_confirm_requested = False
         self._clear_cache_size = 0
         # Folder picker for the ProjectStore export when the default path is not found, and which
         # ETS generation that export is aimed at (set when the export starts, read by the dialogs).
@@ -484,6 +487,9 @@ class KnxGuiApp:
         # tabs of its section in their order then.
         self._manufacturer_hidden = False
         self._manufacturer_tabs: list[str] = []
+        # The Project Log tab hidden because the open project has no log (see _sync_project_log);
+        # kept in the settings, as the window's visibility is.
+        self._project_log_hidden = bool(load_settings("app").get("project_log_hidden"))
         # The window whose tab stays selected in its section while the Manufacturer tab comes
         # back (imgui selects a tab added to a section), until the frame given.
         self._kept_tab: tuple[str, int] | None = None
@@ -746,6 +752,9 @@ class KnxGuiApp:
         self._form = "wide"
         self._wide_layout: dict[str, Any] = {}
         self._form_since: float | None = None
+        # Panels to bring to the front once the open modal dialog is closed (see
+        # _keep_dialog_open).
+        self._focus_after_dialog: list[str] = []
         # The status bar's parts: whether one no longer fitted, and the room kept at the right.
         self._status_full = False
         self._status_reserved = 0.0
@@ -1250,6 +1259,30 @@ class KnxGuiApp:
             self._log.info("cache cleared", freed=freed)
             self._flash_toast(S.CLEAR_CACHE_DONE.format(size=human_size(freed)))
             imgui.close_current_popup()
+        elif clicked == 1:
+            imgui.close_current_popup()
+        end_dialog()
+
+    def _exit(self) -> None:
+        """File > Exit: the desktop window closes right away. In the browser view it stops
+        the server, after which no browser can connect again, so it is confirmed first."""
+        if web.active_hub is not None:
+            self._exit_confirm_requested = True
+        else:
+            hello_imgui.get_runner_params().app_shall_exit = True
+
+    def _render_exit_confirm_modal(self) -> None:
+        title = f"{S.TRAY_STOP}###exit_confirm"
+        if self._exit_confirm_requested:
+            imgui.open_popup(title)
+            self._exit_confirm_requested = False
+        if not begin_dialog(title, width=460.0):
+            return
+        imgui.text_wrapped(S.EXIT_CONFIRM_TEXT)
+        clicked = dialog_buttons(S.TRAY_STOP, S.BTN_CANCEL)
+        if clicked == 0:
+            imgui.close_current_popup()
+            hello_imgui.get_runner_params().app_shall_exit = True
         elif clicked == 1:
             imgui.close_current_popup()
         end_dialog()
@@ -3388,6 +3421,33 @@ class KnxGuiApp:
                         self._tab_order_from = imgui.get_frame_count() + 2
                         self._tab_order_until = imgui.get_frame_count() + 300
 
+    def _sync_project_log(self) -> None:
+        """The Project Log tab only while the open project has entries in its log: they come only
+        from an imported project, the editor writes none. Otherwise it is hidden and left out of
+        the menus, and it comes back once a project with a log is open (unless the user had
+        closed it)."""
+        has_log = self._project_service.has_project_log()
+        if has_log is None:
+            return
+        for window in hello_imgui.get_runner_params().docking_params.dockable_windows:
+            if _dock_window_name(window) != "project_log":
+                continue
+            window.include_in_view_menu = has_log
+            if not has_log and window.is_visible:
+                window.is_visible = False
+                self._set_project_log_hidden(True)
+            elif has_log and self._project_log_hidden:
+                # Not focused when it appears: imgui selects the focused window's tab.
+                window.imgui_window_flags |= imgui.WindowFlags_.no_focus_on_appearing
+                window.is_visible = True
+                self._set_project_log_hidden(False)
+
+    def _set_project_log_hidden(self, hidden: bool) -> None:
+        self._project_log_hidden = hidden
+        data = load_settings("app")
+        data["project_log_hidden"] = hidden
+        save_settings("app", data)
+
     def _keep_selected_tab(self) -> None:
         """Keep the tab that was selected in the Manufacturer tab's section selected while that
         tab comes back."""
@@ -3735,7 +3795,7 @@ class KnxGuiApp:
                 self._url_prompt_requested = True
             imgui.separator()
             if imgui.menu_item(S.MENU_EXIT, "", False)[0]:
-                hello_imgui.get_runner_params().app_shall_exit = True
+                self._exit()
             imgui.end_menu()
 
         if imgui.begin_menu(S.MENU_EDIT):
@@ -4634,6 +4694,7 @@ class KnxGuiApp:
         self._settle_tab_order()
         self._project_service.take_rechecked_devices()
         self._sync_device_section()
+        self._sync_project_log()
         self._keep_selected_tab()
         self._render_status_bar()
         render_section_menus()
@@ -4681,6 +4742,7 @@ class KnxGuiApp:
         self._render_ga_export_options_modal()
         self._render_ga_export_empty_modal()
         self._render_clear_cache_modal()
+        self._render_exit_confirm_modal()
         self._render_projectstore_confirm_modal()
         self._render_url_prompt_modal()
         self._render_new_project_modal()
@@ -4711,6 +4773,25 @@ class KnxGuiApp:
         self._render_command_palette()
         self._render_bus_operation_overlay()
         self._render_toasts()
+        self._keep_dialog_open()
+
+    def _keep_dialog_open(self) -> None:
+        """Bringing a panel to the front closes an open modal dialog (imgui focuses the panel): while
+        one is open, the panels asked to come to the front wait until it is closed, e.g. the tabs a
+        switch to another layout shows (see _update_web_layout)."""
+        windows = hello_imgui.get_runner_params().docking_params.dockable_windows
+        # The bindings type it as non-optional, but it is None without a modal dialog.
+        if imgui.internal.get_top_most_popup_modal() is not None:  # pyright: ignore[reportUnnecessaryComparison]
+            for window in windows:
+                if window.focus_window_at_next_frame:
+                    window.focus_window_at_next_frame = False
+                    self._focus_after_dialog.append(_dock_window_name(window))
+            return
+        if self._focus_after_dialog:
+            for window in windows:
+                if _dock_window_name(window) in self._focus_after_dialog:
+                    window.focus_window_at_next_frame = True
+            self._focus_after_dialog = []
 
     def _render_bus_operation_overlay(self) -> None:
         """Non-blocking progress overlay shown while a device is being tested. Determinate bar from the
@@ -5464,6 +5545,7 @@ class KnxGuiApp:
         )
         imgui.set_next_window_size(px_vec2(580.0, 0.0), imgui.Cond_.appearing)
         flags = imgui.WindowFlags_.no_collapse | imgui.WindowFlags_.no_saved_settings
+        flags |= follow_screen(S.WELCOME_TITLE, 580.0)
         # p_open=True gives the window a close (X) button; when clicked it returns open=False.
         with floating_window_border():
             expanded, still_open = imgui.begin(S.WELCOME_TITLE, True, flags)
@@ -5958,6 +6040,13 @@ def _detect_locale() -> str:
 
 def main() -> None:
     import sys
+
+    from editor_gui import cli
+
+    # --help only tells the arguments; nothing starts.
+    if cli.wants_help(sys.argv):
+        cli.show_help()
+        return
 
     # Before anything can reach the network: the packaged app's OpenSSL points at a trust store
     # that only exists on the build machine, so fall back to the bundled certifi (see certs.py).

@@ -168,11 +168,14 @@ in front handle it.
 | `--web[=[host:]port]` | Serve the browser UI (default `127.0.0.1:8080`; a port given must be free) |
 | `--web-password-file=FILE` | Sign-in password from the first line of `FILE` (or `XKNX_WEB_PASSWORD`) |
 | `--web-trust-proxy` | A proxy in front signs users in; no password |
+| `--web-proxy-ip=IP[,IP...]` | Answer only connections from these addresses (the proxy in front) |
 | `--web-files=DIR` | Folder for uploaded, saved and exported files (default: `files` in the app's data folder) |
 | `--web-idle=MINUTES` | Control passes to another browser after this much inactivity (default 10) |
 | `--web-cert=FILE`, `--web-key=FILE` | Serve HTTPS with this certificate and key |
 | `--web-no-browser` | Do not open the browser at start (an autostart, a service) |
 | `--web-no-tray` | No tray icon |
+
+`--help` lists all options.
 
 On a tablet or phone the layout follows the screen: from about 1000 pixels width the usual one,
 below it the navigation above (or beside) the other panels, which share one section as tabs; it

@@ -2020,6 +2020,14 @@ class _CombinedStrings(BaseStrings, MenuStrings):
         return _("Stop XKNX Editor")
 
     @property
+    def EXIT_CONFIRM_TEXT(self) -> str:
+        """File > Exit in the browser view: what stopping means."""
+        return _(
+            "This stops XKNX Editor on the server. Until it is started there again, no "
+            "browser can connect to it."
+        )
+
+    @property
     def EDITOR_RUNNING_TITLE(self) -> str:
         return _("XKNX Editor Already Running")
 

@@ -3270,26 +3270,38 @@ class ProjectService:
         self._revision_cache[cache_key] = (self.revision, state)
         return state
 
+    @io_guarded(lambda: None)
+    def has_project_log(self) -> bool | None:
+        """Whether the open project has entries in its log (only an imported project has, the
+        editor writes none); None while that cannot be read (an import is running)."""
+        return bool(self.get_project_traces())
+
     def get_project_traces(self) -> list[ProjectTrace]:
         """The project log (ProjectInformation/ProjectTraces), in document order.
 
         Comments are stored verbatim (they are encrypted on disk); ``comment_plain`` is filled with
         the decrypted text when a trace key has been installed (see :mod:`editor_gui.trace_key`).
+        Cached by revision and installed key: the Project Log reads it every frame.
         """
-        from xknxeditor.proj import decrypt_comment
+        from xknxeditor.proj import current_marker, decrypt_comment
 
         if self._pid is None:
             return []
-        p = self._svc.project(self._pid)
-        return [
+        cache_key = f"project_traces:{current_marker()}"
+        hit = self._revision_cache.get(cache_key)
+        if hit is not None and hit[0] == self.revision:
+            return cast("list[ProjectTrace]", hit[1])
+        traces = [
             ProjectTrace(
-                date=t.date,
-                user_name=t.user_name,
-                comment=t.comment,
-                comment_plain=decrypt_comment(t.comment),
+                date=date,
+                user_name=user_name,
+                comment=comment,
+                comment_plain=decrypt_comment(comment),
             )
-            for t in p.traces
+            for date, user_name, comment in self._svc.project_traces(self._pid)
         ]
+        self._revision_cache[cache_key] = (self.revision, traces)
+        return traces
 
     def get_import_notes(self) -> list["ImportLoss"]:
         """Lossy-import notes recorded when the current project was built from a ``.knxproj``
