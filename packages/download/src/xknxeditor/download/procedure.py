@@ -35,6 +35,9 @@ from typing import TYPE_CHECKING
 
 from xknx.profile.const import ResourceGenericPropertyId, ResourceObjectType
 
+from xknxeditor.namespaces.intermediate.hawk_configuration_data_t_features_feature_name import (
+    HawkConfigurationDataFeaturesFeatureName as MaskFeature,
+)
 from xknxeditor.namespaces.intermediate.ld_ctrl_abs_segment_t import LdCtrlAbsSegment
 from xknxeditor.namespaces.intermediate.ld_ctrl_base_t import LdCtrlBase
 from xknxeditor.namespaces.intermediate.ld_ctrl_clear_lcfilter_table_t import (
@@ -112,7 +115,7 @@ from .merge import resolve_download_controls
 from .preflight import PreflightReport, PropertyDiff, SegmentDiff
 from .programmer import DEFAULT_MAX_APDU_LENGTH, PID_TABLE_REFERENCE, DeviceProgrammer
 from .property_layout import STANDARD_WRITE_WIDTHS, property_width
-from .resources import MaskFeature, bundled_mask_resources, property_mapped_lsms
+from .resources import bundled_mask_resources, property_mapped_lsms
 from .scope import (
     GROUP_COMMUNICATION_OBJECTS,
     DownloadScope,
