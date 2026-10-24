@@ -1,0 +1,52 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://open-knx-kb.org/schema/domain.schema.json",
+  "title": "Open-KNX-KB Domain Schema",
+  "description": "Validierungsschema für Gewerkebeschreibungen und Systemgrenzen",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "scope",
+    "primary_functional_blocks",
+    "subsystems_interfaces"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^domain_[a-z0-9_]+$",
+      "description": "Eindeutige ID des Gewerks, z. B. domain_lighting"
+    },
+    "title": {
+      "type": "string",
+      "description": "Name des Gewerks / der Domäne"
+    },
+    "scope": {
+      "type": "string",
+      "description": "Zweck und Abgrenzung des Gewerks"
+    },
+    "primary_functional_blocks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^fb_[a-z0-9_]+$"
+      },
+      "description": "Liste der Kern-Functional-Blocks dieses Gewerks"
+    },
+    "subsystems_interfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "protocol", "boundary_description"],
+        "properties": {
+          "name": { "type": "string" },
+          "protocol": { "type": "string" },
+          "boundary_description": { "type": "string" }
+        },
+        "additionalProperties": false
+      },
+      "description": "Schnittstellen zu Subsystemen (z. B. DALI, DMX, SMI, Modbus, BACnet)"
+    }
+  },
+  "additionalProperties": false
+}

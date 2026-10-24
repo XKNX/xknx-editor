@@ -40,7 +40,45 @@ KNX system integration with `xknx-editor` is split into two distinct operational
 
 ---
 
-## 2. Systematic Workflow: Step-by-Step
+## 2. Open-KNX-KB: Vendor-Neutral Knowledge Base ("Standard vor Willkür")
+
+Before designing group addresses or configuring device parameters, consult the built-in **Open-KNX-KB** knowledge base:
+
+```
+┌────────────────────────────────────────────────────────┐
+│             OPEN-KNX-KB KNOWLEDGE BASE                 │
+│  - 01_domains: Lighting, Shading, HVAC, HEMS, Safety   │
+│  - 02_functional_blocks: Standard KOs, DPTs, Flags     │
+│  - 03_addressing_patterns: 3-Level standard GA offsets │
+│  - 04_device_archetypes: DALI-2, Heating, Push buttons │
+│  - Tools: kb_search, kb_get_entry, kb_lookup_dpt       │
+│  - Resources: kb://manifest, kb://<category>/<file>   │
+└────────────────────────────────────────────────────────┘
+```
+
+### Knowledge Base Best Practices:
+1. **Search Before Guessing:**
+   ```json
+   kb_search(query="DALI Notlicht")
+   kb_search(query="Heizungsaktor PWM", category="device_archetypes")
+   ```
+2. **Retrieve Full Functional Block Specification:**
+   ```json
+   kb_get_entry(entry_id="fb_switch_actuator")
+   ```
+   Inspect required KOs, direction (`write` vs `transmit`), flags (`['C', 'W']` vs `['C', 'R', 'T']`), and recommended GA slot numbers.
+3. **Lookup Standard DPT Usage:**
+   ```json
+   kb_lookup_dpt(dpt="1.001")
+   kb_lookup_dpt(dpt="20.102")
+   ```
+   Returns all standard functional blocks, object names, and required flags for that DPT.
+4. **Standard Addressing Structure:**
+   Check `kb_get_entry(entry_id="3_level_standard")` for standard Main/Middle/Sub GA division across building trades.
+
+---
+
+## 3. Systematic Workflow: Step-by-Step
 
 ### Phase 1: Status & Orientation (Always Start Here)
 1. **Check System Status:**
@@ -104,8 +142,8 @@ project_setup_parameters(
 )
 ```
 
-#### Option B: Direct Path-Based Parameter Writes
-Target parameters directly with human-readable hierarchy paths without needing raw XML reference IDs:
+#### Option B: Single Parameter Writes (Fallback Only)
+Use `project_set_parameter` only for single, isolated parameter tweaks where no parent gating selectors need to be resolved. For activating channels, changing modes, or multi-parameter setups, always use **Option A (`project_setup_parameters`)**.
 
 ```json
 project_set_parameter(
@@ -114,9 +152,9 @@ project_set_parameter(
   value_label="Switch"
 )
 ```
-**Critical Verification:** Always check the response's `is_effective` field:
-- If `is_effective: true`, the parameter is active and taking effect.
-- If `is_effective: false`, the parameter is currently dormant because a parent selector/activation parameter is disabled.
+**Verification & Active State:** `project_set_parameter` directly edits currently active parameters and returns `{"active": true, "is_effective": true, ...}`:
+- `is_effective: true` (or `active: true`): the parameter value was updated and is currently taking effect in the active UI.
+- If a parameter is currently dormant/inactive (hidden behind a disabled parent selector), `project_set_parameter` rejects the edit with an error. Use **Option A (`project_setup_parameters`)** instead to automatically resolve and activate the gating path.
 
 #### Option C: Large Devices (Touch Panels, Room Controllers, OpenKNX)
 Devices with hundreds or thousands of parameters should never be queried in full at once:
@@ -241,7 +279,7 @@ Choose the minimal download scope to save bus bandwidth and avoid unnecessary re
 #### Workflow C: Changing Individual Address of an Existing Device
 1. Update the address in the project:
    ```json
-   project_set_individual_address(node_id=12, individual_address="1.1.25")
+   project_set_individual_address(node_id=12, address="1.1.25")
    ```
 2. Program via overwrite scope:
    ```json
@@ -260,14 +298,22 @@ A successful project edit or bus download confirms only that the configuration w
 
 1. **Read Live State from Bus:**
    ```json
-   monitor_read_value(group_address="1/1/31")
+   monitor_read_value(address="1/1/31")
    ```
    Sends a `GroupValueRead` telegram and waits for the actuator's `GroupValueResponse`.
 
 2. **Query Recent Bus Traffic:**
    ```json
-   monitor_query_telegrams(group_address="1/1/30", limit=20)
+   monitor_telegrams(limit=20)
    ```
 
 3. **Check Auxiliary Objects:**
    If a channel does not switch as expected, verify whether a safety lock (`Lock object`), priority control (`Forced control`), or local manual override is active on the device.
+
+---
+
+### Phase 7: Topology & Space Management (Action-Based)
+
+- **Spaces & Locations:** Use `project_manage_space(action="create"|"rename"|"set_type"|"move"|"remove", ...)`
+- **Topology (Areas & Lines):** Use `project_manage_topology(action="create_area"|"rename_area"|"remove_area"|"create_line"|"rename_line"|"remove_line", ...)`
+

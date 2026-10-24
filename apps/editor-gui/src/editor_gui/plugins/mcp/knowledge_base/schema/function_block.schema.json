@@ -1,0 +1,148 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://open-knx-kb.org/schema/function_block.schema.json",
+  "title": "Open-KNX-KB Functional Block Schema",
+  "description": "Validierungsschema für herstellerneutrale KNX Functional Blocks nach KNX Spezifikation Volume 7 und Open-KNX-KB Interoperabilitätsprofile",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "category",
+    "standard_reference",
+    "security_level",
+    "communication_objects",
+    "recommended_ga_structure"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^fb_[a-z0-9_]+$",
+      "description": "Eindeutige ID des Functional Blocks, z. B. fb_dimming_actuator"
+    },
+    "title": {
+      "type": "string",
+      "description": "Menschenlesbarer Titel des Functional Blocks"
+    },
+    "category": {
+      "type": "string",
+      "enum": [
+        "lighting",
+        "shading",
+        "hvac",
+        "energy_hems",
+        "sensors",
+        "safety_diagnostics"
+      ],
+      "description": "Zugehöriges Gewerk / Domäne"
+    },
+    "standard_reference": {
+      "type": "string",
+      "description": "Referenz auf die offizielle KNX-Spezifikation oder Normabschnitte"
+    },
+    "security_level": {
+      "type": "string",
+      "enum": ["Plain", "Data Secure ready", "Data Secure mandatory", "IP Secure"],
+      "description": "Sicherheitsanforderung bzw. Eignung für Data/IP Secure"
+    },
+    "status": {
+      "type": "string",
+      "description": "Profil-Status, z. B. 'open-knx-kb-profile' oder 'standard'"
+    },
+    "normative_status": {
+      "type": "string",
+      "description": "Normativer Status des Blocks (z. B. offizieller KNX FB vs. herstellerneutrales Interop-Profil)"
+    },
+    "units": {
+      "type": "object",
+      "description": "Einheiten-Definitionen (z. B. active_power: W, active_energy: Wh)"
+    },
+    "communication_objects": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "direction",
+          "dpt",
+          "flags",
+          "required",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]+$",
+            "description": "Eindeutige Kennung des KO innerhalb des Blocks"
+          },
+          "name": {
+            "type": "string",
+            "description": "Bezeichnung des Kommunikationsobjekts nach Norm / Best Practice"
+          },
+          "direction": {
+            "type": "string",
+            "enum": ["write", "transmit", "read", "update"],
+            "description": "write = Empfang vom Bus (C, W); transmit = Senden auf Bus (C, R, T); read = Leseanforderung senden; update = Status-Aktualisierung (C, U)"
+          },
+          "dpt": {
+            "type": "string",
+            "pattern": "^[0-9]{1,2}\\.[0-9]{3}$",
+            "description": "Exakter Datapunkt-Typ nach KNX Vol. 3/7/2, z. B. 1.001, 3.007, 5.001, 9.001, 14.057, 13.011, 29.010"
+          },
+          "flags": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["C", "R", "W", "T", "U", "I"]
+            },
+            "uniqueItems": true,
+            "description": "KNX-Objektflags: C (Communication), R (Read), W (Write), T (Transmit), U (Update), I (Init)"
+          },
+          "required": {
+            "type": "boolean",
+            "description": "Gibt an, ob das KO für die Minimalfunktion des Blocks zwingend erforderlich ist"
+          },
+          "description": {
+            "type": "string",
+            "description": "Funktionsbeschreibung und Verhalten auf dem Bus"
+          },
+          "behavior_on_lock": {
+            "type": "string",
+            "description": "Verhalten bei gesetztem Sperrobjekt (optional)"
+          },
+          "cycle_time_recommended": {
+            "type": "string",
+            "description": "Empfohlenes Sendeintervall bei zyklischen Objekten (z. B. '60s', '300s')"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "recommended_ga_structure": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["slot", "function"],
+        "properties": {
+          "slot": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Relativer Slot / Offset innerhalb der Gruppenadressen-Struktur des Verbrauchers"
+          },
+          "function": {
+            "type": "string",
+            "description": "Funktionszuweisung für diesen GA-Slot"
+          },
+          "dpt": {
+            "type": "string",
+            "pattern": "^[0-9]{1,2}\\.[0-9]{3}$"
+          }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

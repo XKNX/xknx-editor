@@ -12,6 +12,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 from editor_gui.plugins.mcp.context import McpContext, make_tool
+from editor_gui.plugins.mcp.knowledge import get_knowledge_base
 from editor_gui.plugins.mcp.tools.network import capture_state
 
 if TYPE_CHECKING:
@@ -20,6 +21,7 @@ if TYPE_CHECKING:
 
 def register(mcp: FastMCP, ctx: McpContext) -> None:
     tool = make_tool(mcp, ctx)
+    kb = get_knowledge_base()
 
     @tool(read_only=True)
     def status() -> dict[str, Any]:
@@ -51,6 +53,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "keyring": {"loaded": ctx.keyring.keyring is not None},
             "capture": capture_state(ctx.monitor),
             "online_catalog_language": ctx.api.catalog.online_language,
+            "knowledge_base": {
+                "loaded": kb.is_loaded,
+                "entries_count": kb.entries_count,
+                "version": kb.manifest.get("version", "1.0.0"),
+            },
             "capabilities": {
                 "download_scopes": [s.name for s in DownloadScope],
                 "com_object_flags": list(

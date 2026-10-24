@@ -13,7 +13,8 @@
   "exclude": [
     "**/files",
     "**/intermediate",
-    "**/tests"
+    "**/tests",
+    "**/knowledge_base"
   ],
   "pythonVersion": "3.13",
   "typeCheckingMode": "strict",

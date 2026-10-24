@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://open-knx-kb.org/schema/device_profile.schema.json",
+  "title": "Open-KNX-KB Device Profile Schema",
+  "description": "Validierungsschema für typische Geräte-Archetypen und Parametrierpfade",
+  "type": "object",
+  "required": [
+    "id",
+    "title",
+    "device_class",
+    "implemented_functional_blocks",
+    "key_parameters"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^dev_[a-z0-9_]+$",
+      "description": "Eindeutige ID des Geräte-Archetyps, z. B. dev_push_button_panel"
+    },
+    "title": {
+      "type": "string",
+      "description": "Titel des Archetyps"
+    },
+    "device_class": {
+      "type": "string",
+      "enum": [
+        "sensor",
+        "actuator",
+        "controller",
+        "gateway",
+        "system_device"
+      ],
+      "description": "Geräteklasse"
+    },
+    "implemented_functional_blocks": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^fb_[a-z0-9_]+$"
+      },
+      "description": "In diesem Gerätentyp abgebildete Functional Blocks"
+    },
+    "key_parameters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "default_or_recommended", "impact"],
+        "properties": {
+          "name": { "type": "string" },
+          "default_or_recommended": { "type": "string" },
+          "impact": { "type": "string" }
+        },
+        "additionalProperties": false
+      }
+    }
+  },
+  "additionalProperties": false
+}

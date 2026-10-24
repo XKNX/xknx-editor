@@ -1053,6 +1053,40 @@
       "readOnlyHint": true,
       "title": null
     },
+    "description": "Alias for kb_search: search the KNX Knowledge Base.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "query": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "type": "object"
+    },
+    "name": "find_knowledge_entries"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
     "description": "List EVERY com-object the device's application DECLARES \u2014 a superset of the ones currently\nactive (project_list_com_objects) \u2014 so you can see which objects a function could add before\nswitching its parameters (for group-address planning). Identify the device by ``node_id`` OR\n``device_address`` (an individual address like \"1.0.30\"); pass exactly one.\n\nReturns {items, count}; each item has {ref_id, number, name, function_text, dpt, object_size}\nfrom the STATIC declaration: names/function texts are templates (no parameter or module\nsubstitution) and ``number`` is the base (a module instance offsets it). This is NOT a\nreachability proof \u2014 a declared object may never be activatable in a given configuration, and\nthe parameter values that activate each one are NOT included. For the active, linkable objects\n(with db_id/flags) and their links, use project_list_com_objects.",
     "inputSchema": {
       "additionalProperties": false,
@@ -1083,6 +1117,153 @@
       "type": "object"
     },
     "name": "find_potential_com_objects"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Alias for kb_get_entry: retrieve full specification for a knowledge base entry.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "entry_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "entry_id"
+      ],
+      "type": "object"
+    },
+    "name": "get_knowledge_entry"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Retrieve full specification, metadata, and instructions for a knowledge base document.\n\nAccepts entry ID (e.g. 'fb_switch_actuator', 'domain_lighting', 'dev_dali_gateway',\n'3_level_standard') or relative file path (e.g. '01_domains/lighting.md').\n\nReturns parsed YAML frontmatter metadata (including communication_objects, flags, and GA\nrecommendations) as well as the complete markdown text.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "entry_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "entry_id"
+      ],
+      "type": "object"
+    },
+    "name": "kb_get_entry"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Get the Open-KNX-KB manifest overview with version, domain list, and counts.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object"
+    },
+    "name": "kb_get_manifest"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "List all available Open-KNX-KB knowledge entries, grouped by category.\n\nPass optional category ('domains', 'functional_blocks', 'device_archetypes',\n'addressing_patterns') to filter.",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "type": "object"
+    },
+    "name": "kb_list_entries"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Look up standard KNX communication objects, functional blocks, directions, and flags for a DPT.\n\nReturns all standard functional blocks that use this Datapoint Type (e.g. '1.001', '5.001',\n'9.001', '20.102'), specifying:\n- Functional block ID (e.g. 'fb_switch_actuator', 'fb_shutter_blind')\n- Direction ('write' for command inputs, 'transmit' for status outputs)\n- Standard flags: ['C', 'W'] for commands vs. ['C', 'R', 'T'] for status feedbacks",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "dpt": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "dpt"
+      ],
+      "type": "object"
+    },
+    "name": "kb_lookup_dpt"
+  },
+  {
+    "annotations": {
+      "destructiveHint": false,
+      "idempotentHint": null,
+      "openWorldHint": false,
+      "readOnlyHint": true,
+      "title": null
+    },
+    "description": "Search the vendor-neutral KNX Knowledge Base (Open-KNX-KB).\n\nFinds functional blocks (KNX Vol. 7), domain standards (lighting, shading, HVAC, HEMS,\nsafety), device archetypes (DALI gateways, heating actuators, push-button panels),\naddressing patterns (3-level standard, GA allocations), and communication objects.\n\nCategory filter options:\n- 'domains' (lighting, shading, hvac, energy_hems, safety_diagnostics)\n- 'functional_blocks' (fb_switch_actuator, fb_dimming_actuator, fb_shutter_blind, etc.)\n- 'device_archetypes' (dali_gateways, heating_actuators, push_button_panels)\n- 'addressing_patterns' (3_level_standard, address_allocation, migration_rules)",
+    "inputSchema": {
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "query": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "query"
+      ],
+      "type": "object"
+    },
+    "name": "kb_search"
   },
   {
     "annotations": {

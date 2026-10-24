@@ -1,0 +1,1262 @@
+{
+  "name": "Open-KNX-KB",
+  "version": "1.0.0",
+  "description": "Herstellerneutrale, semantisch präzise Wissensbasis für Gebäudeautomation mit KNX",
+  "domains": [
+    {
+      "id": "domain_energy_hems",
+      "title": "Gewerk: Energie- & Lastmanagement, PV, Speicher & Elektromobilität (HEMS)",
+      "file": "01_domains/energy_hems.md",
+      "primary_fbs": [
+        "fb_energy_meter"
+      ]
+    },
+    {
+      "id": "domain_hvac",
+      "title": "Gewerk: Heizung, Lüftung, Kühlung & Raumklima (HVAC)",
+      "file": "01_domains/hvac.md",
+      "primary_fbs": [
+        "fb_room_thermostat"
+      ]
+    },
+    {
+      "id": "domain_lighting",
+      "title": "Gewerk: Beleuchtungssteuerung & DALI-Integration",
+      "file": "01_domains/lighting.md",
+      "primary_fbs": [
+        "fb_switch_actuator",
+        "fb_dimming_actuator"
+      ]
+    },
+    {
+      "id": "domain_safety_diagnostics",
+      "title": "Gewerk: Sicherheits- & Systemdiagnose, Busüberwachung & Alarmierung",
+      "file": "01_domains/safety_diagnostics.md",
+      "primary_fbs": [
+        "fb_weather_station"
+      ]
+    },
+    {
+      "id": "domain_shading",
+      "title": "Gewerk: Beschattungs- & Sonnenschutzsteuerung",
+      "file": "01_domains/shading.md",
+      "primary_fbs": [
+        "fb_shutter_blind"
+      ]
+    }
+  ],
+  "functional_blocks": [
+    {
+      "id": "fb_dimming_actuator",
+      "title": "Functional Block: Dimmaktor (Dimming Actuator Basic)",
+      "category": "lighting",
+      "standard_reference": "KNX Specifications Vol. 7/20, Kap. 3 (FB Dimming Actuator Basic)",
+      "file": "02_functional_blocks/fb_dimming_actuator.md",
+      "communication_objects_count": 7,
+      "recommended_ga_structure": [
+        {
+          "slot": 0,
+          "function": "Schalten (Befehl)",
+          "dpt": "1.001"
+        },
+        {
+          "slot": 1,
+          "function": "Status Schalten (Rückmeldung)",
+          "dpt": "1.001"
+        },
+        {
+          "slot": 2,
+          "function": "Relatives Dimmen (4-Bit)",
+          "dpt": "3.007"
+        },
+        {
+          "slot": 3,
+          "function": "Absoluter Dimmwert (Befehl)",
+          "dpt": "5.001"
+        },
+        {
+          "slot": 4,
+          "function": "Status Dimmwert (Rückmeldung)",
+          "dpt": "5.001"
+        },
+        {
+          "slot": 5,
+          "function": "Sperren / Zwangsführung",
+          "dpt": "1.003"
+        },
+        {
+          "slot": 6,
+          "function": "Szene",
+          "dpt": "18.001"
+        }
+      ]
+    },
+    {
+      "id": "fb_energy_meter",
+      "title": "Functional Block: Energiemessung & Netzeinspeisung (KNX Energy Management)",
+      "category": "energy_hems",
+      "standard_reference": "KNX Specifications Vol. 3/7/2 Datapoint Types v02.02.01 AS; Vol. 7/60/01 Metering M-Bus Data Collector v01.04.08 AS; Vol. 7/11/05 HWH LoadManagement v01.01.01 AS",
+      "file": "02_functional_blocks/fb_energy_meter.md",
+      "communication_objects_count": 17,
+      "recommended_ga_structure": [
+        {
+          "slot": 0,
+          "function": "Netzanschlusspunkt: Wirkleistung mit dokumentierter Vorzeichenkonvention",
+          "dpt": "14.057"
+        },
+        {
+          "slot": 1,
+          "function": "Netzbezug: Wirkleistung",
+          "dpt": "14.057"
+        },
+        {
+          "slot": 2,
+          "function": "Netzeinspeisung: Wirkleistung",
+          "dpt": "14.057"
+        },
+        {
+          "slot": 3,
+          "function": "Netzbezug: Wirkenergiezählerstand",
+          "dpt": "13.011"
+        },
+        {
+          "slot": 4,
+          "function": "Netzeinspeisung: Wirkenergiezählerstand",
+          "dpt": "13.011"
+        },
+        {
+          "slot": 5,
+          "function": "Phase L1: Strom",
+          "dpt": "14.020"
+        },
+        {
+          "slot": 6,
+          "function": "Phase L2: Strom",
+          "dpt": "14.020"
+        },
+        {
+          "slot": 7,
+          "function": "Phase L3: Strom",
+          "dpt": "14.020"
+        },
+        {
+          "slot": 8,
+          "function": "Netzfrequenz",
+          "dpt": "14.033"
+        },
+        {
+          "slot": 9,
+          "function": "Lastmanagement: Leistungsreduzierung anfordern",
+          "dpt": "1.001"
+        },
+        {
+          "slot": 10,
+          "function": "EVSE: Ladefreigabe",
+          "dpt": "1.001"
+        },
+        {
+          "slot": 11,
+          "function": "Zähler: Störung",
+          "dpt": "1.006"
+        }
+      ]
+    },
+    {
+      "id": "fb_presence_detector",
+      "title": "Functional Block: Präsenz- & Bewegungsmelder (Presence & Light Sensor Basic)",
+      "category": "sensors",
+      "standard_reference": "KNX Specifications Vol. 7/20, Kap. 1 & Vol. 7/01, Kap. 2",
+      "file": "02_functional_blocks/fb_presence_detector.md",
+      "communication_objects_count": 7,
+      "recommended_ga_structure": [
+        {
+          "slot": 0,
+          "function": "Präsenz / Schalten Licht (Ausgang)",
+          "dpt": "1.001"
+        },
+        {
+          "slot": 1,
+          "function": "Helligkeitswert (Lux)",
+          "dpt": "9.004"
+        },
+        {
+          "slot": 2,
+          "function": "Slave-Trigger (Master/Slave)",
+          "dpt": "1.001"
+        },
+        {
+          "slot": 3,
+          "function": "Tag/Nacht Umschaltung",
+          "dpt": "1.001"
+        },
+        {
+          "slot": 4,
+          "function": "Sperren Präsenzmelder",
+          "dpt": "1.003"
+        },
+        {
+          "slot": 5,
+          "function": "Konstantlicht Dimmwert (0-100%)",
+          "dpt": "5.001"
+        }
+      ]
+    },
+    {
+      "id": "fb_room_thermostat",
+      "title": "Functional Block: Raumtemperaturregler & Heizungskanal (Room Thermostat Basic)",
+      "category": "hvac",
+      "standard_reference": "KNX Specifications Vol. 7/10, Kap. 3 & Kap. 4 (FB HVAC Room Controller)",
+      "file": "02_functional_blocks/fb_room_thermostat.md",
+      "communication_objects_count": 11,
+      "recommended_ga_structure": [
+        {
+          "slot": 0,
+          "function": "Raumtemperatur Istwert",
+          "dpt": "9.001"
+        },
+        {
+          "slot": 1,
+          "function": "Aktueller Sollwert (Status)",
+          "dpt": "9.001"
+        },
+        {
+          "slot": 2,
+          "function": "Sollwertverschiebung (Befehl)",
+          "dpt": "9.002"
+        },
+        {
+          "slot": 3,
+          "function": "Status Sollwertverschiebung",
+          "dpt": "9.002"
+        },
+        {
+          "slot": 4,
+          "function": "HVAC Modus (Befehl)",
+          "dpt": "20.102"
+        },
+        {
+          "slot": 5,
+          "function": "Status HVAC Modus",
+          "dpt": "20.102"
+        },
+        {
+          "slot": 6,
+          "function": "Stellgröße Heizen (0-100%)",
+          "dpt": "5.001"
+        },
+        {
+          "slot": 7,
+          "function": "Fensterstatus",
+          "dpt": "1.019"
+        },
+        {
+          "slot": 8,
+          "function": "Taupunktalarm",
+          "dpt": "1.006"
+        },
+        {
+          "slot": 9,
+          "function": "Umschaltung Heizen/Kühlen",
+          "dpt": "1.100"
+        }
+      ]
+    },
+    {
+      "id": "fb_shutter_blind",
+      "title": "Functional Block: Sonnenschutzaktor (Sunblind Actuator Basic)",
+      "category": "shading",
+      "standard_reference": "KNX Specifications Vol. 7/50, Kap. 2 (FB Sunblind Actuator Basic)",
+      "file": "02_functional_blocks/fb_shutter_blind.md",
+      "communication_objects_count": 10,
+      "recommended_ga_structure": [
+        {
+          "slot": 0,
+          "function": "Auf / Ab (Langzeitbefehl)",
+          "dpt": "1.008"
+        },
+        {
+          "slot": 1,
+          "function": "Schritt / Stopp (Kurzzeitbefehl)",
+          "dpt": "1.007"
+        },
+        {
+          "slot": 2,
+          "function": "Absolute Höhe (Befehl)",
+          "dpt": "5.001"
+        },
+        {
+          "slot": 3,
+          "function": "Status Höhe (Rückmeldung)",
+          "dpt": "5.001"
+        },
+        {
+          "slot": 4,
+          "function": "Absolute Lamelle (Befehl)",
+          "dpt": "5.001"
+        },
+        {
+          "slot": 5,
+          "function": "Status Lamelle (Rückmeldung)",
+          "dpt": "5.001"
+        },
+        {
+          "slot": 6,
+          "function": "Status Fahrt aktiv",
+          "dpt": "1.002"
+        },
+        {
+          "slot": 7,
+          "function": "Sperren / Aussperrschutz",
+          "dpt": "1.003"
+        },
+        {
+          "slot": 8,
+          "function": "Windalarm (Sicherheit)",
+          "dpt": "1.006"
+        }
+      ]
+    },
+    {
+      "id": "fb_switch_actuator",
+      "title": "Functional Block: Schaltaktor (Light Switching Actuator Basic - LSAB)",
+      "category": "lighting",
+      "standard_reference": "KNX Specifications Vol. 7/20, Kap. 2 (FB LSAB)",
+      "file": "02_functional_blocks/fb_switch_actuator.md",
+      "communication_objects_count": 6,
+      "recommended_ga_structure": [
+        {
+          "slot": 0,
+          "function": "Schalten (Befehl)",
+          "dpt": "1.001"
+        },
+        {
+          "slot": 1,
+          "function": "Status Schalten (Rückmeldung)",
+          "dpt": "1.001"
+        },
+        {
+          "slot": 2,
+          "function": "Treppenhaus / Zeitschaltung",
+          "dpt": "1.010"
+        },
+        {
+          "slot": 3,
+          "function": "Sperren / Zwangsführung",
+          "dpt": "1.003"
+        },
+        {
+          "slot": 4,
+          "function": "Szene",
+          "dpt": "18.001"
+        }
+      ]
+    },
+    {
+      "id": "fb_weather_station",
+      "title": "Functional Block: Wetterstation & Umwelt-Sensorik (Weather Station Basic)",
+      "category": "sensors",
+      "standard_reference": "KNX Specifications Vol. 7/01/06 Weather Data & Vol. 7/50/01 Shutters Sensors",
+      "file": "02_functional_blocks/fb_weather_station.md",
+      "communication_objects_count": 12,
+      "recommended_ga_structure": [
+        {
+          "slot": 0,
+          "function": "Windalarm (zyklisch 60s)",
+          "dpt": "1.006"
+        },
+        {
+          "slot": 1,
+          "function": "Regenalarm (zyklisch 60s)",
+          "dpt": "1.006"
+        },
+        {
+          "slot": 2,
+          "function": "Frostalarm",
+          "dpt": "1.006"
+        },
+        {
+          "slot": 3,
+          "function": "Außentemperatur",
+          "dpt": "9.001"
+        },
+        {
+          "slot": 4,
+          "function": "Dämmerungswert (Lux)",
+          "dpt": "9.004"
+        },
+        {
+          "slot": 5,
+          "function": "Tag / Nacht Status",
+          "dpt": "1.001"
+        },
+        {
+          "slot": 6,
+          "function": "Helligkeit Fassade Ost",
+          "dpt": "9.004"
+        },
+        {
+          "slot": 7,
+          "function": "Helligkeit Fassade Süd",
+          "dpt": "9.004"
+        },
+        {
+          "slot": 8,
+          "function": "Helligkeit Fassade West",
+          "dpt": "9.004"
+        },
+        {
+          "slot": 9,
+          "function": "Sonnenazimut",
+          "dpt": "14.007"
+        },
+        {
+          "slot": 10,
+          "function": "Sonnenelevation",
+          "dpt": "14.007"
+        },
+        {
+          "slot": 11,
+          "function": "Windgeschwindigkeit",
+          "dpt": "9.005"
+        }
+      ]
+    }
+  ],
+  "device_archetypes": [
+    {
+      "id": "dev_dali_gateway",
+      "title": "Geräte-Archetyp: KNX/DALI-2 Gateways (Gruppen- vs. EVG-Steuerung, DT8 Farbsteuerung & HCL)",
+      "file": "04_device_archetypes/dali_gateways.md",
+      "device_class": "gateway",
+      "implemented_fbs": [
+        "fb_dimming_actuator",
+        "fb_switch_actuator"
+      ]
+    },
+    {
+      "id": "dev_heating_actuator",
+      "title": "Geräte-Archetyp: Heizungsaktoren für thermoelektrische & motorische Antriebe",
+      "file": "04_device_archetypes/heating_actuators.md",
+      "device_class": "actuator",
+      "implemented_fbs": [
+        "fb_room_thermostat"
+      ]
+    },
+    {
+      "id": "dev_push_button_panel",
+      "title": "Geräte-Archetyp: Mehrfach-Taster & Touch-Panels (Glastaster, Touch-Displays)",
+      "file": "04_device_archetypes/push_button_panels.md",
+      "device_class": "sensor",
+      "implemented_fbs": [
+        "fb_switch_actuator",
+        "fb_dimming_actuator",
+        "fb_shutter_blind"
+      ]
+    }
+  ],
+  "addressing_patterns": [
+    {
+      "file": "03_addressing_patterns/3_level_standard.md",
+      "title": "3 Level Standard"
+    },
+    {
+      "file": "03_addressing_patterns/address_allocation.md",
+      "title": "Address Allocation"
+    },
+    {
+      "file": "03_addressing_patterns/migration_rules.md",
+      "title": "Migration Rules"
+    }
+  ],
+  "dpt_index": {
+    "1.001": [
+      {
+        "fb": "fb_dimming_actuator",
+        "ko_id": "switch_cmd",
+        "name": "Ein/Aus Schalten",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_dimming_actuator",
+        "ko_id": "switch_state",
+        "name": "Status Ein/Aus",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "load_shedding_request",
+        "name": "Lastmanagement: Leistungsreduzierung anfordern",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "evse_enable",
+        "name": "EVSE: Ladefreigabe",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_presence_detector",
+        "ko_id": "presence_output",
+        "name": "Präsenz / Schaltausgang Licht",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_presence_detector",
+        "ko_id": "slave_input",
+        "name": "Slave-Eingang (Kaskadierung)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_presence_detector",
+        "ko_id": "external_motion",
+        "name": "Externer Bewegungsimpuls",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_presence_detector",
+        "ko_id": "day_night_switch",
+        "name": "Tag / Nacht Umschaltung",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_switch_actuator",
+        "ko_id": "switch_cmd",
+        "name": "Ein/Aus Schalten (Befehl)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_switch_actuator",
+        "ko_id": "switch_state",
+        "name": "Status Ein/Aus (Rückmeldung)",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_weather_station",
+        "ko_id": "day_night_state",
+        "name": "Tag / Nacht Status",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      }
+    ],
+    "3.007": [
+      {
+        "fb": "fb_dimming_actuator",
+        "ko_id": "dim_relative",
+        "name": "Relatives Dimmen (4-Bit)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      }
+    ],
+    "5.001": [
+      {
+        "fb": "fb_dimming_actuator",
+        "ko_id": "dim_absolute",
+        "name": "Absoluter Dimmwert (8-Bit)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_dimming_actuator",
+        "ko_id": "value_state",
+        "name": "Status Dimmwert",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_presence_detector",
+        "ko_id": "constant_light_dimvalue",
+        "name": "Konstantlichtregelung Stellwert",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_room_thermostat",
+        "ko_id": "control_value_heating",
+        "name": "Stellgröße Heizen",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_room_thermostat",
+        "ko_id": "control_value_cooling",
+        "name": "Stellgröße Kühlen",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_shutter_blind",
+        "ko_id": "pos_height_cmd",
+        "name": "Absolute Behanghöhe (Befehl)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_shutter_blind",
+        "ko_id": "pos_height_state",
+        "name": "Status Behanghöhe (Rückmeldung)",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_shutter_blind",
+        "ko_id": "pos_slat_cmd",
+        "name": "Absolute Lamellenposition (Befehl)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_shutter_blind",
+        "ko_id": "pos_slat_state",
+        "name": "Status Lamellenposition (Rückmeldung)",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      }
+    ],
+    "1.003": [
+      {
+        "fb": "fb_dimming_actuator",
+        "ko_id": "lock_object",
+        "name": "Sperrobjekt",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_presence_detector",
+        "ko_id": "lock_object",
+        "name": "Sperrobjekt",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_shutter_blind",
+        "ko_id": "lock_object",
+        "name": "Sperrobjekt / Aussperrschutz",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_switch_actuator",
+        "ko_id": "lock_object",
+        "name": "Sperrobjekt",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      }
+    ],
+    "18.001": [
+      {
+        "fb": "fb_dimming_actuator",
+        "ko_id": "scene_control",
+        "name": "Szenenaufruf / Speichern (8-Bit)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_switch_actuator",
+        "ko_id": "scene_control",
+        "name": "Szenenaufruf / Speichern (8-Bit)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      }
+    ],
+    "14.057": [
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "grid_active_power",
+        "name": "Netz: Wirkleistung am Netzanschlusspunkt",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "grid_import_power",
+        "name": "Netzbezug: Wirkleistung",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "grid_export_power",
+        "name": "Netzeinspeisung: Wirkleistung",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      }
+    ],
+    "13.011": [
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "grid_import_energy",
+        "name": "Netzbezug: Wirkenergiezählerstand",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "grid_export_energy",
+        "name": "Netzeinspeisung: Wirkenergiezählerstand",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      }
+    ],
+    "14.020": [
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "phase_a_current",
+        "name": "Phase L1: Strom",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "phase_b_current",
+        "name": "Phase L2: Strom",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "phase_c_current",
+        "name": "Phase L3: Strom",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "evse_current_limit",
+        "name": "EVSE: Stromgrenze",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      }
+    ],
+    "14.033": [
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "grid_frequency",
+        "name": "Netzfrequenz",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      }
+    ],
+    "29.010": [
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "energy_counter_64_import",
+        "name": "Netzbezug: 64-Bit-Wirkenergiezählerstand",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "energy_counter_64_export",
+        "name": "Netzeinspeisung: 64-Bit-Wirkenergiezählerstand",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      }
+    ],
+    "9.024": [
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "tariff_price",
+        "name": "HEMS: Tarifpreis",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      }
+    ],
+    "20.102": [
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "tariff_mode",
+        "name": "HEMS: Tarif- oder Betriebsmodus",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_room_thermostat",
+        "ko_id": "hvac_mode_cmd",
+        "name": "HVAC Betriebsmodus (Befehl)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_room_thermostat",
+        "ko_id": "hvac_mode_state",
+        "name": "Status HVAC Betriebsmodus",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      }
+    ],
+    "1.006": [
+      {
+        "fb": "fb_energy_meter",
+        "ko_id": "meter_fault",
+        "name": "Zähler: Störung",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_room_thermostat",
+        "ko_id": "dewpoint_alarm",
+        "name": "Taupunktalarm",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_shutter_blind",
+        "ko_id": "wind_alarm",
+        "name": "Windalarm (Sicherheit)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_shutter_blind",
+        "ko_id": "rain_alarm",
+        "name": "Regenalarm (Sicherheit)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_weather_station",
+        "ko_id": "wind_alarm",
+        "name": "Windalarm (Sicherheit)",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_weather_station",
+        "ko_id": "rain_alarm",
+        "name": "Regenalarm (Sicherheit)",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_weather_station",
+        "ko_id": "frost_alarm",
+        "name": "Frostalarm (Eisschutz)",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      }
+    ],
+    "9.004": [
+      {
+        "fb": "fb_presence_detector",
+        "ko_id": "brightness_value",
+        "name": "Gemessener Helligkeitswert",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_weather_station",
+        "ko_id": "brightness_east",
+        "name": "Helligkeit Fassade Ost",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_weather_station",
+        "ko_id": "brightness_south",
+        "name": "Helligkeit Fassade Süd",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_weather_station",
+        "ko_id": "brightness_west",
+        "name": "Helligkeit Fassade West",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_weather_station",
+        "ko_id": "twilight_value",
+        "name": "Dämmerungswert",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      }
+    ],
+    "9.001": [
+      {
+        "fb": "fb_room_thermostat",
+        "ko_id": "temp_actual",
+        "name": "Raumtemperatur Istwert",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_room_thermostat",
+        "ko_id": "temp_setpoint_active",
+        "name": "Aktueller Basis-Sollwert (Status)",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_weather_station",
+        "ko_id": "temp_outdoor",
+        "name": "Außentemperatur",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      }
+    ],
+    "9.002": [
+      {
+        "fb": "fb_room_thermostat",
+        "ko_id": "setpoint_shift_cmd",
+        "name": "Sollwertverschiebung (Befehl)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      },
+      {
+        "fb": "fb_room_thermostat",
+        "ko_id": "setpoint_shift_state",
+        "name": "Status Sollwertverschiebung",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      }
+    ],
+    "1.100": [
+      {
+        "fb": "fb_room_thermostat",
+        "ko_id": "heat_cool_switch",
+        "name": "Umschaltung Heizen/Kühlen",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      }
+    ],
+    "1.019": [
+      {
+        "fb": "fb_room_thermostat",
+        "ko_id": "window_status",
+        "name": "Fensterkontakt (Frostschutz)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      }
+    ],
+    "1.008": [
+      {
+        "fb": "fb_shutter_blind",
+        "ko_id": "up_down_cmd",
+        "name": "Auf/Ab Langzeitbetrieb (Befehl)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      }
+    ],
+    "1.007": [
+      {
+        "fb": "fb_shutter_blind",
+        "ko_id": "step_stop_cmd",
+        "name": "Lamelle Kurzzeit / Stopp (Befehl)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      }
+    ],
+    "1.002": [
+      {
+        "fb": "fb_shutter_blind",
+        "ko_id": "operating_state",
+        "name": "Status Fahrt aktiv",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      }
+    ],
+    "1.010": [
+      {
+        "fb": "fb_switch_actuator",
+        "ko_id": "timed_staircase",
+        "name": "Treppenhausfunktion / Zeitgesteuertes Schalten",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      }
+    ],
+    "2.001": [
+      {
+        "fb": "fb_switch_actuator",
+        "ko_id": "forced_control",
+        "name": "Zwangsführung (2-Bit)",
+        "direction": "write",
+        "flags": [
+          "C",
+          "W"
+        ]
+      }
+    ],
+    "9.005": [
+      {
+        "fb": "fb_weather_station",
+        "ko_id": "wind_speed",
+        "name": "Windgeschwindigkeit",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      }
+    ],
+    "14.007": [
+      {
+        "fb": "fb_weather_station",
+        "ko_id": "sun_azimuth",
+        "name": "Sonnenazimut (Horizontalwinkel)",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      },
+      {
+        "fb": "fb_weather_station",
+        "ko_id": "sun_elevation",
+        "name": "Sonnenelevation (Höhenwinkel)",
+        "direction": "transmit",
+        "flags": [
+          "C",
+          "R",
+          "T"
+        ]
+      }
+    ]
+  }
+}
