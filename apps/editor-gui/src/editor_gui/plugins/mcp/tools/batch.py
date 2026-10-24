@@ -89,7 +89,21 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 raise ValueError(f"group_address {g!r} is ambiguous (ids: {ids})")
             return matches[0].id
         assert gid is not None  # proven by the exactly-one check above
+        if project.get_group_address(int(gid)) is None:
+            raise ValueError(f"no group address with id {gid}")
         return int(gid)
+
+    def _on_group_address(
+        apply: Callable[[int, dict[str, Any]], object],
+    ) -> Callable[[dict[str, Any]], dict[str, Any]]:
+        """An op on one group address: resolved once, before ``apply`` changes or removes it."""
+
+        def run(p: dict[str, Any]) -> dict[str, Any]:
+            ga_id = _group_address_id(p)
+            apply(ga_id, p)
+            return {"group_address_id": ga_id}
+
+        return run
 
     def _parameters_device(p: dict[str, Any]) -> Any:
         device = _device(p)
@@ -262,10 +276,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ),
         "rename_group_address": (
             ("name",),
-            lambda p: (
-                project.rename_group_address(_group_address_id(p), p["name"]),
-                {"group_address_id": _group_address_id(p)},
-            )[1],
+            _on_group_address(
+                lambda ga_id, p: project.rename_group_address(ga_id, p["name"])
+            ),
         ),
         "rename_group_range": (
             ("group_range_id", "name"),
@@ -283,17 +296,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ),
         "set_group_address_dpt": (
             (),
-            lambda p: (
-                project.set_group_address_dpt(_group_address_id(p), p.get("dpt")),
-                {"group_address_id": _group_address_id(p)},
-            )[1],
+            _on_group_address(
+                lambda ga_id, p: project.set_group_address_dpt(ga_id, p.get("dpt"))
+            ),
         ),
         "remove_group_address": (
             (),
-            lambda p: (
-                project.remove_group_address(_group_address_id(p)),
-                {"group_address_id": _group_address_id(p)},
-            )[1],
+            _on_group_address(lambda ga_id, _p: project.remove_group_address(ga_id)),
         ),
         "link_com_object": (
             ("com_object_ref_id",),

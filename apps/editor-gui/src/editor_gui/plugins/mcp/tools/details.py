@@ -343,10 +343,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 if group_address_id is None and group_address is None
                 else require_group_address_id(project, group_address_id, group_address)
             )
-            # A node_id only filters (an unknown one matches no link); an address is looked up.
             device_id = (
-                node_id
-                if device_address is None
+                None
+                if node_id is None and device_address is None
                 else require_device(project, node_id, device_address).node_id
             )
             return [

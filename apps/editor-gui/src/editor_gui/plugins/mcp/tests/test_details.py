@@ -362,9 +362,7 @@ async def test_com_object_properties_links_and_project_name(tmp_path: Path) -> N
             "transmit",
             "update",
         }
-        assert (await _data(client, "project_list_links", node_id=node_id + 1))[
-            "count"
-        ] == 0
+        await _error(client, "project_list_links", "no device", node_id=node_id + 1)
 
         renamed = await _data(client, "project_set_name", name="  House  ")
         assert renamed["name"] == "House"

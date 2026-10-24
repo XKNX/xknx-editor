@@ -123,8 +123,12 @@ async def test_device_tools_take_the_individual_address(tmp_path: Path) -> None:
         )
         links = await _data(client, "project_list_links", device_address="1.1.11")
         assert [link["node_id"] for link in links["items"]] == [node_id]
-        # An unknown address is an error; an unknown node_id just matches no link.
+        # An unknown device or group address is an error, not an empty filter result.
         await _error(client, "project_list_links", "no device", device_address="9.9.9")
+        await _error(client, "project_list_links", "no device", node_id=node_id + 100)
+        await _error(
+            client, "project_list_links", "no group address", group_address_id=999
+        )
 
         copies = (await _data(client, "project_copy_device", device_address="1.1.11"))[
             "node_ids"
@@ -170,6 +174,45 @@ async def test_device_tools_take_the_individual_address(tmp_path: Path) -> None:
             "no device",
             device_address="1.1.12",
         )
+
+
+async def test_batch_group_address_ops_resolve_the_address_once(tmp_path: Path) -> None:
+    async with Client(_server(tmp_path)) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        ga_id = (await _data(client, "project_create_group_address", address="0/0/4"))[
+            "group_address_id"
+        ]
+        result = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {
+                    "op": "rename_group_address",
+                    "params": {"group_address": "0/0/4", "name": "Hall"},
+                },
+                {
+                    "op": "set_group_address_dpt",
+                    "params": {"group_address": "0/0/4", "dpt": "1.001"},
+                },
+                {"op": "remove_group_address", "params": {"group_address": "0/0/4"}},
+            ],
+        )
+        assert result["ok"] == 3
+        assert [r["result"]["group_address_id"] for r in result["results"]] == [
+            ga_id
+        ] * 3
+        assert (await _data(client, "project_list_group_addresses"))["items"] == []
+
+        unknown = await _data(
+            client,
+            "project_batch",
+            operations=[
+                {"op": "remove_group_address", "params": {"group_address_id": ga_id}}
+            ],
+            atomic=False,
+        )
+        assert unknown["ok"] == 0
+        assert "no group address" in str(unknown["results"][0])
 
 
 async def test_tools_window_actions_take_addresses(tmp_path: Path) -> None:

@@ -851,8 +851,8 @@ def require_group_address_id(
     group_address: str | None = None,
 ) -> int:
     """Resolve a group address id by its internal id OR its printed address (e.g. "10/1/2" in
-    the project's style). Exactly one must be given. Keeps callers off the extra
-    project_list_group_addresses round-trip in the common case."""
+    the project's style). Exactly one must be given, and the group address must exist. Keeps
+    callers off the extra project_list_group_addresses round-trip in the common case."""
     if (group_address_id is None) == (group_address is None):
         raise ToolError(
             "pass exactly one of group_address_id (int) or group_address (str, e.g. '10/1/2')"
@@ -871,7 +871,13 @@ def require_group_address_id(
                 f"(ids: {ids}); pass group_address_id explicitly"
             )
         return matches[0].id
-    return int(group_address_id)  # type: ignore[arg-type]
+    assert group_address_id is not None  # proven by the exactly-one check above
+    if project.get_group_address(group_address_id) is None:
+        raise ToolError(
+            f"no group address with id {group_address_id}; call "
+            "project_list_group_addresses for valid ids"
+        )
+    return group_address_id
 
 
 def register(mcp: FastMCP, ctx: McpContext) -> None:
