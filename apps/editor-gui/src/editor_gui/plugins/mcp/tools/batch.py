@@ -188,8 +188,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return result
 
     def _op_rename_device(p: dict[str, Any]) -> dict[str, Any]:
+        if "name" not in p and "description" not in p:
+            raise ValueError("rename_device needs name, description or both")
         device = _device(p)
-        project.set_device_name(device.node_id, device.name, p["name"])
+        if "name" in p:
+            project.set_device_name(device.node_id, device.name, p["name"])
+        if "description" in p:
+            project.set_device_description(
+                device.node_id, device.description or "", p["description"]
+            )
         return {"node_id": device.node_id}
 
     def _op_set_com_object_flag(p: dict[str, Any]) -> dict[str, Any]:
@@ -204,7 +211,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         str, tuple[tuple[str, ...], Callable[[dict[str, Any]], dict[str, Any]]]
     ] = {
         "add_device": (("product_ref_id",), _op_add_device),
-        "rename_device": (("name",), _op_rename_device),
+        "rename_device": ((), _op_rename_device),
         "set_individual_address": (("address",), _op_set_individual_address),
         "set_parameter": ((), _op_set_parameter),
         "set_com_object_flag": (
@@ -224,6 +231,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             lambda p: (
                 project.rename_group_address(_group_address_id(p), p["name"]),
                 {"group_address_id": _group_address_id(p)},
+            )[1],
+        ),
+        "rename_group_range": (
+            ("group_range_id", "name"),
+            lambda p: (
+                project.rename_group_range(int(p["group_range_id"]), p["name"].strip()),
+                {"group_range_id": int(p["group_range_id"])},
+            )[1],
+        ),
+        "rename_function": (
+            ("function_id", "name"),
+            lambda p: (
+                project.rename_function(int(p["function_id"]), p["name"].strip()),
+                {"function_id": int(p["function_id"])},
             )[1],
         ),
         "set_group_address_dpt": (
@@ -312,7 +333,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         Supported ops with required params (optional params in brackets) and success result fields:
         - add_device: product_ref_id [name] -> {node_id}; uses the first matching catalog product.
-        - rename_device: device, name -> {node_id}.
+        - rename_device: device, [name] [description] (at least one) -> {node_id}.
         - set_individual_address: device, address -> {node_id, address}.
         - set_parameter: device, (parameter_ref_id | label [subtree_id tree_token] [value_label]),
           value? -> {node_id, ref_id, requested, value, active, changed?, lost_links?}. Address the
@@ -325,6 +346,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - set_com_object_flag: device, com_object_ref_id, flag, value -> {node_id, com_object_ref_id}.
         - create_group_address: [address, name] -> {group_address_id}.
         - rename_group_address: ga, name -> {group_address_id}.
+        - rename_group_range: group_range_id, name -> {group_range_id}.
+        - rename_function: function_id, name -> {function_id}.
         - set_group_address_dpt: ga [dpt; omitted/null clears] -> {group_address_id}.
         - remove_group_address: ga -> {group_address_id}.
         - link_com_object: device, com_object_ref_id, ga [is_sending=false] ->
@@ -338,7 +361,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         Use node_id from project_list_devices, product_ref_id from catalog_list_products, parameter
         ref_id from project_list_parameters as parameter_ref_id, and object ref_id from
         project_list_com_objects as com_object_ref_id. Use id from project_list_group_addresses as
-        group_address_id; use area id from project_topology as area_id. For assignment_id, use id
+        group_address_id; use id from project_list_group_ranges as group_range_id and a function
+        id from project_spaces as function_id; use area id from project_topology as area_id. For
+        assignment_id, use id
         from project_get_ga_assignments, assignment_id from project_get_com_object_links or a returned
         link_id. Linkable objects are required for linking; set is_sending=true for a transmitting
         link. flag is communication/read/write/transmit/update/read_on_init.

@@ -1877,13 +1877,24 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_add, timeout=_SLOW)
 
     @tool
-    def project_rename_device(node_id: int, name: str) -> dict[str, Any]:
-        """Rename a project device using node_id from project_list_devices. Undoable with
-        project_undo. Returns {node_id, name, individual_address, description}."""
+    def project_rename_device(
+        node_id: int, name: str | None = None, description: str | None = None
+    ) -> dict[str, Any]:
+        """Rename a project device and/or set its description, using node_id from
+        project_list_devices. Pass ``name``, ``description`` or both; an omitted field is left
+        unchanged. Undoable with project_undo. Returns {node_id, name, individual_address,
+        description}."""
+        if name is None and description is None:
+            raise ToolError("pass name, description or both")
 
         def _rename() -> dict[str, Any]:
             device = _require_device(node_id)
-            project.set_device_name(node_id, device.name, name)
+            if name is not None:
+                project.set_device_name(node_id, device.name, name)
+            if description is not None:
+                project.set_device_description(
+                    node_id, device.description or "", description
+                )
             return _device_dict(_require_device(node_id))
 
         return ctx.run_locked(_rename)
@@ -2180,6 +2191,88 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             if g is None:
                 raise ToolError(f"no group address with id {group_address_id}")
             return {"id": g.id, "address": g.address, "name": g.name}
+
+        return ctx.run_locked(_rename)
+
+    def _group_ranges() -> list[dict[str, Any]]:
+        """Flatten the group-range tree (main/middle groups) with parent ids."""
+        out: list[dict[str, Any]] = []
+
+        def _walk(nodes: list[Any], parent_id: int | None, depth: int) -> None:
+            for r in nodes:
+                out.append(
+                    {
+                        "id": r.id,
+                        "address": r.address or "",
+                        "name": r.name or "",
+                        "description": r.description or "",
+                        "parent_id": parent_id,
+                        "depth": depth,
+                    }
+                )
+                _walk(r.children, r.id, depth + 1)
+
+        _walk(project.get_group_range_tree(), None, 0)
+        return out
+
+    @tool
+    def project_list_group_ranges(name_contains: str | None = None) -> dict[str, Any]:
+        """List the group-address folders (main and middle groups), optionally filtering names by
+        a case-insensitive substring. Returns {items, count}; each item has {id, address, name,
+        description, parent_id, depth} (depth 0 = main group; name and description are "" when
+        unset, parent_id is null for main groups). Pass ``id`` as group_range_id to
+        project_rename_group_range."""
+
+        def _read() -> list[dict[str, Any]]:
+            needle = (name_contains or "").lower()
+            return [
+                r for r in _group_ranges() if not needle or needle in r["name"].lower()
+            ]
+
+        return _items(ctx.run_locked(_read))
+
+    @tool
+    def project_rename_group_range(group_range_id: int, name: str) -> dict[str, Any]:
+        """Rename a group-address folder (main or middle group). Pass id from
+        project_list_group_ranges as group_range_id. Undoable with project_undo. Returns
+        {id, address, name}."""
+        require_project(ctx)
+
+        def _rename() -> dict[str, Any]:
+            if not any(r["id"] == group_range_id for r in _group_ranges()):
+                raise ToolError(f"no group range with id {group_range_id}")
+            project.rename_group_range(group_range_id, name.strip())
+            found = next(r for r in _group_ranges() if r["id"] == group_range_id)
+            return {
+                "id": found["id"],
+                "address": found["address"],
+                "name": found["name"],
+            }
+
+        return ctx.run_locked(_rename)
+
+    def _function_ids() -> set[int]:
+        ids: set[int] = set()
+
+        def _walk(nodes: list[Any]) -> None:
+            for s in nodes:
+                ids.update(f.id for f in s.functions)
+                _walk(s.children)
+
+        _walk(project.get_space_tree())
+        return ids
+
+    @tool
+    def project_rename_function(function_id: int, name: str) -> dict[str, Any]:
+        """Rename a building function (a function placed in a room). Pass a function ``id`` from
+        project_spaces as function_id. Undoable with project_undo. Returns {function_id, name}."""
+        require_project(ctx)
+
+        def _rename() -> dict[str, Any]:
+            if function_id not in _function_ids():
+                raise ToolError(f"no function with id {function_id}")
+            project.rename_function(function_id, name.strip())
+            return {"function_id": function_id, "name": name.strip()}
 
         return ctx.run_locked(_rename)
 
