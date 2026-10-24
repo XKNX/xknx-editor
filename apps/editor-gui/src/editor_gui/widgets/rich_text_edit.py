@@ -10,7 +10,6 @@ loses the focus, as one change.
 from __future__ import annotations
 
 import math
-import re
 from collections.abc import Hashable
 from dataclasses import dataclass
 
