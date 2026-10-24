@@ -17,6 +17,7 @@ from editor_gui.plugins.mcp.tools import (
     batch,
     catalog,
     connection,
+    details,
     keyring,
     monitor,
     network,
@@ -155,6 +156,7 @@ def build_server(ctx: McpContext, auth: Any = None) -> FastMCP:
     for module in (
         status,
         project,
+        details,
         batch,
         catalog,
         connection,

@@ -10,10 +10,16 @@ Atomic apply rolls back everything on the first failure by rewinding the undo cu
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, get_args
 
 from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
+from editor_gui.plugins.mcp.tools.details import (
+    CommentKind,
+    comment_rich_text,
+    set_comment,
+    set_description,
+)
 from editor_gui.plugins.mcp.tools.project import (
     PLUGIN_PARAMETERS_ERROR,
     param_change_result,
@@ -28,6 +34,7 @@ if TYPE_CHECKING:
 
 _SLOW = 300.0
 _FLAGS = ("communication", "read", "write", "transmit", "update", "read_on_init")
+_COMMENT_KINDS: tuple[str, ...] = get_args(CommentKind)
 
 
 def register(mcp: FastMCP, ctx: McpContext) -> None:
@@ -192,6 +199,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         project.set_device_name(device.node_id, device.name, p["name"])
         return {"node_id": device.node_id}
 
+    def _op_set_comment(p: dict[str, Any]) -> dict[str, Any]:
+        kind = p["kind"]
+        if kind not in _COMMENT_KINDS:
+            raise ValueError(f"kind must be one of: {', '.join(_COMMENT_KINDS)}")
+        element_id = int(p.get("element_id", 0))
+        field = p.get("field", "comment")
+        if field not in ("comment", "installation_hints"):
+            raise ValueError("field must be comment or installation_hints")
+        text = comment_rich_text(p.get("text"), p.get("paragraphs"))
+        set_comment(project, kind, element_id, field, text)
+        return {"kind": kind, "element_id": element_id, "field": field}
+
     def _op_set_com_object_flag(p: dict[str, Any]) -> dict[str, Any]:
         device = _device(p)
         project.set_flag(device, p["com_object_ref_id"], p["flag"], p["value"])
@@ -265,6 +284,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 )
             },
         ),
+        "set_comment": (("kind",), _op_set_comment),
+        "set_description": (
+            ("kind", "element_id", "description"),
+            lambda p: (
+                set_description(
+                    project, p["kind"], int(p["element_id"]), p["description"]
+                ),
+                {"kind": p["kind"], "element_id": int(p["element_id"])},
+            )[1],
+        ),
     }
 
     def _validate(op: dict[str, Any], index: int) -> dict[str, Any]:
@@ -334,6 +363,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - unlink_com_object: assignment_id -> {assignment_id}.
         - create_area: area_number [name] -> {area_id}.
         - create_line: area_id, line_number [name] -> {line_id}.
+        - set_comment: kind [element_id] [field="comment"], text | paragraphs -> {kind, element_id,
+          field}; kind, field, text and paragraphs as for project_set_comment.
+        - set_description: kind, element_id, description -> {kind, element_id}; kind is area, line,
+          group_range, group_address or space.
 
         Use node_id from project_list_devices, product_ref_id from catalog_list_products, parameter
         ref_id from project_list_parameters as parameter_ref_id, and object ref_id from

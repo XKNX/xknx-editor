@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import codecs
 import contextlib
+import re
 from dataclasses import dataclass
 
 __all__ = [
@@ -19,6 +20,7 @@ __all__ = [
     "parse_rich_text",
     "plain_text",
     "rich_text_rtf",
+    "rich_text_rtf_like",
 ]
 
 
@@ -298,6 +300,21 @@ def rich_text_rtf(text: RichText, *, language: int = 1033, font_size: int = 16) 
         runs = "".join(_run_rtf(span) for span in paragraph if span.text)
         parts.append(f"{{\\f2 {runs}{_PARAGRAPH_END}")
     return _HEADER + body + "\r\n".join(parts) + "\r\n}\r\n}"
+
+
+# The language and the font size of a stored text, which a rewritten text keeps.
+_HEADER_SETTINGS = re.compile(r"\\lang(\d+)\\fs(\d+)")
+
+
+def rich_text_rtf_like(text: RichText, stored: str) -> str:
+    """The RTF of ``text`` with the language and the font size of the ``stored`` text it
+    replaces (the defaults of :func:`rich_text_rtf` for a stored text without them)."""
+    settings = _HEADER_SETTINGS.search(stored)
+    if settings is None:
+        return rich_text_rtf(text)
+    return rich_text_rtf(
+        text, language=int(settings.group(1)), font_size=int(settings.group(2))
+    )
 
 
 def _run_rtf(span: Span) -> str:
