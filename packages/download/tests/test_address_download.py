@@ -130,7 +130,10 @@ def _fake_bus(
         calls.append(("switch", (address, enable)))
 
     async def fake_verify(
-        xknx: XKNX, address: IndividualAddress, security: object
+        xknx: XKNX,
+        address: IndividualAddress,
+        security: object,
+        application_id: str | None = None,
     ) -> None:
         calls.append(("verify", address))
 
@@ -414,4 +417,35 @@ async def test_verify_does_not_read_a_serial_number_from_bcu1(
 
     assert serial is None
     assert not any(isinstance(p, apci.PropertyValueRead) for p in device.sent)
+    assert device.restarted
+
+
+async def test_verify_skips_the_serial_number_of_listed_applications(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    device = FakeDevice(descriptor=0x07B0)
+    device.properties[(0, 11)] = _SERIAL
+    _use_device(monkeypatch, device)
+
+    serial = await commissioning._verify_and_restart(  # pyright: ignore[reportPrivateUsage]
+        cast("XKNX", _XKNX()), _NEW, None, "M-004E_A-0020-10-1234"
+    )
+
+    assert serial is None
+    assert not any(isinstance(p, apci.PropertyValueRead) for p in device.sent)
+    assert device.restarted
+
+
+async def test_verify_ignores_a_serial_number_many_devices_share(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    device = FakeDevice(descriptor=0x07B0)
+    device.properties[(0, 11)] = bytes.fromhex("000810910000")
+    _use_device(monkeypatch, device)
+
+    serial = await commissioning._verify_and_restart(  # pyright: ignore[reportPrivateUsage]
+        cast("XKNX", _XKNX()), _NEW, None
+    )
+
+    assert serial is None
     assert device.restarted

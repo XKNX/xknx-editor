@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from typing import cast
+from typing import Any, cast
 
 import pytest
 from xknx.exceptions import ManagementConnectionRefused, ManagementConnectionTimeout
@@ -1007,8 +1007,8 @@ async def test_restart_tears_down_and_next_control_reconnects() -> None:
 async def test_master_reset_without_response_continues_after_the_restart(
     unanswered: type[Exception], monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    # Some devices (Hager, mask 07B0, issue #130) restart on a Master Reset without answering
-    # it: the connection drops or the response never comes. The device is taken as restarting,
+    # Some devices restart on a Master Reset without answering it: the connection drops or the
+    # response never comes. The device is taken as restarting,
     # the next control reconnects after the time a device may take without reporting one.
     waits: list[float] = []
 
@@ -1588,3 +1588,89 @@ async def test_abs_segment_keeps_the_parameter_mask_for_property_mapped_masks() 
     await runner.run()
 
     assert all(0x4B20 + i not in device.memory for i in range(4))
+
+
+def _listed_application(
+    application_id: str, mask_version: str, control: LdCtrlMasterReset
+) -> Application:
+    application = _application(control)
+    fake = cast(Any, application)
+    fake.id = application_id
+    fake.program.mask_version = mask_version
+    return application
+
+
+@pytest.mark.parametrize(
+    ("application_id", "mask_version", "erase_code", "command"),
+    [
+        # Reset parameters and reset links of the listed applications, on the first
+        # application object of the mask.
+        ("M-0009_A-501C-10-CBD9", "MV-07B0", 5, (6, 52, b"\x10")),
+        ("M-0009_A-501C-10-CBD9", "MV-07B0", 6, (6, 52, b"\x04")),
+        ("M-0009_A-20B1-10-30B0", "MV-0701", 5, (5, 52, b"\x10")),
+        ("M-0009_A-E0A2-10-B6BE", "MV-0701", 6, (5, 52, b"\x04")),
+    ],
+)
+async def test_listed_applications_take_a_master_reset_as_function_property(
+    application_id: str,
+    mask_version: str,
+    erase_code: int,
+    command: tuple[int, int, bytes],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    waits: list[float] = []
+
+    async def sleep(seconds: float) -> None:
+        waits.append(seconds)
+
+    monkeypatch.setattr("xknxeditor.download.procedure.asyncio.sleep", sleep)
+    application = _listed_application(
+        application_id,
+        mask_version,
+        LdCtrlMasterReset(erase_code=erase_code, channel_number=0),
+    )
+    runner, device = _runner(application, DownloadImage(segments=(), properties=()))
+    await runner.run()
+    sent = [
+        (p.object_index, p.property_id, p.data)
+        for p in device.sent
+        if isinstance(p, FunctionPropertyCommand)
+    ]
+    assert sent == [command]
+    # No A_Restart: the device keeps the connection and nothing waits for a restart.
+    assert device.master_reset is None
+    assert not runner.restarted
+    assert waits == [0.2]
+
+
+@pytest.mark.parametrize(
+    ("application_id", "erase_code", "channel"),
+    [
+        # Other erase codes, other channels and other applications get a standard Master Reset.
+        ("M-0009_A-501C-10-CBD9", 4, 0),
+        ("M-0009_A-501C-10-CBD9", 5, 1),
+        ("M-0009_A-501D-10-0000", 5, 0),
+        ("M-0083_A-0001-01-0000", 6, 0),
+    ],
+)
+async def test_other_master_resets_are_standard(
+    application_id: str, erase_code: int, channel: int
+) -> None:
+    application = _listed_application(
+        application_id,
+        "MV-07B0",
+        LdCtrlMasterReset(erase_code=erase_code, channel_number=channel),
+    )
+    runner, device = _runner(application, DownloadImage(segments=(), properties=()))
+    await runner.run()
+    assert device.master_reset == (erase_code, channel)
+    assert not any(isinstance(p, FunctionPropertyCommand) for p in device.sent)
+
+
+def test_legacy_master_reset_applications_match_by_prefix() -> None:
+    from xknxeditor.download.special_products import legacy_master_reset
+
+    assert legacy_master_reset("M-0009_A-E0A2-10-B6BE")
+    assert legacy_master_reset("M-006C_A-0305-11-1234")
+    assert not legacy_master_reset("M-0009_A-E0A3-10-0000")
+    assert not legacy_master_reset("")

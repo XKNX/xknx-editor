@@ -58,6 +58,9 @@ if TYPE_CHECKING:
 
     from .data_secure import DeviceSecurity
 
+from .serial_numbers import is_suspicious_serial_number
+from .special_products import never_read_serial_number
+
 logger = logging.getLogger(__name__)
 
 # Individual address of a factory-fresh / unprogrammed device.
@@ -195,6 +198,7 @@ async def download_individual_address(
     master: MasterData | None = None,
     waiting: Callable[[], None] | None = None,
     serial_number: bytes | None = None,
+    application_id: str | None = None,
 ) -> bytes | None:
     """Download ``individual_address`` to the single device in programming mode.
 
@@ -210,7 +214,9 @@ async def download_individual_address(
     With ``serial_number`` the device is addressed by its KNX serial number
     instead, without programming mode and without a restart.
 
-    Returns the device's serial number when it could be read, else ``None``.
+    Returns the device's serial number when it could be read, else ``None``: it is not read
+    for the applications (``application_id``) whose devices do not report it reliably, and a
+    serial number that does not identify one device is not returned.
     """
     address = IndividualAddress(individual_address)
     current = IndividualAddress(current_address) if current_address else None
@@ -251,7 +257,7 @@ async def download_individual_address(
         )
         logger.debug("Wrote address %s to device %s.", address, devices[0])
         await asyncio.sleep(_ADDRESS_ADOPTION_DELAY_S)
-    return await _verify_and_restart(xknx, address, security)
+    return await _verify_and_restart(xknx, address, security, application_id)
 
 
 async def _write_by_serial_number(
@@ -297,7 +303,10 @@ async def _wait_for_programming_mode(
 
 
 async def _verify_and_restart(
-    xknx: XKNX, address: IndividualAddress, security: DeviceSecurity | None
+    xknx: XKNX,
+    address: IndividualAddress,
+    security: DeviceSecurity | None,
+    application_id: str | None = None,
 ) -> bytes | None:
     """Read the device descriptor at ``address``, then its serial number, and restart it."""
     from .errors import DownloadError
@@ -310,9 +319,21 @@ async def _verify_and_restart(
         programmer = DeviceProgrammer(connection, apdu_overhead=apdu_overhead(security))
         mask = await programmer.read_device_descriptor()
         serial: bytes | None = None
-        if mask & 0xFFF0 != _BCU1_MASK:
+        if never_read_serial_number(application_id):
+            logger.warning(
+                "Reading the serial number skipped for a device with the application %s.",
+                application_id,
+            )
+        elif mask & 0xFFF0 != _BCU1_MASK:
             with contextlib.suppress(ManagementConnectionError, DownloadError):
                 serial = await programmer.read_property(0, _PID_SERIAL_NUMBER) or None
+            if is_suspicious_serial_number(serial):
+                logger.warning(
+                    "Ignoring the suspicious serial number of %s: %s.",
+                    address,
+                    serial.hex().upper() if serial else "",
+                )
+                serial = None
         await programmer.restart()
         return serial
     except (ManagementConnectionError, DownloadError) as exc:

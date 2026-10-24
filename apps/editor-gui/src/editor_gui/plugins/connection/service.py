@@ -949,6 +949,7 @@ class ConnectionService:
                 master=self.master,
                 waiting=waiting,
                 serial_number=serial_number,
+                application_id=device.app.id if device.app is not None else None,
             )
         )
         if future is not None:

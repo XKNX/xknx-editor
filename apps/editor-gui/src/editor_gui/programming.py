@@ -21,6 +21,7 @@ from editor_gui.device import address_order
 from xknxeditor.download.download import download, preflight
 from xknxeditor.download.image import build_image
 from xknxeditor.download.scope import DownloadScope
+from xknxeditor.download.special_products import device_manufacturer_id
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable, Mapping
@@ -182,7 +183,8 @@ async def read_device_overview(xknx: XKNX, address: str) -> DeviceOverview:
     if app is not None:
         manufacturer = app.manufacturer_id
     elif dossier.manufacturer_id is not None:
-        manufacturer = f"M-{dossier.manufacturer_id:04X}"
+        # Some devices report another manufacturer id than their own.
+        manufacturer = f"M-{device_manufacturer_id(dossier.manufacturer_id):04X}"
     else:
         manufacturer = None
     return DeviceOverview(

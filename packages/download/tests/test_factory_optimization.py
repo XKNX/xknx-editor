@@ -3,8 +3,14 @@ factory image: writes of what it already holds are left out."""
 
 from __future__ import annotations
 
+from typing import Any, cast
+
 import pytest
-from xknx.telegram.apci import MemoryWrite, PropertyValueWrite
+from xknx.telegram.apci import (
+    FunctionPropertyCommand,
+    MemoryWrite,
+    PropertyValueWrite,
+)
 
 from xknxeditor.download.factory_image import (
     FactoryImage,
@@ -46,14 +52,18 @@ def _runner(
     segments: tuple[MemorySegment, ...] = (),
     stamp: FactoryStamp | None = _PRODUCT_STAMP,
     shows: bytes = _STAMP.data,
+    application_id: str | None = None,
 ) -> tuple[LoadProcedureRunner, FakeDevice]:
     device = FakeDevice(object_types={0: 0})
     device.properties[6, 53] = shows
     device.property_element_sizes[6, 53] = 2
     device.properties[8, 60] = b"ABCD"
     device.property_element_sizes[8, 60] = 1
+    application = _application(LdCtrlConnect(), *controls)
+    if application_id is not None:
+        cast(Any, application).id = application_id
     runner = LoadProcedureRunner(
-        _application(LdCtrlConnect(), *controls),
+        application,
         DownloadImage(
             segments, properties, factory_image=FactoryImage(_FACTORY, stamp)
         ),
@@ -141,6 +151,26 @@ async def test_a_product_without_a_stamp_is_taken_at_its_word() -> None:
         shows=b"",
     )
     await runner.run()
+    assert _property_writes(device) == []
+
+
+async def test_a_function_property_master_reset_leaves_out_the_factory_contents(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # A listed Hager application resets by a function property command and does not restart;
+    # the factory stamp is checked all the same.
+    async def sleep(seconds: float) -> None:
+        return None
+
+    monkeypatch.setattr("xknxeditor.download.procedure.asyncio.sleep", sleep)
+    runner, device = _runner(
+        [LdCtrlMasterReset(erase_code=5, channel_number=0), _write()],
+        properties=_parameters(b"\x11\x22\x00\x00", b"\xff\xff\x00\x00"),
+        application_id="M-0009_A-501C-10-CBD9",
+    )
+    await runner.run()
+    assert any(isinstance(p, FunctionPropertyCommand) for p in device.sent)
+    assert device.master_reset is None
     assert _property_writes(device) == []
 
 

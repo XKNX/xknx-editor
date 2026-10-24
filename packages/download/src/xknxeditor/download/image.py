@@ -37,6 +37,7 @@ from .project_data import (
 from .resources import (
     bcu1_association_table,
     bcu1_group_object_table,
+    bcu2_group_object_table,
     bundled_mask_resources,
     m112_association_table,
     m112_group_object_table,
@@ -44,6 +45,10 @@ from .resources import (
     reserved_memory,
 )
 from .secure_config import GroupSecurity, SecurityTables, security_tables
+from .special_products import (
+    dynamic_group_communication_tables,
+    group_object_table_pointers_visible,
+)
 from .tables import (
     Association,
     ComObjectDescriptor,
@@ -794,6 +799,19 @@ def _group_communication_segments(
                     # Leave the run byte to the procedure's inline stop/start writes.
                     seed_mask[run_control] = 0
                 initialized = seed_mask
+            elif bcu2_group_object_table(application.program.mask_version):
+                data, mask = _bcu2_com_object_overlay(
+                    seed[0],
+                    ui,
+                    linked_numbers,
+                    referenced_numbers,
+                    active_numbers or None,
+                    com_object_table.offset or 0,
+                    pointers_visible=group_object_table_pointers_visible(
+                        getattr(application.program, "id", None)
+                    ),
+                )
+                initialized = None
             else:
                 data, mask = _build_com_object_table(
                     seed[0],
@@ -883,9 +901,10 @@ def _bcu1_dynamic_tables(application: Application) -> bool:
     association table is found through GrAssocTabPtr, which the download sets.
     """
     program = application.program
-    return bool(program.dynamic_table_management) and bcu1_association_table(
-        program.mask_version
+    dynamic = dynamic_group_communication_tables(
+        getattr(program, "id", None), bool(program.dynamic_table_management)
     )
+    return dynamic and bcu1_association_table(program.mask_version)
 
 
 def _bcu1_association_address(
@@ -1202,6 +1221,53 @@ def _bcu1_com_object_overlay(
         else:
             data[pos] = (data[pos] & 0x20) | descriptor[0]
         mask[pos] = 0xFF
+    return bytes(data), bytes(mask)
+
+
+def _bcu2_com_object_overlay(
+    seed: bytes,
+    ui: DynamicUI,
+    linked_numbers: set[int],
+    object_numbers: set[int],
+    active_numbers: set[int] | None,
+    table_offset: int,
+    *,
+    pointers_visible: bool,
+) -> tuple[bytes, bytes]:
+    """Write the BCU 2 group object table onto the segment seed (3/5/1 4.18.4).
+
+    The table is a count, the RAM flags table pointer and per object a 3-octet record
+    ``[value pointer][config][type]``. The config octet gets the object's flags (keeping the
+    seed's bit 5), the type octet of an active object its size code (keeping the seed's top two
+    bits); the pointers keep the seed's values and are written with the table, except for the
+    applications in ``special_products.DO_NOT_MAKE_GROUP_OBJECT_TABLE_POINTERS_VISIBLE``.
+    """
+    data, mask = bytearray(seed), bytearray(len(seed))
+    if table_offset + 1 < len(data):
+        mask[table_offset + 1] = 0xFF
+    visible = _resolved_group_object_descriptors(ui, linked_numbers)
+    for number in object_numbers:
+        record = table_offset + 2 + number * 3
+        if record + 2 >= len(data):
+            continue
+        descriptor = visible.get(number)
+        active = descriptor is not None and (
+            active_numbers is None or number in active_numbers
+        )
+        config = record + 1
+        if active:
+            assert descriptor is not None
+            data[config] = (data[config] & 0x20) | (descriptor[0] & 0xDF)
+            data[record + 2] = (data[record + 2] & 0xC0) | (descriptor[1] & 0x3F)
+        else:
+            flags = data[config] & ~_COMMUNICATION_BIT
+            if number in linked_numbers:
+                flags |= _COMMUNICATION_BIT
+            data[config] = flags
+        mask[config] = 0xFF
+        mask[record + 2] = 0xFF
+        if pointers_visible:
+            mask[record] = 0xFF
     return bytes(data), bytes(mask)
 
 

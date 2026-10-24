@@ -249,30 +249,59 @@ def test_m112_clears_communication_without_a_dynamic_ref() -> None:
     assert eeprom.data[5 + 4 * 4] == 0xDB
 
 
-def test_bcu2_keeps_communication_on_static_slots() -> None:
-    """GroupObjectTable_Bcu2 is not the M112 record; its other slots stay as seeded."""
+@pytest.mark.parametrize(
+    ("application_id", "pointers"),
+    [("M-00FD_A-0002-10-0000", True), ("M-00FD_A-0006-10-0000", False)],
+)
+def test_bcu2_writes_the_bcu1_record_layout(
+    application_id: str, pointers: bool
+) -> None:
+    """GroupObjectTable_Bcu2 has the BCU 1 layout (3/5/1 4.18.4): a count, the RAM flags table
+    pointer, then [value pointer][config][type] per object, at the table's offset."""
+    from xknxeditor.download.tables import com_object_flag_byte, size_code
+
     application = _application("MV-0020")
-    application.program.static.com_object_table.com_object.append(
-        SimpleNamespace(id="O-3", number=3)
-    )
+    application.program.id = application_id
     nodes = [_com_object(0, read=False, write=True, transmit=False, update=True)]
-    seed = bytearray(_seed())
-    seed[0] = 5
-    seed[5 + 3 * 4] = 0xCF
-    seed[5 + 4 * 4] = 0xDF
+    seed = _seed()
     segments = _group_communication_segments(
         application,  # type: ignore[arg-type]
         _UI(nodes),  # type: ignore[arg-type]
         {_SEGMENT: _BASE},
-        {_SEGMENT: (bytes(seed), b"\x00" * len(seed))},
+        {_SEGMENT: (seed, b"\x00" * len(seed))},
         GroupCommunication(device_address=0x1133, links=()),
     )
     eeprom = next(segment for segment in segments if len(segment.data) == 256)
     assert eeprom.mask is not None
-    assert eeprom.mask[5 + 3 * 4] == 0x00
-    assert eeprom.mask[5 + 4 * 4] == 0x00
-    # A full download writes initialized bytes. BCU2 has none, so the seed
-    # stays out of that write.
+    table = 94
+    # The count stays the device's, the RAM flags table pointer is written as seeded.
+    assert eeprom.mask[table] == 0x00
+    assert (eeprom.mask[table + 1], eeprom.data[table + 1]) == (0xFF, seed[table + 1])
+    flags = com_object_flag_byte(
+        priority="Low",
+        communication=False,
+        read=False,
+        write=True,
+        transmit=False,
+        update=True,
+        read_on_init=False,
+    )
+    record = table + 2
+    assert eeprom.data[record + 1] == (seed[record + 1] & 0x20) | (flags & 0xDF)
+    assert eeprom.data[record + 2] == (seed[record + 2] & 0xC0) | size_code("1 Bit")
+    # Objects the configuration does not use keep their seeded record, without communication.
+    second = record + 3
+    assert eeprom.data[second + 1] == seed[second + 1] & ~0x04
+    assert eeprom.data[second + 2] == seed[second + 2]
+    for n in range(3):
+        at = record + 3 * n
+        assert (eeprom.mask[at + 1], eeprom.mask[at + 2]) == (0xFF, 0xFF)
+        # The value pointers are written with the table, except for the listed applications.
+        assert eeprom.mask[at] == (0xFF if pointers else 0x00)
+        assert eeprom.data[at] == seed[at]
+    # Nothing past the defined objects and nothing at the segment start (the old record).
+    assert not any(eeprom.mask[:table])
+    assert not any(eeprom.mask[record + 9 :])
     assert eeprom.initialized_mask is None
 
 

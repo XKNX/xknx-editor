@@ -470,6 +470,18 @@ def bcu1_group_object_table(mask_version: str) -> bool:
     )
 
 
+def bcu2_group_object_table(mask_version: str) -> bool:
+    """Whether the group-object table is the BCU 2 table (``GroupObjectTable_Bcu2``): a count, the
+    RAM flags table pointer and a 3-octet record per object, as in BCU 1 (3/5/1 4.18.4)."""
+    resources = bundled_mask_resources(mask_version)
+    if resources is None:
+        return False
+    return (
+        resources.flavour(ResourceName.GROUP_OBJECT_TABLE)
+        is ResourceFlavour.GROUP_OBJECT_TABLE_BCU2
+    )
+
+
 def m112_group_object_table(mask_version: str) -> bool:
     """Whether the group-object table is the 4-octet M112 record.
 

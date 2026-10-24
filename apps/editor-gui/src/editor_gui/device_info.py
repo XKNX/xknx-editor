@@ -24,6 +24,7 @@ from xknx.profile.const import (
 from editor_gui.device import flag_letter
 from xknxeditor.download.errors import DownloadError, MemoryReadNotAnswered
 from xknxeditor.download.load_state import LoadState
+from xknxeditor.download.special_products import device_manufacturer_id
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -270,8 +271,11 @@ async def read_device_info(
         manufacturer = await _property(
             programmer, 0, ResourceGenericPropertyId.PID_MANUFACTURER_ID
         )
+        # Some devices report another manufacturer id than their own.
         info.manufacturer_id = (
-            int.from_bytes(manufacturer, "big") if manufacturer else None
+            device_manufacturer_id(int.from_bytes(manufacturer, "big"))
+            if manufacturer
+            else None
         )
         info.order_number = await _property(
             programmer, 0, ResourceGenericPropertyId.PID_ORDER_INFO

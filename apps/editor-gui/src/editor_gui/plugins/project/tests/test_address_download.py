@@ -67,6 +67,7 @@ def _device(*, plugin_required: bool = False) -> Any:
         name="Dev",
         download_plugin_required=plugin_required,
         factory_image=None,
+        app=None,
     )
 
 

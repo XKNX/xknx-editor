@@ -77,7 +77,12 @@ def resolve_download_controls(
         and style == LoadProcedureStyle.PRODUCT_PROCEDURE
     ):
         return _finalize_controls(
-            _flatten(load_procedures),
+            filter_application_controls(
+                _flatten(load_procedures),
+                application,
+                master_data,
+                has_application_program2=has_application_program2,
+            ),
             master_data,
             application.program.mask_version,
             scope,
@@ -106,7 +111,17 @@ def resolve_download_controls(
         c
         for c in _splice(
             [c for c in default.choice if control_applies(c, scope)],
-            _fragments_by_merge_id(load_procedures),
+            {
+                merge_id: filter_application_controls(
+                    fragment,
+                    application,
+                    master_data,
+                    has_application_program2=has_application_program2,
+                )
+                for merge_id, fragment in _fragments_by_merge_id(
+                    load_procedures
+                ).items()
+            },
         )
         if control_applies(c, scope)
     ]
@@ -117,6 +132,93 @@ def resolve_download_controls(
         scope,
         has_application_program2,
     )
+
+
+# The controls the load controls filter looks at, by their load state machine (LsmIdx).
+_LSM_CONTROLS = frozenset(
+    {
+        "LdCtrlLoad",
+        "LdCtrlUnload",
+        "LdCtrlLoadCompleted",
+        "LdCtrlAbsSegment",
+        "LdCtrlTaskSegment",
+        "LdCtrlTaskPtr",
+        "LdCtrlTaskCtrl1",
+        "LdCtrlTaskCtrl2",
+    }
+)
+# On a BIM M112, the load state machine of the second application program.
+_SECOND_PROGRAM_LSM = 4
+# The load state machine a legacy procedure announces the group object table address with.
+_LEGACY_OBJECT_TABLE_LSM = 5
+
+
+def filter_application_controls(
+    controls: Sequence[object],
+    application: Application,
+    master_data: MasterData | None,
+    *,
+    has_application_program2: bool = False,
+) -> list[object]:
+    """The application's own load controls without those a device does not take.
+
+    - A Load or TaskSegment of load state machine 5 announces the group object table address
+      the legacy way; it is left out on a mask without a group object table load control.
+    - On a BIM M112 the load state machine 4 belongs to the second application program: its
+      controls are left out of the first program's procedure (an Unload stays when there is no
+      second program, so the slot is emptied), except for the applications listed in
+      ``special_products.DO_NOT_FILTER_LOAD_CONTROLS``.
+    """
+    from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
+
+    from .resources import bundled_mask_resources
+    from .special_products import filter_load_controls
+
+    mask_version = application.program.mask_version
+    resources = bundled_mask_resources(mask_version)
+    legacy_announcement = (
+        resources is not None
+        and resources.location(ResourceName.GROUP_OBJECT_TABLE_LOAD_CONTROL) is None
+    )
+    second_program = _management_model(
+        master_data, mask_version
+    ) is MaskVersionManagementModel.BIM_M112 and filter_load_controls(
+        getattr(application.program, "id", None)
+    )
+    kept: list[object] = []
+    for control in controls:
+        name = type(control).__name__
+        lsm = getattr(control, "lsm_idx", None)
+        if name in _LSM_CONTROLS and lsm is not None:
+            if (
+                legacy_announcement
+                and lsm == _LEGACY_OBJECT_TABLE_LSM
+                and name in ("LdCtrlLoad", "LdCtrlTaskSegment")
+            ):
+                logger.warning(
+                    "Removing %s (legacy object table address announcement)", name
+                )
+                continue
+            if (
+                second_program
+                and lsm == _SECOND_PROGRAM_LSM
+                and not (name == "LdCtrlUnload" and not has_application_program2)
+            ):
+                logger.warning("Removing %s (second program load control)", name)
+                continue
+        kept.append(control)
+    return kept
+
+
+def _management_model(
+    master_data: MasterData | None, mask_version_id: str
+) -> MaskVersionManagementModel | None:
+    if master_data is None or master_data.mask_versions is None:
+        return None
+    for mask_version in master_data.mask_versions.mask_version:
+        if mask_version.id == mask_version_id:
+            return getattr(mask_version, "management_model", None)
+    return None
 
 
 def _finalize_controls(

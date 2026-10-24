@@ -100,7 +100,7 @@ from xknxeditor.namespaces.intermediate.ld_ctrl_write_rel_mem_t import LdCtrlWri
 from xknxeditor.namespaces.intermediate.resource_addr_space_t import ResourceAddrSpace
 from xknxeditor.namespaces.intermediate.resource_name_t import ResourceName
 
-from . import gaps, load_state
+from . import gaps, load_state, special_products
 from .errors import (
     RESOURCE_READ_PROTECTED_ERROR,
     RESOURCE_WRITE_PROTECTED_ERROR,
@@ -130,6 +130,12 @@ from .secure_config import (
     SECURITY_OBJECT,
     SECURITY_PROPERTY_WIDTHS,
     sequence_number_control,
+)
+from .special_products import (
+    LEGACY_MASTER_RESET_DELAY,
+    LEGACY_MASTER_RESET_FUNCTIONS,
+    LEGACY_MASTER_RESET_PROPERTY,
+    legacy_master_reset,
 )
 
 if TYPE_CHECKING:
@@ -457,6 +463,7 @@ class LoadProcedureRunner:
         self._apdu_overhead = (
             programmer.apdu_overhead if programmer is not None else apdu_overhead
         )
+        self._application_id: str | None = getattr(application, "id", None)
         self._restart_cooldown = restart_cooldown
         self._restart_at: float | None = None
         # A one-shot cooldown that overrides the default for the next reconnect
@@ -471,7 +478,13 @@ class LoadProcedureRunner:
         self._property_services = property_services
         # Optional lowered cap on the classic memory-service payload (a no-ACK
         # fallback); None keeps the programmer's APDU-derived default.
-        self._memory_service_count = memory_service_count
+        self._memory_service_count = special_products.memory_service_count(
+            self._application_id, memory_service_count
+        )
+        # Some devices (their download plugin) are identified again after every reconnect.
+        self._descriptor_every_connect = special_products.descriptor_read_on_reconnect(
+            _download_plugin(application)
+        )
         # (legacy control filter, original error) -> mapped error; 0 is wildcard.
         self._error_mappings: dict[tuple[int, int], int] = {}
         self._controls = (
@@ -900,7 +913,9 @@ class LoadProcedureRunner:
         protection (``authorize_levels`` greater than zero) an A_Authorize
         handshake runs on every connection, before any write.
         """
-        if self._expected_descriptor is not None and not self._descriptor_checked:
+        if self._expected_descriptor is not None and (
+            not self._descriptor_checked or self._descriptor_every_connect
+        ):
             actual = await programmer.read_device_descriptor()
             if actual != self._expected_descriptor:
                 raise VerificationError(
@@ -955,10 +970,11 @@ class LoadProcedureRunner:
         """Wait out the restart cooldown before reconnecting, if one is pending."""
         if self._restart_at is None:
             return
-        cooldown = (
+        cooldown = special_products.restart_wait(
+            self._application_id,
             self._pending_cooldown
             if self._pending_cooldown is not None
-            else self._restart_cooldown
+            else self._restart_cooldown,
         )
         elapsed = time.monotonic() - self._restart_at
         remaining = cooldown - elapsed
@@ -1185,6 +1201,28 @@ class LoadProcedureRunner:
             return
         if isinstance(control, LdCtrlMasterReset):
             programmer = await self._bus()
+            legacy_object = self._legacy_master_reset_object(control)
+            if legacy_object is not None:
+                function = LEGACY_MASTER_RESET_FUNCTIONS[control.erase_code]
+                logger.info(
+                    "download: %s: Master Reset with erase code %d as function %#04x of "
+                    "object %d",
+                    self._target(),
+                    control.erase_code,
+                    function,
+                    legacy_object,
+                )
+                # The device answers with a state; it is not judged. The device does not
+                # restart, the connection stays.
+                await programmer.function_property_raw(
+                    legacy_object,
+                    LEGACY_MASTER_RESET_PROPERTY,
+                    bytes([function]),
+                    command=True,
+                )
+                await asyncio.sleep(LEGACY_MASTER_RESET_DELAY)
+                await self._register_factory(control.erase_code)
+                return
             process_time = await programmer.master_reset(
                 control.erase_code, control.channel_number
             )
@@ -1663,6 +1701,21 @@ class LoadProcedureRunner:
                     covered[i] |= bits
                 break
         return data, covered
+
+    def _legacy_master_reset_object(self, control: LdCtrlMasterReset) -> int | None:
+        """The object a device of a listed application takes ``control`` on as a Function
+        Property Command (its first application object), or ``None`` for a standard Master
+        Reset."""
+        if (
+            control.channel_number
+            or control.erase_code not in LEGACY_MASTER_RESET_FUNCTIONS
+            or not legacy_master_reset(self._application_id or "")
+        ):
+            return None
+        resources = bundled_mask_resources(self.application.program.mask_version)
+        if resources is None:
+            return None
+        return resources.feature(MaskFeature.FIRST_APP_OBJECT_IDX)
 
     def _factory_property(
         self,
@@ -2956,6 +3009,14 @@ def _leave_factory_runs(
             leading, run_start = True, -1
     if run_start >= 0:
         written[offset + run_start : offset + len(held)] = bytes(len(held) - run_start)
+
+
+def _download_plugin(application: Application) -> str | None:
+    """The download plugin (GUID) the application declares, if any."""
+    static = getattr(getattr(application, "program", None), "static", None)
+    extension = getattr(static, "extension", None)
+    plugin = getattr(extension, "ets_download_plugin", None)
+    return plugin if isinstance(plugin, str) else None
 
 
 def _keep_uncovered(current: bytes, planned: bytes, covered: bytes) -> bytes:
