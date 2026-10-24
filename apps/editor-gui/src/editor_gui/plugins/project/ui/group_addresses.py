@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 from imgui_bundle import imgui
 
 from editor_gui import file_dialogs
-from editor_gui.color import sending_green
+from editor_gui.color import sending_green, themed
 from editor_gui.device import com_object_display_name
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
@@ -33,8 +33,9 @@ if TYPE_CHECKING:
     from xknxeditor.proj.core.service import GroupRangeInfo
 
 
-# Accent colour for the last value a group address was seen carrying on the bus.
-_LIVE_COLOR = imgui.ImVec4(0.45, 0.7, 0.9, 1.0)
+# Accent colour for the last value a group address was seen carrying on the bus, as (on dark
+# themes, on light themes).
+_LIVE_COLOR = (imgui.ImVec4(0.45, 0.7, 0.9, 1.0), imgui.ImVec4(0.1, 0.38, 0.7, 1.0))
 
 
 class GroupAddressesPanel:
@@ -375,7 +376,7 @@ class GroupAddressesPanel:
                 imgui.set_cursor_pos_x(
                     row_x + imgui.calc_text_size(name).x + spacing * 3.0
                 )
-                imgui.text_colored(_LIVE_COLOR, value_text)
+                imgui.text_colored(themed(*_LIVE_COLOR), value_text)
                 if imgui.is_item_hovered():
                     imgui.set_tooltip(
                         f"{value_text}\n{value_time}" if value_time else value_text
