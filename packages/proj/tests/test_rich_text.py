@@ -96,3 +96,16 @@ def test_plain_text_and_other_rtf() -> None:
         (Span("on", bold=True), Span(" off")),
         (Span("\U0001f600"),),
     )
+
+
+def test_a_rewritten_text_keeps_the_language_and_font_size() -> None:
+    from xknxeditor.proj.core.rich_text import rich_text_rtf_like
+
+    text = ((Span("Hallo"),),)
+    stored = rich_text_rtf(text, language=1031, font_size=24)
+    rewritten = rich_text_rtf_like(((Span("Neu", bold=True),),), stored)
+    assert "\\lang1031\\fs24" in rewritten
+    assert parse_rich_text(rewritten) == ((Span("Neu", bold=True),),)
+    # Without settings of its own (plain text, nothing stored) the defaults apply.
+    assert rich_text_rtf_like(text, "plain") == rich_text_rtf(text)
+    assert rich_text_rtf_like(text, "") == rich_text_rtf(text)

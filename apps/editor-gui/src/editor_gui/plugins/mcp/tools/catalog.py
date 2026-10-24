@@ -629,6 +629,57 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_delete, timeout=_SLOW)
 
+    @tool
+    def catalog_get_product_details(hardware2program_ref_id: str) -> dict[str, Any]:
+        """The technical facts of a local catalog product version, using hardware2program_ref_id
+        from catalog_list_products. Returns {hardware2program_ref_id, mask_version, is_secure,
+        registration_number, registration_date, mediums}; registration_date is ISO 8601, a value
+        the product does not state is null."""
+
+        def _read() -> dict[str, Any]:
+            facts = catalog.product_facts(hardware2program_ref_id)
+            if facts is None:
+                raise ToolError(
+                    f"product version {hardware2program_ref_id!r} is not in the local catalog"
+                )
+            return {
+                "hardware2program_ref_id": hardware2program_ref_id,
+                "mask_version": facts.mask_version,
+                "is_secure": facts.is_secure,
+                "registration_number": facts.registration_number,
+                "registration_date": (
+                    facts.registration_date.isoformat()
+                    if facts.registration_date is not None
+                    else None
+                ),
+                "mediums": list(facts.mediums),
+            }
+
+        return ctx.run_locked(_read)
+
+    @tool
+    def catalog_export_knxprod(
+        hardware2program_ref_id: str, dest: str
+    ) -> dict[str, Any]:
+        """Save the .knxprod archive a local catalog product version was imported from to the
+        file ``dest`` (a path on the editor's machine), using hardware2program_ref_id from
+        catalog_list_products. The archive is copied as imported, so a manufacturer bundle is
+        exported whole. Returns {hardware2program_ref_id, dest}."""
+        import shutil
+
+        source = ctx.run_locked(
+            lambda: catalog.get_program_source(hardware2program_ref_id)
+        )
+        if source is None:
+            raise ToolError(
+                f"no stored .knxprod archive for product version {hardware2program_ref_id!r}"
+            )
+        try:
+            shutil.copyfile(source[0], dest)
+        except OSError as exc:
+            raise ToolError(f"cannot save {dest!r}: {exc}") from exc
+        return {"hardware2program_ref_id": hardware2program_ref_id, "dest": dest}
+
     # --- online catalog ---------------------------------------------------
 
     @tool

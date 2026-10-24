@@ -11,6 +11,7 @@ from __future__ import annotations
 import contextlib
 import re
 from collections.abc import Awaitable, Callable
+from typing import TYPE_CHECKING
 
 from xknx import XKNX
 from xknx.telegram import IndividualAddress
@@ -23,6 +24,11 @@ from xknxeditor.download import DeviceProgrammer, DeviceSecurity
 # Reuse the download package's own connection builders (plain or Tool-Key secured) so a DALI session
 # gets the same secure handling as a normal download. Repo-internal; intentional cross-module use.
 from xknxeditor.download.session import apdu_overhead, management_session
+
+if TYPE_CHECKING:
+    from editor_gui.device import Device
+    from editor_gui.plugins.project.service import ProjectService
+    from xknxeditor.dali import DaliBusState, EcgAssignment, Scene
 
 
 def is_dali_dca_app(app_id: str | None) -> bool:
@@ -116,3 +122,49 @@ __all__ = [
     "run_dali_operation",
     "run_siemens_dali_operation",
 ]
+
+
+def persist_dali_backup(
+    project: ProjectService,
+    device: Device,
+    scan: DaliBusState,
+    assignments: list[EcgAssignment],
+    scenes: list[Scene],
+    channel: int,
+    *,
+    label: str,
+) -> None:
+    """Write a DALI channel's state back into the project blob after a bus commissioning run
+    (one undo step named ``label``).
+
+    MDT (gc16) blobs are fully modelled: the scan + edits are merged onto the existing
+    ``DaliGC16-Backup-Store`` (``.N`` for channel N+1), preserving templates/descriptions.
+    Theben/IPAS (e64pro) blobs use a wider schema we do not model, so only the group
+    assignments are patched into the existing ``Dalie64-Backup-Store`` and every other
+    element is preserved byte-exact; if no such blob exists yet it is left untouched.
+    """
+    from xknxeditor.dali import merge_commissioning_blob, patch_assignments_in_blob
+    from xknxeditor.dali.profiles import backup_blob_name
+
+    app_id = device.app.id if device.app is not None else None
+    profile = profile_for(app_id)
+    if profile is None:
+        return
+    name = backup_blob_name(profile.backup_blob_base, channel)
+    existing = project.device_binary_data(device, name)
+    if profile.key == "mdt":
+        metadata = project.get_project_metadata()
+        blob = merge_commissioning_blob(
+            existing=existing,
+            state=scan,
+            assignments=assignments,
+            scenes=scenes,
+            individual_address=device.individual_address,
+            project_name=metadata.name if metadata is not None else "",
+        )
+    elif existing is not None:
+        # e64pro: patch group assignments into the vendor's blob, preserve the rest.
+        blob = patch_assignments_in_blob(existing, assignments)
+    else:
+        return  # e64pro device with no existing blob: cannot synthesize the wide schema
+    project.persist_dali_backup(device, name, blob, label=label)

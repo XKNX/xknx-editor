@@ -773,6 +773,7 @@ class KnxGuiApp:
             self._connection_plugin,
             self._monitor_plugin.service,
             self._keyring_plugin.service,
+            self._project_plugin,
         )
 
         self._plugins: list[Any] = [
