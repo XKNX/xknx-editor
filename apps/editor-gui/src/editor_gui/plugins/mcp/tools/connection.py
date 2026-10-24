@@ -156,7 +156,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         info = ctx.run_locked(lambda: ctx.api.project.get_device_info(node_id))
         return serial_from_project(info.serial_number) if info is not None else None
 
-    @tool
+    @tool("read")
     def connection_status() -> dict[str, Any]:
         """Current connection state and target."""
         return {
@@ -168,7 +168,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "busmonitor": ctx.api.connection.busmonitor_state.value,
         }
 
-    @tool
+    @tool("write")
     def connection_configure(
         controller_ip: str, multicast_group: str = "", routing: bool = False
     ) -> dict[str, str]:
@@ -180,7 +180,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         conn.configure(controller_ip, multicast_group, routing)
         return {"status": "configured"}
 
-    @tool
+    @tool("read", open_world=True)
     def connection_scan(timeout: float = 6.0) -> dict[str, Any]:
         """Discover KNX gateways on the network (``timeout`` in seconds).
 
@@ -221,13 +221,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(f"connect failed (state: {conn.state.value})")
         return {"state": conn.state.value, "connected": True}
 
-    @tool
+    @tool("write", open_world=True)
     def connection_connect(timeout: float = 15.0) -> dict[str, Any]:
         """Connect using the configured gateway IP (tunneling). Waits until connected or fails."""
         conn.connect()
         return _await_connect(timeout)
 
-    @tool
+    @tool("write", open_world=True)
     def connection_connect_gateway(ip: str, timeout: float = 15.0) -> dict[str, Any]:
         """Connect to a discovered gateway by IP (run connection_scan first). Waits for the result."""
         if not conn.connect_to_gateway_by_ip(ip):
@@ -236,13 +236,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         return _await_connect(timeout)
 
-    @tool
+    @tool("write", open_world=True)
     def connection_disconnect() -> dict[str, Any]:
         """Disconnect from the bus. Returns the resulting connection state."""
         conn.disconnect()
         return {"status": "disconnecting", "state": conn.state.value}
 
-    @tool
+    @tool("destructive", open_world=True)
     def connection_program_device(
         node_id: int,
         scope: Scope | None = None,
@@ -385,7 +385,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         return {"status": "programmed", "node_id": node_id}
 
-    @tool
+    @tool("read", open_world=True)
     def connection_evaluate_device(
         node_id: int, scope: Scope | None = None, timeout: float = 120.0
     ) -> dict[str, Any]:
@@ -448,7 +448,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "summary": report.summary(),
         }
 
-    @tool
+    @tool("destructive", open_world=True)
     def connection_assign_individual_address(
         node_id: int, timeout: float = 30.0
     ) -> dict[str, Any]:
@@ -487,7 +487,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "address": device.individual_address,
         }
 
-    @tool
+    @tool("read", open_world=True)
     def connection_read_programming_mode_devices(
         timeout: float = 5.0,
     ) -> dict[str, Any]:
@@ -498,7 +498,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         addresses = {str(a) for a in future.result(timeout=timeout)}
         return {"addresses": sorted(addresses, key=address_order)}
 
-    @tool
+    @tool("destructive", open_world=True)
     def connection_restart_device(
         node_id: int, timeout: float = 30.0
     ) -> dict[str, Any]:
@@ -518,7 +518,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         future.result(timeout=timeout)
         return {"status": "restarted", "node_id": node_id}
 
-    @tool
+    @tool("destructive", open_world=True)
     def connection_master_reset_device(
         node_id: int, reset: MasterReset, timeout: float = 30.0
     ) -> dict[str, Any]:

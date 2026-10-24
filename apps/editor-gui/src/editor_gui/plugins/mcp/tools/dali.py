@@ -205,7 +205,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             for e in scan.present_ecgs
         ]
 
-    @tool
+    @tool("read", open_world=True)
     def connection_dali_scan(
         node_id: int, channel: int = 0, timeout: float = 120.0
     ) -> dict[str, Any]:
@@ -225,7 +225,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         state.scan = scan
         return scan_dict(node_id, channel, scan)
 
-    @tool
+    @tool("destructive", open_world=True)
     def connection_dali_identify(
         node_id: int,
         action: IdentifyAction,
@@ -276,7 +276,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "group": group,
         }
 
-    @tool
+    @tool("destructive", open_world=True)
     def connection_dali_installation(
         node_id: int,
         installation: Installation,
@@ -302,7 +302,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         state.scan = scan
         return scan_dict(node_id, channel, scan)
 
-    @tool
+    @tool("destructive", open_world=True)
     def connection_dali_program_groups(
         node_id: int,
         groups: list[dict[str, Any]],
@@ -345,7 +345,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "saved": saved,
         }
 
-    @tool
+    @tool("destructive", open_world=True)
     def connection_dali_program_scenes(
         node_id: int,
         scenes: list[dict[str, Any]],
@@ -417,7 +417,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(f"device {node_id} has no individual address")
         return device
 
-    @tool
+    @tool("read", open_world=True)
     def connection_siemens_dali_scan(
         node_id: int, timeout: float = 120.0
     ) -> dict[str, Any]:
@@ -437,7 +437,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         return siemens_scan_dict(node_id, future.result(timeout=timeout))
 
-    @tool
+    @tool("destructive", open_world=True)
     def connection_siemens_dali_program(
         node_id: int, timeout: float = 300.0
     ) -> dict[str, Any]:

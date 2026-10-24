@@ -24,7 +24,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         if ctx.api.connection.xknx is None:
             raise ToolError("no KNX connection")
 
-    @tool
+    @tool("read")
     def monitor_latest(address: str) -> dict[str, Any]:
         """Read the cached value last seen on a group-address string such as "1/2/3"; no bus request
         is sent. Returns {address, service, timestamp, payload}; service is "Write" or "Response",
@@ -40,7 +40,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "payload": str(value.payload),
         }
 
-    @tool
+    @tool("read")
     def monitor_telegrams(limit: int = 100) -> dict[str, Any]:
         """Read the Group Monitor's recorded group telegrams, oldest first. limit selects the most
         recent entries (<=0 means all). Returns {items, count}; each item has {timestamp, source,
@@ -61,7 +61,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ]
         return {"items": items, "count": len(items)}
 
-    @tool
+    @tool("read", open_world=True)
     def monitor_read_value(address: str, timeout: float = 3.0) -> dict[str, Any]:
         """Send a GroupValueRead to a group-address string (e.g. "1/2/3") and wait up to timeout
         seconds for a fresh value. Requires an open connection; raises on timeout. Any Write or
@@ -86,14 +86,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             f"no response on {address!r} within {timeout}s (device may not answer reads)"
         )
 
-    @tool
+    @tool("destructive")
     def monitor_clear() -> dict[str, str]:
         """Clear cached latest values and the Group Monitor log; active recording continues.
         Returns {status: "cleared"}. Cleared data cannot be restored with project_undo."""
         monitor.clear()
         return {"status": "cleared"}
 
-    @tool
+    @tool("destructive", open_world=True)
     def monitor_send_write(
         address: str, value: str, dpt: str | None = None
     ) -> dict[str, str]:
@@ -122,7 +122,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         # awaited here. Read it back with monitor_latest to confirm the effect.
         return {"status": "queued", "address": address}
 
-    @tool
+    @tool("read", open_world=True)
     def monitor_send_read(address: str) -> dict[str, str]:
         """Queue a GroupValueRead to a group-address string such as "1/2/3". Requires an open
         connection. Returns {status: "queued", address} without waiting for a reply; monitor_read_value

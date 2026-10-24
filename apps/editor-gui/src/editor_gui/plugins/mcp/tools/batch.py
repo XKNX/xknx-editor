@@ -22,6 +22,7 @@ from editor_gui.plugins.mcp.tools.details import (
 )
 from editor_gui.plugins.mcp.tools.project import (
     PLUGIN_PARAMETERS_ERROR,
+    link_id_between,
     param_change_result,
     perform_link,
     require_editable_param,
@@ -194,6 +195,17 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         return result
 
+    def _op_unlink_com_object(p: dict[str, Any]) -> dict[str, Any]:
+        # By the link's id, or by the linked pair (device, com_object_ref_id, ga).
+        if "assignment_id" in p:
+            link_id = int(p["assignment_id"])
+        else:
+            link_id = link_id_between(
+                project, _device(p), p["com_object_ref_id"], _group_address_id(p)
+            )
+        project.unlink_com_object_from_ga(link_id)
+        return {"assignment_id": link_id}
+
     def _op_rename_device(p: dict[str, Any]) -> dict[str, Any]:
         if "name" not in p and "description" not in p:
             raise ValueError("rename_device needs name, description or both")
@@ -284,13 +296,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             ("com_object_ref_id",),
             _op_link_com_object,
         ),
-        "unlink_com_object": (
-            ("assignment_id",),
-            lambda p: (
-                project.unlink_com_object_from_ga(p["assignment_id"]),
-                {"assignment_id": p["assignment_id"]},
-            )[1],
-        ),
+        "unlink_com_object": ((), _op_unlink_com_object),
         "create_area": (
             ("area_number",),
             lambda p: {
@@ -336,6 +342,17 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "valid": False,
                 "issue": f"missing params: {', '.join(missing)}",
             }
+        if (
+            name == "unlink_com_object"
+            and "assignment_id" not in params
+            and "com_object_ref_id" not in params
+        ):
+            return {
+                "index": index,
+                "op": name,
+                "valid": False,
+                "issue": "missing params: assignment_id, or com_object_ref_id with device and ga",
+            }
         if name == "set_com_object_flag" and params.get("flag") not in _FLAGS:
             return {
                 "index": index,
@@ -345,7 +362,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             }
         return {"index": index, "op": name, "valid": True}
 
-    @tool
+    @tool("destructive")
     def project_batch(
         operations: list[dict[str, Any]],
         atomic: bool = True,
@@ -383,7 +400,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
           {link_id, node_id, com_object_ref_id, com_object_db_id, group_address_id, is_sending,
           already_linked, dpt_mismatch?, other_sending_group_address_ids?} (same feedback as the
           standalone tool; idempotent).
-        - unlink_com_object: assignment_id -> {assignment_id}.
+        - unlink_com_object: assignment_id, or device, com_object_ref_id, ga (the linked pair) ->
+          {assignment_id}.
         - create_area: area_number [name] -> {area_id}.
         - create_line: area_id, line_number [name] -> {line_id}.
         - set_comment: kind [element_id] [field="comment"], text | paragraphs -> {kind, element_id,

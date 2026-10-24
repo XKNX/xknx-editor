@@ -304,7 +304,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     tool = make_tool(mcp, ctx)
     catalog = ctx.api.catalog
 
-    @tool
+    @tool("read")
     def catalog_list_products(
         name_contains: str | None = None, manufacturer_contains: str | None = None
     ) -> dict[str, Any]:
@@ -342,7 +342,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
         return {"items": products, "count": len(products)}
 
-    @tool
+    @tool("read")
     def catalog_get_application(application_id: str) -> dict[str, Any]:
         """Resolve a catalog application by `application_id` (from a catalog_list_products item's
         `application_id`). Returns {id, name}."""
@@ -355,7 +355,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool("read", open_world=True)
     def catalog_docs(
         query: str,
         product_ref_id: str | None = None,
@@ -467,7 +467,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             ),
         }
 
-    @tool
+    @tool("write", open_world=True)
     def catalog_docs_fetch(
         url: str,
         page: int | None = None,
@@ -527,7 +527,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "hint": "Pick a page from the outline and call again with page=N, or find='term' to locate a keyword.",
         }
 
-    @tool
+    @tool("read")
     def catalog_docs_cached() -> dict[str, Any]:
         """List documentation files cached on the editor host. Returns {items, count}; each item has
         {filename, url, size_bytes}. Pass url to catalog_docs_fetch to reuse a PDF or text/Markdown
@@ -543,7 +543,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 )
         return {"items": items, "count": len(items)}
 
-    @tool
+    @tool("write")
     def catalog_import_knxprod(path: str) -> dict[str, Any]:
         """Import a .knxprod at path on the editor host into the local catalog, keeping existing
         versions. For a file on a remote client, use catalog_import_knxprod_bytes.
@@ -557,7 +557,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
         return _added(added)
 
-    @tool
+    @tool("write")
     def catalog_import_knxprod_bytes(filename: str, data_base64: str) -> dict[str, Any]:
         """Import a .knxprod from a remote client: pass its filename and base64 bytes as data_base64
         (decoded size at most 25 MB). Prefer catalog_import_knxprod for files on the editor host.
@@ -592,7 +592,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 tmp_dir.rmdir()
         return {**_added(added), "filename": safe, "size_bytes": len(raw)}
 
-    @tool
+    @tool("destructive")
     def catalog_delete_product(product_ref_id: str) -> dict[str, Any]:
         """Delete all versions of a local catalog product using product_ref_id from
         catalog_list_products. Also removes exclusively used programs, hardware, applications,
@@ -629,7 +629,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_delete, timeout=_SLOW)
 
-    @tool
+    @tool("read")
     def catalog_get_product_details(hardware2program_ref_id: str) -> dict[str, Any]:
         """The technical facts of a local catalog product version, using hardware2program_ref_id
         from catalog_list_products. Returns {hardware2program_ref_id, mask_version, is_secure,
@@ -657,7 +657,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool("destructive")
     def catalog_export_knxprod(
         hardware2program_ref_id: str, dest: str
     ) -> dict[str, Any]:
@@ -682,7 +682,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     # --- online catalog ---------------------------------------------------
 
-    @tool
+    @tool("read")
     def catalog_online_language() -> dict[str, Any]:
         """Return {language, languages}: the languages online products are downloaded in, the
         editor's language first (e.g. "de-DE"), then its other languages."""
@@ -691,7 +691,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "languages": catalog.online_languages,
         }
 
-    @tool
+    @tool("write")
     def catalog_set_online_language(code: str) -> dict[str, str]:
         """Download online products in code only (such as "de-DE") for the rest of the session,
         instead of the editor's languages. Returns {language}, containing code. This setting is
@@ -699,7 +699,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         catalog.set_online_language(code)
         return {"language": code}
 
-    @tool
+    @tool("read", open_world=True)
     def catalog_refresh_online_manufacturers() -> dict[str, Any]:
         """Refresh the online manufacturer list over the network. Returns {items, count}; each item
         has {id, name}. Pass id as manufacturer_id to catalog_online_items."""
@@ -708,7 +708,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ]
         return {"items": items, "count": len(items)}
 
-    @tool
+    @tool("read", open_world=True)
     def catalog_online_items(manufacturer_id: int) -> dict[str, Any]:
         """List a manufacturer's online catalog products over the network. Pass id from
         catalog_refresh_online_manufacturers as manufacturer_id. Returns {items, count}; each item
@@ -725,7 +725,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ]
         return {"items": items, "count": len(items)}
 
-    @tool
+    @tool("write", open_world=True)
     def catalog_download_online_products(
         catalog_item_ids: list[str], language_ids: list[str] | None = None
     ) -> dict[str, Any]:

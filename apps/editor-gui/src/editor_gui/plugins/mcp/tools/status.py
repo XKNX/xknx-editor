@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 def register(mcp: FastMCP, ctx: McpContext) -> None:
     tool = make_tool(mcp, ctx)
 
-    @tool
+    @tool("read")
     def status() -> dict[str, Any]:
         """One-call overview: project, connection, keyring, capture state, plus valid enums.
 
