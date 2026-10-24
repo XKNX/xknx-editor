@@ -486,7 +486,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             }
         return {"index": index, "op": name, "valid": True}
 
-    @tool
+    @tool(destructive=True)
     def project_batch(
         operations: list[dict[str, Any]],
         atomic: bool = True,

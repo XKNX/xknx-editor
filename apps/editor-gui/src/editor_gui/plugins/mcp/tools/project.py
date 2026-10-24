@@ -1911,7 +1911,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     # --- application update ("Update Application Program") ------------
 
-    @tool
+    @tool(read_only=True)
     def project_devices_with_update() -> dict[str, Any]:
         """List devices that project_update_application can update: the local catalog has a
         version of the same application program whose ReplacesVersions names the current one.
@@ -1944,7 +1944,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read, timeout=_SLOW))
 
-    @tool
+    @tool(destructive=True)
     def project_update_application(
         node_id: int | None = None, device_address: str | None = None
     ) -> dict[str, Any]:
@@ -1979,7 +1979,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_do, timeout=_SLOW)
 
-    @tool
+    @tool(read_only=True)
     def project_list_application_programs(
         node_id: int | None = None, device_address: str | None = None
     ) -> dict[str, Any]:
@@ -2005,7 +2005,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read, timeout=_SLOW))
 
-    @tool
+    @tool(destructive=True)
     def project_change_application(
         hardware2program_ref_id: str,
         node_id: int | None = None,
@@ -2053,7 +2053,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     # --- lifecycle --------------------------------------------------------
 
-    @tool
+    @tool(read_only=True)
     def project_status() -> dict[str, Any]:
         """Return {open, path}, with the editor-host path or null when no project is open.
         Most project_* tools need an open project."""
@@ -2064,7 +2064,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             }
         )
 
-    @tool
+    @tool(destructive=True)
     def project_new(path: str) -> dict[str, Any]:
         """Create a new empty KNX project (.xknx) at ``path`` (on the editor host) and open it. An
         existing file at ``path`` is replaced and the current project closed; file replacement is NOT
@@ -2188,7 +2188,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool(read_only=True)
     def project_get_ip_secure(
         node_id: int | None = None,
         device_address: str | None = None,
@@ -2275,7 +2275,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool(destructive=True)
     def project_export_keyring(dest: str, password: str) -> dict[str, Any]:
         """Export the open project's key material as a keyring (``.knxkeys``) to ``dest``,
         encrypted with ``password``: the backbone key, the devices commissioned securely, the
@@ -2297,7 +2297,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ctx.run_locked(project.close)
         return {"status": "closed"}
 
-    @tool
+    @tool(destructive=True)
     def project_export_knxproj(dest: str) -> dict[str, str]:
         """Export the open project to a .knxproj archive at ``dest`` (with manufacturer bundle).
         Returns {status, dest} plus an optional ``warning``. ``status="incomplete"`` means
@@ -2351,7 +2351,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             out["warning"] = "ETS may reject the import — " + "; ".join(warnings)
         return out
 
-    @tool
+    @tool(destructive=True)
     def project_compact(dry_run: bool = True) -> dict[str, Any]:
         """Remove product data no device uses from the open project and compact its file.
 
@@ -2389,7 +2389,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             "product_data_size_after": report.size_after,
         }
 
-    @tool
+    @tool(read_only=True)
     def project_info() -> dict[str, Any]:
         """Project metadata. Returns {id, name, group_address_style, guid, created_by, last_modified,
         schema_version, tool_version}. ``group_address_style`` (ThreeLevel/TwoLevel/Free) governs how
@@ -2411,7 +2411,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     # --- reads ------------------------------------------------------------
 
-    @tool
+    @tool(read_only=True)
     def project_list_devices(name_contains: str | None = None) -> dict[str, Any]:
         """List project devices, optionally filtering names by a case-insensitive substring.
         Returns {items, count}; each item has {node_id, name, individual_address, description}.
@@ -2427,7 +2427,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
+    @tool(read_only=True)
     def project_get_device(
         node_id: int | None = None, device_address: str | None = None
     ) -> dict[str, Any]:
@@ -2461,7 +2461,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool(read_only=True)
     def project_list_com_objects(
         node_id: int | None = None, device_address: str | None = None
     ) -> dict[str, Any]:
@@ -2478,7 +2478,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
+    @tool(read_only=True)
     def find_potential_com_objects(
         node_id: int | None = None, device_address: str | None = None
     ) -> dict[str, Any]:
@@ -2503,7 +2503,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
+    @tool(read_only=True)
     def project_get_com_object(
         com_object_ref_id: str,
         node_id: int | None = None,
@@ -2530,7 +2530,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool(read_only=True)
     def project_get_com_object_links(
         com_object_ref_id: str,
         node_id: int | None = None,
@@ -2570,7 +2570,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
+    @tool(read_only=True)
     def project_list_parameters(
         node_id: int | None = None,
         device_address: str | None = None,
@@ -2626,7 +2626,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
+    @tool(read_only=True)
     def project_parameter_tree(
         node_id: int | None = None,
         device_address: str | None = None,
@@ -2718,7 +2718,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool(read_only=True)
     def project_get_parameter(
         parameter_ref_id: str | None = None,
         node_id: int | None = None,
@@ -2761,7 +2761,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool(read_only=True)
     def project_resolve_parameter(
         label: str | None = None,
         node_id: int | None = None,
@@ -2804,7 +2804,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool(read_only=True)
     def project_get_group_address(
         group_address_id: int | None = None, group_address: str | None = None
     ) -> dict[str, Any]:
@@ -2817,7 +2817,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_read)
 
-    @tool
+    @tool(read_only=True)
     def project_next_free_group_address() -> dict[str, Any]:
         """Return {address} for the next unused project group address, formatted per project_info's
         group_address_style. This does not reserve it or check the bus. Pass address to
@@ -2828,7 +2828,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError("no free group address available")
         return {"address": address}
 
-    @tool
+    @tool(read_only=True)
     def project_get_ga_assignments(
         group_address_id: int | None = None, group_address: str | None = None
     ) -> dict[str, Any]:
@@ -2866,7 +2866,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
+    @tool(read_only=True)
     def project_topology() -> dict[str, Any]:
         """Read the project topology. Returns {items, count}; each area item has
         {id, area_number, name, lines}, and each line has {id, line_number, name}. count counts areas.
@@ -2889,7 +2889,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return _items(ctx.run_locked(_read))
 
-    @tool
+    @tool(read_only=True)
     def project_spaces() -> dict[str, Any]:
         """Read the building/location tree (building -> floor -> room), each with its placed devices
         and functions. Use this to find a room's devices when device names are empty — the space names
@@ -2935,7 +2935,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool(read_only=True)
     def project_compare_devices(
         node_id_a: int | None = None,
         node_id_b: int | None = None,
@@ -3071,7 +3071,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ctx.run_locked(lambda: project.move_space(space_id, new_parent_id))
         return {"space_id": space_id, "new_parent_id": new_parent_id}
 
-    @tool
+    @tool(destructive=True)
     def project_remove_space(space_id: int) -> dict[str, Any]:
         """Remove a space and its sub-spaces (``id`` from project_spaces); devices placed in them
         become unassigned. Undoable project edit. Returns {status, space_id}."""
@@ -3562,7 +3562,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_setup)
 
-    @tool
+    @tool(read_only=True)
     def project_find_free_slots(
         node_id: int | None = None,
         device_address: str | None = None,
@@ -3609,7 +3609,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ctx.run_locked(lambda: project.rename_area(area_id, "", name))
         return {"area_id": area_id, "name": name}
 
-    @tool
+    @tool(destructive=True)
     def project_remove_area(area_id: int) -> dict[str, str]:
         """Remove a project topology area and its lines/devices. Use an area's id from
         project_topology as area_id. Undoable with project_undo; hardware is unchanged.
@@ -3636,7 +3636,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ctx.run_locked(lambda: project.rename_line(line_id, "", name))
         return {"line_id": line_id, "name": name}
 
-    @tool
+    @tool(destructive=True)
     def project_remove_line(line_id: int) -> dict[str, str]:
         """Remove a project topology line and its devices. Use a line's id from project_topology as
         line_id. Undoable with project_undo; hardware is unchanged. Returns {status: "removed", line_id},
@@ -3748,7 +3748,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
-    @tool
+    @tool(destructive=True)
     def project_remove_group_address(
         group_address_id: int | None = None, group_address: str | None = None
     ) -> dict[str, str]:
@@ -3821,7 +3821,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_link)
 
-    @tool
+    @tool(destructive=True)
     def project_unlink_com_object(
         assignment_id: int | None = None,
         node_id: int | None = None,
@@ -3874,7 +3874,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Redo the last undone project edit. Returns {redone: bool}."""
         return {"redone": ctx.run_locked(project.redo)}
 
-    @tool
+    @tool(read_only=True)
     def project_history() -> dict[str, Any]:
         """Project edit history. Returns {items, count}; each item has {id, label, reverted}. Pass an
         item's ``id`` as project_jump_to's ``event_id``."""
@@ -3895,7 +3895,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ctx.run_locked(lambda: project.jump_to(event_id))
         return {"status": "jumped", "event_id": str(event_id)}
 
-    @tool
+    @tool(read_only=True)
     def project_diff(
         compare_against: str | None = None,
         only_differences: bool = True,

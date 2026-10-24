@@ -2618,3 +2618,170 @@ async def test_scan_device_slots_with_real_fixture(tmp_path: Path) -> None:
         assert slots_res["total_slots"] >= 2
         assert slots_res["free_count"] + slots_res["used_count"] == slots_res["total_slots"]
 
+
+READ_ONLY_TOOLS = {
+    "catalog_docs",
+    "catalog_docs_cached",
+    "catalog_get_application",
+    "catalog_list_products",
+    "catalog_online_items",
+    "catalog_online_language",
+    "connection_status",
+    "find_potential_com_objects",
+    "keyring_status",
+    "monitor_latest",
+    "monitor_telegrams",
+    "network_cemi_records",
+    "network_state",
+    "network_telegrams",
+    "project_compare_devices",
+    "project_devices_with_update",
+    "project_diff",
+    "project_find_free_slots",
+    "project_get_com_object",
+    "project_get_com_object_links",
+    "project_get_device",
+    "project_get_ga_assignments",
+    "project_get_group_address",
+    "project_get_ip_secure",
+    "project_get_parameter",
+    "project_history",
+    "project_info",
+    "project_list_application_programs",
+    "project_list_com_objects",
+    "project_list_devices",
+    "project_list_parameters",
+    "project_next_free_group_address",
+    "project_parameter_tree",
+    "project_resolve_parameter",
+    "project_spaces",
+    "project_status",
+    "project_topology",
+    "status",
+}
+
+DESTRUCTIVE_TOOLS = {
+    "catalog_delete_product",
+    "connection_assign_individual_address",
+    "connection_program_device",
+    "keyring_clear",
+    "keyring_export",
+    "monitor_clear",
+    "monitor_send_write",
+    "network_clear",
+    "project_batch",
+    "project_change_application",
+    "project_compact",
+    "project_export_keyring",
+    "project_export_knxproj",
+    "project_new",
+    "project_remove_area",
+    "project_remove_group_address",
+    "project_remove_line",
+    "project_remove_space",
+    "project_unlink_com_object",
+    "project_update_application",
+}
+
+NON_DESTRUCTIVE_WRITE_TOOLS = {
+    "catalog_docs_fetch",
+    "catalog_download_online_products",
+    "catalog_import_knxprod",
+    "catalog_import_knxprod_bytes",
+    "catalog_refresh_online_manufacturers",
+    "catalog_set_online_language",
+    "connection_configure",
+    "connection_connect",
+    "connection_connect_gateway",
+    "connection_disconnect",
+    "connection_evaluate_device",
+    "connection_read_programming_mode_devices",
+    "connection_scan",
+    "keyring_load",
+    "monitor_read_value",
+    "monitor_send_read",
+    "network_start",
+    "network_stop",
+    "project_add_device",
+    "project_add_device_certificate",
+    "project_assign_additional_addresses",
+    "project_close",
+    "project_create_area",
+    "project_create_group_address",
+    "project_create_line",
+    "project_create_space",
+    "project_import_knxproj",
+    "project_jump_to",
+    "project_link_com_object",
+    "project_move_space",
+    "project_open",
+    "project_redo",
+    "project_rename_area",
+    "project_rename_device",
+    "project_rename_group_address",
+    "project_rename_line",
+    "project_rename_space",
+    "project_set_additional_address",
+    "project_set_com_object_flag",
+    "project_set_device_space",
+    "project_set_group_address_dpt",
+    "project_set_group_address_security",
+    "project_set_individual_address",
+    "project_set_ip_secure",
+    "project_set_parameter",
+    "project_set_secure_commissioning",
+    "project_set_serial_number",
+    "project_set_space_type",
+    "project_setup_parameters",
+    "project_undo",
+}
+
+
+async def test_tool_annotations_classification(tmp_path: Path) -> None:
+    """Verify that every registered tool is strictly classified into read-only, destructive,
+    or non-destructive write, and annotations match exactly."""
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        tools = await client.list_tools()
+        registered_names = {t.name for t in tools}
+        classified_names = READ_ONLY_TOOLS | DESTRUCTIVE_TOOLS | NON_DESTRUCTIVE_WRITE_TOOLS
+
+        # 1. No overlap between sets
+        assert READ_ONLY_TOOLS.isdisjoint(DESTRUCTIVE_TOOLS)
+        assert READ_ONLY_TOOLS.isdisjoint(NON_DESTRUCTIVE_WRITE_TOOLS)
+        assert DESTRUCTIVE_TOOLS.isdisjoint(NON_DESTRUCTIVE_WRITE_TOOLS)
+        print(
+            f"\nTOOL_COUNTS: read_only={len(READ_ONLY_TOOLS)}, destructive={len(DESTRUCTIVE_TOOLS)}, "
+            f"non_destructive_write={len(NON_DESTRUCTIVE_WRITE_TOOLS)}, total={len(registered_names)}"
+        )
+
+        # 2. Every registered tool must be classified
+        unclassified = registered_names - classified_names
+        assert not unclassified, f"Unclassified tools registered: {unclassified}"
+
+        # 3. Every classified tool must be registered
+        missing = classified_names - registered_names
+        assert not missing, f"Classified tools missing from server: {missing}"
+
+        # 4. Check annotations on each tool
+        for tool in tools:
+            name = tool.name
+            ann = getattr(tool, "annotations", None)
+            if hasattr(ann, "model_dump"):
+                ann_dict = ann.model_dump(by_alias=True)
+            elif isinstance(ann, dict):
+                ann_dict = ann
+            else:
+                ann_dict = {}
+
+            if name in READ_ONLY_TOOLS:
+                assert ann_dict.get("readOnlyHint") is True, f"{name}: expected readOnlyHint=True, got {ann_dict}"
+                assert ann_dict.get("destructiveHint") is False, f"{name}: expected destructiveHint=False, got {ann_dict}"
+            elif name in DESTRUCTIVE_TOOLS:
+                assert ann_dict.get("readOnlyHint") is False, f"{name}: expected readOnlyHint=False, got {ann_dict}"
+                assert ann_dict.get("destructiveHint") is True, f"{name}: expected destructiveHint=True, got {ann_dict}"
+            else:
+                assert ann_dict.get("readOnlyHint") is False, f"{name}: expected readOnlyHint=False, got {ann_dict}"
+                assert ann_dict.get("destructiveHint") is False, f"{name}: expected destructiveHint=False, got {ann_dict}"
+
+

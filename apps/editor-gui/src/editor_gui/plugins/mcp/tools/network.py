@@ -109,7 +109,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     tool = make_tool(mcp, ctx)
     monitor = ctx.monitor
 
-    @tool
+    @tool(read_only=True)
     def network_state() -> dict[str, Any]:
         """Read recording state for the normal connection's Group Monitor and Bus Activity.
         Returns {state, recording, telegrams, cemi_records}; recording has {group_monitor, bus_activity}
@@ -135,7 +135,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             monitor.stop(kind)
         return {"status": "stopped"}
 
-    @tool
+    @tool(destructive=True)
     def network_clear() -> dict[str, str]:
         """Clear the Group Monitor and Bus Activity logs; active recording continues and cached
         latest values remain. Returns {status: "cleared"}. Cleared logs cannot be restored with
@@ -144,7 +144,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             monitor.clear_log(kind)
         return {"status": "cleared"}
 
-    @tool
+    @tool(read_only=True)
     def network_telegrams(limit: int = 100) -> dict[str, Any]:
         """Read decoded L_Data telegrams from the Group Monitor and Bus Activity, merged oldest first.
         limit selects the most recent decodable entries (<=0 means all). Returns {items, count}; each
@@ -169,7 +169,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         items.reverse()
         return {"items": items, "count": len(items)}
 
-    @tool
+    @tool(read_only=True)
     def network_cemi_records(limit: int = 100) -> dict[str, Any]:
         """Read raw cEMI frames from the Group Monitor and Bus Activity, merged oldest first.
         limit selects the most recent frames (<=0 means all). Returns {items, count}; each item has

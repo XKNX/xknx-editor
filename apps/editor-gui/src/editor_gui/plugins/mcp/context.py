@@ -122,36 +122,68 @@ class McpContext:
         return self.run_on_ui(_guarded, timeout=timeout)
 
 
-def make_tool(
-    mcp: FastMCP, ctx: McpContext
-) -> Callable[[Callable[..., T]], Callable[..., T]]:
+def make_tool(mcp: FastMCP, ctx: McpContext) -> Any:
     """Return a decorator that registers a function as an MCP tool with uniform error translation.
 
-    Expected service errors become :class:`ToolError` (a clean client-facing message); anything else
-    propagates as an internal error.
+    Supports ``@tool``, ``@tool(read_only=True)``, ``@tool(destructive=True)``, ``@tool(open_world=True)``,
+    and ``@tool(annotations=...)``.
+
+    CRITERIA FOR TOOL ANNOTATIONS (MCP Specification 2025-03-26):
+    - readOnlyHint=True: Verändert nichts, schreibt weder Dateien noch Cache noch Bus-Telegramme.
+    - destructiveHint=True: Löscht Objekte oder Strukturen, überschreibt externe Dateien,
+      schreibt auf reale Geräte oder den Bus, löscht Schlüssel oder Katalogdaten.
+    - destructiveHint=False (explizit): Alle übrigen Schreib-Tools (anlegen, umbenennen, Werte setzen).
+      (Explizit False ist notwendig, da der Spec-Default bei readOnlyHint=False sonst True ist).
+    - openWorldHint: Standardmäßig False (geschlossene lokale Domäne), True nur für Tools mit
+      Web- oder Bus-Bezug (z. B. Hersteller-Docs, Online-Katalog, Bus-Telegramme).
+
+    SECURITY NOTE:
+    Annotations are advisory hints to AI clients/harnesses, not a hard security boundary or
+    authorization mechanism. Safety and validation are enforced independently by the server.
     """
 
-    def decorator(fn: Callable[..., T]) -> Callable[..., T]:
-        @functools.wraps(fn)
-        def wrapper(*args: Any, **kwargs: Any) -> T:
-            # Log every tool call so the GUI log shows what the LLM is doing (secrets redacted).
-            logged = _redact_args(fn.__name__, kwargs)
-            ctx.log.info("tool call", tool=fn.__name__, args=logged)
-            try:
-                return fn(*args, **kwargs)
-            except ToolError as exc:
-                ctx.log.warning("tool error", tool=fn.__name__, error=str(exc))
-                raise
-            except _EXPECTED_ERRORS as exc:
-                ctx.log.warning(
-                    "tool error", tool=fn.__name__, error=f"{type(exc).__name__}: {exc}"
-                )
-                raise ToolError(f"{type(exc).__name__}: {exc}") from exc
+    def decorator_or_factory(
+        fn_or_none: Callable[..., Any] | None = None,
+        *,
+        read_only: bool = False,
+        destructive: bool = False,
+        open_world: bool = False,
+        annotations: dict[str, Any] | None = None,
+    ) -> Any:
+        tool_ann = dict(annotations or {})
+        if read_only:
+            tool_ann["readOnlyHint"] = True
+            tool_ann["destructiveHint"] = False
+        else:
+            tool_ann["readOnlyHint"] = False
+            tool_ann["destructiveHint"] = destructive
+        tool_ann["openWorldHint"] = open_world
 
-        mcp.tool(wrapper)
-        return wrapper
+        def register(fn: Callable[..., T]) -> Callable[..., T]:
+            @functools.wraps(fn)
+            def wrapper(*args: Any, **kwargs: Any) -> T:
+                # Log every tool call so the GUI log shows what the LLM is doing (secrets redacted).
+                logged = _redact_args(fn.__name__, kwargs)
+                ctx.log.info("tool call", tool=fn.__name__, args=logged)
+                try:
+                    return fn(*args, **kwargs)
+                except ToolError as exc:
+                    ctx.log.warning("tool error", tool=fn.__name__, error=str(exc))
+                    raise
+                except _EXPECTED_ERRORS as exc:
+                    ctx.log.warning(
+                        "tool error", tool=fn.__name__, error=f"{type(exc).__name__}: {exc}"
+                    )
+                    raise ToolError(f"{type(exc).__name__}: {exc}") from exc
 
-    return decorator
+            mcp.tool(annotations=tool_ann)(wrapper)
+            return wrapper
+
+        if fn_or_none is not None and callable(fn_or_none):
+            return register(fn_or_none)
+        return register
+
+    return decorator_or_factory
 
 
 def require_project(ctx: McpContext) -> None:
