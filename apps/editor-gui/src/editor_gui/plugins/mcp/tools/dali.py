@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Any, Literal
 from fastmcp.exceptions import ToolError
 
 from editor_gui.plugins.mcp.context import McpContext, make_tool
+from editor_gui.plugins.mcp.tools.project import require_device
 
 if TYPE_CHECKING:
     from fastmcp import FastMCP
@@ -133,27 +134,26 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "or connection_scan + connection_connect_gateway"
             )
 
-    def _gateway(node_id: int, channel: int) -> Device:
-        """The MDT/Theben DALI gateway ``node_id`` with a channel ``channel``."""
+    def _gateway(
+        node_id: int | None, device_address: str | None, channel: int
+    ) -> Device:
+        """The MDT/Theben DALI gateway (by ``node_id`` OR ``device_address``) with a channel
+        ``channel``."""
         from editor_gui.programming_dali import dali_channel_count, is_dali_dca_app
 
-        def _read() -> tuple[Device | None, int]:
-            device = ctx.api.project.find_device_by_node_id(node_id)
-            info = ctx.api.project.get_device_info(node_id)
+        def _read() -> tuple[Device, int]:
+            device = require_device(ctx.api.project, node_id, device_address)
+            info = ctx.api.project.get_device_info(device.node_id)
             order = getattr(info, "order_number", "") if info is not None else ""
             return device, dali_channel_count(order if isinstance(order, str) else "")
 
         device, count = ctx.run_locked(_read)
-        if device is None:
-            raise ToolError(
-                f"no device with node_id {node_id}; call project_list_devices for valid ids"
-            )
         if device.app is None or not is_dali_dca_app(device.app.id):
             raise ToolError(
-                f"device {node_id} is not a DALI gateway these tools commission"
+                f"device {device.node_id} is not a DALI gateway these tools commission"
             )
         if not device.individual_address:
-            raise ToolError(f"device {node_id} has no individual address")
+            raise ToolError(f"device {device.node_id} has no individual address")
         if not 0 <= channel < count:
             raise ToolError(f"the gateway has DALI channel 0 to {count - 1}")
         return device
@@ -167,13 +167,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         return future.result(timeout=timeout)
 
-    def _persist(device: Device, node_id: int, channel: int) -> bool:
+    def _persist(device: Device, channel: int) -> bool:
         """Save the channel's state into the project's backup data, as the tab does after a
         groups or scenes write; False without a scan to save."""
         from editor_gui.plugins.project.strings import S
         from editor_gui.programming_dali import persist_dali_backup
 
-        state = channels.get((node_id, channel))
+        state = channels.get((device.node_id, channel))
         if state is None or state.scan is None:
             return False
         scan = state.scan
@@ -207,40 +207,44 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read", open_world=True)
     def connection_dali_scan(
-        node_id: int, channel: int = 0, timeout: float = 120.0
+        node_id: int | None = None,
+        device_address: str | None = None,
+        channel: int = 0,
+        timeout: float = 120.0,
     ) -> dict[str, Any]:
-        """Read the state of a DALI channel of an MDT or Theben DALI gateway (``node_id`` from
-        project_list_devices; ``channel`` 0, or 1 on a 2x64 gateway) over the bus; changes
-        nothing. Returns {node_id, channel, firmware, ecgs, groups}: each present ECG has {slot
-        (its DALI short address 0-63), ecg_number, group (0-15, "single", "unassigned" or null),
-        type, sub_type, long_address, min_value, alarm}; each group {index, ecg_count,
-        lamp_failures, ecg_failures, run_hours}."""
-        device = _gateway(node_id, channel)
+        """Read the state of a DALI channel of an MDT or Theben DALI gateway (by ``node_id`` OR
+        ``device_address``, its individual address like "1.0.30"; ``channel`` 0, or 1 on a 2x64
+        gateway) over the bus; changes nothing. Returns {node_id, channel, firmware, ecgs,
+        groups}: each present ECG has {slot (its DALI short address 0-63), ecg_number, group
+        (0-15, "single", "unassigned" or null), type, sub_type, long_address, min_value, alarm};
+        each group {index, ecg_count, lamp_failures, ecg_failures, run_hours}."""
+        device = _gateway(node_id, device_address, channel)
 
         def op(c: Any) -> Any:
             return c.scan()
 
         scan = _run(device, op, channel, timeout)
-        state = channels.setdefault((node_id, channel), _Channel())
+        state = channels.setdefault((device.node_id, channel), _Channel())
         state.scan = scan
-        return scan_dict(node_id, channel, scan)
+        return scan_dict(device.node_id, channel, scan)
 
     @tool("destructive", open_world=True)
     def connection_dali_identify(
-        node_id: int,
         action: IdentifyAction,
+        node_id: int | None = None,
+        device_address: str | None = None,
         slot: int | None = None,
         group: int | None = None,
         channel: int = 0,
         timeout: float = 30.0,
     ) -> dict[str, Any]:
-        """Find a light on a DALI channel of an MDT or Theben gateway: ``action`` blink /
-        stop_blink / on / off for the ECG at ``slot`` (0-63) or for the group ``group`` (0-15);
-        without either, on / off switches every light of the channel (broadcast). Returns
-        {node_id, channel, action, slot, group}."""
+        """Find a light on a DALI channel of an MDT or Theben gateway (by ``node_id`` OR
+        ``device_address``): ``action`` blink / stop_blink / on / off for the ECG at ``slot``
+        (0-63) or for the group ``group`` (0-15); without either, on / off switches every light
+        of the channel (broadcast). Returns {node_id, channel, action, slot, group}."""
         if slot is not None and group is not None:
             raise ToolError("pass slot or group, not both")
-        device = _gateway(node_id, channel)
+        device = _gateway(node_id, device_address, channel)
         start = action in ("blink", "on")
         if slot is not None:
             if action in ("blink", "stop_blink"):
@@ -269,7 +273,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         _run(device, op, channel, timeout)
         return {
-            "node_id": node_id,
+            "node_id": device.node_id,
             "channel": channel,
             "action": action,
             "slot": slot,
@@ -278,16 +282,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("destructive", open_world=True)
     def connection_dali_installation(
-        node_id: int,
         installation: Installation,
+        node_id: int | None = None,
+        device_address: str | None = None,
         channel: int = 0,
         timeout: float = 900.0,
     ) -> dict[str, Any]:
         """CHANGES THE DALI BUS: run a new installation (``installation="new"``: every ECG of
         the channel gets a new short address) or a post installation ("post": only ECGs without
-        one are added) on an MDT or Theben gateway, then read the channel. Run it only when the
-        user asked for it. Returns what connection_dali_scan returns."""
-        device = _gateway(node_id, channel)
+        one are added) on an MDT or Theben gateway (by ``node_id`` OR ``device_address``), then
+        read the channel. Run it only when the user asked for it. Returns what
+        connection_dali_scan returns."""
+        device = _gateway(node_id, device_address, channel)
         if installation == "new":
 
             def op(c: Any) -> Any:
@@ -298,25 +304,26 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 return c.post_installation(on_progress=None)
 
         scan = _run(device, op, channel, timeout)
-        state = channels.setdefault((node_id, channel), _Channel())
+        state = channels.setdefault((device.node_id, channel), _Channel())
         state.scan = scan
-        return scan_dict(node_id, channel, scan)
+        return scan_dict(device.node_id, channel, scan)
 
     @tool("destructive", open_world=True)
     def connection_dali_program_groups(
-        node_id: int,
         groups: list[dict[str, Any]],
+        node_id: int | None = None,
+        device_address: str | None = None,
         channel: int = 0,
         timeout: float = 300.0,
     ) -> dict[str, Any]:
         """CHANGES THE DALI BUS: program the group of the ECGs of a channel of an MDT or Theben
-        gateway. Needs a connection_dali_scan of the channel first: every present ECG keeps its
+        gateway (by ``node_id`` OR ``device_address``). Needs a connection_dali_scan of the channel first: every present ECG keeps its
         number, ``groups`` changes the group of some: a list of {slot, group} with group 0-15,
         "single" or "unassigned"; the others keep the group of the scan. The channel's state is
         then saved into the device's backup data in the project (one undo step). Returns {node_id,
         channel, programmed, saved}."""
-        device = _gateway(node_id, channel)
-        state = channels.get((node_id, channel))
+        device = _gateway(node_id, device_address, channel)
+        state = channels.get((device.node_id, channel))
         if state is None or state.scan is None:
             raise ToolError("scan the channel first with connection_dali_scan")
         present = {e.slot for e in state.scan.present_ecgs}
@@ -337,9 +344,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         for e in state.scan.present_ecgs:
             if e.slot in changes:
                 e.group_index = changes[e.slot]
-        saved = _persist(device, node_id, channel)
+        saved = _persist(device, channel)
         return {
-            "node_id": node_id,
+            "node_id": device.node_id,
             "channel": channel,
             "programmed": len(assignments),
             "saved": saved,
@@ -347,19 +354,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("destructive", open_world=True)
     def connection_dali_program_scenes(
-        node_id: int,
         scenes: list[dict[str, Any]],
+        node_id: int | None = None,
+        device_address: str | None = None,
         channel: int = 0,
         timeout: float = 300.0,
     ) -> dict[str, Any]:
-        """CHANGES THE DALI BUS: program scenes on a channel of an MDT or Theben gateway.
-        ``scenes`` is a list of {scene (0-15), levels: [{group (0-15), level (0-255)}]}; scene n
+        """CHANGES THE DALI BUS: program scenes on a channel of an MDT or Theben gateway (by
+        ``node_id`` OR ``device_address``). ``scenes`` is a list of {scene (0-15), levels: [{group (0-15), level (0-255)}]}; scene n
         is KNX scene n+1. After a connection_dali_scan of the channel, its state is then saved
         into the device's backup data in the project (one undo step). Returns {node_id, channel,
         programmed, saved}."""
         from xknxeditor.dali.model import MAX_GROUP, MAX_SCENES, Scene, SceneValue
 
-        device = _gateway(node_id, channel)
+        device = _gateway(node_id, device_address, channel)
         planned: list[Scene] = []
         for entry in scenes:
             index = entry.get("scene")
@@ -391,42 +399,43 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             return c.write_scenes(planned)
 
         _run(device, op, channel, timeout)
-        state = channels.setdefault((node_id, channel), _Channel())
+        state = channels.setdefault((device.node_id, channel), _Channel())
         state.scenes = planned
-        saved = _persist(device, node_id, channel)
+        saved = _persist(device, channel)
         return {
-            "node_id": node_id,
+            "node_id": device.node_id,
             "channel": channel,
             "programmed": len(planned),
             "saved": saved,
         }
 
-    def _siemens_gateway(node_id: int) -> Device:
+    def _siemens_gateway(node_id: int | None, device_address: str | None) -> Device:
         from editor_gui.programming_dali import is_siemens_n141_03
 
-        device = ctx.run_locked(lambda: ctx.api.project.find_device_by_node_id(node_id))
-        if device is None:
-            raise ToolError(
-                f"no device with node_id {node_id}; call project_list_devices for valid ids"
-            )
+        device = ctx.run_locked(
+            lambda: require_device(ctx.api.project, node_id, device_address)
+        )
         if device.app is None or not is_siemens_n141_03(device.app.id):
             raise ToolError(
-                f"device {node_id} is not a Siemens KNX/DALI Gateway plus N 141/03"
+                f"device {device.node_id} is not a Siemens KNX/DALI Gateway plus N 141/03"
             )
         if not device.individual_address:
-            raise ToolError(f"device {node_id} has no individual address")
+            raise ToolError(f"device {device.node_id} has no individual address")
         return device
 
     @tool("read", open_world=True)
     def connection_siemens_dali_scan(
-        node_id: int, timeout: float = 120.0
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 120.0,
     ) -> dict[str, Any]:
-        """Read the DALI line of a Siemens KNX/DALI Gateway plus N 141/03 (``node_id`` from
-        project_list_devices) over the bus; changes nothing. Returns {node_id, line, ecgs}; each
-        present ECG has {slot, short_address, random_address, type, min_physical_level}."""
+        """Read the DALI line of a Siemens KNX/DALI Gateway plus N 141/03 (by ``node_id`` OR
+        ``device_address``, its individual address like "1.0.30") over the bus; changes nothing.
+        Returns {node_id, line, ecgs}; each present ECG has {slot, short_address, random_address,
+        type, min_physical_level}."""
         from xknxeditor.dali.siemens import scan_n141_03
 
-        device = _siemens_gateway(node_id)
+        device = _siemens_gateway(node_id, device_address)
         _ensure_connected()
         future = ctx.run_locked(
             lambda: service.run_siemens_dali(device, lambda p: scan_n141_03(p, line=0))
@@ -435,17 +444,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(
                 "the DALI scan could not start (another bus operation runs)"
             )
-        return siemens_scan_dict(node_id, future.result(timeout=timeout))
+        return siemens_scan_dict(device.node_id, future.result(timeout=timeout))
 
     @tool("destructive", open_world=True)
     def connection_siemens_dali_program(
-        node_id: int, timeout: float = 300.0
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 300.0,
     ) -> dict[str, Any]:
         """CHANGES THE DEVICE: program the DALI device data the project holds for a Siemens
-        KNX/DALI Gateway plus N 141/03 (its plugin data) onto the device, as the Program button of
-        its plugin parameters does. Returns {node_id, writes}: the number of property writes that
-        succeeded."""
-        device = _siemens_gateway(node_id)
+        KNX/DALI Gateway plus N 141/03 (by ``node_id`` OR ``device_address``; its plugin data)
+        onto the device, as the Program button of its plugin parameters does. Returns {node_id,
+        writes}: the number of property writes that succeeded."""
+        device = _siemens_gateway(node_id, device_address)
         entry = next(
             (
                 e
@@ -455,11 +466,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             None,
         )
         if entry is None:
-            raise ToolError(f"device {node_id} has no DALI device data in the project")
+            raise ToolError(
+                f"device {device.node_id} has no DALI device data in the project"
+            )
         _ensure_connected()
         future = ctx.run_locked(
             lambda: service.run_siemens_dca_program(device, entry.data)
         )
         if future is None:
             raise ToolError("programming could not start (another bus operation runs)")
-        return {"node_id": node_id, "writes": future.result(timeout=timeout)}
+        return {"node_id": device.node_id, "writes": future.result(timeout=timeout)}

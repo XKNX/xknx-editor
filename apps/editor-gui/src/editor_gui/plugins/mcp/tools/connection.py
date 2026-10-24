@@ -16,6 +16,7 @@ from fastmcp.exceptions import ToolError
 
 from editor_gui.device import address_order
 from editor_gui.plugins.mcp.context import McpContext, make_tool
+from editor_gui.plugins.mcp.tools.project import require_device
 
 if TYPE_CHECKING:
     from fastmcp import FastMCP
@@ -81,25 +82,24 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "or connection_scan + connection_connect_gateway"
             )
 
-    def _device(node_id: int) -> Device:
-        device = ctx.run_locked(lambda: ctx.api.project.find_device_by_node_id(node_id))
-        if device is None:
-            raise ToolError(
-                f"no device with node_id {node_id}; call project_list_devices for valid ids"
-            )
-        return device
+    def _device(node_id: int | None, device_address: str | None) -> Device:
+        return ctx.run_locked(
+            lambda: require_device(ctx.api.project, node_id, device_address)
+        )
 
-    def _programmable_device(node_id: int) -> tuple[Device, Any]:
+    def _programmable_device(
+        node_id: int | None, device_address: str | None
+    ) -> tuple[Device, Any]:
         """Precondition-check a device for a bus operation and build its GroupCommunication.
 
         The download must include the project's group-address/association data (the GUI supplies it);
         building it reads project links, so it happens on the imgui thread with the device. Raises a
         specific error for each distinct fix (no connection / unknown device / no address)."""
         _ensure_connected()
-        device = _device(node_id)
+        device = _device(node_id, device_address)
         if not device.individual_address:
             raise ToolError(
-                f"device {node_id} has no individual address; set one with "
+                f"device {device.node_id} has no individual address; set one with "
                 "project_set_individual_address before programming"
             )
         group_communication = ctx.run_locked(
@@ -244,15 +244,17 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("destructive", open_world=True)
     def connection_program_device(
-        node_id: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
         scope: Scope | None = None,
         timeout: float = 300.0,
         without_plugin: bool = False,
         current_address: str | None = None,
         use_serial_number: bool = False,
     ) -> dict[str, Any]:
-        """Download the device (``node_id`` from project_list_devices) onto the bus (``timeout``
-        seconds). Needs an open connection, a project individual address, and the device physically on
+        """Download the device onto the bus (``timeout`` seconds). Identify it by ``node_id`` OR
+        ``device_address`` (its individual address in the PROJECT, like "1.0.30"); pass exactly
+        one. Needs an open connection, a project individual address, and the device physically on
         the bus; secure devices need a matching loaded keyring. Bus changes are NOT undoable with
         project_undo, and a failure or timeout may leave partial changes.
 
@@ -288,7 +290,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         The programming runs in the editor's operations queue, labelled MCP: the user sees it there
         and in its history, it waits behind operations already queued, and the user can cancel it
         (the call then fails with the cancel message). Returns {status, node_id}."""
-        device, group_communication = _programmable_device(node_id)
+        device, group_communication = _programmable_device(node_id, device_address)
+        nid = device.node_id
         resolved = _resolve_scope(scope)
         if resolved.name == "OVERWRITE_INDIVIDUAL_ADDRESS" and not current_address:
             raise ToolError("OVERWRITE_INDIVIDUAL_ADDRESS needs current_address")
@@ -298,10 +301,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 raise ToolError(
                     "use_serial_number applies to INDIVIDUAL_ADDRESS and FULL only"
                 )
-            serial = _project_serial(node_id)
+            serial = _project_serial(nid)
             if serial is None:
                 raise ToolError(
-                    f"device {node_id} has no serial number; set one with "
+                    f"device {nid} has no serial number; set one with "
                     "project_set_serial_number"
                 )
         if (
@@ -310,7 +313,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             and not resolved.individual_address_only
         ):
             raise ToolError(
-                f"device {node_id} can only be programmed with the manufacturer's plugin "
+                f"device {nid} can only be programmed with the manufacturer's plugin "
                 "(its hardware is marked NoDownloadWithoutPlugin); pass without_plugin=true only "
                 "if the user explicitly confirmed programming it anyway"
             )
@@ -324,14 +327,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 "the device is commissioned securely: set a project password first"
             ) from exc
         if _run_queued(
-            node_id,
+            nid,
             resolved,
             timeout,
             without_plugin=without_plugin,
             current_address=current_address,
             serial_number=serial,
         ):
-            return {"status": "programmed", "node_id": node_id}
+            return {"status": "programmed", "node_id": nid}
         ip_secure = ctx.run_locked(
             lambda: ctx.api.project.ip_secure_config(device, service.keyring)
         )
@@ -363,7 +366,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 )
             )
         except DeviceCertificateRequired as exc:
-            raise _certificate_error(node_id) from exc
+            raise _certificate_error(nid) from exc
         if future is None:
             raise ToolError("programming could not be scheduled (no connection)")
         try:
@@ -374,22 +377,25 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         serial = result if isinstance(result, bytes) else None
         mac = getattr(result, "mac_address", None)
         ctx.run_locked(
-            lambda: ctx.api.project.record_download(
-                node_id, resolved.value, serial, mac
-            )
+            lambda: ctx.api.project.record_download(nid, resolved.value, serial, mac)
         )
         ctx.run_locked(lambda: ctx.api.project.record_secure_download(device, result))
         if ip_secure is not None and getattr(result, "secured", False):
             ctx.run_locked(
                 lambda: ctx.api.project.record_ip_secure_download(device, ip_secure)
             )
-        return {"status": "programmed", "node_id": node_id}
+        return {"status": "programmed", "node_id": nid}
 
     @tool("read", open_world=True)
     def connection_evaluate_device(
-        node_id: int, scope: Scope | None = None, timeout: float = 120.0
+        node_id: int | None = None,
+        device_address: str | None = None,
+        scope: Scope | None = None,
+        timeout: float = 120.0,
     ) -> dict[str, Any]:
         """Preview what a download would change on an ALREADY-programmed device, without changing it.
+        Identify the device by ``node_id`` OR ``device_address`` (its individual address like
+        "1.0.30"); pass exactly one.
 
         Reads the live device point-to-point and diffs it against the generated image. Needs an open
         connection and the device answering at its project individual address — a device that does not
@@ -408,7 +414,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         So a non-zero ``changed_bytes`` with ``config_bytes == 0`` (``config_locations == 0``) means the
         device already carries the configuration; do not treat that as a pending change. changed_segments/
         changed_properties are counts and do not describe unload/restart or address-reset effects."""
-        device, group_communication = _programmable_device(node_id)
+        device, group_communication = _programmable_device(node_id, device_address)
         resolved = _resolve_scope(scope)
         if resolved.individual_address_only:
             raise ToolError("an individual address download cannot be evaluated")
@@ -437,7 +443,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
         classes = classify_preflight(report, runtime_addresses, driven_bits)
         return {
-            "node_id": node_id,
+            "node_id": device.node_id,
             "changed_bytes": report.total_changed_bytes,
             "config_bytes": classes.config_bytes,
             "default_bytes": classes.default_bytes,
@@ -450,10 +456,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("destructive", open_world=True)
     def connection_assign_individual_address(
-        node_id: int, timeout: float = 30.0
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 30.0,
     ) -> dict[str, Any]:
         """Write the device's project individual address to the single device currently in
-        programming mode. Needs an open connection and an unused project address set beforehand with
+        programming mode. Identify the project device by ``node_id`` OR ``device_address`` (the
+        address it has in the project, which is the one written); pass exactly one. Needs an open connection and an unused project address set beforehand with
         project_set_individual_address (this does not check address occupancy); exactly one device
         must be in programming mode. This bus change is NOT undoable. ``timeout`` in seconds.
 
@@ -462,28 +471,29 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         button pressed), up to ``timeout``, and the user can cancel it. Returns
         {status, node_id, address}."""
         _ensure_connected()
-        device = _device(node_id)
+        device = _device(node_id, device_address)
+        nid = device.node_id
         if not device.individual_address:
             raise ToolError(
-                f"device {node_id} has no individual address; set one with "
+                f"device {nid} has no individual address; set one with "
                 "project_set_individual_address first"
             )
         from xknxeditor.download.scope import DownloadScope
 
-        if _run_queued(node_id, DownloadScope.INDIVIDUAL_ADDRESS, timeout):
+        if _run_queued(nid, DownloadScope.INDIVIDUAL_ADDRESS, timeout):
             return {
                 "status": "assigned",
-                "node_id": node_id,
+                "node_id": nid,
                 "address": device.individual_address,
             }
         future = service.assign_individual_address_for_device(device)
         if future is None:
             raise ToolError("assignment could not be scheduled (no connection)")
         future.result(timeout=timeout)
-        ctx.run_locked(lambda: ctx.api.project.record_download(node_id, "ia"))
+        ctx.run_locked(lambda: ctx.api.project.record_download(nid, "ia"))
         return {
             "status": "assigned",
-            "node_id": node_id,
+            "node_id": nid,
             "address": device.individual_address,
         }
 
@@ -500,38 +510,45 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("destructive", open_world=True)
     def connection_restart_device(
-        node_id: int, timeout: float = 30.0
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 30.0,
     ) -> dict[str, Any]:
-        """Restart the device (``node_id`` from project_list_devices) over the bus: a basic
-        restart, which changes nothing in the device. Needs an open connection and the device's
-        individual address; a securely commissioned device is restarted with its Tool Key. Returns
+        """Restart the device over the bus: a basic restart, which changes nothing in the device.
+        Identify it by ``node_id`` OR ``device_address`` (its individual address like "1.0.30");
+        pass exactly one. Needs an open connection and the device's individual address; a
+        securely commissioned device is restarted with its Tool Key. Returns
         {status: "restarted", node_id}."""
         _ensure_connected()
-        device = _device(node_id)
+        device = _device(node_id, device_address)
         if not device.individual_address:
-            raise ToolError(f"device {node_id} has no individual address")
+            raise ToolError(f"device {device.node_id} has no individual address")
         future = ctx.run_locked(lambda: service.restart_device(device))
         if future is None:
             raise ToolError(
                 "the restart could not be started (another bus operation runs)"
             )
         future.result(timeout=timeout)
-        return {"status": "restarted", "node_id": node_id}
+        return {"status": "restarted", "node_id": device.node_id}
 
     @tool("destructive", open_world=True)
     def connection_master_reset_device(
-        node_id: int, reset: MasterReset, timeout: float = 30.0
+        reset: MasterReset,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        timeout: float = 30.0,
     ) -> dict[str, Any]:
-        """DESTRUCTIVE, not undoable: reset the device (``node_id`` from project_list_devices)
-        over the bus with a Master Reset. ``reset``: FACTORY_RESET (everything, also the
+        """DESTRUCTIVE, not undoable: reset the device over the bus with a Master Reset. Identify
+        it by ``node_id`` OR ``device_address`` (its individual address like "1.0.30"); pass
+        exactly one. ``reset``: FACTORY_RESET (everything, also the
         individual address; a secure device gets its FDSK back), FACTORY_RESET_KEEP_ADDRESS,
         RESET_ADDRESS, RESET_APPLICATION, RESET_PARAMETERS, RESET_LINKS or CONFIRMED_RESTART. The
         device has to be programmed again afterwards. Run it only when the user asked for this
         reset of this device. Returns {status: "reset", node_id, reset}."""
         _ensure_connected()
-        device = _device(node_id)
+        device = _device(node_id, device_address)
         if not device.individual_address:
-            raise ToolError(f"device {node_id} has no individual address")
+            raise ToolError(f"device {device.node_id} has no individual address")
         erase_code = _ERASE_CODES[reset]
         future = ctx.run_locked(lambda: service.master_reset_device(device, erase_code))
         if future is None:
@@ -543,4 +560,4 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             # The device holds no Tool Key any more: its next secure download needs its
             # certificate.
             ctx.run_locked(lambda: ctx.api.project.record_factory_reset(device))
-        return {"status": "reset", "node_id": node_id, "reset": reset}
+        return {"status": "reset", "node_id": device.node_id, "reset": reset}

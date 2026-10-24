@@ -12,7 +12,10 @@ from typing import TYPE_CHECKING, Any
 from fastmcp.exceptions import ToolError
 
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
-from editor_gui.plugins.mcp.tools.project import require_device
+from editor_gui.plugins.mcp.tools.project import (
+    require_device,
+    require_group_address_id,
+)
 
 if TYPE_CHECKING:
     from fastmcp import FastMCP
@@ -36,27 +39,28 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_extended_copy(
-        node_id: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
         count: int = 1,
         find: str = "",
         replace: str = "",
         create_group_addresses: bool = False,
     ) -> dict[str, Any]:
-        """The Tools window's extended copy: add ``count`` copies (1-100) of a device (node_id from
-        project_list_devices) with its parameter values. ``find``/``replace`` rewrite each copy's
-        name; ``create_group_addresses`` creates and links a group address for every group object
-        of each copy. Each step is undoable with project_undo. Returns {copied, node_ids,
-        errors}."""
+        """The Tools window's extended copy: add ``count`` copies (1-100) of a device with its
+        parameter values. Identify the device by ``node_id`` OR ``device_address`` (an individual
+        address like "1.0.30"); pass exactly one. ``find``/``replace`` rewrite each copy's name;
+        ``create_group_addresses`` creates and links a group address for every group object of
+        each copy. Each step is undoable with project_undo. Returns {copied, node_ids, errors}."""
         require_project(ctx)
         if not 1 <= count <= _MAX_COPIES:
             raise ToolError(f"count must be 1 to {_MAX_COPIES}")
         plugin = _plugin()
 
         def _copy() -> dict[str, Any]:
-            require_device(project, node_id)
+            nid = require_device(project, node_id, device_address).node_id
             before = {d.node_id for d in project.devices}
             copied, errors = plugin.tools_extended_copy(
-                node_id, count, find, replace, create_group_addresses
+                nid, count, find, replace, create_group_addresses
             )
             new_ids = sorted(
                 d.node_id for d in project.devices if d.node_id not in before
@@ -66,58 +70,95 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_copy, timeout=300.0)
 
     @tool("destructive")
-    def project_replace_device(node_id: int, template_node_id: int) -> dict[str, Any]:
-        """The Tools window's replace device: replace the device ``node_id`` by a copy of the
-        device ``template_node_id`` (both from project_list_devices). The copy gets the replaced
-        device's name and individual address, and its group objects the group address links of
-        the replaced device's objects with the same number and size. Undoable with project_undo
-        (several steps). Returns {mapped, errors}: mapped counts the objects whose links moved."""
+    def project_replace_device(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        template_node_id: int | None = None,
+        template_device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """The Tools window's replace device: replace a device by a copy of a template device.
+        Identify the replaced device by ``node_id`` OR ``device_address`` (an individual address
+        like "1.0.30"), the template by ``template_node_id`` OR ``template_device_address``; one
+        of each pair. The copy gets the replaced device's name and individual address, and its
+        group objects the group address links of the replaced device's objects with the same
+        number and size. Undoable with project_undo (several steps). Returns {mapped, errors}:
+        mapped counts the objects whose links moved."""
         require_project(ctx)
         plugin = _plugin()
+        if (template_node_id is None) == (template_device_address is None):
+            raise ToolError(
+                "pass exactly one of template_node_id or template_device_address"
+            )
 
         def _replace() -> dict[str, Any]:
-            require_device(project, node_id)
-            require_device(project, template_node_id)
-            if node_id == template_node_id:
+            nid = require_device(project, node_id, device_address).node_id
+            template = require_device(
+                project, template_node_id, template_device_address
+            ).node_id
+            if nid == template:
                 raise ToolError("a device cannot replace itself")
-            return _result(
-                *plugin.tools_replace_device(node_id, template_node_id), key="mapped"
-            )
+            return _result(*plugin.tools_replace_device(nid, template), key="mapped")
 
         return ctx.run_locked(_replace, timeout=300.0)
 
     @tool("write")
     def project_shift_individual_addresses(
-        node_ids: list[int], offset: int
+        offset: int,
+        node_ids: list[int] | None = None,
+        device_addresses: list[str] | None = None,
     ) -> dict[str, Any]:
         """The Tools window's address shift: add ``offset`` to the device number of the
-        individual address of each device (node_ids from project_list_devices). All or nothing:
-        when an address would leave its line or collide with another device, nothing changes and
-        errors says why. Undoable with project_undo. Returns {changed, errors}."""
+        individual address of each device, given by ``node_ids`` and/or ``device_addresses``
+        (their individual addresses like "1.0.30"). All or nothing: when an address would leave
+        its line or collide with another device, nothing changes and errors says why. Undoable
+        with project_undo. Returns {changed, errors}."""
         require_project(ctx)
         plugin = _plugin()
-        return ctx.run_locked(
-            lambda: _result(
-                *plugin.tools_shift_addresses(node_ids, offset), key="changed"
-            )
-        )
+        if not node_ids and not device_addresses:
+            raise ToolError("pass node_ids or device_addresses")
+
+        def _shift() -> dict[str, Any]:
+            nids = [
+                *(node_ids or ()),
+                *(
+                    require_device(project, device_address=a).node_id
+                    for a in device_addresses or ()
+                ),
+            ]
+            return _result(*plugin.tools_shift_addresses(nids, offset), key="changed")
+
+        return ctx.run_locked(_shift)
 
     @tool("write")
     def project_shift_group_addresses(
-        group_address_ids: list[int], offset: int
+        offset: int,
+        group_address_ids: list[int] | None = None,
+        group_addresses: list[str] | None = None,
     ) -> dict[str, Any]:
-        """The Tools window's group address shift: add ``offset`` to each group address (ids from
-        project_list_group_addresses); its links move with it. All or nothing: when an address
-        would leave the valid range or collide with another group address, nothing changes and
-        errors says why. Undoable with project_undo. Returns {changed, errors}."""
+        """The Tools window's group address shift: add ``offset`` to each group address, given by
+        ``group_address_ids`` (from project_list_group_addresses) and/or ``group_addresses``
+        (printed addresses like "10/1/2" in the project's style); its links move with it. All or
+        nothing: when an address would leave the valid range or collide with another group
+        address, nothing changes and errors says why. Undoable with project_undo. Returns
+        {changed, errors}."""
         require_project(ctx)
         plugin = _plugin()
-        return ctx.run_locked(
-            lambda: _result(
-                *plugin.tools_shift_group_addresses(group_address_ids, offset),
-                key="changed",
+        if not group_address_ids and not group_addresses:
+            raise ToolError("pass group_address_ids or group_addresses")
+
+        def _shift() -> dict[str, Any]:
+            ids = [
+                *(group_address_ids or ()),
+                *(
+                    require_group_address_id(project, group_address=a)
+                    for a in group_addresses or ()
+                ),
+            ]
+            return _result(
+                *plugin.tools_shift_group_addresses(ids, offset), key="changed"
             )
-        )
+
+        return ctx.run_locked(_shift)
 
     @tool("read")
     def project_compare_projects(
@@ -196,10 +237,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_link_com_objects(pairs: list[dict[str, Any]]) -> dict[str, Any]:
         """The Mass Linker's object-to-object links: for each pair create a group address and
         link both group objects to it, the source sending and the target receiving. Each pair is
-        {source_node_id, source_com_object_ref_id, target_node_id, target_com_object_ref_id,
-        address?, name?}: address (in the project's style) or empty for the next free one, name
-        or empty for the source object's name. Each step is undoable with project_undo. Returns
-        {linked, errors}."""
+        {source_node_id | source_device_address, source_com_object_ref_id, target_node_id |
+        target_device_address, target_com_object_ref_id, address?, name?}: each device by its
+        node_id OR its individual address (like "1.0.30"), address (in the project's style) or
+        empty for the next free one, name or empty for the source object's name. Each step is
+        undoable with project_undo. Returns {linked, errors}."""
         require_project(ctx)
         plugin = _plugin()
 
@@ -209,14 +251,24 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 objects: list[Any] = []
                 for side in ("source", "target"):
                     node = pair.get(f"{side}_node_id")
+                    address = pair.get(f"{side}_device_address")
                     ref = pair.get(f"{side}_com_object_ref_id")
-                    if not isinstance(node, int) or not isinstance(ref, str):
+                    if (
+                        not isinstance(node, int | None)
+                        or not isinstance(address, str | None)
+                        or (node is None) == (address is None)
+                        or not isinstance(ref, str)
+                    ):
                         raise ToolError(
-                            f"every pair needs {side}_node_id and {side}_com_object_ref_id"
+                            f"every pair needs {side}_node_id or {side}_device_address, "
+                            f"and {side}_com_object_ref_id"
                         )
-                    co = require_device(project, node).find_com_object(ref)
+                    device = require_device(project, node, address)
+                    co = device.find_com_object(ref)
                     if co is None:
-                        raise ToolError(f"no group object {ref!r} on device {node}")
+                        raise ToolError(
+                            f"no group object {ref!r} on device {device.node_id}"
+                        )
                     objects.append(co)
                 specs.append(
                     (

@@ -70,7 +70,7 @@ Every new UI feature gets MCP access in the same change:
 - **Same behaviour as the GUI:** use the service methods the GUI uses, so every edit is one undo step with the same checks and messages.
 - **Documented and tested:** describe parameters and results in the tool's docstring (the client only sees that), and test the tools in `apps/editor-gui/src/editor_gui/plugins/mcp/tests`.
 - **Kind declared:** register each tool with `@tool("read")`, `@tool("write")` or `@tool("destructive")`, plus `open_world=True` when it reaches the bus, the network or the internet; the kinds are defined at `ToolKind` in `plugins/mcp/context.py` and reach the client as MCP tool annotations.
-- **Addressing:** a tool on a device takes `node_id` OR `device_address`, a tool on a group address `group_address_id` OR `group_address` (its printed address).
+- **Addressing:** a tool on a device takes `node_id` OR `device_address`, a tool on a group address `group_address_id` OR `group_address` (its printed address); a list takes the ids and/or the addresses (`node_ids` / `device_addresses`), a second device a prefixed pair (`template_node_id` / `template_device_address`). `test_addressing.py` checks every tool.
 
 ## Adding a New Package
 
