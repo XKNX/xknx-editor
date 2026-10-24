@@ -324,12 +324,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     @tool("read")
     def project_list_links(
         node_id: int | None = None,
+        device_address: str | None = None,
         group_address_id: int | None = None,
         group_address: str | None = None,
     ) -> dict[str, Any]:
         """List the group-address links of the whole project in one call, optionally only those of
-        one device (node_id) and/or one group address (group_address_id, or group_address: a
-        printed address like "10/1/2" in the project's style). Returns {items, count};
+        one device (node_id, or device_address: an individual address like "1.0.30") and/or one
+        group address (group_address_id, or group_address: a printed address like "10/1/2" in the
+        project's style). Returns {items, count};
         each item has {node_id, group_address_id, is_sending, flags}, flags being the group
         object's effective communication, read, write, transmit and update flags. Use
         project_get_com_object_links for the group objects of a device's links."""
@@ -340,6 +342,12 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 None
                 if group_address_id is None and group_address is None
                 else require_group_address_id(project, group_address_id, group_address)
+            )
+            # A node_id only filters (an unknown one matches no link); an address is looked up.
+            device_id = (
+                node_id
+                if device_address is None
+                else require_device(project, node_id, device_address).node_id
             )
             return [
                 {
@@ -355,7 +363,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     },
                 }
                 for link in project.device_links()
-                if (node_id is None or link.device_id == node_id)
+                if (device_id is None or link.device_id == device_id)
                 and (ga_id is None or link.group_address_id == ga_id)
             ]
 

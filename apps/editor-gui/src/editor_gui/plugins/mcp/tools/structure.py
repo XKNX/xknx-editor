@@ -48,30 +48,35 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     # --- devices --------------------------------------------------------------
 
     @tool("destructive")
-    def project_remove_device(node_id: int) -> dict[str, Any]:
-        """Remove a device (node_id from project_list_devices) from the project, with its group
-        objects and their links. Undoable with project_undo; the device on the bus is unchanged.
-        Returns {status: "removed", node_id}."""
+    def project_remove_device(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Remove a device from the project, with its group objects and their links. Identify
+        it by ``node_id`` OR ``device_address`` (an individual address like "1.0.30"); pass
+        exactly one. Undoable with project_undo; the device on the bus is unchanged. Returns
+        {status: "removed", node_id}."""
         require_project(ctx)
 
         def _remove() -> dict[str, Any]:
-            require_device(project, node_id)
-            project.remove_device(node_id)
-            if node_id in project.selected_node_ids:
+            nid = require_device(project, node_id, device_address).node_id
+            project.remove_device(nid)
+            if nid in project.selected_node_ids:
                 project.set_multi_selection(None, [])
-            return {"status": "removed", "node_id": node_id}
+            return {"status": "removed", "node_id": nid}
 
         return ctx.run_locked(_remove)
 
     @tool("write")
     def project_copy_device(
-        node_id: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
         count: int = 1,
         include_parameters: bool = True,
         include_links: bool = False,
     ) -> dict[str, Any]:
-        """Add ``count`` copies (1-100) of a device (node_id from project_list_devices), with the
-        same product and application. ``include_parameters`` carries the parameter values over,
+        """Add ``count`` copies (1-100) of a device, with the same product and application.
+        Identify the device by ``node_id`` OR ``device_address`` (an individual address like
+        "1.0.30"); pass exactly one. ``include_parameters`` carries the parameter values over,
         ``include_links`` the group address links. The copies get no individual address. Undoable
         with project_undo. Returns {node_ids} of the copies."""
         require_project(ctx)
@@ -79,16 +84,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(f"count must be 1 to {_MAX_COPIES}")
 
         def _copy() -> dict[str, Any]:
-            require_device(project, node_id)
+            nid = require_device(project, node_id, device_address).node_id
             new_ids = project.clone_device(
-                node_id,
+                nid,
                 count,
                 include_params=include_parameters,
                 include_links=include_links,
             )
             if not new_ids:
                 raise ToolError(
-                    f"device {node_id} cannot be copied (its application is not loaded)"
+                    f"device {nid} cannot be copied (its application is not loaded)"
                 )
             return {"node_ids": new_ids}
 
@@ -96,30 +101,44 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("destructive")
     def project_copy_device_configuration(
-        source_node_id: int,
-        target_node_ids: list[int],
+        source_node_id: int | None = None,
+        source_device_address: str | None = None,
+        target_node_ids: list[int] | None = None,
+        target_device_addresses: list[str] | None = None,
         include_parameters: bool = True,
         include_links: bool = True,
     ) -> dict[str, Any]:
         """Copy a device's configuration onto other devices with the same application: its
         parameter values (``include_parameters``) and group address links (``include_links``),
-        like Copy and Paste Configuration in the device tree. Each target is one undo step.
-        Returns {items, count}; each item has {node_id, ok, parameters_changed, links_mapped}, ok
-        false for a target with another application."""
+        like Copy and Paste Configuration in the device tree. Identify the source by
+        ``source_node_id`` OR ``source_device_address`` (an individual address like "1.0.30"),
+        the targets by ``target_node_ids`` and/or ``target_device_addresses``. Each target is one
+        undo step. Returns {items, count}; each item has {node_id, ok, parameters_changed,
+        links_mapped}, ok false for a target with another application."""
         require_project(ctx)
-        if not target_node_ids:
-            raise ToolError("pass at least one target node id")
+        if not target_node_ids and not target_device_addresses:
+            raise ToolError("pass at least one target node id or device address")
 
         def _paste() -> list[dict[str, Any]]:
-            require_device(project, source_node_id)
-            clip = project.copy_device_config(source_node_id)
+            if (source_node_id is None) == (source_device_address is None):
+                raise ToolError(
+                    "pass exactly one of source_node_id or source_device_address"
+                )
+            source = require_device(project, source_node_id, source_device_address)
+            clip = project.copy_device_config(source.node_id)
             if clip is None:
                 raise ToolError(
-                    f"device {source_node_id} has no configuration to copy (no application)"
+                    f"device {source.node_id} has no configuration to copy (no application)"
                 )
+            targets = [
+                *(require_device(project, n).node_id for n in target_node_ids or ()),
+                *(
+                    require_device(project, device_address=a).node_id
+                    for a in target_device_addresses or ()
+                ),
+            ]
             results: list[dict[str, Any]] = []
-            for target in target_node_ids:
-                require_device(project, target)
+            for target in targets:
                 ok, params, links = project.paste_device_config(
                     target,
                     clip,

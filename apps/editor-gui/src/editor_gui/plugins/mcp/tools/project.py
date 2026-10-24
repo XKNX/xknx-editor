@@ -408,6 +408,45 @@ def _ui_node(
     return {"kind": type(node).__name__.removeprefix("Ui").lower()}
 
 
+def _search_node(node: Any, needle: str, path: str = "0") -> dict[str, Any] | None:
+    """``node`` as :func:`_ui_node` returns it, pruned to what the parameter view's search filter
+    shows for ``needle`` (lower case): a parameter whose label contains it, a button whose text
+    contains it, and the tabs/blocks leading to them. A tab or block whose heading contains it
+    comes with all its content. ``None`` when nothing in ``node`` matches."""
+    from xknxeditor.prod.parser_v2.ui import (
+        UiButton,
+        UiParameter,
+        UiParameterBlock,
+        UiTab,
+    )
+
+    if isinstance(node, UiParameter):
+        return _ui_node(node, False, path) if needle in node.label.lower() else None
+    if isinstance(node, UiButton):
+        return _ui_node(node, False, path) if needle in node.text.lower() else None
+    if not isinstance(node, (UiTab, UiParameterBlock)):
+        return None
+    heading = getattr(node, "text", None) or getattr(node, "name", None) or ""
+    if needle in heading.lower():
+        return _ui_node(node, False, path)
+    children = [
+        d
+        for i, ch in enumerate(node.children)
+        if (d := _search_node(ch, needle, f"{path}.{i}")) is not None
+    ]
+    if not children:
+        return None
+    out: dict[str, Any] = {
+        "kind": "tab" if isinstance(node, UiTab) else "block",
+        "id": path,
+        "name": heading or None,
+        "children": children,
+    }
+    if node.id:
+        out["ref"] = node.id
+    return out
+
+
 # Above this many parameters, a default project_parameter_tree read returns the outline instead of
 # the full tree, so a single call never floods the caller with a touch-panel-sized payload. Below it,
 # the whole tree is cheap enough to send at once. Forced outline/subtree_id reads ignore this.
@@ -889,11 +928,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return _items(ctx.run_locked(_read, timeout=_SLOW))
 
     @tool("destructive")
-    def project_update_application(node_id: int) -> dict[str, Any]:
+    def project_update_application(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
         """Update a device to the local catalog version of the SAME application program that
-        replaces the current one ("Update Application Program Version"). Parameter values carry over
-        by ParameterRef number, group objects of the same size by ComObjectRef number with their
-        flags, priority, datapoint type and group-address links.
+        replaces the current one ("Update Application Program Version"). Identify the device by
+        ``node_id`` OR ``device_address`` (an individual address like "1.0.30"); pass exactly one.
+        Parameter values carry over by ParameterRef number, group objects of the same size by
+        ComObjectRef number with their flags, priority, datapoint type and group-address links.
 
         This is an undoable project edit (project_undo). To apply it on the bus, program the device
         afterwards with connection_program_device and scope="FULL". Returns {node_id, new_version,
@@ -902,14 +944,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         require_project(ctx)
 
         def _do() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             result = project.update_application(device)
             if result is None:
                 raise ToolError(
-                    f"no newer application version available for device {node_id}"
+                    f"no newer application version available for device {device.node_id}"
                 )
             return {
-                "node_id": node_id,
+                "node_id": device.node_id,
                 "new_version": result.new_version,
                 "kept": result.kept,
                 "dropped": result.dropped,
@@ -920,17 +962,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_do, timeout=_SLOW)
 
     @tool("read")
-    def project_list_application_programs(node_id: int) -> dict[str, Any]:
+    def project_list_application_programs(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
         """The application programs a device can be changed to with project_change_application:
         the other programs of its hardware in the local catalog, older and newer.
 
-        Use node_id from project_list_devices. Returns {items, count}; each item has
+        Identify the device by ``node_id`` OR ``device_address`` (an individual address like
+        "1.0.30"); pass exactly one. Returns {items, count}; each item has
         {hardware2program_ref_id, application_id, name, version}. Pass hardware2program_ref_id to
-        project_change_application for the same node_id. This lookup is read-only."""
+        project_change_application for the same device. This lookup is read-only."""
         require_project(ctx)
 
         def _read() -> list[dict[str, Any]]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             return [
                 {
                     "hardware2program_ref_id": program.id,
@@ -945,11 +990,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("destructive")
     def project_change_application(
-        node_id: int, hardware2program_ref_id: str
+        hardware2program_ref_id: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
     ) -> dict[str, Any]:
-        """Change a device's project application to another program of its hardware. Use node_id
-        from project_list_devices and hardware2program_ref_id from project_list_application_programs
-        for that device. Parameters, group-object links and flags reset to the new application's
+        """Change a device's project application to another program of its hardware. Identify the
+        device by ``node_id`` OR ``device_address`` (an individual address like "1.0.30"); pass
+        exactly one. Use hardware2program_ref_id from project_list_application_programs for that
+        device. Parameters, group-object links and flags reset to the new application's
         defaults; address, name and serial number stay.
 
         Undoable with project_undo. Apply it on the bus with connection_program_device(scope="FULL").
@@ -957,7 +1005,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         require_project(ctx)
 
         def _do() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             program = next(
                 (
                     p
@@ -969,14 +1017,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             if program is None:
                 raise ToolError(
                     f"{hardware2program_ref_id!r} is not an application program device "
-                    f"{node_id} can be changed to; see project_list_application_programs"
+                    f"{device.node_id} can be changed to; see project_list_application_programs"
                 )
             if not project.change_application(device, program):
                 raise ToolError(
                     f"application {program.application_id!r} not resolvable"
                 )
             return {
-                "node_id": node_id,
+                "node_id": device.node_id,
                 "application_id": program.application_id,
                 "version": program.application_version,
                 "note": "project changed; program the device to apply it on the bus",
@@ -1041,13 +1089,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_add_device_certificate(
-        code: str, node_id: int | None = None
+        code: str, node_id: int | None = None, device_address: str | None = None
     ) -> dict[str, Any]:
         """Add a KNX Data Secure device certificate: ``code`` is the FDSK from the device label
         (36 characters, groups separated by "-"). A device with the certificate's serial number is
-        then commissioned securely with it. With ``node_id`` the certificate is for that device:
-        one without a serial number takes the certificate's, one with another is refused. Needs a
-        password-protected project."""
+        then commissioned securely with it. With ``node_id`` OR ``device_address`` (an individual
+        address like "1.0.30") the certificate is for that device: one without a serial number
+        takes the certificate's, one with another is refused. Needs a password-protected
+        project."""
         from editor_gui.device_info import serial_from_project, serial_to_project
         from xknxeditor.proj import ProjectPasswordRequired
         from xknxeditor.proj.core.fdsk import InvalidFdskError, parse_fdsk
@@ -1059,14 +1108,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError(f"not a valid FDSK: {exc}") from exc
 
         def _add() -> dict[str, Any]:
-            device = _require_device(node_id) if node_id is not None else None
+            device = (
+                _require_device(node_id, device_address)
+                if node_id is not None or device_address is not None
+                else None
+            )
             if device is not None:
                 info = project.get_device_info(device.node_id)
                 current = serial_from_project(info.serial_number) if info else None
                 if current is not None and current != serial:
                     raise ToolError(
                         f"the certificate is for serial number {serial.hex().upper()}, "
-                        f"device {node_id} has {current.hex().upper()}"
+                        f"device {device.node_id} has {current.hex().upper()}"
                     )
             try:
                 project.add_device_certificate(code)
@@ -1082,10 +1135,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_set_secure_commissioning(
-        node_id: int, activated: bool
+        activated: bool, node_id: int | None = None, device_address: str | None = None
     ) -> dict[str, Any]:
         """Activate or deactivate a KNX Data Secure device's secure commissioning (one undo step).
-        Activated, the device gets a Tool Key (needs a password-protected project) and is
+        Identify the device by ``node_id`` OR ``device_address`` (an individual address like
+        "1.0.30"); pass exactly one. Activated, the device gets a Tool Key (needs a password-protected project) and is
         commissioned with its device certificate. Deactivated, it is programmed in the clear: its
         "Auto" group addresses communicate in the clear and its links to group addresses with
         Security "On" are removed (the result lists both)."""
@@ -1094,16 +1148,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         require_project(ctx)
 
         def _set() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             if project.secure_commissioning(device) is None:
-                raise ToolError(f"device {node_id} does not support KNX Data Secure")
+                raise ToolError(
+                    f"device {device.node_id} does not support KNX Data Secure"
+                )
             impact = None if activated else project.secure_commissioning_impact(device)
             try:
                 project.set_secure_commissioning(device, activated)
             except ProjectPasswordRequired as exc:
                 raise ToolError("set a project password first") from exc
             return {
-                "node_id": node_id,
+                "node_id": device.node_id,
                 "secure_commissioning": activated,
                 "unsecured_group_address_ids": impact.unsecured if impact else [],
                 "removed_link_ids": impact.removed_links if impact else [],
@@ -1113,22 +1169,27 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read")
     def project_get_ip_secure(
-        node_id: int, include_passwords: bool = False
+        node_id: int | None = None,
+        device_address: str | None = None,
+        include_passwords: bool = False,
     ) -> dict[str, Any]:
         """The KNX IP Secure settings of a secure IP device commissioned securely: whether its
-        tunnels are secured and its bus interfaces (kind, user id, tunnelling address). With
-        ``include_passwords`` also its commissioning password, its authentication code and the
-        bus interfaces' passwords - only when the user asks for them."""
+        tunnels are secured and its bus interfaces (kind, user id, tunnelling address). Identify
+        the device by ``node_id`` OR ``device_address`` (an individual address like "1.0.30");
+        pass exactly one. With ``include_passwords`` also its commissioning password, its
+        authentication code and the bus interfaces' passwords - only when the user asks for
+        them."""
         require_project(ctx)
 
         def _get() -> dict[str, Any]:
-            settings = project.ip_secure_settings(_require_device(node_id))
+            device = _require_device(node_id, device_address)
+            settings = project.ip_secure_settings(device)
             if settings is None:
                 raise ToolError(
-                    f"device {node_id} is no KNX IP Secure device commissioned securely"
+                    f"device {device.node_id} is no KNX IP Secure device commissioned securely"
                 )
             result: dict[str, Any] = {
-                "node_id": node_id,
+                "node_id": device.node_id,
                 "secure_tunnelling": settings.secure_tunnelling,
                 "interfaces": [
                     {
@@ -1150,15 +1211,17 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_set_ip_secure(
-        node_id: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
         commissioning_password: str | None = None,
         authentication_code: str | None = None,
         interface_ref_id: str | None = None,
         interface_password: str | None = None,
         secure_tunnelling: bool | None = None,
     ) -> dict[str, str]:
-        """Change a secure IP device's KNX IP Secure settings (the next download writes them):
-        its commissioning password, its authentication code, the password of one bus interface
+        """Change a secure IP device's KNX IP Secure settings (the next download writes them).
+        Identify the device by ``node_id`` OR ``device_address`` (an individual address like
+        "1.0.30"); pass exactly one. Settable: its commissioning password, its authentication code, the password of one bus interface
         (``interface_ref_id`` from project_get_ip_secure) or whether its tunnels are secured.
         Passwords have 1 to 20 Latin-1 characters."""
         from xknxeditor.proj import ProjectPasswordRequired
@@ -1168,10 +1231,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             raise ToolError("give interface_ref_id and interface_password together")
 
         def _set() -> dict[str, str]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             if project.ip_secure_settings(device) is None:
                 raise ToolError(
-                    f"device {node_id} is no KNX IP Secure device commissioned securely"
+                    f"device {device.node_id} is no KNX IP Secure device commissioned securely"
                 )
             try:
                 project.set_ip_secure_settings(
@@ -1187,7 +1250,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 raise ToolError("set a project password first") from exc
             except ValueError as exc:
                 raise ToolError(f"not accepted: {exc}") from exc
-            return {"status": "changed", "node_id": str(node_id)}
+            return {"status": "changed", "node_id": str(device.node_id)}
 
         return ctx.run_locked(_set)
 
@@ -1500,7 +1563,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ``value_label`` on the item for the current value), NOT the full choice list — call
         project_get_parameter for a single parameter's complete ``choices``. Optional ``search``
         keeps only items whose label contains it (case-insensitive) — use it on a large device
-        instead of pulling every parameter. ``modified_only`` keeps only the parameters whose value
+        instead of pulling every parameter; project_parameter_tree(search=...) gives each match
+        with its tab/block, which tells repeated labels (one per channel) apart. ``modified_only`` keeps only the parameters whose value
         differs from their default (those the parameter view marks as changed). ``compact`` gives
         each item only ref_id, label and value (plus value_label for an enum).
 
@@ -1529,10 +1593,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         outline: bool = False,
         subtree_id: str | None = None,
         tree_token: str | None = None,
+        search: str | None = None,
     ) -> dict[str, Any]:
         """Read a device's nested parameter UI. Identify the device by ``node_id`` OR
         ``device_address`` (an individual address like "1.0.30"); pass exactly one. Group
         headings distinguish repeated labels for different channels, buttons or display levels.
+
+        ``search`` filters the tree like the search field of the parameter view (case-insensitive
+        substring): it keeps the parameters whose label and the buttons whose text contain it,
+        with the tabs/blocks leading to them, and a tab or block whose heading contains it with all
+        its content. Every match so comes with its section (e.g. which channel's "Function" it
+        is) and the section ids for a scoped read. Combine it with ``subtree_id`` to search one
+        section; not with ``outline``. A search that matches nothing returns no items.
         Returns {items, count, outline, tree_token}; count is the number of top-level nodes. Node
         fields depend on kind:
         - "tab"/"block": {kind, id, name, children, ref?}, with children using the same node shapes.
@@ -1555,13 +1627,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
           ``outline=True``). Scoped reads REQUIRE ``tree_token`` from the SAME read the id came
           from — a path can keep existing after a structural change but point to a different
           container, and the token detects that. A stale token raises; re-read without the subtree
-          to get a fresh one. project_list_parameters(search=...) finds a parameter by label.
+          to get a fresh one. ``search`` (above) finds parameters with their sections.
         - ``tree_token`` is a short fingerprint of the device's current structure. Pass it back to
           any scoped read/mutation (``subtree_id``, project_resolve_parameter, batch set_parameter)
           to prove the structure has not changed since the id was obtained.
 
         Pass a parameter's ref_id as parameter_ref_id to project_get_parameter/project_set_parameter.
         This reads project configuration."""
+
+        needle = (search or "").lower().strip()
+        if needle and outline:
+            raise ToolError(
+                "search returns the matching nodes; pass it without outline"
+            )
 
         def _read() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
@@ -1589,6 +1667,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 scoped: list[tuple[str, Any]] = [(subtree_id, found)]
             else:
                 scoped = [(str(i), n) for i, n in enumerate(roots)]
+            if needle:
+                rows = [
+                    d
+                    for p, n in scoped
+                    if (d := _search_node(n, needle, p)) is not None
+                ]
+                return {
+                    "items": rows,
+                    "count": len(rows),
+                    "outline": False,
+                    "tree_token": current_token,
+                }
             use_outline = outline
             total: int | None = None
             # A plain call on a large device falls back to the outline so one read is never huge.
@@ -1823,29 +1913,34 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_set_device_space(
-        node_id: int, space_id: int | None = None
+        node_id: int | None = None,
+        device_address: str | None = None,
+        space_id: int | None = None,
     ) -> dict[str, Any]:
         """Place a device in a room/space, or remove it from any space with space_id=null. Use a
-        space ``id`` from project_spaces and a ``node_id`` from project_list_devices. Undoable project
-        edit. Returns {node_id, space_id}."""
+        space ``id`` from project_spaces; identify the device by ``node_id`` OR ``device_address``
+        (an individual address like "1.0.30"), pass exactly one. Undoable project edit. Returns
+        {node_id, space_id}."""
         require_project(ctx)
 
         def _set() -> dict[str, Any]:
-            if project.find_device_by_node_id(node_id) is None:
-                raise ToolError(
-                    f"no device with node_id {node_id}; call project_list_devices for valid ids"
-                )
-            project.set_device_space(node_id, space_id)
-            return {"node_id": node_id, "space_id": space_id}
+            device = _require_device(node_id, device_address)
+            project.set_device_space(device.node_id, space_id)
+            return {"node_id": device.node_id, "space_id": space_id}
 
         return ctx.run_locked(_set)
 
     @tool("read")
     def project_compare_devices(
-        node_id_a: int, node_id_b: int, only_differences: bool = True
+        node_id_a: int | None = None,
+        node_id_b: int | None = None,
+        device_address_a: str | None = None,
+        device_address_b: str | None = None,
+        only_differences: bool = True,
     ) -> dict[str, Any]:
-        """Compare two devices (node_ids from project_list_devices) across header, parameters and
-        com-objects. Items are keyed so two instances of the SAME application line up (parameters by
+        """Compare two devices across header, parameters and com-objects. Identify device a by
+        ``node_id_a`` OR ``device_address_a`` (an individual address like "1.0.30"), device b by
+        ``node_id_b`` OR ``device_address_b``; one of each pair. Items are keyed so two instances of the SAME application line up (parameters by
         application-relative ref, com-objects by object number). Returns {node_id_a, node_id_b,
         difference_count, header, parameters, com_objects}; each section is a list of rows
         {key, label, kind, a, b} where kind is added|removed|changed|same and a/b are the values on
@@ -1861,6 +1956,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         )
 
         require_project(ctx)
+        for side, nid, address in (
+            ("a", node_id_a, device_address_a),
+            ("b", node_id_b, device_address_b),
+        ):
+            if (nid is None) == (address is None):
+                raise ToolError(
+                    f"pass exactly one of node_id_{side} or device_address_{side}"
+                )
 
         def _rows(rows: list[Any]) -> list[dict[str, Any]]:
             return [
@@ -1892,14 +1995,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             return out
 
         def _compare() -> dict[str, Any]:
-            dev_a = project.find_device_by_node_id(node_id_a)
-            dev_b = project.find_device_by_node_id(node_id_b)
-            for nid, dev in ((node_id_a, dev_a), (node_id_b, dev_b)):
-                if dev is None:
-                    raise ToolError(
-                        f"no device with node_id {nid}; call project_list_devices for valid ids"
-                    )
-            assert dev_a is not None and dev_b is not None
+            dev_a = _require_device(node_id_a, device_address_a)
+            dev_b = _require_device(node_id_b, device_address_b)
 
             def get_links(db_id: int) -> list[tuple[int, bool]]:
                 return [
@@ -1915,8 +2012,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             snap_b = snapshot_device(dev_b, get_links, get_address)
             result = diff_devices(snap_a, snap_b)
             return {
-                "node_id_a": node_id_a,
-                "node_id_b": node_id_b,
+                "node_id_a": dev_a.node_id,
+                "node_id_b": dev_b.node_id,
                 "difference_count": result.difference_count,
                 "header": _rows(result.header),
                 "parameters": _rows(result.parameters),
@@ -2044,41 +2141,48 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_rename_device(
-        node_id: int, name: str | None = None, description: str | None = None
+        node_id: int | None = None,
+        device_address: str | None = None,
+        name: str | None = None,
+        description: str | None = None,
     ) -> dict[str, Any]:
-        """Rename a project device and/or set its description, using node_id from
-        project_list_devices. Pass ``name``, ``description`` or both; an omitted field is left
-        unchanged. Undoable with project_undo. Returns {node_id, name, individual_address,
-        description}."""
+        """Rename a project device and/or set its description. Identify the device by ``node_id``
+        OR ``device_address`` (an individual address like "1.0.30"); pass exactly one. Pass
+        ``name``, ``description`` or both; an omitted field is left unchanged. Undoable with
+        project_undo. Returns {node_id, name, individual_address, description}."""
         if name is None and description is None:
             raise ToolError("pass name, description or both")
 
         def _rename() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
+            nid = device.node_id
             if name is not None:
-                project.set_device_name(node_id, device.name, name)
+                project.set_device_name(nid, device.name, name)
             if description is not None:
                 project.set_device_description(
-                    node_id, device.description or "", description
+                    nid, device.description or "", description
                 )
-            return _device_dict(_require_device(node_id))
+            return _device_dict(_require_device(nid))
 
         return ctx.run_locked(_rename)
 
     @tool("write")
-    def project_set_individual_address(node_id: int, address: str) -> dict[str, Any]:
-        """Set a project device's individual address, e.g. "1.1.5", using node_id from
-        project_list_devices. The target area/line must exist in project_topology and the address
-        must be unused in the project. Returns {node_id, name, individual_address, description}.
-        Undoable with project_undo. This does not check or write the bus; use
+    def project_set_individual_address(
+        address: str, node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """Set a project device's individual address to ``address``, e.g. "1.1.5". Identify the
+        device by ``node_id`` OR ``device_address`` (its CURRENT individual address); pass exactly
+        one. The target area/line must exist in project_topology and the address must be unused in
+        the project. Returns {node_id, name, individual_address, description}. Undoable with
+        project_undo. This does not check or write the bus; use
         connection_assign_individual_address to assign it to hardware."""
 
         def _set() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             project.set_device_individual_address(
-                node_id, device.individual_address, address
+                device.node_id, device.individual_address, address
             )
-            updated = _require_device(node_id)
+            updated = _require_device(device.node_id)
             if updated.individual_address != address:
                 raise ToolError(
                     f"could not set individual address {address!r} (invalid or already in use)"
@@ -2089,14 +2193,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_set_additional_address(
-        node_id: int,
         index: int,
         address: str | None,
+        node_id: int | None = None,
+        device_address: str | None = None,
         name: str | None = None,
         description: str | None = None,
     ) -> dict[str, Any]:
         """Set an additional individual address of a project device (a tunnelling address of an
-        IP interface) using node_id from project_list_devices. index is 1-based (see
+        IP interface). Identify the device by ``node_id`` OR ``device_address`` (its individual
+        address like "1.0.30"); pass exactly one. index is 1-based (see
         additional_addresses in project_get_device; entries up to it are created). address is an
         "a.l.d" string in the device's own line, or a device number 1-255; null or "" clears it.
         It must not be used by a device or another additional address of the line. name and
@@ -2108,24 +2214,22 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         require_project(ctx)
 
         def _set() -> dict[str, Any]:
-            _require_device(node_id)
+            nid = _require_device(node_id, device_address).node_id
             try:
-                project.set_additional_address(node_id, index, address)
+                project.set_additional_address(nid, index, address)
                 if name is not None:
-                    project.set_additional_address_name(node_id, index, name)
+                    project.set_additional_address_name(nid, index, name)
                 if description is not None:
-                    project.set_additional_address_description(
-                        node_id, index, description
-                    )
+                    project.set_additional_address_description(nid, index, description)
             except IndexError as exc:
                 raise ToolError(f"invalid index {index}; use 1 to 255") from exc
             except AdditionalAddressError as exc:
                 raise ToolError(str(exc)) from exc
             return {
-                "node_id": node_id,
+                "node_id": nid,
                 "additional_addresses": [
                     _additional_address_dict(entry)
-                    for entry in project.additional_addresses(node_id)
+                    for entry in project.additional_addresses(nid)
                 ],
             }
 
@@ -2133,10 +2237,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_assign_additional_addresses(
-        node_id: int, count: int | None = None
+        node_id: int | None = None,
+        device_address: str | None = None,
+        count: int | None = None,
     ) -> dict[str, Any]:
         """Assign the missing additional individual addresses of a project device (the
-        tunnelling addresses of an IP interface) using node_id from project_list_devices: entries
+        tunnelling addresses of an IP interface). Identify the device by ``node_id`` OR
+        ``device_address`` (its individual address like "1.0.30"); pass exactly one. Entries
         are created up to count (default: as many as the device's application has) and every
         entry without an address gets one, the highest free device numbers of the device's line
         counting down from 255. One undo step (project_undo). Fails when the line has too few free
@@ -2147,13 +2254,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         require_project(ctx)
 
         def _assign() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             try:
                 entries = project.assign_additional_addresses(device, count)
             except AdditionalAddressError as exc:
                 raise ToolError(str(exc)) from exc
             return {
-                "node_id": node_id,
+                "node_id": device.node_id,
                 "additional_addresses": [
                     _additional_address_dict(entry) for entry in entries
                 ],
@@ -2162,8 +2269,13 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_assign)
 
     @tool("write")
-    def project_set_serial_number(node_id: int, serial_number: str) -> dict[str, Any]:
-        """Store a device's KNX serial number in the project using node_id from project_list_devices.
+    def project_set_serial_number(
+        serial_number: str,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Store a device's KNX serial number in the project. Identify the device by ``node_id``
+        OR ``device_address`` (an individual address like "1.0.30"); pass exactly one.
         serial_number takes 12 hex digits (e.g. "0083:7AA2039C"); an empty string clears it.
         Returns {node_id, serial_number}. Undoable with project_undo; this records metadata without
         writing hardware. connection_program_device can use it with use_serial_number=true."""
@@ -2180,21 +2292,26 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
 
         def _set() -> dict[str, Any]:
-            _require_device(node_id)
+            nid = _require_device(node_id, device_address).node_id
             project.set_device_commissioning(
-                node_id, serial_number=serial_to_project(serial) if serial else ""
+                nid, serial_number=serial_to_project(serial) if serial else ""
             )
-            return {"node_id": node_id, "serial_number": serial_text(serial)}
+            return {"node_id": nid, "serial_number": serial_text(serial)}
 
         return ctx.run_locked(_set)
 
     @tool("write")
     def project_set_com_object_flag(
-        node_id: int, com_object_ref_id: str, flag: Flag, value: bool
+        com_object_ref_id: str,
+        flag: Flag,
+        value: bool,
+        node_id: int | None = None,
+        device_address: str | None = None,
     ) -> dict[str, Any]:
         """Override a project com-object flag: communication/read/write/transmit/update/read_on_init.
-        Pass ref_id from project_list_com_objects as com_object_ref_id with the same node_id;
-        the object must have linkable=true. Undoable with project_undo; program the device to apply
+        Identify the device by ``node_id`` OR ``device_address`` (an individual address like
+        "1.0.30"); pass exactly one. Pass ref_id from project_list_com_objects for that device as
+        com_object_ref_id; the object must have linkable=true. Undoable with project_undo; program the device to apply
         the change on the bus.
 
         Returns {ref_id, db_id, linkable, name, number, dpt, dpt_name, object_size, flags,
@@ -2202,11 +2319,11 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         contains the six named flags."""
 
         def _set() -> dict[str, Any]:
-            device = _require_device(node_id)
+            device = _require_device(node_id, device_address)
             co = device.find_com_object(com_object_ref_id)
             if co is None:
                 raise ToolError(
-                    f"no com-object {com_object_ref_id!r} on device {node_id}"
+                    f"no com-object {com_object_ref_id!r} on device {device.node_id}"
                 )
             if co.db_id is None:
                 raise ToolError(
@@ -2214,7 +2331,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "(not linkable/editable)"
                 )
             project.set_flag(device, com_object_ref_id, flag, value)
-            updated = _require_device(node_id).find_com_object(com_object_ref_id)
+            updated = _require_device(device.node_id).find_com_object(com_object_ref_id)
             return (
                 com_object_dict(updated)
                 if updated is not None
