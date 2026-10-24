@@ -148,9 +148,12 @@ def make_tool(mcp: FastMCP, ctx: McpContext) -> Any:
         read_only: bool = False,
         destructive: bool = False,
         open_world: bool = False,
-        annotations: dict[str, Any] | None = None,
+        annotations: Any | None = None,
     ) -> Any:
-        tool_ann = dict(annotations or {})
+        if annotations is not None and hasattr(annotations, "model_dump"):
+            tool_ann: dict[str, Any] = annotations.model_dump(by_alias=True, exclude_none=True)
+        else:
+            tool_ann = dict(annotations or {})
         if read_only:
             tool_ann["readOnlyHint"] = True
             tool_ann["destructiveHint"] = False

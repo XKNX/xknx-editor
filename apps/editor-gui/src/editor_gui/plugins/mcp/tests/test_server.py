@@ -2736,6 +2736,25 @@ NON_DESTRUCTIVE_WRITE_TOOLS = {
     "project_undo",
 }
 
+OPEN_WORLD_TOOLS = {
+    "catalog_docs",
+    "catalog_docs_fetch",
+    "catalog_download_online_products",
+    "catalog_online_items",
+    "catalog_refresh_online_manufacturers",
+    "connection_assign_individual_address",
+    "connection_connect",
+    "connection_connect_gateway",
+    "connection_disconnect",
+    "connection_evaluate_device",
+    "connection_program_device",
+    "connection_read_programming_mode_devices",
+    "connection_scan",
+    "monitor_read_value",
+    "monitor_send_read",
+    "monitor_send_write",
+}
+
 
 async def test_tool_annotations_classification(tmp_path: Path) -> None:
     """Verify that every registered tool is strictly classified into read-only, destructive,
@@ -2763,7 +2782,26 @@ async def test_tool_annotations_classification(tmp_path: Path) -> None:
         missing = classified_names - registered_names
         assert not missing, f"Classified tools missing from server: {missing}"
 
-        # 4. Check annotations on each tool
+        # 4. Check openWorldHint against OPEN_WORLD_TOOLS
+        open_world_actual = {
+            t.name
+            for t in tools
+            if (
+                t.annotations.model_dump(by_alias=True).get("openWorldHint") is True
+                if hasattr(getattr(t, "annotations", None), "model_dump")
+                else (
+                    t.annotations.get("openWorldHint") is True
+                    if isinstance(getattr(t, "annotations", None), dict)
+                    else False
+                )
+            )
+        }
+        assert open_world_actual == OPEN_WORLD_TOOLS, (
+            f"openWorldHint mismatch: diff={open_world_actual ^ OPEN_WORLD_TOOLS}"
+        )
+        print(f"OPEN_WORLD_TOOLS: count={len(open_world_actual)}, tools={sorted(open_world_actual)}")
+
+        # 5. Check annotations on each tool
         for tool in tools:
             name = tool.name
             ann = getattr(tool, "annotations", None)
@@ -2783,5 +2821,10 @@ async def test_tool_annotations_classification(tmp_path: Path) -> None:
             else:
                 assert ann_dict.get("readOnlyHint") is False, f"{name}: expected readOnlyHint=False, got {ann_dict}"
                 assert ann_dict.get("destructiveHint") is False, f"{name}: expected destructiveHint=False, got {ann_dict}"
+
+            if name in OPEN_WORLD_TOOLS:
+                assert ann_dict.get("openWorldHint") is True, f"{name}: expected openWorldHint=True, got {ann_dict}"
+            else:
+                assert ann_dict.get("openWorldHint") is False, f"{name}: expected openWorldHint=False, got {ann_dict}"
 
 
