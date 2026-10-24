@@ -23,6 +23,7 @@ from xknxeditor.prod import Application
 from xknxeditor.prod.errors import EncodingError
 
 from .errors import ImageError
+from .factory_image import FactoryImage
 from .project_data import (
     GroupObjectLink,
     SeedDevice,
@@ -305,6 +306,12 @@ class PropertyValue:
     element_size: int | None = None
     # The object type of an object addressed by type rather than by index.
     object_type: int | None = None
+    # The bits of ``data`` a parameter value was written to; the others keep the property's base
+    # (the factory contents or zeros). ``None``: all of ``data``.
+    mask: bytes | None = None
+    # The bytes a parameter covers, active or not: a parameters-only download writes these and
+    # keeps the device's own value of the others. ``None``: all of ``data``.
+    covered: bytes | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -332,6 +339,9 @@ class DownloadImage:
     application_segments: tuple[ObjectMemorySegment, ...] = ()
     # The security tables, for a device with secured group addresses.
     security_tables: SecurityTables | None = None
+    # The contents the device leaves the factory with: the base of the properties the load
+    # procedure writes.
+    factory_image: FactoryImage | None = None
 
     def relative_segment(self, object_type: int) -> RelativeSegment | None:
         """Return the relative segment for an interface object type, if any."""
@@ -442,6 +452,7 @@ def build_image(
     device: SeedDevice | None = None,
     parameter_values: Mapping[str, str] | None = None,
     group_communication: GroupCommunication | None = None,
+    factory_image: FactoryImage | None = None,
 ) -> DownloadImage:
     """Assemble the download image for ``application``.
 
@@ -453,6 +464,8 @@ def build_image(
     result before encoding (e.g. individual tweaks). ``group_communication`` adds
     the address and association table segments (needed for a full or group
     communication download); the load procedure writes them only in scope.
+    ``factory_image`` (the product's ``LoadedImage``) is the base of the properties the
+    procedure writes.
     """
     if ui is None and device is not None:
         from xknxeditor.prod.parser_v2.dynamic import DynamicUI
@@ -576,7 +589,7 @@ def build_image(
     )
 
     try:
-        encoded_properties = ui.encode_to_typed_properties()
+        encoded_properties = ui.encode_to_typed_properties_masked()
     except EncodingError as exc:
         raise ImageError(f"cannot encode property image: {exc}") from exc
     properties = tuple(
@@ -585,10 +598,12 @@ def build_image(
             object_type=key[1],
             property_id=key[2],
             occurrence=key[3],
-            data=data,
+            data=prop.data,
+            mask=prop.mask,
+            covered=prop.covered,
         )
-        for key, data in encoded_properties.items()
-        if data
+        for key, prop in encoded_properties.items()
+        if prop.data
     )
 
     # Keep complete object data for offline validation. Never overwrite an earlier
@@ -618,6 +633,7 @@ def build_image(
         filter_table=filter_table,
         application_segments=tuple(application_segments),
         security_tables=security,
+        factory_image=factory_image,
     )
 
 

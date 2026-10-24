@@ -1663,6 +1663,40 @@ def encode_to_typed_properties(
     )
 
 
+class MaskedProperty(NamedTuple):
+    """A property's encoded value with what its parameters cover."""
+
+    data: bytes
+    # The bits a parameter value was written to; the others keep the property's base.
+    mask: bytes
+    # The bytes any parameter covers, active or not: those a parameters-only download writes,
+    # the others keep what the device holds. Bitwise for the active parameters of the
+    # applications in ``DO_NOT_FILL_UNUSED_BITS``.
+    covered: bytes
+
+
+# Applications (id prefixes) whose active parameters cover only their own bits, not whole bytes.
+DO_NOT_FILL_UNUSED_BITS = ("M-009E_A-1000-01",)
+
+
+def encode_to_typed_properties_masked(
+    app: ApplicationProgram,
+    idx: ApplicationIndexer,
+    overrides: dict[str, str],
+    state: GlobalState | None = None,
+) -> dict[TypedPropertyKey, MaskedProperty]:
+    """:func:`encode_to_typed_properties` with what the parameters cover (see
+    :class:`MaskedProperty`). A kept range (an inactive parameter under ``Background``) is
+    covered but not masked: it keeps the property's base."""
+    return _encode_properties_masked(
+        app,
+        idx,
+        overrides,
+        state,
+        lambda w: (w.object_index, w.object_type, w.property_id, w.occurrence),
+    )
+
+
 def _encode_properties[K](
     app: ApplicationProgram,
     idx: ApplicationIndexer,
@@ -1670,10 +1704,35 @@ def _encode_properties[K](
     state: GlobalState | None,
     key_of: Callable[[PropWrite], K],
 ) -> dict[K, bytes]:
+    encoded = _encode_properties_masked(app, idx, overrides, state, key_of)
+    return {key: prop.data for key, prop in encoded.items()}
+
+
+def _encode_properties_masked[K](
+    app: ApplicationProgram,
+    idx: ApplicationIndexer,
+    overrides: dict[str, str],
+    state: GlobalState | None,
+    key_of: Callable[[PropWrite], K],
+) -> dict[K, MaskedProperty]:
     writes = collect_writes(app, idx, overrides, state, inactive_ranges=True)
     little_endian = _program_little_endian(app)
     text_encoding = _program_text_encoding(app)
+    bitwise = (app.id or "").startswith(DO_NOT_FILL_UNUSED_BITS)
     bufs: dict[K, bytearray] = {}
+    masks: dict[K, bytearray] = {}
+    covered: dict[K, bytearray] = {}
+
+    def extend(key: K, needed: int) -> tuple[bytearray, bytearray, bytearray]:
+        parts = (
+            bufs.setdefault(key, bytearray()),
+            masks.setdefault(key, bytearray()),
+            covered.setdefault(key, bytearray()),
+        )
+        for part in parts:
+            part.extend(bytearray(max(0, needed - len(part))))
+        return parts
+
     for w in writes.prop:
         pt = idx.parameter_types.get(w.parameter_type)
         if pt is None:
@@ -1682,11 +1741,14 @@ def _encode_properties[K](
         size_in_bit = type_size_in_bit(tc, for_property=True)
         if not size_in_bit:
             continue
+        key = key_of(w)
+        first = w.offset + w.bit_offset // 8
+        needed = w.offset + (w.bit_offset + size_in_bit + 7) // 8
         if w.keep:
-            # A kept range is part of the property value; its bytes stay zero.
-            needed = w.offset + (w.bit_offset + size_in_bit + 7) // 8
-            buf = bufs.setdefault(key_of(w), bytearray())
-            buf.extend(bytearray(max(0, needed - len(buf))))
+            # A kept range keeps the property's base (zero here, the factory contents in a
+            # download): covered, not masked.
+            _, _, cover = extend(key, needed)
+            cover[first:needed] = b"\xff" * (needed - first)
             continue
         encoded = _encode_value(
             w.value,
@@ -1701,15 +1763,18 @@ def _encode_properties[K](
                 f"cannot encode parameter {w.param_id} value {w.value!r} "
                 f"as {w.parameter_type}"
             )
-        key = key_of(w)
-        needed = w.offset + (w.bit_offset + size_in_bit + 7) // 8
-        buf = bufs.get(key)
-        if buf is None:
-            bufs[key] = buf = bytearray(needed)
-        elif len(buf) < needed:
-            buf.extend(bytearray(needed - len(buf)))
+        buf, mask, cover = extend(key, needed)
+        bits = (1 << size_in_bit) - 1
         _write_bits(buf, w.offset, w.bit_offset, size_in_bit, encoded)
-    return {key: bytes(buf) for key, buf in bufs.items()}
+        _write_bits(mask, w.offset, w.bit_offset, size_in_bit, bits)
+        if bitwise:
+            _write_bits(cover, w.offset, w.bit_offset, size_in_bit, bits)
+        else:
+            cover[first:needed] = b"\xff" * (needed - first)
+    return {
+        key: MaskedProperty(bytes(buf), bytes(masks[key]), bytes(covered[key]))
+        for key, buf in bufs.items()
+    }
 
 
 def build_property_param_map(

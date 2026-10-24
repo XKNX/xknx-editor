@@ -91,7 +91,7 @@ def seeded_application(
             encode_to_memory_masked=lambda: {
                 s.id: (s.data, b"\x00" * s.size) for s in declarations
             },
-            encode_to_typed_properties=lambda: {},
+            encode_to_typed_properties_masked=lambda: {},
         ),
     )
     return app, ui
@@ -123,7 +123,7 @@ def test_segment_data_and_mask_shorter_than_the_segment() -> None:
             encode_to_memory_masked=lambda: {
                 declaration.id: (b"AB\x00\x00", b"\x00\x00\xff\x00")
             },
-            encode_to_typed_properties=lambda: {},
+            encode_to_typed_properties_masked=lambda: {},
         ),
     )
     image = build_image(app, ui=padded)
@@ -993,8 +993,18 @@ async def test_property_element_slice_and_inline_padding_use_declared_width() ->
     assert [(p.data, p.start_index, p.count) for p in writes] == [(b"CD", 2, 1)]
 
 
-async def test_partial_property_capture_does_not_write_zero_filled_gaps() -> None:
-    from xknxeditor.download.errors import ImageError
+@pytest.mark.parametrize(
+    ("scope", "written"),
+    [
+        # A full load writes the whole property: the element nothing covers gets its base.
+        (DownloadScope.FULL, b"\x00\x00CD"),
+        # Any other download keeps the device's value of the element nothing covers.
+        (DownloadScope.PARAMETERS, b"ABCD"),
+    ],
+)
+async def test_partial_property_capture_keeps_the_base_or_the_device_value(
+    scope: DownloadScope, written: bytes
+) -> None:
     from xknxeditor.namespaces.intermediate.ld_ctrl_load_image_prop_t import (
         LdCtrlLoadImageProp,
     )
@@ -1008,12 +1018,13 @@ async def test_partial_property_capture_does_not_write_zero_filled_gaps() -> Non
         LdCtrlLoadImageProp(obj_idx=4, prop_id=60, start_element=2, count=1),
         LdCtrlWriteProp(obj_idx=4, prop_id=60, start_element=1, count=2, verify=True),
     ]
-    with pytest.raises(ImageError, match="incomplete property image"):
-        await LoadProcedureRunner(
-            _application(*controls), DownloadImage((), ()), DeviceProgrammer(device)
-        ).run()
-    assert not any(isinstance(p, PropertyValueWrite) for p in device.sent)
-    assert device.properties[4, 60] == b"ABCD"
+    runner = LoadProcedureRunner(
+        _application(*controls), DownloadImage((), ()), DeviceProgrammer(device)
+    )
+    runner.scope = scope
+    await runner.run()
+    writes = [p for p in device.sent if isinstance(p, PropertyValueWrite)]
+    assert [(p.data, p.start_index, p.count) for p in writes] == [(written, 1, 2)]
 
 
 async def test_application_identity_resolves_type_addressed_control() -> None:

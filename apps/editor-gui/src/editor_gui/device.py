@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from dataclasses import InitVar, dataclass, field
 from enum import Enum
 from typing import TYPE_CHECKING, Any
@@ -295,6 +295,11 @@ class Device:
     # The hardware must only be programmed with the manufacturer's plugin (NoDownloadWithoutPlugin).
     download_plugin_required: bool = field(
         default=False, repr=False, compare=False, init=False
+    )
+    # Gives the image the device leaves the factory with (its product's ``LoadedImage``), the
+    # base of the properties a download writes; read when a download needs it.
+    factory_image: Callable[[], bytes | None] | None = field(
+        default=None, repr=False, compare=False, init=False
     )
     # Name of a device configuration app the project carries for this device's application.
     configuration_app: str | None = field(

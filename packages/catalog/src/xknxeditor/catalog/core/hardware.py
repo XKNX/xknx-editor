@@ -1,8 +1,11 @@
 """Hardware listing, filtering, and program lookups."""
 
+import base64
 import datetime
+import io
 from collections.abc import Sequence
 from dataclasses import dataclass
+from xml.etree import ElementTree
 
 from pydantic import BaseModel, Field
 from sqlalchemy import func, select
@@ -231,3 +234,32 @@ def get_program_source(db: Session, program_id: str) -> tuple[str, str] | None:
     if row is None:
         return None
     return row[0], row[1]
+
+
+def get_factory_image(db: Session, program_id: str) -> bytes | None:
+    """The image devices of a hardware program leave the factory with
+    (``Hardware2Program/@LoadedImage``, base64 decoded), or ``None`` when the product has none.
+
+    Read from the hardware XML of the ``.knxprod`` the program was imported from.
+    """
+    source = get_program_source(db, program_id)
+    if source is None:
+        return None
+    knxprod_path, manufacturer_id = source
+
+    from xknxeditor.prod.archive import Archive
+    from xknxeditor.prod.errors import ArchiveError
+
+    try:
+        with Archive(knxprod_path, require_catalog=False) as archive:
+            hardware_xml = archive.get_hardware_xml(manufacturer_id)
+    except (ArchiveError, KeyError, OSError):
+        return None
+    for _, element in ElementTree.iterparse(io.BytesIO(hardware_xml)):
+        if element.tag.rpartition("}")[2] != "Hardware2Program":
+            continue
+        if element.get("Id") == program_id:
+            image = element.get("LoadedImage")
+            return base64.b64decode(image) if image else None
+        element.clear()
+    return None

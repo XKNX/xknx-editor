@@ -112,7 +112,7 @@ from .merge import resolve_download_controls
 from .preflight import PreflightReport, PropertyDiff, SegmentDiff
 from .programmer import DEFAULT_MAX_APDU_LENGTH, PID_TABLE_REFERENCE, DeviceProgrammer
 from .property_layout import STANDARD_WRITE_WIDTHS, property_width
-from .resources import bundled_mask_resources, property_mapped_lsms
+from .resources import MaskFeature, bundled_mask_resources, property_mapped_lsms
 from .scope import (
     GROUP_COMMUNICATION_OBJECTS,
     DownloadScope,
@@ -1522,14 +1522,21 @@ class LoadProcedureRunner:
                 f"expected {expected.hex()} read {read_back.hex()}"
             )
 
-    def _property_write_data(self, index: int, control: LdCtrlWriteProp) -> bytes:
-        """Overlay image elements onto inline data, keeping device-owned CRCs zero."""
+    def _property_write_plan(
+        self, index: int, control: LdCtrlWriteProp
+    ) -> tuple[bytes, bytes | None]:
+        """The data ``control`` writes and the bits of it to write, ``None`` for all of it.
+
+        Image elements are laid over inline data, keeping device-owned CRCs zero. A full
+        application load writes the whole property; any other download writes only the bits
+        the inline data, captured elements and parameters cover, and the device keeps the rest.
+        """
         if control.start_element == 0:
             # Element 0 of an array property is its number of valid elements, 2 octets; writing
             # 0 clears the array.
             return (control.inline_data or b"").ljust(2 * control.count, b"\x00")[
                 : 2 * control.count
-            ]
+            ], None
         object_type = (
             control.obj_type
             if control.obj_idx is None and control.obj_type is not None
@@ -1538,7 +1545,7 @@ class LoadProcedureRunner:
         if control.prop_id == 13 and object_type in (3, 4):
             if control.start_element != 1 or control.count != 1:
                 raise ImageError("application identity requires element 1, count 1")
-            return _application_id(self.application)
+            return _application_id(self.application), None
         width = self._property_widths.get(
             (index, control.prop_id), STANDARD_WRITE_WIDTHS.get(control.prop_id)
         )
@@ -1558,9 +1565,14 @@ class LoadProcedureRunner:
             raise UnsupportedProcedureError(
                 "PID7 is a read-only runtime table reference"
             )
+        start = (control.start_element - 1) * width
+        # The property's base: what the device leaves the factory with, else zeros. The
+        # parameters' bits are laid over it; bytes no parameter writes keep it.
+        base = self._factory_property(index, object_type, control)
+        data = bytearray((base or b"")[start : start + size].ljust(size, b"\x00"))
         inline = (control.inline_data or b"")[:size]
-        data = bytearray(inline.ljust(size, b"\x00"))
-        covered = bytearray(b"\x01" * len(inline) + bytes(size - len(inline)))
+        data[: len(inline)] = inline
+        covered = bytearray(b"\xff" * len(inline) + bytes(size - len(inline)))
         for n in range(control.count):
             captured = self._property_captures.get(
                 (index, control.prop_id, control.start_element + n)
@@ -1569,22 +1581,27 @@ class LoadProcedureRunner:
                 if len(captured) != width:
                     raise ImageError("captured property element width mismatch")
                 data[n * width : (n + 1) * width] = captured
-                covered[n * width : (n + 1) * width] = b"\x01" * width
+                covered[n * width : (n + 1) * width] = b"\xff" * width
         for prop in self.image.properties:
-            if (
-                prop.property_id == control.prop_id
-                and self._image_property_applies(prop, index, control)
-                and control.start_element > 0
+            if prop.property_id == control.prop_id and self._image_property_applies(
+                prop, index, control
             ):
-                start = (control.start_element - 1) * width
                 overlay = prop.data[start : start + size]
-                data[: len(overlay)] = overlay
-                covered[: len(overlay)] = b"\x01" * len(overlay)
+                mask = (
+                    prop.mask[start : start + size]
+                    if prop.mask is not None
+                    else b"\xff" * len(overlay)
+                )
+                for i, (value, bits) in enumerate(zip(overlay, mask, strict=False)):
+                    data[i] = (data[i] & ~bits) | (value & bits)
+                cover = (
+                    prop.covered[start : start + size]
+                    if prop.covered is not None
+                    else b"\xff" * len(overlay)
+                )
+                for i, bits in enumerate(cover):
+                    covered[i] |= bits
                 break
-        if not all(covered):
-            raise ImageError(
-                f"incomplete property image for object {index} property {control.prop_id}: need {size}, got {sum(covered)}"
-            )
         if control.prop_id == _PID_MCB_TABLE:
             data = data[: control.count * _MCB_ENTRY_SIZE]
             if len(data) != control.count * _MCB_ENTRY_SIZE:
@@ -1592,8 +1609,41 @@ class LoadProcedureRunner:
             entries = bytearray(data)
             for start in range(0, len(entries), _MCB_ENTRY_SIZE):
                 entries[start + 6 : start + 8] = b"\x00\x00"
-            data = bytes(entries)
-        return bytes(data)
+            return bytes(entries), None
+        if self._full_application_load or all(bits == 0xFF for bits in covered):
+            return bytes(data), None
+        return bytes(data), bytes(covered)
+
+    @property
+    def _full_application_load(self) -> bool:
+        """Whether the download loads the whole application program: it writes every property
+        completely rather than only what the parameters cover."""
+        return self.scope in (DownloadScope.FULL, DownloadScope.APPLICATION)
+
+    def _factory_property(
+        self,
+        index: int,
+        object_type: int | None,
+        control: LdCtrlWriteProp,
+    ) -> bytes | None:
+        """The factory contents of the property ``control`` writes (from element 1), if the
+        product has a factory image holding it."""
+        factory = self.image.factory_image
+        if factory is None:
+            return None
+        resources = bundled_mask_resources(self.application.program.mask_version)
+        first_app_object = (
+            resources.feature(MaskFeature.FIRST_APP_OBJECT_IDX)
+            if resources is not None
+            else None
+        )
+        return factory.property_data(
+            index,
+            object_type,
+            control.occurrence,
+            control.prop_id,
+            first_app_object,
+        )
 
     def _image_property_applies(
         self,
@@ -1775,7 +1825,20 @@ class LoadProcedureRunner:
         """Write addressed image elements and verify each property response."""
         index = await self._resolve_index(control, extended=True)
         await self._ensure_property_width(index, control)
-        data = self._property_write_data(index, control)
+        data, covered = self._property_write_plan(index, control)
+        if covered is not None:
+            if not any(covered):
+                logger.info(
+                    "download: no parameter of %s covers object %d property %d; not written",
+                    self._target(),
+                    index,
+                    control.prop_id,
+                )
+                return
+            current = await self._read_property_elements(
+                index, control.prop_id, control.count, control.start_element, data
+            )
+            data = _keep_uncovered(current, data, covered)
         programmer = await self._bus()
         tool_key = (
             control.obj_idx is None
@@ -2280,7 +2343,9 @@ class LoadProcedureRunner:
         if isinstance(control, LdCtrlWriteProp):
             index = await self._resolve_index(control, extended=True)
             await self._ensure_property_width(index, control)
-            planned = self._property_write_data(index, control)
+            planned, covered = self._property_write_plan(index, control)
+            if covered is not None and not any(covered):
+                return
             await self._diff_property(
                 index,
                 control.prop_id,
@@ -2288,6 +2353,7 @@ class LoadProcedureRunner:
                 control.start_element,
                 planned,
                 properties,
+                covered=covered,
             )
             return
         if isinstance(control, LdCtrlCompareMem):
@@ -2452,8 +2518,45 @@ class LoadProcedureRunner:
         start_element: int,
         planned: bytes,
         properties: list[PropertyDiff],
+        *,
+        covered: bytes | None = None,
     ) -> None:
-        """Read the current property value and record a diff against ``planned``."""
+        """Read the current property value and record a diff against ``planned``, of which
+        only the ``covered`` bits are written (``None``: all)."""
+        current = await self._read_property_elements(
+            object_index, property_id, count, start_element, planned
+        )
+        if covered is not None:
+            planned = _keep_uncovered(current, planned, covered)
+        target = (
+            self._extended_targets.get(object_index)
+            if await self._extended_fits(object_index, property_id)
+            else None
+        )
+        properties.append(
+            PropertyDiff(
+                object_index=(
+                    object_index
+                    if target is not None
+                    else await self._object_index(object_index)
+                ),
+                property_id=property_id,
+                current=current,
+                planned=bytes(planned),
+                object_type=target[0] if target is not None else None,
+            )
+        )
+
+    async def _read_property_elements(
+        self,
+        object_index: int,
+        property_id: int,
+        count: int,
+        start_element: int,
+        planned: bytes,
+    ) -> bytes:
+        """The device's current value of the ``count`` elements from ``start_element`` that
+        ``planned`` is written to, read in frames that fit one APDU."""
         programmer = await self._bus()
         width = len(planned) // count
         current = bytearray()
@@ -2490,15 +2593,16 @@ class LoadProcedureRunner:
                     start_index=start_element + offset,
                 )
             )
-        properties.append(
-            PropertyDiff(
-                object_index=device_index,
-                property_id=property_id,
-                current=bytes(current),
-                planned=bytes(planned),
-                object_type=target[0] if target is not None else None,
-            )
-        )
+        return bytes(current)
+
+
+def _keep_uncovered(current: bytes, planned: bytes, covered: bytes) -> bytes:
+    """``planned`` with the bits outside ``covered`` taken from the device's ``current`` value
+    (a byte the device did not return keeps ``planned``)."""
+    merged = bytearray(planned)
+    for i, (value, bits) in enumerate(zip(current, covered, strict=False)):
+        merged[i] = (value & ~bits & 0xFF) | (planned[i] & bits)
+    return bytes(merged)
 
 
 # Memory address spaces this engine writes as a flat absolute A_Memory access. STANDARD is the

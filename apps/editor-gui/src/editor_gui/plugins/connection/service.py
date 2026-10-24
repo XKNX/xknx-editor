@@ -861,6 +861,7 @@ class ConnectionService:
                 routing_blocking=routing_blocking if security is not None else None,
                 memory_service_count=seed_cap,
                 interface_max_apdu_length=self.interface_max_apdu_length,
+                factory_image=_factory_image(device),
             )
         )
         if future is not None:
@@ -1128,6 +1129,7 @@ class ConnectionService:
                 security=security,
                 ip_config=ip_config,
                 interface_max_apdu_length=self.interface_max_apdu_length,
+                factory_image=_factory_image(device),
             )
         )
         if future is not None:
@@ -1420,3 +1422,8 @@ class ConnectionService:
             self._loop.call_soon_threadsafe(started[0].cancel)
         else:
             future.cancel()
+
+
+def _factory_image(device: Device) -> bytes | None:
+    """The factory image of ``device``'s product, read here (not on the bus thread)."""
+    return device.factory_image() if device.factory_image is not None else None
