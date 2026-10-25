@@ -943,8 +943,23 @@ msgstr "Ref. de Programa"
 msgid "IP Configuration"
 msgstr "Configuración IP"
 
-msgid "Assignment"
-msgstr "Asignación"
+msgid "Obtain an IP address automatically"
+msgstr "Obtener una dirección IP automáticamente"
+
+msgid "Use a static IP address"
+msgstr "Usar una dirección IP estática"
+
+msgid "Assigned IP Address"
+msgstr "Dirección IP Asignada"
+
+msgid "An invalid IP address was specified."
+msgstr "Se especificó una dirección IP no válida."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Dirección IP asignada de '{0}' cambiada a '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "Configuración IP del dispositivo '{0}' cambiada."
 
 msgid "IP Address"
 msgstr "Dirección IP"

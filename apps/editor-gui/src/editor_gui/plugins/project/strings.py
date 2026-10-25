@@ -2270,8 +2270,24 @@ class ProjectStrings:
         return _("IP Configuration")
 
     @property
-    def CONFIGURE_IP_ASSIGN(self) -> str:
-        return _("Assignment")
+    def CONFIGURE_IP_AUTOMATIC(self) -> str:
+        return _("Obtain an IP address automatically")
+
+    @property
+    def CONFIGURE_IP_STATIC(self) -> str:
+        return _("Use a static IP address")
+
+    @property
+    def CONFIGURE_IP_ASSIGNED(self) -> str:
+        return _("Assigned IP Address")
+
+    @property
+    def CONFIGURE_IP_UNKNOWN(self) -> str:
+        return _("Unknown")
+
+    @property
+    def CONFIGURE_IP_INVALID(self) -> str:
+        return _("An invalid IP address was specified.")
 
     @property
     def CONFIGURE_IP_ADDRESS(self) -> str:
@@ -3946,6 +3962,14 @@ class ProjectStrings:
     @property
     def HISTORY_ADDITIONAL_ADDRESS_CHANGED(self) -> str:
         return _("Changed additional address of device '{0}' from '{1}' to '{2}'.")
+
+    @property
+    def HISTORY_IP_ADDRESS_CHANGED(self) -> str:
+        return _("Change assigned IP address of '{0}' to '{1}'.")
+
+    @property
+    def HISTORY_IP_CONFIG_CHANGED(self) -> str:
+        return _("IP configuration of device '{0}' changed.")
 
     @property
     def HISTORY_ADDITIONAL_ADDRESS_NAMES(self) -> str:

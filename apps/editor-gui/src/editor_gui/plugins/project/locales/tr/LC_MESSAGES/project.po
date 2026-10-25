@@ -943,8 +943,23 @@ msgstr "Program Ref."
 msgid "IP Configuration"
 msgstr "IP Yapılandırması"
 
-msgid "Assignment"
-msgstr "Atama"
+msgid "Obtain an IP address automatically"
+msgstr "IP adresini otomatik al"
+
+msgid "Use a static IP address"
+msgstr "Statik IP adresi kullan"
+
+msgid "Assigned IP Address"
+msgstr "Atanan IP Adresi"
+
+msgid "An invalid IP address was specified."
+msgstr "Geçersiz bir IP adresi belirtildi."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "'{0}' için atanan IP adresi '{1}' olarak değiştirildi."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "'{0}' cihazının IP yapılandırması değiştirildi."
 
 msgid "IP Address"
 msgstr "IP Adresi"

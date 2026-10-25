@@ -2049,6 +2049,77 @@ def _set_additional_entries(device: Device, entries: list[dict[str, Any]]) -> No
 
 @_register
 @dataclass
+class SetDeviceIpConfig(Event):
+    """Set the IP settings of an IP device (see :mod:`xknxeditor.proj.core.ip_settings`): how it
+    gets its address (``assign``) and its IP address, subnet mask and default gateway, ``None``
+    for none. The MAC address stays. ``clear_medium_config`` marks the device's IP configuration
+    as not downloaded. Revert restores both. ``label`` names the change in the history."""
+
+    event_type: ClassVar[str] = "SetDeviceIpConfig"
+
+    device_id: int
+    assign: str
+    ip_address: str | None = None
+    subnet_mask: str | None = None
+    default_gateway: str | None = None
+    clear_medium_config: bool = False
+    label: str | None = None
+    old_ip_config: dict[str, str] | None = None
+    old_medium_config_loaded: bool | None = None
+
+    def apply(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is None:
+            return
+        self.old_ip_config = device.ip_config
+        self.old_medium_config_loaded = device.medium_config_loaded
+        config = {
+            key: value
+            for key, value in (device.ip_config or {}).items()
+            if key not in ("Assign", "IPAddress", "SubnetMask", "DefaultGateway")
+        }
+        config["Assign"] = self.assign
+        for key, value in (
+            ("IPAddress", self.ip_address),
+            ("SubnetMask", self.subnet_mask),
+            ("DefaultGateway", self.default_gateway),
+        ):
+            if value is not None:
+                config[key] = value
+        device.ip_config = config
+        if self.clear_medium_config:
+            device.medium_config_loaded = False
+
+    def revert(self, session: Session) -> None:
+        device = session.get(Device, self.device_id)
+        if device is None:
+            return
+        device.ip_config = self.old_ip_config
+        if self.old_medium_config_loaded is not None:
+            device.medium_config_loaded = self.old_medium_config_loaded
+
+    def to_dict(self) -> dict[str, Any]:
+        data: dict[str, Any] = {
+            "device_id": self.device_id,
+            "assign": self.assign,
+            "ip_address": self.ip_address,
+            "subnet_mask": self.subnet_mask,
+            "default_gateway": self.default_gateway,
+            "clear_medium_config": self.clear_medium_config,
+            "old_ip_config": self.old_ip_config,
+            "old_medium_config_loaded": self.old_medium_config_loaded,
+        }
+        if self.label is not None:
+            data["label"] = self.label
+        return data
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetDeviceIpConfig:
+        return cls(**data)
+
+
+@_register
+@dataclass
 class SetDeviceAdditionalAddresses(Event):
     """Set a device's complete list of additional individual addresses (the tunnelling addresses
     of an IP interface, the addresses a coupler claims). Each entry holds ``address`` (the device
@@ -3974,7 +4045,8 @@ _COMMISSIONING_FIELDS = (
 @dataclass
 class SetDeviceCommissioning(Event):
     """Update a device's commissioning state ("loaded" ticks + serial / last download, and
-    the MAC address read from an IP device, kept in its IP configuration).
+    the MAC address read from an IP device and the IP address it was found at, both kept in its
+    IP configuration).
 
     Each field is optional; ``None`` leaves it unchanged (so e.g. programming can set only the
     flags for its scope). The previous values of the changed fields are captured for undo.
@@ -3994,6 +4066,7 @@ class SetDeviceCommissioning(Event):
     _old: dict[str, Any] = field(default_factory=dict[str, Any])
     # Recorded by a download, which leaves the device's "Last Modified" as it was.
     download: bool = False
+    ip_address: str | None = None
 
     def changed(self) -> bool:
         """Whether applying it changed a value (the old ones are in ``_old``)."""
@@ -4006,7 +4079,13 @@ class SetDeviceCommissioning(Event):
         if "ip_config" not in self._old:
             return False
         old_config = cast("dict[str, str] | None", self._old["ip_config"]) or {}
-        return old_config.get("MACAddress") != self.mac_address
+        return any(
+            new is not None and old_config.get(key) != new
+            for key, new in (
+                ("MACAddress", self.mac_address),
+                ("IPAddress", self.ip_address),
+            )
+        )
 
     def apply(self, session: Session) -> None:
         device = session.get(Device, self.device_id)
@@ -4018,12 +4097,14 @@ class SetDeviceCommissioning(Event):
             if new is not None:
                 self._old[name] = getattr(device, name)
                 setattr(device, name, new)
-        if self.mac_address is not None:
+        if self.mac_address is not None or self.ip_address is not None:
             self._old["ip_config"] = device.ip_config
-            device.ip_config = {
-                **(device.ip_config or {}),
-                "MACAddress": self.mac_address,
-            }
+            config = dict(device.ip_config or {})
+            if self.mac_address is not None:
+                config["MACAddress"] = self.mac_address
+            if self.ip_address is not None:
+                config["IPAddress"] = self.ip_address
+            device.ip_config = config
 
     def revert(self, session: Session) -> None:
         device = session.get(Device, self.device_id)
@@ -4037,6 +4118,7 @@ class SetDeviceCommissioning(Event):
             "device_id": self.device_id,
             **{name: getattr(self, name) for name in _COMMISSIONING_FIELDS},
             "mac_address": self.mac_address,
+            "ip_address": self.ip_address,
             "_old": self._old,
             "download": self.download,
         }

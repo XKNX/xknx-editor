@@ -3,7 +3,8 @@
 It is stamped (UTC, as the project stores it) by a change of a parameter value, of a group
 object's flags (also when undone or redone), by adding the device, and by a change of what was
 downloaded to it (its "loaded" ticks: linking a group address marks its group communication not
-loaded), of its serial number or MAC address, or of its application. Undoing a parameter
+loaded), of its serial number or MAC address, of its IP settings (also when undone or redone),
+or of its application. Undoing a parameter
 change leaves it, and so does a download. It is not part of the undo history: undo never sets it
 back.
 """
@@ -22,6 +23,7 @@ from xknxeditor.proj.core.events import (
     Event,
     SetComObjectFlag,
     SetDeviceCommissioning,
+    SetDeviceIpConfig,
     SetParameter,
     UpdateDeviceApplication,
 )
@@ -62,11 +64,13 @@ def modified_devices(event: Event, session: Session, *, reverting: bool) -> set[
 
 
 def _own_device(event: Event, *, reverting: bool) -> int | None:
-    """The device a parameter change, the adding of a device, a change of its application or of
-    its commissioning state modified; None for other events."""
+    """The device a parameter change, the adding of a device, a change of its application, of
+    its IP settings or of its commissioning state modified; None for other events."""
     if isinstance(event, SetParameter | AddDevice):
         return None if reverting else event.device_id
-    if isinstance(event, ChangeDeviceApplication | UpdateDeviceApplication):
+    if isinstance(
+        event, ChangeDeviceApplication | UpdateDeviceApplication | SetDeviceIpConfig
+    ):
         return event.device_id
     if isinstance(event, SetDeviceCommissioning) and not event.download:
         return event.device_id if event.changed() else None

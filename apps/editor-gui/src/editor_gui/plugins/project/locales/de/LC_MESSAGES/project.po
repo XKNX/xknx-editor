@@ -1397,9 +1397,6 @@ msgstr "Exportieren"
 msgid "Import"
 msgstr "Importieren"
 
-msgid "Assignment"
-msgstr "Zuweisung"
-
 msgid "Based on OpenKNXproducer"
 msgstr "Basiert auf OpenKNXproducer"
 
@@ -1440,7 +1437,7 @@ msgid "Decrypt Comments"
 msgstr "Kommentare entschlüsseln"
 
 msgid "Default Gateway"
-msgstr "Standard-Gateway"
+msgstr "Standardgateway"
 
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "'{name}' löschen? Seine Kommunikationsobjekte und Gruppenadress-Verbindungen werden entfernt und seine physikalische Adresse wird freigegeben. Dies kann rückgängig gemacht werden."
@@ -1478,6 +1475,24 @@ msgstr "Das Handbuch dieses Geräts suchen (über die KNX-Gerätedatenbank, sons
 msgid "Gap X / Y (mm)"
 msgstr "Abstand X / Y (mm)"
 
+
+msgid "Obtain an IP address automatically"
+msgstr "IP-Adresse automatisch beziehen"
+
+msgid "Use a static IP address"
+msgstr "Feste IP-Adresse verwenden"
+
+msgid "Assigned IP Address"
+msgstr "Zugewiesene IP-Adresse"
+
+msgid "An invalid IP address was specified."
+msgstr "Es wurde eine ungültige IP-Adresse angegeben."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Zugewiesene IP-Adresse von '{0}' zu '{1}' geändert."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "IP-Konfiguration des Geräts '{0}' geändert."
 
 msgid "IP Address"
 msgstr "IP-Adresse"

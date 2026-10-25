@@ -943,8 +943,23 @@ msgstr "Ref. programu"
 msgid "IP Configuration"
 msgstr "Konfigurace IP"
 
-msgid "Assignment"
-msgstr "Přidělení"
+msgid "Obtain an IP address automatically"
+msgstr "Získat IP adresu automaticky"
+
+msgid "Use a static IP address"
+msgstr "Použít statickou IP adresu"
+
+msgid "Assigned IP Address"
+msgstr "Přiřazená IP adresa"
+
+msgid "An invalid IP address was specified."
+msgstr "Byla zadána neplatná IP adresa."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Přiřazená IP adresa zařízení '{0}' změněna na '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "IP konfigurace zařízení '{0}' změněna."
 
 msgid "IP Address"
 msgstr "IP adresa"

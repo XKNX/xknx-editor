@@ -943,8 +943,23 @@ msgstr "程序引用"
 msgid "IP Configuration"
 msgstr "IP 配置"
 
-msgid "Assignment"
-msgstr "分配方式"
+msgid "Obtain an IP address automatically"
+msgstr "自动获取 IP 地址"
+
+msgid "Use a static IP address"
+msgstr "使用静态 IP 地址"
+
+msgid "Assigned IP Address"
+msgstr "分配的 IP 地址"
+
+msgid "An invalid IP address was specified."
+msgstr "指定的 IP 地址无效。"
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "已将 '{0}' 的分配 IP 地址更改为 '{1}'。"
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "设备 '{0}' 的 IP 配置已更改。"
 
 msgid "IP Address"
 msgstr "IP 地址"

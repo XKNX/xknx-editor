@@ -33,9 +33,16 @@ from editor_gui.widgets.tree import collapsing_header
 from xknxeditor.download.scope import DownloadScope
 from xknxeditor.prod.app_id import parse_app_id
 from xknxeditor.prod.parser_v2.ui import UiNode
+from xknxeditor.proj.core.ip_settings import (
+    ASSIGN_AUTO,
+    ASSIGN_FIXED,
+    NO_ADDRESS,
+    NONE_ADDRESS,
+    known_address,
+)
 
 if TYPE_CHECKING:
-    from editor_gui.plugins.project.service import IpSecureSettings
+    from editor_gui.plugins.project.service import IpSecureSettings, IpSettings
     from xknxeditor.catalog import ProductSummary, ProgramSummary
     from xknxeditor.proj.core.addressing import GroupAddressStyle
     from xknxeditor.proj.core.service import DeviceInfo
@@ -53,7 +60,7 @@ from editor_gui.widgets import (
     take_selected_help,
 )
 from editor_gui.widgets.backgrounds import child_background, side_background
-from editor_gui.widgets.checkbox import checkbox
+from editor_gui.widgets.checkbox import checkbox, radio_button
 from editor_gui.widgets.combo import begin_combo, combo
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.group_objects_widgets import (
@@ -338,6 +345,8 @@ class ConfigurePanel:
         on_additional_address_change: Callable[[Device, int, str, str], str | None]
         | None = None,
         on_assign_additional_addresses: Callable[[Device], str | None] | None = None,
+        get_ip_settings: "Callable[[int], IpSettings | None] | None" = None,
+        on_ip_settings_change: Callable[..., str | None] | None = None,
         use_serial_number_default: Callable[[], bool] | None = None,
         find_serial_owner: Callable[[Device, bytes], str | None] | None = None,
         find_product: "Callable[[str], ProductSummary | None] | None" = None,
@@ -466,6 +475,14 @@ class ConfigurePanel:
         self._additional_buffers: dict[str, str] = {}
         self._additional_device: int | None = None
         self._additional_error = ""
+        # The IP settings of an IP device (by node id), their change (assignment and addresses
+        # by keyword -> the message when an address cannot be read), the edit buffers (field ->
+        # text) and the field whose text was rejected, with its message.
+        self._get_ip_settings = get_ip_settings
+        self._on_ip_settings_change = on_ip_settings_change
+        self._ip_buffers: dict[str, str] = {}
+        self._ip_device: int | None = None
+        self._ip_error: tuple[str, str] | None = None
         self._use_serial_number_default = use_serial_number_default
         self._find_serial_owner = find_serial_owner
         self._render_dali = (
@@ -524,11 +541,12 @@ class ConfigurePanel:
             S.CONFIGURE_PROGRAM_REF,
             S.CONFIGURE_RAIL,
             S.CONFIGURE_BUS_CURRENT,
-            S.CONFIGURE_IP_ASSIGN,
+            S.CONFIGURE_IP_ASSIGNED,
             S.CONFIGURE_IP_ADDRESS,
             S.CONFIGURE_IP_SUBNET,
             S.CONFIGURE_IP_GATEWAY,
             S.CONFIGURE_IP_MAC,
+            S.MULTICAST_ADDRESS,
             S.READOUT_MASK,
             S.READOUT_SERIAL,
             S.READOUT_ORDER,
@@ -1614,26 +1632,96 @@ class ConfigurePanel:
                 imgui.tree_pop()
 
     def _render_ip_config(self, device: Device) -> None:
-        """Read-only IP configuration of an IP router/interface, carried verbatim from import. Only
-        shown when the device has static values (IP/subnet/gateway/MAC); a plain ``Assign="Auto"``
-        with no addresses carries nothing worth showing, so the header stays hidden then."""
-        info = self._get_device_info(device.node_id)
-        cfg = info.ip_config if info else None
-        # Nothing, or only the Assign method with no static address -> not worth a section.
-        if not cfg or not (cfg.keys() - {"Assign"}):
+        """The IP settings of an IP device (its hardware is IP-enabled). When its application
+        leaves them to the tool: whether it obtains its address automatically or uses a static
+        one, and its MAC address. Then the address it was assigned (automatically, or when the
+        application sets its IP configuration itself) or the static address, subnet mask and
+        default gateway, and on an IP medium the routing multicast address. An address is stored
+        when its field is left; one that cannot be read keeps its text and shows why."""
+        settings = (
+            self._get_ip_settings(device.node_id)
+            if self._get_ip_settings is not None
+            else None
+        )
+        if settings is None:
             return
+        if self._ip_device != device.node_id:
+            self._ip_buffers = {}
+            self._ip_error = None
+            self._ip_device = device.node_id
         imgui.spacing()
         if not collapsing_header(S.CONFIGURE_IP_CONFIG):
             return
-        self._render_detail_grid(
-            [
-                (S.CONFIGURE_IP_ASSIGN, cfg.get("Assign", "")),
-                (S.CONFIGURE_IP_ADDRESS, cfg.get("IPAddress", "")),
-                (S.CONFIGURE_IP_SUBNET, cfg.get("SubnetMask", "")),
-                (S.CONFIGURE_IP_GATEWAY, cfg.get("DefaultGateway", "")),
-                (S.CONFIGURE_IP_MAC, cfg.get("MACAddress", "")),
-            ]
+        fixed = settings.tool_managed and settings.assign == ASSIGN_FIXED
+        if settings.tool_managed:
+            if radio_button(S.CONFIGURE_IP_AUTOMATIC, not fixed) and fixed:
+                self._ip_edit(device, "assign", ASSIGN_AUTO)
+            if radio_button(S.CONFIGURE_IP_STATIC, fixed) and not fixed:
+                self._ip_edit(device, "assign", ASSIGN_FIXED)
+        if fixed:
+            for label, field, value in (
+                (S.CONFIGURE_IP_ADDRESS, "ip_address", settings.ip_address),
+                (S.CONFIGURE_IP_SUBNET, "subnet_mask", settings.subnet_mask),
+                (S.CONFIGURE_IP_GATEWAY, "default_gateway", settings.default_gateway),
+            ):
+                self._ip_input(device, label, field, value or NONE_ADDRESS)
+        else:
+            self._ip_input(
+                device,
+                S.CONFIGURE_IP_ASSIGNED,
+                "assigned",
+                known_address(settings.ip_address) or "",
+            )
+        if settings.tool_managed:
+            self._ip_read_only(
+                S.CONFIGURE_IP_MAC, settings.mac_address or S.CONFIGURE_IP_UNKNOWN
+            )
+        if settings.multicast_address:
+            self._ip_read_only(S.MULTICAST_ADDRESS, settings.multicast_address)
+
+    def _ip_input(self, device: Device, label: str, field: str, value: str) -> None:
+        """An address of the IP settings with its label; stored when the field is left. An
+        empty assigned address stores none."""
+        imgui.align_text_to_frame_padding()
+        imgui.text_disabled(label)
+        imgui.same_line(self._label_w)
+        buffer = self._ip_buffers.get(field, value)
+        imgui.set_next_item_width(min(px(220), imgui.get_content_region_avail().x))
+        _, buffer = imgui.input_text_with_hint(
+            f"##ip_{field}",
+            S.CONFIGURE_IP_UNKNOWN if field == "assigned" else "",
+            buffer,
         )
+        self._ip_buffers[field] = buffer
+        if imgui.is_item_deactivated_after_edit() and buffer != value:
+            if field != "assigned":
+                self._ip_edit(device, field, buffer)
+            elif buffer.strip() or value:
+                self._ip_edit(device, field, buffer.strip() or NO_ADDRESS)
+        rejected = self._ip_error is not None and self._ip_error[0] == field
+        if not imgui.is_item_active() and buffer != value and not rejected:
+            self._ip_buffers[field] = value
+        if rejected and self._ip_error is not None:
+            imgui.push_style_color(imgui.Col_.text, _ERROR_COLOR)
+            imgui.text_wrapped(self._ip_error[1])
+            imgui.pop_style_color()
+
+    def _ip_read_only(self, label: str, value: str) -> None:
+        imgui.align_text_to_frame_padding()
+        imgui.text_disabled(label)
+        imgui.same_line(self._label_w)
+        imgui.begin_disabled()
+        imgui.set_next_item_width(min(px(220), imgui.get_content_region_avail().x))
+        imgui.input_text(f"##ip_{label}", value, imgui.InputTextFlags_.read_only)
+        imgui.end_disabled()
+
+    def _ip_edit(self, device: Device, field: str, value: str) -> None:
+        """Store one change of the IP settings; a rejected address keeps its field's text."""
+        if self._on_ip_settings_change is None:
+            return
+        keyword = "ip_address" if field == "assigned" else field
+        error = self._on_ip_settings_change(device.node_id, **{keyword: value})
+        self._ip_error = (field, error) if error else None
 
     def _render_additional_addresses(self, device: Device) -> None:
         """The device's additional individual addresses (the tunnelling addresses of an IP

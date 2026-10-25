@@ -943,8 +943,23 @@ msgstr "Ohjelmaviite"
 msgid "IP Configuration"
 msgstr "IP-konfiguraatio"
 
-msgid "Assignment"
-msgstr "Määritys"
+msgid "Obtain an IP address automatically"
+msgstr "Hae IP-osoite automaattisesti"
+
+msgid "Use a static IP address"
+msgstr "Käytä kiinteää IP-osoitetta"
+
+msgid "Assigned IP Address"
+msgstr "Määritetty IP-osoite"
+
+msgid "An invalid IP address was specified."
+msgstr "Annettiin virheellinen IP-osoite."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Laitteen '{0}' määritetty IP-osoite muutettu: '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "Laitteen '{0}' IP-määritys muutettu."
 
 msgid "IP Address"
 msgstr "IP-osoite"

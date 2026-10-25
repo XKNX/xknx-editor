@@ -943,8 +943,23 @@ msgstr "Programref."
 msgid "IP Configuration"
 msgstr "IP-konfiguration"
 
-msgid "Assignment"
-msgstr "Tilldelning"
+msgid "Obtain an IP address automatically"
+msgstr "Hämta en IP-adress automatiskt"
+
+msgid "Use a static IP address"
+msgstr "Använd en statisk IP-adress"
+
+msgid "Assigned IP Address"
+msgstr "Tilldelad IP-adress"
+
+msgid "An invalid IP address was specified."
+msgstr "En ogiltig IP-adress angavs."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Tilldelad IP-adress för '{0}' ändrad till '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "IP-konfigurationen för enheten '{0}' har ändrats."
 
 msgid "IP Address"
 msgstr "IP-adress"

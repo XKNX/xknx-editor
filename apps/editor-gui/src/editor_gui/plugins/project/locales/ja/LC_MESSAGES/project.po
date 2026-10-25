@@ -943,8 +943,23 @@ msgstr "プログラム参照"
 msgid "IP Configuration"
 msgstr "IP 設定"
 
-msgid "Assignment"
-msgstr "割り当て"
+msgid "Obtain an IP address automatically"
+msgstr "IP アドレスを自動的に取得する"
+
+msgid "Use a static IP address"
+msgstr "固定 IP アドレスを使用する"
+
+msgid "Assigned IP Address"
+msgstr "割り当てられた IP アドレス"
+
+msgid "An invalid IP address was specified."
+msgstr "無効な IP アドレスが指定されました。"
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "'{0}' の割り当て IP アドレスを '{1}' に変更しました。"
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "デバイス '{0}' の IP 構成を変更しました。"
 
 msgid "IP Address"
 msgstr "IPアドレス"

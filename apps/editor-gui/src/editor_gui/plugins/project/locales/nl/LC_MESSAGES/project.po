@@ -925,9 +925,6 @@ msgstr "Opeenvolgend toewijzen"
 msgid "Assigned Objects"
 msgstr "Toegewezen objecten"
 
-msgid "Assignment"
-msgstr "Toewijzing"
-
 msgid "Based on OpenKNXproducer"
 msgstr "Gebaseerd op OpenKNXproducer"
 
@@ -1141,6 +1138,24 @@ msgstr "Groepsadressen"
 msgid "Group Objects ({count})"
 msgstr "Groepsobjecten ({count})"
 
+
+msgid "Obtain an IP address automatically"
+msgstr "Automatisch een IP-adres laten toewijzen"
+
+msgid "Use a static IP address"
+msgstr "Een vast IP-adres gebruiken"
+
+msgid "Assigned IP Address"
+msgstr "Toegewezen IP-adres"
+
+msgid "An invalid IP address was specified."
+msgstr "Er is een ongeldig IP-adres opgegeven."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Toegewezen IP-adres van '{0}' gewijzigd in '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "IP-configuratie van apparaat '{0}' gewijzigd."
 
 msgid "IP Address"
 msgstr "IP-adres"

@@ -1,5 +1,7 @@
 """GUI project facade: lazy device view over ProjectService with selection and pub/sub."""
 
+import base64
+import binascii
 import datetime
 import hashlib
 import io
@@ -542,6 +544,7 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "RemoveGroupRange": lambda d: S.HISTORY_EV_REMOVE_GROUP_RANGE,
     "UpdateDeviceApplication": lambda d: S.HISTORY_EV_UPDATE_APP,
     "ChangeDeviceApplication": lambda d: S.HISTORY_EV_CHANGE_APP,
+    "SetDeviceIpConfig": lambda d: str(d.get("label") or ""),
     "SyncDeviceComObjects": lambda d: S.HISTORY_EV_SYNC_COM_OBJECTS,
     "SyncDeviceModuleInstances": lambda d: S.HISTORY_EV_SYNC_MODULES,
     "SetGroupAddressSecurity": lambda d: S.HISTORY_EV_SET_GA_SECURITY,
@@ -799,6 +802,24 @@ class _Segment:
     medium_type: str
     description: str = ""
     domain_address: int | None = None
+
+
+@dataclass(frozen=True)
+class IpSettings:
+    """The IP settings of an IP device as its details show them."""
+
+    # Whether the application leaves its IP configuration to the tool ("Tool"): only then the
+    # assignment and the MAC address are shown and set.
+    tool_managed: bool
+    # "Auto" or "Fixed".
+    assign: str
+    ip_address: str | None
+    subnet_mask: str | None
+    default_gateway: str | None
+    mac_address: str | None
+    # The installation's routing multicast address, shown for a device on an IP medium (or a
+    # line coupler with mask 091A); None otherwise.
+    multicast_address: str | None = None
 
 
 @dataclass
@@ -3548,6 +3569,102 @@ class ProjectService:
         return info
 
     @io_guarded(lambda: None)
+    def ip_settings(self, node_id: int) -> IpSettings | None:
+        """The IP settings of an IP device (its hardware ``IsIPEnabled``), None for any other
+        device. Cached by revision, as the device details read it every frame."""
+        if self._pid is None:
+            return None
+        cache_key = f"ip_settings:{node_id}"
+        hit = self._revision_cache.get(cache_key)
+        if hit is not None and hit[0] == self.revision:
+            return cast("IpSettings | None", hit[1])
+        settings = self._read_ip_settings(node_id)
+        self._revision_cache[cache_key] = (self.revision, settings)
+        return settings
+
+    def _read_ip_settings(self, node_id: int) -> IpSettings | None:
+        from xknxeditor.proj.core.ip_settings import ASSIGN_AUTO
+        from xknxeditor.proj.core.medium import MEDIUM_IP
+
+        info = self.get_device_info(node_id)
+        program = info.hardware2program_ref_id if info is not None else None
+        if (
+            self._pid is None
+            or info is None
+            or not program
+            or not self._catalog.hardware_is_ip_enabled(program)
+        ):
+            return None
+        config = info.ip_config or {}
+        tool_managed = self._catalog.ip_config(program) != "Custom"
+        multicast: str | None = None
+        if tool_managed:
+            device = self.find_device_by_node_id(node_id)
+            segment = self.device_segments().get(node_id)
+            medium = self.segment_medium(segment) if segment is not None else None
+            coupler = (
+                device is not None
+                and device.app is not None
+                and device.app.program.mask_version == "MV-091A"
+            )
+            if coupler or (medium is not None and medium[0] == MEDIUM_IP):
+                multicast = (
+                    self._svc.installation_attributes(self._pid).get(
+                        "IPRoutingMulticastAddress"
+                    )
+                    or "224.0.23.12"
+                )
+        return IpSettings(
+            tool_managed=tool_managed,
+            assign=config.get("Assign") or ASSIGN_AUTO,
+            ip_address=config.get("IPAddress"),
+            subnet_mask=config.get("SubnetMask"),
+            default_gateway=config.get("DefaultGateway"),
+            mac_address=config.get("MACAddress"),
+            multicast_address=multicast,
+        )
+
+    def set_ip_settings(
+        self,
+        node_id: int,
+        *,
+        assign: str | None = None,
+        ip_address: str | None = None,
+        subnet_mask: str | None = None,
+        default_gateway: str | None = None,
+    ) -> str | None:
+        """Change the IP settings of an IP device in one undo step; ``None`` leaves a value. The
+        addresses are read like :func:`~xknxeditor.proj.core.ip_settings.parse_ipv4`. Returns
+        the message for an address that cannot be read (nothing changes then), else None."""
+        from xknxeditor.proj.core.ip_settings import parse_ipv4
+
+        settings = self.ip_settings(node_id)
+        if self._pid is None or settings is None:
+            return None
+        name = self._device_history_name(node_id)
+        try:
+            label = (
+                S.HISTORY_IP_ADDRESS_CHANGED.format(name, parse_ipv4(ip_address))
+                if ip_address is not None
+                else S.HISTORY_IP_CONFIG_CHANGED.format(name)
+            )
+            changed = self._svc.set_device_ip_config(
+                self._pid,
+                node_id,
+                assign=assign,
+                ip_address=ip_address,
+                subnet_mask=subnet_mask,
+                default_gateway=default_gateway,
+                tool_managed=settings.tool_managed,
+                label=label,
+            )
+        except ValueError:
+            return S.CONFIGURE_IP_INVALID
+        if changed:
+            self._bump(structural=False)
+        return None
+
+    @io_guarded(lambda: None)
     def ip_download_config(self, device: Device) -> "IpDeviceConfig | None":
         """The project's IP settings a full download writes to ``device``, or ``None`` when its
         hardware is not an IP device."""
@@ -3697,6 +3814,7 @@ class ProjectService:
             if mac_address
             else None,
             download=True,
+            ip_address=None,
             **flags,
         )
 
@@ -3713,10 +3831,11 @@ class ProjectService:
         parameters_loaded: bool | None = None,
         mac_address: str | None = None,
         download: bool = False,
+        ip_address: str | None = None,
     ) -> None:
         """Record a device's commissioning state (loaded ticks / serial / last download / MAC
-        address); ``download`` for what a download recorded (the device's "Last Modified"
-        stays).
+        address / the IP address it was found at); ``download`` for what a download recorded
+        (the device's "Last Modified" stays).
 
         Called after programming a device. Non-structural: the device's parameter/com-object UI is
         unchanged, so the expensive device cache is preserved (only the revision bumps)."""
@@ -3734,8 +3853,38 @@ class ProjectService:
             parameters_loaded=parameters_loaded,
             mac_address=mac_address,
             download=download,
+            ip_address=ip_address,
         )
         self._bump(structural=False)
+
+    def serial_to_find_ip(self, node_id: int) -> bytes | None:
+        """The serial number to find an IP device by on the network after a download: one that
+        obtains its address automatically (or whose application sets it) and whose address is
+        not known. None for any other device, or one without a serial number."""
+        from xknxeditor.proj.core.ip_settings import ASSIGN_AUTO, known_address
+
+        settings = self.ip_settings(node_id)
+        info = self.get_device_info(node_id)
+        if (
+            settings is None
+            or info is None
+            or not info.serial_number
+            or known_address(settings.ip_address) is not None
+            or (settings.tool_managed and settings.assign != ASSIGN_AUTO)
+        ):
+            return None
+        try:
+            return base64.b64decode(info.serial_number)
+        except (ValueError, binascii.Error):
+            return None
+
+    def record_found_ip(self, node_id: int, address: str) -> None:
+        """Keep the address a download found the IP device at, when the device still needs one
+        (see :meth:`serial_to_find_ip`); a known address is never replaced."""
+        from xknxeditor.proj.core.ip_settings import NONE_ADDRESS
+
+        if address != NONE_ADDRESS and self.serial_to_find_ip(node_id) is not None:
+            self.set_device_commissioning(node_id, ip_address=address, download=True)
 
     @io_guarded(set)
     def program_refs(self) -> set[str]:
@@ -6466,6 +6615,7 @@ class ProjectService:
                     return
             elif event_type in (
                 "SetDeviceAdditionalAddresses",
+                "SetDeviceIpConfig",
                 "SetComment",
                 "SetCompletionStatus",
                 "SetTopologyDescription",

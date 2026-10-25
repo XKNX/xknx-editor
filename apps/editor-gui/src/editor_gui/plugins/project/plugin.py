@@ -355,6 +355,8 @@ class ProjectPlugin:
             get_additional_address_count=api.project.additional_address_count,
             on_additional_address_change=self._change_additional_address,
             on_assign_additional_addresses=self._assign_additional_addresses,
+            get_ip_settings=api.project.ip_settings,
+            on_ip_settings_change=api.project.set_ip_settings,
             use_serial_number_default=lambda: api.connection.use_serial_number,
             find_serial_owner=self._serial_owner,
             find_product=api.catalog.find_product,
@@ -2613,11 +2615,36 @@ class ProjectPlugin:
                 # IP Secure settings are only written over a secured connection.
                 if ip_secure is not None and getattr(result, "secured", False):
                     self._api.project.record_ip_secure_download(device, ip_secure)
+            if scope_value != "unload":
+                self._find_ip_after_download(node_id)
 
         if self._api.main_thread is not None:
             self._api.main_thread.submit(_apply)
         else:
             _apply()
+
+    def _find_ip_after_download(self, node_id: int) -> None:
+        """Look for a downloaded IP device on the network when its address is assigned
+        automatically and not known yet, and keep the address it answers from."""
+        serial = self._api.project.serial_to_find_ip(node_id)
+        future = self._api.connection.find_device_ip(serial) if serial else None
+        if future is None:
+            return
+
+        def found(done: "Future[str | None]") -> None:
+            address = None if done.exception() is not None else done.result()
+            if address is None:
+                return
+
+            def keep() -> None:
+                self._api.project.record_found_ip(node_id, address)
+
+            if self._api.main_thread is not None:
+                self._api.main_thread.submit(keep)
+            else:
+                keep()
+
+        future.add_done_callback(found)
 
     def _eval_device(self, device: "Device", scope: "DownloadScope") -> None:
         label = device.name or device.individual_address or "device"

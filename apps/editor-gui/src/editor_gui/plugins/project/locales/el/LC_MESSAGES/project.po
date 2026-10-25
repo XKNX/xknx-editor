@@ -943,8 +943,23 @@ msgstr "Αναφ. Προγράμματος"
 msgid "IP Configuration"
 msgstr "Διαμόρφωση IP"
 
-msgid "Assignment"
-msgstr "Ανάθεση"
+msgid "Obtain an IP address automatically"
+msgstr "Αυτόματη λήψη διεύθυνσης IP"
+
+msgid "Use a static IP address"
+msgstr "Χρήση στατικής διεύθυνσης IP"
+
+msgid "Assigned IP Address"
+msgstr "Εκχωρημένη Διεύθυνση IP"
+
+msgid "An invalid IP address was specified."
+msgstr "Καθορίστηκε μη έγκυρη διεύθυνση IP."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Η εκχωρημένη διεύθυνση IP του '{0}' άλλαξε σε '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "Η διαμόρφωση IP της συσκευής '{0}' άλλαξε."
 
 msgid "IP Address"
 msgstr "Διεύθυνση IP"

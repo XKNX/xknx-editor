@@ -3,7 +3,7 @@ import contextlib
 import math
 import threading
 import time
-from collections.abc import Callable, Coroutine, Iterable
+from collections.abc import Awaitable, Callable, Coroutine, Iterable
 from concurrent.futures import Future
 from enum import Enum
 from typing import TYPE_CHECKING, Any
@@ -115,6 +115,47 @@ def scan_addresses(adapters: Iterable[Any] | None = None) -> list[str]:
     return found
 
 
+async def search_gateways(
+    timeout: float,
+    addresses: list[str] | None = None,
+    on_error: Callable[[BaseException], None] | None = None,
+) -> list[GatewayDescriptor]:
+    """The KNXnet/IP devices that answer a search within ``timeout`` seconds, each once. The
+    search goes out from every local address (``addresses``, :func:`scan_addresses` by
+    default): the one the system routes multicast through alone may be a virtual network (WSL,
+    Hyper-V, VPN) without any interface. ``on_error`` hears of a search that failed."""
+    xknx = XKNX()
+    if addresses is None:
+        addresses = scan_addresses()
+    scans = [
+        GatewayScanner(xknx, local_ip=address, timeout_in_seconds=timeout).scan()
+        for address in addresses
+    ] or [GatewayScanner(xknx, timeout_in_seconds=timeout).scan()]
+    found: dict[tuple[str, int], GatewayDescriptor] = {}
+    for result in await asyncio.gather(*scans, return_exceptions=True):
+        if isinstance(result, BaseException):
+            if on_error is not None:
+                on_error(result)
+            continue
+        for gateway in result:
+            found.setdefault((gateway.ip_addr, gateway.port), gateway)
+    return list(found.values())
+
+
+async def find_by_serial(
+    serial: bytes,
+    tries: int = 6,
+    search: Callable[[float], Awaitable[list[GatewayDescriptor]]] = search_gateways,
+) -> str | None:
+    """The IP address of the KNXnet/IP device with ``serial``: up to ``tries`` searches of a
+    second each. None when it does not answer."""
+    for _ in range(tries):
+        for gateway in await search(1.0):
+            if bytes.fromhex(gateway.serial_number.replace(":", "")) == serial:
+                return gateway.ip_addr
+    return None
+
+
 def split_endpoint(address: str) -> tuple[str, int]:
     """The host and port of an interface address as entered: ``host`` (port 3671) or
     ``host:port``."""
@@ -208,6 +249,11 @@ class ConnectionPlugin:
             supported=lambda: not self.is_routing,
         )
         api.connection.set_reopen_controller(self.reopen)
+        api.connection.set_device_ip_finder(
+            lambda serial: asyncio.run_coroutine_threadsafe(
+                find_by_serial(serial), self._ensure_async_loop()
+            )
+        )
 
         self._gateways: list[GatewayDescriptor] = []
         # The project revision the connection's Data Secure tables were built from.
@@ -1085,22 +1131,14 @@ class ConnectionPlugin:
 
     async def _scan_async(self, auto_connect: bool = False) -> None:
         try:
-            xknx = XKNX()
-            # A search from every local address: the one the system routes multicast through
-            # alone may be a virtual network (WSL, Hyper-V, VPN) without any interface.
             addresses = scan_addresses()
-            scans = [
-                GatewayScanner(xknx, local_ip=address, timeout_in_seconds=3.0).scan()
-                for address in addresses
-            ] or [GatewayScanner(xknx, timeout_in_seconds=3.0).scan()]
-            found: dict[tuple[str, int], GatewayDescriptor] = {}
-            for result in await asyncio.gather(*scans, return_exceptions=True):
-                if isinstance(result, BaseException):
-                    self._log.debug("gateway search failed", error=str(result))
-                    continue
-                for gateway in result:
-                    found.setdefault((gateway.ip_addr, gateway.port), gateway)
-            self._gateways = list(found.values())
+            self._gateways = await search_gateways(
+                3.0,
+                addresses,
+                lambda error: self._log.debug(
+                    "gateway search failed", error=str(error)
+                ),
+            )
             self._log.info(
                 "gateway scan complete",
                 found=len(self._gateways),

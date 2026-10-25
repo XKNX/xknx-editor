@@ -943,8 +943,23 @@ msgstr "Ссылка на программу"
 msgid "IP Configuration"
 msgstr "Конфигурация IP"
 
-msgid "Assignment"
-msgstr "Назначение"
+msgid "Obtain an IP address automatically"
+msgstr "Получить IP-адрес автоматически"
+
+msgid "Use a static IP address"
+msgstr "Использовать статический IP-адрес"
+
+msgid "Assigned IP Address"
+msgstr "Назначенный IP-адрес"
+
+msgid "An invalid IP address was specified."
+msgstr "Указан недопустимый IP-адрес."
+
+msgid "Change assigned IP address of '{0}' to '{1}'."
+msgstr "Назначенный IP-адрес '{0}' изменён на '{1}'."
+
+msgid "IP configuration of device '{0}' changed."
+msgstr "IP-конфигурация устройства '{0}' изменена."
 
 msgid "IP Address"
 msgstr "IP-адрес"

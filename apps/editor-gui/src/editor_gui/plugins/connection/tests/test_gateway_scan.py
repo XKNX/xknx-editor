@@ -74,3 +74,26 @@ def test_the_gateways_found_from_all_addresses_are_merged(
     monkeypatch.setattr(plugin_module, "scan_addresses", lambda: [])
     asyncio.run(plugin._scan_async())
     assert [g.ip_addr for g in plugin._gateways] == ["192.168.16.103"]
+
+
+def test_a_device_is_found_by_its_serial_number() -> None:
+    from editor_gui.plugins.connection.plugin import find_by_serial
+
+    router = SimpleNamespace(
+        ip_addr="192.168.16.103", serial_number="00:fa:12:34:56:78"
+    )
+    other = SimpleNamespace(ip_addr="192.168.16.88", serial_number="00:c5:01:01:00:01")
+    rounds: list[list[Any]] = [[other], [other, router]]
+    timeouts: list[float] = []
+
+    async def search(timeout: float) -> list[Any]:
+        timeouts.append(timeout)
+        return rounds.pop(0) if rounds else []
+
+    serial = bytes.fromhex("00fa12345678")
+    # It answers the second search.
+    assert asyncio.run(find_by_serial(serial, search=search)) == "192.168.16.103"
+    assert timeouts == [1.0, 1.0]
+    # A device that never answers ends the search after its tries.
+    assert asyncio.run(find_by_serial(serial, tries=3, search=search)) is None
+    assert len(timeouts) == 5

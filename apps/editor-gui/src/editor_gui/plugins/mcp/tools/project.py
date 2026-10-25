@@ -1341,6 +1341,78 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         return ctx.run_locked(_set)
 
+    @tool("read")
+    def project_get_ip_settings(
+        node_id: int | None = None, device_address: str | None = None
+    ) -> dict[str, Any]:
+        """The IP settings of an IP device (its hardware is IP-enabled). Identify the device by
+        ``node_id`` OR ``device_address`` (an individual address like "1.0.30"); pass exactly
+        one. Returns {node_id, tool_managed, assign, ip_address, subnet_mask, default_gateway,
+        mac_address, multicast_address}:
+        - tool_managed: whether its application leaves the IP configuration to the tool; only
+          then ``assign`` and the MAC address apply (otherwise the application's parameters set
+          it and only ``ip_address``, the assigned one, is kept).
+        - assign: "Auto" (obtained automatically) or "Fixed" (static).
+        - ip_address: the static address, or with "Auto" the address it was assigned (null or
+          "0.0.0.0" when unknown); subnet_mask and default_gateway belong to a static address.
+        - mac_address: read from the device by a download, null before.
+        - multicast_address: the installation's routing multicast address for a device on an
+          IP medium, else null."""
+        require_project(ctx)
+        return ctx.run_locked(
+            lambda: _ip_settings(_require_device(node_id, device_address).node_id)
+        )
+
+    def _ip_settings(node: int) -> dict[str, Any]:
+        settings = project.ip_settings(node)
+        if settings is None:
+            raise ToolError(f"device {node} is no IP device")
+        return {
+            "node_id": node,
+            "tool_managed": settings.tool_managed,
+            "assign": settings.assign,
+            "ip_address": settings.ip_address,
+            "subnet_mask": settings.subnet_mask,
+            "default_gateway": settings.default_gateway,
+            "mac_address": settings.mac_address,
+            "multicast_address": settings.multicast_address,
+        }
+
+    @tool("write")
+    def project_set_ip_settings(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        assign: Literal["Auto", "Fixed"] | None = None,
+        ip_address: str | None = None,
+        subnet_mask: str | None = None,
+        default_gateway: str | None = None,
+    ) -> dict[str, Any]:
+        """Change the IP settings of an IP device in one undo step, as its details do (the next
+        full download writes them). Identify the device by ``node_id`` OR ``device_address``
+        (an individual address like "1.0.30"); pass exactly one. Omitted values stay.
+        ``assign`` "Auto" (obtain automatically) or "Fixed" (static); changing it keeps the
+        addresses. Addresses are IPv4 ("192.168.1.10"; also short forms like "192.168.1" =
+        192.168.0.1); "0.0.0.0" clears the assigned address. A static address marks the
+        device's IP configuration as not downloaded. Returns the settings as
+        project_get_ip_settings does."""
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            node = _require_device(node_id, device_address).node_id
+            _ip_settings(node)
+            error = project.set_ip_settings(
+                node,
+                assign=assign,
+                ip_address=ip_address,
+                subnet_mask=subnet_mask,
+                default_gateway=default_gateway,
+            )
+            if error:
+                raise ToolError(error)
+            return _ip_settings(node)
+
+        return ctx.run_locked(_set)
+
     @tool("destructive")
     def project_export_keyring(dest: str, password: str) -> dict[str, Any]:
         """Export the open project's key material as a keyring (``.knxkeys``) to ``dest``,

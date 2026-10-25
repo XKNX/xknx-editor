@@ -107,6 +107,7 @@ from xknxeditor.proj.core.events import (
     SetDeviceCertificates,
     SetDeviceCommissioning,
     SetDeviceDescription,
+    SetDeviceIpConfig,
     SetDeviceName,
     SetDeviceSecureCommissioning,
     SetDeviceSpace,
@@ -160,6 +161,12 @@ from xknxeditor.proj.core.ga_security import (
     secure_commissioned,
     secured_group_addresses,
     security_attributes,
+)
+from xknxeditor.proj.core.ip_settings import (
+    ASSIGN_AUTO,
+    ASSIGN_FIXED,
+    ASSIGNMENTS,
+    parse_ipv4,
 )
 from xknxeditor.proj.core.medium import (
     MAX_SEGMENTS,
@@ -467,8 +474,8 @@ class DeviceInfo:
     hardware_name: str
     product_name: str
     manufacturer_name: str
-    # Verbatim IPConfig attributes from import (IP router/interface); None when the device has no
-    # <IPConfig>. Read-only provenance, displayed only when it carries static values.
+    # The IP settings of an IP device as the project stores them (its <IPConfig> attributes, see
+    # ``core.ip_settings``); None when it has none.
     ip_config: dict[str, str] | None
     # Commissioning state ("loaded" ticks + serial / last download).
     serial_number: str
@@ -2056,9 +2063,10 @@ class ProjectService:
         parameters_loaded: bool | None = None,
         mac_address: str | None = None,
         download: bool = False,
+        ip_address: str | None = None,
     ) -> None:
         """Update a device's commissioning state (loaded ticks, serial, last download, the MAC
-        address read from an IP device).
+        address read from an IP device and the IP address it was found at).
 
         Each field is optional; ``None`` leaves it unchanged. Typically called after programming to
         record what was loaded (``download``: then its "Last Modified" stays), and by the
@@ -2075,10 +2083,62 @@ class ProjectService:
                 parameters_loaded=parameters_loaded,
                 mac_address=mac_address,
                 download=download,
+                ip_address=ip_address,
             )
         )
 
     # --- remove / rename / move -------------------------------------------
+
+    def set_device_ip_config(
+        self,
+        project_id: str,
+        device_id: int,
+        *,
+        assign: str | None = None,
+        ip_address: str | None = None,
+        subnet_mask: str | None = None,
+        default_gateway: str | None = None,
+        tool_managed: bool = True,
+        label: str | None = None,
+    ) -> bool:
+        """Change the IP settings of an IP device in one undo step; ``None`` leaves a value.
+
+        ``assign`` is "Auto" or "Fixed"; the addresses are read by
+        :func:`~xknxeditor.proj.core.ip_settings.parse_ipv4` and stored dotted. Changing
+        ``assign`` keeps the addresses. When the application leaves its IP configuration to the
+        tool (``tool_managed``), a fixed assignment marks the IP configuration as not
+        downloaded. Returns whether anything changed. Raises ``ValueError`` for an unknown
+        assignment or an address that cannot be read."""
+        state = self._state(project_id)
+        device = self._require_device(state, device_id)
+        current = device.ip_config or {}
+        if assign is not None and assign not in ASSIGNMENTS:
+            raise ValueError(f"unknown IP assignment: {assign!r}")
+        old_assign = current.get("Assign") or ASSIGN_AUTO
+        new_assign = assign or old_assign
+        addresses: dict[str, str | None] = {}
+        for key, value in (
+            ("IPAddress", ip_address),
+            ("SubnetMask", subnet_mask),
+            ("DefaultGateway", default_gateway),
+        ):
+            addresses[key] = current.get(key) if value is None else parse_ipv4(value)
+        if new_assign == old_assign and all(
+            addresses[key] == current.get(key) for key in addresses
+        ):
+            return False
+        state.store.append(
+            SetDeviceIpConfig(
+                device_id=device_id,
+                assign=new_assign,
+                ip_address=addresses["IPAddress"],
+                subnet_mask=addresses["SubnetMask"],
+                default_gateway=addresses["DefaultGateway"],
+                clear_medium_config=tool_managed and new_assign == ASSIGN_FIXED,
+                label=label,
+            )
+        )
+        return True
 
     def remove_device(self, project_id: str, device_id: int) -> None:
         self._state(project_id).store.append(RemoveDevice(target_id=device_id))

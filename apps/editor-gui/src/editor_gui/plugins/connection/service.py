@@ -193,6 +193,8 @@ class ConnectionService:
         # The individual address of the interface the connection runs through.
         self.interface_address: str | None = None
         self._reopen: Callable[[], None] | None = None
+        # Finds a KNXnet/IP device on the network by its serial number (see find_device_ip).
+        self._find_device_ip: Callable[[bytes], Future[str | None]] | None = None
         # Keyring service (KNX Data Secure), injected at startup. Used to look up a device's tool
         # key so a point-to-point download/test is secured when the device was commissioned secure.
         self.keyring: KeyringService | None = None
@@ -425,6 +427,18 @@ class ConnectionService:
     def set_reopen_controller(self, reopen: Callable[[], None]) -> None:
         """How the connection is opened anew when its interface requires another one."""
         self._reopen = reopen
+
+    def set_device_ip_finder(self, find: Callable[[bytes], Future[str | None]]) -> None:
+        """How a KNXnet/IP device is found on the network by its serial number."""
+        self._find_device_ip = find
+
+    def find_device_ip(self, serial: bytes) -> Future[str | None] | None:
+        """Search the network for the KNXnet/IP device with ``serial`` (also without a bus
+        connection): a future of its IP address, None when it does not answer. None when
+        there is no way to search."""
+        if self._find_device_ip is None:
+            return None
+        return self._find_device_ip(serial)
 
     # --- bus monitor mode -----------------------------------------------------
 
