@@ -40,6 +40,8 @@ def test_partial_scopes_set_only_their_part() -> None:
         "parameters_loaded": True,
         # A download leaves the device's "Last Modified" as it was.
         "download": True,
+        # The address it is found at comes later (see record_found_ip).
+        "ip_address": None,
     }
     ((_, kwargs),) = _record("ia").call_args_list
     assert kwargs["individual_address_loaded"] is True
