@@ -164,13 +164,13 @@ class _Manager:
         return None
 
 
-async def _scope(
+async def _check(
     monkeypatch: pytest.MonkeyPatch,
     device: FakeDevice,
     app: Application,
     scope: DownloadScope,
     confirm: Any = None,
-) -> DownloadScope:
+) -> tuple[DownloadScope, bool]:
     monkeypatch.setattr(
         download_module, "_connection_manager", lambda *args: _Manager(device)
     )
@@ -180,6 +180,16 @@ async def _scope(
     return await _partial_scope(
         cast(Any, None), cast(Any, None), None, app, None, scope, confirm
     )
+
+
+async def _scope(
+    monkeypatch: pytest.MonkeyPatch,
+    device: FakeDevice,
+    app: Application,
+    scope: DownloadScope,
+    confirm: Any = None,
+) -> DownloadScope:
+    return (await _check(monkeypatch, device, app, scope, confirm))[0]
 
 
 async def test_partial_download_into_another_application_fails(
@@ -196,19 +206,34 @@ async def test_partial_download_into_another_application_fails(
     )
 
 
-async def test_prefer_partial_skipped_for_memory_mapped_lsm(
+async def test_prefer_partial_keeps_the_full_load_for_memory_mapped_lsm(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    """BIM M112 AbsSegment reloads need Unload of LSM 3; never shrink to partial."""
+    """BIM M112 AbsSegment reloads need Unload of LSM 3: the full procedure runs,
+    without the code seed when the device has the application loaded."""
     app = _application(
         "MV-0701",
         prefer_partial_download_if_application_loaded=True,
         prompt_before_full_download=True,
     )
-    assert (
-        await _scope(monkeypatch, _device(app), app, DownloadScope.FULL)
-        is DownloadScope.FULL
+    loaded = _device(app, 0x0701)
+    assert await _check(monkeypatch, loaded, app, DownloadScope.FULL) == (
+        DownloadScope.FULL,
+        True,
     )
+    other = _device(app, 0x0701)
+    other.load_states[4] = LoadState.UNLOADED
+    assert await _check(
+        monkeypatch, other, app, DownloadScope.FULL, lambda reason: _yes()
+    ) == (DownloadScope.FULL, False)
+    plain = _application("MV-0701")
+    assert await _check(
+        monkeypatch, _device(plain, 0x0701), plain, DownloadScope.FULL
+    ) == (DownloadScope.FULL, False)
+
+
+async def _yes() -> bool:
+    return True
 
 
 async def test_prefer_partial(monkeypatch: pytest.MonkeyPatch) -> None:

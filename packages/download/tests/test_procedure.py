@@ -1569,6 +1569,42 @@ async def test_abs_segment_writes_initialized_bytes_in_partial_scope_for_memory_
     assert bytes(device.memory[0x4B20 + i] for i in range(4)) == b"\xaa\xbb\xcc\xdd"
 
 
+@pytest.mark.parametrize("memory_mapped", [True, False])
+async def test_full_load_with_the_application_loaded_writes_no_code_seed(
+    memory_mapped: bool,
+) -> None:
+    """A full procedure on a device that has the application loaded writes only
+    what the tables and parameters set (the mask), not the segment's seed."""
+    control = _abs_segment_control()
+    application = _m112_application(control) if memory_mapped else _application(control)
+    image = DownloadImage(
+        segments=(
+            MemorySegment(
+                address=0x4B20,
+                data=b"\xaa\xbb\xcc\xdd",
+                mask=b"\x00\xff\x00\x00",
+                initialized_mask=b"\xff\xff\xff\xff",
+            ),
+        ),
+        properties=(),
+    )
+    device = _device()
+    runner = LoadProcedureRunner(
+        application,
+        image,
+        DeviceProgrammer(device),
+        controls=[control],
+        scope=DownloadScope.FULL,
+        object_types=_APPLICATION_OBJECT,
+        application_loaded=True,
+    )
+
+    await runner.run()
+
+    written = {a: device.memory[a] for a in range(0x4B20, 0x4B24) if a in device.memory}
+    assert written == {0x4B21: 0xBB}
+
+
 async def test_abs_segment_keeps_the_parameter_mask_for_property_mapped_masks() -> None:
     """A property-mapped mask (System B, BCU2) does not reallocate a segment the way
     BIM M112 does; a parameter download writes only the parameter bytes, not the

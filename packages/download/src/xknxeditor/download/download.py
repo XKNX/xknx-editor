@@ -11,7 +11,7 @@ from __future__ import annotations
 import logging
 from collections.abc import Awaitable, Callable, Mapping
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NamedTuple
 
 from xknx.exceptions import ManagementConnectionError
 from xknx.telegram import IndividualAddress
@@ -223,6 +223,14 @@ _PARTIAL_SCOPES = frozenset(
 )
 
 
+class _ScopeCheck(NamedTuple):
+    """The scope :func:`_partial_scope` chose, and whether the device has the
+    application loaded for a full procedure (see ``LoadProcedureRunner``)."""
+
+    scope: DownloadScope
+    application_loaded: bool = False
+
+
 async def _partial_scope(
     xknx: XKNX,
     address: IndividualAddress,
@@ -231,7 +239,7 @@ async def _partial_scope(
     master: MasterData | None,
     scope: DownloadScope,
     confirm_full_download: Callable[[str], Awaitable[bool]] | None,
-) -> DownloadScope:
+) -> _ScopeCheck:
     """The scope to download after checking the device's application."""
     from .partial import (
         DifferentProgramLoaded,
@@ -245,16 +253,16 @@ async def _partial_scope(
     mapped = bundled_mask_resources(application.program.mask_version)
     # BIM M112 product procedures reload by unloading/allocating absolute
     # segments. A "partial" still runs those AbsSegments; skipping Unload of
-    # LSM 3 leaves a half-mapped application. Always take the full load.
+    # LSM 3 leaves a half-mapped application. They keep the full load, without
+    # the code seed the device already holds.
     memory_mapped = mapped is not None and mapped.memory_mapped_lsm() is not None
     prefer = (
-        not memory_mapped
-        and scope in (DownloadScope.FULL, DownloadScope.APPLICATION)
+        scope in (DownloadScope.FULL, DownloadScope.APPLICATION)
         and options is not None
         and options.prefer_partial_download_if_application_loaded
     )
     if scope not in _PARTIAL_SCOPES and not prefer:
-        return scope
+        return _ScopeCheck(scope)
     resources = mask_resources(master, application.program.mask_version)
     manager = _connection_manager(xknx, address, security)
     try:
@@ -270,13 +278,15 @@ async def _partial_scope(
         if reason is not None:
             logger.warning("download: %s", reason)
             raise DifferentProgramLoaded(reason)
-        return scope
+        return _ScopeCheck(scope)
     if reason is None:
         logger.info(
             "download: trying a partial download because of "
             "PreferPartialDownloadIfApplicationLoaded"
         )
-        return DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION
+        if memory_mapped:
+            return _ScopeCheck(scope, application_loaded=True)
+        return _ScopeCheck(DownloadScope.PARAMETERS_AND_GROUP_COMMUNICATION)
     logger.info("download: %s", reason)
     if (
         options is not None
@@ -287,7 +297,7 @@ async def _partial_scope(
         raise FullDownloadDeclined(
             "Aborting on user request (PromptBeforeFullDownload)"
         )
-    return scope
+    return _ScopeCheck(scope)
 
 
 _TABLE_SCOPES = frozenset(
@@ -533,8 +543,9 @@ async def download(
     checked = await _partial_scope(
         xknx, address, security, application, master, scope, confirm_full_download
     )
-    if checked is not scope:
-        scope = checked
+    application_loaded = checked.application_loaded
+    if checked.scope is not scope:
+        scope = checked.scope
         controls = _resolve_controls(
             application,
             master,
@@ -606,6 +617,7 @@ async def download(
             authorize_levels=authorize_levels,
             memory_service_count=memory_cap,
             property_services=_property_services(application, master),
+            application_loaded=application_loaded,
         )
         try:
             await runner.run(progress)
@@ -718,6 +730,12 @@ async def preflight(
             group_communication=group_communication,
         )
     address = IndividualAddress(individual_address)
+    application_loaded = False
+    if scope not in _PARTIAL_SCOPES:
+        # The scope a download would take (PreferPartialDownloadIfApplicationLoaded).
+        scope, application_loaded = await _partial_scope(
+            xknx, address, security, application, master, scope, None
+        )
     image = await _device_association_format(xknx, address, security, image, scope)
     controls = _resolve_controls(application, master, image, scope, ip_config)
     apdu_ceiling, negotiate_apdu = _apdu_settings(
@@ -740,6 +758,7 @@ async def preflight(
             authorize_levels=_authorize_levels(application, master, security),
             memory_service_count=memory_cap,
             property_services=_property_services(application, master),
+            application_loaded=application_loaded,
         )
         try:
             return await runner.preflight()
