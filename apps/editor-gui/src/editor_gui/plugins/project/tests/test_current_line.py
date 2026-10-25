@@ -148,3 +148,56 @@ def test_the_details_show_the_own_or_the_inherited_line(
     choice[0] = (False, None)
     _render(panel, project, room)
     assert shown[-1] == (None, "None")
+
+
+@pytest.mark.usefixtures("context")
+def test_a_room_s_use_and_status_are_chosen_in_its_details(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    building = project.get_space_tree()[0].id
+    room = project.create_space(building, "Room", "Living")
+    assert room is not None
+    from editor_gui.plugins.project.element_status import usage_options
+
+    use = next(usage for usage, _text in usage_options() if usage)
+    monkeypatch.setattr(space_details, "usage_combo", lambda *_a: use)
+    monkeypatch.setattr(space_details, "status_combo", lambda *_a: "Tested")
+    panel = SpaceDetailsPanel(
+        on_rename=project.rename_space,
+        on_set_description=project.set_space_description,
+        on_set_number=project.set_space_number,
+        line_choices=project.line_choices,
+        get_current_line=project.current_line,
+        on_set_current_line=project.set_space_default_line,
+        on_set_usage=project.set_space_usage,
+        get_status=lambda space_id: project.completion_status("space", space_id),
+        on_set_status=lambda space_id, status: project.set_completion_status(
+            "space", space_id, status
+        ),
+    )
+    _render(panel, project, room)
+    space = project.find_space(room)
+    assert space is not None and space.usage == use
+    assert project.completion_status("space", room) == "Tested"
+
+
+@pytest.mark.usefixtures("context")
+def test_the_project_status_is_chosen_in_the_project_info(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from editor_gui.plugins.project.ui import project_info
+
+    monkeypatch.setattr(project_info, "status_combo", lambda *_a: "Accepted")
+    panel = project_info.ProjectInfoPanel(
+        get_project_info=project.get_project_metadata,
+        get_status=lambda: project.completion_status("project", 0),
+        on_set_status=lambda status: project.set_completion_status(
+            "project", 0, status
+        ),
+    )
+    imgui.new_frame()
+    imgui.begin("Project")
+    panel.render()
+    imgui.end()
+    imgui.end_frame()
+    assert project.completion_status("project", 0) == "Accepted"

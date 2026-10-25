@@ -6,7 +6,10 @@ import pytest
 
 from xknxeditor.proj.core.coupler_rules import CouplerDevice, check_coupler
 from xknxeditor.proj.core.medium import (
+    MAX_SEGMENTS,
+    MEDIUM_IOT,
     MEDIUM_IP,
+    MEDIUM_PL,
     MEDIUM_RF,
     MEDIUM_TP,
     LineView,
@@ -120,6 +123,97 @@ def test_line_couplers_and_segments() -> None:
     ) == ("coupler_main_line")
     # Any other device is no coupler: nothing to check here.
     assert _reason(IP_PROJECT, 0, SENSOR) is None
+
+
+# A line coupler whose media lack the medium it couples to (TP): which way it couples is unknown.
+IP_ONLY = CouplerDevice(media=frozenset({MEDIUM_IP}), mask="MV-0912", is_coupler=True)
+
+
+def test_area_couplers() -> None:
+    # An area coupler on the main line of an area needs a backbone ...
+    assert _reason([_line(1, 0, MEDIUM_TP)], 100, IP_ONLY) == "area_coupler_backbone"
+    # ... of the medium it couples to ...
+    ip_backbone = [_line(0, 0, MEDIUM_IP), _line(1, 0, MEDIUM_TP)]
+    assert _reason(ip_backbone, 100, IP_ONLY) == "coupler_main_line_medium"
+    # ... and the main line's medium among its own.
+    tp_backbone = [_line(0, 0, MEDIUM_TP), _line(1, 0, MEDIUM_TP)]
+    assert _reason(tp_backbone, 100, IP_ONLY) == "device_segment_medium"
+
+
+def test_line_couplers_need_their_media_above_and_below() -> None:
+    # In a sub-segment only a segment coupler, or one that has the medium above.
+    rf_sub = [
+        _line(0, 0, MEDIUM_TP),
+        _line(1, 0, MEDIUM_TP),
+        _line(1, 1, MEDIUM_TP, MEDIUM_RF),
+    ]
+    assert _reason(rf_sub, 111, IP_ONLY) == "coupler_no_segments"
+    # Without the area's main line nothing is above it.
+    assert _reason([_line(0, 0, MEDIUM_TP), _line(1, 1, MEDIUM_TP)], 110, IP_ONLY) == (
+        "coupler_main_line"
+    )
+    # The main line above has another medium: unless a coupler is already at address 0.
+    ip_main = [_line(0, 0, MEDIUM_IP), _line(1, 0, MEDIUM_IP), _line(1, 1, MEDIUM_TP)]
+    assert _reason(ip_main, 110, IP_ONLY) == "coupler_main_line_medium"
+    coupled = [*ip_main[:2], _line(1, 1, MEDIUM_TP, devices={0: ((7, 0),)})]
+    assert _reason(coupled, 110, IP_ONLY) == "device_segment_medium"
+    # A coupler that only couples down needs room for another segment.
+    full = [*ip_main[:2], _line(1, 1, *[MEDIUM_TP] * MAX_SEGMENTS)]
+    assert _reason(full, 110, LINE_COUPLER) == "coupler_segments_full"
+    assert _reason(ip_main, 110, LINE_COUPLER) is None
+    # In a TP sub-segment of a TP line it couples up.
+    tp_sub = [
+        _line(0, 0, MEDIUM_TP),
+        _line(1, 0, MEDIUM_TP),
+        _line(1, 1, MEDIUM_TP, MEDIUM_TP),
+    ]
+    assert _reason(tp_sub, 111, LINE_COUPLER) is None
+
+
+def test_segment_couplers_name_the_media_they_miss() -> None:
+    segment_coupler = CouplerDevice(
+        media=frozenset({MEDIUM_TP}),
+        mask="MV-0912",
+        is_coupler=True,
+        segment_coupler=True,
+    )
+    rf_sub = [
+        _line(0, 0, MEDIUM_TP),
+        _line(1, 0, MEDIUM_TP),
+        _line(1, 1, MEDIUM_TP, MEDIUM_RF),
+    ]
+    with pytest.raises(MediumError) as error:
+        check_coupler(rf_sub, 111, segment_coupler, "Coupler")
+    assert error.value.reason == "coupler_media_below"
+    assert str(error.value) == (
+        "The operation could not be executed, because this device couples medium 'TP' "
+        "(above) to medium 'TP' (below), but the medium type of the lower segment is 'RF'."
+    )
+
+
+def test_world_couplers_with_other_media() -> None:
+    tp_backbone = [_line(0, 0, MEDIUM_TP), _line(1, 0, MEDIUM_TP)]
+    # An IP router as world coupler with RF segment coupling, or with IoT, is not allowed there.
+    rf_router = CouplerDevice(
+        media=frozenset({MEDIUM_TP, MEDIUM_IP, MEDIUM_RF}),
+        mask="MV-091A",
+        is_coupler=True,
+        segment_coupler=True,
+    )
+    assert _reason(tp_backbone, 0, rf_router) == "device_line_medium"
+    iot_router = CouplerDevice(
+        media=frozenset({MEDIUM_TP, MEDIUM_IP, MEDIUM_IOT}),
+        mask="MV-091A",
+        is_coupler=True,
+    )
+    assert _reason(tp_backbone, 0, iot_router) == "device_line_medium"
+    # A TP coupler on a TP backbone with RF (without segment coupling) or PL.
+    for medium in (MEDIUM_RF, MEDIUM_PL):
+        coupler = CouplerDevice(
+            media=frozenset({MEDIUM_TP, medium}), mask="MV-0912", is_coupler=True
+        )
+        assert _reason(tp_backbone, 0, coupler) == "device_line_medium"
+    assert _reason(tp_backbone, 0, LINE_COUPLER) is None
 
 
 def test_messages() -> None:

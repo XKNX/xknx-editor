@@ -82,6 +82,42 @@ def test_securing_needs_a_password(project: ProjectService) -> None:
     assert reason is not None and "password" in reason.lower()
 
 
+def test_a_group_is_not_forced_off_over_an_object_that_requires_security(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from editor_gui.plugins.project.strings import S
+
+    main, middle, ga = _groups(project)
+    svc, pid = project._svc, project._pid  # pyright: ignore[reportPrivateUsage]
+    assert pid is not None
+    segment = next(
+        s.id
+        for a in svc.topology(pid, 0).areas
+        if a.address == 1
+        for ln in a.lines
+        if ln.address == 1
+        for s in ln.segments
+    )
+    device = svc.add_device(
+        pid, segment, "M-1_H-1_P-1", address=5, com_objects=[("M-1_A-1_O-1_R-1", None)]
+    )
+    com_object = next(
+        co.id for d in svc.devices(pid) if d.id == device for co in d.com_objects
+    )
+    svc.link_com_object(pid, com_object, ga, sending=True)
+    project._bump()  # pyright: ignore[reportPrivateUsage]
+    monkeypatch.setattr(project, "com_object_requires_security", lambda _link: True)
+    for group in (main, middle):
+        assert project.set_element_security("group_range", group, "Off") == (
+            S.GA_SECURE_REQUIRED
+        )
+    details = project.element_details("group_range", main)
+    assert details is not None and details.security == "Auto"
+    # Without such an object the group is forced off.
+    monkeypatch.setattr(project, "com_object_requires_security", lambda _link: False)
+    assert project.set_element_security("group_range", main, "Off") is None
+
+
 def test_a_group_address_is_marked_central(project: ProjectService) -> None:
     _main, _middle, ga = _groups(project)
     project.set_group_address_central(ga, True)
