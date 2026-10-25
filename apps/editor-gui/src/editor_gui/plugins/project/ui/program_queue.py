@@ -148,7 +148,7 @@ class ProgramQueuePanel:
         if failed:
             imgui.push_style_color(imgui.Col_.text, _RED)
         is_open = imgui.tree_node_ex(
-            f"{_operation(item)}: {_state(item)}###status",
+            f"{operation_text(item)}: {state_text(item)}###status",
             imgui.TreeNodeFlags_.span_avail_width,
         )
         if failed:
@@ -300,7 +300,8 @@ def _tab_flags(selected: bool) -> int:
     return imgui.TabItemFlags_.set_selected if selected else imgui.TabItemFlags_.none
 
 
-def _operation(item: QueueItem) -> str:
+def operation_text(item: QueueItem) -> str:
+    """What an operation of the queue does, as its entry names it ("Download (Parameters)")."""
     if item.script is not None:
         return S.SCRIPT_OPERATION
     if item.device_info is not None:
@@ -310,7 +311,8 @@ def _operation(item: QueueItem) -> str:
     return f"{S.OPERATION_DOWNLOAD}({_scope_label(item.scope)})"
 
 
-def _state(item: QueueItem) -> str:
+def state_text(item: QueueItem) -> str:
+    """How far an operation of the queue is, as its entry shows it ("Waiting", "Downloading" …)."""
     match item.state:
         case OperationState.WAITING:
             return S.OPERATION_WAITING

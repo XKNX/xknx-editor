@@ -184,7 +184,7 @@ class ProjectPlugin:
             on_cancel=self._program_queue.cancel_item,
             on_cancel_all=self._program_queue.cancel_all,
             on_clear_history=self._program_queue.clear_history,
-            get_bus_operation=lambda: _unqueued(api.connection.busy_operation),
+            get_bus_operation=self.unqueued_bus_operation,
         )
         self._online_runner = OnlineButtonRunner(
             api.project,
@@ -2558,13 +2558,23 @@ class ProjectPlugin:
         """Whether an operation was queued, or a bus operation without a queue entry started (a
         device test, a scan …), since the last call; selects the Active tab if so."""
         queued = self._program_queue.take_focus_request()
-        operation = _unqueued(self._api.connection.busy_operation)
+        operation = self.unqueued_bus_operation()
         started = operation is not None and operation != self._shown_bus_operation
         self._shown_bus_operation = operation
         if not (queued or started):
             return False
         self._program_queue_panel.select_active()
         return True
+
+    @property
+    def program_queue(self) -> ProgramQueue:
+        """The operations the Operations panel lists: running, waiting and ended ones."""
+        return self._program_queue
+
+    def unqueued_bus_operation(self) -> tuple[str, str] | None:
+        """The running bus operation the queue has no entry for (a device test, a scan …), as
+        kind and address; the Operations panel shows it above the queue."""
+        return _unqueued(self._api.connection.busy_operation)
 
     def _record_commissioning(
         self,
