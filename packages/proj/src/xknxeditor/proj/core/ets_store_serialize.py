@@ -369,6 +369,7 @@ class _StoreBuilder:
             Comment=group_range.comment or None,
             Description=group_range.description or None,
             Unfiltered="true" if group_range.unfiltered else None,
+            Security=group_range.security_mode or None,
             Puid=self._p("GR", group_range.id),
         )
         for child in sorted(group_range.children, key=lambda gr: gr.range_start):

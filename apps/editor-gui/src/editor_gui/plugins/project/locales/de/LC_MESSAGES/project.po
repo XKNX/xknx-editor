@@ -2585,3 +2585,33 @@ msgstr "Segment in {name} umbenennen"
 
 msgid "Set medium to {medium}"
 msgstr "Medientyp auf {medium} festlegen"
+
+msgid "Forced On"
+msgstr "Erzwungen an"
+
+msgid "Forced Off"
+msgstr "Erzwungen aus"
+
+msgid "Forced on"
+msgstr "Erzwungen an"
+
+msgid "Forced off"
+msgstr "Erzwungen aus"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Überschrieben durch '{name}': {mode}"
+
+msgid "Central"
+msgstr "Zentral"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Nicht alle mit einer Gruppenadresse dieser Gruppe verbundenen Geräte werden sicher in Betrieb genommen, daher kann sie nicht gesichert werden."
+
+msgid "Set group security"
+msgstr "Sicherheit der Gruppe festlegen"
+
+msgid "Mark group address as central"
+msgstr "Gruppenadresse als zentral markieren"
+
+msgid "Remove central mark from group address"
+msgstr "Zentral-Markierung der Gruppenadresse entfernen"

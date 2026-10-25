@@ -2400,3 +2400,33 @@ msgstr "Переименовать сегмент в {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Задать носитель {medium}"
+
+msgid "Forced On"
+msgstr "Принудительное включение"
+
+msgid "Forced Off"
+msgstr "Принудительное выключение"
+
+msgid "Forced on"
+msgstr "Принудительное включение"
+
+msgid "Forced off"
+msgstr "Принудительное выключение"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Переопределено группой '{name}': {mode}"
+
+msgid "Central"
+msgstr "Центральный"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Не все устройства, связанные с групповым адресом этой группы, вводятся в эксплуатацию с защитой, поэтому её нельзя защитить."
+
+msgid "Set group security"
+msgstr "Задать защиту группы"
+
+msgid "Mark group address as central"
+msgstr "Отметить групповой адрес как центральный"
+
+msgid "Remove central mark from group address"
+msgstr "Снять отметку центрального с группового адреса"

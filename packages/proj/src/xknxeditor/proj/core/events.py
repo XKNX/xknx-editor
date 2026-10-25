@@ -17,7 +17,7 @@ from typing import Any, ClassVar, cast
 from sqlalchemy import inspect as sa_inspect
 from sqlalchemy.orm import Session
 
-from xknxeditor.proj.core.ga_security import secure_commissioned
+from xknxeditor.proj.core.ga_security import effective_mode, secure_commissioned
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.skeleton import MEDIUM_IP
 from xknxeditor.proj.models import (
@@ -1303,10 +1303,12 @@ def _may_be_secured(
 ) -> bool:
     """Whether the group address is or may become secured by a change of its links (with
     ``device_id`` joining): never with Security ``Off``; with ``On``, a key or a securely
-    commissioned device on it (``Auto``, see :mod:`.ga_security`) it may."""
-    if group_address.security_mode == "Off":
+    commissioned device on it (``Auto``, see :mod:`.ga_security`) it may. The mode is the one
+    that counts, a group above it may force it."""
+    mode = effective_mode(group_address)
+    if mode == "Off":
         return False
-    if group_address.security_mode == "On" or group_address.security_key:
+    if mode == "On" or group_address.security_key:
         return True
     devices = _devices_on(session, group_address.id)
     if device_id is not None:
@@ -1688,6 +1690,116 @@ class SetGroupAddressSecurity(Event):
         data = dict(data)
         if "old_key" in data:  # the field name of earlier builds
             data["old_security_key"] = data.pop("old_key")
+        return cls(**data)
+
+
+def addresses_below(group_range: GroupRange) -> list[GroupAddress]:
+    """The group addresses of a group and of every group below it."""
+    found = list(group_range.group_addresses)
+    for child in group_range.children:
+        found.extend(addresses_below(child))
+    return found
+
+
+@_register
+@dataclass
+class SetGroupRangeSecurity(Event):
+    """Set a main or middle group's ``@Security``: ``"On"``/``"Off"`` force it on everything below
+    it, ``"Auto"`` or ``None`` leave them their own (see :mod:`.ga_security`). ``keys`` gives the
+    group addresses it secures that have no key yet theirs (``group address id -> enc1:
+    token``), taken back on revert. Devices linked below it then need a group download, so their
+    group-communication loaded flag is cleared (restored on revert)."""
+
+    event_type: ClassVar[str] = "SetGroupRangeSecurity"
+
+    group_range_id: int
+    security_mode: str | None
+    keys: dict[int, str] = field(default_factory=dict[int, str])
+    captured: bool = False
+    old_mode: str | None = None
+    added_keys: list[int] = field(default_factory=list[int])
+    cleared: dict[str, bool] = field(default_factory=dict[str, bool])
+
+    def apply(self, session: Session) -> None:
+        group_range = session.get(GroupRange, self.group_range_id)
+        if group_range is None:
+            return
+        self.old_mode = group_range.security_mode
+        self.captured = True
+        addresses = addresses_below(group_range)
+        devices: set[int] = set()
+        for ga in addresses:
+            devices |= _devices_on(session, ga.id)
+        self.cleared = _clear_communication_loaded(session, devices)
+        group_range.security_mode = self.security_mode
+        self.added_keys = []
+        for ga in addresses:
+            key = self.keys.get(ga.id)
+            if key is not None and ga.security_key is None:
+                ga.security_key = key
+                self.added_keys.append(ga.id)
+
+    def revert(self, session: Session) -> None:
+        group_range = session.get(GroupRange, self.group_range_id)
+        if group_range is not None and self.captured:
+            group_range.security_mode = self.old_mode
+        for ga_id in self.added_keys:
+            ga = session.get(GroupAddress, ga_id)
+            if ga is not None:
+                ga.security_key = None
+        _restore_communication_loaded(session, self.cleared)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "group_range_id": self.group_range_id,
+            "security_mode": self.security_mode,
+            "keys": self.keys,
+            "captured": self.captured,
+            "old_mode": self.old_mode,
+            "added_keys": self.added_keys,
+            "cleared": self.cleared,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetGroupRangeSecurity:
+        payload = dict(data)
+        # JSON object keys are strings; group address ids must round-trip back to int.
+        raw: dict[Any, str] = payload.get("keys") or {}
+        payload["keys"] = {int(k): v for k, v in raw.items()}
+        return cls(**payload)
+
+
+@_register
+@dataclass
+class SetGroupAddressCentral(Event):
+    """Mark a group address as central (``@Central``) or not."""
+
+    event_type: ClassVar[str] = "SetGroupAddressCentral"
+
+    group_address_id: int
+    central: bool
+    old_central: bool | None = None
+
+    def apply(self, session: Session) -> None:
+        ga = session.get(GroupAddress, self.group_address_id)
+        if ga is not None:
+            self.old_central = ga.central
+            ga.central = self.central
+
+    def revert(self, session: Session) -> None:
+        ga = session.get(GroupAddress, self.group_address_id)
+        if ga is not None and self.old_central is not None:
+            ga.central = self.old_central
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "group_address_id": self.group_address_id,
+            "central": self.central,
+            "old_central": self.old_central,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetGroupAddressCentral:
         return cls(**data)
 
 

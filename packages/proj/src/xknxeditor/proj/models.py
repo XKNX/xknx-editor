@@ -601,6 +601,9 @@ class GroupRange(_SourceIdentity, Base):
     comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
     # Pass through line/backbone couplers unconditionally (``Unfiltered``). (KNX PR #651.)
     unfiltered: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # The range's ``@Security``: "On" or "Off" forces it on every group address and range below,
+    # "Auto" (or None) leaves them their own (see :mod:`.core.ga_security`).
+    security_mode: Mapped[str | None] = mapped_column(String)
 
     installation: Mapped["Installation"] = relationship(back_populates="group_ranges")
     parent: Mapped["GroupRange | None"] = relationship(

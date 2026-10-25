@@ -96,10 +96,12 @@ from xknxeditor.proj.core.events import (
     SetFunctionDescription,
     SetFunctionType,
     SetGroupAddressAddress,
+    SetGroupAddressCentral,
     SetGroupAddressDatapointType,
     SetGroupAddressSecurity,
     SetGroupDescription,
     SetGroupRangeAddress,
+    SetGroupRangeSecurity,
     SetParameter,
     SetProjectName,
     SetSegmentMedium,
@@ -116,6 +118,7 @@ from xknxeditor.proj.core.events import (
     UpdateDeviceApplication,
     UpsertDeviceBinaryData,
     additional_address_entries,
+    addresses_below,
     stored_comment,
     stored_completion_status,
 )
@@ -128,7 +131,10 @@ from xknxeditor.proj.core.ga_export import (
 )
 from xknxeditor.proj.core.ga_security import (
     AUTO_MODES,
+    FORCED_MODES,
     commissioned_devices,
+    effective_mode,
+    forcing_range,
     is_secured,
     linked_devices,
     secure_commissioned,
@@ -210,6 +216,22 @@ class GroupAddressInfo:
     data_secure: bool
     # The ``@Security`` mode: "Auto"/"On"/"Off" (None = default, treated as Auto).
     security_mode: str | None = None
+    # The mode that counts: the one of a group above it that forces one (``forced_by``), else
+    # its own.
+    effective_security_mode: str | None = None
+    forced_by: ForcedSecurity | None = None
+    # Marked as central (``@Central``).
+    central: bool = False
+
+
+@dataclass(frozen=True)
+class ForcedSecurity:
+    """A main or middle group that forces its Security on what is below it: its id, its name
+    and the mode it forces ("On" or "Off")."""
+
+    group_range_id: int
+    name: str
+    mode: str
 
 
 @dataclass(frozen=True)
@@ -225,6 +247,9 @@ class GroupRangeInfo:
     # The folder's style-formatted number (main group "0", middle group "0/1"); empty for Free.
     address: str = ""
     description: str = ""
+    # Its own ``@Security`` mode (None = default, Auto), and the group above it that forces one.
+    security_mode: str | None = None
+    forced_by: ForcedSecurity | None = None
 
 
 @dataclass(frozen=True)
@@ -431,6 +456,14 @@ class DeviceLinkInfo:
     write: bool
     transmit: bool
     update: bool
+
+
+def _forced_by(group_range: GroupRange | None) -> ForcedSecurity | None:
+    """The group from ``group_range`` up that forces its Security on what is below it."""
+    forcing = forcing_range(group_range)
+    if forcing is None or forcing.security_mode is None:
+        return None
+    return ForcedSecurity(forcing.id, forcing.name, forcing.security_mode)
 
 
 def _main_segment(line: Line) -> Segment:
@@ -1060,7 +1093,7 @@ class ProjectService:
         Security ``On`` (``GroupAddressSecurityError``)."""
         ga = state.session.get(GroupAddress, group_address_id)
         com_object = state.session.get(ComObject, com_object_id)
-        if ga is None or com_object is None or ga.security_mode != "On":
+        if ga is None or com_object is None or effective_mode(ga) != "On":
             return
         device = state.session.get(Device, com_object.device_id)
         if device is not None and not secure_commissioned(device):
@@ -1143,20 +1176,23 @@ class ProjectService:
         key, stored encrypted, so the project needs a password (:class:`ProjectPasswordRequired`
         otherwise); the key is kept once made, so toggling the mode does not change it across the
         installation. ``On`` is refused (``GroupAddressSecurityError``) while a linked device is
-        not commissioned securely."""
-        if mode not in AUTO_MODES and mode not in ("On", "Off"):
+        not commissioned securely. Below a group that forces its Security, the mode is kept for
+        when the group no longer does, and changes nothing until then."""
+        if mode not in AUTO_MODES and mode not in FORCED_MODES:
             raise ValueError(f"Unknown group address security mode {mode!r}")
         state = self._state(project_id)
         ga = state.session.get(GroupAddress, group_address_id)
         if ga is None:
             raise KeyError(f"No group address with id {group_address_id}")
+        forcing = forcing_range(ga.group_range)
+        effective = mode if forcing is None else forcing.security_mode
         devices = linked_devices(state.session).get(ga.id, set())
         commissioned = commissioned_devices(state.session)
-        if mode == "On" and not devices <= commissioned:
+        if forcing is None and mode == "On" and not devices <= commissioned:
             raise GroupAddressSecurityError(
                 "a secured group address can only be linked to devices commissioned securely"
             )
-        secured = is_secured(mode, devices, commissioned)
+        secured = is_secured(effective, devices, commissioned)
         key = ga.security_key
         if secured and key is None:
             key = self._new_group_key(state)
@@ -1167,6 +1203,66 @@ class ProjectService:
                 data_secure=secured,
                 security_key=key,
             )
+        )
+
+    def set_group_range_security(
+        self, project_id: str, group_range_id: int, mode: str | None
+    ) -> None:
+        """Set a main or middle group's ``@Security``: ``"On"``/``"Off"`` force it on every group
+        address and group below it, ``"Auto"`` or ``None`` leave them their own (see
+        :mod:`.ga_security`). Forcing ``On`` is refused (``GroupAddressSecurityError``) while a
+        device linked below it is not commissioned securely; a group address it secures gets
+        its key in the same undo step, so the project then needs a password
+        (:class:`ProjectPasswordRequired`)."""
+        if mode not in AUTO_MODES and mode not in FORCED_MODES:
+            raise ValueError(f"Unknown group range security mode {mode!r}")
+        state = self._state(project_id)
+        session = state.session
+        group_range = session.get(GroupRange, group_range_id)
+        if group_range is None:
+            raise KeyError(f"No group range with id {group_range_id}")
+        if (group_range.security_mode or "Auto") == (mode or "Auto"):
+            return
+        addresses = addresses_below(group_range)
+        # The modes that count once the group has ``mode``: tried on the group in memory only.
+        old_mode = group_range.security_mode
+        with session.no_autoflush:
+            group_range.security_mode = mode
+            after = {ga.id: effective_mode(ga) for ga in addresses}
+            group_range.security_mode = old_mode
+        linked = linked_devices(session)
+        commissioned = commissioned_devices(session)
+        if any(
+            after[ga.id] == "On" and not linked.get(ga.id, set()) <= commissioned
+            for ga in addresses
+        ):
+            raise GroupAddressSecurityError(
+                "a secured group address can only be linked to devices commissioned securely"
+            )
+        keys = {
+            ga.id: self._new_group_key(state)
+            for ga in addresses
+            if ga.security_key is None
+            and is_secured(after[ga.id], linked.get(ga.id, ()), commissioned)
+        }
+        state.store.append(
+            SetGroupRangeSecurity(
+                group_range_id=group_range_id, security_mode=mode, keys=keys
+            )
+        )
+
+    def set_group_address_central(
+        self, project_id: str, group_address_id: int, central: bool
+    ) -> None:
+        """Mark a group address as central or not. Raises ``KeyError`` for an unknown one."""
+        state = self._state(project_id)
+        ga = state.session.get(GroupAddress, group_address_id)
+        if ga is None:
+            raise KeyError(f"No group address with id {group_address_id}")
+        if ga.central == central:
+            return
+        state.store.append(
+            SetGroupAddressCentral(group_address_id=group_address_id, central=central)
         )
 
     @staticmethod
@@ -2277,9 +2373,10 @@ class ProjectService:
         )
 
         def must_be_secured(com_object_id: int, ga: GroupAddress) -> bool:
-            if ga.security_mode == "On":
+            mode = effective_mode(ga)
+            if mode == "On":
                 return True
-            if requires_security is None or ga.security_mode == "Off":
+            if requires_security is None or mode == "Off":
                 return False
             return requires_security(com_object_id) or any(
                 requires_security(link.com_object_id) for link in ga.links
@@ -3586,6 +3683,9 @@ class ProjectService:
             comment=ga.comment,
             data_secure=ga.id in secured,
             security_mode=ga.security_mode,
+            effective_security_mode=effective_mode(ga),
+            forced_by=_forced_by(ga.group_range),
+            central=ga.central,
         )
 
     def _range_info(
@@ -3610,6 +3710,8 @@ class ProjectService:
                 for ga in sorted(group_range.group_addresses, key=lambda g: g.address)
             ],
             address=format_group_range(group_range.range_start, style, level),
+            security_mode=group_range.security_mode,
+            forced_by=_forced_by(group_range.parent),
         )
 
     def _space_info(self, space: Space, style: GroupAddressStyle) -> SpaceInfo:

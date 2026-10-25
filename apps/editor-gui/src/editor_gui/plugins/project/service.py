@@ -102,12 +102,16 @@ if TYPE_CHECKING:
         DeviceInfo,
         DeviceKeys,
         DeviceLinkInfo,
+        ForcedSecurity,
         FunctionInfo,
         GroupRangeInfo,
         IpSecrets,
         SecureCommissioningImpact,
         SpaceDeviceInfo,
         SpaceInfo,
+    )
+    from xknxeditor.proj.core.service import (
+        GroupAddressInfo as CoreGroupAddressInfo,
     )
 
 _INSTALLATION = 0
@@ -531,6 +535,12 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "SyncDeviceComObjects": lambda d: S.HISTORY_EV_SYNC_COM_OBJECTS,
     "SyncDeviceModuleInstances": lambda d: S.HISTORY_EV_SYNC_MODULES,
     "SetGroupAddressSecurity": lambda d: S.HISTORY_EV_SET_GA_SECURITY,
+    "SetGroupRangeSecurity": lambda d: S.HISTORY_EV_SET_GROUP_SECURITY,
+    "SetGroupAddressCentral": lambda d: (
+        S.HISTORY_EV_SET_GA_CENTRAL
+        if d.get("central")
+        else S.HISTORY_EV_UNSET_GA_CENTRAL
+    ),
     "SetDeviceSecureCommissioning": lambda d: S.HISTORY_EV_SET_SECURE_COMMISSIONING,
     "RenameGroupAddress": lambda d: S.HISTORY_EV_RENAME_GA.format(
         name=_quoted(d, "name")
@@ -625,7 +635,9 @@ class ElementDetails:
     shows after its area's (``prefix`` "1."), a middle group's after its main group's ("1/").
     ``status`` is the element's "Status" for the kinds that have one, else None; a segment and a
     function have no address (``has_address``). A line and a segment have a ``medium``, an RF or
-    PL one its ``domain_address`` as shown ("" for none)."""
+    PL one its ``domain_address`` as shown ("" for none). A group address and a main or middle
+    group have their own ``security`` ("Auto", "On" or "Off"), with the group above them that
+    forces one (``forced_by``); a group address is ``central`` or not."""
 
     kind: str
     element_id: int
@@ -639,6 +651,9 @@ class ElementDetails:
     has_address: bool = True
     medium: str | None = None
     domain_address: str = ""
+    security: str | None = None
+    forced_by: "ForcedSecurity | None" = None
+    central: bool | None = None
 
 
 def format_domain_address(medium: str, address: int | None) -> str:
@@ -649,6 +664,14 @@ def format_domain_address(medium: str, address: int | None) -> str:
     if medium == MEDIUM_RF:
         return f"{address >> 32:04X}:{address & 0xFFFFFFFF:08X}"
     return str(address)
+
+
+def _addresses_in(node: "GroupRangeInfo") -> "list[CoreGroupAddressInfo]":
+    """The group addresses of a group and of every group below it."""
+    found = list(node.group_addresses)
+    for child in node.children:
+        found.extend(_addresses_in(child))
+    return found
 
 
 def _find_range(
@@ -734,6 +757,11 @@ class GroupAddressInfo:
     comment: str = ""
     data_secure: bool = False
     raw: int = 0  # raw 16-bit group-address value (style-independent; matches xknx GroupAddress.raw)
+    # Its own Security mode (None = default, Auto), the group above it that forces one, and
+    # whether it is marked central.
+    security_mode: str | None = None
+    forced_by: "ForcedSecurity | None" = None
+    central: bool = False
 
 
 @dataclass
@@ -2426,6 +2454,9 @@ class ProjectService:
                 comment=plain_text(parse_rich_text(g.comment)),
                 data_secure=g.data_secure,
                 raw=g.address,
+                security_mode=g.security_mode,
+                forced_by=g.forced_by,
+                central=g.central,
             )
             for g in self._svc.group_addresses(self._pid)
         ]
@@ -2450,6 +2481,9 @@ class ProjectService:
             comment=plain_text(parse_rich_text(g.comment)),
             data_secure=g.data_secure,
             raw=g.address,
+            security_mode=g.security_mode,
+            forced_by=g.forced_by,
+            central=g.central,
         )
 
     @io_guarded(list)
@@ -2685,16 +2719,18 @@ class ProjectService:
         def secure(other: Device) -> bool:
             return bool(self._svc.secure_commissioning(self._pid or "", other.node_id))
 
+        # The mode that counts: a group above the address may force it.
+        mode = ga.effective_security_mode
         if self.com_object_requires_security(com_object_id):
-            if ga.security_mode == "Off" or not secure(device):
+            if mode == "Off" or not secure(device):
                 return True
-            if ga.security_mode != "On" and not all(
+            if mode != "On" and not all(
                 secure(other)
                 for link in ga.links
                 if (other := owner.get(link)) is not None
             ):
                 return True
-        if ga.security_mode not in ("On", "Off") and not secure(device):
+        if mode not in ("On", "Off") and not secure(device):
             return any(self.com_object_requires_security(link) for link in ga.links)
         return False
 
@@ -5210,6 +5246,60 @@ class ProjectService:
             self._svc.set_group_address_security(self._pid, ga_id, mode)
         self._bump(structural=False)
 
+    def set_group_range_security(self, range_id: int, mode: str) -> None:
+        """Set a main or middle group's Security mode (``"Auto"``/``"On"``/``"Off"``): ``"On"`` and
+        ``"Off"`` force it on every group address below it. Raises
+        ``GroupAddressSecurityError`` for ``"On"`` while a device linked below it is not
+        commissioned securely, or for ``"Off"`` while a group object linked below it requires
+        security; ``ProjectPasswordRequired`` when it secures an address without a key."""
+        from xknxeditor.proj import GroupAddressSecurityError
+
+        if self._pid is None:
+            return
+        if mode == "Off":
+            found = _find_range(self.get_group_range_tree(), range_id, 0)
+            links = (
+                [link for ga in _addresses_in(found[0]) for link in ga.links]
+                if found is not None
+                else []
+            )
+            if any(self.com_object_requires_security(link) for link in links):
+                raise GroupAddressSecurityError(
+                    "a group object below the group requires secure communication"
+                )
+        with self._io_lock:
+            self._svc.set_group_range_security(self._pid, range_id, mode)
+        self._bump(structural=False)
+
+    def set_group_address_central(self, ga_id: int, central: bool) -> None:
+        """Mark a group address as central or not; undoable."""
+        if self._pid is None:
+            return
+        self._svc.set_group_address_central(self._pid, ga_id, central)
+        self._bump(structural=False)
+
+    def set_element_security(self, kind: str, element_id: int, mode: str) -> str | None:
+        """Set the Security of a group address or a main or middle group; the reason it cannot
+        be, or None."""
+        from xknxeditor.proj import GroupAddressSecurityError, ProjectPasswordRequired
+
+        try:
+            if kind == "group_address":
+                self.set_group_address_security(element_id, mode)
+            elif kind == "group_range":
+                self.set_group_range_security(element_id, mode)
+        except ProjectPasswordRequired:
+            return S.SECURE_DOWNLOAD_PASSWORD_REQUIRED
+        except GroupAddressSecurityError:
+            if mode != "On":
+                return S.GA_SECURE_REQUIRED
+            return (
+                S.GA_SECURE_ON_REFUSED
+                if kind == "group_address"
+                else S.GROUP_SECURE_ON_REFUSED
+            )
+        return None
+
     def remove_group_address(
         self, ga_id: int, address: str = "", name: str = ""
     ) -> None:
@@ -5544,12 +5634,16 @@ class ProjectService:
                 ga.description,
                 "",
                 ga.address,
+                security=ga.security_mode or "Auto",
+                forced_by=ga.forced_by,
+                central=ga.central,
             )
         if kind == "group_range":
             found = _find_range(self.get_group_range_tree(), element_id, 0)
             if found is None:
                 return None
             node, depth = found
+            security = node.security_mode or "Auto"
             if not node.address:  # Free style: groups without a number
                 return ElementDetails(
                     kind,
@@ -5560,6 +5654,8 @@ class ProjectService:
                     "",
                     f"{node.range_start}\u2013{node.range_end}",
                     editable=False,
+                    security=security,
+                    forced_by=node.forced_by,
                 )
             prefix, _, number = node.address.rpartition("/")
             return ElementDetails(
@@ -5570,6 +5666,8 @@ class ProjectService:
                 node.description,
                 f"{prefix}/" if prefix else "",
                 number,
+                security=security,
+                forced_by=node.forced_by,
             )
         return None
 

@@ -2400,3 +2400,33 @@ msgstr "Byt namn på segment till {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Ange medium till {medium}"
+
+msgid "Forced On"
+msgstr "Forcerad Till"
+
+msgid "Forced Off"
+msgstr "Forcerad Från"
+
+msgid "Forced on"
+msgstr "Forcerad till"
+
+msgid "Forced off"
+msgstr "Forcerad från"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Åsidosatt av '{name}': {mode}"
+
+msgid "Central"
+msgstr "Centralfunktion"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Inte alla apparater som är förbundna med en gruppadress i den här gruppen tas i drift säkert, så den kan inte säkras."
+
+msgid "Set group security"
+msgstr "Ange gruppens säkerhet"
+
+msgid "Mark group address as central"
+msgstr "Markera gruppadress som central"
+
+msgid "Remove central mark from group address"
+msgstr "Ta bort central-markering från gruppadress"

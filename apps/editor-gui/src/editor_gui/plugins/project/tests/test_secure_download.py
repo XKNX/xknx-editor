@@ -109,7 +109,7 @@ def _linker(
     ]
     service._svc = SimpleNamespace(
         group_address=lambda pid, ga_id: SimpleNamespace(
-            security_mode=mode, links=linked
+            security_mode=mode, effective_security_mode=mode, links=linked
         ),
         secure_commissioning=lambda pid, node_id: node_id in secure,
     )
@@ -138,6 +138,15 @@ def test_a_device_in_the_clear_stays_off_a_group_address_that_needs_security() -
     assert _unsecures(3, None, [1], {1}, {1})
     assert not _unsecures(3, None, [1], set(), {1})
     assert not _unsecures(3, "Off", [4], set(), set())
+
+
+def test_the_mode_a_group_forces_decides_on_linking() -> None:
+    service = _linker("Auto", [2], {1}, {1, 2})
+    service._svc.group_address = lambda pid, ga_id: SimpleNamespace(
+        security_mode="On", effective_security_mode="Off", links=[2]
+    )
+    # Its own mode is On, but a group above forces it off: the object would be in the clear.
+    assert ProjectService._link_would_unsecure(service, 1, 1)  # pyright: ignore[reportPrivateUsage]
 
 
 def test_routing_blocking_of_a_security_proxy_coupler() -> None:

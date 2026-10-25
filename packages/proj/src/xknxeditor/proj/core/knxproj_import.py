@@ -545,6 +545,8 @@ class _RawExtras:
         self.unfiltered_ga: set[int] = set()
         # (RangeStart, RangeEnd) of every <GroupRange> carrying ``Unfiltered="true"``.
         self.unfiltered_ranges: set[tuple[int, int]] = set()
+        # (RangeStart, RangeEnd) -> the <GroupRange>'s ``@Security``, when it has one.
+        self.grouprange_security: dict[tuple[int, int], str] = {}
         # DeviceInstance @Id -> extra individual addresses (``AdditionalAddresses/Address``).
         self.additional_addresses: dict[str, list[_AddrEntry]] = {}
         # DeviceInstance @Id -> {ParameterInstanceRef @RefId -> {CustomizedText, GrantUseByCustomer}}.
@@ -1051,6 +1053,8 @@ def _read_coupler_extras(root: ET.Element, extras: _RawExtras) -> None:
                 )
                 if _is_true(elem.get("Unfiltered")):
                     extras.unfiltered_ranges.add((start, end))
+                if security := elem.get("Security"):
+                    extras.grouprange_security[(start, end)] = security
                 if description := elem.get("Description"):
                     extras.grouprange_description[(start, end)] = description
                 if comment := elem.get("Comment"):
@@ -2142,6 +2146,9 @@ def _build_ranges(
             parent=parent,
             # ``Unfiltered`` read from the raw XML by (start, end); xknxproject does not surface it.
             unfiltered=(xr.range_start, xr.range_end) in state.extras.unfiltered_ranges,
+            security_mode=state.extras.grouprange_security.get(
+                (xr.range_start, xr.range_end)
+            ),
         )
         installation.group_ranges.append(gr)
         collected.append(gr)

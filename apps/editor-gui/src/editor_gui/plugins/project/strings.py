@@ -2384,6 +2384,39 @@ class ProjectStrings:
         return _("Not Secured")
 
     @property
+    def GA_SECURITY_FORCED_ON(self) -> str:
+        # A group address's or group's Security forced on, in a menu.
+        return _("Forced On")
+
+    @property
+    def GA_SECURITY_FORCED_OFF(self) -> str:
+        return _("Forced Off")
+
+    @property
+    def SECURITY_FORCED_ON(self) -> str:
+        # The same as a choice of the Security drop-down.
+        return _("Forced on")
+
+    @property
+    def SECURITY_FORCED_OFF(self) -> str:
+        return _("Forced off")
+
+    @property
+    def SECURITY_FORCED_BY(self) -> str:
+        return _("Overridden by '{name}': {mode}")
+
+    @property
+    def GA_CENTRAL(self) -> str:
+        return _("Central")
+
+    @property
+    def GROUP_SECURE_ON_REFUSED(self) -> str:
+        return _(
+            "Not every device linked to a group address of this group is commissioned"
+            " securely, so it cannot be secured."
+        )
+
+    @property
     def GA_SECURE_LINK_REFUSED(self) -> str:
         return _(
             "A secured group address can only be linked to devices that are commissioned"
@@ -3623,6 +3656,18 @@ class ProjectStrings:
     @property
     def HISTORY_EV_SET_GA_SECURITY(self) -> str:
         return _("Set group address security")
+
+    @property
+    def HISTORY_EV_SET_GROUP_SECURITY(self) -> str:
+        return _("Set group security")
+
+    @property
+    def HISTORY_EV_SET_GA_CENTRAL(self) -> str:
+        return _("Mark group address as central")
+
+    @property
+    def HISTORY_EV_UNSET_GA_CENTRAL(self) -> str:
+        return _("Remove central mark from group address")
 
     @property
     def HISTORY_EV_SET_SECURE_COMMISSIONING(self) -> str:

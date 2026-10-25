@@ -2400,3 +2400,33 @@ msgstr "セグメント名を{name}に変更"
 
 msgid "Set medium to {medium}"
 msgstr "ミディアムを{medium}に設定"
+
+msgid "Forced On"
+msgstr "強制オン"
+
+msgid "Forced Off"
+msgstr "強制オフ"
+
+msgid "Forced on"
+msgstr "強制オン"
+
+msgid "Forced off"
+msgstr "強制オフ"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "'{name}' により上書き: {mode}"
+
+msgid "Central"
+msgstr "セントラル"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "このグループのグループ・アドレスにリンクされたデバイスの一部が安全にコミッショニングされていないため、安全にできません。"
+
+msgid "Set group security"
+msgstr "グループのセキュリティを設定"
+
+msgid "Mark group address as central"
+msgstr "グループ・アドレスをセントラルに設定"
+
+msgid "Remove central mark from group address"
+msgstr "グループ・アドレスのセントラル設定を解除"

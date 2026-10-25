@@ -147,6 +147,17 @@ def _additional_address_dict(entry: Any) -> dict[str, Any]:
     }
 
 
+def _forced_dict(forced: Any) -> dict[str, Any] | None:
+    """The group that forces its Security on what is below it, or None."""
+    if forced is None:
+        return None
+    return {
+        "group_range_id": forced.group_range_id,
+        "name": forced.name,
+        "mode": forced.mode,
+    }
+
+
 def _ga_dict(g: Any) -> dict[str, Any]:
     return {
         "id": g.id,
@@ -155,6 +166,9 @@ def _ga_dict(g: Any) -> dict[str, Any]:
         "datapoint_type": g.datapoint_type,
         "description": g.description,
         "data_secure": g.data_secure,
+        "security": g.security_mode or "Auto",
+        "security_forced_by": _forced_dict(g.forced_by),
+        "central": g.central,
     }
 
 
@@ -1827,7 +1841,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     ) -> dict[str, Any]:
         """List project group addresses, optionally filtering names by a case-insensitive substring.
         Returns {items, count}; each item has {id, address, name, datapoint_type, description,
-        data_secure}. Pass ``id`` as group_address_id to project tools. ``address`` is formatted in the
+        data_secure, security, security_forced_by, central}: data_secure whether it is secured
+        now, security its own mode (Auto, On or Off), security_forced_by the main or middle group
+        that overrides it ({group_range_id, name, mode}, null for none), central whether it is
+        marked central. Pass ``id`` as group_address_id to project tools. ``address`` is formatted in the
         project's style; monitor tools accept a group-address string and normalize it (to ThreeLevel)
         internally."""
 
@@ -1847,8 +1864,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     ) -> dict[str, Any]:
         """Read a project group address. Identify it by ``group_address_id`` (id from
         project_list_group_addresses) OR ``group_address`` (a printed address like "10/1/2" in the
-        project's style); pass exactly one. Returns {id, address, name, datapoint_type, description,
-        data_secure}."""
+        project's style); pass exactly one. Returns the fields project_list_group_addresses
+        lists."""
 
         def _read() -> dict[str, Any]:
             ga_id = _require_group_address_id(group_address_id, group_address)
@@ -2771,6 +2788,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                         "description": r.description or "",
                         "parent_id": parent_id,
                         "depth": depth,
+                        "security": r.security_mode or "Auto",
+                        "security_forced_by": _forced_dict(r.forced_by),
                     }
                 )
                 _walk(r.children, r.id, depth + 1)
@@ -2782,8 +2801,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_list_group_ranges(name_contains: str | None = None) -> dict[str, Any]:
         """List the group-address folders (main and middle groups), optionally filtering names by
         a case-insensitive substring. Returns {items, count}; each item has {id, address, name,
-        description, parent_id, depth} (depth 0 = main group; name and description are "" when
-        unset, parent_id is null for main groups). Pass ``id`` as group_range_id to
+        description, parent_id, depth, security, security_forced_by} (depth 0 = main group; name
+        and description are "" when unset, parent_id is null for main groups; security is its
+        own mode, Auto, On or Off, and security_forced_by the group above it that overrides it,
+        see project_set_group_range_security). Pass ``id`` as group_range_id to
         project_rename_group_range."""
 
         def _read() -> list[dict[str, Any]]:
@@ -2875,12 +2896,15 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         group_address_id: int | None = None,
         group_address: str | None = None,
     ) -> dict[str, Any]:
-        """Set a group address' KNX Data Secure mode: "On" (secured, generates a key; every
-        linked device must be commissioned securely), "Off" (not secured), or "Auto" (secured
-        while every linked device is commissioned securely). A password-protected project is
-        needed to store a generated key. Identify the group address by ``group_address_id`` (id
-        from project_list_group_addresses) OR ``group_address`` (a printed address like "10/1/2"
-        in the project's style); pass exactly one. Returns {id, address, secured}."""
+        """Set a group address' KNX Data Secure mode (its "Security"): "On" (Forced On: secured,
+        generates a key; every linked device must be commissioned securely), "Off" (Forced Off:
+        not secured), or "Auto" (Automatic: secured while every linked device is commissioned
+        securely). A main or middle group forcing On or Off overrides it (see
+        project_set_group_range_security); the mode set here then counts once no group does. A
+        password-protected project is needed to store a generated key. Identify the group address
+        by ``group_address_id`` (id from project_list_group_addresses) OR ``group_address`` (a
+        printed address like "10/1/2" in the project's style); pass exactly one. Returns {id,
+        address, secured}."""
         from xknxeditor.proj import GroupAddressSecurityError, ProjectPasswordRequired
 
         if mode not in ("Auto", "On", "Off"):
@@ -2898,6 +2922,81 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             if g is None:
                 raise ToolError(f"no group address with id {ga_id}")
             return {"id": g.id, "address": g.address, "secured": g.data_secure}
+
+        return ctx.run_locked(_set)
+
+    @tool("write")
+    def project_set_group_range_security(
+        group_range_id: int, mode: Literal["Auto", "On", "Off"]
+    ) -> dict[str, Any]:
+        """Set the "Security" of a main or middle group (id from project_list_group_ranges):
+        "On" (Forced On) secures and "Off" (Forced Off) unsecures every group address and group
+        below it, whatever their own mode; the nearest forcing group above an address decides.
+        "Auto" (Automatic) gives them back their own modes, which stay stored meanwhile. "On"
+        needs every device linked below it commissioned securely, and a password-protected
+        project for the keys it generates. Undoable with project_undo. Returns the group as
+        project_list_group_ranges lists it, with ``secured``: the addresses below it secured
+        now."""
+        from xknxeditor.proj import GroupAddressSecurityError, ProjectPasswordRequired
+
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            if not any(r["id"] == group_range_id for r in _group_ranges()):
+                raise ToolError(f"no group range with id {group_range_id}")
+            try:
+                project.set_group_range_security(group_range_id, mode)
+            except ProjectPasswordRequired as e:
+                raise ToolError("set a project password first") from e
+            except GroupAddressSecurityError as e:
+                raise ToolError(str(e)) from e
+            found = next(r for r in _group_ranges() if r["id"] == group_range_id)
+            node = _range_node(group_range_id)
+            secured = sorted(ga.text for ga in _addresses_below(node) if ga.data_secure)
+            return {**found, "secured": secured}
+
+        return ctx.run_locked(_set)
+
+    def _range_node(group_range_id: int) -> Any:
+        def _find(nodes: list[Any]) -> Any:
+            for r in nodes:
+                if r.id == group_range_id:
+                    return r
+                found = _find(r.children)
+                if found is not None:
+                    return found
+            return None
+
+        return _find(project.get_group_range_tree())
+
+    def _addresses_below(node: Any) -> list[Any]:
+        if node is None:
+            return []
+        found = list(node.group_addresses)
+        for child in node.children:
+            found.extend(_addresses_below(child))
+        return found
+
+    @tool("write")
+    def project_set_group_address_central(
+        central: bool,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Mark a group address as central or not (its "Central" checkbox): a central group
+        address is reused, not copied, when devices or groups are copied within the project. It
+        changes nothing on the bus. Identify the group address by ``group_address_id`` OR
+        ``group_address`` (a printed address like "10/1/2"); pass exactly one. Undoable with
+        project_undo. Returns the fields project_list_group_addresses lists."""
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            ga_id = _require_group_address_id(group_address_id, group_address)
+            project.set_group_address_central(ga_id, central)
+            g = project.get_group_address(ga_id)
+            if g is None:
+                raise ToolError(f"no group address with id {ga_id}")
+            return _ga_dict(g)
 
         return ctx.run_locked(_set)
 

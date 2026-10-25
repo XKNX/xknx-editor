@@ -202,6 +202,20 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             result["medium"] = medium_name(details.medium)
         if details.domain_address:
             result["domain_address"] = details.domain_address
+        if details.security is not None:
+            result["security"] = details.security
+            forced = details.forced_by
+            result["security_forced_by"] = (
+                None
+                if forced is None
+                else {
+                    "group_range_id": forced.group_range_id,
+                    "name": forced.name,
+                    "mode": forced.mode,
+                }
+            )
+        if details.central is not None:
+            result["central"] = details.central
         return result
 
     @tool("read")
@@ -261,7 +275,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         ("2"), which project_set_number changes unless number_editable is false (a segment and a
         function have none); status is the "Status" of an area, line, segment or function (see
         project_set_status); medium (TP, PL, RF, IP or IoT) is a line's or a segment's (see
-        project_set_medium), domain_address an RF or PL one's."""
+        project_set_medium), domain_address an RF or PL one's. A group address and a group have
+        security (their own mode: Auto, On or Off) and security_forced_by (the group above that
+        overrides it, {group_range_id, name, mode} or null); a group address also central."""
         require_project(ctx)
         return ctx.run_locked(lambda: _element_dict(kind, element_id))
 

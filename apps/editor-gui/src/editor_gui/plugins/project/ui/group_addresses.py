@@ -423,8 +423,8 @@ class GroupAddressesPanel:
             current = getattr(ga, "security_mode", None) or "Auto"  # type: ignore[attr-defined]
             for mode, label in (
                 ("Auto", S.GA_SECURITY_AUTO),
-                ("On", S.GA_SECURITY_ON),
-                ("Off", S.GA_SECURITY_OFF),
+                ("On", S.GA_SECURITY_FORCED_ON),
+                ("Off", S.GA_SECURITY_FORCED_OFF),
             ):
                 if imgui.menu_item(label, "", current == mode)[0]:
                     self._on_set_ga_security(ga.id, mode)  # type: ignore[attr-defined]

@@ -2438,3 +2438,33 @@ msgstr "Segment hernoemen naar {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Medium instellen op {medium}"
+
+msgid "Forced On"
+msgstr "Verplicht Ingeschakeld"
+
+msgid "Forced Off"
+msgstr "Verplicht Uitgeschakeld"
+
+msgid "Forced on"
+msgstr "Verplicht ingeschakeld"
+
+msgid "Forced off"
+msgstr "Verplicht uitgeschakeld"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Overschreven door '{name}': {mode}"
+
+msgid "Central"
+msgstr "Centraal"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Niet alle apparaten die aan een groepsadres van deze groep zijn gekoppeld worden beveiligd in bedrijf gesteld, daarom kan deze niet worden beveiligd."
+
+msgid "Set group security"
+msgstr "Beveiliging van groep instellen"
+
+msgid "Mark group address as central"
+msgstr "Groepsadres als centraal markeren"
+
+msgid "Remove central mark from group address"
+msgstr "Centrale markering van groepsadres verwijderen"

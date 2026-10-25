@@ -2400,3 +2400,33 @@ msgstr "Přejmenovat segment na {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Nastavit médium na {medium}"
+
+msgid "Forced On"
+msgstr "Vynuceně zapnuto"
+
+msgid "Forced Off"
+msgstr "Vynuceně vypnuto"
+
+msgid "Forced on"
+msgstr "Vynuceně zapnuto"
+
+msgid "Forced off"
+msgstr "Vynuceně vypnuto"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Přepsáno skupinou '{name}': {mode}"
+
+msgid "Central"
+msgstr "Centrál"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Ne všechna zařízení propojená se skupinovou adresou této skupiny jsou uváděna do provozu zabezpečeně, proto ji nelze zabezpečit."
+
+msgid "Set group security"
+msgstr "Nastavit zabezpečení skupiny"
+
+msgid "Mark group address as central"
+msgstr "Označit skupinovou adresu jako centrální"
+
+msgid "Remove central mark from group address"
+msgstr "Odebrat označení centrální ze skupinové adresy"

@@ -379,6 +379,8 @@ class ProjectPlugin:
             on_set_address=api.project.set_element_address,
             on_set_status=api.project.set_completion_status,
             on_set_medium=api.project.set_element_medium,
+            on_set_security=api.project.set_element_security,
+            on_set_central=api.project.set_group_address_central,
         )
         self._space_details = SpaceDetailsPanel(
             on_rename=api.project.rename_space,

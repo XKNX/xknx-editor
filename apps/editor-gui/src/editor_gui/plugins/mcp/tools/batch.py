@@ -305,6 +305,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                 lambda ga_id, p: project.rename_group_address(ga_id, p["name"])
             ),
         ),
+        "set_group_address_central": (
+            ("central",),
+            _on_group_address(
+                lambda ga_id, p: project.set_group_address_central(
+                    ga_id, bool(p["central"])
+                )
+            ),
+        ),
         "rename_group_range": (
             ("group_range_id", "name"),
             lambda p: (
@@ -434,6 +442,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         - set_com_object_flag: device, com_object_ref_id, flag, value -> {node_id, com_object_ref_id}.
         - create_group_address: [address, name] -> {group_address_id}.
         - rename_group_address: ga, name -> {group_address_id}.
+        - set_group_address_central: ga, central (bool) -> {group_address_id}.
         - rename_group_range: group_range_id, name -> {group_range_id}.
         - rename_function: function_id, name -> {function_id}.
         - set_group_address_dpt: ga [dpt; omitted/null clears] -> {group_address_id}.

@@ -21,6 +21,15 @@ if TYPE_CHECKING:
 _ERROR_COLOR = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
 
 
+def security_options() -> list[tuple[str, str]]:
+    """The choices of a Security drop-down, as (mode, text)."""
+    return [
+        ("Auto", S.GA_SECURITY_AUTO),
+        ("On", S.SECURITY_FORCED_ON),
+        ("Off", S.SECURITY_FORCED_OFF),
+    ]
+
+
 class ElementDetailsPanel:
     def __init__(
         self,
@@ -29,18 +38,25 @@ class ElementDetailsPanel:
         on_set_address: Callable[[str, int, str], str | None],
         on_set_status: Callable[[str, int, str], None] = lambda _k, _i, _s: None,
         on_set_medium: Callable[[str, int, str], str | None] = lambda _k, _i, _m: None,
+        on_set_security: Callable[[str, int, str], str | None] = (
+            lambda _k, _i, _m: None
+        ),
+        on_set_central: Callable[[int, bool], None] = lambda _i, _c: None,
     ) -> None:
         self._on_rename = on_rename
         self._on_set_description = on_set_description
         self._on_set_address = on_set_address
         self._on_set_status = on_set_status
         self._on_set_medium = on_set_medium
+        self._on_set_security = on_set_security
+        self._on_set_central = on_set_central
         self._key: tuple[str, int] | None = None
         self._name = ""
         self._description = ""
         self._address = ""
         self._error = ""
         self._medium_error = ""
+        self._security_error = ""
 
     def render(self, details: ElementDetails) -> None:
         if self._key != (details.kind, details.element_id):
@@ -50,6 +66,7 @@ class ElementDetailsPanel:
             self._address = details.address
             self._error = ""
             self._medium_error = ""
+            self._security_error = ""
         label_width = label_column_width(
             S.CONFIGURE_NAME,
             S.CONFIGURE_DESCRIPTION,
@@ -57,6 +74,8 @@ class ElementDetailsPanel:
             S.STATUS,
             S.MEDIUM,
             S.DOMAIN_ADDRESS,
+            S.GA_CENTRAL,
+            S.GA_SECURITY,
         )
         if not imgui.begin_table("##element_details", 2):
             return
@@ -82,7 +101,38 @@ class ElementDetailsPanel:
             chosen = status_combo("##element_status", details.status)
             if chosen is not None:
                 self._on_set_status(details.kind, details.element_id, chosen)
+        if details.central is not None:
+            self._row(S.GA_CENTRAL)
+            changed, central = imgui.checkbox("##element_central", details.central)
+            if changed:
+                self._on_set_central(details.element_id, central)
+        if details.security is not None:
+            self._row(S.GA_SECURITY)
+            self._security_field(details, details.security)
         imgui.end_table()
+
+    def _security_field(self, details: ElementDetails, security: str) -> None:
+        """The element's own Security; below it, the group above that overrides it, and the
+        reason a choice cannot be made, until another choice."""
+        options = security_options()
+        chosen = choice_combo("##element_security", options, security)
+        if chosen is not None:
+            self._security_error = (
+                self._on_set_security(details.kind, details.element_id, chosen) or ""
+            )
+        forced = details.forced_by
+        if forced is not None:
+            imgui.push_text_wrap_pos(0.0)
+            imgui.text_disabled(
+                S.SECURITY_FORCED_BY.format(
+                    name=forced.name, mode=dict(options).get(forced.mode, forced.mode)
+                )
+            )
+            imgui.pop_text_wrap_pos()
+        if self._security_error:
+            imgui.push_text_wrap_pos(0.0)
+            imgui.text_colored(_ERROR_COLOR, self._security_error)
+            imgui.pop_text_wrap_pos()
 
     @staticmethod
     def _row(label: str) -> None:

@@ -2400,3 +2400,33 @@ msgstr "将段重命名为 {name}"
 
 msgid "Set medium to {medium}"
 msgstr "将介质设置为 {medium}"
+
+msgid "Forced On"
+msgstr "强制开"
+
+msgid "Forced Off"
+msgstr "强制关闭"
+
+msgid "Forced on"
+msgstr "强制开"
+
+msgid "Forced off"
+msgstr "强制关闭"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "被“{name}”覆盖：{mode}"
+
+msgid "Central"
+msgstr "中央的"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "并非所有链接到此组中组地址的设备都以安全方式调试，因此无法将其设为安全。"
+
+msgid "Set group security"
+msgstr "设置组安全性"
+
+msgid "Mark group address as central"
+msgstr "将组地址标记为中央"
+
+msgid "Remove central mark from group address"
+msgstr "取消组地址的中央标记"

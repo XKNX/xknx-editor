@@ -2400,3 +2400,33 @@ msgstr "Omdøb segment til {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Angiv medie til {medium}"
+
+msgid "Forced On"
+msgstr "Tvunget til"
+
+msgid "Forced Off"
+msgstr "Tvunget fra"
+
+msgid "Forced on"
+msgstr "Tvunget til"
+
+msgid "Forced off"
+msgstr "Tvunget fra"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Tilsidesat af '{name}': {mode}"
+
+msgid "Central"
+msgstr "Central"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Ikke alle enheder, der er sammenkædet med en gruppeadresse i denne gruppe, idriftsættes sikkert, så den kan ikke sikres."
+
+msgid "Set group security"
+msgstr "Angiv gruppens sikkerhed"
+
+msgid "Mark group address as central"
+msgstr "Markér gruppeadresse som central"
+
+msgid "Remove central mark from group address"
+msgstr "Fjern central-markering fra gruppeadresse"

@@ -2400,3 +2400,33 @@ msgstr "Renombrar segmento a {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Establecer medio en {medium}"
+
+msgid "Forced On"
+msgstr "Encendido Forzado"
+
+msgid "Forced Off"
+msgstr "Apagado Forzado"
+
+msgid "Forced on"
+msgstr "Encendido forzado"
+
+msgid "Forced off"
+msgstr "Apagado forzado"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Anulado por '{name}': {mode}"
+
+msgid "Central"
+msgstr "Central"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "No todos los dispositivos enlazados a una dirección de grupo de este grupo están puestos en marcha de forma segura, por lo que no puede asegurarse."
+
+msgid "Set group security"
+msgstr "Establecer seguridad del grupo"
+
+msgid "Mark group address as central"
+msgstr "Marcar dirección de grupo como central"
+
+msgid "Remove central mark from group address"
+msgstr "Quitar marca central de la dirección de grupo"

@@ -2398,6 +2398,7 @@ class _Writer:
             Description=group_range.description or None,
             # Coupler pass-through flag; emit only when set (absent means filtered).
             Unfiltered="true" if group_range.unfiltered else None,
+            Security=group_range.security_mode or None,
             Puid=self._ids.puid(group_range, group_range.puid),
         )
         # GroupRange_t is a strict sequence: nested GroupRange* first, then GroupAddress*. Emitting

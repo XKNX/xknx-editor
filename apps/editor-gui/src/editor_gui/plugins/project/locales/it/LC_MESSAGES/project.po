@@ -2400,3 +2400,33 @@ msgstr "Rinomina segmento in {name}"
 
 msgid "Set medium to {medium}"
 msgstr "Imposta rete su {medium}"
+
+msgid "Forced On"
+msgstr "Forzato Acceso"
+
+msgid "Forced Off"
+msgstr "Forzato Spento"
+
+msgid "Forced on"
+msgstr "Forzato acceso"
+
+msgid "Forced off"
+msgstr "Forzato spento"
+
+msgid "Overridden by '{name}': {mode}"
+msgstr "Sovrascritto da '{name}': {mode}"
+
+msgid "Central"
+msgstr "Centrale"
+
+msgid "Not every device linked to a group address of this group is commissioned securely, so it cannot be secured."
+msgstr "Non tutti i dispositivi collegati a un indirizzo di gruppo di questo gruppo sono messi in servizio in modo sicuro, quindi non può essere messo in sicurezza."
+
+msgid "Set group security"
+msgstr "Imposta sicurezza del gruppo"
+
+msgid "Mark group address as central"
+msgstr "Contrassegna indirizzo di gruppo come centrale"
+
+msgid "Remove central mark from group address"
+msgstr "Rimuovi contrassegno centrale dall'indirizzo di gruppo"
