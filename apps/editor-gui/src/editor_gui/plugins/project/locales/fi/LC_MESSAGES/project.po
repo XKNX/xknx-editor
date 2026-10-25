@@ -541,9 +541,6 @@ msgstr "Kohdista laite tähän tilaan"
 msgid "No unassigned devices"
 msgstr "Ei kohdistamattomia laitteita"
 
-msgid "Remove from Space"
-msgstr "Poista tilasta"
-
 msgid "Without Space"
 msgstr "Ilman tilaa"
 
@@ -2838,3 +2835,12 @@ msgstr "{count} segmenttiä kopioitu kohteeseen '{target}'."
 
 msgid "Paste Special…"
 msgstr "Liitä määräten…"
+
+msgid "Add Row"
+msgstr "Lisää rivi"
+
+msgid "Remove this row"
+msgstr "Poista tämä rivi"
+
+msgid "Generate Addresses"
+msgstr "Luo osoitteet"

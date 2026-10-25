@@ -541,9 +541,6 @@ msgstr "Tildel en enhed til denne placering"
 msgid "No unassigned devices"
 msgstr "Ingen ikke-tildelte enheder"
 
-msgid "Remove from Space"
-msgstr "Fjern fra placering"
-
 msgid "Without Space"
 msgstr "Uden placering"
 
@@ -2838,3 +2835,12 @@ msgstr "{count} segmenter kopieret til '{target}'."
 
 msgid "Paste Special…"
 msgstr "Indsæt speciel…"
+
+msgid "Add Row"
+msgstr "Tilføj række"
+
+msgid "Remove this row"
+msgstr "Fjern denne række"
+
+msgid "Generate Addresses"
+msgstr "Generér adresser"

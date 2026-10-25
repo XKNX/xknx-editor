@@ -541,9 +541,6 @@ msgstr "将设备分配到此空间"
 msgid "No unassigned devices"
 msgstr "没有未分配的设备"
 
-msgid "Remove from Space"
-msgstr "从空间中移除"
-
 msgid "Without Space"
 msgstr "无空间"
 
@@ -2838,3 +2835,12 @@ msgstr "已将 {count} 个网段复制到“{target}”。"
 
 msgid "Paste Special…"
 msgstr "选择性粘贴…"
+
+msgid "Add Row"
+msgstr "添加行"
+
+msgid "Remove this row"
+msgstr "删除此行"
+
+msgid "Generate Addresses"
+msgstr "生成地址"

@@ -541,9 +541,6 @@ msgstr "Assegna un dispositivo a questo spazio"
 msgid "No unassigned devices"
 msgstr "Nessun dispositivo non assegnato"
 
-msgid "Remove from Space"
-msgstr "Rimuovi dallo spazio"
-
 msgid "Without Space"
 msgstr "Senza spazio"
 
@@ -2838,3 +2835,12 @@ msgstr "{count} segmenti copiati in '{target}'."
 
 msgid "Paste Special…"
 msgstr "Incolla speciale…"
+
+msgid "Add Row"
+msgstr "Aggiungi Riga"
+
+msgid "Remove this row"
+msgstr "Rimuovi questa riga"
+
+msgid "Generate Addresses"
+msgstr "Genera Indirizzi"

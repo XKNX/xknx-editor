@@ -541,9 +541,6 @@ msgstr "Tilldela en apparat till det här utrymmet"
 msgid "No unassigned devices"
 msgstr "Inga otilldelade apparater"
 
-msgid "Remove from Space"
-msgstr "Ta bort från utrymme"
-
 msgid "Without Space"
 msgstr "Utan utrymme"
 
@@ -2838,3 +2835,12 @@ msgstr "{count} segment kopierade till '{target}'."
 
 msgid "Paste Special…"
 msgstr "Klistra in special…"
+
+msgid "Add Row"
+msgstr "Lägg till rad"
+
+msgid "Remove this row"
+msgstr "Ta bort den här raden"
+
+msgid "Generate Addresses"
+msgstr "Generera adresser"

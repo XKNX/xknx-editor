@@ -541,9 +541,6 @@ msgstr "Назначить устройство этой зоне"
 msgid "No unassigned devices"
 msgstr "Нет неназначенных устройств"
 
-msgid "Remove from Space"
-msgstr "Убрать из зоны"
-
 msgid "Without Space"
 msgstr "Без зоны"
 
@@ -2838,3 +2835,12 @@ msgstr "Скопировано сегментов: {count} в '{target}'."
 
 msgid "Paste Special…"
 msgstr "Специальная вставка…"
+
+msgid "Add Row"
+msgstr "Добавить строку"
+
+msgid "Remove this row"
+msgstr "Удалить эту строку"
+
+msgid "Generate Addresses"
+msgstr "Создание адресов"

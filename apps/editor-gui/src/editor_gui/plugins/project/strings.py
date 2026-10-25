@@ -1478,7 +1478,8 @@ class ProjectStrings:
 
     @property
     def SPACES_UNASSIGN(self) -> str:
-        return _("Remove from Space")
+        # Takes a device out of its building part.
+        return _("Unlink")
 
     @property
     def SPACES_UNASSIGNED_TITLE(self) -> str:
@@ -1597,6 +1598,18 @@ class ProjectStrings:
     def SPACES_ADD_TO(self) -> str:
         # Below the title of an "Add" dialog: where the new ones go.
         return _('to "{name}"')
+
+    @property
+    def ADD_ROW(self) -> str:
+        return _("Add Row")
+
+    @property
+    def ADD_REMOVE_ROW(self) -> str:
+        return _("Remove this row")
+
+    @property
+    def ADD_GENERATE(self) -> str:
+        return _("Generate Addresses")
 
     @property
     def SPACES_DEFAULT_BUILDING(self) -> str:

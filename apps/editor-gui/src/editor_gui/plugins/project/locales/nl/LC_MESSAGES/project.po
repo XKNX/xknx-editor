@@ -510,9 +510,6 @@ msgstr "Verplaatsen naar"
 msgid "No unassigned devices"
 msgstr "Geen niet-toegewezen apparaten"
 
-msgid "Remove from Space"
-msgstr "Uit ruimte verwijderen"
-
 msgid "Room"
 msgstr "Kamer"
 
@@ -2876,3 +2873,12 @@ msgstr "{count} segmenten gekopieerd naar '{target}'."
 
 msgid "Paste Special…"
 msgstr "Plakken speciaal…"
+
+msgid "Add Row"
+msgstr "Rij toevoegen"
+
+msgid "Remove this row"
+msgstr "Deze rij verwijderen"
+
+msgid "Generate Addresses"
+msgstr "Adressen genereren"

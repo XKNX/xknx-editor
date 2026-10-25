@@ -15,7 +15,8 @@ from editor_gui.plugins.logger.service import LogService
 from editor_gui.plugins.project.service import ProjectService
 from editor_gui.plugins.project.space_text import add_item_text
 from editor_gui.plugins.project.strings import S
-from editor_gui.plugins.project.ui import spaces
+from editor_gui.plugins.project.ui import add_dialog, spaces
+from editor_gui.plugins.project.ui.add_dialog import AddRow
 from editor_gui.plugins.project.ui.spaces import SpacesPanel
 
 from ._clicks import Clicks
@@ -42,7 +43,19 @@ def context() -> Iterator[None]:
 
 @pytest.fixture
 def clicks(monkeypatch: pytest.MonkeyPatch, context: None) -> Clicks:
-    return Clicks(monkeypatch, spaces)
+    return Clicks(monkeypatch, spaces, add_dialog)
+
+
+def _rows(panel: SpacesPanel) -> list[AddRow]:
+    """The rows of the open "Add …" dialog."""
+    return panel._adder.request.rows  # pyright: ignore[reportPrivateUsage]
+
+
+def _ids(project: ProjectService) -> set[int]:
+    """The ids of the project's devices, also those without a product."""
+    svc, pid = project._svc, project._pid  # pyright: ignore[reportPrivateUsage]
+    assert pid is not None
+    return {device.id for device in svc.devices(pid)}
 
 
 def _panel(project: ProjectService, notes: list[str]) -> SpacesPanel:
@@ -120,23 +133,28 @@ def test_the_add_dialog_adds_building_parts(
     notes: list[str] = []
     panel = _panel(project, notes)
     _frames(panel)
-    # Buildings: two, with the default name.
+    # Buildings: two with the default name, then one named, in one undo step.
     _choose(clicks, panel, "##spaces_root_ctx", S.SPACES_ADD_BUILDINGS)
-    panel._add_count = 2  # pyright: ignore[reportPrivateUsage]
-    clicks.button = S.SPACES_SPACE_CREATE
+    _rows(panel)[0].count = 2
+    _rows(panel).append(AddRow(name="Garage"))
+    clicks.button = S.BTN_OK
     _frames(panel)
-    assert [s.name for s in project.get_space_tree()][1:] == ["New building"] * 2
+    assert [s.name for s in project.get_space_tree()][1:] == [
+        "New building",
+        "New building",
+        "Garage",
+    ]
     building = project.get_space_tree()[0].id
     # A room with its use, named in the dialog.
     _choose(
         clicks, panel, f"##spctx{building}", S.SPACES_ADD_MENU, add_item_text("Room")
     )
-    panel._add_name = "Kitchen"  # pyright: ignore[reportPrivateUsage]
-    panel._add_usage = 1  # pyright: ignore[reportPrivateUsage]
-    clicks.button = S.SPACES_SPACE_CREATE
+    _rows(panel)[0].name = "Kitchen"
+    _rows(panel)[0].choice = "SU-1"
+    clicks.button = S.BTN_OK
     _frames(panel)
     room = next(s for s in project.get_space_tree()[0].children if s.name == "Kitchen")
-    assert room.space_type == "Room" and room.usage
+    assert room.space_type == "Room" and room.usage == "SU-1"
     # Cancel adds nothing.
     _choose(
         clicks,
@@ -209,9 +227,20 @@ def test_devices_go_into_spaces_and_out_again(
     # A building holds no devices: told why.
     panel._report(project.set_device_space(first, building))  # pyright: ignore[reportPrivateUsage]
     assert notes
-    # "Unassign" takes it out again.
+    # "Unlink" takes it out again.
     _choose(clicks, panel, f"##spdev_ctx_{first}", S.SPACES_UNASSIGN)
     assert _names(project)[0] == ("p", [("Kitchen", [], ["D6"])], [])
+    # "Delete" deletes the device from the project, after asking.
+    panel._on_delete_device = project.remove_device  # pyright: ignore[reportPrivateUsage]
+    _choose(clicks, panel, f"##spdev_ctx_{second}", S.CONTEXT_DELETE)
+    clicks.button = S.BTN_CANCEL
+    _frames(panel)
+    assert second in _ids(project)
+    _choose(clicks, panel, f"##spdev_ctx_{second}", S.CONTEXT_DELETE)
+    clicks.button = S.CONTEXT_DELETE
+    _frames(panel)
+    assert second not in _ids(project)
+    assert _names(project)[0] == ("p", [("Kitchen", [], [])], [])
 
 
 def test_functions_are_added_in_a_space(
@@ -235,16 +264,16 @@ def test_trades_are_added_moved_and_deleted(
     panel = _panel(project, [])
     _frames(panel)
     _choose(clicks, panel, "##trades_root_ctx", S.TRADES_ADD)
-    panel._add_name = "Lighting"  # pyright: ignore[reportPrivateUsage]
-    clicks.button = S.SPACES_SPACE_CREATE
+    _rows(panel)[0].name = "Lighting"
+    clicks.button = S.BTN_OK
     _frames(panel)
     (light,) = project.get_trade_tree()
     clicks.open.add(f"Lighting##trade{light.id}")
     _choose(
         clicks, panel, f"##tradectx{light.id}", S.SPACES_ADD_MENU, S.TRADES_ADD_TRADES
     )
-    panel._add_count = 2  # pyright: ignore[reportPrivateUsage]
-    clicks.button = S.SPACES_SPACE_CREATE
+    _rows(panel)[0].count = 2
+    clicks.button = S.BTN_OK
     _frames(panel)
     first, second = project.get_trade_tree()[0].children
     assert (first.name, second.name) == (S.TRADES_DEFAULT, S.TRADES_DEFAULT)

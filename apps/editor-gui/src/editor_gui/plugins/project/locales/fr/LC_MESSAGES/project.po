@@ -541,9 +541,6 @@ msgstr "Affecter un participant à cet espace"
 msgid "No unassigned devices"
 msgstr "Aucun participant non affecté"
 
-msgid "Remove from Space"
-msgstr "Enlever de l'espace"
-
 msgid "Without Space"
 msgstr "Sans espace"
 
@@ -2838,3 +2835,12 @@ msgstr "{count} segments copiés vers '{target}'."
 
 msgid "Paste Special…"
 msgstr "Collage spécial…"
+
+msgid "Add Row"
+msgstr "Ajouter une ligne"
+
+msgid "Remove this row"
+msgstr "Supprimer cette ligne"
+
+msgid "Generate Addresses"
+msgstr "Générer les adresses"

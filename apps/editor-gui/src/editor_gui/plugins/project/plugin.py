@@ -495,6 +495,7 @@ class ProjectPlugin:
             notify=api.notify if api.notify is not None else lambda _t: None,
             one_undo_step=api.project.one_undo_step,
             paste_dialog=self._paste_dialog("buildings"),
+            on_delete_device=self._delete_device,
         )
 
         self._project_info_panel = ProjectInfoPanel(
@@ -740,7 +741,10 @@ class ProjectPlugin:
         )
 
     def _on_delete_device(self, device: "Device | UnloadedDevice") -> None:
-        node_id = device.node_id
+        self._delete_device(device.node_id)
+
+    def _delete_device(self, node_id: int) -> None:
+        """Delete a device from the project (undoable); it is no longer selected."""
         was_selected = self._selected_node_id() == node_id or (
             node_id in self._api.project.selected_node_ids
         )

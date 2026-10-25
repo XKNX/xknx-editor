@@ -17,13 +17,13 @@ from editor_gui.plugins.project.space_text import (
 )
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
+from editor_gui.plugins.project.ui.add_dialog import AddChoice, AddDialog, AddRequest
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.paste_special import (
     PasteSpecialDialog,
     render_copy_item,
 )
-from editor_gui.plugins.project.ui.status_field import USAGE_ROWS as _USAGE_ROWS
 from editor_gui.plugins.project.ui.topology import render_read_device_item
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
 from editor_gui.widgets.combo import combo
@@ -118,11 +118,6 @@ def _find_node(tree: "Sequence[SpaceInfo] | Sequence[TradeInfo]", node_id: int) 
     return None
 
 
-def _add_dialog(key: str) -> str:
-    """The "Add …" dialog of the target ``key`` ("root", "trades", a space or a trade)."""
-    return f"###add_{key}"
-
-
 def _trade_devices_dialog(trade_id: int) -> str:
     return f"{S.TRADES_ADD_DEVICES_TITLE}###tradedev{trade_id}"
 
@@ -186,12 +181,18 @@ class SpacesPanel:
         notify: Callable[[str], None] = lambda _t: None,
         one_undo_step: Callable[[], AbstractContextManager[None]] = nullcontext,
         paste_dialog: PasteSpecialDialog | None = None,
+        on_delete_device: Callable[[int], None] | None = None,
     ) -> None:
         """``notify`` shows the reason an edit was refused; ``one_undo_step`` makes the edits of
         one drop one undo step; ``paste_dialog`` asks how to copy what is dropped with Ctrl
-        held (no copies without it)."""
+        held (no copies without it); ``on_delete_device`` deletes a device (by id) from the
+        project, after the user confirmed it."""
         self._one_undo_step = one_undo_step
         self._paste_dialog = paste_dialog
+        self._on_delete_device = on_delete_device
+        # The device the "Delete Device" confirmation asks about: its id and name.
+        self._delete_device: tuple[int, str] | None = None
+        self._open_delete_device = False
         self._get_trade_tree = get_trade_tree
         self._on_create_trade = on_create_trade
         self._on_move_trade = on_move_trade
@@ -202,14 +203,8 @@ class SpacesPanel:
         self._notify = notify
         # The trade selected in this tree (highlighted), until a space, function or device is.
         self._selected_trade: int | None = None
-        # The "Add …" dialog: the type it adds (a space type or a trade), where, how many, the
-        # name (empty: the default one) and a room's use (index into usage_options()).
-        self._add_type = ""
-        self._add_parent: int | None = None
-        self._add_parent_name = ""
-        self._add_count = 1
-        self._add_name = ""
-        self._add_usage = 0
+        # The "Add …" dialog of building parts and trades.
+        self._adder = AddDialog("buildings")
         self._trade_device_filter = ""
         # Selecting a function (its comment shows in the Comment tab).
         self._on_select_element = on_select_element
@@ -277,6 +272,8 @@ class SpacesPanel:
         self._render_tree(tree, flt)
         imgui.end_child()
         self._config_dialog.render()
+        self._adder.render()
+        self._render_delete_device_confirm()
         if self._paste_dialog is not None:
             self._paste_dialog.render()
 
@@ -288,12 +285,9 @@ class SpacesPanel:
         if self._on_create_space is not None and context_menu("##spaces_root_ctx"):
             if imgui.menu_item(S.SPACES_ADD_BUILDINGS, "", False)[0]:
                 self._start_add(child_types(None)[0], None, S.SPACES_ROOT_BUILDINGS)
-                self._pending_popup_id = _add_dialog("root")
             self._render_paste_items(lambda c: self._space_copy_target(None, c))
             imgui.end_popup()
         self._drop_on_space(None)
-        self._open_if_pending(_add_dialog("root"))
-        self._render_add_popup(_add_dialog("root"))
         if buildings_open:
             if not tree:
                 imgui.text_disabled(S.SPACES_EMPTY)
@@ -423,14 +417,35 @@ class SpacesPanel:
         )
 
     def _start_add(self, add_type: str, parent: int | None, parent_name: str) -> None:
-        """Prepare the "Add …" dialog for ``add_type`` (a space type or ``_TRADE``) below
-        ``parent``."""
-        self._add_type = add_type
-        self._add_parent = parent
-        self._add_parent_name = parent_name
-        self._add_count = 1
-        self._add_name = ""
-        self._add_usage = 0
+        """Open the "Add …" dialog for ``add_type`` (a space type or ``_TRADE``) below
+        ``parent`` (named ``parent_name``): rows of how many, their name (empty: the default
+        one) and a room's use."""
+        trade = add_type == _TRADE
+        self._adder.open(
+            S.TRADES_TITLE if trade else add_title(add_type),
+            parent_name,
+            lambda request: self._add_rows(add_type, parent, request),
+            default_name=S.TRADES_DEFAULT if trade else default_name(add_type),
+            choice=AddChoice(S.SPACE_USE, usage_options())
+            if add_type == ROOM
+            else None,
+        )
+
+    def _add_rows(
+        self, add_type: str, parent: int | None, request: AddRequest
+    ) -> str | None:
+        """Add what the "Add …" dialog asks for, row by row, as one undo step."""
+        trade = add_type == _TRADE
+        fallback = S.TRADES_DEFAULT if trade else default_name(add_type)
+        with self._one_undo_step():
+            for row in request.rows:
+                name = row.name.strip() or fallback
+                for _ in range(row.count):
+                    if trade and self._on_create_trade is not None:
+                        self._on_create_trade(parent, name)
+                    elif not trade and self._on_create_space is not None:
+                        self._on_create_space(parent, add_type, name, row.choice)
+        return None
 
     def _render_space(self, space: "SpaceInfo", flt: str = "") -> None:
         if flt and not self._space_has_match(space, flt):
@@ -467,8 +482,6 @@ class SpacesPanel:
         self._drag_and_drop_space(space)
         # A short description shows inline; a longer one shows while its icon is hovered.
         render_description(space.description)
-        self._open_if_pending(_add_dialog(f"sp{space.id}"))
-        self._render_add_popup(_add_dialog(f"sp{space.id}"))
         self._open_if_pending(_delete_space_dialog(space.id))
         self._render_space_delete_confirm(space.id)
         self._open_if_pending(_assign_device_dialog(space.id))
@@ -564,7 +577,6 @@ class SpacesPanel:
             for space_type in child_types(space.space_type):
                 if imgui.menu_item(add_item_text(space_type), "", False)[0]:
                     self._start_add(space_type, space.id, space_label(space))
-                    self._pending_popup_id = _add_dialog(f"sp{space.id}")
         if (
             holds_devices(space.space_type)
             and self._on_set_device_space is not None
@@ -660,43 +672,25 @@ class SpacesPanel:
         walk(self._get_space_tree(), 0)
         return out
 
-    def _render_add_popup(self, popup_id: str) -> None:
-        """The "Add …" dialog: how many to add (Count), their name (empty: the default one)
-        and a room's use; they go below the target named under the title."""
-        trade = self._add_type == _TRADE
-        title = S.TRADES_TITLE if trade else add_title(self._add_type or ROOM)
-        if not begin_dialog(f"{title}{popup_id}"):
+    def _render_delete_device_confirm(self) -> None:
+        """ "Delete Device": asks before a device is deleted from the project."""
+        if self._open_delete_device:
+            imgui.open_popup(S.DEVICE_DELETE_TITLE)
+            self._open_delete_device = False
+        if not begin_dialog(S.DEVICE_DELETE_TITLE, width=420.0):
             return
-        imgui.text_disabled(S.SPACES_ADD_TO.format(name=self._add_parent_name))
-        imgui.set_next_item_width(px(220.0))
-        _, self._add_count = imgui.input_int(S.SPACES_COUNT, self._add_count)
-        self._add_count = max(1, min(self._add_count, 100))
-        fallback = S.TRADES_DEFAULT if trade else default_name(self._add_type)
-        imgui.set_next_item_width(px(220.0))
-        _, self._add_name = imgui.input_text_with_hint(
-            S.SPACES_SPACE_NAME, fallback, self._add_name
+        device = self._delete_device
+        imgui.text_wrapped(
+            S.DEVICE_DELETE_CONFIRM.format(name=device[1] if device else "")
         )
-        uses = usage_options()
-        if self._add_type == ROOM:
-            # A room's use, "-" (none) by default.
-            imgui.set_next_item_width(px(220.0))
-            _, self._add_usage = combo(
-                S.SPACE_USE,
-                self._add_usage,
-                [text for _usage, text in uses],
-                _USAGE_ROWS,
-            )
-        clicked = dialog_buttons(S.SPACES_SPACE_CREATE, S.ML_CANCEL)
+        clicked = dialog_buttons(S.CONTEXT_DELETE, S.BTN_CANCEL)
         if clicked == 0:
-            name = self._add_name.strip() or fallback
-            for _ in range(self._add_count):
-                if trade and self._on_create_trade is not None:
-                    self._on_create_trade(self._add_parent, name)
-                elif not trade and self._on_create_space is not None:
-                    usage = uses[self._add_usage][0] if self._add_type == ROOM else ""
-                    self._on_create_space(self._add_parent, self._add_type, name, usage)
+            if device is not None and self._on_delete_device is not None:
+                self._on_delete_device(device[0])
+            self._delete_device = None
             imgui.close_current_popup()
         elif clicked == 1:
+            self._delete_device = None
             imgui.close_current_popup()
         end_dialog()
 
@@ -871,6 +865,7 @@ class SpacesPanel:
             or self._on_copy_config is not None
             or self._on_compare is not None
             or self._paste_dialog is not None
+            or self._on_delete_device is not None
         )
         if has_menu and context_menu(f"##spdev_ctx_{where}{device.id}"):
             if self._paste_dialog is not None:
@@ -881,12 +876,19 @@ class SpacesPanel:
                 )
                 imgui.separator()
             self._render_move_device_menu(device.id, space_id, trade_id)
+            # "Unlink" takes the device out of the trade or the building part it shows in.
             if (
                 trade_id is not None
                 and self._on_remove_trade_device is not None
                 and imgui.menu_item(S.TRADES_REMOVE_DEVICE, "", False)[0]
             ):
                 self._on_remove_trade_device(trade_id, device.id)
+            if (
+                space_id is not None
+                and self._on_set_device_space is not None
+                and imgui.menu_item(S.SPACES_UNASSIGN, "", False)[0]
+            ):
+                self._report(self._on_set_device_space(device.id, None))
             if (
                 device.individual_address
                 and imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]
@@ -907,12 +909,6 @@ class SpacesPanel:
                     else False,
                 )[0]:
                     self._config_dialog.open(device.id, config_label, "paste")
-            if (
-                space_id is not None
-                and self._on_set_device_space is not None
-                and imgui.menu_item(S.SPACES_UNASSIGN, "", False)[0]
-            ):
-                self._report(self._on_set_device_space(device.id, None))
             if self._on_device_info is not None:
                 render_read_device_item(
                     device.id, bool(device.individual_address), self._on_device_info
@@ -922,6 +918,11 @@ class SpacesPanel:
                 and imgui.menu_item(S.CONTEXT_COMPARE_DEVICE, "", False)[0]
             ):
                 self._on_compare(device.id)
+            if self._on_delete_device is not None:
+                imgui.separator()
+                if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
+                    self._delete_device = (device.id, self._device_label(device))
+                    self._open_delete_device = True
             imgui.end_popup()
         # The KNX Data Secure shield, then a short description inline or a longer one while its
         # icon is hovered.
@@ -951,12 +952,9 @@ class SpacesPanel:
         if self._on_create_trade is not None and context_menu("##trades_root_ctx"):
             if imgui.menu_item(S.TRADES_ADD, "", False)[0]:
                 self._start_add(_TRADE, None, S.SPACES_ROOT_TRADES)
-                self._pending_popup_id = _add_dialog("trades")
             self._render_paste_items(lambda c: self._trade_copy_target(None, c))
             imgui.end_popup()
         self._drop_on_trade(None)
-        self._open_if_pending(_add_dialog("trades"))
-        self._render_add_popup(_add_dialog("trades"))
         if not open_root:
             return
         for trade in trades:
@@ -994,8 +992,6 @@ class SpacesPanel:
             drag_source(Dragged("trade", (trade.id,)), label)
         self._drop_on_trade(trade)
         render_description(trade.description)
-        self._open_if_pending(_add_dialog(f"tr{trade.id}"))
-        self._render_add_popup(_add_dialog(f"tr{trade.id}"))
         self._open_if_pending(_trade_devices_dialog(trade.id))
         self._render_trade_devices_popup(trade)
         if not open_node:
@@ -1014,7 +1010,6 @@ class SpacesPanel:
         if imgui.begin_menu(S.SPACES_ADD_MENU):
             if imgui.menu_item(S.TRADES_ADD_TRADES, "", False)[0]:
                 self._start_add(_TRADE, trade.id, label)
-                self._pending_popup_id = _add_dialog(f"tr{trade.id}")
             if (
                 self._on_add_trade_device is not None
                 and imgui.menu_item(S.SPACES_ADD_DEVICES, "", False)[0]

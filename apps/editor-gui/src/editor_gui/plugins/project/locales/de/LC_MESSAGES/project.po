@@ -972,9 +972,6 @@ msgstr "Verschieben nach"
 msgid "No unassigned devices"
 msgstr "Keine nicht zugeordneten Geräte"
 
-msgid "Remove from Space"
-msgstr "Aus Bereich entfernen"
-
 msgid "Room"
 msgstr "Raum"
 
@@ -3023,3 +3020,12 @@ msgstr "{count} Segmente nach '{target}' kopiert."
 
 msgid "Paste Special…"
 msgstr "Inhalte einfügen…"
+
+msgid "Add Row"
+msgstr "Zeile hinzufügen"
+
+msgid "Remove this row"
+msgstr "Diese Zeile entfernen"
+
+msgid "Generate Addresses"
+msgstr "Adressen erzeugen"

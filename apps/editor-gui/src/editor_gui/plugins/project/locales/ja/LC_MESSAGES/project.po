@@ -541,9 +541,6 @@ msgstr "このスペースにデバイスを割り当て"
 msgid "No unassigned devices"
 msgstr "未割り当てのデバイスはありません"
 
-msgid "Remove from Space"
-msgstr "スペースから削除"
-
 msgid "Without Space"
 msgstr "スペースなし"
 
@@ -2838,3 +2835,12 @@ msgstr "{count} 個のセグメントを '{target}' にコピーしました。"
 
 msgid "Paste Special…"
 msgstr "形式を選択して貼り付け…"
+
+msgid "Add Row"
+msgstr "行を追加"
+
+msgid "Remove this row"
+msgstr "この行を削除"
+
+msgid "Generate Addresses"
+msgstr "アドレスの生成"

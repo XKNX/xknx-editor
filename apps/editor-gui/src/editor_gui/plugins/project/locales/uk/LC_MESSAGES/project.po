@@ -541,9 +541,6 @@ msgstr "Призначити пристрій цьому простору"
 msgid "No unassigned devices"
 msgstr "Немає непризначених пристроїв"
 
-msgid "Remove from Space"
-msgstr "Вилучити з простору"
-
 msgid "Without Space"
 msgstr "Без простору"
 
@@ -2838,3 +2835,12 @@ msgstr "Скопійовано сегментів: {count} до '{target}'."
 
 msgid "Paste Special…"
 msgstr "Спеціальна вставка…"
+
+msgid "Add Row"
+msgstr "Додати рядок"
+
+msgid "Remove this row"
+msgstr "Видалити цей рядок"
+
+msgid "Generate Addresses"
+msgstr "Створення адрес"

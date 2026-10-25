@@ -541,9 +541,6 @@ msgstr "Ανάθεση Συσκευής σε Αυτόν τον Χώρο"
 msgid "No unassigned devices"
 msgstr "Δεν υπάρχουν μη ανατεθειμένες συσκευές"
 
-msgid "Remove from Space"
-msgstr "Αφαίρεση από τον Χώρο"
-
 msgid "Without Space"
 msgstr "Χωρίς Χώρο"
 
@@ -2838,3 +2835,12 @@ msgstr "{count} τμήματα αντιγράφηκαν στο '{target}'."
 
 msgid "Paste Special…"
 msgstr "Ειδική επικόλληση…"
+
+msgid "Add Row"
+msgstr "Προσθήκη Γραμμής"
+
+msgid "Remove this row"
+msgstr "Αφαίρεση αυτής της γραμμής"
+
+msgid "Generate Addresses"
+msgstr "Δημιουργία Διευθύνσεων"

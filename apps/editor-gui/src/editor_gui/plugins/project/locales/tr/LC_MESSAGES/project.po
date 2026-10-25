@@ -541,9 +541,6 @@ msgstr "Bu Mekana Bir Cihaz Ata"
 msgid "No unassigned devices"
 msgstr "Atanmamış cihaz yok"
 
-msgid "Remove from Space"
-msgstr "Mekandan Kaldır"
-
 msgid "Without Space"
 msgstr "Mekansız"
 
@@ -2838,3 +2835,12 @@ msgstr "{count} segment '{target}' konumuna kopyalandı."
 
 msgid "Paste Special…"
 msgstr "Özel Yapıştır…"
+
+msgid "Add Row"
+msgstr "Satır Ekle"
+
+msgid "Remove this row"
+msgstr "Bu satırı kaldır"
+
+msgid "Generate Addresses"
+msgstr "Adresleri Oluştur"

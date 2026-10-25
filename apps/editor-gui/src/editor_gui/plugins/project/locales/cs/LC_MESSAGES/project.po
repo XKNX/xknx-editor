@@ -541,9 +541,6 @@ msgstr "Přiřadit zařízení k tomuto prostoru"
 msgid "No unassigned devices"
 msgstr "Žádná nepřiřazená zařízení"
 
-msgid "Remove from Space"
-msgstr "Odebrat z prostoru"
-
 msgid "Without Space"
 msgstr "Bez prostoru"
 
@@ -2838,3 +2835,12 @@ msgstr "{count} segmentů zkopírováno do '{target}'."
 
 msgid "Paste Special…"
 msgstr "Vložit jinak…"
+
+msgid "Add Row"
+msgstr "Přidat řádek"
+
+msgid "Remove this row"
+msgstr "Odebrat tento řádek"
+
+msgid "Generate Addresses"
+msgstr "Generovat adresy"
