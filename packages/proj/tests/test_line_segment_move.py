@@ -268,3 +268,56 @@ def test_two_devices_without_a_number_keep_every_number_and_rf_takes_no_segment(
     svc.set_line_medium(pid, rf_line, MEDIUM_RF)
     with pytest.raises(MediumError, match="RF"):
         svc.move_segment(pid, garden, rf_line)
+
+
+def _loaded(svc: ProjectService, pid: str, device: int) -> tuple[bool, bool, bool]:
+    info = svc.device(pid, device)
+    return (
+        info.individual_address_loaded,
+        info.communication_part_loaded,
+        info.medium_config_loaded,
+    )
+
+
+def test_a_new_individual_address_is_no_longer_the_downloaded_one(
+    tmp_path: Path,
+) -> None:
+    svc, pid, ids = _project(tmp_path)
+    main = _main_segment(svc, pid, ids["2.1"])
+    device = svc.add_device(pid, main, "M-1_H-1_P-1", address=3)
+    coupler = svc.add_device(pid, main, "M-1_H-1_P-1", address=0)
+    svc.assign_additional_addresses(pid, device, 1)
+
+    def downloaded() -> None:
+        for d in (device, coupler):
+            svc.set_device_commissioning(
+                pid,
+                d,
+                individual_address_loaded=True,
+                communication_part_loaded=True,
+                medium_config_loaded=True,
+            )
+
+    downloaded()
+    # Another device number: the address, and the additional addresses' medium configuration.
+    svc.set_individual_address(pid, device, "2.1.9", couplers={coupler})
+    assert _loaded(svc, pid, device) == (False, True, False)
+    svc.undo(pid)
+    assert _loaded(svc, pid, device) == (True, True, True)
+    # A moved line: every device of it, a coupler's group communication too.
+    svc.move_line(pid, ids["2.1"], ids["3"], couplers={coupler})
+    assert _loaded(svc, pid, device) == (False, True, False)
+    assert _loaded(svc, pid, coupler) == (False, False, True)
+    svc.undo(pid)
+    assert _loaded(svc, pid, coupler) == (True, True, True)
+    # A renumbered line and a moved segment.
+    svc.set_topology_address(pid, "line", ids["2.1"], 5)
+    assert _loaded(svc, pid, device)[0] is False
+    svc.undo(pid)
+    garden = svc.add_segment(pid, ids["2.1"])
+    downloaded()
+    # Onto another segment of its line with the same number: the address stays the downloaded one.
+    svc.move_device(pid, device, garden, 3)
+    assert _loaded(svc, pid, device)[0] is True
+    svc.move_segment(pid, garden, ids["3.1"])
+    assert _loaded(svc, pid, device)[0] is False

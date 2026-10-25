@@ -14,7 +14,7 @@ import contextlib
 import datetime
 import ipaddress
 import secrets
-from collections.abc import Callable, Collection, Mapping, Sequence
+from collections.abc import Callable, Collection, Iterable, Mapping, Sequence
 from dataclasses import dataclass, field, replace
 from pathlib import Path
 from typing import Any, cast
@@ -591,6 +591,30 @@ def _new_line_medium(
 # A device's coupler data and name for the coupler rules, by its id and hardware program; None
 # for a device that is no coupler.
 CouplerOf = Callable[[int, str | None], "tuple[CouplerDevice, str] | None"]
+
+
+def _address_change_events(
+    devices: Iterable[Device], couplers: Collection[int] = ()
+) -> list[Event]:
+    """What a change of their individual addresses takes from the downloaded state of
+    ``devices``: the address, of a coupler (``couplers``: the devices that are couplers but no
+    segment couplers) also its group communication, and of a device with additional addresses
+    its medium configuration."""
+    events: list[Event] = []
+    for device in devices:
+        address = device.individual_address_loaded
+        communication = device.id in couplers and device.communication_part_loaded
+        medium = bool(device.additional_addresses) and device.medium_config_loaded
+        if address or communication or medium:
+            events.append(
+                SetDeviceCommissioning(
+                    device_id=device.id,
+                    individual_address_loaded=False if address else None,
+                    communication_part_loaded=False if communication else None,
+                    medium_config_loaded=False if medium else None,
+                )
+            )
+    return events
 
 
 def _moved_line_domain(
@@ -3406,10 +3430,17 @@ class ProjectService:
         )
 
     def set_topology_address(
-        self, project_id: str, kind: str, element_id: int, address: int
+        self,
+        project_id: str,
+        kind: str,
+        element_id: int,
+        address: int,
+        *,
+        couplers: Collection[int] = (),
     ) -> None:
         """The address of an area or a line (``kind`` "area" or "line"), 0 to 15 and not that of
-        another one beside it; its devices' individual addresses change with it. Undoable.
+        another one beside it; its devices' individual addresses change with it and are no
+        longer the downloaded ones (see :func:`_address_change_events`). One undo step.
 
         Raises ``ValueError`` for an address out of range or in use, ``KeyError`` for an unknown
         element."""
@@ -3426,6 +3457,7 @@ class ProjectService:
                     Area.installation_id == area.installation_id, Area.id != area.id
                 )
             ]
+            lines = list(area.lines)
         elif kind == "line":
             line = state.session.get(Line, element_id)
             if line is None:
@@ -3436,13 +3468,18 @@ class ProjectService:
                     Line.area_id == line.area_id, Line.id != line.id
                 )
             ]
+            lines = [line]
         else:
             raise KeyError(f"No {kind} {element_id}")
         if address in siblings:
             raise ValueError(f"address {address} is in use")
-        state.store.append(
-            SetTopologyAddress(kind=kind, element_id=element_id, address=address)
-        )
+        events: list[Event] = [
+            SetTopologyAddress(kind=kind, element_id=element_id, address=address),
+            *_address_change_events(
+                (d for ln in lines for s in ln.segments for d in s.devices), couplers
+            ),
+        ]
+        state.store.append(events[0] if len(events) == 1 else CompositeEvent(events))
 
     def set_group_description(
         self, project_id: str, kind: str, element_id: int, description: str
@@ -3832,42 +3869,44 @@ class ProjectService:
         )
 
     def move_device(
-        self, project_id: str, device_id: int, segment_id: int, address: int | None
+        self,
+        project_id: str,
+        device_id: int,
+        segment_id: int,
+        address: int | None,
+        *,
+        couplers: Collection[int] = (),
     ) -> None:
         """Move a device to ``segment_id`` with the device number ``address``. Moved to another
         line, its additional addresses are assigned again in the new line, in the same undo step;
-        too few free numbers there raise :class:`AdditionalAddressError`."""
+        too few free numbers there raise :class:`AdditionalAddressError`. A new individual
+        address is no longer the downloaded one (see :meth:`_address_change_events`)."""
         state = self._state(project_id)
         if address is not None:
             self._check_unique_address(state, segment_id, address, exclude=device_id)
-        move = MoveDevice(device_id=device_id, segment_id=segment_id, address=address)
+        events: list[Event] = [
+            MoveDevice(device_id=device_id, segment_id=segment_id, address=address)
+        ]
         device = state.session.get(Device, device_id)
         target = state.session.get(Segment, segment_id)
-        if (
-            device is None
-            or target is None
-            or not device.additional_addresses
-            or device.segment.line_id == target.line_id
-        ):
-            state.store.append(move)
-            return
-        entries = additional_address_entries(device)
-        for entry in entries:
-            entry["address"] = None
-        used = self._line_numbers_in_use(
-            state, target.line_id, without_device=device_id
-        )
-        if address is not None:
-            used.add(address)
-        _fill_additional_entries(entries, used)
-        state.store.append(
-            CompositeEvent(
-                events=[
-                    move,
-                    SetDeviceAdditionalAddresses(device_id=device_id, entries=entries),
-                ]
-            )
-        )
+        if device is not None and target is not None:
+            other_line = device.segment.line_id != target.line_id
+            if device.additional_addresses and other_line:
+                entries = additional_address_entries(device)
+                for entry in entries:
+                    entry["address"] = None
+                used = self._line_numbers_in_use(
+                    state, target.line_id, without_device=device_id
+                )
+                if address is not None:
+                    used.add(address)
+                _fill_additional_entries(entries, used)
+                events.append(
+                    SetDeviceAdditionalAddresses(device_id=device_id, entries=entries)
+                )
+            if other_line or device.address != address:
+                events.extend(_address_change_events([device], couplers))
+        state.store.append(events[0] if len(events) == 1 else CompositeEvent(events))
 
     def move_line(
         self,
@@ -3878,8 +3917,10 @@ class ProjectService:
         coupler_of: CouplerOf | None = None,
         ip_routers: Collection[int] = (),
         line_names: Mapping[int, str] | None = None,
+        couplers: Collection[int] = (),
     ) -> int:
-        """Put a sub line into another area, one undo step. It keeps its number when that is
+        """Put a sub line into another area, one undo step; its devices' individual addresses are
+        no longer the downloaded ones (``couplers``: see :func:`_address_change_events`). It keeps its number when that is
         free there, else gets the lowest free one; its devices keep their device numbers. Its
         main segment takes the domain address of the area's main line when it has its medium,
         none on TP or IP, else a new one. The couplers on the line (``coupler_of``: a device's
@@ -3928,6 +3969,11 @@ class ProjectService:
             events.append(
                 SetSegmentDomainAddress(segment_id=main.id, domain_address=domain)
             )
+        events.extend(
+            _address_change_events(
+                (d for s in line.segments for d in s.devices), couplers
+            )
+        )
         state.store.append(events[0] if len(events) == 1 else CompositeEvent(events))
         return number
 
@@ -3940,9 +3986,11 @@ class ProjectService:
         coupler_of: CouplerOf | None = None,
         ip_routers: Collection[int] = (),
         line_names: Mapping[int, str] | None = None,
+        couplers: Collection[int] = (),
     ) -> int:
         """Put a sub-segment onto another line, one undo step; it gets the line's lowest free
-        segment number. Its devices keep their device numbers unless one of them is taken in
+        segment number, and its devices' individual addresses are no longer the downloaded ones
+        (``couplers``: see :func:`_address_change_events`). Its devices keep their device numbers unless one of them is taken in
         the line: then each whose number is taken gets the line's lowest free one (none when
         no number is left). Devices with additional addresses get them again in the line. The
         segment couplers on it (``coupler_of``) are checked where they end up. Returns the
@@ -4018,6 +4066,7 @@ class ProjectService:
             events.append(
                 SetDeviceAdditionalAddresses(device_id=device.id, entries=entries)
             )
+        events.extend(_address_change_events(devices, couplers))
         state.store.append(events[0] if len(events) == 1 else CompositeEvent(events))
         return number
 
@@ -4484,13 +4533,19 @@ class ProjectService:
         return self.next_free_individual_address(project_id, segment.line_id)
 
     def set_individual_address(
-        self, project_id: str, device_id: int, address: str
+        self,
+        project_id: str,
+        device_id: int,
+        address: str,
+        *,
+        couplers: Collection[int] = (),
     ) -> None:
         """Assign a device an ``area.line.device`` address inside its installation.
 
         Looks up the line by its area/line numbers. A device staying in its line stays on its
         segment; one moving to another line goes on the line's main segment (a segment is a media
-        grouping, not part of the address). Raises when no such line exists."""
+        grouping, not part of the address). Raises when no such line exists. The new address is
+        no longer the downloaded one (``couplers``: see :func:`_address_change_events`)."""
         state = self._state(project_id)
         device = state.session.get(Device, device_id)
         if device is None:
@@ -4514,7 +4569,7 @@ class ProjectService:
             if device.segment.line_id == line.id
             else self._first_segment(state, line)
         )
-        self.move_device(project_id, device_id, segment.id, octet)
+        self.move_device(project_id, device_id, segment.id, octet, couplers=couplers)
 
     # --- internals --------------------------------------------------------
 

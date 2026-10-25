@@ -4943,7 +4943,9 @@ class ProjectService:
             return False
         self._check_line_medium(node_id, new_address)
         try:
-            self._svc.set_individual_address(self._pid, node_id, new_address)
+            self._svc.set_individual_address(
+                self._pid, node_id, new_address, couplers=self._line_couplers()
+            )
         except (KeyError, ValueError) as e:
             self._log.warning(
                 "could not set individual address", address=new_address, error=str(e)
@@ -5274,6 +5276,19 @@ class ProjectService:
         }
         return couplers, ip_routers
 
+    def _line_couplers(self) -> set[int]:
+        """The devices whose hardware is a coupler but no segment coupler: a change of their
+        individual address takes their group communication's downloaded state too."""
+        if self._pid is None:
+            return set()
+        couplers, _ip_routers = self._device_roles()
+        programs = self._svc.device_programs(self._pid)
+        return {
+            d
+            for d in couplers
+            if "SegmentCoupler" not in self._catalog.coupler_capabilities(programs[d])
+        }
+
     @io_guarded(lambda: (dict[int, BusLoad](), dict[int, BusLoad]()))
     @revision_cached
     def bus_loads(self) -> "tuple[dict[int, BusLoad], dict[int, BusLoad]]":
@@ -5419,6 +5434,7 @@ class ProjectService:
                 coupler_of=self._coupler_of,
                 ip_routers=ip_routers,
                 line_names=self._line_names(),
+                couplers=self._line_couplers(),
             )
         except MediumError as error:
             return medium_error_text(error)
@@ -5442,6 +5458,7 @@ class ProjectService:
                 coupler_of=self._coupler_of,
                 ip_routers=ip_routers,
                 line_names=self._line_names(),
+                couplers=self._line_couplers(),
             )
         except MediumError as error:
             return medium_error_text(error)
@@ -5552,7 +5569,9 @@ class ProjectService:
             if target_line.id == placement.line_id
             else self._svc.next_free_individual_address(self._pid, target_line.id)
         )
-        self._svc.move_device(self._pid, node_id, segment_id, address)
+        self._svc.move_device(
+            self._pid, node_id, segment_id, address, couplers=self._line_couplers()
+        )
         self._bump()
 
     @property
@@ -6389,7 +6408,9 @@ class ProjectService:
         if current is None or current == address:
             return None
         try:
-            self._svc.set_topology_address(self._pid, kind, element_id, address)
+            self._svc.set_topology_address(
+                self._pid, kind, element_id, address, couplers=self._line_couplers()
+            )
         except ValueError:
             return S.TOPOLOGY_ADDRESS_IN_USE.format(address=address)
         self._bump()
