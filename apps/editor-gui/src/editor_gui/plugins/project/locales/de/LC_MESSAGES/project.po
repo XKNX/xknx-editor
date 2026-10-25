@@ -2714,3 +2714,27 @@ msgstr "Jede Linie in einem Projekt muss eine eindeutige Domänenadresse haben."
 
 msgid "Last Downloaded"
 msgstr "Letzte Programmierung"
+
+msgid "Create trade {name}"
+msgstr "Gewerk {name} anlegen"
+
+msgid "Rename trade to {name}"
+msgstr "Gewerk in {name} umbenennen"
+
+msgid "Set trade number"
+msgstr "Nummer des Gewerks festlegen"
+
+msgid "Set trade description"
+msgstr "Beschreibung des Gewerks festlegen"
+
+msgid "Move trade"
+msgstr "Gewerk verschieben"
+
+msgid "Remove trade"
+msgstr "Gewerk entfernen"
+
+msgid "Add device to trade"
+msgstr "Gerät zum Gewerk hinzufügen"
+
+msgid "Remove device from trade"
+msgstr "Gerät aus dem Gewerk entfernen"

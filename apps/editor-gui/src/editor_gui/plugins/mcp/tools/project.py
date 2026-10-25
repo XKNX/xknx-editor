@@ -211,6 +211,19 @@ def _function_dict(f: Any) -> dict[str, Any]:
     )
 
 
+def _trade_dict(t: Any) -> dict[str, Any]:
+    """A trade with its devices and sub-trades (recursive); empty optional fields are left
+    out."""
+    return {"id": t.id, "name": t.name} | _prune(
+        {
+            "number": t.number,
+            "description": t.description,
+            "devices": [_space_device_dict(d.device) for d in t.devices],
+            "children": [_trade_dict(c) for c in t.children],
+        }
+    )
+
+
 def _space_dict(s: Any) -> dict[str, Any]:
     """Recursively serialize a building/location tree node (space -> children/devices/functions).
     Empty optional fields (number, usage, usage_text, description, current_line_id) and empty
@@ -2241,6 +2254,133 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         require_project(ctx)
         ctx.run_locked(lambda: project.remove_space(space_id))
         return {"status": "removed", "space_id": space_id}
+
+    # --- trades -------------------------------------------------------------
+
+    def _require_trade(trade_id: int) -> None:
+        if project.find_trade(trade_id) is None:
+            raise ToolError(f"no trade with id {trade_id}")
+
+    def _trade_result(trade_id: int) -> dict[str, Any]:
+        trade = project.find_trade(trade_id)
+        if trade is None:
+            raise ToolError(f"no trade with id {trade_id}")
+        return _trade_dict(trade)
+
+    @tool("read")
+    def project_trades() -> dict[str, Any]:
+        """Read the trades of the Buildings view: devices grouped by discipline (lighting,
+        heating …) in a tree of trades. Returns {items, count}; count counts top-level trades.
+        Each trade has {id, name, number?, description?, devices?, children?}; a device has
+        {node_id, name, individual_address, description, product_name, manufacturer_name}. A
+        device can be in several trades. Status and comment: project_get_status /
+        project_get_comment with kind trade."""
+        require_project(ctx)
+
+        def _read() -> dict[str, Any]:
+            trades = [_trade_dict(t) for t in project.get_trade_tree()]
+            return {"items": trades, "count": len(trades)}
+
+        return ctx.run_locked(_read)
+
+    @tool("write")
+    def project_create_trade(name: str, parent_id: int | None = None) -> dict[str, Any]:
+        """Create a trade below the trade ``parent_id`` (id from project_trades), or at the top
+        level without one; it comes after its siblings. Undoable with project_undo. Returns the
+        new trade as project_trades lists it."""
+        require_project(ctx)
+
+        def _create() -> dict[str, Any]:
+            if parent_id is not None:
+                _require_trade(parent_id)
+            trade_id = project.create_trade(parent_id, name)
+            assert trade_id is not None
+            return _trade_result(trade_id)
+
+        return ctx.run_locked(_create)
+
+    @tool("write")
+    def project_set_trade(
+        trade_id: int,
+        name: str | None = None,
+        number: str | None = None,
+        description: str | None = None,
+    ) -> dict[str, Any]:
+        """Change a trade's name, number (a free text) or description; pass only what changes.
+        Each change is an undo step (project_undo). Returns the trade as project_trades lists
+        it."""
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            _require_trade(trade_id)
+            for field, value in (
+                ("name", name),
+                ("number", number),
+                ("description", description),
+            ):
+                if value is not None:
+                    project.set_trade_field(trade_id, field, value)
+            return _trade_result(trade_id)
+
+        return ctx.run_locked(_set)
+
+    @tool("write")
+    def project_move_trade(
+        trade_id: int, parent_id: int | None = None
+    ) -> dict[str, Any]:
+        """Put a trade (with its sub-trades and devices) below the trade ``parent_id``, or at
+        the top level without one; it comes after its new siblings. A trade cannot go below
+        itself. Undoable with project_undo. Returns the trade as project_trades lists it."""
+        require_project(ctx)
+
+        def _move() -> dict[str, Any]:
+            _require_trade(trade_id)
+            if parent_id is not None:
+                _require_trade(parent_id)
+            try:
+                project.move_trade(trade_id, parent_id)
+            except ValueError as exc:
+                raise ToolError(str(exc)) from exc
+            return _trade_result(trade_id)
+
+        return ctx.run_locked(_move)
+
+    @tool("destructive")
+    def project_remove_trade(trade_id: int) -> dict[str, Any]:
+        """Remove a trade and its sub-trades (``id`` from project_trades); their devices stay
+        in the project. Undoable with project_undo. Returns {status, trade_id}."""
+        require_project(ctx)
+
+        def _remove() -> dict[str, Any]:
+            _require_trade(trade_id)
+            project.remove_trade(trade_id)
+            return {"status": "removed", "trade_id": trade_id}
+
+        return ctx.run_locked(_remove)
+
+    @tool("write")
+    def project_set_trade_device(
+        trade_id: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
+        member: bool = True,
+    ) -> dict[str, Any]:
+        """Put a device into a trade (``member`` true), or take it out of it (false). Identify
+        the device by ``node_id`` OR ``device_address`` (an individual address like "1.0.30");
+        pass exactly one. A device can be in several trades. Undoable with project_undo.
+        Returns the trade as project_trades lists it."""
+        require_project(ctx)
+
+        def _set() -> dict[str, Any]:
+            _require_trade(trade_id)
+            device = _require_device(node_id, device_address)
+            if member:
+                project.add_trade_device(trade_id, device.node_id)
+            else:
+                project.remove_trade_device(trade_id, device.node_id)
+            return _trade_result(trade_id)
+
+        return ctx.run_locked(_set)
 
     # --- device mutations -------------------------------------------------
 

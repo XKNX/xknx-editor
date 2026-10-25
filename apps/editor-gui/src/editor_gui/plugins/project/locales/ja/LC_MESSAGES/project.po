@@ -2529,3 +2529,27 @@ msgstr "プロジェクトの各ラインは一意的なドメイン・アドレ
 
 msgid "Last Downloaded"
 msgstr "最終ダウンロード日"
+
+msgid "Create trade {name}"
+msgstr "トレード{name}を作成"
+
+msgid "Rename trade to {name}"
+msgstr "トレードの名前を{name}に変更"
+
+msgid "Set trade number"
+msgstr "トレード番号を設定"
+
+msgid "Set trade description"
+msgstr "トレードの説明を設定"
+
+msgid "Move trade"
+msgstr "トレードを移動"
+
+msgid "Remove trade"
+msgstr "トレードを削除"
+
+msgid "Add device to trade"
+msgstr "デバイスをトレードに追加"
+
+msgid "Remove device from trade"
+msgstr "デバイスをトレードから削除"

@@ -112,6 +112,7 @@ if TYPE_CHECKING:
         SecureCommissioningImpact,
         SpaceDeviceInfo,
         SpaceInfo,
+        TradeInfo,
     )
     from xknxeditor.proj.core.service import (
         GroupAddressInfo as CoreGroupAddressInfo,
@@ -579,6 +580,18 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "SetSpaceDefaultLine": lambda d: S.HISTORY_EV_SET_CURRENT_LINE,
     "SetInstallationAttribute": lambda d: S.HISTORY_EV_SET_IP_ROUTING,
     "SetSegmentBusAccess": lambda d: S.HISTORY_EV_SET_BUS_CONNECTION,
+    "CreateTrade": lambda d: S.HISTORY_EV_CREATE_TRADE.format(name=_quoted(d, "name")),
+    "SetTradeField": lambda d: (
+        S.HISTORY_EV_RENAME_TRADE.format(name=_quoted(d, "value"))
+        if d.get("field") == "name"
+        else S.HISTORY_EV_SET_TRADE_NUMBER
+        if d.get("field") == "number"
+        else S.HISTORY_EV_SET_TRADE_DESCRIPTION
+    ),
+    "MoveTrade": lambda d: S.HISTORY_EV_MOVE_TRADE,
+    "RemoveTrade": lambda d: S.HISTORY_EV_REMOVE_TRADE,
+    "AddTradeDevice": lambda d: S.HISTORY_EV_ADD_TRADE_DEVICE,
+    "RemoveTradeDevice": lambda d: S.HISTORY_EV_REMOVE_TRADE_DEVICE,
     "SetSegmentDomainAddress": lambda d: S.HISTORY_EV_SET_DOMAIN_ADDRESS,
     "RenameSegment": lambda d: S.HISTORY_EV_RENAME_SEGMENT.format(
         name=_quoted(d, "name")
@@ -662,6 +675,8 @@ class ElementDetails:
     central: bool | None = None
     # A group address's data point type ("DPST-16-1", "" for none); None for other elements.
     datapoint_type: str | None = None
+    # A trade's number (a free text); None for other elements.
+    number: str | None = None
     # The backbone's IP routing: network latency (ms), multicast address, its security ("Auto",
     # "On" or "Off"), and its bus connection: the ``Parameter`` of its ``<BusAccess>`` ("" for
     # "Automatic") and as shown.
@@ -5827,6 +5842,22 @@ class ProjectService:
                 status=self.completion_status(kind, element_id),
                 has_address=False,
             )
+        if kind == "trade":
+            trade = self.find_trade(element_id)
+            if trade is None:
+                return None
+            return ElementDetails(
+                kind,
+                element_id,
+                "trade",
+                trade.name,
+                trade.description,
+                "",
+                "",
+                status=self.completion_status(kind, element_id),
+                has_address=False,
+                number=trade.number,
+            )
         if kind == "group_address":
             ga = self.get_group_address(element_id)
             if ga is None:
@@ -5893,6 +5924,8 @@ class ProjectService:
             self.rename_group_address(element_id, name)
         elif kind == "function" and name:
             self.rename_function(element_id, name)
+        elif kind == "trade":
+            self.set_trade_field(element_id, "name", name)
 
     def set_element_description(
         self, kind: str, element_id: int, description: str
@@ -5905,6 +5938,8 @@ class ProjectService:
             return
         if kind == "segment":
             self._svc.set_topology_description(self._pid, kind, element_id, description)
+        elif kind == "trade":
+            self._svc.set_trade_field(self._pid, element_id, "description", description)
         elif kind == "function":
             self._svc.set_function_description(self._pid, element_id, description)
         else:
@@ -6157,6 +6192,74 @@ class ProjectService:
         if self._pid is None:
             return
         self._svc.remove_space(self._pid, space_id)
+        self._bump(structural=False)
+
+    # --- trades ---------------------------------------------------------------------------
+
+    @io_guarded(list)
+    @revision_cached
+    def get_trade_tree(self) -> list["TradeInfo"]:
+        """The trades of the Buildings view, each with its sub-trades and devices."""
+        if self._pid is None:
+            return []
+        return self._svc.trade_tree(self._pid, _INSTALLATION)
+
+    def find_trade(self, trade_id: int) -> "TradeInfo | None":
+        """The trade ``trade_id``; None when it does not exist (any more)."""
+
+        def search(trades: "list[TradeInfo]") -> "TradeInfo | None":
+            for trade in trades:
+                if trade.id == trade_id:
+                    return trade
+                found = search(trade.children)
+                if found is not None:
+                    return found
+            return None
+
+        return search(self.get_trade_tree())
+
+    def create_trade(self, parent_id: int | None, name: str) -> int | None:
+        """A new trade below ``parent_id`` (at the top level for None); undoable."""
+        if self._pid is None:
+            return None
+        trade_id = self._svc.create_trade(self._pid, _INSTALLATION, name, parent_id)
+        self._bump(structural=False)
+        return trade_id
+
+    def set_trade_field(self, trade_id: int, field: str, value: str) -> None:
+        """Set a trade's name, number or description; undoable."""
+        if self._pid is None:
+            return
+        self._svc.set_trade_field(self._pid, trade_id, field, value)
+        self._bump(structural=False)
+
+    def move_trade(self, trade_id: int, new_parent_id: int | None) -> None:
+        """Put a trade below another one (None: at the top level); undoable. Raises
+        ``ValueError`` for a move into itself or below itself."""
+        if self._pid is None:
+            return
+        self._svc.move_trade(self._pid, trade_id, new_parent_id)
+        self._bump(structural=False)
+
+    def remove_trade(self, trade_id: int) -> None:
+        """Delete a trade with its sub-trades (the devices stay); undoable."""
+        if self._pid is None:
+            return
+        self._svc.remove_trade(self._pid, trade_id)
+        self._bump(structural=False)
+
+    def add_trade_device(self, trade_id: int, node_id: int) -> None:
+        """Put a device into a trade; undoable."""
+        if self._pid is None:
+            return
+        self._svc.add_trade_device(self._pid, trade_id, node_id)
+        self._bump(structural=False)
+
+    def remove_trade_device(self, trade_id: int, node_id: int) -> None:
+        """Take a device out of a trade (it stays in the project); undoable."""
+        if self._pid is None:
+            return
+        self._svc.remove_trade_device(self._pid, trade_id, node_id)
         self._bump(structural=False)
 
     def set_device_space(self, device_id: int, space_id: int | None) -> None:

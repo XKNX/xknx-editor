@@ -49,14 +49,21 @@ CommentKind = Literal[
 ]
 CommentField = Literal["comment", "installation_hints"]
 DescriptionKind = Literal[
-    "area", "line", "segment", "group_range", "group_address", "space", "function"
+    "area",
+    "line",
+    "segment",
+    "group_range",
+    "group_address",
+    "space",
+    "function",
+    "trade",
 ]
 NumberKind = Literal["area", "line", "group_range", "group_address", "space"]
 ElementKind = Literal[
-    "area", "line", "segment", "group_range", "group_address", "function"
+    "area", "line", "segment", "group_range", "group_address", "function", "trade"
 ]
 StatusKind = Literal[
-    "project", "area", "line", "segment", "device", "space", "function"
+    "project", "area", "line", "segment", "device", "space", "function", "trade"
 ]
 # The CompletionStatus values (models.COMPLETION_STATUSES), shown as Unknown, Editing, Finished
 # design, Finished commissioning, Tested, Accepted and Locked.
@@ -201,6 +208,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             result["address"] = f"{details.prefix}{details.address}"
             result["number"] = details.address
             result["number_editable"] = details.editable
+        if details.number is not None:
+            result["number"] = details.number
         if details.status is not None:
             result["status"] = details.status
         if details.medium is not None:
@@ -232,8 +241,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Read the comment of a project element, or a device's installation hints
         (field="installation_hints"). ``kind`` with its id: project (element_id ignored),
         area/line/segment (id from project_topology), device (node_id), space/function (ids from
-        project_spaces),
-        trade, group_range (id from the group range tree), group_address (id from
+        project_spaces), trade (id from project_trades), group_range (id from the group range
+        tree), group_address (id from
         project_list_group_addresses). Returns {kind, element_id, field, text, paragraphs}: text is
         the plain text (one line per paragraph), paragraphs the runs
         [{text, bold?, italic?, underline?}] of each paragraph."""
@@ -274,8 +283,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     @tool("read")
     def project_get_element(kind: ElementKind, element_id: int) -> dict[str, Any]:
         """Read the details of an area, line, segment (ids from project_topology), group range,
-        group address (id from project_list_group_addresses) or building function (id from
-        project_spaces). Returns {kind, element_id, type, name, description, address?, number?,
+        group address (id from project_list_group_addresses), building function (id from
+        project_spaces) or trade (id from project_trades; its number is a free text, set with
+        project_set_trade). Returns {kind, element_id, type, name, description, address?, number?,
         number_editable?, status?, medium?, domain_address?}: type is area, line, segment,
         main_group, middle_group, group_range (a group of the Free style), group_address or
         function; address is the full address ("1.2", "1/2", "1/2/3") and number its own part
@@ -299,7 +309,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Read the "Status" (CompletionStatus) of the project (kind project, no id), an area, a
         line or a segment (ids from project_topology), a device (element_id = its node_id, OR device_address,
         an individual address like "1.0.30"), a space or a building function (ids from
-        project_spaces). Returns {kind, element_id, status}; status is one of Undefined (shown as
+        project_spaces), or a trade (id from project_trades). Returns {kind, element_id, status};
+        status is one of Undefined (shown as
         "Unknown"), Editing, FinishedDesign, FinishedCommissioning, Tested, Accepted, Locked."""
         require_project(ctx)
 

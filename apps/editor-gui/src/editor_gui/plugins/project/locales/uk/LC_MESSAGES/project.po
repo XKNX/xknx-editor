@@ -2529,3 +2529,27 @@ msgstr "Кожна лінія проєкту повинна мати уніка�
 
 msgid "Last Downloaded"
 msgstr "Останнє завантаження"
+
+msgid "Create trade {name}"
+msgstr "Створити добірку пристроїв {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Перейменувати добірку пристроїв на {name}"
+
+msgid "Set trade number"
+msgstr "Задати номер добірки пристроїв"
+
+msgid "Set trade description"
+msgstr "Задати опис добірки пристроїв"
+
+msgid "Move trade"
+msgstr "Перемістити добірку пристроїв"
+
+msgid "Remove trade"
+msgstr "Видалити добірку пристроїв"
+
+msgid "Add device to trade"
+msgstr "Додати пристрій до добірки пристроїв"
+
+msgid "Remove device from trade"
+msgstr "Вилучити пристрій із добірки пристроїв"

@@ -2529,3 +2529,27 @@ msgstr "Каждая линия проекта должна иметь уник�
 
 msgid "Last Downloaded"
 msgstr "Последняя загрузка"
+
+msgid "Create trade {name}"
+msgstr "Создать систему {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Переименовать систему в {name}"
+
+msgid "Set trade number"
+msgstr "Задать номер системы"
+
+msgid "Set trade description"
+msgstr "Задать описание системы"
+
+msgid "Move trade"
+msgstr "Переместить систему"
+
+msgid "Remove trade"
+msgstr "Удалить систему"
+
+msgid "Add device to trade"
+msgstr "Добавить устройство в систему"
+
+msgid "Remove device from trade"
+msgstr "Удалить устройство из системы"

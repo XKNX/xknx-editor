@@ -2529,3 +2529,27 @@ msgstr "Projedeki her linyenin tek EtkiAlanAdresi olmalıdır."
 
 msgid "Last Downloaded"
 msgstr "Son Yüklenen"
+
+msgid "Create trade {name}"
+msgstr "Ticaret oluştur: {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Ticareti yeniden adlandır: {name}"
+
+msgid "Set trade number"
+msgstr "Ticaret numarasını belirle"
+
+msgid "Set trade description"
+msgstr "Ticaret açıklamasını belirle"
+
+msgid "Move trade"
+msgstr "Ticareti taşı"
+
+msgid "Remove trade"
+msgstr "Ticareti kaldır"
+
+msgid "Add device to trade"
+msgstr "Cihazı ticarete ekle"
+
+msgid "Remove device from trade"
+msgstr "Cihazı ticaretten kaldır"

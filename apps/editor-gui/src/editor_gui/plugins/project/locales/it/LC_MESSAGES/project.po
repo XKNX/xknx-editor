@@ -2529,3 +2529,27 @@ msgstr "Ogni riga di un progetto deve avere un Indirizzo di Dominio unico."
 
 msgid "Last Downloaded"
 msgstr "Ultimo scaricamento"
+
+msgid "Create trade {name}"
+msgstr "Crea settore {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Rinomina settore in {name}"
+
+msgid "Set trade number"
+msgstr "Imposta il numero del settore"
+
+msgid "Set trade description"
+msgstr "Imposta la descrizione del settore"
+
+msgid "Move trade"
+msgstr "Sposta settore"
+
+msgid "Remove trade"
+msgstr "Rimuovi settore"
+
+msgid "Add device to trade"
+msgstr "Aggiungi dispositivo al settore"
+
+msgid "Remove device from trade"
+msgstr "Rimuovi dispositivo dal settore"

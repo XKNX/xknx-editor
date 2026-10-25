@@ -2529,3 +2529,27 @@ msgstr "Todas las líneas de un proyecto deben tener una Dirección de Dominio �
 
 msgid "Last Downloaded"
 msgstr "Última Programación"
+
+msgid "Create trade {name}"
+msgstr "Crear función {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Cambiar el nombre de la función a {name}"
+
+msgid "Set trade number"
+msgstr "Establecer el número de la función"
+
+msgid "Set trade description"
+msgstr "Establecer la descripción de la función"
+
+msgid "Move trade"
+msgstr "Mover función"
+
+msgid "Remove trade"
+msgstr "Eliminar función"
+
+msgid "Add device to trade"
+msgstr "Añadir dispositivo a la función"
+
+msgid "Remove device from trade"
+msgstr "Quitar dispositivo de la función"

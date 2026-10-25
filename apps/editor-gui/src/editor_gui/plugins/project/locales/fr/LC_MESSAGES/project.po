@@ -2529,3 +2529,27 @@ msgstr "Chaque ligne d'un projet doit avoir une adresse de domaine unique."
 
 msgid "Last Downloaded"
 msgstr "Dernier téléchargement"
+
+msgid "Create trade {name}"
+msgstr "Créer le métier {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Renommer le métier en {name}"
+
+msgid "Set trade number"
+msgstr "Définir le numéro du métier"
+
+msgid "Set trade description"
+msgstr "Définir la description du métier"
+
+msgid "Move trade"
+msgstr "Déplacer le métier"
+
+msgid "Remove trade"
+msgstr "Supprimer le métier"
+
+msgid "Add device to trade"
+msgstr "Ajouter le produit au métier"
+
+msgid "Remove device from trade"
+msgstr "Retirer le produit du métier"

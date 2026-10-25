@@ -2529,3 +2529,27 @@ msgstr "Hver linje i et projekt skal have en entydig domæneadresse."
 
 msgid "Last Downloaded"
 msgstr "Sidst downloadet"
+
+msgid "Create trade {name}"
+msgstr "Opret trade {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Omdøb trade til {name}"
+
+msgid "Set trade number"
+msgstr "Angiv trade-nummer"
+
+msgid "Set trade description"
+msgstr "Angiv trade-beskrivelse"
+
+msgid "Move trade"
+msgstr "Flyt trade"
+
+msgid "Remove trade"
+msgstr "Fjern trade"
+
+msgid "Add device to trade"
+msgstr "Tilføj enhed til trade"
+
+msgid "Remove device from trade"
+msgstr "Fjern enhed fra trade"

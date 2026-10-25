@@ -46,9 +46,11 @@ from xknxeditor.proj.core.events import (
     COM_OBJECT_FLAGS,
     COM_OBJECT_PRIORITIES,
     STATUS_KINDS,
+    TRADE_FIELDS,
     AddDevice,
     AddFunctionGroupAddress,
     AddInstallation,
+    AddTradeDevice,
     ChangeDeviceApplication,
     CompositeEvent,
     CreateArea,
@@ -59,11 +61,13 @@ from xknxeditor.proj.core.events import (
     CreateLine,
     CreateSegment,
     CreateSpace,
+    CreateTrade,
     Event,
     ImportGroupAddresses,
     LinkComObject,
     MoveDevice,
     MoveSpace,
+    MoveTrade,
     RemoveArea,
     RemoveDevice,
     RemoveFunction,
@@ -73,6 +77,8 @@ from xknxeditor.proj.core.events import (
     RemoveLine,
     RemoveSegment,
     RemoveSpace,
+    RemoveTrade,
+    RemoveTradeDevice,
     RenameArea,
     RenameFunction,
     RenameGroupAddress,
@@ -116,6 +122,7 @@ from xknxeditor.proj.core.events import (
     SetSpaceUsage,
     SetTopologyAddress,
     SetTopologyDescription,
+    SetTradeField,
     SyncDeviceComObjects,
     SyncDeviceModuleInstances,
     UnlinkComObject,
@@ -189,6 +196,7 @@ from xknxeditor.proj.models import (
     ProjectTrace,
     Segment,
     Space,
+    Trade,
 )
 
 # A group address linked across at least this many devices is treated as a central/shared function
@@ -333,6 +341,26 @@ class SpaceInfo:
     usage: str = ""
     # The space's own Current Line, None for none (see ``ProjectService.current_line``).
     default_line_id: int | None = None
+
+
+@dataclass(frozen=True)
+class TradeDeviceInfo:
+    """A device in a trade: the reference's id and the device."""
+
+    link_id: int
+    device: SpaceDeviceInfo
+
+
+@dataclass(frozen=True)
+class TradeInfo:
+    """A trade with its sub-trades and devices, in their order (recursive)."""
+
+    id: int
+    name: str
+    number: str
+    description: str
+    children: list[TradeInfo]
+    devices: list[TradeDeviceInfo]
 
 
 @dataclass(frozen=True)
@@ -1735,6 +1763,159 @@ class ProjectService:
 
     def remove_space(self, project_id: str, space_id: int) -> None:
         self._state(project_id).store.append(RemoveSpace(target_id=space_id))
+
+    # --- trades ---------------------------------------------------------------------------
+
+    def trade_tree(self, project_id: str, installation: int) -> list[TradeInfo]:
+        """The installation's trades (top level first, each with its sub-trades and devices)."""
+        state = self._state(project_id)
+        inst = self._installation(state, installation)
+        roots = (
+            state.session.query(Trade)
+            .filter(Trade.installation_id == inst.id, Trade.parent_id.is_(None))
+            .order_by(Trade.order, Trade.id)
+            .all()
+        )
+        return [self._trade_info(trade) for trade in roots]
+
+    def _trade_info(self, trade: Trade) -> TradeInfo:
+        return TradeInfo(
+            id=trade.id,
+            name=trade.name,
+            number=trade.number,
+            description=trade.description,
+            children=[
+                self._trade_info(child)
+                for child in sorted(trade.children, key=lambda t: (t.order, t.id))
+            ],
+            devices=[
+                TradeDeviceInfo(link.id, self._space_device_info(link.device))
+                for link in sorted(trade.devices, key=lambda d: (d.order, d.id))
+            ],
+        )
+
+    def create_trade(
+        self,
+        project_id: str,
+        installation: int,
+        name: str,
+        parent_id: int | None = None,
+    ) -> int:
+        """Create a trade below ``parent_id`` (at the top level for None), after its siblings;
+        returns its id. Raises ``KeyError`` for an unknown parent."""
+        state = self._state(project_id)
+        inst = self._installation(state, installation)
+        if parent_id is not None and state.session.get(Trade, parent_id) is None:
+            raise KeyError(f"No trade with id {parent_id}")
+        event = CreateTrade(
+            installation_id=inst.id,
+            name=name,
+            parent_id=parent_id,
+            order=self._next_trade_order(state, inst.id, parent_id),
+        )
+        state.store.append(event)
+        assert event.trade_id is not None
+        return event.trade_id
+
+    @staticmethod
+    def _next_trade_order(
+        state: _Open, installation_id: int, parent_id: int | None
+    ) -> int:
+        highest = (
+            state.session.query(func.max(Trade.order))
+            .filter(
+                Trade.installation_id == installation_id, Trade.parent_id == parent_id
+            )
+            .scalar()
+        )
+        return highest + 1 if highest is not None else 0
+
+    def set_trade_field(
+        self, project_id: str, trade_id: int, field: str, value: str
+    ) -> None:
+        """Set a trade's ``field`` ("name", "number" or "description"); one undo step, none when
+        it does not change. Raises ``KeyError`` for an unknown trade, ``ValueError`` for another
+        field."""
+        if field not in TRADE_FIELDS:
+            raise ValueError(f"Unknown trade field {field!r}")
+        state = self._state(project_id)
+        trade = state.session.get(Trade, trade_id)
+        if trade is None:
+            raise KeyError(f"No trade with id {trade_id}")
+        if getattr(trade, field) != value:
+            state.store.append(
+                SetTradeField(trade_id=trade_id, field=field, value=value)
+            )
+
+    def move_trade(
+        self, project_id: str, trade_id: int, new_parent_id: int | None
+    ) -> None:
+        """Put a trade below another one (None: at the top level), after its new siblings.
+        Raises ``ValueError`` for a move into itself or a trade below it, ``KeyError`` for an
+        unknown trade."""
+        state = self._state(project_id)
+        trade = state.session.get(Trade, trade_id)
+        if trade is None:
+            raise KeyError(f"No trade with id {trade_id}")
+        ancestor = (
+            state.session.get(Trade, new_parent_id)
+            if new_parent_id is not None
+            else None
+        )
+        if new_parent_id is not None and ancestor is None:
+            raise KeyError(f"No trade with id {new_parent_id}")
+        while ancestor is not None:
+            if ancestor.id == trade_id:
+                raise ValueError("cannot move a trade into itself or a trade below it")
+            ancestor = ancestor.parent
+        if trade.parent_id == new_parent_id:
+            return
+        state.store.append(
+            MoveTrade(
+                trade_id=trade_id,
+                new_parent_id=new_parent_id,
+                new_order=self._next_trade_order(
+                    state, trade.installation_id, new_parent_id
+                ),
+            )
+        )
+
+    def remove_trade(self, project_id: str, trade_id: int) -> None:
+        """Delete a trade with its sub-trades; their devices stay in the project."""
+        self._state(project_id).store.append(RemoveTrade(target_id=trade_id))
+
+    def add_trade_device(self, project_id: str, trade_id: int, device_id: int) -> None:
+        """Put a device into a trade (nothing when it is in it already). Raises ``KeyError``
+        for an unknown trade or device."""
+        state = self._state(project_id)
+        trade = state.session.get(Trade, trade_id)
+        if trade is None:
+            raise KeyError(f"No trade with id {trade_id}")
+        if state.session.get(Device, device_id) is None:
+            raise KeyError(f"No device with id {device_id}")
+        if any(link.device_id == device_id for link in trade.devices):
+            return
+        order = max((link.order for link in trade.devices), default=-1) + 1
+        state.store.append(
+            AddTradeDevice(trade_id=trade_id, device_id=device_id, order=order)
+        )
+
+    def remove_trade_device(
+        self, project_id: str, trade_id: int, device_id: int
+    ) -> None:
+        """Take a device out of a trade (the device stays in the project)."""
+        state = self._state(project_id)
+        trade = state.session.get(Trade, trade_id)
+        link = next(
+            (
+                ln
+                for ln in (trade.devices if trade else [])
+                if ln.device_id == device_id
+            ),
+            None,
+        )
+        if link is not None:
+            state.store.append(RemoveTradeDevice(target_id=link.id))
 
     def set_device_space(
         self, project_id: str, device_id: int, space_id: int | None

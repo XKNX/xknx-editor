@@ -40,6 +40,7 @@ from xknxeditor.proj.models import (
     Segment,
     Space,
     Trade,
+    TradeDevice,
     installation_hints,
 )
 
@@ -2935,6 +2936,7 @@ STATUS_KINDS: dict[str, type[Any]] = {
     "device": Device,
     "space": Space,
     "function": Function,
+    "trade": Trade,
 }
 
 
@@ -2948,7 +2950,10 @@ def stored_completion_status(
         return session.query(Project.completion_status).limit(1).scalar()
     model = STATUS_KINDS.get(kind)
     element = None if model is None else session.get(model, element_id)
-    return None if element is None else cast(str, element.completion_status)
+    # An imported trade without one keeps it empty (and exports none): the default.
+    return (
+        None if element is None else cast(str, element.completion_status or "Undefined")
+    )
 
 
 @_register
@@ -3674,6 +3679,194 @@ class MoveSpace(Event):
     @classmethod
     def from_dict(cls, data: dict[str, Any]) -> MoveSpace:
         return cls(**data)
+
+
+# --- trades (Gewerke: devices grouped by discipline, in a tree) -------------------------------
+
+
+@_register
+@dataclass
+class CreateTrade(Event):
+    """Add a trade below ``parent_id``, or at the top level for None."""
+
+    event_type: ClassVar[str] = "CreateTrade"
+
+    installation_id: int
+    name: str
+    parent_id: int | None = None
+    order: int = 0
+    trade_id: int | None = None
+
+    def apply(self, session: Session) -> None:
+        trade = Trade(
+            installation_id=self.installation_id,
+            parent_id=self.parent_id,
+            name=self.name,
+            order=self.order,
+        )
+        if self.trade_id is not None:
+            trade.id = self.trade_id
+        session.add(trade)
+        session.flush()
+        self.trade_id = trade.id
+
+    def revert(self, session: Session) -> None:
+        trade = session.get(Trade, self.trade_id)
+        if trade is not None:
+            session.delete(trade)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "installation_id": self.installation_id,
+            "name": self.name,
+            "parent_id": self.parent_id,
+            "order": self.order,
+            "trade_id": self.trade_id,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> CreateTrade:
+        return cls(**data)
+
+
+# The fields of a trade ``SetTradeField`` changes.
+TRADE_FIELDS = ("name", "number", "description")
+
+
+@_register
+@dataclass
+class SetTradeField(Event):
+    """A trade's name, number or description (``field``, one of ``TRADE_FIELDS``)."""
+
+    event_type: ClassVar[str] = "SetTradeField"
+
+    trade_id: int
+    field: str
+    value: str
+    old_value: str | None = None
+
+    def apply(self, session: Session) -> None:
+        trade = session.get(Trade, self.trade_id)
+        if trade is not None and self.field in TRADE_FIELDS:
+            self.old_value = getattr(trade, self.field)
+            setattr(trade, self.field, self.value)
+
+    def revert(self, session: Session) -> None:
+        trade = session.get(Trade, self.trade_id)
+        if trade is not None and self.old_value is not None:
+            setattr(trade, self.field, self.old_value)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "trade_id": self.trade_id,
+            "field": self.field,
+            "value": self.value,
+            "old_value": self.old_value,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetTradeField:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class MoveTrade(Event):
+    """Put a trade below another one (``new_parent_id`` None: at the top level), last among its
+    new siblings. The caller guards against cycles."""
+
+    event_type: ClassVar[str] = "MoveTrade"
+
+    trade_id: int
+    new_parent_id: int | None
+    new_order: int = 0
+    old_parent_id: int | None = None
+    old_order: int = 0
+    applied: bool = False
+
+    def apply(self, session: Session) -> None:
+        trade = session.get(Trade, self.trade_id)
+        if trade is not None:
+            self.old_parent_id, self.old_order = trade.parent_id, trade.order
+            self.applied = True
+            trade.parent_id, trade.order = self.new_parent_id, self.new_order
+
+    def revert(self, session: Session) -> None:
+        trade = session.get(Trade, self.trade_id)
+        if trade is not None and self.applied:
+            trade.parent_id, trade.order = self.old_parent_id, self.old_order
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "trade_id": self.trade_id,
+            "new_parent_id": self.new_parent_id,
+            "new_order": self.new_order,
+            "old_parent_id": self.old_parent_id,
+            "old_order": self.old_order,
+            "applied": self.applied,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MoveTrade:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class RemoveTrade(_SubtreeDelete):
+    """Delete a trade with its sub-trades and device references (the devices stay)."""
+
+    event_type: ClassVar[str] = "RemoveTrade"
+    _model: ClassVar[type[Base]] = Trade
+
+
+@_register
+@dataclass
+class AddTradeDevice(Event):
+    """Put a device into a trade, after its other devices."""
+
+    event_type: ClassVar[str] = "AddTradeDevice"
+
+    trade_id: int
+    device_id: int
+    order: int = 0
+    link_id: int | None = None
+
+    def apply(self, session: Session) -> None:
+        link = TradeDevice(
+            trade_id=self.trade_id, device_id=self.device_id, order=self.order
+        )
+        if self.link_id is not None:
+            link.id = self.link_id
+        session.add(link)
+        session.flush()
+        self.link_id = link.id
+
+    def revert(self, session: Session) -> None:
+        link = session.get(TradeDevice, self.link_id)
+        if link is not None:
+            session.delete(link)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "trade_id": self.trade_id,
+            "device_id": self.device_id,
+            "order": self.order,
+            "link_id": self.link_id,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> AddTradeDevice:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class RemoveTradeDevice(_SubtreeDelete):
+    """Take a device out of a trade (``target_id`` is the reference, the device stays)."""
+
+    event_type: ClassVar[str] = "RemoveTradeDevice"
+    _model: ClassVar[type[Base]] = TradeDevice
 
 
 @_register

@@ -26,6 +26,12 @@ def begin_tab_bar(str_id: str, flags: int = 0) -> bool:
     return imgui.begin_tab_bar(str_id, flags)
 
 
+def forget_shown_tab_bars() -> None:
+    """Forget the tab bars seen so far: for a new imgui context, whose frames count from 0
+    again (the app has one; each headless test makes its own)."""
+    _shown.clear()
+
+
 def shown_tab_bar_ids() -> list[int]:
     """The ids of the tab bars :func:`begin_tab_bar` began in the last two frames."""
     frame = imgui.get_frame_count()

@@ -3973,6 +3973,38 @@ class ProjectStrings:
         return _("Assign device to building part")
 
     @property
+    def HISTORY_EV_CREATE_TRADE(self) -> str:
+        return _("Create trade {name}")
+
+    @property
+    def HISTORY_EV_RENAME_TRADE(self) -> str:
+        return _("Rename trade to {name}")
+
+    @property
+    def HISTORY_EV_SET_TRADE_NUMBER(self) -> str:
+        return _("Set trade number")
+
+    @property
+    def HISTORY_EV_SET_TRADE_DESCRIPTION(self) -> str:
+        return _("Set trade description")
+
+    @property
+    def HISTORY_EV_MOVE_TRADE(self) -> str:
+        return _("Move trade")
+
+    @property
+    def HISTORY_EV_REMOVE_TRADE(self) -> str:
+        return _("Remove trade")
+
+    @property
+    def HISTORY_EV_ADD_TRADE_DEVICE(self) -> str:
+        return _("Add device to trade")
+
+    @property
+    def HISTORY_EV_REMOVE_TRADE_DEVICE(self) -> str:
+        return _("Remove device from trade")
+
+    @property
     def HISTORY_EV_SET_COMMISSIONING(self) -> str:
         return _("Set commissioning state")
 

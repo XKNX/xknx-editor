@@ -2529,3 +2529,27 @@ msgstr "Varje linje i ett projekt måste ha en unik domänadress."
 
 msgid "Last Downloaded"
 msgstr "Senast programmerad"
+
+msgid "Create trade {name}"
+msgstr "Skapa anläggningsfunktion {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Byt namn på anläggningsfunktion till {name}"
+
+msgid "Set trade number"
+msgstr "Ange anläggningsfunktionens nummer"
+
+msgid "Set trade description"
+msgstr "Ange anläggningsfunktionens beskrivning"
+
+msgid "Move trade"
+msgstr "Flytta anläggningsfunktion"
+
+msgid "Remove trade"
+msgstr "Ta bort anläggningsfunktion"
+
+msgid "Add device to trade"
+msgstr "Lägg till enhet i anläggningsfunktion"
+
+msgid "Remove device from trade"
+msgstr "Ta bort enhet från anläggningsfunktion"

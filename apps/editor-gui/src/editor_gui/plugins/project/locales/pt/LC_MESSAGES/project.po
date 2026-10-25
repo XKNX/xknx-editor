@@ -2529,3 +2529,27 @@ msgstr "Cada linha de um projeto deve ter um endereço de domínio único."
 
 msgid "Last Downloaded"
 msgstr "Último Download"
+
+msgid "Create trade {name}"
+msgstr "Criar função {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Mudar o nome da função para {name}"
+
+msgid "Set trade number"
+msgstr "Definir o número da função"
+
+msgid "Set trade description"
+msgstr "Definir a descrição da função"
+
+msgid "Move trade"
+msgstr "Mover função"
+
+msgid "Remove trade"
+msgstr "Remover função"
+
+msgid "Add device to trade"
+msgstr "Adicionar dispositivo à função"
+
+msgid "Remove device from trade"
+msgstr "Remover dispositivo da função"

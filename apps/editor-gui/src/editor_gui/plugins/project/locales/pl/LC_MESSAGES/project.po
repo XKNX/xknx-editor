@@ -2529,3 +2529,27 @@ msgstr "Każda linia w projekcie musi mieć unikalny adres domeny."
 
 msgid "Last Downloaded"
 msgstr "Ostatnie programowanie"
+
+msgid "Create trade {name}"
+msgstr "Utwórz zakład {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Zmień nazwę zakładu na {name}"
+
+msgid "Set trade number"
+msgstr "Ustaw numer zakładu"
+
+msgid "Set trade description"
+msgstr "Ustaw opis zakładu"
+
+msgid "Move trade"
+msgstr "Przenieś zakład"
+
+msgid "Remove trade"
+msgstr "Usuń zakład"
+
+msgid "Add device to trade"
+msgstr "Dodaj urządzenie do zakładu"
+
+msgid "Remove device from trade"
+msgstr "Usuń urządzenie z zakładu"

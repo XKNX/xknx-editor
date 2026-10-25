@@ -2529,3 +2529,27 @@ msgstr "Hver linje i et prosjekt må ha en unik domene-adresse."
 
 msgid "Last Downloaded"
 msgstr "Siste nedlastet"
+
+msgid "Create trade {name}"
+msgstr "Opprett funksjon {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Gi funksjonen nytt navn: {name}"
+
+msgid "Set trade number"
+msgstr "Angi funksjonsnummer"
+
+msgid "Set trade description"
+msgstr "Angi funksjonsbeskrivelse"
+
+msgid "Move trade"
+msgstr "Flytt funksjon"
+
+msgid "Remove trade"
+msgstr "Fjern funksjon"
+
+msgid "Add device to trade"
+msgstr "Legg til enhet i funksjon"
+
+msgid "Remove device from trade"
+msgstr "Fjern enhet fra funksjon"

@@ -2529,3 +2529,27 @@ msgstr "Κάθε γραμμή σε ένα έργο πρέπει να έχει μ
 
 msgid "Last Downloaded"
 msgstr "Τελευταία φόρτιση"
+
+msgid "Create trade {name}"
+msgstr "Δημιουργία λειτουργίας {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Μετονομασία λειτουργίας σε {name}"
+
+msgid "Set trade number"
+msgstr "Ορισμός αριθμού λειτουργίας"
+
+msgid "Set trade description"
+msgstr "Ορισμός περιγραφής λειτουργίας"
+
+msgid "Move trade"
+msgstr "Μετακίνηση λειτουργίας"
+
+msgid "Remove trade"
+msgstr "Αφαίρεση λειτουργίας"
+
+msgid "Add device to trade"
+msgstr "Προσθήκη συσκευής στη λειτουργία"
+
+msgid "Remove device from trade"
+msgstr "Αφαίρεση συσκευής από τη λειτουργία"

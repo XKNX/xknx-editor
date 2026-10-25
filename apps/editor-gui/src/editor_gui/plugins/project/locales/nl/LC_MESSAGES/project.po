@@ -2567,3 +2567,27 @@ msgstr "Elke lijn in een project moet een uniek DomeinAdres hebben."
 
 msgid "Last Downloaded"
 msgstr "Laatste Gedownload"
+
+msgid "Create trade {name}"
+msgstr "Technisch gebouw {name} aanmaken"
+
+msgid "Rename trade to {name}"
+msgstr "Technisch gebouw hernoemen naar {name}"
+
+msgid "Set trade number"
+msgstr "Nummer van technisch gebouw instellen"
+
+msgid "Set trade description"
+msgstr "Beschrijving van technisch gebouw instellen"
+
+msgid "Move trade"
+msgstr "Technisch gebouw verplaatsen"
+
+msgid "Remove trade"
+msgstr "Technisch gebouw verwijderen"
+
+msgid "Add device to trade"
+msgstr "Apparaat aan technisch gebouw toevoegen"
+
+msgid "Remove device from trade"
+msgstr "Apparaat uit technisch gebouw verwijderen"

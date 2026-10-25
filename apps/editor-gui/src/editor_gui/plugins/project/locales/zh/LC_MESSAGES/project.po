@@ -2529,3 +2529,27 @@ msgstr "一个项目中的每一条线路必须有唯一的域地址."
 
 msgid "Last Downloaded"
 msgstr "最后下载的"
+
+msgid "Create trade {name}"
+msgstr "创建工程作业 {name}"
+
+msgid "Rename trade to {name}"
+msgstr "将工程作业重命名为 {name}"
+
+msgid "Set trade number"
+msgstr "设置工程作业编号"
+
+msgid "Set trade description"
+msgstr "设置工程作业描述"
+
+msgid "Move trade"
+msgstr "移动工程作业"
+
+msgid "Remove trade"
+msgstr "删除工程作业"
+
+msgid "Add device to trade"
+msgstr "将设备添加到工程作业"
+
+msgid "Remove device from trade"
+msgstr "从工程作业中移除设备"

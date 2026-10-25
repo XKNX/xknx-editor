@@ -2529,3 +2529,27 @@ msgstr "Projektin jokaisella linjalla tulee olla yksilöllinen domain-osoite."
 
 msgid "Last Downloaded"
 msgstr "Viimeisin Lataus"
+
+msgid "Create trade {name}"
+msgstr "Luo vaihto {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Nimeä vaihto uudelleen: {name}"
+
+msgid "Set trade number"
+msgstr "Aseta vaihdon numero"
+
+msgid "Set trade description"
+msgstr "Aseta vaihdon kuvaus"
+
+msgid "Move trade"
+msgstr "Siirrä vaihto"
+
+msgid "Remove trade"
+msgstr "Poista vaihto"
+
+msgid "Add device to trade"
+msgstr "Lisää laite vaihtoon"
+
+msgid "Remove device from trade"
+msgstr "Poista laite vaihdosta"

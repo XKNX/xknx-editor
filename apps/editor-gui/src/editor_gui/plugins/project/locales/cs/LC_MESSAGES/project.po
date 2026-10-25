@@ -2529,3 +2529,27 @@ msgstr "Každá linie v projektu musí mít jedinečnou doménovou adresu."
 
 msgid "Last Downloaded"
 msgstr "Naposledy staženo"
+
+msgid "Create trade {name}"
+msgstr "Vytvořit činnost {name}"
+
+msgid "Rename trade to {name}"
+msgstr "Přejmenovat činnost na {name}"
+
+msgid "Set trade number"
+msgstr "Nastavit číslo činnosti"
+
+msgid "Set trade description"
+msgstr "Nastavit popis činnosti"
+
+msgid "Move trade"
+msgstr "Přesunout činnost"
+
+msgid "Remove trade"
+msgstr "Odstranit činnost"
+
+msgid "Add device to trade"
+msgstr "Přidat zařízení do činnosti"
+
+msgid "Remove device from trade"
+msgstr "Odebrat zařízení z činnosti"
