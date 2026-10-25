@@ -60,7 +60,7 @@ def build_group_communication(
                 write=go.write,
                 transmit=go.transmit,
                 update=go.update,
-                read_on_init=go.read_on_init,
+                read_on_init=bool(go.read_on_init),
             ),
             go.size_code,
         )

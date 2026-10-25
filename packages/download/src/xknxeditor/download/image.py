@@ -46,6 +46,7 @@ from .resources import (
 )
 from .secure_config import GroupSecurity, SecurityTables, security_tables
 from .tables import (
+    SEGMENT_SELECTOR_BIT,
     Association,
     ComObjectDescriptor,
     build_association_table,
@@ -1220,7 +1221,9 @@ def _bcu1_com_object_overlay(
                 flags |= _COMMUNICATION_BIT
             data[pos] = flags
         else:
-            data[pos] = (data[pos] & 0x20) | descriptor[0]
+            data[pos] = (data[pos] & SEGMENT_SELECTOR_BIT) | (
+                descriptor[0] & ~SEGMENT_SELECTOR_BIT
+            )
         mask[pos] = 0xFF
     return bytes(data), bytes(mask)
 

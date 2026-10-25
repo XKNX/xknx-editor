@@ -665,7 +665,9 @@ class RecoverService:
                 ("update", group_object.update),
                 ("read_on_init", group_object.read_on_init),
             ):
-                project.set_flag(device, ref_id, flag, value)
+                # A memory-mapped table holds no read-on-init: the product's stays.
+                if value is not None:
+                    project.set_flag(device, ref_id, flag, value)
 
     def _apply_links(
         self,

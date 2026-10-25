@@ -9,6 +9,7 @@ unlinked objects are omitted.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from types import SimpleNamespace
 
 import pytest
@@ -36,7 +37,13 @@ _BASE = 0x0100
 
 
 def _com_object(
-    number: int, *, read: bool, write: bool, transmit: bool, update: bool
+    number: int,
+    *,
+    read: bool,
+    write: bool,
+    transmit: bool,
+    update: bool,
+    read_on_init: bool = False,
 ) -> UiComObject:
     return UiComObject(
         ref_id=f"O-{number}_R",
@@ -51,7 +58,7 @@ def _com_object(
         write=write,
         transmit=transmit,
         update=update,
-        read_on_init=False,
+        read_on_init=read_on_init,
         read_locked=False,
         write_locked=False,
         transmit_locked=False,
@@ -247,6 +254,54 @@ def test_m112_clears_communication_without_a_dynamic_ref() -> None:
     eeprom = next(segment for segment in segments if len(segment.data) == 256)
     assert eeprom.data[5 + 3 * 4] == 0xCB
     assert eeprom.data[5 + 4 * 4] == 0xDB
+
+
+@pytest.mark.parametrize(
+    ("mask", "flag_offset"),
+    [
+        # BCU1: 3-octet records after the count, the flag in the third octet.
+        ("MV-0011", lambda number: 94 + 1 + number * 3 + 2),
+        # M112 (System 7): 4-octet records after a 5-octet header, the flag first.
+        ("MV-0705", lambda number: 5 + number * 4),
+    ],
+)
+def test_memory_mapped_tables_keep_the_segment_selector(
+    mask: str, flag_offset: Callable[[int], int]
+) -> None:
+    """Bit 5 of a memory-mapped record selects the value's memory segment. It stays as
+    the product has it: a read-on-init object does not set it, and an object without
+    read-on-init does not clear it."""
+    nodes = [
+        _com_object(
+            0, read=False, write=True, transmit=True, update=True, read_on_init=True
+        ),
+        _com_object(1, read=True, write=True, transmit=True, update=True),
+    ]
+    seed = bytearray(_seed())
+    seed[0] = 2
+    seed[flag_offset(0)] = 0x9F
+    seed[flag_offset(1)] = 0xBF
+    segments = _group_communication_segments(
+        _application(mask),  # type: ignore[arg-type]
+        _UI(nodes),  # type: ignore[arg-type]
+        {_SEGMENT: _BASE},
+        {_SEGMENT: (bytes(seed), b"\x00" * len(seed))},
+        GroupCommunication(
+            device_address=0x1133,
+            links=tuple(
+                GroupObjectLink(
+                    com_object_ref_id=f"O-{number}_R",
+                    group_address=0x0900 + number,
+                    sending=True,
+                )
+                for number in range(2)
+            ),
+        ),
+    )
+    eeprom = next(segment for segment in segments if len(segment.data) == 256)
+    # Update, transmit, write, communication, low priority; bit 5 from the seed.
+    assert eeprom.data[flag_offset(0)] == 0xD7
+    assert eeprom.data[flag_offset(1)] == 0xFF
 
 
 def test_bcu2_keeps_communication_on_static_slots() -> None:
