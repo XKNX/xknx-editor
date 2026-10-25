@@ -38,10 +38,13 @@ class ProgramQueuePanel:
         on_cancel_all: Callable[[], None],
         on_clear_history: Callable[[], None],
         get_bus_operation: Callable[[], tuple[str, str] | None] = lambda: None,
+        is_connecting: Callable[[QueueItem], bool] = lambda _item: False,
     ) -> None:
         """``get_bus_operation`` is the running bus operation the queue has no entry for
-        (kind and address, see ``bus_operation_text``): a device test, a restart, a scan …"""
+        (kind and address, see ``bus_operation_text``): a device test, a restart, a scan …;
+        ``is_connecting`` whether an operation still waits for the connection opened for it."""
         self._get_bus_operation = get_bus_operation
+        self._is_connecting = is_connecting
         self._get_active = get_active
         self._get_history = get_history
         self._get_progress = get_progress
@@ -148,7 +151,7 @@ class ProgramQueuePanel:
         if failed:
             imgui.push_style_color(imgui.Col_.text, _RED)
         is_open = imgui.tree_node_ex(
-            f"{operation_text(item)}: {state_text(item)}###status",
+            f"{operation_text(item)}: {state_text(item, self._is_connecting(item))}###status",
             imgui.TreeNodeFlags_.span_avail_width,
         )
         if failed:
@@ -311,14 +314,17 @@ def operation_text(item: QueueItem) -> str:
     return f"{S.OPERATION_DOWNLOAD}({_scope_label(item.scope)})"
 
 
-def state_text(item: QueueItem) -> str:
-    """How far an operation of the queue is, as its entry shows it ("Waiting", "Downloading" …)."""
+def state_text(item: QueueItem, connecting: bool = False) -> str:
+    """How far an operation of the queue is, as its entry shows it ("Waiting", "Downloading" …);
+    ``connecting`` while it waits for the connection opened for it."""
     match item.state:
         case OperationState.WAITING:
             return S.OPERATION_WAITING
         case OperationState.RUNNING:
             if item.canceled_by_user:
                 return S.SCRIPT_CANCELING
+            if connecting:
+                return S.OPERATION_CONNECTING
             if item.device_info is not None:
                 return S.OPERATION_READING
             if item.script is None:

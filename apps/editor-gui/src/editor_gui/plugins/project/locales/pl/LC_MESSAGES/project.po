@@ -2706,3 +2706,6 @@ msgstr "Odzyskaj projekt z magistrali"
 
 msgid "Devices in Programming Mode"
 msgstr "Urządzenia w trybie programowania"
+
+msgid "Connecting"
+msgstr "Łączenie"

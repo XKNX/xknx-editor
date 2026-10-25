@@ -294,6 +294,15 @@ class ConnectionService:
             return True
         return self.operation_connector is not None and not self.busmonitor_active
 
+    def waiting_for_connection(self, future: Future[Any] | None) -> bool:
+        """Whether the operation behind ``future`` (from ``connect_for_operation``) still waits
+        for its connection to open."""
+        return (
+            future is not None
+            and future in self._connected_operations
+            and self._connected_operations[future] is None
+        )
+
     def connect_for_operation(
         self, op: str, start: Callable[[], Future[Any] | None]
     ) -> Future[Any] | None:

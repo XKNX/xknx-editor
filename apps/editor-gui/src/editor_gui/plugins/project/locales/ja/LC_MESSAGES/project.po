@@ -2706,3 +2706,6 @@ msgstr "バスからプロジェクトを復元"
 
 msgid "Devices in Programming Mode"
 msgstr "プログラミング・モードのデバイス"
+
+msgid "Connecting"
+msgstr "接続中"

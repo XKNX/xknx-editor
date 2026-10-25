@@ -2706,3 +2706,6 @@ msgstr "Récupérer le projet depuis le bus"
 
 msgid "Devices in Programming Mode"
 msgstr "Participants en mode programmation"
+
+msgid "Connecting"
+msgstr "Connexion"

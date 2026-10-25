@@ -2706,3 +2706,6 @@ msgstr "Projeyi Bus'tan Kurtar"
 
 msgid "Devices in Programming Mode"
 msgstr "Programlama Modundaki Cihazlar"
+
+msgid "Connecting"
+msgstr "Bağlanıyor"

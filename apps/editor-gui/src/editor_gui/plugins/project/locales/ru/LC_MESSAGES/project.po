@@ -2706,3 +2706,6 @@ msgstr "Восстановить проект с шины"
 
 msgid "Devices in Programming Mode"
 msgstr "Устройства в режиме программирования"
+
+msgid "Connecting"
+msgstr "Подключение"

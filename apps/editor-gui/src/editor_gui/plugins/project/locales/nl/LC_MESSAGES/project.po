@@ -2744,3 +2744,6 @@ msgstr "Project van de bus herstellen"
 
 msgid "Devices in Programming Mode"
 msgstr "Apparaten in programmeermodus"
+
+msgid "Connecting"
+msgstr "Wordt verbonden"

@@ -186,3 +186,16 @@ def test_a_certificate_found_missing_after_connecting_is_asked_for() -> None:
     item.origin = "MCP"
     plugin._describe_program_error(item, error)  # pyright: ignore[reportPrivateUsage]
     assert asked == [1]
+
+
+def test_a_running_operation_waiting_for_its_connection_shows_connecting() -> None:
+    from editor_gui.plugins.project.program_queue import OperationState, QueueItem
+    from editor_gui.plugins.project.ui.program_queue import state_text
+
+    item = QueueItem(node_id=1, address="1.1.5", name="Dimmer", scope=None)
+    item.state = OperationState.RUNNING
+    assert state_text(item) == S.OPERATION_DOWNLOADING
+    assert state_text(item, connecting=True) == S.OPERATION_CONNECTING
+    # A waiting one is still waiting for its turn.
+    item.state = OperationState.WAITING
+    assert state_text(item, connecting=True) == S.OPERATION_WAITING

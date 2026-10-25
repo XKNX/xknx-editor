@@ -185,6 +185,9 @@ class ProjectPlugin:
             on_cancel_all=self._program_queue.cancel_all,
             on_clear_history=self._program_queue.clear_history,
             get_bus_operation=self.unqueued_bus_operation,
+            is_connecting=lambda item: api.connection.waiting_for_connection(
+                item.future
+            ),
         )
         self._online_runner = OnlineButtonRunner(
             api.project,

@@ -2706,3 +2706,6 @@ msgstr "Gjenopprett prosjekt fra bussen"
 
 msgid "Devices in Programming Mode"
 msgstr "Enheter i programmeringsmodus"
+
+msgid "Connecting"
+msgstr "Kobler til"

@@ -2706,3 +2706,6 @@ msgstr "Recuperar Projeto do Bus"
 
 msgid "Devices in Programming Mode"
 msgstr "Dispositivos em Modo de Programação"
+
+msgid "Connecting"
+msgstr "A ligar"

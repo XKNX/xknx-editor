@@ -19,8 +19,11 @@ if TYPE_CHECKING:
     from editor_gui.plugins.project.program_queue import QueueItem
 
 
-def item_dict(item: QueueItem, progress: tuple[int, int] | None) -> dict[str, Any]:
-    """An entry of the Operations panel; ``progress`` is the running download's (done, total)."""
+def item_dict(
+    item: QueueItem, progress: tuple[int, int] | None, connecting: bool = False
+) -> dict[str, Any]:
+    """An entry of the Operations panel; ``progress`` is the running download's (done, total),
+    ``connecting`` whether it still waits for the connection opened for it."""
     from editor_gui.plugins.project.program_queue import OperationState
     from editor_gui.plugins.project.ui.program_queue import (
         FORCE_STOP_AFTER,
@@ -36,7 +39,7 @@ def item_dict(item: QueueItem, progress: tuple[int, int] | None) -> dict[str, An
         "name": item.name,
         "operation": operation_text(item),
         "state": item.state.value,
-        "state_text": state_text(item),
+        "state_text": state_text(item, connecting),
         "origin": item.origin,
         "message": item.message,
         "details": [
@@ -83,8 +86,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         recovery) as {kind, address, text, progress?: [done, total]}, or null; ``active`` the
         running operation followed by the waiting ones, ``history`` the ended ones, newest first
         (left out with history=false). Each entry: {node_id, device_address, name, operation (e.g.
-        "Download (Parameters)"), state (waiting, running, finished, canceled, failed),
-        state_text, origin ("MCP" when an MCP client started it), message (the error), details
+        "Download(Parameters)"), state (waiting, running, finished, canceled, failed),
+        state_text (e.g. "Connecting" while a running one waits for the connection opened for
+        it through the backbone's Bus Connection), origin ("MCP" when an MCP client started it), message (the error), details
         (the result sections of a device info), connection, started_at, ended_at,
         canceled_by_user, awaiting_overwrite_answer (a download asks whether to overwrite the
         application in the device: answer with connection_answer_overwrite), and while running
@@ -110,7 +114,14 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             queue = plugin.program_queue
             result: dict[str, Any] = {
                 "bus_operation": bus,
-                "active": [item_dict(i, progress) for i in queue.active],
+                "active": [
+                    item_dict(
+                        i,
+                        progress,
+                        ctx.api.connection.waiting_for_connection(i.future),
+                    )
+                    for i in queue.active
+                ],
             }
             if history:
                 result["history"] = [item_dict(i, None) for i in queue.history]

@@ -3280,6 +3280,10 @@ class ProjectStrings:
         return _("Downloading")
 
     @property
+    def OPERATION_CONNECTING(self) -> str:
+        return _("Connecting")
+
+    @property
     def OPERATION_PRESS_PROGRAMMING_BUTTON(self) -> str:
         return _("Please press the programming button")
 

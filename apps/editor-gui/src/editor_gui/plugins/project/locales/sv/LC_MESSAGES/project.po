@@ -2706,3 +2706,6 @@ msgstr "Återskapa projekt från bussen"
 
 msgid "Devices in Programming Mode"
 msgstr "Apparater i programmeringsläge"
+
+msgid "Connecting"
+msgstr "Ansluter"

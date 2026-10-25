@@ -2706,3 +2706,6 @@ msgstr "Palauta projekti väylältä"
 
 msgid "Devices in Programming Mode"
 msgstr "Ohjelmointitilassa olevat laitteet"
+
+msgid "Connecting"
+msgstr "Yhdistetään"

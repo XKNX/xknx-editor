@@ -2706,3 +2706,6 @@ msgstr "Obnovit projekt ze sběrnice"
 
 msgid "Devices in Programming Mode"
 msgstr "Zařízení v programovacím režimu"
+
+msgid "Connecting"
+msgstr "Připojování"

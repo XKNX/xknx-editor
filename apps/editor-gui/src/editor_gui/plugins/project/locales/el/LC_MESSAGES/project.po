@@ -2706,3 +2706,6 @@ msgstr "Ανάκτηση Έργου από το Bus"
 
 msgid "Devices in Programming Mode"
 msgstr "Συσκευές σε Κατάσταση Προγραμματισμού"
+
+msgid "Connecting"
+msgstr "Σύνδεση"

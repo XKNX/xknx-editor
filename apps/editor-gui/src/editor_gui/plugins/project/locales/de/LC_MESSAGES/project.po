@@ -2891,3 +2891,6 @@ msgstr "Projekt vom Bus wiederherstellen"
 
 msgid "Devices in Programming Mode"
 msgstr "Geräte im Programmiermodus"
+
+msgid "Connecting"
+msgstr "Wird verbunden"

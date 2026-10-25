@@ -2706,3 +2706,6 @@ msgstr "从总线恢复项目"
 
 msgid "Devices in Programming Mode"
 msgstr "处于编程模式的设备"
+
+msgid "Connecting"
+msgstr "正在连接"

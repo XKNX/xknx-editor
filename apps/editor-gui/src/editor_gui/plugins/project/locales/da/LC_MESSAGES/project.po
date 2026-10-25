@@ -2706,3 +2706,6 @@ msgstr "Gendan projekt fra bus"
 
 msgid "Devices in Programming Mode"
 msgstr "Enheder i programmeringstilstand"
+
+msgid "Connecting"
+msgstr "Forbinder"
