@@ -2166,11 +2166,11 @@ _BUTTON_MARGIN = 7.0
 # Size of a headline over the text: the semibold 10.5 pt over 9 pt of Windows dialogs, as wide as
 # that with the emboldened font.
 _HEADLINE_SCALE = 1.1
-# Room at 100 % scaling beyond the usual spacing above and below a separator line, below a
-# headline and above and below an information or error box.
+# Room at 100 % scaling beyond the usual spacing above and below a separator line and above and
+# below an information or error box. A headline takes the usual spacing only, as its first row
+# follows it one row pitch further down.
 _RULER_ABOVE = 14.0
 _RULER_BELOW = 7.0
-_HEADLINE_BELOW = 6.0
 _HINT_ABOVE = 9.0
 _HINT_BELOW = 5.0
 
@@ -2299,7 +2299,6 @@ def _render_separator(sep: UiSeparator) -> None:
         with bold(_HEADLINE_SCALE):
             imgui.align_text_to_frame_padding()
             _aligned_text(sep.text, sep.alignment)
-        vertical_space(px(_HEADLINE_BELOW))
     elif sep.hint == "Information":
         vertical_space(px(_HINT_ABOVE))
         fill = _mix(content_background(), _INFO_BORDER, _INFO_TINT)
