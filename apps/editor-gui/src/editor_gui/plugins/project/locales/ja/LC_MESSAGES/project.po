@@ -2754,3 +2754,6 @@ msgstr "ラインを移動"
 
 msgid "Move segment"
 msgstr "セグメントを移動"
+
+msgid "Move function"
+msgstr "機能を移動"

@@ -2754,3 +2754,6 @@ msgstr "Mover línea"
 
 msgid "Move segment"
 msgstr "Mover segmento"
+
+msgid "Move function"
+msgstr "Mover función"

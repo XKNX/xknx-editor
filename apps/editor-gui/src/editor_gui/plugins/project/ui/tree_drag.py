@@ -14,7 +14,14 @@ from imgui_bundle import imgui
 
 # What can be dragged.
 DragKind = Literal[
-    "space", "trade", "device", "group_address", "group_range", "line", "segment"
+    "space",
+    "trade",
+    "function",
+    "device",
+    "group_address",
+    "group_range",
+    "line",
+    "segment",
 ]
 
 # imgui's payload type of a dragged tree element.

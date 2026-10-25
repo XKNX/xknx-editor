@@ -2754,3 +2754,6 @@ msgstr "Przenieś linię"
 
 msgid "Move segment"
 msgstr "Przenieś segment"
+
+msgid "Move function"
+msgstr "Przenieś funkcję"

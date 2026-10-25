@@ -440,3 +440,42 @@ async def test_dali_commissioning_of_a_gateway(
     assert ("new",) in commissioner.calls
     # Each groups/scenes write saves the whole channel: the new group, then the scenes too.
     assert saved == [(7, [(0, 1), (1, 4)], 0, 0), (7, [(0, 1), (1, 4)], 1, 0)]
+
+
+async def test_a_function_moves_into_another_space(tmp_path: Path) -> None:
+    mcp, _project = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        building = (await _data(client, "project_spaces"))["items"][0]["id"]
+        rooms = [
+            (
+                await _data(
+                    client,
+                    "project_create_space",
+                    space_type="Room",
+                    name=name,
+                    parent_id=building,
+                )
+            )["space_id"]
+            for name in ("Hall", "Kitchen")
+        ]
+        function_id = (
+            await _data(
+                client, "project_create_function", space_id=rooms[0], name="Light"
+            )
+        )["function_id"]
+        moved = await _data(
+            client, "project_move_function", function_id=function_id, space_id=rooms[1]
+        )
+        assert moved == {"function_id": function_id, "space_id": rooms[1]}
+        children = (await _data(client, "project_spaces"))["items"][0]["children"]
+        kitchen = next(c for c in children if c["id"] == rooms[1])
+        assert [f["id"] for f in kitchen["functions"]] == [function_id]
+        await _data(client, "project_undo")
+        children = (await _data(client, "project_spaces"))["items"][0]["children"]
+        hall = next(c for c in children if c["id"] == rooms[0])
+        assert [f["id"] for f in hall["functions"]] == [function_id]
+        with pytest.raises(Exception, match="no space with id"):
+            await client.call_tool(
+                "project_move_function", {"function_id": function_id, "space_id": 999}
+            )

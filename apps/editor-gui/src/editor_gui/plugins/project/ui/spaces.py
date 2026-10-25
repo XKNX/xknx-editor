@@ -144,6 +144,7 @@ class SpacesPanel:
         on_select_device_id: Callable[[int], None],
         on_create_function: Callable[[int, str, str], object] | None = None,
         on_remove_function: Callable[[int], None] | None = None,
+        on_move_function: Callable[[int, int], None] | None = None,
         on_rename_function: Callable[[int, str], None] | None = None,
         on_set_function_type: Callable[[int, str], None] | None = None,
         on_add_function_ga: Callable[[int, int, str], object] | None = None,
@@ -206,6 +207,7 @@ class SpacesPanel:
         self._on_select_device_id = on_select_device_id
         self._on_create_function = on_create_function
         self._on_remove_function = on_remove_function
+        self._on_move_function = on_move_function
         self._on_rename_function = on_rename_function
         self._on_set_function_type = on_set_function_type
         self._on_add_function_ga = on_add_function_ga
@@ -295,7 +297,7 @@ class SpacesPanel:
 
     def _drop_on_space(self, space: "SpaceInfo | None") -> None:
         """The space just drawn (``None``: the "Buildings" root) as a place to drop on: the
-        spaces that may go below it, and devices when it holds them."""
+        spaces that may go below it, functions, and devices when it holds them."""
         tree = self._get_space_tree()
 
         def accepts(dragged: Dragged) -> bool:
@@ -303,6 +305,10 @@ class SpacesPanel:
                 return self._on_move_space is not None and all(
                     self._space_may_go(tree, moving, space) for moving in dragged.ids
                 )
+            if dragged.kind == "function":
+                if space is None or self._on_move_function is None:
+                    return False
+                return not {f.id for f in space.functions}.issuperset(dragged.ids)
             if dragged.kind != "device" or space is None:
                 return False
             here = {device.id for device in space.devices}
@@ -321,6 +327,9 @@ class SpacesPanel:
                 if drop.dragged.kind == "space":
                     assert self._on_move_space is not None
                     self._report(self._on_move_space(ident, target))
+                elif drop.dragged.kind == "function":
+                    assert self._on_move_function is not None and target is not None
+                    self._on_move_function(ident, target)
                 else:
                     assert self._on_set_device_space is not None
                     self._report(self._on_set_device_space(ident, target))
@@ -405,7 +414,7 @@ class SpacesPanel:
                     self._render_device(device, space_id=space.id)
         for function in space.functions:
             if self_match or self._function_matches(function, flt):
-                self._render_function(function)
+                self._render_function(function, space.id)
         devices_here = holds_devices(space.space_type)
         if (
             devices_here
@@ -519,6 +528,18 @@ class SpacesPanel:
                 walk(s.children, depth + 1, skip)
 
         walk(self._get_space_tree(), 0, False)
+        return out
+
+    def _all_spaces(self) -> "list[tuple[SpaceInfo, int]]":
+        """Every space with its depth, in tree order."""
+        out: list[tuple[SpaceInfo, int]] = []
+
+        def walk(spaces: "list[SpaceInfo]", depth: int) -> None:
+            for s in spaces:
+                out.append((s, depth))
+                walk(s.children, depth + 1)
+
+        walk(self._get_space_tree(), 0)
         return out
 
     def _render_add_popup(self, popup_id: str) -> None:
@@ -972,7 +993,7 @@ class SpacesPanel:
             imgui.close_current_popup()
         end_dialog()
 
-    def _render_function(self, function: "FunctionInfo") -> None:
+    def _render_function(self, function: "FunctionInfo", space_id: int) -> None:
         label = function.name or function.usage_text or function.function_type
         type_label = _function_type_label(function.function_type)
         # A click selects the function, the arrow and a double click open it.
@@ -993,12 +1014,26 @@ class SpacesPanel:
                 self._rename_fn = function.id
                 self._rename_buf = function.name
                 self._pending_popup_id = _rename_function_dialog(function.id)
+            if self._on_move_function is not None:
+                # Into any other space.
+                targets = [
+                    (
+                        f"{'  ' * depth}{space_label(target)}##mvfn{function.id}_{target.id}",
+                        target.id,
+                    )
+                    for target, depth in self._all_spaces()
+                ]
+                chosen = render_move_menu(targets, space_id)
+                if chosen is not None:
+                    self._on_move_function(function.id, chosen[0])
             if (
                 self._on_remove_function is not None
                 and imgui.menu_item(S.SPACES_FN_DELETE, "", False)[0]
             ):
                 self._on_remove_function(function.id)
             imgui.end_popup()
+        if self._on_move_function is not None:
+            drag_source(Dragged("function", (function.id,)), label)
         self._open_if_pending(_rename_function_dialog(function.id))
         self._render_rename_popup(function.id)
         if not open_node:

@@ -2754,3 +2754,6 @@ msgstr "Přesunout linii"
 
 msgid "Move segment"
 msgstr "Přesunout segment"
+
+msgid "Move function"
+msgstr "Přesunout funkci"

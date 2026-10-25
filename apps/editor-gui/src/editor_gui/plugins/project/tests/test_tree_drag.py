@@ -385,3 +385,29 @@ def test_several_devices_dropped_together_are_one_undo_step(
     assert placed() == sorted(devices)
     project.undo()
     assert placed() == []
+
+
+@pytest.mark.usefixtures("context")
+def test_a_function_is_dropped_on_another_space(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    building = project.get_space_tree()[0].id
+    hall = project.create_space(building, "Room", "Hall")
+    kitchen = project.create_space(building, "Room", "Kitchen")
+    assert hall is not None and kitchen is not None
+    light = project.create_function(hall, "FT-1", "Light")
+    assert isinstance(light, int)
+    panel = _buildings(project, [])
+    panel._on_move_function = project.move_function  # pyright: ignore[reportPrivateUsage]
+    _frames(panel, 2)
+    offered = drop_on(monkeypatch, spaces, f"##sp{hall}", Dragged("function", (light,)))
+    _frames(panel)
+    assert offered == [False]
+    monkeypatch.undo()
+    offered = drop_on(
+        monkeypatch, spaces, f"##sp{kitchen}", Dragged("function", (light,))
+    )
+    _frames(panel)
+    assert offered == [True]
+    found = project.find_space(kitchen)
+    assert found is not None and [f.id for f in found.functions] == [light]

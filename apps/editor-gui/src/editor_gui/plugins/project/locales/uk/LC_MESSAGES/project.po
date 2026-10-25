@@ -2754,3 +2754,6 @@ msgstr "Перемістити лінію"
 
 msgid "Move segment"
 msgstr "Перемістити сегмент"
+
+msgid "Move function"
+msgstr "Перемістити функцію"

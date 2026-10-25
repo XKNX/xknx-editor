@@ -2754,3 +2754,6 @@ msgstr "Flytta linje"
 
 msgid "Move segment"
 msgstr "Flytta segment"
+
+msgid "Move function"
+msgstr "Flytta funktion"

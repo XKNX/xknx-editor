@@ -75,6 +75,7 @@ from xknxeditor.proj.core.events import (
     ImportGroupAddresses,
     LinkComObject,
     MoveDevice,
+    MoveFunction,
     MoveGroupRange,
     MoveLine,
     MoveSegment,
@@ -1625,6 +1626,22 @@ class ProjectService:
 
     def remove_function(self, project_id: str, function_id: int) -> None:
         self._state(project_id).store.append(RemoveFunction(target_id=function_id))
+
+    def move_function(self, project_id: str, function_id: int, space_id: int) -> None:
+        """Put a building function into another space, after its functions; undoable. Nothing
+        changes when it is in that space already. Raises ``KeyError`` for an unknown function or
+        space."""
+        state = self._state(project_id)
+        function = state.session.get(Function, function_id)
+        space = state.session.get(Space, space_id)
+        if function is None or space is None:
+            raise KeyError(f"No function {function_id} or space {space_id}")
+        if function.space_id == space_id:
+            return
+        order = max((f.order for f in space.functions), default=-1) + 1
+        state.store.append(
+            MoveFunction(function_id=function_id, space_id=space_id, new_order=order)
+        )
 
     def rename_function(self, project_id: str, function_id: int, name: str) -> None:
         self._state(project_id).store.append(

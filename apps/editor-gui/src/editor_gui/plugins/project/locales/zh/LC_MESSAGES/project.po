@@ -2754,3 +2754,6 @@ msgstr "移动线路"
 
 msgid "Move segment"
 msgstr "移动网段"
+
+msgid "Move function"
+msgstr "移动功能"

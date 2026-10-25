@@ -516,6 +516,10 @@ class ProjectStrings:
         return _("Move segment")
 
     @property
+    def HISTORY_EV_MOVE_FUNCTION(self) -> str:
+        return _("Move function")
+
+    @property
     def GA_MOVE_NO_FREE(self) -> str:
         return _("The group has no free group address.")
 

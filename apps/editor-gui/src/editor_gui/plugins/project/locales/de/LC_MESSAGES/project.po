@@ -2939,3 +2939,6 @@ msgstr "Linie verschieben"
 
 msgid "Move segment"
 msgstr "Segment verschieben"
+
+msgid "Move function"
+msgstr "Funktion verschieben"

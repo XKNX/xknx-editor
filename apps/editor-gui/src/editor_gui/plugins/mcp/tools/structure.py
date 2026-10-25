@@ -208,6 +208,22 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         return ctx.run_locked(_remove)
 
     @tool("write")
+    def project_move_function(function_id: int, space_id: int) -> dict[str, Any]:
+        """Move a building function (id from project_spaces) into another space (a space's
+        ``id``), as its "Move to" does; it comes after the space's functions and keeps its group
+        addresses. Undoable with project_undo. Returns {function_id, space_id}."""
+        require_project(ctx)
+
+        def _move() -> dict[str, Any]:
+            _require_function(function_id)
+            if project.find_space(space_id) is None:
+                raise ToolError(f"no space with id {space_id}")
+            project.move_function(function_id, space_id)
+            return {"function_id": function_id, "space_id": space_id}
+
+        return ctx.run_locked(_move)
+
+    @tool("write")
     def project_set_function_type(
         function_id: int, function_type: FunctionType
     ) -> dict[str, Any]:

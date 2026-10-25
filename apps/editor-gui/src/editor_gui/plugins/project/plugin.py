@@ -451,6 +451,7 @@ class ProjectPlugin:
             on_select_device_id=self._select_device_by_id,
             on_create_function=api.project.create_function,
             on_remove_function=api.project.remove_function,
+            on_move_function=api.project.move_function,
             on_rename_function=api.project.rename_function,
             on_set_function_type=api.project.set_function_type,
             on_add_function_ga=api.project.add_function_group_address,

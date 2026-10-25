@@ -540,6 +540,7 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     "RemoveSegment": lambda d: S.HISTORY_EV_REMOVE_SEGMENT,
     "RemoveGroupAddress": lambda d: S.HISTORY_EV_REMOVE_GA,
     "RemoveFunction": lambda d: S.HISTORY_EV_REMOVE_FUNCTION,
+    "MoveFunction": lambda d: S.HISTORY_EV_MOVE_FUNCTION,
     "RemoveFunctionGroupAddress": lambda d: S.HISTORY_EV_REMOVE_FUNCTION_GA,
     "RemoveSpace": lambda d: S.HISTORY_EV_REMOVE_SPACE,
     "RemoveGroupRange": lambda d: S.HISTORY_EV_REMOVE_GROUP_RANGE,
@@ -5922,6 +5923,14 @@ class ProjectService:
         if self._pid is None:
             return
         self._svc.remove_function(self._pid, function_id)
+        self._bump(structural=False)
+
+    def move_function(self, function_id: int, space_id: int) -> None:
+        """Put a building function into another space ("Move to"), after its functions;
+        undoable."""
+        if self._pid is None:
+            return
+        self._svc.move_function(self._pid, function_id, space_id)
         self._bump(structural=False)
 
     def rename_function(self, function_id: int, name: str) -> None:

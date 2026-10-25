@@ -2792,3 +2792,6 @@ msgstr "Lijn verplaatsen"
 
 msgid "Move segment"
 msgstr "Segment verplaatsen"
+
+msgid "Move function"
+msgstr "Functie verplaatsen"

@@ -4021,6 +4021,44 @@ class MoveTrade(Event):
 
 @_register
 @dataclass
+class MoveFunction(Event):
+    """Put a building function into another space, last among its functions."""
+
+    event_type: ClassVar[str] = "MoveFunction"
+
+    function_id: int
+    space_id: int
+    new_order: int = 0
+    old_space_id: int | None = None
+    old_order: int = 0
+
+    def apply(self, session: Session) -> None:
+        function = session.get(Function, self.function_id)
+        if function is not None:
+            self.old_space_id, self.old_order = function.space_id, function.order
+            function.space_id, function.order = self.space_id, self.new_order
+
+    def revert(self, session: Session) -> None:
+        function = session.get(Function, self.function_id)
+        if function is not None and self.old_space_id is not None:
+            function.space_id, function.order = self.old_space_id, self.old_order
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "function_id": self.function_id,
+            "space_id": self.space_id,
+            "new_order": self.new_order,
+            "old_space_id": self.old_space_id,
+            "old_order": self.old_order,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> MoveFunction:
+        return cls(**data)
+
+
+@_register
+@dataclass
 class RemoveTrade(_SubtreeDelete):
     """Delete a trade with its sub-trades and device references (the devices stay)."""
 

@@ -2754,3 +2754,6 @@ msgstr "Siirrä linja"
 
 msgid "Move segment"
 msgstr "Siirrä segmentti"
+
+msgid "Move function"
+msgstr "Siirrä toiminto"
