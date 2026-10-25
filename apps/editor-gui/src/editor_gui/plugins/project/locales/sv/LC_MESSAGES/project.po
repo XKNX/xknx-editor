@@ -2502,3 +2502,27 @@ msgstr "Ange bussanslutning för områdeslinjen"
 
 msgid "Set domain address"
 msgstr "Ange domänadress"
+
+msgid "Generate New"
+msgstr "Generera ny"
+
+msgid "The given domain address is invalid."
+msgstr "Den angivna domänadressen är ogiltig."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Domänadressen är inte giltig! Giltiga värden är från 1 till 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Domänadress för mediumtyp 'RF' är lägre än minimivärdet 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Domänadress för mediumtyp '{medium}' överskrider det maximala giltiga värdet på {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Domänadress för RF-linjer måste vara samma som huvudlinjens domänadress."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Domänadressen för underlinjer med IoT måste vara den samma som domänadressen för huvudlinjen."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Varje linje i ett projekt måste ha en unik domänadress."

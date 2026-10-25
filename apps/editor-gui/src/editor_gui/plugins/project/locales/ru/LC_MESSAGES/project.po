@@ -2502,3 +2502,27 @@ msgstr "Задать соединение с шиной магистрали"
 
 msgid "Set domain address"
 msgstr "Задать адрес домена"
+
+msgid "Generate New"
+msgstr "Генерировать новый"
+
+msgid "The given domain address is invalid."
+msgstr "Данный доменный адрес недействителен."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Домен адрес недействительный! Допустимыми являются значения от 1 до 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Доменный адрес типа среды 'RF' меньше минимально допустимого значения 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Адрес домена среды типа \"{medium}\" превышает максимально допустимое значение {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Доменный адрес сублинии RF должен быть эквивалентен доменному адресу основной линии."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Доменный адрес подлиний IoT должен быть равен доменному адресу основной линии."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Каждая линия проекта должна иметь уникальный доменный адрес."

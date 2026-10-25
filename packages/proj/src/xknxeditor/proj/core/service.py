@@ -155,7 +155,9 @@ from xknxeditor.proj.core.medium import (
     SegmentView,
     check_medium_change,
     check_new_sub_segment,
+    domain_address_changes,
     domain_addresses,
+    new_domain_address,
     sub_segment_media,
 )
 from xknxeditor.proj.core.product_prune import ProgressCallback
@@ -504,6 +506,36 @@ def _line_views(
     ]
 
 
+def _new_line_medium(
+    session: Session, area_id: int, address: int
+) -> tuple[str, int | None]:
+    """The medium and domain address of a new line ``address`` in the area ``area_id``: a
+    backbone gets TP, a main line the backbone's medium, any other line its area main line's
+    medium and domain address; TP when there is none of them."""
+    area = session.get(Area, area_id)
+    if area is None or (area.address == 0 and address == 0):
+        return MEDIUM_TP, None
+    if address == 0:
+        source = next(
+            (
+                ln
+                for a in area.installation.areas
+                if a.address == 0
+                for ln in a.lines
+                if ln.address == 0 and ln.segments
+            ),
+            None,
+        )
+        return (
+            (_main_segment(source).medium_type, None) if source else (MEDIUM_TP, None)
+        )
+    main = next((ln for ln in area.lines if ln.address == 0 and ln.segments), None)
+    if main is None:
+        return MEDIUM_TP, None
+    segment = _main_segment(main)
+    return segment.medium_type, segment.domain_address
+
+
 def _main_segment(line: Line) -> Segment:
     """A line's main segment: its lowest numbered one."""
     return min(line.segments, key=lambda s: (s.number, s.id))
@@ -746,8 +778,13 @@ class ProjectService:
             raise ValueError(
                 f"Line address {address} already used in this area by line {clash.id}"
             )
+        medium, domain_address = _new_line_medium(state.session, area_id, address)
         event = CreateLine(
-            area_id=area_id, address=address, name=name, medium_type=MEDIUM_TP
+            area_id=area_id,
+            address=address,
+            name=name,
+            medium_type=medium,
+            domain_address=domain_address,
         )
         state.store.append(event)
         assert event.line_id is not None
@@ -819,6 +856,42 @@ class ProjectService:
         self._state(project_id).store.append(
             RenameSegment(segment_id=segment_id, name=name)
         )
+
+    def set_domain_address(
+        self, project_id: str, segment_id: int, address: int | None = None
+    ) -> int:
+        """Give an RF, PL or IoT segment the domain ``address``, or a new one (None: the lowest
+        free PL one, a random unused RF or IoT one). The main segment of a main line takes the
+        segments of its area with the same medium along (see
+        :func:`.medium.domain_address_changes`); one undo step. Returns the address. Raises
+        ``MediumError`` for an address the rules refuse, ``KeyError`` for an unknown
+        segment."""
+        state = self._state(project_id)
+        segment = state.session.get(Segment, segment_id)
+        if segment is None:
+            raise KeyError(f"No segment with id {segment_id}")
+        lines = _line_views(segment.line.area.installation)
+        if address is None:
+            used = {
+                s.domain_address
+                for ln in lines
+                for s in ln.segments
+                if s.domain_address is not None
+            }
+            address = new_domain_address(segment.medium_type, used)
+            if address is None:
+                raise MediumError("domain_invalid")
+        changes = domain_address_changes(lines, segment_id, address)
+        events: list[Event] = [
+            SetSegmentDomainAddress(segment_id=sid, domain_address=value)
+            for sid, value in changes.items()
+            if value != state.session.get(Segment, sid).domain_address  # type: ignore[union-attr]
+        ]
+        if events:
+            state.store.append(
+                events[0] if len(events) == 1 else CompositeEvent(events)
+            )
+        return address
 
     def set_segment_medium(
         self,

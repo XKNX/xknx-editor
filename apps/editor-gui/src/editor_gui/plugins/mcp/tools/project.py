@@ -30,10 +30,16 @@ from editor_gui.device import (
 from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 from editor_gui.plugins.project.element_status import usage_label, usage_options
-from editor_gui.plugins.project.service import DeviceProduct, format_domain_address
+from editor_gui.plugins.project.service import DeviceProduct
 from editor_gui.plugins.project.space_usages import SPACE_USAGES
 from editor_gui.settings import config_dir
-from xknxeditor.proj.core.medium import MEDIUM_NAMES, MediumError, medium_name
+from xknxeditor.proj.core.medium import (
+    MEDIUM_NAMES,
+    MediumError,
+    format_domain_address,
+    has_domain_address,
+    medium_name,
+)
 
 # A device whose parameters only the manufacturer's plugin dialog sets.
 PLUGIN_PARAMETERS_ERROR = (
@@ -2698,6 +2704,47 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             if details.domain_address:
                 result["domain_address"] = details.domain_address
             return result
+
+        return ctx.run_locked(_set)
+
+    @tool("write")
+    def project_set_domain_address(
+        line_id: int | None = None,
+        segment_id: int | None = None,
+        domain_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Set the domain address of an RF, PL or IoT line (its main segment's) or sub-segment;
+        pass exactly one of ``line_id`` and ``segment_id`` (ids from project_topology). An RF
+        address is written "0001:23456789" (48 bits in hex, at least 0001:00000000, unique in
+        the project), a PL one 1 to 255, an IoT one in decimal; omit ``domain_address`` to
+        generate a new one ("Generate New"). A main line's address goes to every line and
+        segment of its area with the same medium; an RF or IoT sub line below a main line of
+        its medium keeps the main line's. Undoable with project_undo. Returns {kind,
+        element_id, medium, domain_address}."""
+        require_project(ctx)
+        if (line_id is None) == (segment_id is None):
+            raise ToolError("pass exactly one of line_id and segment_id")
+
+        def _set() -> dict[str, Any]:
+            kind = "line" if line_id is not None else "segment"
+            element_id = line_id if line_id is not None else segment_id
+            assert element_id is not None
+            details = project.element_details(kind, element_id)
+            if details is None:
+                raise ToolError(f"no {kind} with id {element_id}")
+            if details.medium is None or not has_domain_address(details.medium):
+                raise ToolError(f"a {kind} of medium TP or IP has no domain address")
+            error = project.set_element_domain_address(kind, element_id, domain_address)
+            if error:
+                raise ToolError(error)
+            details = project.element_details(kind, element_id)
+            assert details is not None and details.medium is not None
+            return {
+                "kind": kind,
+                "element_id": element_id,
+                "medium": medium_name(details.medium),
+                "domain_address": details.domain_address,
+            }
 
         return ctx.run_locked(_set)
 

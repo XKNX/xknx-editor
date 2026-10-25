@@ -2687,3 +2687,27 @@ msgstr "Verbindung des Backbones festlegen"
 
 msgid "Set domain address"
 msgstr "Domänenadresse festlegen"
+
+msgid "Generate New"
+msgstr "Neue erzeugen"
+
+msgid "The given domain address is invalid."
+msgstr "Die angegebene Domänenadresse ist ungültig."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Die Domänenadresse ist ungültig. Gültige Werte sind 1 bis 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Die Domain-Adresse des Medientyps 'RF' ist kleiner als der Minimal-Wert 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Die Adresse der Domain von Medientyp '{medium}' überschreitet den maximal gültigen Wert {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Die Domain-Adresse darf sich nicht von der Domain-Adresse der Hauptlinie unterscheiden."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Die Domänenadresse von IoT Sublinien muss identisch sein mit der Domänenadresse der Hauptlinie."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Jede Linie in einem Projekt muss eine eindeutige Domänenadresse haben."

@@ -23,8 +23,12 @@ from xknxeditor.proj.core.medium import (
     check_medium_change,
     check_new_sub_segment,
     device_fits,
+    domain_address_changes,
     domain_addresses,
+    format_domain_address,
+    has_domain_address,
     new_domain_address,
+    parse_domain_address,
 )
 
 
@@ -33,7 +37,8 @@ def _project(tmp_path: Path) -> tuple[ProjectService, str, int]:
     svc = ProjectService()
     pid = svc.create(tmp_path / "p.xknx", "P-0C01")
     area = svc.create_area(pid, 0, 2, "A")
-    svc.create_line(pid, area, 0, "M")
+    main = svc.create_line(pid, area, 0, "M")
+    svc.set_line_medium(pid, main, MEDIUM_TP)
     line = svc.create_line(pid, area, 1, "L")
     return svc, pid, line
 
@@ -445,6 +450,129 @@ def test_the_ip_routing_of_the_backbone(tmp_path: Path) -> None:
             svc.set_ip_routing(pid, multicast_address=bad)
     with pytest.raises(ValueError):
         svc.set_ip_routing(pid, latency=0)
+
+
+def test_domain_addresses_entered() -> None:
+    assert parse_domain_address(MEDIUM_RF, " 0001:0000ABCD ") == (1 << 32) | 0xABCD
+    assert parse_domain_address(MEDIUM_PL, "7") == 7
+    for medium, text in ((MEDIUM_RF, "12"), (MEDIUM_RF, "x:1"), (MEDIUM_PL, "a")):
+        with pytest.raises(MediumError) as error:
+            parse_domain_address(medium, text)
+        assert _reason(error) == "domain_invalid"
+    assert format_domain_address(MEDIUM_IOT, 9) == "9"
+    assert has_domain_address(MEDIUM_PL) and not has_domain_address(MEDIUM_IP)
+
+    rf = 1 << 32
+    lines = [
+        _line(0, 0, MEDIUM_IP),
+        _line(1, 0, MEDIUM_PL, domains={0: 5}),
+        _line(1, 1, MEDIUM_PL, domains={0: 5}),
+        _line(1, 2, MEDIUM_TP, MEDIUM_RF, domains={1: rf + 1}),
+        _line(1, 3, MEDIUM_RF, domains={0: rf + 2}),
+    ]
+    # A main line's address goes to the lines of its area with its medium.
+    assert domain_address_changes(lines, 100, 6) == {100: 6, 110: 6}
+    assert domain_address_changes(lines, 110, 9) == {110: 9}
+    for segment_id, address, reason in (
+        (100, 0, "pl_domain_range"),
+        (100, 256, "pl_domain_range"),
+        (121, 5, "rf_domain_minimum"),
+        (121, 1 << 48, "domain_maximum"),
+        (121, rf + 2, "rf_domain_unique"),
+        (0, 1, "domain_invalid"),
+    ):
+        with pytest.raises(MediumError) as error:
+            domain_address_changes(lines, segment_id, address)
+        assert _reason(error) == reason
+    with pytest.raises(MediumError) as error:
+        domain_address_changes(lines, 121, 1 << 48)
+    assert "'RF'" in str(error.value) and "FFFF:FFFFFFFF" in str(error.value)
+    # An RF or IoT sub line keeps the address of a main line of its medium.
+    iot = [
+        _line(0, 0, MEDIUM_IP),
+        _line(1, 0, MEDIUM_IOT, domains={0: 3}),
+        _line(1, 1, MEDIUM_IOT, domains={0: 3}),
+    ]
+    with pytest.raises(MediumError) as error:
+        domain_address_changes(iot, 110, 4)
+    assert _reason(error) == "iot_sub_line_domain"
+    assert domain_address_changes(iot, 110, 3) == {110: 3}
+    rf_main = [_line(0, 0, MEDIUM_IP), _line(1, 0, MEDIUM_RF, domains={0: rf})]
+    with pytest.raises(MediumError) as error:
+        domain_address_changes([*rf_main, _line(1, 1, MEDIUM_RF)], 110, rf + 5)
+    assert _reason(error) == "rf_sub_line_domain"
+    # A new RF address is at least 0001:00000000.
+    assert all((new_domain_address(MEDIUM_RF, []) or 0) >= rf for _ in range(50))
+
+
+def test_a_domain_address_is_set_or_generated(tmp_path: Path) -> None:
+    svc, pid, line = _project(tmp_path)
+    svc.set_line_medium(pid, line, MEDIUM_PL)
+    segment = next(
+        s.id
+        for a in svc.topology(pid, 0).areas
+        for ln in a.lines
+        if ln.id == line
+        for s in ln.segments
+    )
+
+    def domain() -> int | None:
+        return next(
+            s.domain_address
+            for a in svc.topology(pid, 0).areas
+            for ln in a.lines
+            for s in ln.segments
+            if s.id == segment
+        )
+
+    assert domain() == 1
+    assert svc.set_domain_address(pid, segment, 42) == 42
+    assert domain() == 42
+    svc.undo(pid)
+    assert domain() == 1
+    other = svc.create_line(pid, svc.topology(pid, 0).areas[-1].id, 2, "Q")
+    svc.set_line_medium(pid, other, MEDIUM_PL)
+    # A new one is the lowest free one: 1 is its own, 2 the other line's.
+    assert svc.set_domain_address(pid, segment) == 3
+    with pytest.raises(MediumError):
+        svc.set_domain_address(pid, segment, 300)
+    with pytest.raises(KeyError):
+        svc.set_domain_address(pid, 999, 1)
+
+
+def test_a_new_line_takes_the_medium_above_it(tmp_path: Path) -> None:
+    svc = ProjectService()
+    pid = svc.create(tmp_path / "p.xknx", "P-0C01")
+
+    def main_segment(line_id: int) -> tuple[str, int | None]:
+        segment = next(
+            s
+            for a in svc.topology(pid, 0).areas
+            for ln in a.lines
+            if ln.id == line_id
+            for s in ln.segments
+            if s.number == 0
+        )
+        return segment.medium_type, segment.domain_address
+
+    # A main line takes the backbone's medium (IP), a sub line its main line's.
+    area = svc.create_area(pid, 0, 3, "A")
+    main = svc.create_line(pid, area, 0, "M")
+    assert main_segment(main) == (MEDIUM_IP, None)
+    svc.set_line_medium(pid, main, MEDIUM_PL)
+    _medium, domain = main_segment(main)
+    assert domain is not None
+    # Its domain address too.
+    assert main_segment(svc.create_line(pid, area, 1, "L")) == (MEDIUM_PL, domain)
+    # Without a main line, TP; a backbone always starts with TP.
+    other = svc.create_area(pid, 0, 4, "B")
+    assert main_segment(svc.create_line(pid, other, 1, "S")) == (MEDIUM_TP, None)
+    backbone = svc.topology(pid, 0).areas[0]
+    svc.remove_line(pid, backbone.lines[0].id)
+    assert main_segment(svc.create_line(pid, backbone.id, 0, "")) == (MEDIUM_TP, None)
+    svc.undo(pid)
+    svc.undo(pid)
+    assert [ln.address for ln in svc.topology(pid, 0).areas[0].lines] == [0]
 
 
 def test_the_bus_connection_of_a_segment(tmp_path: Path) -> None:

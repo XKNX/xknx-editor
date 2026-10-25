@@ -2502,3 +2502,27 @@ msgstr "Ορισμός σύνδεσης bus της κεντρικής"
 
 msgid "Set domain address"
 msgstr "Ορισμός διεύθυνσης τομέα"
+
+msgid "Generate New"
+msgstr "Δημιουργία νέου"
+
+msgid "The given domain address is invalid."
+msgstr "Η δοθείσα Διεύθυνση Τομέα δεν είναι έγκυρη."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Η διεύθυνση τομέα δεν είναι έγκυρη. Οι έγκυρες τιμές είναι από 1 έως 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Η Διεύθυνση Τομέα του τύπου μέσου 'RF' είναι χαμηλότερη από την ελάχιστη τιμή 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Η διεύθυνση τομέα του τύπου μέσου '{medium}' υπερβαίνει τη μέγιστη έγκυρη τιμή {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Η Διεύθυνση Τομέα των υπογραμμών RF πρέπει να είναι ίδια με τη Διεύθυνση Τομέα της κύριας γραμμής."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Η Διεύθυνση Τομέα των υπογραμμών IoT πρέπει να είναι ίδια με τη Διεύθυνση Τομέα της κύριας γραμμής."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Κάθε γραμμή σε ένα έργο πρέπει να έχει μια μοναδική Διεύθυνση Τομέα."

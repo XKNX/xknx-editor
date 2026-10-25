@@ -2502,3 +2502,27 @@ msgstr "Omurganın bus bağlantısını belirle"
 
 msgid "Set domain address"
 msgstr "Domain adresini belirle"
+
+msgid "Generate New"
+msgstr "Yeni oluştur"
+
+msgid "The given domain address is invalid."
+msgstr "Verilen Etki Alan Adresi geçerli değil."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "EtkinAlan adresi geçerli değil! Geçerli değerler 1 den 255 e."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "'RF' ortam tipinin EtkiAlanAdresi 0001:00000000 un asgari değerinin altında olmalıdır."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Ortam türü '{medium}' 'ın EtkiAlanıAdresi maksimum geçerli {maximum} değerini aşıyor"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "RF altlinyelerin EtkiAlanAdresi ana linyeninki ile aynı olmalıdır."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "IoT alt linyelerinin Etki Alanı Adresi, ana linyenin Etki Alanı Adresine eşit olmalıdır."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Projedeki her linyenin tek EtkiAlanAdresi olmalıdır."

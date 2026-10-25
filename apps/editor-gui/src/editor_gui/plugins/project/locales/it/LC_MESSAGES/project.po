@@ -2502,3 +2502,27 @@ msgstr "Imposta la connessione bus della dorsale"
 
 msgid "Set domain address"
 msgstr "Imposta l'indirizzo di dominio"
+
+msgid "Generate New"
+msgstr "Crea nuovo"
+
+msgid "The given domain address is invalid."
+msgstr "L'indirizzo di dominio dato non è valido."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Indirizzo di dominio non è valido! I valori validi sono da 1 a 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Indirizzo di Dominio a mezzo trasmissivo 'RF' e' inferiore al minimo valore di 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Indirizzo di Dominio a mezzo trasmissivo '{medium}' supera il valore massimo valido di {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Indirizzo di Dominio di una sotto-linea RF deve essere uguale all'Indirizzo di Dominio della linea principale."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Indirizzo di Dominio di una sotto-linea IoT deve essere uguale all'Indirizzo di Dominio della linea principale."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Ogni riga di un progetto deve avere un Indirizzo di Dominio unico."

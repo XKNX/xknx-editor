@@ -2502,3 +2502,27 @@ msgstr "Nastavit spojení se sběrnicí páteře"
 
 msgid "Set domain address"
 msgstr "Nastavit adresu domény"
+
+msgid "Generate New"
+msgstr "Vytvořit nový"
+
+msgid "The given domain address is invalid."
+msgstr "Daná adresa domény je neplatná."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Adresa domény není platná! Platnými hodnotami jsou 1 až 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Adresa domény typu média 'RF' je kratší, než minimální hodnota 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Adresa domény mediálního typu '{medium}' překračuje maximální platnou hodnotu {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Adresa domény RF podřízené linie musí být shodná a adresou domény hlavní linie."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "DomainAddress dílčích linií IoT musí odpovídat DomainAddress hlavní linie."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Každá linie v projektu musí mít jedinečnou doménovou adresu."

@@ -2540,3 +2540,27 @@ msgstr "Busverbinding van de backbone instellen"
 
 msgid "Set domain address"
 msgstr "Domeinadres instellen"
+
+msgid "Generate New"
+msgstr "Nieuw aanmaken"
+
+msgid "The given domain address is invalid."
+msgstr "Het opgegeven domeinadres is ongeldig."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Domeinadres is niet geldig! Geldige waarden zijn 1 tot 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "DomainAdres van mediumType 'RF' is lager dan de minimumwaarde van 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "DomeinAdres van mediumtype '{medium}' overschrijdt de maximale geldige waarde van {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "DomeinAdres van RF sublijnen moeten gelijk zijn aan DomeinAdres van de hoofdlijn."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Het domeinadres van IoT-sublijnen moet gelijk zijn aan het domeinadres van de hoofdlijn."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Elke lijn in een project moet een uniek DomeinAdres hebben."

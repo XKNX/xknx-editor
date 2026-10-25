@@ -395,6 +395,7 @@ class ProjectPlugin:
                 for name, host, port, address in get_interfaces()
             ],
             on_set_dpt=api.project.set_element_dpt,
+            on_set_domain_address=api.project.set_element_domain_address,
             dpt_names=lambda: cached_master_names(api.connection.master),
         )
         self._space_details = SpaceDetailsPanel(

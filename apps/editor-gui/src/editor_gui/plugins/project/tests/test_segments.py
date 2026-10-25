@@ -32,7 +32,10 @@ from editor_gui.plugins.project.ui.devices import (
     Segment,
     _split_line,
 )
-from editor_gui.plugins.project.ui.element_details import latency_options
+from editor_gui.plugins.project.ui.element_details import (
+    ElementDetailsPanel,
+    latency_options,
+)
 from editor_gui.strings import get_locale, set_locale
 from xknxeditor.proj.core.medium import MEDIUM_RF, MEDIUM_TP, MediumError
 
@@ -236,6 +239,60 @@ def test_the_backbone_details(project: ProjectService) -> None:
     # The backbone offers IP and TP; TP refused while an IP main line is below it.
     reason = project.set_element_medium("backbone", backbone.id, MEDIUM_TP)
     assert reason is not None
+
+
+def test_a_domain_address_is_entered_or_generated(
+    project: ProjectService, german: None
+) -> None:
+    line_id = _line_1_1(project)
+    segment = project.add_segment(line_id)
+    assert segment is not None
+    assert project.set_element_medium("segment", segment, MEDIUM_RF) is None
+    assert (
+        project.set_element_domain_address("segment", segment, "0002:00000001") is None
+    )
+    details = project.element_details("segment", segment)
+    assert details is not None and details.domain_address == "0002:00000001"
+    assert project.set_element_domain_address("segment", segment, None) is None
+    details = project.element_details("segment", segment)
+    assert details is not None and details.domain_address != "0002:00000001"
+    assert project.set_element_domain_address("segment", segment, "12") == (
+        "Die angegebene Domänenadresse ist ungültig."
+    )
+    assert project.set_element_medium("line", line_id, "MT-1") is not None
+    project.remove_segment(segment)
+    assert project.set_element_medium("line", line_id, "MT-1") is None
+    assert project.set_element_domain_address("line", line_id, "0") == (
+        "Die Domänenadresse ist ungültig. Gültige Werte sind 1 bis 255."
+    )
+    assert project.set_element_domain_address("line", line_id, "17") is None
+    details = project.element_details("line", line_id)
+    assert details is not None and details.domain_address == "17"
+    assert project.history()[0].display_text == "Domänenadresse festlegen"
+    # A TP or IP element has none to set.
+    assert project.set_element_domain_address("line", -1, "1") is None
+
+
+@pytest.mark.usefixtures("context")
+def test_the_details_render_the_domain_address(project: ProjectService) -> None:
+    line_id = _line_1_1(project)
+    project.set_element_medium("line", line_id, "MT-1")
+    calls: list[str | None] = []
+    panel = ElementDetailsPanel(
+        on_rename=project.rename_element,
+        on_set_description=project.set_element_description,
+        on_set_address=project.set_element_address,
+        on_set_domain_address=lambda _k, _i, text: calls.append(text) or None,
+    )
+    details = project.element_details("line", line_id)
+    assert details is not None
+    for _frame in range(2):
+        imgui.new_frame()
+        imgui.begin("Details")
+        panel.render(details)
+        imgui.end()
+        imgui.end_frame()
+    assert panel._domain == "1" and calls == []
 
 
 def test_bus_connections_as_shown() -> None:

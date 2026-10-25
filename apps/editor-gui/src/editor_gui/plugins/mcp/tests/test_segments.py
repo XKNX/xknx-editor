@@ -116,6 +116,36 @@ async def test_the_medium_follows_the_rules(tmp_path: Path) -> None:
                 "project_set_medium", {"segment_id": 999, "medium": "TP"}
             )
 
+        entered = await _data(
+            client,
+            "project_set_domain_address",
+            segment_id=segment["id"],
+            domain_address="0003:00000004",
+        )
+        assert entered == {
+            "kind": "segment",
+            "element_id": segment["id"],
+            "medium": "RF",
+            "domain_address": "0003:00000004",
+        }
+        generated = await _data(
+            client, "project_set_domain_address", segment_id=segment["id"]
+        )
+        assert generated["domain_address"] != "0003:00000004"
+        with pytest.raises(Exception, match="lower than the minimum"):
+            await client.call_tool(
+                "project_set_domain_address",
+                {"segment_id": segment["id"], "domain_address": "0000:00000001"},
+            )
+        with pytest.raises(Exception, match="no domain address"):
+            await client.call_tool(
+                "project_set_domain_address", {"line_id": line["id"]}
+            )
+        with pytest.raises(Exception, match="exactly one of line_id and segment_id"):
+            await client.call_tool("project_set_domain_address", {})
+        with pytest.raises(Exception, match="no line with id 999"):
+            await client.call_tool("project_set_domain_address", {"line_id": 999})
+
 
 async def test_the_backbone(tmp_path: Path) -> None:
     ctx = _build_ctx(tmp_path)

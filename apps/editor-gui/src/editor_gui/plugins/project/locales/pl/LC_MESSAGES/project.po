@@ -2502,3 +2502,27 @@ msgstr "Ustaw połączenie z magistralą szkieletu"
 
 msgid "Set domain address"
 msgstr "Ustaw adres domeny"
+
+msgid "Generate New"
+msgstr "Wygeneruj nowy"
+
+msgid "The given domain address is invalid."
+msgstr "Podany adres domeny jest nieprawidłowy."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Adres domeny nie jest prawidłowy! Poprawny adres jest w zakresie od 1 do 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Adres domeny medium 'RF' jest niższy od minimalnej wartości 0001: 00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Adres domeny dla typu medium '{medium} \"przekracza maksymalną dopuszczalną wartość {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Adres domeny linii RF musi być równy adresowi domeny linii głównej."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Adres domeny podlinii IoT musi być taki sam jak Adres domeny głównej linii."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Każda linia w projekcie musi mieć unikalny adres domeny."

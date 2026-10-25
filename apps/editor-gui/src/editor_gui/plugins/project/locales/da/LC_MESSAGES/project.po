@@ -2502,3 +2502,27 @@ msgstr "Angiv backbonens busforbindelse"
 
 msgid "Set domain address"
 msgstr "Angiv domæneadresse"
+
+msgid "Generate New"
+msgstr "Opret ny"
+
+msgid "The given domain address is invalid."
+msgstr "Den angivne domæneadresse er ugyldig."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Domæneadressen er ikke gyldig! Intervallet for gyldige værdier er 1-255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Domæneadressen for medietypen 'RF' er lavere en minimumværdien 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Domæneadressen for medietypen '{medium}' overstiger den tilladte værdi på {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "Domæneadressen for RF-underlinjer skal være den samme som hovedlinjens domæneadresse."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Domæneadressen for IoT-underlinjer skal være lig med domæneadressen for hovedlinjen."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Hver linje i et projekt skal have en entydig domæneadresse."

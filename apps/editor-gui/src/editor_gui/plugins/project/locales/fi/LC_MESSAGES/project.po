@@ -2502,3 +2502,27 @@ msgstr "Aseta runkoverkon väyläyhteys"
 
 msgid "Set domain address"
 msgstr "Aseta toimialueen osoite"
+
+msgid "Generate New"
+msgstr "Luo uusi"
+
+msgid "The given domain address is invalid."
+msgstr "Annettu domain-osoite ei kelpaa."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Toimialueen osoite ei ole kelvollinen! Sallitut arvot ovat 1-255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "Mediatyypin 'RF' domain-osoite on pienempi kuin vähimmäisarvo 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Toimialueen osoitteen median tyypi '{medium}' ylittää suurimman kelvollisen arvon {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "RF alalinjojen domain-osoitteen tulee olla sama kuin päälinjan."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "IoT alalinjojen domain-osoitteen tulee olla sama kuin päälinjan."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Projektin jokaisella linjalla tulee olla yksilöllinen domain-osoite."

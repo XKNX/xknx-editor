@@ -145,6 +145,21 @@ MEDIUM_ERRORS: dict[str, str] = {
     "pl_sub_segment": (
         "A sub-segment of KNX medium type PL is not allowed below a main segment."
     ),
+    "domain_invalid": "The given domain address is invalid.",
+    "pl_domain_range": "Domain address is not valid! Valid values are 1 to 255.",
+    "rf_domain_minimum": (
+        "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+    ),
+    "domain_maximum": (
+        "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+    ),
+    "rf_sub_line_domain": (
+        "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+    ),
+    "iot_sub_line_domain": (
+        "Domain Address of IoT sublines must be equal to Domain Address of main line."
+    ),
+    "rf_domain_unique": "Each line in a project must have a unique domain address.",
     "too_many_segments": "The maximum number of segments has been reached.",
     "main_segment": "The main segment cannot be deleted.",
     "device_line_medium": "Device '{device}' is incompatible with line's medium type.",
@@ -455,6 +470,89 @@ def domain_addresses(
     return changes
 
 
+def has_domain_address(medium: str) -> bool:
+    """Whether a segment of ``medium`` has a domain address (PL, RF and IoT)."""
+    return medium in _DOMAIN_BITS
+
+
+def format_domain_address(medium: str, address: int | None) -> str:
+    """A domain address as it is shown and entered: an RF one as ``0001:23456789`` (its 48 bits
+    in hex), a PL or IoT one in decimal; "" for none."""
+    if address is None:
+        return ""
+    if medium == MEDIUM_RF:
+        return f"{address >> 32:04X}:{address & 0xFFFFFFFF:08X}"
+    return str(address)
+
+
+def parse_domain_address(medium: str, text: str) -> int:
+    """The domain address ``text`` gives for a segment of ``medium`` (as
+    :func:`format_domain_address` writes it). Raises ``MediumError`` for text that is none."""
+    text = text.strip()
+    try:
+        if medium == MEDIUM_RF:
+            high, separator, low = text.partition(":")
+            if not separator or not high or not low:
+                raise ValueError(text)
+            return (int(high, 16) << 32) | int(low, 16)
+        return int(text, 10)
+    except ValueError as exc:
+        raise MediumError("domain_invalid") from exc
+
+
+def domain_address_changes(
+    lines: Sequence[LineView], segment_id: int, address: int
+) -> dict[int, int]:
+    """The domain addresses that change when the segment ``segment_id`` gets ``address``, by
+    segment id: the main segment of a main line takes every segment of its area with the same
+    medium along. Raises ``MediumError`` for an address the medium does not allow, a sub line
+    that would leave its RF or IoT main line's address, or an RF address another line has."""
+    line = next(ln for ln in lines if any(s.id == segment_id for s in ln.segments))
+    segment = next(s for s in line.segments if s.id == segment_id)
+    medium = segment.medium
+    bits = _DOMAIN_BITS.get(medium)
+    if bits is None:
+        raise MediumError("domain_invalid")
+    if medium == MEDIUM_PL and not 1 <= address <= 255:
+        raise MediumError("pl_domain_range")
+    if medium == MEDIUM_RF and address < 1 << 32:
+        raise MediumError("rf_domain_minimum")
+    if address >= 1 << bits or address < 1:
+        maximum = (1 << bits) - 1
+        raise MediumError(
+            "domain_maximum",
+            medium=medium_name(medium),
+            maximum=format_domain_address(medium, maximum),
+        )
+    area_lines = [ln for ln in lines if ln.area == line.area]
+    area_main = next((ln for ln in area_lines if ln.address == 0), None)
+    is_main_line = line.address == 0
+    if (
+        not is_main_line
+        and area_main is not None
+        and area_main.main.medium == medium
+        and medium in (MEDIUM_RF, MEDIUM_IOT)
+        and address != area_main.main.domain_address
+    ):
+        raise MediumError(
+            "rf_sub_line_domain" if medium == MEDIUM_RF else "iot_sub_line_domain"
+        )
+    changes = {segment_id: address}
+    if is_main_line and segment.number == line.main.number:
+        for ln in area_lines:
+            for s in ln.segments:
+                if s.medium == medium and s.id != segment_id:
+                    changes[s.id] = address
+    if medium == MEDIUM_RF and any(
+        s.domain_address == address and s.id not in changes
+        for ln in lines
+        for s in ln.segments
+        if s.medium == MEDIUM_RF
+    ):
+        raise MediumError("rf_domain_unique")
+    return changes
+
+
 def new_domain_address(medium: str, used: Iterable[int]) -> int | None:
     """A domain address for a segment that becomes ``medium``, none of ``used``: the lowest free
     one for PL, a random one for RF and IoT; None for a medium without one (or no PL address
@@ -465,9 +563,11 @@ def new_domain_address(medium: str, used: Iterable[int]) -> int | None:
     bits = _DOMAIN_BITS.get(medium)
     if bits is None:
         return None
+    # An RF one is at least 0001:00000000.
+    minimum = 1 << 32 if medium == MEDIUM_RF else 1
     while True:
         address = secrets.randbits(bits)
-        if address and address not in taken:
+        if address >= minimum and address not in taken:
             return address
 
 

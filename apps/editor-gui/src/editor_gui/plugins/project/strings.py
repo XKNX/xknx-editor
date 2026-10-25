@@ -277,6 +277,48 @@ class ProjectStrings:
         return _("The maximum number of segments has been reached.")
 
     @property
+    def MEDIUM_ERROR_DOMAIN_INVALID(self) -> str:
+        return _("The given domain address is invalid.")
+
+    @property
+    def MEDIUM_ERROR_PL_DOMAIN_RANGE(self) -> str:
+        return _("Domain address is not valid! Valid values are 1 to 255.")
+
+    @property
+    def MEDIUM_ERROR_RF_DOMAIN_MINIMUM(self) -> str:
+        return _(
+            "DomainAddress of mediumType 'RF' is lower than the minimum value of "
+            "0001:00000000."
+        )
+
+    @property
+    def MEDIUM_ERROR_DOMAIN_MAXIMUM(self) -> str:
+        return _(
+            "DomainAddress of medium type '{medium}' exceeds the maximum valid value of "
+            "{maximum}"
+        )
+
+    @property
+    def MEDIUM_ERROR_RF_SUB_LINE_DOMAIN(self) -> str:
+        return _(
+            "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+        )
+
+    @property
+    def MEDIUM_ERROR_IOT_SUB_LINE_DOMAIN(self) -> str:
+        return _(
+            "Domain Address of IoT sublines must be equal to Domain Address of main line."
+        )
+
+    @property
+    def MEDIUM_ERROR_RF_DOMAIN_UNIQUE(self) -> str:
+        return _("Each line in a project must have a unique domain address.")
+
+    @property
+    def DOMAIN_ADDRESS_GENERATE(self) -> str:
+        return _("Generate New")
+
+    @property
     def MEDIUM_ERROR_MAIN_SEGMENT(self) -> str:
         return _("The main segment cannot be deleted.")
 

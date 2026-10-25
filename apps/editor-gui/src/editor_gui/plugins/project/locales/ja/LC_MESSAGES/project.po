@@ -2502,3 +2502,27 @@ msgstr "バックボーンのバス接続を設定"
 
 msgid "Set domain address"
 msgstr "ドメインアドレスを設定"
+
+msgid "Generate New"
+msgstr "新規で生成する"
+
+msgid "The given domain address is invalid."
+msgstr "指定したドメイン・アドレスは無効です."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "ドメイン・アドレスが無効です。1から255までの値が有効な値となります."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "RFミディアム・タイプのドメイン・アドレスは、最小値0001:00000000以下となっています."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "ミディアム・タイプ'{medium}'のドメイン・アドレスは、{maximum}の値の最大値こ超えています"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "RFサブラインのドメイン・アドレスは、メイン・ラインのドメイン・アドレスと一致する必要があります."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "IoTサブラインのドメインアドレスは、メインラインのドメインアドレスと一致する必要があります。"
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "プロジェクトの各ラインは一意的なドメイン・アドレスを持つ必要があります."

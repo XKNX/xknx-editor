@@ -2502,3 +2502,27 @@ msgstr "Définir la connexion bus de la ligne réseau"
 
 msgid "Set domain address"
 msgstr "Définir l'adresse de domaine"
+
+msgid "Generate New"
+msgstr "Générer un nouveau"
+
+msgid "The given domain address is invalid."
+msgstr "L'adresse de domaine donnée n'est pas valable."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Adresse de domaine non valide. Les valeurs valables sont 1 à 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "L'adresse de domaine de Type 'RF' est inférieure que la valeur minimale de 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "L'adresse de domaine du type de média '{medium}' dépasse la valeur maximale valide de {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "L'adresse de domaine des sous-lignes RF doit être la même que celle de la ligne principale."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "L'adresse de domaine des lignes IoT sous la ligne principale doit être la même que celle de la ligne principale."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Chaque ligne d'un projet doit avoir une adresse de domaine unique."

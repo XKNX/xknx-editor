@@ -2502,3 +2502,27 @@ msgstr "设置主干的总线连接"
 
 msgid "Set domain address"
 msgstr "设置域地址"
+
+msgid "Generate New"
+msgstr "生成新地址"
+
+msgid "The given domain address is invalid."
+msgstr "给定的域地址无效."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "域地址无效！有效值是从1 到 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "媒介类型 'RF'的域地址比最小值0001:00000000低."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "媒质类型 '{medium}'的域地址已超出 {maximum}最大有效值"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "射频支线的域地址必须等于主线的域地址."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "IoT支线的域地址必须等于干线的域地址。"
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "一个项目中的每一条线路必须有唯一的域地址."

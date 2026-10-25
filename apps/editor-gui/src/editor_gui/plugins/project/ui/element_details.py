@@ -24,6 +24,7 @@ from editor_gui.plugins.project.ui.status_field import (
 from editor_gui.widgets.checkbox import checkbox
 from editor_gui.widgets.dpi import label_column_width
 from editor_gui.widgets.dpt_select import dpt_combo
+from xknxeditor.proj.core.medium import has_domain_address
 
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ElementDetails
@@ -71,9 +72,14 @@ class ElementDetailsPanel:
         found_interfaces: Callable[[], list[tuple[str, str]]] = list,
         on_set_dpt: Callable[[int, str], str | None] = lambda _i, _d: None,
         dpt_names: Callable[[], Mapping[str, str]] = dict,
+        on_set_domain_address: Callable[[str, int, str | None], str | None] = (
+            lambda _k, _i, _t: None
+        ),
     ) -> None:
         """``dpt_names`` are the names of the data point types by token, from the master data
-        ({} without it: the type is then entered as its token)."""
+        ({} without it: the type is then entered as its token). ``on_set_domain_address`` sets
+        the domain address as entered, or generates a new one for None."""
+        self._on_set_domain_address = on_set_domain_address
         self._on_rename = on_rename
         self._on_set_description = on_set_description
         self._on_set_address = on_set_address
@@ -90,6 +96,8 @@ class ElementDetailsPanel:
         self._key: tuple[str, int] | None = None
         self._dpt = ""
         self._dpt_error = ""
+        self._domain = ""
+        self._domain_error = ""
         self._name = ""
         self._description = ""
         self._address = ""
@@ -112,6 +120,8 @@ class ElementDetailsPanel:
             self._routing_error = ""
             self._dpt = details.datapoint_type or ""
             self._dpt_error = ""
+            self._domain = details.domain_address
+            self._domain_error = ""
         label_width = label_column_width(
             S.CONFIGURE_NAME,
             S.CONFIGURE_DESCRIPTION,
@@ -145,9 +155,9 @@ class ElementDetailsPanel:
         if details.medium is not None:
             self._row(S.MEDIUM)
             self._medium_field(details, details.medium)
-            if details.domain_address:
+            if has_domain_address(details.medium):
                 self._row(S.DOMAIN_ADDRESS)
-                imgui.text_unformatted(details.domain_address)
+                self._domain_field(details)
         self._row(S.CONFIGURE_DESCRIPTION)
         self._description_field(details)
         if details.status is not None:
@@ -167,6 +177,37 @@ class ElementDetailsPanel:
             self._row(S.GA_DATA_TYPE)
             self._dpt_field(details, details.datapoint_type)
         imgui.end_table()
+
+    def _domain_field(self, details: ElementDetails) -> None:
+        """The domain address of an RF, PL or IoT line or segment, entered as it is shown, and
+        "Generate New" beside it; the reason an address is refused shows below them."""
+        button = S.DOMAIN_ADDRESS_GENERATE
+        style = imgui.get_style()
+        button_width = imgui.calc_text_size(button).x + style.frame_padding.x * 2
+        imgui.set_next_item_width(-button_width - style.item_spacing.x)
+        _, self._domain = imgui.input_text("##element_domain", self._domain)
+        if (
+            imgui.is_item_deactivated_after_edit()
+            and self._domain.strip() != details.domain_address
+        ):
+            self._domain_error = (
+                self._on_set_domain_address(
+                    details.kind, details.element_id, self._domain
+                )
+                or ""
+            )
+        if not imgui.is_item_active() and not self._domain_error:
+            self._domain = details.domain_address
+        imgui.same_line()
+        if imgui.button(f"{button}##element_domain_new"):
+            self._domain_error = (
+                self._on_set_domain_address(details.kind, details.element_id, None)
+                or ""
+            )
+        if self._domain_error:
+            imgui.push_text_wrap_pos(0.0)
+            imgui.text_colored(_ERROR_COLOR, self._domain_error)
+            imgui.pop_text_wrap_pos()
 
     def _dpt_field(self, details: ElementDetails, token: str) -> None:
         """A group address's data point type: chosen from the master data's, or without it

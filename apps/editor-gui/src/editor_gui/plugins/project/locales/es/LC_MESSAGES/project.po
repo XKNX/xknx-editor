@@ -2502,3 +2502,27 @@ msgstr "Establecer la conexión bus de la red troncal"
 
 msgid "Set domain address"
 msgstr "Establecer la dirección de dominio"
+
+msgid "Generate New"
+msgstr "Generar nueva"
+
+msgid "The given domain address is invalid."
+msgstr "La dirección de dominio asignada no es válida."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "¡La dirección de dominio no es válida! Los valores válidos son entre 1 y 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "La Dirección de Dominio del Tipo de Medio 'RF' es menor que el valor mínimo de 0001:00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "DirecciónDominio del tipo de medio '{medium}' excede el máximo valor válido de {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "La Dirección de Dominio de las líneas RF debe ser igual que la Dirección de Dominio de su línea principal."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "La Dirección de Dominio de las sublíneas IoT debe ser igual que la Dirección de Dominio de su línea principal."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Todas las líneas de un proyecto deben tener una Dirección de Dominio única."

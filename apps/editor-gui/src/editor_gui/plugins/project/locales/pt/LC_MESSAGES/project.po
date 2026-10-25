@@ -2502,3 +2502,27 @@ msgstr "Definir a ligação ao barramento do backbone"
 
 msgid "Set domain address"
 msgstr "Definir o endereço de domínio"
+
+msgid "Generate New"
+msgstr "Criar Novo"
+
+msgid "The given domain address is invalid."
+msgstr "O endereço de domínio está errado."
+
+msgid "Domain address is not valid! Valid values are 1 to 255."
+msgstr "Endereço de domínio não é válido! Valores válidos 1 a 255."
+
+msgid "DomainAddress of mediumType 'RF' is lower than the minimum value of 0001:00000000."
+msgstr "O endereço de domínio do tipo de meio físico 'RF' é inferior ao valor mínimo de 0001: 00000000."
+
+msgid "DomainAddress of medium type '{medium}' exceeds the maximum valid value of {maximum}"
+msgstr "Endereço de Domínio do tipo de meio '{medium}' ultrapassa o valor máximo válido de {maximum}"
+
+msgid "DomainAddress of RF sublines must be equal to DomainAdress of main line."
+msgstr "O endereço de domínio das sublinhas de RF deve ser igual ao endereço de domínio da linha principal."
+
+msgid "Domain Address of IoT sublines must be equal to Domain Address of main line."
+msgstr "Endereço do domínio das sublinhas IoT deve ser igual ao endereço do domínio da linha principal."
+
+msgid "Each line in a project must have a unique domain address."
+msgstr "Cada linha de um projeto deve ter um endereço de domínio único."

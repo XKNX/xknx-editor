@@ -179,12 +179,16 @@ class CreateLine(Event):
     medium_type: str
     line_id: int | None = None
     segment_id: int | None = None
+    # The main segment's domain address (an RF, PL or IoT line's), None for none.
+    domain_address: int | None = None
 
     def apply(self, session: Session) -> None:
         line = Line(area_id=self.area_id, address=self.address, name=self.name)
         if self.line_id is not None:
             line.id = self.line_id
-        segment = Segment(number=0, medium_type=self.medium_type)
+        segment = Segment(
+            number=0, medium_type=self.medium_type, domain_address=self.domain_address
+        )
         if self.segment_id is not None:
             segment.id = self.segment_id
         line.segments.append(segment)
@@ -206,6 +210,7 @@ class CreateLine(Event):
             "medium_type": self.medium_type,
             "line_id": self.line_id,
             "segment_id": self.segment_id,
+            "domain_address": self.domain_address,
         }
 
     @classmethod

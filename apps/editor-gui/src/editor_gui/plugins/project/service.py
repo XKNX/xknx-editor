@@ -74,11 +74,12 @@ from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.ip_secure import PASSWORD_ACCESS_TYPES
 from xknxeditor.proj.core.medium import (
     IP_ROUTER_MASKS,
-    MEDIUM_RF,
     MEDIUM_TP,
     MediumError,
     device_fits,
+    format_domain_address,
     medium_name,
+    parse_domain_address,
 )
 from xknxeditor.proj.core.project_secrets import check_project_password
 from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
@@ -709,16 +710,6 @@ def _stored_kind(kind: str) -> str:
     """The kind the project stores an element's status, comment and description under: the
     backbone is area 0."""
     return "area" if kind == "backbone" else kind
-
-
-def format_domain_address(medium: str, address: int | None) -> str:
-    """A domain address as it is shown: an RF one as ``0001:23456789`` (its 48 bits in hex), a
-    PL one in decimal; "" for none."""
-    if address is None:
-        return ""
-    if medium == MEDIUM_RF:
-        return f"{address >> 32:04X}:{address & 0xFFFFFFFF:08X}"
-    return str(address)
 
 
 def _addresses_in(node: "GroupRangeInfo") -> "list[CoreGroupAddressInfo]":
@@ -5728,6 +5719,34 @@ class ProjectService:
                 else S.LATENCY_INVALID
             )
         self._bump(structural=False)
+        return None
+
+    def _element_segment(self, kind: str, element_id: int) -> int | None:
+        """The segment whose medium an area, the backbone, a line or a segment shows: the main
+        segment of the main line, of the line, or the segment itself."""
+        if kind == "segment":
+            return element_id
+        if kind in ("area", "backbone"):
+            main = self._main_line(element_id)
+            return main.main_segment_id if main is not None else None
+        line = self.find_line(element_id) if kind == "line" else None
+        return line.main_segment_id if line is not None else None
+
+    def set_element_domain_address(
+        self, kind: str, element_id: int, text: str | None
+    ) -> str | None:
+        """Set the domain address of an RF, PL or IoT line or segment as entered (``text``), or
+        generate a new one (None); undoable. The reason it cannot be, or None."""
+        segment_id = self._element_segment(kind, element_id)
+        found = self.segment_medium(segment_id) if segment_id is not None else None
+        if self._pid is None or segment_id is None or found is None:
+            return None
+        try:
+            address = None if text is None else parse_domain_address(found[0], text)
+            self._svc.set_domain_address(self._pid, segment_id, address)
+        except MediumError as error:
+            return medium_error_text(error)
+        self._bump()
         return None
 
     def element_details(self, kind: str, element_id: int) -> "ElementDetails | None":
