@@ -1,7 +1,8 @@
 # The @mcp.tool decorator registers each tool via its side effect, not a direct call.
 # pyright: reportUnusedFunction=false
 """MCP tools for the comments, installation hints, descriptions and numbers of project elements,
-the properties of a group object, the project name and every group-address link at once.
+the properties of a group object, the project name, every group-address link at once and which
+devices talk to which over them (the Bus Diagram's Links view).
 
 Comments and installation hints are rich text (paragraphs of bold/italic/underlined runs), stored
 as RTF. The tools read and write them as plain ``text`` (one paragraph per line) or as
@@ -14,6 +15,12 @@ from typing import TYPE_CHECKING, Any, Literal
 
 from fastmcp.exceptions import ToolError
 
+from editor_gui.plugins.bus_diagram.flow import (
+    Scope,
+    address_key,
+    in_scope,
+    project_hubs,
+)
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 from editor_gui.plugins.mcp.tools.project import (
     com_object_dict,
@@ -611,3 +618,106 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         rows = ctx.run_locked(_read)
         return {"items": rows, "count": len(rows)}
+
+    @tool("read")
+    def project_link_graph(
+        node_id: int | None = None,
+        device_address: str | None = None,
+        group_address_id: int | None = None,
+        group_address: str | None = None,
+        main_group: int | None = None,
+        space_id: int | None = None,
+    ) -> dict[str, Any]:
+        """Which devices talk to which over their group addresses, as the Bus Diagram's Links
+        view shows it: per group address the devices that send on it and those that receive it.
+
+        A device SENDS on a group address when its group object has Transmit and the link is its
+        sending one; it RECEIVES when the object has Write or Update. Only objects with
+        Communication count, and answering read requests is not sending.
+
+        Without a scope the whole project is listed; pass at most one scope:
+        - a device (node_id, or device_address: an individual address like "1.0.30"): the group
+          addresses it sends or receives on;
+        - a group address (group_address_id, or group_address: a printed address like "10/1/2"):
+          that one, also with a single device;
+        - main_group (e.g. 1): the group addresses of that main group;
+        - space_id (from project_spaces): the group addresses of the devices placed directly in
+          that space.
+        Except for a single group address, group addresses with only one device are left out
+        (they link nothing).
+
+        Returns {items, count} in address order; each item has {group_address_id, group_address,
+        name, senders, receivers}, senders and receivers being lists of {node_id,
+        individual_address, name}. A device that sends and receives is in both. Use
+        project_list_links for the raw links and their flags."""
+        require_project(ctx)
+
+        def _read() -> list[dict[str, Any]]:
+            device = node_id is not None or device_address is not None
+            ga = group_address_id is not None or group_address is not None
+            if sum((device, ga, main_group is not None, space_id is not None)) > 1:
+                raise ToolError(
+                    "pass at most one scope: a device, a group address, main_group or "
+                    "space_id"
+                )
+            rooms: dict[str, set[int]] = {}
+            if device:
+                scope = Scope(
+                    "device", require_device(project, node_id, device_address).node_id
+                )
+            elif ga:
+                scope = Scope(
+                    "ga",
+                    require_group_address_id(project, group_address_id, group_address),
+                )
+            elif main_group is not None:
+                scope = Scope("main", main_group)
+            elif space_id is not None:
+                placed = _space_devices(project.get_space_tree(), space_id)
+                if placed is None:
+                    raise ToolError(
+                        f"no space with id {space_id}; call project_spaces for valid ids"
+                    )
+                scope = Scope("room", str(space_id))
+                rooms[str(space_id)] = placed
+            else:
+                scope = Scope("all")
+            hubs, _inside = in_scope(project_hubs(project), scope, rooms)
+            devices = {d.node_id: d for d in project.devices}
+
+            def entry(nid: int) -> dict[str, Any]:
+                d = devices.get(nid)
+                return {
+                    "node_id": nid,
+                    "individual_address": (d.individual_address or None) if d else None,
+                    "name": d.name if d else "",
+                }
+
+            return [
+                {
+                    "group_address_id": ga_id,
+                    "group_address": address,
+                    "name": name,
+                    "senders": [entry(nid) for nid, sends, _r in parts if sends],
+                    "receivers": [
+                        entry(nid) for nid, _s, receives in parts if receives
+                    ],
+                }
+                for ga_id, address, name, parts in sorted(
+                    hubs, key=lambda hub: address_key(hub[1])
+                )
+            ]
+
+        rows = ctx.run_locked(_read)
+        return {"items": rows, "count": len(rows)}
+
+
+def _space_devices(spaces: list[Any], space_id: int) -> set[int] | None:
+    """The devices placed directly in the space ``space_id``; None when there is no such space."""
+    for space in spaces:
+        if space.id == space_id:
+            return {device.id for device in space.devices}
+        found = _space_devices(space.children, space_id)
+        if found is not None:
+            return found
+    return None

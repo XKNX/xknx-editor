@@ -12,7 +12,10 @@ from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
-from typing import Literal
+from typing import TYPE_CHECKING, Literal
+
+if TYPE_CHECKING:
+    from editor_gui.plugins.project.service import ProjectService
 
 # A group address with its devices: ``(ga_id, address, name, ((node id, sends, receives), ...))``.
 Hub = tuple[int, str, str, tuple[tuple[int, bool, bool], ...]]
@@ -72,6 +75,38 @@ class FlowLayout:
     adj: dict[NodeKey, set[NodeKey]] = field(
         default_factory=dict[NodeKey, set[NodeKey]]
     )
+
+
+def project_hubs(project: ProjectService) -> list[Hub]:
+    """One hub per group address of the open project: ``(ga_id, address, name, participants)``
+    where each participant is ``(device node id, sends, receives)``.
+
+    Direction follows the com-object's flags, gated by Communication: a device SENDS on a group
+    address when it transmits there (Transmit on its sending link); it RECEIVES when it is
+    written to (Write) or takes updates (Update). Answering read requests is not sending. Every
+    group address with at least one participant is kept; the view decides what to show."""
+    part: dict[int, dict[int, list[bool]]] = {}
+    for link in project.device_links():
+        if not link.communication:
+            continue
+        sends = link.transmit and link.is_sending
+        receives = link.write or link.update
+        if not (sends or receives):
+            continue
+        bits = part.setdefault(link.group_address_id, {}).setdefault(
+            link.device_id, [False, False]
+        )
+        bits[0] = bits[0] or sends
+        bits[1] = bits[1] or receives
+    gas = {ga.id: ga for ga in project.group_addresses}
+    hubs: list[Hub] = []
+    for ga_id, devs in part.items():
+        ga = gas.get(ga_id)
+        address = ga.address if ga is not None else str(ga_id)
+        name = ga.name if ga is not None else ""
+        participants = tuple((nid, bits[0], bits[1]) for nid, bits in devs.items())
+        hubs.append((ga_id, address, name, participants))
+    return hubs
 
 
 def address_key(address: str) -> tuple[int, ...]:
