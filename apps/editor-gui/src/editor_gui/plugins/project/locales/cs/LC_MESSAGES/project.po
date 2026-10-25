@@ -2650,8 +2650,14 @@ msgstr "Cílem je dílčí část budovy."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "Zařízení lze přidat pouze do schodišť, místností, chodeb a rozvaděčů."
 
-msgid "Remove from Trade"
-msgstr "Odebrat z činnosti"
-
 msgid "Trade"
 msgstr "Činnost"
+
+msgid "(estimated)"
+msgstr "(odhad)"
+
+msgid "Number of Devices"
+msgstr "Počet zařízení"
+
+msgid "Unlink"
+msgstr "Odpojit"

@@ -2650,8 +2650,14 @@ msgstr "Ο προορισμός είναι ένα γονικό τμήμα κτι
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "Οι συσκευές μπορούν να προστεθούν μόνο σε σκάλες, δωμάτια, διαδρόμους και πίνακες."
 
-msgid "Remove from Trade"
-msgstr "Αφαίρεση από τη λειτουργία"
-
 msgid "Trade"
 msgstr "Λειτουργία"
+
+msgid "(estimated)"
+msgstr "(εκτιμώμενο)"
+
+msgid "Number of Devices"
+msgstr "Αριθμός συσκευών"
+
+msgid "Unlink"
+msgstr "Αποσύνδεση"

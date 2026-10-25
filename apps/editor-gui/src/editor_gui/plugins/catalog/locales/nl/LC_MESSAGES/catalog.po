@@ -210,3 +210,6 @@ msgstr "Alleen producten in {language}"
 
 msgid "{shown} of {total} shown"
 msgstr "{shown} van {total} getoond"
+
+msgid "(estimated)"
+msgstr "(geschat)"

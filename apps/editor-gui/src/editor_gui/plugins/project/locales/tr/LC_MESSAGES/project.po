@@ -2650,8 +2650,14 @@ msgstr "Hedef bina bölümünün çocuğudur."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "Cihazlar yalnızca merdivenlere, odalara, koridorlara ve kabinlere eklenebilir."
 
-msgid "Remove from Trade"
-msgstr "Ticaretten kaldır"
-
 msgid "Trade"
 msgstr "Ticaret"
+
+msgid "(estimated)"
+msgstr "(tahmini)"
+
+msgid "Number of Devices"
+msgstr "Cihaz sayısı"
+
+msgid "Unlink"
+msgstr "İlişkiyi kaldır"

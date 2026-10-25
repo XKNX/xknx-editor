@@ -332,6 +332,7 @@ class ProjectPlugin:
                 if api.project.security_proxy_coupler(d)
                 else "-"
             ),
+            get_bus_current=api.project.device_bus_current_text,
             on_routing_blocking=api.project.set_unicast_broadcast_blocking,
             on_ip_secure_change=self._change_ip_secure,
             get_additional_address_count=api.project.additional_address_count,
@@ -397,6 +398,7 @@ class ProjectPlugin:
             on_set_number=lambda trade_id, number: api.project.set_trade_field(
                 trade_id, "number", number
             ),
+            get_bus_load=api.project.bus_load_texts,
             dpt_names=lambda: cached_master_names(api.connection.master),
         )
         self._space_details = SpaceDetailsPanel(

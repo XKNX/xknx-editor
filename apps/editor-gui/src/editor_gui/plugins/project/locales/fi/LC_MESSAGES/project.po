@@ -2650,8 +2650,14 @@ msgstr "Kohde on alarakennuksen osa."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "Laitteita voi lisätä vain portaikkoihin, huoneisiin, käytäville ja keskuksiin."
 
-msgid "Remove from Trade"
-msgstr "Poista vaihdosta"
-
 msgid "Trade"
 msgstr "Vaihto"
+
+msgid "(estimated)"
+msgstr "(arvioitu)"
+
+msgid "Number of Devices"
+msgstr "Laitteiden määrä"
+
+msgid "Unlink"
+msgstr "Poista linkitys"

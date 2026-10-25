@@ -2650,8 +2650,14 @@ msgstr "Målet är en underliggande byggnadsdel."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "Enheter kan bara läggas till i trappuppgångar, rum, korridorer och centraler."
 
-msgid "Remove from Trade"
-msgstr "Ta bort från anläggningsfunktion"
-
 msgid "Trade"
 msgstr "Anläggningsfunktion"
+
+msgid "(estimated)"
+msgstr "(uppskattad)"
+
+msgid "Number of Devices"
+msgstr "Antal apparater"
+
+msgid "Unlink"
+msgstr "Ta bort förbindelse"

@@ -210,3 +210,6 @@ msgstr "Только продукты на языке: {language}"
 
 msgid "{shown} of {total} shown"
 msgstr "Показано {shown} из {total}"
+
+msgid "(estimated)"
+msgstr "(оценочно)"

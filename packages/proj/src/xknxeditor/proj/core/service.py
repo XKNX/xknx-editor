@@ -35,6 +35,14 @@ from xknxeditor.proj.core.addressing import (
     parse_ia,
     ranges_for,
 )
+from xknxeditor.proj.core.bus_load import (
+    BusLoad,
+    Hardware,
+    device_current,
+    needs_estimate,
+    shown_current,
+)
+from xknxeditor.proj.core.bus_load import total as bus_total
 from xknxeditor.proj.core.compact import (
     CompactResult,
     analyse_compaction,
@@ -819,6 +827,58 @@ class ProjectService:
         state.store.append(event)
         assert event.line_id is not None
         return event.line_id
+
+    def bus_loads(
+        self, project_id: str, hardware: Mapping[str, Hardware]
+    ) -> tuple[dict[int, BusLoad], dict[int, BusLoad]]:
+        """The devices and the bus current of every line and every segment, by line id and
+        by segment id (see :mod:`.bus_load`). ``hardware`` is what the catalog tells about a
+        device's hardware program (``hardware2program_ref_id``)."""
+        state = self._state(project_id)
+        lines: dict[int, BusLoad] = {}
+        segments: dict[int, BusLoad] = {}
+        for line in state.session.query(Line).options(
+            selectinload(Line.segments).selectinload(Segment.devices)
+        ):
+            if not line.segments:
+                continue
+            main = _main_segment(line)
+            for segment in line.segments:
+                parts = [
+                    device_current(
+                        hardware.get(device.hardware2program_ref_id or ""),
+                        has_address=device.address is not None,
+                        estimate=needs_estimate(
+                            hardware.get(device.hardware2program_ref_id or ""),
+                            segment.medium_type,
+                            main.medium_type,
+                        ),
+                    )
+                    for device in segment.devices
+                ]
+                segments[segment.id] = bus_total(parts, len(segment.devices))
+            main_load = segments[main.id]
+            lines[line.id] = BusLoad(
+                devices=sum(segments[s.id].devices for s in line.segments),
+                current=main_load.current,
+                estimated=main_load.estimated,
+            )
+        return lines, segments
+
+    def device_bus_current(
+        self, project_id: str, device_id: int, hardware: Hardware | None
+    ) -> tuple[float | None, bool]:
+        """A device's own bus current as its details show it (see
+        :func:`.bus_load.shown_current`): its hardware's, else the estimate; None for neither.
+        Raises ``KeyError`` for an unknown device."""
+        device = self._state(project_id).session.get(Device, device_id)
+        if device is None:
+            raise KeyError(f"No device with id {device_id}")
+        segment = device.segment
+        estimate = needs_estimate(
+            hardware, segment.medium_type, _main_segment(segment.line).medium_type
+        )
+        return shown_current(hardware, estimate=estimate)
 
     def add_segment(
         self,
@@ -1898,20 +1958,26 @@ class ProjectService:
         self._state(project_id).store.append(RemoveTrade(target_id=trade_id))
 
     def add_trade_device(self, project_id: str, trade_id: int, device_id: int) -> None:
-        """Put a device into a trade (nothing when it is in it already). Raises ``KeyError``
+        """Put a device into a trade, out of the one it was in (a device is in one trade at
+        most); one undo step, nothing when it is in that trade already. Raises ``KeyError``
         for an unknown trade or device."""
         state = self._state(project_id)
         trade = state.session.get(Trade, trade_id)
         if trade is None:
             raise KeyError(f"No trade with id {trade_id}")
-        if state.session.get(Device, device_id) is None:
+        device = state.session.get(Device, device_id)
+        if device is None:
             raise KeyError(f"No device with id {device_id}")
         if any(link.device_id == device_id for link in trade.devices):
             return
         order = max((link.order for link in trade.devices), default=-1) + 1
-        state.store.append(
+        events: list[Event] = [
+            RemoveTradeDevice(target_id=link.id) for link in device.trade_links
+        ]
+        events.append(
             AddTradeDevice(trade_id=trade_id, device_id=device_id, order=order)
         )
+        state.store.append(events[0] if len(events) == 1 else CompositeEvent(events))
 
     def remove_trade_device(
         self, project_id: str, trade_id: int, device_id: int

@@ -232,6 +232,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             result["central"] = details.central
         if details.datapoint_type is not None:
             result["datapoint_type"] = details.datapoint_type or None
+        load = project.bus_load_texts(kind, element_id)
+        if load is not None:
+            result["device_count"], result["bus_current"] = load
         return result
 
     @tool("read")
@@ -296,7 +299,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         security (their own mode: Auto, On or Off) and security_forced_by (the group above that
         overrides it, {group_range_id, name, mode} or null); a group address also central and
         datapoint_type (its "Data Type" as a DPST token, null for none; see
-        project_set_group_address_dpt)."""
+        project_set_group_address_dpt). An area (its main line), a line and a segment also have
+        device_count (a line counts the devices of all its segments) and bus_current (as shown:
+        "40 mA", "-" for none; a line's is its main segment's; "(estimated)" follows when a
+        device without bus current data added an estimated 10 mA)."""
         require_project(ctx)
         return ctx.run_locked(lambda: _element_dict(kind, element_id))
 

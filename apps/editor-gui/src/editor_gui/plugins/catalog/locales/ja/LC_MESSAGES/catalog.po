@@ -210,3 +210,6 @@ msgstr "{language}の製品のみ"
 
 msgid "{shown} of {total} shown"
 msgstr "{total} 件中 {shown} 件を表示"
+
+msgid "(estimated)"
+msgstr "（推定）"

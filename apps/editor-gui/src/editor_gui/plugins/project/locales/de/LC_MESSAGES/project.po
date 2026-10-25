@@ -2835,8 +2835,14 @@ msgstr "Das Ziel ist ein untergeordneter Gebäudeteil."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "Geräte können nur zu Treppenhäusern, Räumen, Fluren und Schaltschränken hinzugefügt werden."
 
-msgid "Remove from Trade"
-msgstr "Aus dem Gewerk entfernen"
-
 msgid "Trade"
 msgstr "Gewerk"
+
+msgid "(estimated)"
+msgstr "(geschätzt)"
+
+msgid "Number of Devices"
+msgstr "Anzahl Geräte"
+
+msgid "Unlink"
+msgstr "Trennen"

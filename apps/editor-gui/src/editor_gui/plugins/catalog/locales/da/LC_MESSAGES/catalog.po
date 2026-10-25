@@ -210,3 +210,6 @@ msgstr "Kun produkter på {language}"
 
 msgid "{shown} of {total} shown"
 msgstr "{shown} af {total} vist"
+
+msgid "(estimated)"
+msgstr "(anslået)"

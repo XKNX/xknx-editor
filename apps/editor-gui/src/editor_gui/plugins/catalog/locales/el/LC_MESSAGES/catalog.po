@@ -210,3 +210,6 @@ msgstr "Μόνο Προϊόντα στα {language}"
 
 msgid "{shown} of {total} shown"
 msgstr "Εμφανίζονται {shown} από {total}"
+
+msgid "(estimated)"
+msgstr "(εκτιμώμενο)"

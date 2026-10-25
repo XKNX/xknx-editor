@@ -420,6 +420,14 @@ class CatalogService:
         mask version of its application."""
         return self._service.program_roles(hardware2program_ids)
 
+    @io_guarded(dict)
+    def program_power(
+        self, hardware2program_ids: list[str]
+    ) -> dict[str, tuple[float | None, bool, bool]]:
+        """Per hardware program the catalog has: its hardware's bus current (mA, None for
+        none), whether it is a power supply, and whether it is a coupler."""
+        return self._service.program_power(hardware2program_ids)
+
     @io_guarded(lambda: False)
     def has_application(self, application_id: str) -> bool:
         """Whether a hardware program in the catalog loads ``application_id``."""

@@ -210,3 +210,6 @@ msgstr "Pouze produkty v jazyce: {language}"
 
 msgid "{shown} of {total} shown"
 msgstr "Zobrazeno {shown} z {total}"
+
+msgid "(estimated)"
+msgstr "(odhad)"

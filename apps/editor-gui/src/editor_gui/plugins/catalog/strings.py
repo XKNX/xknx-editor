@@ -128,6 +128,11 @@ class CatalogStrings:
         return _("Bus Current")
 
     @property
+    def CATALOG_BUS_CURRENT_ESTIMATED(self) -> str:
+        # After a bus current the product gives none of: "10 mA (estimated)".
+        return _("(estimated)")
+
+    @property
     def CATALOG_YES(self) -> str:
         return _("Yes")
 

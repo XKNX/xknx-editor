@@ -210,3 +210,6 @@ msgstr "仅限{language}产品"
 
 msgid "{shown} of {total} shown"
 msgstr "显示 {total} 个中的 {shown} 个"
+
+msgid "(estimated)"
+msgstr "（估计的）"

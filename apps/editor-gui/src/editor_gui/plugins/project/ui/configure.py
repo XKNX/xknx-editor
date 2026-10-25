@@ -331,6 +331,7 @@ class ConfigurePanel:
         has_certificate: Callable[[Device], bool] | None = None,
         get_ip_secure: "Callable[[Device], IpSecureSettings | None] | None" = None,
         get_routing_blocking: Callable[[Device], str | None] | None = None,
+        get_bus_current: Callable[[int], str] | None = None,
         on_routing_blocking: Callable[[Device, str | None], None] | None = None,
         on_ip_secure_change: Callable[[Device, str, object], str | None] | None = None,
         get_additional_address_count: Callable[[Device], int] | None = None,
@@ -447,6 +448,8 @@ class ConfigurePanel:
         self._has_certificate = has_certificate
         self._get_ip_secure = get_ip_secure
         self._get_routing_blocking = get_routing_blocking
+        # A device's bus current as shown (with the estimate it needs on its line), by node id.
+        self._get_bus_current = get_bus_current
         self._on_routing_blocking = on_routing_blocking
         self._on_ip_secure_change = on_ip_secure_change
         # The KNX IP Secure section's edit buffers (field key -> text) and its "show" switch.
@@ -1091,7 +1094,12 @@ class ConfigurePanel:
                 (S.CONFIGURE_ORDER_NUMBER, info.order_number if info else ""),
                 (S.CONFIGURE_HARDWARE, info.hardware_name if info else ""),
                 (S.CONFIGURE_RAIL, rail_text(product, S.BTN_YES, S.BTN_NO)),
-                (S.CONFIGURE_BUS_CURRENT, bus_current_text(product)),
+                (
+                    S.CONFIGURE_BUS_CURRENT,
+                    self._get_bus_current(device.node_id)
+                    if self._get_bus_current is not None
+                    else bus_current_text(product, S.BUS_CURRENT_ESTIMATED),
+                ),
                 (S.CONFIGURE_PRODUCT, info.product_name if info else ""),
                 (S.CONFIGURE_PRODUCT_REF, info.product_ref_id if info else ""),
                 (

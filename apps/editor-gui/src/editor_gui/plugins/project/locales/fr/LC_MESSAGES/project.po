@@ -2650,8 +2650,14 @@ msgstr "La cible est une partie \"enfant\" de bâtiment."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "Les produits ne peuvent être ajoutés qu'aux escaliers, pièces, couloirs et armoires."
 
-msgid "Remove from Trade"
-msgstr "Retirer du métier"
-
 msgid "Trade"
 msgstr "Métier"
+
+msgid "(estimated)"
+msgstr "(estimé)"
+
+msgid "Number of Devices"
+msgstr "Nombre de Participants"
+
+msgid "Unlink"
+msgstr "Délier"

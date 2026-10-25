@@ -33,6 +33,8 @@ class ProductSummary:
     is_rail_mounted: bool | None = None
     width_mm: float | None = None
     bus_current: float | None = None
+    # Whether the hardware is a power supply (``Hardware/@IsPowerSupply``).
+    is_power_supply: bool | None = None
 
 
 @dataclass
@@ -95,6 +97,7 @@ def _list_products(
             Hardware.is_rail_mounted,
             Hardware.width_mm,
             Hardware.bus_current,
+            Hardware.is_power_supply,
         )
         .join(
             HardwareProgram,
@@ -125,6 +128,7 @@ def _list_products(
             is_rail_mounted=is_rail_mounted,
             width_mm=width_mm,
             bus_current=bus_current,
+            is_power_supply=is_power_supply,
         )
         for (
             product_ref_id,
@@ -140,6 +144,7 @@ def _list_products(
             is_rail_mounted,
             width_mm,
             bus_current,
+            is_power_supply,
         ) in rows
         if product_ref_id is not None
     ]

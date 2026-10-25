@@ -2650,8 +2650,14 @@ msgstr "目标是子楼宇部分."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "设备只能添加到楼梯、房间、走廊和橱柜中。"
 
-msgid "Remove from Trade"
-msgstr "从工程作业中移除"
-
 msgid "Trade"
 msgstr "工程作业"
+
+msgid "(estimated)"
+msgstr "（估计的）"
+
+msgid "Number of Devices"
+msgstr "设备数"
+
+msgid "Unlink"
+msgstr "取消链接"

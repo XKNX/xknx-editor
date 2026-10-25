@@ -11,6 +11,7 @@ import pytest
 from imgui_bundle import imgui
 
 from editor_gui.device import UnloadedDevice
+from editor_gui.hardware_text import bus_current_text, current_text
 from editor_gui.plugins.base import Logger
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
@@ -37,6 +38,7 @@ from editor_gui.plugins.project.ui.element_details import (
     latency_options,
 )
 from editor_gui.strings import get_locale, set_locale
+from xknxeditor.catalog import ProductSummary
 from xknxeditor.proj.core.medium import MEDIUM_RF, MEDIUM_TP, MediumError
 
 
@@ -384,3 +386,46 @@ def test_the_tree_shows_the_backbone_the_areas_and_the_segments() -> None:
     assert panel._format_area_label(Area(0, 0, ""), backbone) == "0.0 IP backbone line"
     assert panel._format_area_label(Area(1, 1, "Hauptlinie"), main) == "1.0 Hauptlinie"
     assert panel._format_area_label(Area(2, 2, ""), main) == "2.0 TP main line"
+
+
+def test_lines_and_segments_show_their_devices_and_bus_current(
+    project: ProjectService, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    line_id = _line_1_1(project)
+    line = project.find_line(line_id)
+    assert line is not None and line.main_segment_id is not None
+    pid = project._pid
+    assert pid is not None
+    sensor = project._svc.add_device(
+        pid, line.main_segment_id, "P-1", address=1, hardware2program_ref_id="H-1"
+    )
+    project._svc.add_device(
+        pid, line.main_segment_id, "P-2", address=2, hardware2program_ref_id="H-2"
+    )
+    project._bump()
+    power = {"H-1": (12.0, False, False), "H-2": (None, True, False)}
+    monkeypatch.setattr(
+        project._catalog, "program_power", lambda ids: {i: power[i] for i in ids}
+    )
+    assert project.bus_load_texts("line", line_id) == (2, "12 mA")
+    assert project.bus_load_texts("segment", line.main_segment_id) == (2, "12 mA")
+    area = next(a for a in project.get_areas() if a.area_number == 1)
+    assert project.bus_load_texts("area", area.id) == (0, "-")
+    assert project.bus_load_texts("group_range", 1) is None
+    assert project.device_bus_current_text(sensor) == "12 mA"
+    power["H-1"] = (None, False, False)
+    project._bump()
+    assert project.bus_load_texts("line", line_id) == (2, "10 mA (estimated)")
+    assert project.device_bus_current_text(sensor) == "10 mA (estimated)"
+    assert project.device_bus_current_text(999) == "-"
+
+
+def test_bus_current_texts() -> None:
+    product = ProductSummary("P", "H", "Name", None, None, "M-1", None)
+    assert bus_current_text(None, "(estimated)") == "-"
+    assert bus_current_text(product, "(estimated)") == "10 mA (estimated)"
+    product.is_power_supply = True
+    assert bus_current_text(product, "(est)") == "320 mA (est)"
+    product.bus_current = 640.0
+    assert bus_current_text(product, "(est)") == "640 mA"
+    assert current_text(0.0, True, "(est)") == "-"

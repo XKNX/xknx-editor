@@ -2650,8 +2650,14 @@ msgstr "ターゲットは子構造の一部です."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "デバイスは階段、部屋、廊下、キャビネットにのみ追加できます。"
 
-msgid "Remove from Trade"
-msgstr "トレードから削除"
-
 msgid "Trade"
 msgstr "トレード"
+
+msgid "(estimated)"
+msgstr "（推定）"
+
+msgid "Number of Devices"
+msgstr "デバイス数"
+
+msgid "Unlink"
+msgstr "リンクを外す"

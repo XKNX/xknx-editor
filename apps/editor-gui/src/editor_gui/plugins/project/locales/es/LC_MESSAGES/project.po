@@ -2650,8 +2650,14 @@ msgstr "El destinatario es una parte de edificio de menor rango."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "Los dispositivos solo se pueden añadir a escaleras, estancias, pasillos y cuadros."
 
-msgid "Remove from Trade"
-msgstr "Quitar de la función"
-
 msgid "Trade"
 msgstr "Función"
+
+msgid "(estimated)"
+msgstr "(estimado)"
+
+msgid "Number of Devices"
+msgstr "Número de dispositivos"
+
+msgid "Unlink"
+msgstr "Desenlazar"

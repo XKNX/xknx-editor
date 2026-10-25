@@ -38,6 +38,7 @@ from editor_gui.device_snapshot import (
     snapshot_state,
 )
 from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
+from editor_gui.hardware_text import current_text
 from editor_gui.plugins.project.element_status import status_label, usage_label
 from editor_gui.plugins.project.medium_text import medium_error_text
 from editor_gui.plugins.project.space_text import space_error_text
@@ -69,6 +70,7 @@ from xknxeditor.proj.core.addressing import (
     parse_ga,
     parse_ia,
 )
+from xknxeditor.proj.core.bus_load import BusLoad, Hardware
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.ga_export import write_ga_csv as _write_ga_csv
 from xknxeditor.proj.core.identity import qualified_com_object_ref
@@ -5117,6 +5119,61 @@ class ProjectService:
             if p in roles and roles[p][1] in IP_ROUTER_MASKS
         }
         return couplers, ip_routers
+
+    @io_guarded(lambda: (dict[int, BusLoad](), dict[int, BusLoad]()))
+    @revision_cached
+    def bus_loads(self) -> "tuple[dict[int, BusLoad], dict[int, BusLoad]]":
+        """The devices and the bus current of every line and every segment (by line id and by
+        segment id), with the hardware the catalog knows."""
+        if self._pid is None:
+            return {}, {}
+        return self._svc.bus_loads(self._pid, self._hardware())
+
+    def _hardware(self) -> "dict[str, Hardware]":
+        """What the catalog tells about the hardware of the project's devices, by program."""
+        programs = self._svc.device_programs(cast(str, self._pid))
+        power = self._catalog.program_power(sorted(set(programs.values())))
+        return {
+            program: Hardware(current, power_supply, coupler)
+            for program, (current, power_supply, coupler) in power.items()
+        }
+
+    def bus_load_texts(self, kind: str, element_id: int) -> tuple[int, str] | None:
+        """The number of devices and the bus current of a line, a segment, an area's main line
+        or the backbone, as their details show them; None for other elements."""
+        lines, segments = self.bus_loads()
+        if kind == "segment":
+            load = segments.get(element_id)
+        elif kind in ("area", "backbone"):
+            main = self._main_line(element_id)
+            load = lines.get(main.id) if main is not None else None
+        elif kind == "line":
+            load = lines.get(element_id)
+        else:
+            return None
+        if load is None:
+            return None
+        return load.devices, current_text(
+            load.current, load.estimated, S.BUS_CURRENT_ESTIMATED
+        )
+
+    def device_bus_current_text(self, node_id: int) -> str:
+        """A device's own bus current as its details show it: its hardware's, else the
+        estimate it needs on its line; "-" for neither."""
+        if self._pid is None:
+            return "-"
+        try:
+            program = self._svc.device_placement(
+                self._pid, node_id
+            ).hardware2program_ref_id
+            power = self._catalog.program_power([program]) if program else {}
+            row = power.get(program or "")
+            value, estimated = self._svc.device_bus_current(
+                self._pid, node_id, Hardware(*row) if row is not None else None
+            )
+        except KeyError:
+            return "-"
+        return current_text(value, estimated, S.BUS_CURRENT_ESTIMATED)
 
     def _line_names(self) -> dict[int, str]:
         """Every line's name as the tree shows it ("IP main line" for an unnamed main line)."""

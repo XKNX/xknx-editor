@@ -1417,7 +1417,8 @@ class ProjectStrings:
 
     @property
     def TRADES_REMOVE_DEVICE(self) -> str:
-        return _("Remove from Trade")
+        # Takes a device out of its trade.
+        return _("Unlink")
 
     @property
     def SPACES_FN_NEW_TITLE(self) -> str:
@@ -3268,6 +3269,15 @@ class ProjectStrings:
     @property
     def CONFIGURE_BUS_CURRENT(self) -> str:
         return _("Bus Current")
+
+    @property
+    def BUS_CURRENT_ESTIMATED(self) -> str:
+        # After a bus current that is (or includes) an estimate: "10 mA (estimated)".
+        return _("(estimated)")
+
+    @property
+    def DEVICE_COUNT(self) -> str:
+        return _("Number of Devices")
 
     @property
     def GA_READ_VALUE(self) -> str:

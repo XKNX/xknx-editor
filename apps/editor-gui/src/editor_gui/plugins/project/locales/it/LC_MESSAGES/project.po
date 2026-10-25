@@ -2650,8 +2650,14 @@ msgstr "La destinazione è una sotto parte di edificio."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "I dispositivi possono essere aggiunti solo a scale, locali, corridoi e quadri."
 
-msgid "Remove from Trade"
-msgstr "Rimuovi dal settore"
-
 msgid "Trade"
 msgstr "Settore"
+
+msgid "(estimated)"
+msgstr "(stimato)"
+
+msgid "Number of Devices"
+msgstr "Numero di dispositivi"
+
+msgid "Unlink"
+msgstr "Scollega"

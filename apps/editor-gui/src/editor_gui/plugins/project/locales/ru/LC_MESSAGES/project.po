@@ -2650,8 +2650,14 @@ msgstr "Цель - дочерняя часть здания."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "Устройства можно добавлять только на лестницы, в комнаты, коридоры и шкафы."
 
-msgid "Remove from Trade"
-msgstr "Удалить из системы"
-
 msgid "Trade"
 msgstr "Система"
+
+msgid "(estimated)"
+msgstr "(оценочно)"
+
+msgid "Number of Devices"
+msgstr "Количество устройств"
+
+msgid "Unlink"
+msgstr "Разъединить"

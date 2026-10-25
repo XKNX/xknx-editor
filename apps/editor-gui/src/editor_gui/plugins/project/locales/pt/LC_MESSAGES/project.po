@@ -2650,8 +2650,14 @@ msgstr "O destino é uma parte do edifício filha."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "Os dispositivos só podem ser adicionados a escadas, quartos, corredores e quadros elétricos."
 
-msgid "Remove from Trade"
-msgstr "Remover da função"
-
 msgid "Trade"
 msgstr "Função"
+
+msgid "(estimated)"
+msgstr "(estimado)"
+
+msgid "Number of Devices"
+msgstr "Número de dipositivos"
+
+msgid "Unlink"
+msgstr "Desprogramar"

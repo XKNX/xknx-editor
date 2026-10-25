@@ -76,11 +76,16 @@ class ElementDetailsPanel:
             lambda _k, _i, _t: None
         ),
         on_set_number: Callable[[int, str], None] = lambda _i, _n: None,
+        get_bus_load: Callable[[str, int], tuple[int, str] | None] = lambda _k, _i: (
+            None
+        ),
     ) -> None:
         """``dpt_names`` are the names of the data point types by token, from the master data
         ({} without it: the type is then entered as its token). ``on_set_domain_address`` sets
         the domain address as entered, or generates a new one for None. ``on_set_number`` sets
-        a trade's number."""
+        a trade's number. ``get_bus_load`` gives the number of devices and the bus current of a
+        line or a segment (None for other elements)."""
+        self._get_bus_load = get_bus_load
         self._on_set_domain_address = on_set_domain_address
         self._on_set_number = on_set_number
         self._number = ""
@@ -142,6 +147,8 @@ class ElementDetailsPanel:
             S.NETWORK_LATENCY,
             S.MULTICAST_ADDRESS,
             S.BUS_CONNECTION,
+            S.DEVICE_COUNT,
+            S.CONFIGURE_BUS_CURRENT,
         )
         if not imgui.begin_table("##element_details", 2):
             return
@@ -153,14 +160,12 @@ class ElementDetailsPanel:
         self._name_field(details)
         if details.latency is not None:
             self._backbone_rows(details, details.latency)
+            self._bus_load_rows(details)
             imgui.end_table()
             return
         if details.has_address:
             self._row(S.GA_ADDRESS)
             self._address_field(details)
-        if details.number is not None:
-            self._row(S.SPACE_NUMBER)
-            self._number_field(details, details.number)
         if details.medium is not None:
             self._row(S.MEDIUM)
             self._medium_field(details, details.medium)
@@ -169,6 +174,9 @@ class ElementDetailsPanel:
                 self._domain_field(details)
         self._row(S.CONFIGURE_DESCRIPTION)
         self._description_field(details)
+        if details.number is not None:
+            self._row(S.SPACE_NUMBER)
+            self._number_field(details, details.number)
         if details.status is not None:
             self._row(S.STATUS)
             chosen = status_combo("##element_status", details.status)
@@ -185,7 +193,19 @@ class ElementDetailsPanel:
         if details.datapoint_type is not None:
             self._row(S.GA_DATA_TYPE)
             self._dpt_field(details, details.datapoint_type)
+        self._bus_load_rows(details)
         imgui.end_table()
+
+    def _bus_load_rows(self, details: ElementDetails) -> None:
+        """A line's or a segment's number of devices and bus current."""
+        load = self._get_bus_load(details.kind, details.element_id)
+        if load is None:
+            return
+        devices, current = load
+        self._row(S.DEVICE_COUNT)
+        imgui.text_unformatted(str(devices))
+        self._row(S.CONFIGURE_BUS_CURRENT)
+        imgui.text_unformatted(current)
 
     def _number_field(self, details: ElementDetails, number: str) -> None:
         """A trade's number, a free text."""

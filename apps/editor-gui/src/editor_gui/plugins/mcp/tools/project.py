@@ -1503,7 +1503,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         product_name, manufacturer_name, additional_addresses, last_modified, last_downloaded} when
         catalog metadata is available. individual_address is null when unset. last_modified (its
         configuration last changed) and last_downloaded are UTC times as the project stores them
-        ("2026-01-24T11:38:26.8111136Z"), null for never. additional_addresses lists the device's additional
+        ("2026-01-24T11:38:26.8111136Z"), null for never. bus_current is its hardware's bus
+        current as shown ("12 mA"; "10 mA (estimated)", or "320 mA (estimated)" for a power
+        supply, when the product gives none; "-" when it needs no estimate on its line). additional_addresses lists the device's additional
         individual addresses (the tunnelling addresses of an IP interface) as {index, address, name,
         description}; index is 1-based (the AddressIndex of a tunnelling interface), address an
         "a.l.d" string or null for an entry without one."""
@@ -1526,6 +1528,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     ],
                     "last_modified": info.last_modified,
                     "last_downloaded": info.last_download,
+                    "bus_current": project.device_bus_current_text(device.node_id),
                 }
             return data
 
@@ -2291,7 +2294,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         heating …) in a tree of trades. Returns {items, count}; count counts top-level trades.
         Each trade has {id, name, number?, description?, devices?, children?}; a device has
         {node_id, name, individual_address, description, product_name, manufacturer_name}. A
-        device can be in several trades. Status and comment: project_get_status /
+        device is in one trade at most. Status and comment: project_get_status /
         project_get_comment with kind trade."""
         require_project(ctx)
 
@@ -2385,8 +2388,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     ) -> dict[str, Any]:
         """Put a device into a trade (``member`` true), or take it out of it (false). Identify
         the device by ``node_id`` OR ``device_address`` (an individual address like "1.0.30");
-        pass exactly one. A device can be in several trades. Undoable with project_undo.
-        Returns the trade as project_trades lists it."""
+        pass exactly one. A device is in one trade at most: put into another trade, it leaves
+        the one it was in. Undoable with project_undo. Returns the trade as project_trades
+        lists it."""
         require_project(ctx)
 
         def _set() -> dict[str, Any]:

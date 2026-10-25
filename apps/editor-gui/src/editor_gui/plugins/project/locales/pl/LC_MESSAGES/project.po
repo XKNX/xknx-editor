@@ -2650,8 +2650,14 @@ msgstr "Obiekt docelowy jest częścią budynku."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "Urządzenia można dodawać tylko do klatek schodowych, pomieszczeń, korytarzy i szafek."
 
-msgid "Remove from Trade"
-msgstr "Usuń z zakładu"
-
 msgid "Trade"
 msgstr "Zakład"
+
+msgid "(estimated)"
+msgstr "(szacowane)"
+
+msgid "Number of Devices"
+msgstr "Ilość urządzeń"
+
+msgid "Unlink"
+msgstr "Usuń"

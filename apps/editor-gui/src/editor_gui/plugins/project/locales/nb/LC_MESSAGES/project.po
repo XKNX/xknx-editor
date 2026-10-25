@@ -2650,8 +2650,14 @@ msgstr "Målet er en underordnet byggedel."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "Enheter kan bare legges til trapper, rom, korridorer og kabinetter."
 
-msgid "Remove from Trade"
-msgstr "Fjern fra funksjon"
-
 msgid "Trade"
 msgstr "Funksjon"
+
+msgid "(estimated)"
+msgstr "(antatt)"
+
+msgid "Number of Devices"
+msgstr "Antall deltagere"
+
+msgid "Unlink"
+msgstr "Fjern link"

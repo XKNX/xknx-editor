@@ -207,6 +207,27 @@ class CatalogService:
                 )
         return roles
 
+    def program_power(
+        self, program_ids: Sequence[str]
+    ) -> dict[str, tuple[float | None, bool, bool]]:
+        """For each hardware program the catalog has: its hardware's bus current (mA, None for
+        none), whether it is a power supply, and whether it is a coupler."""
+        from xknxeditor.catalog.models import HardwareProgram
+
+        power: dict[str, tuple[float | None, bool, bool]] = {}
+        with Session(self._engine) as db:
+            for program_id in set(program_ids):
+                program = db.get(HardwareProgram, program_id)
+                if program is None:
+                    continue
+                hardware = program.hardware
+                power[program_id] = (
+                    hardware.bus_current,
+                    bool(hardware.is_power_supply),
+                    bool(hardware.is_coupler),
+                )
+        return power
+
     def get_application_xml(self, program_id: str) -> tuple[bytes, str] | None:
         with Session(self._engine) as db:
             return get_application_xml(db, program_id)

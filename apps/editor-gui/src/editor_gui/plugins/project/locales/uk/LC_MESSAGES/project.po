@@ -2650,8 +2650,14 @@ msgstr "Мета - дочірня частина будівлі."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "Пристрої можна додавати лише до сходів, кімнат, коридорів і щитів."
 
-msgid "Remove from Trade"
-msgstr "Вилучити з добірки пристроїв"
-
 msgid "Trade"
 msgstr "Добірка пристроїв"
+
+msgid "(estimated)"
+msgstr "(за оцінками)"
+
+msgid "Number of Devices"
+msgstr "Кількість пристроїв"
+
+msgid "Unlink"
+msgstr "Від'єднати"

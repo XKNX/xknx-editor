@@ -2688,8 +2688,14 @@ msgstr "Het doel is een onderliggend gebouwenonderdeel."
 msgid "Devices can only be added to stairways, rooms, corridors and cabinets."
 msgstr "Apparaten kunnen alleen aan trappenhuizen, ruimten, gangen en verdeelborden worden toegevoegd."
 
-msgid "Remove from Trade"
-msgstr "Verwijderen uit technisch gebouw"
-
 msgid "Trade"
 msgstr "Technisch Gebouw"
+
+msgid "(estimated)"
+msgstr "(geschat)"
+
+msgid "Number of Devices"
+msgstr "Aantal apparaten"
+
+msgid "Unlink"
+msgstr "Ontkoppel"

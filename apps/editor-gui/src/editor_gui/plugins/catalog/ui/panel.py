@@ -535,7 +535,10 @@ class CatalogPanel:
                 product.manufacturer_name or product.manufacturer_id,
             ),
             (S.CATALOG_DETAIL_RAIL, rail_text(product, S.CATALOG_YES, S.CATALOG_NO)),
-            (S.CATALOG_DETAIL_BUS_CURRENT, bus_current_text(product)),
+            (
+                S.CATALOG_DETAIL_BUS_CURRENT,
+                bus_current_text(product, S.CATALOG_BUS_CURRENT_ESTIMATED),
+            ),
             (
                 S.CATALOG_DETAIL_APPLICATION,
                 product.application_name or product.application_id or "-",

@@ -39,9 +39,19 @@ def test_trades_nest_and_hold_devices(tmp_path: Path) -> None:
     inside = svc.create_trade(pid, 0, "Inside", parent_id=light)
     svc.add_trade_device(pid, inside, device)
     svc.add_trade_device(pid, inside, device)  # already in it: nothing
-    svc.add_trade_device(pid, light, device)  # a device can be in several trades
     assert _names(svc.trade_tree(pid, 0)) == [
-        ("Lighting", [("Inside", [], ["Dimmer"])], ["Dimmer"]),
+        ("Lighting", [("Inside", [], ["Dimmer"])], []),
+        "Heating",
+    ]
+    # A device is in one trade at most: put into another, it leaves the first, in one step.
+    svc.add_trade_device(pid, light, device)
+    assert _names(svc.trade_tree(pid, 0)) == [
+        ("Lighting", ["Inside"], ["Dimmer"]),
+        "Heating",
+    ]
+    svc.undo(pid)
+    assert _names(svc.trade_tree(pid, 0)) == [
+        ("Lighting", [("Inside", [], ["Dimmer"])], []),
         "Heating",
     ]
     svc.set_trade_field(pid, light, "number", "01")

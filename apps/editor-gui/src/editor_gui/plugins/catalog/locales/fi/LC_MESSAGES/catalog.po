@@ -210,3 +210,6 @@ msgstr "Vain tuotteet, kieli: {language}"
 
 msgid "{shown} of {total} shown"
 msgstr "{shown}/{total} näytetään"
+
+msgid "(estimated)"
+msgstr "(arvioitu)"

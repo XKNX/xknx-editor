@@ -210,3 +210,6 @@ msgstr "Yalnızca {language} Ürünler"
 
 msgid "{shown} of {total} shown"
 msgstr "{total} içinden {shown} gösteriliyor"
+
+msgid "(estimated)"
+msgstr "(tahmini)"
