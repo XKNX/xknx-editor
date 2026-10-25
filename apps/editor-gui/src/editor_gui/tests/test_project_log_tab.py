@@ -30,13 +30,25 @@ def tab(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
         is_visible=True,
         include_in_view_menu=True,
         imgui_window_flags=0,
+        dock_space_name="BottomSpace",
     )
     other = SimpleNamespace(
-        label="Project###project_info", is_visible=True, include_in_view_menu=True
+        label="Project###project_info",
+        is_visible=True,
+        include_in_view_menu=True,
+        dock_space_name="BottomSpace",
+    )
+    elsewhere = SimpleNamespace(
+        label="Editor###editor",
+        is_visible=True,
+        include_in_view_menu=True,
+        dock_space_name="MainDockSpace",
     )
     params = SimpleNamespace(
-        docking_params=SimpleNamespace(dockable_windows=[other, window])
+        docking_params=SimpleNamespace(dockable_windows=[other, elsewhere, window])
     )
+    # No imgui window is shown here, so no section has a selected tab.
+    monkeypatch.setattr("editor_gui.main._selected_tab_window", lambda _names: None)
     monkeypatch.setattr("editor_gui.main.hello_imgui.get_runner_params", lambda: params)
     return window
 
@@ -78,6 +90,28 @@ def test_it_comes_back_with_a_project_that_has_a_log(
     assert tab.include_in_view_menu
     assert not app._project_log_hidden
     assert settings["project_log_hidden"] is False
+
+
+def test_its_section_keeps_showing_its_tab_when_it_comes_back(
+    tab: SimpleNamespace, settings: dict[str, Any], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """At a start the tab is hidden until the project is open; coming back, imgui would
+    select it, so the section's tab is kept (the Monitor, not the Project Log)."""
+    asked: list[list[str]] = []
+
+    def selected(names: list[str]) -> str:
+        asked.append(names)
+        return "Monitor###monitor"
+
+    monkeypatch.setattr("editor_gui.main._selected_tab_window", selected)
+    monkeypatch.setattr("editor_gui.main.imgui.get_frame_count", lambda: 5)
+    tab.is_visible = False
+    app = _app(has_log=True, hidden=True)
+    _sync(app)
+    assert tab.is_visible
+    # Only the tabs of its own section.
+    assert asked == [["project_info"]]
+    assert app._kept_tab == ("Monitor###monitor", 15)
 
 
 def test_a_tab_the_user_closed_stays_closed(

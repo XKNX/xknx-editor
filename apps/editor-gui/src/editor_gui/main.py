@@ -3435,11 +3435,13 @@ class KnxGuiApp:
         """The Project Log tab only while the open project has entries in its log: they come only
         from an imported project, the editor writes none. Otherwise it is hidden and left out of
         the menus, and it comes back once a project with a log is open (unless the user had
-        closed it)."""
+        closed it). Its section keeps showing the tab it showed: also at a start, where the tab
+        is hidden until the project is open."""
         has_log = self._project_service.has_project_log()
         if has_log is None:
             return
-        for window in hello_imgui.get_runner_params().docking_params.dockable_windows:
+        windows = hello_imgui.get_runner_params().docking_params.dockable_windows
+        for window in windows:
             if _dock_window_name(window) != "project_log":
                 continue
             window.include_in_view_menu = has_log
@@ -3447,6 +3449,17 @@ class KnxGuiApp:
                 window.is_visible = False
                 self._set_project_log_hidden(True)
             elif has_log and self._project_log_hidden:
+                # A tab that comes back is selected: keep the one its section shows.
+                selected = _selected_tab_window(
+                    [
+                        _dock_window_name(w)
+                        for w in windows
+                        if w is not window
+                        and w.dock_space_name == window.dock_space_name
+                    ]
+                )
+                if selected is not None:
+                    self._kept_tab = (selected, imgui.get_frame_count() + 10)
                 # Not focused when it appears: imgui selects the focused window's tab.
                 window.imgui_window_flags |= imgui.WindowFlags_.no_focus_on_appearing
                 window.is_visible = True
@@ -5918,9 +5931,12 @@ def create_dockable_windows(app: KnxGuiApp) -> list[hello_imgui.DockableWindow]:
         windows.append(window)
     rank = {name: i for i, name in enumerate(_DOCK_TAB_ORDER)}
     windows.sort(key=lambda w: rank.get(_dock_window_name(w), len(_DOCK_TAB_ORDER)))
-    # Buildings and Device are the primary views: focus them on first frame.
+    # Each section starts on its first tab. Every window appearing takes the focus, and imgui shows
+    # the focused window's tab: the last one created (the Project Log) would win its section.
+    sections: set[str] = set()
     for w in windows:
-        if _dock_window_name(w) in ("buildings", "device"):
+        if w.dock_space_name not in sections:
+            sections.add(w.dock_space_name)
             w.focus_window_at_next_frame = True
     return windows
 
