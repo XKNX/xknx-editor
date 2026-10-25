@@ -41,7 +41,6 @@ from .resources import (
     bundled_mask_resources,
     m112_association_table,
     m112_group_object_table,
-    property_mapped_lsms,
     reserved_memory,
 )
 from .secure_config import GroupSecurity, SecurityTables, security_tables
@@ -117,12 +116,12 @@ if TYPE_CHECKING:
 
 @dataclass(frozen=True, slots=True)
 class PackedGroupTables:
-    """Where a property-mapped M112 mask places the two group tables.
+    """Where an M112 list with dynamic table management places the two group tables.
 
     The product data declares the address table and the association table at
-    their maximum size, contiguous (``0x4000`` for 511 octets, then ``0x41FF``).
-    ETS allocates only the used address table and slides the association table
-    up against it, extending that segment so it still ends at the declared end.
+    their maximum size. The download allocates only the used address table and
+    starts the association table on the next octet; that one still ends where its
+    ``MaxEntries`` end.
     """
 
     address_address: int
@@ -134,22 +133,60 @@ class PackedGroupTables:
     declared_association_size: int
 
 
+def _packs_group_tables(application: Application) -> bool:
+    """Whether the download packs the M112 group tables (see :func:`packed_group_tables`)."""
+    program = application.program
+    return bool(program.dynamic_table_management) and m112_association_table(
+        program.mask_version
+    )
+
+
+def _table_segment_initialized(
+    application: Application, segment_id: str, initialized: bytes
+) -> bytes:
+    """The seed octets a full download writes in a group table's code segment.
+
+    The table builders supply the tables themselves. M112 tables that stay where the
+    product declares them leave the rest of their segment to its data: the octets
+    after the address table's and the association table's ``MaxEntries`` are
+    written from the segment, as far as its mask allows. Packed tables end their
+    segments, and other table layouts write nothing of the seed.
+    """
+    static = application.program.static
+    com_object_table = static.com_object_table
+    if (
+        not m112_association_table(application.program.mask_version)
+        or _packs_group_tables(application)
+        or (
+            com_object_table is not None and com_object_table.code_segment == segment_id
+        )
+    ):
+        return bytes(len(initialized))
+    result = bytearray(initialized)
+    # The count, the device address and two octets per group address; the count
+    # and two octets per association.
+    for table, head in ((static.address_table, 3), (static.association_table, 1)):
+        if table is None or table.code_segment != segment_id:
+            continue
+        start = table.offset or 0
+        end = min(len(result), start + head + 2 * table.max_entries)
+        result[start:end] = bytes(end - start)
+    return bytes(result)
+
+
 def packed_group_tables(
     application: Application, address_table_length: int
 ) -> PackedGroupTables | None:
-    """Return the ETS placement of the address and association tables.
+    """Return the placement of the address and association tables, if packed.
 
-    Property-mapped masks whose association flavour is ``AssociationTable_M112``
-    declare the two tables at their maximum size. When those segments are
-    contiguous, ETS slides the association table up against the used address
-    table. ``None`` when ``PropertyMappedLsms`` is 0 (the declared address stays)
-    or the two tables are not a contiguous absolute pair. See the resource
-    comment in ``resources.py``. ``address_table_length`` includes the count
-    octet and the device address.
+    An application with ``DynamicTableManagement`` whose association flavour is
+    ``AssociationTable_M112`` gets the address table at its used length and the
+    association table right after it, up to the end of the association table's
+    ``MaxEntries``. ``None`` without dynamic table management: both tables stay
+    where the product declares them. See the resource comment in ``resources.py``.
+    ``address_table_length`` includes the count octet and the device address.
     """
-    if not property_mapped_lsms(application.program.mask_version):
-        return None
-    if not m112_association_table(application.program.mask_version):
+    if not _packs_group_tables(application):
         return None
     if address_table_length <= 0:
         return None
@@ -164,7 +201,6 @@ def packed_group_tables(
         or address.code_segment is None
         or association.code_segment is None
         or (address.offset or 0) != 0
-        or (association.offset or 0) != 0
     ):
         return None
     segments = {segment.id: segment for segment in static.code.absolute_segment}
@@ -179,12 +215,18 @@ def packed_group_tables(
         return None
     if address_table_length > address_segment.size:
         return None
-    if association_segment.address != address_segment.address + address_segment.size:
-        return None
     start = address_segment.address + address_table_length
-    end = association_segment.address + association_segment.size
+    end = (
+        association_segment.address
+        + (association.offset or 0)
+        + 1
+        + 2 * association.max_entries
+    )
     if start > end:
-        return None
+        raise ImageError(
+            f"the address table ({address_table_length} octets) leaves no room for "
+            f"the association table before {end:#06x}"
+        )
     return PackedGroupTables(
         address_address=address_segment.address,
         address_length=address_table_length,
@@ -543,7 +585,9 @@ def build_image(
         if segment_id in table_ids:
             # Table builders supply initialized table bytes. Retain any parameters
             # sharing this code segment, as the earlier image builder did.
-            initialized = bytes(len(data))
+            initialized = _table_segment_initialized(
+                application, segment_id, initialized
+            )
         elif not isinstance(
             declaration, ApplicationProgramStaticCodeRelativeSegment
         ) and not (declaration is not None and declaration.user_memory):
@@ -751,7 +795,7 @@ def _group_communication_segments(
     links = _active_links(ui, gc, number_of)
     group_addresses = sorted({link.group_address for link in links})
     dynamic_tables = _bcu1_dynamic_tables(application)
-    if not dynamic_tables:
+    if not dynamic_tables and not _packs_group_tables(application):
         _validate_table_capacity(application, group_addresses, [])
     index_of = {address: i + 1 for i, address in enumerate(group_addresses)}
     linked_numbers = {number_of[link.com_object_ref_id] for link in links}
@@ -881,13 +925,17 @@ def _group_communication_segments(
                     application, base_addresses, base, address_table_end, len(data)
                 )
                 _set_bcu1_association_pointer(result, address)
-            else:
+            elif packed is None:
                 _validate_table_capacity(application, group_addresses, associations)
-                address = (
-                    packed.association_address
-                    if packed is not None
-                    else base + (association_table.offset or 0)
-                )
+                address = base + (association_table.offset or 0)
+            else:
+                # Packed tables are bound by the room left, not by MaxEntries.
+                if len(data) > packed.association_length:
+                    raise ImageError(
+                        f"association table has {len(associations)} entries; "
+                        f"{packed.association_length} octets are left for it"
+                    )
+                address = packed.association_address
             result.append(MemorySegment(address, data, mask=b"\xff" * len(data)))
     return result
 

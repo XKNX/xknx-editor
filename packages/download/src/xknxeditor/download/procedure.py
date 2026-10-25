@@ -1018,8 +1018,9 @@ class LoadProcedureRunner:
         can then leave a reallocated segment empty or stale, so an AbsSegment
         write flushes the full code seed even outside a full or application
         download. MV-2705 is property-mapped M112 and publishes no memory
-        load-control address, so this returns false. It still packs its
-        association table (``AssociationTable_M112``). MV-2705, System B and
+        load-control address, so this returns false. With dynamic table
+        management it still packs its association table
+        (``AssociationTable_M112``). MV-2705, System B and
         BCU2 keep the scope-based rule (:meth:`_memory_runs`'s default): only a
         full/application download writes the seed, a parameter download touches
         only the changed bytes.

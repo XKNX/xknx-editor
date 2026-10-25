@@ -62,15 +62,13 @@ Association table:
 - ``AssociationTable_Bcu2`` is the BCU2 table reached through its pointer. It
   is not the BCU1 slot layout and not the M112 list.
 - ``AssociationTable_M112`` is the list of ``[address index, object number]``
-  pairs. The product data declares it at its maximum size. When
-  ``PropertyMappedLsms`` is 1 and that segment starts where the address-table
-  segment ends (MV-0705: ``0x4000`` for 511 octets, then ``0x41FF``), ETS
-  writes only the used address table and places the association table
-  immediately after it. The association segment still ends at the declared
-  end. MV-0701 has the same flavour and the same contiguous declaration, with
-  ``PropertyMappedLsms`` 0, so the association table stays at the declared
-  address. A gap between the two declared segments stays at the declared
-  address too.
+  pairs. The product data declares it at its maximum size. When the
+  application has ``DynamicTableManagement``, the download allocates only the
+  used address table and places the association table immediately after it, up
+  to the end of the association table's ``MaxEntries``; only the room left
+  bounds the tables then. Without it both tables stay at their declared place,
+  each bounded by its ``MaxEntries``, and the octets of their segments after
+  those entries are written from the segment data.
 - ``AssociationTable_SystemB`` is the relative System B table.
 
 Group-object table:
@@ -501,8 +499,8 @@ def m112_association_table(mask_version: str) -> bool:
     """Whether the association table is the property-mapped M112 list.
 
     Only this flavour declares the address and association tables at their
-    maximum size, contiguous, so only it is a candidate for ETS packing the
-    association table against the used address table (see
+    maximum size, so only it is a candidate for packing the association table
+    against the used address table (see
     :func:`xknxeditor.download.image.packed_group_tables`).
     ``AssociationTable_Bcu2`` (MV-0020/0021/0025) is also property-mapped but
     is a different table reached through its own pointer; it is not packed.
