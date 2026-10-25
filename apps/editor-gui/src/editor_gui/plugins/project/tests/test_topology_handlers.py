@@ -25,7 +25,7 @@ class _Project:
         return self.outcome
 
     add_segment = remove_segment = move_device_to_segment = _answer
-    set_device_individual_address = _answer
+    set_device_individual_address = create_area = create_line = _answer
 
     def select_element(self, kind: str, element_id: int) -> None:
         self.selected.append((kind, element_id))
@@ -53,14 +53,37 @@ _DEVICE = SimpleNamespace(node_id=5, individual_address="1.1.5")
 
 def test_a_new_segment_is_selected() -> None:
     plugin, project, notices, _warnings = _plugin(9)
-    plugin._on_add_segment(_LINE)  # pyright: ignore[reportPrivateUsage]
+    reason = plugin._on_add_segment(_LINE, "segment", "MT-0")  # pyright: ignore[reportPrivateUsage]
     assert project.selected == [("segment", 9)] and notices == []
+    assert reason is None
+
+
+def test_what_cannot_be_added_gives_the_reason() -> None:
+    error = MediumError("rf_no_sub_segments")
+    for handler in (
+        lambda p: p._on_add_segment(_LINE, "", "MT-0"),
+        lambda p: p._on_create_area(2, "", "MT-2"),
+        lambda p: p._on_create_line(2, 3, "", "MT-2"),
+    ):
+        plugin, project, notices, warnings = _plugin(error)
+        # The Topology view tells the reason.
+        assert handler(plugin) == medium_error_text(error)
+        assert (notices, warnings) == ([], ["rejected by the medium"])
+        assert project.selected == []
+    for handler in (
+        lambda p: p._on_create_area(1, "", "MT-0"),
+        lambda p: p._on_create_line(2, 1, "", "MT-0"),
+    ):
+        plugin, _project, notices, _warnings = _plugin(ValueError("in use"))
+        assert handler(plugin) == "in use"
+    plugin, _project, _notices, _warnings = _plugin(5)
+    assert plugin._on_create_area(3, "", "MT-0") is None  # pyright: ignore[reportPrivateUsage]
+    assert plugin._on_create_line(2, 4, "", "MT-0") is None  # pyright: ignore[reportPrivateUsage]
 
 
 def test_what_the_media_do_not_allow_is_told() -> None:
     error = MediumError("rf_no_sub_segments")
     for handler in (
-        lambda p: p._on_add_segment(_LINE),
         lambda p: p._on_remove_segment(_SEGMENT),
         lambda p: p._on_move_device_to_segment(_DEVICE, _SEGMENT),
         lambda p: p._handle_individual_address_change(_DEVICE, "1.1.6"),

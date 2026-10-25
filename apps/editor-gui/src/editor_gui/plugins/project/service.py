@@ -5174,12 +5174,28 @@ class ProjectService:
                     return c
         return None
 
-    def create_area(self, area_number: int, name: str = "") -> int | None:
+    def create_area(
+        self, area_number: int, name: str = "", medium_type: str | None = None
+    ) -> int | None:
+        """A new area; with ``medium_type`` also its main line of that medium (one undo
+        step). Raises ``ValueError`` for a number in use, ``MediumError`` for a medium the
+        rules refuse."""
         if self._pid is None:
             return None
-        area_id = self._svc.create_area(self._pid, _INSTALLATION, area_number, name)
+        area_id = self._svc.create_area(
+            self._pid, _INSTALLATION, area_number, name, medium_type=medium_type
+        )
         self._bump()
         return area_id
+
+    def new_line_media(self, area_number: int, line_number: int) -> list[str]:
+        """The media a new line ``line_number`` of the area ``area_number`` can have (line 0
+        of an area not there yet: a new area's main line)."""
+        if self._pid is None:
+            return []
+        return self._svc.new_line_media(
+            self._pid, _INSTALLATION, area_number, line_number
+        )
 
     def remove_area(self, area_id: int, area_number: int = 0, name: str = "") -> None:
         if self._pid is None:
@@ -5193,10 +5209,21 @@ class ProjectService:
         self._svc.rename_area(self._pid, area_id, new_name)
         self._bump()
 
-    def create_line(self, area_id: int, line_number: int, name: str = "") -> int | None:
+    def create_line(
+        self,
+        area_id: int,
+        line_number: int,
+        name: str = "",
+        medium_type: str | None = None,
+    ) -> int | None:
+        """A new line of ``medium_type`` (by default the one a new line there gets); one undo
+        step. Raises ``ValueError`` for a number in use, ``MediumError`` for a medium the rules
+        refuse."""
         if self._pid is None:
             return None
-        line_id = self._svc.create_line(self._pid, area_id, line_number, name)
+        line_id = self._svc.create_line(
+            self._pid, area_id, line_number, name, medium_type=medium_type
+        )
         self._bump()
         return line_id
 
@@ -5241,14 +5268,17 @@ class ProjectService:
             None,
         )
 
-    def add_segment(self, line_id: int, name: str | None = None) -> int | None:
-        """A new sub-segment of the line, with the medium a line gives a new one; undoable.
-        Raises ``MediumError`` when the line allows none."""
+    def add_segment(
+        self, line_id: int, name: str | None = None, medium_type: str | None = None
+    ) -> int | None:
+        """A new sub-segment of the line, of ``medium_type`` (by default the medium a line
+        gives a new one); undoable. Raises ``MediumError`` when the line allows none."""
         if self._pid is None:
             return None
         segment_id = self._svc.add_segment(
             self._pid,
             line_id,
+            medium_type=medium_type,
             name=S.SEGMENT_DEFAULT_NAME if name is None else name,
         )
         self._bump()

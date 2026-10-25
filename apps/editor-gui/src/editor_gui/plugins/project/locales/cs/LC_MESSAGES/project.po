@@ -1165,12 +1165,6 @@ msgstr "Filtrovat místnosti, zařízení, funkce…"
 msgid "Unassigned ({count})"
 msgstr "Nepřiřazeno ({count})"
 
-msgid "Add Area"
-msgstr "Přidat oblast"
-
-msgid "Add Line"
-msgstr "Přidat linii"
-
 msgid "Copy Address"
 msgstr "Kopírovat adresu"
 
@@ -1239,12 +1233,6 @@ msgstr "Odstranit zařízení"
 
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "Odstranit '{name}'? Jeho skupinové objekty a propojení se skupinovými adresami budou odstraněny a jeho individuální adresa bude uvolněna. Tuto akci lze vrátit zpět."
-
-msgid "New Area"
-msgstr "Nová oblast"
-
-msgid "New Line"
-msgstr "Nová linie"
 
 msgid "Number"
 msgstr "Číslo"
@@ -2344,9 +2332,6 @@ msgstr "Přístroj '{device}' není kompatibilní s typem média na linii."
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "Zařízení '{device}' je nekompatibilní s typem médií segmentu."
 
-msgid "Add Segment"
-msgstr "Přidat segment"
-
 msgid "Rename segment to {name}"
 msgstr "Přejmenovat segment na {name}"
 
@@ -2850,3 +2835,54 @@ msgstr "Odpojit zařízení"
 
 msgid "The device is on no line: put it on a line first."
 msgstr "Zařízení není na žádné linii: nejprve ho umístěte na linii."
+
+msgid "Areas…"
+msgstr "Oblasti…"
+
+msgid "Lines…"
+msgstr "Linie…"
+
+msgid "Segments…"
+msgstr "Segmenty…"
+
+msgid "Add Segments…"
+msgstr "Přidat segmenty…"
+
+msgid "Add Areas"
+msgstr "Přidat oblasti"
+
+msgid "Add Lines"
+msgstr "Přidat linie"
+
+msgid "Add Segments"
+msgstr "Přidat segmenty"
+
+msgid "The limit to add was reached."
+msgstr "Byl dosažen limit pro přidání."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Kvůli omezením topologie nelze do oblasti {area} přidat žádnou linii. Zkontrolujte typ média páteřní a hlavní linie."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "{count} oblastí přidáno do '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "{count} linií přidáno do '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "{count} segmentů přidáno do '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "{count} částí budovy přidáno do '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "{count} profesí přidáno do '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "{count} hlavních skupin přidáno do '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "{count} středních skupin přidáno do '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "{count} skupinových adres přidáno do '{target}'."

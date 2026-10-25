@@ -12,6 +12,7 @@ from imgui_bundle import imgui
 from editor_gui.plugins.base import Logger
 from editor_gui.plugins.catalog.service import CatalogService
 from editor_gui.plugins.logger.service import LogService
+from editor_gui.plugins.project.element_status import usage_label
 from editor_gui.plugins.project.service import ProjectService
 from editor_gui.plugins.project.space_text import add_item_text
 from editor_gui.plugins.project.strings import S
@@ -77,6 +78,7 @@ def _panel(project: ProjectService, notes: list[str]) -> SpacesPanel:
         on_remove_trade_device=project.remove_trade_device,
         get_space_devices=project.get_space_devices,
         notify=notes.append,
+        one_undo_step=project.one_undo_step,
     )
 
 
@@ -133,7 +135,7 @@ def test_the_add_dialog_adds_building_parts(
     notes: list[str] = []
     panel = _panel(project, notes)
     _frames(panel)
-    # Buildings: two with the default name, then one named, in one undo step.
+    # Buildings: two with the default name, then one named, one undo step per row.
     _choose(clicks, panel, "##spaces_root_ctx", S.SPACES_ADD_BUILDINGS)
     _rows(panel)[0].count = 2
     _rows(panel).append(AddRow(name="Garage"))
@@ -144,17 +146,27 @@ def test_the_add_dialog_adds_building_parts(
         "New building",
         "Garage",
     ]
+    assert project.history()[1].display_text == (
+        S.HISTORY_EV_ADDED_BUILDING_PARTS.format(
+            count=2, target=S.SPACES_ROOT_BUILDINGS
+        )
+    )
+    assert project.undo() and len(project.get_space_tree()) == 3
+    assert project.redo()
     building = project.get_space_tree()[0].id
-    # A room with its use, named in the dialog.
+    # A room with its use, named in the dialog; one without a name is named after its use.
     _choose(
         clicks, panel, f"##spctx{building}", S.SPACES_ADD_MENU, add_item_text("Room")
     )
     _rows(panel)[0].name = "Kitchen"
     _rows(panel)[0].choice = "SU-1"
+    _rows(panel).append(AddRow(choice="SU-1"))
     clicks.button = S.BTN_OK
     _frames(panel)
     room = next(s for s in project.get_space_tree()[0].children if s.name == "Kitchen")
     assert room.space_type == "Room" and room.usage == "SU-1"
+    named = [s for s in project.get_space_tree()[0].children if s.id != room.id]
+    assert [(s.name, s.usage) for s in named][-1] == (usage_label("SU-1"), "SU-1")
     # Cancel adds nothing.
     _choose(
         clicks,

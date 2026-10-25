@@ -1165,12 +1165,6 @@ msgstr "Odaları, cihazları, fonksiyonları filtrele…"
 msgid "Unassigned ({count})"
 msgstr "Atanmamış ({count})"
 
-msgid "Add Area"
-msgstr "Alan Ekle"
-
-msgid "Add Line"
-msgstr "Linye Ekle"
-
 msgid "Copy Address"
 msgstr "Adresi Kopyala"
 
@@ -1239,12 +1233,6 @@ msgstr "Cihazı Sil"
 
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "'{name}' silinsin mi? Grup nesneleri ve grup adresi bağlantıları kaldırılır, bireysel adresi serbest bırakılır. Bu işlem geri alınabilir."
-
-msgid "New Area"
-msgstr "Yeni Alan"
-
-msgid "New Line"
-msgstr "Yeni Linye"
 
 msgid "Number"
 msgstr "Numara"
@@ -2344,9 +2332,6 @@ msgstr "'{device}' cihazı linyenin ortam tipi ile uyumlu değil."
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "'{device}' cihazı, segmentin ortam türüyle uyumlu değildir."
 
-msgid "Add Segment"
-msgstr "Segment Ekle"
-
 msgid "Rename segment to {name}"
 msgstr "Segmenti yeniden adlandır: {name}"
 
@@ -2850,3 +2835,54 @@ msgstr "Cihazın ilişkisini kaldır"
 
 msgid "The device is on no line: put it on a line first."
 msgstr "Cihaz hiçbir hatta değil: önce bir hatta yerleştirin."
+
+msgid "Areas…"
+msgstr "Alanlar…"
+
+msgid "Lines…"
+msgstr "Hatlar…"
+
+msgid "Segments…"
+msgstr "Segmentler…"
+
+msgid "Add Segments…"
+msgstr "Segment Ekle…"
+
+msgid "Add Areas"
+msgstr "Alan Ekle"
+
+msgid "Add Lines"
+msgstr "Hat Ekle"
+
+msgid "Add Segments"
+msgstr "Segment Ekle"
+
+msgid "The limit to add was reached."
+msgstr "Ekleme sınırına ulaşıldı."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Topoloji kısıtlamaları nedeniyle {area} alanına hat eklenemiyor. Lütfen omurga ve ana hatların ortam türünü kontrol edin."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "{count} alan '{target}' konumuna eklendi."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "{count} hat '{target}' konumuna eklendi."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "{count} segment '{target}' konumuna eklendi."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "{count} bina bölümü '{target}' konumuna eklendi."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "{count} iş kolu '{target}' konumuna eklendi."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "{count} ana grup '{target}' konumuna eklendi."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "{count} orta grup '{target}' konumuna eklendi."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "{count} grup adresi '{target}' konumuna eklendi."

@@ -1165,12 +1165,6 @@ msgstr "Φιλτράρισμα δωματίων, συσκευών, λειτου�
 msgid "Unassigned ({count})"
 msgstr "Μη ανατεθειμένα ({count})"
 
-msgid "Add Area"
-msgstr "Προσθήκη Περιοχής"
-
-msgid "Add Line"
-msgstr "Προσθήκη Γραμμής"
-
 msgid "Copy Address"
 msgstr "Αντιγραφή Διεύθυνσης"
 
@@ -1239,12 +1233,6 @@ msgstr "Διαγραφή Συσκευής"
 
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "Να διαγραφεί το '{name}'; Τα αντικείμενα επικοινωνίας του και οι συνδέσεις διευθύνσεων ομάδων αφαιρούνται και η ατομική του διεύθυνση αποδεσμεύεται. Η ενέργεια μπορεί να αναιρεθεί."
-
-msgid "New Area"
-msgstr "Νέα Περιοχή"
-
-msgid "New Line"
-msgstr "Νέα Γραμμή"
 
 msgid "Number"
 msgstr "Αριθμός"
@@ -2344,9 +2332,6 @@ msgstr "Η συσκευή '{device}' δεν είναι συμβατή με το�
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "Η συσκευή '{device}' δεν είναι συμβατή με τον τύπο μέσου του τμήματος."
 
-msgid "Add Segment"
-msgstr "Προσθήκη Τμήματος"
-
 msgid "Rename segment to {name}"
 msgstr "Μετονομασία τμήματος σε {name}"
 
@@ -2850,3 +2835,54 @@ msgstr "Αποσύνδεση συσκευής"
 
 msgid "The device is on no line: put it on a line first."
 msgstr "Η συσκευή δεν βρίσκεται σε καμία γραμμή: τοποθετήστε την πρώτα σε μια γραμμή."
+
+msgid "Areas…"
+msgstr "Περιοχές…"
+
+msgid "Lines…"
+msgstr "Γραμμές…"
+
+msgid "Segments…"
+msgstr "Τμήματα…"
+
+msgid "Add Segments…"
+msgstr "Προσθήκη Τμημάτων…"
+
+msgid "Add Areas"
+msgstr "Προσθήκη Περιοχών"
+
+msgid "Add Lines"
+msgstr "Προσθήκη Γραμμών"
+
+msgid "Add Segments"
+msgstr "Προσθήκη Τμημάτων"
+
+msgid "The limit to add was reached."
+msgstr "Επιτεύχθηκε το όριο προσθήκης."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Δεν είναι δυνατή η προσθήκη γραμμής στην περιοχή {area} λόγω περιορισμών τοπολογίας. Ελέγξτε τον τύπο μέσου της κεντρικής γραμμής κορμού και των κύριων γραμμών."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "Προστέθηκαν {count} περιοχές στο '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "Προστέθηκαν {count} γραμμές στο '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "Προστέθηκαν {count} τμήματα στο '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "Προστέθηκαν {count} τμήματα κτιρίου στο '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "Προστέθηκαν {count} ειδικότητες στο '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "Προστέθηκαν {count} κύριες ομάδες στο '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "Προστέθηκαν {count} μεσαίες ομάδες στο '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "Προστέθηκαν {count} διευθύνσεις ομάδας στο '{target}'."

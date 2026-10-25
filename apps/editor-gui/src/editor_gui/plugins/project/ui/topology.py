@@ -1,14 +1,23 @@
 from collections.abc import Callable
-from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass, field
 from typing import cast
 
 from imgui_bundle import imgui
 
 from editor_gui.device import Device, UnloadedDevice, address_order, device_label
+from editor_gui.plugins.project.medium_text import medium_error_text
 from editor_gui.plugins.project.paste import PasteTarget
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
+from editor_gui.plugins.project.ui.add_dialog import (
+    AddChoice,
+    AddDialog,
+    AddRequest,
+    AddRow,
+    UndoStep,
+    no_undo_step,
+    one_row,
+)
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.paste_special import (
@@ -25,9 +34,22 @@ from editor_gui.widgets.tree import (
     leaf_rows,
     tree_node,
 )
-from xknxeditor.proj.core.medium import MEDIUM_TP, medium_name
+from xknxeditor.proj.core.medium import (
+    MAX_LINES,
+    MAX_SEGMENTS,
+    MEDIUM_IP,
+    MEDIUM_TP,
+    MediumError,
+    check_new_sub_segment,
+    medium_name,
+    sub_segment_media,
+)
+from xknxeditor.proj.core.paste import AddressPool
 
 TreeDevice = Device | UnloadedDevice
+
+# The most areas a project has (numbers 0 to 15).
+_MAX_AREAS = 16
 
 _UNLOADED_COLOR = imgui.ImVec4(0.95, 0.6, 0.25, 1.0)
 
@@ -97,10 +119,10 @@ class TopologyPanel:
         get_lines: Callable[[int], list[Line]],
         on_select_device: Callable[[Device], None],
         on_move_device: Callable[[Device, int, int], None],
-        on_create_area: Callable[[int, str], None],
+        on_create_area: Callable[[int, str, str], str | None],
         on_remove_area: Callable[[Area], None],
         on_rename_area: Callable[[Area, str], None],
-        on_create_line: Callable[[int, int, str], None],
+        on_create_line: Callable[[int, int, str, str], str | None],
         on_remove_line: Callable[[Line], None],
         on_rename_line: Callable[[Line, str], None],
         get_selected_node_id: Callable[[], int | None] = lambda: None,
@@ -120,22 +142,36 @@ class TopologyPanel:
         on_select_element: Callable[[str, int], None] = lambda _k, _i: None,
         get_selected_topology: Callable[[], tuple[str, int] | None] = lambda: None,
         get_device_segments: Callable[[], dict[int, int]] = dict,
-        on_add_segment: Callable[[Line], None] = lambda _l: None,
+        on_add_segment: Callable[[Line, str, str], str | None] = (
+            lambda _l, _n, _m: None
+        ),
         on_remove_segment: Callable[[Segment], None] = lambda _s: None,
         on_move_device_to_segment: Callable[[Device, Segment], None] = (
             lambda _d, _s: None
         ),
         on_move_line: Callable[[int, int], None] = lambda _l, _a: None,
         on_move_segment: Callable[[int, int], None] = lambda _s, _l: None,
-        one_undo_step: Callable[[], AbstractContextManager[None]] = nullcontext,
+        one_undo_step: UndoStep = no_undo_step,
         paste_dialog: PasteSpecialDialog | None = None,
         on_unlink_device: Callable[[int], None] | None = None,
+        get_new_line_media: Callable[[int, int], list[str]] = lambda _a, _l: [
+            MEDIUM_TP
+        ],
+        notify: Callable[[str], None] = lambda _t: None,
     ) -> None:
-        """``on_move_line`` puts a sub line (id) into an area (id), ``on_move_segment`` a
+        """``on_create_area`` adds an area (number, name, its main line's medium),
+        ``on_create_line`` a line (area id, number, name, medium) and ``on_add_segment`` a
+        sub-segment (line, name, medium), each giving the reason it cannot, or None;
+        ``get_new_line_media`` gives the media a new line (area and line number) can have.
+        ``on_move_line`` puts a sub line (id) into an area (id), ``on_move_segment`` a
         sub-segment (id) onto a line (id); ``one_undo_step`` makes the edits of one drop one
         undo step; ``paste_dialog`` asks how to copy what is dropped with Ctrl held (no copies
-        without it); ``on_unlink_device`` takes a device (by id) off its line ("Unlink")."""
+        without it); ``on_unlink_device`` takes a device (by id) off its line ("Unlink").
+        ``notify`` tells why something was not added."""
         self._get_devices = get_devices
+        self._get_new_line_media = get_new_line_media
+        self._notify = notify
+        self._adder = AddDialog("topology")
         self._one_undo_step = one_undo_step
         self._paste_dialog = paste_dialog
         self._on_unlink_device = on_unlink_device
@@ -178,14 +214,9 @@ class TopologyPanel:
         self._on_rename_line = on_rename_line
         self._filter_text: str = ""
 
-        self._popup_area_number: int = 0
-        self._popup_line_number: int = 0
         self._popup_name: str = ""
-        self._popup_error: str = ""
         self._popup_target_area: Area | None = None
         self._popup_target_line: Line | None = None
-        self._open_new_area_popup: bool = False
-        self._open_new_line_popup: bool = False
         self._open_rename_popup: bool = False
         self._delete_target_device: TreeDevice | None = None
         self._open_delete_device_popup: bool = False
@@ -220,20 +251,11 @@ class TopologyPanel:
             imgui.text_disabled(S.DEVICE_EMPTY_HINT)
 
         if imgui.begin_popup_context_window("##topology_context"):
-            if imgui.menu_item(S.CONTEXT_ADD_AREA, "", False)[0]:
-                self._popup_area_number = self._next_area_number(areas)
-                self._popup_name = ""
-                self._open_new_area_popup = True
+            if imgui.begin_menu(S.SPACES_ADD_MENU):
+                self._render_add_items(None, [], None)
+                imgui.end_menu()
             imgui.end_popup()
 
-        if self._open_new_area_popup:
-            self._popup_error = ""
-            imgui.open_popup(S.POPUP_NEW_AREA)
-            self._open_new_area_popup = False
-        if self._open_new_line_popup:
-            self._popup_error = ""
-            imgui.open_popup(S.POPUP_NEW_LINE)
-            self._open_new_line_popup = False
         if self._open_rename_popup:
             imgui.open_popup(S.POPUP_RENAME)
             self._open_rename_popup = False
@@ -241,8 +263,7 @@ class TopologyPanel:
             imgui.open_popup(S.DEVICE_DELETE_TITLE)
             self._open_delete_device_popup = False
 
-        self._render_new_area_popup()
-        self._render_new_line_popup()
+        self._adder.render()
         self._render_rename_popup()
         self._render_delete_device_popup()
         self._config_dialog.render()
@@ -687,20 +708,9 @@ class TopologyPanel:
         self, area: Area, lines: list[Line], main: Line | None
     ) -> None:
         if context_menu(f"##area_ctx_{area.id}"):
-            if area.number == 0 and imgui.menu_item(S.CONTEXT_ADD_AREA, "", False)[0]:
-                self._popup_area_number = self._next_area_number(self._get_areas())
-                self._popup_name = ""
-                self._open_new_area_popup = True
-            if (
-                main is not None
-                and imgui.menu_item(S.CONTEXT_ADD_SEGMENT, "", False)[0]
-            ):
-                self._on_add_segment(main)
-            if area.number != 0 and imgui.menu_item(S.CONTEXT_ADD_LINE, "", False)[0]:
-                self._popup_target_area = area
-                self._popup_line_number = self._next_line_number(lines)
-                self._popup_name = ""
-                self._open_new_line_popup = True
+            if imgui.begin_menu(S.SPACES_ADD_MENU):
+                self._render_add_items(area, lines, main)
+                imgui.end_menu()
             if imgui.menu_item(S.CONTEXT_RENAME, "", False)[0]:
                 self._popup_target_area = area
                 self._popup_name = area.name
@@ -716,8 +726,8 @@ class TopologyPanel:
 
     def _render_line_context_menu(self, area: Area, line: Line) -> None:
         if context_menu(f"##line_ctx_{line.id}"):
-            if imgui.menu_item(S.CONTEXT_ADD_SEGMENT, "", False)[0]:
-                self._on_add_segment(line)
+            if imgui.menu_item(S.TOPOLOGY_ADD_SEGMENTS_ITEM, "", False)[0]:
+                self._start_add_segments(area, line)
             if imgui.menu_item(S.CONTEXT_RENAME, "", False)[0]:
                 self._popup_target_line = line
                 self._popup_name = line.name
@@ -761,85 +771,201 @@ class TopologyPanel:
         if chosen is not None:
             self._on_move_segment(segment.id, chosen[0])
 
-    def _render_new_area_popup(self) -> None:
-        if begin_dialog(S.POPUP_NEW_AREA):
-            imgui.text(S.POPUP_NAME)
-            imgui.same_line(
-                label_column_width(S.POPUP_NAME, S.POPUP_NUMBER, minimum=80)
-            )
-            if imgui.is_window_appearing():
-                imgui.set_keyboard_focus_here()
-            imgui.set_next_item_width(px(150))
-            _, self._popup_name = imgui.input_text("##area_name", self._popup_name)
+    def _render_add_items(
+        self, area: Area | None, lines: list[Line], main: Line | None
+    ) -> None:
+        """The items of an "Add" submenu: areas (from the topology and the backbone), lines of
+        the area and segments of its main line. ``area`` None: the topology itself, whose lines
+        and segments go to the backbone."""
+        backbone = next((a for a in self._get_areas() if a.number == 0), None)
+        if area is None:
+            area = backbone
+            lines = self._get_lines(area.id) if area is not None else []
+            main = next((ln for ln in lines if ln.number == 0), None)
+        if (area is None or area.number == 0) and imgui.menu_item(
+            S.TOPOLOGY_ADD_AREAS, "", False
+        )[0]:
+            self._start_add_areas()
+        if area is not None and imgui.menu_item(S.TOPOLOGY_ADD_LINES, "", False)[0]:
+            self._start_add_lines(area, lines, main)
+        if (
+            area is not None
+            and main is not None
+            and imgui.menu_item(S.TOPOLOGY_ADD_SEGMENTS, "", False)[0]
+        ):
+            self._start_add_segments(area, main)
 
-            imgui.text(S.POPUP_NUMBER)
-            imgui.same_line(
-                label_column_width(S.POPUP_NAME, S.POPUP_NUMBER, minimum=80)
-            )
-            imgui.set_next_item_width(px(150))
-            _, self._popup_area_number = imgui.input_int(
-                "##area_num", self._popup_area_number
-            )
+    def _start(
+        self,
+        on_add: Callable[[AddRequest], None],
+        choice: AddChoice,
+        open_dialog: Callable[[], bool],
+    ) -> None:
+        """Open the "Add" dialog (``open_dialog``), or add one with the defaults right away on
+        a Shift+click; with no room left, tell so."""
+        if imgui.get_io().key_shift:
+            on_add(one_row(choice))
+        elif not open_dialog():
+            self._notify(S.ADD_LIMIT_REACHED)
 
-            if self._popup_error:
-                imgui.text_colored(imgui.ImVec4(1.0, 0.4, 0.4, 1.0), self._popup_error)
-            clicked = dialog_buttons(S.BTN_ADD, S.BTN_CANCEL)
-            if clicked == 0:
-                try:
-                    self._on_create_area(self._popup_area_number, self._popup_name)
-                    self._popup_error = ""
-                    imgui.close_current_popup()
-                except ValueError as exc:
-                    self._popup_error = str(exc)
-            elif clicked == 1:
-                imgui.close_current_popup()
-            end_dialog()
+    @staticmethod
+    def _medium_choice(media: list[str], default: str) -> AddChoice:
+        """The Medium column of the media offered, ``default`` chosen (else the first)."""
+        return AddChoice(
+            S.MEDIUM,
+            [(medium, medium_name(medium)) for medium in media],
+            default if default in media else media[0],
+        )
 
-    def _render_new_line_popup(self) -> None:
-        if begin_dialog(S.POPUP_NEW_LINE):
-            imgui.text(S.POPUP_NAME)
-            imgui.same_line(
-                label_column_width(S.POPUP_NAME, S.POPUP_NUMBER, minimum=80)
-            )
-            if imgui.is_window_appearing():
-                imgui.set_keyboard_focus_here()
-            imgui.set_next_item_width(px(150))
-            _, self._popup_name = imgui.input_text("##line_name", self._popup_name)
+    def _start_add_areas(self) -> None:
+        areas = self._get_areas()
+        used = {a.number for a in areas}
+        free = next((n for n in range(1, 16) if n not in used), 1)
+        media = self._get_new_line_media(free, 0) or [MEDIUM_TP]
+        choice = self._medium_choice(media, MEDIUM_TP)
+        target = S.PANEL_TOPOLOGY
+        self._start(
+            lambda request: self._add_areas(request, target),
+            choice,
+            lambda: self._adder.open(
+                S.TOPOLOGY_TITLE_AREAS,
+                target,
+                lambda request: self._add_areas(request, target),
+                choice=choice,
+                numbered=True,
+                start_maximum=15,
+                limit=_MAX_AREAS - len(areas),
+            ),
+        )
 
-            imgui.text(S.POPUP_NUMBER)
-            imgui.same_line(
-                label_column_width(S.POPUP_NAME, S.POPUP_NUMBER, minimum=80)
-            )
-            imgui.set_next_item_width(px(150))
-            _, self._popup_line_number = imgui.input_int(
-                "##line_num", self._popup_line_number
-            )
+    def _add_areas(self, request: AddRequest, target: str) -> None:
+        pool = AddressPool(
+            0,
+            15,
+            (a.number for a in self._get_areas()),
+            request.allocation,
+            start_with=request.start_with,
+        )
 
-            if self._popup_error:
-                imgui.text_colored(imgui.ImVec4(1.0, 0.4, 0.4, 1.0), self._popup_error)
-            clicked = dialog_buttons(S.BTN_ADD, S.BTN_CANCEL)
-            if clicked == 0:
-                try:
-                    if self._popup_target_area:
-                        self._on_create_line(
-                            self._popup_target_area.id,
-                            self._popup_line_number,
-                            self._popup_name,
-                        )
-                    self._popup_error = ""
-                    imgui.close_current_popup()
-                except ValueError as exc:
-                    self._popup_error = str(exc)
-            elif clicked == 1:
-                imgui.close_current_popup()
-            end_dialog()
+        def add(row: AddRow) -> str | None:
+            number = pool.take()
+            if number is None:
+                return S.ADD_LIMIT_REACHED
+            return self._on_create_area(number, row.name.strip(), row.choice)
+
+        self._add_rows(request, S.HISTORY_EV_ADDED_AREAS, target, add)
+
+    def _start_add_lines(
+        self, area: Area, lines: list[Line], main: Line | None
+    ) -> None:
+        used = {ln.number for ln in lines}
+        free = next((n for n in range(1, 16) if n not in used), 1)
+        media = self._get_new_line_media(area.number, free)
+        target = self._format_area_label(area, main)
+        if not media:
+            self._notify(S.ADD_NO_LINE_MEDIUM.format(area=target))
+            return
+        default = main.medium_type if main is not None else MEDIUM_TP
+        if default == MEDIUM_IP or area.number == 0:
+            default = MEDIUM_TP
+        choice = self._medium_choice(media, default)
+        self._start(
+            lambda request: self._add_lines(request, area, target),
+            choice,
+            lambda: self._adder.open(
+                S.TOPOLOGY_TITLE_LINES,
+                target,
+                lambda request: self._add_lines(request, area, target),
+                choice=choice,
+                numbered=True,
+                start_maximum=15,
+                limit=MAX_LINES - len(lines),
+            ),
+        )
+
+    def _add_lines(self, request: AddRequest, area: Area, target: str) -> None:
+        pool = AddressPool(
+            0,
+            15,
+            (ln.number for ln in self._get_lines(area.id)),
+            request.allocation,
+            start_with=request.start_with,
+        )
+
+        def add(row: AddRow) -> str | None:
+            number = pool.take()
+            if number is None:
+                return S.ADD_LIMIT_REACHED
+            return self._on_create_line(area.id, number, row.name.strip(), row.choice)
+
+        self._add_rows(request, S.HISTORY_EV_ADDED_LINES, target, add)
+
+    def _start_add_segments(self, area: Area, line: Line) -> None:
+        media = list(sub_segment_media(line.medium_type))
+        if not media:
+            # The line takes no sub-segment: tell why.
+            try:
+                check_new_sub_segment(line.medium_type, MEDIUM_TP)
+            except MediumError as error:
+                self._notify(medium_error_text(error))
+            return
+        default = line.medium_type
+        if default == MEDIUM_IP or area.number == 0:
+            default = MEDIUM_TP
+        choice = self._medium_choice(media, default)
+        target = (
+            self._format_area_label(area, line)
+            if line.number == 0
+            else self._format_line_label(area, line)
+        )
+        self._start(
+            lambda request: self._add_segments(request, line, target),
+            choice,
+            lambda: self._adder.open(
+                S.TOPOLOGY_TITLE_SEGMENTS,
+                target,
+                lambda request: self._add_segments(request, line, target),
+                default_name=S.SEGMENT_DEFAULT_NAME,
+                choice=choice,
+                limit=MAX_SEGMENTS - 1 - len(line.segments),
+            ),
+        )
+
+    def _add_segments(self, request: AddRequest, line: Line, target: str) -> None:
+        self._add_rows(
+            request,
+            S.HISTORY_EV_ADDED_SEGMENTS,
+            target,
+            lambda row: self._on_add_segment(
+                line, row.name.strip() or S.SEGMENT_DEFAULT_NAME, row.choice
+            ),
+        )
+
+    def _add_rows(
+        self,
+        request: AddRequest,
+        label: str,
+        target: str,
+        add: Callable[[AddRow], str | None],
+    ) -> None:
+        """Add the rows of ``request`` top to bottom, one undo step each (``label`` naming
+        one of several); a row stops at its first element that cannot be added, telling why,
+        and the next row goes on."""
+        for row in request.rows:
+            text = (
+                label.format(count=row.count, target=target) if row.count > 1 else None
+            )
+            with self._one_undo_step(text):
+                for _ in range(row.count):
+                    reason = add(row)
+                    if reason:
+                        self._notify(reason)
+                        break
 
     def _render_rename_popup(self) -> None:
         if begin_dialog(S.POPUP_RENAME):
             imgui.text(S.POPUP_NAME)
-            imgui.same_line(
-                label_column_width(S.POPUP_NAME, S.POPUP_NUMBER, minimum=80)
-            )
+            imgui.same_line(label_column_width(S.POPUP_NAME, minimum=80))
             if imgui.is_window_appearing():
                 imgui.set_keyboard_focus_here()
             imgui.set_next_item_width(px(150))
@@ -859,16 +985,6 @@ class TopologyPanel:
                 self._popup_target_line = None
                 imgui.close_current_popup()
             end_dialog()
-
-    def _next_area_number(self, areas: list[Area]) -> int:
-        if not areas:
-            return 1
-        return max(a.number for a in areas) + 1
-
-    def _next_line_number(self, lines: list[Line]) -> int:
-        if not lines:
-            return 1
-        return max(ln.number for ln in lines) + 1
 
     def _device_lines(
         self, devices: list[TreeDevice], areas: list[Area]

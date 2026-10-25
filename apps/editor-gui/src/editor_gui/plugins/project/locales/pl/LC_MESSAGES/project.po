@@ -1165,12 +1165,6 @@ msgstr "Filtruj pokoje, urządzenia, funkcje…"
 msgid "Unassigned ({count})"
 msgstr "Nieprzypisane ({count})"
 
-msgid "Add Area"
-msgstr "Dodaj obszar"
-
-msgid "Add Line"
-msgstr "Dodaj linię"
-
 msgid "Copy Address"
 msgstr "Kopiuj adres"
 
@@ -1239,12 +1233,6 @@ msgstr "Usuń urządzenie"
 
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "Usunąć '{name}'? Jego obiekty grupy i powiązania z adresami grupowymi zostaną usunięte, a adres indywidualny zwolniony. Tę operację można cofnąć."
-
-msgid "New Area"
-msgstr "Nowy obszar"
-
-msgid "New Line"
-msgstr "Nowa linia"
 
 msgid "Number"
 msgstr "Numer"
@@ -2344,9 +2332,6 @@ msgstr "Urządzenie '{device}' jest niezgodne z typem medium linii."
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "Urządzenie '{device}' jest niekompatybilne z medium segmentu."
 
-msgid "Add Segment"
-msgstr "Dodaj segment"
-
 msgid "Rename segment to {name}"
 msgstr "Zmień nazwę segmentu na {name}"
 
@@ -2850,3 +2835,54 @@ msgstr "Odłącz urządzenie"
 
 msgid "The device is on no line: put it on a line first."
 msgstr "Urządzenie nie jest na żadnej linii: najpierw umieść je na linii."
+
+msgid "Areas…"
+msgstr "Obszary…"
+
+msgid "Lines…"
+msgstr "Linie…"
+
+msgid "Segments…"
+msgstr "Segmenty…"
+
+msgid "Add Segments…"
+msgstr "Dodaj segmenty…"
+
+msgid "Add Areas"
+msgstr "Dodaj obszary"
+
+msgid "Add Lines"
+msgstr "Dodaj linie"
+
+msgid "Add Segments"
+msgstr "Dodaj segmenty"
+
+msgid "The limit to add was reached."
+msgstr "Osiągnięto limit dodawania."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Z powodu ograniczeń topologii nie można dodać żadnej linii do obszaru {area}. Sprawdź typ medium linii szkieletowej i głównych."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "Dodano obszary ({count}) do '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "Dodano linie ({count}) do '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "Dodano segmenty ({count}) do '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "Dodano części budynku ({count}) do '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "Dodano branże ({count}) do '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "Dodano grupy główne ({count}) do '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "Dodano grupy średnie ({count}) do '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "Dodano adresy grupowe ({count}) do '{target}'."

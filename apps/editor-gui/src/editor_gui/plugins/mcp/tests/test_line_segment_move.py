@@ -19,8 +19,8 @@ async def test_a_line_and_a_segment_move(tmp_path: Path) -> None:
         area = (await _data(client, "project_create_area", area_number=2, name="B"))[
             "area_id"
         ]
-        for number in (0, 1):
-            await _data(client, "project_create_line", area_id=area, line_number=number)
+        # The area comes with its main line 2.0.
+        await _data(client, "project_create_line", area_id=area, line_number=1)
         line = await _line(client, "1.1")
         segment = (await _data(client, "project_add_segment", line_id=line["id"]))["id"]
         # 2.1 is taken: the line becomes 2.2, with its segment.

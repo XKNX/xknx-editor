@@ -332,12 +332,6 @@ msgstr "Räume, Geräte, Funktionen filtern…"
 msgid "Unassigned ({count})"
 msgstr "Nicht zugewiesen ({count})"
 
-msgid "Add Area"
-msgstr "Bereich hinzufügen"
-
-msgid "Add Line"
-msgstr "Linie hinzufügen"
-
 msgid "Rename"
 msgstr "Umbenennen"
 
@@ -346,12 +340,6 @@ msgstr "Löschen"
 
 msgid "Copy Address"
 msgstr "Adresse kopieren"
-
-msgid "New Area"
-msgstr "Neuer Bereich"
-
-msgid "New Line"
-msgstr "Neue Linie"
 
 msgid "Number"
 msgstr "Nummer"
@@ -2529,9 +2517,6 @@ msgstr "Das Gerät '{device}' ist nicht kompatibel zu dem Medientyp der Linie."
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "Das Gerät '{device}' ist nicht kompatibel zu dem Medientyp des Segmentes."
 
-msgid "Add Segment"
-msgstr "Segment hinzufügen"
-
 msgid "Rename segment to {name}"
 msgstr "Segment in {name} umbenennen"
 
@@ -3035,3 +3020,54 @@ msgstr "Gerät trennen"
 
 msgid "The device is on no line: put it on a line first."
 msgstr "Das Gerät ist auf keiner Linie: zuerst auf eine Linie legen."
+
+msgid "Areas…"
+msgstr "Bereiche…"
+
+msgid "Lines…"
+msgstr "Linien…"
+
+msgid "Segments…"
+msgstr "Segmente…"
+
+msgid "Add Segments…"
+msgstr "Segmente hinzufügen…"
+
+msgid "Add Areas"
+msgstr "Bereiche hinzufügen"
+
+msgid "Add Lines"
+msgstr "Linien hinzufügen"
+
+msgid "Add Segments"
+msgstr "Segmente hinzufügen"
+
+msgid "The limit to add was reached."
+msgstr "Das Limit wurde erreicht."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Aufgrund von Topologieeinschränkungen kann keine Linie zum Bereich {area} hinzugefügt werden. Bitte überprüfen Sie den Medientyp der Bereichs- und Hauptlinie."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "{count} Bereiche in '{target}' eingefügt."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "{count} Linien in '{target}' eingefügt."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "{count} Segmente in '{target}' eingefügt."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "{count} Gebäudeteile in '{target}' eingefügt."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "{count} Gewerke in '{target}' eingefügt."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "{count} Hauptgruppen in '{target}' eingefügt."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "{count} Mittelgruppen in '{target}' eingefügt."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "{count} Gruppenadressen in '{target}' eingefügt."

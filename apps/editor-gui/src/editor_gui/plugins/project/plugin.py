@@ -255,6 +255,8 @@ class ProjectPlugin:
             on_remove_segment=self._on_remove_segment,
             on_move_device_to_segment=self._on_move_device_to_segment,
             on_unlink_device=api.project.unlink_device,
+            get_new_line_media=api.project.new_line_media,
+            notify=self._report,
             on_move_line=lambda line, area: self._report(
                 api.project.move_line(line, area)
             ),
@@ -652,14 +654,16 @@ class ProjectPlugin:
             for ln in self._api.project.get_lines(area_id)
         ]
 
-    def _on_add_segment(self, line: Line) -> None:
+    def _on_add_segment(self, line: Line, name: str, medium: str) -> str | None:
+        """Add a sub-segment to the line and select it; the reason it cannot be added, or
+        None."""
         try:
-            segment_id = self._api.project.add_segment(line.id)
+            segment_id = self._api.project.add_segment(line.id, name, medium)
         except MediumError as error:
-            self._medium_error(error)
-            return
+            return self._rejected(error)
         if segment_id is not None:
             self._api.project.select_element("segment", segment_id)
+        return None
 
     def _on_remove_segment(self, segment: Segment) -> None:
         try:
@@ -753,8 +757,16 @@ class ProjectPlugin:
         if was_selected:
             self._api.project.set_multi_selection(None, [])
 
-    def _on_create_area(self, area_number: int, name: str) -> None:
-        self._api.project.create_area(area_number, name)
+    def _on_create_area(self, area_number: int, name: str, medium: str) -> str | None:
+        """Add an area with its main line of ``medium``; the reason it cannot be added, or
+        None."""
+        try:
+            self._api.project.create_area(area_number, name, medium)
+        except MediumError as error:
+            return self._rejected(error)
+        except ValueError as error:
+            return str(error)
+        return None
 
     def _on_remove_area(self, area: Area) -> None:
         self._api.project.remove_area(area.id, area.number, area.name)
@@ -763,8 +775,17 @@ class ProjectPlugin:
         if area.name != new_name:
             self._api.project.rename_area(area.id, area.name, new_name)
 
-    def _on_create_line(self, area_id: int, line_number: int, name: str) -> None:
-        self._api.project.create_line(area_id, line_number, name)
+    def _on_create_line(
+        self, area_id: int, line_number: int, name: str, medium: str
+    ) -> str | None:
+        """Add a line of ``medium``; the reason it cannot be added, or None."""
+        try:
+            self._api.project.create_line(area_id, line_number, name, medium)
+        except MediumError as error:
+            return self._rejected(error)
+        except ValueError as error:
+            return str(error)
+        return None
 
     def _on_remove_line(self, line: Line) -> None:
         self._api.project.remove_line(line.id, line.area_id, line.number, line.name)
@@ -1986,11 +2007,16 @@ class ProjectPlugin:
 
     def _medium_error(self, error: MediumError) -> None:
         """Tell the user why the media of the topology do not allow a change."""
+        text = self._rejected(error)
+        if self._api.notify is not None:
+            self._api.notify(text)
+
+    def _rejected(self, error: MediumError) -> str:
+        """Log that the media of the topology do not allow a change; the reason to tell."""
         self._api.log.warning(
             "rejected by the medium", plugin="project", error=str(error)
         )
-        if self._api.notify is not None:
-            self._api.notify(medium_error_text(error))
+        return medium_error_text(error)
 
     def _report(self, reason: str | None) -> None:
         """Tell the user why an edit was refused (``reason``; None: it was not)."""

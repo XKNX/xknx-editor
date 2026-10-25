@@ -10,6 +10,7 @@ import pytest
 from fastmcp import Client
 
 from editor_gui.plugins.mcp.server import build_server
+from editor_gui.plugins.project.strings import S as PROJECT_S
 
 from .test_server import _FIXTURE, _build, _build_ctx, _data
 
@@ -69,7 +70,8 @@ async def test_segments_are_added_renamed_and_removed(tmp_path: Path) -> None:
             await client.call_tool("project_remove_segment", {"segment_id": tp["id"]})
         with pytest.raises(Exception, match="no line with id 999"):
             await client.call_tool("project_add_segment", {"line_id": 999})
-        with pytest.raises(Exception, match="IoT"):
+        # A new sub-segment of a TP line is TP or RF.
+        with pytest.raises(Exception, match="below a TP main segment"):
             await client.call_tool(
                 "project_add_segment", {"line_id": line["id"], "medium": "IoT"}
             )
@@ -300,3 +302,63 @@ async def test_a_device_is_unlinked_from_its_line_and_put_back(tmp_path: Path) -
             node_id=device["node_id"],
         )
         assert back["individual_address"].startswith("1.1.")
+
+
+async def test_areas_lines_and_segments_are_added_as_the_add_dialog_does(
+    tmp_path: Path,
+) -> None:
+    mcp, project_service = _build(tmp_path)
+    async with Client(mcp) as client:
+        await _data(client, "project_new", path=str(tmp_path / "p.xknx"))
+        # A new area's main line can be TP, PL, IP or IoT (below the IP backbone), not RF.
+        media = await _data(client, "project_line_media", area_number=2, line_number=0)
+        assert media["media"] == ["TP", "PL", "IP", "IoT"]
+        areas = await _data(
+            client,
+            "project_create_area",
+            count=2,
+            allocation="start_with",
+            start_with=5,
+            medium="PL",
+        )
+        assert areas["area_numbers"] == [5, 6]
+        # Each with its PL main line; both in one undo step.
+        main = await _line(client, "5.0")
+        assert main["medium"] == "PL" and main["domain_address"]
+        history = project_service.history()
+        assert history[0].display_text == PROJECT_S.HISTORY_EV_ADDED_AREAS.format(
+            count=2, target=PROJECT_S.PANEL_TOPOLOGY
+        )
+        # Lines of a PL area are PL; they fill up from 1.
+        lines = await _data(
+            client, "project_create_line", area_id=areas["area_id"], count=3
+        )
+        assert lines["line_numbers"] == [1, 2, 3]
+        assert (await _line(client, "5.2"))["medium"] == "PL"
+        appended = await _data(
+            client,
+            "project_create_line",
+            area_id=areas["area_id"],
+            allocation="append",
+        )
+        assert appended["line_numbers"] == [4]
+        with pytest.raises(Exception, match="count 1"):
+            await client.call_tool(
+                "project_create_line",
+                {"area_id": areas["area_id"], "line_number": 9, "count": 2},
+            )
+        with pytest.raises(Exception, match="limit to add"):
+            await client.call_tool(
+                "project_create_line", {"area_id": areas["area_id"], "count": 12}
+            )
+        # Segments: as many as asked, one undo step.
+        line = await _line(client, "1.1")
+        added = await _data(
+            client, "project_add_segment", line_id=line["id"], count=3, medium="RF"
+        )
+        assert len(added["segment_ids"]) == 3 and added["medium"] == "RF"
+        assert [s["medium"] for s in (await _line(client, "1.1"))["segments"]] == [
+            "RF"
+        ] * 3
+        await _data(client, "project_undo")
+        assert (await _line(client, "1.1"))["segments"] == []

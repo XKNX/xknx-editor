@@ -2,12 +2,20 @@
 elements with a name (empty: the kind's default name) and, for some kinds, a choice (a line's or
 a segment's medium, a room's use); rows are added with "Add Row" and removed with "-". Kinds with
 numbers (areas, lines, groups, group addresses) also choose where their numbers start
-("Generate Addresses"). It starts with one empty row every time."""
+("Generate Addresses"). It starts with one empty row every time.
+
+A kind with room for only so many more (16 areas, 16 lines in an area, …) is given that
+``limit``: the counts of all rows together stay within it ("The limit to add was reached."), and
+with no room left the dialog does not open. OK always closes the dialog; the rows are added top
+to bottom, one undo step each, and a row that cannot be added does not keep the later ones from
+being added."""
 
 from __future__ import annotations
 
 from collections.abc import Callable
+from contextlib import AbstractContextManager, nullcontext
 from dataclasses import dataclass, field
+from typing import Protocol
 
 from imgui_bundle import imgui
 
@@ -21,6 +29,17 @@ from xknxeditor.proj.core.paste import Allocation
 # The most rows, and the most elements one row adds.
 MAX_ROWS = 20
 MAX_COUNT = 100
+
+
+class UndoStep(Protocol):
+    """Makes the edits made inside one undo step, ``label`` naming it in the history."""
+
+    def __call__(self, label: str | None = None, /) -> AbstractContextManager[None]: ...
+
+
+def no_undo_step(_label: str | None = None, /) -> AbstractContextManager[None]:
+    """An :class:`UndoStep` that leaves the edits as they are."""
+    return nullcontext()
 
 
 @dataclass
@@ -50,10 +69,18 @@ class AddRequest:
     start_with: int = 1
 
 
+def one_row(choice: AddChoice | None = None, start_with: int = 1) -> AddRequest:
+    """What the dialog asks for when nothing in it is changed: one element with the defaults
+    (a Shift+click on an "Add" item adds that without the dialog)."""
+    return AddRequest(
+        rows=[AddRow(choice=choice.default if choice is not None else "")],
+        start_with=start_with,
+    )
+
+
 class AddDialog:
     """The dialog (see the module) of one tree panel; ``dialog_id`` keeps it apart from the
-    others. ``on_add`` adds what was asked for and gives the reason when it cannot, which the
-    dialog shows (it stays open then)."""
+    others. ``on_add`` adds what was asked for."""
 
     def __init__(self, dialog_id: str) -> None:
         self._title = f"###add_{dialog_id}"
@@ -63,7 +90,9 @@ class AddDialog:
         self._choice: AddChoice | None = None
         self._numbered = False
         self._start_minimum = 1
-        self._on_add: Callable[[AddRequest], str | None] = lambda _r: None
+        self._start_maximum: int | None = None
+        self._limit: int | None = None
+        self._on_add: Callable[[AddRequest], None] = lambda _r: None
         self._request = AddRequest()
         self._error = ""
         self._open = False
@@ -72,16 +101,21 @@ class AddDialog:
         self,
         heading: str,
         target: str,
-        on_add: Callable[[AddRequest], str | None],
+        on_add: Callable[[AddRequest], None],
         *,
         default_name: str = "",
         choice: AddChoice | None = None,
         numbered: bool = False,
         start_minimum: int = 1,
-    ) -> None:
+        start_maximum: int | None = None,
+        limit: int | None = None,
+    ) -> bool:
         """Ask what to add (``heading``, e.g. "Add Lines") to ``target`` (its name); the dialog
         opens in the next frame it is rendered in. ``numbered`` shows "Generate Addresses",
-        whose "Start with" takes ``start_minimum`` at least."""
+        whose "Start with" takes ``start_minimum`` to ``start_maximum``. ``limit``: how many
+        more there is room for. False (and no dialog) when there is room for none."""
+        if limit is not None and limit <= 0:
+            return False
         self._heading = heading
         self._target = target
         self._on_add = on_add
@@ -89,12 +123,12 @@ class AddDialog:
         self._choice = choice
         self._numbered = numbered
         self._start_minimum = start_minimum
-        self._request = AddRequest(
-            rows=[AddRow(choice=choice.default if choice is not None else "")],
-            start_with=start_minimum,
-        )
+        self._start_maximum = start_maximum
+        self._limit = limit
+        self._request = one_row(choice, start_minimum)
         self._error = ""
         self._open = True
+        return True
 
     @property
     def request(self) -> AddRequest:
@@ -116,12 +150,21 @@ class AddDialog:
             imgui.text_colored(imgui.ImVec4(1.0, 0.42, 0.42, 1.0), self._error)
         clicked = dialog_buttons(S.BTN_OK, S.BTN_CANCEL)
         if clicked == 0:
-            self._error = self._on_add(self._request) or ""
-            if not self._error:
-                imgui.close_current_popup()
+            imgui.close_current_popup()
+            self._on_add(self._request)
         elif clicked == 1:
             imgui.close_current_popup()
         end_dialog()
+
+    def _clip(self, index: int) -> None:
+        """Keep the counts of all rows within the limit, taking from the row ``index``."""
+        rows = self._request.rows
+        if self._limit is None:
+            return
+        others = sum(row.count for i, row in enumerate(rows) if i != index)
+        if others + rows[index].count > self._limit:
+            rows[index].count = max(1, self._limit - others)
+            self._error = S.ADD_LIMIT_REACHED
 
     def _render_rows(self) -> None:
         rows = self._request.rows
@@ -146,8 +189,10 @@ class AddDialog:
         for index, row in enumerate(rows):
             imgui.push_id(index)
             imgui.set_next_item_width(count_width)
-            _, count = imgui.input_int("##count", row.count)
+            changed, count = imgui.input_int("##count", row.count)
             row.count = max(1, min(count, MAX_COUNT))
+            if changed:
+                self._clip(index)
             imgui.same_line()
             spare = choice_width + style.item_spacing.x if self._choice else 0.0
             imgui.set_next_item_width(
@@ -164,11 +209,14 @@ class AddDialog:
                 imgui.set_next_item_width(choice_width)
                 values = [value for value, _text in self._choice.options]
                 current = values.index(row.choice) if row.choice in values else 0
+                # A single option is no choice.
+                imgui.begin_disabled(len(values) <= 1)
                 _, chosen = combo(
                     f"##choice{index}",
                     current,
                     [text for _value, text in self._choice.options],
                 )
+                imgui.end_disabled()
                 row.choice = values[chosen] if values else ""
             imgui.same_line()
             imgui.begin_disabled(len(rows) == 1)
@@ -180,7 +228,8 @@ class AddDialog:
             imgui.pop_id()
         if removed is not None:
             del rows[removed]
-        imgui.begin_disabled(len(rows) >= MAX_ROWS)
+        full = self._limit is not None and sum(r.count for r in rows) >= self._limit
+        imgui.begin_disabled(len(rows) >= MAX_ROWS or full)
         if imgui.button(S.ADD_ROW):
             rows.append(AddRow(choice=rows[-1].choice))
         imgui.end_disabled()
@@ -200,5 +249,7 @@ class AddDialog:
         imgui.begin_disabled(not chosen)
         imgui.set_next_item_width(px(120.0))
         _, start = imgui.input_int("##add_start", request.start_with)
+        if self._start_maximum is not None:
+            start = min(start, self._start_maximum)
         request.start_with = max(self._start_minimum, start)
         imgui.end_disabled()

@@ -2798,16 +2798,77 @@ class ProjectStrings:
         return _("Unassigned ({count})")
 
     @property
-    def CONTEXT_ADD_AREA(self) -> str:
-        return _("Add Area")
+    def TOPOLOGY_ADD_AREAS(self) -> str:
+        # An item of the "Add" submenu of the topology.
+        return _("Areas…")
 
     @property
-    def CONTEXT_ADD_LINE(self) -> str:
-        return _("Add Line")
+    def TOPOLOGY_ADD_LINES(self) -> str:
+        return _("Lines…")
 
     @property
-    def CONTEXT_ADD_SEGMENT(self) -> str:
-        return _("Add Segment")
+    def TOPOLOGY_ADD_SEGMENTS(self) -> str:
+        return _("Segments…")
+
+    @property
+    def TOPOLOGY_ADD_SEGMENTS_ITEM(self) -> str:
+        # The menu item of a line, which adds nothing else.
+        return _("Add Segments…")
+
+    @property
+    def TOPOLOGY_TITLE_AREAS(self) -> str:
+        return _("Add Areas")
+
+    @property
+    def TOPOLOGY_TITLE_LINES(self) -> str:
+        return _("Add Lines")
+
+    @property
+    def TOPOLOGY_TITLE_SEGMENTS(self) -> str:
+        return _("Add Segments")
+
+    @property
+    def ADD_LIMIT_REACHED(self) -> str:
+        return _("The limit to add was reached.")
+
+    @property
+    def ADD_NO_LINE_MEDIUM(self) -> str:
+        return _(
+            "Cannot add any line to the area {area} because of topology constraints. "
+            "Please check the medium type of the backbone and main lines."
+        )
+
+    @property
+    def HISTORY_EV_ADDED_AREAS(self) -> str:
+        return _("Added {count} areas to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_LINES(self) -> str:
+        return _("Added {count} lines to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_SEGMENTS(self) -> str:
+        return _("Added {count} segments to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_BUILDING_PARTS(self) -> str:
+        return _("Added {count} building parts to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_TRADES(self) -> str:
+        return _("Added {count} trades to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_MAIN_GROUPS(self) -> str:
+        return _("Added {count} main groups to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_MIDDLE_GROUPS(self) -> str:
+        return _("Added {count} middle groups to '{target}'.")
+
+    @property
+    def HISTORY_EV_ADDED_GROUP_ADDRESSES(self) -> str:
+        return _("Added {count} group addresses to '{target}'.")
 
     @property
     def CONTEXT_RENAME(self) -> str:
@@ -2933,20 +2994,8 @@ class ProjectStrings:
         )
 
     @property
-    def POPUP_NEW_AREA(self) -> str:
-        return _("New Area")
-
-    @property
-    def POPUP_NEW_LINE(self) -> str:
-        return _("New Line")
-
-    @property
     def POPUP_RENAME(self) -> str:
         return _("Rename")
-
-    @property
-    def POPUP_NUMBER(self) -> str:
-        return _("Number")
 
     @property
     def POPUP_NAME(self) -> str:

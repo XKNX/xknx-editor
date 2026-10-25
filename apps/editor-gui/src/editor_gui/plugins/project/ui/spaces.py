@@ -2,12 +2,11 @@
 devices placed in each space and the functions assigned to it."""
 
 from collections.abc import Callable, Sequence
-from contextlib import AbstractContextManager, nullcontext
 from typing import TYPE_CHECKING, Any
 
 from imgui_bundle import imgui
 
-from editor_gui.plugins.project.element_status import usage_options
+from editor_gui.plugins.project.element_status import usage_label, usage_options
 from editor_gui.plugins.project.paste import PasteTarget
 from editor_gui.plugins.project.space_text import (
     add_item_text,
@@ -17,7 +16,14 @@ from editor_gui.plugins.project.space_text import (
 )
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
-from editor_gui.plugins.project.ui.add_dialog import AddChoice, AddDialog, AddRequest
+from editor_gui.plugins.project.ui.add_dialog import (
+    AddChoice,
+    AddDialog,
+    AddRequest,
+    UndoStep,
+    no_undo_step,
+    one_row,
+)
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.paste_special import (
@@ -179,7 +185,7 @@ class SpacesPanel:
         on_remove_trade_device: Callable[[int, int], None] | None = None,
         get_space_devices: "Callable[[], list[SpaceDeviceInfo]]" = list,
         notify: Callable[[str], None] = lambda _t: None,
-        one_undo_step: Callable[[], AbstractContextManager[None]] = nullcontext,
+        one_undo_step: UndoStep = no_undo_step,
         paste_dialog: PasteSpecialDialog | None = None,
         on_delete_device: Callable[[int], None] | None = None,
     ) -> None:
@@ -421,31 +427,49 @@ class SpacesPanel:
         ``parent`` (named ``parent_name``): rows of how many, their name (empty: the default
         one) and a room's use."""
         trade = add_type == _TRADE
+        choice = AddChoice(S.SPACE_USE, usage_options()) if add_type == ROOM else None
+
+        def add(request: AddRequest) -> None:
+            self._add_rows(add_type, parent, parent_name, request)
+
+        # A Shift+click adds one with the defaults, without the dialog.
+        if imgui.get_io().key_shift:
+            add(one_row(choice))
+            return
         self._adder.open(
             S.TRADES_TITLE if trade else add_title(add_type),
             parent_name,
-            lambda request: self._add_rows(add_type, parent, request),
+            add,
             default_name=S.TRADES_DEFAULT if trade else default_name(add_type),
-            choice=AddChoice(S.SPACE_USE, usage_options())
-            if add_type == ROOM
-            else None,
+            choice=choice,
         )
 
     def _add_rows(
-        self, add_type: str, parent: int | None, request: AddRequest
-    ) -> str | None:
-        """Add what the "Add …" dialog asks for, row by row, as one undo step."""
+        self, add_type: str, parent: int | None, parent_name: str, request: AddRequest
+    ) -> None:
+        """Add what the "Add …" dialog asks for, one undo step per row. A room with a use and
+        no name is named after its use."""
         trade = add_type == _TRADE
         fallback = S.TRADES_DEFAULT if trade else default_name(add_type)
-        with self._one_undo_step():
-            for row in request.rows:
-                name = row.name.strip() or fallback
+        several = (
+            S.HISTORY_EV_ADDED_TRADES if trade else S.HISTORY_EV_ADDED_BUILDING_PARTS
+        )
+        for row in request.rows:
+            name = row.name.strip()
+            if not name and add_type == ROOM and row.choice:
+                name = usage_label(row.choice)
+            name = name or fallback
+            label = (
+                several.format(count=row.count, target=parent_name)
+                if row.count > 1
+                else None
+            )
+            with self._one_undo_step(label):
                 for _ in range(row.count):
                     if trade and self._on_create_trade is not None:
                         self._on_create_trade(parent, name)
                     elif not trade and self._on_create_space is not None:
                         self._on_create_space(parent, add_type, name, row.choice)
-        return None
 
     def _render_space(self, space: "SpaceInfo", flt: str = "") -> None:
         if flt and not self._space_has_match(space, flt):

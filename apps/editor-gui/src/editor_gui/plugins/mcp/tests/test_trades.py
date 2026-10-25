@@ -134,9 +134,9 @@ async def test_several_spaces_and_trades_at_once_with_default_names(
         assert trades["name"] == "New trade" and len(trades["trade_ids"]) == 2
         listed = (await _data(client, "project_trades"))["items"]
         assert [t["name"] for t in listed] == ["New trade", "New trade"]
-        # Each one is an undo step, as in the dialog.
+        # All of them are one undo step, as a row of the dialog.
         await _data(client, "project_undo")
-        assert len((await _data(client, "project_trades"))["items"]) == 1
+        assert (await _data(client, "project_trades"))["items"] == []
         for tool, args in (
             ("project_create_space", {"space_type": "Room", "parent_id": building}),
             ("project_create_trade", {}),

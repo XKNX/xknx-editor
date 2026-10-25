@@ -1165,12 +1165,6 @@ msgstr "Filtrera rum, apparater, funktioner…"
 msgid "Unassigned ({count})"
 msgstr "Ej tilldelade ({count})"
 
-msgid "Add Area"
-msgstr "Lägg till område"
-
-msgid "Add Line"
-msgstr "Lägg till linje"
-
 msgid "Copy Address"
 msgstr "Kopiera adress"
 
@@ -1239,12 +1233,6 @@ msgstr "Ta bort apparat"
 
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "Ta bort '{name}'? Dess gruppobjekt och gruppadresskopplingar tas bort och dess individuella adress frigörs. Detta kan ångras."
-
-msgid "New Area"
-msgstr "Nytt område"
-
-msgid "New Line"
-msgstr "Ny linje"
 
 msgid "Number"
 msgstr "Nummer"
@@ -2344,9 +2332,6 @@ msgstr "Apparat '{device}' är inkompatibel med linjens mediumtyp."
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "Apparat '{device}' är inkompatibel med segmentets medietyp."
 
-msgid "Add Segment"
-msgstr "Lägg till segment"
-
 msgid "Rename segment to {name}"
 msgstr "Byt namn på segment till {name}"
 
@@ -2850,3 +2835,54 @@ msgstr "Ta bort enhetens förbindelse"
 
 msgid "The device is on no line: put it on a line first."
 msgstr "Enheten finns inte på någon linje: placera den på en linje först."
+
+msgid "Areas…"
+msgstr "Områden…"
+
+msgid "Lines…"
+msgstr "Linjer…"
+
+msgid "Segments…"
+msgstr "Segment…"
+
+msgid "Add Segments…"
+msgstr "Lägg till segment…"
+
+msgid "Add Areas"
+msgstr "Lägg till områden"
+
+msgid "Add Lines"
+msgstr "Lägg till linjer"
+
+msgid "Add Segments"
+msgstr "Lägg till segment"
+
+msgid "The limit to add was reached."
+msgstr "Gränsen för att lägga till har nåtts."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Ingen linje kan läggas till i området {area} på grund av topologibegränsningar. Kontrollera medietypen för stamnäts- och huvudlinjerna."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "{count} områden tillagda i '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "{count} linjer tillagda i '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "{count} segment tillagda i '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "{count} byggnadsdelar tillagda i '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "{count} fackområden tillagda i '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "{count} huvudgrupper tillagda i '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "{count} mellangrupper tillagda i '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "{count} gruppadresser tillagda i '{target}'."

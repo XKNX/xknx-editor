@@ -1165,12 +1165,6 @@ msgstr "Фільтрувати кімнати, пристрої, функції�
 msgid "Unassigned ({count})"
 msgstr "Не призначено ({count})"
 
-msgid "Add Area"
-msgstr "Додати область"
-
-msgid "Add Line"
-msgstr "Додати лінію"
-
 msgid "Copy Address"
 msgstr "Копіювати адресу"
 
@@ -1239,12 +1233,6 @@ msgstr "Видалити пристрій"
 
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "Видалити «{name}»? Його групові об'єкти та зв'язки з груповими адресами буде видалено, а індивідуальну адресу звільнено. Цю дію можна скасувати."
-
-msgid "New Area"
-msgstr "Нова область"
-
-msgid "New Line"
-msgstr "Нова лінія"
 
 msgid "Number"
 msgstr "Номер"
@@ -2344,9 +2332,6 @@ msgstr "Пристрій '{device}' несумісний із типом сер�
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "Пристрій '{device}' несумісний із типом середовища передачі даних сегменту."
 
-msgid "Add Segment"
-msgstr "Додати сегмент"
-
 msgid "Rename segment to {name}"
 msgstr "Перейменувати сегмент на {name}"
 
@@ -2850,3 +2835,54 @@ msgstr "Від'єднати пристрій"
 
 msgid "The device is on no line: put it on a line first."
 msgstr "Пристрій не знаходиться на жодній лінії: спочатку розмістіть його на лінії."
+
+msgid "Areas…"
+msgstr "Області…"
+
+msgid "Lines…"
+msgstr "Лінії…"
+
+msgid "Segments…"
+msgstr "Сегменти…"
+
+msgid "Add Segments…"
+msgstr "Додати сегменти…"
+
+msgid "Add Areas"
+msgstr "Додати області"
+
+msgid "Add Lines"
+msgstr "Додати лінії"
+
+msgid "Add Segments"
+msgstr "Додати сегменти"
+
+msgid "The limit to add was reached."
+msgstr "Досягнуто межі додавання."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Через обмеження топології не можна додати жодної лінії до області {area}. Перевірте тип середовища магістральної та головних ліній."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "Додано областей: {count} до '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "Додано ліній: {count} до '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "Додано сегментів: {count} до '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "Додано частин будівлі: {count} до '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "Додано розділів: {count} до '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "Додано головних груп: {count} до '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "Додано середніх груп: {count} до '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "Додано групових адрес: {count} до '{target}'."

@@ -365,10 +365,10 @@ def test_the_tree_shows_the_backbone_the_areas_and_the_segments() -> None:
         get_lines=lambda area_id: lines[area_id],
         on_select_device=lambda _d: None,
         on_move_device=lambda _d, _a, _l: None,
-        on_create_area=lambda _n, _s: None,
+        on_create_area=lambda _n, _s, _m: None,
         on_remove_area=lambda _a: None,
         on_rename_area=lambda _a, _n: None,
-        on_create_line=lambda _a, _n, _s: None,
+        on_create_line=lambda _a, _n, _s, _m: None,
         on_remove_line=lambda _l: None,
         on_rename_line=lambda _l, _n: None,
         get_unloaded_devices=lambda: devices,
@@ -396,31 +396,35 @@ def test_segments_are_added_and_deleted_from_the_tree(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     from editor_gui.plugins.project.strings import S
+    from editor_gui.plugins.project.ui import add_dialog
     from editor_gui.plugins.project.ui import topology as topology_ui
 
     from ._clicks import Clicks
 
-    clicks = Clicks(monkeypatch, topology_ui)
+    clicks = Clicks(monkeypatch, topology_ui, add_dialog)
     line = Line(1, 1, 1, "L", [Segment(5, "Garden")])
     main = Line(3, 1, 0, "")
-    added: list[int] = []
+    rf = Line(4, 1, 2, "Radio", medium_type="MT-2")
+    added: list[tuple[int, str, str]] = []
     removed: list[int] = []
+    notes: list[str] = []
     panel = TopologyPanel(
         get_devices=list,
         get_areas=lambda: [Area(1, 1, "Hauptlinie")],
-        get_lines=lambda _area_id: [main, line],
+        get_lines=lambda _area_id: [main, line, rf],
         on_select_device=lambda _d: None,
         on_move_device=lambda _d, _a, _l: None,
-        on_create_area=lambda _n, _s: None,
+        on_create_area=lambda _n, _s, _m: None,
         on_remove_area=lambda _a: None,
         on_rename_area=lambda _a, _n: None,
-        on_create_line=lambda _a, _n, _s: None,
+        on_create_line=lambda _a, _n, _s, _m: None,
         on_remove_line=lambda _l: None,
         on_rename_line=lambda _l, _n: None,
-        on_add_segment=lambda ln: added.append(ln.id),
+        on_add_segment=lambda ln, name, medium: added.append((ln.id, name, medium)),
         on_remove_segment=lambda s: removed.append(s.id),
         get_unloaded_devices=list,
         get_device_segments=dict,
+        notify=notes.append,
     )
     clicks.open.add("1.0 Hauptlinie##area_1")
 
@@ -433,12 +437,32 @@ def test_segments_are_added_and_deleted_from_the_tree(
             imgui.end_frame()
 
     frames()
-    # "Add Segment" of an area adds to its main line, of a line to that line.
-    for context in ("##area_ctx_1", "##line_ctx_1"):
-        clicks.context = context
-        clicks.items.add(S.CONTEXT_ADD_SEGMENT)
-        frames()
-    assert added == [3, 1]
+    # "Add Segments" of an area adds to its main line, of a line to that line: as many as
+    # the rows ask for, TP by default.
+    clicks.context = "##area_ctx_1"
+    clicks.menus.add(S.SPACES_ADD_MENU)
+    clicks.items.add(S.TOPOLOGY_ADD_SEGMENTS)
+    frames()
+    panel._adder.request.rows[0].count = 2  # pyright: ignore[reportPrivateUsage]
+    clicks.button = S.BTN_OK
+    frames()
+    clicks.context = "##line_ctx_1"
+    clicks.items.add(S.TOPOLOGY_ADD_SEGMENTS_ITEM)
+    frames()
+    panel._adder.request.rows[0].name = "Garage"  # pyright: ignore[reportPrivateUsage]
+    panel._adder.request.rows[0].choice = "MT-2"  # pyright: ignore[reportPrivateUsage]
+    clicks.button = S.BTN_OK
+    frames()
+    assert added == [
+        (3, S.SEGMENT_DEFAULT_NAME, "MT-0"),
+        (3, S.SEGMENT_DEFAULT_NAME, "MT-0"),
+        (1, "Garage", "MT-2"),
+    ]
+    # An RF line takes no sub-segment: it is told, and no dialog opens.
+    clicks.context = "##line_ctx_4"
+    clicks.items.add(S.TOPOLOGY_ADD_SEGMENTS_ITEM)
+    frames()
+    assert len(notes) == 1 and len(added) == 3
     clicks.context = "##segment_ctx_5"
     clicks.items.add(S.CONTEXT_DELETE)
     frames()
@@ -451,7 +475,9 @@ def test_the_tree_selects_filters_takes_drops_and_compares(
 ) -> None:
     from editor_gui.device import Device
     from editor_gui.plugins.project.strings import S
+    from editor_gui.plugins.project.ui import add_dialog
     from editor_gui.plugins.project.ui import topology as topology_ui
+    from xknxeditor.proj.core.paste import Allocation
 
     from ._clicks import Clicks
 
@@ -466,17 +492,20 @@ def test_the_tree_selects_filters_takes_drops_and_compares(
     selected: list[tuple[str, int]] = []
     dropped: list[tuple[int, int]] = []
     compared: list[int] = []
-    areas_added: list[int] = []
+    areas_added: list[tuple[int, str]] = []
+    lines_added: list[tuple[int, int, str]] = []
     panel = TopologyPanel(
         get_devices=lambda: [dimmer],
         get_areas=lambda: [Area(0, 0, ""), Area(1, 1, "Hauptlinie")],
         get_lines=lambda area_id: lines[area_id],
         on_select_device=lambda _d: None,
         on_move_device=lambda _d, _a, _l: None,
-        on_create_area=lambda number, _s: areas_added.append(number),
+        on_create_area=lambda number, _s, medium: areas_added.append((number, medium)),
         on_remove_area=lambda _a: None,
         on_rename_area=lambda _a, _n: None,
-        on_create_line=lambda _a, _n, _s: None,
+        on_create_line=lambda area, number, _s, medium: lines_added.append(
+            (area, number, medium)
+        ),
         on_remove_line=lambda _l: None,
         on_rename_line=lambda _l, _n: None,
         on_compare=compared.append,
@@ -524,12 +553,29 @@ def test_the_tree_selects_filters_takes_drops_and_compares(
     clicks.items.add(S.CONTEXT_COMPARE_DEVICE)
     frames()
     assert compared == [7]
-    # The backbone adds areas, the next free number proposed.
+    # The backbone adds areas: the free numbers from "Start with" on.
+    monkeypatch.undo()
+    clicks = Clicks(monkeypatch, topology_ui, add_dialog)
     clicks.context = "##area_ctx_0"
-    clicks.items.add(S.CONTEXT_ADD_AREA)
+    clicks.menus.add(S.SPACES_ADD_MENU)
+    clicks.items.add(S.TOPOLOGY_ADD_AREAS)
     frames()
-    assert panel._popup_area_number == 2
-    assert areas_added == []
+    request = panel._adder.request
+    request.rows[0].count = 2
+    request.allocation = Allocation.START_WITH
+    request.start_with = 5
+    clicks.button = S.BTN_OK
+    frames()
+    assert areas_added == [(5, "MT-0"), (6, "MT-0")]
+    # An area adds lines after its highest one ("Append").
+    clicks.context = "##area_ctx_1"
+    clicks.menus.add(S.SPACES_ADD_MENU)
+    clicks.items.add(S.TOPOLOGY_ADD_LINES)
+    frames()
+    panel._adder.request.allocation = Allocation.APPEND
+    clicks.button = S.BTN_OK
+    frames()
+    assert lines_added == [(1, 2, "MT-0")]
 
 
 def test_lines_and_segments_show_their_devices_and_bus_current(

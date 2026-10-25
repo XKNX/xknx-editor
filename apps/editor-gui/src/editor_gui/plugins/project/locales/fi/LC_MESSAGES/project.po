@@ -1165,12 +1165,6 @@ msgstr "Suodata huoneita, laitteita, toimintoja…"
 msgid "Unassigned ({count})"
 msgstr "Kohdistamattomat ({count})"
 
-msgid "Add Area"
-msgstr "Lisää Alue"
-
-msgid "Add Line"
-msgstr "Lisää Linja"
-
 msgid "Copy Address"
 msgstr "Kopioi osoite"
 
@@ -1239,12 +1233,6 @@ msgstr "Poista laite"
 
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "Poistetaanko '{name}'? Sen ryhmäobjektit ja ryhmäosoitelinkit poistetaan ja sen yksilöllinen osoite vapautetaan. Tämän voi kumota."
-
-msgid "New Area"
-msgstr "Uusi alue"
-
-msgid "New Line"
-msgstr "Uusi linja"
 
 msgid "Number"
 msgstr "Numero"
@@ -2344,9 +2332,6 @@ msgstr "Laite '{device}' ei ole yhteensopiva linjan mediatyypin kanssa."
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "Laite '{device}' ei ole yhteensopiva segmentin mediatyypin kanssa."
 
-msgid "Add Segment"
-msgstr "Lisää Segmentti"
-
 msgid "Rename segment to {name}"
 msgstr "Nimeä segmentti uudelleen: {name}"
 
@@ -2850,3 +2835,54 @@ msgstr "Poista laitteen linkitys"
 
 msgid "The device is on no line: put it on a line first."
 msgstr "Laite ei ole millään linjalla: sijoita se ensin linjalle."
+
+msgid "Areas…"
+msgstr "Alueet…"
+
+msgid "Lines…"
+msgstr "Linjat…"
+
+msgid "Segments…"
+msgstr "Segmentit…"
+
+msgid "Add Segments…"
+msgstr "Lisää Segmenttejä…"
+
+msgid "Add Areas"
+msgstr "Lisää Alueita"
+
+msgid "Add Lines"
+msgstr "Lisää Linjoja"
+
+msgid "Add Segments"
+msgstr "Lisää Segmenttejä"
+
+msgid "The limit to add was reached."
+msgstr "Lisäämisen raja saavutettiin."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Alueelle {area} ei voi lisätä linjaa topologian rajoitusten vuoksi. Tarkista runkolinjan ja päälinjojen mediatyyppi."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "{count} aluetta lisätty kohteeseen '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "{count} linjaa lisätty kohteeseen '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "{count} segmenttiä lisätty kohteeseen '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "{count} rakennuksen osaa lisätty kohteeseen '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "{count} ammattialaa lisätty kohteeseen '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "{count} pääryhmää lisätty kohteeseen '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "{count} väliryhmää lisätty kohteeseen '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "{count} ryhmäosoitetta lisätty kohteeseen '{target}'."

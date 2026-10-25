@@ -1165,12 +1165,6 @@ msgstr "部屋、デバイス、機能をフィルター…"
 msgid "Unassigned ({count})"
 msgstr "未割り当て（{count}）"
 
-msgid "Add Area"
-msgstr "エリアを追加する"
-
-msgid "Add Line"
-msgstr "ラインを追加する"
-
 msgid "Copy Address"
 msgstr "アドレスをコピー"
 
@@ -1239,12 +1233,6 @@ msgstr "デバイスを削除"
 
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "「{name}」を削除しますか？グループ・オブジェクトとグループ・アドレスのリンクが削除され、個別アドレスが解放されます。この操作は元に戻せます。"
-
-msgid "New Area"
-msgstr "新しいエリア"
-
-msgid "New Line"
-msgstr "新しいライン"
 
 msgid "Number"
 msgstr "番号"
@@ -2344,9 +2332,6 @@ msgstr "デバイス'{device}'はラインのミディアム・タイプとは�
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "デバイス'{device}'はセグメントのミディアタイプと互換性がありません。"
 
-msgid "Add Segment"
-msgstr "セグメントを追加"
-
 msgid "Rename segment to {name}"
 msgstr "セグメント名を{name}に変更"
 
@@ -2850,3 +2835,54 @@ msgstr "デバイスのリンクを外す"
 
 msgid "The device is on no line: put it on a line first."
 msgstr "デバイスはどのラインにもありません。先にラインに配置してください。"
+
+msgid "Areas…"
+msgstr "エリア…"
+
+msgid "Lines…"
+msgstr "ライン…"
+
+msgid "Segments…"
+msgstr "セグメント…"
+
+msgid "Add Segments…"
+msgstr "セグメントを追加…"
+
+msgid "Add Areas"
+msgstr "エリアを追加"
+
+msgid "Add Lines"
+msgstr "ラインを追加"
+
+msgid "Add Segments"
+msgstr "セグメントを追加"
+
+msgid "The limit to add was reached."
+msgstr "追加の上限に達しました。"
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "トポロジの制約により、エリア {area} にラインを追加できません。バックボーンとメインラインのメディアタイプを確認してください。"
+
+msgid "Added {count} areas to '{target}'."
+msgstr "{count} 個のエリアを '{target}' に追加しました。"
+
+msgid "Added {count} lines to '{target}'."
+msgstr "{count} 本のラインを '{target}' に追加しました。"
+
+msgid "Added {count} segments to '{target}'."
+msgstr "{count} 個のセグメントを '{target}' に追加しました。"
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "{count} 個の建物部分を '{target}' に追加しました。"
+
+msgid "Added {count} trades to '{target}'."
+msgstr "{count} 個の業種を '{target}' に追加しました。"
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "{count} 個のメイングループを '{target}' に追加しました。"
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "{count} 個のミドルグループを '{target}' に追加しました。"
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "{count} 個のグループアドレスを '{target}' に追加しました。"

@@ -30,6 +30,7 @@ from editor_gui.device import (
 from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 from editor_gui.plugins.project.element_status import usage_label, usage_options
+from editor_gui.plugins.project.paste import PasteTarget
 from editor_gui.plugins.project.service import DeviceProduct
 from editor_gui.plugins.project.space_text import default_name, space_error_text
 from editor_gui.plugins.project.space_usages import SPACE_USAGES
@@ -42,6 +43,7 @@ from xknxeditor.proj.core.medium import (
     has_domain_address,
     medium_name,
 )
+from xknxeditor.proj.core.paste import AddressPool, Allocation
 from xknxeditor.proj.core.space_rules import SpaceRuleError
 
 # A device whose parameters only the manufacturer's plugin dialog sets.
@@ -105,6 +107,8 @@ def _prune(d: dict[str, Any]) -> dict[str, Any]:
 # The media of lines and segments by the name a client passes.
 Medium = Literal["TP", "PL", "RF", "IP", "IoT"]
 _MEDIA: dict[str, str] = {name: medium for medium, name in MEDIUM_NAMES.items()}
+# How new areas and lines are numbered ("Generate Addresses" of the Add dialog).
+NumberAllocation = Literal["fill_up", "append", "start_with"]
 
 
 def _segment_entry(segment: Any) -> dict[str, Any]:
@@ -2212,9 +2216,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         Corridor; a Floor holds BuildingPart, Room and Corridor; a Stairway, Room or Corridor
         holds DistributionBoard; a DistributionBoard nothing. Only a Stairway, Room, Corridor or
         DistributionBoard holds devices. A type never changes. A Room can get its ``usage`` (its
-        "Use", an id from project_list_space_usages; "" for none). Each space is an undo step
-        (project_undo). Returns {space_id, space_ids, parent_id, space_type, name}: space_id is
-        the first new space, space_ids all of them."""
+        "Use", an id from project_list_space_usages; "" for none); without a ``name`` it is
+        named after its use. All of them are one undo step (project_undo). Returns {space_id,
+        space_ids, parent_id, space_type, name}: space_id is the first new space, space_ids all
+        of them."""
         require_project(ctx)
         if usage and (space_type != "Room" or usage not in SPACE_USAGES):
             raise ToolError(
@@ -2222,18 +2227,31 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             )
         if not 1 <= count <= _MAX_ADD_COUNT:
             raise ToolError(f"count must be 1 to {_MAX_ADD_COUNT}")
-        title = name.strip() or default_name(space_type)
+        title = (
+            name.strip()
+            or (usage_label(usage) if usage else "")
+            or default_name(space_type)
+        )
 
         def _create() -> dict[str, Any]:
             if parent_id is not None and project.find_space(parent_id) is None:
                 raise ToolError(f"no space with id {parent_id}")
+            target = project.paste_target_name(PasteTarget("space", parent_id))
+            label = (
+                PROJECT_S.HISTORY_EV_ADDED_BUILDING_PARTS.format(
+                    count=count, target=target
+                )
+                if count > 1
+                else None
+            )
             ids: list[int] = []
             try:
-                for _ in range(count):
-                    sid = project.create_space(parent_id, space_type, title, usage)
-                    if sid is None:
-                        raise ToolError("could not create space (no project open)")
-                    ids.append(sid)
+                with project.one_undo_step(label):
+                    for _ in range(count):
+                        sid = project.create_space(parent_id, space_type, title, usage)
+                        if sid is None:
+                            raise ToolError("could not create space (no project open)")
+                        ids.append(sid)
             except SpaceRuleError as error:
                 raise ToolError(space_error_text(error)) from error
             return {
@@ -2402,7 +2420,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Create a trade below the trade ``parent_id`` (id from project_trades), or at the top
         level without one, or ``count`` of them (1 to 100) as the Add dialog does; they come
         after their siblings. Without a ``name`` a trade gets the editor's default name ("New
-        trade" in English). Each trade is an undo step (project_undo). Returns the first new
+        trade" in English). All of them are one undo step (project_undo). Returns the first new
         trade as project_trades lists it, with ``trade_ids``: all of them."""
         require_project(ctx)
         if not 1 <= count <= _MAX_ADD_COUNT:
@@ -2412,11 +2430,18 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         def _create() -> dict[str, Any]:
             if parent_id is not None:
                 _require_trade(parent_id)
+            target = project.paste_target_name(PasteTarget("trade", parent_id))
+            label = (
+                PROJECT_S.HISTORY_EV_ADDED_TRADES.format(count=count, target=target)
+                if count > 1
+                else None
+            )
             ids: list[int] = []
-            for _ in range(count):
-                trade_id = project.create_trade(parent_id, title)
-                assert trade_id is not None
-                ids.append(trade_id)
+            with project.one_undo_step(label):
+                for _ in range(count):
+                    trade_id = project.create_trade(parent_id, title)
+                    assert trade_id is not None
+                    ids.append(trade_id)
             return {**_trade_result(ids[0]), "trade_ids": ids}
 
         return ctx.run_locked(_create)
@@ -2819,13 +2844,86 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     # --- topology mutations -----------------------------------------------
 
-    @tool("write")
-    def project_create_area(area_number: int, name: str = "") -> dict[str, Any]:
-        """Create a project topology area. Undoable with project_undo.
-        Returns {area_id, area_number, name}; use area_id for project_create_line and area edits."""
+    def _numbers(
+        used: set[int],
+        number: int | None,
+        count: int,
+        allocation: NumberAllocation,
+        start_with: int,
+    ) -> list[int]:
+        """The numbers (1 to 15) ``count`` new areas or lines get, as the Add dialog's
+        "Generate Addresses" gives them; ``number`` alone when given."""
+        if not 1 <= count <= _MAX_ADD_COUNT:
+            raise ToolError(f"count must be 1 to {_MAX_ADD_COUNT}")
+        if number is not None:
+            if count != 1:
+                raise ToolError("pass a number only with count 1")
+            return [number]
+        if not 1 <= start_with <= 15:
+            raise ToolError("start_with must be 1 to 15")
+        pool = AddressPool(0, 15, used, Allocation(allocation), start_with=start_with)
+        numbers = [pool.take() for _ in range(count)]
+        if None in numbers:
+            raise ToolError(PROJECT_S.ADD_LIMIT_REACHED)
+        return [n for n in numbers if n is not None]
+
+    @tool("read")
+    def project_line_media(area_number: int, line_number: int) -> dict[str, Any]:
+        """The media a new, empty line ``line_number`` of the area ``area_number`` can have,
+        as the Add dialog's Medium column offers them (line 0 of an area that is not there yet:
+        the main line of a new area). Returns {media}: names like "TP", in the offered order;
+        empty when no line can be added there."""
         require_project(ctx)
-        area_id = ctx.run_locked(lambda: project.create_area(area_number, name))
-        return {"area_id": area_id, "area_number": area_number, "name": name}
+        media = ctx.run_locked(lambda: project.new_line_media(area_number, line_number))
+        return {"media": [MEDIUM_NAMES[m] for m in media]}
+
+    @tool("write")
+    def project_create_area(
+        area_number: int | None = None,
+        name: str = "",
+        medium: Medium = "TP",
+        count: int = 1,
+        allocation: NumberAllocation = "fill_up",
+        start_with: int = 1,
+    ) -> dict[str, Any]:
+        """Create a project topology area with its main line (``x.0``) of ``medium`` (see
+        project_line_media), or ``count`` of them (1 to 100, one undo step) as the Add dialog
+        does. Without ``area_number`` the numbers 1-15 are given as "Generate Addresses" does:
+        ``allocation`` "fill_up" takes the lowest free one, "append" the one after the highest
+        (then the lowest free), "start_with" the first free from ``start_with`` on; each next
+        one the free one after the last. A project has at most 16 areas. Undoable with
+        project_undo. Returns {area_id, area_ids, area_number, area_numbers, name}; use area_id
+        for project_create_line and area edits."""
+        require_project(ctx)
+
+        def _create() -> dict[str, Any]:
+            used = {area.area_number for area in project.get_areas()}
+            numbers = _numbers(used, area_number, count, allocation, start_with)
+            label = (
+                PROJECT_S.HISTORY_EV_ADDED_AREAS.format(
+                    count=count, target=PROJECT_S.PANEL_TOPOLOGY
+                )
+                if count > 1
+                else None
+            )
+            ids: list[int] = []
+            with project.one_undo_step(label):
+                for number in numbers:
+                    try:
+                        area_id = project.create_area(number, name, _MEDIA[medium])
+                    except (MediumError, ValueError) as error:
+                        raise ToolError(str(error)) from error
+                    assert area_id is not None
+                    ids.append(area_id)
+            return {
+                "area_id": ids[0],
+                "area_ids": ids,
+                "area_number": numbers[0],
+                "area_numbers": numbers,
+                "name": name,
+            }
+
+        return ctx.run_locked(_create)
 
     @tool("write")
     def project_rename_area(area_id: int, name: str) -> dict[str, Any]:
@@ -2844,15 +2942,58 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_create_line(
-        area_id: int, line_number: int, name: str = ""
+        area_id: int,
+        line_number: int | None = None,
+        name: str = "",
+        medium: Medium | None = None,
+        count: int = 1,
+        allocation: NumberAllocation = "fill_up",
+        start_with: int = 1,
     ) -> dict[str, Any]:
-        """Create a project topology line. Use an area's id from project_topology as area_id.
-        Undoable with project_undo. Returns {line_id, area_id, line_number}; pass line_id to line edits."""
+        """Create a project topology line in an area (an area's id from project_topology), or
+        ``count`` of them (1 to 100, one undo step) as the Add dialog does. Without
+        ``line_number`` the numbers are given as in project_create_area. ``medium`` (see
+        project_line_media) defaults to the one a new line there gets (its area main line's).
+        An area has at most 16 lines, its main line included. Undoable with project_undo.
+        Returns {line_id, line_ids, area_id, line_number, line_numbers}; pass line_id to line
+        edits."""
         require_project(ctx)
-        line_id = ctx.run_locked(
-            lambda: project.create_line(area_id, line_number, name)
-        )
-        return {"line_id": line_id, "area_id": area_id, "line_number": line_number}
+
+        def _create() -> dict[str, Any]:
+            area = next((a for a in project.get_areas() if a.id == area_id), None)
+            if area is None:
+                raise ToolError(f"no area with id {area_id}; see project_topology")
+            used = {line.line_number for line in project.get_lines(area_id)}
+            numbers = _numbers(used, line_number, count, allocation, start_with)
+            target = project.paste_target_name(PasteTarget("area", area_id))
+            label = (
+                PROJECT_S.HISTORY_EV_ADDED_LINES.format(count=count, target=target)
+                if count > 1
+                else None
+            )
+            ids: list[int] = []
+            with project.one_undo_step(label):
+                for number in numbers:
+                    try:
+                        line_id = project.create_line(
+                            area_id,
+                            number,
+                            name,
+                            _MEDIA[medium] if medium is not None else None,
+                        )
+                    except (MediumError, ValueError) as error:
+                        raise ToolError(str(error)) from error
+                    assert line_id is not None
+                    ids.append(line_id)
+            return {
+                "line_id": ids[0],
+                "line_ids": ids,
+                "area_id": area_id,
+                "line_number": numbers[0],
+                "line_numbers": numbers,
+            }
+
+        return ctx.run_locked(_create)
 
     @tool("write")
     def project_rename_line(line_id: int, name: str) -> dict[str, Any]:
@@ -2877,28 +3018,47 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("write")
     def project_add_segment(
-        line_id: int, name: str | None = None, medium: Medium | None = None
+        line_id: int,
+        name: str | None = None,
+        medium: Medium | None = None,
+        count: int = 1,
     ) -> dict[str, Any]:
-        """Add a sub-segment to a line (``id`` from project_topology). A line's devices are on its
-        main segment (the line itself) unless they are on a sub-segment; a TP line can have TP or
-        RF sub-segments, an IP line TP, RF or IoT ones, an RF, PL or IoT line none, and a line at
-        most 128 segments. ``medium`` defaults to the line's own when a sub-segment can have it,
-        else TP; ``name`` to the editor's default. Undoable with project_undo. Returns the
-        segment as project_topology lists it: {id, number, name, medium, domain_address?}."""
+        """Add a sub-segment to a line (``id`` from project_topology), or ``count`` of them (1 to
+        100, one undo step) as the Add dialog does. A line's devices are on its main segment
+        (the line itself) unless they are on a sub-segment; a new sub-segment of a TP or IP line
+        is TP or RF, an RF, PL or IoT line takes none, and a line has at most 128 segments.
+        ``medium`` defaults to the line's own when a sub-segment can have it, else TP; ``name``
+        to the editor's default. Undoable with project_undo. Returns the (first) segment as
+        project_topology lists it: {id, number, name, medium, domain_address?}, with
+        ``segment_ids``: all of them."""
         require_project(ctx)
+        if not 1 <= count <= _MAX_ADD_COUNT:
+            raise ToolError(f"count must be 1 to {_MAX_ADD_COUNT}")
 
         def _add() -> dict[str, Any]:
             if project.find_line(line_id) is None:
                 raise ToolError(f"no line with id {line_id}")
-            try:
-                segment_id = project.add_segment(line_id, name)
-                if segment_id is None:
-                    raise ToolError("could not add a segment (no project open)")
-                if medium is not None:
-                    project.set_segment_medium(segment_id, _MEDIA[medium])
-            except MediumError as error:
-                raise ToolError(str(error)) from error
-            return _segment_dict(segment_id)
+            target = project.paste_target_name(PasteTarget("line", line_id))
+            label = (
+                PROJECT_S.HISTORY_EV_ADDED_SEGMENTS.format(count=count, target=target)
+                if count > 1
+                else None
+            )
+            ids: list[int] = []
+            with project.one_undo_step(label):
+                for _ in range(count):
+                    try:
+                        segment_id = project.add_segment(
+                            line_id,
+                            name,
+                            _MEDIA[medium] if medium is not None else None,
+                        )
+                    except MediumError as error:
+                        raise ToolError(str(error)) from error
+                    if segment_id is None:
+                        raise ToolError("could not add a segment (no project open)")
+                    ids.append(segment_id)
+            return {**_segment_dict(ids[0]), "segment_ids": ids}
 
         return ctx.run_locked(_add)
 

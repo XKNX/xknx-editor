@@ -52,23 +52,11 @@ msgstr "Com Vlaggen ({count})"
 msgid "Unassigned ({count})"
 msgstr "Niet toegewezen ({count})"
 
-msgid "Add Area"
-msgstr "Gebied Toevoegen"
-
-msgid "Add Line"
-msgstr "Lijn Toevoegen"
-
 msgid "Rename"
 msgstr "Hernoemen"
 
 msgid "Delete"
 msgstr "Verwijderen"
-
-msgid "New Area"
-msgstr "Nieuw Gebied"
-
-msgid "New Line"
-msgstr "Nieuwe Lijn"
 
 msgid "Number"
 msgstr "Nummer"
@@ -2382,9 +2370,6 @@ msgstr "Apparaat '{device}' is niet compatibel met het mediumtype van de lijn."
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "Apparaat '{device}' is niet compatibel met het mediumtype van het segment."
 
-msgid "Add Segment"
-msgstr "Segment Toevoegen"
-
 msgid "Rename segment to {name}"
 msgstr "Segment hernoemen naar {name}"
 
@@ -2888,3 +2873,54 @@ msgstr "Apparaat ontkoppelen"
 
 msgid "The device is on no line: put it on a line first."
 msgstr "Het apparaat staat op geen enkele lijn: zet het eerst op een lijn."
+
+msgid "Areas…"
+msgstr "Gebieden…"
+
+msgid "Lines…"
+msgstr "Lijnen…"
+
+msgid "Segments…"
+msgstr "Segmenten…"
+
+msgid "Add Segments…"
+msgstr "Segmenten Toevoegen…"
+
+msgid "Add Areas"
+msgstr "Gebieden Toevoegen"
+
+msgid "Add Lines"
+msgstr "Lijnen Toevoegen"
+
+msgid "Add Segments"
+msgstr "Segmenten Toevoegen"
+
+msgid "The limit to add was reached."
+msgstr "De limiet om toe te voegen is bereikt."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Vanwege topologiebeperkingen kan geen lijn aan het gebied {area} worden toegevoegd. Controleer het mediumtype van de backbone- en hoofdlijnen."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "{count} gebieden toegevoegd aan '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "{count} lijnen toegevoegd aan '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "{count} segmenten toegevoegd aan '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "{count} gebouwdelen toegevoegd aan '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "{count} disciplines toegevoegd aan '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "{count} hoofdgroepen toegevoegd aan '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "{count} middengroepen toegevoegd aan '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "{count} groepsadressen toegevoegd aan '{target}'."

@@ -1165,12 +1165,6 @@ msgstr "Фильтр комнат, устройств, функций…"
 msgid "Unassigned ({count})"
 msgstr "Не назначено ({count})"
 
-msgid "Add Area"
-msgstr "Добавить область"
-
-msgid "Add Line"
-msgstr "Добавить линию"
-
 msgid "Copy Address"
 msgstr "Копировать адрес"
 
@@ -1239,12 +1233,6 @@ msgstr "Удалить устройство"
 
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "Удалить «{name}»? Его групповые объекты и связи с групповыми адресами будут удалены, а индивидуальный адрес освобождён. Это действие можно отменить."
-
-msgid "New Area"
-msgstr "Новая область"
-
-msgid "New Line"
-msgstr "Новая линия"
 
 msgid "Number"
 msgstr "Номер"
@@ -2344,9 +2332,6 @@ msgstr "Устройство '{device}' несовместимо с типом �
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "Устройство '{device}' несовместимо с типом среды сегмента."
 
-msgid "Add Segment"
-msgstr "Добавить сегмент"
-
 msgid "Rename segment to {name}"
 msgstr "Переименовать сегмент в {name}"
 
@@ -2850,3 +2835,54 @@ msgstr "Отсоединить устройство"
 
 msgid "The device is on no line: put it on a line first."
 msgstr "Устройство не находится ни на одной линии: сначала поместите его на линию."
+
+msgid "Areas…"
+msgstr "Области…"
+
+msgid "Lines…"
+msgstr "Линии…"
+
+msgid "Segments…"
+msgstr "Сегменты…"
+
+msgid "Add Segments…"
+msgstr "Добавить сегменты…"
+
+msgid "Add Areas"
+msgstr "Добавить области"
+
+msgid "Add Lines"
+msgstr "Добавить линии"
+
+msgid "Add Segments"
+msgstr "Добавить сегменты"
+
+msgid "The limit to add was reached."
+msgstr "Достигнут предел добавления."
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "Из-за ограничений топологии нельзя добавить линию в область {area}. Проверьте тип среды магистральной и главных линий."
+
+msgid "Added {count} areas to '{target}'."
+msgstr "Добавлено областей: {count} в '{target}'."
+
+msgid "Added {count} lines to '{target}'."
+msgstr "Добавлено линий: {count} в '{target}'."
+
+msgid "Added {count} segments to '{target}'."
+msgstr "Добавлено сегментов: {count} в '{target}'."
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "Добавлено частей здания: {count} в '{target}'."
+
+msgid "Added {count} trades to '{target}'."
+msgstr "Добавлено разделов: {count} в '{target}'."
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "Добавлено главных групп: {count} в '{target}'."
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "Добавлено средних групп: {count} в '{target}'."
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "Добавлено групповых адресов: {count} в '{target}'."

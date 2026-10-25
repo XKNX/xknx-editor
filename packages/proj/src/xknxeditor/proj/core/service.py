@@ -859,8 +859,17 @@ class ProjectService:
         return index
 
     def create_area(
-        self, project_id: str, installation: int, address: int, name: str
+        self,
+        project_id: str,
+        installation: int,
+        address: int,
+        name: str,
+        *,
+        medium_type: str | None = None,
     ) -> int:
+        """Add the area ``address``; with ``medium_type`` also its main line (``x.0``) of that
+        medium, in the same undo step. Raises ``ValueError`` for an address in use,
+        ``MediumError`` for a medium the rules refuse (nothing is added then)."""
         state = self._state(project_id)
         inst = self._installation(state, installation)
         clash = (
@@ -872,6 +881,9 @@ class ProjectService:
             raise ValueError(
                 f"Area address {address} already used in this installation by area {clash.id}"
             )
+        if medium_type is not None:
+            self.check_new_line(project_id, installation, address, 0, medium_type)
+        start = state.store.cursor
         event = CreateArea(
             installation_id=inst.id,
             address=address,
@@ -879,11 +891,23 @@ class ProjectService:
         )
         state.store.append(event)
         assert event.area_id is not None
+        if medium_type is not None:
+            self.create_line(project_id, event.area_id, 0, "", medium_type=medium_type)
+            state.store.group_since(start)
         return event.area_id
 
     def create_line(
-        self, project_id: str, area_id: int, address: int, name: str
+        self,
+        project_id: str,
+        area_id: int,
+        address: int,
+        name: str,
+        *,
+        medium_type: str | None = None,
     ) -> int:
+        """Add the line ``address`` to an area, of ``medium_type`` (by default the medium a new
+        line there gets, see :func:`_new_line_medium`), in one undo step. Raises ``ValueError``
+        for an address in use, ``MediumError`` for a medium the rules refuse."""
         state = self._state(project_id)
         clash = (
             state.session.query(Line)
@@ -895,6 +919,14 @@ class ProjectService:
                 f"Line address {address} already used in this area by line {clash.id}"
             )
         medium, domain_address = _new_line_medium(state.session, area_id, address)
+        if medium_type is not None and medium_type != medium:
+            area = state.session.get(Area, area_id)
+            if area is None:
+                raise KeyError(f"No area with id {area_id}")
+            self.check_new_line(
+                project_id, area.installation.index, area.address, address, medium_type
+            )
+        start = state.store.cursor
         event = CreateLine(
             area_id=area_id,
             address=address,
@@ -903,8 +935,53 @@ class ProjectService:
             domain_address=domain_address,
         )
         state.store.append(event)
-        assert event.line_id is not None
+        assert event.line_id is not None and event.segment_id is not None
+        if medium_type is not None and medium_type != medium:
+            self.set_segment_medium(project_id, event.segment_id, medium_type)
+            state.store.group_since(start)
         return event.line_id
+
+    def new_line_media(
+        self, project_id: str, installation: int, area_address: int, line_address: int
+    ) -> list[str]:
+        """The media an empty new line ``line_address`` of the area ``area_address`` can have
+        as the medium rules allow them (line 0 of an area not there yet: the main line of a new
+        area), in the order lines offer them."""
+        allowed: list[str] = []
+        for medium in MEDIUM_NAMES:
+            try:
+                self.check_new_line(
+                    project_id, installation, area_address, line_address, medium
+                )
+            except MediumError:
+                continue
+            allowed.append(medium)
+        return allowed
+
+    def check_new_line(
+        self,
+        project_id: str,
+        installation: int,
+        area_address: int,
+        line_address: int,
+        medium: str,
+    ) -> None:
+        """Raise a ``MediumError`` unless an empty new line (see :meth:`new_line_media`) can
+        have ``medium``."""
+        state = self._state(project_id)
+        lines = [
+            view
+            for view in _line_views(self._installation(state, installation))
+            if (view.area, view.address) != (area_address, line_address)
+        ]
+        trial = LineView(
+            id=-1,
+            area=area_address,
+            address=line_address,
+            name="",
+            segments=(SegmentView(id=-1, number=0, medium=MEDIUM_TP),),
+        )
+        check_medium_change([*lines, trial], -1, medium)
 
     def bus_loads(
         self, project_id: str, hardware: Mapping[str, Hardware]
@@ -1009,17 +1086,23 @@ class ProjectService:
         if not line.segments:
             raise KeyError(f"Line {line_id} has no segment")
         main = _main_segment(line).medium_type
+        default = main if main in sub_segment_media(main) else MEDIUM_TP
         if medium_type is None:
-            medium_type = main if main in sub_segment_media(main) else MEDIUM_TP
+            medium_type = default
         check_new_sub_segment(main, medium_type)
         if len(line.segments) >= MAX_SEGMENTS:
             raise MediumError("too_many_segments")
         number = max(s.number for s in line.segments) + 1
+        start = state.store.cursor
         event = CreateSegment(
-            line_id=line_id, number=number, medium_type=medium_type, name=name
+            line_id=line_id, number=number, medium_type=default, name=name
         )
         state.store.append(event)
         assert event.segment_id is not None
+        if medium_type != default:
+            # Another medium as a change of it, which gives its domain address.
+            self.set_segment_medium(project_id, event.segment_id, medium_type)
+            state.store.group_since(start)
         return event.segment_id
 
     def device_segments(self, project_id: str) -> dict[int, int]:

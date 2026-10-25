@@ -1165,12 +1165,6 @@ msgstr "过滤房间、设备、功能…"
 msgid "Unassigned ({count})"
 msgstr "未分配（{count}）"
 
-msgid "Add Area"
-msgstr "添加区域"
-
-msgid "Add Line"
-msgstr "添加支线"
-
 msgid "Copy Address"
 msgstr "复制地址"
 
@@ -1239,12 +1233,6 @@ msgstr "删除设备"
 
 msgid "Delete '{name}'? Its group objects and group-address links are removed and its individual address is freed. This can be undone."
 msgstr "删除“{name}”？其组对象和组地址链接将被移除，其物理地址将被释放。此操作可以撤消。"
-
-msgid "New Area"
-msgstr "新区域"
-
-msgid "New Line"
-msgstr "新支线"
 
 msgid "Number"
 msgstr "编号"
@@ -2344,9 +2332,6 @@ msgstr "设备 '{device}'和线路的介质类型不兼容。"
 msgid "Device '{device}' is incompatible with segment's medium type."
 msgstr "设备 '{device}'和段的介质类型不兼容。"
 
-msgid "Add Segment"
-msgstr "添加段"
-
 msgid "Rename segment to {name}"
 msgstr "将段重命名为 {name}"
 
@@ -2850,3 +2835,54 @@ msgstr "取消设备链接"
 
 msgid "The device is on no line: put it on a line first."
 msgstr "设备不在任何线路上：请先将其放到一条线路上。"
+
+msgid "Areas…"
+msgstr "区域…"
+
+msgid "Lines…"
+msgstr "线路…"
+
+msgid "Segments…"
+msgstr "段…"
+
+msgid "Add Segments…"
+msgstr "添加段…"
+
+msgid "Add Areas"
+msgstr "添加区域"
+
+msgid "Add Lines"
+msgstr "添加线路"
+
+msgid "Add Segments"
+msgstr "添加段"
+
+msgid "The limit to add was reached."
+msgstr "已达到添加上限。"
+
+msgid "Cannot add any line to the area {area} because of topology constraints. Please check the medium type of the backbone and main lines."
+msgstr "由于拓扑限制，无法向区域 {area} 添加任何线路。请检查主干线和主线的介质类型。"
+
+msgid "Added {count} areas to '{target}'."
+msgstr "已向“{target}”添加 {count} 个区域。"
+
+msgid "Added {count} lines to '{target}'."
+msgstr "已向“{target}”添加 {count} 条线路。"
+
+msgid "Added {count} segments to '{target}'."
+msgstr "已向“{target}”添加 {count} 个段。"
+
+msgid "Added {count} building parts to '{target}'."
+msgstr "已向“{target}”添加 {count} 个建筑部分。"
+
+msgid "Added {count} trades to '{target}'."
+msgstr "已向“{target}”添加 {count} 个专业。"
+
+msgid "Added {count} main groups to '{target}'."
+msgstr "已向“{target}”添加 {count} 个主组。"
+
+msgid "Added {count} middle groups to '{target}'."
+msgstr "已向“{target}”添加 {count} 个中间组。"
+
+msgid "Added {count} group addresses to '{target}'."
+msgstr "已向“{target}”添加 {count} 个组地址。"
