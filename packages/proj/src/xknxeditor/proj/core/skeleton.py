@@ -16,10 +16,10 @@ from uuid import uuid4
 from sqlalchemy.orm import Session
 
 from xknxeditor.proj.core.addressing import GroupAddressStyle
+from xknxeditor.proj.core.medium import MEDIUM_IP, MEDIUM_TP
 from xknxeditor.proj.models import Area, Installation, Line, Project, Segment, Space
 
-MEDIUM_IP = "MT-5"
-MEDIUM_TP = "MT-0"
+__all__ = ["DEFAULT_INSTALLATION", "MEDIUM_IP", "MEDIUM_TP", "seed_new_project"]
 
 DEFAULT_INSTALLATION = 0
 

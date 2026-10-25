@@ -2531,3 +2531,57 @@ msgstr "{line} (erbt von {space})"
 
 msgid "Set current line"
 msgstr "Aktuelle Linie festlegen"
+
+msgid "Segment"
+msgstr "Segment"
+
+msgid "Medium"
+msgstr "Medientyp"
+
+msgid "Domain Address"
+msgstr "Domänenadresse"
+
+msgid "segment"
+msgstr "Segment"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Der Medientyp eines Segments kann nur geändert werden, wenn es kein Gerät enthält."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
+msgstr "Unter einem Hauptsegment mit dem Medientyp {medium} sind keine Segmente erlaubt."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Der Medientyp des Segments '{segment}' kann nicht auf IoT geändert werden, weil seine übergeordnete Linie '{line}' nicht vom Medientyp IP ist."
+
+msgid "A sub-segment of KNX medium type {medium} is not allowed."
+msgstr "Ein Untersegment mit dem Medientyp {medium} ist nicht erlaubt."
+
+msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
+msgstr "Der Medientyp der Linie '{line}' kann nicht mehr in {medium} geändert werden, weil sie bereits Segmente enthält, die darunter nicht erlaubt sind."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Die maximale Anzahl an Segmenten ist erreicht."
+
+msgid "The main segment cannot be deleted."
+msgstr "Ein Hauptsegment kann nicht gelöscht werden."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Das Gerät '{device}' ist nicht kompatibel zu dem Medientyp der Linie."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Das Gerät '{device}' ist nicht kompatibel zu dem Medientyp des Segmentes."
+
+msgid "Segment {area}.{line}"
+msgstr "Segment {area}.{line}"
+
+msgid "{name} (Segment {area}.{line})"
+msgstr "{name} (Segment {area}.{line})"
+
+msgid "Add Segment"
+msgstr "Segment hinzufügen"
+
+msgid "Rename segment to {name}"
+msgstr "Segment in {name} umbenennen"
+
+msgid "Set medium to {medium}"
+msgstr "Medientyp auf {medium} festlegen"

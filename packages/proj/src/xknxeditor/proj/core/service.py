@@ -77,6 +77,7 @@ from xknxeditor.proj.core.events import (
     RenameGroupAddress,
     RenameGroupRange,
     RenameLine,
+    RenameSegment,
     RenameSpace,
     SetComment,
     SetComObjectDatapointType,
@@ -101,6 +102,7 @@ from xknxeditor.proj.core.events import (
     SetGroupRangeAddress,
     SetParameter,
     SetProjectName,
+    SetSegmentMedium,
     SetSpaceDefaultLine,
     SetSpaceDescription,
     SetSpaceNumber,
@@ -133,6 +135,17 @@ from xknxeditor.proj.core.ga_security import (
     secured_group_addresses,
     security_attributes,
 )
+from xknxeditor.proj.core.medium import (
+    MAX_SEGMENTS,
+    MEDIUM_NAMES,
+    MEDIUM_TP,
+    MediumError,
+    check_sub_segment,
+    medium_name,
+    needs_domain_address,
+    new_domain_address,
+    sub_segment_media,
+)
 from xknxeditor.proj.core.product_prune import ProgressCallback
 from xknxeditor.proj.core.project_secrets import (
     InvalidProjectPassword,
@@ -142,7 +155,7 @@ from xknxeditor.proj.core.project_secrets import (
     new_salt,
     recrypt,
 )
-from xknxeditor.proj.core.skeleton import MEDIUM_TP, seed_new_project
+from xknxeditor.proj.core.skeleton import seed_new_project
 from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
     COMPLETION_STATUSES,
@@ -288,6 +301,17 @@ class SpaceInfo:
 
 
 @dataclass(frozen=True)
+class DevicePlacement:
+    """A device's segment and line, its device number (None for none) and its hardware program
+    (``hardware2program_ref_id``, None for none)."""
+
+    segment_id: int
+    line_id: int
+    address: int | None
+    hardware2program_ref_id: str | None
+
+
+@dataclass(frozen=True)
 class CurrentLine:
     """The Current Line of a space: the line, and the space that sets it (the space itself or
     one above it)."""
@@ -407,6 +431,11 @@ class DeviceLinkInfo:
     write: bool
     transmit: bool
     update: bool
+
+
+def _main_segment(line: Line) -> Segment:
+    """A line's main segment: its lowest numbered one."""
+    return min(line.segments, key=lambda s: (s.number, s.id))
 
 
 def _address_order(device: Device) -> tuple[int, int, int, int, int]:
@@ -658,23 +687,106 @@ class ProjectService:
         project_id: str,
         line_id: int,
         *,
-        medium_type: str = MEDIUM_TP,
+        medium_type: str | None = None,
         name: str = "",
     ) -> int:
-        """Append a media segment to a line, numbering it after the line's existing segments."""
+        """Append a sub-segment to a line, numbering it after the line's existing segments. It
+        gets ``medium_type``, by default the line's own when a sub-segment can have it, else TP.
+        Raises ``MediumError`` when the line allows no such sub-segment or has the most segments
+        a line can have, ``KeyError`` for an unknown line."""
         state = self._state(project_id)
-        highest = (
-            state.session.query(func.max(Segment.number))
-            .filter_by(line_id=line_id)
-            .scalar()
-        )
-        number = highest + 1 if highest is not None else 0
+        line = state.session.get(Line, line_id)
+        if line is None:
+            raise KeyError(f"No line with id {line_id}")
+        if not line.segments:
+            raise KeyError(f"Line {line_id} has no segment")
+        main = _main_segment(line).medium_type
+        if medium_type is None:
+            medium_type = main if main in sub_segment_media(main) else MEDIUM_TP
+        check_sub_segment(main, medium_type, name, line.name)
+        if len(line.segments) >= MAX_SEGMENTS:
+            raise MediumError("too_many_segments")
+        number = max(s.number for s in line.segments) + 1
         event = CreateSegment(
             line_id=line_id, number=number, medium_type=medium_type, name=name
         )
         state.store.append(event)
         assert event.segment_id is not None
         return event.segment_id
+
+    def device_segments(self, project_id: str) -> dict[int, int]:
+        """Every device's segment: ``device id -> segment id``."""
+        session = self._state(project_id).session
+        return dict(session.query(Device.id, Device.segment_id).all())
+
+    def device_placement(self, project_id: str, device_id: int) -> DevicePlacement:
+        """Where a device is, and its hardware program. Raises ``KeyError`` for an unknown
+        device."""
+        device = self._state(project_id).session.get(Device, device_id)
+        if device is None:
+            raise KeyError(f"No device with id {device_id}")
+        return DevicePlacement(
+            segment_id=device.segment_id,
+            line_id=device.segment.line_id,
+            address=device.address,
+            hardware2program_ref_id=device.hardware2program_ref_id,
+        )
+
+    def rename_segment(self, project_id: str, segment_id: int, name: str) -> None:
+        self._state(project_id).store.append(
+            RenameSegment(segment_id=segment_id, name=name)
+        )
+
+    def set_segment_medium(
+        self, project_id: str, segment_id: int, medium_type: str
+    ) -> None:
+        """Change a segment's medium; the main segment's is the line's. An RF or PL segment gets
+        a domain address no other segment has. Raises ``MediumError`` when the segment holds
+        devices or the media of the line do not allow it, ``KeyError`` for an unknown segment."""
+        state = self._state(project_id)
+        segment = state.session.get(Segment, segment_id)
+        if segment is None:
+            raise KeyError(f"No segment with id {segment_id}")
+        if medium_type not in MEDIUM_NAMES:
+            raise MediumError("unknown_medium", medium=medium_type)
+        if segment.medium_type == medium_type:
+            return
+        if segment.devices:
+            raise MediumError("segment_has_devices")
+        line = segment.line
+        main = _main_segment(line)
+        if segment.id == main.id:
+            allowed = sub_segment_media(medium_type)
+            if any(
+                s.medium_type not in allowed for s in line.segments if s.id != main.id
+            ):
+                raise MediumError(
+                    "line_has_sub_segments",
+                    line=line.name,
+                    medium=medium_name(medium_type),
+                )
+        else:
+            check_sub_segment(main.medium_type, medium_type, segment.name, line.name)
+        domain: int | None = None
+        if needs_domain_address(medium_type):
+            used = {
+                s.domain_address
+                for s in state.session.query(Segment)
+                if s.domain_address is not None and s.id != segment.id
+            }
+            domain = new_domain_address(medium_type, used)
+        state.store.append(
+            SetSegmentMedium(
+                segment_id=segment_id, medium_type=medium_type, domain_address=domain
+            )
+        )
+
+    def set_line_medium(self, project_id: str, line_id: int, medium_type: str) -> None:
+        """Change a line's medium: its main segment's (see :meth:`set_segment_medium`)."""
+        line = self._state(project_id).session.get(Line, line_id)
+        if line is None or not line.segments:
+            raise KeyError(f"No line with id {line_id}")
+        self.set_segment_medium(project_id, _main_segment(line).id, medium_type)
 
     def add_device(
         self,
@@ -1424,7 +1536,13 @@ class ProjectService:
         self._state(project_id).store.append(RemoveLine(target_id=line_id))
 
     def remove_segment(self, project_id: str, segment_id: int) -> None:
-        self._state(project_id).store.append(RemoveSegment(target_id=segment_id))
+        """Remove a sub-segment with its devices. Raises ``MediumError`` for a line's main
+        segment."""
+        state = self._state(project_id)
+        segment = state.session.get(Segment, segment_id)
+        if segment is not None and _main_segment(segment.line).id == segment.id:
+            raise MediumError("main_segment")
+        state.store.append(RemoveSegment(target_id=segment_id))
 
     def remove_group_address(self, project_id: str, group_address_id: int) -> None:
         self._state(project_id).store.append(
@@ -2578,7 +2696,8 @@ class ProjectService:
     def set_topology_description(
         self, project_id: str, kind: str, element_id: int, description: str
     ) -> None:
-        """The description of an area or a line (``kind`` "area" or "line"); undoable."""
+        """The description of an area, a line or a segment (``kind`` "area", "line" or
+        "segment"); undoable."""
         self._state(project_id).store.append(
             SetTopologyDescription(
                 kind=kind, element_id=element_id, description=description
@@ -3412,8 +3531,9 @@ class ProjectService:
     ) -> None:
         """Assign a device an ``area.line.device`` address inside its installation.
 
-        Looks up the line by its area/line numbers and uses that line's first segment (a segment is
-        a media grouping, not part of the address). Raises when no such line exists."""
+        Looks up the line by its area/line numbers. A device staying in its line stays on its
+        segment; one moving to another line goes on the line's main segment (a segment is a media
+        grouping, not part of the address). Raises when no such line exists."""
         state = self._state(project_id)
         device = state.session.get(Device, device_id)
         if device is None:
@@ -3432,9 +3552,12 @@ class ProjectService:
         )
         if line is None:
             raise KeyError(f"No line {area_no}.{line_no} in this installation")
-        self.move_device(
-            project_id, device_id, self._first_segment(state, line).id, octet
+        segment = (
+            device.segment
+            if device.segment.line_id == line.id
+            else self._first_segment(state, line)
         )
+        self.move_device(project_id, device_id, segment.id, octet)
 
     # --- internals --------------------------------------------------------
 
@@ -3636,7 +3759,7 @@ class ProjectService:
         segment = (
             state.session.query(Segment)
             .filter_by(line_id=line.id)
-            .order_by(Segment.id)
+            .order_by(Segment.number, Segment.id)
             .first()
         )
         if segment is None:

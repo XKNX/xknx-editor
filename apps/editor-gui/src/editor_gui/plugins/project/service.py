@@ -12,7 +12,7 @@ import time
 import xml.etree.ElementTree as ET
 import zipfile
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 
@@ -39,6 +39,7 @@ from editor_gui.device_snapshot import (
 )
 from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
 from editor_gui.plugins.project.element_status import status_label, usage_label
+from editor_gui.plugins.project.medium_text import medium_error_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.history import HistoryEntry
 from editor_gui.settings import config_dir
@@ -61,14 +62,25 @@ from xknxeditor.proj import import_ga_export as _import_ga_export
 from xknxeditor.proj import import_knxproj as _import_knxproj
 from xknxeditor.proj import is_ga_export as _is_ga_export
 from xknxeditor.proj import write_ga_export as _write_ga_export
-from xknxeditor.proj.core.addressing import GroupAddressStyle, format_ga, parse_ga
+from xknxeditor.proj.core.addressing import (
+    GroupAddressStyle,
+    format_ga,
+    parse_ga,
+    parse_ia,
+)
 from xknxeditor.proj.core.dpt import normalize_datapoint_type
 from xknxeditor.proj.core.ga_export import write_ga_csv as _write_ga_csv
 from xknxeditor.proj.core.identity import qualified_com_object_ref
 from xknxeditor.proj.core.ip_secure import PASSWORD_ACCESS_TYPES
+from xknxeditor.proj.core.medium import (
+    MEDIUM_RF,
+    MEDIUM_TP,
+    MediumError,
+    device_fits,
+    medium_name,
+)
 from xknxeditor.proj.core.project_secrets import check_project_password
 from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
-from xknxeditor.proj.core.skeleton import MEDIUM_TP
 
 if TYPE_CHECKING:
     from editor_gui.plugins.base import Logger
@@ -552,6 +564,12 @@ _HISTORY_LABELS: dict[str, Callable[[dict[str, Any]], str]] = {
     ),
     "SetSpaceUsage": lambda d: S.HISTORY_EV_SET_SPACE_USE,
     "SetSpaceDefaultLine": lambda d: S.HISTORY_EV_SET_CURRENT_LINE,
+    "RenameSegment": lambda d: S.HISTORY_EV_RENAME_SEGMENT.format(
+        name=_quoted(d, "name")
+    ),
+    "SetSegmentMedium": lambda d: S.HISTORY_EV_SET_MEDIUM.format(
+        medium=medium_name(str(d.get("medium_type", "")))
+    ),
     "SetFunctionDescription": lambda d: S.HISTORY_EV_SET_FUNCTION_DESCRIPTION,
     "CreateFunction": lambda d: S.HISTORY_EV_CREATE_FUNCTION.format(
         name=_quoted(d, "name")
@@ -601,12 +619,13 @@ def _history_label(event_type: str, data: dict[str, Any]) -> str:
 
 @dataclass(frozen=True)
 class ElementDetails:
-    """What the details of a selected area, line, group range, group address or building function
-    show. ``title_kind`` names it in the tab ("area", "line", "main_group", "middle_group",
-    "group_range", "group_address", "function"); a line's address shows after its area's
-    (``prefix`` "1."), a middle group's after its main group's ("1/"). ``status`` is the element's
-    "Status" for the kinds that have one, else None; a function has no address
-    (``has_address``)."""
+    """What the details of a selected area, line, segment, group range, group address or
+    building function show. ``title_kind`` names it in the tab ("area", "line", "segment",
+    "main_group", "middle_group", "group_range", "group_address", "function"); a line's address
+    shows after its area's (``prefix`` "1."), a middle group's after its main group's ("1/").
+    ``status`` is the element's "Status" for the kinds that have one, else None; a segment and a
+    function have no address (``has_address``). A line and a segment have a ``medium``, an RF or
+    PL one its ``domain_address`` as shown ("" for none)."""
 
     kind: str
     element_id: int
@@ -618,6 +637,18 @@ class ElementDetails:
     editable: bool = True
     status: str | None = None
     has_address: bool = True
+    medium: str | None = None
+    domain_address: str = ""
+
+
+def format_domain_address(medium: str, address: int | None) -> str:
+    """A domain address as it is shown: an RF one as ``0001:23456789`` (its 48 bits in hex), a
+    PL one in decimal; "" for none."""
+    if address is None:
+        return ""
+    if medium == MEDIUM_RF:
+        return f"{address >> 32:04X}:{address & 0xFFFFFFFF:08X}"
+    return str(address)
 
 
 def _find_range(
@@ -640,6 +671,44 @@ class _Area:
     description: str = ""
 
 
+def _line_of(line: Any) -> "_Line":
+    """A line of the topology (a ``Line`` row) with its medium and its sub-segments."""
+    ordered = sorted(line.segments, key=lambda s: (s.number, s.id))
+    return _Line(
+        id=line.id,
+        area_id=line.area_id,
+        line_number=line.address,
+        name=line.name,
+        description=line.description,
+        medium_type=ordered[0].medium_type if ordered else MEDIUM_TP,
+        domain_address=ordered[0].domain_address if ordered else None,
+        segments=[
+            _Segment(
+                id=s.id,
+                line_id=line.id,
+                number=s.number,
+                name=s.name,
+                medium_type=s.medium_type,
+                description=s.description,
+                domain_address=s.domain_address,
+            )
+            for s in ordered[1:]
+        ],
+        main_segment_id=ordered[0].id if ordered else None,
+    )
+
+
+@dataclass
+class _Segment:
+    id: int
+    line_id: int
+    number: int
+    name: str
+    medium_type: str
+    description: str = ""
+    domain_address: int | None = None
+
+
 @dataclass
 class _Line:
     id: int
@@ -647,6 +716,12 @@ class _Line:
     line_number: int
     name: str
     description: str = ""
+    # Its main segment's medium and domain address, the line's.
+    medium_type: str = MEDIUM_TP
+    domain_address: int | None = None
+    # Its sub-segments, in their order (the main segment is not among them).
+    segments: list[_Segment] = field(default_factory=list[_Segment])
+    main_segment_id: int | None = None
 
 
 @dataclass
@@ -2316,17 +2391,7 @@ class ProjectService:
             for a in installation.areas
         ]
         self._lines_cache = {
-            a.id: [
-                _Line(
-                    id=ln.id,
-                    area_id=ln.area_id,
-                    line_number=ln.address,
-                    name=ln.name,
-                    description=ln.description,
-                )
-                for ln in a.lines
-            ]
-            for a in installation.areas
+            a.id: [_line_of(ln) for ln in a.lines] for a in installation.areas
         }
         self._topology_cache_version = self._version
 
@@ -4015,7 +4080,8 @@ class ProjectService:
         addresses its application has (its tunnelling addresses), the highest free ones of the
         line, unless ``with_additional_addresses`` is off; when the line has too few free, it is
         added without them. A device added to the space ``space_id`` goes on the space's Current
-        Line when no ``segment_id`` is given, in the same undo step."""
+        Line when no ``segment_id`` is given, in the same undo step. Raises ``MediumError`` when
+        the device's hardware does not support the medium of the segment."""
         if self._pid is None:
             return None
         if not app.program.is_secure_enabled:
@@ -4027,6 +4093,11 @@ class ProjectService:
             segment_id = self._svc.current_line_segment(self._pid, space_id)
         if segment_id is None:
             segment_id = self._default_device_segment_id()
+        self.check_device_medium(
+            hardware2program_ref_id,
+            segment_id,
+            name or product.product_name or app.name,
+        )
         if address is None:
             # Assign the next free individual address on the target line (standard behaviour), instead of
             # leaving the device address-less. Editable afterwards in Configure. If the line is full,
@@ -4609,9 +4680,11 @@ class ProjectService:
     ) -> bool:
         """Persist a new individual address. Returns ``True`` on success, ``False`` when rejected
         (e.g. the address is already used) so the caller can avoid mutating its live device object
-        with an address the project never accepted."""
+        with an address the project never accepted. Raises ``MediumError`` when the address
+        moves the device to a line whose medium its hardware does not support."""
         if self._pid is None or old_address == new_address:
             return False
+        self._check_line_medium(node_id, new_address)
         try:
             self._svc.set_individual_address(self._pid, node_id, new_address)
         except (KeyError, ValueError) as e:
@@ -4858,6 +4931,169 @@ class ProjectService:
         if self._pid is None or old_name == new_name:
             return
         self._svc.rename_line(self._pid, line_id, new_name)
+        self._bump()
+
+    @io_guarded(dict)
+    @revision_cached
+    def device_segments(self) -> dict[int, int]:
+        """Every device's segment: ``node id -> segment id``."""
+        if self._pid is None:
+            return {}
+        return self._svc.device_segments(self._pid)
+
+    def find_line(self, line_id: int) -> _Line | None:
+        """The line ``line_id`` with its medium and its sub-segments."""
+        found = self.find_topology("line", line_id)
+        return found if isinstance(found, _Line) else None
+
+    def find_segment(self, segment_id: int) -> _Segment | None:
+        """The sub-segment ``segment_id`` (a line's main segment is the line itself)."""
+        self._ensure_topology_cache()
+        return next(
+            (
+                segment
+                for lines in (self._lines_cache or {}).values()
+                for line in lines
+                for segment in line.segments
+                if segment.id == segment_id
+            ),
+            None,
+        )
+
+    def add_segment(self, line_id: int, name: str | None = None) -> int | None:
+        """A new sub-segment of the line, with the medium a line gives a new one; undoable.
+        Raises ``MediumError`` when the line allows none."""
+        if self._pid is None:
+            return None
+        segment_id = self._svc.add_segment(
+            self._pid,
+            line_id,
+            name=S.SEGMENT_DEFAULT_NAME if name is None else name,
+        )
+        self._bump()
+        return segment_id
+
+    def remove_segment(self, segment_id: int) -> None:
+        """Remove a sub-segment and its devices; undoable."""
+        if self._pid is None:
+            return
+        self._svc.remove_segment(self._pid, segment_id)
+        self._bump()
+
+    def rename_segment(self, segment_id: int, name: str) -> None:
+        segment = self.find_segment(segment_id)
+        if self._pid is None or segment is None or segment.name == name:
+            return
+        self._svc.rename_segment(self._pid, segment_id, name)
+        self._bump()
+
+    def set_line_medium(self, line_id: int, medium_type: str) -> None:
+        """Change a line's medium (its main segment's); undoable. Raises ``MediumError`` when
+        the line holds devices or its segments do not allow it."""
+        line = self.find_line(line_id)
+        if self._pid is None or line is None or line.medium_type == medium_type:
+            return
+        self._svc.set_line_medium(self._pid, line_id, medium_type)
+        self._bump()
+
+    def set_segment_medium(self, segment_id: int, medium_type: str) -> None:
+        """Change a sub-segment's medium; undoable. Raises ``MediumError`` when it holds devices
+        or its line does not allow it."""
+        segment = self.find_segment(segment_id)
+        if self._pid is None or segment is None or segment.medium_type == medium_type:
+            return
+        self._svc.set_segment_medium(self._pid, segment_id, medium_type)
+        self._bump()
+
+    def segment_medium(self, segment_id: int) -> tuple[str, bool] | None:
+        """A segment's medium and whether it is its line's main segment; None for no such
+        segment."""
+        self._ensure_topology_cache()
+        for lines in (self._lines_cache or {}).values():
+            for line in lines:
+                if line.main_segment_id == segment_id:
+                    return line.medium_type, True
+                for segment in line.segments:
+                    if segment.id == segment_id:
+                        return segment.medium_type, False
+        return None
+
+    def check_device_medium(
+        self, hardware2program_ref_id: str | None, segment_id: int, label: str
+    ) -> None:
+        """Raise a ``MediumError`` naming the device ``label`` when its hardware does not support
+        the medium of the segment. Couplers are not checked, nor a device whose hardware the
+        catalog lacks or lists without media."""
+        if not hardware2program_ref_id:
+            return
+        profile = self._catalog.program_media(hardware2program_ref_id)
+        target = self.segment_medium(segment_id)
+        if profile is None or target is None:
+            return
+        media, coupler = profile
+        medium, main = target
+        if coupler or not media or device_fits(medium, media):
+            return
+        raise MediumError(
+            "device_line_medium" if main else "device_segment_medium", device=label
+        )
+
+    def _check_line_medium(self, node_id: int, address: str) -> None:
+        """Raise a ``MediumError`` when the individual address ``address`` moves the device to
+        another line, onto a main segment whose medium its hardware does not support."""
+        try:
+            area_number, line_number, _device = parse_ia(address)
+            placement = self._svc.device_placement(cast(str, self._pid), node_id)
+        except (KeyError, ValueError):
+            return
+        area = next((a for a in self.get_areas() if a.area_number == area_number), None)
+        line = next(
+            (
+                ln
+                for ln in (self.get_lines(area.id) if area is not None else [])
+                if ln.line_number == line_number
+            ),
+            None,
+        )
+        if line is None or line.id == placement.line_id or line.main_segment_id is None:
+            return
+        device = self.find_device_by_node_id(node_id)
+        self.check_device_medium(
+            placement.hardware2program_ref_id,
+            line.main_segment_id,
+            device_label(device) if device is not None else address,
+        )
+
+    def move_device_to_segment(self, node_id: int, segment_id: int) -> None:
+        """Move a device to a segment: within its line it keeps its address, into another line
+        it gets that line's lowest free one. Undoable. Raises ``MediumError`` when the device's
+        hardware does not support the segment's medium, ``ValueError`` when the line is full."""
+        if self._pid is None:
+            return
+        placement = self._svc.device_placement(self._pid, node_id)
+        if placement.segment_id == segment_id:
+            return
+        device = self.find_device_by_node_id(node_id)
+        label = device_label(device) if device is not None else str(node_id)
+        self.check_device_medium(placement.hardware2program_ref_id, segment_id, label)
+        target_line = next(
+            (
+                line
+                for lines in (self._lines_cache or {}).values()
+                for line in lines
+                if line.main_segment_id == segment_id
+                or any(s.id == segment_id for s in line.segments)
+            ),
+            None,
+        )
+        if target_line is None:
+            raise ValueError(f"no segment with id {segment_id}")
+        address = (
+            placement.address
+            if target_line.id == placement.line_id
+            else self._svc.next_free_individual_address(self._pid, target_line.id)
+        )
+        self._svc.move_device(self._pid, node_id, segment_id, address)
         self._bump()
 
     @property
@@ -5197,10 +5433,12 @@ class ProjectService:
 
     @property
     def selected_topology(self) -> tuple[str, int] | None:
-        """The selected element if it is an area or a line."""
+        """The selected element if it is an area, a line or a segment."""
         element = self._selected_element
         return (
-            element if element is not None and element[0] in ("area", "line") else None
+            element
+            if element is not None and element[0] in ("area", "line", "segment")
+            else None
         )
 
     def select_element(self, kind: str, element_id: int) -> None:
@@ -5226,8 +5464,27 @@ class ProjectService:
         )
 
     def element_details(self, kind: str, element_id: int) -> "ElementDetails | None":
-        """What the details of an area, line, group range, group address or building function
-        show; None when it does not exist (any more)."""
+        """What the details of an area, line, segment, group range, group address or building
+        function show; None when it does not exist (any more)."""
+        if kind == "segment":
+            segment = self.find_segment(element_id)
+            if segment is None:
+                return None
+            return ElementDetails(
+                kind,
+                element_id,
+                "segment",
+                segment.name,
+                segment.description,
+                "",
+                "",
+                status=self.completion_status(kind, element_id),
+                has_address=False,
+                medium=segment.medium_type,
+                domain_address=format_domain_address(
+                    segment.medium_type, segment.domain_address
+                ),
+            )
         if kind in ("area", "line"):
             element = self.find_topology(kind, element_id)
             status = self.completion_status(kind, element_id)
@@ -5254,6 +5511,10 @@ class ProjectService:
                     prefix,
                     str(element.line_number),
                     status=status,
+                    medium=element.medium_type,
+                    domain_address=format_domain_address(
+                        element.medium_type, element.domain_address
+                    ),
                 )
             return None
         if kind == "function":
@@ -5320,6 +5581,8 @@ class ProjectService:
             self.rename_area(element_id, details.name, name)
         elif kind == "line":
             self.rename_line(element_id, details.name, name)
+        elif kind == "segment":
+            self.rename_segment(element_id, name)
         elif kind == "group_range":
             self.rename_group_range(element_id, name)
         elif kind == "group_address":
@@ -5336,11 +5599,26 @@ class ProjectService:
         details = self.element_details(kind, element_id)
         if self._pid is None or details is None or details.description == description:
             return
-        if kind == "function":
+        if kind == "segment":
+            self._svc.set_topology_description(self._pid, kind, element_id, description)
+        elif kind == "function":
             self._svc.set_function_description(self._pid, element_id, description)
         else:
             self._svc.set_group_description(self._pid, kind, element_id, description)
         self._bump(structural=False)
+
+    def set_element_medium(
+        self, kind: str, element_id: int, medium_type: str
+    ) -> str | None:
+        """Change the medium of a line or a segment; the reason it cannot be, or None."""
+        try:
+            if kind == "line":
+                self.set_line_medium(element_id, medium_type)
+            elif kind == "segment":
+                self.set_segment_medium(element_id, medium_type)
+        except MediumError as error:
+            return medium_error_text(error)
+        return None
 
     def set_element_address(self, kind: str, element_id: int, text: str) -> str | None:
         """Give the element another address; the reason it cannot be, or None."""

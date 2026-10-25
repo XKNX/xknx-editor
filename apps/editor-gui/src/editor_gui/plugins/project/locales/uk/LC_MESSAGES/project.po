@@ -2346,3 +2346,57 @@ msgstr "{line} (успадковано від {space})"
 
 msgid "Set current line"
 msgstr "Задати поточну лінію"
+
+msgid "Segment"
+msgstr "Сегмент"
+
+msgid "Medium"
+msgstr "Середовище"
+
+msgid "Domain Address"
+msgstr "Адреса домену"
+
+msgid "segment"
+msgstr "сегмент"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Тип середовища передачі даних сегменту можна змінити, лише якщо в ньому нема жодного пристрою."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
+msgstr "Нижче головного сегменту середовища передачі даних типу {medium} підсегмент не дозволяється."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Тип середовища передачі даних сегменту '{segment}' не можна змінити на IoT, тому що його батьківська лінія '{line}' не є типу IP."
+
+msgid "A sub-segment of KNX medium type {medium} is not allowed."
+msgstr "Підсегменти типу середовища передачі даних KNX {medium} не дозволяються."
+
+msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
+msgstr "Тип середовища передачі даних лінії '{line}' більше не можна змінити на {medium}, оскільки вона вже містить сегменти, які під ним не дозволені."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Досягнуто максимальну кількість сегментів."
+
+msgid "The main segment cannot be deleted."
+msgstr "Головний сегмент не може бути видалений."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Пристрій '{device}' несумісний із типом середовища передачі даних лінії."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Пристрій '{device}' несумісний із типом середовища передачі даних сегменту."
+
+msgid "Segment {area}.{line}"
+msgstr "Сегмент {area}.{line}"
+
+msgid "{name} (Segment {area}.{line})"
+msgstr "{name} (сегмент {area}.{line})"
+
+msgid "Add Segment"
+msgstr "Додати сегмент"
+
+msgid "Rename segment to {name}"
+msgstr "Перейменувати сегмент на {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Задати середовище {medium}"

@@ -2346,3 +2346,57 @@ msgstr "{line} (προέρχεται από {space})"
 
 msgid "Set current line"
 msgstr "Ορισμός τρέχουσας γραμμής"
+
+msgid "Segment"
+msgstr "Τμήμα"
+
+msgid "Medium"
+msgstr "Μέσο"
+
+msgid "Domain Address"
+msgstr "Διεύθυνση Τομέα"
+
+msgid "segment"
+msgstr "τμήμα"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Ο τύπος μέσου ενός τμήματος μπορεί να αλλάξει μόνο εάν δεν περιέχει καμία συσκευή."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
+msgstr "Δεν επιτρέπεται ένα υποτμήμα κάτω από ένα κύριο τμήμα τύπου μέσου KNX {medium}."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Ο τύπος μέσου του τμήματος '{segment}' δεν μπορεί να αλλάξει σε IoT, επειδή η γονική του γραμμή '{line}' δεν έχει τύπο μέσου IP."
+
+msgid "A sub-segment of KNX medium type {medium} is not allowed."
+msgstr "Δεν επιτρέπεται ένα υποτμήμα του τύπου μέσου KNX {medium}."
+
+msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
+msgstr "Ο τύπος μέσου της γραμμής '{line}' δεν μπορεί πλέον να αλλάξει σε {medium}, επειδή περιέχει ήδη τμήματα που δεν επιτρέπονται κάτω από αυτόν."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Ο μέγιστος αριθμός τμημάτων έχει επιτευχθεί."
+
+msgid "The main segment cannot be deleted."
+msgstr "Το κύριο τμήμα δεν μπορεί να διαγραφεί."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Η συσκευή '{device}' δεν είναι συμβατή με τον τύπο μέσου της γραμμής."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Η συσκευή '{device}' δεν είναι συμβατή με τον τύπο μέσου του τμήματος."
+
+msgid "Segment {area}.{line}"
+msgstr "Τμήμα {area}.{line}"
+
+msgid "{name} (Segment {area}.{line})"
+msgstr "{name} (Τμήμα {area}.{line})"
+
+msgid "Add Segment"
+msgstr "Προσθήκη Τμήματος"
+
+msgid "Rename segment to {name}"
+msgstr "Μετονομασία τμήματος σε {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Ορισμός μέσου σε {medium}"

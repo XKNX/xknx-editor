@@ -2346,3 +2346,57 @@ msgstr "{line} (継承元: {space})"
 
 msgid "Set current line"
 msgstr "現在のラインを設定"
+
+msgid "Segment"
+msgstr "セグメント"
+
+msgid "Medium"
+msgstr "ミディアム"
+
+msgid "Domain Address"
+msgstr "ドメインアドレス"
+
+msgid "segment"
+msgstr "セグメント"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "セグメントのメディアタイプは、デバイスが含まれていない場合にのみ変更できます。"
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
+msgstr "KNX ミディアムタイプ {medium} のメインセグメントの下に、サブセグメントは許可されません。"
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "セグメント '{segment}' のメディアタイプはIoTに変更できません。親のライン '{line}' がIPのメディアタイプではないためです。"
+
+msgid "A sub-segment of KNX medium type {medium} is not allowed."
+msgstr "KNXメディアタイプ{medium}のサブセグメントは許可されません。"
+
+msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
+msgstr "ライン '{line}' のメディアタイプは{medium}に変更できません。その下で許可されないセグメントがすでに含まれているためです。"
+
+msgid "The maximum number of segments has been reached."
+msgstr "セグメントの最大数に達しました。"
+
+msgid "The main segment cannot be deleted."
+msgstr "メイン セグメントは削除できません。"
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "デバイス'{device}'はラインのミディアム・タイプとは互換性がありません。"
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "デバイス'{device}'はセグメントのミディアタイプと互換性がありません。"
+
+msgid "Segment {area}.{line}"
+msgstr "セグメント {area}.{line}"
+
+msgid "{name} (Segment {area}.{line})"
+msgstr "{name}（セグメント {area}.{line}）"
+
+msgid "Add Segment"
+msgstr "セグメントを追加"
+
+msgid "Rename segment to {name}"
+msgstr "セグメント名を{name}に変更"
+
+msgid "Set medium to {medium}"
+msgstr "ミディアムを{medium}に設定"

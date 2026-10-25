@@ -5883,6 +5883,7 @@ _DOCK_LABELS: "dict[str, Callable[[], str]]" = _dock_label_getters()
 _ELEMENT_TITLES: "dict[str, Callable[[], str]]" = {
     "area": lambda: PROJECT_S.PANEL_AREA,
     "line": lambda: PROJECT_S.PANEL_LINE,
+    "segment": lambda: PROJECT_S.PANEL_SEGMENT,
     "main_group": lambda: PROJECT_S.PANEL_MAIN_GROUP,
     "middle_group": lambda: PROJECT_S.PANEL_MIDDLE_GROUP,
     "group_range": lambda: PROJECT_S.PANEL_GROUP_RANGE,

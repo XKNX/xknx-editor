@@ -176,6 +176,19 @@ class CatalogService:
                 )
             }
 
+    def program_media(self, program_id: str) -> tuple[set[str], bool] | None:
+        """The media a hardware program supports (``MT-0`` …), and whether it is a coupler (its
+        hardware is one, or it has coupler capabilities); None for a program the catalog lacks."""
+        from xknxeditor.catalog.models import HardwareProgram
+
+        with Session(self._engine) as db:
+            program = db.get(HardwareProgram, program_id)
+            if program is None:
+                return None
+            media = {row.medium_type for row in program.medium_types}
+            coupler = bool(program.hardware.is_coupler)
+        return media, coupler or bool(self.coupler_capabilities(program_id))
+
     def get_application_xml(self, program_id: str) -> tuple[bytes, str] | None:
         with Session(self._engine) as db:
             return get_application_xml(db, program_id)

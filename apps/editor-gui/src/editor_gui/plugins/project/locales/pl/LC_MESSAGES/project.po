@@ -2346,3 +2346,57 @@ msgstr "{line} (dziedziczy z {space})"
 
 msgid "Set current line"
 msgstr "Ustaw linię aktywną"
+
+msgid "Segment"
+msgstr "Segment"
+
+msgid "Medium"
+msgstr "Medium"
+
+msgid "Domain Address"
+msgstr "Adres domeny"
+
+msgid "segment"
+msgstr "segment"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Medium segmentu można zmienić tylko wtedy, gdy nie zawiera ono żadnego urządzenia."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
+msgstr "Podsegment nie jest dozwolony poniżej głównego segmentu medium {medium} KNX."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Typ medium segmentu \"{segment}\" nie może zostać zmieniony na IoT, ponieważ jego linia nadrzędna \"{line}\" nie ma typu medium IP."
+
+msgid "A sub-segment of KNX medium type {medium} is not allowed."
+msgstr "Podsegment medium KNX {medium} jest niedozwolony."
+
+msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
+msgstr "Typ medium linii \"{line}\" nie może już zostać zmieniony na {medium}, ponieważ zawiera ona już segmenty, które nie są pod nim dozwolone."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Osiągnięto maksymalną liczbę segmentów."
+
+msgid "The main segment cannot be deleted."
+msgstr "Główny segment nie może zostać usunięty."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Urządzenie '{device}' jest niezgodne z typem medium linii."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Urządzenie '{device}' jest niekompatybilne z medium segmentu."
+
+msgid "Segment {area}.{line}"
+msgstr "Segment {area}.{line}"
+
+msgid "{name} (Segment {area}.{line})"
+msgstr "{name} (segment {area}.{line})"
+
+msgid "Add Segment"
+msgstr "Dodaj segment"
+
+msgid "Rename segment to {name}"
+msgstr "Zmień nazwę segmentu na {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Ustaw medium na {medium}"

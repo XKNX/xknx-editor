@@ -94,22 +94,39 @@ async def test_a_device_added_to_a_space_goes_on_its_current_line(
     mcp, _project_service = _build(tmp_path)
     async with Client(mcp) as client:
         spaces = await _spaces(client, tmp_path)
+        area = (await _data(client, "project_topology"))["items"][1]["id"]
+        await _data(client, "project_create_line", area_id=area, line_number=2)
         lines = await _lines(client)
+        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
+        product = (await _data(client, "catalog_list_products"))["items"][0]
+        # A TP device does not fit the IP line 1.0.
         await _data(
             client,
             "project_set_current_line",
             space_id=spaces["room"],
             line_id=lines["1.0"],
         )
-        await _data(client, "catalog_import_knxprod", path=str(_FIXTURE))
-        product = (await _data(client, "catalog_list_products"))["items"][0]
+        with pytest.raises(Exception, match="incompatible with line's medium type"):
+            await client.call_tool(
+                "project_add_device",
+                {
+                    "product_ref_id": product["product_ref_id"],
+                    "space_id": spaces["room"],
+                },
+            )
+        await _data(
+            client,
+            "project_set_current_line",
+            space_id=spaces["room"],
+            line_id=lines["1.2"],
+        )
         device = await _data(
             client,
             "project_add_device",
             product_ref_id=product["product_ref_id"],
             space_id=spaces["room"],
         )
-        assert device["individual_address"].startswith("1.0.")
+        assert device["individual_address"].startswith("1.2.")
         room = (await _data(client, "project_spaces"))["items"][0]["children"][0]
         assert [d["node_id"] for d in room["devices"]] == [device["node_id"]]
 

@@ -2346,3 +2346,57 @@ msgstr "{line} (periytyy kohteesta {space})"
 
 msgid "Set current line"
 msgstr "Aseta nykyinen linja"
+
+msgid "Segment"
+msgstr "Segmentti"
+
+msgid "Medium"
+msgstr "Media"
+
+msgid "Domain Address"
+msgstr "Toimialue Osoite"
+
+msgid "segment"
+msgstr "segmentti"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Segmentin mediatyyppiä voi muuttaa vain, jos se ei sisällä laitteita."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
+msgstr "Alisegmentti ei ole sallittu pääsegmentin alapuolella KNX mediatyypillä {medium}."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Segmentin '{segment}' mediatyyppiä ei voi muuttaa IoT:ksi, koska sen kantalinja '{line}' ei ole mediatyyppiä IP."
+
+msgid "A sub-segment of KNX medium type {medium} is not allowed."
+msgstr "Alisegmentti KNX mediatyyppillä {medium} ei ole sallittu."
+
+msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
+msgstr "Linjan '{line}' mediatyyppiä ei voi enää muuttaa muotoon {medium}, koska se sisältää jo segmenttejä, jotka eivät ole sallittuja sen alla."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Segmenttien enimmäismäärä on saavutettu."
+
+msgid "The main segment cannot be deleted."
+msgstr "Pääsegmenttiä ei voi poistaa."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Laite '{device}' ei ole yhteensopiva linjan mediatyypin kanssa."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Laite '{device}' ei ole yhteensopiva segmentin mediatyypin kanssa."
+
+msgid "Segment {area}.{line}"
+msgstr "Segmentti {area}.{line}"
+
+msgid "{name} (Segment {area}.{line})"
+msgstr "{name} (segmentti {area}.{line})"
+
+msgid "Add Segment"
+msgstr "Lisää Segmentti"
+
+msgid "Rename segment to {name}"
+msgstr "Nimeä segmentti uudelleen: {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Aseta mediaksi {medium}"

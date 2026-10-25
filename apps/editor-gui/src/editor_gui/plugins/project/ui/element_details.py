@@ -1,7 +1,7 @@
-"""The details of an area or a line selected in the Devices tree, of a group range or group
-address in the Group Addresses tree, or of a function in the Buildings tree, shown in place of the
-device's: its name, address, description and status, each saved when its field is left or its
-choice is made."""
+"""The details of an area, a line or a segment selected in the Devices tree, of a group range or
+group address in the Group Addresses tree, or of a function in the Buildings tree, shown in place
+of the device's: its name, address, medium, description and status, each saved when its field is
+left or its choice is made."""
 
 from __future__ import annotations
 
@@ -10,12 +10,15 @@ from typing import TYPE_CHECKING
 
 from imgui_bundle import imgui
 
+from editor_gui.plugins.project.medium_text import line_media, segment_media
 from editor_gui.plugins.project.strings import S
-from editor_gui.plugins.project.ui.status_field import status_combo
+from editor_gui.plugins.project.ui.status_field import choice_combo, status_combo
 from editor_gui.widgets.dpi import label_column_width
 
 if TYPE_CHECKING:
     from editor_gui.plugins.project.service import ElementDetails
+
+_ERROR_COLOR = imgui.ImVec4(0.9, 0.4, 0.4, 1.0)
 
 
 class ElementDetailsPanel:
@@ -25,16 +28,19 @@ class ElementDetailsPanel:
         on_set_description: Callable[[str, int, str], None],
         on_set_address: Callable[[str, int, str], str | None],
         on_set_status: Callable[[str, int, str], None] = lambda _k, _i, _s: None,
+        on_set_medium: Callable[[str, int, str], str | None] = lambda _k, _i, _m: None,
     ) -> None:
         self._on_rename = on_rename
         self._on_set_description = on_set_description
         self._on_set_address = on_set_address
         self._on_set_status = on_set_status
+        self._on_set_medium = on_set_medium
         self._key: tuple[str, int] | None = None
         self._name = ""
         self._description = ""
         self._address = ""
         self._error = ""
+        self._medium_error = ""
 
     def render(self, details: ElementDetails) -> None:
         if self._key != (details.kind, details.element_id):
@@ -43,8 +49,14 @@ class ElementDetailsPanel:
             self._description = details.description
             self._address = details.address
             self._error = ""
+            self._medium_error = ""
         label_width = label_column_width(
-            S.CONFIGURE_NAME, S.CONFIGURE_DESCRIPTION, S.GA_ADDRESS, S.STATUS
+            S.CONFIGURE_NAME,
+            S.CONFIGURE_DESCRIPTION,
+            S.GA_ADDRESS,
+            S.STATUS,
+            S.MEDIUM,
+            S.DOMAIN_ADDRESS,
         )
         if not imgui.begin_table("##element_details", 2):
             return
@@ -57,6 +69,12 @@ class ElementDetailsPanel:
         if details.has_address:
             self._row(S.GA_ADDRESS)
             self._address_field(details)
+        if details.medium is not None:
+            self._row(S.MEDIUM)
+            self._medium_field(details, details.medium)
+            if details.domain_address:
+                self._row(S.DOMAIN_ADDRESS)
+                imgui.text_unformatted(details.domain_address)
         self._row(S.CONFIGURE_DESCRIPTION)
         self._description_field(details)
         if details.status is not None:
@@ -104,7 +122,21 @@ class ElementDetailsPanel:
             self._address = details.address
         if self._error:
             imgui.push_text_wrap_pos(0.0)
-            imgui.text_colored(imgui.ImVec4(0.9, 0.4, 0.4, 1.0), self._error)
+            imgui.text_colored(_ERROR_COLOR, self._error)
+            imgui.pop_text_wrap_pos()
+
+    def _medium_field(self, details: ElementDetails, medium: str) -> None:
+        """A line offers every medium, a segment those of a sub-segment; a change the media do
+        not allow shows its reason below, until another choice."""
+        options = line_media() if details.kind == "line" else segment_media()
+        chosen = choice_combo("##element_medium", options, medium)
+        if chosen is not None:
+            self._medium_error = (
+                self._on_set_medium(details.kind, details.element_id, chosen) or ""
+            )
+        if self._medium_error:
+            imgui.push_text_wrap_pos(0.0)
+            imgui.text_colored(_ERROR_COLOR, self._medium_error)
             imgui.pop_text_wrap_pos()
 
     def _description_field(self, details: ElementDetails) -> None:

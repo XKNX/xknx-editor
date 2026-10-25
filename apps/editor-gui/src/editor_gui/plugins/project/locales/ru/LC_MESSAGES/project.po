@@ -2346,3 +2346,57 @@ msgstr "{line} (наследует от {space})"
 
 msgid "Set current line"
 msgstr "Задать текущую линию"
+
+msgid "Segment"
+msgstr "Сегмент"
+
+msgid "Medium"
+msgstr "Носитель"
+
+msgid "Domain Address"
+msgstr "Адрес домена"
+
+msgid "segment"
+msgstr "сегмент"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Тип среды сегмента можно изменить только в том случае, если он не содержит никаких устройств."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
+msgstr "Подсегмент не допускается ниже основного сегмента с типом среды KNX {medium}."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Тип среды сегмента «{segment}» нельзя изменить на IoT, поскольку его родительская линия «{line}» не имеет IP-типа среды."
+
+msgid "A sub-segment of KNX medium type {medium} is not allowed."
+msgstr "Подсегмент с типом среды KNX {medium} не допускается."
+
+msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
+msgstr "Тип среды линии «{line}» больше нельзя изменить на {medium}, поскольку она уже содержит сегменты, которые под ним не разрешены."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Достигнуто максимальное количество сегментов."
+
+msgid "The main segment cannot be deleted."
+msgstr "Главный сегмент не может быть удален."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Устройство '{device}' несовместимо с типом среды линии."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Устройство '{device}' несовместимо с типом среды сегмента."
+
+msgid "Segment {area}.{line}"
+msgstr "Сегмент {area}.{line}"
+
+msgid "{name} (Segment {area}.{line})"
+msgstr "{name} (сегмент {area}.{line})"
+
+msgid "Add Segment"
+msgstr "Добавить сегмент"
+
+msgid "Rename segment to {name}"
+msgstr "Переименовать сегмент в {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Задать носитель {medium}"

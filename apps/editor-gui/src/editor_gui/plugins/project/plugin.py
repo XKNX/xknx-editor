@@ -25,6 +25,7 @@ from editor_gui.plugins.project.ga_name_template import (
     DEFAULT_GA_NAME_TEMPLATE,
     render_name_template,
 )
+from editor_gui.plugins.project.medium_text import medium_error_text
 from editor_gui.plugins.project.online_runner import OnlineButtonRunner
 from editor_gui.plugins.project.program_queue import (
     ProgramQueue,
@@ -55,7 +56,7 @@ from editor_gui.plugins.project.ui.device_certificate import (
     DeviceCertificateDialog,
 )
 from editor_gui.plugins.project.ui.device_compare import DeviceComparePanel
-from editor_gui.plugins.project.ui.devices import Area, Line
+from editor_gui.plugins.project.ui.devices import Area, Line, Segment
 from editor_gui.plugins.project.ui.element_details import ElementDetailsPanel
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
@@ -87,6 +88,7 @@ from editor_gui.widgets.icons import (
 )
 from xknxeditor.prod.baggage import Baggages
 from xknxeditor.prod.errors import ArchiveError
+from xknxeditor.proj.core.medium import MediumError
 
 if TYPE_CHECKING:
     from concurrent.futures import Future
@@ -221,6 +223,10 @@ class ProjectPlugin:
             on_compare=self._open_compare,
             on_select_element=api.project.select_element,
             get_selected_topology=lambda: api.project.selected_topology,
+            get_device_segments=api.project.device_segments,
+            on_add_segment=self._on_add_segment,
+            on_remove_segment=self._on_remove_segment,
+            on_move_device_to_segment=self._on_move_device_to_segment,
         )
         self._compare_panel = DeviceComparePanel(
             get_devices=lambda: api.project.devices,
@@ -372,6 +378,7 @@ class ProjectPlugin:
             on_set_description=api.project.set_element_description,
             on_set_address=api.project.set_element_address,
             on_set_status=api.project.set_completion_status,
+            on_set_medium=api.project.set_element_medium,
         )
         self._space_details = SpaceDetailsPanel(
             on_rename=api.project.rename_space,
@@ -560,9 +567,40 @@ class ProjectPlugin:
 
     def _get_lines(self, area_id: int) -> list[Line]:
         return [
-            Line(id=ln.id, area_id=ln.area_id, number=ln.line_number, name=ln.name)
+            Line(
+                id=ln.id,
+                area_id=ln.area_id,
+                number=ln.line_number,
+                name=ln.name,
+                segments=[Segment(id=s.id, name=s.name) for s in ln.segments],
+            )
             for ln in self._api.project.get_lines(area_id)
         ]
+
+    def _on_add_segment(self, line: Line) -> None:
+        try:
+            segment_id = self._api.project.add_segment(line.id)
+        except MediumError as error:
+            self._medium_error(error)
+            return
+        if segment_id is not None:
+            self._api.project.select_element("segment", segment_id)
+
+    def _on_remove_segment(self, segment: Segment) -> None:
+        try:
+            self._api.project.remove_segment(segment.id)
+        except MediumError as error:
+            self._medium_error(error)
+
+    def _on_move_device_to_segment(self, device: "Device", segment: Segment) -> None:
+        try:
+            self._api.project.move_device_to_segment(device.node_id, segment.id)
+        except MediumError as error:
+            self._medium_error(error)
+        except ValueError as error:
+            self._api.log.warning(
+                "could not move the device", plugin="project", error=str(error)
+            )
 
     def _on_select_device(self, device: "Device") -> None:
         self._api.project.selected_device = device
@@ -1864,10 +1902,23 @@ class ProjectPlugin:
         # Persist first; only mirror onto the live object when the project accepted the address.
         # Otherwise a rejected value (e.g. a collision) would linger on the cached device and could
         # be programmed onto hardware.
-        if self._api.project.set_device_individual_address(
-            device.node_id, old_address, new_address
-        ):
+        try:
+            accepted = self._api.project.set_device_individual_address(
+                device.node_id, old_address, new_address
+            )
+        except MediumError as error:
+            self._medium_error(error)
+            return
+        if accepted:
             device.individual_address = new_address
+
+    def _medium_error(self, error: MediumError) -> None:
+        """Tell the user why the media of the topology do not allow a change."""
+        self._api.log.warning(
+            "rejected by the medium", plugin="project", error=str(error)
+        )
+        if self._api.notify is not None:
+            self._api.notify(medium_error_text(error))
 
     def _handle_name_change(self, device: "Device", new_name: str) -> None:
         old_name = device.name

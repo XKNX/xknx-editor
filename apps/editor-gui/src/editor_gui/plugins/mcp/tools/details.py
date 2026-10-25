@@ -20,6 +20,7 @@ from editor_gui.plugins.mcp.tools.project import (
     require_device,
     require_group_address_id,
 )
+from xknxeditor.proj.core.medium import medium_name
 from xknxeditor.proj.core.rich_text import (
     RichText,
     Span,
@@ -37,6 +38,7 @@ CommentKind = Literal[
     "project",
     "area",
     "line",
+    "segment",
     "device",
     "space",
     "function",
@@ -46,11 +48,15 @@ CommentKind = Literal[
 ]
 CommentField = Literal["comment", "installation_hints"]
 DescriptionKind = Literal[
-    "area", "line", "group_range", "group_address", "space", "function"
+    "area", "line", "segment", "group_range", "group_address", "space", "function"
 ]
 NumberKind = Literal["area", "line", "group_range", "group_address", "space"]
-ElementKind = Literal["area", "line", "group_range", "group_address", "function"]
-StatusKind = Literal["project", "area", "line", "device", "space", "function"]
+ElementKind = Literal[
+    "area", "line", "segment", "group_range", "group_address", "function"
+]
+StatusKind = Literal[
+    "project", "area", "line", "segment", "device", "space", "function"
+]
 # The CompletionStatus values (models.COMPLETION_STATUSES), shown as Unknown, Editing, Finished
 # design, Finished commissioning, Tested, Accepted and Locked.
 Status = Literal[
@@ -192,6 +198,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
             result["number_editable"] = details.editable
         if details.status is not None:
             result["status"] = details.status
+        if details.medium is not None:
+            result["medium"] = medium_name(details.medium)
+        if details.domain_address:
+            result["domain_address"] = details.domain_address
         return result
 
     @tool("read")
@@ -199,8 +209,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         kind: CommentKind, element_id: int = 0, field: CommentField = "comment"
     ) -> dict[str, Any]:
         """Read the comment of a project element, or a device's installation hints
-        (field="installation_hints"). ``kind`` with its id: project (element_id ignored), area/line
-        (id from project_topology), device (node_id), space/function (ids from project_spaces),
+        (field="installation_hints"). ``kind`` with its id: project (element_id ignored),
+        area/line/segment (id from project_topology), device (node_id), space/function (ids from
+        project_spaces),
         trade, group_range (id from the group range tree), group_address (id from
         project_list_group_addresses). Returns {kind, element_id, field, text, paragraphs}: text is
         the plain text (one line per paragraph), paragraphs the runs
@@ -241,14 +252,16 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
     @tool("read")
     def project_get_element(kind: ElementKind, element_id: int) -> dict[str, Any]:
-        """Read the details of an area, line (ids from project_topology), group range, group
-        address (id from project_list_group_addresses) or building function (id from
+        """Read the details of an area, line, segment (ids from project_topology), group range,
+        group address (id from project_list_group_addresses) or building function (id from
         project_spaces). Returns {kind, element_id, type, name, description, address?, number?,
-        number_editable?, status?}: type is area, line, main_group, middle_group, group_range (a
-        group of the Free style), group_address or function; address is the full address ("1.2",
-        "1/2", "1/2/3") and number its own part ("2"), which project_set_number changes unless
-        number_editable is false (a function has none); status is the "Status" of an area, line or
-        function (see project_set_status)."""
+        number_editable?, status?, medium?, domain_address?}: type is area, line, segment,
+        main_group, middle_group, group_range (a group of the Free style), group_address or
+        function; address is the full address ("1.2", "1/2", "1/2/3") and number its own part
+        ("2"), which project_set_number changes unless number_editable is false (a segment and a
+        function have none); status is the "Status" of an area, line, segment or function (see
+        project_set_status); medium (TP, PL, RF, IP or IoT) is a line's or a segment's (see
+        project_set_medium), domain_address an RF or PL one's."""
         require_project(ctx)
         return ctx.run_locked(lambda: _element_dict(kind, element_id))
 
@@ -258,8 +271,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         element_id: int | None = None,
         device_address: str | None = None,
     ) -> dict[str, Any]:
-        """Read the "Status" (CompletionStatus) of the project (kind project, no id), an area or a
-        line (ids from project_topology), a device (element_id = its node_id, OR device_address,
+        """Read the "Status" (CompletionStatus) of the project (kind project, no id), an area, a
+        line or a segment (ids from project_topology), a device (element_id = its node_id, OR device_address,
         an individual address like "1.0.30"), a space or a building function (ids from
         project_spaces). Returns {kind, element_id, status}; status is one of Undefined (shown as
         "Unknown"), Editing, FinishedDesign, FinishedCommissioning, Tested, Accepted, Locked."""
@@ -282,8 +295,8 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         element_id: int | None = None,
         device_address: str | None = None,
     ) -> dict[str, Any]:
-        """Set the "Status" (CompletionStatus) of the project, an area, a line, a device, a space
-        or a building function, as its Status drop-down does; the element as for
+        """Set the "Status" (CompletionStatus) of the project, an area, a line, a segment, a
+        device, a space or a building function, as its Status drop-down does; the element as for
         project_get_status. It documents how far the element is (planned, commissioned, tested,
         accepted by the customer, locked) and is written to the exported project. Undoable with
         project_undo. Returns {kind, element_id, status}."""
@@ -304,9 +317,10 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_set_description(
         kind: DescriptionKind, element_id: int, description: str
     ) -> dict[str, Any]:
-        """Set the description of an area, line (ids from project_topology), group range, group
-        address (id from project_list_group_addresses), space or building function (ids from
-        project_spaces). Undoable with project_undo. Returns {kind, element_id, description}."""
+        """Set the description of an area, line, segment (ids from project_topology), group
+        range, group address (id from project_list_group_addresses), space or building function
+        (ids from project_spaces). Undoable with project_undo. Returns {kind, element_id,
+        description}."""
         require_project(ctx)
 
         def _set() -> dict[str, Any]:

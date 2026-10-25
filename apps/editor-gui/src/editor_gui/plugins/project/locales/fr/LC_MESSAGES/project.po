@@ -2346,3 +2346,57 @@ msgstr "{line} (hérite de {space})"
 
 msgid "Set current line"
 msgstr "Définir la ligne courante"
+
+msgid "Segment"
+msgstr "Segment"
+
+msgid "Medium"
+msgstr "Media"
+
+msgid "Domain Address"
+msgstr "Adresse de Domaine"
+
+msgid "segment"
+msgstr "segment"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Le type de média d'un segment ne peut être changé que s'il ne contient aucun participant."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
+msgstr "Un sous-segment n'est pas autorisé en dessous d'un segment principal de type KNX {medium}."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Le type de média du segment « {segment} » ne peut pas être changé en IoT, parce que la ligne parente '{line}' n'est pas un média de type IP."
+
+msgid "A sub-segment of KNX medium type {medium} is not allowed."
+msgstr "Un sous-segment de type KNX {medium} n'est pas autorisé."
+
+msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
+msgstr "Le type de média de la ligne « {line} » ne peut plus être changé en {medium}, parce qu'elle contient déjà des segments qui ne sont pas autorisés en dessous."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Le nombre maximum de segments a été atteint."
+
+msgid "The main segment cannot be deleted."
+msgstr "Le segment principal ne peut pas être supprimé."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Le participant '{device}' est incompatible avec le type de média de la ligne."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Le participant '{device}' est incompatible avec le type de média du segment."
+
+msgid "Segment {area}.{line}"
+msgstr "Segment {area}.{line}"
+
+msgid "{name} (Segment {area}.{line})"
+msgstr "{name} (segment {area}.{line})"
+
+msgid "Add Segment"
+msgstr "Ajouter un segment"
+
+msgid "Rename segment to {name}"
+msgstr "Renommer le segment en {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Définir le média sur {medium}"

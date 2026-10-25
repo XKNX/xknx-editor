@@ -30,9 +30,10 @@ from editor_gui.device import (
 from editor_gui.device_plugins import parameters_in_plugin
 from editor_gui.plugins.mcp.context import McpContext, make_tool, require_project
 from editor_gui.plugins.project.element_status import usage_label, usage_options
-from editor_gui.plugins.project.service import DeviceProduct
+from editor_gui.plugins.project.service import DeviceProduct, format_domain_address
 from editor_gui.plugins.project.space_usages import SPACE_USAGES
 from editor_gui.settings import config_dir
+from xknxeditor.proj.core.medium import MEDIUM_NAMES, MediumError, medium_name
 
 # A device whose parameters only the manufacturer's plugin dialog sets.
 PLUGIN_PARAMETERS_ERROR = (
@@ -88,6 +89,44 @@ def _prune(d: dict[str, Any]) -> dict[str, Any]:
     payloads compact. A falsy-but-meaningful value (0, False) is kept. Used for the spaces tree,
     which has many empty optional fields; the device/group-address list dicts keep a fixed shape."""
     return {k: v for k, v in d.items() if v not in (None, "", [], ())}
+
+
+# The media of lines and segments by the name a client passes.
+Medium = Literal["TP", "PL", "RF", "IP", "IoT"]
+_MEDIA: dict[str, str] = {name: medium for medium, name in MEDIUM_NAMES.items()}
+
+
+def _segment_entry(segment: Any) -> dict[str, Any]:
+    """A sub-segment as project_topology lists it."""
+    entry: dict[str, Any] = {
+        "id": segment.id,
+        "number": segment.number,
+        "name": segment.name,
+        "medium": medium_name(segment.medium_type),
+    }
+    if segment.domain_address is not None:
+        entry["domain_address"] = format_domain_address(
+            segment.medium_type, segment.domain_address
+        )
+    return entry
+
+
+def _line_entry(line: Any) -> dict[str, Any]:
+    """A line as project_topology lists it: with its medium and its sub-segments."""
+    entry: dict[str, Any] = {
+        "id": line.id,
+        "line_number": line.line_number,
+        "name": line.name,
+        "description": line.description,
+        "medium": medium_name(line.medium_type),
+        "main_segment_id": line.main_segment_id,
+        "segments": [_segment_entry(s) for s in line.segments],
+    }
+    if line.domain_address is not None:
+        entry["domain_address"] = format_domain_address(
+            line.medium_type, line.domain_address
+        )
+    return entry
 
 
 def _device_dict(device: Device) -> dict[str, Any]:
@@ -1875,7 +1914,9 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
     def project_topology() -> dict[str, Any]:
         """Read the project topology. Returns {items, count}; each area item has
         {id, area_number, name, description, lines}, and each line has {id, line_number, name,
-        description}. count counts areas.
+        description, medium, domain_address?, main_segment_id, segments}: medium is TP, PL, RF,
+        IP or IoT (its main segment's), segments its sub-segments [{id, number, name, medium,
+        domain_address?}]. count counts areas.
         Pass an area's id as area_id and a line's id as line_id to topology tools; these IDs differ
         from the area/line numbers used in individual addresses."""
 
@@ -1886,15 +1927,7 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     "area_number": area.area_number,
                     "name": area.name,
                     "description": area.description,
-                    "lines": [
-                        {
-                            "id": ln.id,
-                            "line_number": ln.line_number,
-                            "name": ln.name,
-                            "description": ln.description,
-                        }
-                        for ln in project.get_lines(area.id)
-                    ],
+                    "lines": [_line_entry(ln) for ln in project.get_lines(area.id)],
                 }
                 for area in project.get_areas()
             ]
@@ -2230,14 +2263,17 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
                     f"application {product.application_id!r} for product {product_ref_id!r} "
                     "is not in the catalog"
                 )
-            device_id = project.add_device(
-                product_ref_id=product.product_ref_id,
-                hardware2program_ref_id=product.hardware2program_ref_id,
-                name=name or "",
-                app=app,
-                product=DeviceProduct.of(product),
-                space_id=space_id,
-            )
+            try:
+                device_id = project.add_device(
+                    product_ref_id=product.product_ref_id,
+                    hardware2program_ref_id=product.hardware2program_ref_id,
+                    name=name or "",
+                    app=app,
+                    product=DeviceProduct.of(product),
+                    space_id=space_id,
+                )
+            except MediumError as error:
+                raise ToolError(str(error)) from error
             if device_id is None:
                 raise ToolError("add_device did not return a device id")
             device = project.find_device_by_node_id(device_id)
@@ -2281,15 +2317,19 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         """Set a project device's individual address to ``address``, e.g. "1.1.5". Identify the
         device by ``node_id`` OR ``device_address`` (its CURRENT individual address); pass exactly
         one. The target area/line must exist in project_topology and the address must be unused in
-        the project. Returns {node_id, name, individual_address, description}. Undoable with
-        project_undo. This does not check or write the bus; use
+        the project; moved into another line, the device goes on its main segment, whose medium
+        its hardware must support. Returns {node_id, name, individual_address, description}.
+        Undoable with project_undo. This does not check or write the bus; use
         connection_assign_individual_address to assign it to hardware."""
 
         def _set() -> dict[str, Any]:
             device = _require_device(node_id, device_address)
-            project.set_device_individual_address(
-                device.node_id, device.individual_address, address
-            )
+            try:
+                project.set_device_individual_address(
+                    device.node_id, device.individual_address, address
+                )
+            except MediumError as error:
+                raise ToolError(str(error)) from error
             updated = _require_device(device.node_id)
             if updated.individual_address != address:
                 raise ToolError(
@@ -2538,6 +2578,137 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
         with line_id as a string."""
         ctx.run_locked(lambda: project.remove_line(line_id))
         return {"status": "removed", "line_id": str(line_id)}
+
+    def _segment_dict(segment_id: int) -> dict[str, Any]:
+        segment = project.find_segment(segment_id)
+        if segment is None:
+            raise ToolError(f"no segment with id {segment_id}")
+        return _segment_entry(segment)
+
+    @tool("write")
+    def project_add_segment(
+        line_id: int, name: str | None = None, medium: Medium | None = None
+    ) -> dict[str, Any]:
+        """Add a sub-segment to a line (``id`` from project_topology). A line's devices are on its
+        main segment (the line itself) unless they are on a sub-segment; a TP line can have TP or
+        RF sub-segments, an IP line TP, RF or IoT ones, an RF, PL or IoT line none, and a line at
+        most 128 segments. ``medium`` defaults to the line's own when a sub-segment can have it,
+        else TP; ``name`` to the editor's default. Undoable with project_undo. Returns the
+        segment as project_topology lists it: {id, number, name, medium, domain_address?}."""
+        require_project(ctx)
+
+        def _add() -> dict[str, Any]:
+            if project.find_line(line_id) is None:
+                raise ToolError(f"no line with id {line_id}")
+            try:
+                segment_id = project.add_segment(line_id, name)
+                if segment_id is None:
+                    raise ToolError("could not add a segment (no project open)")
+                if medium is not None:
+                    project.set_segment_medium(segment_id, _MEDIA[medium])
+            except MediumError as error:
+                raise ToolError(str(error)) from error
+            return _segment_dict(segment_id)
+
+        return ctx.run_locked(_add)
+
+    @tool("write")
+    def project_rename_segment(segment_id: int, name: str) -> dict[str, Any]:
+        """Rename a sub-segment (``id`` from project_topology). Undoable with project_undo.
+        Returns the segment as project_topology lists it."""
+        require_project(ctx)
+
+        def _rename() -> dict[str, Any]:
+            _segment_dict(segment_id)
+            project.rename_segment(segment_id, name)
+            return _segment_dict(segment_id)
+
+        return ctx.run_locked(_rename)
+
+    @tool("destructive")
+    def project_remove_segment(segment_id: int) -> dict[str, Any]:
+        """Remove a sub-segment and its devices (``id`` from project_topology); a line's main
+        segment cannot be removed. Undoable with project_undo; hardware is unchanged. Returns
+        {status: "removed", segment_id}."""
+        require_project(ctx)
+
+        def _remove() -> dict[str, Any]:
+            if project.segment_medium(segment_id) is None:
+                raise ToolError(f"no segment with id {segment_id}")
+            try:
+                project.remove_segment(segment_id)
+            except MediumError as error:
+                raise ToolError(str(error)) from error
+            return {"status": "removed", "segment_id": segment_id}
+
+        return ctx.run_locked(_remove)
+
+    @tool("write")
+    def project_set_medium(
+        medium: Medium,
+        line_id: int | None = None,
+        segment_id: int | None = None,
+    ) -> dict[str, Any]:
+        """Set the medium of a line (its main segment's) or of a sub-segment; pass exactly one of
+        ``line_id`` and ``segment_id`` (ids from project_topology). The medium can only change
+        while the segment holds no device, and only to one its line allows (see
+        project_add_segment); an RF or PL segment gets a domain address of its own. Undoable with
+        project_undo. Returns {kind, element_id, medium, domain_address?}."""
+        require_project(ctx)
+        if (line_id is None) == (segment_id is None):
+            raise ToolError("pass exactly one of line_id and segment_id")
+
+        def _set() -> dict[str, Any]:
+            kind = "line" if line_id is not None else "segment"
+            element_id = line_id if line_id is not None else segment_id
+            assert element_id is not None
+            if project.element_details(kind, element_id) is None:
+                raise ToolError(f"no {kind} with id {element_id}")
+            try:
+                if kind == "line":
+                    project.set_line_medium(element_id, _MEDIA[medium])
+                else:
+                    project.set_segment_medium(element_id, _MEDIA[medium])
+            except MediumError as error:
+                raise ToolError(str(error)) from error
+            details = project.element_details(kind, element_id)
+            assert details is not None and details.medium is not None
+            result: dict[str, Any] = {
+                "kind": kind,
+                "element_id": element_id,
+                "medium": medium_name(details.medium),
+            }
+            if details.domain_address:
+                result["domain_address"] = details.domain_address
+            return result
+
+        return ctx.run_locked(_set)
+
+    @tool("write")
+    def project_move_device_to_segment(
+        segment_id: int,
+        node_id: int | None = None,
+        device_address: str | None = None,
+    ) -> dict[str, Any]:
+        """Move a device to a segment (``id`` from project_topology; a line's main segment is its
+        ``main_segment_id``). Identify the device by ``node_id`` OR ``device_address`` (an
+        individual address like "1.0.30"). Within its line it keeps its address, into another
+        line it gets that line's lowest free one. Its hardware must support the segment's
+        medium. Undoable with project_undo. Returns {node_id, name, individual_address,
+        description}."""
+        require_project(ctx)
+
+        def _move() -> dict[str, Any]:
+            device = _require_device(node_id, device_address)
+            try:
+                project.move_device_to_segment(device.node_id, segment_id)
+            except MediumError as error:
+                raise ToolError(str(error)) from error
+            except ValueError as error:
+                raise ToolError(str(error)) from error
+            return _device_dict(_require_device(device.node_id))
+
+        return ctx.run_locked(_move)
 
     # --- group address mutations ------------------------------------------
 

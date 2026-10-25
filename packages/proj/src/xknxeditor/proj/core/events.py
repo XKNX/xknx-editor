@@ -258,6 +258,79 @@ class CreateSegment(Event):
 
 @_register
 @dataclass
+class RenameSegment(Event):
+    event_type: ClassVar[str] = "RenameSegment"
+
+    segment_id: int
+    name: str
+    old_name: str | None = None
+
+    def apply(self, session: Session) -> None:
+        segment = session.get(Segment, self.segment_id)
+        if segment is not None:
+            self.old_name = segment.name
+            segment.name = self.name
+
+    def revert(self, session: Session) -> None:
+        segment = session.get(Segment, self.segment_id)
+        if segment is not None and self.old_name is not None:
+            segment.name = self.old_name
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "segment_id": self.segment_id,
+            "name": self.name,
+            "old_name": self.old_name,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> RenameSegment:
+        return cls(**data)
+
+
+@_register
+@dataclass
+class SetSegmentMedium(Event):
+    """A segment's medium (``MT-0`` …), with the domain address it gets (None for none)."""
+
+    event_type: ClassVar[str] = "SetSegmentMedium"
+
+    segment_id: int
+    medium_type: str
+    domain_address: int | None = None
+    old_medium_type: str | None = None
+    old_domain_address: int | None = None
+
+    def apply(self, session: Session) -> None:
+        segment = session.get(Segment, self.segment_id)
+        if segment is not None:
+            self.old_medium_type = segment.medium_type
+            self.old_domain_address = segment.domain_address
+            segment.medium_type = self.medium_type
+            segment.domain_address = self.domain_address
+
+    def revert(self, session: Session) -> None:
+        segment = session.get(Segment, self.segment_id)
+        if segment is not None and self.old_medium_type is not None:
+            segment.medium_type = self.old_medium_type
+            segment.domain_address = self.old_domain_address
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "segment_id": self.segment_id,
+            "medium_type": self.medium_type,
+            "domain_address": self.domain_address,
+            "old_medium_type": self.old_medium_type,
+            "old_domain_address": self.old_domain_address,
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetSegmentMedium:
+        return cls(**data)
+
+
+@_register
+@dataclass
 class AddDevice(Event):
     event_type: ClassVar[str] = "AddDevice"
 
@@ -2328,6 +2401,7 @@ COMMENT_KINDS: dict[str, type[Any]] = {
     "project": Project,
     "area": Area,
     "line": Line,
+    "segment": Segment,
     "device": Device,
     "space": Space,
     "function": Function,
@@ -2358,17 +2432,25 @@ def _comment_element(session: Session, kind: str, element_id: int) -> Any:
     return None if model is None else session.get(model, element_id)
 
 
+_TOPOLOGY_KINDS: dict[str, type[Area | Line | Segment]] = {
+    "area": Area,
+    "line": Line,
+    "segment": Segment,
+}
+
+
 def _topology_element(
     session: Session, kind: str, element_id: int
-) -> Area | Line | None:
-    model = Area if kind == "area" else Line if kind == "line" else None
+) -> Area | Line | Segment | None:
+    model = _TOPOLOGY_KINDS.get(kind)
     return None if model is None else session.get(model, element_id)
 
 
 @_register
 @dataclass
 class SetTopologyDescription(Event):
-    """The description of an area or a line (``kind`` "area" or "line")."""
+    """The description of an area, a line or a segment (``kind`` "area", "line" or
+    "segment")."""
 
     event_type: ClassVar[str] = "SetTopologyDescription"
 
@@ -2414,14 +2496,18 @@ class SetTopologyAddress(Event):
     address: int
     old_address: int | None = None
 
-    def apply(self, session: Session) -> None:
+    def _element(self, session: Session) -> Area | Line | None:
         element = _topology_element(session, self.kind, self.element_id)
+        return None if isinstance(element, Segment) else element
+
+    def apply(self, session: Session) -> None:
+        element = self._element(session)
         if element is not None:
             self.old_address = element.address
             element.address = self.address
 
     def revert(self, session: Session) -> None:
-        element = _topology_element(session, self.kind, self.element_id)
+        element = self._element(session)
         if element is not None and self.old_address is not None:
             element.address = self.old_address
 
@@ -2600,6 +2686,7 @@ STATUS_KINDS: dict[str, type[Any]] = {
     "project": Project,
     "area": Area,
     "line": Line,
+    "segment": Segment,
     "device": Device,
     "space": Space,
     "function": Function,

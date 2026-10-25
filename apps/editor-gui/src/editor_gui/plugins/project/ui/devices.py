@@ -1,5 +1,5 @@
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from imgui_bundle import imgui
 
@@ -32,11 +32,33 @@ class Area:
 
 
 @dataclass
+class Segment:
+    """A sub-segment of a line (its main segment is the line itself)."""
+
+    id: int
+    name: str
+
+
+@dataclass
 class Line:
     id: int
     area_id: int
     number: int
     name: str
+    segments: list[Segment] = field(default_factory=list[Segment])
+
+
+def _split_line(
+    line: Line, devices: list[TreeDevice], segment_of: dict[int, int]
+) -> tuple[list[tuple[Segment, list[TreeDevice]]], list[TreeDevice]]:
+    """A line's devices by where they show: each sub-segment with its own, and the main
+    segment's, which show directly under the line."""
+    by_segment: dict[int, list[TreeDevice]] = {s.id: [] for s in line.segments}
+    main: list[TreeDevice] = []
+    for device in devices:
+        own = by_segment.get(segment_of.get(device.node_id, -1))
+        (main if own is None else own).append(device)
+    return [(s, by_segment[s.id]) for s in line.segments], main
 
 
 class DevicesPanel:
@@ -69,8 +91,20 @@ class DevicesPanel:
         on_compare: Callable[[int], None] | None = None,
         on_select_element: Callable[[str, int], None] = lambda _k, _i: None,
         get_selected_topology: Callable[[], tuple[str, int] | None] = lambda: None,
+        get_device_segments: Callable[[], dict[int, int]] = dict,
+        on_add_segment: Callable[[Line], None] = lambda _l: None,
+        on_remove_segment: Callable[[Segment], None] = lambda _s: None,
+        on_move_device_to_segment: Callable[[Device, Segment], None] = (
+            lambda _d, _s: None
+        ),
     ) -> None:
         self._get_devices = get_devices
+        # A line's sub-segments show as nodes before its main segment's devices, each with its
+        # own devices (``get_device_segments``: node id -> segment id).
+        self._get_device_segments = get_device_segments
+        self._on_add_segment = on_add_segment
+        self._on_remove_segment = on_remove_segment
+        self._on_move_device_to_segment = on_move_device_to_segment
         # Selecting an area or a line (its details and comment show in place of the device's),
         # and the one selected: highlighted instead of the device until a device is selected.
         self._on_select_element = on_select_element
@@ -181,11 +215,18 @@ class DevicesPanel:
                 flags = flags | imgui.TreeNodeFlags_.selected
             return flags
 
-        # Flat device order as rendered (areas -> lines -> devices, then unassigned) for Shift-range.
+        # Flat device order as rendered (areas -> lines -> segments' devices, the main segment's
+        # devices, then unassigned) for Shift-range.
+        segment_of = self._get_device_segments()
         ordered_ids: list[int] = []
         for _area in areas:
             for _line in self._get_lines(_area.id):
-                for _d in device_tree.get(_area.number, {}).get(_line.number, []):
+                _segments, _main = _split_line(
+                    _line,
+                    device_tree.get(_area.number, {}).get(_line.number, []),
+                    segment_of,
+                )
+                for _d in [*(d for _s, ds in _segments for d in ds), *_main]:
                     if isinstance(_d, Device) and (
                         not flt or self._device_matches(_d, flt)
                     ):
@@ -245,8 +286,17 @@ class DevicesPanel:
                     self._render_line_context_menu(line)
                     self._render_line_drop_target(area, line)
                     if line_open:
+                        segments, main_devices = _split_line(
+                            line, line_devices, segment_of
+                        )
+                        for segment, segment_devices in segments:
+                            if flt and not segment_devices:
+                                continue  # hide segments with no match while filtering
+                            self._render_segment(
+                                area, line, segment, segment_devices, _leaf, ordered_ids
+                            )
                         with leaf_rows(nodes=True):
-                            for device in line_devices:
+                            for device in main_devices:
                                 self._render_device_node(device, _leaf, ordered_ids)
                         imgui.tree_pop()
                 imgui.tree_pop()
@@ -268,6 +318,49 @@ class DevicesPanel:
                     for device in unassigned:
                         self._render_device_node(device, _leaf, ordered_ids)
                 imgui.tree_pop()
+
+    def _render_segment(
+        self,
+        area: Area,
+        line: Line,
+        segment: Segment,
+        devices: list[TreeDevice],
+        leaf: Callable[[TreeDevice], int],
+        ordered_ids: list[int],
+    ) -> None:
+        """A sub-segment's node, its devices below it; a click selects it, a device dropped on
+        it moves there."""
+        flags = (
+            imgui.TreeNodeFlags_.default_open
+            | imgui.TreeNodeFlags_.span_avail_width
+            | imgui.TreeNodeFlags_.open_on_arrow
+            | imgui.TreeNodeFlags_.open_on_double_click
+        )
+        if not devices:
+            flags |= imgui.TreeNodeFlags_.leaf
+        if self._get_selected_topology() == ("segment", segment.id):
+            flags |= imgui.TreeNodeFlags_.selected
+        if self._filter_text.strip():
+            imgui.set_next_item_open(True, imgui.Cond_.always)
+        label = self._format_segment_label(area, line, segment)
+        opened = tree_node(f"{label}##segment_{segment.id}", flags)
+        if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
+            self._select_element("segment", segment.id)
+        if imgui.begin_popup_context_item(f"##segment_ctx_{segment.id}"):
+            if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
+                self._on_remove_segment(segment)
+            imgui.end_popup()
+        if imgui.begin_drag_drop_target():
+            payload = imgui.accept_drag_drop_payload_py_id("DEVICE")
+            if payload is not None and self._dragging_device is not None:
+                self._on_move_device_to_segment(self._dragging_device, segment)
+                self._dragging_device = None
+            imgui.end_drag_drop_target()
+        if opened:
+            with leaf_rows(nodes=True):
+                for device in devices:
+                    self._render_device_node(device, leaf, ordered_ids)
+            imgui.tree_pop()
 
     def _render_device_node(
         self,
@@ -423,6 +516,14 @@ class DevicesPanel:
             )
         return S.DEVICE_LINE.format(area=area.number, line=line.number)
 
+    @staticmethod
+    def _format_segment_label(area: Area, line: Line, segment: Segment) -> str:
+        if segment.name:
+            return S.DEVICE_SEGMENT_NAMED.format(
+                name=segment.name, area=area.number, line=line.number
+            )
+        return S.DEVICE_SEGMENT.format(area=area.number, line=line.number)
+
     def _render_area_context_menu(self, area: Area, lines: list[Line]) -> None:
         if imgui.begin_popup_context_item(f"##area_ctx_{area.id}"):
             if imgui.menu_item(S.CONTEXT_ADD_LINE, "", False)[0]:
@@ -441,6 +542,8 @@ class DevicesPanel:
 
     def _render_line_context_menu(self, line: Line) -> None:
         if imgui.begin_popup_context_item(f"##line_ctx_{line.id}"):
+            if imgui.menu_item(S.CONTEXT_ADD_SEGMENT, "", False)[0]:
+                self._on_add_segment(line)
             if imgui.menu_item(S.CONTEXT_RENAME, "", False)[0]:
                 self._popup_target_line = line
                 self._popup_name = line.name

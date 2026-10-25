@@ -28,6 +28,67 @@ class ProjectStrings:
         return _("Line")
 
     @property
+    def PANEL_SEGMENT(self) -> str:
+        return _("Segment")
+
+    @property
+    def MEDIUM(self) -> str:
+        return _("Medium")
+
+    @property
+    def DOMAIN_ADDRESS(self) -> str:
+        return _("Domain Address")
+
+    @property
+    def SEGMENT_DEFAULT_NAME(self) -> str:
+        # The name a new segment gets.
+        return _("segment")
+
+    @property
+    def MEDIUM_ERROR_SEGMENT_HAS_DEVICES(self) -> str:
+        return _("The medium of a segment can only change while it holds no device.")
+
+    @property
+    def MEDIUM_ERROR_NO_SUB_SEGMENTS(self) -> str:
+        return _(
+            "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
+        )
+
+    @property
+    def MEDIUM_ERROR_SUB_SEGMENT_IOT(self) -> str:
+        return _(
+            "The medium type of the segment '{segment}' cannot be changed to IoT, because its "
+            "parent line '{line}' is not of medium type IP."
+        )
+
+    @property
+    def MEDIUM_ERROR_SUB_SEGMENT_MEDIUM(self) -> str:
+        return _("A sub-segment of KNX medium type {medium} is not allowed.")
+
+    @property
+    def MEDIUM_ERROR_LINE_HAS_SUB_SEGMENTS(self) -> str:
+        return _(
+            "The medium type of the line '{line}' can no longer be changed to {medium}, "
+            "because it already contains segments that are not allowed below it."
+        )
+
+    @property
+    def MEDIUM_ERROR_TOO_MANY_SEGMENTS(self) -> str:
+        return _("The maximum number of segments has been reached.")
+
+    @property
+    def MEDIUM_ERROR_MAIN_SEGMENT(self) -> str:
+        return _("The main segment cannot be deleted.")
+
+    @property
+    def MEDIUM_ERROR_DEVICE_LINE(self) -> str:
+        return _("Device '{device}' is incompatible with line's medium type.")
+
+    @property
+    def MEDIUM_ERROR_DEVICE_SEGMENT(self) -> str:
+        return _("Device '{device}' is incompatible with segment's medium type.")
+
+    @property
     def TOPOLOGY_ADDRESS_INVALID(self) -> str:
         return _("The address is a number from 0 to 15.")
 
@@ -2062,6 +2123,14 @@ class ProjectStrings:
         return _("{name} (Line {area}.{line})")
 
     @property
+    def DEVICE_SEGMENT(self) -> str:
+        return _("Segment {area}.{line}")
+
+    @property
+    def DEVICE_SEGMENT_NAMED(self) -> str:
+        return _("{name} (Segment {area}.{line})")
+
+    @property
     def DEVICE_UNASSIGNED(self) -> str:
         return _("Unassigned ({count})")
 
@@ -2072,6 +2141,10 @@ class ProjectStrings:
     @property
     def CONTEXT_ADD_LINE(self) -> str:
         return _("Add Line")
+
+    @property
+    def CONTEXT_ADD_SEGMENT(self) -> str:
+        return _("Add Segment")
 
     @property
     def CONTEXT_RENAME(self) -> str:
@@ -3418,6 +3491,14 @@ class ProjectStrings:
     @property
     def HISTORY_EV_ADD_SEGMENT(self) -> str:
         return _("Add segment")
+
+    @property
+    def HISTORY_EV_RENAME_SEGMENT(self) -> str:
+        return _("Rename segment to {name}")
+
+    @property
+    def HISTORY_EV_SET_MEDIUM(self) -> str:
+        return _("Set medium to {medium}")
 
     @property
     def HISTORY_EV_CREATE_GA(self) -> str:

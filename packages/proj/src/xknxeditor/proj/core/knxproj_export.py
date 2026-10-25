@@ -1733,6 +1733,7 @@ class _Writer:
                             line_el,
                             "Segment",
                             Id=f"{pid}-0_{self._ids.id('S', segment, segment.source_id)}",
+                            Name=segment.name or None,
                             Number=segment.number,
                             MediumTypeRefId=segment.medium_type,
                             DomainAddress=segment.domain_address,
@@ -1740,7 +1741,9 @@ class _Writer:
                             MasterSalt=segment.master_salt
                             if self._schema == "23"
                             else None,
+                            Comment=segment.comment or None,
                             CompletionStatus=_status(segment.completion_status),
+                            Description=segment.description or None,
                             Puid=self._ids.puid(segment, segment.puid),
                         )
                         if first_segment_el is None:

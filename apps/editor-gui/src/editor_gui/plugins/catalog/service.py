@@ -406,6 +406,12 @@ class CatalogService:
         """The coupler capabilities of a hardware program (e.g. ``SecurityProxy``)."""
         return self._service.coupler_capabilities(hardware2program_id)
 
+    @io_guarded(lambda: None)
+    def program_media(self, hardware2program_id: str) -> tuple[set[str], bool] | None:
+        """The media a hardware program supports and whether it is a coupler; None when the
+        catalog lacks the program."""
+        return self._service.program_media(hardware2program_id)
+
     @io_guarded(lambda: False)
     def has_application(self, application_id: str) -> bool:
         """Whether a hardware program in the catalog loads ``application_id``."""

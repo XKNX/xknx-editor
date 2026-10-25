@@ -387,6 +387,9 @@ class _SegmentDesc:
     master_salt: str | None = None
     bus_access: dict[str, str] | None = None
     identity: _Identity = ("", None)
+    name: str = ""
+    description: str = ""
+    comment: str = ""
 
 
 @dataclass(slots=True)
@@ -1019,6 +1022,9 @@ def _read_coupler_extras(root: ET.Element, extras: _RawExtras) -> None:
                             master_salt=seg.get("MasterSalt"),
                             bus_access=_bus_access(seg),
                             identity=_identity(seg),
+                            name=seg.get("Name") or "",
+                            description=seg.get("Description") or "",
+                            comment=seg.get("Comment") or "",
                         )
                     )
             if seg_descs and a_addr is not None and l_addr is not None:
@@ -1796,6 +1802,9 @@ def _build_line_segments(
             master_salt=desc.master_salt,
             bus_access=desc.bus_access or (line_bus_access if not segments else None),
             completion_status=_status(state, desc.identity[0]),
+            name=desc.name,
+            description=desc.description,
+            comment=desc.comment,
         )
         line.segments.append(segment)
         segments.append(segment)

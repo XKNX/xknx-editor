@@ -9,7 +9,9 @@ from editor_gui.plugins.catalog.online_catalog import (
 )
 from editor_gui.plugins.catalog.strings import S
 from editor_gui.plugins.catalog.ui import CatalogPanel
+from editor_gui.plugins.project.medium_text import medium_error_text
 from editor_gui.plugins.project.service import DeviceProduct
+from xknxeditor.proj.core.medium import MediumError
 
 if TYPE_CHECKING:
     from editor_gui.plugins.catalog.online_catalog import OnlineCatalogItem
@@ -104,16 +106,21 @@ class CatalogPlugin:
         secure_commissioning: bool | None = None,
     ) -> None:
         # A new device has no name of its own; it shows its product's name until renamed. Added to
-        # a space, it goes on the space's Current Line.
-        device_id = self._api.project.add_device(
-            product_ref_id=product.product_ref_id,
-            hardware2program_ref_id=product.hardware2program_ref_id,
-            name="",
-            app=app,
-            product=DeviceProduct.of(product),
-            secure_commissioning=secure_commissioning,
-            space_id=space_id,
-        )
+        # a space, it goes on the space's Current Line, whose medium its hardware must support.
+        try:
+            device_id = self._api.project.add_device(
+                product_ref_id=product.product_ref_id,
+                hardware2program_ref_id=product.hardware2program_ref_id,
+                name="",
+                app=app,
+                product=DeviceProduct.of(product),
+                secure_commissioning=secure_commissioning,
+                space_id=space_id,
+            )
+        except MediumError as error:
+            self._log.warning("device not added", error=str(error))
+            self._notify(medium_error_text(error))
+            return
         if device_id:
             ask = self._api.ask_device_certificate
             if ask is not None and self._api.project.secure_commissioning_of(device_id):

@@ -261,7 +261,8 @@ class Line(_SourceIdentity, Base):
 
 
 class Segment(_SourceIdentity, Base):
-    """A media segment of a line, holding the medium type (e.g. ``MT-0`` TP / ``MT-5`` IP)."""
+    """A media segment of a line, holding the medium type (e.g. ``MT-0`` TP / ``MT-5`` IP). The
+    segment numbered 0 is the line's main segment; the line's medium is its."""
 
     __tablename__ = "segments"
 
@@ -272,6 +273,8 @@ class Segment(_SourceIdentity, Base):
     number: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     medium_type: Mapped[str] = mapped_column(String, nullable=False)
     name: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    description: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    comment: Mapped[str] = mapped_column(Text, nullable=False, default="")
     # RF/PL ``DomainAddress`` (project/22+23 Segment attr, project/14+20 Line attr). None for TP/IP.
     domain_address: Mapped[int | None] = mapped_column(Integer)
     # This segment's own ``AdditionalGroupAddresses`` (project/22+23, where they sit on the Segment),
@@ -285,7 +288,8 @@ class Segment(_SourceIdentity, Base):
     # The ``<BusAccess>`` attributes (``Name``, ``Parameter``): the bus access last used for this
     # segment (project/22+23 Segment, project/14+20 Line child), kept verbatim. None if absent.
     bus_access: Mapped[dict[str, str] | None] = mapped_column(JSON)
-    # The Segment @CompletionStatus (project/21+), kept for the export; the editor shows the line's.
+    # The Segment @CompletionStatus (project/21+); the main segment's is kept for the export, the
+    # editor shows the line's.
     completion_status: Mapped[str] = mapped_column(
         String, nullable=False, default=UNDEFINED_STATUS
     )

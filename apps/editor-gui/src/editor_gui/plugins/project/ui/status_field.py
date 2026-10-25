@@ -37,6 +37,14 @@ def _choose(
     return values[chosen]
 
 
+def choice_combo(
+    label: str, options: list[tuple[str, str]], current: str
+) -> str | None:
+    """A drop-down of ``options`` (value, text) with ``current`` chosen; the value chosen, or
+    None while it stays. A value the options lack is shown as it is."""
+    return _choose(label, options, current, current)
+
+
 def status_combo(label: str, current: str) -> str | None:
     """The "Status" drop-down; the status chosen, or None while it stays."""
     return _choose(label, status_options(), current, status_label(current))

@@ -2346,3 +2346,57 @@ msgstr "{line} (arver fra {space})"
 
 msgid "Set current line"
 msgstr "Angi gjeldende linje"
+
+msgid "Segment"
+msgstr "Segment"
+
+msgid "Medium"
+msgstr "Medie"
+
+msgid "Domain Address"
+msgstr "Domeneadresse"
+
+msgid "segment"
+msgstr "segment"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "Medietypen til et segment kan bare endres hvis det ikke inneholder utstyr."
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
+msgstr "Et delsegment er ikke tillatt under et hovedsegment av KNX-medietype {medium}."
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "Medietypen til segmentet «{segment}» kan ikke endres til IoT, fordi den overordnede linjen «{line}» ikke er av medietype IP."
+
+msgid "A sub-segment of KNX medium type {medium} is not allowed."
+msgstr "Et delsegment av KNX-medietype {medium} er ikke tillatt."
+
+msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
+msgstr "Medietypen til linjen '{line}' kan ikke lenger endres til {medium}, fordi den allerede inneholder segmenter som ikke er tillatt under den."
+
+msgid "The maximum number of segments has been reached."
+msgstr "Maksimalt antall segmenter er nådd."
+
+msgid "The main segment cannot be deleted."
+msgstr "Hovedsegmentet kan ikke slettes."
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "Enhet '{device}' er inkompatibel med linjens mediumtype."
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "Enhet '{device}' er inkompatibel med segmentets medium type."
+
+msgid "Segment {area}.{line}"
+msgstr "Segment {area}.{line}"
+
+msgid "{name} (Segment {area}.{line})"
+msgstr "{name} (segment {area}.{line})"
+
+msgid "Add Segment"
+msgstr "Legg til segment"
+
+msgid "Rename segment to {name}"
+msgstr "Gi segmentet nytt navn: {name}"
+
+msgid "Set medium to {medium}"
+msgstr "Angi medie til {medium}"

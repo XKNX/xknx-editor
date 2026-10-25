@@ -2346,3 +2346,57 @@ msgstr "{line}（继承自 {space}）"
 
 msgid "Set current line"
 msgstr "设置当前支线"
+
+msgid "Segment"
+msgstr "段"
+
+msgid "Medium"
+msgstr "介质"
+
+msgid "Domain Address"
+msgstr "域地址"
+
+msgid "segment"
+msgstr "段"
+
+msgid "The medium of a segment can only change while it holds no device."
+msgstr "只能更改不包含任何设备的段的介质类型。"
+
+msgid "A sub-segment is not allowed below a main segment of KNX medium type {medium}."
+msgstr "子段不允许放在KNX介质类型为 {medium} 的主段下面。"
+
+msgid "The medium type of the segment '{segment}' cannot be changed to IoT, because its parent line '{line}' is not of medium type IP."
+msgstr "段“{segment}”的介质类型无法更改为 IoT，因为其父线路“{line}”不是IP介质类型。"
+
+msgid "A sub-segment of KNX medium type {medium} is not allowed."
+msgstr "不允许 KNX 介质类型为 {medium} 的子段。"
+
+msgid "The medium type of the line '{line}' can no longer be changed to {medium}, because it already contains segments that are not allowed below it."
+msgstr "线路“{line}”的介质类型无法再更改为 {medium}，因为它已经包含其下不允许的段。"
+
+msgid "The maximum number of segments has been reached."
+msgstr "已达到段数的最大值。"
+
+msgid "The main segment cannot be deleted."
+msgstr "主段不能删除。"
+
+msgid "Device '{device}' is incompatible with line's medium type."
+msgstr "设备 '{device}'和线路的介质类型不兼容。"
+
+msgid "Device '{device}' is incompatible with segment's medium type."
+msgstr "设备 '{device}'和段的介质类型不兼容。"
+
+msgid "Segment {area}.{line}"
+msgstr "段 {area}.{line}"
+
+msgid "{name} (Segment {area}.{line})"
+msgstr "{name}（段 {area}.{line}）"
+
+msgid "Add Segment"
+msgstr "添加段"
+
+msgid "Rename segment to {name}"
+msgstr "将段重命名为 {name}"
+
+msgid "Set medium to {medium}"
+msgstr "将介质设置为 {medium}"
