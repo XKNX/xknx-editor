@@ -2795,3 +2795,81 @@ msgstr "Segment verplaatsen"
 
 msgid "Move function"
 msgstr "Functie verplaatsen"
+
+msgid "Paste Special"
+msgstr "Plakken speciaal"
+
+msgid "Number of Items"
+msgstr "Aantal items"
+
+msgid "Don't copy"
+msgstr "Niet kopiëren"
+
+msgid "Keep"
+msgstr "Behouden"
+
+msgid "Create new group address in middle group"
+msgstr "Nieuw groepsadres in middengroep maken"
+
+msgid "Create new group address in main group"
+msgstr "Nieuw groepsadres in hoofdgroep maken"
+
+msgid "Create new group address in group range"
+msgstr "Nieuw groepsadres in groepsbereik maken"
+
+msgid "Generate Address"
+msgstr "Adres genereren"
+
+msgid "Fill up (use first free)"
+msgstr "Opvullen (eerste vrije)"
+
+msgid "Append"
+msgstr "Achteraan toevoegen"
+
+msgid "Start with"
+msgstr "Beginnen met"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Voer een middengroep in, bijv. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Voer een hoofdgroep in, bijv. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "De groep heeft te weinig vrije groepsadressen voor de kopieën."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Het maximale aantal groepsbereiken is bereikt."
+
+msgid "There is no group for the new group addresses."
+msgstr "Er is geen groep voor de nieuwe groepsadressen."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' gekopieerd naar '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "{count} apparaten gekopieerd naar '{target}'."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "{count} gebouwdelen gekopieerd naar '{target}'."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "{count} disciplines gekopieerd naar '{target}'."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "{count} functies gekopieerd naar '{target}'."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "{count} groepsadressen gekopieerd naar '{target}'."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "{count} middengroepen gekopieerd naar '{target}'."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "{count} hoofdgroepen gekopieerd naar '{target}'."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "{count} lijnen gekopieerd naar '{target}'."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "{count} segmenten gekopieerd naar '{target}'."

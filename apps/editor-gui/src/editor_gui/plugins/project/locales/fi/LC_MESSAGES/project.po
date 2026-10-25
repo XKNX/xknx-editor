@@ -2757,3 +2757,81 @@ msgstr "Siirrä segmentti"
 
 msgid "Move function"
 msgstr "Siirrä toiminto"
+
+msgid "Paste Special"
+msgstr "Liitä määräten"
+
+msgid "Number of Items"
+msgstr "Kohteiden määrä"
+
+msgid "Don't copy"
+msgstr "Älä kopioi"
+
+msgid "Keep"
+msgstr "Säilytä"
+
+msgid "Create new group address in middle group"
+msgstr "Luo uusi ryhmäosoite keskiryhmään"
+
+msgid "Create new group address in main group"
+msgstr "Luo uusi ryhmäosoite pääryhmään"
+
+msgid "Create new group address in group range"
+msgstr "Luo uusi ryhmäosoite ryhmäalueeseen"
+
+msgid "Generate Address"
+msgstr "Luo osoite"
+
+msgid "Fill up (use first free)"
+msgstr "Täytä (ensimmäinen vapaa)"
+
+msgid "Append"
+msgstr "Lisää loppuun"
+
+msgid "Start with"
+msgstr "Aloita arvosta"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Anna keskiryhmä, esim. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Anna pääryhmä, esim. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "Ryhmässä on liian vähän vapaita ryhmäosoitteita kopioille."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Ryhmäalueiden enimmäismäärä on saavutettu."
+
+msgid "There is no group for the new group addresses."
+msgstr "Uusille ryhmäosoitteille ei ole ryhmää."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "{count} laitetta kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "{count} rakennuksen osaa kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "{count} toimialaa kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "{count} toimintoa kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "{count} ryhmäosoitetta kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "{count} keskiryhmää kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "{count} pääryhmää kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "{count} linjaa kopioitu kohteeseen '{target}'."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "{count} segmenttiä kopioitu kohteeseen '{target}'."

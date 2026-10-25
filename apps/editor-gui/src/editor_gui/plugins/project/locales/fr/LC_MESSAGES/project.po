@@ -2757,3 +2757,81 @@ msgstr "Déplacer le segment"
 
 msgid "Move function"
 msgstr "Déplacer la fonction"
+
+msgid "Paste Special"
+msgstr "Collage spécial"
+
+msgid "Number of Items"
+msgstr "Nombre d'éléments"
+
+msgid "Don't copy"
+msgstr "Ne pas copier"
+
+msgid "Keep"
+msgstr "Conserver"
+
+msgid "Create new group address in middle group"
+msgstr "Créer une nouvelle adresse de groupe dans le groupe intermédiaire"
+
+msgid "Create new group address in main group"
+msgstr "Créer une nouvelle adresse de groupe dans le groupe principal"
+
+msgid "Create new group address in group range"
+msgstr "Créer une nouvelle adresse de groupe dans la plage de groupes"
+
+msgid "Generate Address"
+msgstr "Générer l'adresse"
+
+msgid "Fill up (use first free)"
+msgstr "Compléter (première libre)"
+
+msgid "Append"
+msgstr "Ajouter à la fin"
+
+msgid "Start with"
+msgstr "Commencer par"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Saisissez un groupe intermédiaire, p. ex. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Saisissez un groupe principal, p. ex. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "Le groupe n'a pas assez d'adresses de groupe libres pour les copies."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Le nombre maximal de plages de groupes est atteint."
+
+msgid "There is no group for the new group addresses."
+msgstr "Il n'y a pas de groupe pour les nouvelles adresses de groupe."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' copié vers '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "{count} participants copiés vers '{target}'."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "{count} parties de bâtiment copiées vers '{target}'."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "{count} métiers copiés vers '{target}'."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "{count} fonctions copiées vers '{target}'."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "{count} adresses de groupe copiées vers '{target}'."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "{count} groupes intermédiaires copiés vers '{target}'."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "{count} groupes principaux copiés vers '{target}'."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "{count} lignes copiées vers '{target}'."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "{count} segments copiés vers '{target}'."

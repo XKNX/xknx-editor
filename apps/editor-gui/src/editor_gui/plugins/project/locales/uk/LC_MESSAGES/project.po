@@ -2757,3 +2757,81 @@ msgstr "Перемістити сегмент"
 
 msgid "Move function"
 msgstr "Перемістити функцію"
+
+msgid "Paste Special"
+msgstr "Спеціальна вставка"
+
+msgid "Number of Items"
+msgstr "Кількість елементів"
+
+msgid "Don't copy"
+msgstr "Не копіювати"
+
+msgid "Keep"
+msgstr "Зберегти"
+
+msgid "Create new group address in middle group"
+msgstr "Створити нову групову адресу в середній групі"
+
+msgid "Create new group address in main group"
+msgstr "Створити нову групову адресу в головній групі"
+
+msgid "Create new group address in group range"
+msgstr "Створити нову групову адресу в діапазоні груп"
+
+msgid "Generate Address"
+msgstr "Створення адреси"
+
+msgid "Fill up (use first free)"
+msgstr "Заповнити (перша вільна)"
+
+msgid "Append"
+msgstr "Додати в кінець"
+
+msgid "Start with"
+msgstr "Почати з"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Введіть середню групу, наприклад 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Введіть головну групу, наприклад 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "У групі замало вільних групових адрес для копій."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Досягнуто максимальної кількості діапазонів груп."
+
+msgid "There is no group for the new group addresses."
+msgstr "Немає групи для нових групових адрес."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' скопійовано до '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "Скопійовано пристроїв: {count} до '{target}'."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "Скопійовано частин будівлі: {count} до '{target}'."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "Скопійовано добірок пристроїв: {count} до '{target}'."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "Скопійовано функцій: {count} до '{target}'."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "Скопійовано групових адрес: {count} до '{target}'."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "Скопійовано середніх груп: {count} до '{target}'."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "Скопійовано головних груп: {count} до '{target}'."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "Скопійовано ліній: {count} до '{target}'."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "Скопійовано сегментів: {count} до '{target}'."

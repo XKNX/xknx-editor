@@ -3,6 +3,7 @@ would drop it there (see :mod:`editor_gui.plugins.project.ui.tree_drag`)."""
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from types import ModuleType
 
 import pytest
@@ -33,10 +34,16 @@ def drop_on(
 
     real_drop_target = tree_drag.drop_target
 
-    def drop_target(accepts: object) -> tree_drag.Drop | None:
+    def drop_target(
+        accepts: Callable[[Dragged], bool],
+        accepts_copy: Callable[[Dragged], bool] = lambda _d: False,
+    ) -> tree_drag.Drop | None:
         if row not in last[0]:
             return None
-        return real_drop_target(lambda d: _record(offered, accepts(d)))  # type: ignore[operator]
+        return real_drop_target(
+            lambda d: _record(offered, accepts(d)),
+            lambda d: _record(offered, accepts_copy(d)),
+        )
 
     monkeypatch.setattr(module, "tree_node", tree_node)
     monkeypatch.setattr(module, "drop_target", drop_target)

@@ -6,10 +6,12 @@ from typing import cast
 from imgui_bundle import imgui
 
 from editor_gui.device import Device, UnloadedDevice, address_order, device_label
+from editor_gui.plugins.project.paste import PasteTarget
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
+from editor_gui.plugins.project.ui.paste_special import PasteSpecialDialog
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
 from editor_gui.widgets.description import render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -112,12 +114,15 @@ class TopologyPanel:
         on_move_line: Callable[[int, int], None] = lambda _l, _a: None,
         on_move_segment: Callable[[int, int], None] = lambda _s, _l: None,
         one_undo_step: Callable[[], AbstractContextManager[None]] = nullcontext,
+        paste_dialog: PasteSpecialDialog | None = None,
     ) -> None:
         """``on_move_line`` puts a sub line (id) into an area (id), ``on_move_segment`` a
         sub-segment (id) onto a line (id); ``one_undo_step`` makes the edits of one drop one
-        undo step."""
+        undo step; ``paste_dialog`` asks how to copy what is dropped with Ctrl held (no copies
+        without it)."""
         self._get_devices = get_devices
         self._one_undo_step = one_undo_step
+        self._paste_dialog = paste_dialog
         self._on_move_line = on_move_line
         self._on_move_segment = on_move_segment
         # A line's sub-segments show as nodes before its main segment's devices, each with its
@@ -223,6 +228,8 @@ class TopologyPanel:
         self._render_rename_popup()
         self._render_delete_device_popup()
         self._config_dialog.render()
+        if self._paste_dialog is not None:
+            self._paste_dialog.render()
 
         leaf_flags = (
             imgui.TreeNodeFlags_.leaf
@@ -884,6 +891,18 @@ class TopologyPanel:
                 )
             return False
 
+        def copy_target(dragged: Dragged) -> PasteTarget | None:
+            if dragged.kind == "segment":
+                return PasteTarget("line", line.id)
+            # Sub lines only: a main line is not copied.
+            if (
+                dragged.kind == "line"
+                and area_node
+                and self._main_lines().isdisjoint(dragged.ids)
+            ):
+                return PasteTarget("area", area.id)
+            return None
+
         self._drop_devices(
             line.main_segment_id,
             lambda device: self._on_move_device(device, area.number, line.number),
@@ -893,7 +912,17 @@ class TopologyPanel:
                 if dragged.kind == "segment"
                 else self._on_move_line(ident, area.id)
             ),
+            copy_target,
         )
+
+    def _main_lines(self) -> set[int]:
+        """The ids of the areas' main lines."""
+        return {
+            line.id
+            for area in self._get_areas()
+            for line in self._get_lines(area.id)
+            if line.number == 0
+        }
 
     def _line_of_segments(self) -> dict[int, int]:
         """The line of each sub-segment, by segment id."""
@@ -918,10 +947,12 @@ class TopologyPanel:
         move: Callable[[Device], None],
         accepts_other: Callable[[Dragged], bool] = lambda _d: False,
         move_other: Callable[[Dragged, int], None] = lambda _d, _i: None,
+        copy_other: Callable[[Dragged], PasteTarget | None] = lambda _d: None,
     ) -> None:
         """The line or segment just drawn (``segment_id``) as a place to drop devices on, from
-        this tree or the Buildings tree; they move there as with "Move to". ``accepts_other``
-        and ``move_other`` take other dragged elements (lines, segments) there."""
+        this tree or the Buildings tree; they move there as with "Move to", or are copied there
+        with Ctrl held. ``accepts_other`` and ``move_other`` take other dragged elements (lines,
+        segments) there, ``copy_other`` names where their copies go (None: not here)."""
         segment_of = self._get_device_segments()
 
         def accepts(dragged: Dragged) -> bool:
@@ -929,8 +960,24 @@ class TopologyPanel:
                 return accepts_other(dragged)
             return any(segment_of.get(ident) != segment_id for ident in dragged.ids)
 
-        drop = drop_target(accepts)
+        def copy_target(dragged: Dragged) -> PasteTarget | None:
+            if self._paste_dialog is None:
+                return None
+            if dragged.kind == "device":
+                return (
+                    PasteTarget("segment", segment_id)
+                    if segment_id is not None
+                    else None
+                )
+            return copy_other(dragged)
+
+        drop = drop_target(accepts, lambda dragged: copy_target(dragged) is not None)
         if drop is None:
+            return
+        if drop.copy:
+            target = copy_target(drop.dragged)
+            assert self._paste_dialog is not None and target is not None
+            self._paste_dialog.open(drop.dragged.kind, list(drop.dragged.ids), target)
             return
         with self._one_undo_step():
             if drop.dragged.kind != "device":

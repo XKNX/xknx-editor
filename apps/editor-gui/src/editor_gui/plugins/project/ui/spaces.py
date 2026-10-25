@@ -8,6 +8,7 @@ from typing import TYPE_CHECKING, Any
 from imgui_bundle import imgui
 
 from editor_gui.plugins.project.element_status import usage_options
+from editor_gui.plugins.project.paste import PasteTarget
 from editor_gui.plugins.project.space_text import (
     add_item_text,
     add_title,
@@ -18,6 +19,7 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
+from editor_gui.plugins.project.ui.paste_special import PasteSpecialDialog
 from editor_gui.plugins.project.ui.status_field import USAGE_ROWS as _USAGE_ROWS
 from editor_gui.plugins.project.ui.topology import render_read_device_item
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
@@ -180,10 +182,13 @@ class SpacesPanel:
         get_space_devices: "Callable[[], list[SpaceDeviceInfo]]" = list,
         notify: Callable[[str], None] = lambda _t: None,
         one_undo_step: Callable[[], AbstractContextManager[None]] = nullcontext,
+        paste_dialog: PasteSpecialDialog | None = None,
     ) -> None:
         """``notify`` shows the reason an edit was refused; ``one_undo_step`` makes the edits of
-        one drop one undo step."""
+        one drop one undo step; ``paste_dialog`` asks how to copy what is dropped with Ctrl
+        held (no copies without it)."""
         self._one_undo_step = one_undo_step
+        self._paste_dialog = paste_dialog
         self._get_trade_tree = get_trade_tree
         self._on_create_trade = on_create_trade
         self._on_move_trade = on_move_trade
@@ -269,6 +274,8 @@ class SpacesPanel:
         self._render_tree(tree, flt)
         imgui.end_child()
         self._config_dialog.render()
+        if self._paste_dialog is not None:
+            self._paste_dialog.render()
 
     def _render_tree(self, tree: list["SpaceInfo"], flt: str) -> None:
         """The buildings and trades below the filter box, with their menus and dialogs."""
@@ -321,10 +328,35 @@ class SpacesPanel:
                 and not here.issuperset(dragged.ids)
             )
 
-        drop = drop_target(accepts)
+        def accepts_copy(dragged: Dragged) -> bool:
+            if self._paste_dialog is None:
+                return False
+            if dragged.kind == "space":
+                parent_type = space.space_type if space is not None else None
+                return all(
+                    (copied := _find_node(tree, ident)) is not None
+                    and copied.space_type in child_types(parent_type)
+                    and (space is None or _find_node([copied], space.id) is None)
+                    for ident in dragged.ids
+                )
+            if dragged.kind == "function":
+                return space is not None
+            return (
+                dragged.kind == "device"
+                and space is not None
+                and holds_devices(space.space_type)
+            )
+
+        drop = drop_target(accepts, accepts_copy)
         if drop is None:
             return
         target = space.id if space is not None else None
+        if drop.copy:
+            assert self._paste_dialog is not None
+            self._paste_dialog.open(
+                drop.dragged.kind, list(drop.dragged.ids), PasteTarget("space", target)
+            )
+            return
         with self._one_undo_step():
             for ident in drop.dragged.ids:
                 if drop.dragged.kind == "space":
@@ -939,8 +971,28 @@ class SpacesPanel:
                 dragged.ids
             )
 
-        drop = drop_target(accepts)
+        def accepts_copy(dragged: Dragged) -> bool:
+            if self._paste_dialog is None:
+                return False
+            if dragged.kind == "trade":
+                # Anywhere but into itself or a trade below it.
+                return trade is None or all(
+                    (copied := _find_node(trades, ident)) is not None
+                    and _find_node([copied], trade.id) is None
+                    for ident in dragged.ids
+                )
+            return dragged.kind == "device" and trade is not None
+
+        drop = drop_target(accepts, accepts_copy)
         if drop is None:
+            return
+        if drop.copy:
+            assert self._paste_dialog is not None
+            self._paste_dialog.open(
+                drop.dragged.kind,
+                list(drop.dragged.ids),
+                PasteTarget("trade", trade.id if trade is not None else None),
+            )
             return
         with self._one_undo_step():
             for ident in drop.dragged.ids:

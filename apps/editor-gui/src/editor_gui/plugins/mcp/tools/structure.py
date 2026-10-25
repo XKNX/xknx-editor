@@ -14,6 +14,14 @@ from editor_gui.plugins.mcp.tools.project import (
     require_device,
     require_group_address_id,
 )
+from editor_gui.plugins.project.paste import (
+    PasteError,
+    PasteKind,
+    PasteTarget,
+    TargetKind,
+    paste_error_text,
+)
+from xknxeditor.proj.core.paste import Allocation, GroupAddressCopy, PasteOptions
 
 if TYPE_CHECKING:
     from fastmcp import FastMCP
@@ -157,6 +165,94 @@ def register(mcp: FastMCP, ctx: McpContext) -> None:
 
         rows = ctx.run_locked(_paste)
         return {"items": rows, "count": len(rows)}
+
+    @tool("write")
+    def project_paste_special(
+        kind: PasteKind,
+        target_kind: TargetKind,
+        target_id: int | None = None,
+        ids: list[int] | None = None,
+        device_addresses: list[str] | None = None,
+        group_addresses: list[str] | None = None,
+        copies: int = 1,
+        links: Literal["dont_copy", "keep", "create_new"] = "dont_copy",
+        new_group: str = "",
+        new_group_range_id: int | None = None,
+        allocation: Literal["fill_up", "append", "start_with", "offset"] = "fill_up",
+        start_with: int = 1,
+        offset: int = 0,
+    ) -> dict[str, Any]:
+        """Copy elements as dropping them with Ctrl held does in a tree (the Paste Special
+        dialog): ``copies`` (1-100) copies of each, one undo step (project_undo).
+
+        What: ``kind`` with ``ids`` (device node ids, building part, trade, building function,
+        group address, group range, line or segment ids from project_list_devices,
+        project_spaces, project_trades, project_list_group_ranges and project_topology);
+        devices also by ``device_addresses`` ("1.0.30"), group addresses by ``group_addresses``
+        (printed, e.g. "1/2/3").
+
+        Where (``target_kind`` and ``target_id``): devices into a "segment" (a line's main
+        segment for the line itself), a "space" (it has to hold devices) or a "trade"; building
+        parts into a "space" (``target_id`` none: the top, for buildings); trades into a
+        "trade" (none: the top); functions into a "space"; group addresses into a
+        "group_range" that holds them; middle groups into a main "group_range", main groups to
+        the top ("group_range", none); lines into an "area"; segments onto a "line".
+
+        A copy keeps its source's name and texts. Device copies keep their device number in
+        the target's line when it is free there, else get the lowest free one; a building part's
+        devices are numbered from the lowest free one of its Current Line (else of the target's);
+        devices copied where there is no line (a trade, a building part without Current Line)
+        get no individual address. ``links`` says what copies of devices, building parts,
+        trades, functions, lines and segments link: nothing ("dont_copy"), the same group
+        addresses ("keep") or new ones ("create_new": one per group address the sources link,
+        per copy, in the middle group ``new_group`` like "1/2" (three-level style) or main group
+        "1" (two-level), made when it is missing; in free style the range
+        ``new_group_range_id``). ``allocation`` places new group addresses, and copied group
+        addresses and groups, in their group: "fill_up" the lowest free, "append" after the
+        highest used, "start_with" the first free from ``start_with`` on, "offset" at the
+        source's own place plus ``offset``.
+
+        Returns {created: ids of the copies, label: the history entry}."""
+        require_project(ctx)
+        if not 1 <= copies <= _MAX_COPIES:
+            raise ToolError(f"copies must be 1 to {_MAX_COPIES}")
+        if start_with < 1 or offset < 0:
+            raise ToolError("start_with must be at least 1, offset at least 0")
+        options = PasteOptions(
+            count=copies,
+            group_addresses=GroupAddressCopy(links),
+            target_range=new_group,
+            target_range_id=new_group_range_id,
+            allocation=Allocation(allocation),
+            start_with=start_with,
+            offset=offset,
+        )
+
+        def _paste() -> dict[str, Any]:
+            sources = [
+                *(ids or ()),
+                *(
+                    require_device(project, device_address=a).node_id
+                    for a in device_addresses or ()
+                ),
+                *(
+                    require_group_address_id(project, group_address=a)
+                    for a in group_addresses or ()
+                ),
+            ]
+            if not sources:
+                raise ToolError("pass ids, device_addresses or group_addresses")
+            try:
+                created = project.paste(
+                    kind, sources, PasteTarget(target_kind, target_id), options
+                )
+            except PasteError as exc:
+                raise ToolError(paste_error_text(exc)) from exc
+            except KeyError as exc:
+                raise ToolError(f"no such element: {exc}") from exc
+            return {"created": created, "label": project.history()[0].display_text}
+
+        return ctx.run_locked(_paste)
 
     # --- building functions ---------------------------------------------------
 

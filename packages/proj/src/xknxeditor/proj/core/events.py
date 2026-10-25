@@ -4731,3 +4731,58 @@ def _decode_previous(previous: Any) -> dict[str, Any] | None:
     if isinstance(data, dict) and "__bytes_b64__" in data:
         out["data"] = base64.b64decode(cast(str, data["__bytes_b64__"]))
     return out
+
+
+# The rows :class:`SetFields` writes to, by kind.
+_FIELD_ROWS: dict[str, type[Base]] = {
+    "device": Device,
+    "com_object": ComObject,
+    "space": Space,
+    "trade": Trade,
+    "function": Function,
+    "group_address": GroupAddress,
+    "group_range": GroupRange,
+    "line": Line,
+    "segment": Segment,
+}
+
+
+@_register
+@dataclass
+class SetFields(Event):
+    """Set stored fields of several rows at once: ``rows`` holds ``[kind, row id, {field:
+    value}]`` (a kind of :data:`_FIELD_ROWS`), as a copy takes over what its source has. The
+    values before are kept for undo."""
+
+    event_type: ClassVar[str] = "SetFields"
+
+    rows: list[list[Any]]
+    old: list[dict[str, Any]] = field(default_factory=list[dict[str, Any]])
+
+    def apply(self, session: Session) -> None:
+        old: list[dict[str, Any]] = []
+        for kind, row_id, values in self.rows:
+            row = session.get(_FIELD_ROWS[kind], row_id)
+            fields = cast("dict[str, Any]", values)
+            if row is None:
+                old.append({})
+                continue
+            old.append({name: getattr(row, name) for name in fields})
+            for name, value in fields.items():
+                setattr(row, name, value)
+        self.old = old
+
+    def revert(self, session: Session) -> None:
+        for (kind, row_id, _values), before in zip(self.rows, self.old, strict=False):
+            row = session.get(_FIELD_ROWS[kind], row_id)
+            if row is None:
+                continue
+            for name, value in before.items():
+                setattr(row, name, value)
+
+    def to_dict(self) -> dict[str, Any]:
+        return {"rows": self.rows, "old": self.old}
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> SetFields:
+        return cls(**data)

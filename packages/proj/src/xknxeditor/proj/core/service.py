@@ -114,6 +114,7 @@ from xknxeditor.proj.core.events import (
     SetDeviceName,
     SetDeviceSecureCommissioning,
     SetDeviceSpace,
+    SetFields,
     SetFunctionDescription,
     SetFunctionType,
     SetGroupAddressAddress,
@@ -204,6 +205,7 @@ from xknxeditor.proj.db import make_engine, url_for
 from xknxeditor.proj.models import (
     COMPLETION_STATUSES,
     Area,
+    Base,
     ComObject,
     ComObjectLink,
     Device,
@@ -628,6 +630,14 @@ def _moved_line_domain(
     if target_main is not None and target_main.medium == medium:
         return target_main.domain_address
     return new_domain_address(medium, used)
+
+
+def _free_number(used: set[int], count: int, wanted: int | None) -> int | None:
+    """``wanted`` when it is one of ``0..count-1`` and not ``used``, without one the lowest such
+    number not used; None when there is none."""
+    if wanted is not None:
+        return wanted if 0 <= wanted < count and wanted not in used else None
+    return next((n for n in range(count) if n not in used), None)
 
 
 def _main_segment(line: Line) -> Segment:
@@ -1252,13 +1262,19 @@ class ProjectService:
         return event.ga_id
 
     def create_group_range(
-        self, project_id: str, installation: int, parent_id: int | None, name: str
+        self,
+        project_id: str,
+        installation: int,
+        parent_id: int | None,
+        name: str,
+        number: int | None = None,
     ) -> int | None:
         """Create an empty group-range folder (a main or middle group) and return its id.
 
         ``parent_id`` ``None`` adds a main group (the next free main number); a main group's id adds
-        a middle group under it (the next free middle, ThreeLevel only). Returns ``None`` when the
-        style has no such folders (Free, or a middle group in TwoLevel) or the level is full."""
+        a middle group under it (the next free middle, ThreeLevel only); ``number`` asks for that
+        main or middle number. Returns ``None`` when the style has no such folders (Free, or a
+        middle group in TwoLevel), the level is full or ``number`` is taken."""
         state = self._state(project_id)
         style = self._style(state)
         if style is GroupAddressStyle.FREE:
@@ -1273,7 +1289,7 @@ class ProjectService:
                     GroupRange.parent_id.is_(None),
                 )
             }
-            number = next((n for n in range(32) if n not in used), None)
+            number = _free_number(used, 32, number)
             if number is None:
                 return None
             base = number << 11
@@ -1293,7 +1309,7 @@ class ProjectService:
                     GroupRange.parent_id == parent_id,
                 )
             }
-            number = next((m for m in range(8) if m not in used), None)
+            number = _free_number(used, 8, number)
             if number is None:
                 return None
             base = (main << 11) + (number << 8)
@@ -1307,6 +1323,66 @@ class ProjectService:
         )
         state.store.append(event)
         return event.range_id
+
+    def create_group_address_in(
+        self, project_id: str, range_id: int, address: int, name: str
+    ) -> int:
+        """Create the group address ``address`` in the group range ``range_id`` (which must hold
+        it) and return its id. Raises ``KeyError`` for an unknown range, ``ValueError`` when the
+        address is outside it."""
+        state = self._state(project_id)
+        group_range = state.session.get(GroupRange, range_id)
+        if group_range is None:
+            raise KeyError(f"No group range with id {range_id}")
+        if not group_range.range_start <= address <= group_range.range_end:
+            raise ValueError(f"Group address {address} is outside range {range_id}")
+        chain: list[GroupRange] = []
+        node: GroupRange | None = group_range
+        while node is not None:
+            chain.insert(0, node)
+            node = node.parent
+        event = CreateGroupAddress(
+            installation_id=group_range.installation_id,
+            address=address,
+            name=name,
+            levels=[[r.range_start, r.range_end, r.name] for r in chain],
+        )
+        state.store.append(event)
+        assert event.ga_id is not None
+        return event.ga_id
+
+    def used_group_addresses(self, project_id: str, installation: int) -> set[int]:
+        """The group addresses the installation has, as numbers."""
+        state = self._state(project_id)
+        inst = self._installation(state, installation)
+        return {
+            address
+            for (address,) in state.session.query(GroupAddress.address)
+            .join(GroupRange, GroupAddress.group_range_id == GroupRange.id)
+            .filter(GroupRange.installation_id == inst.id)
+        }
+
+    def root_group_ranges(self, project_id: str, installation: int) -> list[GroupRange]:
+        """The installation's top group ranges (its main groups), by their start."""
+        state = self._state(project_id)
+        inst = self._installation(state, installation)
+        return (
+            state.session.query(GroupRange)
+            .filter(
+                GroupRange.installation_id == inst.id, GroupRange.parent_id.is_(None)
+            )
+            .order_by(GroupRange.range_start)
+            .all()
+        )
+
+    def set_fields(self, project_id: str, rows: list[list[Any]]) -> None:
+        """Set stored fields of several rows in one step (see :class:`.SetFields`)."""
+        if rows:
+            self._state(project_id).store.append(SetFields(rows=rows))
+
+    def row[T: Base](self, project_id: str, model: type[T], row_id: int) -> T | None:
+        """The stored row ``row_id`` of ``model``, None when there is none."""
+        return self._state(project_id).session.get(model, row_id)
 
     def rename_group_range(self, project_id: str, range_id: int, name: str) -> None:
         self._state(project_id).store.append(
@@ -4531,6 +4607,10 @@ class ProjectService:
         if device is None:
             raise KeyError(f"No device with id {device_id}")
         return self._compose_ia(device)
+
+    def line_numbers_in_use(self, project_id: str, line_id: int) -> set[int]:
+        """The device numbers the line's devices and their additional addresses use."""
+        return self._line_numbers_in_use(self._state(project_id), line_id)
 
     def next_free_individual_address(self, project_id: str, line_id: int) -> int:
         """Lowest free device octet (1-255) over all the line's segments, skipping the numbers its

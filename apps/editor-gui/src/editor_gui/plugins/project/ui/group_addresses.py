@@ -15,10 +15,12 @@ from imgui_bundle import imgui
 from editor_gui import file_dialogs
 from editor_gui.color import sending_green, themed
 from editor_gui.device import com_object_display_name
+from editor_gui.plugins.project.paste import PasteTarget
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
+from editor_gui.plugins.project.ui.paste_special import PasteSpecialDialog
 from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_target
 from editor_gui.widgets.description import secure_icon, secure_icon_width
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
@@ -78,11 +80,15 @@ class GroupAddressesPanel:
         on_move_range: Callable[[int, int], str | None] | None = None,
         notify: Callable[[str], None] = lambda _text: None,
         one_undo_step: Callable[[], AbstractContextManager[None]] = nullcontext,
+        paste_dialog: PasteSpecialDialog | None = None,
     ) -> None:
         """``on_move_ga`` puts a group address into another group, ``on_move_range`` a middle
         group below another main group ("Move to"); both give the reason it cannot be, which
-        ``notify`` shows. ``one_undo_step`` makes the edits of one drop one undo step."""
+        ``notify`` shows. ``one_undo_step`` makes the edits of one drop one undo step;
+        ``paste_dialog`` asks how to copy what is dropped with Ctrl held (no copies without
+        it)."""
         self._one_undo_step = one_undo_step
+        self._paste_dialog = paste_dialog
         self._on_move_ga = on_move_ga
         self._on_move_range = on_move_range
         self._notify = notify
@@ -201,6 +207,8 @@ class GroupAddressesPanel:
         self._render_new_range_popup()
         self._render_rename_range_popup()
         self._render_delete_range_popup()
+        if self._paste_dialog is not None:
+            self._paste_dialog.render()
 
         if not tree:
             imgui.text_disabled(S.GA_NO_PROJECT)
@@ -355,9 +363,12 @@ class GroupAddressesPanel:
         self, node: "GroupRangeInfo", is_root: bool, shown: str
     ) -> None:
         """Drag and drop as "Move to" does: a middle group onto another main group, a group
-        address onto another group that holds group addresses."""
+        address onto another group that holds group addresses. With Ctrl held they are copied
+        there, also into their own group; a main group's copy (dragged onto any main group)
+        goes to the top."""
         middle = self._middle_enabled()
-        if self._on_move_range is not None and middle and not is_root:
+        movable = self._on_move_range is not None and middle and not is_root
+        if movable or (is_root and self._paste_dialog is not None):
             drag_source(Dragged("group_range", (node.id,)), shown)
         holds_addresses = self._folders_enabled() and (
             not is_root if middle else is_root
@@ -371,10 +382,34 @@ class GroupAddressesPanel:
                 return False
             if dragged.kind == "group_address":
                 return holds_addresses and self._on_move_ga is not None
-            return dragged.kind == "group_range" and middle and is_root
+            return (
+                dragged.kind == "group_range"
+                and middle
+                and is_root
+                and self._main_groups().isdisjoint(dragged.ids)
+            )
 
-        drop = drop_target(accepts)
+        def copy_target(dragged: Dragged) -> PasteTarget | None:
+            if self._paste_dialog is None:
+                return None
+            if dragged.kind == "group_address":
+                return PasteTarget("group_range", node.id) if holds_addresses else None
+            if dragged.kind != "group_range" or not is_root:
+                return None
+            mains = self._main_groups()
+            if mains.issuperset(dragged.ids):
+                return PasteTarget("group_range", None)
+            if middle and mains.isdisjoint(dragged.ids):
+                return PasteTarget("group_range", node.id)
+            return None
+
+        drop = drop_target(accepts, lambda dragged: copy_target(dragged) is not None)
         if drop is None:
+            return
+        if drop.copy:
+            target = copy_target(drop.dragged)
+            assert self._paste_dialog is not None and target is not None
+            self._paste_dialog.open(drop.dragged.kind, list(drop.dragged.ids), target)
             return
         with self._one_undo_step():
             for ident in drop.dragged.ids:
@@ -510,6 +545,10 @@ class GroupAddressesPanel:
         chosen = render_move_menu([(_range_text(m), m.id) for m in tree], current)
         if chosen is not None:
             self._report(self._on_move_range(range_id, chosen[0]))
+
+    def _main_groups(self) -> set[int]:
+        """The ids of the main groups (the top of the tree)."""
+        return {node.id for node in self._get_range_tree()}
 
     def _report(self, reason: str | None) -> None:
         if reason:

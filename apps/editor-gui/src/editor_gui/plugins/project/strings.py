@@ -544,6 +544,114 @@ class ProjectStrings:
         return _("{count} devices")
 
     @property
+    def PASTE_TITLE(self) -> str:
+        return _("Paste Special")
+
+    @property
+    def PASTE_COUNT(self) -> str:
+        return _("Number of Items")
+
+    @property
+    def PASTE_GA_DONT_COPY(self) -> str:
+        return _("Don't copy")
+
+    @property
+    def PASTE_GA_KEEP(self) -> str:
+        return _("Keep")
+
+    @property
+    def PASTE_GA_NEW_MIDDLE(self) -> str:
+        return _("Create new group address in middle group")
+
+    @property
+    def PASTE_GA_NEW_MAIN(self) -> str:
+        return _("Create new group address in main group")
+
+    @property
+    def PASTE_GA_NEW_RANGE(self) -> str:
+        return _("Create new group address in group range")
+
+    @property
+    def PASTE_GENERATE(self) -> str:
+        return _("Generate Address")
+
+    @property
+    def PASTE_FILL_UP(self) -> str:
+        return _("Fill up (use first free)")
+
+    @property
+    def PASTE_APPEND(self) -> str:
+        return _("Append")
+
+    @property
+    def PASTE_START_WITH(self) -> str:
+        return _("Start with")
+
+    @property
+    def PASTE_OFFSET(self) -> str:
+        return _("Offset")
+
+    @property
+    def PASTE_NOT_MIDDLE(self) -> str:
+        return _("Enter a middle group, e.g. 1/2.")
+
+    @property
+    def PASTE_NOT_MAIN(self) -> str:
+        return _("Enter a main group, e.g. 1.")
+
+    @property
+    def PASTE_NO_GA_ROOM(self) -> str:
+        return _("The group has too few free group addresses for the copies.")
+
+    @property
+    def PASTE_NO_RANGE_ROOM(self) -> str:
+        return _("The maximum number of group ranges has been reached.")
+
+    @property
+    def PASTE_NO_TARGET_RANGE(self) -> str:
+        return _("There is no group for the new group addresses.")
+
+    @property
+    def HISTORY_EV_COPIED(self) -> str:
+        return _("Copied '{name}' to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_DEVICES(self) -> str:
+        return _("Copied {count} devices to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_SPACES(self) -> str:
+        return _("Copied {count} building parts to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_TRADES(self) -> str:
+        return _("Copied {count} trades to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_FUNCTIONS(self) -> str:
+        return _("Copied {count} functions to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_GROUP_ADDRESSES(self) -> str:
+        return _("Copied {count} group addresses to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_MIDDLE_GROUPS(self) -> str:
+        return _("Copied {count} middle groups to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_MAIN_GROUPS(self) -> str:
+        return _("Copied {count} main groups to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_LINES(self) -> str:
+        return _("Copied {count} lines to '{target}'.")
+
+    @property
+    def HISTORY_EV_COPIED_SEGMENTS(self) -> str:
+        return _("Copied {count} segments to '{target}'.")
+
+    @property
     def PANEL_CONFIGURE(self) -> str:
         return _("Configure")
 

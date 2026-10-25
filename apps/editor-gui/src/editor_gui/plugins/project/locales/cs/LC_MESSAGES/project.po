@@ -2757,3 +2757,81 @@ msgstr "Přesunout segment"
 
 msgid "Move function"
 msgstr "Přesunout funkci"
+
+msgid "Paste Special"
+msgstr "Vložit jinak"
+
+msgid "Number of Items"
+msgstr "Počet položek"
+
+msgid "Don't copy"
+msgstr "Nekopírovat"
+
+msgid "Keep"
+msgstr "Ponechat"
+
+msgid "Create new group address in middle group"
+msgstr "Vytvořit novou skupinovou adresu ve střední skupině"
+
+msgid "Create new group address in main group"
+msgstr "Vytvořit novou skupinovou adresu v hlavní skupině"
+
+msgid "Create new group address in group range"
+msgstr "Vytvořit novou skupinovou adresu v rozsahu skupin"
+
+msgid "Generate Address"
+msgstr "Generovat adresu"
+
+msgid "Fill up (use first free)"
+msgstr "Doplnit (první volná)"
+
+msgid "Append"
+msgstr "Připojit"
+
+msgid "Start with"
+msgstr "Začít od"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "Zadejte střední skupinu, např. 1/2."
+
+msgid "Enter a main group, e.g. 1."
+msgstr "Zadejte hlavní skupinu, např. 1."
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "Skupina nemá dost volných skupinových adres pro kopie."
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "Bylo dosaženo maximálního počtu rozsahů skupin."
+
+msgid "There is no group for the new group addresses."
+msgstr "Pro nové skupinové adresy neexistuje žádná skupina."
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' zkopírováno do '{target}'."
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "{count} přístrojů zkopírováno do '{target}'."
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "{count} částí budovy zkopírováno do '{target}'."
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "{count} činností zkopírováno do '{target}'."
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "{count} funkcí zkopírováno do '{target}'."
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "{count} skupinových adres zkopírováno do '{target}'."
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "{count} středních skupin zkopírováno do '{target}'."
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "{count} hlavních skupin zkopírováno do '{target}'."
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "{count} linií zkopírováno do '{target}'."
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "{count} segmentů zkopírováno do '{target}'."

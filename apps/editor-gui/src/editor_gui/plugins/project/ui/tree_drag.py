@@ -1,7 +1,8 @@
 """Drag and drop in the trees (Buildings, Topology, Group Addresses), also from one tree onto
-another: an element dropped where its "Move to" would put it moves there. A drop tells whether
-Ctrl was held (``Drop.copy``). The place under the pointer is checked while dragging: one the
-element may not go to does not light up and shows the not-allowed pointer.
+another: an element dropped where its "Move to" would put it moves there; with Ctrl or Shift held
+it is copied there (``Drop.copy``, the Paste Special dialog asks how). The place under the pointer
+is checked while dragging: one the element may not go to does not light up and shows the
+not-allowed pointer.
 """
 
 from __future__ import annotations
@@ -38,7 +39,7 @@ class Dragged:
 
 @dataclass(frozen=True)
 class Drop:
-    """A dragged element let go over a place it may go; ``copy`` with Ctrl held."""
+    """A dragged element let go over a place it may go; ``copy`` with Ctrl or Shift held."""
 
     dragged: Dragged
     copy: bool
@@ -67,18 +68,23 @@ def dragging() -> Dragged | None:
 
 
 def copy_held() -> bool:
-    """Whether the key that makes a drop copy (Ctrl) is held."""
-    return imgui.get_io().key_ctrl
+    """Whether a key that makes a drop copy is held: Ctrl or Shift (not both)."""
+    io = imgui.get_io()
+    return io.key_ctrl != io.key_shift
 
 
-def drop_target(accepts: Callable[[Dragged], bool]) -> Drop | None:
+def drop_target(
+    accepts: Callable[[Dragged], bool],
+    accepts_copy: Callable[[Dragged], bool] = lambda _dragged: False,
+) -> Drop | None:
     """The item just drawn as a place to drop on: what is let go over it when ``accepts`` takes
-    it, else nothing (and the not-allowed pointer while over it)."""
+    it (``accepts_copy`` while a key that makes a copy is held), else nothing (and the
+    not-allowed pointer while over it)."""
     dragged = dragging()
     if dragged is None or not imgui.begin_drag_drop_target():
         return None
     drop: Drop | None = None
-    if accepts(dragged):
+    if (accepts_copy if copy_held() else accepts)(dragged):
         payload = imgui.accept_drag_drop_payload_py_id(_PAYLOAD)
         if payload is not None:  # pyright: ignore[reportUnnecessaryComparison]
             drop = Drop(dragged, copy_held())

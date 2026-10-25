@@ -44,6 +44,7 @@ from editor_gui.dpt import dpt_from_token, lookup_or_make_dpt
 from editor_gui.hardware_text import current_text
 from editor_gui.plugins.project.element_status import status_label, usage_label
 from editor_gui.plugins.project.medium_text import medium_error_text
+from editor_gui.plugins.project.paste import PasteKind, Paster, PasteTarget
 from editor_gui.plugins.project.space_text import space_error_text
 from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui.history import HistoryEntry
@@ -89,6 +90,7 @@ from xknxeditor.proj.core.medium import (
     parse_domain_address,
 )
 from xknxeditor.proj.core.modified import project_timestamp
+from xknxeditor.proj.core.paste import GroupAddressCopy, PasteOptions
 from xknxeditor.proj.core.project_secrets import check_project_password
 from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
 from xknxeditor.proj.core.service import DEFAULT_MULTICAST_ADDRESS
@@ -126,6 +128,7 @@ if TYPE_CHECKING:
     from xknxeditor.proj.core.service import (
         GroupAddressInfo as CoreGroupAddressInfo,
     )
+    from xknxeditor.proj.models import Device as DeviceRow
 
 _INSTALLATION = 0
 
@@ -4331,6 +4334,7 @@ class ProjectService:
         secure_commissioning: bool | None = None,
         with_additional_addresses: bool = True,
         space_id: int | None = None,
+        no_address: bool = False,
     ) -> int | None:
         """Add a device. A device that supports KNX Data Secure is commissioned securely by
         default when the project has a password (``secure_commissioning`` ``None``); ``True``
@@ -4339,7 +4343,8 @@ class ProjectService:
         addresses its application has (its tunnelling addresses), the highest free ones of the
         line, unless ``with_additional_addresses`` is off; when the line has too few free, it is
         added without them. A device added to the space ``space_id`` goes on the space's Current
-        Line when no ``segment_id`` is given, in the same undo step. Raises ``MediumError`` when
+        Line when no ``segment_id`` is given, in the same undo step. Without ``address`` it gets
+        the next free one of the line, none with ``no_address``. Raises ``MediumError`` when
         the device's hardware does not support the medium of the segment."""
         if self._pid is None:
             return None
@@ -4357,7 +4362,7 @@ class ProjectService:
             segment_id,
             name or product.product_name or app.name,
         )
-        if address is None:
+        if address is None and not no_address:
             # Assign the next free individual address on the target line (standard behaviour), instead of
             # leaving the device address-less. Editable afterwards in Configure. If the line is full,
             # fall back to no address rather than failing the add.
@@ -4396,7 +4401,7 @@ class ProjectService:
 
         additional = (
             app.program.additional_addresses_count or 0
-            if with_additional_addresses
+            if with_additional_addresses and address is not None
             else 0
         )
         try:
@@ -6768,6 +6773,85 @@ class ProjectService:
             if self._pid == pid:
                 self._svc.group_since(pid, start, label)
                 self._bump()
+
+    def _paster(self) -> Paster | None:
+        if self._pid is None:
+            return None
+        return Paster(
+            self._svc,
+            self._pid,
+            _INSTALLATION,
+            self.group_address_style,
+            self._paste_device,
+        )
+
+    def paste(
+        self,
+        kind: PasteKind,
+        ids: list[int],
+        target: PasteTarget,
+        options: PasteOptions,
+    ) -> list[int]:
+        """Paste Special: ``options.count`` copies of the elements ``ids`` of ``kind`` in
+        ``target`` (see :mod:`.paste`), one undo step named after them; the ids of the copies.
+        A group typed for new group addresses that does not exist yet is made first, an undo
+        step of its own. Raises ``PasteError`` when the paste cannot be made."""
+        paster = self._paster()
+        if paster is None or not ids:
+            return []
+        if options.group_addresses is GroupAddressCopy.CREATE_NEW:
+            with self.one_undo_step():
+                paster.target_range(options, create=True)
+        with self.one_undo_step(paster.label(kind, ids, target)):
+            created = paster.paste(kind, ids, target, options)
+        self._log.info("pasted", kind=kind, sources=len(ids), copies=len(created))
+        return created
+
+    def paste_names(self, kind: PasteKind, ids: list[int]) -> list[str]:
+        """The names of the elements a paste copies, as the Paste Special dialog lists them."""
+        paster = self._paster()
+        return paster.names(kind, ids) if paster is not None else []
+
+    def paste_target_name(self, target: PasteTarget) -> str:
+        """The name of the place a paste copies to."""
+        paster = self._paster()
+        return paster.target_name(target) if paster is not None else ""
+
+    def _paste_device(
+        self,
+        source: "DeviceRow",
+        segment_id: int,
+        number: int | None,
+        space_id: int | None,
+    ) -> int | None:
+        """A device like ``source`` (its product, application and parameter values) in the
+        segment with the device number (None: none), in the building part ``space_id``."""
+        if self._pid is None:
+            return None
+        app = self._resolve_app(
+            source.hardware2program_ref_id, source.application_program_ref_id
+        )
+        if app is None:
+            self._log.warning("cannot copy: application not resolved", device=source.id)
+            return None
+        return self.add_device(
+            source.product_ref_id,
+            source.hardware2program_ref_id,
+            source.name,
+            app,
+            segment_id=segment_id,
+            address=number,
+            no_address=number is None,
+            parameters=[(p.ref_id, p.value) for p in source.parameters],
+            product=DeviceProduct(
+                product_name=source.product_name,
+                hardware_name=source.hardware_name,
+                order_number=source.order_number,
+                manufacturer_name=source.manufacturer_name,
+            ),
+            secure_commissioning=self._svc.secure_commissioning(self._pid, source.id),
+            space_id=space_id,
+        )
 
     def jump_to(self, event_id: int) -> None:
         if self._pid is None:

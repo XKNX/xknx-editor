@@ -2757,3 +2757,81 @@ msgstr "セグメントを移動"
 
 msgid "Move function"
 msgstr "機能を移動"
+
+msgid "Paste Special"
+msgstr "形式を選択して貼り付け"
+
+msgid "Number of Items"
+msgstr "アイテム数"
+
+msgid "Don't copy"
+msgstr "コピーしない"
+
+msgid "Keep"
+msgstr "保持"
+
+msgid "Create new group address in middle group"
+msgstr "中間グループに新しいグループ・アドレスを作成"
+
+msgid "Create new group address in main group"
+msgstr "メイン・グループに新しいグループ・アドレスを作成"
+
+msgid "Create new group address in group range"
+msgstr "グループ範囲に新しいグループ・アドレスを作成"
+
+msgid "Generate Address"
+msgstr "アドレスの生成"
+
+msgid "Fill up (use first free)"
+msgstr "埋める (最初の空き)"
+
+msgid "Append"
+msgstr "末尾に追加"
+
+msgid "Start with"
+msgstr "開始値"
+
+msgid "Enter a middle group, e.g. 1/2."
+msgstr "中間グループを入力してください (例: 1/2)。"
+
+msgid "Enter a main group, e.g. 1."
+msgstr "メイン・グループを入力してください (例: 1)。"
+
+msgid "The group has too few free group addresses for the copies."
+msgstr "このグループにはコピーに必要な空きグループ・アドレスが足りません。"
+
+msgid "The maximum number of group ranges has been reached."
+msgstr "グループ範囲の最大数に達しました。"
+
+msgid "There is no group for the new group addresses."
+msgstr "新しいグループ・アドレス用のグループがありません。"
+
+msgid "Copied '{name}' to '{target}'."
+msgstr "'{name}' を '{target}' にコピーしました。"
+
+msgid "Copied {count} devices to '{target}'."
+msgstr "{count} 台のデバイスを '{target}' にコピーしました。"
+
+msgid "Copied {count} building parts to '{target}'."
+msgstr "{count} 個の建物部分を '{target}' にコピーしました。"
+
+msgid "Copied {count} trades to '{target}'."
+msgstr "{count} 個のトレードを '{target}' にコピーしました。"
+
+msgid "Copied {count} functions to '{target}'."
+msgstr "{count} 個の機能を '{target}' にコピーしました。"
+
+msgid "Copied {count} group addresses to '{target}'."
+msgstr "{count} 個のグループ・アドレスを '{target}' にコピーしました。"
+
+msgid "Copied {count} middle groups to '{target}'."
+msgstr "{count} 個の中間グループを '{target}' にコピーしました。"
+
+msgid "Copied {count} main groups to '{target}'."
+msgstr "{count} 個のメイン・グループを '{target}' にコピーしました。"
+
+msgid "Copied {count} lines to '{target}'."
+msgstr "{count} 本のラインを '{target}' にコピーしました。"
+
+msgid "Copied {count} segments to '{target}'."
+msgstr "{count} 個のセグメントを '{target}' にコピーしました。"

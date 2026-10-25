@@ -26,6 +26,12 @@ from editor_gui.plugins.project.ga_name_template import (
 )
 from editor_gui.plugins.project.medium_text import medium_error_text
 from editor_gui.plugins.project.online_runner import OnlineButtonRunner
+from editor_gui.plugins.project.paste import (
+    PasteError,
+    PasteKind,
+    PasteTarget,
+    paste_error_text,
+)
 from editor_gui.plugins.project.program_queue import (
     ProgramQueue,
     QueueItem,
@@ -59,6 +65,7 @@ from editor_gui.plugins.project.ui.device_compare import DeviceComparePanel
 from editor_gui.plugins.project.ui.element_details import ElementDetailsPanel
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.memory_preview import MemoryPreviewWindow
+from editor_gui.plugins.project.ui.paste_special import PasteSpecialDialog
 from editor_gui.plugins.project.ui.plugin_params_panel import PluginParamsPanel
 from editor_gui.plugins.project.ui.preflight_result import PreflightResultWindow
 from editor_gui.plugins.project.ui.program_queue import ProgramQueuePanel
@@ -88,6 +95,7 @@ from editor_gui.widgets.icons import (
 from xknxeditor.prod.baggage import Baggages
 from xknxeditor.prod.errors import ArchiveError
 from xknxeditor.proj.core.medium import MediumError
+from xknxeditor.proj.core.paste import PasteOptions
 
 if TYPE_CHECKING:
     from concurrent.futures import Future
@@ -253,6 +261,7 @@ class ProjectPlugin:
                 api.project.move_segment(segment, line)
             ),
             one_undo_step=api.project.one_undo_step,
+            paste_dialog=self._paste_dialog("topology"),
         )
         self._compare_panel = DeviceComparePanel(
             get_devices=lambda: api.project.devices,
@@ -401,6 +410,7 @@ class ProjectPlugin:
             on_move_range=api.project.move_group_range,
             notify=lambda text: api.notify(text) if api.notify is not None else None,
             one_undo_step=api.project.one_undo_step,
+            paste_dialog=self._paste_dialog("group_addresses"),
         )
 
         self._element_details = ElementDetailsPanel(
@@ -484,6 +494,7 @@ class ProjectPlugin:
             get_space_devices=api.project.get_space_devices,
             notify=api.notify if api.notify is not None else lambda _t: None,
             one_undo_step=api.project.one_undo_step,
+            paste_dialog=self._paste_dialog("buildings"),
         )
 
         self._project_info_panel = ProjectInfoPanel(
@@ -1980,6 +1991,32 @@ class ProjectPlugin:
         """Tell the user why an edit was refused (``reason``; None: it was not)."""
         if reason and self._api.notify is not None:
             self._api.notify(reason)
+
+    def _paste_dialog(self, dialog_id: str) -> PasteSpecialDialog:
+        """The Paste Special dialog of the tree panel ``dialog_id``."""
+        project = self._api.project
+        return PasteSpecialDialog(
+            dialog_id,
+            group_style=lambda: project.group_address_style,
+            group_ranges=project.get_group_range_tree,
+            names=project.paste_names,
+            on_paste=self._paste,
+            notify=self._report,
+        )
+
+    def _paste(
+        self,
+        kind: PasteKind,
+        ids: list[int],
+        target: PasteTarget,
+        options: PasteOptions,
+    ) -> str | None:
+        """Paste the copies the Paste Special dialog asked for; the reason when it cannot."""
+        try:
+            self._api.project.paste(kind, ids, target, options)
+        except PasteError as exc:
+            return paste_error_text(exc)
+        return None
 
     def _handle_name_change(self, device: "Device", new_name: str) -> None:
         old_name = device.name
