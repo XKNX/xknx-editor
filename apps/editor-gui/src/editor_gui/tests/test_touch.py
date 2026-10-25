@@ -24,6 +24,8 @@ class FakeUi:
         self.frames = 0
         self.scrolled = [0.0, 0.0]
         self.room = True
+        # The window under the pointer.
+        self.window = 1
 
     def frame(self) -> int:
         return self.frames
@@ -49,6 +51,9 @@ class FakeUi:
         self.scrolled[1] += dy
         return self.room
 
+    def pointer_window(self) -> int:
+        return self.window
+
     def buttons(self) -> list[tuple[Any, ...]]:
         return [c for c in self.calls if c[0] == "button"]
 
@@ -67,6 +72,12 @@ def finger(
     gestures.handle(event, ms / 1000.0)
 
 
+def _frames(g: TouchGestures, ui: FakeUi, count: int) -> None:
+    for _ in range(count):
+        ui.frames += 1
+        g.step(0.0)
+
+
 def test_tap_clicks_at_the_release() -> None:
     ui = FakeUi()
     g = TouchGestures(ui)
@@ -74,8 +85,35 @@ def test_tap_clicks_at_the_release() -> None:
     assert ui.calls == [("move", 10, 20)]
     finger(g, ui, "move", 12, 21)
     finger(g, ui, "up", 12, 21)
+    # The release waits until the frame after the press shows what it opened.
+    assert ui.buttons() == [("button", 0, True)]
+    assert g.active
+    _frames(g, ui, 2)
     assert ui.buttons() == [("button", 0, True), ("button", 0, False)]
-    assert ui.calls[-1] == ("leave",)
+    assert ui.calls[-2:] == [("button", 0, False), ("leave",)]
+    assert not g.active
+
+
+def test_tap_does_not_click_what_its_press_opened_under_the_finger() -> None:
+    """A submenu at the screen's edge opens over the finger: the release does not click the
+    item of it under the finger (it would open the Customize Theme window)."""
+    ui = FakeUi()
+    g = TouchGestures(ui)
+    finger(g, ui, "down", 10, 20)
+    finger(g, ui, "up", 10, 20)
+    ui.window = 2  # the submenu the press opened
+    _frames(g, ui, 2)
+    assert ui.calls[-3:] == [("leave",), ("button", 0, False), ("leave",)]
+
+
+def test_next_finger_releases_a_waiting_tap() -> None:
+    ui = FakeUi()
+    g = TouchGestures(ui)
+    finger(g, ui, "down", 10, 20)
+    finger(g, ui, "up", 10, 20)
+    finger(g, ui, "down", 30, 40)
+    assert ui.buttons() == [("button", 0, True), ("button", 0, False)]
+    assert ui.calls[-1] == ("move", 30, 40)
 
 
 def test_swipe_scrolls_and_never_presses() -> None:

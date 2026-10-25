@@ -120,6 +120,7 @@ from editor_gui.widgets.dialog import (
     focus_when_appearing,
     follow_screen,
     outlined_tabs,
+    screen_room,
     tab_page,
 )
 from editor_gui.widgets.dpi import px, px_vec2
@@ -2296,18 +2297,22 @@ class KnxGuiApp:
             imgui.open_popup(S.PROGRESS_TITLE)
             self._progress_requested = False
         # Keep auto-resize (height fits content) but enforce a comfortable minimum width so long
-        # device names in the status line don't wrap into a cramped, tall popup.
+        # device names in the status line don't wrap into a cramped, tall popup; on a phone no
+        # wider than its screen.
+        room = screen_room()
         imgui.set_next_window_size_constraints(
-            px_vec2(560.0, 0.0), imgui.ImVec2(1.0e9, 1.0e9)
+            imgui.ImVec2(min(px(560.0), room), 0.0), imgui.ImVec2(1.0e9, 1.0e9)
         )
         if not begin_dialog(S.PROGRESS_TITLE):
             return
         imgui.text_wrapped(self._progress_text)
         elapsed = time.time() - self._progress_started_at
         fraction = self._progress_fraction
-        # The window's content width, at least 520 px: a stretch (-1) bar inside an auto-resizing
-        # modal feeds back and shrinks it, a fixed width leaves a wider margin on the right.
-        bar_size = imgui.ImVec2(max(px(520.0), imgui.get_content_region_avail().x), 0.0)
+        # The window's content width, at least 520 px (or what the screen leaves): a stretch (-1)
+        # bar inside an auto-resizing modal feeds back and shrinks it, a fixed width leaves a
+        # wider margin on the right.
+        least = min(px(520.0), room - 2 * imgui.get_style().window_padding.x)
+        bar_size = imgui.ImVec2(max(least, imgui.get_content_region_avail().x), 0.0)
         if fraction is not None:
             fraction = max(0.0, min(1.0, fraction))
             imgui.progress_bar(fraction, bar_size, f"{fraction * 100:0.0f}%")

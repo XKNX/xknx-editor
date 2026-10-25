@@ -1,7 +1,8 @@
 """Touch input of the browser UI: a finger works like the mouse where that fits, and like on a
 touch screen where the mouse has nothing alike.
 
-- A tap clicks.
+- A tap clicks. What its press opens under the finger (a submenu at the screen's edge, a
+  drop-down list) is not clicked by its release.
 - A swipe scrolls the list or panel under the finger, with momentum, in the direction it
   started in (up and down, or sideways); sideways on a tab bar it moves the tabs. Where nothing
   scrolls that way, or the finger is on a scroll bar, a window's title or something that shows a
@@ -80,6 +81,16 @@ class TouchUi(Protocol):
         the window is gone)."""
         ...
 
+    def pointer_window(self) -> int:
+        """The window under the pointer as seen in the last frame (its root window's id), 0 for
+        none."""
+        ...
+
+
+# Frames a tap's release waits after its press: the press is handled in the first, what it
+# opens is drawn there, and the frame after it finds that under the pointer.
+_TAP_RELEASE_FRAMES = 2
+
 
 class TouchGestures:
     """One finger's gestures; see the module."""
@@ -99,11 +110,14 @@ class TouchGestures:
         self._last_move = 0.0
         self._flinging = False
         self._fling_time = 0.0
+        # A tap pressed and not released yet: the frame it pressed in and the window that was
+        # under the finger then.
+        self._tap: tuple[int, int] | None = None
 
     @property
     def active(self) -> bool:
-        """A finger is down, or the content still moves on."""
-        return self._state != "idle" or self._flinging
+        """A finger is down, a tap waits for its release, or the content still moves on."""
+        return self._state != "idle" or self._flinging or self._tap is not None
 
     def needs_frame(self, event: dict[str, Any]) -> bool:
         """Whether ``event`` has to wait for the next frame: whether a swipe scrolls depends on
@@ -122,6 +136,8 @@ class TouchGestures:
         y = float(event.get("y", self._last[1]))
         ui = self._ui
         if phase == "down":
+            # The next finger comes before the last tap's release: release it now.
+            self._release_tap(away=False)
             self._flinging = False
             self._target = None
             self._pending = (0.0, 0.0)
@@ -169,9 +185,9 @@ class TouchGestures:
             return
         if phase == "up":
             if self._state == "touched":
+                # Released once it is clear what the press opened (see step).
                 ui.button(0, True)
-                ui.button(0, False)
-                ui.leave()
+                self._tap = (ui.frame(), ui.pointer_window())
             elif self._state == "hold":
                 # A long press: the right button.
                 ui.button(1, True)
@@ -197,8 +213,14 @@ class TouchGestures:
             self._state = "idle"
 
     def step(self, now: float) -> None:
-        """Once per frame (``now`` in seconds, any clock): scroll by the finger's movement, or
-        let the content move on after a swipe."""
+        """Once per frame (``now`` in seconds, any clock): release a tap, scroll by the finger's
+        movement, or let the content move on after a swipe."""
+        if self._tap is not None:
+            pressed, window = self._tap
+            if self._ui.frame() >= pressed + _TAP_RELEASE_FRAMES:
+                # Another window under the finger now: the press opened it there, and the
+                # release must not click what it shows.
+                self._release_tap(away=self._ui.pointer_window() != window)
         target = self._target
         if target is None:
             return
@@ -221,6 +243,16 @@ class TouchGestures:
         self._velocity = (vx * decay, vy * decay)
         if not moved or math.hypot(*self._velocity) < _FLING_STOP:
             self._flinging = False
+
+    def _release_tap(self, *, away: bool) -> None:
+        """Release a tap's press, with the pointer off the app when ``away``."""
+        if self._tap is None:
+            return
+        self._tap = None
+        if away:
+            self._ui.leave()
+        self._ui.button(0, False)
+        self._ui.leave()
 
     def _along(self, dx: float, dy: float) -> tuple[float, float]:
         """The part of a movement in the direction the swipe scrolls in."""
@@ -361,6 +393,13 @@ class ImGuiTouchUi:
 
     def cancel_press(self) -> None:
         imgui.internal.clear_active_id()
+
+    def pointer_window(self) -> int:
+        window = imgui.get_current_context().hovered_window
+        # The bindings type it as non-optional, but it can be None.
+        if window is None:  # pyright: ignore[reportUnnecessaryComparison]
+            return 0
+        return window.root_window.id_
 
     def scroll(self, target: str, dx: float, dy: float) -> bool:
         internal = imgui.internal

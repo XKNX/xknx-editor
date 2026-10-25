@@ -10,6 +10,7 @@ from contextlib import contextmanager
 from imgui_bundle import imgui
 from imgui_bundle.imgui import internal
 
+from editor_gui.widgets.backgrounds import child_background, content_background
 from editor_gui.widgets.dpi import px
 
 # Space left and right of a node's arrow, at 100 % scaling.
@@ -79,6 +80,19 @@ def leaf_shift(*, nodes: bool = False) -> float:
     label: selectables, or leaf tree nodes with ``nodes`` (they keep the room of an arrow)."""
     shift = px(_LEAF_INSET) - imgui.get_style().indent_spacing
     return shift if nodes else shift + label_offset()
+
+
+def begin_tree_area(str_id: str, height: float = 0.0) -> bool:
+    """The area a panel's tree scrolls in below its filter box: the rest of the panel (or
+    ``height``), scrolling sideways too when names are wider than the panel (a phone). End it
+    with ``imgui.end_child()`` whatever this returns."""
+    with child_background(content_background()):
+        return imgui.begin_child(
+            str_id,
+            imgui.ImVec2(0.0, height),
+            0,
+            imgui.WindowFlags_.horizontal_scrollbar,
+        )
 
 
 @contextmanager

@@ -19,12 +19,11 @@ from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.devices import render_read_device_item
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
 from editor_gui.plugins.project.ui.status_field import USAGE_ROWS as _USAGE_ROWS
-from editor_gui.widgets.backgrounds import fill_content_background
 from editor_gui.widgets.combo import combo
 from editor_gui.widgets.description import render_description, render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
-from editor_gui.widgets.tree import leaf_rows, tree_node
+from editor_gui.widgets.tree import begin_tree_area, leaf_rows, tree_node
 from xknxeditor.proj.core.space_rules import ROOM, child_types, holds_devices
 
 if TYPE_CHECKING:
@@ -243,7 +242,13 @@ class SpacesPanel:
             "##spaces_filter", S.SPACES_FILTER_HINT, self._filter_text
         )
         flt = self._filter_text.strip().lower()
-        fill_content_background()
+        begin_tree_area("##spaces_tree")
+        self._render_tree(tree, flt)
+        imgui.end_child()
+        self._config_dialog.render()
+
+    def _render_tree(self, tree: list["SpaceInfo"], flt: str) -> None:
+        """The buildings and trades below the filter box, with their menus and dialogs."""
         # "Buildings" holds the buildings, "Trades" the trades: both open by default.
         flags = imgui.TreeNodeFlags_.default_open
         buildings_open = tree_node(f"{S.SPACES_ROOT_BUILDINGS}##spaces_root", flags)
@@ -264,7 +269,6 @@ class SpacesPanel:
             imgui.tree_pop()
         self._render_trades(flt)
         self._render_unassigned_section()
-        self._config_dialog.render()
 
     def _start_add(self, add_type: str, parent: int | None, parent_name: str) -> None:
         """Prepare the "Add …" dialog for ``add_type`` (a space type or ``_TRADE``) below

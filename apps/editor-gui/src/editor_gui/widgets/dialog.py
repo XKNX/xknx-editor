@@ -86,11 +86,15 @@ def _fit_screen(title: str | None = None, width: float | None = None) -> int:
     return imgui.WindowFlags_.horizontal_scrollbar if wanted >= room.x - 1.0 else 0
 
 
+def screen_room() -> float:
+    """The width a dialog can have on the screen (a phone's is narrow), in pixels."""
+    viewport = imgui.get_main_viewport()
+    return max(viewport.size.x - 2 * px(_SCREEN_MARGIN), px(160))
+
+
 def _screen_room_width() -> float:
     """The width a dialog can have on the screen, in unscaled pixels (as :func:`_fit_screen`)."""
-    viewport = imgui.get_main_viewport()
-    room = max(viewport.size.x - 2 * px(_SCREEN_MARGIN), px(160))
-    return room / px(1.0)
+    return screen_room() / px(1.0)
 
 
 def _near(a: tuple[float, float], b: tuple[float, float]) -> bool:

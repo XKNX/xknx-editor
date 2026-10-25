@@ -9,11 +9,10 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.config_dialog import DeviceConfigDialog
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
-from editor_gui.widgets.backgrounds import fill_content_background
 from editor_gui.widgets.description import render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px
-from editor_gui.widgets.tree import leaf_rows, tree_node
+from editor_gui.widgets.tree import begin_tree_area, leaf_rows, tree_node
 from xknxeditor.proj.core.medium import MEDIUM_TP, medium_name
 
 TreeDevice = Device | UnloadedDevice
@@ -167,8 +166,18 @@ class DevicesPanel:
             "##device_filter", S.DEVICE_FILTER_HINT, self._filter_text
         )
         flt = self._filter_text.strip().lower()
-        fill_content_background()
+        begin_tree_area("##devices_tree")
+        self._render_tree(devices, areas, device_tree, flt)
+        imgui.end_child()
 
+    def _render_tree(
+        self,
+        devices: list[TreeDevice],
+        areas: list[Area],
+        device_tree: dict[int, dict[int, list[TreeDevice]]],
+        flt: str,
+    ) -> None:
+        """The topology below the filter box, with its menus and dialogs."""
         if not areas and not devices:
             imgui.text_disabled(S.DEVICE_EMPTY_HINT)
 

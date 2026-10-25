@@ -18,14 +18,13 @@ from editor_gui.plugins.project.strings import S
 from editor_gui.plugins.project.ui._filter import filter_box
 from editor_gui.plugins.project.ui.group_value import GroupValueActions
 from editor_gui.plugins.project.ui.move_menu import render_move_menu
-from editor_gui.widgets.backgrounds import child_background, content_background
 from editor_gui.widgets.description import secure_icon, secure_icon_width
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_value import GroupValueBus
 from editor_gui.widgets.tables import begin_data_table, table_header_menu
 from editor_gui.widgets.text_util import text_clipped_tooltip
-from editor_gui.widgets.tree import leaf_rows, tree_node
+from editor_gui.widgets.tree import begin_tree_area, leaf_rows, tree_node
 from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
 
 if TYPE_CHECKING:
@@ -205,9 +204,7 @@ class GroupAddressesPanel:
 
         avail = imgui.get_content_region_avail()
         tree_height = max(avail.y * 0.6, 0.0)
-        with child_background(content_background()):
-            tree_open = imgui.begin_child("##ga_tree", imgui.ImVec2(0.0, tree_height))
-        if tree_open:
+        if begin_tree_area("##ga_tree", tree_height):
             # The context menu must live in the same window as the tree — begin_child is its own
             # window, so a right-click here does NOT reach the panel-level menu above (that one only
             # fires in the area below the tree). Register it inside the child too, like the Devices
