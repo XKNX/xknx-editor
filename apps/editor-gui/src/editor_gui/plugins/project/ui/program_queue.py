@@ -190,7 +190,8 @@ class ProgramQueuePanel:
             else:
                 imgui.progress_bar(-1.0 * float(imgui.get_time()), bar, "")
             return
-        progress = self._get_progress()
+        # While it waits for its connection, the bus progress is not its own.
+        progress = None if self._is_connecting(item) else self._get_progress()
         if progress is not None and progress[1] > 0:
             imgui.progress_bar(
                 progress[0] / progress[1], bar, f"{progress[0]}/{progress[1]}"
