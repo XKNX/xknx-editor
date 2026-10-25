@@ -2738,3 +2738,9 @@ msgstr "De verrichting kon niet worden uitgevoerd, omdat het mediumtype van de k
 
 msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
 msgstr "De verrichting kon niet worden uitgevoerd, omdat dit apparaat medium '{above}' (hierboven) aan medium '{below}' (hieronder) koppelt, maar het mediumtype van het onderste segment is '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Project van de bus herstellen"
+
+msgid "Devices in Programming Mode"
+msgstr "Apparaten in programmeermodus"

@@ -2700,3 +2700,9 @@ msgstr "このミディアムタイプのカプラ デバイスはサブセグ�
 
 msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
 msgstr "この操作は完了できません。このデバイスは(上に) メディア '{above}' と接続し、(下に) メディア '{below}' と接続するものですが、下に接続するメディアタイプは '{segment}' です。"
+
+msgid "Recover Project from Bus"
+msgstr "バスからプロジェクトを復元"
+
+msgid "Devices in Programming Mode"
+msgstr "プログラミング・モードのデバイス"

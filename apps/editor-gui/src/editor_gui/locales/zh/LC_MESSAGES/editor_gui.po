@@ -100,9 +100,6 @@ msgstr "正在编程 {address}…"
 msgid "Reading {address}…"
 msgstr "正在读取 {address}…"
 
-msgid "Testing {address}…"
-msgstr "正在测试 {address}…"
-
 msgid "Programming complete"
 msgstr "编程完成"
 

@@ -2700,3 +2700,9 @@ msgstr "Operasjonen kunne ikke utføres fordi type koblinger som samsvarer med b
 
 msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
 msgstr "Operasjonen kunne ikke utføres, fordi denne enheten har medium '{above}' (høyere) til medium '{below}' (under), men middels typen av det nedre segmentet er '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Gjenopprett prosjekt fra bussen"
+
+msgid "Devices in Programming Mode"
+msgstr "Enheter i programmeringsmodus"

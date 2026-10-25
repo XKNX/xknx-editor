@@ -2700,3 +2700,9 @@ msgstr "L'opération n'a pas pu être exécutée, car le type de média ne corre
 
 msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
 msgstr "L'opération n'a pas pu être exécutée, car ce participant couple le média '{above}' (ci-dessus) au média '{below}' (ci-dessous), mais le segment ci-dessous est '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Récupérer le projet depuis le bus"
+
+msgid "Devices in Programming Mode"
+msgstr "Participants en mode programmation"

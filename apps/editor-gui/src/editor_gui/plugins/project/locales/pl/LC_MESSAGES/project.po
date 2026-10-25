@@ -2700,3 +2700,9 @@ msgstr "Operacja nie mogła zostać wykonana, ponieważ medium sprzęgła odpowi
 
 msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
 msgstr "Operacja nie mogła zostać wykonana, ponieważ to urządzenie łączy medium '{above}' (linia nadrzędna) z medium '{below}' (linia podrzędna), a ustawione medium linii podrzędnej to '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Odzyskaj projekt z magistrali"
+
+msgid "Devices in Programming Mode"
+msgstr "Urządzenia w trybie programowania"

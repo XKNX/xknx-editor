@@ -100,9 +100,6 @@ msgstr "{address}をプログラム中…"
 msgid "Reading {address}…"
 msgstr "{address}を読み込み中…"
 
-msgid "Testing {address}…"
-msgstr "{address}をテスト中…"
-
 msgid "Programming complete"
 msgstr "プログラム完了"
 

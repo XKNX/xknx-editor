@@ -2700,3 +2700,9 @@ msgstr "L'operazione non può essere eseguita, perché il tipo di mezzo trasmiss
 
 msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
 msgstr "L'operazione non può essere eseguita, perché questo dispositivo accoppia il mezzo trasmissivo '{above}' (sopra) al mezzo '{below}' (sotto), ma il segmento sotto è '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Recupera progetto dal bus"
+
+msgid "Devices in Programming Mode"
+msgstr "Dispositivi in modalità di programmazione"

@@ -100,9 +100,6 @@ msgstr "Προγραμματισμός {address}…"
 msgid "Reading {address}…"
 msgstr "Ανάγνωση {address}…"
 
-msgid "Testing {address}…"
-msgstr "Έλεγχος {address}…"
-
 msgid "Programming complete"
 msgstr "Ο προγραμματισμός ολοκληρώθηκε"
 

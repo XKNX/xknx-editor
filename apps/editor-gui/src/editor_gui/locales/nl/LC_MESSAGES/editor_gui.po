@@ -381,9 +381,6 @@ msgstr "Geen project geopend"
 msgid "Programming {address}…"
 msgstr "{address} wordt geprogrammeerd…"
 
-msgid "Testing {address}…"
-msgstr "{address} wordt getest…"
-
 msgid "Programming complete"
 msgstr "Programmeren voltooid"
 

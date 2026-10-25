@@ -85,6 +85,7 @@ from editor_gui.plugins.project import ProjectPlugin, ProjectService
 from editor_gui.plugins.project.knxproj_manufacturer import collect_manufacturer_bundle
 from editor_gui.plugins.project.space_text import space_type_name
 from editor_gui.plugins.project.strings import S as PROJECT_S
+from editor_gui.plugins.project.ui.program_queue import bus_operation_text
 from editor_gui.plugins.recover import RecoverPlugin
 from editor_gui.plugins.signing import SigningPlugin
 from editor_gui.plugins.timeline import TimelinePlugin
@@ -3551,7 +3552,7 @@ class KnxGuiApp:
             elif kind == "device_info":
                 text = S.STATUS_READING.format(address=address)
             else:
-                text = S.STATUS_TESTING.format(address=address)
+                text = bus_operation_text(kind, address)
             self._status_part(text, imgui.ImVec4(0.95, 0.75, 0.2, 1.0))
         elif self._connection_service.not_connected_notice():
             # A connection-requiring feature (program/test/send) was just refused:
@@ -4790,7 +4791,6 @@ class KnxGuiApp:
                 f"{_DOCK_LABELS['operations']()}###operations"
             )
         self._render_command_palette()
-        self._render_bus_operation_overlay()
         self._render_toasts()
         self._keep_dialog_open()
 
@@ -4811,44 +4811,6 @@ class KnxGuiApp:
                 if _dock_window_name(window) in self._focus_after_dialog:
                     window.focus_window_at_next_frame = True
             self._focus_after_dialog = []
-
-    def _render_bus_operation_overlay(self) -> None:
-        """Non-blocking progress overlay shown while a device is being tested. Determinate bar from the
-        operation's (done, total); indeterminate animated bar until totals are known."""
-        busy = self._connection_service.busy_operation
-        if busy is None:
-            return
-        kind, address = busy
-        if kind in ("script", "program", "device_info"):
-            return  # the Operations panel shows this op's progress instead
-        label = S.STATUS_TESTING.format(address=address)
-        vp = imgui.get_main_viewport()
-        pos = imgui.ImVec2(
-            vp.work_pos.x + vp.work_size.x * 0.5,
-            vp.work_pos.y + vp.work_size.y - px(12.0),
-        )
-        imgui.set_next_window_pos(pos, imgui.Cond_.always, imgui.ImVec2(0.5, 1.0))
-        imgui.set_next_window_bg_alpha(0.9)
-        flags = (
-            imgui.WindowFlags_.no_decoration
-            | imgui.WindowFlags_.no_inputs
-            | imgui.WindowFlags_.no_saved_settings
-            | imgui.WindowFlags_.always_auto_resize
-            | imgui.WindowFlags_.no_focus_on_appearing
-            | imgui.WindowFlags_.no_nav
-            | imgui.WindowFlags_.no_docking
-        )
-        if imgui.begin("##bus_operation", None, flags)[0]:
-            imgui.push_style_color(imgui.Col_.text, imgui.ImVec4(0.95, 0.75, 0.2, 1.0))
-            imgui.text(label)
-            imgui.pop_style_color()
-            bar = hello_imgui.em_to_vec2(18.0, 0.0)
-            prog = self._connection_service.busy_progress
-            if prog is not None and prog[1] > 0:
-                imgui.progress_bar(prog[0] / prog[1], bar, f"{prog[0]}/{prog[1]}")
-            else:
-                imgui.progress_bar(-1.0 * float(imgui.get_time()), bar, "")
-        imgui.end()
 
     def _schema_incompat_devices(self, folders: list[str]) -> list[tuple[int, str]]:
         """(node_id, label) of project devices whose product/program is one of ``folders``.

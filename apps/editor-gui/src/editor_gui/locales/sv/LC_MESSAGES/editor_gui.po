@@ -100,9 +100,6 @@ msgstr "Programmerar {address}…"
 msgid "Reading {address}…"
 msgstr "Läser {address}…"
 
-msgid "Testing {address}…"
-msgstr "Testar {address}…"
-
 msgid "Programming complete"
 msgstr "Programmeringen klar"
 

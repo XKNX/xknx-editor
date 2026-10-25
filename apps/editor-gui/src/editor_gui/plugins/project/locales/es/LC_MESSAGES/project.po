@@ -2700,3 +2700,9 @@ msgstr "La operación no se pudo ejecutar, porque el tipo medio de dispositivo a
 
 msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
 msgstr "La operación no se pudo ejecutar, porque este dispositivo combina el medio '{above}' (superior) con el medio '{below}' (inferior), pero el tipo de medio del segmento inferior es '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Recuperar Proyecto desde el Bus"
+
+msgid "Devices in Programming Mode"
+msgstr "Dispositivos en Modo Programación"

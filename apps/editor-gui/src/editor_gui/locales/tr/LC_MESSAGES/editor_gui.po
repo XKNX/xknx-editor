@@ -100,9 +100,6 @@ msgstr "Programlanıyor: {address}…"
 msgid "Reading {address}…"
 msgstr "Okunuyor: {address}…"
 
-msgid "Testing {address}…"
-msgstr "Test ediliyor: {address}…"
-
 msgid "Programming complete"
 msgstr "Programlama tamamlandı"
 

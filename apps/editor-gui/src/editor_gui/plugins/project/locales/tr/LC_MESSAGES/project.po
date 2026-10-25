@@ -2700,3 +2700,9 @@ msgstr "Bağlayıcının ortam tipi alt segmentler ile eşleşiyor ancak maksimu
 
 msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
 msgstr "İşlem gerçekleştirilemedi, bu cihaz ortam '{above}' (yukarıda) ile ortam '{below}' (aşağıda) arasında bağlantı sağlamaktadır ancak alt segmentin ortam tipi '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Projeyi Bus'tan Kurtar"
+
+msgid "Devices in Programming Mode"
+msgstr "Programlama Modundaki Cihazlar"

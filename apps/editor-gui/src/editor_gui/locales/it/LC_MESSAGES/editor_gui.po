@@ -100,9 +100,6 @@ msgstr "Programmazione di {address}…"
 msgid "Reading {address}…"
 msgstr "Lettura di {address}…"
 
-msgid "Testing {address}…"
-msgstr "Prova di {address}…"
-
 msgid "Programming complete"
 msgstr "Programmazione completata"
 

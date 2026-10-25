@@ -2700,3 +2700,9 @@ msgstr "Operationen kunne ikke udføres, fordi mediumtypen af koblingsanordninge
 
 msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
 msgstr "Operationen kunne ikke udføres, fordi denne enhed kobler medium '{above}' (ovenfor) til medium '{below}' (nedenfor), men mediumtypen i det nederste segment er '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Gendan projekt fra bus"
+
+msgid "Devices in Programming Mode"
+msgstr "Enheder i programmeringstilstand"

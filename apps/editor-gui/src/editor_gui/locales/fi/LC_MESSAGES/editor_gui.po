@@ -100,9 +100,6 @@ msgstr "Ohjelmoidaan {address}…"
 msgid "Reading {address}…"
 msgstr "Luetaan {address}…"
 
-msgid "Testing {address}…"
-msgstr "Testataan {address}…"
-
 msgid "Programming complete"
 msgstr "Ohjelmointi valmis"
 

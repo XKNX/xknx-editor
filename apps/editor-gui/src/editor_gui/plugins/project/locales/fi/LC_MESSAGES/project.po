@@ -2700,3 +2700,9 @@ msgstr "Toimintoa ei voitu suorittaa, koska liitäntälaitteen mediatyyppi\\n va
 
 msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
 msgstr "Toimenpidettä ei voitu suorittaa, koska tämä laite yhdistää median '{above}' (yllä) mediaan '{below}' (alla), mutta alemman segmentin mediatyyppi on '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Palauta projekti väylältä"
+
+msgid "Devices in Programming Mode"
+msgstr "Ohjelmointitilassa olevat laitteet"

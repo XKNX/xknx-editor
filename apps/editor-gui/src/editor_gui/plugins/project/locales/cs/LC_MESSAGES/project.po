@@ -2700,3 +2700,9 @@ msgstr "Operaci nebylo možno provést, protože typ média zařízení spojky o
 
 msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
 msgstr "Operaci nelze provést, protože toto zařízení napojuje médium '{above}' (výše) k médiu '{below}' (níže), avšak typ média dolního segmentu je '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Obnovit projekt ze sběrnice"
+
+msgid "Devices in Programming Mode"
+msgstr "Zařízení v programovacím režimu"

@@ -59,9 +59,6 @@ msgstr "Kein Projekt geöffnet"
 msgid "Programming {address}…"
 msgstr "Programmiere {address}…"
 
-msgid "Testing {address}…"
-msgstr "Teste {address}…"
-
 msgid "Programming complete"
 msgstr "Programmierung abgeschlossen"
 

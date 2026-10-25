@@ -37,7 +37,11 @@ class ProgramQueuePanel:
         on_cancel: Callable[[QueueItem], None],
         on_cancel_all: Callable[[], None],
         on_clear_history: Callable[[], None],
+        get_bus_operation: Callable[[], tuple[str, str] | None] = lambda: None,
     ) -> None:
+        """``get_bus_operation`` is the running bus operation the queue has no entry for
+        (kind and address, see ``bus_operation_text``): a device test, a restart, a scan …"""
+        self._get_bus_operation = get_bus_operation
         self._get_active = get_active
         self._get_history = get_history
         self._get_progress = get_progress
@@ -55,7 +59,7 @@ class ProgramQueuePanel:
 
     def render(self) -> None:
         # Active while operations run or wait, History once the last one has ended.
-        active = bool(self._get_active())
+        active = bool(self._get_active()) or self._get_bus_operation() is not None
         if active != self._was_active:
             self._was_active = active
             self._select = active
@@ -76,18 +80,35 @@ class ProgramQueuePanel:
 
     def _render_active(self) -> None:
         items = self._get_active()
+        bus_operation = self._get_bus_operation()
         imgui.begin_disabled(not items)
         if imgui.button(S.OPERATIONS_CANCEL_ALL):
             self._on_cancel_all()
         imgui.end_disabled()
         imgui.separator()
-        if not items:
+        if not items and bus_operation is None:
             imgui.text_disabled(S.OPERATIONS_NONE)
             return
         if imgui.begin_child("##active_list"):
+            if bus_operation is not None:
+                self._render_bus_operation(*bus_operation)
             for item in items:
                 self._render_item(item, active=True)
         imgui.end_child()
+
+    def _render_bus_operation(self, kind: str, address: str) -> None:
+        """A running bus operation started elsewhere (a device test, a restart, a scan …): what it
+        does and where, and how far it is."""
+        imgui.text(bus_operation_text(kind, address))
+        bar = imgui.ImVec2(-1.0, hello_imgui.em_size(1.0))
+        progress = self._get_progress()
+        if progress is not None and progress[1] > 0:
+            imgui.progress_bar(
+                progress[0] / progress[1], bar, f"{progress[0]}/{progress[1]}"
+            )
+        else:
+            imgui.progress_bar(-1.0 * float(imgui.get_time()), bar, "")
+        imgui.separator()
 
     def _render_history(self) -> None:
         items = self._get_history()
@@ -248,6 +269,31 @@ def _warning_icon() -> None:
         "!",
     )
     imgui.dummy(imgui.ImVec2(size, size))
+
+
+# The bus operations the queue has no entry for, by kind (see ConnectionService.begin_operation).
+def _bus_operation_names() -> dict[str, str]:
+    return {
+        "test": S.BTN_EVAL_DEVICE,
+        "restart": S.BTN_RESTART_DEVICE,
+        "reset": S.RESET_POPUP_TITLE,
+        "dali": S.EDITOR_TAB_DALI,
+        "siemens_dali": S.EDITOR_TAB_SIEMENS_DALI,
+        "siemens_dca": S.PLUGIN_PARAMS_PROGRAM_DCA,
+        "recover": S.OPERATION_RECOVER,
+        "scan_progmode": S.OPERATION_PROGRAMMING_MODE,
+    }
+
+
+# Addresses that only name a step of an operation, not where it runs.
+_STEPS = frozenset({"broadcast", "read-back", "verify"})
+
+
+def bus_operation_text(kind: str, address: str) -> str:
+    """A running bus operation as the Operations panel and the status bar name it: what it does
+    and where ("Recover Project from Bus 1.0.1..1.0.20")."""
+    name = _bus_operation_names().get(kind, kind)
+    return f"{name} {address}".strip() if address not in _STEPS else name
 
 
 def _tab_flags(selected: bool) -> int:

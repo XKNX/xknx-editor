@@ -2700,3 +2700,9 @@ msgstr "Операція не може бути виконана, оскільк
 
 msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
 msgstr "Операція не може бути виконана, тому що цей пристрій з'єднує середовище '{above}' (зверху) з середовищем '{below}' (внизу), але тип середовища передачі даних нижнього сегмента є '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Відновити проєкт із шини"
+
+msgid "Devices in Programming Mode"
+msgstr "Пристрої в режимі програмування"

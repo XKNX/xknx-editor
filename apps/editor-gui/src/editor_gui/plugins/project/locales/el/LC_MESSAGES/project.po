@@ -2700,3 +2700,9 @@ msgstr "Η λειτουργία δεν μπόρεσε να εκτελεστεί,
 
 msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
 msgstr "Η λειτουργία δεν μπόρεσε να εκτελεστεί, επειδή αυτή η συσκευή συνδέει το μέσο '{above}' (επάνω) στο μέσο '{below}' (κάτω), αλλά ο τύπος μέσου του παρακάτω τμήματος είναι '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Ανάκτηση Έργου από το Bus"
+
+msgid "Devices in Programming Mode"
+msgstr "Συσκευές σε Κατάσταση Προγραμματισμού"

@@ -3062,6 +3062,14 @@ class ProjectStrings:
         return _("Reading")
 
     @property
+    def OPERATION_RECOVER(self) -> str:
+        return _("Recover Project from Bus")
+
+    @property
+    def OPERATION_PROGRAMMING_MODE(self) -> str:
+        return _("Devices in Programming Mode")
+
+    @property
     def DEVICE_INFO_GENERAL(self) -> str:
         return _("General")
 

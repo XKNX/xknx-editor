@@ -118,6 +118,17 @@ def _run_now(fn: Callable[[], None]) -> None:
     fn()
 
 
+# Bus operations the programming queue starts and shows as its own entries.
+_QUEUED_OPERATIONS = frozenset({"script", "program", "device_info"})
+
+
+def _unqueued(operation: tuple[str, str] | None) -> tuple[str, str] | None:
+    """The running bus operation when the queue has no entry for it (a device test, a scan …)."""
+    if operation is None or operation[0] in _QUEUED_OPERATIONS:
+        return None
+    return operation
+
+
 def _project_version(device: "Device") -> int | None:
     """The version of the device's application in the project (from its id, ``...-26-...`` -> 38),
     else the application's own."""
@@ -149,6 +160,8 @@ class ProjectPlugin:
         self._get_selected_node_ids = get_selected_node_ids
         api.project.set_logger(Logger(api.log, "project"))
         self._button_runner = ButtonRunner(api.project, Logger(api.log, "project"))
+        # The unqueued bus operation the Operations panel was last brought to the front for.
+        self._shown_bus_operation: tuple[str, str] | None = None
         self._baggages: dict[tuple[str, str], Baggages] = {}
 
         # Programming queue: repeated "Program" presses serialise onto the single bus slot.
@@ -171,6 +184,7 @@ class ProjectPlugin:
             on_cancel=self._program_queue.cancel_item,
             on_cancel_all=self._program_queue.cancel_all,
             on_clear_history=self._program_queue.clear_history,
+            get_bus_operation=lambda: _unqueued(api.connection.busy_operation),
         )
         self._online_runner = OnlineButtonRunner(
             api.project,
@@ -2541,8 +2555,13 @@ class ProjectPlugin:
         self._program_queue.tick()
 
     def take_operations_focus(self) -> bool:
-        """Whether an operation was queued since the last call; selects the Active tab if so."""
-        if not self._program_queue.take_focus_request():
+        """Whether an operation was queued, or a bus operation without a queue entry started (a
+        device test, a scan …), since the last call; selects the Active tab if so."""
+        queued = self._program_queue.take_focus_request()
+        operation = _unqueued(self._api.connection.busy_operation)
+        started = operation is not None and operation != self._shown_bus_operation
+        self._shown_bus_operation = operation
+        if not (queued or started):
             return False
         self._program_queue_panel.select_active()
         return True

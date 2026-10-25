@@ -2700,3 +2700,9 @@ msgstr "Åtgärden kunde inte utföras, eftersom mediumtypen för anslutande app
 
 msgid "The operation could not be executed, because this device couples medium '{above}' (above) to medium '{below}' (below), but the medium type of the lower segment is '{segment}'."
 msgstr "Åtgärden kunde inte utföras, eftersom denna apparat kopplar medium '{above}' (ovan) till medium '{below}' (nedan) men mediumtypen i det lägre segmentet är '{segment}'."
+
+msgid "Recover Project from Bus"
+msgstr "Återskapa projekt från bussen"
+
+msgid "Devices in Programming Mode"
+msgstr "Apparater i programmeringsläge"
