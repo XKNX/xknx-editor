@@ -14,7 +14,12 @@ from editor_gui.plugins.project.ui.tree_drag import Dragged, drag_source, drop_t
 from editor_gui.widgets.description import render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import label_column_width, px
-from editor_gui.widgets.tree import begin_tree_area, leaf_rows, tree_node
+from editor_gui.widgets.tree import (
+    begin_tree_area,
+    context_menu,
+    leaf_rows,
+    tree_node,
+)
 from xknxeditor.proj.core.medium import MEDIUM_TP, medium_name
 
 TreeDevice = Device | UnloadedDevice
@@ -410,7 +415,7 @@ class TopologyPanel:
         opened = tree_node(f"{label}##segment_{segment.id}", flags)
         if imgui.is_item_clicked() and not imgui.is_item_toggled_open():
             self._select_element("segment", segment.id)
-        if imgui.begin_popup_context_item(f"##segment_ctx_{segment.id}"):
+        if context_menu(f"##segment_ctx_{segment.id}"):
             self._render_move_segment_menu(segment, line)
             imgui.separator()
             if imgui.menu_item(S.CONTEXT_DELETE, "", False)[0]:
@@ -457,7 +462,7 @@ class TopologyPanel:
         return render_device_marks(device.node_id, device.description)
 
     def _render_unloaded_device_context_menu(self, device: UnloadedDevice) -> None:
-        if imgui.begin_popup_context_item(f"##dev_ctx_{device.node_id}"):
+        if context_menu(f"##dev_ctx_{device.node_id}"):
             if (
                 device.individual_address
                 and imgui.menu_item(S.CONTEXT_COPY_ADDRESS, "", False)[0]
@@ -497,7 +502,7 @@ class TopologyPanel:
         self._on_select_devices(device, sorted(current))
 
     def _render_device_context_menu(self, device: Device) -> None:
-        if imgui.begin_popup_context_item(f"##dev_ctx_{device.node_id}"):
+        if context_menu(f"##dev_ctx_{device.node_id}"):
             label = self._device_display_name(device)
             if imgui.menu_item(S.CONTEXT_DUPLICATE, "", False)[0]:
                 self._config_dialog.open(device.node_id, label, "duplicate")
@@ -624,7 +629,7 @@ class TopologyPanel:
     def _render_area_context_menu(
         self, area: Area, lines: list[Line], main: Line | None
     ) -> None:
-        if imgui.begin_popup_context_item(f"##area_ctx_{area.id}"):
+        if context_menu(f"##area_ctx_{area.id}"):
             if area.number == 0 and imgui.menu_item(S.CONTEXT_ADD_AREA, "", False)[0]:
                 self._popup_area_number = self._next_area_number(self._get_areas())
                 self._popup_name = ""
@@ -649,7 +654,7 @@ class TopologyPanel:
             imgui.end_popup()
 
     def _render_line_context_menu(self, area: Area, line: Line) -> None:
-        if imgui.begin_popup_context_item(f"##line_ctx_{line.id}"):
+        if context_menu(f"##line_ctx_{line.id}"):
             if imgui.menu_item(S.CONTEXT_ADD_SEGMENT, "", False)[0]:
                 self._on_add_segment(line)
             if imgui.menu_item(S.CONTEXT_RENAME, "", False)[0]:

@@ -5578,12 +5578,14 @@ class ProjectService:
 
     @property
     @io_guarded(lambda: GroupAddressStyle.THREE_LEVEL)
+    @revision_cached
     def group_address_style(self) -> GroupAddressStyle:
         """The project's group-address style (three-level, two-level, free).
 
-        Read every frame by several panels, so it is IO-guarded: during a background import (which
-        rewrites the schema on a worker thread) it returns the default instead of querying the DB
-        mid-DDL, which would raise "malformed database schema"."""
+        Read every frame by several panels (the Group Addresses tree once per row), so it is cached
+        by revision and IO-guarded: during a background import (which rewrites the schema on a
+        worker thread) it returns the default instead of querying the DB mid-DDL, which would raise
+        "malformed database schema"."""
         if self._pid is None:
             return GroupAddressStyle.THREE_LEVEL
         return GroupAddressStyle(self._svc.project(self._pid).group_address_style)

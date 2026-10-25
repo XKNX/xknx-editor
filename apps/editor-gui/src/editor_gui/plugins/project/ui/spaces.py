@@ -25,7 +25,12 @@ from editor_gui.widgets.combo import combo
 from editor_gui.widgets.description import render_description, render_device_marks
 from editor_gui.widgets.dialog import begin_dialog, dialog_buttons, end_dialog
 from editor_gui.widgets.dpi import px, px_vec2
-from editor_gui.widgets.tree import begin_tree_area, leaf_rows, tree_node
+from editor_gui.widgets.tree import (
+    begin_tree_area,
+    context_menu,
+    leaf_rows,
+    tree_node,
+)
 from xknxeditor.proj.core.space_rules import ROOM, child_types, holds_devices
 
 if TYPE_CHECKING:
@@ -270,9 +275,7 @@ class SpacesPanel:
         # "Buildings" holds the buildings, "Trades" the trades: both open by default.
         flags = imgui.TreeNodeFlags_.default_open
         buildings_open = tree_node(f"{S.SPACES_ROOT_BUILDINGS}##spaces_root", flags)
-        if self._on_create_space is not None and imgui.begin_popup_context_item(
-            "##spaces_root_ctx"
-        ):
+        if self._on_create_space is not None and context_menu("##spaces_root_ctx"):
             if imgui.menu_item(S.SPACES_ADD_BUILDINGS, "", False)[0]:
                 self._start_add(child_types(None)[0], None, S.SPACES_ROOT_BUILDINGS)
                 self._pending_popup_id = _add_dialog("root")
@@ -450,7 +453,7 @@ class SpacesPanel:
         editing = (self._on_create_space, self._on_move_space, self._on_remove_space)
         if all(callback is None for callback in editing):  # editing disabled -> no menu
             return
-        if not imgui.begin_popup_context_item(f"##spctx{space.id}"):
+        if not context_menu(f"##spctx{space.id}"):
             return
         self._render_add_menu(space)
         if self._on_move_space is not None:
@@ -753,9 +756,7 @@ class SpacesPanel:
             or self._on_copy_config is not None
             or self._on_compare is not None
         )
-        if has_menu and imgui.begin_popup_context_item(
-            f"##spdev_ctx_{where}{device.id}"
-        ):
+        if has_menu and context_menu(f"##spdev_ctx_{where}{device.id}"):
             if (
                 trade_id is not None
                 and self._on_remove_trade_device is not None
@@ -823,9 +824,7 @@ class SpacesPanel:
         open_root = tree_node(
             f"{S.SPACES_ROOT_TRADES}##trades_root", imgui.TreeNodeFlags_.default_open
         )
-        if self._on_create_trade is not None and imgui.begin_popup_context_item(
-            "##trades_root_ctx"
-        ):
+        if self._on_create_trade is not None and context_menu("##trades_root_ctx"):
             if imgui.menu_item(S.TRADES_ADD, "", False)[0]:
                 self._start_add(_TRADE, None, S.SPACES_ROOT_TRADES)
                 self._pending_popup_id = _add_dialog("trades")
@@ -885,9 +884,7 @@ class SpacesPanel:
         imgui.tree_pop()
 
     def _render_trade_context_menu(self, trade: "TradeInfo", label: str) -> None:
-        if self._on_create_trade is None or not imgui.begin_popup_context_item(
-            f"##tradectx{trade.id}"
-        ):
+        if self._on_create_trade is None or not context_menu(f"##tradectx{trade.id}"):
             return
         if imgui.begin_menu(S.SPACES_ADD_MENU):
             if imgui.menu_item(S.TRADES_ADD_TRADES, "", False)[0]:
@@ -1009,7 +1006,7 @@ class SpacesPanel:
             self._selected_trade = None
             self._on_select_element("function", function.id)
         editable = self._on_rename_function is not None
-        if editable and imgui.begin_popup_context_item(f"##fnctx{function.id}"):
+        if editable and context_menu(f"##fnctx{function.id}"):
             if imgui.menu_item(S.SPACES_FN_RENAME, "", False)[0]:
                 self._rename_fn = function.id
                 self._rename_buf = function.name

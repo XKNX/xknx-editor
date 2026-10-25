@@ -1,6 +1,6 @@
 """Rows of the panel trees: a narrow margin around a node's arrow, and rows without an arrow
-(devices, group addresses) just inside the label of the node they belong to. Section headers with
-their title close to the arrow."""
+(devices, group addresses) just inside the label of the node they belong to, highlighted while
+their context menu is open. Section headers with their title close to the arrow."""
 
 from __future__ import annotations
 
@@ -95,7 +95,50 @@ def begin_tree_area(str_id: str, height: float = 0.0) -> bool:
         )
     if opened:
         _scroll_while_dragging()
+        _highlight_menu_row()
     return opened
+
+
+# The row whose context menu is open: the id of its tree area's window, its rectangle relative to
+# the window's scrolled content, and the frame it was seen in.
+_menu_row: tuple[int, tuple[float, float, float, float], int] | None = None
+
+
+def context_menu(str_id: str) -> bool:
+    """``imgui.begin_popup_context_item`` for the row just drawn in a tree area: while its menu is
+    open, the row keeps its hover highlight, so it is clear whose menu it is. End the menu with
+    ``imgui.end_popup()`` when this returns True."""
+    global _menu_row
+    window = internal.get_current_window()
+    low, high = imgui.get_item_rect_min(), imgui.get_item_rect_max()
+    if not imgui.begin_popup_context_item(str_id):
+        return False
+    # A tree node's highlight reaches to the right edge of the area, past its label.
+    right = max(high.x, window.work_rect.max.x)
+    x, y = window.pos.x - window.scroll.x, window.pos.y - window.scroll.y
+    _menu_row = (
+        window.id_,
+        (low.x - x, low.y - y, right - x, high.y - y),
+        imgui.get_frame_count(),
+    )
+    return True
+
+
+def _highlight_menu_row() -> None:
+    """Behind the rows of the tree area being drawn, the hover highlight of the row whose context
+    menu was open in the last frame."""
+    if _menu_row is None:
+        return
+    window = internal.get_current_window()
+    ident, (left, top, right, bottom), frame = _menu_row
+    if ident != window.id_ or frame < imgui.get_frame_count() - 1:
+        return
+    x, y = window.pos.x - window.scroll.x, window.pos.y - window.scroll.y
+    imgui.get_window_draw_list().add_rect_filled(
+        imgui.ImVec2(left + x, top + y),
+        imgui.ImVec2(right + x, bottom + y),
+        imgui.get_color_u32(imgui.Col_.header_hovered),
+    )
 
 
 # While something is dragged, the area scrolls when the pointer is this close to its top or bottom

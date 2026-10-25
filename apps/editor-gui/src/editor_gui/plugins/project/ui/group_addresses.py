@@ -26,7 +26,12 @@ from editor_gui.widgets.dpi import px
 from editor_gui.widgets.dpt_value import GroupValueBus
 from editor_gui.widgets.tables import begin_data_table, table_header_menu
 from editor_gui.widgets.text_util import text_clipped_tooltip
-from editor_gui.widgets.tree import begin_tree_area, leaf_rows, tree_node
+from editor_gui.widgets.tree import (
+    begin_tree_area,
+    context_menu,
+    leaf_rows,
+    tree_node,
+)
 from xknxeditor.proj.core.rich_text import parse_rich_text, plain_text
 
 if TYPE_CHECKING:
@@ -357,9 +362,11 @@ class GroupAddressesPanel:
         holds_addresses = self._folders_enabled() and (
             not is_root if middle else is_root
         )
-        inside = {ga.id for ga in node.group_addresses} | {c.id for c in node.children}
 
         def accepts(dragged: Dragged) -> bool:
+            inside = {ga.id for ga in node.group_addresses} | {
+                c.id for c in node.children
+            }
             if inside.issuperset(dragged.ids):
                 return False
             if dragged.kind == "group_address":
@@ -447,7 +454,7 @@ class GroupAddressesPanel:
 
     def _render_ga_context_menu(self, ga: object) -> None:
         # ga is a core GroupAddressInfo (id, text, name, datapoint_type, …).
-        if not imgui.begin_popup_context_item(f"##ga_ctx_{ga.id}"):  # type: ignore[attr-defined]
+        if not context_menu(f"##ga_ctx_{ga.id}"):  # type: ignore[attr-defined]
             return
         if imgui.menu_item(S.CONTEXT_RENAME, "", False)[0]:
             self._popup_ga_id = ga.id  # type: ignore[attr-defined]
@@ -546,7 +553,7 @@ class GroupAddressesPanel:
     def _render_range_context_menu(self, node: "GroupRangeInfo", is_root: bool) -> None:
         if self._on_rename_range is None:  # folder editing disabled
             return
-        if not imgui.begin_popup_context_item(f"##gr_ctx_{node.id}"):
+        if not context_menu(f"##gr_ctx_{node.id}"):
             return
         # Group addresses live in middle groups (ThreeLevel) or main groups (TwoLevel).
         if (
